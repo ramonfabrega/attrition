@@ -2073,7 +2073,7 @@ mod tests {
             (2000, 1, 2007),
             "the endpoints are leader 1's two cities"
         );
-        let van = &built.sim.caravans[1].slots[0];
+        let van = &built.sim.economy.caravans[1].slots[0];
         assert!(
             !van.making_road && van.search.is_none(),
             "the plan finished on 6170 and the parked search went with it"
@@ -4544,13 +4544,13 @@ mod tests {
             built.tick();
         }
         assert_eq!(built.sim.frame, 867);
-        let before = built.sim.ledgers[1].bucket;
+        let before = built.sim.economy.ledgers[1].bucket;
         assert_eq!(
             goody_cells(&built.sim).len(),
             7,
             "nothing has taken a goody through frame 866"
         );
-        assert_eq!(built.sim.ledgers[1].goody_box_resources, 0);
+        assert_eq!(built.sim.economy.ledgers[1].goody_box_resources, 0);
 
         built.tick();
         // The frame itself, against the trace: three of the lottery's draws
@@ -4586,7 +4586,7 @@ mod tests {
         assert_eq!(built.sim.units[u].pos.cell(), sim::world::Cell::new(45, 49));
 
         // The pile: fifty wealth, and nothing anywhere else.
-        let after = built.sim.ledgers[1].bucket;
+        let after = built.sim.economy.ledgers[1].bucket;
         let moved: Vec<(usize, i32)> = (0..6)
             .filter(|&g| after[g] != before[g])
             .map(|g| (g, after[g] - before[g]))
@@ -4597,7 +4597,7 @@ mod tests {
             "one good, `epoch[3] × GOODY_BOX_AGE + GOODY_BOX` of it, and player 1 \
              is on Science 1"
         );
-        assert_eq!(built.sim.ledgers[1].goody_box_resources, 50);
+        assert_eq!(built.sim.economy.ledgers[1].goody_box_resources, 50);
     }
 
     /// **A building's own line of sight, and the scout's path that reads

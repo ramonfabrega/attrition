@@ -210,7 +210,7 @@ impl GatherTileView for SimGatherTile<'_> {
     }
     fn mark_leader(&mut self) {
         let who = self.sim.units[self.u].owner;
-        self.sim.ledgers[who as usize].dirty = true;
+        self.sim.economy.ledgers[who as usize].dirty = true;
     }
     fn stand(&mut self) {
         self.sim.mark(crate::anim::SITE_STAND_GATHER);

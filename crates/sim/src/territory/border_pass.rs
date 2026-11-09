@@ -218,7 +218,7 @@ impl Sim {
                 // `compute_reg_territory`'s tail: `leader_flags |= 0x2000000`
                 // on every live leader, the economy's recompute flag.
                 finished_one = true;
-                for l in &mut self.ledgers {
+                for l in &mut self.economy.ledgers {
                     l.dirty = true;
                 }
             } else {

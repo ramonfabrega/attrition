@@ -108,24 +108,24 @@ impl Sim {
             // frame's income: `library who=1 2` at 600 is 2992 on run157's
             // first block, 605, where the level read at the last
             // reassembly still said 1392 (item 644, parked 633).
-            self.holdings[who].commerce =
+            self.economy.holdings[who].commerce =
                 self.tech[who].epoch[tech::Line::Commerce.index()].max(0) as usize;
             // And its wonder arm reads `has_wonder` there too: the
             // Pyramids `1/2026` activate on Great Lakes' sim-frame 17084
             // and who=1's food and wealth caps are 300, not 250, on 17085
             // (`docs/ECONOMY.md` §15).
-            self.holdings[who].wonders = self.wonders_held(player);
+            self.economy.holdings[who].wonders = self.wonders_held(player);
             // `do_gather`'s escrow arm reads `escrow_rate` on every frame,
             // and a human never escrows (`docs/AI.md` §98).
-            self.holdings[who].escrow_rate = if self.cities_state.nation[who].human {
+            self.economy.holdings[who].escrow_rate = if self.cities_state.nation[who].human {
                 [0; economy::RESOURCES]
             } else {
                 self.ai[who].census.escrow_rate
             };
             economy::process(
                 &self.tables.tuning,
-                &mut self.ledgers[who],
-                &self.holdings[who],
+                &mut self.economy.ledgers[who],
+                &self.economy.holdings[who],
                 player,
                 frame,
             );
@@ -144,8 +144,8 @@ impl Sim {
             // Tobacco on 6751 and the original's Tower drops from 100000
             // to **90909** on 6752, finishing at 7176 where this crate's
             // ran on (`docs/CITIES.md` §3.2).
-            let rare = self.holdings[who].rare_owned;
-            if self.ledgers[who].rare != rare {
+            let rare = self.economy.holdings[who].rare_owned;
+            if self.economy.ledgers[who].rare != rare {
                 // `Leader::calc_gather`'s own border arm, and it is one
                 // bit wide: the writer compares `rare.ptr[2] >> 7` before
                 // and after and calls `Regions::fix_all_borders` only when
@@ -157,8 +157,8 @@ impl Sim {
                 // "Territory"; `docs/audit/2026-09-05-economy-vs-code.md`
                 // R18).
                 let gem = 1u64 << (economy::GEMS - economy::BASE_RARE);
-                let gems_moved = (self.ledgers[who].rare ^ rare) & gem != 0;
-                self.ledgers[who].rare = rare;
+                let gems_moved = (self.economy.ledgers[who].rare ^ rare) & gem != 0;
+                self.economy.ledgers[who].rare = rare;
                 self.roster.unit_stats_dirty[who] = true;
                 self.cities_state.wall_stats_dirty[who] = true;
                 if gems_moved {

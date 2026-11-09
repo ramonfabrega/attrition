@@ -378,7 +378,7 @@ impl DisbandView for SimDisband<'_> {
         })
     }
     fn add_good(&mut self, who: i32, good: i32, amount: i32) {
-        self.sim.ledgers[who as usize].bucket[good as usize] += amount;
+        self.sim.economy.ledgers[who as usize].bucket[good as usize] += amount;
     }
     fn message_good(&mut self, _good: i32, _amount: i32, _first: bool) {}
     fn message_end(&mut self) {}

@@ -255,7 +255,7 @@ impl Loaded {
             sim.add_build_type(ty.clone());
         }
         sim.combat.table = self.table.clone();
-        sim.good_types.clone_from(&self.good_types);
+        sim.economy.good_types.clone_from(&self.good_types);
     }
 
     /// A simulation with the loaded data and `players` players, each holding

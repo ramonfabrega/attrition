@@ -87,8 +87,8 @@ const GOODS: [&str; RESOURCES] = ["food", "timber", "wealth", "knowledge", "meta
 /// The per-good rows are flattened as `bucket[0]` … `bucket[5]`, which is
 /// what makes a residue line name the good rather than a slot.
 pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> Vec<Row> {
-    let l = &built.sim.ledgers[who];
-    let h = &built.sim.holdings[who];
+    let l = &built.sim.economy.ledgers[who];
+    let h = &built.sim.economy.holdings[who];
     let a = &built.sim.ai[who];
     let c = &a.census;
     let mut out: Vec<Row> = Vec::new();

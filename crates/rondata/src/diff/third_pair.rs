@@ -2139,10 +2139,10 @@ fn french_east_indies_buys_its_fifth_city_at_a_third_off() {
     assert_eq!((price[0], price[1]), (140, 140), "the fifth city's price");
     // Food stands three above the original's from before run623's window
     // (`leader:bucket[0:food]`, 500 against 497 on 9772); timber agrees.
-    let before = sim.ledgers[1].bucket;
+    let before = sim.economy.ledgers[1].bucket;
     assert_eq!(before[1], 158);
     built.tick();
-    let after = built.sim.ledgers[1].bucket;
+    let after = built.sim.economy.ledgers[1].bucket;
     assert_eq!((before[0] - after[0], before[1] - after[1]), (140, 140));
     assert_eq!(after[1], 18);
 }

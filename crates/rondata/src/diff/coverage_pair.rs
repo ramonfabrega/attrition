@@ -513,11 +513,11 @@ fn coverage_pair_start_pays_its_lobby() {
     // Nubians' food is the table's own; the Persians' is half as much again
     // (`PERSIANS_BONUS_FOOD`, `Leader::init`).
     assert_eq!(
-        built.sim.ledgers[0].bucket,
+        built.sim.economy.ledgers[0].bucket,
         [20000, 20000, 20000, 10000, 20000, 20000]
     );
     assert_eq!(
-        built.sim.ledgers[1].bucket,
+        built.sim.economy.ledgers[1].bucket,
         [30000, 20000, 20000, 10000, 20000, 20000]
     );
     for who in 0..2u8 {

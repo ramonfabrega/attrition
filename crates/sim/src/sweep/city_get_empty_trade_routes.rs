@@ -68,7 +68,7 @@ fn port_free(vans: &[Van], idle: u8) -> bool {
     };
     let to = |p: i64| usize::try_from(p).ok();
     for v in vans {
-        let list = &mut s.caravans[v.list];
+        let list = &mut s.economy.caravans[v.list];
         list.mark = list.mark.max(v.slot + 1);
         // The port keeps one city number per end (`city2`, `city3`) and
         // drops the owner shorts (`whom`, `whose`).

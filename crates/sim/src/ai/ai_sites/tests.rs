@@ -167,7 +167,7 @@ fn kit(w: i32, h: i32, players: usize) -> (Sim, Kit) {
         tree: Some(citizen),
         ..UnitType::default()
     });
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; RESOURCES];
     }
     for a in &mut sim.ai {
@@ -659,7 +659,7 @@ fn an_unowned_or_unaffordable_site_is_thirded_and_quartered() {
     assert_eq!(sim.ai[1].make_list.list[0].val, 18_750 / 3);
 
     let (mut sim, village, village_t) = city_ai_fixture();
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [0; RESOURCES];
     }
     assert_eq!(sim.type_affordable(1, village_t, true), 0);
@@ -850,9 +850,9 @@ fn no_citizen_in_the_region_means_no_city() {
         k.citizen_unit,
         Pos::new(12 * UNITS_PER_CELL, UNITS_PER_CELL),
     );
-    let before = sim.ledgers[1].bucket;
+    let before = sim.economy.ledgers[1].bucket;
     assert!(!sim.produce_city(1, village_t, 2, 2, 0));
-    assert_eq!(sim.ledgers[1].bucket, before, "nothing was charged");
+    assert_eq!(sim.economy.ledgers[1].bucket, before, "nothing was charged");
     assert!(!sim.buildings.iter().any(|b| b.owner == 1));
 }
 

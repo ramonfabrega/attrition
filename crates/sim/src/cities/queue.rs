@@ -120,8 +120,14 @@ impl Sim {
             return Err(production::QueueFail::CantTrain);
         }
         let charges = self.price_of(who, ty);
-        let available = self.holdings[who as usize].available;
-        if cost::affordable(&charges, &self.ledgers[who as usize], &available, true) < 1 {
+        let available = self.economy.holdings[who as usize].available;
+        if cost::affordable(
+            &charges,
+            &self.economy.ledgers[who as usize],
+            &available,
+            true,
+        ) < 1
+        {
             return Err(production::QueueFail::Cost);
         }
         if !self.unit_queue_has_room(at, ty) {
@@ -129,7 +135,7 @@ impl Sim {
         }
         cost::pay(
             &charges,
-            &mut self.ledgers[who as usize],
+            &mut self.economy.ledgers[who as usize],
             &available,
             escrow,
         );
@@ -187,7 +193,7 @@ impl Sim {
         {
             return [0; economy::RESOURCES];
         }
-        let holdings = &self.holdings[who as usize];
+        let holdings = &self.economy.holdings[who as usize];
         let (rare_goods, gypsum) = self.rare_goods_discounts(who);
         let british_taxation = self.tables.tech_tree.roles.taxation_line.contains(&t)
             && self.tables.tech_tree.has_tribe_bonus(
@@ -223,7 +229,7 @@ impl Sim {
             },
             &holdings.available,
             &holdings.discovered,
-            &self.redirects,
+            &self.economy.redirects,
         )
     }
 
@@ -734,8 +740,14 @@ impl Sim {
             return Err(production::QueueFail::CantTrain);
         }
         let charges = self.tech_price(who, t);
-        let available = self.holdings[who as usize].available;
-        if cost::affordable(&charges, &self.ledgers[who as usize], &available, true) < 1 {
+        let available = self.economy.holdings[who as usize].available;
+        if cost::affordable(
+            &charges,
+            &self.economy.ledgers[who as usize],
+            &available,
+            true,
+        ) < 1
+        {
             return Err(production::QueueFail::Cost);
         }
         if !self.buildings[at].queue.has_room() {
@@ -743,7 +755,7 @@ impl Sim {
         }
         cost::pay(
             &charges,
-            &mut self.ledgers[who as usize],
+            &mut self.economy.ledgers[who as usize],
             &available,
             escrow,
         );
@@ -773,7 +785,7 @@ impl Sim {
         let at = self.unqueue_home(at, slot);
         let who = self.buildings[at].owner;
         let item = {
-            let ledger = &mut self.ledgers[who as usize];
+            let ledger = &mut self.economy.ledgers[who as usize];
             self.buildings[at].queue.unqueue(slot, true, ledger)?
         };
         if let Some(t) = item.tech {
@@ -2017,11 +2029,16 @@ impl Sim {
             return Err(Refused::Population);
         }
 
-        let available = self.holdings[who as usize].available;
-        if !cost::can_pay(&charges, &self.ledgers[who as usize], &available, 1) {
+        let available = self.economy.holdings[who as usize].available;
+        if !cost::can_pay(&charges, &self.economy.ledgers[who as usize], &available, 1) {
             return Err(Refused::Cost);
         }
-        cost::pay(&charges, &mut self.ledgers[who as usize], &available, false);
+        cost::pay(
+            &charges,
+            &mut self.economy.ledgers[who as usize],
+            &available,
+            false,
+        );
 
         self.track_unit_type(who, ty, 1);
 

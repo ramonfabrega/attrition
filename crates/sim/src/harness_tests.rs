@@ -664,10 +664,10 @@ fn the_border_that_kills_also_pays() {
     let mut sim = skirmish(4);
     sim.update_territory_holdings();
 
-    let owned = sim.holdings[1].territory;
+    let owned = sim.economy.holdings[1].territory;
     assert!(owned > 0 && owned < 24, "border claims {owned} of 24");
-    assert_eq!(sim.holdings[1].land_size, 24);
-    assert_eq!(sim.holdings[0].territory, 0, "player 0 has no city");
+    assert_eq!(sim.economy.holdings[1].land_size, 24);
+    assert_eq!(sim.economy.holdings[0].territory, 0, "player 0 has no city");
 
     // Full taxation, and nothing else at all: no cities in the economy sense,
     // no citizens, no markets. Every coin below comes from holding ground.
@@ -685,17 +685,17 @@ fn the_border_that_kills_also_pays() {
     sim.set_tech_tree(tree);
     sim.tech[1].tech[tax[1].unwrap()] = true;
     sim.assemble_holdings(1);
-    assert_eq!(sim.holdings[1].taxation, 2);
+    assert_eq!(sim.economy.holdings[1].taxation, 2);
     let wealth = economy::Resource::Wealth.index();
     let period = Tuning::RON.gather_rate as i64;
-    let before = sim.ledgers[1].bucket[wealth];
+    let before = sim.economy.ledgers[1].bucket[wealth];
     run(&mut sim, period);
-    let earned = sim.ledgers[1].bucket[wealth] - before;
+    let earned = sim.economy.ledgers[1].bucket[wealth] - before;
 
     // A share f of the map at 100% taxation is f * 100 wealth per period.
     assert_eq!(earned, owned * 100 / 24);
     assert_eq!(
-        sim.ledgers[0].bucket[wealth],
+        sim.economy.ledgers[0].bucket[wealth],
         Tuning::RON.starting_goods[wealth],
         "player 0 holds no ground and earns nothing"
     );
@@ -734,7 +734,8 @@ fn a_city_pays_from_the_first_frame_of_the_game() {
     );
 
     sim.tick();
-    let shown = |r: economy::Resource| sim.ledgers[0].income[r.index()] / economy::RATE_SCALE;
+    let shown =
+        |r: economy::Resource| sim.economy.ledgers[0].income[r.index()] / economy::RATE_SCALE;
     let city_gather = Tuning::RON.city_gather;
     assert_eq!(shown(economy::Resource::Food), city_gather[0]);
     assert_eq!(shown(economy::Resource::Timber), city_gather[1]);
@@ -744,7 +745,7 @@ fn a_city_pays_from_the_first_frame_of_the_game() {
     // And the starting goods are there and untouched by the first frame.
     let food = economy::Resource::Food.index();
     assert_eq!(
-        sim.ledgers[0].bucket[food],
+        sim.economy.ledgers[0].bucket[food],
         Tuning::RON.starting_goods[food]
     );
 }
@@ -762,7 +763,7 @@ fn the_lobbys_resource_row_prices_the_opening_stockpile() {
     let mut sim = Sim::new(Tuning::RON, world, 2);
     let paid = |sim: &mut Sim| {
         sim.lay_starting_goods(0);
-        sim.ledgers[0].bucket
+        sim.economy.ledgers[0].bucket
     };
     assert_eq!(
         paid(&mut sim),
@@ -808,7 +809,7 @@ fn the_greeks_keep_their_opening_knowledge_past_the_ancient_age() {
     let paid = |sim: &mut Sim, ages: i32| {
         sim.tech[0].ages = ages;
         sim.lay_starting_goods(0);
-        sim.ledgers[0].bucket[knowledge]
+        sim.economy.ledgers[0].bucket[knowledge]
     };
     assert_eq!(
         paid(&mut sim, 0),
@@ -869,17 +870,17 @@ fn income_buys_a_citizen_and_the_next_one_costs_more() {
 
     assert_eq!(sim.price_of(0, citizen)[food], 20, "the first is unramped");
 
-    let purse = sim.ledgers[0].bucket[food];
+    let purse = sim.economy.ledgers[0].bucket[food];
     sim.produce(0, citizen, at)
         .expect("two hundred starting food buys one");
-    assert_eq!(sim.ledgers[0].bucket[food], purse - 20);
+    assert_eq!(sim.economy.ledgers[0].bucket[food], purse - 20);
     assert_eq!(sim.roster.muster[0].control, 1);
 
     // One owned, one food of ramp.
     assert_eq!(sim.price_of(0, citizen)[food], 21);
     sim.produce(0, citizen, at).unwrap();
     assert_eq!(sim.price_of(0, citizen)[food], 22);
-    assert_eq!(sim.ledgers[0].bucket[food], purse - 41);
+    assert_eq!(sim.economy.ledgers[0].bucket[food], purse - 41);
 
     // And they are real units, standing where they were put — snapped to
     // the 48-grid's cell centre, as `Unit::init` births every unit
@@ -922,15 +923,18 @@ fn the_population_cap_refuses_before_the_price_does() {
     // A player with no Military tech is capped at twenty-five, and a citizen
     // is one pop.
     assert_eq!(sim.roster.muster[0].cap, 25);
-    sim.ledgers[0].bucket[food] = 100_000;
+    sim.economy.ledgers[0].bucket[food] = 100_000;
     for _ in 0..25 {
         sim.produce(0, citizen, at).expect("under the cap");
     }
     assert_eq!(sim.roster.muster[0].control, 25);
 
-    let purse = sim.ledgers[0].bucket[food];
+    let purse = sim.economy.ledgers[0].bucket[food];
     assert_eq!(sim.produce(0, citizen, at), Err(Refused::Population));
-    assert_eq!(sim.ledgers[0].bucket[food], purse, "refused, not charged");
+    assert_eq!(
+        sim.economy.ledgers[0].bucket[food], purse,
+        "refused, not charged"
+    );
 
     // The Art of War raises the cap, and the same order goes through.
     sim.roster.muster[0].military_level = 1;
@@ -947,14 +951,14 @@ fn an_empty_purse_refuses_and_takes_nothing() {
     let food = economy::Resource::Food.index();
     let at = centre_of(Cell::new(2, 0));
 
-    sim.ledgers[0].bucket[food] = 19;
+    sim.economy.ledgers[0].bucket[food] = 19;
     assert_eq!(sim.produce(0, citizen, at), Err(Refused::Cost));
-    assert_eq!(sim.ledgers[0].bucket[food], 19);
+    assert_eq!(sim.economy.ledgers[0].bucket[food], 19);
     assert!(sim.units.is_empty());
 
-    sim.ledgers[0].bucket[food] = 20;
+    sim.economy.ledgers[0].bucket[food] = 20;
     sim.produce(0, citizen, at).expect("exactly enough");
-    assert_eq!(sim.ledgers[0].bucket[food], 0);
+    assert_eq!(sim.economy.ledgers[0].bucket[food], 0);
 }
 
 #[test]
@@ -996,10 +1000,10 @@ fn a_queued_citizen_is_paid_for_up_front_and_arrives_on_time() {
     let food = economy::Resource::Food.index();
     let hall = sim.add_building(0, centre_of(Cell::new(2, 0)), 8);
 
-    let purse = sim.ledgers[0].bucket[food];
+    let purse = sim.economy.ledgers[0].bucket[food];
     sim.queue_up(hall, citizen).expect("affordable and room");
     assert_eq!(
-        sim.ledgers[0].bucket[food],
+        sim.economy.ledgers[0].bucket[food],
         purse - 20,
         "charged on queue, not on delivery"
     );
@@ -1115,7 +1119,7 @@ fn only_the_first_library_fans_out() {
     // clear is what a research entry is.
     let other = sim.add_unit_type(citizen_type());
     let food = economy::Resource::Food.index();
-    sim.ledgers[0].bucket[food] = 100_000;
+    sim.economy.ledgers[0].bucket[food] = 100_000;
     sim.roster.muster[0].library_cities = 4;
     sim.roster.muster[0].researched[citizen] = true;
 
@@ -1175,7 +1179,7 @@ fn a_stuck_head_lets_a_research_entry_behind_it_advance() {
     let other = sim.add_unit_type(citizen_type());
     let food = economy::Resource::Food.index();
     let hall = sim.add_building(0, centre_of(Cell::new(2, 0)), 8);
-    sim.ledgers[0].bucket[food] = 100_000;
+    sim.economy.ledgers[0].bucket[food] = 100_000;
 
     // At the Ancient cap of twenty-five, with the citizen already researched
     // and the other type not.
@@ -1230,7 +1234,7 @@ fn the_population_cap_stalls_a_queue_at_full_progress() {
     let citizen = sim.add_unit_type(citizen_type());
     let food = economy::Resource::Food.index();
     let hall = sim.add_building(0, centre_of(Cell::new(2, 0)), 8);
-    sim.ledgers[0].bucket[food] = 100_000;
+    sim.economy.ledgers[0].bucket[food] = 100_000;
 
     // Fill the Ancient cap of twenty-five, then order one more anyway.
     sim.roster.muster[0].control = 25;
@@ -1261,12 +1265,12 @@ fn cancelling_gives_back_exactly_what_that_entry_was_charged() {
     let food = economy::Resource::Food.index();
     let hall = sim.add_building(0, centre_of(Cell::new(2, 0)), 8);
 
-    let purse = sim.ledgers[0].bucket[food];
+    let purse = sim.economy.ledgers[0].bucket[food];
     sim.queue_up(hall, citizen).unwrap();
     // The second order pays a ramp step, because the price counts what is
     // ordered and not only what exists.
     sim.queue_up(hall, citizen).unwrap();
-    assert_eq!(sim.ledgers[0].bucket[food], purse - 41);
+    assert_eq!(sim.economy.ledgers[0].bucket[food], purse - 41);
 
     // Cancelling slot 0 removes the *last* of the run of two, so the one in
     // progress keeps its progress — and the refund is the twenty-one that
@@ -1280,10 +1284,10 @@ fn cancelling_gives_back_exactly_what_that_entry_was_charged() {
     }
     let progress = sim.buildings[hall].queue.items[0].job_counter;
     assert!(progress > 0);
-    let before = sim.ledgers[0].bucket[food];
+    let before = sim.economy.ledgers[0].bucket[food];
     let back = sim.cancel(hall, 0).expect("something to cancel");
     assert_eq!(back.job_counter, 0, "the untouched one is the one removed");
-    assert_eq!(sim.ledgers[0].bucket[food] - before, 21);
+    assert_eq!(sim.economy.ledgers[0].bucket[food] - before, 21);
     assert_eq!(sim.buildings[hall].queue.items[0].job_counter, progress);
 }
 
@@ -1905,7 +1909,7 @@ fn a_gained_unit_type_retargets_the_queued_entries_of_its_line() {
         sim.roster.muster[0].queued_by_type[ty] += 1;
     }
     sim.buildings[b].queue.items[1].job_counter = 3_000;
-    let bucket = sim.ledgers[0].bucket;
+    let bucket = sim.economy.ledgers[0].bucket;
 
     sim.gain_tech(0, javelins_t);
 
@@ -1915,7 +1919,10 @@ fn a_gained_unit_type_retargets_the_queued_entries_of_its_line() {
     assert_eq!(q[1].job_counter, 3_000, "its progress kept");
     assert_eq!(q[1].cost[..2], [46, 46], "its recorded price kept");
     assert_eq!(q[2].ty, bowmen, "outside the line: left");
-    assert_eq!(sim.ledgers[0].bucket, bucket, "nothing paid or refunded");
+    assert_eq!(
+        sim.economy.ledgers[0].bucket, bucket,
+        "nothing paid or refunded"
+    );
     assert_eq!(sim.roster.muster[0].queued_by_type[slingers], 0);
     assert_eq!(sim.roster.muster[0].queued_by_type[javelins], 2);
 
@@ -2205,7 +2212,7 @@ fn a_spent_nuke_ramps_the_next_missile_and_uranium_takes_five_percent_off() {
         "one spent nuke counts twice for the ICBM"
     );
     assert_eq!(sim.uranium_discount(0, icbm), 0, "without the rare");
-    sim.ledgers[0].rare |= 1 << (economy::URANIUM - economy::BASE_RARE);
+    sim.economy.ledgers[0].rare |= 1 << (economy::URANIUM - economy::BASE_RARE);
     assert_eq!(sim.uranium_discount(0, icbm), 5);
     // `(100 − 5) × 750 / 100 = 712`, then the ramp's 150; 855 + 150 on oil.
     assert_eq!(at(&sim, 5), (712 + 150, 855 + 150));
@@ -2426,7 +2433,7 @@ fn a_citizen_trains_faster_for_a_player_holding_wool() {
             .any(|a| matches!(a, production::Adjust::Faster(33)))
     };
     assert!(!wool(&sim), "no Wool yet");
-    sim.ledgers[0].rare |= 1 << (economy::WOOL - economy::BASE_RARE);
+    sim.economy.ledgers[0].rare |= 1 << (economy::WOOL - economy::BASE_RARE);
     assert!(wool(&sim), "Wool: a third faster");
     let _second = sim.add_unit_type(citizen_type());
     let other = sim.add_unit_type(citizen_type());
@@ -2490,7 +2497,7 @@ fn a_barracks_stable_or_dock_unit_trains_faster_for_a_player_holding_cotton() {
     for ty in [jav, horse, ship, other] {
         assert!(!cotton(&sim, ty), "no Cotton yet");
     }
-    sim.ledgers[0].rare |= 1 << (economy::COTTON - economy::BASE_RARE);
+    sim.economy.ledgers[0].rare |= 1 << (economy::COTTON - economy::BASE_RARE);
     assert!(cotton(&sim, jav), "Cotton: a Barracks unit");
     assert!(cotton(&sim, horse), "Cotton: a Stable unit");
     assert!(cotton(&sim, ship), "Cotton: a Dock unit");
@@ -2865,7 +2872,7 @@ fn wine_takes_a_fifth_off_a_research_and_nothing_off_a_train() {
     );
     let pair = |p: [i32; economy::RESOURCES]| (p[food], p[metal]);
     assert_eq!(pair(sim.price_of(0, militia)), (80, 80), "no Wine");
-    sim.ledgers[0].rare |= 1 << (economy::WINE - economy::BASE_RARE);
+    sim.economy.ledgers[0].rare |= 1 << (economy::WINE - economy::BASE_RARE);
     assert_eq!(
         pair(sim.price_of(0, militia)),
         (64, 64),
@@ -4467,17 +4474,17 @@ fn a_knowledge_price_lands_in_food_until_the_classical_age() {
 
     // Ancient: knowledge, metal and oil are none of the player's business.
     assert_eq!(
-        sim.holdings[0].available,
+        sim.economy.holdings[0].available,
         [true, true, true, false, false, false],
         "knowledge, metal and oil wait for their age"
     );
     assert_eq!(
-        sim.holdings[1].available, sim.holdings[0].available,
+        sim.economy.holdings[1].available, sim.economy.holdings[0].available,
         "and a player whose `start_techs` was never called has it from \
          `set_tech_tree`, not from a gain"
     );
     assert_eq!(
-        sim.holdings[0].discovered, sim.holdings[0].available,
+        sim.economy.holdings[0].discovered, sim.economy.holdings[0].available,
         "for a good the two tests are the same one, which is why the \
          obsolete table never fires in a stock game"
     );
@@ -4488,7 +4495,7 @@ fn a_knowledge_price_lands_in_food_until_the_classical_age() {
     // the two arrays are printed beside it.
     let ancient = sim.tech_price(0, coinage);
     sim.gain_tech(0, classical);
-    assert_eq!(sim.holdings[0].available, [true; 6]);
+    assert_eq!(sim.economy.holdings[0].available, [true; 6]);
     let classical_price = sim.tech_price(0, coinage);
     let k = Resource::Knowledge.index();
     let f = Resource::Food.index();
@@ -4548,17 +4555,17 @@ fn salmon_prices_a_sea_unit_and_maize_halves_the_ramp() {
     let maize = 1 << (economy::MAIZE - economy::BASE_RARE);
 
     assert_eq!(sim.salmon_cost_discount(0, sea), 0, "no Salmon");
-    sim.ledgers[0].rare = salmon;
+    sim.economy.ledgers[0].rare = salmon;
     assert_eq!(sim.salmon_cost_discount(0, sea), 20);
     assert_eq!(sim.salmon_cost_discount(0, land), 0, "a land unit");
     assert_eq!(sim.salmon_cost_discount(1, sea), 0, "another player");
 
     sim.roster.muster[0].by_type[land] = 40;
-    sim.ledgers[0].rare = 0;
+    sim.economy.ledgers[0].rare = 0;
     let plain = sim.price_of(0, land);
-    sim.ledgers[0].rare = maize;
+    sim.economy.ledgers[0].rare = maize;
     let halved = sim.price_of(0, land);
-    sim.ledgers[0].rare = salmon;
+    sim.economy.ledgers[0].rare = salmon;
     assert_eq!(sim.price_of(0, land), plain, "Salmon leaves a land unit");
     let f = economy::Resource::Food.index();
     assert!(halved[f] < plain[f], "{halved:?} < {plain:?}");

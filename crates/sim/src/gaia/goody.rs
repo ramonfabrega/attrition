@@ -145,7 +145,7 @@ impl GoodyView for SimGoody<'_> {
         self.sim.type_available(self.who, good)
     }
     fn held(&self, good: usize) -> i32 {
-        self.sim.ledgers[self.who as usize].bucket[good]
+        self.sim.economy.ledgers[self.who as usize].bucket[good]
     }
     fn roll(&mut self) -> i32 {
         self.sim.mark(SITE_PICK);
@@ -155,7 +155,7 @@ impl GoodyView for SimGoody<'_> {
         self.sim.goody_amount(self.who)
     }
     fn pay(&mut self, good: usize, amount: i32) {
-        let l = &mut self.sim.ledgers[self.who as usize];
+        let l = &mut self.sim.economy.ledgers[self.who as usize];
         l.bucket[good] = l.bucket[good].wrapping_add(amount);
         l.goody_box_resources = l.goody_box_resources.wrapping_add(amount);
     }

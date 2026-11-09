@@ -240,7 +240,7 @@ fn a_deployed_merchant_sits_on_its_corner_and_blocks_its_square() {
             .all(|&p| s.world.tile_mask(p) & tile::BLOCKED == 0),
         "the square is clear before the deploy"
     );
-    s.ledgers[1].dirty = false;
+    s.economy.ledgers[1].dirty = false;
     // No craft table: a `JOB_TIME` of 0, so the first frame casts.
     s.add_cast_order_at(u, crate::orders::spell::UNPACK, QueuePos::New);
     let Some(Body::Cast(c)) = s.current_order(u).map(|o| o.body) else {
@@ -261,7 +261,10 @@ fn a_deployed_merchant_sits_on_its_corner_and_blocks_its_square() {
             .all(|&p| s.world.tile_mask(p) & tile::BLOCKED != 0),
         "the four tiles under it are blocked"
     );
-    assert!(s.ledgers[1].dirty, "and the leader's 0x2000000 is up");
+    assert!(
+        s.economy.ledgers[1].dirty,
+        "and the leader's 0x2000000 is up"
+    );
     // Its death gives the square back.
     s.units[u].health = 0;
     s.close_supply(u);

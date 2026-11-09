@@ -45,7 +45,7 @@ fn sea_sim() -> (Sim, usize) {
     let mut s = Sim::new(Tuning::RON, world, 2);
     s.cities_state.nation[0].human = true;
     s.cities_state.nation[1].human = false;
-    s.good_types = good_table();
+    s.economy.good_types = good_table();
     {
         let t = &mut s.tables.tech_tree;
         for i in 0..50 {
@@ -678,7 +678,7 @@ fn a_whale_speeds_the_ships_and_nothing_else() {
         ..crate::UnitType::default()
     });
     assert_eq!(s.type_speed(1, boat_ty), 40, "no whale, no bonus");
-    s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
+    s.economy.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
     assert!(s.has_rare(1, economy::WHALES));
     assert_eq!(s.type_speed(1, boat_ty), 40 * 120 / 100);
     assert_eq!(s.type_speed(1, foot_ty), 25, "a foot type is not naval");
@@ -709,7 +709,7 @@ fn aluminum_speeds_the_aircraft_and_nothing_else() {
     let fighter = plane(&mut s, 75);
     let biplane = plane(&mut s, 55);
     assert_eq!(s.type_speed(1, bomber), 60, "no aluminum, no bonus");
-    s.ledgers[1].rare = 1 << (economy::ALUMINUM - economy::BASE_RARE);
+    s.economy.ledgers[1].rare = 1 << (economy::ALUMINUM - economy::BASE_RARE);
     assert_eq!(s.type_speed(1, bomber), 75);
     assert_eq!(s.type_speed(1, fighter), 93, "75 x 125 / 100 truncates");
     assert_eq!(s.type_speed(1, biplane), 68);
@@ -741,7 +741,7 @@ fn the_gunpowder_foot_line_takes_its_own_scale() {
     assert_eq!(s.type_speed(1, rifle), 37, "32 x 32 / 27 truncates");
     assert_eq!(s.type_speed(1, arq), 37, "30 x 30 / 24 truncates");
     assert_eq!(s.type_speed(1, other), 32, "identity, not a lineage");
-    s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
+    s.economy.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
     assert_eq!(s.type_speed(1, inf), 34, "a whale is the navy's");
 }
 
@@ -853,14 +853,14 @@ fn peacocks_raise_the_owner_s_pop_cap_by_a_tenth() {
     }
     s.recompute_pop_caps();
     assert_eq!((s.roster.muster[0].cap, s.roster.muster[1].cap), (50, 50));
-    s.ledgers[1].rare = 1 << (economy::PEACOCKS - economy::BASE_RARE);
+    s.economy.ledgers[1].rare = 1 << (economy::PEACOCKS - economy::BASE_RARE);
     s.recompute_pop_caps();
     assert_eq!(
         (s.roster.muster[0].cap, s.roster.muster[1].cap),
         (50, 55),
         "Great Sahara's 55: 50 x 110 / 100"
     );
-    s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
+    s.economy.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
     s.recompute_pop_caps();
     assert_eq!(s.roster.muster[1].cap, 50, "no other rare moves it");
 }
@@ -877,19 +877,19 @@ fn the_rare_mask_s_change_recomputes_the_pop_cap() {
     }
     s.recompute_pop_caps();
     let bit = 1u64 << (economy::PEACOCKS - economy::BASE_RARE);
-    s.holdings[1].rare_owned = bit;
-    s.ledgers[1].dirty = false;
-    s.ledgers[1].gather_stamp = s.frame;
+    s.economy.holdings[1].rare_owned = bit;
+    s.economy.ledgers[1].dirty = false;
+    s.economy.ledgers[1].gather_stamp = s.frame;
     assert!(!s.holdings_due(1, s.frame), "the walk does not rebuild it");
     s.tick();
-    assert_eq!(s.ledgers[1].rare, bit);
+    assert_eq!(s.economy.ledgers[1].rare, bit);
     assert_eq!(
         s.roster.muster[1].cap, 55,
         "the bit arrived and the cap moved"
     );
-    s.holdings[1].rare_owned = 0;
-    s.ledgers[1].dirty = false;
-    s.ledgers[1].gather_stamp = s.frame;
+    s.economy.holdings[1].rare_owned = 0;
+    s.economy.ledgers[1].dirty = false;
+    s.economy.ledgers[1].gather_stamp = s.frame;
     s.tick();
     assert_eq!(s.roster.muster[1].cap, 50, "and it goes when the bit goes");
 }
@@ -902,7 +902,7 @@ fn the_whales_bonus_truncates_where_the_dump_does() {
     let (mut s, u) = sea_sim();
     let boat_ty = s.units[u].ty.unwrap();
     s.tables.unit_types[boat_ty].moves = 38;
-    s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
+    s.economy.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
     assert_eq!(s.type_speed(1, boat_ty), 45);
     s.tables.unit_types[boat_ty].moves = 25;
     assert_eq!(s.type_speed(1, boat_ty), 30);
@@ -915,7 +915,7 @@ fn the_whales_bonus_truncates_where_the_dump_does() {
 fn calc_unit_stats_re_caches_every_unit_s_speed() {
     let (mut s, u) = sea_sim();
     assert_eq!(s.units[u].movement.speed, 0, "the fixture never set one");
-    s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
+    s.economy.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
     s.calc_unit_stats(1);
     assert_eq!(s.units[u].movement.speed, 40 * 120 / 100);
 }
@@ -979,18 +979,21 @@ fn supply_upgrade_speed_counts_sparse_steps_and_refreshes_existing_units() {
 #[test]
 fn a_fisherman_going_idle_marks_the_economy_dirty() {
     let (mut s, u) = sea_sim();
-    s.ledgers[1].dirty = false;
+    s.economy.ledgers[1].dirty = false;
     s.units[u].idle_latch = false;
     s.tick();
     assert!(
         s.units[u].idle_latch,
         "the latch is taken on the idle frame"
     );
-    assert!(s.ledgers[1].dirty, "and it is what marks the economy");
+    assert!(
+        s.economy.ledgers[1].dirty,
+        "and it is what marks the economy"
+    );
     // And it is a **latch**: standing there does not mark it again.
-    s.ledgers[1].dirty = false;
+    s.economy.ledgers[1].dirty = false;
     s.tick();
-    assert!(!s.ledgers[1].dirty, "one transition, one mark");
+    assert!(!s.economy.ledgers[1].dirty, "one transition, one mark");
 }
 
 /// **The idle latch is `0x18`** (item 3983, `check_idle@006032c0:69`,

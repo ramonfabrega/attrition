@@ -156,7 +156,7 @@ impl Sim {
             who,
             head,
             cost,
-            &self.ledgers[who as usize].bucket,
+            &self.economy.ledgers[who as usize].bucket,
             affordable,
             paid,
         ))
@@ -178,7 +178,7 @@ impl Sim {
     /// carries a good's availability on [`crate::economy::Holdings`], which is
     /// what every other cost path reads.
     fn good_avail(&self, who: Player, g: usize) -> bool {
-        self.holdings[who as usize].available[g]
+        self.economy.holdings[who as usize].available[g]
     }
 
     // ------------------------------------------------------------------
@@ -211,7 +211,7 @@ impl Sim {
         let mut bought_head = false;
         if paid {
             bought_head = self.make_this(who, 0);
-        } else if self.ledgers[w].bucket[Resource::Knowledge as usize]
+        } else if self.economy.ledgers[w].bucket[Resource::Knowledge as usize]
             < cost[Resource::Knowledge as usize]
         {
             saving = false;
@@ -234,7 +234,7 @@ impl Sim {
             for (g, &c) in cost.iter().enumerate() {
                 if self.good_avail(who, g) && c != 0 {
                     n += 1;
-                    need += c - self.ledgers[w].bucket[g];
+                    need += c - self.economy.ledgers[w].bucket[g];
                 }
             }
             if n != 0 {
@@ -281,7 +281,7 @@ impl Sim {
                 if !self.good_avail(who, g) || cost[g] == 0 || slot_cost[g] == 0 {
                     continue;
                 }
-                if self.ledgers[w].bucket[g] >= cost[g] + slot_cost[g] + need {
+                if self.economy.ledgers[w].bucket[g] >= cost[g] + slot_cost[g] + need {
                     continue;
                 }
                 buy = false;
@@ -599,7 +599,7 @@ impl Sim {
         {
             return false;
         }
-        let l = &self.ledgers[who as usize];
+        let l = &self.economy.ledgers[who as usize];
         let stock = l.bucket[g2];
         need[g2] <= stock - 100 && (l.cap[g2] / 2 <= l.income[g2] || stock > 199)
     }
@@ -648,7 +648,7 @@ impl Sim {
             if g == Resource::Knowledge as usize || !self.good_avail(who, g) {
                 continue;
             }
-            if self.ledgers[w].bucket[g] >= need[g] {
+            if self.economy.ledgers[w].bucket[g] >= need[g] {
                 continue;
             }
             // The original's `do { if (uVar5 != 0) break; uVar5 = 1; …
@@ -664,7 +664,7 @@ impl Sim {
                 // it cannot be bought with itself.
                 let sell = g == wealth || {
                     let (buy, _) = self.calc_market_prices(who, g);
-                    self.ledgers[w].bucket[wealth] - buy < need[wealth]
+                    self.economy.ledgers[w].bucket[wealth] - buy < need[wealth]
                 };
                 if sell {
                     self.mark(SITE_MARKET_SELL);
@@ -688,7 +688,7 @@ impl Sim {
                     }
                     once = false;
                 }
-                if self.ledgers[w].bucket[g] >= need[g] {
+                if self.economy.ledgers[w].bucket[g] >= need[g] {
                     break;
                 }
             }
@@ -721,8 +721,8 @@ impl Sim {
     /// data rather than a seam.
     pub fn calc_market_prices(&self, who: Player, g: usize) -> (i32, i32) {
         let w = who as usize;
-        let price = self.market.price[g];
-        let flux = self.market.flux[g];
+        let price = self.economy.market.price[g];
+        let flux = self.economy.market.flux[g];
         let mut sell = price + flux;
         let mut buy = price * 2 + flux;
         let nubian = self.tables.tuning.nubian_market_prices;
@@ -757,14 +757,14 @@ impl Sim {
     pub fn do_sell(&mut self, who: Player, g: usize) -> bool {
         let w = who as usize;
         let (_, sell) = self.calc_market_prices(who, g);
-        if self.ledgers[w].bucket[g] < 100 {
+        if self.economy.ledgers[w].bucket[g] < 100 {
             return false;
         }
-        self.ledgers[w].bucket[g] -= 100;
-        self.ledgers[w].escrow[g] = (self.ledgers[w].escrow[g] - 100).max(0);
-        self.ledgers[w].bucket[Resource::Wealth as usize] += sell;
-        self.market.price[g] =
-            (self.market.price[g] - self.tables.tuning.market_supply_demand).max(0);
+        self.economy.ledgers[w].bucket[g] -= 100;
+        self.economy.ledgers[w].escrow[g] = (self.economy.ledgers[w].escrow[g] - 100).max(0);
+        self.economy.ledgers[w].bucket[Resource::Wealth as usize] += sell;
+        self.economy.market.price[g] =
+            (self.economy.market.price[g] - self.tables.tuning.market_supply_demand).max(0);
         true
     }
 
@@ -777,13 +777,14 @@ impl Sim {
         let w = who as usize;
         let wealth = Resource::Wealth as usize;
         let (buy, _) = self.calc_market_prices(who, g);
-        if self.ledgers[w].bucket[wealth] < buy {
+        if self.economy.ledgers[w].bucket[wealth] < buy {
             return false;
         }
-        self.ledgers[w].bucket[wealth] -= buy;
-        self.ledgers[w].escrow[wealth] = (self.ledgers[w].escrow[wealth] - 100).max(0);
-        self.ledgers[w].bucket[g] += 100;
-        self.market.price[g] += self.tables.tuning.market_supply_demand;
+        self.economy.ledgers[w].bucket[wealth] -= buy;
+        self.economy.ledgers[w].escrow[wealth] =
+            (self.economy.ledgers[w].escrow[wealth] - 100).max(0);
+        self.economy.ledgers[w].bucket[g] += 100;
+        self.economy.market.price[g] += self.tables.tuning.market_supply_demand;
         true
     }
 
@@ -829,10 +830,10 @@ impl Sim {
             if !self.good_avail(who, g) {
                 continue;
             }
-            if self.ledgers[w].escrow[g] > 4000 {
-                self.ledgers[w].escrow[g] = 2000;
+            if self.economy.ledgers[w].escrow[g] > 4000 {
+                self.economy.ledgers[w].escrow[g] = 2000;
             }
-            let stock = self.ledgers[w].bucket[g];
+            let stock = self.economy.ledgers[w].bucket[g];
             if stock < 100 {
                 tier = tier.max(2);
             } else if stock < 200 && tier == 0 {
@@ -847,7 +848,8 @@ impl Sim {
             if !self.good_avail(who, g) || g == wealth || g == knowledge {
                 continue;
             }
-            if self.ledgers[w].bucket[g] - self.ledgers[w].escrow[g] < 2000 >> tier {
+            if self.economy.ledgers[w].bucket[g] - self.economy.ledgers[w].escrow[g] < 2000 >> tier
+            {
                 continue;
             }
             let (_, sell) = self.calc_market_prices(who, g);
@@ -867,8 +869,9 @@ impl Sim {
                 continue;
             }
             let (buy, _) = self.calc_market_prices(who, g);
-            let purse = self.ledgers[w].bucket[wealth] - self.ledgers[w].escrow[wealth];
-            let stock = self.ledgers[w].bucket[g];
+            let purse =
+                self.economy.ledgers[w].bucket[wealth] - self.economy.ledgers[w].escrow[wealth];
+            let stock = self.economy.ledgers[w].bucket[g];
             if buy > purse || stock >= 2000 || buy >= 201 {
                 continue;
             }

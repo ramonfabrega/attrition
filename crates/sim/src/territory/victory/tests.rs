@@ -18,7 +18,7 @@ fn sim() -> Sim {
 /// Gives `who` a territory of `n` cells: `LeaderData::territory`, as
 /// `Leader::calc_gather` leaves it.
 fn own_cells(s: &mut Sim, who: usize, n: i32) {
-    s.holdings[who].territory = n;
+    s.economy.holdings[who].territory = n;
 }
 
 #[test]

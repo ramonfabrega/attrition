@@ -84,12 +84,22 @@ impl Sim {
                 return Some(queued);
             };
             let charges = self.price_of(who, t);
-            let available = self.holdings[who as usize].available;
-            if crate::cost::affordable(&charges, &self.ledgers[who as usize], &available, true) < 1
+            let available = self.economy.holdings[who as usize].available;
+            if crate::cost::affordable(
+                &charges,
+                &self.economy.ledgers[who as usize],
+                &available,
+                true,
+            ) < 1
             {
                 return Some(queued);
             }
-            crate::cost::pay(&charges, &mut self.ledgers[who as usize], &available, true);
+            crate::cost::pay(
+                &charges,
+                &mut self.economy.ledgers[who as usize],
+                &available,
+                true,
+            );
             self.units[u].num_queued += 1;
             self.roster.muster[who as usize].queued_by_type[t] += 1;
             self.track_tree_queued(who, t, 1);
@@ -169,7 +179,7 @@ impl Sim {
         self.untrack_queued(who, t);
         if refund {
             let charges = self.price_of(who, t);
-            let ledger = &mut self.ledgers[who as usize];
+            let ledger = &mut self.economy.ledgers[who as usize];
             for (b, c) in ledger.bucket.iter_mut().zip(charges) {
                 *b += c;
             }

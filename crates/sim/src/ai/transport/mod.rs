@@ -1364,7 +1364,7 @@ impl Sim {
                 let who = self.units[boat].owner as usize;
                 let slot = self.units[boat].caravan.take();
                 self.units[r].caravan = slot;
-                if let Some(van) = slot.and_then(|v| self.caravans[who].slots.get_mut(v)) {
+                if let Some(van) = slot.and_then(|v| self.economy.caravans[who].slots.get_mut(v)) {
                     van.unit = Some(r);
                 }
             }

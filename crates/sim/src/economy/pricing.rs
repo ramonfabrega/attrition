@@ -825,7 +825,7 @@ impl Sim {
         m: &cost::Modifiers,
     ) -> [i32; economy::RESOURCES] {
         let muster = &self.roster.muster[who as usize];
-        let holdings = &self.holdings[who as usize];
+        let holdings = &self.economy.holdings[who as usize];
         let unit = &self.tables.unit_types[ty];
         // Built *and* ordered. `LeaderData::get_support_count` sums
         // `num_units` and `num_queued`, so five hoplites ordered at once each
@@ -860,7 +860,7 @@ impl Sim {
             m,
             &holdings.available,
             &holdings.discovered,
-            &self.redirects,
+            &self.economy.redirects,
         )
     }
 

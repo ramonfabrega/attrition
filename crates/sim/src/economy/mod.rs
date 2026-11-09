@@ -1469,3 +1469,26 @@ pub mod holdings;
 pub mod market;
 pub mod pricing;
 pub mod rares;
+
+/// The `economy/` subsystem's fields of [`crate::Sim`] (`docs/STRUCTURE.md`
+/// §3, item 4016): moved whole, each with its doc, in `Sim`'s order.
+#[derive(Clone, Debug)]
+pub struct EconomyState {
+    /// One income ledger per player, and what feeds it. Split the way the
+    /// original splits them: `holdings` is what a player *has*, and changes
+    /// when they build something; `ledgers` is what that is worth and what has
+    /// accrued, and changes every frame.
+    pub holdings: Vec<crate::economy::Holdings>,
+    pub ledgers: Vec<crate::economy::Ledger>,
+    /// The fifty `resourcerules.xml` goods' payouts, record index as id —
+    /// the six basics first and then the forty-four rares
+    /// (`crates/rondata/src/load.rs`). Only `LeaderData::calc_rare` reads
+    /// them, so an empty table simply means no deposit pays anything.
+    pub good_types: Vec<crate::economy::GoodType>,
+    /// Where an unavailable resource's price is charged instead.
+    pub redirects: crate::cost::Redirects,
+    /// One `Caravans` list a player — the trade routes (`crate::caravan`).
+    pub caravans: Vec<crate::caravan::Caravans>,
+    /// The market's price cycle (`market.rs`).
+    pub market: crate::market::Market,
+}

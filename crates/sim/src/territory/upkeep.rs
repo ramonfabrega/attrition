@@ -133,11 +133,11 @@ impl Sim {
                 }
             }
         }
-        for (who, holdings) in self.holdings.iter_mut().enumerate() {
+        for (who, holdings) in self.economy.holdings.iter_mut().enumerate() {
             holdings.territory = owned[who];
             holdings.land_size = land;
         }
-        for l in &mut self.ledgers {
+        for l in &mut self.economy.ledgers {
             l.dirty = true;
         }
     }

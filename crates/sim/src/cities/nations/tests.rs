@@ -159,7 +159,7 @@ fn run40_s_british_cap_follows_from_the_dump_s_tribe() {
     s.assemble_holdings(0);
     s.assemble_holdings(1);
     let t = &s.tables.tuning;
-    let cap = |w: usize| economy::commerce_cap(t, &s.holdings[w], Resource::Food);
+    let cap = |w: usize| economy::commerce_cap(t, &s.economy.holdings[w], Resource::Food);
     assert_eq!(cap(0), 1120, "70 x 16");
     assert_eq!(cap(1), 1392, "70 x 125 / 100 = 87, then x 16");
 }

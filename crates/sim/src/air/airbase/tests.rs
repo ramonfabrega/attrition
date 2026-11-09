@@ -870,7 +870,7 @@ fn a_missile_silo_queues_one_missile_at_a_time() {
     s.roster.muster[0].researched[v2] = true;
     s.buildings[silo].queue.capacity = 20;
     for g in 0..crate::economy::RESOURCES {
-        s.ledgers[0].bucket[g] = 100_000;
+        s.economy.ledgers[0].bucket[g] = 100_000;
     }
     assert_eq!(s.action_queue_up(&[silo], v2, 2), 1, "one of two");
     assert_eq!(s.buildings[silo].queue.items.len(), 1);

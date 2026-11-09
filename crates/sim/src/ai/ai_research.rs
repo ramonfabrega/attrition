@@ -347,7 +347,7 @@ impl Sim {
         (0..RESOURCES)
             .filter(|&g| {
                 self.type_available(who, g)
-                    && self.ledgers[who as usize].over_cap[g] != OverCap::Under
+                    && self.economy.ledgers[who as usize].over_cap[g] != OverCap::Under
             })
             .count() as i32
     }
@@ -374,7 +374,7 @@ impl Sim {
         if !self.type_available(who, KNOWLEDGE) {
             return false;
         }
-        let stock = self.ledgers[who as usize].bucket[KNOWLEDGE];
+        let stock = self.economy.ledgers[who as usize].bucket[KNOWLEDGE];
         mul(stock, 4) / 3 < self.knowledge_cost(who, t)
     }
 
@@ -615,7 +615,7 @@ impl Sim {
         }
 
         // Knowledge comfortably in hand.
-        if self.knowledge_cost(who, t) < self.ledgers[w].bucket[KNOWLEDGE] - 100 {
+        if self.knowledge_cost(who, t) < self.economy.ledgers[w].bucket[KNOWLEDGE] - 100 {
             base = mul(base, 10);
         }
 
@@ -807,7 +807,7 @@ impl Sim {
     /// easy difficulty is smaller than the ledger's own
     /// ([`Sim::mod_resource_cap`], item 290).
     fn goods_near_cap(&self, who: Player) -> i32 {
-        let l = &self.ledgers[who as usize];
+        let l = &self.economy.ledgers[who as usize];
         (0..RESOURCES)
             .filter(|&g| {
                 g != KNOWLEDGE

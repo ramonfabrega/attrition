@@ -9,7 +9,7 @@ fn town(centre: Pos) -> (Sim, usize, usize, usize) {
     let mut w = World::new(20, 20);
     w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(19, 19));
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; crate::economy::RESOURCES];
     }
     // The city's own `7x7 extra space` mask: it stands on seven tiles
@@ -337,7 +337,7 @@ fn a_caravan_s_search_stops_at_the_budget_and_the_next_frame_resumes_it() {
     let mut w = World::new(60, 60);
     w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(59, 59));
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; crate::economy::RESOURCES];
     }
     let ty = sim.add_build_type(BuildType {

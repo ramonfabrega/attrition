@@ -23,7 +23,7 @@ impl Sim {
         // Availability is a fact about the tree, so it is wrong until there
         // is one: every player's two arrays are laid down here and then
         // maintained by [`Sim::apply_gained`].
-        for who in 0..self.holdings.len().min(self.tech.len()) {
+        for who in 0..self.economy.holdings.len().min(self.tech.len()) {
             self.sync_goods_available(u8::try_from(who).expect("too many players"));
         }
     }
@@ -97,9 +97,9 @@ impl Sim {
                 3 if greek => 0,
                 _ => amount,
             };
-            self.ledgers[w].bucket[g] = amount;
+            self.economy.ledgers[w].bucket[g] = amount;
         }
-        self.ledgers[w].dirty = true;
+        self.economy.ledgers[w].dirty = true;
     }
 
     /// **The `resource` cheat** (`ConsoleWin::run_cmd@007d6a70`'s case,
@@ -121,7 +121,7 @@ impl Sim {
                     .is_none_or(|t| self.type_avail(who, t) != tech::NOT_AVAILABLE),
             };
             if hit {
-                let b = &mut self.ledgers[w].bucket[g];
+                let b = &mut self.economy.ledgers[w].bucket[g];
                 *b = (*b + amount).max(0);
             }
         }
@@ -232,7 +232,7 @@ impl Sim {
             && matches!(self.tables.tech_tree.kind(t), tech::Kind::Gov { .. })
             && self.tables.tech_tree.roles.gov_bonuses.get(1).map(|g| g.1) == Some(t)
         {
-            self.ledgers[who as usize].bucket[economy::Resource::Oil.index()] +=
+            self.economy.ledgers[who as usize].bucket[economy::Resource::Oil.index()] +=
                 self.tables.tuning.capitalism_oil_gift;
         }
         // `*this |= 0x2000000` at line 319, on every gain: the economy is
@@ -408,14 +408,14 @@ impl Sim {
                     continue;
                 }
                 let amount = self.starting_good(who, g);
-                self.ledgers[w].bucket[g] += amount;
-                self.ledgers[w].dirty = true;
+                self.economy.ledgers[w].bucket[g] += amount;
+                self.economy.ledgers[w].dirty = true;
             }
             // The Greeks' delayed knowledge, re-granted on the first age.
             if greek && matches!(self.tables.tech_tree.kind(x), tech::Kind::Age(0)) {
                 let amount = self.starting_good(who, 3);
-                self.ledgers[w].bucket[3] += amount;
-                self.ledgers[w].dirty = true;
+                self.economy.ledgers[w].bucket[3] += amount;
+                self.economy.ledgers[w].dirty = true;
             }
         }
     }
@@ -457,7 +457,7 @@ impl Sim {
                 back[good as usize] += paid - now;
                 item.cost[pair] = now as i16;
             }
-            let ledger = &mut self.ledgers[who as usize];
+            let ledger = &mut self.economy.ledgers[who as usize];
             for (g, amount) in back.iter().enumerate() {
                 ledger.bucket[g] += amount;
             }
@@ -660,8 +660,8 @@ impl Sim {
                 .tech_tree
                 .type_avail(&self.tables.setup, p, t, true)
                 == tech::AVAILABLE;
-            self.holdings[w].discovered[g] = discovered;
-            self.holdings[w].available[g] = available;
+            self.economy.holdings[w].discovered[g] = discovered;
+            self.economy.holdings[w].available[g] = available;
         }
     }
 

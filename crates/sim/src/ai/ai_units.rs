@@ -1627,8 +1627,8 @@ impl Sim {
             // refused Great Lakes' scholar at sim-frame 8180: 159 knowledge
             // against a food cap of 2000 passes `(2000/16)*3/2 = 187` and
             // fails the halved `(1000/16)*3/2 = 93`. `docs/AI.md` §38.
-            let cap_food = self.ledgers[w].cap[FOOD];
-            if self.ledgers[w].bucket[KNOWLEDGE] > (cap_food / 16) * 3 / 2 {
+            let cap_food = self.economy.ledgers[w].cap[FOOD];
+            if self.economy.ledgers[w].bucket[KNOWLEDGE] > (cap_food / 16) * 3 / 2 {
                 return None;
             }
             let uni = self.city_chain(c).into_iter().find(|&b| {
@@ -1652,7 +1652,7 @@ impl Sim {
             // per pass until `k` reached `make_me`. `docs/AI.md` §42.
             *num_out = k;
             let filled = self.ai[w].census.filled_gather_slots[KNOWLEDGE];
-            let total = self.ledgers[w].gather_slots[KNOWLEDGE];
+            let total = self.economy.ledgers[w].gather_slots[KNOWLEDGE];
             // The multiplier chain is [`scholar_value`], which quotes the
             // listing: **three independent `if`s**, the first and third
             // the same `+0x8c8 < +0x8b0` test, so a city below two thirds
@@ -1704,10 +1704,10 @@ impl Sim {
             let mut deficit = slots - assigned;
             let mut room = 0;
             for (g, &gf) in gfree.iter().enumerate() {
-                if g == KNOWLEDGE || !self.holdings[w].available[g] {
+                if g == KNOWLEDGE || !self.economy.holdings[w].available[g] {
                     continue;
                 }
-                let inc = self.ledgers[w].income[g];
+                let inc = self.economy.ledgers[w].income[g];
                 let cap = self.mod_resource_cap(who, g);
                 if inc < cap {
                     room += ((cap - inc) / 160).min(gf);
@@ -2355,10 +2355,10 @@ impl Sim {
             return f;
         };
         for (g, &p) in price.iter().enumerate() {
-            if !self.holdings[w].available[g] || p == 0 {
+            if !self.economy.holdings[w].available[g] || p == 0 {
                 continue;
             }
-            let inc = self.ledgers[w].income[g] / 16;
+            let inc = self.economy.ledgers[w].income[g] / 16;
             if inc < 1 {
                 f /= 4;
             } else {

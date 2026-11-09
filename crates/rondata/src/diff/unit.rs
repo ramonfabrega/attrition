@@ -2835,7 +2835,7 @@ mod tests {
             if f == 7585 {
                 shop = Some((
                     built.sim.ai[1].make_list.clone(),
-                    built.sim.ledgers[1].bucket,
+                    built.sim.economy.ledgers[1].bucket,
                 ));
             }
             built.tick();

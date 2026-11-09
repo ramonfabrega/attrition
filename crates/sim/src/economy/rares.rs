@@ -146,7 +146,7 @@ impl Sim {
             let Some((good, crowd)) = self.do_gather_rates(u) else {
                 continue;
             };
-            let Some(g) = self.good_types.get(good).copied() else {
+            let Some(g) = self.economy.good_types.get(good).copied() else {
                 continue;
             };
             // The ally test the good's own cell answers — `is_ally` in the
@@ -181,7 +181,7 @@ impl Sim {
             }
         }
         // `rares_collected`, cleared and refilled by the same walk.
-        if let Some(h) = self.holdings.get_mut(who as usize) {
+        if let Some(h) = self.economy.holdings.get_mut(who as usize) {
             h.rares_collected = collected;
         }
         (out, owned)
@@ -371,7 +371,7 @@ impl Sim {
     /// [`crate::economy::Ledger::rare`], which `Sim::tick` rebuilds every
     /// frame as `Leader::gather` does, so the one field answers both.
     pub fn has_rare(&self, who: Player, good: usize) -> bool {
-        let Some(l) = self.ledgers.get(who as usize) else {
+        let Some(l) = self.economy.ledgers.get(who as usize) else {
             return false;
         };
         rare_bit(l.rare, good)

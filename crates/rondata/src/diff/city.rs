@@ -52,7 +52,7 @@ mod tests {
             .map(|v| v.trim().parse().unwrap_or(0))
             .collect();
         assert_eq!(&rate[..6], &[160, 160, 0, 0, 0, 0], "the dump's own rate");
-        let ours: Vec<i64> = built.sim.ledgers[1]
+        let ours: Vec<i64> = built.sim.economy.ledgers[1]
             .rate
             .iter()
             .map(|&v| i64::from(v))
@@ -137,7 +137,7 @@ mod tests {
                         .map(|v| v.trim().parse().unwrap_or(i64::MIN))
                         .collect()
                 };
-                let l = &built.sim.ledgers[who as usize];
+                let l = &built.sim.economy.ledgers[who as usize];
                 let rows: [(&str, [i32; sim::economy::RESOURCES]); 6] = [
                     ("bucket", l.bucket),
                     ("leftover", l.leftover),
@@ -419,7 +419,7 @@ mod tests {
                         .map(|v| v.trim().parse().unwrap_or(i64::MIN))
                         .collect()
                 };
-                let l = &built.sim.ledgers[who as usize];
+                let l = &built.sim.economy.ledgers[who as usize];
                 let rows: [(&str, [i32; sim::economy::RESOURCES]); 5] = [
                     ("bucket", l.bucket),
                     ("leftover", l.leftover),
@@ -529,7 +529,7 @@ mod tests {
                         .map(|v| v.trim().parse().unwrap_or(i64::MIN))
                         .collect()
                 };
-                let l = &built.sim.ledgers[who as usize];
+                let l = &built.sim.economy.ledgers[who as usize];
                 let rows: [(&str, [i32; sim::economy::RESOURCES]); 5] = [
                     ("bucket", l.bucket),
                     ("leftover", l.leftover),
@@ -559,7 +559,7 @@ mod tests {
                     }
                 }
             }
-            gaps.push((n, row, built.sim.ledgers[1].bucket));
+            gaps.push((n, row, built.sim.economy.ledgers[1].bucket));
         }
         eprintln!("run60: {compared} good-frames compared");
         for (k, (n, f, o, t)) in &shapes {
@@ -786,7 +786,7 @@ mod tests {
                         .map(|v| v.trim().parse().unwrap_or(i64::MIN))
                         .collect()
                 };
-                let l = &built.sim.ledgers[who as usize];
+                let l = &built.sim.economy.ledgers[who as usize];
                 // The dump's names, and what each is here. `resources` is
                 // the assembled rate and `income` the rate after the cap —
                 // the dump's own `rate` is a different field and is zero on
@@ -1117,7 +1117,7 @@ mod tests {
             }
             let mut rows: Goods = Vec::new();
             for who in 0..2usize {
-                let l = &built.sim.ledgers[who];
+                let l = &built.sim.economy.ledgers[who];
                 for (key, v) in [
                     ("bucket", l.bucket),
                     ("leftover", l.leftover),

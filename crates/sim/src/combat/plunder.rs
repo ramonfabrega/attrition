@@ -425,19 +425,19 @@ impl PlunderView for SimPlunder<'_> {
         }
     }
     fn type_avail(&mut self, who: i32, good: i32) -> bool {
-        self.sim.holdings[who as usize].available[good as usize]
+        self.sim.economy.holdings[who as usize].available[good as usize]
     }
     fn has_tribe_bonus(&mut self, who: i32, bonus: i32) -> bool {
         bonus == 0 && self.sim.cities_state.nation[who as usize].aztecs
     }
     fn bucket(&mut self, who: i32, good: i32) -> i32 {
-        self.sim.ledgers[who as usize].bucket[good as usize]
+        self.sim.economy.ledgers[who as usize].bucket[good as usize]
     }
     fn slay_count(&mut self, who: i32) -> i32 {
         self.sim.tech[who as usize].ages
     }
     fn add_good(&mut self, who: i32, good: i32, n: i32) {
-        let b = &mut self.sim.ledgers[who as usize].bucket[good as usize];
+        let b = &mut self.sim.economy.ledgers[who as usize].bucket[good as usize];
         *b = b.wrapping_add(n);
     }
     fn plunder_scale(&mut self, _who: i32) -> u32 {

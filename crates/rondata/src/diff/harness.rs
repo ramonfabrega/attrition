@@ -1313,6 +1313,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         // which is what `Array<CaravanLink>::add` records in the original.
         let vans = built
             .sim
+            .economy
             .caravans
             .iter()
             .flat_map(|l| l.slots[..l.mark].iter())
@@ -1471,7 +1472,7 @@ pub(crate) fn debug_gap(
     }
     let s = &built.sim;
     let mut rows: Vec<(String, String)> = Vec::new();
-    for (w, l) in s.ledgers.iter().enumerate() {
+    for (w, l) in s.economy.ledgers.iter().enumerate() {
         rows.push((
             format!("{w}/ledger"),
             format!("gather_stamp {} dirty {}", l.gather_stamp, l.dirty),
@@ -1804,9 +1805,9 @@ pub(crate) fn debug_leader(built: &Built, frame: i64) {
             l.step,
             l.script_step,
             l.site_mark,
-            built.sim.ledgers[w].bucket,
-            built.sim.ledgers[w].escrow,
-            built.sim.holdings[w].available,
+            built.sim.economy.ledgers[w].bucket,
+            built.sim.economy.ledgers[w].escrow,
+            built.sim.economy.holdings[w].available,
             built.sim.tech[w].epoch[sim::tech::Line::Commerce.index()],
             slots.join(" ")
         );

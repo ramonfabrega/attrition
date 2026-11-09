@@ -615,7 +615,7 @@ impl Sim {
             let g = enhancing_good(ident)?;
             let mut nfilled = f.slots[g] - f.open_slots[g];
             if g == 5 {
-                nfilled = self.ledgers[w].gather_slots[5] * 2;
+                nfilled = self.economy.ledgers[w].gather_slots[5] * 2;
             }
             let avail = self
                 .good_type(g)
@@ -626,7 +626,7 @@ impl Sim {
                     .tech_tree
                     .has_tribe_bonus(&self.tables.setup, &self.tech[w], 0x13);
             if !(avail
-                && self.ledgers[w].income[g] < cap
+                && self.economy.ledgers[w].income[g] < cap
                 && (nfilled > 2 || g == 5)
                 && (ident != Ident::Granary || !lakota)
                 && (f.open > 3 || g == 5))
@@ -979,7 +979,7 @@ impl Sim {
                             .good_type(g)
                             .is_some_and(|t| self.type_available(who, t));
                         let cost = self.type_price(who, ht).map_or(0, |c| c[g]);
-                        if mine == Some(g) && avail && self.ledgers[w].bucket[g] < cost {
+                        if mine == Some(g) && avail && self.economy.ledgers[w].bucket[g] < cost {
                             v = v.wrapping_mul(2).min(head.val);
                             break;
                         }
@@ -1037,7 +1037,7 @@ impl Sim {
         let ident = self.tables.build_types[rec].ident;
         let good = gather_good(ident)?;
         let cen = &self.ai[w].census;
-        if cen.filled_gather_slots[good] < self.ledgers[w].gather_slots[good] * 3 / 4 {
+        if cen.filled_gather_slots[good] < self.economy.ledgers[w].gather_slots[good] * 3 / 4 {
             return None;
         }
         let cv = (self.city_num(who) + self.village_num(who)).max(1);
@@ -1098,7 +1098,7 @@ impl Sim {
                 .is_some_and(|t| self.type_available(who, t));
             if !(good == g
                 && avail
-                && self.ledgers[w].income[g] < self.mod_resource_cap(who, g)
+                && self.economy.ledgers[w].income[g] < self.mod_resource_cap(who, g)
                 && f.open_slots[g] < 2)
             {
                 continue;
@@ -1108,7 +1108,8 @@ impl Sim {
             let mut m0 = 0x100;
             if g == 5 {
                 oil_ok = f.ci == 0
-                    && self.ledgers[w].gather_slots[5] < self.ai[w].oil_patches.len() as i32;
+                    && self.economy.ledgers[w].gather_slots[5]
+                        < self.ai[w].oil_patches.len() as i32;
                 base = base.wrapping_mul(10);
             }
             let ter = f.ter[g];

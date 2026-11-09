@@ -145,7 +145,7 @@ fn a_carrier_repairs_a_point_every_20_frames_and_citrus_heals_every_ship() {
         [(591, 0), (590, 7), (590, 7)],
         "on the phase, the carrier alone: a point and the fraction"
     );
-    sim.ledgers[1].rare |= 1 << (crate::economy::CITRUS - crate::economy::BASE_RARE);
+    sim.economy.ledgers[1].rare |= 1 << (crate::economy::CITRUS - crate::economy::BASE_RARE);
     for &i in &ships {
         sim.ship_heal(i, due + 20);
     }

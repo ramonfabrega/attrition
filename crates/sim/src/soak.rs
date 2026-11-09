@@ -171,7 +171,7 @@ fn sample(sim: &Sim) -> Sample {
         h.eat(i64::from(c.owner));
         h.eat_bool(c.alive);
     }
-    for l in &sim.ledgers {
+    for l in &sim.economy.ledgers {
         for good in l.bucket {
             h.eat(i64::from(good));
         }
@@ -277,7 +277,7 @@ fn scenario(rng: &mut Rng) -> (Sim, Types) {
     );
     let mut sim = Sim::new(Tuning::RON, w, 2);
     sim.declare_war(0, 1);
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; economy::RESOURCES];
     }
     let types = install(&mut sim);

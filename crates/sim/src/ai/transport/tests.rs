@@ -751,7 +751,7 @@ fn a_caravan_s_route_slot_goes_with_it_onto_the_fleet_and_back() {
         "the boat takes the slot"
     );
     assert_eq!(
-        f.sim.caravans[1].slots[1].unit,
+        f.sim.economy.caravans[1].slots[1].unit,
         Some(boat),
         "the route names the boat"
     );
@@ -761,12 +761,12 @@ fn a_caravan_s_route_slot_goes_with_it_onto_the_fleet_and_back() {
     assert_eq!(f.sim.units[boat].caravan, None, "the boat's is cleared");
     assert_eq!(f.sim.units[u].caravan, Some(1), "the caravan takes it back");
     assert_eq!(
-        f.sim.caravans[1].slots[1].unit,
+        f.sim.economy.caravans[1].slots[1].unit,
         Some(u),
         "the route names it again"
     );
     assert!(
-        f.sim.caravans[1].slots[1].alive,
+        f.sim.economy.caravans[1].slots[1].alive,
         "the boat's close closed no route"
     );
 }

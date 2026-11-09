@@ -309,7 +309,7 @@ impl Sim {
         match order.body {
             Body::Gather(g) => {
                 let who = self.units[u].owner;
-                self.ledgers[who as usize].dirty = true;
+                self.economy.ledgers[who as usize].dirty = true;
                 if self.buildings.get(g.building).is_some_and(|b| b.alive)
                     && self.buildings[g.building].owner == who
                 {

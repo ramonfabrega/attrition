@@ -43,7 +43,7 @@ fn sim() -> (Sim, Types) {
     let mut w = World::new(24, 24);
     w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(23, 23));
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; RESOURCES];
         l.income = [100 * 16; RESOURCES];
         l.cap = [1000 * 16; RESOURCES];
@@ -610,7 +610,7 @@ fn a_gather_offer_is_escrowed_on_every_exit_of_the_head_test() {
 fn a_gather_type_waits_until_its_slots_are_three_quarters_full() {
     let (mut sim, t) = sim();
     let c = city(&mut sim, &t, 0, 40, 40);
-    sim.ledgers[0].gather_slots[0] = 8;
+    sim.economy.ledgers[0].gather_slots[0] = 8;
     sim.ai[0].census.filled_gather_slots[0] = 5;
     assert!(value(&mut sim, 0, c, t.farm).is_none(), "5 < 8·3/4");
     sim.ai[0].census.filled_gather_slots[0] = 6;
@@ -747,7 +747,7 @@ fn another_wonder_s_site_prices_a_wonder_out_of_the_purse() {
     let a = city(&mut sim, &t, 0, 40, 40);
     let _b = city(&mut sim, &t, 0, 80, 40);
     sim.lobby.difficulty = 3;
-    sim.ledgers[0].bucket[wealth] = 208;
+    sim.economy.ledgers[0].bucket[wealth] = 208;
     assert_eq!(sim.building_price(0, t.wonder)[wealth], 200);
     pass_draws(&mut sim, 0);
     let before = listed(&sim, 0, t.wonder).expect("listed with no site");
@@ -758,7 +758,7 @@ fn another_wonder_s_site_prices_a_wonder_out_of_the_purse() {
         .place_building(0, t.silo, tile_pos(48, 40))
         .expect("the other wonder's site places");
     assert_eq!(sim.buildings[site].city, Some(a));
-    sim.ledgers[0].bucket[wealth] = 208;
+    sim.economy.ledgers[0].bucket[wealth] = 208;
     assert_eq!(
         sim.building_price(0, t.wonder)[wealth],
         260,

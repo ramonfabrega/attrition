@@ -1195,7 +1195,7 @@ impl Sim {
                 .tree
                 .map_or(n, |t| cost::building_family_count(t, n))
         };
-        let holdings = &self.holdings[who as usize];
+        let holdings = &self.economy.holdings[who as usize];
         let (rare_goods, gypsum) = self.rare_goods_discounts(who);
         cost::charges(
             &self.tables.tuning,
@@ -1232,7 +1232,7 @@ impl Sim {
             },
             &holdings.available,
             &holdings.discovered,
-            &self.redirects,
+            &self.economy.redirects,
         )
     }
 
@@ -1511,11 +1511,16 @@ impl Sim {
             return Err(PlaceFail::CityLimit);
         }
         let charges = self.building_price(who, ty);
-        let available = self.holdings[who as usize].available;
-        if !cost::can_pay(&charges, &self.ledgers[who as usize], &available, 1) {
+        let available = self.economy.holdings[who as usize].available;
+        if !cost::can_pay(&charges, &self.economy.ledgers[who as usize], &available, 1) {
             return Err(PlaceFail::Cost);
         }
-        cost::pay(&charges, &mut self.ledgers[who as usize], &available, false);
+        cost::pay(
+            &charges,
+            &mut self.economy.ledgers[who as usize],
+            &available,
+            false,
+        );
         self.economy_changed(who);
         Ok(self.init_build(who, ty, pos, false))
     }
@@ -2575,7 +2580,7 @@ impl Sim {
         }
         let who = self.buildings[b].owner as usize;
         let i = crate::economy::Resource::Wealth.index();
-        let ledger = &mut self.ledgers[who];
+        let ledger = &mut self.economy.ledgers[who];
         ledger.gather_slots[i] += 1;
         if ledger.gather_slots[i] > ledger.gather_slots_high[i] {
             ledger.gather_slots_high[i] = ledger.gather_slots[i];
@@ -2587,7 +2592,7 @@ impl Sim {
                 if self.cities_state.nation[who].germans {
                     amount = (self.tables.tuning.german_completion_bonus + 100) * amount / 100;
                 }
-                self.ledgers[who].bucket[i] += amount;
+                self.economy.ledgers[who].bucket[i] += amount;
             }
         }
     }
@@ -2620,7 +2625,7 @@ impl Sim {
         let who = self.buildings[b].owner as usize;
         let slots = self.buildings[b].gather_max.unwrap_or(0);
         let i = r.index();
-        let ledger = &mut self.ledgers[who];
+        let ledger = &mut self.economy.ledgers[who];
         ledger.gather_slots[i] += slots;
         let fresh = ledger.gather_slots[i] - ledger.gather_slots_high[i];
         if fresh > 0 {
@@ -2630,7 +2635,7 @@ impl Sim {
                 if self.cities_state.nation[who].germans {
                     amount = (self.tables.tuning.german_completion_bonus + 100) * amount / 100;
                 }
-                self.ledgers[who].bucket[i] += amount;
+                self.economy.ledgers[who].bucket[i] += amount;
             }
         }
         // **And the pasture is stocked.** `LAB_00625a36` — the fall-through
@@ -2703,13 +2708,13 @@ impl Sim {
     /// ([`Sim::untrack_item`]; item 3969).
     fn clean_queue(&mut self, b: usize, refund: bool) {
         let who = self.buildings[b].owner;
-        let mut ledger = std::mem::take(&mut self.ledgers[who as usize]);
+        let mut ledger = std::mem::take(&mut self.economy.ledgers[who as usize]);
         while !self.buildings[b].queue.items.is_empty() {
             if let Some(item) = self.buildings[b].queue.unqueue(0, refund, &mut ledger) {
                 self.untrack_item(who, &item);
             }
         }
-        self.ledgers[who as usize] = ledger;
+        self.economy.ledgers[who as usize] = ledger;
     }
 
     /// **A closing first library hands its queue to the next**
@@ -2794,14 +2799,14 @@ impl Sim {
             && let Some(r) = self.gather_good(b)
         {
             let slots = self.buildings[b].gather_max.unwrap_or(0);
-            self.ledgers[who as usize].gather_slots[r.index()] -= slots;
+            self.economy.ledgers[who as usize].gather_slots[r.index()] -= slots;
         }
         // `Build::close@00628980` line 107, three lines below the gather
         // slots and inside the same guard: a dock, a market or a temple
         // gives its wealth slot back too, and the mark stays where it is.
         if self.buildings[b].active && self.commerce_slot(b) {
             let i = crate::economy::Resource::Wealth.index();
-            self.ledgers[who as usize].gather_slots[i] -= 1;
+            self.economy.ledgers[who as usize].gather_slots[i] -= 1;
         }
         if !silent {
             self.mark_closed_cell(b);
@@ -3233,13 +3238,13 @@ impl Sim {
         }
         if !self.buildings[b].is_library {
             let who = self.buildings[b].owner;
-            let mut ledger = std::mem::take(&mut self.ledgers[who as usize]);
+            let mut ledger = std::mem::take(&mut self.economy.ledgers[who as usize]);
             while !self.buildings[b].queue.items.is_empty() {
                 if let Some(item) = self.buildings[b].queue.unqueue(0, true, &mut ledger) {
                     self.untrack_item(who, &item);
                 }
             }
-            self.ledgers[who as usize] = ledger;
+            self.economy.ledgers[who as usize] = ledger;
         }
         let pos = self.buildings[b].pos;
         let n = self.init_build(a, ty, pos, true);
@@ -3326,7 +3331,8 @@ impl Sim {
             was_capital && !self.cities_state.city_tally[o as usize].capital_plundered;
         let usable: Vec<usize> = (0..5)
             .filter(|g| {
-                self.holdings[a as usize].available[*g] && self.holdings[o as usize].available[*g]
+                self.economy.holdings[a as usize].available[*g]
+                    && self.economy.holdings[o as usize].available[*g]
             })
             .collect();
         if !first_capital {
@@ -3345,16 +3351,16 @@ impl Sim {
             if take > 0
                 && let Some(&g) = usable
                     .iter()
-                    .min_by_key(|g| self.ledgers[a as usize].bucket[**g])
+                    .min_by_key(|g| self.economy.ledgers[a as usize].bucket[**g])
             {
-                self.ledgers[a as usize].bucket[g] += take;
+                self.economy.ledgers[a as usize].bucket[g] += take;
             }
             if steal > 0
                 && let Some(&g) = usable
                     .iter()
-                    .min_by_key(|g| self.ledgers[o as usize].bucket[**g])
+                    .min_by_key(|g| self.economy.ledgers[o as usize].bucket[**g])
             {
-                self.ledgers[o as usize].bucket[g] += steal;
+                self.economy.ledgers[o as usize].bucket[g] += steal;
             }
         } else {
             self.cities_state.city_tally[o as usize].capital_plundered = true;
@@ -3372,8 +3378,8 @@ impl Sim {
                 (if hero { base } else { 0 }, base)
             };
             for &g in &usable {
-                self.ledgers[a as usize].bucket[g] += take;
-                self.ledgers[o as usize].bucket[g] += steal;
+                self.economy.ledgers[a as usize].bucket[g] += take;
+                self.economy.ledgers[o as usize].bucket[g] += steal;
             }
         }
     }
@@ -3391,7 +3397,7 @@ impl Sim {
         let bt = &self.tables.build_types[ty];
         let mut v = bt.plunder_value;
         let Some(g) = bt.plunder_good else { return };
-        if v == 0 || !self.holdings[killer as usize].available[g] {
+        if v == 0 || !self.economy.holdings[killer as usize].available[g] {
             return;
         }
         if no.germans && bt.ident == Ident::Mine {
@@ -3447,10 +3453,10 @@ impl Sim {
             0
         };
         if no.russians && self.tables.tuning.russian_plunder_steal != 0 && killer != owner {
-            self.ledgers[owner as usize].bucket[g] += v;
-            self.ledgers[killer as usize].bucket[g] += hero;
+            self.economy.ledgers[owner as usize].bucket[g] += v;
+            self.economy.ledgers[killer as usize].bucket[g] += hero;
         } else {
-            self.ledgers[killer as usize].bucket[g] += v + hero;
+            self.economy.ledgers[killer as usize].bucket[g] += v + hero;
         }
     }
 }

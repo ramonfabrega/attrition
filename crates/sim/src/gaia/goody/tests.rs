@@ -22,7 +22,7 @@ fn sim() -> (crate::Sim, usize) {
     s.frame = 1;
     // Empty buckets, so a pile is legible as itself rather than as a
     // delta on `STARTING_GOODS`.
-    for l in &mut s.ledgers {
+    for l in &mut s.economy.ledgers {
         l.bucket = [0; RESOURCES];
     }
     let at = Pos::new(2 * 0x300 + 0x180, 2 * 0x300 + 0x180);
@@ -294,7 +294,7 @@ fn knowledge_is_never_a_candidate_and_never_costs_a_draw() {
         "the bit is cleared, so no second unit can take the same ruins"
     );
     assert_eq!(
-        s.ledgers[1].bucket[Resource::Knowledge.index()],
+        s.economy.ledgers[1].bucket[Resource::Knowledge.index()],
         0,
         "and knowledge is never what a box pays"
     );
@@ -307,14 +307,14 @@ fn the_poorest_good_by_more_than_the_jitter_always_wins() {
     for seed in [1u32, 0x1234_5678, 0xdead_beef] {
         let (mut s, u) = sim();
         s.rng.seed = seed;
-        s.ledgers[1].bucket = [500, 500, 500, 500, 500, 0];
+        s.economy.ledgers[1].bucket = [500, 500, 500, 500, 500, 0];
         step_onto_the_goody(&mut s, u);
         assert_eq!(
-            s.ledgers[1].bucket[Resource::Oil.index()],
+            s.economy.ledgers[1].bucket[Resource::Oil.index()],
             25,
             "seed {seed:#x}: oil is 500 behind and the jitter is 24 wide"
         );
-        assert_eq!(s.ledgers[1].goody_box_resources, 25);
+        assert_eq!(s.economy.ledgers[1].goody_box_resources, 25);
     }
 }
 
@@ -328,7 +328,7 @@ fn the_pile_is_the_science_level_and_not_the_age() {
     s.tech[1].ages = 6;
     step_onto_the_goody(&mut s, u);
     assert_eq!(
-        s.ledgers[1].goody_box_resources,
+        s.economy.ledgers[1].goody_box_resources,
         3 * 25 + 25,
         "the age would pay 175 and the Science level pays 100"
     );
@@ -343,7 +343,7 @@ fn the_spanish_ruins_replace_both_halves() {
     s.set_tribe(1, 9);
     s.tech[1].epoch[Line::Science.index()] = 2;
     step_onto_the_goody(&mut s, u);
-    assert_eq!(s.ledgers[1].goody_box_resources, 2 * 26 + 30);
+    assert_eq!(s.economy.ledgers[1].goody_box_resources, 2 * 26 + 30);
 }
 
 /// No candidate at all — every good disabled — still pays, and pays
@@ -362,7 +362,7 @@ fn a_player_who_can_gather_nothing_is_paid_in_wealth() {
         0,
         "no candidate, no draw"
     );
-    assert_eq!(s.ledgers[1].bucket[Resource::Wealth.index()], 25);
+    assert_eq!(s.economy.ledgers[1].bucket[Resource::Wealth.index()], 25);
 }
 
 /// Frame 0 takes the bit and pays nothing — the whole reward half sits
@@ -375,7 +375,7 @@ fn frame_zero_consumes_the_box_without_paying() {
     s.trace_phases = true;
     step_onto_the_goody(&mut s, u);
     assert_eq!(s.world.cell_data(Cell::new(3, 2)).flags & GOODY, 0);
-    assert_eq!(s.ledgers[1].bucket, [0; RESOURCES]);
+    assert_eq!(s.economy.ledgers[1].bucket, [0; RESOURCES]);
     assert!(s.phase_marks.iter().all(|(l, _)| l != SITE_PICK));
 }
 
@@ -392,7 +392,7 @@ fn an_animal_walks_over_a_goody_without_taking_it() {
     assert!(s.units[a].is_gaia());
     step_onto_the_goody(&mut s, a);
     assert_ne!(s.world.cell_data(Cell::new(3, 2)).flags & GOODY, 0);
-    assert_eq!(s.ledgers[1].bucket, [0; RESOURCES]);
+    assert_eq!(s.economy.ledgers[1].bucket, [0; RESOURCES]);
 }
 
 /// A ship crossing a goody cell takes nothing either — `type->domain ==
@@ -409,5 +409,5 @@ fn a_sea_type_leaves_the_goody_where_it_is() {
     s.units[u].ty = Some(t);
     step_onto_the_goody(&mut s, u);
     assert_ne!(s.world.cell_data(Cell::new(3, 2)).flags & GOODY, 0);
-    assert_eq!(s.ledgers[1].bucket, [0; RESOURCES]);
+    assert_eq!(s.economy.ledgers[1].bucket, [0; RESOURCES]);
 }

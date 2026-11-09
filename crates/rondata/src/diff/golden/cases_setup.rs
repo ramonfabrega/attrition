@@ -1598,7 +1598,7 @@ pub(super) fn stage_walk() {
             // library line's tail reads (`has_rare`).
             format!(
                 "L 0 buckets {:?} rare {:#x}",
-                s.ledgers[0].bucket, s.ledgers[0].rare
+                s.economy.ledgers[0].bucket, s.economy.ledgers[0].rare
             ),
         ));
         // Item 1182: each city's members and its attack bits, which the

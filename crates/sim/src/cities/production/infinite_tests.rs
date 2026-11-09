@@ -43,8 +43,8 @@ fn barracks(researched: bool) -> (Sim, usize, usize) {
     let b = sim.add_building(0, crate::Pos::new(4 * 256, 4 * 256), 20);
     sim.buildings[b].ty = Some(brec);
     sim.roster.muster[0].cap = 100;
-    sim.ledgers[0].bucket = [10_000; RESOURCES];
-    sim.holdings[0].available = [true; RESOURCES];
+    sim.economy.ledgers[0].bucket = [10_000; RESOURCES];
+    sim.economy.holdings[0].available = [true; RESOURCES];
     (sim, b, rec)
 }
 
@@ -70,7 +70,7 @@ fn a_disband_queued_at_a_barracks_closes_it_when_the_job_completes() {
     assert!(s.buildings[b2].queue.items.is_empty());
     assert_eq!(s.action_queue_disband(&[b]), 0, "one is held");
     assert_eq!(s.buildings[b].queue.items.len(), 1);
-    let bucket = s.ledgers[0].bucket;
+    let bucket = s.economy.ledgers[0].bucket;
     let mut out = Vec::new();
     for _ in 0..210 {
         s.process_queue(b, &mut out);
@@ -81,7 +81,10 @@ fn a_disband_queued_at_a_barracks_closes_it_when_the_job_completes() {
     assert!(!s.buildings[b].alive, "Build::finished cast it");
     assert!(s.buildings[b].queue.items.is_empty());
     assert!(out.is_empty(), "no unit");
-    assert_eq!(s.ledgers[0].bucket, bucket, "a Barracks plunders nothing");
+    assert_eq!(
+        s.economy.ledgers[0].bucket, bucket,
+        "a Barracks plunders nothing"
+    );
     assert_eq!(s.action_queue_disband(&[b2]), 1, "the second may go now");
 }
 
@@ -162,11 +165,11 @@ fn university_admission_counts_seated_and_queued_scholars_before_charging() {
     }
     assert_eq!(s.num_gatherers(b, false, false), 6);
     assert_eq!(s.queue_up(b, rec), Ok(0), "six permits the seventh");
-    let bucket = s.ledgers[0].bucket;
+    let bucket = s.economy.ledgers[0].bucket;
     let tracked = s.roster.muster[0].queued_by_type[rec];
     assert_eq!(s.queue_up(b, rec), Err(super::QueueFail::Full));
     assert_eq!(
-        s.ledgers[0].bucket, bucket,
+        s.economy.ledgers[0].bucket, bucket,
         "a refused eighth costs nothing"
     );
     assert_eq!(s.roster.muster[0].queued_by_type[rec], tracked);
@@ -237,7 +240,7 @@ fn a_finished_train_job_requeues_under_the_bit() {
     let price = s.price_of(0, rec);
     for (r, p) in price.iter().enumerate() {
         if *p > 0 {
-            s.ledgers[0].bucket[r] = p - 1;
+            s.economy.ledgers[0].bucket[r] = p - 1;
         }
     }
     assert!(finish(&mut s), "the second trains");
@@ -263,23 +266,23 @@ fn the_player_s_cancel_reads_its_selector() {
     s.buildings[b].queue.items[0].job_counter = 5000;
     let wealth = crate::economy::Resource::Wealth.index();
     let paid = |s: &Sim, i: usize| i32::from(s.buildings[b].queue.items[i].cost[0]);
-    let (before, second) = (s.ledgers[0].bucket[wealth], paid(&s, 1));
+    let (before, second) = (s.economy.ledgers[0].bucket[wealth], paid(&s, 1));
     assert_eq!(s.action_unqueue(b, 0), 1);
     let q = &s.buildings[b].queue;
     assert_eq!(q.items.len(), 2, "one of the run");
     assert_eq!(q.items[0].job_counter, 5000, "the head keeps its progress");
     assert_eq!(
-        s.ledgers[0].bucket[wealth],
+        s.economy.ledgers[0].bucket[wealth],
         before + second,
         "the recorded price"
     );
     s.action_buildmask(&[b], 0x40);
     assert!(s.buildings[b].queue.infinite);
-    let before = s.ledgers[0].bucket[wealth];
+    let before = s.economy.ledgers[0].bucket[wealth];
     assert_eq!(s.action_unqueue(b, -1), 0, "a single cancel on 4160");
     assert!(!s.buildings[b].queue.infinite, "4160 -> 4096");
     assert_eq!(s.buildings[b].queue.items.len(), 2, "and nothing removed");
-    assert_eq!(s.ledgers[0].bucket[wealth], before, "nor refunded");
+    assert_eq!(s.economy.ledgers[0].bucket[wealth], before, "nor refunded");
     assert_eq!(s.action_unqueue(b, -1), 1, "the bit off: the last goes");
     assert_eq!(
         s.buildings[b].queue.items[0].job_counter, 5000,

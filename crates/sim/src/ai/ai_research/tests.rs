@@ -103,7 +103,7 @@ fn sim() -> (Sim, Types) {
     // (`Wall::start`, `crate::roads` §1) and spend a draw a node before
     // the coin is tossed, which is a different question.
     sim.movement.plan_roads = false;
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; RESOURCES];
         l.income = [100 * 16; RESOURCES];
         l.cap = [1000 * 16; RESOURCES];
@@ -417,8 +417,8 @@ fn the_british_pay_half_for_the_taxation_line() {
         sim.tables.tech_tree.types[x].cost = [8, 8, 0, 0, 0, 0];
     }
     sim.tables.tech_tree.roles.taxation_line = vec![t.taxation];
-    sim.holdings[1].available = [true, true, true, true, true, false];
-    sim.ledgers[1].bucket = [106, 76, 89, 299, 20, 0];
+    sim.economy.holdings[1].available = [true, true, true, true, true, false];
+    sim.economy.ledgers[1].bucket = [106, 76, 89, 299, 20, 0];
     sim.tech[1].has_city = true;
     let income = |sim: &Sim, x| sim.check_income(1, x, 0x400, None, true, -1, 1, 0);
     assert_eq!(sim.tech_price(1, t.taxation), [88, 88, 0, 0, 0, 0]);
@@ -448,8 +448,8 @@ fn the_germans_pay_half_for_the_industry_lines() {
         sim.tables.tech_tree.types[x].cost = [8, 8, 0, 0, 0, 0];
     }
     sim.tables.tech_tree.types[t.taxation].name = "Carpentry".into();
-    sim.holdings[1].available = [true, true, true, true, true, false];
-    sim.ledgers[1].bucket = [106, 76, 89, 299, 20, 0];
+    sim.economy.holdings[1].available = [true, true, true, true, true, false];
+    sim.economy.ledgers[1].bucket = [106, 76, 89, 299, 20, 0];
     sim.tech[1].has_city = true;
     let income = |sim: &Sim, x| sim.check_income(1, x, 0x400, None, true, -1, 1, 0);
     assert_eq!(sim.tech_price(1, t.taxation), [88, 88, 0, 0, 0, 0]);
@@ -477,7 +477,7 @@ fn an_american_government_is_free() {
     for x in [t.gov_b, t.taxation] {
         sim.tables.tech_tree.types[x].cost = [7, 0, 0, 0, 7, 0];
     }
-    sim.holdings[1].available = [true, true, true, true, true, false];
+    sim.economy.holdings[1].available = [true, true, true, true, true, false];
     let plain = sim.tech_price(1, t.gov_b);
     assert!(plain[0] > 0 && plain[4] > 0);
     let taxation = sim.tech_price(1, t.taxation);
@@ -494,11 +494,11 @@ fn an_american_government_is_free() {
 fn democracy_prices_non_library_research_before_british_taxation() {
     use crate::tech::Preq;
     let (mut sim, t) = sim();
-    sim.holdings[1].available = [true, true, true, true, true, false];
+    sim.economy.holdings[1].available = [true, true, true, true, true, false];
     sim.tech[1].has_city = true;
     sim.tables.tech_tree.types[t.religion].cost = [15, 0, 15, 0, 0, 0];
     sim.tables.tech_tree.types[t.agriculture].cost = [18, 0, 18, 0, 0, 0];
-    sim.ledgers[1].bucket = [193, 189, 242, 619, 218, 0];
+    sim.economy.ledgers[1].bucket = [193, 189, 242, 619, 218, 0];
     let income = |s: &Sim| s.check_income(1, t.agriculture, 0x400, None, true, -1, 1, 0);
     assert_eq!(sim.tech_price(1, t.religion), [165, 0, 165, 0, 0, 0]);
     assert_eq!(income(&sim), 0x40, "198 food exceeds the 193 held");
@@ -574,13 +574,13 @@ fn silver_takes_its_percent_off_an_age_and_nothing_else() {
     for x in [t.classical, t.science1, t.taxation] {
         sim.tables.tech_tree.types[x].cost = [45, 0, 0, 45, 0, 0];
     }
-    sim.holdings[1].available = [true, true, true, true, true, false];
+    sim.economy.holdings[1].available = [true, true, true, true, true, false];
     let (age, epoch, plain) = (
         sim.tech_price(1, t.classical),
         sim.tech_price(1, t.science1),
         sim.tech_price(1, t.taxation),
     );
-    sim.ledgers[1].rare = 1 << (crate::economy::SILVER - crate::economy::BASE_RARE);
+    sim.economy.ledgers[1].rare = 1 << (crate::economy::SILVER - crate::economy::BASE_RARE);
     let silvered = sim.tech_price(1, t.classical);
     assert_eq!(silvered[0], age[0] * 85 / 100, "Silver, an age's food");
     assert_eq!(silvered[3], age[3] * 85 / 100, "and its knowledge");
@@ -598,7 +598,7 @@ fn the_cheap_tick_prices_an_escrowed_head_against_the_whole_bucket() {
     city(&mut sim, &t, 1, 5, 5);
     building(&mut sim, 1, t.library, 12, 5);
     sim.tables.tech_tree.types[t.science1].cost = [10, 0, 0, 0, 0, 0];
-    sim.holdings[1].available = [true, true, true, true, true, false];
+    sim.economy.holdings[1].available = [true, true, true, true, true, false];
     let price = sim.tech_price(1, t.science1)[0];
     let head = |escrow| crate::ai::MakeObject {
         t: t.science1 as i32,
@@ -610,9 +610,9 @@ fn the_cheap_tick_prices_an_escrowed_head_against_the_whole_bucket() {
     };
     let ready = |sim: &mut Sim, escrow| {
         sim.ai[1].make_list.list[0] = head(escrow);
-        sim.ledgers[1].bucket = [price + 1; RESOURCES];
-        sim.ledgers[1].escrow = [0; RESOURCES];
-        sim.ledgers[1].escrow[0] = 10;
+        sim.economy.ledgers[1].bucket = [price + 1; RESOURCES];
+        sim.economy.ledgers[1].escrow = [0; RESOURCES];
+        sim.economy.ledgers[1].escrow[0] = 10;
     };
     // An unescrowed head is priced against the bucket less the
     // reservation, and the tick passes it by.
@@ -642,7 +642,7 @@ fn a_line_s_rare_and_nations_take_their_percent_off_its_epochs() {
     for x in [civic1, t.commerce2, t.military1, t.taxation] {
         sim.tables.tech_tree.types[x].cost = [160, 0, 0, 0, 0, 0];
     }
-    sim.holdings[1].available = [true, true, true, true, true, false];
+    sim.economy.holdings[1].available = [true, true, true, true, true, false];
     let price = |sim: &Sim, x| sim.tech_price(1, x)[0];
     let (civic, commerce, military, plain) = (
         price(&sim, civic1),
@@ -652,7 +652,7 @@ fn a_line_s_rare_and_nations_take_their_percent_off_its_epochs() {
     );
     // Dye: a quarter off the civic line and nothing else.
     let rare = |sim: &mut Sim, good: usize| {
-        sim.ledgers[1].rare = 1 << (good - crate::economy::BASE_RARE);
+        sim.economy.ledgers[1].rare = 1 << (good - crate::economy::BASE_RARE);
     };
     rare(&mut sim, 10);
     assert_eq!(price(&sim, civic1), civic * 75 / 100, "Dye, civic");
@@ -682,7 +682,7 @@ fn a_line_s_rare_and_nations_take_their_percent_off_its_epochs() {
     // GOLDEN.md` §54): 15 % off what the rare left, and nothing off
     // another line.
     sim.tech[1].power = None;
-    sim.ledgers[1].rare = 0;
+    sim.economy.ledgers[1].rare = 0;
     sim.tables.tech_tree.roles.despotism_preq = [Some(t.taxation); 3];
     sim.tech[1].tech[t.taxation] = true;
     assert_eq!(
@@ -998,9 +998,9 @@ fn the_knowledge_stockpile_gates_an_epoch() {
     building(&mut sim, 1, t.library, 12, 5);
     sim.lobby.difficulty = 3;
     sim.tables.tech_tree.types[t.science1].cost[KNOWLEDGE] = 1_000_000;
-    sim.ledgers[1].bucket[KNOWLEDGE] = 10;
+    sim.economy.ledgers[1].bucket[KNOWLEDGE] = 10;
     assert_eq!(value(&mut sim, 1, t.science1), None);
-    sim.ledgers[1].bucket[KNOWLEDGE] = 10_000_000;
+    sim.economy.ledgers[1].bucket[KNOWLEDGE] = 10_000_000;
     assert!(value(&mut sim, 1, t.science1).is_some());
 }
 

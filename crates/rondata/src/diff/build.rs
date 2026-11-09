@@ -1479,7 +1479,7 @@ mod tests {
                         rare |= 1 << i;
                     }
                 }
-                built.sim.ledgers[who].rare = rare;
+                built.sim.economy.ledgers[who].rare = rare;
             }
             built.sim.sync_territory();
             built.sim.settle_borders();
@@ -1498,7 +1498,7 @@ mod tests {
             // this crate computed before the term was wired.
             if gemless.is_empty() {
                 for who in 0..2usize {
-                    built.sim.ledgers[who].rare &=
+                    built.sim.economy.ledgers[who].rare &=
                         !(1u64 << (sim::economy::GEMS - sim::economy::BASE_RARE));
                 }
                 built.sim.sync_territory();

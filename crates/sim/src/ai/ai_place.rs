@@ -1016,11 +1016,11 @@ impl Sim {
         // 4.6 Creation: paid after frame 0, the site, the builder's order.
         if frame != 0 {
             let charges = self.building_price(who, rec);
-            let available = self.holdings[who as usize].available;
+            let available = self.economy.holdings[who as usize].available;
             // `pay_cost(who, −1, city, escrow, 0)` (`produce_building:1024`).
             cost::pay(
                 &charges,
-                &mut self.ledgers[who as usize],
+                &mut self.economy.ledgers[who as usize],
                 &available,
                 escrow,
             );

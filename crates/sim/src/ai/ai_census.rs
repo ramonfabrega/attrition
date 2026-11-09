@@ -147,7 +147,7 @@ impl Sim {
     /// the live map took the sea too — run1162d's who=0 census read who=1's
     /// team as 462 on block 2601 where the original's field held 437.
     fn territory_of(&self, who: Player) -> i32 {
-        self.holdings[who as usize].territory
+        self.economy.holdings[who as usize].territory
     }
 
     /// `LeaderData::get_team_terr@006d62e0`: my territory plus every ally's.
@@ -937,7 +937,7 @@ impl Sim {
         // the ledger and never the AI's gather gate. `gather_slots[2]` —
         // wealth — is the one slot the census never writes: no building
         // gathers it, and the store keeps what the commerce slots made it.
-        let ledger = &mut self.ledgers[w];
+        let ledger = &mut self.economy.ledgers[w];
         for g in [0, 1, 3, 4, 5] {
             ledger.gather_slots[g] = slots[g];
         }
@@ -956,7 +956,7 @@ impl Sim {
         // `+0x8d4`, the ledger's high-water mark, raised to the census's
         // count (`plan_strategy:1163`–`1167`) — the same field
         // `Build::activate`'s bonus reads.
-        let ledger = &mut self.ledgers[w];
+        let ledger = &mut self.economy.ledgers[w];
         for g in [0, 1, 3, 4, 5] {
             ledger.gather_slots_high[g] = ledger.gather_slots_high[g].max(ledger.gather_slots[g]);
         }

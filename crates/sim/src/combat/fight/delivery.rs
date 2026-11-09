@@ -745,7 +745,7 @@ impl Sim {
         let vw = victim.owner;
         if self.tables.tuning.inca_refund == 0
             || self.is_ally(vw, self.owner_of(by))
-            || !self.holdings[vw as usize].inca
+            || !self.economy.holdings[vw as usize].inca
         {
             return;
         }

@@ -105,14 +105,14 @@ fn check_income_is_a_factor_in_two_hundred_and_fifty_sixths() {
     // Owned, so the price is the train arm's: an unowned type is priced
     // by its research (`docs/AI.md` §56).
     sim.tech[0].tech[t] = true;
-    sim.holdings[0].available = [true; RESOURCES];
-    sim.ledgers[0].bucket[0] = 1000;
+    sim.economy.holdings[0].available = [true; RESOURCES];
+    sim.economy.ledgers[0].bucket[0] = 1000;
     // No income at all: the factor is quartered once for the one good.
-    sim.ledgers[0].income[0] = 0;
+    sim.economy.ledgers[0].income[0] = 0;
     assert_eq!(sim.check_income(0, t, 0x400, None, false, -1, 1, 0), 0x40);
     // With an income the discount is `4q` percent of the value, `q` the
     // price in sixteenths-of-income units, capped at twenty.
-    sim.ledgers[0].income[0] = 10 * 16;
+    sim.economy.ledgers[0].income[0] = 10 * 16;
     let price = sim.type_price(0, t).expect("a unit has a price")[0];
     let q = (price / 10).clamp(0, 20);
     assert_eq!(
@@ -120,7 +120,7 @@ fn check_income_is_a_factor_in_two_hundred_and_fifty_sixths() {
         (100 - 4 * q) * 0x100 / 100
     );
     // A tenth of the price as income puts `q` under the cap.
-    sim.ledgers[0].income[0] = price * 16;
+    sim.economy.ledgers[0].income[0] = price * 16;
     assert_eq!(
         sim.check_income(0, t, 0x400, None, false, -1, 1, 0),
         (100 - 4) * 0x100 / 100
@@ -590,10 +590,10 @@ fn barracks_sim(upgradeable: bool) -> (Sim, Barracks) {
     sim.ai[0].mil_trainers = vec![b];
     sim.roster.muster[0].cap = 100;
     sim.ai[0].census.pop = 10;
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; RESOURCES];
     }
-    sim.holdings[0].available = [true; RESOURCES];
+    sim.economy.holdings[0].available = [true; RESOURCES];
     (sim, Barracks { unit, rec, brec, b })
 }
 
@@ -789,23 +789,32 @@ fn an_escrowed_order_draws_the_reservation_down_and_an_ordinary_one_abandons_it(
         .find(|&g| charges[g] > 0)
         .expect("the unit costs something");
     let price = charges[g];
-    sim.ledgers[0].bucket = [0; crate::economy::RESOURCES];
-    sim.ledgers[0].bucket[g] = price + 50;
-    sim.ledgers[0].escrow[g] = price + 20;
+    sim.economy.ledgers[0].bucket = [0; crate::economy::RESOURCES];
+    sim.economy.ledgers[0].bucket[g] = price + 50;
+    sim.economy.ledgers[0].escrow[g] = price + 20;
     // Only the whole bucket covers it, and the order goes through.
     sim.queue_up_with(ids.b, ids.rec, true)
         .expect("the whole bucket pays");
-    assert_eq!(sim.ledgers[0].bucket[g], 50);
-    assert_eq!(sim.ledgers[0].escrow[g], 20, "drawn down by the price");
-    sim.ledgers[0].bucket[g] = price + 50;
-    sim.ledgers[0].escrow[g] = price + 20;
+    assert_eq!(sim.economy.ledgers[0].bucket[g], 50);
+    assert_eq!(
+        sim.economy.ledgers[0].escrow[g], 20,
+        "drawn down by the price"
+    );
+    sim.economy.ledgers[0].bucket[g] = price + 50;
+    sim.economy.ledgers[0].escrow[g] = price + 20;
     sim.queue_up_with(ids.b, ids.rec, false)
         .expect("the same test");
-    assert_eq!(sim.ledgers[0].escrow[g], 0, "reached into: abandoned");
-    sim.ledgers[0].bucket[g] = price + 50;
-    sim.ledgers[0].escrow[g] = 10;
+    assert_eq!(
+        sim.economy.ledgers[0].escrow[g], 0,
+        "reached into: abandoned"
+    );
+    sim.economy.ledgers[0].bucket[g] = price + 50;
+    sim.economy.ledgers[0].escrow[g] = 10;
     sim.queue_up_with(ids.b, ids.rec, false).expect("queued");
-    assert_eq!(sim.ledgers[0].escrow[g], 10, "not reached into: kept");
+    assert_eq!(
+        sim.economy.ledgers[0].escrow[g], 10,
+        "not reached into: kept"
+    );
 }
 
 #[test]
@@ -843,7 +852,7 @@ fn a_batch_s_second_unit_pays_the_first_one_s_group_ramp_step() {
         price.progression = crate::cost::Progression::PROGRESSIVE_BY_GROUP;
         price.support = [Some((crate::economy::Resource::Timber, 1)), None];
     }
-    sim.ledgers[0].bucket = [10_000; crate::economy::RESOURCES];
+    sim.economy.ledgers[0].bucket = [10_000; crate::economy::RESOURCES];
     let timber = crate::economy::Resource::Timber.index();
 
     let first = sim.price_of(0, ids.rec)[timber];

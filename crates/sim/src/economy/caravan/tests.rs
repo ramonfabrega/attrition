@@ -10,14 +10,17 @@ fn a_slot_is_reused_and_the_mark_walks_back_down() {
     let a = sim.init_caravan(1, 7).expect("a free slot");
     let b = sim.init_caravan(1, 8).expect("a free slot");
     assert_eq!((a, b), (0, 1));
-    assert_eq!(sim.caravans[1].mark, 2);
+    assert_eq!(sim.economy.caravans[1].mark, 2);
     sim.close_caravan(1, 0);
     // The mark stays where the higher slot holds it.
-    assert_eq!(sim.caravans[1].mark, 2);
+    assert_eq!(sim.economy.caravans[1].mark, 2);
     assert_eq!(sim.init_caravan(1, 9), Some(0), "the hole is reused first");
     sim.close_caravan(1, 1);
     sim.close_caravan(1, 0);
-    assert_eq!(sim.caravans[1].mark, 0, "and then it walks back down");
+    assert_eq!(
+        sim.economy.caravans[1].mark, 0,
+        "and then it walks back down"
+    );
 }
 
 #[test]
@@ -116,7 +119,7 @@ fn the_arrival_bonus_is_paid_once_and_doubles_for_a_foreigner() {
         traded_with: [0; 8],
     });
     let wealth = crate::economy::Resource::Wealth as usize;
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket[wealth] = 0;
     }
     for p in 0..2 {
@@ -126,19 +129,22 @@ fn the_arrival_bonus_is_paid_once_and_doubles_for_a_foreigner() {
 
     sim.city_new_caravan(0, 0, 5);
     assert_eq!(
-        sim.ledgers[0].bucket[wealth], 30,
+        sim.economy.ledgers[0].bucket[wealth], 30,
         "(2 + 1) × 10, the owner's"
     );
     sim.city_new_caravan(0, 0, 5);
-    assert_eq!(sim.ledgers[0].bucket[wealth], 30, "the bit is already set");
+    assert_eq!(
+        sim.economy.ledgers[0].bucket[wealth], 30,
+        "the bit is already set"
+    );
     sim.city_new_caravan(0, 0, 6);
     assert_eq!(
-        sim.ledgers[0].bucket[wealth], 60,
+        sim.economy.ledgers[0].bucket[wealth], 60,
         "a different partner pays"
     );
     sim.city_new_caravan(0, 1, 5);
     assert_eq!(
-        sim.ledgers[1].bucket[wealth], 60,
+        sim.economy.ledgers[1].bucket[wealth], 60,
         "(2 + 1) × 20 for a leader who does not own the city"
     );
 }
@@ -170,7 +176,7 @@ fn a_road_waypoint_built_over_verifies_the_route_and_drops_the_flag() {
         flags: path_flag::ROAD_LAID,
     };
     sim.units[u].path = vec![flagged(road), flagged(built)];
-    sim.caravans[1].slots[v].road = vec![flagged(road), flagged(built)];
+    sim.economy.caravans[1].slots[v].road = vec![flagged(road), flagged(built)];
     let m = sim.world.tile_mask(road.tile());
     sim.world.set_tile_mask(road.tile(), m | tile::SURFACE_ROAD);
     let m = sim.world.tile_mask(built.tile());
@@ -185,7 +191,7 @@ fn a_road_waypoint_built_over_verifies_the_route_and_drops_the_flag() {
     );
     // Plain ground, nothing on it: nothing asked either.
     sim.caravan_road_step(u, open);
-    assert_eq!(sim.caravans[1].slots[v].road.len(), 2);
+    assert_eq!(sim.economy.caravans[1].slots[v].road.len(), 2);
     // Built over and not road: verified, and the flag is gone.
     sim.caravan_road_step(u, built);
     assert!(
@@ -196,7 +202,7 @@ fn a_road_waypoint_built_over_verifies_the_route_and_drops_the_flag() {
         "every waypoint loses the flag"
     );
     assert!(
-        sim.caravans[1].slots[v].road.is_empty(),
+        sim.economy.caravans[1].slots[v].road.is_empty(),
         "the route is planned again"
     );
 }

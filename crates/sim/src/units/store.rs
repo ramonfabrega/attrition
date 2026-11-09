@@ -309,6 +309,7 @@ impl Sim {
             .collect();
         for (who, m) in self.roster.muster.iter_mut().enumerate() {
             m.bonuses.peacocks = self
+                .economy
                 .ledgers
                 .get(who)
                 .is_some_and(|l| l.rare & peacocks != 0);

@@ -356,7 +356,7 @@ impl TransportView for SimTransport<'_> {
     fn set_caravan_unit(&mut self, who: i32, s: i32, b: i32) {
         if let Some(van) = usize::try_from(s)
             .ok()
-            .and_then(|s| self.sim.caravans[who as usize].slots.get_mut(s))
+            .and_then(|s| self.sim.economy.caravans[who as usize].slots.get_mut(s))
         {
             van.unit = Some(b as usize);
         }

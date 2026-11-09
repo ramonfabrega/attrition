@@ -66,7 +66,7 @@ impl Sim {
         if !(frame == 0 || rate < 2 || frame % i64::from(rate) == 0) {
             return;
         }
-        let t = self.market.tick;
+        let t = self.economy.market.tick;
         for i in 0..GOODS {
             let ti = t + i as i32;
             if !(t == 0 || ti & 7 == 0) {
@@ -76,12 +76,12 @@ impl Sim {
             // (the test is on the low byte of `tick + i`).
             if ti & 0xff == 0 {
                 let eq = self.tables.tuning.market_equilibrium;
-                let p = self.market.price[i];
+                let p = self.economy.market.price[i];
                 if p > eq {
-                    self.market.price[i] = if eq == 0 { p - 1 } else { p - p / eq };
+                    self.economy.market.price[i] = if eq == 0 { p - 1 } else { p - p / eq };
                 } else if p < eq {
                     let up = p + 1;
-                    self.market.price[i] = if up < self.tables.tuning.market_basement {
+                    self.economy.market.price[i] = if up < self.tables.tuning.market_basement {
                         p + 2
                     } else {
                         up
@@ -93,22 +93,22 @@ impl Sim {
             let fresh = if t == 0 {
                 true
             } else {
-                self.market.flux_length[i] -= 1;
-                self.market.flux_length[i] < 1
+                self.economy.market.flux_length[i] -= 1;
+                self.economy.market.flux_length[i] < 1
             };
             if fresh {
                 self.calc_market(i);
             }
-            self.market.flux[i] += self.market.delta_flux[i];
+            self.economy.market.flux[i] += self.economy.market.delta_flux[i];
         }
-        self.market.tick += 1;
+        self.economy.market.tick += 1;
     }
 
     /// `GameDaemon::calc_market(i)`: three draws — two for the next flux,
     /// one for the trend's length — and the per-tick step.
     fn calc_market(&mut self, i: usize) {
         let min_variance = self.tables.tuning.market_min_variance;
-        let mut v = self.market.price[i] / 2;
+        let mut v = self.economy.market.price[i] / 2;
         if v < min_variance {
             v = min_variance;
         }
@@ -122,7 +122,7 @@ impl Sim {
             let b = self.rng.roll() % (v + 1);
             (a, b)
         };
-        self.market.next_flux[i] = (b - (v + 1)) + a;
+        self.economy.market.next_flux[i] = (b - (v + 1)) + a;
         let range = self.tables.tuning.market_trend_range;
         let spread = if range <= 1 {
             0
@@ -131,10 +131,10 @@ impl Sim {
             self.rng.roll() % range
         };
         let len = self.tables.tuning.market_min_trend + spread;
-        let diff = self.market.next_flux[i] - self.market.flux[i];
+        let diff = self.economy.market.next_flux[i] - self.economy.market.flux[i];
         let sign = if diff < 1 { diff >> 31 } else { 1 };
-        self.market.flux_length[i] = len;
-        self.market.delta_flux[i] = ((len - 1) * sign + diff) / len;
+        self.economy.market.flux_length[i] = len;
+        self.economy.market.delta_flux[i] = ((len - 1) * sign + diff) / len;
     }
 }
 

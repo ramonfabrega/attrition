@@ -600,8 +600,8 @@ impl ScriptHost<'_> {
         match self.price(w, t) {
             Some(charges) => cost::affordable(
                 &charges,
-                &self.sim.ledgers[w as usize],
-                &self.sim.holdings[w as usize].available,
+                &self.sim.economy.ledgers[w as usize],
+                &self.sim.economy.holdings[w as usize].available,
                 true,
             ),
             None => cost::PLENTY,
@@ -635,7 +635,7 @@ impl ScriptHost<'_> {
                 None => NO,
             },
             Class::Good => match self.good_slot(t) {
-                Some(g) => int(self.sim.ledgers[w as usize].bucket[g]),
+                Some(g) => int(self.sim.economy.ledgers[w as usize].bucket[g]),
                 None => BAD,
             },
             Class::Tech => BAD,
@@ -1141,8 +1141,8 @@ impl ScriptHost<'_> {
         let charges = self.sim.tech_price(w, t);
         let paid = cost::affordable(
             &charges,
-            &self.sim.ledgers[w as usize],
-            &self.sim.holdings[w as usize].available,
+            &self.sim.economy.ledgers[w as usize],
+            &self.sim.economy.holdings[w as usize].available,
             true,
         ) >= 1;
         // `could_queue@0062da50` asks `BuildData::can_make@0062db10` first,

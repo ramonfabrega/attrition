@@ -199,7 +199,7 @@ impl Sim {
             Step::Setup => {
                 let setup = self.goods_setup(who);
                 let leader = &mut self.ai[w];
-                ai::goods_picture(leader, &mut self.ledgers[w], &setup);
+                ai::goods_picture(leader, &mut self.economy.ledgers[w], &setup);
                 if !unlimited {
                     self.market_speculation(who);
                 }
@@ -259,7 +259,7 @@ impl Sim {
                 .tech_tree
                 .has_tribe_bonus(&self.tables.setup, p, 0x13),
             next_age_cost: next_age.map(|t| self.tech_price(who, t)),
-            available: self.holdings[w].available,
+            available: self.economy.holdings[w].available,
             cap: std::array::from_fn(|g| self.mod_resource_cap(who, g)),
         }
     }

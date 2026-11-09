@@ -62,7 +62,7 @@ fn fix() -> Fix {
     // Room for six cities, so the escrow and thin-region tests can found
     // more than one.
     sim.tech[1].epoch[crate::tech::Line::Civic as usize] = 5;
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; economy::RESOURCES];
     }
     let village = sim.add_build_type(bt(Ident::Village, None, "ean", 7, 7));
@@ -132,7 +132,7 @@ fn the_census_territory_is_the_land_count_not_the_owned_cells() {
     let p = Owner::Player(1);
     sim.world.set_owner(Cell::new(3, 3), p, Owner::None);
     sim.world.set_owner(Cell::new(13, 3), p, Owner::None);
-    sim.holdings[1].territory = 1;
+    sim.economy.holdings[1].territory = 1;
     assert_eq!(sim.territory_of(1), 1, "the land cell, not the sea one");
     assert_eq!(sim.team_terr(1), 1);
 }
@@ -505,7 +505,7 @@ fn a_farm_finished_between_censuses_reaches_the_gather_gate() {
         .place_building(1, f.farm, tile_pos(26, 24))
         .expect("a second farm site");
     f.sim.census(1);
-    let at_census = f.sim.ledgers[1].gather_slots[0];
+    let at_census = f.sim.economy.ledgers[1].gather_slots[0];
     assert!(at_census > 0, "the finished farm");
     assert!(!f.sim.buildings[late].active, "the second is a site");
 
@@ -513,13 +513,13 @@ fn a_farm_finished_between_censuses_reaches_the_gather_gate() {
     let gm = f.sim.buildings[late].gather_max.unwrap_or(0);
     assert!(gm > 0);
     assert_eq!(
-        f.sim.ledgers[1].gather_slots[0],
+        f.sim.economy.ledgers[1].gather_slots[0],
         at_census + gm,
         "the gate's field moved with no census"
     );
     f.sim.census(1);
     assert_eq!(
-        f.sim.ledgers[1].gather_slots[0],
+        f.sim.economy.ledgers[1].gather_slots[0],
         at_census + gm,
         "and the census agrees"
     );
@@ -556,7 +556,7 @@ fn the_gather_slot_books_are_kept_by_building_type() {
     f.sim.units[sch].on_map = false;
 
     f.sim.census(1);
-    let slots = f.sim.ledgers[1].gather_slots;
+    let slots = f.sim.economy.ledgers[1].gather_slots;
     assert_eq!(slots[0], 3, "the farm");
     assert_eq!(slots[1], 5, "the woodcutter");
     assert_eq!(slots[3], 4, "the university");

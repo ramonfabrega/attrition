@@ -266,21 +266,10 @@ pub struct Sim {
     /// Diplomacy, as a full matrix. `at_war[a][b]` is symmetric in practice
     /// but stored both ways, because the original reads it both ways.
     pub at_war: Vec<Vec<bool>>,
-    /// One income ledger per player, and what feeds it. Split the way the
-    /// original splits them: `holdings` is what a player *has*, and changes
-    /// when they build something; `ledgers` is what that is worth and what has
-    /// accrued, and changes every frame.
-    pub holdings: Vec<economy::Holdings>,
-    pub ledgers: Vec<economy::Ledger>,
-    /// The fifty `resourcerules.xml` goods' payouts, record index as id —
-    /// the six basics first and then the forty-four rares
-    /// (`crates/rondata/src/load.rs`). Only `LeaderData::calc_rare` reads
-    /// them, so an empty table simply means no deposit pays anything.
-    pub good_types: Vec<economy::GoodType>,
+    /// The `economy/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub economy: crate::economy::EconomyState,
     /// The `units/` subsystem's state (`docs/STRUCTURE.md` §3).
     pub roster: crate::units::UnitsState,
-    /// Where an unavailable resource's price is charged instead.
-    pub redirects: cost::Redirects,
     /// The production buildings, each with its own queue.
     pub buildings: Vec<Building>,
     /// The `cities/` subsystem's state (`docs/STRUCTURE.md` §3).
@@ -405,12 +394,8 @@ pub struct Sim {
     pub transport: Vec<transport::LeaderTransport>,
     /// One per player: the docks registry (`docs/TRANSPORT.md` §5).
     pub docks: Vec<transport::Docks>,
-    /// One `Caravans` list a player — the trade routes (`crate::caravan`).
-    pub caravans: Vec<caravan::Caravans>,
     /// One per player: the sixteen army slots (`docs/ARMY.md`).
     pub armies: Vec<army::Armies>,
-    /// The market's price cycle (`market.rs`).
-    pub market: market::Market,
     /// The herds and the birds' sampling (`gaia.rs`).
     pub gaia: gaia::Gaia,
     /// The `world/` subsystem's state (`docs/STRUCTURE.md` §3).
@@ -455,7 +440,6 @@ impl Sim {
         Sim {
             transport: vec![transport::LeaderTransport::default(); players],
             docks: vec![transport::Docks::default(); players],
-            caravans: vec![caravan::Caravans::default(); players],
             armies: (0..players)
                 .map(|w| army::Armies::new(w as Player))
                 .collect(),
@@ -471,10 +455,6 @@ impl Sim {
             road_marks: Vec::new(),
             units: Vec::new(),
             at_war: vec![vec![false; players]; players],
-            holdings: vec![economy::Holdings::new(); players],
-            ledgers: vec![economy::Ledger::starting(&tuning); players],
-            good_types: Vec::new(),
-            redirects: cost::Redirects::RON,
             buildings: Vec::new(),
             orders: crate::orders::OrdersState {
                 pushed: Vec::new(),
@@ -484,7 +464,14 @@ impl Sim {
             },
             rng: combat::Rng::new(0),
             ground_inexact: 0,
-            market: market::Market::default(),
+            economy: crate::economy::EconomyState {
+                caravans: vec![caravan::Caravans::default(); players],
+                holdings: vec![economy::Holdings::new(); players],
+                ledgers: vec![economy::Ledger::starting(&tuning); players],
+                good_types: Vec::new(),
+                redirects: cost::Redirects::RON,
+                market: market::Market::default(),
+            },
             gaia: gaia::Gaia::default(),
             game_seed: 0,
             allied: vec![vec![false; players]; players],
@@ -583,9 +570,10 @@ impl Sim {
         self.tech
             .push(tech::PlayerTech::new(&self.tables.tech_tree));
         self.territory.supply.push(supply::Network::default());
-        self.holdings.push(economy::Holdings::new());
+        self.economy.holdings.push(economy::Holdings::new());
         self.roster.unit_stats_dirty.push(false);
-        self.ledgers
+        self.economy
+            .ledgers
             .push(economy::Ledger::starting(&self.tables.tuning));
         self.roster.muster.push(Muster::new(&self.tables.tuning));
         self.combat.mods.push(combat::Modifiers::default());
@@ -634,7 +622,7 @@ impl Sim {
     /// [`Sim::holdings`] should say so here, or the change will not show up
     /// for up to half a minute.
     pub fn economy_changed(&mut self, who: Player) {
-        self.ledgers[who as usize].dirty = true;
+        self.economy.ledgers[who as usize].dirty = true;
     }
 
     /// Gives a unit a build order on a placed building — a player's

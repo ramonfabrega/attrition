@@ -47,7 +47,7 @@ impl Sim {
             .map(|i| {
                 (0..n)
                     .filter(|&j| j == i || (!self.defeated[j] && self.allied[i][j]))
-                    .map(|j| self.holdings[j].territory)
+                    .map(|j| self.economy.holdings[j].territory)
                     .sum()
             })
             .collect();

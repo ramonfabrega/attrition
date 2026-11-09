@@ -99,8 +99,8 @@ impl Sim {
         match self.type_price(who, t) {
             Some(charges) => cost::affordable(
                 &charges,
-                &self.ledgers[who as usize],
-                &self.holdings[who as usize].available,
+                &self.economy.ledgers[who as usize],
+                &self.economy.holdings[who as usize].available,
                 escrow_ignored,
             ),
             None => cost::PLENTY,
@@ -160,7 +160,7 @@ impl Sim {
         if self.lobby.resources_unlimited() {
             return 0;
         }
-        let cap = self.ledgers[who as usize].cap[g];
+        let cap = self.economy.ledgers[who as usize].cap[g];
         if self.cities_state.nation[who as usize].human {
             return cap;
         }

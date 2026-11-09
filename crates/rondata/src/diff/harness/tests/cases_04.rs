@@ -1377,7 +1377,7 @@ mod bodies {
                     "  make {n}: step {:?} script_step {} bucket {:?} offers@{} {:?}",
                     ai.step,
                     ai.script_step,
-                    built.sim.ledgers[1].bucket,
+                    built.sim.economy.ledgers[1].bucket,
                     ai.unit_offers_frame,
                     ai.unit_offers
                 );

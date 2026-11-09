@@ -1068,7 +1068,7 @@ impl Sim {
             self.units[u].carry &= !CARRY_ANY;
             if !g.been_there {
                 g.been_there = true;
-                self.ledgers[who as usize].dirty = true;
+                self.economy.ledgers[who as usize].dirty = true;
             }
             if g.wait < 0 {
                 // Return to the camp.
@@ -1235,7 +1235,7 @@ impl Sim {
                 g.wait -= 1;
                 if !g.been_there {
                     g.been_there = true;
-                    self.ledgers[who as usize].dirty = true;
+                    self.economy.ledgers[who as usize].dirty = true;
                 }
                 if g.wait >= 0 {
                     self.units[u]
@@ -2080,7 +2080,7 @@ impl DoRepairView for SimDoRepair<'_> {
         bd.hits_now() - bd.damage
     }
     fn good_avail(&mut self, good: usize) -> bool {
-        self.s.holdings[self.s.units[self.u].owner as usize].available[good]
+        self.s.economy.holdings[self.s.units[self.u].owner as usize].available[good]
     }
     fn price(&mut self, good: usize) -> i32 {
         // The site's owner is the `uid` the type's price is asked for
@@ -2091,7 +2091,7 @@ impl DoRepairView for SimDoRepair<'_> {
             .map_or(0, |t| self.s.building_price(bd.owner, t)[good])
     }
     fn bucket(&mut self, good: usize) -> i32 {
-        self.s.ledgers[self.s.units[self.u].owner as usize].bucket[good]
+        self.s.economy.ledgers[self.s.units[self.u].owner as usize].bucket[good]
     }
     fn feedback_stamp(&mut self) -> i32 {
         // SEAM: the complaint's throttle stamp is not carried; a complaint
@@ -2106,7 +2106,7 @@ impl DoRepairView for SimDoRepair<'_> {
     fn charge(&mut self, good: usize, d: i32) {
         // `Unit::do_repair@005ee420`'s charge draws the escrow down by the
         // same amount, floored at zero (`docs/AI.md` §98).
-        let ledger = &mut self.s.ledgers[self.s.units[self.u].owner as usize];
+        let ledger = &mut self.s.economy.ledgers[self.s.units[self.u].owner as usize];
         ledger.bucket[good] -= d;
         ledger.escrow[good] = (ledger.escrow[good] - d).max(0);
     }
@@ -2692,7 +2692,7 @@ impl DoGatherView for SimDoGather<'_> {
     }
     fn mark_leader(&mut self) {
         let who = self.s.units[self.u].owner as usize;
-        self.s.ledgers[who].dirty = true;
+        self.s.economy.ledgers[who].dirty = true;
     }
     fn is_scholar(&mut self) -> bool {
         self.s.worker_of(self.u) == Worker::Scholar
@@ -3154,16 +3154,16 @@ impl GatherSpotView for GatherSpotSim<'_> {
         (p.x, p.y)
     }
     fn good_avail(&mut self, g: usize) -> bool {
-        self.sim.holdings[self.who as usize].available[g]
+        self.sim.economy.holdings[self.who as usize].available[g]
     }
     fn gathers(&mut self, i: i32, g: usize) -> bool {
         crate::ai_place::gather_good(self.sim.building_ident(i as usize)) == Some(g)
     }
     fn under_cap(&mut self, g: usize) -> bool {
-        self.sim.ledgers[self.who as usize].over_cap[g] == economy::OverCap::Under
+        self.sim.economy.ledgers[self.who as usize].over_cap[g] == economy::OverCap::Under
     }
     fn headroom(&mut self, g: usize) -> i32 {
-        let l = &self.sim.ledgers[self.who as usize];
+        let l = &self.sim.economy.ledgers[self.who as usize];
         l.cap[g].wrapping_sub(l.income[g])
     }
     fn dutch(&mut self) -> bool {

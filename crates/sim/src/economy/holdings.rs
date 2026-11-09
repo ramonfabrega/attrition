@@ -154,7 +154,10 @@ impl Levels {
     /// [`Sim::city_holdings`]' `any(Ident::Lumbermill)` and
     /// `any(Ident::Granary)`, and only the leader half is here.
     pub fn for_player(sim: &Sim, who: Player) -> Levels {
-        debug_assert!((who as usize) < sim.holdings.len(), "no such player");
+        debug_assert!(
+            (who as usize) < sim.economy.holdings.len(),
+            "no such player"
+        );
         let roles = &sim.tables.tech_tree.roles;
         Levels {
             granary: 1 + sim.bonus_level(who, &roles.granary_preq) as i32,
@@ -683,7 +686,7 @@ impl Sim {
         } else {
             0
         };
-        let h = &mut self.holdings[w];
+        let h = &mut self.economy.holdings[w];
         h.cities = cities;
         h.outside = outside;
         h.rares = rares;
@@ -799,7 +802,7 @@ impl Sim {
     /// walk is the expensive half and the original does it inside the same
     /// gate, so income becomes visible on exactly the frame it does there.
     pub fn holdings_due(&self, who: Player, frame: i64) -> bool {
-        let l = &self.ledgers[who as usize];
+        let l = &self.economy.ledgers[who as usize];
         economy::should_recompute(frame, who, l.gather_stamp, l.dirty)
     }
 }
@@ -811,7 +814,7 @@ impl Sim {
 /// harness can ask "what is the rate?" without waiting for the cadence.
 pub fn rate_now(sim: &mut Sim, who: Player) -> [i32; economy::RESOURCES] {
     sim.assemble_holdings(who);
-    economy::assemble(&sim.tables.tuning, &sim.holdings[who as usize])
+    economy::assemble(&sim.tables.tuning, &sim.economy.holdings[who as usize])
 }
 
 #[cfg(test)]
