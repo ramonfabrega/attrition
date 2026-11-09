@@ -15,6 +15,7 @@ pub mod location;
 pub mod nations;
 pub mod place;
 pub mod production;
+pub mod queue;
 pub mod queue_disband;
 pub mod rally;
 pub mod site_recruit;
