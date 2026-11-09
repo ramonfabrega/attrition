@@ -359,6 +359,14 @@ pub struct World {
     /// deduplicated, empty for a sea region; rebuilt by
     /// [`World::rebuild_coasts`].
     coast: Vec<Vec<u16>>,
+    /// `sim::observe`'s terrain counter: moves on every write that changes
+    /// a tile height, a corner or a cell record ([`World::terrain_version`]).
+    /// No mechanic reads it; it is the renderer's cue to refetch the grid
+    /// (`docs/RENDERER.md` §2.3, item 4017).
+    terrain_version: u32,
+    /// `sim::observe`'s territory counter: moves on every write that
+    /// changes a cell's `(who, who2)` ([`World::territory_version`]).
+    territory_version: u32,
 }
 
 /// `WData::flags`, defined in [`crate::ids::cell`].
@@ -804,7 +812,28 @@ impl World {
             fog_now: Vec::new(),
             fog_detect: Vec::new(),
             coast: Vec::new(),
+            terrain_version: 0,
+            territory_version: 0,
         }
+    }
+
+    /// How many writes have changed the terrain grids — the tile heights,
+    /// the corner grid or a cell record — since the world was made. Read by
+    /// [`crate::observe`]; nothing in the simulation reads it.
+    pub const fn terrain_version(&self) -> u32 {
+        self.terrain_version
+    }
+
+    /// How many writes have changed a cell's claimants since the world was
+    /// made. Read by [`crate::observe`]; nothing in the simulation reads it.
+    pub const fn territory_version(&self) -> u32 {
+        self.territory_version
+    }
+
+    /// The tile height grid, row-major over `width × 4` columns; empty on a
+    /// world with no height table.
+    pub fn tile_z_grid(&self) -> &[i32] {
+        &self.tile_z
     }
 
     /// `Regions::set_coastals@0067fd70`'s `coast` masks: for every cell of
@@ -1065,6 +1094,9 @@ impl World {
     /// carries the change into [`World::tile_z`].
     pub fn set_corner_z(&mut self, x: i32, y: i32, z: Single, exact: bool) {
         if let Some(i) = self.corner_index(x, y) {
+            if self.corner_z[i] != z || self.corner_exact[i] != exact {
+                self.terrain_version = self.terrain_version.wrapping_add(1);
+            }
             self.corner_z[i] = z;
             self.corner_exact[i] = exact;
         }
@@ -1158,6 +1190,7 @@ impl World {
         }
         self.corner_exact = vec![true; z.len()];
         self.corner_z = z;
+        self.terrain_version = self.terrain_version.wrapping_add(1);
         let (tw, th) = (self.width * TILES_PER_CELL, self.height * TILES_PER_CELL);
         for ty in 0..th {
             for tx in 0..tw {
@@ -1197,6 +1230,9 @@ impl World {
             if self.tile_z.is_empty() {
                 self.tile_z = vec![0; self.tiles.len()];
             }
+            if self.tile_z[i] != z {
+                self.terrain_version = self.terrain_version.wrapping_add(1);
+            }
             self.tile_z[i] = z;
         }
     }
@@ -1235,6 +1271,9 @@ impl World {
     /// Writes a cell's record (the map loader's, and a test's).
     pub fn set_cell_data(&mut self, c: Cell, d: CellData) {
         if let Some(i) = self.index(c) {
+            if self.cells[i] != d {
+                self.terrain_version = self.terrain_version.wrapping_add(1);
+            }
             self.cells[i] = d;
         }
     }
@@ -1812,6 +1851,9 @@ impl World {
     /// Writes every cell's `(who, who2)` from [`World::owners`]' shape.
     pub fn set_owners(&mut self, all: &[(Owner, Owner)]) {
         for (i, &(a, b)) in all.iter().enumerate().take(self.who.len()) {
+            if self.who[i] != a || self.who2[i] != b {
+                self.territory_version = self.territory_version.wrapping_add(1);
+            }
             self.who[i] = a;
             self.who2[i] = b;
         }
@@ -1824,6 +1866,9 @@ impl World {
 
     pub fn set_owner(&mut self, c: Cell, who: Owner, who2: Owner) {
         if let Some(i) = self.index(c) {
+            if self.who[i] != who || self.who2[i] != who2 {
+                self.territory_version = self.territory_version.wrapping_add(1);
+            }
             self.who[i] = who;
             self.who2[i] = who2;
         }

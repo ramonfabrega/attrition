@@ -171,6 +171,7 @@ pub use self::cities::nations;
 pub use self::combat::nuke;
 pub use self::groups::normalize_view;
 pub mod num;
+pub mod observe;
 pub use self::combat::object_attack_view;
 pub mod orders;
 pub use self::ai::army::target_gate;

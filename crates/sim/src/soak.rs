@@ -405,8 +405,8 @@ fn issue(sim: &mut Sim, rng: &mut Rng) {
 }
 
 #[derive(Clone, Copy)]
-struct Sample {
-    replay: u64,
+pub(crate) struct Sample {
+    pub(crate) replay: u64,
     activity: u64,
 }
 
@@ -432,6 +432,12 @@ fn require_activity(seed: u32, samples: &[Sample]) -> usize {
 
 /// Plays one game and returns its per-frame digests.
 fn play(seed: u32, frames: usize) -> Vec<Sample> {
+    play_with(seed, frames, |_| {})
+}
+
+/// [`play`], handing the game to `each` after every frame's sample — the
+/// read door's check (`crate::observe`'s tests, item 4017).
+pub(crate) fn play_with(seed: u32, frames: usize, mut each: impl FnMut(&Sim)) -> Vec<Sample> {
     let mut rng = Rng::new(seed);
     let (mut sim, _types) = scenario(&mut rng);
     let mut out = Vec::with_capacity(frames + 1);
@@ -447,6 +453,7 @@ fn play(seed: u32, frames: usize) -> Vec<Sample> {
         }
         sim.tick();
         out.push(sample(&sim));
+        each(&sim);
     }
     out
 }
