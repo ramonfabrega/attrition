@@ -36335,9 +36335,9 @@ of the same frame holds another one (parked 4036b). run1559's line plus run1441'
 `--timeout 600 --tracer-def RON_STATE_FRAME=3294 --tracer-def
 'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`, and
 `poolshot.py run1559b 3294 --map 14`.
-- Pool lane 1, launched 12:17:34; exited after 445.4 s. The receipt reads \`success\` false, \`ValueError: extra
-  lifecycle or fault records\` (\`autostart_receipt.py\`): the paused take beside the packet ended as run1559 did, not
-  at its \`!quit\`. Settings restored (5 files), the lane free afterwards. The packet and the photograph were both
+- Pool lane 1, launched 12:17:34; exited after 445.4 s. The receipt reads `success` false, `ValueError: extra
+  lifecycle or fault records` (`autostart_receipt.py`): the paused take beside the packet ended as run1559 did, not
+  at its `!quit`. Settings restored (5 files), the lane free afterwards. The packet and the photograph were both
   written before the end. Not filed.
 - Minutes waited on another lane: none.
 
