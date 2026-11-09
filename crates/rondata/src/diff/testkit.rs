@@ -7104,7 +7104,7 @@ pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_FIVE: (i64, i64) = (604
 /// `Unit::think_carry_idle@005f2f30`'s walk to its added coastal city's
 /// Dock, and a Hoplites barge whose group has no army takes
 /// `Unit::think_carry_military@005f3260`'s no-army arm.
-pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_SIX: i64 = 899;
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_SIX: i64 = 900;
 
 /// `chapter_one_hundred_and_thirty_six_s_window_is_widened_whole`'s
 /// window: run1553.

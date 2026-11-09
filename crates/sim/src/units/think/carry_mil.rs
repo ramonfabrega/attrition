@@ -267,7 +267,12 @@ impl CarryMilView for SimCarryMil<'_> {
     }
     fn cargo_slot(&mut self) -> i32 {
         let u = self.u;
-        if self.sim.units.iter().any(|r| r.alive() && r.inside_unit == Some(u)) {
+        if self
+            .sim
+            .units
+            .iter()
+            .any(|r| r.alive() && r.inside_unit == Some(u))
+        {
             0
         } else {
             -1

@@ -134,7 +134,9 @@ impl CarryIdleView for SimCarryIdle<'_> {
         self.sim.cities.cities[self.city(i)].alive
     }
     fn city_region(&self, i: i32) -> i32 {
-        self.sim.cities.cities[self.city(i)].reg.map_or(-1, i32::from)
+        self.sim.cities.cities[self.city(i)]
+            .reg
+            .map_or(-1, i32::from)
     }
     fn is_coast(&mut self, my: i32, city_region: i32) -> bool {
         match (u16::try_from(my), u16::try_from(city_region)) {

@@ -114,6 +114,14 @@ impl Sim {
                         *m = host;
                     }
                 }
+                // **The barge is formed once** (item 3995, `docs/GOLDEN.md`
+                // §188; parked 3917a): with a copy per passenger the local
+                // group took a formation move per copy and the jump landed
+                // the barge on the last slot, where run1511 and run1553
+                // both keep it on its own point. How `Group::action_form`
+                // treats a member listed more than once is not read; one
+                // copy is what the two captures hold.
+                g.list.dedup();
             }
             (Domain::Sea, false) => return Some(made),
             _ => {

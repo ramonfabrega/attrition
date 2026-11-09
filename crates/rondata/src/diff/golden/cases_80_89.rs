@@ -2198,7 +2198,7 @@ pub(super) fn chapter_one_hundred_and_thirty_six_s_window_is_widened_whole() {
 }
 
 pub(super) fn chapter_one_hundred_and_thirty_six_holds_to_the_golden_word() {
-    let Some(w) = walk_script("ch136", "chapter136", 136, 6, 899) else {
+    let Some(w) = walk_script("ch136", "chapter136", 136, 6, 900) else {
         return;
     };
     eprintln!(
