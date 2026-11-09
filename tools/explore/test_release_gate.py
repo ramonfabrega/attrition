@@ -947,7 +947,7 @@ class GateTests(unittest.TestCase):
         self.assertNotIn('Lane filter dropped: mapgen', out)
         self.assertIn("the word's: mapgen, " + WORD[0], out)
         # A lane that keeps the sim crate keeps the filter, and runs it.
-        calls, policy, out = self.lane_with(['crates/sim/src/map_lakes.rs'], ['map_lakes'] + WORD,
+        calls, policy, out = self.lane_with(['crates/sim/src/mapgen/map_lakes.rs'], ['map_lakes'] + WORD,
                                             log=green + 'test map_lakes::tests::the_lakes_agree ... ok\n')
         self.assertEqual(policy['lane']['tests'], ['map_lakes'] + WORD)
         self.assertEqual(policy['lane']['dropped'], [])
