@@ -1,6 +1,6 @@
-use crate::attrition::Domain;
+use crate::ai::transport::ty::TRANSPORTBARGE;
 use crate::orders::{MoveKind, QueuePos};
-use crate::transport::ty::TRANSPORTBARGE;
+use crate::territory::attrition::Domain;
 use crate::world::{Cell, Terrain, World, tile};
 use crate::{Pos, Sim, Tuning, UnitType};
 

@@ -1,7 +1,7 @@
 //! `TypeData::research_time@006639a0` under the emulator against the port (item 2090; hand-written on tools/emu/hooks.py).
 
-use crate::production::research_time_by;
-use crate::type_index::is_spell_type;
+use crate::cities::production::research_time_by;
+use crate::core::type_index::is_spell_type;
 
 /// `TypeData::research_time@006639a0`, run by `tools/emu/sweep_type_data_research_time.py` under unicorn
 /// (tools/emu): the spell test as `time`'s; a spell costs `res_time · 100`, anything else asks the record's slot

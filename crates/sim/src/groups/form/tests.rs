@@ -1,12 +1,12 @@
 use super::*;
-use crate::ai_load::role;
+use crate::ai::ai_load::role;
 use crate::combat::{self, mask};
 use crate::orders::{MoveKind, QueuePos};
 use crate::{Unit, UnitType};
 
 fn sim() -> Sim {
     let mut s = Sim::new(
-        crate::tuning::Tuning::RON,
+        crate::core::tuning::Tuning::RON,
         crate::world::World::new(200, 200),
         2,
     );
@@ -58,7 +58,7 @@ fn an_iroquois_flagged_type_is_modern_infantry_in_any_age() {
     s.tables.unit_types[t].combat.age = 1;
     let u = spawn(&mut s, t, Pos::new(1000, 1000));
     assert!(!s.is_modern_infantry(u), "no nation power, age 1");
-    s.tech[1].power = Some(crate::nations::power::IROQUOIS);
+    s.tech[1].power = Some(crate::cities::nations::power::IROQUOIS);
     let bonus =
         s.tables
             .tech_tree
@@ -588,7 +588,7 @@ fn the_scatter_truncates_and_keeps_a_negative_remainder() {
 
 #[test]
 fn type_cat_returns_eight_of_its_eighteen_and_the_player_flag_moves_one() {
-    use crate::ai_load::uflags2;
+    use crate::ai::ai_load::uflags2;
     let mut s = sim();
     let civ = ty(&mut s, mask::CIVILIAN, 100, 100);
     let foot = ty(&mut s, mask::FOOT, 100, 100);

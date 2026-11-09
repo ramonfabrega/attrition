@@ -21,12 +21,12 @@
 //! What the renderer alone reads (`calculate_norms`, `calculate_tangents`,
 //! the `Cliff` meshes, the vertex colours) is not built.
 
-use crate::halfland::{Combo, Pass};
-use crate::map_resources::Footprint;
+use crate::mapgen::halfland::{Combo, Pass};
+use crate::mapgen::map_resources::Footprint;
+use crate::mapgen::terrain_groups::{CliffTemplate, set_blocked_at, tile_at, tile_inb};
+use crate::mapgen::terrain_init::coord;
 use crate::mapgen::{COAST, MapGrid};
-use crate::single::Single;
-use crate::terrain_groups::{CliffTemplate, set_blocked_at, tile_at, tile_inb};
-use crate::terrain_init::coord;
+use crate::num::single::Single;
 use crate::world::MOVE_49;
 
 /// `offtable@00af2fb0`: each size index's box, in cells, from the origin.
@@ -216,7 +216,7 @@ impl Init<'_> {
     /// **`Terrain::move_goody@0084a3d0`** on cell `(x, y)`
     /// ([`Pass::move_goody`], its good arm under the types' footprints);
     /// oil that moves takes its rocky patch's terraform on its new cell, as
-    /// the troughs' does (`crate::map_troughs`).
+    /// the troughs' does (`crate::mapgen::map_troughs`).
     fn move_goody(&mut self, x: i32, y: i32) {
         self.out.goody_calls += 1;
         let mut pass =
@@ -227,7 +227,7 @@ impl Init<'_> {
         match to {
             Ok(Some((nx, ny))) => {
                 self.out.moved.push(((x, y), (nx, ny)));
-                crate::map_heights::terraform_oil(self.g, self.z, nx, ny);
+                crate::mapgen::map_heights::terraform_oil(self.g, self.z, nx, ny);
             }
             Ok(None) => {}
             Err(_) => self.goody.push((x, y)),
@@ -373,7 +373,7 @@ impl Init<'_> {
         for k in 0..self.out.mining.len() {
             for j in 0..self.out.mining[k].len() {
                 let (tx, ty) = self.out.mining[k][j];
-                if crate::map_values::has_gather_access(self.g, tx, ty) {
+                if crate::mapgen::map_values::has_gather_access(self.g, tx, ty) {
                     let i = tile_at(self.g, tx, ty);
                     self.g.tiles[i] |= 0x8000;
                     self.out.edge += 1;

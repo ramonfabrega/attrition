@@ -10,7 +10,7 @@ mod tests {
     use crate::diff::testkit::replay_initial;
     use crate::gamelog::Block;
     use crate::testenv::{dump, install};
-    use sim::army::Army;
+    use sim::ai::army::Army;
 
     /// Every `BEGIN ARMY` block under a frame block's first `FULL DUMP`, in
     /// order — `ArmyData::log_data` prints only the valid slots.
@@ -371,7 +371,7 @@ mod tests {
     /// `x/y` is the destination, `dest` is "I have a current waypoint" and
     /// `dest_x/dest_y` is that waypoint, `last` is −1,−1 when no
     /// straight-line plan stands. The target of an attack rides on the
-    /// unit here rather than on the order (`sim::group`'s module note), so
+    /// unit here rather than on the order (`sim::groups::group`'s module note), so
     /// it is passed in resolved.
     fn order_of(od: &crate::gamelog::OrderDump) -> Option<sim::orders::Order> {
         use sim::orders::{AttackOrder, Body, MoveKind, MoveOrder, index};
@@ -734,7 +734,7 @@ mod tests {
         // the front order's: a unit chasing its target holds
         // `[MOVEORDER(transit), ATTACKORDER]` and only the second names
         // anyone. The simulation keeps the target on the unit rather than
-        // on the order (`sim::group`'s module note).
+        // on the order (`sim::groups::group`'s module note).
         for u in &unit_dumps {
             let Some(h) = units
                 .iter()
@@ -798,7 +798,7 @@ mod tests {
                 .collect();
             let a = &mut sim.ai.armies[g.who as usize].list[slot];
             a.units = members;
-            a.group = sim::group::GroupState {
+            a.group = sim::groups::group::GroupState {
                 form: g.form as i32,
                 order_num: g.order_num as i32,
                 o: Pos::new(g.ox as i32, g.oy as i32),
@@ -1075,7 +1075,7 @@ mod tests {
     /// city's, so no `frame_attacked` is written.
     #[test]
     fn run26_s_navy_targets_its_own_attacked_capital_with_three_draws() {
-        use sim::army::status;
+        use sim::ai::army::status;
         let Some(mut sc) = scene("gamelog-run26-islands-findtarget-window.txt", 12024) else {
             return;
         };
@@ -1118,7 +1118,7 @@ mod tests {
             let a = &mut sc.sim.ai.armies[1].list[2];
             a.status = status::MARCHING;
             a.city = None;
-            a.pos = sim::army::cell_centre(a.muster);
+            a.pos = sim::ai::army::cell_centre(a.muster);
             a.angle = a.muster_angle;
         }
         assert_eq!(sc.sim.find_aggressive_army(1), Some(2));
@@ -1434,7 +1434,7 @@ mod tests {
     /// and the simulation's arithmetic.
     #[test]
     fn run29_s_navy_slot_table_is_reproduced_from_the_install_s_own_spacing() {
-        use sim::form::{cat, formation, type_cat};
+        use sim::groups::form::{cat, formation, type_cat};
         use sim::movement::Angle;
         let Some(inst) = install() else { return };
         let Some(frames) = run29_pools() else { return };
@@ -1471,7 +1471,7 @@ mod tests {
 
         // Four of them in one army's group, on the harness's own world.
         let mut s = sim::Sim::new(
-            sim::tuning::Tuning::RON,
+            sim::core::tuning::Tuning::RON,
             sim::world::World::new(200, 200),
             2,
         );
@@ -1506,7 +1506,12 @@ mod tests {
         let ours: Vec<(i32, i32)> = f
             .off
             .iter()
-            .map(|&(x, y)| (sim::form::Form::quantise(x), sim::form::Form::quantise(y)))
+            .map(|&(x, y)| {
+                (
+                    sim::groups::form::Form::quantise(x),
+                    sim::groups::form::Form::quantise(y),
+                )
+            })
             .collect();
 
         for (fr, pool, _) in &frames {
@@ -1637,7 +1642,7 @@ mod tests {
     /// `LAND`, and army 0's `LAND` and `MILITARY` and not `SEA`.
     #[test]
     fn run29_s_navy_group_s_curr_is_the_leader_s_heading_applied_to_the_slot_table() {
-        use sim::ai_load::role;
+        use sim::ai::ai_load::role;
         use sim::movement::{Angle, cos_component, sin_component};
         let name = "gamelog-run29-islands-engagement-window.txt";
         let Some(path) = dump(name) else {
@@ -1779,7 +1784,7 @@ mod tests {
     /// set here from the record's own outcome and said to be an input.
     #[test]
     fn run29_s_mustering_army_is_released_with_no_forming_bit_and_the_tail_s_point() {
-        use sim::army::status;
+        use sim::ai::army::status;
         let Some(scs) = scenes(
             "gamelog-run29-islands-engagement-window.txt",
             &[15100, 15101],
@@ -1833,7 +1838,7 @@ mod tests {
         assert_eq!(got.city, want.city);
         assert_eq!(
             got.pos,
-            sim::army::cell_centre(Cell::new(45, 48)),
+            sim::ai::army::cell_centre(Cell::new(45, 48)),
             "the muster cell's centre"
         );
         assert_eq!(got.pos, want.pos, "the record's (34944, 37248)");
@@ -2040,7 +2045,7 @@ mod tests {
                     .map(|m| sc.unit(g.who, m.o).expect("the member"))
                     .collect()
             };
-            let group = |g: &crate::gamelog::GroupDump| sim::group::Group {
+            let group = |g: &crate::gamelog::GroupDump| sim::groups::group::Group {
                 who: g.who as sim::Player,
                 army: Some(g.army.max(0) as usize),
                 pushed: None,
@@ -2245,9 +2250,9 @@ mod tests {
         loaded: &crate::load::Loaded,
         ranged: usize,
         foot: usize,
-    ) -> (sim::Sim, sim::group::Group) {
+    ) -> (sim::Sim, sim::groups::group::Group) {
         let mut s = sim::Sim::new(
-            sim::tuning::Tuning::RON,
+            sim::core::tuning::Tuning::RON,
             sim::world::World::new(400, 400),
             2,
         );
@@ -2277,7 +2282,7 @@ mod tests {
             s.units[chain[2]].o_up = Some(chain[0]);
             captains.push(chain[0]);
         }
-        let mut g = sim::group::Group::stack(0);
+        let mut g = sim::groups::group::Group::stack(0);
         for &c in &captains {
             s.group_add(&mut g, c);
         }
@@ -2364,7 +2369,7 @@ mod tests {
     /// changed to do on 2026-08-26.
     #[test]
     fn run31_s_group_order_names_a_leader_the_first_member_rule_would_miss() {
-        use sim::form::{cat, type_cat};
+        use sim::groups::form::{cat, type_cat};
         let Some(inst) = install() else { return };
         let Some(moves) = run31_moves() else { return };
         let loaded = crate::load::load(&inst).unwrap();
@@ -2569,7 +2574,7 @@ mod tests {
     }
 
     /// run31's thirty-six-member group, stood up in the harness from the
-    /// install's own columns and laid out by `sim::form` — and every one of
+    /// install's own columns and laid out by `sim::groups::form` — and every one of
     /// the 40 records reproduced, all 36 slots, both coordinates.
     ///
     /// The chain, with nothing fitted in the middle:
@@ -2602,7 +2607,7 @@ mod tests {
     /// times; frame 204's record is one refresh past the layout.
     #[test]
     fn run31_s_thirty_six_member_table_is_reproduced_from_the_install_s_own_columns() {
-        use sim::form::{cat, formation, type_cat};
+        use sim::groups::form::{cat, formation, type_cat};
         use sim::movement::Angle;
         let Some(inst) = install() else { return };
         let Some(moves) = run31_moves() else { return };
@@ -2739,16 +2744,21 @@ mod tests {
                 let quant: Vec<(i32, i32)> = f
                     .off
                     .iter()
-                    .map(|&(x, y)| (sim::form::Form::quantise(x), sim::form::Form::quantise(y)))
+                    .map(|&(x, y)| {
+                        (
+                            sim::groups::form::Form::quantise(x),
+                            sim::groups::form::Form::quantise(y),
+                        )
+                    })
                     .collect();
                 // `refresh_group_order` re-origins the *quantised* table, so
                 // the comparison is exact once both are put on the same slot.
                 let origin = (0..36).find(|&i| rec[i] == (0, 0)).expect("an anchor");
                 let mut ours = quant.clone();
-                let mut st = sim::group::GroupState {
+                let mut st = sim::groups::group::GroupState {
                     form_num: 36,
                     off: ours.clone(),
-                    ..sim::group::GroupState::default()
+                    ..sim::groups::group::GroupState::default()
                 };
                 st.reorigin(origin);
                 ours = st.off.clone();
@@ -2907,7 +2917,7 @@ mod tests {
     /// around while marching, and then re-ordered — §13.
     #[test]
     fn run31_s_three_mirrors_come_out_of_facing_s_three_writers() {
-        use sim::group::reversing;
+        use sim::groups::group::reversing;
         use sim::movement::Angle;
         let Some(moves) = run31_moves() else { return };
         let Some(frames) = run31_frames() else { return };

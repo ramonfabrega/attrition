@@ -29,7 +29,7 @@
 //! fraction: the sixteenths and the 8.8 constants are the original's own way of
 //! keeping precision without one.
 
-use crate::tuning::Tuning;
+use crate::core::tuning::Tuning;
 use crate::world::Player;
 
 /// The six basic resources, in the engine's order.
@@ -700,7 +700,7 @@ pub struct Ledger {
     /// `LeaderData + 0x86c goody_box_resources`: how much a player's goody
     /// boxes have paid, all goods together. A score counter — `Leader::
     /// reset_score` zeroes it beside `goody_box_techs` and `goody_box_units`
-    /// — and `crate::goody` is its only writer, as in the original.
+    /// — and `crate::gaia::goody` is its only writer, as in the original.
     pub goody_box_resources: i32,
     /// `LeaderData + 0x8a4`, the dump's `gather_slots`: how many gatherers
     /// the player's finished gather buildings have room for, per resource.
@@ -1486,9 +1486,9 @@ pub struct EconomyState {
     /// them, so an empty table simply means no deposit pays anything.
     pub good_types: Vec<crate::economy::GoodType>,
     /// Where an unavailable resource's price is charged instead.
-    pub redirects: crate::cost::Redirects,
-    /// One `Caravans` list a player — the trade routes (`crate::caravan`).
-    pub caravans: Vec<crate::caravan::Caravans>,
+    pub redirects: crate::economy::cost::Redirects,
+    /// One `Caravans` list a player — the trade routes (`crate::economy::caravan`).
+    pub caravans: Vec<crate::economy::caravan::Caravans>,
     /// The market's price cycle (`market.rs`).
-    pub market: crate::market::Market,
+    pub market: crate::economy::market::Market,
 }

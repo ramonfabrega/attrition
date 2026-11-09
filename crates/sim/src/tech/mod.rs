@@ -192,9 +192,9 @@ pub struct TypeDef {
     pub job_time: i32,
     /// `TechType::ai[11]` (`+0x1cc`): the eleven weights the production AI
     /// multiplies a technology's base score by, derived at load from what the
-    /// tech unlocks — [`crate::ai_load::compute_ai_values`]. Zero on
+    /// tech unlocks — [`crate::ai::ai_load::compute_ai_values`]. Zero on
     /// everything that is not a tech, and `ai[7]` is never written at all.
-    pub ai: [i16; crate::ai_load::AI_WEIGHTS],
+    pub ai: [i16; crate::ai::ai_load::AI_WEIGHTS],
     /// **An anti-air building's `Wall::inc_time` cycle** (item 1112,
     /// `docs/COMBAT.md` §84): `Some` on every building that
     /// `Build::do_attack@006228f0` does not fire itself — `ANTI_AIR` and
@@ -223,7 +223,7 @@ impl TypeDef {
             leader_off: 0,
             cost: [0; crate::economy::RESOURCES],
             job_time: 0,
-            ai: [0; crate::ai_load::AI_WEIGHTS],
+            ai: [0; crate::ai::ai_load::AI_WEIGHTS],
             wall_cycle: None,
         }
     }
@@ -307,7 +307,7 @@ pub struct Tribe {
     /// `Tribe::unit_continent` (`+0x68`), the tribe file's
     /// `<UNIT_CONTINENT>`: which of the six unit art styles this nation's
     /// units are drawn in. `GraphicPieces::get_unit_gpiece` multiplies it
-    /// by [`crate::anim::PIECES_PER_STYLE`], so it is a *simulation* input
+    /// by [`crate::units::anim::PIECES_PER_STYLE`], so it is a *simulation* input
     /// and not a drawing one — the piece decides which animation packet a
     /// guy plays and therefore how long every animation of its runs
     /// (`docs/ANIM.md` §3.4). Zero — Europe — when unloaded, which is what
@@ -316,7 +316,7 @@ pub struct Tribe {
     /// `Tribe::build_continent` (`+0x64`), the tribe file's
     /// `<BUILD_CONTINENT>`: the nation's building art style, and the key
     /// of an unpacked merchant's "over time" piece
-    /// ([`crate::anim::stall_piece`]; item 3369). Zero when unloaded.
+    /// ([`crate::units::anim::stall_piece`]; item 3369). Zero when unloaded.
     pub build_continent: i32,
 }
 
@@ -992,8 +992,8 @@ impl TechTree {
     /// tech.
     pub fn num_preq(&self, t: TypeId) -> usize {
         match self.kind(t) {
-            Kind::Unit(_) | Kind::Good => crate::flag_reads::NUM_PREQ as usize,
-            _ => crate::flag_reads::BUILD_NUM_PREQ as usize,
+            Kind::Unit(_) | Kind::Good => crate::core::flag_reads::NUM_PREQ as usize,
+            _ => crate::core::flag_reads::BUILD_NUM_PREQ as usize,
         }
     }
 

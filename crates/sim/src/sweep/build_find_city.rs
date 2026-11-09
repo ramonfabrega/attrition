@@ -40,7 +40,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let div3 = |w: i32| rd(&c[0], (((w ^ 0x63637) >> 6) as usize) * 4);
         let (x, y, ecx) = (div3(rd(m, 0x10)), div3(rd(m, 0x14)), rd(m, 0x18));
         let mut rec: [Vec<String>; 3] = Default::default();
-        let r = crate::city::find_city_steps(
+        let r = crate::cities::city::find_city_steps(
             &mut rec,
             (m[8] & 0x20 != 0).then_some(id),
             city >= 0,

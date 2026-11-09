@@ -1,6 +1,6 @@
 //! `CityData::lumber_level@00736820` under the emulator against the port (item 2090; hand-written on tools/emu/hooks.py).
 
-use crate::holdings::lumber_level_by;
+use crate::economy::holdings::lumber_level_by;
 
 /// `CityData::lumber_level@00736820`, run by `tools/emu/sweep_city_data_lumber_level.py` under unicorn
 /// (tools/emu): bit 0x400 of the flags word gates `has_preq` on `leaders + 0x6eec · who` for `0x2c4`, `0x2c3`

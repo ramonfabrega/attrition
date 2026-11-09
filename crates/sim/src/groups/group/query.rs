@@ -70,7 +70,7 @@ impl Sim {
                 // 833, `833 mod 64` (item 3918, `docs/GOLDEN.md` §165).
                 let buildings = &self.buildings;
                 self.orders.pushed[i].builds.retain(|&b| buildings[b].alive);
-                let g = crate::group::Group {
+                let g = crate::groups::group::Group {
                     who,
                     army: None,
                     pushed: Some(i),
@@ -121,8 +121,8 @@ impl Sim {
                 }
                 let key = self.units[u]
                     .ty
-                    .map_or(crate::form::cat::FORM_CAT_NUM, |t| {
-                        crate::form::type_cat(&self.tables.unit_types[t], t, human)
+                    .map_or(crate::groups::form::cat::FORM_CAT_NUM, |t| {
+                        crate::groups::form::type_cat(&self.tables.unit_types[t], t, human)
                     });
                 if best.is_none_or(|(k, _, _)| key < k) {
                     best = Some((key, u, i));
@@ -322,14 +322,14 @@ impl Sim {
             return StanceType::None;
         };
         let c = &self.tables.unit_types[t];
-        if c.cols.is(crate::ai_load::role::ROLE_MILITARY) {
+        if c.cols.is(crate::ai::ai_load::role::ROLE_MILITARY) {
             return if c.combat.packs {
                 StanceType::Packer
             } else {
                 StanceType::Combat
             };
         }
-        if c.cols.is(crate::ai_load::role::ROLE_CITIZEN) {
+        if c.cols.is(crate::ai::ai_load::role::ROLE_CITIZEN) {
             return StanceType::Worker;
         }
         if c.cols.flag2(uflags2::CASTER) && !c.combat.packs {
@@ -748,7 +748,7 @@ impl Sim {
             g,
             u: leader,
         };
-        crate::update_positions_view::update_positions_steps(&mut v);
+        crate::groups::update_positions_view::update_positions_steps(&mut v);
     }
 
     /// A follower's target point this frame: the leader's **current**
@@ -977,7 +977,7 @@ impl Sim {
     /// more by the group's **leader** (`find_leader`, through the unit's
     /// `+0x80`) toggles `GroupData::facing`. Its two callers are
     /// [`Self::unit_set_angle`] and `come_out`'s turn to the host's angle
-    /// (`crate::transport`'s `land_tail`, item 2193), which writes the
+    /// (`crate::ai::transport`'s `land_tail`, item 2193), which writes the
     /// heading through [`crate::Movement::set_facing`] and so reaches
     /// here only for the flag.
     pub(crate) fn toggle_leader_facing(&mut self, u: usize) {
@@ -1056,7 +1056,7 @@ impl Sim {
     /// off the leader's own heading; it is written here from the same
     /// heading so the record has a value the moment the move is issued,
     /// which is what run29's window compares against.
-    pub(super) fn record_form(&mut self, g: &Group, f: &crate::form::Form, to: Pos) {
+    pub(super) fn record_form(&mut self, g: &Group, f: &crate::groups::form::Form, to: Pos) {
         if self.gstate(g).is_none() {
             return;
         }
@@ -1067,9 +1067,9 @@ impl Sim {
         // way.
         let q = |v: i32| {
             if f.flipped {
-                -crate::form::Form::quantise(-v)
+                -crate::groups::form::Form::quantise(-v)
             } else {
-                crate::form::Form::quantise(v)
+                crate::groups::form::Form::quantise(v)
             }
         };
         let off: Vec<(i32, i32)> = f.off.iter().map(|&(x, y)| (q(x), q(y))).collect();
@@ -1123,7 +1123,7 @@ pub(super) struct SimUpdatePositions<'a> {
     pub(super) u: usize,
 }
 
-impl crate::update_positions_view::UpdatePositionsView for SimUpdatePositions<'_> {
+impl crate::groups::update_positions_view::UpdatePositionsView for SimUpdatePositions<'_> {
     fn heading(&mut self) -> i32 {
         self.sim.units[self.u].movement.heading.0
     }

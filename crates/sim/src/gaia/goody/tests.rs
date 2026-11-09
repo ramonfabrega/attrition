@@ -173,7 +173,7 @@ fn a_spanish_box_on_its_own_ground_answers_was_seen() {
     let (mut s, u) = sweeper();
     assert!(s.world.set_fog(vec![0; 16 * 16]));
     s.tables.setup.starting_town = true;
-    s.tech[1].power = Some(crate::nations::power::SPANISH);
+    s.tech[1].power = Some(crate::cities::nations::power::SPANISH);
     assert!(!s.find_goody_box(u), "nobody's ground: the line of sight");
     let c = Cell::new(3, 2);
     s.world.set_owner(c, Owner::Player(1), Owner::None);
@@ -181,7 +181,7 @@ fn a_spanish_box_on_its_own_ground_answers_was_seen() {
     let mut enemy = s.clone();
     assert!(s.find_goody_box(u), "its own ground: was_seen");
     assert_eq!(aimed_at(&s, u), Some(c));
-    french.tech[1].power = Some(crate::nations::power::FRENCH);
+    french.tech[1].power = Some(crate::cities::nations::power::FRENCH);
     assert!(!french.find_goody_box(u), "another power: unseen");
     enemy.world.set_owner(c, Owner::Player(0), Owner::None);
     assert!(!enemy.find_goody_box(u), "an enemy's ground: unseen");
@@ -413,7 +413,7 @@ fn a_sea_type_leaves_the_goody_where_it_is() {
         moves: 40,
         ..crate::UnitType::default()
     });
-    s.tables.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
+    s.tables.unit_types[t].combat.domain = crate::territory::attrition::Domain::Sea;
     s.units[u].ty = Some(t);
     step_onto_the_goody(&mut s, u);
     assert_ne!(s.world.cell_data(Cell::new(3, 2)).flags & GOODY, 0);

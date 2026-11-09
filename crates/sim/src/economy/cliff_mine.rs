@@ -26,7 +26,7 @@
 //!    `band · counted / total`, at least 1 when anything counted.
 //!
 //! The cliffs themselves are `Cliffs::init@008a8020`'s `cliff_mining_data`,
-//! one per queued cliff (`sim::cliffs`, [`crate::cliffs::CliffsInit::mining`]):
+//! one per queued cliff (`sim::cliffs`, [`crate::mapgen::cliffs::CliffsInit::mining`]):
 //! its tiles are the marked tiles of each cell under its index that counts
 //! any, cells y outer, and its cells are those cells in the same order
 //! ([`CliffMining::from_tiles`]). Nothing a dump prints carries them, so a
@@ -40,7 +40,7 @@
 //! - **The nation and wonder additions** (`german_miners`, `taj_farms`,
 //!   `kremlin_farms`) are not modelled here, as on the range's arm.
 
-use crate::gather::{GATHERED_FROM, MOUNTAIN_GATHER};
+use crate::economy::gather::{GATHERED_FROM, MOUNTAIN_GATHER};
 use crate::world::{Cell, UNITS_PER_CELL, World, tile, vector_dist};
 use crate::{Player, Pos, Sim};
 

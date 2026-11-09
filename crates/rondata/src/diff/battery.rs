@@ -1130,7 +1130,7 @@ fn a_southwest_mesa_game_lays_its_cliffs() {
         want.intersection(&got).count()
     );
     assert_eq!((mine.mtn, mine.cliff), (Some(-1), Some(7)), "theirs");
-    assert_eq!(arm, sim::gather::MineArm::Cliff(7), "the arm");
+    assert_eq!(arm, sim::economy::gather::MineArm::Cliff(7), "the arm");
     assert_eq!(want.len(), 189, "the dump's list");
     assert_eq!(got, want, "the Mine's tiles");
 }
@@ -1181,7 +1181,7 @@ fn the_mesa_game_s_closing_mines_take_our_cliffs() {
         let corner = s.tile_corner(ty, pos);
         let arm = s.mine_arm(s.footprint_centre(ty, corner));
         let ours = match arm {
-            sim::gather::MineArm::Cliff(k) => k as i64,
+            sim::economy::gather::MineArm::Cliff(k) => k as i64,
             _ => -1,
         };
         eprintln!(

@@ -79,7 +79,8 @@ impl DoAttackView for SimDoAttack<'_> {
         self.s.profile(Obj::Unit(self.u)).attack
     }
     fn is_barge(&mut self) -> bool {
-        self.s.unit_is(self.u, crate::transport::ty::TRANSPORTBARGE)
+        self.s
+            .unit_is(self.u, crate::ai::transport::ty::TRANSPORTBARGE)
     }
     fn passenger_target_valid(&mut self) -> bool {
         let (Some(&p), Some(t)) = (self.riders().first(), self.target) else {
@@ -94,7 +95,7 @@ impl DoAttackView for SimDoAttack<'_> {
         let (&p, t) = (self.riders().first()?, self.target?);
         let here = self.s.units[self.u].pos;
         self.s
-            .find_attack_pos(p, t, here, crate::fight::SITE_ATTACK_POS_FIGHT)
+            .find_attack_pos(p, t, here, crate::combat::fight::SITE_ATTACK_POS_FIGHT)
             .map(|p| (p.x, p.y))
     }
     fn target_pos(&mut self) -> (i32, i32) {

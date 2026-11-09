@@ -44,7 +44,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let radius: Vec<usize> = (0..0x41).map(|i| rd(&c[3], 4 * i) as usize).collect();
             let x: Vec<i32> = c[4].iter().map(|&b| i32::from(b as i8)).collect();
             let y: Vec<i32> = c[5].iter().map(|&b| i32::from(b as i8)).collect();
-            crate::city::wear_site_vals(&mut w, centre, a[0], &radius, &x, &y);
+            crate::cities::city::wear_site_vals(&mut w, centre, a[0], &radius, &x, &y);
             for i in 0..xs * ys {
                 p[3][i as usize * 0x1c + 0xc] = w.cell_data(cell(i)).val;
             }

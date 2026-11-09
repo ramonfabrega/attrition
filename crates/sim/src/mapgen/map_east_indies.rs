@@ -1,6 +1,6 @@
 //! **East Indies' land/sea mask** (`docs/MAPGEN.md` §5, §15 step 1):
 //! `MapEastIndies::make_continents@00697540`, on the region growers Great
-//! Lakes' port already carries (`crate::map_lakes`).
+//! Lakes' port already carries (`crate::mapgen::map_lakes`).
 //!
 //! One island a player, opened on a ring about the map's centre that
 //! shrinks a cell at a time until its point clears every edge, and grown in
@@ -12,10 +12,10 @@
 //! reach 7807's part 5. No float: the distances are the engine's integer
 //! `vector_dist`, the spacing's root the integer Newton loop.
 
-use crate::map_lakes::{Grower, LakeMap, LakeStyle, Lakes, isqrt, scale_land_area};
+use crate::mapgen::map_lakes::{Grower, LakeMap, LakeStyle, Lakes, isqrt, scale_land_area};
+use crate::mapgen::terrain_groups::Draws;
 use crate::mapgen::{MapGrid, project};
 use crate::movement::Angle;
-use crate::terrain_groups::Draws;
 
 /// The draw sites, as return addresses (the trace's `Function+0xNN`).
 pub mod site {
@@ -60,7 +60,7 @@ pub struct IslandMap {
 /// first cell; a pass that ends short restarts the generation.
 ///
 /// Then the further islands: `xs/12 − players + 8 + (r & 1)` of them, each
-/// as Great Lakes' lakes are placed (`crate::map_lakes`), numbered on from
+/// as Great Lakes' lakes are placed (`crate::mapgen::map_lakes`), numbered on from
 /// the players' and grown to `xs`.
 ///
 /// `None` when the lobby's nations pass the map size's allowance, where

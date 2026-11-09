@@ -36,7 +36,7 @@ fn the_emulated_original_agrees_on_every_row() {
             p,
             log: &mut *log,
         };
-        sim::build_unqueue_view::build_unqueue_steps(&mut view, a[0], a[1]);
+        sim::cities::build_unqueue_view::build_unqueue_steps(&mut view, a[0], a[1]);
         if log.is_empty() {
             log.push("-".to_string());
         }

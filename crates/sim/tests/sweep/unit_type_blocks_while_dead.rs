@@ -1,6 +1,6 @@
 //! `UnitTypeData::blocks_while_dead@00470440` under the emulator against the port (item 1694).
 
-use crate::ai_load::UnitCols;
+use crate::ai::ai_load::UnitCols;
 
 /// `UnitTypeData::blocks_while_dead@00470440`, run by `tools/emu/sweep_unit_type_blocks_while_dead.py` under unicorn
 /// (tools/emu): `unit_flags` (`type+0x2b4`) `& 0x800000`, over every bit edge and a seeded band, against `UnitCols::flag(0x80_0000)` — the bit the port names as the same predicate.

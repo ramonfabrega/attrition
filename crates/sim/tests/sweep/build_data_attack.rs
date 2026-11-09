@@ -1,6 +1,6 @@
 //! `BuildData::attack@0062e610` under the emulator against the port (item 3387; tools/sweep_gen.py, obj with windows).
 
-use sim::build_attack_view::{self, BuildAttackView};
+use sim::combat::build_attack_view::{self, BuildAttackView};
 
 #[allow(dead_code)]
 fn rd(m: &[u8], off: usize) -> i32 {

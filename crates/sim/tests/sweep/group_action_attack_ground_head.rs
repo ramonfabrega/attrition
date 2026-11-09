@@ -33,8 +33,8 @@ fn the_emulated_original_agrees_on_every_row() {
             // `c[2]` players 0 and 1's ignore-orders counts; `p[who]` the elements of
             // `objects_ignoring_orders[who]` (players 0 and 1 are laid; a player of 8 or more skips the sweep).
             //
-            // **The port is the crate's own steps**, `crate::attack_ground_view::action_attack_ground_steps`.
-            use crate::attack_ground_view::{AttackGroundView, action_attack_ground_steps};
+            // **The port is the crate's own steps**, `crate::groups::attack_ground_view::action_attack_ground_steps`.
+            use crate::groups::attack_ground_view::{AttackGroundView, action_attack_ground_steps};
             struct V<'a> {
                 m: &'a [u8],
                 c: &'a [Vec<u8>],

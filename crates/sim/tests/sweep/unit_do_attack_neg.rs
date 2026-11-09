@@ -42,9 +42,9 @@ fn the_emulated_original_agrees_on_every_row() {
         // the objects of players 0 / 1 (`p1`, `p5` their arrays), `p10..p12` / `p14..p16` the units;
         // `p17` the type record, `p18` slot +0xac's answer (its `+0x18` is `p19`), `p20` the order.
         //
-        // **The port is the crate's own steps**, `crate::do_attack::do_attack_steps`, which
+        // **The port is the crate's own steps**, `crate::orders::do_attack::do_attack_steps`, which
         // `Sim::do_attack` calls over `SimDoAttack`; here the view is the emulated original's windows.
-        use crate::do_attack::{DoAttackView, do_attack_steps};
+        use crate::orders::do_attack::{DoAttackView, do_attack_steps};
         struct V<'a> {
             a: &'a [i32],
             m: &'a mut [u8],

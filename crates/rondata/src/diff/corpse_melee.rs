@@ -118,7 +118,7 @@ pub(crate) const CORPSE_MELEE: Melee = Melee {
     // 83: at index 74 theirs spends `Unit::close+0xcb6` — a death's draw —
     // where ours spends `Farms::inc_time+0x1ae`: theirs acted
     // (`docs/GOLDEN.md` §177). Item 3975: **744 → 2600, the game whole**,
-    // with the MLRS's rack (piece 223's rows in `sim::pivot::RELEASES`):
+    // with the MLRS's rack (piece 223's rows in `sim::data::pivot::RELEASES`):
     // the rockets left from the launcher's own square, 240 low, where
     // theirs leave the rack some 41 out and 226..240 up, so every blast
     // from 649 landed elsewhere — on 701 `2/143` read `hits:damage` ours
@@ -226,7 +226,7 @@ fn corpse_melee_run1542_s_word_window_is_widened_whole() {
     // theirs heals units ours does not, from 1151 (`1/17`, an Elite Special
     // Forces, `healing` 13 against 0; parked 3975b). The draws agree
     // throughout and the close is 0 off. Item 3978: 344 → **276**, with
-    // the supply heal (`sim::heal`'s `supply_heal`: the French bonus's
+    // the supply heal (`sim::units::heal`'s `supply_heal`: the French bonus's
     // period 20 within the Despot `1/164`'s supply radius) — the 68 `hits`
     // rows of 2501 agree; on 1151 `1/17` reads `healing` 13, `damage_frac`
     // 0 and `hits:damage` 8 both. What stands is the first block's standing

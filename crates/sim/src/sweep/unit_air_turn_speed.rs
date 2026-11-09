@@ -15,7 +15,7 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (a, eax) = super::row(line);
         let base = ((a[0] as i32 as u32) >> 8).wrapping_mul(a[1] as i32 as u32);
-        let roll = crate::single::Single(a[2] as u32);
+        let roll = crate::num::single::Single(a[2] as u32);
         let got = crate::air::air_turn_speed(base, roll, a[3] as i32);
         assert_eq!(eax as i32 as u32, got, "air_turn_speed — row `{line}`");
         n += 1;

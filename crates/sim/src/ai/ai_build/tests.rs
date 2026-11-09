@@ -1,5 +1,5 @@
 use super::*;
-use crate::build::BuildType;
+use crate::cities::build::BuildType;
 use crate::tech::{TechTree, TypeDef};
 use crate::world::{Terrain, UNITS_PER_TILE};
 use crate::{Cell, Pos, Tuning, World};
@@ -725,8 +725,8 @@ fn an_unfinished_wonder_site_shuts_its_city_out_of_the_other_wonders() {
 /// does not move.
 #[test]
 fn another_wonder_s_site_prices_a_wonder_out_of_the_purse() {
-    use crate::cost::{Kind, Price, RampClass};
     use crate::economy::Resource;
+    use crate::economy::cost::{Kind, Price, RampClass};
     let (mut sim, t) = sim();
     let wealth = Resource::Wealth as usize;
     sim.tables.build_types[t.silo].wonder = true;
@@ -788,8 +788,8 @@ fn another_wonder_s_site_prices_a_wonder_out_of_the_purse() {
 /// counts its own type.
 #[test]
 fn a_city_is_priced_by_every_city_of_the_line() {
-    use crate::cost::{Kind, Price, RampClass};
     use crate::economy::Resource;
+    use crate::economy::cost::{Kind, Price, RampClass};
     let (mut sim, t) = sim();
     let food = Resource::Food as usize;
     let mut town = bt(Ident::Town, "ean", 7, 7);

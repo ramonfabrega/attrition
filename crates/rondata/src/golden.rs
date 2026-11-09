@@ -1027,9 +1027,9 @@ pub struct Keys {
     pub alt: bool,
 }
 
-impl From<Keys> for sim::airbase::Keys {
+impl From<Keys> for sim::air::airbase::Keys {
     fn from(k: Keys) -> Self {
-        sim::airbase::Keys {
+        sim::air::airbase::Keys {
             shift: false,
             ctrl: k.ctrl,
             alt: k.alt,
@@ -1635,7 +1635,7 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
         // `@attackground` and `@comeout` (item 3425, `docs/GOLDEN.md` §145)
         // are staged for the original's coverage and have no entry here:
         // `Group::action_attack_ground@00704520`'s ground arm is walked
-        // (`sim::attack_ground_view`) and not wired, and
+        // (`sim::groups::attack_ground_view`) and not wired, and
         // `Unit::action_come_out@005e20b0` has no port (parked 3425a).
         // `@unqueueunit` is `issue_unqueue@00942ce0` once per unit, an
         // `unqueue` with no `group`, whose entry is

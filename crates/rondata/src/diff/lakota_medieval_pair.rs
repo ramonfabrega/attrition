@@ -35,7 +35,7 @@ pub(crate) const LAKOTA_MEDIEVAL: Pair = Pair {
     // Guy::inc_time+0x271` (`docs/AI.md` section 314). Item 3588: 4168 →
     // **4973, the game's last frame** — the Eagle Feather Horse `1/32`
     // (TypeIndex 206, piece 156) looses through its pivot
-    // (`sim::pivot::RELEASES`), its round at the Citizen `0/5` flies 17
+    // (`sim::data::pivot::RELEASES`), its round at the Citizen `0/5` flies 17
     // frames from (5484, 10096) and strikes on 4143 beside `1/12`'s, and
     // the Heavy Archers `1/19` re-aims at the wounded `0/5` on 4168.
     count: 4973,

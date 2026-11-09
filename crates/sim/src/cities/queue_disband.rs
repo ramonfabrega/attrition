@@ -27,7 +27,7 @@
 //! refused whole by the research arm while `0/2007`'s entry stands.
 
 use crate::Sim;
-use crate::build::Ident;
+use crate::cities::build::Ident;
 
 /// `DISBAND`, the craft's `TypeIndex` (`craftrules.xml`'s 38th `CRAFT`,
 /// `0x275 + 37`).
@@ -35,13 +35,18 @@ pub const DISBAND: i32 = 0x29a;
 
 impl Sim {
     /// **`Group::action_queue_up@006fdbb0`** for `DISBAND`: the research
-    /// arm ([`crate::group_queue_up::action_queue_up_steps`]) — refused whole
+    /// arm ([`crate::groups::group_queue_up::action_queue_up_steps`]) — refused whole
     /// while any of the player's buildings holds one
     /// ([`Sim::researching_disband`]), else the first member of two passes
     /// (the first only members holding nothing) whose
     /// [`Sim::queue_disband`] answers. Returns the entries laid, 0 or 1.
     pub fn action_queue_disband(&mut self, buildings: &[usize]) -> usize {
-        self.queue_group(buildings, crate::group_queue_up::Queued::Disband, 0, 0)
+        self.queue_group(
+            buildings,
+            crate::groups::group_queue_up::Queued::Disband,
+            0,
+            0,
+        )
     }
 
     /// `LeaderData::researching@006db510(0x29a, o, only, 0)`: an active
@@ -81,7 +86,7 @@ impl Sim {
 
     /// A building type's `+0x2c0 & 0x10`, `NO_CITY` (flag `e`).
     fn no_city(&self, ty: Option<usize>) -> bool {
-        ty.is_some_and(|t| self.tables.build_types[t].has(crate::build::flags::NO_CITY))
+        ty.is_some_and(|t| self.tables.build_types[t].has(crate::cities::build::flags::NO_CITY))
     }
 
     /// **`SpellTypeData::is_castable@00675bc0`'s 0x29a case** on building
@@ -152,7 +157,7 @@ impl Sim {
     pub(crate) fn disband_time(&self, at: usize) -> i32 {
         let b = &self.buildings[at];
         let Some(ty) = b.ty else { return 0 };
-        let mut t = self.tables.build_types[ty].job_time * crate::production::TIME_SCALE;
+        let mut t = self.tables.build_types[ty].job_time * crate::cities::production::TIME_SCALE;
         if self.building_is(at, Ident::Village) {
             t = self.tables.tuning.disband_city_rate * t / 100;
         }

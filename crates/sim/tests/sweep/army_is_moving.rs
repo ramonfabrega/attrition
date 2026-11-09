@@ -35,7 +35,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // x at +0x14, both xor 0x63637), `p10..p13` the lists (`+4` the node), `p14..p17` the nodes (`+8` the
             // order, `+0xc` a byte), `p22` the regions (stride 0x1c, short at +4), `p23` the `div_3_table`.
             // `vector_dist` is the crate's own, the original's being stub 5.
-            use crate::army_is_moving_view::{ArmyIsMovingView, army_is_moving};
+            use crate::ai::army::army_is_moving_view::{ArmyIsMovingView, army_is_moving};
             use crate::world::{Pos, vector_dist};
             struct V<'a> {
                 a: &'a [i32],

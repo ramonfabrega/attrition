@@ -1,7 +1,7 @@
 //! `BuildTypeData::get_enhancing_good@00639880` under the emulator against the port (item 2083;
 //! `build_type_get_good.rs`'s shape).
 
-use crate::build::Ident;
+use crate::cities::build::Ident;
 
 /// The `TypeIndex` of the four enhancers (`[this+4] − 0x1a7`, the listing's own table at `0x6398b0`) and of the
 /// gatherers and cities beside them, so the table's neighbours answer `None` through real identities rather than
@@ -38,7 +38,7 @@ fn the_emulated_original_agrees_on_every_row() {
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (args, want) = super::row(line);
-        let ours = crate::ai_place::enhancing_good(ident_of_type_index(args[0]))
+        let ours = crate::ai::ai_place::enhancing_good(ident_of_type_index(args[0]))
             .map_or(-1, |g| i64::try_from(g).expect("a small index"));
         assert_eq!(
             ours, want,

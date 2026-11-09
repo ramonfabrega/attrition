@@ -157,7 +157,7 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
         if let Some((sf, w, o)) = sweep
             && sf == at
         {
-            built.sim.trace.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
+            built.sim.trace.sweep_watch = Some(sim::movement::collide::SweepWatch::new(sf, w, o));
         }
         built.tick();
         // `RON_DEBUG_SLOTS=<lo>-<hi>`: player 1's births and deaths by

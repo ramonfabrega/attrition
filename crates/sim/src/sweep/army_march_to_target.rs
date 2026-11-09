@@ -57,9 +57,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 // record (the city number the short at +0x72). Logs, one per stub, each call `ecx,edx,args`; the `edx` of a
                 // callee that is not handed one is whatever was left, `*`, masked below.
                 //
-                // **The port is the crate's own steps**, `crate::army::march_to_target_steps`, which
+                // **The port is the crate's own steps**, `crate::ai::army::march_to_target_steps`, which
                 // `Sim::march_to_target` calls over its `MarchToSim`; here the view is the emulated original's windows.
-                use crate::army::{MarchToView, march_to_target_steps};
+                use crate::ai::army::{MarchToView, march_to_target_steps};
                 use crate::combat::Stance;
                 use crate::movement::Angle;
                 use crate::orders::{MoveKind, QueuePos};

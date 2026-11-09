@@ -36,7 +36,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let r = rd(m, 0x10) as usize;
         let short = |w: &[u8], k: usize| i32::from(u16::from_le_bytes([w[2 * k], w[2 * k + 1]]));
         let team = rd(&p[6 * who + 1], 0);
-        i64::from(crate::army::go_here_bits(
+        i64::from(crate::ai::army::go_here_bits(
             m[8] & 8 != 0,
             rd(m, 0x14),
             who,

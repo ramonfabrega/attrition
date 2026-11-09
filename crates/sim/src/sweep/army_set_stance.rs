@@ -35,7 +35,7 @@ fn the_emulated_original_agrees_on_every_row() {
         // (`--record-order`, item 2341).
         let mut turn = 0usize;
         let mut cx = (m, c, &mut *log);
-        crate::army::set_stance_steps(
+        crate::ai::army::set_stance_steps(
             &mut cx,
             |(m, _, _)| i16::from_le_bytes([m[0x96], m[0x97]]),
             |(m, _, _), i| rd(m, 0x54 + 4 * i),

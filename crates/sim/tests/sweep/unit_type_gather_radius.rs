@@ -1,6 +1,6 @@
 //! `UnitType::gather_radius@0061daa0` under the emulator against the port (item 2038; hand-written on tools/emu/hooks.py).
 
-use crate::fish::FISHERMEN;
+use crate::units::think::fish::FISHERMEN;
 
 /// `UnitType::gather_radius@0061daa0`, run by `tools/emu/sweep_unit_type_gather_radius.py` under unicorn
 /// (tools/emu): the three merchant ids (`0x3d`, `0x3e`, `0x190`) and anything the `is` slot says is in the

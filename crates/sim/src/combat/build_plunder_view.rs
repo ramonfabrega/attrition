@@ -29,7 +29,7 @@
 //! building's city where this walks `get_town`), and none of the messages.
 //! `docs/journal/2026-10-21-item-3402.md` names the inputs that part.
 
-use crate::single::Single;
+use crate::num::single::Single;
 
 /// The goods are indexed by `TypeIndex`; these are the type identities the
 /// function names.

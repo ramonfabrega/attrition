@@ -48,10 +48,10 @@ fn the_emulated_original_agrees_on_every_row() {
         // cities, `p32` the attacker's type, `p43` the building records' type, `p44..p50` the seven
         // `get_build` answers and `p51 p52` the two `get_wall` answers.
         //
-        // **The port is the crate's own steps**, `crate::damage::get_damage_steps`, over a view that
+        // **The port is the crate's own steps**, `crate::combat::damage::get_damage_steps`, over a view that
         // reads the emulated original's records; the recorded calls (`log`) hold which object each
         // question went to, in order.
-        use crate::damage::{DamageFacts, Rule, get_damage_steps};
+        use crate::combat::damage::{DamageFacts, Rule, get_damage_steps};
         use crate::movement::Angle;
 
         const S_HAS_PREQ: usize = 0;

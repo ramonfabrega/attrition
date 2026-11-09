@@ -31,9 +31,9 @@ fn the_emulated_original_agrees_on_every_row() {
             use crate::world::Owner;
             let land = rd(&p[1], 0x218) == 0;
             let domain = if land {
-                crate::attrition::Domain::Land
+                crate::territory::attrition::Domain::Land
             } else {
-                crate::attrition::Domain::Sea
+                crate::territory::attrition::Domain::Sea
             };
             let o = p[2][0xf] as i8;
             let ground = if o >= 0 {
@@ -48,7 +48,9 @@ fn the_emulated_original_agrees_on_every_row() {
             if land && !matches!(ground, Owner::Player(q) if q == who) && found {
                 wr(&mut p[0], 0, a[2]);
             }
-            i64::from(crate::supply::in_supply(domain, ground, who, found))
+            i64::from(crate::territory::supply::in_supply(
+                domain, ground, who, found,
+            ))
         }
     });
 }

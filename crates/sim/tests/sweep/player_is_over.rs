@@ -13,7 +13,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let w = i32::try_from(a[0]).expect("a 32-bit integer");
         assert_eq!(
             want,
-            i64::from(crate::flag_reads::player_is_over(w as u16)),
+            i64::from(crate::core::flag_reads::player_is_over(w as u16)),
             "Player::is_over — row `{line}`"
         );
         n += 1;

@@ -70,10 +70,12 @@ fn the_emulated_original_agrees_on_every_row() {
                 // their types, `p[50]` the order `get_action` answers. `a`: the four arguments, the stubs' answers
                 // (`a[4..37]`), every `--seq` run (`SEQ_AT`) and the order's null flag.
                 //
-                // **The port is the crate's own steps**, `crate::garrison_view::action_garrison_steps`, which
+                // **The port is the crate's own steps**, `crate::groups::garrison_view::action_garrison_steps`, which
                 // `Sim::group_action_garrison_search` runs over its `SimGarrison`; here the view is the emulated
                 // original's windows.
-                use crate::garrison_view::{GarrisonHead, GarrisonView, action_garrison_steps};
+                use crate::groups::garrison_view::{
+                    GarrisonHead, GarrisonView, action_garrison_steps,
+                };
                 const SEQ_AT: [(usize, usize, usize); 14] = [
                     (0, 37, 16),
                     (2, 53, 16),

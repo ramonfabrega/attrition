@@ -39,10 +39,10 @@ fn the_emulated_original_agrees_on_every_row() {
         //
         // **The call ends where `Wall::activate` is first entered** (`--stop-stub`):
         // the sweep holds the head (`:121-159`) and nothing after it. **The port is
-        // the crate's own steps**, `crate::activate::activate_head_steps`, which
+        // the crate's own steps**, `crate::cities::activate::activate_head_steps`, which
         // `Sim::activate` runs over its `SimHead`; here the view is the emulated
         // original's windows.
-        use crate::activate::{ActivateHeadView, activate_head_steps};
+        use crate::cities::activate::{ActivateHeadView, activate_head_steps};
         struct V<'a> {
             a: &'a [i32],
             m: &'a mut [u8],

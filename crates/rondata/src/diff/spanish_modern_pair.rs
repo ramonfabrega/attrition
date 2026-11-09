@@ -37,15 +37,15 @@ pub(crate) const SPANISH_MODERN: Pair = Pair {
     // Guy::do_turn+0x4a < Unit::move_step+0x389` against theirs'
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d` (`docs/AI.md` §365).
     // Item 3736: **3770 → 4021**, by the count and the sequence — piece
-    // 299's pivot and release rows (`sim::pivot`, off run1165's packet) put
+    // 299's pivot and release rows (`sim::data::pivot`, off run1165's packet) put
     // the Battleships' rounds at their turrets, so the Citizen `0/13` is
     // struck on 3704 in ours too. On 4021 ours spends 17 draws against 18,
     // index 12: theirs' `Unit::close+0xcb6 < Object::die+0x29 <
     // Unit::die+0x19`, a death ours does not deal, against ours'
     // `Farms::inc_time+0x1ae` (`docs/AI.md` §365.1).
     // Item 3737: **4021 → 4081, the game's last frame**, by the count and
-    // the sequence — piece 200's pivot rows (the Tank `PANZER`, `sim::pivot`)
-    // and piece 90's bays (the German Bazooka, `sim::launch`), both off
+    // the sequence — piece 200's pivot rows (the Tank `PANZER`, `sim::data::pivot`)
+    // and piece 90's bays (the German Bazooka, `sim::data::launch`), both off
     // run1416's packet, put the Tanks' and Bazookas' rounds at their
     // muzzles, so `0/13` is wounded on 4017 and killed on 4021 in ours too
     // (`docs/AI.md` §365.2). Piece 200's rows alone reach 4026.

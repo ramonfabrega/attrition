@@ -1,6 +1,6 @@
 //! `UnitTypeData::is_spellcaster@0061dc50` under the emulator against the port (item 1694).
 
-use crate::ai_load::{UnitCols, uflags2};
+use crate::ai::ai_load::{UnitCols, uflags2};
 
 /// `UnitTypeData::is_spellcaster@0061dc50`, run by `tools/emu/sweep_unit_type_is_spellcaster.py` under unicorn
 /// (tools/emu): `unit_flags2` (`type+0x2b8`) `& 0x2`, over every bit edge and a seeded band, against `UnitCols::flag2(uflags2::CASTER)` — the bit the port names as the same predicate.

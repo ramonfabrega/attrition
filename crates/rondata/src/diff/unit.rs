@@ -217,7 +217,7 @@ mod tests {
     /// `Guy::init_real`. `squad_size` is not a column: `UnitType::init@
     /// 0061ab50:723` writes the literal 1 into every type before it reads
     /// `UBER_SIZE` and `CREW_SIZE` beside it. So the count is
-    /// [`sim::anim::SQUAD_SIZE`] plus `unitrules.xml`'s `CREW_SIZE` — one
+    /// [`sim::units::anim::SQUAD_SIZE`] plus `unitrules.xml`'s `CREW_SIZE` — one
     /// for a Citizen, two for a Scout (the dog), three for a Caravan, four
     /// for a Trebuchet.
     ///
@@ -271,7 +271,8 @@ mod tests {
                     };
                     let Some(ty) = link.kind else { continue };
                     let crew = built.sim.tables.unit_types[ty].combat.crew_size;
-                    let ours = usize::try_from(crew + sim::anim::SQUAD_SIZE as i32).unwrap_or(0);
+                    let ours =
+                        usize::try_from(crew + sim::units::anim::SQUAD_SIZE as i32).unwrap_or(0);
                     rows += 1;
                     *counts.entry(u.guys.len()).or_default() += 1;
                     assert_eq!(
@@ -417,10 +418,10 @@ mod tests {
     /// walk is checkable to the **number** rather than to the arithmetic:
     /// this asserts it over every one of them.
     ///
-    /// It is what makes the derivation worth having. [`sim::anim::Art`]'s
+    /// It is what makes the derivation worth having. [`sim::units::anim::Art`]'s
     /// `pieces` is seeded from the opening dump alone, so a type absent
     /// from the opening — a Fisherman the AI trains on frame 4,376 — had
-    /// **no** piece at all, an `end_time` of [`sim::anim::UNKNOWN`], and no
+    /// **no** piece at all, an `end_time` of [`sim::units::anim::UNKNOWN`], and no
     /// animation of its ever wrapped (item 152).
     #[test]
     fn the_walk_gives_every_dumped_guy_its_own_piece() {
@@ -564,10 +565,10 @@ mod tests {
         // used to be played as the default and the clock wrapped fifteen
         // frames early.
         let scout = &loaded.piece_lengths[&371];
-        assert_eq!(scout.get(&sim::anim::DEFAULT), Some(&61));
-        assert_eq!(scout.get(&sim::anim::IDLE1), Some(&76));
-        assert_eq!(scout.get(&sim::anim::IDLE2), Some(&41));
-        assert_eq!(scout.get(&sim::anim::IDLE3), Some(&190));
+        assert_eq!(scout.get(&sim::units::anim::DEFAULT), Some(&61));
+        assert_eq!(scout.get(&sim::units::anim::IDLE1), Some(&76));
+        assert_eq!(scout.get(&sim::units::anim::IDLE2), Some(&41));
+        assert_eq!(scout.get(&sim::units::anim::IDLE3), Some(&190));
         // **A name resolves case-folded** (item 643, `docs/ANIM.md` §12).
         // The Galley — `TypeIndex` 341, piece 291 — cites "Galley Default"
         // and `anim_graphics.xml` defines "Galley default";
@@ -576,7 +577,7 @@ mod tests {
         // case-sensitive read left it out, and the missing slot's three
         // frames were East Indies' word 13640.
         let galley = &loaded.piece_lengths[&291];
-        assert_eq!(galley.get(&sim::anim::DEFAULT), Some(&20));
+        assert_eq!(galley.get(&sim::units::anim::DEFAULT), Some(&20));
         // And no unit piece in the shipped file has a `CHAR_GROUP_IDLE2` —
         // so `set_anim`'s captain gate, the one frame in sixteen that
         // skips the idle roll, can never fire (§4.2). It was `Art::
@@ -585,7 +586,7 @@ mod tests {
             loaded
                 .piece_lengths
                 .values()
-                .all(|m| !m.contains_key(&sim::anim::GROUP_IDLE2)),
+                .all(|m| !m.contains_key(&sim::units::anim::GROUP_IDLE2)),
             "no unit packet names a group idle"
         );
         // **And no piece any traced unit carries has a turn animation** —
@@ -604,7 +605,8 @@ mod tests {
         for p in [0, 19, 352, 371, 6336, 6688, 12691, 13043] {
             let m = &loaded.piece_lengths[&p];
             assert!(
-                !m.contains_key(&sim::anim::TURN_LEFT) && !m.contains_key(&sim::anim::TURN_RIGHT),
+                !m.contains_key(&sim::units::anim::TURN_LEFT)
+                    && !m.contains_key(&sim::units::anim::TURN_RIGHT),
                 "piece {p} names a turn animation, so `guy_flags & 8` is live"
             );
         }
@@ -612,7 +614,7 @@ mod tests {
             loaded
                 .piece_lengths
                 .values()
-                .filter(|m| m.contains_key(&sim::anim::TURN_LEFT))
+                .filter(|m| m.contains_key(&sim::units::anim::TURN_LEFT))
                 .count(),
             273,
             "the pieces that do have one — the check is that it is neither 0 nor all"
@@ -687,12 +689,12 @@ mod tests {
         assert_eq!(
             mirrored,
             vec![
-                (12691, sim::anim::DEFAULT, 76),
-                (12691, sim::anim::IDLE1, 190),
-                (12691, sim::anim::IDLE3, 41),
-                (13043, sim::anim::IDLE1, 190),
-                (13043, sim::anim::IDLE2, 61),
-                (13043, sim::anim::IDLE2, 190),
+                (12691, sim::units::anim::DEFAULT, 76),
+                (12691, sim::units::anim::IDLE1, 190),
+                (12691, sim::units::anim::IDLE3, 41),
+                (13043, sim::units::anim::IDLE1, 190),
+                (13043, sim::units::anim::IDLE2, 61),
+                (13043, sim::units::anim::IDLE2, 190),
             ],
             "the mirrored rows, all on the two dogs"
         );
@@ -1206,7 +1208,7 @@ mod tests {
                     let item = &ours.items[k];
                     let id = item.tech.unwrap_or_else(|| built.unit_tree[item.ty]);
                     let ty = if item.disband {
-                        sim::queue_disband::DISBAND
+                        sim::cities::queue_disband::DISBAND
                     } else {
                         built.type_index.get(id).copied().unwrap_or(-1)
                     };
@@ -1540,7 +1542,7 @@ mod tests {
                     ("x", i64::from(un.pos.x), Some(them.pos.x)),
                     // Item 190: `Unit::init@00612100:282–309` switches five
                     // ways on the type's stance kind and reads the leader's
-                    // options (`sim::stance`). It was excepted here while
+                    // options (`sim::units::stance`). It was excepted here while
                     // `Unit::new`'s flat 1 stood.
                     ("stance", i64::from(un.stance), them.stance),
                     ("y", i64::from(un.pos.y), Some(them.pos.y)),
@@ -1626,7 +1628,7 @@ mod tests {
                             un.movement.facing,
                         ),
                     };
-                    if n >= sim::anim::SQUAD_SIZE {
+                    if n >= sim::units::anim::SQUAD_SIZE {
                         crew_rows += 1;
                     }
                     let track = og.follow.map_or((0, 0), |b| b.track);
@@ -1838,7 +1840,7 @@ mod tests {
                             un.movement.facing,
                         ),
                     };
-                    if n >= sim::anim::SQUAD_SIZE {
+                    if n >= sim::units::anim::SQUAD_SIZE {
                         crew_rows += 1;
                     }
                     let track = ours.follow.map_or((0, 0), |b| b.track);
@@ -2411,7 +2413,7 @@ mod tests {
     /// The headline word is `1/39` spending a `Guy::set_anim+0x97a <
     /// Unit::move_step+0x823` the original does not, and that site is
     /// **`move_step:281`'s blocked-step idle request** (`docs/ANIM.md` §4's
-    /// caller table, [`sim::anim::SITE_BLOCKED`]) — not the walk call at
+    /// caller table, [`sim::units::anim::SITE_BLOCKED`]) — not the walk call at
     /// `:304`. A blocked step is a position question, and the position is
     /// four frames upstream: on **7675**, the first block after the
     /// `GROUP_ATTACK_TO` of frame 7674, this crate's block leader `1/37`
@@ -2732,7 +2734,7 @@ mod tests {
     /// **The word reproduced from this capture's own trace**, not run53's:
     /// frames 7580–7583 agreed draw for draw (12, 19, 7, 9) and 7584 was
     /// **48 against 49**, parting at index **24** — where the original
-    /// spends a [`sim::anim::SITE_ARRIVE`], `Guy::set_anim+0x97a <
+    /// spends a [`sim::units::anim::SITE_ARRIVE`], `Guy::set_anim+0x97a <
     /// Guy::move+0x19f`, that this crate did not. It sits between the
     /// fourth and fifth bird's `Animal::think_bird` triple, inside the
     /// animal pass.
@@ -2771,7 +2773,7 @@ mod tests {
     /// ~~**The word is 7585**~~ — it was, and it is 7679 since item 295.
     /// The frame used to run seven draws against nine, parting at index 2
     /// where the original spends a `Leader::make_stuff+0x63d`
-    /// ([`sim::ai_make::SITE_EXPIRE_SLOT`]) this crate did not; the
+    /// ([`sim::ai::ai_make::SITE_EXPIRE_SLOT`]) this crate did not; the
     /// bird's own stand was missing from index 4 as well, one draw
     /// downstream of it. Past 7585 both sides ran on streams that were
     /// nobody's, so only the block-7585-and-below set was asserted
@@ -2880,7 +2882,10 @@ mod tests {
                 ours.get(24).map(String::as_str),
                 theirs.get(24).map(String::as_str)
             ),
-            (Some(sim::anim::SITE_ARRIVE), Some(sim::anim::SITE_ARRIVE)),
+            (
+                Some(sim::units::anim::SITE_ARRIVE),
+                Some(sim::units::anim::SITE_ARRIVE)
+            ),
             "7584's index 24 is not the bird's arrival stand on both sides: {:?}",
             first_parting(&ours, &theirs).map(|(_, s)| s)
         );
@@ -2915,7 +2920,7 @@ mod tests {
         );
         assert_eq!(
             ours.get(2).map(String::as_str),
-            Some(sim::ai_make::SITE_EXPIRE_SLOT),
+            Some(sim::ai::ai_make::SITE_EXPIRE_SLOT),
             "index 2 of 7585 is not `make_stuff`'s slot expiry: {ours:?}"
         );
 

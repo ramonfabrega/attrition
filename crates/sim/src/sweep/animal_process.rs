@@ -31,7 +31,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // `p0` the type (`+0x304`), `p1` the figure array, `p2..`
             // the figures it points at: figure k is window `p(2+k)`.
             let mut cx = (m, &*p, &mut *log);
-            crate::anim::animal_process_steps(
+            crate::units::anim::animal_process_steps(
                 &mut cx,
                 |(_, _, log)| log.push("s0:m+0x0".into()),
                 |(m, p, _)| (m[0xb5] as i8, rd(&p[0], 0x304), rd(m, 0xe8)),

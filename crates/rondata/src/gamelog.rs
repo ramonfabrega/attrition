@@ -62,7 +62,7 @@
 //! memory representation, under the **lowercased `rules.xml` tag** — 718 of
 //! the 753 keys written match a tag that way; the rest are the struct's
 //! non-XML members (camera, editor and scenario state). That is what makes it
-//! a direct oracle for every representation claim `sim::tuning::Slot` makes.
+//! a direct oracle for every representation claim `sim::core::tuning::Slot` makes.
 
 use std::cell::RefCell;
 use std::fmt;
@@ -2190,7 +2190,7 @@ pub struct UnitDump {
     /// **`cavarch_o`/`cavarch_who`** (`UnitData +0xa2`/`+0xa8`) — a
     /// fire-on-the-move type's target beside its walk, −1 for none and
     /// −2 while its search waits for the thirty-two-frame phase
-    /// (`sim::cavarch`, `docs/AI.md` §134); a caster's target too
+    /// (`sim::combat::cavarch`, `docs/AI.md` §134); a caster's target too
     /// (`docs/GOLDEN.md` §27). Printed on every `UNITDATA`.
     pub cavarch_o: Option<i64>,
     pub cavarch_who: Option<i64>,
@@ -3064,7 +3064,7 @@ pub struct Initial<'a> {
     /// no dump block at all and the draws are spent inside
     /// `Setup::build_empire` (`docs/SYNC.md` §3.11). One `Vec` a pasture,
     /// in creation order; empty leaves the simulation's stand-in.
-    pub pasture: Vec<Vec<sim::farms::AnimalSeed>>,
+    pub pasture: Vec<Vec<sim::cities::farms::AnimalSeed>>,
 }
 
 /// Every unit's clocks at the end of each traced engine frame.
@@ -3171,7 +3171,7 @@ pub struct FarmDump {
     /// `status[dx][dy]` — 0 empty, 1 growing, 2 ripe, 3 cut.
     pub status: Vec<i64>,
     /// `percent[dx][dy]`, as the count of `0.005f` adds the simulation
-    /// keeps ([`sim::farms::Farm::adds`]): the printed float divided by
+    /// keeps ([`sim::cities::farms::Farm::adds`]): the printed float divided by
     /// `0.005` and rounded. Six decimals over a `0.005` step leaves no
     /// ambiguity, and [`farms_of`] refuses a value that is not within a
     /// tenth of an add of an integer.

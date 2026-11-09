@@ -2011,7 +2011,7 @@ fn run717_s_missiles_fly_their_spline_s_count() {
                 let at = |x: i64, y: i64| sim::world::Pos::new(x as i32, y as i32);
                 let lead = Some(sim::combat::Lead {
                     angle: sim::movement::Angle(a.angle as i32),
-                    pitch: sim::single::Single::ZERO,
+                    pitch: sim::num::single::Single::ZERO,
                     r: 1500,
                 });
                 pin_eq!(
@@ -2052,7 +2052,7 @@ pub(crate) const RUN1066: &str =
 ///
 /// Item 3960 pinned **203** parted records against this crate's 0, the
 /// crate holding no unit queue. Item 3981 ported the three writers
-/// (`sim::carrier_queue`) and taught the harness `@unqueueunit`: **203 →
+/// (`sim::air::carrier_queue`) and taught the harness `@unqueueunit`: **203 →
 /// 0**, every record agreeing (on 614 both 1/100, on 816 both 1/20300, on
 /// 817 both 0/0 with the plane `0/15` aboard).
 #[test]
@@ -2220,7 +2220,7 @@ pub(crate) fn carrier_1066_window() -> Option<harness::tests::Widened> {
 }
 
 /// **run1066's window, widened whole with its staging** (item 3981): the
-/// carrier `0/14`'s queue against the port (`sim::carrier_queue`).
+/// carrier `0/14`'s queue against the port (`sim::air::carrier_queue`).
 #[test]
 fn run1066_s_carrier_window_is_widened_whole() {
     let _pins = Pins::hold();

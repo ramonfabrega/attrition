@@ -167,7 +167,7 @@ fn run1151_american_modern_pair_closing_state() {
     // Item 3518: one off -> none. `1/80`'s round on 4526 left from the car's
     // own square, 2549 from its landing, and flew 7 frames; run1164's packet
     // holds theirs at t 2/6 from (9412, 31822), the turret's release node
-    // (piece 168's rows in `sim::pivot`). It lands on 4531 now.
+    // (piece 168's rows in `sim::data::pivot`). It lands on 4531 now.
     pin_eq!(e.compared, 175, "units compared");
     pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }

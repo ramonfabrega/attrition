@@ -36,7 +36,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let tw = rd(&c[0], 0x18);
         let cells = &p[0];
         let tiles = &p[1];
-        let r = crate::transport::dock_tile_in(
+        let r = crate::ai::transport::dock_tile_in(
             cw,
             ch,
             |cell| {

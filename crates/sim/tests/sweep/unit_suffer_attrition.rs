@@ -33,7 +33,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // string table's base (`0xc8cd00`); `p[2r]` leader `r`'s kind (+0xc), `p[2r+1]` its warning stamp (+0x1f8),
             // `p[8]` the unit's type (`uber_size` +0x308), `p[9]` the world's cells. The answers `a`: `a[0]` the
             // argument, `a[1+stub]` the stubs' single answers (0 `is_ally`, 4 `type_avail`, 5 `curr_uber_size`, 6 the hurt).
-            use crate::suffer_view::{Hurt, SufferView, suffer_attrition_steps};
+            use crate::territory::suffer_view::{Hurt, SufferView, suffer_attrition_steps};
             const ENC: i32 = 0x63637;
             struct V<'a> {
                 m: &'a [u8],

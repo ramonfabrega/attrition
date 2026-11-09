@@ -46,10 +46,10 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (mode, v, m) = (mode, v, &m[..]);
             let _ = (mode, v, m);
-            i64::from(crate::stance::get_stance(
+            i64::from(crate::units::stance::get_stance(
                 v != 0,
                 m[0xb1],
-                crate::stance::StanceType::Combat,
+                crate::units::stance::StanceType::Combat,
             ))
         };
         assert_eq!(

@@ -20,7 +20,7 @@
 //! | 3 | every **city** — `City::calc_gather@00737c60` → `LeaderData::calc_city_resources@006d5530` | [`Sim::city_holdings`] |
 //! | 4 | every **oil well**, the `oil_wells` list | [`Sim::gather_sites_outside_cities`] |
 //! | 5 | every **camp/mine outside a city** (`0x1a2`, `0x1a3`, `city < 0`) | [`Sim::gather_sites_outside_cities`] |
-//! | 6 | every idle fisherman and merchant, `Unit::do_gather` | [`Sim::gather_rares`] ([`crate::rares`]) |
+//! | 6 | every idle fisherman and merchant, `Unit::do_gather` | [`Sim::gather_rares`] ([`crate::economy::rares`]) |
 //! | 7 | refineries — `get_buildings(REFINERY)` | [`economy::Holdings::refineries`] |
 //! | 11 | the territory tax | `Sim::update_territory_holdings` (untouched) |
 //!
@@ -52,7 +52,7 @@
 //!   a merchant (`type ∈ {0x3d, 0x3e, 0x190}`).
 //! - `Unit::check_idle@006032c0:74` — the same kinds *taking* that latch, on
 //!   their first idle frame. The pair is what step 6's membership turns on, so
-//!   both are modelled ([`crate::rares`]); an earlier draft of this list had
+//!   both are modelled ([`crate::economy::rares`]); an earlier draft of this list had
 //!   them as "a peasant, a scholar or a merchant" and missed the fisherman,
 //!   which is the one that matters — it is the whole of the fishing economy.
 //! - `Unit::kill_current_order@005e2cb0:82` — a `GATHER` order (`type == 7`)
@@ -85,7 +85,7 @@
 //! truncations all live in `economy.rs`.
 
 use crate::Sim;
-use crate::build::{self, Ident};
+use crate::cities::build::{self, Ident};
 use crate::economy::{self, Resource, Site};
 use crate::tech::Line;
 use crate::world::Player;
@@ -170,13 +170,13 @@ impl Levels {
 }
 
 /// `CityData::lumber_level@00736820`: 0 unless the city's flags carry `0x400` (a Lumber Mill), else one plus
-/// the [`crate::rares::top_held`] of `LUMBERMILL2..4` — `has_preq(i)` asked for row `i`, the top first. The
+/// the [`crate::economy::rares::top_held`] of `LUMBERMILL2..4` — `has_preq(i)` asked for row `i`, the top first. The
 /// leader half is [`Levels::for_player`]'s `lumber_mill`; item 2090's sweep holds the gate and the asks.
 pub fn lumber_level_by(city_flags: i32, has_preq: impl FnMut(usize) -> bool) -> i32 {
     if city_flags & 0x400 == 0 {
         return 0;
     }
-    1 + crate::rares::top_held(3, has_preq) as i32
+    1 + crate::economy::rares::top_held(3, has_preq) as i32
 }
 
 /// `CityData::smelter_level@007367a0`: the enhancer of the fifth good type's kind (`goodtypes.list[4] + 4`, the
@@ -473,7 +473,7 @@ impl Sim {
             && self.tables.tech_tree.has_tribe_bonus(
                 &self.tables.setup,
                 &self.tech[bd.owner as usize],
-                crate::nations::power::JAPANESE,
+                crate::cities::nations::power::JAPANESE,
             ) {
             self.tables.tuning.japanese_fishing_boats
         } else {
@@ -485,7 +485,7 @@ impl Sim {
             && self.tables.tech_tree.has_tribe_bonus(
                 &self.tables.setup,
                 &self.tech[bd.owner as usize],
-                crate::nations::power::EGYPTIANS,
+                crate::cities::nations::power::EGYPTIANS,
             ) {
             self.tables.tuning.egyptian_farm_wealth
         } else {
@@ -499,7 +499,7 @@ impl Sim {
             && self.tables.tech_tree.has_tribe_bonus(
                 &self.tables.setup,
                 &self.tech[bd.owner as usize],
-                crate::nations::power::INCA,
+                crate::cities::nations::power::INCA,
             ) {
             self.tables.tuning.inca_wealth_per_miner
         } else {
@@ -653,7 +653,7 @@ impl Sim {
         };
 
         let outside = self.gather_sites_outside_cities(who);
-        // Step 6, and the `rare_owned` it rebuilds ([`crate::rares`]).
+        // Step 6, and the `rare_owned` it rebuilds ([`crate::economy::rares`]).
         let (rares, rare_owned) = self.gather_rares(who);
         let lakota = self.cities.nation[w].lakota && self.tables.tuning.lakota_food != 0;
         let iroquois = self.tech.get(w).is_some_and(|p| {
@@ -757,7 +757,7 @@ impl Sim {
         (0..self.tables.unit_types.len())
             .filter(|&t| {
                 self.tables.unit_types[t].combat.attack != 0
-                    && self.trainer_ident(t) == Some(crate::build::Ident::Barracks)
+                    && self.trainer_ident(t) == Some(crate::cities::build::Ident::Barracks)
             })
             .map(|t| self.roster.muster[w].by_type[t])
             .sum()
@@ -768,7 +768,7 @@ impl Sim {
     /// Barracks type (`+0x40 == 0x1ab`) and not `is(SCOUT, 0)`.
     pub(crate) fn american_barracks_unit(&self, who: Player, u: usize, ty: usize) -> bool {
         self.tables.tuning.americans_barracks_gather != 0
-            && self.trainer_ident(ty) == Some(crate::build::Ident::Barracks)
+            && self.trainer_ident(ty) == Some(crate::cities::build::Ident::Barracks)
             && self.tech.get(who as usize).is_some_and(|p| {
                 self.tables.tech_tree.has_tribe_bonus(
                     &self.tables.setup,
@@ -787,7 +787,7 @@ impl Sim {
             let k = self.roster.muster[w].by_type[t];
             if k != 0
                 && self.tables.unit_types[t].combat.attack != 0
-                && self.trainer_ident(t) == Some(crate::build::Ident::Stable)
+                && self.trainer_ident(t) == Some(crate::cities::build::Ident::Stable)
             {
                 n += k;
             }

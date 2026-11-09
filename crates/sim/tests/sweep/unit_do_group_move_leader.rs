@@ -50,9 +50,9 @@ fn the_emulated_original_agrees_on_every_row() {
         //
         // **The call ends where the leader's object is first asked** (`--stop-stub`): the
         // sweep holds the head and the whole leader arm. **The port is the crate's own
-        // steps**, `crate::group_move::do_group_move_steps`, which `Sim::do_group_move`
+        // steps**, `crate::orders::group_move::do_group_move_steps`, which `Sim::do_group_move`
         // runs over its `SimGroupMove`; here the view is the emulated original's windows.
-        use crate::group_move::{GroupMoveView, do_group_move_steps};
+        use crate::orders::group_move::{GroupMoveView, do_group_move_steps};
         use crate::world::vector_dist;
         struct V<'a> {
             a: &'a [i32],

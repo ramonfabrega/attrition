@@ -57,7 +57,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // (`0xe85f20`), slot stride `0x9d4`. `QUEUE_FIRST` is 0 and
             // `EXPLORE_TO` 3 (the listing's pushes at `005f76f7..0x5f7722`).
             const GROUP: i64 = 0x8000_0000 - 0x100 - 8 - 4 - 4 - 0x9d8;
-            let o = crate::goody::goody_box_order(crate::world::Cell::new(a[0], a[1]));
+            let o = crate::gaia::goody::goody_box_order(crate::world::Cell::new(a[0], a[1]));
             let who = m[9];
             let id = i16::from_le_bytes([m[0xa], m[0xb]]);
             let q = match o.queue {

@@ -107,7 +107,7 @@ impl Sim {
     }
 
     /// [`Sim::fight`] with `fight`'s fifth argument, `cavarch`: the fire
-    /// on the move ([`crate::cavarch`]) takes the angle and the strike,
+    /// on the move ([`crate::combat::cavarch`]) takes the angle and the strike,
     /// and jumps from `005fe7c5` (`if (param_5 != 0) goto LAB_005feec6`)
     /// over the `set_angle`, the figures' desired angles, the cell-centre
     /// snap and the swing — the walk goes on, under `CHAR_ATTACKWALK`.
@@ -158,7 +158,9 @@ impl Sim {
             // before asking for the attack. Guy 0 still turns; its tracked
             // crew is snapped to its current facing and may attack now.
             // `Unit::fight@005fd4d0`, before 005feec1 (COMBAT §89).
-            let snap = crate::collide::ucell_centre(crate::collide::ucell(self.units[i].pos));
+            let snap = crate::movement::collide::ucell_centre(crate::movement::collide::ucell(
+                self.units[i].pos,
+            ));
             self.set_new_location(i, snap, true);
             if p.is(role::IS_IMMORTALS) && reach < 0xc0 {
                 // **The Immortals' special strike** (`fight@005fd4d0:784`
@@ -302,7 +304,7 @@ impl Sim {
     /// The bearing is measured per node, from the **unit's** position
     /// (`+0x10`/`+0x14` of `objects[who][o]`, read through the figure's
     /// own `who` and `o`) **plus the node's own vector**
-    /// ([`crate::pivot::offset`], `docs/COMBAT.md` §54), to the target's,
+    /// ([`crate::data::pivot::offset`], `docs/COMBAT.md` §54), to the target's,
     /// and taken against the **figure's** facing (`GuyData +0x18`) in
     /// whole degrees by
     /// [`crate::movement::angle_to_degrees`], folded to −180..180. The
@@ -366,7 +368,7 @@ impl Sim {
         pivot_steps(
             nodes.len(),
             |node| nodes.get(&node).copied().unwrap_or((0, 0)),
-            |node| crate::pivot::offset(piece, node, facing),
+            |node| crate::data::pivot::offset(piece, node, facing),
             (from, to),
             facing,
             turret,
@@ -563,7 +565,7 @@ impl Sim {
         let Some(g) = self.units[u].guys.first() else {
             return at;
         };
-        if crate::anim::category(g.anim) != crate::anim::ATTACK2 || g.end_time == 0 {
+        if crate::units::anim::category(g.anim) != crate::units::anim::ATTACK2 || g.end_time == 0 {
             return at;
         }
         let along = Single::from_u32(g.cur_time)
@@ -1111,7 +1113,7 @@ impl Sim {
             // onto the landing ([`combat::Spline::nuke`]), and the round
             // re-plans at its fourth point as a guided one's — run1471's
             // `0/16` on `2/21` lands on 690 where 120 frames gave 790.
-            if self.air_line_is(u, crate::airbase::CRUISEMISSILE) {
+            if self.air_line_is(u, crate::air::airbase::CRUISEMISSILE) {
                 let (ctl, n) = combat::cruise_control_points(
                     (launch.x, launch.y, sz),
                     (landing.x, landing.y, ez),
@@ -1330,7 +1332,7 @@ pub(crate) fn set_attack_steps<C, T: Copy, R: Default>(
     can
 }
 
-/// [`crate::object_attack_view::ObjectAttackView`] over the crate's [`Sim`]: the object's type record and
+/// [`crate::combat::object_attack_view::ObjectAttackView`] over the crate's [`Sim`]: the object's type record and
 /// owner. A building answers false on the unit slots (`+0x18`, `+0xd0`, `+0xcc`, `+0xc8`).
 pub(super) struct SimObjectAttack<'a> {
     pub(super) sim: &'a Sim,
@@ -1349,7 +1351,7 @@ impl SimObjectAttack<'_> {
     }
 }
 
-impl crate::object_attack_view::ObjectAttackView for SimObjectAttack<'_> {
+impl crate::combat::object_attack_view::ObjectAttackView for SimObjectAttack<'_> {
     fn type_attack(&mut self) -> i32 {
         self.sim.profile(self.o).attack
     }
@@ -1357,7 +1359,7 @@ impl crate::object_attack_view::ObjectAttackView for SimObjectAttack<'_> {
         self.rec().is_some_and(|r| {
             self.sim.tables.unit_types[r]
                 .cols
-                .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
+                .flag2(crate::ai::ai_load::uflags2::FLAG2_CARAVAN)
         })
     }
     fn has_caravan_preq(&mut self) -> bool {
@@ -1400,7 +1402,7 @@ impl crate::object_attack_view::ObjectAttackView for SimObjectAttack<'_> {
         self.rec().is_some_and(|r| {
             self.sim.tables.unit_types[r]
                 .cols
-                .flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
+                .flag2(crate::ai::ai_load::uflags2::SUPPLY_OR_HERO)
         })
     }
     fn gov_hero_slot(&mut self) -> bool {

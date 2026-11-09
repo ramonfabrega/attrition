@@ -6,7 +6,7 @@
 //! helpers on its own `who` and stays the authority on the scripts' view.
 
 use crate::tech::{self, Kind, TypeId};
-use crate::{Player, Sim, cost, economy};
+use crate::{Player, Sim, economy, economy::cost};
 
 /// Which class of type a tree entry is, by the `TypeIndex` bands
 /// (`docs/AI.md` §2.6: units `0x32..0x19d`, buildings `0x19e..0x21e`,
@@ -193,10 +193,11 @@ impl Sim {
                 continue;
             }
             let Some(rec) = bd.ty else { continue };
-            if !self.tables.build_types[rec].has(crate::build::flags::GATHERER) {
+            if !self.tables.build_types[rec].has(crate::cities::build::flags::GATHERER) {
                 continue;
             }
-            let Some(g) = crate::ai_place::gather_good(self.tables.build_types[rec].ident) else {
+            let Some(g) = crate::ai::ai_place::gather_good(self.tables.build_types[rec].ident)
+            else {
                 continue;
             };
             let max = bd.gather_max.unwrap_or(0);

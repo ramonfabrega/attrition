@@ -141,7 +141,7 @@ mod bodies {
         assert_eq!(
             theirs_7448
                 .iter()
-                .filter(|l| *l == sim::anim::SITE_BLOCKED)
+                .filter(|l| *l == sim::units::anim::SITE_BLOCKED)
                 .count(),
             2,
             "the two draws the word is short are both the blocked stand"
@@ -1126,14 +1126,18 @@ mod bodies {
 
         // **The trace and the dump, tied to each other on the same
         // frames.** This is the corroboration §8.5 asked for and could not
-        // have: the original's [`sim::anim::SITE_BLOCKED`] falls on
+        // have: the original's [`sim::units::anim::SITE_BLOCKED`] falls on
         // sim-frames 7802, 7806 and 7810 — the three whose *blocks* (7803,
         // 7807, 7811) are exactly the ones whose `UNITDATA` carries
         // `collide_o 7`, three blocks apart. A torn dump could fake one
         // row; it cannot fake three that line up with an instrument that
         // is not a dump.
         let stands: Vec<i64> = (7_795..7_815)
-            .filter(|&n| tr.labels(n).iter().any(|l| l == sim::anim::SITE_BLOCKED))
+            .filter(|&n| {
+                tr.labels(n)
+                    .iter()
+                    .any(|l| l == sim::units::anim::SITE_BLOCKED)
+            })
             .collect();
         assert_eq!(
             stands,
@@ -1220,7 +1224,7 @@ mod bodies {
         let boat_ty = loaded
             .unit_types
             .iter()
-            .position(|t| t.tree == Some(sim::transport::ty::TRANSPORTBARGE))
+            .position(|t| t.tree == Some(sim::ai::transport::ty::TRANSPORTBARGE))
             .expect("the install has a Transport Barge");
         assert_eq!(
             loaded.unit_types[boat_ty].moves, 25,

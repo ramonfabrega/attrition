@@ -45,13 +45,13 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = &c;
-            // **The port is the crate's own steps**, `crate::distribute_attack_view::distribute_attack_steps`,
+            // **The port is the crate's own steps**, `crate::groups::distribute_attack_view::distribute_attack_steps`,
             // here over the emulated original's windows: `m` the group, `p[1+id]` the object, `p[10+id]` the
             // unit, `p[18+id]` its type, `p[26+id]` the order list's head, `p[34+id]` its node, `p[42+id]` the
             // order, `p[50+id]` the `update_order` answer, `p[58+id]` the record its slot `+0x50` answers and
             // `p[66+id]` the record's `+4`. `a`: `p1`, `p2`, the ten stubs' answers (`a[2..12]`), `--seq 7` the
             // in-range answers a call (`a[12..18]`), the `+0xc0` slot's base flag (`a[18]`).
-            use crate::distribute_attack_view::{
+            use crate::groups::distribute_attack_view::{
                 COORD_KEY, DistributeView, distribute_attack_steps,
             };
             fn rd(w: &[u8], o: usize) -> i32 {

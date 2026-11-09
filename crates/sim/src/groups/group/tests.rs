@@ -1,12 +1,12 @@
 use super::*;
-use crate::ai_load::role;
+use crate::ai::ai_load::role;
 use crate::combat;
 use crate::{Unit, UnitType};
 
 /// A two-player world with an AI leader 1 at war with the human 0.
 fn sim() -> Sim {
     let mut s = Sim::new(
-        crate::tuning::Tuning::RON,
+        crate::core::tuning::Tuning::RON,
         crate::world::World::new(60, 60),
         2,
     );
@@ -83,9 +83,9 @@ fn a_helicopter_measures_attack_distance_edge_to_edge() {
 /// who=0's Airbase and who=1's other building, as chapter seventeen
 /// stages them (`docs/GOLDEN.md` §25).
 fn airbase_and_target(sim: &mut Sim) -> (usize, usize) {
-    let airbase = sim.add_build_type(crate::build::BuildType {
-        ident: crate::build::Ident::Airbase,
-        ..crate::build::BuildType::default()
+    let airbase = sim.add_build_type(crate::cities::build::BuildType {
+        ident: crate::cities::build::Ident::Airbase,
+        ..crate::cities::build::BuildType::default()
     });
     let base = sim.add_building(0, Pos::new(11616, 13920), 0);
     sim.buildings[base].ty = Some(airbase);
@@ -167,9 +167,9 @@ fn plane(s: &mut Sim, at: Pos, heading: Angle, bomber: bool) -> usize {
         hits: 100,
         moves: 75,
         turn_speed: crate::movement::degrees_to_angle(10).0,
-        kind: crate::attrition::UnitKind {
+        kind: crate::territory::attrition::UnitKind {
             domain: Domain::Air,
-            ..crate::attrition::UnitKind::default()
+            ..crate::territory::attrition::UnitKind::default()
         },
         combat: combat::Profile {
             attack: 15,
@@ -334,9 +334,9 @@ fn bomber(s: &mut Sim, at: Pos, heading: Angle) -> usize {
         hits: 300,
         moves: 60,
         turn_speed: crate::movement::degrees_to_angle(3).0,
-        kind: crate::attrition::UnitKind {
+        kind: crate::territory::attrition::UnitKind {
             domain: Domain::Air,
-            ..crate::attrition::UnitKind::default()
+            ..crate::territory::attrition::UnitKind::default()
         },
         combat: combat::Profile {
             attack: 43,
@@ -399,8 +399,8 @@ fn a_strike_it_may_not_take_is_a_patrol_flown_the_same_frame() {
     s.group_action_flight(&g, Obj::Building(target), Flight::Strike);
     {
         let af = &mut s.units[u].airframe;
-        af.bank = crate::single::Single::from_bits(0x4220_0000);
-        af.pitch = crate::single::Single::from_bits(0x4100_0000);
+        af.bank = crate::num::single::Single::from_bits(0x4220_0000);
+        af.pitch = crate::num::single::Single::from_bits(0x4100_0000);
         af.z = 24;
     }
     s.work(u, 665);
@@ -483,9 +483,9 @@ fn a_bomber_releases_in_range_and_on_its_nose() {
     let (base, target) = airbase_and_target(&mut s);
     live_barracks(&mut s, target);
     for (anim, len) in [
-        (crate::anim::WALK, 31),
-        (crate::anim::SLOG, 31),
-        (crate::anim::ATTACK2, 30),
+        (crate::units::anim::WALK, 31),
+        (crate::units::anim::SLOG, 31),
+        (crate::units::anim::ATTACK2, 30),
     ] {
         s.roster.art.lengths.insert((-1, anim), len);
     }
@@ -504,14 +504,14 @@ fn a_bomber_releases_in_range_and_on_its_nose() {
         u
     };
     let u = run(&mut s, Angle::EAST);
-    assert_eq!(s.units[u].guys[0].anim, crate::anim::ATTACK2);
+    assert_eq!(s.units[u].guys[0].anim, crate::units::anim::ATTACK2);
     assert_eq!(s.units[u].combat.recharging, 31, "recharge() + 1");
     s.work(u, 806);
     assert_eq!(s.units[u].combat.recharging, 31, "no second release");
     let off = Angle(Angle::EAST.0 + crate::movement::degrees_to_angle(20).0);
     let v = run(&mut s, off);
     assert_eq!(s.units[v].combat.recharging, 0, "20° off: no release");
-    assert_ne!(s.units[v].guys[0].anim, crate::anim::ATTACK2);
+    assert_ne!(s.units[v].guys[0].anim, crate::units::anim::ATTACK2);
 }
 
 /// **A strafe releases its bomb, and the bomb falls** (item 770,
@@ -535,9 +535,9 @@ fn a_strafe_releases_a_bomb_that_falls_a_tile_ahead() {
         c.y_size = 4;
     }
     for (anim, len) in [
-        (crate::anim::WALK, 31),
-        (crate::anim::SLOG, 31),
-        (crate::anim::ATTACK2, 30),
+        (crate::units::anim::WALK, 31),
+        (crate::units::anim::SLOG, 31),
+        (crate::units::anim::ATTACK2, 30),
     ] {
         s.roster.art.lengths.insert((-1, anim), len);
     }
@@ -548,7 +548,7 @@ fn a_strafe_releases_a_bomb_that_falls_a_tile_ahead() {
     s.roster.art.releases.insert(
         piece,
         [(
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             vec![
                 (1, 0, false, false, false, false),
                 (2, 1, false, false, false, false),
@@ -574,7 +574,7 @@ fn a_strafe_releases_a_bomb_that_falls_a_tile_ahead() {
         false,
     );
     s.work(u, 805);
-    assert_eq!(s.units[u].guys[0].anim, crate::anim::ATTACK2);
+    assert_eq!(s.units[u].guys[0].anim, crate::units::anim::ATTACK2);
     let seed = s.rng.seed;
     s.guys_inc_time();
     assert_eq!(s.combat.projectiles.len(), 1, "the first event's round");
@@ -584,14 +584,22 @@ fn a_strafe_releases_a_bomb_that_falls_a_tile_ahead() {
     let from = s.units[u].pos;
     assert_eq!(
         p.launch,
-        crate::launch::launch_point(from, Angle::EAST, piece, crate::anim::ATTACK2, 1, 0)
+        crate::data::launch::launch_point(
+            from,
+            Angle::EAST,
+            piece,
+            crate::units::anim::ATTACK2,
+            1,
+            0
+        )
     );
     // The figure's altitude as the release reads it, after `work`'s
     // climb: not the ground's.
     assert_eq!(
         p.sz,
         s.units[u].airframe.z
-            + crate::launch::release_dz(piece, crate::anim::ATTACK2, 1, 0).unwrap_or(0)
+            + crate::data::launch::release_dz(piece, crate::units::anim::ATTACK2, 1, 0)
+                .unwrap_or(0)
     );
     assert!(p.sz > 1500);
     assert_eq!(p.landing, Pos::new(p.launch.x + 192, p.launch.y));
@@ -722,7 +730,7 @@ fn typed(sim: &mut Sim, obj_masks: u32, max_range: i32) -> usize {
 #[test]
 fn find_leader_takes_the_lowest_type_cat_and_ties_to_the_first() {
     use crate::combat::mask;
-    use crate::form::{cat, type_cat};
+    use crate::groups::form::{cat, type_cat};
     let mut s = sim();
     let foot = typed(&mut s, mask::FOOT, 0);
     let archer = typed(&mut s, mask::FOOT, 0x600);
@@ -2510,7 +2518,7 @@ fn a_hurrying_army_stables_its_siege_and_marches_the_rest() {
     let city_pos = Pos::new(0x4000, 0x4000);
     let bldg = s.add_building(1, city_pos, 4);
     let c = s.cities.cities.len();
-    s.cities.cities.push(crate::city::City {
+    s.cities.cities.push(crate::cities::city::City {
         alive: true,
         owner: 1,
         race: Some(1),
@@ -2546,9 +2554,9 @@ fn a_hurrying_army_stables_its_siege_and_marches_the_rest() {
     for _ in 0..8 {
         spawn(&mut s, 0, foot, Pos::new(0x800, 0x800));
     }
-    let bt = s.add_build_type(crate::build::BuildType {
-        ident: crate::build::Ident::Village,
-        ..crate::build::BuildType::default()
+    let bt = s.add_build_type(crate::cities::build::BuildType {
+        ident: crate::cities::build::Ident::Village,
+        ..crate::cities::build::BuildType::default()
     });
     s.buildings[bldg].ty = Some(bt);
     let slot = s.init_army(1, Some(c));
@@ -3067,9 +3075,9 @@ fn siege_attack_to_sends_the_siege_and_leaves_the_escort_behind() {
 fn wagon_type(sim: &mut Sim) -> usize {
     sim.add_unit_type(UnitType {
         hits: 100,
-        cols: crate::ai_load::UnitCols {
+        cols: crate::ai::ai_load::UnitCols {
             unit_flags2: uflags2::SUPPLY_OR_HERO,
-            ..crate::ai_load::UnitCols::default()
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..UnitType::default()
     })
@@ -3123,9 +3131,9 @@ fn a_hero_with_the_supply_bit_is_the_anchor_before_a_later_wagon() {
     let wagon = wagon_type(&mut s);
     let citizen = s.add_unit_type(UnitType {
         hits: 100,
-        cols: crate::ai_load::UnitCols {
+        cols: crate::ai::ai_load::UnitCols {
             unit_flags2: uflags2::SUPPLY_OR_HERO | uflags2::FLAG2_GENERAL,
-            ..crate::ai_load::UnitCols::default()
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..UnitType::default()
     });
@@ -3916,10 +3924,10 @@ fn the_stance_type_is_decided_by_the_military_role_first() {
             uber_size: 1,
             ..combat::Profile::default()
         },
-        cols: crate::ai_load::UnitCols {
+        cols: crate::ai::ai_load::UnitCols {
             role,
             unit_flags2: flags2,
-            ..crate::ai_load::UnitCols::default()
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..UnitType::default()
     };
@@ -4003,10 +4011,10 @@ fn action_attack_without_mandatory_lets_each_member_take_what_is_nearest() {
 fn a_group_sent_at_a_build_takes_it_without_a_search() {
     let mut s = sim();
     let t = fighter(&mut s);
-    let bt = s.add_build_type(crate::build::BuildType {
+    let bt = s.add_build_type(crate::cities::build::BuildType {
         x_size: 2,
         y_size: 2,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let put = |s: &mut Sim, at: Pos, cost: i32| {
         let b = s.add_building(0, at, 0);
@@ -4063,10 +4071,10 @@ fn a_raider_weighs_a_peasant_over_a_scout_and_a_building_at_a_twentieth() {
         },
         ..UnitType::default()
     });
-    let bt = s.add_build_type(crate::build::BuildType {
+    let bt = s.add_build_type(crate::cities::build::BuildType {
         x_size: 2,
         y_size: 2,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let tower = s.add_building(0, Pos::new(0x1800, 0x1000), 0);
     s.buildings[tower].ty = Some(bt);

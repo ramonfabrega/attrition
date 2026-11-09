@@ -39,7 +39,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let based = a[18] != 0;
             let count = rd(m, 0x280);
             let (mut s0, mut s1) = (0usize, 0usize);
-            crate::calc_gather::upgrade_steps(
+            crate::economy::calc_gather::upgrade_steps(
                 t,
                 |k| {
                     let v = rd(&p[1 + k], 0x3c);

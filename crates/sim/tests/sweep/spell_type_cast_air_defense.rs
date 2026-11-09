@@ -28,13 +28,13 @@ fn the_emulated_original_agrees_on_every_row() {
     super::obj_rows(&rows, &obj, |a, m, c, p, log| {
         let _ = (&a, &m, &c, &p);
         // hand: port
-        // The airdefense arm (`0x299`) of `crate::spell_cast_view::spell_cast_steps`. Windows: `c[0]` the
+        // The airdefense arm (`0x299`) of `crate::spells::spell_cast_view::spell_cast_steps`. Windows: `c[0]` the
         // objects table the cell `0xc0618c` points at (`+0x14 + 0x1c * p2` the row's array), `p[0..1]` the
         // two arrays (four-byte entries by `p1`), `p[2..5]` the objects they name (word 0 the stubbed
         // vtable), `p[6]` the object slot `+0xac` answers. `p1` and `p2` are held to 0 or 1.
         // Stubs: 0 `is_castable`, 1 slot `+0xac`, 2 `current_upgrade` (`ecx` the leader's row), 3 slot `+0x80`.
         // `eax` is the last stub's answer; `is_castable`'s when it is not 3.
-        use crate::spell_cast_view::{Callee, Ecx, SpellCastView, spell_cast_steps};
+        use crate::spells::spell_cast_view::{Callee, Ecx, SpellCastView, spell_cast_steps};
         struct V<'a> {
             m: &'a [u8],
             a: &'a [i32],

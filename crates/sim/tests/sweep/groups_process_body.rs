@@ -36,8 +36,8 @@ fn the_emulated_original_agrees_on_every_row() {
             // `c[3]` the cursor; `p[1+id]` the object, `p[6+id]` the unit. `a`: the five stubs' answers
             // (`a[..5]`), then `--seq 0`'s eight slot-`+0x18` answers (`a[5..13]`) and `--seq 1`'s eight
             // slot-`+0x20` answers (`a[13..21]`).
-            use crate::groups_process_view::{GroupsProcessView, groups_process_steps};
-            use crate::normalize_view::{NormalizeView, normalize_steps};
+            use crate::groups::groups_process_view::{GroupsProcessView, groups_process_steps};
+            use crate::groups::normalize_view::{NormalizeView, normalize_steps};
             struct G<'a> {
                 a: &'a [i32],
                 g: &'a mut [u8],

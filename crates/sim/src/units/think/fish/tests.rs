@@ -81,7 +81,7 @@ fn fish_sim() -> (Sim, usize) {
         ..crate::UnitType::default()
     });
     s.tables.unit_types[t].combat.packs = true;
-    s.tables.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
+    s.tables.unit_types[t].combat.domain = crate::territory::attrition::Domain::Sea;
     let at = Pos::new(20 * 768 + 384, 20 * 768 + 384);
     let mut u = crate::Unit::new(1, 14, at, 20);
     u.ty = Some(t);

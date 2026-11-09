@@ -31,8 +31,10 @@ fn the_emulated_original_agrees_on_every_row() {
             // `guy_mark` (`+0xb5`), the type's `squad_size` (`+0x304`)
             // and `num_guys` (`+0xe8`); guy k is window `p(2+k)`.
             let mut calls = Vec::new();
-            for g in crate::anim::set_anim_walk(m[0xb5] as i8 as i32, rd(&p[0], 0), rd(m, 0xe8)) {
-                if crate::anim::set_anim_clears(p[2][0x9c] as i8) {
+            for g in
+                crate::units::anim::set_anim_walk(m[0xb5] as i8 as i32, rd(&p[0], 0), rd(m, 0xe8))
+            {
+                if crate::units::anim::set_anim_clears(p[2][0x9c] as i8) {
                     p[2 + g][0x9e] = 0;
                 }
                 calls.push(format!("p{}+0x0,{},{},{}", 2 + g, a[0], a[1], a[2]));

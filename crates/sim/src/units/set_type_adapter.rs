@@ -1,4 +1,4 @@
-//! [`crate::Sim::unit_set_type`]'s adapter to [`crate::unit_set_type_view`]
+//! [`crate::Sim::unit_set_type`]'s adapter to [`crate::units::unit_set_type_view`]
 //! (item 3402): the crate's collapsed state answers the view, and what the
 //! crate keeps no state for answers as the old method did — nothing.
 //!
@@ -24,8 +24,8 @@
 //! speed refreshes the original runs here, and the supply tail
 //! (`game.version` is not modelled): the crate keeps no state for them.
 
-use crate::anim::SQUAD_SIZE;
-use crate::unit_set_type_view::UnitSetTypeView;
+use crate::units::anim::SQUAD_SIZE;
+use crate::units::unit_set_type_view::UnitSetTypeView;
 use crate::{Player, Sim};
 
 pub(crate) struct SimSetType<'a> {
@@ -95,7 +95,7 @@ impl UnitSetTypeView for SimSetType<'_> {
         self.cur().is_some_and(|t| {
             self.sim.tables.unit_types[t]
                 .cols
-                .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
+                .flag2(crate::ai::ai_load::uflags2::FLAG2_CARAVAN)
         })
     }
     fn leader_caras(&mut self, _delta: i32) {}
@@ -186,7 +186,7 @@ impl UnitSetTypeView for SimSetType<'_> {
     fn update_ceo_position(&mut self) {}
     fn is_77(&mut self) -> bool {
         self.sim
-            .speed_is(self.u, crate::cast_transport::MARINES, false)
+            .speed_is(self.u, crate::spells::cast_transport::MARINES, false)
     }
     fn slot_15c(&mut self) {}
     fn slot_160(&mut self) {}

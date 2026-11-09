@@ -38,7 +38,7 @@ pub(crate) const JAPANESE_GUNPOWDER: Pair = Pair {
     // the Japanese barracks term (`get_damage`'s step 13, `n = min(ages,
     // epoch[0])` = 3, +15 %) puts the Arquebusiers `1/20`'s blow on the
     // Citizen `0/12` at 13 + 10/16 on 2675, and piece 1104's bays
-    // (`sim::launch::BAYS`, run1237's packet) put `1/19`'s round of 2693 on
+    // (`sim::data::launch::BAYS`, run1237's packet) put `1/19`'s round of 2693 on
     // (9940, 30945), 6 frames, as theirs.
     count: 3673,
     sequence: 3673,

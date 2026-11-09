@@ -16,7 +16,7 @@
 
 use crate::gamelog::ConstantDump;
 use crate::{Drift, Rules, Scalar};
-use sim::tuning::{Slot, Tuning};
+use sim::core::tuning::{Slot, Tuning};
 
 /// How the engine turned a written constant into the number it holds.
 #[derive(Clone, Debug, PartialEq, Eq)]

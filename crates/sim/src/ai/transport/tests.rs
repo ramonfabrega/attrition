@@ -1,8 +1,8 @@
 use super::*;
-use crate::build::{BuildType, Ident, flags};
-use crate::tuning::Tuning;
+use crate::cities::build::{BuildType, Ident, flags};
+use crate::core::tuning::Tuning;
 use crate::world::{Terrain, UNITS_PER_TILE, World};
-use crate::{UnitType, cost};
+use crate::{UnitType, economy::cost};
 
 fn tile_pos(tx: i32, ty: i32) -> Pos {
     Pos::new(
@@ -645,7 +645,7 @@ fn a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is() {
     fleet_t.combat.domain = Domain::Sea;
     fleet_t.combat.block_radius = 48;
     fleet_t.price.pop = 1;
-    fleet_t.cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
+    fleet_t.cols.unit_flags2 |= crate::ai::ai_load::uflags2::FLAG2_CARAVAN;
     let fleet = f.sim.add_unit_type(fleet_t);
     f.sim.tables.unit_types[fleet].tree = Some(ty::MERCHANTFLEET);
     f.sim.tables.unit_types[fleet].type_index = ty::MERCHANTFLEET as i32;
@@ -655,7 +655,7 @@ fn a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is() {
     });
     f.sim.tables.unit_types[caravan].tree = Some(ty::CARAVAN);
     f.sim.tables.unit_types[caravan].price.pop = 1;
-    f.sim.tables.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
+    f.sim.tables.unit_types[caravan].cols.unit_flags2 |= crate::ai::ai_load::uflags2::FLAG2_CARAVAN;
 
     for (walker_t, boat_t, counted, sweep) in [
         (caravan, fleet, 1, false),
@@ -723,7 +723,7 @@ fn a_caravan_s_route_slot_goes_with_it_onto_the_fleet_and_back() {
     };
     fleet_t.combat.domain = Domain::Sea;
     fleet_t.combat.block_radius = 48;
-    fleet_t.cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
+    fleet_t.cols.unit_flags2 |= crate::ai::ai_load::uflags2::FLAG2_CARAVAN;
     let fleet = f.sim.add_unit_type(fleet_t);
     f.sim.tables.unit_types[fleet].tree = Some(ty::MERCHANTFLEET);
     f.sim.tables.unit_types[fleet].type_index = ty::MERCHANTFLEET as i32;
@@ -732,7 +732,7 @@ fn a_caravan_s_route_slot_goes_with_it_onto_the_fleet_and_back() {
         ..UnitType::default()
     });
     f.sim.tables.unit_types[caravan].tree = Some(ty::CARAVAN);
-    f.sim.tables.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
+    f.sim.tables.unit_types[caravan].cols.unit_flags2 |= crate::ai::ai_load::uflags2::FLAG2_CARAVAN;
 
     // A route below it, so the walker's slot is not 0.
     let other = unit(&mut f.sim, 1, caravan, tile_pos(10, 10));
@@ -921,7 +921,7 @@ fn a_boat_that_steps_ashore_in_its_own_work_still_pays_its_arrival() {
     u.movement.heading = bearing;
     u.movement.body.pos = at;
     u.movement.body.avg_speed = 25;
-    u.guys[0].anim = crate::anim::WALK;
+    u.guys[0].anim = crate::units::anim::WALK;
     u.guys[0].stopped = true;
     f.sim.process_unit(boat, 1, &mut Vec::new());
     assert!(
@@ -931,7 +931,7 @@ fn a_boat_that_steps_ashore_in_its_own_work_still_pays_its_arrival() {
     assert!(f.sim.units[rider].on_map, "its passenger is out");
     assert_eq!(
         f.sim.units[boat].guys[0].anim,
-        crate::anim::DEFAULT,
+        crate::units::anim::DEFAULT,
         "and its figure took the arrival stand on the way out"
     );
 }
@@ -986,7 +986,7 @@ fn a_boat_that_dies_stepping_ashore_paints_its_figure_s_step() {
     // region gate refuses.
     let body = Pos::new(
         at.x,
-        (crate::collide::ucell(at).y + 1) * crate::collide::UNITS_PER_UCELL + 1,
+        (crate::movement::collide::ucell(at).y + 1) * crate::movement::collide::UNITS_PER_UCELL + 1,
     );
     f.sim.coll_remove(boat);
     f.sim.units[boat].movement.body.pos = body;
@@ -995,13 +995,13 @@ fn a_boat_that_dies_stepping_ashore_paints_its_figure_s_step() {
     f.sim.units[boat].pos = at;
     let size = f.sim.coll_size(boat);
     assert!(size > 0, "the barge blocks");
-    let from = crate::collide::ucell(body);
+    let from = crate::movement::collide::ucell(body);
     // Off every repaint phase.
     let o = i64::from(f.sim.units[boat].index);
     f.sim.frame = 64 * 100 - o + 7;
     f.sim.process_unit(boat, f.sim.frame, &mut Vec::new());
     assert!(!f.sim.units[boat].alive(), "the boat stepped ashore");
-    let to = crate::collide::ucell(f.sim.units[boat].movement.body.pos);
+    let to = crate::movement::collide::ucell(f.sim.units[boat].movement.body.pos);
     assert!(
         to.y < from.y,
         "its figure stepped north a cell: {from:?} -> {to:?}"
@@ -1035,7 +1035,7 @@ fn a_boat_that_dies_standing_on_its_phase_frame_leaves_its_disc_marked() {
     f.sim.frame = 64 * 100 - o;
     f.sim.process_unit(boat, f.sim.frame, &mut Vec::new());
     assert!(!f.sim.units[boat].alive(), "the boat stepped ashore");
-    let c = crate::collide::ucell(at);
+    let c = crate::movement::collide::ucell(at);
     assert!(
         f.sim.movement.coll.get(c.x, c.y),
         "the dead figure's repaint marked its own cell"
@@ -1054,7 +1054,7 @@ fn a_boat_that_dies_off_its_phase_frame_leaves_its_cell_clear() {
     f.sim.frame = 64 * 100 - o + 1;
     f.sim.process_unit(boat, f.sim.frame, &mut Vec::new());
     assert!(!f.sim.units[boat].alive(), "the boat stepped ashore");
-    let c = crate::collide::ucell(at);
+    let c = crate::movement::collide::ucell(at);
     assert!(
         !f.sim.movement.coll.get(c.x, c.y),
         "the close cleared the cell"
@@ -1298,7 +1298,7 @@ fn a_passenger_put_ashore_takes_the_boat_s_ring_and_the_boat_s_orders() {
     f.sim.tables.unit_types[f.scout].combat.block_radius = 48;
     // `is_special` is `is(SCOUT)` folded into `unit_flags2` by the
     // loader, and it is what puts this unit on the coin's `% 2` arm.
-    f.sim.tables.unit_types[f.scout].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_SCOUT;
+    f.sim.tables.unit_types[f.scout].cols.unit_flags2 |= crate::ai::ai_load::uflags2::FLAG2_SCOUT;
     let rider = unit(&mut f.sim, 1, f.scout, tile_pos(30, 14));
     f.sim.units[rider].movement.speed = 34;
     let boat = unit(&mut f.sim, 1, b, tile_pos(33, 14));
@@ -1392,7 +1392,10 @@ fn ashore(human: bool, avg: i32) -> (Fix, usize, Pos) {
     f.sim.tables.unit_types[f.scout].combat.block_radius = 48;
     let rider = unit(&mut f.sim, 1, f.scout, tile_pos(30, 14));
     f.sim.units[rider].movement.speed = 34;
-    f.sim.units[rider].guys = vec![crate::anim::Guy::fresh(1), crate::anim::Guy::fresh(2)];
+    f.sim.units[rider].guys = vec![
+        crate::units::anim::Guy::fresh(1),
+        crate::units::anim::Guy::fresh(2),
+    ];
     f.sim.roster.art.tracks.insert(2, (-48, -192));
     f.sim.seat_guys(rider);
     f.sim.units[rider].movement.body.avg_speed = avg;
@@ -1484,7 +1487,7 @@ fn a_passenger_put_ashore_clears_the_disc_it_boarded_from() {
     f.sim.units[boat]
         .movement
         .set_facing(crate::movement::Angle::WEST);
-    let boarded = crate::collide::ucell(f.sim.units[rider].pos);
+    let boarded = crate::movement::collide::ucell(f.sim.units[rider].pos);
     f.sim.board(rider, boat);
     // Another unit's bit, inside the boarding disc and on its far side
     // from the ring the boat lands it on.
@@ -1492,7 +1495,7 @@ fn a_passenger_put_ashore_clears_the_disc_it_boarded_from() {
     f.sim.movement.coll.set(ghost.x, ghost.y, true);
     assert!(!f.sim.set_new_location(boat, tile_pos(30, 14), false));
     assert_eq!(f.sim.units[rider].inside_unit, None, "ashore");
-    let spot = crate::collide::ucell(f.sim.units[rider].pos);
+    let spot = crate::movement::collide::ucell(f.sim.units[rider].pos);
     assert!(
         (spot.x - ghost.x).abs() > 1,
         "the ghost is outside the new disc"
@@ -1898,7 +1901,7 @@ fn a_dock_asked_off_its_shore_moves_along_the_spiral() {
     // Clear where asked.
     assert_eq!(
         f.sim.blocked_site(Some(0), f.dock, tile_pos(33, 15), None),
-        crate::place::Blocked::Clear
+        crate::cities::place::Blocked::Clear
     );
     assert_eq!(placed(&f, 33), Pos::new(33, 15));
     // Too little water: north-east, index 3, before east, index 4.

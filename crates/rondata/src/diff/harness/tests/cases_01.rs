@@ -674,9 +674,9 @@ mod bodies {
         assert_eq!(
             ours_7930.iter().take(3).collect::<Vec<_>>(),
             vec![
-                sim::army::SITE_FIND_TARGET_COIN,
-                sim::army::SITE_FIND_TARGET_SCORE,
-                sim::army::SITE_FIND_TARGET_SCORE,
+                sim::ai::army::SITE_FIND_TARGET_COIN,
+                sim::ai::army::SITE_FIND_TARGET_SCORE,
+                sim::ai::army::SITE_FIND_TARGET_SCORE,
             ],
             "7930 opens with find_target's coin and two candidate scores"
         );
@@ -695,7 +695,7 @@ mod bodies {
         // 9452 agree eight-for-eight with the original, which is exactly the
         // trap item 89(c) names: a frame past the word looking better on a
         // stream that is nobody's.
-        let wound = sim::fight::SITE_FIRST_WOUND;
+        let wound = sim::combat::fight::SITE_FIRST_WOUND;
         assert_eq!(
             trace.labels(9451).iter().filter(|l| *l == wound).count(),
             2,
@@ -726,8 +726,8 @@ mod bodies {
         // the two frames below the word are asserted whole, and the third
         // is past it and only counted.
         let punct = [
-            sim::fight::SITE_PUNCTURE_X.to_string(),
-            sim::fight::SITE_PUNCTURE_Y.to_string(),
+            sim::combat::fight::SITE_PUNCTURE_X.to_string(),
+            sim::combat::fight::SITE_PUNCTURE_Y.to_string(),
         ];
         let theirs_punct: Vec<i64> = (0..=24_000)
             .filter(|f| trace.labels(*f).iter().any(|l| punct.contains(l)))
@@ -781,8 +781,8 @@ mod bodies {
         assert_eq!(
             (ours_8272.get(32), ours_8272.get(33)),
             (
-                Some(&sim::anim::SITE_INIT_REAL.to_string()),
-                Some(&sim::anim::SITE_GO_INSIDE.to_string())
+                Some(&sim::units::anim::SITE_INIT_REAL.to_string()),
+                Some(&sim::units::anim::SITE_GO_INSIDE.to_string())
             ),
             "8272's 33rd and 34th draws are the birth and the seating"
         );
@@ -796,7 +796,7 @@ mod bodies {
         let seatings: Vec<i64> = built
             .frame_sites
             .iter()
-            .filter(|(_, s)| s.iter().any(|l| l == sim::anim::SITE_GO_INSIDE))
+            .filter(|(_, s)| s.iter().any(|l| l == sim::units::anim::SITE_GO_INSIDE))
             .map(|(f, _)| *f)
             .filter(|f| *f < LONG_WORD_GREAT_LAKES)
             .collect();
@@ -821,7 +821,7 @@ mod bodies {
                 trace
                     .labels(*f)
                     .iter()
-                    .any(|l| l == sim::anim::SITE_GO_INSIDE)
+                    .any(|l| l == sim::units::anim::SITE_GO_INSIDE)
             })
             .collect();
         assert_eq!(
@@ -880,7 +880,7 @@ mod bodies {
         );
         assert_eq!(
             ours_9134.as_slice(),
-            [sim::anim::SITE_SNAP_BLOCKED.to_string()],
+            [sim::units::anim::SITE_SNAP_BLOCKED.to_string()],
             "9134 is one draw, and it is the snap's stand and not §5's"
         );
         // **Great Lakes 8582, the AI's first market draw** (item 348,
@@ -902,7 +902,7 @@ mod bodies {
         );
         assert_eq!(
             ours_8582.first(),
-            Some(&sim::ai_make::SITE_MARKET_SELL.to_string()),
+            Some(&sim::ai::ai_make::SITE_MARKET_SELL.to_string()),
             "8582 opens with `use_market`'s sell rotation"
         );
         // **And the whole schedule below the word**, which is what says
@@ -916,7 +916,7 @@ mod bodies {
         let markets: Vec<i64> = built
             .frame_sites
             .iter()
-            .filter(|(_, s)| s.iter().any(|l| l == sim::ai_make::SITE_MARKET_SELL))
+            .filter(|(_, s)| s.iter().any(|l| l == sim::ai::ai_make::SITE_MARKET_SELL))
             .map(|(f, _)| *f)
             .filter(|f| *f < LONG_WORD_GREAT_LAKES)
             .collect();
@@ -928,7 +928,7 @@ mod bodies {
                 trace
                     .labels(*f)
                     .iter()
-                    .any(|l| l == sim::ai_make::SITE_MARKET_SELL)
+                    .any(|l| l == sim::ai::ai_make::SITE_MARKET_SELL)
             })
             .collect();
         assert_eq!(
@@ -1057,7 +1057,10 @@ mod bodies {
         let ammo: Vec<i64> = built
             .frame_sites
             .iter()
-            .filter(|(_, s)| s.iter().any(|l| l == sim::fight::SITE_AMMO_SCATTER_X))
+            .filter(|(_, s)| {
+                s.iter()
+                    .any(|l| l == sim::combat::fight::SITE_AMMO_SCATTER_X)
+            })
             .map(|(f, _)| *f)
             .filter(|f| *f < LONG_WORD_GREAT_LAKES)
             .collect();
@@ -1066,7 +1069,7 @@ mod bodies {
                 trace
                     .labels(*f)
                     .iter()
-                    .any(|l| l == sim::fight::SITE_AMMO_SCATTER_X)
+                    .any(|l| l == sim::combat::fight::SITE_AMMO_SCATTER_X)
             })
             .collect();
         assert_eq!(
@@ -1173,15 +1176,20 @@ mod bodies {
             eprintln!("skipping: no run19/run53 capture (set RON_GAMELOG_DIR)");
             return;
         };
-        use sim::fight::{ATTACK_POS_CAP_RANGED, SITE_ATTACK_POS_FIGHT, SITE_ATTACK_POS_GROUP};
+        use sim::combat::fight::{
+            ATTACK_POS_CAP_RANGED, SITE_ATTACK_POS_FIGHT, SITE_ATTACK_POS_GROUP,
+        };
         // **The frame, entry for entry, off the original's own trace.**
         let labels = tr.labels(PROBE_FRAME);
-        let want: Vec<&str> = std::iter::once(sim::army::SITE_FIND_TARGET_COIN)
-            .chain(std::iter::repeat_n(sim::army::SITE_FIND_TARGET_SCORE, 3))
+        let want: Vec<&str> = std::iter::once(sim::ai::army::SITE_FIND_TARGET_COIN)
+            .chain(std::iter::repeat_n(
+                sim::ai::army::SITE_FIND_TARGET_SCORE,
+                3,
+            ))
             .chain(std::iter::repeat_n(SITE_ATTACK_POS_GROUP, 2))
-            .chain(std::iter::once(sim::anim::SITE_IDLE_ANIMAL))
+            .chain(std::iter::once(sim::units::anim::SITE_IDLE_ANIMAL))
             .chain(std::iter::repeat_n(SITE_ATTACK_POS_FIGHT, 46))
-            .chain(std::iter::once(sim::farms::SITE_CHANCE))
+            .chain(std::iter::once(sim::cities::farms::SITE_CHANCE))
             .collect();
         assert_eq!(
             labels, want,
@@ -1810,7 +1818,7 @@ mod bodies {
         for _ in 0..WORD {
             built.tick();
         }
-        built.sim.trace.sweep_watch = Some(sim::collide::SweepWatch::new(WORD, 1, 38));
+        built.sim.trace.sweep_watch = Some(sim::movement::collide::SweepWatch::new(WORD, 1, 38));
         built.tick();
         let ours = built
             .sim

@@ -24,7 +24,7 @@ fn the_emulated_original_agrees_on_every_row() {
         assert_eq!(tail, [calls], "health_level — the calls, row `{line}`");
         assert_eq!(
             eax,
-            i64::from(crate::city::health_level(hits, damage)),
+            i64::from(crate::cities::city::health_level(hits, damage)),
             "health_level — row `{line}`"
         );
         n += 1;

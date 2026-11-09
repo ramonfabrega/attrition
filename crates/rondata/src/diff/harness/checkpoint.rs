@@ -649,7 +649,7 @@ mod tests {
                     }
                 }
                 // Include membership in each projection, not just matched pairs.
-                fn clocks(sim: &sim::Sim) -> Vec<(sim::Player, i16, &Vec<sim::anim::Guy>)> {
+                fn clocks(sim: &sim::Sim) -> Vec<(sim::Player, i16, &Vec<sim::units::anim::Guy>)> {
                     sim.units
                         .iter()
                         .map(|u| (u.owner, u.index, &u.guys))

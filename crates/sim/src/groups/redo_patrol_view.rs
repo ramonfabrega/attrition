@@ -11,7 +11,7 @@
 //! looks at (the add is always `QUEUE_LAST`). The sweep draws it at random.
 
 use crate::Sim;
-use crate::group::Group;
+use crate::groups::group::Group;
 use crate::orders::{Body, PatrolOrder, QueuePos};
 use crate::world::Pos;
 

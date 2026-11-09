@@ -40,10 +40,10 @@ fn the_emulated_original_agrees_on_every_row() {
         // buildings (`+4` id, `+0x3c` from, `+0x1e8` attack, `+0x2c0` flags), `p[488..573]` the 85 tech records,
         // `p[573..658]` the same 85 as `types.list` holds them, `p[658..]` goods, spells, bonuses (only their vtables).
         //
-        // **The port is the crate's own steps**, `crate::ai_load::compute_ai_values_steps`; the view is the emulated
+        // **The port is the crate's own steps**, `crate::ai::ai_load::compute_ai_values_steps`; the view is the emulated
         // original's windows, and the vtable compares (`this` against `TechType`'s, a building against `BuildType`'s) are
         // read off the windows' first words.
-        use crate::ai_load::{AiValuesView, Class, Root, compute_ai_values_steps};
+        use crate::ai::ai_load::{AiValuesView, Class, Root, compute_ai_values_steps};
         const R_UNIT: usize = 7;
         const R_BUILD: usize = 359;
         const R_LIST: usize = 573;

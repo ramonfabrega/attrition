@@ -8,10 +8,10 @@
 //! `Map::invert_land`, and the start ring. No float: Great Sahara's mask
 //! reads no `Fractal`.
 
-use crate::ai_place::{MOVE_X, MOVE_Y};
+use crate::ai::ai_place::{MOVE_X, MOVE_Y};
 use crate::combat::Rng;
-use crate::double::Double;
 use crate::movement::{Angle, cos_component, sin_component};
+use crate::num::double::Double;
 use crate::world::{CORNER_X, CORNER_Y};
 
 /// The bytes of one `WData` (`types.txt`, size 0x1c) that
@@ -244,9 +244,9 @@ pub struct MapGrid {
     /// `RiversOut::all_rivers` (+0x40): one entry per
     /// `RiversOut::start_river@00888f70`, each its spline's control points
     /// as the cells `RiverOut::add_spline_point@00885a40` was handed —
-    /// one per path cell [`crate::map_rivers::make_riverlist`] marks, and
+    /// one per path cell [`crate::mapgen::map_rivers::make_riverlist`] marks, and
     /// on a border end the end cell again and one off the map. The
-    /// troughs read them ([`crate::map_troughs`]); no part walks them.
+    /// troughs read them ([`crate::mapgen::map_troughs`]); no part walks them.
     pub rivers: Vec<Vec<(i32, i32)>>,
     /// `Cliffs`' queued cliffs (`cliffs` +0x40): each
     /// `Cliffs::add_cliff@008a6690` appends its origin cell, size index and
@@ -393,7 +393,7 @@ impl MapGrid {
 }
 
 /// `project@0092d000` on cells: the point `d` along `angle` from `(x, y)`,
-/// `x + sin·d`, `y − cos·d` — the same fold as [`crate::army::step_along`].
+/// `x + sin·d`, `y − cos·d` — the same fold as [`crate::ai::army::step_along`].
 pub(crate) fn project(x: i32, y: i32, angle: Angle, d: i32) -> (i32, i32) {
     (x + sin_component(angle, d), y - cos_component(angle, d))
 }

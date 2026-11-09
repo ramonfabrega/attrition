@@ -34,7 +34,7 @@ fn the_emulated_original_agrees_on_every_row() {
         // 0x18c); then the seqs, tribe `a[19..22]`, has_wonder
         // `a[22..25]`, slot 0xb8 `a[25..29]`, slot 0x60 `a[29..33]`; then
         // the slotbase flags of 0x4c (`a[33]`) and 0xb8 (`a[34]`).
-        use crate::build::{HitsAsk, HitsConsts, HitsSelf};
+        use crate::cities::build::{HitsAsk, HitsConsts, HitsSelf};
         struct Ask<'a> {
             a: &'a [i32],
             m: &'a [u8],
@@ -166,7 +166,7 @@ fn the_emulated_original_agrees_on_every_row() {
             leader: 0xe3a390 + 0x6eec * i32::from(m[9]),
             cur: [0; 4],
         };
-        let out = crate::build::update_hits_steps(&consts, &me, &mut q);
+        let out = crate::cities::build::update_hits_steps(&consts, &me, &mut q);
         wr(m, 0x20, out.full);
         wr(m, 0x54, out.current);
         i64::from(out.ret)

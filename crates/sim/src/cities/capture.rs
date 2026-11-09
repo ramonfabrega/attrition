@@ -200,7 +200,7 @@ pub fn check_capture_steps<V: CaptureView>(v: &mut V, idx: i32, p2: i32) -> i32 
     tally[who as usize] = def_base;
     let (mut attackers, mut defenders) = (mine, def_base);
     let me = v.building();
-    let circle = crate::ai_place::circle();
+    let circle = crate::ai::ai_place::circle();
     let ring_len = usize::try_from(ring)
         .ok()
         .and_then(|r| circle.radius.get(r).copied())
@@ -505,7 +505,7 @@ impl CaptureView for SimCapture<'_> {
         match self.cands[h].obj {
             Obj::Unit(u) => i32::from(!matches!(
                 self.s.units[u].kind.domain,
-                crate::attrition::Domain::Land
+                crate::territory::attrition::Domain::Land
             )),
             Obj::Building(_) => 0,
         }
@@ -567,7 +567,7 @@ impl CaptureView for SimCapture<'_> {
                 x.ty.is_some_and(|t| self.s.tables.build_types[t].attack != 0)
                     && !self.s.building_is_city(b)
                     && x.active
-                    && crate::city::health_level(x.hits_now(), x.damage) <= 5
+                    && crate::cities::city::health_level(x.hits_now(), x.damage) <= 5
             }
         }
     }
@@ -589,7 +589,7 @@ impl CaptureView for SimCapture<'_> {
         };
         let x = &self.s.buildings[b];
         let fort =
-            x.ty.is_some_and(|t| crate::build::is_fort(&self.s.tables.build_types, t));
+            x.ty.is_some_and(|t| crate::cities::build::is_fort(&self.s.tables.build_types, t));
         x.garrison.len() as i32 + if fort { 12 } else { 6 }
     }
     fn reveal(&mut self, h: usize, who: i32) {
@@ -686,6 +686,6 @@ impl Sim {
     /// `UnitData::get_capture_value` for one figure.
     fn unit_capture_value(&self, i: usize) -> i32 {
         let u = &self.units[i];
-        crate::city::capture_value(u.kind.siege, u.squad_size, 1)
+        crate::cities::city::capture_value(u.kind.siege, u.squad_size, 1)
     }
 }

@@ -4,7 +4,7 @@
 //! Every operation there is an `addsd`, `subsd`, `mulsd` or a quotient of
 //! two integers, each correctly rounded to 53 bits, nearest-even; so the
 //! value is computed exactly in integers and rounded once per operation,
-//! as DECISIONS 19 has it for singles ([`crate::single::Single`]).
+//! as DECISIONS 19 has it for singles ([`crate::num::single::Single`]).
 //!
 //! **The range is the caller's**: every value is zero or a positive normal
 //! double, and a difference is taken only as `a − b` with `a ≥ b`. That is

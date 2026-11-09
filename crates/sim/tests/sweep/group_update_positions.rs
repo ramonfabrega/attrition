@@ -48,7 +48,9 @@ fn the_emulated_original_agrees_on_every_row() {
             // `+0xcc`/`+0xd0`/`+0xd4` the order cursor, `+0xdc` the list head; p8..p11 the head nodes (`+4` the entry), p12..p15 the
             // entries (`+8` the order, `+0xc` its flag byte), p16..p19 the orders (stubbed vtable), p20 the move record
             // (`+0x10` the waypoint flag, `+0x2c`/`+0x30` the point). The port is `update_positions_steps` over a view of them.
-            use crate::update_positions_view::{UpdatePositionsView, update_positions_steps};
+            use crate::groups::update_positions_view::{
+                UpdatePositionsView, update_positions_steps,
+            };
             const KEY: i32 = 0x63637;
             struct V<'a> {
                 a: &'a [i32],

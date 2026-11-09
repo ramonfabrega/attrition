@@ -16,16 +16,16 @@
 //! verifier, and the three grid planners live in `path.rs`
 //! (`docs/PATHFINDER.md`).
 
-use crate::ai_load::{uflags, uflags2};
-use crate::anim;
-use crate::build::{Ident, flags as bflags};
+use crate::ai::ai_load::{uflags, uflags2};
+use crate::cities::build::{Ident, flags as bflags};
 use crate::combat::{self, Obj};
 use crate::economy;
-use crate::garrison::GarrisonRefused;
 use crate::movement::{self, Angle, find_angle};
-use crate::single::Single;
+use crate::num::single::Single;
+use crate::units::anim;
+use crate::units::garrison::GarrisonRefused;
 use crate::world::{tile, vector_dist};
-use crate::{Player, Pos, Sim, Unit, farms};
+use crate::{Player, Pos, Sim, Unit, cities::farms};
 /// `PackerStanceIndex::PACKER_AUTO` (the PDB): a packer that unpacks by
 /// itself once idle.
 const PACKER_AUTO: u8 = 0;
@@ -226,7 +226,7 @@ pub struct OrdersState {
     /// them eleven times before the word (`docs/ORDERS.md` §16). Slots
     /// are recycled the way `Groups::get_open_slot` recycles them, so the
     /// pool stays as small as the live groups.
-    pub(crate) pushed: Vec<crate::group::Pushed>,
+    pub(crate) pushed: Vec<crate::groups::group::Pushed>,
     /// `Groups::last_group[who]` — the pool slot each player pushed into
     /// last, which `push_group` compares against and `get_open_slot` will
     /// not hand out (`docs/GROUPS.md` §19). `Groups::clear` starts every
@@ -243,6 +243,6 @@ pub struct OrdersState {
         crate::Player,
         Option<usize>,
         Option<usize>,
-        crate::group::GroupState,
+        crate::groups::group::GroupState,
     )>,
 }

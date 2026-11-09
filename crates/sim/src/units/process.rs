@@ -28,7 +28,7 @@ impl Sim {
         // squad and the crew, the walk handed to the body's frame.
         if self.units[i].is_gaia() {
             if self.units[i].on_map {
-                anim::animal_process_steps(
+                crate::units::anim::animal_process_steps(
                     self,
                     |s| s.work(i, frame),
                     |s| s.guy_walk_counts(i),
@@ -60,7 +60,7 @@ impl Sim {
             self.units[i].healing -= 1;
         }
         // `Unit::process@00610bc0`'s head, a caster's arm: a hero's
-        // spells run out, then a point of craft back (`crate::cast`),
+        // spells run out, then a point of craft back (`crate::spells::cast`),
         // before the heal and the work.
         self.process_spells(i, frame);
         self.recover_mana(i, frame);
@@ -71,7 +71,7 @@ impl Sim {
         }
         // `process_healing` runs for every unit, inside or out: the
         // garrison branch inside, and on the map the civilian heal
-        // (`crate::heal`, `docs/COMBAT.md` §72).
+        // (`crate::units::heal`, `docs/COMBAT.md` §72).
         // `Unit::process@00610bc0:288`–`:420`, after the attrition and
         // before the heal: a unit's own queue (item 3981).
         self.carrier_queue_tick(i);
@@ -211,7 +211,9 @@ impl Sim {
             // `Objects::kill_guy` first, and this crate kills none that way
             // there. `coll_repaint` takes the boat too (item 1223): the
             // sixty-fourth-frame repaint re-marks the disc the close cleared.
-            if self.units[i].kind.domain == attrition::Domain::Sea && !self.units[i].on_map {
+            if self.units[i].kind.domain == crate::territory::attrition::Domain::Sea
+                && !self.units[i].on_map
+            {
                 let from = self.units[i].movement.body.pos;
                 self.process_movement(i);
                 let to = self.units[i].movement.body.pos;

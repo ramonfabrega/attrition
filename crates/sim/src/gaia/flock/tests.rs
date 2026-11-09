@@ -3,7 +3,7 @@ use crate::combat::Rng;
 
 fn sim() -> Sim {
     let mut s = Sim::new(
-        crate::tuning::Tuning::RON,
+        crate::core::tuning::Tuning::RON,
         crate::world::World::new(60, 60),
         2,
     );
@@ -12,9 +12,9 @@ fn sim() -> Sim {
         hits: 1,
         moves: 35,
         turn_speed: crate::movement::degrees_to_angle(5).0,
-        kind: crate::attrition::UnitKind {
-            domain: crate::attrition::Domain::Air,
-            ..crate::attrition::UnitKind::default()
+        kind: crate::territory::attrition::UnitKind {
+            domain: crate::territory::attrition::Domain::Air,
+            ..crate::territory::attrition::UnitKind::default()
         },
         ..crate::UnitType::default()
     });

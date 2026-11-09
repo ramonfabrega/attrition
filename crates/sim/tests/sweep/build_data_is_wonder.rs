@@ -1,6 +1,6 @@
 //! `BuildData::is_wonder@00472320` under the emulator against the port (item 2090; hand-written on tools/emu/hooks.py).
 
-use crate::type_index::is_wonder_type;
+use crate::core::type_index::is_wonder_type;
 
 /// `BuildData::is_wonder@00472320`, run by `tools/emu/sweep_build_data_is_wonder.py` under unicorn (tools/emu):
 /// the type record at `+0x18`; with `BuildType::vftable` its type index against [`is_wonder_type`]

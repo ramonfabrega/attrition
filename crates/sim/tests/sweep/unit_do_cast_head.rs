@@ -35,10 +35,10 @@ fn the_emulated_original_agrees_on_every_row() {
             // The arguments are the stubs' answers then the `+0x48` flag (1: the image's own
             // `is_spell_type`, the inline range test; 0: the stub's answer `a[3]`).
             //
-            // **The port is the crate's own head**, `crate::do_cast_view::do_cast_head_steps`; here the
+            // **The port is the crate's own head**, `crate::spells::do_cast_view::do_cast_head_steps`; here the
             // view is the emulated original's windows. The original is stopped at the payment, so the
             // paid mark after it is not written here (the next slice carries it).
-            use crate::do_cast_view::{DoCastHead, do_cast_head_steps};
+            use crate::spells::do_cast_view::{DoCastHead, do_cast_head_steps};
             struct V<'a> {
                 m: &'a [u8],
                 p: &'a [Vec<u8>],

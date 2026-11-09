@@ -1,4 +1,4 @@
-use crate::build::{BuildType, Ident, flags};
+use crate::cities::build::{BuildType, Ident, flags};
 use crate::economy::RESOURCES;
 use crate::{Sim, tech};
 
@@ -97,7 +97,7 @@ fn a_city_holds_one_disband_at_the_queue_and_allows_its_own_at_the_finish() {
     let (mut s, b, _) = barracks(true);
     let bt = s.buildings[b].ty.unwrap();
     // A type that needs a city (`NO_CITY` clear): the arm is asked.
-    s.tables.build_types[bt].flags &= !crate::build::flags::NO_CITY;
+    s.tables.build_types[bt].flags &= !crate::cities::build::flags::NO_CITY;
     let b2 = s.add_building(0, crate::Pos::new(10 * 256, 10 * 256), 20);
     s.buildings[b2].ty = Some(bt);
     s.buildings[b].city = Some(0);
@@ -130,7 +130,7 @@ fn a_city_holds_one_disband_at_the_queue_and_allows_its_own_at_the_finish() {
 fn a_no_city_building_skips_the_city_s_disband_count() {
     let (mut s, b, _) = barracks(true);
     let bt = s.buildings[b].ty.unwrap();
-    s.tables.build_types[bt].flags |= crate::build::flags::NO_CITY;
+    s.tables.build_types[bt].flags |= crate::cities::build::flags::NO_CITY;
     let temple = s.tables.build_types.len();
     s.tables.build_types.push(BuildType::default());
     let b2 = s.add_building(0, crate::Pos::new(10 * 256, 10 * 256), 20);

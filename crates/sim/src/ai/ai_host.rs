@@ -26,11 +26,11 @@
 //! and `place_city_with_cost` on `compute_sites` + `found_cities` — is the
 //! seam [`Sim::produce_building`] / [`Sim::place_city_ai`]; see their notes.
 
-use crate::bhs::{self, Host, Program, RunError, Source, State, Ty, Value};
+use crate::ai::bhs::{self, Host, Program, RunError, Source, State, Ty, Value};
 use crate::orders::{Body, MoveKind, QueuePos, index};
 use crate::tech::{Kind, TypeId};
 use crate::world::{Pos, UNITS_PER_TILE};
-use crate::{BUILD_BASE, Player, Sim, UNIT_BASE, cost, tech};
+use crate::{BUILD_BASE, Player, Sim, UNIT_BASE, economy::cost, tech};
 
 /// `MathUtilFuncSet::rand_int@009e1890+0x18` — the one host function that
 /// steps the sync stream, and the only draw site in the whole script VM.
@@ -1311,7 +1311,7 @@ impl Sim {
     }
 
     /// `place_city_with_cost`'s body — `compute_sites(1)` then
-    /// `found_cities` ([`crate::ai_sites`]).
+    /// `found_cities` ([`crate::ai::ai_sites`]).
     pub fn place_city_ai(&mut self, who: Player) {
         self.place_city_ai_impl(who);
     }

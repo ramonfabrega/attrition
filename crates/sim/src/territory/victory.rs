@@ -40,7 +40,7 @@ impl Sim {
         let n = self.territory.players.len();
         // `LeaderData::get_team_terr@006d62e0` over `LeaderData::territory`
         // — the leader's own count, which `Leader::calc_gather` rewrites on
-        // its reassembly frames ([`crate::holdings`]), not the live map: a
+        // its reassembly frames ([`crate::economy::holdings`]), not the live map: a
         // live scan starts French East Indies' timer on 14288, five frames
         // before the original's 14293 (item 1487).
         let terr: Vec<i32> = (0..n)

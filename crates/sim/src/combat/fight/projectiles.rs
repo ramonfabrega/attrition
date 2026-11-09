@@ -233,7 +233,7 @@ impl Sim {
     /// **The terrain test** is §46's: the arc `(v1z × t + sz) + GRAV_Z ×
     /// 0.5 × t × t` ([`combat::arc_z`]) against the ground under the point
     /// ([`Sim::ground_z`], `TerrainOut::find_data_z@00866560`), both in
-    /// [`crate::single::Single`] arithmetic, operation for operation as the
+    /// [`crate::num::single::Single`] arithmetic, operation for operation as the
     /// listing does them. The shot comes down on the first step its height
     /// is not above the ground, and `do_damage` runs at the new point — on
     /// whatever `check_hit` finds there, or into the ground if nothing.
@@ -341,7 +341,7 @@ impl Sim {
                         continue;
                     }
                     let z = combat::arc_z(p.v1z, p.sz, p.cur_time);
-                    let ground = crate::single::Single::from_i32(self.ground_z(at));
+                    let ground = crate::num::single::Single::from_i32(self.ground_z(at));
                     if z.gt(ground) {
                         i += 1;
                         continue;
@@ -492,7 +492,7 @@ impl Sim {
         let at = combat::arc_point(p.launch, landing, p.cur_time, p.total_time);
         let ground = self.ground_z(at);
         let z = combat::arc_z(p.v1z, p.sz, p.cur_time);
-        if !crate::single::Single::from_i32(ground).gt(z) {
+        if !crate::num::single::Single::from_i32(ground).gt(z) {
             return false;
         }
         let q = &mut self.combat.projectiles[i];
@@ -613,7 +613,7 @@ impl Sim {
             return;
         }
         // **The nuke arm** (item 1091, `67846d`..`6785db`): a nuke's round
-        // strikes nothing where it lands; it lays the blast (`crate::nuke`).
+        // strikes nothing where it lands; it lays the blast (`crate::combat::nuke`).
         if self.is_nuke(p.shooter) {
             self.nuke_land(p, frame);
             return;
@@ -799,7 +799,7 @@ impl Sim {
         }
         let tile = landing.tile();
         let at = landing.cell();
-        let (mx, my) = (crate::ai_place::MOVE_X, crate::ai_place::MOVE_Y);
+        let (mx, my) = (crate::ai::ai_place::MOVE_X, crate::ai::ai_place::MOVE_Y);
         mx.iter().zip(my).find_map(|(&dx, dy)| {
             let cell = crate::Cell::new(at.x + dx, at.y + dy);
             (0..self.buildings.len()).find(|&b| {

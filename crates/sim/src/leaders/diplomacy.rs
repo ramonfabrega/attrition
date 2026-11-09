@@ -11,7 +11,7 @@
 //! stops at a `SEAM` that names it, so a later lobby that reaches one
 //! parts there rather than on a guess.
 
-use crate::build::Ident;
+use crate::cities::build::Ident;
 use crate::world::Terrain;
 use crate::{Player, Sim};
 

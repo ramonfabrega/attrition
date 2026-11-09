@@ -45,11 +45,11 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            // **The port is the crate's own steps**, `crate::mesh::redo_changed_roads_steps`, which
+            // **The port is the crate's own steps**, `crate::movement::mesh::redo_changed_roads_steps`, which
             // `Sim::redo_changed_roads` runs over its `SimRedo`; here the view is the emulated original's
             // windows. The harness owns the `Array<int>` iteration (flag 0x40 at +0x14, `cur_index` at
             // +0x18, count at +4, the data pointer at +0x10), which the crate holds as a `Vec`.
-            use crate::mesh::{RedoView, redo_changed_roads_steps};
+            use crate::movement::mesh::{RedoView, redo_changed_roads_steps};
             struct V<'a> {
                 a: &'a [i32],
                 m: &'a mut [u8],

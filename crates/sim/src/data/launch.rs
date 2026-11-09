@@ -42,7 +42,7 @@ pub struct Node {
 
 /// `(piece, animation slot, starttime)` → node.
 ///
-/// The piece key is [`crate::anim::Guy::gpiece`] — the same number the
+/// The piece key is [`crate::units::anim::Guy::gpiece`] — the same number the
 /// original's own `GUY` record prints, and the key `PieceReleases` is
 /// built on (`PieceName::piece`). **127 is `LONGBOWMEN`**, whose unit
 /// type is 177: the piece is the graph index and the type is
@@ -70,7 +70,7 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     // rounds turn with the rider (`docs/AI.md` §330).
     (
         122,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         5,
         Node {
             bearing: 77_676_544,
@@ -80,7 +80,7 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     ),
     (
         122,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         3,
         Node {
             bearing: 157_679_616,
@@ -90,7 +90,7 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     ),
     (
         122,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         6,
         Node {
             bearing: 123_879_424,
@@ -103,7 +103,7 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     // its rounds turn with the rider's turret.
     (
         127,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         6,
         Node {
             bearing: -26_692_241,
@@ -113,7 +113,7 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     ),
     (
         127,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         22,
         Node {
             bearing: -26_692_241,
@@ -123,7 +123,7 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     ),
     (
         127,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         4,
         Node {
             bearing: -136_574_224,
@@ -133,7 +133,7 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     ),
     (
         127,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         22,
         Node {
             bearing: -36_624_995,
@@ -143,7 +143,7 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     ),
     (
         127,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         10,
         Node {
             bearing: 106_731_108,
@@ -153,7 +153,7 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     ),
     (
         127,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         24,
         Node {
             bearing: 59_520_002,
@@ -189,7 +189,7 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     // nine.
     (
         472,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         9,
         Node {
             bearing: -17_683_648,
@@ -199,7 +199,7 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     ),
     (
         472,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Node {
             bearing: -37_883_648,
@@ -209,7 +209,7 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     ),
     (
         472,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         15,
         Node {
             bearing: 81_516_352,
@@ -219,7 +219,7 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     ),
     (
         384,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         22,
         Node {
             bearing: 216_316_352,
@@ -229,7 +229,7 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     ),
     (
         384,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         21,
         Node {
             bearing: 532_316_352,
@@ -366,7 +366,7 @@ const COS_DEG: [i64; 91] = [
 
 /// The whole degree [`Bay::point`] turns by: `fast_angle_to_degrees` of
 /// the figure's angle less a half turn, as `execute_game_events` hands it
-/// to `get_position` ([`crate::pivot::release_rotation`]), turned back by
+/// to `get_position` ([`crate::data::pivot::release_rotation`]), turned back by
 /// the half turn — `Bay`'s axes are the figure's, not the flipped ones.
 ///
 /// **A half-way byte rounds up** (item 2304): `byte ≡ 16 mod 32`, 22.5°
@@ -375,7 +375,7 @@ const COS_DEG: [i64; 91] = [
 /// measured heading sat on one; run835's Bark `0/7` faces byte 80 (112.5°)
 /// on blocks 638–653, and only 113 puts its rounds at the dump's points.
 pub fn whole_degrees(facing: Angle) -> i64 {
-    i64::from((crate::pivot::release_rotation(facing) + 180) % 360)
+    i64::from((crate::data::pivot::release_rotation(facing) + 180) % 360)
 }
 
 /// `(cos, sin)` of a whole degree, scaled by 2^30.
@@ -425,7 +425,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // ground on 821 against the original's 820.
     (
         125,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         15,
         Bay {
             right: 102_456,
@@ -435,7 +435,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         125,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         15,
         Bay {
             right: 23_036,
@@ -445,7 +445,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         125,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         15,
         Bay {
             right: 38_786,
@@ -462,7 +462,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // square at height 0, where the original's left at 51 and 34.
     (
         282,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         7,
         Bay {
             right: -99_683,
@@ -472,7 +472,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         282,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         7,
         Bay {
             right: -101_773,
@@ -491,7 +491,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // 4302 and `1/26`'s of 4303 the same.
     (
         91,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         17,
         Bay {
             right: 32_149,
@@ -501,7 +501,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         91,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         7,
         Bay {
             right: 34_159,
@@ -511,7 +511,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         91,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         13,
         Bay {
             right: 47_814,
@@ -532,7 +532,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // the round, rolling on past its dead target, came down a frame later.
     (
         94,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: 31_393,
@@ -542,7 +542,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         94,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         22,
         Bay {
             right: 25_178,
@@ -552,7 +552,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         94,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         15,
         Bay {
             right: 31_038,
@@ -574,7 +574,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // its dead target, stayed over the ground a frame longer than theirs.
     (
         80,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         3,
         Bay {
             right: -7_425,
@@ -584,7 +584,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         9,
         Bay {
             right: -16_600,
@@ -594,7 +594,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: -16_551,
@@ -604,7 +604,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         17,
         Bay {
             right: -9_573,
@@ -614,7 +614,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         20,
         Bay {
             right: 752,
@@ -624,7 +624,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         24,
         Bay {
             right: 13_866,
@@ -634,7 +634,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         29,
         Bay {
             right: 18_457,
@@ -644,7 +644,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         37,
         Bay {
             right: 4_674,
@@ -654,7 +654,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         39,
         Bay {
             right: 0,
@@ -664,7 +664,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         46,
         Bay {
             right: 0,
@@ -674,7 +674,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         47,
         Bay {
             right: 0,
@@ -684,7 +684,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         1,
         Bay {
             right: -402,
@@ -694,7 +694,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         3,
         Bay {
             right: -2_732,
@@ -704,7 +704,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         5,
         Bay {
             right: -5_603,
@@ -714,7 +714,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         8,
         Bay {
             right: -7_510,
@@ -724,7 +724,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         9,
         Bay {
             right: -5_569,
@@ -734,7 +734,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         10,
         Bay {
             right: -3_051,
@@ -744,7 +744,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         12,
         Bay {
             right: 2_021,
@@ -754,7 +754,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         3,
         Bay {
             right: 1_011,
@@ -764,7 +764,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         4,
         Bay {
             right: 1_830,
@@ -774,7 +774,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         12,
         Bay {
             right: 11_993,
@@ -784,7 +784,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         19,
         Bay {
             right: 18_422,
@@ -794,7 +794,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         20,
         Bay {
             right: 18_428,
@@ -804,7 +804,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         29,
         Bay {
             right: 1_830,
@@ -814,7 +814,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         34,
         Bay {
             right: 0,
@@ -824,7 +824,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         37,
         Bay {
             right: 0,
@@ -834,7 +834,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         80,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         46,
         Bay {
             right: 0,
@@ -858,7 +858,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // struck and fled a tick late.
     (
         77,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         3,
         Bay {
             right: -7_394,
@@ -868,7 +868,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         9,
         Bay {
             right: -16_600,
@@ -878,7 +878,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: -16_534,
@@ -888,7 +888,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         17,
         Bay {
             right: -9_569,
@@ -898,7 +898,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         20,
         Bay {
             right: 737,
@@ -908,7 +908,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         24,
         Bay {
             right: 13_870,
@@ -918,7 +918,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         29,
         Bay {
             right: 18_498,
@@ -928,7 +928,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         32,
         Bay {
             right: 18_363,
@@ -938,7 +938,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         37,
         Bay {
             right: 4_655,
@@ -948,7 +948,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         39,
         Bay {
             right: 0,
@@ -958,7 +958,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         46,
         Bay {
             right: 0,
@@ -968,7 +968,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         47,
         Bay {
             right: 0,
@@ -978,7 +978,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         1,
         Bay {
             right: -404,
@@ -988,7 +988,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         2,
         Bay {
             right: -1_409,
@@ -998,7 +998,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         3,
         Bay {
             right: -2_741,
@@ -1008,7 +1008,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         5,
         Bay {
             right: -5_593,
@@ -1018,7 +1018,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         8,
         Bay {
             right: -7_499,
@@ -1028,7 +1028,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         9,
         Bay {
             right: -5_575,
@@ -1038,7 +1038,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         10,
         Bay {
             right: -3_046,
@@ -1048,7 +1048,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         12,
         Bay {
             right: 1_993,
@@ -1058,7 +1058,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         3,
         Bay {
             right: 2_084,
@@ -1068,7 +1068,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         4,
         Bay {
             right: 2_759,
@@ -1078,7 +1078,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         12,
         Bay {
             right: 13_626,
@@ -1088,7 +1088,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         19,
         Bay {
             right: 18_407,
@@ -1098,7 +1098,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         20,
         Bay {
             right: 18_469,
@@ -1108,7 +1108,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         27,
         Bay {
             right: 7_510,
@@ -1118,7 +1118,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         29,
         Bay {
             right: 1_202,
@@ -1128,7 +1128,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         34,
         Bay {
             right: 0,
@@ -1138,7 +1138,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         37,
         Bay {
             right: 0,
@@ -1148,7 +1148,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         42,
         Bay {
             right: 0,
@@ -1158,7 +1158,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         77,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         46,
         Bay {
             right: 0,
@@ -1260,7 +1260,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // against 954.
     (
         752,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         6,
         Bay {
             right: 34_662,
@@ -1270,7 +1270,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         752,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         25,
         Bay {
             right: 30_200,
@@ -1280,7 +1280,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         752,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         23,
         Bay {
             right: 14_565,
@@ -1444,7 +1444,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // and the Farm struck on 3876, a frame early.
     (
         293,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         7,
         Bay {
             right: -117_433,
@@ -1454,7 +1454,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         293,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         7,
         Bay {
             right: -103_432,
@@ -1601,7 +1601,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // (6152, 9334), and its round struck a frame late, on 4505.
     (
         49,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         1,
         Bay {
             right: 33_072,
@@ -1611,7 +1611,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         49,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         7,
         Bay {
             right: 11_452,
@@ -1621,7 +1621,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         49,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         4,
         Bay {
             right: 12_256,
@@ -2713,7 +2713,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // run835's `1/6` at 63° (`756678656`), `sx` 12348 against 12349.
     (
         290,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         5,
         Bay {
             right: -293,
@@ -2723,7 +2723,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         290,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         9,
         Bay {
             right: -1_294,
@@ -2733,7 +2733,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         290,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         17,
         Bay {
             right: -2_106,
@@ -2743,7 +2743,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         290,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         5,
         Bay {
             right: -293,
@@ -2753,7 +2753,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         290,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         9,
         Bay {
             right: -1_294,
@@ -2763,7 +2763,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         290,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         17,
         Bay {
             right: -2_106,
@@ -2784,7 +2784,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // the same on every arrow of the key.
     (
         120,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: -1_830,
@@ -2794,7 +2794,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         120,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         9,
         Bay {
             right: 118,
@@ -2804,7 +2804,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         120,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         15,
         Bay {
             right: 9_536,
@@ -2814,7 +2814,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         254,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         1,
         Bay {
             right: -71_064,
@@ -2824,7 +2824,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         254,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         2,
         Bay {
             right: 67_610,
@@ -2834,7 +2834,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         254,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         5,
         Bay {
             right: -71_064,
@@ -2844,7 +2844,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         254,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         8,
         Bay {
             right: 67_610,
@@ -2854,7 +2854,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         254,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         10,
         Bay {
             right: -71_064,
@@ -2864,7 +2864,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         254,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         13,
         Bay {
             right: 67_610,
@@ -2874,7 +2874,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         254,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         16,
         Bay {
             right: -71_064,
@@ -2884,7 +2884,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         254,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         18,
         Bay {
             right: 67_610,
@@ -2894,7 +2894,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         254,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         21,
         Bay {
             right: -71_064,
@@ -2904,7 +2904,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         254,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         24,
         Bay {
             right: 67_610,
@@ -2928,7 +2928,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // second word, 4781.
     (
         32,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         21,
         Bay {
             right: 69_776,
@@ -2938,7 +2938,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         32,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         22,
         Bay {
             right: 41_209,
@@ -2948,7 +2948,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         32,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         16,
         Bay {
             right: -42_148,
@@ -2970,7 +2970,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // (5950, 8535, 362) in 6.
     (
         38,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         18,
         Bay {
             right: 18_702,
@@ -2980,7 +2980,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         38,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         19,
         Bay {
             right: 22_458,
@@ -2990,7 +2990,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         38,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         21,
         Bay {
             right: 36_186,
@@ -3010,7 +3010,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // the second melee's word stood at 718 rather than 784.
     (
         39,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         18,
         Bay {
             right: 37_765,
@@ -3020,7 +3020,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         39,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         19,
         Bay {
             right: 37_229,
@@ -3030,7 +3030,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         39,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         21,
         Bay {
             right: 32_848,
@@ -3052,7 +3052,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // the city centre `0/2000` (10 against 9).
     (
         1440,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         21,
         Bay {
             right: 71_298,
@@ -3062,7 +3062,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1440,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         22,
         Bay {
             right: 32_704,
@@ -3072,7 +3072,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1440,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         16,
         Bay {
             right: -47_065,
@@ -3092,7 +3092,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // `0/3` landing a frame late (6 frames against 5).
     (
         1792,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         21,
         Bay {
             right: 71_298,
@@ -3102,7 +3102,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1792,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         22,
         Bay {
             right: 32_704,
@@ -3112,7 +3112,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1792,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         16,
         Bay {
             right: -47_065,
@@ -3133,7 +3133,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // original's left from (6541, 9663) in 9.
     (
         1088,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         21,
         Bay {
             right: 74_224,
@@ -3143,7 +3143,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1088,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         22,
         Bay {
             right: 43_592,
@@ -3153,7 +3153,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1088,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         16,
         Bay {
             right: -38_569,
@@ -3172,7 +3172,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // where the original's left from (6085, 10656, 193) and flew 22.
     (
         130,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         6,
         Bay {
             right: -3_071,
@@ -3182,7 +3182,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         130,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         22,
         Bay {
             right: -3_071,
@@ -3192,7 +3192,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         130,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         4,
         Bay {
             right: -13_756,
@@ -3202,7 +3202,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         130,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         22,
         Bay {
             right: -3_071,
@@ -3212,7 +3212,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         130,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         10,
         Bay {
             right: 9_698,
@@ -3222,7 +3222,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         130,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         24,
         Bay {
             right: 4_247,
@@ -3241,7 +3241,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // (9389, 28645, 606) and flew 14.
     (
         131,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         6,
         Bay {
             right: -3_071,
@@ -3251,7 +3251,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         131,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         22,
         Bay {
             right: -3_071,
@@ -3261,7 +3261,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         131,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         4,
         Bay {
             right: -13_756,
@@ -3271,7 +3271,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         131,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         22,
         Bay {
             right: -3_071,
@@ -3281,7 +3281,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         131,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         10,
         Bay {
             right: 9_698,
@@ -3291,7 +3291,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         131,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         24,
         Bay {
             right: 4_247,
@@ -3312,7 +3312,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // (11 frames against 10), so `0/0` took no wound and stood.
     (
         112,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         14,
         Bay {
             right: 25_067,
@@ -3322,7 +3322,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         112,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         6,
         Bay {
             right: 27_678,
@@ -3347,7 +3347,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // reach of the move's goal where theirs' did not.
     (
         1143,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         18,
         Bay {
             right: 17_058,
@@ -3357,7 +3357,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1143,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         4,
         Bay {
             right: 4_863,
@@ -3367,7 +3367,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1143,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         16,
         Bay {
             right: -2_310,
@@ -3386,7 +3386,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // (−175, +38) off them, 60 and 63 up.
     (
         88,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         18,
         Bay {
             right: 17_058,
@@ -3396,7 +3396,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         88,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         4,
         Bay {
             right: 4_863,
@@ -3406,7 +3406,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         88,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         16,
         Bay {
             right: -2_310,
@@ -3426,7 +3426,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // a frame longer.
     (
         90,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         17,
         Bay {
             right: 37_009,
@@ -3436,7 +3436,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         90,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         7,
         Bay {
             right: 37_800,
@@ -3446,7 +3446,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         90,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         13,
         Bay {
             right: 52_635,
@@ -3469,7 +3469,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // frames against 6, and the citizen died a frame late.
     (
         203,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         11,
         Bay {
             right: -541,
@@ -3479,7 +3479,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         203,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         23,
         Bay {
             right: -534,
@@ -3489,7 +3489,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         203,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         27,
         Bay {
             right: -541,
@@ -3512,7 +3512,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // and the citizen was struck a frame late.
     (
         54,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: 24_607,
@@ -3522,7 +3522,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         54,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         13,
         Bay {
             right: 20_358,
@@ -3532,7 +3532,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         54,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         4,
         Bay {
             right: 8_133,
@@ -3542,7 +3542,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         54,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         14,
         Bay {
             right: 31_037,
@@ -3552,7 +3552,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         54,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         24,
         Bay {
             right: 22_929,
@@ -3562,7 +3562,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         54,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         12,
         Bay {
             right: 27_684,
@@ -3572,7 +3572,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         54,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         17,
         Bay {
             right: 38_064,
@@ -3595,7 +3595,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // struck a frame late.
     (
         1108,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: 23_820,
@@ -3605,7 +3605,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1108,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         13,
         Bay {
             right: 20_717,
@@ -3615,7 +3615,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1108,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         4,
         Bay {
             right: 9667,
@@ -3625,7 +3625,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1108,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         14,
         Bay {
             right: 25_919,
@@ -3635,7 +3635,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1108,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         12,
         Bay {
             right: 31_494,
@@ -3657,7 +3657,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // flew 6 frames against 5 and exploded a frame late on 3313.
     (
         60,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: 23_820,
@@ -3667,7 +3667,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         60,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         14,
         Bay {
             right: 25_919,
@@ -3677,7 +3677,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         60,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         24,
         Bay {
             right: 21_173,
@@ -3687,7 +3687,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         60,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         12,
         Bay {
             right: 17_840,
@@ -3697,7 +3697,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         60,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         17,
         Bay {
             right: 22_846,
@@ -3721,7 +3721,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // 31701, 341), and the citizen died on 3748 in theirs alone.
     (
         52,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: 23_820,
@@ -3731,7 +3731,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         52,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         13,
         Bay {
             right: 20_717,
@@ -3741,7 +3741,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         52,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         4,
         Bay {
             right: 9667,
@@ -3751,7 +3751,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         52,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         14,
         Bay {
             right: 25_919,
@@ -3761,7 +3761,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         52,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         24,
         Bay {
             right: 21_173,
@@ -3771,7 +3771,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         52,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         12,
         Bay {
             right: 31_494,
@@ -3791,7 +3791,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // `0/2002` and `0/2000` were struck late (run1424b, 3850 and 3860).
     (
         1145,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         17,
         Bay {
             right: 32_578,
@@ -3801,7 +3801,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1145,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         7,
         Bay {
             right: 33_663,
@@ -3811,7 +3811,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1145,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         13,
         Bay {
             right: 48_137,
@@ -3829,7 +3829,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // 30648, 462) against the original's (5859, 30547, 612).
     (
         89,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         17,
         Bay {
             right: 32_578,
@@ -3839,7 +3839,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         89,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         7,
         Bay {
             right: 33_663,
@@ -3849,7 +3849,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         89,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         13,
         Bay {
             right: 48_137,
@@ -3870,7 +3870,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // rows rest on the shape alone.
     (
         441,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         17,
         Bay {
             right: 32_578,
@@ -3880,7 +3880,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         441,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         7,
         Bay {
             right: 33_663,
@@ -3890,7 +3890,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         441,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         13,
         Bay {
             right: 48_137,
@@ -3910,7 +3910,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // `1/44` round of 3142 flew 3 frames against 2.
     (
         87,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         18,
         Bay {
             right: 17_058,
@@ -3920,7 +3920,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         87,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         4,
         Bay {
             right: 4_863,
@@ -3930,7 +3930,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         87,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         16,
         Bay {
             right: -2_310,
@@ -3954,7 +3954,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // theirs left (7758, 30368) at 672, and flew 3 frames against 2.
     (
         167,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         3,
         Bay {
             right: 496,
@@ -3964,7 +3964,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         167,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         9,
         Bay {
             right: 691,
@@ -3974,7 +3974,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         167,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         12,
         Bay {
             right: 591,
@@ -3984,7 +3984,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         167,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         17,
         Bay {
             right: 0,
@@ -3994,7 +3994,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         167,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         20,
         Bay {
             right: -703,
@@ -4004,7 +4004,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         167,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         22,
         Bay {
             right: -717,
@@ -4014,7 +4014,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         167,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         24,
         Bay {
             right: -834,
@@ -4024,7 +4024,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         167,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         29,
         Bay {
             right: -87,
@@ -4034,7 +4034,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         167,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         3,
         Bay {
             right: 0,
@@ -4044,7 +4044,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         167,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         9,
         Bay {
             right: 0,
@@ -4054,7 +4054,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         167,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         12,
         Bay {
             right: 0,
@@ -4064,7 +4064,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         167,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         17,
         Bay {
             right: 0,
@@ -4074,7 +4074,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         167,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         20,
         Bay {
             right: 0,
@@ -4084,7 +4084,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         167,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         22,
         Bay {
             right: 0,
@@ -4094,7 +4094,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         167,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         24,
         Bay {
             right: 0,
@@ -4104,7 +4104,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         167,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         29,
         Bay {
             right: 0,
@@ -4126,7 +4126,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // theirs' did not.
     (
         65,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         10,
         Bay {
             right: 15_269,
@@ -4136,7 +4136,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         65,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         15,
         Bay {
             right: 5_281,
@@ -4146,7 +4146,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         65,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         16,
         Bay {
             right: 13_151,
@@ -4165,7 +4165,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // 4735 against theirs' 4734.
     (
         64,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         6,
         Bay {
             right: 13_374,
@@ -4175,7 +4175,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         64,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         10,
         Bay {
             right: 13_848,
@@ -4185,7 +4185,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         64,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         12,
         Bay {
             right: 13_535,
@@ -4207,7 +4207,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // against theirs' 4588, the British word.
     (
         277,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         4,
         Bay {
             right: 29_986,
@@ -4217,7 +4217,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         277,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         4,
         Bay {
             right: -98_342,
@@ -4227,7 +4227,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         277,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         4,
         Bay {
             right: -98_342,
@@ -4248,7 +4248,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // truncated points exactly, and `dz` is the same at every degree.
     (
         33,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: 38_941,
@@ -4258,7 +4258,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         33,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         6,
         Bay {
             right: 1_649,
@@ -4268,7 +4268,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         33,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         27,
         Bay {
             right: 21_769,
@@ -4294,7 +4294,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // under unicorn.
     (
         273,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         2,
         Bay {
             right: -150,
@@ -4304,7 +4304,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         273,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         10,
         Bay {
             right: 1_110,
@@ -4314,7 +4314,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         273,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         17,
         Bay {
             right: -1_724,
@@ -4324,7 +4324,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         273,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         2,
         Bay {
             right: -150,
@@ -4334,7 +4334,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         273,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         10,
         Bay {
             right: 1_110,
@@ -4344,7 +4344,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         273,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         17,
         Bay {
             right: -1_724,
@@ -4354,7 +4354,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         273,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         2,
         Bay {
             right: -150,
@@ -4364,7 +4364,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         273,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         10,
         Bay {
             right: 1_110,
@@ -4374,7 +4374,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         273,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         17,
         Bay {
             right: -1_724,
@@ -4397,7 +4397,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // theirs left (2808, 6381) and flew 12: the Inca Classical word, 4501.
     (
         274,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         2,
         Bay {
             right: -148,
@@ -4407,7 +4407,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         274,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         10,
         Bay {
             right: 1_110,
@@ -4417,7 +4417,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         274,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         17,
         Bay {
             right: -1_724,
@@ -4427,7 +4427,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         274,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         2,
         Bay {
             right: -148,
@@ -4437,7 +4437,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         274,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         10,
         Bay {
             right: 1_110,
@@ -4447,7 +4447,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         274,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         17,
         Bay {
             right: -1_724,
@@ -4457,7 +4457,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         274,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         2,
         Bay {
             right: -148,
@@ -4467,7 +4467,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         274,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         10,
         Bay {
             right: 1_110,
@@ -4477,7 +4477,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         274,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         17,
         Bay {
             right: -1_724,
@@ -4487,7 +4487,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         567,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         12,
         Bay {
             right: 0,
@@ -4504,7 +4504,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // Catapults' rounds in run1326b left their square 245 under.
     (
         215,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         12,
         Bay {
             right: 0,
@@ -4523,7 +4523,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // frames against 13 and struck on 4048 where run1189b shows 4047.
     (
         1794,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: 38_946,
@@ -4533,7 +4533,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1794,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         6,
         Bay {
             right: 1_685,
@@ -4543,7 +4543,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1794,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         27,
         Bay {
             right: 21_762,
@@ -4562,7 +4562,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // (5064, 31368) on 10931 where run1318b's leaves (5054, 31417), 170 up.
     (
         1793,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: 38_946,
@@ -4572,7 +4572,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1793,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         6,
         Bay {
             right: 1_685,
@@ -4582,7 +4582,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1793,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         27,
         Bay {
             right: 21_762,
@@ -4602,7 +4602,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // 30317), 170 up.
     (
         1090,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: 38_946,
@@ -4612,7 +4612,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1090,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         6,
         Bay {
             right: 1_685,
@@ -4622,7 +4622,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1090,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         27,
         Bay {
             right: 21_762,
@@ -4641,7 +4641,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // against 15, and `0/11` went unstruck on 10993.
     (
         1881,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: -1_826,
@@ -4651,7 +4651,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1881,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         9,
         Bay {
             right: 336,
@@ -4661,7 +4661,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1881,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         15,
         Bay {
             right: 9_711,
@@ -4679,7 +4679,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // run1327b's (3821, 31024), in 3 frames against 2.
     (
         113,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         14,
         Bay {
             right: 25_067,
@@ -4689,7 +4689,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         113,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         6,
         Bay {
             right: 27_678,
@@ -4705,7 +4705,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // (6264, 32904) at 208, where run1327b's leaves (6291, 32922) at 453.
     (
         1975,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         12,
         Bay {
             right: 0,
@@ -4721,7 +4721,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // node's; every Mahout release in run1189b's window names node 1.
     (
         212,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         16,
         Bay {
             right: -29_938,
@@ -4731,7 +4731,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         212,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         16,
         Bay {
             right: -291,
@@ -4741,7 +4741,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         212,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         16,
         Bay {
             right: -17_740,
@@ -4751,7 +4751,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         212,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         16,
         Bay {
             right: -18_234,
@@ -4761,7 +4761,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         212,
-        crate::anim::ATTACKSPECIAL,
+        crate::units::anim::ATTACKSPECIAL,
         16,
         Bay {
             right: -18_369,
@@ -4781,7 +4781,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // leaves (6929, 8608) at 699, and landed a frame late.
     (
         213,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         14,
         Bay {
             right: -18_396,
@@ -4791,7 +4791,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         213,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: 9_808,
@@ -4801,7 +4801,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         213,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         12,
         Bay {
             right: 48,
@@ -4811,7 +4811,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         213,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         12,
         Bay {
             right: -1_026,
@@ -4821,7 +4821,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         213,
-        crate::anim::ATTACKSPECIAL,
+        crate::units::anim::ATTACKSPECIAL,
         14,
         Bay {
             right: -16_035,
@@ -4841,7 +4841,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // 15, and struck on 5037 where theirs struck on 5035.
     (
         43,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: 33_637,
@@ -4851,7 +4851,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         43,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         6,
         Bay {
             right: -13_157,
@@ -4861,7 +4861,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         43,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         27,
         Bay {
             right: 14_497,
@@ -4875,7 +4875,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // square (5592, 8520), 17 frames, where theirs struck on 5098.
     (
         44,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: 33_637,
@@ -4885,7 +4885,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         44,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         6,
         Bay {
             right: -13_157,
@@ -4895,7 +4895,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         44,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         27,
         Bay {
             right: 14_497,
@@ -4914,7 +4914,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // `1/41` at the farmer `0/3` on 5306 from (5688, 8280), 19 frames.
     (
         473,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: -1_826,
@@ -4924,7 +4924,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         473,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         9,
         Bay {
             right: 336,
@@ -4934,7 +4934,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         473,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         15,
         Bay {
             right: 9_711,
@@ -4954,7 +4954,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // left the unit's own square (6552, 9240) and flew 21 frames.
     (
         824,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: -1_826,
@@ -4964,7 +4964,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         824,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         9,
         Bay {
             right: 336,
@@ -4974,7 +4974,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         824,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         15,
         Bay {
             right: 9_711,
@@ -4994,7 +4994,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // and flew 17, and `0/0` was struck a frame late.
     (
         825,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: -1_826,
@@ -5004,7 +5004,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         825,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         9,
         Bay {
             right: 336,
@@ -5014,7 +5014,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         825,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         15,
         Bay {
             right: 9_711,
@@ -5035,7 +5035,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // (7529, 5749) and flew 16, and `0/6` was struck a frame late.
     (
         1176,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Bay {
             right: -1_790,
@@ -5045,7 +5045,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1176,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         9,
         Bay {
             right: 331,
@@ -5055,7 +5055,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1176,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         15,
         Bay {
             right: 9_531,
@@ -5078,7 +5078,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // building was struck a frame late.
     (
         1178,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         5,
         Bay {
             right: 11_856,
@@ -5088,7 +5088,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1178,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         3,
         Bay {
             right: 15_464,
@@ -5098,7 +5098,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1178,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         6,
         Bay {
             right: 15_879,
@@ -5130,7 +5130,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     // left from the hull's square at 0.
     (
         289,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         1,
         Bay {
             right: 23_033,
@@ -5140,7 +5140,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     ),
     (
         289,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         2,
         Bay {
             right: -23_033,
@@ -5150,7 +5150,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     ),
     (
         239,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         0,
         Bay {
             right: -74_266,
@@ -5160,7 +5160,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     ),
     (
         239,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         1,
         Bay {
             right: 73_493,
@@ -5180,7 +5180,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     // five.
     (
         237,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         0,
         Bay {
             right: -13_010,
@@ -5190,7 +5190,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     ),
     (
         237,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         1,
         Bay {
             right: 11_340,
@@ -5211,7 +5211,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     // building `0/2006`'s `damage_frac` to 8 against 11.
     (
         245,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         0,
         Bay {
             right: 184_080,
@@ -5221,7 +5221,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     ),
     (
         245,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         1,
         Bay {
             right: -184_152,
@@ -5243,7 +5243,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     // ours' 8 and 8.
     (
         258,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         0,
         Bay {
             right: -106_967,
@@ -5253,7 +5253,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     ),
     (
         258,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         1,
         Bay {
             right: 107_331,
@@ -5273,7 +5273,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     // (15843, 16406, −70) and (15657, 16725, −71).
     (
         259,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         0,
         Bay {
             right: 184_664,
@@ -5283,7 +5283,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     ),
     (
         259,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         1,
         Bay {
             right: -185_591,
@@ -5303,7 +5303,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     // original's (3805, 30661) and (3732, 30489).
     (
         255,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         0,
         Bay {
             right: -93_878,
@@ -5313,7 +5313,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     ),
     (
         255,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         1,
         Bay {
             right: 93_885,
@@ -5328,7 +5328,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     // (37377, 16525) and node 1 at (37392, 16506), 39 over the figure.
     (
         589,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         0,
         Bay {
             right: -13_010,
@@ -5338,7 +5338,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     ),
     (
         589,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         1,
         Bay {
             right: 11_340,
@@ -5356,7 +5356,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     // vector's turn at any other heading is not measured.
     (
         261,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         0,
         Bay {
             right: -72_500,
@@ -5366,7 +5366,7 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     ),
     (
         261,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         1,
         Bay {
             right: 78_500,

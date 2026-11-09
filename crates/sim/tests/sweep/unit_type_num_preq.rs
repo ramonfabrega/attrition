@@ -1,6 +1,6 @@
 //! `UnitTypeData::num_preq@00470810` under the emulator against the port (item 1705).
 
-use crate::flag_reads::NUM_PREQ;
+use crate::core::flag_reads::NUM_PREQ;
 
 /// `UnitTypeData::num_preq@00470810`, run by `tools/emu/sweep_unit_type_num_preq.py` under unicorn
 /// (tools/emu): returns 2 whatever the record holds — the rows fill the record with seeded words — against `flag_reads::NUM_PREQ`, the count of prerequisites a unit type is built from (the tree loader's two slots).

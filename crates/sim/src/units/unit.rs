@@ -55,7 +55,7 @@ pub struct Unit {
     /// Figures currently in this figure's squad, one to four — the original's
     /// `curr_uber_size`. Damage per tick is set by this and nothing else.
     pub squad_size: i32,
-    pub kind: attrition::UnitKind,
+    pub kind: crate::territory::attrition::UnitKind,
     /// Whether the unit is on the map, rather than garrisoned in a building or
     /// riding in a transport. Off the map, none of this runs.
     pub on_map: bool,
@@ -96,7 +96,7 @@ pub struct Unit {
     pub inside_unit: Option<usize>,
     /// **A unit's own training queue** (item 3981, `docs/AI.md` §413): the
     /// Aircraft Carrier's planes, `UnitData +0xa0 num_queued` (a short)
-    /// and `+0x64 queue_time`, the clock (`crate::carrier_queue`).
+    /// and `+0x64 queue_time`, the clock (`crate::air::carrier_queue`).
     pub num_queued: i16,
     pub queue_time: i32,
     /// The hit points a whole figure carries, what the garrison heal repairs
@@ -114,7 +114,7 @@ pub struct Unit {
     /// While it is `Some`, `do_move` does not step: its first block resumes
     /// the search instead (`docs/ORDERS.md` §4.4 step 2).
     /// [`Sim::clear_partial_path`] is what drops it.
-    pub search: Option<Box<path::Search>>,
+    pub search: Option<Box<crate::movement::path::Search>>,
     /// **`UnitData::start_dist` (`+0x130`) — the dumped witness that this
     /// unit suspended a 48-grid search** (`docs/PATHFINDER.md` §18.6).
     ///
@@ -198,7 +198,7 @@ pub struct Unit {
     /// found nothing twice running, and the next one waits for the
     /// thirty-two-frame phase (`Unit::cavarch_fight@005ff4b0`'s tail,
     /// `Unit::do_move@005f7b30:66`). `cast_target` is `None` with it.
-    /// [`crate::cavarch`] writes it; −1 is `cast_target` `None` without.
+    /// [`crate::combat::cavarch`] writes it; −1 is `cast_target` `None` without.
     pub cavarch_idle: bool,
     /// **The head order's identity** — bumped by every write that puts a
     /// different order object at the head of the list (a kill, a remove at
@@ -306,7 +306,7 @@ pub struct Unit {
     /// The figures' animation clocks — `UnitData::guys`, one `Guy` per
     /// member (`docs/ANIM.md`). Empty for a unit stood up without art,
     /// which then plays nothing and draws nothing for it.
-    pub guys: Vec<anim::Guy>,
+    pub guys: Vec<crate::units::anim::Guy>,
     /// `UnitData::is_captain` — `o_up < 0`, a unit that heads its own
     /// squad; every standalone unit is one.
     pub captain: bool,
@@ -367,7 +367,7 @@ pub struct Unit {
     /// A pasture's animal — the farm it belongs to and its place in the
     /// five (`docs/SYNC.md` §3.6). `None` for everything else, which is
     /// what sends a herdless animal down `think_farm_animal`'s dead end.
-    pub farm_animal: Option<farms::FarmAnimal>,
+    pub farm_animal: Option<crate::cities::farms::FarmAnimal>,
     /// The type's `TypeIndex`, when the loader named it; −1 otherwise. The
     /// birds' walk coin reads it.
     pub type_index: i32,
@@ -449,7 +449,7 @@ pub struct Unit {
     /// `Unit::work` clears it, and for a **fisherman or a merchant** each
     /// of those two transitions marks the owner's economy dirty — because
     /// each of them changes who `Leader::calc_gather` step 6 will walk
-    /// ([`crate::rares`]). It is the reason a boat that finishes its
+    /// ([`crate::economy::rares`]). It is the reason a boat that finishes its
     /// journey has its deposit counted within eight frames rather than at
     /// the next 512-frame refresh.
     pub idle_latch: bool,
@@ -690,10 +690,10 @@ pub fn turning_of(t: &UnitType) -> movement::Turning {
     movement::Turning {
         type_turn_speed: t.turn_speed,
         packed: false,
-        instant_from_stop: !t.cols.flag2(ai_load::uflags2::PACKS)
-            && (foot_or_mounted || t.cols.flag(ai_load::uflags::FLAG_TRANSPORT))
-            && !t.cols.flag(ai_load::uflags::CART),
-        wide_limit: t.combat.domain != attrition::Domain::Land
+        instant_from_stop: !t.cols.flag2(crate::ai::ai_load::uflags2::PACKS)
+            && (foot_or_mounted || t.cols.flag(crate::ai::ai_load::uflags::FLAG_TRANSPORT))
+            && !t.cols.flag(crate::ai::ai_load::uflags::CART),
+        wide_limit: t.combat.domain != crate::territory::attrition::Domain::Land
             || objmask & combat::mask::VEHICLE != 0,
     }
 }
@@ -726,14 +726,14 @@ pub fn init_form(type_index: i32) -> i8 {
 /// by-group progression reads the group back (`cost::Counts::of_group`).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct UnitType {
-    pub price: cost::Price,
-    pub kind: attrition::UnitKind,
+    pub price: crate::economy::cost::Price,
+    pub kind: crate::territory::attrition::UnitKind,
     pub group: Option<usize>,
     /// The `HITS` column: what a unit of this type is built with.
     pub hits: i32,
     /// The time half of the same record — `JOB_TIME`, `JOB_EXTRA_TIME` and
     /// `RESEARCH_PREMIUM_TIME`. See `docs/PRODUCTION.md`.
-    pub times: production::Times,
+    pub times: crate::cities::production::Times,
     /// The combat columns and derived bits — `docs/COMBAT.md` §2.1. A
     /// default profile has zero attack and is neither target nor threat.
     pub combat: combat::Profile,
@@ -745,7 +745,7 @@ pub struct UnitType {
     /// existed, and [`Muster::researched`] is the whole story.
     pub tree: Option<tech::TypeId>,
     /// What the type needs in order to garrison — `docs/CITIES.md` §6.4.
-    pub garrison: garrison::UnitTraits,
+    pub garrison: crate::units::garrison::UnitTraits,
     /// `MOVES`: the type's base speed in position units per frame — the
     /// number `UnitData::get_speed` starts from, before the nation, tech and
     /// terrain layers, and already in the unit movement uses
@@ -776,7 +776,7 @@ pub struct UnitType {
     /// Anti-Aircraft Gun. `docs/PRODUCTION.md`, "The tail".
     pub archer: bool,
     pub anti_air: bool,
-    pub cols: ai_load::UnitCols,
+    pub cols: crate::ai::ai_load::UnitCols,
     /// `MANA` (`UnitTypeData +0x2ec`), the pool `UnitData::mana@00609a50`
     /// reads for a caster. SEAM: its supply-upgrade, French and space arms.
     pub mana: i32,
@@ -786,7 +786,7 @@ pub struct UnitType {
     pub gaia: bool,
     /// What [`relative_value::relative_value`] reads of the type, fixed at
     /// load as `UnitType::fill_relative_values@0061be50`'s table is.
-    pub rel: relative_value::Facts,
+    pub rel: crate::ai::relative_value::Facts,
 }
 
 /// What a player has built, as the price and the population cap see it.
@@ -843,7 +843,7 @@ pub struct Muster {
     /// 125, 150 and 200, and the largest is exactly `POP_CAP[7]`.
     pub limit: i32,
     /// The wonders, nations and scenario overrides that move the cap.
-    pub bonuses: cost::PopBonuses,
+    pub bonuses: crate::economy::cost::PopBonuses,
 }
 
 /// The largest population the lobby offers, and this simulation's default.
@@ -855,7 +855,7 @@ impl Muster {
             limit: DEFAULT_POP_LIMIT,
             ..Muster::default()
         };
-        m.cap = cost::pop_cap(t, m.military_level, m.limit, &m.bonuses);
+        m.cap = crate::economy::cost::pop_cap(t, m.military_level, m.limit, &m.bonuses);
         m
     }
 }
@@ -883,7 +883,7 @@ impl Unit {
             start_dist: 0,
             damage_frac: 0,
             squad_size: 1,
-            kind: attrition::UnitKind::default(),
+            kind: crate::territory::attrition::UnitKind::default(),
             on_map: true,
             supply_slot: None,
             caravan: None,

@@ -18,12 +18,12 @@
 //! `docs/journal/2026-11-09-item-4017.md` counts those reads by name.
 
 use crate::ai::bhs::{self, Source};
-use crate::anim::Guy;
-use crate::build;
+use crate::cities::build;
+use crate::cities::farms::AnimalSeed;
 use crate::combat::Obj;
-use crate::farms::AnimalSeed;
-use crate::gather::MountainTemplate;
+use crate::economy::gather::MountainTemplate;
 use crate::tech;
+use crate::units::anim::Guy;
 use crate::{Cell, Player, Pos, Sim, Unit, UnitType};
 
 /// The setup door over one borrowed game; see the module note.

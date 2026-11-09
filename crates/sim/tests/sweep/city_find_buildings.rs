@@ -38,9 +38,9 @@ fn the_emulated_original_agrees_on_every_row() {
             // `a[0..20]` one answer a stub (2 `get_radius`, 3 the type's slot `+0x60`, 4 the build's slot `+0xb8`),
             // `a[20..32]` stub 1's (`+0x10`) twelve answers in call order, `a[32..40]` stub 7's `swap_team`.
             //
-            // **The port is the crate's own steps**, `crate::city::find_buildings_steps`, which `Sim::find_buildings` runs
+            // **The port is the crate's own steps**, `crate::cities::city::find_buildings_steps`, which `Sim::find_buildings` runs
             // over its building slots; here the view walks the emulated original's `leaders × two ranges × index`.
-            use crate::city::{FindBuildingsView, find_buildings_steps};
+            use crate::cities::city::{FindBuildingsView, find_buildings_steps};
             use crate::world::{Pos, vector_dist};
             const KEY: i32 = 0x63637;
             struct V<'a> {

@@ -17,7 +17,7 @@
 //! Everything is integer arithmetic with defined truncation, so it ports
 //! without a rounding decision anywhere.
 
-use crate::tuning::Tuning;
+use crate::core::tuning::Tuning;
 use crate::world::{Cell, Owner, Player, Pos, Terrain, World, vector_dist};
 
 /// What kind of thing is projecting a border.
@@ -556,12 +556,12 @@ pub mod victory;
 /// §3, item 4016): moved whole, each with its doc, in `Sim`'s order.
 #[derive(Clone, Debug)]
 pub struct TerritoryState {
-    pub players: Vec<crate::attrition::PlayerState>,
+    pub players: Vec<crate::territory::attrition::PlayerState>,
     pub sources: Vec<crate::territory::Source>,
     /// One supply network per player. Never shared: an ally's supply wagon
     /// does nothing for your units, which is a rule of the original and not a
     /// simplification here.
-    pub supply: Vec<crate::supply::Network>,
+    pub supply: Vec<crate::territory::supply::Network>,
     /// One per player: the border bonuses a city or fort of theirs projects,
     /// `docs/ATTRITION.md`. Zero until something sets them.
     pub borders: Vec<crate::territory::PlayerBorders>,
@@ -572,7 +572,7 @@ pub struct TerritoryState {
     /// **The fixed pass still reaching the map** (item 1106,
     /// [`border_pass`]): the owners a fix computed and every region's resume
     /// index. `None` once every land region is done.
-    pub border_pass: Option<crate::border_pass::BorderPass>,
+    pub border_pass: Option<crate::territory::border_pass::BorderPass>,
     /// Per cell (row-major), the city whose claim [`Sim::recompute_territory`]
     /// last found winning it, `−1` for none or a fort's — `compute_reg_territory`'s
     /// `local_1c`, which names the city a runner-up marks `bordering`

@@ -21,7 +21,7 @@
 //! count, a capacity, the iterator — because a callee appends under the walk
 //! and the walk's end is read from the count again each step ([`ModQueue`]).
 
-use crate::ai_place::{MOVE_X, MOVE_Y};
+use crate::ai::ai_place::{MOVE_X, MOVE_Y};
 
 /// One `Array<RoadModification>`: the buffer of eight-byte entries — the
 /// packed tile index and a dword whose low byte is `added` and next byte

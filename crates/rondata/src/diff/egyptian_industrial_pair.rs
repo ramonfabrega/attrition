@@ -37,7 +37,7 @@ pub(crate) const EGYPTIAN_INDUSTRIAL: Pair = Pair {
     // theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`; theirs also
     // spends a fourth gaia `Guy::set_anim+0x104b` (`docs/AI.md` §360).
     // Item 3707: **5689 of 5689, the game's last frame** — piece 193 reads
-    // piece 189's turret rows (`sim::pivot::SAME_AS`), and who=1's Light
+    // piece 189's turret rows (`sim::data::pivot::SAME_AS`), and who=1's Light
     // Tank `1/54`'s round of 4940 leaves (6098, 10851, 200), theirs, and
     // wounds the human's Citizen `0/10` on 4943 on both sides (§360.2).
     count: 5689,

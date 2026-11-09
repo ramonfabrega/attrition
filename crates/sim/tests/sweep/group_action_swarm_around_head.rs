@@ -33,10 +33,10 @@ fn the_emulated_original_agrees_on_every_row() {
             // 1's ignore-orders counts; `p[who]` the elements of `objects_ignoring_orders[who]` (players 0 and 1 are
             // laid; a player of 8 or more skips the sweep); `p[4 + 4 * who + b]` the objects (`+8 & 1` the site exists).
             //
-            // **The port is the crate's own head**, `crate::swarm_around_view::swarm_head`, which
+            // **The port is the crate's own head**, `crate::groups::swarm_around_view::swarm_head`, which
             // `action_swarm_around_steps` runs first on every entry; here the view is the emulated original's windows.
-            use crate::garrison_view::GarrisonHead;
-            use crate::swarm_around_view::{SwarmHead, swarm_head};
+            use crate::groups::garrison_view::GarrisonHead;
+            use crate::groups::swarm_around_view::{SwarmHead, swarm_head};
             struct V<'a> {
                 m: &'a [u8],
                 c: &'a [Vec<u8>],

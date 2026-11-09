@@ -35,7 +35,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // +0x60, stub 3), `count_inside(19, 0x34)` (stub 4), `num_gatherers(1, 1)` (stub
             // 5), and the type's `calc_gather` (stub 6, writing the count `o` through arg 1).
             let rec = std::cell::RefCell::new(Vec::<String>::new());
-            let count = crate::holdings::build_calc_gather_steps(
+            let count = crate::economy::holdings::build_calc_gather_steps(
                 a[4] != 0,
                 || {
                     rec.borrow_mut().push("s0:m+0x0,sp-0x28,sp-0x24".into());

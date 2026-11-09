@@ -34,18 +34,18 @@ pub struct CitiesState {
     /// the AI's farms come before the human's in every `DUMP_ALL` dump.
     pub farm_order: Vec<usize>,
     /// The city records — `docs/CITIES.md` §5.
-    pub cities: Vec<crate::city::City>,
+    pub cities: Vec<crate::cities::city::City>,
     /// One per player: the nation, wonder and tech inputs this mechanic reads.
-    pub nation: Vec<crate::city::Nation>,
+    pub nation: Vec<crate::cities::city::Nation>,
     /// `LeaderData::lost_city_stamp`: the frame each player last lost a city.
     pub lost_city_stamp: Vec<Option<i64>>,
     /// `LeaderData::cities_built`, `cities_captured`, `cities_lost`.
-    pub city_tally: Vec<crate::city::Tally>,
+    pub city_tally: Vec<crate::cities::city::Tally>,
     /// `LeaderData::high_buildings` (`+0x5660`): per player, the most
     /// buildings of a lineage this player has ever held finished at once,
     /// indexed by the lineage's **root** record. Only `Build::activate`
     /// raises it, and what it gates is the nation's free units
-    /// (`crate::nations`). Grown on demand, because the build types are
+    /// (`crate::cities::nations`). Grown on demand, because the build types are
     /// loaded after the simulation is stood up.
     pub building_high: Vec<Vec<i32>>,
     /// `leader_flags & 0x8000000` per player: the wall stats are stale.

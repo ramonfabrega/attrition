@@ -10,8 +10,8 @@ fn wr(m: &mut [u8], off: usize, v: i32) {
     m[off..off + 4].copy_from_slice(&v.to_le_bytes());
 }
 
-use crate::carry_mil::{CarryMilView, City, think_carry_military_steps};
 use crate::movement::Angle;
+use crate::units::think::carry_mil::{CarryMilView, City, think_carry_military_steps};
 use crate::world::{Cell, Pos};
 
 fn rd16(m: &[u8], off: usize) -> i32 {

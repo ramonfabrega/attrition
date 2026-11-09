@@ -47,8 +47,13 @@ fn the_emulated_original_agrees_on_every_row() {
         let who = m[9];
         let bit = (1u32 << (who & 31)) as u8;
         let (w0, stride) = (rd(&c[0], 0), rd(&c[0], 0xc));
-        let steps =
-            crate::city::wall_start_seen_steps((x, y), xs, ys, rd(&c[0], 0x18), rd(&c[0], 0x1c));
+        let steps = crate::cities::city::wall_start_seen_steps(
+            (x, y),
+            xs,
+            ys,
+            rd(&c[0], 0x18),
+            rd(&c[0], 0x1c),
+        );
         for (hx, hy) in steps {
             // `+0x14` of the cell's `WData` (28 bytes, `(y >> 2) * w0 +
             // (x >> 2)`) and the half-cell byte of `seen2`.

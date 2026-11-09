@@ -10,7 +10,7 @@ use crate::world::World;
 /// [`Sim::swarm_around`]: both asserts fall.
 #[test]
 fn a_swarmed_builder_is_marked_a_builder() {
-    let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     let citizen = sim.add_unit_type(crate::UnitType {
         hits: 10,
         worker: Worker::Citizen,
@@ -34,7 +34,7 @@ fn a_swarmed_builder_is_marked_a_builder() {
 /// crate's left `was_builder` standing.
 #[test]
 fn a_gather_order_takes_the_builder_s_mark_off() {
-    let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     let citizen = sim.add_unit_type(crate::UnitType {
         hits: 10,
         worker: Worker::Citizen,
@@ -66,7 +66,7 @@ fn find_repair_spot_is_a_tier_arm_and_takes_the_nearest_damaged_building() {
         crate::world::Cell::new(0, 0),
         crate::world::Cell::new(59, 59),
     );
-    let mut sim = Sim::new(crate::tuning::Tuning::RON, world, 2);
+    let mut sim = Sim::new(crate::core::tuning::Tuning::RON, world, 2);
     let citizen = sim.add_unit_type(crate::UnitType {
         hits: 10,
         worker: Worker::Citizen,
@@ -111,16 +111,16 @@ fn find_repair_spot_is_a_tier_arm_and_takes_the_nearest_damaged_building() {
 /// dead member keeps the answer at false.
 #[test]
 fn all_gathering_drops_a_dead_member_before_it_reads_the_chain() {
-    let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     let citizen = sim.add_unit_type(crate::UnitType {
         hits: 10,
         worker: Worker::Citizen,
         ..crate::UnitType::default()
     });
     let camp = sim.add_building(1, Pos::new(0x1000, 0x1000), 1);
-    sim.buildings[camp].ty = Some(sim.add_build_type(crate::build::BuildType {
+    sim.buildings[camp].ty = Some(sim.add_build_type(crate::cities::build::BuildType {
         flags: bflags::GATHERER,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     }));
     let put = |sim: &mut Sim, x: i32| {
         let index = i16::try_from(sim.units.len()).unwrap();
@@ -163,16 +163,16 @@ fn all_gathering_drops_a_dead_member_before_it_reads_the_chain() {
 /// the prune out: the walker's head is a move, and the answer no.
 #[test]
 fn all_gathering_drops_a_member_walking_a_waypoint_first() {
-    let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     let citizen = sim.add_unit_type(crate::UnitType {
         hits: 10,
         worker: Worker::Citizen,
         ..crate::UnitType::default()
     });
     let camp = sim.add_building(1, Pos::new(0x1000, 0x1000), 1);
-    sim.buildings[camp].ty = Some(sim.add_build_type(crate::build::BuildType {
+    sim.buildings[camp].ty = Some(sim.add_build_type(crate::cities::build::BuildType {
         flags: bflags::GATHERER,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     }));
     let put = |sim: &mut Sim, x: i32| {
         let index = i16::try_from(sim.units.len()).unwrap();

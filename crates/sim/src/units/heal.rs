@@ -12,8 +12,8 @@
 //! is built beside it: the French bonus and Versailles give it a period.
 
 use crate::Sim;
-use crate::ai_load::uflags2;
-use crate::attrition::Domain;
+use crate::ai::ai_load::uflags2;
+use crate::territory::attrition::Domain;
 use crate::world::Owner;
 
 /// `ObjectData::is_worker@0046fa10`: the four citizen and scholar type
@@ -132,7 +132,7 @@ impl Sim {
     ///     repair_damage(1, 1, 1); healing = max(rate, healing)
     /// ```
     ///
-    /// The period is [`crate::supply::heal_period`]; `find_supply` walks
+    /// The period is [`crate::territory::supply::heal_period`]; `find_supply` walks
     /// the player's supply list alone — a source alive and on the map
     /// within `SupplyData::get_radius × 0xc0` by `vector_dist` — so a
     /// supplying general's aura, which [`Sim::supplied_at`] reads for
@@ -163,7 +163,7 @@ impl Sim {
                 .has_tribe_bonus(&self.tables.setup, p, crate::ai::tribe::FRENCH)
         });
         let versailles = self.wonders_held(owner) & (1 << crate::tech::wonder::VERSAILLES) != 0;
-        let rate = i64::from(crate::supply::heal_period(
+        let rate = i64::from(crate::territory::supply::heal_period(
             &self.tables.tuning,
             french,
             versailles,
@@ -182,11 +182,12 @@ impl Sim {
         let at = self.units[i].pos;
         let upgrades = self.supply_upgrade_level(owner);
         let terra_cotta = self.territory.supply[owner as usize].player.terra_cotta;
-        let radius = crate::supply::supply_radius(&self.tables.tuning, upgrades, terra_cotta);
+        let radius =
+            crate::territory::supply::supply_radius(&self.tables.tuning, upgrades, terra_cotta);
         let found = self.territory.supply[owner as usize]
             .list
             .find(at, radius, |w| {
-                self.units.get(w).map(|w| crate::supply::Wagon {
+                self.units.get(w).map(|w| crate::territory::supply::Wagon {
                     pos: w.pos,
                     active: w.alive(),
                     on_map: w.on_map,
@@ -569,7 +570,7 @@ impl Sim {
         }
         let owner = u.owner;
         let ut = &self.tables.unit_types[t];
-        let transport = ut.cols.flag(crate::ai_load::uflags::FLAG_TRANSPORT);
+        let transport = ut.cols.flag(crate::ai::ai_load::uflags::FLAG_TRANSPORT);
         let carrier = ut.type_index == AIRCRAFTCARRIER
             || ut.tree.is_some_and(|tr| {
                 self.tables

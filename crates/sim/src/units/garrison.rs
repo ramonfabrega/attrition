@@ -7,10 +7,10 @@
 //! map: it does not move, fight, gather, bleed or get shot, and the only thing
 //! it does is heal.
 
-use crate::attrition::Domain;
-use crate::build::{self, Ident, flags};
+use crate::cities::build::{self, Ident, flags};
 use crate::combat::Obj;
 use crate::orders::Body;
+use crate::territory::attrition::Domain;
 use crate::world::UNITS_PER_TILE;
 use crate::{Player, Sim};
 
@@ -332,17 +332,17 @@ impl Sim {
             // statements: snap onto the container's own point with
             // `param_3 = 1`, turn to angle 0, and `set_anim(CHAR_DEFAULT,
             // 1, 1)` — the **forced** idle, whose roll is
-            // [`SITE_GO_INSIDE`](crate::anim::SITE_GO_INSIDE). The draw is
+            // [`SITE_GO_INSIDE`](crate::units::anim::SITE_GO_INSIDE). The draw is
             // the point: without it the new guy keeps `Guy::init_real`'s
             // zero `end_time` and wraps in `Objects::inc_time` instead,
             // which is one draw in the wrong phase and was Great Lakes
             // 8272 (`docs/CITIES.md` §6.5.2).
             if self.worker_of(f) == crate::orders::Worker::Scholar {
                 let host = self.buildings[b].pos;
-                self.mark(crate::anim::SITE_GO_INSIDE);
+                self.mark(crate::units::anim::SITE_GO_INSIDE);
                 self.set_new_location(f, host, true);
                 self.unit_set_angle(f, crate::movement::Angle(0));
-                self.set_anim(f, crate::anim::DEFAULT, true, true);
+                self.set_anim(f, crate::units::anim::DEFAULT, true, true);
             }
         }
     }
@@ -390,7 +390,7 @@ impl Sim {
         // figure's `+0x40` 90.0. run371's V2 `0/10` is fired on 2701 from
         // (10083, 12346), one 115-step at its 120° heading from the silo
         // `0/2009`'s (9984, 12288).
-        // **One walk, [`crate::come_out_view::come_out_steps`]**: the listing's
+        // **One walk, [`crate::units::come_out_view::come_out_steps`]**: the listing's
         // first half, from the entry to `set_new_location` (item 3362's
         // sweep holds it call for call against the original under the
         // emulator). It is the missile arm, the gather-point block and the
@@ -398,7 +398,7 @@ impl Sim {
         // the chain, each member searching for itself (`00617c10:535`,
         // [`Sim::come_out_unit_host_spot`]).
         let (spot, gather) = {
-            let mut view = crate::come_out_view::SimComeOut::building(self, captain, b);
+            let mut view = crate::units::come_out_view::SimComeOut::building(self, captain, b);
             let spot = view.run();
             (spot, view.gather)
         };
@@ -477,7 +477,7 @@ impl Sim {
             .ty
             .is_some_and(|t| self.tables.unit_types[t].combat.uber_size > 1)
         {
-            let mut g = crate::group::Group::stack(self.units[captain].owner);
+            let mut g = crate::groups::group::Group::stack(self.units[captain].owner);
             self.group_add(&mut g, captain);
             self.push_group(&mut g, true);
             pushed = Some(g);
@@ -519,7 +519,11 @@ impl Sim {
         // plane's first step (run265's 778, item 836).
         if self.frame != 0
             && self.buildings[b].ty.is_some_and(|t| {
-                crate::build::is(&self.tables.build_types, t, crate::build::Ident::Airbase)
+                crate::cities::build::is(
+                    &self.tables.build_types,
+                    t,
+                    crate::cities::build::Ident::Airbase,
+                )
             })
         {
             self.exit_at_airbase(captain, b, avg);
@@ -560,7 +564,7 @@ impl Sim {
         &self,
         who: Player,
         s: u8,
-    ) -> Option<(&crate::group::GroupState, Vec<i16>)> {
+    ) -> Option<(&crate::groups::group::GroupState, Vec<i16>)> {
         let army = self
             .ai
             .armies
@@ -621,7 +625,7 @@ impl Sim {
         // The steps' unit-host arm (item 3362): `hostx, hosty` ringed from
         // the host's `block_radius` out `UNIT_DISEMBARK_DISTANCE`, its heading
         // the sweep's bearing.
-        crate::come_out_view::SimComeOut::unit_host(self, unit, host).run()
+        crate::units::come_out_view::SimComeOut::unit_host(self, unit, host).run()
     }
 
     /// The rest of `Unit::come_out` for one unit: out of the building, onto
@@ -649,7 +653,7 @@ impl Sim {
         let u = &mut self.units[f];
         let flip = turn
             && angle.is_some_and(|a| {
-                crate::group::reversing(crate::movement::Angle(
+                crate::groups::group::reversing(crate::movement::Angle(
                     a.0.wrapping_sub(u.movement.heading.0),
                 ))
             });

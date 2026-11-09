@@ -11,7 +11,7 @@
 //! checks, applied to values instead of structure.
 
 use crate::{Rules, Scalar};
-use sim::tuning::{Slot, Tuning};
+use sim::core::tuning::{Slot, Tuning};
 
 /// One constant that does not match what the simulation believes.
 #[derive(Clone, Debug, PartialEq, Eq)]

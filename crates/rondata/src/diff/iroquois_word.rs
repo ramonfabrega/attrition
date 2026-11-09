@@ -817,7 +817,7 @@ fn run928_s_word_frame_is_widened_whole() {
     // (`1/23`'s figure 1, ours (40682, 14692) theirs (40512, 14592)),
     // neither a draw (`docs/AI.md` §253).
     // Item 3369: 35 -> 33, an unpacked merchant's "over time" piece
-    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
     pin_eq!(w.firsts.len(), 32, "initial run928 baseline");
 }
@@ -873,7 +873,7 @@ fn run932_s_word_frame_is_widened_whole() {
     // (5896) and `SITE[3].reg` (5976). The word moved past the window to
     // 6982 (`docs/AI.md` §253). The move's value diff is this block.
     // Item 3369: 41 -> 32, an unpacked merchant's "over time" piece
-    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
     pin_eq!(w.firsts.len(), 31, "initial run932 baseline");
 }
@@ -932,7 +932,7 @@ fn run934_s_word_frame_is_widened_whole() {
     // `1/37` (`Unit::init`'s 0x55555555 against 0, a family standing in
     // other lobbies) and `SITE[1].reg` on 7176. The move's value diff is these two blocks.
     // Item 3369: 41 -> 32, an unpacked merchant's "over time" piece
-    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
     pin_eq!(w.firsts.len(), 31, "initial run934 baseline");
 }
@@ -991,7 +991,7 @@ fn run937_s_word_frame_is_widened_whole() {
     // to 8415 (`docs/AI.md` §255). The move's value diff is blocks 7980 and
     // 7983.
     // Item 3369: 51 -> 42, an unpacked merchant's "over time" piece
-    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
     pin_eq!(w.firsts.len(), 41, "initial run937 baseline");
 }
@@ -1052,7 +1052,7 @@ fn run940_s_word_frame_is_widened_whole() {
     // `dest_angle`s (8453, 8463). The word moved past the window to 10695
     // (`docs/AI.md` §256). The move's value diff is block 8416.
     // Item 3369: 61 -> 43, an unpacked merchant's "over time" piece
-    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
     pin_eq!(w.firsts.len(), 42, "initial run940 baseline");
 }
@@ -1129,7 +1129,7 @@ fn run943_s_word_frame_is_widened_whole() {
     // `build:damage` to 44 on both on 10870; `set_diags`' corner tail keeps
     // the caravan diagonal (235, 153) (`docs/AI.md` §260).
     // Item 3369: 47 -> 29, an unpacked merchant's "over time" piece
-    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     pin_eq!(w.firsts.len(), 29, "run943 with set_diags' corner tail");
 }
 
@@ -1183,7 +1183,7 @@ fn run952_s_word_frame_is_widened_whole() {
     // second figure. (The widening's block; the word's delta is in
     // `IROQUOIS`'s comment.)
     // Item 3369: 60 -> 33, an unpacked merchant's "over time" piece
-    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     // Item 3385: 33 -> 31 (the General's rally armour, `Sim::rally_armor`).
     pin_eq!(w.firsts.len(), 31, "run952 with the Despot's cut");
 }
@@ -1231,9 +1231,9 @@ fn run954_s_word_frame_is_widened_whole() {
         "the keys the capture prints and nothing reads"
     );
     // Item 3369: 61 -> 34, an unpacked merchant's "over time" piece
-    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     // Item 3375: 34 -> 33, the Cavalry Archers' piece 1546 in
-    // `sim::pivot::RELEASES`: block 12231's `0/2000` `build:damage`, ours
+    // `sim::data::pivot::RELEASES`: block 12231's `0/2000` `build:damage`, ours
     // 902 against theirs 904, agrees.
     // Item 3385: 33 -> 31 (the General's rally armour, `Sim::rally_armor`).
     pin_eq!(w.firsts.len(), 31, "run954 on its first build");
@@ -1351,7 +1351,7 @@ fn run952b_s_gap_is_widened_whole() {
     // beside The Despot, `Build::plunder`'s hero cut). **59** with the cut,
     // 89 on both sides (`docs/AI.md` §261).
     // Item 3369: 59 -> 32, an unpacked merchant's "over time" piece
-    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     // Item 3385: 32 -> 30 (the General's rally armour, `Sim::rally_armor`).
     pin_eq!(w.firsts.len(), 30, "run952b with the Despot's cut");
 }
@@ -1481,7 +1481,7 @@ fn run930_s_squad_is_widened_whole() {
 /// ref 1 / camel 1 (item 3287's parked row).
 #[test]
 fn run946_s_road_elements_at_10842_are_ours() {
-    use sim::mesh::dir::{E, N, NE, S, SW, W};
+    use sim::movement::mesh::dir::{E, N, NE, S, SW, W};
     let Some(inst) = crate::testenv::install() else {
         return;
     };

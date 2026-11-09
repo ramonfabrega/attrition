@@ -34,11 +34,11 @@
 //!   (`combat.target`/`combat.mandatory`) rather than on the order, so
 //!   §10's `ox`/`whom`/`+0x1c` comparison is made against those.
 
-use crate::ai_load::{uflags, uflags2};
-use crate::attrition::Domain;
+use crate::ai::ai_load::{uflags, uflags2};
 use crate::combat::{Obj, Stance};
 use crate::movement::{Angle, find_angle};
 use crate::orders::{Body, MoveKind, Order, QueuePos, flag, index};
+use crate::territory::attrition::Domain;
 use crate::world::{Pos, vector_dist};
 
 /// `GroupData::get_loc`'s two gates, `70e128` and `70e1b7`. The compare is

@@ -42,7 +42,7 @@
 //! and the trainer's President (`train_time`'s reach clause, read off a
 //! building).
 
-use crate::{Player, Sim, attrition, unit_unqueue_view};
+use crate::{Player, Sim, cities::unit_unqueue_view, territory::attrition};
 
 /// `LeaderData::current_upgrade`'s argument, the Fighter-Bomber line.
 const FIGHTERBOMBER: i32 = unit_unqueue_view::FIGHTERBOMBER;
@@ -85,7 +85,7 @@ impl Sim {
             };
             let charges = self.price_of(who, t);
             let available = self.economy.holdings[who as usize].available;
-            if crate::cost::affordable(
+            if crate::economy::cost::affordable(
                 &charges,
                 &self.economy.ledgers[who as usize],
                 &available,
@@ -94,7 +94,7 @@ impl Sim {
             {
                 return Some(queued);
             }
-            crate::cost::pay(
+            crate::economy::cost::pay(
                 &charges,
                 &mut self.economy.ledgers[who as usize],
                 &available,

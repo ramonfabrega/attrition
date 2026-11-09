@@ -28,7 +28,7 @@ fn the_emulated_original_agrees_on_every_row() {
     super::obj_rows(&rows, &obj, |a, m, c, p, _log| {
         let _ = (&a, &m, &c, &p);
         {
-            // The emulator's windows as the port's view (`crate::fight::TargetConstView`).
+            // The emulator's windows as the port's view (`crate::combat::fight::TargetConstView`).
             //
             // Arguments: `a[0]` `param_1`, `a[1]` `param_2`; stub `k`'s answer is
             // `a[2 + k]` (stubs in flag order: 0 `+0x48`, 1 `+0x18`, 2 `+0x1c`, 3 `+0x20`,
@@ -60,7 +60,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     self.a[k] != 0
                 }
             }
-            impl crate::fight::TargetConstView for Win<'_> {
+            impl crate::combat::fight::TargetConstView for Win<'_> {
                 fn who(&mut self) -> i32 {
                     i32::from(self.m[9])
                 }
@@ -185,7 +185,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 high: 0,
                 low: 0,
             };
-            i64::from(crate::fight::valid_target_const_steps(&mut w, a[0], a[1]))
+            i64::from(crate::combat::fight::valid_target_const_steps(
+                &mut w, a[0], a[1],
+            ))
         }
     });
 }

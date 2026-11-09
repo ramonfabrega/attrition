@@ -1250,7 +1250,7 @@ mod tests {
         );
         // The id is the pool's: `(group + frame · 10) · 100 + order_num`
         // with who=1's army group 1 here and pool slot 65 there — both
-        // laid on frame 8698 as order 16 (`sim::group::group_move_id`,
+        // laid on frame 8698 as order 16 (`sim::groups::group::group_move_id`,
         // parked 871).
         //
         // **The word 8786's block 8787** (item 1293): the squad's slot in a
@@ -1459,7 +1459,7 @@ mod tests {
         ] {
             pin_eq!(row(1, o, key), None, "1/{o}'s {key} agrees");
         }
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: [(11876, 60), (11976, 1)] -> [(11876, 28), (11976, 1)].
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: [(11876, 60), (11976, 1)] -> [(11876, 28), (11976, 1)].
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_11986 + 1)
@@ -1496,7 +1496,7 @@ mod tests {
         // Next measured word: 12538, beyond this capture. The constant
         // stays at its witnessed floor 11985 until item 1429 widens it.
         // Item 1457: 144 → 140; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 67 -> 35.
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 67 -> 35.
         pin_eq!(w.firsts.len(), 35, "every key parted on run574");
     }
 
@@ -1614,7 +1614,7 @@ mod tests {
         );
         // 1694 on 1429's own tree, 1528 with 1461's crew step beside it;
         // 367 since item 1472's crew clear; 142 since item 1477's census walk.
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 71 -> 39.
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 71 -> 39.
         pin_eq!(w.firsts.len(), 39, "every key parted on run584");
     }
 
@@ -1671,14 +1671,14 @@ mod tests {
             "army 65's formation, slot 0, on the word's block"
         );
         pin_eq!(row(1, -3, "group:65.off[0]"), None, "and its offset");
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: [(12811, 62)] -> [(12811, 30)].
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: [(12811, 62)] -> [(12811, 30)].
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
             [(12811, 30)],
             "the blocks keys first part on, the first three"
         );
         // Item 1586: 88 → 87 (12825's 1 goes); an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 62 -> 30.
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 62 -> 30.
         pin_eq!(w.firsts.len(), 30, "every key parted on run640");
     }
 
@@ -1749,13 +1749,13 @@ mod tests {
             None,
             "army 65's tail agrees"
         );
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: [(14357, 56)] -> [(14357, 24)].
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: [(14357, 56)] -> [(14357, 24)].
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
             [(14357, 24)],
             "the blocks keys first part on, the first three"
         );
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 56 -> 24.
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 56 -> 24.
         pin_eq!(w.firsts.len(), 24, "every key parted on run653");
     }
 
@@ -1789,7 +1789,7 @@ mod tests {
             "run663 carries every key: {:?}",
             w.missing
         );
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: [(15095, 56), (15098, 4)] -> [(15095, 24), (15098, 4)].
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: [(15095, 56), (15098, 4)] -> [(15095, 24), (15098, 4)].
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
             // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
@@ -1797,7 +1797,7 @@ mod tests {
             "the blocks keys first part on, the first three"
         );
         // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 60 -> 28.
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 60 -> 28.
         pin_eq!(w.firsts.len(), 28, "every key parted on run663");
         // **The word 15101's block, 15102** (item 1510, `docs/AI.md` §136):
         // ours 19 draws against 17, parting at index 7, and block 15102
@@ -1938,7 +1938,7 @@ mod tests {
             "run664 carries every key: {:?}",
             w.missing
         );
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: [(15207, 56)] -> [(15207, 24)].
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: [(15207, 56)] -> [(15207, 24)].
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
             // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
@@ -1946,7 +1946,7 @@ mod tests {
             "the blocks keys first part on, the first three"
         );
         // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 56 -> 24.
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 56 -> 24.
         pin_eq!(w.firsts.len(), 24, "every key parted on run664"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         // **The word 15213's block, 15214** (item 1517, `docs/AI.md` §137):
         // ours 8 draws against 7, parting at index 4 — ours
@@ -2105,7 +2105,7 @@ mod tests {
             "run668 carries every key: {:?}",
             w.missing
         );
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: [(15230, 56), (15266, 1), (15268, 1)… -> [(15230, 24), (15266, 1), (15268, 1)….
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: [(15230, 56), (15266, 1), (15268, 1)… -> [(15230, 24), (15266, 1), (15268, 1)….
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(5).collect::<Vec<_>>(),
             // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
@@ -2113,7 +2113,7 @@ mod tests {
             "the blocks keys first part on, the first five"
         );
         // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 62 -> 30.
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 62 -> 30.
         pin_eq!(w.firsts.len(), 30, "every key parted on run668"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         // **The word 15275's frame, widened** (item 1524, `docs/AI.md`
         // §140): ours 12 draws against 11, parting at index 4 — ours
@@ -2208,13 +2208,13 @@ mod tests {
         // runs `Guy::move` in its slot, so guy 2's turn is the third draw;
         // the 83 keys and this block's agreement are unchanged, the clocks
         // being re-seated from the dump on every traced frame.
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: [(14506, 56)] -> [(14506, 24)].
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: [(14506, 56)] -> [(14506, 24)].
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
             [(14506, 24)],
             "the blocks keys first part on, the first three"
         );
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 56 -> 24.
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 56 -> 24.
         pin_eq!(w.firsts.len(), 24, "every key parted on run659");
     }
 
@@ -2291,7 +2291,7 @@ mod tests {
             None,
             "who=1's caravans"
         );
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: [(11177, 58), (11376, 1)] -> [(11177, 26), (11376, 1)].
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: [(11177, 58), (11376, 1)] -> [(11177, 26), (11376, 1)].
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_11383 + 1)
@@ -2303,7 +2303,7 @@ mod tests {
             "the blocks keys first part on, to one past the word's"
         );
         // Measured on the tree after 1388's change.
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 59 -> 27.
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 59 -> 27.
         pin_eq!(w.firsts.len(), 27, "every key parted on run571");
     }
 
@@ -2368,7 +2368,7 @@ mod tests {
             "who=1's make list, its third entry's category"
         );
         pin_eq!(row(0, 3, "orders_x"), None, "0/3's walk, the shifted roll");
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: [(10774, 57)] -> [(10774, 25)].
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: [(10774, 57)] -> [(10774, 25)].
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_10780 + 1)
@@ -2386,7 +2386,7 @@ mod tests {
         // item 1388 (the research queue's two rows, `epoch[2]`, `epochs`,
         // `queued`, `resource_cap` ×5 and `MAKE[3].t`).
         // Item 1451, `largest_gather` (AI §115): 126 → 125, MAKE[3].t.
-        // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 58 -> 26.
+        // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 58 -> 26.
         pin_eq!(w.firsts.len(), 26, "every key parted on run562");
     }
 

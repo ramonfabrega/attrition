@@ -12,7 +12,7 @@
 //! garrison orders the ship is the group's own player's (`objects[who][o]`
 //! and `units[who][o]`, `who` = `[this + 0x4a]`): the command carries one
 //! index, not a player. The head is the garrison order's, instruction for
-//! instruction ([`crate::garrison_view::garrison_head`]).
+//! instruction ([`crate::groups::garrison_view::garrison_head`]).
 //!
 //! **Not wired.** The crate has no `Group::action_board_ship`:
 //! `group.rs`'s `FinishInsertView::action_board_ship` is an empty stub, and
@@ -23,7 +23,7 @@
 //! the stub would add boarding orders to every `finish_insert` replay, so it
 //! is parked rather than done here.
 
-pub use crate::garrison_view::{GarrisonHead, garrison_head};
+pub use crate::groups::garrison_view::{GarrisonHead, garrison_head};
 
 /// `QueuePos`: the order goes to the front, after the others, or alone.
 pub use crate::ids::queue::QUEUE_FIRST;

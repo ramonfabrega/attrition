@@ -12,7 +12,7 @@
 //! 3. **The route** (§4). `Unit::do_trade` picks the far city — the best
 //!    `Caravan::trade_value` over every allied city that can pair with the
 //!    home one — writes the pair into the `Caravan`, and plans the road.
-//! 4. **The road** (§5). `Caravan::build_road` is `crate::roads`' search with
+//! 4. **The road** (§5). `Caravan::build_road` is `crate::movement::roads`' search with
 //!    the caravan arm on: eight directions, a heuristic sixteen times
 //!    larger, and the right to **stop at the budget and carry on next
 //!    frame**. A plan that stops is parked in the `Caravan`; `Unit::work`
@@ -29,8 +29,8 @@
 //! A trade route between two of East Indies' cities costs 12,965 road draws
 //! over five frames, and until 2026-09-02 this crate spent none of them.
 
+use crate::movement::roads::{RoadPlan, RoadSearch};
 use crate::orders::{Body, PathData, QueuePos, TradeOrder, index, path_flag};
-use crate::roads::{RoadPlan, RoadSearch};
 use crate::world::Pos;
 use crate::{Player, Sim};
 
@@ -139,7 +139,7 @@ impl Sim {
     /// The idle gate, the home city, and the order. `true` ends the think.
     ///
     /// The threshold is **1** for an AI-driven unit and otherwise
-    /// [`crate::stance::LeaderOptions::idle_wait`] — 12 under the default
+    /// [`crate::units::stance::LeaderOptions::idle_wait`] — 12 under the default
     /// option — and after it the unit tries again every fifth frame:
     /// `idle == threshold || (idle − 2) % 5 == 0`.
     pub(crate) fn think_caravan(&mut self, u: usize) -> bool {
@@ -238,7 +238,7 @@ impl Sim {
     ///
     /// SEAM: taken as "the owner has ever seen the city's tile"; the
     /// original keeps a per-leader bit on the city and the fog read behind
-    /// it is `crate::scout`'s. Every capture's cities are its own or in
+    /// it is `crate::units::think::scout`'s. Every capture's cities are its own or in
     /// sight, so the two have not been told apart.
     fn city_is_seen(&self, city: usize, who: Player) -> bool {
         let c = &self.cities.cities[city];
@@ -279,7 +279,7 @@ impl Sim {
         // guy whose body has not arrived leaves `Guy::set_anim` without a
         // roll — so its draws are the frames the unit is *standing* at a
         // city, which is why run54's word parted at 6198 and not at 6166.
-        self.mark(crate::anim::SITE_TRADE);
+        self.mark(crate::units::anim::SITE_TRADE);
         self.set_default_anim(u);
         let Some(v) = self.units[u].caravan else {
             return;
@@ -756,12 +756,12 @@ impl Sim {
         };
         // `TOWN` (0x19f) is the Large City; `METROPOLIS` (0x1a0) and
         // `FORBIDDENCITY` (0x213) are the two that score four.
-        if self.tables.build_types[ty].ident == crate::build::Ident::Town {
+        if self.tables.build_types[ty].ident == crate::cities::build::Ident::Town {
             return n + 2;
         }
         if matches!(
             self.tables.build_types[ty].ident,
-            crate::build::Ident::Metropolis | crate::build::Ident::ForbiddenCity
+            crate::cities::build::Ident::Metropolis | crate::cities::build::Ident::ForbiddenCity
         ) {
             return n + 4;
         }

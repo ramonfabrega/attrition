@@ -124,7 +124,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 wr(q, 0x44, orig.x);
                 wr(q, 0x48, orig.y);
                 // `+0x4c`/`+0x4e`: the destination's offset in its
-                // 0x300 tile, as `crate::path` derives it.
+                // 0x300 tile, as `crate::movement::path` derives it.
                 q[0x4c..0x4e].copy_from_slice(&((mo.dest.x % 0x300) as i16).to_le_bytes());
                 q[0x4e..0x50].copy_from_slice(&((mo.dest.y % 0x300) as i16).to_le_bytes());
                 q[0x60] = o.flags;

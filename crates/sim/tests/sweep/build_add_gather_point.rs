@@ -40,12 +40,12 @@ fn the_emulated_original_agrees_on_every_row() {
         // units, `p[4..7]` their types, `p[7..10]` their orders, `p[10..13]` their `update_order()`s, `p[13..16]` the
         // heights, `p[16..19]` the patrols (`p[19..22]` the x arrays, `p[22..25]` the y arrays), `p[25]` this's type.
         //
-        // **The port is the crate's own steps**, `crate::rally::add_gather_point_steps`, which `Sim::add_gather_point`
+        // **The port is the crate's own steps**, `crate::cities::rally::add_gather_point_steps`, which `Sim::add_gather_point`
         // calls over its `GatherPointView`; here the view is the emulated original's windows. The list is the
         // original's circular `LinkListBase` laid in the windows (its cursor and length with it: this crate keeps a
         // `Vec`), and the sixth argument of `add_air_patrol_order` is a stale `ecx` the view tracks (`stale`).
+        use crate::cities::rally::{GatherPoint, GatherPointView, add_gather_point_steps};
         use crate::orders::QueuePos;
-        use crate::rally::{GatherPoint, GatherPointView, add_gather_point_steps};
         struct V<'a> {
             a: &'a [i32],
             m: &'a mut [u8],

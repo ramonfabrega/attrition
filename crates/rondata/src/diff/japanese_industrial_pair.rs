@@ -43,12 +43,12 @@ pub(crate) const JAPANESE_INDUSTRIAL: Pair = Pair {
     // and dies, as theirs does. Ours 14 draws against 15, index 14 — theirs
     // `Object::take_damage+0xe1`, the human's Citizen `0/5` struck.
     // Item 3523: 3769 -> 3816, the Dreadnought's (piece 298) two turrets
-    // built (`sim::pivot`): `1/74`'s round of 3758 leaves from (2885, 11948,
+    // built (`sim::data::pivot`): `1/74`'s round of 3758 leaves from (2885, 11948,
     // 121), flies 12 and strikes `0/5` on 3769, as theirs does. Ours 159
     // draws against 160, index 90 — ours `Guy::set_anim+0x97a <
     // Unit::do_idle+0x7d`, theirs `Unit::fight+0x9b0`.
     // Item 3525: 3816 -> 4343, the Destroyer's (piece 278) three turrets
-    // (`sim::pivot`) and `do_move`'s captain retarget taking its own target
+    // (`sim::data::pivot`) and `do_move`'s captain retarget taking its own target
     // (no `c != t`): `1/66`'s stern round of 3800 flies 9 and strikes `0/5`
     // on 3808, and on 3815 `1/66` drops its chase at (2764, 8930) with
     // `near` `0/5` in plain reach and fires on 3816, as theirs does. Ours
@@ -62,7 +62,7 @@ pub(crate) const JAPANESE_INDUSTRIAL: Pair = Pair {
     // index 15 — theirs `Unit::close+0xcb6 < Object::die+0x29`: theirs'
     // human `0/3` dies, struck for 10 more on 4410 (block 4411).
     // Item 3529: 4434 -> 4443, the Light Tank's (piece 189) turret rows
-    // (`sim::pivot`): `1/27`'s round of 4406 leaves from the muzzle at
+    // (`sim::data::pivot`): `1/27`'s round of 4406 leaves from the muzzle at
     // (6803, 10271), 127 ahead of the hull, flies 5 and bursts on the
     // fleeing `0/3` on 4410, as theirs does. Ours 46 draws against 44,
     // index 44 — ours `Ammo::do_damage+0xc59` (the puncture), theirs

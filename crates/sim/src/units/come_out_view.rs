@@ -386,10 +386,10 @@ pub fn come_out_steps<V: ComeOutView>(v: &mut V, param1: i32) -> Exit {
 // ---------------------------------------------------------------------------
 
 use crate::Sim;
-use crate::attrition::Domain;
 use crate::combat::Obj;
 use crate::movement::{Angle, find_angle};
 use crate::orders::Coll;
+use crate::territory::attrition::Domain;
 use crate::world::Pos;
 
 /// A host handle that names a unit, not a building: the original's one

@@ -10,7 +10,7 @@ fn the_emulated_original_agrees_on_every_row() {
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (a, want) = super::row(line);
-        use crate::build::Ident;
+        use crate::cities::build::Ident;
         let ident = match a[0] {
             0x1a1 => Ident::Farm,
             0x1a2 => Ident::Woodcutter,
@@ -20,7 +20,7 @@ fn the_emulated_original_agrees_on_every_row() {
             0x1a6 => Ident::OilPlatform,
             _ => Ident::Other,
         };
-        let good = crate::ai_place::gather_good(ident)
+        let good = crate::ai::ai_place::gather_good(ident)
             .map_or(-1, |g| i64::try_from(g).expect("a small index"));
         let got = i64::from(a[1] == good);
         assert_eq!(got, want, "BuildTypeData::gathers — row `{line}`");

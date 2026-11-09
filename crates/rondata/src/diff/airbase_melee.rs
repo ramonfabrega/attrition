@@ -81,7 +81,7 @@ fn airbase_melee_staging_walk() {
         .tables
         .build_types
         .iter()
-        .position(|t| t.ident == sim::build::Ident::Airbase)
+        .position(|t| t.ident == sim::cities::build::Ident::Airbase)
         .expect("an Airbase type");
     while built.sim.frame < 603 {
         built.tick();
@@ -101,7 +101,7 @@ fn airbase_melee_staging_walk() {
             .position(|c| c.alive && c.owner == who && c.capital);
         assert_eq!(
             s.blocked_site(Some(who), ab, at, None),
-            sim::place::Blocked::Clear,
+            sim::cities::place::Blocked::Clear,
             "who {who}'s Airbase site ({tx}, {ty}) is clear on {}",
             s.frame
         );

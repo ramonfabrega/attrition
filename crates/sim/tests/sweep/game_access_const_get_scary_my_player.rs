@@ -16,7 +16,7 @@ fn the_emulated_original_agrees_on_every_row() {
             .collect();
         assert_eq!(
             want,
-            i64::from(crate::flag_reads::my_player(&rec)),
+            i64::from(crate::core::flag_reads::my_player(&rec)),
             "GameAccessConst::get_scary_my_player — row `{line}`"
         );
         n += 1;

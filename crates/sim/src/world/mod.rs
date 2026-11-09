@@ -26,7 +26,7 @@
 //! The table is filled for negative indices too, with `(i - 2) / 3`, which is
 //! floor division rather than C's truncation. [`Pos::cell`] therefore floors.
 
-use crate::single::Single;
+use crate::num::single::Single;
 
 /// A player index.
 ///
@@ -287,7 +287,7 @@ pub struct World {
     /// `int[reg_size]` per leader over a **half-resolution cell** grid
     /// (`reg_xs × reg_ys`, each entry two cells square).
     ///
-    /// [`crate::danger`] is the writer (`GameDaemon::calc_danger`, every
+    /// [`crate::world::danger`] is the writer (`GameDaemon::calc_danger`, every
     /// two hundredth frame) and every consumer indexes it the one way the
     /// executable does — `reg_xs × div3(y >> 9) + div3(x >> 9)`, which is
     /// [`World::danger_half`] at the position's cell. Eight rows, one per
@@ -304,7 +304,7 @@ pub struct World {
     /// `find_tcoord_z` reads, `4·xs + 1` columns by `4·ys + 1` rows, as
     /// the original's own singles: each recovered at load from the
     /// six-decimal print the dump gives it, and rewritten by
-    /// `crate::terrain` in the original's SSE arithmetic (item 3390,
+    /// `crate::world::terrain` in the original's SSE arithmetic (item 3390,
     /// `docs/DECISIONS.md` entry 31's owed upgrade).
     ///
     /// [`World::tile_z`] is the pinned per-tile table derived from it; this
@@ -570,7 +570,7 @@ pub mod tile {
     /// both inline (`and $0xefff`): `Build::close@00628980`'s tail over the
     /// closing building's own list, and `Build::verify_gather_tiles@00623570`
     /// over a tile it drops (`docs/ECONOMY.md` §17). Re-exported as
-    /// [`crate::gather::GATHERED_FROM`], which is where the gather-site pass
+    /// [`crate::economy::gather::GATHERED_FROM`], which is where the gather-site pass
     /// that sets it lives; [`World::gather_at`] is the other reader.
     pub const GATHERED_FROM: u16 = 0x1000;
     /// Next to something blocked (`set_bad_path`).
@@ -1104,7 +1104,7 @@ impl World {
 
     /// `TerrainOut::find_data_z@00866560(x, y, 0)` — the ground's height
     /// under a world point, as the original's SSE computes it, in
-    /// [`crate::single::Single`] arithmetic (`docs/COMBAT.md` §46.2).
+    /// [`crate::num::single::Single`] arithmetic (`docs/COMBAT.md` §46.2).
     ///
     /// The cell is `div_3_table[x >> 6]`, a floor of `x / 192`, clamped to
     /// the grid; the point's offset in it picks one of the cell's two
@@ -1118,7 +1118,7 @@ impl World {
     ///
     /// Returns the height and whether every corner it read is the
     /// original's own single: a corner whose print is shared by a
-    /// neighbouring single ([`crate::single::Single::from_millionths`]), or one a
+    /// neighbouring single ([`crate::num::single::Single::from_millionths`]), or one a
     /// terraform has rewritten, is a choice and not a recovery. A world
     /// with no grid answers `(0, true)`, as [`World::tile_z`] does.
     pub fn data_z(&self, x: i32, y: i32) -> (i32, bool) {
@@ -1839,7 +1839,7 @@ impl World {
     }
 
     /// Every cell's `(who, who2)`, row-major — what a border fix's pass
-    /// copies onto the map ([`crate::border_pass`]).
+    /// copies onto the map ([`crate::territory::border_pass`]).
     pub fn owners(&self) -> Vec<(Owner, Owner)> {
         self.who
             .iter()
@@ -2112,11 +2112,11 @@ pub struct WorldState {
     /// tiles and solid cells laid at its location (`gather.rs`,
     /// [`gather::PlacedMountain`]). Empty when nothing supplied them, and
     /// then [`Sim::mountain_range`] stands a range up from the tiles.
-    pub mountains: Vec<crate::gather::PlacedMountain>,
+    pub mountains: Vec<crate::economy::gather::PlacedMountain>,
     /// `CliffsData::cliff_mining_data`, the scary cliffs a mine may stand
     /// against, by queue index ([`cliff_mine::CliffMining`]). Empty when
     /// nothing laid them ([`Sim::place_cliffs`]); no dump prints them.
-    pub cliffs: Vec<crate::cliff_mine::CliffMining>,
+    pub cliffs: Vec<crate::economy::cliff_mine::CliffMining>,
     /// `WData::down` per world cell: the head of the object chain (§3).
     pub chain_heads: Vec<Option<usize>>,
 }

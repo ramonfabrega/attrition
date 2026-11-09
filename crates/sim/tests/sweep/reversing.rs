@@ -1,6 +1,6 @@
 //! `reversing@0092cf20` against the emulated original (item 1575's sweep).
 
-use crate::group::reversing;
+use crate::groups::group::reversing;
 use crate::movement::Angle;
 
 /// `reversing@0092cf20`, run by `tools/emu/sweep_reversing.py` under

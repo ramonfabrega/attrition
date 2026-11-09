@@ -28,7 +28,7 @@ fn the_emulated_original_agrees_on_every_row() {
     super::obj_rows(&rows, &obj, |a, m, c, p, log| {
         let _ = (&a, &m, &c, &p);
         {
-            // **The port is the crate's own steps**, `crate::cast_transport::cast_transport_steps`, which
+            // **The port is the crate's own steps**, `crate::spells::cast_transport::cast_transport_steps`, which
             // `Sim::cast_transport` runs over its `SimTransport`; here the view is the emulated original's windows.
             //
             // `a`: `g` (always the fourth unit) and `who`, then one answer a stub (`a[2 + k]`), the two words
@@ -50,7 +50,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // the units' types, `p16..p19` their path stacks' buffers, `p20..p23` their order lists' tails and
             // `p24..p27` the nodes, `p28` what `pop` answers.
             use crate::Pos;
-            use crate::cast_transport::{TransportView, cast_transport_steps};
+            use crate::spells::cast_transport::{TransportView, cast_transport_steps};
             struct V<'a> {
                 a: &'a [i32],
                 c: &'a mut [Vec<u8>],

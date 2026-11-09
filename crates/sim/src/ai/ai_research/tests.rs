@@ -1,5 +1,5 @@
 use super::*;
-use crate::build::{BuildType, flags};
+use crate::cities::build::{BuildType, flags};
 use crate::tech::{TechTree, TypeDef};
 use crate::world::{Terrain, UNITS_PER_TILE};
 use crate::{Cell, Player, Pos, Tuning, World};
@@ -100,7 +100,7 @@ fn sim() -> (Sim, Types) {
     let mut sim = Sim::new(Tuning::RON, w, 2);
     // These are the research coin's tests, and the coin's outcome is
     // the *seed's*. A building started here would plan its road
-    // (`Wall::start`, `crate::roads` §1) and spend a draw a node before
+    // (`Wall::start`, `crate::movement::roads` §1) and spend a draw a node before
     // the coin is tossed, which is a different question.
     sim.movement.plan_roads = false;
     for l in &mut sim.economy.ledgers {

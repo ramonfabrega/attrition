@@ -8,7 +8,7 @@ fn blocked_top() -> (Sim, usize, usize) {
     world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(9, 9));
     let mut sim = Sim::new(crate::Tuning::RON, world, 2);
     let mut ty = crate::UnitType::default();
-    ty.combat.domain = crate::attrition::Domain::Land;
+    ty.combat.domain = crate::territory::attrition::Domain::Land;
     ty.combat.attack = 160;
     let t = sim.add_unit_type(ty);
     let mut unit = crate::Unit::new(0, 1, Pos::new(0x180, 0x180), 10);

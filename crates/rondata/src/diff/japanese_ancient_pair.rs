@@ -38,7 +38,7 @@ pub(crate) const JAPANESE_ANCIENT: Pair = Pair {
     // `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs
     // `Unit::think_fish+0x27a` (`docs/AI.md` section 323). Item 3610: 4934
     // → 6126, the game's last frame — whole. The Bowmen loose from piece
-    // 1176's bays (`sim::launch`), so `1/50`'s arrow at the Citizen `0/6`
+    // 1176's bays (`sim::data::launch`), so `1/50`'s arrow at the Citizen `0/6`
     // leaves (7529, 5749) and flies 16 frames, where it left the unit's
     // own square (7608, 5784) and flew 17.
     count: 6126,

@@ -1,6 +1,6 @@
-//! `Farms::grow@008d91c0` against [`crate::farms::Farm::grow`].
+//! `Farms::grow@008d91c0` against [`crate::cities::farms::Farm::grow`].
 
-use crate::farms::{CUT, Farm, GROWING, RIPE};
+use crate::cities::farms::{CUT, Farm, GROWING, RIPE};
 
 /// Ours for one in-range row: the cell's state and adds after
 /// [`Farm::grow`] on cell `dx * 4 + dy`.

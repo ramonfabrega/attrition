@@ -80,7 +80,7 @@ fn the_emulated_original_agrees_on_every_row() {
             fn short(w: &[u8], off: usize) -> i32 {
                 i32::from(i16::from_le_bytes([w[off], w[off + 1]]))
             }
-            impl crate::construct::ConstructHost for Host<'_> {
+            impl crate::cities::construct::ConstructHost for Host<'_> {
                 fn ai_speed(&mut self) -> i32 {
                     rd(&self.c[0], 0)
                 }
@@ -227,7 +227,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 log: &mut log,
                 ct_calls: 0,
             };
-            i64::from(crate::construct::do_construct_steps(&mut host, a[0]))
+            i64::from(crate::cities::construct::do_construct_steps(
+                &mut host, a[0],
+            ))
         };
         assert_eq!(got, want_eax, "do_construct — eax, row `{line}`");
         assert_eq!(

@@ -87,47 +87,47 @@ const PER_CREW: i32 = 0x3180;
 pub const STYLES: [&str; 6] = ["DEFAULT", "ARAB", "AMERICAN", "ASIAN", "NA", "INDIA"];
 
 /// The `UnitAnim` slot each `<ANIM name="CHAR_…">` names. The indices are
-/// `sim::anim`'s, which are the enum's (`rise.pdb`, type 0x46B1); a name
+/// `sim::units::anim`'s, which are the enum's (`rise.pdb`, type 0x46B1); a name
 /// this table does not carry is skipped rather than guessed.
 const SLOTS: &[(&str, i8)] = &[
-    ("CHAR_DEFAULT", sim::anim::DEFAULT),
-    ("CHAR_IDLE1", sim::anim::IDLE1),
-    ("CHAR_IDLE2", sim::anim::IDLE2),
-    ("CHAR_IDLE3", sim::anim::IDLE3),
-    ("CHAR_GROUP_IDLE1", sim::anim::GROUP_IDLE1),
-    ("CHAR_GROUP_IDLE2", sim::anim::GROUP_IDLE2),
-    ("CHAR_GROUP_IDLE3", sim::anim::GROUP_IDLE3),
-    ("CHAR_SLOG", sim::anim::SLOG),
-    ("CHAR_WALK", sim::anim::WALK),
-    ("CHAR_JOG", sim::anim::JOG),
-    ("CHAR_ATTACKWALK", sim::anim::ATTACKWALK),
-    ("CHAR_ATTACK1", sim::anim::ATTACK1),
-    ("CHAR_ATTACK2", sim::anim::ATTACK2),
-    ("CHAR_ATTACK3", sim::anim::ATTACK3),
-    ("CHAR_ATTACKSPECIAL", sim::anim::ATTACKSPECIAL),
-    ("CHAR_DEATH_STAB1", sim::anim::DEATH_STAB1),
-    ("CHAR_DEATH_STAB2", sim::anim::DEATH_STAB2),
-    ("CHAR_DEATH_SHOT1", sim::anim::DEATH_SHOT1),
-    ("CHAR_DEATH_SHOT2", sim::anim::DEATH_SHOT2),
-    ("CHAR_DEATH_SPLODED1", sim::anim::DEATH_SPLODED1),
-    ("CHAR_DEATH_SPLODED2", sim::anim::DEATH_SPLODED2),
-    ("CHAR_TURN_LEFT", sim::anim::TURN_LEFT),
-    ("CHAR_TURN_RIGHT", sim::anim::TURN_RIGHT),
-    ("CHAR_PACK", sim::anim::ANIM_PACK),
-    ("CHAR_UNPACK", sim::anim::ANIM_UNPACK),
-    ("CHAR_CHOP_WOOD", sim::anim::CHOP_WOOD),
-    ("CHAR_WALK_WITH_WOOD", sim::anim::WALK_WITH_WOOD),
-    ("CHAR_DUMP_WOOD", sim::anim::DUMP_WOOD),
-    ("CHAR_WALK_TO_WOOD", sim::anim::WALK_TO_WOOD),
-    ("CHAR_MINE_ORE", sim::anim::MINE_ORE),
-    ("CHAR_WALK_WITH_ORE", sim::anim::WALK_WITH_ORE),
-    ("CHAR_DUMP_ORE", sim::anim::DUMP_ORE),
-    ("CHAR_WALK_TO_ORE", sim::anim::WALK_TO_ORE),
-    ("CHAR_BUILD", sim::anim::BUILD),
-    ("CHAR_REPAIR", sim::anim::ANIM_REPAIR),
-    ("CHAR_SOW", sim::anim::SOW),
-    ("CHAR_REAP", sim::anim::REAP),
-    ("CHAR_FARM", sim::anim::ANIM_FARM),
+    ("CHAR_DEFAULT", sim::units::anim::DEFAULT),
+    ("CHAR_IDLE1", sim::units::anim::IDLE1),
+    ("CHAR_IDLE2", sim::units::anim::IDLE2),
+    ("CHAR_IDLE3", sim::units::anim::IDLE3),
+    ("CHAR_GROUP_IDLE1", sim::units::anim::GROUP_IDLE1),
+    ("CHAR_GROUP_IDLE2", sim::units::anim::GROUP_IDLE2),
+    ("CHAR_GROUP_IDLE3", sim::units::anim::GROUP_IDLE3),
+    ("CHAR_SLOG", sim::units::anim::SLOG),
+    ("CHAR_WALK", sim::units::anim::WALK),
+    ("CHAR_JOG", sim::units::anim::JOG),
+    ("CHAR_ATTACKWALK", sim::units::anim::ATTACKWALK),
+    ("CHAR_ATTACK1", sim::units::anim::ATTACK1),
+    ("CHAR_ATTACK2", sim::units::anim::ATTACK2),
+    ("CHAR_ATTACK3", sim::units::anim::ATTACK3),
+    ("CHAR_ATTACKSPECIAL", sim::units::anim::ATTACKSPECIAL),
+    ("CHAR_DEATH_STAB1", sim::units::anim::DEATH_STAB1),
+    ("CHAR_DEATH_STAB2", sim::units::anim::DEATH_STAB2),
+    ("CHAR_DEATH_SHOT1", sim::units::anim::DEATH_SHOT1),
+    ("CHAR_DEATH_SHOT2", sim::units::anim::DEATH_SHOT2),
+    ("CHAR_DEATH_SPLODED1", sim::units::anim::DEATH_SPLODED1),
+    ("CHAR_DEATH_SPLODED2", sim::units::anim::DEATH_SPLODED2),
+    ("CHAR_TURN_LEFT", sim::units::anim::TURN_LEFT),
+    ("CHAR_TURN_RIGHT", sim::units::anim::TURN_RIGHT),
+    ("CHAR_PACK", sim::units::anim::ANIM_PACK),
+    ("CHAR_UNPACK", sim::units::anim::ANIM_UNPACK),
+    ("CHAR_CHOP_WOOD", sim::units::anim::CHOP_WOOD),
+    ("CHAR_WALK_WITH_WOOD", sim::units::anim::WALK_WITH_WOOD),
+    ("CHAR_DUMP_WOOD", sim::units::anim::DUMP_WOOD),
+    ("CHAR_WALK_TO_WOOD", sim::units::anim::WALK_TO_WOOD),
+    ("CHAR_MINE_ORE", sim::units::anim::MINE_ORE),
+    ("CHAR_WALK_WITH_ORE", sim::units::anim::WALK_WITH_ORE),
+    ("CHAR_DUMP_ORE", sim::units::anim::DUMP_ORE),
+    ("CHAR_WALK_TO_ORE", sim::units::anim::WALK_TO_ORE),
+    ("CHAR_BUILD", sim::units::anim::BUILD),
+    ("CHAR_REPAIR", sim::units::anim::ANIM_REPAIR),
+    ("CHAR_SOW", sim::units::anim::SOW),
+    ("CHAR_REAP", sim::units::anim::REAP),
+    ("CHAR_FARM", sim::units::anim::ANIM_FARM),
 ];
 
 /// The `<UNIT name="…">` prefix of each gaia `TypeIndex`, in the order the
@@ -171,7 +171,7 @@ const GAIA_UNITS: &[(i32, &str)] = &[
 /// A file the install does not have, or one this reader cannot parse,
 /// leaves its slot out — and a slot left out is the packet's own missing
 /// slot, which `Guy::set_anim` gives the original's fallback of three
-/// frames (`sim::anim::MISSING`). Returns an empty map when either XML is
+/// frames (`sim::units::anim::MISSING`). Returns an empty map when either XML is
 /// unreadable, which is what a tables-only load gets.
 pub fn gaia_lengths(install: &Install) -> GaiaLengths {
     let apath = install.data("anim_graphics.xml");
@@ -277,7 +277,7 @@ impl<'a> PieceName<'a> {
 /// — six consecutive `internal_strings.xml` entries, `total_num_unit_pieces
 /// − 6` first. They are the pieces `get_unit_gpiece@0090c030:104`–`140`
 /// gives an unpacked merchant by the nation's `BUILD_CONTINENT`
-/// (`sim::anim`'s stall arm); the name grammar cannot build them, so they
+/// (`sim::units::anim`'s stall arm); the name grammar cannot build them, so they
 /// are matched whole. The install's other `-NEUROPE-`/`-KOREAN-` ages are
 /// on no index and stay skipped.
 pub const OVER_TIME: [&str; 6] = [
@@ -290,7 +290,7 @@ pub const OVER_TIME: [&str; 6] = [
 ];
 
 /// `total_num_unit_pieces`, the first index past the unit pieces.
-pub use sim::anim::TOTAL_UNIT_PIECES;
+pub use sim::units::anim::TOTAL_UNIT_PIECES;
 
 /// Every piece a `<UNIT>` entry is: an "over time" name's one index
 /// ([`OVER_TIME`]), or the arithmetic's for each `TypeIndex` that plays
@@ -342,7 +342,7 @@ fn graph_types(graphs: &[String]) -> BTreeMap<String, Vec<i32>> {
 /// A slot whose file the install lacks, or whose file this reader cannot
 /// parse, is left out — and a slot left out of an entry that is here at
 /// all is the packet's own missing slot, which `Guy::set_anim` gives the
-/// three-frame fallback ([`sim::anim::MISSING`]). Returns an empty map
+/// three-frame fallback ([`sim::units::anim::MISSING`]). Returns an empty map
 /// when either XML is unreadable.
 pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
     let apath = install.data("anim_graphics.xml");
@@ -422,7 +422,7 @@ pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
 /// **And a fifth, `flame`** (item 3580, `docs/AI.md` §313): the ammo's
 /// `flame="1"`, `ammo_flags & 0x10`, which `Object::do_damage@0064a480`
 /// reads on the round's blow to kill with `dtype` 4.
-pub type PieceReleases = BTreeMap<i32, BTreeMap<i8, Vec<sim::anim::Release>>>;
+pub type PieceReleases = BTreeMap<i32, BTreeMap<i8, Vec<sim::units::anim::Release>>>;
 
 /// The `<AMMO>` names of `effects_graphics.xml` whose `do_damage` is 0.
 ///
@@ -646,7 +646,7 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
         let Some(pieces) = entry_pieces(name.trim(), &by_graph) else {
             continue;
         };
-        let mut rows: BTreeMap<i8, Vec<sim::anim::Release>> = BTreeMap::new();
+        let mut rows: BTreeMap<i8, Vec<sim::units::anim::Release>> = BTreeMap::new();
         for e in u.children().filter(|n| n.has_tag_name("RELEASEEVENT")) {
             let (Some(anim), Some(start)) = (e.attribute("anim"), e.attribute("starttime")) else {
                 continue;
@@ -700,7 +700,7 @@ pub type WallPackets = BTreeMap<String, (u32, u32, Vec<(u32, i8, bool)>)>;
 /// as `GRAPH-DEFAULT-AGE0`, the only `<UNIT>` each of the three has; the
 /// string `verify_load` appends (`int_str_array +0x122f0`) is not read.
 ///
-/// A slot the entry does not name is [`sim::anim::MISSING`] frames, as
+/// A slot the entry does not name is [`sim::units::anim::MISSING`] frames, as
 /// `get_game_frames` answers for it; a `GRAPH` with no such `<UNIT>` is
 /// absent. The releases are [`piece_releases`]' rows for slot `0xc`
 /// (`CHAR_ATTACK2`), in file order.
@@ -721,7 +721,7 @@ pub fn wall_packets(install: &Install, graphs: &[String]) -> WallPackets {
             .find(|(s, _)| *s == slot)
             .and_then(|(_, anim)| files.get(&anim_key(anim)))
             .and_then(|(file, looping)| file_frames(install.root(), file, *looping))
-            .unwrap_or(sim::anim::MISSING)
+            .unwrap_or(sim::units::anim::MISSING)
     };
     let mut out = WallPackets::new();
     for graph in graphs {
@@ -755,8 +755,8 @@ pub fn wall_packets(install: &Install, graphs: &[String]) -> WallPackets {
         out.insert(
             graph.trim().to_string(),
             (
-                length(rows, sim::anim::WALK),
-                length(rows, sim::anim::ATTACK2),
+                length(rows, sim::units::anim::WALK),
+                length(rows, sim::units::anim::ATTACK2),
                 releases,
             ),
         );
@@ -1407,7 +1407,7 @@ mod tests {
     }
 
     /// **Every turn slot the install ships names a looping file** (item
-    /// 3735, `docs/AI.md` §364.1). `sim::anim::non_looping` decides by
+    /// 3735, `docs/AI.md` §364.1). `sim::units::anim::non_looping` decides by
     /// slot, and calls `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` looping because
     /// all 546 of `unit_graphics.xml`'s turn rows resolve to an `<ANIM>`
     /// under `<LOOPING>` — the packed Trebuchet's to `TrebuchetWagon
@@ -1430,7 +1430,7 @@ mod tests {
         let mut not_looping = Vec::new();
         for (unit, rows) in unit_anims(&udoc) {
             for (slot, anim) in rows {
-                if slot != sim::anim::TURN_LEFT && slot != sim::anim::TURN_RIGHT {
+                if slot != sim::units::anim::TURN_LEFT && slot != sim::units::anim::TURN_RIGHT {
                     continue;
                 }
                 turns += 1;
@@ -1442,14 +1442,17 @@ mod tests {
         assert_eq!(turns, 546, "the shipped turn rows");
         assert!(not_looping.is_empty(), "{not_looping:?}");
         assert!(
-            !sim::anim::non_looping(sim::anim::TURN_LEFT)
-                && !sim::anim::non_looping(sim::anim::TURN_RIGHT),
+            !sim::units::anim::non_looping(sim::units::anim::TURN_LEFT)
+                && !sim::units::anim::non_looping(sim::units::anim::TURN_RIGHT),
             "the slot rule agrees with the install"
         );
         let packed = unit_anims(&udoc);
         let treb = &packed["TREBUCHET-DEFAULT-AGE0-PACKED"];
         assert!(
-            treb.contains(&(sim::anim::TURN_LEFT, "TrebuchetWagon Walk".to_string())),
+            treb.contains(&(
+                sim::units::anim::TURN_LEFT,
+                "TrebuchetWagon Walk".to_string()
+            )),
             "the packed Trebuchet turns on its wagon's walk"
         );
     }
@@ -1519,7 +1522,7 @@ mod tests {
                 .unwrap()
                 .piece(ty)
         };
-        let swing = |g: &str| rel[&piece(g)][&sim::anim::ATTACK2].clone();
+        let swing = |g: &str| rel[&piece(g)][&sim::units::anim::ATTACK2].clone();
         let fighter = swing("FIGHTER");
         assert_eq!(fighter.len(), 16);
         assert_eq!(fighter.iter().filter(|r| r.1 == 1).count(), 8);
@@ -1535,7 +1538,7 @@ mod tests {
         // `Cruisemissile0`/`1`, `missile="1"`, frames 19..23.
         let missiles = missile_ammo(&inst);
         assert_eq!(missiles.len(), 10, "{missiles:?}");
-        let ship = rel[&piece("ADVANCEDBATTLESHIP")][&sim::anim::ATTACK1].clone();
+        let ship = rel[&piece("ADVANCEDBATTLESHIP")][&sim::units::anim::ATTACK1].clone();
         assert_eq!(
             ship.iter().map(|r| (r.0, r.3)).collect::<Vec<_>>(),
             [
@@ -1556,10 +1559,14 @@ mod tests {
         assert_eq!(piece("FIRELANCES"), 46);
         let lances = &rel[&46];
         assert_eq!(
-            [sim::anim::ATTACK1, sim::anim::ATTACK2, sim::anim::ATTACK3]
-                .iter()
-                .map(|a| lances[a].iter().map(|r| r.4).collect::<Vec<_>>())
-                .collect::<Vec<_>>(),
+            [
+                sim::units::anim::ATTACK1,
+                sim::units::anim::ATTACK2,
+                sim::units::anim::ATTACK3
+            ]
+            .iter()
+            .map(|a| lances[a].iter().map(|r| r.4).collect::<Vec<_>>())
+            .collect::<Vec<_>>(),
             [[true], [true], [true]]
         );
         assert!(fighter.iter().chain(&fb).chain(&ship).all(|r| !r.4));

@@ -16,7 +16,7 @@ fn the_emulated_original_agrees_on_every_row() {
             .collect();
         assert_eq!(
             want,
-            i64::from(crate::flag_reads::console_leader(&rec)),
+            i64::from(crate::core::flag_reads::console_leader(&rec)),
             "GameAccessConst::get_scary_console_leader — row `{line}`"
         );
         n += 1;

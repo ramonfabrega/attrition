@@ -188,8 +188,8 @@ impl RemoveInsideView for SimRemoveInside<'_> {
             return 0;
         };
         match self.sim.trainer_ident(t) {
-            Some(crate::build::Ident::Stable) => TYPE_STABLE,
-            Some(crate::build::Ident::Barracks) => TYPE_BARRACKS,
+            Some(crate::cities::build::Ident::Stable) => TYPE_STABLE,
+            Some(crate::cities::build::Ident::Barracks) => TYPE_BARRACKS,
             _ => 0,
         }
     }
@@ -200,7 +200,7 @@ impl RemoveInsideView for SimRemoveInside<'_> {
         self.sim.units[self.unit].ty.is_some_and(|t| {
             self.sim.tables.unit_types[t]
                 .cols
-                .flag2(crate::ai_load::uflags2::FLAG2_SCOUT)
+                .flag2(crate::ai::ai_load::uflags2::FLAG2_SCOUT)
         })
     }
     fn has_tribe_bonus(&mut self, id: i32) -> bool {

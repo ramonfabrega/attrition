@@ -28,10 +28,10 @@
 
 use std::sync::OnceLock;
 
-use crate::build::{Ident, flags};
+use crate::cities::build::{Ident, flags};
 use crate::orders::{Body, QueuePos, index};
 use crate::world::{Cell, TILES_PER_CELL, Terrain, UNITS_PER_TILE, cell, tile, vector_dist};
-use crate::{Player, Pos, Sim, cost};
+use crate::{Player, Pos, Sim, economy::cost};
 
 /// The two draw sites of `Leader::produce_building@006e1400`, under the
 /// original's own offsets. [`Sim::mark`] writes them into
@@ -121,10 +121,10 @@ pub(crate) fn enhancing_good(ident: Ident) -> Option<usize> {
     })
 }
 
-/// `BuildTypeData::is_gather_enhancer@00472b50` on an identity: [`crate::build::is_gather_enhancer_by`] with
+/// `BuildTypeData::is_gather_enhancer@00472b50` on an identity: [`crate::cities::build::is_gather_enhancer_by`] with
 /// the lineage test an identity's equality.
 pub(crate) fn is_enhancer(ident: Ident) -> bool {
-    crate::build::is_gather_enhancer_by(|i| i == ident)
+    crate::cities::build::is_gather_enhancer_by(|i| i == ident)
 }
 
 /// `grid_index_x`/`grid_index_y` (`.rdata`, VA `0xADECF0`/`0xADED30`): the
@@ -318,7 +318,7 @@ impl Sim {
     /// `BuildTypeData::find_friends(x, y, city, who)`: neighbours of the
     /// candidate cell that count for this type, `+1` on a diagonal and `+2`
     /// on a cardinal. The control flow is
-    /// [`crate::friends::find_friends_steps`] (swept against the original,
+    /// [`crate::cities::friends::find_friends_steps`] (swept against the original,
     /// item 3339); this builds its view. A `city` of `None` compares no
     /// neighbour's city, as the original's `-1`.
     pub(crate) fn find_friends(
@@ -329,12 +329,12 @@ impl Sim {
         who: Player,
     ) -> i32 {
         let city = city.map_or(-1, |c| i32::try_from(c).expect("a city index"));
-        let mut view = crate::friends::SimFriends {
+        let mut view = crate::cities::friends::SimFriends {
             sim: self,
             rec,
             who,
         };
-        crate::friends::find_friends_steps(&mut view, cell.x, cell.y, city)
+        crate::cities::friends::find_friends_steps(&mut view, cell.x, cell.y, city)
     }
 
     /// `produce_building`'s two line tests, `(local_84, is_fort)`.
@@ -347,8 +347,8 @@ impl Sim {
     /// `006e2129` (item 1377, `docs/AI.md` §100).
     pub(crate) fn placement_lines(&self, rec: usize, nocity: bool) -> (bool, bool) {
         (
-            nocity && crate::build::is_tower(&self.tables.build_types, rec),
-            crate::build::is_fort(&self.tables.build_types, rec),
+            nocity && crate::cities::build::is_tower(&self.tables.build_types, rec),
+            crate::cities::build::is_fort(&self.tables.build_types, rec),
         )
     }
 
@@ -371,7 +371,7 @@ impl Sim {
         &mut self,
         who: Player,
         anchor: Cell,
-        bt: &crate::build::BuildType,
+        bt: &crate::cities::build::BuildType,
     ) -> (i32, i32, Option<Pos>) {
         let (mut best, mut best_sp, mut best_cand) = (0, 0, None);
         let transport = self.transport_level(who) as i32 != 0;
@@ -494,7 +494,7 @@ impl Sim {
         // Shipyard or a Port answers it too (`docs/TRANSPORT.md`, "The
         // slot"). It gates three things here — the spiral's start, the
         // site block's extent, and the slide below.
-        let is_dock = crate::build::is_dock(&self.tables.build_types, rec);
+        let is_dock = crate::cities::build::is_dock(&self.tables.build_types, rec);
         let (tower, is_fort) = self.placement_lines(rec, nocity);
         let circle = circle();
         let mut start = 0usize;
@@ -603,7 +603,7 @@ impl Sim {
                 // one, and it is what the woodcutter's branch below scores by.
                 let (block, slots) = self.blocked_site_slots(Some(who), rec, cand, None);
                 let mut cand = cand;
-                if block != crate::place::Blocked::Clear {
+                if block != crate::cities::place::Blocked::Clear {
                     // **The dock's slide** (`docs/AI.md` §21). Where
                     // `blocked_site` refuses the centred position, the
                     // `is(0x1b0)` arm at `006e2725` walks a block of whole
@@ -640,7 +640,7 @@ impl Sim {
                             // keeps what the refused call left it — inert,
                             // because no dock is gather-scored.
                             if self.blocked_site(Some(who), rec, p, None)
-                                == crate::place::Blocked::Clear
+                                == crate::cities::place::Blocked::Clear
                             {
                                 slid = Some(p);
                                 break 'slide;
@@ -973,7 +973,7 @@ impl Sim {
                             ((corner.y + dy) * 2 + bt.y_size) * (UNITS_PER_TILE / 2),
                         );
                         if self.blocked_site(Some(who), rec, c, None)
-                            == crate::place::Blocked::Clear
+                            == crate::cities::place::Blocked::Clear
                         {
                             self.mark(SITE_JITTER);
                             let r = self.rng.roll() % 100;
@@ -1002,7 +1002,7 @@ impl Sim {
                     // the ring's best sub-position is the one that would
                     // gather most, on a strict improvement.
                     let (block, f) = self.blocked_site_slots(Some(who), rec, c, None);
-                    if block == crate::place::Blocked::Clear && f > best_f {
+                    if block == crate::cities::place::Blocked::Clear && f > best_f {
                         best_f = f;
                         cand = c;
                     }

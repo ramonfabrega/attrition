@@ -30,7 +30,7 @@
 //! re-runnable test case.
 
 use super::*;
-use crate::build::{BuildType, Ident, flags};
+use crate::cities::build::{BuildType, Ident, flags};
 use crate::combat::Rng;
 use crate::orders::QueuePos;
 use crate::world::UNITS_PER_CELL;
@@ -208,7 +208,7 @@ fn bt(ident: Ident, flag: &str, xs: i32, ys: i32, hits: i32, garrison: i32) -> B
         job_time: 300,
         hits,
         garrison_max: garrison,
-        price: cost::Price::free(),
+        price: crate::economy::cost::Price::free(),
         ..BuildType::default()
     }
 }

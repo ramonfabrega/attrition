@@ -37,7 +37,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let mark = usize::try_from(m[0xb5] as i8).unwrap_or(0);
         let target = (a[0] >= 0 && a[1] >= 0).then_some(());
         let mut cx = (m, p, &mut *log);
-        let eax: i32 = crate::fight::set_attack_steps(
+        let eax: i32 = crate::combat::fight::set_attack_steps(
             &mut cx,
             mark,
             target,

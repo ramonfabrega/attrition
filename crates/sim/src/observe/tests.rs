@@ -86,20 +86,22 @@ fn a_scene_agrees_with_the_sim_it_copies() {
     play_with(5, 150, |sim| copy = Some(sim.clone()));
     let mut sim = copy.unwrap();
     let u = sim.units.iter().position(|u| u.on_map).unwrap();
-    let mut guy = crate::anim::Guy::fresh(7);
+    let mut guy = crate::units::anim::Guy::fresh(7);
     guy.anim = 3;
     guy.cur_time = 4;
     guy.end_time = 9;
     sim.set_guy(u, 0, guy);
     sim.set_guy(u, 1, guy);
     let body = Pos::new(sim.units[u].pos.x + 100, sim.units[u].pos.y);
-    let mut f = sim.units[u].guys[0].follow.unwrap_or(crate::anim::Follow {
-        body: crate::movement::Body::at(body),
-        des: body,
-        facing: Angle(5),
-        des_angle: Angle(5),
-        track: (0, 0),
-    });
+    let mut f = sim.units[u].guys[0]
+        .follow
+        .unwrap_or(crate::units::anim::Follow {
+            body: crate::movement::Body::at(body),
+            des: body,
+            facing: Angle(5),
+            des_angle: Angle(5),
+            track: (0, 0),
+        });
     f.body.pos = body;
     sim.units[u].guys[1].follow = Some(f);
     let scene = sim.observe(None);

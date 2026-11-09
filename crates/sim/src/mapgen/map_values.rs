@@ -9,9 +9,11 @@
 //! zero (`cltd`/`idiv`, the `0x66666667` and `0x55555556` reciprocals, and
 //! the `and 3`/`sar 2` quarters), which Rust's `/` is.
 
+use crate::mapgen::terrain_groups::{
+    Draws, Template, flag, owner, set_blocked_at, tile_at, tile_inb,
+};
 use crate::mapgen::{MapGrid, Regions, WCell};
-use crate::scout::circle;
-use crate::terrain_groups::{Draws, Template, flag, owner, set_blocked_at, tile_at, tile_inb};
+use crate::units::think::scout::circle;
 
 /// The draw site, as the trace's return address: `Random::get`'s return
 /// in `World::compute_val@006b0350` (listing 0x6b068e → 0x6b0693).

@@ -15,7 +15,7 @@ fn the_emulated_original_agrees_on_every_row() {
             i32::try_from(a[1]).expect("a word"),
         );
         assert_eq!(
-            i64::from(crate::flag_reads::tcoord_less(x, y)),
+            i64::from(crate::core::flag_reads::tcoord_less(x, y)),
             want,
             "TCoord::operator< — row `{line}`"
         );

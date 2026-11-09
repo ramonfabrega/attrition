@@ -90,7 +90,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     rd(&self.c[3], i as usize * 4)
                 }
             }
-            impl crate::castable::CastableView for Sw<'_> {
+            impl crate::spells::castable::CastableView for Sw<'_> {
                 fn id(&mut self) -> i32 {
                     rd(self.sp(), 4)
                 }
@@ -244,7 +244,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 turn: [0; 19],
                 calls: vec![Vec::new(); 19],
             };
-            let r = crate::castable::is_castable_steps(&mut sw, a[1], a[2]);
+            let r = crate::spells::castable::is_castable_steps(&mut sw, a[1], a[2]);
             for col in &sw.calls {
                 log.push(if col.is_empty() {
                     "-".to_string()

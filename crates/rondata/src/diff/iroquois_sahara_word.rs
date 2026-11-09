@@ -39,7 +39,7 @@ pub(crate) const IROQUOIS_SAHARA: Lobby = Lobby {
     // `FLEE_TO`; agreeing after). 13810: ours 14 draws, theirs 15, at 10:
     // ours `Farms::inc_time+0x1ae`, theirs `Unit::close+0xcb6`. Then
     // 13810 -> 16371 (+2561), the game's end: the Cavalry Archers' piece
-    // 1546 in `sim::pivot::RELEASES` (run1001d's packet; run1001c's block
+    // 1546 in `sim::data::pivot::RELEASES` (run1001d's packet; run1001c's block
     // 13772: the Scout `0/0`'s `hits:damage` 21 ours, 26 theirs, the rounds
     // of `1/43` and `1/44` struck a frame late; agreeing after).
     count: 16371,

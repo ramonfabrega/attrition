@@ -11,7 +11,7 @@
 //!   the Civilian in front of its gather.
 
 use crate::Sim;
-use crate::group::Group;
+use crate::groups::group::Group;
 use crate::orders::{QueuePos, index, spell};
 use crate::world::{Player, Pos};
 
@@ -27,18 +27,18 @@ impl Sim {
     /// ```
     ///
     /// Every press sets the leader's `0x2000000` first (`0070ed27`), the
-    /// economy's dirty bit ([`Sim::economy_changed`], `crate::holdings`):
+    /// economy's dirty bit ([`Sim::economy_changed`], `crate::economy::holdings`):
     /// run430's income on 889, eight frames after the bell, counts the
     /// Citizens under their GARRISONs out.
     ///
-    /// The walk is `crate::alarm_view::action_alarm_steps`, swept against the
+    /// The walk is `crate::groups::alarm_view::action_alarm_steps`, swept against the
     /// original (item 3364); the SEAMs are `SimAlarm`'s: the scenario's
     /// `ignore_orders` sweep; the two sounds; a building on a cell's chain.
     /// A group of units' alarm is [`Sim::action_alarm_peasant`], which the
     /// harness calls directly (item 3916).
     pub fn action_alarm(&mut self, who: Player, list: &[usize]) {
-        let mut view = crate::alarm_view::SimAlarm::new(self, who, list);
-        crate::alarm_view::action_alarm_steps(&mut view);
+        let mut view = crate::groups::alarm_view::SimAlarm::new(self, who, list);
+        crate::groups::alarm_view::action_alarm_steps(&mut view);
     }
 
     /// `Group::action_alarm_peasant@006fd980`: `Group::action_alarm`'s arm
@@ -94,7 +94,7 @@ impl Sim {
     /// `+0x20` answers 0; the decompile's lines 176–214), after the
     /// accumulate and before the kill arm, on every blow (item 3984,
     /// `docs/AI.md` §416; the swept walk is
-    /// [`crate::take_damage_view`]'s `peasant_alarm`).
+    /// [`crate::combat::take_damage_view`]'s `peasant_alarm`).
     ///
     /// ```text
     /// leader_flags & 4 clear (a computer), leader_flags2 & 8 clear,
@@ -202,8 +202,8 @@ impl Sim {
         let mut i = 0;
         while i < self.buildings[b].garrison.len() {
             let u = self.buildings[b].garrison[i];
-            let citizen = self.unit_is_index(u, crate::cast::PEASANTS);
-            let militia = !citizen && self.unit_is_index(u, crate::cast::MILITIA);
+            let citizen = self.unit_is_index(u, crate::spells::cast::PEASANTS);
+            let militia = !citizen && self.unit_is_index(u, crate::spells::cast::MILITIA);
             if !citizen && !militia {
                 i += 1;
                 continue;

@@ -32,8 +32,8 @@ fn the_emulated_original_agrees_on_every_row() {
         // order. Stub logs: 0 the counts (`ecx,kind,arg`, `/`-joined), 1 civilian (`ecx,workers`), 2 and 3 `-`
         // when not entered. **The port is the crate's own steps**, `think_carry_steps`, which `Sim::think_carry`
         // calls over its `SimCarry`; here the view is the emulated original's stubs. `this` is never read.
+        use crate::ai::transport::{CarryView, think_carry_steps};
         use crate::tech::TypeId;
-        use crate::transport::{CarryView, think_carry_steps};
         struct V<'a> {
             a: &'a [i32],
             counts: Vec<String>,

@@ -27,7 +27,7 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     super::obj_rows(&rows, &obj, |a, m, c, p, log| {
         let _ = (&a, &m, &c, &p);
-        // `ObjectData::attack`'s steps (`sim::object_attack_view`) over the windows: the type record
+        // `ObjectData::attack`'s steps (`sim::combat::object_attack_view`) over the windows: the type record
         // is `p[8]` (attack `+0x1e8`, id `+4`), the constants `c[0]` (dutch `+0x8b8`, caravan `+0xcd4`),
         // the owner `m[9]` (age count `p[9 + who]` `+0xdc` xor 0x62766); the stubs answer `a[0..6]`
         // (has_tribe_bonus, has_preq, slots 0x18, 0xd0, 0xcc, 0xc8) and record their calls.
@@ -43,7 +43,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 usize::from(self.m[9])
             }
         }
-        impl sim::object_attack_view::ObjectAttackView for V<'_> {
+        impl sim::combat::object_attack_view::ObjectAttackView for V<'_> {
             fn type_attack(&mut self) -> i32 {
                 rd(&self.p[8], 0x1e8)
             }
@@ -93,6 +93,6 @@ fn the_emulated_original_agrees_on_every_row() {
             p,
             log: &mut *log,
         };
-        i64::from(sim::object_attack_view::object_attack_steps(&mut v))
+        i64::from(sim::combat::object_attack_view::object_attack_steps(&mut v))
     });
 }

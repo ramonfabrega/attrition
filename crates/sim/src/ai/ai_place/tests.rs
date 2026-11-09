@@ -135,13 +135,15 @@ fn check_building_wcoord_gates_on_the_cell_before_the_corners() {
 fn the_city_centre_is_the_friend_of_four_cells() {
     let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(60, 60), 2);
     let rec = sim.tables.build_types.len();
-    sim.tables.build_types.push(crate::build::BuildType {
-        ident: Ident::Village,
-        x_size: 7,
-        y_size: 7,
-        hits: 100,
-        ..crate::build::BuildType::default()
-    });
+    sim.tables
+        .build_types
+        .push(crate::cities::build::BuildType {
+            ident: Ident::Village,
+            x_size: 7,
+            y_size: 7,
+            hits: 100,
+            ..crate::cities::build::BuildType::default()
+        });
     let pos = Pos::new(39264, 40032);
     let b = sim.add_building(1, pos, 8);
     sim.buildings[b].ty = Some(rec);
@@ -193,12 +195,14 @@ fn the_city_centre_is_the_friend_of_four_cells() {
 fn a_placed_site_holds_no_centre_until_it_starts() {
     let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(60, 60), 2);
     let rec = sim.tables.build_types.len();
-    sim.tables.build_types.push(crate::build::BuildType {
-        x_size: 4,
-        y_size: 4,
-        hits: 100,
-        ..crate::build::BuildType::default()
-    });
+    sim.tables
+        .build_types
+        .push(crate::cities::build::BuildType {
+            x_size: 4,
+            y_size: 4,
+            hits: 100,
+            ..crate::cities::build::BuildType::default()
+        });
     let pos = Pos::new(14592, 36864);
     let b = sim.init_build(1, rec, pos, false);
     let cell = Cell::new(19, 48);
@@ -223,13 +227,15 @@ fn an_enhancer_counts_the_gather_buildings_of_its_good() {
     let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(60, 60), 2);
     let mut ty = |ident: Ident| {
         let rec = sim.tables.build_types.len();
-        sim.tables.build_types.push(crate::build::BuildType {
-            ident,
-            x_size: 4,
-            y_size: 4,
-            hits: 100,
-            ..crate::build::BuildType::default()
-        });
+        sim.tables
+            .build_types
+            .push(crate::cities::build::BuildType {
+                ident,
+                x_size: 4,
+                y_size: 4,
+                hits: 100,
+                ..crate::cities::build::BuildType::default()
+            });
         rec
     };
     let (farm, camp, barracks) = (ty(Ident::Farm), ty(Ident::Woodcutter), ty(Ident::Barracks));
@@ -279,14 +285,16 @@ fn a_missile_silo_counts_the_trainers_the_derived_flag_names() {
     let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(60, 60), 2);
     let mut ty = |ident: Ident, trainer: bool| {
         let rec = sim.tables.build_types.len();
-        sim.tables.build_types.push(crate::build::BuildType {
-            ident,
-            x_size: 4,
-            y_size: 4,
-            hits: 100,
-            flags: if trainer { flags::MILITARY_TRAINER } else { 0 },
-            ..crate::build::BuildType::default()
-        });
+        sim.tables
+            .build_types
+            .push(crate::cities::build::BuildType {
+                ident,
+                x_size: 4,
+                y_size: 4,
+                hits: 100,
+                flags: if trainer { flags::MILITARY_TRAINER } else { 0 },
+                ..crate::cities::build::BuildType::default()
+            });
         rec
     };
     let silo = ty(Ident::MissileSilo, true);
@@ -329,16 +337,18 @@ fn a_keep_counts_its_gather_neighbours_as_a_tower_does() {
     let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(60, 60), 2);
     let mut ty = |ident: Ident, from: Option<usize>, letters: &str, attack: i32| {
         let rec = sim.tables.build_types.len();
-        sim.tables.build_types.push(crate::build::BuildType {
-            ident,
-            from,
-            flags: flags::parse(letters),
-            attack,
-            x_size: 2,
-            y_size: 2,
-            hits: 100,
-            ..crate::build::BuildType::default()
-        });
+        sim.tables
+            .build_types
+            .push(crate::cities::build::BuildType {
+                ident,
+                from,
+                flags: flags::parse(letters),
+                attack,
+                x_size: 2,
+                y_size: 2,
+                hits: 100,
+                ..crate::cities::build::BuildType::default()
+            });
         rec
     };
     let farm = ty(Ident::Farm, None, "gda", 0);
@@ -392,12 +402,12 @@ fn oil_world(cells: &[(i32, i32)]) -> (Sim, Vec<usize>) {
     (sim, gis)
 }
 
-fn well() -> crate::build::BuildType {
-    crate::build::BuildType {
+fn well() -> crate::cities::build::BuildType {
+    crate::cities::build::BuildType {
         ident: Ident::OilWell,
         x_size: 3,
         y_size: 3,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     }
 }
 

@@ -27,6 +27,6 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     super::obj_rows(&rows, &obj, |a, m, c, p, _log| {
         let _ = (&a, &m, &c, &p);
-        i64::from(crate::caravan::distance_band(a[4], rd(&c[0], 0)))
+        i64::from(crate::economy::caravan::distance_band(a[4], rd(&c[0], 0)))
     });
 }

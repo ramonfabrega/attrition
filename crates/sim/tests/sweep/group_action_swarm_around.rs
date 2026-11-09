@@ -37,10 +37,12 @@ fn the_emulated_original_agrees_on_every_row() {
             // (`a[41..43]`: every `find_nearby_spot` writes the same pair), every `--seq` run (`SEQ_AT`), the slot base
             // flag (`a[154]`) and the order's null flag (`a[155]`).
             //
-            // **The port is the crate's own steps**, `crate::swarm_around_view::action_swarm_around_steps`, which
+            // **The port is the crate's own steps**, `crate::groups::swarm_around_view::action_swarm_around_steps`, which
             // `Sim::group_action_swarm_around` runs over its `SimSwarm`; here the view is the emulated original's windows.
-            use crate::garrison_view::GarrisonHead;
-            use crate::swarm_around_view::{SwarmHead, SwarmView, action_swarm_around_steps};
+            use crate::groups::garrison_view::GarrisonHead;
+            use crate::groups::swarm_around_view::{
+                SwarmHead, SwarmView, action_swarm_around_steps,
+            };
             // (stub, offset in `a`, length)
             const SEQ_AT: [(usize, usize, usize); 17] = [
                 (0, 43, 16),

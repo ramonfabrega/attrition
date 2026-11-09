@@ -29,7 +29,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let _ = (&a, &m, &c, &p);
         {
             let (xs, ys) = (rd(&p[2], 0x234), rd(&p[2], 0x238));
-            let c = crate::place::tile_corner_of(
+            let c = crate::cities::place::tile_corner_of(
                 xs,
                 ys,
                 crate::Pos::new(rd(m, 0x10) ^ 0x63637, rd(m, 0x14) ^ 0x63637),

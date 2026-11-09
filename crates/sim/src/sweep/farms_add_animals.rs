@@ -72,14 +72,14 @@ fn the_emulated_original_agrees_on_every_row() {
                 log: &'a mut Vec<String>,
                 p: &'a mut [Vec<u8>],
             }
-            impl crate::farms::AnimalHost for Host<'_> {
+            impl crate::cities::farms::AnimalHost for Host<'_> {
                 fn draw(&mut self, _site: &'static str) -> i32 {
                     self.log.push("s1:c2+0x0,0,65535".to_string());
                     let v = self.a[5 + self.seq.min(14)];
                     self.seq += 1;
                     v
                 }
-                fn init_unit(&mut self, s: &crate::farms::AnimalSpawn) -> bool {
+                fn init_unit(&mut self, s: &crate::cities::farms::AnimalSpawn) -> bool {
                     self.log
                         .push(format!("s2:c1+0x0,9,{},{},{},-1,-1,-1", s.ty, s.x, s.y));
                     // The three `+0xb4` calls land on the object `init_unit`
@@ -99,7 +99,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 log: &mut log,
                 p,
             };
-            crate::farms::add_animals_steps(&mut host, pasture, active, pos, player, index);
+            crate::cities::farms::add_animals_steps(&mut host, pasture, active, pos, player, index);
             0
         };
         if log.is_empty() {

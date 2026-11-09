@@ -1,5 +1,5 @@
 //! **East Meets West, the held-out style** (`docs/MAPGEN.md` §24, item
-//! 3941; DECISIONS 54, 61): `sim::map_east_west`, written from the reading
+//! 3941; DECISIONS 54, 61): `sim::mapgen::map_east_west`, written from the reading
 //! and committed (`004dbbab7`) before run1524 was launched, walked through
 //! the §15 chain on run1524's one file — the default lobby at `--map 19`
 //! with `--dump-all-start`. Its first comparison is the number: the
@@ -19,7 +19,7 @@ fn at_7807(
     root: &Path,
     run: GlRun,
     range: i32,
-) -> (MapGrid, Draws, sim::map_east_west::EastWestMap) {
+) -> (MapGrid, Draws, sim::mapgen::map_east_west::EastWestMap) {
     let (seed, nations, xs, ys, map_size) = run;
     let style = lake_style(
         root,
@@ -31,11 +31,11 @@ fn at_7807(
     .expect("East Meets West's style");
     let mut teams = [None; 8];
     for t in teams.iter_mut().take(nations as usize) {
-        *t = Some(sim::map_east_west::NO_TEAM);
+        *t = Some(sim::mapgen::map_east_west::NO_TEAM);
     }
     let mut grid = MapGrid::new(xs, ys);
     let mut draws = Draws::new(seed);
-    let map = sim::map_east_west::east_west_make_continents(
+    let map = sim::mapgen::map_east_west::east_west_make_continents(
         &mut grid, nations, nations, &teams, style, &mut draws,
     )
     .expect("a lobby inside its allowance");
@@ -205,7 +205,7 @@ fn walk(root: &Path, name: &str, g: &StartGrid, range: i32) -> Vec<(&'static str
     let (mut grid, mut d, tileset) = at_7859(root, g, run, range);
     let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
     let c7859 = at_line(g, 7859, &grid, &d, false);
-    check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+    check_player_forest(&mut grid, sim::core::tuning::Tuning::RON.city_center_radius);
     let c7861 = at_line(g, 7861, &grid, &d, false);
     nubify_forest(&mut grid, &mut d);
     let c7865 = at_line(g, 7865, &grid, &d, false);
@@ -273,10 +273,10 @@ fn walk(root: &Path, name: &str, g: &StartGrid, range: i32) -> Vec<(&'static str
         });
     }
     let mut coord = coord_flags(&grid);
-    let f = sim::map_heights::fractals(grid.xs, grid.ys, g.seed as u32);
-    let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
-    sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g.seed as u32);
-    let combo = sim::halfland::Combo {
+    let f = sim::mapgen::map_heights::fractals(grid.xs, grid.ys, g.seed as u32);
+    let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &f);
+    sim::mapgen::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g.seed as u32);
+    let combo = sim::mapgen::halfland::Combo {
         coast_base: ts.coast_base,
         num_tiles: [
             Some(ts.base_tiles),
@@ -286,7 +286,7 @@ fn walk(root: &Path, name: &str, g: &StartGrid, range: i32) -> Vec<(&'static str
         ],
     };
     let mut depth = 0;
-    let lists = match sim::terrain_init::check_and_set_halfland_heights(
+    let lists = match sim::mapgen::terrain_init::check_and_set_halfland_heights(
         &mut grid, &mut coord, &z, combo, &mut depth,
     ) {
         Ok(l) => l,
@@ -299,10 +299,10 @@ fn walk(root: &Path, name: &str, g: &StartGrid, range: i32) -> Vec<(&'static str
     let p = lists.parts().expect("the lists' walk");
     let lp = [p[0], p[1], p[2], p[3]];
     let s720 = state(&grid, &d, lp);
-    sim::halfland::create_doobers_flags(&mut grid);
+    sim::mapgen::halfland::create_doobers_flags(&mut grid);
     let s738 = state(&grid, &d, lp);
-    sim::map_heights::create_doobers(&grid, &mut z);
-    let beach = sim::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
+    sim::mapgen::map_heights::create_doobers(&grid, &mut z);
+    let beach = sim::mapgen::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
         .with_depth(depth)
         .convert_beach_to_sandy();
     let s5012 = state(&grid, &d, lp);
@@ -350,7 +350,7 @@ fn walk(root: &Path, name: &str, g: &StartGrid, range: i32) -> Vec<(&'static str
     let mut ours = Vec::new();
     let phase = Phase {
         thresh,
-        city_radius: sim::tuning::Tuning::RON.city_center_radius,
+        city_radius: sim::core::tuning::Tuning::RON.city_center_radius,
         rivers: &rivers,
         standard,
         seed: g.seed as u32,
@@ -403,7 +403,7 @@ fn walk(root: &Path, name: &str, g: &StartGrid, range: i32) -> Vec<(&'static str
     // so the slope tiles are reported, not run).
     let install = crate::Install::new(root);
     let meshes = crate::mountains::meshes(&install);
-    let eight: Verdict = match sim::map_troughs::calculate_all(
+    let eight: Verdict = match sim::mapgen::map_troughs::calculate_all(
         &mut grid,
         &mut coord,
         &mut z,
@@ -414,8 +414,13 @@ fn walk(root: &Path, name: &str, g: &StartGrid, range: i32) -> Vec<(&'static str
     ) {
         Err(e) => Err(format!("the troughs: {e:?}")),
         Ok(troughs) => {
-            sim::map_heights::adjust_for_mountains(&grid, &mut z, &groups.templates, &meshes);
-            let slope = sim::map_heights::slope_tiles(&grid);
+            sim::mapgen::map_heights::adjust_for_mountains(
+                &grid,
+                &mut z,
+                &groups.templates,
+                &meshes,
+            );
+            let slope = sim::mapgen::map_heights::slope_tiles(&grid);
             eprintln!(
                 "{name}: trough sections {:?}, {} slope tiles",
                 troughs.sections,

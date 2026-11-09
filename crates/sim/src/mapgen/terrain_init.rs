@@ -21,8 +21,8 @@
 //! 2, 5, 6 and 10–13 stand still from 734 to 5012, and the port agrees
 //! with all of them.
 
+use crate::mapgen::terrain_groups::{tile_at, tile_inb};
 use crate::mapgen::{MapGrid, adler32};
-use crate::terrain_groups::{tile_at, tile_inb};
 
 /// `World.sea_map` (`WorldData +0x34`) before `Map::make`'s tail writes it:
 /// −1. Read off the checksums, not a constructor: the part-4 step from 7945
@@ -302,18 +302,18 @@ pub fn check_and_set_halfland(g: &mut MapGrid, coord: &mut [u16]) -> Result<(), 
 
 /// **`Terrain::check_and_set_halfland(0)` on a map whose gate opens**:
 /// the two sweeps of `_wcoord` on the 706 heights `z`
-/// ([`crate::halfland::Pass::sweeps`]), then passes 2–4 of
+/// ([`crate::mapgen::halfland::Pass::sweeps`]), then passes 2–4 of
 /// [`check_and_set_halfland`] — the coast, the relabel and the 0x80 tail.
 /// Returns the half-land lists parts 10–12 walk. `depth` is
 /// `verify_land`'s static, carried in and out.
 pub fn check_and_set_halfland_heights(
     g: &mut MapGrid,
     coord: &mut [u16],
-    z: &[crate::single::Single],
-    combo: crate::halfland::Combo,
+    z: &[crate::num::single::Single],
+    combo: crate::mapgen::halfland::Combo,
     depth: &mut i32,
-) -> Result<HalfLand, crate::halfland::Unported> {
-    let mut pass = crate::halfland::Pass::new(g, coord, z, combo);
+) -> Result<HalfLand, crate::mapgen::halfland::Unported> {
+    let mut pass = crate::mapgen::halfland::Pass::new(g, coord, z, combo);
     pass.depth = *depth;
     pass.sweeps()?;
     *depth = pass.depth;

@@ -87,7 +87,7 @@ fn a_reused_figure_clears_its_old_body_with_the_new_radius() {
         sim.coll_remove(old);
         sim.units[old].health = 0;
         sim.units[old].on_map = false;
-        sim.units[old].guys.push(crate::anim::Guy::fresh(-1));
+        sim.units[old].guys.push(crate::units::anim::Guy::fresh(-1));
         // A closed occupant keeps a body that differs from its unit point.
         let body = ucell_centre(Pos::new(80, 80));
         sim.units[old].movement.body.pos = body;
@@ -368,7 +368,10 @@ fn a_snap_to_the_point_already_held_still_seats_the_crew() {
     let (mut sim, a, _b) = pair(Pos::new(0x1800, 0x1800), Pos::new(0x4800, 0x4800));
     // One crew figure with a track offset, seated, and then dragged
     // away — a figure that is still walking after its leader.
-    sim.units[a].guys = vec![crate::anim::Guy::fresh(1), crate::anim::Guy::fresh(2)];
+    sim.units[a].guys = vec![
+        crate::units::anim::Guy::fresh(1),
+        crate::units::anim::Guy::fresh(2),
+    ];
     sim.roster.art.tracks.insert(2, (-48, -192));
     sim.seat_guys(a);
     let seated = sim.units[a].guys[1].follow.expect("a tracked crew guy").des;
@@ -804,7 +807,7 @@ fn an_animal_drops_its_walk_where_it_stands_and_takes_no_step() {
 /// two loops, the squad's `0 .. guy_mark` and the crew's `squad_size
 /// .. guy_num`, and run85's 7448 spends one draw from each —
 /// `Unit::set_anim+0x56` and `+0xb6`, both under
-/// [`crate::anim::SITE_BLOCKED`]. A Merchant is `CREW_SIZE 1`, so the
+/// [`crate::units::anim::SITE_BLOCKED`]. A Merchant is `CREW_SIZE 1`, so the
 /// frame owes two draws and not one.
 #[test]
 fn a_gaia_animal_blocks_a_player_s_walker_and_a_crew_pays_the_stand_twice() {
@@ -818,7 +821,10 @@ fn a_gaia_animal_blocks_a_player_s_walker_and_a_crew_pays_the_stand_twice() {
         sim.roster.art.lengths.insert((1, slot), 40);
     }
     // Two figures, the Merchant's shape: `UBER_SIZE 1, CREW_SIZE 1`.
-    sim.units[x].guys = vec![crate::anim::Guy::fresh(1), crate::anim::Guy::fresh(1)];
+    sim.units[x].guys = vec![
+        crate::units::anim::Guy::fresh(1),
+        crate::units::anim::Guy::fresh(1),
+    ];
     sim.trace.trace_phases = true;
     sim.order_move(x, Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18));
     let mut marks = None;
@@ -837,7 +843,7 @@ fn a_gaia_animal_blocks_a_player_s_walker_and_a_crew_pays_the_stand_twice() {
     );
     let at = marks
         .iter()
-        .position(|(l, _)| l == crate::anim::SITE_BLOCKED)
+        .position(|(l, _)| l == crate::units::anim::SITE_BLOCKED)
         .expect("the blocked stand is marked on that frame");
     // How many draws the mark covers: walk the LCG from the word it
     // recorded to the next mark's (or the frame's end).
@@ -900,7 +906,7 @@ fn a_unit_on_its_own_waypoint_stands_when_its_turn_completes() {
             sim.trace
                 .phase_marks
                 .iter()
-                .filter(|(l, _)| l == crate::anim::SITE_SNAP_STAND)
+                .filter(|(l, _)| l == crate::units::anim::SITE_SNAP_STAND)
                 .count()
         };
         sim.tick();
@@ -909,7 +915,7 @@ fn a_unit_on_its_own_waypoint_stands_when_its_turn_completes() {
             sim.trace
                 .phase_marks
                 .iter()
-                .any(|(l, _)| l == crate::anim::SITE_TURN_NEAR),
+                .any(|(l, _)| l == crate::units::anim::SITE_TURN_NEAR),
             "the near turn-in-place arm"
         );
         sim.tick();
@@ -968,7 +974,7 @@ fn a_blocked_snap_stands_and_eats_its_waypoint_without_resolving() {
             .trace
             .phase_marks
             .iter()
-            .any(|(l, _)| l == crate::anim::SITE_SNAP_BLOCKED)
+            .any(|(l, _)| l == crate::units::anim::SITE_SNAP_BLOCKED)
         {
             hit = Some(before);
             break;
@@ -977,7 +983,7 @@ fn a_blocked_snap_stands_and_eats_its_waypoint_without_resolving() {
             !sim.trace
                 .phase_marks
                 .iter()
-                .any(|(l, _)| l == crate::anim::SITE_BLOCKED),
+                .any(|(l, _)| l == crate::units::anim::SITE_BLOCKED),
             "the partial step's block fired first: this walk never \
                  reaches the snap"
         );
@@ -1681,7 +1687,7 @@ fn a_dead_group_mate_is_a_nudge_and_a_dead_stranger_a_wall() {
     let wreck = |grouped: bool| {
         let (mut sim, x, y) = pair(a, b);
         let ty = sim.units[y].ty.expect("typed");
-        sim.tables.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::BLOCKS_WHILE_DEAD;
+        sim.tables.unit_types[ty].cols.unit_flags |= crate::ai::ai_load::uflags::BLOCKS_WHILE_DEAD;
         if grouped {
             let slot = sim.init_army(0, None);
             sim.army_add_unit(0, slot, x);
@@ -1714,7 +1720,7 @@ fn a_dead_group_mate_is_a_nudge_and_a_dead_stranger_a_wall() {
 /// (`detect_unit_collision@00617060:307`) — one `short`, the
 /// `Groups::list` slot, and it knows nothing about armies. A group
 /// here has one of two seats: an army's, or a
-/// [`crate::group::Pushed`] slot, and the sibling above only ever
+/// [`crate::groups::group::Pushed`] slot, and the sibling above only ever
 /// exercised the first. [`Sim::same_group_soft`] read
 /// [`Sim::army_of`] for a fortnight after item 465 gave this crate a
 /// real pool, so every member of a pushed group was **hard** to
@@ -1737,7 +1743,7 @@ fn two_members_of_a_pushed_group_pass_through_each_other() {
     );
     // The same two out of every army and into a pool slot, which is
     // where `do_group_move`'s probe leaves the AI's raiders.
-    let mut g = crate::group::Group::stack(0);
+    let mut g = crate::groups::group::Group::stack(0);
     g.list = vec![x, y];
     assert!(sim.push_group(&mut g, false), "a pair takes a slot");
     assert_eq!(g.army, None, "and it is not an army's group");
@@ -1949,9 +1955,9 @@ fn convoy(a: Pos, b: Pos, other_flags: u32) -> (Sim, usize, usize) {
         hits: 90,
         moves: 25,
         combat: profile(288, 2),
-        cols: crate::ai_load::UnitCols {
-            unit_flags2: crate::ai_load::uflags2::SUPPLY_OR_HERO,
-            ..crate::ai_load::UnitCols::default()
+        cols: crate::ai::ai_load::UnitCols {
+            unit_flags2: crate::ai::ai_load::uflags2::SUPPLY_OR_HERO,
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..UnitType::default()
     });
@@ -1959,9 +1965,9 @@ fn convoy(a: Pos, b: Pos, other_flags: u32) -> (Sim, usize, usize) {
         hits: 65,
         moves: 33,
         combat: profile(72, 1),
-        cols: crate::ai_load::UnitCols {
+        cols: crate::ai::ai_load::UnitCols {
             unit_flags: other_flags,
-            ..crate::ai_load::UnitCols::default()
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..UnitType::default()
     });
@@ -2006,7 +2012,7 @@ fn push_candidates_use_each_coastal_tile_in_both_search_strategies() {
         let u = sim.add_unit(Unit::new(0, 0, at, 40));
         let same = sim.add_unit(Unit::new(0, 1, wet, 40));
         let different = sim.add_unit(Unit::new(0, 2, dry, 40));
-        let threshold = crate::ai_place::circle().radius[1];
+        let threshold = crate::ai::ai_place::circle().radius[1];
         if chains {
             for o in 3..=threshold {
                 sim.add_unit(Unit::new(0, o as i16, Pos::new(7000, 7000), 40));
@@ -2054,7 +2060,7 @@ fn the_list_branch_subtracts_the_candidates_radius_and_walks_by_leader() {
     let late = put(&mut sim, 1, 3, Pos::new(at.x + 144 + 50, at.y));
     let early = put(&mut sim, 0, 5, Pos::new(at.x + 100, at.y));
     put(&mut sim, 0, 6, Pos::new(at.x + 144 + 97, at.y));
-    assert!(crate::ai_place::circle().radius[1] > sim.units.len());
+    assert!(crate::ai::ai_place::circle().radius[1] > sim.units.len());
     let found = sim.find_push_candidates(me, at, 144);
     assert_eq!(
         found,
@@ -2089,7 +2095,7 @@ fn a_supply_wagon_pushes_a_standing_unit_and_not_a_tank() {
         (7, 0),
         "a land pusher names itself on the pushed unit"
     );
-    let (mut sim, x, y) = convoy(a, b, crate::ai_load::uflags::TANK);
+    let (mut sim, x, y) = convoy(a, b, crate::ai::ai_load::uflags::TANK);
     assert!(!sim.detect_boat_collision(x, a, true), "a tank is refused");
     assert_eq!(sim.units[y].pos, b);
 }
@@ -2347,8 +2353,8 @@ fn the_corner_rule_reads_the_blocker_s_figures_and_not_the_blocker() {
     let at_cell = |x: i32, y: i32| ucell_centre(Pos::new(x, y));
     let (mut sim, x, y) = pair(at_cell(30, 30), at_cell(28, 28));
     // Guy 0 stands on its unit, which is what leaves the corner at 0.
-    sim.units[y].guys = vec![crate::anim::Guy::fresh(1)];
-    sim.units[x].guys = vec![crate::anim::Guy::fresh(1)];
+    sim.units[y].guys = vec![crate::units::anim::Guy::fresh(1)];
+    sim.units[x].guys = vec![crate::units::anim::Guy::fresh(1)];
     sim.units[y].movement.body.pos = sim.units[y].pos;
     let into = at_cell(29, 30);
     assert_eq!(
@@ -2358,8 +2364,8 @@ fn the_corner_rule_reads_the_blocker_s_figures_and_not_the_blocker() {
     );
     // The crew figure, a cell west of its leader and cornered on the
     // same hit cell from the opposite side.
-    let mut crew = crate::anim::Guy::fresh(2);
-    crew.follow = Some(crate::anim::Follow {
+    let mut crew = crate::units::anim::Guy::fresh(2);
+    crew.follow = Some(crate::units::anim::Follow {
         body: crate::movement::Body {
             pos: at_cell(27, 28),
             ..crate::movement::Body::default()
@@ -2430,7 +2436,7 @@ fn the_safe_cooldown_suppresses_the_test_and_expires() {
 /// §5: **the blocked stand.** A refused step asks for `CHAR_DEFAULT`
 /// before any of the three give-up tests, so a walker re-rolls its
 /// idle on the frame it is blocked — the draw run14 spends on frames
-/// 122, 184 and 256, [`crate::anim::SITE_BLOCKED`].
+/// 122, 184 and 256, [`crate::units::anim::SITE_BLOCKED`].
 #[test]
 fn a_refused_step_re_rolls_the_idle_before_the_give_up_tests() {
     let a = Pos::new(30 * 0x30 + 0x18, 30 * 0x30 + 0x18);
@@ -2441,7 +2447,7 @@ fn a_refused_step_re_rolls_the_idle_before_the_give_up_tests() {
     for slot in 0..4 {
         sim.roster.art.lengths.insert((1, slot), 40);
     }
-    sim.units[x].guys = vec![crate::anim::Guy::fresh(1)];
+    sim.units[x].guys = vec![crate::units::anim::Guy::fresh(1)];
     sim.trace.trace_phases = true;
     sim.order_move(x, Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18));
     let mut marks = None;
@@ -2455,7 +2461,7 @@ fn a_refused_step_re_rolls_the_idle_before_the_give_up_tests() {
     let marks = marks.expect("a frame on which the step is refused");
     let at = marks
         .iter()
-        .position(|(l, _)| l == crate::anim::SITE_BLOCKED)
+        .position(|(l, _)| l == crate::units::anim::SITE_BLOCKED)
         .expect("the blocked stand is marked on that frame");
     // And it *drew*: the word moves between this mark and the next.
     let after = marks.get(at + 1).map_or(sim.rng.seed, |(_, w)| *w);
@@ -2519,7 +2525,7 @@ fn a_blocked_unit_that_gives_up_takes_its_waypoint_where_it_stands() {
 /// §6 step 2's fence, and what it is: the target type's `+0x94` is
 /// `BuildTypeData::is_flat` — `build_flags & 0x10000000`, the derived
 /// bit only the Farm, the Oil Well and the Oil Platform carry
-/// (`crate::build::init_final_flags`). So the step that abandons a walk
+/// (`crate::cities::build::init_final_flags`). So the step that abandons a walk
 /// because the unit is standing inside its own gather target's
 /// footprint fires for a **farmer on its field** and for nothing else.
 /// A woodcutter bumped while standing on its camp's footprint — which
@@ -2535,16 +2541,20 @@ fn only_a_flat_gather_target_abandons_the_walk_where_the_unit_stands() {
         let a = Pos::new(29 * 0x30 + 4, 30 * 0x30 + 0x14);
         let b = Pos::new(27 * 0x30 + 0x18, 30 * 0x30 + 0x18);
         let (mut sim, x, y) = pair(a, b);
-        let bt = sim.add_build_type(crate::build::BuildType {
+        let bt = sim.add_build_type(crate::cities::build::BuildType {
             ident: if flat {
-                crate::build::Ident::Farm
+                crate::cities::build::Ident::Farm
             } else {
-                crate::build::Ident::Woodcutter
+                crate::cities::build::Ident::Woodcutter
             },
             x_size: 5,
             y_size: 5,
-            flags: if flat { crate::build::flags::FLAT } else { 0 },
-            ..crate::build::BuildType::default()
+            flags: if flat {
+                crate::cities::build::flags::FLAT
+            } else {
+                0
+            },
+            ..crate::cities::build::BuildType::default()
         });
         let camp = sim.add_building(0, a, 0);
         sim.buildings[camp].ty = Some(bt);

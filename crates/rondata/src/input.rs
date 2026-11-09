@@ -135,7 +135,7 @@ pub fn group_move_to(
     orders: i32,
 ) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -183,7 +183,7 @@ pub fn group_move_to(
 /// `num = 0` replay is the caller's, and `UnitData::play` is not carried.
 pub fn group_patrol(built: &mut Built, who: i32, objects: &[i16], to: Pos, queued: i32) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -210,7 +210,7 @@ pub fn group_patrol(built: &mut Built, who: i32, objects: &[i16], to: Pos, queue
 /// `CommandPackage::process_attack_ground@009494a0` →
 /// `Group::action_attack_ground`'s air arm,
 /// [`sim::Sim::group_action_air_attack_ground`]. `None` for any other
-/// group: the ground arm is walked (`sim::attack_ground_view`) and not
+/// group: the ground arm is walked (`sim::groups::attack_ground_view`) and not
 /// wired (parked 3425a).
 pub fn group_air_attack_ground(
     built: &mut Built,
@@ -220,7 +220,7 @@ pub fn group_air_attack_ground(
     queued: i32,
 ) -> Option<usize> {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -252,7 +252,7 @@ pub fn group_air_attack_ground(
 /// `Group::action_recall`.
 pub fn group_recall_units(built: &mut Built, who: i32, objects: &[i16]) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -277,7 +277,7 @@ pub fn group_recall_units(built: &mut Built, who: i32, objects: &[i16]) -> usize
 /// [`sim::Sim::action_alarm_peasant`] (item 3916, `docs/GOLDEN.md` §163).
 pub fn group_alarm_peasant(built: &mut Built, who: i32, objects: &[i16]) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -322,7 +322,7 @@ pub fn group_guard(
     queued: i32,
 ) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -377,7 +377,7 @@ pub fn group_follow(
     queued: i32,
 ) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -431,7 +431,7 @@ pub fn group_garrison(
     queued: i32,
 ) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -476,7 +476,7 @@ pub fn group_form(
     queued: i32,
 ) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -526,7 +526,7 @@ pub fn group_attack(
     queued: i32,
 ) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -594,7 +594,7 @@ pub fn group_flight(
     orders: i32,
 ) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -629,8 +629,8 @@ pub fn group_flight(
             })
     });
     let kind = match orders {
-        1 => Some(sim::group::Flight::Home),
-        10 => Some(sim::group::Flight::Strike),
+        1 => Some(sim::groups::group::Flight::Home),
+        10 => Some(sim::groups::group::Flight::Strike),
         _ => None,
     };
     if let (Some(t), Some(k)) = (target, kind) {
@@ -664,7 +664,7 @@ pub fn group_build(
     queued: i32,
 ) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -710,7 +710,7 @@ pub fn group_spell(
     at: Pos,
 ) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -765,7 +765,7 @@ pub fn group_spell(
 /// `who` in the simulation.
 pub fn group_set_transport(built: &mut Built, who: i32, objects: &[i16], flag: i32) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -797,7 +797,7 @@ pub fn group_set_transport(built: &mut Built, who: i32, objects: &[i16], flag: i
 /// `who` in the simulation.
 pub fn group_stance(built: &mut Built, who: i32, objects: &[i16], stance: i32) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -835,7 +835,7 @@ pub fn group_swarm_around(
     orders: i32,
 ) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -895,7 +895,7 @@ pub fn group_alarm(built: &mut Built, who: i32, buildings: &[i16]) -> usize {
 /// `who` in the simulation.
 pub fn group_gather(built: &mut Built, who: i32, objects: &[i16], ox: i32, queued: i32) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -994,7 +994,7 @@ pub fn group_queue_up(built: &mut Built, who: i32, buildings: &[i16], ty: i32, n
         .collect();
     // `DISBAND`, a craft: the research arm on its own entry (item 3918,
     // `docs/GOLDEN.md` §165).
-    if ty == sim::queue_disband::DISBAND {
+    if ty == sim::cities::queue_disband::DISBAND {
         if list.is_empty() {
             return 0;
         }
@@ -1073,7 +1073,7 @@ pub fn group_launch_patrol(
     buildings: &[i16],
     at: Pos,
     all: bool,
-    keys: sim::airbase::Keys,
+    keys: sim::air::airbase::Keys,
 ) -> usize {
     let player = who as sim::Player;
     let list: Vec<usize> = buildings
@@ -1089,7 +1089,7 @@ pub fn group_launch_patrol(
     } else {
         sim::orders::QueuePos::New
     };
-    let keys = sim::airbase::Keys { shift: all, ..keys };
+    let keys = sim::air::airbase::Keys { shift: all, ..keys };
     built
         .sim
         .command()
@@ -1178,7 +1178,7 @@ pub fn group_city_gather(built: &mut Built, who: i32, buildings: &[i16], kind: i
 /// Returns the number of commands processed.
 pub fn group_stop_spell(built: &mut Built, who: i32, objects: &[i16]) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -1212,7 +1212,7 @@ pub fn group_stop_spell(built: &mut Built, who: i32, objects: &[i16]) -> usize {
 /// Returns the number of units disbanded.
 pub fn group_disband(built: &mut Built, who: i32, objects: &[i16], all: bool) -> usize {
     let player = who as sim::Player;
-    let mut g = sim::group::Group::stack(player);
+    let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built
             .units
@@ -1247,7 +1247,7 @@ pub fn group_launch_flight(
     ox: i32,
     whom: i32,
     orders: i32,
-    keys: sim::airbase::Keys,
+    keys: sim::air::airbase::Keys,
 ) -> usize {
     let player = who as sim::Player;
     let list: Vec<usize> = buildings
@@ -1272,8 +1272,8 @@ pub fn group_launch_flight(
         }
     });
     let kind = match orders {
-        1 => Some(sim::group::Flight::Home),
-        10 => Some(sim::group::Flight::Strike),
+        1 => Some(sim::groups::group::Flight::Home),
+        10 => Some(sim::groups::group::Flight::Strike),
         _ => None,
     };
     if let (Some(t), Some(k)) = (target, kind) {

@@ -46,7 +46,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 }
             };
             let (mut net, mut ally, mut val) = (calls(3, 8), calls(11, 8), calls(19, 16));
-            i64::from(crate::ai_build::wonder_lead(
+            i64::from(crate::ai::ai_build::wonder_lead(
                 rd(&p[8], 0x3c),
                 active,
                 |_| net(),

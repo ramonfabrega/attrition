@@ -43,11 +43,11 @@ fn the_emulated_original_agrees_on_every_row() {
         // (`p[25..28]` the nodes before them), `p[28]` the order base table, `p[29..37]` the pool objects
         // `get_obj` answers, `p[37..45]` the orders its slot answers.
         //
-        // **The port is the crate's own steps**, `crate::flock::add_flock_steps`; the view is the emulated
+        // **The port is the crate's own steps**, `crate::gaia::flock::add_flock_steps`; the view is the emulated
         // original's windows. The ring is the original's circular `LinkListBase` laid in the windows (and in
         // `c[9]`, byte-addressed, since a node, a list and a node may overlap there), the order's fields what
         // `Objects::add_flock` stores in line.
-        use crate::flock::{FlockView, add_flock_steps};
+        use crate::gaia::flock::{FlockView, add_flock_steps};
         use crate::world::Pos;
         #[derive(Clone, Copy)]
         enum Win {

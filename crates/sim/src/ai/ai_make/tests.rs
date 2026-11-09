@@ -39,11 +39,11 @@ fn the_make_debug_print_is_named_by_frame_and_carries_the_can_pay_inputs() {
     );
 }
 use crate::ai::CityAi;
-use crate::build::BuildType;
+use crate::cities::build::BuildType;
 use crate::economy::Resource;
 use crate::tech::{TypeDef, UnitTraits};
 use crate::world::{Cell, Terrain, UNITS_PER_TILE};
-use crate::{Pos, Tuning, UnitType, World, cost};
+use crate::{Pos, Tuning, UnitType, World, economy::cost};
 
 fn tile_pos(tx: i32, ty: i32) -> Pos {
     Pos::new(
@@ -830,7 +830,7 @@ fn the_market_draws_once_for_wealth_behind_coinage() {
     // draw at all.
     s.tables.build_types[rec].price = cost::Price::free().with_base(Resource::Food, 6);
     s.economy.ledgers[1].bucket = [0, 0, 10_000, 0, 0, 0];
-    s.economy.market.price = [50; crate::market::GOODS];
+    s.economy.market.price = [50; crate::economy::market::GOODS];
     assert_eq!(
         spent(s),
         0,

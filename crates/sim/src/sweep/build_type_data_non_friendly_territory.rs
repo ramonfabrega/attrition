@@ -57,7 +57,7 @@ fn the_emulated_original_agrees_on_every_row() {
                             rd(&p[o as usize], (0x6c + 4 * me) as usize),
                         )
                     };
-                    let rank = crate::place::ground_rank(
+                    let rank = crate::cities::place::ground_rank(
                         o,
                         me,
                         (to == 2, from == 2),

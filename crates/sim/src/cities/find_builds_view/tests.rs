@@ -117,10 +117,10 @@ fn the_list_walk_takes_the_footprint_off_both_operands() {
     let (mut s, u, b) = land(&[(0, here + 6700, here)]);
     assert!(s.find_construct_sites(u, 0x2400).is_empty());
     // x_size 4 takes 768 off each operand: 5932, distance 8898 against 9216 (10050 without).
-    let t = s.add_build_type(crate::build::BuildType {
+    let t = s.add_build_type(crate::cities::build::BuildType {
         x_size: 4,
         y_size: 4,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     s.buildings[b[0]].ty = Some(t);
     assert_eq!(s.find_construct_sites(u, 0x2400), vec![b[0]]);

@@ -36,10 +36,12 @@ fn the_emulated_original_agrees_on_every_row() {
         // then the two image-slot flags (`a[114]` slot `0xb8` as `ObjectData::is`, `a[115]` slot `0x148` as
         // `has_objmask`: the base laid, so the call goes to the type record's slot).
         //
-        // **The port is the crate's own steps**, `crate::spell_valid_target_view::is_valid_target_steps`, over a view
+        // **The port is the crate's own steps**, `crate::spells::spell_valid_target_view::is_valid_target_steps`, over a view
         // of the emulated original's windows. The crate's `Sim::spell_valid_target` is a different shape of the same
         // arms (see that module's head).
-        use crate::spell_valid_target_view::{Table, ValidTargetView, is_valid_target_steps};
+        use crate::spells::spell_valid_target_view::{
+            Table, ValidTargetView, is_valid_target_steps,
+        };
         fn rd32(w: &[u8], o: usize) -> i32 {
             i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
         }

@@ -46,13 +46,13 @@ fn the_emulated_original_agrees_on_every_row() {
         // unit types' array (entries 0 to 3 name `p18` to `p21`, entry `0x32` names `p20`); `p27` the
         // record `types[0x32]`; `p28` the text bubble.
         //
-        // **The port is the crate's own steps**, `crate::plunder::plunder_steps`, which
+        // **The port is the crate's own steps**, `crate::combat::plunder::plunder_steps`, which
         // `Sim::unit_plunder` calls over its `SimPlunder`; here the view is the emulated original's
         // windows. `LeaderDataEncrypt::scratch` is the bucket write's twin and nothing of the row
         // reads it. `wcscpy_s` is not reached: no stub can lay the pointer in the caller's local
         // that `String::reinit` would, so `reinit` answers non-zero (parked: a stub that writes
         // through its `ecx`).
-        use crate::plunder::{PlunderView, Str, plunder_steps};
+        use crate::combat::plunder::{PlunderView, Str, plunder_steps};
         struct V<'a> {
             a: &'a [i32],
             m: &'a mut [u8],

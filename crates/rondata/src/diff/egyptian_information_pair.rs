@@ -36,13 +36,13 @@ pub(crate) const EGYPTIAN_INFORMATION: Pair = Pair {
     // ours 11 draws against theirs' 10, index 1 ours' `Unit::fight+0x824`
     // (the T80DES `1/42`, TI 257) against theirs' `Unit::do_guard+0x8fb`
     // (`docs/AI.md` §367). Item 3740: 3244 → 3519, piece 54's bays
-    // (`sim::launch::BAYS`): `1/34`'s round of 3204 leaves the muzzle and
+    // (`sim::data::launch::BAYS`): `1/34`'s round of 3204 leaves the muzzle and
     // lands on 3205 on both sides; on 3519 ours 13 draws against theirs'
     // 14, index 13 theirs' `Unit::close+0xcb6` (`docs/AI.md` §367.1).
     // Item 3743: 3519 → **3797, whole**: piece 203's bays
-    // (`sim::launch::BAYS`) put the Main Battle Tank `1/55`'s round of 3514
+    // (`sim::data::launch::BAYS`) put the Main Battle Tank `1/55`'s round of 3514
     // at (5166, 30496, 553), so the Citizen `0/10` dies on 3519 on both
-    // sides, and piece 207's pivot rows (`sim::pivot::RELEASES`) put the
+    // sides, and piece 207's pivot rows (`sim::data::pivot::RELEASES`) put the
     // T80DES rounds at the muzzle (`docs/AI.md` §367.2).
     count: 3797,
     sequence: 3797,

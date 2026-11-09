@@ -28,7 +28,7 @@
 //! leader, cities then forts), the built forts' and objects' table words, and
 //! the placed records — see the `W_*` constants.
 
-use crate::location::{Konst, LocArgs, LocationView, blocked_location_steps};
+use crate::cities::location::{Konst, LocArgs, LocationView, blocked_location_steps};
 
 const R: usize = 3;
 /// The leaders that live: slot `k` of the placed records is leader `LIVE[k]`.

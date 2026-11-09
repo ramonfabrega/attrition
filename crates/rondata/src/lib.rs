@@ -98,7 +98,7 @@ pub struct TribeDef {
     /// `<UNIT_CONTINENT>`, `Tribe +0x68` — which of the six unit art
     /// styles this nation's units are drawn in, and one of the four
     /// coordinates `GraphicPieces::get_unit_gpiece` sums
-    /// (`sim::anim::PIECES_PER_STYLE`).
+    /// (`sim::units::anim::PIECES_PER_STYLE`).
     pub unit_continent: i32,
     /// `<BUILD_CONTINENT>`, `Tribe +0x64` — the nation's building art
     /// style, which `get_unit_gpiece` also reads for an unpacked merchant

@@ -22,8 +22,8 @@
 
 use crate::Sim;
 use crate::movement::{Angle, cos_component, find_angle, sin_component};
+use crate::num::single::Single;
 use crate::orders::{Body, CRUISING_ALT};
-use crate::single::Single;
 use crate::world::{Pos, UNITS_PER_CELL, vector_dist};
 
 /// The coin the bird throws when its next step would leave the world:
@@ -639,7 +639,7 @@ impl Sim {
             return false;
         };
         self.units[u].ty.is_some_and(|t| {
-            self.tables.unit_types[t].cols.unit_flags & crate::ai_load::uflags::STRAFES != 0
+            self.tables.unit_types[t].cols.unit_flags & crate::ai::ai_load::uflags::STRAFES != 0
         })
     }
 
@@ -656,7 +656,8 @@ impl Sim {
     /// `unit_flags & 0x20`, "flies like a helicopter" (`ai_load::uflags`).
     pub(crate) fn is_helicopter(&self, u: usize) -> bool {
         self.units[u].ty.is_some_and(|t| {
-            self.tables.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_HELICOPTER != 0
+            self.tables.unit_types[t].cols.unit_flags & crate::ai::ai_load::uflags::FLAG_HELICOPTER
+                != 0
         })
     }
 
@@ -714,7 +715,9 @@ impl Sim {
     /// and each step of `Guy::move` (`:190`). run371's `0/12` climbs 30 a
     /// frame to 727 over a lake bed at −273.
     pub(crate) fn helicopter_climb(&mut self, u: usize, at: Pos) {
-        if !self.is_helicopter(u) || self.unit_domain_of(u) != crate::attrition::Domain::Air {
+        if !self.is_helicopter(u)
+            || self.unit_domain_of(u) != crate::territory::attrition::Domain::Air
+        {
             return;
         }
         let ground = self.ground_z(at);
@@ -766,7 +769,7 @@ impl Sim {
                 best = Some((d, c));
             }
         };
-        let circle = crate::ai_place::circle();
+        let circle = crate::ai::ai_place::circle();
         let ring = ((range + 0x2ff) / 0x300) as usize;
         let live = self.total_units();
         if live < circle.radius[ring] {
@@ -1008,7 +1011,7 @@ impl Sim {
                     return Flew::Done;
                 }
                 if self.units[u].combat.recharging == 0 {
-                    self.set_anim(u, crate::anim::WALK, false, true);
+                    self.set_anim(u, crate::units::anim::WALK, false, true);
                 }
                 return Flew::On;
             }
@@ -1031,7 +1034,7 @@ impl Sim {
         // Barracks their patrol then takes (`docs/ORDERS.md` §34.5).
         self.moved_to(u, at, true);
         if self.units[u].combat.recharging == 0 {
-            self.set_anim(u, crate::anim::WALK, false, true);
+            self.set_anim(u, crate::units::anim::WALK, false, true);
         }
         Flew::On
     }
@@ -1150,7 +1153,7 @@ impl Sim {
                     .filter(|&o| {
                         matches!(
                             self.profile(crate::combat::Obj::Unit(o)).domain,
-                            crate::attrition::Domain::Air
+                            crate::territory::attrition::Domain::Air
                         )
                     })
                     .map(|o| (o, self.units[o].pos))
@@ -1175,7 +1178,7 @@ impl Sim {
     /// more points than there are units; the unit list otherwise. Units
     /// alive, on the map, and an enemy of `who`'s.
     fn find_units_round(&self, at: Pos, range: i32, who: crate::Player) -> Vec<usize> {
-        let circle = crate::ai_place::circle();
+        let circle = crate::ai::ai_place::circle();
         let ring = ((range.max(0) + 0x2ff) / 0x300).min(0x40) as usize;
         let live = self.total_units();
         let mut out = Vec::new();
@@ -1355,7 +1358,7 @@ impl Sim {
     /// §33): `valid_buildmask` admits it on a member that
     /// [`Sim::can_infinite`] passes — a training building with a train
     /// job queued — and the same toggle writes
-    /// [`production::Queue::infinite`](crate::production::Queue::infinite).
+    /// [`production::Queue::infinite`](crate::cities::production::Queue::infinite).
     /// run285's Barracks reads 4160 from 902. The two carried bits are
     /// the word's `0x40` and `0x80`; a mask with neither writes nothing,
     /// and the message and sound the `0x40` toggle plays for the console's
@@ -1531,7 +1534,7 @@ impl Sim {
         let chain = bd.garrison.clone();
         if !chain
             .iter()
-            .any(|&u| self.air_line_is(u, crate::airbase::BIPLANE))
+            .any(|&u| self.air_line_is(u, crate::air::airbase::BIPLANE))
         {
             return;
         }
@@ -1541,7 +1544,7 @@ impl Sim {
             if full && !self.units[u].orders.is_empty() {
                 return;
             }
-            if full && self.air_line_is(u, crate::airbase::BIPLANE) {
+            if full && self.air_line_is(u, crate::air::airbase::BIPLANE) {
                 pick = Some(u);
             }
         }
@@ -1591,7 +1594,7 @@ impl Sim {
         if (self.frame + id) % 32 != 0 {
             return;
         }
-        if self.building_ident(b) == crate::build::Ident::MissileSilo {
+        if self.building_ident(b) == crate::cities::build::Ident::MissileSilo {
             self.silo_strike(b);
             return;
         }
@@ -1638,14 +1641,14 @@ impl Sim {
         let at = self.buildings[t].pos;
         let d = vector_dist(at.x - base.x, at.y - base.y);
         for u in self.buildings[b].garrison.clone() {
-            if self.unit_domain_of(u) != crate::attrition::Domain::Air {
+            if self.unit_domain_of(u) != crate::territory::attrition::Domain::Air {
                 continue;
             }
             self.clear_orders(u);
             if d >= self.get_speed(u, 1) * self.unit_mana(u) {
                 continue;
             }
-            if self.is_ally(l, owner) && !self.air_line_is(u, crate::airbase::BIPLANE) {
+            if self.is_ally(l, owner) && !self.air_line_is(u, crate::air::airbase::BIPLANE) {
                 continue;
             }
             self.add_air_patrol_order(u, at, Some(b), false);
@@ -1690,7 +1693,7 @@ impl Sim {
     /// V2 at a silo's head over an unflagged city was never met); the
     /// forts' and wonders' loops (`650150`..`650544`), for which this
     /// crate keeps no list; the Armageddon counter (`Game +0x6e0`), which
-    /// no field here holds (`crate::nuke`), so the gate is read as open; and the friendly search's cell ring,
+    /// no field here holds (`crate::combat::nuke`), so the gate is read as open; and the friendly search's cell ring,
     /// walked here as every object of the owner's within the radius
     /// ([`Sim::enemy_object_within`]'s same reading).
     fn silo_strike(&mut self, b: usize) {
@@ -1701,7 +1704,7 @@ impl Sim {
         let Some(&m) = self.buildings[b].garrison.first() else {
             return;
         };
-        if !self.air_line_is(m, crate::airbase::NUCLEARMISSILE) {
+        if !self.air_line_is(m, crate::air::airbase::NUCLEARMISSILE) {
             return;
         }
         let owner = self.buildings[b].owner;
@@ -1772,7 +1775,7 @@ impl Sim {
         self.buildings.iter().enumerate().any(|(x, bd)| {
             bd.alive
                 && self.is_enemy(bd.owner, who)
-                && self.building_ident(x) == crate::build::Ident::AirDefense
+                && self.building_ident(x) == crate::cities::build::Ident::AirDefense
                 && {
                     let p = bd.pos.tile();
                     vector_dist(p.x - a.x, p.y - a.y) <= 0x900 / 0xc0
@@ -1794,7 +1797,7 @@ impl Sim {
     /// in flight — the trace's `Ammo::init+0xae8`/`+0xb25` on 2701, ahead
     /// of every draw of the frame's gaia.
     pub(crate) fn do_missile_launch(&mut self, b: usize) {
-        if self.building_ident(b) != crate::build::Ident::MissileSilo {
+        if self.building_ident(b) != crate::cities::build::Ident::MissileSilo {
             return;
         }
         if self.buildings[b].launching.is_empty() {
@@ -1810,7 +1813,7 @@ impl Sim {
         // strike shows the silo to everyone, `+0x40` (`visible`) `0xff`,
         // then vslot `0x164`, `Wall::update_local_seen@0063ed50`, whose
         // seen bits nothing here reads.
-        if self.air_line_is(u, crate::airbase::NUCLEARMISSILE)
+        if self.air_line_is(u, crate::air::airbase::NUCLEARMISSILE)
             && matches!(
                 self.current_order(u).map(|o| o.body),
                 Some(crate::orders::Body::AirAttackGround(_))
@@ -1850,7 +1853,7 @@ impl Sim {
         else {
             return;
         };
-        // **A flock's bird** (`crate::flock`): its `do_air_physics` leaves
+        // **A flock's bird** (`crate::gaia::flock`): its `do_air_physics` leaves
         // `recharging` at 1, so the `+0xae` test below returns on every
         // frame it flies.
         if self.is_flockbird(u) {
@@ -1888,7 +1891,7 @@ impl Sim {
             self.missile_dies(u);
             return;
         }
-        self.set_anim(u, crate::anim::ATTACK2, false, true);
+        self.set_anim(u, crate::units::anim::ATTACK2, false, true);
         self.units[u].combat.recharging = self.reload_frames(u) + 1;
     }
 
@@ -1948,7 +1951,7 @@ impl Sim {
         );
         // A nuke's scatter is 0 (`67c64b`: `is(0x13b)` zeroes it where a V2
         // doubles it), and `s − 1 < 1` takes neither draw (item 1091).
-        let s = if self.air_line_is(u, crate::airbase::NUCLEARMISSILE) {
+        let s = if self.air_line_is(u, crate::air::airbase::NUCLEARMISSILE) {
             0
         } else {
             crate::combat::scatter(&self.tables.tuning, acc, true, true, false)
@@ -1956,9 +1959,9 @@ impl Sim {
         let mut landing = at;
         // `s − 1 < 1` (`local_28`) takes no draw.
         if s > 1 {
-            self.mark(crate::fight::SITE_AMMO_GROUND_SCATTER_X);
+            self.mark(crate::combat::fight::SITE_AMMO_GROUND_SCATTER_X);
             landing.x += self.rng.roll() % s - s / 2;
-            self.mark(crate::fight::SITE_AMMO_GROUND_SCATTER_Y);
+            self.mark(crate::combat::fight::SITE_AMMO_GROUND_SCATTER_Y);
             landing.y += self.rng.roll() % s - s / 2;
         }
         let ez = self.ground_z(at).max(0);
@@ -2130,7 +2133,7 @@ impl Sim {
     }
 
     fn land_plane(&mut self, u: usize) {
-        crate::land_plane_view::land_plane_steps(&mut SimLand { sim: self, u });
+        crate::air::land_plane_view::land_plane_steps(&mut SimLand { sim: self, u });
     }
 
     fn current_strafe(&self, u: usize) -> Option<crate::orders::StrafeOrder> {
@@ -2215,7 +2218,7 @@ impl Sim {
     /// `|guy.z − find_tcoord_z| ≤ 199`), and none of the three arms: it
     /// levels its wings off the runway before it turns.
     ///
-    /// **An animal** — a flock's bird (`crate::flock`) — takes two arms a
+    /// **An animal** — a flock's bird (`crate::gaia::flock`) — takes two arms a
     /// plane never does (`005e9520`): with its bank settled and its
     /// `spell_time` not negative it skips the whole call every eighth
     /// frame (`frame & 7`, the game's own), and the ground test is an
@@ -2396,7 +2399,10 @@ impl Sim {
         if off > 0x4000_0000 {
             return cruise;
         }
-        if matches!(self.profile(t).domain, crate::attrition::Domain::Air) {
+        if matches!(
+            self.profile(t).domain,
+            crate::territory::attrition::Domain::Air
+        ) {
             let crate::combat::Obj::Unit(tu) = t else {
                 return cruise;
             };
@@ -2437,7 +2443,7 @@ impl Sim {
         speed: &mut i32,
         returning: bool,
     ) {
-        // **An animal** — a flock's bird (`crate::flock`) — skips the
+        // **An animal** — a flock's bird (`crate::gaia::flock`) — skips the
         // whole call with its pitch level and its `spell_time` not
         // negative on `(frame + 3) & 7 == 0` (`005e8de0`, the opening
         // test), and inside it takes three arms of its own: no cap at
@@ -2613,7 +2619,7 @@ pub(crate) fn flying_high_by(
 ) -> bool {
     fixed_wing && on_map() && !low()
 }
-/// [`crate::land_plane_view::LandPlaneView`] over the sim (item 3396): the
+/// [`crate::air::land_plane_view::LandPlaneView`] over the sim (item 3396): the
 /// walk `Unit::land_plane@005e9950` makes, on a plane.
 ///
 /// **Not modelled**: the `SpecialAnimOrder` the original adds, the home words it
@@ -2627,7 +2633,7 @@ struct SimLand<'a> {
     u: usize,
 }
 
-impl crate::land_plane_view::LandPlaneView for SimLand<'_> {
+impl crate::air::land_plane_view::LandPlaneView for SimLand<'_> {
     type Home = usize;
 
     fn is_animal(&mut self) -> bool {
@@ -2926,7 +2932,7 @@ impl Sim {
     /// `+0x2b4 & 0x20` clear, `+0x1e4 & 0x8000000` clear).
     pub(crate) fn is_fixed_wing(&self, u: usize) -> bool {
         let p = self.profile(crate::combat::Obj::Unit(u));
-        matches!(p.domain, crate::attrition::Domain::Air)
+        matches!(p.domain, crate::territory::attrition::Domain::Air)
             && !self.is_helicopter(u)
             && !p.has(crate::combat::mask::MISSILE)
     }
@@ -3012,7 +3018,10 @@ impl Sim {
     pub(crate) fn anti_air_keeps_angle(&self, u: usize, target: crate::combat::Obj) -> bool {
         use crate::combat::{Obj, mask};
         self.profile(Obj::Unit(u)).has(mask::ANTI_AIR)
-            && matches!(self.profile(target).domain, crate::attrition::Domain::Air)
+            && matches!(
+                self.profile(target).domain,
+                crate::territory::attrition::Domain::Air
+            )
     }
 
     /// **`Objects::kill_guy@00659410`'s plane arm** (item 1102,
@@ -3190,7 +3199,7 @@ impl Sim {
         let tp = self.profile(target);
         let low = self.is_flying_low(t);
         if sp.has(mask::ANTI_AIR) {
-            if matches!(sp.domain, crate::attrition::Domain::Air) {
+            if matches!(sp.domain, crate::territory::attrition::Domain::Air) {
                 return Some(false);
             }
             self.mark(if low { SITE_FLAK_LOW } else { SITE_FLAK_HIGH });
@@ -3550,7 +3559,12 @@ impl PatrolView for SimPatrol<'_> {
     }
 
     fn target_flies(&self, t: Self::Target) -> bool {
-        t.is_some_and(|t| matches!(self.sim.profile(t).domain, crate::attrition::Domain::Air))
+        t.is_some_and(|t| {
+            matches!(
+                self.sim.profile(t).domain,
+                crate::territory::attrition::Domain::Air
+            )
+        })
     }
 
     fn strafe(&mut self, t: Self::Target, mandatory: bool) {

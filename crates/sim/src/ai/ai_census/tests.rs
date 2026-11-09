@@ -1,9 +1,9 @@
 use super::*;
-use crate::build::{BuildType, Ident, flags};
-use crate::garrison::UnitTraits;
+use crate::cities::build::{BuildType, Ident, flags};
 use crate::orders::{GatherOrder, Order};
+use crate::units::garrison::UnitTraits;
 use crate::world::{TILES_PER_CELL, UNITS_PER_TILE, World};
-use crate::{Tuning, Unit, UnitType, cost, economy};
+use crate::{Tuning, Unit, UnitType, economy, economy::cost};
 
 fn tile_pos(tx: i32, ty: i32) -> Pos {
     Pos::new(
@@ -762,7 +762,7 @@ fn the_site_picture_counts_the_open_cells_of_the_circle() {
     // The radius is the city's own `get_radius` — 20 tiles for a level
     // one city — so `(20 + 2) / 4 = 5` picks `circle_radius[5]`, and
     // the inner cutoff is `circle_radius[5]` too... one ring in.
-    let circle = crate::ai_place::circle();
+    let circle = crate::ai::ai_place::circle();
     assert!(rec.land > 0, "an empty map is all open");
     assert!(
         (rec.land as usize) < circle.radius[5],
@@ -790,7 +790,7 @@ fn the_site_picture_counts_the_open_cells_of_the_circle() {
 /// second takes one cell off `land`.
 #[test]
 fn the_circle_walk_starts_at_entry_one() {
-    let circle = crate::ai_place::circle();
+    let circle = crate::ai::ai_place::circle();
     let inner = circle.radius[5];
     let land_with = |owned: Option<(i32, i32)>| {
         let mut f = fix();

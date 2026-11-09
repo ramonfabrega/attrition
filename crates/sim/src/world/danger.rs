@@ -17,13 +17,13 @@
 //! The specification is `docs/DANGER.md`.
 
 use crate::Player;
-use crate::build;
+use crate::cities::build;
 use crate::combat::Obj;
 use crate::world::Pos;
 
 /// The eight neighbours the spread reaches, in the executable's own tables
 /// — `move_x + 4` at `0xadcaf4` and `move_y + 4` at `0xadc404`, read out of
-/// the PE. They are exactly `crate::path`'s `MOVE_X[1..=8]`/`MOVE_Y[1..=8]`,
+/// the PE. They are exactly `crate::movement::path`'s `MOVE_X[1..=8]`/`MOVE_Y[1..=8]`,
 /// which is why the danger footprint is a 3×3 block and not a disc.
 const SPREAD: [(i32, i32); 8] = [
     (-1, -1),
@@ -100,7 +100,7 @@ impl crate::Sim {
                     && u.ty.is_some_and(|t| {
                         self.tables.unit_types[t]
                             .cols
-                            .is(crate::ai_load::role::ROLE_MILITARY)
+                            .is(crate::ai::ai_load::role::ROLE_MILITARY)
                     })
             })
             .map(|i| {

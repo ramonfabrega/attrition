@@ -48,7 +48,7 @@ fn the_emulated_original_agrees_on_every_row() {
             }
         }
         let (mut used, mut hero, mut cast) = (0usize, 0usize, Vec::new());
-        crate::army::generals_walk(
+        crate::ai::army::generals_walk(
             &mut (),
             members,
             |_, _| {

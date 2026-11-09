@@ -41,7 +41,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 at = i16::from_le_bytes([p[1 + at as usize][0x74], p[1 + at as usize][0x75]]);
             }
             let mut k = 0usize;
-            i64::from(crate::city::count_typed(
+            i64::from(crate::cities::city::count_typed(
                 chain,
                 |b| p[1 + b][8] & 1 != 0,
                 (a[2] != 0).then_some(|b: usize| p[1 + b][8] & 4 != 0),

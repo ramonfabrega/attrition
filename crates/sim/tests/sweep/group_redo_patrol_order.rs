@@ -34,9 +34,9 @@ fn the_emulated_original_agrees_on_every_row() {
         // (arrays `p[32]`/`p[33]`). `a`: the two arguments, the stubs' answers (`a[2..9]`), then the `--seq`
         // runs of stubs 1, 2 and 3 (`a[9..13]`, `a[13..17]`, `a[17..21]`).
         //
-        // **The port is the crate's own steps**, `crate::redo_patrol_view::redo_patrol_order_steps`, which
+        // **The port is the crate's own steps**, `crate::groups::redo_patrol_view::redo_patrol_order_steps`, which
         // `Sim::group_redo_patrol_order` runs over its `SimRedoPatrol`; here the view is the original's windows.
-        use crate::redo_patrol_view::{RedoPatrolView, redo_patrol_order_steps};
+        use crate::groups::redo_patrol_view::{RedoPatrolView, redo_patrol_order_steps};
         struct V<'a> {
             a: &'a [i32],
             m: &'a [u8],

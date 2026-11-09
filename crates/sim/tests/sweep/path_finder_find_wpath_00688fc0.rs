@@ -29,7 +29,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let _ = (&a, &m, &c, &p);
         {
             // **The port is the crate's own steps**,
-            // `crate::wpath::find_wpath_steps`, which `Sim::find_wpath_from`
+            // `crate::movement::wpath::find_wpath_steps`, which `Sim::find_wpath_from`
             // runs over its `SimWpath`; here the view is the emulated
             // original's windows.
             //
@@ -67,9 +67,9 @@ fn the_emulated_original_agrees_on_every_row() {
             // the order `update_order` answers (`+4` flags), `p13` the entry
             // `Stack::pop` answers (`+0xc` flags).
             use crate::Pos;
+            use crate::movement::wpath::{SeenSite, TregionSite, WpathView, find_wpath_steps};
             use crate::orders::PathData;
             use crate::world::Cell;
-            use crate::wpath::{SeenSite, TregionSite, WpathView, find_wpath_steps};
             fn rd32(w: &[u8], o: usize) -> i32 {
                 i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
             }

@@ -76,16 +76,16 @@ impl Sim {
     pub(crate) fn target_opportunity_in(&mut self, victim: usize, attacker: Obj, from_group: bool) {
         // **The head** (`5fffe1`..`60010b`): the diplomacy gate, the group arm
         // and the captain walk, `valid_target` and the hold-fire return, as
-        // [`crate::topp::target_opportunity_head`] over [`crate::topp::SimTopp`]
+        // [`crate::orders::topp::target_opportunity_head`] over [`crate::orders::topp::SimTopp`]
         // (item 3348, swept). The gate and the group arm run at each level of
         // the walk, and `param_3` is zero from the second level on.
-        let responder = match crate::topp::target_opportunity_head(
-            &mut crate::topp::SimTopp { sim: self },
+        let responder = match crate::orders::topp::target_opportunity_head(
+            &mut crate::orders::topp::SimTopp { sim: self },
             victim,
             attacker,
             from_group,
         ) {
-            crate::topp::Head::Go(u) => u,
+            crate::orders::topp::Head::Go(u) => u,
             _ => return,
         };
         let me = Obj::Unit(responder);
@@ -209,7 +209,7 @@ impl Sim {
     /// (`005f5da6`..): arm 1 never applies there.
     pub(crate) fn group_target_opportunity(
         &mut self,
-        seat: crate::group::Seat,
+        seat: crate::groups::group::Seat,
         attacker: Obj,
         asker: usize,
         from_think: bool,
@@ -516,12 +516,12 @@ impl Sim {
         let Obj::Unit(v) = attacker else {
             return false;
         };
-        if self.unit_domain_of(v) != crate::attrition::Domain::Land {
+        if self.unit_domain_of(v) != crate::territory::attrition::Domain::Land {
             return false;
         }
         let who = self.units[u].owner;
         for (line, s) in [
-            (crate::scout::SPY, crate::orders::spell::BRIBE),
+            (crate::units::think::scout::SPY, crate::orders::spell::BRIBE),
             (COMMANDO, 0x280),
         ] {
             if !self.unit_line_is(u, line) {
@@ -683,7 +683,7 @@ impl Sim {
         let flags = self.melee_search_flags_with(i, word);
         let found = self.find_nearby_target_as(me, radius, flags, cavarch);
         if found.is_none() && self.fires_on_move(i) {
-            let n = self.units[i].guys.len().min(crate::anim::SQUAD_SIZE);
+            let n = self.units[i].guys.len().min(crate::units::anim::SQUAD_SIZE);
             for g in 0..n {
                 self.reset_pivots(i, g);
             }
@@ -696,7 +696,7 @@ impl Sim {
     /// (the signed halving, `cltd; sub; sar`), plus half a turn when
     /// `hi < lo` — the wrapped arc. `param_1 == 0` leaves the turret's own
     /// angle and both node-flag words alone; the turret walks back by
-    /// [`crate::anim::Turret::step`].
+    /// [`crate::units::anim::Turret::step`].
     pub(crate) fn reset_pivots(&mut self, i: usize, g: usize) {
         let Some(ty) = self.units[i].ty else {
             return;
@@ -800,7 +800,7 @@ impl Sim {
 
     /// [`Sim::find_nearby_target_with`] with the original's fourth
     /// argument, `cavarch` — the fire on the move's search
-    /// ([`crate::cavarch`]). `00648f42`'s first arm takes it with a unit
+    /// ([`crate::combat::cavarch`]). `00648f42`'s first arm takes it with a unit
     /// that is not a unit (`param_4 != 0`): `local_54` (on duty) 0,
     /// `local_24` (must reach) 1 and `local_2c` (guarding) 0, so neither
     /// the guard's post nor the computer's packed-siege shortcut is
@@ -1220,15 +1220,15 @@ impl Sim {
                     return None;
                 }
                 class = 5;
-            } else if ty.is_some_and(|t| crate::build::is_defensive(types, t))
+            } else if ty.is_some_and(|t| crate::cities::build::is_defensive(types, t))
                 && !self.profile(Obj::Building(b)).has(mask::ANTI_AIR)
             {
                 class = if ai { 40 } else { 4 };
-            } else if ty.is_some_and(|t| crate::build::is_military_trainer(types, t)) {
+            } else if ty.is_some_and(|t| crate::cities::build::is_military_trainer(types, t)) {
                 class = 3;
                 if !ai
                     && ty.is_some_and(|t| {
-                        crate::build::is(types, t, crate::build::Ident::MissileSilo)
+                        crate::cities::build::is(types, t, crate::cities::build::Ident::MissileSilo)
                     })
                     && (!bd.queue.items.is_empty() || !bd.garrison.is_empty())
                 {
@@ -1242,7 +1242,7 @@ impl Sim {
                 {
                     class *= 5000;
                 }
-            } else if ty.is_some_and(|t| crate::build::is_training_building(types, t)) {
+            } else if ty.is_some_and(|t| crate::cities::build::is_training_building(types, t)) {
                 class = 2;
             }
         }
@@ -1359,7 +1359,7 @@ impl Sim {
             && (self.fires_on_move(i)
                 || (self.buildings[b]
                     .ty
-                    .is_some_and(|t| crate::build::is_dock(&self.tables.build_types, t))
+                    .is_some_and(|t| crate::cities::build::is_dock(&self.tables.build_types, t))
                     && !ap.has(mask::SIEGE)))
         {
             return 0;
@@ -1513,7 +1513,7 @@ impl Sim {
             // Commando `0/7` sabotaging the Tank `1/7` outranks every decoy.
             if let Obj::Unit(u) = target
                 && self.units[u].ty.is_some_and(|t| {
-                    self.tables.unit_types[t].cols.unit_flags2 & crate::ai_load::uflags2::CASTER
+                    self.tables.unit_types[t].cols.unit_flags2 & crate::ai::ai_load::uflags2::CASTER
                         != 0
                 })
             {
@@ -1568,7 +1568,7 @@ impl Sim {
                 };
                 let moving_fire = |o: Obj| flags_of(o) & uflags::FIRES_ON_MOVE != 0;
                 if line(attacker, FIRESHIP) {
-                    if line(target, crate::fish::FISHERMEN) {
+                    if line(target, crate::units::think::fish::FISHERMEN) {
                         return 0;
                     }
                     if moving_fire(target) {
@@ -1578,7 +1578,7 @@ impl Sim {
                     v = v.wrapping_add(1_000_000);
                 } else if flags_of(target) & uflags::FLAG_TRANSPORT != 0 {
                     v = v.wrapping_add(900_000);
-                } else if line(target, crate::fish::FISHERMEN) {
+                } else if line(target, crate::units::think::fish::FISHERMEN) {
                     v = v.wrapping_add(100_000);
                 } else if tp.combat_role {
                     v = v.wrapping_add(10_000);

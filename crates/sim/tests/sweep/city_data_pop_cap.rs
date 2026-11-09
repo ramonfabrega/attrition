@@ -1,7 +1,7 @@
 //! `CityData::pop_cap@00737d40` under the emulator against the port (item 2038; hand-written on tools/emu/hooks.py).
 
 use crate::Tuning;
-use crate::cost::CityLevel;
+use crate::economy::cost::CityLevel;
 
 /// `CityData::pop_cap@00737d40`, run by `tools/emu/sweep_city_data_pop_cap.py` under unicorn (tools/emu): the
 /// city's own object is asked once for its data record, and its type id picks the multiple of `VILLAGE_POP` —

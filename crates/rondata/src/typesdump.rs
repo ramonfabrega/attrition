@@ -9,7 +9,7 @@
 //! lines. Every field is the program's own loaded value — `obj_masks` as the
 //! folded word, `age` as `ObjectTypeData::get_age` returns it, `from`/`graft`
 //! as resolved `TypeIndex`es — so this is the oracle for the *inputs* of
-//! `sim::balance::Kind` as well as for its output, the table.
+//! `sim::combat::balance::Kind` as well as for its output, the table.
 //!
 //! The file is 150 MB; [`crate::gamelog::Log`] would hold it whole, so this
 //! reader streams it and keeps only what it is asked for.
@@ -364,7 +364,7 @@ impl Report {
 /// this under `--types`; the install-gated test below runs it against run3's
 /// dump on every `cargo test`, so the check cannot be skipped by omission.
 pub fn compare(loaded: &crate::load::Loaded, dump: &TypesDump, verbose: bool) -> Report {
-    use sim::attrition::Domain;
+    use sim::territory::attrition::Domain;
 
     let mut r = Report::default();
     let units = dump.units();

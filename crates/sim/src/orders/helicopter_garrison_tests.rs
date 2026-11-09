@@ -1,21 +1,21 @@
-use crate::attrition::Domain;
-use crate::group::Group;
+use crate::groups::group::Group;
 use crate::orders::{Body, QueuePos, flag};
+use crate::territory::attrition::Domain;
 use crate::world::Pos;
 use crate::{Sim, Unit, UnitType};
 
 /// who=0's Airbase (garrison column 0) and a Helicopter beside it.
 fn airbase_and_helicopter() -> (Sim, usize, usize) {
     let mut s = Sim::new(
-        crate::tuning::Tuning::RON,
+        crate::core::tuning::Tuning::RON,
         crate::world::World::new(128, 128),
         2,
     );
     s.cities.nation[0].human = true;
     s.frame = 1260;
-    let airbase = s.add_build_type(crate::build::BuildType {
-        ident: crate::build::Ident::Airbase,
-        ..crate::build::BuildType::default()
+    let airbase = s.add_build_type(crate::cities::build::BuildType {
+        ident: crate::cities::build::Ident::Airbase,
+        ..crate::cities::build::BuildType::default()
     });
     let base = s.add_building(0, Pos::new(7680, 19200), 0);
     s.buildings[base].ty = Some(airbase);
@@ -25,15 +25,15 @@ fn airbase_and_helicopter() -> (Sim, usize, usize) {
         hits: 100,
         moves: 100,
         mana: 400,
-        kind: crate::attrition::UnitKind {
+        kind: crate::territory::attrition::UnitKind {
             domain: Domain::Air,
-            ..crate::attrition::UnitKind::default()
+            ..crate::territory::attrition::UnitKind::default()
         },
         ..UnitType::default()
     };
-    t.cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
+    t.cols.unit_flags |= crate::ai::ai_load::uflags::FLAG_HELICOPTER;
     let ty = s.add_unit_type(t);
-    s.tables.unit_types[ty].tree = Some(crate::airbase::HELICOPTER);
+    s.tables.unit_types[ty].tree = Some(crate::air::airbase::HELICOPTER);
     s.tables.unit_types[ty].garrison.trained_at = Some(airbase);
     let index = i16::try_from(s.units.len()).unwrap();
     let mut u = Unit::new(0, index, Pos::new(8568, 18168), 100);

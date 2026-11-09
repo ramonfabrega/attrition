@@ -1,6 +1,6 @@
 //! `UnitData::is_gov_hero@0046ce70` under the emulator against the port (item 1694).
 
-use crate::ai_load::UnitCols;
+use crate::ai::ai_load::UnitCols;
 
 /// `UnitData::is_gov_hero@0046ce70`, run by `tools/emu/sweep_unit_is_gov_hero.py` under unicorn
 /// (tools/emu): `unit_flags` (`type+0x2b4`) `& 0x4000000` through the unit's type pointer, over every bit edge and a seeded band, against `UnitCols::flag(0x400_0000)` — the bit the port names as the same predicate.

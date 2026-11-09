@@ -11,8 +11,8 @@ fn wr(m: &mut [u8], off: usize, v: i32) {
 }
 
 // hand: view
-use crate::carry_idle::{CarryIdleView, think_carry_idle_steps};
 use crate::movement::Angle;
+use crate::units::think::carry_idle::{CarryIdleView, think_carry_idle_steps};
 use crate::world::Pos;
 
 /// The position key: the stored words are xor this.

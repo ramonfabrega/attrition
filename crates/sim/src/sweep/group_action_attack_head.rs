@@ -32,9 +32,9 @@ fn the_emulated_original_agrees_on_every_row() {
             // flag, `c[1..=3]` the counts of `objects_ignoring_orders[0..=2]`; `p[0]` the list the player's entry
             // points at. `a`: the five arguments, one answer a stub (`a[5 + k]`).
             //
-            // **The port is the crate's own head**, `crate::attack_view::attack_head`; the call ends at the
+            // **The port is the crate's own head**, `crate::groups::attack_view::attack_head`; the call ends at the
             // group's refresh slot (`--stop-stub 1`), as the steps' next call.
-            use crate::attack_view::{AttackHead, attack_head};
+            use crate::groups::attack_view::{AttackHead, attack_head};
             struct V<'a> {
                 a: &'a [i32],
                 m: &'a [u8],

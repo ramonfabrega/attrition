@@ -1,6 +1,6 @@
 //! `BuildTypeData::get_good@0063bd50` under the emulator against the port.
 
-use crate::build::Ident;
+use crate::cities::build::Ident;
 
 /// The `TypeIndex` of each identity the port's `ai_place::gather_good` names,
 /// as `docs/AI.md` §99.5 and `ai_make.rs` cite them (`0x1a1` Farm, `0x1a2`
@@ -43,7 +43,7 @@ fn the_emulated_original_agrees_on_every_row() {
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (args, want) = super::row(line);
-        let ours = crate::ai_place::gather_good(ident_of_type_index(args[0]))
+        let ours = crate::ai::ai_place::gather_good(ident_of_type_index(args[0]))
             .map_or(-1, |g| i64::try_from(g).expect("a small index"));
         assert_eq!(ours, want, "get_good(type {:#x}) — row `{line}`", args[0]);
         n += 1;

@@ -4,8 +4,8 @@
 //! arm of it: the eight-sided ring walk around the target's footprint,
 //! two arms in opposite directions, one draw per candidate that clears
 //! the four rejections, lowest `vector_dist + draw % 0xc0` kept, and the
-//! budget that caps a call at [`crate::fight::ATTACK_POS_CAP_RANGED`]
-//! draws on the ranged arm and [`crate::fight::ATTACK_POS_CAP_NEAR`] on
+//! budget that caps a call at [`crate::combat::fight::ATTACK_POS_CAP_RANGED`]
+//! draws on the ranged arm and [`crate::combat::fight::ATTACK_POS_CAP_NEAR`] on
 //! the near one.
 //!
 //! **What is here and what is not.** The ring is entered when the target
@@ -19,7 +19,7 @@
 //! minimum-range asker standing inside its own dead zone. Each is named
 //! where it is skipped.
 
-use crate::collide::{UCELLS_PER_CELL, UNITS_PER_UCELL};
+use crate::movement::collide::{UCELLS_PER_CELL, UNITS_PER_UCELL};
 
 /// `-0x44` at `601425`: `max(0x600, (max_range + 4) × 0xc0)`, the
 /// distance from which a mandatory melee asker with no open slot walks to
@@ -31,10 +31,10 @@ fn melee_far(max_range: i32) -> i32 {
 /// Quarter-tiles to a tile — the `>> 2` `find_open_slots` applies before
 /// asking `invalid_loc` (`600f47`, `600f5e`).
 const UCELLS_PER_UTILE: i32 = 4;
-use crate::attrition::Domain;
 use crate::combat::{self, Obj};
 use crate::movement::{Angle, cos_component, sin_component};
 use crate::orders::{Order, snapped};
+use crate::territory::attrition::Domain;
 use crate::world::{Pos, tile, vector_dist};
 
 /// What [`Sim::chase_lead`] makes of a moving unit target.
@@ -517,7 +517,7 @@ impl crate::Sim {
                     return Lead::None;
                 }
                 let d = vector_dist(t.x - a.x, t.y - a.y) / mine * theirs * 3 / 2;
-                let c = crate::army::step_along(t, heading, d);
+                let c = crate::ai::army::step_along(t, heading, d);
                 if self.in_world(c) {
                     Lead::Ahead(c)
                 } else {
@@ -598,7 +598,7 @@ impl crate::Sim {
         let mine = self.coll_size(u);
         let hoplites = self.profile(me).hoplites;
         let theirs = self.coll_size(t);
-        let c = crate::collide::ucell(self.units[t].pos);
+        let c = crate::movement::collide::ucell(self.units[t].pos);
         let dims = (self.world.width(), self.world.height());
         find_open_slots_steps(mine, theirs, hoplites, c, dims, |at, tl| {
             self.invalid_loc(u, tl, false, false, false, false, true) == 0

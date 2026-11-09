@@ -14,7 +14,7 @@
 //! walks the old city's members), the allied circle sweep after
 //! `find_buildings`, the plunder, the close lists and everything after.
 
-use crate::build::{self, Ident, flags};
+use crate::cities::build::{self, Ident, flags};
 use crate::combat::Obj;
 use crate::{Player, Sim};
 

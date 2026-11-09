@@ -39,9 +39,11 @@ fn the_emulated_original_agrees_on_every_row() {
             // arguments, the stubs' answers (`a[9..21]`), every `--seq` run (`SEQ_AT`) and the `+0xb8`
             // flag.
             //
-            // **The port is the crate's own head**, `crate::take_damage_view::take_damage_head`; here
+            // **The port is the crate's own head**, `crate::combat::take_damage_view::take_damage_head`; here
             // the view is the emulated original's windows.
-            use crate::take_damage_view::{HeadOut, TakeDamageHead, TdArgs, take_damage_head};
+            use crate::combat::take_damage_view::{
+                HeadOut, TakeDamageHead, TdArgs, take_damage_head,
+            };
             const SEQ_AT: [(usize, usize, usize); 6] = [
                 (1, 21, 4),
                 (2, 25, 4),

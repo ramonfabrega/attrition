@@ -33,12 +33,12 @@ fn the_emulated_original_agrees_on_every_row() {
             // leader l's city i is p(11 + 2l + i), leader l's flags p(l).
             // Stub 0's answers come in call order: a[1..6], the last held.
             let n = rd(m, 0x78);
-            let routes: Vec<crate::caravan::TradeRoute> = (0..n.max(0) as usize)
+            let routes: Vec<crate::economy::caravan::TradeRoute> = (0..n.max(0) as usize)
                 .map(|i| {
                     let (k, l) = (rd(&p[2], 8 * i), rd(&p[2], 8 * i + 4));
                     let r = &p[5 + 2 * l as usize + k as usize];
                     let h = |o: usize| i32::from(i16::from_le_bytes([r[o], r[o + 1]]));
-                    crate::caravan::TradeRoute {
+                    crate::economy::caravan::TradeRoute {
                         delivered: r[0xc] & 4 != 0,
                         a: (h(0), h(2)),
                         b: (h(4), h(6)),
@@ -47,7 +47,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 .collect();
             let owner = i32::from(m[0x5e] as i8);
             let mut calls: Vec<String> = Vec::new();
-            let val = crate::caravan::compute_trade_steps(
+            let val = crate::economy::caravan::compute_trade_steps(
                 owner,
                 routes,
                 |c, l| p[11 + 2 * l as usize + c as usize][4] & 1 != 0,

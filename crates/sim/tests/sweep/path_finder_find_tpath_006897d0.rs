@@ -29,7 +29,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let _ = (&a, &m, &c, &p);
         {
             // **The port is the crate's own steps**,
-            // `crate::tpath::find_tpath_steps`, which `Sim::find_tpath` runs
+            // `crate::movement::tpath::find_tpath_steps`, which `Sim::find_tpath` runs
             // over its `SimTpath`; here the view is the emulated original's
             // windows.
             //
@@ -58,8 +58,8 @@ fn the_emulated_original_agrees_on_every_row() {
             // `update_order` answers, `p9` the `MoveOrder` its slot `+0x40`
             // answers (`+0x4c`/`+0x4e`).
             use crate::Pos;
+            use crate::movement::tpath::{TpathView, find_tpath_steps};
             use crate::orders::PathData;
-            use crate::tpath::{TpathView, find_tpath_steps};
             fn rd32(w: &[u8], o: usize) -> i32 {
                 i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
             }

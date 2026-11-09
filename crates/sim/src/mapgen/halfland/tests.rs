@@ -1,5 +1,5 @@
 use super::*;
-use crate::terrain_init::coord_flags;
+use crate::mapgen::terrain_init::coord_flags;
 
 const COMBO: Combo = Combo {
     coast_base: 3,

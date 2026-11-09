@@ -38,7 +38,7 @@ pub(crate) const IROQUOIS_ENLIGHTENMENT: Pair = Pair {
     // `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`
     // (`docs/AI.md` §337). Item 3655: **5128 of 5128, the pair whole** —
     // the Bomb Ketch's piece 297 releases through its pivots
-    // (`sim::pivot::RELEASES`), so `1/82`'s round leaves (4013, 12593, 133)
+    // (`sim::data::pivot::RELEASES`), so `1/82`'s round leaves (4013, 12593, 133)
     // and lands on 3962 on both sides.
     count: 5128,
     sequence: 5128,
@@ -266,7 +266,7 @@ fn iroquois_enlightenment_pair_run1291b_s_word_frame_is_widened_whole() {
     // first to part is `1/82`'s, on the window's first block, fired in the
     // undumped gap 3902..3955 on both sides: ours leaves from (3912, 12792,
     // 0) and flies 43, theirs from (4013, 12593, 133) and flies 41 — the
-    // Bomb Ketch has no launch row (`sim::launch`'s `BAYS`). Every round
+    // Bomb Ketch has no launch row (`sim::data::launch`'s `BAYS`). Every round
     // that parts is a Bomb Ketch's (`1/64`, `1/65`, `1/80`, `1/82`, all
     // TypeIndex 347), from the same launch point (`sz` 0 against 130–133).
     // Item 3655: with piece 297's pivot rows every round agrees — 301 a

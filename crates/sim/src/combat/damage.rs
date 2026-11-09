@@ -14,10 +14,10 @@
 //! Arithmetic is the original's own 32-bit: a product wraps, a quotient
 //! truncates, and `/ 256` is the compiler's signed shift.
 
-use crate::attrition::Domain;
 use crate::combat::{Modifiers, Profile, Side, mask, role, shr8};
+use crate::core::tuning::Tuning;
 use crate::movement::Angle;
-use crate::tuning::Tuning;
+use crate::territory::attrition::Domain;
 
 /// The rules record's fields `ObjectData::get_damage@00644130` reads (`GameAccessConst::constantsc`).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

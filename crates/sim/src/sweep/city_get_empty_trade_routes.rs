@@ -1,7 +1,7 @@
 //! `CityData::get_empty_trade_routes@007395c0` against the port.
 
-use crate::caravan::Caravan;
-use crate::city::City;
+use crate::cities::city::City;
+use crate::economy::caravan::Caravan;
 use crate::world::{Cell, Terrain, World};
 use crate::{Pos, Sim, Tuning, Unit};
 

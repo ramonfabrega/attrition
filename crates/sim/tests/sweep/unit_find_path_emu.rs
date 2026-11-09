@@ -4,7 +4,7 @@
 //! three entries pushed, so the detour's equality tests meet).
 
 use crate::Pos;
-use crate::find_path_view::{FindPathView, PathEntry, find_path_steps};
+use crate::movement::find_path_view::{FindPathView, PathEntry, find_path_steps};
 use crate::movement::{Angle, cos_component, find_angle, sin_component};
 
 fn rd(m: &[u8], off: usize) -> i32 {
@@ -23,7 +23,7 @@ pub(crate) fn run(
     log: &mut Vec<String>,
     pushes: i32,
 ) -> i64 {
-    // **The port is the crate's own steps** (`crate::find_path_view::find_path_steps`, which
+    // **The port is the crate's own steps** (`crate::movement::find_path_view::find_path_steps`, which
     // `Sim::find_path` runs over its `SimFindPath`); the view is the emulated original's windows.
     // Windows: `m` the unit (`+0x10`/`+0x14` the position xor `0x63637`, `+0x68` its masks,
     // `+0xaf` the recursion byte, `+0xb8` the path stack: list, size, length), `c0` the world

@@ -39,7 +39,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 let me = rd(&p[who], 0);
                 let to = rd(&p[who], 0x6c + 4 * o as usize) == 2;
                 let from = rd(&p[o as usize], 0x6c + 4 * me as usize) == 2;
-                i64::from(!crate::place::friendly_ground(o, me, to, from))
+                i64::from(!crate::cities::place::friendly_ground(o, me, to, from))
             }
         }
     });

@@ -1,5 +1,5 @@
 use super::*;
-use crate::build::{BuildType, flags};
+use crate::cities::build::{BuildType, flags};
 use crate::orders::{GatherOrder, Order, flag};
 use crate::tech::{TechTree, TypeDef, UnitTraits};
 use crate::world::World;
@@ -232,16 +232,16 @@ fn the_spanish_see_every_cell_once_they_hold_the_bonus() {
     let (mut sim, _) = kit(8, 8, 2);
     assert!(sim.world.set_fog(vec![0; 8 * 8 * 4]));
     let (fx, fy) = (2 * 5 + 1, 2 * 5 + 1);
-    sim.tech[1].power = Some(crate::nations::power::SPANISH);
+    sim.tech[1].power = Some(crate::cities::nations::power::SPANISH);
     sim.tables.setup.starting_town = false;
     sim.tech[1].has_city = false;
     assert!(!sim.was_seen_fog(fx, fy, 1), "no city, no bonus: unseen");
     sim.tech[1].has_city = true;
     assert!(sim.was_seen_fog(fx, fy, 1), "the Spanish: every cell");
     assert!(!sim.was_seen_fog(fx, fy, 0), "and only theirs");
-    sim.tech[1].power = Some(crate::nations::power::FRENCH);
+    sim.tech[1].power = Some(crate::cities::nations::power::FRENCH);
     assert!(!sim.was_seen_fog(fx, fy, 1), "another power: unseen");
-    sim.tech[1].power = Some(crate::nations::power::SPANISH);
+    sim.tech[1].power = Some(crate::cities::nations::power::SPANISH);
     sim.tables.setup.no_nation_powers = true;
     assert!(!sim.was_seen_fog(fx, fy, 1), "powers off: unseen");
 }

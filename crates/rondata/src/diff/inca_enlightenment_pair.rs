@@ -36,7 +36,7 @@ pub(crate) const INCA_ENLIGHTENMENT: Pair = Pair {
     // ours 13 draws against 12, parting at index 9, ours
     // `Unit::close+0xcb6`, theirs `Farms::inc_time+0x1ae` (`docs/AI.md`
     // §339). Item 3659: 4045 of 4045, the pair whole — piece 753's bays
-    // (`sim::launch`): the Inca Musketeers (TypeIndex 99,
+    // (`sim::data::launch`): the Inca Musketeers (TypeIndex 99,
     // `MUSKETEERS-AMERICAN`) left from the figure's own point, so a round
     // flew a frame long and the Citizen `0/5` was first struck on 3054
     // where theirs struck it on 3053.

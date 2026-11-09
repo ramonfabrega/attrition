@@ -9,8 +9,8 @@
 //! asked in the order the listing asks it — which is what the sweep holds.
 
 use crate::Sim;
-use crate::build::{self, Ident};
-use crate::rally::GatherPoint;
+use crate::cities::build::{self, Ident};
+use crate::cities::rally::GatherPoint;
 use crate::world::{Player, Pos, UNITS_PER_CELL};
 
 /// `is(0x1a4, 0)`: a University (never a member).
@@ -359,7 +359,7 @@ impl GatherPointView for SimGather<'_> {
             Ident::Mine
         };
         self.sim
-            .nearest_friendly_building(self.who, Pos::new(x, y), ident, crate::rally::REACH)
+            .nearest_friendly_building(self.who, Pos::new(x, y), ident, crate::cities::rally::REACH)
             .map_or(-1, |b| b as i32)
     }
     fn object_pos(&mut self, idx: i32) -> (i32, i32) {

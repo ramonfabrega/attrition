@@ -7,7 +7,7 @@
 /// (`valid`, `target`, `status`) this walk reads.
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    use crate::army::status::MUSTERING;
+    use crate::ai::army::status::MUSTERING;
     let Some(rows) = super::emu_rows("sweep_armies_find_city.py") else {
         return;
     };

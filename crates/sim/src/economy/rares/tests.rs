@@ -51,14 +51,14 @@ fn sea_sim() -> (Sim, usize) {
         for i in 0..50 {
             t.add(tech::TypeDef::good(&format!("good{i}")));
         }
-        while t.types.len() < crate::fish::FISHERMEN {
+        while t.types.len() < crate::units::think::fish::FISHERMEN {
             t.add(tech::TypeDef::plain("filler", -1));
         }
         let boat = t.add(tech::TypeDef::unit(
             "Fishing Boat",
             tech::UnitTraits::default(),
         ));
-        assert_eq!(boat, crate::fish::FISHERMEN);
+        assert_eq!(boat, crate::units::think::fish::FISHERMEN);
     }
     s.tech = (0..2)
         .map(|_| tech::PlayerTech::new(&s.tables.tech_tree))
@@ -66,12 +66,12 @@ fn sea_sim() -> (Sim, usize) {
     let t = s.add_unit_type(crate::UnitType {
         hits: 20,
         moves: 40,
-        tree: Some(crate::fish::FISHERMEN),
+        tree: Some(crate::units::think::fish::FISHERMEN),
         ..crate::UnitType::default()
     });
     s.tables.unit_types[t].combat.packs = true;
     s.tables.unit_types[t].combat.obj_masks |= crate::combat::mask::NAVAL;
-    s.tables.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
+    s.tables.unit_types[t].combat.domain = crate::territory::attrition::Domain::Sea;
     let at = Pos::new(20 * 768 + 384, 20 * 768 + 384);
     let mut u = crate::Unit::new(1, 14, at, 20);
     u.ty = Some(t);
@@ -86,7 +86,7 @@ fn sea_sim() -> (Sim, usize) {
 /// on" actually sits (`docs/ORDERS.md` §6.10).
 fn put_good_beside(s: &mut Sim, u: usize, ty: crate::tech::TypeId) {
     let t0 = s.units[u].pos.tile();
-    let circle = crate::ai_place::circle();
+    let circle = crate::ai::ai_place::circle();
     let t = Pos::new(t0.x + circle.x[1], t0.y + circle.y[1]);
     s.world.add_good(Good {
         pos: Pos::new(t.x * UNITS_PER_TILE + 96, t.y * UNITS_PER_TILE + 96),
@@ -460,7 +460,7 @@ fn a_nubian_merchant_is_born_with_half_again() {
 /// Made to fail once with the term dropped: the wagon stays at 90.
 #[test]
 fn a_supply_unit_adds_the_supply_hp_upgrade() {
-    use crate::ai_load::uflags2;
+    use crate::ai::ai_load::uflags2;
     let mut s = crate::Sim::new(Tuning::RON, World::new(20, 20), 2);
     let mut tree = tech::TechTree::new();
     let steps = [
@@ -472,9 +472,9 @@ fn a_supply_unit_adds_the_supply_hp_upgrade() {
     s.set_tech_tree(tree);
     let ty = |flags2: u32| crate::UnitType {
         hits: 90,
-        cols: crate::ai_load::UnitCols {
+        cols: crate::ai::ai_load::UnitCols {
             unit_flags2: flags2,
-            ..crate::ai_load::UnitCols::default()
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..crate::UnitType::default()
     };
@@ -570,13 +570,13 @@ fn a_general_climbs_with_the_general_upgrades() {
         hits: 109,
         los: 8,
         moves: 42,
-        cols: crate::ai_load::UnitCols {
+        cols: crate::ai::ai_load::UnitCols {
             unit_flags2: flags2,
-            ..crate::ai_load::UnitCols::default()
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..crate::UnitType::default()
     };
-    let general = s.add_unit_type(ty(crate::ai_load::uflags2::FLAG2_GENERAL));
+    let general = s.add_unit_type(ty(crate::ai::ai_load::uflags2::FLAG2_GENERAL));
     let citizen = s.add_unit_type(ty(0));
     let mut unit = crate::Unit::new(0, 0, crate::Pos::new(1000, 1000), 40);
     unit.ty = Some(general);
@@ -704,8 +704,8 @@ fn aluminum_speeds_the_aircraft_and_nothing_else() {
         s.add_unit_type(crate::UnitType {
             hits: 20,
             moves,
-            kind: crate::attrition::UnitKind {
-                domain: crate::attrition::Domain::Air,
+            kind: crate::territory::attrition::UnitKind {
+                domain: crate::territory::attrition::Domain::Air,
                 ..Default::default()
             },
             ..crate::UnitType::default()
@@ -928,7 +928,7 @@ fn calc_unit_stats_re_caches_every_unit_s_speed() {
 
 #[test]
 fn supply_upgrade_speed_counts_sparse_steps_and_refreshes_existing_units() {
-    use crate::ai_load::uflags2;
+    use crate::ai::ai_load::uflags2;
     let mut s = crate::Sim::new(Tuning::RON, World::new(20, 20), 2);
     let mut tree = tech::TechTree::new();
     let steps = [
@@ -941,18 +941,18 @@ fn supply_upgrade_speed_counts_sparse_steps_and_refreshes_existing_units() {
     let wagon = s.add_unit_type(crate::UnitType {
         moves: 25,
         hits: 90,
-        cols: crate::ai_load::UnitCols {
+        cols: crate::ai::ai_load::UnitCols {
             unit_flags2: uflags2::SUPPLY_OR_HERO,
-            ..crate::ai_load::UnitCols::default()
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..crate::UnitType::default()
     });
     let hero = s.add_unit_type(crate::UnitType {
         moves: 25,
         hits: 90,
-        cols: crate::ai_load::UnitCols {
+        cols: crate::ai::ai_load::UnitCols {
             unit_flags2: uflags2::FLAG2_GENERAL,
-            ..crate::ai_load::UnitCols::default()
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..crate::UnitType::default()
     });

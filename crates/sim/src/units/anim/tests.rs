@@ -1,7 +1,7 @@
 use super::*;
 use crate::UnitType;
 use crate::combat::Rng;
-use crate::tuning::Tuning;
+use crate::core::tuning::Tuning;
 use crate::world::World;
 
 /// **An unpack re-reads the crew's track, and a trackless figure
@@ -670,7 +670,7 @@ fn a_standing_body_still_owed_a_turn_walks_in_place_and_draws_again() {
     let mut s = sim_at(7);
     s.roster.art.lengths.insert((60063, WALK), 20);
     let u = animal(&mut s, 8, 0, 60063, DEFAULT, 11, 90);
-    s.units[u].kind.domain = crate::attrition::Domain::Sea;
+    s.units[u].kind.domain = crate::territory::attrition::Domain::Sea;
     s.units[u].movement.body.pos = s.units[u].pos;
     s.units[u].movement.facing = crate::movement::Angle::NORTH;
     s.units[u].movement.heading = crate::movement::Angle::EAST;
@@ -786,7 +786,7 @@ fn a_suspended_search_idles_without_a_draw() {
         s.roster.art.lengths.insert((145, slot), len);
     }
     let u = animal(&mut s, 0, 67, 145, DEFAULT, 31, 31);
-    s.units[u].search = Some(Box::new(crate::path::Search::suspended_for_test()));
+    s.units[u].search = Some(Box::new(crate::movement::path::Search::suspended_for_test()));
     s.set_default_anim(u);
     assert_eq!(s.rng.seed, seed, "no draw while the search is suspended");
     let g = s.units[u].guys[0];
@@ -1068,11 +1068,11 @@ fn a_walker_that_boards_its_boat_moves_its_figures_that_frame() {
         moves: 25,
         ..UnitType::default()
     };
-    barge.combat.domain = crate::attrition::Domain::Sea;
+    barge.combat.domain = crate::territory::attrition::Domain::Sea;
     barge.combat.block_radius = 48;
     let b = s.add_unit_type(barge);
-    s.tables.unit_types[b].tree = Some(crate::transport::ty::TRANSPORTBARGE);
-    s.tables.unit_types[b].type_index = crate::transport::ty::TRANSPORTBARGE as i32;
+    s.tables.unit_types[b].tree = Some(crate::ai::transport::ty::TRANSPORTBARGE);
+    s.tables.unit_types[b].type_index = crate::ai::transport::ty::TRANSPORTBARGE as i32;
     let index = s.find_free(1, crate::UNIT_BASE, crate::BUILD_BASE).unwrap();
     let mut unit = Unit::new(1, index, tile_pos(30, 14), 40);
     unit.ty = Some(walker);

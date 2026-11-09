@@ -102,7 +102,7 @@ impl Sim {
     /// `attack()` — the type's, plus the player's flat modifier (§4.1).
     ///
     /// The base is `ObjectData::attack@006469f0`'s
-    /// ([`crate::object_attack_view::object_attack_steps`], swept: item
+    /// ([`crate::combat::object_attack_view::object_attack_steps`], swept: item
     /// 3387). Its caravan arm replaces a caravan's attack with
     /// `CARAVAN_ATTACK_BONUS` once its owner holds that bonus's
     /// prerequisite, and its Dutch term (item 3329) is inside it: a Dutch
@@ -110,8 +110,10 @@ impl Sim {
     /// **before** `UnitData::attack`'s zero test, so an armed merchant of
     /// an age past the first is a combatant on a type with no attack.
     pub fn attack_of(&self, o: Obj) -> i32 {
-        let base =
-            crate::object_attack_view::object_attack_steps(&mut SimObjectAttack { sim: self, o });
+        let base = crate::combat::object_attack_view::object_attack_steps(&mut SimObjectAttack {
+            sim: self,
+            o,
+        });
         if base == 0 {
             return 0;
         }
@@ -147,7 +149,7 @@ impl Sim {
         match o {
             Obj::Unit(u)
                 if self.units[u].ty.is_some_and(|ty| {
-                    self.trainer_ident(ty) == Some(crate::build::Ident::Stable)
+                    self.trainer_ident(ty) == Some(crate::cities::build::Ident::Stable)
                 }) && self.has_general(u, 0x162) =>
             {
                 self.tables.tuning.themonarch_cav_attack * 10
@@ -168,7 +170,7 @@ impl Sim {
     ///
     /// SEAM: the override's other terms (Terra Cotta, the Obsidian Archers,
     /// the Space Program's scale and the named generals') — the view
-    /// [`crate::unit_attack_view`] holds them all, swept, unwired.
+    /// [`crate::combat::unit_attack_view`] holds them all, swept, unwired.
     pub(super) fn citizen_attack(&self, o: Obj) -> i32 {
         match o {
             Obj::Unit(u) if self.has_general(u, 0x164) => {
@@ -309,7 +311,7 @@ impl Sim {
         };
         let monarch = if me
             .ty
-            .is_some_and(|ty| self.trainer_ident(ty) == Some(crate::build::Ident::Stable))
+            .is_some_and(|ty| self.trainer_ident(ty) == Some(crate::cities::build::Ident::Stable))
             && self.has_general(u, 0x162)
         {
             self.tables.tuning.themonarch_cav_armor
@@ -449,11 +451,11 @@ impl Sim {
     /// alike), and there it zeroes the armour (item 1375: run551's Tower
     /// site on who=0's claim took the Elite Pikemen's blow at 133
     /// sixteenths, where its halved armour 2 dealt 122). The same predicate
-    /// as `Wall::process`'s enemy-land hit (`crate::city`).
+    /// as `Wall::process`'s enemy-land hit (`crate::cities::city`).
     pub(crate) fn in_unfriendly_territory(&self, b: usize) -> bool {
         let who = self.buildings[b].owner;
         matches!(self.world.owner_at(self.buildings[b].pos),
-            crate::Owner::Player(t) if !crate::place::friendly_ground(
+            crate::Owner::Player(t) if !crate::cities::place::friendly_ground(
                 i32::from(t), i32::from(who), self.allied_with(who, t), self.allied_with(t, who)))
     }
 
@@ -467,14 +469,14 @@ impl Sim {
     pub(crate) fn bleeds_in_enemy_land(&self, b: usize) -> bool {
         let dock = self.buildings[b]
             .ty
-            .is_some_and(|t| crate::build::is_dock(&self.tables.build_types, t));
+            .is_some_and(|t| crate::cities::build::is_dock(&self.tables.build_types, t));
         if !dock {
             return self.in_unfriendly_territory(b);
         }
         let who = self.buildings[b].owner;
         let o = self.check_enemy_adjacent(b);
         u8::try_from(o).is_ok_and(|p| {
-            !crate::place::friendly_ground(
+            !crate::cities::place::friendly_ground(
                 o,
                 i32::from(who),
                 self.allied_with(who, p),
@@ -554,7 +556,7 @@ impl Sim {
             Obj::Building(b) => Side {
                 building: true,
                 build_proper: true,
-                captain: crate::flag_reads::object_get_captain(self.buildings[b].index),
+                captain: crate::core::flag_reads::object_get_captain(self.buildings[b].index),
                 z: self.world.object_z(self.buildings[b].pos.tile()),
                 ..Side::default()
             },

@@ -36,10 +36,10 @@ fn the_emulated_original_agrees_on_every_row() {
         // rows) and `p[43 + 4 * pl + j]` the cast record that order's `+0x44` names. `a`: the five arguments, the
         // stubs' answers (`a[5..37]`), every `--seq` run (`SEQ_AT`) and the `--slotbase` flag.
         //
-        // **The port is the crate's own steps**, `crate::action_spell_view::action_spell_steps`, over a view of
+        // **The port is the crate's own steps**, `crate::groups::action_spell_view::action_spell_steps`, over a view of
         // the emulated original's windows; the crate's `Sim::group_action_spell` is a different shape of the same
         // arm (see that module's head).
-        use crate::action_spell_view::{GarrisonHead, SpellView, action_spell_steps};
+        use crate::groups::action_spell_view::{GarrisonHead, SpellView, action_spell_steps};
         const SEQ_AT: [(usize, usize, usize); 17] = [
             (3, 37, 12),
             (4, 49, 12),

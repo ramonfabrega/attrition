@@ -38,7 +38,7 @@ fn the_emulated_original_agrees_on_every_row() {
             ecx: String::new(),
             flags: [22, 23, 24, usize::MAX],
         };
-        let _ = crate::do_cast_view::do_cast_clock_steps(&mut v);
+        let _ = crate::spells::do_cast_view::do_cast_clock_steps(&mut v);
         0
     });
 }

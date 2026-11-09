@@ -10,7 +10,7 @@
 //!
 //! Both of its walks are in **tiles**, not cells, and both take the first
 //! hit rather than the best: the octagonal spiral `circle_x`/`circle_y`
-//! ([`crate::ai_place::circle`]) out to `circle_radius[r]`, where `r` is
+//! ([`crate::ai::ai_place::circle`]) out to `circle_radius[r]`, where `r` is
 //! `upgrade_level × 4 + 4` for a fisherman or a merchant and
 //! `upgrade_level + 2` for anything else. A tile qualifies on its **surface
 //! field** — ocean for a fisherman, anything but ocean for a merchant — and
@@ -194,7 +194,7 @@ pub fn unit_calc_gather_steps<V: CalcGatherView>(v: &mut V, a: &GatherArgs) -> i
     };
     let mine = gather_ring(v, Who::Me);
     let who = v.me_owner();
-    let circle = crate::ai_place::circle();
+    let circle = crate::ai::ai_place::circle();
     let ring = usize::try_from(mine)
         .ok()
         .and_then(|r| circle.radius.get(r).copied())
@@ -278,7 +278,7 @@ fn gather_tail<V: CalcGatherView>(
         v.tally_inc(g);
     }
     v.calc_rare(g, ally);
-    let circle = crate::ai_place::circle();
+    let circle = crate::ai::ai_place::circle();
     let (cx0, cy0) = (v.div3(px >> 8), v.div3(py >> 8));
     let mut count = 0i32;
     for i in 0..circle.radius[CROWD_RING] {
@@ -370,7 +370,8 @@ impl CalcGatherView for SimGather<'_> {
             .map_or(-1, |t| i32::try_from(t).unwrap_or(-1))
     }
     fn type_is_fisher(&mut self, w: Who<usize>) -> bool {
-        self.s.unit_line_is(self.unit(w), crate::fish::FISHERMEN)
+        self.s
+            .unit_line_is(self.unit(w), crate::units::think::fish::FISHERMEN)
     }
     fn type_radius_base(&mut self, w: Who<usize>) -> i32 {
         self.s
@@ -538,7 +539,12 @@ impl Sim {
     pub(crate) fn gather_radius(&self, u: usize) -> i32 {
         let Some(t) = self.unit_tree(u) else { return 2 };
         let level = self.upgrade_level(t);
-        if MERCHANTS.contains(&t) || self.tables.tech_tree.is(t, crate::fish::FISHERMEN, false) {
+        if MERCHANTS.contains(&t)
+            || self
+                .tables
+                .tech_tree
+                .is(t, crate::units::think::fish::FISHERMEN, false)
+        {
             level * 4 + 4
         } else {
             level + 2
@@ -559,7 +565,11 @@ impl Sim {
     /// rare-collector arm (`docs/ORDERS.md` §23).
     pub(crate) fn is_rare_collector(&self, u: usize) -> bool {
         self.unit_tree(u).is_some_and(|t| {
-            MERCHANTS.contains(&t) || self.tables.tech_tree.is(t, crate::fish::FISHERMEN, false)
+            MERCHANTS.contains(&t)
+                || self
+                    .tables
+                    .tech_tree
+                    .is(t, crate::units::think::fish::FISHERMEN, false)
         })
     }
 
@@ -580,7 +590,7 @@ impl Sim {
     /// The same with the position the original's `param_9`/`param_10`
     /// carry, which `UnitData::good_merchant_spot@006068a0` uses to ask
     /// the question at a **candidate tile** rather than at the unit
-    /// ([`crate::merchant`] §3).
+    /// ([`crate::units::think::merchant`] §3).
     ///
     /// `live` is whether the caller hands the out-pointers. `Unit::do_gather`
     /// and `Unit::think_fish` pass `&rare` (`+0x54`) and `&good_obj`

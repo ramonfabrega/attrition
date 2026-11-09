@@ -37,7 +37,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 .filter(|i| p[2 + i][4] & 3 != 0)
                 .map(|i| i as u32)
                 .collect();
-            let slot = crate::fight::lowest_free_slot(&live) as usize;
+            let slot = crate::combat::fight::lowest_free_slot(&live) as usize;
             let at = if slot as i32 == n {
                 log.push("s0:c0+0x11c,1".into());
                 let ptr = a[2].wrapping_add(4);

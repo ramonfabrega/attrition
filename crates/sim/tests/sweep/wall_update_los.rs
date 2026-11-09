@@ -28,7 +28,7 @@ fn the_emulated_original_agrees_on_every_row() {
     super::obj_rows(&rows, &obj, |a, m, c, p, log| {
         let _ = (&a, &m, &c, &p);
         // hand: port
-        // `crate::wall_los_view`: the building's sight over the windows. `m` the building, `c[0]`
+        // `crate::vision::wall_los_view`: the building's sight over the windows. `m` the building, `c[0]`
         // the constants block, `p[3k..3k+3]` leader k's slices (flags byte; `+0x6da4..`; the
         // tech pointer), `p[24 + k]` its tech record, `p[32]` the type record. The stubs' answers
         // are `a[0..9]`, the three base flags after them (`1` = the base function is laid).
@@ -55,7 +55,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 self.c[base + 4 * i as usize] as i8
             }
         }
-        impl crate::wall_los_view::WallLosView for V<'_> {
+        impl crate::vision::wall_los_view::WallLosView for V<'_> {
             fn is_started(&mut self) -> bool {
                 if self.a[9] == 1 {
                     self.m[8] & 2 != 0
@@ -135,7 +135,7 @@ fn the_emulated_original_agrees_on_every_row() {
             who,
             toks: vec!["-".to_string(); 27],
         };
-        let los = crate::wall_los_view::wall_update_los(&mut v);
+        let los = crate::vision::wall_los_view::wall_update_los(&mut v);
         let toks = v.toks;
         log.extend(toks);
         m[0x3c] = los as u8;

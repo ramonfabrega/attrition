@@ -17,7 +17,7 @@
 //! the type record's `+0x74` link), the crate's are positions in
 //! [`SimMuster`]'s `elems`.
 
-use crate::army::Army;
+use crate::ai::army::Army;
 use crate::combat::Obj;
 use crate::movement::Angle;
 use crate::world::{Cell, MOVE_49, Owner, Pos, vector_dist};
@@ -190,7 +190,7 @@ pub fn find_muster_spot_steps<V: MusterView>(v: &mut V) -> bool {
     let outer = (inner + (3 * i32::from(navy) + 1) * 2).min(0x40);
     // The tables hold 0x41 rings; a ring below the first is none.
     inner = inner.max(0);
-    let circle = crate::ai_place::circle();
+    let circle = crate::ai::ai_place::circle();
     let (lo, hi) = (circle.radius[inner as usize], circle.radius[outer as usize]);
     let (w, h) = v.world_cells();
     let slot = v.slot();

@@ -158,7 +158,7 @@ fn run982_s_word_frame_is_widened_whole() {
     // `dest_angle` on 13856. `0/0`'s wound on 13870 and `0/2000`'s raid stamp
     // on 13941 left with the Cavalry Archer's and the Dragoon's nodes.
     // Item 3369: 41 -> 33, an unpacked merchant's "over time" piece
-    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     pin_eq!(w.firsts.len(), 33, "run982 with the release nodes");
 }
 
@@ -218,7 +218,7 @@ fn run982b_s_word_frame_is_widened_whole() {
     // `1/43`'s defensive `def_x/def_y` (ours its own post, theirs (8712,
     // 31272)), and group and pool 66 on 14612 and 68 on 14631.
     // Item 3369: 38 -> 30, an unpacked merchant's "over time" piece
-    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     // Item 3784: 30 -> 28, `fight`'s invalid-target branch keeps
     // `find_new_target`'s post arm (`docs/GOLDEN.md` §149.10.1): `1/43`'s
     // `attack[0].def_x/def_y` on 14598 agree at (8712, 31272), where ours
@@ -357,7 +357,7 @@ fn run982d_s_last_blocks_are_widened_whole() {
     // frame's own hits — ours +1 to 1198, theirs at least +3, through the
     // threshold.
     // Item 3369: 38 -> 30, an unpacked merchant's "over time" piece
-    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     // Item 3595: 30 -> 29, the eight-slot territory tie (`docs/AI.md`
     // section 318.2): who=1's `leftover[2:wealth]` on 16740 agrees.
     // Item 3784: 29 -> 27, `1/43`'s defensive point on 16740 agrees at

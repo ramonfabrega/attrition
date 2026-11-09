@@ -101,7 +101,7 @@ fn the_caster_bit_walks_down_a_from_chain() {
 /// A tree with one age, one epoch and one plain tech, a unit that needs
 /// the age and a gather building that needs the plain tech.
 fn small_tree() -> (TechTree, Vec<UnitType>, Vec<BuildType>) {
-    use crate::build::{BuildType, Ident, flags};
+    use crate::cities::build::{BuildType, Ident, flags};
     use crate::tech::{Kind, Line, Preq, TypeDef};
 
     let mut tree = TechTree::new();

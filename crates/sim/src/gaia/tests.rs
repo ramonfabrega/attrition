@@ -1,6 +1,6 @@
 use super::*;
 use crate::combat::Rng;
-use crate::tuning::Tuning;
+use crate::core::tuning::Tuning;
 use crate::world::World;
 
 fn sim_at(seed: u32) -> Sim {
@@ -212,7 +212,7 @@ fn an_animal_beyond_0x180_of_its_order_walks_at_three_halves() {
 
     // Nor does a bird: air returns before the hurry *and* before the
     // floor, which is the only way to see the two apart.
-    s.units[a].kind.domain = crate::attrition::Domain::Air;
+    s.units[a].kind.domain = crate::territory::attrition::Domain::Air;
     s.units[a].movement.speed = 1;
     s.units[a].orders.clear();
     s.add_move_order(a, far, MoveKind::MoveTo, QueuePos::New, false);
@@ -221,6 +221,6 @@ fn an_animal_beyond_0x180_of_its_order_walks_at_three_halves() {
         1,
         "air: neither the 3/2 nor the floor of 3"
     );
-    s.units[a].kind.domain = crate::attrition::Domain::Land;
+    s.units[a].kind.domain = crate::territory::attrition::Domain::Land;
     assert_eq!(s.get_speed(a, 0), 3, "and on the ground, the floor");
 }

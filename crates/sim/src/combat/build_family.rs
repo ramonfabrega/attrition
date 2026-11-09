@@ -2,7 +2,7 @@
 //! §176; parked T71-8): what `BuildData` adds to `ObjectData`'s attack, reach
 //! and arrows for a Tower-line, Fort-line or city-centre building.
 //!
-//! - `BuildData::attack@0062e610` — [`crate::build_attack_view`]'s swept
+//! - `BuildData::attack@0062e610` — [`crate::combat::build_attack_view`]'s swept
 //!   walk, now wired: a General inside (`GENERAL_BUILDING_ATTACK × 10`), an
 //!   Obsidian holder (`OBSIDIAN_ARCHERS_ATTACK × 10`) and Antipater inside
 //!   (`ANTIPATER_GARRISON_ATTACK_BONUS × 10`).
@@ -26,9 +26,9 @@
 //! General the tribe mask refuses counts the General line and not the type
 //! its slot `+0x68` names.
 
-use crate::build;
-use crate::build_attack_view::{BuildAttackView, build_attack_steps};
+use crate::cities::build;
 use crate::combat::Obj;
+use crate::combat::build_attack_view::{BuildAttackView, build_attack_steps};
 use crate::{Player, Sim};
 
 /// `TypeIndex::GENERAL`, the line `count_inside(COUNT_TYPE)` asks.
@@ -132,7 +132,7 @@ impl Sim {
     /// line) and `COUNT_STRICT_TYPE` (`is(ty, 1)`, the type) arms: the
     /// living units inside a building on the map. Any other kind counts 0.
     pub(crate) fn count_inside_type(&self, b: usize, kind: i32, ty: i32) -> i32 {
-        use crate::build_attack_view::{COUNT_STRICT_TYPE, COUNT_TYPE};
+        use crate::combat::build_attack_view::{COUNT_STRICT_TYPE, COUNT_TYPE};
         let bd = &self.buildings[b];
         if !bd.alive {
             return 0;
@@ -163,7 +163,11 @@ impl Sim {
     /// `count_inside(COUNT_TYPE, GENERAL) != 0` — `max_range`'s question,
     /// asked of both its blocks.
     fn holds_general(&self, b: usize) -> bool {
-        self.count_inside_type(b, crate::build_attack_view::COUNT_TYPE, GENERAL as i32) != 0
+        self.count_inside_type(
+            b,
+            crate::combat::build_attack_view::COUNT_TYPE,
+            GENERAL as i32,
+        ) != 0
     }
 
     /// `BuildTypeData::get_building_range@00639990` and

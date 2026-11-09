@@ -790,7 +790,7 @@ mod tests {
         built.sim.setup().gain_tech(1, preq);
         assert_eq!(
             built.sim.transport_level(1),
-            sim::transport::TransportType::None,
+            sim::ai::transport::TransportType::None,
             "the prerequisite alone grants nothing"
         );
         let ty = loaded.build_of_type_index(432).expect("the dock type");
@@ -807,7 +807,7 @@ mod tests {
         );
         assert_eq!(
             built.sim.transport_level(1),
-            sim::transport::TransportType::Civilian
+            sim::ai::transport::TransportType::Civilian
         );
         let ai_units: Vec<usize> = (0..built.sim.units.len())
             .filter(|&u| built.sim.units[u].owner == 1 && built.sim.units[u].alive())
@@ -831,7 +831,7 @@ mod tests {
         );
         assert_eq!(
             built.sim.transport_level(0),
-            sim::transport::TransportType::None
+            sim::ai::transport::TransportType::None
         );
     }
 
@@ -1835,7 +1835,7 @@ mod tests {
             18,
             "run38's placed mountains"
         );
-        let reach = sim::gather::MINE_RADIUS * sim::world::UNITS_PER_TILE;
+        let reach = sim::economy::gather::MINE_RADIUS * sim::world::UNITS_PER_TILE;
         // (site, the packet's `find_nearest` distance)
         let rows: [((i32, i32), i32); 8] = [
             ((38784, 37248), 1536),
@@ -2048,7 +2048,7 @@ mod tests {
                 built
                     .sim
                     .world
-                    .clear_tile_bits(t, sim::gather::GATHERED_FROM);
+                    .clear_tile_bits(t, sim::economy::gather::GATHERED_FROM);
             }
             let corner = built.sim.tile_corner(ty, pos);
             let ours = built.sim.gather_tcoords(ty, who, corner);
@@ -2064,7 +2064,10 @@ mod tests {
             );
             assert_eq!(a, c, "player {who}'s camp: the tiles themselves");
             for &t in &theirs {
-                built.sim.world.set_tile_bits(t, sim::gather::GATHERED_FROM);
+                built
+                    .sim
+                    .world
+                    .set_tile_bits(t, sim::economy::gather::GATHERED_FROM);
             }
         }
     }
@@ -3700,7 +3703,7 @@ mod tests {
         let sim = &built.sim;
         let mut got: Vec<(sim::Player, usize, i32)> = Vec::new();
         for b in 0..sim.buildings.len() {
-            if sim.building_ident(b) == sim::build::Ident::Woodcutter {
+            if sim.building_ident(b) == sim::cities::build::Ident::Woodcutter {
                 got.push((
                     sim.buildings[b].owner,
                     sim.buildings[b].gather_from.len(),

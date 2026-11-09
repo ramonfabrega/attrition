@@ -1,6 +1,6 @@
 //! `UnitData::is_entrenched@0060a810` under the emulator against the port (item 1704).
 
-use crate::type_index::is_entrenched;
+use crate::core::type_index::is_entrenched;
 
 /// `UnitData::is_entrenched@0060a810`, run by `tools/emu/sweep_unit_is_entrenched.py` under unicorn
 /// (tools/emu): `unit_masks & 0x2000000`, and with a non-zero argument only without `unit_masks2 & 0x20000`, over the cross of the bit edges and a seeded band, against `type_index::is_entrenched` — the reader `find_nearby_target`'s `local_24` and the combat step's entrenchment gate stand on.

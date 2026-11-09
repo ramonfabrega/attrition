@@ -59,7 +59,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 u16::from_le_bytes([self.p[5][o], self.p[5][o + 1]])
             }
         }
-        impl crate::path::InvalidLocEnv for Env<'_> {
+        impl crate::movement::path::InvalidLocEnv for Env<'_> {
             fn was_seen(&mut self, fx: i32, fy: i32) -> bool {
                 const NAMES: [(&str, &str); 4] = [
                     ("0x38", "0x34"),
@@ -131,7 +131,7 @@ fn the_emulated_original_agrees_on_every_row() {
         }
         let owner = i32::from(m[9]);
         let path_len = rd(m, 0xc0);
-        let inp = crate::path::InvalidLocIn {
+        let inp = crate::movement::path::InvalidLocIn {
             x: a[0],
             y: a[1],
             width: rd(&c[0], 0x18),
@@ -160,7 +160,7 @@ fn the_emulated_original_agrees_on_every_row() {
             dx: Default::default(),
             seen_n: 0,
         };
-        let r = crate::path::invalid_loc_steps(&inp, &mut env);
+        let r = crate::movement::path::invalid_loc_steps(&inp, &mut env);
         if env.calls.is_empty() {
             log.push("-".into());
         }

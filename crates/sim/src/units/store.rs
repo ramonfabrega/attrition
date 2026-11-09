@@ -31,12 +31,12 @@ impl Sim {
     /// `insert_inside`'s `in_a_building` — every caller here puts the unit in
     /// a building.
     pub(crate) fn track_garrison(&mut self, u: usize, delta: i32) {
-        use remove_inside_view::{RemoveInsideView, SimRemoveInside};
+        use crate::units::remove_inside_view::{RemoveInsideView, SimRemoveInside};
         let mut view = SimRemoveInside { sim: self, unit: u };
         if delta < 0 {
-            remove_inside_view::remove_from_inside_steps(&mut view);
+            crate::units::remove_inside_view::remove_from_inside_steps(&mut view);
         } else if !view.masked() && view.is_captain() {
-            remove_inside_view::garrison_tail(&mut view, delta);
+            crate::units::remove_inside_view::garrison_tail(&mut view, delta);
         }
     }
 
@@ -95,7 +95,7 @@ impl Sim {
         }
         // **`UnitData::get_combat_stance@00610a30` answers
         // `COMBAT_STAND_GROUND` for a type with no combat stances**
-        // ([`crate::stance::get_stance`]): the `+0xb1` byte is the packer's,
+        // ([`crate::units::stance::get_stance`]): the `+0xb1` byte is the packer's,
         // the worker's or the caster's own, and every reader of vslot
         // `+0xf4` sees 2. This crate keeps the combat half apart as
         // [`combat::Stance`], so it is written here once. run842's packet
@@ -108,8 +108,9 @@ impl Sim {
         // two columns, and a hand-built type may set either spelling.
         if self.units[i].ty.is_some_and(|t| {
             let ty = &self.tables.unit_types[t];
-            let military = ty.combat.combat_role || ty.cols.is(crate::ai_load::role::ROLE_MILITARY);
-            let packs = ty.combat.packs || ty.cols.flag2(crate::ai_load::uflags2::PACKS);
+            let military =
+                ty.combat.combat_role || ty.cols.is(crate::ai::ai_load::role::ROLE_MILITARY);
+            let packs = ty.combat.packs || ty.cols.flag2(crate::ai::ai_load::uflags2::PACKS);
             !military || packs
         }) {
             self.units[i].combat.stance = crate::combat::Stance::StandGround;
@@ -120,12 +121,13 @@ impl Sim {
         // `Unit::init@00612100:436` — a **land** caravan takes a slot in its
         // leader's `Caravans` list. `is_caravan` is `unit_flags2 & 8` and
         // the domain test is `UnitTypeData +0x218 == 0`, which is what
-        // keeps the sea-domain Merchant Fleet out (`crate::caravan` §2).
+        // keeps the sea-domain Merchant Fleet out (`crate::economy::caravan` §2).
         if self.units[i].ty.is_some_and(|ty| {
             self.tables.unit_types[ty]
                 .cols
-                .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
-                && self.tables.unit_types[ty].combat.domain == attrition::Domain::Land
+                .flag2(crate::ai::ai_load::uflags2::FLAG2_CARAVAN)
+                && self.tables.unit_types[ty].combat.domain
+                    == crate::territory::attrition::Domain::Land
         }) {
             let who = self.units[i].owner;
             self.units[i].caravan = self.init_caravan(who, i);
@@ -319,7 +321,12 @@ impl Sim {
             // until the Bantu word's block 1 printed who=1's cap at 50
             // against this crate's 25 (run978, `docs/AI.md` §276).
             m.bonuses.bantu = self.cities.nation.get(who).is_some_and(|n| n.bantu);
-            m.cap = cost::pop_cap(&self.tables.tuning, m.military_level, m.limit, &m.bonuses);
+            m.cap = crate::economy::cost::pop_cap(
+                &self.tables.tuning,
+                m.military_level,
+                m.limit,
+                &m.bonuses,
+            );
         }
     }
 
@@ -337,7 +344,7 @@ impl Sim {
         // The stance is a switch on the *type's* stance kind and then,
         // when the trainer shares that kind, the trainer's own byte —
         // `Unit::init@00612100:282–309` and `Build::train@0062f9b0:86`
-        // (`crate::stance`, `docs/ORDERS.md` §5.10). A trainer is what
+        // (`crate::units::stance`, `docs/ORDERS.md` §5.10). A trainer is what
         // [`Sim::build_train`] passes; a free-standing spawn has none.
         unit.stance = self.init_stance(who, ty);
         unit.movement.speed = self.type_speed(who, ty);
@@ -355,7 +362,7 @@ impl Sim {
         // RAID, over the stance the switch above gave it. run835's
         // `1/8` is born `stance 3`, the human `0/6` and `0/7` at 0;
         // every AI Bark on disk carries both.
-        if self.unit_line_is(u, crate::army::BARK) {
+        if self.unit_line_is(u, crate::ai::army::BARK) {
             self.units[u].unit_masks2 |= crate::combat::umask2::MASK2_BARK;
             if !self
                 .cities
@@ -380,7 +387,7 @@ impl Sim {
             && self.tables.tuning.lakota_food != 0
             && (matches!(self.tables.unit_types[ty].type_index, 0x32 | 0x33)
                 || self.unit_line_is(u, 0x45)
-                || self.trainer_ident(ty) == Some(build::Ident::Stable))
+                || self.trainer_ident(ty) == Some(crate::cities::build::Ident::Stable))
         {
             self.economy_changed(who);
         }
@@ -401,8 +408,9 @@ impl Sim {
         // here off the type, which the unit does not carry yet).
         // run1469's Attack Helicopters fly 30 higher than ours did
         // from their first frame, and their rounds aim at that.
-        if self.tables.unit_types[ty].cols.unit_flags & crate::ai_load::uflags::FLAG_HELICOPTER != 0
-            && self.tables.unit_types[ty].combat.domain == crate::attrition::Domain::Air
+        if self.tables.unit_types[ty].cols.unit_flags & crate::ai::ai_load::uflags::FLAG_HELICOPTER
+            != 0
+            && self.tables.unit_types[ty].combat.domain == crate::territory::attrition::Domain::Air
         {
             let ground = self.ground_z(self.units[u].pos);
             let af = &mut self.units[u].airframe;
@@ -558,7 +566,7 @@ impl Sim {
     /// The tail's `update_gpiece` is [`Sim::reinit_guys_begin`]' piece write, and
     /// each `init_real` re-pieces its guy before it reads the flags, so a
     /// converted guy's `guy_flags & 8` is the new piece's
-    /// ([`crate::anim::Guy::flag_piece`]).
+    /// ([`crate::units::anim::Guy::flag_piece`]).
     ///
     /// **No same-type guard** (item 3787, `docs/GOLDEN.md` §150.2): the
     /// original's `set_type` re-initialises the guys whatever the old type
@@ -579,10 +587,10 @@ impl Sim {
         // sweep `unit_set_type_normal` holds to the original's bytes; the
         // adapter says what this crate keeps of each.
         let mut view = set_type_adapter::SimSetType::new(self, u, rec);
-        unit_set_type_view::set_type_steps(
+        crate::units::unit_set_type_view::set_type_steps(
             &mut view,
             rec as i32,
-            unit_set_type_view::SET_TYPE_NORMAL,
+            crate::units::unit_set_type_view::SET_TYPE_NORMAL,
         );
     }
 
@@ -712,13 +720,13 @@ impl Sim {
         // one. docs/AI.md §177 holds this observed asymmetry.
         let caravan = self.tables.unit_types[ty]
             .cols
-            .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN);
+            .flag2(crate::ai::ai_load::uflags2::FLAG2_CARAVAN);
         // `scouts` (`+0x988`) is the third arm of the same chain —
         // `role & 0x10` on a type neither peasant nor scholar — and no
         // sweep recounts it (`docs/AI.md` §219).
         let scout = self.tables.unit_types[ty]
             .cols
-            .is(crate::ai_load::role::ROLE_SCOUT);
+            .is(crate::ai::ai_load::role::ROLE_SCOUT);
         let census = &mut self.ai.ai[who as usize].census;
         match worker {
             crate::orders::Worker::Citizen => census.peasants += delta,

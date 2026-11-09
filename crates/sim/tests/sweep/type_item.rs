@@ -1,6 +1,6 @@
 //! `TypeData::is_item_type@00470760` under the emulator against the port (item 1705).
 
-use crate::type_index::is_item_type;
+use crate::core::type_index::is_item_type;
 
 /// `TypeData::is_item_type@00470760`, run by `tools/emu/sweep_type_item.py` under unicorn
 /// (tools/emu): `0x21e < t < 0x220` on the type record's `type`, over every index -2..=0x33f and the edges, against `type_index::is_item_type` (0x21f..=0x21f).

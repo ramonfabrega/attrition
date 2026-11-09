@@ -84,7 +84,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let slot =
                 |q: crate::Pos| (if q.x >> 4 <= lx { 0 } else { 2 }) + usize::from(q.y >> 4 > ly);
             let blocks: Vec<Vec<u8>> = (0..4).map(|i| p[14 + i].clone()).collect();
-            let hit = crate::collide::collide_here_steps(
+            let hit = crate::movement::collide::collide_here_steps(
                 size,
                 crate::Pos::new(x, y),
                 mine,

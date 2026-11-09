@@ -32,14 +32,14 @@
 //! The corner test reads the heights as [`Single`]s and compares them
 //! as integers; no float.
 
-use crate::map_resources::{Footprint, close_good, place_good};
 use crate::mapgen::MapGrid;
-use crate::single::Single;
-use crate::terrain_groups::{OIL_GOOD, tile_at};
-use crate::terrain_init::{HalfLand, MOVE, ORTHOG, coord};
+use crate::mapgen::map_resources::{Footprint, close_good, place_good};
+use crate::mapgen::terrain_groups::{OIL_GOOD, tile_at};
+use crate::mapgen::terrain_init::{HalfLand, MOVE, ORTHOG, coord};
+use crate::num::single::Single;
 
 /// `check_and_set_halfland_wcoord`'s threshold (`__real_c1f00000`), −30.
-pub use crate::map_heights::WATERLINE;
+pub use crate::mapgen::map_heights::WATERLINE;
 
 /// The tileset's numbers `is_combo_acceptable` reads: `COAST_BASE` and
 /// `num_tiles` per land (`None` where the loader is not read for it).
@@ -749,7 +749,7 @@ impl<'a> Pass<'a> {
 /// **`TerrainOil::create_doobers@008a28e0`'s cell write** (720 → 738): a
 /// wet cell (not HALFLAND, `land` `SANDY` or `OCEAN`) carrying rock (0x8)
 /// loses it — where `move_ocean_goody` moved oil onto water at 720. Its
-/// rocky patches' heights are [`crate::map_heights::create_doobers`]'.
+/// rocky patches' heights are [`crate::mapgen::map_heights::create_doobers`]'.
 pub fn create_doobers_flags(g: &mut MapGrid) {
     for c in &mut g.cells {
         if c.flags & 0x8 != 0 && c.flags & 0x100 == 0 && (c.land == 1 || c.land == 2) {

@@ -84,11 +84,11 @@ pub(super) fn port(
     p: &[Vec<u8>],
     log: &mut Vec<String>,
 ) -> i64 {
-    use crate::ai_load::uflags2;
-    use crate::ai_place::circle;
-    use crate::attrition::Domain;
+    use crate::ai::ai_load::uflags2;
+    use crate::ai::ai_place::circle;
     use crate::combat::mask;
     use crate::movement::Angle;
+    use crate::territory::attrition::Domain;
     use crate::vision::ring;
     use crate::world::{Cell, Pos, Terrain, World};
     assert_eq!(a[5], 1, "the sweep holds is_unit to 1");
@@ -265,7 +265,7 @@ pub(super) fn port_build(
     _p: &[Vec<u8>],
     log: &mut Vec<String>,
 ) -> i64 {
-    use crate::build::{BuildType, Ident};
+    use crate::cities::build::{BuildType, Ident};
     use crate::world::{Cell, Pos, Terrain, World};
     assert_eq!(
         (a[0], a[5]),
@@ -331,7 +331,7 @@ pub(super) fn port_build(
     let bit = 1u8 << owner;
     let mut cells: Vec<(i32, i32)> = Vec::new();
     if let Some(sw) = &sweep {
-        let g = crate::ai_place::circle();
+        let g = crate::ai::ai_place::circle();
         for i in sw.start..sw.end {
             let (x, y) = (g.x[i] + sw.centre.0, g.y[i] + sw.centre.1);
             if x >= 0 && y >= 0 && x < fw && y < fh {

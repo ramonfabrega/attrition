@@ -3,7 +3,7 @@ use crate::{Sim, Unit, UnitType, movement};
 
 fn walker(age: i32, flags: u32) -> (Sim, usize) {
     let mut s = Sim::new(
-        crate::tuning::Tuning::RON,
+        crate::core::tuning::Tuning::RON,
         crate::world::World::new(128, 128),
         2,
     );
@@ -59,7 +59,7 @@ fn a_walking_modern_infantry_packs_on_its_own_phase() {
         if general {
             // A marching General standing where the walk starts.
             let mut ty = UnitType::default();
-            ty.cols.unit_flags2 = crate::ai_load::uflags2::FLAG2_GENERAL;
+            ty.cols.unit_flags2 = crate::ai::ai_load::uflags2::FLAG2_GENERAL;
             let ty = s.add_unit_type(ty);
             let mut g = Unit::new(1, 0, s.units[u].pos, 50);
             g.ty = Some(ty);
@@ -67,13 +67,13 @@ fn a_walking_modern_infantry_packs_on_its_own_phase() {
             g.marching = Some(i64::MAX);
             s.add_unit(g);
         }
-        s.units[u].guys.push(crate::anim::Guy::fresh(PIECE));
+        s.units[u].guys.push(crate::units::anim::Guy::fresh(PIECE));
         s.roster
             .art
             .piece_lengths
             .entry(PIECE)
             .or_default()
-            .insert(crate::anim::ANIM_PACK, 22);
+            .insert(crate::units::anim::ANIM_PACK, 22);
         let from = s.units[u].pos;
         s.order_move(u, Pos::new(from.x + 0x60 * 60, from.y));
         let mut seen = Vec::new();
@@ -85,7 +85,7 @@ fn a_walking_modern_infantry_packs_on_its_own_phase() {
                 crate::orders::Body::Move(m) => Some((m.retry, m.attempts)),
                 _ => None,
             });
-            if s.units[u].guys[0].anim == crate::anim::ANIM_PACK && mo == Some((22, -3)) {
+            if s.units[u].guys[0].anim == crate::units::anim::ANIM_PACK && mo == Some((22, -3)) {
                 seen.push((f, at == s.units[u].pos));
             }
         }

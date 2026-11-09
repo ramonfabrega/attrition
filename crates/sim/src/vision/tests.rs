@@ -1,6 +1,6 @@
 use super::*;
 use crate::Tuning;
-use crate::ai_place::circle;
+use crate::ai::ai_place::circle;
 use crate::movement::Angle;
 use crate::world::{Cell, Terrain, World};
 
@@ -41,12 +41,12 @@ fn fog_build(los: i32, science_los: i32, x_size: i32) -> (crate::Sim, usize) {
     world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 39));
     assert!(world.set_fog(vec![0; 80 * 80]));
     let mut s = crate::Sim::new(Tuning::RON, world, 2);
-    let t = s.add_build_type(crate::build::BuildType {
+    let t = s.add_build_type(crate::cities::build::BuildType {
         los,
         science_los,
         x_size,
         y_size: x_size,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let at = Pos::new(20 * 0x300 + 0x180, 20 * 0x300 + 0x180);
     let b = s.add_building(0, at, 0);
@@ -72,7 +72,7 @@ fn a_unit_beside_its_own_ceo_sees_two_tiles_further() {
         type_index: 0x165,
         ..crate::UnitType::default()
     });
-    s.tables.unit_types[ceo].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_GENERAL;
+    s.tables.unit_types[ceo].cols.unit_flags2 |= crate::ai::ai_load::uflags2::FLAG2_GENERAL;
     let at = s.units[u].pos;
     let mut h = crate::Unit::new(0, 1, Pos::new(at.x + 0x300, at.y), 20);
     h.ty = Some(ceo);
@@ -254,13 +254,13 @@ fn a_wonder_s_start_is_first_contact() {
 fn a_city_flagged_wonder_is_not_first_contact() {
     for as_fort in [false, true] {
         let (mut s, b) = site(true);
-        let root = s.add_build_type(crate::build::BuildType {
+        let root = s.add_build_type(crate::cities::build::BuildType {
             ident: if as_fort {
-                crate::build::Ident::Fort
+                crate::cities::build::Ident::Fort
             } else {
-                crate::build::Ident::Village
+                crate::cities::build::Ident::Village
             },
-            ..crate::build::BuildType::default()
+            ..crate::cities::build::BuildType::default()
         });
         let t = s.buildings[b].ty.unwrap();
         s.tables.build_types[t].from = Some(root);
@@ -378,7 +378,7 @@ fn an_unstarted_building_cannot_introduce_two_enemies() {
 /// unfinished tower.
 #[test]
 fn a_tower_sees_further_with_each_tower_fort_los_bit() {
-    use crate::build::Ident;
+    use crate::cities::build::Ident;
     use crate::tech::{TechTree, TypeDef, UnitTraits};
     let (mut s, b) = fog_build(14, 0, 2);
     let mut tree = TechTree::new().with_tuning(&Tuning::RON);
@@ -413,7 +413,7 @@ fn a_tower_sees_further_with_each_tower_fort_los_bit() {
 /// 2, a radius of eight fog cells.
 #[test]
 fn a_fort_sees_further_with_each_fort_los_level() {
-    use crate::build::Ident;
+    use crate::cities::build::Ident;
     use crate::tech::{TechTree, TypeDef};
     let (mut s, b) = fog_build(12, 0, 5);
     let mut tree = TechTree::new().with_tuning(&Tuning::RON);
@@ -553,7 +553,7 @@ fn a_science_level_adds_science_los_and_the_radius_follows() {
 /// Term 6's fixture: a Barracks and a Market, a unit trained at each
 /// (`LOS 6`), and Herbal Lore as `TROOPS_LOS_1`. Player 0 is the AI.
 fn troops_sim() -> (crate::Sim, usize, usize, crate::tech::TypeId) {
-    use crate::build::{BuildType, Ident};
+    use crate::cities::build::{BuildType, Ident};
     use crate::tech::{TechTree, TypeDef};
     let mut world = World::new(40, 40);
     world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 39));
@@ -922,7 +922,7 @@ fn the_unpack_lights_the_whole_disc_at_the_new_line_of_sight() {
         ..crate::UnitType::default()
     };
     ty.combat.packs = true;
-    ty.cols.unit_flags2 |= crate::ai_load::uflags2::PACKS;
+    ty.cols.unit_flags2 |= crate::ai::ai_load::uflags2::PACKS;
     let t = s.add_unit_type(ty);
     let at = Pos::new(20 * 0x300 + 0x180, 20 * 0x300 + 0x180);
     let mut u = crate::Unit::new(0, 0, at, 80);
@@ -958,7 +958,7 @@ fn a_turkish_siege_engine_sees_three_tiles_past_the_packed_clamp() {
     };
     ty.combat.packs = true;
     ty.combat.siege = true;
-    ty.cols.unit_flags2 |= crate::ai_load::uflags2::PACKS;
+    ty.cols.unit_flags2 |= crate::ai::ai_load::uflags2::PACKS;
     let t = s.add_unit_type(ty);
     let mut u = crate::Unit::new(1, 0, Pos::new(0x180, 0x180), 80);
     u.ty = Some(t);

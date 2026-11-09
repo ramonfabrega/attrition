@@ -1,7 +1,7 @@
 //! **`UnitData::attack@006103c0`** (item 3399): a unit's attack, as a pure walk
 //! over a [`UnitAttackView`].
 //!
-//! `ObjectData::attack@006469f0` is the base ([`crate::object_attack_view`];
+//! `ObjectData::attack@006469f0` is the base ([`crate::combat::object_attack_view`];
 //! `Sim::attack_of` in the crate); a base of zero returns zero. Past it the
 //! override adds, in this order, ten times a constant for each term that holds:
 //!

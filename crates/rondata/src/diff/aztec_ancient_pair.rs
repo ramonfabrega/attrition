@@ -36,7 +36,7 @@ pub(crate) const AZTEC_ANCIENT: Pair = Pair {
     // 16 draws against theirs' 17, parting at index 2 — ours
     // `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a
     // < Unit::move_step+0x823` (`docs/AI.md` section 325). Item 3613: the
-    // Royal Atl-Atls throw from piece 36's bays (`sim::launch`), and the
+    // Royal Atl-Atls throw from piece 36's bays (`sim::data::launch`), and the
     // pair is whole — 8716 → 9258, the game's last frame (section 325.1).
     count: 9258,
     sequence: 9258,

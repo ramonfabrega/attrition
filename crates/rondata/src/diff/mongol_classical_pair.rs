@@ -45,7 +45,7 @@ pub(crate) const MONGOL_CLASSICAL: Pair = Pair {
     // ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`.
     // Item 3581: 9772 -> 9884, the game's last frame — whole. The Nomad
     // (piece 149) is a pivot piece and releases through it
-    // (`sim::pivot::RELEASES`, run1224b's packet): `1/31`'s 9746 round at
+    // (`sim::data::pivot::RELEASES`, run1224b's packet): `1/31`'s 9746 round at
     // the Citizen `0/11` leaves from (7467, 27925), the rider turned 48° on
     // the horse, and flies 16 frames, not 17, so `0/11` is struck on 9761
     // as theirs is.
@@ -421,7 +421,7 @@ fn mongol_classical_pair_run1222_walks_the_gap_before_9744() {
     // in ours. The `AMMO` records say why: theirs' round leaves from (7087,
     // 27292) at `total_time` 15, ours' from the figure's own (7128, 27240)
     // at 16, and `1/49`'s (TypeIndex 83, piece 1089) javelin 17 against
-    // 18. Built (`sim::launch`, the two pieces' bays): 171 -> 82, every
+    // 18. Built (`sim::data::launch`, the two pieces' bays): 171 -> 82, every
     // `0/8` row agreeing. What stands: the standing families, 1/187's
     // `orders_x`/`orders_y` on 9714 (9627, 30596 against 9634, 30612), and
     // the `dest_angle` family (3574b) from 9733.
@@ -483,7 +483,7 @@ fn mongol_classical_pair_run1224_s_word_frame_is_widened_whole() {
     // `AMMO` records say why: theirs' round leaves on 9746 from (7467,
     // 27925, 654) at `total_time` 16 and strikes on 9761; ours' from the
     // figure's own (7524, 27864) at 17, landing (5892, 29195) against
-    // (5908, 29179). Built (`sim::pivot`, piece 149's four releases): 6619
+    // (5908, 29179). Built (`sim::data::pivot`, piece 149's four releases): 6619
     // -> 93, and the draw stream whole to 9884. What stands: the standing
     // families, who=1's `bucket`/`leftover` (3558a) and, on 9783,
     // `bucket[2:wealth]` 20897 against 20907 and `bucket[4:metal]` 16844

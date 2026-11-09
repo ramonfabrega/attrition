@@ -26,9 +26,9 @@
 //! the cell's *own* region, not the tile's.
 
 use crate::Sim;
-use crate::ai_place::circle;
-use crate::build::{self, BuildDomain, Ident, flags};
-use crate::place::Blocked;
+use crate::ai::ai_place::circle;
+use crate::cities::build::{self, BuildDomain, Ident, flags};
+use crate::cities::place::Blocked;
 use crate::world::{Cell, Pos, Terrain, tile, vector_dist};
 
 /// The constants the function reads, `constants +0x138..+0x148`.

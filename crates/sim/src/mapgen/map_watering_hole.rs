@@ -1,6 +1,6 @@
 //! **African Watering Hole's land/sea mask** (`docs/MAPGEN.md` §5, §28):
 //! `MapAfricanWateringHole::make_continents@0069b650`, on the region
-//! growers Great Lakes' port already carries (`crate::map_lakes`).
+//! growers Great Lakes' port already carries (`crate::mapgen::map_lakes`).
 //!
 //! One lake in the middle of a whole land, and the players on Great
 //! Sahara's ring about it. The lake is grown as a *land* region on the
@@ -10,10 +10,10 @@
 //! again, angle and all. No float: `grow_region`'s distances are the
 //! engine's integer `vector_dist`.
 
-use crate::map_lakes::{Grower, LakeMap, LakeStyle, Lakes, scale_land_area};
+use crate::mapgen::map_lakes::{Grower, LakeMap, LakeStyle, Lakes, scale_land_area};
+use crate::mapgen::terrain_groups::Draws;
 use crate::mapgen::{MapGrid, project};
 use crate::movement::Angle;
-use crate::terrain_groups::Draws;
 
 /// The draw sites, as return addresses (the trace's `Function+0xNN`).
 pub mod site {

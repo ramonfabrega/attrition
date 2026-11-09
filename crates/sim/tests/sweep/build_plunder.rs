@@ -41,10 +41,10 @@ fn the_emulated_original_agrees_on_every_row() {
         // array; `p23`/`p24` `objects[r]`'s lists and `p25..p28`/`p29..p32` their objects; `p33` the
         // text bubble; `p34` what slot `+0xac` answers.
         //
-        // **The port is the crate's own steps**, `crate::build_plunder_view::build_plunder_steps`; the
+        // **The port is the crate's own steps**, `crate::combat::build_plunder_view::build_plunder_steps`; the
         // view here is the emulated original's windows. `LeaderDataEncrypt::scratch` is the bucket
         // write's twin and nothing of the row reads it.
-        use crate::build_plunder_view::{BuildPlunderView, Str, build_plunder_steps};
+        use crate::combat::build_plunder_view::{BuildPlunderView, Str, build_plunder_steps};
         struct V<'a> {
             a: &'a [i32],
             m: &'a mut [u8],

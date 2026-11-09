@@ -1,6 +1,6 @@
 //! `UnitData::has_repeat_air@0046cec0` under the emulator against the port (item 1705).
 
-use crate::flag_reads::unit_has_repeat_air;
+use crate::core::flag_reads::unit_has_repeat_air;
 
 /// `UnitData::has_repeat_air@0046cec0`, run by `tools/emu/sweep_unit_has_repeat_air.py` under unicorn
 /// (tools/emu): `unit_masks` (`+0x68`) `& 0x200000`, over every bit edge and a seeded band, against `flag_reads::unit_has_repeat_air` — what is proved is the bit's identity (0x200000), that the other bits and the sign do not leak, and that the original returns the masked value itself.

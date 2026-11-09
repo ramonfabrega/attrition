@@ -351,7 +351,7 @@ pub(crate) struct SimGate<'a> {
 }
 
 impl SimGate<'_> {
-    fn army(&self) -> &crate::army::Army {
+    fn army(&self) -> &crate::ai::army::Army {
         &self.sim.ai.armies[self.who as usize].list[self.slot]
     }
     fn live(&self, a: usize) -> bool {
@@ -535,7 +535,7 @@ impl TargetGateView for SimGate<'_> {
         reg >= 0 && city_reg >= 0 && self.sim.world.is_coast(reg as u16, city_reg as u16)
     }
     fn draw(&mut self) -> G<i32> {
-        self.sim.mark(crate::army::SITE_FIND_TARGET_COIN);
+        self.sim.mark(crate::ai::army::SITE_FIND_TARGET_COIN);
         Ok(self.sim.rng.get(0, 0xffff))
     }
 }

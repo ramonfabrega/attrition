@@ -27,7 +27,7 @@
 //! tail      the scratch group, if it has anyone, walks near the building (`action_move_near`)
 //! ```
 
-pub use crate::garrison_view::{GarrisonHead, garrison_head};
+pub use crate::groups::garrison_view::{GarrisonHead, garrison_head};
 
 /// The key the original xors into every stored coordinate.
 pub const POS_KEY: i32 = 0x63637;

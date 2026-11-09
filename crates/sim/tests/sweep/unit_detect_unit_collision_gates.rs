@@ -58,7 +58,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // `div_3_table`, `p0` the type record, `p1` the path's four nodes. This slice's
             // `get_down` always answers "nothing" and `action_type` is never the attack, so
             // the chain walk and the overreach are the other slice's.
-            use sim::detect_collision_view::{DetectArgs, detect_unit_collision_steps};
+            use sim::movement::detect_collision_view::{DetectArgs, detect_unit_collision_steps};
             let args = DetectArgs {
                 x: a[0],
                 y: a[1],
@@ -132,7 +132,7 @@ fn the_emulated_original_agrees_on_every_row() {
 }
 
 // hand: view
-use sim::detect_collision_view::{DetectCollisionView, unit_cell_of};
+use sim::movement::detect_collision_view::{DetectCollisionView, unit_cell_of};
 
 /// The row's windows as the view. `m` the unit, `c0` the world, `c1` the game, `c2` the
 /// `div_3_table` (a word `i / 3` at index `i`), `p0` the type record, `p1` the path's nodes.

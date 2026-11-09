@@ -21,10 +21,10 @@
 //! stack that is not a unit's, from a start that is not the unit's own
 //! position.
 
-use crate::attrition::Domain;
-use crate::form::Form;
-use crate::group::{Group, Member};
+use crate::groups::form::Form;
+use crate::groups::group::{Group, Member};
 use crate::orders::{MoveKind, PathData, path_flag};
+use crate::territory::attrition::Domain;
 use crate::world::{Pos, UNITS_PER_CELL, vector_dist};
 
 use crate::Sim;

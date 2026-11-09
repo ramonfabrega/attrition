@@ -45,9 +45,9 @@ fn the_emulated_original_agrees_on_every_row() {
         // 3n` its `+0xac` record, `p60 + 3n` its `+0xb0` record; `p76 + n` the `+0xac` record's type, `p82 + n` the
         // `+0xb0` record's name.
         //
-        // **The port is the crate's own steps**, `crate::capture::check_capture_steps`, which `Sim::check_capture`
+        // **The port is the crate's own steps**, `crate::cities::capture::check_capture_steps`, which `Sim::check_capture`
         // calls over its `SimCapture`; here the view is the emulated original's windows.
-        use crate::capture::{CaptureView, check_capture_steps};
+        use crate::cities::capture::{CaptureView, check_capture_steps};
         const ROW: i32 = 0x00e3_a390;
         const MSG: i32 = 0x00ed_6730;
         fn r16(m: &[u8], off: usize) -> i32 {

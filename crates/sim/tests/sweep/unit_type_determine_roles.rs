@@ -28,7 +28,7 @@ fn the_emulated_original_agrees_on_every_row() {
     super::obj_rows(&rows, &obj, |a, m, c, p, _log| {
         let _ = (&a, &m, &c, &p);
         {
-            use crate::attrition::Domain;
+            use crate::territory::attrition::Domain;
             let ty = rd(m, 4);
             let domain = match rd(m, 0x218) {
                 2 => Domain::Air,
@@ -37,7 +37,7 @@ fn the_emulated_original_agrees_on_every_row() {
             };
             // `is` is asked in turn: SCOUT or BARK first (a[1]), HOPLITES second (a[2]).
             let (s, hop) = (a[1] != 0, a[2] != 0);
-            let f = crate::ai_load::RoleFacts {
+            let f = crate::ai::ai_load::RoleFacts {
                 citizen_id: (0x32..=0x35).contains(&ty),
                 domain,
                 cat: rd(m, 0x14),
@@ -48,7 +48,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 bark: s,
                 hoplite: hop,
             };
-            wr(m, 0x2c8, crate::ai_load::determine_roles(&f) as i32);
+            wr(m, 0x2c8, crate::ai::ai_load::determine_roles(&f) as i32);
             0
         }
     });

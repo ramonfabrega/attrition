@@ -42,8 +42,8 @@ fn the_emulated_original_agrees_on_every_row() {
         // c2 `div_3_table`, c3 the units table, c4 sixteen blocks of 0x60 at `BLOCKS`; p0 the
         // world's cell table (`0x1c` apiece: `+4` region short, `+0x18` block), p3 the type record,
         // p4.. the windows `new_coll_block` answers.
-        use sim::anim::Turret;
-        use sim::collide::{CollGrid, PaintView, paint_walk, repaint_due};
+        use sim::movement::collide::{CollGrid, PaintView, paint_walk, repaint_due};
+        use sim::units::anim::Turret;
         use sim::world::Pos;
         const BLOCKS: i32 = 0xd1_0000;
         let u16at = |w: &[u8], o: usize| u16::from_le_bytes([w[o], w[o + 1]]);
@@ -126,7 +126,12 @@ fn the_emulated_original_agrees_on_every_row() {
                     grid: CollGrid::new(w, h),
                     visited: Vec::new(),
                 };
-                paint_walk(&mut v, size, sim::collide::ucell(Pos::new(x, y)), true);
+                paint_walk(
+                    &mut v,
+                    size,
+                    sim::movement::collide::ucell(Pos::new(x, y)),
+                    true,
+                );
                 let visited = std::mem::take(&mut v.visited);
                 let mut allocs = 0usize;
                 for q in visited {

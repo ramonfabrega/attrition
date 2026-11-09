@@ -13,7 +13,7 @@ impl Sim {
     ///
     /// `Sim::tick` marks its phases and each unit the loop visits; a
     /// **mechanic** may mark its own draw sites on top of that, under the
-    /// original's own offsets (`crate::scout` is the first), which is what
+    /// original's own offsets (`crate::units::think::scout` is the first), which is what
     /// turns the fold from a count into a sequence comparable with
     /// `rondata::trace`'s.
     pub(crate) fn mark(&mut self, phase: &str) {
@@ -49,11 +49,11 @@ pub struct TraceState {
     pub trace_costs: bool,
     /// Every step the search priced, in order, while [`Sim::trace_costs`]
     /// is set. Nothing in the simulation reads it.
-    pub cost_marks: Vec<crate::path::CostMark>,
+    pub cost_marks: Vec<crate::movement::path::CostMark>,
     /// The same for the **road** search, filled under the same flag:
     /// `PathFinder::calc_road_cost`'s arguments and answer, node for node
     /// (`docs/ROADS.md` §7.2). Nothing in the simulation reads it.
-    pub road_marks: Vec<crate::roads::RoadCostMark>,
+    pub road_marks: Vec<crate::movement::roads::RoadCostMark>,
     /// The stream's word at each phase boundary of [`Sim::tick`], filled
     /// only while [`Sim::trace_phases`] is set. It is what
     /// `tools/trace/report.py sites` is for the original — a frame's draws
@@ -81,11 +81,11 @@ pub struct TraceState {
     /// [`ai::Leader::unit_offers`] takes for `docs/AI.md` §52's offers:
     /// the simulation fills a recorder as it runs and the test reads it
     /// afterwards.
-    pub sweep_watch: Option<crate::collide::SweepWatch>,
+    pub sweep_watch: Option<crate::movement::collide::SweepWatch>,
     /// A unit cell `valid_ucoord` refuses to one unit on one frame
     /// ([`path::RefuseProbe`]), and `None` in every run but a test's.
     #[doc(hidden)]
-    pub probe_refuse: Option<crate::path::RefuseProbe>,
+    pub probe_refuse: Option<crate::movement::path::RefuseProbe>,
     /// The order a frame's building walk ran its five steps in — written
     /// only under test — for the test that holds `Build::process`'s sequence (group 18).
     #[allow(dead_code)]

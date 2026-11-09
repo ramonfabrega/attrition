@@ -443,13 +443,13 @@ fn leech_codes_stops_at_a_road_with_no_element() {
 #[test]
 fn a_building_that_starts_over_a_road_takes_it_under_its_blocked_tiles() {
     let mut sim = bare();
-    let bt = sim.add_build_type(crate::build::BuildType {
+    let bt = sim.add_build_type(crate::cities::build::BuildType {
         x_size: 3,
         y_size: 3,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     assert!(
-        crate::roads::connects_to_roads(&sim.tables.build_types, bt),
+        crate::movement::roads::connects_to_roads(&sim.tables.build_types, bt),
         "the type connects to roads, so mask_me's own arm lays rather than clears"
     );
     let at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);

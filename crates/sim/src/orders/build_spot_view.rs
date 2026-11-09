@@ -87,7 +87,7 @@ pub fn build_spot_steps(v: &mut impl BuildSpotView) -> bool {
     true
 }
 
-/// [`crate::build_spot_view::BuildSpotView`] over the sim: the result array
+/// [`crate::orders::build_spot_view::BuildSpotView`] over the sim: the result array
 /// the original shares between its two searches is the construct sites and
 /// then the friendly units, each already past the filter the caller applies
 /// (`find_construct_sites` folds the mine/not-under-attack tests in).

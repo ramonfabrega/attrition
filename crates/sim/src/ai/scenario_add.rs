@@ -29,10 +29,10 @@
 //! `GATHER` (`set_new_location` at the target), which a unit born here never
 //! holds.
 
-use crate::group::Group;
+use crate::ai::transport::ty::{MERCHANTFLEET, TRANSPORTBARGE};
+use crate::groups::group::Group;
 use crate::movement::Angle;
 use crate::orders::{Body, QueuePos, index};
-use crate::transport::ty::{MERCHANTFLEET, TRANSPORTBARGE};
 use crate::{Player, Pos, Sim};
 
 /// The bearing every placement here sweeps from (`0x55555555`).
@@ -87,12 +87,12 @@ impl Sim {
         }
         let ocean = self.world.is_ocean(at.cell());
         let domain = self.tables.unit_types[ty].combat.domain;
-        use crate::attrition::Domain;
+        use crate::territory::attrition::Domain;
         let mut g = Group::stack(who);
         let mut made = Vec::new();
         match (domain, ocean) {
             (Domain::Land, true) => {
-                if self.transport_level(who) == crate::transport::TransportType::None {
+                if self.transport_level(who) == crate::ai::transport::TransportType::None {
                     return Some(made);
                 }
                 for _ in 0..num {
@@ -157,10 +157,10 @@ impl Sim {
             if !self.units[u].alive() || !self.units[u].on_map || !self.is_captain(u) {
                 continue;
             }
-            if self.unit_domain_of(u) != crate::attrition::Domain::Land {
+            if self.unit_domain_of(u) != crate::territory::attrition::Domain::Land {
                 continue;
             }
-            let base = if self.unit_is(u, crate::transport::ty::CARAVAN) {
+            let base = if self.unit_is(u, crate::ai::transport::ty::CARAVAN) {
                 MERCHANTFLEET
             } else {
                 TRANSPORTBARGE

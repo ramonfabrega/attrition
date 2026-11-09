@@ -10,7 +10,7 @@ use super::*;
 /// share step −13, which no dump there prints.
 #[test]
 fn the_french_dragoon_s_rounds_leave_from_its_pivot() {
-    use crate::anim::{ATTACK1, ATTACK2, ATTACK3};
+    use crate::units::anim::{ATTACK1, ATTACK2, ATTACK3};
     #[rustfmt::skip]
     let shots = [
         (ATTACK3, 18, 7944, 30840, -990_642_176, 658, 7797, 30845, 866, -13),
@@ -49,7 +49,7 @@ fn the_french_dragoon_s_rounds_leave_from_its_pivot() {
 /// height 470, which one turret step fits.
 #[test]
 fn the_chinese_dragoon_s_round_leaves_from_its_pivot() {
-    use crate::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
+    use crate::units::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
     for (a, t) in [
         (ATTACKWALK, 12),
         (ATTACK1, 12),
@@ -80,7 +80,7 @@ fn the_chinese_dragoon_s_round_leaves_from_its_pivot() {
 /// fits. Made to fail with the row out of `SAME_AS`.
 #[test]
 fn the_a7v_s_round_leaves_from_its_turret() {
-    use crate::anim::{ATTACK1, ATTACK2, ATTACK3};
+    use crate::units::anim::{ATTACK1, ATTACK2, ATTACK3};
     for (a, t) in [(ATTACK1, 4), (ATTACK2, 21), (ATTACK3, 14)] {
         assert_eq!(release(192, a, t), release(189, a, t), "anim {a}");
         assert!(release(192, a, t).is_some(), "anim {a}");
@@ -109,7 +109,7 @@ fn the_a7v_s_round_leaves_from_its_turret() {
 /// turret step. Made to fail with the row out of `SAME_AS`.
 #[test]
 fn run1374b_s_egyptian_light_tank_rounds_leave_from_its_turret() {
-    use crate::anim::{ATTACK1, ATTACK2, ATTACK3};
+    use crate::units::anim::{ATTACK1, ATTACK2, ATTACK3};
     // (x, y, facing, sx, sy, sz − z)
     let rows: [(i32, i32, i32, i32, i32, i32); 7] = [
         (6120, 10968, -505_479_168, 6098, 10851, 178), // 4940 1/54
@@ -153,7 +153,7 @@ fn run1374b_s_egyptian_light_tank_rounds_leave_from_its_turret() {
 /// Without the rows, `1/16`'s round of 3587 left the hull's square.
 #[test]
 fn run1434b_s_armored_cavalry_rounds_leave_from_its_turret() {
-    use crate::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
+    use crate::units::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
     // (x, y, facing, sx, sy, sz − z, the walk key's frame or 0)
     let rows: [(i32, i32, i32, i32, i32, i32, u32); 29] = [
         (6418, 32805, -1_867_776_923, 6307, 32645, 138, 19), // 3587 1/16
@@ -228,7 +228,7 @@ fn run1434b_s_armored_cavalry_rounds_leave_from_its_turret() {
 /// rows out.
 #[test]
 fn the_mark4_s_round_leaves_from_its_turret() {
-    use crate::anim::{ATTACK1, ATTACK2, ATTACK3};
+    use crate::units::anim::{ATTACK1, ATTACK2, ATTACK3};
     for (a, t) in [(ATTACK1, 4), (ATTACK2, 21), (ATTACK3, 1)] {
         assert!(release(190, a, t).is_some(), "anim {a}");
     }
@@ -267,9 +267,9 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_190() {
     let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_190");
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACK1, 4),
-        (crate::anim::ATTACK2, 21),
-        (crate::anim::ATTACK3, 1),
+        (crate::units::anim::ATTACK1, 4),
+        (crate::units::anim::ATTACK2, 21),
+        (crate::units::anim::ATTACK3, 1),
     ] {
         let r = release(190, slot, time).expect("the row");
         assert_eq!(r.node, 0);
@@ -303,7 +303,7 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_190() {
 #[test]
 fn the_mlrs_s_rockets_leave_from_its_rack() {
     let alone = |t| {
-        let r = release_node(223, crate::anim::ATTACK2, t, 1).expect("the row");
+        let r = release_node(223, crate::units::anim::ATTACK2, t, 1).expect("the row");
         assert_eq!(r.node, 1);
         r
     };
@@ -344,7 +344,7 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_223() {
     for time in [5, 8, 11, 14, 17, 20, 23, 26] {
         let path = format!("{dir}/sweep-223-n1-a12-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_223");
-        let r = release_node(223, crate::anim::ATTACK2, time, 1).expect("the row");
+        let r = release_node(223, crate::units::anim::ATTACK2, time, 1).expect("the row");
         for line in table.lines() {
             let f: Vec<i32> = line
                 .split_whitespace()
@@ -374,7 +374,7 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_223() {
 fn the_main_battle_tank_s_round_leaves_from_its_muzzle() {
     for (slot, time, cells) in [
         (
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             11,
             [
                 (0, 0, (0, 347, 142)),
@@ -383,7 +383,7 @@ fn the_main_battle_tank_s_round_leaves_from_its_muzzle() {
             ],
         ),
         (
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             23,
             [
                 (0, 0, (0, 350, 142)),
@@ -392,7 +392,7 @@ fn the_main_battle_tank_s_round_leaves_from_its_muzzle() {
             ],
         ),
         (
-            crate::anim::ATTACK3,
+            crate::units::anim::ATTACK3,
             27,
             [
                 (0, 0, (0, 308, 140)),
@@ -422,9 +422,9 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_201() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACK1, 11),
-        (crate::anim::ATTACK2, 23),
-        (crate::anim::ATTACK3, 27),
+        (crate::units::anim::ATTACK1, 11),
+        (crate::units::anim::ATTACK2, 23),
+        (crate::units::anim::ATTACK3, 27),
     ] {
         let path = format!("{dir}/pivot-201-n0-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_201");
@@ -459,7 +459,7 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_201() {
 /// the fitted steps.
 #[test]
 fn the_mongol_nomad_s_rounds_leave_from_its_pivot() {
-    use crate::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
+    use crate::units::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
     // (anim, time, guy x, y, angle, z, sx, sy, sz, turret steps)
     type Shot = (i8, u32, i32, i32, i32, i32, i32, i32, i32, &'static [i32]);
     #[rustfmt::skip]
@@ -570,10 +570,10 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_1545() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACKWALK, 18),
-        (crate::anim::ATTACK1, 18),
-        (crate::anim::ATTACK2, 16),
-        (crate::anim::ATTACK3, 18),
+        (crate::units::anim::ATTACKWALK, 18),
+        (crate::units::anim::ATTACK1, 18),
+        (crate::units::anim::ATTACK2, 16),
+        (crate::units::anim::ATTACK3, 18),
     ] {
         let path = format!("{dir}/pivot-1545-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_1545");
@@ -603,7 +603,7 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_1545() {
 /// both leave the figure's own square.
 #[test]
 fn the_camel_raider_s_rounds_leave_from_its_pivot() {
-    use crate::anim::{ATTACK2, ATTACK3};
+    use crate::units::anim::{ATTACK2, ATTACK3};
     let (x, y, z, f) = (17400, 15672, 477, -1_618_280_448);
     for (a, t, sx, sy, sz) in [
         (ATTACK3, 18, 17282, 15746, 742),
@@ -635,7 +635,7 @@ fn the_camel_raider_s_rounds_leave_from_its_pivot() {
 /// fail with the row out: both leave the figure's own square.
 #[test]
 fn the_later_camel_raider_s_rounds_leave_from_its_pivot() {
-    use crate::anim::ATTACK2;
+    use crate::units::anim::ATTACK2;
     let (x, y, z, f) = (30456, 27384, 17, -2_023_030_784);
     for (turret, sx, sy) in [(-262_144, 30400, 27516), (-347_799_552, 30461, 27533)] {
         let r = release(144, ATTACK2, 13).expect("piece 144 reads piece 143's rows");
@@ -669,7 +669,7 @@ fn the_later_camel_raider_s_rounds_leave_from_its_pivot() {
 /// figure's own square.
 #[test]
 fn the_camel_archer_s_rounds_leave_from_its_pivot() {
-    use crate::anim::{ATTACK1, ATTACK2};
+    use crate::units::anim::{ATTACK1, ATTACK2};
     let (x, y, z, f) = (15864, 15672, 566, -1_613_430_784);
     for (a, t, turret, sx, sy, sz) in [
         (ATTACK2, 13, 22_085_632, 15830, 15714, 833),
@@ -720,10 +720,10 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_143() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACKWALK, 12),
-        (crate::anim::ATTACK1, 12),
-        (crate::anim::ATTACK2, 13),
-        (crate::anim::ATTACK3, 18),
+        (crate::units::anim::ATTACKWALK, 12),
+        (crate::units::anim::ATTACK1, 12),
+        (crate::units::anim::ATTACK2, 13),
+        (crate::units::anim::ATTACK3, 18),
     ] {
         let r = release(143, slot, time).expect("the row");
         for f in read(&format!("pivot-143-a{slot}-t{time}.txt"), 6) {
@@ -775,10 +775,10 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_141() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACKWALK, 13),
-        (crate::anim::ATTACK1, 13),
-        (crate::anim::ATTACK2, 13),
-        (crate::anim::ATTACK3, 10),
+        (crate::units::anim::ATTACKWALK, 13),
+        (crate::units::anim::ATTACK1, 13),
+        (crate::units::anim::ATTACK2, 13),
+        (crate::units::anim::ATTACK3, 10),
     ] {
         let r = release(141, slot, time).expect("the row");
         for f in read(&format!("pivot-141-a{slot}-t{time}.txt"), 6) {
@@ -811,7 +811,7 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_141() {
 /// own square at `z` 0.
 #[test]
 fn run1395b_s_battleship_rounds_leave_from_its_turrets() {
-    use crate::anim::{ATTACK1, ATTACK2};
+    use crate::units::anim::{ATTACK1, ATTACK2};
     // (x, y, facing, sx, sy, sz − z)
     let rows: [(i32, i32, i32, i32, i32, i32); 32] = [
         (2808, 11832, -531_824_640, 2629, 11443, 106), // 3693 1/45
@@ -886,7 +886,7 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_299() {
         return;
     };
     let (mut rows, mut off) = (0, Vec::new());
-    for slot in [crate::anim::ATTACK1, crate::anim::ATTACK2] {
+    for slot in [crate::units::anim::ATTACK1, crate::units::anim::ATTACK2] {
         for (node, time) in [(0, 1), (2, 7), (1, 12)] {
             let path = format!("{dir}/pivot-299-n{node}-a{slot}-t{time}.txt");
             let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_299");
@@ -925,9 +925,9 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_200() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACK1, 4),
-        (crate::anim::ATTACK2, 21),
-        (crate::anim::ATTACK3, 1),
+        (crate::units::anim::ATTACK1, 4),
+        (crate::units::anim::ATTACK2, 21),
+        (crate::units::anim::ATTACK3, 1),
     ] {
         let path = format!("{dir}/pivot-200-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_200");
@@ -965,10 +965,10 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_298() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, node, time) in [
-        (crate::anim::ATTACK1, 0, 1),
-        (crate::anim::ATTACK1, 1, 4),
-        (crate::anim::ATTACK2, 0, 1),
-        (crate::anim::ATTACK2, 1, 4),
+        (crate::units::anim::ATTACK1, 0, 1),
+        (crate::units::anim::ATTACK1, 1, 4),
+        (crate::units::anim::ATTACK2, 0, 1),
+        (crate::units::anim::ATTACK2, 1, 4),
     ] {
         let path = format!("{dir}/pivot-298-n{node}-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_298");
@@ -1011,9 +1011,9 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_278() {
         let path = format!("{dir}/pivot-278-n{node}-a10-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_278");
         for slot in [
-            crate::anim::ATTACKWALK,
-            crate::anim::ATTACK1,
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACKWALK,
+            crate::units::anim::ATTACK1,
+            crate::units::anim::ATTACK2,
         ] {
             let r = release(278, slot, time).expect("the row");
             assert_eq!(r.node, node);
@@ -1051,9 +1051,9 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_189() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACK1, 4),
-        (crate::anim::ATTACK2, 21),
-        (crate::anim::ATTACK3, 14),
+        (crate::units::anim::ATTACK1, 4),
+        (crate::units::anim::ATTACK2, 21),
+        (crate::units::anim::ATTACK3, 14),
     ] {
         let path = format!("{dir}/pivot-189-n8-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_189");
@@ -1096,9 +1096,9 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_279() {
         let path = format!("{dir}/pivot-279-n{node}-a10-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_279");
         for slot in [
-            crate::anim::ATTACKWALK,
-            crate::anim::ATTACK1,
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACKWALK,
+            crate::units::anim::ATTACK1,
+            crate::units::anim::ATTACK2,
         ] {
             let r = release(279, slot, time).expect("the row");
             assert_eq!(r.node, node);
@@ -1135,10 +1135,10 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_168() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACKWALK, 1),
-        (crate::anim::ATTACK1, 1),
-        (crate::anim::ATTACK2, 11),
-        (crate::anim::ATTACK3, 12),
+        (crate::units::anim::ATTACKWALK, 1),
+        (crate::units::anim::ATTACK1, 1),
+        (crate::units::anim::ATTACK2, 11),
+        (crate::units::anim::ATTACK3, 12),
     ] {
         let path = format!("{dir}/pivot-168-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_168");
@@ -1173,7 +1173,7 @@ fn run982_s_cavalry_archer_rounds_fit_piece_138_s_pivot_rows() {
     type Row = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
     let rows: [Row; 3] = [
         (
-            crate::anim::ATTACK3,
+            crate::units::anim::ATTACK3,
             20,
             9480,
             30936,
@@ -1184,7 +1184,7 @@ fn run982_s_cavalry_archer_rounds_fit_piece_138_s_pivot_rows() {
             22,
         ),
         (
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             16,
             9480,
             30936,
@@ -1195,7 +1195,7 @@ fn run982_s_cavalry_archer_rounds_fit_piece_138_s_pivot_rows() {
             22,
         ),
         (
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             18,
             7944,
             30840,
@@ -1229,7 +1229,7 @@ fn run982_s_cavalry_archer_rounds_fit_piece_138_s_pivot_rows() {
 fn piece_842_s_horse_archer_rounds_fit_piece_138_s_pivot_rows() {
     // (anim, starttime, x, y, facing, sx, sy, sz − z, the steps)
     type Row = (i8, u32, i32, i32, i32, i32, i32, i32, &'static [i32]);
-    use crate::anim::{ATTACK1, ATTACK2, ATTACK3};
+    use crate::units::anim::{ATTACK1, ATTACK2, ATTACK3};
     #[rustfmt::skip]
     let rows: [Row; 9] = [
         (ATTACK3, 20, 8808, 31944, -730_923_008, 8725, 31923, 228, &[0]),
@@ -1268,10 +1268,10 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_138() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACKWALK, 18),
-        (crate::anim::ATTACK1, 18),
-        (crate::anim::ATTACK2, 16),
-        (crate::anim::ATTACK3, 20),
+        (crate::units::anim::ATTACKWALK, 18),
+        (crate::units::anim::ATTACK1, 18),
+        (crate::units::anim::ATTACK2, 16),
+        (crate::units::anim::ATTACK3, 20),
     ] {
         let path = format!("{dir}/pivot-138-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_138");
@@ -1308,7 +1308,7 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_169() {
         return;
     };
     let (mut rows, mut off) = (0, Vec::new());
-    for slot in [crate::anim::ATTACKWALK, crate::anim::ATTACK2] {
+    for slot in [crate::units::anim::ATTACKWALK, crate::units::anim::ATTACK2] {
         for time in [3, 9, 12, 17, 20, 22, 24, 29] {
             let path = format!("{dir}/pivot-169-a{slot}-t{time}.txt");
             let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_169");
@@ -1347,10 +1347,10 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_170() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for slot in [
-        crate::anim::ATTACKWALK,
-        crate::anim::ATTACK1,
-        crate::anim::ATTACK2,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACKWALK,
+        crate::units::anim::ATTACK1,
+        crate::units::anim::ATTACK2,
+        crate::units::anim::ATTACK3,
     ] {
         for time in [4, 19] {
             let path = format!("{dir}/pivot-170-a{slot}-t{time}.txt");
@@ -1390,9 +1390,9 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_204() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACK1, 11),
-        (crate::anim::ATTACK2, 23),
-        (crate::anim::ATTACK3, 27),
+        (crate::units::anim::ATTACK1, 11),
+        (crate::units::anim::ATTACK2, 23),
+        (crate::units::anim::ATTACK3, 27),
     ] {
         let path = format!("{dir}/pivot-204-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_204");
@@ -1428,13 +1428,13 @@ fn a_node_past_the_restriction_count_is_its_own_entry_alone() {
     let facing = Angle(-1_503_002_624);
     let turrets = [0x1234_5678, 0, 0, 0];
     for (time, want) in [(1, (-127, 77, 130)), (7, (-128, 77, 126))] {
-        let r = release(204, crate::anim::ATTACK2, time).expect("the tracer's row");
+        let r = release(204, crate::units::anim::ATTACK2, time).expect("the tracer's row");
         assert_eq!(r.node, 1);
         assert_eq!(release_point(&r, facing, &turrets, 1), want, "frame {time}");
         assert_eq!(release_point(&r, facing, &[0; 4], 1), want, "no turret");
     }
     // The gun, node 0, is governed: its turret turns it.
-    let gun = release(204, crate::anim::ATTACK2, 23).expect("the gun's row");
+    let gun = release(204, crate::units::anim::ATTACK2, 23).expect("the gun's row");
     assert_ne!(
         release_point(&gun, facing, &turrets, 1),
         release_point(&gun, facing, &[0; 4], 1)
@@ -1456,10 +1456,10 @@ fn the_original_s_tracer_agrees_on_every_cell_for_piece_204() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACK2, 1),
-        (crate::anim::ATTACK2, 7),
-        (crate::anim::ATTACK3, 1),
-        (crate::anim::ATTACK3, 7),
+        (crate::units::anim::ATTACK2, 1),
+        (crate::units::anim::ATTACK2, 7),
+        (crate::units::anim::ATTACK3, 1),
+        (crate::units::anim::ATTACK3, 7),
     ] {
         let path = format!("{dir}/pivot-204-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_204_TRACERS");
@@ -1498,9 +1498,9 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_199() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACK1, 4),
-        (crate::anim::ATTACK2, 21),
-        (crate::anim::ATTACK3, 1),
+        (crate::units::anim::ATTACK1, 4),
+        (crate::units::anim::ATTACK2, 21),
+        (crate::units::anim::ATTACK3, 1),
     ] {
         let path = format!("{dir}/pivot-199-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_199");
@@ -1538,9 +1538,9 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_207() {
     let (mut rows, mut off) = (0, Vec::new());
     for piece in [207] {
         for (slot, time) in [
-            (crate::anim::ATTACK1, 11),
-            (crate::anim::ATTACK2, 23),
-            (crate::anim::ATTACK3, 27),
+            (crate::units::anim::ATTACK1, 11),
+            (crate::units::anim::ATTACK2, 23),
+            (crate::units::anim::ATTACK3, 27),
         ] {
             let path = format!("{dir}/pivot-{piece}-a{slot}-t{time}.txt");
             let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_207");
@@ -1579,9 +1579,9 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_196() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACK1, 4),
-        (crate::anim::ATTACK2, 21),
-        (crate::anim::ATTACK3, 1),
+        (crate::units::anim::ATTACK1, 4),
+        (crate::units::anim::ATTACK2, 21),
+        (crate::units::anim::ATTACK3, 1),
     ] {
         let path = format!("{dir}/pivot-196-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_196");
@@ -1619,9 +1619,9 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_208() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for slot in [
-        crate::anim::ATTACK1,
-        crate::anim::ATTACK2,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK1,
+        crate::units::anim::ATTACK2,
+        crate::units::anim::ATTACK3,
     ] {
         let path = format!("{dir}/pivot-208-a{slot}-t3.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_208");
@@ -1659,10 +1659,10 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_150() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACKWALK, 18),
-        (crate::anim::ATTACK1, 18),
-        (crate::anim::ATTACK2, 16),
-        (crate::anim::ATTACK3, 19),
+        (crate::units::anim::ATTACKWALK, 18),
+        (crate::units::anim::ATTACK1, 18),
+        (crate::units::anim::ATTACK2, 16),
+        (crate::units::anim::ATTACK3, 19),
     ] {
         let path = format!("{dir}/pivot-150-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_150");
@@ -1700,10 +1700,10 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_166() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for slot in [
-        crate::anim::ATTACKWALK,
-        crate::anim::ATTACK1,
-        crate::anim::ATTACK2,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACKWALK,
+        crate::units::anim::ATTACK1,
+        crate::units::anim::ATTACK2,
+        crate::units::anim::ATTACK3,
     ] {
         for time in [3, 9, 12, 17, 20, 22, 24, 29] {
             let path = format!("{dir}/pivot-166-a{slot}-t{time}.txt");
@@ -1744,10 +1744,10 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_1546() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACKWALK, 18),
-        (crate::anim::ATTACK1, 18),
-        (crate::anim::ATTACK2, 16),
-        (crate::anim::ATTACK3, 20),
+        (crate::units::anim::ATTACKWALK, 18),
+        (crate::units::anim::ATTACK1, 18),
+        (crate::units::anim::ATTACK2, 16),
+        (crate::units::anim::ATTACK3, 20),
     ] {
         let path = format!("{dir}/pivot-1546-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_1546");
@@ -1787,10 +1787,10 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_1898() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACKWALK, 18),
-        (crate::anim::ATTACK1, 18),
-        (crate::anim::ATTACK2, 16),
-        (crate::anim::ATTACK3, 20),
+        (crate::units::anim::ATTACKWALK, 18),
+        (crate::units::anim::ATTACK1, 18),
+        (crate::units::anim::ATTACK2, 16),
+        (crate::units::anim::ATTACK3, 20),
     ] {
         let path = format!("{dir}/pivot-1898-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_1898");
@@ -1825,10 +1825,10 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_841() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACKWALK, 18),
-        (crate::anim::ATTACK1, 18),
-        (crate::anim::ATTACK2, 16),
-        (crate::anim::ATTACK3, 18),
+        (crate::units::anim::ATTACKWALK, 18),
+        (crate::units::anim::ATTACK1, 18),
+        (crate::units::anim::ATTACK2, 16),
+        (crate::units::anim::ATTACK3, 18),
     ] {
         let path = format!("{dir}/pivot-841-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_841");
@@ -1856,7 +1856,7 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_841() {
 /// a step on from the block before — against the round's `sx, sy`.
 #[test]
 fn run1001c_s_cavalry_archers_loose_through_piece_1546_s_pivot() {
-    use crate::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
+    use crate::units::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
     for (slot, time, (fx, fy), facing, turret, (sx, sy)) in [
         (
             ATTACKWALK,
@@ -1970,7 +1970,7 @@ fn run1001c_s_cavalry_archers_loose_through_piece_1546_s_pivot() {
 /// 841's rows out of `RELEASES`.
 #[test]
 fn run1011b_s_inca_horse_archer_looses_through_piece_841_s_pivot() {
-    let r = release(841, crate::anim::ATTACKWALK, 18).expect("the Inca Horse Archer's row");
+    let r = release(841, crate::units::anim::ATTACKWALK, 18).expect("the Inca Horse Archer's row");
     let (x, y, z) = release_offset(&r, Angle(-1_717_370_880), 1_182_990_336);
     assert_eq!((7629 + x, 31482 + y, 652 + z), (7563, 31441, 893));
     assert_eq!(
@@ -1992,7 +1992,7 @@ fn run1011b_s_inca_horse_archer_looses_through_piece_841_s_pivot() {
 /// to fail with 1898's rows out of `RELEASES`.
 #[test]
 fn run1007b_s_heavy_horse_archer_looses_through_piece_1898_s_pivot() {
-    let r = release(1898, crate::anim::ATTACK1, 18).expect("the Heavy Horse Archer's row");
+    let r = release(1898, crate::units::anim::ATTACK1, 18).expect("the Heavy Horse Archer's row");
     let (x, y, z) = release_offset(&r, Angle(-1_104_936_960), 262_209_536);
     assert_eq!((8760 + x, 30264 + y, 641 + z), (8675, 30245, 866));
     assert_eq!(
@@ -2013,7 +2013,7 @@ fn run1007b_s_heavy_horse_archer_looses_through_piece_1898_s_pivot() {
 /// leave from the figure.
 #[test]
 fn run943b_s_horse_archer_looses_through_its_pivot() {
-    use crate::anim::{ATTACK3, ATTACKWALK};
+    use crate::units::anim::{ATTACK3, ATTACKWALK};
     let (facing, turret) = (Angle(-1_280_966_656), 291_307_520);
     for (slot, (fx, fy), (sx, sy)) in [
         (ATTACKWALK, (5034, 31074), (4944, 31073)),
@@ -2045,10 +2045,10 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_156() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACKWALK, 18),
-        (crate::anim::ATTACK1, 18),
-        (crate::anim::ATTACK2, 16),
-        (crate::anim::ATTACK3, 18),
+        (crate::units::anim::ATTACKWALK, 18),
+        (crate::units::anim::ATTACK1, 18),
+        (crate::units::anim::ATTACK2, 16),
+        (crate::units::anim::ATTACK3, 18),
     ] {
         let path = format!("{dir}/pivot-156-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_156");
@@ -2082,10 +2082,10 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_157() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACKWALK, 12),
-        (crate::anim::ATTACK1, 12),
-        (crate::anim::ATTACK2, 13),
-        (crate::anim::ATTACK3, 18),
+        (crate::units::anim::ATTACKWALK, 12),
+        (crate::units::anim::ATTACK1, 12),
+        (crate::units::anim::ATTACK2, 13),
+        (crate::units::anim::ATTACK3, 18),
     ] {
         let path = format!("{dir}/pivot-157-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_157");
@@ -2119,9 +2119,9 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_297() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for slot in [
-        crate::anim::ATTACK1,
-        crate::anim::ATTACK2,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK1,
+        crate::units::anim::ATTACK2,
+        crate::units::anim::ATTACK3,
     ] {
         let path = format!("{dir}/pivot-297-a{slot}-t3.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_297");
@@ -2151,7 +2151,7 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_297() {
 /// 297's rows out of `RELEASES`: no row, the hull's square.
 #[test]
 fn run1291b_s_bomb_ketch_fires_through_piece_297_s_pivot() {
-    let r = release(297, crate::anim::ATTACK1, 3).expect("the Bomb Ketch's row");
+    let r = release(297, crate::units::anim::ATTACK1, 3).expect("the Bomb Ketch's row");
     let d = release_rotation(Angle(323_813_376));
     let fits: Vec<i32> = (0..360)
         .filter(|&t| {
@@ -2162,7 +2162,7 @@ fn run1291b_s_bomb_ketch_fires_through_piece_297_s_pivot() {
     assert!(!fits.is_empty(), "no turret step reproduces 1/82's round");
     assert_eq!(release_offset_at(&r, d, 0).2, 133);
     assert_eq!(
-        release(297, crate::anim::ATTACK2, 3).map(|r| release_offset_at(&r, d, 0).2),
+        release(297, crate::units::anim::ATTACK2, 3).map(|r| release_offset_at(&r, d, 0).2),
         Some(130)
     );
     assert_eq!(
@@ -2189,7 +2189,7 @@ fn run1291b_s_bomb_ketch_fires_through_piece_297_s_pivot() {
 /// the round leaves from the figure and flies 4 frames against 3.
 #[test]
 fn run1305_s_musket_horse_fires_on_the_move_through_piece_157_s_pivot() {
-    let r = release(157, crate::anim::ATTACKWALK, 12).expect("the Musket Horse's row");
+    let r = release(157, crate::units::anim::ATTACKWALK, 12).expect("the Musket Horse's row");
     let d = release_rotation(Angle(-1_073_741_824));
     let fits: Vec<i32> = (0..360)
         .filter(|&t| {
@@ -2215,7 +2215,7 @@ fn run1305_s_musket_horse_fires_on_the_move_through_piece_157_s_pivot() {
 /// `RELEASES`: the round leaves from the figure.
 #[test]
 fn run1235_s_eagle_feather_horse_looses_through_piece_156_s_pivot() {
-    let r = release(156, crate::anim::ATTACK3, 18).expect("the Eagle Feather Horse's row");
+    let r = release(156, crate::units::anim::ATTACK3, 18).expect("the Eagle Feather Horse's row");
     assert_eq!(release_rotation(Angle(56_098_816)), 184);
     let (x, y, z) = release_offset_at(&r, 184, 316);
     assert_eq!((5544 + x, 10152 + y, 34 + z), (5484, 10096, 263));
@@ -2241,10 +2241,10 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_153() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACKWALK, 18),
-        (crate::anim::ATTACK1, 18),
-        (crate::anim::ATTACK2, 16),
-        (crate::anim::ATTACK3, 19),
+        (crate::units::anim::ATTACKWALK, 18),
+        (crate::units::anim::ATTACK1, 18),
+        (crate::units::anim::ATTACK2, 16),
+        (crate::units::anim::ATTACK3, 19),
     ] {
         let path = format!("{dir}/pivot-153-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_153");
@@ -2275,7 +2275,7 @@ fn the_original_s_release_agrees_on_every_cell_for_piece_153() {
 /// would leave from the figure.
 #[test]
 fn run1292_s_horde_rounds_leave_through_piece_153_s_pivot() {
-    use crate::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
+    use crate::units::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
     // (x, y, facing, sx, sy, sz − z)
     let rounds: [(i32, i32, i32, i32, i32, i32); 9] = [
         (5592, 10920, -174_784_512, 5570, 10826, 235), // run1292c 4459 1/21 at 0/5
@@ -2328,7 +2328,7 @@ fn run1292_s_horde_rounds_leave_through_piece_153_s_pivot() {
 /// `SAME_AS`: every round would leave from the figure.
 #[test]
 fn run1346c_s_golden_horde_rounds_leave_through_piece_153_s_pivot() {
-    use crate::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
+    use crate::units::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
     // (x, y, z, facing, sx, sy, sz)
     let rounds: [(i32, i32, i32, i32, i32, i32, i32); 11] = [
         (6264, 28728, 480, -1_476_001_792, 6180, 28775, 715), // 4841 1/97 at 0/6
@@ -2400,7 +2400,7 @@ fn the_whole_degree_sine_folds_to_every_quadrant() {
 /// `(4, anim, time)` entry) 651's round comes out at `(74, −6)`.
 #[test]
 fn a_chariot_round_leaves_through_its_turret() {
-    use crate::anim::{ATTACK1, ATTACK2, ATTACK3};
+    use crate::units::anim::{ATTACK1, ATTACK2, ATTACK3};
     // (facing, slot, frame, turret degree, offset from the unit)
     let rounds = [
         (1_431_655_765, ATTACK1, 18, 325, (-28, -65, 208)), // run145 651 0/8
@@ -2436,7 +2436,7 @@ fn a_chariot_round_leaves_through_its_turret() {
 /// answering [`rotation`]: `(11, 156, 134)`.
 #[test]
 fn a_bomb_vessel_round_leaves_through_its_turret_at_the_table_s_facing() {
-    use crate::anim::{ATTACK1, ATTACK2};
+    use crate::units::anim::{ATTACK1, ATTACK2};
     let facing = Angle(2_077_229_056);
     assert_eq!(rotation(facing), 354);
     assert_eq!(release_rotation(facing), 353);
@@ -2477,7 +2477,11 @@ fn the_original_s_release_agrees_on_every_cell() {
             .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
             .collect();
         let slot = i8::try_from(f[0]).expect("a slot");
-        let frame = if slot == crate::anim::ATTACK2 { 17 } else { 18 };
+        let frame = if slot == crate::units::anim::ATTACK2 {
+            17
+        } else {
+            18
+        };
         let r = release(145, slot, frame).expect("the row");
         if release_offset_at(&r, f[1], f[2]) != (f[4], f[5], f[6]) {
             off.push(line.to_string());
@@ -2543,10 +2547,10 @@ fn the_original_s_release_agrees_on_every_cell_for_the_dragoon() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACKWALK, 12),
-        (crate::anim::ATTACK1, 12),
-        (crate::anim::ATTACK2, 13),
-        (crate::anim::ATTACK3, 18),
+        (crate::units::anim::ATTACKWALK, 12),
+        (crate::units::anim::ATTACK1, 12),
+        (crate::units::anim::ATTACK2, 13),
+        (crate::units::anim::ATTACK3, 18),
     ] {
         let path = format!("{dir}/release-oracle-491-a{slot}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_491");
@@ -2585,10 +2589,10 @@ fn the_original_s_release_agrees_on_every_cell_for_the_horse_archer() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (slot, time) in [
-        (crate::anim::ATTACKWALK, 18),
-        (crate::anim::ATTACK1, 18),
-        (crate::anim::ATTACK2, 16),
-        (crate::anim::ATTACK3, 18),
+        (crate::units::anim::ATTACKWALK, 18),
+        (crate::units::anim::ATTACK1, 18),
+        (crate::units::anim::ATTACK2, 16),
+        (crate::units::anim::ATTACK3, 18),
     ] {
         let path = format!("{dir}/pivot-137-a{slot}-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_137");
@@ -2671,7 +2675,7 @@ fn a_turret_short_of_its_aim_holds_its_release_on_any_piece() {
     const BATTERY: i32 = 282;
     const PIECE: i32 = 12_345;
     let fire = |node: i8, flags: u16| -> usize {
-        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        let mut sim = crate::Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
         sim.leaders.at_war[0][1] = true;
         sim.leaders.at_war[1][0] = true;
         let ty = sim.add_unit_type(crate::UnitType {
@@ -2692,11 +2696,11 @@ fn a_turret_short_of_its_aim_holds_its_release_on_any_piece() {
         sim.roster
             .art
             .lengths
-            .insert((PIECE, crate::anim::ATTACK2), 20);
+            .insert((PIECE, crate::units::anim::ATTACK2), 20);
         sim.roster.art.releases.insert(
             PIECE,
             [(
-                crate::anim::ATTACK2,
+                crate::units::anim::ATTACK2,
                 vec![(4, node, false, false, false, false)],
             )]
             .into_iter()
@@ -2713,8 +2717,8 @@ fn a_turret_short_of_its_aim_holds_its_release_on_any_piece() {
         let foe = put(&mut sim, 0, Pos::new(21384, 16872));
         sim.order_attack(me, Obj::Unit(foe));
         sim.units[me].combat.target = Some(Obj::Unit(foe));
-        let mut g = crate::anim::Guy::fresh(PIECE);
-        g.anim = crate::anim::ATTACK2;
+        let mut g = crate::units::anim::Guy::fresh(PIECE);
+        g.anim = crate::units::anim::ATTACK2;
         g.end_time = 20;
         g.cur_time = 3;
         g.last_time = 2;
@@ -2728,7 +2732,7 @@ fn a_turret_short_of_its_aim_holds_its_release_on_any_piece() {
         );
         sim.combat.projectiles.len()
     };
-    assert_eq!(release(PIECE, crate::anim::ATTACK2, 4), None);
+    assert_eq!(release(PIECE, crate::units::anim::ATTACK2, 4), None);
     assert_eq!(fire(0, 14), 0, "node 0, bit 0 clear: held (run404's 779)");
     assert_eq!(fire(0, 15), 1, "node 0, bit 0 set: fired");
     assert_eq!(fire(1, 14), 1, "node 1, past the one restriction: fired");

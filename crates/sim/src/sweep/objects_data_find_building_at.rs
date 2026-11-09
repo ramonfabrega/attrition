@@ -95,8 +95,8 @@ fn the_emulated_original_agrees_on_every_row() {
                                 rd(wall, 0x10) ^ 0x6_3637,
                                 rd(wall, 0x14) ^ 0x6_3637,
                             );
-                            let corner = crate::place::tile_corner_of(xs, ys, at);
-                            ok = crate::place::footprint_covers(
+                            let corner = crate::cities::place::tile_corner_of(xs, ys, at);
+                            ok = crate::cities::place::footprint_covers(
                                 corner,
                                 xs,
                                 ys,

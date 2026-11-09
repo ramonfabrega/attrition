@@ -32,16 +32,21 @@ fn the_emulated_original_agrees_on_every_row() {
             let o = cell[0xf] as i8;
             let owner = (o >= 0).then_some(o as u8);
             let flags = u16::from_le_bytes([cell[0], cell[1]]);
-            if crate::ai_place::wcoord_cell_refused(owner, a[2] as u8, flags, cell[0x11]) {
+            if crate::ai::ai_place::wcoord_cell_refused(owner, a[2] as u8, flags, cell[0x11]) {
                 0
             } else {
                 // `space_at_corner` answers each corner in turn (`--seq`, a[9..58]).
                 let mut k = 0usize;
-                i64::from(crate::ai_place::best_corner(a[4], a[5], a[6], |_, _| {
-                    let v = a[9 + k.min(48)];
-                    k += 1;
-                    v
-                }))
+                i64::from(crate::ai::ai_place::best_corner(
+                    a[4],
+                    a[5],
+                    a[6],
+                    |_, _| {
+                        let v = a[9 + k.min(48)];
+                        k += 1;
+                        v
+                    },
+                ))
             }
         }
     });

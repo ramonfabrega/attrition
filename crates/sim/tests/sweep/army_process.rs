@@ -40,7 +40,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // armies, `p30` the target player's object array and `p31..p34` the objects (y at +0x10, x at +0x14, both
             // xor 0x63637), `p35` the `div_3_table`. The group count (the short at +0x96) is held at 0, so the merge's
             // member copy (the groups and units tables) is not reached: `merge_into` adds nothing.
-            use crate::army_process_view::{ArmyProcessView, Peer, army_process};
+            use crate::ai::army::army_process_view::{ArmyProcessView, Peer, army_process};
             use crate::world::Pos;
             const KEY: i32 = 0x63637;
             fn rd(w: &[u8], o: usize) -> i32 {

@@ -116,8 +116,8 @@
 
 use std::collections::BTreeSet;
 
-use crate::ai_place::{circle, gather_good};
-use crate::build::flags;
+use crate::ai::ai_place::{circle, gather_good};
+use crate::cities::build::flags;
 use crate::economy::Resource;
 use crate::world::{
     Cell, REGION_REFIND_GATHER, REGION_VERIFY_GATHER, TILES_PER_CELL, UNITS_PER_CELL,
@@ -126,7 +126,7 @@ use crate::world::{
 use crate::{Player, Pos, Sim};
 
 /// `WOODCUTTER_RADIUS`, in tiles (`rules.xml`, `woodcutter_radius 8` in the
-/// dump's `CONSTANTS`). Not in [`crate::tuning::Tuning`] yet.
+/// dump's `CONSTANTS`). Not in [`crate::core::tuning::Tuning`] yet.
 pub const WOODCUTTER_RADIUS: i32 = 8;
 /// `MINE_RADIUS`, in tiles.
 pub const MINE_RADIUS: i32 = 6;

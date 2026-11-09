@@ -32,7 +32,7 @@ pub(crate) const BRITISH_ENLIGHTENMENT: Pair = Pair {
     // 26 draws against 25, index 22 — ours `Unit::close+0xcb6`, theirs
     // `Farms::inc_time+0x1ae` (`docs/AI.md` section 306). **Item 3542:
     // whole at 5522**, the game's last frame, with two pieces' launch rows
-    // (`sim::launch`'s `BAYS`, off run1185's packet): the Sloop's piece 277,
+    // (`sim::data::launch`'s `BAYS`, off run1185's packet): the Sloop's piece 277,
     // whose round at `0/13` left the hull and flew 8 frames against 9, and
     // the Highlanders' piece 64 — 4774 between them, its state parted on
     // 4735, where `1/91`'s round struck `0/10` a frame late in ours.

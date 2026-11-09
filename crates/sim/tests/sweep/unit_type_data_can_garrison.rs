@@ -10,9 +10,9 @@ fn wr(m: &mut [u8], off: usize, v: i32) {
     m[off..off + 4].copy_from_slice(&v.to_le_bytes());
 }
 
-use sim::attrition::{Domain, UnitKind};
-use sim::build::{BuildType, Ident};
-use sim::garrison::UnitTraits;
+use sim::cities::build::{BuildType, Ident};
+use sim::territory::attrition::{Domain, UnitKind};
+use sim::units::garrison::UnitTraits;
 use sim::world::World;
 use sim::{Sim, Tuning, UnitType};
 

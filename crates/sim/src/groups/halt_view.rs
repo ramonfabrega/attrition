@@ -11,7 +11,7 @@
 //! exempts it (`4` siege through its type's slot `+0x10c`, `2` special, `1`
 //! the type test `is(0x3a)`).
 
-use crate::garrison_view::{GarrisonHead, garrison_head};
+use crate::groups::garrison_view::{GarrisonHead, garrison_head};
 
 /// What `Group::action_halt` asks of the group, the world and the objects.
 pub trait HaltView: GarrisonHead {
@@ -91,19 +91,19 @@ fn halt_member<V: HaltView>(v: &mut V, p: i32, m: i32, mask: i32) {
     v.clear_mask_bit(p, m);
 }
 
-/// The crate's view over a [`crate::Sim`] and a [`crate::group::Group`].
+/// The crate's view over a [`crate::Sim`] and a [`crate::groups::group::Group`].
 ///
 /// Where the crate models less than the original:
 ///
 /// - SEAM: the scenario's ignore-orders sweep and the group's refresh are
-///   not modelled (as in [`crate::garrison_view::SimGarrison`]).
+///   not modelled (as in [`crate::groups::garrison_view::SimGarrison`]).
 /// - SEAM: `is_entering_or_exiting` is not modelled, so no member is ever
 ///   busy; `+0x68 & 0x100` is not modelled either, so its clear is nothing.
 /// - SEAM: there is no spy type, so mask bit `1` exempts no one.
 /// - Every group in the simulation is a unit group.
 pub struct SimHalt<'a> {
     pub sim: &'a mut crate::Sim,
-    pub g: &'a crate::group::Group,
+    pub g: &'a crate::groups::group::Group,
 }
 
 impl GarrisonHead for SimHalt<'_> {

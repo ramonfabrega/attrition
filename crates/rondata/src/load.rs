@@ -4,7 +4,7 @@
 //! and `rules.xml` arrive here as positional [`crate::Table`]s; this module
 //! reads them the way the original's loaders do — `UnitType::init`,
 //! `BuildType::init`, `TechType::init`, `GoodType::init`, `Types::finalize`
-//! — into `sim::UnitType`, `sim::build::BuildType`, a `sim::tech::TechTree`
+//! — into `sim::UnitType`, `sim::cities::build::BuildType`, a `sim::tech::TechTree`
 //! and a combat `sim::combat::Table`. Every scale and every derived field is
 //! the one the mechanic documents established; where a field's column is
 //! not named by any reading the loader leaves the default and says so under
@@ -29,16 +29,16 @@
 //! which is what the eventual gamelog diff will key on.
 
 use crate::{Cost, Install, Range, Record, Rules, Scalar, Table, tribe_mask};
-use sim::ai_load;
-use sim::attrition::{self, Domain, KindFacts, UnitKind};
-use sim::build::{self, BuildType, Ident};
+use sim::ai::ai_load;
+use sim::cities::build::{self, BuildType, Ident};
+use sim::cities::production::Times;
 use sim::combat::{self, BuildClass, Profile, mask, role};
-use sim::cost::{self, Price, Progression, RampClass};
+use sim::economy::cost::{self, Price, Progression, RampClass};
 use sim::economy::{RESOURCES, Resource};
-use sim::garrison;
 use sim::movement::degrees_to_angle;
-use sim::production::Times;
 use sim::tech::{self, Kind, Line, Preq, TechTree, TypeDef, TypeId, UnitTraits};
+use sim::territory::attrition::{self, Domain, KindFacts, UnitKind};
+use sim::units::garrison;
 use sim::{Tuning, UnitType};
 
 /// The original's `TypeIndex` bases, `docs/TECH.md` §"The type space".
@@ -76,10 +76,10 @@ pub struct Loaded {
     /// the siege and caravan flags, the domain, the named lineages. Exposed so
     /// the original's type dump can check the inputs as well as the output
     /// (`rondata --types`).
-    pub kinds: Vec<sim::balance::Kind>,
+    pub kinds: Vec<sim::combat::balance::Kind>,
     /// The same for the building ids: the masks, `get_age`, the
     /// `return_pack` lines, the wonder range.
-    pub build_kinds: Vec<sim::balance::Kind>,
+    pub build_kinds: Vec<sim::combat::balance::Kind>,
     /// The `NAME` column of each record: what the interface shows.
     pub unit_names: Vec<String>,
     pub build_names: Vec<String>,
@@ -177,7 +177,7 @@ pub struct Loaded {
     /// tiles and solid cells as `MountainRange::init` derives them from its
     /// `TEMPLATE_TEX` (`crate::mountains`). Indexed as the dump's
     /// `mountain_types` is. Empty when loaded from tables alone.
-    pub mountain_templates: Vec<sim::gather::MountainTemplate>,
+    pub mountain_templates: Vec<sim::economy::gather::MountainTemplate>,
     /// The install these tables came from, which a Southwest Mesa game's
     /// setup reads the style's files through to run the generator's chain to
     /// `Cliffs::init` (`crate::mapgen::mesa`, item 3943). `None` when loaded
@@ -672,7 +672,7 @@ pub fn load_tables(
     const BOWMEN: usize = sim::ids::ty::BOWMEN - 0x32;
     const ANTIAIRCRAFTGUN: usize = 0x119 - 0x32;
     /// The lineages `UnitType::fill_relative_values@0061be50` tests
-    /// (`sim::relative_value`).
+    /// (`sim::ai::relative_value`).
     const BOMBARDSHIP: usize = 0x15a - 0x32;
     const FIRERAFT: usize = sim::ids::ty::FIRERAFT - 0x32;
     const CAMEL: usize = 0xd5 - 0x32;
@@ -867,7 +867,7 @@ pub fn load_tables(
             && t != sim::air::LOOKOUT
             && t != sim::air::OBSERVATIONPOST
         {
-            let missing = sim::anim::MISSING as i32;
+            let missing = sim::units::anim::MISSING as i32;
             d.wall_cycle = Some(sim::air::WallCycle {
                 wind: missing,
                 swing: missing,
@@ -1481,7 +1481,7 @@ pub fn load_tables(
             cols: cols[i],
             mana: int(r, "MANA").unwrap_or(0),
             gaia: i >= GAIA,
-            rel: sim::relative_value::Facts {
+            rel: sim::ai::relative_value::Facts {
                 masks: combat.obj_masks,
                 melee: combat.max_range == 0,
                 combat_role: cols[i].is(ai_load::role::ROLE_MILITARY),
@@ -1581,7 +1581,7 @@ pub fn load_tables(
             progression: Progression::default(),
             // Not `default()`: the four `*_RAMP_MAX` ceilings belong to
             // `get_cost`'s unit arm, and a building's ramp has none
-            // (`sim::cost::RampClass::Building`).
+            // (`sim::economy::cost::RampClass::Building`).
             class: RampClass::Building,
             pop: 0,
         };
@@ -1723,7 +1723,7 @@ pub fn load_tables(
     // column alone leaves the Library's queue two deep and the Barracks no
     // trainer. It must run after `from` is linked: three of the six are
     // lineage tests.
-    let derived = sim::build::Derived {
+    let derived = sim::cities::build::Derived {
         trains: unit_cols
             .iter()
             .enumerate()
@@ -1748,7 +1748,7 @@ pub fn load_tables(
         research_at: tech_cols_where.iter().copied().flatten().collect(),
         craft_at,
     };
-    sim::build::init_derived_flags(&mut build_types, &derived);
+    sim::cities::build::init_derived_flags(&mut build_types, &derived);
 
     // `TechType::compute_ai_values` — the eleven weights per tech, from what
     // each tech unlocks. It runs last of all the loader's passes because it
@@ -1970,7 +1970,7 @@ pub fn load_tables(
 
     // ---- the combat table over unit ids ----
     let t = Tuning::RON;
-    let kinds: Vec<sim::balance::Kind> = (0..unit_types.len())
+    let kinds: Vec<sim::combat::balance::Kind> = (0..unit_types.len())
         .map(|i| {
             let c = &unit_cols[i];
             let mut lines = 0u64;
@@ -1993,7 +1993,7 @@ pub fn load_tables(
                     lines |= bit;
                 }
             }
-            sim::balance::Kind {
+            sim::combat::balance::Kind {
                 masks: c.obj_masks,
                 age: unit_types[i].combat.age,
                 unit: true,
@@ -2012,9 +2012,9 @@ pub fn load_tables(
     // then OBSPOST, then TOWERS), the BUILDINGS object, `get_age`, the masks;
     // and for `type_damage`, the building and wonder ranges, the AIRBASE
     // lineage and the domain. A building has no siege/caravan flag.
-    let build_kinds: Vec<sim::balance::Kind> = (0..build_types.len())
+    let build_kinds: Vec<sim::combat::balance::Kind> = (0..build_types.len())
         .map(|i| {
-            use sim::balance::line;
+            use sim::combat::balance::line;
             let mut lines = 0u64;
             if build_is(i, FORTX) {
                 lines |= line::LINE_FORT;
@@ -2031,7 +2031,7 @@ pub fn load_tables(
             if build_is(i, AIRBASE) {
                 lines |= line::LINE_AIRBASE;
             }
-            sim::balance::Kind {
+            sim::combat::balance::Kind {
                 masks: build_cols[i].obj_masks,
                 age: build_ages[i],
                 unit: false,
@@ -2199,7 +2199,7 @@ enum Root {
     Ids(&'static [usize]),
 }
 
-/// The named lineages `sim::balance::line` tests, rooted by the `TypeIndex`
+/// The named lineages `sim::combat::balance::line` tests, rooted by the `TypeIndex`
 /// constant each `ObjectTypeData::is(x, strict)` call in `Balance::type_damage`
 /// passes (`docs/COMBAT.md` §5.3). Unit-table order is `TypeIndex` order, so a
 /// root is `TypeIndex − 0x32` into the unit table — never a name: an earlier
@@ -2209,7 +2209,7 @@ enum Root {
 /// `HALBERDIERS` (0x95, Scutari) at a different unit. `strict` is the
 /// graft-only sense.
 const LINE_ROOTS: [(u64, Root, bool); 43] = {
-    use sim::balance::line::*;
+    use sim::combat::balance::line::*;
     [
         (LINE_ARMOREDCAR, Root::Unit(0xd8), false),
         (LINE_LIGHTTANK, Root::Unit(0xef), false),
@@ -3590,7 +3590,7 @@ mod tests {
 
     #[test]
     fn the_kinds_carry_the_program_s_ages_and_lineages() {
-        use sim::balance::line;
+        use sim::combat::balance::line;
         let Some(i) = install() else { return };
         let l = load(&i).unwrap();
         // `get_age_slow`: a unit needing the **Classical Age** tech is age 1,

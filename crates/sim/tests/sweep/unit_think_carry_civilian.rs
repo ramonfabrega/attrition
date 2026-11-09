@@ -16,8 +16,8 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-use crate::carry_civ::{CarryCivView, think_carry_civilian_steps};
 use crate::movement::Angle;
+use crate::units::think::carry_civ::{CarryCivView, think_carry_civilian_steps};
 use crate::world::{Cell, Pos};
 
 /// The windows of one row as the port's view: `m` the boat, `c` the cells

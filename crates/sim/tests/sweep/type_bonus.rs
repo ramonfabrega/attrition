@@ -1,6 +1,6 @@
 //! `TypeData::is_bonus_type@004705b0` under the emulator against the port (item 1704).
 
-use crate::type_index::is_bonus_type;
+use crate::core::type_index::is_bonus_type;
 
 /// `TypeData::is_bonus_type@004705b0`, run by `tools/emu/sweep_type_bonus.py` under unicorn
 /// (tools/emu): `0x2ab < t < 0x326` on the type record's `type`, over every index -2..=0x33f and the edges, against `type_index::is_bonus_type` — the bounds `is_bonus_type`'s readers (`type_index`'s header) stand on.

@@ -42,7 +42,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let mut turn = 5;
         // The three callees' records share one log, each closure borrowing it in turn.
         let calls = std::cell::RefCell::new(Vec::new());
-        let v = crate::caravan::trade_value_steps(
+        let v = crate::economy::caravan::trade_value_steps(
             (pos(ka), pos(kb)),
             la != lb,
             |pa, pb| {
@@ -64,7 +64,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     .push(format!("s2:{},{bonus}", 0xe3a390 + 0x6eec * la));
                 a[4] != 0
             },
-            crate::rares::rare_bit(rare, crate::economy::SPICE),
+            crate::economy::rares::rare_bit(rare, crate::economy::SPICE),
             (rd(&c[0], 0x890), rd(&c[0], 0x8f0)),
         );
         log.extend(calls.into_inner());

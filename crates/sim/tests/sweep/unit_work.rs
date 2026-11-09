@@ -35,9 +35,9 @@ fn the_emulated_original_agrees_on_every_row() {
         // **The call ends where `this->vtable[0xd0]` is first entered**
         // (`--stop-stub`): the sweep holds `Unit::work`'s prologue (`:40-87`) and
         // nothing after it. **The port is the crate's own steps**,
-        // `crate::work_gate::work_gate_steps`, which `Sim::work` runs over its
+        // `crate::units::think::work_gate::work_gate_steps`, which `Sim::work` runs over its
         // `SimWorkGate`; here the view is the emulated original's windows.
-        use crate::work_gate::{Gate, WorkGateView, work_gate_steps};
+        use crate::units::think::work_gate::{Gate, WorkGateView, work_gate_steps};
         struct V<'a> {
             a: &'a [i32],
             m: &'a mut [u8],

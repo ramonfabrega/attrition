@@ -1,6 +1,6 @@
 //! `Unit::land_plane@005e9950` under the emulator against the port (item 3396; tools/sweep_gen.py, obj with windows).
 
-use sim::land_plane_view::{self, LandPlaneView};
+use sim::air::land_plane_view::{self, LandPlaneView};
 
 #[allow(dead_code)]
 fn rd(m: &[u8], off: usize) -> i32 {

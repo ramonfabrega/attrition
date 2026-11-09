@@ -171,7 +171,7 @@ pub struct Tuning {
     pub terra_cotta_range: i32,
     /// `TERRA_COTTA_FREE`, seconds: the Terra Cotta Army's soldier clock,
     /// `× 15` frames on activation and as the base of every rewind
-    /// (`Build::process@0061edf0:384`, `crate::nations`).
+    /// (`Build::process@0061edf0:384`, `crate::cities::nations`).
     pub terra_cotta_free: i32,
     /// `TERRA_COTTA_DELAY`, frames a Barracks soldier adds to that rewind;
     /// the file's own `7` means half a second (`× 15 / 2`).
@@ -1230,7 +1230,7 @@ pub struct Tuning {
     /// Whether the Iroquois' first senate is instant.
     pub iroquois_quick_senate: i32,
 
-    // ---- `Build::activate`'s free units (`crate::nations`) ----
+    // ---- `Build::activate`'s free units (`crate::cities::nations`) ----
     /// Whether a Nubian Market delivers a free caravan. Ships as zero, so
     /// the arm is live and inert at once.
     pub nubian_free_caravan: i32,
@@ -1351,7 +1351,7 @@ pub struct Tuning {
     /// [`crate::Sim::iroquois_heal`]), by heal tech level.
     pub iroquois_heal_rate: [i32; 4],
     /// Frames between the civilian heal's steps — a citizen, caravan,
-    /// merchant or fisherman on an ally's ground (`crate::heal`). Zero
+    /// merchant or fisherman on an ally's ground (`crate::units::heal`). Zero
     /// means never.
     pub civilian_heal_rate: i32,
     /// Percent faster the garrison heal runs in, or with, the Red Fort.

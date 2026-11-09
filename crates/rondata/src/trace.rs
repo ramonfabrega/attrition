@@ -71,77 +71,77 @@ pub const RVA_GAME_RANDOM: u32 = 0x00a3_7a8c;
 /// (`docs/SYNC.md` §3, §5).
 pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // `Leader::compute_sites@006cc950` — the AI's region sweep.
-    (0x006c_cdfc, None, sim::ai_sites::SITE_STRIDE),
-    (0x006c_ce5a, None, sim::ai_sites::SITE_MARK),
+    (0x006c_cdfc, None, sim::ai::ai_sites::SITE_STRIDE),
+    (0x006c_ce5a, None, sim::ai::ai_sites::SITE_MARK),
     // `Leader::make_stuff@006c8af0` — the two expiry walks, step 4's over
     // the head's type and step 6's over a bought slot's (`docs/AI.md` §2.6).
-    (0x006c_8d11, None, sim::ai_make::SITE_EXPIRE_HEAD),
-    (0x006c_912d, None, sim::ai_make::SITE_EXPIRE_SLOT),
+    (0x006c_8d11, None, sim::ai::ai_make::SITE_EXPIRE_HEAD),
+    (0x006c_912d, None, sim::ai::ai_make::SITE_EXPIRE_SLOT),
     // `Leader::use_market@006c91c0` — the sell rotation's offset, the one
     // draw in the whole market. `make_stuff` calls `use_market` first, so
     // this precedes both expiry walks in a frame that takes it.
-    (0x006c_93ad, None, sim::ai_make::SITE_MARKET_SELL),
+    (0x006c_93ad, None, sim::ai::ai_make::SITE_MARKET_SELL),
     // `Leader::create_units@006c40a0` and `Leader::upgrade_units@006c6430`
     // — the matchup bias over `unit_prod_value`, one draw per candidate,
     // and none on difficulty 2 (`docs/AI.md` §11).
-    (0x006c_46e2, None, sim::ai_units::SITE_UNIT_BIAS),
-    (0x006c_69d4, None, sim::ai_units::SITE_UPGRADE_BIAS),
+    (0x006c_46e2, None, sim::ai::ai_units::SITE_UNIT_BIAS),
+    (0x006c_69d4, None, sim::ai::ai_units::SITE_UPGRADE_BIAS),
     // `Leader::diplomacy@006bc950` — the peace coin, the two city-race
     // coins and the quiet coin (`docs/AI.md` §220).
-    (0x006b_dab8, None, sim::diplomacy::SITE_PEACE_COIN),
-    (0x006b_dc72, None, sim::diplomacy::SITE_RACE_COIN),
-    (0x006b_dcd8, None, sim::diplomacy::SITE_MINE_COIN),
-    (0x006b_e462, None, sim::diplomacy::SITE_QUIET_COIN),
+    (0x006b_dab8, None, sim::leaders::diplomacy::SITE_PEACE_COIN),
+    (0x006b_dc72, None, sim::leaders::diplomacy::SITE_RACE_COIN),
+    (0x006b_dcd8, None, sim::leaders::diplomacy::SITE_MINE_COIN),
+    (0x006b_e462, None, sim::leaders::diplomacy::SITE_QUIET_COIN),
     // `Leader::research_techs@006c6ba0` — the Senate arm's coin and the
     // survivor's scale; East Indies spends the second on 15378 (item 643).
-    (0x006c_77af, None, sim::ai_research::SITE_GOV_COIN),
-    (0x006c_7812, None, sim::ai_research::SITE_GOV_ROLL),
+    (0x006c_77af, None, sim::ai::ai_research::SITE_GOV_COIN),
+    (0x006c_7812, None, sim::ai::ai_research::SITE_GOV_ROLL),
     // `Leader::create_buildings@006c1be0` — the wonder arm's pair.
-    (0x006c_2bdb, None, sim::ai_build::SITE_WONDER_MOD),
-    (0x006c_2bf7, None, sim::ai_build::SITE_WONDER_SCALE),
+    (0x006c_2bdb, None, sim::ai::ai_build::SITE_WONDER_MOD),
+    (0x006c_2bf7, None, sim::ai::ai_build::SITE_WONDER_SCALE),
     // `Leader::produce_building@006e1400` — the spiral's score and the
     // 2×2 jitter's.
-    (0x006e_2099, None, sim::ai_place::SITE_SPIRAL),
-    (0x006e_2c05, None, sim::ai_place::SITE_JITTER),
+    (0x006e_2099, None, sim::ai::ai_place::SITE_SPIRAL),
+    (0x006e_2c05, None, sim::ai::ai_place::SITE_JITTER),
     // `GameDaemon::calc_market@00732270` — three a good.
-    (0x0073_22c4, None, sim::market::SITE_A),
-    (0x0073_22ee, None, sim::market::SITE_B),
-    (0x0073_232e, None, sim::market::SITE_LENGTH),
+    (0x0073_22c4, None, sim::economy::market::SITE_A),
+    (0x0073_22ee, None, sim::economy::market::SITE_B),
+    (0x0073_232e, None, sim::economy::market::SITE_LENGTH),
     // `Guy::set_anim@005da300+0x97a` — one address, four callers.
     (
         0x005d_ac7a,
         Some(0x005d_7479), // `Animal::do_idle+0x19`
-        sim::anim::SITE_IDLE_ANIMAL,
+        sim::units::anim::SITE_IDLE_ANIMAL,
     ),
     (
         0x005d_ac7a,
         Some(0x0060_dd4d), // `Unit::do_idle+0x7d`
-        sim::anim::SITE_IDLE_UNIT,
+        sim::units::anim::SITE_IDLE_UNIT,
     ),
     (
         0x005d_ac7a,
         Some(0x005d_a081), // `Guy::inc_time+0x271`
-        sim::anim::SITE_WRAP,
+        sim::units::anim::SITE_WRAP,
     ),
     (
         0x005d_ac7a,
         Some(0x005f_027f), // `Unit::do_non_flat_gather+0x10f`
-        sim::anim::SITE_STAND_GATHER,
+        sim::units::anim::SITE_STAND_GATHER,
     ),
     (
         0x005d_ac7a,
         Some(0x005f_1144), // `Unit::do_non_flat_gather+0xfd4`
-        sim::anim::SITE_STAND_TILE,
+        sim::units::anim::SITE_STAND_TILE,
     ),
     (
         0x005d_ac7a,
         Some(0x005f_0d09), // `Unit::do_non_flat_gather+0xb99`
-        sim::anim::SITE_STAND_RETURN,
+        sim::units::anim::SITE_STAND_RETURN,
     ),
     (
         0x005d_ac7a,
         Some(0x005d_93df), // `Guy::move+0x19f`, the arrival stand
-        sim::anim::SITE_ARRIVE,
+        sim::units::anim::SITE_ARRIVE,
     ),
     // …and the idle an **attack** falls to when its packet does not loop
     // it, which is `Guy::inc_time`'s *other* call site (`docs/ANIM.md`
@@ -150,7 +150,7 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (
         0x005d_ac7a,
         Some(0x005d_9ffd), // `Guy::inc_time+0x1ed`
-        sim::anim::SITE_WRAP_ATTACK_END,
+        sim::units::anim::SITE_WRAP_ATTACK_END,
     ),
     // `Guy::set_anim@005da300+0xf2f` — **the attack roll**, a different
     // block of the same function and so a different address. Three
@@ -160,22 +160,22 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (
         0x005d_b22f,
         Some(0x005d_93a6), // `Guy::move+0x166`, the settled arm
-        sim::anim::SITE_ATTACK_STAND,
+        sim::units::anim::SITE_ATTACK_STAND,
     ),
     (
         0x005d_b22f,
         Some(0x005d_9323), // `Guy::move+0xe3`, the still-turning arm
-        sim::anim::SITE_ATTACK_TURN,
+        sim::units::anim::SITE_ATTACK_TURN,
     ),
     (
         0x005d_b22f,
         Some(0x005d_a081), // `Guy::inc_time+0x271`, the queued attack
-        sim::anim::SITE_ATTACK_WRAP,
+        sim::units::anim::SITE_ATTACK_WRAP,
     ),
     (
         0x005d_b22f,
         Some(0x005d_a167), // `Guy::inc_time+0x357`, past the wrap loop
-        sim::anim::SITE_ATTACK_INC,
+        sim::units::anim::SITE_ATTACK_INC,
     ),
     // And the swing paid where it is asked, under `Unit::set_anim@00616f40`
     // from `Unit::fight+0x19f6`, when the unit's pivot bears and nothing
@@ -184,17 +184,17 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (
         0x005d_b22f,
         Some(0x0061_6f96), // `Unit::set_anim+0x56`, figures `0 .. guy_mark`
-        sim::anim::SITE_ATTACK_FIGHT,
+        sim::units::anim::SITE_ATTACK_FIGHT,
     ),
     (
         0x005d_b22f,
         Some(0x0061_6ff6), // `Unit::set_anim+0xb6`, the crew
-        sim::anim::SITE_ATTACK_FIGHT_CREW,
+        sim::units::anim::SITE_ATTACK_FIGHT_CREW,
     ),
     (
         0x005d_ac7a,
         Some(0x005f_b753), // `Unit::move_step+0x823`, the blocked stand
-        sim::anim::SITE_BLOCKED,
+        sim::units::anim::SITE_BLOCKED,
     ),
     // …and the **snap** arm's own, which is a different block at a
     // different address: `Unit::move_step+0x4e2`, the collision the
@@ -204,7 +204,7 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (
         0x005d_ac7a,
         Some(0x005f_b412), // `Unit::move_step+0x4e2`, the snap's stand
-        sim::anim::SITE_SNAP_BLOCKED,
+        sim::units::anim::SITE_SNAP_BLOCKED,
     ),
     // …and the snap's **unblocked** stand, `set_anim(UVar17)` with
     // `UVar17 = CHAR_DEFAULT`: zero offsets and at most one order. The
@@ -213,7 +213,7 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (
         0x005d_ac7a,
         Some(0x005f_b479), // `Unit::move_step+0x549`
-        sim::anim::SITE_SNAP_STAND,
+        sim::units::anim::SITE_SNAP_STAND,
     ),
     // …and `Unit::fight`'s reloading stand, the recharging arm's
     // `set_anim(CHAR_DEFAULT, 1, 1)`. The trace printed it bare as
@@ -221,7 +221,7 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (
         0x005d_ac7a,
         Some(0x005f_d639), // `Unit::fight+0x169`
-        sim::anim::SITE_RELOAD_IDLE,
+        sim::units::anim::SITE_RELOAD_IDLE,
     ),
     // …and the **turning** stand, three chains of `Guy::do_turn+0x4a`
     // (`005d97ea`). The `via` is the frame above `do_turn`, which is what
@@ -231,17 +231,17 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (
         0x005d_ac7a,
         Some(0x005f_b2e6), // `Unit::move_step+0x3b6`, the near arm
-        sim::anim::SITE_TURN_NEAR,
+        sim::units::anim::SITE_TURN_NEAR,
     ),
     (
         0x005d_ac7a,
         Some(0x005f_b2b9), // `Unit::move_step+0x389`, the far arm
-        sim::anim::SITE_TURN_FAR,
+        sim::units::anim::SITE_TURN_FAR,
     ),
     (
         0x005d_ac7a,
         Some(0x005d_9789), // `Guy::turn_towards+0x69`
-        sim::anim::SITE_TURN_STAND,
+        sim::units::anim::SITE_TURN_STAND,
     ),
     // …and the crew's, `do_turn` recursing into its trackless crew from
     // `+0xe5`. The trace printed it bare as `5dac7a` on golden chapter
@@ -249,38 +249,42 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (
         0x005d_ac7a,
         Some(0x005d_9885), // `Guy::do_turn+0xe5`
-        sim::anim::SITE_TURN_CREW,
+        sim::units::anim::SITE_TURN_CREW,
     ),
     // …and the pushed idle unit's, `detect_boat_collision` turning the
     // unit it shoved (`docs/COLLISION.md` §13.3, item 1332).
     (
         0x005d_ac7a,
         Some(0x005f_aee0), // `Unit::detect_boat_collision+0x630`
-        sim::anim::SITE_TURN_PUSHED,
+        sim::units::anim::SITE_TURN_PUSHED,
     ),
     // `Unit::resolve_unit_collision@005f9d30+0xb52` — the head-on pair's
     // stagger, the collision mechanic's only draw.
     // `Unit::think_fish@005f4c60` — the jitter each accepted cell spends
     // (`docs/ORDERS.md` §6.8).
-    (0x005f_4eda, None, sim::fish::SITE_JITTER),
+    (0x005f_4eda, None, sim::units::think::fish::SITE_JITTER),
     // `PathFinder::astar_path@00683770`'s two unit-grid failure tails —
     // the retry roll each buys a blocked mover (`docs/PATHFINDER.md` §21).
     // Both are `Random::get`'s own return address, so neither needs a
     // chain; they are separate entries because their gates differ.
-    (0x0068_4e07, None, sim::path::SITE_UPATH_RETRY),
-    (0x0068_48c9, None, sim::path::SITE_UPATH_RETRY_BUDGET),
-    (0x005f_a882, None, sim::collide::SITE_PAUSE),
+    (0x0068_4e07, None, sim::movement::path::SITE_UPATH_RETRY),
+    (
+        0x0068_48c9,
+        None,
+        sim::movement::path::SITE_UPATH_RETRY_BUDGET,
+    ),
+    (0x005f_a882, None, sim::movement::collide::SITE_PAUSE),
     // `Unit::explore_goody@005f9780+0x27c` — the goody box's lottery, one
     // draw a candidate good (`docs/GOODY.md` §3).
-    (0x005f_99fc, None, sim::goody::SITE_PICK),
+    (0x005f_99fc, None, sim::gaia::goody::SITE_PICK),
     // `Guy::set_anim@005da300+0x104b` — the gaia bird's wing-beat coin.
     // Its own address, so no chain is needed to tell it from the other
     // four (`docs/SYNC.md` §3.9).
-    (0x005d_b34b, None, sim::anim::SITE_BIRD_COIN),
+    (0x005d_b34b, None, sim::units::anim::SITE_BIRD_COIN),
     (
         0x005d_ac7a,
         Some(0x005e_cc69), // `Unit::do_cast+0xc89`, through `Unit::set_anim`
-        sim::anim::SITE_CAST,
+        sim::units::anim::SITE_CAST,
     ),
     // `Unit::do_trade@005ed270+0x40` — the trade step's own opening
     // `set_anim(CHAR_DEFAULT, 0, 1)`. The frame between it and
@@ -291,7 +295,7 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (
         0x005d_ac7a,
         Some(0x005e_d2b0), // `Unit::do_trade+0x40`, through `Unit::set_anim`
-        sim::anim::SITE_TRADE,
+        sim::units::anim::SITE_TRADE,
     ),
     // `Unit::go_inside@0061a2e0+0x280` — the scholar's seating, through
     // `Unit::set_anim`. Great Lakes 8272 is the first birth in 24,000
@@ -300,7 +304,7 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (
         0x005d_ac7a,
         Some(0x0061_a560), // `Unit::go_inside+0x280`, through `Unit::set_anim`
-        sim::anim::SITE_GO_INSIDE,
+        sim::units::anim::SITE_GO_INSIDE,
     ),
     // `Unit::do_move@005f7b30+0x11cf` — an unarmed attack-move standing
     // out its pause, through `Unit::set_anim`; the trace printed it bare as
@@ -309,7 +313,7 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (
         0x005d_ac7a,
         Some(0x005f_8cff), // `Unit::do_move+0x11cf`, through `Unit::set_anim`
-        sim::anim::SITE_PAUSE_STAND,
+        sim::units::anim::SITE_PAUSE_STAND,
     ),
     // `Unit::do_guard@005e5c70`'s three stands (item 569, `docs/ORDERS.md`
     // §24.4): the idle on the post, the stand before the `retry` roll, and
@@ -343,17 +347,17 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         sim::orders::SITE_FOLLOW_STAND,
     ),
     // `Guy::init_real@005db6b0` — the creation roll.
-    (0x005d_b702, None, sim::anim::SITE_INIT_REAL),
+    (0x005d_b702, None, sim::units::anim::SITE_INIT_REAL),
     // `Dock::init@00740a80+0x125` — a finished dock's gull, the second of
     // its two draws (`docs/TRANSPORT.md` §5.2).
-    (0x0074_0ba5, None, sim::transport::SITE_GULL_ANGLE),
+    (0x0074_0ba5, None, sim::ai::transport::SITE_GULL_ANGLE),
     // `Unit::come_out@00617c10`'s tail — the army coin, two arms and two
     // addresses of their own: `+0x25b0` is `is(BARK)`'s `% 3` and
     // `+0x25ca` the scout's `% 2` (`docs/ARMY.md` §4). No chain is needed;
     // the *caller* is what tells a trained unit from a disembarking one,
     // and that is a distinction neither arm makes.
-    (0x0061_a1c0, None, sim::army::SITE_COME_OUT_BARK),
-    (0x0061_a1da, None, sim::army::SITE_COME_OUT),
+    (0x0061_a1c0, None, sim::ai::army::SITE_COME_OUT_BARK),
+    (0x0061_a1da, None, sim::ai::army::SITE_COME_OUT),
     // `Army::find_target@006f69b0` — its own two, and until item 317 the
     // trace spelled both as bare addresses while the sim spelled neither.
     // `+0x410` is the per-leader coin at the call `6f6dbb`, whose answer
@@ -361,8 +365,8 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // at `6f718a`, read `cltd` / `idiv $0xc8` / `lea 0x384(%edx)` — the
     // `% 200 + 900` of `docs/ARMY.md` §12. Both are the army's own
     // address, so no chain is needed.
-    (0x006f_6dc0, None, sim::army::SITE_FIND_TARGET_COIN),
-    (0x006f_718f, None, sim::army::SITE_FIND_TARGET_SCORE),
+    (0x006f_6dc0, None, sim::ai::army::SITE_FIND_TARGET_COIN),
+    (0x006f_718f, None, sim::ai::army::SITE_FIND_TARGET_SCORE),
     // `Unit::do_non_flat_gather@005f0170` — the wood machine's own three.
     // The last two are one apparent branch and two real ones: `+0xcc3` is
     // the chopping guy's `% 100 + 300` and `+0xdad` the arrival frame's
@@ -388,17 +392,33 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (0x005f_89b4, None, sim::orders::SITE_MOVE_GRID),
     // `Unit::think_spellcaster@005f27a0` — the special arm's coin, which a
     // computer's scout throws from difficulty 2 up (`docs/AI.md` §80.5).
-    (0x005f_2bb3, None, sim::spellcaster::SITE_SPECIAL_COIN),
+    (
+        0x005f_2bb3,
+        None,
+        sim::units::think::spellcaster::SITE_SPECIAL_COIN,
+    ),
     // …and the hero arm's coin, which a computer's General (or a patriot
     // `FROM General`) throws on its army's 128-frame turn (item 1305).
-    (0x005f_2d29, None, sim::spellcaster::SITE_HERO_COIN),
+    (
+        0x005f_2d29,
+        None,
+        sim::units::think::spellcaster::SITE_HERO_COIN,
+    ),
     // `Unit::think_scout@005f6010` — the ring walk (`docs/SCOUT.md` §10).
-    (0x005f_6446, None, sim::scout::SITE_ROTATION),
-    (0x005f_6468, None, sim::scout::SITE_PHASE),
-    (0x005f_665c, None, sim::scout::SITE_CELL),
+    (0x005f_6446, None, sim::units::think::scout::SITE_ROTATION),
+    (0x005f_6468, None, sim::units::think::scout::SITE_PHASE),
+    (0x005f_665c, None, sim::units::think::scout::SITE_CELL),
     // …and the region fallback's two (`docs/SCOUT.md` §11).
-    (0x005f_6951, None, sim::scout::SITE_REGION_STRIDE),
-    (0x005f_6aca, None, sim::scout::SITE_REGION_CELL),
+    (
+        0x005f_6951,
+        None,
+        sim::units::think::scout::SITE_REGION_STRIDE,
+    ),
+    (
+        0x005f_6aca,
+        None,
+        sim::units::think::scout::SITE_REGION_CELL,
+    ),
     // `Animal::do_idle@005d7460` — a herd animal's wander: the coin, then
     // the direction and the two step counts. Four addresses of its own.
     (0x005d_74e3, None, sim::gaia::SITE_WANDER_ROLL),
@@ -406,7 +426,7 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (0x005d_7634, None, sim::gaia::SITE_WANDER_X),
     (0x005d_7672, None, sim::gaia::SITE_WANDER_Y),
     // `Animal::think_farm_animal@005d7700` — a pasture animal's step.
-    (0x005d_7842, None, sim::farms::SITE_ANIMAL_DIR),
+    (0x005d_7842, None, sim::cities::farms::SITE_ANIMAL_DIR),
     // `Objects::process_all@0065dce0` — the birds' sampling.
     (0x0065_dfbf, None, sim::gaia::SITE_BIRD_X),
     (0x0065_dfeb, None, sim::gaia::SITE_BIRD_Y),
@@ -427,18 +447,18 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (0x005e_878a, None, sim::air::SITE_AIR_ALT),
     // `Unit::do_group_move@005e79a0` — a follower's slot in a wood: the
     // flock's size, `% 2 + 2` (item 1293, `docs/AI.md` §99.12).
-    (0x005e_84a3, None, sim::flock::SITE_GROUP_FLOCK),
+    (0x005e_84a3, None, sim::gaia::flock::SITE_GROUP_FLOCK),
     // `Objects::add_flock@0065c0e0` — its six for the flock, then ten a
     // bird: `Guy::init_real`, the turn, and two for each of four points.
-    (0x0065_c1e4, None, sim::flock::SITE_FLOCK_JITTER_X),
-    (0x0065_c201, None, sim::flock::SITE_FLOCK_JITTER_Y),
-    (0x0065_c265, None, sim::flock::SITE_FLOCK_SPREAD_X),
-    (0x0065_c284, None, sim::flock::SITE_FLOCK_SPREAD_Y),
-    (0x0065_c307, None, sim::flock::SITE_FLOCK_RING),
-    (0x0065_c3bc, None, sim::flock::SITE_FLOCK_ANGLE),
-    (0x0065_c43c, None, sim::flock::SITE_FLOCK_TURN),
-    (0x0065_c4c9, None, sim::flock::SITE_FLOCK_POINT_Y),
-    (0x0065_c4f1, None, sim::flock::SITE_FLOCK_POINT_X),
+    (0x0065_c1e4, None, sim::gaia::flock::SITE_FLOCK_JITTER_X),
+    (0x0065_c201, None, sim::gaia::flock::SITE_FLOCK_JITTER_Y),
+    (0x0065_c265, None, sim::gaia::flock::SITE_FLOCK_SPREAD_X),
+    (0x0065_c284, None, sim::gaia::flock::SITE_FLOCK_SPREAD_Y),
+    (0x0065_c307, None, sim::gaia::flock::SITE_FLOCK_RING),
+    (0x0065_c3bc, None, sim::gaia::flock::SITE_FLOCK_ANGLE),
+    (0x0065_c43c, None, sim::gaia::flock::SITE_FLOCK_TURN),
+    (0x0065_c4c9, None, sim::gaia::flock::SITE_FLOCK_POINT_Y),
+    (0x0065_c4f1, None, sim::gaia::flock::SITE_FLOCK_POINT_X),
     // `Unit::do_spec_anim@005e5880`'s EXIT at an Airbase for a Helicopter:
     // its two offsets, `x` then `y` (item 1019, run371's 2445).
     (0x005e_59ef, None, sim::air::SITE_HELI_EXIT_X),
@@ -451,33 +471,33 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (
         0x009e_18a8,
         Some(0x009d_5901), // `ScriptFuncSet::call_func+0x401`
-        sim::ai_host::SITE_RAND_INT,
+        sim::ai::ai_host::SITE_RAND_INT,
     ),
     // `PathFinder::calc_road_cost@00686300` — the road jitter, one draw a
     // node costed, under `astar_caravan_road+0x52b < find_road+0x3a8`
     // (`docs/ROADS.md` §5). Its own address, so no chain is needed.
-    (0x0068_6346, None, sim::roads::SITE_COST),
+    (0x0068_6346, None, sim::movement::roads::SITE_COST),
     // `Farms::inc_time@008d8600` — the crop clock.
-    (0x008d_87ae, None, sim::farms::SITE_CHANCE),
-    (0x008d_87de, None, sim::farms::SITE_SPROUT),
+    (0x008d_87ae, None, sim::cities::farms::SITE_CHANCE),
+    (0x008d_87de, None, sim::cities::farms::SITE_SPROUT),
     // `Farms::add@008d8a40` — the pasture coin and the ambience emitter.
-    (0x008d_8b68, None, sim::farms::SITE_TYPE_COIN),
-    (0x008d_8c7f, None, sim::farms::SITE_AMBIENCE_X),
-    (0x008d_8c9b, None, sim::farms::SITE_AMBIENCE_Y),
+    (0x008d_8b68, None, sim::cities::farms::SITE_TYPE_COIN),
+    (0x008d_8c7f, None, sim::cities::farms::SITE_AMBIENCE_X),
+    (0x008d_8c9b, None, sim::cities::farms::SITE_AMBIENCE_Y),
     // `Farms::add_animals@008d8f30` — the five animals a finished pasture
     // is stocked with, three draws each. The same three addresses
     // [`ADD_ANIMALS_COIN`] and its pair name for the *setup* borrow; here
     // they are the labels the simulation's own drawing path writes.
-    (ADD_ANIMALS_COIN, None, sim::farms::SITE_ANIMAL_COIN),
-    (ADD_ANIMALS_Y, None, sim::farms::SITE_ANIMAL_Y),
-    (ADD_ANIMALS_X, None, sim::farms::SITE_ANIMAL_X),
+    (ADD_ANIMALS_COIN, None, sim::cities::farms::SITE_ANIMAL_COIN),
+    (ADD_ANIMALS_Y, None, sim::cities::farms::SITE_ANIMAL_Y),
+    (ADD_ANIMALS_X, None, sim::cities::farms::SITE_ANIMAL_X),
     // The pig's arm: the same two offsets at their own addresses.
-    (ADD_ANIMALS_PIG_Y, None, sim::farms::SITE_PIG_Y),
-    (ADD_ANIMALS_PIG_X, None, sim::farms::SITE_PIG_X),
+    (ADD_ANIMALS_PIG_Y, None, sim::cities::farms::SITE_PIG_Y),
+    (ADD_ANIMALS_PIG_X, None, sim::cities::farms::SITE_PIG_X),
     // `Build::find_gather_tiles@00623350+0x10a` — the mining list's
     // shuffle, one draw a round over `4 × length` of them, under
     // `Build::init+0x55b`. Its own address, so no chain is needed.
-    (0x0062_345a, None, sim::gather::SITE_SHUFFLE),
+    (0x0062_345a, None, sim::economy::gather::SITE_SHUFFLE),
     // `Unit::find_attack_pos@00601280+0xea9` — the ring walk's one draw,
     // and **two chains**, because one address is two mechanics: the
     // group order's single call on its leader, and the chase each member
@@ -490,17 +510,17 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (
         0x0060_2129,
         Some(0x005f_e184), // `Unit::fight+0xcb4`
-        sim::fight::SITE_ATTACK_POS_FIGHT,
+        sim::combat::fight::SITE_ATTACK_POS_FIGHT,
     ),
     (
         0x0060_2129,
         Some(0x005f_e62e), // `Unit::fight+0x115e`, the computer's siege arm
-        sim::fight::SITE_ATTACK_POS_SIEGE,
+        sim::combat::fight::SITE_ATTACK_POS_SIEGE,
     ),
     (
         0x0060_2129,
         Some(0x0071_28aa), // `Group::action_attack+0x41a`
-        sim::fight::SITE_ATTACK_POS_GROUP,
+        sim::combat::fight::SITE_ATTACK_POS_GROUP,
     ),
     // The review's re-aim of a fleeing target's chase (item 1023,
     // `docs/COMBAT.md` §67): `check_target_path@005e22d0` calls the
@@ -509,17 +529,17 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (
         0x0060_2129,
         Some(0x005e_2715), // `Unit::check_target_path+0x445`
-        sim::fight::SITE_ATTACK_POS_REVIEW,
+        sim::combat::fight::SITE_ATTACK_POS_REVIEW,
     ),
     // `Unit::fight@005fd4d0+0x9b0` — the one-in-five re-search's roll,
     // spent before either suppression is read (`docs/COMBAT.md` §8.2
     // step 0). One caller, so no chain is needed.
-    (0x005f_de80, None, sim::fight::SITE_FIGHT_RESEARCH),
+    (0x005f_de80, None, sim::combat::fight::SITE_FIGHT_RESEARCH),
     // `Unit::fight@005fd4d0+0x824` — the AI guard's charge roll
     // (`docs/COMBAT.md` §63.2), `sim` marking it since item 857 with no
     // row here, so the original's draw printed bare (parked 866, the
     // sixteenth pass). One caller, no chain.
-    (0x005f_dcf4, None, sim::fight::SITE_FIGHT_GUARD_ROLL),
+    (0x005f_dcf4, None, sim::combat::fight::SITE_FIGHT_GUARD_ROLL),
     // `Ammo::init@0067bbf0` — the landing scatter's two draws, the whole
     // cost of a shot that hits open ground or a building
     // (`docs/COMBAT.md` §9.1). Both reach here through
@@ -538,23 +558,31 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (0x0067_bb05, None, sim::air::SITE_CRASH_ROLL),
     // `Object::fire_ammo@0064c8b0`'s building arm — the launch point in the
     // footprint, x then y, ahead of `Ammo::init`'s pair (item 3970).
-    (0x0064_cc85, None, sim::fight::SITE_FIRE_FOOTPRINT_X),
-    (0x0064_ccb6, None, sim::fight::SITE_FIRE_FOOTPRINT_Y),
-    (0x0067_c8c9, None, sim::fight::SITE_AMMO_SCATTER_X),
-    (0x0067_c8fb, None, sim::fight::SITE_AMMO_SCATTER_Y),
+    (0x0064_cc85, None, sim::combat::fight::SITE_FIRE_FOOTPRINT_X),
+    (0x0064_ccb6, None, sim::combat::fight::SITE_FIRE_FOOTPRINT_Y),
+    (0x0067_c8c9, None, sim::combat::fight::SITE_AMMO_SCATTER_X),
+    (0x0067_c8fb, None, sim::combat::fight::SITE_AMMO_SCATTER_Y),
     // The attack-ground arm's own pair (`init:461`–`484`), ahead of
     // `find_data_z`: run146's catapult spends them on 797, where they
     // read as a bare `67c6d8`/`67c715` until item 617 named them
     // (`docs/COMBAT.md` §59.5).
-    (0x0067_c6d8, None, sim::fight::SITE_AMMO_GROUND_SCATTER_X),
-    (0x0067_c715, None, sim::fight::SITE_AMMO_GROUND_SCATTER_Y),
+    (
+        0x0067_c6d8,
+        None,
+        sim::combat::fight::SITE_AMMO_GROUND_SCATTER_X,
+    ),
+    (
+        0x0067_c715,
+        None,
+        sim::combat::fight::SITE_AMMO_GROUND_SCATTER_Y,
+    ),
     // `Object::take_damage@00652020` — a building's **first wound**: one
     // roll at `+0xe1` whenever combat damage reaches an object whose
     // `damage` is still zero and whose vtable `+0x1c` answers 1, and a
     // second at `+0x18b` for the flock a siege hit on a fort, temple or
     // town puts up (`docs/COMBAT.md` §7.2 step 3). Every caller reaches
     // both through `Object::do_damage`, so no chain separates them.
-    (0x0065_2101, None, sim::fight::SITE_FIRST_WOUND),
+    (0x0065_2101, None, sim::combat::fight::SITE_FIRST_WOUND),
     // `+0x18b` is `0x0065_21ab`, and this row read `0x0065_218b` until
     // item 483 — two digits transposed, on an address that is not even an
     // instruction boundary (`65218a` is a three-byte `mov`), so the row
@@ -562,7 +590,11 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // bare `6521ab`. `every_site_s_address_is_the_function_its_label_
     // names` found it on its first run; no capture on disk takes the draw,
     // so no comparison moved (`docs/COMBAT.md` §39.3).
-    (0x0065_21ab, None, sim::fight::SITE_FIRST_WOUND_FLOCK),
+    (
+        0x0065_21ab,
+        None,
+        sim::combat::fight::SITE_FIRST_WOUND_FLOCK,
+    ),
     // `Ammo::do_damage@00678060` — the puncture point of a shot that hit
     // nothing, `+0xc59` for x and `+0xc7e` for y (`docs/COMBAT.md` §39).
     // The function has exactly two `Random::get` calls and these are
@@ -572,8 +604,8 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // original's read as a bare `678cb9`/`678cde` against this crate's
     // `projectiles` phase mark, and the sequence word could not pass
     // 10237 however the simulation behaved.
-    (0x0067_8cb9, None, sim::fight::SITE_PUNCTURE_X),
-    (0x0067_8cde, None, sim::fight::SITE_PUNCTURE_Y),
+    (0x0067_8cb9, None, sim::combat::fight::SITE_PUNCTURE_X),
+    (0x0067_8cde, None, sim::combat::fight::SITE_PUNCTURE_Y),
     // `Unit::close@0060ee50` — the death animation's own draw, and the
     // two more a `dtype == 4` death takes (`docs/COMBAT.md` §42.1). The
     // three calls are the only `Random::get`s in the function and they
@@ -585,13 +617,17 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // draw 0 with the original's site reading as a bare `60fb06`.
     // `Unit::plunder@00605b00`'s EE arm: one draw per available good
     // (`docs/AI.md` §259). The pre-EE arm's draw is not tabulated.
-    (0x0060_5fe5, None, sim::fight::SITE_UNIT_PLUNDER),
+    (0x0060_5fe5, None, sim::combat::fight::SITE_UNIT_PLUNDER),
     // `Object::disband@006455c0`'s unit arm: `Random::get(0, 0xffff) % 3`,
     // the `dtype` of its `die` (item 3914, run1508 on 622).
-    (0x0064_59d5, None, sim::disband::SITE_DISBAND_DIE),
-    (0x0060_fb06, None, sim::fight::SITE_DEATH_ANIM),
-    (0x0060_fb36, None, sim::fight::SITE_DEATH_ANIM_ALT),
-    (0x0060_fb5a, None, sim::fight::SITE_DEATH_ANIM_FACING),
+    (0x0064_59d5, None, sim::units::disband::SITE_DISBAND_DIE),
+    (0x0060_fb06, None, sim::combat::fight::SITE_DEATH_ANIM),
+    (0x0060_fb36, None, sim::combat::fight::SITE_DEATH_ANIM_ALT),
+    (
+        0x0060_fb5a,
+        None,
+        sim::combat::fight::SITE_DEATH_ANIM_FACING,
+    ),
 ];
 
 /// The header's `kind`: `RONT`, little-endian.
@@ -775,10 +811,10 @@ pub struct Call {
 }
 
 impl Call {
-    /// This call's [`sim::path::CostKey`] — the seven arguments §5 prices
+    /// This call's [`sim::movement::path::CostKey`] — the seven arguments §5 prices
     /// a step by — for a [`call_site::CALC_COST`] record, so the
     /// original's answer can be looked up beside the simulation's.
-    pub fn cost_key(&self) -> Option<sim::path::CostKey> {
+    pub fn cost_key(&self) -> Option<sim::movement::path::CostKey> {
         if self.site != call_site::CALC_COST {
             return None;
         }
@@ -1058,17 +1094,17 @@ impl Trace {
     /// **borrowable** the way a sibling dump's heights and herds are.
     ///
     /// Returns one `Vec` a pasture, in the order the setup created them,
-    /// each of [`sim::farms::FARM_ANIMALS`] seeds. A trace that opened
+    /// each of [`sim::cities::farms::FARM_ANIMALS`] seeds. A trace that opened
     /// after the setup — every windowed capture — returns nothing, and the
     /// simulation then keeps its stand-in.
-    pub fn add_animals(&self) -> Vec<Vec<sim::farms::AnimalSeed>> {
+    pub fn add_animals(&self) -> Vec<Vec<sim::cities::farms::AnimalSeed>> {
         let sites = [ADD_ANIMALS_COIN, ADD_ANIMALS_Y, ADD_ANIMALS_X];
         let marks: Vec<&Draw> = self
             .draws
             .iter()
             .filter(|d| d.sync() && d.frame < 0 && sites.contains(&d.site))
             .collect();
-        let mut seeds: Vec<sim::farms::AnimalSeed> = Vec::new();
+        let mut seeds: Vec<sim::cities::farms::AnimalSeed> = Vec::new();
         // The three are consecutive and in this order; anything else is a
         // trace whose window clipped the run, and a partial animal is
         // dropped rather than half-borrowed.
@@ -1080,18 +1116,20 @@ impl Trace {
             let (Some(coin), Some(y), Some(x)) = (coin.value(), y.value(), x.value()) else {
                 break;
             };
-            let fold =
-                |v: i32| v.rem_euclid(sim::farms::ANIMAL_SPREAD) - sim::farms::ANIMAL_SPREAD / 2;
-            seeds.push(sim::farms::AnimalSeed {
+            let fold = |v: i32| {
+                v.rem_euclid(sim::cities::farms::ANIMAL_SPREAD)
+                    - sim::cities::farms::ANIMAL_SPREAD / 2
+            };
+            seeds.push(sim::cities::farms::AnimalSeed {
                 chicken: coin & 1 == 0,
                 dy: fold(y),
                 dx: fold(x),
             });
         }
         seeds
-            .chunks(sim::farms::FARM_ANIMALS as usize)
-            .filter(|c| c.len() == sim::farms::FARM_ANIMALS as usize)
-            .map(<[sim::farms::AnimalSeed]>::to_vec)
+            .chunks(sim::cities::farms::FARM_ANIMALS as usize)
+            .filter(|c| c.len() == sim::cities::farms::FARM_ANIMALS as usize)
+            .map(<[sim::cities::farms::AnimalSeed]>::to_vec)
             .collect()
     }
 
@@ -1126,7 +1164,7 @@ impl Trace {
     /// `valid_roadcoord` that returned just before it admitted. That is
     /// why both are proxied — the gate is where a candidate's world
     /// coordinate is, and the price is where the answer is.
-    pub fn road_nodes(&self, frame: i64) -> Vec<sim::roads::RoadCostMark> {
+    pub fn road_nodes(&self, frame: i64) -> Vec<sim::movement::roads::RoadCostMark> {
         let mut out = Vec::new();
         let mut gate: Option<Call> = None;
         for c in self.calls.iter().filter(|c| c.frame == frame) {
@@ -1134,7 +1172,7 @@ impl Trace {
                 call_site::VALID_ROADCOORD => gate = Some(*c),
                 call_site::CALC_ROAD_COST => {
                     if let Some(g) = gate.take() {
-                        out.push(sim::roads::RoadCostMark {
+                        out.push(sim::movement::roads::RoadCostMark {
                             to: (g.args[0], g.args[1]),
                             from: (g.args[2], g.args[3]),
                             dir: c.args[3],
@@ -1682,10 +1720,13 @@ mod tests {
             "the values report.py prints beside these three records"
         );
         // Four animals short of a pasture, so nothing is borrowable yet.
-        assert_eq!(t.add_animals(), Vec::<Vec<sim::farms::AnimalSeed>>::new());
+        assert_eq!(
+            t.add_animals(),
+            Vec::<Vec<sim::cities::farms::AnimalSeed>>::new()
+        );
 
         let mut recs = vec![[MAGIC, 1, IMAGE_BASE, 0x1000, 0x2000, 1, 0, 0xffff_ffff]];
-        for _ in 0..sim::farms::FARM_ANIMALS {
+        for _ in 0..sim::cities::farms::FARM_ANIMALS {
             recs.push(setup(ADD_ANIMALS_COIN, 0xa236_f580));
             recs.push(setup(ADD_ANIMALS_Y, 0x588a_6adf));
             recs.push(setup(ADD_ANIMALS_X, 0x51d2_3ab2));
@@ -1696,12 +1737,12 @@ mod tests {
         assert_eq!(
             got[0],
             vec![
-                sim::farms::AnimalSeed {
+                sim::cities::farms::AnimalSeed {
                     chicken: true,
                     dy: -143,
                     dx: 40,
                 };
-                sim::farms::FARM_ANIMALS as usize
+                sim::cities::farms::FARM_ANIMALS as usize
             ]
         );
     }

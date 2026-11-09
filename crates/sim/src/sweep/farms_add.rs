@@ -49,7 +49,7 @@ fn the_emulated_original_agrees_on_every_row() {
         fn short(w: &[u8], off: usize) -> i32 {
             i32::from(i16::from_le_bytes([w[off], w[off + 1]]))
         }
-        impl crate::farms::FarmsAddHost for Host<'_> {
+        impl crate::cities::farms::FarmsAddHost for Host<'_> {
             fn city(&mut self) -> i32 {
                 self.log.push(format!("s0:p{}+0x0", 3 + self.o));
                 self.log
@@ -176,6 +176,6 @@ fn the_emulated_original_agrees_on_every_row() {
             heights: [0; 25],
             sample: 0,
         };
-        i64::from(crate::farms::farms_add_steps(&mut host, a[1]))
+        i64::from(crate::cities::farms::farms_add_steps(&mut host, a[1]))
     });
 }

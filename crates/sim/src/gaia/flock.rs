@@ -209,10 +209,10 @@ impl FlockView for SimFlock<'_> {
         self.cells[k]
     }
     fn ring_radius(&self, k: usize) -> i32 {
-        crate::ai_place::circle().radius[k] as i32
+        crate::ai::ai_place::circle().radius[k] as i32
     }
     fn ring_at(&self, i: usize) -> (i32, i32) {
-        let c = crate::ai_place::circle();
+        let c = crate::ai::ai_place::circle();
         (c.x[i], c.y[i])
     }
     fn make_bird(&mut self, at: Pos) -> Option<usize> {
@@ -327,7 +327,7 @@ impl Sim {
     }
 
     /// `Objects::init_unit(9, FLOCKBIRD, x, y, −1, −1, −1)` — gaia's bird,
-    /// made as a dock makes its gull (`crate::transport`): the lowest free
+    /// made as a dock makes its gull (`crate::ai::transport`): the lowest free
     /// slot, the type's own speed and turn, and `Guy::init_real`'s draw.
     /// `Unit::init@00612100:69–72` seats it on the 48-unit grid's centre,
     /// `div_3_table[v >> 4] · 0x30 + 0x18`: run500's birds are born 24 on
@@ -440,7 +440,7 @@ impl Sim {
         }
         let to = Pos::new(nx.clamp(0, xs - 1), ny.clamp(0, ys - 1));
         self.set_new_location(u, to, false);
-        self.set_anim(u, crate::anim::WALK, false, true);
+        self.set_anim(u, crate::units::anim::WALK, false, true);
         self.set_returning(u, false);
         self.units[u].combat.recharging = 1;
         let now = self.units[u].pos;

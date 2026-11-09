@@ -12,7 +12,7 @@
 //! suspend). [`entry_steps`], [`fresh_steps`] and [`suspend_steps`] are that
 //! control flow in the listing's order; [`AstarView`] and [`SuspendView`]
 //! are the state they read and the callees they make, which
-//! [`crate::path`]'s `SimAstar` answers from the crate's [`crate::Sim`] and
+//! [`crate::movement::path`]'s `SimAstar` answers from the crate's [`crate::Sim`] and
 //! `sweep/path_finder_astar_suspend.rs` from the emulated original's windows.
 //!
 //! The search loop itself (the wheel, `calc_cost`, the closed set, the
@@ -24,7 +24,7 @@ use crate::orders::PathData;
 use crate::world::{Pos, vector_dist};
 
 /// The three grids' steps, as `param_2`.
-pub use crate::path::{STEP_TILE, STEP_UNIT, STEP_WORLD};
+pub use crate::movement::path::{STEP_TILE, STEP_UNIT, STEP_WORLD};
 
 /// The `UnitOrder::get_type` of an attack (`ATTACK`), which `get_action`
 /// answers for an attacking unit.

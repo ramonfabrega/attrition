@@ -10,9 +10,9 @@ fn wr(m: &mut [u8], off: usize, v: i32) {
     m[off..off + 4].copy_from_slice(&v.to_le_bytes());
 }
 
-use crate::build::Ident;
+use crate::cities::build::Ident;
 
-use crate::friends::{FriendsView, find_friends_steps};
+use crate::cities::friends::{FriendsView, find_friends_steps};
 
 /// `Build::vftable` (`0xb42174`): the vtable word a record is compared with.
 const BUILD_VFTABLE: i32 = 0x00b4_2174;

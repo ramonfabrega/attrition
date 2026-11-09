@@ -38,8 +38,8 @@ pub struct UnitsState {
     /// One per player: `GameAccess::leader_options->list[who]`, the four
     /// per-player option words `Unit::init` reads to give a new unit its
     /// stance — `docs/ORDERS.md` §5.10.
-    pub leader_options: Vec<crate::stance::LeaderOptions>,
+    pub leader_options: Vec<crate::units::stance::LeaderOptions>,
     /// The animation art the clocks read — lengths and pieces, an input
     /// (`docs/ANIM.md` §3).
-    pub art: crate::anim::Art,
+    pub art: crate::units::anim::Art,
 }

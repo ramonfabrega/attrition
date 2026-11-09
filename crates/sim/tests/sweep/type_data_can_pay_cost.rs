@@ -48,7 +48,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     asked += 1;
                 }
             }
-            i64::from(crate::cost::affordable(
+            i64::from(crate::economy::cost::affordable(
                 &charges,
                 &ledger,
                 &available,

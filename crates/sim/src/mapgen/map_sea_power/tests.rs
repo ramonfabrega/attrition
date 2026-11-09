@@ -90,7 +90,7 @@ fn every_start_stands_on_land_with_its_disc() {
 /// water in a disc — and one island means no guard (§33.4).
 #[test]
 fn every_start_city_has_its_ring_5_disc_of_land() {
-    let t = crate::scout::circle::table();
+    let t = crate::units::think::scout::circle::table();
     let mut filled = 0;
     for (n, seed) in [13, 14]
         .into_iter()

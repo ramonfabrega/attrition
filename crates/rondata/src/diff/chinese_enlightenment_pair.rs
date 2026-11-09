@@ -38,7 +38,7 @@ pub(crate) const CHINESE_ENLIGHTENMENT: Pair = Pair {
     // theirs `Object::take_damage+0xe1` (`docs/AI.md` §354). Item 3704
     // closes it, 3263 → 3836, the game's last frame (§354.2): pieces 66
     // (the Manchu Musketeers, TI 116) and 1142 (the Fusiliers, TI 136) take
-    // three bays each (`sim::launch`, off run1381's packet), so the
+    // three bays each (`sim::data::launch`, off run1381's packet), so the
     // Musketeer `1/42`'s round of 3261 leaves (5094, 31444, 678), the
     // dump's, and flies 4 frames, where it left from the figure's own
     // (5208, 31512, 464) and flew 5; it strikes the city centre `0/2000`

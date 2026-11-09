@@ -27,10 +27,10 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     super::obj_rows(&rows, &obj, |a, m, c, p, log| {
         let _ = (&a, &m, &c, &p);
-        use crate::target_gate::{
+        use crate::ai::army::target_gate::{
             Ecx, Stopped, TargetGateView, target_city_gate, target_head, target_leader_gate,
         };
-        use crate::target_score::{
+        use crate::ai::army::target_score::{
             Ctx, TargetScoreView, TargetTailView, target_score, target_tail,
         };
         // Windows: `m` the army (`+2` slot, `+8` region, `+0x14` captains, `+0x18` standard,

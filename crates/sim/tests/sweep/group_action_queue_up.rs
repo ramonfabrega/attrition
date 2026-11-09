@@ -28,7 +28,7 @@ fn the_emulated_original_agrees_on_every_row() {
     super::obj_rows(&rows, &obj, |a, m, c, p, log| {
         let _ = (&a, &m, &c, &p);
         {
-            // **The port is the crate's own steps**, `crate::group_queue_up::action_queue_up_steps`, which
+            // **The port is the crate's own steps**, `crate::groups::group_queue_up::action_queue_up_steps`, which
             // `Sim::action_queue_up` / `action_queue_research` run over their `SimQueueUp`; here the view is the
             // emulated original's windows.
             //
@@ -46,7 +46,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // (+0x6c18, two bytes), `p10` the objects' array and `p11..p14` the four objects (`+0x30` their
             // `Build`, `p30..p33`), `p15` the types' array and `p16..p21` the six type records, `p22` the build
             // types' array and `p23..p28` their records (`+0x2c0` the flags), `p29` the ignored-objects list.
-            use crate::group_queue_up::{QueueUpView, action_queue_up_steps};
+            use crate::groups::group_queue_up::{QueueUpView, action_queue_up_steps};
             struct V<'a> {
                 a: &'a [i32],
                 m: &'a mut [u8],

@@ -31,7 +31,7 @@ fn the_emulated_original_agrees_on_every_row() {
             answer: i32,
             log: &'a mut Vec<String>,
         }
-        impl sim::spell_find_view::SpellConsole for Sw<'_> {
+        impl sim::spells::spell_find_view::SpellConsole for Sw<'_> {
             fn find_target(&mut self, param3: i32, search: i32, flags: i32) -> i32 {
                 // `FILTER_ALL`, two zeros, and three dead stack slots (zero here).
                 self.log
@@ -44,7 +44,7 @@ fn the_emulated_original_agrees_on_every_row() {
             answer: a[3],
             log: &mut *log,
         };
-        i64::from(sim::spell_find_view::spell_find_target(
+        i64::from(sim::spells::spell_find_view::spell_find_target(
             &mut sw, flags, a[2],
         ))
     });

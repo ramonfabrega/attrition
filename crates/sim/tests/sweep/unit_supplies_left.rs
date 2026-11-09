@@ -12,7 +12,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let (a, want) = super::row(line);
         let _ = a;
         assert_eq!(
-            crate::flag_reads::SUPPLIES_LEFT,
+            crate::core::flag_reads::SUPPLIES_LEFT,
             want,
             "supplies_left — row `{line}`"
         );

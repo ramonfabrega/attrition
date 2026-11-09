@@ -249,7 +249,7 @@ impl DecoyView for SimDecoy<'_> {
     fn land(&self, o: i32) -> bool {
         // A unit without a type is no one's captain here.
         self.sim.units[o as usize].ty.is_some()
-            && self.sim.unit_domain_of(o as usize) == crate::attrition::Domain::Land
+            && self.sim.unit_domain_of(o as usize) == crate::territory::attrition::Domain::Land
     }
     fn armed(&mut self, o: i32) -> bool {
         self.sim

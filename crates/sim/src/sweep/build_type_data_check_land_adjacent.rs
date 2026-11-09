@@ -41,14 +41,21 @@ fn the_emulated_original_agrees_on_every_row() {
             let mut r = 2;
             'walk: for x in x0 - 1..=x1 {
                 for y in y0 - 1..=y1 {
-                    let inside =
-                        crate::place::footprint_covers(Pos::new(x0, y0), xs, ys, Pos::new(x, y));
+                    let inside = crate::cities::place::footprint_covers(
+                        Pos::new(x0, y0),
+                        xs,
+                        ys,
+                        Pos::new(x, y),
+                    );
                     let corner = (x == x0 - 1 || x == x1) && (y == y0 - 1 || y == y1);
                     if inside || corner || x < 0 || y < 0 || x >= w || y >= h {
                         continue;
                     }
                     let t = ((w * y + x) * 2) as usize;
-                    if !crate::place::adjacent_land(u16::from_le_bytes([p[9][t], p[9][t + 1]])) {
+                    if !crate::cities::place::adjacent_land(u16::from_le_bytes([
+                        p[9][t],
+                        p[9][t + 1],
+                    ])) {
                         continue;
                     }
                     r = 1;
@@ -60,7 +67,7 @@ fn the_emulated_original_agrees_on_every_row() {
                         i32::from(p[8][(((y >> 2) * cw + (x >> 2)) * 0x1c + 0xf) as usize] as i8);
                     let me = rd(&p[who as usize], 0);
                     let friendly = o >= 0
-                        && crate::place::friendly_ground(
+                        && crate::cities::place::friendly_ground(
                             o,
                             me,
                             rd(&p[who as usize], (0x6c + 4 * o) as usize) == 2,

@@ -681,8 +681,8 @@ mod bodies {
         // an owner-9 object, so the draws are the original's side of this.
         let pasture = built.sim.building_by_o(1, 2032).expect("1/2032");
         assert_eq!(
-            built.sim.buildings[pasture].farm.farm_type & sim::farms::ANIMAL_FARM,
-            sim::farms::ANIMAL_FARM,
+            built.sim.buildings[pasture].farm.farm_type & sim::cities::farms::ANIMAL_FARM,
+            sim::cities::farms::ANIMAL_FARM,
             "1/2032 is a pasture"
         );
         let stock: Vec<(u8, Option<sim::tech::TypeId>)> = built
@@ -699,7 +699,7 @@ mod bodies {
             .collect();
         assert_eq!(
             stock,
-            [(9, Some(sim::farms::FARMPIG)); 5],
+            [(9, Some(sim::cities::farms::FARMPIG)); 5],
             "its five animals: gaia's pigs"
         );
         // **A word at the trace's end is not a cap reading as agreement**
@@ -803,7 +803,7 @@ mod bodies {
                     let Some(ours) = built.sim.units[u].guys.get(n) else {
                         continue;
                     };
-                    if n >= sim::anim::SQUAD_SIZE {
+                    if n >= sim::units::anim::SQUAD_SIZE {
                         crew_rows += 1;
                     }
                     // **The whole of what this crate models of the
@@ -832,7 +832,7 @@ mod bodies {
                             // for both. That is what
                             // [`sim::Sim::guys_follow`]'s `settled ||
                             // g >= SQUAD_SIZE` already models.
-                            if n >= sim::anim::SQUAD_SIZE {
+                            if n >= sim::units::anim::SQUAD_SIZE {
                                 built.sim.units[u].movement.facing
                             } else {
                                 built.sim.units[u].movement.heading
@@ -1841,7 +1841,8 @@ mod bodies {
             if let Some((sf, w, o)) = sweep
                 && sf == f
             {
-                built.sim.trace.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
+                built.sim.trace.sweep_watch =
+                    Some(sim::movement::collide::SweepWatch::new(sf, w, o));
             }
             built.tick();
             if let Some((sf, _, _)) = sweep

@@ -56,7 +56,9 @@ fn the_emulated_original_agrees_on_every_row() {
             // c3 the game (`+0x6b0` `num_def_builds`). p0..p7 the leaders' flag word; p8..p16 the players' arrays (entry `id - 2000`);
             // p17.. the objects, `2 * player + (id - 2000)`; p35 the cells; p36 the result data. The port is the crate's own
             // `find_builds_view::find_builds_steps` over a view of the windows.
-            use crate::find_builds_view::{FindBuildsArgs, FindBuildsView, find_builds_steps};
+            use crate::cities::find_builds_view::{
+                FindBuildsArgs, FindBuildsView, find_builds_steps,
+            };
             struct V<'a> {
                 a: &'a [i32],
                 c: &'a mut [Vec<u8>],
@@ -112,10 +114,10 @@ fn the_emulated_original_agrees_on_every_row() {
                     rd(&self.c[3], 0x6b0)
                 }
                 fn circle_radius(&mut self, ring: i32) -> i32 {
-                    crate::ai_place::circle().radius[ring as usize] as i32
+                    crate::ai::ai_place::circle().radius[ring as usize] as i32
                 }
                 fn circle_point(&mut self, i: i32) -> (i32, i32) {
-                    let c = crate::ai_place::circle();
+                    let c = crate::ai::ai_place::circle();
                     (c.x[i as usize], c.y[i as usize])
                 }
                 fn link(&mut self, player: i32, id: i32) -> (i32, i32) {

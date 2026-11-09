@@ -1,7 +1,7 @@
 //! The road **mesh** — `Roads::add_roads@0088f4b0` and the road tiles
 //! `Roads::set_diags@0088e9d0` lays of its own.
 //!
-//! `docs/ROADS.md` §9. `crate::roads` is the *plan* — the ring a building
+//! `docs/ROADS.md` §9. `crate::movement::roads` is the *plan* — the ring a building
 //! draws and the search back to its city; this is what the world does with
 //! each tile as it is laid. Every `World::set_road_at@006b43b0` on a tile
 //! that was not already a road queues a `RoadModification` and runs
@@ -26,8 +26,8 @@
 //! a rotation are not.
 
 use crate::Sim;
-use crate::ai_place::{MOVE_X, MOVE_Y};
-use crate::roads_view::{ModQueue, RoadsView, TileRec, Which, add_roads_steps};
+use crate::ai::ai_place::{MOVE_X, MOVE_Y};
+use crate::movement::roads_view::{ModQueue, RoadsView, TileRec, Which, add_roads_steps};
 use crate::world::{Cell, Pos, World, cell, tile};
 use std::collections::BTreeMap;
 

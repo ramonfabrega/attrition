@@ -31,7 +31,7 @@ fn the_emulated_original_agrees_on_every_row() {
         // flags, `+0x40` the seen-by bits. The leader tables the head
         // writes (`0xe3a424`, `+0x94`) are the port's SEAM, unwindowed.
         let (mut f, mut v) = (m[8], m[0x40]);
-        crate::fight::attacking_bits(&mut f, &mut v, a[0] as crate::Player, || a[2] != 0);
+        crate::combat::fight::attacking_bits(&mut f, &mut v, a[0] as crate::Player, || a[2] != 0);
         m[8] = f;
         m[0x40] = v;
         0

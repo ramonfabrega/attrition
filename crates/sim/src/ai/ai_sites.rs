@@ -51,15 +51,15 @@
 //!   for `FILTER_BASE_TYPE 0x32`.
 
 use crate::ai::{Census, SITE_SLOTS, Site};
-use crate::build::{self, Ident};
+use crate::cities::build::{self, Ident};
+use crate::cities::place::Blocked;
 use crate::economy::RESOURCES;
 use crate::orders::{Body, index};
-use crate::place::Blocked;
 use crate::tech::{Kind, TypeId};
 #[cfg(test)]
 use crate::world::Terrain;
 use crate::world::{CORNER_X, CORNER_Y, Cell, Owner, Pos, UNITS_PER_CELL, tile, vector_dist};
-use crate::{Player, Sim, cost};
+use crate::{Player, Sim, economy::cost};
 
 /// The sweep's two draw sites, under the original's own offsets from
 /// `Leader::compute_sites@006cc950`. [`Sim::mark`] writes them into
@@ -134,7 +134,7 @@ impl Sim {
     /// `WorldData::danger[who]` at a site's cell — `world+0x13c`, an `int`
     /// grid at half the cell resolution (`(wy >> 1) * reg_xs + (wx >> 1)`),
     /// which is the divisor of §2.13 step 8 and the `> 0` test of §2.12.
-    /// [`crate::danger`] writes it.
+    /// [`crate::world::danger`] writes it.
     fn site_danger(&self, who: Player, wx: i32, wy: i32) -> i32 {
         self.world.danger_half(who, crate::world::Cell::new(wx, wy))
     }
@@ -252,7 +252,7 @@ impl Sim {
                 self.tables.tech_tree.has_tribe_bonus(
                     &self.tables.setup,
                     p,
-                    crate::nations::power::SPANISH,
+                    crate::cities::nations::power::SPANISH,
                 )
             })
             || self.sees_every_unit(who)

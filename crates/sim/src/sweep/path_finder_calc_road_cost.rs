@@ -33,7 +33,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // (stub 2, the short it writes through its first argument is `a[9]`) and `was_seen`
             // (stub 3, the half-tile it is handed through two locals). The log holds one token
             // a stub, in stub order, `-` for a callee the arm never reaches.
-            use crate::roads::{Leader, RoadTile, RoadWeights, road_cost_steps};
+            use crate::movement::roads::{Leader, RoadTile, RoadWeights, road_cost_steps};
             let tile_of = |x: i32| (x >> 6) / 3;
             let (x, y) = (rd(&p[0], 0), rd(&p[0], 4));
             let (px, py) = (rd(&p[15], 0), rd(&p[15], 4));

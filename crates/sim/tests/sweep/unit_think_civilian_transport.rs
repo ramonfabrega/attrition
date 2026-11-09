@@ -16,7 +16,7 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-use crate::civ_transport::{CivTransportView, think_civilian_transport_steps};
+use crate::units::think::civ_transport::{CivTransportView, think_civilian_transport_steps};
 use crate::world::{Cell, Pos};
 
 /// The windows of one row as the port's view: `m` the unit, `c` the cells

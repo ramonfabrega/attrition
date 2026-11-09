@@ -706,7 +706,7 @@ pub struct Leader {
     pub capital_stamp: [i64; 8],
     /// `popwin_stamp` (`+0x440`) and `popwin_timer` (`+0x444`): the
     /// territory victory's clock and its running flag
-    /// (`GameDaemon::process_victory@00730ef0`, [`crate::victory`]). The
+    /// (`GameDaemon::process_victory@00730ef0`, [`crate::territory::victory`]). The
     /// stamp gains the frame when the timer starts and loses it when it
     /// stops, so a stopped timer leaves the time it ran as a negative
     /// stamp that `Leader::process` pays back one a `TIMER_REFRESH_RATIO`.
@@ -736,7 +736,7 @@ pub struct Leader {
     /// The lobby's `GameInfo.player[i].flags` for this leader, kept from
     /// `Leader::init`: `LeaderData::is_rusher@006d61f0` is bit 12 and
     /// `is_boomer@006d6190` bit 13, read live by `Leader::diplomacy`
-    /// ([`crate::diplomacy`]). 0 for a leader `init_leader_ai` never saw.
+    /// ([`crate::leaders::diplomacy`]). 0 for a leader `init_leader_ai` never saw.
     pub player_flags: u32,
     /// `aggression[8]`, `strong[8]`, `weak[8]` (`LeaderData +0x210`,
     /// `+0x230`, `+0x250`), indexed by the other leader: what
@@ -1358,10 +1358,10 @@ pub struct AiState {
     pub lobby: crate::ai::Lobby,
     /// `ScenarioData::find_counters[]` and `ScriptTimers` — the global
     /// state the script host functions keep between calls.
-    pub script_env: crate::ai_host::ScriptEnv,
+    pub script_env: crate::ai::ai_host::ScriptEnv,
     /// The loaded opening scripts and their statics, once
     /// [`Sim::load_scripts`] has run; `None` is a game with no script.
-    pub scripts: Option<crate::ai_host::Scripts>,
+    pub scripts: Option<crate::ai::ai_host::Scripts>,
     /// One per player: the production AI's state — the step machine, the
     /// personality, the make list, the goods picture (`docs/AI.md` §2).
     /// A human's is never stepped.
@@ -1370,9 +1370,9 @@ pub struct AiState {
     pub ai_speed: i32,
     /// One per player: the transport level bits, the lock and the scouts
     /// option (`docs/TRANSPORT.md` §2).
-    pub transport: Vec<crate::transport::LeaderTransport>,
+    pub transport: Vec<crate::ai::transport::LeaderTransport>,
     /// One per player: the docks registry (`docs/TRANSPORT.md` §5).
-    pub docks: Vec<crate::transport::Docks>,
+    pub docks: Vec<crate::ai::transport::Docks>,
     /// One per player: the sixteen army slots (`docs/ARMY.md`).
-    pub armies: Vec<crate::army::Armies>,
+    pub armies: Vec<crate::ai::army::Armies>,
 }

@@ -1,11 +1,11 @@
 use super::*;
-use crate::attrition::Domain;
 use crate::combat;
+use crate::territory::attrition::Domain;
 use crate::{Unit, UnitType};
 
 fn sim() -> Sim {
     let mut s = Sim::new(
-        crate::tuning::Tuning::RON,
+        crate::core::tuning::Tuning::RON,
         crate::world::World::new(128, 128),
         2,
     );
@@ -22,9 +22,9 @@ fn plane(s: &mut Sim, base: usize, line: crate::tech::TypeId) -> usize {
         hits: 100,
         moves: 75,
         mana: 450,
-        kind: crate::attrition::UnitKind {
+        kind: crate::territory::attrition::UnitKind {
             domain: Domain::Air,
-            ..crate::attrition::UnitKind::default()
+            ..crate::territory::attrition::UnitKind::default()
         },
         combat: combat::Profile {
             attack: 15,
@@ -56,10 +56,10 @@ fn plane(s: &mut Sim, base: usize, line: crate::tech::TypeId) -> usize {
 /// Biplane `0/9` in the order they landed, their tanks as given.
 fn hangar(burn: [i16; 4]) -> (Sim, usize, [usize; 4]) {
     let mut s = sim();
-    let airbase = s.add_build_type(crate::build::BuildType {
-        ident: crate::build::Ident::Airbase,
-        flags: crate::build::flags::TRAINS,
-        ..crate::build::BuildType::default()
+    let airbase = s.add_build_type(crate::cities::build::BuildType {
+        ident: crate::cities::build::Ident::Airbase,
+        flags: crate::cities::build::flags::TRAINS,
+        ..crate::cities::build::BuildType::default()
     });
     let b = s.add_building(0, Pos::new(11616, 13920), 0);
     s.buildings[b].ty = Some(airbase);
@@ -415,7 +415,7 @@ fn an_airbase_with_ten_homed_aircraft_refuses_another() {
     plane(&mut s, b, BIPLANE);
     assert_eq!(s.aircraft_homed(b), 10);
     assert!(s.airbase_pad_full(b, ty), "ten homed: full");
-    s.tables.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
+    s.tables.unit_types[ty].cols.unit_flags |= crate::ai::ai_load::uflags::FLAG_HELICOPTER;
     assert!(!s.airbase_pad_full(b, ty), "a helicopter's type is exempt");
 }
 
@@ -433,7 +433,7 @@ fn a_full_airbase_trains_the_helicopter_behind_a_refused_plane() {
         let plane_ty = s.units[planes[2]].ty.unwrap();
         let h = plane(&mut s, b, HELICOPTER);
         let heli_ty = s.units[h].ty.unwrap();
-        s.tables.unit_types[heli_ty].cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
+        s.tables.unit_types[heli_ty].cols.unit_flags |= crate::ai::ai_load::uflags::FLAG_HELICOPTER;
         // No technology tree in this fixture: the lines are ids a
         // tree would index.
         s.tables.unit_types[heli_ty].tree = None;
@@ -447,7 +447,7 @@ fn a_full_airbase_trains_the_helicopter_behind_a_refused_plane() {
             s.buildings[b]
                 .queue
                 .items
-                .push(crate::production::Item::queued(ty, &c));
+                .push(crate::cities::production::Item::queued(ty, &c));
             s.buildings[b].queue.items.last_mut().unwrap().job_counter = 1_000_000;
         }
         (s, b, heli_ty)
@@ -528,7 +528,7 @@ fn a_helicopter_launched_on_the_ground_takes_a_move_to_the_cell_centre() {
     let (mut s, b, [b8, b7, f6, f9]) = hangar([0, 0, 40, 40]);
     let h = plane(&mut s, b, HELICOPTER);
     let t = s.units[h].ty.unwrap();
-    s.tables.unit_types[t].cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
+    s.tables.unit_types[t].cols.unit_flags |= crate::ai::ai_load::uflags::FLAG_HELICOPTER;
     let here = s.units[h].pos;
     s.group_action_launch_patrol(&[b], p, QueuePos::New, Keys::default());
     assert!(
@@ -564,7 +564,7 @@ fn air_type(s: &mut Sim, b: usize, line: crate::tech::TypeId, heli: bool, missil
     let p = plane(s, b, line);
     let t = s.units[p].ty.unwrap();
     if heli {
-        s.tables.unit_types[t].cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
+        s.tables.unit_types[t].cols.unit_flags |= crate::ai::ai_load::uflags::FLAG_HELICOPTER;
     }
     if missile {
         s.tables.unit_types[t].combat.obj_masks |= crate::combat::mask::MISSILE;
@@ -604,7 +604,7 @@ fn a_missile_or_a_helicopter_under_a_point_reads_the_first_point_alone() {
     let heli = air_type(&mut s, b, HELICOPTER, true, false);
     let v2 = air_type(&mut s, b, 0x139, false, true);
     let ground = Pos::new(5760, 12288);
-    let point = |pos| crate::rally::GatherPoint { pos, action: 0 };
+    let point = |pos| crate::cities::rally::GatherPoint { pos, action: 0 };
     s.buildings[b].gather = vec![point(ground), point(Pos::new(7680, 11520))];
     let h = s.build_train(b, heli).unit;
     let o = s.units[h].orders.front().copied().expect("a move");
@@ -855,10 +855,10 @@ fn a_helicopter_is_born_one_climb_up() {
 #[test]
 fn a_missile_silo_queues_one_missile_at_a_time() {
     let (mut s, b, _) = hangar([0, 0, 0, 0]);
-    let silo_ty = s.add_build_type(crate::build::BuildType {
-        ident: crate::build::Ident::MissileSilo,
-        flags: crate::build::flags::TRAINS,
-        ..crate::build::BuildType::default()
+    let silo_ty = s.add_build_type(crate::cities::build::BuildType {
+        ident: crate::cities::build::Ident::MissileSilo,
+        flags: crate::cities::build::flags::TRAINS,
+        ..crate::cities::build::BuildType::default()
     });
     let silo = s.add_building(0, Pos::new(9984, 12288), 0);
     s.buildings[silo].ty = Some(silo_ty);
@@ -875,14 +875,17 @@ fn a_missile_silo_queues_one_missile_at_a_time() {
     assert_eq!(s.action_queue_up(&[silo], v2, 2), 1, "one of two");
     assert_eq!(s.buildings[silo].queue.items.len(), 1);
     s.buildings[silo].queue.items.clear();
-    s.buildings[silo].queue.items.push(crate::production::Item {
-        job_counter: 0,
-        ty: v2,
-        tech: None,
-        disband: false,
-        good: [-1; 3],
-        cost: [0; 3],
-    });
+    s.buildings[silo]
+        .queue
+        .items
+        .push(crate::cities::production::Item {
+            job_counter: 0,
+            ty: v2,
+            tech: None,
+            disband: false,
+            good: [-1; 3],
+            cost: [0; 3],
+        });
     assert!(!s.silo_takes(silo, v2), "one queued: the second is refused");
     s.buildings[silo].queue.items.clear();
     let m = s.build_train(silo, v2).unit;
@@ -908,14 +911,17 @@ fn a_silo_with_a_missile_inside_holds_its_queue_clock() {
     s.buildings[silo].queue.capacity = 20;
     s.roster.muster[0].researched[v2] = true;
     assert_eq!(s.buildings[silo].garrison, vec![m], "the V2 is inside");
-    s.buildings[silo].queue.items.push(crate::production::Item {
-        job_counter: 0,
-        ty: v2,
-        tech: None,
-        disband: false,
-        good: [-1; 3],
-        cost: [0; 3],
-    });
+    s.buildings[silo]
+        .queue
+        .items
+        .push(crate::cities::production::Item {
+            job_counter: 0,
+            ty: v2,
+            tech: None,
+            disband: false,
+            good: [-1; 3],
+            cost: [0; 3],
+        });
     s.process_queues();
     assert_eq!(s.buildings[silo].queue.items[0].job_counter, 0, "held");
     s.roster.muster[0].researched[v2] = false;
@@ -932,14 +938,17 @@ fn a_silo_with_a_missile_inside_holds_its_queue_clock() {
     assert!(ran(&s), "a research job runs");
     s.roster.muster[0].researched[v2] = true;
     s.buildings[silo].queue.items.clear();
-    s.buildings[silo].queue.items.push(crate::production::Item {
-        job_counter: 0,
-        ty: v2,
-        tech: None,
-        disband: false,
-        good: [-1; 3],
-        cost: [0; 3],
-    });
+    s.buildings[silo]
+        .queue
+        .items
+        .push(crate::cities::production::Item {
+            job_counter: 0,
+            ty: v2,
+            tech: None,
+            disband: false,
+            good: [-1; 3],
+            cost: [0; 3],
+        });
     s.process_queues();
     assert!(!ran(&s), "held again");
     s.buildings[silo].garrison.retain(|&u| u != m);
@@ -953,10 +962,10 @@ fn a_silo_with_a_missile_inside_holds_its_queue_clock() {
 /// 3`, `RECHARGE 30` at the silo — and the Barracks `1/2006` it strikes.
 fn silo_with_a_v2() -> (Sim, usize, usize, usize) {
     let mut s = sim();
-    let silo_ty = s.add_build_type(crate::build::BuildType {
-        ident: crate::build::Ident::MissileSilo,
-        flags: crate::build::flags::TRAINS,
-        ..crate::build::BuildType::default()
+    let silo_ty = s.add_build_type(crate::cities::build::BuildType {
+        ident: crate::cities::build::Ident::MissileSilo,
+        flags: crate::cities::build::flags::TRAINS,
+        ..crate::cities::build::BuildType::default()
     });
     let silo = s.add_building(0, Pos::new(9984, 12288), 0);
     s.buildings[silo].ty = Some(silo_ty);
@@ -1137,7 +1146,7 @@ fn a_computer_s_silo_strikes_an_enemy_city_with_its_nuke() {
             friend(&mut s, Pos::new(at.x + 0x1800, at.y));
         }
         let pos = s.buildings[enemy].pos;
-        s.cities.cities.push(crate::city::City {
+        s.cities.cities.push(crate::cities::city::City {
             alive: true,
             owner: 1,
             race: Some(1),

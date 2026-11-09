@@ -12,7 +12,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let (a, want) = super::row(line);
         assert_eq!(
             want,
-            i64::from(crate::flag_reads::game_is_never_war(
+            i64::from(crate::core::flag_reads::game_is_never_war(
                 u8::try_from(a[0]).expect("a byte")
             )),
             "Game::is_never_war — row `{line}`"

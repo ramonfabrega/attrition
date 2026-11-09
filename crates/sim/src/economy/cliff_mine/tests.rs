@@ -1,7 +1,7 @@
 use super::*;
-use crate::build::{BuildType, Ident, flags};
-use crate::gather::{MineArm, MountainTemplate};
-use crate::tuning::Tuning;
+use crate::cities::build::{BuildType, Ident, flags};
+use crate::core::tuning::Tuning;
+use crate::economy::gather::{MineArm, MountainTemplate};
 use crate::world::{Owner, TILES_PER_CELL, Terrain};
 
 /// A 16×16-cell land world, two players, and a 2×2 Mine type.

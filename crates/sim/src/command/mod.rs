@@ -15,9 +15,9 @@
 //! [`crate::setup`] holds what a harness does to stage a game that no
 //! player's order does.
 
-use crate::airbase::Keys;
+use crate::air::airbase::Keys;
 use crate::combat::Obj;
-use crate::group::{Flight, Group};
+use crate::groups::group::{Flight, Group};
 use crate::movement::Angle;
 use crate::orders::{MoveKind, QueuePos};
 use crate::{Player, Pos, Sim, Tick};
@@ -111,6 +111,7 @@ impl Command<'_> {
 
     // A group's orders: `Group::action_*`, one `process_*` each.
     /// [`Sim::group_action_move_to`] (`groups/group/actions.rs`).
+    #[allow(clippy::too_many_arguments)]
     pub fn group_action_move_to(
         &mut self,
         g: &Group,
@@ -201,7 +202,7 @@ impl Command<'_> {
     }
 
     /// [`Sim::group_action_disband`] (`units/disband.rs`).
-    pub fn group_action_disband(&mut self, g: &crate::group::Group, all: bool) -> usize {
+    pub fn group_action_disband(&mut self, g: &crate::groups::group::Group, all: bool) -> usize {
         self.sim.group_action_disband(g, all)
     }
 

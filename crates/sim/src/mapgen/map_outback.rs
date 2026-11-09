@@ -1,6 +1,6 @@
 //! **Australian Outback's land/sea mask** (`docs/MAPGEN.md` §5, §30):
 //! `MapAustralianOutback::make_continents@0069a650`, on the region growers
-//! Great Lakes' port already carries (`crate::map_lakes`).
+//! Great Lakes' port already carries (`crate::mapgen::map_lakes`).
 //!
 //! One island in a sea: a region opened on each player's ring spot and
 //! one on the map's middle (record 9), all grown as land on the wiped
@@ -11,10 +11,10 @@
 //! growth that stalls wipes the world and draws again. No float:
 //! `grow_region`'s distances are the engine's integer `vector_dist`.
 
-use crate::map_lakes::{Grower, LakeMap, LakeStyle, Lakes, eliminate_pools};
+use crate::mapgen::map_lakes::{Grower, LakeMap, LakeStyle, Lakes, eliminate_pools};
+use crate::mapgen::terrain_groups::Draws;
 use crate::mapgen::{MapGrid, project};
 use crate::movement::Angle;
-use crate::terrain_groups::Draws;
 
 /// The draw sites, as return addresses (the trace's `Function+0xNN`).
 pub mod site {

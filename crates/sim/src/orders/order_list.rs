@@ -54,7 +54,7 @@ impl Sim {
     /// still do.
     ///
     /// The `0x180` is the same threshold `Animal::do_idle` measures its
-    /// wander with ([`crate::anim::WANDER_NEAR`] is `0x181`, the strict
+    /// wander with ([`crate::units::anim::WANDER_NEAR`] is `0x181`, the strict
     /// `<`), but it is a **different distance**: `do_idle` measures from
     /// the herd's centre, this from the order's goal. `docs/MOVEMENT.md`,
     /// "The animal's own `get_speed`".
@@ -81,7 +81,7 @@ impl Sim {
     /// passes 1, so a tracked crew figure takes the order scale and the
     /// slow-ground halving where it stands, and never the group cap.
     /// Its `+9` is behind `guy_num < squad_size` (`5de473`, `jge`), and
-    /// [`crate::anim::SQUAD_SIZE`] is the literal 1, so no figure that
+    /// [`crate::units::anim::SQUAD_SIZE`] is the literal 1, so no figure that
     /// steps on its own body reaches it (`docs/MOVEMENT.md`, "The
     /// crew's speed").
     pub fn get_speed_at(&self, u: usize, at: Pos, flag: i32) -> i32 {
@@ -94,7 +94,7 @@ impl Sim {
             return animal_speed_steps(
                 &mut (),
                 |_| speed,
-                |_| unit.kind.domain == crate::attrition::Domain::Air,
+                |_| unit.kind.domain == crate::territory::attrition::Domain::Air,
                 |_| self.current_order(u),
                 |_, o| o.is_move(),
                 |_, o| o.move_dest().unwrap_or(unit.pos),
@@ -115,7 +115,7 @@ impl Sim {
             index::GUARD => speed * 9 / 8,
             _ => speed,
         };
-        if unit.kind.domain == crate::attrition::Domain::Land {
+        if unit.kind.domain == crate::territory::attrition::Domain::Land {
             // `unit_masks & 0x10` halves it first (`0060878c`) —
             // `Unit::target_opportunity`'s "struck while moving in
             // contact" ([`crate::Unit::contact`], `docs/AI.md` §309),
@@ -539,7 +539,12 @@ impl Sim {
                     _ => None,
                 }
             },
-            |sim, &t| matches!(sim.profile(t).domain, crate::attrition::Domain::Air),
+            |sim, &t| {
+                matches!(
+                    sim.profile(t).domain,
+                    crate::territory::attrition::Domain::Air
+                )
+            },
             |sim| sim.profile(Obj::Unit(u)).has(combat::mask::ANTI_AIR),
             // SEAM: the scout's shift-queued `MOVE_TO` turned `EXPLORE_TO`
             // with `unit_masks |= 0x4000000` (`role & 0x10`): the mask is
@@ -988,7 +993,7 @@ impl Sim {
             } else if !self.valid_target(me, target) {
                 if self.units[u].orders.len() > 1 {
                     self.kill_current_order(u);
-                    self.set_anim(u, crate::anim::WALK, true, true);
+                    self.set_anim(u, crate::units::anim::WALK, true, true);
                     self.work(u, frame);
                     return;
                 }
@@ -1021,7 +1026,7 @@ impl Sim {
                 {
                     // `0x5eb62b` with the heading on the target.
                 } else if !self.is_bomber(u) {
-                    self.set_anim(u, crate::anim::WALK, false, true);
+                    self.set_anim(u, crate::units::anim::WALK, false, true);
                 }
             }
         }
@@ -1045,7 +1050,10 @@ impl Sim {
         };
         if self.is_helicopter(u)
             || !self.units[t].alive()
-            || !matches!(self.profile(target).domain, crate::attrition::Domain::Air)
+            || !matches!(
+                self.profile(target).domain,
+                crate::territory::attrition::Domain::Air
+            )
             || self.is_helicopter(t)
         {
             return at;
@@ -1087,7 +1095,10 @@ impl Sim {
         t: crate::combat::Obj,
         sf: StrafeOrder,
     ) -> bool {
-        let air_target = matches!(self.profile(t).domain, crate::attrition::Domain::Air);
+        let air_target = matches!(
+            self.profile(t).domain,
+            crate::territory::attrition::Domain::Air
+        );
         if !air_target
             && self.units[u].orders.len() > 1
             && !sf.mandatory
@@ -1119,7 +1130,7 @@ impl Sim {
             return true;
         }
         self.mark(crate::air::SITE_STRAFE_BOMB);
-        self.set_anim(u, crate::anim::ATTACK2, false, true);
+        self.set_anim(u, crate::units::anim::ATTACK2, false, true);
         self.units[u].combat.recharging = self.reload_frames(u) + 1;
         true
     }
@@ -1173,7 +1184,7 @@ impl Sim {
         let dry = self.unit_mana(u) != 0 && self.mana_left(u) == 0;
         if dry || sf.target.is_none() || sf.returning {
             self.kill_current_order(u);
-            self.set_anim(u, crate::anim::WALK, true, true);
+            self.set_anim(u, crate::units::anim::WALK, true, true);
             return;
         }
         if (frame + 2 * i64::from(self.units[u].index)) & 31 != 0 {
@@ -1246,7 +1257,7 @@ impl Sim {
 
     /// The same with the original's `param_6`. `Unit::unpack_merchant`
     /// is the one caller that passes `QUEUE_NEW`
-    /// ([`crate::merchant`] §3); every other one this crate reaches
+    /// ([`crate::units::think::merchant`] §3); every other one this crate reaches
     /// passes `QUEUE_FIRST`.
     pub fn add_cast_order_at(&mut self, u: usize, spell: i32, pos: QueuePos) {
         // The rewrite at `add_cast_order@005e4a60`'s head, in the
@@ -1261,19 +1272,19 @@ impl Sim {
                 spell::PACK_MACHINEGUN
             } else if self.is_merchant(u) {
                 spell::PACK_MERCHANT
-            } else if self.unit_line_is(u, crate::fish::FISHERMEN) {
+            } else if self.unit_line_is(u, crate::units::think::fish::FISHERMEN) {
                 spell::PACK_FISHERMEN
             } else {
                 spell
             }
-        } else if spell != crate::fish::UNPACK {
+        } else if spell != crate::units::think::fish::UNPACK {
             spell
         } else if self.unit_line_is(u, MACHINEGUN) {
             spell::UNPACK_MACHINEGUN
         } else if self.is_merchant(u) {
             spell::UNPACK_MERCHANT
-        } else if self.unit_line_is(u, crate::fish::FISHERMEN) {
-            crate::fish::UNPACK_FISHERMEN
+        } else if self.unit_line_is(u, crate::units::think::fish::FISHERMEN) {
+            crate::units::think::fish::UNPACK_FISHERMEN
         } else {
             spell
         };

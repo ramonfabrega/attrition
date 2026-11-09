@@ -37,7 +37,7 @@ fn the_ring_is_the_emulated_original_s_on_every_frame() {
 #[test]
 fn the_ring_strikes_each_on_the_frame_it_reaches_it() {
     let mut s = Sim::new(
-        crate::tuning::Tuning::RON,
+        crate::core::tuning::Tuning::RON,
         crate::world::World::new(60, 60),
         2,
     );
@@ -49,12 +49,12 @@ fn the_ring_strikes_each_on_the_frame_it_reaches_it() {
             attack: 1200,
             splash_area: 10,
             uber_size: 1,
-            domain: crate::attrition::Domain::Air,
+            domain: crate::territory::attrition::Domain::Air,
             ..crate::combat::Profile::default()
         },
         ..crate::UnitType::default()
     });
-    s.tables.unit_types[nuke].tree = Some(crate::airbase::NUCLEARMISSILE);
+    s.tables.unit_types[nuke].tree = Some(crate::air::airbase::NUCLEARMISSILE);
     let probe = s.add_unit_type(crate::UnitType {
         hits: 130,
         combat: crate::combat::Profile {
@@ -80,10 +80,10 @@ fn the_ring_strikes_each_on_the_frame_it_reaches_it() {
         put(&mut s, probe, Pos::new(21240, 34680)),
         put(&mut s, probe, Pos::new(21240, 35064)),
     ];
-    let bt = s.add_build_type(crate::build::BuildType {
+    let bt = s.add_build_type(crate::cities::build::BuildType {
         x_size: 4,
         y_size: 4,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let far = s.add_building(1, Pos::new(25152, 35520), 0);
     s.buildings[far].ty = Some(bt);
@@ -113,7 +113,7 @@ fn the_ring_strikes_each_on_the_frame_it_reaches_it() {
         air: false,
         sz: 0,
         ez: 0,
-        v1z: crate::single::Single::ZERO,
+        v1z: crate::num::single::Single::ZERO,
         slot: 0,
         flame: false,
         punctures: false,
@@ -165,7 +165,7 @@ fn the_ring_strikes_each_on_the_frame_it_reaches_it() {
 #[test]
 fn the_ring_never_strikes_an_animal() {
     let mut s = Sim::new(
-        crate::tuning::Tuning::RON,
+        crate::core::tuning::Tuning::RON,
         crate::world::World::new(60, 60),
         2,
     );
@@ -217,7 +217,7 @@ fn the_ring_never_strikes_an_animal() {
 #[test]
 fn a_landing_lights_its_circle_and_a_hit_marks_the_treaties() {
     let mut s = Sim::new(
-        crate::tuning::Tuning::RON,
+        crate::core::tuning::Tuning::RON,
         crate::world::World::new(60, 60),
         2,
     );
@@ -230,12 +230,12 @@ fn a_landing_lights_its_circle_and_a_hit_marks_the_treaties() {
             attack: 1200,
             splash_area: 10,
             uber_size: 1,
-            domain: crate::attrition::Domain::Air,
+            domain: crate::territory::attrition::Domain::Air,
             ..crate::combat::Profile::default()
         },
         ..crate::UnitType::default()
     });
-    s.tables.unit_types[nuke].tree = Some(crate::airbase::NUCLEARMISSILE);
+    s.tables.unit_types[nuke].tree = Some(crate::air::airbase::NUCLEARMISSILE);
     let probe = s.add_unit_type(crate::UnitType {
         hits: 130,
         combat: crate::combat::Profile {
@@ -275,7 +275,7 @@ fn a_landing_lights_its_circle_and_a_hit_marks_the_treaties() {
         air: false,
         sz: 0,
         ez: 0,
-        v1z: crate::single::Single::ZERO,
+        v1z: crate::num::single::Single::ZERO,
         slot: 0,
         flame: false,
         punctures: false,

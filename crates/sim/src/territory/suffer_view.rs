@@ -30,8 +30,8 @@
 //! function's.
 
 use crate::Sim;
-use crate::attrition;
 use crate::combat;
+use crate::territory::attrition;
 
 /// `LeaderData::type_avail`'s FACTORY id.
 pub const FACTORY: i32 = 0x1af;

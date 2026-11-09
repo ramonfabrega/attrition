@@ -5,14 +5,14 @@
 //! merchant first asks whether it can deploy where it already stands
 //! (`Unit::unpack_merchant@006038e0`, ring 3); failing that it scores its
 //! leader's `new_rares` list — the goods-list indices `Leader::new_rare`
-//! records as this player walks the fog (`crate::rares`) — as
+//! records as this player walks the fog (`crate::economy::rares`) — as
 //! `200 − 10·i`, `+100` for a good in its own `get_tregion`, minus the
 //! danger map, floored at 1, with three object searches that refuse a
 //! candidate outright; the winner is taken **out of the list and put back
 //! on the end**, and a `MOVE_TO` at the good replaces everything the unit
 //! was doing.
 //!
-//! It is the other half of `crate::rares`: a rare pays nothing until a
+//! It is the other half of `crate::economy::rares`: a rare pays nothing until a
 //! merchant stands on it (`docs/ECONOMY.md` step 6), and this is how the
 //! merchant gets there. East Indies' AI trains its first on frame 6353 and
 //! steps on 6356.
@@ -164,7 +164,7 @@ impl Sim {
     ///    FILTER_TYPE(type))` — one of my own kind is already there.
     /// 2. `find_unit_ordered(…, 0x300, same filters)` — one of my own kind
     ///    is on its way. "Ordered" is literal twice over: the candidate
-    ///    must hold a **move-family** order (`crate::scout`'s
+    ///    must hold a **move-family** order (`crate::units::think::scout`'s
     ///    `MOVE_FAMILY`), **and the distance is measured to where it is
     ///    going, not to where it stands** — `UnitData +0x70/+0x74`, which
     ///    is `orders_x`/`orders_y` (`docs/MERCHANT.md` §2.2.1).
@@ -203,7 +203,7 @@ impl Sim {
         }
         if (0..self.units.len()).any(|i| {
             sibling(self, i)
-                && crate::scout::MOVE_FAMILY.contains(&self.order_type(i))
+                && crate::units::think::scout::MOVE_FAMILY.contains(&self.order_type(i))
                 && heading_for(self, i, FRIENDLY_RANGE)
         }) {
             return true;
@@ -222,7 +222,7 @@ impl Sim {
     /// `check_ever_seen`'s accumulation, as far as a simulation with no
     /// per-object byte can answer it: the good's own fog cell, read with
     /// `was_really_seen` — the bare line-of-sight accumulation, with none
-    /// of `was_seen`'s ally-territory shortcut. [`crate::goody`] reads the
+    /// of `was_seen`'s ally-territory shortcut. [`crate::gaia::goody`] reads the
     /// same field of an item the same way and says why.
     /// The `ever_seen` bit `compute_reg_territory`'s goods scan
     /// ([`Sim::claim_cell_goods`]) or `reveal_fog`'s rare arm
@@ -305,7 +305,7 @@ impl Sim {
             }
             if self.good_merchant_spot(u, t)
                 && self.invalid_loc(u, t, false, false, false, false, false)
-                    == crate::path::loc::VALID
+                    == crate::movement::path::loc::VALID
                 && !self.detect_quick(
                     u,
                     Pos::new(t.x * UNITS_PER_TILE, t.y * UNITS_PER_TILE),

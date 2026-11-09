@@ -1,7 +1,7 @@
 //! `UnitData::is_special@0046cea0` under the emulator against the port (item 1691).
 
 use crate::UnitType;
-use crate::ai_load::UnitCols;
+use crate::ai::ai_load::UnitCols;
 
 /// `UnitData::is_special@0046cea0`, run by `tools/emu/sweep_unit_is_special.py` under unicorn
 /// (tools/emu): `unit_flags2` (`type+0x2b8`) `& 0x10` through the unit's type pointer, over every bit edge and a seeded band, against `Sim::unit_is_special` on a unit whose type carries the word.

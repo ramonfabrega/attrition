@@ -12,11 +12,11 @@
 //! distances are the engine's integer `vector_dist`, and the lake spacing's
 //! square root is the function's own integer Newton loop.
 
-use crate::ai_place::{MOVE_X, MOVE_Y};
+use crate::ai::ai_place::{MOVE_X, MOVE_Y};
+use crate::mapgen::terrain_groups::Draws;
 use crate::mapgen::{MapGrid, Regions, project};
 use crate::movement::Angle;
-use crate::scout::circle;
-use crate::terrain_groups::Draws;
+use crate::units::think::scout::circle;
 use crate::world::vector_dist;
 
 /// The draw sites, as return addresses (the trace's `Function+0xNN`).
@@ -79,7 +79,7 @@ pub struct LakeMap {
 /// coordinate list (+0x7c), whose length is the record's count (+0x14),
 /// its flags (+8) and its adjacency mask (+0x24). `make_region` writes the
 /// map's `region_flags`, 0 on every corpus style, so only a mask that sets
-/// flag bit 1 itself — Australian Outback's (`crate::map_outback`,
+/// flag bit 1 itself — Australian Outback's (`crate::mapgen::map_outback`,
 /// `docs/MAPGEN.md` §30) — makes records that share it, or has `point`
 /// keep the masks.
 pub(crate) struct Lakes {

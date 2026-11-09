@@ -41,7 +41,7 @@
 
 use crate::Sim;
 use crate::combat::Obj;
-use crate::group::Group;
+use crate::groups::group::Group;
 use crate::orders::{MoveKind, QueuePos};
 use crate::world::Pos;
 
@@ -514,7 +514,7 @@ pub(crate) struct SimAttack<'a> {
     pub(crate) sim: &'a mut Sim,
     pub(crate) g: &'a Group,
     pub(crate) target: Obj,
-    pub(crate) insert: Option<crate::group::Insert>,
+    pub(crate) insert: Option<crate::groups::group::Insert>,
 }
 
 impl SimAttack<'_> {
@@ -615,7 +615,7 @@ impl AttackView for SimAttack<'_> {
                 h,
                 self.target,
                 Pos::new(x, y),
-                crate::fight::SITE_ATTACK_POS_GROUP,
+                crate::combat::fight::SITE_ATTACK_POS_GROUP,
             )
             .is_some()
     }
@@ -758,9 +758,9 @@ impl AttackView for SimAttack<'_> {
     }
     fn find_melee_target(&mut self, h: usize, maxd: i32, wwho: i32, word: i32) -> (i32, i32) {
         let word = if word == 2 {
-            crate::fight::search::BUILDINGS
+            crate::combat::fight::search::BUILDINGS
         } else {
-            crate::fight::search::UNITS
+            crate::combat::fight::search::UNITS
         };
         let found = match self.sim.melee_squad_head(h) {
             crate::orders::SquadHead::Nothing => None,

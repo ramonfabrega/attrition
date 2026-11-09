@@ -41,7 +41,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let mut used = 0usize;
         let (mut eq, mut copy, mut kills) =
             ("-".to_string(), "-".to_string(), Vec::<String>::new());
-        let s = crate::group::push_group_steps(
+        let s = crate::groups::group::push_group_steps(
             p,
             rd(&mm, 0xc),
             a[2] != 0,

@@ -2,8 +2,8 @@
 //! tools/emu/hooks.py).
 
 use crate::Tuning;
-use crate::build::Ident;
-use crate::city::upgrade_kinds;
+use crate::cities::build::Ident;
+use crate::cities::city::upgrade_kinds;
 
 /// `CityData::can_upgrade@007383c0`, run by `tools/emu/sweep_city_data_can_upgrade.py` under unicorn
 /// (tools/emu): the type to become (the three cities, their neighbours, random), `CITY_BUILDINGS` and

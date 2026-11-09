@@ -1,4 +1,4 @@
-use crate::single::Single;
+use crate::num::single::Single;
 use crate::world::{Cell, Pos, TILES_PER_CELL, Terrain, World};
 use crate::{Sim, Tuning};
 

@@ -23,11 +23,11 @@
 //! `fixup_lines`, s11 `find_piece`, s12 `redo_changed_roads`, s13 `increase_size`, s14
 //! `add_ambience`), then one null flag a `get_road_data` call (`a[16 + k]`).
 //!
-//! **The port is the crate's own steps**, `crate::roads_view::add_roads_steps`, which `Sim::add_roads`
+//! **The port is the crate's own steps**, `crate::movement::roads_view::add_roads_steps`, which `Sim::add_roads`
 //! runs over its `SimRoads`; here the view is the emulated original's windows: the queue and the
 //! remove list are loaded from them and written back, and every callee is a record.
 
-use crate::roads_view::{ModQueue, RoadsView, TileRec, Which, add_roads_steps};
+use crate::movement::roads_view::{ModQueue, RoadsView, TileRec, Which, add_roads_steps};
 
 const ELEM0: usize = 14;
 const ELEMS: usize = 24;

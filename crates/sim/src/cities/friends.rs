@@ -12,8 +12,8 @@
 //! original asks (it never keeps the record between questions), so the
 //! sweep's per-call windows are asked in the same order.
 
-use crate::ai_place::{MOVE_X, MOVE_Y, enhancing_good, gather_good};
-use crate::build::{self, Ident, flags};
+use crate::ai::ai_place::{MOVE_X, MOVE_Y, enhancing_good, gather_good};
+use crate::cities::build::{self, Ident, flags};
 use crate::world::{Cell, TILES_PER_CELL};
 use crate::{Player, Sim};
 

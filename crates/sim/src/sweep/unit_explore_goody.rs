@@ -38,11 +38,11 @@ fn the_emulated_original_agrees_on_every_row() {
             // item array and its items, `p9..p18` the two players' object arrays and objects, `p19`
             // the cell array (stride 0x1c), `p20`/`p21` the leaders' encrypted records.
             //
-            // **The port is the crate's own steps**, `crate::goody::explore_goody_steps`, over a view of
+            // **The port is the crate's own steps**, `crate::gaia::goody::explore_goody_steps`, over a view of
             // the windows. The original's chain walk over the items and objects at the cell
             // (`ObjectsData::find_goody_at`'s caller and the `-3` repair) has no crate method — the
             // simulation keeps no item chain — so it is inline here.
-            use crate::goody::{GoodyView, explore_goody_steps};
+            use crate::gaia::goody::{GoodyView, explore_goody_steps};
             let rd16 = |w: &[u8], o: usize| i32::from(i16::from_le_bytes([w[o], w[o + 1]]));
             let wr16 = |w: &mut [u8], o: usize, v: i32| {
                 w[o..o + 2].copy_from_slice(&(v as i16).to_le_bytes())
@@ -115,7 +115,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     self.log.push(format!("s4:{},9", self.leader()));
                     let level = rd(&self.p[20 + self.owner], 0xf4) ^ 0x6_3187;
                     let k = &self.c[5];
-                    crate::goody::goody_pile(
+                    crate::gaia::goody::goody_pile(
                         level,
                         self.a[4] != 0,
                         [rd(k, 0xc28), rd(k, 0xc24), rd(k, 0x68c), rd(k, 0x688)],

@@ -33,8 +33,8 @@ fn the_emulated_original_agrees_on_every_row() {
         // 8 or more skips the sweep).
         //
         // **The port is the head `action_repair_steps` runs first on every entry**,
-        // `crate::garrison_view::garrison_head` (the head is the same code in both groups' orders).
-        use crate::garrison_view::{GarrisonHead, garrison_head};
+        // `crate::groups::garrison_view::garrison_head` (the head is the same code in both groups' orders).
+        use crate::groups::garrison_view::{GarrisonHead, garrison_head};
         struct V<'a> {
             m: &'a [u8],
             c: &'a [Vec<u8>],

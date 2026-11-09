@@ -1,8 +1,8 @@
 //! `GatherPoint::is_inside@00730400` against this crate's port.
 
 use crate::Sim;
-use crate::rally::GatherPoint;
-use crate::tuning::Tuning;
+use crate::cities::rally::GatherPoint;
+use crate::core::tuning::Tuning;
 use crate::world::{Cell, Pos, Terrain, World};
 
 /// `GatherPoint::is_inside@00730400` run under the emulator by

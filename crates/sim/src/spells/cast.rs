@@ -13,7 +13,7 @@
 //! guessed.
 
 use crate::combat::Obj;
-use crate::group::Group;
+use crate::groups::group::Group;
 use crate::orders::{Body, CastOrder, MoveKind, Order, QueuePos, flag, spell};
 use crate::{Player, Pos, Sim};
 
@@ -71,7 +71,7 @@ impl Sim {
     /// ships as 0%), after **a supplier's multiple** (`609a8f`..`609aac`,
     /// item 3630, `docs/AI.md` §331): a unit whose `is_supply` (vslot
     /// `0xcc`, `UnitTypeData +0x2b8 & 0x40`,
-    /// [`crate::ai_load::uflags2::SUPPLY_OR_HERO`] — the Supply Wagon, the
+    /// [`crate::ai::ai_load::uflags2::SUPPLY_OR_HERO`] — the Supply Wagon, the
     /// government heroes, The Monarch, The Citizen) holds `MANA ×
     /// (get_supply_upgrade + 1)`. SEAM: the space-air arm (`+0x218 == 2`,
     /// `has_wonder(0x21e)` and `space_air_range`), which no supplier and no
@@ -86,7 +86,7 @@ impl Sim {
         let supplier = self.units[u].ty.is_some_and(|t| {
             self.tables.unit_types[t]
                 .cols
-                .flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
+                .flag2(crate::ai::ai_load::uflags2::SUPPLY_OR_HERO)
         });
         if supplier {
             mana *= self.supply_upgrade_level(self.units[u].owner) + 1;
@@ -95,7 +95,7 @@ impl Sim {
         let french_general = self.tables.tech_tree.has_tribe_bonus(
             &self.tables.setup,
             &self.tech[who],
-            crate::nations::power::FRENCH,
+            crate::cities::nations::power::FRENCH,
         ) && self.tables.tech_tree.types.get(GENERAL).is_some()
             && self
                 .unit_tree(u)
@@ -264,7 +264,7 @@ impl Sim {
     }
 
     fn update_hits_of(&self, who: Player, rec: usize, marine: bool) -> i32 {
-        let k = crate::unit_update_hits_view::UnitHitsK {
+        let k = crate::units::unit_update_hits_view::UnitHitsK {
             marine: self.tables.tuning.americans_marine_hp_bonus,
             iroquois: self.tables.tuning.iroquois_extra_hits,
             dutch: self.tables.tuning.dutch_hp_bonus,
@@ -280,7 +280,7 @@ impl Sim {
             marine,
             stored_hits: 0,
         };
-        crate::unit_update_hits_view::unit_update_hits(&k, &mut v)
+        crate::units::unit_update_hits_view::unit_update_hits(&k, &mut v)
     }
 
     /// **The Dutch kinds' age count** (item 3329, `docs/COMBAT.md` §4):
@@ -299,8 +299,8 @@ impl Sim {
             return 0;
         };
         let kind = matches!(t.type_index, 0x3d | 0x3e | 400)
-            || t.cols.flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
-            || t.cols.flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO);
+            || t.cols.flag2(crate::ai::ai_load::uflags2::FLAG2_CARAVAN)
+            || t.cols.flag2(crate::ai::ai_load::uflags2::SUPPLY_OR_HERO);
         let gov_hero = t
             .tree
             .and_then(|i| self.tables.tech_tree.types.get(i))
@@ -416,8 +416,8 @@ impl Sim {
     /// ```
     pub(crate) fn sniper_valid_unit(&self, v: usize) -> bool {
         if self.has_ceo_shield(v)
-            || crate::type_index::is_gov_hero_type(self.units[v].type_index)
-            || self.unit_domain_of(v) != crate::attrition::Domain::Land
+            || crate::core::type_index::is_gov_hero_type(self.units[v].type_index)
+            || self.unit_domain_of(v) != crate::territory::attrition::Domain::Land
         {
             return false;
         }
@@ -431,7 +431,7 @@ impl Sim {
         let caravan = self.units[v].ty.is_some_and(|t| {
             self.tables.unit_types[t]
                 .cols
-                .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
+                .flag2(crate::ai::ai_load::uflags2::FLAG2_CARAVAN)
         });
         !(caravan || self.is_worker(v) || self.is_merchant(v))
     }
@@ -501,7 +501,7 @@ impl Sim {
         if self.has_ceo_shield(v) {
             return false;
         }
-        if crate::type_index::is_gov_hero_type(unit.type_index)
+        if crate::core::type_index::is_gov_hero_type(unit.type_index)
             || unit.owner == who
             || !self.is_enemy(who, unit.owner)
         {
@@ -511,7 +511,7 @@ impl Sim {
         let caravan = unit.ty.is_some_and(|t| {
             self.tables.unit_types[t]
                 .cols
-                .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
+                .flag2(crate::ai::ai_load::uflags2::FLAG2_CARAVAN)
         });
         !(self.unit_is_spy(v)
             || !(armed || self.is_hero_unit(v))
@@ -519,7 +519,7 @@ impl Sim {
             || self.is_worker(v)
             || self.is_supply_unit(v)
             || self.is_merchant(v)
-            || self.unit_domain_of(v) != crate::attrition::Domain::Land)
+            || self.unit_domain_of(v) != crate::territory::attrition::Domain::Land)
     }
 
     /// `SpellTypeData::get_range@00676a80(spell, who, o, whom)`, whole
@@ -586,7 +586,7 @@ impl Sim {
     /// arms. No capture reaches one.
     pub fn group_action_spell(&mut self, g: &Group, s: i32, target: Option<Obj>, at: Pos) -> usize {
         // `:171`: a unit type whose `+0x218` is 2 is the carrier's button,
-        // the plane's own type on the wire (item 3981, `crate::carrier_queue`).
+        // the plane's own type on the wire (item 3981, `crate::air::carrier_queue`).
         if let Some(n) = self.carrier_action_spell(&g.list, s) {
             return n;
         }
@@ -679,7 +679,7 @@ impl Sim {
     /// and `spell_time` (`+0x98`) set to 0. Returns the casts stopped.
     ///
     /// SEAM: the scenario's ignore-orders sweep and `action_begin`, as for
-    /// [`crate::halt_view::SimHalt`]; and the Merchant, Dutch Merchant and Fur
+    /// [`crate::groups::halt_view::SimHalt`]; and the Merchant, Dutch Merchant and Fur
     /// Trapper arm (`0x3d`, `0x3e`, 400: `recalc_builds` and
     /// `update_gpiece`), which no capture reaches (scan: `grep -lac
     /// process_stop_spell gamelog-*.txt` over the archive's 1,140 dumps:
@@ -866,28 +866,28 @@ impl Sim {
         let target_spy = matches!(t, Obj::Unit(v) if self.unit_is_spy(v));
         let (anim, p3) = if self.unit_is_spy(u) {
             let a = if s == spell::BRIBE {
-                crate::anim::ATTACK3
+                crate::units::anim::ATTACK3
             } else if s == spell::INFORMER {
-                crate::anim::ATTACKWALK
+                crate::units::anim::ATTACKWALK
             } else if target_spy {
-                crate::anim::ATTACK2
+                crate::units::anim::ATTACK2
             } else {
-                crate::anim::ATTACK1
+                crate::units::anim::ATTACK1
             };
             (a, false)
         } else if self.unit_line_is(u, 0x45) {
             let a = if s == 0x280 {
-                crate::anim::ATTACKWALK
+                crate::units::anim::ATTACKWALK
             } else if s == 0x281 {
-                crate::anim::ATTACK3
+                crate::units::anim::ATTACK3
             } else if target_spy {
-                crate::anim::ATTACK2
+                crate::units::anim::ATTACK2
             } else {
-                crate::anim::ATTACK1
+                crate::units::anim::ATTACK1
             };
             (a, false)
         } else {
-            (crate::anim::ATTACK1, true)
+            (crate::units::anim::ATTACK1, true)
         };
         self.set_anim(u, anim, false, p3);
         self.units[u].casting = true;
@@ -913,12 +913,12 @@ impl Sim {
         };
         let cols = self.tables.unit_types[t].cols;
         if self.units[u].cloak
-            || cols.flag(crate::ai_load::uflags::CLOAKED)
+            || cols.flag(crate::ai::ai_load::uflags::CLOAKED)
             || self.units[u].unit_masks2 & 0x8000 != 0
         {
             return true;
         }
-        cols.flag(crate::ai_load::uflags::STEALTH) && self.units[u].orders.is_empty()
+        cols.flag(crate::ai::ai_load::uflags::STEALTH) && self.units[u].orders.is_empty()
     }
 
     /// `Unit::do_cast@005ebfe0`'s two `unit_masks |= 0x11000` writes
@@ -1103,17 +1103,17 @@ impl Sim {
     /// `general_upgrade` is the caster's leader's
     /// [`Sim::general_upgrade_level`] (`docs/AI.md` §172).
     ///
-    /// The body is [`crate::cast_decoy::cast_create_decoy_steps`] (item 3320;
+    /// The body is [`crate::spells::cast_decoy::cast_create_decoy_steps`] (item 3320;
     /// Porus's and Kutosov's multiples are modelled there).
     ///
     /// SEAM: the leader's other two counters (`+0x93c`, `+0x808`);
     /// `is_caravan` as the two caravan ids; the sound.
     pub(crate) fn cast_create_decoy(&mut self, g: usize) {
-        // The body is `crate::cast_decoy::cast_create_decoy_steps`, the
+        // The body is `crate::spells::cast_decoy::cast_create_decoy_steps`, the
         // original's flow over a view, which the emulator sweep also runs
         // (item 3320).
-        let mut view = crate::cast_decoy::SimDecoy::new(self, g);
-        crate::cast_decoy::cast_create_decoy_steps(&mut view, g as i32);
+        let mut view = crate::spells::cast_decoy::SimDecoy::new(self, g);
+        crate::spells::cast_decoy::cast_create_decoy_steps(&mut view, g as i32);
     }
 
     /// The type the decoy's spot search is **asked with**: the caster's
@@ -1171,7 +1171,9 @@ impl Sim {
     ///
     /// SEAM: the supply wagon's gate.
     pub(crate) fn recover_mana(&mut self, u: usize, frame: i64) {
-        if !self.units[u].decoy && self.unit_domain_of(u) == crate::attrition::Domain::Air {
+        if !self.units[u].decoy
+            && self.unit_domain_of(u) == crate::territory::attrition::Domain::Air
+        {
             self.burn_fuel(u, frame);
             return;
         }
@@ -1229,7 +1231,7 @@ impl Sim {
     /// the vslot `+0xb8` with `push 1; push x` — the strict test, the type
     /// or its graft.
     pub(crate) fn craft_rate(&self, u: usize) -> i32 {
-        use crate::nations::power::FRENCH;
+        use crate::cities::nations::power::FRENCH;
         let who = self.units[u].owner as usize;
         let tree = self.unit_tree(u);
         // A row the tree does not carry — a fixture's short table; the
@@ -1466,7 +1468,7 @@ impl Sim {
     /// (`0x168`) 8.8 scale, Wellington's (`0x170`) and Kutosov's (`0x176`)
     /// percentages, the Terra Cotta Army's range, then a military patriot's
     /// (`0x160`, `0x162`, `0x164`) or an economic patriot's (`0x161`,
-    /// `0x163`, `0x165`) bonus — [`crate::supply::general_radius`] in that
+    /// `0x163`, `0x165`) bonus — [`crate::territory::supply::general_radius`] in that
     /// order. run470's Senator `1/80` is type 353, `0x161`: 6 × 3 / 2 + 1.
     ///
     /// `get_general_upgrade` is the hero's leader's
@@ -1478,16 +1480,16 @@ impl Sim {
     /// (`has_wonder(0x211)`) is read as absent — `TERRA_COTTA_RANGE` ships 0;
     /// the patriot tests are `is(t, 1)`, taken as the type itself.
     pub(crate) fn hero_radius(&self, h: usize) -> i32 {
-        use crate::supply::Patriot;
+        use crate::territory::supply::Patriot;
         let t = self.units[h].type_index;
         let patriot = match t {
             0x160 | 0x162 | 0x164 => Some(Patriot::Military),
             0x161 | 0x163 | 0x165 => Some(Patriot::Economic),
             _ => None,
         };
-        crate::supply::general_radius(
+        crate::territory::supply::general_radius(
             &self.tables.tuning,
-            &crate::supply::General {
+            &crate::territory::supply::General {
                 upgrades: self.general_upgrade_level(self.units[h].owner),
                 parmenio: t == 0x168,
                 wellington: t == 0x170,
@@ -1601,7 +1603,7 @@ impl Sim {
 
     /// `UnitData::speed@0060aae0` — layer two of the speed pipeline
     /// (`docs/MOVEMENT.md`, "The speed pipeline"): the walk of
-    /// [`crate::unit_speed_view::unit_speed`] over this unit (item 3399,
+    /// [`crate::units::unit_speed_view::unit_speed`] over this unit (item 3399,
     /// swept against the original in `sweep/unit_data_speed.rs`). The cached
     /// `myspeed`, and a type not of the land (`+0x218 != 0`) takes nothing
     /// more.
@@ -1630,7 +1632,7 @@ impl Sim {
         if self.units[u].is_gaia() {
             return self.units[u].movement.speed;
         }
-        crate::unit_speed_view::unit_speed(&mut LiveSpeed { s: self, u })
+        crate::units::unit_speed_view::unit_speed(&mut LiveSpeed { s: self, u })
     }
 
     /// `ObjectData::is(x, strict)` on unit `u`: the lineage test on its
@@ -1649,7 +1651,7 @@ impl Sim {
     /// of domain 2 in place of the caster's (`docs/ORDERS.md` §38.1). On
     /// the map (`inside_up < 0`) the plane burns one a frame while it has
     /// any left, `mana_left@00609a30 != 0`; inside anything, it refills
-    /// [`Tuning::air_unit_mana_recharge`](crate::tuning::Tuning) a frame,
+    /// [`Tuning::air_unit_mana_recharge`](crate::core::tuning::Tuning) a frame,
     /// to 0. run223 and run265: the Fighter's 1 on 611, the block after
     /// its `add`, 112 on its landing, −2 a block inside to 0 on 778, and
     /// 400 — its `MANA` — on 1178.
@@ -1745,7 +1747,7 @@ pub(crate) fn cast_ambush_steps<V: AmbushView>(v: &mut V) {
     v.console_sound();
 }
 
-/// [`Sim`]'s [`UnitSpeedView`](crate::unit_speed_view::UnitSpeedView) over
+/// [`Sim`]'s [`UnitSpeedView`](crate::units::unit_speed_view::UnitSpeedView) over
 /// one unit. The unit's vslot `+0x18` is `Buffer::is_pending_load`, a
 /// constant 1; its own `units` slot carries `0x8000` when it is marching
 /// (`marching`); `find_hero` is [`Sim::find_marching_hero`].
@@ -1754,12 +1756,12 @@ struct LiveSpeed<'a> {
     u: usize,
 }
 
-impl crate::unit_speed_view::UnitSpeedView for LiveSpeed<'_> {
+impl crate::units::unit_speed_view::UnitSpeedView for LiveSpeed<'_> {
     fn myspeed(&self) -> i32 {
         self.s.units[self.u].movement.speed
     }
     fn not_land(&self) -> bool {
-        self.s.unit_domain_of(self.u) != crate::attrition::Domain::Land
+        self.s.unit_domain_of(self.u) != crate::territory::attrition::Domain::Land
     }
     fn is_this(&mut self, x: i32, strict: bool) -> bool {
         self.s.speed_is(self.u, x, strict)
@@ -1850,7 +1852,7 @@ impl AmbushView for SimAmbush<'_> {
 #[cfg(test)]
 mod tests;
 
-/// [`crate::unit_update_hits_view::UnitHitsView`] on a unit type of the
+/// [`crate::units::unit_update_hits_view::UnitHitsView`] on a unit type of the
 /// port: the unit is its type, always a captain; the marines' bit is the
 /// caller's (the unit's `unit_masks2 & 0x200`); the Copper and Bananas
 /// terms are the SEAM (no staged nation takes them) and ask false,
@@ -1877,7 +1879,7 @@ impl TypeHits<'_> {
     }
 }
 
-impl crate::unit_update_hits_view::UnitHitsView for TypeHits<'_> {
+impl crate::units::unit_update_hits_view::UnitHitsView for TypeHits<'_> {
     fn is_captain(&mut self) -> bool {
         true
     }
@@ -1919,7 +1921,7 @@ impl crate::unit_update_hits_view::UnitHitsView for TypeHits<'_> {
     }
     fn is_type(&mut self, n: i32) -> bool {
         match n {
-            0x45 => self.t().cols.is(crate::ai_load::role::ROLE_SCOUT),
+            0x45 => self.t().cols.is(crate::ai::ai_load::role::ROLE_SCOUT),
             0x3a => self.sim.is_spy_type(self.rec),
             _ => false,
         }
@@ -1928,10 +1930,14 @@ impl crate::unit_update_hits_view::UnitHitsView for TypeHits<'_> {
         self.t().type_index
     }
     fn is_caravan(&mut self) -> bool {
-        self.t().cols.flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
+        self.t()
+            .cols
+            .flag2(crate::ai::ai_load::uflags2::FLAG2_CARAVAN)
     }
     fn is_supply(&mut self) -> bool {
-        self.t().cols.flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
+        self.t()
+            .cols
+            .flag2(crate::ai::ai_load::uflags2::SUPPLY_OR_HERO)
     }
     fn patch_version(&mut self) -> i32 {
         9
@@ -1950,7 +1956,9 @@ impl crate::unit_update_hits_view::UnitHitsView for TypeHits<'_> {
         self.sim.spy_upgrade_level(self.who)
     }
     fn is_hero(&mut self) -> bool {
-        self.t().cols.flag2(crate::ai_load::uflags2::FLAG2_GENERAL)
+        self.t()
+            .cols
+            .flag2(crate::ai::ai_load::uflags2::FLAG2_GENERAL)
     }
     fn general_upgrade(&mut self) -> i32 {
         self.sim.general_upgrade_level(self.who)

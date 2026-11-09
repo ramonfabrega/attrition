@@ -1,6 +1,6 @@
 use super::*;
 use crate::Tuning;
-use crate::build::BuildType;
+use crate::cities::build::BuildType;
 use crate::world::{Terrain, World};
 
 /// A 20×20-cell land world with a finished 7×7 city of player 0 at

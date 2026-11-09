@@ -7,7 +7,7 @@ use crate::world::Owner;
 #[test]
 fn a_citizen_heals_a_point_every_45_frames_in_its_own_territory() {
     use crate::world::{Pos, World};
-    let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = crate::Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     let ty = |sim: &mut crate::Sim, type_index: i32| {
         sim.add_unit_type(crate::UnitType {
             hits: 40,
@@ -86,10 +86,10 @@ fn a_citizen_heals_a_point_every_45_frames_in_its_own_territory() {
 /// each on game frame 802, the cell nobody's.
 #[test]
 fn a_carrier_repairs_a_point_every_20_frames_and_citrus_heals_every_ship() {
-    use crate::ai_load::{UnitCols, uflags};
-    use crate::attrition::{Domain, UnitKind};
+    use crate::ai::ai_load::{UnitCols, uflags};
+    use crate::territory::attrition::{Domain, UnitKind};
     use crate::world::{Pos, World};
-    let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = crate::Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     let ty = |sim: &mut crate::Sim, type_index: i32, unit_flags: u32| {
         sim.add_unit_type(crate::UnitType {
             hits: 600,
@@ -168,9 +168,9 @@ fn a_carrier_repairs_a_point_every_20_frames_and_citrus_heals_every_ship() {
 /// (`tools/mutate.py`, `cur = None`).
 #[test]
 fn a_ceo_heals_the_hurt_figure_of_a_squad_abroad_every_20_frames() {
-    use crate::ai_load::{UnitCols, uflags2};
+    use crate::ai::ai_load::{UnitCols, uflags2};
     use crate::world::{Pos, World};
-    let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = crate::Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     let rifle = sim.add_unit_type(crate::UnitType {
         hits: 645,
         type_index: 137,
@@ -250,7 +250,7 @@ fn a_ceo_heals_the_hurt_figure_of_a_squad_abroad_every_20_frames() {
 /// first rung (`TECHBONUSES` row 67).
 fn iroquois_captain(type_index: i32) -> (crate::Sim, usize, usize) {
     use crate::world::{Pos, World};
-    let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = crate::Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     let mut tree = crate::tech::TechTree::new();
     let herbal = tree.add(crate::tech::TypeDef::plain("Herbal Lore", 0));
     tree.roles.heal_faster_preq = [Some(herbal), None, None];
@@ -318,7 +318,7 @@ fn attack_to(dest: crate::world::Pos) -> crate::orders::Order {
 #[test]
 fn a_french_unit_heals_within_its_supply_radius_every_20_frames() {
     use crate::world::{Pos, World};
-    let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = crate::Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     sim.set_tech_tree(crate::tech::TechTree::new());
     let esf = sim.add_unit_type(crate::UnitType {
         hits: 130,
@@ -332,9 +332,9 @@ fn a_french_unit_heals_within_its_supply_radius_every_20_frames() {
     let despot = sim.add_unit_type(crate::UnitType {
         hits: 109,
         type_index: 352,
-        kind: crate::attrition::UnitKind {
+        kind: crate::territory::attrition::UnitKind {
             supply_unit: true,
-            ..crate::attrition::UnitKind::default()
+            ..crate::territory::attrition::UnitKind::default()
         },
         ..crate::UnitType::default()
     });
@@ -357,7 +357,7 @@ fn a_french_unit_heals_within_its_supply_radius_every_20_frames() {
     };
     sim.supply_heal(c, 1143);
     assert_eq!(state(&sim), (119, 4, 0), "no bonus, no period");
-    sim.tech[1].power = Some(crate::nations::power::FRENCH);
+    sim.tech[1].power = Some(crate::cities::nations::power::FRENCH);
     sim.supply_heal(c, 1143);
     assert_eq!(state(&sim), (119, 4, 0), "no supply source, nothing");
     let d = put(&mut sim, despot, 164, Pos::new(at.x - 1709, at.y + 1865));
@@ -387,7 +387,7 @@ fn an_iroquois_captain_heals_standing_on_its_own_ground() {
     let state = |sim: &crate::Sim| (sim.units[c].health, sim.units[c].damage_frac);
     sim.iroquois_heal(c, 8190);
     assert_eq!(state(&sim), (37, 5), "no bonus, nothing");
-    sim.tech[1].power = Some(crate::nations::power::IROQUOIS);
+    sim.tech[1].power = Some(crate::cities::nations::power::IROQUOIS);
     assert!(sim.iroquois(1), "the bonus holds in this setup");
     sim.iroquois_heal(c, 8189);
     assert_eq!(state(&sim), (37, 5), "off the phase, nothing");
@@ -422,7 +422,7 @@ fn an_iroquois_captain_heals_standing_on_its_own_ground() {
 /// `ATTACKTOORDER` with `1/92` near, healed on 8191, 8211 and 8231.
 #[test]
 fn the_senator_heals_a_walking_column_on_allied_ground() {
-    use crate::ai_load::{UnitCols, uflags2};
+    use crate::ai::ai_load::{UnitCols, uflags2};
     let (mut sim, c, _) = iroquois_captain(167);
     let state = |sim: &crate::Sim| (sim.units[c].health, sim.units[c].damage_frac);
     let at = sim.units[c].pos;
@@ -464,14 +464,16 @@ fn the_senator_heals_a_walking_column_on_allied_ground() {
 /// `healing` 20; nothing without the leader's count of the type.
 #[test]
 fn a_patriot_repairs_its_leader_s_building_by_the_ground_under_it() {
-    use crate::ai_load::{UnitCols, uflags2};
+    use crate::ai::ai_load::{UnitCols, uflags2};
     use crate::world::{Pos, World};
-    let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
-    sim.tables.build_types.push(crate::build::BuildType {
-        x_size: 3,
-        y_size: 3,
-        ..crate::build::BuildType::default()
-    });
+    let mut sim = crate::Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
+    sim.tables
+        .build_types
+        .push(crate::cities::build::BuildType {
+            x_size: 3,
+            y_size: 3,
+            ..crate::cities::build::BuildType::default()
+        });
     let at = Pos::new(9000, 9000);
     let b = sim.add_building(1, at, 0);
     sim.buildings[b].ty = Some(sim.tables.build_types.len() - 1);

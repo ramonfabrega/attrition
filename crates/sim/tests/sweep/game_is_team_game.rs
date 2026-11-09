@@ -12,7 +12,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let (a, want) = super::row(line);
         assert_eq!(
             want != 0,
-            crate::flag_reads::game_is_team_game(u8::try_from(a[0]).expect("a byte")),
+            crate::core::flag_reads::game_is_team_game(u8::try_from(a[0]).expect("a byte")),
             "Game::is_team_game — row `{line}`"
         );
         n += 1;

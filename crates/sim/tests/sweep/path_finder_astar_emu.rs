@@ -29,7 +29,7 @@
 //! twice, `get_order` twice): the last six numbers of the row.
 
 use sim::Pos;
-use sim::astar_view::{AstarView, NoDangerView, Stash, SuspendView};
+use sim::movement::astar_view::{AstarView, NoDangerView, Stash, SuspendView};
 use sim::orders::PathData;
 
 pub(crate) fn rd32(w: &[u8], o: usize) -> i32 {
@@ -272,7 +272,7 @@ impl SuspendView for V<'_> {
     }
 }
 
-use sim::astar_view::{
+use sim::movement::astar_view::{
     Stash as St, Top, arrive, child_metric, child_pos, entry_steps, fresh_steps, suspend_steps,
     top_of_loop, wheel_dir, world_probe,
 };

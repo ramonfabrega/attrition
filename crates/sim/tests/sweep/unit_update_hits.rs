@@ -40,7 +40,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // leader `r`'s `+0x6da4`, `+0x6dcc`, `+0x6eb8`; `p6` `units[0]` and `p7`/`p8` its two units, `p9` `units[1]`
             // and `p10`/`p11`; `p12` the unit's type record; `p13`/`p14` leader 0's and 1's `+0x6eb8` record (`+0xdc` ages).
             // The leaders table is the image's, so `has_tribe_bonus`'s `ecx` is `0xe3a390 + who * 0x6eec`.
-            use crate::unit_update_hits_view::{UnitHitsK, UnitHitsView, unit_update_hits};
+            use crate::units::unit_update_hits_view::{UnitHitsK, UnitHitsView, unit_update_hits};
             struct V<'a> {
                 a: &'a [i32],
                 m: &'a mut [u8],

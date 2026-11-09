@@ -1,5 +1,5 @@
 use super::*;
-use crate::attrition::{PlayerState, Resistance, StrengthMods, strength};
+use crate::territory::attrition::{PlayerState, Resistance, StrengthMods, strength};
 use crate::territory::{City, NationBonuses, PlayerBorders, Wonders, city_source};
 use crate::world::UNITS_PER_CELL;
 
@@ -713,18 +713,18 @@ fn a_city_pays_from_the_first_frame_of_the_game() {
     world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(15, 15));
     let mut sim = Sim::new(Tuning::RON, world, 2);
     sim.cities.nation[0].human = true;
-    let village = sim.add_build_type(crate::build::BuildType {
-        ident: crate::build::Ident::Village,
+    let village = sim.add_build_type(crate::cities::build::BuildType {
+        ident: crate::cities::build::Ident::Village,
         x_size: 7,
         y_size: 7,
-        flags: crate::build::flags::parse("ean"),
+        flags: crate::cities::build::flags::parse("ean"),
         job_time: 150,
         hits: 400,
-        price: crate::cost::Price {
-            kind: crate::cost::Kind::Building,
-            ..crate::cost::Price::free()
+        price: crate::economy::cost::Price {
+            kind: crate::economy::cost::Kind::Building,
+            ..crate::economy::cost::Price::free()
         },
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let b = sim.init_build(0, village, Pos::new(32 * 192, 32 * 192), false);
     sim.activate(b, false, false);
@@ -834,18 +834,18 @@ fn the_greeks_keep_their_opening_knowledge_past_the_ancient_age() {
 /// `JOB_EXTRA_TIME 1/10tsx`, `RESEARCH_PREMIUM_TIME 2`.
 fn citizen_type() -> UnitType {
     UnitType {
-        price: cost::Price {
-            class: cost::RampClass::Worker,
+        price: crate::economy::cost::Price {
+            class: crate::economy::cost::RampClass::Worker,
             pop: 1,
-            ..cost::Price::free()
+            ..crate::economy::cost::Price::free()
                 .with_base(economy::Resource::Food, 2)
                 .with_support(economy::Resource::Food, 1)
         },
-        kind: attrition::UnitKind::default(),
+        kind: crate::territory::attrition::UnitKind::default(),
         group: None,
         hits: 40,
         combat: combat::Profile::default(),
-        times: production::Times {
+        times: crate::cities::production::Times {
             job_time: 50,
             // `2` through `String::fraction(s, 0x100)`.
             research_premium_time: 512,
@@ -853,7 +853,7 @@ fn citizen_type() -> UnitType {
             job_extra_time: 10,
         },
         tree: None,
-        garrison: garrison::UnitTraits::default(),
+        garrison: crate::units::garrison::UnitTraits::default(),
         ..UnitType::default()
     }
 }
@@ -1437,17 +1437,20 @@ fn an_age_that_crosses_a_bracket_re_pieces_the_figures_and_keeps_their_turn_bit(
     let new = old + 0x840;
     sim.roster.art.piece_lengths.insert(
         old,
-        [(anim::DEFAULT, 31u32), (anim::WALK, 30)]
-            .into_iter()
-            .collect(),
+        [
+            (crate::units::anim::DEFAULT, 31u32),
+            (crate::units::anim::WALK, 30),
+        ]
+        .into_iter()
+        .collect(),
     );
     sim.roster.art.piece_lengths.insert(
         new,
         [
-            (anim::DEFAULT, 31u32),
-            (anim::WALK, 30),
-            (anim::TURN_LEFT, 20),
-            (anim::TURN_RIGHT, 20),
+            (crate::units::anim::DEFAULT, 31u32),
+            (crate::units::anim::WALK, 30),
+            (crate::units::anim::TURN_LEFT, 20),
+            (crate::units::anim::TURN_RIGHT, 20),
         ]
         .into_iter()
         .collect(),
@@ -1680,7 +1683,7 @@ fn an_upgrade_clears_its_old_disc_around_the_crew_it_kills() {
     let old = sim.add_unit_type(old);
     let new = sim.add_unit_type(new);
     let a = sim.init_unit(0, old, centre_of(Cell::new(5, 0)));
-    let c = crate::collide::ucell(sim.units[a].pos);
+    let c = crate::movement::collide::ucell(sim.units[a].pos);
     assert!(
         sim.movement.coll.get(c.x + 3, c.y),
         "the size-3 block stands"
@@ -1710,11 +1713,14 @@ fn an_upgrade_clears_its_old_disc_around_the_crew_it_kills() {
 fn a_guy_still_turning_on_its_turn_slot_rolls_no_idle() {
     let mut sim = skirmish(0);
     let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
-    u.guys = vec![anim::Guy::fresh(1), anim::Guy::fresh(2)];
+    u.guys = vec![
+        crate::units::anim::Guy::fresh(1),
+        crate::units::anim::Guy::fresh(2),
+    ];
     let unit = sim.add_unit(u);
     make_mobile(&mut sim, unit, movement::Angle::EAST);
     for g in &mut sim.units[unit].guys {
-        g.anim = anim::TURN_RIGHT;
+        g.anim = crate::units::anim::TURN_RIGHT;
         g.cur_time = 4;
         g.end_time = 30;
     }
@@ -1743,12 +1749,12 @@ fn a_guy_still_turning_on_its_turn_slot_rolls_no_idle() {
             sim.units[unit].guys[0].anim,
             sim.units[unit].guys[0].cur_time
         ),
-        (anim::TURN_RIGHT, 4),
+        (crate::units::anim::TURN_RIGHT, 4),
         "guy 0 plays on"
     );
     // Faced round: guy 0 rolls too.
     for g in &mut sim.units[unit].guys {
-        g.anim = anim::TURN_RIGHT;
+        g.anim = crate::units::anim::TURN_RIGHT;
         g.cur_time = 4;
         g.end_time = 30;
     }
@@ -1832,7 +1838,7 @@ fn a_gained_unit_type_converts_the_line_below_it_and_carries_the_damage() {
         sim.trace
             .phase_marks
             .iter()
-            .filter(|(l, _)| l == crate::anim::SITE_INIT_REAL)
+            .filter(|(l, _)| l == crate::units::anim::SITE_INIT_REAL)
             .count(),
         figures,
         "one variant roll per figure, and nothing else drew"
@@ -1894,11 +1900,11 @@ fn a_gained_unit_type_retargets_the_queued_entries_of_its_line() {
     let javelins = rec(&mut sim, javelins_t);
     let elite = rec(&mut sim, elite_t);
     let bowmen = rec(&mut sim, bowmen_t);
-    let barracks = sim.add_build_type(crate::build::BuildType {
+    let barracks = sim.add_build_type(crate::cities::build::BuildType {
         x_size: 3,
         y_size: 3,
         hits: 400,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let b = sim.init_build(0, barracks, Pos::new(8 * 192, 8 * 192), false);
     sim.activate(b, false, false);
@@ -2001,11 +2007,11 @@ fn a_unit_research_gains_before_it_unqueues_and_no_count_goes_below_zero() {
     let slingers = rec(&mut sim, slingers_t);
     let _javelins = rec(&mut sim, javelins_t);
     let elite = rec(&mut sim, elite_t);
-    let barracks = sim.add_build_type(crate::build::BuildType {
+    let barracks = sim.add_build_type(crate::cities::build::BuildType {
         x_size: 3,
         y_size: 3,
         hits: 400,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let b = sim.init_build(0, barracks, Pos::new(8 * 192, 8 * 192), false);
     sim.activate(b, false, false);
@@ -2108,7 +2114,7 @@ fn the_tree_gates_the_queue_and_research_cascades_through_it() {
     assert!(!sim.roster.muster[0].researched[phalanx]);
     assert_eq!(
         sim.queue_up(hall, phalanx),
-        Err(production::QueueFail::CantTrain)
+        Err(crate::cities::production::QueueFail::CantTrain)
     );
     let cap_before = sim.roster.muster[0].cap;
 
@@ -2149,7 +2155,7 @@ fn the_tree_gates_the_queue_and_research_cascades_through_it() {
     );
     assert_eq!(
         sim.queue_up(hall, hoplites),
-        Err(production::QueueFail::CantTrain)
+        Err(crate::cities::production::QueueFail::CantTrain)
     );
     // The second Phalanx is a train job.
     sim.queue_up(hall, phalanx).expect("owned");
@@ -2186,10 +2192,10 @@ fn a_spent_nuke_ramps_the_next_missile_and_uranium_takes_five_percent_off() {
     let (kn, oil) = (economy::Resource::Knowledge, economy::Resource::Oil);
     let icbm = sim.add_unit_type(UnitType {
         tree: Some(0x13c),
-        price: cost::Price {
-            class: cost::RampClass::Military,
+        price: crate::economy::cost::Price {
+            class: crate::economy::cost::RampClass::Military,
             pop: 1,
-            ..cost::Price::free()
+            ..crate::economy::cost::Price::free()
                 .with_base(kn, 75)
                 .with_base(oil, 90)
                 .with_support(oil, 75)
@@ -2198,9 +2204,9 @@ fn a_spent_nuke_ramps_the_next_missile_and_uranium_takes_five_percent_off() {
         ..citizen_type()
     });
     let at = |sim: &Sim, uranium: i32| {
-        let m = cost::Modifiers {
+        let m = crate::economy::cost::Modifiers {
             uranium,
-            ..cost::Modifiers::default()
+            ..crate::economy::cost::Modifiers::default()
         };
         let p = sim.price_with(0, icbm, &m);
         (p[kn.index()], p[oil.index()])
@@ -2259,19 +2265,19 @@ fn a_military_unit_is_priced_by_its_research_until_owned_then_at_the_military_di
     sim.start_techs(0);
     let line = |t, metal| UnitType {
         tree: Some(t),
-        price: cost::Price {
-            class: cost::RampClass::Military,
+        price: crate::economy::cost::Price {
+            class: crate::economy::cost::RampClass::Military,
             pop: 1,
-            ..cost::Price::free()
+            ..crate::economy::cost::Price::free()
                 .with_base(economy::Resource::Food, 5)
                 .with_base(economy::Resource::Metal, metal)
                 .with_support(economy::Resource::Food, 1)
                 .with_support(economy::Resource::Metal, 1)
         },
-        cols: crate::ai_load::UnitCols {
-            role: crate::ai_load::role::ROLE_MILITARY,
+        cols: crate::ai::ai_load::UnitCols {
+            role: crate::ai::ai_load::role::ROLE_MILITARY,
             research_premium_cost: 512,
-            ..crate::ai_load::UnitCols::default()
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..citizen_type()
     };
@@ -2327,10 +2333,10 @@ fn a_spy_costs_half_under_the_spies_and_generals_bonus() {
     sim.start_techs(0);
     let spy = sim.add_unit_type(UnitType {
         tree: Some(spy_t),
-        price: cost::Price {
-            class: cost::RampClass::OtherCivilian,
+        price: crate::economy::cost::Price {
+            class: crate::economy::cost::RampClass::OtherCivilian,
             pop: 1,
-            ..cost::Price::free().with_base(economy::Resource::Wealth, 5)
+            ..crate::economy::cost::Price::free().with_base(economy::Resource::Wealth, 5)
         },
         ..citizen_type()
     });
@@ -2377,7 +2383,7 @@ fn a_spy_trains_in_half_the_time_under_the_created_faster_bonus() {
     let half = |s: &Sim, ty| {
         s.train_tail(0, ty)
             .iter()
-            .any(|a| matches!(a, production::Adjust::Ratio(1, 2)))
+            .any(|a| matches!(a, crate::cities::production::Adjust::Ratio(1, 2)))
     };
     assert!(!half(&sim, spy), "no Tactics yet");
     sim.tech[0].tech[tactics] = true;
@@ -2400,7 +2406,7 @@ fn a_chinese_citizen_trains_at_once() {
     let instant = |s: &Sim, ty| {
         s.train_tail(0, ty)
             .iter()
-            .any(|a| matches!(a, production::Adjust::Scale(0)))
+            .any(|a| matches!(a, crate::cities::production::Adjust::Scale(0)))
     };
     assert!(!instant(&sim, citizen), "not Chinese");
     sim.cities.nation[0].chinese = true;
@@ -2413,7 +2419,7 @@ fn a_chinese_citizen_trains_at_once() {
     assert!(
         sim.train_tail(0, citizen)
             .iter()
-            .any(|a| matches!(a, production::Adjust::Faster(100))),
+            .any(|a| matches!(a, crate::cities::production::Adjust::Faster(100))),
         "without the instant flag: the creation percentage"
     );
 }
@@ -2431,7 +2437,7 @@ fn a_citizen_trains_faster_for_a_player_holding_wool() {
     let wool = |s: &Sim| {
         s.train_tail(0, citizen)
             .iter()
-            .any(|a| matches!(a, production::Adjust::Faster(33)))
+            .any(|a| matches!(a, crate::cities::production::Adjust::Faster(33)))
     };
     assert!(!wool(&sim), "no Wool yet");
     sim.economy.ledgers[0].rare |= 1 << (economy::WOOL - economy::BASE_RARE);
@@ -2442,7 +2448,7 @@ fn a_citizen_trains_faster_for_a_player_holding_wool() {
     assert!(
         !sim.train_tail(0, other)
             .iter()
-            .any(|a| matches!(a, production::Adjust::Faster(33))),
+            .any(|a| matches!(a, crate::cities::production::Adjust::Faster(33))),
         "only a Citizen"
     );
 }
@@ -2493,7 +2499,7 @@ fn a_barracks_stable_or_dock_unit_trains_faster_for_a_player_holding_cotton() {
     let cotton = |s: &Sim, ty| {
         s.train_tail(0, ty)
             .iter()
-            .any(|a| matches!(a, production::Adjust::Faster(25)))
+            .any(|a| matches!(a, crate::cities::production::Adjust::Faster(25)))
     };
     for ty in [jav, horse, ship, other] {
         assert!(!cotton(&sim, ty), "no Cotton yet");
@@ -2505,7 +2511,7 @@ fn a_barracks_stable_or_dock_unit_trains_faster_for_a_player_holding_cotton() {
     assert!(!cotton(&sim, other), "by equality, never by lineage");
     assert!(!cotton(&sim, 0), "a Citizen has no such trainer");
     assert_eq!(
-        production::adjusted(18750, &sim.train_tail(0, jav)),
+        crate::cities::production::adjusted(18750, &sim.train_tail(0, jav)),
         15000,
         "run940's Javelineers: 18750 × 100 / 125"
     );
@@ -2544,7 +2550,7 @@ fn a_mongol_attacker_from_the_stable_trains_faster() {
     let faster = |s: &Sim, ty| {
         s.train_tail(0, ty)
             .iter()
-            .any(|a| matches!(a, production::Adjust::Faster(20)))
+            .any(|a| matches!(a, crate::cities::production::Adjust::Faster(20)))
     };
     assert!(!faster(&sim, rider), "not a Mongol");
     sim.cities.nation[0].mongols = true;
@@ -2605,7 +2611,7 @@ fn a_government_speeds_its_trainer_lines_by_equality() {
             .map(|&ty| {
                 s.train_tail(0, ty)
                     .iter()
-                    .any(|a| matches!(a, production::Adjust::Faster(25)))
+                    .any(|a| matches!(a, crate::cities::production::Adjust::Faster(25)))
             })
             .collect()
     };
@@ -2682,15 +2688,15 @@ fn a_despot_s_barracks_unit_costs_less_to_train_and_to_research() {
     sim.set_tech_tree(tree);
     let typ = |t| UnitType {
         tree: Some(t),
-        price: cost::Price {
+        price: crate::economy::cost::Price {
             pop: 1,
-            ..cost::Price::free()
+            ..crate::economy::cost::Price::free()
                 .with_base(economy::Resource::Food, 4)
                 .with_base(economy::Resource::Timber, 4)
         },
-        cols: crate::ai_load::UnitCols {
+        cols: crate::ai::ai_load::UnitCols {
             research_premium_cost: 512,
-            ..crate::ai_load::UnitCols::default()
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..citizen_type()
     };
@@ -2742,15 +2748,15 @@ fn a_research_is_charged_for_the_army_it_refits() {
     sim.set_tech_tree(tree);
     let typ = |t, food, wealth| UnitType {
         tree: Some(t),
-        price: cost::Price {
+        price: crate::economy::cost::Price {
             pop: 1,
-            ..cost::Price::free()
+            ..crate::economy::cost::Price::free()
                 .with_base(economy::Resource::Food, food)
                 .with_base(economy::Resource::Wealth, wealth)
         },
-        cols: crate::ai_load::UnitCols {
+        cols: crate::ai::ai_load::UnitCols {
             research_premium_cost: 512,
-            ..crate::ai_load::UnitCols::default()
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..citizen_type()
     };
@@ -2771,7 +2777,7 @@ fn a_research_is_charged_for_the_army_it_refits() {
     // The old line unowned is priced by its research — unless it carries
     // `h`, which `get_cost:425` sends to the train arm regardless.
     assert!(sim.research_modifiers(0, old).is_some());
-    sim.tables.unit_types[old].cols.unit_flags = crate::ai_load::uflags::NO_RESEARCH_PRICE;
+    sim.tables.unit_types[old].cols.unit_flags = crate::ai::ai_load::uflags::NO_RESEARCH_PRICE;
     assert_eq!(sim.research_modifiers(0, old), None);
     // And owned, a train job whatever its flags.
     sim.tables.unit_types[old].cols.unit_flags = 0;
@@ -2807,9 +2813,9 @@ fn a_unit_trained_while_its_upgrade_is_queued_pays_the_upgrade_s_base() {
     sim.set_tech_tree(tree);
     let typ = |t, food, wealth| UnitType {
         tree: Some(t),
-        price: cost::Price {
+        price: crate::economy::cost::Price {
             pop: 1,
-            ..cost::Price::free()
+            ..crate::economy::cost::Price::free()
                 .with_base(economy::Resource::Food, food)
                 .with_base(economy::Resource::Wealth, wealth)
         },
@@ -2855,15 +2861,15 @@ fn wine_takes_a_fifth_off_a_research_and_nothing_off_a_train() {
     sim.set_tech_tree(tree);
     let militia = sim.add_unit_type(UnitType {
         tree: Some(militia_t),
-        price: cost::Price {
+        price: crate::economy::cost::Price {
             pop: 1,
-            ..cost::Price::free()
+            ..crate::economy::cost::Price::free()
                 .with_base(economy::Resource::Food, 8)
                 .with_base(economy::Resource::Metal, 8)
         },
-        cols: crate::ai_load::UnitCols {
+        cols: crate::ai::ai_load::UnitCols {
             research_premium_cost: 256,
-            ..crate::ai_load::UnitCols::default()
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..citizen_type()
     });
@@ -3775,14 +3781,14 @@ fn a_building_on_unfriendly_ground_holds_no_armour() {
 /// (`domain` 2, `0065236d`), and neither does attrition (`param_5`).
 #[test]
 fn a_site_loses_progress_by_the_points_a_blow_took_and_none_to_an_aircraft() {
-    use crate::attrition::Domain;
+    use crate::territory::attrition::Domain;
     let mut sim = arena();
     let hop = sim.add_unit_type(hoplite_type());
     let mut plane = hoplite_type();
     plane.kind.domain = Domain::Air;
     plane.combat.domain = Domain::Air;
     let plane = sim.add_unit_type(plane);
-    let tower_ty = sim.add_build_type(crate::build::BuildType::default());
+    let tower_ty = sim.add_build_type(crate::cities::build::BuildType::default());
     let site = sim.add_building(0, Pos::new(1000, 1000), 0);
     {
         let bd = &mut sim.buildings[site];
@@ -3967,7 +3973,10 @@ fn a_crew_guy_walks_on_after_its_unit_has_arrived() {
     let mut sim = skirmish(0);
     let start = Pos::new(4000, 400);
     let mut u = Unit::new(0, 0, start, 100);
-    u.guys = vec![anim::Guy::fresh(1), anim::Guy::fresh(2)];
+    u.guys = vec![
+        crate::units::anim::Guy::fresh(1),
+        crate::units::anim::Guy::fresh(2),
+    ];
     let unit = sim.add_unit(u);
     // A scout dog's pair, as `rondata::artdata::piece_tracks` reads it.
     sim.roster.art.tracks.insert(2, (-96, 48));
@@ -4048,7 +4057,10 @@ fn a_guarding_computer_s_crew_steps_on_the_guard_s_speed() {
         sim.cities.nation[1].human = human;
         let charge = sim.add_unit(Unit::new(1, 1, Pos::new(4000, 400), 100));
         let mut u = Unit::new(1, 2, Pos::new(4000, 400), 100);
-        u.guys = vec![anim::Guy::fresh(1), anim::Guy::fresh(2)];
+        u.guys = vec![
+            crate::units::anim::Guy::fresh(1),
+            crate::units::anim::Guy::fresh(2),
+        ];
         let unit = sim.add_unit(u);
         sim.roster.art.tracks.insert(2, (96, 96));
         make_mobile(&mut sim, unit, movement::Angle::EAST);
@@ -4100,7 +4112,10 @@ fn a_crew_figure_of_a_packing_type_pays_the_turning_stand() {
         let start = Pos::new(4000, 400);
         let mut u = Unit::new(0, 0, start, 100);
         u.ty = Some(ty);
-        u.guys = vec![anim::Guy::fresh(1), anim::Guy::fresh(2)];
+        u.guys = vec![
+            crate::units::anim::Guy::fresh(1),
+            crate::units::anim::Guy::fresh(2),
+        ];
         let unit = sim.add_unit(u);
         sim.roster.art.tracks.insert(2, (-96, 48));
         make_mobile(&mut sim, unit, movement::Angle::EAST);
@@ -4125,7 +4140,7 @@ fn a_crew_figure_of_a_packing_type_pays_the_turning_stand() {
         let marks = &sim.trace.phase_marks;
         let at = marks
             .iter()
-            .position(|(l, _)| l == anim::SITE_TURN_STAND)
+            .position(|(l, _)| l == crate::units::anim::SITE_TURN_STAND)
             .expect("the crew figure reached Guy::move's standing arm");
         let to = marks.get(at + 1).map_or(sim.rng.seed, |m| m.1);
         let mut r = crate::combat::Rng::new(marks[at].1);
@@ -4177,9 +4192,9 @@ fn a_standing_turn_re_slots_the_crew_before_its_arrival_stand() {
     let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
     u.ty = Some(ty);
     u.guys = vec![
-        anim::Guy::fresh(1),
-        anim::Guy::fresh(2),
-        anim::Guy::fresh(3),
+        crate::units::anim::Guy::fresh(1),
+        crate::units::anim::Guy::fresh(2),
+        crate::units::anim::Guy::fresh(3),
     ];
     let unit = sim.add_unit(u);
     make_mobile(&mut sim, unit, movement::Angle::EAST);
@@ -4187,7 +4202,7 @@ fn a_standing_turn_re_slots_the_crew_before_its_arrival_stand() {
     // The crew had stopped on the walk, as `1/139`'s two untracked figures
     // had on 12537 (the dump's `stopped` 1, `cur_anim` 8).
     for g in 1..3 {
-        sim.units[unit].guys[g].anim = anim::WALK;
+        sim.units[unit].guys[g].anim = crate::units::anim::WALK;
         sim.units[unit].guys[g].stopped = true;
     }
     // Standing on its destination with the turn owed: the unit's frame
@@ -4206,11 +4221,11 @@ fn a_standing_turn_re_slots_the_crew_before_its_arrival_stand() {
         .map(|(l, _)| l.as_str())
         .collect();
     assert!(
-        !labels.contains(&anim::SITE_ARRIVE),
+        !labels.contains(&crate::units::anim::SITE_ARRIVE),
         "no arrival stand after the turn re-slotted the crew: {labels:?}"
     );
     assert!(
-        labels.contains(&anim::SITE_TURN_CREW),
+        labels.contains(&crate::units::anim::SITE_TURN_CREW),
         "the crew's turn is the recursion's: {labels:?}"
     );
 }
@@ -4239,10 +4254,10 @@ fn a_tracked_crew_figure_between_untracked_ones_turns_in_its_slot() {
     let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
     u.ty = Some(ty);
     u.guys = vec![
-        anim::Guy::fresh(1),
-        anim::Guy::fresh(2),
-        anim::Guy::fresh(3),
-        anim::Guy::fresh(4),
+        crate::units::anim::Guy::fresh(1),
+        crate::units::anim::Guy::fresh(2),
+        crate::units::anim::Guy::fresh(3),
+        crate::units::anim::Guy::fresh(4),
     ];
     let unit = sim.add_unit(u);
     sim.roster.art.tracks.insert(3, (163, -24));
@@ -4251,7 +4266,7 @@ fn a_tracked_crew_figure_between_untracked_ones_turns_in_its_slot() {
     assert!(sim.units[unit].guys[2].follow.is_some(), "guy 2 is tracked");
     for g in [0, 1, 3] {
         assert!(sim.units[unit].guys[g].follow.is_none(), "guy {g} is not");
-        sim.units[unit].guys[g].anim = anim::WALK;
+        sim.units[unit].guys[g].anim = crate::units::anim::WALK;
         sim.units[unit].guys[g].stopped = true;
     }
     // Guy 2 stands on its offset owed a turn.
@@ -4259,7 +4274,7 @@ fn a_tracked_crew_figure_between_untracked_ones_turns_in_its_slot() {
     f.facing = movement::Angle::EAST;
     f.des_angle = movement::Angle::NORTH;
     sim.units[unit].guys[2].follow = Some(f);
-    sim.units[unit].guys[2].anim = anim::WALK;
+    sim.units[unit].guys[2].anim = crate::units::anim::WALK;
     sim.units[unit].guys[2].stopped = true;
     sim.guys_follow(unit, true, &mut None);
     let labels: Vec<&str> = sim
@@ -4269,11 +4284,11 @@ fn a_tracked_crew_figure_between_untracked_ones_turns_in_its_slot() {
         .map(|(l, _)| l.as_str())
         .collect();
     let at = |site: &str| labels.iter().position(|l| *l == site);
-    let turn = at(anim::SITE_TURN_STAND).expect("guy 2 asks for its turn");
+    let turn = at(crate::units::anim::SITE_TURN_STAND).expect("guy 2 asks for its turn");
     let arrivals: Vec<usize> = labels
         .iter()
         .enumerate()
-        .filter(|(_, l)| **l == anim::SITE_ARRIVE)
+        .filter(|(_, l)| **l == crate::units::anim::SITE_ARRIVE)
         .map(|(i, _)| i)
         .collect();
     assert_eq!(arrivals.len(), 3, "guys 0, 1 and 3 arrive: {labels:?}");
@@ -4307,10 +4322,10 @@ fn an_unpack_brings_the_units_angle_to_guy_zero_s_and_the_crew_with_it() {
     let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
     u.ty = Some(ty);
     u.guys = vec![
-        anim::Guy::fresh(1),
-        anim::Guy::fresh(2),
-        anim::Guy::fresh(3),
-        anim::Guy::fresh(4),
+        crate::units::anim::Guy::fresh(1),
+        crate::units::anim::Guy::fresh(2),
+        crate::units::anim::Guy::fresh(3),
+        crate::units::anim::Guy::fresh(4),
     ];
     let unit = sim.add_unit(u);
     sim.roster.art.tracks.insert(3, (163, -24));
@@ -4347,7 +4362,7 @@ fn an_unpack_brings_the_units_angle_to_guy_zero_s_and_the_crew_with_it() {
     );
     assert_eq!(
         sim.units[unit].guys[0].anim,
-        anim::ANIM_UNPACK,
+        crate::units::anim::ANIM_UNPACK,
         "and unpacks"
     );
 }
@@ -4372,13 +4387,13 @@ fn a_monarch_halves_a_siege_unit_s_unpack() {
         sim.tables.unit_types[ty].combat.siege = siege;
         let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
         u.ty = Some(ty);
-        u.guys = vec![anim::Guy::fresh(1)];
+        u.guys = vec![crate::units::anim::Guy::fresh(1)];
         let unit = sim.add_unit(u);
         make_mobile(&mut sim, unit, movement::Angle::EAST);
         sim.seat_guys(unit);
         sim.units[unit].combat.packed = true;
         let hero = sim.add_unit_type(crate::UnitType::default());
-        sim.tables.unit_types[hero].cols.unit_flags2 = crate::ai_load::uflags2::FLAG2_GENERAL;
+        sim.tables.unit_types[hero].cols.unit_flags2 = crate::ai::ai_load::uflags2::FLAG2_GENERAL;
         let mut m = Unit::new(0, 1, monarch_at, 20);
         m.ty = Some(hero);
         m.type_index = 0x162;
@@ -4418,7 +4433,10 @@ fn a_pack_brings_the_units_angle_to_guy_zero_s_too() {
     sim.tables.unit_types[ty].combat.packs = true;
     let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
     u.ty = Some(ty);
-    u.guys = vec![anim::Guy::fresh(1), anim::Guy::fresh(2)];
+    u.guys = vec![
+        crate::units::anim::Guy::fresh(1),
+        crate::units::anim::Guy::fresh(2),
+    ];
     let unit = sim.add_unit(u);
     make_mobile(&mut sim, unit, movement::Angle::EAST);
     sim.seat_guys(unit);
@@ -4433,7 +4451,11 @@ fn a_pack_brings_the_units_angle_to_guy_zero_s_too() {
         sim.units[unit].movement.heading, sim.units[unit].movement.facing,
         "the unit's angle is guy 0's"
     );
-    assert_eq!(sim.units[unit].guys[0].anim, anim::ANIM_PACK, "and packs");
+    assert_eq!(
+        sim.units[unit].guys[0].anim,
+        crate::units::anim::ANIM_PACK,
+        "and packs"
+    );
 }
 
 /// **Three of the six resources are not available from the start, and until
@@ -4560,7 +4582,7 @@ fn salmon_prices_a_sea_unit_and_maize_halves_the_ramp() {
     let mut sim = skirmish(4);
     let land = sim.add_unit_type(citizen_type());
     let mut ship = citizen_type();
-    ship.combat.domain = attrition::Domain::Sea;
+    ship.combat.domain = crate::territory::attrition::Domain::Sea;
     let sea = sim.add_unit_type(ship);
     let salmon = 1 << (economy::SALMON - economy::BASE_RARE);
     let maize = 1 << (economy::MAIZE - economy::BASE_RARE);

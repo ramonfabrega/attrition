@@ -4,7 +4,7 @@
 //! checked phase by phase on run1493, is the only source of a Southwest
 //! Mesa game's cliffs: no dump prints `cliff_mining_data`. So the harness
 //! that stands a Mesa game up (`diff::setup::build_sim`) runs it at the
-//! lobby's own seed and lays [`sim::cliffs::CliffsInit::mining`] with
+//! lobby's own seed and lays [`sim::mapgen::cliffs::CliffsInit::mining`] with
 //! `Sim::place_cliffs`, and `mapgen`'s tests walk the same functions.
 
 use super::{
@@ -13,12 +13,14 @@ use super::{
 };
 use crate::gamelog::Initial;
 use sim::combat::Rng;
-use sim::map_resources::place_resources;
-use sim::map_rivers::{Phase, make_rivers};
-use sim::map_values::{adjust_for_blocking, compute_all_vals};
+use sim::mapgen::map_resources::place_resources;
+use sim::mapgen::map_rivers::{Phase, make_rivers};
+use sim::mapgen::map_values::{adjust_for_blocking, compute_all_vals};
+use sim::mapgen::terrain_groups::{
+    Draws, change_bases, check_player_forest, nubify_forest, place_all,
+};
+use sim::mapgen::terrain_init::terrain_init_without_heights;
 use sim::mapgen::{Fractal, MapGrid, Regions, fertile_partitions};
-use sim::terrain_groups::{Draws, change_bases, check_player_forest, nubify_forest, place_all};
-use sim::terrain_init::terrain_init_without_heights;
 use std::path::Path;
 
 /// What the chain reads of a lobby: the setup trace's seed at `map.cpp`
@@ -126,7 +128,7 @@ pub fn southwest_mesa_at_7927(root: &Path, g: &MesaLobby) -> (MapGrid, Draws) {
     let (mut grid, mut d) = southwest_mesa_at_7859(root, g);
     let fert = fertility(root, "SOUTHWESTMESA.xml").expect("its fertility");
     let ts = tileset_groups(root, &fert.tileset).expect("SW_desert's groups");
-    check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+    check_player_forest(&mut grid, sim::core::tuning::Tuning::RON.city_center_radius);
     nubify_forest(&mut grid, &mut d);
     change_bases(&mut grid, &mut d, &ts);
     let inputs = resource_inputs(root, "SOUTHWESTMESA.xml", g.xs, g.ys, g.nations)
@@ -153,10 +155,10 @@ pub fn southwest_mesa_at_7945(root: &Path, g: &MesaLobby) -> (MapGrid, Draws) {
 /// stream, parts 10–13 and what `Cliffs::init` did.
 pub type MesaAt894 = (
     MapGrid,
-    Vec<sim::single::Single>,
+    Vec<sim::num::single::Single>,
     Draws,
     [u32; 4],
-    sim::cliffs::CliffsInit,
+    sim::mapgen::cliffs::CliffsInit,
 );
 
 /// One Southwest Mesa run carried to `Terrain.cpp` 894 (item 3890):
@@ -164,7 +166,7 @@ pub type MesaAt894 = (
 /// walk), then the heights in `Terrain::init`'s order — `generate_land`
 /// and the coastal pass (706), the oil cells' terraform (738), the
 /// troughs (`RIVERLIST` empty: nothing to calculate) and
-/// `adjust_for_mountains` — and `Cliffs::init` (`sim::cliffs`).
+/// `adjust_for_mountains` — and `Cliffs::init` (`sim::mapgen::cliffs`).
 pub fn southwest_mesa_at_894(root: &Path, g: &MesaLobby) -> MesaAt894 {
     let install = crate::Install::new(root);
     let meshes = crate::mountains::meshes(&install);
@@ -183,18 +185,18 @@ pub fn southwest_mesa_at_894(root: &Path, g: &MesaLobby) -> MesaAt894 {
     let mut regions = regions_of(&grid);
     let phase = Phase {
         thresh,
-        city_radius: sim::tuning::Tuning::RON.city_center_radius,
+        city_radius: sim::core::tuning::Tuning::RON.city_center_radius,
         rivers: &rivers,
         standard,
         seed: g.seed as u32,
         nations: g.nations,
     };
     make_rivers(&mut grid, &mut regions, &phase, &mut d, |_, _, _| {});
-    let f = sim::map_heights::fractals(grid.xs, grid.ys, g.seed as u32);
-    let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
-    sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g.seed as u32);
-    sim::map_heights::create_doobers(&grid, &mut z);
-    let combo = sim::halfland::Combo {
+    let f = sim::mapgen::map_heights::fractals(grid.xs, grid.ys, g.seed as u32);
+    let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &f);
+    sim::mapgen::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g.seed as u32);
+    sim::mapgen::map_heights::create_doobers(&grid, &mut z);
+    let combo = sim::mapgen::halfland::Combo {
         coast_base: ts.coast_base,
         num_tiles: [
             Some(ts.base_tiles),
@@ -203,7 +205,7 @@ pub fn southwest_mesa_at_894(root: &Path, g: &MesaLobby) -> MesaAt894 {
             None,
         ],
     };
-    let troughs = sim::map_troughs::calculate_all(
+    let troughs = sim::mapgen::map_troughs::calculate_all(
         &mut grid,
         &mut coord,
         &mut z,
@@ -214,11 +216,12 @@ pub fn southwest_mesa_at_894(root: &Path, g: &MesaLobby) -> MesaAt894 {
     )
     .unwrap_or_else(|e| panic!("the troughs: {e:?}"));
     assert!(troughs.sections.is_empty(), "a trough on Southwest Mesa");
-    sim::map_heights::adjust_for_mountains(&grid, &mut z, &inputs.templates, &meshes);
+    sim::mapgen::map_heights::adjust_for_mountains(&grid, &mut z, &inputs.templates, &meshes);
     let goods = resource_inputs(root, "SOUTHWESTMESA.xml", g.xs, g.ys, g.nations)
         .expect("Southwest Mesa's rows")
         .goods;
-    let cliffs = sim::cliffs::init(&mut grid, &mut coord, &mut z, &inputs.cliffs, &goods, combo)
-        .unwrap_or_else(|e| panic!("Cliffs::init: {e:?}"));
+    let cliffs =
+        sim::mapgen::cliffs::init(&mut grid, &mut coord, &mut z, &inputs.cliffs, &goods, combo)
+            .unwrap_or_else(|e| panic!("Cliffs::init: {e:?}"));
     (grid, z, d, [p[0], p[1], p[2], p[3]], cliffs)
 }

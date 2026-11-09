@@ -37,7 +37,11 @@ fn the_emulated_original_agrees_on_every_row() {
         let who = a[1] as usize;
         let h = i16::from_le_bytes([p[4][0x86], p[4][0x87]]) as usize;
         let frame = rd(&p[2], 0);
-        let end = frame.wrapping_add(crate::cast::march_extent(rd(m, 0x1d4), rd(m, 0x1d8), a[2]));
+        let end = frame.wrapping_add(crate::spells::cast::march_extent(
+            rd(m, 0x1d4),
+            rd(m, 0x1d8),
+            a[2],
+        ));
         let count = rd(&p[6 + h], 8);
         log.push(if count >= rd(&p[6 + h], 0xc) {
             format!(

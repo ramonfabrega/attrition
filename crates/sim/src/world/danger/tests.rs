@@ -1,4 +1,4 @@
-use crate::build::{BuildType, Ident, flags};
+use crate::cities::build::{BuildType, Ident, flags};
 use crate::world::{Cell, Pos, Terrain, UNITS_PER_TILE, World};
 use crate::{Sim, Tuning};
 
@@ -208,7 +208,7 @@ fn a_unit_is_seen_by_the_live_fog_and_not_the_ever_seen_bit() {
 #[test]
 fn a_stealth_unit_is_hidden_until_a_detector_s_disc_covers_it() {
     use crate::UnitType;
-    use crate::ai_load::{UnitCols, uflags};
+    use crate::ai::ai_load::{UnitCols, uflags};
     let (mut sim, _city, _barracks) = fx();
     let mk = |sim: &mut Sim, flags: u32, obj: u32| {
         let mut ty = UnitType {

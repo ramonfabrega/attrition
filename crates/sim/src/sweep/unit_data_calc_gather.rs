@@ -28,7 +28,7 @@ fn the_emulated_original_agrees_on_every_row() {
     super::obj_rows(&rows, &obj, |a, m, c, p, log| {
         let _ = (&a, &m, &c, &p);
         {
-            // **The port is the crate's own steps**, `crate::calc_gather::unit_calc_gather_steps`, which
+            // **The port is the crate's own steps**, `crate::economy::calc_gather::unit_calc_gather_steps`, which
             // `Sim::calc_gather_at` and `Sim::do_gather_rates` run over their `SimGather`; here the view is the
             // emulated original's windows.
             //
@@ -43,7 +43,9 @@ fn the_emulated_original_agrees_on_every_row() {
             // Windows: `c[0]` the world, `c[1]` `div_3_table`; `p0..p5` the pointed arguments, `p6 + 2r` and
             // `p7 + 2r` leader `r`'s `+0x8` and `+0x74..`, `p15 + 4L + i` the objects of list `L`, `p23 + 4L + i`
             // the units, `p30 + 3L + i` their types, `p36` this's type, `p37` the cells, `p38` the tile masks.
-            use crate::calc_gather::{CalcGatherView, GatherArgs, Who, unit_calc_gather_steps};
+            use crate::economy::calc_gather::{
+                CalcGatherView, GatherArgs, Who, unit_calc_gather_steps,
+            };
             type Obj = (i32, i32);
             struct V<'a> {
                 a: &'a [i32],

@@ -1,6 +1,6 @@
 //! `Build::unqueue@006207c0` under the emulator against the port (item 3399; tools/sweep_gen.py, obj with windows).
 
-use sim::build_unqueue_view::{self, BuildUnqueueView};
+use sim::cities::build_unqueue_view::{self, BuildUnqueueView};
 
 #[allow(dead_code)]
 fn rd(m: &[u8], off: usize) -> i32 {

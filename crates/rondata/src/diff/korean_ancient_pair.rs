@@ -40,7 +40,7 @@ pub(crate) const KOREAN_ANCIENT: Pair = Pair {
     //
     // **The delta: 4350 → 5639, the game's last frame — whole** (item
     // 3578): the Korean stones leave from piece 1088's bays and the
-    // Hwarang's arrows from piece 130's (`sim::launch`). The value diff on
+    // Hwarang's arrows from piece 130's (`sim::data::launch`). The value diff on
     // the frame the state first parted, 4294: `1/29`'s stone at `0/13`
     // left from (6600, 9768) in 10 frames where the original's left from
     // (6541, 9663) in 9, and `1/44`'s arrow (4279) from (6072, 10728) in

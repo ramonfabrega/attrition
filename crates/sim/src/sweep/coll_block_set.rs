@@ -30,8 +30,8 @@ fn the_emulated_original_agrees_on_every_row() {
         {
             // The block's 16 x 16 bits at `+0xc`, x-major (`(x % 16) * 16 + y % 16`),
             // laid into the port's flattened grid over one world cell and read back.
-            let n = crate::collide::UCELLS_PER_CELL;
-            let mut g = crate::collide::CollGrid::new(1, 1);
+            let n = crate::movement::collide::UCELLS_PER_CELL;
+            let mut g = crate::movement::collide::CollGrid::new(1, 1);
             for i in 0..(n * n) as usize {
                 if m[0xc + i / 8] >> (i % 8) & 1 != 0 {
                     g.set(i as i32 / n, i as i32 % n, true);

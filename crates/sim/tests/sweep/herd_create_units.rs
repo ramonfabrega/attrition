@@ -35,8 +35,8 @@ fn the_emulated_original_agrees_on_every_row() {
         // Windows: `m` the herd (`+0` `+4` the cell, `+0x10` the type, `+0x18` the tag), `p[0]` the units array,
         // `p[1..4]` the units, `p[4..7]` their type records (`unit + 0x18` points at `p[3 + i]`).
         //
-        // **The port is `crate::herd_create_view`**; the view is the emulated original's windows and stubs.
-        use crate::herd_create_view::{HerdRec, HerdView, Left, create_units};
+        // **The port is `crate::gaia::herd_create_view`**; the view is the emulated original's windows and stubs.
+        use crate::gaia::herd_create_view::{HerdRec, HerdView, Left, create_units};
         struct V<'a> {
             a: &'a [i32],
             p: &'a mut [Vec<u8>],

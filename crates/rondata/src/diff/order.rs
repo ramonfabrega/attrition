@@ -2353,7 +2353,8 @@ mod tests {
                         sim::orders::Body::Gather(g)
                             if matches!(
                                 built.sim.building_ident(g.building),
-                                sim::build::Ident::Mine | sim::build::Ident::Woodcutter
+                                sim::cities::build::Ident::Mine
+                                    | sim::cities::build::Ident::Woodcutter
                             ) =>
                         {
                             Some(g)

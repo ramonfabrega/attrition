@@ -53,7 +53,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // speed's address, param_3 (0), then the `is_animal` slot's answer, the order slot's, the ground
             // stub's, and the ground height it writes.
             use crate::movement::Angle;
-            use crate::single::Single;
+            use crate::num::single::Single;
             use crate::world::{Pos, World};
             let sh = |w: &[u8], o: usize| i16::from_le_bytes([w[o], w[o + 1]]);
             let animal = a[3] != 0;

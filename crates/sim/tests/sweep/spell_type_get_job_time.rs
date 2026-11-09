@@ -34,10 +34,10 @@ fn the_emulated_original_agrees_on_every_row() {
         // `french_entrench`, `antipater_entrench_rate`, `napoleon_pack`), `p7`/`p8` the objects row and its
         // type, `p10`/`p11` the units row and its type; `m` the craft (`+4` its index, `+8` `JOB_TIME`).
         //
-        // **The port is the crate's own steps**, `crate::spell_type_get_job_time_view::get_job_time`, over a
+        // **The port is the crate's own steps**, `crate::spells::spell_type_get_job_time_view::get_job_time`, over a
         // view of the emulated original's windows; the crate has no whole `get_job_time` to call (that
         // module's head).
-        use crate::spell_type_get_job_time_view::{JobTimeView, get_job_time};
+        use crate::spells::spell_type_get_job_time_view::{JobTimeView, get_job_time};
         struct V<'a> {
             a: &'a [i32],
             p: &'a [Vec<u8>],

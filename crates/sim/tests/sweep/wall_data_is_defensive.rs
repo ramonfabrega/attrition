@@ -1,6 +1,6 @@
 //! `WallData::is_defensive@00473650` under the emulator against the port (item 2083; hand-written on tools/emu/hooks.py).
 
-use crate::build::{Ident, is_defensive_by};
+use crate::cities::build::{Ident, is_defensive_by};
 
 /// `WallData::is_defensive@00473650`, run by `tools/emu/sweep_wall_data_is_defensive.py` under unicorn (tools/emu): the same body on the record at the wall's `+0x18`, each ask's `ecx` the record; the `is` slot
 /// answered per row and per type index, zero half the time. The port's [`is_defensive_by`] is handed a lineage

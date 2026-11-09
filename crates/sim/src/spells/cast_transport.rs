@@ -263,13 +263,14 @@ impl TransportView for SimTransport<'_> {
     }
     fn domain(&self, g: i32) -> i32 {
         match self.sim.unit_domain_of(g as usize) {
-            crate::attrition::Domain::Land => 0,
-            crate::attrition::Domain::Sea => 1,
-            crate::attrition::Domain::Air => 2,
+            crate::territory::attrition::Domain::Land => 0,
+            crate::territory::attrition::Domain::Sea => 1,
+            crate::territory::attrition::Domain::Air => 2,
         }
     }
     fn is_caravan(&mut self, g: i32) -> bool {
-        self.sim.unit_is(g as usize, crate::transport::ty::CARAVAN)
+        self.sim
+            .unit_is(g as usize, crate::ai::transport::ty::CARAVAN)
     }
     fn current_upgrade(&mut self, base: i32) -> i32 {
         self.sim.current_upgrade_id(self.who, base as usize) as i32
@@ -283,7 +284,7 @@ impl TransportView for SimTransport<'_> {
             0,
             self.sim.tables.tuning.unit_board_distance,
             0,
-            crate::transport::BOARD_BEARING,
+            crate::ai::transport::BOARD_BEARING,
         )
     }
     fn init_unit(&mut self, who: i32, ty: i32, g: i32) -> i32 {

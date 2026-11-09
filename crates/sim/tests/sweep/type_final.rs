@@ -1,6 +1,6 @@
 //! `TypeData::is_final_type@00470660` under the emulator against the port (item 1704).
 
-use crate::type_index::is_final_type;
+use crate::core::type_index::is_final_type;
 
 /// `TypeData::is_final_type@00470660`, run by `tools/emu/sweep_type_final.py` under unicorn
 /// (tools/emu): `0x242 < t < 0x247` on the type record's `type`, over every index -2..=0x33f and the edges, against `type_index::is_final_type` — the bounds `is_final_type`'s readers (`type_index`'s header) stand on.

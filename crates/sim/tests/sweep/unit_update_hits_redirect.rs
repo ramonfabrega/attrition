@@ -34,7 +34,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // `p0`/`p3` those arrays, `p1`/`p2`/`p4`/`p5` the objects they hold, `p6` what slot `+0xa8` answers.
             // The not-captain unit (the short at `+0x8e` clear in bit 15, its low bits the index) hands its whole answer to
             // that object's `update_hits`: slot `+0x15c` of `p6`, the argument unchanged.
-            use crate::unit_update_hits_view::{UnitHitsK, UnitHitsView, unit_update_hits};
+            use crate::units::unit_update_hits_view::{UnitHitsK, UnitHitsView, unit_update_hits};
             struct V<'a> {
                 a: &'a [i32],
                 m: &'a [u8],

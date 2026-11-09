@@ -28,8 +28,8 @@ fn the_emulated_original_agrees_on_every_row() {
     super::obj_rows(&rows, &obj, |a, m, c, p, log| {
         let _ = (&a, &m, &c, &p);
         {
-            // `Unit::think_fish`: the head (cadence, `calc_gather`, the `0x20` bit), the 289-cell walk (`crate::fish::best_cell`
-            // over `crate::fish::cell_base`), the own-cell cast, and the tail that builds a MOVE_TO order. The tail has no
+            // `Unit::think_fish`: the head (cadence, `calc_gather`, the `0x20` bit), the 289-cell walk (`crate::units::think::fish::best_cell`
+            // over `crate::units::think::fish::cell_base`), the own-cell cast, and the tail that builds a MOVE_TO order. The tail has no
             // crate method (`add_move_order` is welded to the Sim), so the order object's bytes are written inline.
             let res: i64 = 'done: {
                 let sh = |w: &[u8], o: usize| i32::from(i16::from_le_bytes([w[o], w[o + 1]]));
@@ -40,7 +40,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 let packed = f68 & 0x80000 != 0;
                 let me = i16::from_le_bytes([m[0xa], m[0xb]]);
                 if ty_bit && !packed {
-                    if !crate::fish::recheck_due(me, i64::from(rd(&c[0], 0x550))) {
+                    if !crate::units::think::fish::recheck_due(me, i64::from(rd(&c[0], 0x550))) {
                         break 'done 0;
                     }
                     log.push("s0:m+0x0,m+0x54,sp-0x18,m+0x94,sp-0x40,0,0,1,1,-1,-1".to_string());
@@ -64,14 +64,14 @@ fn the_emulated_original_agrees_on_every_row() {
                     .collect();
                 let who = i32::from(m[9]);
                 let (mut kg, mut kr) = (0usize, 0usize);
-                let best = crate::fish::best_cell(here, &moves, |_, (x, y)| {
+                let best = crate::units::think::fish::best_cell(here, &moves, |_, (x, y)| {
                     if x < 0 || y < 0 || x >= w || y >= h {
                         return None;
                     }
                     let off = ix(w * y + x) * 0x1c;
                     let cell = &p[16][off..off + 0x1c];
                     let flags = u16::from_le_bytes([cell[0], cell[1]]);
-                    let base = crate::fish::cell_base(
+                    let base = crate::units::think::fish::cell_base(
                         flags,
                         cell[2] as i8,
                         sh(cell, 4) == a[1],

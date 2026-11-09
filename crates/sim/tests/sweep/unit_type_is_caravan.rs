@@ -1,6 +1,6 @@
 //! `UnitTypeData::is_caravan@00470420` under the emulator against the port (item 1694).
 
-use crate::ai_load::{UnitCols, uflags2};
+use crate::ai::ai_load::{UnitCols, uflags2};
 
 /// `UnitTypeData::is_caravan@00470420`, run by `tools/emu/sweep_unit_type_is_caravan.py` under unicorn
 /// (tools/emu): `unit_flags2` (`type+0x2b8`) `& 0x8`, over every bit edge and a seeded band, against `UnitCols::flag2(uflags2::FLAG2_CARAVAN)` — the bit the port names as the same predicate.

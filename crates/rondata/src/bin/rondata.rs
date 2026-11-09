@@ -643,7 +643,7 @@ fn gamelog_report(install: &Install, path: &str) -> Result<usize, rondata::Error
         &if drift.is_empty() {
             format!(
                 "{} slots",
-                sim::tuning::Tuning::ron_slots().len() - report.missing.len()
+                sim::core::tuning::Tuning::ron_slots().len() - report.missing.len()
             )
         } else {
             join(drift.iter().map(|d| {
@@ -775,8 +775,8 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
     // the reader would go quietly wrong rather than loudly, so it is a
     // check rather than a print.
     let gaia = rondata::artdata::gaia_lengths(install);
-    let bird_walk = gaia.get(&(0x192, 0, sim::anim::WALK)).copied();
-    let bird_jog = gaia.get(&(0x192, 0, sim::anim::JOG)).copied();
+    let bird_walk = gaia.get(&(0x192, 0, sim::units::anim::WALK)).copied();
+    let bird_jog = gaia.get(&(0x192, 0, sim::units::anim::JOG)).copied();
     failures += check(
         "the gaia types' animation lengths read from the install's art",
         gaia.len() >= 100 && bird_walk == Some(31) && bird_jog == Some(23),
@@ -980,12 +980,12 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
 
     // The roster itself, which is an index the simulation hardcodes: every
     // nation power is `has_tribe_bonus(n)` for a fixed `n`, so a nation that
-    // moved would silently hand its power to its neighbour. `sim::nations`
+    // moved would silently hand its power to its neighbour. `sim::cities::nations`
     // names the twenty-four in order; this re-derives them from `rules.xml`'s
     // own `TRIBES` block and each nation file's `<TRIBE name>`.
     let defs = install.tribe_defs(&rules).unwrap_or_default();
     let roster: Vec<String> = defs.iter().map(|d| d.name.clone()).collect();
-    let drift: Vec<String> = sim::nations::ROSTER
+    let drift: Vec<String> = sim::cities::nations::ROSTER
         .iter()
         .enumerate()
         .filter(|(i, name)| roster.get(*i).map(String::as_str) != Some(**name))
@@ -998,7 +998,7 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
         .collect();
     failures += check(
         "the nation roster is the order the powers are indexed by",
-        roster.len() == sim::nations::ROSTER.len() && drift.is_empty(),
+        roster.len() == sim::cities::nations::ROSTER.len() && drift.is_empty(),
         &format!(
             "{} nations{}",
             roster.len(),
@@ -1192,9 +1192,13 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
             (
                 "undiscovered",
                 "UNDISC",
-                sim::cost::Redirects::RON.undiscovered[i],
+                sim::economy::cost::Redirects::RON.undiscovered[i],
             ),
-            ("obsolete", "OBS", sim::cost::Redirects::RON.obsolete[i]),
+            (
+                "obsolete",
+                "OBS",
+                sim::economy::cost::Redirects::RON.obsolete[i],
+            ),
         ];
         for (which, prefix, ours) in tables {
             let theirs_good = rec.text(&format!("{prefix}_COST_GOOD")).unwrap_or("");
@@ -1496,9 +1500,9 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
                     "  Hoplites vs Bowmen: type_damage {} %, with the file {} %; \
                      Bowmen vs Hoplites: {} %, with the file {} %  (masks only; \
                      no age, no lineages)",
-                    sim::balance::type_damage(&t, &a, &b),
+                    sim::combat::balance::type_damage(&t, &a, &b),
                     rondata::balance::entry(&t, &xml, &a, &b),
-                    sim::balance::type_damage(&t, &b, &a),
+                    sim::combat::balance::type_damage(&t, &b, &a),
                     rondata::balance::entry(&t, &xml, &b, &a),
                 );
             }

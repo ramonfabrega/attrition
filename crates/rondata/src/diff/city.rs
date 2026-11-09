@@ -618,7 +618,7 @@ mod tests {
         built.tick();
         let ours = std::mem::take(&mut built.sim.trace.cost_marks);
 
-        let mut theirs_by_key: std::collections::BTreeMap<sim::path::CostKey, i32> =
+        let mut theirs_by_key: std::collections::BTreeMap<sim::movement::path::CostKey, i32> =
             std::collections::BTreeMap::new();
         for c in &theirs {
             theirs_by_key.insert(c.cost_key().expect("a calc_cost call"), c.ret);
@@ -771,7 +771,7 @@ mod tests {
                     .tables
                     .build_types
                     .iter()
-                    .position(|b| b.ident == sim::build::Ident::Village)
+                    .position(|b| b.ident == sim::cities::build::Ident::Village)
                     .expect("the Small City");
                 city_price = built.sim.building_price(1, village);
             }
@@ -996,7 +996,7 @@ mod tests {
         let ours = std::mem::take(&mut built.sim.trace.cost_marks);
 
         // The original's answers, keyed by the whole argument list.
-        let mut theirs_by_key: std::collections::BTreeMap<sim::path::CostKey, i32> =
+        let mut theirs_by_key: std::collections::BTreeMap<sim::movement::path::CostKey, i32> =
             std::collections::BTreeMap::new();
         for c in &theirs {
             theirs_by_key.insert(c.cost_key().expect("a calc_cost call"), c.ret);

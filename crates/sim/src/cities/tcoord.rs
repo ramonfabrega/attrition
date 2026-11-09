@@ -12,9 +12,9 @@
 //! three that read the tile's contents (a goody's ruins, a building, the
 //! blocked tile's `Rare`).
 
-use crate::build::{self, Ident, flags};
-use crate::place::Blocked;
-use crate::transport::TransportType;
+use crate::ai::transport::TransportType;
+use crate::cities::build::{self, Ident, flags};
+use crate::cities::place::Blocked;
 use crate::world::{LANDS, Pos, cell, tile};
 use crate::{Player, Sim};
 
@@ -351,7 +351,7 @@ impl TcoordView for SimTcoord<'_> {
         (t.x, t.y)
     }
     fn good(&mut self) -> i32 {
-        crate::ai_place::gather_good(self.sim.tables.build_types[self.ty].ident)
+        crate::ai::ai_place::gather_good(self.sim.tables.build_types[self.ty].ident)
             .map_or(-1, |g| g as i32)
     }
     fn land(&mut self, x: i32, y: i32) -> i32 {

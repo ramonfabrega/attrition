@@ -120,7 +120,7 @@ pub const fn struck_count(d: i32, max: i32) -> i32 {
 impl Sim {
     /// Whether a unit is of the nuke's line (`is(0x13b)`).
     pub(crate) fn is_nuke(&self, o: Obj) -> bool {
-        matches!(o, Obj::Unit(u) if self.air_line_is(u, crate::airbase::NUCLEARMISSILE))
+        matches!(o, Obj::Unit(u) if self.air_line_is(u, crate::air::airbase::NUCLEARMISSILE))
     }
 
     /// **`Ammo::do_damage@00678060`'s nuke arm** (`67846d`..`6785db`),
@@ -173,7 +173,7 @@ impl Sim {
         if !self.world.has_fog() {
             return;
         }
-        let c = crate::ai_place::circle();
+        let c = crate::ai::ai_place::circle();
         let n = c.radius[(splash + 1).clamp(0, 0x40) as usize];
         let (tx, ty) = (landing.tile().x, landing.tile().y);
         let (tw, th) = (

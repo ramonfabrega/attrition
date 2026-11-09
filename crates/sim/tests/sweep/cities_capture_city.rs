@@ -42,10 +42,10 @@ fn the_emulated_original_agrees_on_every_row() {
             // the `--seq` runs in flag order (stubs 1, 15, 17, 16) and `City::capture`'s leftover `ecx`
             // (`a[49]`).
             //
-            // **The port is the crate's own steps**, `crate::capture_view::capture_city_steps`, which
+            // **The port is the crate's own steps**, `crate::cities::capture_view::capture_city_steps`, which
             // `Sim::capture_city` calls over its `SimCapture`; here the view is the emulated original's
             // windows.
-            use crate::capture_view::{CaptureView, capture_city_steps};
+            use crate::cities::capture_view::{CaptureView, capture_city_steps};
             const SEQ_AT: [(usize, usize, usize); 4] =
                 [(1, 21, 8), (15, 29, 8), (17, 37, 8), (16, 45, 4)];
             const BUILD_VTABLE: u32 = 0x00b4_2174;

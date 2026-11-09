@@ -1,7 +1,7 @@
 //! `UnitData::can_transport@0046f960` under the emulator against the port (item 1701).
 
 use crate::UnitType;
-use crate::ai_load::UnitCols;
+use crate::ai::ai_load::UnitCols;
 
 /// `UnitData::can_transport@0046f960`, run by `tools/emu/sweep_unit_can_transport.py` under unicorn
 /// (tools/emu): `(unit_masks & 0x800000 && !(unit_masks2 & 0x2000)) || type byte +0x2b4 & 0x10`, over the cross of the bit edges and a seeded band, against `Sim::unit_can_transport` — the port's `auto_transport`, `never_transport` and `unit_flags & 0x10`, set from the row's words.

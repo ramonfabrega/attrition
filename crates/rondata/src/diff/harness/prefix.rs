@@ -157,7 +157,11 @@ mod tests {
         }
     }
     fn built(frame: i64) -> Built {
-        let mut sim = sim::Sim::new(sim::tuning::Tuning::RON, sim::world::World::new(2, 2), 2);
+        let mut sim = sim::Sim::new(
+            sim::core::tuning::Tuning::RON,
+            sim::world::World::new(2, 2),
+            2,
+        );
         sim.frame = frame;
         Built {
             sim,

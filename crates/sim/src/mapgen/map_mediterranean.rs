@@ -1,6 +1,6 @@
 //! **Mediterranean's land/sea mask** (`docs/MAPGEN.md` §29, §5, §15 step
 //! 1): `MapMediterranean::make_continents@0069add0`, on the region growers
-//! Great Lakes' port carries (`crate::map_lakes`).
+//! Great Lakes' port carries (`crate::mapgen::map_lakes`).
 //!
 //! One region grown as land at the map's centre on a wiped world, then
 //! inverted, so the sea is the grown region and the wiped background the
@@ -11,13 +11,13 @@
 //! growers' distances are the engine's integer `vector_dist`, the walk's
 //! angle and radius its integer `project`.
 
-use crate::map_east_west::is_near_ocean;
-use crate::map_lakes::{
+use crate::mapgen::map_east_west::is_near_ocean;
+use crate::mapgen::map_lakes::{
     Grower, LakeMap, LakeStyle, Lakes, check_player_land, eliminate_pools_in, scale_land_area,
 };
+use crate::mapgen::terrain_groups::Draws;
 use crate::mapgen::{MapGrid, Regions, project};
 use crate::movement::Angle;
-use crate::terrain_groups::Draws;
 
 /// The draw sites, as return addresses (the trace's `Function+0xNN`).
 pub mod site {

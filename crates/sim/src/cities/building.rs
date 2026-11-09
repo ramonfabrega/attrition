@@ -19,7 +19,7 @@ pub struct Building {
     /// places it at the building's own position and then puts it inside, so
     /// every unit is born garrisoned and leaves by the ejection path.
     pub pos: Pos,
-    pub queue: production::Queue,
+    pub queue: crate::cities::production::Queue,
     /// Whether this is a library — the original's `is(LIBRARY, 0)`. Two rules
     /// key on it and on nothing else: orders and cancels given to any library
     /// are forwarded to the player's *first* one, and only that first
@@ -75,12 +75,12 @@ pub struct Building {
     /// `can_carry(AIR)`; only the player's repeat-orders toggle
     /// (`Group::action_buildmask(0x80)`) clears it (`docs/ORDERS.md` §40).
     pub repeat_air: bool,
-    /// `BuildData::gather`, the gather point list (`crate::rally`): the
+    /// `BuildData::gather`, the gather point list (`crate::cities::rally`): the
     /// player's rally points, in order.
-    pub gather: Vec<rally::GatherPoint>,
+    pub gather: Vec<crate::cities::rally::GatherPoint>,
     /// `build_masks & 0x100`: this building's roads want replanning, and
     /// `Build::process` will replan them on the frame `(frame + o) % 16`
-    /// picks out. Set by `City::regen_roads` — `crate::roads` §1.
+    /// picks out. Set by `City::regen_roads` — `crate::movement::roads` §1.
     pub regen_roads: bool,
     /// `ObjectData::damage`, whole hits taken. [`Building::health`] is kept
     /// equal to `hits_now − damage` and is what combat reads as the share.
@@ -117,7 +117,7 @@ pub struct Building {
     /// `BuildData::founder`.
     pub founder: Player,
     /// The four per-call construction-clock clauses, as inputs.
-    pub clock: build::ClockMods,
+    pub clock: crate::cities::build::ClockMods,
     /// Frame of the last hit by another player, for the repair gate.
     pub hit_frame: Option<i64>,
     /// A fort's entry in [`Sim::sources`], while it projects territory.
@@ -225,7 +225,7 @@ pub struct Produced {
 
 impl Sim {
     /// Registers a building type and returns its id.
-    pub fn add_build_type(&mut self, ty: build::BuildType) -> usize {
+    pub fn add_build_type(&mut self, ty: crate::cities::build::BuildType) -> usize {
         self.tables.build_types.push(ty);
         if self.combat.table.builds() < self.tables.build_types.len() {
             self.combat.table = self
@@ -245,7 +245,7 @@ impl Sim {
             owner,
             index,
             pos,
-            queue: production::Queue::new(capacity),
+            queue: crate::cities::production::Queue::new(capacity),
             is_library: false,
             combat: None,
             hits: 0,
@@ -281,7 +281,7 @@ impl Sim {
             launch_frames: 0,
             launching: Vec::new(),
             founder: owner,
-            clock: build::ClockMods::default(),
+            clock: crate::cities::build::ClockMods::default(),
             hit_frame: None,
             fort_source: None,
             gatherers: Vec::new(),

@@ -38,7 +38,7 @@ fn the_emulated_original_agrees_on_every_row() {
             } else if !cargo_base {
                 i64::from(cargo)
             } else if unit_base {
-                i64::from(crate::transport::cargo_type(rd(&p[0], 4), land))
+                i64::from(crate::ai::transport::cargo_type(rd(&p[0], 4), land))
             } else {
                 i64::from(unit_ty != 0 && land)
             }

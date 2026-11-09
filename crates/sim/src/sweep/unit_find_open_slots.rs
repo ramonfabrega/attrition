@@ -33,12 +33,12 @@ fn the_emulated_original_agrees_on_every_row() {
         // The asker's type is `p[5]`, the target's `p[4]`, the target's
         // slot `p[7]` (`+0x10`/`+0x14` the masked position), the world
         // `c[1]` (`+0`, `+4` its size in cells).
-        let centre = crate::collide::ucell(crate::world::Pos::new(
+        let centre = crate::movement::collide::ucell(crate::world::Pos::new(
             rd(&p[7], 0x10) ^ 0x63637,
             rd(&p[7], 0x14) ^ 0x63637,
         ));
         let dims = (rd(&c[1], 0), rd(&c[1], 4));
-        let slots = crate::attack_pos::find_open_slots_steps(
+        let slots = crate::combat::attack_pos::find_open_slots_steps(
             rd(&p[5], 0x248),
             rd(&p[4], 0x248),
             a[3] != 0,

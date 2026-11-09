@@ -1,7 +1,7 @@
 //! `UnitTypeData::get_stance_type@0061d350` under the emulator against
 //! `stance::stance_type` (item 1619).
 
-use crate::stance::{StanceType, stance_type};
+use crate::units::stance::{StanceType, stance_type};
 
 /// `UnitTypeData::get_stance_type@0061d350`, run by
 /// `tools/emu/sweep_unit_type_get_stance_type.py` under unicorn: `role`
@@ -9,7 +9,7 @@ use crate::stance::{StanceType, stance_type};
 /// set per row, answers 0 combat, 1 worker, 2 caster, 3 packer, -1 none.
 /// Every row — all 256 low bytes of the flags against military and civilian
 /// roles and the index boundaries 0x31..=0x36, plus a seeded random band — is
-/// asserted against `crate::stance::stance_type`, which is the whole function
+/// asserted against `crate::units::stance::stance_type`, which is the whole function
 /// (no state beyond the three words).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {

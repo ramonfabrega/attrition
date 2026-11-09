@@ -2,7 +2,7 @@
 //! `Leader::produce_upgrade@006cb5d0`, `Leader::produce_spell@006ca720`;
 //! the specification is `~/ghidra-projects/reports/ai/create-buildings.md`
 //! §1–§3, §5–§7 (ratified in `docs/AI.md` §11). `produce_building` itself
-//! is [`crate::ai_place`].
+//! is [`crate::ai::ai_place`].
 //!
 //! `create_buildings` is two passes (non-gather, then gather) over every
 //! city of the leader, and inside each city over every build type: a stack
@@ -48,7 +48,7 @@
 //! - `TERRACOTTA` / `STATUEOFLIBERTY` / `SPACEPROGRAM` have no [`Ident`], so
 //!   the tech-race lobby's ÷1000 never fires.
 //! - ~~`WorldData::danger` is per region here, not per half-cell.~~ It is
-//!   the half-cell grid now, and [`crate::danger`] writes it.
+//!   the half-cell grid now, and [`crate::world::danger`] writes it.
 //! - ~~`build_flags & 0x8000000` is `DEEP_QUEUE` and no shipped row carries
 //!   it, so the civic block is dead code.~~ **Wrong, corrected 2026-08-25**
 //!   (`docs/DATALAYER.md`, "The derived words no column carries"): the bit is
@@ -61,10 +61,10 @@
 //!   units and technologies, so a building upgrade has nowhere to go.
 //! - spells: the simulation has none, so `produce_spell` never casts.
 
+use crate::ai::ai_place::{enhancing_good, gather_good, is_enhancer};
+use crate::ai::ai_types::Class;
 use crate::ai::{Census, MakeObject};
-use crate::ai_place::{enhancing_good, gather_good, is_enhancer};
-use crate::ai_types::Class;
-use crate::build::{self, BuildDomain, Ident, flags};
+use crate::cities::build::{self, BuildDomain, Ident, flags};
 use crate::economy::RESOURCES;
 use crate::tech::{self, TypeId};
 use crate::{Player, Sim};
@@ -1355,7 +1355,7 @@ impl Sim {
     /// [`BuildType::wonder_points`], through `ObjectData::get_wonder_value`
     /// (`Build`'s slot `+0x14c` is that function, read off the PE).
     ///
-    /// [`BuildType::wonder_points`]: crate::build::BuildType::wonder_points
+    /// [`BuildType::wonder_points`]: crate::cities::build::BuildType::wonder_points
     pub fn wonder_points(&self, who: Player) -> i32 {
         let Some(a) = self.ai.ai.get(who as usize) else {
             return 0;

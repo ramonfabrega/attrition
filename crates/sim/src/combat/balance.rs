@@ -12,9 +12,9 @@
 //! Nothing here is the shipped data: the chain is the rule, and the numbers in
 //! it are the original's literals.
 
-use crate::attrition::Domain;
 use crate::combat::mask;
-use crate::tuning::Tuning;
+use crate::core::tuning::Tuning;
+use crate::territory::attrition::Domain;
 
 /// The named lineages `type_damage` tests with `ObjectTypeData::is(x, strict)`.
 /// A type carries the bits of every lineage it belongs to; a `_STRICT` bit is

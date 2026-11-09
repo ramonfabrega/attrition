@@ -12,7 +12,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let (_, want) = super::row(line);
         assert_eq!(
             want,
-            i64::from(crate::flag_reads::DOOBERS_ADDR),
+            i64::from(crate::core::flag_reads::DOOBERS_ADDR),
             "GameAccessConst::get_scary_doobers — row `{line}`"
         );
         n += 1;

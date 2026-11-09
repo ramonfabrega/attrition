@@ -42,10 +42,10 @@ fn the_emulated_original_agrees_on_every_row() {
             // `vtat-keep` flags (`a[357]` slot `+0xd4`, `a[358]` slot `+0xc0`: set, the image's own function
             // inline) and the `get_action` null flag (`a[359]`).
             //
-            // **The port is the crate's own steps**, `crate::attack_view::action_attack_steps`, which
+            // **The port is the crate's own steps**, `crate::groups::attack_view::action_attack_steps`, which
             // `Sim::group_action_attack` calls over its `SimAttack`; here the view is the emulated original's
             // windows.
-            use crate::attack_view::{AttackHead, AttackView, action_attack_steps};
+            use crate::groups::attack_view::{AttackHead, AttackView, action_attack_steps};
             const SEQ_AT: [(usize, usize, usize); 16] = [
                 (0, 57, 16),
                 (1, 73, 16),

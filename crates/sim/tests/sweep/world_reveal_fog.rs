@@ -20,7 +20,7 @@ fn u16_at(w: &[u8], off: usize) -> u16 {
     u16::from_le_bytes([w[off], w[off + 1]])
 }
 
-/// The emulated original's windows as [`crate::rares::RevealFogView`].
+/// The emulated original's windows as [`crate::economy::rares::RevealFogView`].
 ///
 /// Windows: `m` the world (`+0x0` the cell row length, `+0x18` the tile row
 /// length), `c0` the console (`+0x298` its player), `c1` the game (`+0x30`
@@ -51,7 +51,7 @@ impl Fog<'_> {
     }
 }
 
-impl crate::rares::RevealFogView for Fog<'_> {
+impl crate::economy::rares::RevealFogView for Fog<'_> {
     fn tile_marked(&mut self, fx: i32, fy: i32) -> bool {
         let i = ((2 * fy + 1) * rd(self.m, 0x18) + 2 * fx + 1) as usize;
         u16_at(&self.p[57], 2 * i) & 0x200 != 0
@@ -194,7 +194,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             // **The port is the crate's own steps**,
-            // `crate::rares::reveal_fog_steps`, which `Sim::reveal_fog` runs over
+            // `crate::economy::rares::reveal_fog_steps`, which `Sim::reveal_fog` runs over
             // its `SimRevealFog`; here the view is the emulated original's
             // windows (`Fog`). `a`: the two `FCoord` pointers (their windows
             // `p0`, `p1` hold the values), the player, the unit slot, then
@@ -208,7 +208,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 log: &mut log,
                 deref: None,
             };
-            crate::rares::reveal_fog_steps(&mut v, fx, fy, a[2], a[3]);
+            crate::economy::rares::reveal_fog_steps(&mut v, fx, fy, a[2], a[3]);
             // Stub 9 prints the 8 bytes its argument points at (the caller's
             // two locals, `cy` then `cx`) after the record, `-` when not called.
             let tail = match v.deref {

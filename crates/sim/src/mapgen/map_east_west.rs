@@ -1,6 +1,6 @@
 //! **East Meets West's land/sea mask** (`docs/MAPGEN.md` §24, §5, §15 step
 //! 1): `MapEastMeetsWest::make_continents@00696640`, on the region growers
-//! Great Lakes' port carries (`crate::map_lakes`), and the three arms no
+//! Great Lakes' port carries (`crate::mapgen::map_lakes`), and the three arms no
 //! other ported style runs — `Map::fill_cont@0068a960`'s continents,
 //! `Map::find_region_centroid@0068ae50` and
 //! `Map::eliminate_edge_canals@0068b360` — with the start placement's
@@ -22,11 +22,13 @@
 //! distances are the engine's integer `vector_dist`, the angles its integer
 //! `find_angle` and `project`.
 
-use crate::map_lakes::{Grower, LakeMap, LakeStyle, Lakes, eliminate_pools, scale_land_area};
+use crate::mapgen::map_lakes::{
+    Grower, LakeMap, LakeStyle, Lakes, eliminate_pools, scale_land_area,
+};
+use crate::mapgen::terrain_groups::Draws;
 use crate::mapgen::{MapGrid, Regions, project};
 use crate::movement::{Angle, find_angle};
-use crate::scout::circle;
-use crate::terrain_groups::Draws;
+use crate::units::think::scout::circle;
 use crate::world::vector_dist;
 
 /// The draw sites, as return addresses (the trace's `Function+0xNN`).

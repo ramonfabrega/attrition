@@ -38,12 +38,12 @@ fn the_emulated_original_agrees_on_every_row() {
         // `+0x6928` colour; `p[13 + o]` the objects, `p[17 + city]` the cities, `p[21]` the building the object
         // answers (vtable `p[21]+0`, `+0x18` the name `p[22]`).
         //
-        // **The port is the crate's own steps**, `crate::city::check_upgrade_steps`, which `Sim::check_upgrade`
+        // **The port is the crate's own steps**, `crate::cities::city::check_upgrade_steps`, which `Sim::check_upgrade`
         // runs over its records; here the view is the emulated original's windows. The population adjustments
         // are the running delta the original keeps (the crate recounts, which is the same number), and the
         // message is the view's own: this crate models none of it (SEAM on `announce`). The `ecx` of
         // `fix_borders` and `play` is whatever the previous call left; the log names what the emulator left.
-        use crate::city::{CheckUpgradeView, check_upgrade_steps};
+        use crate::cities::city::{CheckUpgradeView, check_upgrade_steps};
         struct V<'a> {
             a: &'a [i32],
             m: &'a [u8],

@@ -17,7 +17,7 @@ fn the_emulated_original_agrees_on_every_row() {
             "BuildQueueData::get_size — the raw word, row `{line}`"
         );
         if v >= 0 {
-            let q = crate::production::Queue {
+            let q = crate::cities::production::Queue {
                 capacity: usize::try_from(v).expect("non-negative"),
                 ..Default::default()
             };

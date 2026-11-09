@@ -30,5 +30,5 @@ pub struct Tables {
     /// [`Building::ty`] set obeys the placement, construction, city and
     /// garrison rules; one without is the bare production-and-combat object
     /// the earlier mechanics used.
-    pub build_types: Vec<crate::build::BuildType>,
+    pub build_types: Vec<crate::cities::build::BuildType>,
 }

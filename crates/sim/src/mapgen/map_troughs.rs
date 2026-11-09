@@ -2,7 +2,7 @@
 //! `RiversOut::calculate_all@00888820(0, 0)`, inside `Terrain::init`
 //! between `make_rivers` (`map.cpp` 5118) and `adjust_for_mountains`.
 //!
-//! Each river [`crate::map_rivers::make_riverlist`] started
+//! Each river [`crate::mapgen::map_rivers::make_riverlist`] started
 //! ([`MapGrid::rivers`]) is, in order:
 //! 1. its control points (`RiverOut::add_spline_point@00885a40`, the cell
 //!    centre in world units, 768 a cell) and their length in cells;
@@ -19,7 +19,7 @@
 //!    `smooth_tcoord` passes over what the terraform touched;
 //! 5. `Terrain::spot_update_land_batch@0084d540`: every terraformed cell
 //!    becomes `BASELAND` of the tileset's `riverbase`
-//!    ([`crate::halfland::Pass::spot_update_land_batch`]).
+//!    ([`crate::mapgen::halfland::Pass::spot_update_land_batch`]).
 //!
 //! Every operation is the original's SSE single precision, through
 //! [`Single`]; the spline's `z` is zero throughout and is carried so the
@@ -27,10 +27,10 @@
 //! (the water planes, texture coordinates, the sections' own normals and
 //! tangents) is not built.
 
-use crate::halfland::{Combo, Pass, Unported as HalfUnported};
-use crate::map_resources::Footprint;
+use crate::mapgen::halfland::{Combo, Pass, Unported as HalfUnported};
+use crate::mapgen::map_resources::Footprint;
 use crate::mapgen::{Fractal, MapGrid};
-use crate::single::Single;
+use crate::num::single::Single;
 use crate::world::{MOVE_49, MOVE_289};
 
 /// `0x44400000`: 768.0, a cell in world units.
@@ -342,7 +342,7 @@ pub enum Unported {
     /// `Terrain::move_goody@0084a3d0` would move a good off these cells,
     /// and no footprints were handed to move it under.
     Goody(Vec<(i32, i32)>),
-    /// The land batch's `verify_land` refused (`crate::halfland`).
+    /// The land batch's `verify_land` refused (`crate::mapgen::halfland`).
     Land(HalfUnported),
 }
 
@@ -478,7 +478,7 @@ impl River<'_> {
         match to {
             Ok(Some((nx, ny))) => {
                 self.moved.push(((x, y), (nx, ny)));
-                crate::map_heights::terraform_oil(self.g, self.z, nx, ny);
+                crate::mapgen::map_heights::terraform_oil(self.g, self.z, nx, ny);
             }
             Ok(None) => {}
             Err(_) => self.goody.push((x, y)),
@@ -773,7 +773,7 @@ pub fn calculate_all(
             let tw = 4 * r.g.xs;
             for _ in 0..2 {
                 for &i in &smooth {
-                    crate::map_heights::smooth_tcoord(r.g, r.z, i % tw, i / tw);
+                    crate::mapgen::map_heights::smooth_tcoord(r.g, r.z, i % tw, i / tw);
                 }
             }
         }

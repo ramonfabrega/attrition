@@ -1,6 +1,6 @@
 //! `TypeData::is_gaia_type@004707a0` under the emulator against the port (item 1705).
 
-use crate::type_index::is_gaia_type;
+use crate::core::type_index::is_gaia_type;
 
 /// `TypeData::is_gaia_type@004707a0`, run by `tools/emu/sweep_type_gaia.py` under unicorn
 /// (tools/emu): `0x191 < t < 0x19e` on the type record's `type`, over every index -2..=0x33f and the edges, against `type_index::is_gaia_type` (0x192..=0x19d).

@@ -10,7 +10,7 @@
 //! player and `o`/`u` an index in that player's `objects`/`units` array;
 //! the original indexes both arrays by one object index.
 
-use crate::ai_place::circle;
+use crate::ai::ai_place::circle;
 use crate::world::vector_dist;
 
 /// `SoundGlobal::play(S_SOUND_ALARM)`'s argument, the bell's.
@@ -400,7 +400,7 @@ pub struct SimAlarm<'a> {
     pub sim: &'a mut crate::Sim,
     pub who: crate::world::Player,
     pub list: &'a [usize],
-    pub group: crate::group::Group,
+    pub group: crate::groups::group::Group,
     /// The building whose garrison `unit_next_civ` walks.
     pub inside_of: usize,
 }
@@ -411,7 +411,7 @@ impl<'a> SimAlarm<'a> {
             sim,
             who,
             list,
-            group: crate::group::Group::stack(who),
+            group: crate::groups::group::Group::stack(who),
             inside_of: 0,
         }
     }
@@ -429,7 +429,7 @@ impl AlarmHead for SimAlarm<'_> {
         i32::from(self.who)
     }
     fn group_clear(&mut self) {
-        self.group = crate::group::Group::stack(self.who);
+        self.group = crate::groups::group::Group::stack(self.who);
     }
     fn ignore_orders(&self) -> bool {
         false
@@ -556,7 +556,8 @@ impl AlarmView for SimAlarm<'_> {
         }
     }
     fn unit_is_militia(&mut self, _p: i32, u: i32) -> bool {
-        self.sim.unit_is_index(u as usize, crate::cast::MILITIA)
+        self.sim
+            .unit_is_index(u as usize, crate::spells::cast::MILITIA)
     }
     fn cast_civilian(&mut self, _p: i32, u: i32) {
         self.sim.cast_civilian(u as usize);
@@ -611,7 +612,7 @@ impl AlarmView for SimAlarm<'_> {
         0
     }
     fn can_garrison(&mut self, _k: i32, t: i32) -> bool {
-        let citizen = self.sim.unit_rec_of_index(crate::cast::PEASANTS);
+        let citizen = self.sim.unit_rec_of_index(crate::spells::cast::PEASANTS);
         citizen
             .zip(self.sim.buildings[t as usize].ty)
             .is_some_and(|(ut, bt)| self.sim.can_garrison(ut, bt))

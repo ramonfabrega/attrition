@@ -358,15 +358,17 @@ fn the_air_arm_sets_remaining_to_the_air_cap() {
     ty.price.pop = 1;
     ty.combat.combat_role = true;
     ty.combat.attack = 100;
-    ty.combat.domain = crate::attrition::Domain::Air;
+    ty.combat.domain = crate::territory::attrition::Domain::Air;
     ty.group = Some(0);
     sim.add_unit_type(ty);
     let rec = sim.tables.build_types.len();
-    sim.tables.build_types.push(crate::build::BuildType {
-        ident: Ident::Airbase,
-        tree: Some(airbase),
-        ..crate::build::BuildType::default()
-    });
+    sim.tables
+        .build_types
+        .push(crate::cities::build::BuildType {
+            ident: Ident::Airbase,
+            tree: Some(airbase),
+            ..crate::cities::build::BuildType::default()
+        });
     let b = sim.add_building(0, crate::Pos::default(), 8);
     sim.buildings[b].ty = Some(rec);
     let f = sim.unit_facts(unit).expect("a unit record");
@@ -458,10 +460,12 @@ fn the_sea_branch_s_dock_is_the_nearest_of_mine_around_the_city() {
     use crate::world::{Pos, UNITS_PER_CELL, UNITS_PER_TILE};
     let mut sim = bare();
     let dock = sim.tables.build_types.len();
-    sim.tables.build_types.push(crate::build::BuildType {
-        ident: Ident::Dock,
-        ..crate::build::BuildType::default()
-    });
+    sim.tables
+        .build_types
+        .push(crate::cities::build::BuildType {
+            ident: Ident::Dock,
+            ..crate::cities::build::BuildType::default()
+        });
     let add = |sim: &mut Sim, who: Player, tiles: (i32, i32)| {
         let b = sim.add_building(
             who,
@@ -532,7 +536,7 @@ fn barracks_sim(upgradeable: bool) -> (Sim, Barracks) {
     ty.price.pop = 1;
     ty.combat.combat_role = true;
     ty.combat.attack = 100;
-    ty.combat.domain = crate::attrition::Domain::Land;
+    ty.combat.domain = crate::territory::attrition::Domain::Land;
     // Every shipped fighting unit belongs to a production group; the
     // muster's group counters are sized from this at registration.
     ty.group = Some(0);
@@ -540,19 +544,21 @@ fn barracks_sim(upgradeable: bool) -> (Sim, Barracks) {
 
     // The building type: a military trainer (`BUILD_FLAGS 5`).
     let brec = sim.tables.build_types.len();
-    sim.tables.build_types.push(crate::build::BuildType {
-        ident: Ident::Barracks,
-        tree: Some(build),
-        flags: MILITARY_TRAINER,
-        x_size: 2,
-        y_size: 2,
-        hits: 100,
-        ..crate::build::BuildType::default()
-    });
+    sim.tables
+        .build_types
+        .push(crate::cities::build::BuildType {
+            ident: Ident::Barracks,
+            tree: Some(build),
+            flags: MILITARY_TRAINER,
+            x_size: 2,
+            y_size: 2,
+            hits: 100,
+            ..crate::cities::build::BuildType::default()
+        });
 
     let b = sim.add_building(0, crate::Pos::new(4 * 256, 4 * 256), 8);
     sim.buildings[b].ty = Some(brec);
-    sim.cities.cities.push(crate::city::City {
+    sim.cities.cities.push(crate::cities::city::City {
         alive: true,
         owner: 0,
         race: Some(0),
@@ -639,12 +645,12 @@ fn a_trainer_joins_the_leader_s_list_on_activation_and_leaves_on_close() {
 
     // Not a military trainer: never filed. `bare`'s type table has one
     // record with no flags at all.
-    let plain = sim.add_build_type(crate::build::BuildType {
+    let plain = sim.add_build_type(crate::cities::build::BuildType {
         ident: Ident::Granary,
         x_size: 2,
         y_size: 2,
         hits: 100,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let g = sim.add_building(0, crate::Pos::new(4 * 256, 12 * 256), 8);
     sim.buildings[g].ty = Some(plain);
@@ -659,7 +665,7 @@ fn a_trainer_joins_the_leader_s_list_on_activation_and_leaves_on_close() {
     sim.activate(out, false, true);
     assert_eq!(sim.ai.ai[0].mil_trainers, vec![ids.b, b3]);
     // With `NO_CITY` the same building would have joined.
-    sim.tables.build_types[ids.brec].flags |= crate::build::flags::NO_CITY;
+    sim.tables.build_types[ids.brec].flags |= crate::cities::build::flags::NO_CITY;
     let free = trainer(&mut sim, 6);
     sim.buildings[free].city = None;
     sim.activate(free, false, true);
@@ -849,7 +855,7 @@ fn a_batch_s_second_unit_pays_the_first_one_s_group_ramp_step() {
     // fighting unit ships with.
     {
         let price = &mut sim.tables.unit_types[ids.rec].price;
-        price.progression = crate::cost::Progression::PROGRESSIVE_BY_GROUP;
+        price.progression = crate::economy::cost::Progression::PROGRESSIVE_BY_GROUP;
         price.support = [Some((crate::economy::Resource::Timber, 1)), None];
     }
     sim.economy.ledgers[0].bucket = [10_000; crate::economy::RESOURCES];

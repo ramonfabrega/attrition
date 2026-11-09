@@ -40,7 +40,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 );
                 let owner = i32::from(p[17][((y * cw + x) * 0x1c + 0xf) as usize] as i8);
                 let live = i16::from_le_bytes([r[0], r[1]]) != 0;
-                crate::army::aggressive(live, rd(r, 0x14), i32::from(r[4]), owner, a[0])
+                crate::ai::army::aggressive(live, rd(r, 0x14), i32::from(r[4]), owner, a[0])
             });
             found.map_or(-1, |k| k as i64)
         }

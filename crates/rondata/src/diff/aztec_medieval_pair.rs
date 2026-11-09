@@ -41,7 +41,7 @@ pub(crate) const AZTEC_MEDIEVAL: Pair = Pair {
     // draws against 8, parting at index 1, ours `Farms::inc_time+0x1ae`,
     // theirs `Ammo::do_damage+0xc59`. Item 3658: **4602 of 4602, the pair
     // whole** — the Heavy Horse Archer's piece 842 reads piece 138's pivot
-    // rows (`sim::pivot::SAME_AS`), so `1/22`'s `CHAR_ATTACKWALK` round of
+    // rows (`sim::data::pivot::SAME_AS`), so `1/22`'s `CHAR_ATTACKWALK` round of
     // 2556 leaves (7020, 31282, 873) and comes down on 2569, its target
     // gone, through `do_damage`'s puncture pair on both sides.
     count: 4602,

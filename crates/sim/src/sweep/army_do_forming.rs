@@ -61,9 +61,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 // callee that is not handed one is whatever was left, `*`; `project`'s two out-pointers are caller locals, `*`); `Group::action_siege_attack_to`'s two stack words
                 // between the point and the angle are never written (`sub esp, 8`), so they are masked on both sides.
                 //
-                // **The port is the crate's own steps**, `crate::army::do_forming_steps`, which `Sim::do_forming` calls
+                // **The port is the crate's own steps**, `crate::ai::army::do_forming_steps`, which `Sim::do_forming` calls
                 // over its `FormSim`; here the view is the emulated original's windows.
-                use crate::army::{FormView, do_forming_steps};
+                use crate::ai::army::{FormView, do_forming_steps};
                 use crate::combat::Stance;
                 use crate::movement::Angle;
                 use crate::orders::{MoveKind, QueuePos};

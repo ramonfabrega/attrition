@@ -42,9 +42,9 @@ impl Lay {
     /// `idx` (three buildings, all the owner's), a missile type and a plain one, the queue and the owner's units
     /// as laid, and a decoy missile of the other player homed at and inside the building.
     fn crate_says(&self) -> bool {
+        use crate::cities::production::Item;
         use crate::combat::{Profile, mask};
         use crate::orders::{Body, Order, StrafeOrder};
-        use crate::production::Item;
         use crate::{Pos, Sim, Tuning, Unit, UnitType};
         let mut sim = Sim::new(Tuning::RON, crate::world::World::new(8, 8), 2);
         let missile = sim.add_unit_type(UnitType {

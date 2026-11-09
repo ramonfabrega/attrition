@@ -1,7 +1,7 @@
 //! `UnitData::get_speed@006086f0` against this crate's [`Sim::get_speed`].
 
-use crate::attrition::Domain;
 use crate::orders::{AttackOrder, Body, GuardOrder, MoveKind, Order, QueuePos, flag};
+use crate::territory::attrition::Domain;
 use crate::world::Pos;
 use crate::{Sim, Tuning, Unit, UnitType, World};
 

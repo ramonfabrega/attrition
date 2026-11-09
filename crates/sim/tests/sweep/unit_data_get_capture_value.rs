@@ -1,7 +1,7 @@
 //! `UnitData::get_capture_value@00610a70` under the emulator against the port (item 2083; hand-written on
 //! tools/emu/hooks.py).
 
-use crate::city::capture_value;
+use crate::cities::city::capture_value;
 
 /// `UnitData::get_capture_value@00610a70`, run by `tools/emu/sweep_unit_data_get_capture_value.py` under
 /// unicorn (tools/emu): the decoy bit, the type's `is_siege` slot answered per row, the type's `+0x308` and the
