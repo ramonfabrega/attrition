@@ -1066,6 +1066,33 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
         ),
     );
 
+    // The type ids (`sim::ids::ty`): on the shipped data a tree index is
+    // the original's `TypeIndex`, so each named unit is the `unitrules.xml`
+    // record at `id - 0x32` and each building the `buildingrules.xml` one
+    // at `id - 0x19e`.
+    let type_name = |id: usize| -> Option<&str> {
+        let (table, base) = if id < 0x19e { (&units, 0x32) } else { (&buildings, 0x19e) };
+        table.records.get(id.checked_sub(base)?)?.text("NAME")
+    };
+    let wrong: Vec<String> = sim::ids::ty::NAMED_TYPES
+        .iter()
+        .filter(|(name, id)| type_name(*id) != Some(*name))
+        .map(|(name, id)| format!("{name} is {id:#x}, which names {:?}", type_name(*id)))
+        .collect();
+    failures += check(
+        "every named type id is its rules row",
+        wrong.is_empty(),
+        &format!(
+            "{} named{}",
+            sim::ids::ty::NAMED_TYPES.len(),
+            if wrong.is_empty() {
+                String::new()
+            } else {
+                format!("; {}", join(wrong.iter().cloned()))
+            }
+        ),
+    );
+
     // And each nation's `<UNIT_CONTINENT>`, which is the art style
     // `GraphicPieces::get_unit_gpiece` multiplies by `num_unit_pieces` —
     // a simulation input, because the piece decides the packet and the

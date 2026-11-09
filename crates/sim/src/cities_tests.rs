@@ -6303,13 +6303,13 @@ fn a_caravan_at_the_limit_is_held_and_the_merchant_behind_it_trains() {
         };
         let caravan = unit(&mut sim);
         let merchant = unit(&mut sim);
-        while sim.tech_tree.types.len() <= crate::nations::ty::CARA {
+        while sim.tech_tree.types.len() <= crate::nations::ty::CARAVAN {
             sim.tech_tree
                 .add(tech::TypeDef::unit("Caravan", tech::UnitTraits::default()));
         }
         let n = sim.tech_tree.types.len();
         sim.tech[0].queued.resize(n, 0);
-        sim.unit_types[caravan].tree = Some(crate::nations::ty::CARA);
+        sim.unit_types[caravan].tree = Some(crate::nations::ty::CARAVAN);
         sim.unit_types[caravan].type_index = 0x3b;
         sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
         // Commerce level 0: the limit is one.
@@ -6373,11 +6373,11 @@ fn a_persian_market_trains_a_caravan_on_its_slot_up_to_the_limit() {
     });
     // `init_unit` reads the type's kind off the tree, so the tree reaches
     // `CARA`'s own number.
-    while sim.tech_tree.types.len() <= crate::nations::ty::CARA {
+    while sim.tech_tree.types.len() <= crate::nations::ty::CARAVAN {
         sim.tech_tree
             .add(tech::TypeDef::unit("Caravan", tech::UnitTraits::default()));
     }
-    sim.unit_types[caravan].tree = Some(crate::nations::ty::CARA);
+    sim.unit_types[caravan].tree = Some(crate::nations::ty::CARAVAN);
     sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
     sim.tech[0].epoch[tech::Line::Civic as usize] = 1;
     let _ = city_at(&mut sim, &t, 0, 32, 32);

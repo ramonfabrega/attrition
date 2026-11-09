@@ -23,24 +23,7 @@ use crate::tech::TypeId;
 use crate::world::{Cell, Pos, TILES_PER_CELL, UNITS_PER_TILE, tile};
 use crate::{BUILD_BASE, Player, Sim, UNIT_BASE, Unit};
 
-/// `TypeIndex` values this mechanic compares against (§3.1, §3.3, §5.2).
-pub mod ty {
-    use crate::tech::TypeId;
-    /// `SCOUT` — the lineage test `is(0x45)`.
-    pub const SCOUT: TypeId = 0x45;
-    /// `CARAVAN` — `is(0x3b)`.
-    pub const CARAVAN: TypeId = 0x3b;
-    /// `MERCHANT`, `ECHINESEMERCHANT`, `MERCHANT2` — exact base types.
-    pub const MERCHANTS: [TypeId; 3] = [0x3d, 0x3e, 0x190];
-    /// `AIRCRAFTCARRIER` — the one carrier that can never transport.
-    pub const AIRCRAFTCARRIER: TypeId = 0x15f;
-    /// `TRANSPORTBARGE` — the boat a land unit becomes at the shore (§6).
-    pub const TRANSPORTBARGE: TypeId = 0x140;
-    /// `MERCHANTFLEET` — a caravan's own boat.
-    pub const MERCHANTFLEET: TypeId = 0x13e;
-    /// `GULLBIRD` — what a finished dock spawns.
-    pub const GULLBIRD: TypeId = 0x194;
-}
+pub use crate::ids::ty;
 
 /// The bias angle `Unit::do_cast` and `SpellType::cast_transport` both hand
 /// `find_nearby_spot` — `0x55555555`, a third of a turn, which

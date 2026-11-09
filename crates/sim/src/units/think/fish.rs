@@ -20,7 +20,7 @@ use crate::{Player, Sim};
 
 /// `TypeIndex::FISHERMEN` — the lineage `Unit::think@005f6e40:1421` tests
 /// with `is(0x13d, 0)` before it calls this at all.
-pub const FISHERMEN: TypeId = 0x13d;
+pub use crate::ids::ty::FISHERMEN;
 
 /// The spell `Unit::add_cast_order` rewrites the generic **unpack**
 /// (`0x28c`) into for a unit in the `FISHERMEN` lineage, and the value

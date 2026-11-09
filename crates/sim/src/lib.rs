@@ -2802,7 +2802,7 @@ impl Sim {
             .and_then(|d| d.where_);
         if trainer.is_some_and(|w| {
             [
-                nations::ty::SIEGE[0],
+                nations::ty::SIEGE_FACTORIES[0],
                 nations::ty::AIRBASE,
                 nations::ty::DOCKS[0],
             ]
@@ -4697,7 +4697,7 @@ impl Sim {
         }
         if trainer.is_some_and(|w| {
             [
-                nations::ty::SIEGE[0],
+                nations::ty::SIEGE_FACTORIES[0],
                 nations::ty::AIRBASE,
                 nations::ty::DOCKS[0],
             ]

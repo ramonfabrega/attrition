@@ -65,7 +65,7 @@ pub(crate) enum Leash {
 /// tests with `is(0x84, 0)` before it chooses between the two melee
 /// reaches (`docs/COMBAT.md` §13.2). The golden record's `add hoplite`
 /// lands on the type whose tech-tree id is this.
-pub const HOPLITES: crate::tech::TypeId = 0x84;
+pub use crate::ids::ty::HOPLITES;
 
 /// `Ammo::inc_time@0067d380`'s `cur_time < 200` on a round whose `flags & 2`
 /// is clear — the frames a spent arrow keeps its slot (item 3679,

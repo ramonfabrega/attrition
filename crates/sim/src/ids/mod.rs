@@ -386,3 +386,143 @@ pub mod coord {
     /// `CoordInfo` code `0x2`; not `cell::MOUNTAIN`, the `WData` bit).
     pub const MOUNTAIN_VERT: u16 = 0x2;
 }
+
+/// `TypeIndex` values the simulation names — the tree index of a type,
+/// which on the shipped data **is** the original's `TypeIndex` (goods
+/// `0..`, units from `0x32`, buildings from `0x19e`, techs from `0x220`;
+/// `rondata::load` builds the tree in that order). `crate::nations::ty`,
+/// `crate::transport::ty` and `crate::ai_census::ty` are this module.
+///
+/// The unit values `Build::activate`'s free-unit block names are each the
+/// *base* of a line: the block hands one to `get_graft` and then — all but
+/// three arms — to `current_upgrade`, so what is trained is the newest type
+/// the player owns in that line, not this one.
+pub mod ty {
+    use crate::tech::TypeId;
+    /// `CARAVAN` (the free-unit block's `CARA`), the Nubians' free caravan
+    /// from a Market, and the lineage `is(0x3b)` the transport and census
+    /// tests ask.
+    pub const CARAVAN: TypeId = 0x3b;
+    /// `SCOUT`, the Iroquois' from a Barracks.
+    pub const SCOUT: TypeId = 0x45;
+    /// `PEASANTS`, the Koreans' from a city.
+    pub const PEASANTS: TypeId = 0x32;
+    /// `SCHOLARS`, the Americans' from a University.
+    pub const SCHOLARS: TypeId = 0x34;
+    /// `GENERAL`, the French one from a fort.
+    pub const GENERAL: TypeId = 0x36;
+    /// `SUPPLYWAGON`, the French one from a Siege Factory.
+    pub const SUPPLYWAGON: TypeId = 0x3f;
+    /// `SLINGERS`, the Aztecs' from a Barracks.
+    pub const SLINGERS: TypeId = 0x52;
+    /// `HOPLITES`, the Roman legion.
+    pub const HOPLITES: TypeId = 0x84;
+    /// `BOWMEN`, the British archers.
+    pub const BOWMEN: TypeId = 0xaa;
+    /// `HORSEARCHERS`, the Mongols' from a Stable.
+    pub const HORSEARCHERS: TypeId = 0xbb;
+    /// `CATAPULT`, the Turks' from a Siege Factory.
+    pub const CATAPULT: TypeId = 0x109;
+    /// `BIPLANE`, the Germans' from an Airbase — the fighter line's head,
+    /// which the census's `air` splits on beside [`BOMBER`].
+    pub const BIPLANE: TypeId = 0x11f;
+    /// `BOMBER`, the Americans' from an Airbase, in the Modern age.
+    pub const BOMBER: TypeId = 0x130;
+    /// `FISHERMEN`, the British ones from a Dock.
+    pub const FISHERMEN: TypeId = 0x13d;
+    /// `BARK`, the Dutch light ship.
+    pub const BARK: TypeId = 0x143;
+    /// `TRIREME`, the Spanish one from a Dock.
+    pub const TRIREME: TypeId = 0x154;
+    /// `FIRERAFT`, the head of the line the Germans' submarine arms test
+    /// by lineage (`is(0x14e, 0)`): the Fire Raft through the Submarine.
+    pub const FIRERAFT: TypeId = 0x14e;
+
+    /// `FARM`, which the Japanese Farm arm tests by equality
+    /// (`get_cost:1003`–`1008`).
+    pub const FARM: TypeId = 0x1a1;
+    /// `UNIVERSITY`.
+    pub const UNIVERSITY: TypeId = 0x1a4;
+    /// `LIBRARY`, which the Greek Library arm tests by equality beside the
+    /// University (`get_cost:966`–`972`).
+    pub const LIBRARY: TypeId = 0x1b3;
+    /// `BARRACKS`.
+    pub const BARRACKS: TypeId = 0x1ab;
+    /// `STABLE` and `AUTOPLANT`, the Mongol arm's pair.
+    pub const STABLES: [TypeId; 2] = [0x1ac, 0x1ad];
+    /// `SIEGEFACTORY` and `FACTORY`, the Turkish and French arm's pair.
+    pub const SIEGE_FACTORIES: [TypeId; 2] = [0x1ae, 0x1af];
+    /// `DOCK`, `ANCHORAGE`, `SHIPYARD` — the naval arm tests all three by
+    /// name rather than through the lineage.
+    pub const DOCKS: [TypeId; 3] = [0x1b0, 0x1b1, 0x1b2];
+    /// `MARKET`.
+    pub const MARKET: TypeId = 0x1b4;
+    /// `AIRBASE`.
+    pub const AIRBASE: TypeId = 0x1bf;
+    /// The buildings the Maya arm leaves at full timber, each by type
+    /// equality (`get_cost:973`–`987`): `BARRACKS`, `STABLE`, `AUTOPLANT`,
+    /// `FACTORY`, `SIEGEFACTORY`, `AIRBASE`, `DOCK`, `ANCHORAGE`,
+    /// `SHIPYARD`, `FORTX`, `CASTLE`, `FORTRESS`, `REDOUBT`, `MISSILESILO`,
+    /// `TOWER`, `KEEP`, `STOCKADE`, `BUNKER`, `LOOKOUT`, `OBSERVATIONPOST`,
+    /// `AIRDEFENSE`, `RADAR`, `SAM`. Wonders are refused by their vslot.
+    pub const MAYA_FULL_TIMBER: [TypeId; 23] = [
+        0x1ab, 0x1ac, 0x1ad, 0x1af, 0x1ae, 0x1bf, 0x1b0, 0x1b1, 0x1b2, 0x1bb, 0x1bc, 0x1bd, 0x1be,
+        0x208, 0x1b7, 0x1b8, 0x1b9, 0x1ba, 0x209, 0x20a, 0x20b, 0x20c, 0x20d,
+    ];
+
+    /// `MERCHANT`, `ECHINESEMERCHANT`, `MERCHANT2` — the three base types
+    /// the merchant tests compare against exactly (the transport rules and
+    /// the census).
+    pub const MERCHANTS: [TypeId; 3] = [0x3d, 0x3e, 0x190];
+    /// `AIRCRAFTCARRIER` — the one carrier that can never transport.
+    pub const AIRCRAFTCARRIER: TypeId = 0x15f;
+    /// `TRANSPORTBARGE` — the boat a land unit becomes at the shore (§6).
+    pub const TRANSPORTBARGE: TypeId = 0x140;
+    /// `MERCHANTFLEET` — a caravan's own boat.
+    pub const MERCHANTFLEET: TypeId = 0x13e;
+    /// `GULLBIRD` — what a finished dock spawns.
+    pub const GULLBIRD: TypeId = 0x194;
+
+    /// `TypeIndex` values the census sweep hardcodes; citizens (`0x32`/
+    /// `0x33`) and scholars (`0x34`/`0x35`) are `crate::ai_census::Worker`
+    /// instead, which is how `rondata` loads them.
+    /// `missile` splits on these two exact types.
+    pub const CRUISE: TypeId = 0x139;
+    pub const NUKE: TypeId = 0x13b;
+
+    /// Each single-type constant beside its `unitrules.xml` or
+    /// `buildingrules.xml` `<NAME>`; `rondata` reads the record at
+    /// `id - 0x32` or `id - 0x19e`.
+    pub const NAMED_TYPES: [(&str, TypeId); 30] = [
+        ("Caravan", CARAVAN),
+        ("Scout", SCOUT),
+        ("Citizen", PEASANTS),
+        ("Scholar", SCHOLARS),
+        ("General", GENERAL),
+        ("Supply Wagon", SUPPLYWAGON),
+        ("Slingers", SLINGERS),
+        ("Hoplites", HOPLITES),
+        ("Bowmen", BOWMEN),
+        ("Horse Archer", HORSEARCHERS),
+        ("Catapult", CATAPULT),
+        ("Biplane", BIPLANE),
+        ("Bomber", BOMBER),
+        ("Fishermen", FISHERMEN),
+        ("Bark", BARK),
+        ("Trireme", TRIREME),
+        ("Fire Raft", FIRERAFT),
+        ("Aircraft Carrier", AIRCRAFTCARRIER),
+        ("Transport Barge", TRANSPORTBARGE),
+        ("Merchant Fleet", MERCHANTFLEET),
+        ("Gull Bird", GULLBIRD),
+        ("V2 Rocket", CRUISE),
+        ("Nuclear Missile", NUKE),
+        ("Farm", FARM),
+        ("University", UNIVERSITY),
+        ("Library", LIBRARY),
+        ("Barracks", BARRACKS),
+        ("Market", MARKET),
+        ("Airbase", AIRBASE),
+        ("Merchant", MERCHANTS[0]),
+    ];
+}

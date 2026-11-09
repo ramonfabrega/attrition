@@ -28,7 +28,7 @@ pub(crate) const SPY: crate::tech::TypeId = 0x3a;
 
 /// `TypeIndex::PEASANTS` and `PEASANTSKOREAN` — `UnitTypeData +0x4`, the two
 /// citizen ids `think_scout` sends down the region scan (§3).
-pub const PEASANTS: i32 = 0x32;
+const PEASANTS: i32 = crate::ids::ty::PEASANTS as i32;
 pub const PEASANTSKOREAN: i32 = 0x33;
 
 /// The cell budget one call spends before it abandons the city loop —

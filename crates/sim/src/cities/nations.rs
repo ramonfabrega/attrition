@@ -26,81 +26,9 @@
 use crate::tech::TypeId;
 use crate::{Player, Sim};
 
-/// The `TypeIndex` values `Build::activate`'s free-unit block names.
-///
-/// The unit values are each the *base* of a line: the block hands one to
-/// `get_graft` and then — all but three arms — to `current_upgrade`, so what
-/// is trained is the newest type the player owns in that line, not this one.
-pub mod ty {
-    use crate::tech::TypeId;
-    /// `CARA`, the Nubians' free caravan from a Market.
-    pub const CARA: TypeId = 0x3b;
-    /// `SCOUT`, the Iroquois' from a Barracks.
-    pub const SCOUT: TypeId = 0x45;
-    /// `PEASANTS`, the Koreans' from a city.
-    pub const PEASANTS: TypeId = 0x32;
-    /// `SCHOLARS`, the Americans' from a University.
-    pub const SCHOLARS: TypeId = 0x34;
-    /// `GENERAL`, the French one from a fort.
-    pub const GENERAL: TypeId = 0x36;
-    /// `SUPPLYWAGON`, the French one from a Siege Factory.
-    pub const SUPPLYWAGON: TypeId = 0x3f;
-    /// `SLINGERS`, the Aztecs' from a Barracks.
-    pub const SLINGERS: TypeId = 0x52;
-    /// `HOPLITES`, the Roman legion.
-    pub const HOPLITES: TypeId = 0x84;
-    /// `BOWMEN`, the British archers.
-    pub const BOWMEN: TypeId = 0xaa;
-    /// `HORSEARCHERS`, the Mongols' from a Stable.
-    pub const HORSEARCHERS: TypeId = 0xbb;
-    /// `CATAPULT`, the Turks' from a Siege Factory.
-    pub const CATAPULT: TypeId = 0x109;
-    /// `BIPLANE`, the Germans' from an Airbase.
-    pub const BIPLANE: TypeId = 0x11f;
-    /// `BOMBER`, the Americans' from an Airbase, in the Modern age.
-    pub const BOMBER: TypeId = 0x130;
-    /// `FISHERMEN`, the British ones from a Dock.
-    pub const FISHERMEN: TypeId = 0x13d;
-    /// `BARK`, the Dutch light ship.
-    pub const BARK: TypeId = 0x143;
-    /// `TRIREME`, the Spanish one from a Dock.
-    pub const TRIREME: TypeId = 0x154;
-    /// `FIRERAFT`, the head of the line the Germans' submarine arms test
-    /// by lineage (`is(0x14e, 0)`): the Fire Raft through the Submarine.
-    pub const FIRERAFT: TypeId = 0x14e;
-
-    /// `FARM`, which the Japanese Farm arm tests by equality
-    /// (`get_cost:1003`–`1008`).
-    pub const FARM: TypeId = 0x1a1;
-    /// `UNIVERSITY`.
-    pub const UNIVERSITY: TypeId = 0x1a4;
-    /// `LIBRARY`, which the Greek Library arm tests by equality beside the
-    /// University (`get_cost:966`–`972`).
-    pub const LIBRARY: TypeId = 0x1b3;
-    /// `BARRACKS`.
-    pub const BARRACKS: TypeId = 0x1ab;
-    /// `STABLE` and `AUTOPLANT`, the Mongol arm's pair.
-    pub const STABLES: [TypeId; 2] = [0x1ac, 0x1ad];
-    /// `SIEGEFACTORY` and `FACTORY`, the Turkish and French arm's pair.
-    pub const SIEGE: [TypeId; 2] = [0x1ae, 0x1af];
-    /// `DOCK`, `ANCHORAGE`, `SHIPYARD` — the naval arm tests all three by
-    /// name rather than through the lineage.
-    pub const DOCKS: [TypeId; 3] = [0x1b0, 0x1b1, 0x1b2];
-    /// `MARKET`.
-    pub const MARKET: TypeId = 0x1b4;
-    /// `AIRBASE`.
-    pub const AIRBASE: TypeId = 0x1bf;
-    /// The buildings the Maya arm leaves at full timber, each by type
-    /// equality (`get_cost:973`–`987`): `BARRACKS`, `STABLE`, `AUTOPLANT`,
-    /// `FACTORY`, `SIEGEFACTORY`, `AIRBASE`, `DOCK`, `ANCHORAGE`,
-    /// `SHIPYARD`, `FORTX`, `CASTLE`, `FORTRESS`, `REDOUBT`, `MISSILESILO`,
-    /// `TOWER`, `KEEP`, `STOCKADE`, `BUNKER`, `LOOKOUT`, `OBSERVATIONPOST`,
-    /// `AIRDEFENSE`, `RADAR`, `SAM`. Wonders are refused by their vslot.
-    pub const MAYA_FULL_TIMBER: [TypeId; 23] = [
-        0x1ab, 0x1ac, 0x1ad, 0x1af, 0x1ae, 0x1bf, 0x1b0, 0x1b1, 0x1b2, 0x1bb, 0x1bc, 0x1bd, 0x1be,
-        0x208, 0x1b7, 0x1b8, 0x1b9, 0x1ba, 0x209, 0x20a, 0x20b, 0x20c, 0x20d,
-    ];
-}
+/// The `TypeIndex` values `Build::activate`'s free-unit block names,
+/// defined in [`crate::ids::ty`].
+pub use crate::ids::ty;
 
 /// The roster indices `Build::activate`'s free-unit block passes
 /// `has_tribe_bonus` — [`crate::ids::tribe`] under the name its readers use.
@@ -337,10 +265,10 @@ impl Sim {
             // The Nubian caravan. `NUBIAN_FREE_CARAVAN` ships as 0, so the
             // arm is live and inert at once.
             let n = i32::from(self.tuning.nubian_free_caravan != 0);
-            self.free_train(b, power::NUBIANS, ty::CARA, n, true);
+            self.free_train(b, power::NUBIANS, ty::CARAVAN, n, true);
         } else if t == Some(ty::BARRACKS) {
             self.barracks_free_units(b, who);
-        } else if t.is_some_and(|x| ty::SIEGE.contains(&x)) {
+        } else if t.is_some_and(|x| ty::SIEGE_FACTORIES.contains(&x)) {
             let siege = self.tuning.turk_free_siege;
             self.free_train(b, power::TURKS, ty::CATAPULT, siege, true);
             // The French wagon and general are the two arms that skip
@@ -486,7 +414,7 @@ impl Sim {
         if caras >= self.caravan_limit(who) {
             return;
         }
-        let Some(rec) = self.unit_record(ty::CARA) else {
+        let Some(rec) = self.unit_record(ty::CARAVAN) else {
             return;
         };
         let m = &self.muster[w];

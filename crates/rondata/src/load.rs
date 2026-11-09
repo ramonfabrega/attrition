@@ -643,38 +643,38 @@ pub fn load_tables(
     // are `TypeIndex − 0x32` **by id**, as the original writes them: a display
     // name is not a reliable key here (`THECITIZEN` is *The Comrade*, the same
     // trap `docs/COMBAT.md` §15.2 caught four times).
-    const SCOUT: usize = 0x45 - 0x32;
-    const HOPLITES: usize = 0x84 - 0x32;
-    const BARK: usize = 0x143 - 0x32;
-    const TRIREME: usize = 0x154 - 0x32;
-    const CATAPULT: usize = 0x109 - 0x32;
+    const SCOUT: usize = sim::ids::ty::SCOUT - 0x32;
+    const HOPLITES: usize = sim::ids::ty::HOPLITES - 0x32;
+    const BARK: usize = sim::ids::ty::BARK - 0x32;
+    const TRIREME: usize = sim::ids::ty::TRIREME - 0x32;
+    const CATAPULT: usize = sim::ids::ty::CATAPULT - 0x32;
     const FLAMINGARROW: usize = 0x117 - 0x32;
     const KATYUSHA: usize = 0x116 - 0x32;
     const MACHINEGUN: usize = 0x7b - 0x32;
     const FLAMETHROWER: usize = 0x83 - 0x32;
-    const FISHERMEN: usize = 0x13d - 0x32;
-    const MERCHANT: usize = 0x3d - 0x32;
-    const MERCHANTDUTCH: usize = 0x3e - 0x32;
-    const FURTRAPPER: usize = 0x190 - 0x32;
-    const SUPPLYWAGON: usize = 0x3f - 0x32;
+    const FISHERMEN: usize = sim::ids::ty::FISHERMEN - 0x32;
+    const MERCHANT: usize = sim::ids::ty::MERCHANTS[0] - 0x32;
+    const MERCHANTDUTCH: usize = sim::ids::ty::MERCHANTS[1] - 0x32;
+    const FURTRAPPER: usize = sim::ids::ty::MERCHANTS[2] - 0x32;
+    const SUPPLYWAGON: usize = sim::ids::ty::SUPPLYWAGON - 0x32;
     const GOV_HEROES: usize = 0x160 - 0x32;
     const THEMONARCH: usize = 0x162 - 0x32;
     const THECITIZEN: usize = 0x164 - 0x32;
-    const GENERAL: usize = 0x36 - 0x32;
-    const CARA: usize = 0x3b - 0x32;
-    const MERCHANTFLEET: usize = 0x13e - 0x32;
-    const TRANSPORTBARGE: usize = 0x140 - 0x32;
+    const GENERAL: usize = sim::ids::ty::GENERAL - 0x32;
+    const CARA: usize = sim::ids::ty::CARAVAN - 0x32;
+    const MERCHANTFLEET: usize = sim::ids::ty::MERCHANTFLEET - 0x32;
+    const TRANSPORTBARGE: usize = sim::ids::ty::TRANSPORTBARGE - 0x32;
     /// `BASE_GAIATYPES − BASE_UNITTYPES`: the first of the twelve animals.
     const GAIA: usize = 0x192 - 0x32;
     /// The Archers line's root, and the anti-air one's — the two lineages
     /// `ObjectData::train_time`'s British block tests beside the sea
     /// domain (`docs/PRODUCTION.md`, "The tail").
-    const BOWMEN: usize = 0xaa - 0x32;
+    const BOWMEN: usize = sim::ids::ty::BOWMEN - 0x32;
     const ANTIAIRCRAFTGUN: usize = 0x119 - 0x32;
     /// The lineages `UnitType::fill_relative_values@0061be50` tests
     /// (`sim::relative_value`).
     const BOMBARDSHIP: usize = 0x15a - 0x32;
-    const FIRERAFT: usize = 0x14e - 0x32;
+    const FIRERAFT: usize = sim::ids::ty::FIRERAFT - 0x32;
     const CAMEL: usize = 0xd5 - 0x32;
 
     let mut cols: Vec<ai_load::UnitCols> = Vec::with_capacity(unit_cols.len());
