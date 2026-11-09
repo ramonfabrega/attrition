@@ -3995,7 +3995,7 @@ what is listed as an input is stated as such in the code):
 - **The path stack** — `Vec<PathData>` on the unit; `find_path` is the
   straight-line verifier of §4.6, with the march as the settled third
   reading has it and `invalid_loc` implemented over the tile masks
-  (`crates/sim/src/path.rs`). ~~`find_wpath` is the **stub**~~ **The three
+  (`crates/sim/src/movement/path.rs`). ~~`find_wpath` is the **stub**~~ **The three
   grid planners are real as of 2026-08-23** (`docs/PATHFINDER.md`): a far
   move is planned into the chain of cell centres at order time, a near one
   still leaves `[goal]`, and the RNG-thresholded re-plan branch only draws

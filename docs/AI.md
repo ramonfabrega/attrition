@@ -14220,7 +14220,7 @@ cell. The cells are not refcounted and nothing sets them back but the
 sixty-fourth-frame repaint, which marks the **new** disc (size 2) — so
 the old rim is gone and the inner cells are holes until then. This crate
 re-seated the figures (`reinit_guys`, `seat_guys`) and cleared nothing.
-`Sim::coll_kill_crew` (`crates/sim/src/collide.rs`) is that clear, called
+`Sim::coll_kill_crew` (`crates/sim/src/movement/collide.rs`) is that clear, called
 first in `Sim::unit_set_type`; `collide_here` then reads the original's
 block and the sweep of 12541 takes (609, 414) and the soft group-mate.
 
@@ -17478,7 +17478,7 @@ it whole. Each claim is *diff-backed* unless marked.
    §18.1), not `find_wpath`'s. `can_transport` is `unit_masks & 0x800000` without `unit_masks2 & 0x2000`, or the type's
    `+0x2b4 & 0x10`; the Freighter's `unit_masks` carries 0x800000. *Listing-backed*; the diff confirms it on its one frame.
 
-**Built.** `Sim::find_tpath` (`crates/sim/src/path.rs`) runs its pull-back walk only when `unit_domain_of(u) != Air &&
+**Built.** `Sim::find_tpath` (`crates/sim/src/movement/path.rs`) runs its pull-back walk only when `unit_domain_of(u) != Air &&
 !unit_can_transport(u)` — `find_upath`'s own predicate. Unit test `path::tests::a_transport_keeps_a_tile_goal_in_another_region`:
 a goal two regions over is kept by a unit that can transport and walked toward its own region by one that cannot.
 
@@ -17670,7 +17670,7 @@ position on 2164. Each claim is *diff-backed* unless marked.
    then reaches `CollCheck::move_unit(old, spot)` through `Guy::set_new_location@005d86f0`, clearing the old disc's cells
    farther than `coll_size` from the spot. *Export-backed*; the bit's clear on 1113 is the diff. `docs/COLLISION.md` §25.
 
-**Built.** `Sim::coll_come_out` (`crates/sim/src/collide.rs`), from `land_passenger` (`crates/sim/src/transport.rs`) with
+**Built.** `Sim::coll_come_out` (`crates/sim/src/movement/collide.rs`), from `land_passenger` (`crates/sim/src/transport.rs`) with
 the body's point as it was aboard. Unit test `transport::tests::a_passenger_put_ashore_clears_the_disc_it_boarded_from`.
 
 **What it moved.** The word **2166 → 2288**, count and sequence: ours 38 game draws against 39, index 34, ours
@@ -19027,7 +19027,7 @@ export; the loop's break test is `region == region && (domain != 1 || invalid_lo
 `SEAM`, the clause for a sea unit). The goal (31896, 44952) is a shore tile of the boat's own sea: the region matches, the tile refuses, so the
 original steps it back one 0x180 before the A* runs and plans to the stepped-back point; this crate planned to the goal itself, which put the
 A*'s diagonal one cell further west (the tie's other side) and the final waypoint 380 units short in a different row. **Built**: the loop's
-condition now carries the second clause for a sea unit (`crates/sim/src/path.rs`, `find_wpath_from`).
+condition now carries the second clause for a sea unit (`crates/sim/src/movement/path.rs`, `find_wpath_from`).
 
 **Value diff beside the word.** `run788_s_word_frame_is_widened_whole` (blocks 2832..3088): **833 → 163 keys**; every `1/122` row
 (`pos`, `path[0].to`, `order:length`, `orders_x`, `idle`, `order:move.*`, `path_recursion`, `last_x/y`) agrees; run780's window is unmoved (136).
@@ -19275,7 +19275,7 @@ flagged, the unit walks to the shore, stops there on 3130, and the army's cast p
 the bit and pushes it back. Walk-held: run788's window 151 → 149 keys (`1/27`'s two rows), run799's `1/27` rows gone after 3131 and **the word 3131 →
 3188** (`mongol_pair::`; the floors and the diff walks that reach a refusal with a flagged top moved nothing else).
 A mutation (the hand-down block removed) fails `run788_s_word_frame_is_widened_whole` (151 against 149) and `mongol_pair_first_parting` (3131).
-`crates/sim/src/path.rs` also builds the **can-transport goal re-push** (`astar_path@00683770:586`–`613`, the old `SEAM`): on the work-cap drain
+`crates/sim/src/movement/path.rs` also builds the **can-transport goal re-push** (`astar_path@00683770:586`–`613`, the old `SEAM`): on the work-cap drain
 arm, a nearest node still across the shore from the goal (`needs_transport`) for a unit that `can_transport` pops the stack top and pushes it
 back with `flags |= 4`. **No capture walks it** (the BMP's search arrives at 1,176 probes, under the cap of 3,200): it is the
 listing's, not a diff's.
@@ -30376,7 +30376,7 @@ frames counting it down (4863..4868), gains `attempts` 3 and re-paths on
 `1/213` collide differently.
 
 **The hypothesis for the next item.** `Sim::roll_upath_retry`
-(`crates/sim/src/path.rs`) writes `retry` into the unit's front order, and
+(`crates/sim/src/movement/path.rs`) writes `retry` into the unit's front order, and
 `do_move`'s refused-line branch (`crates/sim/src/orders.rs`, the `r == 0`
 arm with a non-final top: `mo.has_waypoint = false; self.store_move(u, mo,
 flags)`) stores back its copy `mo`, taken before the search, over it. The

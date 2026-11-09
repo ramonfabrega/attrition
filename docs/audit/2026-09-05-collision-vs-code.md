@@ -27,7 +27,7 @@ stays reading-only. `docs/COLLISION.md` §8.1.
 | | |
 |---|---|
 | document | COLLISION.md §6 step 6, "`find_upath(anti = my action is ATTACK and its action is ATTACK)`" |
-| code | `crates/sim/src/collide.rs:1122-1125` (`fn collide_repath`) |
+| code | `crates/sim/src/movement/collide.rs:1122-1125` (`fn collide_repath`) |
 | document says | `anti` is set only when **both** my action and the collider's action are `ATTACK` |
 | code does | sets `anti` from my action alone; the collider's action is never asked |
 | difference shows | `gamelog` `UNITDATA`/`MOVEORDER` path stack of an attacking unit that collides with a non-attacking unit of the same or another player: the `find_upath` plan differs, so the whole waypoint list on the frame after the collision differs. No capture on disk reaches it — every collision in run10/run33/run53/run66/run70 is between citizens, and §8 lists no attacking collider. |
@@ -73,7 +73,7 @@ stays reading-only. `docs/COLLISION.md` §8.1.
 | | |
 |---|---|
 | document | COLLISION.md §6 step 4, "Only when *the other unit's* current order is one of `MOVE_TO, …`, **my domain is 0**, and the path top's `flags & 2` is clear" |
-| code | `crates/sim/src/collide.rs:981-991` (`fn resolve_unit_collision`) |
+| code | `crates/sim/src/movement/collide.rs:981-991` (`fn resolve_unit_collision`) |
 | document says | a sea- or air-domain unit never sidesteps; it falls through to steps 5 and 6 |
 | code does | tests `its_move`, `collide_o >= 0`, the path top's `SIDESTEP` flag and the presence of a move order — and nothing about the asking unit's own domain |
 | difference shows | a Transport Barge or a Fishing Boat blocked by another moving boat: the original spends no sidestep and goes to the wait/repath, the crate pushes a `{cell centre, tol 0, flags 2}` waypoint. Visible as an extra path-stack entry in a `UNITS=3` dump and as the missing `Unit::resolve_unit_collision+0xb52` / extra `SITE_BLOCKED` draws. No capture on disk has two boats colliding (`docs/COLLISION.md` §7, "`detect_boat_collision` (no ships)"). |
@@ -112,7 +112,7 @@ sea units up now (`docs/TRANSPORT.md`), so the gate is not vacuous.
 | | |
 |---|---|
 | document | COLLISION.md §6 step 4, "one of `MOVE_TO, ATTACK_TO, EXPLORE_TO, FLEE_TO, CHANGE_FORM, GROUP_MOVE, GROUP_ATTACK_TO`" (and step 5, "one of the move kinds above") |
-| code | `crates/sim/src/collide.rs:974-978` (`let its_move = matches!(…)`) |
+| code | `crates/sim/src/movement/collide.rs:974-978` (`let its_move = matches!(…)`) |
 | document says | seven order kinds select the sidestep, and six of them (all but `FLEE_TO`) select the wait |
 | code does | four: `MOVE_TO`, `ATTACK_TO`, `EXPLORE_TO`, `FLEE_TO`. `GROUP_MOVE`/`GROUP_ATTACK_TO` are covered — the crate carries them as `MOVE_TO`/`ATTACK_TO` with a `GroupMove` (`orders.rs:2216`) — but **`CHANGE_FORM` (18) is not an order kind this crate has at all** (`orders.rs:597-598`, `orders.rs:2033`) |
 | difference shows | a unit blocked by a formation member that is mid-`CHANGE_FORM`: the original sidesteps or waits, the crate repaths and snaps to its cell centre. `UNITS=3` position of the blocked unit, and a `SITE_PAUSE`/`SITE_BLOCKED` draw-count difference. No capture reaches it — `CHANGE_FORM` is never constructed here. |
@@ -139,7 +139,7 @@ this as a seam.
 | | |
 |---|---|
 | document | COLLISION.md §6 step 5, "if the other unit's order is one of the move kinds above **(or a `CAST_SPELL` of `0x28a`)** and neither side has given up: set `unit_masks & 0x40`" |
-| code | `crates/sim/src/collide.rs:998` (`if its_move && its_order != index::FLEE_TO`) |
+| code | `crates/sim/src/movement/collide.rs:998` (`if its_move && its_order != index::FLEE_TO`) |
 | document says | a collider whose current order is a `CAST_SPELL` of spell `0x28a` — the transport cast, `orders::spell::TRANSPORT` — also earns the wait |
 | code does | only the three plain move kinds reach the wait; a `CAST_SPELL` collider falls straight through to the repath of step 6 |
 | difference shows | a land unit blocked by another land unit that has just queued the transport spell at a shoreline (`Sim::shore_step`, `collide.rs:461`, queues `spell::TRANSPORT` `QUEUE_FIRST` and returns). The original sets `unit_masks & 0x40` and stands; the crate increments `repaths[who]`, unwinds the stack and snaps to the cell centre — a *position* difference on the next frame, plus the `collide`/`collide_frame` pair. Reachable on any shore-crossing capture; none of the collision captures in §8 is one. |
@@ -198,7 +198,7 @@ and neither §7 nor §9 lists it as unmodelled, which is the disagreement.
 | | |
 |---|---|
 | document | COLLISION.md §2, "a cell is marked only when the world cell's `WData::region` equals `get_tregion` of the marking figure's **own tile**, or the figure's tile has no region" |
-| code | `crates/sim/src/collide.rs:167-175` (`fn coll_region_ok`) |
+| code | `crates/sim/src/movement/collide.rs:167-175` (`fn coll_region_ok`) |
 | document says | two ways to pass: the regions are equal, or the *figure's* region is absent |
 | code does | three: it also passes when the **cell's** region is absent (`region_of(...).is_none_or(...)`) |
 | difference shows | the `WORLD`/`TERRAIN` occupancy of a unit standing on or beside a cell with no region — visible only indirectly, as a `PathFinder::valid_ucoord` refusal that the original does not make (a `callwin` over `PathFinder::calc_cost` in run70's shape) and hence a different route. No capture on disk is known to have an in-bounds region-less cell near a unit. |
@@ -227,7 +227,7 @@ is `CollGrid::set`'s own `index`, `collide.rs:120`).
 | | |
 |---|---|
 | document | COLLISION.md §4.3, "…or a passable kind (`0, 1, 2, 3, 4, 0xc, 0x12, 0x13, 0x15`, **the last four** also needing its action ≠ `ATTACK`)" |
-| code | `crates/sim/src/collide.rs:776-796` (`fn same_group_soft`) |
+| code | `crates/sim/src/movement/collide.rs:776-796` (`fn same_group_soft`) |
 | document says | `0, 1, 2, 3, 4` pass unconditionally; `0xc, 0x12, 0x13, 0x15` pass only when the collider's action is not `ATTACK` |
 | code does | exactly what the document says (modulo `0x12`, R3): `MOVE_TO/ATTACK_TO/EXPLORE_TO/FLEE_TO` pass unconditionally unless they carry a `GroupMove`; `GUARD` needs `not_attacking` |
 | **the original does** | the split is `(0 \|\| 0xc)` unconditional, and `(1 \|\| 2 \|\| 3 \|\| 4 \|\| 0x12 \|\| 0x13 \|\| 0x15) && its action ≠ ATTACK` — **seven** kinds gated, and `0xc` among the *un*gated ones |
@@ -267,7 +267,7 @@ code. What settles it is the listing at `00617500`–`0061760e`
 | | |
 |---|---|
 | document | COLLISION.md §6 step 5, "…provided `other.collide` and `my collide` are both under `0x20` …, we are not enemies, it is not already waiting on me, and **neither of us has the flag already**" |
-| code | `crates/sim/src/collide.rs:1010-1014` |
+| code | `crates/sim/src/movement/collide.rs:1010-1014` |
 | document says | four conditions, the last of them symmetric ("neither of us") |
 | code does | `!(other.waiting_on && collider_of(other).waiting_on)`; it never reads **my own** `waiting_on`, and it treats "the collider names nobody" as passing |
 | difference shows | `UNITDATA`'s `collide`/`collide_frame` and the unit's position on the frame after a three-unit pile-up: the crate grants a wait (unit stands, `collide` climbs) where the original repaths (unit snaps to its cell centre and re-plans). One frame of position, then a whole different route. run33's frames 565–580 are the closest shape on disk; no capture is known to reach the `collide_o < 0` arm. |
@@ -300,7 +300,7 @@ not to implement it.
 | | |
 |---|---|
 | document | COLLISION.md §6 step 4, "The first that is neither `invalid_loc` nor colliding is pushed as `{cell centre, tol 0, flags 2}` and **written into the order's `+0x2c/+0x30`**. Done." |
-| code | `crates/sim/src/collide.rs:1058-1069` (`fn sidestep`) |
+| code | `crates/sim/src/movement/collide.rs:1058-1069` (`fn sidestep`) |
 | document says | the push, and a write of the waypoint pair `+0x2c`/`+0x30`, and nothing else |
 | code does | also sets `m.has_waypoint = true` (the crate's name for the order's `+0x10`, the `dest` flag §6 step 6 clears) and `self.units[u].tolerance = 0` |
 | difference shows | the leg's arrival test on the frame after a sidestep: `do_move` compares `vector_dist(waypoint − pos)` against `UnitData::tolerance`, so zeroing it can turn an arrival into another step. `MOVEORDER`'s `dest` column and the unit's position one frame after a sidestep; run66's block window would carry it if a sidestep were reached there. |
@@ -333,7 +333,7 @@ reaches step 4 with a non-zero leg tolerance and asserts the arrival frame.
 | | |
 |---|---|
 | document | COLLISION.md §2, "`Guy::set_new_location` calls `CollCheck::move_unit(from, to, coll_size)` **whenever a figure changes unit cell**"; and §2.2, "`move_x[0 .. radius[coll_size])` around **its** unit cell" |
-| code | `crates/sim/src/collide.rs:381` (`Sim::set_new_location` → `coll_move(u, from, to)`) and `collide.rs:259` |
+| code | `crates/sim/src/movement/collide.rs:381` (`Sim::set_new_location` → `coll_move(u, from, to)`) and `collide.rs:259` |
 | document says | the occupancy bits follow the **figure's** `GuyData::x/y` — the body — and move on the frame the *body* crosses a unit cell |
 | code does | follows `Unit::pos` (`x_internal`/`y_internal`) and moves the bits on the frame the *unit's point* crosses a unit cell |
 | difference shows | one frame of occupancy for a walking unit: the cell a unit is leaving stays lit one frame longer in the original than here, and the cell it is entering lights one frame later. Observable as a `PathFinder::valid_ucoord` answer — the run70-shaped `callwin` over `PathFinder::calc_cost` is the instrument, on any frame a searching unit's neighbour crosses a cell boundary. The `collide`/`collide_o` block does **not** show it, which is consistent with §8's zero-disagreement record. |

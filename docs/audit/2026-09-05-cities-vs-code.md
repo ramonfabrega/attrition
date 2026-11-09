@@ -92,7 +92,7 @@ relation to `o` at all. `crates/sim/src/harness_tests.rs:1817` already writes th
 rule down correctly — "The building thinks on `(frame + index) & 0x1f == 0`" —
 against code that does not implement it. So does one periodic *inside
 `process_building` itself*: `regen_roads_due` phases on `frame +
-self.buildings[b].index` (`crates/sim/src/roads.rs:171`), one line below the
+self.buildings[b].index` (`crates/sim/src/movement/roads.rs:171`), one line below the
 four that phase on `b`. And the decompile settles which is right — the city
 heal at `Build::process@0061edf0:728` reads `(GameAccess::game->frame + (int)*(short
 *)&this->field_0xa) % city_heal_rate`, and `+0xa` is `o` (§1.1's field table).
@@ -269,7 +269,7 @@ game state.
 | document | CITIES.md §5.2, "`remove_from_city` unlinks, **`regen_roads`**, clears each flag whose `count_buildings(kind, 0, 1)` dropped to zero, `city = −1`, `decrement_stats`." |
 | code | `crates/sim/src/city.rs:566-573` (`fn remove_from_city`) |
 | document says | A building leaving a city flags that city's whole membership for a road replan. |
-| code does | Unlinks and, for a temple, re-syncs territory. `Sim::city_regen_roads` (`crates/sim/src/roads.rs:152-162`) is called from `activate` (`crates/sim/src/city.rs:1443`) and from nowhere else. |
+| code does | Unlinks and, for a temple, re-syncs territory. `Sim::city_regen_roads` (`crates/sim/src/movement/roads.rs:152-162`) is called from `activate` (`crates/sim/src/city.rs:1443`) and from nowhere else. |
 | difference shows | `TERRAINSYNC`/road tiles in the sixteen frames after a member is destroyed or re-homed; `docs/ROADS.md` §1's own diff. Reachable in any capture where a building dies inside a city — run53 and run63 both have building deaths. |
 | reached | reached (`Build::remove_from_city` entered) |
 

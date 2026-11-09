@@ -3052,7 +3052,7 @@ mod tests {
         // §8). `UnitData::log_data` writes `collide`, `collide_o`,
         // `collide_who`, `collide_guy` and `safe` at every detail level, so
         // this is 40,600 field-frames of the original's own collision state
-        // against `crates/sim/src/collide.rs` — the widest single record
+        // against `crates/sim/src/movement/collide.rs` — the widest single record
         // this harness compares, and the one that says the mechanic is
         // right rather than merely plausible.
         //

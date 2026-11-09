@@ -26,7 +26,7 @@ and names the address, which is the price list for the next rung: the state
 a function reads that this script did not lay out.
 
 `sweep` prints one row per call, `<name> <args…> -> <eax>`, over a seeded
-sweep; `crates/sim/src/path.rs`'s
+sweep; `crates/sim/src/movement/path.rs`'s
 `the_emulated_original_agrees_on_every_row` reads that table — from
 `$RON_EMU_TABLE`, or by running the script against the install — and
 asserts every row against this crate. The table stays outside the
@@ -296,7 +296,7 @@ direct callees into C — the integer and scalar-SSE subsets, `fs:` as the
 guest TIB, imports through the IAT — and `difftest.py` diffs it row for
 row against unicorn on `callfn.py`'s own sweep and on every object of a
 packet. Verified: 3,516 sweep rows; `turn_speed` on 268 guys, asserted by
-`crates/sim/src/movement.rs`'s `RON_TURN_TABLE` test (skips without the
+`crates/sim/src/movement/mod.rs`'s `RON_TURN_TABLE` test (skips without the
 table); `norm` bit-exact on 1,088 chosen vectors and `air_turn_speed`'s
 truncation on 5,715 banks; `create_units` and 264 callees reproducing the
 original's `LeaderData` byte for byte. 741 of 771 cited functions lift;

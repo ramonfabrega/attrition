@@ -58,7 +58,7 @@ and calls `turn_speed` on **every guy of every active unit, in both modes**.
 |---|---|---|
 | Units, guys, calls | 127 units, 134 guys, **268 calls** (two modes) | `uv run tools/recomp/difftest.py <exe> frame <frame-snapshot.bin> <typed-state.json> --table …` |
 | Native against unicorn, on the same memory | **268 of 268 agree, 0 traps** | the same command |
-| The crate's port against the original's answers | **264 of 264 modelled rows agree**; the other 4 are guys past their squad with no track offset, a shape the port has no function for — counted, not asserted | `RON_TURN_TABLE=… cargo test -p sim the_original_on_a_real_frame_agrees_on_every_guy` (`crates/sim/src/movement.rs`; skips with a message when the table is absent) |
+| The crate's port against the original's answers | **264 of 264 modelled rows agree**; the other 4 are guys past their squad with no track offset, a shape the port has no function for — counted, not asserted | `RON_TURN_TABLE=… cargo test -p sim the_original_on_a_real_frame_agrees_on_every_guy` (`crates/sim/src/movement/mod.rs`; skips with a message when the table is absent) |
 | That test can fail | yes: one answer altered in a copy of the table fails it on that line | the same test on the altered copy |
 | Loading 843 MB | natively **0.08 s** (`mprotect` and `memmove`), into unicorn 0.09 s | printed by `difftest.py` |
 | The rows' spread | 17 distinct answers; 204 of 268 are the instant-turn `0x80000000` (250 guys carry the flag, 224 are stopped), 12 are the crew quarter turn, the rest the divided rate; no packed unit on this frame | `awk` over the table |
@@ -308,7 +308,7 @@ differential test on real frames is cheap on both machines.
   with the imports stubbed and the registers zeroed per call.
 - `tools/recomp/scan.py` — the step-3 count.
 - `tools/recomp/image.py` — the PE, its imports, the function table.
-- `crates/sim/src/movement.rs` — the one touch outside `tools/` and
+- `crates/sim/src/movement/mod.rs` — the one touch outside `tools/` and
   `docs/lab/`: the `RON_TURN_TABLE` test, which skips when the table is
   absent and changes nothing else.
 - Nothing from the install, and nothing generated from it, is committed.

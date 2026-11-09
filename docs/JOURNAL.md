@@ -168,7 +168,7 @@ dated heading on, the journal is by date.
    `FARM_GROWS = 200` is wrong by about a factor of two (`docs/ORDERS.md`
    §6.5).
 8. ~~**The pathfinder**~~ — **done, 2026-08-23**, `docs/PATHFINDER.md` and
-   `crates/sim/src/path.rs`: `astar_path` on all three grids (greedy
+   `crates/sim/src/movement/path.rs`: `astar_path` on all three grids (greedy
    heuristic, LIFO tie-break, metric-keyed dedup, budgets, suspend,
    reconstruction), `calc_cost` with every term modelled or a named seam,
    the three wrappers with their pre-walks and post-processing,
@@ -2669,7 +2669,7 @@ because the two are the same length and made of different numbers:
 
 The second row is **`toff`**, and `docs/PATHFINDER.md` §7 had it written
 down all along: a reconstructed world node is pushed at
-`node + toff − 0x180`, and `crates/sim/src/path.rs` carries `toff = 0` as a
+`node + toff − 0x180`, and `crates/sim/src/movement/path.rs` carries `toff = 0` as a
 stated seam because "move orders here have point goals". The arithmetic
 closes — `504 − 0x180 = 120`, and the order's own `off_x` is `504` — so the
 seam is wrong for a *plain* move too: `toff` is the move order's
@@ -3755,7 +3755,7 @@ The answer was in the same record, three lines up: `collide 1`,
 `1/6` had walked into `1/3`.
 
 `docs/MOVEMENT.md` had this as an open question — "Collision and pushing …
-Unread" — and it is now `docs/COLLISION.md` and `crates/sim/src/collide.rs`.
+Unread" — and it is now `docs/COLLISION.md` and `crates/sim/src/movement/collide.rs`.
 
 ### Two indices, and why neither can be a scan
 
@@ -3830,7 +3830,7 @@ eight are two units and two collisions, both past the score.
 `coll_x`/`coll_y` are compared too, as a scoring order mismatch, and adding
 them did not move the score.
 
-`crates/sim/src/collide.rs` carries four tests written to fail first,
+`crates/sim/src/movement/collide.rs` carries four tests written to fail first,
 including the one that pins the un-refcounted clear.
 
 ### The number
@@ -7940,7 +7940,7 @@ offset 48**, between `is_wonder` and `get_gpiece`. That is the third slot
 this session's family of items has had to take from the type stream rather
 than the map, after `is_move` at 20 and `get_move_order` at 184.
 
-`crates/sim/src/collide.rs` now opens `resolve_unit_collision` with
+`crates/sim/src/movement/collide.rs` now opens `resolve_unit_collision` with
 `if self.units[u].is_gaia() { self.clear_orders(u); return; }`. The
 predicate is the owner rather than the class, which is a stated seam: every
 `ANIMALDATA` record in run12 (360) and run20 (936) carries `who 8`, and the
@@ -16601,7 +16601,7 @@ the start, and 26 for the rest.
 **What it moved.** All three Archers walk the original's own points from
 6652 to **6861** (run76's window now asserts it), and run53's word moved
 **6848 → 6862** — the first time the soft-collision arm has shown up in a
-score. `crates/sim/src/movement.rs`'s `move_step` takes the bit as an
+score. `crates/sim/src/movement/mod.rs`'s `move_step` takes the bit as an
 argument and reports back through `Step::half_step_used`; the caller owns
 the clearing. The unit test was made to fail once, on both halves: the
 one-shot spends itself, and the hard-turn arm does not spend it.

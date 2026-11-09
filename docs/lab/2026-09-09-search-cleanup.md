@@ -9,7 +9,7 @@ it does not emulate allocator calls or translate the decompiled cleanup body.
 
 This is a synthetic open-tree teardown experiment. It does not establish that
 these inputs occur naturally, capture a suspended search, resume one, or compare
-Rust search results. `crates/sim/src/path.rs` still explicitly discards suspended
+Rust search results. `crates/sim/src/movement/path.rs` still explicitly discards suspended
 search state; this work does not change that seam or move a parity score.
 
 ## Evidence and checks

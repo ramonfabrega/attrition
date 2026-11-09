@@ -8696,7 +8696,7 @@ byte (`:98`):
 a leg because its target came into reach, but the first bump from any
 enemy ends it.
 
-`Sim::resolve_unit_collision` (`crates/sim/src/collide.rs`) now takes
+`Sim::resolve_unit_collision` (`crates/sim/src/movement/collide.rs`) now takes
 `update_action` at the top, arms A and B, and step 2 without the
 same-player gate.
 

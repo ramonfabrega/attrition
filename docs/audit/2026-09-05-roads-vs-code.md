@@ -5,7 +5,7 @@ document and the implementation, and nothing else).
 
 Checked: 106 rules across §1–§5 and §7–§9 — every stated predicate, constant,
 formula and order of steps in those sections, each traced to the code that
-implements it (`crates/sim/src/roads.rs`, `mesh.rs`, `terrain.rs`, `city.rs`,
+implements it (`crates/sim/src/movement/roads.rs`, `mesh.rs`, `terrain.rs`, `city.rs`,
 `caravan.rs`, `ai_sites.rs`, `world.rs`). Rows below are the nine where the
 code and the document disagree; the other ninety-seven the code implements
 faithfully and are not written down.
@@ -23,7 +23,7 @@ in §9.4 as *somebody else's* mechanic. Every row below is therefore
 | | |
 |---|---|
 | document | ROADS.md §5, "Reconstruction starts at the arrived node's *parent* and stops before the root, so neither endpoint's own tile is laid; **a blocked tile stays on the chain but takes no road**." |
-| code | `crates/sim/src/roads.rs:750` (`fn reconstruct`), lines 759–761 |
+| code | `crates/sim/src/movement/roads.rs:750` (`fn reconstruct`), lines 759–761 |
 | document says | the blocked tile is on the returned chain, and the *laying* step is what refuses it (`place_roads`, `roads.rs:232`) |
 | code does | `reconstruct` drops the blocked tile from the answer entirely — it never enters the returned `Vec<Pos>` |
 | difference shows | a caravan's waypoint list, not a road tile: `gamelog-run73-greatlakes-caravanstart.txt`'s `[5566, 5573]` search, whose answer `1/23` then walks (`docs/CARAVAN.md` §5.3). No road-tile diff can see it — `place_roads` filters blocked tiles anyway |
@@ -50,7 +50,7 @@ The two only agreed while the answer's sole consumer was `place_roads`.
 | | |
 |---|---|
 | document | ROADS.md §2 table, "`+0xb4` \| 200 \| the ground term: `× 4` off a road, `>> 3` on one" |
-| code | `crates/sim/src/roads.rs:677-681` (`fn calc_road_cost`) |
+| code | `crates/sim/src/movement/roads.rs:677-681` (`fn calc_road_cost`) |
 | document says | the multiplier is chosen by road-versus-not |
 | code does | the multiplier is chosen by **friendly**-versus-not: `let ground = if friendly { GROUND >> 3 } else { GROUND * 4 }`, applied on a road *and* off one |
 | difference shows | no observable — the code follows §5.2, which is right; §2's row is a wrong gloss on a right constant. A capture would only show it if the code were changed to match §2, and then every foreign-territory node of run62's 2,913 (`gamelog-run62-roadpath.txt`, frame 100) would price 775 low |
@@ -69,7 +69,7 @@ an internal contradiction inside the document and the code sides with §5.2.
 | | |
 |---|---|
 | document | ROADS.md §5.2, "`total += avoid_sea ? 100 : (parent not ocean ? 100 : 0)`" |
-| code | `crates/sim/src/roads.rs:633-641` (`fn calc_road_cost`) |
+| code | `crates/sim/src/movement/roads.rs:633-641` (`fn calc_road_cost`) |
 | document says | with `avoid_sea` clear, the 100 is charged **only when the parent tile is not ocean** — it is an entry toll, and a run of ocean tiles pays it once |
 | code does | `total += if avoid_sea { SEA_AVOIDED } else { SEA_ENTER }` — 100 on every ocean node whatever the parent was, so the second and later tiles of a sea crossing each cost 100 too much |
 | difference shows | `PathFinder::calc_road_cost`'s proxied price (the run62 recipe) on a caravan road that crosses water — East Indies, per §8.3; on the corpus as it stands the nearest reachable capture is `gamelog-run64-islands-caravanroad.txt` frame 6166 onward if any of its nodes are ocean, and `gamelog-run73-greatlakes-caravanstart.txt`'s `[5566, 5573]` if that route touches sea. A land-only building road cannot show it (`valid_roadcoord` refuses ocean with `can_transport` 0) |
@@ -123,7 +123,7 @@ difference the moment it fires.
 | | |
 |---|---|
 | document | ROADS.md §5, "Reconstruction starts at the arrived node's *parent* and stops before the root"; §9.1, "**each tile is a full pass of the mesh on its own**, not a batch at the end of the frame" |
-| code | `crates/sim/src/roads.rs:227-235` (`fn place_roads`), against `crates/sim/src/roads.rs:750` (`fn reconstruct`) and `crates/sim/src/caravan.rs:789-820` (`fn lay_caravan_road`) |
+| code | `crates/sim/src/movement/roads.rs:227-235` (`fn place_roads`), against `crates/sim/src/movement/roads.rs:750` (`fn reconstruct`) and `crates/sim/src/caravan.rs:789-820` (`fn lay_caravan_road`) |
 | document says | the original pops its `Stack<PathData>` **from the top down**, and the top is the end nearest the **start** — the building — so tiles are laid from the building outward to the city |
 | code does | iterates `reconstruct`'s vector front to back, and `reconstruct` pushes the arrived node's parent first — the **goal** end — so `place_roads` lays from the city inward to the building, exactly reversed |
 | difference shows | any tile `Roads::set_diags` lays as a consequence (§9.3), which depends on which neighbours are already road when each tile goes down: the mesh's own tile on `gamelog-run72-greatlakes-marketroad.txt` frame 4803 (the seventeenth tile, `(223, 79)`), and thereafter the `PathFinder::calc_road_cost` price of any later search crossing that ground. It is invisible to a diff only while a road's tiles happen to be order-independent |
@@ -191,7 +191,7 @@ restatement of the water test either: the water test (lines 111–117, land
 | | |
 |---|---|
 | document | ROADS.md §5, "**The budget** is `traversed >= 0xc80` … tested on each pop before expanding. Reaching it lays no road at all." |
-| code | `crates/sim/src/roads.rs:428-443` (`fn step_road`) |
+| code | `crates/sim/src/movement/roads.rs:428-443` (`fn step_road`) |
 | document says | (ambiguous) the goal test comes first — §5's "The stop is exact" — and the budget is what a pop that is *not* the goal is measured against |
 | code does | returns `RoadPlan::Road` on the goal pop unconditionally, and only then tests the budget |
 | difference shows | the frame on which a caravan's road finishes: `Caravan::build_road` answering 1 a frame early, and with it the whole `[5566, 5573]` bracket of `gamelog-run73-greatlakes-caravanstart.txt` if that search's final frame ever crosses 3,200 nodes before popping the goal. A building's road cannot reach it — no building search on the corpus exceeds 400 nodes |
@@ -212,7 +212,7 @@ two disagree.
 | | |
 |---|---|
 | document | ROADS.md §5.2, "`owner is me, or a mutual ally, // and is_ally(owner, whoB) → friendly`" |
-| code | `crates/sim/src/roads.rs:644-656` (`fn calc_road_cost`) |
+| code | `crates/sim/src/movement/roads.rs:644-656` (`fn calc_road_cost`) |
 | document says | friendly needs **both** halves: the owner is the searcher or a mutual ally, **and** `is_ally(owner, whoB)` — the *other* endpoint's owner |
 | code does | `Owner::Player(o) if o == who.0 => true` — the first half only. The `is_ally(o, who.1)` conjunct is absent even from the "owner is me" arm |
 | difference shows | a `calc_road_cost` price of 540 rather than 0 (and the ×4/>>3 ground term with it) on the searcher's own territory when the two endpoints belong to different, non-allied leaders. Nothing on the corpus reaches it: `place_roads` always searches a building to its own city centre, so `who.0 == who.1` and the conjunct is reflexively true |

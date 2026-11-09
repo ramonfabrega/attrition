@@ -49,7 +49,7 @@ Behind the bit there is also an **object**: the cell's `down`/`down_who`
 chain ends with `down == -3` and `down_who` holding an index into `items`
 rather than a unit. `ObjectsData::find_goody_at@0065c040` walks that chain
 and returns the item when the terminal is `-3` and the item's `flags & 1` is
-set. The simulation does not model the item — `crates/sim/src/collide.rs`
+set. The simulation does not model the item — `crates/sim/src/movement/collide.rs`
 chains units only, which is the queue's item 48 — so here the bit is the
 whole of a box's existence. §5 says what that costs.
 

@@ -2742,7 +2742,7 @@ const UNSCANNED_SEAMS: &[(&str, usize)] = &[
     ("crates/sim/src/air.rs", 2),
     ("crates/sim/src/airbase.rs", 1),
     ("crates/sim/src/cast.rs", 1),
-    ("crates/sim/src/collide.rs", 1),
+    ("crates/sim/src/movement/collide.rs", 1),
     ("crates/sim/src/fight.rs", 4),
     ("crates/sim/src/group.rs", 3),
     ("crates/sim/src/lib.rs", 1),

@@ -928,7 +928,7 @@ offset (`docs/ORDERS.md` §6.9 step 2). run75's block 6145 has the figure at
 walked there; this crate had it at `(40631, 14634)` and jogging.
 
 So the draw at 6151 was never a bug in `set_anim` at all — it was a body in
-the wrong place, and the whole of it is `crates/sim/src/collide.rs`'s
+the wrong place, and the whole of it is `crates/sim/src/movement/collide.rs`'s
 `set_new_location` no longer returning early when the point is unchanged.
 Great Lakes' word 6151 → **6463** (item 210).
 

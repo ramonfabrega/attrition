@@ -37,7 +37,7 @@ survived (2026-09-07; the recovered work is on branch `rescue-234`, commit
   *"At zero it is an ordinary row of the labelled comparison, and that is
   what it is now."* The cause was `clear_partial_path`, not the refused
   step the row named (`docs/MOVEMENT.md`, "The verified line's lifecycle").
-- **231** landed — `Sim::same_group_soft` in `crates/sim/src/collide.rs`
+- **231** landed — `Sim::same_group_soft` in `crates/sim/src/movement/collide.rs`
   carries the three-rule split whole, including the correction that
   `(iVar7 == 0 || iVar7 == 0xc)` short-circuits the action test for the
   other seven kinds, and the two seams (`+0x104`, `CHANGE_FORM`) are named
