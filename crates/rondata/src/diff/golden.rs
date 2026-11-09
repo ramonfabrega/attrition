@@ -6868,7 +6868,7 @@ fn chapter_one_hundred_and_thirty_six_s_window_is_widened_whole() {
     cases_80_89::chapter_one_hundred_and_thirty_six_s_window_is_widened_whole();
 }
 
-/// What parts in run1553's window, blocks 600–899 (item 3995): the eleven
+/// What parts in run1553's window, blocks 600–900 (item 3995): the eleven
 /// standing `form` rows, and nothing else. The Transport Freighter `1/6`
 /// holds `think_carry_idle`'s MOVEORDER to (36168, 19560) from 611 in both;
 /// the barge `1/10` holds the no-army arm's MOVEORDER to (38040, 16536),

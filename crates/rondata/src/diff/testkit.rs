@@ -7108,7 +7108,7 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_SIX: i64 = 900;
 
 /// `chapter_one_hundred_and_thirty_six_s_window_is_widened_whole`'s
 /// window: run1553.
-pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_SIX: (i64, i64) = (599, 900);
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_SIX: (i64, i64) = (599, 901);
 
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
