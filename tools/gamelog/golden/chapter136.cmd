@@ -15,7 +15,8 @@
 #          the captain's point and the squad goes inside, in a group of its own). Idle with a captain that attacks
 #          aboard, the barge takes the military arm; the group (`+0x80` of the head rider) has no army under the AI off,
 #          so `eject_contents(0, -1, 0, 1)`, and an emptied boat dies. This crate answers false there (a SEAM): the
-#          barge sits idle with the squad aboard.
+#          barge sits idle with the squad aboard. [After the take: killer (4) fired -- at sea the eject is refused and
+#          the barge sails for who=1's nearest city, (38040, 16536) from 641; built, GOLDEN 188.]
 #   Not staged (parked by the item): the army whose target dies in transit (no army forms with the AI off), and the
 #          razed trade city (no verb razes a city).
 # Killers, before the take:
