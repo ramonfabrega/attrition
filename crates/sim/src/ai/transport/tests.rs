@@ -1862,6 +1862,84 @@ fn a_boat_carrying_a_soldier_sails_to_its_army_s_target() {
     assert!(!f.sim.units[boat].alive(), "the emptied boat dies");
 }
 
+/// `think_carry_military`'s no-army arm (item 3995, `docs/GOLDEN.md`
+/// §188; run1553's barge `1/10`): out at sea `eject_contents` puts no
+/// one ashore, the boat lives, and it sails for its owner's **nearest**
+/// live city — the centre of the city building's cell, snapped to 48.
+/// With no city of its own the arm answers no.
+#[test]
+fn a_soldier_barge_with_no_army_sails_for_its_nearest_city() {
+    let mut f = fix();
+    let soldier = f.sim.add_unit_type(crate::UnitType {
+        hits: 100,
+        combat: crate::combat::Profile {
+            attack: 10,
+            uber_size: 1,
+            // A radius, as a Hoplite's: `come_out`'s ring refuses at sea
+            // rather than taking the boat's own point (the radius-0 arm).
+            block_radius: 48,
+            ..crate::combat::Profile::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let boat = unit(&mut f.sim, 1, f.ship, tile_pos(46, 12));
+    f.sim.units[boat].on_map = true;
+    let rider = unit(&mut f.sim, 1, soldier, tile_pos(46, 12));
+    f.sim.units[rider].captain = true;
+    f.sim.units[rider].inside_unit = Some(boat);
+    f.sim.units[rider].on_map = false;
+    f.sim.units[rider].group_ptr = Some(3);
+    assert!(!f.sim.think_carry(boat), "no army and no city: no");
+    assert_eq!(f.sim.units[rider].inside_unit, Some(boat), "refused at sea");
+    let city = |sim: &mut Sim, cx: i32, cy: i32| {
+        let centre = Pos::new(cx * 0x300 + 0x180, cy * 0x300 + 0x180);
+        let building = sim.add_building(1, centre, 4);
+        sim.cities.cities.push(crate::cities::city::City {
+            alive: true,
+            owner: 1,
+            race: Some(1),
+            founder: 1,
+            building,
+            members: Vec::new(),
+            reg: Some(f.land),
+            pos: centre,
+            capital: false,
+            founding_capital: false,
+            was_founding_capital: false,
+            unassimilated: false,
+            no_heal: false,
+            attacking: false,
+            ever_attacked: false,
+            alarm: false,
+            no_muster: false,
+            was_capital: 0,
+            capture_stamp: 0,
+            assimilation_timer: 0,
+            attack_stamp: 0,
+            reduce_stamp: 0,
+            raid_stamp: 0,
+            capture_strength: 0,
+            pop: 1,
+            has_citizen: false,
+            source: None,
+            trade_val: 0,
+            traded_with: [0; 8],
+        });
+    };
+    // The first city in the list is the farther; the scan keeps the nearer.
+    city(&mut f.sim, 1, 1);
+    city(&mut f.sim, 5, 3);
+    assert!(f.sim.think_carry(boat), "no army, a city of its own");
+    assert_eq!(f.sim.units[rider].inside_unit, Some(boat), "still aboard");
+    assert!(f.sim.units[boat].alive(), "the boat lives");
+    let dest = f.sim.units[boat]
+        .orders
+        .front()
+        .and_then(|o| o.move_dest())
+        .expect("a move order");
+    assert_eq!((dest.x, dest.y), (5 * 0x300 + 408, 3 * 0x300 + 408));
+}
+
 #[test]
 fn needs_transport_reads_the_shore() {
     let f = fix();

@@ -2221,6 +2221,10 @@ pub(crate) fn carrier_1066_window() -> Option<harness::tests::Widened> {
 
 /// **run1066's window, widened whole with its staging** (item 3981): the
 /// carrier `0/14`'s queue against the port (`sim::air::carrier_queue`).
+/// 101 → 72 by item 3995 (`docs/GOLDEN.md` §188, parked 3981b): the barges'
+/// `think_carry` arms — `1/19`'s no-army walk to (34968, 36504) on 771
+/// (fifteen rows, a bird `8/1`'s position on 811 among them) and `1/20`'s
+/// idle walk to (43416, 40584) on 794 (fourteen).
 #[test]
 fn run1066_s_carrier_window_is_widened_whole() {
     let _pins = Pins::hold();
@@ -2236,7 +2240,7 @@ fn run1066_s_carrier_window_is_widened_whole() {
     eprintln!("run1066 queue rows: {queue:#?}");
     pin_eq!(w.blocks, 237, "every captured block");
     pin_eq!(queue.len(), 0, "the carrier's queue parts nowhere");
-    pin_eq!(w.firsts.len(), 101, "initial run1066 baseline");
+    pin_eq!(w.firsts.len(), 72, "initial run1066 baseline");
 }
 
 /// run1075, item 3455: the coverage pair's lobby with eleven human

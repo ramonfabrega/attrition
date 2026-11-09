@@ -19614,12 +19614,96 @@ frame late (3994a) and pool slot 2's speed (3994b). No cover twin was taken.
 **Coverage.** Diff-backed: the stand-off point with an armed Helicopter, both building arms, the Disband clock's 16800
 and the razing frame. Reading only: the two `count_queue` refusals.
 
-## 188. Reserved for the next item on the rules track
+## 188. Chapter one hundred and thirty-six — the boats: an idle boat's walk to a Dock city, and a soldier barge with no army; closed at 900 (item 3995, run1553)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: territory adjudication 4 rows 49–51 — `Unit::think_carry_idle@005f2f30` and
+`Unit::think_carry_military@005f3260`'s no-army arm, swept against the original by item 3411 and wired by nothing
+(parked 3411a, 3411b), and `think_caravan`'s razed trade city. **The disk could not answer them**: on
+`sea_melee_run1483_s_word_window_is_widened_whole` and `airbase_melee_run1492_s_word_window_is_widened_whole` no boat
+row parts, and the cover twins put `think_carry_idle`'s first entry on 630, the birth of the Transport Freighter
+`1/19` — between dumped blocks 2501/2601 and 701, where both freighters hold their `FLEETOORDER` and agree. No water
+lies inside any city's `CITY_RADIUS` on that start, so no Dock joins a city. run1017's window (15230..15432) razes
+and captures nothing.
+
+**The staging** (`tools/gamelog/golden/chapter136.cmd`, the golden start, `!ai off`; who=1 keeps `0x40000`, so its
+units think):
+- 600 `library who=1 1`; 602 `add small_city who=1 198,84` (`1/2006`, on the east lake's shore); 604 `add dock who=1
+  188,84` (`1/2007`, in ours and theirs a member of the new city);
+- 610 an empty Transport Freighter `1/6` at (181, 82);
+- 640 `!eval create_unit(2, 181, 88, "Hoplites", 1)`: `action_transport(1)` builds a barge `1/10` at the captain's
+  point and the squad goes aboard, in a group of its own and no army.
+
+The first launch refused at the header: `GROUPS` beside `DEATHS` at one section. `GROUPS` was dropped, so the
+widening reads no pool (`widen_civilians`).
+
+**Killers, before the take.**
+1. No city or no Dock: did not fire.
+2. `1/6` with no `MOVEORDER` by 612: did not fire — it holds one from 611.
+3. Its `MOVEORDER` other than (36168, 19560), the walk's: did not fire; its walk matches ours frame for frame.
+4. The barge standing with the squad aboard on 700 (the reading: "eject, an emptied boat dies"): **fired, and the
+   reading was wrong.** At sea `eject_contents` puts no one ashore, the squad stays and the boat lives;
+   `think_carry_military:29`–`:64` goes on to **the owner's nearest live city**. The barge holds `MOVEORDER` to
+   (38040, 16536), the centre of the city building's cell snapped to 48, from 641. `carry_mil.rs`'s steps had the
+   whole of it; the adjudication's row read only the head of the arm.
+
+```text
+think_carry_idle (a boat with nothing aboard it can unload):
+    for each live city of the owner, in slot order:
+        open, coastal (Region::is_coast(my tregion, city region)) and holding an active Dock: the nearest
+    spot = UnitType::find_nearby_spot(type, city x, y, 0xf00, -1, 0x55555555, FILTER_NOT_ME, …)
+    MOVE_TO spot, the bearing to it, queued new
+think_carry_military, a group with no army:
+    eject_contents(0, -1, 0, 1); nothing left inside: the boat dies, answer 1
+    else the owner's nearest live city (vector_dist, a quarter for flags & 2): its building's cell,
+    ashore test on the boat's nine cells, then MOVE_TO the cell's centre, 48-snapped
+```
+
+**Built.**
+- `units/think/carry_idle.rs`: `SimCarryIdle` and `Sim::think_carry_idle`, the carry dispatcher's idle arm
+  (`ai/transport/mod.rs`, `SimCarry::idle`). The city list is the owner's live cities in slot order; the dock test
+  an alive, active Dock on the city's chain (`count_buildings`); the spot `find_nearby_spot_type_for(type, boat, city
+  pos, 0xf00, -1, 0x55555555)`; the order `add_move_facing_order(QUEUE_NEW)`.
+- `units/think/carry_mil.rs`: `SimCarryMil`; `Sim::think_carry_army` now runs `think_carry_military_steps` over it,
+  replacing the namesake's army-only arm. **SEAM**, answering false: an army with no live target, away from its
+  region — this crate carries no region centre (`Region +0x7c`). `eject_riders` and `transport_dies` are
+  `pub(crate)`.
+- **The barge is formed once** (`ai/scenario_add.rs`, `g.list.dedup()` after `add_unit`'s host swap; parked
+  3917a). Before it, the barge's point parted on 641: ours (34728, 17496), theirs (34872, 17256) — the −144/+240
+  shape of chapter 114's 621 rows. With one copy both captures keep the barge on its own point, and chapter 114's
+  seven barge rows leave `WANT_CH114`. Which `Group::action_form` rule this stands in for is not read (3917a's
+  "the original lists it once" stays killed: its list holds three copies).
+- Tests: `ai::transport::tests::a_soldier_barge_with_no_army_sails_for_its_nearest_city` (a rider with a Hoplite's
+  block radius is refused at sea — a radius-0 rider takes `come_out`'s host-point arm and leaves — and the nearer of
+  two cities is taken; no city answers no).
+- Harness: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_SIX`, its widening (`WANT_CH136`), the floors, and the
+  coverage driver (600..899, 300 blocks).
+
+**The word**: **900 of 900**, closed whole. Before the dedup it was 671 (the barge's step: `move_step` ours,
+`set_anim` theirs). The value rows on the arms' frames, both sides: `1/6`'s `orders_x/y` (36168, 19560) on 611;
+`1/10`'s (38040, 16536) on 641. The widening over 600..899 parts 11 rows, the eleven standing `form` rows; nothing
+parts on either arm.
+
+**run1066 moves 101 → 72** (`run1066_s_carrier_window_is_widened_whole`, parked 3981b): the two barges' rows leave
+it. Mutated one arm at a time: the military arm's fifteen — `1/19`'s `MOVEORDER` to (34968, 36504) on 771 and its
+walk, and a bird `8/1`'s position on 811 (ours (28968, 23851), theirs (28968, 23832) before) — and the idle arm's
+fourteen, `1/20`'s to (43416, 40584) on 794 and its walk. The dedup moves nothing there. The barges' `form` rows on
+626 and 638 stand.
+
+**Mutations** (`tools/mutate.py`, each against chapters 136 and 114; all held):
+- the idle arm answering 0: the word falls to 639, and the widening's first rows are `611 1/6`'s orders;
+- the dedup removed: the word falls to 671, and chapter 114's seven 621 rows return;
+- the no-army city search finding no city: the word falls to 677, and the widening's first rows are `641 1/10`'s
+  orders.
+
+**Not established**: the army whose target dies in transit, the region-centre SEAM (parked 3995a — no army forms
+with the AI off); the razed trade city (3995b — no verb razes a city, and no kept window holds one); an emptied
+boat's death on the no-army arm (no staging puts the squad ashore); a city's quarter weight (`flags & 2`, read
+here off `no_heal`). No cover
+twin was taken.
+
+**Coverage.** Diff-backed: the idle walk's city, Dock test and spot; the no-army arm's refused eject at sea and
+nearest-city order (run1553 and run1066); the barge's single formation copy (run1553 and run1511). Reading only, and
+swept (item 3411): the emptied boat's death, the quarter weight and the region-centre arm.
 
 ## 189. Chapter one hundred and twenty-seven closed at 1600 — Bribe's copy keeps the figure's angle and the unit's apart, and finishes its turn on its birth frame (item 3999, run1554)
 

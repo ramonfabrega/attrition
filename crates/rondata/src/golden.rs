@@ -2689,6 +2689,10 @@ mod tests {
         // Barracks and on an unfinished one, `select` and `@key` (item
         // 3994, `docs/GOLDEN.md` §187).
         ("chapter135.cmd", &[]),
+        // Chapter one hundred and thirty-six: the boats -- an empty
+        // Transport Freighter's walk to a coastal Dock city, and a soldier
+        // barge whose group has no army (item 3995, `docs/GOLDEN.md` §188).
+        ("chapter136.cmd", &[]),
         // Chapter fourteen: two `@form` issuer lines and a `@move`, the
         // formation line (item 723, `docs/GOLDEN.md` §22).
         ("chapter14.cmd", &[]),

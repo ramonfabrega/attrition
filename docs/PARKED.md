@@ -9493,17 +9493,19 @@ words and edits nothing here; a refill lands when two remain.
 No generator park: every `sweep_gen.py` run exited 0 and no flag was lacking. What parks is wiring — each port
 is an oracle-agreed module the live sim does not call.
 
-- **3411a** `Unit::think_carry_idle@005f2f30` — `carry_idle.rs` (`CarryIdleView`, `think_carry_idle_steps`) agrees
+- ~~**3411a** `Unit::think_carry_idle@005f2f30` — `carry_idle.rs` (`CarryIdleView`, `think_carry_idle_steps`) agrees
   on 3000 rows, unwired: `SimCarry::idle` in `transport.rs` still answers `false`. Wiring needs the leader's city
   list in the original's order, a `CityData::get_building(DOCK)` test, and a mapping of the 16-argument
   `UnitType::find_nearby_spot` onto `Sim::find_nearby_spot`. The original hands `get_building` two stale stack
-  words beside `DOCK` (the `is_coast` return address, the city's region).
-- **3411b** `Unit::think_carry_military@005f3260` — `carry_mil.rs` (`CarryMilView`, `think_carry_military_steps`)
+  words beside `DOCK` (the `is_coast` return address, the city's region).~~ Wired by item 3995 (`docs/GOLDEN.md`
+  §188): run1553's Freighter `1/6` walks to (36168, 19560) on both sides.
+- ~~**3411b** `Unit::think_carry_military@005f3260` — `carry_mil.rs` (`CarryMilView`, `think_carry_military_steps`)
   agrees on 2000 rows, unwired. `think_carry_army` (`transport.rs:644`) is a **namesake**: the army arm only, with
   SEAMs for the eject, the no-army nearest-city search and the region-centre arms, and no target table or tail order
   build. Wiring needs a view over armies, groups, cities, objects and leaders' region marks. Its emulator output is
   ~200 MB for 2000 rows, past the 16 MiB emu-cache cap, so the test reruns the original each time (~12 s); cap it at
-  1500 rows to cache it. Its `RowView` is not inside a `// hand:` fence, so a `--regen` drops it.
+  1500 rows to cache it. Its `RowView` is not inside a `// hand:` fence, so a `--regen` drops it.~~ Wired by item
+  3995 (`docs/GOLDEN.md` §188); the region-centre arm stays a SEAM (3995a).
 - **3411c** `Group::action_repair@007020c0` — `repair_view.rs` (`RepairView`, `action_repair_steps`) agrees on
   2000 rows plus a 400-row head slice, unwired: the `repair` command (type `0x10`) is issued by nothing a game reaches
   (GOLDEN §49), so there is no caller to wire it to.
@@ -14794,7 +14796,7 @@ no score.
 
 ## Parked by item 3917, 2026-11-06 — units the console creates
 
-- **3917a. The barge's formation on 621** (`docs/GOLDEN.md` §164): run1511 keeps barge `0/9` at (12024, 35304), its
+- ~~**3917a. The barge's formation on 621** (`docs/GOLDEN.md` §164): run1511 keeps barge `0/9` at (12024, 35304), its
   `orders_x/y` on that point; ours lands it on (11880, 35544), seven rows in `WANT_CH114` (`pos`, `orders_x/y`,
   `g.x/y[0]`, `g.des_x/y[0]`). The barge is listed three times, once per Hoplite figure, after `add_unit`'s host swap
   (`009e2611`..), and takes three formation moves; the jump lands it on the last. **Killed**: "the original lists it
@@ -14802,7 +14804,8 @@ no score.
   how `Group::action_form` treats a member listed more than once, and whether the jump's last point is invalid for the
   barge and `find_nearby_spot(0xc0, 0x600)` finds nothing. The cheapest answer is a packet inside `add_unit` at 620:
   the barge's order list after `action_form`. **Score**: the chapter's widening (seven rows); the word is closed at
-  900 either way.
+  900 either way.~~ Item 3995 (`docs/GOLDEN.md` §188): the barge listed once — `g.list.dedup()` after the host
+  swap — and the seven rows leave `WANT_CH114`; which `action_form` rule it stands in for is not read.
 
 ## Parked by item 3918, 2026-11-06 — a Disband queued at a Barracks
 
@@ -15429,10 +15432,11 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   `num_units[259]` 8, `active` 24, `control` 26); ours is born empty (1, 17, 19). `Build::train`'s carrier arm, or
   `Unit::init`'s, fills `MAX_AIRCRAFT_PER_CARRIER` (7) with the leader's current Fighter-Bomber; unread. **Score**:
   `run1066_s_carrier_window_is_widened_whole`'s `firsts` (101), −10 when it lands.
-- **3981b. The two barges' `think_carry` arms** (AI §296 row 5, GOLDEN §147): `1/19` (`think_carry_military`, 770)
+- ~~**3981b. The two barges' `think_carry` arms** (AI §296 row 5, GOLDEN §147): `1/19` (`think_carry_military`, 770)
   and `1/20` (`think_carry_idle`, 793) each lay a `MOVEORDER` in theirs on the next block (to (34968, 36504) and
   (43416, 40584)) and hold nothing in ours; their walks part from there. **Score**: the same pin, −22 (eleven rows a
-  barge) when both arms land.
+  barge) when both arms land.~~ Both landed, item 3995 (`docs/GOLDEN.md` §188): 101 → 72 — fourteen rows a barge
+  and a bird `8/1`'s position on 811.
 - **3981c. Leader 0's `gather_stamp` after the `resource` line**: on 601 ours 600, theirs 496. The staging's
   `resource who=0 all +100000` moves this crate's stamp and not the original's. **Score**: the same pin, −1.
 
@@ -15720,13 +15724,16 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   and run1429's frames print no building. run1429b's window prints `BUILDDATA` with a piece on 95 blocks. It
   names no score until a building decoder exists, since M's 21 building types count toward no K without one.
 
-## Parked by the next landing, slot DN — reserved
+## Parked by item 3995, 2026-11-09 — the boats' two unstaged arms
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3995a. The army whose target dies in transit** (`docs/GOLDEN.md` §188; `think_carry_military`'s dead-target
+  arm). Away from its region the boat walks to `Region +0x7c`'s centre cell, or to the last city of the region its
+  leader marks `& 4`; this crate carries no region centre, and `Sim::think_carry_army` answers false there (a SEAM).
+  Not staged: no army forms with the AI off. **Score**: none on file — the first capture whose AI's soldier barge
+  loses its army's target at sea names its frame; the swept steps (`carry_mil.rs`) need only the region's centre.
+- **3995b. The razed trade city** (territory adjudication 4 row 51; `think_caravan`'s kill arms, unbuilt). No
+  console verb razes a city, and run1017's window (15230..15432) holds none razed or captured. **Score**: none on
+  file — a capture whose trade route's city is razed or captured mid-route.
 
 ## Parked by the next landing, slot DO — reserved
 

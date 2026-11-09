@@ -7099,6 +7099,17 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_FIVE: i64 = 1250;
 /// window: run1552.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_FIVE: (i64, i64) = (604, 1251);
 
+/// **Chapter one hundred and thirty-six** (item 3995, `docs/GOLDEN.md`
+/// §188, run1553): who=1's empty Transport Freighter takes
+/// `Unit::think_carry_idle@005f2f30`'s walk to its added coastal city's
+/// Dock, and a Hoplites barge whose group has no army takes
+/// `Unit::think_carry_military@005f3260`'s no-army arm.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_SIX: i64 = 900;
+
+/// `chapter_one_hundred_and_thirty_six_s_window_is_widened_whole`'s
+/// window: run1553.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_SIX: (i64, i64) = (599, 901);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);

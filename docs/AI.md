@@ -18972,7 +18972,7 @@ whose `UnitTypeData +0x2d4` (`CARRY`) is non-zero and that is not strictly `AIRC
 
 - `count_inside(COUNT_WORKERS)` non-zero → `think_carry_civilian(1)`; `count_inside(COUNT_TYPE, 0x45)` non-zero → `(0)`;
   otherwise `count_inside(COUNT_ATTACK) == 0` → `think_carry_idle@005f2f30`, else the attack-carrier arm. **Not modelled** (SEAM; answers
-  no, as before): `think_carry_idle`, ~~the attack arm~~ (built by item 2808, §235), and `think_carry_military@005f3260`, the `(0)` call's fall-through.
+  no, as before): ~~`think_carry_idle`~~ (built by item 3995, `docs/GOLDEN.md` §188), ~~the attack arm~~ (built by item 2808, §235), and `think_carry_military@005f3260`, the `(0)` call's fall-through.
 - `think_carry_civilian`: every land region of size, `go_here` (bit 1 only for workers), `Region::is_coast(r, the boat's own tregion)`
   (a `(0)` call also skips a region its leader has scouted); the region's cells strided `max(16, size/50)` and phased by `o + frame` as
   `think_civilian_transport` (§7); a cell is any `coast_here(r, my region)` ≠ 0 — **no water-half test**; the score is `vector_dist ×
@@ -21818,8 +21818,9 @@ crate had no attack arm. `think_carry` answered no, the tail asked nothing of a 
   `add_move_order`.
 - **SEAMS**, stated in the code:
   - ~~the eject itself: the boat answers yes and keeps its cargo, as the civilian shore arm does;~~ built, item 3640 (§335.1): the riders come out and an emptied boat dies;
-  - the no-army arm and the dead-target arm: both answer no;
-  - `think_carry_idle`;
+  - ~~the no-army arm~~ (built, item 3995, `docs/GOLDEN.md` §188: at sea the riders stay aboard and the boat sails for its
+    owner's nearest live city) and the dead-target arm: the dead-target arm away from its region answers no;
+  - ~~`think_carry_idle`~~ (built, item 3995, `docs/GOLDEN.md` §188);
   - the rider chain's head is taken as the lowest-numbered rider.
 
 **Tests and mutations** (`tools/mutate.py`):
@@ -24121,7 +24122,7 @@ cell's ocean tile, the only wanted region an island across the sea; mutated back
 `run970e_s_word_frame_is_widened_whole` re-pinned 929 → 56.
 
 **Coverage.** Diff-backed: the predicate's region by run970e's block 14595 and the draw stream to 24000. Not
-established: ~~the shore arm's `Group::action_eject_all` and~~ (built, item 3521, §303) `think_carry_idle` remain the stated seams in
+established: ~~the shore arm's `Group::action_eject_all` and~~ (built, item 3521, §303) ~~`think_carry_idle`~~ (built, item 3995, `docs/GOLDEN.md` §188) remain the stated seams in
 `transport.rs`; no capture on file reaches a carrying boat that stands in its chosen region.
 
 ## 275. The Russians to the game's end: a mate in the chaser's block holds a chase on a unit (2026-10-19, item 3342)
@@ -40893,9 +40894,10 @@ the queue. They are, by kind:
   624 and 626;
 - leader 0's `gather_stamp` on 601 (ours 600, theirs 496), the block after
   the `resource` line (parked 3981c);
-- the two barges `1/19` and `1/20`: `think_carry_military` on 770 and
+- ~~the two barges `1/19` and `1/20`: `think_carry_military` on 770 and
   `think_carry_idle` on 793 lay a `MOVEORDER` in theirs and nothing in ours
-  (771, 794, and their walks after; parked 3981b);
+  (771, 794, and their walks after; parked 3981b);~~ both arms built by item
+  3995 (`docs/GOLDEN.md` §188): the pin 101 → 72;
 - the Dock's trained carrier `0/16` on 828: theirs is born with seven
   planes `0/17`..`0/23` aboard (leader 0's `num_units[259]` 8 against 1,
   `active` and `control` 7 up), ours with none (parked 3981a);

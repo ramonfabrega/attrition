@@ -865,6 +865,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch133 = golden_dump("ch133");
     let ch134 = golden_dump("ch134");
     let ch135 = golden_dump("ch135");
+    let ch136 = golden_dump("ch136");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3253,6 +3254,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 645,
             "chapter one hundred and thirty-five carries 645 blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and thirty-six, on run1553** (item 3995): the
+    // Transport Freighter's walk to the added city's Dock from 610, and the
+    // no-army barge's walk to that city from 640, to the trace's end.
+    if let Some(p) = &ch136 {
+        let _ = super::testkit::WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_SIX;
+        let n = drive_capture(p, 600, 899, &mut paths);
+        assert_eq!(
+            n, 300,
+            "chapter one hundred and thirty-six carries 300 blocks in the window"
         );
         frames += n;
     }
