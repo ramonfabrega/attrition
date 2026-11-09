@@ -10693,8 +10693,11 @@ whose slot `0xfc` hands back a live target within `0x900`. Slot `0xfc` is
 `AirAttackGroundOrder`, and `Window::get_button`, a folded `return 0`, on
 every other class. **`is_flying_high@0060a310`** is the same three type
 tests, on the map, and not low. So an aircraft is high unless an air order
-is bringing it down to its target. This crate gives no player's unit an
-air order, so every plane on the map is high.
+is bringing it down to its target. ~~This crate gives no player's unit an
+air order, so every plane on the map is high.~~ The crate's air orders read
+it since item 4007 (`docs/GOLDEN.md` §194): the ladder asks the target's own
+`is_flying_high` and `is_flying_low`, and chapter 134's Bomber takes the
+Fighter strafing it from 900 off.
 
 The Bomber (`FLY_HIGH` 0, not `ANTI_AIR`) is therefore refused the Fighter
 twice: on the target's own row (`T.fly_high == 0`, and high), and on its
@@ -10772,8 +10775,9 @@ names the Bomber at eight tiles.
   refused such a target. The id is 306 by the dump's type numbering
   (Fighter 289 and Bomber 304 are XML rows 239 and 254), which would be
   the Stealth Bomber. Not built.
-- **An aircraft under an air order** is low, and the ladder's
-  `is_flying_low` arms then matter. This crate has no player air orders.
+- ~~**An aircraft under an air order** is low, and the ladder's
+  `is_flying_low` arms then matter. This crate has no player air orders.~~
+  Built by item 4007 (`docs/GOLDEN.md` §194), diff-backed on run1549's 969.
 - **The Bomber's own refusal is over-determined** on run168. The ladder
   and the plane arm each refuse it, so this capture cannot tell them
   apart.
@@ -13550,10 +13554,11 @@ down with no draw from the game's stream.
   diff-backed on run405's two crashes. ~~Its `do_damage` when it comes down
   is still a SEAM.~~ **Built by item 2677** (`docs/AI.md` §230): a
   two-tile splash, diff-backed on run405's 1036 and run866's capital.
-- **`is_flying_high` in `valid_target`'s ladder**: this crate still reads
+- ~~**`is_flying_high` in `valid_target`'s ladder**: this crate still reads
   every plane as high there (§61). run404's Infantry never weighed a low
   Bomber; run405 enters both functions on 730, from a search whose
-  answer run404 does not print.
+  answer run404 does not print.~~ Built by item 4007 (`docs/GOLDEN.md`
+  §194).
 - **Five of run404's 43 flak draws print no new round** on the next
   block (817, 857, 867, 929, 932), and 963's high site stands at 2,279
   from T; the Bomber's front order on each is not read.
