@@ -2,7 +2,7 @@
 //! marines', the ambush aura and the trench (`docs/STRUCTURE.md` §3,
 //! `combat/`).
 //!
-//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5.6).
+//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5, move 6).
 
 use crate::*;
 

@@ -2,7 +2,7 @@
 //! or a type, `find_free`, the lookups by object number, a figure's init and
 //! set-type, and the muster's counts (`docs/STRUCTURE.md` §3, `units/`).
 //!
-//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5.6).
+//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5, move 6).
 
 use crate::*;
 

@@ -1,7 +1,7 @@
 //! Diplomacy on the `Sim`: the players, war, alliance, treaties, and the
 //! leader's age and epoch (`docs/STRUCTURE.md` §3, `leaders/`).
 //!
-//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5.6).
+//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5, move 6).
 
 use crate::*;
 

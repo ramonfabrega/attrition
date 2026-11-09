@@ -1,7 +1,7 @@
 //! The movement step: `process_movement`, the crew and the follower
 //! (`docs/MOVEMENT.md`; `docs/STRUCTURE.md` §3, `movement/`).
 //!
-//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5.6).
+//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5, move 6).
 
 use crate::*;
 

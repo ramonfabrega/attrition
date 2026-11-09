@@ -1,7 +1,7 @@
 //! [`Building`] and the calls that add one or its type (`docs/CITIES.md` §1;
 //! `docs/STRUCTURE.md` §3, `cities/`).
 //!
-//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5.6).
+//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5, move 6).
 
 use crate::*;
 

@@ -1,7 +1,7 @@
 //! `Unit::process`: one unit's step in [`Sim::tick`]'s object loop
 //! (`docs/STRUCTURE.md` §3, `units/`).
 //!
-//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5.6).
+//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5, move 6).
 
 use crate::*;
 

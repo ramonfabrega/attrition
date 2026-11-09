@@ -1,7 +1,7 @@
 //! [`Unit`], [`UnitType`], [`Muster`], the object-number bands and the squad
 //! walks (`docs/STRUCTURE.md` §3, `units/`).
 //!
-//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5.6).
+//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5, move 6).
 
 use crate::*;
 

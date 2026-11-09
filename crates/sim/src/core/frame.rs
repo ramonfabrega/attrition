@@ -1,7 +1,7 @@
 //! The frame: [`Sim::tick`], the stream's draw [`Sim::rnd`], the frame
 //! constants and the attrition [`Tick`] a frame reports.
 //!
-//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5.6):
+//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5, move 6):
 //! the tick's body is the same statements in the same order, with the same
 //! `mark` phases, so the random stream and the trace's vocabulary are the
 //! base's.

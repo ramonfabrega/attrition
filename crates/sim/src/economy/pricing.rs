@@ -1,7 +1,7 @@
 //! Pricing: `TypeData::get_cost`'s discount arms, a unit's price and the
 //! upgrade bump (`docs/COSTS.md`; `docs/STRUCTURE.md` §3, `economy/`).
 //!
-//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5.6).
+//! Moved out of `lib.rs` unchanged by item 4014 (`docs/STRUCTURE.md` §5, move 6).
 
 use crate::*;
 
