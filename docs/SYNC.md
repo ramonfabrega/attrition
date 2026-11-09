@@ -682,7 +682,7 @@ fourth.
 #### The flight — `Unit::do_air_physics@005e86d0` (2026-09-02)
 
 A wild bird takes a narrow path through a function written for the game's
-aircraft. Everything below is `crates/sim/src/air.rs`; the addresses are the
+aircraft. Everything below is `crates/sim/src/air/mod.rs`; the addresses are the
 whole of the argument, because **nothing dumps owner 9 and the flight has
 exactly one observable** — the coin at `+0x639`.
 
@@ -1871,7 +1871,7 @@ it agrees now. Nothing at all parts at or below block 7585 but run87's own
 carried residue. `rondata::diff`'s
 `run89_s_window_is_great_lakes_word_frame`, and
 `a_bird_s_figure_lags_its_unit_and_stands_only_when_the_step_is_refused`
-in `crates/sim/src/air.rs`.
+in `crates/sim/src/air/mod.rs`.
 
 **The gull is a seam, not a rule.** `Unit::do_strafe` is still unmodelled
 (§3.9), so this crate flies no gull; a figure sitting on its unit for
@@ -2365,7 +2365,7 @@ struck through and point there.
   eighth frame per live bird, and its landing search is sixty more on the
   frame a bird lands (2026-08-31).
   ~~`do_air_physics` stays open~~ — **read whole 2026-09-02**, §3.9 "The
-  flight", and implemented in `crates/sim/src/air.rs`; what stays open is
+  flight", and implemented in `crates/sim/src/air/mod.rs`; what stays open is
   the *phase* of the orbit it flies, which is why the module is not called.
   `Guy::set_anim`'s bird branch stays open, and the 25 phase-7 wraps it
   leaves unspent are what still stands between the simulation's stream and
@@ -2582,7 +2582,7 @@ kind honest.
   1256. **The flight is diff-backed too, since run61**: proxying
   `do_air_physics` and the two functions it calls turns a bird's position,
   goal and bank into a per-frame record, and
-  `run61_s_birds_fly_where_the_original_s_do` holds `crates/sim/src/air.rs`
+  `run61_s_birds_fly_where_the_original_s_do` holds `crates/sim/src/air/mod.rs`
   to 45,712 of them — ten birds, birth to frame 5,400, every position and
   every bank zero-crossing (§3.9, "The birth"). `air::tests` and
   `single::tests` still hold the module and its arithmetic to the reading

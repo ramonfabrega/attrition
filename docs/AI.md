@@ -17541,7 +17541,7 @@ Each claim is *diff-backed* unless marked.
    non-air animal whose farm reference (`AnimalData +0x150/+0x152`) is the building, through `Unit::close(0, −1, 0)`:
    no death draw. *Listing-backed*; each moved the word in its own run.
 
-**Built.** `Sim::silo_strike` (`crates/sim/src/air.rs`), from `computer_sortie` where a silo returned: the nuke arm, the
+**Built.** `Sim::silo_strike` (`crates/sim/src/air/mod.rs`), from `computer_sortie` where a silo returned: the nuke arm, the
 cities' loop, and `own_object_within` for the friendly search. `Sim::nuke_do_damage` (`crates/sim/src/combat/nuke.rs`) passes over a
 unit of owner 8 or more. `Sim::close_pasture_animals` (`crates/sim/src/farms.rs`), from `close_building` for a Farm. Unit
 tests `airbase::tests::a_computer_s_silo_strikes_an_enemy_city_with_its_nuke` (cadence, a V2, an unseen city, a friend
@@ -40839,7 +40839,7 @@ entry `input::unqueue_unit` is `process_unqueue@009466f0`'s unit arm:
 no shared prefix (`setup::script_staged`), since a prefix an unstaged walk
 of the same start put carries no staging.
 
-**The three writers** (`crates/sim/src/carrier_queue.rs`, its header has the
+**The three writers** (`crates/sim/src/air/carrier_queue.rs`, its header has the
 pseudocode):
 
 - `Group::action_spell@006fe1a0:171`, the carrier arm, taken when the

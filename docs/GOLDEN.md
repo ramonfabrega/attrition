@@ -17395,7 +17395,7 @@ harness's, and the DLL ignores them.
 **ch17ag's first word was 846, and it named the attack-ground's release.** On 846 the original draws `Guy::set_anim
 < Unit::set_anim` and on 847 `0/7` reads `cur_anim` 12, `recharging` 31: the Bomber released at (21120, 16512)
 from (20198, 16533), 922 off it. `Unit::do_air_attack_ground@005ea420` had only its missile arm here. Its other
-arm, now built (`crates/sim/src/air.rs`):
+arm, now built (`crates/sim/src/air/mod.rs`):
 
 - `ObjectData::is_in_range@0064e4a0` of the point. For a unit, vtable slot `+0x18` is a folded `return 1`
   (`Buffer::is_pending_load@0041e0e0`), so the distance is taken less the unit's own `big_radius` (type `+0x244`),
@@ -17458,7 +17458,7 @@ reached from the Airbase's two buttons, `OPTION_AIRBASE_RECALL` and `OPTION_AIRB
   The listing (`7114dc`..`7114fa`) pushes the host's `y` as the `QueuePos`, which the fixed-wing arm never reads. A
   helicopter instead takes a built `MOVE_TO` to the host's cell centre (reading only; no capture holds one).
 
-Built in `crates/sim/src/airbase.rs`: `Sim::group_action_recall_buildings` and `Sim::group_action_scramble`, with
+Built in `crates/sim/src/air/airbase.rs`: `Sim::group_action_recall_buildings` and `Sim::group_action_scramble`, with
 `airbase::tests::the_recall_sends_every_plane_homed_at_the_base_home` and
 `the_scramble_sends_every_full_plane_inside_up_over_its_base`. The harness's `@key <vk>` resolves through the
 chapter's `# bindkey` lines against the console's selection on the key's frame and reaches the pump on F + 1

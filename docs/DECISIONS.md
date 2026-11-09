@@ -1326,7 +1326,7 @@ first thing this project has read whole, implemented faithfully, and then
 **not called**. The rule it settles is worth writing down, because the case
 will recur.
 
-`crates/sim/src/air.rs` reproduces the function arm for arm against the
+`crates/sim/src/air/mod.rs` reproduces the function arm for arm against the
 listing, and `crates/sim/src/num/single.rs` reproduces the single-precision
 arithmetic its bank angle is written in, exactly, in integers. Wired into
 the unit loop it flies a bird the way the original flies one — the same

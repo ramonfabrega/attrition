@@ -12691,7 +12691,7 @@ first time the two maps have wanted the same item.
 ## 2026-09-02, Opus — the bird flies, in a module nobody calls
 
 *Item 120. `docs/SYNC.md` §3.9 "The flight", `docs/DECISIONS.md` 30,
-`crates/sim/src/air.rs`, `crates/sim/src/num/single.rs`. **The score did not
+`crates/sim/src/air/mod.rs`, `crates/sim/src/num/single.rs`. **The score did not
 move**: EastIndies 5437, GreatLakes 1802, both still parted by
 `Unit::do_air_physics+0x639`.*
 
