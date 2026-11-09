@@ -248,7 +248,7 @@ const NO_READER: &[(&str, &str, &str)] = &[
     ),
     (
         "removed",
-        "Sim",
+        "TraceState",
         "\"buildings disbanded or died this frame, for tests\", says its own \
          doc — and no test reads it",
     ),
