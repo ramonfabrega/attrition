@@ -519,14 +519,16 @@ mod tests {
                 a.y
             );
         }
-        // run1559b's own pixel for its first SUBOBJECT (packet_points.py).
+        // run1559b's own pixel for its first SUBOBJECT (packet_points.py's
+        // `0 0` row): the screen size is `graphsys`'s, as the original's
+        // call takes it — an explicit 1920×1080 lands a row higher, at 624.
         let a = render::camera::world_to_screen(
             &c.to_screen_matrix(),
             &super::pinned_screen(),
             5016,
             30360,
             565,
-            Some((1920, 1080)),
+            None,
         );
         assert_eq!((a.x, a.y), (1489, 625));
     }
