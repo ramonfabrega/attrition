@@ -653,6 +653,87 @@ class GateTests(unittest.TestCase):
         # a lane, like the queue's lines.
         self.assertIn('the_census_s_simulation_share_is_pinned', gate.COMMANDERS_LINES)
 
+    # Loop 4030 (the seventy-fifth pass): 3995 wired a port-backed function,
+    # its lane gate ran the census pin (0.72 s, under the lane budget) and
+    # forgave its red as the commander's line, and the verdict named the
+    # test and never the count — so the pin stood at 588 against a measured
+    # 589 until the booking gate went red on it, the tranche's one red gate.
+    # The forgiven verdict carries the measured triple against the pin's,
+    # so the journal's quoted verdict hands the commander the re-pin.
+    CENSUS_PIN = 'rondata::census::tests::the_census_s_simulation_share_is_pinned'
+    CENSUS_PANIC = (
+        "thread 'census::tests::the_census_s_simulation_share_is_pinned' panicked at "
+        "crates/rondata/src/census.rs:762:9:\n"
+        "assertion `left == right` failed: the census moved: re-pin `census::SIMULATION_BACKED`, "
+        "`SIMULATION_PORT_BACKED` and `SIMULATION_FUNCTIONS` to (backed, port, functions) as measured, "
+        "and the handoff's `Census:` line with them\n"
+        "  left: (1448, 589, 3611)\n"
+        " right: (1448, 588, 3611)\n")
+
+    def test_the_census_s_move_is_read_off_its_panic(self):
+        self.assertEqual(gate.census_moved(self.CENSUS_PANIC), ((1448, 589, 3611), (1448, 588, 3611)))
+        self.assertIsNone(gate.census_moved(RELEASE_LOG))
+        # Another assertion's left/right is not the census's.
+        self.assertIsNone(gate.census_moved('assertion `left == right` failed\n  left: (1, 2, 3)\n right: (1, 2, 4)\n'))
+
+    def test_a_forgiven_census_red_names_the_measured_count_and_whose_re_pin_it_is(self):
+        forgiven, line = gate.lane_verdict([self.CENSUS_PIN], census=((1448, 589, 3611), (1448, 588, 3611)))
+        self.assertTrue(forgiven, line)
+        self.assertIn('(1448, 589, 3611)', line)
+        self.assertIn('(1448, 588, 3611)', line)
+        self.assertIn('port 588 → 589', line)
+        self.assertIn('Loop 4030', line)
+        # Its measure lost from the log: the verdict says how to take it.
+        forgiven, line = gate.lane_verdict([self.CENSUS_PIN])
+        self.assertTrue(forgiven, line)
+        self.assertIn('tools/census.py --layers --json', line)
+        self.assertIn('Loop 4030', line)
+        # A green census says nothing of it.
+        forgiven, line = gate.lane_verdict(['rondata::diff::floors::the_handoff_s_scoreboard_is_the_floors'])
+        self.assertNotIn('Loop 4030', line)
+
+    def census_red_log(self):
+        return RELEASE_LOG.replace(
+            'test diff::floors::the_gate_has_a_bounded_test_width ... ok',
+            'test diff::floors::the_gate_has_a_bounded_test_width ... ok\n'
+            'test census::tests::the_census_s_simulation_share_is_pinned ... FAILED')
+
+    def test_3995_s_lane_gate_prints_the_census_it_measured(self):
+        # 3995's shape: a chapter lane touching a sim path, its word's
+        # filters, `--no-widen`; the census pin red and forgiven. Combined
+        # (one cargo log, the panic in it) and isolated (the panic in the
+        # failed test's own log, which `measurements.jsonl` names).
+        touched = git_fixture(ours=['crates/sim/src/ai/transport/carry_idle.rs', 'docs/GOLDEN.md'])
+        word = WORD  # the fixture log's; 3995's were golden, transport, caravan, first_parting …
+        for isolated in (False, True):
+            with tempfile.TemporaryDirectory() as tmp:
+                path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+                def run(command, **kwargs):
+                    if '--release' in command:
+                        log = self.census_red_log()
+                        if isolated:
+                            out = Path(command[command.index('--output') + 1])
+                            (out/'tests').mkdir(parents=True)
+                            (out/'tests'/'0007.log').write_text(self.CENSUS_PANIC)
+                            (out/'measurements.jsonl').write_text(json.dumps(
+                                {'name': 'census::tests::the_census_s_simulation_share_is_pinned',
+                                 'success': False, 'log': str(out/'tests'/'0007.log')}) + '\n')
+                        else:
+                            log = log.replace('failures:\n\n', 'failures:\n\n---- census::tests::'
+                                              'the_census_s_simulation_share_is_pinned stdout ----\n'
+                                              + self.CENSUS_PANIC + '\n', 1)
+                        release_ran(kwargs, log=log)
+                        raise subprocess.CalledProcessError(101, command)
+                with patch('builtins.print') as printed, \
+                        patch.object(gate, 'crate_tests', return_value={}):
+                    gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=word,
+                              no_widen=True, isolated=isolated, git=touched)
+                said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
+                verdict=next(l for l in said.splitlines() if l.startswith('Lane verdict:'))
+                self.assertIn("red only on the commander's lines (3)", verdict)
+                self.assertIn('port 588 → 589', verdict, isolated)
+                self.assertIn('(1448, 589, 3611)', verdict)
+
     def test_the_journal_quote_guard_is_forgiven_on_a_lane_and_the_verdict_names_the_remedy(self):
         # Loop 3277 (the forty-fourth pass): the journal guard asks a lane's
         # journal to quote `Lane verdict:` and `Gate minutes:` — lines that

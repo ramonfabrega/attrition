@@ -52,6 +52,12 @@ data-crate file each ran the binaries for eleven minutes apiece); the receipt's
 match is a sim test is dropped and named (`Lane filter dropped:`, Loop
 3823) rather than turning the gate red for matching nothing that ran.
 
+The census pin runs in every lane gate (under the budget) and its red is
+forgiven as the commander's line (Loop 2367); since the seventy-fifth pass
+the forgiven verdict carries the measured (backed, port, functions) against
+the pin's, read off the assertion's panic, so the journal's quoted verdict
+hands the commander the re-pin (`census_moved`, Loop 4030).
+
 The worker's own full run, measured on the tree after its last `ccc
 update`, is still owed before the gate (the brief's "measure" rows); the
 lane gate is the confirmation of the word and the paperwork, not the
@@ -650,9 +656,69 @@ CARGO_TESTS_FAILED = 101
 LANE_GREEN = 'Lane verdict: green, nothing red'
 
 
-def lane_verdict(failed_tests):
+# Loop 4030 (the seventy-fifth pass): 3995 wired a port-backed function and
+# its lane gate ran the census pin — 0.72 s alone, under the lane budget, so
+# every lane runs it — and forgave its red as the commander's line (Loop
+# 2367), and the verdict its journal quoted named the test and never the
+# count. The pin stood at 588 against a measured 589 until the booking gate
+# went red on it alone, the seventy-fifth tranche's one red gate and the
+# seventy-third's. The row was filed as "the lane's filters never reach
+# `census::`"; they did, and a filter would have changed nothing. A forgiven
+# census red now carries the measured triple against the pin's, read off
+# the assertion's own panic, so the quoted verdict hands the commander the
+# re-pin.
+CENSUS_PIN = 'the_census_s_simulation_share_is_pinned'
+CENSUS_MOVED = re.compile(r'the census moved:.*\n\s*left: \((\d+), (\d+), (\d+)\)\n\s*right: '
+                          r'\((\d+), (\d+), (\d+)\)')
+
+
+def census_moved(text):
+    """((backed, port, functions) measured, the pin's) off the census
+    pin's panic in `text`, or None when it is not there (Loop 4030)."""
+    found = CENSUS_MOVED.search(text)
+    if not found:
+        return None
+    numbers = tuple(int(n) for n in found.groups())
+    return numbers[:3], numbers[3:]
+
+
+def census_logs(release_log, report_dir):
+    """The texts a census panic can be in: the release log (a combined run
+    prints every failure's output there) and each failed test's own log an
+    isolated run's `measurements.jsonl` names."""
+    texts = [Path(release_log).read_text(errors='replace')] if Path(release_log).is_file() else []
+    for rows in Path(report_dir).rglob('measurements.jsonl'):
+        for line in rows.read_text().splitlines():
+            try:
+                row = json.loads(line)
+            except ValueError:
+                continue
+            if not row.get('success') and str(row.get('name', '')).endswith(CENSUS_PIN) \
+                    and Path(str(row.get('log', ''))).is_file():
+                texts.append(Path(row['log']).read_text(errors='replace'))
+    return texts
+
+
+def census_clause(census):
+    """The forgiven verdict's census clause (Loop 4030)."""
+    if census is None:
+        return ('; the census moved and its measure is not in the log: run `python3 tools/census.py '
+                '--layers --json` and say (backed, port, functions) in your done line — the commander '
+                're-pins `census::SIMULATION_*` and the `Census:` line at the merge (Loop 4030)')
+    (backed, port, functions), (pin_backed, pin_port, pin_functions) = census
+    moves = [f'{what} {was} → {now}' for what, was, now in
+             (('backed', pin_backed, backed), ('port', pin_port, port), ('functions', pin_functions, functions))
+             if was != now]
+    return (f'; the census moved ({", ".join(moves)}): measured (backed, port, functions) '
+            f'({backed}, {port}, {functions}) against the pin\'s ({pin_backed}, {pin_port}, {pin_functions}) '
+            '— say it in your done line; the commander re-pins `census::SIMULATION_*` and the `Census:` '
+            'line at the merge (Loop 4030)')
+
+
+def lane_verdict(failed_tests, census=None):
     """(forgiven, line): whether every red test is one of the commander's
-    lines, and the sentence the gate prints either way."""
+    lines, and the sentence the gate prints either way. `census` is
+    `census_moved`'s reading, for a red census pin (Loop 4030)."""
     own = [name for name in failed_tests
            if name.rsplit('::', 1)[-1] not in COMMANDERS_LINES]
     if failed_tests and not own:
@@ -662,6 +728,7 @@ def lane_verdict(failed_tests):
         remedy += ('; your journal\'s "for the Loop" line is unfiled, and the commander files it at the '
                    'merge — leave it as written, never file it yourself or rewrite it to `none` (3328)'
                    if any(name.endswith(LOOP_LINE_GUARD) for name in failed_tests) else '')
+        remedy += (census_clause(census) if any(name.endswith(CENSUS_PIN) for name in failed_tests) else '')
         return True, (f"Lane verdict: red only on the commander's lines "
                       f"({len(failed_tests)}): " + ', '.join(failed_tests) + remedy)
     return False, (f"Lane verdict: red on the worker's own ({len(own)}): "
@@ -1063,7 +1130,10 @@ def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, r
                 for name in tests['failed_tests']:
                     print(f"  failed: {name}", flush=True)
         if held is not None:
-            forgiven, line = lane_verdict(tests['failed_tests'])
+            census = None
+            if any(name.endswith(CENSUS_PIN) for name in tests['failed_tests']):
+                census = next(filter(None, map(census_moved, census_logs(extra['log'], report_dir))), None)
+            forgiven, line = lane_verdict(tests['failed_tests'], census=census)
             print(line, flush=True)
             if verdicts is not None:
                 verdicts.append(line)
