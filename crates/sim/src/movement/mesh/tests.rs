@@ -27,7 +27,9 @@ fn lay(sim: &mut Sim, tiles: &[(i32, i32)]) {
 fn elbow(sim: &mut Sim) {
     lay(sim, &[(222, 80), (223, 80), (223, 81)]);
     assert_eq!(
-        sim.mesh.orthog_connects(&sim.world, Pos::new(223, 80)),
+        sim.movement
+            .mesh
+            .orthog_connects(&sim.world, Pos::new(223, 80)),
         2,
         "the elbow joins west and south"
     );
@@ -44,10 +46,18 @@ fn a_new_road_diagonally_off_a_junction_fills_the_tile_between_them() {
     assert!(!is_road(&sim, 223, 79), "nothing there yet");
     sim.set_road_at(Pos::new(224, 79));
     assert!(is_road(&sim, 223, 79), "the mesh fills the corner");
-    assert_eq!(sim.mesh.made(), 1, "and it is the mesh's own tile");
-    let made = sim.mesh.elem(&sim.world, Pos::new(223, 79)).unwrap();
+    assert_eq!(sim.movement.mesh.made(), 1, "and it is the mesh's own tile");
+    let made = sim
+        .movement
+        .mesh
+        .elem(&sim.world, Pos::new(223, 79))
+        .unwrap();
     assert!(made.made, "`is_terrain_creation` says who laid it");
-    let at = sim.mesh.elem(&sim.world, Pos::new(224, 79)).unwrap();
+    let at = sim
+        .movement
+        .mesh
+        .elem(&sim.world, Pos::new(224, 79))
+        .unwrap();
     assert_eq!(
         at.support & (SUPPORT_MADE | SUPPORT_EAST),
         SUPPORT_MADE,
@@ -65,12 +75,14 @@ fn a_tile_with_two_orthogonal_connections_lays_nothing() {
     lay(&mut sim, &[(225, 79), (224, 78)]);
     sim.set_road_at(Pos::new(224, 79));
     assert_eq!(
-        sim.mesh.orthog_connects(&sim.world, Pos::new(224, 79)),
+        sim.movement
+            .mesh
+            .orthog_connects(&sim.world, Pos::new(224, 79)),
         2,
         "north and east"
     );
     assert!(!is_road(&sim, 223, 79), "so the corner is left open");
-    assert_eq!(sim.mesh.made(), 0);
+    assert_eq!(sim.movement.mesh.made(), 0);
 }
 
 /// Either flank being a road is enough to stop it: there is already a
@@ -81,9 +93,13 @@ fn a_flank_that_is_already_a_road_stops_the_fill() {
     elbow(&mut sim);
     // `(224, 80)` is the southern flank of the south-west corner.
     lay(&mut sim, &[(224, 80)]);
-    let made = sim.mesh.made();
+    let made = sim.movement.mesh.made();
     sim.set_road_at(Pos::new(224, 79));
-    assert_eq!(sim.mesh.made(), made, "the way round is the flank itself");
+    assert_eq!(
+        sim.movement.mesh.made(),
+        made,
+        "the way round is the flank itself"
+    );
 }
 
 /// And a **building footprint** on a flank stops it too — the other half
@@ -98,7 +114,7 @@ fn a_footprint_on_a_flank_stops_the_fill_as_a_road_would() {
     sim.world.set_tile_mask(t, m | tile::OBJECT_BUILDING);
     sim.set_road_at(Pos::new(224, 79));
     assert!(!is_road(&sim, 223, 79), "a footprint is not paved over");
-    assert_eq!(sim.mesh.made(), 0);
+    assert_eq!(sim.movement.mesh.made(), 0);
 }
 
 /// A corner road that is a **dead end** — one orthogonal connection —
@@ -109,15 +125,25 @@ fn a_dead_end_corner_is_joined_rather_than_filled() {
     let mut sim = bare();
     lay(&mut sim, &[(222, 80), (223, 80)]);
     assert_eq!(
-        sim.mesh.orthog_connects(&sim.world, Pos::new(223, 80)),
+        sim.movement
+            .mesh
+            .orthog_connects(&sim.world, Pos::new(223, 80)),
         1,
         "the road ends there"
     );
     sim.set_road_at(Pos::new(224, 79));
     assert!(!is_road(&sim, 223, 79), "nothing is laid");
-    let at = sim.mesh.elem(&sim.world, Pos::new(224, 79)).unwrap();
+    let at = sim
+        .movement
+        .mesh
+        .elem(&sim.world, Pos::new(224, 79))
+        .unwrap();
     assert_eq!(at.flags & dir::SW, dir::SW, "the tile claims its corner");
-    let corner = sim.mesh.elem(&sim.world, Pos::new(223, 80)).unwrap();
+    let corner = sim
+        .movement
+        .mesh
+        .elem(&sim.world, Pos::new(223, 80))
+        .unwrap();
     assert_eq!(corner.flags & dir::NE, dir::NE, "and the corner answers");
 }
 
@@ -127,7 +153,13 @@ fn a_dead_end_corner_is_joined_rather_than_filled() {
 fn a_straight_run_claims_the_cardinals_that_are_roads() {
     let mut sim = bare();
     lay(&mut sim, &[(10, 10), (10, 11), (10, 12), (11, 11)]);
-    let e = |s: &Sim, x, y| s.mesh.elem(&s.world, Pos::new(x, y)).unwrap().flags;
+    let e = |s: &Sim, x, y| {
+        s.movement
+            .mesh
+            .elem(&s.world, Pos::new(x, y))
+            .unwrap()
+            .flags
+    };
     assert_eq!(
         e(&sim, 10, 11) & dir::ORTHOG,
         dir::N | dir::S | dir::E,
@@ -157,14 +189,14 @@ fn a_cleared_tile_goes_only_if_the_mesh_laid_it() {
     // Somebody else's tile: the count falls, the road stays.
     let plain = Pos::new(222, 80);
     sim.clear_roads(index_of(&sim.world, plain));
-    assert!(!is_road(&sim, 222, 80) || sim.mesh.elem(&sim.world, plain).is_none());
+    assert!(!is_road(&sim, 222, 80) || sim.movement.mesh.elem(&sim.world, plain).is_none());
 
     // The mesh's own: `clear_support` on the tile that made it takes
     // both, because `is_terrain_creation` is set and the count runs out.
     let at = Pos::new(224, 79);
     sim.clear_roads(index_of(&sim.world, at));
     assert!(!is_road(&sim, 223, 79), "the fill goes with what made it");
-    assert_eq!(sim.mesh.made(), 0);
+    assert_eq!(sim.movement.mesh.made(), 0);
 }
 
 /// Every road tile has an element and nothing else does — the invariant
@@ -182,13 +214,13 @@ fn an_element_stands_for_each_road_tile_and_no_other() {
             roads += i32::from(road);
             assert_eq!(
                 road,
-                sim.mesh.elem(&sim.world, t).is_some(),
+                sim.movement.mesh.elem(&sim.world, t).is_some(),
                 "tile ({x}, {y})"
             );
         }
     }
     assert_eq!(roads, 5, "three elbow tiles, the new one, and the fill");
-    assert_eq!(sim.mesh.len(), 5, "and no element outside them");
+    assert_eq!(sim.movement.mesh.len(), 5, "and no element outside them");
 }
 
 // ------------------------------------------------------------------
@@ -217,9 +249,15 @@ fn a_lane_with_nothing_at_its_ends_erodes_a_tile_a_visit() {
     assert!(is_road(&sim, 100, 44), "the middle claims two: it stands");
     sim.scan_stray_tile(Pos::new(100, 45));
     assert!(!is_road(&sim, 100, 45), "the south end is a stub");
-    assert!(sim.mesh.elem(&sim.world, Pos::new(100, 45)).is_none());
+    assert!(
+        sim.movement
+            .mesh
+            .elem(&sim.world, Pos::new(100, 45))
+            .is_none()
+    );
     assert_eq!(
-        sim.mesh
+        sim.movement
+            .mesh
             .elem(&sim.world, Pos::new(100, 44))
             .map(|e| e.flags),
         Some(dir::N),
@@ -256,7 +294,7 @@ fn a_road_tile_the_mesh_does_not_hold_is_taken_away() {
     let t = Pos::new(100, 40);
     let m = sim.world.tile_mask(t);
     sim.world.set_tile_mask(t, m | tile::SURFACE_ROAD);
-    assert!(sim.mesh.elem(&sim.world, t).is_none());
+    assert!(sim.movement.mesh.elem(&sim.world, t).is_none());
     sim.scan_stray_tile(t);
     assert!(!is_road(&sim, 100, 40));
 }
@@ -342,7 +380,8 @@ fn a_road_beside_a_footprint_keeps_the_claim_its_neighbour_lends_it() {
         "the footprint's tile loses its road"
     );
     assert_eq!(
-        sim.mesh
+        sim.movement
+            .mesh
             .elem(&sim.world, Pos::new(21, 20))
             .map(|e| e.flags & 0xff00_0000),
         Some(dir::E),
@@ -370,21 +409,27 @@ fn leech_codes_stops_at_a_road_with_no_element() {
     let m = sim.world.tile_mask(north);
     sim.world.set_tile_mask(north, m | tile::SURFACE_ROAD);
     let at = Pos::new(30, 30);
-    sim.mesh.set_flags(&sim.world, at, dir::N);
-    sim.mesh.at = at;
-    sim.mesh.fill_cache(&sim.world, at);
-    sim.mesh.leech_codes(&sim.world);
+    sim.movement.mesh.set_flags(&sim.world, at, dir::N);
+    sim.movement.mesh.at = at;
+    sim.movement.mesh.fill_cache(&sim.world, at);
+    sim.movement.mesh.leech_codes(&sim.world);
     assert_eq!(
-        sim.mesh.elem(&sim.world, at).map(|e| e.flags & 0xff00_0000),
+        sim.movement
+            .mesh
+            .elem(&sim.world, at)
+            .map(|e| e.flags & 0xff00_0000),
         Some(0),
         "north is cleared, and east is never lent"
     );
     // With the north road gone, the walk reaches east.
     sim.world.set_tile_mask(north, m);
-    sim.mesh.fill_cache(&sim.world, at);
-    sim.mesh.leech_codes(&sim.world);
+    sim.movement.mesh.fill_cache(&sim.world, at);
+    sim.movement.mesh.leech_codes(&sim.world);
     assert_eq!(
-        sim.mesh.elem(&sim.world, at).map(|e| e.flags & 0xff00_0000),
+        sim.movement
+            .mesh
+            .elem(&sim.world, at)
+            .map(|e| e.flags & 0xff00_0000),
         Some(dir::E),
         "(31, 30) claims west, so (30, 30) claims east"
     );

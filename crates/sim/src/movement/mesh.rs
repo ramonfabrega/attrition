@@ -498,7 +498,7 @@ impl Sim {
     /// `scan_and_kill_straggled_tcoord@0088e050`.
     fn scan_stray_tile(&mut self, t: Pos) {
         let (tw, th) = (self.world.width() * 4, self.world.height() * 4);
-        let elem = self.mesh.elem(&self.world, t);
+        let elem = self.movement.mesh.elem(&self.world, t);
         let mut build = [false; 9];
         let mut water = [false; 9];
         let mut sup = [false; 9];
@@ -509,14 +509,14 @@ impl Sim {
             }
             let m = self.world.tile_mask(Pos::new(x, y));
             let road = m & tile::SURFACE == tile::SURFACE_ROAD;
-            self.mesh.sweep_road[k] = road;
+            self.movement.mesh.sweep_road[k] = road;
             build[k] = m & tile::OBJECT == tile::OBJECT_BUILDING;
             water[k] = m & tile::RIVER != 0 || m & tile::SURFACE == tile::SURFACE_OCEAN;
             // The **centre's** element, read at the centre's own slot: does
             // the tile claim the direction whose neighbour is a road.
             sup[k] = road && elem.is_some_and(|e| e.flags & COMPASS_FLAGS[k] != 0);
         }
-        let road = self.mesh.sweep_road;
+        let road = self.movement.mesh.sweep_road;
         // `scan_and_kill_bad_tcoord`.
         match elem {
             // No element on the tile — `rotation == 10`, an empty slot: a
@@ -560,7 +560,7 @@ impl Sim {
     /// reference down, then `World::set_road_at(x, y, 0, 0, 0)` through the
     /// door, which queues the removal and trims the neighbours.
     fn kill_stray(&mut self, t: Pos) {
-        self.mesh.road_changed(&self.world, t, false, 0, 1);
+        self.movement.mesh.road_changed(&self.world, t, false, 0, 1);
         self.world_set_road_at(t, false, 0, 0);
     }
 
@@ -630,7 +630,7 @@ impl Sim {
     /// `valid = 1`, and `add_roads` is entered with a zero.
     fn road_cleared(&mut self, t: Pos) {
         let index = index_of(&self.world, t);
-        self.mesh.mods.push(index, 0x100);
+        self.movement.mesh.mods.push(index, 0x100);
         self.add_roads(0);
     }
 
@@ -638,10 +638,10 @@ impl Sim {
     /// asked to.
     fn road_added(&mut self, t: Pos, p3: i32, p4: i32) {
         if p3 != 0 {
-            self.mesh.road_changed(&self.world, t, true, 1, 0);
+            self.movement.mesh.road_changed(&self.world, t, true, 1, 0);
         }
         let index = index_of(&self.world, t);
-        self.mesh.mods.push(index, 0x101);
+        self.movement.mesh.mods.push(index, 0x101);
         if p4 != 0 {
             self.add_roads(i32::from(p3 != 0));
         }
@@ -673,9 +673,12 @@ impl Sim {
     /// `_param` is the original's second argument, which only reaches the
     /// rendering tail this module does not have (`docs/ROADS.md` §9.4).
     fn set_diags(&mut self, list: i32, _param: i32) -> i32 {
-        let at = self.mesh.at;
-        if self.mesh.orthog_connects(&self.world, at) > 1
-            || !self.mesh.get_road_data(&self.world, at, false, 0, false)
+        let at = self.movement.mesh.at;
+        if self.movement.mesh.orthog_connects(&self.world, at) > 1
+            || !self
+                .movement
+                .mesh
+                .get_road_data(&self.world, at, false, 0, false)
         {
             return 0;
         }
@@ -688,19 +691,22 @@ impl Sim {
             }
             // The four exclusions: a cardinal connection forbids the two
             // corners that touch it.
-            let f = self.mesh.flags_at(&self.world, at);
+            let f = self.movement.mesh.flags_at(&self.world, at);
             let barred = (f & dir::N != 0 && (i == 1 || i == 2))
                 || (f & dir::E != 0 && (i == 2 || i == 3))
                 || (f & dir::S != 0 && (i == 3 || i == 4))
                 || (f & dir::W != 0 && (i == 4 || i == 1));
-            if barred || !self.mesh.road[tables::DIAG[i]] {
+            if barred || !self.movement.mesh.road[tables::DIAG[i]] {
                 continue;
             }
-            if self.mesh.orthog_connects(&self.world, corner) < 2 {
+            if self.movement.mesh.orthog_connects(&self.world, corner) < 2 {
                 joined = 1;
                 if f & tables::BLOCK_A[i] == 0 && f & tables::BLOCK_B[i] == 0 {
-                    self.mesh.set_flags(&self.world, at, f | tables::OWN[i]);
-                    self.mesh
+                    self.movement
+                        .mesh
+                        .set_flags(&self.world, at, f | tables::OWN[i]);
+                    self.movement
+                        .mesh
                         .join(&self.world, corner, tables::OPPOSITE[i], list);
                 }
                 continue;
@@ -710,31 +716,41 @@ impl Sim {
             // the corner lies — if neither tile between them is a road or a
             // footprint.
             let (fa, fb) = (tables::FLANK_A[i], tables::FLANK_B[i]);
-            if self.mesh.road[fa]
-                || self.mesh.blocked[fa]
-                || self.mesh.road[fb]
-                || self.mesh.blocked[fb]
+            if self.movement.mesh.road[fa]
+                || self.movement.mesh.blocked[fa]
+                || self.movement.mesh.road[fb]
+                || self.movement.mesh.blocked[fb]
             {
                 continue;
             }
             let made = Pos::new(at.x + CORNER_X[i], at.y);
             self.world_set_road_at(made, true, 0, 1);
             self.road_added(made, 0, 0);
-            self.mesh.road_changed(&self.world, made, true, 0, 0);
-            self.mesh.add_unique(index_of(&self.world, made), list);
-            if !self.mesh.get_road_data(&self.world, made, false, 0, false) {
+            self.movement
+                .mesh
+                .road_changed(&self.world, made, true, 0, 0);
+            self.movement
+                .mesh
+                .add_unique(index_of(&self.world, made), list);
+            if !self
+                .movement
+                .mesh
+                .get_road_data(&self.world, made, false, 0, false)
+            {
                 return 0;
             }
             let i_made = index_of(&self.world, made);
-            self.mesh.elems.get_mut(&i_made).unwrap().made = true;
+            self.movement.mesh.elems.get_mut(&i_made).unwrap().made = true;
             let i_at = index_of(&self.world, at);
-            let e = self.mesh.elems.get_mut(&i_at).unwrap();
+            let e = self.movement.mesh.elems.get_mut(&i_at).unwrap();
             e.support |= SUPPORT_MADE;
             if CORNER_X[i] == 1 {
                 e.support |= SUPPORT_EAST;
             }
-            self.mesh.add_unique(i_at, list);
-            self.mesh.add_unique(index_of(&self.world, corner), list);
+            self.movement.mesh.add_unique(i_at, list);
+            self.movement
+                .mesh
+                .add_unique(index_of(&self.world, corner), list);
         }
         if joined != 0 {
             self.corner_pieces(_param);
@@ -761,7 +777,7 @@ impl Sim {
     /// it on 10620 (run946's packet holds the C4 elements and the codes).
     fn corner_pieces(&mut self, param: i32) {
         use dir::{E, N, NE, NW, S, SE, SW, W};
-        let at = self.mesh.at;
+        let at = self.movement.mesh.at;
         let (x, y) = (at.x, at.y);
         // `(first, second, bits)` per pair, in the listing's order; each
         // block re-reads the tile's flags, which none of them writes.
@@ -780,7 +796,7 @@ impl Sim {
         ];
         let (tw, th) = (self.world.width() * 4, self.world.height() * 4);
         for (a, b, first, second, bits) in pairs {
-            let f = self.mesh.flags_at(&self.world, at);
+            let f = self.movement.mesh.flags_at(&self.world, at);
             if f & a == 0 || f & b == 0 {
                 continue;
             }
@@ -789,12 +805,14 @@ impl Sim {
                 if n.x < 0 || n.y < 0 || n.x >= tw || n.y >= th {
                     continue;
                 }
-                self.mesh.get_road_data(&self.world, n, true, param, true);
-                if let Some(e) = self.mesh.elems.get_mut(&index_of(&self.world, n)) {
+                self.movement
+                    .mesh
+                    .get_road_data(&self.world, n, true, param, true);
+                if let Some(e) = self.movement.mesh.elems.get_mut(&index_of(&self.world, n)) {
                     e.c4 = true;
                 }
             }
-            if let Some(e) = self.mesh.elems.get_mut(&index_of(&self.world, at)) {
+            if let Some(e) = self.movement.mesh.elems.get_mut(&index_of(&self.world, at)) {
                 e.support |= SUPPORT_CORNER_A | SUPPORT_CORNER_B | bits;
             }
         }
@@ -804,17 +822,20 @@ impl Sim {
     /// goes if the mesh laid it and nothing else still holds its element.
     fn clear_roads(&mut self, index: i32) {
         let at = tile_of(&self.world, index);
-        self.mesh.at = at;
+        self.movement.mesh.at = at;
         let mine = self.clear_support(at, 0);
-        self.mesh.fill_cache(&self.world, at);
-        let left = self.mesh.road_changed(&self.world, at, false, 0, 1);
+        self.movement.mesh.fill_cache(&self.world, at);
+        let left = self
+            .movement
+            .mesh
+            .road_changed(&self.world, at, false, 0, 1);
         if mine && left == 0 {
             self.world_set_road_at(at, false, 0, 1);
         }
         for (d, _, _, dx, dy) in CARDINALS {
-            if self.mesh.road[d] {
+            if self.movement.mesh.road[d] {
                 let n = Pos::new(at.x + dx, at.y + dy);
-                self.mesh.add_unique(index_of(&self.world, n), 1);
+                self.movement.mesh.add_unique(index_of(&self.world, n), 1);
             }
         }
     }
@@ -826,7 +847,7 @@ impl Sim {
     ///
     /// Answers `is_terrain_creation`, which is what `clear_roads` needs.
     fn clear_support(&mut self, at: Pos, keep: i32) -> bool {
-        let Some(e) = self.mesh.elem(&self.world, at) else {
+        let Some(e) = self.movement.mesh.elem(&self.world, at) else {
             return false;
         };
         let mine = e.made;
@@ -868,7 +889,7 @@ impl Sim {
     }
 
     fn set_support(&mut self, at: Pos, v: u16) {
-        if let Some(e) = self.mesh.elems.get_mut(&index_of(&self.world, at)) {
+        if let Some(e) = self.movement.mesh.elems.get_mut(&index_of(&self.world, at)) {
             e.support = v;
         }
     }
@@ -877,9 +898,9 @@ impl Sim {
     /// neighbour, and its road with it when that was the last and the mesh
     /// had laid it.
     fn release_support(&mut self, n: Pos) {
-        if let Some(e) = self.mesh.elem(&self.world, n) {
+        if let Some(e) = self.movement.mesh.elem(&self.world, n) {
             let was = e.made;
-            let left = self.mesh.road_changed(&self.world, n, false, 0, 1);
+            let left = self.movement.mesh.road_changed(&self.world, n, false, 0, 1);
             if left == 0 && was {
                 self.world_set_road_at(n, false, 0, 1);
             }
@@ -890,7 +911,7 @@ impl Sim {
     /// lists; see [`redo_changed_roads_steps`], which this runs over the
     /// list `which` names.
     fn redo_changed_roads(&mut self, which: usize, list: i32, param: i32) {
-        let work = self.mesh.redo[which].clone();
+        let work = self.movement.mesh.redo[which].clone();
         redo_changed_roads_steps(&mut SimRedo { sim: self }, &work, list, param);
     }
 }
@@ -978,31 +999,35 @@ struct SimRedo<'a> {
 
 impl RedoView for SimRedo<'_> {
     fn tile(&mut self, index: i32) {
-        self.sim.mesh.at = tile_of(&self.sim.world, index);
+        self.sim.movement.mesh.at = tile_of(&self.sim.world, index);
     }
     fn clear_support(&mut self) {
-        let at = self.sim.mesh.at;
+        let at = self.sim.movement.mesh.at;
         self.sim.clear_support(at, 1);
     }
     fn road_data(&mut self) -> bool {
-        let at = self.sim.mesh.at;
+        let at = self.sim.movement.mesh.at;
         self.sim
+            .movement
             .mesh
             .get_road_data(&self.sim.world, at, false, 0, false)
     }
     fn clear_flags(&mut self) {
-        let at = self.sim.mesh.at;
-        self.sim.mesh.set_flags(&self.sim.world, at, 0);
+        let at = self.sim.movement.mesh.at;
+        self.sim.movement.mesh.set_flags(&self.sim.world, at, 0);
     }
     fn fill_cache(&mut self) {
-        let at = self.sim.mesh.at;
-        self.sim.mesh.fill_cache(&self.sim.world, at);
+        let at = self.sim.movement.mesh.at;
+        self.sim.movement.mesh.fill_cache(&self.sim.world, at);
     }
     fn trim_directions(&mut self, list: i32) {
-        self.sim.mesh.trim_directions(&self.sim.world, list);
+        self.sim
+            .movement
+            .mesh
+            .trim_directions(&self.sim.world, list);
     }
     fn leech_codes(&mut self) {
-        self.sim.mesh.leech_codes(&self.sim.world);
+        self.sim.movement.mesh.leech_codes(&self.sim.world);
     }
     fn set_diags(&mut self, list: i32, param: i32) -> i32 {
         self.sim.set_diags(list, param)
@@ -1012,9 +1037,14 @@ impl RedoView for SimRedo<'_> {
     fn finish_pieces(&mut self, _list: i32) {
         // `find_piece` picks the road tile's own piece, so the C4 a corner
         // left on it goes (§12; the pick itself is not modelled).
-        let at = self.sim.mesh.at;
+        let at = self.sim.movement.mesh.at;
         if self.sim.world.tile_mask(at) & tile::SURFACE == tile::SURFACE_ROAD
-            && let Some(e) = self.sim.mesh.elems.get_mut(&index_of(&self.sim.world, at))
+            && let Some(e) = self
+                .sim
+                .movement
+                .mesh
+                .elems
+                .get_mut(&index_of(&self.sim.world, at))
         {
             e.c4 = false;
         }
@@ -1033,10 +1063,10 @@ struct SimRoads<'a> {
 
 impl RoadsView for SimRoads<'_> {
     fn queue(&mut self) -> &mut ModQueue {
-        &mut self.sim.mesh.mods
+        &mut self.sim.movement.mesh.mods
     }
     fn remove_list(&mut self) -> &mut ModQueue {
-        &mut self.sim.mesh.remove
+        &mut self.sim.movement.mesh.remove
     }
     fn grow(&mut self, _which: Which, _step: i16) {
         // Both arrays are `Vec`s, whose capacity `ModQueue` reports as
@@ -1049,29 +1079,34 @@ impl RoadsView for SimRoads<'_> {
         (self.sim.world.width() * 4, self.sim.world.height() * 4)
     }
     fn set_tile(&mut self, x: i32, y: i32) {
-        self.sim.mesh.at = Pos::new(x, y);
+        self.sim.movement.mesh.at = Pos::new(x, y);
     }
     fn clear_roads(&mut self, index: i32, _flags: i32) {
         self.sim.clear_roads(index);
     }
     fn fill_cache(&mut self) {
-        let at = self.sim.mesh.at;
-        self.sim.mesh.fill_cache(&self.sim.world, at);
+        let at = self.sim.movement.mesh.at;
+        self.sim.movement.mesh.fill_cache(&self.sim.world, at);
     }
     fn road_changed(&mut self, flag: bool) -> i32 {
-        let at = self.sim.mesh.at;
+        let at = self.sim.movement.mesh.at;
         self.sim
+            .movement
             .mesh
             .road_changed(&self.sim.world, at, true, 0, i32::from(flag))
     }
     fn get_road_data(&mut self) -> bool {
-        let at = self.sim.mesh.at;
+        let at = self.sim.movement.mesh.at;
         self.sim
+            .movement
             .mesh
             .get_road_data(&self.sim.world, at, false, 0, false)
     }
     fn mark_and_trim(&mut self, list: i32) {
-        self.sim.mesh.trim_directions(&self.sim.world, list);
+        self.sim
+            .movement
+            .mesh
+            .trim_directions(&self.sim.world, list);
     }
     fn set_diags(&mut self, list: i32, param: i32) -> i32 {
         self.sim.set_diags(list, param)
@@ -1084,30 +1119,38 @@ impl RoadsView for SimRoads<'_> {
     fn mark_intersections(&mut self) {}
     fn fixup_lines(&mut self, _arg: i32) {}
     fn elem_flags(&self) -> u32 {
-        self.sim.mesh.flags_at(&self.sim.world, self.sim.mesh.at)
+        self.sim
+            .movement
+            .mesh
+            .flags_at(&self.sim.world, self.sim.movement.mesh.at)
     }
     fn set_elem_flags(&mut self, flags: u32) {
-        let at = self.sim.mesh.at;
-        self.sim.mesh.set_flags(&self.sim.world, at, flags);
+        let at = self.sim.movement.mesh.at;
+        self.sim.movement.mesh.set_flags(&self.sim.world, at, flags);
     }
     fn find_piece(&mut self) {
         // The piece the pick settles on is the road tile's own, so the C4 a
         // corner left on it goes (§12; the pick itself is not modelled).
-        let at = self.sim.mesh.at;
+        let at = self.sim.movement.mesh.at;
         if self.sim.world.tile_mask(at) & tile::SURFACE == tile::SURFACE_ROAD
-            && let Some(e) = self.sim.mesh.elems.get_mut(&index_of(&self.sim.world, at))
+            && let Some(e) = self
+                .sim
+                .movement
+                .mesh
+                .elems
+                .get_mut(&index_of(&self.sim.world, at))
         {
             e.c4 = false;
         }
     }
     fn redo_len(&self, which: usize) -> i32 {
-        self.sim.mesh.redo[which].len() as i32
+        self.sim.movement.mesh.redo[which].len() as i32
     }
     fn redo_changed_roads(&mut self, which: usize, arg: i32, param: i32) {
         self.sim.redo_changed_roads(which, arg, param);
     }
     fn redo_clear(&mut self, which: usize) {
-        self.sim.mesh.redo[which].clear();
+        self.sim.movement.mesh.redo[which].clear();
     }
     fn tile_flags(&self, _x: i32, _y: i32) -> u16 {
         0
@@ -1124,9 +1167,9 @@ impl RoadsView for SimRoads<'_> {
     }
     fn add_ambience(&mut self, _x: i32, _y: i32) {}
     fn finish(&mut self) {
-        self.sim.mesh.redo[0].clear();
-        self.sim.mesh.redo[1].clear();
-        self.sim.mesh.mods.count = 0;
+        self.sim.movement.mesh.redo[0].clear();
+        self.sim.movement.mesh.redo[1].clear();
+        self.sim.movement.mesh.mods.count = 0;
     }
 }
 

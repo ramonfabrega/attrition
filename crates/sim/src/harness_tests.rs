@@ -1677,18 +1677,21 @@ fn an_upgrade_clears_its_old_disc_around_the_crew_it_kills() {
     let new = sim.add_unit_type(new);
     let a = sim.init_unit(0, old, centre_of(Cell::new(5, 0)));
     let c = crate::collide::ucell(sim.units[a].pos);
-    assert!(sim.coll.get(c.x + 3, c.y), "the size-3 block stands");
-    assert!(sim.coll.get(c.x + 2, c.y), "and its inner cells");
+    assert!(
+        sim.movement.coll.get(c.x + 3, c.y),
+        "the size-3 block stands"
+    );
+    assert!(sim.movement.coll.get(c.x + 2, c.y), "and its inner cells");
 
     sim.gain_tech(0, new_t);
 
     assert_eq!(sim.units[a].ty, Some(new), "converted");
     assert!(
-        !sim.coll.get(c.x + 3, c.y),
+        !sim.movement.coll.get(c.x + 3, c.y),
         "the old block's outer ring is not left behind"
     );
     assert!(
-        !sim.coll.get(c.x, c.y),
+        !sim.movement.coll.get(c.x, c.y),
         "the clear is the whole old disc, until the repaint"
     );
 }

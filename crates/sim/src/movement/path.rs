@@ -584,13 +584,13 @@ impl Sim {
         {
             return false;
         }
-        if let Some(&v) = self.path_memo.get(&metric) {
+        if let Some(&v) = self.movement.path_memo.get(&metric) {
             return v;
         }
         let v = self.invalid_loc(u, p.tile(), false, true, false, true, false) == loc::VALID
             && !self.detect_quick(u, p, true)
             && !self.probe_refuses(u, p);
-        self.path_memo.insert(metric, v);
+        self.movement.path_memo.insert(metric, v);
         v
     }
 
@@ -600,9 +600,9 @@ impl Sim {
     /// `find_tpath@006897d0:182`, `find_road@00688a40:46` — and on none of
     /// their early returns (§24.5).
     pub(crate) fn kill_lists(&mut self) {
-        self.path_memo.clear();
+        self.movement.path_memo.clear();
         // The `blocklist` goes with it (`00687ae0`, the `+0x4c` loop).
-        self.coll_copies.get_mut().clear();
+        self.movement.coll_copies.get_mut().clear();
     }
 
     /// Whether [`Sim::probe_refuse`] names this unit, this frame and the
@@ -806,7 +806,7 @@ impl Sim {
             // From `PathFinder +0x58/+0x5c`: the wrapper's start argument,
             // which a group's plan makes something other than the unit's
             // own tile (group 7; A4 row 28).
-            shore = self.needs_transport(self.pf_start, to.tile());
+            shore = self.needs_transport(self.movement.pf_start, to.tile());
             if shore > 0 && can_transport {
                 if avoid_sea == 2 {
                     return (REFUSED, false);
@@ -976,8 +976,8 @@ impl Sim {
             closed = sus.closed;
             // The resume closes the pathfinder's memo and takes the
             // unit's (`00683770:235`-`288`).
-            self.path_memo = sus.valid_memo;
-            *self.coll_copies.get_mut() = sus.block_copies;
+            self.movement.path_memo = sus.valid_memo;
+            *self.movement.coll_copies.get_mut() = sus.block_copies;
             seq = sus.seq;
             tol = sus.tol;
             pref = sus.pref;
@@ -1531,7 +1531,9 @@ impl Sim {
     /// only. Its caller is `Sim::resolve_unit_collision`
     /// (`docs/COLLISION.md` §6 step 6).
     pub fn find_upath(&mut self, u: usize, anti: bool) -> i32 {
-        let sq = self.repaths[self.units[u].owner as usize].pow(2).max(1);
+        let sq = self.movement.repaths[self.units[u].owner as usize]
+            .pow(2)
+            .max(1);
         let limit = if anti { 500 / sq / 2 } else { 500 / sq };
         self.upath(u, anti, limit, false)
     }
@@ -1548,7 +1550,9 @@ impl Sim {
     /// Its only caller is `do_move`'s suspended-search block
     /// (`docs/ORDERS.md` §4.4 step 2).
     pub fn find_upath_restore(&mut self, u: usize) -> i32 {
-        let sq = self.repaths[self.units[u].owner as usize].pow(2).max(1);
+        let sq = self.movement.repaths[self.units[u].owner as usize]
+            .pow(2)
+            .max(1);
         self.upath(u, false, 300 / sq, true)
     }
 
@@ -1799,8 +1803,8 @@ impl SuspendView for SimSuspend<'_> {
             closed: std::mem::take(&mut self.closed),
             // The suspend hands the memo to the unit and pops an empty one
             // (`00683770:505`).
-            valid_memo: std::mem::take(&mut self.sim.path_memo),
-            block_copies: std::mem::take(self.sim.coll_copies.get_mut()),
+            valid_memo: std::mem::take(&mut self.sim.movement.path_memo),
+            block_copies: std::mem::take(self.sim.movement.coll_copies.get_mut()),
             seq: self.seq,
             tol: st.tol,
             pref: st.pref,
@@ -1829,7 +1833,7 @@ impl crate::upath::UpathView for SimUpath<'_> {
     fn begin(&mut self, here: Pos) {
         // `pathfinder +0x58/+0x5c`; the unit pointer and the zeroed
         // `+0x68/+0x6c/+0x94` have no field of their own here.
-        self.sim.pf_start = here.tile();
+        self.sim.movement.pf_start = here.tile();
     }
     fn saving(&self) -> bool {
         self.resume

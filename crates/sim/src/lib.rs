@@ -364,18 +364,8 @@ pub struct Sim {
     /// `PathFinder::calc_road_cost`'s arguments and answer, node for node
     /// (`docs/ROADS.md` §7.2). Nothing in the simulation reads it.
     pub road_marks: Vec<roads::RoadCostMark>,
-    /// The road **mesh** — `crate::mesh`, `docs/ROADS.md` §9. One
-    /// `RoadElementCandidate` per road tile, and the pass that lays road of
-    /// its own to close a corner two roads leave open.
-    pub mesh: mesh::RoadMesh,
-    /// Whether a building replans the road to its city — `crate::roads` §5.
-    /// **On**, as of run32: the search's expansion count is the original's
-    /// exactly on every capture that feeds it the map's *own* terraformed
-    /// heights, and the road it lays is the original's tile for tile
-    /// (`docs/ROADS.md` §7). It was off while the count was six per cent
-    /// short, which turned out to be the harness reading a different
-    /// game's height grid rather than anything in the search.
-    pub plan_roads: bool,
+    /// The `movement/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub movement: crate::movement::MovementState,
     /// The stream's word at each phase boundary of [`Sim::tick`], filled
     /// only while [`Sim::trace_phases`] is set. It is what
     /// `tools/trace/report.py sites` is for the original — a frame's draws
@@ -517,9 +507,6 @@ pub struct Sim {
     /// `GameInfo::seed`, the lobby's map seed, which picks a gaia guy's
     /// piece by `(seed + o) % 3`.
     pub game_seed: i32,
-    /// The collision occupancy index — `CollBlock`, flattened
-    /// (`docs/COLLISION.md` §2).
-    pub coll: collide::CollGrid,
     /// **The run116 comparison's recorder** (`docs/COLLISION.md` §9.6),
     /// and `None` in every run but a test's.
     ///
@@ -537,35 +524,6 @@ pub struct Sim {
     /// ([`path::RefuseProbe`]), and `None` in every run but a test's.
     #[doc(hidden)]
     pub probe_refuse: Option<path::RefuseProbe>,
-    /// **`PathFinder +0x50`, the validity memo — the pathfinder's, not a
-    /// search's** (`docs/PATHFINDER.md` §24.5). `valid_ucoord` caches each
-    /// 48-cell's verdict here under its metric, and only
-    /// `PathFinder::kill_lists@00687ae0` empties it. Every finder calls that
-    /// **after** its `astar_*` returns and on none of its early returns, so
-    /// a `find_upath` that ends in its goal pre-walk leaves its verdicts for
-    /// the next unit's search, on the same frame or a later one.
-    pub path_memo: std::collections::BTreeMap<i64, bool>,
-    /// **`PathFinder +0x4c`, the `blocklist` — the pathfinder's copies of
-    /// world cells' collision blocks, with the memo's lifetime**
-    /// (`docs/PATHFINDER.md` §22 of item 678, `docs/COLLISION.md` §4.2). A
-    /// `nocoll` probe — `valid_ucoord`'s, and `resolve_unit_collision`'s
-    /// unwind — reads a world cell's copy when the tree holds one and
-    /// otherwise the live block, and copies each slot it read live
-    /// (`CollCheck::fill_slots@006820e0`). Only `kill_lists` empties it,
-    /// so a copy taken by a probe outside any search is what the next
-    /// search reads, however many frames later. Keyed on the world cell;
-    /// the value is its 16×16 unit cells, one row a word, as the probe's
-    /// region gate left them.
-    pub coll_copies: std::cell::RefCell<std::collections::BTreeMap<(i32, i32), [u16; 16]>>,
-    /// `GameDaemon::repaths[who]`: how many 48-grid recoveries this player
-    /// has asked for, the throttle collision recovery reads (§6 step 6).
-    pub repaths: Vec<i32>,
-    /// `PathFinder +0x58/+0x5c`, **the start argument's tile** the wrappers
-    /// write (`find_wpath@00688fc0:47-48`, `find_tpath@006897d0:40`,
-    /// `find_upath@00682f30:66-67`): the depth-1 shore test in `calc_cost`
-    /// reads it, not the unit's own tile (twenty-fourth pass, group 7; A4
-    /// row 28).
-    pub(crate) pf_start: Pos,
     /// The order a frame's building walk ran its five steps in — written
     /// only under test — for the test that holds `Build::process`'s sequence (group 18).
     #[allow(dead_code)]
@@ -615,8 +573,6 @@ impl Sim {
             staged_marks: Vec::new(),
             ai_off: false,
             trace_phases: false,
-            mesh,
-            plan_roads: true,
             phase_marks: Vec::new(),
             trace_costs: false,
             cost_marks: Vec::new(),
@@ -682,18 +638,22 @@ impl Sim {
             scripts: None,
             ai: vec![ai::Leader::new(); players],
             ai_speed: 1,
-            coll: collide::CollGrid::new(world.width(), world.height()),
             sweep_watch: None,
             probe_refuse: None,
-            path_memo: std::collections::BTreeMap::new(),
-            coll_copies: std::cell::RefCell::default(),
             terrain: crate::world::WorldState {
                 mountains: Vec::new(),
                 cliffs: Vec::new(),
                 chain_heads: vec![None; (world.width() * world.height()) as usize],
             },
-            repaths: vec![0; players.max(10)],
-            pf_start: Pos::default(),
+            movement: crate::movement::MovementState {
+                mesh,
+                plan_roads: true,
+                coll: collide::CollGrid::new(world.width(), world.height()),
+                path_memo: std::collections::BTreeMap::new(),
+                coll_copies: std::cell::RefCell::default(),
+                repaths: vec![0; players.max(10)],
+                pf_start: Pos::default(),
+            },
             building_log: Vec::new(),
             retargets: vec![0; players.max(10)],
             second_range: None,
@@ -738,7 +698,7 @@ impl Sim {
         self.building_high.push(Vec::new());
         self.wall_stats_dirty.push(false);
         self.roster.marks.push(Marks::default());
-        self.repaths.push(0);
+        self.movement.repaths.push(0);
         self.retargets.push(0);
         self.ai.push(ai::Leader::new());
         self.transport.push(transport::LeaderTransport::default());

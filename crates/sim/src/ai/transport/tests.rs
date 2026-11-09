@@ -1007,11 +1007,11 @@ fn a_boat_that_dies_stepping_ashore_paints_its_figure_s_step() {
         "its figure stepped north a cell: {from:?} -> {to:?}"
     );
     assert!(
-        f.sim.coll.get(to.x, to.y - size),
+        f.sim.movement.coll.get(to.x, to.y - size),
         "the step's set pass painted the leading row"
     );
     assert!(
-        !f.sim.coll.get(from.x, from.y + size),
+        !f.sim.movement.coll.get(from.x, from.y + size),
         "and the close cleared the trailing one"
     );
 }
@@ -1037,7 +1037,7 @@ fn a_boat_that_dies_standing_on_its_phase_frame_leaves_its_disc_marked() {
     assert!(!f.sim.units[boat].alive(), "the boat stepped ashore");
     let c = crate::collide::ucell(at);
     assert!(
-        f.sim.coll.get(c.x, c.y),
+        f.sim.movement.coll.get(c.x, c.y),
         "the dead figure's repaint marked its own cell"
     );
 }
@@ -1055,7 +1055,10 @@ fn a_boat_that_dies_off_its_phase_frame_leaves_its_cell_clear() {
     f.sim.process_unit(boat, f.sim.frame, &mut Vec::new());
     assert!(!f.sim.units[boat].alive(), "the boat stepped ashore");
     let c = crate::collide::ucell(at);
-    assert!(!f.sim.coll.get(c.x, c.y), "the close cleared the cell");
+    assert!(
+        !f.sim.movement.coll.get(c.x, c.y),
+        "the close cleared the cell"
+    );
 }
 
 /// **A squad's passenger takes the boat's orders through a group**
@@ -1485,7 +1488,7 @@ fn a_passenger_put_ashore_clears_the_disc_it_boarded_from() {
     // Another unit's bit, inside the boarding disc and on its far side
     // from the ring the boat lands it on.
     let ghost = Pos::new(boarded.x - 1, boarded.y);
-    f.sim.coll.set(ghost.x, ghost.y, true);
+    f.sim.movement.coll.set(ghost.x, ghost.y, true);
     assert!(!f.sim.set_new_location(boat, tile_pos(30, 14), false));
     assert_eq!(f.sim.units[rider].inside_unit, None, "ashore");
     let spot = crate::collide::ucell(f.sim.units[rider].pos);
@@ -1494,10 +1497,13 @@ fn a_passenger_put_ashore_clears_the_disc_it_boarded_from() {
         "the ghost is outside the new disc"
     );
     assert!(
-        !f.sim.coll.get(ghost.x, ghost.y),
+        !f.sim.movement.coll.get(ghost.x, ghost.y),
         "the boarding disc is cleared, the other unit's bit with it"
     );
-    assert!(f.sim.coll.get(spot.x, spot.y), "the spot's disc is set");
+    assert!(
+        f.sim.movement.coll.get(spot.x, spot.y),
+        "the spot's disc is set"
+    );
     assert_eq!(f.sim.units[rider].coll_at, Some(f.sim.units[rider].pos));
 }
 

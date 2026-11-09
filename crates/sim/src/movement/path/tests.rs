@@ -648,7 +648,7 @@ fn an_attacker_on_a_suspended_search_retargets_every_fourth_frame() {
         );
         push_goal(&mut sim, u, Pos::new(at.x + 40 * 0x30, at.y + 40 * 0x30));
         assert_eq!(sim.upath(u, false, 10, false), -1, "the plan suspends");
-        sim.repaths[0] = repaths;
+        sim.movement.repaths[0] = repaths;
         sim.units[u].collide = 4;
         sim.units[u].collide_frame = 1000;
         sim.work(u, 1000 + elapsed);
@@ -921,12 +921,12 @@ fn the_first_step_s_shore_test_starts_where_the_plan_does() {
         sim.world.set_tile_mask(t, tile::SURFACE_OCEAN);
     }
     // The plan starts on dry ground: the step into the sea embarks.
-    sim.pf_start = from.tile();
+    sim.movement.pf_start = from.tile();
     let (_, dry) = sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 1, 0, 1);
     assert!(dry, "dry start, wet target");
     // The plan starts at sea, though the unit stands on land: no
     // shoreline crossed from where the search began.
-    sim.pf_start = wet.tile();
+    sim.movement.pf_start = wet.tile();
     let (_, wetstart) = sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 1, 0, 1);
     assert!(!wetstart, "the unit's own tile is not asked");
 }

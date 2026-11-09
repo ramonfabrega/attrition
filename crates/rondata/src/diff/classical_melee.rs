@@ -385,7 +385,7 @@ fn classical_melee_s_dead_catapult_crew_clears_its_disc() {
         .collect();
     let set: Vec<_> = holes
         .iter()
-        .filter(|&&(x, y)| built.sim.coll.get(x, y))
+        .filter(|&&(x, y)| built.sim.movement.coll.get(x, y))
         .collect();
     assert!(
         set.is_empty(),

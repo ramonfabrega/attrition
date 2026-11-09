@@ -898,7 +898,7 @@ mod tests {
         // Standing them up moved the map (footprints, `mask_city`,
         // `sync_territory`); the dump's map is the one the searches read.
         sim.world = before.clone();
-        sim.plan_roads = true;
+        sim.movement.plan_roads = true;
 
         // run62 is this same capture with the three road proxies on
         // (`tools/trace/README.md`): every candidate's coordinate, every
@@ -1038,7 +1038,7 @@ mod tests {
                 .build(0, o)
                 .unwrap_or_else(|| panic!("frame {frame}: no building 0/{o}"));
             let mine = roads(&at.sim.world);
-            at.sim.plan_roads = true;
+            at.sim.movement.plan_roads = true;
             at.sim.rng.seed = draws[0].seed;
             at.sim.place_roads(b);
             let laid: Vec<(i32, i32)> = roads(&at.sim.world).difference(&mine).copied().collect();
@@ -1598,8 +1598,8 @@ mod tests {
             z_off.len(),
             mask_off.len(),
             owners.len(),
-            built.sim.mesh.len(),
-            built.sim.mesh.made()
+            built.sim.movement.mesh.len(),
+            built.sim.movement.mesh.made()
         );
         // **The mesh's own invariant**, which nothing else here would
         // catch: a road tile has a `RoadElementCandidate` and a tile that
@@ -1613,7 +1613,10 @@ mod tests {
                 let q = Pos::new(tx, ty);
                 let road = built.sim.world.tile_mask(q) & sim::world::tile::SURFACE
                     == sim::world::tile::SURFACE_ROAD;
-                match (road, built.sim.mesh.elem(&built.sim.world, q).is_some()) {
+                match (
+                    road,
+                    built.sim.movement.mesh.elem(&built.sim.world, q).is_some(),
+                ) {
                     (true, false) => no_elem.push((tx, ty)),
                     (false, true) => stray += 1,
                     _ => {}
@@ -1621,7 +1624,7 @@ mod tests {
             }
         }
         assert_eq!(
-            (no_elem.len(), stray, built.sim.mesh.len()),
+            (no_elem.len(), stray, built.sim.movement.mesh.len()),
             (0, 0, 123),
             "every road tile of Great Lakes at 4802 has an element and \
              nothing else does: {no_elem:?}"
@@ -1631,7 +1634,7 @@ mod tests {
         // the masks and the borders above are what says the 4,802 frames
         // of it running changed nothing they should not have.
         assert_eq!(
-            built.sim.mesh.made(),
+            built.sim.movement.mesh.made(),
             0,
             "the mesh lays its first tile on 4803"
         );
@@ -1853,8 +1856,8 @@ mod tests {
             road_only_ours.len(),
             road_only_theirs.len(),
             mask_off.len(),
-            built.sim.mesh.len(),
-            built.sim.mesh.made()
+            built.sim.movement.mesh.len(),
+            built.sim.movement.mesh.made()
         );
         // **The road tiles are the original's, laid or not.** This is the
         // audit row's answer, and it is negative: `place_roads` walking
@@ -2306,7 +2309,14 @@ mod tests {
         assert_eq!(other, Vec::<String>::new(), "a mask parts on 14529");
         assert_eq!(behind, 203, "the `0x4` residue on 14529");
         // The two ends the sweep stopped at, element for element.
-        let n = |t| built.sim.mesh.elem(&built.sim.world, t).map(|e| e.flags);
+        let n = |t| {
+            built
+                .sim
+                .movement
+                .mesh
+                .elem(&built.sim.world, t)
+                .map(|e| e.flags)
+        };
         assert_eq!(n(Pos::new(220, 97)), Some(sim::mesh::dir::N), "(220, 97)");
         assert_eq!(n(Pos::new(220, 98)), None, "(220, 98)");
         assert_eq!(

@@ -108,7 +108,7 @@ fn a_gatherer_neither_rings_nor_roads_and_a_university_does_both() {
 #[test]
 fn a_building_lays_its_road_when_it_starts_not_when_its_flag_comes_round() {
     let (mut sim, _city, _, lib_ty) = town(Pos::new(40, 40));
-    sim.plan_roads = true;
+    sim.movement.plan_roads = true;
     let before = sim.rng.seed;
     // Placed, not yet started: nothing is laid and nothing is drawn.
     let b = sim
@@ -168,7 +168,7 @@ fn the_flag_fires_on_the_frame_its_object_number_picks_out() {
 #[test]
 fn a_site_does_not_replan_and_keeps_its_flag_until_it_finishes() {
     let (mut sim, _city, _, lib_ty) = town(Pos::new(40, 40));
-    sim.plan_roads = true;
+    sim.movement.plan_roads = true;
     let b = sim
         .place_building(0, lib_ty, centre_of(Pos::new(40, 52)))
         .expect("the library places");
@@ -221,7 +221,7 @@ fn the_ring_is_the_border_of_the_footprint_grown_by_one() {
 #[test]
 fn a_closed_building_takes_its_ring_road_with_it_and_leaves_its_road() {
     let (mut sim, _city, _, lib_ty) = town(Pos::new(40, 40));
-    sim.plan_roads = true;
+    sim.movement.plan_roads = true;
     let b = library_at(&mut sim, lib_ty, Pos::new(40, 52));
     // A 3×3 library at (40,52) has its corner at (39,51): the ring runs
     // (38,50) to (41,53), border only.
@@ -280,7 +280,7 @@ fn an_endpoint_is_the_city_s_tile_and_any_other_type_s_far_corner() {
 #[test]
 fn a_road_is_planned_between_two_buildings_and_laid_where_it_is_not_blocked() {
     let (mut sim, city, _, lib_ty) = town(Pos::new(40, 40));
-    sim.plan_roads = true;
+    sim.movement.plan_roads = true;
     let lib = library_at(&mut sim, lib_ty, Pos::new(33, 40));
     let road = sim.find_road(lib, city);
     assert!(!road.is_empty(), "a road is found on open ground");
@@ -304,7 +304,7 @@ fn a_road_is_planned_between_two_buildings_and_laid_where_it_is_not_blocked() {
 #[test]
 fn a_caravan_expands_the_diagonals_and_a_building_does_not() {
     let (mut sim, city, _, lib_ty) = town(Pos::new(40, 40));
-    sim.plan_roads = true;
+    sim.movement.plan_roads = true;
     let lib = library_at(&mut sim, lib_ty, Pos::new(33, 33));
     let dirs = |sim: &mut Sim, caravan: bool| -> Vec<i32> {
         sim.trace_costs = true;
@@ -422,7 +422,7 @@ fn a_sea_crossing_between_regions_pays_once_at_the_shore() {
 #[test]
 fn the_search_refuses_ocean_and_answers_nothing_across_it() {
     let (mut sim, city, _, lib_ty) = town(Pos::new(40, 40));
-    sim.plan_roads = true;
+    sim.movement.plan_roads = true;
     let lib = library_at(&mut sim, lib_ty, Pos::new(33, 40));
     for y in 0..80 {
         sim.world

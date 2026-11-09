@@ -102,7 +102,7 @@ fn sim() -> (Sim, Types) {
     // the *seed's*. A building started here would plan its road
     // (`Wall::start`, `crate::roads` §1) and spend a draw a node before
     // the coin is tossed, which is a different question.
-    sim.plan_roads = false;
+    sim.movement.plan_roads = false;
     for l in &mut sim.ledgers {
         l.bucket = [10_000; RESOURCES];
         l.income = [100 * 16; RESOURCES];

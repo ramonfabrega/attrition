@@ -784,7 +784,7 @@ impl Sim {
                 let who = self.units[u].owner as usize;
                 if elapsed > 0
                     && elapsed % 4 == 0
-                    && self.repaths[who] != 0
+                    && self.movement.repaths[who] != 0
                     && !self.units[u].combat.mandatory
                 {
                     self.find_new_target(u, true);
@@ -845,7 +845,7 @@ impl Sim {
             }
             if (i64::from(self.units[u].index) + frame) % 4 == 0 {
                 let who = self.units[u].owner as usize;
-                self.repaths[who] += 1;
+                self.movement.repaths[who] += 1;
             }
             self.units[u].collide += 1;
             mo.has_waypoint = false;

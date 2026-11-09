@@ -221,7 +221,7 @@ impl Sim {
             // The one arm whose ring runs a tile wider on each side.
             self.road_ring(corner, w, h, 1, true);
         }
-        if !self.plan_roads {
+        if !self.movement.plan_roads {
             return;
         }
         let Some(c) = self.buildings[b].city else {

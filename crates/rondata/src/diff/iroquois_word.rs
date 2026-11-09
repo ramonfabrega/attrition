@@ -1524,6 +1524,7 @@ fn run946_s_road_elements_at_10842_are_ours() {
     for (x, y, flags, support, refs, c4) in theirs {
         let e = built
             .sim
+            .movement
             .mesh
             .elem(&built.sim.world, Pos::new(x, y))
             .unwrap_or_default();

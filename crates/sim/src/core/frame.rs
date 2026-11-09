@@ -207,7 +207,7 @@ impl Sim {
         // lifetime count — without it the counter only climbs, and a unit
         // that has collided four times in a game is throttled for the rest
         // of it. It draws nothing, so it takes no mark.
-        for r in &mut self.repaths {
+        for r in &mut self.movement.repaths {
             *r /= 2;
             if *r < 3 {
                 *r = 0;

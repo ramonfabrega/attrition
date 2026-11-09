@@ -282,7 +282,7 @@ impl<'a> SimWpath<'a> {
 
 impl WpathView for SimWpath<'_> {
     fn begin(&mut self, start: Pos) {
-        self.sim.pf_start = start;
+        self.sim.movement.pf_start = start;
     }
     fn pop(&mut self) -> Option<PathData> {
         self.sim.units[self.u].path.pop()

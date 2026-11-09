@@ -83,7 +83,7 @@ impl ProbeSlots {
             );
             return b[dy as usize] >> dx & 1 != 0;
         }
-        self.readable(sim, p) && sim.coll.get(p.x, p.y)
+        self.readable(sim, p) && sim.movement.coll.get(p.x, p.y)
     }
 
     /// `local_30[slot] == 0`: the slot has a block, the region gate let
@@ -93,7 +93,7 @@ impl ProbeSlots {
             return b.iter().any(|&r| r != 0);
         }
         self.readable(sim, p)
-            && sim.coll.any_in_cell(
+            && sim.movement.coll.any_in_cell(
                 p.x.div_euclid(UCELLS_PER_CELL),
                 p.y.div_euclid(UCELLS_PER_CELL),
             )
@@ -1642,7 +1642,7 @@ impl Sim {
                     })
             });
             if !covered {
-                self.coll.set(p.x, p.y, false);
+                self.movement.coll.set(p.x, p.y, false);
             }
         }
     }
@@ -1666,7 +1666,7 @@ impl Sim {
         paint_walk(
             &mut SimPaint {
                 world: &self.world,
-                coll: &mut self.coll,
+                coll: &mut self.movement.coll,
                 region,
             },
             size,
@@ -1715,13 +1715,13 @@ impl Sim {
             for (dx, dy) in &disc {
                 let p = Pos::new(a.x + dx, a.y + dy);
                 if (p.x - b.x).abs() > size || (p.y - b.y).abs() > size {
-                    self.coll.set(p.x, p.y, false);
+                    self.movement.coll.set(p.x, p.y, false);
                 }
             }
             for (dx, dy) in &disc {
                 let p = Pos::new(b.x + dx, b.y + dy);
                 if (p.x - a.x).abs() > size || (p.y - a.y).abs() > size {
-                    self.coll.set(p.x, p.y, true);
+                    self.movement.coll.set(p.x, p.y, true);
                 }
             }
             return;
@@ -1730,7 +1730,7 @@ impl Sim {
             let p = Pos::new(a.x + dx, a.y + dy);
             if ((p.x - b.x).abs() > size || (p.y - b.y).abs() > size) && self.coll_region_ok(ra, p)
             {
-                self.coll.set(p.x, p.y, false);
+                self.movement.coll.set(p.x, p.y, false);
             }
         }
         let rb = self.world.tregion_alt(to.tile());
@@ -1738,7 +1738,7 @@ impl Sim {
             let p = Pos::new(b.x + dx, b.y + dy);
             if ((p.x - a.x).abs() > size || (p.y - a.y).abs() > size) && self.coll_region_ok(rb, p)
             {
-                self.coll.set(p.x, p.y, true);
+                self.movement.coll.set(p.x, p.y, true);
             }
         }
     }
@@ -2098,7 +2098,7 @@ impl Sim {
                 corners.push((x1, y1));
             }
         }
-        let mut copies = self.coll_copies.borrow_mut();
+        let mut copies = self.movement.coll_copies.borrow_mut();
         for (cx, cy) in corners {
             if cx < 0 || cy < 0 || cx >= self.world.width() || cy >= self.world.height() {
                 continue;
@@ -2109,7 +2109,7 @@ impl Sim {
                 if slots.readable(self, base) {
                     for (dy, row) in b.iter_mut().enumerate() {
                         for dx in 0..UCELLS_PER_CELL {
-                            if self.coll.get(base.x + dx, base.y + dy as i32) {
+                            if self.movement.coll.get(base.x + dx, base.y + dy as i32) {
                                 *row |= 1 << dx;
                             }
                         }
@@ -3147,7 +3147,7 @@ impl Sim {
                 )
             });
         if (its_move || its_transport_cast) && its_order != index::FLEE_TO {
-            let cap = if self.repaths[who as usize] > 3 {
+            let cap = if self.movement.repaths[who as usize] > 3 {
                 0x80
             } else {
                 0x20
@@ -3266,7 +3266,7 @@ impl Sim {
             return;
         }
         let who = self.units[u].owner as usize;
-        let repaths = self.repaths[who];
+        let repaths = self.movement.repaths[who];
         let collide = i32::from(self.units[u].collide);
         let o = i32::from(self.units[u].index);
         let n = if repaths < 4 {
@@ -3280,7 +3280,7 @@ impl Sim {
         if repaths >= 0x10 || (repaths >= 8 && (o + n) & 0xf != 0) {
             return;
         }
-        self.repaths[who] = repaths + 1;
+        self.movement.repaths[who] = repaths + 1;
         // Pop until an entry is worth keeping, then push the last back.
         let mut kept = PathData {
             to: self.units[u].pos,

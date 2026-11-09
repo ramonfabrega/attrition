@@ -92,9 +92,9 @@ fn a_reused_figure_clears_its_old_body_with_the_new_radius() {
         let body = ucell_centre(Pos::new(80, 80));
         sim.units[old].movement.body.pos = body;
         let ghost = Pos::new(82, 80);
-        sim.coll.set(ghost.x, ghost.y, true);
+        sim.movement.coll.set(ghost.x, ghost.y, true);
         let unit_cell = ucell(sim.units[old].pos);
-        sim.coll.set(unit_cell.x, unit_cell.y, true);
+        sim.movement.coll.set(unit_cell.x, unit_cell.y, true);
         let ty = sim.add_unit_type(UnitType {
             combat: crate::combat::Profile {
                 block_radius: radius,
@@ -107,15 +107,15 @@ fn a_reused_figure_clears_its_old_body_with_the_new_radius() {
         newborn.ty = Some(ty);
         let u = sim.add_unit(newborn);
         assert_eq!(
-            sim.coll.get(ghost.x, ghost.y),
+            sim.movement.coll.get(ghost.x, ghost.y),
             radius == 48,
             "the new radius, not the old radius, controls the clear"
         );
         assert!(
-            sim.coll.get(unit_cell.x, unit_cell.y),
+            sim.movement.coll.get(unit_cell.x, unit_cell.y),
             "the retained figure point is used, not the closed unit's point"
         );
-        assert!(sim.coll.get(140, 140), "the new disc is painted");
+        assert!(sim.movement.coll.get(140, 140), "the new disc is painted");
         assert_eq!(sim.units[u].coll_at, Some(destination));
     }
 }
@@ -195,22 +195,34 @@ fn the_second_citizen_out_of_a_camp_leaves_a_hole_in_the_first_s_block() {
     let b = add(2, centre(7, 4));
     let c = add(3, centre(4, 2));
     let birth = centre(4, 4);
-    assert!(sim.coll.get(5, 5), "the control: 1/1's block covers (5, 5)");
+    assert!(
+        sim.movement.coll.get(5, 5),
+        "the control: 1/1's block covers (5, 5)"
+    );
     sim.birth_come_out(a, birth, &[b, c]);
     sim.birth_come_out(b, birth, &[c]);
     for x in 3..=5 {
         for y in 4..=5 {
-            assert!(!sim.coll.get(x, y), "1/2's exit cleared ({x}, {y})");
+            assert!(
+                !sim.movement.coll.get(x, y),
+                "1/2's exit cleared ({x}, {y})"
+            );
         }
         assert!(
-            sim.coll.get(x, 6),
+            sim.movement.coll.get(x, 6),
             "1/1's row out of the birth stands ({x}, 6)"
         );
-        assert!(sim.coll.get(x, 3), "the later unit's cell stands ({x}, 3)");
+        assert!(
+            sim.movement.coll.get(x, 3),
+            "the later unit's cell stands ({x}, 3)"
+        );
     }
     for x in 6..=8 {
         for y in 3..=5 {
-            assert!(sim.coll.get(x, y), "1/2's own block is whole ({x}, {y})");
+            assert!(
+                sim.movement.coll.get(x, y),
+                "1/2's own block is whole ({x}, {y})"
+            );
         }
     }
 }
@@ -257,7 +269,7 @@ fn a_boat_on_a_coastal_cell_s_water_marks_no_collision_cells() {
     let a = sim.add_unit(a);
     sim.coll_add(a);
     assert!(
-        sim.coll.get(ucell(dry).x, ucell(dry).y),
+        sim.movement.coll.get(ucell(dry).x, ucell(dry).y),
         "a land unit on its own region's cell is in the index"
     );
 
@@ -271,7 +283,7 @@ fn a_boat_on_a_coastal_cell_s_water_marks_no_collision_cells() {
     for dy in -1..=1 {
         for dx in -1..=1 {
             assert!(
-                !sim.coll.get(uc.x + dx, uc.y + dy),
+                !sim.movement.coll.get(uc.x + dx, uc.y + dy),
                 "the coastal cell's water marks nothing at ({dx}, {dy})"
             );
         }
@@ -326,14 +338,20 @@ fn a_move_inside_one_world_cell_sets_its_disc_by_the_old_tile_s_region() {
     let b = sim.add_unit(b);
     sim.coll_add(b);
     assert!(
-        sim.coll.get(78, 70),
+        sim.movement.coll.get(78, 70),
         "the birth disc stands on the land tile"
     );
-    assert!(!sim.coll.get(65, 70), "and does not reach the west");
-    sim.coll_move(b, from, to);
-    assert!(!sim.coll.get(78, 70), "the old disc's far edge is cleared");
     assert!(
-        sim.coll.get(65, 70),
+        !sim.movement.coll.get(65, 70),
+        "and does not reach the west"
+    );
+    sim.coll_move(b, from, to);
+    assert!(
+        !sim.movement.coll.get(78, 70),
+        "the old disc's far edge is cleared"
+    );
+    assert!(
+        sim.movement.coll.get(65, 70),
         "the new disc is set whole though its tile is water"
     );
 }
@@ -378,19 +396,22 @@ fn the_index_follows_the_figure_and_is_not_refcounted() {
     let (sim, a, _b) = pair(Pos::new(0x1800, 0x1800), Pos::new(0x4800, 0x4800));
     let c = ucell(sim.units[a].pos);
     for (dx, dy) in spiral(1) {
-        assert!(sim.coll.get(c.x + dx, c.y + dy), "the whole 3×3 block");
+        assert!(
+            sim.movement.coll.get(c.x + dx, c.y + dy),
+            "the whole 3×3 block"
+        );
     }
     // Two cells over: the discs overlap on one column, and the mover
     // clears it on the way out even though the other unit is still
     // standing on it. That is the original's behaviour, kept.
     let d = Pos::new(c.x + 2, c.y);
     let (mut sim2, a2, _b2) = pair(ucell_centre(c), ucell_centre(d));
-    assert!(sim2.coll.get(c.x + 1, c.y), "shared by both discs");
+    assert!(sim2.movement.coll.get(c.x + 1, c.y), "shared by both discs");
     // The figure goes with it (`Guy::set_new_location(guy 0, pos, 1)`),
     // so the disc moves now.
     sim2.set_new_location(a2, ucell_centre(Pos::new(c.x - 4, c.y)), true);
     assert!(
-        !sim2.coll.get(c.x + 1, c.y),
+        !sim2.movement.coll.get(c.x + 1, c.y),
         "the mover cleared a cell its neighbour still occupies"
     );
     let _ = &sim;
@@ -411,17 +432,20 @@ fn a_pushed_unit_s_disc_waits_for_its_figure() {
     );
     let old = Pos::new(19, 20);
     let to = ucell_centre(Pos::new(23, 20));
-    assert!(sim.coll.get(old.x, old.y), "the disc stands on its cell");
+    assert!(
+        sim.movement.coll.get(old.x, old.y),
+        "the disc stands on its cell"
+    );
     sim.set_new_location(a, to, false);
     assert!(
-        sim.coll.get(old.x, old.y) && !sim.coll.get(24, 20),
+        sim.movement.coll.get(old.x, old.y) && !sim.movement.coll.get(24, 20),
         "a push leaves the disc where the figure is"
     );
     assert_eq!(sim.units[a].coll_at, Some(ucell_centre(Pos::new(20, 20))));
     sim.units[a].movement.body.pos = to;
     sim.coll_follow(a);
     assert!(
-        !sim.coll.get(old.x, old.y) && sim.coll.get(24, 20),
+        !sim.movement.coll.get(old.x, old.y) && sim.movement.coll.get(24, 20),
         "the figure's move takes the disc with it"
     );
     assert_eq!(sim.units[a].coll_at, Some(to));
@@ -532,7 +556,10 @@ fn the_sixty_fourth_frame_puts_back_the_block_a_walker_cleared() {
     let (mut sim, x, y) = pair(a, b);
     assert_eq!(sim.units[x].index, 0, "A's object number sets the phase");
     for c in [Pos::new(10, 10), Pos::new(10, 11), Pos::new(11, 10)] {
-        assert!(sim.coll.get(c.x, c.y), "A's block starts whole at {c:?}");
+        assert!(
+            sim.movement.coll.get(c.x, c.y),
+            "A's block starts whole at {c:?}"
+        );
     }
 
     // Off the phase, so the repaint cannot run before the hole is
@@ -544,7 +571,7 @@ fn the_sixty_fourth_frame_puts_back_the_block_a_walker_cleared() {
     let holes = [Pos::new(10, 10), Pos::new(10, 11), Pos::new(11, 10)];
     for c in holes {
         assert!(
-            !sim.coll.get(c.x, c.y),
+            !sim.movement.coll.get(c.x, c.y),
             "B's clear pass took {c:?} out of A's block — the index is not \
                  refcounted, and this is the hole the repaint exists for"
         );
@@ -557,7 +584,7 @@ fn the_sixty_fourth_frame_puts_back_the_block_a_walker_cleared() {
     }
     for c in holes {
         assert!(
-            sim.coll.get(c.x, c.y),
+            sim.movement.coll.get(c.x, c.y),
             "the sixty-fourth frame put {c:?} back"
         );
     }
@@ -591,13 +618,13 @@ fn a_world_cell_crossing_heals_the_block_a_neighbour_punctured() {
             ucell_centre(Pos::new(ax + 2, 11)),
         );
         assert!(
-            sim.coll.get(ax + 1, 10),
+            sim.movement.coll.get(ax + 1, 10),
             "A's block starts whole at ({}, 10)",
             ax + 1
         );
         sim.set_new_location(b, ucell_centre(Pos::new(ax + 2, 13)), true);
         assert!(
-            !sim.coll.get(ax + 1, 10),
+            !sim.movement.coll.get(ax + 1, 10),
             "B's clear pass did not punch ({}, 10) out of A's block",
             ax + 1
         );
@@ -605,7 +632,7 @@ fn a_world_cell_crossing_heals_the_block_a_neighbour_punctured() {
         // is entering, so nothing but the crossing can put this hole
         // back — it is `A`'s new **centre**.
         sim.set_new_location(a, ucell_centre(Pos::new(ax + 1, 10)), true);
-        sim.coll.get(ax + 1, 10)
+        sim.movement.coll.get(ax + 1, 10)
     };
     // 15 → 16 crosses: sixteen unit cells to a world cell, so the
     // object is re-seated and the disc repainted on the way.
@@ -1242,7 +1269,7 @@ fn a_collision_wait_chain_reads_the_latest_retained_slot() {
                 z.waiting_on = if current { waiting } else { !waiting };
                 sim.add_unit(z);
             }
-            sim.repaths[0] = 0;
+            sim.movement.repaths[0] = 0;
             sim.units[x].collide = 0;
             sim.units[y].collide = 0;
             sim.units[x].collide_o = sim.units[y].index;
@@ -1257,7 +1284,7 @@ fn a_collision_wait_chain_reads_the_latest_retained_slot() {
                 "alive={alive}, waiting={waiting}"
             );
             assert_eq!(
-                sim.repaths[0] > 0,
+                sim.movement.repaths[0] > 0,
                 waiting,
                 "recovery must replace a blocked wait"
             );
@@ -1569,18 +1596,18 @@ fn the_repath_throttle_halves_every_frame_and_clears_under_three() {
         Pos::new(30 * 0x30 + 0x18, 30 * 0x30 + 0x18),
         Pos::new(20 * 0x30 + 0x18, 20 * 0x30 + 0x18),
     );
-    sim.repaths[0] = 12;
-    sim.repaths[1] = 5;
+    sim.movement.repaths[0] = 12;
+    sim.movement.repaths[1] = 5;
     sim.tick();
     assert_eq!(
-        (sim.repaths[0], sim.repaths[1]),
+        (sim.movement.repaths[0], sim.movement.repaths[1]),
         (6, 0),
         "halved, and 2 < 3"
     );
     sim.tick();
-    assert_eq!(sim.repaths[0], 3, "6 → 3, which survives");
+    assert_eq!(sim.movement.repaths[0], 3, "6 → 3, which survives");
     sim.tick();
-    assert_eq!(sim.repaths[0], 0, "3 → 1, which does not");
+    assert_eq!(sim.movement.repaths[0], 0, "3 → 1, which does not");
 }
 
 /// §4.3's **group** arm: two members of one group pass through each
@@ -2883,7 +2910,10 @@ fn the_leading_edge_does_not_step_past_an_empty_world_cell() {
     // `(14..=16, 17..=19)`: world cells `(0, 1)` and `(1, 1)`.
     put(&mut sim, 1, Pos::new(15, 18));
     let at = Pos::new(16, 16);
-    assert!(!sim.coll.any_in_cell(0, 0), "world cell (0, 0) is empty");
+    assert!(
+        !sim.movement.coll.any_in_cell(0, 0),
+        "world cell (0, 0) is empty"
+    );
     assert_eq!(
         sim.collide_here(walker, at, false),
         None,
@@ -2892,7 +2922,7 @@ fn the_leading_edge_does_not_step_past_an_empty_world_cell() {
     // The control: one bit anywhere in world cell `(0, 0)` makes the
     // slot live, and the stride is two again — `(15, 15)`, `(15, 17)`.
     put(&mut sim, 2, Pos::new(3, 3));
-    assert!(sim.coll.any_in_cell(0, 0));
+    assert!(sim.movement.coll.any_in_cell(0, 0));
     assert_eq!(
         sim.collide_here(walker, at, false),
         Some(Pos::new(15, 17)),
