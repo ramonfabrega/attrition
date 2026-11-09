@@ -63,8 +63,9 @@ it (**not built**).
    `Leaders::init`, the team assignment (`Game::init_teams@0058ae70`), the
    handicaps, and the nations (`rand % 24` for a random one). **Built**:
    the lobby, the nations off the `PLAYER` rows, the human bit (`flags &
-   4`), the opening techs and the goods (`Sim::new`'s `starting_goods`); the
-   nation draw is taken once per computer player. **Not built**: a random
+   4`), the opening techs and the goods (`Sim::new`'s `starting_goods`). The
+   nation draw is not walked: `build_game` re-seeds right after, so nothing
+   at frame 0 observes it. **Not built**: a random
    style, a random age, a spread row's draws (refused, with a note), the
    team assignment — and the war matrix, §4.
 3. **`Setup::build_game@005ac190`'s head**: re-seed from `info.seed`,
@@ -183,9 +184,9 @@ comparison, so the counter cannot read 1 while that lobby parts.
   draw and the re-seed.
 - **Read once, from the decompile**: the extent's style-16 and half-size
   arms; that `GAMEINFO`'s `PLAYER tribe` is the nation *after* the random
-  roll, so the builder cannot tell a chosen nation from a rolled one and
-  takes one draw per computer player — right on the harness lobby, untested
-  on a lobby with a computer player of a chosen nation.
+  roll — which is what the builder takes; the roll's one draw is spent
+  on a stream the re-seed discards, so whether a nation was chosen or
+  rolled changes nothing at frame 0.
 - **Not established**: the war matrix's writer (§4); the team assignment
   and the handicaps; the composition of the map chain into a `World` and
   the start cells; the start permutation; every placement draw of

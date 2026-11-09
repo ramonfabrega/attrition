@@ -236,8 +236,8 @@ pub fn world_extent(root: &std::path::Path, map_size: i32, map_style: i32) -> Op
 /// 2. `init_rules_and_teams`: the lobby, the nations (`PLAYER tribe`), the
 ///    human bit (`PLAYER flags & 4`), the opening techs and the goods
 ///    (`Sim::new`'s `starting_goods`; a lobby row with a spread draws, and
-///    is refused); the random-nation draw is taken off the stream when the
-///    lobby carries a computer player (`rand % 24`, one draw);
+///    is refused); the random-nation draw (`rand % 24`) is not walked —
+///    `build_game`'s re-seed discards it, so nothing at frame 0 observes it;
 /// 3. `Setup::build_game`'s re-seed from `info.seed` and `world->seed =
 ///    rand % 0xffff + 1`;
 /// 4. **the map** — `Map::make`, `Terrain::init` — which no path in this
@@ -297,7 +297,6 @@ pub fn from_lobby(
     );
     sim.setup().sync_setup_from_lobby();
     let seed = int("(int)seed").unwrap_or(0) as u32;
-    let mut rng = sim::combat::Rng::new(seed);
     let (lo, hi) = sim.ai.lobby.starting_resources_row;
     let spread = lo != 0 && hi > lo;
     if spread {
@@ -305,7 +304,6 @@ pub fn from_lobby(
             "init_starting_resources: the row ({lo}, {hi}) has a spread, whose draws are not walked"
         ));
     }
-    let mut computers = 0;
     for p in player_rows {
         let Some(w) = row_int(p, "who").filter(|w| (0..players as i64).contains(w)) else {
             continue;
@@ -315,23 +313,17 @@ pub fn from_lobby(
         sim.setup().set_tribe(who as sim::Player, tribe);
         let human = row_int(p, "flags").unwrap_or(0) & 4 != 0;
         sim.cities.nation[who].human = human;
-        if !human {
-            computers += 1;
-        }
     }
     for who in 0..players {
         sim.setup().start_techs(who as sim::Player);
     }
-    // The AI's random nation (`init_tribes`, `rand % 24`): one draw on the
-    // harness lobby (`docs/ORACLE.md`'s table, the first row). Whether a
-    // lobby's computer player was *chosen* random is not in `GAMEINFO`,
-    // which prints the rolled nation; one draw per computer is assumed.
-    for _ in 0..computers {
-        rng.get(0, 0xffff);
-    }
+    // The AI's random nation (`init_tribes`, `rand % 24`, one draw on the
+    // harness lobby) is spent on the stream `build_game` re-seeds next, so
+    // it is not walked: `GAMEINFO` prints the rolled nation, which is what
+    // `set_tribe` took above.
     steps.push(("init_rules_and_teams", !spread));
     // 3. `build_game`'s re-seed and the world seed.
-    rng = sim::combat::Rng::new(seed);
+    let mut rng = sim::combat::Rng::new(seed);
     sim.game_seed = rng.get(0, 0xffff) % 0xffff + 1;
     sim.rng = rng;
     steps.push(("build_game: re-seed, world->seed", true));
