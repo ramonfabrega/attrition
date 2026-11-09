@@ -1424,68 +1424,151 @@ mod tests {
     /// an open chapter closed: chapters sixty-one and sixty-two pinned
     /// `(605, 781)` and `(605, 901)` on run814 and run818, which run to
     /// 1000, and the `Golden:` line called both closed. The trace's end is
-    /// the `length` its `walk_script` call gives; every chapter whose
-    /// widening and walk both name a run is held to `hi - 1 >= length`.
-    /// Made to fail first on `ch61` and `ch62`. Both chapters have since
-    /// closed (items 2099 and 2117) and their widenings are their runs
-    /// whole.
+    /// the `length` its `walk_script` (or `walk_chapter`) call gives; every
+    /// chapter is held to `hi - 1 >= length`. Made to fail first on `ch61`
+    /// and `ch62`. Both chapters have since closed (items 2099 and 2117)
+    /// and their widenings are their runs whole.
+    ///
+    /// **And it reads every file the walks live in, and no row may go
+    /// unread** (Loop 4029, the seventy-fifth pass). e8404b99e moved every
+    /// chapter's walk out of `golden.rs` into `golden/cases_*.rs`, and this
+    /// guard, reading `golden.rs` alone, skipped all 130 rows in silence
+    /// for three weeks; chapter 136 then pinned `(599, 900)` on run1553,
+    /// whose walk is 900 long, and passed here. A row whose walk is not
+    /// found is now a failure, not a skip. Made to fail first on that
+    /// `(599, 900)`.
     #[test]
     fn a_golden_widening_s_window_reaches_its_trace_s_end() {
         let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/src/diff/");
-        let golden = std::fs::read_to_string(format!("{dir}golden.rs")).expect("golden.rs");
+        let mut sources = vec![format!("{dir}golden.rs")];
+        let mut cases: Vec<String> = std::fs::read_dir(format!("{dir}golden"))
+            .expect("src/diff/golden/")
+            .filter_map(|e| e.ok().map(|e| e.path().display().to_string()))
+            .filter(|p| p.ends_with(".rs"))
+            .collect();
+        cases.sort();
+        sources.extend(cases);
+        let golden: String = sources
+            .iter()
+            .map(|p| std::fs::read_to_string(p).unwrap_or_else(|e| panic!("{p}: {e}")))
+            .collect::<Vec<_>>()
+            .join("\n");
         let windows: Vec<(&str, (i64, i64))> = GOLDEN_WORDS
             .iter()
             .map(|(name, _, window)| (*name, *window))
             .collect();
-        let short = short_golden_windows(&golden, &windows);
+        let (short, unread) = short_golden_windows(&golden, &windows);
+        assert!(
+            unread.is_empty(),
+            "no `walk_script`/`walk_chapter` call in golden.rs or golden/*.rs names these \
+             rows' runs, so this guard cannot see their traces' ends (Loop 4029); a line \
+             name walked under another run goes on GOLDEN_WALK_RUNS: {unread:?}"
+        );
         assert!(
             short.is_empty(),
             "a golden widening's window ends before its trace, so the `Golden:` line \
-             reads its open word closed; widen it to the trace: {short:?}"
+             reads its open word closed (or its closed word open); widen it to the \
+             trace: {short:?}"
         );
     }
 
+    /// **A golden widening holds its own word** (Loop 4029, the
+    /// seventy-fifth pass). A word is pinned with its widening, so the
+    /// widening's half-open window `[lo, hi)` holds the word's frame; for a
+    /// closed chapter that is `hi == word + 1`, which is how
+    /// [`golden_line_verdict`] counts it closed. Chapter 136 pinned word 900
+    /// over `(599, 900)`, one short of run1553's `last_frame` 900: its word
+    /// was never widened, the count read it open, and the lane passed on a
+    /// queue line that said `129 closed`. Needs no dump. Made to fail first
+    /// on that `(599, 900)`.
+    #[test]
+    fn a_golden_widening_holds_its_word() {
+        let outside: Vec<String> = GOLDEN_WORDS
+            .iter()
+            .filter(|(_, word, (lo, hi))| !(*lo <= *word && *word < *hi))
+            .map(|(name, word, (lo, hi))| {
+                format!(
+                    "{name}: word {word}, widening ({lo}, {hi}) ends on {}",
+                    hi - 1
+                )
+            })
+            .collect();
+        assert!(
+            outside.is_empty(),
+            "a golden word lies outside its widening's window, so its own frame was never \
+             widened and the `Golden:` count misreads it; a closed chapter's widening is \
+             `(lo, word + 1)`: {outside:?}"
+        );
+    }
+
+    /// The four `GOLDEN_WORDS` names whose walk runs under another
+    /// directory: `(name on the line, the run its walk names)`.
+    const GOLDEN_WALK_RUNS: &[(&str, &str)] = &[
+        ("ch1", "g4"),
+        ("ch4", "ch4u"),
+        ("restage", "ch3b"),
+        ("ch7b-control", "ch7bc"),
+    ];
+
     /// Each `(name, window, trace length)` whose window ends before the
-    /// trace's last block: the name's `walk_script("<name>", …, <length>)`
-    /// in `golden.rs`.
+    /// trace's last block — the name's `walk_script("<run>", …, <length>)`
+    /// or `walk_chapter("<run>", …, <length>)` — and each name no walk
+    /// names.
+    #[allow(clippy::type_complexity)]
     fn short_golden_windows(
         golden: &str,
         windows: &[(&str, (i64, i64))],
-    ) -> Vec<(String, (i64, i64), i64)> {
+    ) -> (Vec<(String, (i64, i64), i64)>, Vec<String>) {
         let flat: String = golden.split_whitespace().collect();
         let mut short = Vec::new();
+        let mut unread = Vec::new();
         for (name, (lo, hi)) in windows {
-            let needle = format!("walk_script(\"{name}\",");
-            let Some((_, rest)) = flat.split_once(needle.as_str()) else {
-                continue;
-            };
-            let Some(args) = rest.split(')').next() else {
-                continue;
-            };
-            let Some(length) = args
-                .split(',')
-                .filter(|a| !a.is_empty())
-                .nth(3)
-                .and_then(|a| a.replace('_', "").parse::<i64>().ok())
-            else {
-                continue;
-            };
-            if hi - 1 < length {
-                short.push((name.to_string(), (*lo, *hi), length));
+            let run = GOLDEN_WALK_RUNS
+                .iter()
+                .find(|(n, _)| n == name)
+                .map_or(*name, |(_, r)| *r);
+            let length = ["walk_script", "walk_chapter"].iter().find_map(|f| {
+                let needle = format!("{f}(\"{run}\",");
+                let (_, rest) = flat.split_once(needle.as_str())?;
+                rest.split(')')
+                    .next()?
+                    .split(',')
+                    .rfind(|a| !a.is_empty())
+                    .and_then(|a| a.replace('_', "").parse::<i64>().ok())
+            });
+            match length {
+                Some(length) if hi - 1 < length => {
+                    short.push((name.to_string(), (*lo, *hi), length));
+                }
+                Some(_) => {}
+                None => unread.push(name.to_string()),
             }
         }
-        short
+        (short, unread)
     }
 
     #[test]
     fn a_window_cut_at_its_word_is_short() {
         let golden = "walk_script(\"ch61\", \"chapter61\", 61, 13, 1000)\n\
-                      walk_script(\"ch9\", \"chapter9\", 9, 4, 1_100)";
+                      walk_script(\"ch9\", \"chapter9\", 9, 4, 1_100)\n\
+                      walk_chapter(\"ch136\", 136, 6, 900)";
         assert_eq!(
             short_golden_windows(golden, &[("ch61", (605, 781)), ("ch9", (605, 1101))]),
-            vec![("ch61".to_string(), (605, 781), 1000)]
+            (vec![("ch61".to_string(), (605, 781), 1000)], vec![])
         );
-        assert!(short_golden_windows(golden, &[("ch61", (605, 1001))]).is_empty());
+        assert_eq!(
+            short_golden_windows(golden, &[("ch61", (605, 1001))]),
+            (vec![], vec![])
+        );
+        // Loop 4029: the shape chapter 136 pinned, through `walk_chapter`,
+        // and a row no walk names is unread rather than skipped.
+        assert_eq!(
+            short_golden_windows(golden, &[("ch136", (599, 900)), ("ch7", (605, 1201))]),
+            (
+                vec![("ch136".to_string(), (599, 900), 900)],
+                vec!["ch7".to_string()]
+            )
+        );
     }
 
     /// `(name on the line, word, the trace's window)` — closed when the

@@ -94,8 +94,12 @@ TRACKS = {'residue': 'the AI track', 'chapter': 'the rules track', 'sweep': 'the
 # against the commander's unwritten `w744`), so `audit::` adds nothing here.
 ALWAYS_TESTS = {'residue': ('coverage::', 'first_parting', 'battery_floors', 'blind::',
                             'audit::every_whole_scoreboard_word_is_audited'),
+                # Loop 4029: `a_golden_widening` holds a closed chapter's
+                # widening to its word and its walk's length — chapter 136
+                # pinned `(599, 900)` for word 900 and its lane passed.
                 'chapter': ('coverage::', 'first_parting', 'battery_floors', 'blind::',
-                            'audit::every_whole_scoreboard_word_is_audited'),
+                            'audit::every_whole_scoreboard_word_is_audited',
+                            'a_golden_widening'),
                 'sweep': ('sweep::', 'blind::'),
                 # A reading moves no word and no sweep; its one pin is the
                 # blind list it re-pins when it cites a never-entered
