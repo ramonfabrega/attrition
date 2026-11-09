@@ -1418,7 +1418,6 @@ fn the_terrain_s_corners_are_in_register() {
     let (width, height) = (ours[&0].width, ours[&0].height);
     let (camera, screen) = pinned_camera(width, height);
     let stride = width * 4 + 1;
-    let tag = |n: i64, cx: i32, cy: i32| format!("{n}/{cx}/{cy}");
     // The original's corners, deduplicated: the projection depends on the
     // point alone.
     let point =
