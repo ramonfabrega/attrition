@@ -883,13 +883,84 @@ lengths' resolution does (the first case-folded match). The pieces an entry
 covers are `entry_pieces`' arithmetic (ANIM §3.2). `artdata::piece_decoding`
 decodes each file once, and the result is the score below.
 
-**Pieces decoding: 1,439 of 1,452** (`artdata::PIECES_DECODING`). The
+**Pieces decoding: 1,439 of 1,452** (`artdata::PIECES_DECODING`; **1,465
+of 1,478** since item 4028, below). The
 1,452 distinct pieces come from 1,399 of the 1,435 entries. The 13 failures,
 named by `the_pieces_decode`, are slots that cite `.bha` files the install
 does not ship (`armsuplytruck_attackwalk`, `ceo_crew3_idle3`,
 `siegeship_ship_walk`) and the one model `citizen6_fem_NA.bh3`.
 `cargo run -p rondata -- <install>` re-derives the file counts and the
 score.
+
+### The gaia pieces and the building pieces (item 4028)
+
+**A gaia entry is a piece.** `GraphicPieces::init_piece_ranges@008f70e0`
+writes `first_bird_piece = 0xea8d` (60045) and `num_bird_pieces = 0x24`:
+three variants for each of the twelve gaia types `0x192..0x19e`, which
+`get_type@00902540` reads back as `(piece − first_bird_piece) / 3 + 0x192`.
+For a piece in that range, `unit_node_from_gpiece@00901c30` builds the name
+from the type's `GRAPH` (`+0x88`), `-`, `TYPE` (string 3709) and
+`(piece − first_bird_piece) % 3`. It takes the `<UNIT>` whose name equals
+that. There is no `-TYPE0` fall-back: a variant with no entry has no node,
+and `init_unit_data@008f4290` returns `LIBERR_FILE_NOT_FOUND`.
+`artdata::bird_pieces` adds these entries to `unit_art`, which was 26 more
+entries and 26 more pieces, all decoding. Their pieces agree with the start
+dumps' owner-9 `GUY` blocks: the sheep's 60063–60065 and the fish's
+60072–60074. The sim-fed tables (`piece_lengths` and its siblings) keep
+`entry_pieces` and are unchanged.
+
+**Names compare without case.** `String::operator==@00a1f140` compares the
+insensitive hashes, or falls to `_wcsicmp`. Every name lookup below depends
+on this. Four building addon subjects match their `<AMMO>` only by ignoring
+case (`metro_6t_ADDON` against `metro_6t_addon`, for example).
+`a_building_s_addon_subject_matches_without_case` checks this. A
+case-sensitive lookup drops M's building types from 20 decoding to 13.
+
+**A building piece names a `<BUILD>`.** `init_piece_ranges` writes
+`first_build_piece = 0xc606`, `num_build_pieces = 0x81` and
+`num_build_pieces_per_age = 0x489`:
+- `0x81` is 129, one per `buildingrules.xml` record, at `TypeIndex 0x19e + i`;
+- `0x489` is nine art styles of 129;
+- `total_num_build_pieces = 0x2448` is eight ages of `0x489`.
+
+`get_build_gpiece@0090bce0` adds `0x81·style + 0x489·age + (TypeIndex −
+0x19e)`. It walks the age down to 0, under the nation's `BUILD_CONTINENT`
+(tribe `+100`), then under `BACKUP_BUILD_CONTINENT` (`+0x60`), then under
+style 0. On each step it takes the first piece whose data loaded. Failing
+all three, it returns `first_build_piece + TypeIndex − 0x19e`.
+
+`build_node_from_gpiece@008fd550` builds the name as `GRAPH`, `-`, the
+style, `-AGE`, then the raw age `(piece − first) / 0x489`.
+`say_build_art_style_name@006f03f0` gives the style:
+- arm 0 is empty, written `Default` (string 402);
+- arms 1–8 are `internal_strings.xml` entries 6920–6927: `NEurope`, `Asian`,
+  `Korean`, `American`, `Arab`, `Iroquois`, `Colonial`, `EIndian`.
+
+`build_node_from_gpiece@00905050` looks the name up among
+`building_graphics.xml`'s `<BUILD>` elements (`artdata::build_piece_name`
+and `build_art`).
+
+**What a `<BUILD>` loads.** In `init_build_data@008f2f20`:
+- `texture`, string 136, with a snowy-tileset variant;
+- `zbuffer`, string 3850. This is a `.bh3`, and the piece loads only when
+  `zbuffer` is empty or its file exists;
+- `anim`, through `decipher_animation`.
+
+Each `EXISTEVENT` in `init_build_events@008ea3c0` names a `subject`, an
+ammo piece matched by `<AMMO name>` in `effects_graphics.xml`, and an
+`anim`.
+
+**Diff-backed by `BuildDump::gpiece`**, the `gpiece` the dump prints at
+`WALLDATA`'s level. Run1428's capital `0/2000` prints 57144, which is
+`VILLAGE-ARAB-AGE5`. All 25 pieces that the lobby's three dumps print for
+M's 21 building types name an existing `<BUILD>`. Seven of them are the
+last-resort `first_build_piece + type`, and each still names a
+`…-DEFAULT-AGE0` entry. A building piece meets condition 1 when its
+`zbuffer` model, its own `anim`, and each addon's model and `anim` decode
+(`artdata::building_decoding`). 20 of the 21 types do, from 80 files.
+The one short is the farm. `FARM-DEFAULT-AGE0` writes `texture`,
+`zbuffer` and `anim` empty, and its look comes from the `<FARM>` element,
+which nothing here reads.
 
 ### What is checked, and what is not established
 
@@ -904,11 +975,17 @@ score.
   the original.
 - **Not established**: how an animation binds to a model whose tree it
   does not match. Of the 1,439 decoded pieces, 801 have every played
-  animation's tree equal in shape to the model's (`SAME_SHAPE`). The
+  animation's tree equal in shape to the model's (`SAME_SHAPE`; 823 of
+  1,465 since item 4028). The
   citizen's `peasant.bh3` has 29 nodes, and `man_walk.bha` has 27: the
   same tree without its two `ammo node` leaves. The normals' fourth word.
   The 24-byte `id 10` element. The key's ninth word. Which TGA a model
-  binds, beyond the `texture=` attribute.
+  binds, beyond the `texture=` attribute. Item 4028 left four things
+  unread: the farm's `<FARM>` reader; what a building's `zbuffer` model
+  is drawn as, read only as a `.bh3` here; the snowy-tileset texture
+  variant (string `0x12b9c`), which Great Lakes may take; and the
+  building's sprite TGA, which is outside condition 1 as a unit's
+  texture is.
 
 ## Open questions
 

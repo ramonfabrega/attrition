@@ -816,6 +816,31 @@ It is the art phase's counter, not the first one.
   2. on every logged frame of every pinned capture where an object plays it,
      that object's draw-list entry is in register in candidate A's sense.
 
+*Ruled by item 4028, for the pass to confirm:*
+- **Condition 1 is read on the slots the run plays**, as written. A slot
+  the run never shows the piece in is not drawn, so its file is not asked
+  (`PieceDecoding::decodes_on`, with slots from the runner's scenes, which
+  equal the harness's). `artdata::PIECES_DECODING` stays the stricter
+  count over every slot of every entry.
+- **A building type's condition 1** holds when every piece the dumps print
+  for it names a `<BUILD>` and decodes:
+  - its `zbuffer` `.bh3`;
+  - its own `anim`;
+  - each `EXISTEVENT` addon's model and `anim` (`docs/FORMATS.md`, "The
+    gaia pieces and the building pieces").
+
+  An entry that names no model does not meet it: an empty list is not a
+  decode.
+- **A building type's condition 2 is unmet, not vacuous**:
+  - the dumps print every building's position on the logged frames, so
+    there is a dumped frame to compare against;
+  - but the draw list carries no building entry to put in register.
+
+  A decoded building therefore earns no K until the draw list carries
+  buildings and their anchors are compared with the original's projection
+  of the dumped positions. That is the next render item's ground, and it
+  is not stubbed true.
+
 **The shape.** It reads like the rubric's "unit types seen 296 of 302". It
 has a denominator from the oracle's own files. It rises one piece at a time,
 so it steers for many items. And it embeds candidate A as its per-piece
@@ -841,28 +866,37 @@ heightfield's projected corner points are in register at the pinned camera.
   lobby's three captures hold. 4020 counted 39 and M = 60. Piece 265 was
   played only by a unit at no health, which the door no longer reports
   (§2.3).
-- **K = 31 of M's 59** (`RENDER_K`, §3.5; 29 at item 4026, 31 at 4027),
-  with both conditions live:
-  - 31 of the 38 pieces decode (condition 1);
+- **K = 38 of M's 59** (`RENDER_K`, §3.5; 29 at item 4026, 31 at 4027,
+  38 at 4028), with both conditions live:
+  - 38 of the 38 pieces decode (condition 1, on the slots played);
   - all 38 are in register on every logged frame they are played on
     (condition 2). Item 4027 brought in pieces 232 and 11264.
-  - The 21 building types have neither a decoder nor a dumped frame, so
-    they count toward no K.
+  - ~~The 21 building types have neither a decoder nor a dumped frame, so
+    they count toward no K.~~ Since item 4028, 20 of the 21 building types
+    decode (`M_BUILDING_TYPES_DECODING`: 25 pieces, 80 files). They count
+    toward no K, because the draw list does not carry them (the ruling
+    above). The farm is short: its `<BUILD>` names no model.
 - **The dumps check every figure they print a `gpiece` for.** Only the
   `DUMP_ALL` states print one: run1428's two, and run1429's start block.
   That is 306 figures on the map, all 306 agreeing, and on each dump's
   frames the two sides hold the same set of pieces (12 and 32 of the 39).
   run1429's stride and run1429b's window print guys without `gpiece`. The
   other pieces rest on the scene's equality with the harness.
-- **31 of the 38 pieces decode** under item 4019's readers
+- ~~**31 of the 38 pieces decode** under item 4019's readers
   (`M_PIECES_DECODING`; 32 of 39 before piece 265 left). The seven short are six gaia pieces, which no
-  `<UNIT>` entry names, and one citizen crew row with a failing file.
+  `<UNIT>` entry names, and one citizen crew row with a failing file.~~
+  **38 of 38 since item 4028.**
+  - The six gaia pieces resolve through the loader's own name,
+    `{GRAPH}-TYPE{v}` (`unit_node_from_gpiece`), and decode.
+  - 38322's missing `ceo_crew3_idle3.bha` belongs to `CHAR_IDLE2`, which
+    the run never plays.
 
 *What M is not yet:*
 - one pair;
 - figures of units on the map only. Five garrisoned figures fall outside it;
-- no building's own `gpiece`. `BUILDDATA` prints one and `BuildingScene`
-  does not carry it;
+- no building's own `gpiece` in the scene. `BUILDDATA` prints one, which
+  `BuildDump::gpiece` reads since item 4028, and `BuildingScene` does not
+  carry it;
 - no corpse or projectile art;
 - the building half counts types made, not types drawn. A capital's
   upgrade is outside it: the runner's scenes hold 23 types, the dumps 21.
@@ -948,6 +982,13 @@ from `sim`. None is minted: item numbers and the queue are the commander's.
   sit in `render` rather than `rondata` (§3.1's choice is amended):
   `rondata` depends on `sim`, `render` must not, and `rondata` now
   depends on `render`.
+- *Item 4028, the rest of the resolution:*
+  - the gaia pieces (`artdata::bird_pieces`): pieces decoding 1,465 of
+    1,478;
+  - the building pieces, through the loader's name
+    (`artdata::build_piece_name`, `build_art`, `building_decoding`): 20 of
+    M's 21 building types decode;
+  - condition 1 is read on the played slots: K 38 of M 59.
 
 **5. First pixels.**
 
