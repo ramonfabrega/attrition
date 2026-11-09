@@ -424,10 +424,21 @@ def runs_after(runs_text, day):
     return sorted({int(n) for n, d in RUN_HEAD.findall(runs_text) if d > day})
 
 
-def blamed_days(path, root=ROOT):
+def blamed_days(path, root=ROOT, lines=None):
     """Each line's last-changed day, `{line: 'YYYY-MM-DD'}`, from one
-    porcelain blame of the file (641 sentences one at a time took 155 s)."""
-    out = subprocess.run(['git', 'blame', '--porcelain', str(path)],
+    porcelain blame of the file (641 sentences one at a time took 155 s).
+    `-w -C -C -M` follows a line across the files it was cut from and
+    moved within (Loop 4024): the structure tranche's cuts otherwise date
+    every moved line to the move. `lines` blames only those, each as a
+    five-line range: git's copy search splits a blame entry once a source
+    file, so a whole-file `-C` left 4015's cut of `combat/fight.rs` 566
+    lines at the cut (and `--dated` took 201 s), while a lone short line
+    falls under its 40-character floor; `-w` because 4010 de-indented the
+    test modules it moved into siblings."""
+    argv = ['git', 'blame', '--porcelain', '-w', '-C', '-C', '-M']
+    for n in sorted(set(lines or ())):
+        argv += ['-L', f'{max(1, n - 2)},+5']
+    out = subprocess.run(argv + ['--', str(path)],
                          cwd=root, capture_output=True, text=True, check=False).stdout
     days, when, sha, line = {}, {}, None, None
     for row in out.split('\n'):
@@ -455,7 +466,7 @@ def dated(root=ROOT, width=200):
         found = absences(f.read_text())
         if not found:
             continue
-        days = blamed_days(f.relative_to(root), root)
+        days = blamed_days(f.relative_to(root), root, [n for n, _ in found])
         for line, sentence in found:
             day = days.get(line, '0000-00-00')
             since = runs_after(runs, day)
