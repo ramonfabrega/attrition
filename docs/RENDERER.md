@@ -698,9 +698,9 @@ the list as a `Drawn` whose `Pose` is `Building`. The reference is
   (`job_counter / BuildData::construct_time(0)`, 1 when finished), fades
   in from 0.84, and is inverted for every type but the farm. So an
   unfinished building is drawn past 0.84, a farm only before 0.88, and
-  type `0x1a6` only finished. A finished farm is drawn by another pass,
-  `FarmsOut::draw@008d75f0`'s wheat field, which the list does not carry
-  (item 4037; parked 4037a).
+  type `0x1a6` only finished. A farm is drawn by a second pass too,
+  `FarmsOut::draw@008d75f0`'s wheat field, finished or not (item 4048,
+  below).
 - *The piece.* `GraphicPieces::get_build_gpiece@0090bce0` from the
   current type, the **founder's** nation (`BuildData::founder`; a captured
   city keeps the art of the nation that built it) and the building's age:
@@ -740,6 +740,49 @@ Factory 5 pixels off.
 
 **Diff-backed:** the anchors, the heights, the pieces. **Listing-backed:**
 the half-tile rule. **Reading only:** the drawn predicate.
+
+**The farm's wheat field in the list** (item 4048). A building with a farm
+record (`BuildData +0x78 ≥ 0`, from `Farms::add@008d8a40` at placement)
+carries a `render::draw::Field`, and leaves the list a second time as
+`Pose::Field`. The reference is `FarmsOut::draw@008d75f0`:
+
+- *The corner.* `WallData::tile_corner@00643440` of the building's point by
+  its type's footprint (`BuildTypeData +0x234`, `+0x238`): the point's tile
+  (`div_3_table[(x ^ 0x63637) >> 6]`, the position unmasked), snapped to its
+  centre on an odd size, read back as a tile, less half the size, times
+  `0xc0`. The field is 4×4 stalk boxes a tile apart, the first half a tile
+  in from the corner. The entry's anchor is the corner itself on
+  `terrain_height[0][0]`: the point the 25 heights are sampled from.
+- *The heights.* `FarmStruct::terrain_height[5][5]` (`+0x48`, `x` major):
+  `TerrainOut::find_data_z` at the footprint's 25 tile corners, sampled by
+  `Farms::add` for a crop farm (a pasture jumps past them and keeps zeros),
+  and again by `Farms::recalc_heights@008d88a0`, which `Wall::init@0063e9b0`
+  calls after a non-farm building's terraform, for **its owner's** farms
+  whose corner is within eight tiles on both axes. `sim::Farm::heights`
+  keeps them; a starting farm takes the dump's.
+- *Drawn.* Every record but the pasture's (`farm_type != 1`). The viewer's
+  gate (vtable `+0x17c`) is read as the buildings' `Sight` rule.
+
+**The score.** On the lobby's 99 building frames, **402 of 402 farm records
+in register**, all 402 drawn by both sides, each corner within one pixel of
+the original's projection, and **402 of 402 records whole** (`farm_type` and
+all 25 heights the original's): `FIELDS_IN_REGISTER`, `FIELD_RECORDS_WHOLE`.
+The original's record is the dump's own `Farms::log_data` list where it
+prints one (run1428), the start's on run1429's frame 0, and run1559b's
+packet at logger frame 3294 for run1429b's window and run1429's 3390 (the
+list at `0x00c0a914`, read once and held in the test). The reference corner
+is `sim::cities::place::tile_corner_of`, which item 2122's sweep holds
+against the original. Building K **21 of 21**, **K 59 of M 59**.
+
+**Made to fail once.** The anchor half a tile in (the first stalk box): 0
+of 402, every corner 15 pixels low. No `recalc_heights`: 18 of 402 whole
+(`1/2002` on 3390 reads 196 where theirs reads 221); the corner's own
+height holds, so in register stays 402.
+
+**Not established.** `Farms::add`'s own sample: with it disabled the 402
+stay whole, because every farm placed in this game is resampled by a later
+recalc before a logged frame. The field's mesh is not built: the client
+skips `Pose::Field` (parked 4048a).
 - ~~**A figure's own point apart from its unit's.**~~ Settled by item
   4027: guy 0's is `Movement::body`, and the door reads it now.
 
@@ -1081,7 +1124,11 @@ corners.*
     draws every one of them through `FarmsOut::draw`, and the draw list
     carries no wheat field. Counting it would stub condition 2 true, so
     it is out: `RENDER_K_BUILDINGS` (20, 21, 20, 21), K unchanged at 58.
-    The field's entry is parked (4037a).
+    ~~The field's entry is parked (4037a).~~
+  - Since item 4048, **21 of 21 in register**: the draw list carries the
+    wheat field (§3.5), and the 402 farm records are drawn by both sides,
+    all in register — `RENDER_K_BUILDINGS` (21, 21, 21, 21), **K 59 of M
+    59**. Every record counted is drawn (Loop 4049's rule).
 - **The dumps check every figure they print a `gpiece` for.** Only the
   `DUMP_ALL` states print one: run1428's two, and run1429's start block.
   That is 306 figures on the map, all 306 agreeing, and on each dump's

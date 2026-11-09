@@ -1646,6 +1646,9 @@ impl Sim {
                 self.tables.build_types[ty].y_size,
             );
             self.terraform_for_building(corner, bw, bh);
+            // `Farms::recalc_heights`, after `Terrain::refresh_good_z`: the
+            // owner's farms near the new ground sample it again (item 4048).
+            self.farms_recalc_heights(corner, who);
             // The building's own `z_internal` is the ground after its own
             // terraform (item 4035; `Building::z`).
             self.buildings[b].z = self.world.object_z(self.buildings[b].pos.tile());
