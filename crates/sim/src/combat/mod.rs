@@ -2841,6 +2841,7 @@ pub mod build_attack_view;
 pub(crate) mod build_family;
 pub mod build_plunder_view;
 pub mod cavarch;
+pub mod cloak;
 pub mod damage;
 pub mod fight;
 pub mod hero_radius_view;
