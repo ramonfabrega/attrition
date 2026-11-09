@@ -1071,8 +1071,8 @@ frame 1, step 1 again: the script's `place_farm`.
 before this function was read; what follows is the *implementation*
 reading (one worker, 2026-08-24, line by line against the decompile and
 the listing where the decompile printed a local that could not be right),
-promoted here from what used to be §14.5 so that the blind second reading
-has a claim to compare against. The full derivation is
+promoted here from what was §14.5 so that the blind second reading
+has a claim to compare against. The derivation is
 `crates/sim/src/ai/ai_units.rs`'s docstrings; this is its load-bearing half.
 
 1. **The army-size ladder differs by branch**: rung 2 is `×3/2` in the air
@@ -2469,7 +2469,7 @@ placement spiral (§2.20) reaches it directly, and there they are new.
 
 **Landed**: `crates/sim/src/ai/ai_place.rs` — `GRID_ORDER`, `GRID_THREES`, the
 rewritten `space_at_corner`, the three-way gate; three unit tests, one of
-which fails on the old code at `space(&[(0,0)]) == 3` and at every-non-
+which fails on old code at `space(&[(0,0)]) == 3` and at every-non-
 centre-tile-blocked `== 2`; and the run20 guard's pin retired — the record
 is now compared whole, `space[0..3]` included, and the pin flipped
 (`ours 58 (was 48)`) on the first run after the walk order landed, before
@@ -12671,7 +12671,7 @@ the Lookout and the Market as lines (`is(0x1b7, 0)`, `is(0x209, 0)`,
 `is(0x1b4, 0)`); the Tower's two tests (the Senate bonus and the Romans')
 and the Lookout's now use `build::is_tower` and `build::is`
 (`crates/sim/src/cities/build.rs`; `docs/CITIES.md` §3.4's formula names them
-without saying lines, and its section is at its size bound). **Held by no walk**: `myhits` and
+without saying lines; its section is at its bound). **Held by no walk**: `myhits` and
 `construct_hits` are compared by no site; the unit test
 `the_senate_bonus_and_the_temple_bonus` holds it (a Keep in a Large City,
 1000).
@@ -12781,8 +12781,8 @@ records `build_types[0]` and `[1]`): the original's count is 3 and the price
 160 and 160, ours' count was 1. At 160 the timber (138) cannot pay, the
 sites are quartered, and `use_market`'s shortfall — two city rows in the
 first `epoch[Commerce]` = 2 slots, 320 of each — buys a hundred food and
-spends two draws of its sell branch, which ours now spends on the same
-frame. This crate's `building_price` counted `b.ty == ty` alone; a city now
+spends two draws of its sell branch, which ours now spends that
+frame. Our `building_price` counted `b.ty == ty` alone; a city now
 counts every alive building of the three (`crates/sim/src/cities/city.rs`;
 `docs/COSTS.md`, "A city is ramped by every city").
 

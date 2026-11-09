@@ -1123,7 +1123,7 @@ walking all the way back onto the unit sets `avoid = goal` and returns 1, and
 the loop breaks when both components have been clamped to zero.
 
 `crates/sim/src/orders/mod.rs`, `Sim::find_path` — which now takes the move order
-by `&mut` for exactly this reason, and the goal by value, because the
+by `&mut` for this reason, and the goal by value, because the
 detour's recursive call passes a waypoint of its own rather than
 `mo->dest_x/dest_y`. `go_around_building@005fc350`, which the pull-back
 cannot stand in for, is §4.6.1 and landed 2026-08-26.

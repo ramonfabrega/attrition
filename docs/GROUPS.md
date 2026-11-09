@@ -589,7 +589,7 @@ leader-slot offset is 216 (§6.4).
 
 **Implemented and diffed** — `crates/sim/src/groups/form.rs`, and
 `run29_s_navy_slot_table_is_reproduced_from_the_install_s_own_spacing` in
-`rondata::diff` reproduces run29's own row from the install's own columns.
+`rondata::diff` reproduces run29's row from the install's own columns.
 This section is the table itself; what it still does not reproduce is at
 the end, and every one of those is the original's doing rather than the
 port's.
@@ -952,7 +952,7 @@ the shooting siege unit, by queue position: not hurrying → left alone;
 hurrying with a city → into the city; hurrying without one → under
 `QUEUE_NEW` cleared and marched, under `QUEUE_LAST`/`QUEUE_FIRST` (no
 clear loop) still shooting and skipped. `crates/sim/src/groups/group.rs` does
-exactly that
+that
 (`a_hurrying_army_with_no_city_clears_and_marches_its_shooting_siege`).
 
 ### 6.6 The ordinary path, per member
@@ -1071,7 +1071,7 @@ both `GroupData::facing` writers.
 ### 6.7 The path
 
 **Implemented 2026-08-26** — `crates/sim/src/groups/grouppath.rs`, and §16 has
-what building it corrected in the text below.
+what building it corrected below.
 
 One path is planned and offset, exactly as `docs/ORDERS.md` §8.2 outlines:
 a single-entry `grouppath` at the **leader's slot destination** with the
@@ -1490,7 +1490,7 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
   the `0x900` short-circuit, the `pathfinder +0x70` hint, the per-member
   translation with its clamp and its area guard, the follower cutoff, the
   no-leader arm and the ungated tail invert. §6.6 step 2's `QUEUE_LAST`
-  pre-invert lands with it, because it means nothing without a stack to
+  pre-invert lands with it: it means nothing without a stack to
   invert, and the orders the member loop issues are now born `PATHED`
   (`add_move_facing_order`'s `param_5`). §12.4 has what it moved;
 - **`Form::compute`'s slot table** (§6.4) whole, in `crates/sim/src/groups/form.rs`

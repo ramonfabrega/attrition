@@ -474,8 +474,8 @@ mod tests {
     fn the_scan_reaches_a_nested_module() {
         let names: Vec<String> = sources().into_iter().map(|(n, _)| n).collect();
         assert!(
-            names.iter().any(|n| n == "do_attack/live.rs"),
-            "the float scan does not read do_attack/live.rs; it read {} files",
+            names.iter().any(|n| n == "orders/do_attack/live.rs"),
+            "the float scan does not read orders/do_attack/live.rs; it read {} files",
             names.len()
         );
     }
@@ -574,7 +574,12 @@ mod tests {
         ] {
             assert!(test(name), "{name} read as production");
         }
-        for name in ["lib.rs", "orders.rs", "do_attack.rs", "do_attack/live.rs"] {
+        for name in [
+            "lib.rs",
+            "orders/mod.rs",
+            "orders/do_attack.rs",
+            "orders/do_attack/live.rs",
+        ] {
             assert!(!test(name), "{name} read as test");
         }
         assert!(
