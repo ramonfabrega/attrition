@@ -244,3 +244,18 @@ pub mod order {
     /// (`docs/PRODUCTION.md`, "The missile's launch and round").
     pub const AIR_ATTACK_GROUND: u8 = 24;
 }
+
+/// `ArmyData::status` bits (`docs/AI.md`'s army section, §1) — the field
+/// is `Army::status: i32`, and `crate::army::status` is this module. A
+/// walk that reads the word as `u32` widens these (`as u32`): every bit is
+/// below `0x100`, so the cast is the identity on it.
+pub mod army_status {
+    pub const MUSTERING: i32 = 0x01;
+    pub const MARCHING: i32 = 0x02;
+    pub const MARCHED: i32 = 0x04;
+    pub const NO_TARGET: i32 = 0x08;
+    pub const FORMING: i32 = 0x10;
+    pub const DEFENDING: i32 = 0x20;
+    pub const TRANSPORTING: i32 = 0x40;
+    pub const HURRY: i32 = 0x80;
+}

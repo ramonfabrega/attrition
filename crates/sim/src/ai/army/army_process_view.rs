@@ -31,12 +31,12 @@ pub const COUNT_SPY: i32 = 0x3a;
 pub const COUNT_SCOUT: i32 = 0x45;
 
 /// `Army::status` bits the driver tests.
-pub const MUSTERING: i32 = 0x01;
-pub const MARCHING: i32 = 0x02;
-pub const NO_TARGET: i32 = 0x08;
-pub const FORMING: i32 = 0x10;
-pub const DEFENDING: i32 = 0x20;
-pub const TRANSPORTING: i32 = 0x40;
+pub use crate::ids::army_status::MUSTERING;
+pub use crate::ids::army_status::MARCHING;
+pub use crate::ids::army_status::NO_TARGET;
+pub use crate::ids::army_status::FORMING;
+pub use crate::ids::army_status::DEFENDING;
+pub use crate::ids::army_status::TRANSPORTING;
 
 /// The order `send_here` is given: the original's `1` and `2`.
 const MOVE_TO: i32 = crate::ids::order::MOVE_TO as i32;

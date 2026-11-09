@@ -79,17 +79,8 @@ pub(crate) const BARK: crate::tech::TypeId = 0x143;
 /// `SPY` — the lineage test `is(0x3a, 0)`.
 const SPY: crate::tech::TypeId = 0x3a;
 
-/// `ArmyData::status` bits (§1).
-pub mod status {
-    pub const MUSTERING: i32 = 0x01;
-    pub const MARCHING: i32 = 0x02;
-    pub const MARCHED: i32 = 0x04;
-    pub const NO_TARGET: i32 = 0x08;
-    pub const FORMING: i32 = 0x10;
-    pub const DEFENDING: i32 = 0x20;
-    pub const TRANSPORTING: i32 = 0x40;
-    pub const HURRY: i32 = 0x80;
-}
+/// `ArmyData::status` bits (§1), defined in [`crate::ids::army_status`].
+pub use crate::ids::army_status as status;
 
 /// One `ArmyData` (§1). Regions and cities are the sim's indices; the
 /// target is a sim object; positions are coordinate units and the muster
