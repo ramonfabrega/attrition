@@ -202,6 +202,11 @@ impl Setup<'_> {
         self.sim.set_diplo(a, b, level)
     }
 
+    /// [`Sim::init_diplos`] (`leaders/relations.rs`).
+    pub fn init_diplos(&mut self, who: Player, seats: &[crate::leaders::relations::Seat]) {
+        self.sim.init_diplos(who, seats)
+    }
+
     /// [`Sim::track_unit_type`] (`units/store.rs`).
     pub fn track_unit_type(&mut self, who: Player, ty: usize, delta: i32) {
         self.sim.track_unit_type(who, ty, delta)
