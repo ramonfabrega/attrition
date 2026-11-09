@@ -504,8 +504,8 @@ impl Sim {
                 traversed += 1;
                 let from = Pos::new(cur.x, cur.y);
                 let (mut cost, z_val) = self.calc_road_cost(p, from, cur.z_val, who, d, avoid_sea);
-                if self.trace_costs {
-                    self.road_marks.push(RoadCostMark {
+                if self.trace.trace_costs {
+                    self.trace.road_marks.push(RoadCostMark {
                         to: (nx, ny),
                         from: (cur.x, cur.y),
                         dir: i32::try_from(d).expect("wheel index"),

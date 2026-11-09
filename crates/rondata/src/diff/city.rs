@@ -614,9 +614,9 @@ mod tests {
         for _ in 0..6167 {
             built.tick();
         }
-        built.sim.trace_costs = true;
+        built.sim.trace.trace_costs = true;
         built.tick();
-        let ours = std::mem::take(&mut built.sim.cost_marks);
+        let ours = std::mem::take(&mut built.sim.trace.cost_marks);
 
         let mut theirs_by_key: std::collections::BTreeMap<sim::path::CostKey, i32> =
             std::collections::BTreeMap::new();
@@ -991,9 +991,9 @@ mod tests {
         for _ in 0..FRAME {
             built.tick();
         }
-        built.sim.trace_costs = true;
+        built.sim.trace.trace_costs = true;
         built.tick();
-        let ours = std::mem::take(&mut built.sim.cost_marks);
+        let ours = std::mem::take(&mut built.sim.trace.cost_marks);
 
         // The original's answers, keyed by the whole argument list.
         let mut theirs_by_key: std::collections::BTreeMap<sim::path::CostKey, i32> =

@@ -1109,7 +1109,7 @@ fn a_walker_that_boards_its_boat_moves_its_figures_that_frame() {
     });
     assert!(!s.set_new_location(u, tile_pos(33, 14), false));
 
-    s.trace_phases = true;
+    s.trace.trace_phases = true;
     let mut events = Vec::new();
     s.process_unit(u, 1, &mut events);
     assert!(s.units[u].inside_unit.is_some(), "the walker is cargo");
@@ -1118,7 +1118,10 @@ fn a_walker_that_boards_its_boat_moves_its_figures_that_frame() {
     assert_eq!(f.body.last_speed, 0, "`Guy::move`'s standing arm");
     assert_eq!(f.body.avg_speed, 12, "(16 × 3 + 0) / 4");
     assert!(
-        s.phase_marks.iter().any(|(l, _)| l == SITE_TURN_STAND),
+        s.trace
+            .phase_marks
+            .iter()
+            .any(|(l, _)| l == SITE_TURN_STAND),
         "the turn's draw"
     );
 }

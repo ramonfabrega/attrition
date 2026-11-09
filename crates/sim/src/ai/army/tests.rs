@@ -1029,12 +1029,15 @@ fn an_army_s_scout_throws_the_special_coin_on_the_spellcaster_turn() {
     let frame = (30 - phase).rem_euclid(128) + 128;
     assert_ne!((frame + phase) % 256, 0);
     sim.frame = frame;
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     let seed = sim.rng.seed;
     sim.army_process(1, slot, false);
     assert_ne!(sim.rng.seed, seed, "the coin is thrown");
     assert!(
-        sim.phase_marks.iter().any(|(m, _)| m == SITE_SPECIAL_COIN),
+        sim.trace
+            .phase_marks
+            .iter()
+            .any(|(m, _)| m == SITE_SPECIAL_COIN),
         "at the special arm's site"
     );
     sim.units[s].decoy = true;

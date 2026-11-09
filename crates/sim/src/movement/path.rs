@@ -609,7 +609,7 @@ impl Sim {
     /// Whether [`Sim::probe_refuse`] names this unit, this frame and the
     /// unit cell `p` lies in. False in every run but a test's.
     fn probe_refuses(&self, u: usize, p: Pos) -> bool {
-        self.probe_refuse.as_ref().is_some_and(|r| {
+        self.trace.probe_refuse.as_ref().is_some_and(|r| {
             r.frame == self.frame
                 && r.unit
                     == (
@@ -1219,8 +1219,8 @@ impl Sim {
                     avoid_land,
                     avoid_sea,
                 );
-                if self.trace_costs {
-                    self.cost_marks.push(CostMark {
+                if self.trace.trace_costs {
+                    self.trace.cost_marks.push(CostMark {
                         unit: u,
                         from: (cur.x, cur.y),
                         to: (nx, ny),

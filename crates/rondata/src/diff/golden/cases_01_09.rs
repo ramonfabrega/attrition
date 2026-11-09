@@ -5398,9 +5398,9 @@ pub(super) fn chapter_seven_b_s_control_scout_search_is_priced_as_the_original()
         built.tick();
     }
     script.stage(built.sim.frame, &mut built, &loaded);
-    built.sim.trace_costs = true;
+    built.sim.trace.trace_costs = true;
     built.tick();
-    let ours = std::mem::take(&mut built.sim.cost_marks);
+    let ours = std::mem::take(&mut built.sim.trace.cost_marks);
     let theirs = trace.calls_in(SEARCH, crate::trace::call_site::CALC_COST);
     let theirs_by_key: std::collections::BTreeMap<sim::path::CostKey, i32> = theirs
         .iter()

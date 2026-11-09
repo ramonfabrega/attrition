@@ -134,7 +134,7 @@ fn walk_script(run: &str, stem: &str, n: u32, staged: usize, length: i64) -> Opt
         .expect("missing RONT header");
     let loaded = crate::load::load(&inst).unwrap();
     let (mut built, _) = build_golden(run, &dump, &loaded, &trace, true)?;
-    built.sim.trace_phases = true;
+    built.sim.trace.trace_phases = true;
     let mut script = script_named(stem);
     assert_eq!(
         script.lines().len(),

@@ -819,13 +819,13 @@ fn a_gaia_animal_blocks_a_player_s_walker_and_a_crew_pays_the_stand_twice() {
     }
     // Two figures, the Merchant's shape: `UBER_SIZE 1, CREW_SIZE 1`.
     sim.units[x].guys = vec![crate::anim::Guy::fresh(1), crate::anim::Guy::fresh(1)];
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     sim.order_move(x, Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18));
     let mut marks = None;
     for _ in 0..60 {
         sim.tick();
         if sim.units[x].collide_o >= 0 {
-            marks = Some(sim.phase_marks.clone());
+            marks = Some(sim.trace.phase_marks.clone());
             break;
         }
     }
@@ -874,7 +874,7 @@ fn a_unit_on_its_own_waypoint_stands_when_its_turn_completes() {
         let a = Pos::new(31 * 0x30 + 0x18, 30 * 0x30 + 0x18);
         let far = Pos::new(31 * 0x30 + 0x18, 20 * 0x30 + 0x18);
         let (mut sim, x, _y) = pair(a, Pos::new(9000, 9000));
-        sim.trace_phases = true;
+        sim.trace.trace_phases = true;
         sim.order_move(x, far);
         sim.tick();
         let at = sim.units[x].pos;
@@ -897,7 +897,8 @@ fn a_unit_on_its_own_waypoint_stands_when_its_turn_completes() {
         }
         sim.units[x].movement.facing = crate::movement::Angle(0);
         let stands = |sim: &Sim| {
-            sim.phase_marks
+            sim.trace
+                .phase_marks
                 .iter()
                 .filter(|(l, _)| l == crate::anim::SITE_SNAP_STAND)
                 .count()
@@ -905,7 +906,8 @@ fn a_unit_on_its_own_waypoint_stands_when_its_turn_completes() {
         sim.tick();
         assert_eq!(stands(&sim), 0, "the first frame turns in place");
         assert!(
-            sim.phase_marks
+            sim.trace
+                .phase_marks
                 .iter()
                 .any(|(l, _)| l == crate::anim::SITE_TURN_NEAR),
             "the near turn-in-place arm"
@@ -950,7 +952,7 @@ fn a_blocked_snap_stands_and_eats_its_waypoint_without_resolving() {
     for slot in 0..4 {
         sim.roster.art.lengths.insert((1, slot), 40);
     }
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     sim.units[x].movement.speed = 60;
     // The blocker holds a move order it can never advance, so it is
     // "moving" to §5.1 — whose second arm wants a collider that is
@@ -963,6 +965,7 @@ fn a_blocked_snap_stands_and_eats_its_waypoint_without_resolving() {
         let before = sim.units[x].pos;
         sim.tick();
         if sim
+            .trace
             .phase_marks
             .iter()
             .any(|(l, _)| l == crate::anim::SITE_SNAP_BLOCKED)
@@ -971,7 +974,8 @@ fn a_blocked_snap_stands_and_eats_its_waypoint_without_resolving() {
             break;
         }
         assert!(
-            !sim.phase_marks
+            !sim.trace
+                .phase_marks
                 .iter()
                 .any(|(l, _)| l == crate::anim::SITE_BLOCKED),
             "the partial step's block fired first: this walk never \
@@ -1065,15 +1069,16 @@ fn collide_sends_the_re_plan_to_the_unit_grid_not_the_tile_grid() {
             m.has_waypoint = true;
             m.waypoint = here;
         }
-        sim.trace_phases = true;
-        sim.phase_marks.clear();
+        sim.trace.trace_phases = true;
+        sim.trace.phase_marks.clear();
         sim.tick();
         assert!(
-            sim.phase_marks
+            sim.trace
+                .phase_marks
                 .iter()
                 .any(|(l, _)| l == crate::orders::SITE_MOVE_GRID),
             "a unit standing on its own waypoint rolls, on both arms: {:?}",
-            sim.phase_marks
+            sim.trace.phase_marks
         );
         sim.units[x].path.clone()
     };
@@ -1131,7 +1136,7 @@ fn the_recovery_leaves_the_waypoint_for_do_move_to_take() {
     let goal = Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18);
     let (mut sim, x, _y) = pair(a, b);
     sim.order_move(x, goal);
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     let mut snapped = false;
     for _ in 0..60 {
         sim.tick();
@@ -1155,14 +1160,15 @@ fn the_recovery_leaves_the_waypoint_for_do_move_to_take() {
     // The next frame takes it — and the leg it takes is the snapped
     // cell the unit is already standing on, so the arrival test pops
     // it and the frame ends there. No grid roll.
-    sim.phase_marks.clear();
+    sim.trace.phase_marks.clear();
     sim.tick();
     assert!(
-        !sim.phase_marks
+        !sim.trace
+            .phase_marks
             .iter()
             .any(|(m, _)| m == crate::orders::SITE_MOVE_GRID),
         "the frame after the snap spends no grid draw: {:?}",
-        sim.phase_marks
+        sim.trace.phase_marks
     );
 
     // And it gets where it was going rather than oscillating: the
@@ -1331,21 +1337,21 @@ fn the_head_on_pair_staggers_itself_and_that_is_the_only_draw() {
         sim.units[y].collide_o = o;
         sim.units[y].collide_who = who;
         sim.units[y].waiting_on = waiting;
-        sim.trace_phases = true;
-        sim.phase_marks.clear();
+        sim.trace.trace_phases = true;
+        sim.trace.phase_marks.clear();
         (sim, x)
     };
     // The snap teleports the body, so the recovery re-anims and can
     // roll an idle variant of its own; what the site table cares about
     // is whether the *stagger* is one of the frame's draws.
-    let staggered = |sim: &Sim| sim.phase_marks.iter().any(|(m, _)| m == SITE_PAUSE);
+    let staggered = |sim: &Sim| sim.trace.phase_marks.iter().any(|(m, _)| m == SITE_PAUSE);
 
     let (mut sim, x) = arrange(true, false);
     sim.resolve_unit_collision(x);
     assert!(
         staggered(&sim),
         "the stagger is a draw: {:?}",
-        sim.phase_marks
+        sim.trace.phase_marks
     );
     let pause = sim.current_move(x).expect("still a move").pause;
     assert!((1..=9).contains(&pause), "`% 9 + 1`, got {pause}");
@@ -1357,7 +1363,7 @@ fn the_head_on_pair_staggers_itself_and_that_is_the_only_draw() {
     assert!(
         !staggered(&sim),
         "one-sided, no draw: {:?}",
-        sim.phase_marks
+        sim.trace.phase_marks
     );
     assert_eq!(sim.current_move(x).expect("still a move").pause, 0);
 
@@ -1365,7 +1371,11 @@ fn the_head_on_pair_staggers_itself_and_that_is_the_only_draw() {
     // silent, because it is not going to step off either.
     let (mut sim, x) = arrange(true, true);
     sim.resolve_unit_collision(x);
-    assert!(!staggered(&sim), "already waiting: {:?}", sim.phase_marks);
+    assert!(
+        !staggered(&sim),
+        "already waiting: {:?}",
+        sim.trace.phase_marks
+    );
     assert_eq!(sim.current_move(x).expect("still a move").pause, 0);
 }
 
@@ -2432,13 +2442,13 @@ fn a_refused_step_re_rolls_the_idle_before_the_give_up_tests() {
         sim.roster.art.lengths.insert((1, slot), 40);
     }
     sim.units[x].guys = vec![crate::anim::Guy::fresh(1)];
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     sim.order_move(x, Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18));
     let mut marks = None;
     for _ in 0..40 {
         sim.tick();
         if sim.units[x].collide_o >= 0 {
-            marks = Some(sim.phase_marks.clone());
+            marks = Some(sim.trace.phase_marks.clone());
             break;
         }
     }

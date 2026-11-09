@@ -365,7 +365,7 @@ pub(super) fn refusing_the_borrowed_frame_stream_does_not_move_great_lakes_word(
         }
         let installs = init.frame_seeds.len();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         for _ in 0..last {
             built.tick();
         }
@@ -1436,7 +1436,7 @@ pub(super) fn stage_walk() {
     // alone cannot be held by the chapter's walk, whatever the original does.
     let draws = std::env::var_os("RON_STAGE_DRAWS").is_some();
     if draws {
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
     }
     let unit_name = |t: Option<usize>| {
         t.and_then(|t| loaded.unit_type_names.get(t))

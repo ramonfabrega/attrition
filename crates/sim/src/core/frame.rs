@@ -77,10 +77,10 @@ impl Sim {
         // The staged input's marks, taken before the clear and put back at
         // the head of the frame's own — `do_frame`'s entry, which is where
         // the cheat channel spends them (`docs/INPUT.md` §11.1).
-        let staged: Vec<(String, u32)> = self.staged_marks.drain(..).collect();
-        if self.trace_phases {
-            self.phase_marks.clear();
-            self.phase_marks.extend(staged);
+        let staged: Vec<(String, u32)> = self.trace.staged_marks.drain(..).collect();
+        if self.trace.trace_phases {
+            self.trace.phase_marks.clear();
+            self.trace.phase_marks.extend(staged);
         }
         self.mark("income");
 
@@ -477,7 +477,7 @@ impl Sim {
     /// sequence (group 18); nothing outside a test.
     #[cfg(test)]
     pub(crate) fn log_building_step(&mut self, b: usize, step: &'static str) {
-        self.building_log.push((b, step));
+        self.trace.building_log.push((b, step));
     }
 
     #[cfg(not(test))]

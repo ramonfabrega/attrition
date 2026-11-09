@@ -92,7 +92,7 @@ fn a_bird_s_figure_lags_its_unit_and_stands_only_when_the_step_is_refused() {
     s.units[b].guys[0].anim = crate::anim::WALK;
     s.units[b].guys[0].end_time = 31;
     s.units[b].guys[0].stopped = true;
-    s.trace_phases = true;
+    s.trace.trace_phases = true;
 
     // Frame one: the step is refused and `restrict` puts the bird on
     // the boundary, which is a move — the figure lags and the moving
@@ -125,16 +125,17 @@ fn a_bird_s_figure_lags_its_unit_and_stands_only_when_the_step_is_refused() {
     // wing-beat coin instead of taking gaia's early return.
     s.do_air_physics(b, goal, 3);
     let before = s.rng.seed;
-    s.phase_marks.clear();
+    s.trace.phase_marks.clear();
     s.process_movement(b);
     assert_ne!(s.rng.seed, before, "the arrival stand's draw");
     assert_eq!(s.units[b].guys[0].anim, crate::anim::DEFAULT);
     assert!(
-        s.phase_marks
+        s.trace
+            .phase_marks
             .iter()
             .any(|(l, _)| l == crate::anim::SITE_ARRIVE),
         "and it is marked as the arrival stand: {:?}",
-        s.phase_marks
+        s.trace.phase_marks
     );
 }
 
@@ -153,7 +154,7 @@ fn a_bird_pushed_off_the_map_spends_one_coin_and_then_circles() {
     let (mut s, b) = bird(at, Angle::WEST.0);
     let goal = crate::world::Pos::new(20_000, 20_000);
     s.gaia_state.gaia.bird_goals[0].1 = goal;
-    s.trace_phases = true;
+    s.trace.trace_phases = true;
 
     let before = s.rng.seed;
     s.do_air_physics(b, goal, 1);

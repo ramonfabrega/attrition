@@ -307,11 +307,11 @@ fn a_caravan_expands_the_diagonals_and_a_building_does_not() {
     sim.movement.plan_roads = true;
     let lib = library_at(&mut sim, lib_ty, Pos::new(33, 33));
     let dirs = |sim: &mut Sim, caravan: bool| -> Vec<i32> {
-        sim.trace_costs = true;
-        sim.road_marks.clear();
+        sim.trace.trace_costs = true;
+        sim.trace.road_marks.clear();
         let mut st = sim.start_road(lib, city).expect("two endpoints");
         let _ = sim.step_road(&mut st, (lib, city), caravan, false);
-        let mut d: Vec<i32> = sim.road_marks.iter().map(|m| m.dir).collect();
+        let mut d: Vec<i32> = sim.trace.road_marks.iter().map(|m| m.dir).collect();
         d.sort_unstable();
         d.dedup();
         d
@@ -351,24 +351,24 @@ fn a_caravan_s_search_stops_at_the_budget_and_the_next_frame_resumes_it() {
     });
     let a = sim.init_build(0, ty, centre_of(Pos::new(8, 8)), false);
     let b = sim.init_build(0, ty, centre_of(Pos::new(200, 200)), false);
-    sim.trace_costs = true;
+    sim.trace.trace_costs = true;
     let mut st = sim.start_road(a, b).expect("two endpoints");
     let plan = sim.step_road(&mut st, (a, b), true, false);
     assert_eq!(plan, RoadPlan::Budget, "3,200 nodes do not span the map");
-    let first = sim.road_marks.len();
+    let first = sim.trace.road_marks.len();
     assert!(
         (WORK_CAP as usize..=WORK_CAP as usize + 8).contains(&first),
         "the budget trips one pop past 0xc80: {first}"
     );
     let seen: std::collections::BTreeSet<(i32, i32)> =
-        sim.road_marks.iter().map(|m| m.from).collect();
-    sim.road_marks.clear();
+        sim.trace.road_marks.iter().map(|m| m.from).collect();
+    sim.trace.road_marks.clear();
     let plan = sim.step_road(&mut st, (a, b), true, false);
     assert_eq!(plan, RoadPlan::Budget, "and the second frame is another");
     let then: std::collections::BTreeSet<(i32, i32)> =
-        sim.road_marks.iter().map(|m| m.from).collect();
+        sim.trace.road_marks.iter().map(|m| m.from).collect();
     assert!(
-        sim.road_marks.len() >= WORK_CAP as usize,
+        sim.trace.road_marks.len() >= WORK_CAP as usize,
         "the resumed frame gets the whole budget again, not the rest of one"
     );
     assert!(

@@ -272,10 +272,11 @@ fn a_burning_round_kills_with_the_ammo_graphic_s_three_draws() {
         sim.units[them].health = 1;
         let mut p = round(&sim, me, Some(Obj::Unit(them)), Pos::new(2016, 2016), 0);
         p.flame = flame;
-        sim.trace_phases = true;
+        sim.trace.trace_phases = true;
         sim.land(p, 3030);
         assert!(!sim.units[them].alive(), "flame {flame}: dead");
         let marks: Vec<String> = sim
+            .trace
             .phase_marks
             .iter()
             .map(|(l, _)| l.clone())
@@ -4327,10 +4328,11 @@ fn a_missed_round_strikes_a_city_at_its_ceiling() {
     );
     assert_eq!(sim.check_hit(&ammo), Some(Obj::Building(b)));
     let sites = |s: &mut Sim| {
-        s.trace_phases = true;
-        s.phase_marks.clear();
+        s.trace.trace_phases = true;
+        s.trace.phase_marks.clear();
         s.land(ammo, 4443);
-        s.phase_marks
+        s.trace
+            .phase_marks
             .iter()
             .map(|(m, _)| m.clone())
             .collect::<Vec<_>>()
@@ -4910,7 +4912,7 @@ fn a_rolled_shot_comes_down_on_the_first_step_the_ground_meets_it() {
     }
     assert!(sim.combat.projectiles.is_empty());
     assert_eq!(
-        sim.ground_inexact, 0,
+        sim.trace.ground_inexact, 0,
         "a grid of whole numbers is every corner's own single"
     );
 }

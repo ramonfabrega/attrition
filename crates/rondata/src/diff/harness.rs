@@ -3034,7 +3034,7 @@ pub(crate) fn site_window_named(var: &str) -> Option<(i64, i64)> {
 pub(crate) fn attributed_sites(built: &Built) -> Vec<(String, String)> {
     let mut out = Vec::new();
     let mut who = String::from("-");
-    let marks = &built.sim.phase_marks;
+    let marks = &built.sim.trace.phase_marks;
     for (i, (label, from)) in marks.iter().enumerate() {
         if label.starts_with("unit ") {
             who = label.clone();
@@ -4988,7 +4988,7 @@ pub(crate) mod tests {
             if let Some((sf, w, o)) = sweep
                 && sf == f
             {
-                built.sim.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
+                built.sim.trace.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
             }
             let tick_started = profiling.then(std::time::Instant::now);
             built.tick();
@@ -4997,7 +4997,7 @@ pub(crate) mod tests {
             }
             if let Some((sf, _, _)) = sweep
                 && sf == f
-                && let Some(w) = built.sim.sweep_watch.take()
+                && let Some(w) = built.sim.trace.sweep_watch.take()
             {
                 for l in w.rendered() {
                     eprintln!("  sweep {sf}: {l}");

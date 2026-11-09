@@ -279,11 +279,15 @@ fn step_onto_the_goody(s: &mut crate::Sim, u: usize) {
 #[test]
 fn knowledge_is_never_a_candidate_and_never_costs_a_draw() {
     let (mut s, u) = sim();
-    s.trace_phases = true;
+    s.trace.trace_phases = true;
     let before = s.rng.seed;
     step_onto_the_goody(&mut s, u);
     assert_eq!(
-        s.phase_marks.iter().filter(|(l, _)| l == SITE_PICK).count(),
+        s.trace
+            .phase_marks
+            .iter()
+            .filter(|(l, _)| l == SITE_PICK)
+            .count(),
         5,
         "six goods, knowledge refused"
     );
@@ -352,13 +356,17 @@ fn the_spanish_ruins_replace_both_halves() {
 #[test]
 fn a_player_who_can_gather_nothing_is_paid_in_wealth() {
     let (mut s, u) = sim();
-    s.trace_phases = true;
+    s.trace.trace_phases = true;
     for g in 0..RESOURCES {
         s.tables.tech_tree.types[g].preq[0] = Preq::Disabled;
     }
     step_onto_the_goody(&mut s, u);
     assert_eq!(
-        s.phase_marks.iter().filter(|(l, _)| l == SITE_PICK).count(),
+        s.trace
+            .phase_marks
+            .iter()
+            .filter(|(l, _)| l == SITE_PICK)
+            .count(),
         0,
         "no candidate, no draw"
     );
@@ -372,11 +380,11 @@ fn a_player_who_can_gather_nothing_is_paid_in_wealth() {
 fn frame_zero_consumes_the_box_without_paying() {
     let (mut s, u) = sim();
     s.frame = 0;
-    s.trace_phases = true;
+    s.trace.trace_phases = true;
     step_onto_the_goody(&mut s, u);
     assert_eq!(s.world.cell_data(Cell::new(3, 2)).flags & GOODY, 0);
     assert_eq!(s.economy.ledgers[1].bucket, [0; RESOURCES]);
-    assert!(s.phase_marks.iter().all(|(l, _)| l != SITE_PICK));
+    assert!(s.trace.phase_marks.iter().all(|(l, _)| l != SITE_PICK));
 }
 
 /// Gaia takes nothing. The guard is `SubObjectData::is_animal`, vftable

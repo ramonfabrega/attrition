@@ -810,7 +810,7 @@ mod bodies {
             "the five offsets `report.py <log> draws setup` prints"
         );
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         let last = tr.frames.last().map_or(0, |(n, _)| *n);
         assert!(
             last >= 1_800,

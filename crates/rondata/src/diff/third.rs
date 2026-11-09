@@ -137,7 +137,7 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
     borrow_from_siblings(&mut init, &[&sib_init]);
     borrow_pasture(&mut init, &tr);
     let mut built = build_sim(&loaded, &init, Tuning::RON);
-    built.sim.trace_phases = true;
+    built.sim.trace.trace_phases = true;
     let difficulty = built.sim.ai_state.lobby.difficulty;
     let last = tr.frames.last().map_or(0, |(n, _)| *n);
     let (mut count, mut sequence) = (None, None);
@@ -157,7 +157,7 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
         if let Some((sf, w, o)) = sweep
             && sf == at
         {
-            built.sim.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
+            built.sim.trace.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
         }
         built.tick();
         // `RON_DEBUG_SLOTS=<lo>-<hi>`: player 1's births and deaths by
@@ -166,7 +166,7 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
         debug_slots(&built.sim, at);
         if let Some((sf, _, _)) = sweep
             && sf == at
-            && let Some(rec) = built.sim.sweep_watch.take()
+            && let Some(rec) = built.sim.trace.sweep_watch.take()
         {
             for l in rec.rendered() {
                 eprintln!("  sweep {sf}: {l}");

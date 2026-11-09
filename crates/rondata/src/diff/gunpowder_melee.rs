@@ -566,7 +566,7 @@ fn gunpowder_melee_s_strike_meets_before_the_census() {
     let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
         build_sim(&loaded, &init, Tuning::RON)
     });
-    built.sim.trace_phases = true;
+    built.sim.trace.trace_phases = true;
     assert_ne!(
         built.sim.ai_state.lobby.reveal_map, 0,
         "the lobby is REVEAL_MAP 1"
@@ -1199,7 +1199,7 @@ fn gunpowder_melee_s_bombard_crew_pays_its_ground_swing_in_guy_move() {
     let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
         build_sim(&loaded, &init, Tuning::RON)
     });
-    built.sim.trace_phases = true;
+    built.sim.trace.trace_phases = true;
     const WORD: i64 = 759;
     while built.sim.frame < WORD {
         built.tick();

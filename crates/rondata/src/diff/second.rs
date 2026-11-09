@@ -74,7 +74,7 @@ pub(crate) fn walk_second_probed(
         borrow_pasture(&mut init, &trace);
     }
     let mut built = build_sim(&loaded, &init, Tuning::RON);
-    built.sim.trace_phases = true;
+    built.sim.trace.trace_phases = true;
     let difficulty = built.sim.ai_state.lobby.difficulty;
     let last = trace.frames.last().map_or(0, |(n, _)| *n);
     let window = site_window();

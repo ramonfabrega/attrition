@@ -283,52 +283,14 @@ pub struct Sim {
     /// The game's random stream, `game_random`. Combat draws from it for
     /// projectile scatter and the one-in-five retarget roll.
     pub rng: combat::Rng,
-    /// Draw marks spent by **staged input** at `Game::do_frame`'s entry,
-    /// before the frame's first phase — the cheat channel's, which
-    /// `rontrace.dll` hands to `ConsoleWin::parse_cmd` there
-    /// (`docs/INPUT.md` §11). [`Sim::tick`] clears [`Sim::phase_marks`] at
-    /// its head, so a staged draw marked before the call would vanish from
-    /// the fold while still moving the stream; these are moved to the head
-    /// of the frame's own marks instead, which is where the original
-    /// spends them. `crate::golden::Script::stage` is the only writer.
-    pub staged_marks: Vec<(String, u32)>,
+    /// The `trace/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub trace: crate::trace::TraceState,
     /// The `ai/` subsystem's state (`docs/STRUCTURE.md` §3).
     pub ai_state: crate::ai::AiState,
-    /// Whether [`Sim::tick`] records [`Sim::phase_marks`]. Off by default:
-    /// the harness turns it on, the soak pays nothing.
-    pub trace_phases: bool,
-    /// Whether the search records [`Sim::cost_marks`]. Off by default, and
-    /// the reason it exists is that the original can now answer the same
-    /// question: `rontrace.cfg`'s `callwin` proxies
-    /// `PathFinder::calc_cost` and logs its arguments **and its answer**
-    /// (`docs/PATHFINDER.md` §10).
-    pub trace_costs: bool,
-    /// Every step the search priced, in order, while [`Sim::trace_costs`]
-    /// is set. Nothing in the simulation reads it.
-    pub cost_marks: Vec<path::CostMark>,
-    /// The same for the **road** search, filled under the same flag:
-    /// `PathFinder::calc_road_cost`'s arguments and answer, node for node
-    /// (`docs/ROADS.md` §7.2). Nothing in the simulation reads it.
-    pub road_marks: Vec<roads::RoadCostMark>,
     /// The `movement/` subsystem's state (`docs/STRUCTURE.md` §3).
     pub movement: crate::movement::MovementState,
-    /// The stream's word at each phase boundary of [`Sim::tick`], filled
-    /// only while [`Sim::trace_phases`] is set. It is what
-    /// `tools/trace/report.py sites` is for the original — a frame's draws
-    /// attributed, here to a phase and a unit rather than a return address
-    /// — and comparing the two folds is how the frame-0 gap was taken
-    /// apart (`docs/SYNC.md` §4.2).
-    pub phase_marks: Vec<(String, u32)>,
-    /// How many [`Sim::ground_z`] reads have touched a height corner that
-    /// is not known to be the original's own single — one whose six-decimal
-    /// print a neighbouring single shares, or one a terraform rewrote in
-    /// millionths (`docs/COMBAT.md` §46.3). Every window the harness replays
-    /// pins it, so the day a read lands on one is a failing test by name.
-    pub ground_inexact: u32,
     /// The `gaia/` subsystem's state (`docs/STRUCTURE.md` §3).
     pub gaia_state: crate::gaia::GaiaState,
-    /// Buildings disbanded or died this frame, for tests.
-    pub removed: Vec<usize>,
     /// Whether a frame has run. A border fix before the first is setup's —
     /// `World::compute_all_territory` with the budget unlimited, on the
     /// map at once — and one after it takes the daemon's pass
@@ -339,27 +301,6 @@ pub struct Sim {
     /// `GameInfo::seed`, the lobby's map seed, which picks a gaia guy's
     /// piece by `(seed + o) % 3`.
     pub game_seed: i32,
-    /// **The run116 comparison's recorder** (`docs/COLLISION.md` §9.6),
-    /// and `None` in every run but a test's.
-    ///
-    /// A sweep's four steps are only comparable **where the original's
-    /// own bracket sits** — mid-frame, after the units that step earlier
-    /// have moved the occupancy index under it. Read at a frame boundary
-    /// instead, this crate's probe on Great Lakes 10161 answers a
-    /// different cell and names a different mechanism (§9.2), so the
-    /// comparison cannot be a replay-then-ask. This is the shape
-    /// [`ai::Leader::unit_offers`] takes for `docs/AI.md` §52's offers:
-    /// the simulation fills a recorder as it runs and the test reads it
-    /// afterwards.
-    pub sweep_watch: Option<collide::SweepWatch>,
-    /// A unit cell `valid_ucoord` refuses to one unit on one frame
-    /// ([`path::RefuseProbe`]), and `None` in every run but a test's.
-    #[doc(hidden)]
-    pub probe_refuse: Option<path::RefuseProbe>,
-    /// The order a frame's building walk ran its five steps in — written
-    /// only under test — for the test that holds `Build::process`'s sequence (group 18).
-    #[allow(dead_code)]
-    pub(crate) building_log: Vec<(usize, &'static str)>,
     pub frame: i64,
 }
 
@@ -377,12 +318,6 @@ impl Sim {
             tech: (0..players)
                 .map(|_| tech::PlayerTech::new(&tech_tree))
                 .collect(),
-            staged_marks: Vec::new(),
-            trace_phases: false,
-            phase_marks: Vec::new(),
-            trace_costs: false,
-            cost_marks: Vec::new(),
-            road_marks: Vec::new(),
             units: Vec::new(),
             buildings: Vec::new(),
             orders: crate::orders::OrdersState {
@@ -392,7 +327,6 @@ impl Sim {
                 spells: Vec::new(),
             },
             rng: combat::Rng::new(0),
-            ground_inexact: 0,
             economy: crate::economy::EconomyState {
                 caravans: vec![caravan::Caravans::default(); players],
                 holdings: vec![economy::Holdings::new(); players],
@@ -410,7 +344,6 @@ impl Sim {
                 forced_march: vec![false; players],
                 defeated: vec![false; players],
             },
-            removed: Vec::new(),
             cities_state: crate::cities::CitiesState {
                 farm_order: Vec::new(),
                 cities: Vec::new(),
@@ -459,8 +392,6 @@ impl Sim {
                 ai: vec![ai::Leader::new(); players],
                 ai_speed: 1,
             },
-            sweep_watch: None,
-            probe_refuse: None,
             terrain: crate::world::WorldState {
                 mountains: Vec::new(),
                 cliffs: Vec::new(),
@@ -475,7 +406,19 @@ impl Sim {
                 repaths: vec![0; players.max(10)],
                 pf_start: Pos::default(),
             },
-            building_log: Vec::new(),
+            trace: crate::trace::TraceState {
+                staged_marks: Vec::new(),
+                trace_phases: false,
+                phase_marks: Vec::new(),
+                trace_costs: false,
+                cost_marks: Vec::new(),
+                road_marks: Vec::new(),
+                ground_inexact: 0,
+                removed: Vec::new(),
+                sweep_watch: None,
+                probe_refuse: None,
+                building_log: Vec::new(),
+            },
             combat: crate::combat::CombatState {
                 table: combat::Table::uniform(0),
                 projectiles: Vec::new(),

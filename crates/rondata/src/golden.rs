@@ -330,9 +330,9 @@ impl Script {
     /// this they were the frame's first three and invisible.
     pub fn stage(&mut self, frame: i64, built: &mut Built, loaded: &Loaded) -> Applied {
         let mut done = self.pump(frame, built);
-        built.sim.phase_marks.clear();
+        built.sim.trace.phase_marks.clear();
         done.merge(&self.apply(frame, built, loaded));
-        built.sim.staged_marks = std::mem::take(&mut built.sim.phase_marks);
+        built.sim.trace.staged_marks = std::mem::take(&mut built.sim.trace.phase_marks);
         done
     }
 
@@ -356,7 +356,7 @@ impl Script {
         if due.is_empty() {
             return done;
         }
-        built.sim.phase_marks.clear();
+        built.sim.trace.phase_marks.clear();
         for (f, line) in due {
             if f < frame {
                 done.skip(&command_word(&line.text), "the frame was stepped past");
@@ -407,8 +407,8 @@ impl Script {
                     .push(reached_line(&command_word(&line.text), &changed));
             }
         }
-        let marks = std::mem::take(&mut built.sim.phase_marks);
-        if built.sim.trace_phases
+        let marks = std::mem::take(&mut built.sim.trace.phase_marks);
+        if built.sim.trace.trace_phases
             && let Some(sites) = crate::diff::mark_sites(&marks, built.sim.rng.seed)
             && let Some((f, v)) = built.frame_sites.last_mut()
             && *f == frame - 1

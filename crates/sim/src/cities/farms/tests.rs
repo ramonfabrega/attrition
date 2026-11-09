@@ -259,7 +259,7 @@ fn a_finished_pasture_stocks_five_animals_for_twenty_draws() {
     // off zero because zero is the setup's.
     s.buildings[b].farm.farm_type = ANIMAL_FARM;
     s.frame = 1_372;
-    s.trace_phases = true;
+    s.trace.trace_phases = true;
 
     s.rng = Rng::new(0xc91f_99f2);
     s.activate(b, false, true);
@@ -271,7 +271,8 @@ fn a_finished_pasture_stocks_five_animals_for_twenty_draws() {
     );
     assert_eq!(s.rng.seed, 0xafa3_8116, "run33's own word twenty draws on");
     assert_eq!(
-        s.phase_marks
+        s.trace
+            .phase_marks
             .iter()
             .map(|(n, _)| n.as_str())
             .collect::<Vec<_>>(),
@@ -689,11 +690,12 @@ fn farms_add_picks_the_type_and_hands_out_one_ambience_a_city() {
     s.buildings[lone2].alive = false;
 
     // 2. The city's first farm: the roll.
-    s.trace_phases = true;
+    s.trace.trace_phases = true;
     let f1 = s.init_build(0, t, Pos::new(18 * 192 + 96, 20 * 192 + 96), false);
     assert_eq!(s.buildings[f1].city, Some(city), "inside the city");
     assert_eq!(
-        s.phase_marks
+        s.trace
+            .phase_marks
             .iter()
             .map(|m| m.0.as_str())
             .collect::<Vec<_>>(),
@@ -709,17 +711,21 @@ fn farms_add_picks_the_type_and_hands_out_one_ambience_a_city() {
     s.buildings[f1].started = true;
 
     // 3. The second, four tiles off: copied from the first, no draw.
-    s.phase_marks.clear();
+    s.trace.phase_marks.clear();
     let f2 = s.init_build(0, t, Pos::new(22 * 192 + 96, 20 * 192 + 96), false);
     assert_eq!(s.buildings[f2].city, Some(city));
     assert_eq!(s.buildings[f2].farm.farm_type, 0, "the neighbour's type");
-    assert!(s.phase_marks.is_empty(), "one crop is not more than one");
+    assert!(
+        s.trace.phase_marks.is_empty(),
+        "one crop is not more than one"
+    );
 
     // 4. The third: the ambience pair, and the bit.
-    s.phase_marks.clear();
+    s.trace.phase_marks.clear();
     let f3 = s.init_build(0, t, Pos::new(20 * 192 + 96, 22 * 192 + 96), false);
     assert_eq!(
-        s.phase_marks
+        s.trace
+            .phase_marks
             .iter()
             .map(|m| m.0.as_str())
             .collect::<Vec<_>>(),
@@ -734,10 +740,10 @@ fn farms_add_picks_the_type_and_hands_out_one_ambience_a_city() {
     );
 
     // 5. The fourth: the emitter is taken.
-    s.phase_marks.clear();
+    s.trace.phase_marks.clear();
     let f4 = s.init_build(0, t, Pos::new(20 * 192 + 96, 18 * 192 + 96), false);
     assert_eq!(s.buildings[f4].farm.farm_type, 0);
-    assert!(s.phase_marks.is_empty(), "one emitter a city");
+    assert!(s.trace.phase_marks.is_empty(), "one emitter a city");
 
     // And the list is joined at placement — these four have never been
     // activated — in placement order, the first two into the slots the
@@ -794,12 +800,12 @@ fn a_farm_beside_an_unstarted_site_is_the_fourth_s_pasture() {
         s.buildings[third].started = started;
         assert_eq!(s.city_count_farms(city), 3);
         // The fourth, five tiles east of the third: 960, as on 23182.
-        s.trace_phases = true;
-        s.phase_marks.clear();
+        s.trace.trace_phases = true;
+        s.trace.phase_marks.clear();
         let seed = s.rng.seed;
         let fourth = s.init_build(0, t, Pos::new(24 * 192 + 96, 23 * 192 + 96), false);
         assert_eq!(s.buildings[fourth].city, Some(city));
-        let marks: Vec<String> = s.phase_marks.iter().map(|m| m.0.clone()).collect();
+        let marks: Vec<String> = s.trace.phase_marks.iter().map(|m| m.0.clone()).collect();
         (
             s.buildings[fourth].farm.farm_type & ANIMAL_FARM,
             s.rng.seed == seed,

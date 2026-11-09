@@ -2328,7 +2328,7 @@ mod tests {
         // **Half two: ours against the record.** Field for field, on every
         // frame, for as far as it holds.
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         let mut last = 0i64;
         let (mut compared, mut first_bad, mut parted) = (0usize, None, 0i64);
         for f in &frames {

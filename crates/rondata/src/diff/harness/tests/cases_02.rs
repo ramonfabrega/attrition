@@ -475,7 +475,7 @@ mod bodies {
             "run54's trace reached the setup and East Indies' AI has one pasture"
         );
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         let last = trace.frames.last().map_or(0, |(n, _)| *n);
         assert!(
             last >= 23_000,
@@ -1841,7 +1841,7 @@ mod bodies {
             if let Some((sf, w, o)) = sweep
                 && sf == f
             {
-                built.sim.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
+                built.sim.trace.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
             }
             built.tick();
             if let Some((sf, _, _)) = sweep
@@ -1849,6 +1849,7 @@ mod bodies {
             {
                 for l in built
                     .sim
+                    .trace
                     .sweep_watch
                     .take()
                     .expect("the recorder")

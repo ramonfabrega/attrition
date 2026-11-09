@@ -289,7 +289,7 @@ fn a_plane_inside_a_step_and_a_half_of_its_point_lands_in_its_base() {
 #[test]
 fn a_flight_home_is_flown_to_its_base_and_lands() {
     let mut s = sim();
-    s.trace_phases = true;
+    s.trace.trace_phases = true;
     let (base, _) = airbase_and_target(&mut s);
     let u = plane(&mut s, Pos::new(11640, 16248), Angle(0x5555_5555), false);
     s.group_action_flight(&group_of(0, &[u]), Obj::Building(base), Flight::Home);
@@ -302,10 +302,11 @@ fn a_flight_home_is_flown_to_its_base_and_lands() {
         if (i64::from(s.units[u].index) + s.frame) & 7 == 0 {
             eighths += 1;
         }
-        s.phase_marks.clear();
+        s.trace.phase_marks.clear();
         s.tick();
         flown += 1;
         let draws = s
+            .trace
             .phase_marks
             .iter()
             .filter(|(l, _)| l == crate::air::SITE_AIR_ALT)

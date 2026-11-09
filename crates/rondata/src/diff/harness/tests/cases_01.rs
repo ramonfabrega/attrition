@@ -27,7 +27,7 @@ mod bodies {
             crate::diff::testkit::whole_capture::road_build(&loaded, &path)
         };
 
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         let last = trace.frames.last().map_or(0, |(n, _)| *n);
         assert!(
             last >= 1_800,
@@ -525,7 +525,7 @@ mod bodies {
         let mut init = log.initial().unwrap();
         borrow_from_siblings(&mut init, &refs);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         let last = trace.frames.last().map_or(0, |(n, _)| *n);
         // The whole point of this capture is its length; a short one would
         // pass every assertion below and mean nothing.
@@ -1810,10 +1810,11 @@ mod bodies {
         for _ in 0..WORD {
             built.tick();
         }
-        built.sim.sweep_watch = Some(sim::collide::SweepWatch::new(WORD, 1, 38));
+        built.sim.trace.sweep_watch = Some(sim::collide::SweepWatch::new(WORD, 1, 38));
         built.tick();
         let ours = built
             .sim
+            .trace
             .sweep_watch
             .take()
             .expect("the recorder")

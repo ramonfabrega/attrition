@@ -463,8 +463,8 @@ impl Sim {
         );
         let (rng, marks, trace, world) = (
             &mut self.rng,
-            &mut self.phase_marks,
-            self.trace_phases,
+            &mut self.trace.phase_marks,
+            self.trace.trace_phases,
             &self.world,
         );
         let walked = herd_process_steps(

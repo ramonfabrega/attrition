@@ -641,18 +641,19 @@ fn an_oil_well_s_gatherer_stands_on_the_farm_animation_and_rolls_no_arrival() {
     let well = build(&mut sim, 0, t.oil_well, 40, 32);
     let u = spawn(&mut sim, 0, t.citizen, tile_pos(44, 32));
     sim.units[u].guys.push(crate::anim::Guy::fresh(0));
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     gather_until_arrived(&mut sim, u, well);
-    sim.phase_marks.clear();
+    sim.trace.phase_marks.clear();
     let mut arrivals = 0;
     for _ in 0..8 {
         sim.tick();
         arrivals += sim
+            .trace
             .phase_marks
             .iter()
             .filter(|(l, _)| l == crate::anim::SITE_ARRIVE)
             .count();
-        sim.phase_marks.clear();
+        sim.trace.phase_marks.clear();
     }
     assert_eq!(
         sim.units[u].guys[0].anim,

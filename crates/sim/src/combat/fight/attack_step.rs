@@ -698,7 +698,7 @@ impl Sim {
     pub fn ground_z(&mut self, at: Pos) -> i32 {
         let (z, exact) = self.world.data_z(at.x, at.y);
         if !exact {
-            self.ground_inexact += 1;
+            self.trace.ground_inexact += 1;
         }
         z
     }

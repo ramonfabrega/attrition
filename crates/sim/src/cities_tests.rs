@@ -4563,14 +4563,15 @@ fn an_empty_farm_cell_is_sown_unless_the_guy_is_still_reaping() {
         sim.units[u].guys = vec![crate::anim::Guy::fresh(-1)];
         sim.units[u].guys[0].anim = anim;
         sim.add_gather_order(u, farm, QueuePos::New, false);
-        sim.trace_phases = true;
+        sim.trace.trace_phases = true;
         (sim, u, farm)
     }
 
     // The re-target's own draws, counted by name: the farm's sprout clock
     // is on the same stream, so a seed is not the instrument here.
     let re_picks = |sim: &Sim| {
-        sim.phase_marks
+        sim.trace
+            .phase_marks
             .iter()
             .filter(|(site, _)| site == orders::SITE_FARM_CELL)
             .count()
@@ -5516,11 +5517,12 @@ fn a_line_that_clips_a_building_detours_instead_of_re_planning() {
         "the barracks blocks its own tiles"
     );
     let u = spawn(&mut sim, 0, citizen, tile_pos(20, 20));
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     sim.order_move(u, tile_pos(28, 20));
     sim.tick();
     let grid = |s: &Sim| {
-        s.phase_marks
+        s.trace
+            .phase_marks
             .iter()
             .any(|(l, _)| l == orders::SITE_MOVE_GRID)
     };
@@ -5561,12 +5563,13 @@ fn a_unit_on_a_refusing_tile_is_moved_off_it_and_replans() {
     let from = sim.units[u].pos;
     // A pond: water refuses a walker, and the nearest dry spot is a tile away.
     sim.world.set_tile_bits(from.tile(), tile::SURFACE_OCEAN);
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     sim.order_move(u, tile_pos(24, 20));
     let mut grid = false;
     for _ in 0..8 {
         sim.tick();
         grid |= sim
+            .trace
             .phase_marks
             .iter()
             .any(|(l, _)| l == orders::SITE_MOVE_GRID);
@@ -5599,11 +5602,12 @@ fn a_wall_with_no_way_round_gives_up_and_pays_the_grid_draw() {
             .set_tile_bits(Pos::new(24, ty), tile::OBJECT_MOUNTAIN);
     }
     let u = spawn(&mut sim, 0, citizen, tile_pos(20, 20));
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     sim.order_move(u, tile_pos(28, 20));
     sim.tick();
     assert!(
-        sim.phase_marks
+        sim.trace
+            .phase_marks
             .iter()
             .any(|(l, _)| l == orders::SITE_MOVE_GRID),
         "no way round: the grid draw is the original's answer too"
@@ -7407,10 +7411,11 @@ fn a_detour_the_line_check_pushes_is_the_waypoint() {
         tolerance: 0,
         flags: orders::path_flag::FINAL,
     });
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     sim.tick();
     assert!(
-        sim.phase_marks
+        sim.trace
+            .phase_marks
             .iter()
             .any(|(l, _)| l == orders::SITE_MOVE_GRID),
         "the planner ran, through the grid roll"
@@ -8879,9 +8884,10 @@ fn the_building_walk_is_per_building_in_object_order() {
     sim.buildings[own].index = 2000;
     sim.buildings[hi].index = 2007;
     sim.buildings[lo].index = 2001;
-    sim.building_log.clear();
+    sim.trace.building_log.clear();
     sim.tick();
     let steps: Vec<(usize, &str)> = sim
+        .trace
         .building_log
         .iter()
         .copied()

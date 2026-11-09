@@ -627,7 +627,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // The harness is where the per-phase fold is wanted: it is what the
     // sim's own draws are lined up against the trace's sites with
     // (`docs/SYNC.md` §4.2). Everything else leaves it off.
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     sim.ai_state.lobby = lobby_of(
         &init.game_info,
         &loaded.map_styles,
@@ -1657,10 +1657,10 @@ impl Drop for Built {
             .find(|(t, _)| name.ends_with(t))
             .map_or(0, |&(_, n)| n);
         assert!(
-            self.sim.ground_inexact <= pin,
+            self.sim.trace.ground_inexact <= pin,
             "{name}: {} height read(s) touched a corner that is not known to be \
              the original's single, against a pin of {pin} — see docs/COMBAT.md §46.3",
-            self.sim.ground_inexact
+            self.sim.trace.ground_inexact
         );
     }
 }
@@ -1674,7 +1674,7 @@ impl Built {
     /// the trace. `None` when nothing drew, or when the marks are off.
     pub(crate) fn phase_fold(&self) -> Option<String> {
         let mut rows: Vec<(String, u32)> = Vec::new();
-        for pair in self.sim.phase_marks.windows(2) {
+        for pair in self.sim.trace.phase_marks.windows(2) {
             let (label, from) = &pair[0];
             let n = draws_between(*from, pair[1].1)?;
             if n > 0 {
@@ -1728,8 +1728,8 @@ impl Built {
         self.sim.tick();
         // The frame's own draws, named, before anything is installed —
         // the harness's side of `Trace::labels(frame)`.
-        if self.sim.trace_phases
-            && let Some(sites) = mark_sites(&self.sim.phase_marks, self.sim.rng.seed)
+        if self.sim.trace.trace_phases
+            && let Some(sites) = mark_sites(&self.sim.trace.phase_marks, self.sim.rng.seed)
         {
             self.frame_sites.push((frame, sites));
         }

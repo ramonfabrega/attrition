@@ -718,15 +718,15 @@ fn run683_s_road_searches_hold_node_for_node() {
         borrow_pasture(&mut init, &t);
     }
     let mut built = build_sim(&loaded, &init, Tuning::RON);
-    built.sim.trace_phases = true;
-    built.sim.trace_costs = true;
+    built.sim.trace.trace_phases = true;
+    built.sim.trace.trace_costs = true;
     let mut parted = Vec::new();
     let mut searched = 0;
     while built.sim.frame < 1830 {
         let f = built.sim.frame;
-        built.sim.road_marks.clear();
+        built.sim.trace.road_marks.clear();
         built.tick();
-        let ours = std::mem::take(&mut built.sim.road_marks);
+        let ours = std::mem::take(&mut built.sim.trace.road_marks);
         if f < 1577 {
             continue;
         }

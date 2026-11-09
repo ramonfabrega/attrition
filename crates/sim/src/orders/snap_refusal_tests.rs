@@ -61,12 +61,12 @@ fn a_snap_onto_a_refused_tile_pops_the_waypoint_where_it_stands() {
         },
     ];
     s.units[u].line_ok = true;
-    s.trace_phases = true;
+    s.trace.trace_phases = true;
     let mut grid = false;
     for _ in 0..16 {
-        s.phase_marks.clear();
+        s.trace.phase_marks.clear();
         s.tick();
-        grid |= s.phase_marks.iter().any(|(l, _)| l == SITE_MOVE_GRID);
+        grid |= s.trace.phase_marks.iter().any(|(l, _)| l == SITE_MOVE_GRID);
         if s.units[u].path.len() < 2 {
             break;
         }

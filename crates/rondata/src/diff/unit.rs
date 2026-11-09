@@ -1052,7 +1052,7 @@ mod tests {
         let last = *window.last().expect("the window");
 
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         let mut compared = 0usize;
         let mut caravan_rows = 0usize;
         let mut queue_rows = 0usize;
@@ -1331,7 +1331,7 @@ mod tests {
         let last = *window.last().expect("the window");
 
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         let mut compared = 0usize;
         let mut merchant_rows = 0usize;
         let mut unmatched = 0usize;
@@ -2824,7 +2824,7 @@ mod tests {
         borrow_from_siblings(&mut init, &refs);
         borrow_pasture(&mut init, &tr);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         let mut under: Vec<(i64, usize, usize, bool)> = Vec::new();
         let mut word: Option<(Vec<String>, Vec<String>)> = None;
         let mut stand: Option<(Vec<String>, Vec<String>)> = None;
@@ -2840,8 +2840,8 @@ mod tests {
             }
             built.tick();
             if (7580..7586).contains(&f) {
-                let ours =
-                    mark_sites(&built.sim.phase_marks, built.sim.rng.seed).unwrap_or_default();
+                let ours = mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed)
+                    .unwrap_or_default();
                 let theirs = tr.labels(f);
                 under.push((f, ours.len(), theirs.len(), ours == theirs));
                 if f == 7584 {

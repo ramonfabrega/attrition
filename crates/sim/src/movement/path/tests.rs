@@ -424,8 +424,8 @@ fn large_recovery_steps_check_intermediate_diagonals() {
             ..crate::UnitType::default()
         });
         sim.units[u].ty = Some(ty);
-        sim.trace_costs = true;
-        sim.probe_refuse = Some(RefuseProbe {
+        sim.trace.trace_costs = true;
+        sim.trace.probe_refuse = Some(RefuseProbe {
             frame: sim.frame,
             unit: (0, 1),
             cell: crate::collide::ucell(Pos::new(start.x + 48, start.y + 48)),
@@ -433,6 +433,7 @@ fn large_recovery_steps_check_intermediate_diagonals() {
         push_goal(&mut sim, u, Pos::new(start.x + 960, start.y + 960));
         assert!(sim.find_upath(u, false) > 0);
         let first: Vec<_> = sim
+            .trace
             .cost_marks
             .iter()
             .filter(|m| m.from == (start.x, start.y))
@@ -1427,13 +1428,14 @@ fn a_boat_leaving_a_halfland_cell_is_crossing_regions_on_the_world_grid() {
     );
     sim.units[u].kind.domain = crate::attrition::Domain::Sea;
     push_goal(&mut sim, u, Pos::new(10 * 0x300 + 0x180, 4 * 0x300 + 0x180));
-    sim.trace_costs = true;
+    sim.trace.trace_costs = true;
     assert!(sim.find_wpath(u) >= 1, "the boat found its way out");
 
     // Every step the search priced into open water cost the plain 32
     // (or 40 on a diagonal). With `avoid_sea` derived they would all
     // carry 200 more.
     let open: Vec<i32> = sim
+        .trace
         .cost_marks
         .iter()
         .filter(|c| {

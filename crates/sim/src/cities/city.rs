@@ -2838,7 +2838,7 @@ impl Sim {
         if self.buildings[b].ty.is_some_and(|t| self.is_colossus(t)) {
             self.recompute_pop_caps();
         }
-        self.removed.push(b);
+        self.trace.removed.push(b);
         self.forget(Obj::Building(b));
         if self.building_is_city(b) {
             if let Some(c) = self.buildings[b].city

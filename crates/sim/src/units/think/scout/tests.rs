@@ -210,7 +210,7 @@ fn an_unseen_ring_one_is_taken_whole_and_stops_the_walk_two_rings_later() {
 #[test]
 fn an_idle_scout_thinks_on_its_first_frame_and_then_once_in_thirty_two() {
     let (mut s, ai, _) = scout_sim(false);
-    s.trace_phases = true;
+    s.trace.trace_phases = true;
     let o = i64::from(s.units[ai].index);
     // Nothing is unseen, so `think_scout` never issues an order and
     // the scout stays idle for the whole run. `do_idle` is the whole
@@ -218,9 +218,9 @@ fn an_idle_scout_thinks_on_its_first_frame_and_then_once_in_thirty_two() {
     // `think` — so the loop is the tick as this unit sees it.
     let mut thought = Vec::new();
     for frame in 0..96 {
-        s.phase_marks.clear();
+        s.trace.phase_marks.clear();
         s.do_idle(ai, frame);
-        let marks = &s.phase_marks;
+        let marks = &s.trace.phase_marks;
         let drew = marks.iter().enumerate().any(|(i, (label, from))| {
             label == SITE_ROTATION && marks.get(i + 1).map_or(s.rng.seed, |m| m.1) != *from
         });

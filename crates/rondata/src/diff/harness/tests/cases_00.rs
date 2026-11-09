@@ -1168,9 +1168,10 @@ mod bodies {
             );
             assert_eq!(built.sim.rng.seed, word, "{dump_name}: and the harness's");
 
-            built.sim.trace_phases = true;
+            built.sim.trace.trace_phases = true;
             built.sim.tick();
-            let ours = mark_sites(&built.sim.phase_marks, built.sim.rng.seed).expect("our sites");
+            let ours =
+                mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed).expect("our sites");
             let theirs = trace.labels(0);
             assert_eq!(theirs.len(), draws, "{trace_name}'s frame 0");
 
@@ -1260,7 +1261,7 @@ mod bodies {
             crate::diff::testkit::whole_capture::road_build(&loaded, &path)
         };
 
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         let last = trace.frames.last().map_or(0, |(n, _)| *n);
         assert_eq!(last, 284, "run14's traced length");
         for _ in 0..last {

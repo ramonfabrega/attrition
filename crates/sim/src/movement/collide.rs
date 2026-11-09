@@ -1349,7 +1349,11 @@ impl Sim {
         let was = m.facing;
         let (out, _) = crate::movement::turn_towards(was, bearing, rate);
         if out != was {
-            let outer = self.phase_marks.last().map(|(label, _)| label.clone());
+            let outer = self
+                .trace
+                .phase_marks
+                .last()
+                .map(|(label, _)| label.clone());
             self.mark(crate::anim::SITE_TURN_PUSHED);
             self.do_turn_anim(o, was, out, bearing);
             if let Some(outer) = outer {
@@ -2260,7 +2264,7 @@ impl Sim {
     pub(crate) fn detect_unit_collision(&mut self, u: usize, at: Pos) -> Option<usize> {
         // The recorder, and it is read-only: `sweep_verdict` walks the
         // same scan this call is about to walk and changes nothing.
-        let watching = self.sweep_watch.as_ref().is_some_and(|w| {
+        let watching = self.trace.sweep_watch.as_ref().is_some_and(|w| {
             w.frame == self.frame
                 && w.unit
                     == (
@@ -2270,7 +2274,7 @@ impl Sim {
         });
         if watching {
             let v = self.sweep_verdict(u, at);
-            if let Some(w) = self.sweep_watch.as_mut() {
+            if let Some(w) = self.trace.sweep_watch.as_mut() {
                 w.seen.push((at, v));
             }
         }

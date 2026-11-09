@@ -2832,15 +2832,15 @@ mod tests {
         borrow_from_siblings(&mut init, &[&sib_init]);
         borrow_pasture(&mut init, &tr);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
-        built.sim.trace_costs = true;
+        built.sim.trace.trace_phases = true;
+        built.sim.trace.trace_costs = true;
         let mut searched = Vec::new();
         let mut parted = Vec::new();
         while built.sim.frame <= TOUGHEST_ROAD_FRAME_7070 {
             let f = built.sim.frame;
-            built.sim.road_marks.clear();
+            built.sim.trace.road_marks.clear();
             built.tick();
-            let ours = std::mem::take(&mut built.sim.road_marks);
+            let ours = std::mem::take(&mut built.sim.trace.road_marks);
             let theirs = t483.road_nodes(f);
             if ours.is_empty() && theirs.is_empty() {
                 continue;

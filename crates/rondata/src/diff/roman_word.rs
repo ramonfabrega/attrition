@@ -242,16 +242,16 @@ fn run899b_s_road_search_on_18026_holds_node_for_node() {
     borrow_from_siblings(&mut init, &[&sib_init]);
     borrow_pasture(&mut init, &tr);
     let mut built = build_sim(&loaded, &init, Tuning::RON);
-    built.sim.trace_costs = true;
+    built.sim.trace.trace_costs = true;
     // Every road search to the word and past it, node for node.
     let mut first: Option<String> = None;
     let mut searched = 0;
     let mut on_word = (0, 0);
     while built.sim.frame <= 18030 {
         let f = built.sim.frame;
-        built.sim.road_marks.clear();
+        built.sim.trace.road_marks.clear();
         built.tick();
-        let ours = std::mem::take(&mut built.sim.road_marks);
+        let ours = std::mem::take(&mut built.sim.trace.road_marks);
         let theirs = tr.road_nodes(f);
         if f == 18026 {
             on_word = (ours.len(), theirs.len());

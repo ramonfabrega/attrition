@@ -1809,8 +1809,8 @@ fn a_gained_unit_type_converts_the_line_below_it_and_carries_the_damage() {
     let before = sim.roster.muster[0].by_type[hoplites];
     assert_eq!(sim.units[a].ty, Some(hoplites));
 
-    sim.trace_phases = true;
-    sim.phase_marks.clear();
+    sim.trace.trace_phases = true;
+    sim.trace.phase_marks.clear();
     sim.gain_tech(0, phalanx_t);
 
     assert_eq!(sim.units[a].ty, Some(phalanx), "the `from` match converts");
@@ -1829,7 +1829,8 @@ fn a_gained_unit_type_converts_the_line_below_it_and_carries_the_damage() {
     let figures: usize = [a, b].iter().map(|&u| sim.units[u].guys.len()).sum();
     assert!(figures >= 2);
     assert_eq!(
-        sim.phase_marks
+        sim.trace
+            .phase_marks
             .iter()
             .filter(|(l, _)| l == crate::anim::SITE_INIT_REAL)
             .count(),
@@ -1837,7 +1838,7 @@ fn a_gained_unit_type_converts_the_line_below_it_and_carries_the_damage() {
         "one variant roll per figure, and nothing else drew"
     );
     assert_eq!(
-        sim.phase_marks.len(),
+        sim.trace.phase_marks.len(),
         figures,
         "the conversion pass spends no other draw"
     );
@@ -4089,7 +4090,7 @@ fn a_crew_figure_of_a_packing_type_pays_the_turning_stand() {
     /// frame's `SITE_TURN_STAND` cost.
     fn arrival_draws(packs: bool) -> u32 {
         let mut sim = skirmish(0);
-        sim.trace_phases = true;
+        sim.trace.trace_phases = true;
         let ty = sim.add_unit_type(crate::UnitType {
             hits: 20,
             moves: 40,
@@ -4121,7 +4122,7 @@ fn a_crew_figure_of_a_packing_type_pays_the_turning_stand() {
         }
         // The last frame's marks: what the stand spent, from the stream's
         // word at the mark to the word at the next one.
-        let marks = &sim.phase_marks;
+        let marks = &sim.trace.phase_marks;
         let at = marks
             .iter()
             .position(|(l, _)| l == anim::SITE_TURN_STAND)
@@ -4166,7 +4167,7 @@ fn a_crew_figure_of_a_packing_type_pays_the_turning_stand() {
 #[test]
 fn a_standing_turn_re_slots_the_crew_before_its_arrival_stand() {
     let mut sim = skirmish(0);
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     let ty = sim.add_unit_type(crate::UnitType {
         hits: 20,
         moves: 40,
@@ -4198,7 +4199,12 @@ fn a_standing_turn_re_slots_the_crew_before_its_arrival_stand() {
     ));
     sim.guys_follow(unit, true, &mut turn);
     assert!(turn.is_none(), "guy 0 took the turn in its place");
-    let labels: Vec<&str> = sim.phase_marks.iter().map(|(l, _)| l.as_str()).collect();
+    let labels: Vec<&str> = sim
+        .trace
+        .phase_marks
+        .iter()
+        .map(|(l, _)| l.as_str())
+        .collect();
     assert!(
         !labels.contains(&anim::SITE_ARRIVE),
         "no arrival stand after the turn re-slotted the crew: {labels:?}"
@@ -4223,7 +4229,7 @@ fn a_standing_turn_re_slots_the_crew_before_its_arrival_stand() {
 #[test]
 fn a_tracked_crew_figure_between_untracked_ones_turns_in_its_slot() {
     let mut sim = skirmish(0);
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     let ty = sim.add_unit_type(crate::UnitType {
         hits: 20,
         moves: 40,
@@ -4256,7 +4262,12 @@ fn a_tracked_crew_figure_between_untracked_ones_turns_in_its_slot() {
     sim.units[unit].guys[2].anim = anim::WALK;
     sim.units[unit].guys[2].stopped = true;
     sim.guys_follow(unit, true, &mut None);
-    let labels: Vec<&str> = sim.phase_marks.iter().map(|(l, _)| l.as_str()).collect();
+    let labels: Vec<&str> = sim
+        .trace
+        .phase_marks
+        .iter()
+        .map(|(l, _)| l.as_str())
+        .collect();
     let at = |site: &str| labels.iter().position(|l| *l == site);
     let turn = at(anim::SITE_TURN_STAND).expect("guy 2 asks for its turn");
     let arrivals: Vec<usize> = labels

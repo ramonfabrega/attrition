@@ -1336,7 +1336,11 @@ impl Sim {
                 self.guy_do_turn_anim(u, g, was, to, heading);
                 continue;
             }
-            let outer = self.phase_marks.last().map(|(label, _)| label.clone());
+            let outer = self
+                .trace
+                .phase_marks
+                .last()
+                .map(|(label, _)| label.clone());
             self.mark(SITE_TURN_CREW);
             self.guy_do_turn_anim(u, g, was, to, heading);
             if let Some(outer) = outer {
