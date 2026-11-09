@@ -105,6 +105,9 @@ VIEW_HEAD = re.compile(r'steps over a view')
 VIEW_FN = re.compile(r'`([A-Za-z_][A-Za-z0-9_:~]*)@(00[0-9a-f]{6})`')
 
 
+SWEEP_SKIPPED_AT_LEAST = 120
+
+
 def views(sim=None):
     """Loop 3553: the modules that step over a view of one original function
     (`//! `Class::method@addr` as steps over a view`), each with the live
@@ -113,8 +116,17 @@ def views(sim=None):
     item 3356 while the live `eject_riders` beside it in `transport.rs`
     was wrong until item 3550, and the Persian word stood on it (2226).
     `sweep/` is the emulated original's answers, not a live twin."""
+    real = sim is None
     sim = SIM if sim is None else sim
-    files = {f: f.read_text() for f in sorted(sim.rglob('*.rs')) if 'sweep' not in f.with_suffix('').parts}
+    every = sorted(sim.rglob('*.rs'))
+    files = {f: f.read_text() for f in every if 'sweep' not in f.with_suffix('').parts}
+    # Loop 4044: the skip knows the sweep by its name; on the live tree it
+    # says how much it skipped (`sweep.rs` and `sweep/`, 150 on 2026-11-09),
+    # so a renamed or moved sweep fails here rather than reading its rows
+    # as live twins.
+    if real and len(every) - len(files) < SWEEP_SKIPPED_AT_LEAST:
+        raise SystemExit(f'seams.views skipped {len(every) - len(files)} sweep files under '
+                         f'{sim}, under the floor of {SWEEP_SKIPPED_AT_LEAST}: the sweep moved (Loop 4044)')
     rows = []
     for f, text in files.items():
         head = '\n'.join(text.split('\n')[:3])

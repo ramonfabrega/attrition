@@ -192,7 +192,9 @@ class SharedEntryPoints(unittest.TestCase):
             (tools/'queueledger.py').write_text('')
             (tools/'nations_census.py').write_text('')  # the guard's --check (Loop 3972); a stub answers 0
             cargo = root/'bin/cargo'
-            cargo.write_text('#!/bin/sh\nprintf "%s|%s|%s|%s\\n" "$*" "$CARGO_BUILD_JOBS" "$RUST_TEST_THREADS" "$RON_LANE" >> cargo-calls\n')
+            # A filter that ran no test is named (Loop 4040): the stub answers one passed.
+            cargo.write_text('#!/bin/sh\nprintf "%s|%s|%s|%s\\n" "$*" "$CARGO_BUILD_JOBS" "$RUST_TEST_THREADS" "$RON_LANE" >> cargo-calls\n'
+                             'echo "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"\n')
             cargo.chmod(0o700)
             for lane in ['', '1']:
                 env = dict(os.environ, PATH=str(root/'bin')+os.pathsep+os.environ['PATH'], RON_LANE=lane)
@@ -220,6 +222,61 @@ class SharedEntryPoints(unittest.TestCase):
             done = subprocess.run(['zsh', str(tools/'check.sh'), 'test'], env=env,
                                   capture_output=True, text=True, timeout=10)
             self.assertEqual(done.returncode, 7)
+
+    def test_a_guard_filter_runs_on_both_crates_and_one_that_matches_nothing_is_named(self):
+        # Loop 4040 (the seventy-sixth pass): `guard.sh <filter>` ran each
+        # filter as `cargo test -p sim <filter>`, so a filter whose tests
+        # live in `rondata` — every render and diff item's — ran nothing and
+        # the reflex exited green. A filter runs against both crates, and one
+        # that no test in either matched (an ignored test is no match, as in
+        # `release_gate.unmatched_filters`) is named and the reflex exits 1.
+        result = 'test result: ok. {n} passed; 0 failed; {i} ignored; 0 measured; 9 filtered out; finished in 0.00s'
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            tools = root/'tools'
+            (tools/'explore').mkdir(parents=True)
+            (root/'bin').mkdir()
+            (tools/'guard.sh').write_text((gate.ROOT/'tools/guard.sh').read_text())
+            (tools/'resource_budget.py').write_text(
+                'import sys,subprocess\n'
+                'raise SystemExit(subprocess.run(sys.argv[sys.argv.index("--")+1:]).returncode)\n')
+            for name in ['test_brief', 'test_queueledger']:
+                (tools/'explore'/f'{name}.py').write_text('import unittest\nclass Authored(unittest.TestCase):\n def test_ok(self): self.assertTrue(True)\n')
+            (tools/'explore'/'test_sweep_gen.py').write_text('import unittest\nclass FamilyRegistrations(unittest.TestCase):\n def test_ok(self): self.assertTrue(True)\n')
+            (tools/'queueledger.py').write_text('')
+            (tools/'nations_census.py').write_text('')
+            cargo = root/'bin/cargo'
+            cargo.write_text(
+                '#!/bin/sh\nprintf "%s\\n" "$*" >> cargo-calls\n'
+                'case "$*" in\n'
+                f'  *rondata_only*-p\\ rondata*|*-p\\ rondata*rondata_only*) echo "{result.format(n=1, i=0)}" ;;\n'
+                f'  *rondata_only*) echo "{result.format(n=0, i=0)}" ;;\n'
+                f'  *ignored_only*) echo "{result.format(n=0, i=1)}" ;;\n'
+                f'  *matches_nothing*) echo "{result.format(n=0, i=0)}" ;;\n'
+                f'  *) echo "{result.format(n=3, i=0)}" ;;\n'
+                'esac\n')
+            cargo.chmod(0o700)
+            env = dict(os.environ, PATH=str(root/'bin')+os.pathsep+os.environ['PATH'], RON_LANE='1')
+            env.pop('RON_GUARD_ADMITTED', None)
+
+            def guard(*filters):
+                (root/'cargo-calls').unlink(missing_ok=True)
+                done = subprocess.run(['zsh', str(tools/'guard.sh'), *filters], cwd=root,
+                                      env=env, capture_output=True, text=True, timeout=10)
+                return done, (root/'cargo-calls').read_text().splitlines()
+
+            done, calls = guard('rondata_only')
+            self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+            ran = [c for c in calls if 'rondata_only' in c]
+            self.assertEqual(len(ran), 1, calls)
+            self.assertIn('-p sim', ran[0])
+            self.assertIn('-p rondata', ran[0])
+            for filt in ['matches_nothing', 'ignored_only']:
+                with self.subTest(filt=filt):
+                    done, calls = guard('rondata_only', filt)
+                    self.assertNotEqual(done.returncode, 0, done.stdout + done.stderr)
+                    self.assertIn(f'matched no test in sim or rondata: {filt}', done.stdout + done.stderr)
+                    self.assertNotIn('matched no test in sim or rondata: rondata_only', done.stdout + done.stderr)
 
     def test_combined_release_is_admitted_and_isolated_dispatcher_is_not_double_admitted(self):
         env = {'RON_GATE_RESOURCE_POLICY': '1'}

@@ -31,7 +31,7 @@
 //! Everything else is a failure, including a lone `1.0` literal — a float
 //! literal is a float even before it is named.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Component, Path, PathBuf};
 
 /// Every `.rs` file under the crate's `src/`, recursively, with whether it is
@@ -240,6 +240,95 @@ fn walk_modules(src: &Path, roots: Vec<(PathBuf, PathBuf, bool)>) -> BTreeMap<St
     out
 }
 
+/// The files of the module `name` that the crate root `root` declares
+/// (`mod name;`, or with a `#[path]`), relative to `under`: the module's
+/// own file wherever `rustc` finds it — `name.rs` or `name/mod.rs` beside
+/// the root, or its `#[path]` — and every file its subtree mounts. Empty
+/// when `root` declares no such module.
+///
+/// **Loop 4044** (the seventy-sixth pass): seven readers knew the sweep by
+/// its directory's name, `sweep/`, and none failed when item 4032 moved
+/// `sweep/mod.rs` out to `sweep.rs` — the module file left every skip and
+/// read as production until the lane named each reader by hand. A reader
+/// that asks the module tree follows the module however its files lie.
+pub(crate) fn module_files(under: &Path, root: &Path, name: &str) -> BTreeSet<String> {
+    let Ok(text) = std::fs::read_to_string(root) else {
+        return BTreeSet::new();
+    };
+    let Some(decl) = mod_decls(&text).into_iter().find(|d| d.name == name) else {
+        return BTreeSet::new();
+    };
+    let dir = root.parent().unwrap_or(under).to_path_buf();
+    let (file, children) = match decl.path {
+        Some(p) => {
+            let at = dir.join(p);
+            let beside = at.parent().unwrap_or(&dir).to_path_buf();
+            (at, beside)
+        }
+        None => {
+            let flat = dir.join(format!("{name}.rs"));
+            let file = if flat.exists() {
+                flat
+            } else {
+                dir.join(name).join("mod.rs")
+            };
+            (file, dir.join(name))
+        }
+    };
+    walk_modules(under, vec![(file, children, true)])
+        .into_keys()
+        .collect()
+}
+
+/// The floors on the sweep's two halves (Loop 4044): 150 files in `lib.rs`'s
+/// `sweep` module and 1,309 in the integration targets' on 2026-11-09.
+const SWEEP_SRC_FILES_AT_LEAST: usize = 120;
+const SWEEP_TEST_FILES_AT_LEAST: usize = 1000;
+
+/// **The sweep's files**, relative to the crate's directory: `lib.rs`'s
+/// `sweep` module under `src/` (the sweeps that need crate-private APIs)
+/// and each integration target's `sweep` module under `tests/` (item 4009
+/// moved the standalone sweeps there). The readers that leave the sweep
+/// out — the hex-constant scan, the spawn-site walk, the classification
+/// check — ask for this set instead of a directory's name, and the set's
+/// size is asserted here, once for all of them: a skip that skips nothing
+/// is a guard reading production as test or test as production in
+/// silence (Loop 4044).
+pub(crate) fn sweep_files() -> BTreeSet<String> {
+    let krate = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let (src, tests) = (krate.join("src"), krate.join("tests"));
+    let in_src: BTreeSet<String> = module_files(&src, &src.join("lib.rs"), "sweep")
+        .into_iter()
+        .map(|rel| format!("src/{rel}"))
+        .collect();
+    let mut in_tests = BTreeSet::new();
+    let mut targets: Vec<PathBuf> = std::fs::read_dir(&tests)
+        .map(|d| {
+            d.filter_map(|e| e.ok().map(|e| e.path()))
+                .filter(|p| p.is_file() && p.extension().is_some_and(|e| e == "rs"))
+                .collect()
+        })
+        .unwrap_or_default();
+    targets.sort();
+    for target in &targets {
+        in_tests.extend(
+            module_files(&tests, target, "sweep")
+                .into_iter()
+                .map(|rel| format!("tests/{rel}")),
+        );
+    }
+    assert!(
+        in_src.len() >= SWEEP_SRC_FILES_AT_LEAST && in_tests.len() >= SWEEP_TEST_FILES_AT_LEAST,
+        "the sweep's module tree holds {} files under src/ (floor {SWEEP_SRC_FILES_AT_LEAST}) \
+         and {} under tests/ (floor {SWEEP_TEST_FILES_AT_LEAST}) — the `sweep` module moved \
+         or was renamed, and every reader that leaves the sweep out now skips too little \
+         (Loop 4044)",
+        in_src.len(),
+        in_tests.len()
+    );
+    in_src.into_iter().chain(in_tests).collect()
+}
+
 /// The simulation's production files with their text: what the float scan
 /// reads.
 fn sources() -> Vec<(String, String)> {
@@ -439,6 +528,9 @@ fn floats(code: &str) -> Vec<(usize, String)> {
 mod tests {
     use super::*;
 
+    /// The production files the float scan read on 2026-11-09: 243.
+    const SCANNED_AT_LEAST: usize = 215;
+
     #[test]
     fn the_simulation_holds_no_floating_point() {
         let mut bad: Vec<String> = Vec::new();
@@ -450,9 +542,13 @@ mod tests {
                 bad.push(format!("{name}:{line}: {what}"));
             }
         }
+        // Loop 4041: SCANNED_AT_LEAST production files, a tenth under
+        // the day's count; it was 15 against hundreds, so a scan that lost
+        // nine tenths of the crate passed.
         assert!(
-            scanned >= 15,
-            "only {scanned} sources scanned — has the crate moved?"
+            scanned >= SCANNED_AT_LEAST,
+            "only {scanned} sources scanned, under the floor of {SCANNED_AT_LEAST} — has \
+             the crate moved?"
         );
         assert!(
             bad.is_empty(),
@@ -552,6 +648,53 @@ mod tests {
         assert_eq!(got, want);
     }
 
+    /// **The sweep's set follows the module, not the directory** (Loop
+    /// 4044): the same `sweep` module laid out as `sweep/mod.rs` and as
+    /// `sweep.rs` beside `sweep/` yields the same files, its own file
+    /// among them, and an integration target's `#[path]` module is
+    /// followed into its directory. A directory-name reader read
+    /// `sweep.rs` as production on the second layout.
+    #[test]
+    fn a_module_s_files_are_read_from_the_tree_in_either_layout() {
+        let root = std::env::temp_dir().join(format!(
+            "attrition-module-files-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
+        let _ = std::fs::remove_dir_all(&root);
+        let write = |path: &str, text: &str| {
+            let at = root.join(path);
+            std::fs::create_dir_all(at.parent().unwrap()).unwrap();
+            std::fs::write(at, text).unwrap();
+        };
+        write("src/lib.rs", "pub mod core;\n#[cfg(test)]\nmod sweep;\n");
+        write("src/core.rs", "fn c() {}\n");
+        write("src/sweep/mod.rs", "mod one;\n");
+        write("src/sweep/one.rs", "fn s() {}\n");
+        write(
+            "tests/sweep_a.rs",
+            "#[path = \"sweep/standalone.rs\"]\nmod sweep;\nmod other;\n",
+        );
+        write(
+            "tests/sweep/standalone.rs",
+            "#[path = \"two.rs\"]\nmod two;\n",
+        );
+        write("tests/sweep/two.rs", "fn t() {}\n");
+        let src = root.join("src");
+        let nested = module_files(&src, &src.join("lib.rs"), "sweep");
+        std::fs::rename(src.join("sweep/mod.rs"), src.join("sweep.rs")).unwrap();
+        let flat = module_files(&src, &src.join("lib.rs"), "sweep");
+        let tests = root.join("tests");
+        let target = module_files(&tests, &tests.join("sweep_a.rs"), "sweep");
+        let none = module_files(&src, &src.join("lib.rs"), "absent");
+        std::fs::remove_dir_all(&root).unwrap();
+        let set = |v: &[&str]| v.iter().map(|s| s.to_string()).collect::<BTreeSet<_>>();
+        assert_eq!(nested, set(&["sweep/mod.rs", "sweep/one.rs"]));
+        assert_eq!(flat, set(&["sweep.rs", "sweep/one.rs"]));
+        assert_eq!(target, set(&["sweep/standalone.rs", "sweep/two.rs"]));
+        assert!(none.is_empty());
+    }
+
     /// The real tree: the files a structure landing would move are read,
     /// and the test files are recognised from the tree rather than a list.
     #[test]
@@ -582,10 +725,26 @@ mod tests {
         ] {
             assert!(!test(name), "{name} read as test");
         }
+        // The sweep by its module, not its directory (Loop 4044): this
+        // read `sweep/` by name, and passed on nothing when `sweep.rs` left it.
+        let set = sweep_files();
+        let sweep: Vec<&(String, bool, String)> = all
+            .iter()
+            .filter(|(n, _, _)| set.contains(&format!("src/{n}")))
+            .collect();
         assert!(
-            all.iter()
-                .filter(|(n, _, _)| n.starts_with("sweep/"))
-                .all(|(_, t, _)| *t),
+            sweep.len() >= SWEEP_SRC_FILES_AT_LEAST,
+            "{} of the sweep's files are in the walk",
+            sweep.len()
+        );
+        assert!(
+            sweep
+                .iter()
+                .any(|(n, _, _)| n == "sweep.rs" || n == "sweep/mod.rs"),
+            "the sweep's own module file is not in its set"
+        );
+        assert!(
+            sweep.iter().all(|(_, t, _)| *t),
             "a sweep read as production"
         );
     }
