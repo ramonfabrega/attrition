@@ -3879,6 +3879,8 @@ is the finish line's. Names no score; the loop's.
 
 (4049) **A K booking can count a type in register on records neither side draws** (4037's "for the Loop" line, the seventy-sixth tranche): the farm's 402 dumped records read in register under §5.4's condition 2 only because `WallOut::draw` skips a finished farm and the draw list carries no `FarmsOut` field, so both sides drew nothing; the booking of 4037 promised K +1 off that. Candidate: condition 2 counts a type in register only on records at least one side draws, and `RENDER_K`'s test says how many of each type's records are drawn, red first on the farm. Names no score; the loop's.
 
+(4050) **A comparison cannot fail on a helper both sides call** (4048's "for the Loop" line, the seventy-sixth tranche): 4048's farm field drew its reference and its port through one shared helper, so a mutation of that helper moved both sides and the in-register count stayed whole — the lane rebuilt the reference from the oracle's own swept function. Candidate: a render or diff test names which side owns each helper it calls, and a mutation run (one helper perturbed) must turn the count red, red first on 4048's shared helper. Names no score; the loop's.
+
 ## Loop, filed 2026-11-08 — the seventy-fifth tranche's
 
 **4023** (The frame's `ccc update att-<n>` names a worktree, and ccc takes the row's name) — **built by the seventy-fifth pass with 4022 (red first: `['ccc update att-<n>'] != []`): the landing row reads `ccc update lane-{item}`, filled per lane, and a test holds every `ccc` verb the frame spells to a `lane-` row.** The row as filed: (4023) **The frame's `ccc update att-<n>` names a worktree, and ccc takes the row's name** (4021's journal, the seventy-fifth
