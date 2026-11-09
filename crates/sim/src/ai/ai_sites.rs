@@ -1127,7 +1127,7 @@ impl Sim {
             v = mul(v, 30);
         }
 
-        let pop_cap = self.muster[w].cap;
+        let pop_cap = self.roster.muster[w].cap;
         if pop_cap < 200 {
             let eff = self.ai[w].effective_pop;
             if eff > pop_cap * 3 / 4 {

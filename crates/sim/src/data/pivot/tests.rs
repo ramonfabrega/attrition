@@ -2685,11 +2685,15 @@ fn a_turret_short_of_its_aim_holds_its_release_on_any_piece() {
             },
             ..crate::UnitType::default()
         });
-        sim.art
+        sim.roster
+            .art
             .pivots
             .insert(BATTERY, [(4, (-180, 180))].into_iter().collect());
-        sim.art.lengths.insert((PIECE, crate::anim::ATTACK2), 20);
-        sim.art.releases.insert(
+        sim.roster
+            .art
+            .lengths
+            .insert((PIECE, crate::anim::ATTACK2), 20);
+        sim.roster.art.releases.insert(
             PIECE,
             [(
                 crate::anim::ATTACK2,

@@ -665,17 +665,17 @@ fn a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is() {
         let u = unit(&mut f.sim, 1, walker_t, tile_pos(30, 14));
         f.sim.init_guys(u, Some(walker_t));
         f.sim.units[u].auto_transport = true;
-        let control = f.sim.muster[1].control;
+        let control = f.sim.roster.muster[1].control;
         let caras = f.sim.ai[1].census.caras;
         assert!(!f.sim.set_new_location(u, tile_pos(33, 14), false));
         let boat = f.sim.units.len();
         f.sim.work(u, 1);
         assert_eq!(f.sim.units[boat].ty, Some(boat_t), "the boat");
         assert_eq!(
-            f.sim.muster[1].by_type[boat_t], counted,
+            f.sim.roster.muster[1].by_type[boat_t], counted,
             "`set_type`'s `+1`, for a type with population"
         );
-        assert_eq!(f.sim.muster[1].control, control + counted);
+        assert_eq!(f.sim.roster.muster[1].control, control + counted);
         assert_eq!(f.sim.ai[1].census.caras, caras + counted);
         // Item 1647: a census drops fleets from caras, but closing
         // one afterward still subtracts. Preserve that asymmetry.
@@ -694,10 +694,10 @@ fn a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is() {
         assert!(!f.sim.set_new_location(boat, tile_pos(30, 14), false));
         assert!(!f.sim.units[boat].alive());
         assert_eq!(
-            f.sim.muster[1].by_type[boat_t], 0,
+            f.sim.roster.muster[1].by_type[boat_t], 0,
             "`Unit::close`'s `−1` at `0060f3db`"
         );
-        assert_eq!(f.sim.muster[1].control, control);
+        assert_eq!(f.sim.roster.muster[1].control, control);
         assert_eq!(f.sim.ai[1].census.caras, before_close - counted);
     }
 }
@@ -1389,7 +1389,7 @@ fn ashore(human: bool, avg: i32) -> (Fix, usize, Pos) {
     let rider = unit(&mut f.sim, 1, f.scout, tile_pos(30, 14));
     f.sim.units[rider].movement.speed = 34;
     f.sim.units[rider].guys = vec![crate::anim::Guy::fresh(1), crate::anim::Guy::fresh(2)];
-    f.sim.art.tracks.insert(2, (-48, -192));
+    f.sim.roster.art.tracks.insert(2, (-48, -192));
     f.sim.seat_guys(rider);
     f.sim.units[rider].movement.body.avg_speed = avg;
     f.sim.units[rider].guys[1]

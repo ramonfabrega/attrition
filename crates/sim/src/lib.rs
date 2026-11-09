@@ -277,15 +277,8 @@ pub struct Sim {
     /// (`crates/rondata/src/load.rs`). Only `LeaderData::calc_rare` reads
     /// them, so an empty table simply means no deposit pays anything.
     pub good_types: Vec<economy::GoodType>,
-    /// One per player: whether `Leader::calc_unit_stats` is owed — the
-    /// `LeaderData` flag `0x4000000`, which `Leader::process` acts on
-    /// at its next pass, before any unit moves. Its writers modelled here:
-    /// a change in the player's rare mask (`Sim::calc_unit_stats`),
-    /// `Leader::gain_tech`'s tail, and a wonder's `Build::activate` and
-    /// `Build::close` (`docs/VISION.md` §2).
-    pub unit_stats_dirty: Vec<bool>,
-    /// One per player: what they have built, and the population it occupies.
-    pub muster: Vec<Muster>,
+    /// The `units/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub roster: crate::units::UnitsState,
     /// Where an unavailable resource's price is charged instead.
     pub redirects: cost::Redirects,
     /// The production buildings, each with its own queue.
@@ -492,15 +485,8 @@ pub struct Sim {
     /// map at once — and one after it takes the daemon's pass
     /// ([`border_pass`], item 1106).
     pub in_play: bool,
-    /// One per player: the object-number marks [`Sim::find_free`] allocates
-    /// against.
-    pub marks: Vec<Marks>,
     /// The lobby's option block, as the AI reads it — `docs/AI.md` §12.1.
     pub lobby: ai::Lobby,
-    /// One per player: `GameAccess::leader_options->list[who]`, the four
-    /// per-player option words `Unit::init` reads to give a new unit its
-    /// stance — `docs/ORDERS.md` §5.10.
-    pub leader_options: Vec<stance::LeaderOptions>,
     /// `ScenarioData::find_counters[]` and `ScriptTimers` — the global
     /// state the script host functions keep between calls.
     pub script_env: ai_host::ScriptEnv,
@@ -526,9 +512,6 @@ pub struct Sim {
     pub market: market::Market,
     /// The herds and the birds' sampling (`gaia.rs`).
     pub gaia: gaia::Gaia,
-    /// The animation art the clocks read — lengths and pieces, an input
-    /// (`docs/ANIM.md` §3).
-    pub art: anim::Art,
     /// The `world/` subsystem's state (`docs/STRUCTURE.md` §3).
     pub terrain: crate::world::WorldState,
     /// `GameInfo::seed`, the lobby's map seed, which picks a gaia guy's
@@ -643,8 +626,6 @@ impl Sim {
             holdings: vec![economy::Holdings::new(); players],
             ledgers: vec![economy::Ledger::starting(&tuning); players],
             good_types: Vec::new(),
-            unit_stats_dirty: vec![false; players],
-            muster: vec![Muster::new(&tuning); players],
             redirects: cost::Redirects::RON,
             buildings: Vec::new(),
             farm_order: Vec::new(),
@@ -658,7 +639,6 @@ impl Sim {
             death_pool: Vec::new(),
             market: market::Market::default(),
             gaia: gaia::Gaia::default(),
-            art: anim::Art::default(),
             game_seed: 0,
             mods: vec![combat::Modifiers::default(); players],
             hits: Vec::new(),
@@ -688,11 +668,16 @@ impl Sim {
             },
             goody_items: Vec::new(),
             in_play: false,
-            // Ten slots, not `players`: gaia's animals and birds are units
-            // of owners 8 and 9 and take numbers from their own bands.
-            marks: vec![Marks::default(); players.max(10)],
             lobby: ai::Lobby::default(),
-            leader_options: vec![stance::LeaderOptions::default(); players.max(10)],
+            roster: crate::units::UnitsState {
+                unit_stats_dirty: vec![false; players],
+                muster: vec![Muster::new(&tuning); players],
+                art: anim::Art::default(),
+                // Ten slots, not `players`: gaia's animals and birds are units
+                // of owners 8 and 9 and take numbers from their own bands.
+                marks: vec![Marks::default(); players.max(10)],
+                leader_options: vec![stance::LeaderOptions::default(); players.max(10)],
+            },
             script_env: ai_host::ScriptEnv::default(),
             scripts: None,
             ai: vec![ai::Leader::new(); players],
@@ -738,10 +723,10 @@ impl Sim {
             .push(tech::PlayerTech::new(&self.tables.tech_tree));
         self.territory.supply.push(supply::Network::default());
         self.holdings.push(economy::Holdings::new());
-        self.unit_stats_dirty.push(false);
+        self.roster.unit_stats_dirty.push(false);
         self.ledgers
             .push(economy::Ledger::starting(&self.tables.tuning));
-        self.muster.push(Muster::new(&self.tables.tuning));
+        self.roster.muster.push(Muster::new(&self.tables.tuning));
         self.mods.push(combat::Modifiers::default());
         self.nation.push(city::Nation::default());
         self.territory
@@ -752,7 +737,7 @@ impl Sim {
         self.city_tally.push(city::Tally::default());
         self.building_high.push(Vec::new());
         self.wall_stats_dirty.push(false);
-        self.marks.push(Marks::default());
+        self.roster.marks.push(Marks::default());
         self.repaths.push(0);
         self.retargets.push(0);
         self.ai.push(ai::Leader::new());

@@ -848,21 +848,21 @@ fn a_national_replacement_takes_its_line_s_gunpowder_scale() {
 #[test]
 fn peacocks_raise_the_owner_s_pop_cap_by_a_tenth() {
     let (mut s, _) = sea_sim();
-    for m in &mut s.muster {
+    for m in &mut s.roster.muster {
         m.military_level = 1;
     }
     s.recompute_pop_caps();
-    assert_eq!((s.muster[0].cap, s.muster[1].cap), (50, 50));
+    assert_eq!((s.roster.muster[0].cap, s.roster.muster[1].cap), (50, 50));
     s.ledgers[1].rare = 1 << (economy::PEACOCKS - economy::BASE_RARE);
     s.recompute_pop_caps();
     assert_eq!(
-        (s.muster[0].cap, s.muster[1].cap),
+        (s.roster.muster[0].cap, s.roster.muster[1].cap),
         (50, 55),
         "Great Sahara's 55: 50 x 110 / 100"
     );
     s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
     s.recompute_pop_caps();
-    assert_eq!(s.muster[1].cap, 50, "no other rare moves it");
+    assert_eq!(s.roster.muster[1].cap, 50, "no other rare moves it");
 }
 
 /// **And the mask's own change recomputes it** — `calc_gather`'s
@@ -872,7 +872,7 @@ fn peacocks_raise_the_owner_s_pop_cap_by_a_tenth() {
 #[test]
 fn the_rare_mask_s_change_recomputes_the_pop_cap() {
     let (mut s, _) = sea_sim();
-    for m in &mut s.muster {
+    for m in &mut s.roster.muster {
         m.military_level = 1;
     }
     s.recompute_pop_caps();
@@ -883,12 +883,15 @@ fn the_rare_mask_s_change_recomputes_the_pop_cap() {
     assert!(!s.holdings_due(1, s.frame), "the walk does not rebuild it");
     s.tick();
     assert_eq!(s.ledgers[1].rare, bit);
-    assert_eq!(s.muster[1].cap, 55, "the bit arrived and the cap moved");
+    assert_eq!(
+        s.roster.muster[1].cap, 55,
+        "the bit arrived and the cap moved"
+    );
     s.holdings[1].rare_owned = 0;
     s.ledgers[1].dirty = false;
     s.ledgers[1].gather_stamp = s.frame;
     s.tick();
-    assert_eq!(s.muster[1].cap, 50, "and it goes when the bit goes");
+    assert_eq!(s.roster.muster[1].cap, 50, "and it goes when the bit goes");
 }
 
 /// The truncation is the original's: `38 × 120 / 100` is **45**, which

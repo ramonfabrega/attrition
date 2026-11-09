@@ -280,7 +280,8 @@ impl Sim {
             |s, g, t| s.units[i].guys[g].aim = t,
             |s| {
                 s.units[i].ty.is_some_and(|ty| {
-                    s.art
+                    s.roster
+                        .art
                         .pivots
                         .get(&s.tables.unit_types[ty].type_index)
                         .is_some_and(|nodes| !nodes.is_empty())
@@ -335,6 +336,7 @@ impl Sim {
             return false;
         };
         let Some(nodes) = self
+            .roster
             .art
             .pivots
             .get(&self.tables.unit_types[ty].type_index)
@@ -521,7 +523,7 @@ impl Sim {
         self.units[u]
             .guys
             .first()
-            .is_some_and(|g| self.art.releases.contains_key(&g.gpiece))
+            .is_some_and(|g| self.roster.art.releases.contains_key(&g.gpiece))
     }
 
     /// **A strafer's landing walks with its gun** (`Ammo::init`,

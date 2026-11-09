@@ -159,7 +159,7 @@ impl Sim {
                 let gem = 1u64 << (economy::GEMS - economy::BASE_RARE);
                 let gems_moved = (self.ledgers[who].rare ^ rare) & gem != 0;
                 self.ledgers[who].rare = rare;
-                self.unit_stats_dirty[who] = true;
+                self.roster.unit_stats_dirty[who] = true;
                 self.wall_stats_dirty[who] = true;
                 if gems_moved {
                     self.sync_territory();
@@ -182,8 +182,8 @@ impl Sim {
             // `Objects::process_all`, so the new speed is the one the
             // frame's own step uses (`docs/ECONOMY.md`, "What an owned
             // rare does").
-            if self.unit_stats_dirty[who] {
-                self.unit_stats_dirty[who] = false;
+            if self.roster.unit_stats_dirty[who] {
+                self.roster.unit_stats_dirty[who] = false;
                 self.calc_unit_stats(player);
             }
             // `Leader::process`'s victory clocks, after the stats: a
@@ -290,7 +290,7 @@ impl Sim {
         // so the mark alone would leave it unwalked.
         let mut bound = [0i16; 10];
         for (w, b) in bound.iter_mut().enumerate() {
-            *b = self.marks[w].unit;
+            *b = self.roster.marks[w].unit;
         }
         // A dead slot's occupant: `process_all`'s other arm, `hold_frames`
         // down by one (`docs/COMBAT.md` §59). The latest unit numbered `o`
@@ -343,7 +343,7 @@ impl Sim {
                     }
                     seen = self.units.len();
                 }
-                bound[w] = bound[w].max(self.marks[w].unit);
+                bound[w] = bound[w].max(self.roster.marks[w].unit);
                 o += 1;
             }
         }

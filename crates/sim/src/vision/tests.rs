@@ -79,7 +79,7 @@ fn a_unit_beside_its_own_ceo_sees_two_tiles_further() {
     h.type_index = 0x165;
     let h = s.add_unit(h);
     assert_eq!(s.unit_data_los(u), 8, "the muster counts no CEO");
-    s.muster[0].by_type[ceo] = 1;
+    s.roster.muster[0].by_type[ceo] = 1;
     assert_eq!(s.unit_data_los(u), 10, "beside the CEO");
     assert_eq!(s.seen_sweep(u, false).map(|w| w.radius), Some(5));
     let far = s.hero_radius(h) * 0xc0 + 0x300;
@@ -625,10 +625,10 @@ fn a_gained_tech_reaches_the_cache_at_the_next_leader_pass() {
     s.gain_tech(0, herbal);
     assert_eq!(s.unit_los(explorer), 8, "the derivation sees it at once");
     assert_eq!(s.units[explorer].mylos, 6, "the cache does not");
-    assert!(s.unit_stats_dirty[0], "the tail raised 0x4000000");
+    assert!(s.roster.unit_stats_dirty[0], "the tail raised 0x4000000");
     s.tick();
     assert_eq!(s.units[explorer].mylos, 8, "the next leader pass wrote it");
-    assert!(!s.unit_stats_dirty[0]);
+    assert!(!s.roster.unit_stats_dirty[0]);
 }
 
 /// §3: a small land unit sees from a half-cell in front of its nose,

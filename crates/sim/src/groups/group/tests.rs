@@ -486,7 +486,7 @@ fn a_bomber_releases_in_range_and_on_its_nose() {
         (crate::anim::SLOG, 31),
         (crate::anim::ATTACK2, 30),
     ] {
-        s.art.lengths.insert((-1, anim), len);
+        s.roster.art.lengths.insert((-1, anim), len);
     }
     let run = |s: &mut Sim, heading: Angle| {
         let u = bomber(s, Pos::new(21120 - 400, 16512), heading);
@@ -538,13 +538,13 @@ fn a_strafe_releases_a_bomb_that_falls_a_tile_ahead() {
         (crate::anim::SLOG, 31),
         (crate::anim::ATTACK2, 30),
     ] {
-        s.art.lengths.insert((-1, anim), len);
+        s.roster.art.lengths.insert((-1, anim), len);
     }
     let at = Pos::new(21120 - 400, 16512);
     let u = bomber(&mut s, at, Angle::EAST);
     s.units[u].airframe.z = 1632;
     let piece = s.units[u].guys[0].gpiece;
-    s.art.releases.insert(
+    s.roster.art.releases.insert(
         piece,
         [(
             crate::anim::ATTACK2,

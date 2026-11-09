@@ -645,11 +645,11 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // The animation art: the lengths a `DUMP_ALL` dump (or a sibling)
     // showed, and which types take gaia's three-piece rule.
     for &(p, a, e) in &init.anim_lengths {
-        sim.art.lengths.insert((p as i32, a as i8), e as u32);
+        sim.roster.art.lengths.insert((p as i32, a as i8), e as u32);
     }
     for t in 0x192..0x19e {
         if let Some(k) = loaded.unit_of_type_index(t) {
-            sim.art.gaia_types.insert(k);
+            sim.roster.art.gaia_types.insert(k);
         }
     }
     if !init.anim_lengths.is_empty() {
@@ -661,7 +661,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // And the gaia types' whole slot lists, from the install rather than
     // the dump — which is what gives a bird a length at all
     // (`crate::artdata`, `docs/SYNC.md` §3.9).
-    sim.art.gaia_lengths = loaded.gaia_lengths.clone();
+    sim.roster.art.gaia_lengths = loaded.gaia_lengths.clone();
     if !loaded.gaia_lengths.is_empty() {
         notes.push(format!(
             "anim: {} (type, variant, slot) gaia lengths from the install",
@@ -671,8 +671,8 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // And every player unit piece's whole slot list, from the same three
     // files — which is what stops an idle variant nothing has played from
     // being handed the default's length (`docs/ANIM.md` §3.2).
-    sim.art.piece_lengths = loaded.piece_lengths.clone();
-    sim.art.piece_skeletons = loaded.piece_skeletons.clone();
+    sim.roster.art.piece_lengths = loaded.piece_lengths.clone();
+    sim.roster.art.piece_skeletons = loaded.piece_skeletons.clone();
     if !loaded.piece_lengths.is_empty() {
         notes.push(format!(
             "anim: {} unit pieces' slot lists from the install",
@@ -693,15 +693,15 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // And every piece's crew-follow offset, from the same file — which is
     // what gives a scout's dog a body of its own instead of the man's
     // (`docs/MOVEMENT.md`, "The follower's destination").
-    sim.art.tracks = loaded.piece_tracks.clone();
+    sim.roster.art.tracks = loaded.piece_tracks.clone();
     // And every piece's arrow-release frames, from the same file. This is
     // when a unit's shot comes into existence (`docs/COMBAT.md` §9.0) —
     // gameplay data the original's own simulation reads, resolved to
     // integer frames at load.
-    sim.art.releases = loaded.piece_releases.clone();
+    sim.roster.art.releases = loaded.piece_releases.clone();
     // And which types aim a pivot rather than turn to shoot
     // (`docs/COMBAT.md` §52).
-    sim.art.pivots = loaded.pivot_restrictions.clone();
+    sim.roster.art.pivots = loaded.pivot_restrictions.clone();
     // The generator's placed mountains, each laid out from its template
     // (`docs/AI.md` §60): what a mine's reach and its gather list are
     // measured on. A capture with neither a `DUMP_ALL` head nor such a
@@ -1023,12 +1023,13 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             // crate's is on either side.
             if let (Some(piece), Some(k)) = (g.gpiece, kind) {
                 let o = u.o as i16;
-                let sub = if sim.art.gaia_types.contains(&k) {
+                let sub = if sim.roster.art.gaia_types.contains(&k) {
                     (sim.game_seed.wrapping_add(i32::from(o))).rem_euclid(3) as u8
                 } else {
                     (o & 1) as u8
                 };
-                sim.art
+                sim.roster
+                    .art
                     .pieces
                     .insert((u.who as sim::Player, k, sub, n as u8), piece as i32);
             }
@@ -1065,7 +1066,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     if clocks > 0 {
         notes.push(format!(
             "anim: {clocks} guy clocks installed from the start dump, {} pieces known",
-            sim.art.pieces.len()
+            sim.roster.art.pieces.len()
         ));
     }
 
@@ -3263,7 +3264,7 @@ mod tests {
         // Every gaia piece the dump named, and every length it showed for
         // it, against the install's own row.
         let mut checked = Vec::new();
-        for (&(who, ty, sub, _), &piece) in &sim.art.pieces {
+        for (&(who, ty, sub, _), &piece) in &sim.roster.art.pieces {
             // Gaia is owners 8 and 9: the herds the map generator laid
             // down are 8 and the birds `Objects::process_all` hatches are
             // 9, which is why no dump has ever printed a bird.
@@ -3271,11 +3272,16 @@ mod tests {
                 continue;
             }
             let index = sim.tables.unit_types[ty].type_index;
-            for (&(p, slot), &n) in &sim.art.lengths {
+            for (&(p, slot), &n) in &sim.roster.art.lengths {
                 if p != piece {
                     continue;
                 }
-                let theirs = sim.art.gaia_lengths.get(&(index, sub, slot)).copied();
+                let theirs = sim
+                    .roster
+                    .art
+                    .gaia_lengths
+                    .get(&(index, sub, slot))
+                    .copied();
                 assert_eq!(
                     theirs,
                     Some(n),

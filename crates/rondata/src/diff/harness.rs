@@ -2768,7 +2768,7 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
         let head = if b.queue.items.is_empty() {
             String::new()
         } else {
-            let m = &built.sim.muster[b.owner as usize];
+            let m = &built.sim.roster.muster[b.owner as usize];
             format!(
                 " target{} cap{} control{} owned{}",
                 built.sim.queue_target(at, 0),

@@ -1988,7 +1988,7 @@ mod bodies {
                             .unit_types
                             .iter()
                             .position(|u| u.tree == Some(t))
-                            .map(|r| built.sim.muster[1].researched[r]),
+                            .map(|r| built.sim.roster.muster[1].researched[r]),
                     );
                     eprintln!(
                         "  price {n} 1/t{t} {}: {:?} affordable {} / {}",

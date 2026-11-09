@@ -609,7 +609,7 @@ fn city_ai_fixture() -> (Sim, usize, TypeId) {
     // population cap out of the way.
     sim.world
         .set_owner(Cell::new(8, 8), Owner::Player(1), Owner::Player(1));
-    sim.muster[1].cap = 200;
+    sim.roster.muster[1].cap = 200;
     sim.ai[1].sites[0] = Site {
         wx: 8,
         wy: 8,

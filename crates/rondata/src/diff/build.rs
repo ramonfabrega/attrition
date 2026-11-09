@@ -884,7 +884,7 @@ mod tests {
         // A spot clear of everything: `init_build` is the original's own
         // `Build::init`, which runs no placement test.
         let spot = |n: i32| Pos::new(4000 + n * 400, 4000);
-        let control = sim.muster[1].control;
+        let control = sim.roster.muster[1].control;
         let b = sim.init_build(1, barracks, spot(0), false);
         sim.activate(b, false, true);
 
@@ -907,8 +907,11 @@ mod tests {
         }
         // Only the head is counted: `Objects::init_unit` hands every unit
         // with an `o_up` straight back to `track_unit_type(·, −1, ·)`.
-        assert_eq!(sim.muster[1].by_type[bowmen], 1, "one unit, not three");
-        assert_eq!(sim.muster[1].control - control, pop);
+        assert_eq!(
+            sim.roster.muster[1].by_type[bowmen], 1,
+            "one unit, not three"
+        );
+        assert_eq!(sim.roster.muster[1].control - control, pop);
 
         // **Each** Barracks pays — the mark is a high-water mark, not a
         // first-one flag, so the second raises it to two and pays again.

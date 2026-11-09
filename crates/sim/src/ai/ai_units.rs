@@ -379,9 +379,9 @@ impl Sim {
             }
             if let Some(rec) = self.unit_record(u) {
                 n += if queued {
-                    self.muster[w].queued_by_type[rec]
+                    self.roster.muster[w].queued_by_type[rec]
                 } else {
-                    self.muster[w].by_type[rec]
+                    self.roster.muster[w].by_type[rec]
                 };
             }
         }
@@ -391,7 +391,7 @@ impl Sim {
     /// The raw `num_units[t]` and `num_queued[t]` — not the graft-aware
     /// `get_*`; the count cap and several branches read these.
     fn raw_counts(&self, who: Player, rec: usize) -> (i32, i32) {
-        let m = &self.muster[who as usize];
+        let m = &self.roster.muster[who as usize];
         (m.by_type[rec], m.queued_by_type[rec])
     }
 
@@ -625,7 +625,7 @@ impl Sim {
         self.ai[w].unit_offers.clear();
         self.ai[w].unit_offers_frame = self.frame;
         let d = self.ai_difficulty();
-        let pop_cap = self.muster[w].cap;
+        let pop_cap = self.roster.muster[w].cap;
         let army_target = (pop_cap - 40).max(pop_cap / 2);
         let mut mil_level = self.tech[w].epoch[tech::Line::Military.index()];
         let siege_cap_d = if d < 2 {
@@ -1563,7 +1563,7 @@ impl Sim {
             if self.ai[w].known_rares - queued_now - units_now <= 0 {
                 return None;
             }
-            if self.ai[w].effective_pop >= self.muster[w].cap - 1 {
+            if self.ai[w].effective_pop >= self.roster.muster[w].cap - 1 {
                 return None;
             }
             *escrow = 1;
@@ -1772,7 +1772,7 @@ impl Sim {
             );
         }
         let n = queued_now + units_now;
-        if n > self.muster[w].cap / 2 {
+        if n > self.roster.muster[w].cap / 2 {
             v /= 2;
         }
         if n > 40 {
@@ -1846,7 +1846,8 @@ impl Sim {
     /// not the leader's modified cap, and [`crate::Muster::limit`] is the
     /// same number.
     fn civilian_ceiling(&self, who: Player) -> i32 {
-        self.muster
+        self.roster
+            .muster
             .get(who as usize)
             .map_or(crate::DEFAULT_POP_LIMIT, |m| m.limit)
     }
@@ -1947,7 +1948,7 @@ impl Sim {
             for _ in 0..64 {
                 let Some(x) = p else { break };
                 if let Some(rec) = self.unit_record(x) {
-                    owned += self.muster[w].by_type[rec];
+                    owned += self.roster.muster[w].by_type[rec];
                 }
                 if self.type_avail(who, x) == tech::AVAILABLE {
                     avail = true;
@@ -2067,7 +2068,7 @@ impl Sim {
             if f.sea {
                 v = wm(v, wm(sea_map, sea_map));
             }
-            if self.ai[w].effective_pop > self.muster[w].cap - 4 {
+            if self.ai[w].effective_pop > self.roster.muster[w].cap - 4 {
                 v = wm(v, 2);
             }
             let aff = if self.type_affordable(who, t, true) >= 1 {
@@ -2403,7 +2404,7 @@ impl Sim {
                 if self.tables.unit_types[k].gaia {
                     break;
                 }
-                let n = self.muster[j].by_type[k];
+                let n = self.roster.muster[j].by_type[k];
                 if n == 0 {
                     continue;
                 }

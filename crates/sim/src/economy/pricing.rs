@@ -651,7 +651,8 @@ impl Sim {
                 if !hit {
                     continue;
                 }
-                let n = self.muster[w].queued_by_type[prec] + self.muster[w].by_type[prec];
+                let n = self.roster.muster[w].queued_by_type[prec]
+                    + self.roster.muster[w].by_type[prec];
                 if n == 0 {
                     continue;
                 }
@@ -789,7 +790,7 @@ impl Sim {
             let Some(pt) = p.tree.filter(|_| !p.gaia) else {
                 continue;
             };
-            if self.muster[w].queued_by_type[prec] == 0 {
+            if self.roster.muster[w].queued_by_type[prec] == 0 {
                 continue;
             }
             let mut hit = resolve(tree.types[pt].from) == Some(t);
@@ -823,7 +824,7 @@ impl Sim {
         ty: usize,
         m: &cost::Modifiers,
     ) -> [i32; economy::RESOURCES] {
-        let muster = &self.muster[who as usize];
+        let muster = &self.roster.muster[who as usize];
         let holdings = &self.holdings[who as usize];
         let unit = &self.tables.unit_types[ty];
         // Built *and* ordered. `LeaderData::get_support_count` sums
@@ -895,7 +896,7 @@ impl Sim {
         if ti >= 0x34 {
             return scholar_militia;
         }
-        let m = &self.muster[who as usize];
+        let m = &self.roster.muster[who as usize];
         let support = |t: usize| {
             self.tables
                 .unit_types

@@ -351,7 +351,7 @@ fn a_snap_to_the_point_already_held_still_seats_the_crew() {
     // One crew figure with a track offset, seated, and then dragged
     // away — a figure that is still walking after its leader.
     sim.units[a].guys = vec![crate::anim::Guy::fresh(1), crate::anim::Guy::fresh(2)];
-    sim.art.tracks.insert(2, (-48, -192));
+    sim.roster.art.tracks.insert(2, (-48, -192));
     sim.seat_guys(a);
     let seated = sim.units[a].guys[1].follow.expect("a tracked crew guy").des;
     let behind = Pos::new(seated.x - 300, seated.y - 300);
@@ -788,7 +788,7 @@ fn a_gaia_animal_blocks_a_player_s_walker_and_a_crew_pays_the_stand_twice() {
     // run85's 7448 the way round the animal test above is not.
     sim.units[y].owner = 8;
     for slot in 0..4 {
-        sim.art.lengths.insert((1, slot), 40);
+        sim.roster.art.lengths.insert((1, slot), 40);
     }
     // Two figures, the Merchant's shape: `UBER_SIZE 1, CREW_SIZE 1`.
     sim.units[x].guys = vec![crate::anim::Guy::fresh(1), crate::anim::Guy::fresh(1)];
@@ -921,7 +921,7 @@ fn a_blocked_snap_stands_and_eats_its_waypoint_without_resolving() {
     let b = Pos::new(32 * 0x30 + 0x18, 30 * 0x30 + 0x18);
     let (mut sim, x, y) = pair(a, b);
     for slot in 0..4 {
-        sim.art.lengths.insert((1, slot), 40);
+        sim.roster.art.lengths.insert((1, slot), 40);
     }
     sim.trace_phases = true;
     sim.units[x].movement.speed = 60;
@@ -2402,7 +2402,7 @@ fn a_refused_step_re_rolls_the_idle_before_the_give_up_tests() {
     // A guy with a piece whose idle has a length, so the roll has
     // somewhere to land.
     for slot in 0..4 {
-        sim.art.lengths.insert((1, slot), 40);
+        sim.roster.art.lengths.insert((1, slot), 40);
     }
     sim.units[x].guys = vec![crate::anim::Guy::fresh(1)];
     sim.trace_phases = true;

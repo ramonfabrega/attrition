@@ -125,7 +125,7 @@ fn the_unpack_s_first_frame_seats_the_merchant_s_crew() {
     // A crew figure with a track offset, seated and then dragged
     // behind — the state the Merchant `1/24` is in when it arrives.
     s.units[u].guys = vec![crate::anim::Guy::fresh(1), crate::anim::Guy::fresh(2)];
-    s.art.tracks.insert(2, (-48, -192));
+    s.roster.art.tracks.insert(2, (-48, -192));
     s.seat_guys(u);
     let seated = s.units[u].guys[1].follow.expect("a tracked crew guy").des;
     s.units[u].guys[1].follow.as_mut().unwrap().body.pos = Pos::new(seated.x - 300, seated.y - 300);
@@ -680,8 +680,8 @@ fn a_trained_unit_s_tracked_crew_is_seated_at_birth() {
     // `piece_of` falls back to the dump-keyed table when the install's
     // is empty, so the fixture states guy 1's piece the way a dump
     // would, and gives that piece a track.
-    s.art.pieces.insert((1, t, 1, 1), 4242);
-    s.art.tracks.insert(4242, (-48, -192));
+    s.roster.art.pieces.insert((1, t, 1, 1), 4242);
+    s.roster.art.tracks.insert(4242, (-48, -192));
     let mut v = crate::Unit::new(1, 21, Pos::new(9000, 9000), 20);
     v.ty = Some(t);
     v.type_index = 0x3d;

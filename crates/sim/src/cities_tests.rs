@@ -2335,7 +2335,7 @@ fn the_president_near_a_trainer_halves_a_trained_unit_s_time() {
         },
         ..UnitType::default()
     });
-    sim.muster[0].researched[ty] = true;
+    sim.roster.muster[0].researched[ty] = true;
     let c = [0; crate::economy::RESOURCES];
     sim.buildings[b]
         .queue
@@ -2361,7 +2361,7 @@ fn the_president_near_a_trainer_halves_a_trained_unit_s_time() {
         "THEPRESIDENT_UNIT_BUILD_SPEED 100 %"
     );
     assert_eq!(sim.tables.tuning.thepresident_unit_build_speed, 100);
-    sim.muster[0].researched[ty] = false;
+    sim.roster.muster[0].researched[ty] = false;
     let research = sim.queue_target(b, 0);
     for u in sim.units.iter_mut().filter(|u| u.owner == 0) {
         u.pos = tile_pos(110, 110);
@@ -2993,7 +2993,7 @@ fn a_press_on_two_buildings_lays_one_entry_a_member_a_pass_from_the_least_queued
     let t = install_types(&mut sim);
     let _ = city_at(&mut sim, &t, 0, 32, 32);
     let ty = sim.add_unit_type(hoplite_type(t.barracks));
-    sim.muster[0].researched[ty] = true;
+    sim.roster.muster[0].researched[ty] = true;
     let busy = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
     let idle = sim.place_building(0, t.barracks, tile_pos(48, 40)).unwrap();
     finish(&mut sim, busy);
@@ -3632,20 +3632,23 @@ fn a_finished_colossus_raises_its_owner_s_pop_cap_and_its_loss_lowers_it() {
     col.tree = Some(line[tech::wonder::COLOSSUS]);
     let col = sim.add_build_type(col);
     let _ = city_at(&mut sim, &t, 0, 32, 32);
-    for m in &mut sim.muster {
+    for m in &mut sim.roster.muster {
         m.military_level = 3;
     }
     sim.recompute_pop_caps();
-    assert_eq!((sim.muster[0].cap, sim.muster[1].cap), (100, 100));
+    assert_eq!(
+        (sim.roster.muster[0].cap, sim.roster.muster[1].cap),
+        (100, 100)
+    );
     let w = sim.place_building(0, col, tile_pos(32, 25)).unwrap();
     finish(&mut sim, w);
     assert_eq!(
-        (sim.muster[0].cap, sim.muster[1].cap),
+        (sim.roster.muster[0].cap, sim.roster.muster[1].cap),
         (100 + sim.tables.tuning.colossus_pop_cap, 100),
         "the owner's alone, on activation"
     );
     sim.close_building(w, false);
-    assert_eq!(sim.muster[0].cap, 100, "and gone with the wonder");
+    assert_eq!(sim.roster.muster[0].cap, 100, "and gone with the wonder");
 }
 
 /// **A held Space Program halves an aircraft's time** (item 2526,
@@ -3689,7 +3692,7 @@ fn a_held_space_program_halves_an_aircraft_s_time() {
         };
         ut.combat.domain = domain;
         let ty = sim.add_unit_type(ut);
-        sim.muster[0].researched[ty] = true;
+        sim.roster.muster[0].researched[ty] = true;
         sim.buildings[b]
             .queue
             .items
@@ -3760,7 +3763,7 @@ fn a_held_kremlin_trains_a_spy_in_five_frames() {
             tree,
             ..UnitType::default()
         });
-        sim.muster[0].researched[ty] = true;
+        sim.roster.muster[0].researched[ty] = true;
         sim.buildings[b]
             .queue
             .items
@@ -5131,7 +5134,7 @@ fn object_numbers_are_per_player_and_a_dead_slot_is_reused() {
     assert_eq!(sim.buildings[farm2].index, 2001);
     let farm3 = sim.init_build(0, t.farm, tile_pos(28, 36), false);
     assert_eq!(sim.buildings[farm3].index, 2002);
-    assert_eq!(sim.marks[0].build, 2003);
+    assert_eq!(sim.roster.marks[0].build, 2003);
     assert_eq!(sim.building_by_o(0, 2001), Some(farm2));
     assert_eq!(sim.building_by_o(1, 2001), None);
 
@@ -5151,7 +5154,7 @@ fn object_numbers_are_per_player_and_a_dead_slot_is_reused() {
     let mut u = Unit::new(0, 7, tile_pos(30, 30), 40);
     u.ty = Some(citizen);
     sim.add_unit(u);
-    assert_eq!(sim.marks[0].unit, 8);
+    assert_eq!(sim.roster.marks[0].unit, 8);
     let u3 = sim.produce(0, citizen, tile_pos(32, 30)).unwrap();
     assert_eq!(sim.units[u3].index, 1);
 }
@@ -6026,7 +6029,7 @@ fn the_british_ship_bonus_is_a_third_off_the_clock() {
     // Train jobs, not research ones: the availability bit is what puts a
     // type on the national side of the tail's partition at all.
     for ty in [fisher, archer, aa] {
-        sim.muster[0].researched[ty] = true;
+        sim.roster.muster[0].researched[ty] = true;
     }
     // Each type is read on its own and put back: the target is recomputed
     // every frame, and the ramp has to see nothing of the type owned.
@@ -6121,8 +6124,8 @@ fn a_speed_upgrade_takes_a_tenth_per_level_off_its_own_ladder_only() {
     finish(&mut sim, b);
     let all = [citizen, rider, tank, boat, other];
     for ty in all {
-        sim.muster[0].researched[ty] = true;
-        sim.muster[0].by_type[ty] = 38;
+        sim.roster.muster[0].researched[ty] = true;
+        sim.roster.muster[0].by_type[ty] = 38;
     }
     let target = |sim: &mut Sim, ty: usize| {
         let slot = sim.queue_up(b, ty).expect("the barracks takes the order");
@@ -6157,7 +6160,7 @@ fn a_speed_upgrade_takes_a_tenth_per_level_off_its_own_ladder_only() {
     );
     // A research job — the availability bit clear — never reaches it: the
     // step sits inside the availability branch.
-    sim.muster[0].researched[citizen] = false;
+    sim.roster.muster[0].researched[citizen] = false;
     let held = target(&mut sim, citizen);
     for t in [herbal, medicine, forage] {
         sim.tech[0].tech[t] = false;
@@ -6331,11 +6334,11 @@ fn a_caravan_at_the_limit_is_held_and_the_merchant_behind_it_trains() {
         let _ = city_at(&mut sim, &t, 0, 32, 32);
         let m = sim.init_build(0, t.market, tile_pos(38, 32), false);
         finish(&mut sim, m);
-        sim.muster[0].cap = 1000;
-        sim.muster[0].by_type[caravan] = owned;
+        sim.roster.muster[0].cap = 1000;
+        sim.roster.muster[0].by_type[caravan] = owned;
         let c = [0; crate::economy::RESOURCES];
         for ty in [caravan, merchant] {
-            sim.muster[0].researched[ty] = true;
+            sim.roster.muster[0].researched[ty] = true;
             sim.buildings[m]
                 .queue
                 .items
@@ -6491,7 +6494,7 @@ fn a_terra_cotta_army_counts_its_clock_and_trains_a_soldier() {
         "and starts the clock again"
     );
     // A player at the cap is not trained for, but the clock still resets.
-    sim.muster[0].cap = sim.muster[0].control;
+    sim.roster.muster[0].cap = sim.roster.muster[0].control;
     sim.buildings[w].recharging = 1;
     sim.tick();
     assert_eq!(soldiers(&sim), 1, "no room, no soldier");
@@ -6542,14 +6545,17 @@ fn a_kremlin_trains_its_spy_on_the_first_slot_and_again_after_it_dies() {
     };
     assert_eq!(sim.buildings[w].recharging, 1, "activation starts it at 1");
     assert!(sim.tech[0].kremlin_spy_due, "and marks the spy due");
-    let control = sim.muster[0].control;
+    let control = sim.roster.muster[0].control;
     for _ in 0..16 {
         sim.tick();
     }
     let born = spies(&sim);
     assert_eq!(born.len(), 1, "the first slot trains a spy");
     assert!(sim.units[born[0]].kremlin_spy, "tagged 0x400");
-    assert_eq!(sim.muster[0].control, control, "outside the population");
+    assert_eq!(
+        sim.roster.muster[0].control, control,
+        "outside the population"
+    );
     assert_eq!(sim.buildings[w].recharging, 30, "KREMLIN_SPY");
     assert!(!sim.tech[0].kremlin_spy_due, "the flag clears");
     for _ in 0..60 {
@@ -8321,11 +8327,17 @@ fn a_decoy_s_type_change_is_no_count_of_its_leader_s() {
     let d = sim.init_unit(0, foot, tile_pos(30, 30));
     sim.track_unit_type(0, foot, -1);
     sim.units[d].decoy = true;
-    let before = (sim.muster[0].by_type[foot], sim.muster[0].by_type[militia]);
+    let before = (
+        sim.roster.muster[0].by_type[foot],
+        sim.roster.muster[0].by_type[militia],
+    );
     sim.unit_set_type(d, militia);
     assert_eq!(sim.units[d].ty, Some(militia));
     assert_eq!(
-        (sim.muster[0].by_type[foot], sim.muster[0].by_type[militia]),
+        (
+            sim.roster.muster[0].by_type[foot],
+            sim.roster.muster[0].by_type[militia]
+        ),
         before
     );
 }
@@ -9056,9 +9068,9 @@ fn a_citizen_is_ramped_by_the_militia_too() {
     let scholar = ty(&mut sim, 0x34);
     let militia = ty(&mut sim, 0x42);
     let hoplite = ty(&mut sim, 0x52);
-    sim.muster[1].by_type[citizen] = 25;
-    sim.muster[1].queued_by_type[citizen] = 6;
-    sim.muster[1].queued_by_type[militia] = 1;
+    sim.roster.muster[1].by_type[citizen] = 25;
+    sim.roster.muster[1].queued_by_type[citizen] = 6;
+    sim.roster.muster[1].queued_by_type[militia] = 1;
     assert_eq!(sim.worker_support(1, citizen), 1, "the queued Militia");
     assert_eq!(sim.worker_support(1, scholar), 0);
     assert_eq!(sim.worker_support(1, hoplite), 0, "no other line");
@@ -9070,7 +9082,7 @@ fn a_citizen_is_ramped_by_the_militia_too() {
     u.type_index = 0x42;
     u.rare = 0x34;
     sim.add_unit(u);
-    sim.muster[1].by_type[militia] = 1;
+    sim.roster.muster[1].by_type[militia] = 1;
     assert_eq!(sim.worker_support(1, citizen), 1, "1 + 1 − 1");
     assert_eq!(sim.worker_support(1, scholar), 1);
 }
@@ -9105,7 +9117,7 @@ fn a_gained_militia_reaches_a_citizen_s_hits_at_the_next_leader_pass() {
     let u = sim.add_unit(u);
     sim.gain_tech(1, militia_id);
     assert_eq!(sim.units[u].max_health, 40, "not on the gain's own frame");
-    assert!(sim.unit_stats_dirty[1], "the tail raised 0x4000000");
+    assert!(sim.roster.unit_stats_dirty[1], "the tail raised 0x4000000");
     sim.tick();
     assert_eq!(sim.units[u].max_health, 50, "the next leader pass");
     assert_eq!(sim.units[u].health, 50);
@@ -9803,8 +9815,8 @@ fn finish_pays_the_queue_head_its_train_time() {
         hits: 40,
         ..UnitType::default()
     });
-    sim.muster[0].researched[ty] = true;
-    sim.muster[0].cap = 1000;
+    sim.roster.muster[0].researched[ty] = true;
+    sim.roster.muster[0].cap = 1000;
     let c = [0; crate::economy::RESOURCES];
     sim.buildings[b]
         .queue
@@ -9849,8 +9861,8 @@ fn finish_pays_the_entry_and_the_building_500000() {
         hits: 40,
         ..UnitType::default()
     });
-    sim.muster[0].researched[ty] = true;
-    sim.muster[0].cap = 1000;
+    sim.roster.muster[0].researched[ty] = true;
+    sim.roster.muster[0].cap = 1000;
     let c = [0; crate::economy::RESOURCES];
     sim.buildings[b]
         .queue
@@ -10445,8 +10457,8 @@ fn a_closing_first_library_hands_its_queue_to_the_next() {
     sim.buildings[first].queue.items.push(item);
     sim.tech[0].queued[tech] = 1;
     let units = sim.tables.unit_types.len();
-    sim.muster[0].queued_by_type.resize(units.max(1), 0);
-    sim.muster[0].queued_by_type[0] = 1;
+    sim.roster.muster[0].queued_by_type.resize(units.max(1), 0);
+    sim.roster.muster[0].queued_by_type[0] = 1;
 
     sim.close_building(first, false);
     assert_eq!(
@@ -10459,14 +10471,14 @@ fn a_closing_first_library_hands_its_queue_to_the_next() {
     assert_eq!(q.len(), 1, "the queue went to the next library");
     assert_eq!((q[0].tech, q[0].job_counter), (Some(tech), 700));
     assert_eq!(sim.tech[0].queued[tech], 1, "a hand-off moves no count");
-    assert_eq!(sim.muster[0].queued_by_type[0], 1);
+    assert_eq!(sim.roster.muster[0].queued_by_type[0], 1);
 
     // The last library closes: a refund, and the count comes off the
     // technology, never record 0.
     sim.close_building(next, false);
     assert_eq!(sim.first_library(0), None);
     assert_eq!(sim.tech[0].queued[tech], 0);
-    assert_eq!(sim.muster[0].queued_by_type[0], 1);
+    assert_eq!(sim.roster.muster[0].queued_by_type[0], 1);
 }
 
 /// **`ages_queued` and `epochs_queued` follow the queue** (item 3982,

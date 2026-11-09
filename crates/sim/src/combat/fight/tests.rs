@@ -73,14 +73,14 @@ fn a_unit_near_its_owner_s_ceo_reaches_two_tiles_further() {
     assert_eq!(range(&s), 3, "no hero");
     let hero = place(&mut s, 1, ceo, 9000 + 1920);
     assert_eq!(range(&s), 3, "a hero the leader does not count");
-    s.muster[1].by_type[ceo] = 1;
+    s.roster.muster[1].by_type[ceo] = 1;
     assert_eq!(s.hero_radius(hero), 10, "6 × 3 / 2 + 1");
     assert_eq!(range(&s), 5, "inside the radius");
     s.units[hero].pos.x += 1;
     assert_eq!(range(&s), 3, "one past it");
     s.units[hero].pos.x -= 1;
     s.units[hero].owner = 0;
-    s.muster[0].by_type[ceo] = 1;
+    s.roster.muster[0].by_type[ceo] = 1;
     assert_eq!(range(&s), 3, "another player's hero");
     s.units[hero].owner = 1;
     s.tables.unit_types[shooter].combat.siege = true;
@@ -680,7 +680,8 @@ fn a_pivot_that_bears_shoots_without_turning() {
         t.combat.max_range = 8;
         sim.add_unit_type(t)
     };
-    sim.art
+    sim.roster
+        .art
         .pivots
         .insert(CHARIOT, [(4, (-180, 180))].into_iter().collect());
     let here = Pos::new(984, 8136);
@@ -708,15 +709,18 @@ fn a_pivot_that_bears_shoots_without_turning() {
     // No `<RESTRICTION>`: the plain type turns at 37°.
     assert_ne!(shoot(&mut sim, ty, near).0, Angle(0x5555_5555));
     // A node that cannot reach 37°, plain and wrapped.
-    sim.art
+    sim.roster
+        .art
         .pivots
         .insert(CHARIOT, [(4, (-20, 20))].into_iter().collect());
     assert_ne!(shoot(&mut sim, chariot, near).0, Angle(0x5555_5555));
-    sim.art
+    sim.roster
+        .art
         .pivots
         .insert(CHARIOT, [(4, (45, -45))].into_iter().collect());
     assert_ne!(shoot(&mut sim, chariot, near).0, Angle(0x5555_5555));
-    sim.art
+    sim.roster
+        .art
         .pivots
         .insert(CHARIOT, [(4, (-45, -30))].into_iter().collect());
     assert_eq!(shoot(&mut sim, chariot, near).0, Angle(0x5555_5555));
@@ -744,7 +748,8 @@ fn a_pivot_bears_from_its_node() {
         t.combat.max_range = 8;
         sim.add_unit_type(t)
     };
-    sim.art
+    sim.roster
+        .art
         .pivots
         .insert(CHARIOT, [(4, (-180, 180))].into_iter().collect());
     let here = Pos::new(984, 8136);
@@ -5110,8 +5115,8 @@ fn a_squad_leaves_the_muster_with_its_last_figure() {
     };
     let count = |s: &Sim| {
         (
-            s.muster[0].by_type[ty],
-            s.muster[0].control,
+            s.roster.muster[0].by_type[ty],
+            s.roster.muster[0].control,
             s.ai[0].census.active,
         )
     };

@@ -873,7 +873,7 @@ fn income_buys_a_citizen_and_the_next_one_costs_more() {
     sim.produce(0, citizen, at)
         .expect("two hundred starting food buys one");
     assert_eq!(sim.ledgers[0].bucket[food], purse - 20);
-    assert_eq!(sim.muster[0].control, 1);
+    assert_eq!(sim.roster.muster[0].control, 1);
 
     // One owned, one food of ramp.
     assert_eq!(sim.price_of(0, citizen)[food], 21);
@@ -921,21 +921,21 @@ fn the_population_cap_refuses_before_the_price_does() {
 
     // A player with no Military tech is capped at twenty-five, and a citizen
     // is one pop.
-    assert_eq!(sim.muster[0].cap, 25);
+    assert_eq!(sim.roster.muster[0].cap, 25);
     sim.ledgers[0].bucket[food] = 100_000;
     for _ in 0..25 {
         sim.produce(0, citizen, at).expect("under the cap");
     }
-    assert_eq!(sim.muster[0].control, 25);
+    assert_eq!(sim.roster.muster[0].control, 25);
 
     let purse = sim.ledgers[0].bucket[food];
     assert_eq!(sim.produce(0, citizen, at), Err(Refused::Population));
     assert_eq!(sim.ledgers[0].bucket[food], purse, "refused, not charged");
 
     // The Art of War raises the cap, and the same order goes through.
-    sim.muster[0].military_level = 1;
+    sim.roster.muster[0].military_level = 1;
     sim.recompute_pop_caps();
-    assert_eq!(sim.muster[0].cap, 50);
+    assert_eq!(sim.roster.muster[0].cap, 50);
     sim.produce(0, citizen, at)
         .expect("room once the Military line has one tech in it");
 }
@@ -1018,15 +1018,15 @@ fn a_queued_citizen_is_paid_for_up_front_and_arrives_on_time() {
     // expected a unit here; the second reading corrected it — see
     // `docs/PRODUCTION.md`, "Completion".)
     let mut frames = 0;
-    while !sim.muster[0].researched[citizen] {
+    while !sim.roster.muster[0].researched[citizen] {
         sim.tick();
         frames += 1;
         assert!(frames < 1000, "the queue should have completed by now");
     }
     assert_eq!(frames, 101);
     assert!(sim.units.is_empty(), "research trains nothing");
-    assert_eq!(sim.muster[0].control, 0);
-    assert_eq!(sim.muster[0].by_type[citizen], 0);
+    assert_eq!(sim.roster.muster[0].control, 0);
+    assert_eq!(sim.roster.muster[0].by_type[citizen], 0);
     assert!(sim.buildings[hall].queue.items.is_empty());
 
     // The second order is the first *train* job: the ordinary time stretched
@@ -1040,7 +1040,7 @@ fn a_queued_citizen_is_paid_for_up_front_and_arrives_on_time() {
         assert!(frames < 1000, "the queue should have delivered by now");
     }
     assert_eq!(frames, 61);
-    assert_eq!(sim.muster[0].control, 1);
+    assert_eq!(sim.roster.muster[0].control, 1);
 
     // The third pays one ramp step for the one already standing.
     sim.queue_up(hall, citizen).unwrap();
@@ -1071,7 +1071,7 @@ fn the_first_of_a_type_is_researched_and_trains_nothing() {
     for _ in 0..100 {
         sim.tick();
     }
-    assert!(!sim.muster[0].researched[citizen]);
+    assert!(!sim.roster.muster[0].researched[citizen]);
     assert_eq!(sim.buildings[hall].queue.items.len(), 2);
     assert_eq!(
         sim.buildings[hall].queue.items[1].job_counter, 0,
@@ -1079,10 +1079,13 @@ fn the_first_of_a_type_is_researched_and_trains_nothing() {
     );
 
     sim.tick();
-    assert!(sim.muster[0].researched[citizen], "frame 101: the bit");
+    assert!(
+        sim.roster.muster[0].researched[citizen],
+        "frame 101: the bit"
+    );
     assert!(sim.units.is_empty(), "and no unit");
-    assert_eq!(sim.muster[0].control, 0);
-    assert_eq!(sim.muster[0].queued_by_type[citizen], 1);
+    assert_eq!(sim.roster.muster[0].control, 0);
+    assert_eq!(sim.roster.muster[0].queued_by_type[citizen], 1);
     assert_eq!(sim.buildings[hall].queue.items.len(), 1);
     assert_eq!(sim.buildings[hall].queue.items[0].job_counter, 0);
 
@@ -1093,8 +1096,8 @@ fn the_first_of_a_type_is_researched_and_trains_nothing() {
         assert!(frames < 1000);
     }
     assert_eq!(frames, 162);
-    assert_eq!(sim.muster[0].control, 1);
-    assert_eq!(sim.muster[0].queued_by_type[citizen], 0);
+    assert_eq!(sim.roster.muster[0].control, 1);
+    assert_eq!(sim.roster.muster[0].queued_by_type[citizen], 0);
 }
 
 #[test]
@@ -1113,8 +1116,8 @@ fn only_the_first_library_fans_out() {
     let other = sim.add_unit_type(citizen_type());
     let food = economy::Resource::Food.index();
     sim.ledgers[0].bucket[food] = 100_000;
-    sim.muster[0].library_cities = 4;
-    sim.muster[0].researched[citizen] = true;
+    sim.roster.muster[0].library_cities = 4;
+    sim.roster.muster[0].researched[citizen] = true;
 
     let hall = sim.add_building(0, centre_of(Cell::new(2, 0)), 8);
     let library = sim.add_library(0, centre_of(Cell::new(3, 0)), 8);
@@ -1152,7 +1155,7 @@ fn only_the_first_library_fans_out() {
     assert_eq!(counters(&sim, library), [1000, 1000]);
 
     // One library city, and the same library advances one slot.
-    sim.muster[0].library_cities = 1;
+    sim.roster.muster[0].library_cities = 1;
     for _ in 0..10 {
         sim.tick();
     }
@@ -1176,8 +1179,8 @@ fn a_stuck_head_lets_a_research_entry_behind_it_advance() {
 
     // At the Ancient cap of twenty-five, with the citizen already researched
     // and the other type not.
-    sim.muster[0].control = 25;
-    sim.muster[0].researched[citizen] = true;
+    sim.roster.muster[0].control = 25;
+    sim.roster.muster[0].researched[citizen] = true;
     sim.queue_up(hall, citizen).unwrap();
     sim.queue_up(hall, citizen).unwrap();
     sim.queue_up(hall, other).unwrap();
@@ -1203,13 +1206,16 @@ fn a_stuck_head_lets_a_research_entry_behind_it_advance() {
     for _ in 0..100 {
         sim.tick();
     }
-    assert!(sim.muster[0].researched[other], "the research got through");
+    assert!(
+        sim.roster.muster[0].researched[other],
+        "the research got through"
+    );
     assert!(sim.units.is_empty(), "and the cap still holds");
     assert_eq!(sim.buildings[hall].queue.items.len(), 2);
     assert_eq!(sim.buildings[hall].queue.items[1].job_counter, 0);
 
     // Room appears and the head is handed over at once.
-    sim.muster[0].military_level = 1;
+    sim.roster.muster[0].military_level = 1;
     sim.recompute_pop_caps();
     sim.tick();
     assert_eq!(sim.units.len(), 1);
@@ -1227,8 +1233,8 @@ fn the_population_cap_stalls_a_queue_at_full_progress() {
     sim.ledgers[0].bucket[food] = 100_000;
 
     // Fill the Ancient cap of twenty-five, then order one more anyway.
-    sim.muster[0].control = 25;
-    sim.muster[0].researched[citizen] = true;
+    sim.roster.muster[0].control = 25;
+    sim.roster.muster[0].researched[citizen] = true;
     sim.queue_up(hall, citizen)
         .expect("the cap does not gate a queue");
 
@@ -1241,7 +1247,7 @@ fn the_population_cap_stalls_a_queue_at_full_progress() {
 
     // A Military tech raises the cap and the stalled item is handed over at
     // once.
-    sim.muster[0].military_level = 1;
+    sim.roster.muster[0].military_level = 1;
     sim.recompute_pop_caps();
     sim.tick();
     assert_eq!(sim.units.len(), 1);
@@ -1425,13 +1431,13 @@ fn an_age_that_crosses_a_bracket_re_pieces_the_figures_and_keeps_their_turn_bit(
     });
     let old = t - 0x32;
     let new = old + 0x840;
-    sim.art.piece_lengths.insert(
+    sim.roster.art.piece_lengths.insert(
         old,
         [(anim::DEFAULT, 31u32), (anim::WALK, 30)]
             .into_iter()
             .collect(),
     );
-    sim.art.piece_lengths.insert(
+    sim.roster.art.piece_lengths.insert(
         new,
         [
             (anim::DEFAULT, 31u32),
@@ -1576,15 +1582,18 @@ fn an_upgraded_unit_s_crew_is_fresh_and_seated_on_the_new_pieces() {
     for (ty, base) in [(catapult, 100), (trebuchet, 200)] {
         for sub in 0..2 {
             for n in 0..4u8 {
-                sim.art.pieces.insert((0, ty, sub, n), base + i32::from(n));
+                sim.roster
+                    .art
+                    .pieces
+                    .insert((0, ty, sub, n), base + i32::from(n));
             }
         }
     }
     // The Catapult's crew walks on tracks; the Trebuchet's first two
     // figures have none, and its third one does.
-    sim.art.tracks.insert(101, (-120, 0));
-    sim.art.tracks.insert(102, (72, 216));
-    sim.art.tracks.insert(203, (-96, 48));
+    sim.roster.art.tracks.insert(101, (-120, 0));
+    sim.roster.art.tracks.insert(102, (72, 216));
+    sim.roster.art.tracks.insert(203, (-96, 48));
     let a = sim.init_unit(0, catapult, centre_of(Cell::new(5, 0)));
     assert!(
         sim.units[a].guys[1].follow.is_some() && sim.units[a].guys[2].follow.is_some(),
@@ -1790,7 +1799,7 @@ fn a_gained_unit_type_converts_the_line_below_it_and_carries_the_damage() {
     let b = sim.init_unit(0, hoplites, centre_of(Cell::new(4, 3)));
     // One of them is hurt; the other is not.
     sim.units[b].health -= 9;
-    let before = sim.muster[0].by_type[hoplites];
+    let before = sim.roster.muster[0].by_type[hoplites];
     assert_eq!(sim.units[a].ty, Some(hoplites));
 
     sim.trace_phases = true;
@@ -1806,8 +1815,8 @@ fn a_gained_unit_type_converts_the_line_below_it_and_carries_the_damage() {
     assert_eq!(sim.units[a].health, 60, "undamaged stays undamaged");
     assert_eq!(sim.units[b].health, 51, "and nine points of damage carry");
     // The counters moved from one type to the other.
-    assert_eq!(sim.muster[0].by_type[hoplites], before - 2);
-    assert_eq!(sim.muster[0].by_type[phalanx], 2);
+    assert_eq!(sim.roster.muster[0].by_type[hoplites], before - 2);
+    assert_eq!(sim.roster.muster[0].by_type[phalanx], 2);
     // One `Guy::init_real` draw per figure of each converted unit, and the
     // clock is back to zero so the next `inc_time` wraps.
     let figures: usize = [a, b].iter().map(|&u| sim.units[u].guys.len()).sum();
@@ -1890,7 +1899,7 @@ fn a_gained_unit_type_retargets_the_queued_entries_of_its_line() {
     paid[economy::Resource::Timber.index()] = 46;
     for ty in [javelins, slingers, bowmen] {
         sim.buildings[b].queue.push(ty, &paid);
-        sim.muster[0].queued_by_type[ty] += 1;
+        sim.roster.muster[0].queued_by_type[ty] += 1;
     }
     sim.buildings[b].queue.items[1].job_counter = 3_000;
     let bucket = sim.ledgers[0].bucket;
@@ -1904,26 +1913,26 @@ fn a_gained_unit_type_retargets_the_queued_entries_of_its_line() {
     assert_eq!(q[1].cost[..2], [46, 46], "its recorded price kept");
     assert_eq!(q[2].ty, bowmen, "outside the line: left");
     assert_eq!(sim.ledgers[0].bucket, bucket, "nothing paid or refunded");
-    assert_eq!(sim.muster[0].queued_by_type[slingers], 0);
-    assert_eq!(sim.muster[0].queued_by_type[javelins], 2);
+    assert_eq!(sim.roster.muster[0].queued_by_type[slingers], 0);
+    assert_eq!(sim.roster.muster[0].queued_by_type[javelins], 2);
 
     // A match by the `jump` chain: a Slingers entry when Elite Javelineers
     // arrive. The decrement names the walker — the new type — so the
     // Slingers' count is left where it was.
     sim.buildings[b].queue.push(slingers, &paid);
-    sim.muster[0].queued_by_type[slingers] += 1;
+    sim.roster.muster[0].queued_by_type[slingers] += 1;
     sim.gain_tech(0, elite_t);
     let q = &sim.buildings[b].queue.items;
     assert!(q.iter().filter(|i| i.ty != bowmen).all(|i| i.ty == elite));
     assert_eq!(
-        sim.muster[0].queued_by_type[slingers], 1,
+        sim.roster.muster[0].queued_by_type[slingers], 1,
         "the jump match decrements the new type, not the entry's"
     );
     assert_eq!(
-        sim.muster[0].queued_by_type[elite], 2,
+        sim.roster.muster[0].queued_by_type[elite], 2,
         "the two Javelineers by `from`, and the jump match's -1 and +1 both on itself"
     );
-    assert_eq!(sim.muster[0].queued_by_type[javelins], 0);
+    assert_eq!(sim.roster.muster[0].queued_by_type[javelins], 0);
 }
 
 /// **A research's finish gains before it unqueues** (`docs/TECH.md`, "The
@@ -1993,10 +2002,10 @@ fn a_unit_research_gains_before_it_unqueues_and_no_count_goes_below_zero() {
     paid[economy::Resource::Food.index()] = 46;
     for ty in [elite, slingers] {
         sim.buildings[b].queue.push(ty, &paid);
-        sim.muster[0].queued_by_type[ty] += 1;
+        sim.roster.muster[0].queued_by_type[ty] += 1;
         sim.track_queued_for_test(0, ty, 1);
     }
-    sim.muster[0].researched[elite] = false;
+    sim.roster.muster[0].researched[elite] = false;
 
     let mut guard = 0;
     while !matches!(sim.advance_slot(b, 0), Advanced::Researched) {
@@ -2008,30 +2017,30 @@ fn a_unit_research_gains_before_it_unqueues_and_no_count_goes_below_zero() {
     assert_eq!(q.len(), 1, "the research entry is gone");
     assert_eq!(q[0].ty, elite, "the Slingers entry is re-targeted");
     assert_eq!(
-        sim.muster[0].queued_by_type[elite], 0,
+        sim.roster.muster[0].queued_by_type[elite], 0,
         "the gain's -1 took the research's own count before the unqueue"
     );
     assert_eq!(
-        sim.muster[0].queued_by_type[slingers], 1,
+        sim.roster.muster[0].queued_by_type[slingers], 1,
         "the jump match leaves the Slingers' count one high"
     );
     assert_eq!(
-        sim.muster[0].queued_by_group[0], 1,
+        sim.roster.muster[0].queued_by_group[0], 1,
         "the group: two queued, the gain's -1 and +1, the unqueue's -1"
     );
 
     sim.cancel(b, 0).expect("the entry is there");
     assert_eq!(
-        sim.muster[0].queued_by_type[elite], 0,
+        sim.roster.muster[0].queued_by_type[elite], 0,
         "an unqueue never takes a count below zero"
     );
     assert_eq!(
-        sim.muster[0].queued_by_group[0], 0,
+        sim.roster.muster[0].queued_by_group[0], 0,
         "the group's tally: 1 → 0"
     );
     sim.untrack_queued(0, elite);
     assert_eq!(
-        sim.muster[0].queued_by_group[0], 0,
+        sim.roster.muster[0].queued_by_group[0], 0,
         "nor the group's: `barracks_queued` comes off only when it is not zero"
     );
 }
@@ -2084,20 +2093,23 @@ fn the_tree_gates_the_queue_and_research_cascades_through_it() {
     let hall = sim.add_building(0, centre_of(Cell::new(2, 0)), 8);
 
     // The free unit is owned from the start; the upgrade is not for sale.
-    assert!(sim.muster[0].researched[hoplites]);
-    assert!(!sim.muster[0].researched[phalanx]);
+    assert!(sim.roster.muster[0].researched[hoplites]);
+    assert!(!sim.roster.muster[0].researched[phalanx]);
     assert_eq!(
         sim.queue_up(hall, phalanx),
         Err(production::QueueFail::CantTrain)
     );
-    let cap_before = sim.muster[0].cap;
+    let cap_before = sim.roster.muster[0].cap;
 
     // Two library techs, then the age. The Military one moves the cap.
     sim.gain_tech(0, written_word);
     let events = sim.gain_tech(0, art_of_war);
     assert!(events.contains(&Gained::MilitaryEpoch));
-    assert_eq!(sim.muster[0].military_level, 1);
-    assert!(sim.muster[0].cap > cap_before, "POP_CAP[1] > POP_CAP[0]");
+    assert_eq!(sim.roster.muster[0].military_level, 1);
+    assert!(
+        sim.roster.muster[0].cap > cap_before,
+        "POP_CAP[1] > POP_CAP[0]"
+    );
     assert_eq!(sim.type_avail(0, phalanx_t), tech::NOT_AVAILABLE);
     let events = sim.gain_tech(0, classical);
     assert_eq!(events, vec![Gained::Type(classical)]);
@@ -2109,7 +2121,7 @@ fn the_tree_gates_the_queue_and_research_cascades_through_it() {
     sim.queue_up(hall, phalanx).expect("researchable");
     assert_eq!(sim.tech[0].queued[phalanx_t], 1);
     let mut frames = 0;
-    while !sim.muster[0].researched[phalanx] {
+    while !sim.roster.muster[0].researched[phalanx] {
         sim.tick();
         frames += 1;
         assert!(frames < 1000);
@@ -2136,7 +2148,7 @@ fn the_tree_gates_the_queue_and_research_cascades_through_it() {
         frames += 1;
         assert!(frames < 1000);
     }
-    assert_eq!(sim.muster[0].by_type[phalanx], 1);
+    assert_eq!(sim.roster.muster[0].by_type[phalanx], 1);
 }
 
 /// **A spent nuke makes the next missile dearer, and Uranium cheaper**
@@ -2741,8 +2753,8 @@ fn a_research_is_charged_for_the_army_it_refits() {
     let p = sim.price_of(0, new);
     assert_eq!((p[food], p[wealth]), (120, 60));
     // Three Spearmen and one ordered: food `d = 2`, wealth `d = 3 / 2 = 1`.
-    sim.muster[0].by_type[old] = 3;
-    sim.muster[0].queued_by_type[old] = 1;
+    sim.roster.muster[0].by_type[old] = 3;
+    sim.roster.muster[0].queued_by_type[old] = 1;
     let p = sim.price_of(0, new);
     assert_eq!((p[food], p[wealth]), (120 + 10 * 4 * 2, 60 + 10 * 4));
     // The old line unowned is priced by its research — unless it carries
@@ -2806,7 +2818,7 @@ fn a_unit_trained_while_its_upgrade_is_queued_pays_the_upgrade_s_base() {
     // The Bombard's research queued: the Trebuchet, its `FROM`, pays the
     // Bombard's food, and its own wealth — the difference never runs
     // negative.
-    sim.muster[0].queued_by_type[bomb] = 1;
+    sim.roster.muster[0].queued_by_type[bomb] = 1;
     assert_eq!(pair(sim.price_of(0, treb)), (80, 90), "the FROM arm");
     // The Catapult reaches the Bombard along its `JUMP` chain.
     assert_eq!(pair(sim.price_of(0, cat)), (80, 90), "the JUMP arm");
@@ -3941,7 +3953,7 @@ fn a_crew_guy_walks_on_after_its_unit_has_arrived() {
     u.guys = vec![anim::Guy::fresh(1), anim::Guy::fresh(2)];
     let unit = sim.add_unit(u);
     // A scout dog's pair, as `rondata::artdata::piece_tracks` reads it.
-    sim.art.tracks.insert(2, (-96, 48));
+    sim.roster.art.tracks.insert(2, (-96, 48));
     make_mobile(&mut sim, unit, movement::Angle::EAST);
     sim.seat_guys(unit);
     let seated = sim.units[unit].guys[1].follow.expect("the crew has a body");
@@ -4021,7 +4033,7 @@ fn a_guarding_computer_s_crew_steps_on_the_guard_s_speed() {
         let mut u = Unit::new(1, 2, Pos::new(4000, 400), 100);
         u.guys = vec![anim::Guy::fresh(1), anim::Guy::fresh(2)];
         let unit = sim.add_unit(u);
-        sim.art.tracks.insert(2, (96, 96));
+        sim.roster.art.tracks.insert(2, (96, 96));
         make_mobile(&mut sim, unit, movement::Angle::EAST);
         sim.units[unit].movement.speed = 42;
         sim.seat_guys(unit);
@@ -4073,7 +4085,7 @@ fn a_crew_figure_of_a_packing_type_pays_the_turning_stand() {
         u.ty = Some(ty);
         u.guys = vec![anim::Guy::fresh(1), anim::Guy::fresh(2)];
         let unit = sim.add_unit(u);
-        sim.art.tracks.insert(2, (-96, 48));
+        sim.roster.art.tracks.insert(2, (-96, 48));
         make_mobile(&mut sim, unit, movement::Angle::EAST);
         sim.seat_guys(unit);
 
@@ -4211,7 +4223,7 @@ fn a_tracked_crew_figure_between_untracked_ones_turns_in_its_slot() {
         anim::Guy::fresh(4),
     ];
     let unit = sim.add_unit(u);
-    sim.art.tracks.insert(3, (163, -24));
+    sim.roster.art.tracks.insert(3, (163, -24));
     make_mobile(&mut sim, unit, movement::Angle::EAST);
     sim.seat_guys(unit);
     assert!(sim.units[unit].guys[2].follow.is_some(), "guy 2 is tracked");
@@ -4274,7 +4286,7 @@ fn an_unpack_brings_the_units_angle_to_guy_zero_s_and_the_crew_with_it() {
         anim::Guy::fresh(4),
     ];
     let unit = sim.add_unit(u);
-    sim.art.tracks.insert(3, (163, -24));
+    sim.roster.art.tracks.insert(3, (163, -24));
     make_mobile(&mut sim, unit, movement::Angle::EAST);
     sim.seat_guys(unit);
     sim.units[unit].combat.packed = true;
@@ -4532,7 +4544,7 @@ fn salmon_prices_a_sea_unit_and_maize_halves_the_ramp() {
     assert_eq!(sim.salmon_cost_discount(0, land), 0, "a land unit");
     assert_eq!(sim.salmon_cost_discount(1, sea), 0, "another player");
 
-    sim.muster[0].by_type[land] = 40;
+    sim.roster.muster[0].by_type[land] = 40;
     sim.ledgers[0].rare = 0;
     let plain = sim.price_of(0, land);
     sim.ledgers[0].rare = maize;

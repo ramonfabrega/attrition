@@ -500,7 +500,7 @@ fn a_patriot_repairs_its_leader_s_building_by_the_ground_under_it() {
     let (president, pt) = hero(&mut sim, 0x163);
     sim.units[president].pos.x += 40 * 192;
     let n = sim.tables.unit_types.len();
-    sim.muster[1].by_type.resize(n, 0);
+    sim.roster.muster[1].by_type.resize(n, 0);
     let cell = at.cell();
     let run = |sim: &mut crate::Sim, frame: i64, ground: Owner| {
         sim.world.set_owner(cell, ground, Owner::None);
@@ -512,7 +512,7 @@ fn a_patriot_repairs_its_leader_s_building_by_the_ground_under_it() {
     };
     let own = Owner::Player(1);
     assert_eq!(run(&mut sim, 13, own), (10, 5, 0), "no patriot counted");
-    sim.muster[1].by_type[st] = 1;
+    sim.roster.muster[1].by_type[st] = 1;
     assert_eq!(
         run(&mut sim, 13, own),
         (9, 0, 20),
@@ -529,7 +529,7 @@ fn a_patriot_repairs_its_leader_s_building_by_the_ground_under_it() {
         (10, 5, 0),
         "a Senator on an enemy's"
     );
-    sim.muster[1].by_type[pt] = 1;
+    sim.roster.muster[1].by_type[pt] = 1;
     sim.units[president].pos = at;
     assert_eq!(
         run(&mut sim, 33, Owner::None),

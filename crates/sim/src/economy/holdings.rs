@@ -322,7 +322,12 @@ impl Sim {
             .unit_types
             .iter()
             .position(|t| t.type_index == CEO)
-            .and_then(|r| self.muster.get(who as usize).and_then(|m| m.by_type.get(r)))
+            .and_then(|r| {
+                self.roster
+                    .muster
+                    .get(who as usize)
+                    .and_then(|m| m.by_type.get(r))
+            })
             .is_some_and(|&n| n != 0);
         if !counted {
             return None;
@@ -751,7 +756,7 @@ impl Sim {
                 self.tables.unit_types[t].combat.attack != 0
                     && self.trainer_ident(t) == Some(crate::build::Ident::Barracks)
             })
-            .map(|t| self.muster[w].by_type[t])
+            .map(|t| self.roster.muster[w].by_type[t])
             .sum()
     }
 
@@ -776,7 +781,7 @@ impl Sim {
         let c = &self.ai[w].census;
         let mut n = c.peasants + c.scouts - c.peasants_garr - c.stable_garr - c.scout_garr;
         for t in 0..self.tables.unit_types.len() {
-            let k = self.muster[w].by_type[t];
+            let k = self.roster.muster[w].by_type[t];
             if k != 0
                 && self.tables.unit_types[t].combat.attack != 0
                 && self.trainer_ident(t) == Some(crate::build::Ident::Stable)

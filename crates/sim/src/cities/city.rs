@@ -1052,7 +1052,7 @@ impl Sim {
     /// [`Sim::sync_leader_pop`], because the original updates the two
     /// together.
     pub fn sync_pop_cities(&mut self) {
-        for m in &mut self.muster {
+        for m in &mut self.roster.muster {
             m.bonuses.cities.clear();
         }
         for c in 0..self.cities.len() {
@@ -1065,7 +1065,7 @@ impl Sim {
                 _ => cost::CityLevel::Village,
             };
             let owner = self.cities[c].owner as usize;
-            self.muster[owner].bonuses.cities.push(level);
+            self.roster.muster[owner].bonuses.cities.push(level);
         }
         self.sync_leader_pop();
         self.recompute_pop_caps();
@@ -2311,7 +2311,7 @@ impl Sim {
             let who = self.buildings[home].owner;
             let q = &self.buildings[home].queue;
             let slot = if q.items[0].job_counter == target {
-                let researched = &self.muster[who as usize].researched;
+                let researched = &self.roster.muster[who as usize].researched;
                 q.next_research(|ty| !researched[ty]).unwrap_or(0)
             } else {
                 0
@@ -2422,7 +2422,7 @@ impl Sim {
         // `Leader::process`; any other building jumps past it to `00626f11`
         // (`docs/VISION.md` §2).
         if self.is_wonder_building(ty) {
-            self.unit_stats_dirty[who as usize] = true;
+            self.roster.unit_stats_dirty[who as usize] = true;
         }
         // `Build::activate@00623e20:1795`: a finished Colossus (`is(0x20f,
         // 0)`) recomputes its owner's cap, whose last term is
@@ -2801,7 +2801,7 @@ impl Sim {
             .ty
             .is_some_and(|t| self.is_wonder_building(t))
         {
-            self.unit_stats_dirty[who as usize] = true;
+            self.roster.unit_stats_dirty[who as usize] = true;
         }
         // `Build::close@00628980:326`–`328`: so does a Colossus closed.
         if self.buildings[b].ty.is_some_and(|t| self.is_colossus(t)) {

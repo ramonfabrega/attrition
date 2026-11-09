@@ -765,7 +765,12 @@ impl Sim {
             .unit_types
             .iter()
             .position(|t| t.type_index == ti)
-            .and_then(|r| self.muster.get(who as usize).and_then(|m| m.by_type.get(r)))
+            .and_then(|r| {
+                self.roster
+                    .muster
+                    .get(who as usize)
+                    .and_then(|m| m.by_type.get(r))
+            })
             .is_some_and(|&n| n != 0)
     }
 
@@ -1091,7 +1096,7 @@ impl Sim {
         // Gaia's animals carry population in some rows and hold no muster
         // here: this crate keeps one per player slot.
         let who = u.owner;
-        if (who as usize) < self.muster.len() && (who as usize) < self.ai.len() {
+        if (who as usize) < self.roster.muster.len() && (who as usize) < self.ai.len() {
             self.track_unit_type(who, ty, -1);
         }
     }
@@ -1436,13 +1441,13 @@ impl Sim {
         let anim = i8::try_from(cur_anim).ok()?;
         let sea = self.units[i].kind.domain == crate::attrition::Domain::Sea;
         let gpiece = self.units[i].guys[k].gpiece;
-        if gpiece < 0 || !self.art.piece_lengths.contains_key(&gpiece) {
+        if gpiece < 0 || !self.roster.art.piece_lengths.contains_key(&gpiece) {
             return None;
         }
         let frames = i64::from(self.slot_length(i, gpiece, anim)?);
         let fade = if sea {
             0
-        } else if self.art.piece_skeletons.contains(&gpiece) {
+        } else if self.roster.art.piece_skeletons.contains(&gpiece) {
             Self::CORPSE_FADE_END
         } else {
             Self::BODY_FADE_END

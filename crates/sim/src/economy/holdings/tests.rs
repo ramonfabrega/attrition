@@ -173,7 +173,7 @@ fn the_ceo_s_city_is_where_a_counted_on_map_hero_stands() {
     sim.units[h].type_index = 0x165;
     sim.units[h].on_map = true;
     assert_eq!(sim.ceo_city(0), None, "a hero the leader does not count");
-    sim.muster[0].by_type[ceo] = 1;
+    sim.roster.muster[0].by_type[ceo] = 1;
     assert_eq!(sim.ceo_city(0), Some(c));
     assert!(sim.city_holdings(c, Levels::BASE).ceo);
     sim.units[h].on_map = false;
@@ -182,7 +182,7 @@ fn the_ceo_s_city_is_where_a_counted_on_map_hero_stands() {
     sim.tables.unit_types[ceo].cols.unit_flags2 = 0;
     assert_eq!(sim.ceo_city(0), None, "not a hero");
     sim.tables.unit_types[ceo].cols.unit_flags2 = uflags2::FLAG2_GENERAL;
-    sim.muster[1].by_type[ceo] = 1;
+    sim.roster.muster[1].by_type[ceo] = 1;
     assert_eq!(sim.ceo_city(1), None, "another player's hero");
 }
 

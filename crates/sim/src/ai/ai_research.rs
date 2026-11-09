@@ -579,7 +579,9 @@ impl Sim {
                             age_ty,
                         );
                         if cat == 0 {
-                            if self.muster[w].cap.wrapping_mul(7) / 8 <= self.ai[w].effective_pop {
+                            if self.roster.muster[w].cap.wrapping_mul(7) / 8
+                                <= self.ai[w].effective_pop
+                            {
                                 n += 4;
                             }
                         } else if cat == 2 && over > 1 {
@@ -634,7 +636,7 @@ impl Sim {
         match cat {
             0 => {
                 val /= 10;
-                let cap = self.muster[w].cap;
+                let cap = self.roster.muster[w].cap;
                 if cap < 200 {
                     if cap.wrapping_mul(5) / 6 < self.ai[w].effective_pop {
                         val = mul(val, 20);

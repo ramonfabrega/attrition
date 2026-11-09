@@ -413,10 +413,10 @@ fn the_nuke_count_is_the_nuclear_missile_line() {
         })
     };
     let (n, i) = (rec(&mut sim, nuke), rec(&mut sim, icbm));
-    sim.muster[0].by_type[n] = 1;
-    sim.muster[0].queued_by_type[n] = 2;
-    sim.muster[0].by_type[i] = 5;
-    sim.muster[0].queued_by_type[i] = 7;
+    sim.roster.muster[0].by_type[n] = 1;
+    sim.roster.muster[0].queued_by_type[n] = 2;
+    sim.roster.muster[0].by_type[i] = 5;
+    sim.roster.muster[0].queued_by_type[i] = 7;
     assert_eq!(sim.get_nukes(0), 0, "without the tech");
     sim.tech[0].tech[nuke] = true;
     assert_eq!(sim.get_nukes(0), 3, "held and queued Nuclear Missiles");
@@ -424,9 +424,9 @@ fn the_nuke_count_is_the_nuclear_missile_line() {
     sim.territory.players = vec![Default::default(); 2];
     sim.defeated = vec![false; 2];
     sim.tech.push(sim.tech[0].clone());
-    sim.muster.push(sim.muster[0].clone());
-    sim.muster[1].by_type[n] = 4;
-    sim.muster[1].queued_by_type[n] = 0;
+    sim.roster.muster.push(sim.roster.muster[0].clone());
+    sim.roster.muster[1].by_type[n] = 4;
+    sim.roster.muster[1].queued_by_type[n] = 0;
     sim.tech[1].tech[nuke] = true;
     let (mine, most, vulnerable) = sim.nuke_standing(0);
     assert_eq!((mine, most, vulnerable), (3, 4, true));
@@ -588,7 +588,7 @@ fn barracks_sim(upgradeable: bool) -> (Sim, Barracks) {
         .city_ai
         .resize(sim.cities.len(), crate::ai::CityAi::default());
     sim.ai[0].mil_trainers = vec![b];
-    sim.muster[0].cap = 100;
+    sim.roster.muster[0].cap = 100;
     sim.ai[0].census.pop = 10;
     for l in &mut sim.ledgers {
         l.bucket = [10_000; RESOURCES];
@@ -752,7 +752,7 @@ fn an_upgrade_whose_predecessor_is_in_research_is_not_offered() {
         ty.tree = Some(t);
         sim.add_unit_type(ty);
     }
-    sim.muster[0].by_type[ids.rec] = 1;
+    sim.roster.muster[0].by_type[ids.rec] = 1;
     sim.lobby.difficulty = 5;
     let offered = |sim: &mut Sim| {
         sim.ai[0].make_list.clear();
@@ -855,16 +855,19 @@ fn a_batch_s_second_unit_pays_the_first_one_s_group_ramp_step() {
         first < second && second < third,
         "the queue is half the count: {first}, {second}, {third}"
     );
-    assert_eq!(sim.muster[0].queued_by_group[0], 2, "and it is the queue");
+    assert_eq!(
+        sim.roster.muster[0].queued_by_group[0], 2,
+        "and it is the queue"
+    );
 
     // And it comes back off. `Build::close`'s refund path is one of the
     // six that move `queued_by_type`, and every one of them moves this
     // beside it.
     let mut ledger = crate::economy::Ledger::default();
     sim.buildings[ids.b].queue.unqueue(0, false, &mut ledger);
-    sim.muster[0].queued_by_type[ids.rec] -= 1;
+    sim.roster.muster[0].queued_by_type[ids.rec] -= 1;
     sim.track_queued_for_test(0, ids.rec, -1);
-    assert_eq!(sim.muster[0].queued_by_group[0], 1);
+    assert_eq!(sim.roster.muster[0].queued_by_group[0], 1);
     assert_eq!(sim.price_of(0, ids.rec)[timber], second);
 }
 

@@ -175,7 +175,7 @@ impl Sim {
             return;
         }
         let unlimited = self.lobby.resources_unlimited();
-        self.ai[w].effective_pop = self.queued_units(who) + self.muster[w].control + 1;
+        self.ai[w].effective_pop = self.queued_units(who) + self.roster.muster[w].control + 1;
         self.ai[w].enter(unlimited);
         match self.ai[w].step {
             Step::Idle => {}

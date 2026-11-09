@@ -118,7 +118,12 @@ impl Sim {
             .unit_types
             .iter()
             .position(|u| u.type_index == t)
-            .and_then(|r| self.muster.get(who as usize).and_then(|m| m.by_type.get(r)))
+            .and_then(|r| {
+                self.roster
+                    .muster
+                    .get(who as usize)
+                    .and_then(|m| m.by_type.get(r))
+            })
             .copied()
             .unwrap_or(0)
     }

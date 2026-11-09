@@ -209,7 +209,7 @@ impl Host for ScriptHost<'_> {
                 .map_or(BAD, |w| int(self.sim.tech[w as usize].ages)),
             "population" => self
                 .leader(a(0))
-                .map_or(BAD, |w| int(self.sim.muster[w as usize].control)),
+                .map_or(BAD, |w| int(self.sim.roster.muster[w as usize].control)),
             "num_cities" => self
                 .leader_any(a(0))
                 .map_or(BAD, |w| int(self.sim.city_num(w))),
@@ -621,7 +621,7 @@ impl ScriptHost<'_> {
         if line {
             t = self.line_of(w, t);
         }
-        let m = &self.sim.muster[w as usize];
+        let m = &self.sim.roster.muster[w as usize];
         match self.class(t) {
             Class::Unit => match self.unit_record(t) {
                 Some(r) => int(m.by_type[r] + if queued { m.queued_by_type[r] } else { 0 }),
@@ -790,7 +790,7 @@ impl ScriptHost<'_> {
     /// One lap over the leader's unit numbers from `cursor + 1`, wrapping
     /// to 0.
     fn lap_units(&self, w: Player, cursor: i32) -> impl Iterator<Item = i16> + '_ {
-        let mark = i32::from(self.sim.marks[w as usize].unit);
+        let mark = i32::from(self.sim.roster.marks[w as usize].unit);
         let start = (cursor + 1).clamp(0, mark.max(0));
         (start..mark)
             .chain(0..start.min(mark))
@@ -801,7 +801,7 @@ impl ScriptHost<'_> {
     /// wrapping to 2000.
     fn lap_builds(&self, w: Player, cursor: i32) -> impl Iterator<Item = i16> + '_ {
         let base = i32::from(BUILD_BASE);
-        let mark = i32::from(self.sim.marks[w as usize].build);
+        let mark = i32::from(self.sim.roster.marks[w as usize].build);
         let start = (cursor + 1).clamp(base, mark.max(base));
         (start..mark)
             .chain(base..start.min(mark))
@@ -886,7 +886,7 @@ impl ScriptHost<'_> {
         } else {
             citizen
         };
-        let mark = i32::from(self.sim.marks[w as usize].unit);
+        let mark = i32::from(self.sim.roster.marks[w as usize].unit);
         let cursor =
             self.sim.script_env.find_counters[counter::FIND_IDLE_CITIZEN].clamp(0, mark.max(0));
         let found = self.lap_units(w, cursor).find(|&o| {

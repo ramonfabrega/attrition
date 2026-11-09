@@ -644,7 +644,7 @@ mod tests {
             let Some(init) = log.initial() else { continue };
             let built = build_sim(&loaded, &init, Tuning::RON);
             let sim = &built.sim;
-            for (&(who, _, _, guy), &piece) in &sim.art.pieces {
+            for (&(who, _, _, guy), &piece) in &sim.roster.art.pieces {
                 // Gaia is the other check's.
                 if who >= 8 {
                     continue;
@@ -653,7 +653,7 @@ mod tests {
                     .piece_lengths
                     .get(&piece)
                     .unwrap_or_else(|| panic!("{name}: no install entry for piece {piece}"));
-                for (&(p, slot), &n) in &sim.art.lengths {
+                for (&(p, slot), &n) in &sim.roster.art.lengths {
                     if p != piece {
                         continue;
                     }

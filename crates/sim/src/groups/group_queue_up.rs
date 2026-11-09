@@ -216,7 +216,7 @@ impl QueueUpView for SimQueueUp<'_> {
     }
     fn type_avail(&mut self, _ty: i32) -> bool {
         match self.what {
-            Queued::Unit(t) => self.sim.muster[self.who as usize].researched[t],
+            Queued::Unit(t) => self.sim.roster.muster[self.who as usize].researched[t],
             Queued::Tech(_) | Queued::Disband => false,
         }
     }

@@ -77,7 +77,7 @@ impl Sim {
         // A unit handed in with its number already chosen (the harness reads
         // `o` from the dump) moves the mark past it, so a unit allocated next
         // does not collide with one the original numbered higher.
-        let mark = &mut self.marks[owner].unit;
+        let mark = &mut self.roster.marks[owner].unit;
         *mark = (*mark).max(unit.index.saturating_add(1));
         self.units.push(unit);
         // `Unit::init`'s transport clause (`docs/TRANSPORT.md` §3.4).
@@ -169,9 +169,9 @@ impl Sim {
     pub fn find_free(&mut self, who: Player, base: i16, limit: i16) -> Option<i16> {
         let w = who as usize;
         let mark = if base == BUILD_BASE {
-            self.marks[w].build
+            self.roster.marks[w].build
         } else {
-            self.marks[w].unit
+            self.roster.marks[w].unit
         };
         // A number nothing carries is free; one an object holds is not.
         let mut free = vec![true; (mark - base).max(0) as usize];
@@ -208,9 +208,9 @@ impl Sim {
             free[(i - i32::from(base)) as usize]
         });
         if base == BUILD_BASE {
-            self.marks[w].build = m as i16;
+            self.roster.marks[w].build = m as i16;
         } else {
-            self.marks[w].unit = m as i16;
+            self.roster.marks[w].unit = m as i16;
         }
         (got >= 0).then_some(got as i16)
     }
@@ -273,7 +273,7 @@ impl Sim {
                 .table
                 .grown(self.tables.unit_types.len(), self.tables.build_types.len());
         }
-        for (who, m) in self.muster.iter_mut().enumerate() {
+        for (who, m) in self.roster.muster.iter_mut().enumerate() {
             m.by_type.push(0);
             m.queued_by_type.push(0);
             // A type in the tree starts with the tree's bit — a free unit
@@ -300,13 +300,13 @@ impl Sim {
     /// (`006dc490`'s last statement, item 3326, `docs/AI.md` §266).
     pub fn recompute_pop_caps(&mut self) {
         let peacocks = 1u64 << (economy::PEACOCKS - economy::BASE_RARE);
-        let colossus: Vec<bool> = (0..self.muster.len())
+        let colossus: Vec<bool> = (0..self.roster.muster.len())
             .map(|who| {
                 u8::try_from(who)
                     .is_ok_and(|p| self.wonders_held(p) & (1 << tech::wonder::COLOSSUS) != 0)
             })
             .collect();
-        for (who, m) in self.muster.iter_mut().enumerate() {
+        for (who, m) in self.roster.muster.iter_mut().enumerate() {
             m.bonuses.peacocks = self
                 .ledgers
                 .get(who)
@@ -676,7 +676,7 @@ impl Sim {
     pub fn track_unit_type(&mut self, who: Player, ty: usize, delta: i32) {
         let pop = self.tables.unit_types[ty].price.pop;
         let group = self.tables.unit_types[ty].group;
-        let muster = &mut self.muster[who as usize];
+        let muster = &mut self.roster.muster[who as usize];
         muster.by_type[ty] += delta;
         muster.control += pop * delta;
         if let Some(g) = group {

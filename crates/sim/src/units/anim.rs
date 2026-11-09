@@ -882,7 +882,7 @@ impl Sim {
                 style = 1;
             }
             if let Some(p) = stall_piece(build, bracket)
-                && self.art.piece_lengths.contains_key(&p)
+                && self.roster.art.piece_lengths.contains_key(&p)
             {
                 return Some(p);
             }
@@ -900,7 +900,7 @@ impl Sim {
                         + PIECES_PER_STYLE * style
                         + if gender { PIECES_PER_GENDER } else { 0 }
                 })
-                .find(|p| self.art.piece_lengths.contains_key(p))
+                .find(|p| self.roster.art.piece_lengths.contains_key(p))
         };
         let found = gender
             .then(|| walk(style, true).or_else(|| walk(0, true)))
@@ -928,14 +928,20 @@ impl Sim {
         guy_num: u8,
         packed: bool,
     ) -> Option<i32> {
-        if self.art.gaia_types.contains(&ty) {
+        if self.roster.art.gaia_types.contains(&ty) {
             let sub = (self.game_seed.wrapping_add(i32::from(o))).rem_euclid(3) as u8;
-            return self.art.pieces.get(&(who, ty, sub, guy_num)).copied();
+            return self
+                .roster
+                .art
+                .pieces
+                .get(&(who, ty, sub, guy_num))
+                .copied();
         }
-        if !self.art.piece_lengths.is_empty() {
+        if !self.roster.art.piece_lengths.is_empty() {
             return self.unit_gpiece(who, ty, o, guy_num, packed);
         }
-        self.art
+        self.roster
+            .art
             .pieces
             .get(&(who, ty, (o & 1) as u8, guy_num))
             .copied()
@@ -996,7 +1002,7 @@ impl Sim {
             if n == 0 {
                 continue;
             }
-            let track = self.art.tracks.get(&piece).copied();
+            let track = self.roster.art.tracks.get(&piece).copied();
             let guy = &mut self.units[u].guys[n];
             guy.follow = match (guy.follow, track) {
                 (Some(f), Some(track)) => Some(Follow { track, ..f }),
@@ -1033,19 +1039,20 @@ impl Sim {
     pub(crate) fn slot_length(&self, u: usize, gpiece: i32, anim: i8) -> Option<u32> {
         let ty = self.units[u].type_index;
         let v = self.gaia_variant(u);
-        if self.art.knows_gaia(ty, v) {
+        if self.roster.art.knows_gaia(ty, v) {
             return Some(
-                self.art
+                self.roster
+                    .art
                     .gaia_lengths
                     .get(&(ty, v, anim))
                     .copied()
                     .unwrap_or(MISSING),
             );
         }
-        if let Some(slots) = self.art.piece_lengths.get(&gpiece) {
+        if let Some(slots) = self.roster.art.piece_lengths.get(&gpiece) {
             return Some(slots.get(&anim).copied().unwrap_or(MISSING));
         }
-        self.art.length(gpiece, anim)
+        self.roster.art.length(gpiece, anim)
     }
 
     /// Whether the guy's **packet** names this slot at all —
@@ -1062,12 +1069,12 @@ impl Sim {
     pub(crate) fn packet_has(&self, u: usize, gpiece: i32, anim: i8) -> bool {
         let ty = self.units[u].type_index;
         let v = self.gaia_variant(u);
-        if self.art.knows_gaia(ty, v) {
-            return self.art.gaia_lengths.contains_key(&(ty, v, anim));
+        if self.roster.art.knows_gaia(ty, v) {
+            return self.roster.art.gaia_lengths.contains_key(&(ty, v, anim));
         }
-        match self.art.piece_lengths.get(&gpiece) {
+        match self.roster.art.piece_lengths.get(&gpiece) {
             Some(slots) => slots.contains_key(&anim),
-            None => self.art.length(gpiece, anim).is_some(),
+            None => self.roster.art.length(gpiece, anim).is_some(),
         }
     }
 
@@ -1994,7 +2001,7 @@ impl Sim {
     /// the original also refuses the event when the target's `uid` has
     /// changed under it; this crate tests that the target is still active.
     fn guy_release_events(&mut self, u: usize) {
-        if self.art.releases.is_empty() {
+        if self.roster.art.releases.is_empty() {
             return;
         }
         // **The target is the current order's** (§9.0's gate): an attack's
@@ -2057,6 +2064,7 @@ impl Sim {
         for g in 0..self.units[u].guys.len() {
             let guy = self.units[u].guys[g];
             let Some(times) = self
+                .roster
                 .art
                 .releases
                 .get(&guy.gpiece)
@@ -2092,7 +2100,12 @@ impl Sim {
                     let pivot = crate::pivot::release_node(guy.gpiece, guy.anim, start, node);
                     let pivots = self.units[u]
                         .ty
-                        .and_then(|ty| self.art.pivots.get(&self.tables.unit_types[ty].type_index))
+                        .and_then(|ty| {
+                            self.roster
+                                .art
+                                .pivots
+                                .get(&self.tables.unit_types[ty].type_index)
+                        })
                         .map_or(0, |n| n.len());
                     let k = (i32::from(node) & 3) as usize;
                     if k < pivots && guy.turret.node_flags & (1 << k) == 0 {
@@ -2752,7 +2765,7 @@ impl Sim {
         );
         for g in 1..self.units[u].guys.len() {
             let piece = self.units[u].guys[g].gpiece;
-            let track = self.art.tracks.get(&piece).copied();
+            let track = self.roster.art.tracks.get(&piece).copied();
             // `Guy::set_new_location@005d86f0` writes the guy's `x`/`y` and
             // `last_*`, never its `last_speed`/`avg_speed` (`+0x80`/`+0x84`):
             // a guy seated again keeps what it had (item 1164).

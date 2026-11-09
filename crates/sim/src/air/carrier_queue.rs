@@ -91,7 +91,7 @@ impl Sim {
             }
             crate::cost::pay(&charges, &mut self.ledgers[who as usize], &available, true);
             self.units[u].num_queued += 1;
-            self.muster[who as usize].queued_by_type[t] += 1;
+            self.roster.muster[who as usize].queued_by_type[t] += 1;
             self.track_tree_queued(who, t, 1);
             queued += 1;
         }
@@ -141,7 +141,7 @@ impl Sim {
         if self.units[u].queue_time < target {
             return;
         }
-        let muster = &self.muster[who as usize];
+        let muster = &self.roster.muster[who as usize];
         if muster.cap < self.tables.unit_types[t].price.pop + muster.control {
             self.units[u].queue_time -= accel;
             return;

@@ -1401,7 +1401,7 @@ fn a_closed_army_s_group_keeps_its_slot_its_list_and_its_pointers() {
 fn release_mustering_wants_five_and_the_city_count_before_the_thresholds() {
     let (mut sim, c) = sim_with_city();
     let s = sim.init_army(1, Some(c));
-    sim.muster[1].cap = 200;
+    sim.roster.muster[1].cap = 200;
     sim.armies[1].list[s].num_standard = 1;
     assert!(!sim.release_mustering(1, s));
     sim.armies[1].list[s].num_standard = 4;
@@ -1436,7 +1436,7 @@ fn release_mustering_s_rush_rule_reads_the_military_level_not_the_age() {
     let s = sim.init_army(1, Some(c));
     // Every threshold above the personality's is out of reach: `pop_cap
     // / 8 = 25 > 6`, `200 / 2 = 100 > 6`, difficulty 0 wants seven.
-    sim.muster[1].cap = 200;
+    sim.roster.muster[1].cap = 200;
     sim.armies[1].list[s].num_standard = 6;
     sim.ai[1].pers.rush = 1;
     sim.tech[1].ages = 1;
@@ -1461,7 +1461,7 @@ fn release_mustering_s_rush_rule_reads_the_military_level_not_the_age() {
 fn release_mustering_holds_the_army_through_the_peace() {
     let (mut sim, c) = sim_with_city();
     let s = sim.init_army(1, Some(c));
-    sim.muster[1].cap = 200;
+    sim.roster.muster[1].cap = 200;
     sim.armies[1].list[s].num_standard = 6;
     sim.ai[1].pers.rush = 1;
     sim.tech[1].epoch[crate::tech::Line::Military.index()] = 1;

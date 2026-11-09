@@ -149,7 +149,7 @@ impl Sim {
             ai.tech_frame = self.frame;
         }
         let slot = self.buildings[at].queue.push(ty, &charges);
-        self.muster[who as usize].queued_by_type[ty] += 1;
+        self.roster.muster[who as usize].queued_by_type[ty] += 1;
         self.track_tree_queued(who, ty, 1);
         // No `economy_changed` (item 1398, `docs/AI.md` §103): `Build::queue_up`
         // never raises `leader_flags & 0x2000000`.
@@ -811,7 +811,7 @@ impl Sim {
     /// President stands in reach (`president`). [`Sim::queue_target`]'s
     /// unit arm, and a carrier's plane's clock (item 3981).
     pub(crate) fn unit_train_target(&self, who: Player, ty: usize, president: bool) -> i32 {
-        let muster = &self.muster[who as usize];
+        let muster = &self.roster.muster[who as usize];
         let researched = muster.researched[ty];
         // **The Kremlin's Spy** (`train_time@006508c0:344`–`354`), the
         // train block's last step: a type of the Spy line (`is(0x3a, 1)`)
@@ -1276,7 +1276,7 @@ impl Sim {
                     .filter(|&c| self.count_buildings(c, build::Ident::Library, true) != 0)
                     .count();
                 let slots = production::parallel_slots(
-                    self.muster[who as usize].library_cities.max(cities),
+                    self.roster.muster[who as usize].library_cities.max(cities),
                     queued,
                 )
                 .max(1);
@@ -1321,7 +1321,7 @@ impl Sim {
                     // `CARA` (`0x3b`) itself — run834's Market `1/2019`
                     // trains the Merchant behind a Caravan the limit holds,
                     // from 2996.
-                    let researched = &self.muster[who as usize].researched;
+                    let researched = &self.roster.muster[who as usize].researched;
                     let mut next = self.buildings[at].queue.next_research(|ty| !researched[ty]);
                     if next.is_none()
                         && matches!(blocked, Advanced::Limited)
@@ -1383,7 +1383,7 @@ impl Sim {
             return Some((self.disband_time(at), accel));
         }
         let ty = item.ty;
-        let researched = self.muster[who as usize].researched[ty];
+        let researched = self.roster.muster[who as usize].researched[ty];
         // **A silo with a missile inside holds its clock**
         // (`Build::do_queue@0061e410`'s second early return, listing
         // `61e4b4`..`61e510`; `docs/PRODUCTION.md`, "The two early
@@ -1457,7 +1457,7 @@ impl Sim {
             return Advanced::Researched;
         }
         let ty = self.buildings[at].queue.items[slot].ty;
-        let researched = self.muster[who as usize].researched[ty];
+        let researched = self.roster.muster[who as usize].researched[ty];
         let done = production::advance(&mut self.buildings[at].queue.items[slot], target, accel);
         if !done {
             return Advanced::Pending;
@@ -1476,7 +1476,7 @@ impl Sim {
                 .tree
                 .is_some_and(|t| self.line_count(who, t, false) >= self.caravan_cap(who));
         let pad_full = researched && (caravan_full || self.airbase_pad_full(at, ty));
-        let muster = &self.muster[who as usize];
+        let muster = &self.roster.muster[who as usize];
         let pop = self.tables.unit_types[ty].price.pop;
         match production::finished(researched, muster.cap, muster.control, pop, pad_full) {
             production::Handover::Population => Advanced::Blocked,
@@ -1496,7 +1496,7 @@ impl Sim {
                 // Hoplites entry behind it (a `jump` match), and who=1's
                 // `num_queued[84]` stands at 0 with the re-targeted entry
                 // in the queue.
-                self.muster[who as usize].researched[ty] = true;
+                self.roster.muster[who as usize].researched[ty] = true;
                 if let Some(id) = self.tables.unit_types[ty].tree {
                     self.gain_tech(who, id);
                 }
@@ -1905,7 +1905,7 @@ impl Sim {
                 };
                 self.untrack_queued(who, dec);
                 self.buildings[b].queue.items[i].ty = rec;
-                self.muster[w].queued_by_type[rec] += 1;
+                self.roster.muster[w].queued_by_type[rec] += 1;
                 self.track_tree_queued(who, rec, 1);
             }
         }
@@ -1930,7 +1930,7 @@ impl Sim {
         // that moves `queued_by_type` calls this, which is what makes the
         // two counts agree by construction rather than by inspection.
         if let Some(g) = self.tables.unit_types[ty].group {
-            self.muster[who as usize].queued_by_group[g] += delta;
+            self.roster.muster[who as usize].queued_by_group[g] += delta;
         }
     }
 
@@ -1984,8 +1984,8 @@ impl Sim {
     /// loop").
     pub(crate) fn untrack_queued(&mut self, who: Player, ty: usize) {
         let w = who as usize;
-        if self.muster[w].queued_by_type[ty] != 0 {
-            self.muster[w].queued_by_type[ty] -= 1;
+        if self.roster.muster[w].queued_by_type[ty] != 0 {
+            self.roster.muster[w].queued_by_type[ty] -= 1;
         }
         if let Some(id) = self.tables.unit_types[ty].tree
             && self.tech[w].queued[id] != 0
@@ -1993,9 +1993,9 @@ impl Sim {
             self.tech[w].queued[id] -= 1;
         }
         if let Some(g) = self.tables.unit_types[ty].group
-            && self.muster[w].queued_by_group[g] != 0
+            && self.roster.muster[w].queued_by_group[g] != 0
         {
-            self.muster[w].queued_by_group[g] -= 1;
+            self.roster.muster[w].queued_by_group[g] -= 1;
         }
     }
 
@@ -2011,7 +2011,7 @@ impl Sim {
     pub fn produce(&mut self, who: Player, ty: usize, pos: Pos) -> Result<usize, Refused> {
         let charges = self.price_of(who, ty);
         let pop = self.tables.unit_types[ty].price.pop;
-        let muster = &self.muster[who as usize];
+        let muster = &self.roster.muster[who as usize];
         if cost::exceeds_population(muster.cap, muster.control, pop) {
             return Err(Refused::Population);
         }

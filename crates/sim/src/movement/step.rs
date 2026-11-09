@@ -156,7 +156,12 @@ impl Sim {
         // there (`docs/COMBAT.md` §55.3).
         if self.units[i]
             .ty
-            .and_then(|t| self.art.pivots.get(&self.tables.unit_types[t].type_index))
+            .and_then(|t| {
+                self.roster
+                    .art
+                    .pivots
+                    .get(&self.tables.unit_types[t].type_index)
+            })
             .is_some_and(|n| !n.is_empty())
         {
             for g in &mut self.units[i].guys {

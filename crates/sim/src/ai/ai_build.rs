@@ -1074,7 +1074,7 @@ impl Sim {
         let mut found = false;
         let mut cap = 0x100;
         let free_peasants = Census::reg_u16(&cen.reg_free_peasants, f.reg);
-        if free_peasants == 0 && self.muster[w].cap - self.muster[w].control <= 1 {
+        if free_peasants == 0 && self.roster.muster[w].cap - self.roster.muster[w].control <= 1 {
             return None;
         }
         let worst = self.ai[w].worst_good;

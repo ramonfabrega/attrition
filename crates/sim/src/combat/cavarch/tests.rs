@@ -153,7 +153,8 @@ fn a_city_at_its_ceiling_is_still_borne_on() {
         let (mut sim, ty) = field(true);
         const CAVARCHERS: i32 = 188;
         sim.tables.unit_types[ty].type_index = CAVARCHERS;
-        sim.art
+        sim.roster
+            .art
             .pivots
             .insert(CAVARCHERS, [(4, (-180, 180))].into_iter().collect());
         let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
@@ -385,7 +386,7 @@ fn a_melee_swing_whose_graphic_releases_a_round_lands_no_blow() {
         let foe = put(&mut sim, 0, ty, Pos::new(3000, 3100));
         if release {
             let piece = sim.units[me].guys[0].gpiece;
-            sim.art.releases.insert(
+            sim.roster.art.releases.insert(
                 piece,
                 [(
                     crate::anim::ATTACK1,
@@ -469,7 +470,8 @@ fn the_step_attack_walks_while_the_turret_bears() {
     for (at, bears) in [(Pos::new(3000, 4200), true), (Pos::new(3000, 1800), false)] {
         let (mut sim, ty) = field(true);
         let ti = sim.tables.unit_types[ty].type_index;
-        sim.art
+        sim.roster
+            .art
             .pivots
             .insert(ti, [(4, (-90, 90))].into_iter().collect());
         let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
@@ -501,7 +503,8 @@ fn an_empty_search_of_a_v_type_resets_the_pivots_and_only_that() {
     for fires in [true, false] {
         let (mut sim, ty) = field(fires);
         let ti = sim.tables.unit_types[ty].type_index;
-        sim.art
+        sim.roster
+            .art
             .pivots
             .insert(ti, [(4, (-150, 150))].into_iter().collect());
         let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));

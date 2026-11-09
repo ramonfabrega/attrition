@@ -230,13 +230,16 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // ramp reads it.
     out.push((
         "control".to_string(),
-        i64::from(built.sim.muster[who].control),
+        i64::from(built.sim.roster.muster[who].control),
     ));
     // **`pop_cap`, the cap `control` is measured against** (item 1147):
     // `LeaderData +0x7e4`, which `Leader::calc_pop_cap` writes. It stood on
     // the uncompared pin while the third map's AI held Peacocks, 50 here
     // against 55 there, until the Mercenaries offer read it.
-    out.push(("pop_cap".to_string(), i64::from(built.sim.muster[who].cap)));
+    out.push((
+        "pop_cap".to_string(),
+        i64::from(built.sim.roster.muster[who].cap),
+    ));
     // The census — `docs/AI.md` §2.3, under the PDB's names.
     for (k, v) in [
         ("active", c.active),
@@ -416,7 +419,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // compared either array. The dump's index is the record's own — the
     // array is keyed by `TypeIndex - BASE_UNITTYPES` and this crate's
     // record index is the same number (`UnitType::type_index`).
-    let m = &built.sim.muster[who];
+    let m = &built.sim.roster.muster[who];
     for (r, n) in m.by_type.iter().enumerate().take(MUSTER_WIDTH) {
         out.push((format!("num_units[{r}]"), i64::from(*n)));
     }

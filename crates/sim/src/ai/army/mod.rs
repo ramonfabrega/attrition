@@ -1550,7 +1550,7 @@ impl Sim {
         if a.navy {
             return true;
         }
-        let p = self.muster[w].cap;
+        let p = self.roster.muster[w].cap;
         if p * 7 / 8 <= self.ai[w].effective_pop || p / 8 <= n {
             return true;
         }

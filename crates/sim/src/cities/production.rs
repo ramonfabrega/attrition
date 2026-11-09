@@ -736,7 +736,7 @@ impl crate::Sim {
         if !crate::build::is_training_building(&self.tables.build_types, rec) {
             return false;
         }
-        let researched = &self.muster[b.owner as usize].researched;
+        let researched = &self.roster.muster[b.owner as usize].researched;
         b.queue
             .items
             .iter()
@@ -823,7 +823,7 @@ impl crate::Sim {
     /// lineage (`6db5d9`..`6db62c`). A technology is
     /// [`Sim::researching`]'s equality alone.
     pub fn researching_unit(&self, who: crate::world::Player, ty: usize) -> bool {
-        let researched = &self.muster[who as usize].researched;
+        let researched = &self.roster.muster[who as usize].researched;
         let tree = self.tables.unit_types[ty].tree;
         self.buildings
             .iter()

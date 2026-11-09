@@ -341,7 +341,8 @@ impl crate::Sim {
     /// defaults for a player outside the table.
     #[must_use]
     pub fn leader_options(&self, who: Player) -> LeaderOptions {
-        self.leader_options
+        self.roster
+            .leader_options
             .get(who as usize)
             .copied()
             .unwrap_or_default()

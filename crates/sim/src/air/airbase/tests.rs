@@ -439,9 +439,9 @@ fn a_full_airbase_trains_the_helicopter_behind_a_refused_plane() {
         s.tables.unit_types[heli_ty].tree = None;
         s.tables.unit_types[plane_ty].tree = None;
         assert!(s.airbase_pad_full(b, plane_ty));
-        s.muster[0].researched[plane_ty] = true;
-        s.muster[0].researched[heli_ty] = true;
-        s.muster[0].cap = cap;
+        s.roster.muster[0].researched[plane_ty] = true;
+        s.roster.muster[0].researched[heli_ty] = true;
+        s.roster.muster[0].cap = cap;
         let c = [0; crate::economy::RESOURCES];
         for ty in [plane_ty, heli_ty] {
             s.buildings[b]
@@ -867,7 +867,7 @@ fn a_missile_silo_queues_one_missile_at_a_time() {
     let v2 = air_type(&mut s, b, 0x139, false, true);
     assert!(s.silo_takes(silo, v2), "an empty silo takes a missile");
     // Through the command: `@queueup 313 2` lays one entry.
-    s.muster[0].researched[v2] = true;
+    s.roster.muster[0].researched[v2] = true;
     s.buildings[silo].queue.capacity = 20;
     for g in 0..crate::economy::RESOURCES {
         s.ledgers[0].bucket[g] = 100_000;
@@ -906,7 +906,7 @@ fn a_silo_with_a_missile_inside_holds_its_queue_clock() {
     let (mut s, silo, m, _) = silo_with_a_v2();
     let v2 = s.units[m].ty.unwrap();
     s.buildings[silo].queue.capacity = 20;
-    s.muster[0].researched[v2] = true;
+    s.roster.muster[0].researched[v2] = true;
     assert_eq!(s.buildings[silo].garrison, vec![m], "the V2 is inside");
     s.buildings[silo].queue.items.push(crate::production::Item {
         job_counter: 0,
@@ -918,7 +918,7 @@ fn a_silo_with_a_missile_inside_holds_its_queue_clock() {
     });
     s.process_queues();
     assert_eq!(s.buildings[silo].queue.items[0].job_counter, 0, "held");
-    s.muster[0].researched[v2] = false;
+    s.roster.muster[0].researched[v2] = false;
     s.process_queues();
     // The fixture's times are short: an entry that runs may finish
     // and leave the queue in the one frame.
@@ -930,7 +930,7 @@ fn a_silo_with_a_missile_inside_holds_its_queue_clock() {
             .is_none_or(|i| i.job_counter > 0)
     };
     assert!(ran(&s), "a research job runs");
-    s.muster[0].researched[v2] = true;
+    s.roster.muster[0].researched[v2] = true;
     s.buildings[silo].queue.items.clear();
     s.buildings[silo].queue.items.push(crate::production::Item {
         job_counter: 0,
@@ -1198,7 +1198,7 @@ fn a_missile_that_fires_leaves_its_type_s_count() {
     let (mut s, silo, v2, enemy) = silo_with_a_v2();
     let ty = s.units[v2].ty.unwrap();
     s.tables.unit_types[ty].price.pop = 1;
-    let before = s.muster[0].by_type[ty];
+    let before = s.roster.muster[0].by_type[ty];
     s.group_action_launch_flight(
         0,
         &[silo],
@@ -1213,7 +1213,11 @@ fn a_missile_that_fires_leaves_its_type_s_count() {
         s.frame += 1;
     }
     assert!(!s.units[v2].alive(), "fired and gone");
-    assert_eq!(s.muster[0].by_type[ty], before - 1, "out of num_units");
+    assert_eq!(
+        s.roster.muster[0].by_type[ty],
+        before - 1,
+        "out of num_units"
+    );
 }
 
 /// **A second strike pressed while the first counts down finds

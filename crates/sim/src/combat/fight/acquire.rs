@@ -702,6 +702,7 @@ impl Sim {
             return;
         };
         let Some(nodes) = self
+            .roster
             .art
             .pivots
             .get(&self.tables.unit_types[ty].type_index)

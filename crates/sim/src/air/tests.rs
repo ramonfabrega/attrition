@@ -86,9 +86,9 @@ fn a_bird_s_figure_lags_its_unit_and_stands_only_when_the_step_is_refused() {
     let (mut s, b) = bird(at, Angle::WEST.0);
     let goal = crate::world::Pos::new(20_000, 20_000);
     s.gaia.bird_goals[0].1 = goal;
-    s.art.lengths.insert((-1, crate::anim::WALK), 31);
-    s.art.lengths.insert((-1, crate::anim::JOG), 23);
-    s.art.lengths.insert((-1, crate::anim::DEFAULT), 3);
+    s.roster.art.lengths.insert((-1, crate::anim::WALK), 31);
+    s.roster.art.lengths.insert((-1, crate::anim::JOG), 23);
+    s.roster.art.lengths.insert((-1, crate::anim::DEFAULT), 3);
     s.units[b].guys[0].anim = crate::anim::WALK;
     s.units[b].guys[0].end_time = 31;
     s.units[b].guys[0].stopped = true;

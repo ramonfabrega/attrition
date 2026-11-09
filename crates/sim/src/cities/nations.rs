@@ -421,7 +421,7 @@ impl Sim {
         let Some(rec) = self.unit_record(ty::CARAVAN) else {
             return;
         };
-        let m = &self.muster[w];
+        let m = &self.roster.muster[w];
         if crate::cost::exceeds_population(m.cap, m.control, self.tables.unit_types[rec].price.pop)
         {
             return;
@@ -520,7 +520,7 @@ impl Sim {
         };
         let spy = self.build_train(b, rec);
         self.units[spy.unit].kremlin_spy = true;
-        self.muster[w].control -= self.tables.unit_types[rec].price.pop;
+        self.roster.muster[w].control -= self.tables.unit_types[rec].price.pop;
     }
 
     /// **`Unit::close@0060ee50:98`..`106`: a hero's death stamps its
@@ -647,7 +647,7 @@ impl Sim {
         let Some(rec) = self.free_unit_record(who, TERRA_COTTA_BASE, true) else {
             return;
         };
-        let m = &self.muster[w];
+        let m = &self.roster.muster[w];
         if m.control < m.cap {
             self.build_train(b, rec);
         }
@@ -676,7 +676,7 @@ impl Sim {
         };
         let pop = self.tables.unit_types[rec].price.pop;
         for _ in 0..n {
-            let m = &self.muster[w];
+            let m = &self.roster.muster[w];
             if crate::cost::exceeds_population(m.cap, m.control, pop) {
                 continue;
             }

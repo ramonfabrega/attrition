@@ -604,13 +604,13 @@ impl Sim {
         // cached line of sight is refreshed by the next `Leader::process`
         // (`docs/VISION.md` §2).
         self.wall_stats_dirty[who as usize] = true;
-        self.unit_stats_dirty[who as usize] = true;
+        self.roster.unit_stats_dirty[who as usize] = true;
         self.calc_attrition(who);
         self.sync_researched();
         self.sync_goods_available(who);
         let level = self.tech[who as usize].military_level();
-        if self.muster[who as usize].military_level != level {
-            self.muster[who as usize].military_level = level;
+        if self.roster.muster[who as usize].military_level != level {
+            self.roster.muster[who as usize].military_level = level;
             self.recompute_pop_caps();
         }
         // The Military epoch's sibling: a **Civic** epoch widens every one of
@@ -671,7 +671,7 @@ impl Sim {
         for (who, tech) in self.tech.iter().enumerate() {
             for (ty, ut) in self.tables.unit_types.iter().enumerate() {
                 if let Some(id) = ut.tree {
-                    self.muster[who].researched[ty] = tech.tech[id];
+                    self.roster.muster[who].researched[ty] = tech.tech[id];
                 }
             }
         }

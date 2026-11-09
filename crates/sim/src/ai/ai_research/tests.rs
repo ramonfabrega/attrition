@@ -1117,7 +1117,7 @@ fn produce_tech_queues_a_unit_s_research_on_the_unit_queue() {
     assert_eq!(sim.type_avail(1, t.phalanx), tech::RESEARCHABLE);
     assert!(sim.produce_tech(1, t.phalanx, 1));
     assert_eq!(sim.buildings[bar].queue.items.len(), 1);
-    assert_eq!(sim.muster[1].queued_by_type[rec], 1);
+    assert_eq!(sim.roster.muster[1].queued_by_type[rec], 1);
     // Being researched: "queued", and nothing more.
     assert!(sim.produce_tech(1, t.phalanx, 1));
     assert_eq!(sim.buildings[bar].queue.items.len(), 1);
