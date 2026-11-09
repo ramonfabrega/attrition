@@ -442,8 +442,8 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// `ROLE_`, `UNIT_CAT_`, `FORM_CAT_`, and the members the inventory's rows
 /// name); the fifteen left are the per-module draw sites, trace labels
 /// and associated constants of `docs/STRUCTURE.md` §2's target.
-/// `largest` 13442 → 13331 (−111): `orders/mod.rs` gave its `spell` and
-/// `index` constants to `sim::ids`.
+/// `largest` 13442 → 13336 (−106): `orders/mod.rs` gave its `spell` and
+/// `index` constants to `sim::ids` (rustfmt rewrapped five renamed lines).
 #[cfg(test)]
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 7),
@@ -451,7 +451,7 @@ pub const STRUCTURE: [(&str, u64); 6] = [
     ("sweep-lines", 17_255),
     ("names", 15),
     ("fields", 92),
-    ("largest", 13_331),
+    ("largest", 13_336),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before
