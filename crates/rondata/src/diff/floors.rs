@@ -474,6 +474,10 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// is one 4,695-line table; `shape.py --json` prints the rows as
 /// `tables`), so the largest is `cities/city.rs`; and `flat` does not count
 /// a `foo.rs` that is a sibling `foo/`'s module file (7, unmoved).
+///
+/// Item 4035: `largest` 4179 → 4184 (+5), a named rise. `cities/city.rs`'s
+/// `init_build` takes `Building::z` at the push and again after the
+/// building's own terraform (two statements, a comment, a field).
 #[cfg(test)]
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 7),
@@ -481,7 +485,7 @@ pub const STRUCTURE: [(&str, u64); 6] = [
     ("sweep-lines", 17_286),
     ("names", 15),
     ("fields", 21),
-    ("largest", 4_179),
+    ("largest", 4_184),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before
