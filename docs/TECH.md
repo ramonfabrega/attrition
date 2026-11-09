@@ -1245,7 +1245,7 @@ on 10184 (`check_income` 64 against 256). That is East Indies' 10185.
 After that Pikemen trained on 10367 the dump's `[84]` stays 0,
 where an unguarded unqueue would read −1.
 
-**In the code**: `Sim::retarget_queued_to` in `crates/sim/src/lib.rs`,
+**In the code**: `Sim::retarget_queued_to` in `crates/sim/src/cities/queue.rs`,
 called beside `Sim::upgrade_units_to` for each `Gained::UnitUpgrade`;
 `Sim::advance_slot`'s research arm gains before it unqueues; and
 `Sim::untrack_queued` is the guarded decrement, used at every unqueue,

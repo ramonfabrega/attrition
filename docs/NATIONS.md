@@ -84,7 +84,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 scored word reaches. Each row is one `has_tribe_bonus` arm (or, for the
 `train_time` block, one nation's arm of it) read in the export and looked
 for in the sim. The block under the three nations is the rest of
-`ObjectData::train_time@006508c0`'s national tail: `lib.rs`'s `train_tail`
+`ObjectData::train_time@006508c0`'s national tail: `cities/queue.rs`'s `train_tail`
 says in its doc comment that only the British and Mongol arms are built,
 "the nine other arms inert in every capture on disk".
 
@@ -554,7 +554,7 @@ never debugged against, so a candidate is a row for the successor item that
 a pass books against a word, not a fix for the lobby that exposed it.
 
 1. ~~**Chinese citizens (`ObjectData::train_time@006508c0`, arm 0xe).**~~
-   **Built, item 3092** (`train_tail`, `lib.rs`). The arm sits after the
+   **Built, item 3092** (`train_tail`, `cities/queue.rs`). The arm sits after the
    Japanese arms and before the British, and applies when the unit's type
    index is `BASE_UNITTYPES`/`PEASANTSKOREAN` (0x32/0x33, unit types 0 and
    1), or `TypeData::is_merchant` (the three exact ids), or the type has

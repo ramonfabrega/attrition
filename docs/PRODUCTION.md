@@ -1028,7 +1028,7 @@ and helicopter's first-point arm are not.
 the base's own (11616, 13920) here — `Unit::init@00612100`'s seat, parked
 646, and the plane never leaves the base to read it.
 
-**In the code**: `Sim::build_train` (`lib.rs`), the hangar test before the
+**In the code**: `Sim::build_train` (`cities/queue.rs`), the hangar test before the
 exit. Test: `air::launch_tests::an_aircraft_trained_at_an_airbase_stays_inside_with_no_order`,
 made to fail with the arm dropped, which also re-parts run308 on 1745.
 

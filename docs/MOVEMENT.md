@@ -42,7 +42,7 @@ misreading — see the note below, which is kept because the mistake is
 instructive.
 
 **Where the implementation is.** `crates/sim/src/movement/mod.rs`, driven from
-`Sim::process_movement` in `crates/sim/src/lib.rs`.
+`Sim::process_movement` in `crates/sim/src/movement/step.rs`.
 
 ---
 
@@ -940,7 +940,7 @@ implementation detail. Attrition looks at the position the unit had at the
 
 Combined with the 32-frame refresh in `docs/ATTRITION.md`, this is why a raid
 that is in and out quickly can cost nothing at all, and why a unit can take one
-last tick standing on safe ground. `crates/sim/src/lib.rs` runs the two in this
+last tick standing on safe ground. `crates/sim/src/core/frame.rs` runs the two in this
 order and `harness_tests.rs` pins both consequences.
 
 ## Turning

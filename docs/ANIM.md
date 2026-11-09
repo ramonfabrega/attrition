@@ -4,7 +4,7 @@
 under `decomp/`), the executable's own `UnitAnimCat` table, the install's
 `anim_graphics.xml`, and two `DUMP_ALL` oracles: run12 (frames 0–3) and
 run13 (sim-frames 95–103), read with `tools/gamelog/anims.py`. Implemented
-in `crates/sim/src/units/anim.rs`, wired through `lib.rs`'s tick and `orders.rs`'s
+in `crates/sim/src/units/anim.rs`, wired through `core/frame.rs`'s tick and `orders.rs`'s
 stands; the harness side is `crates/rondata/src/{gamelog,diff}.rs`. The
 document says how each claim was established and what it has not.*
 

@@ -582,7 +582,7 @@ with nothing arriving.
 
 ### What carries it
 
-[`Sim::treaty_on`] and [`Sim::meet`] in `lib.rs`, `Sim::treaties` beside
+[`Sim::treaty_on`] and [`Sim::meet`] in `leaders/relations.rs`, `Sim::treaties` beside
 `at_war` and `allied`, the loop in `Sim::check_ever_seen`, and
 [`Sim::has_met`] reading the bit for the census and for the record
 comparison. `a_building_seen_by_the_enemy_is_first_contact` and
@@ -907,9 +907,9 @@ run240's world pin.
 | 3, 4 | `Sim::seen_sweep` — the radius, the forward projection **along `UnitData::angle`**, and the four index ranges | `vision.rs` |
 | 4 | `vision::ring` — `ring_init` rebuilt in integers | `vision.rs` |
 | 5 | `Sim::update_seen` | `vision.rs` |
-| 6 | `Sim::moved_to` at the move step, at the gather stand and at a barge's birth (§11), `Sim::update_seen` at ejection, `Sim::update_seen_build` from `Sim::activate`, `Sim::update_all_seen` — now units **and** buildings — from `tick` | `orders.rs`, `garrison.rs`, `transport.rs`, `city.rs`, `lib.rs` |
+| 6 | `Sim::moved_to` at the move step, at the gather stand and at a barge's birth (§11), `Sim::update_seen` at ejection, `Sim::update_seen_build` from `Sim::activate`, `Sim::update_all_seen` — now units **and** buildings — from `tick` | `orders.rs`, `garrison.rs`, `transport.rs`, `city.rs`, `core/frame.rs` |
 | 6.1 | `Sim::check_ever_seen` and `Sim::update_local_seen_build` — the footprint scan, the grown rectangle, the `seen2`-only write | `vision.rs` |
-| 6.2 | the meet loop, `Sim::treaty_on`, `Sim::meet`, `Sim::has_met` — first contact and the met bit | `vision.rs`, `lib.rs`, `ai_census.rs` |
+| 6.2 | the meet loop, `Sim::treaty_on`, `Sim::meet`, `Sim::has_met` — first contact and the met bit | `vision.rs`, `leaders/relations.rs`, `ai_census.rs` |
 
 **The differential check is §2's, and it is the whole of run10.** Every
 object record carries `ObjectData::mylos` at every detail level — which is

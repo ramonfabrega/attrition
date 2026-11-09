@@ -1186,7 +1186,7 @@ quarter more per farmer) is income, not price: `economy::Site::nation_pct`.
 *Item 3326, 2026-10-19. Read from the decompile of
 `TypeData::get_cost@00664090` (lines 966–972 and 1250–1255 of the
 export); built as `cost::Modifiers::greek_research` (set by
-`Sim::greek_research_discount`, `lib.rs`) and
+`Sim::greek_research_discount`, `cities/queue.rs`) and
 `cost::Modifiers::greek_library` (set by `city.rs`'s
 `greek_library_discount`). `docs/AI.md` §266.*
 
