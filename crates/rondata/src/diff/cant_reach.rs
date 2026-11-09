@@ -119,10 +119,6 @@ pub(crate) const PINNED: &[(&str, usize)] = &[
         73,
     ),
     (
-        "diff::golden::chapter_one_hundred_and_thirty_four_s_window_is_widened_whole",
-        1,
-    ),
-    (
         "diff::golden::chapter_thirty_eight_s_word_frame_is_widened_whole",
         1,
     ),

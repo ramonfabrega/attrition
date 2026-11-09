@@ -7077,8 +7077,10 @@ pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_THREE: (i64, i64) = (59
 /// split), the Fighter `0/12` strikes who=1's Bomber
 /// (`Unit::pitch_aircraft@005e8de0`'s flier-target arm), and `0/6`'s
 /// flight home to `0/2008` is refused by its ten homed planes
-/// (`ObjectData::num_aircraft_here@00645330`).
-pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_FOUR: i64 = 969;
+/// (`ObjectData::num_aircraft_here@00645330`). 969 → 1400 at item 4007
+/// (+431, closed, §194): the air ladder reads the target's own
+/// `is_flying_low`, so who=1's Bomber takes the low Fighter that strafes it.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_FOUR: i64 = 1400;
 
 /// `chapter_one_hundred_and_thirty_four_s_window_is_widened_whole`'s
 /// window: run1549.

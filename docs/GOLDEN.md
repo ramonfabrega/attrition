@@ -19354,7 +19354,8 @@ Its 1100 strike named the Barracks, dead on 1080. Both were fixed before the tak
 - `0/12` patrols to `1/6`'s point from 903, and strafes it from 933.
 - On 1012 `0/6` stands in `0/2007` with no order, and `0/13` holds a `STRAFEORDER` with `xx/yy −1` and `oxx 2008`.
 
-**The word**: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_FOUR` = **969 of 1,400**, pinned open. On 969 who=1's
+**The word**: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_FOUR` = **969 of 1,400**, pinned open; **closed at 1400 by
+item 4007** (§194). On 969 who=1's
 Bomber `1/6`, unwounded (hits 300 throughout), takes `ATTACKORDER mandatory=0` on the Fighter `0/12` there (uid 20),
 and drops it by 971. Here it takes nothing. Its idle cadence does not fall on 969 (`o + frame` is 975) and its `near`
 is −1, so the reading that it was the idle search is dead. Parked 3991a with the frame and the delta.
@@ -19376,7 +19377,7 @@ driver takes 605..1400, 795 blocks.
 **Mutations** (`tools/mutate.py --batch`, seven breaks): all seven held. Four were caught by both their unit test and the chapter: the split dropped, the room counting the garrison, the `MOVE_TO` gate dropped, and the flier arm dropped. The arm's sense turned was caught the same way (the widening went from 691 rows to 637). The lead point dropped at `do_strafe`'s call site, and its divisor at 2, were caught by the widening alone: the word stays 969 and the row count stays 691, but the rows differ. A unit test for `strafe_lead` was then added, and it catches the divisor. The call site dropped is still the chapter's alone.
 
 **What is not established**:
-- the 969 parting (parked 3991a);
+- ~~the 969 parting (parked 3991a)~~ — the air ladder's `is_flying_low`, built by item 4007 (§194);
 - the split's ally arm (`action_guard`), and a guard on an ally's building;
 - a flier target that is flying, rather than standing. The arm's predicate is the type, and its height is the
   figure's `z` either way;
@@ -19864,12 +19865,61 @@ seams.
 **Coverage.** Diff-backed: the hero's `0x300` ring from a melee unit (run1545, `0/6` on 947). Reading only: the
 rows above.
 
-## 194. Reserved for the next item on the rules track
+## 194. Chapter one hundred and thirty-four's Bomber on 969: the air ladder reads a strafing plane as low; closed at 1400 (item 4007, run1549)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3991a) named the frame, 969: who=1's Bomber `1/6` (TypeIndex 304, domain air), standing on
+the ground with no order, takes `ATTACKORDER mandatory=0` on the Fighter `0/12` (TypeIndex 289) that strafes it
+(uid 20), `orders.len` 1 theirs against 0 ours. Its hypothesis was `0/12`'s rounds landing, then
+`Unit::target_opportunity@005fffc0` on a round that does no damage. No capture was booked: run1549 answered it.
+
+**The frame.** The draw delta on 969 is one draw, theirs' `Unit::fight+0x9b0` at index 0 (ours 4 draws, theirs 5):
+`1/6`'s own `fight`, on the attack order ours never adds. `0/12`'s first pair of rounds (indices 3 and 4, launched
+962, `total_time` 8, last dumped on 968) lands on 969, the first landing on `1/6` in the game. **The booking's
+"hits 300 throughout" was `myhits`, the type's ceiling**: `1/6`'s `damage` reads 0 → 11 on 969 (`damage_frac` 2,
+`damage_frame` 968, `damage_o 12`) in theirs and 300 → 289 in ours, so the blow lands and agrees, and both sides
+enter `target_opportunity` from `Object::do_damage`. Theirs also raises `unit_masks` bit 4 and the SUBOBJECT's
+`flags & 0x10` there; neither parts a row once the order is built.
+
+**Where ours refused**: `target_opportunity`'s head asks `Object::valid_target(1/6, 0/12)` before anything else, and
+this crate's `valid_target_const` refused it on the air ladder (§61.2, `006474c3`–`0064771c`). The ladder asks the
+target's own `UnitData::is_flying_high@0060a310`, which is "on the map and not `is_flying_low@0060a140`", and
+`is_flying_low` is 1 for a plane on a `STRAFE` within `0x900` of its live target. `0/12` stands at (8657, 11883)
+on 969, 900 by `vector_dist` from `1/6` at (7800, 11640): low. The crate read every non-missile plane as high (a
+SEAM written when no player's unit held an air order), so the Bomber (`FLY_HIGH` 0, `FLY_LOW` > 0) was refused
+on the slot row `S.fly_high == 0 && high(T)`.
+
+```text
+ladder, a plane target, the searcher not an ANTI_AIR aircraft:
+    S.fly_high == 0 && S.fly_low == 0                         -> refuse
+    S not ANTI_AIR:  T.fly_high == 0 ? (T.fly_low == 0 || high(T))
+                                     : (T.fly_low == 0 && low(T))   -> refuse
+    S.fly_high == 0 ? high(T) : (S.fly_low == 0 && low(T))    -> refuse
+```
+
+**Built** (`crates/sim/src/combat/fight/target_valid.rs`, `valid_target_const`): `high` and `low` are
+[`Sim::is_flying_high`] and [`Sim::is_flying_low`], the swept ports item 1102 built for the flak arm, and the two
+`low` arms are added. `is_flying_high` loses its `dead_code` allowance.
+
+**The value diff on 969**: `1/6`'s order list, theirs `[ATTACKORDER ox 12 whom 0 uid 20 mandatory 0 new_ord 1]`,
+ours now the same (`Attack`, target `0/12`, `new_ord`), on 970 too, and empty on 971 in both; `idle` 0 on 970 in
+both.
+
+**The word**: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_FOUR` **969 → 1400 of 1,400** (+431), closed. The
+widening over 605..1400 parts **691 → 85 rows** (`WANT_CH134`): the eleven standing `form` rows on 605, the Bombers'
+`accuracy` (§35.3's SEAM) and their rounds' target words after the Barracks falls on 1076, and `0/12`'s one-unit
+roundings of its strafe (`sx`/`angle` from 1043, its `y` on 1060). The `cant_reach` tally falls 1 → 0 (`1/6`'s
+`flags & 0x10` on 969 now agrees). The window and the coverage driver's slice stand (605..1400).
+
+**Killer, before the build**: `0/12` more than `0x900` from `1/6` on 969 (the strafe's arm not low). It did not
+fire: 900.
+
+**Mutations** (`tools/mutate.py`): `high` read back as every plane — held by the chapter (the word back to 969)
+and by `combat::fight::tests::a_bomber_takes_a_fighter_strafing_it_low`; `low` read as false — held by the unit
+test alone. No walk reaches the two `low` arms (a searcher or target with `FLY_LOW` 0 against a low plane), so they
+rest on the listing and that test.
+
+**What is not established**: `0/12`'s rounding residue from 1043 (one unit of position, a strafe-angle residue);
+which writer raises `unit_masks` bit 4 on 969 (it parts no row); the `is(0x132)` arm (§61.5).
 
 ## 195. Reserved for the next item on the rules track
 

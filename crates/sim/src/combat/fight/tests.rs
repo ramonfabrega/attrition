@@ -3551,6 +3551,127 @@ fn an_aircraft_takes_no_aircraft_it_cannot_reach() {
     assert!(sim.valid_target(Obj::Unit(flak), b));
 }
 
+/// **A plane strafing within `0x900` of its target flies low, and a
+/// `FLY_LOW` Bomber may take it** (item 4007, `docs/GOLDEN.md` §194;
+/// `ObjectData::valid_target_const@006472c0`'s ladder asks the target's own
+/// `UnitData::is_flying_high@0060a310`). Chapter 134's Bomber `1/6` takes the
+/// Fighter `0/12` that strafes it, from 900 off, on 969. The Fighter at 2304
+/// off flies high again, and the Bomber is refused.
+///
+/// Made to fail on purpose: with `high` read back as "every plane", the
+/// Bomber's `valid_target` on the strafing Fighter is false.
+#[test]
+fn a_bomber_takes_a_fighter_strafing_it_low() {
+    let (mut sim, _) = at_war();
+    let plane = |attack, max_range, fly_low, masks| crate::UnitType {
+        hits: 100,
+        combat: Profile {
+            attack,
+            max_range,
+            fly_high: 0,
+            fly_low,
+            uber_size: 1,
+            obj_masks: mask::AIR | masks,
+            domain: Domain::Air,
+            combat_role: true,
+            ..Profile::default()
+        },
+        ..crate::UnitType::default()
+    };
+    let fighter_ty = sim.add_unit_type(plane(450, 7, 25, mask::ANTI_AIR));
+    let bomber_ty = sim.add_unit_type(plane(430, 3, 10, mask::EXPLOSIVE));
+    let y = 0x4000 + 96;
+    let bomber = put(&mut sim, 1, bomber_ty, Pos::new(0x4000 + 96, y));
+    let fighter = put(&mut sim, 0, fighter_ty, Pos::new(0x4000 + 96 + 900, y));
+    let (f, b) = (Obj::Unit(fighter), Obj::Unit(bomber));
+    assert!(
+        !sim.valid_target(b, f),
+        "a Fighter with no order flies high"
+    );
+    sim.units[fighter].orders.push_back(crate::orders::Order {
+        flags: 0,
+        body: crate::orders::Body::Strafe(crate::orders::StrafeOrder {
+            target: Some(b),
+            mandatory: false,
+            home: None,
+            cruising_alt: crate::orders::CRUISING_ALT,
+            sharp_turn: 0,
+            returning: false,
+            at: None,
+        }),
+    });
+    assert!(sim.is_flying_low(fighter));
+    assert!(
+        sim.valid_target(b, f),
+        "the Bomber may not take the Fighter strafing it low"
+    );
+    // The two `low` arms, each a searcher or target with `FLY_LOW` 0: a
+    // gun that reaches only high (`FLY_HIGH` 50) is refused the low Fighter,
+    // and a gun that reaches both is refused a strafing plane that can be
+    // struck only high.
+    let ground = |fly_high, fly_low| crate::UnitType {
+        hits: 100,
+        combat: Profile {
+            attack: 200,
+            max_range: 10,
+            fly_high,
+            fly_low,
+            uber_size: 1,
+            obj_masks: mask::GUN,
+            combat_role: true,
+            ..Profile::default()
+        },
+        ..crate::UnitType::default()
+    };
+    let (high_ty, both_ty) = (
+        sim.add_unit_type(ground(50, 0)),
+        sim.add_unit_type(ground(50, 20)),
+    );
+    let high_gun = put(&mut sim, 1, high_ty, Pos::new(0x4000 + 96, y + 192));
+    let both_gun = put(&mut sim, 1, both_ty, Pos::new(0x4000 + 96, y + 384));
+    assert!(
+        !sim.valid_target(Obj::Unit(high_gun), f),
+        "a gun that reaches only high took the low Fighter"
+    );
+    let high_only_ty = sim.add_unit_type(crate::UnitType {
+        hits: 100,
+        combat: Profile {
+            attack: 450,
+            max_range: 7,
+            fly_high: 30,
+            fly_low: 0,
+            uber_size: 1,
+            obj_masks: mask::AIR,
+            domain: Domain::Air,
+            combat_role: true,
+            ..Profile::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let high_only = put(
+        &mut sim,
+        0,
+        high_only_ty,
+        Pos::new(0x4000 + 96 + 900, y + 384),
+    );
+    let h = Obj::Unit(high_only);
+    assert!(
+        sim.valid_target(Obj::Unit(both_gun), h),
+        "a plane flying high"
+    );
+    let strafe = sim.units[fighter].orders[0];
+    sim.units[high_only].orders.push_back(strafe);
+    assert!(
+        !sim.valid_target(Obj::Unit(both_gun), h),
+        "a plane struck only high was taken flying low"
+    );
+    sim.units[fighter].pos = Pos::new(0x4000 + 96 + 0x900, y);
+    assert!(
+        !sim.valid_target(b, f),
+        "the Bomber took the Fighter flying high"
+    );
+}
+
 /// The flee arm's `else`: a **combat** unit still retaliates, which
 /// is the row item 464's restructure could have swallowed. Its gate
 /// is `is_worker || is_idle`, and a soldier standing idle passes the

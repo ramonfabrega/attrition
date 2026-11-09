@@ -15609,7 +15609,9 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3991, 2026-11-08 — land-based air, the second three
 
-- **3991a. An unwounded plane standing outside a base takes its striker** (`docs/GOLDEN.md` §184; run1549, chapter
+- ~~**3991a. An unwounded plane standing outside a base takes its striker**~~ — answered by item 4007
+  (`docs/GOLDEN.md` §194): the plane was wounded (`damage` 11; 300 is `myhits`), and the air ladder read the
+  strafing Fighter as high. (`docs/GOLDEN.md` §184; run1549, chapter
   134's word, 969). who=1's Bomber `1/6`, standing on the ground with no order, takes `ATTACKORDER mandatory=0` on
   the Fighter `0/12` that strafes it, on 969 there (uid 20). It drops the order by 971, and its `idle` reads 0 on
   970. Here it takes nothing. Its hits read 300 throughout, so no blow lands. Its idle cadence does not fall on 969
@@ -15623,13 +15625,16 @@ words and edits nothing here; a refill lands when two remain.
   `do_strafe`'s helicopter striker inside its reach. A staging is an allied plane struck with a ground squad, and a
   Fighter struck at a plane on a patrol, which needs a second seat that can issue. It names no score.
 
-## Parked by the next landing, slot DG — reserved
+## Parked by item 4007, 2026-11-09 — chapter 134's residue once its word closed
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(4007a) **`0/12`'s strafe rounds part by one unit from 1043** (`docs/GOLDEN.md` §194; run1549; names no score:
+chapter 134 is closed at 1400). Its round `ammo[3]`'s `sx` 6696 against 6697 and `angle` on 1043, its `y` 11640
+against 11641 on 1060, then its rounds' `sx`/`sy`/`angle` on 1108–1114 and its heading on 1126 — the widening's
+85 rows, beside the standing `accuracy` and `form` families. A residue of the strafe's lead or bank arithmetic;
+books only if a later word's frame lands on a strafe.
+
+(4007b) **`unit_masks` bit 4 on a struck unit** (names no score): theirs raises it on `1/6` on 969, where
+`target_opportunity` adds the attack; no row parts on it, and the writer is not named here.
 
 ## Parked by item 4009, 2026-11-08 — the sweeps leave the source
 

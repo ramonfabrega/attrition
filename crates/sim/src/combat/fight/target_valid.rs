@@ -363,14 +363,10 @@ impl Sim {
             //     elif S.fly_low == 0 && low(T):                refuse
             //
             // `high` and `low` are `UnitData::is_flying_high@0060a310` and
-            // `is_flying_low@0060a140`, and `low` is true only under an air
-            // order near its point: slot `0xfc`, which it reads, is
-            // `AirOrder::get_air_order` on the three air-order classes and
-            // returns 0 on every other. This crate gives no player's unit
-            // an air order, so `low` is false and every fixed-wing aircraft
-            // on the map is high. run168's Bomber (`FLY_HIGH` 0) therefore
-            // refuses the Fighter, while the Fighter, an `ANTI_AIR` aircraft,
-            // may take the Bomber.
+            // `is_flying_low@0060a140` ([`Sim::is_flying_low`]), and `low`
+            // is true only under an air order near its point. run168's
+            // Bomber (`FLY_HIGH` 0) refuses a Fighter flying high, while the
+            // Fighter, an `ANTI_AIR` aircraft, may take the Bomber.
             //
             // **A helicopter target** (`unit_flags & 0x20`) takes
             // `006474ee`'s arm in place of the ladder (item 3800,
@@ -400,17 +396,36 @@ impl Sim {
             {
                 return false;
             }
-            if matches!(target, Obj::Unit(t) if self.is_plane(t)) {
-                let high = !tp.has(mask::MISSILE);
+            // **`high` and `low` are the target's own** (item 4007,
+            // `docs/GOLDEN.md` §194): a plane on a `STRAFE` within
+            // [`crate::air::LOW_REACH`] of its live target is low, and a
+            // `FLY_LOW` searcher may take it. Chapter 134's Bomber `1/6`
+            // (`FLY_HIGH` 0) takes the Fighter `0/12` that strafes it on
+            // 969, from 900 off.
+            if let Obj::Unit(t) = target
+                && self.is_plane(t)
+            {
+                let high = self.is_flying_high(t);
+                let low = self.is_flying_low(t);
                 let anti_air = ap.has(mask::ANTI_AIR);
                 if !(anti_air && matches!(ap.domain, Domain::Air)) {
                     if ap.fly_high == 0 && ap.fly_low == 0 {
                         return false;
                     }
-                    if !anti_air && tp.fly_high == 0 && (tp.fly_low == 0 || high) {
+                    if !anti_air
+                        && if tp.fly_high == 0 {
+                            tp.fly_low == 0 || high
+                        } else {
+                            tp.fly_low == 0 && low
+                        }
+                    {
                         return false;
                     }
-                    if ap.fly_high == 0 && high {
+                    if if ap.fly_high == 0 {
+                        high
+                    } else {
+                        ap.fly_low == 0 && low
+                    } {
                         return false;
                     }
                 }
