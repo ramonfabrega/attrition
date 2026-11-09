@@ -355,7 +355,7 @@ impl SimGate<'_> {
         &self.sim.armies[self.who as usize].list[self.slot]
     }
     fn live(&self, a: usize) -> bool {
-        a < self.sim.territory.players.len() && !self.sim.defeated[a]
+        a < self.sim.territory.players.len() && !self.sim.leaders.defeated[a]
     }
     fn city(&self, a: usize, k: usize) -> Option<usize> {
         self.sim.cities_of(a as crate::Player).get(k).copied()

@@ -62,7 +62,7 @@ impl crate::Sim {
     fn danger_viewers(&self) -> Vec<Player> {
         (0..self.territory.players.len().min(8))
             .map(|w| u8::try_from(w).expect("under eight"))
-            .filter(|&w| !self.defeated[w as usize])
+            .filter(|&w| !self.leaders.defeated[w as usize])
             .collect()
     }
 

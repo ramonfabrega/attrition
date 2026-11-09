@@ -529,8 +529,8 @@ mod tests {
                 .collect();
             for (other, &d) in diplos.iter().enumerate().take(players) {
                 if other != w {
-                    sim.at_war[w][other] = d == 0;
-                    sim.allied[w][other] = d == 2;
+                    sim.leaders.at_war[w][other] = d == 0;
+                    sim.leaders.allied[w][other] = d == 2;
                 }
             }
             let a = &mut sim.ai[w];
@@ -1280,8 +1280,8 @@ mod tests {
         let mut s = sim::Sim::new(Tuning::RON, World::new(60, 60), 2);
         s.cities_state.nation[0].human = true;
         s.cities_state.nation[1].human = false;
-        s.at_war[0][1] = true;
-        s.at_war[1][0] = true;
+        s.leaders.at_war[0][1] = true;
+        s.leaders.at_war[1][0] = true;
         let ty = s.add_unit_type(sim::UnitType {
             hits: 100,
             combat: sim::combat::Profile {

@@ -422,7 +422,7 @@ fn the_nuke_count_is_the_nuclear_missile_line() {
     assert_eq!(sim.get_nukes(0), 3, "held and queued Nuclear Missiles");
     // The census the nuke arm reads: mine against the most of the others.
     sim.territory.players = vec![Default::default(); 2];
-    sim.defeated = vec![false; 2];
+    sim.leaders.defeated = vec![false; 2];
     sim.tech.push(sim.tech[0].clone());
     sim.roster.muster.push(sim.roster.muster[0].clone());
     sim.roster.muster[1].by_type[n] = 4;

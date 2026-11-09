@@ -16,8 +16,8 @@ fn fx() -> (Sim, usize, usize) {
     let mut w = World::new(16, 16);
     w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(15, 15));
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    sim.at_war[0][1] = true;
-    sim.at_war[1][0] = true;
+    sim.leaders.at_war[0][1] = true;
+    sim.leaders.at_war[1][0] = true;
     let city = sim.add_build_type(BuildType {
         ident: Ident::Village,
         x_size: 7,
@@ -136,12 +136,12 @@ fn an_enemy_s_building_adds_and_the_unseen_halving_is_the_only_one_at_war() {
     assert_eq!(sim.world.danger_half(1, Cell::new(8, 8)), 50, "seen");
     sim.buildings[b].ever_seen = 0;
     // At peace it is halved twice; allied, it is *subtracted* at half.
-    sim.at_war[0][1] = false;
-    sim.at_war[1][0] = false;
+    sim.leaders.at_war[0][1] = false;
+    sim.leaders.at_war[1][0] = false;
     sim.calc_danger();
     assert_eq!(sim.world.danger_half(1, Cell::new(8, 8)), 12, "50/2/2");
-    sim.allied[0][1] = true;
-    sim.allied[1][0] = true;
+    sim.leaders.allied[0][1] = true;
+    sim.leaders.allied[1][0] = true;
     sim.calc_danger();
     assert_eq!(sim.world.danger_half(1, Cell::new(8, 8)), -25, "an ally's");
 }

@@ -615,10 +615,10 @@ impl Sim {
     /// the captor's cities too, everything else dies; queues and orders are
     /// cleared.
     pub fn defeat(&mut self, who: Player, by: Option<Player>) {
-        if self.defeated[who as usize] {
+        if self.leaders.defeated[who as usize] {
             return;
         }
-        self.defeated[who as usize] = true;
+        self.leaders.defeated[who as usize] = true;
         self.armies_leader_defeated(who);
         if let Some(by) = by {
             for c in 0..self.cities_state.cities.len() {
@@ -630,14 +630,14 @@ impl Sim {
                 let taker = if founder != who
                     && founder != by
                     && self.is_ally(by, founder)
-                    && !self.defeated[founder as usize]
+                    && !self.leaders.defeated[founder as usize]
                 {
                     founder
                 } else if let Some(r) = race
                     && r != who
                     && r != by
                     && self.is_ally(by, r)
-                    && !self.defeated[r as usize]
+                    && !self.leaders.defeated[r as usize]
                 {
                     r
                 } else {

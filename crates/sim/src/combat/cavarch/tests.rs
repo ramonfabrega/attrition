@@ -8,8 +8,8 @@ use crate::{Player, Pos, Sim};
 /// armed, ranged combat unit whose `FLAGS` carry `v` when `fires`.
 fn field(fires: bool) -> (Sim, usize) {
     let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
-    sim.at_war[0][1] = true;
-    sim.at_war[1][0] = true;
+    sim.leaders.at_war[0][1] = true;
+    sim.leaders.at_war[1][0] = true;
     sim.cities_state.nation[0].human = true;
     sim.cities_state.nation[1].human = true;
     let mut t = crate::UnitType {

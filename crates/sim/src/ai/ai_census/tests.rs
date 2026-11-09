@@ -171,13 +171,13 @@ fn step_9_counts_the_seen_rares_a_merchant_may_reach() {
     assert_eq!(s.ai[1].known_rares, 2, "calc_gather's recompute sums it");
 
     // A mutual ally's ground counts; a one-sided alliance does not.
-    s.allied[1][0] = true;
+    s.leaders.allied[1][0] = true;
     s.census(1);
     assert_eq!(
         s.ai[1].census.reg_known_rares[land], 2,
         "one side is not an ally"
     );
-    s.allied[0][1] = true;
+    s.leaders.allied[0][1] = true;
     s.census(1);
     assert_eq!(s.ai[1].census.reg_known_rares[land], 3, "both sides are");
 
@@ -711,7 +711,7 @@ fn a_human_s_sweep_fills_its_city_and_seeds_no_army() {
     let mut f = fix();
     let b = build(&mut f.sim, 0, f.village, 20, 20);
     let c = f.sim.buildings[b].city.unwrap();
-    f.sim.defeated[1] = true;
+    f.sim.leaders.defeated[1] = true;
     f.sim.frame = 0;
     f.sim.strategy_all();
     assert!(

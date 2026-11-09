@@ -219,8 +219,8 @@ fn build(s: &Scene, held: &[Option<Held>; 8]) -> Sim {
     let mut tuning = Tuning::RON;
     tuning.unit_respond_range = s.respond;
     let mut sim = Sim::new(tuning, World::new(60, 60), 2);
-    sim.at_war[0][1] = true;
-    sim.at_war[1][0] = true;
+    sim.leaders.at_war[0][1] = true;
+    sim.leaders.at_war[1][0] = true;
     let role = sim.add_unit_type(UnitType {
         hits: 100,
         combat: Profile {

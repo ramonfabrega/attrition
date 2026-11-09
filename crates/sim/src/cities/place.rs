@@ -387,7 +387,7 @@ impl Sim {
     }
 
     pub(crate) fn player_alive(&self, p: Player) -> bool {
-        !self.defeated[p as usize]
+        !self.leaders.defeated[p as usize]
     }
 
     // ------------------------------------------------------------------

@@ -55,7 +55,7 @@ impl Sim {
     /// in play (`leader_flags & 1`), never below 0.
     fn current_age(&self) -> i32 {
         (0..self.territory.players.len())
-            .filter(|&j| !self.defeated[j])
+            .filter(|&j| !self.leaders.defeated[j])
             .map(|j| self.tech[j].ages)
             .max()
             .unwrap_or(0)
@@ -88,18 +88,18 @@ impl Sim {
         // interface's.
         let players = self.territory.players.len().min(8);
         for i in 0..players {
-            if self.defeated[i] {
+            if self.leaders.defeated[i] {
                 continue;
             }
             for j in 0..players {
-                if j == i || self.defeated[j] {
+                if j == i || self.leaders.defeated[j] {
                     continue;
                 }
                 if !self.allied_both(i, j) && self.not_at_war(i, j) {
-                    self.at_war[i][j] = true;
-                    self.at_war[j][i] = true;
-                    self.allied[i][j] = false;
-                    self.allied[j][i] = false;
+                    self.leaders.at_war[i][j] = true;
+                    self.leaders.at_war[j][i] = true;
+                    self.leaders.allied[i][j] = false;
+                    self.leaders.allied[j][i] = false;
                 }
             }
         }
@@ -107,9 +107,9 @@ impl Sim {
 
     /// `diplos[a][b]`: 0 war, 1 peace, 2 allied; a leader's own slot is 2.
     fn diplos(&self, a: usize, b: usize) -> i32 {
-        if a == b || self.allied[a][b] {
+        if a == b || self.leaders.allied[a][b] {
             2
-        } else if self.at_war[a][b] {
+        } else if self.leaders.at_war[a][b] {
             0
         } else {
             1
@@ -150,7 +150,7 @@ impl Sim {
         // Leaders in play that are not my mutual ally (`LeaderData::is_ally`
         // asked of each about me; I am my own ally).
         let non_allies = (0..players)
-            .filter(|&l| !self.defeated[l] && !self.allied_both(l, me))
+            .filter(|&l| !self.leaders.defeated[l] && !self.allied_both(l, me))
             .count();
         // SEAM: the score count and the top scorer (`local_64`, `local_70`,
         // `LeaderData::score`) — `compute_score` is not modelled. Their one
@@ -158,10 +158,10 @@ impl Sim {
         // 45 × 900 (30 × 900 at difficulty 3 and up) and is taken here as
         // "the top scorer is never the target".
         for t in 0..players {
-            if t == me || self.defeated[t] {
+            if t == me || self.leaders.defeated[t] {
                 continue;
             }
-            let treaty = self.treaties[me][t];
+            let treaty = self.leaders.treaties[me][t];
             if treaty & 1 == 0 || treaty & 4 != 0 {
                 continue;
             }
@@ -173,7 +173,7 @@ impl Sim {
     /// arm's `agendas |= 0x40` (`:1723`).
     fn diplomacy_with(&mut self, me: usize, t: usize, non_allies: usize) {
         let frame = self.frame;
-        let agenda = self.agendas[me][t];
+        let agenda = self.leaders.agendas[me][t];
         // SEAM: `dip[t].agree` (`+0x692c`) is never 1 — the Diplomacy
         // records are not carried — and `tribute_demanded`/`counteroffer`
         // (`+0x334`/`+0x314`) are never set.
@@ -188,7 +188,7 @@ impl Sim {
                 return;
             }
         }
-        self.agendas[me][t] = agenda & !4;
+        self.leaders.agendas[me][t] = agenda & !4;
 
         let age_gap = self.tech[me].ages - self.tech[t].ages;
         let flags = self.ai[me].player_flags;
@@ -224,7 +224,7 @@ impl Sim {
         let mut founded_by_me = 0;
         let mut invaded_by = 0;
         for k in 0..players {
-            if self.defeated[k] || k == me || k == t {
+            if self.leaders.defeated[k] || k == me || k == t {
                 continue;
             }
             if self.allied_both(t, k) || self.allied_both(me, k) {
@@ -307,7 +307,7 @@ impl Sim {
         weak /= weak_divisor;
         // Somebody at war with the target whose `weak` against it is 0.
         let someone_unafraid = (0..players).any(|l| {
-            !self.defeated[l]
+            !self.leaders.defeated[l]
                 && l != t
                 && (self.diplos(l, t) == 0 || self.diplos(t, l) == 0)
                 && self.ai[l].weak[t] == 0
@@ -344,7 +344,7 @@ impl Sim {
         if diff > 2 {
             strong += (0..players)
                 .filter(|&l| {
-                    !self.defeated[l]
+                    !self.leaders.defeated[l]
                         && l != me
                         && l != t
                         && (self.diplos(l, t) == 0 || self.diplos(t, l) == 0)
@@ -358,10 +358,10 @@ impl Sim {
 
         // `agendas & 2` (a building of theirs stood in my armed walk) is
         // read and spent here.
-        let mut grievance = i32::from(self.agendas[me][t] & 2 != 0);
-        self.agendas[me][t] &= !2;
+        let mut grievance = i32::from(self.leaders.agendas[me][t] & 2 != 0);
+        self.leaders.agendas[me][t] &= !2;
         let invaders = self.ai[me].census.invaders.get(t).copied().unwrap_or(0);
-        if self.agendas[me][t] & 0x10 != 0
+        if self.leaders.agendas[me][t] & 0x10 != 0
             && self.not_at_war(me, t)
             && (if boomer { 4 } else { 1 }) < invaders
         {
@@ -459,7 +459,7 @@ impl Sim {
                 aggression = 0;
             }
         }
-        if self.agendas[me][t] & 0x20 != 0 {
+        if self.leaders.agendas[me][t] & 0x20 != 0 {
             aggression = 1;
         }
         if plan_war && plan_frame <= frame {
@@ -480,7 +480,7 @@ impl Sim {
 
         // `LAB_006be428`. SEAM: `dip[t].agree` and the target's
         // `dip[me].agree` are never 1, so `action_clear_all` is not called.
-        if !forced && aggression == 0 && self.agendas[me][t] & 8 != 0 {
+        if !forced && aggression == 0 && self.leaders.agendas[me][t] & 8 != 0 {
             self.mark(SITE_QUIET_COIN);
             if self.rng.roll() % 3 != 0 {
                 return;
@@ -501,13 +501,13 @@ impl Sim {
             let stamp = self.ai[t].got_diplo_message;
             stamp != 0 && frame - stamp < 0x1c2
         };
-        if self.agendas[me][t] & 0x48 != 0 || quiet {
+        if self.leaders.agendas[me][t] & 0x48 != 0 || quiet {
             return;
         }
         // The message itself (`receive_chat` to the console player) draws
         // only from the interface's own streams.
         self.ai[t].got_diplo_message = frame;
-        self.agendas[me][t] |= 0x40;
+        self.leaders.agendas[me][t] |= 0x40;
     }
 
     /// The three per-target words, as `Leader::diplomacy` leaves them.

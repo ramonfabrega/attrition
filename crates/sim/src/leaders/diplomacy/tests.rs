@@ -11,7 +11,7 @@ fn peace_pair() -> Sim {
     sim.lobby.difficulty = 3;
     sim.lobby.rush_rules = 10;
     sim.lobby.rush_minutes = 5;
-    sim.treaties[1][0] = 1;
+    sim.leaders.treaties[1][0] = 1;
     sim
 }
 
@@ -30,11 +30,11 @@ fn a_pair_is_viewed_once_a_period_on_its_own_phase() {
             fired.push(f);
             sim.ai[0].got_diplo_message = 0;
             sim.ai[1].strong[0] = 0;
-            sim.agendas[1][0] = 0;
+            sim.leaders.agendas[1][0] = 0;
         }
     }
     assert_eq!(fired, [448, 960, 1472, 1984]);
-    sim.treaties[1][0] = 0;
+    sim.leaders.treaties[1][0] = 0;
     sim.frame = 2496;
     sim.diplomacy(1);
     assert_eq!(sim.ai[1].strong[0], 0, "an unmet target is skipped");
@@ -56,20 +56,20 @@ fn the_peace_arm_sends_one_message_and_stamps_the_receiver() {
     assert_eq!(sim.ai[1].aggression[0], 1);
     assert_eq!(sim.ai[1].strong[0], 1 << 5);
     assert_eq!(sim.ai[1].weak[0], 0);
-    assert_eq!(sim.agendas[1][0], 0x40);
+    assert_eq!(sim.leaders.agendas[1][0], 0x40);
     assert_eq!(sim.ai[0].got_diplo_message, 1984);
     assert_eq!(sim.ai[1].got_diplo_message, 0, "the stamp is the target's");
 
     // Inside the quiet window, a cleared bit sends nothing.
-    sim.agendas[1][0] = 0;
+    sim.leaders.agendas[1][0] = 0;
     sim.frame = 1984 + 512 - 64; // not on the phase: nothing at all
     sim.diplomacy(1);
-    assert_eq!(sim.agendas[1][0], 0);
+    assert_eq!(sim.leaders.agendas[1][0], 0);
     sim.ai[0].got_diplo_message = 1984 + 100;
     sim.frame = 2496;
     sim.diplomacy(1);
     assert_eq!(
-        sim.agendas[1][0], 0,
+        sim.leaders.agendas[1][0], 0,
         "the receiver heard one 412 frames ago"
     );
 
@@ -92,38 +92,44 @@ fn the_peace_s_end_declares_war_both_ways_on_its_one_frame() {
     for f in [4499, 4501] {
         sim.frame = f;
         sim.end_the_peace();
-        assert!(!sim.at_war[0][1] && !sim.at_war[1][0], "frame {f}");
+        assert!(
+            !sim.leaders.at_war[0][1] && !sim.leaders.at_war[1][0],
+            "frame {f}"
+        );
     }
     sim.frame = 4500;
     sim.end_the_peace();
-    assert!(sim.at_war[0][1] && sim.at_war[1][0]);
+    assert!(sim.leaders.at_war[0][1] && sim.leaders.at_war[1][0]);
     assert_eq!((sim.diplos(0, 1), sim.diplos(1, 0)), (0, 0));
 
     let mut sim = peace_pair();
-    sim.allied[0][1] = true;
-    sim.allied[1][0] = true;
+    sim.leaders.allied[0][1] = true;
+    sim.leaders.allied[1][0] = true;
     sim.frame = 4500;
     sim.end_the_peace();
-    assert!(!sim.at_war[0][1] && !sim.at_war[1][0], "allies keep it");
+    assert!(
+        !sim.leaders.at_war[0][1] && !sim.leaders.at_war[1][0],
+        "allies keep it"
+    );
 
     let mut sim = peace_pair();
-    sim.allied[0][1] = true; // one way only: not `is_ally`
+    sim.leaders.allied[0][1] = true; // one way only: not `is_ally`
     sim.frame = 4500;
     sim.end_the_peace();
-    assert!(sim.at_war[0][1] && sim.at_war[1][0]);
+    assert!(sim.leaders.at_war[0][1] && sim.leaders.at_war[1][0]);
     assert_eq!(sim.diplos(1, 0), 0);
 
     let mut sim = peace_pair();
     sim.lobby.rush_rules = 8;
     sim.frame = 4500;
     sim.end_the_peace();
-    assert!(!sim.at_war[0][1], "an age rule ends no clock");
+    assert!(!sim.leaders.at_war[0][1], "an age rule ends no clock");
 
     let mut sim = peace_pair();
     sim.lobby.team_style = 0;
     sim.frame = 4500;
     sim.end_the_peace();
-    assert!(!sim.at_war[0][1], "style 0 declares in `diplomacy`");
+    assert!(!sim.leaders.at_war[0][1], "style 0 declares in `diplomacy`");
 }
 
 /// The war gate: a timed rule's minutes × 900, or an age at the rule.

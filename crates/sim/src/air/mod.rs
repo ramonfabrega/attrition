@@ -1606,7 +1606,7 @@ impl Sim {
         let mut best = -1;
         let mut target: Option<(crate::Player, usize)> = None;
         for l in 0..self.territory.players.len() as crate::Player {
-            if self.defeated[l as usize] || self.is_peace(owner, l) {
+            if self.leaders.defeated[l as usize] || self.is_peace(owner, l) {
                 continue;
             }
             for c in 0..self.cities_state.cities.len() {

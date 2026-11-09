@@ -216,7 +216,8 @@ impl Sim {
     }
 
     fn allied_both_ways(&self, a: usize, b: usize) -> bool {
-        self.allied
+        self.leaders
+            .allied
             .get(a)
             .and_then(|r| r.get(b))
             .copied()
@@ -610,10 +611,11 @@ impl Sim {
             return;
         }
         for w in 0..self.territory.players.len() {
-            if self.defeated[w] || self.cities_state.nation[w].human {
+            if self.leaders.defeated[w] || self.cities_state.nation[w].human {
                 continue;
             }
-            if w != who as usize && !(self.allied[who as usize][w] && self.allied[w][who as usize])
+            if w != who as usize
+                && !(self.leaders.allied[who as usize][w] && self.leaders.allied[w][who as usize])
             {
                 continue;
             }

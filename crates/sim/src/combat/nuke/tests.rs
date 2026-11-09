@@ -41,8 +41,8 @@ fn the_ring_strikes_each_on_the_frame_it_reaches_it() {
         crate::world::World::new(60, 60),
         2,
     );
-    s.at_war[0][1] = true;
-    s.at_war[1][0] = true;
+    s.leaders.at_war[0][1] = true;
+    s.leaders.at_war[1][0] = true;
     let nuke = s.add_unit_type(crate::UnitType {
         hits: 2,
         combat: crate::combat::Profile {
@@ -222,8 +222,8 @@ fn a_landing_lights_its_circle_and_a_hit_marks_the_treaties() {
         2,
     );
     assert!(s.world.set_fog(vec![0; 60 * 60 * 4]));
-    s.at_war[0][1] = true;
-    s.at_war[1][0] = true;
+    s.leaders.at_war[0][1] = true;
+    s.leaders.at_war[1][0] = true;
     let nuke = s.add_unit_type(crate::UnitType {
         hits: 2,
         combat: crate::combat::Profile {
@@ -256,7 +256,7 @@ fn a_landing_lights_its_circle_and_a_hit_marks_the_treaties() {
     let n = put(&mut s, 1, nuke, Pos::new(19200, 34560));
     s.units[n].on_map = false;
     put(&mut s, 0, probe, Pos::new(23040, 34560));
-    assert_eq!(s.treaties[0][1], 0);
+    assert_eq!(s.leaders.treaties[0][1], 0);
     s.combat.projectiles.push(crate::combat::Projectile {
         shooter: Obj::Unit(n),
         owner: 1,
@@ -289,8 +289,8 @@ fn a_landing_lights_its_circle_and_a_hit_marks_the_treaties() {
         assert_eq!(s.world.seen2(fx, fy), Some(want), "seen2 ({fx}, {fy})");
         assert_eq!(s.world.seen(fx, fy), Some(want), "seen ({fx}, {fy})");
     }
-    assert_eq!(s.treaties[0][1] & 2, 2, "the struck leader's slot");
-    assert_eq!(s.treaties[1][0] & 2, 2, "the shooter's slot");
+    assert_eq!(s.leaders.treaties[0][1] & 2, 2, "the struck leader's slot");
+    assert_eq!(s.leaders.treaties[1][0] & 2, 2, "the shooter's slot");
 }
 
 /// **The struck fraction is the emulated original's**: 256 at d 0, 243

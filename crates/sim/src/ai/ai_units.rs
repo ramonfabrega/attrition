@@ -341,7 +341,7 @@ impl Sim {
         let mut vulnerable = false;
         for j in 0..self.territory.players.len() {
             let jw = j as Player;
-            if self.defeated[j] || self.is_ally(who, jw) {
+            if self.leaders.defeated[j] || self.is_ally(who, jw) {
                 continue;
             }
             vulnerable = true;
@@ -1301,7 +1301,7 @@ impl Sim {
         let mut count = 0;
         for j in 0..self.territory.players.len() {
             let jw = j as Player;
-            if self.defeated[j] || jw == who || self.is_ally(jw, who) {
+            if self.leaders.defeated[j] || jw == who || self.is_ally(jw, who) {
                 continue;
             }
             let e = Census::reg(&self.ai[j].census.reg_combat, sea_reg);
@@ -1788,7 +1788,7 @@ impl Sim {
     /// game, which the rush-rules gate compares against.
     fn leaders_max_age(&self) -> i32 {
         (0..self.territory.players.len())
-            .filter(|&j| !self.defeated[j])
+            .filter(|&j| !self.leaders.defeated[j])
             .map(|j| self.tech[j].ages)
             .max()
             .unwrap_or(0)
@@ -1869,10 +1869,10 @@ impl Sim {
         let mut other = 0;
         for j in 0..self.territory.players.len() {
             let jw = j as Player;
-            if jw == who || self.defeated[j] {
+            if jw == who || self.leaders.defeated[j] {
                 continue;
             }
-            if !(self.at_war[w][j] || self.at_war[j][w]) {
+            if !(self.leaders.at_war[w][j] || self.leaders.at_war[j][w]) {
                 continue;
             }
             let combat = self.ai[j].census.combat;
@@ -2089,7 +2089,9 @@ impl Sim {
     /// allied to me.
     fn max_enemy_age(&self, who: Player) -> i32 {
         (0..self.territory.players.len())
-            .filter(|&j| j as Player != who && !self.defeated[j] && !self.is_ally(who, j as Player))
+            .filter(|&j| {
+                j as Player != who && !self.leaders.defeated[j] && !self.is_ally(who, j as Player)
+            })
             .map(|j| self.tech[j].ages)
             .max()
             .unwrap_or(0)
@@ -2394,10 +2396,10 @@ impl Sim {
         let mut total = 0;
         for j in 0..self.territory.players.len() {
             let jw = j as Player;
-            if jw == who || self.defeated[j] {
+            if jw == who || self.leaders.defeated[j] {
                 continue;
             }
-            if self.allied[w_index(who)][j] && self.allied[j][w_index(who)] {
+            if self.leaders.allied[w_index(who)][j] && self.leaders.allied[j][w_index(who)] {
                 continue;
             }
             if !(d > 1 || self.seam_is_human(jw)) {

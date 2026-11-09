@@ -270,7 +270,13 @@ impl Sim {
     /// 6; A4 row 19). The leader-level reads (`leader_flags & 4`) stay on
     /// `ai_driven`.
     pub(crate) fn unit_ai_bit(&self, who: Player) -> bool {
-        self.ai_driven(who) && !self.defeated.get(who as usize).copied().unwrap_or(false)
+        self.ai_driven(who)
+            && !self
+                .leaders
+                .defeated
+                .get(who as usize)
+                .copied()
+                .unwrap_or(false)
     }
 
     /// `Object::find_nearby_target@00648e6e`'s `local_40` — the flag
@@ -660,7 +666,8 @@ impl Sim {
     /// bit and whatever else is set, with no defeated test — the read
     /// `think_scout`'s score makes at `005f6688` (`docs/SCOUT.md` §8.3).
     fn scout_treaty(&self, who: Player, other: Player) -> i32 {
-        self.treaties
+        self.leaders
+            .treaties
             .get(who as usize)
             .and_then(|r| r.get(other as usize))
             .copied()

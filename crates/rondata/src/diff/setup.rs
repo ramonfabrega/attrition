@@ -790,8 +790,8 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             // `diplos` at all and leaves the matrix alone.
             for (other, &d) in l.diplos.iter().enumerate().take(players) {
                 if other != who {
-                    sim.at_war[who][other] = d == 0;
-                    sim.allied[who][other] = d == 2;
+                    sim.leaders.at_war[who][other] = d == 0;
+                    sim.leaders.allied[who][other] = d == 2;
                 }
             }
         }

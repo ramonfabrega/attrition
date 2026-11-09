@@ -14,8 +14,8 @@ fn sim() -> Sim {
     );
     s.cities_state.nation[0].human = true;
     s.cities_state.nation[1].human = false;
-    s.at_war[0][1] = true;
-    s.at_war[1][0] = true;
+    s.leaders.at_war[0][1] = true;
+    s.leaders.at_war[1][0] = true;
     s.frame = 766;
     s
 }

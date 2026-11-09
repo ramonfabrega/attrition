@@ -263,9 +263,8 @@ pub struct Sim {
     /// The `territory/` subsystem's state (`docs/STRUCTURE.md` §3).
     pub territory: crate::territory::TerritoryState,
     pub units: Vec<Unit>,
-    /// Diplomacy, as a full matrix. `at_war[a][b]` is symmetric in practice
-    /// but stored both ways, because the original reads it both ways.
-    pub at_war: Vec<Vec<bool>>,
+    /// The `leaders/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub leaders: crate::leaders::LeadersState,
     /// The `economy/` subsystem's state (`docs/STRUCTURE.md` §3).
     pub economy: crate::economy::EconomyState,
     /// The `units/` subsystem's state (`docs/STRUCTURE.md` §3).
@@ -333,33 +332,11 @@ pub struct Sim {
     /// millionths (`docs/COMBAT.md` §46.3). Every window the harness replays
     /// pins it, so the day a read lands on one is a failing test by name.
     pub ground_inexact: u32,
-    /// Alliance, as a matrix; `is_ally` needs it both ways.
-    pub allied: Vec<Vec<bool>>,
-    /// `LeaderData::treaties` (`+0x94`), `int[8]` — the standing agreements
-    /// between two leaders, of which exactly one bit is modelled here:
-    /// **bit 0, the met bit**, "these two have made contact".
-    /// [`Sim::treaty_on`] is its only writer and [`Sim::has_met`] its only
-    /// reader; `docs/VISION.md` §6.2 and `docs/AI.md` §46.
-    pub treaties: Vec<Vec<i32>>,
-    /// `LeaderData::agendas` (`+0xb4`), `int[8]`. One bit is modelled:
-    /// **`2`, "your building stood in my armed unit's walk"**, which
-    /// `Unit::resolve_block@005fccc0` ors into its owner's slot for a
-    /// building of a player it is not at war with (`5fcdda`, item 1209);
-    /// one direction only, where `treaty_on` writes both.
-    pub agendas: Vec<Vec<i32>>,
     /// `LeaderData::flock_stamp` (`+0x7b8`): the frame of the player's
     /// last flock of birds, which `Objects::add_flock` reads to allow one
     /// in 225 frames per player (`crate::flock`). The leader dump prints
     /// it.
     pub flock_stamp: Vec<i64>,
-    /// `leader_flags & 0x8000` per player: one of its heroes is on a
-    /// Forced March. `cast_march` sets it and `Leader::verify_spell_flags`
-    /// clears it once no hero's `unit_masks & 0x8000` stands; the hero
-    /// arm of `think_spellcaster` throws no coin while it is up
-    /// (`docs/AI.md` §99.13).
-    pub forced_march: Vec<bool>,
-    /// Whether each player has been defeated — `leader_flags & 2` clear.
-    pub defeated: Vec<bool>,
     /// Buildings disbanded or died this frame, for tests.
     pub removed: Vec<usize>,
     /// The goody boxes as `Objects::init_item` laid them down, with each
@@ -454,7 +431,6 @@ impl Sim {
             cost_marks: Vec::new(),
             road_marks: Vec::new(),
             units: Vec::new(),
-            at_war: vec![vec![false; players]; players],
             buildings: Vec::new(),
             orders: crate::orders::OrdersState {
                 pushed: Vec::new(),
@@ -474,12 +450,15 @@ impl Sim {
             },
             gaia: gaia::Gaia::default(),
             game_seed: 0,
-            allied: vec![vec![false; players]; players],
-            treaties: vec![vec![0; players]; players],
-            agendas: vec![vec![0; players]; players],
             flock_stamp: vec![0; players],
-            forced_march: vec![false; players],
-            defeated: vec![false; players],
+            leaders: crate::leaders::LeadersState {
+                at_war: vec![vec![false; players]; players],
+                allied: vec![vec![false; players]; players],
+                treaties: vec![vec![0; players]; players],
+                agendas: vec![vec![0; players]; players],
+                forced_march: vec![false; players],
+                defeated: vec![false; players],
+            },
             removed: Vec::new(),
             cities_state: crate::cities::CitiesState {
                 farm_order: Vec::new(),
@@ -581,7 +560,7 @@ impl Sim {
         self.territory
             .borders
             .push(territory::PlayerBorders::plain(&self.tables.tuning));
-        self.defeated.push(false);
+        self.leaders.defeated.push(false);
         self.cities_state.lost_city_stamp.push(None);
         self.cities_state.city_tally.push(city::Tally::default());
         self.cities_state.building_high.push(Vec::new());
@@ -595,22 +574,22 @@ impl Sim {
         self.armies.push(army::Armies::new(
             u8::try_from(who).expect("too many players"),
         ));
-        for row in &mut self.at_war {
+        for row in &mut self.leaders.at_war {
             row.push(false);
         }
-        self.at_war.push(vec![false; who + 1]);
-        for row in &mut self.allied {
+        self.leaders.at_war.push(vec![false; who + 1]);
+        for row in &mut self.leaders.allied {
             row.push(false);
         }
-        self.allied.push(vec![false; who + 1]);
-        for row in &mut self.treaties {
+        self.leaders.allied.push(vec![false; who + 1]);
+        for row in &mut self.leaders.treaties {
             row.push(0);
         }
-        self.treaties.push(vec![0; who + 1]);
-        for row in &mut self.agendas {
+        self.leaders.treaties.push(vec![0; who + 1]);
+        for row in &mut self.leaders.agendas {
             row.push(0);
         }
-        self.agendas.push(vec![0; who + 1]);
+        self.leaders.agendas.push(vec![0; who + 1]);
         u8::try_from(who).expect("too many players")
     }
 

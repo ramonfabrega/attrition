@@ -974,7 +974,7 @@ fn enemy_territory_charges_and_the_own_discount_clamps_at_zero() {
     assert_eq!(own, 32);
     sim.world
         .set_owner(to.cell(), Owner::Player(1), Owner::None);
-    sim.at_war[0][1] = true;
+    sim.leaders.at_war[0][1] = true;
     let (enemy, _) = sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 2, 0, 1);
     assert_eq!(enemy, 36);
 }
@@ -1001,12 +1001,12 @@ fn the_no_rush_timer_charges_another_leader_s_cell_during_the_peace() {
     sim.world
         .set_owner(to.cell(), Owner::Player(1), Owner::None);
     assert_eq!(cost(&sim), 532, "another leader's, during the peace");
-    sim.allied[0][1] = true;
+    sim.leaders.allied[0][1] = true;
     assert_eq!(cost(&sim), 532, "an ally one way only");
-    sim.allied[1][0] = true;
+    sim.leaders.allied[1][0] = true;
     assert_eq!(cost(&sim), 32, "an ally both ways");
-    sim.allied[0][1] = false;
-    sim.allied[1][0] = false;
+    sim.leaders.allied[0][1] = false;
+    sim.leaders.allied[1][0] = false;
     sim.frame = 4500;
     assert_eq!(cost(&sim), 32, "the peace is over");
     sim.frame = 0;

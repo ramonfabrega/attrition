@@ -314,7 +314,7 @@ impl Sim {
         let victim = &self.territory.players[unit.owner as usize];
         let at_war = ground
             .player()
-            .is_none_or(|o| self.at_war[unit.owner as usize][o as usize]);
+            .is_none_or(|o| self.leaders.at_war[unit.owner as usize][o as usize]);
         let situation = attrition::Situation {
             ground,
             in_free_zone: false,

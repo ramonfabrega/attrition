@@ -100,8 +100,8 @@ fn at_war() -> (Sim, usize) {
 /// leader bound, not the table's length, is what refuses gaia.
 fn at_war_with_slots(slots: usize) -> (Sim, usize) {
     let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), slots);
-    sim.at_war[0][1] = true;
-    sim.at_war[1][0] = true;
+    sim.leaders.at_war[0][1] = true;
+    sim.leaders.at_war[1][0] = true;
     let ty = sim.add_unit_type(crate::UnitType {
         hits: 100,
         combat: Profile {
@@ -794,8 +794,8 @@ fn a_gaia_animal_is_no_ones_target_even_at_war() {
     let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
     let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
     let sheep = put(&mut sim, PLAYER_SLOTS, ty, Pos::new(0x1040, 0x1000));
-    sim.at_war[0][usize::from(PLAYER_SLOTS)] = true;
-    sim.at_war[usize::from(PLAYER_SLOTS)][0] = true;
+    sim.leaders.at_war[0][usize::from(PLAYER_SLOTS)] = true;
+    sim.leaders.at_war[usize::from(PLAYER_SLOTS)][0] = true;
     assert!(sim.units[sheep].is_gaia());
     assert!(sim.is_enemy(0, PLAYER_SLOTS), "the table says enemy");
     assert!(sim.valid_target(Obj::Unit(me), Obj::Unit(foe)));
@@ -4131,7 +4131,7 @@ fn a_squad_member_mirrors_its_captain_s_attack_order() {
 #[test]
 fn the_diplomacy_accessors_are_total_past_the_table() {
     let (sim, _) = at_war();
-    assert_eq!(sim.at_war.len(), 2);
+    assert_eq!(sim.leaders.at_war.len(), 2);
     assert!(!sim.is_enemy(0, PLAYER_SLOTS));
     assert!(!sim.is_ally(0, PLAYER_SLOTS));
     assert!(!sim.is_enemy(PLAYER_SLOTS, 0));
@@ -4462,8 +4462,8 @@ fn a_tied_target_goes_to_the_cell_chain_s_head() {
     use crate::combat::Profile;
     use crate::world::World;
     let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
-    sim.at_war[0][1] = true;
-    sim.at_war[1][0] = true;
+    sim.leaders.at_war[0][1] = true;
+    sim.leaders.at_war[1][0] = true;
     let mut kind = |max_range: i32| {
         sim.add_unit_type(crate::UnitType {
             hits: 120,

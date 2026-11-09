@@ -46,7 +46,7 @@ impl Sim {
         let terr: Vec<i32> = (0..n)
             .map(|i| {
                 (0..n)
-                    .filter(|&j| j == i || (!self.defeated[j] && self.allied[i][j]))
+                    .filter(|&j| j == i || (!self.leaders.defeated[j] && self.leaders.allied[i][j]))
                     .map(|j| self.economy.holdings[j].territory)
                     .sum()
             })
@@ -54,14 +54,14 @@ impl Sim {
         let frame = self.frame;
         for i in 0..n {
             // `leader_flags & 3 == 3`: seated and not defeated.
-            if self.defeated[i] {
+            if self.leaders.defeated[i] {
                 continue;
             }
             let rivals = (0..n)
                 .filter(|&j| {
                     j != i
-                        && !self.defeated[j]
-                        && !(self.allied[i][j] && self.allied[j][i])
+                        && !self.leaders.defeated[j]
+                        && !(self.leaders.allied[i][j] && self.leaders.allied[j][i])
                         && share <= terr[j] * 100 / land
                 })
                 .count();

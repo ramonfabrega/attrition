@@ -1704,6 +1704,7 @@ impl Sim {
         }
         if !self.is_enemy(who, owner) {
             if let Some(x) = self
+                .leaders
                 .agendas
                 .get_mut(usize::from(who))
                 .and_then(|r| r.get_mut(usize::from(owner)))

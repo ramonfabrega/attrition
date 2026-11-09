@@ -2672,8 +2672,8 @@ fn a_turret_short_of_its_aim_holds_its_release_on_any_piece() {
     const PIECE: i32 = 12_345;
     let fire = |node: i8, flags: u16| -> usize {
         let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
-        sim.at_war[0][1] = true;
-        sim.at_war[1][0] = true;
+        sim.leaders.at_war[0][1] = true;
+        sim.leaders.at_war[1][0] = true;
         let ty = sim.add_unit_type(crate::UnitType {
             hits: 100,
             type_index: BATTERY,

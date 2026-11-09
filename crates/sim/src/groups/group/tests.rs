@@ -12,8 +12,8 @@ fn sim() -> Sim {
     );
     s.cities_state.nation[0].human = true;
     s.cities_state.nation[1].human = false;
-    s.at_war[0][1] = true;
-    s.at_war[1][0] = true;
+    s.leaders.at_war[0][1] = true;
+    s.leaders.at_war[1][0] = true;
     s
 }
 
@@ -390,8 +390,8 @@ fn live_barracks(s: &mut Sim, b: usize) {
 fn a_strike_it_may_not_take_is_a_patrol_flown_the_same_frame() {
     let mut s = sim();
     let (base, target) = airbase_and_target(&mut s);
-    s.at_war[0][1] = false;
-    s.at_war[1][0] = false;
+    s.leaders.at_war[0][1] = false;
+    s.leaders.at_war[1][0] = false;
     let u = bomber(&mut s, Pos::new(10263, 16330), Angle(1_341_635_061));
     let g = group_of(0, &[u]);
     s.group_action_flight(&g, Obj::Building(base), Flight::Home);
@@ -3017,13 +3017,13 @@ fn a_defeated_seat_s_unit_keeps_the_bit_through_think() {
     let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
     s.units[a].idle = 1;
     s.units[a].cant_reach = true;
-    s.defeated[1] = true;
+    s.leaders.defeated[1] = true;
     s.think(a, 17);
     assert!(
         s.units[a].cant_reach,
         "the defeated seat's think returns at :98"
     );
-    s.defeated[1] = false;
+    s.leaders.defeated[1] = false;
     s.think(a, 18);
     assert!(!s.units[a].cant_reach, "a live seat's think drops it");
 }

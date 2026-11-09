@@ -1476,8 +1476,8 @@ fn a_captain_bumped_by_another_enemy_strikes_what_it_can_reach() {
         let mut sim = Sim::new(Tuning::RON, World::new(60, 60), 2);
         sim.world
             .fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(59, 59));
-        sim.at_war[0][1] = true;
-        sim.at_war[1][0] = true;
+        sim.leaders.at_war[0][1] = true;
+        sim.leaders.at_war[1][0] = true;
         let ty = sim.add_unit_type(UnitType {
             hits: 100,
             moves: 25,

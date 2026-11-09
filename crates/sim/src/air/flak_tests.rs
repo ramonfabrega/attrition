@@ -10,8 +10,8 @@ fn sim() -> Sim {
         crate::world::World::new(128, 128),
         2,
     );
-    s.at_war[0][1] = true;
-    s.at_war[1][0] = true;
+    s.leaders.at_war[0][1] = true;
+    s.leaders.at_war[1][0] = true;
     s.rng = combat::Rng::new(12345);
     s
 }

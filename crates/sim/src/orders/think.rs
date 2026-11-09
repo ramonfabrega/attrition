@@ -1095,6 +1095,7 @@ impl Sim {
         // `disable_all_unit_ai` (the same bit, `docs/AI.md` §1) is not
         // modelled.
         if self
+            .leaders
             .defeated
             .get(self.units[u].owner as usize)
             .copied()
@@ -1479,7 +1480,7 @@ impl Sim {
                 return true;
             }
         }
-        !self.ai_driven(who) || self.defeated[who as usize]
+        !self.ai_driven(who) || self.leaders.defeated[who as usize]
     }
 
     /// `Unit::think@005f6e40`'s opening arm — the **captain mirror**

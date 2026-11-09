@@ -116,8 +116,8 @@ fn a_ring_started_on_an_edge_stands_level_with_the_target() {
     use crate::combat::Profile;
     use crate::world::World;
     let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
-    sim.at_war[0][1] = true;
-    sim.at_war[1][0] = true;
+    sim.leaders.at_war[0][1] = true;
+    sim.leaders.at_war[1][0] = true;
     let ty = sim.add_unit_type(crate::UnitType {
         hits: 70,
         combat: Profile {
@@ -177,8 +177,8 @@ fn an_asker_s_auto_transport_is_held_clear_while_it_searches() {
     use crate::combat::Profile;
     use crate::world::{World, tile};
     let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
-    sim.at_war[0][1] = true;
-    sim.at_war[1][0] = true;
+    sim.leaders.at_war[0][1] = true;
+    sim.leaders.at_war[1][0] = true;
     let ty = sim.add_unit_type(crate::UnitType {
         hits: 70,
         combat: Profile {
@@ -258,8 +258,8 @@ fn chapter_one_s_melee_chase_stands_where_the_golden_dump_puts_it() {
     use crate::combat::Profile;
     use crate::world::World;
     let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
-    sim.at_war[0][1] = true;
-    sim.at_war[1][0] = true;
+    sim.leaders.at_war[0][1] = true;
+    sim.leaders.at_war[1][0] = true;
     // HOPLITES as the data loads it: `BLOCK_RADIUS 1` (so `+0x248` is
     // 1 and the ring's step is 3), melee, and in its own lineage.
     let ty = sim.add_unit_type(crate::UnitType {
@@ -329,8 +329,8 @@ fn chapter_two_s_ranged_chase_stands_where_the_golden_dump_puts_it() {
     use crate::combat::Profile;
     use crate::world::World;
     let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
-    sim.at_war[0][1] = true;
-    sim.at_war[1][0] = true;
+    sim.leaders.at_war[0][1] = true;
+    sim.leaders.at_war[1][0] = true;
     let mut kind = |max_range: i32, hits: i32| {
         sim.add_unit_type(crate::UnitType {
             hits,
@@ -483,8 +483,8 @@ fn a_unit_target_with_no_spot_is_refused_unless_the_attack_is_mandatory_and_far(
     use crate::orders::QueuePos;
     use crate::world::World;
     let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
-    sim.at_war[0][1] = true;
-    sim.at_war[1][0] = true;
+    sim.leaders.at_war[0][1] = true;
+    sim.leaders.at_war[1][0] = true;
     let ty = sim.add_unit_type(crate::UnitType {
         hits: 85,
         combat: Profile {

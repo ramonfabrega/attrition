@@ -414,7 +414,7 @@ impl BesiegedView for BesiegedSim<'_> {
         self.army().pos
     }
     fn leader_active(&mut self, j: i32) -> bool {
-        !self.sim.defeated[j as usize]
+        !self.sim.leaders.defeated[j as usize]
     }
     fn friendly(&mut self, j: i32) -> bool {
         self.sim.is_ally(self.who, j as Player)
@@ -1118,7 +1118,7 @@ impl Sim {
     pub(crate) fn think_join_army(&mut self, u: usize) {
         let unit = &self.units[u];
         let w = unit.owner as usize;
-        if self.cities_state.nation.get(w).is_none_or(|n| n.human) || self.defeated[w] {
+        if self.cities_state.nation.get(w).is_none_or(|n| n.human) || self.leaders.defeated[w] {
             return;
         }
         let Some(t) = unit.ty else { return };
@@ -1161,7 +1161,8 @@ impl Sim {
     /// [`Self::think_attack_tail`] sends `u` to, or none.
     fn think_attack_city(&self, u: usize) -> Option<usize> {
         let who = self.units[u].owner;
-        if !self.ai_driven(who) || self.defeated[who as usize] || self.think_attack_home(u) {
+        if !self.ai_driven(who) || self.leaders.defeated[who as usize] || self.think_attack_home(u)
+        {
             return None;
         }
         let p = self.units[u].pos;
@@ -1282,7 +1283,7 @@ impl Sim {
         use crate::ai_load::{role, uflags2};
         use crate::combat::mask;
         let who = self.units[u].owner;
-        if !self.ai_driven(who) || self.defeated[who as usize] {
+        if !self.ai_driven(who) || self.leaders.defeated[who as usize] {
             return None;
         }
         let t = self.units[u].ty?;
@@ -1537,7 +1538,7 @@ impl Sim {
         }
         for i in 0..self.territory.players.len() {
             let ip = i as Player;
-            if self.defeated[i] || !self.is_ally(who, ip) {
+            if self.leaders.defeated[i] || !self.is_ally(who, ip) {
                 continue;
             }
             for c in self.cities_of(ip) {
@@ -1984,7 +1985,7 @@ impl Sim {
         let at = list.iter().position(|&l| l == who as usize).unwrap_or(0);
         for j in 0..8 {
             let l = list[(at + 1 + j) & 7];
-            if l < self.territory.players.len() && !self.defeated[l] {
+            if l < self.territory.players.len() && !self.leaders.defeated[l] {
                 return l;
             }
         }
@@ -2129,7 +2130,7 @@ impl Sim {
         let w = who as usize;
         // `leader_flags & 5 == 1`: active and not human. `leader_flags2 &
         // 0xa`, the stop bits, are never set here (the module doc).
-        if self.cities_state.nation[w].human || self.defeated[w] {
+        if self.cities_state.nation[w].human || self.leaders.defeated[w] {
             return;
         }
         let (Some(a), Some(b)) = (reg_a, reg_b) else {
@@ -2356,7 +2357,7 @@ impl Sim {
             peasants,
             self.strategy_of(who, Some(r)) & 4 != 0,
             self.territory.players.len(),
-            |i| !self.defeated[i],
+            |i| !self.leaders.defeated[i],
             |i| self.leader_reg_cities(i as Player, r),
             |i| self.is_enemy(who, i as Player),
         )
@@ -2549,7 +2550,7 @@ impl Sim {
     /// once. From `do_damage` on an AI leader's object.
     pub fn armies_emergency(&mut self, who: Player) {
         let w = who as usize;
-        if self.cities_state.nation[w].human || self.defeated[w] {
+        if self.cities_state.nation[w].human || self.leaders.defeated[w] {
             return;
         }
         for s in 0..SLOTS {
@@ -2564,7 +2565,7 @@ impl Sim {
     /// `Armies::diplo_change(who)`: every army ticks at once.
     pub fn armies_diplo_change(&mut self, who: Player) {
         let w = who as usize;
-        if self.cities_state.nation[w].human || self.defeated[w] {
+        if self.cities_state.nation[w].human || self.leaders.defeated[w] {
             return;
         }
         for s in 0..SLOTS {
@@ -3787,7 +3788,7 @@ impl crate::army_process_view::ArmyProcessView for SimProcess<'_> {
         self.a().phase() as i32
     }
     fn defeated(&self) -> bool {
-        self.s.defeated[self.who as usize]
+        self.s.leaders.defeated[self.who as usize]
     }
     fn num_captains(&self) -> i32 {
         self.a().num_captains

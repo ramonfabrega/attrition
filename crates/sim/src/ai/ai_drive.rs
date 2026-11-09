@@ -27,7 +27,11 @@ impl Sim {
         // human included (corrected 2026-08-24 against the decompile; the
         // first reading said "computer leader").
         let rivals: Vec<ai::Rival> = (0..self.territory.players.len())
-            .filter(|&i| i != w && !self.defeated[i] && !(self.allied[w][i] && self.allied[i][w]))
+            .filter(|&i| {
+                i != w
+                    && !self.leaders.defeated[i]
+                    && !(self.leaders.allied[w][i] && self.leaders.allied[i][w])
+            })
             .map(|i| ai::Rival {
                 tribe: self.tech[i].tribe,
             })
@@ -64,7 +68,7 @@ impl Sim {
     /// frame; an AI navy reads the human city's `ocean` when it scores it.
     pub fn strategy_all(&mut self) {
         for w in 0..self.territory.players.len() {
-            if self.defeated[w] {
+            if self.leaders.defeated[w] {
                 continue;
             }
             let who = w as Player;

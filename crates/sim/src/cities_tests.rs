@@ -3400,7 +3400,7 @@ fn a_city_at_zero_falls_to_three_hoplites_but_not_two() {
     // Territory changed hands.
     assert_eq!(sim.world.owner_at(tile_pos(32, 32)), Owner::Player(0));
     // Player 1 lost their last city: defeated.
-    assert!(sim.defeated[1]);
+    assert!(sim.leaders.defeated[1]);
     assert_eq!(sim.cities_state.city_tally[0].captured, 1);
     assert_eq!(sim.cities_state.city_tally[1].lost, 1);
 }
@@ -3463,7 +3463,7 @@ fn an_unassimilated_city_does_not_heal_or_make_anything_and_assimilates_at_two_t
     // Now it admits the garrison — but not while under a tenth of its hits.
     assert_eq!(sim.garrison(h, nb), Err(GarrisonRefused::CityTooHurt));
     // And the 75-frame grace after a capture blocks the old owner's revenge.
-    assert!(!sim.defeated[1]);
+    assert!(!sim.leaders.defeated[1]);
 }
 
 /// **A captured city's record is `City::init`'s on a transfer, then

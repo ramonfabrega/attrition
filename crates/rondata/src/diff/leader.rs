@@ -145,9 +145,9 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     for i in 0..built.sim.territory.players.len() {
         let d = if i == who {
             2
-        } else if built.sim.at_war[who][i] {
+        } else if built.sim.leaders.at_war[who][i] {
             0
-        } else if built.sim.allied[who][i] {
+        } else if built.sim.leaders.allied[who][i] {
             2
         } else {
             1
@@ -161,7 +161,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         let met = if i == who {
             1
         } else {
-            i64::from(built.sim.treaties[who][i])
+            i64::from(built.sim.leaders.treaties[who][i])
         };
         out.push((format!("treaties[{i}]"), met));
         // `agendas[i]` (`+0xb4`, item 1209): the one bit written here is
@@ -169,6 +169,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         // `who`'s armed walks while the two are not at war.
         let agenda = built
             .sim
+            .leaders
             .agendas
             .get(who)
             .and_then(|r| r.get(i))

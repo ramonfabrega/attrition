@@ -154,7 +154,7 @@ fn a_building_seen_by_the_enemy_is_first_contact() {
         !s.has_met(0, 1) && !s.has_met(1, 0),
         "nobody has met anybody"
     );
-    assert_eq!(s.treaties[0][1], 0);
+    assert_eq!(s.leaders.treaties[0][1], 0);
 
     // Player 1's scout, three cells east of player 0's building. Its
     // disc lands as it is born, and the fog now carries player 1's bit
@@ -181,12 +181,12 @@ fn a_building_seen_by_the_enemy_is_first_contact() {
         "player 1 has looked at it, and only player 1"
     );
     assert!(s.has_met(0, 1) && s.has_met(1, 0), "first contact");
-    assert_eq!((s.treaties[0][1], s.treaties[1][0]), (1, 1));
+    assert_eq!((s.leaders.treaties[0][1], s.leaders.treaties[1][0]), (1, 1));
 
     // And it is never cleared: `Leader::treaty_off` has no caller in a
     // game. A second check changes nothing.
     s.check_ever_seen(b, false);
-    assert_eq!((s.treaties[0][1], s.treaties[1][0]), (1, 1));
+    assert_eq!((s.leaders.treaties[0][1], s.leaders.treaties[1][0]), (1, 1));
 }
 
 /// A 4 × 4 site of player 1's, placed and not started, in a two-player
@@ -277,7 +277,7 @@ fn a_city_flagged_wonder_is_not_first_contact() {
 #[test]
 fn a_defeated_leader_is_still_met() {
     let (mut s, b) = site(true);
-    s.defeated[0] = true;
+    s.leaders.defeated[0] = true;
     s.start_building(b);
     s.check_ever_seen(b, false);
     assert!(s.has_met(0, 1), "the defeated bit is not leader_flags & 1");

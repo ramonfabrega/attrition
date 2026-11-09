@@ -158,8 +158,8 @@ fn a_human_s_reveal_records_nothing_on_either_side() {
     s.new_rare(0, citrus);
     assert!(s.ai[0].new_rares.is_empty(), "the human's own reveal");
     assert!(s.ai[1].new_rares.is_empty(), "and it told nobody");
-    s.allied[0][1] = true;
-    s.allied[1][0] = true;
+    s.leaders.allied[0][1] = true;
+    s.leaders.allied[1][0] = true;
     s.new_rare(1, citrus);
     assert_eq!(s.ai[1].new_rares, vec![citrus]);
     assert!(

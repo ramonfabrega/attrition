@@ -1256,7 +1256,7 @@ impl Sim {
         // time` is the same verdict without one.
         for p in 0..self.territory.players.len() {
             let other = p as Player;
-            if self.defeated.get(p).copied().unwrap_or(false) {
+            if self.leaders.defeated.get(p).copied().unwrap_or(false) {
                 continue;
             }
             let sites: Vec<usize> = self
@@ -1379,7 +1379,7 @@ impl Sim {
     /// read as every player not defeated.
     fn wonder_leaders(&self) -> impl Iterator<Item = Player> + '_ {
         (0..self.territory.players.len())
-            .filter(|&p| !self.defeated.get(p).copied().unwrap_or(true))
+            .filter(|&p| !self.leaders.defeated.get(p).copied().unwrap_or(true))
             .map(|p| p as Player)
     }
 

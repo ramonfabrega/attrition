@@ -309,7 +309,7 @@ fn the_start_list_s_target_is_the_next_live_leader() {
         1,
         "the list's order: 0 3 2 5 4 7 6 1"
     );
-    sim.defeated[1] = true;
+    sim.leaders.defeated[1] = true;
     assert_eq!(sim.start_list_target(0), 0, "nobody left but me: me");
 }
 
@@ -1812,7 +1812,11 @@ fn a_navy_musters_on_water_of_its_region_scoring_the_5x5() {
 fn the_muster_search_survives_a_gaia_unit_with_a_two_wide_table() {
     let (mut sim, c) = sim_with_city();
     let t = soldier_type(&mut sim);
-    assert_eq!(sim.at_war.len(), 2, "the lobby's table, not a wide one");
+    assert_eq!(
+        sim.leaders.at_war.len(),
+        2,
+        "the lobby's table, not a wide one"
+    );
     let b = sim.cities_state.cities[c].building;
     sim.buildings[b].hits = 100;
     sim.buildings[b].health = 50;
@@ -1842,8 +1846,8 @@ fn a_gaia_unit_is_never_the_muster_point_even_at_war() {
     sim.buildings[b].health = 50;
     let slot = sim.init_army(1, Some(c));
     let g = usize::from(crate::world::PLAYER_SLOTS);
-    sim.at_war[1][g] = true;
-    sim.at_war[g][1] = true;
+    sim.leaders.at_war[1][g] = true;
+    sim.leaders.at_war[g][1] = true;
     let sheep = put(
         &mut sim,
         crate::world::PLAYER_SLOTS,
@@ -1861,8 +1865,8 @@ fn a_gaia_unit_is_never_the_muster_point_even_at_war() {
     // A player's soldier in the same spot *is* the muster point, so the
     // search is otherwise working.
     let foe = put(&mut sim, 0, t, Pos::new(0x3100, 0x3000));
-    sim.at_war[1][0] = true;
-    sim.at_war[0][1] = true;
+    sim.leaders.at_war[1][0] = true;
+    sim.leaders.at_war[0][1] = true;
     assert!(sim.find_muster_spot(1, slot, Obj::Building(b), false));
     assert_eq!(sim.armies[1].list[slot].hurry, 1);
     assert_eq!(sim.armies[1].list[slot].muster, sim.units[foe].pos.cell());

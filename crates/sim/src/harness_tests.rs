@@ -340,7 +340,7 @@ fn a_wagon_bleeds_over_a_peaceful_border_and_nothing_shelters_it() {
     // self-shelter refusal is real but unobservable from attrition: the only
     // bleeds a wagon ever has are the ones that bypass supply anyway.
     let mut sim = skirmish(4);
-    sim.at_war = vec![vec![false; 2]; 2];
+    sim.leaders.at_war = vec![vec![false; 2]; 2];
     let w = wagon_at(&mut sim, 0, 0, Cell::new(15, 0));
     wagon_at(&mut sim, 0, 1, Cell::new(15, 0));
     assert!(sim.supplied_at(0, sim.units[w].pos));
@@ -357,7 +357,7 @@ fn a_wagon_bleeds_over_a_peaceful_border_and_nothing_shelters_it() {
 #[test]
 fn supply_does_not_shelter_a_peacetime_border_violation() {
     let mut sim = skirmish(1);
-    sim.at_war = vec![vec![false; 2]; 2];
+    sim.leaders.at_war = vec![vec![false; 2]; 2];
     // Health well above what the run can remove, so the cadence is what this
     // measures rather than how fast the unit dies.
     sim.add_unit(Unit::new(0, 0, centre_of(Cell::new(15, 0)), 1000));
@@ -3743,16 +3743,16 @@ fn a_building_on_unfriendly_ground_holds_no_armour() {
     sim.world.set_owner(cell, Owner::Player(1), Owner::None);
     assert!(sim.in_unfriendly_territory(tower));
     blow(&mut sim, 2);
-    sim.allied[0][1] = true;
+    sim.leaders.allied[0][1] = true;
     assert!(
         sim.in_unfriendly_territory(tower),
         "allied one way is not enough"
     );
-    sim.allied[1][0] = true;
+    sim.leaders.allied[1][0] = true;
     assert!(!sim.in_unfriendly_territory(tower));
     blow(&mut sim, 3);
-    sim.allied[0][1] = false;
-    sim.allied[1][0] = false;
+    sim.leaders.allied[0][1] = false;
+    sim.leaders.allied[1][0] = false;
     sim.buildings[tower].combat.as_mut().unwrap().attack = 0;
     blow(&mut sim, 4);
     let dealt: Vec<i32> = sim

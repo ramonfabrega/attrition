@@ -452,7 +452,7 @@ impl ScriptHost<'_> {
     /// (`leader_flags & 1|2`).
     fn leader(&self, who: i32) -> Option<Player> {
         let w = self.leader_any(who)?;
-        (!self.sim.defeated[w as usize]).then_some(w)
+        (!self.sim.leaders.defeated[w as usize]).then_some(w)
     }
 
     /// `leader_flags & 1` only — `num_cities`' weaker guard.

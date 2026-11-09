@@ -260,8 +260,8 @@ fn an_enemy_s_cell_does_not_pay() {
     s.world
         .set_owner(Cell::new(7, 5), crate::Owner::Player(1), crate::Owner::None);
     assert_eq!(s.max_gatherers_at(ty, 0, Pos::new(21, 21)), 1);
-    s.allied[0][1] = true;
-    s.allied[1][0] = true;
+    s.leaders.allied[0][1] = true;
+    s.leaders.allied[1][0] = true;
     assert_eq!(s.max_gatherers_at(ty, 0, Pos::new(21, 21)), 2);
 }
 

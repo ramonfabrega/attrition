@@ -562,7 +562,7 @@ impl Sim {
         }
         (0..self.territory.players.len())
             .map(|p| p as Player)
-            .filter(|&p| !self.defeated[p as usize] && (p == who || self.is_ally(who, p)))
+            .filter(|&p| !self.leaders.defeated[p as usize] && (p == who || self.is_ally(who, p)))
             .map(|p| self.my_nuke_embargo(p))
             .max()
             .unwrap_or(0)

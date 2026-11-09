@@ -105,7 +105,7 @@ impl Sim {
     /// war — on all four, so the diplomacy never moves and only contact
     /// does, once, in (7616, 8174].
     fn met(&self, who: Player, other: usize) -> bool {
-        other != who as usize && !self.defeated[other] && self.has_met(who, other)
+        other != who as usize && !self.leaders.defeated[other] && self.has_met(who, other)
     }
 
     /// `treaties[other] & 1` — the met bit, and the field the leader-record
@@ -114,8 +114,9 @@ impl Sim {
     /// readers agree.
     pub fn has_met(&self, who: Player, other: usize) -> bool {
         other == who as usize
-            || (!self.defeated[other]
+            || (!self.leaders.defeated[other]
                 && self
+                    .leaders
                     .treaties
                     .get(who as usize)
                     .and_then(|r| r.get(other))
@@ -133,12 +134,12 @@ impl Sim {
 
     /// `diplos[a][b] == 0` — at war. The original tests either side.
     fn diplo_war(&self, a: usize, b: usize) -> bool {
-        self.at_war[a][b]
+        self.leaders.at_war[a][b]
     }
 
     /// `diplos[a][b] == 2` — allied. The original tests both sides.
     fn diplo_ally(&self, a: usize, b: usize) -> bool {
-        self.allied[a][b]
+        self.leaders.allied[a][b]
     }
 
     /// `LeaderData::territory` (`+0x9d8`, the field `get_team_terr@006d62e0`
@@ -154,7 +155,7 @@ impl Sim {
     fn team_terr(&self, who: Player) -> i32 {
         let w = who as usize;
         (0..self.territory.players.len())
-            .filter(|&i| i == w || (!self.defeated[i] && self.diplo_ally(w, i)))
+            .filter(|&i| i == w || (!self.leaders.defeated[i] && self.diplo_ally(w, i)))
             .map(|i| self.territory_of(i as Player))
             .sum()
     }
@@ -385,7 +386,7 @@ impl Sim {
         let w = who as usize;
         let mut mask = 1u32 << (w & 0x1f);
         for i in 0..self.territory.players.len() {
-            if i == w || self.defeated[i] || self.cities_state.nation[i].human {
+            if i == w || self.leaders.defeated[i] || self.cities_state.nation[i].human {
                 continue;
             }
             if self.diplo_ally(w, i) && self.diplo_ally(i, w) {
@@ -420,7 +421,7 @@ impl Sim {
         }
         let w = who as usize;
         for i in 0..self.territory.players.len().min(8) {
-            if i == w || self.defeated[i] || self.has_met(who, i) {
+            if i == w || self.leaders.defeated[i] || self.has_met(who, i) {
                 continue;
             }
             let o = i as Player;
@@ -441,7 +442,7 @@ impl Sim {
         let w = who as usize;
         let players = self.territory.players.len();
         for i in 0..players {
-            if self.defeated[i] {
+            if self.leaders.defeated[i] {
                 continue;
             }
             let inv = &mut self.ai[i].census.invaders;
@@ -657,7 +658,7 @@ impl Sim {
             if roles & (ROLE_MILITARY | ROLE_NO_INVADE) == ROLE_MILITARY
                 && let Some(o) = self.world.owner(self.units[u].pos.cell()).player()
                 && o as usize != w
-                && !self.defeated[o as usize]
+                && !self.leaders.defeated[o as usize]
             {
                 let players = self.territory.players.len();
                 let inv = &mut self.ai[o as usize].census.invaders;
@@ -1160,7 +1161,7 @@ impl Sim {
                 cs.strategy[r] = 0;
             }
             let total: i32 = (0..players)
-                .filter(|&i| !self.defeated[i])
+                .filter(|&i| !self.leaders.defeated[i])
                 .map(|i| self.reg_city_buildings(i as Player, r as u16))
                 .sum();
             let thin = total * 50 < self.world.region_size(r as u16);
@@ -1179,7 +1180,7 @@ impl Sim {
             let my_attack = self.ai[w].census.attack;
             let home = self.ai[w].census.home_reg;
             for i in 0..players {
-                if i == w || self.defeated[i] || !self.met(who, i) {
+                if i == w || self.leaders.defeated[i] || !self.met(who, i) {
                     continue;
                 }
                 let theirs = self.reg_city_buildings(i as Player, r as u16);

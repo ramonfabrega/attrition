@@ -10,8 +10,8 @@ fn sim() -> Sim {
         2,
     );
     s.cities_state.nation[0].human = true;
-    s.at_war[0][1] = true;
-    s.at_war[1][0] = true;
+    s.leaders.at_war[0][1] = true;
+    s.leaders.at_war[1][0] = true;
     s
 }
 

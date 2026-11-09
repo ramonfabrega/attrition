@@ -276,7 +276,10 @@ impl Sim {
     fn max_human_age(&self) -> i32 {
         let mut best = -1;
         for w in 0..self.tech.len() {
-            if self.cities_state.nation[w].human && !self.defeated[w] && self.tech[w].ages >= best {
+            if self.cities_state.nation[w].human
+                && !self.leaders.defeated[w]
+                && self.tech[w].ages >= best
+            {
                 best = self.tech[w].ages;
             }
         }
@@ -290,7 +293,7 @@ impl Sim {
     fn best_human_age_stamp(&self, n: usize) -> i64 {
         let mut best = -1i64;
         for w in 0..self.tech.len() {
-            if !self.cities_state.nation[w].human || self.defeated[w] {
+            if !self.cities_state.nation[w].human || self.leaders.defeated[w] {
                 continue;
             }
             if let Some(s) = self.tech[w].age_stamp[n]

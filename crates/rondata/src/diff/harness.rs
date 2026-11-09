@@ -1478,8 +1478,8 @@ pub(crate) fn debug_gap(
             format!("gather_stamp {} dirty {}", l.gather_stamp, l.dirty),
         ));
     }
-    rows.push(("treaties".into(), format!("{:?}", s.treaties)));
-    rows.push(("at_war".into(), format!("{:?}", s.at_war)));
+    rows.push(("treaties".into(), format!("{:?}", s.leaders.treaties)));
+    rows.push(("at_war".into(), format!("{:?}", s.leaders.at_war)));
     for u in units.split(',').filter(|u| !u.is_empty()) {
         let Some((w, o)) = u
             .split_once('/')
@@ -1765,7 +1765,7 @@ pub(crate) fn debug_leader(built: &Built, frame: i64) {
         return;
     }
     for w in 0..built.sim.territory.players.len() {
-        if built.sim.cities_state.nation[w].human || built.sim.defeated[w] {
+        if built.sim.cities_state.nation[w].human || built.sim.leaders.defeated[w] {
             continue;
         }
         let l = &built.sim.ai[w];
@@ -2690,7 +2690,7 @@ pub(crate) fn debug_tech(built: &Built, frame: i64) {
         let mut last = last.borrow_mut();
         last.resize(built.sim.territory.players.len(), Vec::new());
         for w in 0..built.sim.territory.players.len() {
-            if built.sim.cities_state.nation[w].human || built.sim.defeated[w] {
+            if built.sim.cities_state.nation[w].human || built.sim.leaders.defeated[w] {
                 continue;
             }
             let p = &built.sim.tech[w];

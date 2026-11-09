@@ -1326,7 +1326,7 @@ impl Sim {
         let end = self.frame + i64::from(march_extent(d.duration, d.duration_upgrade, level));
         self.units[g].marching = Some(end);
         let who = self.units[g].owner as usize;
-        self.forced_march[who] = true;
+        self.leaders.forced_march[who] = true;
     }
 
     /// `SpellType::cast_ambush@00671610` — Ambush on a hero: an
@@ -1457,7 +1457,7 @@ impl Sim {
             .iter()
             .any(|x| x.owner == who && x.alive() && x.marching.is_some())
         {
-            self.forced_march[who as usize] = false;
+            self.leaders.forced_march[who as usize] = false;
         }
     }
 
@@ -1592,7 +1592,8 @@ impl Sim {
     /// `LeaderData::leader_flags & 0x8000`, [`Sim::forced_march`]. Gaia's
     /// is never set.
     pub(crate) fn leader_marching(&self, u: usize) -> bool {
-        self.forced_march
+        self.leaders
+            .forced_march
             .get(self.units[u].owner as usize)
             .copied()
             .unwrap_or(false)

@@ -170,7 +170,8 @@ impl Sim {
                 continue;
             }
             let w = bd.owner as usize;
-            if self.defeated.get(w).copied().unwrap_or(true) || self.is_ally(bd.owner, who) {
+            if self.leaders.defeated.get(w).copied().unwrap_or(true) || self.is_ally(bd.owner, who)
+            {
                 continue;
             }
             let (j, c) = (i64::from(bd.job_counter), i64::from(bd.constr_time));

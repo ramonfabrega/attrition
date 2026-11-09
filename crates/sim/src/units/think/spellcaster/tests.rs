@@ -150,7 +150,7 @@ fn a_forced_march_holds_the_coin_until_it_runs_out() {
     let before = sim.rng;
     sim.do_cast(g, c);
     assert_eq!(sim.rng, before, "the attack slot rolls nothing");
-    assert!(sim.forced_march[1]);
+    assert!(sim.leaders.forced_march[1]);
     assert_eq!(sim.units[g].marching, Some(sim.frame + 150));
     // The next turn: moving again, no coin while the march stands.
     let to = crate::Pos::new(8 * 768, 8 * 768);
@@ -167,9 +167,9 @@ fn a_forced_march_holds_the_coin_until_it_runs_out() {
     // Past the end frame the spell runs out and the flag with it.
     let end = sim.units[g].marching.unwrap();
     sim.process_spells(g, end);
-    assert!(sim.forced_march[1], "held through its end frame");
+    assert!(sim.leaders.forced_march[1], "held through its end frame");
     sim.process_spells(g, end + 1);
-    assert!(!sim.forced_march[1] && sim.units[g].marching.is_none());
+    assert!(!sim.leaders.forced_march[1] && sim.units[g].marching.is_none());
 }
 
 /// run511's block 9318 (`docs/AI.md` §99.15): under a Forced March

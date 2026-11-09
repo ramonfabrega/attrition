@@ -795,7 +795,7 @@ impl Sim {
             let nations = self.territory.players.len() as i32;
             for i in 0..self.territory.players.len() {
                 let l = i as Player;
-                if self.defeated[i] || l == who || self.is_ally(who, l) {
+                if self.leaders.defeated[i] || l == who || self.is_ally(who, l) {
                     continue;
                 }
                 if self.lobby.team_style == 2 && cities >= 2 && self.leader_target(who) != Some(l) {
@@ -1025,7 +1025,7 @@ impl Sim {
     fn max_human_cities(&self) -> i32 {
         let mut best = -1;
         for i in 0..self.cities_state.nation.len() {
-            if self.defeated[i] || !self.cities_state.nation[i].human {
+            if self.leaders.defeated[i] || !self.cities_state.nation[i].human {
                 continue;
             }
             best = best.max(self.total_cities(i as Player));
@@ -1088,7 +1088,7 @@ impl Sim {
         // region — within five cells drops the site.
         for l in 0..self.territory.players.len() {
             let other = l as Player;
-            if self.defeated[l] {
+            if self.leaders.defeated[l] {
                 continue;
             }
             if !(other == who || self.reg_cities(other, reg) != 0) {
