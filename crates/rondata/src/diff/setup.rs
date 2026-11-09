@@ -1136,7 +1136,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // The herds, as the dump's `HERDS` block prints them — their walk every
     // 64 frames is on the sync stream (`docs/SYNC.md` §3.2).
     for h in &init.herds {
-        sim.gaia.herds.push(sim::gaia::Herd {
+        sim.gaia_state.gaia.herds.push(sim::gaia::Herd {
             cx: h.cx as i32,
             cy: h.cy as i32,
             wx: h.wx as i32,

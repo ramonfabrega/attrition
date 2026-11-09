@@ -181,13 +181,13 @@ struct SimFlock<'a> {
 
 impl FlockView for SimFlock<'_> {
     fn leader_live(&self, who: i32) -> bool {
-        self.sim.flock_stamp.get(who as usize).is_some()
+        self.sim.gaia_state.flock_stamp.get(who as usize).is_some()
     }
     fn stamp(&self, who: i32) -> i64 {
-        self.sim.flock_stamp[who as usize]
+        self.sim.gaia_state.flock_stamp[who as usize]
     }
     fn set_stamp(&mut self, who: i32, frame: i64) {
-        self.sim.flock_stamp[who as usize] = frame;
+        self.sim.gaia_state.flock_stamp[who as usize] = frame;
     }
     fn frame(&self) -> i64 {
         self.sim.frame

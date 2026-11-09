@@ -157,7 +157,7 @@ impl Sim {
             };
             let c = Cell { x, y };
             if self.world.cell_data(c).flags & BIRD_CELL != 0 {
-                self.gaia.bird_spawns.push((frame, c));
+                self.gaia_state.gaia.bird_spawns.push((frame, c));
                 self.spawn_bird(c);
             }
             n -= 1;
@@ -242,7 +242,7 @@ impl Sim {
         // distinction did not exist while the bird stood still, and it is
         // the whole of the first seven frames of a flight
         // (`docs/SYNC.md` §3.9).
-        self.gaia.bird_goals.push((u, pos));
+        self.gaia_state.gaia.bird_goals.push((u, pos));
         Some(u)
     }
 
@@ -317,7 +317,10 @@ impl Sim {
         let r = self.rng.roll() % i32::from(counter);
         if r == 100 || r > 799 {
             self.units[u].spell_time = 0;
-            self.gaia.bird_landings.push((frame, self.units[u].index));
+            self.gaia_state
+                .gaia
+                .bird_landings
+                .push((frame, self.units[u].index));
             self.bird_landing_search(u);
         }
     }
@@ -376,7 +379,8 @@ impl Sim {
 
     /// The patrol point of a bird, which starts on the cell it hatched in.
     pub fn bird_goal(&self, u: usize) -> Pos {
-        self.gaia
+        self.gaia_state
+            .gaia
             .bird_goals
             .iter()
             .find(|(b, _)| *b == u)
@@ -384,9 +388,15 @@ impl Sim {
     }
 
     fn set_bird_goal(&mut self, u: usize, to: Pos) {
-        match self.gaia.bird_goals.iter_mut().find(|(b, _)| *b == u) {
+        match self
+            .gaia_state
+            .gaia
+            .bird_goals
+            .iter_mut()
+            .find(|(b, _)| *b == u)
+        {
             Some((_, p)) => *p = to,
-            None => self.gaia.bird_goals.push((u, to)),
+            None => self.gaia_state.gaia.bird_goals.push((u, to)),
         }
     }
 
@@ -441,13 +451,16 @@ impl Sim {
     /// point and `8/3` was sent to `(17688, 26616)` where the original
     /// sends it to `(17688, 26328)`.
     fn herd_walk(&mut self, frame: i64) {
-        let count = self.gaia.herds.len() as i64;
+        let count = self.gaia_state.gaia.herds.len() as i64;
         let idx = (frame >> 6) % count.max(5);
-        if idx >= count || !self.gaia.herds[idx as usize].alive {
+        if idx >= count || !self.gaia_state.gaia.herds[idx as usize].alive {
             return;
         }
         let h = idx as usize;
-        let (cx, cy) = (self.gaia.herds[h].cx, self.gaia.herds[h].cy);
+        let (cx, cy) = (
+            self.gaia_state.gaia.herds[h].cx,
+            self.gaia_state.gaia.herds[h].cy,
+        );
         let (rng, marks, trace, world) = (
             &mut self.rng,
             &mut self.phase_marks,
@@ -473,8 +486,8 @@ impl Sim {
             },
         );
         if let Some((x, y)) = walked {
-            self.gaia.herds[h].wx = x;
-            self.gaia.herds[h].wy = y;
+            self.gaia_state.gaia.herds[h].wx = x;
+            self.gaia_state.gaia.herds[h].wy = y;
         }
     }
 }
@@ -513,3 +526,24 @@ mod tests;
 pub mod flock;
 pub mod goody;
 pub mod herd_create_view;
+
+/// The `gaia/` subsystem's fields of [`crate::Sim`] (`docs/STRUCTURE.md`
+/// §3, item 4016): moved whole, each with its doc, in `Sim`'s order.
+#[derive(Clone, Debug)]
+pub struct GaiaState {
+    /// `LeaderData::flock_stamp` (`+0x7b8`): the frame of the player's
+    /// last flock of birds, which `Objects::add_flock` reads to allow one
+    /// in 225 frames per player (`crate::flock`). The leader dump prints
+    /// it.
+    pub flock_stamp: Vec<i64>,
+    /// The goody boxes as `Objects::init_item` laid them down, with each
+    /// one's `ItemData::ever_seen` (`+0x20`): a bit per leader that
+    /// `World::reveal_fog` ORs in when a unit's sight first changes `seen2`
+    /// on one of the box's half-cells, and nothing else (item 3335,
+    /// `docs/GOODY.md` §7.2). Empty when the world was stood up without
+    /// the dump's `ITEM` records; [`Sim::goody_item_is_seen`] then reads
+    /// the fog in its place.
+    pub goody_items: Vec<crate::goody::GoodyItem>,
+    /// The herds and the birds' sampling (`gaia.rs`).
+    pub gaia: crate::gaia::Gaia,
+}

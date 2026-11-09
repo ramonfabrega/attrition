@@ -22,7 +22,7 @@ fn stepped(seed: u32, n: usize) -> u32 {
 #[test]
 fn run12_s_herd_walk() {
     let mut s = sim_at(stepped(0x3bd3_9ae9, 108));
-    s.gaia.herds.push(Herd {
+    s.gaia_state.gaia.herds.push(Herd {
         cx: 22,
         cy: 34,
         wx: 22,
@@ -30,7 +30,7 @@ fn run12_s_herd_walk() {
         kind: 408,
         alive: true,
     });
-    s.gaia.herds.push(Herd {
+    s.gaia_state.gaia.herds.push(Herd {
         cx: 44,
         cy: 21,
         wx: 44,
@@ -39,8 +39,14 @@ fn run12_s_herd_walk() {
         alive: true,
     });
     s.herd_walk(0);
-    assert_eq!((s.gaia.herds[0].wx, s.gaia.herds[0].wy), (22, 35));
-    assert_eq!((s.gaia.herds[1].wx, s.gaia.herds[1].wy), (44, 21));
+    assert_eq!(
+        (s.gaia_state.gaia.herds[0].wx, s.gaia_state.gaia.herds[0].wy),
+        (22, 35)
+    );
+    assert_eq!(
+        (s.gaia_state.gaia.herds[1].wx, s.gaia_state.gaia.herds[1].wy),
+        (44, 21)
+    );
     assert_eq!(s.rng.seed, stepped(0x3bd3_9ae9, 110));
 }
 
@@ -53,7 +59,7 @@ fn run12_s_herd_walk() {
 #[test]
 fn a_second_herd_walk_jitters_about_home_again() {
     let mut s = sim_at(stepped(0x3bd3_9ae9, 108));
-    s.gaia.herds.push(Herd {
+    s.gaia_state.gaia.herds.push(Herd {
         cx: 22,
         cy: 34,
         wx: 22,
@@ -62,7 +68,10 @@ fn a_second_herd_walk_jitters_about_home_again() {
         alive: true,
     });
     s.herd_walk(0);
-    assert_eq!((s.gaia.herds[0].wx, s.gaia.herds[0].wy), (22, 35));
+    assert_eq!(
+        (s.gaia_state.gaia.herds[0].wx, s.gaia_state.gaia.herds[0].wy),
+        (22, 35)
+    );
 }
 
 /// Run12, frame 0, draws 88–107: ten attempts on a 60×60 map, none on a
@@ -72,7 +81,7 @@ fn run12_s_bird_sampling_draws_twenty() {
     let mut s = sim_at(stepped(0x3bd3_9ae9, 88));
     s.sample_birds(0);
     assert_eq!(s.rng.seed, stepped(0x3bd3_9ae9, 108));
-    assert!(s.gaia.bird_spawns.is_empty());
+    assert!(s.gaia_state.gaia.bird_spawns.is_empty());
 }
 
 /// The cadences: frame 0 takes both, frames 1–31 neither, 32 the
@@ -80,7 +89,7 @@ fn run12_s_bird_sampling_draws_twenty() {
 #[test]
 fn the_cadences() {
     let mut s = sim_at(7);
-    s.gaia.herds.push(Herd {
+    s.gaia_state.gaia.herds.push(Herd {
         cx: 5,
         cy: 5,
         wx: 5,
@@ -121,7 +130,7 @@ fn a_mountain_cell_records_a_spawn() {
         }
     }
     s.sample_birds(0);
-    assert_eq!(s.gaia.bird_spawns.len(), 10);
+    assert_eq!(s.gaia_state.gaia.bird_spawns.len(), 10);
 }
 
 /// **The console's `bird` and the sampling are one pair of calls**,

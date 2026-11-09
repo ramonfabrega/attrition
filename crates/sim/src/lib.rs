@@ -325,28 +325,15 @@ pub struct Sim {
     /// millionths (`docs/COMBAT.md` §46.3). Every window the harness replays
     /// pins it, so the day a read lands on one is a failing test by name.
     pub ground_inexact: u32,
-    /// `LeaderData::flock_stamp` (`+0x7b8`): the frame of the player's
-    /// last flock of birds, which `Objects::add_flock` reads to allow one
-    /// in 225 frames per player (`crate::flock`). The leader dump prints
-    /// it.
-    pub flock_stamp: Vec<i64>,
+    /// The `gaia/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub gaia_state: crate::gaia::GaiaState,
     /// Buildings disbanded or died this frame, for tests.
     pub removed: Vec<usize>,
-    /// The goody boxes as `Objects::init_item` laid them down, with each
-    /// one's `ItemData::ever_seen` (`+0x20`): a bit per leader that
-    /// `World::reveal_fog` ORs in when a unit's sight first changes `seen2`
-    /// on one of the box's half-cells, and nothing else (item 3335,
-    /// `docs/GOODY.md` §7.2). Empty when the world was stood up without
-    /// the dump's `ITEM` records; [`Sim::goody_item_is_seen`] then reads
-    /// the fog in its place.
-    pub goody_items: Vec<goody::GoodyItem>,
     /// Whether a frame has run. A border fix before the first is setup's —
     /// `World::compute_all_territory` with the budget unlimited, on the
     /// map at once — and one after it takes the daemon's pass
     /// ([`border_pass`], item 1106).
     pub in_play: bool,
-    /// The herds and the birds' sampling (`gaia.rs`).
-    pub gaia: gaia::Gaia,
     /// The `world/` subsystem's state (`docs/STRUCTURE.md` §3).
     pub terrain: crate::world::WorldState,
     /// `GameInfo::seed`, the lobby's map seed, which picks a gaia guy's
@@ -414,9 +401,7 @@ impl Sim {
                 redirects: cost::Redirects::RON,
                 market: market::Market::default(),
             },
-            gaia: gaia::Gaia::default(),
             game_seed: 0,
-            flock_stamp: vec![0; players],
             leaders: crate::leaders::LeadersState {
                 at_war: vec![vec![false; players]; players],
                 allied: vec![vec![false; players]; players],
@@ -446,7 +431,11 @@ impl Sim {
                 territory_won: Vec::new(),
                 good_seen_bits: Vec::new(),
             },
-            goody_items: Vec::new(),
+            gaia_state: crate::gaia::GaiaState {
+                gaia: gaia::Gaia::default(),
+                flock_stamp: vec![0; players],
+                goody_items: Vec::new(),
+            },
             in_play: false,
             roster: crate::units::UnitsState {
                 unit_stats_dirty: vec![false; players],

@@ -2684,7 +2684,7 @@ impl Sim {
         if self.rng.roll() % 10 >= 3 {
             return;
         }
-        let Some(h) = self.gaia.herds.get(herd) else {
+        let Some(h) = self.gaia_state.gaia.herds.get(herd) else {
             return;
         };
         let centre = herd_centre(h.cx, h.cy, h.wx, h.wy);

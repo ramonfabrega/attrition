@@ -844,7 +844,7 @@ fn a_wander_onto_an_occupied_cell_is_not_ordered() {
             },
             ..crate::UnitType::default()
         });
-        s.gaia.herds.push(crate::gaia::Herd {
+        s.gaia_state.gaia.herds.push(crate::gaia::Herd {
             cx: 10,
             cy: 10,
             wx: 10,

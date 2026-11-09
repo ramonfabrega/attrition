@@ -215,7 +215,13 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // flock of birds (`sim::flock`).
     out.push((
         "flock_stamp".to_string(),
-        built.sim.flock_stamp.get(who).copied().unwrap_or(0),
+        built
+            .sim
+            .gaia_state
+            .flock_stamp
+            .get(who)
+            .copied()
+            .unwrap_or(0),
     ));
     out.push(("tech_frame".to_string(), a.tech_frame));
     out.push(("frame_attacked".to_string(), a.frame_attacked));

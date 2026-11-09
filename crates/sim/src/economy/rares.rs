@@ -931,7 +931,7 @@ impl RevealFogView for SimRevealFog<'_> {
     }
     fn mark_item_seen(&mut self, gi: i32, who: i32) {
         if (0..8).contains(&who) {
-            self.sim.goody_items[gi as usize].ever_seen |= 1 << who;
+            self.sim.gaia_state.goody_items[gi as usize].ever_seen |= 1 << who;
         }
     }
     fn unit_is_unit(&mut self, _who: i32, _unit: i32) -> bool {

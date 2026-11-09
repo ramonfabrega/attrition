@@ -1490,7 +1490,14 @@ mod bodies {
         // three hatches and nothing else**. There is no tail left to
         // excuse: every hatch this simulation makes is one the original
         // makes, on its frame.
-        let hatches: Vec<i64> = built.sim.gaia.bird_spawns.iter().map(|(f, _)| *f).collect();
+        let hatches: Vec<i64> = built
+            .sim
+            .gaia_state
+            .gaia
+            .bird_spawns
+            .iter()
+            .map(|(f, _)| *f)
+            .collect();
         assert_eq!(
             hatches,
             vec![96, 192, 256],

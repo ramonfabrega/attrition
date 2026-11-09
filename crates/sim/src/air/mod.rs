@@ -417,7 +417,8 @@ impl AirPhysicsView for SimAirPhysics<'_> {
 impl Sim {
     /// A bird's [`Flight`], which starts at a zero bank and no turn.
     pub fn flight(&self, u: usize) -> Flight {
-        self.gaia
+        self.gaia_state
+            .gaia
             .bird_flight
             .iter()
             .find(|(b, _)| *b == u)
@@ -425,9 +426,15 @@ impl Sim {
     }
 
     fn set_flight(&mut self, u: usize, f: Flight) {
-        match self.gaia.bird_flight.iter_mut().find(|(b, _)| *b == u) {
+        match self
+            .gaia_state
+            .gaia
+            .bird_flight
+            .iter_mut()
+            .find(|(b, _)| *b == u)
+        {
             Some((_, slot)) => *slot = f,
-            None => self.gaia.bird_flight.push((u, f)),
+            None => self.gaia_state.gaia.bird_flight.push((u, f)),
         }
     }
 

@@ -175,7 +175,7 @@ pub struct GoodyItem {
 impl Sim {
     /// A box from the dump's `ITEM` record (item 3335).
     pub fn add_goody_item(&mut self, pos: Pos, alive: bool, ever_seen: u8) {
-        self.goody_items.push(GoodyItem {
+        self.gaia_state.goody_items.push(GoodyItem {
             pos,
             alive,
             ever_seen,
@@ -189,7 +189,8 @@ impl Sim {
         if self.world.cell_data(c).flags & GOODY == 0 {
             return None;
         }
-        self.goody_items
+        self.gaia_state
+            .goody_items
             .iter()
             .position(|it| it.alive && it.pos.cell() == c)
     }
@@ -317,7 +318,7 @@ impl Sim {
         // looked is in `seen2` and in no leader's `ever_seen` —
         // run962's item 1 at (45, 49), `ever_seen` 0 on every block to 36
         // under `seen2` 2 at (91, 98) and (91, 99).
-        let item_seen = if self.goody_items.is_empty() {
+        let item_seen = if self.gaia_state.goody_items.is_empty() {
             self.was_really_seen_fog(x + 1, y + 1, who)
                 || self.was_really_seen_fog(x, y + 1, who)
                 || self.was_really_seen_fog(x + 1, y, who)
@@ -330,7 +331,7 @@ impl Sim {
                 .map_or(0, |a| a.census.ally_mask)
                 | (1 << who);
             self.goody_item_at(c)
-                .is_some_and(|i| u32::from(self.goody_items[i].ever_seen) & mask != 0)
+                .is_some_and(|i| u32::from(self.gaia_state.goody_items[i].ever_seen) & mask != 0)
         };
         if item_seen {
             return true;
