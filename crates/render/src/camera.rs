@@ -101,7 +101,7 @@ pub struct Projected {
 
 /// A rotation as `Transform<float>` keeps one: `None` until a rotation is
 /// applied (the type byte's rotation bits clear).
-type Quat = Option<[f32; 4]>; // x, y, z, w
+pub(crate) type Quat = Option<[f32; 4]>; // x, y, z, w
 
 /// The half-degree tables' index for a whole-degree angle, as `Quat::set`
 /// (`00420c70`) reduces it: `a mod 360` for a non-negative angle, and
@@ -125,7 +125,7 @@ fn half_degree(i: i32, f: fn(f64) -> f64) -> f32 {
 /// `Transform<float>::rotate_x` / `rotate_z` by a whole-degree angle about a
 /// unit axis: a zero angle does nothing; a first rotation is set, a later
 /// one composed as `existing ⊗ new`.
-fn rotate(q: Quat, degrees: i32, axis: [f32; 3]) -> Quat {
+pub(crate) fn rotate(q: Quat, degrees: i32, axis: [f32; 3]) -> Quat {
     if degrees == 0 {
         return q;
     }
@@ -163,7 +163,7 @@ fn rotate_point(p: [f32; 3], q: [f32; 4]) -> [f32; 3] {
 
 /// `Transform<float>::fill_matrix` of a rigid transform: `Matrix::fill`'s
 /// rotation (when there is one) and the translation in the last row.
-fn fill(q: Quat, t: [f32; 3]) -> Mat4 {
+pub(crate) fn fill(q: Quat, t: [f32; 3]) -> Mat4 {
     let mut m = Mat4::IDENTITY.0;
     if let Some([x, y, z, w]) = q {
         let (z2, y2) = (z + z, y + y);
