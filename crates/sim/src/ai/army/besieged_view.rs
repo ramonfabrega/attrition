@@ -1,5 +1,5 @@
 //! **`Army::find_besieged_city@006f58b0`'s steps** (item 4031's cut from
-//! `army/mod.rs`, `docs/ARMY.md` §10), as a walk over a [`BesiegedView`]:
+//! `army.rs`, `docs/ARMY.md` §10), as a walk over a [`BesiegedView`]:
 //! [`crate::Sim::find_besieged_city`] is this walk over [`BesiegedSim`], and
 //! the sweep's port is this walk over the emulated original's windows.
 

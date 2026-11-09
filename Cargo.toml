@@ -11,6 +11,11 @@ repository = "https://github.com/rfabrega/attrition"
 # The sim must never reach for floating point. This makes it loud.
 unsafe_code = "forbid"
 
+# One module layout (item 4032, `docs/STRUCTURE.md` §5.11): a directory
+# module is `foo.rs` beside `foo/`, never `foo/mod.rs`.
+[workspace.lints.clippy]
+mod_module_files = "deny"
+
 [profile.release]
 # Determinism: identical codegen assumptions across builds.
 overflow-checks = true

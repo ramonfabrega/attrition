@@ -567,7 +567,7 @@ order on any of the five in the control") does not. The gate is doing
 what the corrected reading says; the chapter's premise is what was wrong.
 
 SEAM, unexercised: this crate folds the block's predicate into `ai_off &&
-!ai_driven(owner)` (`crates/sim/src/orders/mod.rs`), so with the cheat **off**
+!ai_driven(owner)` (`crates/sim/src/orders.rs`), so with the cheat **off**
 it lets a human's units into the tail, where the original's exit still
 closes it for any unit without `0x40000`. Nothing gave these five an order
 in this crate's walk of run142 either, so no dump parts on it yet.

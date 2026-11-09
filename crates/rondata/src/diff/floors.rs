@@ -485,9 +485,18 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// Item 4035: `largest` unmoved at 3721. Its +5 (`init_build` takes
 /// `Building::z` at the push and after the building's own terraform) sits
 /// in `cities/city.rs`, 3600 → 3605, which is not the largest.
+///
+/// Item 4032: the 29 `mod.rs` files became `foo.rs` beside `foo/`
+/// (§5.11), which `flat` does not count as loose — but four were a
+/// directory's only file (`command`, `ids`, `setup`, `trace`), so their
+/// `foo.rs` stands alone and `flat` 7 → 11 (+4), a named rise under §2's
+/// ≤ 12, re-pinned at the booking: the lane read 7 off the four emptied
+/// directories its `git mv` left on disk, which `shape.py` now ignores;
+/// `sweep-lines` held at 17286 once `tools/shape.py` read `sweep.rs`, the
+/// directory's module file, as the sweep's (it read 17.1k before).
 #[cfg(test)]
 pub const STRUCTURE: [(&str, u64); 6] = [
-    ("flat", 7),
+    ("flat", 11),
     ("test-tails", 0),
     ("sweep-lines", 17_286),
     ("names", 15),

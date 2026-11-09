@@ -2025,7 +2025,7 @@ fn a_constant_a_document_names_is_built_or_pinned() {
                 // directory skip, not a `#[cfg(test)]` one: the hex
                 // spelling is read from every test on purpose, because
                 // the harness's pins are tests, and "or pinned" is them.
-                && !path.components().any(|c| c.as_os_str() == "sweep")
+                && !path.with_extension("").components().any(|c| c.as_os_str() == "sweep")
             {
                 // Code, and of a comment only the offset spelling (`+0x7c`,
                 // `-0x10`) this guard's contract names: a bare `0x..` in
@@ -2739,7 +2739,7 @@ const UNSCANNED_SEAMS: &[(&str, usize)] = &[
     ("crates/rondata/src/golden.rs", 1),
     ("crates/rondata/src/input.rs", 1),
     ("crates/sim/src/ai/ai_census.rs", 1),
-    ("crates/sim/src/air/mod.rs", 1),
+    ("crates/sim/src/air.rs", 1),
     ("crates/sim/src/air/airbase.rs", 1),
     ("crates/sim/src/spells/cast.rs", 1),
     ("crates/sim/src/movement/collide.rs", 1),

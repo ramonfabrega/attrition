@@ -32,7 +32,7 @@ handicap applies to, which enhancer bytes are ever non-zero. **No number
 changed.** Those corrections are landed below and marked where they changed
 what an earlier draft said.
 
-**Where the implementation is.** `crates/sim/src/economy/mod.rs` for the
+**Where the implementation is.** `crates/sim/src/economy.rs` for the
 arithmetic, `crates/sim/src/economy/holdings.rs` for the walk that fills its inputs,
 and `crates/sim/src/economy/rares.rs` for step 6 and what an owned rare does to a
 unit. Every constant
@@ -1648,7 +1648,7 @@ not about a number. **No arithmetic changed and every existing test stands.**
 All nine are landed above, each marked where it changed what an earlier draft
 said, and the one implementation change they force — deleting `City::refinery`,
 a field the original always writes zero and a caller could have used to count
-refineries twice — is landed in `crates/sim/src/economy/mod.rs` on the same day.
+refineries twice — is landed in `crates/sim/src/economy.rs` on the same day.
 The two that most change what a reader would build: caravans and rares pay
 somewhere other than where this document put them, and the difficulty handicap
 is the AI's.

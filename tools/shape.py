@@ -50,7 +50,9 @@ def lines(path):
 
 
 def in_sweep(path, root):
-    return 'sweep' in path.relative_to(root).parts
+    """Under a `sweep/` directory, or `sweep.rs` itself: the directory's
+    module file stands beside it since item 4032 (one module layout)."""
+    return 'sweep' in path.relative_to(root).with_suffix('').parts
 
 
 def flat(sim=SIM):
@@ -58,8 +60,13 @@ def flat(sim=SIM):
     every module that has not moved into a directory. Target ≤ 12. A
     `foo.rs` beside a `foo/` directory is that directory's module file,
     its front page, and not a loose file (the seventy-fifth pass's
-    ruling: the `mod.rs` → `foo.rs` + `foo/` layout does not move it)."""
-    return sum(1 for p in sim.glob('*.rs') if not p.with_suffix('').is_dir())
+    ruling: the `mod.rs` → `foo.rs` + `foo/` layout does not move it). A
+    directory with no `.rs` under it is not a module's: a `git mv` of a
+    lone `foo/mod.rs` leaves `foo/` empty on the mover's disk, and item
+    4032's lane read `flat 7` off four such directories where the
+    committed tree reads 11."""
+    return sum(1 for p in sim.glob('*.rs')
+               if not any(p.with_suffix('').rglob('*.rs')))
 
 
 def test_mounted(sim=SIM):
