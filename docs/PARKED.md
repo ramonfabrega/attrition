@@ -10845,7 +10845,8 @@ a site. Not booked: no score names it.
 
 ## Parked by item 3967, 2026-11-07 — a patrol with a Helicopter in the group
 
-- **3967a. `GroupData::get_max_range` with a Helicopter member.** Item 3967 changed the crate's `group_max_range`
+- ~~**3967a. `GroupData::get_max_range` with a Helicopter member.**~~ Walked by item 3994 (`docs/GOLDEN.md` §187):
+  run1552's General stands off at the Helicopter's range on 702, and skipping the Helicopter fails the word. Item 3967 changed the crate's `group_max_range`
   (`do_attack/live.rs`) to skip `is_plane` members only, as the original's vslot `+0xc0` does (`00711080`), so an
   armed Helicopter's range now counts toward a group member's stand-off. No walked window reaches a `do_attack` stand-off
   in a group with an armed Helicopter, and the change is held by no test or walk. **Score**: none; a chapter giving an
@@ -15673,13 +15674,15 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   vertex run all rest on reading alone. A packet holding a loaded unit's `HierarchyPacket` would back them. It
   names no score until a mesh is drawn (§6 item 5).
 
-## Parked by the next landing, slot DK — reserved
+## Parked by item 3994, 2026-11-09 — chapter one hundred and thirty-five's two residues
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3994a. The Helicopter's first round lands a frame late.** run1552: the Chariot `1/6` takes 12 damage on both
+  sides, theirs on block 809 (`damage_frame 808`), ours on 810; the Chariot's family parts from 809 in `WANT_CH135`.
+  The word does not part (1250 closed). **Score**: `WANT_CH135`'s rows from 809; read the Helicopter's shot clock
+  (its first `fire_ammo` frame after the attack order of 700) against ours on 808.
+- **3994b. Pool slot 2's `speed`/`new_speed` on 930.** run1552: ours 0, theirs 25, after the Barracks site `0/2008`'s
+  building group is pushed and the site razed on 929. **Score**: `WANT_CH135`'s two rows on 930; compare what the
+  original writes into a pushed building group's speeds (`Group::add` / the pool's reuse) against ours.
 
 ## Parked by the next landing, slot DL — reserved
 

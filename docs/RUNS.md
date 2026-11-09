@@ -36267,3 +36267,22 @@ who 1 (flags 1, tribe 11). `~/ron-golden/run1549` links to `ch134`.
   with `xx/yy −1`.
 - The word's parting: on 969 `1/6`, unwounded, takes `ATTACKORDER mandatory=0` on `0/12` (uid 20), and drops it by
   971.
+
+## run1552 — chapter one hundred and thirty-five: a Helicopter's stand-off in a group attack, and Delete on a finished and an unfinished building (2026-11-09, item 3994, `att-3994`)
+
+`docs/GOLDEN.md` §187. **What the disk could not answer**: no kept dump holds a Delete on a building (chapter 111 is
+the one `OPTION_DISBAND` staging, on a unit), and none holds a group stand-off with an armed Helicopter in the group
+(parked 3967a; run1498 is the stand-off without one).
+
+Recipe `tools/gamelog/golden/chapter135.cmd`, run1498's lines with a Helicopter `0/13` in every selection and the
+attack at 700; a finished Barracks `0/2007` deleted at 906, and a Barracks site `0/2008` deleted at 928. Walked first
+on ch15's start (`RON_STAGE=ch15:chapter135:1250 RON_STAGE_ALL=1`).
+
+`success`, lifecycle verified, `map_verified`, map style 14, 1,251 frames, `last_frame` 1250, seed 12345, bindkey
+`OPTION_DISBAND=124`, log window 605..1250. PLAYER records: who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11).
+`~/ron-golden/run1552` links to `ch135`.
+- run1552 (`ch135`, `cover=0`, pool lane 1): 04:51:59–04:52:37, 38.0 s from launch to exit, no relaunch. The word's.
+  No cover twin was taken.
+- The stand-off: on 702 the General `0/9` holds `MOVEORDER` to (2904, 14328), at the Helicopter's range off `1/6`.
+- The finished Barracks: `666 DISBAND` from 908, 16800 on 1075, gone on 1076 with no death record.
+- The site: placed on 923, gone on 929.
