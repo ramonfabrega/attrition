@@ -789,7 +789,7 @@ nine `TypeData::is_*_type` index-range predicates (`is_specialty_type`,
 every `type` from −2 to `0x33f` and the signed edges) and
 `UnitData::is_entrenched` (280 rows, the two mask words crossed with the
 argument). The port had the ranges only as table columns (`tech::Kind`,
-`orders::spell`), so the batch adds `crates/sim/src/type_index.rs`, the bounds
+`orders::spell`), so the batch adds `crates/sim/src/core/type_index.rs`, the bounds
 as `const fn`s, each naming the reader it drives in its header; a unit test
 ties them to `spell::FIRST/LAST` and `Kind`'s documented ranges. **Not wired
 into a reader**: `find_nearby_target`'s `local_24` reads `combat.entrenched`
@@ -808,7 +808,7 @@ signed edges, added to `type_index.rs`) and six flag readers — flags byte
 `+0x8` `& 1/4/2` (`SubObjectData::is_active`, `WallData::is_active`,
 `WallData::is_started`), `unit_masks & 0x200000` (`UnitData::has_repeat_air`)
 and `& 0x1000` (`UnitData::is_blown`), and `UnitTypeData::num_preq`
-(constant 2) — in the new `crates/sim/src/flag_reads.rs`, the masks as
+(constant 2) — in the new `crates/sim/src/core/flag_reads.rs`, the masks as
 `const fn`s naming their readers; each row also asserts the original returns
 the masked word itself. Mutation check: widening `is_item_type` by one fails
 at row `544`, restored. No parting; none is wired into a reader.

@@ -35535,7 +35535,7 @@ The byte is the Whales arm's: Aluminum is mask bit 24 (byte 3, bit 0), and Whale
 `rules.xml` ships `ALUMINUM_AIR_SPEED` at 25. `Leader::calc_unit_stats` already re-speeds every unit when a rare is
 gained, so the arm needs no new caller.
 
-**Built**: `crates/sim/src/rares.rs` (`speed_of`) and `crates/sim/src/tuning.rs` (`aluminum_air_speed`, the
+**Built**: `crates/sim/src/rares.rs` (`speed_of`) and `crates/sim/src/core/tuning.rs` (`aluminum_air_speed`, the
 `ALUMINUM_AIR_SPEED` slot). Test: `rares::tests::aluminum_speeds_the_aircraft_and_nothing_else`.
 
 **The score: 4586 → 5304 of 5304, closed**, count and sequence. Every other lobby's `first_parting` holds (101 of

@@ -224,8 +224,8 @@ with the comment naming the same observable the document does.
 instant `0x80000000` ahead of the mode test, mode 1 returning the base, mode 0
 dividing by `avg_speed / 4 + 1` and flooring at `256 × 0xb60b`
 (`crates/sim/src/movement.rs:340`–`364`); `Tuning::RON` carrying 256 and 2
-(`crates/sim/src/tuning.rs:787`–`788`), and `UNIT_TURN_SPEED` checked as an 8.8
-slot (`crates/sim/src/tuning.rs:1136`). `turn_towards`'s three-degree
+(`crates/sim/src/core/tuning.rs:787`–`788`), and `UNIT_TURN_SPEED` checked as an 8.8
+slot (`crates/sim/src/core/tuning.rs:1136`). `turn_towards`'s three-degree
 tolerance, its snap when the rate covers the debt, the short way round, and the
 bitwise-NOT magnitude that comes out one short
 (`crates/sim/src/movement.rs:395`–`410`). `instant_from_stop` derived from the
