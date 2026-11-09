@@ -375,6 +375,47 @@ class ADatedAbsence(unittest.TestCase):
         self.assertEqual([n for n, _ in seams.absences(text)], [1, 4, 5])
         self.assertIn('no capture on file', seams.absences(text)[0][1])
 
+    def test_a_moved_line_is_blamed_to_its_writing_not_the_move(self):
+        # Loop 4024: the structure tranche cut and moved whole files, and a
+        # blame without `-C` dates every moved line to the move (acquire.rs
+        # :462 read 2026-11-09, 4015's cut, for item 464's 2026-09-21).
+        calls = []
+
+        def run(argv, **kw):
+            calls.append(argv)
+            return seams.subprocess.CompletedProcess(argv, 0, stdout='', stderr='')
+
+        real = seams.subprocess.run
+        seams.subprocess.run = run
+        try:
+            seams.blamed_days(Path('crates/sim/src/combat/fight/acquire.rs'), ROOT, [1266, 462])
+        finally:
+            seams.subprocess.run = real
+        argv = calls[0]
+        self.assertEqual(argv[:2], ['git', 'blame'])
+        self.assertEqual(argv.count('-C'), 2, argv)
+        self.assertIn('-M', argv)
+        self.assertIn('-w', argv)
+        # A whole-file `-C` still left the cut's 566 lines at the cut (git
+        # splits an entry once a source file), and a lone short line falls
+        # under its 40-character floor: each line is a five-line range.
+        ranges = [argv[i + 1] for i, a in enumerate(argv) if a == '-L']
+        self.assertEqual(ranges, ['460,+5', '1264,+5'])
+
+    def test_the_live_seams_the_structure_moved_read_their_writing_day(self):
+        # The live tree, one of each shape the structure tranche left: a
+        # long line 4015 cut out of fight.rs (item 464, 2026-09-21), a short
+        # one it cut out of orders/mod.rs (item 693, 2026-09-24), and a test
+        # comment 4010 moved and de-indented into a sibling (2026-10-07).
+        for rel, words in (
+                ('crates/sim/src/combat/fight/acquire.rs', 'each a clause this crate cannot yet ask'),
+                ('crates/sim/src/orders/order.rs', 'third; no capture issues one.'),
+                ('crates/sim/src/ai/ai_build/tests.rs', '(`create_buildings:324`')):
+            text = (ROOT / rel).read_text().split('\n')
+            line = next(n for n, t in enumerate(text, 1) if words in t)
+            with self.subTest(rel=rel):
+                self.assertLess(seams.blamed_days(Path(rel), ROOT, [line])[line], '2026-11-08')
+
     def test_the_runs_since_a_day(self):
         runs = ('## run679 — the Wall (2026-10-05, item 1588)\n'
                 '## run718 — Great Sahara (2026-10-10, item 1611)\n'
