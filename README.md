@@ -1,183 +1,175 @@
 # attrition
 
-A deterministic, ground-up reimplementation of **Rise of Nations** (Big Huge
-Games, 2003) in Rust — simulation first, art last.
+A ground-up reimplementation of **Rise of Nations** (Big Huge Games, 2003)
+in Rust. It is deterministic, and the simulation comes first and the art
+last.
 
-Named for the mechanic no open-source RTS has ever implemented: units bleeding
-health inside hostile national borders.
-
-> **Status: the sim skeleton, thirteen mechanics in.** Attrition and supply,
-> movement and unit collision, the economy, costs and production, the tech
-> tree, combat, cities and buildings, orders, the pathfinder, the animation
-> clock, the per-frame random stream, and the AI — its scripted opening through an interpreter of
-> our own, and its C++ producers behind it. All of it headless, integer-only,
-> and diffed frame for frame against the original's own per-frame log — and
-> **on both scored maps a full human-versus-AI capture now runs in lockstep
-> for its whole length**, 1,772 frames on one and 1,851 on the other: every
-> unit position, every order list, every animal, and the game's RNG placed
-> draw for draw by call site, with no disagreement anywhere in either. **And
-> since 2026-09-27 the same two games run in lockstep for 24,000 frames** —
-> under twenty-seven minutes of play each: every draw of the game's RNG
-> placed by call site on every frame, and every unit's position and order
-> agreeing on the last. What that is, said plainly: one AI — one nation, one
-> personality, the easiest difficulty — against a human who never moves, with
-> no battle in either game and some three hundred bookkeeping fields still
-> differing on each last dump without moving a draw. Thirty-one staged
-> chapters cover the commands a player gives that such a game never issues.
-> The measurement moves on to the same two maps against the hardest AI; the
-> queue's scoreboard lines carry the current first divergence. No renderer
-> yet.
-> `docs/QUEUE.md` says exactly where things stand.
+It is named after a mechanic no open-source RTS had implemented: units lose
+health while they stand inside an enemy's national borders.
 
 ## What this is
 
-There is no open-source Rise of Nations engine. Not on osgameclones, not in
-awesome-game-remakes, not on Wikipedia's engine-recreation list. No public
-decompile, no format wiki. The field is empty.
+No open-source Rise of Nations engine existed before this one: no public
+decompile and no format wiki. This project follows the path OpenTTD and
+Beyond All Reason took. First it reimplements the engine against the
+original game's own data files. Then it replaces the original art until the
+game no longer needs it.
 
-This aims to fill it, following the arc that OpenTTD and Beyond All Reason both
-completed: reimplement the engine against the original's own data files, then
-progressively replace the original assets until the game stands on its own.
+Rise of Nations is a good target for three reasons:
 
-Three things make Rise of Nations an unusually good target:
+- **The balance ships as plain text.** `rules.xml`, `unitrules.xml` and
+  `buildingrules.xml` hold twenty years of tuning: every unit's attack, hit
+  points, cost and speed, the nation powers, the attrition rates.
+- **The game ships its own debug symbols.** The Extended Edition includes a
+  full program database that matches the shipped executable: struct
+  layouts, source file names, function names and line numbers. So the
+  original can be read like a specification. Nobody has to guess how it
+  works.
+- **The game reports what it did.** The executable carries a per-frame
+  state logger that an ini file switches on, and a fixed seed makes a game
+  reproducible. That log is the ground truth: this simulation is checked
+  against it frame by frame, and each match is pinned as a test.
 
-- **Its design is already readable.** `rules.xml`, `unitrules.xml`, and
-  `buildingrules.xml` ship as plain text — nation powers, attrition rates, pop
-  caps, per-unit attack/HP/cost/speed. Twenty years of tuned balance, sitting
-  in files you can open in a text editor.
-- **Its art is not the point.** Nobody is nostalgic for 2003 low-poly RTS
-  units. The appeal is the systems — territory, attrition, eight ages in forty
-  minutes — and those survive a total art replacement intact.
-- **It ships its own debug symbols.** The Extended Edition depot includes a
-  full, unstripped private PDB that GUID-matches the shipped executable:
-  complete struct layouts, the source tree, function names and line numbers.
-  The original is a readable specification rather than a black box, which is
-  the difference between years of archaeology and months of translation.
+The design has two parts. The **simulation** is headless and integer-only,
+runs at a fixed tick rate, and has no graphics dependency, so the whole game
+runs inside a test. The **renderer** is a thin client that draws what the
+simulation reports. Art lives only in the renderer, so swapping the art
+later costs the rules nothing.
 
-And a fourth, found on the way: **the original will tell you what it did.**
-The shipped executable carries a per-frame state logger, switched on by an
-ini file, and a fixed seed makes a run reproducible. That log — every unit's
-position and order list, every leader's census, the loaded constants by name —
-is the ground truth this simulation is diffed against, and it turns every
-claim in `docs/` from a reading into a check.
+## The finish line, and where it stands
 
-## How it is built
+The goal is set out in [`docs/TRACKS.md`](docs/TRACKS.md). In short: a
+standalone app, with no Wine. A lobby asks for a map, a nation and computer
+opponents, and you play a whole game against the computer, drawn with the
+original's art. Under the picture the rules match the original exactly: fed
+the same orders, Rise of Nations does the same thing, frame for frame. Games
+can be saved and replayed. Multiplayer, Conquer the World, the scenario
+editor and new art are left out on purpose. Each is a later goal.
 
-One mechanic at a time, and each one the same way:
+The work is split into tracks. As of November 2026:
 
-1. **Read** the original — the decompiled executable with its own symbols —
-   and write `docs/<MECHANIC>.md`: the rules, how they were established, how
-   confident the reading is, and what it has *not* established.
-2. **Implement** from the document, in integers at the original's own scales.
-   Decompiled code is read, never transcribed; the sim contains no floating
-   point, enforced by a lint that reads its own source.
-3. **Second-read it blind**: an independent reader re-derives the mechanic
-   from the same export without seeing the document, and every disagreement
-   is adjudicated back to the decompiled function (`docs/audit/`).
-4. **Diff it** against the original's own log, and pin the match as a test.
+- **Rules: whole.** About 130 recorded games of the original, across maps,
+  nations, ages, difficulties and scripted battles, each replay in lockstep
+  for its full length. That means every unit's position and orders and every
+  draw of the game's random number generator agree with the original's log
+  on every logged frame. The longest are 24,000 frames, about 27 minutes of
+  play. A held-out battery of games that nobody tuned for measures how well
+  this carries over to new games. Of the staged chapters, which cover
+  commands a recorded game rarely issues, all but one are closed.
+- **Map generation:** fifteen of the original's map types generate the same
+  start, phase by phase.
+- **Structure: in progress.** The simulation crate is being reorganised into
+  subsystem directories with a public surface ([`docs/STRUCTURE.md`](docs/STRUCTURE.md)),
+  and no move may change behaviour.
+- **Renderer: started.** The camera matches the original's projection, and
+  the original's model and animation files decode in a dependency-free
+  `render` crate. The first decoder handles 1,439 of 1,452 pieces. Nothing
+  is drawn to the screen yet.
+- **Not started:** game start without a log of the original, the original's
+  full-state checksum, mouse and keyboard input, our own lobby, the computer
+  opponent's own logic, and save and replay.
 
-Where a run of the original can reach a mechanic, the diff is the evidence;
-where none can yet, the reading is — and the trace tool reports which
-functions the documents cite that no run has ever executed, which is the
-queue of runs.
+[`docs/QUEUE.md`](docs/QUEUE.md) carries the exact numbers. Its scoreboard
+lines are parsed against the pinned tests, so they cannot drift.
 
-## Requirements
+## Running it
 
-You need your own copy of **Rise of Nations: Extended Edition** (Steam app
-`287450`). No game assets are distributed here and none ever will be — not
-models, not textures, not the XML, and not symbol dumps or decompiler output.
-The tools read from your installed copy and generate what they need on demand.
+**You need your own copy of Rise of Nations: Extended Edition** (Steam app
+`287450`). "An install" means the directory that holds `riseofnations.exe`.
+Every tool takes the install's path as an argument and reads from it.
 
-## Getting the game files on macOS
-
-Extended Edition has no Mac build, but its files can be pulled down natively
-with no Wine, VM, or Windows machine involved:
+There is no Mac build, but the files can be downloaded on macOS without
+Wine, a virtual machine or Windows:
 
 ```sh
-scripts/fetch-depot.sh
+scripts/fetch-depot.sh            # SteamCMD, Windows depot, into ./game (gitignored)
 ```
 
-This uses SteamCMD with a forced Windows platform type to download the depot
-without running it. Extraction needs the files, not a running game.
+The Rust toolchain is pinned in `rust-toolchain.toml`. To survey the install
+and check every claim the documents make about its formats:
 
-**Running** it on a Mac — to log a controlled game and have a behavioural
-oracle — works on free WineHQ Stable with DXVK-macOS, nothing licensed;
-`docs/ORACLE.md` has the exact path, the loggers, and the recipe for a
-logged run.
-
-## Layout
-
-```
-crates/sim/         the simulation: headless, deterministic, integer-only
-crates/rondata/     reads an install's tables into the sim's types, reads the
-                    original's logs and recordings, and diffs the two
-crates/fixed/       fixed-point arithmetic — used by rondata's constant
-                    classification, deliberately not by the sim (decision 16)
-tools/ghidra/       builds and exports the decompile once; reading is grep after
-tools/gamelog/      one-line readers for a logged run
-tools/trace/        in-process draw-site trace and function coverage of the original
-tools/emu/          calls a function of the original's executable outside the game (unicorn)
-tools/fuzz/         seeded fuzz games against the original, and their ledger
-tools/guard.sh      the reflex between edits: the paperwork guards plus the item's tests
-scripts/            fetch-depot.sh
+```sh
+cargo run --release -p rondata -- /path/to/install
 ```
 
-`docs/`:
+This re-reads the tables, checks each structural claim in
+[`docs/FORMATS.md`](docs/FORMATS.md) against your files, decodes the models
+and animations, and confirms that the simulation's tuning matches your
+`rules.xml`. It exits non-zero if any of that stops being true. It only
+reads, and it copies nothing.
+
+The tool has two more modes. `--gamelog <dump> --diff` stands the simulation
+up from a log of the original and steps it frame by frame, then reports the
+first frame that differs. `--recgame <file.rcx>` decodes a recorded game.
+Run it with no arguments to list the rest. Some scored games carry
+scripted orders, and those replay through the test suite, not this flag.
+
+The full check, the one every change must pass, is:
+
+```sh
+python3 tools/release_gate.py /path/to/install --test-threads 4
+```
+
+It runs the release-mode test suite, clippy, the format check, the survey
+above and the documentation guards, with the tests under a memory cap. The
+replays against the original need its logs. Those live outside the repo,
+and `docs/ORACLE.md` explains how to make your own. Tests that need an
+install or a log that is not there say so and skip; they never pass
+silently. For a quicker loop, `cargo test --release -p sim` runs the
+simulation's own tests (the few that read an install take it from
+`RON_INSTALL`).
+
+**Running the original itself** on a Mac, to record your own logged games,
+works on free WineHQ Stable with DXVK-macOS and nothing licensed.
+[`docs/ORACLE.md`](docs/ORACLE.md) has the exact setup, the loggers, and the
+recipe for a logged run.
+
+## Where the documents are
 
 | | |
 |---|---|
-| `QUEUE.md` | where things stand, and what is next — read this first |
-| `JOURNAL.md` | the chronicle, session by session |
-| `DECISIONS.md` | architectural decisions and their rationale, amended in place |
-| `FORMATS.md` | file formats, every claim evidence-backed |
-| `ORACLE.md` | running the original, its loggers, and every logged run |
-| `EMULATOR.md` | the original's functions called with chosen arguments, and what the rung costs |
-| `DATALAYER.md`, `SYNC.md` | the install into the sim; the per-frame random stream |
-| `RECGAME.md`, `COMMANDS.md`, `INPUT.md` | recorded games: the container, the command payloads, the order stream |
-| `ATTRITION.md`, `SUPPLY.md`, `MOVEMENT.md`, `ECONOMY.md`, `COSTS.md`, `PRODUCTION.md`, `TECH.md`, `COMBAT.md`, `CITIES.md`, `ORDERS.md`, `PATHFINDER.md`, `COLLISION.md`, `ANIM.md`, `AI.md`, `ARMY.md`, `GROUPS.md`, `TRANSPORT.md`, `ROADS.md`, `VISION.md`, `SCOUT.md`, `GOODY.md` | one document per mechanic |
-| `audit/` | the blind second readings and their verdicts |
+| [`docs/TRACKS.md`](docs/TRACKS.md) | the finish line and the tracks toward it |
+| [`docs/QUEUE.md`](docs/QUEUE.md) | where things stand and what comes next |
+| `docs/<MECHANIC>.md` | one specification per mechanic, for example [`ATTRITION.md`](docs/ATTRITION.md), [`SUPPLY.md`](docs/SUPPLY.md), [`COMBAT.md`](docs/COMBAT.md), [`ECONOMY.md`](docs/ECONOMY.md), [`AI.md`](docs/AI.md), [`MAPGEN.md`](docs/MAPGEN.md). Each covers the rules, how they were established, how confident the reading is, and what it has *not* established |
+| [`docs/FORMATS.md`](docs/FORMATS.md) | the game's file formats, with the evidence for each claim |
+| [`docs/ORACLE.md`](docs/ORACLE.md) | running the original, its loggers, and logged runs ([`RUNS.md`](docs/RUNS.md) lists every capture) |
+| [`docs/RENDERER.md`](docs/RENDERER.md) | the renderer's design and its counter |
+| [`docs/STRUCTURE.md`](docs/STRUCTURE.md) | the simulation crate's layout, and the moves under way |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | the decisions and why they were made, amended in place, never deleted |
+| `docs/journal/`, [`docs/JOURNAL.md`](docs/JOURNAL.md) | the story: one file per landed item, and the chronicle before that |
+| [`docs/audit/`](docs/audit/) | independent second readings and their verdicts |
 
-`CLAUDE.md` is the working agreement: thesis, hard constraints, phases, and
-the rules the sessions run by.
+The crates are `sim` (the simulation), `rondata` (reads an install and the
+original's logs, and diffs the simulation against them), `render` (the
+renderer's headless core) and `fixed` (fixed-point helpers, kept out of the
+simulation on purpose). [`CLAUDE.md`](CLAUDE.md) holds the working rules the
+development sessions follow.
 
-## Development
+## The legal line
 
-```sh
-cargo test --workspace     # ~740 tests
-cargo clippy --all-targets
-cargo fmt
-```
+**Nothing from your install ever enters this repository.** That covers
+models, textures, audio and the shipped XML, and also symbol dumps,
+decompiler output and logs of the original. The game directory is
+gitignored, and the tools generate what they need from your own copy each
+time they run. This is the OpenTTD model.
 
-The data-layer tests need an install: set `RON_INSTALL=/path/to/Rise of
-Nations` (and `RON_GAMELOG_DIR` for the logged runs, which live outside the
-repo). Without one those tests say so and skip rather than pass quietly.
-
-To check that everything the documents believe about the format still holds
-against your own files:
-
-```sh
-cargo run -p rondata -- /path/to/Rise\ of\ Nations
-```
-
-It re-derives each structural claim in `docs/FORMATS.md`, re-reads every
-tuned constant the simulation depends on, and exits non-zero if any of it
-stops being true. Nothing is copied anywhere; it only reads. With
-`--gamelog <dump> --diff` it replays a logged run of the original and reports
-the first frame that differs; `--types <dump>` checks the loaded type tables
-and the combat table against the program's own; `--recgame <file.rcx>`
-decodes a recording.
-
-The toolchain is pinned in `rust-toolchain.toml`.
+**The decompiler is used for reading, never as a source.** The original's
+code is read in order to understand a mechanic. That understanding is
+written down as a document, and the Rust is written from the document.
+Decompiled function bodies are never copied or transcribed.
 
 ## Prior art
 
-OpenRA for lockstep order serialisation and a data-driven mod layer; OpenTTD
-and OpenGFX for the whole inside-out arc; Beyond All Reason for a lineage that
-freed itself of proprietary assets; ptasev/Rise-of-Nations for the only
-public work on the model and archive formats.
+- OpenRA, for lockstep order serialisation and a data-driven mod layer.
+- OpenTTD and OpenGFX, for the whole path from reimplementation to a
+  standalone game.
+- Beyond All Reason, for a game that freed itself of proprietary assets.
+- ptasev/Rise-of-Nations, for the only other public work on the model and
+  archive formats.
 
 ## License
 
-Licensed under either of the MIT license (`LICENSE-MIT`) or the Apache License,
-Version 2.0 (`LICENSE-APACHE`), at your option. Rise of Nations is a trademark
-of Microsoft; this project is unaffiliated and contains none of its assets.
+Licensed under either the MIT license (`LICENSE-MIT`) or the Apache License,
+Version 2.0 (`LICENSE-APACHE`), at your option. Rise of Nations is a
+trademark of Microsoft. This project is not affiliated with Microsoft and
+contains none of its assets.

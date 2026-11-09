@@ -3854,6 +3854,15 @@ test that said so was outside the lane's filters, so the first whole gate found 
 melee or a word item adds `audit::` (the seventy-third's AI items carry it by hand), and `brief.py` adds it for the `residue`
 kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
+## Loop, filed 2026-11-08 — the seventy-fifth tranche's
+
+(4023) **The frame's `ccc update att-<n>` names a worktree, and ccc takes the row's name** (4021's journal, the seventy-fifth
+tranche): `ccc update att-4021` answered "no session in the roster" and `ccc update lane-4021` worked — the frame's landing row
+(`tools/brief/frame.md`, "`ccc update att-<n>` takes the ref, never a SHA", 1557) spells the worktree where the roster keys rows
+by `--name`. A lane that reads it literally loses a turn at its first base move. Candidate: the row reads `ccc update lane-<N>`
+(the row's name or its ref), red first on a test that every `ccc` verb the frame spells names a row by `lane-`. Names no score;
+the loop's.
+
 ## Loop, filed 2026-11-08 — the seventy-third tranche's
 
 **4001** (A bit's writer is grepped in the executable before a packet is booked for it) — **a row of `tools/brief/frame.md`'s capture section since the seventy-fourth pass (a bit's writer at a known offset is grepped in the executable before any packet).** The row as filed: (4001) **A bit's writer is grepped in the executable before a packet is booked for it** (3983's "for the Loop"): the booking ordered a
