@@ -754,29 +754,34 @@ fn original_pixels(
 /// floor): of run1429's logged frames, those on which the free runner's
 /// draw list, at the pinned camera, holds exactly the figures the dump
 /// prints on the map and puts each within one pixel of the original's own
-/// projection of the dumped figure's point (item 4026: 33 of 35). The two
-/// out are each one figure whose own point stands apart from its unit's,
-/// which the simulation does not carry (`docs/RENDERER.md` §3.5):
-/// - 2501, `1/9` guy 0 (piece 11264): the dump's figure at (39869, 23358,
-///   305), the original's pixel (3554, 1827); ours at its unit's (39879,
-///   23369, 305), pixel (3554, 1829) — 2 px. The dumped figure stands on
-///   its unit's `orders_x`/`orders_y`.
+/// projection of the dumped figure's point (item 4026: 33 of 35; item
+/// 4027: **35 of 35**, +2). The two 4026 left out were each a guy 0 a
+/// later unit's push had moved its unit off (`collide_frame` the frame
+/// before, `collide_o` 75 and 90) without moving the guys, so the figure
+/// stood on the unit's point from before the push — guy 0's own
+/// `Movement::body`, which `observe` now reads (`docs/RENDERER.md` §3.5):
+/// - 2501, `1/9` guy 0 (piece 11264): the dump's figure (39869, 23358,
+///   305), the original's pixel (3554, 1827); ours was its unit's (39879,
+///   23369, 305), pixel (3554, 1829), and is now (39869, 23358, 305),
+///   pixel (3554, 1827).
 /// - 3001, `1/67` guy 0 (piece 232): the dump's (37576, 19846, −16), pixel
-///   (3746, 1433); ours (37591, 19892, −14), pixel (3741, 1438) — 5 px.
-pub(crate) const FRAMES_IN_REGISTER: (usize, usize) = (33, 35);
+///   (3746, 1433); ours was (37591, 19892, −14), pixel (3741, 1438), and is
+///   now (37576, 19846, −16), pixel (3746, 1433).
+pub(crate) const FRAMES_IN_REGISTER: (usize, usize) = (35, 35);
 
 /// Figures in register, of every figure the dump prints on the map on
-/// those frames (item 4026: 3840 of 3842 — the two above).
-pub(crate) const FIGURES_IN_REGISTER: (usize, usize) = (3840, 3842);
+/// those frames (item 4026: 3840 of 3842; item 4027: 3842 of 3842, +2).
+pub(crate) const FIGURES_IN_REGISTER: (usize, usize) = (3842, 3842);
 
 /// **§5.4's K**: of M's pieces, those whose model and slots decode
 /// (condition 1, `artdata::piece_decoding`) and whose every logged frame
 /// is in register wherever a figure plays it (condition 2), and the two
 /// halves apart: (K, decoding, in register, M's pieces). Item 4026: K 29
-/// — 31 decode (the seven short are `M_PIECES_DECODING`'s), 36 in
-/// register (232 and 11264 are out, above). M's 21 building types have
-/// no decoder and no dumped frame, and count toward no K: **K 29 of M 59**.
-pub(crate) const RENDER_K: (usize, usize, usize, usize) = (29, 31, 36, 38);
+/// — 31 decode, 36 in register (232 and 11264 out). Item 4027: **K 31**,
+/// +2 — 31 decode (the seven short are `M_PIECES_DECODING`'s), 38 of 38
+/// in register. M's 21 building types have no decoder and no dumped
+/// frame, and count toward no K: **K 31 of M 59**.
+pub(crate) const RENDER_K: (usize, usize, usize, usize) = (31, 31, 38, 38);
 
 #[test]
 fn the_draw_list_s_frames_are_in_register() {
@@ -933,6 +938,18 @@ fn the_draw_list_s_frames_are_in_register() {
         registered.len(),
         misses.join("\n  ")
     );
+    // Item 4027's value diff: the two figures 4026 left out, both sides.
+    for (n, o) in [(2501, 9), (3001, 67)] {
+        let id = ObjId { who: 1, o };
+        eprintln!(
+            "  {n} {}/{} guy 0: dump {:?} at {:?}, ours {:?}",
+            id.who,
+            id.o,
+            dumped.get(&n).and_then(|f| f.get(&(id, 0))),
+            theirs.get(&tag(n, id, 0)),
+            ours.get(&n).and_then(|f| f.get(&(id, 0)))
+        );
+    }
     pin_eq!(fog_visible_is_render_s(), true, "the fog's VISIBLE value");
     pin_eq!(
         (frames_ok, dumped.len()),

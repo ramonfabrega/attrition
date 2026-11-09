@@ -256,6 +256,12 @@ holds, with five readings the text left open:
   a new plane by 2701. A client keys a figure on `(who, o)` per frame,
   never across a death.
 
+**Amended by item 4027**: guy 0's `FigureScene::pos` is its own point,
+`Movement::body` (`GuyData +0xc`), not the unit's `pos`. The two part when
+another unit's collision pushes this one through `set_new_location` with
+`move_guys` false: the unit moves and the figure stays until the guy next
+moves (§3.5). No field was added; `observe` reads a different one.
+
 The read-only test is `observe::tests::observing_every_tick_leaves_the_digest_alone`,
 which still holds.
 The orders a client issues go through `sim::command`, the other door.
@@ -563,9 +569,9 @@ pinned test.
 `rondata::free::placed`; checked by `rondata::free::tests::the_draw_list_s_frames_are_in_register`.*
 
 **The score.** On `GreatLakesAztecModern` (4020's pair), run1429's logged
-frames: **33 of 35 in register** (`FRAMES_IN_REGISTER`), 3,840 of 3,842
-figures within one pixel of the original's own projection, and the drawn
-sets equal on all 35. **K 29 of M 59** (§5.4).
+frames: **35 of 35 in register** (`FRAMES_IN_REGISTER`; 33 at 4026, 35 at
+4027), 3,842 of 3,842 figures within one pixel of the original's own
+projection, and the drawn sets equal on all 35. **K 31 of M 59** (§5.4).
 
 **What the list is.** `render::draw::draw_list` takes one `Placed` per
 figure (object id, figure index, the figure's own point and height, piece,
@@ -607,20 +613,37 @@ one pixel on both axes.
   `0/13` by 2601). `1/68`'s number belongs to a new plane by 2701. Before
   the change, 24 of 35 frames were in register.
 
-**The two frames out**, each one figure whose own point stands apart from
-its unit's. The simulation does not carry that point for a figure with no
-crew body (`FigureScene::pos` is the unit's):
+**The two frames 4026 left out**, and why they came in (item 4027). Each
+was one guy 0 standing apart from its unit's point:
 
-| frame | figure | dump `GUY` | original's pixel | ours | our pixel |
-|---|---|---|---|---|---|
-| 2501 | `1/9` guy 0, piece 11264 | (39869, 23358, 305) | (3554, 1827) | (39879, 23369, 305) | (3554, 1829) |
-| 3001 | `1/67` guy 0, piece 232 | (37576, 19846, −16) | (3746, 1433) | (37591, 19892, −14) | (3741, 1438) |
+| frame | figure | dump `GUY` | original's pixel | ours at 4026 (the unit's) | 4026 pixel | ours at 4027 | 4027 pixel |
+|---|---|---|---|---|---|---|---|
+| 2501 | `1/9` guy 0, piece 11264 | (39869, 23358, 305) | (3554, 1827) | (39879, 23369, 305) | (3554, 1829) | (39869, 23358, 305) | (3554, 1827) |
+| 3001 | `1/67` guy 0, piece 232 | (37576, 19846, −16) | (3746, 1433) | (37591, 19892, −14) | (3741, 1438) | (37576, 19846, −16) | (3746, 1433) |
 
-Each "ours" point is the dump's own `x_internal`, `y_internal` for the
-unit. `1/9`'s figure stands on its unit's `orders_x`, `orders_y`.
+The input that parted was the figure's position. Height, camera and
+projection all agreed. 4026's reading said a figure needs its own point
+apart from its unit's. That was right, and the sim already carries that
+point: `Movement::body`, guy 0's `+0xc`/`+0x10`. `observe` had read the
+unit's `pos` instead.
+
+- **Who moved the unit.** Both units' `collide_frame` is the frame before
+  the logged one (2500, 3000). Their `collide_o` names a later unit (75
+  and 90). That unit's collision resolution moved the pushed unit through
+  `Unit::set_new_location@005f8d20` with `move_guys` 0, after the pushed
+  unit's own guys had already moved this frame (`Guy::move@005d9240` walks
+  a guy to its destination; it does not read the unit's point).
+- **Checked on every frame.** Over all 35 logged frames, these are the only
+  single-guy units on the map whose figure stands apart from its unit. A
+  third, `1/29` on 2501 (pushed by 75, 1 unit off), was already within a
+  pixel. Every other unit with `collide_frame` on the frame before has its
+  figure on its point, so the push alone does not part them.
 
 **Made to fail once.** Reading a figure's height as its unit's tile
-(`UnitScene::z`) gives 0 of 35 frames and 3,240 of 3,842 figures.
+(`UnitScene::z`) gives 0 of 35 frames and 3,240 of 3,842 figures. Reading
+guy 0's point as its unit's (4026's door) gives 33 of 35, and
+`observe::tests::a_scene_agrees_with_the_sim_it_copies` fails on its push
+case.
 
 **The clock** (`DRAW_CLOCK`, measured as §2.4's): 434 ms to frame zero,
 994 ms to frame 3390, 325 MiB peak. The runner alone, the same hour, read
@@ -645,9 +668,8 @@ point (`GuyOut::draw`).
   draw order.
 - **Buildings.** They are not in the list. `BuildingScene` carries no
   piece, and run1429's frames print no building.
-- **A figure's own point apart from its unit's.** This is the two misses
-  above. `Guy` would need its own `x`/`y` wherever the original moves a
-  figure off its unit's point.
+- ~~**A figure's own point apart from its unit's.**~~ Settled by item
+  4027: guy 0's is `Movement::body`, and the door reads it now.
 
 ## 4. The stack
 
@@ -819,11 +841,11 @@ heightfield's projected corner points are in register at the pinned camera.
   lobby's three captures hold. 4020 counted 39 and M = 60. Piece 265 was
   played only by a unit at no health, which the door no longer reports
   (§2.3).
-- **K = 29 of M's 59** (item 4026, `RENDER_K`, §3.5), with both conditions
-  live:
+- **K = 31 of M's 59** (`RENDER_K`, §3.5; 29 at item 4026, 31 at 4027),
+  with both conditions live:
   - 31 of the 38 pieces decode (condition 1);
-  - 36 are in register on every logged frame they are played on
-    (condition 2). Pieces 232 and 11264 are out, one figure each.
+  - all 38 are in register on every logged frame they are played on
+    (condition 2). Item 4027 brought in pieces 232 and 11264.
   - The 21 building types have neither a decoder nor a dumped frame, so
     they count toward no K.
 - **The dumps check every figure they print a `gpiece` for.** Only the
@@ -906,7 +928,8 @@ from `sim`. None is minted: item numbers and the queue are the commander's.
   `follow.body` positions, so a crew piece draws where its body is.
 - *Built by item 4026* (§3.5): **33 of 35 frames in register** on the pair,
   and K 29 of M 59, both conditions live. The door gained `FigureScene.z`
-  and dropped dead units (§2.3).
+  and dropped dead units (§2.3). Item 4027 took both to **35 of 35** and
+  **K 31**: guy 0's figure reads its own body.
 
 **4. The asset resolution, and the first decoder.**
 

@@ -84,8 +84,10 @@ pub struct UnitScene {
 /// frame the original would draw (`docs/ANIM.md`).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FigureScene {
-    /// The figure's own position — a crew body's, where it has one, and
-    /// otherwise its unit's.
+    /// The figure's own position — a crew body's, where it has one; guy
+    /// 0's own body (`Movement::body`), which a push that does not move
+    /// the guys leaves behind its unit's `pos` (item 4027); and otherwise
+    /// its unit's.
     pub pos: Pos,
     /// The figure's own height, the `GUY` record's `z` (`GuyData +0x14`),
     /// as `Guy::update_z@005d9950` keeps it: a sea unit's figure at 0, the
@@ -210,8 +212,14 @@ impl Sim {
                     figures: u
                         .guys
                         .iter()
-                        .map(|g| {
-                            let pos = g.follow.map_or(u.pos, |f| f.body.pos);
+                        .enumerate()
+                        .map(|(k, g)| {
+                            // Guy 0's own point is the unit's body
+                            // (`Movement::body`, `GuyData +0xc`), which a
+                            // push that does not move the guys leaves
+                            // behind (item 4027).
+                            let own = if k == 0 { u.movement.body.pos } else { u.pos };
+                            let pos = g.follow.map_or(own, |f| f.body.pos);
                             FigureScene {
                                 pos,
                                 z: match domain {

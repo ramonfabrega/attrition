@@ -46,10 +46,11 @@ fn a_scene_agrees_with_the_sim_it_copies() {
             assert_eq!(s.facing, u.movement.facing);
             assert_eq!(s.z, sim.world.tile_z(u.pos.tile()));
             assert_eq!(s.figures.len(), u.guys.len());
-            for (f, g) in s.figures.iter().zip(&u.guys) {
+            for (k, (f, g)) in s.figures.iter().zip(&u.guys).enumerate() {
                 assert_eq!((f.gpiece, f.anim), (g.gpiece, g.anim));
                 assert_eq!((f.cur_time, f.end_time), (g.cur_time, g.end_time));
-                assert_eq!(f.pos, g.follow.map_or(u.pos, |b| b.body.pos));
+                let own = if k == 0 { u.movement.body.pos } else { u.pos };
+                assert_eq!(f.pos, g.follow.map_or(own, |b| b.body.pos));
             }
             figures += s.figures.len();
         }
@@ -113,8 +114,23 @@ fn a_scene_agrees_with_the_sim_it_copies() {
     assert_eq!(s.figures.len(), 2);
     assert_eq!((s.figures[0].gpiece, s.figures[0].anim), (7, 3));
     assert_eq!((s.figures[0].cur_time, s.figures[0].end_time), (4, 9));
-    assert_eq!(s.figures[0].pos, sim.units[u].pos);
+    assert_eq!(s.figures[0].pos, sim.units[u].movement.body.pos);
     assert_eq!((s.figures[1].pos, s.figures[1].facing), (body, f.facing));
+    // A push that does not move the guys (`set_new_location`'s
+    // `move_guys` false, a later unit's collision) moves the unit and
+    // leaves guy 0's figure on its own point until the guy next moves
+    // (item 4027: run1429's `1/9` on 2501, `1/67` on 3001).
+    let (was, figure_was) = (sim.units[u].pos, s.figures[0].pos);
+    let to = Pos::new(was.x - 10, was.y - 11);
+    sim.set_new_location(u, to, false);
+    let pushed = sim.observe(None);
+    let p = pushed.units.iter().find(|p| p.id == s.id).unwrap();
+    assert_eq!(p.pos, to);
+    assert_eq!(p.figures[0].pos, figure_was);
+    sim.set_new_location(u, to, true);
+    let carried = sim.observe(None);
+    let c = carried.units.iter().find(|c| c.id == s.id).unwrap();
+    assert_eq!(c.figures[0].pos, to, "a move that carries the guys");
     // Each figure stands on the ground under its own point (item 4026),
     // not on its unit's tile.
     if sim.unit_domain_of(u) == Domain::Land {
