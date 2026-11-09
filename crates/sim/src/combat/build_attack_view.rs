@@ -28,9 +28,9 @@
 //! caller. Whether wiring it moves a diff pin is not established.
 
 /// `CountIndex` `COUNT_TYPE`.
-pub const COUNT_TYPE: i32 = 0x11;
+pub use crate::ids::count::COUNT_TYPE;
 /// `CountIndex` `COUNT_STRICT_TYPE`.
-pub const COUNT_STRICT_TYPE: i32 = 0x10;
+pub use crate::ids::count::COUNT_STRICT_TYPE;
 /// The type word counted for Antipater's bonus.
 pub const TYPE_ANTIPATER: i32 = 0x169;
 /// The type the leader's tribe-can-type arm names.

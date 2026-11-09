@@ -22,9 +22,9 @@
 //! value is unestablished.
 
 /// `Army::count`'s first argument.
-pub const COUNT_ATTACK: i32 = 2;
+pub use crate::ids::count::COUNT_ATTACK;
 /// `ObjectsData::find_city`'s search index: friendly cities.
-pub const SEARCH_FRIENDLY: i32 = 1;
+pub use crate::ids::search::SEARCH_FRIENDLY;
 /// The status bits this walk touches.
 const MARCHING: u32 = crate::ids::army_status::MARCHING as u32;
 /// Cleared at entry.

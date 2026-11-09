@@ -37,7 +37,7 @@ pub struct PathEntry {
 }
 
 /// `TURN_FIRST`: the entry's "turn in place" bit.
-pub const TURN_FIRST: u32 = 0x4;
+const TURN_FIRST: u32 = crate::orders::path_flag::TURN_FIRST as u32;
 /// `unit_masks & 8`, the unit's "line verified" bit.
 pub const LINE_OK: u32 = 0x8;
 /// More than this many cells of Manhattan distance is a plan, not a walk.
@@ -45,7 +45,7 @@ pub const STRAIGHT_LINE_CELLS: i32 = 4;
 /// The recursion depth at which the original stops asking for a detour.
 pub const MAX_RECURSION: u8 = 10;
 /// `type+0x218 == 2`: an air type (`domain`).
-pub const DOMAIN_AIR: i32 = 2;
+pub use crate::ids::domain::DOMAIN_AIR;
 
 /// What `find_path` reads and does. Every method is one call or one inline
 /// read of the listing; positions are world coordinates, and the view turns

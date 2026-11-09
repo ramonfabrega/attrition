@@ -15,26 +15,8 @@
 //! player's `objects` (and, the same index, `units`) array; the original
 //! indexes both by one object index.
 
-/// `CountIndex` (the type record's enum, `rise.pdb`).
-pub const COUNT_WORKERS: i32 = 0;
-pub const COUNT_PEASANTS: i32 = 1;
-pub const COUNT_ATTACK: i32 = 2;
-pub const COUNT_MILITARY: i32 = 3;
-pub const COUNT_DOMAIN: i32 = 9;
-pub const COUNT_ON_MAP: i32 = 10;
-pub const COUNT_GATHER_PEASANTS: i32 = 11;
-pub const COUNT_GATHER_WORKERS: i32 = 12;
-pub const COUNT_GATHER_SCHOLARS: i32 = 13;
-pub const COUNT_BUILD_PEASANTS: i32 = 14;
-pub const COUNT_STRICT_TYPE: i32 = 16;
-pub const COUNT_TYPE: i32 = 17;
-pub const COUNT_TYPE_SAME_WHO: i32 = 18;
-pub const COUNT_NON_DECOY_TYPE: i32 = 19;
-pub const COUNT_CATEGORY: i32 = 20;
-pub const COUNT_REGION: i32 = 21;
-pub const COUNT_TRADE: i32 = 22;
-pub const COUNT_GARRISON_ARROWS: i32 = 26;
-pub const COUNT_WHO_INSIDE: i32 = 30;
+/// `CountIndex`, defined in [`crate::ids::count`].
+pub use crate::ids::count::*;
 
 /// The two peasant type indices (`+4` of the object's type record).
 const PEASANT_TYPES: [i32; 2] = [0x32, 0x33];

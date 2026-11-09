@@ -25,11 +25,11 @@
 
 /// `QUEUE_NEW`, `QUEUE_LAST`, `QUEUE_FIRST` in the original's numbering
 /// (`QUEUE_FIRST` 0, `QUEUE_LAST` 1, `QUEUE_NEW` 2: the listing's `cmovne`).
-pub const QUEUE_NEW: i32 = 2;
+pub use crate::ids::queue::QUEUE_NEW;
 /// `QUEUE_LAST`.
-pub const QUEUE_LAST: i32 = 1;
+pub use crate::ids::queue::QUEUE_LAST;
 /// `QUEUE_FIRST`.
-pub const QUEUE_FIRST: i32 = 0;
+pub use crate::ids::queue::QUEUE_FIRST;
 /// `MOVE_TO`.
 const MOVE_TO: i32 = crate::ids::order::MOVE_TO as i32;
 

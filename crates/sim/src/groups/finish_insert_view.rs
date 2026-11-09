@@ -22,7 +22,7 @@
 //! same.
 
 /// `QUEUE_LAST`.
-pub const QUEUE_LAST: i32 = 1;
+pub use crate::ids::queue::QUEUE_LAST;
 /// `OrderIndex`'s `MOVE_TO`.
 const MOVE_TO: i32 = crate::ids::order::MOVE_TO as i32;
 /// `ATTACK_TO`.

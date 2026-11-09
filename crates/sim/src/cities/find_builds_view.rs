@@ -194,7 +194,7 @@ pub fn find_builds_steps(v: &mut impl FindBuildsView, a: &FindBuildsArgs) -> i32
 }
 
 /// `Search::valid_search`'s case 1, `SEARCH_FRIENDLY`.
-pub const SEARCH_FRIENDLY: i32 = 1;
+pub use crate::ids::search::SEARCH_FRIENDLY;
 /// `FILTER_CONSTRUCT`, arm 5 of `Search::valid_filter@0067dbb0` (`filter - FILTER_TYPE`
 /// with `FILTER_TYPE` 1): an object that is not active.
 pub const FILTER_CONSTRUCT: i32 = 6;

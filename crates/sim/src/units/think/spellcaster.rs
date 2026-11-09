@@ -59,10 +59,7 @@ pub mod craft {
 
 /// `find`'s search mode (its third argument).
 pub mod search {
-    /// `SEARCH_INDEX_SEARCH_ALL`.
-    pub const ALL: i32 = 0;
-    /// `SEARCH_FRIENDLY`.
-    pub const FRIENDLY: i32 = 1;
+    pub use crate::ids::search::{SEARCH_ALL as ALL, SEARCH_FRIENDLY as FRIENDLY};
 }
 
 /// What `Unit::think_spellcaster` reads and does, for the unit `this` it is

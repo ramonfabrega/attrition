@@ -259,3 +259,58 @@ pub mod army_status {
     pub const TRANSPORTING: i32 = 0x40;
     pub const HURRY: i32 = 0x80;
 }
+
+/// `CountIndex` (the type record's enum, `rise.pdb`): the first argument
+/// of `ObjectData::count_inside` and its kin, which the walks over the
+/// original pass as an `i32`.
+pub mod count {
+    pub const COUNT_WORKERS: i32 = 0;
+    pub const COUNT_PEASANTS: i32 = 1;
+    pub const COUNT_ATTACK: i32 = 2;
+    pub const COUNT_MILITARY: i32 = 3;
+    pub const COUNT_DOMAIN: i32 = 9;
+    pub const COUNT_ON_MAP: i32 = 10;
+    pub const COUNT_GATHER_PEASANTS: i32 = 11;
+    pub const COUNT_GATHER_WORKERS: i32 = 12;
+    pub const COUNT_GATHER_SCHOLARS: i32 = 13;
+    pub const COUNT_BUILD_PEASANTS: i32 = 14;
+    pub const COUNT_STRICT_TYPE: i32 = 16;
+    pub const COUNT_TYPE: i32 = 17;
+    pub const COUNT_TYPE_SAME_WHO: i32 = 18;
+    pub const COUNT_NON_DECOY_TYPE: i32 = 19;
+    pub const COUNT_CATEGORY: i32 = 20;
+    pub const COUNT_REGION: i32 = 21;
+    pub const COUNT_TRADE: i32 = 22;
+    pub const COUNT_GARRISON_ARROWS: i32 = 26;
+    pub const COUNT_WHO_INSIDE: i32 = 30;
+}
+
+/// `QueuePos` — where `add_order` puts an order in a unit's queue, in the
+/// original's numbering (`QUEUE_FIRST` 0, `QUEUE_LAST` 1, `QUEUE_NEW` 2:
+/// the listing's `cmovne` in `Group::action_form`).
+pub mod queue {
+    pub const QUEUE_FIRST: i32 = 0;
+    pub const QUEUE_LAST: i32 = 1;
+    pub const QUEUE_NEW: i32 = 2;
+}
+
+/// `SearchIndex` — `find`'s search mode, its third argument.
+pub mod search {
+    /// `SEARCH_INDEX_SEARCH_ALL`.
+    pub const SEARCH_ALL: i32 = 0;
+    /// `SEARCH_FRIENDLY`.
+    pub const SEARCH_FRIENDLY: i32 = 1;
+}
+
+/// `CityData`'s flags at `+4`.
+pub mod city_flag {
+    /// The alarm bell is rung.
+    pub const CITY_BELL: i32 = 0x40;
+}
+
+/// A type's `domain` (`type+0x218`), as the walks over the original read
+/// it.
+pub mod domain {
+    /// An air type.
+    pub const DOMAIN_AIR: i32 = 2;
+}
