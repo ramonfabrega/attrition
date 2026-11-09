@@ -130,8 +130,8 @@ impl Sim {
             scout: role & role::SCOUT != 0,
             carry: role & role::CARRY != 0,
             siege: p.siege,
-            caravan: c.flag2(uflags2::CARAVAN) || p.roles & combat::role::CARAVAN != 0,
-            merchant: p.roles & combat::role::MERCHANT != 0,
+            caravan: c.flag2(uflags2::CARAVAN) || p.roles & combat::role::IS_CARAVAN != 0,
+            merchant: p.roles & combat::role::IS_MERCHANT != 0,
             worker: citizen,
             peasant: u.worker == Worker::Citizen,
             scholar: u.worker == Worker::Scholar,
@@ -177,7 +177,7 @@ impl Sim {
             max_range: p.max_range,
             carry: i32::from(u.garrison.transport),
             scout: land && self.named_is(t, "Scout"),
-            bark: sea && p.roles & combat::role::BARK != 0,
+            bark: sea && p.roles & combat::role::IS_BARK != 0,
             hoplite: false,
         });
         // `determine_roles` reads `CARRY`, which a hand-built type has no
@@ -227,7 +227,7 @@ impl Sim {
     /// `V2ROCKET` role and the tree's `nuclearmissile`/`icbm` roles.
     fn seam_missile(&self, t: TypeId) -> bool {
         if let Some(rec) = self.unit_record(t)
-            && self.unit_types[rec].combat.roles & combat::role::V2ROCKET != 0
+            && self.unit_types[rec].combat.roles & combat::role::IS_V2ROCKET != 0
         {
             return true;
         }
@@ -1243,7 +1243,7 @@ impl Sim {
         }
         let n = self.line_count(who, t, false) + self.line_count(who, t, true);
         let sea_map = self.world.sea_map();
-        let bark = self.unit_types[f.rec].combat.roles & combat::role::BARK != 0;
+        let bark = self.unit_types[f.rec].combat.roles & combat::role::IS_BARK != 0;
         let reg_combat = Census::reg(&self.ai[w].census.reg_combat, sea_reg);
         if !(sea_map > 2 || !bark || reg_combat < sea_map * 2) {
             return None;

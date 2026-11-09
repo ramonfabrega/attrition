@@ -1340,42 +1340,42 @@ pub fn load_tables(
                 *roles |= bit;
             }
         };
-        set(&mut roles, role::CITIZEN, citizen(i));
-        set(&mut roles, role::MILITIA, militia(i));
-        set(&mut roles, role::V2ROCKET, is_named_unit(i, "V2 Rocket"));
+        set(&mut roles, role::IS_CITIZEN, citizen(i));
+        set(&mut roles, role::IS_MILITIA, militia(i));
+        set(&mut roles, role::IS_V2ROCKET, is_named_unit(i, "V2 Rocket"));
         set(
             &mut roles,
-            role::FACTORY_MADE,
+            role::IS_FACTORY_MADE,
             c.where_.is_some() && c.where_ == factory,
         );
         set(
             &mut roles,
-            role::BARRACKS_MADE,
+            role::IS_BARRACKS_MADE,
             c.where_.is_some() && c.where_ == barracks,
         );
         set(
             &mut roles,
-            role::STABLE_MADE,
+            role::IS_STABLE_MADE,
             c.where_.is_some() && c.where_ == stable,
         );
-        set(&mut roles, role::BARK, is_named_unit(i, "Bark"));
-        set(&mut roles, role::CATAPULT, is_named_unit(i, "Catapult"));
+        set(&mut roles, role::IS_BARK, is_named_unit(i, "Bark"));
+        set(&mut roles, role::IS_CATAPULT, is_named_unit(i, "Catapult"));
         set(
             &mut roles,
-            role::FLAMETHROWER,
+            role::IS_FLAMETHROWER,
             is_named_unit(i, "Flamethrower"),
         );
-        set(&mut roles, role::BOMBARD, is_named_unit(i, "Bombard"));
-        set(&mut roles, role::MERCHANT, merchant);
-        set(&mut roles, role::SUPPLY, is_supply);
-        set(&mut roles, role::CARAVAN, is_caravan);
-        set(&mut roles, role::IMMORTALS, is_named_unit(i, "Immortals"));
+        set(&mut roles, role::IS_BOMBARD, is_named_unit(i, "Bombard"));
+        set(&mut roles, role::IS_MERCHANT, merchant);
+        set(&mut roles, role::IS_SUPPLY, is_supply);
+        set(&mut roles, role::IS_CARAVAN, is_caravan);
+        set(&mut roles, role::IS_IMMORTALS, is_named_unit(i, "Immortals"));
         set(
             &mut roles,
-            role::PATROLBOAT,
+            role::IS_PATROLBOAT,
             is_named_unit(i, "Patrol Boat"),
         );
-        set(&mut roles, role::TRIREME, unit_is(i, TRIREME));
+        set(&mut roles, role::IS_TRIREME, unit_is(i, TRIREME));
         let age = age_of_tree(unit_tree[i]).max(0);
         let combat = Profile {
             attack: c.attack,
@@ -1586,16 +1586,16 @@ pub fn load_tables(
         }
         let mut roles = 0u32;
         if is_fort {
-            roles |= role::FORT;
+            roles |= role::IS_FORT;
         }
         if is_city {
-            roles |= role::CITY;
+            roles |= role::IS_CITY;
         }
         if build_names[i].eq_ignore_ascii_case("Red Fort") {
-            roles |= role::REDFORT;
+            roles |= role::IS_REDFORT;
         }
         if build_names[i].eq_ignore_ascii_case("Supercollider") {
-            roles |= role::SUPERCOLLIDER;
+            roles |= role::IS_SUPERCOLLIDER;
         }
         let build_class = if is_city {
             BuildClass::City
@@ -2013,19 +2013,19 @@ pub fn load_tables(
             use sim::balance::line;
             let mut lines = 0u64;
             if build_is(i, FORTX) {
-                lines |= line::FORT;
+                lines |= line::LINE_FORT;
             }
             if build_is(i, VILLAGE) {
-                lines |= line::CITY;
+                lines |= line::LINE_CITY;
             }
             if build_is(i, LOOKOUT) {
-                lines |= line::LOOKOUT;
+                lines |= line::LINE_LOOKOUT;
             }
             if build_is(i, TOWER) {
-                lines |= line::TOWER;
+                lines |= line::LINE_TOWER;
             }
             if build_is(i, AIRBASE) {
-                lines |= line::AIRBASE;
+                lines |= line::LINE_AIRBASE;
             }
             sim::balance::Kind {
                 masks: build_cols[i].obj_masks,
@@ -2207,55 +2207,55 @@ enum Root {
 const LINE_ROOTS: [(u64, Root, bool); 43] = {
     use sim::balance::line::*;
     [
-        (ARMOREDCAR, Root::Unit(0xd8), false),
-        (LIGHTTANK, Root::Unit(0xef), false),
-        (MACHINEGUN, Root::Unit(0x7b), false),
-        (FLAMETHROWER, Root::Unit(0x83), false),
-        (FLAMETHROWER_STRICT, Root::Unit(0x83), true),
-        (MILITIA, Root::Unit(0x42), false),
+        (LINE_ARMOREDCAR, Root::Unit(0xd8), false),
+        (LINE_LIGHTTANK, Root::Unit(0xef), false),
+        (LINE_MACHINEGUN, Root::Unit(0x7b), false),
+        (LINE_FLAMETHROWER, Root::Unit(0x83), false),
+        (LINE_FLAMETHROWER_STRICT, Root::Unit(0x83), true),
+        (LINE_MILITIA, Root::Unit(0x42), false),
         // MERCHANT, MERCHANTDUTCH, FURTRAPPER — by id.
         (
-            MERCHANT,
+            LINE_MERCHANT,
             Root::Ids(&[0x3d - 0x32, 0x3e - 0x32, 0x190 - 0x32]),
             false,
         ),
         // PEASANTS, PEASANTSKOREAN, SCHOLARS, SCHOLARSKOREAN — by id.
-        (CITIZEN, Root::Ids(&[0, 1, 2, 3]), false),
-        (BOMBARDSHIP, Root::Unit(0x15a), false),
-        (BARK, Root::Unit(0x143), false),
-        (SUB, Root::Unit(0x152), false),
-        (FIRERAFT, Root::Unit(0x14e), false),
-        (TRIREME, Root::Unit(0x154), false),
-        (BOMBER, Root::Unit(0x130), false),
-        (FIGHTERBOMBER, Root::Unit(0x134), false),
-        (HELICOPTER, Root::Unit(0x136), false),
-        (V2ROCKET, Root::Unit(0x139), false),
-        (SUPPLYWAGON, Root::Unit(0x3f), false),
-        (BALAMOBSLINGERS, Root::Unit(0x58), false),
-        (KUSHITEARCHERS, Root::Unit(0xae), false),
-        (KUSHITEARCHERS_STRICT, Root::Unit(0xae), true),
-        (INTICLUBMEN, Root::Unit(0x5b), false),
-        (CAMELRANGE2, Root::Unit(0xbf), false),
-        (CHARIOT, Root::Unit(0xc3), false),
-        (NOMAD, Root::Unit(0xc7), false),
-        (RUSINYLANCER, Root::Unit(0xe0), false),
-        (LONGBOWMEN_STRICT, Root::Unit(0xb1), true),
-        (ELONGBOWMEN_STRICT, Root::Unit(0xb2), true),
-        (KINGSYEOMANRY_STRICT, Root::Unit(0xb3), true),
-        (ECOMPANION, Root::Unit(0xe8), false),
-        (LEGIONS, Root::Unit(0x92), false),
-        (SAMURAI_STRICT, Root::Unit(0xa0), true),
-        (HALBERDIERS, Root::Unit(0x95), false),
-        (TERCIOS, Root::Unit(0x97), false),
-        (RECOILGUN, Root::Unit(0x90), false),
-        (HIGHLANDERS, Root::Unit(0x72), false),
-        (MG42_STRICT, Root::Unit(0x82), true),
-        (TIGERTANK_STRICT, Root::Unit(0x102), true),
-        (LEOPARDTANK_STRICT, Root::Unit(0x103), true),
-        (FLAMINGARROW, Root::Unit(0x117), false),
-        (BASILICABOMBARD, Root::Unit(0x114), false),
-        (MORTAR, Root::Unit(0x112), false),
-        (AIRBASE, Root::Build, false),
+        (LINE_CITIZEN, Root::Ids(&[0, 1, 2, 3]), false),
+        (LINE_BOMBARDSHIP, Root::Unit(0x15a), false),
+        (LINE_BARK, Root::Unit(0x143), false),
+        (LINE_SUB, Root::Unit(0x152), false),
+        (LINE_FIRERAFT, Root::Unit(0x14e), false),
+        (LINE_TRIREME, Root::Unit(0x154), false),
+        (LINE_BOMBER, Root::Unit(0x130), false),
+        (LINE_FIGHTERBOMBER, Root::Unit(0x134), false),
+        (LINE_HELICOPTER, Root::Unit(0x136), false),
+        (LINE_V2ROCKET, Root::Unit(0x139), false),
+        (LINE_SUPPLYWAGON, Root::Unit(0x3f), false),
+        (LINE_BALAMOBSLINGERS, Root::Unit(0x58), false),
+        (LINE_KUSHITEARCHERS, Root::Unit(0xae), false),
+        (LINE_KUSHITEARCHERS_STRICT, Root::Unit(0xae), true),
+        (LINE_INTICLUBMEN, Root::Unit(0x5b), false),
+        (LINE_CAMELRANGE2, Root::Unit(0xbf), false),
+        (LINE_CHARIOT, Root::Unit(0xc3), false),
+        (LINE_NOMAD, Root::Unit(0xc7), false),
+        (LINE_RUSINYLANCER, Root::Unit(0xe0), false),
+        (LINE_LONGBOWMEN_STRICT, Root::Unit(0xb1), true),
+        (LINE_ELONGBOWMEN_STRICT, Root::Unit(0xb2), true),
+        (LINE_KINGSYEOMANRY_STRICT, Root::Unit(0xb3), true),
+        (LINE_ECOMPANION, Root::Unit(0xe8), false),
+        (LINE_LEGIONS, Root::Unit(0x92), false),
+        (LINE_SAMURAI_STRICT, Root::Unit(0xa0), true),
+        (LINE_HALBERDIERS, Root::Unit(0x95), false),
+        (LINE_TERCIOS, Root::Unit(0x97), false),
+        (LINE_RECOILGUN, Root::Unit(0x90), false),
+        (LINE_HIGHLANDERS, Root::Unit(0x72), false),
+        (LINE_MG42_STRICT, Root::Unit(0x82), true),
+        (LINE_TIGERTANK_STRICT, Root::Unit(0x102), true),
+        (LINE_LEOPARDTANK_STRICT, Root::Unit(0x103), true),
+        (LINE_FLAMINGARROW, Root::Unit(0x117), false),
+        (LINE_BASILICABOMBARD, Root::Unit(0x114), false),
+        (LINE_MORTAR, Root::Unit(0x112), false),
+        (LINE_AIRBASE, Root::Build, false),
     ]
 };
 
@@ -3622,12 +3622,12 @@ mod tests {
         let comp = l.unit_named("Companion").unwrap();
         let royal = l.unit_named("Royal Companion").unwrap();
         let strat = l.unit_named("Stratiotai").unwrap();
-        assert_eq!(l.kinds[comp].lines & line::ECOMPANION, 0);
-        assert_ne!(l.kinds[royal].lines & line::ECOMPANION, 0);
-        assert_ne!(l.kinds[strat].lines & line::ECOMPANION, 0);
+        assert_eq!(l.kinds[comp].lines & line::LINE_ECOMPANION, 0);
+        assert_ne!(l.kinds[royal].lines & line::LINE_ECOMPANION, 0);
+        assert_ne!(l.kinds[strat].lines & line::LINE_ECOMPANION, 0);
         // `BOMBARDSHIP` (0x15a) is the Bomb Vessel.
         let bv = l.unit_named("Bomb Vessel").unwrap();
-        assert_ne!(l.kinds[bv].lines & line::BOMBARDSHIP, 0);
+        assert_ne!(l.kinds[bv].lines & line::LINE_BOMBARDSHIP, 0);
         // And the table they build: Citizen doubles against light infantry
         // (0x14000 is O|Q), not against the mounted General.
         let sling = l.unit_named("Slingers").unwrap();
@@ -3641,9 +3641,9 @@ mod tests {
         assert_eq!(l.build_names[AIRBASE], "Airbase");
         assert_eq!(l.build_names[LOOKOUT], "Lookout");
         let castle = l.build_named("Castle").unwrap();
-        assert_ne!(l.build_kinds[castle].lines & line::FORT, 0);
+        assert_ne!(l.build_kinds[castle].lines & line::LINE_FORT, 0);
         let major = l.build_named("Major City").unwrap();
-        assert_ne!(l.build_kinds[major].lines & line::CITY, 0);
+        assert_ne!(l.build_kinds[major].lines & line::LINE_CITY, 0);
         assert!(l.build_kinds[l.build_named("Pyramids").unwrap()].wonder);
         assert!(!l.build_kinds[castle].wonder);
         // Siege against a building: ×430 and the rest is the file.

@@ -18,58 +18,60 @@ use crate::tuning::Tuning;
 
 /// The named lineages `type_damage` tests with `ObjectTypeData::is(x, strict)`.
 /// A type carries the bits of every lineage it belongs to; a `_STRICT` bit is
-/// the strict (`graft`-only) sense of the same name.
+/// the strict (`graft`-only) sense of the same name. Each member is
+/// `LINE_`, so a lineage cannot be read as the type id of its root or as
+/// [`crate::combat::role`]'s bit of the same word (item 4013).
 pub mod line {
-    pub const ARMOREDCAR: u64 = 1 << 0;
-    pub const LIGHTTANK: u64 = 1 << 1;
-    pub const MACHINEGUN: u64 = 1 << 2;
-    pub const FLAMETHROWER: u64 = 1 << 3;
-    pub const FLAMETHROWER_STRICT: u64 = 1 << 4;
-    pub const MILITIA: u64 = 1 << 5;
+    pub const LINE_ARMOREDCAR: u64 = 1 << 0;
+    pub const LINE_LIGHTTANK: u64 = 1 << 1;
+    pub const LINE_MACHINEGUN: u64 = 1 << 2;
+    pub const LINE_FLAMETHROWER: u64 = 1 << 3;
+    pub const LINE_FLAMETHROWER_STRICT: u64 = 1 << 4;
+    pub const LINE_MILITIA: u64 = 1 << 5;
     /// `MERCHANT`, `MERCHANTDUTCH`, `FURTRAPPER` — by id, not lineage.
-    pub const MERCHANT: u64 = 1 << 6;
+    pub const LINE_MERCHANT: u64 = 1 << 6;
     /// `PEASANTS`, `PEASANTSKOREAN`, `SCHOLARS`, `SCHOLARSKOREAN` — by id.
-    pub const CITIZEN: u64 = 1 << 7;
-    pub const BOMBARDSHIP: u64 = 1 << 8;
-    pub const BARK: u64 = 1 << 9;
-    pub const SUB: u64 = 1 << 10;
-    pub const FIRERAFT: u64 = 1 << 11;
-    pub const TRIREME: u64 = 1 << 12;
-    pub const BOMBER: u64 = 1 << 13;
-    pub const FIGHTERBOMBER: u64 = 1 << 14;
-    pub const HELICOPTER: u64 = 1 << 15;
-    pub const V2ROCKET: u64 = 1 << 16;
-    pub const SUPPLYWAGON: u64 = 1 << 17;
-    pub const AIRBASE: u64 = 1 << 18;
-    pub const BALAMOBSLINGERS: u64 = 1 << 19;
-    pub const KUSHITEARCHERS: u64 = 1 << 20;
-    pub const KUSHITEARCHERS_STRICT: u64 = 1 << 21;
-    pub const INTICLUBMEN: u64 = 1 << 22;
-    pub const CAMELRANGE2: u64 = 1 << 23;
-    pub const CHARIOT: u64 = 1 << 24;
-    pub const NOMAD: u64 = 1 << 25;
-    pub const RUSINYLANCER: u64 = 1 << 26;
-    pub const LONGBOWMEN_STRICT: u64 = 1 << 27;
-    pub const ELONGBOWMEN_STRICT: u64 = 1 << 28;
-    pub const KINGSYEOMANRY_STRICT: u64 = 1 << 29;
-    pub const ECOMPANION: u64 = 1 << 30;
-    pub const LEGIONS: u64 = 1 << 31;
-    pub const SAMURAI_STRICT: u64 = 1 << 32;
-    pub const HALBERDIERS: u64 = 1 << 33;
-    pub const TERCIOS: u64 = 1 << 34;
-    pub const RECOILGUN: u64 = 1 << 35;
-    pub const HIGHLANDERS: u64 = 1 << 36;
-    pub const MG42_STRICT: u64 = 1 << 37;
-    pub const TIGERTANK_STRICT: u64 = 1 << 38;
-    pub const LEOPARDTANK_STRICT: u64 = 1 << 39;
-    pub const FLAMINGARROW: u64 = 1 << 40;
-    pub const BASILICABOMBARD: u64 = 1 << 41;
-    pub const MORTAR: u64 = 1 << 42;
+    pub const LINE_CITIZEN: u64 = 1 << 7;
+    pub const LINE_BOMBARDSHIP: u64 = 1 << 8;
+    pub const LINE_BARK: u64 = 1 << 9;
+    pub const LINE_SUB: u64 = 1 << 10;
+    pub const LINE_FIRERAFT: u64 = 1 << 11;
+    pub const LINE_TRIREME: u64 = 1 << 12;
+    pub const LINE_BOMBER: u64 = 1 << 13;
+    pub const LINE_FIGHTERBOMBER: u64 = 1 << 14;
+    pub const LINE_HELICOPTER: u64 = 1 << 15;
+    pub const LINE_V2ROCKET: u64 = 1 << 16;
+    pub const LINE_SUPPLYWAGON: u64 = 1 << 17;
+    pub const LINE_AIRBASE: u64 = 1 << 18;
+    pub const LINE_BALAMOBSLINGERS: u64 = 1 << 19;
+    pub const LINE_KUSHITEARCHERS: u64 = 1 << 20;
+    pub const LINE_KUSHITEARCHERS_STRICT: u64 = 1 << 21;
+    pub const LINE_INTICLUBMEN: u64 = 1 << 22;
+    pub const LINE_CAMELRANGE2: u64 = 1 << 23;
+    pub const LINE_CHARIOT: u64 = 1 << 24;
+    pub const LINE_NOMAD: u64 = 1 << 25;
+    pub const LINE_RUSINYLANCER: u64 = 1 << 26;
+    pub const LINE_LONGBOWMEN_STRICT: u64 = 1 << 27;
+    pub const LINE_ELONGBOWMEN_STRICT: u64 = 1 << 28;
+    pub const LINE_KINGSYEOMANRY_STRICT: u64 = 1 << 29;
+    pub const LINE_ECOMPANION: u64 = 1 << 30;
+    pub const LINE_LEGIONS: u64 = 1 << 31;
+    pub const LINE_SAMURAI_STRICT: u64 = 1 << 32;
+    pub const LINE_HALBERDIERS: u64 = 1 << 33;
+    pub const LINE_TERCIOS: u64 = 1 << 34;
+    pub const LINE_RECOILGUN: u64 = 1 << 35;
+    pub const LINE_HIGHLANDERS: u64 = 1 << 36;
+    pub const LINE_MG42_STRICT: u64 = 1 << 37;
+    pub const LINE_TIGERTANK_STRICT: u64 = 1 << 38;
+    pub const LINE_LEOPARDTANK_STRICT: u64 = 1 << 39;
+    pub const LINE_FLAMINGARROW: u64 = 1 << 40;
+    pub const LINE_BASILICABOMBARD: u64 = 1 << 41;
+    pub const LINE_MORTAR: u64 = 1 << 42;
     /// The building lines `return_pack` sorts a building into.
-    pub const FORT: u64 = 1 << 43;
-    pub const CITY: u64 = 1 << 44;
-    pub const LOOKOUT: u64 = 1 << 45;
-    pub const TOWER: u64 = 1 << 46;
+    pub const LINE_FORT: u64 = 1 << 43;
+    pub const LINE_CITY: u64 = 1 << 44;
+    pub const LINE_LOOKOUT: u64 = 1 << 45;
+    pub const LINE_TOWER: u64 = 1 << 46;
 }
 
 /// What `type_damage` and `return_pack` read of one type.
@@ -163,10 +165,10 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
             if bm & m::LIGHT_CAV != 0 {
                 v = pct(v, 114);
             }
-            if b.is(l::ARMOREDCAR) {
+            if b.is(l::LINE_ARMOREDCAR) {
                 v = pct(v, 225);
             }
-            if b.is(l::LIGHTTANK) {
+            if b.is(l::LINE_LIGHTTANK) {
                 v = pct(v, 132);
             }
             if bm & m::MODERN_INF != 0 {
@@ -212,10 +214,10 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
         if bm & m::MODERN_INF != 0 {
             v = pct(v, 159);
         }
-        if b.is(l::MACHINEGUN) {
+        if b.is(l::LINE_MACHINEGUN) {
             v = pct(v, 130);
         }
-        if b.is(l::FLAMETHROWER) {
+        if b.is(l::LINE_FLAMETHROWER) {
             v = pct(v, 125);
         }
         if bm & m::SIEGE != 0 {
@@ -227,10 +229,10 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
         if b.build {
             v = pct(v, 33);
         }
-        if b.caravan || b.is(l::MERCHANT) {
+        if b.caravan || b.is(l::LINE_MERCHANT) {
             v /= 3;
         }
-        if b.is(l::CITIZEN) || b.is(l::MILITIA) {
+        if b.is(l::LINE_CITIZEN) || b.is(l::LINE_MILITIA) {
             v /= 2;
         }
     }
@@ -278,7 +280,7 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
             }
         }
         if am & m::GUN != 0 {
-            if b.is(l::MACHINEGUN) {
+            if b.is(l::LINE_MACHINEGUN) {
                 v = pct(v, 155);
             }
             if bm & m::ARMORED != 0 {
@@ -300,10 +302,10 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
         if bm & m::MODERN_INF != 0 {
             v = pct(v, 170);
         }
-        if b.is(l::MACHINEGUN) {
+        if b.is(l::LINE_MACHINEGUN) {
             v = pct(v, 155);
         }
-        if b.is(l::FLAMETHROWER) {
+        if b.is(l::LINE_FLAMETHROWER) {
             v = pct(v, 140);
         }
         if b.build {
@@ -334,7 +336,7 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
     }
     // 9. ARMORED.
     if am & m::ARMORED != 0 {
-        if a.is(l::LIGHTTANK) {
+        if a.is(l::LINE_LIGHTTANK) {
             if bm & m::MUSKET_INF != 0 {
                 v = pct(v, 155);
             }
@@ -350,18 +352,18 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
             if bm & m::HORSE_ARCHER != 0 {
                 v = pct(v, 120);
             }
-            if b.is(l::MACHINEGUN) {
+            if b.is(l::LINE_MACHINEGUN) {
                 v = pct(v, 175);
             }
         }
-        if a.is(l::ARMOREDCAR) {
+        if a.is(l::LINE_ARMOREDCAR) {
             if bm & m::MODERN_INF != 0 {
                 v = pct(v, 175);
             }
             if bm & m::MUSKET_INF != 0 {
                 v = pct(v, 175);
             }
-            if b.is(l::LIGHTTANK) {
+            if b.is(l::LINE_LIGHTTANK) {
                 v = pct(v, 120);
             }
         }
@@ -374,13 +376,13 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
         if bm & m::HEAVY_INF != 0 {
             v = pct(v, 260);
         }
-        if b.is(l::ARMOREDCAR) {
+        if b.is(l::LINE_ARMOREDCAR) {
             v = pct(v, 170);
         }
-        if b.is(l::LIGHTTANK) {
+        if b.is(l::LINE_LIGHTTANK) {
             v = pct(v, 75);
         }
-        if b.is(l::MACHINEGUN) {
+        if b.is(l::LINE_MACHINEGUN) {
             v = pct(v, 66);
         }
         if bm & m::CIVILIAN != 0 {
@@ -394,7 +396,7 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
         }
     }
     // 11. The machine-gun line.
-    if a.is(l::MACHINEGUN) {
+    if a.is(l::LINE_MACHINEGUN) {
         if bm & (m::LIGHT_INF | m::MUSKET_INF) != 0 {
             v = pct(v, 330);
         }
@@ -418,7 +420,7 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
         }
     }
     // 12. Flamethrower, strict.
-    if a.is(l::FLAMETHROWER_STRICT) {
+    if a.is(l::LINE_FLAMETHROWER_STRICT) {
         if bm & m::MUSKET_INF != 0 {
             v = pct(v, 88);
         }
@@ -436,10 +438,10 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
     // 14, 15. Militia and citizens double against light infantry and horse
     // archers — the literal is 0x14000, bits 14 (`O`) and 16 (`Q`); an
     // earlier reading named it MOUNTED | HORSE_ARCHER, which is 0x5000.
-    if a.is(l::MILITIA) && bm & (m::HORSE_ARCHER | m::LIGHT_INF) != 0 {
+    if a.is(l::LINE_MILITIA) && bm & (m::HORSE_ARCHER | m::LIGHT_INF) != 0 {
         v *= 2;
     }
-    if a.is(l::CITIZEN) && bm & (m::HORSE_ARCHER | m::LIGHT_INF) != 0 {
+    if a.is(l::LINE_CITIZEN) && bm & (m::HORSE_ARCHER | m::LIGHT_INF) != 0 {
         v *= 2;
     }
     // 16. NAVAL.
@@ -453,26 +455,26 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
         if b.unit && bm & m::NAVAL == 0 && b.siege {
             v = pct(v, 66);
         }
-        if a.is(l::BOMBARDSHIP) && bm & m::NAVAL != 0 {
+        if a.is(l::LINE_BOMBARDSHIP) && bm & m::NAVAL != 0 {
             v = pct(v, 33);
         }
-        if (a.is(l::BARK) || a.is(l::SUB))
+        if (a.is(l::LINE_BARK) || a.is(l::LINE_SUB))
             && bm & (m::NAVAL | m::CIVILIAN) == (m::NAVAL | m::CIVILIAN)
         {
             v *= 2;
         }
     }
     // 17–20. Fire rafts and triremes.
-    if a.is(l::FIRERAFT) && b.is(l::TRIREME) {
+    if a.is(l::LINE_FIRERAFT) && b.is(l::LINE_TRIREME) {
         v = pct(v, 310);
     }
-    if a.is(l::FIRERAFT) && b.is(l::BOMBARDSHIP) {
+    if a.is(l::LINE_FIRERAFT) && b.is(l::LINE_BOMBARDSHIP) {
         v *= 4;
     }
-    if a.is(l::FIRERAFT) && b.is(l::FIRERAFT) {
+    if a.is(l::LINE_FIRERAFT) && b.is(l::LINE_FIRERAFT) {
         v *= 4;
     }
-    if a.is(l::TRIREME) && b.is(l::BARK) {
+    if a.is(l::LINE_TRIREME) && b.is(l::LINE_BARK) {
         v = pct(v, 160);
     }
     // 21. Land units against ships.
@@ -485,7 +487,7 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
         }
     }
     // 22. Bombers against anti-air buildings.
-    if (a.is(l::BOMBER) || a.is(l::FIGHTERBOMBER)) && b.build && bm & m::ANTI_AIR != 0 {
+    if (a.is(l::LINE_BOMBER) || a.is(l::LINE_FIGHTERBOMBER)) && b.build && bm & m::ANTI_AIR != 0 {
         v = pct(v, 25);
     }
     // 23. Anti-air aircraft.
@@ -496,7 +498,7 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
         if b.build && bm & m::ANTI_AIR != 0 {
             v = pct(v, 85);
         }
-        if b.is(l::BOMBER) {
+        if b.is(l::LINE_BOMBER) {
             v *= 2;
         }
         if b.siege {
@@ -507,26 +509,26 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
         }
     }
     // 24, 25. Helicopters.
-    if a.is(l::HELICOPTER) {
-        if b.is(l::FIRERAFT) {
+    if a.is(l::LINE_HELICOPTER) {
+        if b.is(l::LINE_FIRERAFT) {
             v *= 8;
         }
-        if b.is(l::LIGHTTANK) {
+        if b.is(l::LINE_LIGHTTANK) {
             v = pct(v, 450);
         }
     }
-    if a.unit && am & m::ANTI_AIR == 0 && b.is(l::HELICOPTER) {
+    if a.unit && am & m::ANTI_AIR == 0 && b.is(l::LINE_HELICOPTER) {
         v = pct(v, 25);
     }
     // 26. V2 against wonders.
-    if a.is(l::V2ROCKET) && b.build && b.wonder {
+    if a.is(l::LINE_V2ROCKET) && b.build && b.wonder {
         v /= 2;
     }
     // 27. Supply wagons.
-    if am & m::MELEE != 0 && b.is(l::SUPPLYWAGON) {
+    if am & m::MELEE != 0 && b.is(l::LINE_SUPPLYWAGON) {
         v = pct(v, 180);
     }
-    if a.build && b.is(l::SUPPLYWAGON) {
+    if a.build && b.is(l::LINE_SUPPLYWAGON) {
         v = (v * 14) / 5;
     }
     // 28, 29. Siege and bombard against buildings.
@@ -537,14 +539,14 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
         v = pct(v, 250);
     }
     // 30. Airbases.
-    if (!matches!(a.domain, Domain::Land) || am & m::SIEGE != 0) && b.is(l::AIRBASE) {
+    if (!matches!(a.domain, Domain::Land) || am & m::SIEGE != 0) && b.is(l::LINE_AIRBASE) {
         v /= 3;
     }
     // 31–33. Named archers and clubmen.
-    if a.is(l::BALAMOBSLINGERS) && bm & m::LIGHT_INF != 0 {
+    if a.is(l::LINE_BALAMOBSLINGERS) && bm & m::LIGHT_INF != 0 {
         v = pct(v, 150);
     }
-    if a.is(l::KUSHITEARCHERS) {
+    if a.is(l::LINE_KUSHITEARCHERS) {
         if bm & m::FOOT_ARCHER != 0 {
             v = pct(v, 125);
         }
@@ -552,7 +554,7 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
             v = pct(v, 125);
         }
     }
-    if a.is(l::INTICLUBMEN) {
+    if a.is(l::LINE_INTICLUBMEN) {
         if bm & m::HEAVY_CAV != 0 {
             v = pct(v, 115);
         }
@@ -565,7 +567,7 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
     }
     // 34. Named horse archers.
     if am & m::HORSE_ARCHER != 0 {
-        if a.is(l::CAMELRANGE2) {
+        if a.is(l::LINE_CAMELRANGE2) {
             if bm & m::LIGHT_INF != 0 {
                 v = pct(v, 135);
             }
@@ -573,10 +575,10 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
                 v = pct(v, 120);
             }
         }
-        if a.is(l::CHARIOT) && bm & m::HORSE_ARCHER != 0 {
+        if a.is(l::LINE_CHARIOT) && bm & m::HORSE_ARCHER != 0 {
             v = pct(v, 150);
         }
-        if a.is(l::NOMAD) {
+        if a.is(l::LINE_NOMAD) {
             if bm & m::LIGHT_INF != 0 {
                 v = pct(v, 160);
             }
@@ -586,37 +588,37 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
         }
     }
     // 35. Rusiny lancers.
-    if am & m::LIGHT_CAV != 0 && a.is(l::RUSINYLANCER) {
+    if am & m::LIGHT_CAV != 0 && a.is(l::LINE_RUSINYLANCER) {
         v = pct(v, 105);
     }
     // 36. Named foot archers.
     if am & m::FOOT_ARCHER != 0 {
-        if a.is(l::LONGBOWMEN_STRICT) && bm & m::HEAVY_INF != 0 {
+        if a.is(l::LINE_LONGBOWMEN_STRICT) && bm & m::HEAVY_INF != 0 {
             v = pct(v, 130);
         }
-        if a.is(l::ELONGBOWMEN_STRICT) && bm & m::HEAVY_INF != 0 {
+        if a.is(l::LINE_ELONGBOWMEN_STRICT) && bm & m::HEAVY_INF != 0 {
             v = pct(v, 130);
         }
-        if a.is(l::KINGSYEOMANRY_STRICT) && bm & m::HEAVY_INF != 0 {
+        if a.is(l::LINE_KINGSYEOMANRY_STRICT) && bm & m::HEAVY_INF != 0 {
             v = pct(v, 130);
         }
-        if a.is(l::KUSHITEARCHERS_STRICT) && bm & m::FOOT_ARCHER != 0 {
+        if a.is(l::LINE_KUSHITEARCHERS_STRICT) && bm & m::FOOT_ARCHER != 0 {
             v = pct(v, 135);
         }
     }
     // 37. Companions.
-    if am & m::HEAVY_CAV != 0 && a.is(l::ECOMPANION) {
+    if am & m::HEAVY_CAV != 0 && a.is(l::LINE_ECOMPANION) {
         v = pct(v, 105);
     }
     // 38. Named heavy infantry.
     if am & m::HEAVY_INF != 0 {
-        if a.is(l::LEGIONS) && bm & m::HEAVY_INF != 0 {
+        if a.is(l::LINE_LEGIONS) && bm & m::HEAVY_INF != 0 {
             v *= 2;
         }
-        if a.is(l::SAMURAI_STRICT) {
+        if a.is(l::LINE_SAMURAI_STRICT) {
             v = pct(v, 50);
         }
-        if a.is(l::HALBERDIERS) {
+        if a.is(l::LINE_HALBERDIERS) {
             if bm & m::LIGHT_CAV != 0 {
                 v = pct(v, 180);
             }
@@ -627,33 +629,33 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
                 v = pct(v, 110);
             }
         }
-        if a.is(l::TERCIOS) {
+        if a.is(l::LINE_TERCIOS) {
             v = pct(v, 130);
         }
-        if a.is(l::RECOILGUN) && bm & m::VEHICLE != 0 {
+        if a.is(l::LINE_RECOILGUN) && bm & m::VEHICLE != 0 {
             v = pct(v, 135);
         }
     }
     // 39–42.
-    if a.is(l::HIGHLANDERS) && bm & m::FOOT != 0 {
+    if a.is(l::LINE_HIGHLANDERS) && bm & m::FOOT != 0 {
         v = pct(v, 130);
     }
-    if a.is(l::MG42_STRICT) && bm & m::FOOT != 0 {
+    if a.is(l::LINE_MG42_STRICT) && bm & m::FOOT != 0 {
         v = pct(v, 130);
     }
-    if a.is(l::TIGERTANK_STRICT) {
+    if a.is(l::LINE_TIGERTANK_STRICT) {
         if bm & (m::LIGHT_INF | m::MODERN_INF | m::MUSKET_INF) != 0 {
             v = pct(v, 115);
         }
-        if b.is(l::MACHINEGUN) {
+        if b.is(l::LINE_MACHINEGUN) {
             v = pct(v, 120);
         }
     }
-    if a.is(l::LEOPARDTANK_STRICT) {
+    if a.is(l::LINE_LEOPARDTANK_STRICT) {
         if bm & (m::LIGHT_INF | m::MODERN_INF | m::MUSKET_INF) != 0 {
             v = pct(v, 115);
         }
-        if b.is(l::MACHINEGUN) {
+        if b.is(l::LINE_MACHINEGUN) {
             v = pct(v, 120);
         }
     }
@@ -662,13 +664,13 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
         return v;
     }
     // 44–46. Named siege against buildings.
-    if a.is(l::FLAMINGARROW) && b.build {
+    if a.is(l::LINE_FLAMINGARROW) && b.build {
         v = pct(v, 135);
     }
-    if a.is(l::BASILICABOMBARD) && b.build {
+    if a.is(l::LINE_BASILICABOMBARD) && b.build {
         v = pct(v, 110);
     }
-    if a.is(l::MORTAR) && b.build {
+    if a.is(l::LINE_MORTAR) && b.build {
         v = pct(v, 110);
     }
     v
@@ -695,13 +697,13 @@ impl Kind {
     pub fn pack(&self) -> Pack {
         let line = if self.unit {
             if self.siege { 0 } else { -1 }
-        } else if self.is(line::FORT) {
+        } else if self.is(line::LINE_FORT) {
             1
-        } else if self.is(line::CITY) {
+        } else if self.is(line::LINE_CITY) {
             3
-        } else if self.is(line::LOOKOUT) {
+        } else if self.is(line::LINE_LOOKOUT) {
             4
-        } else if self.is(line::TOWER) {
+        } else if self.is(line::LINE_TOWER) {
             2
         } else {
             -1

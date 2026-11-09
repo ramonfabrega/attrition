@@ -1643,7 +1643,7 @@ fn a_bark_weighs_a_trireme_at_a_four_hundredth_and_a_transport_at_forty() {
         at.combat.domain = Domain::Sea;
         at.kind.domain = Domain::Sea;
         if bark {
-            at.combat.roles |= crate::combat::role::BARK;
+            at.combat.roles |= crate::combat::role::IS_BARK;
         }
         let at = sim.add_unit_type(at);
         let mut tt = sim.unit_types[ty].clone();
@@ -1657,7 +1657,7 @@ fn a_bark_weighs_a_trireme_at_a_four_hundredth_and_a_transport_at_forty() {
         let t = put(&mut sim, 1, tt, Pos::new(3300, 3000));
         sim.compare_target(Obj::Unit(me), Obj::Unit(t), true, false)
     };
-    let (trireme, transport) = (crate::combat::role::TRIREME, uflags::TRANSPORT);
+    let (trireme, transport) = (crate::combat::role::IS_TRIREME, uflags::TRANSPORT);
     let plain = weigh(true, 0, 0, true);
     assert!(
         weigh(true, trireme, 0, true) < plain / 50,

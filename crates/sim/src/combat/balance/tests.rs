@@ -51,7 +51,7 @@ fn siege_against_buildings_and_the_early_return() {
     // A mortar line adds ×110 after the early-return gate only because
     // it has SIEGE.
     let mut mortar = cat;
-    mortar.lines = line::MORTAR;
+    mortar.lines = line::LINE_MORTAR;
     assert_eq!(type_damage(&T, &mortar, &b), (1075 * 110) / 100);
     let mut not_siege = mortar;
     not_siege.masks &= !mask::SIEGE;
@@ -85,11 +85,11 @@ fn categories_follow_return_pack() {
     s.siege = true;
     assert_eq!(categories(&s)[1], 0x160);
     let mut fort = building(mask::ARCHERY);
-    fort.lines = line::FORT;
+    fort.lines = line::LINE_FORT;
     fort.age = 1;
     assert_eq!(categories(&fort), vec![0x161, 0x165, 0x168, 0x16f + 17]);
     let mut tower = building(0);
-    tower.lines = line::TOWER | line::CITY;
+    tower.lines = line::LINE_TOWER | line::LINE_CITY;
     // CITIES outranks TOWERS in the ladder.
     assert_eq!(categories(&tower)[0], 0x163);
 }

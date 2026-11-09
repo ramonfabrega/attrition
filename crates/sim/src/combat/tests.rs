@@ -862,7 +862,7 @@ fn overkill_cuts_a_second_ranged_squads_hit_to_a_third_inside_the_window() {
     );
     // …and a catapult target halves it again for a non-siege attacker.
     let mut cat = b;
-    cat.roles = role::CATAPULT;
+    cat.roles = role::IS_CATAPULT;
     assert_eq!(
         get_damage(
             &T,

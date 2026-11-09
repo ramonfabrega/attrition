@@ -1794,7 +1794,7 @@ impl Sim {
             // `Unit::fight@005fd4d0`, before 005feec1 (COMBAT §89).
             let snap = crate::collide::ucell_centre(crate::collide::ucell(self.units[i].pos));
             self.set_new_location(i, snap, true);
-            if p.is(role::IMMORTALS) && reach < 0xc0 {
+            if p.is(role::IS_IMMORTALS) && reach < 0xc0 {
                 // **The Immortals' special strike** (`fight@005fd4d0:784`
                 // –`:803`; item 3355, `docs/AI.md` §279): inside `0xc0`
                 // the swing is `CHAR_ATTACKSPECIAL` with no roll, and the
@@ -1873,7 +1873,7 @@ impl Sim {
         } else {
             false
         };
-        combat::recharge(p.recharge, out, p.is(role::BOMBARD)) as u8
+        combat::recharge(p.recharge, out, p.is(role::IS_BOMBARD)) as u8
     }
 
     /// **`Unit::set_attack(−1, −1)`** (`005fce70`): the aimed figures,
@@ -4059,7 +4059,7 @@ impl Sim {
         if !u.on_map || u.decoy {
             return;
         }
-        if self.profile(Obj::Unit(i)).is(combat::role::MERCHANT) {
+        if self.profile(Obj::Unit(i)).is(combat::role::IS_MERCHANT) {
             return;
         }
         self.mark(SITE_DEATH_ANIM);
@@ -5846,7 +5846,7 @@ impl Sim {
             if self.units[u].movement.dest.is_some() {
                 v /= 4;
             }
-            if tp.is(role::SUPPLY) {
+            if tp.is(role::IS_SUPPLY) {
                 v = v.wrapping_mul(5000);
             }
         }
@@ -6014,7 +6014,7 @@ impl Sim {
                     v = v.wrapping_add(10_000);
                 }
             } else if raiding {
-                if peasant || tp.is(role::CARAVAN) {
+                if peasant || tp.is(role::IS_CARAVAN) {
                     v = v.wrapping_add(if ai_raider { 900_000 } else { 9_000_000 });
                 } else if ai_raider && tp.combat_role {
                     v = v.wrapping_add(10_000);
@@ -6023,7 +6023,7 @@ impl Sim {
                 }
             } else if tp.combat_role {
                 v = v.wrapping_add(1_000_000);
-            } else if tp.is(role::SUPPLY) {
+            } else if tp.is(role::IS_SUPPLY) {
                 v = v.wrapping_add(if matches!(attacker, Obj::Building(_)) {
                     4_000_000
                 } else {
@@ -6051,9 +6051,9 @@ impl Sim {
             //
             if matches!(ap.domain, Domain::Sea)
                 && matches!(tp.domain, Domain::Sea)
-                && ap.is(role::BARK)
+                && ap.is(role::IS_BARK)
             {
-                if tp.is(role::TRIREME) {
+                if tp.is(role::IS_TRIREME) {
                     v /= 400;
                 } else if let Obj::Unit(u) = target
                     && self.units[u].ty.is_some_and(|t| {
