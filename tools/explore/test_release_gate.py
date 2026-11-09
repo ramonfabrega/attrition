@@ -994,7 +994,7 @@ class GateTests(unittest.TestCase):
 
     def test_the_lister_is_brief_s_and_knows_each_test_s_crate(self):
         crates = gate.crate_tests()
-        self.assertEqual(set(crates), {'fixed', 'rondata', 'render', 'sim'})
+        self.assertEqual(set(crates), {'client', 'fixed', 'rondata', 'render', 'sim'})
         self.assertEqual(gate.sim_only_filters(['map_lakes', 'terrain_groups', 'mapgen', WORD[0]], crates),
                          ['map_lakes', 'terrain_groups'])
 
