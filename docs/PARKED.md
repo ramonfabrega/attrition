@@ -2601,16 +2601,6 @@ the queue on the strength of being true. Promote it only if something
 later starts comparing the seat, or if `order_num` turns out to be read by
 a mechanism that is scored.
 
-## Shelved by the seventy-fourth pass, 2026-11-08 — the sim's three items, filler once the structure lands (DECISIONS 114 §2)
-
-The queue's last three sim items, moved here whole with their frames and runs so a structure tranche runs alone on the sim side; each re-books as the commander's filler once `docs/STRUCTURE.md`'s moves have landed, by its frame as written.
-
-(4007) **Chapter 134's Bomber on 969** (a `residue` item, the rules headline; parked 3991a; GOLDEN §184): the word is 969 of 1,400; who=1's Bomber `1/6`, standing unwounded on the ground with no order, takes `ATTACKORDER mandatory=0` on the Fighter `0/12` that strafes it (uid 20) on 969 in theirs, `orders.len` 1 against ours 0, and drops it by 971; its hits 300 throughout, its idle cadence off 969 and its `near` −1, so the idle search and `think`'s `near_o` arm are dead readings. `0/12`'s rounds landing on 968 (`AMMO` is on) first, then a struck unit's `Unit::target_opportunity@005fffc0` on a round that does no damage. The score is ch134's word; run 1558 if the disk cannot answer; GOLDEN §194; gate `--tests golden air fight coverage:: first_parting`; park DG.
-
-(3994) **The Helicopter's stand-off and Delete on a building** (a `chapter` item; parked 3967a; adjudication 2 row 48): an Attack Helicopter and a shorter-ranged unit given one group attack whose asker stands off (`GroupData::get_max_range@00711080` skips `is_plane` only, as the crate does since 3967, held by no test or walk), and Delete on a selected finished building and on an unfinished one (`Group::action_disband@0070e260`'s building arms — unfinished → `Object::disband`, finished → a queued DISBAND; `disband.rs:405` walks units only; `select` and `@key` stage it); the asker's destination (`GUY des_x des_y`), `BUILDQUEUE` and the death compared; run 1552; GOLDEN §187; gate `--tests golden coverage:: first_parting`.
-
-(3995) **The boats and the caravan** (a `chapter` item on a water lobby; adjudication 4 rows 50, 49, 51): a soldier barge whose army's target dies in transit (`Unit::think_carry_military@005f3260`'s dead-target and no-army arms; the `SEAM`s at `transport.rs:640` answer false), the idle boat's move to the nearest coastal Dock city (`Unit::think_carry_idle@005f2f30`; `transport.rs:1921–1924` returns 0 — first `RON_FIRSTS=1` on run1483's and run1492's window tests on disk, then `carry_idle.rs` wired, parked 3411a), and a razed trade city with a caravan on its route (`Unit::think_caravan@005f5650`'s kill arms re-think; `caravan.rs:145–170` re-thinks only on the dead-city arm — grep run1017's 15230..15433 first); the boat's order, the riders' `inside_up` and `TRADEORDER` compared; run 1553; GOLDEN §188; gate `--tests golden transport caravan coverage:: first_parting`.
-
 ## Loop — the steering pass's, never a worker's
 
 Tooling, guards and the queue's own rules. The Fable pass takes these
