@@ -10377,7 +10377,7 @@ consumed with `field_0x88 == 0`, the `% 5` cadence) while `repaths[0] ≥ 3`, so
 - **3969b. `Build::new_library`'s queue move is not built.** When a Library earlier in the object table becomes the
   owner's first, the original moves the research queue onto it (`new_library@00627fe0`, from
   `City::find_buildings` and `City::assimilate`). This crate keeps the queue where it stands and resolves
-  `queue_home` on read (the `SEAM` at `city.rs`'s `SimFind::new_library`). Item 3969 made `first_library` ask the
+  `queue_home` on read (the `SEAM` at `city_views.rs`'s `SimFind::new_library`, item 4031). Item 3969 made `first_library` ask the
   original's predicate (active, in a city), so a reused lower slot that comes up while another Library holds a queue
   now strands that queue. Chapter one hundred and twenty-five's re-queue reaches a reused slot 2005, but with no
   queue standing. **Score**: none; no capture holds a queue across a change of first Library.

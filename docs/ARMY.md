@@ -1804,7 +1804,8 @@ normalisation (§6), `release_mustering` and `do_mustering`'s table (§7),
 RNG and the `0x2000` mark's division, and `find_muster_spot` whole (§13)
 — the chase, the ring search over the loaded map's cells (`World`'s
 `CellData`, `world::cell`, `world::MOVE_49`, `World::is_ocean`) and the
-mark (`City::no_muster`). The census's step 16 (`ai_census.rs`) and
+mark (`City::no_muster`). `find_besieged_city`'s view and steps (§10) are
+`crates/sim/src/ai/army/besieged_view.rs`'s (item 4031). The census's step 16 (`ai_census.rs`) and
 `create_units`' `seam_army_at` (`ai_units.rs`) are wired to it.
 
 **The order-issuing half landed 2026-08-25** with `docs/GROUPS.md` and
