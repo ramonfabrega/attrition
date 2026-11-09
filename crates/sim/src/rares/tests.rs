@@ -1021,7 +1021,7 @@ fn the_idle_latch_raises_cant_reach_with_it() {
 #[test]
 fn a_unit_s_speed_is_never_set_from_the_raw_moves() {
     // Every production file however deep (item 4011 moved files into
-    // directories); `sweep/` is the emulator's and a sibling test file
+    // directories); `sweep/` holds the original's rows and a sibling test file
     // (`foo/tests.rs`, item 4010) is a test's, never a spawn site.
     fn walk(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
         for entry in std::fs::read_dir(dir).expect("the crate's own src/") {
