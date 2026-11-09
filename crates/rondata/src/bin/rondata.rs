@@ -1032,6 +1032,40 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
         ),
     );
 
+    // The spell ids (`sim::ids::spell`): each named row is the
+    // `craftrules.xml` record at `id - FIRST`.
+    let crafts = install.crafts()?;
+    let craft_names: Vec<&str> = crafts
+        .records
+        .iter()
+        .map(|r| r.text("NAME").unwrap_or(""))
+        .collect();
+    let first = sim::ids::spell::FIRST;
+    let wrong: Vec<String> = sim::ids::spell::NAMED_SPELLS
+        .iter()
+        .filter(|(name, id)| {
+            usize::try_from(id - first)
+                .ok()
+                .and_then(|i| craft_names.get(i))
+                != Some(name)
+        })
+        .map(|(name, id)| format!("{name} is {id:#x}"))
+        .collect();
+    failures += check(
+        "every named spell id is its craftrules row",
+        craft_names.len() as i32 == sim::ids::spell::LAST - first + 1 && wrong.is_empty(),
+        &format!(
+            "{} crafts, {} named{}",
+            craft_names.len(),
+            sim::ids::spell::NAMED_SPELLS.len(),
+            if wrong.is_empty() {
+                String::new()
+            } else {
+                format!("; {}", join(wrong.iter().cloned()))
+            }
+        ),
+    );
+
     // And each nation's `<UNIT_CONTINENT>`, which is the art style
     // `GraphicPieces::get_unit_gpiece` multiplies by `num_unit_pieces` —
     // a simulation input, because the piece decides the packet and the

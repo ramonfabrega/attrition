@@ -25,10 +25,10 @@ pub const FISHERMEN: TypeId = 0x13d;
 /// The spell `Unit::add_cast_order` rewrites the generic **unpack**
 /// (`0x28c`) into for a unit in the `FISHERMEN` lineage, and the value
 /// run58's block 4949 prints as `spell 658`.
-pub const UNPACK_FISHERMEN: i32 = crate::orders::spell::UNPACK_FISHERMEN;
+pub use crate::ids::spell::UNPACK_FISHERMEN;
 
 /// The generic unpack, as `think_fish` asks for it.
-pub const UNPACK: i32 = crate::orders::spell::UNPACK;
+pub use crate::ids::spell::UNPACK;
 
 /// The numerator a cell that holds a gatherable good scores before the
 /// distance divides it (`005f4e2e`: `0xf4240`).

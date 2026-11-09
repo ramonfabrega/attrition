@@ -81,3 +81,100 @@ pub mod tribe {
     ];
 }
 
+/// The `TypeIndex` of a spell, the value a `CastOrder` carries at `+0x20`
+/// and `SpellType::cast` switches on. The spell rows are `0x275..=0x2ab`,
+/// in `craftrules.xml`'s own order (`docs/DATALAYER.md`);
+/// `crate::orders::spell` re-exports them beside `is_pack`/`is_unpack`.
+pub mod spell {
+    /// The first row of `craftrules.xml`, `Bribe` — the base `SpellType`
+    /// index and the offset [`crate::Sim::spell`] subtracts.
+    pub const FIRST: i32 = 0x275;
+    /// The last, the eighth `Cancel Alliance`. `TypeData::is_spell_type`
+    /// is `FIRST <= i <= LAST` and nothing else (`Unit::do_cast`'s head).
+    pub const LAST: i32 = 0x2ab;
+
+    /// `TRANSPORT` — the shore conversion (`docs/TRANSPORT.md` §6).
+    pub const TRANSPORT: i32 = 0x28a;
+
+    /// The Spy's three crafts (`FROM Spy`), each targeted: `BRIBE` (`fcbhm`,
+    /// `MANA 1000`), `COUNTERINTEL` (`febchm`, `MANA 500`; the one a human
+    /// Spy's `think_spellcaster` casts by itself) and `INFORMER` (`fbcml`,
+    /// `MANA 500`), which `SpellType::cast` hands to `cast_double_agent`
+    /// and `GroupOut::validate_spell` names `DOUBLE_AGENT`
+    /// (`docs/GOLDEN.md` §27).
+    pub const BRIBE: i32 = 0x275;
+    pub const COUNTERINTEL: i32 = 0x277;
+    pub const INFORMER: i32 = 0x27f;
+    /// `Pilfer Resources`, `Sabotage` and `Sniper`, the rows
+    /// `SpellType::valid_target` and `think_spellcaster` name beside them.
+    pub const PILFER: i32 = 0x276;
+    pub const SABOTAGE: i32 = 0x280;
+    pub const SNIPER: i32 = 0x281;
+
+    /// The three untargeted crafts chapter thirty-nine casts
+    /// (`docs/GOLDEN.md` §48): the General's `CREATE_DECOY` (`lm`,
+    /// `MANA 1000`, `JOB_TIME 100`), which `SpellType::cast` hands to
+    /// `cast_create_decoy@00674370`; the Militia's `CIVILIAN` and the
+    /// Citizen's and Scholar's `TO_ARMS` (no flags, `JOB_TIME 5`), handed
+    /// to `cast_civilian@006704a0` and `cast_to_arms@00670880`.
+    pub const CREATE_DECOY: i32 = 0x27a;
+    /// The General's two crafts behind its moving arm
+    /// (`Unit::think_spellcaster`'s hero arm, `docs/AI.md` §99.13):
+    /// `AMBUSH` and `FORCED_MARCH`, untargeted. What they do when cast is
+    /// not carried.
+    pub const AMBUSH: i32 = 0x27b;
+    pub const FORCED_MARCH: i32 = 0x27c;
+    /// `Entrench`, the General's third untargeted craft
+    /// (`SpellType::cast_entrench@00672820`, `docs/GOLDEN.md` §166).
+    pub const ENTRENCH: i32 = 0x27d;
+    /// `Rally!`, the row before `CREATE_DECOY` — the third craft
+    /// `Unit::do_cast` plays a hero's attack slot for.
+    pub const RALLY: i32 = 0x279;
+    pub const CIVILIAN: i32 = 0x293;
+    pub const TO_ARMS: i32 = 0x294;
+
+    /// The four **pack** rows and the four **unpack** ones, in the pairs
+    /// `add_cast_order` rewrites `PACK`/`UNPACK` into: the siege engine's
+    /// (the generic pair, and the one the file names `Catapult`), the
+    /// machine gun's, the merchants' and the fishing boat's
+    /// (`docs/ORDERS.md` §6.9).
+    pub const PACK: i32 = 0x28b;
+    pub const UNPACK: i32 = 0x28c;
+    pub const PACK_MACHINEGUN: i32 = 0x28d;
+    pub const UNPACK_MACHINEGUN: i32 = 0x28e;
+    pub const PACK_MERCHANT: i32 = 0x28f;
+    pub const UNPACK_MERCHANT: i32 = 0x290;
+    pub const PACK_FISHERMEN: i32 = 0x291;
+    pub const UNPACK_FISHERMEN: i32 = 0x292;
+
+    /// Each named row beside its `craftrules.xml` `<NAME>`; `rondata`
+    /// reads the record at `id - FIRST`. The four pack rows and the four
+    /// unpack ones share a name each, so for those the check is their
+    /// pairing, not which engine they pack.
+    pub const NAMED_SPELLS: [(&str, i32); 24] = [
+        ("Bribe", BRIBE),
+        ("Pilfer Resources", PILFER),
+        ("Counterintelligence", COUNTERINTEL),
+        ("Rally!", RALLY),
+        ("Create Decoys", CREATE_DECOY),
+        ("Ambush", AMBUSH),
+        ("Forced March", FORCED_MARCH),
+        ("Entrench", ENTRENCH),
+        ("Informer", INFORMER),
+        ("Sabotage", SABOTAGE),
+        ("Sniper", SNIPER),
+        ("Transport", TRANSPORT),
+        ("Pack", PACK),
+        ("Deploy", UNPACK),
+        ("Pack", PACK_MACHINEGUN),
+        ("Deploy", UNPACK_MACHINEGUN),
+        ("Pack", PACK_MERCHANT),
+        ("Deploy", UNPACK_MERCHANT),
+        ("Pack", PACK_FISHERMEN),
+        ("Deploy", UNPACK_FISHERMEN),
+        ("Civilian", CIVILIAN),
+        ("To Arms", TO_ARMS),
+        ("Bribe", FIRST),
+        ("Cancel Alliance", LAST),
+    ];
+}

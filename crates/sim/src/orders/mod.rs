@@ -149,61 +149,7 @@ pub mod index {
 /// and `SpellType::cast` switches on. The spell rows are `0x275..=0x2ab`,
 /// in `craftrules.xml`'s own order (`docs/DATALAYER.md`).
 pub mod spell {
-    /// The first row of `craftrules.xml`, `Bribe` — the base `SpellType`
-    /// index and the offset [`crate::Sim::spell`] subtracts.
-    pub const FIRST: i32 = 0x275;
-    /// The last, the eighth `Cancel Alliance`. `TypeData::is_spell_type`
-    /// is `FIRST <= i <= LAST` and nothing else (`Unit::do_cast`'s head).
-    pub const LAST: i32 = 0x2ab;
-
-    /// `TRANSPORT` — the shore conversion (`docs/TRANSPORT.md` §6).
-    pub const TRANSPORT: i32 = 0x28a;
-
-    /// The Spy's three crafts (`FROM Spy`), each targeted: `BRIBE` (`fcbhm`,
-    /// `MANA 1000`), `COUNTERINTEL` (`febchm`, `MANA 500`; the one a human
-    /// Spy's `think_spellcaster` casts by itself) and `INFORMER` (`fbcml`,
-    /// `MANA 500`), which `SpellType::cast` hands to `cast_double_agent`
-    /// and `GroupOut::validate_spell` names `DOUBLE_AGENT`
-    /// (`docs/GOLDEN.md` §27).
-    pub const BRIBE: i32 = 0x275;
-    pub const COUNTERINTEL: i32 = 0x277;
-    pub const INFORMER: i32 = 0x27f;
-
-    /// The three untargeted crafts chapter thirty-nine casts
-    /// (`docs/GOLDEN.md` §48): the General's `CREATE_DECOY` (`lm`,
-    /// `MANA 1000`, `JOB_TIME 100`), which `SpellType::cast` hands to
-    /// `cast_create_decoy@00674370`; the Militia's `CIVILIAN` and the
-    /// Citizen's and Scholar's `TO_ARMS` (no flags, `JOB_TIME 5`), handed
-    /// to `cast_civilian@006704a0` and `cast_to_arms@00670880`.
-    pub const CREATE_DECOY: i32 = 0x27a;
-    /// The General's two crafts behind its moving arm
-    /// (`Unit::think_spellcaster`'s hero arm, `docs/AI.md` §99.13):
-    /// `AMBUSH` and `FORCED_MARCH`, untargeted. What they do when cast is
-    /// not carried.
-    pub const AMBUSH: i32 = 0x27b;
-    pub const FORCED_MARCH: i32 = 0x27c;
-    /// `Entrench`, the General's third untargeted craft
-    /// (`SpellType::cast_entrench@00672820`, `docs/GOLDEN.md` §166).
-    pub const ENTRENCH: i32 = 0x27d;
-    /// `Rally!`, the row before `CREATE_DECOY` — the third craft
-    /// `Unit::do_cast` plays a hero's attack slot for.
-    pub const RALLY: i32 = 0x279;
-    pub const CIVILIAN: i32 = 0x293;
-    pub const TO_ARMS: i32 = 0x294;
-
-    /// The four **pack** rows and the four **unpack** ones, in the pairs
-    /// `add_cast_order` rewrites `PACK`/`UNPACK` into: the siege engine's
-    /// (the generic pair, and the one the file names `Catapult`), the
-    /// machine gun's, the merchants' and the fishing boat's
-    /// (`docs/ORDERS.md` §6.9).
-    pub const PACK: i32 = 0x28b;
-    pub const UNPACK: i32 = 0x28c;
-    pub const PACK_MACHINEGUN: i32 = 0x28d;
-    pub const UNPACK_MACHINEGUN: i32 = 0x28e;
-    pub const PACK_MERCHANT: i32 = 0x28f;
-    pub const UNPACK_MERCHANT: i32 = 0x290;
-    pub const PACK_FISHERMEN: i32 = 0x291;
-    pub const UNPACK_FISHERMEN: i32 = 0x292;
+    pub use crate::ids::spell::*;
 
     /// `TypeData::is_pack` — the vtable slot `+0x50`, which `Unit::do_cast`
     /// inlines as these four identities and nothing else.
