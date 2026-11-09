@@ -8829,7 +8829,7 @@ $0xfffffffd, %edx; movw %dx, 0x8(...)` at `5f98ff`). It is the `flags &=
 
 ### What landed
 
-`crates/sim/src/goody.rs`, four constants in `Tuning` (all checked against
+`crates/sim/src/gaia/goody.rs`, four constants in `Tuning` (all checked against
 `rules.xml` by `cargo run -p rondata`, made to fail once), a
 `goody_box_resources` counter on `Ledger` for `LeaderData +0x86c`, the four
 guards in `Sim::set_new_location`, one row in `rondata::trace::SITES`, and
@@ -8958,7 +8958,7 @@ The correction could not go in §6.2, which the size guard pins; it is
 ### What landed
 
 `Sim::find_goody_box`, `Sim::get_goody_box` and the two fog gates in
-`crates/sim/src/goody.rs`; `Sim::was_seen_fog`, split out of
+`crates/sim/src/gaia/goody.rs`; `Sim::was_seen_fog`, split out of
 `ai_sites::site_was_seen` so the sweep can sample all four half-cells;
 `do_explore_to`'s tail in `orders.rs`; `think_scout`'s head in `scout.rs`;
 the group `QUEUE_FIRST` arm in `group.rs`; `docs/GOODY.md` §7,

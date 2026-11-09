@@ -188,7 +188,7 @@ Then, still inside `process_all`:
   986 → 1372 (`docs/ANIM.md` §7).
 
 Landed: the birds' sampling, the bird itself (§3.9) and the herd walk,
-`crates/sim/src/gaia.rs`.
+`crates/sim/src/gaia/mod.rs`.
 
 ## 3.3 The farms — `Farms::inc_time@008d8600`
 
