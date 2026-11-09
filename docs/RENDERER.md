@@ -269,6 +269,30 @@ alternative* is a new crate that depends on both. That is only worth it if
 **What need not change:** `Built`, `Replay` and `FrameResult`. The debug
 viewer keeps its seam.
 
+**As built (item 4020, `crates/rondata/src/free.rs`).** `FreeRunner` holds
+a `Built` from `build_sim` and its own frame count. Each `step` applies the
+stream, when there is one, and calls `sim.command().tick()`. `scene` and
+`terrain` are `Sim::observe` and `observe_terrain`. It reads no `Sim`
+field. Two of the readings above did not hold as written:
+- **The start sibling's frames are read, the long capture's are not.**
+  `FreeRunner::from_captures` reads the long capture's setup block, and
+  each sibling through `IndexedCapture::with_replay_initial`. A setup-only
+  sibling stood the units up with **no figures**.
+  `diff::borrow_from_siblings` lends a start dump's guys only when the
+  sibling carries frame seeds, and only its frames carry those. For a
+  pair's `DUMP_ALL` start that is three frame states. The seeds and clocks
+  that come with them are never installed.
+- **The harness's corrections are the start block's, so the scenes
+  agree.** `tests::the_free_run_s_scenes_are_the_harness_s` covers 3,390
+  of 3,390 ticks of `GreatLakesAztecModern`, 35 of 35 logged frames
+  among them, with zero differences (`SCENE_TICKS_AGREEING`). The harness
+  side is `Built::tick` from the whole long capture's initial.
+
+The clock's first readings sit beside the test (`RUNNER_CLOCK`,
+`HARNESS_CLOCK`, measured alone under `/usr/bin/time -l`, warm caches):
+- runner: 431 ms to frame zero, 952 ms to frame 3390, 325 MiB peak;
+- harness: 540 ms, 1,088 ms, 458 MiB.
+
 ## 3. The visual oracle
 
 ### 3.1 Nothing from the install enters the repository
@@ -681,6 +705,29 @@ pose beyond its frame index, the terrain's look, or any interface.
 **The terrain is outside M** and has its own binary condition: the
 heightfield's projected corner points are in register at the pinned camera.
 
+**Counted (item 4020, `rondata::free::tests`).** On `GreatLakesAztecModern`:
+- **M = 60** (`RENDER_M`): 39 pieces the runner's 3,391 scenes play, with
+  `-1` (no piece) left out, plus the 21 building types (`orig_type`) the
+  lobby's three captures hold.
+- **The dumps check every figure they print a `gpiece` for.** Only the
+  `DUMP_ALL` states print one: run1428's two, and run1429's start block.
+  That is 306 figures on the map, all 306 agreeing, and on each dump's
+  frames the two sides hold the same set of pieces (12 and 32 of the 39).
+  run1429's stride and run1429b's window print guys without `gpiece`. The
+  other pieces rest on the scene's equality with the harness.
+- **32 of the 39 pieces decode** under item 4019's readers
+  (`M_PIECES_DECODING`). The seven short are six gaia pieces, which no
+  `<UNIT>` entry names, and one citizen crew row with a failing file.
+
+*What M is not yet:*
+- one pair;
+- figures of units on the map only. Five garrisoned figures fall outside it;
+- no building's own `gpiece`. `BUILDDATA` prints one and `BuildingScene`
+  does not carry it;
+- no corpse or projectile art;
+- the building half counts types made, not types drawn. A capital's
+  upgrade is outside it: the runner's scenes hold 23 types, the dumps 21.
+
 **When it changes.** Candidate C replaces it once K reaches M. Phase 6's
 asset swap retires condition (1) and keeps condition (2).
 
@@ -709,6 +756,10 @@ from `sim`. None is minted: item numbers and the queue are the commander's.
   lobby's `DUMP_ALL` dumps.
 - *Needs from `sim`:* the module, the version counters, and nothing in
   `tick`.
+- *Built by items 4017 (`sim::observe`) and 4020* (the runner, §2.4's "As
+  built"). The scene agrees with the harness on 3,390 of 3,390 ticks,
+  35 of 35 logged frames. M = 60 (§5.4). The clock's first readings are
+  beside the test.
 
 **2. The camera, proven against the original's function.**
 
@@ -779,14 +830,16 @@ lines and fog shading, projectiles and corpses, then candidate C.
 Each line names what would settle it.
 
 - **Whether the long captures run uncorrected past their start block.** The
-  pairs do (entry 100 §4). For the long ones, read their tests' installs, or
-  run the free runner and compare. Until then, item 1 pins on a pair.
+  pairs do (entry 100 §4), and on `GreatLakesAztecModern` the free runner
+  agrees with the harness on every tick (item 4020). For the long ones, run
+  the same comparison on one.
 - **Whether `o` is reused within one game.** This decides whether `ObjId`
   needs a generation counter. Grep the dumps for a `(who, o)` whose type
   changes mid-capture.
-- **How many pieces M holds.** Item 1 counts it from the free runner's
-  scenes. Whether every lobby's pinned capture has a `DUMP_ALL` sibling to
-  check the count against is a grep of the archive.
+- ~~**How many pieces M holds.**~~ 39 on the first pair, and M = 60 with
+  the building types (item 4020, §5.4). Whether every lobby's pinned capture
+  has a `DUMP_ALL` sibling to check its count against is still a grep of the
+  archive. On this lobby, only the start states print a unit's `gpiece`.
 - **Whether the original interpolates figures between simulation frames**
   when it draws. `GuyOut::draw` is the place to read. It does not affect the
   counter, which compares at frame boundaries. It does decide whether the

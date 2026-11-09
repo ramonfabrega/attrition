@@ -35,6 +35,7 @@ pub mod commands;
 pub mod debug_view;
 pub mod diff;
 pub mod dump;
+pub mod free;
 pub mod gamelog;
 pub mod golden;
 pub mod input;

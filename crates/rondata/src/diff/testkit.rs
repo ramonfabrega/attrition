@@ -8353,6 +8353,15 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3750: the closing walk, run1429 from run1428's start to the
     // closing block 3390, past the word 3313.
     ("aztec_modern_pair_run1429_s_closing_state", 2),
+    // Item 4020: the free runner on the same pair — its own replay and,
+    // in the scene test, the harness's beside it — reads the pair's two.
+    ("the_free_run_s_scenes_are_the_harness_s", 2),
+    (
+        "m_is_counted_from_the_free_run_and_agrees_with_the_lobby_s_dumps",
+        2,
+    ),
+    ("clock_the_free_runner", 2),
+    ("clock_the_harness", 2),
     // Item 3752: the British Modern pair's first walk, run1433 from
     // run1432's start.
     ("british_modern_pair_first_parting", 11),
