@@ -8,6 +8,7 @@ pub mod disband;
 pub mod eject;
 pub mod garrison;
 pub mod heal;
+pub mod process;
 pub mod remove_inside_view;
 pub(crate) mod set_type_adapter;
 pub mod stance;
