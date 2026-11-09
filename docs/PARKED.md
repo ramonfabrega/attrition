@@ -3863,6 +3863,20 @@ by `--name`. A lane that reads it literally loses a turn at its first base move.
 (the row's name or its ref), red first on a test that every `ccc` verb the frame spells names a row by `lane-`. Names no score;
 the loop's.
 
+(4024) **`seams.py --dated` blames without `-C`, so a seam in moved code is dated to the move** (4014's "for the Loop", the
+seventy-fifth tranche): the structure moves `git mv` and cut whole files, and `git blame` without `-C`/`-M` attributes every moved
+line to the commit that moved it, so every `SEAM` in `crates/sim/src` reads as written 2026-11-08 and the dated listing stops
+ordering anything. Candidate: `seams.py` blames with `-C -C -M` (or `--ignore-revs-file` listing the structure tranche's move
+commits), red first on a seam 4014 moved whose date it reads as the move's. Names no score; the loop's.
+
+(4025) **The crate mixes the two module layouts** (Ramon, on the commander's row, 2026-11-09): 4010 made each inline test module a
+`foo/tests.rs` beside `foo.rs` (the 2018 non-`mod.rs` layout), and 4011–4012 made the subsystem directories with `mod.rs` roots, so
+both shapes stand side by side, some in one directory. Both are valid and neither is deprecated; clippy enforces either
+(`mod_module_files` bans `mod.rs`, `self_named_module_files` bans the other). Candidate for the steer: pick one convention for the
+crate, convert the rest in one mechanical `git mv` landing (test names are unchanged either way — the module path is the same),
+and turn the matching clippy lint on in the gate so the tree cannot drift back; best before or right after 4015, which makes more
+`mod.rs` files. Names no score; the structure track's, the steer's to decide.
+
 ## Loop, filed 2026-11-08 — the seventy-third tranche's
 
 **4001** (A bit's writer is grepped in the executable before a packet is booked for it) — **a row of `tools/brief/frame.md`'s capture section since the seventy-fourth pass (a bit's writer at a known offset is grepped in the executable before any packet).** The row as filed: (4001) **A bit's writer is grepped in the executable before a packet is booked for it** (3983's "for the Loop"): the booking ordered a
