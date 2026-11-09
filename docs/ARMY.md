@@ -1451,7 +1451,7 @@ of the point's tile.
    12129 — this entry's original evidence — is a blow on the AI's **capital**,
    not on a unit.
 
-   ~~**What `crates/sim/src/fight.rs` carries**: the building-with-a-city
+   ~~**What `crates/sim/src/combat/fight.rs` carries**: the building-with-a-city
    conjunct alone.~~ **Since item 2235** (`docs/GOLDEN.md` §81) it carries
    the whole gate: `Sim::city_alarm` is the building branch — the siege
    term, the `/10` and `/4` ceilings, the non-capital arm's

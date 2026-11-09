@@ -74,12 +74,12 @@ taken, that siege fire at a unit is ground fire, the splash search square,
 and the anti-air building gate. It also added the `total_time` floor and the
 moving-target lead the first reading had missed.
 
-**Where the implementation is.** `crates/sim/src/combat.rs` (the RNG, the
+**Where the implementation is.** `crates/sim/src/combat/mod.rs` (the RNG, the
 profile, the table, the damage formula, the scaling and the take, recharge,
 accuracy, scatter, flight time, the hit tests, splash, arrows, `attack_dist`,
-`is_in_range`); `crates/sim/src/fight.rs` (the `Sim` glue: the attack step,
+`is_in_range`); `crates/sim/src/combat/fight.rs` (the `Sim` glue: the attack step,
 orders, the target search and ranking, buildings, ammo in flight, death);
-`crates/sim/src/balance.rs` (the combat table's two halves and their
+`crates/sim/src/combat/balance.rs` (the combat table's two halves and their
 composition); and `crates/rondata/src/balance.rs` (the shipped `balance.xml`,
 the 399 category names, the structural checks). What the implementation
 leaves out is said again at each point it applies: the nation, wonder and
@@ -1960,7 +1960,7 @@ is the *composed* result of the XML table and the hardcoded `type_damage`
 half. That is a direct oracle for §5 — not for one formula, for all 243,049
 entries at once — and it is the first time this document has had one.
 
-Extracted and compared against `crates/sim/src/balance.rs` over the 364×364
+Extracted and compared against `crates/sim/src/combat/balance.rs` over the 364×364
 unit block (132,496 cells):
 
 - **The `Flag_` question is closed** (§14.9): the flag rows are dead, and the
@@ -2183,7 +2183,7 @@ the height and rocky terms (flat arena). Each is a line in the next file.
 Great Lakes' long word parted at frame **8186** on this function — six
 draws against fifty-four, forty-six of them at
 `Unit::find_attack_pos@00601280+0xea9`. ~~Nothing in `crates/sim` spends
-it yet~~ — **item 328 implemented it** (`crates/sim/src/attack_pos.rs`);
+it yet~~ — **item 328 implemented it** (`crates/sim/src/combat/attack_pos.rs`);
 the frame agrees draw for draw with all six of §17.5's destinations
 exact, and the word parts at 8187. Writing the code found **four** errors
 below that the reading had not, each struck in place with its successor
@@ -2859,7 +2859,7 @@ the *order of the tests*, not the arithmetic. The roll is any building's, and
 `Buffer::is_pending_load` and `Window::get_button` — and the six-byte bodies
 settle it).
 
-**Implemented** as `Sim::first_wound_draws` (`crates/sim/src/fight.rs`), under
+**Implemented** as `Sim::first_wound_draws` (`crates/sim/src/combat/fight.rs`), under
 the site names `Object::take_damage+0xe1` and `+0x18b`, both now in
 `trace::SITES`. 9451 is **six** of the original's seven draws with it.
 
@@ -8799,7 +8799,7 @@ minus side is 116.3° away, so the plus side it is. `0/6` turns the same
 way on block 635, from the other end: bearing 146.3°, plus side 56.3°,
 also `671481856`.
 
-`Sim::attack_angle` in `crates/sim/src/fight.rs` is the rule. `uflags::SIDEWAYS` is the
+`Sim::attack_angle` in `crates/sim/src/combat/fight.rs` is the rule. `uflags::SIDEWAYS` is the
 bit.
 
 ### 49.3 What moved
@@ -11030,7 +11030,7 @@ never took it.
 ### 63.5 The build, and what moved
 
 - `Sim::guard_activity`, `Sim::guard_leash` and `Sim::guard_check_target`
-  (`crates/sim/src/fight.rs`);
+  (`crates/sim/src/combat/fight.rs`);
 - the arm in `Sim::do_attack`, with the AI's roll at `fight+0x824`
   ([`sim::fight::SITE_FIGHT_GUARD_ROLL`]);
 - the leash, the post-centred rings and the guard's reach gate in
@@ -12635,7 +12635,7 @@ ground (no splash) or struck it as a fringe (splash).
 
 ### 73.4 Built
 
-`Sim::building_under` (`crates/sim/src/fight.rs`): the world bound, then
+`Sim::building_under` (`crates/sim/src/combat/fight.rs`): the world bound, then
 the first building of a player below eight, ~~active (this crate's
 `Sim::active`)~~ placed and finished (`Sim::struck` and `Building::active`,
 the two flag reads, and nothing about hit points: `Sim::active`'s `health >

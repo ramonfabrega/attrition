@@ -11746,7 +11746,7 @@ attacker (`type +0x218 == 1`) of the Bark line (`is(0x143)`) against a sea targe
 (`is(0x154)`, TRIREME: Trireme, Galley, …) by 400 (`imul 0x51eb851f; sar 7`) and multiplies a transport
 (`unit_flags & 0x10`, `lea; shl 3`) by 40; then every unit target divides by its `full + 1` (`movsbl 0xac`, `idiv`).
 
-**Built** (`crates/sim/src/fight.rs`, `compare_target`; `combat::role::TRIREME`, loaded by id in
+**Built** (`crates/sim/src/combat/fight.rs`, `compare_target`; `combat::role::TRIREME`, loaded by id in
 `crates/rondata/src/load.rs`): the sea arm. `full` is 0 on every unit of the dump and is not carried (a SEAM).
 With it block 634 agrees, and block 635's `0/6` takes the fishing boat as the original does.
 
@@ -11816,7 +11816,7 @@ long pins (the third pair's closing, run714's) stood on `1/2000 city:raid_stamp`
   non-zero `take_damage` returns first) and the victim is a computer. This crate fired it on every cross-owner hit
   on a city building.
 
-**Built** (`crates/sim/src/fight.rs`, `Sim::city_alarm`, called before the take; `AiLeader::capital_stamp`): both
+**Built** (`crates/sim/src/combat/fight.rs`, `Sim::city_alarm`, called before the take; `AiLeader::capital_stamp`): both
 arms, and the emergency gated on the alarm's answer and on `!killed`.
 `the_city_alarm_raids_light_attacks_heavy_and_spares_the_capital_s_stamps` (`crates/sim/src/cities_tests.rs`)
 holds the ceilings and the capital on a fixture. Each arm is held by a mutation (`tools/mutate.py`, cargo exit 101):
@@ -14253,7 +14253,7 @@ sides release.
   both leaders human. An `ever_seen` bit that arrived later would have passed `check_ever_seen`'s `Leader::meet`. A
   probe of ours' 750 census agrees: no British or Nubian building answers `build_is_seen(b, 2)`.
 
-**The fix** (`crates/sim/src/fight.rs`): `Sim::set_attacking` calls `treaty_on(owner, who, 1)` first. Ours'
+**The fix** (`crates/sim/src/combat/fight.rs`): `Sim::set_attacking` calls `treaty_on(owner, who, 1)` first. Ours'
 British and Inca now meet on 620, and the Nubians meet each computer on 659 and 661. Step 15 gives the region word
 `& 4`, and army `2/0` releases on 760 into `DEFENDING`. `Sim::census_meet` (step 6, buildings and walls,
 `crates/sim/src/ai_census.rs`) stays as the export reads it. A first build walked units too. That build reached the
@@ -14328,7 +14328,7 @@ packet, at logger frame 809, runs `step4.py --entry 64e5c0 --this <0/14>` with `
 | `2/18` Elite Pikemen | 278,027 | 278,027 |
 | `2/21` | 194,000 | 194,000 |
 
-**The fix** (`crates/sim/src/fight.rs`). `Object::compare_target@0064e5c0` keeps its value in an `int`: `imul` and
+**The fix** (`crates/sim/src/combat/fight.rs`). `Object::compare_target@0064e5c0` keeps its value in an `int`: `imul` and
 `idiv` throughout. For `2/23` the product passes 2³¹ and wraps negative, and the tail's `v < 0 → 9,999,999` gives
 `(9,999,999 + 99) / 100` compressed to 100,000. The crate carried `i64` and saw the true product.
 `compare_target` and `building_class_weight`'s closure now run in `i32` with wrapping `*` and `+`. The compression's
@@ -14744,7 +14744,7 @@ record**, and `Objects::kill_guy` makes one record per guy. `Objects::process_al
 object a frame (lines 38–39, 87–88). A four-figure crew nets +3 a frame while all four records live. Ours kept one
 `Death` per unit and bumped once, netting 0, and freed 23 about thirty frames after the cull.
 
-**The build** (`crates/sim/src/combat.rs`, `crates/sim/src/fight.rs`): `combat::Figures` holds each guy's record
+**The build** (`crates/sim/src/combat/mod.rs`, `crates/sim/src/combat/fight.rs`): `combat::Figures` holds each guy's record
 life (`i64::MAX` where the install does not describe the piece); `Sim::death_figures` and `figure_life` fill it, and
 `death_life` is the max of `figure_life`. `hold_frames_tick` bumps by `figures.live(frame − first_frame)`.
 
@@ -14889,7 +14889,7 @@ Senate's `frame + 1` rest on the decompile and the one birth they move.
   wealth): who=1's Despot `1/28` dies on 1463.
 
 **The build.**
-- `Sim::inca_refund` (`crates/sim/src/fight.rs`) is called from `take_damage_typed`'s death arm and runs
+- `Sim::inca_refund` (`crates/sim/src/combat/fight.rs`) is called from `take_damage_typed`'s death arm and runs
   `plunder_steps(v, v, v.who, 0, 0)`.
 - `Sim::unit_plunder` runs the steps for the General, caravan and supply-wagon victims instead of returning
   before them. `SimPlunder` answers `general_plunder`, `caravan_plunder`, `unit_is_hero`, `unit_is_supply` and
@@ -15138,7 +15138,7 @@ and row 311 at x 343–345 in `0/24`'s. They form one radius-2 disc around (343,
 720–779, so no walk punched them. Theirs' Catapult `1/26` (TI 265, `CREW_SIZE` 2, `BLOCK_RADIUS` 2) has its crew
 guy 2 at (16509, 15030), cell (343, 313), and dies on 747.
 
-**The first build** (`crates/sim/src/fight.rs` `close_unit`). `Unit::close@0060ee50`'s death arm runs
+**The first build** (`crates/sim/src/combat/fight.rs` `close_unit`). `Unit::close@0060ee50`'s death arm runs
 `Objects::kill_guy@00659410` over the squad and the crew. Its last arm clears `radius[coll_size]` around each figure's
 own cell unless the type blocks while dead. Ours cleared guy 0's disc alone. With the loop, ours' mask over cells
 336–352 × 308–322 matches both packets cell for cell. The word moved to **828**. Ours spends 11 draws against 15 there.
@@ -15190,7 +15190,7 @@ target facing elsewhere. The state first parts on **860**: theirs pushes a `MOVE
 whose path ends (17352, 15288), where ours walked toward (17112, 14760), the Light Horse `1/16`'s own side.
 `take_damage@00652020`'s share (95 / `UBER_SIZE`, the remainder for a lone captain) is ours, and not the cause.
 
-**The build** (`crates/sim/src/attack_pos.rs`, `Sim::chase_lead`, asked by `chase_spot`): `Unit::find_attack_pos@00601280`'s
+**The build** (`crates/sim/src/combat/attack_pos.rs`, `Sim::chase_lead`, asked by `chase_spot`): `Unit::find_attack_pos@00601280`'s
 flanking branch, `6027d4`–`602abc`, read off the listing (COMBAT §32.4's struck bullet). Its gates: a unit target; the
 asker's `unit_masks & 0x40000` clear (a player's unit); the asker's type's domain (`+0x218`) air or the target's; the
 target's current order a move (vslot `+0x14`); the asker's type a range (`+0x1fc`). With `bearing = find_angle(target −
@@ -15583,7 +15583,7 @@ lines 92–110): a target whose type's `unit_flags` carries `0x20` refuses a sea
 (`ObjectTypeData::is_siege`) or `+0x110` (`UnitTypeData::is_tank`), or whose `+0x1e4` carries `0x8000000` (the
 missile), and otherwise returns `!is(0x130, 0)` — the Bomber line refuses it. This crate kept that arm as "ranged and
 not a missile", so its Stealth Bomber took the helicopter, rolled `fight`'s re-search on 623, and on 701 stood at
-(16344, 15720) against (15960, 15384). Built in `Sim::valid_target_const` for a unit searcher (`crates/sim/src/fight.rs`,
+(16344, 15720) against (15960, 15384). Built in `Sim::valid_target_const` for a unit searcher (`crates/sim/src/combat/fight.rs`,
 `a_bomber_never_takes_a_helicopter`); a building searcher's arm (vslot `+0x60` through the base `is`) is not.
 
 **The value diff** (`information_melee_run1468_s_word_window_is_widened_whole`, 601..878, the same three blocks):
@@ -16355,7 +16355,7 @@ shooter's `+0x32` every frame, so the slot is held for good.
 Ours rooted the negative quotient to 0 and raised it to 1. Every one of the twelve came down on the frame after
 its release, drew nothing, and left the slot to free 30 frames after the bomber's death (795).
 
-**Built** (`crates/sim/src/combat.rs`, `fight.rs`):
+**Built** (`crates/sim/src/combat/mod.rs`, `fight.rs`):
 
 - `combat::fall_time` answers `i32::MIN` for a negative quotient (0 for either zero);
 - the Bomber arm raises only a zero to 1;
@@ -17270,7 +17270,7 @@ Carrier was sunk by a round on 1390, so its record took a bump on 1390: `Object:
 had folded both bumps into one pass **ahead of** `process_projectiles`, with the comment "no capture can see the
 order". A record made in the walk was therefore first bumped on the frame after its death, and the hold settled
 one lower. Now `Sim::hold_frames_tick` keeps `Ammo::inc_time`'s dead-shooter bump ahead of the walk, and
-`Sim::death_objs_inc_time` runs the records' bump and cull after it (`crates/sim/src/fight.rs`, the call order in
+`Sim::death_objs_inc_time` runs the records' bump and cull after it (`crates/sim/src/combat/fight.rs`, the call order in
 `Sim::tick`). Test: `fight::tests::a_death_a_round_makes_is_bumped_on_its_own_frame`.
 
 **What moved**: **1817 → 2600, the game whole** (the count 2184 → 2600; `airbase_melee_first_parting`), and the

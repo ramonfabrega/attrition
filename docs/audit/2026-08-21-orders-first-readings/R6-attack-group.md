@@ -801,7 +801,7 @@ out `add_strafe_order`. Not this sub-area.
 | `GROUP_MOVE` / `GROUP_ATTACK_TO` | `Unit::do_group_move` (+ `do_group_attack_to@005e74e0` = the same, then the `ATTACK_TO` 15-frame search) | leader: `do_move(order)`; follower: `move_step(this, order, v)` with `v` from §3.3 | ends by `ungroup_move_order` → a plain `MoveOrder` in place |
 | a building's target | `Build::process/do_attack` | COMBAT.md §8.6 | `Build::add_attack_order` = three fields |
 
-What the sim has today (`crates/sim/src/fight.rs::process_unit_combat`,
+What the sim has today (`crates/sim/src/combat/fight.rs::process_unit_combat`,
 `lib.rs`): `combat::State {target, mandatory, stance, recharging, …}` is the
 `AttackOrder` collapsed to its target and `mandatory`; `order_attack` is
 `add_attack_order(QUEUE_NEW, mandatory = 1)`; the chase is `movement.dest =

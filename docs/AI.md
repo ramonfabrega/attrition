@@ -8975,7 +8975,7 @@ This crate wrote only the first (`crates/sim/src/ai.rs` called the field
 last-attacked frame (AI, on low difficulty)", and nothing carried it). All
 three are amended in place.
 
-**The fix**: `take_damage_typed` (`crates/sim/src/fight.rs`), the one
+**The fix**: `take_damage_typed` (`crates/sim/src/combat/fight.rs`), the one
 combat entry (`do_damage`'s; the city path passes attrition), stamps the
 struck object's owner at difficulty below 2, first after the sixteenth
 floor as in the original. With it, who=0 is stamped on every hit its
@@ -17006,7 +17006,7 @@ unless marked.
    row, "All units and buildings in your territory revealed", **Computerization**, which the All Technologies start holds.
    `WorldData::is_really_seen` carries the same arm; nothing here reads it.
 
-**Built.** `Sim::world_is_seen_fog` (`crates/sim/src/fight.rs`) — `WorldData::is_seen` whole, its leader arms through
+**Built.** `Sim::world_is_seen_fog` (`crates/sim/src/combat/fight.rs`) — `WorldData::is_seen` whole, its leader arms through
 `Sim::sees_every_unit` and `Sim::holds_bonus` (`ai_sites.rs`, `sees_every_cell` now `explore_map` over the two) and the
 territory arm through `Roles::territory_reveal_preq` (`tech.rs`, loaded from the eighth bonus in `rondata`'s `load.rs`).
 `Sim::world_sees` — `target_is_seen`'s and `set_attacking`'s fog read — is it at a position, so `fight.rs`'s seam on the
@@ -17542,7 +17542,7 @@ Each claim is *diff-backed* unless marked.
    no death draw. *Listing-backed*; each moved the word in its own run.
 
 **Built.** `Sim::silo_strike` (`crates/sim/src/air.rs`), from `computer_sortie` where a silo returned: the nuke arm, the
-cities' loop, and `own_object_within` for the friendly search. `Sim::nuke_do_damage` (`crates/sim/src/nuke.rs`) passes over a
+cities' loop, and `own_object_within` for the friendly search. `Sim::nuke_do_damage` (`crates/sim/src/combat/nuke.rs`) passes over a
 unit of owner 8 or more. `Sim::close_pasture_animals` (`crates/sim/src/farms.rs`), from `close_building` for a Farm. Unit
 tests `airbase::tests::a_computer_s_silo_strikes_an_enemy_city_with_its_nuke` (cadence, a V2, an unseen city, a friend
 within 0x1800, a human's silo), `nuke::tests::the_ring_never_strikes_an_animal` and
@@ -17610,7 +17610,7 @@ unless marked.
 
 **Built.** `Sim::transport_into_platform` (`crates/sim/src/transport.rs`), from `do_gather`'s arrival for an Oil Platform
 before the scholar-and-platform `go_inside`; `Sim::transport_dies`, the boat's death `disembark` already carried, now
-shared by both. `Sim::NUKE_SPREAD` (`crates/sim/src/fight.rs`), added in `hold_dead_slot`. Unit test
+shared by both. `Sim::NUKE_SPREAD` (`crates/sim/src/combat/fight.rs`), added in `hold_dead_slot`. Unit test
 `transport::tests::a_transport_at_its_oil_platform_dies_and_hands_in_its_passenger` (through `work`, and a ship with no
 `carry` passed by); `airbase::tests::the_silo_counts_its_missile_out_and_it_fires_on_the_thirtieth` reads 151 for the
 V2's hold (121 before). Mutations (`tools/mutate.py`, scored by exit and the failed tests' names): the arm cut from
@@ -21570,7 +21570,7 @@ figure (`+0x90 < 0`), or whose next figure's slot is not active (`flags & 1` cle
 or a governor hero). A head over a live figure goes to `0060f679` instead and hands the squad down; a follower
 (`+0x8e >= 0`) goes there too. So a squad is counted until its last figure dies.
 
-**Built**: `Sim::close_count` (`crates/sim/src/fight.rs`), before the relink on the combat death
+**Built**: `Sim::close_count` (`crates/sim/src/combat/fight.rs`), before the relink on the combat death
 (`take_damage_typed`), attrition, the pasture's animals and the flock's birds; gaia, which holds no muster here, is
 skipped. The gate is `Sim::counts_in_muster`'s, read off the chain: no `o_up`, no live `o_down`, not a decoy, a
 type with population.
@@ -21885,7 +21885,7 @@ when `HeroesData::find_hero@0073a1b0` finds one of the owner's heroes, active an
 `0x165` (§225's President), at (7965, 9718) on 6452: 2371 from the bomber, inside its radius. The reach is `5 × 0xc0 + 6` =
 966, and 918 is inside it. On 6451 the bomber was at 1021, outside, so the release falls on 6452 exactly.
 
-**Built** (`crates/sim/src/fight.rs`): `Sim::ceo_unit_range`, added in `max_range_of` for a unit: not `is_siege_unit`, the
+**Built** (`crates/sim/src/combat/fight.rs`): `Sim::ceo_unit_range`, added in `max_range_of` for a unit: not `is_siege_unit`, the
 owner's `muster.by_type` of the `0x165` type non-zero, and the unit itself a `0x165` hero or an alive, on-map `0x165` hero of
 its owner within `hero_radius × 0xc0`. `Tuning::theceo_unit_range` (2), checked against `rules.xml`'s
 `THECEO_UNIT_RANGE`. SEAMs: the siege arm below it (`TURK_SIEGE_RANGE`, the Liberty and Eiffel wonders, Napoleon), Ptolemy's
@@ -21946,7 +21946,7 @@ restore on every exit: `docs/COMBAT.md` §17.7.
 `0x167` unit); `find_ordered_collision` (the freighters `1/163` and `1/217` are ordered onto the row but stand far off, and the
 chain walk agrees); units or buildings near the ring (none, either side).
 
-**Built** (`crates/sim/src/attack_pos.rs`): `find_attack_pos` holds `auto_transport` false around `find_attack_pos_grounded`
+**Built** (`crates/sim/src/combat/attack_pos.rs`): `find_attack_pos` holds `auto_transport` false around `find_attack_pos_grounded`
 and ORs it back. Test `an_asker_s_auto_transport_is_held_clear_while_it_searches` (water east of the face); mutation keeping
 the bit through the call: exit 101, held.
 
@@ -26279,7 +26279,7 @@ Off the heading, `0/11` bears 0x2a37_ffff from it — inside 60°, ×2, **3048**
 3920: `0/3` wins, as theirs'. Item 3385 cited `+0x50` and built on the facing; a horse archer's body and heading
 agree on most frames.
 
-**Built** (`crates/sim/src/fight.rs`): the bearing off `movement.heading`. `cavarch::tests::
+**Built** (`crates/sim/src/combat/fight.rs`): the bearing off `movement.heading`. `cavarch::tests::
 the_fire_on_the_move_bears_off_the_heading_not_the_facing`: two like foes at one distance, one on the heading
 and one on the facing a quarter turn away; the search takes the one on the heading, either way round.
 
@@ -30853,7 +30853,7 @@ TypeIndex 432, `DOCK`. So the arm is:
 §203's run810 took the first return (`64e7e5`), ahead of the dock test,
 so that reading never reached a capture until now.
 
-**Built** (`crates/sim/src/fight.rs`, `Sim::compare_target`): the
+**Built** (`crates/sim/src/combat/fight.rs`, `Sim::compare_target`): the
 second term is `crate::build::is_dock` on the target's type, and
 `!SIEGE`. `fight::tests::a_computer_s_raiding_ship_weighs_a_finished_building_at_zero`
 gives its zero cases a Dock and adds two Farm cases: weighed above zero,
@@ -35432,7 +35432,7 @@ The halving needs **both** the attacker's `who` and its `o` to differ from the c
 jumps to the return. The Special Forces line `is` the Commando (`0x49`), and the cast's `x, y` is the caster's own
 position, which run1397b's `CASTORDER x=4248 y=31896` reads.
 
-**Built**: `Sim::counter_craft` (`crates/sim/src/fight.rs`), called from `target_opportunity_in` ahead of the flee
+**Built**: `Sim::counter_craft` (`crates/sim/src/combat/fight.rs`), called from `target_opportunity_in` ahead of the flee
 arm, when the held attack did not yield. A craft whose tests fail falls through to the next, then to the flee arm.
 
 **The score: 4299 → 4586 of 5304**, count and sequence. On 4586 ours spends 94 draws against theirs' 99, parting at
