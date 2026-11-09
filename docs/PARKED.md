@@ -15599,13 +15599,19 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   dead tail adds its whole hits where the original adds a third. No dump on disk shrinks a squad; a staging is
   a squad of three short one figure under a technology whose unit is one figure. It names no score.
 
-## Parked by the next landing, slot DA — reserved
+## Parked by item 4033, 2026-11-09 — the start counter's N, and a quiet half of the start block
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4033a. `START_LOBBIES` counts every capture with a start head, a scratch log among them**
+  (`tools/start_lobbies.py`, `docs/START.md` §5): 161 distinct `GAMEINFO` blocks over 645 captures, one of them
+  `gamelog-scratch-2026-08-20-2219.txt`. A lobby whose only capture is a scratch file, a window that happens to
+  open with a `FULL DUMP` ahead of its first frame, or a start head too thin for `build_sim` still counts in N.
+  Whether N is "lobbies on disk" (the scan as written) or "lobbies `build_sim` can install" is 4034's to rule
+  when it walks them all; the scan's `--list` names each lobby's first capture. It names the `Start:` counter's
+  denominator, not a score that moves.
+- **4033b. Three of the start block's leader fields compare the crate with itself** (`docs/START.md` §3):
+  `bucket`, `ages` and `techs` are `Sim::new`'s and `start_techs`' on both sides, since `build_sim` does not take
+  them from the dump. `LEADERDATA` prints the stockpile; a reader of it in the installed side would make the goods
+  row dump-backed. Score: none until a lobby with a spread row or a nation bonus on the goods is built.
 
 ## Parked by item 3989, 2026-11-08 — the rally point's hotkey arm, and the unit `die` the stager now stages
 
