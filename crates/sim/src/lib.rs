@@ -72,6 +72,7 @@ pub use self::movement::astar_view;
 pub use self::territory::attrition;
 pub use self::territory::border_pass;
 pub use self::units::{add_to_world_view, anim};
+pub mod setup;
 pub mod spells;
 pub use self::combat::build_attack_view;
 // `combat::build_family` is private and named through `combat` alone (item 4012).
