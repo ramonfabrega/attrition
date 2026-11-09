@@ -451,7 +451,10 @@ fn every_nation_field_in_tuning_has_an_audit_row() {
 #[test]
 fn the_audit_guard_catches_a_false_row() {
     let src = sim_sources();
-    let city = src.iter().find(|s| s.0 == "city.rs").expect("city.rs");
+    let city = src
+        .iter()
+        .find(|s| s.0 == "city_views.rs")
+        .expect("city_views.rs");
     assert!(holds(&city.2, "chinese_large_cities"));
     // Spelled in halves, so that this file does not hold a witness the
     // table says is absent.
