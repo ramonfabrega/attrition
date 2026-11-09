@@ -414,14 +414,20 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// backups went, and 787 `obj with windows` sweeps' generated parsing and
 /// asserts folded into `sweep::support::obj_rows` (the 102 of them under
 /// `src/` −3,684 lines there; 29,171 net across both homes).
+///
+/// Item 4010: `test-tails` 64958 → 0 (−64,958): the 112 inline
+/// `#[cfg(test)] mod … { … }` blocks of 100 production files became
+/// `foo/<name>.rs` behind `#[cfg(test)] mod <name>;` at the same place,
+/// every test name kept. `largest` 14222 → 13437 (−785): `orders.rs`'s
+/// seven test modules left it, its production untouched.
 #[cfg(test)]
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 203),
-    ("test-tails", 64_958),
+    ("test-tails", 0),
     ("sweep-lines", 17_255),
     ("names", 130),
     ("fields", 92),
-    ("largest", 14_222),
+    ("largest", 13_437),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before

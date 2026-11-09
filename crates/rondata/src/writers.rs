@@ -403,6 +403,14 @@ fn blank_tests(src: &mut [u8]) {
             i += 1;
             continue;
         }
+        // `#[cfg(test)] mod tests;` mounts a sibling file (item 4010): the
+        // item ends at its `;`, and the production item after it is not
+        // the test's.
+        if let Some(semi) = mod_decl_end(&src[i..]) {
+            blank(src, i, i + semi);
+            i += semi + 1;
+            continue;
+        }
         match src[i..].iter().position(|&b| b == b'{') {
             Some(off) => {
                 let open = i + off;
@@ -413,6 +421,31 @@ fn blank_tests(src: &mut [u8]) {
             None => break,
         }
     }
+}
+
+/// The offset of the `;` ending `#[cfg(test)]` and a bodiless `mod name;`
+/// after it (with any attributes or comments between), or `None`.
+fn mod_decl_end(head: &[u8]) -> Option<usize> {
+    let head = &head[..head.len().min(512)];
+    let text = match std::str::from_utf8(head) {
+        Ok(t) => t,
+        Err(e) => std::str::from_utf8(&head[..e.valid_up_to()]).ok()?,
+    };
+    let rest = text.strip_prefix("#[cfg(test)]")?;
+    let mut at = text.len() - rest.len();
+    for line in rest.split_inclusive('\n') {
+        let t = line.trim();
+        if t.is_empty() || t.starts_with("#[") || t.starts_with("//") {
+            at += line.len();
+            continue;
+        }
+        let name = t.strip_prefix("mod ")?.strip_suffix(';')?;
+        if !name.bytes().all(is_ident) {
+            return None;
+        }
+        return Some(at + line.find(';')?);
+    }
+    None
 }
 
 /// A field a struct or enum body declares, at brace depth zero of that body
@@ -1165,6 +1198,26 @@ fn three_views() -> (String, String, String) {
         }
     }
     tests_under(&sim_dir().join("sweep"), &mut tests);
+    // The test tails item 4010 moved out of `foo.rs` into `foo/tests.rs`
+    // (and `foo/<name>_tests.rs`), mounted by `#[cfg(test)] mod tests;`.
+    let mut siblings: Vec<PathBuf> = std::fs::read_dir(sim_dir())
+        .expect("crates/sim/src")
+        .map(|e| e.expect("entry").path())
+        .filter(|p| p.is_dir() && !p.ends_with("sweep"))
+        .flat_map(|d| std::fs::read_dir(d).expect("a source directory"))
+        .map(|e| e.expect("entry").path())
+        .filter(|p| {
+            p.extension().and_then(|e| e.to_str()) == Some("rs")
+                && p.file_stem()
+                    .and_then(|s| s.to_str())
+                    .is_some_and(|s| s.ends_with("tests"))
+        })
+        .collect();
+    siblings.sort();
+    for path in siblings {
+        tests.push_str(&std::fs::read_to_string(&path).expect("read"));
+        tests.push('\n');
+    }
     // The standalone sweeps, which item 4009 moved to the crate's `tests/`.
     tests_under(&sim_dir().join("../tests/sweep"), &mut tests);
     let mut harness = String::new();
