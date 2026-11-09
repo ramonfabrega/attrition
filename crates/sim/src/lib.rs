@@ -99,6 +99,7 @@ pub use self::units::think::carry_idle;
 pub use self::units::think::carry_mil;
 pub use self::units::think::civ_transport;
 pub mod combat;
+pub mod command;
 pub(crate) use self::cities::construct;
 pub use self::units::come_out_view;
 pub mod core;

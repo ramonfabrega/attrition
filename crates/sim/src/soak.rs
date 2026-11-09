@@ -276,7 +276,7 @@ fn scenario(rng: &mut Rng) -> (Sim, Types) {
         Cell::new(CELLS - 1, CELLS - 1),
     );
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    sim.declare_war(0, 1);
+    sim.command().declare_war(0, 1);
     for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; economy::RESOURCES];
     }
@@ -359,11 +359,15 @@ fn issue(sim: &mut Sim, rng: &mut Rng) {
     };
     let action = rng.get(0, 1) == 0;
     match rng.get(0, 7) {
-        0 => sim.add_move_order(u, pos, orders::MoveKind::MoveTo, queue, action),
-        1 => sim.add_move_order(u, pos, orders::MoveKind::ExploreTo, queue, action),
+        0 => sim
+            .command()
+            .add_move_order(u, pos, orders::MoveKind::MoveTo, queue, action),
+        1 => sim
+            .command()
+            .add_move_order(u, pos, orders::MoveKind::ExploreTo, queue, action),
         2 => {
             if let Some(b) = b {
-                sim.add_build_order(u, b, queue, action);
+                sim.command().add_build_order(u, b, queue, action);
             }
         }
         3 => {
@@ -379,17 +383,18 @@ fn issue(sim: &mut Sim, rng: &mut Rng) {
                 } else {
                     queue
                 };
-                sim.add_repair_order(u, b, queue, action);
+                sim.command().add_repair_order(u, b, queue, action);
             }
         }
         4 => {
             if let Some(b) = b {
-                sim.add_gather_order(u, b, queue, action);
+                sim.command().add_gather_order(u, b, queue, action);
             }
         }
         5 => {
             if let Some(b) = b {
-                sim.add_garrison_order(u, b, rng.get(0, 1) == 0, queue, action);
+                sim.command()
+                    .add_garrison_order(u, b, rng.get(0, 1) == 0, queue, action);
             }
         }
         6 => {
@@ -398,9 +403,10 @@ fn issue(sim: &mut Sim, rng: &mut Rng) {
             } else {
                 combat::Obj::Unit(rng.get(0, sim.units.len() as i32 - 1) as usize)
             };
-            sim.add_attack_order(u, target, queue, rng.get(0, 1) == 0, action);
+            sim.command()
+                .add_attack_order(u, target, queue, rng.get(0, 1) == 0, action);
         }
-        _ => sim.clear_orders(u),
+        _ => sim.command().clear_orders(u),
     }
 }
 
@@ -451,7 +457,7 @@ pub(crate) fn play_with(seed: u32, frames: usize, mut each: impl FnMut(&Sim)) ->
                 issue(&mut sim, &mut rng);
             }
         }
-        sim.tick();
+        sim.command().tick();
         out.push(sample(&sim));
         each(&sim);
     }
@@ -547,7 +553,7 @@ mod tests {
         assert_eq!(movement::sin_component(ang, 25), 0, "the x component");
         assert_ne!(movement::cos_component(ang, 25), 0, "the y component");
 
-        sim.add_move_order(
+        sim.command().add_move_order(
             idx,
             Pos::new(4060, 5600),
             orders::MoveKind::MoveTo,
@@ -556,7 +562,7 @@ mod tests {
         );
         // It returns, and the unit gets where it was sent.
         for _ in 0..200 {
-            sim.tick();
+            sim.command().tick();
         }
         let end = sim.units[idx].pos;
         assert!(
