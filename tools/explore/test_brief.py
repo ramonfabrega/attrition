@@ -68,6 +68,11 @@ class TheAlwaysSet(unittest.TestCase):
         # `the_blind_list_is_the_pinned_residue`, so the re-pin fell to the
         # booking gate's second commit. The pin is 0.4 s; every kind runs it.
         for kind in brief.ALWAYS_TESTS:
+            if kind in brief.WHOLE:
+                # Loop 4022: a structure lane gates whole, `blind::` among
+                # every test; it names no filter.
+                self.assertEqual(brief.filters(kind, []), [], kind)
+                continue
             self.assertIn('blind::', brief.filters(kind, ['nations::'] if kind != 'sweep' else []), kind)
         self.assertEqual(set(brief.ALWAYS_TESTS), set(brief.KINDS))
         # A reading lane (DECISIONS 84) moves no word: its gate is the blind
@@ -436,6 +441,113 @@ class ABriefIsComposed(unittest.TestCase):
         self.carried("East Indies' second word: frame 6151, ours 9 draws against 8", text)
         lanes = self.compose(1133, queue=queue).split('## The other lanes')[1].split('\n## ')[0]
         self.assertIn('frame 6151, ours 9 draws against 8', lanes)
+
+
+# Loop 4022: the structure tranche's and the renderer's items, in the queue's
+# own words as 3e4ea444a booked them, which the commander briefed by hand.
+QUEUE_TRACKS = QUEUE.replace('## How to maintain this file', """4008. **The guards and the shape counter** (a `structure` item; STRUCTURE §5.1): `no_float.rs` scans `crates/sim/src` recursively
+(it reads the flat directory only and already misses `do_attack/live.rs`); `docs_guard`'s seam table and test-file list read nested
+paths; a guard pins that every `crates/sim/src/…` path `docs/` cites exists (2,909 citations in 657 files) and `tools/paths.py`
+rewrites citations when a file moves; `tools/shape.py` prints the `Structure:` line's six counts and `rondata::diff` parses the line
+against them. Red first on the tree as it stands. Lane A, first; gate whole.
+
+4018. **The camera, proven against the original's function** (a `render` item; RENDERER §6 item 2, §3.3): a pure camera and
+projection in a new `render` crate, written from reading `BaseCamera::update_transforms` and `Camera::update_transforms`, never
+transcribed; checked against `MiscAccess::world_to_screen` under unicorn on synthesized camera states (a sweep, as `crates/sim`
+runs its sweeps; `tools/emu/callfn.py`) and on a packet on disk (grep the archive first: run144's is cited in FORMATS). Score:
+camera states in register, K of the sweep, every point within one pixel. Needs nothing from `sim`. Lane B, first.
+
+## How to maintain this file""")
+
+
+class AStructureOrRenderItemHasItsKind(unittest.TestCase):
+    """Loop 4022 (the seventy-fourth pass, DECISIONS 114 §4): `KINDS` knew
+    residue, chapter, sweep, reading and coverage only, so the commander
+    briefed 4008's structure lane and 4018's render lane by hand from
+    `docs/STRUCTURE.md` §1 and `docs/RENDERER.md` §6. Red first: both
+    composed `no such kind of brief`."""
+
+    def compose(self, item, kind, **kw):
+        args = dict(queue=QUEUE_TRACKS, frame=brief.FRAME.read_text(), base='abc1234',
+                    model='Opus 5.5', runs=[], sections=[], read=[], note='', tests=[])
+        args.update(kw)
+        return brief.compose(item, kind, **args)
+
+    def test_a_structure_brief_carries_the_rule_the_counter_and_a_whole_gate(self):
+        text = self.compose(4008, 'structure', sections=['docs/STRUCTURE.md §5.1'])
+        self.assertIn('the structure track', text)
+        self.assertIn('4008. **The guards and the shape counter**', text)
+        section = text.split('## A structure item')[1].split('\n## ')[0]
+        for word in ('No behaviour change', 'every floor unchanged', 'python3 tools/shape.py',
+                     '`Structure:`', 'random stream', 'docs/STRUCTURE.md'):
+            self.assertIn(word, section)
+        landing = text.split('## Landing')[1]
+        self.assertIn('--lane --item 4008 --whole`', landing)
+        self.assertNotIn('--tests', landing)
+        for gone in ('## Before any reading', '## A capture or a packet', '## Build', '## The sweep',
+                     '## Seams, read for you'):
+            self.assertNotIn(gone, text)
+        self.assertLess(text.index('## A structure item'), text.index('## Landing'))
+        self.assertEqual(re.findall(r'\{[a-z]+\}', text), [])
+        # Gated whole: a filter named for it is refused, never silently dropped.
+        with self.assertRaisesRegex(ValueError, '--whole'):
+            self.compose(4008, 'structure', tests=['coverage::'])
+        self.assertEqual(brief.filters('structure', []), [])
+
+    def test_a_render_brief_carries_the_counter_the_rungs_the_pins_and_a_scoped_gate(self):
+        text = self.compose(4018, 'render', sections=['docs/RENDERER.md §3.4'])
+        self.assertIn('the render track', text)
+        self.assertIn('4018. **The camera, proven against the original', text)
+        section = text.split('## A render item')[1].split('\n## ')[0]
+        for word in ('K of M', 'docs/RENDERER.md', '§5.4', 'decode', 'in register', 'packet',
+                     'camera_oracle.py', 'gpiece', 'value diff', 'item-4026.md',
+                     'crates/rondata/src/free/tests.rs', 'RENDER_K', 'RENDER_M', 'FRAMES_IN_REGISTER',
+                     'M_PIECES_DECODING', 'M_BUILDING_TYPES_DECODING', 'crates/rondata/src/artdata.rs',
+                     '`PIECES_DECODING`', 'RON_INSTALL', '`uv`', 'skipping:', '--whole'):
+            self.assertIn(word, section)
+        landing = text.split('## Landing')[1]
+        self.assertIn('--lane --item 4018 --tests free:: artdata::', landing)
+        self.assertIn('coverage:: census::', landing)
+        self.assertIn('--no-widen`', landing)
+        for gone in ('## Before any reading', '## Build', '## The sweep', '## Seams, read for you'):
+            self.assertNotIn(gone, text)
+        self.assertEqual(re.findall(r'\{[a-z]+\}', text), [])
+        self.assertNotIn('first_parting', brief.filters('render', []))
+
+    def test_every_kind_s_always_filter_matches_a_live_test(self):
+        # The pass's render ruling named `render::`, which no test name
+        # carries — cargo prints the render crate's tests crate-less
+        # (`camera::tests::…`) — and the gate's `unmatched_filters` names
+        # such a filter. A kind's own filters are held to `filters`'s rule.
+        fns = brief.test_fns()
+        for kind, always in brief.ALWAYS_TESTS.items():
+            for t in always:
+                self.assertTrue(any(t in n and not ign for n, ign in fns.items()), (kind, t))
+
+    def test_the_new_kinds_are_kinds_and_each_section_is_a_page(self):
+        body = brief.sections(brief.FRAME.read_text())
+        for kind in ('structure', 'render'):
+            self.assertIn(kind, brief.KINDS)
+            self.assertIn(kind, body)
+            self.assertLessEqual(len(body[kind]), 2400, kind)
+
+
+class TheFrameNamesRowsTheWayCccDoes(unittest.TestCase):
+    def test_every_ccc_verb_the_frame_spells_names_a_row_by_lane(self):
+        # Loop 4023 (4021's journal): the frame's landing row spelt `ccc
+        # update att-<n>`, the worktree's name; the roster keys rows by
+        # `--name lane-<N>`, and `ccc update att-4021` answered "no session
+        # in the roster". Red first on that row.
+        frame = brief.FRAME.read_text()
+        calls = re.findall(r'`ccc ([a-z]+)((?: --?[a-z-]+)*) ([^`\s]+)', frame)
+        self.assertTrue(calls, 'the frame spells no ccc verb with a row')
+        bad = [f'ccc {verb} {row}' for verb, _, row in calls if not row.startswith('lane-')]
+        self.assertEqual(bad, [])
+        # And the brief spells the lane's own row.
+        text = brief.compose(1133, 'residue', queue=QUEUE, frame=frame, base='abc1234', model='Opus 5.5',
+                             runs=[], sections=[], read=[], note='', tests=['floors::'])
+        self.assertIn('`ccc update lane-1133`', text)
+        self.assertNotIn('ccc update att-', text)
 
 
 class TheReflexReadsTheQueue(unittest.TestCase):

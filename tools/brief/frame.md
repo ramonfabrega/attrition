@@ -379,6 +379,61 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   move only on a `cover=1` take of a lobby whose *settings* — map, game
   type, difficulty — no trace reached, never a twin ahead of its pair.
 
+## structure
+
+- **No behaviour change** (`docs/STRUCTURE.md` §1): you move, split,
+  rename and re-export; nothing the simulation computes alters, and
+  **every floor unchanged** — every word at its length, the melees'
+  closing states, the census counts, the soak digest, the widenings. A
+  landing that moves one by one is wrong, whatever the move was.
+- **The random stream is sacred**: a move never reorders code that
+  runs; a name is merged only when it names the same original field;
+  guards before moves (§1's three sub-rules).
+- **Your item is §5's move**, in order, naming the files it touches
+  and the counts it moves; a `git mv` carries the `mod` tree, the `pub
+  use` shim and `tools/paths.py`'s citation rewrite in one landing.
+- **The counter is `python3 tools/shape.py`**, the queue's
+  `Structure:` line (§2's six counts, each may only fall): run it on
+  the base and your tip, quote both in the journal, re-pin
+  `rondata::diff::floors::STRUCTURE` off `--exact`; the queue's line is
+  mine.
+- **Your gate is whole**, the line under Landing, no `--tests`: every
+  test, the timed ones included, is what certifies no behaviour change.
+  Your value diff is the floors unchanged and the shape line before and
+  after.
+
+## render
+
+- **The counter is `docs/RENDERER.md` §5.4's K of M**: M the pieces
+  the pinned captures play plus the building types their dumps hold; a
+  piece counts toward K when (1) its `.BH3` and every `.BHa` its played
+  slots name decode under the self-checking readers, and (2) on every
+  logged frame an object plays it, its draw-list entry is in register.
+  Your item is §6's and names the half it moves.
+- **The pins are yours, delta in the comment**:
+  `crates/rondata/src/free/tests.rs`'s `RENDER_K`, `RENDER_M`,
+  `FRAMES_IN_REGISTER`, `M_PIECES_DECODING`, `M_BUILDING_TYPES_DECODING`;
+  `crates/rondata/src/artdata.rs`'s `PIECES_DECODING`. The queue's
+  renderer line is mine.
+- **The oracle's rungs, cheapest first** (§3.3): the dump's own
+  `DUMP_ALL` `gpiece` and positions, grepped on disk; a packet on disk
+  (grep the archive before booking one); `MiscAccess::world_to_screen`
+  under unicorn, `tools/render/camera_oracle.py` by `uv run`; a
+  screenshot is by eye, never a gate. Nothing from the install enters git.
+- **The journal carries the value diff**: the record, the field, the
+  dump's `gpiece` or position against ours and the pixel each projects
+  to, as `docs/journal/2026-11-09-item-4026.md`, `-4027.md` and
+  `-4028.md` do.
+- **The render tests skip quietly**: export `RON_INSTALL` for your own
+  `check.sh test` runs (a worktree has no `../../game`; the gate exports
+  it) and put `uv` on `PATH` for the camera oracle; a `skipping:` line
+  is a vacuous pass — grep the log, and the journal says none printed.
+- **Your gate is scoped**, the line under Landing: the `render` crate's
+  tests, `rondata`'s `free::` and `artdata::`, `coverage::`, `census::`
+  and the guards. **A branch that touches `crates/sim` (the door,
+  `sim::observe`) gates `--lane --whole`**; otherwise the lanes row's
+  `first_parting` is moot.
+
 ## build
 
 - **Per reading, a killer that tests the claim's own unit, where the
@@ -433,7 +488,7 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   steps:` and `Gate minutes:` (969, 3224); its verdict: a second commit.
   **A red on the journal-quote or Loop-line guard alone is forgiven**
   (3277, 3328).
-- **`ccc update att-<n>` takes the ref, never a SHA** (1557);
+- **`ccc update lane-{item}` takes the row, never a SHA** (1557);
   `--keep-conflicts` on a conflict, keep both, commit (1161); **a `Base
   moved:` past the paperwork and row lists is an update and a second
   gate; on row lists alone, the line's steps, then land** (3341, 3366,
