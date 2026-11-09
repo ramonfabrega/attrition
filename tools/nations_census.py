@@ -87,10 +87,21 @@ def load(export, rules_path):
     global src_raw, src_code, load_code, rules, consts, tuning, sweep_only
     # Item 4009 moved the standalone sweeps beside `src/`, into the crate's tests.
     paths = glob.glob(SIM + "/**/*.rs", recursive=True) + glob.glob(SWEEPS + "/**/*.rs", recursive=True)
-    src_raw = {os.path.basename(p): open(p, errors="replace").read() for p in paths}
+    # Item 4010 moved `foo.rs`'s test tails to `foo/tests.rs` (and
+    # `foo/<name>_tests.rs`): they are still `foo.rs`'s, as they were inline.
+    def sibling(p):
+        d = os.path.dirname(p)
+        return (os.path.dirname(d) == SIM and os.path.basename(d) != "sweep"
+                and os.path.basename(p)[:-3].endswith("tests"))
+
+    def key(p):
+        return os.path.basename(os.path.dirname(p)) + ".rs" if sibling(p) else os.path.basename(p)
+    src_raw = {os.path.basename(p): open(p, errors="replace").read() for p in paths if not sibling(p)}
+    for p in sorted(p for p in paths if sibling(p)):
+        src_raw[key(p)] += open(p, errors="replace").read()
     dirs = {}
     for p in paths:
-        dirs.setdefault(os.path.basename(p), set()).add(os.path.basename(os.path.dirname(p)) == "sweep")
+        dirs.setdefault(key(p), set()).add(os.path.basename(os.path.dirname(p)) == "sweep")
     sweep_only = {k for k, v in dirs.items() if v == {True}}
     load_code = re.sub(r"//[^\n]*", "", open(ROOT / "crates/rondata/src/load.rs", errors="replace").read())
     src_code = {k: re.sub(r"//[^\n]*", "", v) for k, v in src_raw.items()}
