@@ -215,9 +215,9 @@ fn the_deploy_waits_out_its_job_time_and_then_clears_the_packed_bit() {
     let (mut s, u) = fish_sim();
     // The craft table as the install has it: 55 rows, and `0x292` is
     // the thirtieth.
-    s.spells = vec![crate::orders::SpellType::default(); 55];
+    s.orders.spells = vec![crate::orders::SpellType::default(); 55];
     let row = usize::try_from(UNPACK_FISHERMEN - crate::orders::spell::FIRST).unwrap();
-    s.spells[row].job_time = 40;
+    s.orders.spells[row].job_time = 40;
     assert_eq!(s.spell_job_time(UNPACK_FISHERMEN), 40);
     let at = s.units[u].pos;
     s.world.add_good(crate::world::Good {
@@ -338,7 +338,7 @@ fn a_human_s_packed_boat_with_no_fish_bumps_its_idle() {
 #[test]
 fn a_craft_with_no_row_casts_on_its_first_step() {
     let (s, _) = fish_sim();
-    assert!(s.spells.is_empty());
+    assert!(s.orders.spells.is_empty());
     assert_eq!(s.spell_job_time(crate::orders::spell::TRANSPORT), 0);
     assert_eq!(s.spell_job_time(UNPACK_FISHERMEN), 0);
 }

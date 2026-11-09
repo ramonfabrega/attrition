@@ -47,19 +47,19 @@ impl Sim {
                 st.speed = v;
                 st.new_speed = v;
             }
-            for i in 0..self.pushed.len() {
-                if self.pushed[i].who != who || self.pushed[i].state.pool != Some(s) {
+            for i in 0..self.orders.pushed.len() {
+                if self.orders.pushed[i].who != who || self.orders.pushed[i].state.pool != Some(s) {
                     continue;
                 }
                 // The shift is over all five arrays (`normalize@00711540`'s
                 // inner loop, item 1776): the member's `off`, `curr` and
                 // `angles` entries leave with it.
-                for k in (0..self.pushed[i].list.len()).rev() {
-                    let u = self.pushed[i].list[k];
+                for k in (0..self.orders.pushed[i].list.len()).rev() {
+                    let u = self.orders.pushed[i].list[k];
                     if self.units[u].alive() && self.units[u].group_ptr == Some(s) {
                         continue;
                     }
-                    let p = &mut self.pushed[i];
+                    let p = &mut self.orders.pushed[i];
                     Self::seat_remove_at(&mut p.list, &mut p.state, k);
                 }
                 // A building group's members take the same test's first
@@ -69,15 +69,15 @@ impl Sim {
                 // run1512's `[2007]`, disbanded on 832, leaves slot 1 on
                 // 833, `833 mod 64` (item 3918, `docs/GOLDEN.md` §165).
                 let buildings = &self.buildings;
-                self.pushed[i].builds.retain(|&b| buildings[b].alive);
+                self.orders.pushed[i].builds.retain(|&b| buildings[b].alive);
                 let g = crate::group::Group {
                     who,
                     army: None,
                     pushed: Some(i),
-                    list: self.pushed[i].list.clone(),
+                    list: self.orders.pushed[i].list.clone(),
                 };
                 let v = self.group_compute_speed(&g);
-                let st = &mut self.pushed[i].state;
+                let st = &mut self.orders.pushed[i].state;
                 st.speed = v;
                 st.new_speed = v;
             }
@@ -194,7 +194,7 @@ impl Sim {
     pub(crate) fn group_speed_of(&self, u: usize) -> i32 {
         match self.seat_of(u) {
             Some(Seat::Army(w, a)) => self.armies[w as usize].list[a].group.speed,
-            Some(Seat::Pushed(i)) => self.pushed[i].state.speed,
+            Some(Seat::Pushed(i)) => self.orders.pushed[i].state.speed,
             None => 0,
         }
     }
@@ -206,7 +206,7 @@ impl Sim {
     pub fn group_speed_pair_of(&self, u: usize) -> Option<(i32, i32)> {
         let st = match self.seat_of(u)? {
             Seat::Army(w, a) => &self.armies[w as usize].list[a].group,
-            Seat::Pushed(i) => &self.pushed[i].state,
+            Seat::Pushed(i) => &self.orders.pushed[i].state,
         };
         Some((st.speed, st.new_speed))
     }
@@ -710,7 +710,9 @@ impl Sim {
                     .map_or(s as i32, i32::from);
                 who * 64 + slot
             }
-            (None, Some(i)) => who * 64 + self.pushed[i].state.pool.map_or(i as i32, i32::from),
+            (None, Some(i)) => {
+                who * 64 + self.orders.pushed[i].state.pool.map_or(i as i32, i32::from)
+            }
             (None, None) => -1,
         }
     }
@@ -1019,13 +1021,14 @@ impl Sim {
     /// is the parent's, set aside in [`Sim::set_aside`] (`docs/AI.md` §212).
     pub(super) fn facing_record_mut(&mut self, g: &Group) -> Option<&mut GroupState> {
         if self
+            .orders
             .set_aside
             .as_ref()
             .is_some_and(|(who, army, pushed, _)| {
                 (*who, *army, *pushed) == (g.who, g.army, g.pushed)
             })
         {
-            return self.set_aside.as_mut().map(|(.., st)| st);
+            return self.orders.set_aside.as_mut().map(|(.., st)| st);
         }
         self.gstate_mut(g)
     }

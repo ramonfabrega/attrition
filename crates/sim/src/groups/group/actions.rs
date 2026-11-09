@@ -851,7 +851,7 @@ impl Sim {
         // dying move's hand-back goes to the unit's real group (`docs/AI.md`
         // §212) — run820's Supply Wagon `1/205`, the army's leader, wrote its
         // 1 into the stack record on 4082 and the layout read it.
-        self.set_aside = parent.map(|p| (sub.who, sub.army, sub.pushed, p));
+        self.orders.set_aside = parent.map(|p| (sub.who, sub.army, sub.pushed, p));
         self.group_action_move_to(
             &sub,
             to,
@@ -861,7 +861,7 @@ impl Sim {
             MoveKind::AttackTo,
             true,
         );
-        let parent = self.set_aside.take().map(|(.., p)| p);
+        let parent = self.orders.set_aside.take().map(|(.., p)| p);
         // The sub-group's own list as its layout walked it: `Group::sort`
         // runs on the stack record in place, and the record's tables are
         // indexed by the sorted list.

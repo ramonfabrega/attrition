@@ -1132,14 +1132,14 @@ fn a_pushed_group_s_prune_shifts_its_per_member_arrays() {
     let mut g = group_of(1, &[a, b, c]);
     assert!(s.push_group(&mut g, true));
     let slot = s.pool_group_of(a);
-    let i = s.pushed.len() - 1;
-    let st = &mut s.pushed[i].state;
+    let i = s.orders.pushed.len() - 1;
+    let st = &mut s.orders.pushed[i].state;
     st.off = vec![(1, 1), (2, 2), (3, 3)];
     st.curr = vec![Pos::new(10, 10), Pos::new(20, 20), Pos::new(30, 30)];
     st.angles = vec![1, 2, 3];
     s.units[b].group_ptr = None;
     s.groups_process(slot);
-    let p = &s.pushed[i];
+    let p = &s.orders.pushed[i];
     assert_eq!(p.list, vec![a, c]);
     assert_eq!(p.state.off, vec![(1, 1), (3, 3)]);
     assert_eq!(p.state.curr, vec![Pos::new(10, 10), Pos::new(30, 30)]);
@@ -1207,26 +1207,29 @@ fn the_slot_scan_calls_get_num_on_every_slot_it_reaches() {
     let mut first = group_of(1, &[a, b]);
     assert!(s.push_group(&mut first, true));
     let slot = first.pushed.expect("seated");
-    let pool = s.pushed[slot].state.pool;
+    let pool = s.orders.pushed[slot].state.pool;
     // The slot's record goes stale: the scan must price it again.
-    s.pushed[slot].state.speed = 99;
-    s.pushed[slot].state.new_speed = 99;
+    s.orders.pushed[slot].state.speed = 99;
+    s.orders.pushed[slot].state.new_speed = 99;
     // Slot 0 is `last_group`, so the walk goes past it to this slot and
     // on to the first open one.
-    s.last_group[1] = 0;
+    s.orders.last_group[1] = 0;
     let open = s.open_slot(1);
     assert_ne!(Some(open), pool, "a seated slot of two is not open");
     let leader = s.units[a].movement.speed;
-    assert_eq!(s.pushed[slot].state.speed, leader, "normalized by get_num");
+    assert_eq!(
+        s.orders.pushed[slot].state.speed, leader,
+        "normalized by get_num"
+    );
     // An emptied seat: speed stands, origin zeroed, no normalize.
-    s.pushed[slot].list.clear();
-    s.pushed[slot].state.speed = 7;
-    s.pushed[slot].state.o = Pos::new(5, 5);
+    s.orders.pushed[slot].list.clear();
+    s.orders.pushed[slot].state.speed = 7;
+    s.orders.pushed[slot].state.o = Pos::new(5, 5);
     let seat = Seat::Pushed(slot);
     assert_eq!(s.seat_get_num(seat), 0);
-    assert_eq!(s.pushed[slot].state.o, Pos::new(0, 0));
+    assert_eq!(s.orders.pushed[slot].state.o, Pos::new(0, 0));
     assert_eq!(
-        s.pushed[slot].state.speed, 7,
+        s.orders.pushed[slot].state.speed, 7,
         "no normalize on an empty arm"
     );
 }
@@ -1269,14 +1272,17 @@ fn a_pushed_slot_starts_at_the_origin_and_the_next_push_prices_it() {
     let mut first = group_of(1, &[a, b]);
     assert!(s.push_group(&mut first, true));
     let slot = first.pushed.expect("seated");
-    assert_eq!(s.pushed[slot].state.o, Pos::new(0, 0));
-    assert_eq!(s.pushed[slot].state.speed, 0, "a copy carries no speed");
+    assert_eq!(s.orders.pushed[slot].state.o, Pos::new(0, 0));
+    assert_eq!(
+        s.orders.pushed[slot].state.speed, 0,
+        "a copy carries no speed"
+    );
     let mut second = group_of(1, &[c, d]);
     assert!(s.push_group(&mut second, true));
     let leader = s.units[a].movement.speed;
     assert!(leader > 0);
     assert_eq!(
-        s.pushed[slot].state.speed, leader,
+        s.orders.pushed[slot].state.speed, leader,
         "the second push normalized the first slot"
     );
 }
@@ -1336,7 +1342,7 @@ fn a_pushed_group_outlives_the_next_push() {
     let mut fourth = group_of(1, &[e]);
     assert!(s.push_group(&mut fourth, true));
     assert_eq!(fourth.pushed, Some(1), "the dead group's slot is recycled");
-    assert_eq!(s.pushed.len(), 3, "and the pool does not grow");
+    assert_eq!(s.orders.pushed.len(), 3, "and the pool does not grow");
 }
 
 /// **A seated group's move is a `GroupMoveOrder`, and an in-danger

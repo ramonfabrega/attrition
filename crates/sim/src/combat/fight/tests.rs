@@ -1418,7 +1418,7 @@ fn a_hit_group_member_of_a_non_combat_type_keeps_its_orders() {
     });
     let me = put(&mut sim, 0, scout, Pos::new(0x4000, 0x4000));
     let foe = put(&mut sim, 1, soldier, Pos::new(0x4600, 0x4000));
-    sim.pushed.push(crate::group::Pushed {
+    sim.orders.pushed.push(crate::group::Pushed {
         who: 0,
         list: vec![me],
         state: crate::group::GroupState {
@@ -1431,7 +1431,7 @@ fn a_hit_group_member_of_a_non_combat_type_keeps_its_orders() {
     sim.frame = 912;
     sim.target_opportunity(me, Obj::Unit(foe), 912);
     assert!(sim.units[me].orders.is_empty(), "a group member fled");
-    assert_eq!(sim.pushed[0].state.opportunity, 912);
+    assert_eq!(sim.orders.pushed[0].state.opportunity, 912);
     // Without the seat, the same hit is the flee arm's.
     sim.units[me].group_ptr = None;
     sim.target_opportunity(me, Obj::Unit(foe), 913);
@@ -1469,7 +1469,7 @@ fn group_arms_fixture() -> (Sim, usize, usize, usize, usize) {
     let h = put(&mut sim, 0, hoplite, Pos::new(0x4100, 0x4000));
     let near = put(&mut sim, 1, hoplite, Pos::new(0x4000 + 0xc0 * 5, 0x4000));
     let far = put(&mut sim, 1, hoplite, Pos::new(0x4000 + 0xc0 * 9, 0x4000));
-    sim.pushed.push(crate::group::Pushed {
+    sim.orders.pushed.push(crate::group::Pushed {
         who: 0,
         list: vec![s, h],
         state: crate::group::GroupState {
@@ -1494,17 +1494,23 @@ fn a_group_answers_a_hit_once_in_fifteen_frames() {
     let (mut sim, s, h, _near, far) = group_arms_fixture();
     sim.frame = 912;
     sim.target_opportunity(s, Obj::Unit(far), 912);
-    assert_eq!(sim.pushed[0].state.opportunity, 912);
+    assert_eq!(sim.orders.pushed[0].state.opportunity, 912);
     assert!(!sim.units[h].orders.is_empty(), "the first hit is answered");
     sim.units[h].orders.clear();
     sim.units[h].combat.target = None;
     sim.frame = 926;
     sim.target_opportunity(s, Obj::Unit(far), 926);
-    assert_eq!(sim.pushed[0].state.opportunity, 912, "inside the window");
+    assert_eq!(
+        sim.orders.pushed[0].state.opportunity, 912,
+        "inside the window"
+    );
     assert!(sim.units[h].orders.is_empty(), "the gate refused the hit");
     sim.frame = 927;
     sim.target_opportunity(s, Obj::Unit(far), 927);
-    assert_eq!(sim.pushed[0].state.opportunity, 927, "past the window");
+    assert_eq!(
+        sim.orders.pushed[0].state.opportunity, 927,
+        "past the window"
+    );
     assert!(!sim.units[h].orders.is_empty());
 }
 
@@ -1979,9 +1985,9 @@ fn a_building_s_hit_spills_onto_its_repairers_by_the_attacker_s_domain() {
 /// `JOB_TIME` 80 — `craftrules.xml`'s `0x28b`.
 fn unpacked_packer(block_radius: i32) -> (Sim, usize) {
     let (mut sim, _) = at_war();
-    sim.spells = vec![crate::orders::SpellType::default(); 55];
+    sim.orders.spells = vec![crate::orders::SpellType::default(); 55];
     let row = usize::try_from(crate::orders::spell::PACK - crate::orders::spell::FIRST).unwrap();
-    sim.spells[row].job_time = 80;
+    sim.orders.spells[row].job_time = 80;
     let ty = sim.add_unit_type(crate::UnitType {
         hits: 100,
         combat: Profile {
@@ -2121,7 +2127,7 @@ fn an_unpacked_packer_s_short_move_dies_or_holds() {
 /// the craft table at `craftrules.xml`'s own lengths.
 fn packer_on_post(tree: Option<crate::tech::TypeId>) -> (Sim, usize) {
     let (mut sim, ty) = at_war();
-    sim.spells = vec![crate::orders::SpellType::default(); 55];
+    sim.orders.spells = vec![crate::orders::SpellType::default(); 55];
     for (spell, t) in [
         (crate::orders::spell::PACK, 80),
         (crate::orders::spell::UNPACK, 80),
@@ -2129,7 +2135,7 @@ fn packer_on_post(tree: Option<crate::tech::TypeId>) -> (Sim, usize) {
         (crate::orders::spell::UNPACK_MACHINEGUN, 50),
     ] {
         let row = usize::try_from(spell - crate::orders::spell::FIRST).unwrap();
-        sim.spells[row].job_time = t;
+        sim.orders.spells[row].job_time = t;
     }
     let packer = sim.add_unit_type(crate::UnitType {
         hits: 100,

@@ -568,7 +568,8 @@ impl Sim {
         if army {
             return None;
         }
-        self.pushed
+        self.orders
+            .pushed
             .iter()
             .find(|p| {
                 p.who == who && p.state.pool == Some(s) && p.list.is_empty() && !p.builds.is_empty()

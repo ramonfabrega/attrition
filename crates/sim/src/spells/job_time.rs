@@ -23,7 +23,7 @@ impl Sim {
     /// the index is not a craft or the table was never loaded.
     pub fn spell(&self, spell: i32) -> Option<orders::SpellType> {
         let i = usize::try_from(spell - orders::spell::FIRST).ok()?;
-        self.spells.get(i).copied()
+        self.orders.spells.get(i).copied()
     }
 
     /// `SpellTypeData::get_job_time(o, who)@00675800` — the row's own

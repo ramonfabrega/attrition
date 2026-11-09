@@ -776,7 +776,7 @@ impl Sim {
             let mut g = crate::group::Group::stack(who);
             self.group_add(&mut g, u);
             let chain = g.list;
-            let last = self.last_group[w];
+            let last = self.orders.last_group[w];
             let equal = !chain.is_empty() && self.pool_members(who, last) == chain;
             let s = self.pool_slot_for(who, &chain);
             // `push_group`'s `copy_group` into the slot's own record
@@ -961,10 +961,10 @@ impl Sim {
         // arm below for it, which seats the record on the army and
         // agrees with run460 (golden chapter forty-two) through its end.
         if let Some(p) = self.army_pool_record(who, slot)
-            && !self.pushed[p].list.contains(&u)
+            && !self.orders.pushed[p].list.contains(&u)
         {
             let s = self.armies[who as usize].list[slot].group.pool;
-            let first = self.pushed[p]
+            let first = self.orders.pushed[p]
                 .list
                 .iter()
                 .copied()
@@ -1010,7 +1010,7 @@ impl Sim {
         if a.units.iter().any(|&m| mine(m)) {
             return None;
         }
-        self.pushed.iter().position(|p| {
+        self.orders.pushed.iter().position(|p| {
             p.who == who && p.state.pool == Some(s) && p.list.iter().any(|&m| mine(m))
         })
     }

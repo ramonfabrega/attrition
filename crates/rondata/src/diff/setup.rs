@@ -683,7 +683,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // cast how long it takes (`docs/ORDERS.md` §6.9). Without it every
     // `JOB_TIME` reads 0 and the fishing boat's deploy would land on the
     // frame it is queued instead of forty frames later.
-    sim.spells = loaded.spells.clone();
+    sim.orders.spells = loaded.spells.clone();
     if !loaded.spells.is_empty() {
         notes.push(format!(
             "crafts: {} rows from the install",

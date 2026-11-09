@@ -19,7 +19,7 @@ impl Sim {
 
     /// One installed [`Pushed`] slot as a [`Group`].
     pub(crate) fn pushed_group_at(&self, slot: usize) -> Option<Group> {
-        let x = self.pushed.get(slot)?;
+        let x = self.orders.pushed.get(slot)?;
         Some(Group {
             who: x.who,
             army: None,
@@ -35,7 +35,7 @@ impl Sim {
     pub(crate) fn gstate(&self, g: &Group) -> Option<&GroupState> {
         match (g.army, g.pushed) {
             (Some(s), _) => Some(&self.armies[g.who as usize].list[s].group),
-            (None, Some(i)) => self.pushed.get(i).map(|x| &x.state),
+            (None, Some(i)) => self.orders.pushed.get(i).map(|x| &x.state),
             (None, None) => None,
         }
     }
@@ -44,7 +44,7 @@ impl Sim {
     pub(crate) fn gstate_mut(&mut self, g: &Group) -> Option<&mut GroupState> {
         match (g.army, g.pushed) {
             (Some(s), _) => Some(&mut self.armies[g.who as usize].list[s].group),
-            (None, Some(i)) => self.pushed.get_mut(i).map(|x| &mut x.state),
+            (None, Some(i)) => self.orders.pushed.get_mut(i).map(|x| &mut x.state),
             (None, None) => None,
         }
     }
@@ -135,7 +135,7 @@ impl Sim {
     /// last pushed slot, else `get_open_slot` and `copy_group` into it —
     /// with the port's own bookkeeping of the record it lands in.
     pub(super) fn push_group_slot(&mut self, g: &mut Group) -> u8 {
-        let last = self.last_group[g.who as usize];
+        let last = self.orders.last_group[g.who as usize];
         // `Group::equals_group@00708000` opens by normalizing each side
         // whose `id` is not −1 — so the last pushed slot is pruned and its
         // speed reset to its leader's (`normalize`'s tail) on every push,
@@ -157,6 +157,7 @@ impl Sim {
         // kills none.
         if pool == last
             && let Some(i) = self
+                .orders
                 .pushed
                 .iter()
                 .position(|x| x.who == g.who && x.state.pool == Some(pool) && x.list == g.list)
@@ -196,12 +197,12 @@ impl Sim {
         };
         let slot = match slot {
             Some(i) => {
-                self.pushed[i] = entry;
+                self.orders.pushed[i] = entry;
                 i
             }
             None => {
-                self.pushed.push(entry);
-                self.pushed.len() - 1
+                self.orders.pushed.push(entry);
+                self.orders.pushed.len() - 1
             }
         };
         g.army = None;
@@ -248,7 +249,7 @@ impl Sim {
         // A pool slot is a group too, and `(*old->vtbl+0x10)` is asked of
         // whichever one holds the member — so a unit pushed twice leaves
         // the first slot rather than sitting in two groups at once.
-        for i in 0..self.pushed.len() {
+        for i in 0..self.orders.pushed.len() {
             self.seat_drop(Seat::Pushed(i), &leaving);
         }
         for slot in 0..self.armies[w].list.len() {
@@ -358,6 +359,7 @@ impl Sim {
         // that names another — that entry is another slot's record, which
         // a later `copy_group` into that slot reads.
         let at = self
+            .orders
             .pushed
             .iter()
             .position(|x| x.who == who && x.state.pool == state.pool);
@@ -368,8 +370,8 @@ impl Sim {
             builds: Vec::new(),
         };
         match at {
-            Some(i) => self.pushed[i] = entry,
-            None => self.pushed.push(entry),
+            Some(i) => self.orders.pushed[i] = entry,
+            None => self.orders.pushed.push(entry),
         }
     }
 
@@ -378,6 +380,7 @@ impl Sim {
     /// `copy_group` leaves behind (§28), with the entry to overwrite.
     pub(crate) fn pool_record(&self, who: Player, s: u8) -> (Option<usize>, GroupState) {
         let entry = self
+            .orders
             .pushed
             .iter()
             .position(|x| x.who == who && x.state.pool == Some(s));
@@ -388,7 +391,7 @@ impl Sim {
                 .map(|a| a.group.clone())
         });
         let prev = army
-            .or_else(|| entry.map(|i| self.pushed[i].state.clone()))
+            .or_else(|| entry.map(|i| self.orders.pushed[i].state.clone()))
             .unwrap_or_default();
         (entry, prev)
     }
@@ -415,7 +418,7 @@ impl Sim {
     /// this discriminator stands on, not a reading (`docs/GOLDEN.md` §119).
     pub(crate) fn slot_keeps_army_link(&self, g: &Group) -> bool {
         let Some(i) = g.pushed else { return false };
-        let Some(pool) = self.pushed.get(i).and_then(|e| e.state.pool) else {
+        let Some(pool) = self.orders.pushed.get(i).and_then(|e| e.state.pool) else {
             return false;
         };
         self.armies.get(g.who as usize).is_some_and(|x| {
@@ -436,7 +439,8 @@ impl Sim {
         }) {
             return Some(Seat::Army(who, a));
         }
-        self.pushed
+        self.orders
+            .pushed
             .iter()
             .position(|x| x.who == who && x.state.pool == Some(s))
             .map(Seat::Pushed)
@@ -466,7 +470,8 @@ impl Sim {
             .filter(|a| a.valid && a.group.pool == Some(s))
             .map(|a| live(&a.units))
             .chain(
-                self.pushed
+                self.orders
+                    .pushed
                     .iter()
                     .filter(|p| p.who == who && p.state.pool == Some(s))
                     .map(|p| live(&p.list)),
@@ -498,7 +503,8 @@ impl Sim {
                 .filter(|(_, a)| a.valid && a.group.pool == Some(s))
         };
         let pushed = || {
-            self.pushed
+            self.orders
+                .pushed
                 .iter()
                 .enumerate()
                 .filter(|(_, p)| p.who == who && p.state.pool == Some(s))
@@ -535,14 +541,14 @@ impl Sim {
     pub(crate) fn seat_list(&self, seat: Seat) -> &Vec<usize> {
         match seat {
             Seat::Army(w, a) => &self.armies[w as usize].list[a].units,
-            Seat::Pushed(i) => &self.pushed[i].list,
+            Seat::Pushed(i) => &self.orders.pushed[i].list,
         }
     }
 
     pub(super) fn seat_who(&self, seat: Seat) -> Player {
         match seat {
             Seat::Army(w, _) => w,
-            Seat::Pushed(i) => self.pushed[i].who,
+            Seat::Pushed(i) => self.orders.pushed[i].who,
         }
     }
 
@@ -553,7 +559,7 @@ impl Sim {
                 (&mut x.units, &mut x.group)
             }
             Seat::Pushed(i) => {
-                let x = &mut self.pushed[i];
+                let x = &mut self.orders.pushed[i];
                 (&mut x.list, &mut x.state)
             }
         }
@@ -568,7 +574,7 @@ impl Sim {
                 who,
                 army: None,
                 pushed: Some(i),
-                list: self.pushed[i].list.clone(),
+                list: self.orders.pushed[i].list.clone(),
             },
         }
     }
@@ -872,13 +878,13 @@ impl Sim {
     /// than four. A full pool answers slot 45.
     pub(crate) fn pool_slot_for(&mut self, who: Player, list: &[usize]) -> u8 {
         let w = who as usize;
-        let last = self.last_group[w];
+        let last = self.orders.last_group[w];
         let s = if !list.is_empty() && self.pool_members(who, last) == list {
             last
         } else {
             self.open_slot(who)
         };
-        self.last_group[w] = s;
+        self.orders.last_group[w] = s;
         s
     }
 
@@ -886,7 +892,7 @@ impl Sim {
     /// does not equal `last_group` is copied into, with its tail's
     /// eviction. `last_group` is the caller's to write.
     pub(super) fn open_slot(&mut self, who: Player) -> u8 {
-        let last = self.last_group[who as usize];
+        let last = self.orders.last_group[who as usize];
         // **One pass, as `Groups::get_open_slot@006fa460` walks it**
         // (twenty-fourth pass, group 13; A9 row 15): `get_num` on every slot
         // it reaches — each normalises a slot of one to three members — and
@@ -938,6 +944,7 @@ impl Sim {
             .is_some_and(|x| x.list.iter().any(|a| a.valid && a.group.pool == Some(s)));
         !army
             && self
+                .orders
                 .pushed
                 .iter()
                 .any(|x| x.who == who && x.state.pool == Some(s) && !x.builds.is_empty())
@@ -961,8 +968,8 @@ impl Sim {
     /// writes a unit's alone (vslot 8).
     pub(crate) fn push_buildings_group(&mut self, who: Player, list: &[usize]) {
         let w = who as usize;
-        let last = self.last_group[w];
-        let equal = self.pushed.iter().any(|x| {
+        let last = self.orders.last_group[w];
+        let equal = self.orders.pushed.iter().any(|x| {
             x.who == who && x.state.pool == Some(last) && x.builds == list && x.list.is_empty()
         }) && !self.armies[w]
             .list
@@ -972,7 +979,7 @@ impl Sim {
             return;
         }
         let pool = self.open_slot(who);
-        self.last_group[w] = pool;
+        self.orders.last_group[w] = pool;
         let (slot, prev) = self.pool_record(who, pool);
         let state = GroupState::copied(prev, pool, self.frame, list.len());
         let entry = crate::group::Pushed {
@@ -982,8 +989,8 @@ impl Sim {
             builds: list.to_vec(),
         };
         match slot {
-            Some(i) => self.pushed[i] = entry,
-            None => self.pushed.push(entry),
+            Some(i) => self.orders.pushed[i] = entry,
+            None => self.orders.pushed.push(entry),
         }
     }
 
@@ -1009,7 +1016,8 @@ impl Sim {
             .find(|a| a.valid && a.group.pool == Some(s))
             .map(|a| &a.group);
         army.or_else(|| {
-            self.pushed
+            self.orders
+                .pushed
                 .iter()
                 .find(|p| p.who == who && p.state.pool == Some(s) && !p.list.is_empty())
                 .map(|p| &p.state)
@@ -1032,6 +1040,7 @@ impl Sim {
             .filter(|a| a.valid && a.group.pool == Some(s))
             .map(|a| (&a.group, names(&a.units)));
         let pushed = self
+            .orders
             .pushed
             .iter()
             .filter(|p| p.who == who && p.state.pool == Some(s))
@@ -1053,7 +1062,8 @@ impl Sim {
             .find(|a| a.valid && a.group.pool == Some(s))
             .map(|a| a.units.clone());
         let list = army.or_else(|| {
-            self.pushed
+            self.orders
+                .pushed
                 .iter()
                 .find(|p| p.who == who && p.state.pool == Some(s) && !p.list.is_empty())
                 .map(|p| p.list.clone())

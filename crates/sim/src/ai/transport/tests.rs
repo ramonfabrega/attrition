@@ -1099,6 +1099,7 @@ fn a_squad_s_passenger_comes_ashore_with_the_boat_s_move_as_a_group() {
     );
     assert!(
         f.sim
+            .orders
             .pushed
             .iter()
             .any(|p| p.who == 1 && p.list == vec![rider]),

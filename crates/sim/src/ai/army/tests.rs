@@ -327,7 +327,8 @@ fn taking_over_a_valid_slot_orphans_its_group() {
     assert!(pool.is_some(), "the unit is seated");
     sim.army_init(1, slot, Some(c));
     assert!(
-        sim.pushed
+        sim.orders
+            .pushed
             .iter()
             .any(|x| x.who == 1 && x.state.pool == pool && x.list.contains(&u)),
         "the old group stays in the pool"

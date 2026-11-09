@@ -4296,9 +4296,9 @@ fn an_unpack_brings_the_units_angle_to_guy_zero_s_and_the_crew_with_it() {
     // The siege row at `craftrules.xml`'s 80, so the first `do_cast`
     // frame is the animation's and not the cast's: with no table the
     // job time read 0 and the unpack landed at once (item 1608).
-    sim.spells = vec![crate::orders::SpellType::default(); 55];
+    sim.orders.spells = vec![crate::orders::SpellType::default(); 55];
     let row = usize::try_from(crate::orders::spell::UNPACK - crate::orders::spell::FIRST).unwrap();
-    sim.spells[row].job_time = 80;
+    sim.orders.spells[row].job_time = 80;
     // The unit's own angle is ahead of the figure's: a turn still owed.
     sim.units[unit].movement.heading = movement::Angle::NORTH;
     assert_ne!(
@@ -4359,10 +4359,10 @@ fn a_monarch_halves_a_siege_unit_s_unpack() {
         m.ty = Some(hero);
         m.type_index = 0x162;
         sim.add_unit(m);
-        sim.spells = vec![crate::orders::SpellType::default(); 55];
+        sim.orders.spells = vec![crate::orders::SpellType::default(); 55];
         let row =
             usize::try_from(crate::orders::spell::UNPACK - crate::orders::spell::FIRST).unwrap();
-        sim.spells[row].job_time = 80;
+        sim.orders.spells[row].job_time = 80;
         sim.add_cast_order_at(unit, crate::orders::spell::UNPACK, QueuePos::New);
         let Some(Body::Cast(c)) = sim.current_order(unit).map(|o| o.body) else {
             panic!("a cast order")

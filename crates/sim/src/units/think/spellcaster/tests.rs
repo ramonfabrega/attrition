@@ -76,7 +76,7 @@ fn ai_general() -> (Sim, usize, [u32; 2]) {
             ..Default::default()
         };
     }
-    s.spells = rows;
+    s.orders.spells = rows;
     let seed = |odd: i32| {
         (1..)
             .find(|&k| crate::combat::Rng::new(k).roll() & 1 == odd)
@@ -140,8 +140,8 @@ fn a_forced_march_holds_the_coin_until_it_runs_out() {
     use crate::orders::{Body, spell};
     let (mut sim, g, [_, odd]) = ai_general();
     let row = (spell::FORCED_MARCH - spell::FIRST) as usize;
-    sim.spells[row].job_time = 0;
-    sim.spells[row].duration = 150;
+    sim.orders.spells[row].job_time = 0;
+    sim.orders.spells[row].duration = 150;
     sim.rng = crate::combat::Rng::new(odd);
     assert!(sim.think_spellcaster(g));
     let Some(Body::Cast(c)) = sim.units[g].orders.front().map(|o| o.body) else {
@@ -182,7 +182,7 @@ fn a_forced_march_holds_the_coin_until_it_runs_out() {
 fn a_forced_march_lifts_the_units_near_its_hero() {
     let (mut sim, g, _) = ai_general();
     let row = (crate::orders::spell::FORCED_MARCH - crate::orders::spell::FIRST) as usize;
-    sim.spells[row].duration = 150;
+    sim.orders.spells[row].duration = 150;
     let at = sim.units[g].pos;
     let t = sim.add_unit_type(crate::UnitType::default());
     let mut o = 40;

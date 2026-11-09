@@ -7180,7 +7180,7 @@ fn informer_sim() -> (Sim, usize, Types) {
             from: [Some(spy_t), None],
             ..Default::default()
         };
-    sim.spells = rows;
+    sim.orders.spells = rows;
     (sim, spy, t)
 }
 
@@ -7978,7 +7978,7 @@ fn untargeted_sim() -> (Sim, [usize; 4], crate::tech::TypeId) {
         from: [Some(general_t), None],
         ..Default::default()
     };
-    sim.spells = rows;
+    sim.orders.spells = rows;
     (sim, [citizen, militia, general, foot], militia_t)
 }
 

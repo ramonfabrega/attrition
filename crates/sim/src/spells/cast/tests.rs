@@ -132,12 +132,13 @@ fn casters(tuning: Tuning) -> (Sim, [usize; 4]) {
 fn get_range_adds_the_spy_upgrades_and_collapses_on_siege_and_buildings() {
     use crate::orders::{SpellType, spell};
     let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
-    s.spells = vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
     let at = |c: i32| usize::try_from(c - spell::FIRST).unwrap();
-    s.spells[at(spell::BRIBE)].range = 6 * 192;
-    s.spells[at(spell::COUNTERINTEL)].range = 10 * 192;
-    s.spells[at(spell::INFORMER)].range = 10 * 192;
-    s.spells[at(0x281)].range = 12 * 192;
+    s.orders.spells[at(spell::BRIBE)].range = 6 * 192;
+    s.orders.spells[at(spell::COUNTERINTEL)].range = 10 * 192;
+    s.orders.spells[at(spell::INFORMER)].range = 10 * 192;
+    s.orders.spells[at(0x281)].range = 12 * 192;
     let mut tree = s.tables.tech_tree.clone();
     let steps = ["one", "two", "three"].map(|n| tree.add(crate::tech::TypeDef::plain(n, 0)));
     tree.roles.spy_upgrade_preq = steps.map(Some);
@@ -204,11 +205,12 @@ fn get_range_adds_the_spy_upgrades_and_collapses_on_siege_and_buildings() {
 fn strategy_halves_bribe_and_the_informer_s_hold() {
     use crate::orders::{SpellType, spell};
     let (mut s, [_, spy, _, _]) = casters(Tuning::RON);
-    s.spells = vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
     let at = |c: i32| usize::try_from(c - spell::FIRST).unwrap();
-    s.spells[at(spell::BRIBE)].job_time = 100;
-    s.spells[at(spell::INFORMER)].job_time = 40;
-    s.spells[at(spell::COUNTERINTEL)].job_time = 40;
+    s.orders.spells[at(spell::BRIBE)].job_time = 100;
+    s.orders.spells[at(spell::INFORMER)].job_time = 40;
+    s.orders.spells[at(spell::COUNTERINTEL)].job_time = 40;
     let mut tree = s.tables.tech_tree.clone();
     let strategy = tree.add(crate::tech::TypeDef::plain("strategy", 0));
     tree.roles.spies_craft_faster_preq = Some(strategy);
@@ -237,10 +239,11 @@ fn a_refused_bribe_hands_its_mana_back() {
     use crate::ai_load::{UnitCols, uflags2};
     use crate::orders::{SpellType, spell};
     let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
-    s.spells = vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
     let at = |c: i32| usize::try_from(c - spell::FIRST).unwrap();
-    s.spells[at(spell::BRIBE)].mana = 200;
-    s.spells[at(spell::BRIBE)].from = [Some(super::SPY), None];
+    s.orders.spells[at(spell::BRIBE)].mana = 200;
+    s.orders.spells[at(spell::BRIBE)].from = [Some(super::SPY), None];
     let units = s.units.len();
     let t = crate::combat::Obj::Unit(filler);
     s.units[spy].mana_burn = 500;
@@ -275,11 +278,12 @@ fn a_cloaked_caster_of_a_craft_without_l_is_blown() {
     use crate::ai_load::{UnitCols, uflags};
     use crate::orders::{SpellType, spell};
     let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
-    s.spells = vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
     let at = |c: i32| usize::try_from(c - spell::FIRST).unwrap();
-    s.spells[at(spell::BRIBE)].flags = 0;
-    s.spells[at(spell::INFORMER)].flags = super::craft::KEEP_CLOAK;
-    s.spells[at(0x281)].flags = 0;
+    s.orders.spells[at(spell::BRIBE)].flags = 0;
+    s.orders.spells[at(spell::INFORMER)].flags = super::craft::KEEP_CLOAK;
+    s.orders.spells[at(0x281)].flags = 0;
     let cloak = |s: &mut Sim, u: usize, flags: u32| {
         let t = s.units[u].ty.unwrap();
         s.tables.unit_types[t].cols = UnitCols {
@@ -358,8 +362,10 @@ fn bribe_takes_only_an_enemy_s_armed_land_unit() {
     use crate::combat::Obj;
     use crate::orders::{SpellType, spell};
     let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
-    s.spells = vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
-    s.spells[usize::try_from(spell::BRIBE - spell::FIRST).unwrap()].flags = 0x2 | 0x20 | 0x80;
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    s.orders.spells[usize::try_from(spell::BRIBE - spell::FIRST).unwrap()].flags =
+        0x2 | 0x20 | 0x80;
     let target = s.add_unit({
         let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
         u.ty = s.units[filler].ty;
@@ -392,8 +398,9 @@ fn sniper_takes_only_an_enemy_s_armed_land_unit() {
     use crate::combat::Obj;
     use crate::orders::{SpellType, spell};
     let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
-    s.spells = vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
-    s.spells[usize::try_from(0x281 - spell::FIRST).unwrap()].flags = 0x2 | 0x20;
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    s.orders.spells[usize::try_from(0x281 - spell::FIRST).unwrap()].flags = 0x2 | 0x20;
     let target = s.add_unit({
         let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
         u.ty = s.units[filler].ty;
@@ -420,8 +427,9 @@ fn counterintelligence_takes_an_infiltrated_friend_or_an_enemy_spy() {
     use crate::combat::Obj;
     use crate::orders::{SpellType, spell};
     let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
-    s.spells = vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
-    s.spells[usize::try_from(spell::COUNTERINTEL - spell::FIRST).unwrap()].flags =
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    s.orders.spells[usize::try_from(spell::COUNTERINTEL - spell::FIRST).unwrap()].flags =
         0x2 | 0x10 | 0x20;
     let friend = Obj::Unit(filler);
     assert!(

@@ -296,40 +296,11 @@ pub struct Sim {
     /// The combat table — `docs/COMBAT.md` §5 — over [`Sim::unit_types`]
     /// ids. [`combat::Table::uniform`] until something builds one.
     pub table: combat::Table,
-    /// The craft table — `craftrules.xml`'s 55 rows in file order, which
-    /// is `TypeIndex` [`orders::spell::FIRST`]`..=`[`orders::spell::LAST`]
-    /// (`docs/ORDERS.md` §6.9). Empty until the loader fills it, and
-    /// [`Sim::spell_job_time`] then answers 0 — the transport craft's own
-    /// number, which is what every fixture that casts wants.
-    pub spells: Vec<orders::SpellType>,
+    /// The `orders/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub orders: crate::orders::OrdersState,
     /// The game's random stream, `game_random`. Combat draws from it for
     /// projectile scatter and the one-in-five retarget roll.
     pub rng: combat::Rng,
-    /// `UnitData +0x80` → `Groups::list[gid]`, the group pool — the
-    /// slots [`Sim::push_group`] installs a stack group into, each with
-    /// the [`group::GroupState`] record an army's group also carries.
-    ///
-    /// **One slot until item 465**, which is what kept Great Lakes' probe
-    /// from ever running `do_group_move`: the six raiders it pushes out
-    /// of the army on frame 8186 are `group 65` in the dump for the next
-    /// two thousand frames, and here the scout's next `go_to` overwrote
-    /// them eleven times before the word (`docs/ORDERS.md` §16). Slots
-    /// are recycled the way `Groups::get_open_slot` recycles them, so the
-    /// pool stays as small as the live groups.
-    pub(crate) pushed: Vec<group::Pushed>,
-    /// `Groups::last_group[who]` — the pool slot each player pushed into
-    /// last, which `push_group` compares against and `get_open_slot` will
-    /// not hand out (`docs/GROUPS.md` §19). `Groups::clear` starts every
-    /// player on its own slot 0.
-    pub(crate) last_group: [u8; 16],
-    /// The record `Group::action_siege_attack_to` sets aside while its
-    /// stack sub-group holds the seat (`docs/GROUPS.md` §26.3), with the
-    /// seat it belongs to: owner, army, pushed slot. A member's own dying
-    /// move hands its mirror back through the unit's `+0x80`, which names
-    /// the **real** group and never the stack (`docs/AI.md` §212), so
-    /// [`Sim::facing_record_mut`] sends that write here. `None` outside the
-    /// call.
-    pub(crate) set_aside: Option<(Player, Option<usize>, Option<usize>, group::GroupState)>,
     /// Draw marks spent by **staged input** at `Game::do_frame`'s entry,
     /// before the frame's first phase — the cheat channel's, which
     /// `rontrace.dll` hands to `ConsoleWin::parse_cmd` there
@@ -558,9 +529,6 @@ impl Sim {
         let mut mesh = mesh::RoadMesh::default();
         mesh.seed(&world);
         Sim {
-            pushed: Vec::new(),
-            last_group: [0; 16],
-            set_aside: None,
             transport: vec![transport::LeaderTransport::default(); players],
             docks: vec![transport::Docks::default(); players],
             caravans: vec![caravan::Caravans::default(); players],
@@ -586,7 +554,12 @@ impl Sim {
             buildings: Vec::new(),
             farm_order: Vec::new(),
             table: combat::Table::uniform(0),
-            spells: Vec::new(),
+            orders: crate::orders::OrdersState {
+                pushed: Vec::new(),
+                last_group: [0; 16],
+                set_aside: None,
+                spells: Vec::new(),
+            },
             rng: combat::Rng::new(0),
             projectiles: Vec::new(),
             nukes: nuke::Nukes::default(),

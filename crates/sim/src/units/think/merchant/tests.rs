@@ -70,10 +70,10 @@ fn a_good(s: &mut Sim, c: Cell) -> usize {
 /// Without it the deploy's job time is zero and the first frame casts
 /// outright, which hides everything that happens before the clock.
 fn merchant_job_time(s: &mut Sim) {
-    s.spells = vec![crate::orders::SpellType::default(); 55];
+    s.orders.spells = vec![crate::orders::SpellType::default(); 55];
     let row = usize::try_from(crate::orders::spell::UNPACK_MERCHANT - crate::orders::spell::FIRST)
         .unwrap();
-    s.spells[row].job_time = 148;
+    s.orders.spells[row].job_time = 148;
 }
 
 /// Re-arms the merchant for another think: packed again, and nothing
