@@ -80,6 +80,25 @@ class HistoricalBlobs(unittest.TestCase):
                 with self.assertRaises(RuntimeError):
                     list(queueledger.historical_blobs(['HEAD\nHEAD']))
 
+    def test_a_ledger_that_reads_no_queue_fails(self):
+        # Loop 4041 (the seventy-sixth pass): the queue files were read only
+        # when they existed, so a moved or renamed docs/QUEUE.md left `ever`
+        # empty and the guard printed "0 numbers ever booked" and exited 0.
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root/'docs/journal').mkdir(parents=True)
+            (root/'docs/audit').mkdir()
+            subprocess.run(['git', 'init', '-q', d], check=True)
+            journal = root/'docs/JOURNAL.md'; journal.write_text('')
+            ledger = root/'docs/audit/queue-ledger.md'; ledger.write_text('')
+            with patch.multiple(queueledger, ROOT=root, JOURNAL=journal, JOURNAL_DIR=root/'docs/journal', LEDGER=ledger):
+                output = io.StringIO()
+                with contextlib.redirect_stdout(output):
+                    code = queueledger.main()
+                self.assertEqual(code, 1, output.getvalue())
+                self.assertIn('docs/QUEUE.md', output.getvalue())
+                self.assertIn('Loop 4041', output.getvalue())
+
     def test_silent_deletion_still_fails_against_both_readers(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)

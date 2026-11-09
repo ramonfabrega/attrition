@@ -45,6 +45,39 @@ fn read(name: &str) -> String {
     std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()))
 }
 
+/// **A guard that reads a set by path says it read the set** (Loop 4041,
+/// the seventy-sixth pass). `rondata`'s golden-window guard read
+/// `golden.rs` alone after `e8404b99e` moved the walks into
+/// `golden/cases_*.rs`, found none of its 130 rows, and passed for three
+/// weeks; every guard here that walks a directory passed the same way on
+/// an emptied or renamed one, because "no violation found" and "nothing
+/// read" print the same green. Each now asserts its set against a floor
+/// about a tenth under the day's count (2026-11-09, beside each const) —
+/// a count the set only grows past, since journals and pass records are
+/// never deleted. Made to fail first with `docs/journal/` emptied, on
+/// which `a_journal_carries_no_tool_call_markup` passed. The inventory is
+/// `docs/audit/2026-11-09-guard-of-guards.md`.
+fn read_enough(what: &str, read: usize, floor: usize) {
+    assert!(
+        read >= floor,
+        "{what}: read {read}, under the floor of {floor} — the set moved, was renamed or \
+         emptied, and this guard is checking nothing (Loop 4041)"
+    );
+}
+
+/// `docs/journal/*-item-*.md` — 1,367 of 1,391 journal files on 2026-11-09.
+const JOURNALS_AT_LEAST: usize = 1250;
+/// The `.md` files directly under `docs/` but `JOURNAL.md` — 48.
+const SPECIFICATIONS_AT_LEAST: usize = 40;
+/// Every `.rs` under `crates/` — 2,072.
+const CRATE_SOURCES_AT_LEAST: usize = 1800;
+/// The shell scripts under `tools/` that open with a shebang — 44.
+const TOOL_SCRIPTS_AT_LEAST: usize = 35;
+/// The text files `no_conflict_marker_survives_in_the_tree` reads — 4,938.
+const TREE_TEXT_FILES_AT_LEAST: usize = 4000;
+/// The steering passes' records, `docs/audit/*fable-pass*.md` — 74.
+const PASS_RECORDS_AT_LEAST: usize = 60;
+
 /// The most **open items** the queue may book, and the lines one may take.
 ///
 /// This replaced a whole-file line count on 2026-09-07 (item 262, decided
@@ -886,6 +919,11 @@ fn an_item_number_is_minted_once_and_in_its_file_s_form() {
             landed.insert(n, format!("docs/journal/{name}"));
         }
     }
+    read_enough(
+        "docs/journal/ (the landed items)",
+        landed.len(),
+        JOURNALS_AT_LEAST,
+    );
     let twice: Vec<String> = where_live
         .iter()
         .filter(|(_, at)| at.len() > 1)
@@ -1086,6 +1124,11 @@ fn no_conflict_marker_survives_in_the_tree() {
             files.push(path);
         }
     }
+    read_enough(
+        "the tree's text files (docs/, tools/, crates/, the root)",
+        files.len(),
+        TREE_TEXT_FILES_AT_LEAST,
+    );
     let mut bad = Vec::new();
     for path in &files {
         let bytes = std::fs::read(path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
@@ -1197,6 +1240,7 @@ fn every_cited_address_names_its_function() {
         last = last.max(addr);
     }
     let mut failures = Vec::new();
+    let (mut documents, mut checked) = (0, 0);
     for entry in std::fs::read_dir(docs()).expect("docs/") {
         let path = entry.expect("entry").path();
         let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
@@ -1205,8 +1249,10 @@ fn every_cited_address_names_its_function() {
         if !name.ends_with(".md") || name == "JOURNAL.md" {
             continue;
         }
+        documents += 1;
         let text = std::fs::read_to_string(&path).expect("read");
         for (line, cited, addr) in cites(&text) {
+            checked += 1;
             let c = cited.to_lowercase();
             match funcs.get(&addr) {
                 // An empty name is a cite whose name sits behind an
@@ -1229,6 +1275,9 @@ fn every_cited_address_names_its_function() {
             }
         }
     }
+    read_enough("docs/*.md", documents, SPECIFICATIONS_AT_LEAST);
+    // 6,735 citations on 2026-11-09.
+    read_enough("the documents' `name@address` citations", checked, 6000);
     assert!(failures.is_empty(), "{}", failures.join("\n"));
 }
 
@@ -1373,9 +1422,11 @@ fn a_section_the_code_cites_is_one_the_document_holds() {
             );
         }
     }
+    read_enough("docs/*.md", held.len(), SPECIFICATIONS_AT_LEAST);
     let mut missing: std::collections::BTreeMap<(String, String), String> =
         std::collections::BTreeMap::new();
     let mut stack = vec![docs().join("..").join("crates")];
+    let mut sources = 0;
     while let Some(dir) = stack.pop() {
         for entry in std::fs::read_dir(&dir).expect("crates/") {
             let path = entry.expect("entry").path();
@@ -1384,6 +1435,7 @@ fn a_section_the_code_cites_is_one_the_document_holds() {
             } else if path.extension().is_some_and(|e| e == "rs")
                 && path.file_name().is_some_and(|n| n != "docs_guard.rs")
             {
+                sources += 1;
                 let text = std::fs::read_to_string(&path).expect("read");
                 for (i, line) in text.lines().enumerate() {
                     for (doc, section) in section_cites(line) {
@@ -1397,6 +1449,7 @@ fn a_section_the_code_cites_is_one_the_document_holds() {
             }
         }
     }
+    read_enough("crates/**/*.rs", sources, CRATE_SOURCES_AT_LEAST);
     let pinned = |d: &str, s: &str| NO_SUCH_SECTION.iter().any(|(pd, ps)| *pd == d && *ps == s);
     let new: Vec<String> = missing
         .iter()
@@ -1682,11 +1735,13 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
          \"no reference\" row for them: {strays:?}"
     );
     let mut found = Vec::new();
+    let mut documents = 0;
     for entry in std::fs::read_dir(docs()).expect("docs/") {
         let path = entry.expect("entry").path();
         let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
             continue;
         };
+        documents += name.ends_with(".md") as usize;
         // The census ranks the blind list, the dead among it: its citations
         // are the list itself, as §4's are.
         if !name.ends_with(".md")
@@ -1704,6 +1759,7 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
             }
         }
     }
+    read_enough("docs/*.md", documents, SPECIFICATIONS_AT_LEAST);
     let mut new = Vec::new();
     for (name, addr, line, cited) in &found {
         if !DEAD_CITED.iter().any(|(n, a)| n == name && a == addr) {
@@ -2011,6 +2067,13 @@ fn a_constant_a_document_names_is_built_or_pinned() {
     // `#[cfg(test)]` items and the files `lib.rs` mounts under one are out.
     let mut sim_code = String::new();
     let test_files = test_only_files(&sim.join("src"));
+    // The sweep by its module, never its directory's name (Loop 4044):
+    // the set's size is asserted where it is built.
+    let sweep = crate::no_float::sweep_files();
+    let in_sweep = |path: &std::path::Path| {
+        path.strip_prefix(&sim)
+            .is_ok_and(|rel| sweep.contains(&rel.to_string_lossy().replace('\\', "/")))
+    };
     let mut stack = vec![crates];
     while let Some(dir) = stack.pop() {
         for entry in std::fs::read_dir(&dir).expect("crates/") {
@@ -2025,7 +2088,10 @@ fn a_constant_a_document_names_is_built_or_pinned() {
                 // directory skip, not a `#[cfg(test)]` one: the hex
                 // spelling is read from every test on purpose, because
                 // the harness's pins are tests, and "or pinned" is them.
-                && !path.with_extension("").components().any(|c| c.as_os_str() == "sweep")
+                // Read off the module tree since Loop 4044: a skip keyed on
+                // the `sweep` component would read the module file as
+                // production the day it left the directory, as 4032's did.
+                && !in_sweep(&path)
             {
                 // Code, and of a comment only the offset spelling (`+0x7c`,
                 // `-0x10`) this guard's contract names: a bare `0x..` in
@@ -2151,6 +2217,7 @@ fn a_constant_a_document_names_is_built_or_pinned() {
 fn a_section_over_the_ceiling_may_not_grow() {
     let mut failures = Vec::new();
     let mut seen = Vec::new();
+    let mut documents = 0;
     for entry in std::fs::read_dir(docs()).expect("docs/") {
         let path = entry.expect("entry").path();
         let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
@@ -2159,6 +2226,7 @@ fn a_section_over_the_ceiling_may_not_grow() {
         if !name.ends_with(".md") || name == "JOURNAL.md" {
             continue;
         }
+        documents += 1;
         let text = std::fs::read_to_string(&path).expect("read");
         for (heading, size) in sections(&text) {
             let pin = OVER
@@ -2190,6 +2258,7 @@ fn a_section_over_the_ceiling_may_not_grow() {
             }
         }
     }
+    read_enough("docs/*.md", documents, SPECIFICATIONS_AT_LEAST);
     for (name, heading, _) in OVER {
         if !seen.iter().any(|(n, h)| n == name && h == heading) {
             failures.push(format!(
@@ -2309,6 +2378,7 @@ fn every_shell_script_under_tools_is_executable() {
     let tools = docs().join("..").join("tools");
     let mut stack = vec![tools];
     let mut bad = Vec::new();
+    let mut scripts = 0;
     while let Some(dir) = stack.pop() {
         for entry in std::fs::read_dir(&dir).expect("tools/") {
             let path = entry.expect("entry").path();
@@ -2323,12 +2393,18 @@ fn every_shell_script_under_tools_is_executable() {
             if !text.starts_with("#!") {
                 continue;
             }
+            scripts += 1;
             let mode = std::fs::metadata(&path).expect("stat").permissions().mode();
             if mode & 0o111 == 0 {
                 bad.push(path.display().to_string());
             }
         }
     }
+    read_enough(
+        "tools/**/*.sh with a shebang",
+        scripts,
+        TOOL_SCRIPTS_AT_LEAST,
+    );
     bad.sort();
     assert!(
         bad.is_empty(),
@@ -2355,11 +2431,13 @@ fn a_journal_carries_no_tool_call_markup() {
         "<antml",
     ];
     let mut found = Vec::new();
+    let mut journals = 0;
     for entry in std::fs::read_dir(docs().join("journal")).expect("docs/journal/") {
         let path = entry.expect("entry").path();
         if !path.extension().is_some_and(|e| e == "md") {
             continue;
         }
+        journals += 1;
         let text = std::fs::read_to_string(&path).expect("read");
         let mut fenced = false;
         for (i, line) in text.lines().enumerate() {
@@ -2376,6 +2454,7 @@ fn a_journal_carries_no_tool_call_markup() {
             }
         }
     }
+    read_enough("docs/journal/*.md", journals, JOURNALS_AT_LEAST);
     assert!(
         found.is_empty(),
         "tool-call markup outside a fence in docs/journal/ — a transcript leaked into \
@@ -2405,6 +2484,7 @@ const JOURNAL_QUOTES_THE_GATE_FROM: u32 = 3265;
 #[test]
 fn a_journal_quotes_its_lane_verdict_and_gate_minutes() {
     let mut silent = Vec::new();
+    let mut quoting = 0;
     for entry in std::fs::read_dir(docs().join("journal")).expect("docs/journal/") {
         let path = entry.expect("entry").path();
         let name = path.file_name().unwrap().to_string_lossy().to_string();
@@ -2417,6 +2497,7 @@ fn a_journal_quotes_its_lane_verdict_and_gate_minutes() {
         if item < JOURNAL_QUOTES_THE_GATE_FROM {
             continue;
         }
+        quoting += 1;
         let text = std::fs::read_to_string(&path).expect("read");
         let missing: Vec<&str> = ["Lane verdict:", "Gate minutes:"]
             .into_iter()
@@ -2426,6 +2507,8 @@ fn a_journal_quotes_its_lane_verdict_and_gate_minutes() {
             silent.push(format!("{name}: no {}", missing.join(", no ")));
         }
     }
+    // 575 journals from item 3265 on, 2026-11-09.
+    read_enough("docs/journal/ from item 3265", quoting, 500);
     assert!(
         silent.is_empty(),
         "a worker's journal quotes its lane gate's `Lane verdict:` and `Gate minutes:` lines \
@@ -2514,15 +2597,19 @@ fn a_journal_s_loop_line_is_filed_or_says_none() {
     let fold = |t: String| t.split_whitespace().collect::<Vec<_>>().join(" ");
     let parked = fold(read("PARKED.md"));
     let mut records = String::new();
+    let mut passes = 0;
     for entry in std::fs::read_dir(docs().join("audit")).expect("docs/audit/") {
         let path = entry.expect("entry").path();
         let name = path.file_name().unwrap().to_string_lossy().to_string();
         if name.contains("fable-pass") && name.ends_with(".md") {
+            passes += 1;
             records.push_str(&std::fs::read_to_string(&path).expect("read"));
         }
     }
+    read_enough("docs/audit/*fable-pass*.md", passes, PASS_RECORDS_AT_LEAST);
     let records = fold(records);
     let mut unfiled = Vec::new();
+    let mut dated = 0;
     for entry in std::fs::read_dir(docs().join("journal")).expect("docs/journal/") {
         let path = entry.expect("entry").path();
         let name = path.file_name().unwrap().to_string_lossy().to_string();
@@ -2535,6 +2622,7 @@ fn a_journal_s_loop_line_is_filed_or_says_none() {
         if date < "2026-10-18" {
             continue;
         }
+        dated += 1;
         let text = std::fs::read_to_string(&path).expect("read");
         let Some(line) = loop_line_of(&text) else {
             continue;
@@ -2552,6 +2640,8 @@ fn a_journal_s_loop_line_is_filed_or_says_none() {
             unfiled.push(format!("{name}: {line}"));
         }
     }
+    // 625 journals dated from 2026-10-18, 2026-11-09.
+    read_enough("docs/journal/ from 2026-10-18", dated, 550);
     assert!(
         unfiled.is_empty(),
         "journal lines headed \"for the Loop\" that neither say `none` nor are filed as \
@@ -2797,6 +2887,7 @@ fn a_seam_that_cites_the_disk_names_its_scan() {
     let mut files = Vec::new();
     walk(&root, &mut files);
     files.sort();
+    read_enough("crates/**/*.rs", files.len(), CRATE_SOURCES_AT_LEAST);
     let mut per_file: Vec<(String, Vec<(usize, String)>)> = Vec::new();
     for path in &files {
         // The repository path, `crates/sim/src/…`, so `tools/paths.py`

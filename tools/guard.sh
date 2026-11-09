@@ -1,9 +1,10 @@
 #!/bin/zsh
 # The reflex lane: the paperwork guards, in debug, in seconds — run this
-# between edits. `guard.sh [filter …]` also runs the named sim tests (the
-# current item's). The full `--release` diff suite stays the gate: before a
-# commit and after a document rewrite. This script is the loop, not the
-# definition of done.
+# between edits. `guard.sh [filter …]` also runs the named tests (the
+# current item's), in `sim` and `rondata` both, and names a filter neither
+# ran. The full `--release` diff suite stays the gate: before a commit and
+# after a document rewrite. This script is the loop, not the definition of
+# done.
 #
 # `RON_LANE=1` is a worker's: the tests that read the queue's handoff
 # against a pin are the commander's to turn green at the merge
@@ -55,6 +56,24 @@ python3 tools/queueledger.py
 # `--write` to re-pin its row carries no churn it did not cause. ~3 s; it
 # skips, exit 0, without the decompile export or the install's rules.
 python3 -I tools/nations_census.py --check
+# The item's filters, each against both crates (Loop 4040, the seventy-sixth
+# pass): this ran `-p sim` alone, so a filter whose tests live in `rondata` —
+# every render and diff item's — ran nothing and the reflex exited green. A
+# filter no test in either crate matched is named and the reflex exits 1, as
+# `release_gate.py`'s `unmatched_filters` names one; a test counts when it
+# passed or failed, never when it was ignored. A `rondata` filter that reaches
+# a kept dump refuses in debug by design (`testenv::dump`): run it with
+# `--built` after a release build, or `zsh tools/check.sh test --release`.
+setopt pipefail
+unmatched=()
 for f in "$@"; do
-  cargo test -q "${PROFILE[@]}" -p sim "$f"
+  log=$(mktemp -t guard-filter)
+  cargo test -q "${PROFILE[@]}" -p sim -p rondata "$f" 2>&1 | tee "$log"
+  ran=$(awk '/^test result:/ { for (i = 1; i < NF; i++) if ($(i+1) == "passed;" || $(i+1) == "failed;") n += $i } END { print n + 0 }' "$log")
+  rm -f "$log"
+  if [ "$ran" -eq 0 ]; then unmatched+=("$f"); fi
 done
+if [ ${#unmatched} -gt 0 ]; then
+  echo "guard.sh: the filter(s) matched no test in sim or rondata: ${unmatched[*]}" >&2
+  exit 1
+fi

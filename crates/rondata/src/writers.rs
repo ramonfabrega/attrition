@@ -272,22 +272,58 @@ fn sim_dir() -> PathBuf {
     PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/../sim/src"))
 }
 
+/// The floor on the sweep files [`sim_files`] leaves out — `sweep.rs` and
+/// the 149 under `sweep/` on 2026-11-09 (Loop 4044).
+const MIN_SWEEP_SKIPPED: usize = 120;
+
+/// The floor on the simulation files it reads — 363 on 2026-11-09 (Loop
+/// 4041).
+const MIN_SIM_FILES: usize = 320;
+
 /// The simulation's own source files, sorted: `(path, sibling)`, where
 /// `sibling` marks a test file item 4010 moved out of its module
 /// (`foo/tests.rs`, `foo/<name>_tests.rs`). The walk is recursive — item
 /// 4011 moved the flat files into directories — and leaves out `sweep/`
 /// (read as test source on its own) and `test_support/`.
+///
+/// **The skip says what it skipped** (Loop 4044, the seventy-sixth pass):
+/// it knows the sweep by its name, and seven such readers passed when item
+/// 4032 moved `sweep/mod.rs` out to `sweep.rs`. A renamed or moved sweep
+/// now fails here on [`MIN_SWEEP_SKIPPED`] rather than reading its rows as
+/// the simulation's writers.
 fn sim_files() -> Vec<(PathBuf, bool)> {
-    fn walk(dir: &std::path::Path, top: bool, out: &mut Vec<(PathBuf, bool)>) {
+    fn count_rs(dir: &std::path::Path) -> usize {
+        std::fs::read_dir(dir).map_or(0, |d| {
+            d.filter_map(|e| e.ok().map(|e| e.path()))
+                .map(|p| {
+                    if p.is_dir() {
+                        count_rs(&p)
+                    } else {
+                        usize::from(p.extension().is_some_and(|e| e == "rs"))
+                    }
+                })
+                .sum()
+        })
+    }
+    fn walk(
+        dir: &std::path::Path,
+        top: bool,
+        out: &mut Vec<(PathBuf, bool)>,
+        sweep_skipped: &mut usize,
+    ) {
         for entry in std::fs::read_dir(dir).expect("crates/sim/src") {
             let path = entry.expect("entry").path();
             if path.is_dir() {
-                if !(top && (path.ends_with("sweep") || path.ends_with("test_support"))) {
-                    walk(&path, false, out);
+                if top && path.ends_with("sweep") {
+                    *sweep_skipped += count_rs(&path);
+                } else if !(top && path.ends_with("test_support")) {
+                    walk(&path, false, out, sweep_skipped);
                 }
-            } else if path.extension().and_then(|e| e.to_str()) == Some("rs")
-                && !(top && path.ends_with("sweep.rs"))
-            {
+            } else if path.extension().and_then(|e| e.to_str()) == Some("rs") {
+                if top && path.ends_with("sweep.rs") {
+                    *sweep_skipped += 1;
+                    continue;
+                }
                 let sibling = !top
                     && path
                         .file_stem()
@@ -298,7 +334,15 @@ fn sim_files() -> Vec<(PathBuf, bool)> {
         }
     }
     let mut out = Vec::new();
-    walk(&sim_dir(), true, &mut out);
+    let mut sweep_skipped = 0;
+    walk(&sim_dir(), true, &mut out, &mut sweep_skipped);
+    assert!(
+        sweep_skipped >= MIN_SWEEP_SKIPPED && out.len() >= MIN_SIM_FILES,
+        "the simulation walk skipped {sweep_skipped} sweep files (floor {MIN_SWEEP_SKIPPED}) \
+         and read {} (floor {MIN_SIM_FILES}) — the sweep or the crate moved, and the writer \
+         scan reads the wrong set (Loops 4041, 4044)",
+        out.len()
+    );
     out.sort();
     out
 }

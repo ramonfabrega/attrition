@@ -202,6 +202,15 @@ def main():
     ever_any = set()
     live = set()
     referenced = set()
+    # Loop 4041 (the seventy-sixth pass): the queue files were read only when
+    # they existed, so a moved docs/QUEUE.md left nothing booked and the guard
+    # passed on nothing. The queue is required; the parked file may be absent
+    # (an authored fixture holds the queue alone), and a run that read no
+    # booking at all fails.
+    if not (ROOT / QUEUES[0]).exists():
+        print("FAIL: %s is not there — the guard read no queue and would pass on "
+              "nothing (Loop 4041)" % QUEUES[0])
+        return 1
     for queue in [q for q in QUEUES if (ROOT / q).exists()]:
         revisions = list(reversed(git("log", "--format=%H", "--", queue).split()))
         for rev, text in zip(revisions, historical_blobs(f'{rev}:{queue}' for rev in revisions), strict=True):

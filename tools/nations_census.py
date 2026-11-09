@@ -29,6 +29,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SIM = str(ROOT / "crates/sim/src")
 SWEEPS = str(ROOT / "crates/sim/tests/sweep")
+SWEEP_ONLY_AT_LEAST = 1200  # Loop 4044: 1,459 on 2026-11-09
 DOC = ROOT / "docs/NATIONS.md"
 
 PREFIX = [
@@ -112,6 +113,13 @@ def load(export, rules_path):
         dirs.setdefault(key(p), set()).add(os.path.basename(os.path.dirname(p)) == "sweep"
                                            or p == os.path.join(SIM, "sweep.rs"))
     sweep_only = {k for k, v in dirs.items() if v == {True}}
+    # Loop 4044: the sweep is known by its directory's name here; the set
+    # says its size (1,459 file names on 2026-11-09), so a sweep that moved
+    # or was renamed fails the census rather than ranking its rows as the
+    # simulation's witnesses.
+    if len(sweep_only) < SWEEP_ONLY_AT_LEAST:
+        raise SystemExit(f"nations_census: {len(sweep_only)} sweep-only files, under the floor "
+                         f"of {SWEEP_ONLY_AT_LEAST}: the sweep moved (Loop 4044)")
     load_code = re.sub(r"//[^\n]*", "", open(ROOT / "crates/rondata/src/load.rs", errors="replace").read())
     src_code = {k: re.sub(r"//[^\n]*", "", v) for k, v in src_raw.items()}
     funcs.clear()
