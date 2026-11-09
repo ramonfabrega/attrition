@@ -947,7 +947,7 @@ class GateTests(unittest.TestCase):
         self.assertNotIn('Lane filter dropped: mapgen', out)
         self.assertIn("the word's: mapgen, " + WORD[0], out)
         # A lane that keeps the sim crate keeps the filter, and runs it.
-        calls, policy, out = self.lane_with(['crates/sim/src/map_lakes.rs'], ['map_lakes'] + WORD,
+        calls, policy, out = self.lane_with(['crates/sim/src/mapgen/map_lakes.rs'], ['map_lakes'] + WORD,
                                             log=green + 'test map_lakes::tests::the_lakes_agree ... ok\n')
         self.assertEqual(policy['lane']['tests'], ['map_lakes'] + WORD)
         self.assertEqual(policy['lane']['dropped'], [])
@@ -1311,7 +1311,7 @@ class GateTests(unittest.TestCase):
             with patch('builtins.print') as printed:
                 gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD,
                           git=git_fixture(commits=commits, theirs=overlap + ['docs/QUEUE.md'],
-                                          ours=overlap + ['crates/sim/src/launch.rs'], theirs_diff=rows))
+                                          ours=overlap + ['crates/sim/src/data/launch.rs'], theirs_diff=rows))
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
             self.assertEqual(len(calls), 6)
             self.assertIn("row lists on the base's side", said)
@@ -1340,8 +1340,8 @@ class GateTests(unittest.TestCase):
             calls, run = self.lane_run(RELEASE_LOG)
             with patch('builtins.print') as printed, self.assertRaises(ValueError) as refused:
                 gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD,
-                          git=git_fixture(commits=commits, theirs=overlap + ['crates/sim/src/launch.rs'],
-                                          ours=overlap + ['crates/sim/src/launch.rs'], theirs_diff=rows))
+                          git=git_fixture(commits=commits, theirs=overlap + ['crates/sim/src/data/launch.rs'],
+                                          ours=overlap + ['crates/sim/src/data/launch.rs'], theirs_diff=rows))
             self.assertEqual(calls, [])
             self.assertIn('launch.rs', str(refused.exception))
             self.assertNotIn('coverage.rs', str(refused.exception))

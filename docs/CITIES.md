@@ -2128,7 +2128,7 @@ rule, `get_town`, the city limit. `crates/sim/src/city.rs` — the record,
 membership, the radius, `find_buildings`, `check_upgrade`, the pop value and
 cap, the capital, `check_capture`/`capture_city`/`City::capture`, the
 assimilation tick, the city heal, plunder on capture, `lost_a_city` in the
-default mode. `crates/sim/src/garrison.rs` — the chain as a FIFO list on the
+default mode. `crates/sim/src/units/garrison.rs` — the chain as a FIFO list on the
 building, `can_garrison`, `garrison_limit`, the `do_garrison` gates,
 `go_inside`/`come_out`, deferred ejection one squad a frame, the garrison
 heal. `lib.rs` wires them into `Sim::tick` in the original's order: units

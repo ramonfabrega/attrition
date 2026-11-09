@@ -2097,3 +2097,7 @@ impl World {
 
 #[cfg(test)]
 mod tests;
+
+// The files of `world/` (item 4011, `docs/STRUCTURE.md` §3).
+pub mod danger;
+pub mod terrain;

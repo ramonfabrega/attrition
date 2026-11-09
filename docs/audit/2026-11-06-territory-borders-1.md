@@ -16,7 +16,7 @@ simulation's only contact is `World::compute_reg_territory@006b0bb0` (lines ~287
 `save_last_who`, which write only into the `Borders` singleton and the region's `border_id` byte
 (`Region+0x30`) — a handle into the render list. Territory ownership itself (`WorldData` tile `+0xf`
 `who`, `+0x10`) is written by `compute_reg_territory` after the call, and is ported in
-`crates/sim/src/territory.rs`. `TerrainBorder` is the terrain-type blend edge renderer (no
+`crates/sim/src/territory/mod.rs`. `TerrainBorder` is the terrain-type blend edge renderer (no
 national meaning). `Wall` is the wall building class (`WallData` its data side), which is simulation.
 
 ## Part 1 — the drawn border (`borders` stem, 37 rows)
@@ -66,7 +66,7 @@ read only as the handle's own nonzero test).
 | 00882490 | Borders::process_all | layout | y | ui | Called only from `Scene::render@008b3270`: recomputes the viewer's `can_see_borders` mask into `borders+0x218` and runs `Border::process` on each border. `BORDER_RENDER`. |
 | 008826c0 | BorderSplineRender::is_visible | layout | - | ui | `TerrainOut::is_region_visible` on the strip's bbox. No callers. `BORDER_RENDER`. |
 | 008826f0 | BorderSplineRender::make_bbox | layout | y | ui | Short-int bbox over a spline's points; called from `generate_strip`. `BORDER_RENDER`. |
-| 00883190 | Borders::get_who | layout | - | ui | Tile owner read (`world+0x134` cell `+0xf`, negative → -1); no callers in the export. The crate's equivalent read is `World::owner_at` (`crates/sim/src/world.rs:1825`), not a twin of a used function. `BORDER_RENDER`. |
+| 00883190 | Borders::get_who | layout | - | ui | Tile owner read (`world+0x134` cell `+0xf`, negative → -1); no callers in the export. The crate's equivalent read is `World::owner_at` (`crates/sim/src/world/mod.rs:1825`), not a twin of a used function. `BORDER_RENDER`. |
 | 008831d0 | BordersOut::no_border | layout | y | ui | 1 when the tile's flag `0x100` is clear and its byte `+2` is 1 or 2; callers `check_ends` and `MouseOver::describe_border_info` (UI). Already caught by `is_ui_body` (`cls.endswith("Out")`). |
 | 008835e0 | Borders::save_last_who | layout | y | ui | Called once per tile from `World::compute_reg_territory@006b0bb0:589` just before the new owner is stored: if the owner changes (and neither side is hidden from the viewer), sets flag 0x40/0x80 in `borders+0x2c` and queues the tile on the region's `Border+0x58` change list — the morph's input. Writes only render state; the crate computes the owner and needs no change list. `BORDER_RENDER`. |
 | 008836d0 | Borders::remove_border_region | layout | - | ui | Closes and frees region border `n`, swaps the last into its slot and rewrites that region's `Region+0x30` handle; called from `compute_reg_territory@006b0bb0:287` when a region loses its city. Render list bookkeeping. `BORDER_RENDER`. |
@@ -94,9 +94,9 @@ resulting tile-mask residue as bit `0x4` alone.
 | 00642da0 | Wall::decrement_stats | open | y | twin-differs | Mirror of `increment_stats`: inactive → `num_queued[type]` −1 (saturating at 0); active → `num_buildings[type]` and `reg_buildings[region of the building's tile][type]` −1 (saturating, region `< 64`), and `SimpleArray<int>::remove` from `mil_trainers`. Twins: `mil_trainer_close` (`crates/sim/src/ai_units.rs:2113`, order-preserving remove — agrees) and the counted readers `num_buildings_of`/`num_sites_of` (`ai_types.rs:45/53`), `reg_buildings_raw` (`ai_build.rs:217`), which recount live state. Differs with `increment_stats` (next row). |
 | 00643270 | Wall::increment_stats | open | y | twin-differs | Inactive arm: `num_queued[type]` +1 (the unit-counter tail `+0xa10..0xa24` needs `is_unit_type`, type `0x32..0x19d`, never a building type — inert here). Active arm: `num_buildings[type]`, `reg_buildings[reg][type]` (reg `< 64`), and append to `mil_trainers` if `is_military_trainer`. Twins: `mil_trainer_open` (`ai_units.rs:2091`, gated as `Wall::activate@0063e4b0:56` is — `build_flags 0x10` or in a city — agrees), but **the counts differ**: `num_buildings_of`, `reg_buildings_raw` count every `alive && active` building, while the original counts only those `Wall::activate:56` passed (`NO_CITY` or in a city) and moves them on `Build::add_to_city`/`remove_from_city`/`City::close`. A finished non-`NO_CITY` building outside any city counts here, not there (`docs/CITIES.md` §4.2 states the rule). Dump: `LEADERDATA` `num_buildings[scan]` and `reg_buildings[scan][scan2]` are printed and pinned **uncompared** (`crates/rondata/src/diff/coverage.rs:275`). |
 | 0041bfe0 | Window::on_app_focus | layout | y | dead | `ret 4` — an empty one-argument `thiscall`; the name is one of many COMDAT-folded bodies at this address, and the lockstep entry is some simulation stub folded onto it. Nothing to port. Proposed census mark: a body of one `ret`/`ret N` (or the `Window::` class, `is_ui_body`). |
-| 0041c000 | GraphicWinXML::get_graphicwinxml | layout | y | twin | `mov eax, ecx; ret` — returns `this`; folded identity cast. `crates/sim/src/flag_reads.rs:145` `graphic_win_xml` (identity) — agrees; it has no simulation consumer beyond the sweep, so `dead` is equally defensible. |
+| 0041c000 | GraphicWinXML::get_graphicwinxml | layout | y | twin | `mov eax, ecx; ret` — returns `this`; folded identity cast. `crates/sim/src/core/flag_reads.rs:145` `graphic_win_xml` (identity) — agrees; it has no simulation consumer beyond the sweep, so `dead` is equally defensible. |
 | 0041dbe0 | Window::on_focus | layout | y | dead | `mov eax, 1; ret 4` — a folded "answer 1" stub. Window focus is UI; the lockstep entry is a folded sim stub. Census: `Window::` → `ui`, or the one-instruction-body mark. |
-| 0046cda0 | SubObjectData::is_active | layout | y | twin | `flags & 1`; `crates/sim/src/flag_reads.rs:22` `sub_object_is_active` and the many `SubObjectData::is_active` readings (`fight.rs:1943`, `airbase.rs:199`) — agree. |
+| 0046cda0 | SubObjectData::is_active | layout | y | twin | `flags & 1`; `crates/sim/src/core/flag_reads.rs:22` `sub_object_is_active` and the many `SubObjectData::is_active` readings (`fight.rs:1943`, `airbase.rs:199`) — agree. |
 | 00471360 | WallData::can_capture | layout | y | twin | Listing: if the type's vslot `+0x64` is `BuildTypeData::is_city` (`0x472bc0`) answer `is(0x19e, 0)` (the `VILLAGE` line) else tail-jump to that slot. Twin `Sim::building_is_city` (`crates/sim/src/city.rs:331`, `building_is(b, Ident::Village)`), read by `capture_eligible` (`city.rs:2945`) — agrees (`docs/CITIES.md` §7.1). |
 | 004722f0 | WallData::is_sea_trade | layout | - | twin | `ObjectData::is(0x1b0, 0)` (the Dock line) through the object's vslot `+0xb8`. Twin `build::is_dock` (`crates/sim/src/build.rs:466`, `is(types, t, Ident::Dock)`) — agrees; the sweep's `obj_is_sea_trade` (`trade_view.rs:73`) is the trade search's slot `+0x28`. |
 | 00472370 | WallOut::draw | layout | - | ui | Forwards to `WallOut::draw(uchar)@00641930`. Caught by `is_ui_body` (`*Out`). |
@@ -112,7 +112,7 @@ resulting tile-mask residue as bit `0x4` alone.
 **Counts (60):** `ui` 42 · `twin` 9 · `twin-differs` 4 · `dead` 3 · `editor` 1 · `absorbed` 1 ·
 `unmodelled` 0. Of the 37 `borders` rows, 36 are the drawn border line and one its params editor;
 none computes territory. Territory itself is `World::compute_reg_territory@006b0bb0`, ported in
-`crates/sim/src/territory.rs`, which only *notifies* this family (`add_border_region`,
+`crates/sim/src/territory/mod.rs`, which only *notifies* this family (`add_border_region`,
 `remove_border_region`, `save_last_who`).
 
 **Proposed census classes** (Ramon's to accept):

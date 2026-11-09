@@ -92,7 +92,7 @@ relation to `o` at all. `crates/sim/src/harness_tests.rs:1817` already writes th
 rule down correctly — "The building thinks on `(frame + index) & 0x1f == 0`" —
 against code that does not implement it. So does one periodic *inside
 `process_building` itself*: `regen_roads_due` phases on `frame +
-self.buildings[b].index` (`crates/sim/src/roads.rs:171`), one line below the
+self.buildings[b].index` (`crates/sim/src/movement/roads.rs:171`), one line below the
 four that phase on `b`. And the decompile settles which is right — the city
 heal at `Build::process@0061edf0:728` reads `(GameAccess::game->frame + (int)*(short
 *)&this->field_0xa) % city_heal_rate`, and `+0xa` is `o` (§1.1's field table).
@@ -104,7 +104,7 @@ heal at `Build::process@0061edf0:728` reads `(GameAccess::game->frame + (int)*(s
 | document | CITIES.md §2.5, "`not an oil type: W.flags & 8 → ROCK 3;   oil type: not W.flags & 0x800 → NO_OIL 5`" |
 | code | `crates/sim/src/place.rs:313-405` (`fn blocked_tcoord`) |
 | document says | Between the `T & 0x200` building test and the `T & 0x80` placed test, one tile is refused with `ROCK` (3) when its cell carries `WData.flags & 8` and the type is not an oil type; an oil type is refused with `NO_OIL` (5) when the cell does **not** carry `WData.flags & 0x800`. |
-| code does | Neither test exists. `Blocked::Rock` (`crates/sim/src/place.rs:25`) and `Blocked::NoOil` (`:27`) are declared in the enum and returned from nowhere in the crate — the only two `Blocked` values in that stretch that are returned at all are `Ruins` at `:327` and `Rare` at `:355`. The data is present and named: `crates/sim/src/world.rs:350` is `cell::ROCK = 0x8` (`WorldData::is_rocks@006b4380`) and `:366` is `cell::OIL = 0x800` (`WorldData::is_oil_at@00472af0`), and `World::land_class` already reads both (`crates/sim/src/world.rs:1009-1012`). |
+| code does | Neither test exists. `Blocked::Rock` (`crates/sim/src/place.rs:25`) and `Blocked::NoOil` (`:27`) are declared in the enum and returned from nowhere in the crate — the only two `Blocked` values in that stretch that are returned at all are `Ruins` at `:327` and `Rare` at `:355`. The data is present and named: `crates/sim/src/world/mod.rs:350` is `cell::ROCK = 0x8` (`WorldData::is_rocks@006b4380`) and `:366` is `cell::OIL = 0x800` (`WorldData::is_oil_at@00472af0`), and `World::land_class` already reads both (`crates/sim/src/world/mod.rs:1009-1012`). |
 | difference shows | The AI's site picture first: `docs/AI.md` §2.13 step 2 zeroes a cell's base score on a refused `blocked_site(TOWN, …)`, so every rock cell of a map scores as buildable here and does not in the original — a `CITY` record's `ter[6]`/`space[3]` and, downstream, *where* the AI puts its second city. Great Lakes (run53) and East Indies (run63) both have rock. The oil half is only reachable once an oil well is placed, which no capture on disk does. |
 | reached | reached (`BuildTypeData::blocked_tcoord` is entered) |
 
@@ -240,7 +240,7 @@ three lineage calls, all `is`, and the third is `LOOKOUT`. The Roman clause at
 | document | CITIES.md §3.4, "`h ≤ damage and a garrison and not can_carry(AIR) → eject_contents(1, −1, 0, 1)`" |
 | code | `crates/sim/src/city.rs:1100-1102` (`fn update_hits`) |
 | document says | An airbase, carrier or missile silo whose `construct_hits` has fallen to its damage does **not** eject — its contents are killed elsewhere (§6.6, `kill_contents`). |
-| code does | `if bd.construct_hits <= bd.damage && !bd.garrison.is_empty() { bd.eject_pending = true; }` — no `can_carry(AIR)` test, though `Sim::is_hangar` exists at `crates/sim/src/garrison.rs:558-563`. |
+| code does | `if bd.construct_hits <= bd.damage && !bd.garrison.is_empty() { bd.eject_pending = true; }` — no `can_carry(AIR)` test, though `Sim::is_hangar` exists at `crates/sim/src/units/garrison.rs:558-563`. |
 | difference shows | A damaged airbase would push its planes onto the map rather than keeping or killing them: `UNITDATA` rows appearing beside the building. Airbases are past every capture on disk (no traced game reaches the Industrial age), so this is unreachable now. |
 | reached | reached (`Wall::update_hits@0063f0d0`) |
 
@@ -269,7 +269,7 @@ game state.
 | document | CITIES.md §5.2, "`remove_from_city` unlinks, **`regen_roads`**, clears each flag whose `count_buildings(kind, 0, 1)` dropped to zero, `city = −1`, `decrement_stats`." |
 | code | `crates/sim/src/city.rs:566-573` (`fn remove_from_city`) |
 | document says | A building leaving a city flags that city's whole membership for a road replan. |
-| code does | Unlinks and, for a temple, re-syncs territory. `Sim::city_regen_roads` (`crates/sim/src/roads.rs:152-162`) is called from `activate` (`crates/sim/src/city.rs:1443`) and from nowhere else. |
+| code does | Unlinks and, for a temple, re-syncs territory. `Sim::city_regen_roads` (`crates/sim/src/movement/roads.rs:152-162`) is called from `activate` (`crates/sim/src/city.rs:1443`) and from nowhere else. |
 | difference shows | `TERRAINSYNC`/road tiles in the sixteen frames after a member is destroyed or re-homed; `docs/ROADS.md` §1's own diff. Reachable in any capture where a building dies inside a city — run53 and run63 both have building deaths. |
 | reached | reached (`Build::remove_from_city` entered) |
 

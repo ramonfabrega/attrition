@@ -1,5 +1,5 @@
 //! **`Group::action_gather@00700b90`'s steps** (item 3386): a group's order to
-//! gather at a building, as a walk over a [`GatherView`]. The control flow is
+//! gather at a building, as a walk over a [`ActionGatherView`]. The control flow is
 //! the original's, call for call and in its order; the view is the state it
 //! reads and the callees it makes, which `sweep/group_action_gather.rs`
 //! answers from the emulated original's windows.
@@ -41,7 +41,7 @@ pub const SPIRAL_STEPS: i32 = 0x79;
 /// What `Group::action_gather` asks of the group, the world and the objects.
 /// `p` is a player and `o`/`u` an index in that player's `objects`/`units`
 /// array (the original indexes both by one object index).
-pub trait GatherView: GarrisonHead {
+pub trait ActionGatherView: GarrisonHead {
     /// `Group::clear(scratch, -1)`.
     fn list_clear(&mut self);
     /// `this + 0x10 = -1`: the group's formation is forgotten.
@@ -145,7 +145,7 @@ pub trait GatherView: GarrisonHead {
 
 /// The tile region the listing reads inline for a point: the cell's region,
 /// or its second when the world's second array marks the point.
-fn tile_region<V: GatherView>(v: &V, x: i32, y: i32) -> i32 {
+fn tile_region<V: ActionGatherView>(v: &V, x: i32, y: i32) -> i32 {
     let dy = v.div3(y >> 6);
     let dx = v.div3(x >> 6);
     let idx = (dy >> 2).wrapping_mul(v.world_w()).wrapping_add(dx >> 2);
@@ -175,7 +175,7 @@ fn needed_good(kind: i32) -> Option<i32> {
 }
 
 /// A scholar's type, by the unit's own kind or by the type its override names.
-fn scholar<V: GatherView>(v: &V, p: i32, u: i32, ty: i32) -> bool {
+fn scholar<V: ActionGatherView>(v: &V, p: i32, u: i32, ty: i32) -> bool {
     let kind = v.unit_kind(p, u);
     kind == 0x34 || kind == 0x35 || {
         let k = v.type_kind(ty);
@@ -186,7 +186,7 @@ fn scholar<V: GatherView>(v: &V, p: i32, u: i32, ty: i32) -> bool {
 /// `Group::action_gather(b, queue)`: `b` the building's index in the
 /// group's player's objects, `queue` in the original's numbering
 /// (`QUEUE_FIRST` 0 reads as `QUEUE_NEW`).
-pub fn action_gather_steps<V: GatherView>(v: &mut V, b: i32, queue: i32) {
+pub fn action_gather_steps<V: ActionGatherView>(v: &mut V, b: i32, queue: i32) {
     v.list_clear();
     garrison_head(v);
     v.set_form();
@@ -314,7 +314,7 @@ pub fn action_gather_steps<V: GatherView>(v: &mut V, b: i32, queue: i32) {
 }
 
 /// The listing from `007012f4`: the member `m` takes the object `o` of `tp`.
-fn gather_body<V: GatherView>(v: &mut V, p: i32, m: i32, tp: i32, o: i32, q: i32) {
+fn gather_body<V: ActionGatherView>(v: &mut V, p: i32, m: i32, tp: i32, o: i32, q: i32) {
     v.unit_clear_80(p, m);
     let (mrx, mry) = v.obj_pos_raw(p, m);
     let (cx, cy) = (mrx ^ POS_KEY, mry ^ POS_KEY);

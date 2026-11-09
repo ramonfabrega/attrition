@@ -41,7 +41,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // **The port is the crate's own steps**, `crate::gather_view::action_gather_point_steps`, which
             // `Sim::action_gather_point` calls over its `SimGather`; here the view is the emulated original's
             // windows.
-            use crate::gather_view::{GatherView, action_gather_point_steps};
+            use crate::gather_view::{GatherPointView, action_gather_point_steps};
             const SEQ_AT: [(usize, usize, usize); 10] = [
                 (2, 25, 24),
                 (3, 49, 24),
@@ -95,7 +95,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     rd32(&self.p[6 + j], 0) as u32 == 0x00b4_2174
                 }
             }
-            impl GatherView for V<'_> {
+            impl GatherPointView for V<'_> {
                 type H = usize;
                 fn refresh(&mut self) {
                     self.log.push("s0:m+0x0".into());

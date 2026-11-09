@@ -183,7 +183,7 @@ the corner back. run70's `callwin` is what proved the search itself agreed:
 of every cell the two searches probed on frame 1970, `(849, 366)` is the
 **only** one they answered differently.
 
-`crates/sim/src/collide.rs`'s `Sim::coll_repaint`, called from
+`crates/sim/src/movement/collide.rs`'s `Sim::coll_repaint`, called from
 `process_movement` as `Guy::process` calls it. SEAM: this crate marks one
 figure a unit (§2), so it repaints guy 0's disc and no other's, and the
 `squad_size` gate is thereby always satisfied.
@@ -1018,7 +1018,7 @@ In order, with the first that fires winning:
 
 ## 7. What this crate models
 
-`crates/sim/src/collide.rs`, wired into `Sim::unit_step`
+`crates/sim/src/movement/collide.rs`, wired into `Sim::unit_step`
 (`crates/sim/src/orders.rs`), `Sim::set_new_location` and
 `Sim::find_nearby_spot`.
 
@@ -1324,7 +1324,7 @@ buildings join the chain, which is why §8 does not claim it.
 - The path stack's length and every waypoint — the headline's own order
   score, which the recovery's output now feeds.
 - §2's clear-on-move, §2.2's repaint, §4's naming and §6's snap-and-replan
-  end to end, in `crates/sim/src/collide.rs`'s own tests, each written to
+  end to end, in `crates/sim/src/movement/collide.rs`'s own tests, each written to
   fail first.
 
 **Reading-only** — no capture has executed these:
@@ -3490,7 +3490,7 @@ nothing.
 This crate asked the full form. It found the same cell, let the corners
 pass, named nobody and cleared `collide_o` on the way out, so the block
 reset `collide` and re-planned two frames early.
-`Sim::blocker_still_there` (`crates/sim/src/collide.rs`) is the quick form
+`Sim::blocker_still_there` (`crates/sim/src/movement/collide.rs`) is the quick form
 with `top_only`. `Sim::do_move`'s suspended block asks it.
 
 ### 18.3 What it moved
@@ -3597,7 +3597,7 @@ stack, not a unit in motion: `1/33`, standing between legs, is moving. No
 owner is compared.
 
 This crate built the row in `Sim::soft_collision`
-(`crates/sim/src/collide.rs`) on the two helpers the attack row already
+(`crates/sim/src/movement/collide.rs`) on the two helpers the attack row already
 uses: `action_of`'s index for the action, and `Order::is_move` on the
 front for `is_moving`.
 

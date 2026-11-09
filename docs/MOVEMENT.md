@@ -41,7 +41,7 @@ read end to end, and the one thing that looked wrong turned out to be a
 misreading — see the note below, which is kept because the mistake is
 instructive.
 
-**Where the implementation is.** `crates/sim/src/movement.rs`, driven from
+**Where the implementation is.** `crates/sim/src/movement/mod.rs`, driven from
 `Sim::process_movement` in `crates/sim/src/lib.rs`.
 
 ---
@@ -225,7 +225,7 @@ the wrap.
 
 So the axis angles work by arithmetic overflow. Widen that multiply while
 "cleaning up" and every unit ordered along an axis stops dead.
-`crates/sim/src/movement.rs` uses a `wrapping_mul` and says why at the site.
+`crates/sim/src/movement/mod.rs` uses a `wrapping_mul` and says why at the site.
 
 ### The mirror is the original's; the decompiled branch is real and unreached (closed 2026-08-27)
 
@@ -1377,7 +1377,7 @@ the checks below.
   final snap through a collision; `& 1` marks the last waypoint. Entirely
   unread beyond that.
 - ~~**Collision and pushing.** … Unread.~~ **Read and modelled**:
-  `docs/COLLISION.md` and `crates/sim/src/collide.rs`. `detect_unit_collision`
+  `docs/COLLISION.md` and `crates/sim/src/movement/collide.rs`. `detect_unit_collision`
   runs on every proposed step, `resolve_unit_collision` when it fails,
   `UnitData::tolerance` is set to `2 × manh` when the unit gives up, and the
   `0x100000` one-shot half step is collision's — **modelled since 2026-09-06**,
@@ -1422,7 +1422,7 @@ the checks below.
 ## Second reading (2026-08-20) — landed
 
 Blind second derivation and adjudication: `docs/audit/2026-08-20-movement.md`.
-All nine disagreements are landed above and in `crates/sim/src/movement.rs` /
+All nine disagreements are landed above and in `crates/sim/src/movement/mod.rs` /
 `lib.rs`: the two-position model (D1), the 11/8 as the body's rate (D2), the
 post-turn facing in the trig (D3), `UNIT_TURN_SPEED = 256` and
 `degrees_to_angle` (D4), the instant and moving-mode turn rules (D5), the

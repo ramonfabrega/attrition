@@ -24,7 +24,7 @@ Two of the five had in fact landed. **Three had not**, and nobody noticed
 for a day, because every check anyone ran was a *branch* check and the loss
 was one level below it: `loop-234`'s branch tip was a docs-only handoff
 commit that merged clean while the item's actual product — 406 lines of
-`crates/sim/src/anim.rs` — sat uncommitted in the worktree, scheduled for
+`crates/sim/src/units/anim.rs` — sat uncommitted in the worktree, scheduled for
 reaping. `git worktree remove` refusing a dirty tree is the only reason it
 survived (2026-09-07; the recovered work is on branch `rescue-234`, commit
 `0e14e48`).
@@ -37,7 +37,7 @@ survived (2026-09-07; the recovered work is on branch `rescue-234`, commit
   *"At zero it is an ordinary row of the labelled comparison, and that is
   what it is now."* The cause was `clear_partial_path`, not the refused
   step the row named (`docs/MOVEMENT.md`, "The verified line's lifecycle").
-- **231** landed — `Sim::same_group_soft` in `crates/sim/src/collide.rs`
+- **231** landed — `Sim::same_group_soft` in `crates/sim/src/movement/collide.rs`
   carries the three-rule split whole, including the correction that
   `(iVar7 == 0 || iVar7 == 0xc)` short-circuits the action test for the
   other seven kinds, and the two seams (`+0x104`, `CHANGE_FORM`) are named

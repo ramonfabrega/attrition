@@ -3235,7 +3235,7 @@ this section would otherwise have had to buy.
 
 ### 22.3 The port's table, and why it is not a float
 
-`crates/sim/src/launch.rs`. The entry is stored the way the rest of the crate
+`crates/sim/src/data/launch.rs`. The entry is stored the way the rest of the crate
 stores a direction — a bearing **relative to the guy's facing** and a radius —
 so the world offset is `movement::sin_component`/`cos_component` and nothing
 else. `docs/DECISIONS.md` entry 16's second shape: the original builds its
@@ -8395,7 +8395,7 @@ the air arm of `ez`, and the spent arrow's 200-frame hold.
 
 One lesson for the next reader. Grep the crate for the *type*, not only
 for the name the brief used. This item first wrote a software single
-from scratch over `crates/sim/src/single.rs`, which already had every
+from scratch over `crates/sim/src/num/single.rs`, which already had every
 operation, and caught it only on the module list.
 
 ## 47. The captain the roll reads, and the shot's own bearing (item 523, 2026-09-22)
@@ -8696,7 +8696,7 @@ byte (`:98`):
 a leg because its target came into reach, but the first bump from any
 enemy ends it.
 
-`Sim::resolve_unit_collision` (`crates/sim/src/collide.rs`) now takes
+`Sim::resolve_unit_collision` (`crates/sim/src/movement/collide.rs`) now takes
 `update_action` at the top, arms A and B, and step 2 without the
 same-player gate.
 

@@ -889,7 +889,7 @@ mod bodies {
         // own world-grid steps 8 to 16 too dear, the search took a seventh
         // expansion the original does not, and a route came back where the
         // original's search stops at the goal's own neighbour and pushes
-        // nothing (`crates/sim/src/danger.rs`, `docs/DANGER.md` §6). All
+        // nothing (`crates/sim/src/world/danger.rs`, `docs/DANGER.md` §6). All
         // 2,061 fields are the original's since 2026-09-02.
         assert!(wrong.is_empty(), "run64's clocks parted: {wrong:?}");
     }

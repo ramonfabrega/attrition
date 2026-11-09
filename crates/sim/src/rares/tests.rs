@@ -1020,13 +1020,33 @@ fn the_idle_latch_raises_cant_reach_with_it() {
 /// behaviour-identical only because owner 9 holds nothing.
 #[test]
 fn a_unit_s_speed_is_never_set_from_the_raw_moves() {
-    let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/src");
-    let mut bad: Vec<String> = Vec::new();
-    for entry in std::fs::read_dir(dir).expect("the crate's own src/") {
-        let path = entry.expect("a readable entry").path();
-        if path.extension().is_none_or(|e| e != "rs") {
-            continue;
+    // Every production file however deep (item 4011 moved files into
+    // directories); `sweep/` holds the original's rows and a sibling test file
+    // (`foo/tests.rs`, item 4010) is a test's, never a spawn site.
+    fn walk(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
+        for entry in std::fs::read_dir(dir).expect("the crate's own src/") {
+            let path = entry.expect("a readable entry").path();
+            if path.is_dir() {
+                if !path.ends_with("sweep") {
+                    walk(&path, out);
+                }
+            } else if path.extension().is_some_and(|e| e == "rs")
+                && !path
+                    .file_stem()
+                    .is_some_and(|s| s.to_string_lossy().ends_with("tests"))
+            {
+                out.push(path);
+            }
         }
+    }
+    let mut paths = Vec::new();
+    walk(
+        std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src")),
+        &mut paths,
+    );
+    paths.sort();
+    let mut bad: Vec<String> = Vec::new();
+    for path in paths {
         let name = path
             .file_name()
             .and_then(|n| n.to_str())

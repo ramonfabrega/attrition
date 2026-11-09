@@ -1,6 +1,6 @@
 # Adjudication: attrition and territory — Reading A vs Reading B
 
-A = `docs/ATTRITION.md` + `crates/sim/src/{attrition,territory,world}.rs` (+ `lib.rs` where it applies the result).
+A = `docs/ATTRITION.md` + `crates/sim/src/{attrition,territory,world/mod}.rs` (+ `lib.rs` where it applies the result).
 B = `~/.claude/jobs/3c382923/tmp/rederive-attrition.md`.
 
 Every verdict below was settled by re-reading the decompilation under
@@ -339,7 +339,7 @@ ignored. Struct-offset names come from `types.txt` (PDB-derived).
 9. Close the "second `suffer_attrition` entry" question: decoys.
 10. Note the fort/city runner-up asymmetry (who2 only).
 
-**`crates/sim/src/attrition.rs`**
+**`crates/sim/src/territory/attrition.rs`**
 - Remove `PlayerState::team` (or default it to the player's own index) and
   the `SameTeam` check, or make it `owner_id == victim_id` again; as shipped
   it exempts everyone from player 0's borders by default.
@@ -357,11 +357,11 @@ ignored. Struct-offset names come from `types.txt` (PDB-derived).
   (or keep `health` in sixteenths explicitly); today a lone figure loses 16
   HP per tick where the original loses 1.
 
-**`crates/sim/src/territory.rs`**
+**`crates/sim/src/territory/mod.rs`**
 - Optional: match the fort-path runner-up overwrite, or document the
   divergence (who2 only).
 - Document that wholesale recompute is a simplification of the original's
   budgeted incremental pass.
 
-**`crates/sim/src/world.rs`** — no change required; `vector_dist` and the
+**`crates/sim/src/world/mod.rs`** — no change required; `vector_dist` and the
 unit conversions are doubly confirmed.

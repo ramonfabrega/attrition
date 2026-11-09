@@ -543,3 +543,10 @@ pub fn enemy_territory_by(
 
 #[cfg(test)]
 mod tests;
+
+// The files of `territory/` (item 4011, `docs/STRUCTURE.md` §3).
+pub mod attrition;
+pub mod border_pass;
+pub mod suffer_view;
+pub mod supply;
+pub mod victory;

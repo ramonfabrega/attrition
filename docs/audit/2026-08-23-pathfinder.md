@@ -69,7 +69,7 @@ enriched it; both-right rows record scope differences, not conflicts.
 
 ## What changed
 
-**In the implementation** (`crates/sim/src/path.rs`, same-day):
+**In the implementation** (`crates/sim/src/movement/path.rs`, same-day):
 
 - **V14** — `army`/`worker` are now withheld from human players.
   `LeaderData::is_human` is literally `leader_flags & 4` (the bit was

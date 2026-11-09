@@ -28,7 +28,7 @@ reload rule and the heal period. The one thing taken on inference rather than
 observation is that `PARMENIO_RADIUS_ADJUST` is loaded as 8.8 fixed point;
 the reasoning is given where it is used. What remains open is listed at the end.
 
-**Where the implementation is.** `crates/sim/src/supply.rs`, and the shelter
+**Where the implementation is.** `crates/sim/src/territory/supply.rs`, and the shelter
 branch of `Sim::tick` in `crates/sim/src/lib.rs`. Every constant below is
 re-read from the user's own install by `cargo run -p rondata -- <install>`,
 which fails if any has drifted. The domain field this document shares with
@@ -511,7 +511,7 @@ A blind second derivation and its adjudication are in
 `docs/audit/2026-08-20-supply.md`. The registry, the radius, the distance
 query, the hero-general radius, the heal fold and the reload multipliers are
 **doubly confirmed** — no number in this document changed. Eight predicates
-around them did, all landed above and in `crates/sim/src/supply.rs` on the same
+around them did, all landed above and in `crates/sim/src/territory/supply.rs` on the same
 day; each place that changed says so inline. The ones that change what the
 mechanic does:
 
@@ -531,7 +531,7 @@ France, and `find_supply` has no sixth caller. Three smaller ones opened in
 their place. One point resolved for the earlier draft rather than against it:
 Terra Cotta does apply to a supplying general.
 
-`crates/sim/src/supply.rs` lost its `Category` enum in the same pass — the
+`crates/sim/src/territory/supply.rs` lost its `Category` enum in the same pass — the
 reload query now takes `attrition::Domain`, so the crate has one name for the
 field. No arithmetic changed, and the tests that covered it still pass
 unaltered apart from the type.

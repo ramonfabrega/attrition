@@ -387,7 +387,7 @@ call and the argument:
 | from | to | what is passed |
 |---|---|---|
 | `Unit::do_job@00617a10` (§4.3) | `do_move(this, order)` → `move_step(this, move_order, …)` (`do_move@005f7b30:750`) | the current `MoveOrder*`; `docs/MOVEMENT.md` "Where movement sits in the frame" owns everything from there |
-| `do_job` | `do_build(this, order)`, `do_repair`, `do_garrison` | `docs/CITIES.md` §3 (the clock), §15 (garrisons); `crates/sim/src/{build,garrison}.rs` |
+| `do_job` | `do_build(this, order)`, `do_repair`, `do_garrison` | `docs/CITIES.md` §3 (the clock), §15 (garrisons); `crates/sim/src/{build,units/garrison}.rs` |
 | `do_job` | `do_gather(this, order)` | `docs/ECONOMY.md`; and *back*: `do_gather` is the only creator of `ThinkOrder` (§1.5) |
 | `do_job` | `do_attack(this, order)` → `fight` | `docs/COMBAT.md`; `fight` also reads/writes `UnitOrder.flags` bits `0x8`/`0x10` |
 | `do_job` with `NONE` | `Unit::do_idle` (vslot `0x184`) → `check_idle`, `think` | §4.5 |

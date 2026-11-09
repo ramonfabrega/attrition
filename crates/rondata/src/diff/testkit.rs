@@ -385,7 +385,7 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// goal's own neighbour and pushes nothing. That is why `do_trade`'s
 /// move went in with a waypoint at `(37752, 41592)` and the caravan
 /// set off south-west where the original heads straight at
-/// `(39288, 40056)` (`crates/sim/src/danger.rs`, `docs/DANGER.md`).
+/// `(39288, 40056)` (`crates/sim/src/world/danger.rs`, `docs/DANGER.md`).
 /// The map itself is now diffed whole against run64's own
 /// `danger[who][scan]`, 7,200 values
 /// (`run64_s_danger_map_is_the_original_s`), and so are the
@@ -3776,7 +3776,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// frames here against 26 there and its arrow arrived a frame after the
 /// draw it owed. run109 (`AMMO=5` over `[9420, 9480)`) prints the arrow's
 /// own `sx, sy`, so the offset is measured rather than derived:
-/// `docs/COMBAT.md` §22, and `crates/sim/src/launch.rs` is the table.
+/// `docs/COMBAT.md` §22, and `crates/sim/src/data/launch.rs` is the table.
 ///
 /// The fifty-nine frames it bought are the rest of that fight — **sixteen
 /// launches below the word against four**, of which the first nine have

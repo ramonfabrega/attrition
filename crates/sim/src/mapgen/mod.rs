@@ -875,3 +875,24 @@ pub fn fertile_partitions(freqs: &[i32]) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests;
+
+// The files of `mapgen/` (item 4011, `docs/STRUCTURE.md` §3).
+pub mod cliffs;
+pub mod halfland;
+pub mod map_colonial;
+pub mod map_east_indies;
+pub mod map_east_west;
+pub mod map_heights;
+pub mod map_lakes;
+pub mod map_mediterranean;
+pub mod map_new_world;
+pub mod map_nile_delta;
+pub mod map_outback;
+pub mod map_resources;
+pub mod map_rivers;
+pub mod map_sea_power;
+pub mod map_troughs;
+pub mod map_values;
+pub mod map_watering_hole;
+pub mod terrain_groups;
+pub mod terrain_init;

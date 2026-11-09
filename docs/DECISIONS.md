@@ -1327,7 +1327,7 @@ first thing this project has read whole, implemented faithfully, and then
 will recur.
 
 `crates/sim/src/air.rs` reproduces the function arm for arm against the
-listing, and `crates/sim/src/single.rs` reproduces the single-precision
+listing, and `crates/sim/src/num/single.rs` reproduces the single-precision
 arithmetic its bank angle is written in, exactly, in integers. Wired into
 the unit loop it flies a bird the way the original flies one — the same
 orbit, the same overshoot, the same edge coin — and it moves East Indies'

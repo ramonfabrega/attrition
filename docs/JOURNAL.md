@@ -168,7 +168,7 @@ dated heading on, the journal is by date.
    `FARM_GROWS = 200` is wrong by about a factor of two (`docs/ORDERS.md`
    §6.5).
 8. ~~**The pathfinder**~~ — **done, 2026-08-23**, `docs/PATHFINDER.md` and
-   `crates/sim/src/path.rs`: `astar_path` on all three grids (greedy
+   `crates/sim/src/movement/path.rs`: `astar_path` on all three grids (greedy
    heuristic, LIFO tie-break, metric-keyed dedup, budgets, suspend,
    reconstruction), `calc_cost` with every term modelled or a named seam,
    the three wrappers with their pre-walks and post-processing,
@@ -383,7 +383,7 @@ dated heading on, the journal is by date.
     guy's `cur_time`/`end_time`, the wrap's draw, the lengths read from a
     dump's `GUY` blocks as an input), which is worth 14 of the window's 16
     missing draws~~ — **the animation clock landed, 2026-08-24 (seventh
-    session)**, `docs/ANIM.md` and `crates/sim/src/anim.rs`: `UnitAnimCat`
+    session)**, `docs/ANIM.md` and `crates/sim/src/units/anim.rs`: `UnitAnimCat`
     read out of the executable's `.rdata` (the idles are one category,
     the seven walks one, the attacks one — the category decides every
     branch), `Guy::set_anim`'s idle roll with its thresholds and its
@@ -2205,7 +2205,7 @@ principle.
 
 `docs/SCOUT.md` (thirteen sections, the circle loader re-derived, the
 score's four multipliers, the region fallback read and explicitly not
-implemented), `crates/sim/src/scout.rs`, the wiring in `Sim::think`'s tail,
+implemented), `crates/sim/src/units/think/scout.rs`, the wiring in `Sim::think`'s tail,
 five tests in `sim::scout` and
 `run20_s_ai_scout_draws_ten_at_frame_0_in_four_rings` in `rondata::diff`.
 Frame 0 on run20 is **175/175** — the first frame-0 match the harness has
@@ -2669,7 +2669,7 @@ because the two are the same length and made of different numbers:
 
 The second row is **`toff`**, and `docs/PATHFINDER.md` §7 had it written
 down all along: a reconstructed world node is pushed at
-`node + toff − 0x180`, and `crates/sim/src/path.rs` carries `toff = 0` as a
+`node + toff − 0x180`, and `crates/sim/src/movement/path.rs` carries `toff = 0` as a
 stated seam because "move orders here have point goals". The arithmetic
 closes — `504 − 0x180 = 120`, and the order's own `off_x` is `504` — so the
 seam is wrong for a *plain* move too: `toff` is the move order's
@@ -3052,7 +3052,7 @@ claim about the world, and a claim about the world goes stale.
 
 ## 2026-08-27 — item 33: the fog moves, and the field the dump was already printing
 
-`docs/VISION.md`, `crates/sim/src/vision.rs`, `seen`/`seen2` on
+`docs/VISION.md`, `crates/sim/src/vision/mod.rs`, `seen`/`seen2` on
 `crate::world::World`, `mylos` in `rondata::diff`.
 
 Item 32 left the pathfinder reading a fog grid nothing wrote. This closed
@@ -3755,7 +3755,7 @@ The answer was in the same record, three lines up: `collide 1`,
 `1/6` had walked into `1/3`.
 
 `docs/MOVEMENT.md` had this as an open question — "Collision and pushing …
-Unread" — and it is now `docs/COLLISION.md` and `crates/sim/src/collide.rs`.
+Unread" — and it is now `docs/COLLISION.md` and `crates/sim/src/movement/collide.rs`.
 
 ### Two indices, and why neither can be a scan
 
@@ -3830,7 +3830,7 @@ eight are two units and two collisions, both past the score.
 `coll_x`/`coll_y` are compared too, as a scoring order mismatch, and adding
 them did not move the score.
 
-`crates/sim/src/collide.rs` carries four tests written to fail first,
+`crates/sim/src/movement/collide.rs` carries four tests written to fail first,
 including the one that pins the un-refcounted clear.
 
 ### The number
@@ -7940,7 +7940,7 @@ offset 48**, between `is_wonder` and `get_gpiece`. That is the third slot
 this session's family of items has had to take from the type stream rather
 than the map, after `is_move` at 20 and `get_move_order` at 184.
 
-`crates/sim/src/collide.rs` now opens `resolve_unit_collision` with
+`crates/sim/src/movement/collide.rs` now opens `resolve_unit_collision` with
 `if self.units[u].is_gaia() { self.clear_orders(u); return; }`. The
 predicate is the owner rather than the class, which is a stated seam: every
 `ANIMALDATA` record in run12 (360) and run20 (936) carries `who 8`, and the
@@ -11629,7 +11629,7 @@ step 5 down that nothing had ever built. East Indies' long word moves
 **4462 → 4871**, count and sequence together, and the 409 frames in between
 are one AI Fisherman's walk from its Dock to a shoal of fish.
 
-**The mechanic**, in `docs/ORDERS.md` §6.8 and `crates/sim/src/fish.rs`: an
+**The mechanic**, in `docs/ORDERS.md` §6.8 and `crates/sim/src/units/think/fish.rs`: an
 idle fishing boat scores the 289 cells of the 17 × 17 around its own, keeps
 the ones that are water in its own `get_tregion` and not coastal
 half-land, and takes the best of `1_000_000 / manhattan` — a million if the
@@ -11776,7 +11776,7 @@ and this crate two, and the extra one is `Guy::set_anim+0x97a` under a
 chain the trace's site table has no entry for —
 `Guy::do_turn+0x4a < Unit::move_step+0x3b6`. A **ninth caller** of the
 animation coin, and a turning stand rather than any of the eight
-`crates/sim/src/anim.rs` names. The frame after, the original's
+`crates/sim/src/units/anim.rs` names. The frame after, the original's
 `Animal::do_idle` spends one draw where this crate spends four: the same
 guy, re-anchored.
 
@@ -12691,7 +12691,7 @@ first time the two maps have wanted the same item.
 ## 2026-09-02, Opus — the bird flies, in a module nobody calls
 
 *Item 120. `docs/SYNC.md` §3.9 "The flight", `docs/DECISIONS.md` 30,
-`crates/sim/src/air.rs`, `crates/sim/src/single.rs`. **The score did not
+`crates/sim/src/air.rs`, `crates/sim/src/num/single.rs`. **The score did not
 move**: EastIndies 5437, GreatLakes 1802, both still parted by
 `Unit::do_air_physics+0x639`.*
 
@@ -13796,7 +13796,7 @@ in `new_rares`, one of them in its own region, so the pick is `300 > 190`
 and each of the three terms could be wrong on its own. The `−10` step needs
 a third good, the danger term needs a war, the floor needs both, and the
 rotation needs the **second** merchant — which the original trains on 6571,
-one frame past the new word. Twelve tests in `crates/sim/src/merchant.rs`
+one frame past the new word. Twelve tests in `crates/sim/src/units/think/merchant.rs`
 carry what the capture cannot, including an eleven-deep list where the step
 and the bonus finally separate.
 
@@ -14643,7 +14643,7 @@ sizes the option array from `StanceTypes` — six for a combat unit, four for a
 worker, two each for a caster and a packer — so the byte is an index into a
 list whose length its *type* fixes, and `Unit::init@00612100:282–309` reads a
 different place for each. `docs/ORDERS.md` §5.10 is the whole switch;
-`crates/sim/src/stance.rs` is the code.
+`crates/sim/src/units/stance.rs` is the code.
 
 **The worker arm is inverted from what its field name says.** `leader_flags &
 4` is `LeaderData::is_human@006ec170`, and it is the *human* that takes
@@ -16601,7 +16601,7 @@ the start, and 26 for the rest.
 **What it moved.** All three Archers walk the original's own points from
 6652 to **6861** (run76's window now asserts it), and run53's word moved
 **6848 → 6862** — the first time the soft-collision arm has shown up in a
-score. `crates/sim/src/movement.rs`'s `move_step` takes the bit as an
+score. `crates/sim/src/movement/mod.rs`'s `move_step` takes the bit as an
 argument and reports back through `Step::half_step_used`; the caller owns
 the clearing. The unit test was made to fail once, on both halves: the
 one-shot spends itself, and the hard-turn arm does not spend it.
@@ -18135,7 +18135,7 @@ words, and nothing here touches a mechanic.
 The reap the opener asked for was meant to be housekeeping. Eight worktrees
 came off clean and the ninth would not: `git worktree remove` refuses a
 dirty tree, and `loop-234`'s held **406 uncommitted lines of
-`crates/sim/src/anim.rs`** — the product of a booked item, doc-commented
+`crates/sim/src/units/anim.rs`** — the product of a booked item, doc-commented
 against the decompile, citing two `rondata::diff` tests that were never
 written. A worker had died mid-item and no branch carried a line of it.
 

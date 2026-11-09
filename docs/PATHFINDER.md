@@ -746,7 +746,7 @@ way. (`docs/ORDERS.md` §4.6 amended in place, pointing here.)
 
 ## 11. What the sim implements
 
-`crates/sim/src/path.rs`: the search of §4–§7 on the three grids, the
+`crates/sim/src/movement/path.rs`: the search of §4–§7 on the three grids, the
 containers replaced by deterministic equivalents that preserve **min-value
 with LIFO ties** and metric-keyed dedup; the world read through the layers
 the sim has (tile mask bits via `place.rs`, cell owner via `territory`,
@@ -860,7 +860,7 @@ Four of the first reading's open items were **settled by the audit**
   leaders_slot` compares it whole). See §5's note on why the two terms
   had to land together.
 - ~~**The fog the sim reads is the frame-0 snapshot.**~~ **Closed
-  2026-08-27** — `docs/VISION.md` and `crates/sim/src/vision.rs`. A unit
+  2026-08-27** — `docs/VISION.md` and `crates/sim/src/vision/mod.rs`. A unit
   now lights a disc of `LOS / 2` fog cells every time it crosses a
   half-cell, centred (below radius four) a half-cell ahead of its own
   facing, and `Object::update_seen`'s hundredth-frame resync runs from
@@ -921,7 +921,7 @@ Four of the first reading's open items were **settled by the audit**
   heuristic nor a tie: it was **`WData.blocked` — a count of the cell's
   blocked tiles — that nothing in this crate was keeping**. §5's note on
   `tcost` has the mechanic and `World::set_blocked_at@006b4900`;
-  `crates/sim/src/world.rs` has the implementation and
+  `crates/sim/src/world/mod.rs` has the implementation and
   `Sim::mask_building` is its only caller so far.
 
   The reading that had been carried into this entry — that the original's
@@ -1278,7 +1278,7 @@ and the reach is asserted per capture rather than grepped.
 
 ### 18.3 What is implemented, and what is not wired
 
-**Implemented and landed** (`crates/sim/src/path.rs`):
+**Implemented and landed** (`crates/sim/src/movement/path.rs`):
 
 - [`Search`] — the stash, one field per `UnitData +0x104..0x148` name:
   the open list, its metric refs, the closed list and the validity memo
@@ -1319,7 +1319,7 @@ together because they are one change (`docs/DECISIONS.md` entry 30), and
 Wired, it is right on the mechanic and wrong on the score, which is entry
 30's case exactly. Every row below measured on **one tree**, `1397b05`,
 the subsets by taking `4521ccc`'s two files onto the landed tip one at a
-time — `crates/sim/src/path.rs` is the gate and the limit, `orders.rs` is
+time — `crates/sim/src/movement/path.rs` is the gate and the limit, `orders.rs` is
 `do_move`'s block:
 
 | | East Indies (run54) | Great Lakes (run53) |
@@ -2064,7 +2064,7 @@ ever a candidate, and the mode was the only term left.
 
 ### 22.3 The value diff
 
-`crates/sim/src/path.rs`'s `Sim::army_mode`, with `!attacking` removed:
+`crates/sim/src/movement/path.rs`'s `Sim::army_mode`, with `!attacking` removed:
 
 | | before | after |
 |---|---|---|
@@ -2698,7 +2698,7 @@ without forest, so it passes.
 
 So the world search refuses a forest *cell*, where the tile test would
 only refuse its forest *tiles*. This crate's land arm began at the tile;
-`Sim::invalid_loc` (`crates/sim/src/path.rs`) now reads the cell first.
+`Sim::invalid_loc` (`crates/sim/src/movement/path.rs`) now reads the cell first.
 
 The only caller that passes both flags is `valid_wcoord`. The others pass
 `param_6` only through a transport-flagged path top, as the original does.
@@ -2801,7 +2801,7 @@ else                                   -> 0      ; 68389a
 
 The decompile says the same (`astar_path@00683770:119-127`), and so does
 §2's table row. This crate carried the first term only
-(`Sim::no_danger_mode`, `crates/sim/src/path.rs`). An army under an
+(`Sim::no_danger_mode`, `crates/sim/src/movement/path.rs`). An army under an
 attack-to therefore priced its own city's negative danger. Near who=1's
 city that makes a step up to 56 cheaper, which is enough to open the
 straight road north for `1/58`.
@@ -2930,7 +2930,7 @@ So **`army = military && !worker && !is_attacking && !river`**, with
 strafe, too). A unit marching under an `ATTACK_TO` is still an army (§22's
 correction stands); a unit standing on its attack is not. The group plan's
 forced arm (`706190`, a group with an army) sets the flag before the call
-and is untouched. Built in `Sim::army_mode` (`crates/sim/src/path.rs`);
+and is untouched. Built in `Sim::army_mode` (`crates/sim/src/movement/path.rs`);
 `GroupAttackOrder` is not modelled in this crate, so the arm reads
 `Body::Attack` and `Body::Strafe`.
 

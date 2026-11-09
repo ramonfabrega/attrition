@@ -4401,7 +4401,7 @@ the Barracks' building group at each command (`CommandPackage::
 process_group@0094a0c0`, `0x94a6cf`; §32's standing row) and the squad's
 push. Without the first, the Hoplites take slot 1 (ours) against 0
 (theirs): slot 0 is `last_group`'s. **Built**: `Sim::come_out` pushes
-the squad (`crates/sim/src/garrison.rs`), and
+the squad (`crates/sim/src/units/garrison.rs`), and
 `Sim::push_command_buildings` seats a one-building command group through
 `push_building_group` before the eject, the build mask and the queue-up
 (`crates/rondata/src/input.rs`). The pool widening reads a building group

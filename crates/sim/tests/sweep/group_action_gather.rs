@@ -43,7 +43,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // **The port is the crate's own steps**, `crate::action_gather_view::action_gather_steps`,
             // over a view of the emulated original's windows; the crate has no `Group::action_gather`
             // to call (see that module's head).
-            use crate::action_gather_view::{GarrisonHead, GatherView, action_gather_steps};
+            use crate::action_gather_view::{ActionGatherView, GarrisonHead, action_gather_steps};
             const SEQ_AT: [(usize, usize, usize); 15] = [
                 (1, 32, 12),
                 (2, 44, 12),
@@ -123,7 +123,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     self.rec(0, "m+0x0", &[]);
                 }
             }
-            impl GatherView for V<'_> {
+            impl ActionGatherView for V<'_> {
                 fn list_clear(&mut self) {
                     self.rec(12, "sp-0xa20", &[-1]);
                 }

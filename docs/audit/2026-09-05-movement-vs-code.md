@@ -22,7 +22,7 @@ stated; three rows below are the *document* being wrong and the code right.
 | difference shows | a modern-infantry unit's per-frame `x_internal`/`y_internal` delta: 4/5 of the original's on every walking frame, so the two sides part on the first frame such a unit walks, and `myspeed` in the same `UNITDATA` record would agree while the step did not — which is the signature of a `do_move` scale rather than a pipeline one. **UNSURE** whether any capture reaches the true arm: the corpus is openings and the predicate wants `unit_flags & 0x100` at age 6 or later |
 | reached | reached — `UnitData::is_modern_infantry@00607b40` is cited by address in `docs/audit/2026-08-20-movement.md` and is **not** on the blind list, so traced games do enter it. That is expected: `do_move` asks it on every step. What no capture is known to reach is its **true** arm |
 
-`crates/sim/src/movement.rs:490`–`492` repeats the claim in `move_step`'s own
+`crates/sim/src/movement/mod.rs:490`–`492` repeats the claim in `move_step`'s own
 docstring: "`step` is what `do_move` hands in: `get_speed` for the unit's
 square, times the modern-infantry 5/4 where it applies." The predicate itself
 exists — `Sim::is_modern_infantry` at `crates/sim/src/form.rs:417`, `unit_flags
@@ -37,7 +37,7 @@ questions ("`crates/sim` treats it as 1") and so is not a row; the 5/4 is not.
 | | |
 |---|---|
 | document | MOVEMENT.md "The body step", `:477`–`478` — "`elif domain == sea or order is SPECIAL_ANIM:` / `stopped = 0   # turn, but leave the animation`" |
-| code | `crates/sim/src/anim.rs:1273`–`1276` (`fn guy_follow_anim`) |
+| code | `crates/sim/src/units/anim.rs:1273`–`1276` (`fn guy_follow_anim`) |
 | document says | a sea unit standing on its destination but still owed a turn comes out of the arm **unstopped** |
 | code does | `if … Domain::Sea { self.units[u].guys[g].stopped = true; return; }` — marks it **stopped** |
 | difference shows | no sim divergence: the code is right and the document is wrong. Settled against `Guy::move@005d9240` in the decompile — the arm is `if ((*(int *)(… + 0x218) == 1) || (OVar3 = UnitData::order_type(this_00), OVar3 == SPECIAL_ANIM)) { this->field_0x9d = 1; }`, and `field_0x9d` is the same byte the settled arm writes 1 and the walk arm writes 0. Were the document followed, a ship arriving and still turning would re-request `CHAR_DEFAULT` on the frame after (the arrival's `anim == WALK && stopped` gate), spending an idle roll and a `Guy::set_anim` draw the original does not — visible in a `UNITS`/trace window on any docked-ship arrival (run22's dock window) |
@@ -54,7 +54,7 @@ is noted here only so a later pass does not read the omission as a code gap.
 | | |
 |---|---|
 | document | MOVEMENT.md `:777`–`780` — "`GuyData::get_speed` is `UnitData::get_speed(body x, body y, 1)` — the body's tile, and **flag 1, so the group cap never applies to the body** — plus nine … `crates/sim` feeds the body the same speed input as the unit; the `+9` and the cap difference are not modelled" |
-| code | `crates/sim/src/lib.rs:3184` (`fn process_follower`) → `crates/sim/src/movement.rs:803` |
+| code | `crates/sim/src/lib.rs:3184` (`fn process_follower`) → `crates/sim/src/movement/mod.rs:803` |
 | document says | the difference between the body's speed and the unit's is exactly two things: the `+9` and the group cap |
 | code does | `let speed = self.units[i].movement.speed;` — the **cached** layer-1/2 value (`Sim::type_speed`, `crates/sim/src/rares.rs:172`), not `Sim::get_speed`. So a crew figure's `(speed × 11) / 8` misses the action scale (×9/8 / ×10/8) and the river halving as well |
 | difference shows | a tracked crew figure's own `GUY` `x`/`y` in a per-frame `UNITDATA` window, on any frame its leader is under an `ATTACK` or `GUARD` action or standing on a `0x800` tile at `z <= 0`: the sim's figure steps `11/8 × moves` where the original steps `11/8 × (9/8 × moves)` or `11/8 × (moves/2)`. Divergence is immediate — one frame — and then compounds until the Manhattan snap. No capture is known to reach it: run56's scout and run67's merchant are on plain ground under a plain move, which is why `run56_s_figures_stand_where_the_original_s_do` and `run67_s_window_is_every_figure_s_whole_record` both pass |
@@ -76,7 +76,7 @@ for a crew figure's speed at all.
 | | |
 |---|---|
 | document | MOVEMENT.md `:543`–`546` — "The two arms above the turn are `Guy::move`'s own `set_anim` callers, and the second of them — the **turn arm** — is not modelled yet … What it costs to land is in the queue" |
-| code | `crates/sim/src/anim.rs:1261`–`1279` (`fn guy_follow_anim`) |
+| code | `crates/sim/src/units/anim.rs:1261`–`1279` (`fn guy_follow_anim`) |
 | document says | a body that has arrived but has not come round to the order's angle is not put back on the walk here |
 | code does | it is: the arm is implemented, guard and all — the sea/`SPECIAL_ANIM` branch first (R2), then `if anim != TURN_LEFT && anim != TURN_RIGHT && anim != ATTACKWALK { self.guy_set_anim(u, g, WALK, false, true); }` and `stopped` cleared |
 | difference shows | no observable — the document lags the code |
@@ -87,7 +87,7 @@ for a crew figure's speed at all.
 | | |
 |---|---|
 | document | MOVEMENT.md `:547`–`550` — "`Guy::do_turn` overrides the walk with `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` whenever the guy's piece has a turn animation (`guy_flags & 8`, `Guy::init_real@005db6b0:179`), which this crate does not model at all" |
-| code | `crates/sim/src/anim.rs:803`–`819` (`fn guy_do_turn_anim`), reached from `crates/sim/src/lib.rs:3086`, `crates/sim/src/lib.rs:3208` and `crates/sim/src/orders.rs:2808` |
+| code | `crates/sim/src/units/anim.rs:803`–`819` (`fn guy_do_turn_anim`), reached from `crates/sim/src/lib.rs:3086`, `crates/sim/src/lib.rs:3208` and `crates/sim/src/orders.rs:2808` |
 | document says | neither the override nor `guy_flags & 8` is in the crate |
 | code does | both are: `if to == was || !self.guy_turns(u, g) { return; }` is the `guy_flags & 8` gate, and the sign of `heading − was` picks `TURN_RIGHT` or `TURN_LEFT` |
 | difference shows | no observable — the document lags the code |
@@ -139,38 +139,38 @@ found, by name or inlined, in the code cited beside it.
 converter is applied (`crates/sim/src/lib.rs:2038`, `crates/sim/src/rares.rs:172`
 — `type_speed` starts from `t.moves`); there is no `unit_move_speed` slot in
 `Tuning` at all, which is the identity converter written down as an absence.
-The floor of 3 is `movement::SPEED_FLOOR` (`crates/sim/src/movement.rs:416`)
+The floor of 3 is `movement::SPEED_FLOOR` (`crates/sim/src/movement/mod.rs:416`)
 and is applied last, after the cap, in both `Sim::get_speed`
 (`crates/sim/src/orders.rs:624`) and `movement::group_capped`
-(`crates/sim/src/movement.rs:424`) — which is the original's order at
+(`crates/sim/src/movement/mod.rs:424`) — which is the original's order at
 `00608720`.
 
 **Angles.** The four cardinals and `Angle::INITIAL = 0x55555555`
-(`crates/sim/src/movement.rs:59`–`67`), y increasing southward (`find_angle`
-negates `dy` first, `crates/sim/src/movement.rs:131`), and `Angle::INITIAL`
+(`crates/sim/src/movement/mod.rs:59`–`67`), y increasing southward (`find_angle`
+negates `dy` first, `crates/sim/src/movement/mod.rs:131`), and `Angle::INITIAL`
 actually installed on a fresh unit (`crates/sim/src/lib.rs:398`–`401`) rather
-than only defined. `degrees_to_angle` (`crates/sim/src/movement.rs:102`) is the
+than only defined. `degrees_to_angle` (`crates/sim/src/movement/mod.rs:102`) is the
 decomposition, three units per complete five degrees included, and
 `degrees_to_angle(20)` is `SLOW_TURN_BELOW + 1` so a 20° type is not slow.
 
 **`find_angle`.** Both axis early-outs, `t = lo * 0x4000 / hi`, the
 straight-line correction `0x2800 − |0x1333 − t| × 0xb00 >> 14`, the `& ~0x3fff`
 mask, the `× 4`, and all eight octant placements
-(`crates/sim/src/movement.rs:128`–`165`). The 0.94% overshoot at 45° is pinned
+(`crates/sim/src/movement/mod.rs:128`–`165`). The 0.94% overshoot at 45° is pinned
 as a test rather than corrected.
 
 **The sine table.** 256 pinned integers with `[255] == 65535` and `[128] ==
-46482` (`crates/sim/src/movement.rs:181`); the byte-wide `(idx + 1) & 0xff`
+46482` (`crates/sim/src/movement/mod.rs:181`); the byte-wide `(idx + 1) & 0xff`
 wrap and the `wrapping_mul` the axis angles depend on
-(`crates/sim/src/movement.rs:229`–`235`); the mirror `0x7fffffff − a` in the
+(`crates/sim/src/movement/mod.rs:229`–`235`); the mirror `0x7fffffff − a` in the
 *caller* and the bit-30 branch deliberately not modelled
-(`crates/sim/src/movement.rs:243`–`256`); negative angles handled by negating
+(`crates/sim/src/movement/mod.rs:243`–`256`); negative angles handled by negating
 the distance; `cos` as `sin` a quarter turn later
-(`crates/sim/src/movement.rs:276`); and all three precision paths with the
-shift split at 65535 and 2^24 (`crates/sim/src/movement.rs:262`–`268`).
+(`crates/sim/src/movement/mod.rs:276`); and all three precision paths with the
+shift split at 65535 and 2^24 (`crates/sim/src/movement/mod.rs:262`–`268`).
 
 **The unit step.** Every line of the pseudocode at MOVEMENT.md `:344`–`376` is
-in `movement::move_step` (`crates/sim/src/movement.rs:524`–`620`) in the
+in `movement::move_step` (`crates/sim/src/movement/mod.rs:524`–`620`) in the
 original's order: heading before the turn; `slow` from `type_turn_speed <
 SLOW_TURN_BELOW`; the near gate `manh < slow × 192` **or** the waypoint's
 `TURN_FIRST` (read off the top of the path stack at
@@ -187,29 +187,29 @@ not clear). The `unit_masks & 0x100000` one-shot half step is a stated seam in
 both.
 
 **The body step.** `movement::body_follow`
-(`crates/sim/src/movement.rs:699`–`721`) writes `last_speed = 0` **first** in
+(`crates/sim/src/movement/mod.rs:699`–`721`) writes `last_speed = 0` **first** in
 the at-des branch and the caller feeds that zero to the rate
 (`crates/sim/src/lib.rs:3066`–`3072`, `if was_at_des { 0 } else { … }`), which
 is the instant standing turn; guy 0 snaps with `last_speed =
 vector_dist(dx, dy)` and never chases; the idle turn is gated on `guy_flags &
 2` (`turned`) and on `facing != heading`; the average is `(3a + s) / 4`
 truncating toward zero, skipped on the tracked branch's turn-gate return
-(`crates/sim/src/movement.rs:796`–`797`). The tracked branch's whole
+(`crates/sim/src/movement/mod.rs:796`–`797`). The tracked branch's whole
 arithmetic — `find_angle`, the mode-1 turn, `2 × rate < owed` giving the frame
 up, `(speed × 11) / 8`, `last_speed` overwritten by `vector_dist` on the snap,
 the per-axis clamps, the world check leaving everything else written — is
-`movement::follower_step` (`crates/sim/src/movement.rs:786`–`821`) and
+`movement::follower_step` (`crates/sim/src/movement/mod.rs:786`–`821`) and
 `crates/sim/src/lib.rs:3211`–`3220`.
 
 **The follower's destination.** The rotation's swapped axes — `track.0` into
 `y` then `x` a quarter on, `track.1` a quarter and a half on — and the
-`0 ..= bound − 1` clamp (`crates/sim/src/movement.rs:742`–`755`); the crew
+`0 ..= bound − 1` clamp (`crates/sim/src/movement/mod.rs:742`–`755`); the crew
 loop's three writers and, crucially, the *third* case where nothing is written
 (`!was_at_des || !facing_settled` at `crates/sim/src/lib.rs:3114`–`3117`);
 `Unit::set_angle`'s own crew write at the top of the step, from guy 0's
 position and the **heading** (`crates/sim/src/group.rs:1361`–`1368`); the snap
 flag teleporting the crew, and `Unit::set_new_location` having **no** early
-return for an unchanged position (`crates/sim/src/collide.rs:354`–`416`, item
+return for an unchanged position (`crates/sim/src/movement/collide.rs:354`–`416`, item
 210). `off_x`/`off_y` are treated as the constant zero they are. A tracked crew
 guy's rate is the flat `CREW_TURN_SPEED` ahead of every other test
 (`crates/sim/src/lib.rs:3191`), and a trackless one shares guy 0's body
@@ -223,12 +223,12 @@ with the comment naming the same observable the document does.
 **Turning.** `(type_turn_speed >> 8) × 256`, the pack doubling by `×2`, the
 instant `0x80000000` ahead of the mode test, mode 1 returning the base, mode 0
 dividing by `avg_speed / 4 + 1` and flooring at `256 × 0xb60b`
-(`crates/sim/src/movement.rs:340`–`364`); `Tuning::RON` carrying 256 and 2
-(`crates/sim/src/tuning.rs:787`–`788`), and `UNIT_TURN_SPEED` checked as an 8.8
-slot (`crates/sim/src/tuning.rs:1136`). `turn_towards`'s three-degree
+(`crates/sim/src/movement/mod.rs:340`–`364`); `Tuning::RON` carrying 256 and 2
+(`crates/sim/src/core/tuning.rs:787`–`788`), and `UNIT_TURN_SPEED` checked as an 8.8
+slot (`crates/sim/src/core/tuning.rs:1136`). `turn_towards`'s three-degree
 tolerance, its snap when the rate covers the debt, the short way round, and the
 bitwise-NOT magnitude that comes out one short
-(`crates/sim/src/movement.rs:395`–`410`). `instant_from_stop` derived from the
+(`crates/sim/src/movement/mod.rs:395`–`410`). `instant_from_stop` derived from the
 type — not a packing type, `FOOT`/`MOUNTED`/`TRANSPORT`, and not `CART` — in
 `sim::turning_of` (`crates/sim/src/lib.rs:468`–`479`), and `packed` read off
 the unit rather than the type at both call sites

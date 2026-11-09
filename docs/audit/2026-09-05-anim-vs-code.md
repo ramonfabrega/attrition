@@ -24,7 +24,7 @@ reaches them. Each says whether anything on disk reaches it.
 | | |
 |---|---|
 | document | ANIM.md §5, "`step = 1  (2 under guy_flags & 4 with an ATTACK2 playing; 0 while unit_masks2 & 0x10)`" |
-| code | `crates/sim/src/anim.rs:1151` (`fn guy_inc_time`) — `let step = 1u32;` |
+| code | `crates/sim/src/units/anim.rs:1151` (`fn guy_inc_time`) — `let step = 1u32;` |
 | document says | a unit carrying `unit_masks2 & 0x10` steps its guys' clocks by **zero** that frame: `last_time = cur_time`, `cur_time` unchanged, and no wrap |
 | code does | steps by one always. The one line of comment above it (`anim.rs:1149-1150`) accounts only for the `guy_flags & 4` doubling; the zero arm is not mentioned in the code at all, and §9's "the sim leaves all three off" covers `guy_flags` bits 0x2/0x4/0x20 — not this one |
 | difference shows | `GUY` `cur_time` / `last_time` of a unit in melee, on the frame it holds: the sim's clock is one higher, and any wrap it owns lands one frame early — which is a `Guy::set_anim+0x97a < Guy::inc_time+0x271` draw on the wrong frame. Nearest capture with both combat and `GUYS`: `gamelog-run44-islands-turners.txt` (the 452 turn-animation guy-frames of §4.7 are the same window), and `gamelog-run17-combat.txt` / `gamelog-run25-islands-emergency-window.txt` |
@@ -67,7 +67,7 @@ This is the ANIM row of the shape the lane is looking for.
 | | |
 |---|---|
 | document | ANIM.md §4.2, "a captain (`o_up < 0`, every standalone unit) whose piece has a `GROUP_IDLE2` animation skips the roll one frame in sixteen, `(frame + 0x2e + o) & 15 == 0`" |
-| code | `crates/sim/src/anim.rs:919-923` (`fn guy_set_anim`) |
+| code | `crates/sim/src/units/anim.rs:919-923` (`fn guy_set_anim`) |
 | document says | three conditions: captain, the sixteen-frame phase, and the packet naming `CHAR_GROUP_IDLE2` |
 | code does | five: those three, plus `g == 0` and "the guy is not already playing a `GROUP_IDLE`". Here the **code is right and the document is short** |
 | difference shows | nothing — the gate can never fire (§3.2: no shipped `<UNIT>` entry names a `CHAR_GROUP_IDLE2`), so no capture separates the two readings. Dead path |
@@ -97,7 +97,7 @@ document, not the code.
 | | |
 |---|---|
 | document | ANIM.md §4 step 1 lists the idle-category return, the walk-category `des` return with its rewind, and the general same-category return. It does not name this one anywhere in §4 or §9 |
-| code | `crates/sim/src/anim.rs:883-886` (`fn guy_set_anim`) — `else if who >= 8 && anim == WALK && cur_cat == 8 && guy.cur_time < guy.end_time { return; }` |
+| code | `crates/sim/src/units/anim.rs:883-886` (`fn guy_set_anim`) — `else if who >= 8 && anim == WALK && cur_cat == 8 && guy.cur_time < guy.end_time { return; }` |
 | document says | (nothing) |
 | code does | an owner-8-or-9 unit asked for `CHAR_WALK` while already on the walk category and inside its length returns before every later test — which is what stops a gaia walker's coin being re-thrown outside a wrap |
 | difference shows | a bird's `Guy::set_anim+0x104b` coin count. Without the return a bird would spend a wing-beat coin on every walk request rather than only on a wrap, so the falsifier is the per-frame draw count in `rontrace-run14.log` around frame 96 (§6's bird wrap) — but the code has it and the original has it, so nothing on disk *differs*. The exposure is a later editor deleting an undocumented branch |
@@ -129,7 +129,7 @@ fourth early return.
 | | |
 |---|---|
 | document | ANIM.md §4 step 1, which enumerates the early returns and stops at the walk category |
-| code | `crates/sim/src/anim.rs:870-882` — the `anim == DEFAULT && !force` block has arms for `cur_cat == 0` and `cur_cat == 8` and no third |
+| code | `crates/sim/src/units/anim.rs:870-882` — the `anim == DEFAULT && !force` block has arms for `cur_cat == 0` and `cur_cat == 8` and no third |
 | document says | (nothing) |
 | code does | (nothing) — an idle request on a guy currently on `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` with an unsettled angle falls through to the roll and **spends a draw** |
 | difference shows | a `Guy::set_anim+0x97a` draw the original does not spend, on any frame a guy that actually *plays* a turn animation is asked to idle. `gamelog-run44-islands-turners.txt` is the capture: §4.7 counts 452 guy-frames of `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` there over nine `(who, o, slot)` combinations, types 134/265/266 |
@@ -169,7 +169,7 @@ scored capture that has a Pikeman, a Catapult or a Trebuchet in it.
 | | |
 |---|---|
 | document | ANIM.md §4 step 3, "category 12 with the third argument: one draw, `p < 30 → ATTACK1`, `p > 70 → ATTACK3`, else `ATTACK2`" |
-| code | `crates/sim/src/anim.rs:938-952` (`fn guy_set_anim`) |
+| code | `crates/sim/src/units/anim.rs:938-952` (`fn guy_set_anim`) |
 | document says | the three thresholds and nothing after them |
 | code does | the three thresholds and nothing after them |
 | difference shows | the `GUY` `cur_anim` of an attacking unit whose piece names `CHAR_ATTACK2` but not `CHAR_ATTACK1`/`CHAR_ATTACK3` — the original plays `ATTACK2`, this crate would play the missing slot and take `MISSING`'s three frames for its `end_time`, wrapping 3 frames in instead of the animation's length. No capture reaches it: the harness's runs have no fights (§9) |
@@ -197,7 +197,7 @@ sentence is already written twice elsewhere in the document.
 | | |
 |---|---|
 | document | ANIM.md §5, "a non-looping one (`Lumberjack Dump`, `Miner Dump`, the attacks, the deaths, pack/unpack) falls to `DEFAULT` and draws" |
-| code | `crates/sim/src/anim.rs:216` — `(ATTACKWALK..=24).contains(&anim) \|\| anim == DUMP_WOOD \|\| anim == DUMP_ORE` |
+| code | `crates/sim/src/units/anim.rs:216` — `(ATTACKWALK..=24).contains(&anim) \|\| anim == DUMP_WOOD \|\| anim == DUMP_ORE` |
 | document says | six families, none of them slot 10 |
 | code does | the range starts at `ATTACKWALK` = 10, so slot 10 is non-looping. The function's **own** doc-comment (`anim.rs:202-204`) lists "the attacks, deaths, turns, pack/unpack and the two dumps" and does not name it either, so the code disagrees with its own docstring as well as with §5 |
 | difference shows | nothing observable. Both wrap arms end in a call that cannot draw for slot 10 — looping would be `set_anim(ATTACKWALK, 0, 1)` (category 10, its own, no roll) and non-looping is `set_anim(WALK, 0, 1)` (category 8, no roll) — so only the resulting `cur_anim` differs, and no capture has a unit on `CHAR_ATTACKWALK` (§4.9: the slot is never passed by this crate) |
@@ -216,7 +216,7 @@ chosen to start at the attacks and picked up slot 10 by arithmetic.
 | | |
 |---|---|
 | document | ANIM.md §4 step 2, "A variant the packet lacks falls back to `DEFAULT` (`:546–554`)" |
-| code | `crates/sim/src/anim.rs:934-936` — `if v != DEFAULT && guy.gpiece >= 0 && !self.packet_has(u, guy.gpiece, v) { v = DEFAULT; }` |
+| code | `crates/sim/src/units/anim.rs:934-936` — `if v != DEFAULT && guy.gpiece >= 0 && !self.packet_has(u, guy.gpiece, v) { v = DEFAULT; }` |
 | document says | one trigger: the packet does not name the slot |
 | code does | the same one trigger |
 | difference shows | the `GUY` `cur_anim` of a unit carrying `unit_masks & 0x2000000` after any idle roll above 69 — the original takes `CHAR_DEFAULT`, this crate takes the rolled variant and runs a different length, so the *next* wrap (and its draw) lands on a different frame. The draw itself is already spent, so the stream does not part on that frame — the `GUY` record does. No capture is known to carry the bit; a `UNITS=3` dump prints `unit_masks`, so `grep` over the corpus would settle whether one exists |
@@ -245,7 +245,7 @@ suggests a "no animations" object flag rather than a gameplay one.
 | | |
 |---|---|
 | document | ANIM.md §1 names `guy_flags` bit 0x80 as the scholar bit; §5 spares a scholar from the garrison gate. Neither section, nor §4, states what the bit does inside `set_anim` |
-| code | `crates/sim/src/anim.rs:864` (`let cur_cat = category(guy.anim);`) and `:901` (`let target_cat = category(anim);`) — no remap |
+| code | `crates/sim/src/units/anim.rs:864` (`let cur_cat = category(guy.anim);`) and `:901` (`let target_cat = category(anim);`) — no remap |
 | document says | (nothing) |
 | code does | (nothing) |
 | difference shows | a scholar's `GUY` `cur_time`: with the remap, a scholar asked for one work slot while playing another (both above 0x18) takes the same-category early return and **keeps its clock**; without it the clock is reset to zero and the animation restarts. The falsifier is a `GUYS=4` window over a university with a scholar inside it — §5 already notes a scholar's clocks keep running while garrisoned. No capture on disk has one |
@@ -278,7 +278,7 @@ decides whether a scholar's roll picks a variant at all. The crate reads
 | | |
 |---|---|
 | document | ANIM.md §4.9, "`CHAR_ATTACKWALK` is not passed either; no capture has a unit stepping with a target" — which disclaims *passing* it, not the arm that receives it |
-| code | `crates/sim/src/anim.rs:861-900` — `guy_set_anim`'s head has no `ATTACKWALK` arm |
+| code | `crates/sim/src/units/anim.rs:861-900` — `guy_set_anim`'s head has no `ATTACKWALK` arm |
 | document says | (nothing about the arm) |
 | code does | (nothing) |
 | difference shows | a `UNITDATA` field and a slot, not a draw: the original's arm zeroes `UnitData+0xae` (or rewrites the request to `CHAR_WALK` once the counter has reached six) on the frame a moving unit first acquires a target. `Guy::move@005d9240:110` is the caller that produces it — `cavarch_o >= 0 && type+0x2b4 & 0x200000` — so the capture that would show it is any trace with a mounted/chariot type stepping while it has a target; none of the scored games has one |

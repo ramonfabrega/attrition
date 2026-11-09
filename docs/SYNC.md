@@ -405,7 +405,7 @@ rotation and, from ring 4 up, a phase) plus **one per cell** that is in its
 own region and not really seen. Ten draws on run20 and on the fuzzed map,
 twenty-four on the Great Lakes.
 
-`docs/SCOUT.md` is the mechanic, `crates/sim/src/scout.rs` the
+`docs/SCOUT.md` is the mechanic, `crates/sim/src/units/think/scout.rs` the
 implementation. Two things belong here rather than there: the ring count
 depends on `frame % 8` (so this site's cost changes every eight frames),
 and the cell count depends on the **fog grid**, which only a `DUMP_ALL`
@@ -748,7 +748,7 @@ the orbit, and it is a limit cycle — perturbing a bird's initial heading by
 one unit leaves its position 1,700 frames later unchanged to the unit.
 
 **The arithmetic is single-precision, and is done in integers.**
-`crates/sim/src/single.rs` reproduces `addss`/`subss`/`mulss`/`divss`,
+`crates/sim/src/num/single.rs` reproduces `addss`/`subss`/`mulss`/`divss`,
 `cvtdq2ps`, `cvtdq2pd`+`cvtpd2ps` and `cvttss2si` exactly, each checked
 against the host's own float over random bit patterns. The constants are
 `0xb69680` = 55, `0xb69490` = 0.33, `0xb694c0` = 0.5, `0xb695c0` = 2,
@@ -2353,7 +2353,7 @@ struck through and point there.
   the sheep with the scale variant `o % 3`; the scout's idle is 41 or 61,
   the citizen's 33, the sow 47), and worth 12 of sim-frame 100's 18 draws
   and 2 of 101's 21.~~ **Done, 2026-08-24 —
-  `docs/ANIM.md`, `crates/sim/src/anim.rs`.** The clock, the wrap's roll,
+  `docs/ANIM.md`, `crates/sim/src/units/anim.rs`.** The clock, the wrap's roll,
   `init_real`'s, the arrival, the mirror, the animals as units of owner 8
   with the wander; the lengths and pieces as the `Art` input read out of
   the dumps (the variant is `(seed + o) % 3` for gaia, the gender bit `o &

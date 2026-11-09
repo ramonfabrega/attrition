@@ -14220,7 +14220,7 @@ cell. The cells are not refcounted and nothing sets them back but the
 sixty-fourth-frame repaint, which marks the **new** disc (size 2) — so
 the old rim is gone and the inner cells are holes until then. This crate
 re-seated the figures (`reinit_guys`, `seat_guys`) and cleared nothing.
-`Sim::coll_kill_crew` (`crates/sim/src/collide.rs`) is that clear, called
+`Sim::coll_kill_crew` (`crates/sim/src/movement/collide.rs`) is that clear, called
 first in `Sim::unit_set_type`; `collide_here` then reads the original's
 block and the sweep of 12541 takes (609, 414) and the soft group-mate.
 
@@ -17478,7 +17478,7 @@ it whole. Each claim is *diff-backed* unless marked.
    §18.1), not `find_wpath`'s. `can_transport` is `unit_masks & 0x800000` without `unit_masks2 & 0x2000`, or the type's
    `+0x2b4 & 0x10`; the Freighter's `unit_masks` carries 0x800000. *Listing-backed*; the diff confirms it on its one frame.
 
-**Built.** `Sim::find_tpath` (`crates/sim/src/path.rs`) runs its pull-back walk only when `unit_domain_of(u) != Air &&
+**Built.** `Sim::find_tpath` (`crates/sim/src/movement/path.rs`) runs its pull-back walk only when `unit_domain_of(u) != Air &&
 !unit_can_transport(u)` — `find_upath`'s own predicate. Unit test `path::tests::a_transport_keeps_a_tile_goal_in_another_region`:
 a goal two regions over is kept by a unit that can transport and walked toward its own region by one that cannot.
 
@@ -17670,7 +17670,7 @@ position on 2164. Each claim is *diff-backed* unless marked.
    then reaches `CollCheck::move_unit(old, spot)` through `Guy::set_new_location@005d86f0`, clearing the old disc's cells
    farther than `coll_size` from the spot. *Export-backed*; the bit's clear on 1113 is the diff. `docs/COLLISION.md` §25.
 
-**Built.** `Sim::coll_come_out` (`crates/sim/src/collide.rs`), from `land_passenger` (`crates/sim/src/transport.rs`) with
+**Built.** `Sim::coll_come_out` (`crates/sim/src/movement/collide.rs`), from `land_passenger` (`crates/sim/src/transport.rs`) with
 the body's point as it was aboard. Unit test `transport::tests::a_passenger_put_ashore_clears_the_disc_it_boarded_from`.
 
 **What it moved.** The word **2166 → 2288**, count and sequence: ours 38 game draws against 39, index 34, ours
@@ -17935,7 +17935,7 @@ claim is *diff-backed* unless marked.
    guard with the move, idled the boat (`Unit::do_idle+0x7d`, the 2995 word's extra draw) and never landed.
 
 **Built.** `Roles::general_upgrade_preq` (loaded from rows 89–91, `rondata::load`) and `Sim::general_upgrade_level`
-(`crates/sim/src/supply.rs`); the `GENERAL_UPGRADE` constant is gone from `cast.rs`, and `hero_radius`, `cast_march`,
+(`crates/sim/src/territory/supply.rs`); the `GENERAL_UPGRADE` constant is gone from `cast.rs`, and `hero_radius`, `cast_march`,
 `cast_create_decoy`'s limit and a decoy's life read the leader's level. The hero terms of `Sim::type_speed`
 (`rares.rs`), `Sim::unit_hits` (`cast.rs`) and `Sim::unit_los` (`vision.rs`, with `Tuning::general_upgrade_los`,
 `GENERAL_UPGRADE_LOS` 2). `do_move`'s pack arm asks `Sim::near_marching_hero`, and its unreachable-goal arm kills once
@@ -19027,7 +19027,7 @@ export; the loop's break test is `region == region && (domain != 1 || invalid_lo
 `SEAM`, the clause for a sea unit). The goal (31896, 44952) is a shore tile of the boat's own sea: the region matches, the tile refuses, so the
 original steps it back one 0x180 before the A* runs and plans to the stepped-back point; this crate planned to the goal itself, which put the
 A*'s diagonal one cell further west (the tie's other side) and the final waypoint 380 units short in a different row. **Built**: the loop's
-condition now carries the second clause for a sea unit (`crates/sim/src/path.rs`, `find_wpath_from`).
+condition now carries the second clause for a sea unit (`crates/sim/src/movement/path.rs`, `find_wpath_from`).
 
 **Value diff beside the word.** `run788_s_word_frame_is_widened_whole` (blocks 2832..3088): **833 → 163 keys**; every `1/122` row
 (`pos`, `path[0].to`, `order:length`, `orders_x`, `idle`, `order:move.*`, `path_recursion`, `last_x/y`) agrees; run780's window is unmoved (136).
@@ -19275,7 +19275,7 @@ flagged, the unit walks to the shore, stops there on 3130, and the army's cast p
 the bit and pushes it back. Walk-held: run788's window 151 → 149 keys (`1/27`'s two rows), run799's `1/27` rows gone after 3131 and **the word 3131 →
 3188** (`mongol_pair::`; the floors and the diff walks that reach a refusal with a flagged top moved nothing else).
 A mutation (the hand-down block removed) fails `run788_s_word_frame_is_widened_whole` (151 against 149) and `mongol_pair_first_parting` (3131).
-`crates/sim/src/path.rs` also builds the **can-transport goal re-push** (`astar_path@00683770:586`–`613`, the old `SEAM`): on the work-cap drain
+`crates/sim/src/movement/path.rs` also builds the **can-transport goal re-push** (`astar_path@00683770:586`–`613`, the old `SEAM`): on the work-cap drain
 arm, a nearest node still across the shore from the goal (`needs_transport`) for a unit that `can_transport` pops the stack top and pushes it
 back with `flags |= 4`. **No capture walks it** (the BMP's search arrives at 1,176 probes, under the cap of 3,200): it is the
 listing's, not a diff's.
@@ -21637,7 +21637,7 @@ Space Program (`ai_sites::sees_every_unit`). Ours holds the Space Program at 556
 `0x10800`, and `sees_every_unit` true; false at 3894). `was_really_seen_fog` took only the first two tests. Its own
 comment called the other two seams, and §152 carried them as not established.
 
-**Built**: `Sim::was_really_seen_fog` (`crates/sim/src/scout.rs`) asks `Sim::sees_every_unit` before the grid. It
+**Built**: `Sim::was_really_seen_fog` (`crates/sim/src/units/think/scout.rs`) asks `Sim::sees_every_unit` before the grid. It
 is the one read behind the scout's two scans, `PathFinder::calc_cost`'s unexplored cost, the goody box, the
 merchant's spot, the placement check and the census.
 
@@ -26133,7 +26133,7 @@ The Cruiser is a pivot piece with three `<RESTRICTION name="Cruiser">` rows (nod
 no row for piece 279. Its turrets therefore bore from the hull, and its rounds left through `launch::launch_point`'s
 unmeasured branch. On `CHAR_ATTACKWALK`, `CHAR_ATTACK1` and `CHAR_ATTACK2` (the bits are the same on all three),
 there is one release per turret: node 0 on frame 10, node 1 on 12 and node 2 on 15. `get_position@0090b750` bears
-each release from pivot `(node & 3) + 4`. **Built** (`crates/sim/src/pivot.rs`): `NODES` (279, 4/5/6), `RDATA_SCALE`
+each release from pivot `(node & 3) + 4`. **Built** (`crates/sim/src/data/pivot.rs`): `NODES` (279, 4/5/6), `RDATA_SCALE`
 (279, 9/10), and nine `RELEASES` rows. `pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_279` checks the sweep's cells (item 3519's
 journal). **The two halves carry different things.** Without the `RELEASES` rows the
 word holds at 3921 (190 keys); without the `NODES` rows it falls back to 3778 (751). So the turrets' bearings (their node bits, and the release they gate) are
@@ -26239,7 +26239,7 @@ bound for `0/3`:
 | `1/23` | (9569, 31152, 750) | (9617, 31210) | (7122, 30513, 753) | t 2/**6**, ours 7 |
 | `1/52` | (8817, 30322, 788) | (8852, 30346) | (7169, 30512, 753) | t 2/4 |
 
-**Built** (`crates/sim/src/pivot.rs`), 3518's shape on piece 166. From run1155c's packet, `get_position.py …
+**Built** (`crates/sim/src/data/pivot.rs`), 3518's shape on piece 166. From run1155c's packet, `get_position.py …
 entries 166` reads 73 entries, `RData +0x88` 1.1. `NODES` gets `(166, 4, (0, 11.14))` and `RDATA_SCALE` gets
 `(166, 11/10)`. `RELEASES` gets thirty-two rows: `CHAR_ATTACKWALK`, `CHAR_ATTACK1`, `CHAR_ATTACK2` and
 `CHAR_ATTACK3`, each at frames 3, 9, 12, 17, 20, 22, 24 and 29. The two events on 29 carry the same bits. Unlike the
@@ -26311,7 +26311,7 @@ on 3239 from the unit's own square (8808, 30648), 1,823 from its landing, and fl
 striking on 3243. The draws agree through 3270, so the launch frame is theirs'. Blocks 3180 (`0/2004`, `1/49`'s round)
 and 3204 (`0/13`, `1/31`'s) are the same shape (3530a): every late round is a rifle's.
 
-**Built** (`crates/sim/src/launch.rs`): piece **1143** (`87 + 3 × 0x160`, the Asian art style) in `BAYS`. run1155c's
+**Built** (`crates/sim/src/data/launch.rs`): piece **1143** (`87 + 3 × 0x160`, the Asian art style) in `BAYS`. run1155c's
 packet (`get_position.py … entries 1143`) holds three `AttachPos` rows, node 0 at 18 of `CHAR_ATTACK1`, 4 of `2` and
 16 of `3`, scale 1.0; each row's sweep is reproduced at all 361 headings, x and y, by the centroid of its exact
 region (62, 160 and 57 lattice points): `right` 17 058, 4 863 and −2 310, `fwd` 180 195, 179 398 and 161 815 (in
@@ -28140,7 +28140,7 @@ not reached is zeroed again on every frame until its first cell is written. The 
 undone on 5575 itself for every region still waiting. This crate cleared `bordering` this way already
 (`advance_border_pass`) but zeroed the rares once, at the fix.
 
-**The build**: `Sim::zero_region_rares` (`crates/sim/src/border_pass.rs`), called beside `clear_bordering` for
+**The build**: `Sim::zero_region_rares` (`crates/sim/src/territory/border_pass.rs`), called beside `clear_bordering` for
 a region at index 0. `check_borders`' zero-once stays, since it is the pass's first frame. The block's
 `+0x145e` short has no field here. Test: `a_census_inside_the_pass_is_undone_for_the_regions_still_waiting`.
 Mutations through `tools/mutate.py`, removing the call: **held** on `egyptian_classical_pair_first_parting`
@@ -29374,7 +29374,7 @@ So either (H1) the Dromon model's node 0 sits further forward, or (H2) a moving 
 points with `y` 31.88 model units lower: (0.04, −50.04, 14.03), (−0.296, −2.42, 14.03) and (0.460, −24.88, 14.02),
 at the same `RData +0x88` 0.78. **H1 holds and H2 is killed**: the lead belongs to the model, not to the movement.
 
-**Built** (`crates/sim/src/launch.rs`): nine `BAYS` rows for piece 274, frames 2, 10 and 17 of anims 10, 11 and
+**Built** (`crates/sim/src/data/launch.rs`): nine `BAYS` rows for piece 274, frames 2, 10 and 17 of anims 10, 11 and
 12. Each is the model point × 4.8 × 0.78, `right = −s·x` and `fwd = −s·y` in thousandths, `dz` 52 over the
 water. `sweep 274 0 10 <t>` under unicorn checks each row at all 361 whole degrees: frames 10 and 17 reproduce
 every heading as derived, and frame 2's region is three lattice points, with (−148, 187 348) its middle.
@@ -29450,7 +29450,7 @@ round reads. `fit_bay.py` on each attack key's 361-heading sweep finds **piece 4
 anywhere but its `sx, sy` and `sz − z`. It did not fire. All three are exact in x, y and height (163, 163, 164)
 at their own facings.
 
-**Built** (`crates/sim/src/launch.rs`): three `BAYS` rows for piece 825 at 473's centroids.
+**Built** (`crates/sim/src/data/launch.rs`): three `BAYS` rows for piece 825 at 473's centroids.
 `run1270_s_inca_archers_loose_from_piece_825_s_bays` holds the three dumped launches. Mutation
 (`tools/mutate.py --patch`, the three rows renamed to piece 9825): **held**, cargo 101. Four tests fail:
 `inca_classical_pair_first_parting`, `…_run1260_s_closing_state`, `…_run1269_s_word_frame_is_widened_whole` and
@@ -30173,7 +30173,7 @@ form on all 4 × 92,416 cells but one (`CHAR_ATTACK3` at `(307, 187)`,
 its `float_lands`); the nine dumped Horde rounds are cells of it (the
 journal).
 
-**Built.** `crates/sim/src/pivot.rs`: `NODES` `(153, 4)`, `RELEASES`
+**Built.** `crates/sim/src/data/pivot.rs`: `NODES` `(153, 4)`, `RELEASES`
 for piece 153's four keys. Tests
 `the_original_s_release_agrees_on_every_cell_for_piece_153` (the
 packet's table, `$RON_RELEASE_TABLE_153`, outside git) and
@@ -30376,7 +30376,7 @@ frames counting it down (4863..4868), gains `attempts` 3 and re-paths on
 `1/213` collide differently.
 
 **The hypothesis for the next item.** `Sim::roll_upath_retry`
-(`crates/sim/src/path.rs`) writes `retry` into the unit's front order, and
+(`crates/sim/src/movement/path.rs`) writes `retry` into the unit's front order, and
 `do_move`'s refused-line branch (`crates/sim/src/orders.rs`, the `r == 0`
 arm with a non-final top: `mo.has_waypoint = false; self.store_move(u, mo,
 flags)`) stores back its copy `mo`, taken before the search, over it. The
@@ -32778,7 +32778,7 @@ lines **are fielded** (`rubric.py --dumps` over run1338 and run1338b):
     the hurt figure below an unhurt captain. Its sparkle draws
     `internal_random` only for the console's allies.
   - Built as `Sim::ceo_heal` and `Sim::repair_unit_damage`
-    (`crates/sim/src/heal.rs`), called beside the civilian heal.
+    (`crates/sim/src/units/heal.rs`), called beside the civilian heal.
 
 **The value diff:**
 
@@ -32821,7 +32821,7 @@ keys, rounds (166, 191), 52 parting.
 (`RON_STATE_FRAME` 5619), run1359b (5677, the wrong frame) and run1359c
 (5678), run1337's lobby; no new window.*
 
-**Piece 167's bays** (`crates/sim/src/launch.rs`). The Greyhound (TY
+**Piece 167's bays** (`crates/sim/src/data/launch.rs`). The Greyhound (TY
 217, `GREYHOUND-DEFAULT-AGE0`, `armoredscoutcar_na.bh3`) is not a pivot
 piece: no `<RESTRICTION>` names it, and its `turret_angles` are 0 on
 `GUYS=4`. Its sixteen rows are node 0 at `CHAR_ATTACKWALK` and
@@ -34955,7 +34955,7 @@ with every count 0, nothing torn, off, unlinked or extra, and `Closing fields: n
   file is in `<NONLOOPING>` (34 turn-named files, every one looping). `sim::anim::non_looping` had decided by slot
   name, "the attacks, deaths, turns, pack/unpack and the two dumps", and the turns were wrong.
 
-**The build.** `non_looping` drops `CHAR_TURN_LEFT` and `CHAR_TURN_RIGHT` (`crates/sim/src/anim.rs`), and
+**The build.** `non_looping` drops `CHAR_TURN_LEFT` and `CHAR_TURN_RIGHT` (`crates/sim/src/units/anim.rs`), and
 `rondata::artdata`'s `every_turn_slot_names_a_looping_file` holds the install to it: 546 rows, none non-looping,
 the packed Trebuchet's on its wagon's walk. Restoring the old rule (`tools/mutate.py`) fails both that test and
 `french_medieval_pair_first_parting`, `…_run1393b_s_word_frame_is_widened_whole` and `…_run1393_s_closing_state`.
@@ -35092,7 +35092,7 @@ packet) hold its 27 entries, bit for bit the same. Those are the three pivots at
 the pivot node's entry `((node & 3) + 4)` and the release node's. `CHAR_ATTACK1`'s and `CHAR_ATTACK2`'s bits
 differ (the x component's sign), so there are six rows, each with its own sweep.
 
-**What was built** (`crates/sim/src/pivot.rs`): three `NODES` rows, a `RDATA_SCALE` row and six `RELEASES` rows.
+**What was built** (`crates/sim/src/data/pivot.rs`): three `NODES` rows, a `RDATA_SCALE` row and six `RELEASES` rows.
 Each row's `float_lands` comes from `get_position.py … pivot 299 <node> <anim> <time> 3` on run1165, which covers
 361 facings × 256 turret steps a row. The exact integer form disagrees on 6, 8, 4, 13, 8 and 5 cells; those are
 the float lists.
@@ -35180,10 +35180,10 @@ both lines on the field. `get_position.py … entries`:
   of `3`.
 
 **What was built.**
-- `crates/sim/src/pivot.rs`: piece 200's `NODES` row, its `RDATA_SCALE` (4/5) and three `RELEASES` rows. The
+- `crates/sim/src/data/pivot.rs`: piece 200's `NODES` row, its `RDATA_SCALE` (4/5) and three `RELEASES` rows. The
   original's pivot branch (`pivot 200 0 <anim> <time> 1`, 92,416 cells a row) agrees with the integer form on
   277,244 of 277,248 cells. The four left are all on `CHAR_ATTACK1`, and they are its `float_lands`.
-- `crates/sim/src/launch.rs`: piece 90's three `BAYS`, each fitted by `fit_bay.py` to its sweep (114, 396 and 254
+- `crates/sim/src/data/launch.rs`: piece 90's three `BAYS`, each fitted by `fit_bay.py` to its sweep (114, 396 and 254
   lattice points, 361 of 361 headings; the centroid kept). Their heights are 120, 146 and 139, and ours' round
   left 146 low on `CHAR_ATTACK2`.
 
@@ -35535,7 +35535,7 @@ The byte is the Whales arm's: Aluminum is mask bit 24 (byte 3, bit 0), and Whale
 `rules.xml` ships `ALUMINUM_AIR_SPEED` at 25. `Leader::calc_unit_stats` already re-speeds every unit when a rare is
 gained, so the arm needs no new caller.
 
-**Built**: `crates/sim/src/rares.rs` (`speed_of`) and `crates/sim/src/tuning.rs` (`aluminum_air_speed`, the
+**Built**: `crates/sim/src/rares.rs` (`speed_of`) and `crates/sim/src/core/tuning.rs` (`aluminum_air_speed`, the
 `ALUMINUM_AIR_SPEED` slot). Test: `rares::tests::aluminum_speeds_the_aircraft_and_nothing_else`.
 
 **The score: 4586 → 5304 of 5304, closed**, count and sequence. Every other lobby's `first_parting` holds (101 of

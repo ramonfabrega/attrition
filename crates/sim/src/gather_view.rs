@@ -1,6 +1,6 @@
 //! **`Group::action_gather_point@006ff1b0`'s steps** (item 3358): the
 //! rally-point command over a group of buildings, as a pure walk over a
-//! [`GatherView`] (the swept steps read the world only through it, so the
+//! [`GatherPointView`] (the swept steps read the world only through it, so the
 //! sweep's port is a view over the emulated original's windows and the
 //! crate's is [`SimGather`]; `docs/PRODUCTION.md`, "The gather point").
 //!
@@ -45,7 +45,7 @@ pub(crate) const MSG_GROUND: i32 = 0x8584;
 
 /// What `Group::action_gather_point` asks of the group, its members and the
 /// world. `H` names a member (the original's short in the group's array).
-pub(crate) trait GatherView {
+pub(crate) trait GatherPointView {
     type H: Copy;
 
     /// The first line: `(**this + 0x14)()`, its answer ignored.
@@ -111,7 +111,7 @@ pub(crate) trait GatherView {
 /// A live building member, as every loop asks it: `alive_slot` then
 /// `is_building`, then neither a University nor a Missile Silo. `flag` picks
 /// the inside scan's `+8 & 1` read for the first.
-fn member_ok<V: GatherView>(v: &mut V, h: V::H, flag: bool) -> bool {
+fn member_ok<V: GatherPointView>(v: &mut V, h: V::H, flag: bool) -> bool {
     let alive = if flag {
         v.alive_flag(h)
     } else {
@@ -121,7 +121,7 @@ fn member_ok<V: GatherView>(v: &mut V, h: V::H, flag: bool) -> bool {
 }
 
 /// `Group::action_gather_point@006ff1b0(x, y, action, add_to_end)`.
-pub(crate) fn action_gather_point_steps<V: GatherView>(
+pub(crate) fn action_gather_point_steps<V: GatherPointView>(
     v: &mut V,
     mut x: i32,
     mut y: i32,
@@ -267,7 +267,7 @@ pub(crate) fn action_gather_point_steps<V: GatherView>(
     }
 }
 
-/// This crate's [`GatherView`]: `who`'s `members` (building indices), and the
+/// This crate's [`GatherPointView`]: `who`'s `members` (building indices), and the
 /// Airbases the flight has taken. Where the crate models less than the
 /// original: no console (the command prints nothing and pings nothing), no
 /// group `armed` flag (a group here is always armed), the group's refresh
@@ -281,7 +281,7 @@ pub(crate) struct SimGather<'a> {
     pub(crate) at: Pos,
 }
 
-impl GatherView for SimGather<'_> {
+impl GatherPointView for SimGather<'_> {
     type H = usize;
 
     fn refresh(&mut self) {}

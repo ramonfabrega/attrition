@@ -11975,7 +11975,7 @@ mod 32 to the even degree. The Bark `0/7` faces `1344339968`, byte 80, 112.5°, 
 `fast_angle_to_degrees` of the angle less a half turn gives 293, and only 113 puts the round at the dump's (12374,
 34898). `whole_degrees` is now that table's answer turned back by the half turn (`sim::pivot::release_rotation`).
 
-**Built** (`crates/sim/src/launch.rs`): nine Bark rows, one Catapult row, the Trireme's three replaced, and
+**Built** (`crates/sim/src/data/launch.rs`): nine Bark rows, one Catapult row, the Trireme's three replaced, and
 `whole_degrees`. `run835_s_barks_and_run843_s_catapult_leave_from_their_release_nodes` holds every distinct launch
 point of the three Barks (24 rows, five headings), the Trireme's four and the Catapult's, read off the dumps — the
 rows came off the packets, so the two are independent. It failed first on the half-way byte. Mutations
@@ -14390,7 +14390,7 @@ each `<RELEASEEVENT>` (node 0; frame 12 of `CHAR_ATTACKWALK` and `CHAR_ATTACK1`,
 `CHAR_ATTACK2` and 265 for `CHAR_ATTACK3`, the two dumped rounds' `sz − z` exactly; and at the dump's own turret
 step (4, the top byte of 73138176) each round's `(sx, sy)` is reproduced by its row and by no other step.
 
-**The fix** (`crates/sim/src/pivot.rs`). `RELEASES` gains piece 143's four rows, `RDATA_SCALE` its 0.9, `NODES`
+**The fix** (`crates/sim/src/data/pivot.rs`). `RELEASES` gains piece 143's four rows, `RDATA_SCALE` its 0.9, `NODES`
 its pivot node. That node is not a whole hundredth: `Node` carried hundredths, and −3.32 misses the original's
 `sweep 143 4 0 0` on 8 of 361 degrees (25°, 65°, 115°, …), so **`Node` now carries millionths** — the form
 `Release` already keeps — every existing row × 10⁴, and `offset_at` runs in `i128` (the Battleship's 117.49 passes
@@ -14538,7 +14538,7 @@ mechanism was booked.
   `total_time` is the plan distance over `dx`: 1001.6 / 500.8 = 2. Its round of 907 (`CHAR_ATTACK3`) is 1167.4 /
   389.1 = 3. Ours' 1133.7 from the square is 3.
 
-**The rows** (`crates/sim/src/launch.rs`, `BAYS`). run1451's `RON_STATE_FRAME=945` packet loads piece 752.
+**The rows** (`crates/sim/src/data/launch.rs`, `BAYS`). run1451's `RON_STATE_FRAME=945` packet loads piece 752.
 `get_position.py … entries 752` reads three attack `AttachPos` rows, all node 0: frame 6 of `CHAR_ATTACK1`, 25 of
 `CHAR_ATTACK2` and 23 of `CHAR_ATTACK3`, with `RData +0x88` 1.0. `fit_bay.py` fits each sweep over 361 of 361
 headings, and the centroids are kept:
@@ -15080,7 +15080,7 @@ time (`Unit::fight+0x9b0`) and ours walks the General `2/28`. On block 701 the G
   (TI 89, piece 39). Their stones leave bays in theirs: `0/19`'s of 713 at (16772, 15529, 699), flying 4. No `BAYS`
   row for piece 39.
 
-**The rows** (`crates/sim/src/launch.rs` `BAYS`, `crates/sim/src/pivot.rs` `NODES`, `RDATA_SCALE`, `RELEASES`).
+**The rows** (`crates/sim/src/data/launch.rs` `BAYS`, `crates/sim/src/data/pivot.rs` `NODES`, `RDATA_SCALE`, `RELEASES`).
 run1457's `RON_STATE_FRAME=700` packet fields all three pieces; `get_position.py … entries`:
 
 | piece | type | rows | `RData +0x88` | fit |
@@ -17407,7 +17407,7 @@ arm, now built (`crates/sim/src/air.rs`):
 A word fix showed the rest: `1/2006`'s `damage` parted on 863, ours 285.10 against theirs 289.14, the bombs
 missing. `Guy::execute_events@005d99c0` takes an order of kind `0x18` down the same arm as `0x17`, `ox = whom = −1`
 with the point read off the order. `guy_release_events` now gives an `AirAttackGround` order's point to
-`fire_ammo_ground` (`crates/sim/src/anim.rs`), the base's `+0xc` and `attack_unit` written 0.
+`fire_ammo_ground` (`crates/sim/src/units/anim.rs`), the base's `+0xc` and `attack_unit` written 0.
 
 **What this crate agrees with.** `ch17air` (run1505's `cover=0` twin) to its end, **1100**, and `ch17ag` (run1505b's)
 to its end, **1060**, no value part on either (`chapter_seventeen_air_holds_to_the_golden_word`,
@@ -17597,7 +17597,7 @@ trace frame 622: `Object::disband+0x415` = 12714 (`% 3` = 0, `dtype` 1), then `U
 twin, whose who=1 came up tribe 2 rather than 11 (`ai_tribe_requested` null), differed from frame 0. It was retaken with
 `--ai-tribe 11`, and the first is kept aside as `~/ron-golden/ch111b-tribe2`.
 
-**What this crate does.** `Sim::group_action_disband` and `Sim::disband_unit` (`crates/sim/src/disband.rs`) are the walk
+**What this crate does.** `Sim::group_action_disband` and `Sim::disband_unit` (`crates/sim/src/units/disband.rs`) are the walk
 and `Object::disband`'s unit arm. The death is `Sim::die_with`, `cast_sniper_unit`'s body (§115) made the shared
 `Object::die(o, dtype)`. The harness's `@key` adds an `OPTION_DISBAND` arm, `input::group_disband`: one pushed group and
 one `disband`, `all` 0. `trace::SITES` names `0x6459d5` as `sim::disband::SITE_DISBAND_DIE`. The walk's reach line now

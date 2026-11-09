@@ -993,3 +993,6 @@ impl Sim {
 
 #[cfg(test)]
 mod tests;
+
+// The files of `vision/` (item 4011, `docs/STRUCTURE.md` §3).
+pub mod wall_los_view;

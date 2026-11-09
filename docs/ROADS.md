@@ -1340,7 +1340,7 @@ call makes an element if there is none and takes one more reference either way: 
 caravan's `param`, `ref_count` otherwise. It sets the element's `element_num` to the C4 piece (`Roads +0xdc`, 55 in the
 packet). The tile then notes the pair in `support_codes`: `0x8000 | 0x4000`, with `0x1000`/`0x800` for the first
 neighbour (vertical or horizontal, and which way) and `0x400`/`0x200` for the second. The table is
-`Sim::corner_pieces` (`crates/sim/src/mesh.rs`), in the listing's order. Each block re-reads the tile's flags, and none
+`Sim::corner_pieces` (`crates/sim/src/movement/mesh.rs`), in the listing's order. Each block re-reads the tile's flags, and none
 of the ten writes them.
 
 **The release.** `clear_support` has three arms, not one. `0x8000` gives one reference back to the neighbour that

@@ -945,3 +945,18 @@ pub fn follower_step(
 
 #[cfg(test)]
 mod tests;
+
+// The files of `movement/` (item 4011, `docs/STRUCTURE.md` §3).
+pub mod astar_view;
+pub mod collide;
+pub mod detect_collision_view;
+pub mod detour;
+pub mod find_path_view;
+pub mod mesh;
+pub mod path;
+pub mod place_roads_view;
+pub mod roads;
+pub mod roads_view;
+pub mod tpath;
+pub mod upath;
+pub mod wpath;

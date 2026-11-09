@@ -420,9 +420,14 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// `foo/<name>.rs` behind `#[cfg(test)] mod <name>;` at the same place,
 /// every test name kept. `largest` 14222 → 13437 (−785): `orders.rs`'s
 /// seven test modules left it, its production untouched.
+///
+/// Item 4011: `flat` 203 → 128 (−75): the first ten directories of
+/// `docs/STRUCTURE.md` §3 — `core/`, `num/`, `world/`, `mapgen/`,
+/// `territory/`, `vision/`, `units/`, `units/think/`, `movement/`,
+/// `data/` — took 75 root files, each by `git mv`.
 #[cfg(test)]
 pub const STRUCTURE: [(&str, u64); 6] = [
-    ("flat", 203),
+    ("flat", 128),
     ("test-tails", 0),
     ("sweep-lines", 17_255),
     ("names", 130),
