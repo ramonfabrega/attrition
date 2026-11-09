@@ -11,6 +11,7 @@ pub mod heal;
 pub mod remove_inside_view;
 pub(crate) mod set_type_adapter;
 pub mod stance;
+pub mod store;
 pub mod think;
 pub mod unit;
 pub mod unit_set_type_view;
