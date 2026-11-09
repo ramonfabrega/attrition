@@ -213,6 +213,7 @@ pub use self::mapgen::terrain_groups;
 pub use self::mapgen::terrain_init;
 pub use self::world::terrain;
 pub mod territory;
+pub mod trace;
 pub use self::ai::transport;
 pub use self::cities::unit_unqueue_view;
 pub use self::combat::unit_attack_view;
@@ -6925,21 +6926,6 @@ impl Sim {
             .into_iter()
             .map(|si| usize::try_from(si).map_or(-1, |si| city_of[si]))
             .collect();
-    }
-
-    /// Records the stream's word *before* the phase named runs, so the
-    /// draws between two marks belong to the earlier one. Nothing at all
-    /// unless [`Sim::trace_phases`] is set.
-    ///
-    /// `Sim::tick` marks its phases and each unit the loop visits; a
-    /// **mechanic** may mark its own draw sites on top of that, under the
-    /// original's own offsets (`crate::scout` is the first), which is what
-    /// turns the fold from a count into a sequence comparable with
-    /// `rondata::trace`'s.
-    pub(crate) fn mark(&mut self, phase: &str) {
-        if self.trace_phases {
-            self.phase_marks.push((phase.to_string(), self.rng.seed));
-        }
     }
 
     /// `GameAccess::spelltypes[spell]` — the craft's row, or `None` when
