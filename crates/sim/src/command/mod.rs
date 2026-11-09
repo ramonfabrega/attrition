@@ -206,6 +206,11 @@ impl Command<'_> {
         self.sim.group_action_disband(g, all)
     }
 
+    /// [`Sim::group_action_disband_buildings`] (`units/disband.rs`).
+    pub fn group_action_disband_buildings(&mut self, list: &[usize], all: bool) -> usize {
+        self.sim.group_action_disband_buildings(list, all)
+    }
+
     /// [`Sim::group_action_flight`] (`groups/group/actions.rs`).
     pub fn group_action_flight(&mut self, g: &Group, target: Obj, kind: Flight) {
         self.sim.group_action_flight(g, target, kind)

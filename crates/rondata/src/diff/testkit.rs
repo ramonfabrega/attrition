@@ -7086,6 +7086,19 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_FOUR: i64 = 1400;
 /// window: run1549.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_FOUR: (i64, i64) = (604, 1401);
 
+/// **Chapter one hundred and thirty-five** (item 3994, `docs/GOLDEN.md`
+/// §187, run1552): run1498's lines with a Helicopter `0/13` in the
+/// selection and the attack on 700 — the General's stand-off takes the
+/// Helicopter's range (`GroupData::get_max_range@00711080` skips
+/// `is_plane` only) — then Delete on a finished Barracks `0/2007` (a
+/// queued `DISBAND`) and on an unfinished one `0/2008`
+/// (`Object::disband`), `Group::action_disband@0070e260`'s building arms.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_FIVE: i64 = 1250;
+
+/// `chapter_one_hundred_and_thirty_five_s_window_is_widened_whole`'s
+/// window: run1552.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_FIVE: (i64, i64) = (604, 1251);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);

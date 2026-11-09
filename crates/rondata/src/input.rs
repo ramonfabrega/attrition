@@ -1209,9 +1209,30 @@ pub fn group_stop_spell(built: &mut Built, who: i32, objects: &[i16]) -> usize {
 /// and one `disband` (0x15, `all` 0), processed as
 /// [`sim::Sim::group_action_disband`].
 ///
-/// Returns the number of units disbanded.
+/// Returns the number of members disbanded, or queued a `DISBAND`.
 pub fn group_disband(built: &mut Built, who: i32, objects: &[i16], all: bool) -> usize {
     let player = who as sim::Player;
+    // A selection of buildings is a building group (`+0x49`): the pump's
+    // `process_group` pushes it and `action_disband` takes its building
+    // arms (item 3994, `docs/GOLDEN.md` §187). `Options::do_disband`
+    // issues nothing when `validate_disband` refuses.
+    let buildings: Vec<usize> = objects
+        .iter()
+        .filter_map(|&o| built.sim.building_by_o(player, o))
+        .collect();
+    if !buildings.is_empty() {
+        if built.sim.disband_refused(&buildings) {
+            return 0;
+        }
+        built
+            .sim
+            .command()
+            .push_command_buildings(player, &buildings);
+        return built
+            .sim
+            .command()
+            .group_action_disband_buildings(&buildings, all);
+    }
     let mut g = sim::groups::group::Group::stack(player);
     for &o in objects {
         let unit = built

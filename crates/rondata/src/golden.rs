@@ -2684,6 +2684,11 @@ mod tests {
         // plane, and a flight home refused by ten homed planes (item 3991,
         // `docs/GOLDEN.md` §184).
         ("chapter134.cmd", &[]),
+        // Chapter one hundred and thirty-five: run1498's lines with a
+        // Helicopter in the selection, and `OPTION_DISBAND` on a finished
+        // Barracks and on an unfinished one, `select` and `@key` (item
+        // 3994, `docs/GOLDEN.md` §187).
+        ("chapter135.cmd", &[]),
         // Chapter fourteen: two `@form` issuer lines and a `@move`, the
         // formation line (item 723, `docs/GOLDEN.md` §22).
         ("chapter14.cmd", &[]),

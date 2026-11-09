@@ -17615,8 +17615,9 @@ off by one (`+ 2`) fails the widening alone, on the death objects' `cur_anim`. R
 call to `disband_unit`, fails both. Moving the `SITES` address failed nothing until the walk pinned its site sequence;
 it fails the walk now.
 
-**Not established.** The building arms: an unfinished building disbanded through the group, a finished one queued
-`DISBAND` (item 3918's Barracks is a `@queueup`, not this path), and `validate_disband`'s refusals. `OPTION_DISBAND_ALL` and a
+**Not established.** ~~The building arms: an unfinished building disbanded through the group, a finished one queued
+`DISBAND` (item 3918's Barracks is a `@queueup`, not this path), and `validate_disband`'s refusals.~~ Captured by
+chapter one hundred and thirty-five (§187); the refusals stay a reading. `OPTION_DISBAND_ALL` and a
 selection of two or more units: the walk is unit-tested, never captured. A unit holding passengers, and a unit off the
 map (`die(1, …)`, no draw). The captain's plunder arm (`+0x68 & 0x4000`), which a unit its owner disbands never carries.
 The second caller, `Leader::check_orphaned_buildings`, which is the AI's.
@@ -18490,8 +18491,8 @@ the golden start's four lobby fields, read back; `rngcmp` 1001 of 1001 identical
 **Not established.**
 - `action_air_patrol`'s split of a group with planes and non-planes (the planes recurse, the rest take
   `action_move_to`): a seam still, no staging here mixes a plane in.
-- `get_max_range` with a Helicopter member: built from the listing's vslot, no walked window reaches a group's
-  stand-off with an armed Helicopter in it (parked 3967a).
+- ~~`get_max_range` with a Helicopter member: built from the listing's vslot, no walked window reaches a group's
+  stand-off with an armed Helicopter in it (parked 3967a).~~ Walked by chapter one hundred and thirty-five (§187).
 - The `QUEUE_LAST` arm on a Helicopter's group (`update_patrol_order`), chapter one hundred and twenty's verbs.
 
 **Coverage.** Diff-backed: the hand-off predicate on a group with a Helicopter and no plane, and on a Helicopter alone;
@@ -19548,12 +19549,70 @@ regrown figure counts in the leader's `num_units` (`Unit::init`'s `set_type` run
 and run1545's `LEADERS=2` prints no count).
 
 
-## 187. Reserved for the next item on the rules track
+## 187. Chapter one hundred and thirty-five — a Helicopter's stand-off in a group attack, and Delete on a finished and an unfinished building; closed at 1250 (item 3994, run1552)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: parked 3967a (`GroupData::get_max_range@00711080` skips `is_plane` only, so an armed Helicopter's
+range counts toward a member's stand-off; held by no walk) and adjudication 2 row 48 (`Group::action_disband@0070e260`'s
+building arms, which §161 left unestablished). **The disk could not answer either**: chapter 111 is the only
+`OPTION_DISBAND` staging, and it is on a unit; no dump holds a group stand-off with an armed Helicopter (run1498 is
+the stand-off without one).
+
+**The staging** (`tools/gamelog/golden/chapter135.cmd`, run1498's lines, AI §382.4, with a General in the selection):
+- a Helicopter `0/13` (TI 310, armed, `RANGE 1-7`) joins every selection, and the attack moves 734 → 700 (at 734 the
+  General already stands inside the Helicopter's stand-off and would only stop);
+- 900 `add barracks` (`0/2007`, finished), 904 `select`, 906 `@key 124` (Delete);
+- 916 `library who=0 2` (the Barracks' prerequisite, as chapter 18), 920 a Citizen `0/14`, 922 `@build` a Barracks site
+  `0/2008`, 926 `select`, 928 Delete.
+
+Walked first on ch15's start (`RON_STAGE=ch15:chapter135:1250 RON_STAGE_ALL=1`): the first draft selected `0/2006`,
+a Market, and its `@build` was refused for want of The Art of War.
+
+**Killers, before the take. None fired.**
+1. On block 702 the General `0/9` (TI 54) holds `MOVEORDER` to (2904, 14328), about 1920 off the Chariot `1/6` at
+   (3192, 12408): (7 + 2) × 0xc0 + 0xc0 with the Helicopter's range, against 576 without it. Ours lays the same point.
+2. `0/2007` holds `666 DISBAND` from block 908 (`process_group new 0 1 907`, `process_disband 907`), counts 100 a
+   frame, reaches 16800 on 1075 and is gone on 1076, undamaged and with no death record.
+3. `0/2008`, placed on 923, is gone on 929 (`process_disband 929`).
+
+**The listing settles two arguments the decompile hides**: `action_disband`'s building gate is `count_queue(1, 0x29a)`
+then `count_queue(1, 0x286)` (`0x70e38e`, `0x70e3c6`), and `validate_disband`'s is `count_queue(1, 0x29a)`
+(`0x70a5e8`) — not "any queue". `Build::queue_up`'s second argument reaches only the library forward.
+
+```text
+action_disband, a building member:
+    not a plain building (vslot 0x20) or not active (0x4c):  Object::disband(o, 0)     # the site: gone at once
+    else, count_queue(1, 0x29a) == 0 and count_queue(1, 0x286) == 0:  queue DISBAND
+disband_time(building type):
+    train_time(type), and while the type's availability bit (+0x6c18, PlayerTech::tech) is clear
+    it takes its research block: the science catch-up, 42000 × 80 / 100 = 16800
+```
+
+**Built.**
+- `units/disband.rs` `group_action_disband_buildings`; `cities/queue_disband.rs` `disband_refused` (the arm calls the
+  crate's `queue_disband`); `rondata::input::group_disband` takes a building selection.
+- `disband_time` applies `research_tail`, factored out of the unit arm in `cities/queue.rs`. Ours ran 21000; built,
+  ours drops the Barracks on tick 1075, block 1076, as theirs.
+- Test: `units::disband::tests::delete_queues_a_disband_at_a_finished_building_and_razes_an_unfinished_one`.
+- Harness: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_FIVE`, its widening (`WANT_CH135`), the floors, and the
+  coverage driver (605..1250, 645 blocks).
+
+**The word**: **1250 of 1,250**, closed whole on the first take. The widening over 605..1250 parts 20 rows: run1498's
+eleven standing `form` rows; the Chariot's family from 809 — the Helicopter's first round, 12 damage on both sides,
+lands on theirs on 809 (`damage_frame 808`) and on ours on 810 (parked 3994a); and pool slot 2's `speed`/`new_speed`
+on 930, ours 0 and theirs 25, after the site's building group is pushed (parked 3994b). Nothing parts on the three arms.
+
+**Mutations** (`tools/mutate.py`, each against `chapter_one_hundred_and_thirty_five`; all held):
+- the Helicopter skipped in `group_max_range`: the word falls to 736 and the widening fails — 3967a's change is held;
+- the research arm dropped from `disband_time`: fails;
+- the two building arms swapped: the word falls to 1024;
+- the harness's building branch disabled: the word falls to 1024.
+
+**Not established**: a building selection of two or more and `OPTION_DISBAND_ALL`'s walk past a site; a building
+whose queue counts a `0x29a` or `0x286` entry when Delete lands (the refusals are read, not captured); the Helicopter's round a
+frame late (3994a) and pool slot 2's speed (3994b). No cover twin was taken.
+
+**Coverage.** Diff-backed: the stand-off point with an armed Helicopter, both building arms, the Disband clock's 16800
+and the razing frame. Reading only: the two `count_queue` refusals.
 
 ## 188. Reserved for the next item on the rules track
 
