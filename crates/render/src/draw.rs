@@ -16,6 +16,14 @@
 //! it owns. Nothing is culled to the screen: the original's clip planes
 //! (`Camera::compute_clip_planes@00842950`) are not read, so the list holds
 //! every figure on the map, off-screen ones at their off-screen pixel.
+//!
+//! **Buildings** (item 4035) enter as [`PlacedBuilding`], one per building
+//! in use, and leave as a [`Drawn`] whose [`Pose`] is a building's. A
+//! building is a sprite with a depth model, and `WallOut::draw@00641930`
+//! anchors it at `world_to_screen` of its point moved back half a tile on
+//! both axes when its `<BUILD>` says `halfoffset="1"`
+//! ([`PlacedBuilding::anchor_point`]); it draws an unfinished building only
+//! past a share of its construction ([`PlacedBuilding::drawn`]).
 
 use crate::camera::{Camera, Projected, Screen, world_to_screen};
 
@@ -59,11 +67,11 @@ pub struct Sight<'a> {
 }
 
 impl Sight<'_> {
-    fn sees(&self, p: &Placed) -> bool {
-        if p.who == self.viewer {
+    fn sees(&self, who: u8, x: i32, y: i32) -> bool {
+        if who == self.viewer {
             return true;
         }
-        let (fx, fy) = (p.x.div_euclid(self.cell), p.y.div_euclid(self.cell));
+        let (fx, fy) = (x.div_euclid(self.cell), y.div_euclid(self.cell));
         fx >= 0
             && fy >= 0
             && fx < self.xs
@@ -72,29 +80,151 @@ impl Sight<'_> {
     }
 }
 
-/// One figure the viewer sees, placed on the screen.
+/// One building in use, as the read door reports it
+/// (`sim::observe::BuildingScene`), with what `rondata` resolves from the
+/// install: its piece and its `<BUILD>`'s `halfoffset`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct PlacedBuilding {
+    pub who: u8,
+    pub o: i16,
+    /// The building's point and height, `SubObjectData::x_internal`,
+    /// `y_internal` and `z_internal`.
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
+    /// The `TypeIndex` it is now, and the one it was placed as.
+    pub type_index: i32,
+    pub orig_type: i32,
+    /// `WallData::gpiece`, the piece `GraphicPieces::get_build_gpiece`
+    /// chose; `-1` where none resolved.
+    pub piece: i32,
+    /// The `<BUILD>`'s `halfoffset`, `BuildRDataStruct::build_half_tcoord`
+    /// (0 or 1 in the install, and the same for every `<BUILD>` of one
+    /// `GRAPH`).
+    pub half_offset: i32,
+    /// `WallData::is_active`, and the share built when not:
+    /// `job_counter` of `BuildData::construct_time(0)`.
+    pub active: bool,
+    pub job_counter: i32,
+    pub construct_time: i32,
+}
+
+/// `TypeIndex` `0x1a1`, the farm: `WallOut::draw` draws it as a building
+/// only while it is unfinished, the inverse of every other type.
+pub const FARM: i32 = 0x1a1;
+
+/// `0x1a6`: a type `WallOut::draw` does not draw at all until it is
+/// finished.
+pub const DRAWN_ONLY_FINISHED: i32 = 0x1a6;
+
+/// `AIRDEFENSE`, `RADAR` and `SAM` (`0x20b`..`0x20d`): drawn as a model at
+/// the point, with no `halfoffset`.
+pub const MODELS_AT_THE_POINT: [i32; 3] = [0x20b, 0x20c, 0x20d];
+
+/// A half tile, in world units: `WallOut::draw` moves the point back
+/// `0x60 · halfoffset` on both axes.
+pub const HALF_TILE: i32 = 0x60;
+
+impl PlacedBuilding {
+    /// The share built, as `WallOut::draw` reads it: 1 for a finished
+    /// building, else `job_counter / construct_time(0)` in `float`.
+    pub fn share(&self) -> f32 {
+        if self.active {
+            1.0
+        } else {
+            (self.job_counter as u32 as f64 as f32) / (self.construct_time as f64 as f32)
+        }
+    }
+
+    /// **Whether `WallOut::draw@00641930` draws the building's piece.**
+    /// Its alpha starts opaque past 0.88 of the share, fades in from 0.84,
+    /// and is inverted for every type but the farm, so a building under
+    /// construction is drawn past 0.84 and a farm only below 0.88; a
+    /// `0x1a6` is not drawn before it is finished. `is_force_construction`
+    /// (a share of 0) is not read.
+    pub fn drawn(&self) -> bool {
+        let share = self.share();
+        let mut alpha: u8 = 0;
+        if share < 0.88 {
+            alpha = 0xff;
+            if share > 0.84 {
+                alpha = (((0.88 - share) * 25.0).min(1.0) * 255.0) as u8;
+            }
+        }
+        if self.type_index != FARM {
+            alpha = 0xff - alpha;
+            if share < 1.0 && self.type_index == DRAWN_ONLY_FINISHED {
+                return false;
+            }
+        }
+        alpha != 0 && self.piece >= 0
+    }
+
+    /// The point `WallOut::draw` projects: the building's own, moved back
+    /// half a tile on both axes when its `<BUILD>` says `halfoffset="1"`
+    /// (`0x60 · build_half_tcoord`, the listing at `00642033`–`0064207d`).
+    pub fn anchor_point(&self) -> (i32, i32, i32) {
+        let back = if MODELS_AT_THE_POINT.contains(&self.type_index) {
+            0
+        } else {
+            HALF_TILE * self.half_offset
+        };
+        (self.x - back, self.y - back, self.z)
+    }
+}
+
+/// What a drawn entry is: a figure with its pose, or a building.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Pose {
+    Figure {
+        /// The figure's index among its object's guys.
+        figure: u16,
+        slot: i8,
+        frame: u32,
+        facing: u32,
+    },
+    Building {
+        type_index: i32,
+        orig_type: i32,
+    },
+}
+
+/// One figure or building the viewer sees, placed on the screen.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Drawn {
     pub who: u8,
     pub o: i16,
-    pub figure: u16,
-    /// The pixel `world_to_screen` gives the figure's point.
+    /// The pixel `world_to_screen` gives the figure's point, or the
+    /// building's [`PlacedBuilding::anchor_point`].
     pub anchor: Projected,
-    /// The figure's depth in camera space, `render_matrix`'s third column:
-    /// larger is further from the eye. The list is ordered on it, furthest
-    /// first, ties by identity.
+    /// The depth in camera space, `render_matrix`'s third column: larger
+    /// is further from the eye. The list is ordered on it, furthest first,
+    /// ties by identity.
     pub depth: f32,
     pub piece: i32,
-    pub slot: i8,
-    pub frame: u32,
-    pub facing: u32,
+    pub pose: Pose,
 }
 
-/// The draw list of `placed` at `camera` on `screen` (`size` as
-/// [`world_to_screen`] takes it), as `sight`'s viewer sees it, or whole for
-/// `None`: furthest first.
+impl Drawn {
+    /// The figure's index, or `None` for a building.
+    pub fn figure(&self) -> Option<u16> {
+        match self.pose {
+            Pose::Figure { figure, .. } => Some(figure),
+            Pose::Building { .. } => None,
+        }
+    }
+
+    fn key(&self) -> (u8, i16, i32) {
+        (self.who, self.o, self.figure().map_or(-1, i32::from))
+    }
+}
+
+/// The draw list of `placed` and `buildings` at `camera` on `screen`
+/// (`size` as [`world_to_screen`] takes it), as `sight`'s viewer sees it,
+/// or whole for `None`: furthest first.
 pub fn draw_list(
     placed: &[Placed],
+    buildings: &[PlacedBuilding],
     camera: &Camera,
     screen: &Screen,
     size: Option<(i32, i32)>,
@@ -102,29 +232,47 @@ pub fn draw_list(
 ) -> Vec<Drawn> {
     let to_screen = camera.to_screen_matrix();
     let r = camera.render_matrix().0;
+    let depth = |x: i32, y: i32, z: i32| {
+        let (x, y, z) = (x as f32, y as f32, z as f32);
+        r[6] * y + r[2] * x + r[10] * z + r[14]
+    };
     let mut out: Vec<Drawn> = placed
         .iter()
-        .filter(|p| p.piece >= 0 && sight.is_none_or(|s| s.sees(p)))
-        .map(|p| {
-            let (x, y, z) = (p.x as f32, p.y as f32, p.z as f32);
-            Drawn {
-                who: p.who,
-                o: p.o,
+        .filter(|p| p.piece >= 0 && sight.is_none_or(|s| s.sees(p.who, p.x, p.y)))
+        .map(|p| Drawn {
+            who: p.who,
+            o: p.o,
+            anchor: world_to_screen(&to_screen, screen, p.x, p.y, p.z, size),
+            depth: depth(p.x, p.y, p.z),
+            piece: p.piece,
+            pose: Pose::Figure {
                 figure: p.figure,
-                anchor: world_to_screen(&to_screen, screen, p.x, p.y, p.z, size),
-                depth: r[6] * y + r[2] * x + r[10] * z + r[14],
-                piece: p.piece,
                 slot: p.slot,
                 frame: p.frame,
                 facing: p.facing,
-            }
+            },
         })
         .collect();
-    out.sort_by(|a, b| {
-        b.depth
-            .total_cmp(&a.depth)
-            .then((a.who, a.o, a.figure).cmp(&(b.who, b.o, b.figure)))
-    });
+    out.extend(
+        buildings
+            .iter()
+            .filter(|b| b.drawn() && sight.is_none_or(|s| s.sees(b.who, b.x, b.y)))
+            .map(|b| {
+                let (x, y, z) = b.anchor_point();
+                Drawn {
+                    who: b.who,
+                    o: b.o,
+                    anchor: world_to_screen(&to_screen, screen, x, y, z, size),
+                    depth: depth(b.x, b.y, b.z),
+                    piece: b.piece,
+                    pose: Pose::Building {
+                        type_index: b.type_index,
+                        orig_type: b.orig_type,
+                    },
+                }
+            }),
+    );
+    out.sort_by(|a, b| b.depth.total_cmp(&a.depth).then(a.key().cmp(&b.key())));
     out
 }
 
@@ -177,7 +325,7 @@ mod tests {
     #[test]
     fn the_target_anchors_at_the_centre_and_nothing_without_a_piece_draws() {
         let placed = [fig(0, 0, 9552, 10320, 7), fig(0, 1, 9552, 10320, -1)];
-        let list = draw_list(&placed, &camera(), &SCREEN, Some((1920, 1080)), None);
+        let list = draw_list(&placed, &[], &camera(), &SCREEN, Some((1920, 1080)), None);
         assert_eq!(list.len(), 1);
         let a = list[0].anchor;
         assert!((a.x - 960).abs() <= 1 && (a.y - 540).abs() <= 1, "{a:?}");
@@ -188,7 +336,7 @@ mod tests {
         // At `dir` 45 the eye sits toward +x +y of its target, so the
         // figure at smaller x + y is the further one — and the higher up.
         let placed = [fig(0, 0, 8000, 8000, 1), fig(0, 1, 12000, 12000, 1)];
-        let list = draw_list(&placed, &camera(), &SCREEN, None, None);
+        let list = draw_list(&placed, &[], &camera(), &SCREEN, None, None);
         assert_eq!(list.iter().map(|d| d.o).collect::<Vec<_>>(), [0, 1]);
         assert!(list[0].depth > list[1].depth);
         assert!(list[0].anchor.y < list[1].anchor.y, "further is higher up");
@@ -210,9 +358,62 @@ mod tests {
             fig(0, 2, 100, 500, 1), // explored only
             fig(1, 3, 500, 500, 1), // the viewer's own, in the unseen cell
         ];
-        let list = draw_list(&placed, &camera(), &SCREEN, None, Some(&sight));
+        let list = draw_list(&placed, &[], &camera(), &SCREEN, None, Some(&sight));
         let mut drawn: Vec<_> = list.iter().map(|d| d.o).collect();
         drawn.sort();
         assert_eq!(drawn, [1, 3]);
+    }
+
+    fn building(type_index: i32, active: bool, job: i32, half: i32) -> PlacedBuilding {
+        PlacedBuilding {
+            who: 1,
+            o: 2000,
+            x: 9552,
+            y: 10320,
+            z: 0,
+            type_index,
+            orig_type: type_index,
+            piece: 51000,
+            half_offset: half,
+            active,
+            job_counter: job,
+            construct_time: 1000,
+        }
+    }
+
+    #[test]
+    fn a_building_anchors_half_a_tile_back_when_its_build_says_so() {
+        assert_eq!(building(414, true, 0, 0).anchor_point(), (9552, 10320, 0));
+        assert_eq!(building(414, true, 0, 1).anchor_point(), (9456, 10224, 0));
+        // The three drawn as a model at the point take no offset.
+        assert_eq!(building(0x20c, true, 0, 1).anchor_point(), (9552, 10320, 0));
+        let list = draw_list(
+            &[],
+            &[building(414, true, 0, 1)],
+            &camera(),
+            &SCREEN,
+            Some((1920, 1080)),
+            None,
+        );
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].figure(), None);
+        // Back on both axes is toward the far corner: up the screen.
+        assert!(list[0].anchor.y < 540, "{:?}", list[0].anchor);
+    }
+
+    #[test]
+    fn an_unfinished_building_is_drawn_past_0_84_and_a_farm_only_before_0_88() {
+        assert!(building(414, true, 0, 0).drawn());
+        assert!(!building(414, false, 0, 0).drawn());
+        assert!(!building(414, false, 840, 0).drawn());
+        assert!(building(414, false, 841, 0).drawn());
+        assert!(building(414, false, 900, 0).drawn());
+        assert!(!building(FARM, true, 0, 0).drawn());
+        assert!(building(FARM, false, 500, 0).drawn());
+        assert!(!building(FARM, false, 900, 0).drawn());
+        assert!(!building(DRAWN_ONLY_FINISHED, false, 990, 0).drawn());
+        let mut none = building(414, true, 0, 0);
+        none.piece = -1;
+        assert!(!none.drawn());
     }
 }

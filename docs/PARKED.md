@@ -15786,13 +15786,24 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DP — reserved
+## Parked by item 4035, 2026-11-09 — buildings in the draw list
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4035a. A building's height in the damage step is read live.** `combat/fight/stats.rs:531` and `:560` take a
+  building's `z` as `World::object_z` of its tile now. The original's `z_internal` is the ground after the
+  building's own terraform at placement, and a later terraform does not move it: run1429's Factory `1/2026` keeps
+  185 from frame 1583 while its tile reads 214 from 2186 (`docs/RENDERER.md` §3.5). `Building::z` carries the
+  original's value since item 4035, and nothing in combat reads it. Names no score: every word is whole, and no
+  dump on disk is known to part on it. It books when a frame parts on a shot's height at a building whose tile a
+  neighbour's terraform moved. The start's buildings take the setup block's `z_internal`, so a capital is not the
+  case.
+- **4035b. `BuildData::max_age` is not kept.** The piece walk starts at it (`Wall::update_gpiece@00643070`), and
+  `BuildingScene::age` is the owner's ages owned. On the Aztec Modern lobby the two agree, an age held from the
+  start, and all 4,564 pieces are the dump's. A lobby where an age is gained mid-game, or a city captured from a
+  nation a different age, is where they could part. Names no score until the renderer's M takes such a lobby.
+- **4035c. A building's drawn set is a reading.** Both sides run `WallOut::draw`'s predicate on their own state.
+  Not read: `is_force_construction`, the caller's own gate on `WallOut::draw`, and what a viewer sees of a fogged
+  building it has seen before (`ever_seen`). Books with the viewer's check, `docs/RENDERER.md` §3.5's first open
+  question, which run1428's `seen` planes would start.
 
 ## Parked by the next landing, slot DQ — reserved
 

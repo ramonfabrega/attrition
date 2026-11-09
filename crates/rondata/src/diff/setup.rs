@@ -1223,6 +1223,18 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 .to_string(),
         );
     }
+    // A start building's own height is the setup block's `z_internal`
+    // (item 4035): the original's ground settled under the whole start,
+    // where standing the buildings up one by one leaves each on the ground
+    // as its own terraform left it, before its neighbours' (run1428's
+    // capitals: 536 and 284 against 546 and 274). Nothing in the
+    // simulation reads it; the renderer anchors a building on it.
+    for bd in sim.buildings.iter_mut().filter(|b| b.alive) {
+        let (who, o) = (i64::from(bd.owner), i64::from(bd.index));
+        if let Some(b) = init.builds.iter().find(|b| b.who == who && b.o == o) {
+            bd.z = b.pos.z as i32;
+        }
+    }
     Built {
         gaia_reseat_skip: None,
         correction_audit: None,

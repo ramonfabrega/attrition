@@ -19,6 +19,13 @@ pub struct Building {
     /// places it at the building's own position and then puts it inside, so
     /// every unit is born garrisoned and leaves by the ejection path.
     pub pos: Pos,
+    /// **Its own height**, `SubObjectData::z_internal`: the ground under
+    /// its centre ([`crate::World::object_z`]) as it stands once its own
+    /// terraform has run, at placement, and never rewritten after — a
+    /// later neighbour's terraform moves the tile and leaves the building
+    /// where it was (run1429's Factory `1/2026`: 185 from frame 1583, its
+    /// tile 214 from 2186; item 4035).
+    pub z: i32,
     pub queue: crate::cities::production::Queue,
     /// Whether this is a library — the original's `is(LIBRARY, 0)`. Two rules
     /// key on it and on nothing else: orders and cancels given to any library
@@ -241,10 +248,12 @@ impl Sim {
         let index = self
             .find_free(owner, BUILD_BASE, WALL_BASE)
             .expect("a player's building band is full");
+        let z = self.world.object_z(pos.tile());
         self.buildings.push(Building {
             owner,
             index,
             pos,
+            z,
             queue: crate::cities::production::Queue::new(capacity),
             is_library: false,
             combat: None,

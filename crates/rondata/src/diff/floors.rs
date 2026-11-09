@@ -481,6 +481,10 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// behind it, `ai/army/mod.rs` at 4007, gave `find_besieged_city`'s view and
 /// steps to `ai/army/besieged_view.rs` (4007 → 3721), which is now the
 /// largest.
+///
+/// Item 4035: `largest` unmoved at 3721. Its +5 (`init_build` takes
+/// `Building::z` at the push and after the building's own terraform) sits
+/// in `cities/city.rs`, 3600 → 3605, which is not the largest.
 #[cfg(test)]
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 7),
@@ -540,7 +544,7 @@ pub fn renderer_line() -> String {
     let (pieces, of_pieces) = crate::artdata::PIECES_DECODING;
     format!(
         "Renderer: K {} of M {RENDER_M} \u{b7} frames {frames} of {of_frames} \u{b7} pieces {pieces} of {of_pieces}",
-        RENDER_K.0
+        RENDER_K
     )
 }
 
