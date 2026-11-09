@@ -21637,7 +21637,7 @@ Space Program (`ai_sites::sees_every_unit`). Ours holds the Space Program at 556
 `0x10800`, and `sees_every_unit` true; false at 3894). `was_really_seen_fog` took only the first two tests. Its own
 comment called the other two seams, and §152 carried them as not established.
 
-**Built**: `Sim::was_really_seen_fog` (`crates/sim/src/scout.rs`) asks `Sim::sees_every_unit` before the grid. It
+**Built**: `Sim::was_really_seen_fog` (`crates/sim/src/units/think/scout.rs`) asks `Sim::sees_every_unit` before the grid. It
 is the one read behind the scout's two scans, `PathFinder::calc_cost`'s unexplored cost, the goody box, the
 merchant's spot, the placement check and the census.
 

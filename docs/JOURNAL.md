@@ -2205,7 +2205,7 @@ principle.
 
 `docs/SCOUT.md` (thirteen sections, the circle loader re-derived, the
 score's four multipliers, the region fallback read and explicitly not
-implemented), `crates/sim/src/scout.rs`, the wiring in `Sim::think`'s tail,
+implemented), `crates/sim/src/units/think/scout.rs`, the wiring in `Sim::think`'s tail,
 five tests in `sim::scout` and
 `run20_s_ai_scout_draws_ten_at_frame_0_in_four_rings` in `rondata::diff`.
 Frame 0 on run20 is **175/175** — the first frame-0 match the harness has
@@ -11629,7 +11629,7 @@ step 5 down that nothing had ever built. East Indies' long word moves
 **4462 → 4871**, count and sequence together, and the 409 frames in between
 are one AI Fisherman's walk from its Dock to a shoal of fish.
 
-**The mechanic**, in `docs/ORDERS.md` §6.8 and `crates/sim/src/fish.rs`: an
+**The mechanic**, in `docs/ORDERS.md` §6.8 and `crates/sim/src/units/think/fish.rs`: an
 idle fishing boat scores the 289 cells of the 17 × 17 around its own, keeps
 the ones that are water in its own `get_tregion` and not coastal
 half-land, and takes the best of `1_000_000 / manhattan` — a million if the
@@ -13796,7 +13796,7 @@ in `new_rares`, one of them in its own region, so the pick is `300 > 190`
 and each of the three terms could be wrong on its own. The `−10` step needs
 a third good, the danger term needs a war, the floor needs both, and the
 rotation needs the **second** merchant — which the original trains on 6571,
-one frame past the new word. Twelve tests in `crates/sim/src/merchant.rs`
+one frame past the new word. Twelve tests in `crates/sim/src/units/think/merchant.rs`
 carry what the capture cannot, including an eleven-deep list where the step
 and the bonus finally separate.
 

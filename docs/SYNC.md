@@ -405,7 +405,7 @@ rotation and, from ring 4 up, a phase) plus **one per cell** that is in its
 own region and not really seen. Ten draws on run20 and on the fuzzed map,
 twenty-four on the Great Lakes.
 
-`docs/SCOUT.md` is the mechanic, `crates/sim/src/scout.rs` the
+`docs/SCOUT.md` is the mechanic, `crates/sim/src/units/think/scout.rs` the
 implementation. Two things belong here rather than there: the ring count
 depends on `frame % 8` (so this site's cost changes every eight frames),
 and the cell count depends on the **fog grid**, which only a `DUMP_ALL`

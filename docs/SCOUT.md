@@ -880,7 +880,7 @@ run58's block 4314 holds as its `EXPLORE_TO`. With this arm the word is
 
 ## 12. What the simulation carries, and what checks it
 
-`crates/sim/src/scout.rs`:
+`crates/sim/src/units/think/scout.rs`:
 
 - `scout::circle::table()` — `circle_init` re-derived, built once behind a
   `OnceLock`. The tables live in `.bss` and are filled at startup, so there

@@ -20,7 +20,7 @@ whether a capture *exercises the branch*, not whether the function ran.
 | | |
 |---|---|
 | document | MERCHANT.md §2.2, "`if find_unit(at, SEARCH_FRIENDLY, who, 0x300, FILTER_NOT_ME(o, who), FILTER_TYPE(my type)) >= 0: continue`" and §2.2.1, "Both fold over the eight leaders' unit arrays, apply the same two `Search::valid_filter` gates" |
-| code | `crates/sim/src/merchant.rs:193`–`201` (`merchant_refused`'s `sibling` closure), used by both searches at `crates/sim/src/merchant.rs:202` and `:205` |
+| code | `crates/sim/src/units/think/merchant.rs:193`–`201` (`merchant_refused`'s `sibling` closure), used by both searches at `crates/sim/src/units/think/merchant.rs:202` and `:205` |
 | document says | the first two searches are `SEARCH_FRIENDLY` — and the document never says what that enumerator resolves to |
 | code does | `s.is_ally(who, x.owner)` — the candidate may belong to **any mutual ally**. The code's own comment at `merchant.rs:189`–`191` states the gloss outright: "mine and my allies', never me". The original's `SEARCH_FRIENDLY` is `Search::valid_search`'s **case 1**, `if ((Search *)param_2 != this) return 0` — the iterated leader must *be* the asker. Allies are `SEARCH_ALLIED` (case 4, `is_ally`), which this call site does not pass. |
 | difference shows | `UnitsSync` `orders_x`/`orders_y` on a merchant's first think, in a game where a leader has a mutual ally holding a merchant of the same `TypeIndex` near, or ordered at, one of the asker's `new_rares`. **No capture on disk reaches it** — run54/66/67/68 are East Indies 1-v-1 and run74 is Great Lakes 1-v-1, and neither AI has an ally with merchants. |
@@ -59,7 +59,7 @@ rests on the enumerator identification above. The third search,
 | | |
 |---|---|
 | document | MERCHANT.md §2.2, "`if not (g.ever_seen & (1 << who)): continue`" |
-| code | `crates/sim/src/merchant.rs:94`, `crates/sim/src/merchant.rs:228`–`231` (`good_ever_seen`), `crates/sim/src/scout.rs:285`–`294` (`was_really_seen_fog`) |
+| code | `crates/sim/src/units/think/merchant.rs:94`, `crates/sim/src/units/think/merchant.rs:228`–`231` (`good_ever_seen`), `crates/sim/src/units/think/scout.rs:285`–`294` (`was_really_seen_fog`) |
 | document says | the good object's own accumulated byte, tested against **one** bit — the asker's |
 | code does | reads `World::seen2` at the fog half-cell containing the good, and `was_really_seen_fog` masks with `ally_mask \| (1 << who)` (`scout.rs:292`) — so a rare **an ally saw and this leader never did** passes here and is refused there. It also returns `true` unconditionally when `who >= 8` or `reveal_map == 3` or the fog cell is off-grid (`scout.rs:286`–`291`), where the original would read a byte that is still zero. |
 | difference shows | `UnitsSync` `orders_x`/`orders_y` on the first think of a merchant belonging to a leader with an ally, or on any map started with `reveal_map == 3`. No capture on disk separates them: East Indies and Great Lakes are both 1-v-1 with fog, and every good the AI scores was seen by the AI itself. |
@@ -84,7 +84,7 @@ which no ini category on disk currently writes.
 | | |
 |---|---|
 | document | MERCHANT.md §4, the middle table row: "`is_rare_collector` **and `leader_flags & 4`** and packed, on `idle == 1` or every 32: `do_gather(search)` and then `unpack_merchant(this, 4)`" |
-| code | `crates/sim/src/orders.rs:1376`–`1470` (`Sim::think`) — no such arm; `Sim::unpack_merchant` has exactly **one** caller, `crates/sim/src/merchant.rs:71`, with ring 3 |
+| code | `crates/sim/src/orders.rs:1376`–`1470` (`Sim::think`) — no such arm; `Sim::unpack_merchant` has exactly **one** caller, `crates/sim/src/units/think/merchant.rs:71`, with ring 3 |
 | document says | a human player's merchant or fishing boat, standing idle and packed, runs `do_gather` and then a ring-4 `unpack_merchant`, with a message and `S_INVALID_ORDER` when the spot search refuses |
 | code does | nothing — the arm is absent, and `unpack_merchant` is never asked with ring 4. `merchant.rs:241`–`243` alludes to it ("asks with ring 4 and no capture reaches it") without saying it is unbuilt, and MERCHANT.md §7 lists the *Dutch* arm as unmodelled but not this one. |
 | difference shows | no capture — every capture is AI-side, and `leader_flags & 4` gates the arm to a human. It becomes observable the first time a traced human walks a packed merchant or fishing boat onto a deposit and leaves it idle. |
@@ -103,7 +103,7 @@ And `unpack_merchant(this, 4)` runs only when `do_gather` answered non-zero
 | | |
 |---|---|
 | document | MERCHANT.md §3, "`if detect_unit_collision(this, t * 0xc0, 1, 1, 0, 0, 0): continue`" |
-| code | `crates/sim/src/merchant.rs:288`–`293` — only `good_merchant_spot` and `invalid_loc` |
+| code | `crates/sim/src/units/think/merchant.rs:288`–`293` — only `good_merchant_spot` and `invalid_loc` |
 | document says | three tests per ring entry, in order; a tile another unit occupies is skipped |
 | code does | two. A merchant may deploy on an occupied tile. |
 | difference shows | `UnitsSync` `orders_x`/`orders_y` and the order list on the frame a merchant arrives at a rare with a unit already standing on the ring's first acceptable tile. run68's block 6714 is the only capture that reaches the ring at all, and there the winner is `MOVE_49` entry 3 with nothing standing on it — `detect_unit_collision` refuses nothing in any capture on disk. |
@@ -119,7 +119,7 @@ writes the `collide_o`/`collide_who` bookkeeping).
 | | |
 |---|---|
 | document | MERCHANT.md §3, "`unit_masks &= ~0x100`" — the line between the spot search and the cast |
-| code | `crates/sim/src/merchant.rs:244`–`261` — the clear is absent; the function goes straight from `find_merchant_spot` to `add_cast_order_at` |
+| code | `crates/sim/src/units/think/merchant.rs:244`–`261` — the clear is absent; the function goes straight from `find_merchant_spot` to `add_cast_order_at` |
 | document says | the "ordered recently" bit is cleared before the cast order is built |
 | code does | nothing with it |
 | difference shows | R3's arm is where it bites: `think@005f6e40:177` reads exactly this bit to let a packed **fishing boat** that was ordered recently skip the human deploy arm. With neither the bit nor that arm modelled, there is no observable in this crate — and no capture reaches the human arm anyway. |
@@ -134,7 +134,7 @@ immediately after the spot search succeeds.
 | | |
 |---|---|
 | document | MERCHANT.md §2.3, "The tail is `Unit::add_move_order@00616ed0` inlined: `unit_masks &= ~0x4000000`, `path.length = 0`, `close_orders`, `clear_partial_path`, `update_action`, then the order" |
-| code | `crates/sim/src/merchant.rs:155` → `crates/sim/src/orders.rs:827`–`838` → `crates/sim/src/orders.rs:699`–`715` (`enqueue`, `QueuePos::New`): `path.clear()`, `close_orders`, `clear_partial_path`, `update_action`, push, `update_action`. Four of the five; the mask clear has no counterpart anywhere in the crate. |
+| code | `crates/sim/src/units/think/merchant.rs:155` → `crates/sim/src/orders.rs:827`–`838` → `crates/sim/src/orders.rs:699`–`715` (`enqueue`, `QueuePos::New`): `path.clear()`, `close_orders`, `clear_partial_path`, `update_action`, push, `update_action`. Four of the five; the mask clear has no counterpart anywhere in the crate. |
 | document says | five things happen before the order is built |
 | code does | four. `Unit.cant_reach` is `SubObjectData::flags & 0x10` (`crates/sim/src/lib.rs:234`), a different bit; grep finds no model of `unit_masks & 0x4000000`. |
 | difference shows | nothing in this crate, because neither of the bit's two readers is modelled either: `Unit::think@005f6e40:233` (a text bubble and a `0xfbffffff` clear of its own, console-side) and `Unit::work@0060d180:124`, which re-issues the tail move order at `QUEUE_FIRST` when the bit is set. The second one **is** sim-visible, so this row is really "the bit and its setter are unmodelled", not "the merchant forgot a clear". |
