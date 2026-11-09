@@ -1238,7 +1238,7 @@ and the three per-resource nation terms are implemented
 **And the British term now fires.** `Holdings::british` is
 `Nation::british`, which nothing set until the harness read the dump's own
 `LeaderData::tribe` — the roster index, 11 here and 4 for the Nubian human
-(`crates/sim/src/nations.rs`, `docs/TECH.md`). All 200 of run40's
+(`crates/sim/src/cities/nations.rs`, `docs/TECH.md`). All 200 of run40's
 `resource_cap` disagreements went with it, and both players' whole cap is
 now the original's on all forty frames. It changed nothing else on any
 capture, which is what the arithmetic predicts: the AI's largest rate in

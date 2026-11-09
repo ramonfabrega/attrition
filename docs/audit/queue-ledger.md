@@ -46,7 +46,7 @@ survived (2026-09-07; the recovered work is on branch `rescue-234`, commit
   `crates/sim/src/holdings.rs` still returns `Levels::BASE` and ignores its
   player. Re-booked in the queue under its own number.
 - **233** re-booked — `Sim::process_building` in
-  `crates/sim/src/city.rs` still keys the 32-frame phase on
+  `crates/sim/src/cities/city.rs` still keys the 32-frame phase on
   `frame + b as i64`, the `Vec` index, where `Build::process@0061edf0:728`
   keys it on the object number. Wrong the first time a slot is reused.
   Re-booked.

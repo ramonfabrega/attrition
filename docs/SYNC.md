@@ -380,7 +380,7 @@ its own word's parting. `run_traced` now takes the trace as a source beside
 the siblings, and the second map's score asserts the pasture is there
 (item 69).
 
-Landed: `crates/sim/src/farms.rs` (`Farm::farm_type`, `Sim::farm_add_animals`,
+Landed: `crates/sim/src/cities/farms.rs` (`Farm::farm_type`, `Sim::farm_add_animals`,
 `Sim::think_farm_animal`), `Sim::build_covers_tile`, and
 `gamelog::Initial::farms` — the `Farms` list read off the dump, which has no
 block of its own (`Farms::log_data` writes `who`, `o`, the cells, the corner
@@ -475,7 +475,7 @@ and spends neither, on both sides. No coin appears on any capture: run20's
 new farm joins the city that holds the map's pasture, so `others != crops`
 settles the type without one.
 
-`crates/sim/src/farms.rs` (`Sim::farms_add`, `Sim::city_count_farms`,
+`crates/sim/src/cities/farms.rs` (`Sim::farms_add`, `Sim::city_count_farms`,
 `Sim::nearest_farm_type`, `Farm::valid`, `farms::AMBIENCE`), called from
 `Sim::init_build`. The check is
 `diff::tests::run20_s_frame_1_spends_the_farm_s_ambience_pair` and
@@ -918,7 +918,7 @@ fuzzed map's carry their own fifteen, so this is not one capture's trick.
 
 ### The pasture, landed (2026-08-30)
 
-`crates/sim/src/farms.rs` now creates each animal with its species and so
+`crates/sim/src/cities/farms.rs` now creates each animal with its species and so
 with a **`type_index`** — which is the whole of why the clock never wrapped,
 since `Sim::slot_length` keys the install's gaia table by it — at its
 borrowed position, with `Objects::init_unit`'s speed and turn rate, and
@@ -979,7 +979,7 @@ facings were the original's, both together cost run33's word 780 → 584,
 because the arm reads `des_angle != angle` on *every* standing unit. With
 §3.12 in first they cost nothing: run39's early window is **64 of 64 on the
 count and 64 draw for draw**, the word goes 19 → **69**, and Great Lakes holds
-at 780 and improves to 954/843. `crates/sim/src/farms.rs` snaps the animal at
+at 780 and improves to 954/843. `crates/sim/src/cities/farms.rs` snaps the animal at
 birth; `anim.rs`'s `guys_follow` carries the arm and its sea guard.
 
 **The named suspect for the other map was a dead end, and that is now an

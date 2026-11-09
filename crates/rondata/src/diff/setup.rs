@@ -764,7 +764,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         if (0..players as i64).contains(&l.who) {
             let who = l.who as usize;
             // The nation, and every power that follows from it
-            // (`crates/sim/src/nations.rs`). The dump's `tribe` is the
+            // (`crates/sim/src/cities/nations.rs`). The dump's `tribe` is the
             // roster index — run40's 11 and 4 are the British and the
             // Nubians — and `-1`, which a gaia leader carries, is a leader
             // with no nation rather than the Aztecs.

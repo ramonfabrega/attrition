@@ -14820,7 +14820,7 @@ Guy::inc_time+0x271`. No capture was taken (run 1458 unused).
   `get_buildings(SENATE)` under 1). It is not built (parked 3786a): who=1 holds the Senate `1/2007`.
 
 **The build.**
-- `Sim::gov_hero_closed` (`crates/sim/src/nations.rs`) is the stamp. `close_count`, the head of this crate's
+- `Sim::gov_hero_closed` (`crates/sim/src/cities/nations.rs`) is the stamp. `close_count`, the head of this crate's
   `Unit::close`, calls it on every death path.
 - `Sim::gov_hero_respawn` is the train. It runs in the building pass's live tail, after `kremlin_spy`.
 - `Tuning::gov_hero_respawn` holds the constant; the tuning table checks it against the file.
@@ -17310,7 +17310,7 @@ regions, the same loop as `Regions::fix_all_borders@0067f7d0`. A fort's death re
 as `sim` does. The gate is the fort index: `Build::close@00628980:211`–`:222` calls `close_fort` only when the type
 answers the fort slot (`+0xfc`) and `+0x78 > -1`, and `Build::activate`'s `init_fort` is that index's one writer. An
 unbuilt site takes `remove_unbuilt_fort` and fixes nothing. `sim` had re-synced on any fort's close; now only an
-`active` one (`crates/sim/src/city.rs`; `cities_tests::a_fort_s_close_fixes_the_borders_only_once_it_is_built`, a
+`active` one (`crates/sim/src/cities/city.rs`; `cities_tests::a_fort_s_close_fixes_the_borders_only_once_it_is_built`, a
 reading alone, since no capture closes an unbuilt fort). The console's `die` (`run_cmd`, `007dde60`–`007ddf1d`) calls
 vslot `+0x158` with `(0, -1, 0)`, which for a building is `Wall::die` → `Object::die`: `close` through `+0x150`,
 then the hold. The interpreter now acts on it (`golden::Cheat::Die` → `Sim::die_building`).
@@ -17691,11 +17691,11 @@ with `find_any_building_at` on its tile (`FILTER_SEEN`). It ends the walk there,
   unit's `control_cost` beside `num_inside(0)` ends the walk, and no room passes the point over.
 - **An enemy's building** with an armed non-worker under action 2 ends the walk.
 
-A pass wins over an end: the listing tests `local_a08` first. Built as `Sim::gather_waypoint` (`crates/sim/src/rally.rs`).
+A pass wins over an end: the listing tests `local_a08` first. Built as `Sim::gather_waypoint` (`crates/sim/src/cities/rally.rs`).
 With it, `0/6` on 716 and `0/7` on 822 are born where the original has them and sent to gather at `0/2001`, two of its
 five slots taken.
 
-**What this crate does.** `Sim::group_action_city_gather` (`crates/sim/src/rally.rs`) is the member walk, with
+**What this crate does.** `Sim::group_action_city_gather` (`crates/sim/src/cities/rally.rs`) is the member walk, with
 `cities_tests::a_city_s_gather_all_points_it_at_its_own_resource_buildings`. `rondata::golden`'s `@key` reads the
 chapter's `# bindkey` line (§159's parser), and `OPTION_VILLAGE_GATHER_ALL` is `input::group_city_gather`: the
 building group pushed, then the walk with −1. The draw stream agrees to the trace's end:
@@ -17912,7 +17912,7 @@ has the five falsifiers, written before the take.
 - The pool's slot 1, the pushed group `[2007]`, is dropped on block 834: `833 mod 64` is the slot's turn after the close.
 - run1512 and run1512b are one game on all 1101 frames (`rngcmp`).
 
-**What this crate does.** `crates/sim/src/queue_disband.rs`: `Sim::action_queue_disband` (the group, through
+**What this crate does.** `crates/sim/src/cities/queue_disband.rs`: `Sim::action_queue_disband` (the group, through
 `queue_group`'s new `Queued::Disband`), `researching_disband` (both of `researching`'s forms), `disband_castable`
 (`is_castable`'s 0x29a case), `queue_disband` (`Build::queue_up`), `disband_time` (`train_time:51`) and
 `finish_disband` (the spell arm into `cast_disband`, which reuses `Sim::plunder_kill` and §161's

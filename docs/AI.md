@@ -3410,7 +3410,7 @@ of one city**: `City::init@00737050` (`+`), `City::close@00737550` (`−`),
 level). So a recount over the live cities is the same number at every
 instant the sweep can read it, and each of those five is already a call
 site of `Sim::sync_pop_cities`, which is where
-[`Sim::sync_leader_pop`](../crates/sim/src/city.rs) now runs.
+[`Sim::sync_leader_pop`](../crates/sim/src/cities/city.rs) now runs.
 
 `reg_pop` (`+0xe62`, `ushort[64]`) is the same sum per region, written only
 for a region index below `0x40` — the array's own bound — and `reg_cities`
@@ -8684,7 +8684,7 @@ a tie wins.
   busy**, so the recruit is the nearest citizen who is not building,
   fighting or on some other errand.
 
-`crates/sim/src/site_recruit.rs` carries it. `process_building` calls it
+`crates/sim/src/cities/site_recruit.rs` carries it. `process_building` calls it
 ahead of its `helpers` reset. The rival count is exact rational arithmetic,
 cross-multiplied, with `0.35f` as its binary fraction `11744051 / 2^25`.
 `cities_tests::an_unfinished_wonder_calls_in_the_nearest_citizen_that_is_not_busy`
@@ -8803,7 +8803,7 @@ killer it had to survive.
 
 ### 70.3 The fix
 
-`City::num_wonders` (`crates/sim/src/city.rs`) drops its `active` filter.
+`City::num_wonders` (`crates/sim/src/cities/city.rs`) drops its `active` filter.
 Its three readers are the original's three that this crate carries, and
 all three move with it:
 
@@ -9676,7 +9676,7 @@ fix's own, 16528.
 
 ### 76.4 The fix
 
-- `Sim::fix_borders` (`crates/sim/src/city.rs`) is called from the head
+- `Sim::fix_borders` (`crates/sim/src/cities/city.rs`) is called from the head
   of `Sim::sync_territory`, whose call sites are the original's fixes. It
   raises `Sim::borders_fixed`.
 - `Sim::check_borders` consumes the flag at the daemon's point in the
@@ -10011,7 +10011,7 @@ The packet booked at 23181 (run306) was not taken. The disk answered it
 
 ### 78.3 The fix
 
-`Sim::blocked_tcoord` (`crates/sim/src/place.rs`) gains the two arms, in
+`Sim::blocked_tcoord` (`crates/sim/src/cities/place.rs`) gains the two arms, in
 the listing's order:
 
 - **After `AS_BUILDING`**: an Oil Well or Oil Platform (`is(0x1a5)`,
@@ -10164,7 +10164,7 @@ and run299's `BUILDDATA` answered.
 
 ### 79.3 The fix
 
-- `Sim::nearest_farm_type` (`crates/sim/src/farms.rs`) skips a farm whose
+- `Sim::nearest_farm_type` (`crates/sim/src/cities/farms.rs`) skips a farm whose
   `started` is clear. The crate already carried `started`, the dump's
   `flags & 2`.
 - `farms::SITE_PIG_Y` and `SITE_PIG_X` name the pig arm's two offset
@@ -12670,7 +12670,7 @@ Tower by exact identity. `Wall::update_hits@0063f0d0` reads the Tower,
 the Lookout and the Market as lines (`is(0x1b7, 0)`, `is(0x209, 0)`,
 `is(0x1b4, 0)`); the Tower's two tests (the Senate bonus and the Romans')
 and the Lookout's now use `build::is_tower` and `build::is`
-(`crates/sim/src/build.rs`; `docs/CITIES.md` §3.4's formula names them
+(`crates/sim/src/cities/build.rs`; `docs/CITIES.md` §3.4's formula names them
 without saying lines, and its section is at its size bound). **Held by no walk**: `myhits` and
 `construct_hits` are compared by no site; the unit test
 `the_senate_bonus_and_the_temple_bonus` holds it (a Keep in a Large City,
@@ -12783,7 +12783,7 @@ sites are quartered, and `use_market`'s shortfall — two city rows in the
 first `epoch[Commerce]` = 2 slots, 320 of each — buys a hundred food and
 spends two draws of its sell branch, which ours now spends on the same
 frame. This crate's `building_price` counted `b.ty == ty` alone; a city now
-counts every alive building of the three (`crates/sim/src/city.rs`;
+counts every alive building of the three (`crates/sim/src/cities/city.rs`;
 `docs/COSTS.md`, "A city is ramped by every city").
 
 **The value diff.** run491 block 8378: who=1's `MAKE[0].val` ours −1
@@ -15451,7 +15451,7 @@ mask test is skipped, `param_4` 0), and `vector_dist(dx, dy) − reach ≤
 get_radius × 0xc0` — the shape `near_marching_hero` already carries
 (`cast.rs`), with the type test instead of the Forced March mask.
 
-**Built.** `Sim::president_near_building` (`crates/sim/src/city.rs`), read by
+**Built.** `Sim::president_near_building` (`crates/sim/src/cities/city.rs`), read by
 `construct_time_of` into `ClockMods::president` — which nothing had written
 since the field was added (`ClockMods` is still `bd.clock`'s other three
 clauses: the free first wonder, the Hanging Gardens ~~and the Iroquois Senate~~ stay
@@ -16613,7 +16613,7 @@ Objects::init_unit` three times. run672 (577..833) widens it. Each claim is *dif
    city_num·(city_num − 1)/2)`, and leader 1's `city_num` went 1 → 2 on block 612; so the limit is 1 and `caras` 0 is under it.
    The next slots (682, 697, …) find `caras` 1 at the limit, and the trace has no birth on them.
 
-**Built.** `Sim::persian_market_caravan` (`crates/sim/src/nations.rs`), called by the tick's building walk after the gather step and
+**Built.** `Sim::persian_market_caravan` (`crates/sim/src/cities/nations.rs`), called by the tick's building walk after the gather step and
 before the tail, for an active building only: the Market by its record's own `Ident` (the type itself, not its lineage), the
 building's phase `% 15`, `has_tribe_bonus(23)`, the census's live `caras` against `Sim::caravan_limit` (now `pub(crate)`), and
 `cost::exceeds_population` for `CARA`'s own `POP`; then `build_train`. Unit test `cities_tests::
@@ -16774,7 +16774,7 @@ holds it whole. Each claim is *diff-backed* unless marked.
    holds a city whose `was_capital_flags` names me), the new city takes `0x10` alone, times `~leader_flags2 & 1`. Every dump
    prints `leader_flags2` 0.
 
-**Built.** `Sim::persian_second_capital` (`crates/sim/src/city.rs`), asked in `activate`'s city arm before `init_city` (so the new
+**Built.** `Sim::persian_second_capital` (`crates/sim/src/cities/city.rs`), asked in `activate`'s city arm before `init_city` (so the new
 record is not searched): tribe bonus `0x17`, exactly one own live capital, and no other leader's live city carrying my
 `was_capital` bit; the new city's `capital` is set and `founding_capital` left clear. A captured city is handed over by
 `City::capture` after `activate`, which rewrites both bits, in ours (`city_capture_record`) as in the original. Unit test
@@ -17422,7 +17422,7 @@ run710 (1527..1783) holds it whole. Each claim is *diff-backed* unless marked.
    unit whose **action** targets the site keeps it; claim 3's `1/10` does not, and the site goes. *Listing-backed*; the diff
    confirms it on its one frame.
 
-**Built.** `Sim::oil_platform_abandoned` (`crates/sim/src/site_recruit.rs`), called from `Sim::process_building` inside the
+**Built.** `Sim::oil_platform_abandoned` (`crates/sim/src/cities/site_recruit.rs`), called from `Sim::process_building` inside the
 recruiter's gates and ahead of it; a disband returns from the head as `Wall::process` does. The target test is
 `action_of`'s order: `Build`, `Repair`, `Garrison`, `Gather` (its building), `Attack` (the unit's combat target) or `Cast` on
 the site. `site_recruit.rs`'s SEAM for this arm is gone. Unit test
@@ -17543,7 +17543,7 @@ Each claim is *diff-backed* unless marked.
 
 **Built.** `Sim::silo_strike` (`crates/sim/src/air/mod.rs`), from `computer_sortie` where a silo returned: the nuke arm, the
 cities' loop, and `own_object_within` for the friendly search. `Sim::nuke_do_damage` (`crates/sim/src/combat/nuke.rs`) passes over a
-unit of owner 8 or more. `Sim::close_pasture_animals` (`crates/sim/src/farms.rs`), from `close_building` for a Farm. Unit
+unit of owner 8 or more. `Sim::close_pasture_animals` (`crates/sim/src/cities/farms.rs`), from `close_building` for a Farm. Unit
 tests `airbase::tests::a_computer_s_silo_strikes_an_enemy_city_with_its_nuke` (cadence, a V2, an unseen city, a friend
 within 0x1800, a human's silo), `nuke::tests::the_ring_never_strikes_an_animal` and
 `farms::tests::a_pasture_s_close_takes_its_animals_and_spends_no_draw`.
@@ -17744,7 +17744,7 @@ run711's 2183. Each claim is *diff-backed* unless marked.
    With the setter it agrees on every cell.
 
 **Built.** `world::cell::CLOSED` (`0x2`); `Sim::mark_closed_cell`, from `close_building` for every reason but 5 and from
-the two conversions (`crates/sim/src/city.rs`); the oil arm names the bit and the spiral's arm is new
+the two conversions (`crates/sim/src/cities/city.rs`); the oil arm names the bit and the spiral's arm is new
 (`crates/sim/src/ai_place.rs`). Unit tests `ai_place::tests::a_patch_a_building_closed_on_is_passed_over_once` and
 `cities_tests::a_closed_building_s_cell_refuses_the_spiral_only_with_an_enemy_near`.
 
@@ -18398,7 +18398,7 @@ those types. `Build::activate@00623e20:1370` starts the clock at
 `TERRA_COTTA_FREE * 15` = 450: run721 reads `1/2042` at 449 on 3395, 6 on
 3838 (443 frames on), so the first soldier is the 3843 one. Built:
 `Sim::terra_cotta_army` and `terra_cotta_activate`
-(`crates/sim/src/nations.rs`), called after the Persian caravan in the
+(`crates/sim/src/cities/nations.rs`), called after the Persian caravan in the
 tick's building walk and from `activate`.
 `a_terra_cotta_army_counts_its_clock_and_trains_a_soldier`
 (`cities_tests`) fails without the call.

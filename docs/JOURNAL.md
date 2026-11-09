@@ -60,7 +60,7 @@ dated heading on, the journal is by date.
    convention (a behavioural check) and the `balance.xml` flag-row separator
    (the `RULES=1` log settles it).
 3. ~~**Cities and buildings**~~ — **done, 2026-08-20**, `docs/CITIES.md`,
-   `crates/sim/src/build.rs` (the type, the construction clock, the site's
+   `crates/sim/src/cities/build.rs` (the type, the construction clock, the site's
    hit points, repair, refunds), `place.rs` (the tile layer and the
    `blocked_site` predicates with the original's `BlockIndex` verdicts),
    `city.rs` (the record, membership, the automatic level-up, capture,
@@ -5563,7 +5563,7 @@ makes a frame before this simulation makes its own, onto a different cell
 ### The lesson, which is the audit README's
 
 The identification cost one `grep`. `docs/CITIES.md` had `+0x94 is_flat` in
-its vtable table, `crates/sim/src/build.rs` had the derived bit with the
+its vtable table, `crates/sim/src/cities/build.rs` had the derived bit with the
 listing quoted in its doc comment, and `Sim::add_gather_order` was already
 reading `is_flat` for the *same* virtual at the *same* call shape — one
 function away in the same decompiled file. What was missing was anybody
@@ -7128,7 +7128,7 @@ ever set it. So the claim "no nation power on either side" was true of the
 half of the codebase that the cap happens to live in, and false of the
 other half.
 
-**The wire**, `crates/sim/src/nations.rs`: `ROSTER`, the twenty-four
+**The wire**, `crates/sim/src/cities/nations.rs`: `ROSTER`, the twenty-four
 nations in `rules.xml`'s own `TRIBES` order; `Sim::set_tribe`, which takes
 the dump's number; and `Sim::refresh_nation_powers`, which recomputes the
 booleans. They are computed **through `has_tribe_bonus`**, one call per
@@ -11618,7 +11618,7 @@ nothing has ever been built below it. Item 145.
   question; the queue record answered a third thing — the target — before
   anyone had to choose between them.
 - **A nation is a modifier, and a capture has one.** Twenty-four nation
-  powers have been inert in this crate since `crates/sim/src/nations.rs`
+  powers have been inert in this crate since `crates/sim/src/cities/nations.rs`
   wired `has_tribe_bonus`, and it took a ship to notice that the AI has
   been playing a nation the whole time.
 

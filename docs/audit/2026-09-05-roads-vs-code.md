@@ -105,7 +105,7 @@ where the parent test bites.
 | | |
 |---|---|
 | document | ROADS.md §1, "**The bit is set by `City::regen_roads@00738aa0`** … Its callers are `Build::activate` (a building finished) and **`Build::remove_from_city`**." |
-| code | `crates/sim/src/city.rs:566` (`fn remove_from_city`); the only `city_regen_roads` call site is `crates/sim/src/city.rs:1443` |
+| code | `crates/sim/src/cities/city.rs:566` (`fn remove_from_city`); the only `city_regen_roads` call site is `crates/sim/src/cities/city.rs:1443` |
 | document says | a building leaving its city flags every remaining member for a replan |
 | code does | `remove_from_city` clears the membership and re-syncs territory for a temple, and nothing else — no member is flagged, so no replan follows a building's removal |
 | difference shows | `BUILDS`' `build_masks` bit `0x100` on the frame a building leaves a city, and then the `PathFinder::calc_road_cost` draw count sixteen frames later. No capture on disk is known to reach it: run14's only `regen_roads` event is `1/2006` **activating** at frame 167 (§1's table). A capture that destroys or converts a city member — a raid, or `Wall::swap_team` — would show it |

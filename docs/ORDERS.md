@@ -5261,7 +5261,7 @@ goes `2004 → 2005` on the same block) and flags what is left of the city.
 **This crate had only `Build::activate`'s call.** `Sim::remove_from_city`
 unlinked the building and stopped, so nothing was ever flagged, no
 building ever replanned, and the search simply never happened. The whole
-change is one line, and `crates/sim/src/city.rs` carried a comment saying
+change is one line, and `crates/sim/src/cities/city.rs` carried a comment saying
 `Build::activate` "is the only writer a traced game reaches" — struck
 there now, with this frame beside it.
 

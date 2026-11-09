@@ -718,7 +718,7 @@ mod tests {
     /// [`sim::economy::commerce_cap`] computed that all along and
     /// `Nation::british` was never true, because nothing in this harness
     /// read the dump's own `tribe`. `Sim::set_tribe` does now
-    /// (`crates/sim/src/nations.rs`) — run40's `tribe 11` and `tribe 4`
+    /// (`crates/sim/src/cities/nations.rs`) — run40's `tribe 11` and `tribe 4`
     /// are the roster's British and Nubians — and the 200 became **0**.
     ///
     /// The other is still wrong and inert, so it is asserted **as it

@@ -402,7 +402,7 @@ record's position is the nation's identity everywhere: the `n` of
 | 12 Germans | 13 Russians | 14 Chinese | 15 Japanese | 16 Koreans | 17 Mongols |
 | 18 Iroquois | 19 Lakota | 20 Americans | 21 Indians | 22 Dutch | 23 Persians |
 
-`crates/sim/src/nations.rs` holds it as `ROSTER`, and
+`crates/sim/src/cities/nations.rs` holds it as `ROSTER`, and
 `cargo run -p rondata -- <install>` re-derives the whole list from the user's
 own `rules.xml` and `tribes/` and exits non-zero if a name has moved — a
 nation that shifted by one would silently hand its power to its neighbour.

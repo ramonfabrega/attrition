@@ -2747,8 +2747,8 @@ const UNSCANNED_SEAMS: &[(&str, usize)] = &[
     ("crates/sim/src/groups/group.rs", 3),
     ("crates/sim/src/lib.rs", 1),
     ("crates/sim/src/orders/mod.rs", 7),
-    ("crates/sim/src/rally.rs", 3),
-    ("crates/sim/src/site_recruit.rs", 1),
+    ("crates/sim/src/cities/rally.rs", 3),
+    ("crates/sim/src/cities/site_recruit.rs", 1),
 ];
 
 /// **A `SEAM` that says "no capture has X" names the scan that found

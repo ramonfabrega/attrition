@@ -118,7 +118,7 @@ a cap something other than a multiple of sixteen (a `bonus_cap` added after the
 | difference shows | `LEADERDATA`'s `resources[2]`/`income[2]` for the British AI in run40/run59/run60 — except that R8 makes the whole line zero on **this** side and the original's own territory tax is zero too through all 5,400 frames of run60, so nothing parts until a taxation level is reached on either side |
 | reached | reached |
 
-The British half is the one that matters: `crates/sim/src/nations.rs` now sets
+The British half is the one that matters: `crates/sim/src/cities/nations.rs` now sets
 `Nation::british` from the dump's own `LeaderData::tribe` (11 on run40's AI), so
 the flag the doubling would key off is already true in three captures on disk.
 
