@@ -14149,7 +14149,7 @@ exactly, so it is not taken there (the French lobby does not hold it).
 `UnitData::mana@00609a50` has the same French arm. A French General's pool
 is `(FRENCH_SPECIAL_CRAFT + 100) × MANA / 100`, and the constant ships as
 `0% bonus` (`get_item`, plain). Both are built in
-[`Sim::craft_rate`] and [`Sim::unit_mana`] (`crates/sim/src/cast.rs`).
+[`Sim::craft_rate`] and [`Sim::unit_mana`] (`crates/sim/src/spells/cast.rs`).
 
 **What moved.** French East Indies **12952 → 14090**. Ours holds 102 on
 11376 and 1000 on 12953, the original's own values. run635's widening
@@ -20193,7 +20193,7 @@ General carries `0x20` alone and a Supply Wagon `0x40` alone.
    sent The Despot down the hero arm: army 0 has no General, so the nearer army won. The original sends it down the wagon arm.
    Army 0's three wagons refuse it, and army 5's two admit it. Group 89 is that army.
 
-**Built** (`crates/sim/src/cast.rs`, `crates/sim/src/army.rs`): `unit_hits`' supply term on `SUPPLY_OR_HERO` alone, and
+**Built** (`crates/sim/src/spells/cast.rs`, `crates/sim/src/army.rs`): `unit_hits`' supply term on `SUPPLY_OR_HERO` alone, and
 `army_admits`' arm on the joiner's `SUPPLY_OR_HERO` alone. The counts are unchanged: `army_count_supply` still counts `0x40`
 without `0x20`, which is what `COUNT_TYPE 0x3f`'s lineage counts for every type this lobby has. Tests
 `rares::tests::a_supply_unit_adds_the_supply_hp_upgrade` (a patriot type of both bits is 150 at level 3) and
@@ -30086,7 +30086,7 @@ General"). The Monarch is a supplier (`UnitType::init_final_flags`'s
 1818, the previous army turn: theirs' 2000 ≥ 1767 casts, and on 1818 1000
 < 1895 refuses on both sides, which is why the stride agreed through 1901.
 
-**Built.** `Sim::unit_mana` (`crates/sim/src/cast.rs`) multiplies a
+**Built.** `Sim::unit_mana` (`crates/sim/src/spells/cast.rs`) multiplies a
 supplier's pool by `supply_upgrade_level + 1`; the space-air arm
 (`+0x218 == 2`, `has_wonder(0x21e)`) stays the seam. Every reader of the
 pool takes it — the hero arm's afford, `mana_left`, the regeneration cap,
@@ -31747,7 +31747,7 @@ not the word's draw: §341.1): `SpellType::cast_transport`'s
 `MARINES` arm (§6.1 of `docs/TRANSPORT.md`: `unit_masks2 |= 0x200` and
 `update_speed`) and `Unit::update_hits`'s American-marines term, both
 SEAMs here (`SimTransport::marines` is empty in
-`crates/sim/src/cast_transport.rs`; `cast.rs`'s `unit_hits` names the
+`crates/sim/src/spells/cast_transport.rs`; `cast.rs`'s `unit_hits` names the
 term "which no scored nation or holding takes", and `TypeHits::is_marine`
 answers `false`). The shipped `rules.xml` carries
 `AMERICANS_MARINE_HP_BONUS` "70 extra hitpoints for marine transports"

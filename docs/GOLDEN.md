@@ -17540,7 +17540,7 @@ gone), `idle` 1, and its figure starts a 60-frame idle animation. `1/2006` is ne
 `Options::exec`, `Console::exec_keymap`, `issue_stop_spell` and `action_stop_spell` on trace frame 770, the pump's half of
 it. run1507 is run245's game to 771 (`rngcmp` first differing 772) and the twin's on all 901 frames.
 
-**What this crate does.** `Sim::group_action_stop_spell` (`crates/sim/src/cast.rs`) is the member walk. The harness's
+**What this crate does.** `Sim::group_action_stop_spell` (`crates/sim/src/spells/cast.rs`) is the member walk. The harness's
 `@key` (`rondata::golden`) reads a chapter's `# bindkey ACTION=VK` comment, the same parser as item 3912's (§159), and
 carries the seat's selection to the pump. `OPTION_QUEUE` is `input::group_stop_spell`: one pushed group and one stop for
 each selected unit, as the 0xa6 loop issues them. The draw stream agrees to the trace's end:
@@ -17989,7 +17989,7 @@ Hoplites are `0/7..9`, 384 to 528 away. All four stand on cell (10, 45), which w
   The General's `unit_masks` stays 0, because its type fails the `attack` or role test.
 - run1513 and run1513b are one game on all 1001 frames (`rngcmp`).
 
-**What this crate does.** `Sim::cast_entrench` (`crates/sim/src/cast.rs`) is the body, called from `do_cast_effect`'s
+**What this crate does.** `Sim::cast_entrench` (`crates/sim/src/spells/cast.rs`) is the body, called from `do_cast_effect`'s
 `ENTRENCH` arm. `Sim::entrench_job_time` (`crates/sim/src/lib.rs`) is `cast_job_time`'s `0x27d` arm, with
 `tuning.french_entrench` (100) and `tuning.antipater_entrench_rate` (128). `umask2::ANTIPATER_TRENCH` is the
 Antipater bit. The draw stream agrees to the trace's end: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_SIXTEEN` = **1000**,
@@ -18050,7 +18050,7 @@ tracks it, frame for frame, with ours. The Spy is gone from 659: a death object 
 `SpellType::cast` and `cast_counterintel` first on 658, `Unit::do_cast` on 621. All three takes are one game on all
 901 frames (`rngcmp`).
 
-**What this crate does.** `Sim::cast_counterintel` (`crates/sim/src/cast.rs`) is the body without the leader
+**What this crate does.** `Sim::cast_counterintel` (`crates/sim/src/spells/cast.rs`) is the body without the leader
 counters, and `cast_on`'s `0x277` arm calls it behind `counterintel_valid_target`. **The first word was 661** (ours
 10 draws, theirs 9): one extra `Guy::set_anim+0x97a < Unit::do_idle+0x7d` on the Scout. run1514c's figures say why.
 On 622, theirs' crew figure (guy 1, piece 13043, track (−96, 48)) stands on its rotated track point, `stopped` 1, and

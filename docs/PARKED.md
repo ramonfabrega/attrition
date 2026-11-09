@@ -9445,7 +9445,7 @@ words and edits nothing here; a refill lands when two remain.
 ## Parked by item 3408, 2026-10-21 — GOLDEN's never-entered functions read: port gaps and stale texts the reading found
 
 - **3408a. Port gaps against `citizen_repair_order` (`docs/GOLDEN.md` §144.2)**, no score until a Nomad lobby is captured: the original admits citizen kinds `0x32` and `0x33`, and the port's `citizen_type` (`crates/sim/src/ai_host.rs:535`) has not been shown to cover Korea's; the original writes the unit's `UnitData.group` −1 and the port does not. A Nomad capture (§144.3's last row) is what names a score.
-- **3408b. `Sim::unit_swap_team` (`crates/sim/src/bribe.rs:47`) walks both squads' chains and stops when either ends, where the original's bound is the old chain only; and the original's unlink loop overwrites `this->o/who` with cargo** (§144.2). No Bribe is staged, so no score names it; it books with §107's staging.
+- **3408b. `Sim::unit_swap_team` (`crates/sim/src/spells/bribe.rs:47`) walks both squads' chains and stops when either ends, where the original's bound is the old chain only; and the original's unlink loop overwrites `this->o/who` with cargo** (§144.2). No Bribe is staged, so no score names it; it books with §107's staging.
 - **3408c. `Sim::disembark_squad` (`crates/sim/src/transport.rs:1548`) writes `orig = dest` for every `Body::Move`.** The original writes `orig_x/orig_y := x/y` only for an order whose vslot `0x14` answers. Whether every order the crate files as `Body::Move` (group moves and form changes included) answers that slot, and whether the crate's `dest` is the original's `+0x4/+0x8`, is not established. It books with §144.3's `chapter46.cmd` re-take.
 - **3408d. Stale texts this reading found, none a score.** `crates/sim/src/city.rs:2192`'s doc calls the arm "the console's `finish`", but it is `hurry` (§144.2). `docs/CENSUS.md`'s row for `Unit::do_flee_to` says "pointer only", but it is dead (§144.4). `tools/ghidra/`'s `vtables.txt` lacks `GroupAttackOrder::vftable` (`0xb491fc`) and the minimap's `WorldMap` vftable (`.rdata 0xb54b38` holds the slot): an export gap, to be checked against the export script.
 
@@ -9719,7 +9719,7 @@ is an oracle-agreed module the live sim does not call.
 
 - **3438a. The bribed unit's `damage` is copied, and no dump has tested it.** run1054 and run880 both bribe `1/6`..`1/8`
   at `damage 0`, `myhits 120`, and `0/8`..`0/10` are born at `damage 0`. A copy and a fresh unit print the same thing.
-  `crates/sim/src/bribe.rs` carries `max_health - health` and `damage_frac` across (its module line 16, a reading of
+  `crates/sim/src/spells/bribe.rs` carries `max_health - health` and `damage_frac` across (its module line 16, a reading of
   `Unit::swap_team@006118d0`). A staging that hurts the target before 1212 would test the copy, for example a who=0
   archer's `@attack` on `1/6` from 1150. The check is `U3` `damage` and `damage_frac` on block 1213 against 1212's.
   Names no score.
