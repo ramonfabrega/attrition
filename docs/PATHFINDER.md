@@ -59,7 +59,7 @@ inside. Out of scope, named and skipped: `astar_river` (map generation),
 tunable `road_*` weights at `PFD+0x60..0x80`, set once by `PathFinder::init`
 from constants and adjustable only in a debug window), `find_wpath_army` (the
 group's shared path — **it belonged with group orders and now lives
-there**: `docs/GROUPS.md` §6.7, `crates/sim/src/grouppath.rs`. The named
+there**: `docs/GROUPS.md` §6.7, `crates/sim/src/groups/grouppath.rs`. The named
 function at `00683730` is four instructions and has zero callers, because
 `Group::action_move_near` inlines it; what it does is set `+0x70` and call
 `find_wpath` on the `grouppath` static).
@@ -839,7 +839,7 @@ Four of the first reading's open items were **settled by the audit**
   (`41952`), which is why all three numbers line up on a group of one.
   ~~Two consequences the simulation does not have yet, both item 31's: the
   goal, and the fact that the path exists **at order time**.~~
-  **Both landed 2026-08-26** — `crates/sim/src/grouppath.rs`,
+  **Both landed 2026-08-26** — `crates/sim/src/groups/grouppath.rs`,
   `docs/GROUPS.md` §6.7 and §12.4. Run20's `1/0` now carries
   `(41952, 36576, 0, 1)` at the bottom of a stack it already has at frame
   1, with `flags 1`; `rondata --diff` scores run20 at **0** order

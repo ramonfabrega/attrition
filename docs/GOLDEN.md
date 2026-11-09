@@ -4341,7 +4341,7 @@ block: 782, 802, 929, 930, 931, 932, 968, 969, 1023, 1083.
 **The word: `GOLDEN_WORD_CHAPTER_TWENTY_ONE` = 1300, closed** (item 824;
 ~~1141, open, on the first walk~~, item 813). The command's entry —
 `input::group_swarm_around` → `Sim::group_swarm_around`
-(`crates/sim/src/swarm.rs`) → `group_action_swarm_around` — and piece
+(`crates/sim/src/groups/swarm.rs`) → `group_action_swarm_around` — and piece
 120's bays landed with the chapter, and nothing of the repair line parts.
 813's word was past it: on 1141 the original spent `0/7`'s and `0/8`'s
 walk-step draws (`Guy::set_anim` < `Unit::move_step`), and this crate
@@ -11613,7 +11613,7 @@ capture.**
 read from the Chariot. `facing` is 0 against 1. `0/11`'s and `0/12`'s slots are swapped: `x` 13416 against 13608,
 and the pool's `curr[1]`/`curr[2]` and `off[1]`/`off[2]` swapped too. 42 rows and 6 pool keys in all.
 
-**Built** (`crates/sim/src/group.rs`, `Sim::unit_final_loc`): `Body::Follow` answers its leader's point when the
+**Built** (`crates/sim/src/groups/group.rs`, `Sim::unit_final_loc`): `Body::Follow` answers its leader's point when the
 leader is `flags & 1`, as a guard does. With it, every row on 662 and 712 agrees. That holds under the leg too,
 since the walk starts at the bottom. The widening over run827 whole (605..761) leaves the eleven standing `form` rows
 (605). The pool parts nothing.
@@ -11694,7 +11694,7 @@ widened_whole`):
   bit, a target whose role is combat and whose type is not `n` (`unit_flags & 0x2000`) is searched past; without
   it, one whose role is not. Without the arm, block 635: `0/7`'s `near` (6, 1) here against (7, 1) there — the
   original drops the Bark it was handed for the fishing boat (402 rows).
-- **The stance button's human arm** (`crates/sim/src/group.rs`, `group_action_stance`): for options 1, 2 and 5, a
+- **The stance button's human arm** (`crates/sim/src/groups/group.rs`, `group_action_stance`): for options 1, 2 and 5, a
   human's current order without the action bit, under an action order without it, is `repath`ed and killed. Without
   it, block 682: `0/7`'s `idle` 0 here against 1 there, and its stale attack held (411 rows).
   `a_human_s_stand_ground_kills_an_order_without_the_action_bit` holds it on a fixture.
@@ -17383,7 +17383,7 @@ which run1505b takes from the Airbase: `is_in_air_range`, `execute_at_cursor` an
 `0/2007`. On 854 `0/8` holds one `STRAFEORDER`, target −1, `mandatory 0`, home 2007, `cruising_alt` 1600 kept and
 `returning 1`, with the patrol behind it closed. The console's `select` takes a building on the lane.
 
-**Built** (`crates/sim/src/group.rs`): `group_action_air_patrol` (`group_action_patrol` hands it a plane leader or
+**Built** (`crates/sim/src/groups/group.rs`): `group_action_air_patrol` (`group_action_patrol` hands it a plane leader or
 an air member); `group_action_recall`, which sends a domain-2 leader to `group_action_return` (the building arm is
 item 3912's `group_action_recall_buildings`, §159); `group_action_return`; `group_action_air_attack_ground`; and
 `is_in_air_range`, `vector_dist(target − building)` against `UnitData::mana × get_speed(own point, 1)` of any plane
@@ -17768,7 +17768,7 @@ The journal has the falsifiers, written before each take.
   `action_alarm_peasant`, `find_building`, `UnitData::can_garrison` and `UnitTypeData::can_garrison` on trace frame 622.
 - run1510, run1510c and run1510d are one game on all 901 frames (`rngcmp`).
 
-**What this crate does.** `Sim::action_alarm_peasant` (`crates/sim/src/alarm.rs`) is the member walk, and
+**What this crate does.** `Sim::action_alarm_peasant` (`crates/sim/src/groups/alarm.rs`) is the member walk, and
 `Sim::nearest_garrison_for` is the search. The harness's `@key` arm `OPTION_PEASANT_ALARM` is
 `input::group_alarm_peasant`: one pushed group and one alarm, as `do_alarm` issues them. The draw stream agrees to the
 trace's end: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTEEN` = **900**, closed

@@ -4072,7 +4072,7 @@ what is listed as an input is stated as such in the code):
   now asks who the original asks and neither map's word moved.
   `find_repair_spot` needs `FILTER_DAMAGED` and the difficulty gate and is
   still absent.
-- **The group orders** — **landed 2026-08-25** as `crates/sim/src/group.rs`
+- **The group orders** — **landed 2026-08-25** as `crates/sim/src/groups/group.rs`
   (`docs/GROUPS.md`), which reads the layer §8 only entered: the record and
   the pool, membership, and `action_move_to`/`action_move_near`,
   `action_siege_attack_to`, `action_attack`, `action_stance`,
@@ -6724,7 +6724,7 @@ which copies an order that exists. So `CHANGE_FORM` (§3.3's `0x12`) is a
 save-game class in this build, and `finish_insert`'s case `0x12` replays
 an order that nothing makes. run210 holds no `FORMORDER` on any block.
 
-**The action** (`Sim::group_action_form`, `crates/sim/src/form.rs`):
+**The action** (`Sim::group_action_form`, `crates/sim/src/groups/form.rs`):
 
 - **The gates.** It returns early for a group that is off the map or holds
   buildings, or that is empty, leaderless or led by a plane.
@@ -6911,7 +6911,7 @@ is the generic one (§7.5's).
     `add_strafe_order(−1, −1, base, who, 1, QUEUE_NEW, 1)` unless the
     member already stands in that base.
 
-**Built** (`Sim::group_action_flight`, `crates/sim/src/group.rs`;
+**Built** (`Sim::group_action_flight`, `crates/sim/src/groups/group.rs`;
 `Sim::add_strafe_order` and `Body::Strafe`, `crates/sim/src/orders/mod.rs`;
 `rondata::input::group_flight`).
 - The two gates, the re-point, the flight home, and the unbased strike's

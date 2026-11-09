@@ -15055,7 +15055,7 @@ Two companions, both found by the same dump:
   (23, 0) at indices another member held by block 14357 (the original has
   shifted them with the list). `Sim::army_keep_units` drops both.
 
-**Built.** `Sim::group_action_siege_attack_to` (`crates/sim/src/group.rs`) keeps
+**Built.** `Sim::group_action_siege_attack_to` (`crates/sim/src/groups/group.rs`) keeps
 the sub-group's record, sorts its list as the layout did and writes the parent's
 `off`/`curr`/`angles` at each member's parent index (the arrays are brought up to
 the list's length first) and re-points every group order of the member
@@ -20115,7 +20115,7 @@ hand-back writes the group **its unit's `+0x80` names**, which is the army's gro
 by its seat, and the sub-group holds the army's seat while it lays out. So the wagon, the army's leader, wrote its dying move's 1
 onto the stack record, and `compute_form` read `facing 1` XOR `faces_away 1` = 0. The original reads 0 XOR 1 = 1.
 
-**Built** (`crates/sim/src/group.rs`, `crates/sim/src/lib.rs`): the parent's record is set aside in `Sim::set_aside` with its
+**Built** (`crates/sim/src/groups/group.rs`, `crates/sim/src/lib.rs`): the parent's record is set aside in `Sim::set_aside` with its
 seat for the length of the sub-group's `action_move_to`, and the two member-side writers of `GroupData::facing` (the hand-back and
 `unit_set_angle`'s toggle) go through `Sim::facing_record_mut`, which answers the set-aside record for its seat. Test
 `group::tests::a_member_s_dying_move_hands_its_mirror_to_the_army_not_the_stack` (a lone wagon facing south of a north march: the
@@ -20271,7 +20271,7 @@ it to 0 and back to 1, and 4482 reads 1.
 
 ### 214.4 The build
 
-`Sim::toggle_leader_facing` (`crates/sim/src/group.rs`) is `set_angle`'s group arm on its own. `unit_set_angle` calls it,
+`Sim::toggle_leader_facing` (`crates/sim/src/groups/group.rs`) is `set_angle`'s group arm on its own. `unit_set_angle` calls it,
 and so does `land_tail` (`crates/sim/src/transport.rs`) on a reversing turn to the host's angle. The probe counted
 thirty reversing landings in this game before 4637, twelve of them by the group's leader, which now toggle. They run
 from 2105 on: `1/29` on 4255, `1/48` on 4195, and army 0's wagons among them.
@@ -20346,7 +20346,7 @@ bit. The copy named the dead `2057`, so it was dropped.
 
 ### 215.4 The build
 
-`Sim::group_finish_insert` (`crates/sim/src/group.rs`) resolves a build or repair copy through `building_by_o`: the
+`Sim::group_finish_insert` (`crates/sim/src/groups/group.rs`) resolves a build or repair copy through `building_by_o`: the
 live building with the copy's owner and object number. It re-issues the order on that building, and drops the copy
 when the slot is empty. Test: `cities_tests::a_re_entry_re_issues_a_queued_build_on_the_site_that_took_its_number`.
 A builder holds a build on `b1` and one queued on `b2`. `b2` closes, `b3` takes its number, and the builder is carried
@@ -41101,7 +41101,7 @@ puts a `GARRISONORDER` in front of every Citizen in the city's radius. The spill
 front order (`BUILD_AT` or `REPAIR` on this building), so it passes the other three by.
 
 This crate carried the arm only as a swept walk (`take_damage_view::peasant_alarm`, item 3376). The
-live `take_damage_typed` never called it. **Built:** `Sim::peasant_alarm` (`crates/sim/src/alarm.rs`),
+live `take_damage_typed` never called it. **Built:** `Sim::peasant_alarm` (`crates/sim/src/groups/alarm.rs`),
 called from `take_damage_typed` on a unit after the accumulate. The gates are this crate's
 `Nation::human` (`leader_flags & 4`, not "out" as the view's constant names it), `ai_difficulty`,
 `is_peasant`, `find_city_at`, the city building `alive && active`, and `City::alarm`.

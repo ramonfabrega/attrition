@@ -2591,7 +2591,7 @@ why: Great Lakes' word is a path one waypoint too long, and only the group's own
 # `GroupData::get_loc@0070e030` returns `(ox, oy)` outright when a
 # `vector_dist` comes in under `0x181`, and otherwise the leader's position
 # translated by its current move's origin under a second gate, and
-# `crates/sim/src/group.rs`'s `group_loc` models neither (`docs/GROUPS.md`
+# `crates/sim/src/groups/group.rs`'s `group_loc` models neither (`docs/GROUPS.md`
 # §12). The decompiler loses **both** `vector_dist` operand pairs
 # (`unaff_EDI`, `unaff_ESI`), so no reading settles which arm fires. The
 # group's own `ox`/`oy` on the plan frame does, in one read.

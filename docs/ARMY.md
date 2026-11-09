@@ -1808,7 +1808,7 @@ mark (`City::no_muster`). The census's step 16 (`ai_census.rs`) and
 `create_units`' `seam_army_at` (`ai_units.rs`) are wired to it.
 
 **The order-issuing half landed 2026-08-25** with `docs/GROUPS.md` and
-`crates/sim/src/group.rs`: `do_forming` (§8, with §8.2's stance rule,
+`crates/sim/src/groups/group.rs`: `do_forming` (§8, with §8.2's stance rule,
 §8.3's siege test and the projected formation origin), `march_to_target`
 (§9, the engaged arm and `MARCHED`), `engagement` (§11), `send_here` and
 `charge` (§14), `set_stance` (§6) and `Army::close`'s halt. The army's one

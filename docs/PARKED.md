@@ -9696,7 +9696,7 @@ is an oracle-agreed module the live sim does not call.
 ## Parked by item 3443, 2026-10-22 — the first human trade route on disk
 
 - **3443a. run1060 is a diff source for `Group::action_trade@00701cc0`, which this crate does not wire.**
-  `crates/sim/src/trade_view.rs` writes the steps (item 3381) and says "Not wired": `FinishInsertView::action_trade` is
+  `crates/sim/src/groups/trade_view.rs` writes the steps (item 3381) and says "Not wired": `FinishInsertView::action_trade` is
   an empty stub. run1060 enters it on 650, from a human Caravan's right-click on a second city. Its dump carries `0/7`'s
   `TRADEORDER` from 652 to 910 (`ox 2007`, `oxx 2000`, `started 1`, a `MOVEORDER` to (7800, 30840)), with `GOODS=3` and
   `CITIES=5` beside it. Wiring `action_trade` could be pinned against it frame for frame. Names no score.

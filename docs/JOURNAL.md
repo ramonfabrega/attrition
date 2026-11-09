@@ -984,7 +984,7 @@ The obvious next use, taken: the navy's first live target choice
 ## 2026-08-25 — the group orders: the army's other half, and the run that made `engagement` fire
 
 The queue's next item, taken whole: `docs/GROUPS.md`,
-`crates/sim/src/group.rs`, and run28. On Opus 5 in the main thread —
+`crates/sim/src/groups/group.rs`, and run28. On Opus 5 in the main thread —
 Fable is being saved for the next architecture, so this session's
 reading, implementation and adjudication are all one model's, and the
 document says so.
@@ -1062,7 +1062,7 @@ document says so.
   what the whole run was for: **no `FORMING` bit survives the release**.
   Made to fail by ORing `0x10` into the tail. `scenes()` parses a 250 MB
   window once for both blocks.
-- **Landed.** `docs/GROUPS.md` (13 sections), `crates/sim/src/group.rs`
+- **Landed.** `docs/GROUPS.md` (13 sections), `crates/sim/src/groups/group.rs`
   (9 tests), `army.rs`'s `do_forming` / `march_to_target` / `engagement` /
   `send_here` / `charge` / `set_stance` / `close`'s halt (7 tests, one
   end-to-end: the order the group issues is stepped and the unit is nearer
@@ -1290,9 +1290,9 @@ cheapest way to clear most of it.
 ## 2026-08-26 — item 17: the slot table, and three accepted verdicts overturned
 
 **Landed.** `Form::compute`'s slot table, whole, in
-`crates/sim/src/form.rs` — `type_cat`, `categorize`,
+`crates/sim/src/groups/form.rs` — `type_cat`, `categorize`,
 `compute_rows_and_columns`, `compute_dests`, `get_form_mod_option` and
-`update_positions` — with `crates/sim/src/group.rs` giving each member
+`update_positions` — with `crates/sim/src/groups/group.rs` giving each member
 **its own slot destination** instead of the group's, and `GroupState`
 carrying `form_num`, `off`, `curr` and `angles` so the record has
 something to compare. Two type columns joined the loader
@@ -2837,7 +2837,7 @@ Last session found the owner of run20's `0x18` residue and named it:
 `Group::action_move_near` plans one path of its own, at order time, off
 the leader's **raw** slot, and hands every member a translated copy.
 `docs/GROUPS.md` §6.7 had the mechanic in plain words and the simulation
-had none of it. This session built it — `crates/sim/src/grouppath.rs`,
+had none of it. This session built it — `crates/sim/src/groups/grouppath.rs`,
 about 250 lines — and the interesting part is not the code.
 
 ### Two of three, and the third changed owner

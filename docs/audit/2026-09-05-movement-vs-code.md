@@ -25,10 +25,10 @@ stated; three rows below are the *document* being wrong and the code right.
 `crates/sim/src/movement/mod.rs:490`–`492` repeats the claim in `move_step`'s own
 docstring: "`step` is what `do_move` hands in: `get_speed` for the unit's
 square, times the modern-infantry 5/4 where it applies." The predicate itself
-exists — `Sim::is_modern_infantry` at `crates/sim/src/form.rs:417`, `unit_flags
+exists — `Sim::is_modern_infantry` at `crates/sim/src/groups/form.rs:417`, `unit_flags
 & 0x100` and `combat.age > 5` — and its only three callers are formation
-geometry (`crates/sim/src/form.rs:369`, `crates/sim/src/group.rs:891`,
-`crates/sim/src/grouppath.rs:161`). The speed path never asks it. `ai_speed`,
+geometry (`crates/sim/src/groups/form.rs:369`, `crates/sim/src/groups/group.rs:891`,
+`crates/sim/src/groups/grouppath.rs:161`). The speed path never asks it. `ai_speed`,
 the other half of the same sentence, is a stated seam in the document's open
 questions ("`crates/sim` treats it as 1") and so is not a row; the 5/4 is not.
 
@@ -207,7 +207,7 @@ the per-axis clamps, the world check leaving everything else written — is
 loop's three writers and, crucially, the *third* case where nothing is written
 (`!was_at_des || !facing_settled` at `crates/sim/src/lib.rs:3114`–`3117`);
 `Unit::set_angle`'s own crew write at the top of the step, from guy 0's
-position and the **heading** (`crates/sim/src/group.rs:1361`–`1368`); the snap
+position and the **heading** (`crates/sim/src/groups/group.rs:1361`–`1368`); the snap
 flag teleporting the crew, and `Unit::set_new_location` having **no** early
 return for an unchanged position (`crates/sim/src/movement/collide.rs:354`–`416`, item
 210). `off_x`/`off_y` are treated as the constant zero they are. A tracked crew
