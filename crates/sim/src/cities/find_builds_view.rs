@@ -260,7 +260,7 @@ impl<'a> SimFindBuilds<'a> {
         self.site(player, id)
             .and_then(|b| self.s.buildings[b].ty)
             .map_or(0, |t| {
-                let bt = &self.s.build_types[t];
+                let bt = &self.s.tables.build_types[t];
                 if y { bt.y_size } else { bt.x_size }
             })
     }

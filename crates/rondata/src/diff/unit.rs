@@ -270,7 +270,7 @@ mod tests {
                         continue;
                     };
                     let Some(ty) = link.kind else { continue };
-                    let crew = built.sim.unit_types[ty].combat.crew_size;
+                    let crew = built.sim.tables.unit_types[ty].combat.crew_size;
                     let ours = usize::try_from(crew + sim::anim::SQUAD_SIZE as i32).unwrap_or(0);
                     rows += 1;
                     *counts.entry(u.guys.len()).or_default() += 1;
@@ -644,7 +644,7 @@ mod tests {
             let Some(init) = log.initial() else { continue };
             let built = build_sim(&loaded, &init, Tuning::RON);
             let sim = &built.sim;
-            for (&(who, _, _, guy), &piece) in &sim.art.pieces {
+            for (&(who, _, _, guy), &piece) in &sim.roster.art.pieces {
                 // Gaia is the other check's.
                 if who >= 8 {
                     continue;
@@ -653,7 +653,7 @@ mod tests {
                     .piece_lengths
                     .get(&piece)
                     .unwrap_or_else(|| panic!("{name}: no install entry for piece {piece}"));
-                for (&(p, slot), &n) in &sim.art.lengths {
+                for (&(p, slot), &n) in &sim.roster.art.lengths {
                     if p != piece {
                         continue;
                     }
@@ -1052,7 +1052,7 @@ mod tests {
         let last = *window.last().expect("the window");
 
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         let mut compared = 0usize;
         let mut caravan_rows = 0usize;
         let mut queue_rows = 0usize;
@@ -1331,7 +1331,7 @@ mod tests {
         let last = *window.last().expect("the window");
 
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         let mut compared = 0usize;
         let mut merchant_rows = 0usize;
         let mut unmatched = 0usize;
@@ -2824,7 +2824,7 @@ mod tests {
         borrow_from_siblings(&mut init, &refs);
         borrow_pasture(&mut init, &tr);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         let mut under: Vec<(i64, usize, usize, bool)> = Vec::new();
         let mut word: Option<(Vec<String>, Vec<String>)> = None;
         let mut stand: Option<(Vec<String>, Vec<String>)> = None;
@@ -2834,14 +2834,14 @@ mod tests {
         for f in 0..7586i64 {
             if f == 7585 {
                 shop = Some((
-                    built.sim.ai[1].make_list.clone(),
-                    built.sim.ledgers[1].bucket,
+                    built.sim.ai.ai[1].make_list.clone(),
+                    built.sim.economy.ledgers[1].bucket,
                 ));
             }
             built.tick();
             if (7580..7586).contains(&f) {
-                let ours =
-                    mark_sites(&built.sim.phase_marks, built.sim.rng.seed).unwrap_or_default();
+                let ours = mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed)
+                    .unwrap_or_default();
                 let theirs = tr.labels(f);
                 under.push((f, ours.len(), theirs.len(), ours == theirs));
                 if f == 7584 {
@@ -2939,7 +2939,7 @@ mod tests {
         let named = |t: i32| {
             usize::try_from(t)
                 .ok()
-                .and_then(|t| built.sim.tech_tree.types.get(t))
+                .and_then(|t| built.sim.tables.tech_tree.types.get(t))
                 .map(|d| d.name.clone())
                 .unwrap_or_default()
         };

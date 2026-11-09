@@ -48,7 +48,7 @@ fn fix() -> Fix {
         }
     }
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    sim.nation[1].human = false;
+    sim.cities.nation[1].human = false;
     let dock = sim.add_build_type(BuildType {
         ident: Ident::Dock,
         x_size: 4,
@@ -73,7 +73,7 @@ fn fix() -> Fix {
         hits: 40,
         ..UnitType::default()
     });
-    sim.unit_types[scout].tree = Some(ty::SCOUT);
+    sim.tables.unit_types[scout].tree = Some(ty::SCOUT);
     let mut ship_t = UnitType {
         hits: 100,
         ..UnitType::default()
@@ -93,9 +93,9 @@ fn fix() -> Fix {
 
 fn unit(sim: &mut Sim, who: Player, t: usize, at: Pos) -> usize {
     let index = sim.find_free(who, UNIT_BASE, BUILD_BASE).unwrap();
-    let mut u = Unit::new(who, index, at, sim.unit_types[t].hits);
+    let mut u = Unit::new(who, index, at, sim.tables.unit_types[t].hits);
     u.ty = Some(t);
-    u.kind.domain = sim.unit_types[t].combat.domain;
+    u.kind.domain = sim.tables.unit_types[t].combat.domain;
     sim.add_unit(u)
 }
 
@@ -119,7 +119,7 @@ fn transport_types_follow_the_kind_ladder() {
     // A land unit can ever transport; a warship without `carry` cannot.
     assert!(f.sim.unit_can_ever_transport(c));
     assert!(!f.sim.unit_can_ever_transport(b));
-    f.sim.unit_types[f.ship].cols.carry = 4;
+    f.sim.tables.unit_types[f.ship].cols.carry = 4;
     assert!(f.sim.unit_can_ever_transport(b));
 }
 
@@ -154,7 +154,7 @@ fn the_level_is_granted_by_a_dock_and_revoked_with_it() {
 #[test]
 fn scouts_stay_off_without_the_option_and_the_veto_holds() {
     let mut f = fix();
-    f.sim.transport[1].scouts_option = false;
+    f.sim.ai.transport[1].scouts_option = false;
     let s = unit(&mut f.sim, 1, f.scout, tile_pos(4, 5));
     let c = unit(&mut f.sim, 1, f.citizen, tile_pos(4, 4));
     let b = place_dock(&mut f.sim, 1, f.dock, tile_pos(30, 16));
@@ -164,10 +164,10 @@ fn scouts_stay_off_without_the_option_and_the_veto_holds() {
     // The scenario veto beats the bit; the type flag beats the veto.
     f.sim.units[c].never_transport = true;
     assert!(!f.sim.unit_can_transport(c));
-    f.sim.unit_types[f.citizen].cols.unit_flags |= 0x10;
+    f.sim.tables.unit_types[f.citizen].cols.unit_flags |= 0x10;
     assert!(f.sim.unit_can_transport(c));
     // The lock freezes the level.
-    f.sim.transport[1].locked = true;
+    f.sim.ai.transport[1].locked = true;
     f.sim.close_building(b, false);
     assert_eq!(f.sim.transport_level(1), TransportType::Civilian);
 }
@@ -181,23 +181,23 @@ fn the_registry_keeps_reg_docks_and_the_slot_rule() {
     f.sim.activate(b, false, true);
     assert_eq!(f.sim.buildings[a].dock_slot, Some(0));
     assert_eq!(f.sim.buildings[b].dock_slot, Some(1));
-    assert_eq!(f.sim.docks[1].mark, 2);
-    assert_eq!(f.sim.ai[1].census.reg_docks[f.land as usize], 2);
-    assert_eq!(f.sim.docks[1].slots[0].reg, Some(f.land));
+    assert_eq!(f.sim.ai.docks[1].mark, 2);
+    assert_eq!(f.sim.ai.ai[1].census.reg_docks[f.land as usize], 2);
+    assert_eq!(f.sim.ai.docks[1].slots[0].reg, Some(f.land));
     // Close the first: its slot frees, the mark stays at 2 (slot 1 is
     // still active); a third dock reuses slot 0.
     f.sim.close_building(a, false);
-    assert_eq!(f.sim.ai[1].census.reg_docks[f.land as usize], 1);
-    assert!(!f.sim.docks[1].slots[0].active());
-    assert_eq!(f.sim.docks[1].mark, 2);
+    assert_eq!(f.sim.ai.ai[1].census.reg_docks[f.land as usize], 1);
+    assert!(!f.sim.ai.docks[1].slots[0].active());
+    assert_eq!(f.sim.ai.docks[1].mark, 2);
     let c = place_dock(&mut f.sim, 1, f.dock, tile_pos(30, 8));
     f.sim.activate(c, false, true);
     assert_eq!(f.sim.buildings[c].dock_slot, Some(0));
     // Close both: the mark walks down to 0.
     f.sim.close_building(b, false);
     f.sim.close_building(c, false);
-    assert_eq!(f.sim.docks[1].mark, 0);
-    assert_eq!(f.sim.ai[1].census.reg_docks[f.land as usize], 0);
+    assert_eq!(f.sim.ai.docks[1].mark, 0);
+    assert_eq!(f.sim.ai.ai[1].census.reg_docks[f.land as usize], 0);
     assert_eq!(f.sim.transport_level(1), TransportType::None);
 }
 
@@ -209,7 +209,7 @@ fn a_dock_with_a_gull_type_draws_twice() {
         gaia: true,
         ..UnitType::default()
     });
-    f.sim.unit_types[gull].tree = Some(ty::GULLBIRD);
+    f.sim.tables.unit_types[gull].tree = Some(ty::GULLBIRD);
     let seed0 = f.sim.rng.seed;
     let a = place_dock(&mut f.sim, 1, f.dock, tile_pos(30, 8));
     f.sim.activate(a, false, true);
@@ -219,7 +219,7 @@ fn a_dock_with_a_gull_type_draws_twice() {
     probe.roll();
     probe.roll();
     assert_eq!(f.sim.rng.seed, probe.seed);
-    let g = f.sim.docks[1].slots[0].gull.expect("a gull");
+    let g = f.sim.ai.docks[1].slots[0].gull.expect("a gull");
     assert_eq!(f.sim.units[g].owner, 9);
     assert_eq!(f.sim.units[g].ty, Some(gull));
     let dock_pos = f.sim.buildings[a].pos;
@@ -235,8 +235,8 @@ fn a_dock_with_a_gull_type_draws_twice() {
     // (`Dock::close` does not clear `gull_o`).
     f.sim.close_building(a, false);
     assert!(!f.sim.units[g].alive());
-    assert!(!f.sim.docks[1].slots[0].active());
-    assert_eq!(f.sim.docks[1].slots[0].gull, Some(g));
+    assert!(!f.sim.ai.docks[1].slots[0].active());
+    assert_eq!(f.sim.ai.docks[1].slots[0].gull, Some(g));
 }
 
 /// **A transport that reaches its oil platform dies there, and its
@@ -253,7 +253,7 @@ fn a_dock_with_a_gull_type_draws_twice() {
 fn a_transport_at_its_oil_platform_dies_and_hands_in_its_passenger() {
     let mut f = fix();
     let b = barge(&mut f.sim);
-    f.sim.unit_types[b].cols.carry = 1;
+    f.sim.tables.unit_types[b].cols.carry = 1;
     let platform = f.sim.add_build_type(BuildType {
         ident: Ident::OilPlatform,
         x_size: 4,
@@ -297,8 +297,8 @@ fn barge(sim: &mut Sim) -> usize {
     t.combat.domain = Domain::Sea;
     t.combat.block_radius = 48;
     let b = sim.add_unit_type(t);
-    sim.unit_types[b].tree = Some(ty::TRANSPORTBARGE);
-    sim.unit_types[b].type_index = ty::TRANSPORTBARGE as i32;
+    sim.tables.unit_types[b].tree = Some(ty::TRANSPORTBARGE);
+    sim.tables.unit_types[b].type_index = ty::TRANSPORTBARGE as i32;
     b
 }
 
@@ -327,7 +327,7 @@ fn a_land_member_whose_slot_zero_is_at_sea_sweeps_as_the_leader_s_barge() {
         Some(tank),
         "no transport: the member's own type"
     );
-    f.sim.transport[1].military = true;
+    f.sim.ai.transport[1].military = true;
     assert_eq!(
         f.sim.region_spot_type(u, sea),
         Some(b),
@@ -592,10 +592,10 @@ fn a_boat_born_on_the_shore_lights_its_disc_on_the_water() {
     assert!(f.sim.world.set_fog(vec![0; 24 * 16]));
     let b = barge(&mut f.sim);
     // `LOS 6`: a fog radius of 3.
-    f.sim.unit_types[b].los = 6;
+    f.sim.tables.unit_types[b].los = 6;
     // A sea unit sees from its own half-cell (`docs/VISION.md` §3):
     // no forward projection to carry the birth disc onto the water.
-    f.sim.unit_types[b].kind.domain = Domain::Sea;
+    f.sim.tables.unit_types[b].kind.domain = Domain::Sea;
     let u = unit(&mut f.sim, 1, f.citizen, tile_pos(30, 14));
     f.sim.init_guys(u, Some(f.citizen));
     f.sim.units[u].auto_transport = true;
@@ -636,7 +636,7 @@ fn a_boat_born_on_the_shore_lights_its_disc_on_the_water() {
 fn a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is() {
     let mut f = fix();
     let b = barge(&mut f.sim);
-    f.sim.unit_types[b].price.pop = 0;
+    f.sim.tables.unit_types[b].price.pop = 0;
     let mut fleet_t = UnitType {
         hits: 50,
         moves: 25,
@@ -647,15 +647,15 @@ fn a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is() {
     fleet_t.price.pop = 1;
     fleet_t.cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
     let fleet = f.sim.add_unit_type(fleet_t);
-    f.sim.unit_types[fleet].tree = Some(ty::MERCHANTFLEET);
-    f.sim.unit_types[fleet].type_index = ty::MERCHANTFLEET as i32;
+    f.sim.tables.unit_types[fleet].tree = Some(ty::MERCHANTFLEET);
+    f.sim.tables.unit_types[fleet].type_index = ty::MERCHANTFLEET as i32;
     let caravan = f.sim.add_unit_type(UnitType {
         hits: 40,
         ..UnitType::default()
     });
-    f.sim.unit_types[caravan].tree = Some(ty::CARAVAN);
-    f.sim.unit_types[caravan].price.pop = 1;
-    f.sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
+    f.sim.tables.unit_types[caravan].tree = Some(ty::CARAVAN);
+    f.sim.tables.unit_types[caravan].price.pop = 1;
+    f.sim.tables.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
 
     for (walker_t, boat_t, counted, sweep) in [
         (caravan, fleet, 1, false),
@@ -665,18 +665,18 @@ fn a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is() {
         let u = unit(&mut f.sim, 1, walker_t, tile_pos(30, 14));
         f.sim.init_guys(u, Some(walker_t));
         f.sim.units[u].auto_transport = true;
-        let control = f.sim.muster[1].control;
-        let caras = f.sim.ai[1].census.caras;
+        let control = f.sim.roster.muster[1].control;
+        let caras = f.sim.ai.ai[1].census.caras;
         assert!(!f.sim.set_new_location(u, tile_pos(33, 14), false));
         let boat = f.sim.units.len();
         f.sim.work(u, 1);
         assert_eq!(f.sim.units[boat].ty, Some(boat_t), "the boat");
         assert_eq!(
-            f.sim.muster[1].by_type[boat_t], counted,
+            f.sim.roster.muster[1].by_type[boat_t], counted,
             "`set_type`'s `+1`, for a type with population"
         );
-        assert_eq!(f.sim.muster[1].control, control + counted);
-        assert_eq!(f.sim.ai[1].census.caras, caras + counted);
+        assert_eq!(f.sim.roster.muster[1].control, control + counted);
+        assert_eq!(f.sim.ai.ai[1].census.caras, caras + counted);
         // Item 1647: a census drops fleets from caras, but closing
         // one afterward still subtracts. Preserve that asymmetry.
         if sweep {
@@ -687,18 +687,18 @@ fn a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is() {
                 .iter()
                 .filter(|u| u.alive() && u.owner == 1 && u.ty == Some(caravan))
                 .count() as i32;
-            assert_eq!(f.sim.ai[1].census.caras, land_caravans);
+            assert_eq!(f.sim.ai.ai[1].census.caras, land_caravans);
         }
-        let before_close = f.sim.ai[1].census.caras;
+        let before_close = f.sim.ai.ai[1].census.caras;
         // Ashore again: the boat puts its passenger out and closes.
         assert!(!f.sim.set_new_location(boat, tile_pos(30, 14), false));
         assert!(!f.sim.units[boat].alive());
         assert_eq!(
-            f.sim.muster[1].by_type[boat_t], 0,
+            f.sim.roster.muster[1].by_type[boat_t], 0,
             "`Unit::close`'s `−1` at `0060f3db`"
         );
-        assert_eq!(f.sim.muster[1].control, control);
-        assert_eq!(f.sim.ai[1].census.caras, before_close - counted);
+        assert_eq!(f.sim.roster.muster[1].control, control);
+        assert_eq!(f.sim.ai.ai[1].census.caras, before_close - counted);
     }
 }
 
@@ -725,14 +725,14 @@ fn a_caravan_s_route_slot_goes_with_it_onto_the_fleet_and_back() {
     fleet_t.combat.block_radius = 48;
     fleet_t.cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
     let fleet = f.sim.add_unit_type(fleet_t);
-    f.sim.unit_types[fleet].tree = Some(ty::MERCHANTFLEET);
-    f.sim.unit_types[fleet].type_index = ty::MERCHANTFLEET as i32;
+    f.sim.tables.unit_types[fleet].tree = Some(ty::MERCHANTFLEET);
+    f.sim.tables.unit_types[fleet].type_index = ty::MERCHANTFLEET as i32;
     let caravan = f.sim.add_unit_type(UnitType {
         hits: 40,
         ..UnitType::default()
     });
-    f.sim.unit_types[caravan].tree = Some(ty::CARAVAN);
-    f.sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
+    f.sim.tables.unit_types[caravan].tree = Some(ty::CARAVAN);
+    f.sim.tables.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
 
     // A route below it, so the walker's slot is not 0.
     let other = unit(&mut f.sim, 1, caravan, tile_pos(10, 10));
@@ -751,7 +751,7 @@ fn a_caravan_s_route_slot_goes_with_it_onto_the_fleet_and_back() {
         "the boat takes the slot"
     );
     assert_eq!(
-        f.sim.caravans[1].slots[1].unit,
+        f.sim.economy.caravans[1].slots[1].unit,
         Some(boat),
         "the route names the boat"
     );
@@ -761,12 +761,12 @@ fn a_caravan_s_route_slot_goes_with_it_onto_the_fleet_and_back() {
     assert_eq!(f.sim.units[boat].caravan, None, "the boat's is cleared");
     assert_eq!(f.sim.units[u].caravan, Some(1), "the caravan takes it back");
     assert_eq!(
-        f.sim.caravans[1].slots[1].unit,
+        f.sim.economy.caravans[1].slots[1].unit,
         Some(u),
         "the route names it again"
     );
     assert!(
-        f.sim.caravans[1].slots[1].alive,
+        f.sim.economy.caravans[1].slots[1].alive,
         "the boat's close closed no route"
     );
 }
@@ -794,7 +794,7 @@ fn a_passenger_that_lands_as_its_group_s_leader_toggles_the_group_s_mirror() {
     f.sim.units[boat]
         .movement
         .set_facing(crate::movement::Angle::SOUTH);
-    assert!(!f.sim.armies[1].list[slot].group.facing);
+    assert!(!f.sim.ai.armies[1].list[slot].group.facing);
     f.sim.disembark(boat);
     assert!(f.sim.units[rider].on_map, "it is ashore");
     assert_eq!(
@@ -803,7 +803,7 @@ fn a_passenger_that_lands_as_its_group_s_leader_toggles_the_group_s_mirror() {
         "turned to the boat's heading"
     );
     assert!(
-        f.sim.armies[1].list[slot].group.facing,
+        f.sim.ai.armies[1].list[slot].group.facing,
         "a reversing turn by the leader toggles the army's flag"
     );
 }
@@ -1007,11 +1007,11 @@ fn a_boat_that_dies_stepping_ashore_paints_its_figure_s_step() {
         "its figure stepped north a cell: {from:?} -> {to:?}"
     );
     assert!(
-        f.sim.coll.get(to.x, to.y - size),
+        f.sim.movement.coll.get(to.x, to.y - size),
         "the step's set pass painted the leading row"
     );
     assert!(
-        !f.sim.coll.get(from.x, from.y + size),
+        !f.sim.movement.coll.get(from.x, from.y + size),
         "and the close cleared the trailing one"
     );
 }
@@ -1037,7 +1037,7 @@ fn a_boat_that_dies_standing_on_its_phase_frame_leaves_its_disc_marked() {
     assert!(!f.sim.units[boat].alive(), "the boat stepped ashore");
     let c = crate::collide::ucell(at);
     assert!(
-        f.sim.coll.get(c.x, c.y),
+        f.sim.movement.coll.get(c.x, c.y),
         "the dead figure's repaint marked its own cell"
     );
 }
@@ -1055,7 +1055,10 @@ fn a_boat_that_dies_off_its_phase_frame_leaves_its_cell_clear() {
     f.sim.process_unit(boat, f.sim.frame, &mut Vec::new());
     assert!(!f.sim.units[boat].alive(), "the boat stepped ashore");
     let c = crate::collide::ucell(at);
-    assert!(!f.sim.coll.get(c.x, c.y), "the close cleared the cell");
+    assert!(
+        !f.sim.movement.coll.get(c.x, c.y),
+        "the close cleared the cell"
+    );
 }
 
 /// **A squad's passenger takes the boat's orders through a group**
@@ -1071,7 +1074,7 @@ fn a_boat_that_dies_off_its_phase_frame_leaves_its_cell_clear() {
 #[test]
 fn a_squad_s_passenger_comes_ashore_with_the_boat_s_move_as_a_group() {
     let mut f = fix();
-    let mut t = f.sim.unit_types[f.citizen].clone();
+    let mut t = f.sim.tables.unit_types[f.citizen].clone();
     t.combat.uber_size = 3;
     let squad = f.sim.add_unit_type(t);
     let rider = unit(&mut f.sim, 1, squad, tile_pos(30, 14));
@@ -1096,6 +1099,7 @@ fn a_squad_s_passenger_comes_ashore_with_the_boat_s_move_as_a_group() {
     );
     assert!(
         f.sim
+            .orders
             .pushed
             .iter()
             .any(|p| p.who == 1 && p.list == vec![rider]),
@@ -1119,7 +1123,7 @@ fn a_squad_s_passenger_comes_ashore_with_the_boat_s_move_as_a_group() {
 #[test]
 fn a_landed_squad_takes_one_group_move_each_and_its_captain_s_angle() {
     let mut f = fix();
-    let mut t = f.sim.unit_types[f.citizen].clone();
+    let mut t = f.sim.tables.unit_types[f.citizen].clone();
     t.combat.uber_size = 3;
     let hoplite = f.sim.add_unit_type(t);
     let squad: Vec<usize> = (0..3)
@@ -1164,7 +1168,7 @@ fn a_landed_squad_takes_one_group_move_each_and_its_captain_s_angle() {
 #[test]
 fn a_captain_s_boarding_takes_its_squad_aboard_and_closes_its_orders() {
     let mut f = fix();
-    let mut t = f.sim.unit_types[f.citizen].clone();
+    let mut t = f.sim.tables.unit_types[f.citizen].clone();
     t.combat.uber_size = 3;
     let hoplite = f.sim.add_unit_type(t);
     let b = barge(&mut f.sim);
@@ -1201,7 +1205,7 @@ fn a_captain_s_boarding_takes_its_squad_aboard_and_closes_its_orders() {
 #[test]
 fn a_squad_s_boarding_stops_at_a_dead_figure_down_the_chain() {
     let mut f = fix();
-    let mut t = f.sim.unit_types[f.citizen].clone();
+    let mut t = f.sim.tables.unit_types[f.citizen].clone();
     t.combat.uber_size = 3;
     let hoplite = f.sim.add_unit_type(t);
     let b = barge(&mut f.sim);
@@ -1290,11 +1294,11 @@ fn a_boat_that_puts_its_passenger_ashore_holds_its_number_thirty_frames() {
 fn a_passenger_put_ashore_takes_the_boat_s_ring_and_the_boat_s_orders() {
     let mut f = fix();
     let b = barge(&mut f.sim);
-    f.sim.unit_types[f.scout].combat.uber_size = 1;
-    f.sim.unit_types[f.scout].combat.block_radius = 48;
+    f.sim.tables.unit_types[f.scout].combat.uber_size = 1;
+    f.sim.tables.unit_types[f.scout].combat.block_radius = 48;
     // `is_special` is `is(SCOUT)` folded into `unit_flags2` by the
     // loader, and it is what puts this unit on the coin's `% 2` arm.
-    f.sim.unit_types[f.scout].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_SCOUT;
+    f.sim.tables.unit_types[f.scout].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_SCOUT;
     let rider = unit(&mut f.sim, 1, f.scout, tile_pos(30, 14));
     f.sim.units[rider].movement.speed = 34;
     let boat = unit(&mut f.sim, 1, b, tile_pos(33, 14));
@@ -1344,7 +1348,7 @@ fn a_passenger_put_ashore_takes_the_boat_s_ring_and_the_boat_s_orders() {
     );
     let d = at.x - spot.x;
     assert!(
-        (48..=48 + f.sim.tuning.unit_disembark_distance).contains(&d),
+        (48..=48 + f.sim.tables.tuning.unit_disembark_distance).contains(&d),
         "the ring is the boat's `[48, 624]`, and this is {d}"
     );
 
@@ -1382,14 +1386,14 @@ fn a_passenger_put_ashore_takes_the_boat_s_ring_and_the_boat_s_orders() {
 /// computer player: the rider's `orders_x/y` and its guys' speeds.
 fn ashore(human: bool, avg: i32) -> (Fix, usize, Pos) {
     let mut f = fix();
-    f.sim.nation[1].human = human;
+    f.sim.cities.nation[1].human = human;
     let b = barge(&mut f.sim);
-    f.sim.unit_types[f.scout].combat.uber_size = 1;
-    f.sim.unit_types[f.scout].combat.block_radius = 48;
+    f.sim.tables.unit_types[f.scout].combat.uber_size = 1;
+    f.sim.tables.unit_types[f.scout].combat.block_radius = 48;
     let rider = unit(&mut f.sim, 1, f.scout, tile_pos(30, 14));
     f.sim.units[rider].movement.speed = 34;
     f.sim.units[rider].guys = vec![crate::anim::Guy::fresh(1), crate::anim::Guy::fresh(2)];
-    f.sim.art.tracks.insert(2, (-48, -192));
+    f.sim.roster.art.tracks.insert(2, (-48, -192));
     f.sim.seat_guys(rider);
     f.sim.units[rider].movement.body.avg_speed = avg;
     f.sim.units[rider].guys[1]
@@ -1471,8 +1475,8 @@ fn a_passenger_comes_ashore_at_the_average_it_boarded_with() {
 fn a_passenger_put_ashore_clears_the_disc_it_boarded_from() {
     let mut f = fix();
     let b = barge(&mut f.sim);
-    f.sim.unit_types[f.scout].combat.uber_size = 1;
-    f.sim.unit_types[f.scout].combat.block_radius = 48;
+    f.sim.tables.unit_types[f.scout].combat.uber_size = 1;
+    f.sim.tables.unit_types[f.scout].combat.block_radius = 48;
     let rider = unit(&mut f.sim, 1, f.scout, tile_pos(30, 14));
     f.sim.units[rider].movement.speed = 34;
     let boat = unit(&mut f.sim, 1, b, tile_pos(33, 14));
@@ -1485,7 +1489,7 @@ fn a_passenger_put_ashore_clears_the_disc_it_boarded_from() {
     // Another unit's bit, inside the boarding disc and on its far side
     // from the ring the boat lands it on.
     let ghost = Pos::new(boarded.x - 1, boarded.y);
-    f.sim.coll.set(ghost.x, ghost.y, true);
+    f.sim.movement.coll.set(ghost.x, ghost.y, true);
     assert!(!f.sim.set_new_location(boat, tile_pos(30, 14), false));
     assert_eq!(f.sim.units[rider].inside_unit, None, "ashore");
     let spot = crate::collide::ucell(f.sim.units[rider].pos);
@@ -1494,10 +1498,13 @@ fn a_passenger_put_ashore_clears_the_disc_it_boarded_from() {
         "the ghost is outside the new disc"
     );
     assert!(
-        !f.sim.coll.get(ghost.x, ghost.y),
+        !f.sim.movement.coll.get(ghost.x, ghost.y),
         "the boarding disc is cleared, the other unit's bit with it"
     );
-    assert!(f.sim.coll.get(spot.x, spot.y), "the spot's disc is set");
+    assert!(
+        f.sim.movement.coll.get(spot.x, spot.y),
+        "the spot's disc is set"
+    );
     assert_eq!(f.sim.units[rider].coll_at, Some(f.sim.units[rider].pos));
 }
 
@@ -1512,7 +1519,7 @@ fn a_passenger_put_ashore_clears_the_disc_it_boarded_from() {
 fn a_barge_taking_a_goal_ashore_flags_it_and_keeps_it() {
     let mut f = fix();
     let b = barge(&mut f.sim);
-    f.sim.unit_types[b].kind.domain = Domain::Sea;
+    f.sim.tables.unit_types[b].kind.domain = Domain::Sea;
     let rider = unit(&mut f.sim, 1, f.citizen, tile_pos(40, 14));
     let boat = unit(&mut f.sim, 1, b, tile_pos(40, 14));
     f.sim.units[boat].auto_transport = true;
@@ -1569,7 +1576,7 @@ fn a_trade_walker_s_region_push_carries_the_stripped_road_flag() {
     use crate::world::tile;
     let mut f = fix();
     let b = barge(&mut f.sim);
-    f.sim.unit_types[b].kind.domain = Domain::Sea;
+    f.sim.tables.unit_types[b].kind.domain = Domain::Sea;
     let boat = unit(&mut f.sim, 1, b, tile_pos(40, 14));
     f.sim.init_guys(boat, Some(b));
     let goal = tile_pos(28, 14);
@@ -1653,8 +1660,8 @@ fn the_island_search_sends_a_scout_to_another_region_s_shore() {
     let u = unit(&mut f.sim, 1, f.scout, tile_pos(10, 14));
     f.sim.units[u].auto_transport = true;
     f.sim.units[u].type_index = ty::SCOUT as i32;
-    f.sim.transport.resize_with(2, LeaderTransport::default);
-    f.sim.transport[1].set_all();
+    f.sim.ai.transport.resize_with(2, LeaderTransport::default);
+    f.sim.ai.transport[1].set_all();
     assert!(
         f.sim.think_civilian_transport(u, false),
         "a resource region across the water, and nothing scouted"
@@ -1819,7 +1826,7 @@ fn a_boat_carrying_a_soldier_sails_to_its_army_s_target() {
     let slot = f.sim.init_army(1, None);
     let target = unit(&mut f.sim, 0, f.citizen, Pos::new(6240, 2000));
     {
-        let a = &mut f.sim.armies[1].list[slot];
+        let a = &mut f.sim.ai.armies[1].list[slot];
         a.group.pool = Some(3);
         a.target = Some(Obj::Unit(target));
         a.reg = None;
@@ -1844,7 +1851,7 @@ fn a_boat_carrying_a_soldier_sails_to_its_army_s_target() {
     // Beside the army's region: `eject_contents(0, -1, 0, 1)`, the
     // rider ashore with its own empty list, and the emptied boat dead.
     f.sim.units[boat].pos = Pos::new(8 * 0x300 + 700, 3 * 0x300 + 0x180);
-    f.sim.armies[1].list[slot].reg = Some(f.land);
+    f.sim.ai.armies[1].list[slot].reg = Some(f.land);
     assert!(f.sim.think_carry(boat), "ashore beside its army's region");
     assert_eq!(f.sim.units[rider].inside_unit, None, "the rider is out");
     assert!(f.sim.units[rider].on_map, "and on the map");

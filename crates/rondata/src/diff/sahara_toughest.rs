@@ -2044,6 +2044,7 @@ mod tests {
         let mut ours: Vec<(i64, i64, i64)> = built
             .sim
             .cities
+            .cities
             .iter()
             .filter(|c| c.alive)
             .map(|c| (i64::from(c.owner), i64::from(c.pos.x), i64::from(c.pos.y)))
@@ -2056,13 +2057,14 @@ mod tests {
             "the human holds no building at the closing"
         );
         pin_eq!(
-            built.sim.city_tally[1].captured,
+            built.sim.cities.city_tally[1].captured,
             1,
             "the army took one city, the human's"
         );
         pin_eq!(
             built
                 .sim
+                .cities
                 .cities
                 .iter()
                 .filter(|c| c.alive && (c.pos.x, c.pos.y) == (6240, 30048))
@@ -2830,15 +2832,15 @@ mod tests {
         borrow_from_siblings(&mut init, &[&sib_init]);
         borrow_pasture(&mut init, &tr);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
-        built.sim.trace_costs = true;
+        built.sim.trace.trace_phases = true;
+        built.sim.trace.trace_costs = true;
         let mut searched = Vec::new();
         let mut parted = Vec::new();
         while built.sim.frame <= TOUGHEST_ROAD_FRAME_7070 {
             let f = built.sim.frame;
-            built.sim.road_marks.clear();
+            built.sim.trace.road_marks.clear();
             built.tick();
-            let ours = std::mem::take(&mut built.sim.road_marks);
+            let ours = std::mem::take(&mut built.sim.trace.road_marks);
             let theirs = t483.road_nodes(f);
             if ours.is_empty() && theirs.is_empty() {
                 continue;

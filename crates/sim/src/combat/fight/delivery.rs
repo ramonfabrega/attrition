@@ -35,10 +35,10 @@ impl Sim {
         {
             self.army_charge(who, slot, Obj::Building(b));
         }
-        if !fresh && self.frame - self.cities[c].reduce_stamp < 300 {
+        if !fresh && self.frame - self.cities.cities[c].reduce_stamp < 300 {
             return;
         }
-        self.cities[c].reduce_stamp = self.frame;
+        self.cities.cities[c].reduce_stamp = self.frame;
     }
 
     /// `Object::do_damage` (§7.1): computes, scales and delivers one hit from
@@ -114,7 +114,7 @@ impl Sim {
         let owner = self.owner_of(attacker) as usize;
         let pct = self.table_pct(attacker, target);
         let mut dmg = combat::get_damage(
-            &self.tuning,
+            &self.tables.tuning,
             &ap,
             at,
             &tp,
@@ -140,7 +140,7 @@ impl Sim {
             }
             let u = &mut self.units[t];
             if u.combat.damage_frame == 0
-                || frame - u.combat.damage_frame >= i64::from(self.tuning.overkill_frames)
+                || frame - u.combat.damage_frame >= i64::from(self.tables.tuning.overkill_frames)
             {
                 u.combat.damage_frame = frame;
                 u.combat.damage_o = at.captain;
@@ -201,7 +201,7 @@ impl Sim {
         // (item 2235, `docs/GOLDEN.md` §81).
         if alarm && !killed {
             let tw = self.owner_of(target);
-            if (tw as usize) < self.armies.len() {
+            if (tw as usize) < self.ai.armies.len() {
                 self.armies_emergency(tw);
             }
         }
@@ -234,7 +234,7 @@ impl Sim {
                 }
             }
         }
-        self.hits.push(combat::Hit {
+        self.combat.hits.push(combat::Hit {
             frame,
             attacker,
             target,
@@ -311,7 +311,7 @@ impl Sim {
                     && bd.owner == vic
                     && let Some(c) = bd.city
                 {
-                    self.cities[c].raid_stamp = frame;
+                    self.cities.cities[c].raid_stamp = frame;
                 }
                 return false;
             }
@@ -323,8 +323,8 @@ impl Sim {
         let heavy = (matches!(attacker, Obj::Unit(_)) && siege) || {
             let bd = &self.buildings[b];
             let defense = bd.ty.is_some_and(|t| {
-                crate::build::is_fort(&self.build_types, t)
-                    || crate::build::is_tower(&self.build_types, t)
+                crate::build::is_fort(&self.tables.build_types, t)
+                    || crate::build::is_tower(&self.tables.build_types, t)
             });
             let ceiling = if defense || self.building_is_city(b) {
                 bd.hits_now() / 10
@@ -334,18 +334,18 @@ impl Sim {
             bd.damage + whole >= ceiling
         };
         if !heavy {
-            self.cities[c].raid_stamp = frame;
+            self.cities.cities[c].raid_stamp = frame;
             return false;
         }
-        if self.cities[c].capital {
-            let stamp = &mut self.ai[vic as usize].capital_stamp[att as usize];
+        if self.cities.cities[c].capital {
+            let stamp = &mut self.ai.ai[vic as usize].capital_stamp[att as usize];
             if frame - *stamp > 300 {
                 *stamp = frame;
                 return true;
             }
             return false;
         }
-        let city = &mut self.cities[c];
+        let city = &mut self.cities.cities[c];
         let alarm = frame - city.attack_stamp > 300;
         city.attack_stamp = frame;
         city.raid_stamp = frame;
@@ -411,8 +411,8 @@ impl Sim {
                 {
                     continue;
                 }
-                if self.nation[unit.owner as usize].koreans
-                    && self.tuning.korean_build_under_fire != 0
+                if self.cities.nation[unit.owner as usize].koreans
+                    && self.tables.tuning.korean_build_under_fire != 0
                 {
                     continue;
                 }
@@ -483,7 +483,7 @@ impl Sim {
         // frames (`docs/ARMY.md` §12, `docs/AI.md` §71).
         if self.ai_difficulty() < 2 {
             let owner = self.owner_of(target) as usize;
-            if let Some(l) = self.ai.get_mut(owner) {
+            if let Some(l) = self.ai.ai.get_mut(owner) {
                 l.frame_attacked = _frame;
             }
         }
@@ -663,7 +663,7 @@ impl Sim {
         use crate::ai_load::uflags2;
         const DESPOT: i32 = 0x160;
         const SPITAMENES: i32 = 0x16d;
-        let amount = self.tuning.thedespot_unit_plunder;
+        let amount = self.tables.tuning.thedespot_unit_plunder;
         let victim = &self.units[v];
         if !self.is_captain(v) || victim.decoy || self.curr_uber_size(v) != 1 {
             return;
@@ -673,7 +673,7 @@ impl Sim {
         if who == vw || self.is_ally(vw, who) {
             return;
         }
-        let slay = self.nation[who as usize].aztecs
+        let slay = self.cities.nation[who as usize].aztecs
             && self.units[k]
                 .ty
                 .and_then(|t| self.trainer_ident(t))
@@ -693,7 +693,7 @@ impl Sim {
         }
         let kind = self.units[v]
             .ty
-            .map_or(0, |t| self.unit_types[t].cols.unit_flags2);
+            .map_or(0, |t| self.tables.unit_types[t].cols.unit_flags2);
         // `take_damage@00652020`'s `is(GENERAL)`/`is(CARA)`/`is(SUPPLYWAGON)`
         // arm (`LAB_0065332c`): `plunder(v, k, who, 0, 0)` — no Despot search,
         // the base constant in wealth (item 3788; run1461b's who=2 takes
@@ -743,9 +743,9 @@ impl Sim {
             return;
         }
         let vw = victim.owner;
-        if self.tuning.inca_refund == 0
+        if self.tables.tuning.inca_refund == 0
             || self.is_ally(vw, self.owner_of(by))
-            || !self.holdings[vw as usize].inca
+            || !self.economy.holdings[vw as usize].inca
         {
             return;
         }
@@ -761,10 +761,16 @@ impl Sim {
     /// The leader's per-type count at `+0x56fe + ti × 2` — the muster's
     /// count of type `ti` — non-zero: `has_general`'s early `return -1`.
     pub(crate) fn hero_counted(&self, who: Player, ti: i32) -> bool {
-        self.unit_types
+        self.tables
+            .unit_types
             .iter()
             .position(|t| t.type_index == ti)
-            .and_then(|r| self.muster.get(who as usize).and_then(|m| m.by_type.get(r)))
+            .and_then(|r| {
+                self.roster
+                    .muster
+                    .get(who as usize)
+                    .and_then(|m| m.by_type.get(r))
+            })
             .is_some_and(|&n| n != 0)
     }
 
@@ -859,7 +865,9 @@ impl Sim {
         dtype != 0
             && self.units[i].on_map
             && self.units[i].ty.is_some_and(|t| {
-                self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::BLOCKS_WHILE_DEAD != 0
+                self.tables.unit_types[t].cols.unit_flags
+                    & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
+                    != 0
             })
     }
 
@@ -875,7 +883,7 @@ impl Sim {
     /// the message and the sound; the dead-target refund arm.
     pub(crate) fn cast_sabotage_building(&mut self, b: usize) {
         let frame = self.frame;
-        let dmg = (self.buildings[b].health / 2).max(self.tuning.commando_min_damage);
+        let dmg = (self.buildings[b].health / 2).max(self.tables.tuning.commando_min_damage);
         self.damage_building(
             b,
             Sixteenths {
@@ -911,9 +919,9 @@ impl Sim {
         let Some(ty) = self.buildings[b].ty else {
             return;
         };
-        let fortlike = crate::build::is_fort(&self.build_types, ty)
-            || crate::build::is(&self.build_types, ty, crate::build::Ident::Temple)
-            || crate::build::is(&self.build_types, ty, crate::build::Ident::Town);
+        let fortlike = crate::build::is_fort(&self.tables.build_types, ty)
+            || crate::build::is(&self.tables.build_types, ty, crate::build::Ident::Temple)
+            || crate::build::is(&self.tables.build_types, ty, crate::build::Ident::Town);
         if !fortlike {
             return;
         }
@@ -966,7 +974,7 @@ impl Sim {
             // under attack, attacking and ever attacked. The first of the
             // three is the city heal's veto.
             if let Some(c) = self.buildings[b].city {
-                let cd = &mut self.cities[c];
+                let cd = &mut self.cities.cities[c];
                 cd.no_heal = true;
                 cd.attacking = true;
                 cd.ever_attacked = true;
@@ -1082,13 +1090,13 @@ impl Sim {
             return;
         }
         let Some(ty) = u.ty else { return };
-        if self.unit_types[ty].price.pop == 0 && !self.type_is_hero(ty) {
+        if self.tables.unit_types[ty].price.pop == 0 && !self.type_is_hero(ty) {
             return;
         }
         // Gaia's animals carry population in some rows and hold no muster
         // here: this crate keeps one per player slot.
         let who = u.owner;
-        if (who as usize) < self.muster.len() && (who as usize) < self.ai.len() {
+        if (who as usize) < self.roster.muster.len() && (who as usize) < self.ai.ai.len() {
             self.track_unit_type(who, ty, -1);
         }
     }
@@ -1269,7 +1277,8 @@ impl Sim {
         // neighbour's block, and nothing puts it back but the neighbour's
         // sixty-fourth-frame repaint.
         if !self.units[i].ty.is_some_and(|t| {
-            self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::BLOCKS_WHILE_DEAD != 0
+            self.tables.unit_types[t].cols.unit_flags & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
+                != 0
         }) {
             for k in 0..self.units[i].guys.len() {
                 self.coll_kill_guy(i, k);
@@ -1279,7 +1288,7 @@ impl Sim {
         let life = self.death_life(i, cur_anim);
         let u = &self.units[i];
         let (who, o) = (i32::from(u.owner), i32::from(u.index));
-        self.deaths.push(combat::Death {
+        self.combat.deaths.push(combat::Death {
             who,
             o,
             first_frame: frame,
@@ -1304,7 +1313,7 @@ impl Sim {
     /// stands and that figure's life has not run out.
     pub(super) fn death_slot_live(&self, r: &combat::DeathSlot) -> bool {
         let age = self.frame - r.first_frame;
-        self.deaths.iter().any(|d| {
+        self.combat.deaths.iter().any(|d| {
             d.who == r.who
                 && d.o == r.o
                 && d.first_frame == r.first_frame
@@ -1321,7 +1330,9 @@ impl Sim {
             .rposition(|u| i32::from(u.owner) == r.who && i32::from(u.index) == r.o)
             .and_then(|u| self.units[u].ty)
             .is_some_and(|t| {
-                self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::BLOCKS_WHILE_DEAD != 0
+                self.tables.unit_types[t].cols.unit_flags
+                    & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
+                    != 0
             })
     }
 
@@ -1342,13 +1353,13 @@ impl Sim {
     /// ([`Self::death_objs_inc_time`]), and a [`combat::Death`] left with
     /// no live figure is culled this frame and leaves the dump's list.
     pub(crate) fn add_death(&mut self, rec: combat::DeathSlot) -> usize {
-        if self.death_pool.len() < combat::DEATH_POOL {
-            self.death_pool.resize(combat::DEATH_POOL, None);
+        if self.combat.death_pool.len() < combat::DEATH_POOL {
+            self.combat.death_pool.resize(combat::DEATH_POOL, None);
         }
         let mut best = (0usize, self.frame + 1);
         let mut free = None;
         for k in 0..combat::DEATH_POOL {
-            let Some(r) = self.death_pool[k].filter(|r| self.death_slot_live(r)) else {
+            let Some(r) = self.combat.death_pool[k].filter(|r| self.death_slot_live(r)) else {
                 free = Some(k);
                 break;
             };
@@ -1357,9 +1368,10 @@ impl Sim {
             }
         }
         let k = free.unwrap_or(best.0);
-        if let Some(old) = self.death_pool[k].filter(|r| self.death_slot_live(r)) {
+        if let Some(old) = self.combat.death_pool[k].filter(|r| self.death_slot_live(r)) {
             let age = self.frame - old.first_frame;
             if let Some(d) = self
+                .combat
                 .deaths
                 .iter_mut()
                 .find(|d| d.who == old.who && d.o == old.o && d.first_frame == old.first_frame)
@@ -1370,7 +1382,7 @@ impl Sim {
                 d.life = (last != i64::MAX).then_some(last);
             }
         }
-        self.death_pool[k] = Some(rec);
+        self.combat.death_pool[k] = Some(rec);
         k
     }
 
@@ -1430,13 +1442,13 @@ impl Sim {
         let anim = i8::try_from(cur_anim).ok()?;
         let sea = self.units[i].kind.domain == crate::attrition::Domain::Sea;
         let gpiece = self.units[i].guys[k].gpiece;
-        if gpiece < 0 || !self.art.piece_lengths.contains_key(&gpiece) {
+        if gpiece < 0 || !self.roster.art.piece_lengths.contains_key(&gpiece) {
             return None;
         }
         let frames = i64::from(self.slot_length(i, gpiece, anim)?);
         let fade = if sea {
             0
-        } else if self.art.piece_skeletons.contains(&gpiece) {
+        } else if self.roster.art.piece_skeletons.contains(&gpiece) {
             Self::CORPSE_FADE_END
         } else {
             Self::BODY_FADE_END
@@ -1486,6 +1498,7 @@ impl Sim {
         // it is read as set; `die_hold_steps` takes it for the sweep.
         let (who, idx) = (self.units[i].owner, self.units[i].index);
         let ammo: Vec<DieAmmo> = self
+            .combat
             .projectiles
             .iter()
             .filter(|p| p.shooter == Obj::Unit(i))
@@ -1532,13 +1545,13 @@ impl Sim {
     /// capture — the row `crate::diff::compare` now carries. The death
     /// objects' own bump is [`Self::death_objs_inc_time`], after the walk.
     pub(crate) fn hold_frames_tick(&mut self) {
-        for k in 0..self.projectiles.len() {
+        for k in 0..self.combat.projectiles.len() {
             // A crash round bumps its own plane's slot in its step
             // ([`Sim::process_projectiles`]).
-            if self.projectiles[k].crash.is_some() {
+            if self.combat.projectiles[k].crash.is_some() {
                 continue;
             }
-            let Obj::Unit(s) = self.projectiles[k].shooter else {
+            let Obj::Unit(s) = self.combat.projectiles[k].shooter else {
                 continue;
             };
             if !self.active(Obj::Unit(s)) {
@@ -1560,15 +1573,15 @@ impl Sim {
     /// bump ahead of the walk left 1, and the Jet that ours put into 18 on
     /// tick 1539 takes 41 in theirs.
     pub(crate) fn death_objs_inc_time(&mut self) {
-        for k in 0..self.deaths.len() {
-            let (who, o) = (self.deaths[k].who, self.deaths[k].o);
+        for k in 0..self.combat.deaths.len() {
+            let (who, o) = (self.combat.deaths[k].who, self.combat.deaths[k].o);
             // **One bump a record** (item 3784, `docs/GOLDEN.md` §149.10):
             // `DeathObj::inc_time`'s first statement is on each guy's
             // record, and `process_all` takes one off a frame — so a dead
             // Bombard's four records hold its number long past their cull.
-            let bumps = self.deaths[k]
+            let bumps = self.combat.deaths[k]
                 .figures
-                .live(self.frame - self.deaths[k].first_frame);
+                .live(self.frame - self.combat.deaths[k].first_frame);
             // The object in the slot, dead or not: `unit_by_o` finds only
             // the living, and this bump is on the dead (§59).
             if let Some(u) = self
@@ -1591,14 +1604,14 @@ impl Sim {
     pub(super) fn cull_deaths(&mut self) {
         let frame = self.frame;
         let mut k = 0;
-        while k < self.deaths.len() {
-            let d = self.deaths[k];
+        while k < self.combat.deaths.len() {
+            let d = self.combat.deaths[k];
             let ended = d.life.is_some_and(|l| frame - d.first_frame + 1 >= l);
             if !ended {
                 k += 1;
                 continue;
             }
-            self.deaths.remove(k);
+            self.combat.deaths.remove(k);
             if let Some(u) = self
                 .units
                 .iter()
@@ -1606,7 +1619,7 @@ impl Sim {
             {
                 let blocks = !self.units[u].alive()
                     && self.units[u].ty.is_some_and(|t| {
-                        self.unit_types[t].cols.unit_flags
+                        self.tables.unit_types[t].cols.unit_flags
                             & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
                             != 0
                     });

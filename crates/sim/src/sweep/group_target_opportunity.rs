@@ -219,8 +219,8 @@ fn build(s: &Scene, held: &[Option<Held>; 8]) -> Sim {
     let mut tuning = Tuning::RON;
     tuning.unit_respond_range = s.respond;
     let mut sim = Sim::new(tuning, World::new(60, 60), 2);
-    sim.at_war[0][1] = true;
-    sim.at_war[1][0] = true;
+    sim.leaders.at_war[0][1] = true;
+    sim.leaders.at_war[1][0] = true;
     let role = sim.add_unit_type(UnitType {
         hits: 100,
         combat: Profile {
@@ -247,7 +247,7 @@ fn build(s: &Scene, held: &[Option<Held>; 8]) -> Sim {
         let mut u = Unit::new(su.owner, su.index, su.pos, if su.alive { 100 } else { 0 });
         u.ty = Some(ty);
         u.on_map = su.on_map;
-        u.kind = sim.unit_types[ty].kind;
+        u.kind = sim.tables.unit_types[ty].kind;
         u.captain = su.captain;
         u.o_up = su.up;
         sim.add_unit(u);
@@ -290,7 +290,7 @@ fn build(s: &Scene, held: &[Option<Held>; 8]) -> Sim {
         sim.units[mem].group_ptr = Some(2);
     }
     sim.frame = s.frame;
-    sim.pushed.push(Pushed {
+    sim.orders.pushed.push(Pushed {
         who: s.owner,
         list: s.members.clone(),
         state: GroupState {
@@ -401,9 +401,9 @@ fn the_emulated_original_agrees_on_every_row() {
                         None => panic!("a visit with no callee"),
                     }
                 }
-                s2.pushed[0].state.opportunity = want_stamp;
+                s2.orders.pushed[0].state.opportunity = want_stamp;
                 assert_eq!(
-                    s1.pushed[0].state.opportunity, want_stamp,
+                    s1.orders.pushed[0].state.opportunity, want_stamp,
                     "target_opportunity — the cooldown stamp, row `{line}`"
                 );
                 if s1.units != s2.units {
@@ -431,7 +431,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 if sc.members.len() > 1 && visits.len() > 1 {
                     multi += 1;
                 }
-                wr(m, 0x38, s1.pushed[0].state.opportunity as i32);
+                wr(m, 0x38, s1.orders.pushed[0].state.opportunity as i32);
             }
             for l in &want_log {
                 log.push((*l).to_string());

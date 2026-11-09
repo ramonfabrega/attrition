@@ -156,7 +156,7 @@ pub(crate) struct SimTpath<'a> {
 
 impl TpathView for SimTpath<'_> {
     fn begin(&mut self, start: Pos) {
-        self.sim.pf_start = start;
+        self.sim.movement.pf_start = start;
     }
     fn pop(&mut self) -> Option<PathData> {
         self.sim.units[self.u].path.pop()

@@ -784,7 +784,7 @@ impl Sim {
                 let who = self.units[u].owner as usize;
                 if elapsed > 0
                     && elapsed % 4 == 0
-                    && self.repaths[who] != 0
+                    && self.movement.repaths[who] != 0
                     && !self.units[u].combat.mandatory
                 {
                     self.find_new_target(u, true);
@@ -845,7 +845,7 @@ impl Sim {
             }
             if (i64::from(self.units[u].index) + frame) % 4 == 0 {
                 let who = self.units[u].owner as usize;
-                self.repaths[who] += 1;
+                self.movement.repaths[who] += 1;
             }
             self.units[u].collide += 1;
             mo.has_waypoint = false;
@@ -959,7 +959,7 @@ impl Sim {
                         && let crate::combat::Obj::Building(_) = t
                     {
                         let siege = self.units[u].ty.is_some_and(|ty| {
-                            self.unit_types[ty]
+                            self.tables.unit_types[ty]
                                 .cols
                                 .flag(crate::ai_load::uflags::FLAG_SIEGE)
                         });
@@ -1058,7 +1058,7 @@ impl Sim {
                             && self.units[u].phase(frame) % 16 == 0
                         {
                             let siege = self.units[u].ty.is_some_and(|ty| {
-                                self.unit_types[ty]
+                                self.tables.unit_types[ty]
                                     .cols
                                     .flag(crate::ai_load::uflags::FLAG_SIEGE)
                             });
@@ -1139,7 +1139,8 @@ impl Sim {
                         (self.units[u].pos.y - mo.dest.y).abs(),
                     );
                     let transport = self.units[u].ty.is_some_and(|t| {
-                        self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT
+                        self.tables.unit_types[t].cols.unit_flags
+                            & crate::ai_load::uflags::FLAG_TRANSPORT
                             != 0
                     });
                     if d <= 0x480 && !transport {
@@ -1390,8 +1391,8 @@ impl Sim {
         // Infantry's `× 5 / 4`, truncating (`5f8893`..`5f88cb`; item 1109:
         // run404's Infantry steps 42 on a speed of 34).
         let mut speed = self.get_speed(u, 0);
-        if self.ai_speed > 1 {
-            speed *= self.ai_speed;
+        if self.ai.ai_speed > 1 {
+            speed *= self.ai.ai_speed;
         }
         if self.is_modern_infantry(u) {
             speed = speed * 5 / 4;
@@ -1703,6 +1704,7 @@ impl Sim {
         }
         if !self.is_enemy(who, owner) {
             if let Some(x) = self
+                .leaders
                 .agendas
                 .get_mut(usize::from(who))
                 .and_then(|r| r.get_mut(usize::from(owner)))
@@ -2183,7 +2185,7 @@ impl Sim {
             ..m.turning
         };
         let rate = movement::turn_speed(
-            &self.tuning,
+            &self.tables.tuning,
             &turning,
             m.body.last_speed,
             m.body.avg_speed,
@@ -2207,7 +2209,7 @@ impl Sim {
         // step is aimed along (`movement::move_step_as`).
         let heli_rate = self.is_helicopter(u).then(|| {
             movement::turn_speed(
-                &self.tuning,
+                &self.tables.tuning,
                 &turning,
                 m.body.last_speed,
                 m.body.avg_speed,
@@ -2639,8 +2641,8 @@ impl Sim {
         let dist = |_boat: bool| {
             let t_ext = match bd.ty {
                 Some(ty) => (
-                    self.build_types[ty].x_size * HALF_TILE,
-                    self.build_types[ty].y_size * HALF_TILE,
+                    self.tables.build_types[ty].x_size * HALF_TILE,
+                    self.tables.build_types[ty].y_size * HALF_TILE,
                 ),
                 None => combat::extent(&bd.combat.unwrap_or_default(), true),
             };
@@ -2656,10 +2658,10 @@ impl Sim {
             || {
                 let transport = unit
                     .ty
-                    .is_some_and(|t| self.unit_types[t].cols.flag(uflags::FLAG_TRANSPORT));
+                    .is_some_and(|t| self.tables.unit_types[t].cols.flag(uflags::FLAG_TRANSPORT));
                 (transport, self.coll_size(u))
             },
-            self.tuning.boat_garrison_max_distance,
+            self.tables.tuning.boat_garrison_max_distance,
             dist,
         )
     }
@@ -2687,7 +2689,10 @@ impl Sim {
             return bd.pos.tile() == tile;
         };
         let corner = self.tile_corner(ty, bd.pos);
-        let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+        let (xs, ys) = (
+            self.tables.build_types[ty].x_size,
+            self.tables.build_types[ty].y_size,
+        );
         crate::place::footprint_covers(corner, xs, ys, tile)
     }
 
@@ -2847,14 +2852,15 @@ impl Sim {
     /// itself or its graft, never a lineage by `from`. A type the tree
     /// does not carry answers no.
     pub(crate) fn is_aircraft_carrier(&self, ty: usize) -> bool {
-        let Some(t) = self.unit_types.get(ty).and_then(|u| u.tree) else {
+        let Some(t) = self.tables.unit_types.get(ty).and_then(|u| u.tree) else {
             return false;
         };
-        self.tech_tree
+        self.tables
+            .tech_tree
             .types
             .iter()
             .position(|d| d.kind.is_unit() && d.name.eq_ignore_ascii_case("Aircraft Carrier"))
-            .is_some_and(|root| self.tech_tree.is(t, root, true))
+            .is_some_and(|root| self.tables.tech_tree.is(t, root, true))
     }
 
     #[allow(clippy::too_many_arguments)] // as `find_nearby_spot_coll`
@@ -2872,7 +2878,7 @@ impl Sim {
     ) -> Option<Pos> {
         let p = match who {
             Seeker::Unit(u) => self.profile(Obj::Unit(u)),
-            Seeker::Type(t) | Seeker::TypeFor(t, _) => self.unit_types[t].combat,
+            Seeker::Type(t) | Seeker::TypeFor(t, _) => self.tables.unit_types[t].combat,
         };
         let farm_ok = footprint_of.is_some_and(|b| self.building_ident(b) == Ident::Farm)
             && matches!(who, Seeker::Unit(u) if self.worker_of(u) == Worker::Citizen);
@@ -3006,7 +3012,7 @@ impl crate::find_path_view::FindPathView for SimFindPath<'_> {
     fn domain(&mut self) -> i32 {
         self.sim.units[self.u]
             .ty
-            .map_or(0, |t| self.sim.unit_types[t].combat.domain as i32)
+            .map_or(0, |t| self.sim.tables.unit_types[t].combat.domain as i32)
     }
     fn go_around(&mut self, at: Pos, angle: i32, speed: i32) {
         self.sim

@@ -16,15 +16,15 @@ fn come_out_s_army_coin_is_thrown_by_the_two_scout_lineages_alone() {
         crate::world::Cell::new(0, 0),
         crate::world::Cell::new(7, 7),
     );
-    sim.nation[1].human = false;
+    sim.cities.nation[1].human = false;
 
     let make = |sim: &mut crate::Sim, flags2: u32, tree: Option<crate::tech::TypeId>| {
         let t = sim.add_unit_type(crate::UnitType {
             hits: 40,
             ..crate::UnitType::default()
         });
-        sim.unit_types[t].cols.unit_flags2 = flags2;
-        sim.unit_types[t].tree = tree;
+        sim.tables.unit_types[t].cols.unit_flags2 = flags2;
+        sim.tables.unit_types[t].tree = tree;
         let index = sim
             .find_free(1, crate::UNIT_BASE, crate::BUILD_BASE)
             .unwrap();
@@ -89,12 +89,12 @@ fn sim_with_city_slots(slots: usize) -> (Sim, usize) {
         crate::world::World::new(60, 60),
         slots,
     );
-    sim.nation[0].human = true;
-    sim.nation[1].human = false;
+    sim.cities.nation[0].human = true;
+    sim.cities.nation[1].human = false;
     let pos = Pos::new(0x3000, 0x3000);
     let b = sim.add_building(1, pos, 1);
-    let c = sim.cities.len();
-    sim.cities.push(crate::city::City {
+    let c = sim.cities.cities.len();
+    sim.cities.cities.push(crate::city::City {
         alive: true,
         owner: 1,
         race: Some(1),
@@ -131,15 +131,15 @@ fn sim_with_city_slots(slots: usize) -> (Sim, usize) {
 #[test]
 fn census_seeds_armies_in_region_order_not_city_creation_order() {
     let (mut sim, c) = sim_with_city();
-    sim.cities[c].reg = Some(6);
+    sim.cities.cities[c].reg = Some(6);
     for region in [11, 5] {
-        let mut city = sim.cities[c].clone();
+        let mut city = sim.cities.cities[c].clone();
         city.reg = Some(region);
         city.capital = false;
-        sim.cities.push(city);
+        sim.cities.cities.push(city);
     }
     sim.census_seed_army(1);
-    let armies: Vec<_> = sim.armies[1]
+    let armies: Vec<_> = sim.ai.armies[1]
         .valid()
         .map(|(slot, a)| (slot, a.reg, a.city))
         .collect();
@@ -152,7 +152,7 @@ fn census_seeds_armies_in_region_order_not_city_creation_order() {
         ]
     );
     assert!(
-        sim.armies[1].list[1].ticks_on(250),
+        sim.ai.armies[1].list[1].ticks_on(250),
         "region six gets slot one's phase, independent of city order"
     );
 }
@@ -165,11 +165,11 @@ fn census_seeds_armies_in_region_order_not_city_creation_order() {
 fn the_hoplite_and_siege_terms_skip_decoys() {
     for (human, siege_expected) in [(false, 2), (true, 3)] {
         let (mut sim, c) = sim_with_city();
-        sim.nation[1].human = human;
+        sim.cities.nation[1].human = human;
         let hop = soldier_type(&mut sim);
-        sim.unit_types[hop].cols.role |= role::ROLE_HOPLITE;
+        sim.tables.unit_types[hop].cols.role |= role::ROLE_HOPLITE;
         let ram = soldier_type(&mut sim);
-        sim.unit_types[ram].combat.siege = true;
+        sim.tables.unit_types[ram].combat.siege = true;
         let slot = sim.init_army(1, Some(c));
         for i in 0..3 {
             for t in [hop, ram] {
@@ -202,30 +202,30 @@ fn a_navy_skips_a_coastal_city_with_no_ocean() {
         (3, 2, [0, 1, 2, 3, 4, 5, 6, 7]),
     ] {
         let (mut sim, c) = sim_with_city();
-        sim.lobby.difficulty = 5;
-        sim.lobby.team_style = team_style;
-        sim.lobby.start_list = start_list;
-        sim.ai[1].pers.early_army = 1;
+        sim.ai.lobby.difficulty = 5;
+        sim.ai.lobby.team_style = team_style;
+        sim.ai.lobby.start_list = start_list;
+        sim.ai.ai[1].pers.early_army = 1;
         sim.world
             .fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(59, 59));
-        sim.cities[c].reg = sim.world.region_of(sim.cities[c].pos.cell());
+        sim.cities.cities[c].reg = sim.world.region_of(sim.cities.cities[c].pos.cell());
         let slot = sim.init_army(1, Some(c));
-        sim.armies[1].list[slot].navy = true;
-        sim.cities[c].no_muster = true;
+        sim.ai.armies[1].list[slot].navy = true;
+        sim.cities.cities[c].no_muster = true;
         let fb = sim.add_building(0, Pos::new(0x6000, 0x3000), 1);
-        let mut foe = sim.cities[c].clone();
+        let mut foe = sim.cities.cities[c].clone();
         foe.owner = 0;
         foe.founder = 0;
         foe.no_muster = false;
         foe.building = fb;
         foe.pos = sim.buildings[fb].pos;
-        let fc = sim.cities.len();
-        sim.cities.push(foe);
+        let fc = sim.cities.cities.len();
+        sim.cities.cities.push(foe);
         sim.buildings[fb].city = Some(fc);
-        sim.ai[0]
+        sim.ai.ai[0]
             .city_ai
             .resize(fc + 1, crate::ai::CityAi::default());
-        sim.ai[0].city_ai[fc].ocean = ocean;
+        sim.ai.ai[0].city_ai[fc].ocean = ocean;
         sim.declare_war(1, 0);
         let before = sim.rng.seed;
         sim.find_target(1, slot);
@@ -250,13 +250,13 @@ fn a_navy_skips_a_coastal_city_with_no_ocean() {
 #[test]
 fn an_enemy_city_s_bordering_is_read_off_its_owner() {
     let (mut sim, c) = sim_with_city();
-    sim.lobby.difficulty = 5;
-    sim.ai[1].pers.early_army = 1;
+    sim.ai.lobby.difficulty = 5;
+    sim.ai.ai[1].pers.early_army = 1;
     sim.frame = 20_000;
-    sim.cities[c].no_muster = true;
+    sim.cities.cities[c].no_muster = true;
     let slot = sim.init_army(1, Some(c));
     let hop = soldier_type(&mut sim);
-    sim.unit_types[hop].cols.role |= role::ROLE_HOPLITE;
+    sim.tables.unit_types[hop].cols.role |= role::ROLE_HOPLITE;
     for i in 0..4 {
         let u = put(&mut sim, 1, hop, Pos::new(0x3000 + i * 48, 0x3000));
         sim.army_add_unit(1, slot, u);
@@ -264,7 +264,7 @@ fn an_enemy_city_s_bordering_is_read_off_its_owner() {
     let mut foes = Vec::new();
     for x in [0x6000, 0x6800] {
         let fb = sim.add_building(0, Pos::new(x, 0x3000), 1);
-        let mut foe = sim.cities[c].clone();
+        let mut foe = sim.cities.cities[c].clone();
         foe.owner = 0;
         foe.founder = 0;
         foe.capital = false;
@@ -272,23 +272,23 @@ fn an_enemy_city_s_bordering_is_read_off_its_owner() {
         foe.no_muster = false;
         foe.building = fb;
         foe.pos = sim.buildings[fb].pos;
-        let fc = sim.cities.len();
-        sim.cities.push(foe);
+        let fc = sim.cities.cities.len();
+        sim.cities.cities.push(foe);
         sim.buildings[fb].city = Some(fc);
         foes.push((fc, fb));
     }
     let (a, a_b) = foes[0];
     let (_, b_b) = foes[1];
-    sim.ai[0]
+    sim.ai.ai[0]
         .city_ai
-        .resize(sim.cities.len(), crate::ai::CityAi::default());
-    sim.ai[0].city_ai[a].bordering = 3;
+        .resize(sim.cities.cities.len(), crate::ai::CityAi::default());
+    sim.ai.ai[0].city_ai[a].bordering = 3;
     sim.declare_war(1, 0);
-    sim.armies[1].list[slot].status = status::FORMING;
-    sim.armies[1].list[slot].target = Some(Obj::Building(b_b));
+    sim.ai.armies[1].list[slot].status = status::FORMING;
+    sim.ai.armies[1].list[slot].target = Some(Obj::Building(b_b));
     sim.find_target(1, slot);
     assert_eq!(
-        sim.armies[1].list[slot].target,
+        sim.ai.armies[1].list[slot].target,
         Some(Obj::Building(a_b)),
         "the bordering city, read off its owner"
     );
@@ -302,14 +302,14 @@ fn the_start_list_s_target_is_the_next_live_leader() {
     let (mut sim, _) = sim_with_city();
     assert_eq!(sim.start_list_target(0), 1);
     assert_eq!(sim.start_list_target(1), 0, "unseated seats are skipped");
-    sim.lobby.start_list = [4, 7, 6, 1, 0, 3, 2, 5];
+    sim.ai.lobby.start_list = [4, 7, 6, 1, 0, 3, 2, 5];
     assert_eq!(sim.start_list_target(1), 0, "the list's order: 6 1 0");
     assert_eq!(
         sim.start_list_target(0),
         1,
         "the list's order: 0 3 2 5 4 7 6 1"
     );
-    sim.defeated[1] = true;
+    sim.leaders.defeated[1] = true;
     assert_eq!(sim.start_list_target(0), 0, "nobody left but me: me");
 }
 
@@ -323,11 +323,12 @@ fn taking_over_a_valid_slot_orphans_its_group() {
     let slot = sim.init_army(1, Some(c));
     let u = put(&mut sim, 1, t, Pos::new(0x3000, 0x3000));
     sim.army_add_unit(1, slot, u);
-    let pool = sim.armies[1].list[slot].group.pool;
+    let pool = sim.ai.armies[1].list[slot].group.pool;
     assert!(pool.is_some(), "the unit is seated");
     sim.army_init(1, slot, Some(c));
     assert!(
-        sim.pushed
+        sim.orders
+            .pushed
             .iter()
             .any(|x| x.who == 1 && x.state.pool == pool && x.list.contains(&u)),
         "the old group stays in the pool"
@@ -340,20 +341,22 @@ fn target_strength_counts_living_nondecoy_cavalry_lineage() {
     for (last_decoy, last_dead, expected) in [(false, false, 4), (true, false, 3), (false, true, 3)]
     {
         let (mut sim, c) = sim_with_city();
-        sim.lobby.difficulty = 5;
-        sim.ai[1].pers.early_army = 1;
+        sim.ai.lobby.difficulty = 5;
+        sim.ai.ai[1].pers.early_army = 1;
         sim.world
             .fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(59, 59));
-        sim.cities[c].reg = sim.world.region_of(sim.cities[c].pos.cell());
+        sim.cities.cities[c].reg = sim.world.region_of(sim.cities.cities[c].pos.cell());
         let root = sim
+            .tables
             .tech_tree
             .add(TypeDef::unit("Cataphract", UnitTraits::default()));
         let upgrade = sim
+            .tables
             .tech_tree
             .add(TypeDef::unit("Knight", UnitTraits::default()).from(root));
-        sim.tech_tree.roles.cataphract = Some(root);
+        sim.tables.tech_tree.roles.cataphract = Some(root);
         let t = soldier_type(&mut sim);
-        sim.unit_types[t].tree = Some(upgrade);
+        sim.tables.unit_types[t].tree = Some(upgrade);
         let slot = sim.init_army(1, Some(c));
         for i in 0..4 {
             let u = put(&mut sim, 1, t, Pos::new(0x3000 + i * 48, 0x3000));
@@ -366,21 +369,21 @@ fn target_strength_counts_living_nondecoy_cavalry_lineage() {
             }
         }
         assert_eq!(sim.army_count_cataphracts(1, slot), expected);
-        sim.cities[c].no_muster = true;
+        sim.cities.cities[c].no_muster = true;
         let fb = sim.add_building(0, Pos::new(0x6000, 0x3000), 1);
-        let mut foe = sim.cities[c].clone();
+        let mut foe = sim.cities.cities[c].clone();
         foe.owner = 0;
         foe.founder = 0;
         foe.no_muster = false;
         foe.building = fb;
         foe.pos = sim.buildings[fb].pos;
-        let fc = sim.cities.len();
-        sim.cities.push(foe);
+        let fc = sim.cities.cities.len();
+        sim.cities.cities.push(foe);
         sim.buildings[fb].city = Some(fc);
         sim.declare_war(1, 0);
         sim.find_target(1, slot);
         assert_eq!(
-            sim.armies[1].list[slot].target == Some(Obj::Building(fb)),
+            sim.ai.armies[1].list[slot].target == Some(Obj::Building(fb)),
             expected == 4,
             "only four live real cavalry admit an enemy city"
         );
@@ -393,33 +396,33 @@ fn target_strength_counts_living_nondecoy_cavalry_lineage() {
 /// hoplites at my city, and the enemy city's building, are returned.
 fn sim_with_rival_city() -> (Sim, usize, usize) {
     let (mut sim, c) = sim_with_city();
-    sim.lobby.difficulty = 5;
-    sim.ai[1].pers.early_army = 1;
+    sim.ai.lobby.difficulty = 5;
+    sim.ai.ai[1].pers.early_army = 1;
     sim.world
         .fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(59, 59));
-    sim.cities[c].reg = sim.world.region_of(sim.cities[c].pos.cell());
-    sim.cities[c].no_heal = true;
+    sim.cities.cities[c].reg = sim.world.region_of(sim.cities.cities[c].pos.cell());
+    sim.cities.cities[c].no_heal = true;
     let hop = soldier_type(&mut sim);
-    sim.unit_types[hop].cols.role |= role::ROLE_HOPLITE;
+    sim.tables.unit_types[hop].cols.role |= role::ROLE_HOPLITE;
     let slot = sim.init_army(1, Some(c));
     for i in 0..4 {
         let u = put(&mut sim, 1, hop, Pos::new(0x3000 + i * 48, 0x3000));
         sim.army_add_unit(1, slot, u);
     }
     let fb = sim.add_building(0, Pos::new(0x6000, 0x3000), 1);
-    let mut foe = sim.cities[c].clone();
+    let mut foe = sim.cities.cities[c].clone();
     foe.owner = 0;
     foe.founder = 0;
     foe.no_heal = false;
     foe.building = fb;
     foe.pos = sim.buildings[fb].pos;
-    let fc = sim.cities.len();
-    sim.cities.push(foe);
+    let fc = sim.cities.cities.len();
+    sim.cities.cities.push(foe);
     sim.buildings[fb].city = Some(fc);
     sim.declare_war(1, 0);
     // `declare_war` retargets the armies; the call under test starts
     // from none.
-    sim.armies[1].list[slot].target = None;
+    sim.ai.armies[1].list[slot].target = None;
     (sim, slot, fb)
 }
 
@@ -431,14 +434,14 @@ fn sim_with_rival_city() -> (Sim, usize, usize) {
 fn my_running_territory_timer_makes_an_enemy_city_the_target() {
     for (timer, enemy_wins) in [(0, false), (1, true)] {
         let (mut sim, slot, fb) = sim_with_rival_city();
-        sim.ai[1].popwin_timer = timer;
+        sim.ai.ai[1].popwin_timer = timer;
         sim.find_target(1, slot);
         assert_eq!(
-            sim.armies[1].list[slot].target == Some(Obj::Building(fb)),
+            sim.ai.armies[1].list[slot].target == Some(Obj::Building(fb)),
             enemy_wins,
             "timer {timer}: my attacked capital wins unless the timer runs"
         );
-        assert_eq!(sim.ai[0].attacked_by == 1, enemy_wins, "the stamp");
+        assert_eq!(sim.ai.ai[0].attacked_by == 1, enemy_wins, "the stamp");
     }
 }
 
@@ -452,10 +455,10 @@ fn a_wagonless_army_past_military_two_scores_no_enemy_city() {
     use crate::tech::{TechTree, TypeDef, UnitTraits};
     for (wagon, enemy_wins) in [(false, false), (true, true)] {
         let (mut sim, slot, fb) = sim_with_rival_city();
-        sim.ai[1].popwin_timer = 1;
+        sim.ai.ai[1].popwin_timer = 1;
         // My capital untroubled: an enemy city one wagon short of two
         // still loses a tenth past Military 2, and wins at that.
-        sim.cities[0].no_heal = false;
+        sim.cities.cities[0].no_heal = false;
         let mut tree = TechTree::default();
         while tree.types.len() <= SUPPLYWAGON {
             let mut d = TypeDef::unit("Unit", UnitTraits::default());
@@ -465,16 +468,16 @@ fn a_wagonless_army_past_military_two_scores_no_enemy_city() {
         sim.set_tech_tree(tree);
         sim.tech[1].epoch[crate::tech::Line::Military.index()] = 3;
         // Past `early_army`'s Military 2 the gate wants seven standard.
-        sim.armies[1].list[slot].num_standard = 7;
+        sim.ai.armies[1].list[slot].num_standard = 7;
         if wagon {
             let t = soldier_type(&mut sim);
-            sim.unit_types[t].cols.unit_flags2 |= uflags2::SUPPLY_OR_HERO;
+            sim.tables.unit_types[t].cols.unit_flags2 |= uflags2::SUPPLY_OR_HERO;
             let u = put(&mut sim, 1, t, Pos::new(0x3000, 0x3030));
             sim.army_add_unit(1, slot, u);
         }
         sim.find_target(1, slot);
         assert_eq!(
-            sim.armies[1].list[slot].target == Some(Obj::Building(fb)),
+            sim.ai.armies[1].list[slot].target == Some(Obj::Building(fb)),
             enemy_wins,
             "wagon {wagon}: the enemy city is scored only with a wagon"
         );
@@ -497,11 +500,11 @@ fn soldier_type(sim: &mut Sim) -> usize {
 
 fn put(sim: &mut Sim, who: Player, ty: usize, p: Pos) -> usize {
     let index = i16::try_from(sim.units.len()).unwrap();
-    let hits = sim.unit_types[ty].hits;
+    let hits = sim.tables.unit_types[ty].hits;
     let mut u = crate::Unit::new(who, index, p, hits);
     u.ty = Some(ty);
     u.on_map = true;
-    u.kind = sim.unit_types[ty].kind;
+    u.kind = sim.tables.unit_types[ty].kind;
     u.movement.speed = 25;
     u.movement.turning = crate::movement::Turning {
         type_turn_speed: crate::movement::degrees_to_angle(45).0,
@@ -536,12 +539,15 @@ fn an_army_normalize_resets_its_group_s_cap_to_the_leader_s_speed() {
         "the fixture: a tie on `type_cat` goes to the first"
     );
     // A follower's report has driven both halves down to its 25.
-    sim.armies[1].list[slot].group.speed = 25;
-    sim.armies[1].list[slot].group.new_speed = 25;
+    sim.ai.armies[1].list[slot].group.speed = 25;
+    sim.ai.armies[1].list[slot].group.new_speed = 25;
     assert_eq!(sim.group_speed_of(slow), 25);
     sim.army_normalize(1, slot);
     assert_eq!(sim.group_speed_of(slow), 47, "the leader's own speed");
-    assert_eq!(sim.armies[1].list[slot].group.new_speed, 47, "both halves");
+    assert_eq!(
+        sim.ai.armies[1].list[slot].group.new_speed, 47,
+        "both halves"
+    );
 }
 
 #[test]
@@ -553,8 +559,8 @@ fn do_forming_walks_the_army_to_the_projected_muster_origin() {
     let b = put(&mut sim, 1, t, Pos::new(0x1200, 0x1000));
     sim.army_add_unit(1, slot, a);
     sim.army_add_unit(1, slot, b);
-    sim.armies[1].list[slot].muster = Cell { x: 20, y: 20 };
-    sim.armies[1].list[slot].muster_angle = Angle(0);
+    sim.ai.armies[1].list[slot].muster = Cell { x: 20, y: 20 };
+    sim.ai.armies[1].list[slot].muster_angle = Angle(0);
     sim.do_forming(1, slot);
     // One group, so the origin is the muster cell's centre projected
     // one tile north (§8: `num_groups × 0xc0` along the muster angle,
@@ -591,13 +597,13 @@ fn a_retarget_forms_the_army_inside_do_marching() {
     // An enemy city for `find_target` to pick.
     let foe_pos = Pos::new(0x6000, 0x3000);
     let fb = sim.add_building(0, foe_pos, 1);
-    let mut foe = sim.cities[c].clone();
+    let mut foe = sim.cities.cities[c].clone();
     foe.owner = 0;
     foe.building = fb;
     foe.pos = foe_pos;
     foe.capital = true;
-    let fc = sim.cities.len();
-    sim.cities.push(foe);
+    let fc = sim.cities.cities.len();
+    sim.cities.cities.push(foe);
     sim.buildings[fb].city = Some(fc);
     sim.declare_war(1, 0);
     let slot = sim.init_army(1, Some(c));
@@ -605,14 +611,14 @@ fn a_retarget_forms_the_army_inside_do_marching() {
     let b = put(&mut sim, 1, t, Pos::new(0x1200, 0x1000));
     sim.army_add_unit(1, slot, a);
     sim.army_add_unit(1, slot, b);
-    sim.armies[1].list[slot].target = None;
-    sim.armies[1].list[slot].status = status::MARCHING;
+    sim.ai.armies[1].list[slot].target = None;
+    sim.ai.armies[1].list[slot].status = status::MARCHING;
     sim.do_marching(1, slot);
     assert!(
-        sim.armies[1].list[slot].target.is_some(),
+        sim.ai.armies[1].list[slot].target.is_some(),
         "the fixture: `find_target` found the enemy city"
     );
-    assert_ne!(sim.armies[1].list[slot].status & status::FORMING, 0);
+    assert_ne!(sim.ai.armies[1].list[slot].status & status::FORMING, 0);
     for u in [a, b] {
         let o = sim
             .current_order(u)
@@ -628,7 +634,7 @@ fn a_forming_army_actually_moves_its_units_over_the_ticks() {
     let slot = sim.init_army(1, Some(c));
     let a = put(&mut sim, 1, t, Pos::new(0x1000, 0x1000));
     sim.army_add_unit(1, slot, a);
-    sim.armies[1].list[slot].muster = Cell { x: 30, y: 30 };
+    sim.ai.armies[1].list[slot].muster = Cell { x: 30, y: 30 };
     let before = sim.units[a].pos;
     sim.do_forming(1, slot);
     // The order step and the body follow, as `Objects::process_all`
@@ -665,7 +671,7 @@ fn only_a_hit_on_a_city_s_building_rings_the_emergency() {
     // tick that follows the clear runs `do_marching` and can find a new
     // one on the same call, exactly as the golden record's `ns 0 -> 1`
     // at 618 showed (`docs/COMBAT.md` §21.4).
-    let ticked = |sim: &Sim, slot: usize| sim.armies[1].list[slot].num_standard;
+    let ticked = |sim: &Sim, slot: usize| sim.ai.armies[1].list[slot].num_standard;
     // A unit of the AI leader takes a hit: nothing happens to its army.
     let (mut sim, c) = sim_with_city();
     let t = soldier_type(&mut sim);
@@ -675,7 +681,7 @@ fn only_a_hit_on_a_city_s_building_rings_the_emergency() {
     sim.army_add_unit(1, slot, victim);
     let mark = Obj::Unit(foe);
     let _ = mark;
-    sim.armies[1].list[slot].target = Some(mark);
+    sim.ai.armies[1].list[slot].target = Some(mark);
     assert_eq!(
         ticked(&sim, slot),
         0,
@@ -700,7 +706,7 @@ fn only_a_hit_on_a_city_s_building_rings_the_emergency() {
     );
     // The same leader's own city building takes one: the army drops its
     // target and ticks.
-    let b = sim.cities[c].building;
+    let b = sim.cities.cities[c].building;
     // The fixture stands the city up around the building without the
     // back-pointer `Cities::add_to_city` writes; the predicate reads
     // that field, so set it here rather than assert on the fixture.
@@ -754,7 +760,7 @@ fn an_engaged_army_forms_a_cell_behind_its_point() {
     sim.buildings[fb].health = 1200;
     sim.declare_war(1, 0);
     {
-        let a = &mut sim.armies[1].list[slot];
+        let a = &mut sim.ai.armies[1].list[slot];
         a.pos = p;
         a.muster_angle = Angle(-165_478_400);
         a.target = Some(Obj::Building(fb));
@@ -773,7 +779,7 @@ fn an_engaged_army_forms_a_cell_behind_its_point() {
     );
     sim.march_to_target(1, slot);
     assert_ne!(
-        sim.armies[1].list[slot].status & status::MARCHED,
+        sim.ai.armies[1].list[slot].status & status::MARCHED,
         0,
         "the orders went out"
     );
@@ -793,7 +799,7 @@ fn engagement_points_the_whole_army_at_the_first_fighter_s_target() {
     let t = soldier_type(&mut sim);
     let slot = sim.init_army(1, Some(c));
     let p = Pos::new(0x5000, 0x5000);
-    sim.armies[1].list[slot].pos = p;
+    sim.ai.armies[1].list[slot].pos = p;
     // Three of mine at the army's point; one is already fighting, and
     // `is_engaged` wants more than a quarter (§11).
     let mine: Vec<usize> = (0..3)
@@ -837,7 +843,7 @@ fn engagement_falls_back_to_the_last_qualifier_s_building_target() {
     let t = soldier_type(&mut sim);
     let slot = sim.init_army(1, Some(c));
     let p = Pos::new(0x5000, 0x5000);
-    sim.armies[1].list[slot].pos = p;
+    sim.ai.armies[1].list[slot].pos = p;
     let a = put(&mut sim, 1, t, p);
     let b = put(&mut sim, 1, t, Pos::new(p.x + 0x40, p.y));
     sim.army_add_unit(1, slot, a);
@@ -859,7 +865,7 @@ fn engagement_yields_nothing_when_the_last_qualifier_s_target_is_gone() {
     let t = soldier_type(&mut sim);
     let slot = sim.init_army(1, Some(c));
     let p = Pos::new(0x5000, 0x5000);
-    sim.armies[1].list[slot].pos = p;
+    sim.ai.armies[1].list[slot].pos = p;
     let a = put(&mut sim, 1, t, p);
     let b = put(&mut sim, 1, t, Pos::new(p.x + 0x40, p.y));
     let idle = put(&mut sim, 1, t, Pos::new(p.x + 0x80, p.y));
@@ -958,7 +964,7 @@ fn send_here_moves_the_point_the_muster_cell_and_the_units() {
     sim.army_add_unit(1, slot, a);
     let to = Pos::new(0x6000, 0x7000);
     sim.send_here(1, slot, to, MoveKind::MoveTo);
-    let army = &sim.armies[1].list[slot];
+    let army = &sim.ai.armies[1].list[slot];
     assert_eq!(army.pos, to);
     assert_eq!(army.muster, to.cell());
     assert_eq!(sim.order_type(a), crate::orders::index::MOVE_TO);
@@ -987,7 +993,7 @@ fn send_here_moves_the_point_the_muster_cell_and_the_units() {
 fn an_army_s_scout_throws_the_special_coin_on_the_spellcaster_turn() {
     use crate::spellcaster::SITE_SPECIAL_COIN;
     let (mut sim, c) = sim_with_city();
-    sim.lobby.difficulty = 3;
+    sim.ai.lobby.difficulty = 3;
     // A tree whose `0x45` is a type, so the lineage test answers.
     let mut tree = crate::tech::TechTree::new();
     for _ in 0..=SCOUT {
@@ -1014,18 +1020,21 @@ fn an_army_s_scout_throws_the_special_coin_on_the_spellcaster_turn() {
     sim.army_add_unit(1, slot, f);
     sim.army_add_unit(1, slot, s);
     sim.army_normalize(1, slot);
-    assert_ne!(sim.armies[1].list[slot].num_captains, 0);
-    let phase = sim.armies[1].list[slot].phase();
+    assert_ne!(sim.ai.armies[1].list[slot].num_captains, 0);
+    let phase = sim.ai.armies[1].list[slot].phase();
     // The 128-frame turn and not the 256-frame tick.
     let frame = (30 - phase).rem_euclid(128) + 128;
     assert_ne!((frame + phase) % 256, 0);
     sim.frame = frame;
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     let seed = sim.rng.seed;
     sim.army_process(1, slot, false);
     assert_ne!(sim.rng.seed, seed, "the coin is thrown");
     assert!(
-        sim.phase_marks.iter().any(|(m, _)| m == SITE_SPECIAL_COIN),
+        sim.trace
+            .phase_marks
+            .iter()
+            .any(|(m, _)| m == SITE_SPECIAL_COIN),
         "at the special arm's site"
     );
     sim.units[s].decoy = true;
@@ -1090,8 +1099,8 @@ fn a_government_patriot_is_capped_by_the_army_s_wagons() {
     let (mut sim, c) = sim_with_city();
     let near = sim.init_army(1, Some(c));
     let far = sim.init_army(1, Some(c));
-    let here = sim.armies[1].list[near].pos;
-    sim.armies[1].list[far].pos = Pos::new(here.x + 0x1800, here.y);
+    let here = sim.ai.armies[1].list[near].pos;
+    sim.ai.armies[1].list[far].pos = Pos::new(here.x + 0x1800, here.y);
     let ty = |sim: &mut Sim, flags2: u32| {
         sim.add_unit_type(crate::UnitType {
             hits: 100,
@@ -1112,7 +1121,7 @@ fn a_government_patriot_is_capped_by_the_army_s_wagons() {
     let w = put(&mut sim, 1, wagon, here);
     sim.army_add_unit(1, far, w);
     for slot in [near, far] {
-        sim.armies[1].list[slot].status |= status::MUSTERING;
+        sim.ai.armies[1].list[slot].status |= status::MUSTERING;
     }
     let d = put(&mut sim, 1, despot, here);
     assert_eq!(
@@ -1211,15 +1220,15 @@ fn think_attack_s_tail_picks_the_city_by_distance_over_danger() {
     let (mut sim, c0) = sim_with_city();
     let near = Pos::new(0x1000, 0x2000);
     let b = sim.add_building(1, near, 1);
-    let mut city = sim.cities[c0].clone();
+    let mut city = sim.cities.cities[c0].clone();
     city.building = b;
     city.pos = near;
     city.capital = false;
     city.founding_capital = false;
-    sim.cities.push(city);
-    let c1 = sim.cities.len() - 1;
+    sim.cities.cities.push(city);
+    let c1 = sim.cities.cities.len() - 1;
     for c in [c0, c1] {
-        sim.cities[c].reg = sim.world.tregion(sim.cities[c].pos.tile());
+        sim.cities.cities[c].reg = sim.world.tregion(sim.cities.cities[c].pos.tile());
     }
     let ty = soldier_type(&mut sim);
     let u = put(&mut sim, 1, ty, Pos::new(0x1000, 0x1000));
@@ -1229,7 +1238,7 @@ fn think_attack_s_tail_picks_the_city_by_distance_over_danger() {
         "the nearer city, on distance alone"
     );
 
-    let far = sim.cities[c0].pos.cell();
+    let far = sim.cities.cities[c0].pos.cell();
     sim.world.set_danger_at(1, far, 4);
     assert_eq!(
         sim.think_attack_city(u),
@@ -1242,14 +1251,14 @@ fn think_attack_s_tail_picks_the_city_by_distance_over_danger() {
         Some(c1),
         "danger 2 alone is not enough"
     );
-    sim.cities[c0].no_heal = true;
+    sim.cities.cities[c0].no_heal = true;
     assert_eq!(
         sim.think_attack_city(u),
         Some(c0),
         "`CITY_UNDER_ATTACK` halves it"
     );
 
-    sim.cities[c0].reg = sim.cities[c0].reg.map(|r| r + 1).or(Some(1));
+    sim.cities.cities[c0].reg = sim.cities.cities[c0].reg.map(|r| r + 1).or(Some(1));
     assert_eq!(
         sim.think_attack_city(u),
         Some(c1),
@@ -1271,7 +1280,7 @@ fn think_attack_s_tail_picks_the_city_by_distance_over_danger() {
     );
     sim.world.set_tile_mask(p.tile(), 0);
 
-    sim.nation[1].human = true;
+    sim.cities.nation[1].human = true;
     assert_eq!(sim.think_attack_city(u), None, "a human's unit is not sent");
 }
 
@@ -1284,7 +1293,7 @@ fn charge_drags_the_army_onto_the_attacker() {
     sim.army_add_unit(1, slot, a);
     let foe = put(&mut sim, 0, t, Pos::new(0x2000, 0x2000));
     sim.army_charge(1, slot, Obj::Unit(foe));
-    assert_eq!(sim.armies[1].list[slot].target, Some(Obj::Unit(foe)));
+    assert_eq!(sim.ai.armies[1].list[slot].target, Some(Obj::Unit(foe)));
     assert_eq!(sim.order_type(a), crate::orders::index::ATTACK_TO);
 }
 
@@ -1293,21 +1302,21 @@ fn init_army_takes_the_first_free_slot_then_evicts_the_smallest() {
     let (mut sim, c) = sim_with_city();
     for s in 0..SLOTS {
         assert_eq!(sim.init_army(1, Some(c)), s);
-        sim.armies[1].list[s].num_units = (s as i32 % 5) + 1;
+        sim.ai.armies[1].list[s].num_units = (s as i32 % 5) + 1;
     }
     // Slots 0, 5, 10 and 15 hold one unit; `<=` on the scan sends the
     // tie to the later slot.
     assert_eq!(sim.init_army(1, Some(c)), 15);
-    sim.armies[1].list[15].num_units = 9;
+    sim.ai.armies[1].list[15].num_units = 9;
     assert_eq!(sim.init_army(1, Some(c)), 10);
 }
 
 #[test]
 fn the_muster_cell_is_one_row_below_the_city_and_the_record_is_run20_s() {
     let (mut sim, c) = sim_with_city();
-    sim.cities[c].pos = Pos::new(39264, 40032);
+    sim.cities.cities[c].pos = Pos::new(39264, 40032);
     let s = sim.init_army(1, Some(c));
-    let a = &sim.armies[1].list[s];
+    let a = &sim.ai.armies[1].list[s];
     assert_eq!((a.pos.x, a.pos.y), (39264, 40800));
     assert_eq!((a.muster.x, a.muster.y), (51, 53));
     assert_eq!(a.status, status::MUSTERING);
@@ -1320,23 +1329,23 @@ fn the_muster_cell_is_one_row_below_the_city_and_the_record_is_run20_s() {
 fn the_cadence_is_slot_and_owner_phased() {
     let (mut sim, c) = sim_with_city();
     let s = sim.init_army(1, Some(c));
-    let a = &sim.armies[1].list[s];
+    let a = &sim.ai.armies[1].list[s];
     // Leader 1's army 0 ticks at frame ≡ 252 (mod 256) — run21's 252.
     assert!(a.ticks_on(252));
     assert!(!a.ticks_on(253));
     assert!(a.ticks_on(14588));
     // Its army 1 at 250 — run21's `do_transporting` at 14586.
     let s1 = sim.init_army(1, Some(c));
-    assert!(sim.armies[1].list[s1].ticks_on(14586));
+    assert!(sim.ai.armies[1].list[s1].ticks_on(14586));
 }
 
 #[test]
 fn close_frees_the_slot_and_keeps_the_rest_of_the_record() {
     let (mut sim, c) = sim_with_city();
     let s = sim.init_army(1, Some(c));
-    sim.armies[1].list[s].rally_dist = 0x1200;
+    sim.ai.armies[1].list[s].rally_dist = 0x1200;
     sim.close_army(1, s);
-    let a = &sim.armies[1].list[s];
+    let a = &sim.ai.armies[1].list[s];
     assert!(!a.valid);
     assert_eq!(a.status, 0);
     assert_eq!(
@@ -1368,7 +1377,7 @@ fn a_closed_army_s_group_keeps_its_slot_its_list_and_its_pointers() {
     }
     let pool = sim.units[units[0]].group_ptr.expect("the army's slot");
     sim.close_army(1, slot);
-    assert!(!sim.armies[1].list[slot].valid);
+    assert!(!sim.ai.armies[1].list[slot].valid);
     assert_eq!(
         sim.pool_list(1, pool),
         units
@@ -1399,27 +1408,27 @@ fn a_closed_army_s_group_keeps_its_slot_its_list_and_its_pointers() {
 fn release_mustering_wants_five_and_the_city_count_before_the_thresholds() {
     let (mut sim, c) = sim_with_city();
     let s = sim.init_army(1, Some(c));
-    sim.muster[1].cap = 200;
-    sim.armies[1].list[s].num_standard = 1;
+    sim.roster.muster[1].cap = 200;
+    sim.ai.armies[1].list[s].num_standard = 1;
     assert!(!sim.release_mustering(1, s));
-    sim.armies[1].list[s].num_standard = 4;
+    sim.ai.armies[1].list[s].num_standard = 4;
     assert!(!sim.release_mustering(1, s), "fewer than five");
     // Five standard: `pop_cap / 8 = 25 > 5`, one mustering army → `200 / 2 = 100 > 5`,
     // difficulty 0 wants more than six, `rush 0`, `early_army 0` → 26.
-    sim.armies[1].list[s].num_standard = 5;
+    sim.ai.armies[1].list[s].num_standard = 5;
     assert!(!sim.release_mustering(1, s));
-    sim.armies[1].list[s].num_standard = 7;
+    sim.ai.armies[1].list[s].num_standard = 7;
     assert!(
         sim.release_mustering(1, s),
         "difficulty 0 releases at seven"
     );
-    sim.lobby.difficulty = 3;
+    sim.ai.lobby.difficulty = 3;
     assert!(!sim.release_mustering(1, s));
-    sim.armies[1].list[s].num_standard = 26;
+    sim.ai.armies[1].list[s].num_standard = 26;
     assert!(sim.release_mustering(1, s));
     // My own city under attack releases at two.
-    sim.armies[1].list[s].num_standard = 2;
-    sim.cities[c].no_heal = true;
+    sim.ai.armies[1].list[s].num_standard = 2;
+    sim.cities.cities[c].no_heal = true;
     assert!(sim.release_mustering(1, s));
 }
 
@@ -1434,9 +1443,9 @@ fn release_mustering_s_rush_rule_reads_the_military_level_not_the_age() {
     let s = sim.init_army(1, Some(c));
     // Every threshold above the personality's is out of reach: `pop_cap
     // / 8 = 25 > 6`, `200 / 2 = 100 > 6`, difficulty 0 wants seven.
-    sim.muster[1].cap = 200;
-    sim.armies[1].list[s].num_standard = 6;
-    sim.ai[1].pers.rush = 1;
+    sim.roster.muster[1].cap = 200;
+    sim.ai.armies[1].list[s].num_standard = 6;
+    sim.ai.ai[1].pers.rush = 1;
     sim.tech[1].ages = 1;
     sim.tech[1].epoch[crate::tech::Line::Military.index()] = 2;
     assert!(
@@ -1459,13 +1468,13 @@ fn release_mustering_s_rush_rule_reads_the_military_level_not_the_age() {
 fn release_mustering_holds_the_army_through_the_peace() {
     let (mut sim, c) = sim_with_city();
     let s = sim.init_army(1, Some(c));
-    sim.muster[1].cap = 200;
-    sim.armies[1].list[s].num_standard = 6;
-    sim.ai[1].pers.rush = 1;
+    sim.roster.muster[1].cap = 200;
+    sim.ai.armies[1].list[s].num_standard = 6;
+    sim.ai.ai[1].pers.rush = 1;
     sim.tech[1].epoch[crate::tech::Line::Military.index()] = 1;
     assert!(sim.release_mustering(1, s), "no rush rules: released");
-    sim.lobby.rush_rules = 10;
-    sim.lobby.rush_minutes = 5;
+    sim.ai.lobby.rush_rules = 10;
+    sim.ai.lobby.rush_minutes = 5;
     sim.frame = 4499;
     assert!(!sim.release_mustering(1, s), "inside the peace: held");
     sim.frame = 4500;
@@ -1484,13 +1493,13 @@ use crate::world::CellData;
 /// and the first entry of ring 7 is (−7, −3), the cell (9, 14).
 fn sim_with_army() -> (Sim, usize, usize, usize) {
     let (mut sim, c) = sim_with_city();
-    let b = sim.cities[c].building;
+    let b = sim.cities.cities[c].building;
     sim.buildings[b].city = Some(c);
     sim.buildings[b].combat = Some(crate::combat::Profile::default());
     sim.buildings[b].hits = 1000;
     sim.buildings[b].health = 1000;
     let s = sim.init_army(1, Some(c));
-    assert_eq!(sim.armies[1].list[s].pos.cell(), Cell::new(16, 17));
+    assert_eq!(sim.ai.armies[1].list[s].pos.cell(), Cell::new(16, 17));
     assert_eq!(sim.radius_of(c) / 4 + 1, 6);
     (sim, c, b, s)
 }
@@ -1514,18 +1523,18 @@ fn flag_all(sim: &mut Sim, flags: u16) {
 fn the_ring_search_takes_the_first_cell_of_the_ring_past_inner_in_walk_order() {
     let (mut sim, c, b, s) = sim_with_army();
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
-    let a = &sim.armies[1].list[s];
+    let a = &sim.ai.armies[1].list[s];
     assert_eq!(a.muster, Cell::new(9, 14), "ring 7's first entry, (−7, −3)");
     assert_eq!(
         a.muster_angle,
         find_angle(-7, -3),
         "the angle is from the army's point"
     );
-    assert!(!sim.cities[c].no_muster);
+    assert!(!sim.cities.cities[c].no_muster);
     // The same cell whichever neighbourhood the flag walks: nothing is
     // out of bounds or foreign.
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), false));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 14));
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(9, 14));
 }
 
 #[test]
@@ -1536,28 +1545,28 @@ fn a_forest_coast_or_mountain_cell_in_the_3x3_puts_a_candidate_out() {
     // A forest on (9, 14) is in the 3 × 3 of (9, 15) too.
     flag_cell(&mut sim, 9, 14, cell::FOREST);
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 16));
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(9, 16));
     flag_cell(&mut sim, 10, 16, cell::COAST);
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 18));
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(9, 18));
     flag_cell(&mut sim, 8, 17, cell::MOUNTAIN);
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 19));
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(9, 19));
     // A cell two away is walked for bounds and owners only, not class:
     // the 7 × 7 walk does not read it.
     flag_cell(&mut sim, 11, 19, cell::FOREST);
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 19));
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(9, 19));
     // Rock and road are admissible.
     flag_cell(&mut sim, 9, 19, cell::ROCK | cell::ROAD);
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 19));
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(9, 19));
     // A building's cell in the 3 × 3 scores nothing: (9, 19) and (9,
     // 20) score eight neighbours, (10, 13) is out on the forest, and
     // (10, 21) is the first to score nine.
     flag_cell(&mut sim, 9, 19, cell::BUILDING);
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(10, 21));
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(10, 21));
 }
 
 #[test]
@@ -1567,9 +1576,9 @@ fn another_leader_s_cell_two_steps_out_puts_a_candidate_out_and_the_flag_widens_
     sim.world
         .set_owner(Cell::new(7, 12), Owner::Player(0), Owner::None);
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), false));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 15));
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(9, 15));
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 15));
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(9, 15));
     sim.world
         .set_owner(Cell::new(7, 12), Owner::None, Owner::None);
     // The double of (9, 14)'s (3, 0) entry — six cells east — is walked
@@ -1577,14 +1586,14 @@ fn another_leader_s_cell_two_steps_out_puts_a_candidate_out_and_the_flag_widens_
     sim.world
         .set_owner(Cell::new(15, 14), Owner::Player(0), Owner::None);
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), false));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 14));
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(9, 14));
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 15));
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(9, 15));
     // My own cell, or an ally's, is not foreign.
     sim.world
         .set_owner(Cell::new(15, 14), Owner::Player(1), Owner::None);
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 14));
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(9, 14));
 }
 
 /// **The spacing test is `<= 4`, not `< 4`** — the listing at
@@ -1600,10 +1609,10 @@ fn another_leader_s_cell_two_steps_out_puts_a_candidate_out_and_the_flag_widens_
 fn a_candidate_within_four_cells_of_another_army_of_mine_is_dropped() {
     let (mut sim, c, b, s) = sim_with_army();
     let s2 = sim.init_army(1, Some(c));
-    sim.armies[1].list[s2].muster = Cell::new(9, 14);
+    sim.ai.armies[1].list[s2].muster = Cell::new(9, 14);
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
     assert_eq!(
-        sim.armies[1].list[s].muster,
+        sim.ai.armies[1].list[s].muster,
         Cell::new(9, 19),
         "(9, 15) to (9, 18) are within four — (9, 18) is *at* four, and \
              `jle` drops it; (9, 19) is at five"
@@ -1611,7 +1620,7 @@ fn a_candidate_within_four_cells_of_another_army_of_mine_is_dropped() {
     // An invalid slot does not count.
     sim.close_army(1, s2);
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 14));
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(9, 14));
 }
 
 /// The return is the last in-bounds candidate's verdict, not whether a
@@ -1631,11 +1640,11 @@ fn the_return_is_the_last_candidate_s_verdict_not_the_best_s() {
     }
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
     assert_eq!(
-        sim.armies[1].list[s].muster,
+        sim.ai.armies[1].list[s].muster,
         Cell::new(24, 20),
         "(8, 3), the last entry"
     );
-    assert!(!sim.cities[c].no_muster);
+    assert!(!sim.cities.cities[c].no_muster);
 
     let (mut sim, c, b, s) = sim_with_army();
     flag_all(&mut sim, cell::FOREST);
@@ -1649,48 +1658,51 @@ fn the_return_is_the_last_candidate_s_verdict_not_the_best_s() {
         "the last entry is out, so the search reports failure"
     );
     assert_eq!(
-        sim.armies[1].list[s].muster,
+        sim.ai.armies[1].list[s].muster,
         Cell::new(24, 19),
         "with the best, (8, 2), set as the muster all the same"
     );
-    assert!(!sim.cities[c].no_muster, "the mark is the no-best path's");
+    assert!(
+        !sim.cities.cities[c].no_muster,
+        "the mark is the no-best path's"
+    );
 }
 
 #[test]
 fn no_cell_at_an_untroubled_city_of_my_own_sets_the_mark_and_a_find_clears_it() {
     let (mut sim, c, b, s) = sim_with_army();
     flag_all(&mut sim, cell::FOREST);
-    let before = sim.armies[1].list[s].muster;
+    let before = sim.ai.armies[1].list[s].muster;
     assert!(!sim.find_muster_spot(1, s, Obj::Building(b), true));
-    assert!(sim.cities[c].no_muster);
+    assert!(sim.cities.cities[c].no_muster);
     assert_eq!(
-        sim.armies[1].list[s].muster, before,
+        sim.ai.armies[1].list[s].muster, before,
         "the muster is left alone"
     );
     // Under attack, no mark.
-    sim.cities[c].no_muster = false;
-    sim.cities[c].no_heal = true;
+    sim.cities.cities[c].no_muster = false;
+    sim.cities.cities[c].no_heal = true;
     assert!(!sim.find_muster_spot(1, s, Obj::Building(b), true));
-    assert!(!sim.cities[c].no_muster);
-    sim.cities[c].no_heal = false;
-    sim.cities[c].no_muster = true;
+    assert!(!sim.cities.cities[c].no_muster);
+    sim.cities.cities[c].no_heal = false;
+    sim.cities.cities[c].no_muster = true;
     flag_all(&mut sim, 0);
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
-    assert!(!sim.cities[c].no_muster);
+    assert!(!sim.cities.cities[c].no_muster);
 }
 
 #[test]
 fn no_cell_at_an_enemy_city_falls_back_to_the_city_s_cell_one_row_down() {
     let (mut sim, c, b, s) = sim_with_army();
-    sim.cities[c].owner = 0;
+    sim.cities.cities[c].owner = 0;
     sim.buildings[b].owner = 0;
     flag_all(&mut sim, cell::FOREST);
     // Not mine: `inner` halves to 3 without siege, and the rings are
     // 4 and 5 — all forest.
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(16, 17));
-    assert_eq!(sim.armies[1].list[s].muster_angle, find_angle(0, 1));
-    assert!(!sim.cities[c].no_muster);
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(16, 17));
+    assert_eq!(sim.ai.armies[1].list[s].muster_angle, find_angle(0, 1));
+    assert!(!sim.cities.cities[c].no_muster);
 }
 
 /// **The escort** (`Armies::send_navy@006f2c90`, `docs/TRANSPORT.md`
@@ -1722,7 +1734,7 @@ fn send_navy_hands_the_target_to_the_navy_that_coasts_both_regions() {
     sim.world.rebuild_coasts();
     let mut navy = |reg: u16, captains: i32| {
         let k = sim.init_army(1, Some(c));
-        let n = &mut sim.armies[1].list[k];
+        let n = &mut sim.ai.armies[1].list[k];
         n.navy = true;
         n.reg = Some(reg);
         n.num_captains = captains;
@@ -1734,23 +1746,23 @@ fn send_navy_hands_the_target_to_the_navy_that_coasts_both_regions() {
     let small = navy(sea, 2);
     let target = Obj::Building(b);
     sim.send_navy(1, target, Some(a), Some(bb));
-    let n = &sim.armies[1].list;
+    let n = &sim.ai.armies[1].list;
     assert_eq!(n[escort].target, Some(target), "S coasts A and B");
     assert_eq!(n[escort].human_frame, 4, "and is processed at once");
     assert_eq!(n[elsewhere].target, None, "T does not coast A");
     assert_eq!(n[elsewhere].human_frame, 5);
     assert_eq!(n[small].target, None, "two captains are not enough");
     // A human leader sends nothing.
-    sim.nation[1].human = true;
-    sim.armies[1].list[small].num_captains = 3;
+    sim.cities.nation[1].human = true;
+    sim.ai.armies[1].list[small].num_captains = 3;
     sim.send_navy(1, target, Some(a), Some(bb));
-    assert_eq!(sim.armies[1].list[small].target, None);
+    assert_eq!(sim.ai.armies[1].list[small].target, None);
 }
 
 #[test]
 fn a_navy_musters_on_water_of_its_region_scoring_the_5x5() {
     let (mut sim, c, b, s) = sim_with_army();
-    sim.cities[c].owner = 0;
+    sim.cities.cities[c].owner = 0;
     sim.buildings[b].owner = 0;
     let sea = sim.world.add_region(Terrain::Sea);
     for y in 0..60 {
@@ -1767,31 +1779,31 @@ fn a_navy_musters_on_water_of_its_region_scoring_the_5x5() {
         }
     }
     {
-        let a = &mut sim.armies[1].list[s];
+        let a = &mut sim.ai.armies[1].list[s];
         a.navy = true;
         a.reg = Some(sea);
     }
     // `inner = 5`, `outer = 13`: ring 6 opens (−6, −3) … (−6, 3), the
     // cells (10, 14) to (10, 20).
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), false));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(10, 14));
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(10, 14));
     // A land cell puts the candidate out — a coastal cell (`HALFLAND`)
     // is land to `is_ocean`. Without the flag only the 3 × 3 is
     // walked, so (11, 15) puts out (10, 14) to (10, 16).
     flag_cell(&mut sim, 11, 15, cell::HALFLAND);
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), false));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(10, 17));
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(10, 17));
     // With it the 5 × 5 is, and (10, 17) is out as well.
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(10, 18));
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(10, 18));
     // Another army's spacing is two cells for an enemy target, and
     // `<= 2` rather than `< 2` (`6f6313`, the same `jle` as the ally
     // arm): (10, 18) is one away and (10, 19) exactly two, so the
     // first cell left is (10, 20).
     let s2 = sim.init_army(1, Some(c));
-    sim.armies[1].list[s2].muster = Cell::new(10, 17);
+    sim.ai.armies[1].list[s2].muster = Cell::new(10, 17);
     assert!(sim.find_muster_spot(1, s, Obj::Building(b), false));
-    assert_eq!(sim.armies[1].list[s].muster, Cell::new(10, 20));
+    assert_eq!(sim.ai.armies[1].list[s].muster, Cell::new(10, 20));
 }
 
 // ---- gaia is outside the object searches (`world::PLAYER_SLOTS`) ----
@@ -1806,8 +1818,12 @@ fn a_navy_musters_on_water_of_its_region_scoring_the_5x5() {
 fn the_muster_search_survives_a_gaia_unit_with_a_two_wide_table() {
     let (mut sim, c) = sim_with_city();
     let t = soldier_type(&mut sim);
-    assert_eq!(sim.at_war.len(), 2, "the lobby's table, not a wide one");
-    let b = sim.cities[c].building;
+    assert_eq!(
+        sim.leaders.at_war.len(),
+        2,
+        "the lobby's table, not a wide one"
+    );
+    let b = sim.cities.cities[c].building;
     sim.buildings[b].hits = 100;
     sim.buildings[b].health = 50;
     let slot = sim.init_army(1, Some(c));
@@ -1820,7 +1836,7 @@ fn the_muster_search_survives_a_gaia_unit_with_a_two_wide_table() {
     assert!(sim.units[sheep].is_gaia());
     // No panic, and the animal is not an attacker to hurry towards.
     sim.find_muster_spot(1, slot, Obj::Building(b), false);
-    assert_eq!(sim.armies[1].list[slot].hurry, 0);
+    assert_eq!(sim.ai.armies[1].list[slot].hurry, 0);
 }
 
 /// And it is the leader bound that refuses it, not the table's length:
@@ -1831,13 +1847,13 @@ fn a_gaia_unit_is_never_the_muster_point_even_at_war() {
     let slots = usize::from(crate::world::PLAYER_SLOTS) + 2;
     let (mut sim, c) = sim_with_city_slots(slots);
     let t = soldier_type(&mut sim);
-    let b = sim.cities[c].building;
+    let b = sim.cities.cities[c].building;
     sim.buildings[b].hits = 100;
     sim.buildings[b].health = 50;
     let slot = sim.init_army(1, Some(c));
     let g = usize::from(crate::world::PLAYER_SLOTS);
-    sim.at_war[1][g] = true;
-    sim.at_war[g][1] = true;
+    sim.leaders.at_war[1][g] = true;
+    sim.leaders.at_war[g][1] = true;
     let sheep = put(
         &mut sim,
         crate::world::PLAYER_SLOTS,
@@ -1850,14 +1866,17 @@ fn a_gaia_unit_is_never_the_muster_point_even_at_war() {
     );
     let sheep_cell = sim.units[sheep].pos.cell();
     sim.find_muster_spot(1, slot, Obj::Building(b), false);
-    assert_eq!(sim.armies[1].list[slot].hurry, 0);
-    assert_ne!(sim.armies[1].list[slot].muster, sheep_cell);
+    assert_eq!(sim.ai.armies[1].list[slot].hurry, 0);
+    assert_ne!(sim.ai.armies[1].list[slot].muster, sheep_cell);
     // A player's soldier in the same spot *is* the muster point, so the
     // search is otherwise working.
     let foe = put(&mut sim, 0, t, Pos::new(0x3100, 0x3000));
-    sim.at_war[1][0] = true;
-    sim.at_war[0][1] = true;
+    sim.leaders.at_war[1][0] = true;
+    sim.leaders.at_war[0][1] = true;
     assert!(sim.find_muster_spot(1, slot, Obj::Building(b), false));
-    assert_eq!(sim.armies[1].list[slot].hurry, 1);
-    assert_eq!(sim.armies[1].list[slot].muster, sim.units[foe].pos.cell());
+    assert_eq!(sim.ai.armies[1].list[slot].hurry, 1);
+    assert_eq!(
+        sim.ai.armies[1].list[slot].muster,
+        sim.units[foe].pos.cell()
+    );
 }

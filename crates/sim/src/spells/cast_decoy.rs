@@ -220,10 +220,10 @@ impl DecoyView for SimDecoy<'_> {
         }
     }
     fn porus_decoys(&self) -> i32 {
-        self.sim.tuning.porus_decoys
+        self.sim.tables.tuning.porus_decoys
     }
     fn kutosov_decoys(&self) -> i32 {
-        self.sim.tuning.kutosov_decoys
+        self.sim.tables.tuning.kutosov_decoys
     }
     fn count(&self) -> i32 {
         self.list.len() as i32
@@ -289,7 +289,7 @@ impl DecoyView for SimDecoy<'_> {
         self.sim.army_add_unit(self.who, army as usize, o as usize);
     }
     fn type_pop(&self, o: i32) -> i32 {
-        self.sim.unit_types[self.ty(o)].price.pop
+        self.sim.tables.unit_types[self.ty(o)].price.pop
     }
     fn track_unit_type(&mut self, src: i32, _o: i32) {
         let ty = self.ty(src);

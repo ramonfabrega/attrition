@@ -65,6 +65,7 @@ fn corpse_melee_staging_walk() {
         built.tick();
         let s = &built.sim;
         let live: usize = s
+            .combat
             .deaths
             .iter()
             .map(|d| d.figures.live(s.frame - d.first_frame) as usize)
@@ -77,7 +78,7 @@ fn corpse_melee_staging_walk() {
             eprintln!(
                 "  {}: deaths {} records {} alive who1 {} who2 {}",
                 s.frame,
-                s.deaths.len(),
+                s.combat.deaths.len(),
                 live,
                 alive(1),
                 alive(2)
@@ -366,6 +367,7 @@ fn corpse_melee_s_death_pool_stops_at_a_hundred_on_both_sides() {
         }
         let s = &built.sim;
         let ours: usize = s
+            .combat
             .deaths
             .iter()
             .map(|d| d.figures.live(s.frame - d.first_frame) as usize)

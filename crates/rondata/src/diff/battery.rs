@@ -1122,7 +1122,7 @@ fn a_southwest_mesa_game_lays_its_cliffs() {
     eprintln!(
         "run1516b 101 through build_sim: {} cliffs laid; theirs mtn {:?} cliff {:?}, {} tiles; \
          ours {arm:?}, {} tiles ({} shared)",
-        s.cliffs.len(),
+        s.terrain.cliffs.len(),
         mine.mtn,
         mine.cliff,
         want.len(),

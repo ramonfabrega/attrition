@@ -17,7 +17,7 @@ fn the_emulated_original_agrees_on_every_row() {
         };
         let (mut s, u) = super::sim_with_unit(UnitType::default());
         let t = s.units[u].ty.expect("the unit's type");
-        s.unit_types[t].tree = Some(id);
+        s.tables.unit_types[t].tree = Some(id);
         assert_eq!(s.is_merchant(u), want != 0, "is_merchant — row `{line}`");
         n += 1;
     }

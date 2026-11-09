@@ -14,8 +14,8 @@ fn flat(cells: i32) -> Sim {
         Cell::new(cells - 1, cells - 1),
     );
     let mut s = Sim::new(Tuning::RON, world, 2);
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities.nation[0].human = true;
+    s.cities.nation[1].human = false;
     s
 }
 
@@ -40,7 +40,7 @@ fn fighter(s: &mut Sim) -> usize {
 
 fn spawn(s: &mut Sim, who: Player, ty: usize, p: Pos) -> usize {
     let index = i16::try_from(s.units.len()).unwrap();
-    let hits = s.unit_types[ty].hits;
+    let hits = s.tables.unit_types[ty].hits;
     let mut u = Unit::new(who, index, p, hits);
     u.ty = Some(ty);
     u.on_map = true;

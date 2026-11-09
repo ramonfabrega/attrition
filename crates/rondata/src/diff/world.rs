@@ -241,13 +241,13 @@ mod tests {
         let log = Log::parse(&text);
         let init = replay_initial(&log).unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
 
         // Frame 0 through the harness, so frame 1 starts on the original's
         // own word and its clocks; then frame 1 raw, so the marks survive.
         built.tick();
         built.sim.tick();
-        let ours = mark_sites(&built.sim.phase_marks, built.sim.rng.seed).expect("our sites");
+        let ours = mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed).expect("our sites");
         let theirs = trace.labels(1);
         assert_eq!(theirs.len(), 53, "the original's frame 1");
 
@@ -414,11 +414,11 @@ mod tests {
         let log = Log::parse(&text);
         let init = replay_initial(&log).unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
 
         built.tick();
         built.sim.tick();
-        let ours = mark_sites(&built.sim.phase_marks, built.sim.rng.seed).expect("our sites");
+        let ours = mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed).expect("our sites");
         let theirs = trace.labels(1);
         assert_eq!(theirs.len(), 45, "the original's frame 1");
 
@@ -535,11 +535,11 @@ mod tests {
         // count — four rotations and two phases, not three and three.
         let first = draws[0].seed;
         assert_eq!(first, 0x9c59_1b2b, "the trace's draw 24");
-        built.sim.trace_phases = true;
-        built.sim.phase_marks.clear();
+        built.sim.trace.trace_phases = true;
+        built.sim.trace.phase_marks.clear();
         built.sim.rng = sim::combat::Rng::new(first);
         assert!(built.sim.think_scout(scout), "a target is found");
-        let ours = mark_sites(&built.sim.phase_marks, built.sim.rng.seed).expect("our sites");
+        let ours = mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed).expect("our sites");
         assert_eq!(
             ours, theirs,
             "our ten draws, at the original's sites, in the original's order"
@@ -560,10 +560,11 @@ mod tests {
         let ci = built
             .sim
             .cities
+            .cities
             .iter()
             .position(|c| c.alive && c.owner == 1)
             .expect("the AI's city");
-        let city = built.sim.cities[ci].pos.cell();
+        let city = built.sim.cities.cities[ci].pos.cell();
         let d = sim::world::vector_dist(m.dest.cell().x - city.x, m.dest.cell().y - city.y);
         assert_eq!(d, 5, "ring 5, where the four cells were");
     }
@@ -898,7 +899,7 @@ mod tests {
         // Standing them up moved the map (footprints, `mask_city`,
         // `sync_territory`); the dump's map is the one the searches read.
         sim.world = before.clone();
-        sim.plan_roads = true;
+        sim.movement.plan_roads = true;
 
         // run62 is this same capture with the three road proxies on
         // (`tools/trace/README.md`): every candidate's coordinate, every
@@ -907,7 +908,7 @@ mod tests {
         let theirs_nodes = trace("rontrace-run62.log")
             .map(|t| t.road_nodes(100))
             .unwrap_or_default();
-        sim.trace_costs = !theirs_nodes.is_empty();
+        sim.trace.trace_costs = !theirs_nodes.is_empty();
 
         let mut laid: std::collections::BTreeSet<(i32, i32)> = std::collections::BTreeSet::new();
         let mut costed: Vec<u32> = Vec::new();
@@ -957,7 +958,7 @@ mod tests {
         // two numbers that were 3 and 410 out into two mechanics
         // (`docs/ROADS.md` 7.3, 7.4).
         if !theirs_nodes.is_empty() {
-            let ours = &sim.road_marks;
+            let ours = &sim.trace.road_marks;
             let at = (0..ours.len().max(theirs_nodes.len()))
                 .find(|&i| ours.get(i) != theirs_nodes.get(i));
             if let Some(i) = at {
@@ -1038,7 +1039,7 @@ mod tests {
                 .build(0, o)
                 .unwrap_or_else(|| panic!("frame {frame}: no building 0/{o}"));
             let mine = roads(&at.sim.world);
-            at.sim.plan_roads = true;
+            at.sim.movement.plan_roads = true;
             at.sim.rng.seed = draws[0].seed;
             at.sim.place_roads(b);
             let laid: Vec<(i32, i32)> = roads(&at.sim.world).difference(&mine).copied().collect();
@@ -1068,7 +1069,8 @@ mod tests {
     /// record in `Sim::farm_order`, the cells in the record's own memory
     /// order (`status[dx][dy]`, index `dx * 4 + dy`).
     fn farm_rows(sim: &Sim) -> Vec<crate::gamelog::FarmDump> {
-        sim.farm_order
+        sim.cities
+            .farm_order
             .iter()
             .map(|&b| {
                 let bd = &sim.buildings[b];
@@ -1416,12 +1418,13 @@ mod tests {
             let at = sim::world::Pos::new(birth.0, birth.1);
             let mut u = sim::Unit::new(sim::gaia::BIRD_OWNER, 0, at, 1);
             u.ty = Some(ty);
-            u.kind = s.unit_types[ty].kind;
+            u.kind = s.tables.unit_types[ty].kind;
             u.movement.speed = 35;
-            u.movement.turning = sim::turning_of(&s.unit_types[ty]);
+            u.movement.turning = sim::turning_of(&s.tables.unit_types[ty]);
             let b = s.add_unit(u);
             assert_eq!(s.units[b].movement.heading, sim::movement::Angle::INITIAL);
             s.gaia
+                .gaia
                 .bird_goals
                 .push((b, sim::world::Pos::new(goal.0, goal.1)));
 
@@ -1598,8 +1601,8 @@ mod tests {
             z_off.len(),
             mask_off.len(),
             owners.len(),
-            built.sim.mesh.len(),
-            built.sim.mesh.made()
+            built.sim.movement.mesh.len(),
+            built.sim.movement.mesh.made()
         );
         // **The mesh's own invariant**, which nothing else here would
         // catch: a road tile has a `RoadElementCandidate` and a tile that
@@ -1613,7 +1616,10 @@ mod tests {
                 let q = Pos::new(tx, ty);
                 let road = built.sim.world.tile_mask(q) & sim::world::tile::SURFACE
                     == sim::world::tile::SURFACE_ROAD;
-                match (road, built.sim.mesh.elem(&built.sim.world, q).is_some()) {
+                match (
+                    road,
+                    built.sim.movement.mesh.elem(&built.sim.world, q).is_some(),
+                ) {
                     (true, false) => no_elem.push((tx, ty)),
                     (false, true) => stray += 1,
                     _ => {}
@@ -1621,7 +1627,7 @@ mod tests {
             }
         }
         assert_eq!(
-            (no_elem.len(), stray, built.sim.mesh.len()),
+            (no_elem.len(), stray, built.sim.movement.mesh.len()),
             (0, 0, 123),
             "every road tile of Great Lakes at 4802 has an element and \
              nothing else does: {no_elem:?}"
@@ -1631,7 +1637,7 @@ mod tests {
         // the masks and the borders above are what says the 4,802 frames
         // of it running changed nothing they should not have.
         assert_eq!(
-            built.sim.mesh.made(),
+            built.sim.movement.mesh.made(),
             0,
             "the mesh lays its first tile on 4803"
         );
@@ -1645,10 +1651,10 @@ mod tests {
         }
 
         // The search itself, node for node.
-        built.sim.trace_costs = true;
-        built.sim.road_marks.clear();
+        built.sim.trace.trace_costs = true;
+        built.sim.trace.road_marks.clear();
         built.tick();
-        let ours = built.sim.road_marks.clone();
+        let ours = built.sim.trace.road_marks.clone();
         let theirs = t72.road_nodes(4_803);
         eprintln!(
             "run72 road nodes on 4803: ours {} theirs {}",
@@ -1853,8 +1859,8 @@ mod tests {
             road_only_ours.len(),
             road_only_theirs.len(),
             mask_off.len(),
-            built.sim.mesh.len(),
-            built.sim.mesh.made()
+            built.sim.movement.mesh.len(),
+            built.sim.movement.mesh.made()
         );
         // **The road tiles are the original's, laid or not.** This is the
         // audit row's answer, and it is negative: `place_roads` walking
@@ -2016,10 +2022,10 @@ mod tests {
         // the price. Frame 6170 is the one that arrives.
         let mut counts = Vec::new();
         for f in 6166..=6170 {
-            built.sim.trace_costs = true;
-            built.sim.road_marks.clear();
+            built.sim.trace.trace_costs = true;
+            built.sim.trace.road_marks.clear();
             built.tick();
-            let ours = built.sim.road_marks.clone();
+            let ours = built.sim.trace.road_marks.clone();
             let theirs = t64.road_nodes(f);
             counts.push((f, ours.len(), theirs.len()));
             // **And 6170's prices are the search's again.** They were the
@@ -2068,7 +2074,7 @@ mod tests {
             (2000, 1, 2007),
             "the endpoints are leader 1's two cities"
         );
-        let van = &built.sim.caravans[1].slots[0];
+        let van = &built.sim.economy.caravans[1].slots[0];
         assert!(
             !van.making_road && van.search.is_none(),
             "the plan finished on 6170 and the parked search went with it"
@@ -2306,7 +2312,14 @@ mod tests {
         assert_eq!(other, Vec::<String>::new(), "a mask parts on 14529");
         assert_eq!(behind, 203, "the `0x4` residue on 14529");
         // The two ends the sweep stopped at, element for element.
-        let n = |t| built.sim.mesh.elem(&built.sim.world, t).map(|e| e.flags);
+        let n = |t| {
+            built
+                .sim
+                .movement
+                .mesh
+                .elem(&built.sim.world, t)
+                .map(|e| e.flags)
+        };
         assert_eq!(n(Pos::new(220, 97)), Some(sim::mesh::dir::N), "(220, 97)");
         assert_eq!(n(Pos::new(220, 98)), None, "(220, 98)");
         assert_eq!(
@@ -2485,11 +2498,12 @@ mod tests {
         let Some(t240) = trace("rontrace-run240.log") else {
             return;
         };
-        built.sim.trace_costs = true;
-        built.sim.cost_marks.clear();
+        built.sim.trace.trace_costs = true;
+        built.sim.trace.cost_marks.clear();
         built.tick();
         let ours: Vec<(sim::path::CostKey, i32, usize)> = built
             .sim
+            .trace
             .cost_marks
             .iter()
             .map(|m| (m.key(), m.cost, m.unit))
@@ -2682,11 +2696,12 @@ mod tests {
         // Item 1111: the 16 half-cells agree — who=1's citizens see their
         // Militia line's two tiles more (`docs/GOLDEN.md` §48).
         assert_eq!(fog_bad, Vec::new(), "the fog at 17146");
-        built.sim.trace_costs = true;
-        built.sim.cost_marks.clear();
+        built.sim.trace.trace_costs = true;
+        built.sim.trace.cost_marks.clear();
         built.tick();
         let ours: Vec<(sim::path::CostKey, i32, usize)> = built
             .sim
+            .trace
             .cost_marks
             .iter()
             .map(|m| (m.key(), m.cost, m.unit))
@@ -2938,10 +2953,10 @@ mod tests {
         // **The search itself, node for node, over all eight frames.**
         let mut counts = Vec::new();
         for f in 5_566..=5_573 {
-            built.sim.trace_costs = true;
-            built.sim.road_marks.clear();
+            built.sim.trace.trace_costs = true;
+            built.sim.trace.road_marks.clear();
             built.tick();
-            let ours = built.sim.road_marks.clone();
+            let ours = built.sim.trace.road_marks.clone();
             let theirs = t73.road_nodes(f);
             counts.push((f, ours.len(), theirs.len()));
             let at = (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i));
@@ -3052,7 +3067,7 @@ mod tests {
             init.frame_guys.retain(|(frame, _)| *frame < 363);
             borrow_from_siblings(&mut init, refs);
             let mut built = build_sim(&loaded, &init, Tuning::RON);
-            built.sim.trace_phases = true;
+            built.sim.trace.trace_phases = true;
             drop(init);
             for _ in 0..363 {
                 built.tick();
@@ -3198,7 +3213,7 @@ mod tests {
             init.frame_guys.retain(|(frame, _)| *frame < 484);
             borrow_from_siblings(&mut init, refs);
             let mut built = build_sim(&loaded, &init, Tuning::RON);
-            built.sim.trace_phases = true;
+            built.sim.trace.trace_phases = true;
             drop(init);
             for _ in 0..484 {
                 built.tick();
@@ -3851,7 +3866,7 @@ mod tests {
         borrow_from_siblings(&mut init, &refs);
         borrow_pasture(&mut init, &tr);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         for _ in 0..1375 {
             built.tick();
         }
@@ -4308,7 +4323,7 @@ mod tests {
         borrow_from_siblings(&mut init, &refs);
         borrow_pasture(&mut init, &tr);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
 
         // The scout's order, its path stack and how many orders it holds —
         // `orders_x`/`orders_y`, `STACK<PathData>` and the order list's
@@ -4497,7 +4512,7 @@ mod tests {
         borrow_from_siblings(&mut init, &refs);
         borrow_pasture(&mut init, &tr);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
 
         // The seven, from the dump's own cells — `goodies 7`.
         let goody_cells = |s: &sim::Sim| -> Vec<(i32, i32)> {
@@ -4532,13 +4547,13 @@ mod tests {
             built.tick();
         }
         assert_eq!(built.sim.frame, 867);
-        let before = built.sim.ledgers[1].bucket;
+        let before = built.sim.economy.ledgers[1].bucket;
         assert_eq!(
             goody_cells(&built.sim).len(),
             7,
             "nothing has taken a goody through frame 866"
         );
-        assert_eq!(built.sim.ledgers[1].goody_box_resources, 0);
+        assert_eq!(built.sim.economy.ledgers[1].goody_box_resources, 0);
 
         built.tick();
         // The frame itself, against the trace: three of the lottery's draws
@@ -4574,7 +4589,7 @@ mod tests {
         assert_eq!(built.sim.units[u].pos.cell(), sim::world::Cell::new(45, 49));
 
         // The pile: fifty wealth, and nothing anywhere else.
-        let after = built.sim.ledgers[1].bucket;
+        let after = built.sim.economy.ledgers[1].bucket;
         let moved: Vec<(usize, i32)> = (0..6)
             .filter(|&g| after[g] != before[g])
             .map(|g| (g, after[g] - before[g]))
@@ -4585,7 +4600,7 @@ mod tests {
             "one good, `epoch[3] × GOODY_BOX_AGE + GOODY_BOX` of it, and player 1 \
              is on Science 1"
         );
-        assert_eq!(built.sim.ledgers[1].goody_box_resources, 50);
+        assert_eq!(built.sim.economy.ledgers[1].goody_box_resources, 50);
     }
 
     /// **A building's own line of sight, and the scout's path that reads
@@ -4763,14 +4778,14 @@ mod tests {
         borrow_from_siblings(&mut init, &refs);
         borrow_pasture(&mut init, &tr);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         for _ in 0..=576 {
             built.tick();
         }
 
         // The landing itself: one bird, on the original's frame.
         assert_eq!(
-            built.sim.gaia.bird_landings,
+            built.sim.gaia.gaia.bird_landings,
             vec![(576, 8)],
             "gaia's `9/8` is the only bird to land by 576, and it lands there"
         );
@@ -4862,7 +4877,7 @@ mod tests {
         borrow_from_siblings(&mut init, &refs);
         borrow_pasture(&mut init, &tr);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         let last = tr.frames.last().map_or(0, |(n, _)| *n);
         for _ in 0..last {
             built.tick();
@@ -4893,6 +4908,7 @@ mod tests {
         }
         let ours: Vec<i64> = built
             .sim
+            .gaia
             .gaia
             .bird_landings
             .iter()
@@ -4975,7 +4991,7 @@ mod tests {
         borrow_from_siblings(&mut init, &refs);
         borrow_pasture(&mut init, &tr);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         // The pasture, and the one citizen registered at it. Named rather
         // than searched for, so a capture whose setup changes says so.
         let pasture = (0..built.sim.buildings.len())
@@ -5159,15 +5175,16 @@ mod tests {
             })
             .map(|c| c.frame)
             .collect();
-        built.sim.trace_costs = true;
+        built.sim.trace.trace_costs = true;
         let (mut frames, mut steps) = (0usize, 0usize);
         let mut parted: Vec<String> = Vec::new();
         while built.sim.frame < END {
             let f = built.sim.frame;
-            built.sim.cost_marks.clear();
+            built.sim.trace.cost_marks.clear();
             built.tick();
             let ours: Vec<(sim::path::CostKey, i32)> = built
                 .sim
+                .trace
                 .cost_marks
                 .iter()
                 .map(|m| (m.key(), m.cost))
@@ -5181,7 +5198,7 @@ mod tests {
             if let Some(i) =
                 (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i))
             {
-                let who = built.sim.cost_marks.get(i).map(|m| {
+                let who = built.sim.trace.cost_marks.get(i).map(|m| {
                     let u = &built.sim.units[m.unit];
                     (u.owner, u.index)
                 });
@@ -5252,11 +5269,12 @@ mod tests {
         while built.sim.frame < TICK {
             built.tick();
         }
-        built.sim.trace_costs = true;
-        built.sim.cost_marks.clear();
+        built.sim.trace.trace_costs = true;
+        built.sim.trace.cost_marks.clear();
         built.tick();
         let ours: Vec<(sim::path::CostKey, i32)> = built
             .sim
+            .trace
             .cost_marks
             .iter()
             .map(|m| (m.key(), m.cost))
@@ -5275,7 +5293,7 @@ mod tests {
             at.and_then(|i| theirs.get(i))
         );
         // The group's search: from the far point's cell, the first 360.
-        let first = &built.sim.cost_marks[0];
+        let first = &built.sim.trace.cost_marks[0];
         let leader = &built.sim.units[first.unit];
         assert_eq!(
             ((leader.owner, leader.index), first.from),
@@ -5284,6 +5302,7 @@ mod tests {
         );
         let group: Vec<&sim::path::CostMark> = built
             .sim
+            .trace
             .cost_marks
             .iter()
             .take_while(|m| m.unit == first.unit && !(m.depth == 1 && m.from != first.from))

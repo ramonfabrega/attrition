@@ -961,3 +961,53 @@ pub mod step;
 pub mod tpath;
 pub mod upath;
 pub mod wpath;
+
+/// The `movement/` subsystem's fields of [`crate::Sim`] (`docs/STRUCTURE.md`
+/// §3, item 4016): moved whole, each with its doc, in `Sim`'s order.
+#[derive(Clone, Debug)]
+pub struct MovementState {
+    /// The road **mesh** — `crate::mesh`, `docs/ROADS.md` §9. One
+    /// `RoadElementCandidate` per road tile, and the pass that lays road of
+    /// its own to close a corner two roads leave open.
+    pub mesh: crate::mesh::RoadMesh,
+    /// Whether a building replans the road to its city — `crate::roads` §5.
+    /// **On**, as of run32: the search's expansion count is the original's
+    /// exactly on every capture that feeds it the map's *own* terraformed
+    /// heights, and the road it lays is the original's tile for tile
+    /// (`docs/ROADS.md` §7). It was off while the count was six per cent
+    /// short, which turned out to be the harness reading a different
+    /// game's height grid rather than anything in the search.
+    pub plan_roads: bool,
+    /// The collision occupancy index — `CollBlock`, flattened
+    /// (`docs/COLLISION.md` §2).
+    pub coll: crate::collide::CollGrid,
+    /// **`PathFinder +0x50`, the validity memo — the pathfinder's, not a
+    /// search's** (`docs/PATHFINDER.md` §24.5). `valid_ucoord` caches each
+    /// 48-cell's verdict here under its metric, and only
+    /// `PathFinder::kill_lists@00687ae0` empties it. Every finder calls that
+    /// **after** its `astar_*` returns and on none of its early returns, so
+    /// a `find_upath` that ends in its goal pre-walk leaves its verdicts for
+    /// the next unit's search, on the same frame or a later one.
+    pub path_memo: std::collections::BTreeMap<i64, bool>,
+    /// **`PathFinder +0x4c`, the `blocklist` — the pathfinder's copies of
+    /// world cells' collision blocks, with the memo's lifetime**
+    /// (`docs/PATHFINDER.md` §22 of item 678, `docs/COLLISION.md` §4.2). A
+    /// `nocoll` probe — `valid_ucoord`'s, and `resolve_unit_collision`'s
+    /// unwind — reads a world cell's copy when the tree holds one and
+    /// otherwise the live block, and copies each slot it read live
+    /// (`CollCheck::fill_slots@006820e0`). Only `kill_lists` empties it,
+    /// so a copy taken by a probe outside any search is what the next
+    /// search reads, however many frames later. Keyed on the world cell;
+    /// the value is its 16×16 unit cells, one row a word, as the probe's
+    /// region gate left them.
+    pub coll_copies: std::cell::RefCell<std::collections::BTreeMap<(i32, i32), [u16; 16]>>,
+    /// `GameDaemon::repaths[who]`: how many 48-grid recoveries this player
+    /// has asked for, the throttle collision recovery reads (§6 step 6).
+    pub repaths: Vec<i32>,
+    /// `PathFinder +0x58/+0x5c`, **the start argument's tile** the wrappers
+    /// write (`find_wpath@00688fc0:47-48`, `find_tpath@006897d0:40`,
+    /// `find_upath@00682f30:66-67`): the depth-1 shore test in `calc_cost`
+    /// reads it, not the unit's own tile (twenty-fourth pass, group 7; A4
+    /// row 28).
+    pub(crate) pf_start: crate::Pos,
+}

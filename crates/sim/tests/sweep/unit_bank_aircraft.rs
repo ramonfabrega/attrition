@@ -66,7 +66,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let mut w = World::new(40, 40);
             w.set_tile_z(tile, a[6]);
             let mut sim = crate::Sim::new(crate::Tuning::RON, w, 2);
-            sim.tuning.unit_turn_speed = rd(&c[1], 8);
+            sim.tables.tuning.unit_turn_speed = rd(&c[1], 8);
             sim.frame = i64::from(rd(&c[0], 0x550));
             let t = sim.add_unit_type(crate::UnitType::default());
             let mut unit = crate::Unit::new(1, 0, Pos::new(px, py), 1);

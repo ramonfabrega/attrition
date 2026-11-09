@@ -282,7 +282,7 @@ impl<'a> SimWpath<'a> {
 
 impl WpathView for SimWpath<'_> {
     fn begin(&mut self, start: Pos) {
-        self.sim.pf_start = start;
+        self.sim.movement.pf_start = start;
     }
     fn pop(&mut self) -> Option<PathData> {
         self.sim.units[self.u].path.pop()
@@ -313,6 +313,7 @@ impl WpathView for SimWpath<'_> {
         // the human's `0x800113`. So an owner with no row here is not
         // human, and a wandering animal takes the AI's mode block.
         self.sim
+            .cities
             .nation
             .get(self.sim.units[self.u].owner as usize)
             .is_some_and(|n| n.human)
@@ -351,7 +352,7 @@ impl WpathView for SimWpath<'_> {
         // toward the fog before the type half was read (run10's AI citizen
         // `1/1`).
         self.sim.units[self.u].ty.is_some_and(|t| {
-            self.sim.unit_types[t]
+            self.sim.tables.unit_types[t]
                 .cols
                 .is(crate::ai_load::role::ROLE_SCOUT)
         })
@@ -378,11 +379,11 @@ impl WpathView for SimWpath<'_> {
     fn has_attack(&self) -> bool {
         self.sim.units[self.u]
             .ty
-            .is_some_and(|t| self.sim.unit_types[t].combat.attack > 0)
+            .is_some_and(|t| self.sim.tables.unit_types[t].combat.attack > 0)
     }
     fn is_supply(&mut self) -> bool {
         self.sim.units[self.u].ty.is_some_and(|t| {
-            self.sim.unit_types[t]
+            self.sim.tables.unit_types[t]
                 .cols
                 .flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
         })
@@ -390,7 +391,7 @@ impl WpathView for SimWpath<'_> {
     fn is_worker(&mut self) -> bool {
         self.sim.units[self.u]
             .ty
-            .is_some_and(|t| self.sim.unit_types[t].worker != crate::orders::Worker::None)
+            .is_some_and(|t| self.sim.tables.unit_types[t].worker != crate::orders::Worker::None)
     }
     fn is_attacking(&mut self) -> bool {
         // `is_attacking`: the current order's `is_attack` (`006896b9`).

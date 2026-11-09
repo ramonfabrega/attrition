@@ -41,10 +41,16 @@ impl Sim {
     /// `Leader::defeat(6, −1, 0)` for `who`, the human who quits: the leader
     /// is defeated, its armies let go and its planes die.
     pub fn resign(&mut self, who: Player) {
-        if self.defeated.get(who as usize).copied().unwrap_or(true) {
+        if self
+            .leaders
+            .defeated
+            .get(who as usize)
+            .copied()
+            .unwrap_or(true)
+        {
             return;
         }
-        self.defeated[who as usize] = true;
+        self.leaders.defeated[who as usize] = true;
         self.armies_leader_defeated(who);
         for u in 0..self.units.len() {
             if self.units[u].owner != who || !self.units[u].alive() {

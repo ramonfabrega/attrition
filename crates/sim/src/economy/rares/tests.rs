@@ -43,11 +43,11 @@ fn sea_sim() -> (Sim, usize) {
         }
     }
     let mut s = Sim::new(Tuning::RON, world, 2);
-    s.nation[0].human = true;
-    s.nation[1].human = false;
-    s.good_types = good_table();
+    s.cities.nation[0].human = true;
+    s.cities.nation[1].human = false;
+    s.economy.good_types = good_table();
     {
-        let t = &mut s.tech_tree;
+        let t = &mut s.tables.tech_tree;
         for i in 0..50 {
             t.add(tech::TypeDef::good(&format!("good{i}")));
         }
@@ -61,7 +61,7 @@ fn sea_sim() -> (Sim, usize) {
         assert_eq!(boat, crate::fish::FISHERMEN);
     }
     s.tech = (0..2)
-        .map(|_| tech::PlayerTech::new(&s.tech_tree))
+        .map(|_| tech::PlayerTech::new(&s.tables.tech_tree))
         .collect();
     let t = s.add_unit_type(crate::UnitType {
         hits: 20,
@@ -69,9 +69,9 @@ fn sea_sim() -> (Sim, usize) {
         tree: Some(crate::fish::FISHERMEN),
         ..crate::UnitType::default()
     });
-    s.unit_types[t].combat.packs = true;
-    s.unit_types[t].combat.obj_masks |= crate::combat::mask::NAVAL;
-    s.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
+    s.tables.unit_types[t].combat.packs = true;
+    s.tables.unit_types[t].combat.obj_masks |= crate::combat::mask::NAVAL;
+    s.tables.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
     let at = Pos::new(20 * 768 + 384, 20 * 768 + 384);
     let mut u = crate::Unit::new(1, 14, at, 20);
     u.ty = Some(t);
@@ -138,11 +138,11 @@ fn a_fish_and_a_whale_are_never_a_seen_rare() {
     let citrus = good_under(&mut s, u, 26);
     s.new_rare(1, fish);
     s.new_rare(1, whale);
-    assert!(s.ai[1].new_rares.is_empty(), "the fisherman's two rares");
+    assert!(s.ai.ai[1].new_rares.is_empty(), "the fisherman's two rares");
     s.new_rare(1, citrus);
     s.new_rare(1, citrus);
     assert_eq!(
-        s.ai[1].new_rares,
+        s.ai.ai[1].new_rares,
         vec![citrus],
         "recorded once, and once only"
     );
@@ -156,14 +156,14 @@ fn a_human_s_reveal_records_nothing_on_either_side() {
     let (mut s, u) = sea_sim();
     let citrus = good_under(&mut s, u, 26);
     s.new_rare(0, citrus);
-    assert!(s.ai[0].new_rares.is_empty(), "the human's own reveal");
-    assert!(s.ai[1].new_rares.is_empty(), "and it told nobody");
-    s.allied[0][1] = true;
-    s.allied[1][0] = true;
+    assert!(s.ai.ai[0].new_rares.is_empty(), "the human's own reveal");
+    assert!(s.ai.ai[1].new_rares.is_empty(), "and it told nobody");
+    s.leaders.allied[0][1] = true;
+    s.leaders.allied[1][0] = true;
     s.new_rare(1, citrus);
-    assert_eq!(s.ai[1].new_rares, vec![citrus]);
+    assert_eq!(s.ai.ai[1].new_rares, vec![citrus]);
     assert!(
-        s.ai[0].new_rares.is_empty(),
+        s.ai.ai[0].new_rares.is_empty(),
         "an ally that is a human is skipped"
     );
 }
@@ -178,7 +178,7 @@ fn reveal_fog_marks_the_rare_it_meets_seen() {
     assert!(!s.good_seen_bit(g, 1));
     let (fx, fy) = fog_of_unit(&s, u);
     s.reveal_fog(fx, fy, 1);
-    assert_eq!(s.ai[1].new_rares, vec![g]);
+    assert_eq!(s.ai.ai[1].new_rares, vec![g]);
     assert!(s.good_seen_bit(g, 1), "seen by its revealer");
     assert!(!s.good_seen_bit(g, 0), "and by nobody else");
 }
@@ -194,7 +194,10 @@ fn an_oil_patch_is_not_in_the_chain_to_be_seen() {
     let (fx, fy) = fog_of_unit(&s, u);
     assert_eq!(Cell::new(fx >> 1, fy >> 1), s.units[u].pos.cell());
     s.reveal_fog(fx, fy, 1);
-    assert!(s.ai[1].new_rares.is_empty(), "an oil patch is not a rare");
+    assert!(
+        s.ai.ai[1].new_rares.is_empty(),
+        "an oil patch is not a rare"
+    );
 }
 
 /// **The tile mark is the gate.** `reveal_fog` looks for a good only
@@ -206,7 +209,7 @@ fn reveal_fog_looks_only_where_the_ground_is_marked() {
     assert_eq!(good_under(&mut s, u, 26), 0);
     let (fx, fy) = fog_of_unit(&s, u);
     s.reveal_fog(fx, fy, 1);
-    assert_eq!(s.ai[1].new_rares, vec![0]);
+    assert_eq!(s.ai.ai[1].new_rares, vec![0]);
 
     let (mut s, u) = sea_sim();
     assert_eq!(good_under(&mut s, u, 26), 0);
@@ -214,7 +217,7 @@ fn reveal_fog_looks_only_where_the_ground_is_marked() {
     let was = s.world.tile_mask(mark);
     s.world.set_tile_mask(mark, was & !tile::AS_BUILDING);
     s.reveal_fog(fx, fy, 1);
-    assert!(s.ai[1].new_rares.is_empty(), "no mark, no look");
+    assert!(s.ai.ai[1].new_rares.is_empty(), "no mark, no look");
 }
 
 /// **The border pass meets a rare the reveal's tile gate missed** (item
@@ -231,17 +234,20 @@ fn the_border_pass_meets_a_seen_rare_the_reveal_never_looked_for() {
     let g = good_under(&mut s, u, 26);
     let c = s.units[u].pos.cell();
     s.claim_cell_goods(c, 1);
-    assert!(s.ai[1].new_rares.is_empty(), "an unseen cell is not met");
+    assert!(s.ai.ai[1].new_rares.is_empty(), "an unseen cell is not met");
     assert!(!s.good_seen_bit(g, 1));
     // The odd half-cell is the one the scan reads: a seen even one is
     // no reason to meet the good.
     s.world.set_seen(2 * c.x, 2 * c.y, 1 << 1);
     s.claim_cell_goods(c, 1);
-    assert!(s.ai[1].new_rares.is_empty(), "the even half-cell is not it");
+    assert!(
+        s.ai.ai[1].new_rares.is_empty(),
+        "the even half-cell is not it"
+    );
     s.world.set_seen(2 * c.x + 1, 2 * c.y + 1, 1 << 1);
     s.claim_cell_goods(c, 1);
     s.claim_cell_goods(c, 1);
-    assert_eq!(s.ai[1].new_rares, vec![g], "met once");
+    assert_eq!(s.ai.ai[1].new_rares, vec![g], "met once");
     assert!(s.good_seen_bit(g, 1), "and seen by its owner");
     assert!(!s.good_seen_bit(g, 0), "and by nobody else");
 }
@@ -678,7 +684,7 @@ fn a_whale_speeds_the_ships_and_nothing_else() {
         ..crate::UnitType::default()
     });
     assert_eq!(s.type_speed(1, boat_ty), 40, "no whale, no bonus");
-    s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
+    s.economy.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
     assert!(s.has_rare(1, economy::WHALES));
     assert_eq!(s.type_speed(1, boat_ty), 40 * 120 / 100);
     assert_eq!(s.type_speed(1, foot_ty), 25, "a foot type is not naval");
@@ -709,7 +715,7 @@ fn aluminum_speeds_the_aircraft_and_nothing_else() {
     let fighter = plane(&mut s, 75);
     let biplane = plane(&mut s, 55);
     assert_eq!(s.type_speed(1, bomber), 60, "no aluminum, no bonus");
-    s.ledgers[1].rare = 1 << (economy::ALUMINUM - economy::BASE_RARE);
+    s.economy.ledgers[1].rare = 1 << (economy::ALUMINUM - economy::BASE_RARE);
     assert_eq!(s.type_speed(1, bomber), 75);
     assert_eq!(s.type_speed(1, fighter), 93, "75 x 125 / 100 truncates");
     assert_eq!(s.type_speed(1, biplane), 68);
@@ -741,7 +747,7 @@ fn the_gunpowder_foot_line_takes_its_own_scale() {
     assert_eq!(s.type_speed(1, rifle), 37, "32 x 32 / 27 truncates");
     assert_eq!(s.type_speed(1, arq), 37, "30 x 30 / 24 truncates");
     assert_eq!(s.type_speed(1, other), 32, "identity, not a lineage");
-    s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
+    s.economy.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
     assert_eq!(s.type_speed(1, inf), 34, "a whale is the navy's");
 }
 
@@ -765,7 +771,7 @@ fn a_bantu_citizen_moves_a_quarter_faster() {
     let korean = foot(&mut s, PEASANTS_KOREAN);
     let other = foot(&mut s, PEASANTS_KOREAN + 1);
     assert_eq!(s.type_speed(1, citizen), 25, "not a Bantu leader");
-    s.nation[1].bantu = true;
+    s.cities.nation[1].bantu = true;
     assert_eq!(s.type_speed(1, citizen), 31, "run978: 25 x 125 / 100");
     assert_eq!(s.type_speed(1, korean), 31);
     assert_eq!(s.type_speed(1, other), 25, "neither citizen");
@@ -782,10 +788,10 @@ fn a_bantu_citizen_moves_a_quarter_faster() {
 fn a_national_replacement_takes_its_line_s_gunpowder_scale() {
     let (mut s, _) = sea_sim();
     let at = |s: &mut Sim, idx: usize, def: tech::TypeDef| {
-        while s.tech_tree.types.len() <= idx {
-            s.tech_tree.add(tech::TypeDef::plain("filler", -1));
+        while s.tables.tech_tree.types.len() <= idx {
+            s.tables.tech_tree.add(tech::TypeDef::plain("filler", -1));
         }
-        s.tech_tree.types[idx] = def;
+        s.tables.tech_tree.types[idx] = def;
     };
     let traits = tech::UnitTraits::default;
     // The four lines themselves, then one replacement under each by a
@@ -848,21 +854,21 @@ fn a_national_replacement_takes_its_line_s_gunpowder_scale() {
 #[test]
 fn peacocks_raise_the_owner_s_pop_cap_by_a_tenth() {
     let (mut s, _) = sea_sim();
-    for m in &mut s.muster {
+    for m in &mut s.roster.muster {
         m.military_level = 1;
     }
     s.recompute_pop_caps();
-    assert_eq!((s.muster[0].cap, s.muster[1].cap), (50, 50));
-    s.ledgers[1].rare = 1 << (economy::PEACOCKS - economy::BASE_RARE);
+    assert_eq!((s.roster.muster[0].cap, s.roster.muster[1].cap), (50, 50));
+    s.economy.ledgers[1].rare = 1 << (economy::PEACOCKS - economy::BASE_RARE);
     s.recompute_pop_caps();
     assert_eq!(
-        (s.muster[0].cap, s.muster[1].cap),
+        (s.roster.muster[0].cap, s.roster.muster[1].cap),
         (50, 55),
         "Great Sahara's 55: 50 x 110 / 100"
     );
-    s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
+    s.economy.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
     s.recompute_pop_caps();
-    assert_eq!(s.muster[1].cap, 50, "no other rare moves it");
+    assert_eq!(s.roster.muster[1].cap, 50, "no other rare moves it");
 }
 
 /// **And the mask's own change recomputes it** — `calc_gather`'s
@@ -872,23 +878,26 @@ fn peacocks_raise_the_owner_s_pop_cap_by_a_tenth() {
 #[test]
 fn the_rare_mask_s_change_recomputes_the_pop_cap() {
     let (mut s, _) = sea_sim();
-    for m in &mut s.muster {
+    for m in &mut s.roster.muster {
         m.military_level = 1;
     }
     s.recompute_pop_caps();
     let bit = 1u64 << (economy::PEACOCKS - economy::BASE_RARE);
-    s.holdings[1].rare_owned = bit;
-    s.ledgers[1].dirty = false;
-    s.ledgers[1].gather_stamp = s.frame;
+    s.economy.holdings[1].rare_owned = bit;
+    s.economy.ledgers[1].dirty = false;
+    s.economy.ledgers[1].gather_stamp = s.frame;
     assert!(!s.holdings_due(1, s.frame), "the walk does not rebuild it");
     s.tick();
-    assert_eq!(s.ledgers[1].rare, bit);
-    assert_eq!(s.muster[1].cap, 55, "the bit arrived and the cap moved");
-    s.holdings[1].rare_owned = 0;
-    s.ledgers[1].dirty = false;
-    s.ledgers[1].gather_stamp = s.frame;
+    assert_eq!(s.economy.ledgers[1].rare, bit);
+    assert_eq!(
+        s.roster.muster[1].cap, 55,
+        "the bit arrived and the cap moved"
+    );
+    s.economy.holdings[1].rare_owned = 0;
+    s.economy.ledgers[1].dirty = false;
+    s.economy.ledgers[1].gather_stamp = s.frame;
     s.tick();
-    assert_eq!(s.muster[1].cap, 50, "and it goes when the bit goes");
+    assert_eq!(s.roster.muster[1].cap, 50, "and it goes when the bit goes");
 }
 
 /// The truncation is the original's: `38 × 120 / 100` is **45**, which
@@ -898,10 +907,10 @@ fn the_rare_mask_s_change_recomputes_the_pop_cap() {
 fn the_whales_bonus_truncates_where_the_dump_does() {
     let (mut s, u) = sea_sim();
     let boat_ty = s.units[u].ty.unwrap();
-    s.unit_types[boat_ty].moves = 38;
-    s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
+    s.tables.unit_types[boat_ty].moves = 38;
+    s.economy.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
     assert_eq!(s.type_speed(1, boat_ty), 45);
-    s.unit_types[boat_ty].moves = 25;
+    s.tables.unit_types[boat_ty].moves = 25;
     assert_eq!(s.type_speed(1, boat_ty), 30);
 }
 
@@ -912,7 +921,7 @@ fn the_whales_bonus_truncates_where_the_dump_does() {
 fn calc_unit_stats_re_caches_every_unit_s_speed() {
     let (mut s, u) = sea_sim();
     assert_eq!(s.units[u].movement.speed, 0, "the fixture never set one");
-    s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
+    s.economy.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
     s.calc_unit_stats(1);
     assert_eq!(s.units[u].movement.speed, 40 * 120 / 100);
 }
@@ -976,18 +985,21 @@ fn supply_upgrade_speed_counts_sparse_steps_and_refreshes_existing_units() {
 #[test]
 fn a_fisherman_going_idle_marks_the_economy_dirty() {
     let (mut s, u) = sea_sim();
-    s.ledgers[1].dirty = false;
+    s.economy.ledgers[1].dirty = false;
     s.units[u].idle_latch = false;
     s.tick();
     assert!(
         s.units[u].idle_latch,
         "the latch is taken on the idle frame"
     );
-    assert!(s.ledgers[1].dirty, "and it is what marks the economy");
+    assert!(
+        s.economy.ledgers[1].dirty,
+        "and it is what marks the economy"
+    );
     // And it is a **latch**: standing there does not mark it again.
-    s.ledgers[1].dirty = false;
+    s.economy.ledgers[1].dirty = false;
     s.tick();
-    assert!(!s.ledgers[1].dirty, "one transition, one mark");
+    assert!(!s.economy.ledgers[1].dirty, "one transition, one mark");
 }
 
 /// **The idle latch is `0x18`** (item 3983, `check_idle@006032c0:69`,

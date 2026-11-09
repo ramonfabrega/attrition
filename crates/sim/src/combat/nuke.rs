@@ -133,7 +133,7 @@ impl Sim {
     /// which no figure reads before the blast has killed it).
     pub(crate) fn nuke_land(&mut self, p: crate::combat::Projectile, frame: i64) {
         let who = usize::from(p.owner);
-        let n = &mut self.nukes;
+        let n = &mut self.combat.nukes;
         if n.stamp.len() <= who {
             n.stamp.resize(who + 1, 0);
             n.used.resize(who + 1, 0);
@@ -141,7 +141,7 @@ impl Sim {
         n.stamp[who] = frame;
         n.used[who] += 1;
         let max = self.profile(p.shooter).splash_area * RING_PER_SPLASH;
-        self.nukes.blasts.push(Blast {
+        self.combat.nukes.blasts.push(Blast {
             at: p.landing,
             min: RING_MIN,
             max,
@@ -215,18 +215,18 @@ impl Sim {
     /// (`92c502`, `92c71e`), and the rush rules' early-age exemption.
     pub(crate) fn nuke_do_damage(&mut self, frame: i64) {
         let mut i = 0;
-        while i < self.nukes.blasts.len() {
-            let start = self.nukes.blasts[i].start;
+        while i < self.combat.nukes.blasts.len() {
+            let start = self.combat.nukes.blasts[i].start;
             if frame < start || frame >= start + NUKE_FRAMES + NUKE_LINGER {
-                self.nukes.blasts.swap_remove(i);
+                self.combat.nukes.blasts.swap_remove(i);
             } else {
                 i += 1;
             }
         }
-        for i in 0..self.nukes.blasts.len() {
-            let t = frame - self.nukes.blasts[i].start;
+        for i in 0..self.combat.nukes.blasts.len() {
+            let t = frame - self.combat.nukes.blasts[i].start;
             let (at, min, max, shooter) = {
-                let b = &self.nukes.blasts[i];
+                let b = &self.combat.nukes.blasts[i];
                 (b.at, b.min, b.max, b.shooter)
             };
             let Some(r) = ring_radius(t, min, max) else {
@@ -240,7 +240,7 @@ impl Sim {
                 if self.units[u].owner >= 8
                     || !self.active(o)
                     || !self.units[u].on_map
-                    || self.nukes.blasts[i].struck.contains(&o)
+                    || self.combat.nukes.blasts[i].struck.contains(&o)
                     || self.is_nuke(o)
                 {
                     continue;
@@ -253,11 +253,11 @@ impl Sim {
                 }
                 let angle = find_angle(pos.x - at.x, pos.y - at.y);
                 self.do_damage(shooter, o, angle, false, count, true, false, frame);
-                self.nukes.blasts[i].struck.push(o);
+                self.combat.nukes.blasts[i].struck.push(o);
             }
             for b in 0..self.buildings.len() {
                 let o = Obj::Building(b);
-                if !self.active(o) || self.nukes.blasts[i].struck.contains(&o) {
+                if !self.active(o) || self.combat.nukes.blasts[i].struck.contains(&o) {
                     continue;
                 }
                 let tp = self.profile(o);
@@ -271,7 +271,7 @@ impl Sim {
                 }
                 let angle = find_angle(pos.x - at.x, pos.y - at.y);
                 self.do_damage(shooter, o, angle, false, count, true, false, frame);
-                self.nukes.blasts[i].struck.push(o);
+                self.combat.nukes.blasts[i].struck.push(o);
             }
         }
     }

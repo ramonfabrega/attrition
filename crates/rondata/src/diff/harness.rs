@@ -613,7 +613,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
     // death piece, `DeathObj::init`'s `vtable[0x178](param_7, packed)`,
     // and this crate loads no art for it (§42.5).
     {
-        let ours: Vec<&sim::combat::Death> = built.sim.deaths.iter().collect();
+        let ours: Vec<&sim::combat::Death> = built.sim.combat.deaths.iter().collect();
         for d in &frame.deaths {
             let (Some(who), Some(o)) = (d.who, d.o) else {
                 continue;
@@ -1136,7 +1136,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             r.city_unlinked += 1;
             continue;
         };
-        let ours = &built.sim.cities[ci];
+        let ours = &built.sim.cities.cities[ci];
         let w = c.who as usize;
         compared::note(
             "CityDump",
@@ -1179,7 +1179,11 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         // `CityData` itself, where one leader's sweep writes them for its
         // own cities; this crate keeps a copy per leader, so the owner's is
         // the one the dump is showing.
-        let ai = built.sim.ai[w].city_ai.get(ci).copied().unwrap_or_default();
+        let ai = built.sim.ai.ai[w]
+            .city_ai
+            .get(ci)
+            .copied()
+            .unwrap_or_default();
         // `city_flags`, bit by bit rather than as a word: four of its bits
         // are the "an active TEMPLE / GRANARY / LUMBERMILL / MARKET stands
         // here" marks of §1.4, which this crate keeps on the economy's own
@@ -1313,6 +1317,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         // which is what `Array<CaravanLink>::add` records in the original.
         let vans = built
             .sim
+            .economy
             .caravans
             .iter()
             .flat_map(|l| l.slots[..l.mark].iter())
@@ -1471,14 +1476,14 @@ pub(crate) fn debug_gap(
     }
     let s = &built.sim;
     let mut rows: Vec<(String, String)> = Vec::new();
-    for (w, l) in s.ledgers.iter().enumerate() {
+    for (w, l) in s.economy.ledgers.iter().enumerate() {
         rows.push((
             format!("{w}/ledger"),
             format!("gather_stamp {} dirty {}", l.gather_stamp, l.dirty),
         ));
     }
-    rows.push(("treaties".into(), format!("{:?}", s.treaties)));
-    rows.push(("at_war".into(), format!("{:?}", s.at_war)));
+    rows.push(("treaties".into(), format!("{:?}", s.leaders.treaties)));
+    rows.push(("at_war".into(), format!("{:?}", s.leaders.at_war)));
     for u in units.split(',').filter(|u| !u.is_empty()) {
         let Some((w, o)) = u
             .split_once('/')
@@ -1545,7 +1550,13 @@ pub(crate) fn debug_gap(
             format!("{}/{}", s.buildings[b].owner, s.buildings[b].index)
         }
     };
-    for h in s.hits.iter().rev().take_while(|h| h.frame + 1 >= frame) {
+    for h in s
+        .combat
+        .hits
+        .iter()
+        .rev()
+        .take_while(|h| h.frame + 1 >= frame)
+    {
         if h.frame + 1 == frame {
             eprintln!(
                 "  gap f{frame} hit {} -> {} dmg {} dealt {:?} splash {} killed {}",
@@ -1602,7 +1613,7 @@ pub(crate) fn debug_ammo(built: &Built, frame: i64) {
                 last[i] = (b.damage, b.damage_frac);
             }
         }
-        for p in &built.sim.projectiles {
+        for p in &built.sim.combat.projectiles {
             if let Some(sim::combat::Obj::Building(b)) = p.target {
                 let tp = built.sim.profile(sim::combat::Obj::Building(b));
                 eprintln!(
@@ -1620,7 +1631,7 @@ pub(crate) fn debug_ammo(built: &Built, frame: i64) {
             }
         }
     }
-    for p in &built.sim.projectiles {
+    for p in &built.sim.combat.projectiles {
         let tpos = p.target.and_then(|t| match t {
             sim::combat::Obj::Unit(u) => Some(built.sim.units[u].pos),
             sim::combat::Obj::Building(_) => None,
@@ -1668,7 +1679,7 @@ pub(crate) fn debug_armies(built: &Built, frame: i64) {
     if !(lo..=hi).contains(&frame) {
         return;
     }
-    for (w, armies) in built.sim.armies.iter().enumerate() {
+    for (w, armies) in built.sim.ai.armies.iter().enumerate() {
         for (slot, a) in armies.valid() {
             let members: Vec<String> = a
                 .units
@@ -1757,15 +1768,15 @@ pub(crate) fn debug_leader(built: &Built, frame: i64) {
     if !(lo..=hi).contains(&frame) {
         return;
     }
-    for w in 0..built.sim.players.len() {
-        if built.sim.nation[w].human || built.sim.defeated[w] {
+    for w in 0..built.sim.territory.players.len() {
+        if built.sim.cities.nation[w].human || built.sim.leaders.defeated[w] {
             continue;
         }
-        let l = &built.sim.ai[w];
+        let l = &built.sim.ai.ai[w];
         let name = |t: i32| -> String {
             usize::try_from(t)
                 .ok()
-                .and_then(|t| built.sim.tech_tree.types.get(t))
+                .and_then(|t| built.sim.tables.tech_tree.types.get(t))
                 .map_or_else(|| "-".to_string(), |r| r.name.clone())
         };
         let slots: Vec<String> = l
@@ -1785,7 +1796,7 @@ pub(crate) fn debug_leader(built: &Built, frame: i64) {
                     m.escrow,
                     usize::try_from(m.t)
                         .ok()
-                        .filter(|&t| t < built.sim.tech_tree.types.len())
+                        .filter(|&t| t < built.sim.tables.tech_tree.types.len())
                         .and_then(|t| built.sim.type_price(w as sim::Player, t))
                         .unwrap_or([0; 6]),
                 )
@@ -1798,9 +1809,9 @@ pub(crate) fn debug_leader(built: &Built, frame: i64) {
             l.step,
             l.script_step,
             l.site_mark,
-            built.sim.ledgers[w].bucket,
-            built.sim.ledgers[w].escrow,
-            built.sim.holdings[w].available,
+            built.sim.economy.ledgers[w].bucket,
+            built.sim.economy.ledgers[w].escrow,
+            built.sim.economy.holdings[w].available,
             built.sim.tech[w].epoch[sim::tech::Line::Commerce.index()],
             slots.join(" ")
         );
@@ -2030,6 +2041,7 @@ fn widen_block_rows(
         };
         let ours = built
             .sim
+            .combat
             .deaths
             .iter()
             .find(|m| i64::from(m.who) == who && i64::from(m.o) == o);
@@ -2677,12 +2689,12 @@ pub(crate) fn debug_tech(built: &Built, frame: i64) {
     if !(lo..=hi).contains(&frame) {
         return;
     }
-    let name = |t: usize| built.sim.tech_tree.types[t].name.clone();
+    let name = |t: usize| built.sim.tables.tech_tree.types[t].name.clone();
     LAST.with(|last| {
         let mut last = last.borrow_mut();
-        last.resize(built.sim.players.len(), Vec::new());
-        for w in 0..built.sim.players.len() {
-            if built.sim.nation[w].human || built.sim.defeated[w] {
+        last.resize(built.sim.territory.players.len(), Vec::new());
+        for w in 0..built.sim.territory.players.len() {
+            if built.sim.cities.nation[w].human || built.sim.leaders.defeated[w] {
                 continue;
             }
             let p = &built.sim.tech[w];
@@ -2745,7 +2757,7 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
     {
         let ty = b.orig_ty.map_or_else(
             || "-".to_string(),
-            |t| format!("{:?}#{t}", built.sim.build_types[t].ident),
+            |t| format!("{:?}#{t}", built.sim.tables.build_types[t].ident),
         );
         let q: Vec<String> = b
             .queue
@@ -2756,7 +2768,7 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
                     sim::queue_disband::DISBAND.to_string()
                 } else {
                     i.tech.map_or_else(
-                        || built.sim.unit_types[i.ty].type_index.to_string(),
+                        || built.sim.tables.unit_types[i.ty].type_index.to_string(),
                         |x| format!("tech{x}"),
                     )
                 };
@@ -2768,7 +2780,7 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
         let head = if b.queue.items.is_empty() {
             String::new()
         } else {
-            let m = &built.sim.muster[b.owner as usize];
+            let m = &built.sim.roster.muster[b.owner as usize];
             format!(
                 " target{} cap{} control{} owned{}",
                 built.sim.queue_target(at, 0),
@@ -2893,7 +2905,7 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         // The `TypeIndex` the dump's `GUY` block would write (item 1555).
         u.ty.and_then(|t| built.unit_tree.get(t))
             .and_then(|id| built.type_index.get(*id)),
-        u.ty.map(|t| built.sim.unit_types[t].combat.packs),
+        u.ty.map(|t| built.sim.tables.unit_types[t].combat.packs),
         built
             .sim
             .units
@@ -3022,7 +3034,7 @@ pub(crate) fn site_window_named(var: &str) -> Option<(i64, i64)> {
 pub(crate) fn attributed_sites(built: &Built) -> Vec<(String, String)> {
     let mut out = Vec::new();
     let mut who = String::from("-");
-    let marks = &built.sim.phase_marks;
+    let marks = &built.sim.trace.phase_marks;
     for (i, (label, from)) in marks.iter().enumerate() {
         if label.starts_with("unit ") {
             who = label.clone();
@@ -4739,6 +4751,7 @@ pub(crate) mod tests {
             ),
         };
         let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = sim
+            .combat
             .projectiles
             .iter()
             .map(|p| {
@@ -4928,7 +4941,7 @@ pub(crate) mod tests {
         }
         let resumed_at = built.sim.frame;
         let setup_time = started.elapsed();
-        let players = built.sim.players.len();
+        let players = built.sim.territory.players.len();
         use std::collections::{BTreeMap, BTreeSet};
         let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
         let mut round_firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
@@ -4975,7 +4988,7 @@ pub(crate) mod tests {
             if let Some((sf, w, o)) = sweep
                 && sf == f
             {
-                built.sim.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
+                built.sim.trace.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
             }
             let tick_started = profiling.then(std::time::Instant::now);
             built.tick();
@@ -4984,7 +4997,7 @@ pub(crate) mod tests {
             }
             if let Some((sf, _, _)) = sweep
                 && sf == f
-                && let Some(w) = built.sim.sweep_watch.take()
+                && let Some(w) = built.sim.trace.sweep_watch.take()
             {
                 for l in w.rendered() {
                     eprintln!("  sweep {sf}: {l}");
@@ -7429,7 +7442,7 @@ pub(crate) mod tests {
             borrow_pasture(&mut init, &tr);
             build_sim(&loaded, &init, Tuning::RON)
         };
-        let players = built.sim.players.len();
+        let players = built.sim.territory.players.len();
         use std::collections::{BTreeMap, BTreeSet};
         let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
         let mut missing: BTreeSet<String> = BTreeSet::new();
@@ -7670,7 +7683,7 @@ pub(crate) mod tests {
                             g.members.iter().map(|m| m.o).collect();
                     }
                 }
-                for (w, side) in built.sim.armies.iter().enumerate().take(players) {
+                for (w, side) in built.sim.ai.armies.iter().enumerate().take(players) {
                     for (a, x) in side.list.iter().enumerate() {
                         if !x.valid || x.units.is_empty() {
                             continue;

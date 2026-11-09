@@ -51,16 +51,16 @@ fn bird(at: crate::world::Pos, heading: i32) -> (crate::Sim, usize) {
     });
     let mut u = crate::Unit::new(crate::gaia::BIRD_OWNER, 0, at, 1);
     u.ty = Some(ty);
-    u.kind = s.unit_types[ty].kind;
+    u.kind = s.tables.unit_types[ty].kind;
     u.type_index = crate::anim::BIRD_TYPE;
     u.movement.speed = 35;
-    u.movement.turning = crate::turning_of(&s.unit_types[ty]);
+    u.movement.turning = crate::turning_of(&s.tables.unit_types[ty]);
     u.movement.heading = Angle(heading);
     let b = s.add_unit(u);
     // The figure, because `Guy::move` runs for a bird like anybody
     // else and the arrival stand is its own draw.
     s.init_guys(b, Some(ty));
-    s.gaia.bird_goals.push((b, at));
+    s.gaia.gaia.bird_goals.push((b, at));
     (s, b)
 }
 
@@ -85,14 +85,14 @@ fn a_bird_s_figure_lags_its_unit_and_stands_only_when_the_step_is_refused() {
     let at = crate::world::Pos::new(16, 20_000);
     let (mut s, b) = bird(at, Angle::WEST.0);
     let goal = crate::world::Pos::new(20_000, 20_000);
-    s.gaia.bird_goals[0].1 = goal;
-    s.art.lengths.insert((-1, crate::anim::WALK), 31);
-    s.art.lengths.insert((-1, crate::anim::JOG), 23);
-    s.art.lengths.insert((-1, crate::anim::DEFAULT), 3);
+    s.gaia.gaia.bird_goals[0].1 = goal;
+    s.roster.art.lengths.insert((-1, crate::anim::WALK), 31);
+    s.roster.art.lengths.insert((-1, crate::anim::JOG), 23);
+    s.roster.art.lengths.insert((-1, crate::anim::DEFAULT), 3);
     s.units[b].guys[0].anim = crate::anim::WALK;
     s.units[b].guys[0].end_time = 31;
     s.units[b].guys[0].stopped = true;
-    s.trace_phases = true;
+    s.trace.trace_phases = true;
 
     // Frame one: the step is refused and `restrict` puts the bird on
     // the boundary, which is a move — the figure lags and the moving
@@ -125,16 +125,17 @@ fn a_bird_s_figure_lags_its_unit_and_stands_only_when_the_step_is_refused() {
     // wing-beat coin instead of taking gaia's early return.
     s.do_air_physics(b, goal, 3);
     let before = s.rng.seed;
-    s.phase_marks.clear();
+    s.trace.phase_marks.clear();
     s.process_movement(b);
     assert_ne!(s.rng.seed, before, "the arrival stand's draw");
     assert_eq!(s.units[b].guys[0].anim, crate::anim::DEFAULT);
     assert!(
-        s.phase_marks
+        s.trace
+            .phase_marks
             .iter()
             .any(|(l, _)| l == crate::anim::SITE_ARRIVE),
         "and it is marked as the arrival stand: {:?}",
-        s.phase_marks
+        s.trace.phase_marks
     );
 }
 
@@ -152,8 +153,8 @@ fn a_bird_pushed_off_the_map_spends_one_coin_and_then_circles() {
     let at = crate::world::Pos::new(16, 20_000);
     let (mut s, b) = bird(at, Angle::WEST.0);
     let goal = crate::world::Pos::new(20_000, 20_000);
-    s.gaia.bird_goals[0].1 = goal;
-    s.trace_phases = true;
+    s.gaia.gaia.bird_goals[0].1 = goal;
+    s.trace.trace_phases = true;
 
     let before = s.rng.seed;
     s.do_air_physics(b, goal, 1);
@@ -183,7 +184,7 @@ fn the_bank_ramps_by_ten_and_the_heading_lags_it_by_a_frame() {
     // Half a turn owed, and far enough that the keep-heading arm does
     // not fire.
     let goal = crate::world::Pos::new(20_000, 30_000);
-    s.gaia.bird_goals[0].1 = goal;
+    s.gaia.gaia.bird_goals[0].1 = goal;
 
     let raw = ((crate::movement::degrees_to_angle(5).0 as u32) >> 8) * 256;
     let mut heading = s.units[b].movement.heading.0;
@@ -230,7 +231,7 @@ fn a_bird_over_its_patrol_point_keeps_the_heading_it_has() {
     // The point a hundred units behind it: half a turn owed, well
     // inside `0x300`.
     let goal = crate::world::Pos::new(20_000, 20_100);
-    s.gaia.bird_goals[0].1 = goal;
+    s.gaia.gaia.bird_goals[0].1 = goal;
     for f in 1..10 {
         s.do_air_physics(b, goal, f);
     }

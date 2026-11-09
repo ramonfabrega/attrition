@@ -6,24 +6,24 @@ use crate::{Tuning, World};
 #[test]
 fn the_step_machine_runs_one_step_a_frame_from_the_sweep() {
     let mut sim = Sim::new(Tuning::RON, World::new(2, 2), 2);
-    sim.nation[1].human = false;
-    sim.ai[1].script_live = false;
+    sim.cities.nation[1].human = false;
+    sim.ai.ai[1].script_live = false;
     let mut steps = Vec::new();
     for _ in 0..12 {
         sim.tick();
-        steps.push(sim.ai[1].step.number());
+        steps.push(sim.ai.ai[1].step.number());
     }
     // Frame 0 arms; frame 1 enters as Script, skips to Setup and runs
     // it (→ 3); then one producer a frame to Make (8), which disarms.
     assert_eq!(steps, [1, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0]);
-    assert_eq!(sim.ai[0].step, Step::Idle, "a human is never stepped");
+    assert_eq!(sim.ai.ai[0].step, Step::Idle, "a human is never stepped");
     // The next sweep for who = 1 is frame 175.
     for _ in 12..175 {
         sim.tick();
     }
-    assert_eq!(sim.ai[1].step, Step::Idle);
+    assert_eq!(sim.ai.ai[1].step, Step::Idle);
     sim.tick();
-    assert_eq!(sim.ai[1].step, Step::Script, "armed at frame 175");
+    assert_eq!(sim.ai.ai[1].step, Step::Script, "armed at frame 175");
 }
 
 /// **Run18b's two ladders** (`docs/RUNS.md`, "The producers' run").

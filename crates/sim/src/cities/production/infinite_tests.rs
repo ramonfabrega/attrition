@@ -29,9 +29,9 @@ fn barracks(researched: bool) -> (Sim, usize, usize) {
     ty.price.pop = 1;
     ty.price.base[crate::economy::Resource::Wealth.index()] = 50;
     let rec = sim.add_unit_type(ty);
-    sim.muster[0].researched[rec] = researched;
-    let brec = sim.build_types.len();
-    sim.build_types.push(BuildType {
+    sim.roster.muster[0].researched[rec] = researched;
+    let brec = sim.tables.build_types.len();
+    sim.tables.build_types.push(BuildType {
         ident: Ident::Barracks,
         tree: Some(build),
         flags: flags::TRAINS,
@@ -42,9 +42,9 @@ fn barracks(researched: bool) -> (Sim, usize, usize) {
     });
     let b = sim.add_building(0, crate::Pos::new(4 * 256, 4 * 256), 20);
     sim.buildings[b].ty = Some(brec);
-    sim.muster[0].cap = 100;
-    sim.ledgers[0].bucket = [10_000; RESOURCES];
-    sim.holdings[0].available = [true; RESOURCES];
+    sim.roster.muster[0].cap = 100;
+    sim.economy.ledgers[0].bucket = [10_000; RESOURCES];
+    sim.economy.holdings[0].available = [true; RESOURCES];
     (sim, b, rec)
 }
 
@@ -58,7 +58,7 @@ fn barracks(researched: bool) -> (Sim, usize, usize) {
 fn a_disband_queued_at_a_barracks_closes_it_when_the_job_completes() {
     let (mut s, b, _) = barracks(true);
     let bt = s.buildings[b].ty.unwrap();
-    s.build_types[bt].job_time = 420;
+    s.tables.build_types[bt].job_time = 420;
     let b2 = s.add_building(0, crate::Pos::new(10 * 256, 10 * 256), 20);
     s.buildings[b2].ty = Some(bt);
     assert_eq!(s.action_queue_disband(&[b]), 1);
@@ -70,7 +70,7 @@ fn a_disband_queued_at_a_barracks_closes_it_when_the_job_completes() {
     assert!(s.buildings[b2].queue.items.is_empty());
     assert_eq!(s.action_queue_disband(&[b]), 0, "one is held");
     assert_eq!(s.buildings[b].queue.items.len(), 1);
-    let bucket = s.ledgers[0].bucket;
+    let bucket = s.economy.ledgers[0].bucket;
     let mut out = Vec::new();
     for _ in 0..210 {
         s.process_queue(b, &mut out);
@@ -81,7 +81,10 @@ fn a_disband_queued_at_a_barracks_closes_it_when_the_job_completes() {
     assert!(!s.buildings[b].alive, "Build::finished cast it");
     assert!(s.buildings[b].queue.items.is_empty());
     assert!(out.is_empty(), "no unit");
-    assert_eq!(s.ledgers[0].bucket, bucket, "a Barracks plunders nothing");
+    assert_eq!(
+        s.economy.ledgers[0].bucket, bucket,
+        "a Barracks plunders nothing"
+    );
     assert_eq!(s.action_queue_disband(&[b2]), 1, "the second may go now");
 }
 
@@ -94,7 +97,7 @@ fn a_city_holds_one_disband_at_the_queue_and_allows_its_own_at_the_finish() {
     let (mut s, b, _) = barracks(true);
     let bt = s.buildings[b].ty.unwrap();
     // A type that needs a city (`NO_CITY` clear): the arm is asked.
-    s.build_types[bt].flags &= !crate::build::flags::NO_CITY;
+    s.tables.build_types[bt].flags &= !crate::build::flags::NO_CITY;
     let b2 = s.add_building(0, crate::Pos::new(10 * 256, 10 * 256), 20);
     s.buildings[b2].ty = Some(bt);
     s.buildings[b].city = Some(0);
@@ -127,9 +130,9 @@ fn a_city_holds_one_disband_at_the_queue_and_allows_its_own_at_the_finish() {
 fn a_no_city_building_skips_the_city_s_disband_count() {
     let (mut s, b, _) = barracks(true);
     let bt = s.buildings[b].ty.unwrap();
-    s.build_types[bt].flags |= crate::build::flags::NO_CITY;
-    let temple = s.build_types.len();
-    s.build_types.push(BuildType::default());
+    s.tables.build_types[bt].flags |= crate::build::flags::NO_CITY;
+    let temple = s.tables.build_types.len();
+    s.tables.build_types.push(BuildType::default());
     let b2 = s.add_building(0, crate::Pos::new(10 * 256, 10 * 256), 20);
     s.buildings[b2].ty = Some(temple);
     s.buildings[b].city = Some(0);
@@ -150,8 +153,8 @@ fn a_no_city_building_skips_the_city_s_disband_count() {
 fn university_admission_counts_seated_and_queued_scholars_before_charging() {
     let (mut s, b, rec) = barracks(true);
     let bt = s.buildings[b].ty.unwrap();
-    s.build_types[bt].ident = Ident::University;
-    s.unit_types[rec].worker = crate::orders::Worker::Scholar;
+    s.tables.build_types[bt].ident = Ident::University;
+    s.tables.unit_types[rec].worker = crate::orders::Worker::Scholar;
     for o in 0..6 {
         let mut u = crate::Unit::new(0, o, s.buildings[b].pos, 100);
         u.ty = Some(rec);
@@ -162,14 +165,14 @@ fn university_admission_counts_seated_and_queued_scholars_before_charging() {
     }
     assert_eq!(s.num_gatherers(b, false, false), 6);
     assert_eq!(s.queue_up(b, rec), Ok(0), "six permits the seventh");
-    let bucket = s.ledgers[0].bucket;
-    let tracked = s.muster[0].queued_by_type[rec];
+    let bucket = s.economy.ledgers[0].bucket;
+    let tracked = s.roster.muster[0].queued_by_type[rec];
     assert_eq!(s.queue_up(b, rec), Err(super::QueueFail::Full));
     assert_eq!(
-        s.ledgers[0].bucket, bucket,
+        s.economy.ledgers[0].bucket, bucket,
         "a refused eighth costs nothing"
     );
-    assert_eq!(s.muster[0].queued_by_type[rec], tracked);
+    assert_eq!(s.roster.muster[0].queued_by_type[rec], tracked);
     assert_eq!(s.buildings[b].queue.items.len(), 1);
     // The special limit belongs to this producer and this worker kind.
     let citizen = s.add_unit_type(crate::UnitType {
@@ -177,7 +180,7 @@ fn university_admission_counts_seated_and_queued_scholars_before_charging() {
         ..crate::UnitType::default()
     });
     assert!(s.unit_queue_has_room(b, citizen));
-    s.build_types[bt].ident = Ident::Barracks;
+    s.tables.build_types[bt].ident = Ident::Barracks;
     assert!(s.unit_queue_has_room(b, rec));
     s.buildings[b].queue.capacity = s.buildings[b].queue.items.len();
     assert!(
@@ -237,7 +240,7 @@ fn a_finished_train_job_requeues_under_the_bit() {
     let price = s.price_of(0, rec);
     for (r, p) in price.iter().enumerate() {
         if *p > 0 {
-            s.ledgers[0].bucket[r] = p - 1;
+            s.economy.ledgers[0].bucket[r] = p - 1;
         }
     }
     assert!(finish(&mut s), "the second trains");
@@ -263,23 +266,23 @@ fn the_player_s_cancel_reads_its_selector() {
     s.buildings[b].queue.items[0].job_counter = 5000;
     let wealth = crate::economy::Resource::Wealth.index();
     let paid = |s: &Sim, i: usize| i32::from(s.buildings[b].queue.items[i].cost[0]);
-    let (before, second) = (s.ledgers[0].bucket[wealth], paid(&s, 1));
+    let (before, second) = (s.economy.ledgers[0].bucket[wealth], paid(&s, 1));
     assert_eq!(s.action_unqueue(b, 0), 1);
     let q = &s.buildings[b].queue;
     assert_eq!(q.items.len(), 2, "one of the run");
     assert_eq!(q.items[0].job_counter, 5000, "the head keeps its progress");
     assert_eq!(
-        s.ledgers[0].bucket[wealth],
+        s.economy.ledgers[0].bucket[wealth],
         before + second,
         "the recorded price"
     );
     s.action_buildmask(&[b], 0x40);
     assert!(s.buildings[b].queue.infinite);
-    let before = s.ledgers[0].bucket[wealth];
+    let before = s.economy.ledgers[0].bucket[wealth];
     assert_eq!(s.action_unqueue(b, -1), 0, "a single cancel on 4160");
     assert!(!s.buildings[b].queue.infinite, "4160 -> 4096");
     assert_eq!(s.buildings[b].queue.items.len(), 2, "and nothing removed");
-    assert_eq!(s.ledgers[0].bucket[wealth], before, "nor refunded");
+    assert_eq!(s.economy.ledgers[0].bucket[wealth], before, "nor refunded");
     assert_eq!(s.action_unqueue(b, -1), 1, "the bit off: the last goes");
     assert_eq!(
         s.buildings[b].queue.items[0].job_counter, 5000,
@@ -310,7 +313,7 @@ fn the_player_s_cancel_reads_its_selector() {
     other.price.pop = 1;
     other.price.base[crate::economy::Resource::Food.index()] = 30;
     let rec2 = s.add_unit_type(other);
-    s.muster[0].researched[rec2] = true;
+    s.roster.muster[0].researched[rec2] = true;
     s.queue_up(b, rec).expect("queued");
     s.queue_up(b, rec2).expect("queued");
     s.buildings[b].queue.items[0].job_counter = 700;
@@ -352,22 +355,22 @@ fn a_press_on_a_barracks_and_a_stable_queues_only_where_the_type_is_made() {
         s.tech[0].tech[t] = true;
     }
     let bt = s.buildings[barracks].ty.unwrap();
-    s.build_types[bt].tree = Some(bar);
-    s.unit_types[bowmen].tree = Some(bow);
+    s.tables.build_types[bt].tree = Some(bar);
+    s.tables.unit_types[bowmen].tree = Some(bow);
     // The tree's install clears the availability bits.
-    s.muster[0].researched[bowmen] = true;
-    let srec = s.build_types.len();
-    s.build_types.push(BuildType {
+    s.roster.muster[0].researched[bowmen] = true;
+    let srec = s.tables.build_types.len();
+    s.tables.build_types.push(BuildType {
         ident: Ident::Stable,
         tree: Some(stab),
-        ..s.build_types[bt].clone()
+        ..s.tables.build_types[bt].clone()
     });
     let stable = s.add_building(0, crate::Pos::new(10 * 256, 10 * 256), 20);
     s.buildings[stable].ty = Some(srec);
-    let mut lh = s.unit_types[bowmen].clone();
+    let mut lh = s.tables.unit_types[bowmen].clone();
     lh.tree = Some(horse);
     let lhrec = s.add_unit_type(lh);
-    s.muster[0].researched[lhrec] = true;
+    s.roster.muster[0].researched[lhrec] = true;
 
     assert_eq!(s.action_queue_up(&[barracks, stable], bowmen, 1), 1);
     let len = |s: &Sim, b: usize| s.buildings[b].queue.items.len();

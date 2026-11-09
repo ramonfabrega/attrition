@@ -182,7 +182,8 @@ impl Sim {
 
     /// `LeaderData::can_transport`.
     pub fn transport_level(&self, who: Player) -> TransportType {
-        self.transport
+        self.ai
+            .transport
             .get(who as usize)
             .map_or(TransportType::None, LeaderTransport::level)
     }
@@ -191,16 +192,18 @@ impl Sim {
     pub(crate) fn unit_is(&self, u: usize, t: TypeId) -> bool {
         self.units[u]
             .ty
-            .and_then(|i| self.unit_types[i].tree)
+            .and_then(|i| self.tables.unit_types[i].tree)
             .is_some_and(|ut| {
-                ut == t || (ut < self.tech_tree.types.len() && self.tech_tree.is(ut, t, false))
+                ut == t
+                    || (ut < self.tables.tech_tree.types.len()
+                        && self.tables.tech_tree.is(ut, t, false))
             })
     }
 
     /// The unit type's domain; a typeless unit is what its kind says.
     pub(crate) fn unit_domain_of(&self, u: usize) -> Domain {
         self.units[u].ty.map_or(self.units[u].kind.domain, |t| {
-            self.unit_types[t].combat.domain
+            self.tables.unit_types[t].combat.domain
         })
     }
 
@@ -210,11 +213,13 @@ impl Sim {
             return TransportType::Scout;
         }
         let unit = &self.units[u];
-        let worker = unit.ty.map_or(Worker::None, |t| self.unit_types[t].worker);
+        let worker = unit
+            .ty
+            .map_or(Worker::None, |t| self.tables.unit_types[t].worker);
         if worker != Worker::None {
             return TransportType::Civilian;
         }
-        let base = unit.ty.and_then(|t| self.unit_types[t].tree);
+        let base = unit.ty.and_then(|t| self.tables.unit_types[t].tree);
         if self.unit_is(u, ty::CARAVAN) || base.is_some_and(|b| ty::MERCHANTS.contains(&b)) {
             return TransportType::Civilian;
         }
@@ -227,7 +232,7 @@ impl Sim {
         let unit = &self.units[u];
         let always = unit
             .ty
-            .is_some_and(|t| self.unit_types[t].cols.unit_flags & 0x10 != 0);
+            .is_some_and(|t| self.tables.unit_types[t].cols.unit_flags & 0x10 != 0);
         (unit.auto_transport && !unit.never_transport) || always
     }
 
@@ -240,7 +245,7 @@ impl Sim {
             || {
                 self.units[u]
                     .ty
-                    .is_some_and(|t| self.unit_types[t].cols.carry != 0)
+                    .is_some_and(|t| self.tables.unit_types[t].cols.carry != 0)
             },
             || self.unit_is(u, ty::AIRCRAFTCARRIER),
         )
@@ -273,10 +278,12 @@ impl Sim {
     /// tree names it in `roles.transport_preq`; a tree that does not know it
     /// grants it, the way every type outside the tree is ungated.
     fn transport_preq_held(&self, who: Player) -> bool {
-        match self.tech_tree.roles.transport_preq {
-            Some(t) => self
-                .tech_tree
-                .has_tech(&self.setup, &self.tech[who as usize], t),
+        match self.tables.tech_tree.roles.transport_preq {
+            Some(t) => {
+                self.tables
+                    .tech_tree
+                    .has_tech(&self.tables.setup, &self.tech[who as usize], t)
+            }
             None => true,
         }
     }
@@ -290,7 +297,8 @@ impl Sim {
                 b.owner == who
                     && b.alive
                     && b.active
-                    && b.ty.is_some_and(|t| build::is_dock(&self.build_types, t))
+                    && b.ty
+                        .is_some_and(|t| build::is_dock(&self.tables.build_types, t))
             })
             .count() as i32
     }
@@ -299,7 +307,7 @@ impl Sim {
     /// or lost and after every technology gained.
     pub fn check_transport(&mut self, who: Player) {
         let w = who as usize;
-        if w >= self.transport.len() || self.transport[w].locked {
+        if w >= self.ai.transport.len() || self.ai.transport[w].locked {
             return;
         }
         let want = if self.transport_preq_held(who) {
@@ -308,11 +316,11 @@ impl Sim {
             TransportType::None
         };
         if want != TransportType::None && self.dock_count(who) != 0 {
-            if self.transport[w].level() == want {
+            if self.ai.transport[w].level() == want {
                 return;
             }
-            self.transport[w].set_all();
-            let option = self.transport[w].scouts_option;
+            self.ai.transport[w].set_all();
+            let option = self.ai.transport[w].scouts_option;
             for u in 0..self.units.len() {
                 let unit = &self.units[u];
                 if unit.owner != who || !unit.alive() || !self.unit_can_ever_transport(u) {
@@ -327,8 +335,8 @@ impl Sim {
             }
             return;
         }
-        if self.transport[w].level() != TransportType::None {
-            self.transport[w].clear();
+        if self.ai.transport[w].level() != TransportType::None {
+            self.ai.transport[w].clear();
             for unit in &mut self.units {
                 if unit.owner == who && unit.alive() {
                     unit.auto_transport = false;
@@ -341,7 +349,7 @@ impl Sim {
     /// the leader's level starts with the bit, scouts only under the option.
     pub(crate) fn transport_init_unit(&mut self, u: usize) {
         let who = self.units[u].owner;
-        let Some(lt) = self.transport.get(who as usize).copied() else {
+        let Some(lt) = self.ai.transport.get(who as usize).copied() else {
             return;
         };
         if self.unit_transport_type(u) <= lt.level()
@@ -376,11 +384,11 @@ impl Sim {
     pub(crate) fn dock_open(&mut self, b: usize) -> usize {
         let who = self.buildings[b].owner;
         let w = who as usize;
-        if self.docks.len() <= w {
-            self.docks.resize_with(w + 1, Docks::default);
+        if self.ai.docks.len() <= w {
+            self.ai.docks.resize_with(w + 1, Docks::default);
         }
         let slot = {
-            let docks = &mut self.docks[w];
+            let docks = &mut self.ai.docks[w];
             let mark = docks.mark.min(docks.slots.len());
             let reused = (0..mark).find(|&i| !docks.slots[i].active());
             let slot = match reused {
@@ -400,10 +408,10 @@ impl Sim {
         let reg = self.world.region_of(pos.cell());
         if let Some(r) = reg
             && self.world.terrain(r) == crate::world::Terrain::Land
-            && w < self.ai.len()
+            && w < self.ai.ai.len()
         {
             let regs = self.world.region_count();
-            let cs = &mut self.ai[w].census;
+            let cs = &mut self.ai.ai[w].census;
             if cs.reg_docks.len() < regs {
                 cs.reg_docks.resize(regs, 0);
             }
@@ -414,6 +422,7 @@ impl Sim {
         // the gull spawns nothing and draws nothing, as `init_unit` failing
         // would.
         let gull_ty = self
+            .tables
             .unit_types
             .iter()
             .position(|t| t.tree == Some(ty::GULLBIRD));
@@ -428,15 +437,15 @@ impl Sim {
                 crate::gaia::init_snap(pos.x - GULL_OFFSET),
                 crate::gaia::init_snap(pos.y - GULL_OFFSET),
             );
-            let mut unit = Unit::new(9, index, at, self.unit_types[gt].hits);
-            unit.kind = self.unit_types[gt].kind;
+            let mut unit = Unit::new(9, index, at, self.tables.unit_types[gt].hits);
+            unit.kind = self.tables.unit_types[gt].kind;
             unit.ty = Some(gt);
             // `TypeIndex::GULLBIRD`. `Guy::set_anim` names the three gaia
             // bird types by identity in its walk arm (`set_anim:620`), so a
             // gull that carried the default −1 could never throw the wing
             // beat's coin — the pasture's own bug, one type over
             // (`docs/SYNC.md` §3.11).
-            unit.type_index = self.unit_types[gt].type_index;
+            unit.type_index = self.tables.unit_types[gt].type_index;
             unit.movement.speed = self.type_speed(9, gt);
             unit.movement.turning = self.turning_for(gt);
             // `Unit::init@00612100:282–309` (`crate::stance`).
@@ -453,7 +462,7 @@ impl Sim {
             self.unit_set_angle(u, crate::movement::Angle(angle));
             gull = Some(u);
         }
-        self.docks[w].slots[slot] = DockSlot {
+        self.ai.docks[w].slots[slot] = DockSlot {
             building: Some(b),
             reg,
             gull,
@@ -464,7 +473,8 @@ impl Sim {
     /// The position of the live dock whose slot holds gull `u` — the
     /// target of the gull's `StrafeOrder` (item 1453).
     pub fn gull_dock(&self, u: usize) -> Option<Pos> {
-        self.docks
+        self.ai
+            .docks
             .iter()
             .flat_map(|d| d.slots.iter())
             .find_map(|slot| {
@@ -481,7 +491,7 @@ impl Sim {
             return;
         };
         let w = self.buildings[b].owner as usize;
-        let Some(docks) = self.docks.get_mut(w) else {
+        let Some(docks) = self.ai.docks.get_mut(w) else {
             return;
         };
         let Some(rec) = docks.slots.get_mut(slot).copied() else {
@@ -491,15 +501,15 @@ impl Sim {
             && self.buildings[b].alive
             && let Some(r) = rec.reg
             && self.world.terrain(r) == crate::world::Terrain::Land
-            && w < self.ai.len()
-            && let Some(n) = self.ai[w].census.reg_docks.get_mut(r as usize)
+            && w < self.ai.ai.len()
+            && let Some(n) = self.ai.ai[w].census.reg_docks.get_mut(r as usize)
         {
             *n -= 1;
         }
         // `Dock::close` clears `o`, `reg`, `who` and the active bit and
         // leaves `gull_o` as it was (audit B.13) — a dump of a closed slot
         // shows the stale gull.
-        self.docks[w].slots[slot] = DockSlot {
+        self.ai.docks[w].slots[slot] = DockSlot {
             building: None,
             reg: None,
             gull: rec.gull,
@@ -513,7 +523,7 @@ impl Sim {
             gull.on_map = false;
             gull.hold_frames = Sim::CLOSE_HOLD;
         }
-        let docks = &mut self.docks[w];
+        let docks = &mut self.ai.docks[w];
         while docks.mark > 0 && !docks.slots[docks.mark - 1].active() {
             docks.mark -= 1;
         }
@@ -630,7 +640,7 @@ impl Sim {
         let Some(s) = self.units[head].group_ptr else {
             return false;
         };
-        let Some((reg, target)) = self.armies.get(who as usize).and_then(|x| {
+        let Some((reg, target)) = self.ai.armies.get(who as usize).and_then(|x| {
             x.list
                 .iter()
                 .find(|a| a.valid && a.group.pool == Some(s))
@@ -976,12 +986,16 @@ impl Sim {
         // A tree that does not carry the base type — the harness's small
         // fixtures — has no upgrade to offer, and the base is the answer.
         let id = match self.tech.get(who) {
-            Some(p) if base < self.tech_tree.types.len() => {
-                self.tech_tree.current_upgrade(&self.setup, p, base)
-            }
+            Some(p) if base < self.tables.tech_tree.types.len() => self
+                .tables
+                .tech_tree
+                .current_upgrade(&self.tables.setup, p, base),
             _ => base,
         };
-        self.unit_types.iter().position(|t| t.tree == Some(id))
+        self.tables
+            .unit_types
+            .iter()
+            .position(|t| t.tree == Some(id))
     }
 
     /// `SpellType::cast_transport(o, who)@00670db0` (§6) — the shore
@@ -1020,9 +1034,10 @@ impl Sim {
         // A tree that does not carry the base type — the harness's small
         // fixtures — has no upgrade to offer, and the base is the answer.
         match self.tech.get(who) {
-            Some(p) if base < self.tech_tree.types.len() => {
-                self.tech_tree.current_upgrade(&self.setup, p, base)
-            }
+            Some(p) if base < self.tables.tech_tree.types.len() => self
+                .tables
+                .tech_tree
+                .current_upgrade(&self.tables.setup, p, base),
             _ => base,
         }
     }
@@ -1031,10 +1046,10 @@ impl Sim {
     /// type `ty` born at `at`: its index, or none when the list is full.
     pub(crate) fn transport_boat(&mut self, who: Player, ty: usize, at: Pos) -> Option<usize> {
         let index = self.find_free(who, UNIT_BASE, BUILD_BASE)?;
-        let mut boat = Unit::new(who, index, at, self.unit_types[ty].hits);
-        boat.kind = self.unit_types[ty].kind;
+        let mut boat = Unit::new(who, index, at, self.tables.unit_types[ty].hits);
+        boat.kind = self.tables.unit_types[ty].kind;
         boat.ty = Some(ty);
-        boat.type_index = self.unit_types[ty].type_index;
+        boat.type_index = self.tables.unit_types[ty].type_index;
         // **`Unit::update_speed`, not the type's raw `MOVES`.** The boat is
         // born like any other unit and takes the cached speed the same way
         // — which for a `NAVAL` type whose owner holds the Whales rare is
@@ -1125,7 +1140,7 @@ impl Sim {
             }
             if self.units[f]
                 .ty
-                .is_some_and(|t| self.unit_types[t].combat.uber_size > 1)
+                .is_some_and(|t| self.tables.unit_types[t].combat.uber_size > 1)
             {
                 self.clear_orders(f);
             }
@@ -1226,7 +1241,7 @@ impl Sim {
         let air = self.unit_tree(boat).is_some_and(|ut| {
             [0x1bf, 0x15f, 0x208]
                 .into_iter()
-                .any(|t| self.tech_tree.is(ut, t, true))
+                .any(|t| self.tables.tech_tree.is(ut, t, true))
         });
         if air {
             return;
@@ -1344,14 +1359,14 @@ impl Sim {
             //    the route's `o` (`+0xa`) names the passenger, and the
             //    boat's goes to −1 — so the boat's death closes no route.
             if self.units[boat].ty.is_some_and(|t| {
-                self.unit_types[t]
+                self.tables.unit_types[t]
                     .cols
                     .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
             }) {
                 let who = self.units[boat].owner as usize;
                 let slot = self.units[boat].caravan.take();
                 self.units[r].caravan = slot;
-                if let Some(van) = slot.and_then(|v| self.caravans[who].slots.get_mut(v)) {
+                if let Some(van) = slot.and_then(|v| self.economy.caravans[who].slots.get_mut(v)) {
                     van.unit = Some(r);
                 }
             }
@@ -1374,7 +1389,7 @@ impl Sim {
             }
             if self.units[r]
                 .ty
-                .is_some_and(|t| self.unit_types[t].combat.uber_size == 1)
+                .is_some_and(|t| self.tables.unit_types[t].combat.uber_size == 1)
             {
                 self.hand_over_orders(boat, r);
             } else {
@@ -1459,7 +1474,7 @@ impl Sim {
     pub(crate) fn can_carry_ground(&self, boat: usize) -> bool {
         let carry = self.units[boat]
             .ty
-            .is_some_and(|t| self.unit_types[t].cols.carry != 0);
+            .is_some_and(|t| self.tables.unit_types[t].cols.carry != 0);
         carry && self.units[boat].type_index != 0x15f
     }
 
@@ -1559,7 +1574,7 @@ impl Sim {
         // heading still — the dump's `dest_angle` 292814848 against
         // `angle` 165478400 on the same block says `set_angle` comes
         // after — which is step 1's value, kept below.
-        if !self.nation[usize::from(self.units[r].owner)].human
+        if !self.cities.nation[usize::from(self.units[r].owner)].human
             && !(0x32..=0x35).contains(&self.units[r].type_index)
         {
             self.units[r].orders_pos = at;

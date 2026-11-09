@@ -383,7 +383,7 @@ impl AirPhysicsView for SimAirPhysics<'_> {
         self.sim.get_speed(self.u, 1)
     }
     fn ai_speed(&self) -> i32 {
-        self.sim.ai_speed
+        self.sim.ai.ai_speed
     }
     fn heading(&self) -> Angle {
         self.sim.units[self.u].movement.heading
@@ -418,6 +418,7 @@ impl Sim {
     /// A bird's [`Flight`], which starts at a zero bank and no turn.
     pub fn flight(&self, u: usize) -> Flight {
         self.gaia
+            .gaia
             .bird_flight
             .iter()
             .find(|(b, _)| *b == u)
@@ -425,9 +426,9 @@ impl Sim {
     }
 
     fn set_flight(&mut self, u: usize, f: Flight) {
-        match self.gaia.bird_flight.iter_mut().find(|(b, _)| *b == u) {
+        match self.gaia.gaia.bird_flight.iter_mut().find(|(b, _)| *b == u) {
             Some((_, slot)) => *slot = f,
-            None => self.gaia.bird_flight.push((u, f)),
+            None => self.gaia.gaia.bird_flight.push((u, f)),
         }
     }
 
@@ -510,7 +511,7 @@ impl Sim {
         let sign_in = if d > 0x8000_0000 { -1i32 } else { 1 };
 
         let raw = ((self.units[u].movement.turning.type_turn_speed as u32) >> 8)
-            .wrapping_mul(self.tuning.unit_turn_speed as u32);
+            .wrapping_mul(self.tables.tuning.unit_turn_speed as u32);
         let divisor = if raw < MIN_TURN { MIN_TURN } else { raw };
 
         // `(double)(unsigned)adelta / (float)divisor × 55 × 0.33` — three
@@ -623,9 +624,11 @@ impl Sim {
     pub(crate) fn air_line_is(&self, u: usize, t: crate::tech::TypeId) -> bool {
         self.units[u]
             .ty
-            .and_then(|i| self.unit_types[i].tree)
+            .and_then(|i| self.tables.unit_types[i].tree)
             .is_some_and(|ut| {
-                ut == t || (ut < self.tech_tree.types.len() && self.tech_tree.is(ut, t, false))
+                ut == t
+                    || (ut < self.tables.tech_tree.types.len()
+                        && self.tables.tech_tree.is(ut, t, false))
             })
     }
 
@@ -636,7 +639,7 @@ impl Sim {
             return false;
         };
         self.units[u].ty.is_some_and(|t| {
-            self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::STRAFES != 0
+            self.tables.unit_types[t].cols.unit_flags & crate::ai_load::uflags::STRAFES != 0
         })
     }
 
@@ -653,7 +656,7 @@ impl Sim {
     /// `unit_flags & 0x20`, "flies like a helicopter" (`ai_load::uflags`).
     pub(crate) fn is_helicopter(&self, u: usize) -> bool {
         self.units[u].ty.is_some_and(|t| {
-            self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_HELICOPTER != 0
+            self.tables.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_HELICOPTER != 0
         })
     }
 
@@ -738,15 +741,17 @@ impl Sim {
     /// circle order, each cell's chain from its head.
     fn nearest_of_own_type(&self, u: usize, range: i32) -> Option<usize> {
         let at = self.units[u].pos;
-        let mine = self.units[u].ty.and_then(|t| self.unit_types[t].tree)?;
+        let mine = self.units[u]
+            .ty
+            .and_then(|t| self.tables.unit_types[t].tree)?;
         let fits = |c: usize| -> Option<i32> {
             let x = &self.units[c];
             if c == u || !x.alive() || !x.on_map || x.owner >= crate::world::PLAYER_SLOTS {
                 return None;
             }
             let same =
-                x.ty.and_then(|t| self.unit_types[t].tree)
-                    .is_some_and(|t| self.tech_tree.is(t, mine, false));
+                x.ty.and_then(|t| self.tables.unit_types[t].tree)
+                    .is_some_and(|t| self.tables.tech_tree.is(t, mine, false));
             if !same {
                 return None;
             }
@@ -778,7 +783,7 @@ impl Sim {
                 if !self.world.contains(c) {
                     continue;
                 }
-                let mut next = self.chain_heads[(c.y as usize) * width + (c.x as usize)];
+                let mut next = self.terrain.chain_heads[(c.y as usize) * width + (c.x as usize)];
                 while let Some(x) = next {
                     next = self.units[x].down;
                     take(x);
@@ -946,8 +951,8 @@ impl Sim {
         let at = self.units[u].pos;
         let (dx, dy) = (gx - at.x, gy - at.y);
         let mut speed = self.get_speed(u, 1);
-        if self.ai_speed > 1 {
-            speed *= self.ai_speed;
+        if self.ai.ai_speed > 1 {
+            speed *= self.ai.ai_speed;
         }
         // **The landing test** (`+0x1ea`), a flight home's alone:
         // Manhattan inside a step and a half, the point not clamped. The
@@ -1134,9 +1139,9 @@ impl Sim {
         let who = self.units[u].owner;
         let at = if self.ai_driven(who) { me } else { at };
         let plane = crate::combat::Obj::Unit(u);
-        let r = self.tuning.aircraft_respond_range * 0xc0;
+        let r = self.tables.tuning.aircraft_respond_range * 0xc0;
         pick_air_target(
-            self.tuning.aircraft_respond_range,
+            self.tables.tuning.aircraft_respond_range,
             me,
             at,
             || {
@@ -1213,7 +1218,7 @@ impl Sim {
         u: usize,
         at: Pos,
     ) -> Option<crate::combat::Obj> {
-        let range = self.tuning.bomber_respond_range;
+        let range = self.tables.tuning.bomber_respond_range;
         let me = self.units[u].pos;
         if vector_dist(at.x - me.x, at.y - me.y) > range * 0x3c0 {
             return None;
@@ -1321,10 +1326,16 @@ impl Sim {
     /// role holds no shield.
     pub(crate) fn missile_defense_held(&self, who: crate::Player) -> bool {
         (who as usize) < self.tech.len()
-            && self.tech_tree.roles.missile_defense_preq.is_some_and(|t| {
-                self.tech_tree
-                    .has_tech(&self.setup, &self.tech[who as usize], t)
-            })
+            && self
+                .tables
+                .tech_tree
+                .roles
+                .missile_defense_preq
+                .is_some_and(|t| {
+                    self.tables
+                        .tech_tree
+                        .has_tech(&self.tables.setup, &self.tech[who as usize], t)
+                })
     }
 
     /// **`Group::action_buildmask@006fc9a0` on a group of buildings** —
@@ -1568,7 +1579,12 @@ impl Sim {
     /// tiles from `find_building`'s tile arithmetic and not run.
     fn computer_sortie(&mut self, b: usize) {
         let owner = self.buildings[b].owner;
-        if self.nation.get(owner as usize).is_none_or(|n| n.human) {
+        if self
+            .cities
+            .nation
+            .get(owner as usize)
+            .is_none_or(|n| n.human)
+        {
             return;
         }
         let id = i64::from(self.buildings[b].index);
@@ -1582,19 +1598,20 @@ impl Sim {
         let base = self.buildings[b].pos;
         // A tree that does not carry the tech (the harness's small
         // fixtures) answers no.
-        let stealth = STEALTHBOMBER < self.tech_tree.types.len()
-            && self
-                .tech
-                .get(owner as usize)
-                .is_some_and(|p| self.tech_tree.has_tech(&self.setup, p, STEALTHBOMBER));
+        let stealth = STEALTHBOMBER < self.tables.tech_tree.types.len()
+            && self.tech.get(owner as usize).is_some_and(|p| {
+                self.tables
+                    .tech_tree
+                    .has_tech(&self.tables.setup, p, STEALTHBOMBER)
+            });
         let mut best = -1;
         let mut target: Option<(crate::Player, usize)> = None;
-        for l in 0..self.players.len() as crate::Player {
-            if self.defeated[l as usize] || self.is_peace(owner, l) {
+        for l in 0..self.territory.players.len() as crate::Player {
+            if self.leaders.defeated[l as usize] || self.is_peace(owner, l) {
                 continue;
             }
-            for c in 0..self.cities.len() {
-                let city = &self.cities[c];
+            for c in 0..self.cities.cities.len() {
+                let city = &self.cities.cities[c];
                 if city.owner != l || !city.alive || !city.no_heal {
                     continue;
                 }
@@ -1692,12 +1709,12 @@ impl Sim {
         let reach = self.get_speed(m, 1) * self.unit_mana(m);
         let mut best = -1;
         let mut target = None;
-        for l in 0..self.players.len().min(8) as crate::Player {
+        for l in 0..self.territory.players.len().min(8) as crate::Player {
             if !self.is_enemy(owner, l) || self.missile_defense_held(l) {
                 continue;
             }
-            for c in 0..self.cities.len() {
-                let city = &self.cities[c];
+            for c in 0..self.cities.cities.len() {
+                let city = &self.cities.cities[c];
                 if city.owner != l || !city.alive {
                     continue;
                 }
@@ -1798,9 +1815,9 @@ impl Sim {
                 self.current_order(u).map(|o| o.body),
                 Some(crate::orders::Body::AirAttackGround(_))
             )
-            && !self.nukes.shown.contains(&b)
+            && !self.combat.nukes.shown.contains(&b)
         {
-            self.nukes.shown.push(b);
+            self.combat.nukes.shown.push(b);
         }
         self.come_out(u);
         let frame = self.frame;
@@ -1934,7 +1951,7 @@ impl Sim {
         let s = if self.air_line_is(u, crate::airbase::NUCLEARMISSILE) {
             0
         } else {
-            crate::combat::scatter(&self.tuning, acc, true, true, false)
+            crate::combat::scatter(&self.tables.tuning, acc, true, true, false)
         };
         let mut landing = at;
         // `s − 1 < 1` (`local_28`) takes no draw.
@@ -1993,7 +2010,7 @@ impl Sim {
     pub(crate) fn missile_dies(&mut self, u: usize) {
         self.units[u].health = self.units[u].health.min(0);
         if let Some(ty) = self.units[u].ty
-            && self.unit_types[ty].price.pop != 0
+            && self.tables.unit_types[ty].price.pop != 0
         {
             self.track_unit_type(self.units[u].owner, ty, -1);
         }
@@ -2242,7 +2259,7 @@ impl Sim {
         let adelta = fold(d);
         let sign_in = if d > 0x8000_0000 { -1i32 } else { 1 };
         let raw = ((self.units[u].movement.turning.type_turn_speed as u32) >> 8)
-            .wrapping_mul(self.tuning.unit_turn_speed as u32);
+            .wrapping_mul(self.tables.tuning.unit_turn_speed as u32);
         let divisor = if raw < MIN_TURN && !heli {
             MIN_TURN
         } else {
@@ -2796,8 +2813,8 @@ impl Sim {
     /// `Build::do_attack` fires itself.
     pub(crate) fn wall_cycle_of(&self, b: usize) -> Option<&WallCycle> {
         let bt = self.buildings[b].ty?;
-        let id = self.build_types.get(bt)?.tree?;
-        self.tech_tree.types.get(id)?.wall_cycle.as_ref()
+        let id = self.tables.build_types.get(bt)?.tree?;
+        self.tables.tech_tree.types.get(id)?.wall_cycle.as_ref()
     }
 
     /// **`Wall::inc_time`'s anti-air arm** (item 1112, `docs/COMBAT.md`
@@ -2897,7 +2914,7 @@ impl Sim {
         let angle = find_angle(to.x - from.x, to.y - from.y);
         let frame = self.frame;
         self.fire_ammo_pub(me, t, angle, frame, from, z + dz, node, harmless, false);
-        for p in self.projectiles.iter_mut() {
+        for p in self.combat.projectiles.iter_mut() {
             if p.shooter == me && p.cur_time == 0 && !p.spent {
                 p.num_guys = 0;
             }
@@ -3022,7 +3039,7 @@ impl Sim {
         let Some(t) = self.units[u].ty else {
             return false;
         };
-        if self.unit_types[t].cols.cat != CAT_AIR
+        if self.tables.unit_types[t].cols.cat != CAT_AIR
             || self
                 .profile(crate::combat::Obj::Unit(u))
                 .has(crate::combat::mask::MISSILE)
@@ -3057,7 +3074,7 @@ impl Sim {
         let angle = unit.movement.facing;
         let object = unit.pos;
         let owner = unit.owner;
-        let v = self.unit_types[t]
+        let v = self.tables.unit_types[t]
             .moves
             .wrapping_mul(crate::combat::UNIT_MOVE_SPEED);
         let fall = Single::from_i32((-z).wrapping_mul(2))

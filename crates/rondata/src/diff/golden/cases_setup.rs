@@ -54,7 +54,7 @@ pub(super) fn run255_s_repair_is_the_original_s_unit_for_unit() {
         return;
     };
     let (first, last) = WIDENING_CHAPTER_TWENTY_ONE;
-    let players = s.built.sim.players.len() as i64;
+    let players = s.built.sim.territory.players.len() as i64;
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let (mut rows, mut repairs) = (0usize, 0usize);
     for f in 0..last - 1 {
@@ -202,6 +202,7 @@ pub(super) fn run235_s_bombs_are_the_original_s_record_for_record() {
             ),
         };
         let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = sim
+            .combat
             .projectiles
             .iter()
             .map(|p| {
@@ -364,7 +365,7 @@ pub(super) fn refusing_the_borrowed_frame_stream_does_not_move_great_lakes_word(
         }
         let installs = init.frame_seeds.len();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         for _ in 0..last {
             built.tick();
         }
@@ -574,7 +575,7 @@ pub(super) fn run245_s_cast_is_the_original_s_field_for_field() {
         return;
     };
     let (first, last) = WIDENING_CHAPTER_NINETEEN;
-    let players = s.built.sim.players.len() as i64;
+    let players = s.built.sim.territory.players.len() as i64;
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let mut rows = 0usize;
     for f in 0..last - 1 {
@@ -758,7 +759,7 @@ pub(super) fn run265_s_launch_is_the_original_s_field_for_field() {
         return;
     };
     let (first, last) = WIDENING_CHAPTER_TWENTY_TWO;
-    let players = s.built.sim.players.len() as i64;
+    let players = s.built.sim.territory.players.len() as i64;
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let mut rows = 0usize;
     for f in 0..last - 1 {
@@ -869,7 +870,7 @@ pub(super) fn run249_s_transport_is_the_original_s_unit_for_unit() {
         return;
     };
     let (first, last) = WIDENING_CHAPTER_TWENTY;
-    let players = s.built.sim.players.len() as i64;
+    let players = s.built.sim.territory.players.len() as i64;
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let (mut rows, mut casts, mut boards) = (0usize, 0usize, 0usize);
     for f in 0..last - 1 {
@@ -899,7 +900,7 @@ pub(super) fn run249_s_transport_is_the_original_s_unit_for_unit() {
         for l in &frame.leaders {
             let Some(t) = usize::try_from(l.who)
                 .ok()
-                .and_then(|w| sim.transport.get(w))
+                .and_then(|w| sim.ai.transport.get(w))
             else {
                 continue;
             };
@@ -1435,7 +1436,7 @@ pub(super) fn stage_walk() {
     // alone cannot be held by the chapter's walk, whatever the original does.
     let draws = std::env::var_os("RON_STAGE_DRAWS").is_some();
     if draws {
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
     }
     let unit_name = |t: Option<usize>| {
         t.and_then(|t| loaded.unit_type_names.get(t))
@@ -1597,13 +1598,13 @@ pub(super) fn stage_walk() {
             // library line's tail reads (`has_rare`).
             format!(
                 "L 0 buckets {:?} rare {:#x}",
-                s.ledgers[0].bucket, s.ledgers[0].rare
+                s.economy.ledgers[0].bucket, s.economy.ledgers[0].rare
             ),
         ));
         // Item 1182: each city's members and its attack bits, which the
         // computer's sortie reads (`city_flags & 3`).
         if all {
-            for (c, city) in s.cities.iter().enumerate() {
+            for (c, city) in s.cities.cities.iter().enumerate() {
                 let members: Vec<i16> =
                     city.members.iter().map(|&m| s.buildings[m].index).collect();
                 now.push((

@@ -45,7 +45,7 @@ mod bodies {
             borrow_pasture(&mut init, &t);
         }
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        let players = built.sim.players.len();
+        let players = built.sim.territory.players.len();
         use std::collections::{BTreeMap, BTreeSet};
         let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
         let mut missing: BTreeSet<String> = BTreeSet::new();
@@ -594,7 +594,7 @@ mod bodies {
             borrow_pasture(&mut init, &t);
         }
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        let players = built.sim.players.len();
+        let players = built.sim.territory.players.len();
         use std::collections::{BTreeMap, BTreeSet};
         let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
         let mut missing: BTreeSet<String> = BTreeSet::new();
@@ -909,7 +909,7 @@ mod bodies {
             borrow_pasture(&mut init, &t);
         }
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        let players = built.sim.players.len();
+        let players = built.sim.territory.players.len();
         use std::collections::{BTreeMap, BTreeSet};
         let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
         let mut missing: BTreeSet<String> = BTreeSet::new();
@@ -1854,7 +1854,7 @@ mod bodies {
             borrow_pasture(&mut init, &t);
         }
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        let players = built.sim.players.len();
+        let players = built.sim.territory.players.len();
         let mut firsts = std::collections::BTreeMap::new();
         /// `(ours, theirs)`: `1/62`'s path stack on block 11902.
         type Plan = (Vec<(i32, i32, u8)>, Vec<(i64, i64)>);

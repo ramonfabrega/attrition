@@ -150,12 +150,12 @@ impl Sim {
     /// the flag on a farm or a city centre, neither of which `place_roads`
     /// would ever flag itself.
     pub(crate) fn city_regen_roads(&mut self, c: usize) {
-        if !self.cities[c].alive {
+        if !self.cities.cities[c].alive {
             return;
         }
-        let head = self.cities[c].building;
+        let head = self.cities.cities[c].building;
         self.buildings[head].regen_roads = true;
-        let members = self.cities[c].members.clone();
+        let members = self.cities.cities[c].members.clone();
         for b in members {
             self.buildings[b].regen_roads = true;
         }
@@ -195,21 +195,24 @@ impl Sim {
         let Some(ty) = self.buildings[b].ty else {
             return;
         };
-        let (w, h) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+        let (w, h) = (
+            self.tables.build_types[ty].x_size,
+            self.tables.build_types[ty].y_size,
+        );
         let corner = self.tile_corner(ty, self.buildings[b].pos);
 
-        if build::is_city(&self.build_types, ty) {
+        if build::is_city(&self.tables.build_types, ty) {
             // A city lays its own ring and stops: it *is* the destination.
             self.road_ring(corner, w, h, 0, true);
             return;
         }
-        if connects_to_roads(&self.build_types, ty) {
+        if connects_to_roads(&self.tables.build_types, ty) {
             self.road_ring(corner, w, h, 0, true);
         } else {
             // A gatherer gets nothing at all — not the ring, not the road.
             // This is why the four farms and the woodcutter fire their flag
             // on run14's frames 12 to 15 and draw nothing there.
-            if self.build_types[ty].has(flags::GATHERER) {
+            if self.tables.build_types[ty].has(flags::GATHERER) {
                 return;
             }
             if self.buildings[b].city.is_none() {
@@ -218,16 +221,16 @@ impl Sim {
             // The one arm whose ring runs a tile wider on each side.
             self.road_ring(corner, w, h, 1, true);
         }
-        if !self.plan_roads {
+        if !self.movement.plan_roads {
             return;
         }
         let Some(c) = self.buildings[b].city else {
             return;
         };
-        if !self.cities[c].alive {
+        if !self.cities.cities[c].alive {
             return;
         }
-        let centre = self.cities[c].building;
+        let centre = self.cities.cities[c].building;
         let road = self.find_road(b, centre);
         // `reconstruct` appends goal-end first, as `astar_caravan_road`
         // does (`00685990`), and `place_roads@0063c580` pops that stack from
@@ -256,11 +259,18 @@ impl Sim {
         let Some(ty) = self.buildings[b].ty else {
             return;
         };
-        let (w, h) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+        let (w, h) = (
+            self.tables.build_types[ty].x_size,
+            self.tables.build_types[ty].y_size,
+        );
         let corner = self.tile_corner(ty, self.buildings[b].pos);
-        if build::is_city(&self.build_types, ty) || connects_to_roads(&self.build_types, ty) {
+        if build::is_city(&self.tables.build_types, ty)
+            || connects_to_roads(&self.tables.build_types, ty)
+        {
             self.road_ring(corner, w, h, 0, false);
-        } else if !self.build_types[ty].has(flags::GATHERER) && self.buildings[b].city.is_some() {
+        } else if !self.tables.build_types[ty].has(flags::GATHERER)
+            && self.buildings[b].city.is_some()
+        {
             self.road_ring(corner, w, h, 1, false);
         }
     }
@@ -350,11 +360,14 @@ impl Sim {
     /// footprint is the object's own tile again and for an odd one is half a
     /// footprint past it.
     pub(crate) fn road_end(&self, b: usize, ty: usize) -> Pos {
-        if build::is_city(&self.build_types, ty) {
+        if build::is_city(&self.tables.build_types, ty) {
             return self.buildings[b].pos.tile();
         }
         let corner = self.tile_corner(ty, self.buildings[b].pos);
-        let (w, h) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+        let (w, h) = (
+            self.tables.build_types[ty].x_size,
+            self.tables.build_types[ty].y_size,
+        );
         Pos::new(corner.x - 1 + w, corner.y - 1 + h)
     }
 
@@ -491,8 +504,8 @@ impl Sim {
                 traversed += 1;
                 let from = Pos::new(cur.x, cur.y);
                 let (mut cost, z_val) = self.calc_road_cost(p, from, cur.z_val, who, d, avoid_sea);
-                if self.trace_costs {
-                    self.road_marks.push(RoadCostMark {
+                if self.trace.trace_costs {
+                    self.trace.road_marks.push(RoadCostMark {
                         to: (nx, ny),
                         from: (cur.x, cur.y),
                         dir: i32::try_from(d).expect("wheel index"),
@@ -641,7 +654,7 @@ impl Sim {
     fn road_end_covers(&self, b: usize, t: Pos) -> bool {
         self.buildings[b]
             .ty
-            .is_some_and(|ty| build::is_city(&self.build_types, ty))
+            .is_some_and(|ty| build::is_city(&self.tables.build_types, ty))
             && self.covers_tile(b, t)
     }
 

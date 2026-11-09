@@ -43,7 +43,7 @@ fn fix() -> Fix {
     sea.combat.domain = Domain::Sea;
     let ship = sim.add_unit_type(sea.clone());
     let barge = sim.add_unit_type(sea);
-    sim.unit_types[barge].tree = Some(TRANSPORTBARGE);
+    sim.tables.unit_types[barge].tree = Some(TRANSPORTBARGE);
     Fix {
         sim,
         foot,
@@ -116,7 +116,7 @@ fn a_land_squad_on_land_is_formed_and_snapped_to_its_slots() {
 #[test]
 fn a_soldier_at_sea_with_a_dock_goes_aboard_a_barge() {
     let mut f = fix();
-    f.sim.transport[1].military = true;
+    f.sim.ai.transport[1].military = true;
     let made = f.sim.scenario_add_unit(1, f.foot, SEA, 2).unwrap();
     assert_eq!(made.len(), 2);
     for &u in &made {

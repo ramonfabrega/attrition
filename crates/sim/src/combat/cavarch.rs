@@ -54,7 +54,7 @@ impl crate::Sim {
     pub(crate) fn fires_on_move(&self, u: usize) -> bool {
         self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag(uflags::FIRES_ON_MOVE))
+            .is_some_and(|t| self.tables.unit_types[t].cols.flag(uflags::FIRES_ON_MOVE))
     }
 
     /// **`cavarch_o` as the dump prints it**: the target's own number
@@ -142,9 +142,11 @@ impl crate::Sim {
     /// An `ATTACK` action under the move, on a type without `k`
     /// (`unit_flags & 0x400`): the arm both callers skip the fight on.
     fn attack_action_clears(&self, u: usize) -> bool {
-        let melee_and_ranged = self.units[u]
-            .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag(uflags::MELEE_AND_RANGED));
+        let melee_and_ranged = self.units[u].ty.is_some_and(|t| {
+            self.tables.unit_types[t]
+                .cols
+                .flag(uflags::MELEE_AND_RANGED)
+        });
         !melee_and_ranged
             && self
                 .action_of(u)
@@ -188,7 +190,7 @@ impl crate::Sim {
             p.combat_role
                 && self.units[t]
                     .ty
-                    .is_none_or(|ty| self.unit_types[ty].cols.unit_flags & 0x2000 == 0)
+                    .is_none_or(|ty| self.tables.unit_types[ty].cols.unit_flags & 0x2000 == 0)
         } else {
             !p.combat_role
         }
@@ -232,13 +234,13 @@ impl crate::Sim {
             .filter(|&t| self.valid_target(me, t))
         else {
             self.cavarch_clear(u);
-            if self.units[u].waiting < 5 && self.retargets[who] > 10 {
+            if self.units[u].waiting < 5 && self.combat.retargets[who] > 10 {
                 self.units[u].waiting += 2;
                 return;
             }
             let found = self.find_melee_target_as(u, -1, 0, true);
             self.cavarch_take(u, found);
-            self.retargets[who] += 1;
+            self.combat.retargets[who] += 1;
             return;
         };
         if self.units[u].combat.captain == i32::from(self.units[u].index) {

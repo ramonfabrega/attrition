@@ -468,32 +468,33 @@ impl TargetScoreView for SimGate<'_> {
         self.c(a, k) as i32
     }
     fn city_bits(&self, a: usize, k: usize) -> i32 {
-        let cd = &self.sim.cities[self.c(a, k)];
+        let cd = &self.sim.cities.cities[self.c(a, k)];
         1 | if cd.no_heal { 2 } else { 0 }
             | if cd.capital { 0x10 } else { 0 }
             | if cd.no_muster { 0x2000 } else { 0 }
     }
     fn city_bordering(&self, a: usize, k: usize) -> i32 {
         let c = self.c(a, k);
-        let owner = self.sim.cities[c].owner as usize;
+        let owner = self.sim.cities.cities[c].owner as usize;
         self.sim
+            .ai
             .ai
             .get(owner)
             .and_then(|r| r.city_ai.get(c))
             .map_or(0, |ca| ca.bordering)
     }
     fn city_was_capital(&self, a: usize, k: usize) -> i32 {
-        self.sim.cities[self.c(a, k)].was_capital as i32
+        self.sim.cities.cities[self.c(a, k)].was_capital as i32
     }
     fn city_stamp(&self, a: usize, k: usize) -> i32 {
-        self.sim.cities[self.c(a, k)].attack_stamp as i32
+        self.sim.cities.cities[self.c(a, k)].attack_stamp as i32
     }
     fn city_cell(&self, a: usize, k: usize) -> (i32, i32) {
-        let cell = self.sim.cities[self.c(a, k)].pos.cell();
+        let cell = self.sim.cities.cities[self.c(a, k)].pos.cell();
         (cell.x, cell.y)
     }
     fn army_open(&self, j: usize) -> Option<(i32, i32)> {
-        let b = &self.sim.armies[self.who as usize].list[j];
+        let b = &self.sim.ai.armies[self.who as usize].list[j];
         if !b.valid || b.status & crate::army::status::MUSTERING != 0 {
             return None;
         }
@@ -503,10 +504,11 @@ impl TargetScoreView for SimGate<'_> {
         };
         self.sim
             .cities
+            .cities
             .iter()
             .position(|cd| cd.building == bld)
             .map_or(none, |c| {
-                Some((c as i32, i32::from(self.sim.cities[c].owner)))
+                Some((c as i32, i32::from(self.sim.cities.cities[c].owner)))
             })
     }
     fn city_kind(&mut self, a: usize, k: usize) -> i32 {
@@ -517,7 +519,7 @@ impl TargetScoreView for SimGate<'_> {
         }
     }
     fn unassimilated(&mut self, a: usize, k: usize) -> bool {
-        self.sim.cities[self.c(a, k)].unassimilated
+        self.sim.cities.cities[self.c(a, k)].unassimilated
     }
     fn city_level(&mut self, a: usize, k: usize) -> i32 {
         self.sim.city_level_of(self.c(a, k))
@@ -532,67 +534,67 @@ impl TargetScoreView for SimGate<'_> {
         false
     }
     fn building_damage(&mut self, a: usize, k: usize) -> i32 {
-        let bd = &self.sim.buildings[self.sim.cities[self.c(a, k)].building];
+        let bd = &self.sim.buildings[self.sim.cities.cities[self.c(a, k)].building];
         bd.hits - bd.health
     }
     fn building_hits(&mut self, a: usize, k: usize) -> i32 {
-        self.sim.buildings[self.sim.cities[self.c(a, k)].building].hits
+        self.sim.buildings[self.sim.cities.cities[self.c(a, k)].building].hits
     }
 }
 
 impl TargetTailView for SimGate<'_> {
     fn target_is(&self, city: i32, _leader: usize) -> bool {
-        let t = crate::combat::Obj::Building(self.sim.cities[city as usize].building);
-        self.sim.armies[self.who as usize].list[self.slot].target == Some(t)
+        let t = crate::combat::Obj::Building(self.sim.cities.cities[city as usize].building);
+        self.sim.ai.armies[self.who as usize].list[self.slot].target == Some(t)
     }
     fn army_cell_region(&self) -> i32 {
-        let a = &self.sim.armies[self.who as usize].list[self.slot];
+        let a = &self.sim.ai.armies[self.who as usize].list[self.slot];
         self.sim.world.region_of(a.pos.cell()).map_or(-1, i32::from)
     }
     fn target_cell_region(&self, _leader: usize, city: i32) -> i32 {
-        let t = crate::combat::Obj::Building(self.sim.cities[city as usize].building);
+        let t = crate::combat::Obj::Building(self.sim.cities.cities[city as usize].building);
         self.sim
             .world
             .region_of(self.sim.pos_of(t).cell())
             .map_or(-1, i32::from)
     }
     fn set_hurry0(&mut self) {
-        self.sim.armies[self.who as usize].list[self.slot].hurry = 0;
+        self.sim.ai.armies[self.who as usize].list[self.slot].hurry = 0;
     }
     fn set_rally(&mut self, v: i32) {
-        self.sim.armies[self.who as usize].list[self.slot].rally_dist = v;
+        self.sim.ai.armies[self.who as usize].list[self.slot].rally_dist = v;
     }
     fn set_target(&mut self, city: i32, _leader: usize) {
-        let t = crate::combat::Obj::Building(self.sim.cities[city as usize].building);
-        self.sim.armies[self.who as usize].list[self.slot].target = Some(t);
+        let t = crate::combat::Obj::Building(self.sim.cities.cities[city as usize].building);
+        self.sim.ai.armies[self.who as usize].list[self.slot].target = Some(t);
     }
     fn mark_attacked(&mut self, leader: usize) {
         let frame = self.sim.frame;
-        self.sim.ai[leader].frame_attacked = frame;
-        self.sim.ai[leader].attacked_by = i32::from(self.who);
+        self.sim.ai.ai[leader].frame_attacked = frame;
+        self.sim.ai.ai[leader].attacked_by = i32::from(self.who);
     }
     fn send_navy(&mut self, city: i32, _leader: usize, ra: i32, rb: i32) {
-        let t = crate::combat::Obj::Building(self.sim.cities[city as usize].building);
+        let t = crate::combat::Obj::Building(self.sim.cities.cities[city as usize].building);
         self.sim
             .send_navy(self.who, t, opt_region(ra), opt_region(rb));
     }
     fn set_point(&mut self, _leader: usize, city: i32) {
-        let cpos = self.sim.cities[city as usize].pos;
+        let cpos = self.sim.cities.cities[city as usize].pos;
         let p = self.sim.restrict(crate::world::Pos::new(
             cpos.x,
             cpos.y + crate::world::UNITS_PER_CELL,
         ));
-        self.sim.armies[self.who as usize].list[self.slot].pos = p;
+        self.sim.ai.armies[self.who as usize].list[self.slot].pos = p;
     }
     fn muster_spot(&mut self, city: i32, _leader: usize) -> bool {
-        let t = crate::combat::Obj::Building(self.sim.cities[city as usize].building);
+        let t = crate::combat::Obj::Building(self.sim.cities.cities[city as usize].building);
         self.sim.find_muster_spot(self.who, self.slot, t, false)
     }
     fn close_army(&mut self) {
         self.sim.close_army(self.who, self.slot);
     }
     fn flip_angle(&mut self) {
-        let a = &mut self.sim.armies[self.who as usize].list[self.slot];
+        let a = &mut self.sim.ai.armies[self.who as usize].list[self.slot];
         a.muster_angle = crate::movement::Angle(a.muster_angle.0.wrapping_add(i32::MIN));
     }
     fn probe(&mut self, city: i32, leader: usize) -> bool {

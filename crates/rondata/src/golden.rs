@@ -330,9 +330,9 @@ impl Script {
     /// this they were the frame's first three and invisible.
     pub fn stage(&mut self, frame: i64, built: &mut Built, loaded: &Loaded) -> Applied {
         let mut done = self.pump(frame, built);
-        built.sim.phase_marks.clear();
+        built.sim.trace.phase_marks.clear();
         done.merge(&self.apply(frame, built, loaded));
-        built.sim.staged_marks = std::mem::take(&mut built.sim.phase_marks);
+        built.sim.trace.staged_marks = std::mem::take(&mut built.sim.trace.phase_marks);
         done
     }
 
@@ -356,7 +356,7 @@ impl Script {
         if due.is_empty() {
             return done;
         }
-        built.sim.phase_marks.clear();
+        built.sim.trace.phase_marks.clear();
         for (f, line) in due {
             if f < frame {
                 done.skip(&command_word(&line.text), "the frame was stepped past");
@@ -407,8 +407,8 @@ impl Script {
                     .push(reached_line(&command_word(&line.text), &changed));
             }
         }
-        let marks = std::mem::take(&mut built.sim.phase_marks);
-        if built.sim.trace_phases
+        let marks = std::mem::take(&mut built.sim.trace.phase_marks);
+        if built.sim.trace.trace_phases
             && let Some(sites) = crate::diff::mark_sites(&marks, built.sim.rng.seed)
             && let Some((f, v)) = built.frame_sites.last_mut()
             && *f == frame - 1
@@ -633,7 +633,7 @@ impl Script {
             .nth(1)
             .and_then(|t| parse_who(t, true));
         match who {
-            Some(w) if (w as usize) < built.sim.players.len() => {
+            Some(w) if (w as usize) < built.sim.territory.players.len() => {
                 self.seat = w;
                 done.ran += 1;
             }
@@ -2101,7 +2101,7 @@ fn run(
     }
     match parse(&line.text) {
         Cheat::Ai(state) => {
-            built.sim.ai_off = state.map_or(!built.sim.ai_off, |on| !on);
+            built.sim.ai.ai_off = state.map_or(!built.sim.ai.ai_off, |on| !on);
             done.ran += 1;
         }
         Cheat::Age { who, level } => {
@@ -2130,7 +2130,7 @@ fn run(
                 return;
             };
             let me = CONSOLE_WHO as sim::Player;
-            let live: Vec<sim::Player> = (0..built.sim.players.len() as sim::Player)
+            let live: Vec<sim::Player> = (0..built.sim.territory.players.len() as sim::Player)
                 .filter(|&w| w != me)
                 .collect();
             let whom: Vec<sim::Player> = match target {
@@ -2143,7 +2143,7 @@ fn run(
             done.ran += 1;
         }
         Cheat::Control { who, human } => {
-            if let Some(n) = built.sim.nation.get_mut(who as usize) {
+            if let Some(n) = built.sim.cities.nation.get_mut(who as usize) {
                 n.human = human;
                 done.ran += 1;
             } else {
@@ -2284,7 +2284,7 @@ fn run(
                 );
                 return;
             }
-            if !(0..built.sim.players.len() as i32).contains(&who) {
+            if !(0..built.sim.territory.players.len() as i32).contains(&who) {
                 done.skip(&word, "no such leader");
                 return;
             }
@@ -2351,7 +2351,7 @@ fn add(
         done.skip(word, "no x,y and the channel has no cursor");
         return;
     };
-    if !(0..built.sim.players.len() as i32).contains(&who) {
+    if !(0..built.sim.territory.players.len() as i32).contains(&who) {
         done.skip(word, "no such leader");
         return;
     }

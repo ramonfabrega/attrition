@@ -8,7 +8,7 @@ use crate::*;
 impl Sim {
     /// [`turning_of`] for a type this simulation holds.
     pub fn turning_for(&self, ty: usize) -> movement::Turning {
-        turning_of(&self.unit_types[ty])
+        turning_of(&self.tables.unit_types[ty])
     }
 
     /// The body's frame, `Guy::move` through `Guy::process`, which
@@ -55,7 +55,7 @@ impl Sim {
             ..m.turning
         };
         let rate = movement::turn_speed(
-            &self.tuning,
+            &self.tables.tuning,
             &turning,
             if was_at_des { 0 } else { m.body.last_speed },
             m.body.avg_speed,
@@ -156,7 +156,12 @@ impl Sim {
         // there (`docs/COMBAT.md` §55.3).
         if self.units[i]
             .ty
-            .and_then(|t| self.art.pivots.get(&self.unit_types[t].type_index))
+            .and_then(|t| {
+                self.roster
+                    .art
+                    .pivots
+                    .get(&self.tables.unit_types[t].type_index)
+            })
             .is_some_and(|n| !n.is_empty())
         {
             for g in &mut self.units[i].guys {

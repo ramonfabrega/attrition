@@ -25,7 +25,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let ours = if arg == 0 && s.units[u].decoy {
             0
         } else {
-            i64::from(s.unit_types[s.units[u].ty.expect("typed")].price.pop)
+            i64::from(s.tables.unit_types[s.units[u].ty.expect("typed")].price.pop)
         };
         assert_eq!(ours, want, "control_cost — row `{line}`");
         n += 1;

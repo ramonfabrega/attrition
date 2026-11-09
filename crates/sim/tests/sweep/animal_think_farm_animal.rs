@@ -98,14 +98,14 @@ fn the_emulated_original_agrees_on_every_row() {
                 let b = sim.init_build(0, t, bpos, false);
                 sim.activate(b, false, true);
                 sim.buildings[b].farm.farm_type = crate::farms::ANIMAL_FARM;
-                sim.build_types[t].flags |= crate::build::flags::GATHERER;
+                sim.tables.build_types[t].flags |= crate::build::flags::GATHERER;
                 let pig = sim.add_unit_type(crate::UnitType {
                     hits: 10,
                     moves: 25,
                     ..crate::UnitType::default()
                 });
                 let mut an = crate::Unit::new(9, o, here, 10);
-                an.kind = sim.unit_types[pig].kind;
+                an.kind = sim.tables.unit_types[pig].kind;
                 an.ty = Some(pig);
                 an.farm_animal = Some(crate::farms::FarmAnimal { build: b, slot });
                 let u = sim.add_unit(an);

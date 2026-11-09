@@ -522,7 +522,7 @@ pub fn sim_at_frame(loaded: &Loaded, log: &Log, frame: i64, tuning: Tuning) -> O
     let mut sim = loaded.sim(tuning, world.clone(), players);
     for l in &leaders {
         if (0..players as i64).contains(&l.who) {
-            sim.nation[l.who as usize].human = l.leader_flags & 4 != 0;
+            sim.cities.nation[l.who as usize].human = l.leader_flags & 4 != 0;
         }
     }
 
@@ -578,7 +578,7 @@ pub fn sim_at_frame(loaded: &Loaded, log: &Log, frame: i64, tuning: Tuning) -> O
     notes.push(format!(
         "frame {frame}: {} buildings, {} cities, {} regions mapped",
         out.len(),
-        sim.cities.iter().filter(|c| c.alive).count(),
+        sim.cities.cities.iter().filter(|c| c.alive).count(),
         region_map.len()
     ));
     Some(AtFrame {
@@ -627,8 +627,8 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // The harness is where the per-phase fold is wanted: it is what the
     // sim's own draws are lined up against the trace's sites with
     // (`docs/SYNC.md` §4.2). Everything else leaves it off.
-    sim.trace_phases = true;
-    sim.lobby = lobby_of(
+    sim.trace.trace_phases = true;
+    sim.ai.lobby = lobby_of(
         &init.game_info,
         &loaded.map_styles,
         &loaded.wonder_wins,
@@ -645,11 +645,11 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // The animation art: the lengths a `DUMP_ALL` dump (or a sibling)
     // showed, and which types take gaia's three-piece rule.
     for &(p, a, e) in &init.anim_lengths {
-        sim.art.lengths.insert((p as i32, a as i8), e as u32);
+        sim.roster.art.lengths.insert((p as i32, a as i8), e as u32);
     }
     for t in 0x192..0x19e {
         if let Some(k) = loaded.unit_of_type_index(t) {
-            sim.art.gaia_types.insert(k);
+            sim.roster.art.gaia_types.insert(k);
         }
     }
     if !init.anim_lengths.is_empty() {
@@ -661,7 +661,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // And the gaia types' whole slot lists, from the install rather than
     // the dump — which is what gives a bird a length at all
     // (`crate::artdata`, `docs/SYNC.md` §3.9).
-    sim.art.gaia_lengths = loaded.gaia_lengths.clone();
+    sim.roster.art.gaia_lengths = loaded.gaia_lengths.clone();
     if !loaded.gaia_lengths.is_empty() {
         notes.push(format!(
             "anim: {} (type, variant, slot) gaia lengths from the install",
@@ -671,8 +671,8 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // And every player unit piece's whole slot list, from the same three
     // files — which is what stops an idle variant nothing has played from
     // being handed the default's length (`docs/ANIM.md` §3.2).
-    sim.art.piece_lengths = loaded.piece_lengths.clone();
-    sim.art.piece_skeletons = loaded.piece_skeletons.clone();
+    sim.roster.art.piece_lengths = loaded.piece_lengths.clone();
+    sim.roster.art.piece_skeletons = loaded.piece_skeletons.clone();
     if !loaded.piece_lengths.is_empty() {
         notes.push(format!(
             "anim: {} unit pieces' slot lists from the install",
@@ -683,7 +683,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // cast how long it takes (`docs/ORDERS.md` §6.9). Without it every
     // `JOB_TIME` reads 0 and the fishing boat's deploy would land on the
     // frame it is queued instead of forty frames later.
-    sim.spells = loaded.spells.clone();
+    sim.orders.spells = loaded.spells.clone();
     if !loaded.spells.is_empty() {
         notes.push(format!(
             "crafts: {} rows from the install",
@@ -693,15 +693,15 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // And every piece's crew-follow offset, from the same file — which is
     // what gives a scout's dog a body of its own instead of the man's
     // (`docs/MOVEMENT.md`, "The follower's destination").
-    sim.art.tracks = loaded.piece_tracks.clone();
+    sim.roster.art.tracks = loaded.piece_tracks.clone();
     // And every piece's arrow-release frames, from the same file. This is
     // when a unit's shot comes into existence (`docs/COMBAT.md` §9.0) —
     // gameplay data the original's own simulation reads, resolved to
     // integer frames at load.
-    sim.art.releases = loaded.piece_releases.clone();
+    sim.roster.art.releases = loaded.piece_releases.clone();
     // And which types aim a pivot rather than turn to shoot
     // (`docs/COMBAT.md` §52).
-    sim.art.pivots = loaded.pivot_restrictions.clone();
+    sim.roster.art.pivots = loaded.pivot_restrictions.clone();
     // The generator's placed mountains, each laid out from its template
     // (`docs/AI.md` §60): what a mine's reach and its gather list are
     // measured on. A capture with neither a `DUMP_ALL` head nor such a
@@ -721,7 +721,11 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         notes.push(format!(
             "mountains: {} placed ranges, {} solid cells, from the templates",
             placed.len(),
-            sim.mountains.iter().map(|m| m.solid.len()).sum::<usize>()
+            sim.terrain
+                .mountains
+                .iter()
+                .map(|m| m.solid.len())
+                .sum::<usize>()
         ));
     }
     // **And a Southwest Mesa game's cliffs** (item 3943; parked 3942b): no
@@ -742,8 +746,12 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         sim.place_cliffs(&cliffs.mining);
         notes.push(format!(
             "cliffs: {} mining lists, {} tiles, from the generator at 7805's seed {}",
-            sim.cliffs.len(),
-            sim.cliffs.iter().map(|c| c.tiles.len()).sum::<usize>(),
+            sim.terrain.cliffs.len(),
+            sim.terrain
+                .cliffs
+                .iter()
+                .map(|c| c.tiles.len())
+                .sum::<usize>(),
             lobby.at_7805
         ));
     }
@@ -772,7 +780,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             // `leader_flags & 4` is `LeaderData::is_human` — the bit that
             // picks `find_wpath`'s pull-back variant and withholds the
             // `army`/`worker` cost modes (`docs/PATHFINDER.md` §3).
-            sim.nation[who].human = l.leader_flags & 4 != 0;
+            sim.cities.nation[who].human = l.leader_flags & 4 != 0;
             // **`diplos`, which nothing installed until 2026-09-02.** The
             // harness built every capture with an all-peace matrix while
             // every one of them opens at war, so `is_enemy` was false for
@@ -782,8 +790,8 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             // `diplos` at all and leaves the matrix alone.
             for (other, &d) in l.diplos.iter().enumerate().take(players) {
                 if other != who {
-                    sim.at_war[who][other] = d == 0;
-                    sim.allied[who][other] = d == 2;
+                    sim.leaders.at_war[who][other] = d == 0;
+                    sim.leaders.allied[who][other] = d == 2;
                 }
             }
         }
@@ -842,7 +850,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         None => (0..players).collect::<Vec<_>>(),
     };
     for who in order {
-        if sim.nation[who].human {
+        if sim.cities.nation[who].human {
             continue;
         }
         let flags = init
@@ -1015,12 +1023,13 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             // crate's is on either side.
             if let (Some(piece), Some(k)) = (g.gpiece, kind) {
                 let o = u.o as i16;
-                let sub = if sim.art.gaia_types.contains(&k) {
+                let sub = if sim.roster.art.gaia_types.contains(&k) {
                     (sim.game_seed.wrapping_add(i32::from(o))).rem_euclid(3) as u8
                 } else {
                     (o & 1) as u8
                 };
-                sim.art
+                sim.roster
+                    .art
                     .pieces
                     .insert((u.who as sim::Player, k, sub, n as u8), piece as i32);
             }
@@ -1057,7 +1066,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     if clocks > 0 {
         notes.push(format!(
             "anim: {clocks} guy clocks installed from the start dump, {} pieces known",
-            sim.art.pieces.len()
+            sim.roster.art.pieces.len()
         ));
     }
 
@@ -1108,9 +1117,9 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 .position(|f| f.who == i64::from(bd.owner) && f.o == i64::from(bd.index))
                 .unwrap_or(usize::MAX)
         };
-        let mut order = std::mem::take(&mut sim.farm_order);
+        let mut order = std::mem::take(&mut sim.cities.farm_order);
         order.sort_by_key(|&h| rank(h));
-        sim.farm_order = order;
+        sim.cities.farm_order = order;
     }
     // On the flat fallback world a camp's survey (`gather.rs`) finds no
     // forest and would cap it at zero slots; the map-less dumps (run6, run7)
@@ -1118,7 +1127,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     if region_map.is_empty() {
         for b in &mut sim.buildings {
             let flat =
-                b.ty.is_some_and(|t| sim.build_types[t].has(sim::build::flags::FLAT));
+                b.ty.is_some_and(|t| sim.tables.build_types[t].has(sim::build::flags::FLAT));
             if !flat {
                 b.gather_max = None;
             }
@@ -1127,7 +1136,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // The herds, as the dump's `HERDS` block prints them — their walk every
     // 64 frames is on the sync stream (`docs/SYNC.md` §3.2).
     for h in &init.herds {
-        sim.gaia.herds.push(sim::gaia::Herd {
+        sim.gaia.gaia.herds.push(sim::gaia::Herd {
             cx: h.cx as i32,
             cy: h.cy as i32,
             wx: h.wx as i32,
@@ -1162,7 +1171,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // per-cell goods scan (`compute_reg_territory`), the one the installed
     // owners stand in for (`docs/AI.md` §133).
     sim.claim_oil_from_owners();
-    let seeded: usize = (0..players).map(|w| sim.ai[w].new_rares.len()).sum();
+    let seeded: usize = (0..players).map(|w| sim.ai.ai[w].new_rares.len()).sum();
     if seeded > 0 {
         notes.push(format!(
             "rares: {seeded} already-seen good(s) replayed into new_rares"
@@ -1341,8 +1350,9 @@ pub(crate) fn start_of_game(
             .iter()
             .filter(|l| {
                 l.who == w
-                    && l.kind
-                        .is_some_and(|k| sim.unit_types[k].worker != sim::orders::Worker::None)
+                    && l.kind.is_some_and(|k| {
+                        sim.tables.unit_types[k].worker != sim::orders::Worker::None
+                    })
             })
             .collect();
         citizens.sort_by_key(|l| l.o);
@@ -1358,7 +1368,7 @@ pub(crate) fn start_of_game(
         // `starting_resources == 7` adds 8, `== 8` adds 12), which is what
         // lets run651's thirteen citizens read as a Small Town's five
         // (item 1496, `docs/AI.md` §129).
-        let lobby_extra = match sim.lobby.starting_resources {
+        let lobby_extra = match sim.ai.lobby.starting_resources {
             7 => 8,
             8 => 12,
             _ => 0,
@@ -1506,7 +1516,7 @@ pub(crate) fn start_of_game(
         };
         let mut births: Vec<(usize, i64, usize)> = Vec::new();
         let mut cursor = 0i64;
-        let skip_orders = sim.lobby.starting_resources == 8;
+        let skip_orders = sim.ai.lobby.starting_resources == 8;
         for (i, link) in citizens.iter().enumerate() {
             let target = if i < ordered {
                 // Unconditional — a dead `2001` sends the citizen idle rather
@@ -1581,7 +1591,8 @@ pub(crate) fn start_of_game(
     // ordered here as the original activated them: the higher slot first,
     // stable within a player.
     let owners: Vec<sim::Player> = sim.buildings.iter().map(|b| b.owner).collect();
-    sim.farm_order
+    sim.cities
+        .farm_order
         .sort_by_key(|&h| std::cmp::Reverse(owners[h]));
     // **The dump's height grid is already terraformed for every building
     // the dump lists** — run12's frame-0 heights have p0's city standing on
@@ -1644,10 +1655,10 @@ impl Drop for Built {
             .find(|(t, _)| name.ends_with(t))
             .map_or(0, |&(_, n)| n);
         assert!(
-            self.sim.ground_inexact <= pin,
+            self.sim.trace.ground_inexact <= pin,
             "{name}: {} height read(s) touched a corner that is not known to be \
              the original's single, against a pin of {pin} — see docs/COMBAT.md §46.3",
-            self.sim.ground_inexact
+            self.sim.trace.ground_inexact
         );
     }
 }
@@ -1661,7 +1672,7 @@ impl Built {
     /// the trace. `None` when nothing drew, or when the marks are off.
     pub(crate) fn phase_fold(&self) -> Option<String> {
         let mut rows: Vec<(String, u32)> = Vec::new();
-        for pair in self.sim.phase_marks.windows(2) {
+        for pair in self.sim.trace.phase_marks.windows(2) {
             let (label, from) = &pair[0];
             let n = draws_between(*from, pair[1].1)?;
             if n > 0 {
@@ -1715,8 +1726,8 @@ impl Built {
         self.sim.tick();
         // The frame's own draws, named, before anything is installed —
         // the harness's side of `Trace::labels(frame)`.
-        if self.sim.trace_phases
-            && let Some(sites) = mark_sites(&self.sim.phase_marks, self.sim.rng.seed)
+        if self.sim.trace.trace_phases
+            && let Some(sites) = mark_sites(&self.sim.trace.phase_marks, self.sim.rng.seed)
         {
             self.frame_sites.push((frame, sites));
         }
@@ -2566,7 +2577,7 @@ mod tests {
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
-        let tree = &built.sim.tech_tree;
+        let tree = &built.sim.tables.tech_tree;
         let id = |name: &str| {
             tree.types
                 .iter()
@@ -2699,7 +2710,7 @@ mod tests {
 
         // Frame 0: the sweep, which arms the step machine.
         built.sim.tick();
-        let c = &built.sim.ai[1].census;
+        let c = &built.sim.ai.ai[1].census;
         let scalars: [(&str, i32); 15] = [
             ("active", c.active),
             ("combat", c.combat),
@@ -2752,7 +2763,7 @@ mod tests {
         // the farms (flat, 1 each) and the woodcutter camp's five, surveyed
         // from its `gather_from` list by `crates/sim/src/economy/gather.rs`.
         let t = arr("gather_slots[scan]");
-        let slots = built.sim.ledgers[1].gather_slots;
+        let slots = built.sim.economy.ledgers[1].gather_slots;
         assert_eq!(i64::from(slots[0]), t[0], "food slots");
         assert_eq!(i64::from(slots[1]), t[1], "wood slots");
         // The home region: the dump's region 1 is the sim's region_map entry.
@@ -2811,7 +2822,7 @@ mod tests {
                 )
             })
             .collect();
-        let ours_sites: Vec<(i32, i32, i32, i32)> = built.sim.ai[1]
+        let ours_sites: Vec<(i32, i32, i32, i32)> = built.sim.ai.ai[1]
             .sites
             .iter()
             .map(|s| (s.wx, s.wy, s.val, s.rank))
@@ -2819,7 +2830,7 @@ mod tests {
         eprintln!(
             "sites — theirs: {theirs_sites:?}\n        ours:   {ours_sites:?}\n  site_mark theirs {:?} ours {}",
             theirs.int("site_mark"),
-            built.sim.ai[1].site_mark
+            built.sim.ai.ai[1].site_mark
         );
         if traced {
             let best_theirs = theirs_sites
@@ -2858,7 +2869,7 @@ mod tests {
                     )
                 })
                 .collect();
-            let ours_full: Vec<(i64, i64, i64, i64, i64)> = built.sim.ai[1]
+            let ours_full: Vec<(i64, i64, i64, i64, i64)> = built.sim.ai.ai[1]
                 .sites
                 .iter()
                 .map(|s| {
@@ -2891,7 +2902,7 @@ mod tests {
         // `Array<MakeObject>::init@0047d300` fills and `MakeList::clear`
         // rewrites, and the harness must start from the same one.
         let theirs_list = make_list_of(theirs);
-        let ours_list = built.sim.ai[1].make_list.list;
+        let ours_list = built.sim.ai.ai[1].make_list.list;
         assert_eq!(
             theirs_list
                 .iter()
@@ -3140,7 +3151,7 @@ mod tests {
                 if let Some(e) = expiries.iter().find(|e| e.frame == frame) {
                     let mut s = loaded.sim(Tuning::RON, World::new(4, 4), 2);
                     let who = w.who as sim::Player;
-                    s.ai[w.who as usize].make_list.list = prev;
+                    s.ai.ai[w.who as usize].make_list.list = prev;
                     s.rng = sim::combat::Rng::new(e.seed);
                     // Step 3: the head's `make_this` demotes it before step
                     // 4's walk; step 6: each bought slot's `make_this`, then
@@ -3148,13 +3159,13 @@ mod tests {
                     let head = prev[0];
                     let wi = w.who as usize;
                     if e.bought.contains(&0) {
-                        s.ai[wi].make_list.list[0].val /= 100;
+                        s.ai.ai[wi].make_list.list[0].val /= 100;
                     }
                     let unc = s.expire_all(head.t as usize, true);
                     s.expire(who, head.t, 0, unc);
                     for &slot in e.bought.iter().filter(|&&k| k != 0) {
-                        s.ai[wi].make_list.list[slot].val /= 100;
-                        let t = s.ai[wi].make_list.list[slot].t;
+                        s.ai.ai[wi].make_list.list[slot].val /= 100;
+                        let t = s.ai.ai[wi].make_list.list[slot].t;
                         let unc = s.expire_all(t as usize, false);
                         s.expire(who, t, slot, unc);
                     }
@@ -3162,7 +3173,7 @@ mod tests {
                         s.rng.seed, e.after,
                         "{what}: the walk's draw count, by the trace's seeds"
                     );
-                    assert_list_eq(&what, &next, &s.ai[wi].make_list.list);
+                    assert_list_eq(&what, &next, &s.ai.ai[wi].make_list.list);
                     make_stuffs.push(frame);
                     continue;
                 }
@@ -3254,19 +3265,24 @@ mod tests {
         // Every gaia piece the dump named, and every length it showed for
         // it, against the install's own row.
         let mut checked = Vec::new();
-        for (&(who, ty, sub, _), &piece) in &sim.art.pieces {
+        for (&(who, ty, sub, _), &piece) in &sim.roster.art.pieces {
             // Gaia is owners 8 and 9: the herds the map generator laid
             // down are 8 and the birds `Objects::process_all` hatches are
             // 9, which is why no dump has ever printed a bird.
             if who < 8 {
                 continue;
             }
-            let index = sim.unit_types[ty].type_index;
-            for (&(p, slot), &n) in &sim.art.lengths {
+            let index = sim.tables.unit_types[ty].type_index;
+            for (&(p, slot), &n) in &sim.roster.art.lengths {
                 if p != piece {
                     continue;
                 }
-                let theirs = sim.art.gaia_lengths.get(&(index, sub, slot)).copied();
+                let theirs = sim
+                    .roster
+                    .art
+                    .gaia_lengths
+                    .get(&(index, sub, slot))
+                    .copied();
                 assert_eq!(
                     theirs,
                     Some(n),
@@ -3392,7 +3408,7 @@ mod tests {
                     "{name}: {}/{} (type_index {}) stance",
                     link.who,
                     link.o,
-                    built.sim.unit_types[ty].type_index
+                    built.sim.tables.unit_types[ty].type_index
                 );
                 checked += 1;
                 match them {
@@ -3520,7 +3536,7 @@ mod tests {
             built.notes
         );
         assert_eq!(
-            personality_fields(&built.sim.ai[1].pers),
+            personality_fields(&built.sim.ai.ai[1].pers),
             personality_of(&log, 1),
             "the personality, rolled from the original's own state, is the original's"
         );

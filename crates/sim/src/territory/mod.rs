@@ -551,3 +551,36 @@ pub mod suffer_view;
 pub mod supply;
 pub mod upkeep;
 pub mod victory;
+
+/// The `territory/` subsystem's fields of [`crate::Sim`] (`docs/STRUCTURE.md`
+/// §3, item 4016): moved whole, each with its doc, in `Sim`'s order.
+#[derive(Clone, Debug)]
+pub struct TerritoryState {
+    pub players: Vec<crate::attrition::PlayerState>,
+    pub sources: Vec<crate::territory::Source>,
+    /// One supply network per player. Never shared: an ally's supply wagon
+    /// does nothing for your units, which is a rule of the original and not a
+    /// simplification here.
+    pub supply: Vec<crate::supply::Network>,
+    /// One per player: the border bonuses a city or fort of theirs projects,
+    /// `docs/ATTRITION.md`. Zero until something sets them.
+    pub borders: Vec<crate::territory::PlayerBorders>,
+    /// Every region's `Region::borders` resume index reset since the last
+    /// `GameDaemon::check_borders` (`Region::fix_borders@00680f60`): the
+    /// next one zeroes `reg_known_rares` ([`Sim::fix_borders`]).
+    pub borders_fixed: bool,
+    /// **The fixed pass still reaching the map** (item 1106,
+    /// [`border_pass`]): the owners a fix computed and every region's resume
+    /// index. `None` once every land region is done.
+    pub border_pass: Option<crate::border_pass::BorderPass>,
+    /// Per cell (row-major), the city whose claim [`Sim::recompute_territory`]
+    /// last found winning it, `−1` for none or a fort's — `compute_reg_territory`'s
+    /// `local_1c`, which names the city a runner-up marks `bordering`
+    /// (`docs/AI.md` §167).
+    pub territory_won: Vec<i32>,
+    /// `GoodData::ever_seen` (`+0x20`), the bits `World::compute_reg_territory`'s
+    /// per-cell goods scan sets beside `Leader::new_rare` (item 1555,
+    /// `docs/AI.md` §152), by goods-list index. `reveal_fog`'s own writes are
+    /// answered by the fog read in [`Sim::good_ever_seen`].
+    pub good_seen_bits: Vec<u8>,
+}

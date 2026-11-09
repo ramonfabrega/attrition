@@ -18,8 +18,8 @@ fn the_emulated_corner_tile_agrees_on_every_row() {
         let [xs, ys, cx, cy, axis] = a[..] else {
             panic!("row `{line}`: five arguments expected");
         };
-        sim.build_types[ty].x_size = xs as i32;
-        sim.build_types[ty].y_size = ys as i32;
+        sim.tables.build_types[ty].x_size = xs as i32;
+        sim.tables.build_types[ty].y_size = ys as i32;
         let got = sim.footprint_centre(ty, Pos::new(cx as i32, cy as i32));
         let got = if axis == 0 { got.x } else { got.y } as i64;
         assert_eq!(got, want, "row `{line}`: ours {got}, the original's {want}");

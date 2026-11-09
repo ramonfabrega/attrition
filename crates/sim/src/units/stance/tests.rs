@@ -163,7 +163,7 @@ fn a_trained_combat_unit_takes_the_trainer_s_byte_as_its_combat_stance() {
         crate::world::World::new(40, 40),
         2,
     );
-    s.leader_options = vec![
+    s.roster.leader_options = vec![
         LeaderOptions {
             buildings: 1,
             ..LeaderOptions::default()

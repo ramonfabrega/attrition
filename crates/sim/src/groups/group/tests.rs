@@ -10,10 +10,10 @@ fn sim() -> Sim {
         crate::world::World::new(60, 60),
         2,
     );
-    s.nation[0].human = true;
-    s.nation[1].human = false;
-    s.at_war[0][1] = true;
-    s.at_war[1][0] = true;
+    s.cities.nation[0].human = true;
+    s.cities.nation[1].human = false;
+    s.leaders.at_war[0][1] = true;
+    s.leaders.at_war[1][0] = true;
     s
 }
 
@@ -184,12 +184,12 @@ fn plane(s: &mut Sim, at: Pos, heading: Angle, bomber: bool) -> usize {
         // After the add, which indexes the leaders' tech bits by it: a
         // hand-built tree holds no `0x130`, and `is` answers the
         // equality alone.
-        s.unit_types[ty].tree = Some(0x130);
+        s.tables.unit_types[ty].tree = Some(0x130);
     }
     let u = spawn(s, 0, ty, at);
-    s.units[u].kind = s.unit_types[ty].kind;
+    s.units[u].kind = s.tables.unit_types[ty].kind;
     s.units[u].movement.speed = 75;
-    s.units[u].movement.turning = crate::turning_of(&s.unit_types[ty]);
+    s.units[u].movement.turning = crate::turning_of(&s.tables.unit_types[ty]);
     s.units[u].movement.heading = heading;
     s.units[u].movement.facing = heading;
     s.init_guys(u, Some(ty));
@@ -289,7 +289,7 @@ fn a_plane_inside_a_step_and_a_half_of_its_point_lands_in_its_base() {
 #[test]
 fn a_flight_home_is_flown_to_its_base_and_lands() {
     let mut s = sim();
-    s.trace_phases = true;
+    s.trace.trace_phases = true;
     let (base, _) = airbase_and_target(&mut s);
     let u = plane(&mut s, Pos::new(11640, 16248), Angle(0x5555_5555), false);
     s.group_action_flight(&group_of(0, &[u]), Obj::Building(base), Flight::Home);
@@ -302,10 +302,11 @@ fn a_flight_home_is_flown_to_its_base_and_lands() {
         if (i64::from(s.units[u].index) + s.frame) & 7 == 0 {
             eighths += 1;
         }
-        s.phase_marks.clear();
+        s.trace.phase_marks.clear();
         s.tick();
         flown += 1;
         let draws = s
+            .trace
             .phase_marks
             .iter()
             .filter(|(l, _)| l == crate::air::SITE_AIR_ALT)
@@ -349,11 +350,11 @@ fn bomber(s: &mut Sim, at: Pos, heading: Angle) -> usize {
         ..UnitType::default()
     };
     let ty = s.add_unit_type(t);
-    s.unit_types[ty].tree = Some(0x130);
+    s.tables.unit_types[ty].tree = Some(0x130);
     let u = spawn(s, 0, ty, at);
-    s.units[u].kind = s.unit_types[ty].kind;
+    s.units[u].kind = s.tables.unit_types[ty].kind;
     s.units[u].movement.speed = 60;
-    s.units[u].movement.turning = crate::turning_of(&s.unit_types[ty]);
+    s.units[u].movement.turning = crate::turning_of(&s.tables.unit_types[ty]);
     s.units[u].movement.heading = heading;
     s.units[u].movement.facing = heading;
     s.init_guys(u, Some(ty));
@@ -390,8 +391,8 @@ fn live_barracks(s: &mut Sim, b: usize) {
 fn a_strike_it_may_not_take_is_a_patrol_flown_the_same_frame() {
     let mut s = sim();
     let (base, target) = airbase_and_target(&mut s);
-    s.at_war[0][1] = false;
-    s.at_war[1][0] = false;
+    s.leaders.at_war[0][1] = false;
+    s.leaders.at_war[1][0] = false;
     let u = bomber(&mut s, Pos::new(10263, 16330), Angle(1_341_635_061));
     let g = group_of(0, &[u]);
     s.group_action_flight(&g, Obj::Building(base), Flight::Home);
@@ -486,7 +487,7 @@ fn a_bomber_releases_in_range_and_on_its_nose() {
         (crate::anim::SLOG, 31),
         (crate::anim::ATTACK2, 30),
     ] {
-        s.art.lengths.insert((-1, anim), len);
+        s.roster.art.lengths.insert((-1, anim), len);
     }
     let run = |s: &mut Sim, heading: Angle| {
         let u = bomber(s, Pos::new(21120 - 400, 16512), heading);
@@ -538,13 +539,13 @@ fn a_strafe_releases_a_bomb_that_falls_a_tile_ahead() {
         (crate::anim::SLOG, 31),
         (crate::anim::ATTACK2, 30),
     ] {
-        s.art.lengths.insert((-1, anim), len);
+        s.roster.art.lengths.insert((-1, anim), len);
     }
     let at = Pos::new(21120 - 400, 16512);
     let u = bomber(&mut s, at, Angle::EAST);
     s.units[u].airframe.z = 1632;
     let piece = s.units[u].guys[0].gpiece;
-    s.art.releases.insert(
+    s.roster.art.releases.insert(
         piece,
         [(
             crate::anim::ATTACK2,
@@ -576,9 +577,9 @@ fn a_strafe_releases_a_bomb_that_falls_a_tile_ahead() {
     assert_eq!(s.units[u].guys[0].anim, crate::anim::ATTACK2);
     let seed = s.rng.seed;
     s.guys_inc_time();
-    assert_eq!(s.projectiles.len(), 1, "the first event's round");
+    assert_eq!(s.combat.projectiles.len(), 1, "the first event's round");
     assert_eq!(s.rng.seed, seed, "a bomb spends no draw");
-    let p = s.projectiles[0];
+    let p = s.combat.projectiles[0];
     assert_eq!(p.target, Some(Obj::Building(target)));
     let from = s.units[u].pos;
     assert_eq!(
@@ -600,11 +601,14 @@ fn a_strafe_releases_a_bomb_that_falls_a_tile_ahead() {
     for _ in 0..16 {
         s.process_projectiles(806);
     }
-    assert_eq!(s.projectiles.len(), 1, "still falling after 16");
+    assert_eq!(s.combat.projectiles.len(), 1, "still falling after 16");
     s.process_projectiles(822);
-    assert!(s.projectiles.is_empty(), "down on the seventeenth");
+    assert!(s.combat.projectiles.is_empty(), "down on the seventeenth");
     assert!(
-        s.hits.iter().any(|h| h.target == Obj::Building(target)),
+        s.combat
+            .hits
+            .iter()
+            .any(|h| h.target == Obj::Building(target)),
         "and it strikes"
     );
 }
@@ -630,9 +634,9 @@ fn a_flying_plane_lights_the_fog_it_crosses() {
     t.combat.domain = Domain::Air;
     let ty = s.add_unit_type(t);
     let u = spawn(&mut s, 0, ty, Pos::new(10000, 16000));
-    s.units[u].kind = s.unit_types[ty].kind;
+    s.units[u].kind = s.tables.unit_types[ty].kind;
     s.units[u].movement.speed = 60;
-    s.units[u].movement.turning = crate::turning_of(&s.unit_types[ty]);
+    s.units[u].movement.turning = crate::turning_of(&s.tables.unit_types[ty]);
     s.units[u].movement.heading = Angle::EAST;
     s.init_guys(u, Some(ty));
     s.add_air_patrol_order(u, Pos::new(30000, 16000), Some(base), false);
@@ -667,7 +671,7 @@ fn siege_type(sim: &mut Sim) -> usize {
 
 fn spawn(sim: &mut Sim, who: Player, ty: usize, p: Pos) -> usize {
     let index = i16::try_from(sim.units.len()).unwrap();
-    let hits = sim.unit_types[ty].hits;
+    let hits = sim.tables.unit_types[ty].hits;
     let mut u = Unit::new(who, index, p, hits);
     u.ty = Some(ty);
     u.on_map = true;
@@ -724,21 +728,21 @@ fn find_leader_takes_the_lowest_type_cat_and_ties_to_the_first() {
     let archer = typed(&mut s, mask::FOOT, 0x600);
     let mounted = typed(&mut s, mask::MOUNTED, 0);
     let mech = typed(&mut s, mask::VEHICLE, 0);
-    let human = s.nation[1].human;
+    let human = s.cities.nation[1].human;
     assert_eq!(
-        type_cat(&s.unit_types[mech], mech, human),
+        type_cat(&s.tables.unit_types[mech], mech, human),
         cat::FORM_CAT_MECH
     );
     assert_eq!(
-        type_cat(&s.unit_types[mounted], mounted, human),
+        type_cat(&s.tables.unit_types[mounted], mounted, human),
         cat::FORM_CAT_MOUNTED
     );
     assert_eq!(
-        type_cat(&s.unit_types[foot], foot, human),
+        type_cat(&s.tables.unit_types[foot], foot, human),
         cat::FORM_CAT_FOOT
     );
     assert_eq!(
-        type_cat(&s.unit_types[archer], archer, human),
+        type_cat(&s.tables.unit_types[archer], archer, human),
         cat::FORM_CAT_FOOT_RANGED
     );
 
@@ -917,7 +921,7 @@ fn compute_form_negates_the_offsets_when_the_bearing_opposes_the_angle() {
             MoveKind::AttackTo,
             true,
         );
-        let off = s.armies[1].list[slot].group.off.clone();
+        let off = s.ai.armies[1].list[slot].group.off.clone();
         let dests: Vec<Pos> = [a, b]
             .iter()
             .map(|&u| match s.current_order(u).expect("a move order").body {
@@ -1132,14 +1136,14 @@ fn a_pushed_group_s_prune_shifts_its_per_member_arrays() {
     let mut g = group_of(1, &[a, b, c]);
     assert!(s.push_group(&mut g, true));
     let slot = s.pool_group_of(a);
-    let i = s.pushed.len() - 1;
-    let st = &mut s.pushed[i].state;
+    let i = s.orders.pushed.len() - 1;
+    let st = &mut s.orders.pushed[i].state;
     st.off = vec![(1, 1), (2, 2), (3, 3)];
     st.curr = vec![Pos::new(10, 10), Pos::new(20, 20), Pos::new(30, 30)];
     st.angles = vec![1, 2, 3];
     s.units[b].group_ptr = None;
     s.groups_process(slot);
-    let p = &s.pushed[i];
+    let p = &s.orders.pushed[i];
     assert_eq!(p.list, vec![a, c]);
     assert_eq!(p.state.off, vec![(1, 1), (3, 3)]);
     assert_eq!(p.state.curr, vec![Pos::new(10, 10), Pos::new(30, 30)]);
@@ -1207,26 +1211,29 @@ fn the_slot_scan_calls_get_num_on_every_slot_it_reaches() {
     let mut first = group_of(1, &[a, b]);
     assert!(s.push_group(&mut first, true));
     let slot = first.pushed.expect("seated");
-    let pool = s.pushed[slot].state.pool;
+    let pool = s.orders.pushed[slot].state.pool;
     // The slot's record goes stale: the scan must price it again.
-    s.pushed[slot].state.speed = 99;
-    s.pushed[slot].state.new_speed = 99;
+    s.orders.pushed[slot].state.speed = 99;
+    s.orders.pushed[slot].state.new_speed = 99;
     // Slot 0 is `last_group`, so the walk goes past it to this slot and
     // on to the first open one.
-    s.last_group[1] = 0;
+    s.orders.last_group[1] = 0;
     let open = s.open_slot(1);
     assert_ne!(Some(open), pool, "a seated slot of two is not open");
     let leader = s.units[a].movement.speed;
-    assert_eq!(s.pushed[slot].state.speed, leader, "normalized by get_num");
+    assert_eq!(
+        s.orders.pushed[slot].state.speed, leader,
+        "normalized by get_num"
+    );
     // An emptied seat: speed stands, origin zeroed, no normalize.
-    s.pushed[slot].list.clear();
-    s.pushed[slot].state.speed = 7;
-    s.pushed[slot].state.o = Pos::new(5, 5);
+    s.orders.pushed[slot].list.clear();
+    s.orders.pushed[slot].state.speed = 7;
+    s.orders.pushed[slot].state.o = Pos::new(5, 5);
     let seat = Seat::Pushed(slot);
     assert_eq!(s.seat_get_num(seat), 0);
-    assert_eq!(s.pushed[slot].state.o, Pos::new(0, 0));
+    assert_eq!(s.orders.pushed[slot].state.o, Pos::new(0, 0));
     assert_eq!(
-        s.pushed[slot].state.speed, 7,
+        s.orders.pushed[slot].state.speed, 7,
         "no normalize on an empty arm"
     );
 }
@@ -1269,14 +1276,17 @@ fn a_pushed_slot_starts_at_the_origin_and_the_next_push_prices_it() {
     let mut first = group_of(1, &[a, b]);
     assert!(s.push_group(&mut first, true));
     let slot = first.pushed.expect("seated");
-    assert_eq!(s.pushed[slot].state.o, Pos::new(0, 0));
-    assert_eq!(s.pushed[slot].state.speed, 0, "a copy carries no speed");
+    assert_eq!(s.orders.pushed[slot].state.o, Pos::new(0, 0));
+    assert_eq!(
+        s.orders.pushed[slot].state.speed, 0,
+        "a copy carries no speed"
+    );
     let mut second = group_of(1, &[c, d]);
     assert!(s.push_group(&mut second, true));
     let leader = s.units[a].movement.speed;
     assert!(leader > 0);
     assert_eq!(
-        s.pushed[slot].state.speed, leader,
+        s.orders.pushed[slot].state.speed, leader,
         "the second push normalized the first slot"
     );
 }
@@ -1336,7 +1346,7 @@ fn a_pushed_group_outlives_the_next_push() {
     let mut fourth = group_of(1, &[e]);
     assert!(s.push_group(&mut fourth, true));
     assert_eq!(fourth.pushed, Some(1), "the dead group's slot is recycled");
-    assert_eq!(s.pushed.len(), 3, "and the pool does not grow");
+    assert_eq!(s.orders.pushed.len(), 3, "and the pool does not grow");
 }
 
 /// **A seated group's move is a `GroupMoveOrder`, and an in-danger
@@ -1415,8 +1425,8 @@ fn a_pushed_group_takes_its_members_out_of_the_army() {
     s.army_add_unit(1, slot, b);
     assert_eq!(
         (
-            s.armies[1].list[slot].units.clone(),
-            s.armies[1].list[slot].num_captains
+            s.ai.armies[1].list[slot].units.clone(),
+            s.ai.armies[1].list[slot].num_captains
         ),
         (vec![a, b], 2),
         "the army's one group holds both"
@@ -1424,15 +1434,15 @@ fn a_pushed_group_takes_its_members_out_of_the_army() {
     // `push_group(force = 1)`, the probe's own call.
     assert!(s.push_group(&mut group_of(1, &[a]), true));
     assert_eq!(
-        s.armies[1].list[slot].units,
+        s.ai.armies[1].list[slot].units,
         vec![b],
         "the pushed member is killed out of the army's group"
     );
     assert_eq!(
         (
-            s.armies[1].list[slot].num_units,
-            s.armies[1].list[slot].num_captains,
-            s.armies[1].list[slot].num_standard
+            s.ai.armies[1].list[slot].num_units,
+            s.ai.armies[1].list[slot].num_captains,
+            s.ai.armies[1].list[slot].num_standard
         ),
         (1, 1, 1),
         "and `Army::normalize` recounts what is left"
@@ -1441,7 +1451,7 @@ fn a_pushed_group_takes_its_members_out_of_the_army() {
     let c = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
     assert!(s.push_group(&mut group_of(1, &[c]), true));
     assert_eq!(
-        s.armies[1].list[slot].units,
+        s.ai.armies[1].list[slot].units,
         vec![b],
         "a non-member's push is not the army's business"
     );
@@ -1469,13 +1479,13 @@ fn a_member_leaving_an_army_group_takes_its_slot_with_it() {
     for u in [a, b, c] {
         s.army_add_unit(1, slot, u);
     }
-    let st = &mut s.armies[1].list[slot].group;
+    let st = &mut s.ai.armies[1].list[slot].group;
     st.off = vec![(1, 1), (2, 2), (3, 3)];
     st.curr = vec![Pos::new(10, 10), Pos::new(20, 20), Pos::new(30, 30)];
     st.angles = vec![1, 2, 3];
     assert!(s.push_group(&mut group_of(1, &[a]), true));
-    let st = &s.armies[1].list[slot].group;
-    assert_eq!(s.armies[1].list[slot].units, vec![b, c], "`a` left");
+    let st = &s.ai.armies[1].list[slot].group;
+    assert_eq!(s.ai.armies[1].list[slot].units, vec![b, c], "`a` left");
     assert_eq!(
         (st.off.clone(), st.curr.clone(), st.angles.clone()),
         (
@@ -1534,13 +1544,13 @@ fn a_member_taking_the_formation_over_turns_it_by_its_waypoint() {
         }
     }
     let i = g.list.iter().position(|&u| u == b).expect("b is listed");
-    s.armies[1].list[slot].group.off = if i == 0 {
+    s.ai.armies[1].list[slot].group.off = if i == 0 {
         vec![(0, 0), (21, 0)]
     } else {
         vec![(21, 0), (0, 0)]
     };
     assert!(s.group_refresh_order(&g, b));
-    let st = &s.armies[1].list[slot].group;
+    let st = &s.ai.armies[1].list[slot].group;
     let theta = find_angle(-7, -6);
     assert_eq!(theta, Angle(-586_678_272), "the bearing run457 dumps");
     assert_eq!(
@@ -1703,8 +1713,8 @@ fn an_army_s_move_is_a_group_order_and_a_selection_s_is_not() {
 fn a_queued_group_move_takes_its_bearing_from_where_the_leader_ends_up() {
     let mut s = sim();
     let t = fighter(&mut s);
-    s.unit_types[t].combat.x_spacing = 0xc0;
-    s.unit_types[t].combat.y_spacing = 0xc0;
+    s.tables.unit_types[t].combat.x_spacing = 0xc0;
+    s.tables.unit_types[t].combat.y_spacing = 0xc0;
     let here = Pos::new(0x8000, 0x4000);
     let a = spawn(&mut s, 1, t, here);
     let b = spawn(&mut s, 1, t, Pos::new(0x8000, 0x4200));
@@ -1871,8 +1881,8 @@ fn a_queue_first_guard_is_laid_out_over_the_sorted_list() {
     let guards = |sorted: bool| {
         let mut s = sim();
         let t = fighter(&mut s);
-        s.unit_types[t].combat.x_spacing = 0xc0;
-        s.unit_types[t].combat.y_spacing = 0xc0;
+        s.tables.unit_types[t].combat.x_spacing = 0xc0;
+        s.tables.unit_types[t].combat.y_spacing = 0xc0;
         let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
         let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
         let c = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
@@ -1888,7 +1898,7 @@ fn a_queue_first_guard_is_laid_out_over_the_sorted_list() {
         }
         // The follower listed second, its captain not at all: the
         // list `Group::sort` finds a stray in.
-        s.armies[1].list[slot].units = if sorted {
+        s.ai.armies[1].list[slot].units = if sorted {
             vec![a, b, c, cap, sub]
         } else {
             vec![a, sub, b, c]
@@ -1943,8 +1953,8 @@ fn a_queue_first_guard_is_laid_out_over_the_sorted_list() {
 fn a_group_sent_to_its_own_feet_lays_out_on_the_leader_s_heading() {
     let mut s = sim();
     let t = fighter(&mut s);
-    s.unit_types[t].combat.x_spacing = 0xc0;
-    s.unit_types[t].combat.y_spacing = 0xc0;
+    s.tables.unit_types[t].combat.x_spacing = 0xc0;
+    s.tables.unit_types[t].combat.y_spacing = 0xc0;
     let here = Pos::new(0x8000, 0x4000);
     let a = spawn(&mut s, 1, t, here);
     let b = spawn(&mut s, 1, t, Pos::new(0x8000, 0x4200));
@@ -2102,8 +2112,8 @@ fn a_group_move_follower_walks_to_the_leader_s_position_plus_its_slot() {
     // A real `X_SPACING`, so `Form::compute` lays the two out side by
     // side rather than both on the origin — the shipped data never
     // leaves it at zero and a hand-built type would.
-    s.unit_types[t].combat.x_spacing = 0xc0;
-    s.unit_types[t].combat.y_spacing = 0xc0;
+    s.tables.unit_types[t].combat.x_spacing = 0xc0;
+    s.tables.unit_types[t].combat.y_spacing = 0xc0;
     // The second stands where the Line's slot for it will be — south
     // of the leader, the move going east — so it walks straight to it
     // rather than crossing behind.
@@ -2183,8 +2193,8 @@ fn a_squad_joins_a_small_army() -> (Sim, usize, [usize; 5]) {
 #[test]
 fn a_squad_joining_a_small_seated_group_is_listed_by_its_tail_alone() {
     let (s, slot, [a, b, cap, mid, tail]) = a_squad_joins_a_small_army();
-    assert_eq!(s.armies[1].list[slot].units, vec![a, b, tail]);
-    let pool = s.armies[1].list[slot].group.pool;
+    assert_eq!(s.ai.armies[1].list[slot].units, vec![a, b, tail]);
+    let pool = s.ai.armies[1].list[slot].group.pool;
     for u in [cap, mid, tail] {
         assert_eq!(
             s.units[u].group_ptr, pool,
@@ -2208,7 +2218,7 @@ fn a_squad_joining_a_small_seated_group_is_listed_by_its_tail_alone() {
 #[test]
 fn the_sort_re_seats_a_stray_follower_s_squad_and_clears_its_pointer() {
     let (mut s, slot, [a, b, cap, mid, tail]) = a_squad_joins_a_small_army();
-    let pool = s.armies[1].list[slot].group.pool;
+    let pool = s.ai.armies[1].list[slot].group.pool;
     let g = s.army_group(1, slot);
     s.group_action_move_to(
         &g,
@@ -2219,7 +2229,7 @@ fn the_sort_re_seats_a_stray_follower_s_squad_and_clears_its_pointer() {
         MoveKind::MoveTo,
         true,
     );
-    assert_eq!(s.armies[1].list[slot].units, vec![a, b, cap, mid, tail]);
+    assert_eq!(s.ai.armies[1].list[slot].units, vec![a, b, cap, mid, tail]);
     assert_eq!(s.units[tail].group_ptr, None, "the kill cleared it");
     assert_eq!(s.units[cap].group_ptr, pool, "the re-add wrote nothing");
     assert_eq!(s.units[mid].group_ptr, pool);
@@ -2227,7 +2237,7 @@ fn the_sort_re_seats_a_stray_follower_s_squad_and_clears_its_pointer() {
     // And the army's own normalize then drops it, as the pool's
     // per-frame pass does on the slot's frame.
     s.army_normalize(1, slot);
-    assert_eq!(s.armies[1].list[slot].units, vec![a, b, cap, mid]);
+    assert_eq!(s.ai.armies[1].list[slot].units, vec![a, b, cap, mid]);
 }
 
 /// `ungroup_move_order` walks **up to the captain and back down every
@@ -2499,8 +2509,8 @@ fn a_hurrying_army_stables_its_siege_and_marches_the_rest() {
     let siege = siege_type(&mut s);
     let city_pos = Pos::new(0x4000, 0x4000);
     let bldg = s.add_building(1, city_pos, 4);
-    let c = s.cities.len();
-    s.cities.push(crate::city::City {
+    let c = s.cities.cities.len();
+    s.cities.cities.push(crate::city::City {
         alive: true,
         owner: 1,
         race: Some(1),
@@ -2564,7 +2574,7 @@ fn a_hurrying_army_stables_its_siege_and_marches_the_rest() {
 
     // Hurrying, with a city at the destination: the siege is stabled
     // and the footman still marches.
-    s.armies[1].list[slot].hurry = 1;
+    s.ai.armies[1].list[slot].hurry = 1;
     let g = s.army_group(1, slot);
     s.group_action_move_to(
         &g,
@@ -2585,7 +2595,7 @@ fn a_hurrying_army_stables_its_siege_and_marches_the_rest() {
         "the siege is sent into the city instead, not at it: {}",
         s.order_type(m)
     );
-    s.unit_types[siege].garrison.fortify = true;
+    s.tables.unit_types[siege].garrison.fortify = true;
     s.stable_in_city(m, c, Angle(0));
     assert_eq!(
         s.order_type(m),
@@ -2660,7 +2670,7 @@ fn a_follow_is_one_follow_order_a_member_and_none_on_the_leader_itself() {
 fn a_follower_stands_inside_its_standoff_and_walks_when_the_leader_does() {
     let mut s = sim();
     let t = fighter(&mut s);
-    s.unit_types[t].los = 6;
+    s.tables.unit_types[t].los = 6;
     let lead = spawn(&mut s, 0, t, Pos::new(11640, 11640));
     let f = spawn(&mut s, 0, t, Pos::new(11640, 10872));
     s.units[lead].movement.speed = 29;
@@ -2917,8 +2927,8 @@ fn action_halt_skips_the_dead_the_absent_and_planes_and_the_mask_exempts_special
 #[test]
 fn a_human_s_stand_ground_kills_an_order_without_the_action_bit() {
     let mut s = sim();
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities.nation[0].human = true;
+    s.cities.nation[1].human = false;
     let t = fighter(&mut s);
     let found = spawn(&mut s, 0, t, Pos::new(0x1000, 0x1000));
     let given = spawn(&mut s, 0, t, Pos::new(0x1100, 0x1000));
@@ -3008,13 +3018,13 @@ fn a_defeated_seat_s_unit_keeps_the_bit_through_think() {
     let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
     s.units[a].idle = 1;
     s.units[a].cant_reach = true;
-    s.defeated[1] = true;
+    s.leaders.defeated[1] = true;
     s.think(a, 17);
     assert!(
         s.units[a].cant_reach,
         "the defeated seat's think returns at :98"
     );
-    s.defeated[1] = false;
+    s.leaders.defeated[1] = false;
     s.think(a, 18);
     assert!(!s.units[a].cant_reach, "a live seat's think drops it");
 }
@@ -3152,8 +3162,8 @@ fn the_anchor_s_sub_group_lays_out_on_its_own_cleared_facing() {
         s.army_add_unit(1, slot, u);
         s.units[u].movement.set_facing(Angle::NORTH);
     }
-    s.armies[1].list[slot].group.facing = true;
-    let before = s.armies[1].list[slot].group.clone();
+    s.ai.armies[1].list[slot].group.facing = true;
+    let before = s.ai.armies[1].list[slot].group.clone();
     let g = s.army_group(1, slot);
     s.group_action_siege_attack_to(&g, Pos::new(0x1400, 0x4000), Angle::NORTH);
     assert_eq!(s.order_type(w), index::ATTACK_TO, "the wagon walks in");
@@ -3167,7 +3177,7 @@ fn the_anchor_s_sub_group_lays_out_on_its_own_cleared_facing() {
         "the stack record's 0, not the army's 1: {:?}",
         s.units[w].orders
     );
-    let after = &s.armies[1].list[slot].group;
+    let after = &s.ai.armies[1].list[slot].group;
     assert!(after.facing, "the army's own flag is left alone");
     assert_eq!(
         (after.o, after.o_angle, after.order_num),
@@ -3207,7 +3217,7 @@ fn a_member_s_dying_move_hands_its_mirror_to_the_army_not_the_stack() {
         Some(false),
         false,
     );
-    assert!(!s.armies[1].list[slot].group.facing);
+    assert!(!s.ai.armies[1].list[slot].group.facing);
     let g = s.army_group(1, slot);
     s.group_action_siege_attack_to(&g, to, Angle::NORTH);
     let facing = s.units[w].orders.iter().find_map(|o| match o.body {
@@ -3221,7 +3231,7 @@ fn a_member_s_dying_move_hands_its_mirror_to_the_army_not_the_stack() {
         s.units[w].orders
     );
     assert!(
-        s.armies[1].list[slot].group.facing,
+        s.ai.armies[1].list[slot].group.facing,
         "the army's record keeps the dying move's hand-back"
     );
 }
@@ -3242,8 +3252,8 @@ fn a_siege_unit_s_slot_is_copied_into_the_army_s_table_at_its_own_index() {
     let mut s = sim();
     let foot = fighter(&mut s);
     let siege = siege_type(&mut s);
-    s.unit_types[siege].combat.x_spacing = 0x120;
-    s.unit_types[siege].combat.y_spacing = 0x120;
+    s.tables.unit_types[siege].combat.x_spacing = 0x120;
+    s.tables.unit_types[siege].combat.y_spacing = 0x120;
     let slot = s.init_army(1, None);
     let mut all = Vec::new();
     for (i, ty) in [foot, foot, foot, siege, siege].into_iter().enumerate() {
@@ -3257,7 +3267,7 @@ fn a_siege_unit_s_slot_is_copied_into_the_army_s_table_at_its_own_index() {
     let form_id = |u: usize| s.current_move(u).and_then(|m| m.group).map(|gm| gm.form_id);
     assert_eq!(form_id(m1), Some(3), "the leader's index in the army");
     assert_eq!(form_id(m2), Some(4), "and the follower's, not 1");
-    let st = &s.armies[1].list[slot].group;
+    let st = &s.ai.armies[1].list[slot].group;
     assert_eq!(
         st.off[3],
         (0, 0),
@@ -3269,7 +3279,7 @@ fn a_siege_unit_s_slot_is_copied_into_the_army_s_table_at_its_own_index() {
     // leader's rotation leaves the tail's `curr` as the copy made it.
     let before = st.curr[4];
     s.group_update_positions(&g, m1);
-    assert_eq!(s.armies[1].list[slot].group.curr[4], before);
+    assert_eq!(s.ai.armies[1].list[slot].group.curr[4], before);
 }
 
 /// **The anchor's sub-group sorts its own list, not the army's**
@@ -3303,7 +3313,7 @@ fn the_anchor_s_sub_group_sorts_its_own_list_and_walks_alone() {
     assert!(s.push_group(&mut sq, true));
     s.army_add_unit(1, slot, tail);
     assert_eq!(
-        s.armies[1].list[slot].units,
+        s.ai.armies[1].list[slot].units,
         vec![w, b, tail],
         "the stray tail"
     );
@@ -3317,7 +3327,7 @@ fn the_anchor_s_sub_group_sorts_its_own_list_and_walks_alone() {
         m.group
     );
     assert_eq!(
-        s.armies[1].list[slot].units,
+        s.ai.armies[1].list[slot].units,
         vec![w, b, tail],
         "and the army's list is not the one sorted"
     );
@@ -3660,12 +3670,15 @@ fn halt_clears_the_group_s_form_and_leaves_every_member_s_own() {
         MoveKind::AttackTo,
         true,
     );
-    assert_eq!(s.armies[1].list[slot].group.form, 0, "the move settled 0");
+    assert_eq!(
+        s.ai.armies[1].list[slot].group.form, 0,
+        "the move settled 0"
+    );
     assert_eq!(s.group_get_form(&g), 0, "and wrote it to both members");
 
     s.group_action_halt(&g, 0);
     assert_eq!(
-        s.armies[1].list[slot].group.form, -1,
+        s.ai.armies[1].list[slot].group.form, -1,
         "the halt clears the group's own form"
     );
     assert_eq!(
@@ -3849,7 +3862,7 @@ fn a_hurrying_army_with_no_city_clears_and_marches_its_shooting_siege() {
     let foe = spawn(&mut s, 0, siege, Pos::new(0x1080, 0x1000));
     s.army_add_unit(1, slot, m);
     s.add_attack_order(m, Obj::Unit(foe), QueuePos::New, true, true);
-    s.armies[1].list[slot].hurry = 1; // hurrying, and there is no city
+    s.ai.armies[1].list[slot].hurry = 1; // hurrying, and there is no city
     let g = s.army_group(1, slot);
     s.group_action_move_to(
         &g,
@@ -4258,7 +4271,7 @@ fn a_group_s_mirror_is_the_last_layout_s_and_not_the_march_s() {
         Some(a),
         "the first of one category"
     );
-    assert!(!s.armies[1].list[slot].group.facing, "Group::clear");
+    assert!(!s.ai.armies[1].list[slot].group.facing, "Group::clear");
     // Both face north to start. `Unit::init` would leave them on
     // `Angle::INITIAL` — 120°, which is inside the first order's window
     // too, but the march below is written in round numbers from north.
@@ -4285,7 +4298,7 @@ fn a_group_s_mirror_is_the_last_layout_s_and_not_the_march_s() {
     );
     assert_eq!(order_facing(&s, a), Some(false), "an unmirrored block");
     assert!(
-        !s.armies[1].list[slot].group.facing,
+        !s.ai.armies[1].list[slot].group.facing,
         "and the toggle around Form::compute put the flag back"
     );
 
@@ -4296,13 +4309,13 @@ fn a_group_s_mirror_is_the_last_layout_s_and_not_the_march_s() {
     // frame 327 and the state that made §6.3 look wrong.
     s.unit_set_angle(a, deg(100));
     assert!(
-        s.armies[1].list[slot].group.facing,
+        s.ai.armies[1].list[slot].group.facing,
         "set_angle toggles the leader's group"
     );
     s.unit_set_angle(a, first);
     s.unit_set_angle(b, deg(-100));
     assert!(
-        s.armies[1].list[slot].group.facing,
+        s.ai.armies[1].list[slot].group.facing,
         "a small turn does not, and a follower's never does"
     );
 
@@ -4327,7 +4340,7 @@ fn a_group_s_mirror_is_the_last_layout_s_and_not_the_march_s() {
              last layout's — reading `facing` straight would mirror here"
     );
     assert!(
-        !s.armies[1].list[slot].group.facing,
+        !s.ai.armies[1].list[slot].group.facing,
         "and the march's 1 is gone: the hand-back **assigns**, so a \
              record dumped after this click shows the last layout's flag \
              until the leader turns again"

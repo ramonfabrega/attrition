@@ -89,15 +89,15 @@ fn the_emulated_original_agrees_on_every_row() {
                 let mut sim = Sim::new(Tuning::RON, World::new(8, 8), 4);
                 for w in 0..4 {
                     for k in 0..3 {
-                        sim.caravans[w].slots[k] = van(&p[4 * w + 1 + k]);
+                        sim.economy.caravans[w].slots[k] = van(&p[4 * w + 1 + k]);
                     }
                 }
                 let mut un = Unit::new(who as u8, 0, Pos::new(0, 0), 20);
                 un.caravan = Some(v);
                 let u = sim.add_unit(un);
-                let before = sim.caravans[who].slots[v].clone();
+                let before = sim.economy.caravans[who].slots[v].clone();
                 sim.end_trade_route(u);
-                let after = &sim.caravans[who].slots[v];
+                let after = &sim.economy.caravans[who].slots[v];
                 let r = &mut p[rec];
                 // Written back only where the port changed it, so a field it does not model is not
                 // rewritten from a guess.

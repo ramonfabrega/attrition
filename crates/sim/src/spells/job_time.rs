@@ -23,7 +23,7 @@ impl Sim {
     /// the index is not a craft or the table was never loaded.
     pub fn spell(&self, spell: i32) -> Option<orders::SpellType> {
         let i = usize::try_from(spell - orders::spell::FIRST).ok()?;
-        self.spells.get(i).copied()
+        self.orders.spells.get(i).copied()
     }
 
     /// `SpellTypeData::get_job_time(o, who)@00675800` — the row's own
@@ -60,13 +60,14 @@ impl Sim {
         let who = self.units[u].owner as usize;
         let mut t = i32::from(t);
         if self
+            .tables
             .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[who], FRENCH)
+            .has_tribe_bonus(&self.tables.setup, &self.tech[who], FRENCH)
         {
-            t = self.tuning.french_entrench.wrapping_mul(t) / 100;
+            t = self.tables.tuning.french_entrench.wrapping_mul(t) / 100;
         }
         if self.units[u].alive() {
-            t = self.tuning.antipater_entrench_rate.wrapping_mul(t) / 256;
+            t = self.tables.tuning.antipater_entrench_rate.wrapping_mul(t) / 256;
         }
         t as i16
     }
@@ -91,7 +92,7 @@ impl Sim {
         let t = self.spell_job_time(spell);
         let exactly = |x: tech::TypeId| {
             self.unit_tree(u)
-                .is_some_and(|ut| self.tech_tree.is(ut, x, true))
+                .is_some_and(|ut| self.tables.tech_tree.is(ut, x, true))
         };
         match spell {
             spell::PACK | spell::UNPACK if exactly(HOWITZER) || exactly(KATYUSHA) => t / 2,
@@ -114,9 +115,14 @@ impl Sim {
     /// after its Spy stands.
     pub(crate) fn spies_craft_faster(&self, u: usize) -> bool {
         let who = self.units[u].owner as usize;
-        self.tech_tree
+        self.tables
+            .tech_tree
             .roles
             .spies_craft_faster_preq
-            .is_some_and(|t| self.tech_tree.has_tech(&self.setup, &self.tech[who], t))
+            .is_some_and(|t| {
+                self.tables
+                    .tech_tree
+                    .has_tech(&self.tables.setup, &self.tech[who], t)
+            })
     }
 }

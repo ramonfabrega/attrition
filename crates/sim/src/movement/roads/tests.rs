@@ -9,7 +9,7 @@ fn town(centre: Pos) -> (Sim, usize, usize, usize) {
     let mut w = World::new(20, 20);
     w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(19, 19));
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; crate::economy::RESOURCES];
     }
     // The city's own `7x7 extra space` mask: it stands on seven tiles
@@ -108,7 +108,7 @@ fn a_gatherer_neither_rings_nor_roads_and_a_university_does_both() {
 #[test]
 fn a_building_lays_its_road_when_it_starts_not_when_its_flag_comes_round() {
     let (mut sim, _city, _, lib_ty) = town(Pos::new(40, 40));
-    sim.plan_roads = true;
+    sim.movement.plan_roads = true;
     let before = sim.rng.seed;
     // Placed, not yet started: nothing is laid and nothing is drawn.
     let b = sim
@@ -168,7 +168,7 @@ fn the_flag_fires_on_the_frame_its_object_number_picks_out() {
 #[test]
 fn a_site_does_not_replan_and_keeps_its_flag_until_it_finishes() {
     let (mut sim, _city, _, lib_ty) = town(Pos::new(40, 40));
-    sim.plan_roads = true;
+    sim.movement.plan_roads = true;
     let b = sim
         .place_building(0, lib_ty, centre_of(Pos::new(40, 52)))
         .expect("the library places");
@@ -221,7 +221,7 @@ fn the_ring_is_the_border_of_the_footprint_grown_by_one() {
 #[test]
 fn a_closed_building_takes_its_ring_road_with_it_and_leaves_its_road() {
     let (mut sim, _city, _, lib_ty) = town(Pos::new(40, 40));
-    sim.plan_roads = true;
+    sim.movement.plan_roads = true;
     let b = library_at(&mut sim, lib_ty, Pos::new(40, 52));
     // A 3×3 library at (40,52) has its corner at (39,51): the ring runs
     // (38,50) to (41,53), border only.
@@ -280,7 +280,7 @@ fn an_endpoint_is_the_city_s_tile_and_any_other_type_s_far_corner() {
 #[test]
 fn a_road_is_planned_between_two_buildings_and_laid_where_it_is_not_blocked() {
     let (mut sim, city, _, lib_ty) = town(Pos::new(40, 40));
-    sim.plan_roads = true;
+    sim.movement.plan_roads = true;
     let lib = library_at(&mut sim, lib_ty, Pos::new(33, 40));
     let road = sim.find_road(lib, city);
     assert!(!road.is_empty(), "a road is found on open ground");
@@ -304,14 +304,14 @@ fn a_road_is_planned_between_two_buildings_and_laid_where_it_is_not_blocked() {
 #[test]
 fn a_caravan_expands_the_diagonals_and_a_building_does_not() {
     let (mut sim, city, _, lib_ty) = town(Pos::new(40, 40));
-    sim.plan_roads = true;
+    sim.movement.plan_roads = true;
     let lib = library_at(&mut sim, lib_ty, Pos::new(33, 33));
     let dirs = |sim: &mut Sim, caravan: bool| -> Vec<i32> {
-        sim.trace_costs = true;
-        sim.road_marks.clear();
+        sim.trace.trace_costs = true;
+        sim.trace.road_marks.clear();
         let mut st = sim.start_road(lib, city).expect("two endpoints");
         let _ = sim.step_road(&mut st, (lib, city), caravan, false);
-        let mut d: Vec<i32> = sim.road_marks.iter().map(|m| m.dir).collect();
+        let mut d: Vec<i32> = sim.trace.road_marks.iter().map(|m| m.dir).collect();
         d.sort_unstable();
         d.dedup();
         d
@@ -337,7 +337,7 @@ fn a_caravan_s_search_stops_at_the_budget_and_the_next_frame_resumes_it() {
     let mut w = World::new(60, 60);
     w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(59, 59));
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; crate::economy::RESOURCES];
     }
     let ty = sim.add_build_type(BuildType {
@@ -351,24 +351,24 @@ fn a_caravan_s_search_stops_at_the_budget_and_the_next_frame_resumes_it() {
     });
     let a = sim.init_build(0, ty, centre_of(Pos::new(8, 8)), false);
     let b = sim.init_build(0, ty, centre_of(Pos::new(200, 200)), false);
-    sim.trace_costs = true;
+    sim.trace.trace_costs = true;
     let mut st = sim.start_road(a, b).expect("two endpoints");
     let plan = sim.step_road(&mut st, (a, b), true, false);
     assert_eq!(plan, RoadPlan::Budget, "3,200 nodes do not span the map");
-    let first = sim.road_marks.len();
+    let first = sim.trace.road_marks.len();
     assert!(
         (WORK_CAP as usize..=WORK_CAP as usize + 8).contains(&first),
         "the budget trips one pop past 0xc80: {first}"
     );
     let seen: std::collections::BTreeSet<(i32, i32)> =
-        sim.road_marks.iter().map(|m| m.from).collect();
-    sim.road_marks.clear();
+        sim.trace.road_marks.iter().map(|m| m.from).collect();
+    sim.trace.road_marks.clear();
     let plan = sim.step_road(&mut st, (a, b), true, false);
     assert_eq!(plan, RoadPlan::Budget, "and the second frame is another");
     let then: std::collections::BTreeSet<(i32, i32)> =
-        sim.road_marks.iter().map(|m| m.from).collect();
+        sim.trace.road_marks.iter().map(|m| m.from).collect();
     assert!(
-        sim.road_marks.len() >= WORK_CAP as usize,
+        sim.trace.road_marks.len() >= WORK_CAP as usize,
         "the resumed frame gets the whole budget again, not the rest of one"
     );
     assert!(
@@ -422,7 +422,7 @@ fn a_sea_crossing_between_regions_pays_once_at_the_shore() {
 #[test]
 fn the_search_refuses_ocean_and_answers_nothing_across_it() {
     let (mut sim, city, _, lib_ty) = town(Pos::new(40, 40));
-    sim.plan_roads = true;
+    sim.movement.plan_roads = true;
     let lib = library_at(&mut sim, lib_ty, Pos::new(33, 40));
     for y in 0..80 {
         sim.world

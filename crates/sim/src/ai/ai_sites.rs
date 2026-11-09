@@ -166,7 +166,7 @@ impl Sim {
     /// human's own land with `seen2` clear, and the original prices them
     /// **undoubled** (`docs/ROADS.md` §7.3).
     pub(crate) fn leader_reg_cities(&self, who: Player, r: u16) -> i32 {
-        match self.ai.get(who as usize) {
+        match self.ai.ai.get(who as usize) {
             Some(a) if !a.census.reg_cities.is_empty() => Census::reg(&a.census.reg_cities, r),
             _ => self.reg_city_buildings_pub(who, r),
         }
@@ -189,7 +189,7 @@ impl Sim {
         // bit already proves the final OR, without scanning live wonders and
         // units. Nothing is retained across calls or mutations.
         if who < 8
-            && let Some(ai) = self.ai.get(who as usize)
+            && let Some(ai) = self.ai.ai.get(who as usize)
             && let Some(bits) = self.world.seen2(fx, fy)
             && u32::from(bits) & (ai.census.ally_mask | (1 << who)) != 0
         {
@@ -199,7 +199,7 @@ impl Sim {
     }
 
     fn was_seen_fog_reference(&self, fx: i32, fy: i32, who: Player) -> bool {
-        if self.lobby.reveal_map > 1 || who > 7 || self.sees_every_cell(who) {
+        if self.ai.lobby.reveal_map > 1 || who > 7 || self.sees_every_cell(who) {
             return true;
         }
         let cell = Cell::new(fx >> 1, fy >> 1);
@@ -213,7 +213,7 @@ impl Sim {
         let Some(bits) = self.world.seen2(fx, fy) else {
             return true;
         };
-        let mask = self.ai[who as usize].census.ally_mask | (1 << who);
+        let mask = self.ai.ai[who as usize].census.ally_mask | (1 << who);
         u32::from(bits) & mask != 0
     }
 
@@ -247,10 +247,13 @@ impl Sim {
     /// it counts and the cells it slides to (run651's block 1, `docs/AI.md`
     /// §141).
     pub(crate) fn sees_every_cell(&self, who: Player) -> bool {
-        self.holds_bonus(who, self.tech_tree.roles.explore_map_preq)
+        self.holds_bonus(who, self.tables.tech_tree.roles.explore_map_preq)
             || self.tech.get(who as usize).is_some_and(|p| {
-                self.tech_tree
-                    .has_tribe_bonus(&self.setup, p, crate::nations::power::SPANISH)
+                self.tables.tech_tree.has_tribe_bonus(
+                    &self.tables.setup,
+                    p,
+                    crate::nations::power::SPANISH,
+                )
             })
             || self.sees_every_unit(who)
     }
@@ -261,7 +264,7 @@ impl Sim {
     /// `num_units[0x141]`, a Fouché standing. `is_seen` lacks the `0x1000`
     /// arm [`Sim::sees_every_cell`] adds — an explored map is not a lit one.
     pub(crate) fn sees_every_unit(&self, who: Player) -> bool {
-        if self.holds_bonus(who, self.tech_tree.roles.reveal_enemy_preq) {
+        if self.holds_bonus(who, self.tables.tech_tree.roles.reveal_enemy_preq) {
             return true;
         }
         if self.wonders_held(who) & (1 << crate::tech::wonder::SPACE_PROGRAM) != 0 {
@@ -280,7 +283,7 @@ impl Sim {
         let Some(tech) = self.tech.get(who as usize) else {
             return false;
         };
-        preq.is_some_and(|t| self.tech_tree.has_tech(&self.setup, tech, t))
+        preq.is_some_and(|t| self.tables.tech_tree.has_tech(&self.tables.setup, tech, t))
     }
 
     /// `WorldData::is_ocean@006b4830`: **the cell's own kind**, not its
@@ -310,14 +313,19 @@ impl Sim {
             b.alive
                 && b.active
                 && b.owner == who
-                && b.ty.is_some_and(|t| build::is_fort(&self.build_types, t))
+                && b.ty
+                    .is_some_and(|t| build::is_fort(&self.tables.build_types, t))
                 && b.pos.cell() == c
         })
     }
 
     /// `types.list[BASE_UNITTYPES]` — the tree's first unit, the Citizen.
     fn citizen_root(&self) -> Option<TypeId> {
-        self.tech_tree.types.iter().position(|d| d.kind.is_unit())
+        self.tables
+            .tech_tree
+            .types
+            .iter()
+            .position(|d| d.kind.is_unit())
     }
 
     /// A unit in the Citizen line (the seam for `type == PEASANTS ||
@@ -328,18 +336,22 @@ impl Sim {
         };
         self.units[u]
             .ty
-            .and_then(|r| self.unit_types[r].tree)
-            .is_some_and(|t| self.tech_tree.is(t, root, false))
+            .and_then(|r| self.tables.unit_types[r].tree)
+            .is_some_and(|t| self.tables.tech_tree.is(t, root, false))
     }
 
     /// The build record of a city level, by ident.
     fn city_record(&self, ident: Ident) -> Option<usize> {
-        self.build_types.iter().position(|b| b.ident == ident)
+        self.tables
+            .build_types
+            .iter()
+            .position(|b| b.ident == ident)
     }
 
     /// The six goods' tree ids, in `econ`/`Resource` order.
     fn good_types(&self) -> Vec<TypeId> {
-        self.tech_tree
+        self.tables
+            .tech_tree
             .types
             .iter()
             .enumerate()
@@ -365,7 +377,7 @@ impl Sim {
     /// its centre object); with none, the nearest friendly citizen. Only
     /// their *presence* is read downstream, so this answers two flags.
     fn site_reference(&self, who: Player, reg: u16, at: Pos) -> (bool, bool) {
-        if Census::reg(&self.ai[who as usize].census.reg_cities, reg) == 0 {
+        if Census::reg(&self.ai.ai[who as usize].census.reg_cities, reg) == 0 {
             let unit = self.units.iter().enumerate().any(|(u, x)| {
                 x.owner == who
                     && x.alive()
@@ -376,6 +388,7 @@ impl Sim {
             (false, unit)
         } else {
             let found = self
+                .cities
                 .cities
                 .iter()
                 .any(|c| c.alive && c.owner == who && c.reg == Some(reg));
@@ -438,7 +451,7 @@ impl Sim {
         {
             // A Conquer-the-World game, before my first city, may site on
             // an ally's land at a tenth of the score.
-            if !self.lobby.conquest || self.city_num(who) != 0 || !self.is_ally(o, who) {
+            if !self.ai.lobby.conquest || self.city_num(who) != 0 || !self.is_ally(o, who) {
                 return zero(wx, wy);
             }
             ally_land = true;
@@ -479,7 +492,7 @@ impl Sim {
                 match owner {
                     Owner::Player(o) if o == who => {}
                     Owner::Player(o) => {
-                        if self.lobby.team_style == 2 {
+                        if self.ai.lobby.team_style == 2 {
                             // `get_target` — the seam; no target, so this
                             // arm never fires.
                             if self.leader_target(who) == Some(o) {
@@ -578,7 +591,7 @@ impl Sim {
         v = mul_div(target_adj + 1, v, 2);
 
         // 7. The map edge, on the moved coordinates.
-        let map = self.lobby.map_style;
+        let map = self.ai.lobby.map_style;
         if map != 0xc && map != 0x11 {
             let (lo_x, hi_x, lo_y, hi_y) = if cities < 3 {
                 (world_w / 5, world_w * 4 / 5, world_h / 5, world_h * 4 / 5)
@@ -615,8 +628,8 @@ impl Sim {
         }
 
         // 9. The region's crowding.
-        if self.lobby.map_style != 0x14 {
-            let c = &self.ai[w].census;
+        if self.ai.lobby.map_style != 0x14 {
+            let c = &self.ai.ai[w].census;
             let rc = Census::reg(&c.reg_cities, reg);
             let rl = Census::reg(&c.reg_land, reg);
             if rc == 0 {
@@ -663,7 +676,7 @@ impl Sim {
             if let Some(d) = best {
                 v /= d / 0xc00 + 1;
             }
-            if self.lobby.starting_resources != 8 {
+            if self.ai.lobby.starting_resources != 8 {
                 let mut wood = false;
                 for k in 0..5 {
                     let (x, y) = (sx + CORNER_X[k], sy + CORNER_Y[k]);
@@ -688,7 +701,7 @@ impl Sim {
             if self.type_avail(who, t) == 0 {
                 continue;
             }
-            let econ = self.ai[w].econ[g];
+            let econ = self.ai.ai[w].econ[g];
             if goods & (1u8 << g) == 0 {
                 lack |= econ & 6;
             } else {
@@ -735,7 +748,7 @@ impl Sim {
         let k = {
             let mut k = 1i32;
             if city {
-                for c in self.cities.iter().filter(|c| c.owner == who) {
+                for c in self.cities.cities.iter().filter(|c| c.owner == who) {
                     if !c.alive || c.reg != Some(reg) {
                         return zero(sx, sy);
                     }
@@ -776,19 +789,22 @@ impl Sim {
         cities: i32,
         ally_land: bool,
     ) -> SiteStats {
-        let map = self.lobby.map_style;
-        if map != 0xc && map != 0x11 && (cities == 1 || self.lobby.team_style == 2) {
+        let map = self.ai.lobby.map_style;
+        if map != 0xc && map != 0x11 && (cities == 1 || self.ai.lobby.team_style == 2) {
             let mut sum = 0i32;
-            let nations = self.players.len() as i32;
-            for i in 0..self.players.len() {
+            let nations = self.territory.players.len() as i32;
+            for i in 0..self.territory.players.len() {
                 let l = i as Player;
-                if self.defeated[i] || l == who || self.is_ally(who, l) {
+                if self.leaders.defeated[i] || l == who || self.is_ally(who, l) {
                     continue;
                 }
-                if self.lobby.team_style == 2 && cities >= 2 && self.leader_target(who) != Some(l) {
+                if self.ai.lobby.team_style == 2
+                    && cities >= 2
+                    && self.leader_target(who) != Some(l)
+                {
                     continue;
                 }
-                for c in self.cities.iter().filter(|c| c.owner == l) {
+                for c in self.cities.cities.iter().filter(|c| c.owner == l) {
                     // `city_flags & 0x11 == 0x11`: alive **and capital**,
                     // not "every active city" as `docs/AI.md` §2.13 has it.
                     if !(c.alive && c.capital) {
@@ -811,7 +827,7 @@ impl Sim {
                     sum = sum.wrapping_add(per);
                 }
             }
-            if self.lobby.team_style == 2 {
+            if self.ai.lobby.team_style == 2 {
                 sum = mul(sum, 100);
             }
             if sum != 0 {
@@ -836,12 +852,12 @@ impl Sim {
         let w = who as usize;
 
         if self.frame == 0 {
-            self.ai[w].sites = [Site::default(); SITE_SLOTS];
+            self.ai.ai[w].sites = [Site::default(); SITE_SLOTS];
         } else {
             for i in 0..SITE_SLOTS {
-                let s = self.ai[w].sites[i];
+                let s = self.ai.ai[w].sites[i];
                 if s.rank < 6 || s.val < 1 {
-                    self.ai[w].sites[i] = Site::default();
+                    self.ai.ai[w].sites[i] = Site::default();
                     continue;
                 }
                 let reg = s.reg.clamp(0, i32::from(u16::MAX)) as u16;
@@ -851,7 +867,7 @@ impl Sim {
                 );
                 let (city, unit) = self.site_reference(who, reg, centre);
                 let st = self.compute_site_stats(who, s.wx, s.wy, city, unit, reg, false);
-                let e = &mut self.ai[w].sites[i];
+                let e = &mut self.ai.ai[w].sites[i];
                 e.val = st.val;
                 e.dist = st.dist;
                 e.wx = st.wx;
@@ -861,13 +877,13 @@ impl Sim {
 
         // `param_1 != 0 || (leader_flags & 0xc) != 4` — forced, or not a
         // human leader.
-        if !(force || !self.nation[w].human) {
+        if !(force || !self.cities.nation[w].human) {
             return;
         }
 
         for r in 0..self.world.region_count() {
             let reg = r as u16;
-            if Census::reg(&self.ai[w].census.reg_peasants, reg) == 0 {
+            if Census::reg(&self.ai.ai[w].census.reg_peasants, reg) == 0 {
                 continue;
             }
             let cells: Vec<Cell> = self.world.cells_in(reg).collect();
@@ -894,7 +910,7 @@ impl Sim {
                 };
                 let den = world_w - r0 / 2;
                 stride = (size / den).max(10);
-                start = (self.ai[w].site_mark % stride as u32) as i32;
+                start = (self.ai.ai[w].site_mark % stride as u32) as i32;
                 let q = stride / 4;
                 let r1 = if q <= 1 {
                     0
@@ -902,7 +918,7 @@ impl Sim {
                     self.mark(SITE_MARK);
                     self.rng.roll() % q
                 };
-                self.ai[w].site_mark = self.ai[w].site_mark.wrapping_add((r1 + 3) as u32);
+                self.ai.ai[w].site_mark = self.ai.ai[w].site_mark.wrapping_add((r1 + 3) as u32);
             }
 
             let mut i = start;
@@ -921,7 +937,7 @@ impl Sim {
                 let mut idx: i32 = -1;
                 let mut duplicate = false;
                 for j in 0..SITE_SLOTS {
-                    let s = self.ai[w].sites[j];
+                    let s = self.ai.ai[w].sites[j];
                     if s.wx == st.wx && s.wy == st.wy && s.val > 0 {
                         duplicate = true;
                         break;
@@ -934,7 +950,7 @@ impl Sim {
                 if duplicate || idx < 0 {
                     continue;
                 }
-                let e = &mut self.ai[w].sites[idx as usize];
+                let e = &mut self.ai.ai[w].sites[idx as usize];
                 e.wx = st.wx;
                 e.wy = st.wy;
                 e.val = st.val;
@@ -947,11 +963,11 @@ impl Sim {
         // itself included, so a set of one 370 and nine zeroes ranks 10 and
         // 9. (`docs/AI.md` §2.7's "1 + count" counts the other nine.)
         for i in 0..SITE_SLOTS {
-            let v = self.ai[w].sites[i].val;
+            let v = self.ai.ai[w].sites[i].val;
             let rank = (0..SITE_SLOTS)
-                .filter(|j| self.ai[w].sites[*j].val <= v)
+                .filter(|j| self.ai.ai[w].sites[*j].val <= v)
                 .count();
-            self.ai[w].sites[i].rank = rank as i32;
+            self.ai.ai[w].sites[i].rank = rank as i32;
         }
     }
 
@@ -970,14 +986,14 @@ impl Sim {
         let Some(village) = self.city_record(Ident::Village) else {
             return;
         };
-        let Some(village_t) = self.build_types[village].tree else {
+        let Some(village_t) = self.tables.build_types[village].tree else {
             return;
         };
 
         let mut want = false;
         if self.total_cities(who) < self.city_limit(who)
             && self.type_available(who, village_t)
-            && (self.ai[w].census.free_peasants != 0 || self.ai[w].census.gatherers != 0)
+            && (self.ai.ai[w].census.free_peasants != 0 || self.ai.ai[w].census.gatherers != 0)
             && !self.human_capped(who)
         {
             for i in 0..SITE_SLOTS {
@@ -985,8 +1001,8 @@ impl Sim {
             }
         }
 
-        if want && self.ai[w].make_list.list[0].t != -1 && self.make_stuff(who) {
-            self.ai[w].make_list.clear();
+        if want && self.ai.ai[w].make_list.list[0].t != -1 && self.make_stuff(who) {
+            self.ai.ai[w].make_list.clear();
         }
     }
 
@@ -1011,8 +1027,8 @@ impl Sim {
     /// human.
     fn max_human_cities(&self) -> i32 {
         let mut best = -1;
-        for i in 0..self.nation.len() {
-            if self.defeated[i] || !self.nation[i].human {
+        for i in 0..self.cities.nation.len() {
+            if self.leaders.defeated[i] || !self.cities.nation[i].human {
                 continue;
             }
             best = best.max(self.total_cities(i as Player));
@@ -1024,12 +1040,12 @@ impl Sim {
     /// set `want` — i.e. whether the leader is under its own city limit.
     fn offer_site(&mut self, who: Player, village: usize, village_t: TypeId, i: usize) -> bool {
         let w = who as usize;
-        let s = self.ai[w].sites[i];
+        let s = self.ai.ai[w].sites[i];
         if s.val <= 0 {
             return false;
         }
         let reg = s.reg.clamp(0, i32::from(u16::MAX)) as u16;
-        let c = &self.ai[w].census;
+        let c = &self.ai.ai[w].census;
         if Census::reg(&c.reg_free_peasants, reg) == 0 && Census::reg(&c.reg_gatherers, reg) == 0 {
             return false;
         }
@@ -1037,9 +1053,9 @@ impl Sim {
         // the home region.
         let cities = self.city_num(who);
         if !(self.world.sea_map() < 4
-            || self.lobby.map_style == 0x14
+            || self.ai.lobby.map_style == 0x14
             || !(2..=3).contains(&cities)
-            || s.reg != self.ai[w].census.home_reg)
+            || s.reg != self.ai.ai[w].census.home_reg)
         {
             return false;
         }
@@ -1047,7 +1063,7 @@ impl Sim {
             return false;
         }
 
-        let c = &self.ai[w].census;
+        let c = &self.ai.ai[w].census;
         let rc = Census::reg(&c.reg_cities, reg);
         let mut v = s.val;
         let cmp = if rc == 0 {
@@ -1062,7 +1078,7 @@ impl Sim {
         };
         let queued = self.num_sites_of(who, village);
         if queued == 0 {
-            let c = &self.ai[w].census;
+            let c = &self.ai.ai[w].census;
             if Census::reg(&c.reg_pop, reg) <= Census::reg(&c.reg_peasants, reg) {
                 v = mul(v, 2);
             }
@@ -1073,9 +1089,9 @@ impl Sim {
 
         // Any live city — mine, or any leader's who holds one in this
         // region — within five cells drops the site.
-        for l in 0..self.players.len() {
+        for l in 0..self.territory.players.len() {
             let other = l as Player;
-            if self.defeated[l] {
+            if self.leaders.defeated[l] {
                 continue;
             }
             if !(other == who || self.reg_cities(other, reg) != 0) {
@@ -1084,7 +1100,9 @@ impl Sim {
             for b in &self.buildings {
                 if b.owner != other
                     || !b.alive
-                    || !b.ty.is_some_and(|t| build::is_city(&self.build_types, t))
+                    || !b
+                        .ty
+                        .is_some_and(|t| build::is_city(&self.tables.build_types, t))
                 {
                     continue;
                 }
@@ -1098,7 +1116,7 @@ impl Sim {
             return false;
         }
 
-        let c = &self.ai[w].census;
+        let c = &self.ai.ai[w].census;
         let rl = Census::reg(&c.reg_land, reg);
         if rl < rc {
             v = mul(v, 2);
@@ -1113,9 +1131,9 @@ impl Sim {
             v = mul(v, 30);
         }
 
-        let pop_cap = self.muster[w].cap;
+        let pop_cap = self.roster.muster[w].cap;
         if pop_cap < 200 {
-            let eff = self.ai[w].effective_pop;
+            let eff = self.ai.ai[w].effective_pop;
             if eff > pop_cap * 3 / 4 {
                 // `(city_num + village_num) / 5`; `village_num` is the
                 // seam (0).
@@ -1128,9 +1146,9 @@ impl Sim {
         }
 
         // A thin region I am not the weaker side in.
-        if Census::reg(&self.ai[w].census.strategy, reg) & 5 == 1 {
+        if Census::reg(&self.ai.ai[w].census.strategy, reg) & 5 == 1 {
             let n = cities;
-            let p = self.ai[w].census.peasants;
+            let p = self.ai.ai[w].census.peasants;
             if p < n * 5 {
                 if n * 3 <= p {
                     v = mul_div(v, 3, 2);
@@ -1165,7 +1183,7 @@ impl Sim {
         };
         let scaled = mul(vv / 256, f) / 256;
         let val = scaled / (queued + 1);
-        self.ai[w]
+        self.ai.ai[w]
             .make_list
             .make_me(village_t as i32, val, 1, 9, -1, 0, 1, s.wx, s.wy);
         want
@@ -1242,8 +1260,13 @@ impl Sim {
         // The charge lands before the site is checked — the original's
         // order, and reachable through `place_city_with_cost`.
         let charges = self.building_price(who, rec);
-        let available = self.holdings[w].available;
-        cost::pay(&charges, &mut self.ledgers[w], &available, escrow != 0);
+        let available = self.economy.holdings[w].available;
+        cost::pay(
+            &charges,
+            &mut self.economy.ledgers[w],
+            &available,
+            escrow != 0,
+        );
         self.economy_changed(who);
 
         if !self.site_clear(who, rec, wx, wy) {
@@ -1281,7 +1304,7 @@ impl Sim {
         );
         let ureg = self.world.region_of(cp);
         let mut near: Option<(i32, usize)> = None;
-        for (ci, c) in self.cities.iter().enumerate() {
+        for (ci, c) in self.cities.cities.iter().enumerate() {
             if !c.alive || c.owner != who || c.reg != ureg {
                 continue;
             }
@@ -1292,21 +1315,21 @@ impl Sim {
         }
         let reg = site_reg.unwrap_or(0);
         let gatherer = last_kind == index::GATHER;
-        if self.ai[w].city_ai.len() < self.cities.len() {
-            self.ai[w]
+        if self.ai.ai[w].city_ai.len() < self.cities.cities.len() {
+            self.ai.ai[w]
                 .city_ai
-                .resize(self.cities.len(), crate::ai::CityAi::default());
+                .resize(self.cities.cities.len(), crate::ai::CityAi::default());
         }
         if let Some((_, ci)) = near {
             if gatherer {
-                let g = &mut self.ai[w].city_ai[ci].gatherers;
+                let g = &mut self.ai.ai[w].city_ai[ci].gatherers;
                 *g = g.wrapping_sub(1);
             } else {
-                let f = &mut self.ai[w].city_ai[ci].free;
+                let f = &mut self.ai.ai[w].city_ai[ci].free;
                 *f = f.wrapping_sub(1);
             }
         }
-        let census = &mut self.ai[w].census;
+        let census = &mut self.ai.ai[w].census;
         let slot = reg as usize;
         if gatherer {
             census.gatherers -= 1;
@@ -1343,9 +1366,9 @@ impl Sim {
     ///   only when it bought.
     pub fn place_city_ai_impl(&mut self, who: Player) {
         self.compute_sites(who, false);
-        self.ai[who as usize].make_list.clear();
+        self.ai.ai[who as usize].make_list.clear();
         self.found_cities(who);
-        self.ai[who as usize].make_list.clear();
+        self.ai.ai[who as usize].make_list.clear();
     }
 }
 

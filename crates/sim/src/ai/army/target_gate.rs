@@ -352,10 +352,10 @@ pub(crate) struct SimGate<'a> {
 
 impl SimGate<'_> {
     fn army(&self) -> &crate::army::Army {
-        &self.sim.armies[self.who as usize].list[self.slot]
+        &self.sim.ai.armies[self.who as usize].list[self.slot]
     }
     fn live(&self, a: usize) -> bool {
-        a < self.sim.players.len() && !self.sim.defeated[a]
+        a < self.sim.territory.players.len() && !self.sim.leaders.defeated[a]
     }
     fn city(&self, a: usize, k: usize) -> Option<usize> {
         self.sim.cities_of(a as crate::Player).get(k).copied()
@@ -385,7 +385,11 @@ impl TargetGateView for SimGate<'_> {
         if !self.live(a) {
             return 0;
         }
-        3 | if self.sim.nation[a].human { 4 } else { 0 }
+        3 | if self.sim.cities.nation[a].human {
+            4
+        } else {
+            0
+        }
     }
     fn lid(&self, a: usize) -> i32 {
         a as i32
@@ -419,31 +423,31 @@ impl TargetGateView for SimGate<'_> {
         self.sim.cities_of(a as crate::Player).len() as i32
     }
     fn w444(&self, a: usize) -> i32 {
-        self.sim.ai[a].popwin_timer
+        self.sim.ai.ai[a].popwin_timer
     }
     fn w44c(&self, _a: usize) -> i32 {
         0
     }
     fn raid(&self, a: usize) -> i32 {
-        self.sim.ai[a].pers.raid
+        self.sim.ai.ai[a].pers.raid
     }
     fn early(&self, a: usize) -> i32 {
-        self.sim.ai[a].pers.early_army
+        self.sim.ai.ai[a].pers.early_army
     }
     fn defmod(&self, a: usize) -> i32 {
-        self.sim.ai[a].defense_mod
+        self.sim.ai.ai[a].defense_mod
     }
     fn combat(&self, a: usize) -> i32 {
-        self.sim.ai[a].census.combat
+        self.sim.ai.ai[a].census.combat
     }
     fn sea(&self, a: usize) -> i32 {
-        self.sim.ai[a].census.sea_combat
+        self.sim.ai.ai[a].census.sea_combat
     }
     fn frame_attacked(&self, a: usize) -> i32 {
-        self.sim.ai[a].frame_attacked as i32
+        self.sim.ai.ai[a].frame_attacked as i32
     }
     fn attacked_by(&self, a: usize) -> i32 {
-        self.sim.ai[a].attacked_by
+        self.sim.ai.ai[a].attacked_by
     }
     fn military(&self, a: usize) -> i32 {
         self.sim.tech[a].military_level() as i32
@@ -455,16 +459,17 @@ impl TargetGateView for SimGate<'_> {
         self.sim.ai_difficulty()
     }
     fn team_style(&self) -> i32 {
-        self.sim.lobby.team_style
+        self.sim.ai.lobby.team_style
     }
     fn frame(&self) -> i32 {
         self.sim.frame as i32
     }
     fn start_list(&self, k: i32) -> i32 {
-        self.sim.lobby.start_list[(k & 7) as usize] as i32
+        self.sim.ai.lobby.start_list[(k & 7) as usize] as i32
     }
     fn start_index(&self, id: i32) -> i32 {
         self.sim
+            .ai
             .lobby
             .start_list
             .iter()
@@ -476,20 +481,21 @@ impl TargetGateView for SimGate<'_> {
     }
     fn city_reg(&self, a: usize, k: usize) -> i32 {
         self.city(a, k)
-            .and_then(|c| self.sim.cities[c].reg)
+            .and_then(|c| self.sim.cities.cities[c].reg)
             .map_or(-1, i32::from)
     }
     fn city_founder(&self, a: usize, k: usize) -> i32 {
         self.city(a, k)
-            .map_or(-1, |c| i32::from(self.sim.cities[c].founder))
+            .map_or(-1, |c| i32::from(self.sim.cities.cities[c].founder))
     }
     fn city_ocean(&self, a: usize, k: usize) -> i32 {
-        self.city(a, k)
-            .map_or(0, |c| self.sim.ai[a].city_ai.get(c).map_or(0, |r| r.ocean))
+        self.city(a, k).map_or(0, |c| {
+            self.sim.ai.ai[a].city_ai.get(c).map_or(0, |r| r.ocean)
+        })
     }
     fn capital_cell(&self, owner: i32, idx: i32) -> (i32, i32) {
         let c = self.sim.cities_of(owner as crate::Player)[idx as usize];
-        let cell = self.sim.cities[c].pos.cell();
+        let cell = self.sim.cities.cities[c].pos.cell();
         (cell.x, cell.y)
     }
     fn count(&mut self, kind: i32, arg: i32) -> i32 {
@@ -511,7 +517,7 @@ impl TargetGateView for SimGate<'_> {
             .sim
             .cities_of(w)
             .into_iter()
-            .position(|c| self.sim.cities[c].capital);
+            .position(|c| self.sim.cities.cities[c].capital);
         (idx.map_or(-1, |i| i as i32), i32::from(w))
     }
     fn tribute(&mut self, _b: usize) -> bool {

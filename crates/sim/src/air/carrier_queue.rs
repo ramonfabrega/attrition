@@ -62,7 +62,7 @@ impl Sim {
             return None;
         }
         let rec = self.unit_rec_of_index(ti)?;
-        if self.unit_types[rec].combat.domain != attrition::Domain::Air {
+        if self.tables.unit_types[rec].combat.domain != attrition::Domain::Air {
             return None;
         }
         let mut queued = 0;
@@ -84,14 +84,24 @@ impl Sim {
                 return Some(queued);
             };
             let charges = self.price_of(who, t);
-            let available = self.holdings[who as usize].available;
-            if crate::cost::affordable(&charges, &self.ledgers[who as usize], &available, true) < 1
+            let available = self.economy.holdings[who as usize].available;
+            if crate::cost::affordable(
+                &charges,
+                &self.economy.ledgers[who as usize],
+                &available,
+                true,
+            ) < 1
             {
                 return Some(queued);
             }
-            crate::cost::pay(&charges, &mut self.ledgers[who as usize], &available, true);
+            crate::cost::pay(
+                &charges,
+                &mut self.economy.ledgers[who as usize],
+                &available,
+                true,
+            );
             self.units[u].num_queued += 1;
-            self.muster[who as usize].queued_by_type[t] += 1;
+            self.roster.muster[who as usize].queued_by_type[t] += 1;
             self.track_tree_queued(who, t, 1);
             queued += 1;
         }
@@ -105,8 +115,9 @@ impl Sim {
             .filter(|p| {
                 p.alive()
                     && p.inside_unit == Some(carrier)
-                    && p.ty
-                        .is_some_and(|t| self.unit_types[t].combat.domain == attrition::Domain::Air)
+                    && p.ty.is_some_and(|t| {
+                        self.tables.unit_types[t].combat.domain == attrition::Domain::Air
+                    })
             })
             .count() as i32
     }
@@ -116,7 +127,7 @@ impl Sim {
     /// building's ([`Sim::airbase_pad_full`]).
     fn unit_aircraft_limit(&self, u: usize) -> i32 {
         if self.unit_line_is(u, AIRCRAFTCARRIER) {
-            self.tuning.max_aircraft_per_carrier
+            self.tables.tuning.max_aircraft_per_carrier
         } else {
             0
         }
@@ -135,13 +146,13 @@ impl Sim {
             return;
         };
         let target = self.unit_train_target(who, t, false);
-        let accel = self.tuning.accel_train;
+        let accel = self.tables.tuning.accel_train;
         self.units[u].queue_time += accel;
         if self.units[u].queue_time < target {
             return;
         }
-        let muster = &self.muster[who as usize];
-        if muster.cap < self.unit_types[t].price.pop + muster.control {
+        let muster = &self.roster.muster[who as usize];
+        if muster.cap < self.tables.unit_types[t].price.pop + muster.control {
             self.units[u].queue_time -= accel;
             return;
         }
@@ -168,7 +179,7 @@ impl Sim {
         self.untrack_queued(who, t);
         if refund {
             let charges = self.price_of(who, t);
-            let ledger = &mut self.ledgers[who as usize];
+            let ledger = &mut self.economy.ledgers[who as usize];
             for (b, c) in ledger.bucket.iter_mut().zip(charges) {
                 *b += c;
             }

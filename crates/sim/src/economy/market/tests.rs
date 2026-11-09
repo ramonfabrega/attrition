@@ -28,12 +28,12 @@ fn after_sweep() -> u32 {
 fn run12_s_frame_0_market_from_the_traced_word() {
     let mut s = sim_with(after_sweep());
     s.calc_markets(0);
-    assert_eq!(s.market.price, [51, 50, 50, 50, 50, 50]);
-    assert_eq!(s.market.next_flux, [-13, -9, -11, -3, -1, -9]);
-    assert_eq!(s.market.flux_length, [15, 8, 21, 22, 11, 20]);
-    assert_eq!(s.market.delta_flux, [-2, -3, -2, -1, -2, -2]);
-    assert_eq!(s.market.flux, [13, 12, 13, 14, 13, 13]);
-    assert_eq!(s.market.tick, 1);
+    assert_eq!(s.economy.market.price, [51, 50, 50, 50, 50, 50]);
+    assert_eq!(s.economy.market.next_flux, [-13, -9, -11, -3, -1, -9]);
+    assert_eq!(s.economy.market.flux_length, [15, 8, 21, 22, 11, 20]);
+    assert_eq!(s.economy.market.delta_flux, [-2, -3, -2, -1, -2, -2]);
+    assert_eq!(s.economy.market.flux, [13, 12, 13, 14, 13, 13]);
+    assert_eq!(s.economy.market.tick, 1);
     let mut r = Rng::new(after_sweep());
     for _ in 0..18 {
         r.roll();
@@ -55,22 +55,29 @@ fn the_rota_visits_one_good_in_eight_and_renews_on_the_count() {
         s.calc_markets(f);
     }
     assert_eq!(s.rng.seed, seed, "ticks 1–7 draw nothing");
-    assert_eq!(s.market.tick, 8);
-    assert_eq!(s.market.flux_length[1], 7, "good 1 was visited at tick 7");
-    assert_eq!(s.market.flux[1], 12 - 3, "and its flux stepped by delta");
-    assert_eq!(s.market.flux_length[0], 15, "good 0 not yet");
+    assert_eq!(s.economy.market.tick, 8);
+    assert_eq!(
+        s.economy.market.flux_length[1], 7,
+        "good 1 was visited at tick 7"
+    );
+    assert_eq!(
+        s.economy.market.flux[1],
+        12 - 3,
+        "and its flux stepped by delta"
+    );
+    assert_eq!(s.economy.market.flux_length[0], 15, "good 0 not yet");
     s.calc_markets(8);
-    assert_eq!(s.market.flux_length[0], 14);
-    assert_eq!(s.market.flux[0], 13 - 2);
+    assert_eq!(s.economy.market.flux_length[0], 14);
+    assert_eq!(s.economy.market.flux[0], 13 - 2);
     assert_eq!(s.rng.seed, seed);
     for f in 9..=62 {
         s.calc_markets(f);
     }
-    assert_eq!(s.market.flux_length[1], 1);
+    assert_eq!(s.economy.market.flux_length[1], 1);
     assert_eq!(s.rng.seed, seed, "no trend has run out before tick 63");
     s.calc_markets(63);
     assert_ne!(s.rng.seed, seed, "good 1 renewed its trend");
-    assert!(s.market.flux_length[1] >= 8);
+    assert!(s.economy.market.flux_length[1] >= 8);
     let mut r = Rng::new(seed);
     for _ in 0..3 {
         r.roll();
@@ -90,11 +97,11 @@ fn the_price_step() {
         (50, 51, "under: +1"),
     ] {
         let mut s = sim_with(1);
-        s.market.price = [start, 100, 5, 50, 50, 50];
+        s.economy.market.price = [start, 100, 5, 50, 50, 50];
         s.calc_markets(0);
-        assert_eq!(s.market.price[0], expect, "{why}");
-        assert_eq!(s.market.price[1], 100, "good 1 steps on tick 255");
-        assert_eq!(s.market.price[2], 5);
+        assert_eq!(s.economy.market.price[0], expect, "{why}");
+        assert_eq!(s.economy.market.price[1], 100, "good 1 steps on tick 255");
+        assert_eq!(s.economy.market.price[2], 5);
     }
 }
 
@@ -103,17 +110,17 @@ fn the_price_step() {
 #[test]
 fn delta_rounds_away_from_zero() {
     let mut s = sim_with(1);
-    s.tuning.market_trend_range = 1; // no spread: len = MIN_TREND = 8
-    s.market.flux = [15; GOODS];
+    s.tables.tuning.market_trend_range = 1; // no spread: len = MIN_TREND = 8
+    s.economy.market.flux = [15; GOODS];
     s.calc_markets(0);
     for i in 0..GOODS {
-        let diff = s.market.next_flux[i] - 15;
+        let diff = s.economy.market.next_flux[i] - 15;
         let expect = if diff >= 0 {
             (diff + 7) / 8
         } else {
             (diff - 7) / 8
         };
-        assert_eq!(s.market.delta_flux[i], expect);
-        assert_eq!(s.market.flux_length[i], 8);
+        assert_eq!(s.economy.market.delta_flux[i], expect);
+        assert_eq!(s.economy.market.flux_length[i], 8);
     }
 }

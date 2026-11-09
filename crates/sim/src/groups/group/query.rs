@@ -24,17 +24,17 @@ impl Sim {
     /// `GroupData::role` is.
     pub(crate) fn groups_process(&mut self, frame: i64) {
         let s = u8::try_from(frame.rem_euclid(64)).expect("under 64");
-        for w in 0..self.armies.len() {
+        for w in 0..self.ai.armies.len() {
             let who = w as Player;
-            for a in 0..self.armies[w].list.len() {
-                if self.armies[w].list[a].group.pool != Some(s) {
+            for a in 0..self.ai.armies[w].list.len() {
+                if self.ai.armies[w].list[a].group.pool != Some(s) {
                     continue;
                 }
                 // `normalize`'s prune, on the army's list too (§23): a
                 // member whose `+0x80` no longer names this slot is
                 // dropped. The army's own counts are `Army::normalize`'s
                 // and wait for it.
-                let keep: Vec<usize> = self.armies[w].list[a]
+                let keep: Vec<usize> = self.ai.armies[w].list[a]
                     .units
                     .iter()
                     .copied()
@@ -43,23 +43,23 @@ impl Sim {
                 self.army_keep_units(w, a, keep);
                 let g = self.army_group(who, a);
                 let v = self.group_compute_speed(&g);
-                let st = &mut self.armies[w].list[a].group;
+                let st = &mut self.ai.armies[w].list[a].group;
                 st.speed = v;
                 st.new_speed = v;
             }
-            for i in 0..self.pushed.len() {
-                if self.pushed[i].who != who || self.pushed[i].state.pool != Some(s) {
+            for i in 0..self.orders.pushed.len() {
+                if self.orders.pushed[i].who != who || self.orders.pushed[i].state.pool != Some(s) {
                     continue;
                 }
                 // The shift is over all five arrays (`normalize@00711540`'s
                 // inner loop, item 1776): the member's `off`, `curr` and
                 // `angles` entries leave with it.
-                for k in (0..self.pushed[i].list.len()).rev() {
-                    let u = self.pushed[i].list[k];
+                for k in (0..self.orders.pushed[i].list.len()).rev() {
+                    let u = self.orders.pushed[i].list[k];
                     if self.units[u].alive() && self.units[u].group_ptr == Some(s) {
                         continue;
                     }
-                    let p = &mut self.pushed[i];
+                    let p = &mut self.orders.pushed[i];
                     Self::seat_remove_at(&mut p.list, &mut p.state, k);
                 }
                 // A building group's members take the same test's first
@@ -69,15 +69,15 @@ impl Sim {
                 // run1512's `[2007]`, disbanded on 832, leaves slot 1 on
                 // 833, `833 mod 64` (item 3918, `docs/GOLDEN.md` §165).
                 let buildings = &self.buildings;
-                self.pushed[i].builds.retain(|&b| buildings[b].alive);
+                self.orders.pushed[i].builds.retain(|&b| buildings[b].alive);
                 let g = crate::group::Group {
                     who,
                     army: None,
                     pushed: Some(i),
-                    list: self.pushed[i].list.clone(),
+                    list: self.orders.pushed[i].list.clone(),
                 };
                 let v = self.group_compute_speed(&g);
-                let st = &mut self.pushed[i].state;
+                let st = &mut self.orders.pushed[i].state;
                 st.speed = v;
                 st.new_speed = v;
             }
@@ -109,7 +109,7 @@ impl Sim {
     /// fills: the winner's **index in `list`**, which `compute_form` uses to
     /// read the leader's own `angles` byte (§6.3).
     pub fn group_find_leader_slot(&self, g: &Group) -> Option<(usize, usize)> {
-        let human = self.nation[g.who as usize].human;
+        let human = self.cities.nation[g.who as usize].human;
         for on_map_only in [true, false] {
             let mut best: Option<(usize, usize, usize)> = None;
             for (i, &u) in g.list.iter().enumerate() {
@@ -122,7 +122,7 @@ impl Sim {
                 let key = self.units[u]
                     .ty
                     .map_or(crate::form::cat::FORM_CAT_NUM, |t| {
-                        crate::form::type_cat(&self.unit_types[t], t, human)
+                        crate::form::type_cat(&self.tables.unit_types[t], t, human)
                     });
                 if best.is_none_or(|(k, _, _)| key < k) {
                     best = Some((key, u, i));
@@ -193,8 +193,8 @@ impl Sim {
     /// moving unit per frame and [`Sim::group_of`] clones the list.
     pub(crate) fn group_speed_of(&self, u: usize) -> i32 {
         match self.seat_of(u) {
-            Some(Seat::Army(w, a)) => self.armies[w as usize].list[a].group.speed,
-            Some(Seat::Pushed(i)) => self.pushed[i].state.speed,
+            Some(Seat::Army(w, a)) => self.ai.armies[w as usize].list[a].group.speed,
+            Some(Seat::Pushed(i)) => self.orders.pushed[i].state.speed,
             None => 0,
         }
     }
@@ -205,8 +205,8 @@ impl Sim {
     /// simulation calls it.
     pub fn group_speed_pair_of(&self, u: usize) -> Option<(i32, i32)> {
         let st = match self.seat_of(u)? {
-            Seat::Army(w, a) => &self.armies[w as usize].list[a].group,
-            Seat::Pushed(i) => &self.pushed[i].state,
+            Seat::Army(w, a) => &self.ai.armies[w as usize].list[a].group,
+            Seat::Pushed(i) => &self.orders.pushed[i].state,
         };
         Some((st.speed, st.new_speed))
     }
@@ -321,7 +321,7 @@ impl Sim {
         let Some(t) = self.units[u].ty else {
             return StanceType::None;
         };
-        let c = &self.unit_types[t];
+        let c = &self.tables.unit_types[t];
         if c.cols.is(crate::ai_load::role::ROLE_MILITARY) {
             return if c.combat.packs {
                 StanceType::Packer
@@ -571,14 +571,15 @@ impl Sim {
 
     pub(crate) fn is_siege_unit(&self, u: usize) -> bool {
         self.units[u].ty.is_some_and(|t| {
-            self.unit_types[t].combat.siege || self.unit_types[t].cols.flag(uflags::FLAG_SIEGE)
+            self.tables.unit_types[t].combat.siege
+                || self.tables.unit_types[t].cols.flag(uflags::FLAG_SIEGE)
         })
     }
 
     pub(crate) fn is_hero_unit(&self, u: usize) -> bool {
         self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::FLAG2_GENERAL))
+            .is_some_and(|t| self.tables.unit_types[t].cols.flag2(uflags2::FLAG2_GENERAL))
     }
 
     /// `UnitData::is_supply@0046ce80`, the base every unit vtable's `+0xcc`
@@ -587,21 +588,23 @@ impl Sim {
     /// 356 — answers yes, so `action_siege_attack_to`'s supply arm takes
     /// it before a later Supply Wagon (item 3682, `docs/AI.md` §346.2).
     pub(crate) fn is_supply_unit(&self, u: usize) -> bool {
-        self.units[u]
-            .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO))
+        self.units[u].ty.is_some_and(|t| {
+            self.tables.unit_types[t]
+                .cols
+                .flag2(uflags2::SUPPLY_OR_HERO)
+        })
     }
 
     pub(crate) fn is_special_unit(&self, u: usize) -> bool {
         self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::FLAG2_SCOUT))
+            .is_some_and(|t| self.tables.unit_types[t].cols.flag2(uflags2::FLAG2_SCOUT))
     }
 
     pub(crate) fn group_domain(&self, u: usize) -> Domain {
         self.units[u]
             .ty
-            .map_or(Domain::Land, |t| self.unit_types[t].combat.domain)
+            .map_or(Domain::Land, |t| self.tables.unit_types[t].combat.domain)
     }
 
     /// `UnitData::is_plane@0046ce40` — `domain == 2 && !(unit_flags & 0x20)`.
@@ -614,7 +617,7 @@ impl Sim {
         self.group_domain(u) == Domain::Air
             && !self.units[u]
                 .ty
-                .is_some_and(|t| self.unit_types[t].cols.flag(uflags::FLAG_HELICOPTER))
+                .is_some_and(|t| self.tables.unit_types[t].cols.flag(uflags::FLAG_HELICOPTER))
     }
 
     /// `Group::is_attacking_to@0070ea70` (item 1012, `docs/COMBAT.md`
@@ -645,7 +648,12 @@ impl Sim {
 
     /// §6.5's `ai_group`: `!(leaders[who].flags & 4) && group.army >= 0`.
     pub(super) fn ai_army_group(&self, g: &Group) -> bool {
-        g.army.is_some() && self.nation.get(g.who as usize).is_some_and(|n| !n.human)
+        g.army.is_some()
+            && self
+                .cities
+                .nation
+                .get(g.who as usize)
+                .is_some_and(|n| !n.human)
     }
 
     /// `ObjectsData::find_city(SEARCH_FRIENDLY, who, 0x200, FILTER_ALL)`
@@ -654,10 +662,10 @@ impl Sim {
         let reg = self.world.tregion(p.tile());
         let mut best: Option<(i32, usize)> = None;
         for c in self.cities_of(who) {
-            if self.cities[c].reg != reg {
+            if self.cities.cities[c].reg != reg {
                 continue;
             }
-            let q = self.cities[c].pos;
+            let q = self.cities.cities[c].pos;
             let d = crate::world::vector_dist((p.x - q.x).abs(), (p.y - q.y).abs());
             if best.is_none_or(|(bd, _)| d < bd) {
                 best = Some((d, c));
@@ -669,8 +677,8 @@ impl Sim {
     /// §6.5's stable: `can_garrison` → a garrison order, else a move to a
     /// spot around the city between `0x300` and `0x600`.
     pub(super) fn stable_in_city(&mut self, u: usize, c: usize, angle: Angle) {
-        let b = self.cities[c].building;
-        let p = self.cities[c].pos;
+        let b = self.cities.cities[c].building;
+        let p = self.cities.cities[c].pos;
         if self.units[u]
             .ty
             .zip(self.buildings[b].ty)
@@ -700,6 +708,7 @@ impl Sim {
         match (g.army, g.pushed) {
             (Some(s), _) => {
                 let slot = self
+                    .ai
                     .armies
                     .get(g.who as usize)
                     .and_then(|a| a.list.get(s))
@@ -707,7 +716,9 @@ impl Sim {
                     .map_or(s as i32, i32::from);
                 who * 64 + slot
             }
-            (None, Some(i)) => who * 64 + self.pushed[i].state.pool.map_or(i as i32, i32::from),
+            (None, Some(i)) => {
+                who * 64 + self.orders.pushed[i].state.pool.map_or(i as i32, i32::from)
+            }
             (None, None) => -1,
         }
     }
@@ -1016,13 +1027,14 @@ impl Sim {
     /// is the parent's, set aside in [`Sim::set_aside`] (`docs/AI.md` §212).
     pub(super) fn facing_record_mut(&mut self, g: &Group) -> Option<&mut GroupState> {
         if self
+            .orders
             .set_aside
             .as_ref()
             .is_some_and(|(who, army, pushed, _)| {
                 (*who, *army, *pushed) == (g.who, g.army, g.pushed)
             })
         {
-            return self.set_aside.as_mut().map(|(.., st)| st);
+            return self.orders.set_aside.as_mut().map(|(.., st)| st);
         }
         self.gstate_mut(g)
     }

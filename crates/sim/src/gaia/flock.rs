@@ -181,13 +181,13 @@ struct SimFlock<'a> {
 
 impl FlockView for SimFlock<'_> {
     fn leader_live(&self, who: i32) -> bool {
-        self.sim.flock_stamp.get(who as usize).is_some()
+        self.sim.gaia.flock_stamp.get(who as usize).is_some()
     }
     fn stamp(&self, who: i32) -> i64 {
-        self.sim.flock_stamp[who as usize]
+        self.sim.gaia.flock_stamp[who as usize]
     }
     fn set_stamp(&mut self, who: i32, frame: i64) {
-        self.sim.flock_stamp[who as usize] = frame;
+        self.sim.gaia.flock_stamp[who as usize] = frame;
     }
     fn frame(&self) -> i64 {
         self.sim.frame
@@ -218,6 +218,7 @@ impl FlockView for SimFlock<'_> {
     fn make_bird(&mut self, at: Pos) -> Option<usize> {
         let ty = self
             .sim
+            .tables
             .unit_types
             .iter()
             .position(|u| u.tree == Some(FLOCKBIRD))?;
@@ -263,7 +264,7 @@ impl Sim {
     pub(crate) fn is_flockbird(&self, u: usize) -> bool {
         self.units[u]
             .ty
-            .and_then(|t| self.unit_types[t].tree)
+            .and_then(|t| self.tables.unit_types[t].tree)
             .is_some_and(|t| t == FLOCKBIRD)
     }
 
@@ -337,10 +338,10 @@ impl Sim {
             crate::combat::snap(at.y) + 0x18,
         );
         let index = self.find_free(9, crate::UNIT_BASE, crate::BUILD_BASE)?;
-        let mut unit = crate::Unit::new(9, index, at, self.unit_types[ty].hits);
-        unit.kind = self.unit_types[ty].kind;
+        let mut unit = crate::Unit::new(9, index, at, self.tables.unit_types[ty].hits);
+        unit.kind = self.tables.unit_types[ty].kind;
         unit.ty = Some(ty);
-        unit.type_index = self.unit_types[ty].type_index;
+        unit.type_index = self.tables.unit_types[ty].type_index;
         unit.movement.speed = self.type_speed(9, ty);
         unit.movement.turning = self.turning_for(ty);
         unit.stance = self.init_stance(9, ty);
@@ -393,8 +394,8 @@ impl Sim {
         let at = self.units[u].pos;
         let (dx, dy) = (gx - at.x, gy - at.y);
         let mut speed = self.get_speed(u, 1);
-        if self.ai_speed > 1 {
-            speed *= self.ai_speed;
+        if self.ai.ai_speed > 1 {
+            speed *= self.ai.ai_speed;
         }
         if returning && dx.abs() + dy.abs() < speed * 3 / 2 && !clamped {
             self.flockbird_dies(u);

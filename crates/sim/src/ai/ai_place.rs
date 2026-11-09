@@ -347,8 +347,8 @@ impl Sim {
     /// `006e2129` (item 1377, `docs/AI.md` §100).
     pub(crate) fn placement_lines(&self, rec: usize, nocity: bool) -> (bool, bool) {
         (
-            nocity && crate::build::is_tower(&self.build_types, rec),
-            crate::build::is_fort(&self.build_types, rec),
+            nocity && crate::build::is_tower(&self.tables.build_types, rec),
+            crate::build::is_fort(&self.tables.build_types, rec),
         )
     }
 
@@ -375,10 +375,10 @@ impl Sim {
     ) -> (i32, i32, Option<Pos>) {
         let (mut best, mut best_sp, mut best_cand) = (0, 0, None);
         let transport = self.transport_level(who) as i32 != 0;
-        let mut i = self.ai[who as usize].oil_patches.len();
+        let mut i = self.ai.ai[who as usize].oil_patches.len();
         while i > 0 {
             i -= 1;
-            let gi = self.ai[who as usize].oil_patches[i];
+            let gi = self.ai.ai[who as usize].oil_patches[i];
             let g = self.world.goods()[gi];
             if !g.alive {
                 continue;
@@ -389,7 +389,7 @@ impl Sim {
                     continue;
                 }
             } else if self.world.owner(c).player() != Some(who) {
-                self.ai[who as usize].oil_patches.remove(i);
+                self.ai.ai[who as usize].oil_patches.remove(i);
                 continue;
             }
             let mask = self
@@ -451,7 +451,7 @@ impl Sim {
     /// activation re-flagged the city's roads on 568 (`docs/AI.md` §144).
     pub(crate) fn order_builder(&mut self, who: Player, u: usize, kind: u8, o: usize) {
         if kind == index::BUILD_AT {
-            let approach = if self.nation[who as usize].human {
+            let approach = if self.cities.nation[who as usize].human {
                 crate::orders::MoveKind::MoveTo
             } else {
                 crate::orders::MoveKind::ExploreTo
@@ -476,12 +476,12 @@ impl Sim {
         city: Option<usize>,
         escrow: bool,
     ) -> bool {
-        let bt = self.build_types[rec].clone();
+        let bt = self.tables.build_types[rec].clone();
         let ident = bt.ident;
         let frame = self.frame;
         // 4.1 The anchor and the permission: an active city building lends
         // its city; anything else only to a type that needs none.
-        let city = city.filter(|&c| self.cities[c].alive);
+        let city = city.filter(|&c| self.cities.cities[c].alive);
         if city.is_none() && !bt.has(flags::NO_CITY) {
             return false;
         }
@@ -494,7 +494,7 @@ impl Sim {
         // Shipyard or a Port answers it too (`docs/TRANSPORT.md`, "The
         // slot"). It gates three things here — the spiral's start, the
         // site block's extent, and the slide below.
-        let is_dock = crate::build::is_dock(&self.build_types, rec);
+        let is_dock = crate::build::is_dock(&self.tables.build_types, rec);
         let (tower, is_fort) = self.placement_lines(rec, nocity);
         let circle = circle();
         let mut start = 0usize;
@@ -537,7 +537,7 @@ impl Sim {
         }
         let (xs, ys) = (self.world.width(), self.world.height());
         let big = bt.x_size.max(bt.y_size);
-        let unlimited = self.lobby.resources_unlimited();
+        let unlimited = self.ai.lobby.resources_unlimited();
         let mut step = 1;
         let mut best = oil_best;
         let mut best_sp = oil_sp;
@@ -723,8 +723,9 @@ impl Sim {
                     if tower {
                         let near_tower = self.buildings.iter().any(|b| {
                             b.alive
-                                && b.ty
-                                    .is_some_and(|t| self.build_types[t].ident == Ident::Tower)
+                                && b.ty.is_some_and(|t| {
+                                    self.tables.build_types[t].ident == Ident::Tower
+                                })
                                 && vector_dist(b.pos.x - cand.x, b.pos.y - cand.y) <= 0x600
                         });
                         if near_tower {
@@ -741,7 +742,7 @@ impl Sim {
                     let o2 = self.world.second(cell).player();
                     match o2 {
                         Some(p) if p != who && !self.is_ally(who, p) => {
-                            score *= if self.lobby.team_style == 2 { 4 } else { 8 };
+                            score *= if self.ai.lobby.team_style == 2 { 4 } else { 8 };
                         }
                         _ => score /= 2,
                     }
@@ -756,7 +757,7 @@ impl Sim {
                     // weighs the distance and danger terms ten to one
                     // against `0xff − val`, which is added after it.
                     let bordering = city.is_some_and(|c| {
-                        self.ai[who as usize]
+                        self.ai.ai[who as usize]
                             .city_ai
                             .get(c)
                             .is_some_and(|r| r.bordering != 0)
@@ -834,13 +835,14 @@ impl Sim {
         // own record (`ecx = [ebp+8]` at `006e25d9`).
         let (rec, bt, ident) = if oil && best > 0 && self.world.is_ocean(cand.cell()) {
             let platform = self
+                .tables
                 .build_types
                 .iter()
                 .position(|b| b.ident == Ident::OilPlatform)
                 .unwrap_or(rec);
             (
                 platform,
-                self.build_types[platform].clone(),
+                self.tables.build_types[platform].clone(),
                 Ident::OilPlatform,
             )
         } else {
@@ -851,13 +853,18 @@ impl Sim {
         let corner = self.tile_corner(rec, cand);
         let radius = match city {
             Some(c) => self
-                .city_radius(who, self.buildings[self.cities[c].building].ty)
+                .city_radius(who, self.buildings[self.cities.cities[c].building].ty)
                 .min(0x40),
             None => 0x1200,
         };
         let mut builder: Option<(usize, u8)> = None;
         if frame != 0 {
-            let citizen = self.tech_tree.types.iter().position(|d| d.kind.is_unit());
+            let citizen = self
+                .tables
+                .tech_tree
+                .types
+                .iter()
+                .position(|d| d.kind.is_unit());
             let mut best_d = i32::MAX;
             // **In object-number order** (`006e2650`–`006e27b6`): the loop
             // walks `objects->units[who][0..count]`, so a tie keeps the
@@ -877,8 +884,8 @@ impl Sim {
                 }
                 let is_citizen = citizen.is_some_and(|c| {
                     unit.ty
-                        .and_then(|r| self.unit_types[r].tree)
-                        .is_some_and(|t| self.tech_tree.is(t, c, false))
+                        .and_then(|r| self.tables.unit_types[r].tree)
+                        .is_some_and(|t| self.tables.tech_tree.is(t, c, false))
                 });
                 if !is_citizen {
                     continue;
@@ -1009,11 +1016,11 @@ impl Sim {
         // 4.6 Creation: paid after frame 0, the site, the builder's order.
         if frame != 0 {
             let charges = self.building_price(who, rec);
-            let available = self.holdings[who as usize].available;
+            let available = self.economy.holdings[who as usize].available;
             // `pay_cost(who, −1, city, escrow, 0)` (`produce_building:1024`).
             cost::pay(
                 &charges,
-                &mut self.ledgers[who as usize],
+                &mut self.economy.ledgers[who as usize],
                 &available,
                 escrow,
             );
@@ -1034,7 +1041,7 @@ impl Sim {
         // frame 2 shows `gatherers 5 → 4` for exactly this farm.
         let w = who as usize;
         if let Some(c) = city {
-            let leader = &mut self.ai[w];
+            let leader = &mut self.ai.ai[w];
             if leader.city_ai.len() <= c {
                 leader.city_ai.resize(c + 1, crate::ai::CityAi::default());
             }
@@ -1046,7 +1053,7 @@ impl Sim {
             }
         }
         if frame != 0 {
-            let leader = &mut self.ai[w];
+            let leader = &mut self.ai.ai[w];
             let reg = areg.map(|r| r as usize);
             let gatherer = builder.is_some_and(|(_, k)| k == index::GATHER);
             if gatherer {

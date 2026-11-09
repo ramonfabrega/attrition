@@ -145,7 +145,7 @@ impl GoodyView for SimGoody<'_> {
         self.sim.type_available(self.who, good)
     }
     fn held(&self, good: usize) -> i32 {
-        self.sim.ledgers[self.who as usize].bucket[good]
+        self.sim.economy.ledgers[self.who as usize].bucket[good]
     }
     fn roll(&mut self) -> i32 {
         self.sim.mark(SITE_PICK);
@@ -155,7 +155,7 @@ impl GoodyView for SimGoody<'_> {
         self.sim.goody_amount(self.who)
     }
     fn pay(&mut self, good: usize, amount: i32) {
-        let l = &mut self.sim.ledgers[self.who as usize];
+        let l = &mut self.sim.economy.ledgers[self.who as usize];
         l.bucket[good] = l.bucket[good].wrapping_add(amount);
         l.goody_box_resources = l.goody_box_resources.wrapping_add(amount);
     }
@@ -175,7 +175,7 @@ pub struct GoodyItem {
 impl Sim {
     /// A box from the dump's `ITEM` record (item 3335).
     pub fn add_goody_item(&mut self, pos: Pos, alive: bool, ever_seen: u8) {
-        self.goody_items.push(GoodyItem {
+        self.gaia.goody_items.push(GoodyItem {
             pos,
             alive,
             ever_seen,
@@ -189,7 +189,8 @@ impl Sim {
         if self.world.cell_data(c).flags & GOODY == 0 {
             return None;
         }
-        self.goody_items
+        self.gaia
+            .goody_items
             .iter()
             .position(|it| it.alive && it.pos.cell() == c)
     }
@@ -209,7 +210,7 @@ impl Sim {
         let Some(t) = self.units[u].ty else {
             return false;
         };
-        if self.unit_types[t].kind.domain != crate::attrition::Domain::Land {
+        if self.tables.unit_types[t].kind.domain != crate::attrition::Domain::Land {
             return false;
         }
         let who = self.units[u].owner;
@@ -317,22 +318,28 @@ impl Sim {
         // looked is in `seen2` and in no leader's `ever_seen` —
         // run962's item 1 at (45, 49), `ever_seen` 0 on every block to 36
         // under `seen2` 2 at (91, 98) and (91, 99).
-        let item_seen = if self.goody_items.is_empty() {
+        let item_seen = if self.gaia.goody_items.is_empty() {
             self.was_really_seen_fog(x + 1, y + 1, who)
                 || self.was_really_seen_fog(x, y + 1, who)
                 || self.was_really_seen_fog(x + 1, y, who)
                 || self.was_really_seen_fog(x, y, who)
         } else {
-            let mask = self.ai.get(who as usize).map_or(0, |a| a.census.ally_mask) | (1 << who);
+            let mask = self
+                .ai
+                .ai
+                .get(who as usize)
+                .map_or(0, |a| a.census.ally_mask)
+                | (1 << who);
             self.goody_item_at(c)
-                .is_some_and(|i| u32::from(self.goody_items[i].ever_seen) & mask != 0)
+                .is_some_and(|i| u32::from(self.gaia.goody_items[i].ever_seen) & mask != 0)
         };
         if item_seen {
             return true;
         }
         if self
+            .tables
             .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[who as usize], 9)
+            .has_tribe_bonus(&self.tables.setup, &self.tech[who as usize], 9)
             && self.world.owner(c) == crate::world::Owner::Player(who)
         {
             return self.was_seen_fog(x + 1, y + 1, who);
@@ -368,10 +375,11 @@ impl Sim {
     /// §3 has the listing that settles it.
     fn goody_amount(&self, who: Player) -> i32 {
         let level = self.tech[who as usize].epoch[Line::Science.index()];
-        let t = &self.tuning;
-        let spanish = self
-            .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[who as usize], 9);
+        let t = &self.tables.tuning;
+        let spanish =
+            self.tables
+                .tech_tree
+                .has_tribe_bonus(&self.tables.setup, &self.tech[who as usize], 9);
         goody_pile(
             level,
             spanish,

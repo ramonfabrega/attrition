@@ -77,12 +77,14 @@ impl Sim {
     /// `has_wonder(0x21e)` and `space_air_range`), which no supplier and no
     /// General reaches.
     pub(crate) fn unit_mana(&self, u: usize) -> i32 {
-        let mut mana = self.units[u].ty.map_or(0, |t| self.unit_types[t].mana);
+        let mut mana = self.units[u]
+            .ty
+            .map_or(0, |t| self.tables.unit_types[t].mana);
         if mana == 0 {
             return 0;
         }
         let supplier = self.units[u].ty.is_some_and(|t| {
-            self.unit_types[t]
+            self.tables.unit_types[t]
                 .cols
                 .flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
         });
@@ -90,16 +92,16 @@ impl Sim {
             mana *= self.supply_upgrade_level(self.units[u].owner) + 1;
         }
         let who = self.units[u].owner as usize;
-        let french_general = self.tech_tree.has_tribe_bonus(
-            &self.setup,
+        let french_general = self.tables.tech_tree.has_tribe_bonus(
+            &self.tables.setup,
             &self.tech[who],
             crate::nations::power::FRENCH,
-        ) && self.tech_tree.types.get(GENERAL).is_some()
+        ) && self.tables.tech_tree.types.get(GENERAL).is_some()
             && self
                 .unit_tree(u)
-                .is_some_and(|t| self.tech_tree.is(t, GENERAL, true));
+                .is_some_and(|t| self.tables.tech_tree.is(t, GENERAL, true));
         if french_general {
-            (self.tuning.french_special_craft + 100) * mana / 100
+            (self.tables.tuning.french_special_craft + 100) * mana / 100
         } else {
             mana
         }
@@ -175,10 +177,11 @@ impl Sim {
         let who = unit.owner;
         let had = [MILITIA, MINUTEMAN, PARTISAN].iter().any(|&ti| {
             self.unit_rec_of_index(ti)
-                .and_then(|r| self.unit_types[r].tree)
+                .and_then(|r| self.tables.unit_types[r].tree)
                 .is_some_and(|t| {
-                    self.tech_tree
-                        .has_tech(&self.setup, &self.tech[who as usize], t)
+                    self.tables
+                        .tech_tree
+                        .has_tech(&self.tables.setup, &self.tech[who as usize], t)
                 })
         });
         if !had {
@@ -196,7 +199,7 @@ impl Sim {
     /// read it (`leader +0x6c20 & 4/8/0x10`, bits 0x42..0x44).
     pub(crate) fn holds_unit_bit(&self, who: Player, ti: i32) -> bool {
         self.unit_rec_of_index(ti)
-            .and_then(|r| self.unit_types[r].tree)
+            .and_then(|r| self.tables.unit_types[r].tree)
             .is_some_and(|t| self.tech[who as usize].tech[t])
     }
 
@@ -209,17 +212,17 @@ impl Sim {
     /// SEAM: `Unit::update_hits`'s national and wonder terms, which no
     /// staged nation takes.
     pub(crate) fn type_hits(&self, who: Player, rec: usize) -> i32 {
-        let ti = self.unit_types[rec].type_index;
+        let ti = self.tables.unit_types[rec].type_index;
         if matches!(ti, PEASANTS | 0x33) {
             for line in [PARTISAN, MINUTEMAN, MILITIA] {
                 if self.holds_unit_bit(who, line)
                     && let Some(r) = self.unit_rec_of_index(line)
                 {
-                    return self.unit_types[r].hits;
+                    return self.tables.unit_types[r].hits;
                 }
             }
         }
-        self.unit_types[rec].hits
+        self.tables.unit_types[rec].hits
     }
 
     /// `Unit::update_hits@0060e930`: [`Sim::type_hits`] and then the
@@ -262,12 +265,12 @@ impl Sim {
 
     fn update_hits_of(&self, who: Player, rec: usize, marine: bool) -> i32 {
         let k = crate::unit_update_hits_view::UnitHitsK {
-            marine: self.tuning.americans_marine_hp_bonus,
-            iroquois: self.tuning.iroquois_extra_hits,
-            dutch: self.tuning.dutch_hp_bonus,
-            nubian: self.tuning.nubian_hit_points,
-            spy: self.tuning.spy_upgrade_hp,
-            supply: self.tuning.supply_hp_upgrade,
+            marine: self.tables.tuning.americans_marine_hp_bonus,
+            iroquois: self.tables.tuning.iroquois_extra_hits,
+            dutch: self.tables.tuning.dutch_hp_bonus,
+            nubian: self.tables.tuning.nubian_hit_points,
+            spy: self.tables.tuning.spy_upgrade_hp,
+            supply: self.tables.tuning.supply_hp_upgrade,
             ..Default::default()
         };
         let mut v = TypeHits {
@@ -292,7 +295,7 @@ impl Sim {
     /// its own constant. The patch gate on the hero exemption (`8 <
     /// get_patch_version`) is taken as passed: the shipped build is past it.
     pub(crate) fn dutch_ages(&self, who: Player, rec: usize) -> i32 {
-        let Some(t) = self.unit_types.get(rec) else {
+        let Some(t) = self.tables.unit_types.get(rec) else {
             return 0;
         };
         let kind = matches!(t.type_index, 0x3d | 0x3e | 400)
@@ -300,16 +303,18 @@ impl Sim {
             || t.cols.flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO);
         let gov_hero = t
             .tree
-            .and_then(|i| self.tech_tree.types.get(i))
+            .and_then(|i| self.tables.tech_tree.types.get(i))
             .and_then(|d| d.kind.unit())
             .is_some_and(|u| u.patriot);
         match self.tech.get(who as usize) {
             Some(p)
                 if kind
                     && !gov_hero
-                    && self
-                        .tech_tree
-                        .has_tribe_bonus(&self.setup, p, crate::ai::tribe::DUTCH) =>
+                    && self.tables.tech_tree.has_tribe_bonus(
+                        &self.tables.setup,
+                        p,
+                        crate::ai::tribe::DUTCH,
+                    ) =>
             {
                 p.ages
             }
@@ -320,7 +325,10 @@ impl Sim {
     /// The unit record whose `TypeIndex` is `ti`, the first when a nation's
     /// twin shares it.
     pub(crate) fn unit_rec_of_index(&self, ti: i32) -> Option<usize> {
-        self.unit_types.iter().position(|t| t.type_index == ti)
+        self.tables
+            .unit_types
+            .iter()
+            .position(|t| t.type_index == ti)
     }
 
     /// `SpellTypeData::is_valid_target@006763c0(spell, who, o, whom)` for a
@@ -421,7 +429,7 @@ impl Sim {
             return false;
         }
         let caravan = self.units[v].ty.is_some_and(|t| {
-            self.unit_types[t]
+            self.tables.unit_types[t]
                 .cols
                 .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
         });
@@ -501,7 +509,7 @@ impl Sim {
         }
         let armed = self.attack_of(Obj::Unit(v)) != 0;
         let caravan = unit.ty.is_some_and(|t| {
-            self.unit_types[t]
+            self.tables.unit_types[t]
                 .cols
                 .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
         });
@@ -538,7 +546,7 @@ impl Sim {
         }
         let ups = self.spy_upgrade_level(who);
         if s == spell::BRIBE || s == spell::COUNTERINTEL {
-            r += ups * self.tuning.spy_bribe_upgrade_range * 0xc0;
+            r += ups * self.tables.tuning.spy_bribe_upgrade_range * 0xc0;
             let one_tile = match t {
                 Obj::Unit(v) => self.is_siege_unit(v) || self.is_supply_unit(v),
                 Obj::Building(_) => true,
@@ -548,7 +556,7 @@ impl Sim {
             }
         }
         if s == spell::INFORMER {
-            r += ups * self.tuning.spy_informer_upgrade_range * 0xc0;
+            r += ups * self.tables.tuning.spy_informer_upgrade_range * 0xc0;
             if matches!(t, Obj::Building(_)) {
                 r = (r + 1) / 2;
             }
@@ -800,7 +808,7 @@ impl Sim {
         let (centre, radius) = if d.flags & craft::AREA == 0 {
             let radius = match t {
                 Obj::Building(b) => self.buildings[b].ty.map_or(0, |ty| {
-                    (self.build_types[ty].x_size + self.build_types[ty].y_size) * 0x30
+                    (self.tables.build_types[ty].x_size + self.tables.build_types[ty].y_size) * 0x30
                 }),
                 Obj::Unit(_) => self.profile(t).big_radius,
             };
@@ -903,7 +911,7 @@ impl Sim {
         let Some(t) = self.units[u].ty else {
             return false;
         };
-        let cols = self.unit_types[t].cols;
+        let cols = self.tables.unit_types[t].cols;
         if self.units[u].cloak
             || cols.flag(crate::ai_load::uflags::CLOAKED)
             || self.units[u].unit_masks2 & 0x8000 != 0
@@ -1120,10 +1128,11 @@ impl Sim {
 
     /// `LeaderData::current_upgrade(who, ti)` as a unit record.
     pub(crate) fn upgrade_record(&self, who: Player, ti: i32) -> Option<usize> {
-        let t = self.unit_types[self.unit_rec_of_index(ti)?].tree?;
-        let up = self
-            .tech_tree
-            .current_upgrade(&self.setup, &self.tech[who as usize], t);
+        let t = self.tables.unit_types[self.unit_rec_of_index(ti)?].tree?;
+        let up =
+            self.tables
+                .tech_tree
+                .current_upgrade(&self.tables.setup, &self.tech[who as usize], t);
         self.unit_record(up)
     }
 
@@ -1174,7 +1183,7 @@ impl Sim {
             self.units[u].mana_burn = self.units[u].mana_burn.saturating_add(1);
             let left = decoy_time_left(
                 self.general_upgrade_level(self.units[u].owner),
-                self.tuning.decoy_time,
+                self.tables.tuning.decoy_time,
                 self.units[u].mana_burn,
             );
             if left == 0 {
@@ -1226,30 +1235,36 @@ impl Sim {
         // A row the tree does not carry — a fixture's short table; the
         // original's is always whole — is no lineage of anything.
         let is = |x: crate::tech::TypeId, strict: bool| {
-            self.tech_tree.types.get(x).is_some()
-                && tree.is_some_and(|t| self.tech_tree.is(t, x, strict))
+            self.tables.tech_tree.types.get(x).is_some()
+                && tree.is_some_and(|t| self.tables.tech_tree.is(t, x, strict))
         };
         let general = is(GENERAL, true);
         let mut r = 2;
         if self
+            .tables
             .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[who], FRENCH)
+            .has_tribe_bonus(&self.tables.setup, &self.tech[who], FRENCH)
             && general
         {
             r = 4;
         }
         if self
+            .tables
             .tech_tree
             .roles
             .spy_general_recover_preq
-            .is_some_and(|t| self.tech_tree.has_tech(&self.setup, &self.tech[who], t))
+            .is_some_and(|t| {
+                self.tables
+                    .tech_tree
+                    .has_tech(&self.tables.setup, &self.tech[who], t)
+            })
             && (general || is(SPY, true))
         {
             r *= 2;
         }
         if is(MEMNON, false) {
             // `imul; cltd; and $0xff, %edx; lea; sar $8`: toward zero.
-            r = (self.tuning.memnon_regen_rate * r) / 256;
+            r = (self.tables.tuning.memnon_regen_rate * r) / 256;
         }
         r
     }
@@ -1311,7 +1326,7 @@ impl Sim {
         let end = self.frame + i64::from(march_extent(d.duration, d.duration_upgrade, level));
         self.units[g].marching = Some(end);
         let who = self.units[g].owner as usize;
-        self.forced_march[who] = true;
+        self.leaders.forced_march[who] = true;
     }
 
     /// `SpellType::cast_ambush@00671610` — Ambush on a hero: an
@@ -1442,7 +1457,7 @@ impl Sim {
             .iter()
             .any(|x| x.owner == who && x.alive() && x.marching.is_some())
         {
-            self.forced_march[who as usize] = false;
+            self.leaders.forced_march[who as usize] = false;
         }
     }
 
@@ -1471,7 +1486,7 @@ impl Sim {
             _ => None,
         };
         crate::supply::general_radius(
-            &self.tuning,
+            &self.tables.tuning,
             &crate::supply::General {
                 upgrades: self.general_upgrade_level(self.units[h].owner),
                 parmenio: t == 0x168,
@@ -1577,7 +1592,8 @@ impl Sim {
     /// `LeaderData::leader_flags & 0x8000`, [`Sim::forced_march`]. Gaia's
     /// is never set.
     pub(crate) fn leader_marching(&self, u: usize) -> bool {
-        self.forced_march
+        self.leaders
+            .forced_march
             .get(self.units[u].owner as usize)
             .copied()
             .unwrap_or(false)
@@ -1626,7 +1642,7 @@ impl Sim {
         let Ok(x) = crate::tech::TypeId::try_from(x) else {
             return false;
         };
-        self.tech_tree.types.get(x).is_some() && self.tech_tree.is(tree, x, strict)
+        self.tables.tech_tree.types.get(x).is_some() && self.tables.tech_tree.is(tree, x, strict)
     }
 
     /// **The tank** — `Unit::process@00610bc0`'s air arm, taken for a type
@@ -1655,7 +1671,7 @@ impl Sim {
             }
             self.units[u].healing = 0;
         } else {
-            let r = i16::try_from(self.tuning.air_unit_mana_recharge).unwrap_or(i16::MAX);
+            let r = i16::try_from(self.tables.tuning.air_unit_mana_recharge).unwrap_or(i16::MAX);
             let unit = &mut self.units[u];
             unit.mana_burn = if unit.mana_burn > r {
                 unit.mana_burn - r
@@ -1663,7 +1679,7 @@ impl Sim {
                 0
             };
             let level = self.heal_level(self.units[u].owner);
-            let mut rate = self.tuning.aircraft_heal_rate[level];
+            let mut rate = self.tables.tuning.aircraft_heal_rate[level];
             if self.speed_is(u, BOMBER, false) {
                 rate = (rate * 2 + 2) / 3;
             }
@@ -1759,7 +1775,7 @@ impl crate::unit_speed_view::UnitSpeedView for LiveSpeed<'_> {
         u8::try_from(other).is_ok_and(|o| self.s.is_ally(self.s.units[self.u].owner, o))
     }
     fn spear_speed(&self, k: usize) -> i32 {
-        self.s.tuning.iroquois_spear_speed[k]
+        self.s.tables.tuning.iroquois_spear_speed[k]
     }
     fn leader_marching(&self) -> bool {
         self.s.leader_marching(self.u)
@@ -1783,10 +1799,10 @@ impl crate::unit_speed_view::UnitSpeedView for LiveSpeed<'_> {
         usize::try_from(slot).is_ok_and(|h| self.s.speed_is(h, x, false))
     }
     fn forced_march_speed(&self) -> i32 {
-        self.s.tuning.forced_march_speed
+        self.s.tables.tuning.forced_march_speed
     }
     fn alexander_forced_march_speed(&self) -> i32 {
-        self.s.tuning.alexander_forced_march_speed
+        self.s.tables.tuning.alexander_forced_march_speed
     }
     fn unit_move_speed(&self) -> i32 {
         crate::combat::UNIT_MOVE_SPEED
@@ -1817,7 +1833,7 @@ impl AmbushView for SimAmbush<'_> {
         self.sim.units[self.g].type_index == 0x168
     }
     fn parmenio_ambush_time(&self) -> i32 {
-        self.sim.tuning.parmenio_ambush_time
+        self.sim.tables.tuning.parmenio_ambush_time
     }
     fn push_active_spell(&mut self, _start: i32, end: i32) {
         self.sim.units[self.g].ambushing = Some(i64::from(end));
@@ -1849,13 +1865,15 @@ struct TypeHits<'a> {
 
 impl TypeHits<'_> {
     fn t(&self) -> &crate::UnitType {
-        &self.sim.unit_types[self.rec]
+        &self.sim.tables.unit_types[self.rec]
     }
     fn tribe(&self, n: usize) -> bool {
-        self.sim
-            .tech
-            .get(self.who as usize)
-            .is_some_and(|p| self.sim.tech_tree.has_tribe_bonus(&self.sim.setup, p, n))
+        self.sim.tech.get(self.who as usize).is_some_and(|p| {
+            self.sim
+                .tables
+                .tech_tree
+                .has_tribe_bonus(&self.sim.tables.setup, p, n)
+        })
     }
 }
 
@@ -1881,7 +1899,7 @@ impl crate::unit_update_hits_view::UnitHitsView for TypeHits<'_> {
     fn trainer(&mut self) -> i32 {
         self.t()
             .tree
-            .and_then(|i| self.sim.tech_tree.types.get(i))
+            .and_then(|i| self.sim.tables.tech_tree.types.get(i))
             .and_then(|d| d.where_)
             .map_or(0, |w| w as i32)
     }
@@ -1921,7 +1939,7 @@ impl crate::unit_update_hits_view::UnitHitsView for TypeHits<'_> {
     fn is_gov_hero(&mut self) -> bool {
         self.t()
             .tree
-            .and_then(|i| self.sim.tech_tree.types.get(i))
+            .and_then(|i| self.sim.tables.tech_tree.types.get(i))
             .and_then(|d| d.kind.unit())
             .is_some_and(|u| u.patriot)
     }

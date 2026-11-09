@@ -357,7 +357,7 @@ impl Sim {
     /// run371's `@queueup 0 313 2 2009`: one V2 queued and paid, the second
     /// refused (`queued 1` on 2227).
     pub(crate) fn silo_takes(&self, b: usize, ty: usize) -> bool {
-        self.unit_types[ty].combat.obj_masks & crate::combat::mask::MISSILE != 0
+        self.tables.unit_types[ty].combat.obj_masks & crate::combat::mask::MISSILE != 0
             && !self.has_nuke(b)
     }
 
@@ -367,8 +367,9 @@ impl Sim {
     /// 16) homed at it or standing inside it.
     pub fn has_nuke(&self, b: usize) -> bool {
         let bd = &self.buildings[b];
-        let missile =
-            |t: usize| self.unit_types[t].combat.obj_masks & crate::combat::mask::MISSILE != 0;
+        let missile = |t: usize| {
+            self.tables.unit_types[t].combat.obj_masks & crate::combat::mask::MISSILE != 0
+        };
         if bd.alive
             && bd.active
             && bd
@@ -414,7 +415,8 @@ impl Sim {
     /// repeats (item 1714).
     pub(crate) fn airbase_pad_full(&self, at: usize, ty: usize) -> bool {
         self.building_ident(at) == crate::build::Ident::Airbase
-            && self.unit_types[ty].cols.unit_flags & crate::ai_load::uflags::FLAG_HELICOPTER == 0
+            && self.tables.unit_types[ty].cols.unit_flags & crate::ai_load::uflags::FLAG_HELICOPTER
+                == 0
             && self.aircraft_homed(at) >= 10
     }
 
@@ -435,7 +437,7 @@ impl Sim {
         let Some(t) = self.buildings[base].ty else {
             return false;
         };
-        let ident = self.build_types[t].ident;
+        let ident = self.tables.build_types[t].ident;
         if self.is_missile(u) || !self.is_hangar(t) {
             return false;
         }

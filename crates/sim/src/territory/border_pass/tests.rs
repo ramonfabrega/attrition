@@ -36,14 +36,23 @@ fn a_fix_reaches_the_map_at_256_cells_a_frame_in_region_order() {
         Owner::None,
         "the budget ends it"
     );
-    assert_eq!(sim.border_pass.as_ref().unwrap().index, vec![200, 56, 0]);
+    assert_eq!(
+        sim.territory.border_pass.as_ref().unwrap().index,
+        vec![200, 56, 0]
+    );
     sim.advance_border_pass();
     // Frame two: region 1's other 144, region 2's first 112.
-    assert_eq!(sim.border_pass.as_ref().unwrap().index, vec![200, 200, 112]);
+    assert_eq!(
+        sim.territory.border_pass.as_ref().unwrap().index,
+        vec![200, 200, 112]
+    );
     assert_eq!(sim.world.owner(Cell::new(111, 2)), Owner::Player(1));
     assert_eq!(sim.world.owner(Cell::new(112, 2)), Owner::None);
     sim.advance_border_pass();
-    assert!(sim.border_pass.is_none(), "the third frame finishes it");
+    assert!(
+        sim.territory.border_pass.is_none(),
+        "the third frame finishes it"
+    );
     assert_eq!(sim.world.owner(Cell::new(199, 2)), Owner::Player(1));
 }
 
@@ -64,10 +73,10 @@ fn a_census_inside_the_pass_is_undone_for_the_regions_still_waiting() {
     sim.advance_border_pass();
     // The census refills every region between frames one and two.
     let n = sim.world.region_count();
-    sim.ai[1].census.reg_known_rares = vec![1; n.max(3)];
+    sim.ai.ai[1].census.reg_known_rares = vec![1; n.max(3)];
     sim.advance_border_pass();
     let r = |c: Cell| usize::from(sim.world.region_of(c).unwrap());
-    let rares = &sim.ai[1].census.reg_known_rares;
+    let rares = &sim.ai.ai[1].census.reg_known_rares;
     assert_eq!(
         rares[r(Cell::new(0, 0))],
         1,
@@ -130,18 +139,18 @@ fn city_of(who: crate::Player) -> crate::city::City {
 #[test]
 fn a_rival_s_runner_up_marks_the_winning_city_s_bordering() {
     let mut sim = Sim::new(crate::Tuning::RON, rows(8, 1), 2);
-    sim.cities.push(city_of(1));
+    sim.cities.cities.push(city_of(1));
     sim.in_play = true;
     let run = |sim: &mut Sim, won: i32| {
         let before = sim.world.owners();
         let mut target = before.clone();
         target.fill((Owner::Player(1), Owner::Player(0)));
         sim.world.set_owners(&target);
-        sim.territory_won = vec![won; 8];
+        sim.territory.territory_won = vec![won; 8];
         sim.start_border_pass(before);
         sim.advance_border_pass();
     };
-    let bordering = |sim: &Sim| sim.ai[1].city_ai.first().map_or(0, |c| c.bordering);
+    let bordering = |sim: &Sim| sim.ai.ai[1].city_ai.first().map_or(0, |c| c.bordering);
     run(&mut sim, 0);
     assert_eq!(bordering(&sim), 0, "at peace, nothing is marked");
     sim.declare_war(0, 1);
@@ -155,7 +164,7 @@ fn a_rival_s_runner_up_marks_the_winning_city_s_bordering() {
     let mut target = before.clone();
     target.fill((Owner::Player(1), Owner::None));
     sim.world.set_owners(&target);
-    sim.territory_won = vec![0; 8];
+    sim.territory.territory_won = vec![0; 8];
     sim.start_border_pass(before);
     sim.advance_border_pass();
     assert_eq!(bordering(&sim), 0, "the region's first call clears it");

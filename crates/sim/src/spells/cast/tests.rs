@@ -132,13 +132,14 @@ fn casters(tuning: Tuning) -> (Sim, [usize; 4]) {
 fn get_range_adds_the_spy_upgrades_and_collapses_on_siege_and_buildings() {
     use crate::orders::{SpellType, spell};
     let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
-    s.spells = vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
     let at = |c: i32| usize::try_from(c - spell::FIRST).unwrap();
-    s.spells[at(spell::BRIBE)].range = 6 * 192;
-    s.spells[at(spell::COUNTERINTEL)].range = 10 * 192;
-    s.spells[at(spell::INFORMER)].range = 10 * 192;
-    s.spells[at(0x281)].range = 12 * 192;
-    let mut tree = s.tech_tree.clone();
+    s.orders.spells[at(spell::BRIBE)].range = 6 * 192;
+    s.orders.spells[at(spell::COUNTERINTEL)].range = 10 * 192;
+    s.orders.spells[at(spell::INFORMER)].range = 10 * 192;
+    s.orders.spells[at(0x281)].range = 12 * 192;
+    let mut tree = s.tables.tech_tree.clone();
     let steps = ["one", "two", "three"].map(|n| tree.add(crate::tech::TypeDef::plain(n, 0)));
     tree.roles.spy_upgrade_preq = steps.map(Some);
     s.set_tech_tree(tree);
@@ -172,15 +173,15 @@ fn get_range_adds_the_spy_upgrades_and_collapses_on_siege_and_buildings() {
         "another leader"
     );
     let t = s.units[filler].ty.unwrap();
-    s.unit_types[t].combat.siege = true;
+    s.tables.unit_types[t].combat.siege = true;
     assert_eq!(s.spell_range(spell::BRIBE, who, u), 192, "a siege unit");
     assert_eq!(
         s.spell_range(spell::INFORMER, who, u),
         3648,
         "not the Informer's"
     );
-    s.unit_types[t].combat.siege = false;
-    s.unit_types[t].cols.unit_flags2 |= crate::ai_load::uflags2::SUPPLY_OR_HERO;
+    s.tables.unit_types[t].combat.siege = false;
+    s.tables.unit_types[t].cols.unit_flags2 |= crate::ai_load::uflags2::SUPPLY_OR_HERO;
     assert_eq!(
         s.spell_range(spell::COUNTERINTEL, who, u),
         192,
@@ -191,7 +192,7 @@ fn get_range_adds_the_spy_upgrades_and_collapses_on_siege_and_buildings() {
         12 * 192,
         "the Sniper, no vehicle"
     );
-    s.unit_types[t].combat.obj_masks |= crate::combat::mask::VEHICLE;
+    s.tables.unit_types[t].combat.obj_masks |= crate::combat::mask::VEHICLE;
     assert_eq!(s.spell_range(0x281, who, u), 192, "the Sniper on a vehicle");
 }
 
@@ -204,12 +205,13 @@ fn get_range_adds_the_spy_upgrades_and_collapses_on_siege_and_buildings() {
 fn strategy_halves_bribe_and_the_informer_s_hold() {
     use crate::orders::{SpellType, spell};
     let (mut s, [_, spy, _, _]) = casters(Tuning::RON);
-    s.spells = vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
     let at = |c: i32| usize::try_from(c - spell::FIRST).unwrap();
-    s.spells[at(spell::BRIBE)].job_time = 100;
-    s.spells[at(spell::INFORMER)].job_time = 40;
-    s.spells[at(spell::COUNTERINTEL)].job_time = 40;
-    let mut tree = s.tech_tree.clone();
+    s.orders.spells[at(spell::BRIBE)].job_time = 100;
+    s.orders.spells[at(spell::INFORMER)].job_time = 40;
+    s.orders.spells[at(spell::COUNTERINTEL)].job_time = 40;
+    let mut tree = s.tables.tech_tree.clone();
     let strategy = tree.add(crate::tech::TypeDef::plain("strategy", 0));
     tree.roles.spies_craft_faster_preq = Some(strategy);
     s.set_tech_tree(tree);
@@ -237,10 +239,11 @@ fn a_refused_bribe_hands_its_mana_back() {
     use crate::ai_load::{UnitCols, uflags2};
     use crate::orders::{SpellType, spell};
     let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
-    s.spells = vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
     let at = |c: i32| usize::try_from(c - spell::FIRST).unwrap();
-    s.spells[at(spell::BRIBE)].mana = 200;
-    s.spells[at(spell::BRIBE)].from = [Some(super::SPY), None];
+    s.orders.spells[at(spell::BRIBE)].mana = 200;
+    s.orders.spells[at(spell::BRIBE)].from = [Some(super::SPY), None];
     let units = s.units.len();
     let t = crate::combat::Obj::Unit(filler);
     s.units[spy].mana_burn = 500;
@@ -252,7 +255,7 @@ fn a_refused_bribe_hands_its_mana_back() {
     s.units[filler].owner = 0;
     s.units[filler].type_index = 0x165;
     let ty = s.units[filler].ty.unwrap();
-    s.unit_types[ty].cols = UnitCols {
+    s.tables.unit_types[ty].cols = UnitCols {
         unit_flags2: uflags2::FLAG2_GENERAL,
         ..UnitCols::default()
     };
@@ -275,14 +278,15 @@ fn a_cloaked_caster_of_a_craft_without_l_is_blown() {
     use crate::ai_load::{UnitCols, uflags};
     use crate::orders::{SpellType, spell};
     let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
-    s.spells = vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
     let at = |c: i32| usize::try_from(c - spell::FIRST).unwrap();
-    s.spells[at(spell::BRIBE)].flags = 0;
-    s.spells[at(spell::INFORMER)].flags = super::craft::KEEP_CLOAK;
-    s.spells[at(0x281)].flags = 0;
+    s.orders.spells[at(spell::BRIBE)].flags = 0;
+    s.orders.spells[at(spell::INFORMER)].flags = super::craft::KEEP_CLOAK;
+    s.orders.spells[at(0x281)].flags = 0;
     let cloak = |s: &mut Sim, u: usize, flags: u32| {
         let t = s.units[u].ty.unwrap();
-        s.unit_types[t].cols = UnitCols {
+        s.tables.unit_types[t].cols = UnitCols {
             unit_flags: flags,
             ..UnitCols::default()
         };
@@ -358,8 +362,10 @@ fn bribe_takes_only_an_enemy_s_armed_land_unit() {
     use crate::combat::Obj;
     use crate::orders::{SpellType, spell};
     let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
-    s.spells = vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
-    s.spells[usize::try_from(spell::BRIBE - spell::FIRST).unwrap()].flags = 0x2 | 0x20 | 0x80;
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    s.orders.spells[usize::try_from(spell::BRIBE - spell::FIRST).unwrap()].flags =
+        0x2 | 0x20 | 0x80;
     let target = s.add_unit({
         let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
         u.ty = s.units[filler].ty;
@@ -372,7 +378,7 @@ fn bribe_takes_only_an_enemy_s_armed_land_unit() {
     s.declare_war(0, 1);
     assert!(!s.spell_valid_target(spell::BRIBE, 1, t), "unarmed");
     let ty = s.units[target].ty.unwrap();
-    s.unit_types[ty].combat.attack = 5;
+    s.tables.unit_types[ty].combat.attack = 5;
     assert!(
         s.spell_valid_target(spell::BRIBE, 1, t),
         "an enemy's soldier"
@@ -392,8 +398,9 @@ fn sniper_takes_only_an_enemy_s_armed_land_unit() {
     use crate::combat::Obj;
     use crate::orders::{SpellType, spell};
     let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
-    s.spells = vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
-    s.spells[usize::try_from(0x281 - spell::FIRST).unwrap()].flags = 0x2 | 0x20;
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    s.orders.spells[usize::try_from(0x281 - spell::FIRST).unwrap()].flags = 0x2 | 0x20;
     let target = s.add_unit({
         let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
         u.ty = s.units[filler].ty;
@@ -403,7 +410,7 @@ fn sniper_takes_only_an_enemy_s_armed_land_unit() {
     s.declare_war(0, 1);
     assert!(!s.spell_valid_target(0x281, 1, t), "unarmed");
     let ty = s.units[target].ty.unwrap();
-    s.unit_types[ty].combat.attack = 5;
+    s.tables.unit_types[ty].combat.attack = 5;
     assert!(s.spell_valid_target(0x281, 1, t), "an enemy's soldier");
     assert!(
         !s.spell_valid_target(0x281, 0, Obj::Unit(spy)),
@@ -420,8 +427,9 @@ fn counterintelligence_takes_an_infiltrated_friend_or_an_enemy_spy() {
     use crate::combat::Obj;
     use crate::orders::{SpellType, spell};
     let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
-    s.spells = vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
-    s.spells[usize::try_from(spell::COUNTERINTEL - spell::FIRST).unwrap()].flags =
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    s.orders.spells[usize::try_from(spell::COUNTERINTEL - spell::FIRST).unwrap()].flags =
         0x2 | 0x10 | 0x20;
     let friend = Obj::Unit(filler);
     assert!(
@@ -469,10 +477,10 @@ fn counterintelligence_kills_an_enemy_spy_and_clears_a_friend() {
     });
     s.units[foe_spy].on_map = true;
     s.declare_war(0, 1);
-    let deaths = s.deaths.len();
+    let deaths = s.combat.deaths.len();
     s.cast_counterintel(1, foe_spy);
     assert!(!s.units[foe_spy].alive(), "the enemy Spy is dead");
-    assert_eq!(s.deaths.len(), deaths + 1, "a death object, dtype 2");
+    assert_eq!(s.combat.deaths.len(), deaths + 1, "a death object, dtype 2");
     s.units[filler].infiltrated = 1;
     let owner = s.units[filler].owner;
     s.cast_counterintel(owner, filler);
@@ -558,7 +566,7 @@ fn steps(s: &mut Sim, u: usize) -> [i16; 2] {
 #[test]
 fn the_recover_craft_bonus_doubles_a_generals_and_a_spys_rate() {
     let (mut s, [general, spy, _, filler]) = casters(Tuning::RON);
-    s.tech_tree.roles.spy_general_recover_preq = Some(0x40);
+    s.tables.tech_tree.roles.spy_general_recover_preq = Some(0x40);
     s.tech[1].tech.resize(0x41, false);
     assert_eq!(steps(&mut s, general), [1, 1], "the prerequisite not held");
     s.tech[1].tech[0x40] = true;

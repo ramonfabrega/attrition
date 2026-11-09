@@ -33,10 +33,10 @@ fn sea_sim() -> (Sim, usize) {
         }
     }
     let mut s = Sim::new(Tuning::RON, world, 2);
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities.nation[0].human = true;
+    s.cities.nation[1].human = false;
     {
-        let t = &mut s.tech_tree;
+        let t = &mut s.tables.tech_tree;
         for n in [
             "Food",
             "Timber",
@@ -62,7 +62,7 @@ fn sea_sim() -> (Sim, usize) {
         );
     }
     s.tech = (0..2)
-        .map(|_| tech::PlayerTech::new(&s.tech_tree))
+        .map(|_| tech::PlayerTech::new(&s.tables.tech_tree))
         .collect();
     let t = s.add_unit_type(crate::UnitType {
         hits: 20,
@@ -70,8 +70,8 @@ fn sea_sim() -> (Sim, usize) {
         tree: Some(crate::fish::FISHERMEN),
         ..crate::UnitType::default()
     });
-    s.unit_types[t].combat.packs = true;
-    s.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
+    s.tables.unit_types[t].combat.packs = true;
+    s.tables.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
     let at = Pos::new(20 * 768 + 384, 20 * 768 + 384);
     let mut u = crate::Unit::new(1, 14, at, 20);
     u.ty = Some(t);

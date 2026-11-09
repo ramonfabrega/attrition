@@ -234,7 +234,11 @@ impl<'a> SimTransport<'a> {
     /// The unit-type index a type id names.
     fn index_of(&self, id: i32) -> Option<usize> {
         let id = usize::try_from(id).ok()?;
-        self.sim.unit_types.iter().position(|t| t.tree == Some(id))
+        self.sim
+            .tables
+            .unit_types
+            .iter()
+            .position(|t| t.tree == Some(id))
     }
 }
 
@@ -277,7 +281,7 @@ impl TransportView for SimTransport<'_> {
             ty,
             at,
             0,
-            self.sim.tuning.unit_board_distance,
+            self.sim.tables.tuning.unit_board_distance,
             0,
             crate::transport::BOARD_BEARING,
         )
@@ -352,7 +356,7 @@ impl TransportView for SimTransport<'_> {
     fn set_caravan_unit(&mut self, who: i32, s: i32, b: i32) {
         if let Some(van) = usize::try_from(s)
             .ok()
-            .and_then(|s| self.sim.caravans[who as usize].slots.get_mut(s))
+            .and_then(|s| self.sim.economy.caravans[who as usize].slots.get_mut(s))
         {
             van.unit = Some(b as usize);
         }

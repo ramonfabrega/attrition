@@ -74,8 +74,8 @@ pub(crate) fn walk_second_probed(
         borrow_pasture(&mut init, &trace);
     }
     let mut built = build_sim(&loaded, &init, Tuning::RON);
-    built.sim.trace_phases = true;
-    let difficulty = built.sim.lobby.difficulty;
+    built.sim.trace.trace_phases = true;
+    let difficulty = built.sim.ai.lobby.difficulty;
     let last = trace.frames.last().map_or(0, |(n, _)| *n);
     let window = site_window();
     for f in 0..last {
@@ -267,6 +267,7 @@ pub(crate) fn widen_records_from_groups(
             let theirs = pool.iter().find(|g| g.id == id).filter(|g| g.num > 0);
             let army = built
                 .sim
+                .ai
                 .armies
                 .get(who as usize)
                 .into_iter()
@@ -2669,7 +2670,7 @@ mod tests {
                 }
                 let sim = &built.sim;
                 let mut ours = BTreeMap::new();
-                for p in &sim.projectiles {
+                for p in &sim.combat.projectiles {
                     // Keyed on the birth frame, which a spent arrow's reset
                     // `cur_time` does not carry: set aside on both sides, as
                     // the dump's `flags & 2 == 0` above (item 3679).

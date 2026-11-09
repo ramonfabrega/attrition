@@ -706,7 +706,7 @@ impl crate::Sim {
             return false;
         }
         if self.building_ident(at) != crate::build::Ident::University
-            || self.unit_types[ty].worker != crate::orders::Worker::Scholar
+            || self.tables.unit_types[ty].worker != crate::orders::Worker::Scholar
         {
             return true;
         }
@@ -715,7 +715,8 @@ impl crate::Sim {
             .items
             .iter()
             .filter(|q| {
-                q.tech.is_none() && self.unit_types[q.ty].worker == crate::orders::Worker::Scholar
+                q.tech.is_none()
+                    && self.tables.unit_types[q.ty].worker == crate::orders::Worker::Scholar
             })
             .count() as i32;
         queued + self.num_gatherers(at, false, false) <= 6
@@ -732,10 +733,10 @@ impl crate::Sim {
         let Some(rec) = b.ty else {
             return false;
         };
-        if !crate::build::is_training_building(&self.build_types, rec) {
+        if !crate::build::is_training_building(&self.tables.build_types, rec) {
             return false;
         }
-        let researched = &self.muster[b.owner as usize].researched;
+        let researched = &self.roster.muster[b.owner as usize].researched;
         b.queue
             .items
             .iter()
@@ -822,8 +823,8 @@ impl crate::Sim {
     /// lineage (`6db5d9`..`6db62c`). A technology is
     /// [`Sim::researching`]'s equality alone.
     pub fn researching_unit(&self, who: crate::world::Player, ty: usize) -> bool {
-        let researched = &self.muster[who as usize].researched;
-        let tree = self.unit_types[ty].tree;
+        let researched = &self.roster.muster[who as usize].researched;
+        let tree = self.tables.unit_types[ty].tree;
         self.buildings
             .iter()
             .filter(|b| b.owner == who && b.active)
@@ -834,8 +835,8 @@ impl crate::Sim {
                     || (!researched[i.ty]
                         && !researched[ty]
                         && tree
-                            .zip(self.unit_types[i.ty].tree)
-                            .is_some_and(|(t, u)| self.tech_tree.is(t, u, false)))
+                            .zip(self.tables.unit_types[i.ty].tree)
+                            .is_some_and(|(t, u)| self.tables.tech_tree.is(t, u, false)))
             })
     }
 

@@ -68,7 +68,8 @@ fn a_walking_modern_infantry_packs_on_its_own_phase() {
             s.add_unit(g);
         }
         s.units[u].guys.push(crate::anim::Guy::fresh(PIECE));
-        s.art
+        s.roster
+            .art
             .piece_lengths
             .entry(PIECE)
             .or_default()

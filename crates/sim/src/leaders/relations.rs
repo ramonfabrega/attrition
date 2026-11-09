@@ -9,7 +9,8 @@ impl Sim {
     /// Whether `who` is at war with `p` — false for an owner outside the
     /// player table (gaia's units path through territory too).
     pub fn at_war_with(&self, who: Player, p: Player) -> bool {
-        self.at_war
+        self.leaders
+            .at_war
             .get(who as usize)
             .and_then(|row| row.get(p as usize))
             .copied()
@@ -18,8 +19,8 @@ impl Sim {
 
     /// Sets two players as mutual allies — both `diplos` entries at 2.
     pub fn make_allies(&mut self, a: Player, b: Player) {
-        self.allied[a as usize][b as usize] = true;
-        self.allied[b as usize][a as usize] = true;
+        self.leaders.allied[a as usize][b as usize] = true;
+        self.leaders.allied[b as usize][a as usize] = true;
     }
 
     /// `Leader::treaty_on@006e1190` — or `param_2` into **both** leaders'
@@ -33,10 +34,10 @@ impl Sim {
     /// the met bit** and there is no `treaty_off` here.
     pub fn treaty_on(&mut self, a: Player, b: Player, bits: i32) {
         let (a, b) = (a as usize, b as usize);
-        if let Some(x) = self.treaties.get_mut(a).and_then(|r| r.get_mut(b)) {
+        if let Some(x) = self.leaders.treaties.get_mut(a).and_then(|r| r.get_mut(b)) {
             *x |= bits;
         }
-        if let Some(x) = self.treaties.get_mut(b).and_then(|r| r.get_mut(a)) {
+        if let Some(x) = self.leaders.treaties.get_mut(b).and_then(|r| r.get_mut(a)) {
             *x |= bits;
         }
     }
@@ -69,7 +70,8 @@ impl Sim {
     /// Whether `a` has allied `b` — false for an owner outside the player
     /// table, the same reading [`Sim::at_war_with`] gives.
     pub fn allied_with(&self, a: Player, b: Player) -> bool {
-        self.allied
+        self.leaders
+            .allied
             .get(a as usize)
             .and_then(|row| row.get(b as usize))
             .copied()
@@ -103,26 +105,26 @@ impl Sim {
     /// values (met, tribute state) and none of that is here.
     pub fn set_diplo(&mut self, a: Player, b: Player, level: i32) {
         let (x, y) = (a as usize, b as usize);
-        if x >= self.at_war.len() || y >= self.at_war.len() || x == y {
+        if x >= self.leaders.at_war.len() || y >= self.leaders.at_war.len() || x == y {
             return;
         }
         match level {
             0 => {
-                self.allied[x][y] = false;
-                self.allied[y][x] = false;
+                self.leaders.allied[x][y] = false;
+                self.leaders.allied[y][x] = false;
                 self.declare_war(a, b);
             }
             2 => {
-                self.at_war[x][y] = false;
-                self.at_war[y][x] = false;
-                self.allied[x][y] = true;
-                self.allied[y][x] = true;
+                self.leaders.at_war[x][y] = false;
+                self.leaders.at_war[y][x] = false;
+                self.leaders.allied[x][y] = true;
+                self.leaders.allied[y][x] = true;
             }
             _ => {
-                self.at_war[x][y] = false;
-                self.at_war[y][x] = false;
-                self.allied[x][y] = false;
-                self.allied[y][x] = false;
+                self.leaders.at_war[x][y] = false;
+                self.leaders.at_war[y][x] = false;
+                self.leaders.allied[x][y] = false;
+                self.leaders.allied[y][x] = false;
             }
         }
     }
@@ -130,7 +132,7 @@ impl Sim {
     /// `Leader::set_age(n)` on one leader, which is all the `age` cheat
     /// does — the four epochs stay where they were (`docs/INPUT.md` §11).
     pub fn set_leader_age(&mut self, who: Player, n: i32) -> Vec<tech::Gained> {
-        let row = self.tech_tree.ages;
+        let row = self.tables.tech_tree.ages;
         self.set_leader_levels(who, &row, n)
     }
 
@@ -140,7 +142,7 @@ impl Sim {
         let Some(line) = tech::Line::of(cat) else {
             return Vec::new();
         };
-        let row = self.tech_tree.epochs[line.index()];
+        let row = self.tables.tech_tree.epochs[line.index()];
         self.set_leader_levels(who, &row, level)
     }
 
@@ -174,30 +176,41 @@ impl Sim {
         }
         let n = n.clamp(0, tech::LEVELS as i32) as usize;
         for &t in row[n..].iter().rev().flatten() {
-            if self.tech_tree.has_tech(&self.setup, &self.tech[w], t) {
-                self.tech_tree.lose_tech(&self.setup, &mut self.tech[w], t);
+            if self
+                .tables
+                .tech_tree
+                .has_tech(&self.tables.setup, &self.tech[w], t)
+            {
+                self.tables
+                    .tech_tree
+                    .lose_tech(&self.tables.setup, &mut self.tech[w], t);
             }
         }
         let mut events = Vec::new();
         for &t in row[..n].iter().flatten() {
-            if !self.tech_tree.has_tech(&self.setup, &self.tech[w], t) {
+            if !self
+                .tables
+                .tech_tree
+                .has_tech(&self.tables.setup, &self.tech[w], t)
+            {
                 events.extend(self.gain_tech(who, t));
             }
         }
-        self.tech_tree
-            .drop_unfollowed(&self.setup, &mut self.tech[w]);
+        self.tables
+            .tech_tree
+            .drop_unfollowed(&self.tables.setup, &mut self.tech[w]);
         self.apply_gained(who);
         events
     }
 
     /// Sets two players at war with each other.
     pub fn declare_war(&mut self, a: Player, b: Player) {
-        let changed = !self.at_war[a as usize][b as usize];
-        self.at_war[a as usize][b as usize] = true;
-        self.at_war[b as usize][a as usize] = true;
+        let changed = !self.leaders.at_war[a as usize][b as usize];
+        self.leaders.at_war[a as usize][b as usize] = true;
+        self.leaders.at_war[b as usize][a as usize] = true;
         // `Leader::set_diplo` → `Armies::diplo_change` on the declarer
         // (`docs/ARMY.md` §15.9).
-        if changed && (a as usize) < self.armies.len() {
+        if changed && (a as usize) < self.ai.armies.len() {
             self.armies_diplo_change(a);
         }
     }

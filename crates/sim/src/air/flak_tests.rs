@@ -10,8 +10,8 @@ fn sim() -> Sim {
         crate::world::World::new(128, 128),
         2,
     );
-    s.at_war[0][1] = true;
-    s.at_war[1][0] = true;
+    s.leaders.at_war[0][1] = true;
+    s.leaders.at_war[1][0] = true;
     s.rng = combat::Rng::new(12345);
     s
 }
@@ -40,7 +40,7 @@ fn unit(s: &mut Sim, who: crate::Player, at: Pos, prof: combat::Profile) -> usiz
     u.ty = Some(ty);
     u.on_map = true;
     let u = s.add_unit(u);
-    s.units[u].kind = s.unit_types[ty].kind;
+    s.units[u].kind = s.tables.unit_types[ty].kind;
     u
 }
 
@@ -104,7 +104,7 @@ fn radar(s: &mut Sim, with_cycle: bool) -> usize {
             releases: vec![(2, 0, false)],
             launch: Some((136, -136, 227)),
         });
-        let id = s.tech_tree.add(d);
+        let id = s.tables.tech_tree.add(d);
         let bt = s.add_build_type(crate::build::BuildType {
             tree: Some(id),
             ..crate::build::BuildType::default()
@@ -130,13 +130,13 @@ fn an_anti_air_building_takes_its_target_and_does_not_fire_it() {
         s.process_building_combat(r, 16);
         if with_cycle {
             assert_eq!(s.buildings[r].target, Some(Obj::Unit(plane)));
-            assert!(s.projectiles.is_empty(), "no round from do_attack");
+            assert!(s.combat.projectiles.is_empty(), "no round from do_attack");
             assert_eq!(s.buildings[r].recharging, 5, "no countdown");
         } else {
             assert_eq!(s.buildings[r].recharging, 4, "the countdown");
             s.buildings[r].recharging = 0;
             s.process_building_combat(r, 16);
-            assert_eq!(s.projectiles.len(), 1, "fired from do_attack");
+            assert_eq!(s.combat.projectiles.len(), 1, "fired from do_attack");
         }
     }
 }
@@ -159,10 +159,10 @@ fn an_anti_air_building_winds_up_and_fires_on_its_swing() {
     let mut rounds = Vec::new();
     for f in 0..33 {
         s.frame = f;
-        let before = s.projectiles.len();
+        let before = s.combat.projectiles.len();
         s.walls_inc_time(1);
         seen.push(s.buildings[r].recharging);
-        if s.projectiles.len() > before {
+        if s.combat.projectiles.len() > before {
             rounds.push(f);
         }
     }
@@ -170,7 +170,7 @@ fn an_anti_air_building_winds_up_and_fires_on_its_swing() {
     assert_eq!(seen[19..29], (1..=10).map(|k| -k).collect::<Vec<i32>>()[..]);
     assert_eq!(seen[29..33], [-1, -2, -3, -4]);
     assert_eq!(rounds, [20, 30], "on the swing's frame 2");
-    let p = s.projectiles[0];
+    let p = s.combat.projectiles[0];
     assert_eq!(p.launch, Pos::new(22408, 16376));
     assert_eq!(p.num_guys, 0);
     assert_eq!(p.shooter, Obj::Building(r));
@@ -392,7 +392,7 @@ fn a_plane_of_cat_air_crashes_and_a_missile_does_not() {
     let mut s = sim();
     let b = unit(&mut s, 0, Pos::new(21120, 16512), bomber());
     let ty = s.units[b].ty.unwrap();
-    s.unit_types[ty].cols.cat = super::CAT_AIR;
+    s.tables.unit_types[ty].cols.cat = super::CAT_AIR;
     let mut probe = s.rng;
     let _ = probe.roll();
     assert!(s.crashes(b));
@@ -409,7 +409,7 @@ fn a_plane_of_cat_air_crashes_and_a_missile_does_not() {
         },
     );
     let mty = s.units[missile].ty.unwrap();
-    s.unit_types[mty].cols.cat = super::CAT_AIR;
+    s.tables.unit_types[mty].cols.cat = super::CAT_AIR;
     assert!(!s.crashes(missile), "a missile takes add_death");
     let foot = unit(
         &mut s,
@@ -450,8 +450,8 @@ fn a_plane_shot_down_lays_the_crash_round_run405_prints() {
     ] {
         let b = unit(&mut s, 0, at, bomber());
         let ty = s.units[b].ty.unwrap();
-        s.unit_types[ty].cols.cat = super::CAT_AIR;
-        s.unit_types[ty].moves = 60;
+        s.tables.unit_types[ty].cols.cat = super::CAT_AIR;
+        s.tables.unit_types[ty].moves = 60;
         s.units[b].movement.body.pos = at;
         s.units[b].movement.facing = crate::movement::Angle(facing);
         s.units[b].airframe.z = z;
@@ -460,6 +460,7 @@ fn a_plane_shot_down_lays_the_crash_round_run405_prints() {
         assert!(s.crashes(b));
         assert_eq!(s.rng.seed, probe.seed, "one draw from the game's stream");
         let p = *s
+            .combat
             .projectiles
             .iter()
             .find(|p| p.shooter == Obj::Unit(b))
@@ -512,18 +513,21 @@ fn a_crash_round_strikes_the_building_it_comes_down_on() {
             },
         );
         let ty = s.units[b].ty.unwrap();
-        s.unit_types[ty].cols.cat = super::CAT_AIR;
-        s.unit_types[ty].moves = 60;
+        s.tables.unit_types[ty].cols.cat = super::CAT_AIR;
+        s.tables.unit_types[ty].moves = 60;
         s.units[b].movement.body.pos = at;
         s.units[b].airframe.z = 300;
         assert!(s.crashes(b));
-        assert_eq!(s.projectiles[0].splash_area, super::CRASH_SPLASH_AREA);
+        assert_eq!(
+            s.combat.projectiles[0].splash_area,
+            super::CRASH_SPLASH_AREA
+        );
         let mut frame = 100;
-        while !s.projectiles.is_empty() && frame < 200 {
+        while !s.combat.projectiles.is_empty() && frame < 200 {
             s.process_projectiles(frame);
             frame += 1;
         }
-        assert!(s.projectiles.is_empty(), "the round closes");
+        assert!(s.combat.projectiles.is_empty(), "the round closes");
         assert_ne!(
             (s.buildings[t].damage, s.buildings[t].hit_frame),
             before,
@@ -566,7 +570,7 @@ fn a_round_fired_at_a_plane_is_harmless_when_its_roll_misses() {
         s.rng = combat::Rng::new(seed);
         let mut probe = s.rng;
         let missed = probe.roll() % 100 >= 75;
-        s.projectiles.clear();
+        s.combat.projectiles.clear();
         s.fire_ammo_pub(
             Obj::Building(radar),
             Obj::Unit(b),
@@ -578,8 +582,8 @@ fn a_round_fired_at_a_plane_is_harmless_when_its_roll_misses() {
             false,
             false,
         );
-        assert_eq!(s.projectiles.len(), 1);
-        assert_eq!(s.projectiles[0].harmless, missed, "seed {seed}");
+        assert_eq!(s.combat.projectiles.len(), 1);
+        assert_eq!(s.combat.projectiles[0].harmless, missed, "seed {seed}");
         if missed { misses += 1 } else { hits += 1 }
     }
     assert!(
@@ -652,7 +656,7 @@ fn striking_bomber() -> combat::Profile {
 fn a_human_s_bomber_weighs_an_armed_building_without_the_computer_s_five() {
     let weigh = |human: bool| {
         let mut s = sim();
-        s.nation[0].human = human;
+        s.cities.nation[0].human = human;
         let r = radar(&mut s, true);
         if let Some(p) = s.buildings[r].combat.as_mut() {
             p.cost = 250;
@@ -806,7 +810,7 @@ fn a_british_tower_line_building_reaches_two_tiles_further() {
     s.buildings[b].ty = Some(bt);
     let me = Obj::Building(b);
     assert_eq!(s.max_range_of(me), 11, "not British");
-    s.nation[1].british = true;
+    s.cities.nation[1].british = true;
     assert_eq!(s.max_range_of(me), 13, "British Tower line");
     let other = s.add_build_type(crate::build::BuildType::default());
     s.buildings[b].ty = Some(other);
@@ -838,7 +842,7 @@ fn a_turkish_siege_unit_reaches_three_tiles_further() {
         },
     ));
     assert_eq!(s.max_range_of(treb), 16, "not Turkish");
-    s.nation[1].turks = true;
+    s.cities.nation[1].turks = true;
     assert_eq!(s.max_range_of(treb), 19, "a Turkish siege unit");
     assert_eq!(s.max_range_of(archer), 16, "Turkish, not siege");
 }
@@ -876,7 +880,7 @@ fn a_building_that_fires_shows_itself_to_the_player_it_shot() {
     let frame = (5 - i64::from(s.buildings[b].index)).rem_euclid(32);
     assert_eq!(s.buildings[b].visible, 0);
     s.process_building_combat(b, frame);
-    assert!(!s.projectiles.is_empty(), "it fired");
+    assert!(!s.combat.projectiles.is_empty(), "it fired");
     assert_eq!(s.buildings[b].visible, 1, "the Scout's owner's bit");
     assert!(s.buildings[b].attacking);
     assert!(s.build_is_seen(b, 0), "seen by who it shot");
@@ -918,7 +922,7 @@ fn a_building_s_search_skips_a_unit_out_of_its_range() {
     );
     for u in [gone, near] {
         let t = s.units[u].ty.unwrap();
-        s.unit_types[t].combat.cost = 20_000;
+        s.tables.unit_types[t].combat.cost = 20_000;
     }
     // The departing one inside the search's radius and out of range;
     // the near one walks (`/4`); the departing one is the target (`×2`).
@@ -941,7 +945,10 @@ fn a_building_s_search_skips_a_unit_out_of_its_range() {
     let phase0 = (32 - i64::from(s.buildings[b].index)).rem_euclid(32);
     s.process_building_combat(b, phase0);
     assert_eq!(s.buildings[b].target, Some(Obj::Unit(near)), "taken");
-    assert!(!s.projectiles.is_empty(), "and fired on the same call");
+    assert!(
+        !s.combat.projectiles.is_empty(),
+        "and fired on the same call"
+    );
 }
 
 #[test]

@@ -125,10 +125,10 @@ fn the_list_walk_takes_the_footprint_off_both_operands() {
     s.buildings[b[0]].ty = Some(t);
     assert_eq!(s.find_construct_sites(u, 0x2400), vec![b[0]]);
     // One operand alone does not do it: (5932, 6700) is 9326.
-    s.build_types[t].y_size = 0;
+    s.tables.build_types[t].y_size = 0;
     assert!(s.find_construct_sites(u, 0x2400).is_empty());
-    s.build_types[t].y_size = 4;
-    s.build_types[t].x_size = 0;
+    s.tables.build_types[t].y_size = 4;
+    s.tables.build_types[t].x_size = 0;
     assert!(s.find_construct_sites(u, 0x2400).is_empty());
 }
 

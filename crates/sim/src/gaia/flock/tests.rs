@@ -19,7 +19,7 @@ fn sim() -> Sim {
         ..crate::UnitType::default()
     });
     // Named after the fact: the fixture's tech tree has no row 0x193.
-    s.unit_types[t].tree = Some(FLOCKBIRD);
+    s.tables.unit_types[t].tree = Some(FLOCKBIRD);
     s
 }
 
@@ -94,7 +94,7 @@ fn a_flock_is_six_draws_and_ten_a_bird_flown_first_cell_first() {
         );
         assert_eq!(s.units[u].airframe.z, s.units[u].airframe.last_z + 200);
     }
-    assert_eq!(s.flock_stamp[1], 1000);
+    assert_eq!(s.gaia.flock_stamp[1], 1000);
     s.frame = 1000 + FLOCK_GAP - 1;
     let before = s.rng;
     s.add_flock(Pos::new(cx * 4 + 2, cy * 4 + 2), Some(1), 3);

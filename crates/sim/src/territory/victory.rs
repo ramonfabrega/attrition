@@ -29,15 +29,15 @@ pub mod seams {}
 impl Sim {
     /// `GameDaemon::process_victory`'s POPWIN arm: the territory timers.
     pub(crate) fn process_victory_territory(&mut self) {
-        if !matches!(self.lobby.victory, 0 | 1 | 7) {
+        if !matches!(self.ai.lobby.victory, 0 | 1 | 7) {
             return;
         }
         let land = self.land_size();
         if land <= 0 {
             return;
         }
-        let share = self.lobby.pop_win_percent;
-        let n = self.players.len();
+        let share = self.ai.lobby.pop_win_percent;
+        let n = self.territory.players.len();
         // `LeaderData::get_team_terr@006d62e0` over `LeaderData::territory`
         // — the leader's own count, which `Leader::calc_gather` rewrites on
         // its reassembly frames ([`crate::holdings`]), not the live map: a
@@ -46,35 +46,35 @@ impl Sim {
         let terr: Vec<i32> = (0..n)
             .map(|i| {
                 (0..n)
-                    .filter(|&j| j == i || (!self.defeated[j] && self.allied[i][j]))
-                    .map(|j| self.holdings[j].territory)
+                    .filter(|&j| j == i || (!self.leaders.defeated[j] && self.leaders.allied[i][j]))
+                    .map(|j| self.economy.holdings[j].territory)
                     .sum()
             })
             .collect();
         let frame = self.frame;
         for i in 0..n {
             // `leader_flags & 3 == 3`: seated and not defeated.
-            if self.defeated[i] {
+            if self.leaders.defeated[i] {
                 continue;
             }
             let rivals = (0..n)
                 .filter(|&j| {
                     j != i
-                        && !self.defeated[j]
-                        && !(self.allied[i][j] && self.allied[j][i])
+                        && !self.leaders.defeated[j]
+                        && !(self.leaders.allied[i][j] && self.leaders.allied[j][i])
                         && share <= terr[j] * 100 / land
                 })
                 .count();
             if terr[i] * 100 / land < share || rivals != 0 {
-                let l = &mut self.ai[i];
+                let l = &mut self.ai.ai[i];
                 if l.popwin_timer != 0 {
                     l.popwin_timer = 0;
                     l.popwin_stamp -= frame;
                 }
                 continue;
             }
-            if self.lobby.victory == 0 && self.ai[i].popwin_timer == 0 {
-                let l = &mut self.ai[i];
+            if self.ai.lobby.victory == 0 && self.ai.ai[i].popwin_timer == 0 {
+                let l = &mut self.ai.ai[i];
                 l.popwin_timer = 1;
                 l.popwin_stamp += frame;
             }
@@ -86,11 +86,11 @@ impl Sim {
     /// stopped timer's negative stamp gains one, so time lost to a stop is
     /// earned back at a fifth of the rate it ran.
     pub(crate) fn refresh_victory_timers(&mut self, who: usize) {
-        let r = i64::from(self.tuning.timer_refresh_ratio);
+        let r = i64::from(self.tables.tuning.timer_refresh_ratio);
         if r == 0 || self.frame % r != 0 {
             return;
         }
-        let l = &mut self.ai[who];
+        let l = &mut self.ai.ai[who];
         if l.popwin_stamp < 0 && l.popwin_timer == 0 {
             l.popwin_stamp += 1;
         }

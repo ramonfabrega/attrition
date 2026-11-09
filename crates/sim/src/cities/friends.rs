@@ -126,13 +126,13 @@ impl SimFriends<'_> {
 
 impl FriendsView for SimFriends<'_> {
     fn attack(&self) -> bool {
-        self.sim.build_types[self.rec].attack != 0
+        self.sim.tables.build_types[self.rec].attack != 0
     }
     fn this_is(&mut self, id: Ident) -> bool {
-        build::is(&self.sim.build_types, self.rec, id)
+        build::is(&self.sim.tables.build_types, self.rec, id)
     }
     fn no_city(&self) -> bool {
-        self.sim.build_types[self.rec].has(flags::NO_CITY)
+        self.sim.tables.build_types[self.rec].has(flags::NO_CITY)
     }
     fn world_cells(&self) -> (i32, i32) {
         (self.sim.world.width(), self.sim.world.height())
@@ -149,10 +149,10 @@ impl FriendsView for SimFriends<'_> {
             .map_or(-1, |c| i32::try_from(c).expect("a city index"))
     }
     fn this_gather_enhancer(&mut self) -> bool {
-        build::is_gather_enhancer_by(|i| build::is(&self.sim.build_types, self.rec, i))
+        build::is_gather_enhancer_by(|i| build::is(&self.sim.tables.build_types, self.rec, i))
     }
     fn this_enhancing_good(&mut self) -> i32 {
-        enhancing_good(self.sim.build_types[self.rec].ident)
+        enhancing_good(self.sim.tables.build_types[self.rec].ident)
             .map_or(-1, |g| i32::try_from(g).expect("a good"))
     }
     fn nb_good(&mut self, nb: i32) -> i32 {
@@ -162,11 +162,11 @@ impl FriendsView for SimFriends<'_> {
         gather_good(ni).map_or(-1, |g| i32::try_from(g).expect("a good"))
     }
     fn this_military_trainer(&mut self) -> bool {
-        build::is_military_trainer(&self.sim.build_types, self.rec)
+        build::is_military_trainer(&self.sim.tables.build_types, self.rec)
     }
     fn nb_military_trainer(&mut self, nb: i32) -> bool {
         self.ty(nb)
-            .is_some_and(|t| build::is_military_trainer(&self.sim.build_types, t))
+            .is_some_and(|t| build::is_military_trainer(&self.sim.tables.build_types, t))
     }
     fn nb_flag20(&mut self, nb: i32) -> bool {
         self.sim
@@ -178,11 +178,11 @@ impl FriendsView for SimFriends<'_> {
     }
     fn nb_gathers(&mut self, nb: i32) -> bool {
         self.ty(nb)
-            .is_some_and(|t| self.sim.build_types[t].has(flags::GATHERER))
+            .is_some_and(|t| self.sim.tables.build_types[t].has(flags::GATHERER))
     }
     fn nb_gather_enhancer(&mut self, nb: i32) -> bool {
         self.ty(nb).is_some_and(|t| {
-            build::is_gather_enhancer_by(|i| build::is(&self.sim.build_types, t, i))
+            build::is_gather_enhancer_by(|i| build::is(&self.sim.tables.build_types, t, i))
         })
     }
     fn nb_wonder(&mut self, nb: i32) -> bool {

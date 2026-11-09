@@ -87,10 +87,10 @@ fn classical_melee_staging_walk() {
     for line in &st.applied.landed {
         eprintln!("  {line}");
     }
-    for (w, n) in built.sim.nation.iter().enumerate() {
+    for (w, n) in built.sim.cities.nation.iter().enumerate() {
         eprintln!(
             "  who={w} human={} age {} tribe {:?}",
-            n.human, built.sim.players[w].age, built.sim.tech[w].power
+            n.human, built.sim.territory.players[w].age, built.sim.tech[w].power
         );
     }
     assert_eq!(
@@ -255,7 +255,8 @@ fn classical_melee_s_kushite_archers_loose_from_the_bow() {
     let bow = sim::combat::Obj::Unit(unit(&built.sim, 0, 14).expect("0/14 on 673"));
     let p = unit(&built.sim, 1, 19).expect("1/19 on 673");
     let find = |sim: &sim::Sim| {
-        sim.projectiles
+        sim.combat
+            .projectiles
             .iter()
             .find(|r| r.shooter == bow && r.target == Some(sim::combat::Obj::Unit(p)))
             .copied()
@@ -327,7 +328,8 @@ fn classical_melee_s_royal_balamob_slingers_loose_from_the_sling() {
     let sling = sim::combat::Obj::Unit(unit(&built.sim, 0, 19).expect("0/19 on 713"));
     let cat = sim::combat::Obj::Unit(unit(&built.sim, 1, 26).expect("1/26 on 713"));
     let find = |sim: &sim::Sim| {
-        sim.projectiles
+        sim.combat
+            .projectiles
             .iter()
             .find(|r| r.shooter == sling && r.target == Some(cat))
             .copied()
@@ -385,7 +387,7 @@ fn classical_melee_s_dead_catapult_crew_clears_its_disc() {
         .collect();
     let set: Vec<_> = holes
         .iter()
-        .filter(|&&(x, y)| built.sim.coll.get(x, y))
+        .filter(|&&(x, y)| built.sim.movement.coll.get(x, y))
         .collect();
     assert!(
         set.is_empty(),
@@ -512,8 +514,8 @@ fn classical_melee_s_egyptians_catch_up_to_city_state() {
     );
     assert_eq!(
         (
-            built.sim.ai[2].tech_cat_frame[0],
-            built.sim.ai[1].tech_cat_frame[1]
+            built.sim.ai.ai[2].tech_cat_frame[0],
+            built.sim.ai.ai[1].tech_cat_frame[1]
         ),
         (1157, 1182),
         "theirs' closing LEADERDATA's queue frames"

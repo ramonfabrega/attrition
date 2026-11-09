@@ -386,8 +386,8 @@ impl GarrisonView for SimGarrison<'_> {
         let o = o as usize;
         self.sim.building_is_city(o)
             && self.sim.buildings[o].city.is_some_and(|c| {
-                self.sim.cities[c].alive
-                    && self.sim.cities[c].race != Some(self.sim.buildings[o].owner)
+                self.sim.cities.cities[c].alive
+                    && self.sim.cities.cities[c].race != Some(self.sim.buildings[o].owner)
             })
     }
     fn data_num_inside(&mut self, _p: i32, o: i32) -> i32 {

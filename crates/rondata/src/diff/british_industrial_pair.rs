@@ -302,18 +302,18 @@ fn british_industrial_pair_a_british_aa_gun_costs_a_quarter_less() {
     let aa = loaded
         .unit_named("Anti-Aircraft Gun")
         .expect("an AA Gun type");
-    let tree = sim.unit_types[aa].tree.expect("in the tree");
+    let tree = sim.tables.unit_types[aa].tree.expect("in the tree");
     assert_eq!(
         loaded.type_index(tree),
         0x119,
         "ANTIAIRCRAFTGUN in the original"
     );
-    assert!(sim.nation[1].british && !sim.nation[0].british);
+    assert!(sim.cities.nation[1].british && !sim.cities.nation[0].british);
     let price = sim.price_of(1, aa);
     assert_eq!((price[0], price[2]), (60, 60), "the British price");
     let nubian = sim.price_of(0, aa);
     assert_eq!((nubian[0], nubian[2]), (80, 80), "the Nubian pays it whole");
-    sim.tuning.british_aa_cost = 0;
+    sim.tables.tuning.british_aa_cost = 0;
     let whole = sim.price_of(1, aa);
     assert_eq!((whole[0], whole[2]), (80, 80), "without BRITISH_AA_COST");
 }

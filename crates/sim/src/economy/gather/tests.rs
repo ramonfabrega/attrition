@@ -135,18 +135,18 @@ fn french_timber_capacity_adds_a_worker_to_survey_and_existing_list() {
     }
     let corner = Pos::new(21, 21);
     assert_eq!(s.max_gatherers_at(ty, 0, corner), 3);
-    s.nation[0].french = true;
+    s.cities.nation[0].french = true;
     assert_eq!(s.max_gatherers_at(ty, 0, corner), 4);
-    s.tuning.french_woodies = 3;
+    s.tables.tuning.french_woodies = 3;
     assert_eq!(
         s.max_gatherers_at(ty, 0, corner),
         6,
         "the tuning value is used"
     );
-    s.tuning.french_woodies = 1;
+    s.tables.tuning.french_woodies = 1;
     let b = s.init_build(0, ty, tile_pos(21, 21), false);
     assert_eq!(s.max_gatherers(b), 4);
-    s.nation[0].french = false;
+    s.cities.nation[0].french = false;
     assert_eq!(s.max_gatherers(b), 3);
 }
 
@@ -154,7 +154,7 @@ fn french_timber_capacity_adds_a_worker_to_survey_and_existing_list() {
 fn french_timber_capacity_needs_trees_and_respects_access() {
     let mut s = sim();
     let ty = camp(&mut s);
-    s.nation[0].french = true;
+    s.cities.nation[0].french = true;
     let corner = Pos::new(21, 21);
     assert_eq!(s.max_gatherers_at(ty, 0, corner), 0, "bare ground");
     for c in [Cell::new(5, 5), Cell::new(6, 5), Cell::new(5, 6)] {
@@ -181,7 +181,7 @@ fn french_timber_capacity_needs_trees_and_respects_access() {
 fn french_timber_capacity_keeps_the_taken_site_sentinel() {
     let mut s = sim();
     let ty = camp(&mut s);
-    s.nation[0].french = true;
+    s.cities.nation[0].french = true;
     for c in [Cell::new(3, 5), Cell::new(7, 5)] {
         forest_cell(&mut s, c);
         s.world.set_tile_bits(c.centre_tile(), GATHERED_FROM);
@@ -260,8 +260,8 @@ fn an_enemy_s_cell_does_not_pay() {
     s.world
         .set_owner(Cell::new(7, 5), crate::Owner::Player(1), crate::Owner::None);
     assert_eq!(s.max_gatherers_at(ty, 0, Pos::new(21, 21)), 1);
-    s.allied[0][1] = true;
-    s.allied[1][0] = true;
+    s.leaders.allied[0][1] = true;
+    s.leaders.allied[1][0] = true;
     assert_eq!(s.max_gatherers_at(ty, 0, Pos::new(21, 21)), 2);
 }
 
@@ -442,7 +442,7 @@ fn a_tie_goes_to_the_first_placed_range() {
     assert_eq!(s.nearest_mountain_cell(site).map(|(_, c)| c), None);
     assert_eq!(
         s.find_nearest_mountain(site)
-            .map(|(_, i, _)| s.mountains[i].loc),
+            .map(|(_, i, _)| s.terrain.mountains[i].loc),
         Some(Cell::new(3, 5))
     );
 }

@@ -145,7 +145,7 @@ impl Sim {
         let unit = &self.units[u];
         let who = unit.owner as usize;
         let Some(rec) = unit.ty else { return 0 };
-        let ty = &self.unit_types[rec];
+        let ty = &self.tables.unit_types[rec];
         let mut los = ty.los;
         if los == 0 {
             return 0;
@@ -165,7 +165,7 @@ impl Sim {
             if self.holds_unit_bit(owner, 0x43) {
                 los += 2;
             }
-            if self.holds_unit_bit(owner, 0x44) || self.lobby.starting_town == 0 {
+            if self.holds_unit_bit(owner, 0x44) || self.ai.lobby.starting_town == 0 {
                 los += 2;
             }
         }
@@ -211,7 +211,7 @@ impl Sim {
                     | crate::build::Ident::AutoPlant
             )
         ) {
-            los += self.troops_los_level(unit.owner) * self.tuning.troops_upgrade_los;
+            los += self.troops_los_level(unit.owner) * self.tables.tuning.troops_upgrade_los;
         }
         // **The siege term** (`0060e7bc`..`0060e81f`, item 3380): a type
         // that `is_siege` (vslot `+0x10c`) of a leader with
@@ -220,19 +220,19 @@ impl Sim {
         // Trebuchets and Catapults print `mylos 7` in run1005, not 4. The
         // arm's Liberty (`0x219`) and Eiffel (`0x21c`) wonder terms are not
         // carried.
-        if self.is_siege_unit(u) && self.nation[who].turks {
-            los += self.tuning.turk_siege_los;
+        if self.is_siege_unit(u) && self.cities.nation[who].turks {
+            los += self.tables.tuning.turk_siege_los;
         }
         // A Spy sees `SPY_UPGRADE_LOS` more per upgrade held (`0060e87c`,
         // `docs/AI.md` §160).
         if self.is_spy_type(rec) {
-            los += self.spy_upgrade_level(unit.owner) * self.tuning.spy_upgrade_los;
+            los += self.spy_upgrade_level(unit.owner) * self.tables.tuning.spy_upgrade_los;
         }
         // A hero sees `GENERAL_UPGRADE_LOS` more per General upgrade
         // (`0060e8a3`..`0060e8db`): the coverage pair's General `1/150`
         // prints 14 on its type's 8 (`docs/AI.md` §172).
         if ty.cols.flag2(uflags2::FLAG2_GENERAL) {
-            los += self.general_upgrade_level(unit.owner) * self.tuning.general_upgrade_los;
+            los += self.general_upgrade_level(unit.owner) * self.tables.tuning.general_upgrade_los;
         }
         // The last word: a decoy (`unit_masks & 1`) sees one tile
         // (`0060e84a`; run422's decoys print `mylos 1`).
@@ -258,12 +258,13 @@ impl Sim {
     /// reaches (`0x2ad` against `0x2e9..0x2eb`), so it is dead here.
     pub(crate) fn troops_los_level(&self, who: crate::Player) -> i32 {
         let p = &self.tech[who as usize];
-        self.tech_tree
+        self.tables
+            .tech_tree
             .roles
             .troops_los_preq
             .iter()
             .flatten()
-            .filter(|&&t| self.tech_tree.has_tech(&self.setup, p, t))
+            .filter(|&&t| self.tables.tech_tree.has_tech(&self.tables.setup, p, t))
             .count() as i32
     }
 
@@ -312,7 +313,7 @@ impl Sim {
     pub(crate) fn unit_data_los(&self, u: usize) -> i32 {
         let mut los = self.units[u].mylos;
         if self.near_own_ceo(u) {
-            los += self.tuning.theceo_unit_los;
+            los += self.tables.tuning.theceo_unit_los;
         }
         los
     }
@@ -345,8 +346,8 @@ impl Sim {
             // 14604 (item 3347, `docs/VISION.md` §3).
             let projects = !unit.decoy
                 && unit.ty.is_some_and(|rec| {
-                    self.unit_types[rec].kind.domain == Domain::Land
-                        && !self.unit_types[rec].cols.flag2(uflags2::PACKS)
+                    self.tables.unit_types[rec].kind.domain == Domain::Land
+                        && !self.tables.unit_types[rec].cols.flag2(uflags2::PACKS)
                 });
             let (centre, start) = if projects {
                 // **The unit's own angle, not its body's.** The `project` at
@@ -447,17 +448,18 @@ impl Sim {
             return 0;
         }
         let Some(rec) = bd.ty else { return 0 };
-        let ty = &self.build_types[rec];
+        let ty = &self.tables.build_types[rec];
         let mut los = if bd.active {
             let epoch = self
                 .tech
                 .get(bd.owner as usize)
                 .map_or(0, |t| t.epoch[crate::tech::Line::Science.index()]);
             let mut los = ty.los + epoch * ty.science_los;
-            if crate::build::is_fort(&self.build_types, rec) {
-                los += self.tuning.fort_upgrade_los[self.fort_los(bd.owner) - 1];
-            } else if crate::build::is_tower(&self.build_types, rec) {
-                los += self.tuning.tower_fort_los[(self.tower_fort_los(bd.owner) - 1) as usize];
+            if crate::build::is_fort(&self.tables.build_types, rec) {
+                los += self.tables.tuning.fort_upgrade_los[self.fort_los(bd.owner) - 1];
+            } else if crate::build::is_tower(&self.tables.build_types, rec) {
+                los +=
+                    self.tables.tuning.tower_fort_los[(self.tower_fort_los(bd.owner) - 1) as usize];
             }
             los
         } else if ty.wonder {
@@ -486,7 +488,7 @@ impl Sim {
     /// `LeaderData::get_fort_los@006daf30`: `1` plus the highest of
     /// `FORTLOS2..4` held ([`crate::tech::Roles::fort_los_preq`]).
     pub(crate) fn fort_los(&self, who: crate::Player) -> usize {
-        1 + self.bonus_level(who, &self.tech_tree.roles.fort_los_preq)
+        1 + self.bonus_level(who, &self.tables.tech_tree.roles.fort_los_preq)
     }
 
     /// `LeaderData::get_tower_fort_los@006daf80`: 4 with the third of
@@ -494,7 +496,7 @@ impl Sim {
     /// second, 2 with the first, else 1. The raw bits, not `has_tech`.
     pub(crate) fn tower_fort_los(&self, who: crate::Player) -> i32 {
         let held = |k: usize| {
-            self.tech_tree.roles.tower_fort_los_units[k].is_some_and(|t| {
+            self.tables.tech_tree.roles.tower_fort_los_units[k].is_some_and(|t| {
                 self.tech
                     .get(who as usize)
                     .is_some_and(|p| p.tech.get(t).copied().unwrap_or(false))
@@ -578,9 +580,9 @@ impl Sim {
     /// flag and not a fort type (group 5).
     fn is_visible_wonder(&self, b: usize) -> bool {
         self.buildings[b].ty.is_some_and(|ty| {
-            self.build_types[ty].wonder
-                && !crate::build::is_city(&self.build_types, ty)
-                && !crate::build::is_fort(&self.build_types, ty)
+            self.tables.build_types[ty].wonder
+                && !crate::build::is_city(&self.tables.build_types, ty)
+                && !crate::build::is_fort(&self.tables.build_types, ty)
         })
     }
 
@@ -619,7 +621,7 @@ impl Sim {
         // over the whole range it writes (the cutoff is the range's end
         // below radius 32, `docs/VISION.md` §4).
         let detect = self.units[u].ty.is_some_and(|t| {
-            self.unit_types[t].combat.obj_masks & crate::combat::mask::DETECT != 0
+            self.tables.unit_types[t].combat.obj_masks & crate::combat::mask::DETECT != 0
         });
         // **A detector's ring pass at radius 32 lights nothing** (`651d91`–`651dac`): the
         // `seen3` cutoff test clamps `r` to `0x1f` *in place* (`cmpl $0x20; cmovge`, stored back
@@ -730,7 +732,10 @@ impl Sim {
             let bd = &self.buildings[b];
             if bd.alive && bd.active {
                 self.update_seen_build(b);
-            } else if bd.alive && bd.started && bd.ty.is_some_and(|t| self.build_types[t].wonder) {
+            } else if bd.alive
+                && bd.started
+                && bd.ty.is_some_and(|t| self.tables.build_types[t].wonder)
+            {
                 self.update_local_seen_build(b);
             }
         }
@@ -749,7 +754,7 @@ impl Sim {
     /// leader allied with it.
     pub(crate) fn seen_ally_mask(&self, who: crate::Player) -> u8 {
         let mut m = 1u8 << (who & 7);
-        for i in 0..self.players.len().min(8) {
+        for i in 0..self.territory.players.len().min(8) {
             let o = i as crate::Player;
             if o != who && self.is_ally(who, o) {
                 m |= 1 << i;
@@ -796,13 +801,16 @@ impl Sim {
         let mine = self.seen_ally_mask(who);
         // `game->everyone_mask` — the bits of the leaders in this game, so
         // the scan stops once every one of them has seen it.
-        let all = ((1u16 << self.players.len().min(8)) - 1) as u8;
+        let all = ((1u16 << self.territory.players.len().min(8)) - 1) as u8;
         let want = if started { all } else { mine };
         if self.buildings[b].ever_seen & want != want
             || self.buildings[b].ever_seen_completed & want != want
         {
             let corner = self.tile_corner(ty, self.buildings[b].pos);
-            let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+            let (xs, ys) = (
+                self.tables.build_types[ty].x_size,
+                self.tables.build_types[ty].y_size,
+            );
             let active = self.buildings[b].active;
             let (mut es, mut ec) = (
                 self.buildings[b].ever_seen,
@@ -843,7 +851,7 @@ impl Sim {
         // still relights the footprint.
         let mut met = false;
         let mut greet = Vec::new();
-        for w in 0..self.players.len().min(8) {
+        for w in 0..self.territory.players.len().min(8) {
             let o = w as crate::Player;
             // `leaders[o].leader_flags & 1` is a slot in use, and a defeat
             // clears only bit 1 (`Leader::defeat@006ecb00:63`): a defeated
@@ -902,7 +910,7 @@ impl Sim {
         }
         let r = self.units[u]
             .ty
-            .map_or(0, |t| self.unit_types[t].combat.circle_radius);
+            .map_or(0, |t| self.tables.unit_types[t].combat.circle_radius);
         let c = crate::ai_place::circle();
         let n = c.radius[r.clamp(0, 0x40) as usize];
         let (fx, fy) = (
@@ -963,16 +971,19 @@ impl Sim {
         // City is in the wonder range and is `FROM Small City`, so `is(VILLAGE)`
         // holds for it and it takes the ordinary branch (twenty-fourth pass,
         // group 5; A8 row 4).
-        let wonder = self.build_types[ty].wonder
-            && !crate::build::is_city(&self.build_types, ty)
-            && !crate::build::is_fort(&self.build_types, ty);
+        let wonder = self.tables.build_types[ty].wonder
+            && !crate::build::is_city(&self.tables.build_types, ty)
+            && !crate::build::is_fort(&self.tables.build_types, ty);
         let mask = if wonder && self.buildings[b].started {
             0xff
         } else {
             self.buildings[b].ever_seen | self.buildings[b].visible | (1u8 << who)
         };
         let corner = self.tile_corner(ty, self.buildings[b].pos);
-        let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+        let (xs, ys) = (
+            self.tables.build_types[ty].x_size,
+            self.tables.build_types[ty].y_size,
+        );
         let mut lit = 0;
         for u in -1..=xs {
             for v in -1..=ys {

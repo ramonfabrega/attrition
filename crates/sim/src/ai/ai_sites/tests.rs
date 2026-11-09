@@ -167,10 +167,10 @@ fn kit(w: i32, h: i32, players: usize) -> (Sim, Kit) {
         tree: Some(citizen),
         ..UnitType::default()
     });
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; RESOURCES];
     }
-    for a in &mut sim.ai {
+    for a in &mut sim.ai.ai {
         a.census.resize(64, players);
     }
     (
@@ -194,7 +194,7 @@ fn electronics_or_a_fouche_sees_every_cell() {
     let (fx, fy) = (2 * 5 + 1, 2 * 5 + 1);
     assert!(!sim.was_seen_fog(fx, fy, 1), "the fog alone: unseen");
 
-    let mut tree = sim.tech_tree.clone();
+    let mut tree = sim.tables.tech_tree.clone();
     let electronics = tree.types.len();
     tree.types.push(TypeDef::new("Electronics", Kind::Final));
     tree.roles.explore_map_preq = Some(electronics);
@@ -233,7 +233,7 @@ fn the_spanish_see_every_cell_once_they_hold_the_bonus() {
     assert!(sim.world.set_fog(vec![0; 8 * 8 * 4]));
     let (fx, fy) = (2 * 5 + 1, 2 * 5 + 1);
     sim.tech[1].power = Some(crate::nations::power::SPANISH);
-    sim.setup.starting_town = false;
+    sim.tables.setup.starting_town = false;
     sim.tech[1].has_city = false;
     assert!(!sim.was_seen_fog(fx, fy, 1), "no city, no bonus: unseen");
     sim.tech[1].has_city = true;
@@ -242,7 +242,7 @@ fn the_spanish_see_every_cell_once_they_hold_the_bonus() {
     sim.tech[1].power = Some(crate::nations::power::FRENCH);
     assert!(!sim.was_seen_fog(fx, fy, 1), "another power: unseen");
     sim.tech[1].power = Some(crate::nations::power::SPANISH);
-    sim.setup.no_nation_powers = true;
+    sim.tables.setup.no_nation_powers = true;
     assert!(!sim.was_seen_fog(fx, fy, 1), "powers off: unseen");
 }
 
@@ -253,10 +253,10 @@ fn seen_shortcut_matches_reference_after_live_mutations() {
     for fog in [0, 1, 2, 3, 255] {
         assert!(sim.world.set_fog(vec![fog; 8 * 8 * 4]));
         for reveal in 0..=3 {
-            sim.lobby.reveal_map = reveal;
+            sim.ai.lobby.reveal_map = reveal;
             for ally in [0, 1, 2, 3] {
-                sim.ai[0].census.ally_mask = ally;
-                sim.ai[1].census.ally_mask = ally;
+                sim.ai.ai[0].census.ally_mask = ally;
+                sim.ai.ai[1].census.ally_mask = ally;
                 for kind in [0x141, FOUCHE] {
                     sim.units[u].type_index = kind;
                     for who in [0, 1, 8, 255] {
@@ -287,10 +287,10 @@ fn seen_shortcut_matches_reference_after_live_mutations() {
 fn the_rank_counts_the_sites_that_score_no_more_including_itself() {
     let (mut sim, _) = kit(8, 8, 2);
     sim.frame = 1;
-    sim.nation[1].human = false;
+    sim.cities.nation[1].human = false;
     // The nomad's wood test would otherwise zero every site.
-    sim.lobby.starting_resources = 8;
-    sim.ai[1].census.reg_peasants[0] = 1;
+    sim.ai.lobby.starting_resources = 8;
+    sim.ai.ai[1].census.reg_peasants[0] = 1;
     // One valuable cell, on an even row-major index so the stride-2
     // sampler visits it.
     let c = Cell::new(4, 4);
@@ -300,7 +300,7 @@ fn the_rank_counts_the_sites_that_score_no_more_including_itself() {
     sim.world.set_cell_data(c, d);
 
     sim.compute_sites(1, true);
-    let scored: Vec<&Site> = sim.ai[1].sites.iter().filter(|s| s.val > 0).collect();
+    let scored: Vec<&Site> = sim.ai.ai[1].sites.iter().filter(|s| s.val > 0).collect();
     assert_eq!(scored.len(), 1, "exactly one cell scores");
     assert_eq!((scored[0].wx, scored[0].wy), (4, 4));
     assert_eq!(
@@ -308,7 +308,7 @@ fn the_rank_counts_the_sites_that_score_no_more_including_itself() {
         "no reference object: dist is the constant"
     );
     assert_eq!(scored[0].rank, 10, "the best of ten ranks ten");
-    for s in &sim.ai[1].sites {
+    for s in &sim.ai.ai[1].sites {
         if s.val == 0 {
             assert_eq!(s.rank, 9, "a zero site ranks nine");
         }
@@ -357,9 +357,9 @@ fn a_large_region_strides_by_the_two_draws_and_a_small_one_by_two() {
     // 20 × 20 = 400 cells, one region.
     let (mut sim, _) = kit(20, 20, 2);
     sim.frame = 1;
-    sim.nation[1].human = false;
-    sim.ai[1].census.reg_peasants[0] = 1;
-    sim.ai[1].site_mark = 16;
+    sim.cities.nation[1].human = false;
+    sim.ai.ai[1].census.reg_peasants[0] = 1;
+    sim.ai.ai[1].site_mark = 16;
     let before = sim.rng.seed;
     sim.compute_sites(1, true);
     assert_ne!(before, sim.rng.seed, "a 400-cell region draws");
@@ -374,7 +374,7 @@ fn a_large_region_strides_by_the_two_draws_and_a_small_one_by_two() {
     let r1 = if q <= 1 { 0 } else { rng.roll() % q };
     assert_eq!(rng.seed, sim.rng.seed, "exactly two draws, in that order");
     assert_eq!(
-        sim.ai[1].site_mark,
+        sim.ai.ai[1].site_mark,
         16 + (r1 + 3) as u32,
         "site_mark advances by the draw plus three"
     );
@@ -383,13 +383,13 @@ fn a_large_region_strides_by_the_two_draws_and_a_small_one_by_two() {
     // A small region draws nothing.
     let (mut small, _) = kit(8, 8, 2);
     small.frame = 1;
-    small.nation[1].human = false;
-    small.ai[1].census.reg_peasants[0] = 1;
-    small.ai[1].site_mark = 16;
+    small.cities.nation[1].human = false;
+    small.ai.ai[1].census.reg_peasants[0] = 1;
+    small.ai.ai[1].site_mark = 16;
     let seed = small.rng.seed;
     small.compute_sites(1, true);
     assert_eq!(seed, small.rng.seed, "64 cells is under the 200 threshold");
-    assert_eq!(small.ai[1].site_mark, 16, "and site_mark does not move");
+    assert_eq!(small.ai.ai[1].site_mark, 16, "and site_mark does not move");
 }
 
 /// A human leader takes neither the draws nor the ranking unless the
@@ -398,8 +398,8 @@ fn a_large_region_strides_by_the_two_draws_and_a_small_one_by_two() {
 fn a_human_leader_is_only_sampled_when_forced() {
     let (mut sim, _) = kit(20, 20, 2);
     sim.frame = 1;
-    sim.nation[1].human = true;
-    sim.ai[1].census.reg_peasants[0] = 1;
+    sim.cities.nation[1].human = true;
+    sim.ai.ai[1].census.reg_peasants[0] = 1;
     let seed = sim.rng.seed;
     sim.compute_sites(1, false);
     assert_eq!(seed, sim.rng.seed, "no sweep for a human");
@@ -412,8 +412,8 @@ fn a_human_leader_is_only_sampled_when_forced() {
 fn frame_zero_clears_every_site_first() {
     let (mut sim, _) = kit(8, 8, 2);
     sim.frame = 0;
-    sim.nation[1].human = false;
-    sim.ai[1].sites[3] = Site {
+    sim.cities.nation[1].human = false;
+    sim.ai.ai[1].sites[3] = Site {
         wx: 4,
         wy: 4,
         val: 900,
@@ -422,8 +422,8 @@ fn frame_zero_clears_every_site_first() {
         rank: 9,
     };
     sim.compute_sites(1, true);
-    assert_eq!(sim.ai[1].sites[3].val, 0);
-    assert_eq!(sim.ai[1].sites[3].wx, 0);
+    assert_eq!(sim.ai.ai[1].sites[3].val, 0);
+    assert_eq!(sim.ai.ai[1].sites[3].wx, 0);
 }
 
 /// Off frame 0, a site is kept and re-scored only with `rank ≥ 6` and
@@ -432,8 +432,8 @@ fn frame_zero_clears_every_site_first() {
 fn a_kept_site_needs_rank_six_and_a_positive_score() {
     let (mut sim, _) = kit(8, 8, 2);
     sim.frame = 1;
-    sim.nation[1].human = true;
-    sim.ai[1].sites[0] = Site {
+    sim.cities.nation[1].human = true;
+    sim.ai.ai[1].sites[0] = Site {
         wx: 4,
         wy: 4,
         val: 900,
@@ -441,7 +441,7 @@ fn a_kept_site_needs_rank_six_and_a_positive_score() {
         dist: 8,
         rank: 5,
     };
-    sim.ai[1].sites[1] = Site {
+    sim.ai.ai[1].sites[1] = Site {
         wx: 5,
         wy: 5,
         val: 0,
@@ -450,8 +450,8 @@ fn a_kept_site_needs_rank_six_and_a_positive_score() {
         rank: 9,
     };
     sim.compute_sites(1, false);
-    assert_eq!(sim.ai[1].sites[0], Site::default(), "rank 5 is cleared");
-    assert_eq!(sim.ai[1].sites[1], Site::default(), "val 0 is cleared");
+    assert_eq!(sim.ai.ai[1].sites[0], Site::default(), "rank 5 is cleared");
+    assert_eq!(sim.ai.ai[1].sites[1], Site::default(), "val 0 is cleared");
 }
 
 // ------------------------------------------------------------------
@@ -496,7 +496,7 @@ fn a_city_in_another_region_scores_the_site_zero() {
 fn no_reference_object_gives_k_three_and_dist_nine() {
     let (mut sim, _) = kit(16, 16, 2);
     // Skip the nomad's wood test (`city_num == 0` here).
-    sim.lobby.starting_resources = 8;
+    sim.ai.lobby.starting_resources = 8;
     let c = Cell::new(8, 8);
     sim.world.set_owner(c, Owner::Player(1), Owner::Player(1));
     let mut d = sim.world.cell_data(c);
@@ -530,7 +530,7 @@ fn a_zero_value_cell_scores_nothing() {
 #[test]
 fn keep_slides_the_site_to_the_best_cell_of_its_five_by_five() {
     let (mut sim, _) = kit(16, 16, 2);
-    sim.lobby.starting_resources = 8;
+    sim.ai.lobby.starting_resources = 8;
     for x in 6..12 {
         for y in 6..12 {
             sim.world
@@ -600,17 +600,17 @@ fn a_fort_is_found_once_it_is_built_not_once_it_is_placed() {
 fn city_ai_fixture() -> (Sim, usize, TypeId) {
     let (mut sim, k) = kit(16, 16, 2);
     sim.frame = 1;
-    sim.nation[0].human = false;
-    sim.nation[1].human = false;
-    sim.ai[1].census.free_peasants = 1;
-    sim.ai[1].census.reg_free_peasants[0] = 1;
-    sim.ai[1].census.home_reg = 0;
+    sim.cities.nation[0].human = false;
+    sim.cities.nation[1].human = false;
+    sim.ai.ai[1].census.free_peasants = 1;
+    sim.ai.ai[1].census.reg_free_peasants[0] = 1;
+    sim.ai.ai[1].census.home_reg = 0;
     // Own the cell (else the score is divided by three) and lift the
     // population cap out of the way.
     sim.world
         .set_owner(Cell::new(8, 8), Owner::Player(1), Owner::Player(1));
-    sim.muster[1].cap = 200;
-    sim.ai[1].sites[0] = Site {
+    sim.roster.muster[1].cap = 200;
+    sim.ai.ai[1].sites[0] = Site {
         wx: 8,
         wy: 8,
         val: 1_000,
@@ -618,7 +618,7 @@ fn city_ai_fixture() -> (Sim, usize, TypeId) {
         dist: 8,
         rank: 9,
     };
-    let village_t = sim.build_types[k.village].tree.unwrap();
+    let village_t = sim.tables.build_types[k.village].tree.unwrap();
     (sim, k.village, village_t)
 }
 
@@ -629,7 +629,7 @@ fn the_city_ai_scores_a_site_by_its_census() {
         sim.offer_site(1, village, village_t, 0),
         "under the city limit, so `want` is set"
     );
-    let head = sim.ai[1].make_list.list[0];
+    let head = sim.ai.ai[1].make_list.list[0];
     assert_eq!(head.t, village_t as i32);
     assert_eq!((head.wx, head.wy), (8, 8));
     assert_eq!(head.cat, 9, "a city site is category 9");
@@ -656,15 +656,15 @@ fn an_unowned_or_unaffordable_site_is_thirded_and_quartered() {
     sim.world
         .set_owner(Cell::new(8, 8), Owner::None, Owner::None);
     sim.offer_site(1, village, village_t, 0);
-    assert_eq!(sim.ai[1].make_list.list[0].val, 18_750 / 3);
+    assert_eq!(sim.ai.ai[1].make_list.list[0].val, 18_750 / 3);
 
     let (mut sim, village, village_t) = city_ai_fixture();
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [0; RESOURCES];
     }
     assert_eq!(sim.type_affordable(1, village_t, true), 0);
     sim.offer_site(1, village, village_t, 0);
-    assert_eq!(sim.ai[1].make_list.list[0].val, 18_750 / 4);
+    assert_eq!(sim.ai.ai[1].make_list.list[0].val, 18_750 / 4);
 }
 
 /// A live city within five cells drops the site outright.
@@ -680,7 +680,7 @@ fn a_city_within_five_cells_drops_the_site() {
     sim.activate(b, false, true);
     assert!(vector_dist(8 - 11, 0) < 5);
     assert!(!sim.offer_site(1, village, village_t, 0));
-    assert_eq!(sim.ai[1].make_list.list[0].t, -1, "nothing was offered");
+    assert_eq!(sim.ai.ai[1].make_list.list[0].t, -1, "nothing was offered");
 }
 
 /// The human cap: on difficulty 0 the AI stops at `max(the best
@@ -690,12 +690,12 @@ fn a_city_within_five_cells_drops_the_site() {
 fn the_human_cap_stops_the_ai_at_the_best_human_s_count() {
     let (mut sim, k) = kit(16, 16, 2);
     sim.frame = 1;
-    sim.nation[0].human = true;
-    sim.nation[1].human = false;
-    sim.lobby.difficulty = 0;
-    sim.ai[1].census.free_peasants = 1;
-    sim.ai[1].census.reg_free_peasants[0] = 1;
-    sim.ai[1].sites[0] = Site {
+    sim.cities.nation[0].human = true;
+    sim.cities.nation[1].human = false;
+    sim.ai.lobby.difficulty = 0;
+    sim.ai.ai[1].census.free_peasants = 1;
+    sim.ai.ai[1].census.reg_free_peasants[0] = 1;
+    sim.ai.ai[1].sites[0] = Site {
         wx: 3,
         wy: 3,
         val: 1_000,
@@ -727,10 +727,10 @@ fn the_human_cap_stops_the_ai_at_the_best_human_s_count() {
     assert_eq!(sim.total_cities(1), 2);
     assert!(sim.human_capped(1));
 
-    sim.ai[1].make_list.list[0].t = 4242;
+    sim.ai.ai[1].make_list.list[0].t = 4242;
     sim.found_cities(1);
     assert_eq!(
-        sim.ai[1].make_list.list[0].t, 4242,
+        sim.ai.ai[1].make_list.list[0].t, 4242,
         "the capped leader offered nothing and bought nothing"
     );
 }
@@ -743,7 +743,7 @@ fn the_human_cap_stops_the_ai_at_the_best_human_s_count() {
 fn the_nearest_citizen_is_sent_with_the_gatherer_s_penalty() {
     let (mut sim, k) = kit(64, 8, 2);
     sim.frame = 1;
-    let village_t = sim.build_types[k.village].tree.unwrap();
+    let village_t = sim.tables.build_types[k.village].tree.unwrap();
     // A city of mine, so this is not the nomad path (which sends every
     // citizen at once) — far enough away not to crowd the site, with
     // the site's own cells owned so the placement is in my territory.
@@ -809,7 +809,7 @@ fn the_nearest_citizen_is_sent_with_the_gatherer_s_penalty() {
 fn a_nomad_sends_every_citizen() {
     let (mut sim, k) = kit(64, 8, 2);
     sim.frame = 1;
-    let village_t = sim.build_types[k.village].tree.unwrap();
+    let village_t = sim.tables.build_types[k.village].tree.unwrap();
     let a = spawn(
         &mut sim,
         1,
@@ -841,7 +841,7 @@ fn a_nomad_sends_every_citizen() {
 fn no_citizen_in_the_region_means_no_city() {
     let (mut sim, k) = kit(16, 16, 2);
     sim.frame = 1;
-    let village_t = sim.build_types[k.village].tree.unwrap();
+    let village_t = sim.tables.build_types[k.village].tree.unwrap();
     sim.world
         .fill_region(Terrain::Land, Cell::new(8, 0), Cell::new(15, 15));
     spawn(
@@ -850,9 +850,9 @@ fn no_citizen_in_the_region_means_no_city() {
         k.citizen_unit,
         Pos::new(12 * UNITS_PER_CELL, UNITS_PER_CELL),
     );
-    let before = sim.ledgers[1].bucket;
+    let before = sim.economy.ledgers[1].bucket;
     assert!(!sim.produce_city(1, village_t, 2, 2, 0));
-    assert_eq!(sim.ledgers[1].bucket, before, "nothing was charged");
+    assert_eq!(sim.economy.ledgers[1].bucket, before, "nothing was charged");
     assert!(!sim.buildings.iter().any(|b| b.owner == 1));
 }
 
@@ -863,7 +863,7 @@ fn no_citizen_in_the_region_means_no_city() {
 fn the_census_decrement_uses_the_last_examined_citizen_s_action() {
     let (mut sim, k) = kit(64, 8, 2);
     sim.frame = 1;
-    let village_t = sim.build_types[k.village].tree.unwrap();
+    let village_t = sim.tables.build_types[k.village].tree.unwrap();
     let home = sim.init_build(
         1,
         k.village,
@@ -872,10 +872,10 @@ fn the_census_decrement_uses_the_last_examined_citizen_s_action() {
     );
     sim.activate(home, false, true);
     own_around(&mut sim, 1);
-    sim.ai[1].census.free_peasants = 5;
-    sim.ai[1].census.gatherers = 5;
-    sim.ai[1].census.reg_free_peasants[0] = 5;
-    sim.ai[1].census.reg_gatherers[0] = 5;
+    sim.ai.ai[1].census.free_peasants = 5;
+    sim.ai.ai[1].census.gatherers = 5;
+    sim.ai.ai[1].census.reg_free_peasants[0] = 5;
+    sim.ai.ai[1].census.reg_gatherers[0] = 5;
 
     // The idler comes first in the list and wins; the gatherer is
     // examined after and leaves its action behind.
@@ -894,9 +894,12 @@ fn the_census_decrement_uses_the_last_examined_citizen_s_action() {
     set_gathering(&mut sim, gatherer);
 
     assert!(sim.produce_city(1, village_t, 1, 1, 0));
-    assert_eq!(sim.ai[1].census.gatherers, 4, "the gatherer's count fell");
     assert_eq!(
-        sim.ai[1].census.free_peasants, 5,
+        sim.ai.ai[1].census.gatherers, 4,
+        "the gatherer's count fell"
+    );
+    assert_eq!(
+        sim.ai.ai[1].census.free_peasants, 5,
         "though the idler is the one that went"
     );
 }
@@ -910,7 +913,7 @@ fn the_census_decrement_uses_the_last_examined_citizen_s_action() {
 fn the_last_examined_citizen_is_the_highest_numbered_not_the_last_slot() {
     let (mut sim, k) = kit(64, 8, 2);
     sim.frame = 1;
-    let village_t = sim.build_types[k.village].tree.unwrap();
+    let village_t = sim.tables.build_types[k.village].tree.unwrap();
     let home = sim.init_build(
         1,
         k.village,
@@ -919,10 +922,10 @@ fn the_last_examined_citizen_is_the_highest_numbered_not_the_last_slot() {
     );
     sim.activate(home, false, true);
     own_around(&mut sim, 1);
-    sim.ai[1].census.free_peasants = 5;
-    sim.ai[1].census.gatherers = 5;
-    sim.ai[1].census.reg_free_peasants[0] = 5;
-    sim.ai[1].census.reg_gatherers[0] = 5;
+    sim.ai.ai[1].census.free_peasants = 5;
+    sim.ai.ai[1].census.gatherers = 5;
+    sim.ai.ai[1].census.reg_free_peasants[0] = 5;
+    sim.ai.ai[1].census.reg_gatherers[0] = 5;
 
     let idler = spawn(
         &mut sim,
@@ -946,8 +949,11 @@ fn the_last_examined_citizen_is_the_highest_numbered_not_the_last_slot() {
 
     assert!(sim.produce_city(1, village_t, 1, 1, 0));
     assert_eq!(
-        sim.ai[1].census.free_peasants, 4,
+        sim.ai.ai[1].census.free_peasants, 4,
         "the idler, numbered last, is the last examined"
     );
-    assert_eq!(sim.ai[1].census.gatherers, 5, "the gatherers keep theirs");
+    assert_eq!(
+        sim.ai.ai[1].census.gatherers, 5,
+        "the gatherers keep theirs"
+    );
 }

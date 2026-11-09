@@ -86,10 +86,10 @@ fn gunpowder_melee_staging_walk() {
     for line in &st.applied.landed {
         eprintln!("  {line}");
     }
-    for (w, n) in built.sim.nation.iter().enumerate() {
+    for (w, n) in built.sim.cities.nation.iter().enumerate() {
         eprintln!(
             "  who={w} human={} age {}",
-            n.human, built.sim.players[w].age
+            n.human, built.sim.territory.players[w].age
         );
     }
     assert_eq!(
@@ -128,6 +128,7 @@ fn gunpowder_melee_s_farms_stand_in_the_dump_s_order() {
     let built = build_sim(&loaded, &init, Tuning::RON);
     let got: Vec<(i64, i64)> = built
         .sim
+        .cities
         .farm_order
         .iter()
         .map(|&b| {
@@ -565,8 +566,11 @@ fn gunpowder_melee_s_strike_meets_before_the_census() {
     let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
         build_sim(&loaded, &init, Tuning::RON)
     });
-    built.sim.trace_phases = true;
-    assert_ne!(built.sim.lobby.reveal_map, 0, "the lobby is REVEAL_MAP 1");
+    built.sim.trace.trace_phases = true;
+    assert_ne!(
+        built.sim.ai.lobby.reveal_map, 0,
+        "the lobby is REVEAL_MAP 1"
+    );
     // The frame each pair's met bit lands on: the tick that processes it.
     let mut first = [[None::<i64>; 3]; 3];
     while built.sim.frame < 751 {
@@ -610,7 +614,7 @@ fn gunpowder_melee_s_strike_meets_before_the_census() {
         "army 2/0 does not march on 760"
     );
     assert_eq!(*ours, tr.labels(WORD), "760's whole draw sequence");
-    let a = &built.sim.armies[2].list[0];
+    let a = &built.sim.ai.armies[2].list[0];
     assert_eq!(
         a.status & sim::army::status::MARCHING,
         0,
@@ -734,7 +738,8 @@ fn gunpowder_melee_s_camel_raider_looses_from_its_pivot() {
     let raider = sim::combat::Obj::Unit(unit(&built.sim, 0, 17).expect("0/17 on 859"));
     let bombard = sim::combat::Obj::Unit(unit(&built.sim, 2, 23).expect("2/23 on 859"));
     let find = |sim: &sim::Sim| {
-        sim.projectiles
+        sim.combat
+            .projectiles
             .iter()
             .find(|p| p.shooter == raider && p.target == Some(bombard))
             .copied()
@@ -804,7 +809,8 @@ fn gunpowder_melee_s_arquebusiers_loose_from_the_gun() {
     let gun = sim::combat::Obj::Unit(unit(&built.sim, 2, 16).expect("2/16 on 953"));
     let knight = sim::combat::Obj::Unit(unit(&built.sim, 1, 22).expect("1/22 on 953"));
     let find = |sim: &sim::Sim| {
-        sim.projectiles
+        sim.combat
+            .projectiles
             .iter()
             .find(|p| p.shooter == gun && p.target == Some(knight))
             .copied()
@@ -1193,7 +1199,7 @@ fn gunpowder_melee_s_bombard_crew_pays_its_ground_swing_in_guy_move() {
     let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
         build_sim(&loaded, &init, Tuning::RON)
     });
-    built.sim.trace_phases = true;
+    built.sim.trace.trace_phases = true;
     const WORD: i64 = 759;
     while built.sim.frame < WORD {
         built.tick();
@@ -1331,7 +1337,7 @@ pub(crate) fn seat_walk(
         borrow_from_siblings(&mut init, &[&sibling]);
         borrow_pasture(&mut init, &tr);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        let players = built.sim.players.len();
+        let players = built.sim.territory.players.len();
         let mut theirs = BTreeMap::new();
         let mut trailing = BTreeMap::new();
         // Each window's frames, and the dump after its last `BEGIN FRAME`
@@ -1385,7 +1391,7 @@ pub(crate) fn seat_walk(
             let closing_next = closing && n + 1 == last && trailing.keys().any(|(f, _)| *f == last);
             if closing_next {
                 for who in 0..players {
-                    if built.sim.nation[who].human {
+                    if built.sim.cities.nation[who].human {
                         built.sim.resign(who as sim::Player);
                     }
                 }
@@ -1394,7 +1400,7 @@ pub(crate) fn seat_walk(
                 // A trailing dump is written after the computers' resource
                 // step of its frame and before the human's: a computer is
                 // read at n, the human at n − 1 (measured, §151).
-                let at = if built.sim.nation[who].human {
+                let at = if built.sim.cities.nation[who].human {
                     n + 1
                 } else {
                     n

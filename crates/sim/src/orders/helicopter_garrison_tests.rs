@@ -11,7 +11,7 @@ fn airbase_and_helicopter() -> (Sim, usize, usize) {
         crate::world::World::new(128, 128),
         2,
     );
-    s.nation[0].human = true;
+    s.cities.nation[0].human = true;
     s.frame = 1260;
     let airbase = s.add_build_type(crate::build::BuildType {
         ident: crate::build::Ident::Airbase,
@@ -33,14 +33,14 @@ fn airbase_and_helicopter() -> (Sim, usize, usize) {
     };
     t.cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
     let ty = s.add_unit_type(t);
-    s.unit_types[ty].tree = Some(crate::airbase::HELICOPTER);
-    s.unit_types[ty].garrison.trained_at = Some(airbase);
+    s.tables.unit_types[ty].tree = Some(crate::airbase::HELICOPTER);
+    s.tables.unit_types[ty].garrison.trained_at = Some(airbase);
     let index = i16::try_from(s.units.len()).unwrap();
     let mut u = Unit::new(0, index, Pos::new(8568, 18168), 100);
     u.ty = Some(ty);
     u.on_map = true;
     let u = s.add_unit(u);
-    s.units[u].kind = s.unit_types[ty].kind;
+    s.units[u].kind = s.tables.unit_types[ty].kind;
     s.init_guys(u, Some(ty));
     (s, base, u)
 }

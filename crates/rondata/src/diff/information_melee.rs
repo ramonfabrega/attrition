@@ -88,10 +88,10 @@ fn information_melee_staging_walk() {
     for line in &st.applied.landed {
         eprintln!("  {line}");
     }
-    for (w, n) in built.sim.nation.iter().enumerate() {
+    for (w, n) in built.sim.cities.nation.iter().enumerate() {
         eprintln!(
             "  who={w} human={} age {} tribe {:?}",
-            n.human, built.sim.players[w].age, built.sim.tech[w].power
+            n.human, built.sim.territory.players[w].age, built.sim.tech[w].power
         );
     }
     // `mirage` and `hind` name nothing: `add`'s walk reads the `NAME`

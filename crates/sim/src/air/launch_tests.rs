@@ -12,10 +12,10 @@ fn sim() -> Sim {
         crate::world::World::new(128, 128),
         2,
     );
-    s.nation[0].human = true;
-    s.nation[1].human = false;
-    s.at_war[0][1] = true;
-    s.at_war[1][0] = true;
+    s.cities.nation[0].human = true;
+    s.cities.nation[1].human = false;
+    s.leaders.at_war[0][1] = true;
+    s.leaders.at_war[1][0] = true;
     s.frame = 766;
     s
 }
@@ -64,9 +64,9 @@ fn fighter_inside(s: &mut Sim, base: usize, mana: i32) -> usize {
     u.ty = Some(ty);
     u.on_map = true;
     let u = s.add_unit(u);
-    s.units[u].kind = s.unit_types[ty].kind;
+    s.units[u].kind = s.tables.unit_types[ty].kind;
     s.units[u].movement.speed = 75;
-    s.units[u].movement.turning = crate::turning_of(&s.unit_types[ty]);
+    s.units[u].movement.turning = crate::turning_of(&s.tables.unit_types[ty]);
     s.init_guys(u, Some(ty));
     s.go_inside(u, base);
     s.buildings[base].launch_frames = super::FRAMES_BETWEEN_LAUNCHES;
@@ -225,7 +225,7 @@ fn a_strike_beyond_the_tank_s_reach_binds_a_missile_only() {
         );
         let ty = s.units[u].ty.unwrap();
         s.units[u].orders.clear();
-        s.unit_types[ty].combat.obj_masks |= crate::combat::mask::MISSILE;
+        s.tables.unit_types[ty].combat.obj_masks |= crate::combat::mask::MISSILE;
         s.group_action_flight(&group_of(0, &[u]), Obj::Building(target), Flight::Strike);
         assert!(
             s.units[u].orders.is_empty(),
@@ -327,12 +327,12 @@ fn a_computer_s_base_sends_its_plane_over_a_city_under_attack() {
         (false, true, false, false),
     ] {
         let mut s = sim();
-        s.nation[0].human = human;
+        s.cities.nation[0].human = human;
         let (base, target) = base_and_target(&mut s);
         let u = fighter_inside(&mut s, base, 400);
         s.units[u].orders.clear();
         let pos = s.buildings[target].pos;
-        s.cities.push(crate::city::City {
+        s.cities.cities.push(crate::city::City {
             alive: true,
             owner: 1,
             race: Some(1),
@@ -759,7 +759,7 @@ fn striking_fighter(s: &mut Sim, strafes: bool) -> (usize, usize, i32, i32) {
     let u = fighter_inside(s, base, 400);
     if strafes {
         let ty = s.units[u].ty.unwrap();
-        s.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::STRAFES;
+        s.tables.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::STRAFES;
     }
     s.group_action_flight(&group_of(0, &[u]), Obj::Building(target), Flight::Strike);
     s.come_out(u);
@@ -997,7 +997,7 @@ fn a_strafers_round_at_a_land_unit_does_not_roll() {
         let mut t = Unit::new(1, index, Pos::new(21120, 16800), 100);
         t.ty = Some(foot);
         t.on_map = true;
-        t.kind = s.unit_types[foot].kind;
+        t.kind = s.tables.unit_types[foot].kind;
         let t = s.add_unit(t);
         let at = s.units[u].pos;
         s.fire_ammo_pub(
@@ -1011,7 +1011,7 @@ fn a_strafers_round_at_a_land_unit_does_not_roll() {
             false,
             false,
         );
-        let p = s.projectiles.last().unwrap();
+        let p = s.combat.projectiles.last().unwrap();
         assert_eq!(p.rolling, !strafes, "strafes {strafes}");
     }
 }
@@ -1025,11 +1025,11 @@ fn a_strafers_round_spends_no_draw() {
     let mut s = sim();
     let (u, target, _, _) = striking_fighter(&mut s, true);
     let ty = s.units[u].ty.unwrap();
-    s.unit_types[ty].combat.to_hit = 50;
-    s.units[u].kind = s.unit_types[ty].kind;
+    s.tables.unit_types[ty].combat.to_hit = 50;
+    s.units[u].kind = s.tables.unit_types[ty].kind;
     let before = s.rng;
     let at = s.units[u].pos;
-    let n = s.projectiles.len();
+    let n = s.combat.projectiles.len();
     s.fire_ammo_pub(
         Obj::Unit(u),
         Obj::Building(target),
@@ -1041,7 +1041,7 @@ fn a_strafers_round_spends_no_draw() {
         false,
         false,
     );
-    assert_eq!(s.projectiles.len(), n + 1, "a round");
+    assert_eq!(s.combat.projectiles.len(), n + 1, "a round");
     assert_eq!(s.rng, before, "and no draw");
 }
 
@@ -1068,7 +1068,7 @@ fn a_strafers_landing_walks_with_its_gun() {
             false,
             false,
         );
-        s.projectiles.last().unwrap().landing
+        s.combat.projectiles.last().unwrap().landing
     };
     let mut s = sim();
     let (u, target, _, _) = striking_fighter(&mut s, true);
@@ -1138,7 +1138,7 @@ fn an_empty_tank_turns_a_strike_for_home() {
 fn biplane_inside(s: &mut Sim, base: usize) -> usize {
     let u = fighter_inside(s, base, 400);
     let ty = s.units[u].ty.unwrap();
-    s.unit_types[ty].tree = Some(crate::airbase::BIPLANE);
+    s.tables.unit_types[ty].tree = Some(crate::airbase::BIPLANE);
     s.units[u].mana_burn = 0;
     u
 }

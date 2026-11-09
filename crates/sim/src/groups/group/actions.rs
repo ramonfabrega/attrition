@@ -95,7 +95,7 @@ impl Sim {
         if !self.group_is_on_map(g) || !g.list.iter().any(|&u| self.units[u].alive()) {
             return None;
         }
-        let tree = self.build_types[ty].tree?;
+        let tree = self.tables.build_types[ty].tree?;
         if self.type_avail(g.who, tree) != crate::tech::AVAILABLE {
             return None;
         }
@@ -214,7 +214,11 @@ impl Sim {
                 // (item 2165, `docs/GOLDEN.md` §79): run835's `0/7` drops
                 // the attack it found on the fishing boat on 681.
                 1 | 2 | 5 => {
-                    let human = self.nation.get(g.who as usize).is_some_and(|n| n.human);
+                    let human = self
+                        .cities
+                        .nation
+                        .get(g.who as usize)
+                        .is_some_and(|n| n.human);
                     if human
                         && self
                             .current_order(u)
@@ -358,7 +362,7 @@ impl Sim {
         // different facts, because the clear loop and the order loop do not
         // gate on the same one.
         let ai = self.ai_army_group(g);
-        let hurry = ai && self.armies[g.who as usize].list[g.army.unwrap_or(0)].hurry != 0;
+        let hurry = ai && self.ai.armies[g.who as usize].list[g.army.unwrap_or(0)].hurry != 0;
         let hurry_city = if hurry {
             self.city_near(g.who, to)
         } else {
@@ -531,7 +535,7 @@ impl Sim {
             // citizen carries the group's `form_mod` like every other
             // member (run157's `1/1` on 990, §24).
             if !self.units[u].ty.is_some_and(|t| {
-                self.unit_types[t]
+                self.tables.unit_types[t]
                     .cols
                     .is(crate::ai_load::role::ROLE_CITIZEN)
             }) {
@@ -654,10 +658,11 @@ impl Sim {
             let grouped = self.gstate(g).is_some()
                 && matches!(kind, MoveKind::MoveTo | MoveKind::AttackTo)
                 && !self.is_modern_infantry(u)
-                && !(self.units[u]
-                    .ty
-                    .is_some_and(|t| self.unit_types[t].cols.is(crate::ai_load::role::ROLE_SCOUT))
-                    && !self.ai_driven(g.who))
+                && !(self.units[u].ty.is_some_and(|t| {
+                    self.tables.unit_types[t]
+                        .cols
+                        .is(crate::ai_load::role::ROLE_SCOUT)
+                }) && !self.ai_driven(g.who))
                 && g.num() >= 2
                 && !self.units[u].in_danger
                 && self.group_domain(u) != Domain::Sea
@@ -741,7 +746,7 @@ impl Sim {
     pub(crate) fn region_spot_type(&self, u: usize, s0: Pos) -> Option<usize> {
         let own = self.units[u].ty?;
         let who = self.units[u].owner;
-        if self.unit_types[own].combat.domain == Domain::Land
+        if self.tables.unit_types[own].combat.domain == Domain::Land
             && self.invalid_loc(u, s0.tile(), true, true, false, false, false) != 0
             && self.transport_level(who) != crate::transport::TransportType::None
         {
@@ -759,7 +764,7 @@ impl Sim {
     pub(crate) fn clear_keeping_pack(&mut self, u: usize) -> bool {
         let packs = self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].combat.packs);
+            .is_some_and(|t| self.tables.unit_types[t].combat.packs);
         if !packs || !self.is_packing(u) {
             return false;
         }
@@ -793,7 +798,12 @@ impl Sim {
         // A **human** leader skips the widening and the anchor scoring and
         // takes the sub-group's own leader (`0070dabd`). No army's leader
         // is human, so this arm is the player's siege-attack command.
-        if self.nation.get(g.who as usize).is_some_and(|n| n.human) {
+        if self
+            .cities
+            .nation
+            .get(g.who as usize)
+            .is_some_and(|n| n.human)
+        {
             // The anchor is only read by `action_guard`, which is the seam;
             // whether the sub-group has a leader is what chooses the arm.
             let escort = self.group_find_leader(&sub).is_some();
@@ -850,7 +860,7 @@ impl Sim {
         // dying move's hand-back goes to the unit's real group (`docs/AI.md`
         // §212) — run820's Supply Wagon `1/205`, the army's leader, wrote its
         // 1 into the stack record on 4082 and the layout read it.
-        self.set_aside = parent.map(|p| (sub.who, sub.army, sub.pushed, p));
+        self.orders.set_aside = parent.map(|p| (sub.who, sub.army, sub.pushed, p));
         self.group_action_move_to(
             &sub,
             to,
@@ -860,7 +870,7 @@ impl Sim {
             MoveKind::AttackTo,
             true,
         );
-        let parent = self.set_aside.take().map(|(.., p)| p);
+        let parent = self.orders.set_aside.take().map(|(.., p)| p);
         // The sub-group's own list as its layout walked it: `Group::sort`
         // runs on the stack record in place, and the record's tables are
         // indexed by the sorted list.
@@ -985,7 +995,7 @@ impl Sim {
             let flag = |f: u32| {
                 self.units[m]
                     .ty
-                    .is_some_and(|t| self.unit_types[t].cols.flag(f))
+                    .is_some_and(|t| self.tables.unit_types[t].cols.flag(f))
             };
             let admitted = flag(uflags::FLAG_HELICOPTER)
                 || self.group_domain(m) == dom
@@ -1022,7 +1032,11 @@ impl Sim {
         // standing, and the guard flag. The stack group's `facing` is the
         // `clear`ed zero, so the mirror is the leader toggle alone; the
         // reverse negation is skipped because the guard flag is set.
-        let human = self.nation.get(g.who as usize).is_some_and(|n| n.human);
+        let human = self
+            .cities
+            .nation
+            .get(g.who as usize)
+            .is_some_and(|n| n.human);
         let form = i32::from(human);
         let tp = self.units[cap].pos;
         let reverse = self.group_leader_faces_away(&local, Angle(0));
@@ -1523,7 +1537,7 @@ impl Sim {
             (Flight::Home, Obj::Building(b))
                 if self.buildings[b].owner == g.who
                     && self.buildings[b].ty.is_some_and(|t| {
-                        crate::build::is(&self.build_types, t, crate::build::Ident::Airbase)
+                        crate::build::is(&self.tables.build_types, t, crate::build::Ident::Airbase)
                     }) =>
             {
                 Some(b)

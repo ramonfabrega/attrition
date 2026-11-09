@@ -82,13 +82,13 @@ impl BuildAttackView for SimBuildAttack<'_> {
             != 0
     }
     fn general_building_attack(&mut self) -> i32 {
-        self.sim.tuning.general_building_attack
+        self.sim.tables.tuning.general_building_attack
     }
     fn obsidian_archers_attack(&mut self) -> i32 {
-        self.sim.tuning.obsidian_archers_attack
+        self.sim.tables.tuning.obsidian_archers_attack
     }
     fn antipater_garrison_attack_bonus(&mut self) -> i32 {
-        self.sim.tuning.antipater_garrison_attack_bonus
+        self.sim.tables.tuning.antipater_garrison_attack_bonus
     }
 }
 
@@ -96,28 +96,34 @@ impl Sim {
     fn is_tower_building(&self, b: usize) -> bool {
         self.buildings[b]
             .ty
-            .is_some_and(|t| build::is_tower(&self.build_types, t))
+            .is_some_and(|t| build::is_tower(&self.tables.build_types, t))
     }
 
     fn is_fort_building(&self, b: usize) -> bool {
         self.buildings[b]
             .ty
-            .is_some_and(|t| build::is_fort(&self.build_types, t))
+            .is_some_and(|t| build::is_fort(&self.tables.build_types, t))
     }
 
     fn is_city_building(&self, b: usize) -> bool {
         self.buildings[b]
             .ty
-            .is_some_and(|t| build::is_city(&self.build_types, t))
+            .is_some_and(|t| build::is_city(&self.tables.build_types, t))
     }
 
     /// The leader's per-type count (`+0x56fe + 2 × t`) of the unit type
     /// whose `TypeIndex` is `t`.
     fn muster_count(&self, who: Player, t: i32) -> i32 {
-        self.unit_types
+        self.tables
+            .unit_types
             .iter()
             .position(|u| u.type_index == t)
-            .and_then(|r| self.muster.get(who as usize).and_then(|m| m.by_type.get(r)))
+            .and_then(|r| {
+                self.roster
+                    .muster
+                    .get(who as usize)
+                    .and_then(|m| m.by_type.get(r))
+            })
             .copied()
             .unwrap_or(0)
     }
@@ -181,47 +187,47 @@ impl Sim {
     pub(crate) fn building_range_terms(&self, b: usize) -> i32 {
         let bd = &self.buildings[b];
         let who = bd.owner;
-        let n = &self.nation[who as usize];
+        let n = &self.cities.nation[who as usize];
         let held = self.wonders_held(who);
         let wonder = |w: usize| held & (1 << w) != 0;
         let (tower, fort) = (self.is_tower_building(b), self.is_fort_building(b));
         let mut r = 0;
         if tower || fort {
             if wonder(crate::tech::wonder::COLOSSEUM) {
-                r += self.tuning.colosseum_fort_range;
+                r += self.tables.tuning.colosseum_fort_range;
             }
             if n.british {
-                r += self.tuning.british_tower_range;
+                r += self.tables.tuning.british_tower_range;
             }
         }
         if fort {
             if n.romans {
-                r += self.tuning.roman_fort_range;
+                r += self.tables.tuning.roman_fort_range;
             }
-            r += self.tuning.fort_upgrade_range
-                [self.bonus_level(who, &self.tech_tree.roles.fort_range_preq)];
+            r += self.tables.tuning.fort_upgrade_range
+                [self.bonus_level(who, &self.tables.tech_tree.roles.fort_range_preq)];
         } else if tower {
             if n.romans {
-                r += self.tuning.roman_fort_range;
+                r += self.tables.tuning.roman_fort_range;
             }
-            r += self.tuning.tower_fort_range[(self.tower_fort_los(who) - 1) as usize];
+            r += self.tables.tuning.tower_fort_range[(self.tower_fort_los(who) - 1) as usize];
         }
         if (tower || fort) && self.holds_general(b) {
-            r += self.tuning.general_building_range;
+            r += self.tables.tuning.general_building_range;
         }
         if let Some(c) = bd.city
             && self.is_city_building(b)
         {
-            if self.cities[c].alive && self.city_has(c, build::Ident::Temple) {
-                let mut t = self.tuning.temple_upgrade_range
-                    [self.bonus_level(who, &self.tech_tree.roles.temple_range_preq)];
+            if self.cities.cities[c].alive && self.city_has(c, build::Ident::Temple) {
+                let mut t = self.tables.tuning.temple_upgrade_range
+                    [self.bonus_level(who, &self.tables.tech_tree.roles.temple_range_preq)];
                 if wonder(crate::tech::wonder::TIKAL) {
-                    t = ((self.tuning.tikal_temple_hp + 100) * t + 99) / 100;
+                    t = ((self.tables.tuning.tikal_temple_hp + 100) * t + 99) / 100;
                 }
                 r += t;
             }
             if self.holds_general(b) {
-                r += self.tuning.general_building_range;
+                r += self.tables.tuning.general_building_range;
             }
         }
         r
@@ -234,16 +240,16 @@ impl Sim {
     pub(crate) fn base_garrison_arrows(&self, b: usize) -> i32 {
         let bd = &self.buildings[b];
         let base = self.profile(Obj::Building(b)).base_arrows;
-        if !self.nation[bd.owner as usize].maya {
+        if !self.cities.nation[bd.owner as usize].maya {
             return base;
         }
         if self.is_city_building(b)
             && bd.active
             && let Some(c) = bd.city
-            && self.cities[c].race != Some(bd.owner)
+            && self.cities.cities[c].race != Some(bd.owner)
         {
             return base;
         }
-        base + self.tuning.maya_garrison_arrows
+        base + self.tables.tuning.maya_garrison_arrows
     }
 }

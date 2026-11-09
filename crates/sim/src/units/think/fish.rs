@@ -144,7 +144,7 @@ impl Sim {
     pub(crate) fn think_fish(&mut self, u: usize, frame: i64) -> bool {
         let packs = self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].combat.packs);
+            .is_some_and(|t| self.tables.unit_types[t].combat.packs);
         let packed = self.units[u].combat.packed;
         let who = self.units[u].owner;
 
@@ -240,8 +240,8 @@ impl Sim {
             && c.y >= 0
             && c.x < self.world.width()
             && c.y < self.world.height()
-            && let Some(o) =
-                self.chain_heads[(c.y as usize) * (self.world.width() as usize) + (c.x as usize)]
+            && let Some(o) = self.terrain.chain_heads
+                [(c.y as usize) * (self.world.width() as usize) + (c.x as usize)]
         {
             return Some((self.units[o].index, self.units[o].owner as i8));
         }

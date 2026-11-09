@@ -14,6 +14,6 @@ fn a_forbidden_city_site_is_a_wonder_to_the_recruiter() {
     let b = s.add_building(1, crate::Pos::new(0x600, 0x600), 1);
     s.buildings[b].ty = Some(t);
     assert!(s.is_wonder_site(b));
-    s.build_types[t].wonder = false;
+    s.tables.build_types[t].wonder = false;
     assert!(!s.is_wonder_site(b));
 }

@@ -664,7 +664,7 @@ mod tests {
                 fn players(sim: &sim::Sim) -> Vec<&sim::Unit> {
                     sim.units
                         .iter()
-                        .filter(|u| usize::from(u.owner) < sim.players.len())
+                        .filter(|u| usize::from(u.owner) < sim.territory.players.len())
                         .collect()
                 }
                 let flags = [

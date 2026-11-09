@@ -45,7 +45,10 @@ const JUMP_MAX: i32 = 0x600;
 impl Sim {
     /// The unit-type index a tree id names.
     fn unit_type_of_tree(&self, id: usize) -> Option<usize> {
-        self.unit_types.iter().position(|t| t.tree == Some(id))
+        self.tables
+            .unit_types
+            .iter()
+            .position(|t| t.tree == Some(id))
     }
 
     /// `ScenarioFuncSet::add_unit(who + 1, x, y, ty, num, 0)`: `ty` a unit
@@ -58,22 +61,22 @@ impl Sim {
         (x, y): (i32, i32),
         num: i32,
     ) -> Option<Vec<usize>> {
-        if who as usize >= self.players.len() || !(0..=2000).contains(&num) {
+        if who as usize >= self.territory.players.len() || !(0..=2000).contains(&num) {
             return None;
         }
         // `LeaderData::get_graft`: the leader's own version of the type.
-        let ty = match (self.unit_types[ty].tree, self.tech.get(who as usize)) {
-            (Some(t), Some(p)) if t < self.tech_tree.types.len() => self
+        let ty = match (self.tables.unit_types[ty].tree, self.tech.get(who as usize)) {
+            (Some(t), Some(p)) if t < self.tables.tech_tree.types.len() => self
+                .tables
                 .tech_tree
-                .get_graft(&self.setup, p, Some(t))
+                .get_graft(&self.tables.setup, p, Some(t))
                 .and_then(|g| self.unit_type_of_tree(g))
                 .unwrap_or(ty),
             _ => ty,
         };
-        if self.unit_types[ty]
-            .tree
-            .is_some_and(|t| t == TRANSPORTBARGE || self.tech_tree.is(t, TRANSPORTBARGE, false))
-        {
+        if self.tables.unit_types[ty].tree.is_some_and(|t| {
+            t == TRANSPORTBARGE || self.tables.tech_tree.is(t, TRANSPORTBARGE, false)
+        }) {
             return None;
         }
         let at = Pos::new(x * 0xc0 + 0x60, y * 0xc0 + 0x60);
@@ -83,7 +86,7 @@ impl Sim {
             return None;
         }
         let ocean = self.world.is_ocean(at.cell());
-        let domain = self.unit_types[ty].combat.domain;
+        let domain = self.tables.unit_types[ty].combat.domain;
         use crate::attrition::Domain;
         let mut g = Group::stack(who);
         let mut made = Vec::new();
@@ -176,7 +179,7 @@ impl Sim {
                 b,
                 from,
                 0,
-                self.tuning.unit_board_distance,
+                self.tables.tuning.unit_board_distance,
                 SWEEP,
             );
             if spot.is_none() && !keep {

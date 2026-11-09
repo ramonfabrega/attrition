@@ -86,7 +86,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 for k in 0..3 {
                     let r = &p[1 + k];
                     let chain = walk(p, i16at(r, 8));
-                    sim.cities.push(City {
+                    sim.cities.cities.push(City {
                         alive: i16at(r, 4) & 1 != 0,
                         owner: who,
                         race: Some(who),
@@ -118,14 +118,14 @@ fn the_emulated_original_agrees_on_every_row() {
                         traded_with: [0; 8],
                     });
                 }
-                let alive = sim.cities[ci].alive;
-                let old_tail = *sim.cities[ci]
+                let alive = sim.cities.cities[ci].alive;
+                let old_tail = *sim.cities.cities[ci]
                     .members
                     .last()
-                    .unwrap_or(&sim.cities[ci].building);
-                let before = sim.cities[ci].members.len();
+                    .unwrap_or(&sim.cities.cities[ci].building);
+                let before = sim.cities.cities[ci].members.len();
                 sim.add_to_city(b, ci);
-                let pushed = sim.cities[ci].members.len() > before;
+                let pushed = sim.cities.cities[ci].members.len() > before;
                 if alive {
                     // `+0x72` is written before the city-centre gate.
                     let city = sim.buildings[b].city.expect("the city is set") as i16;
@@ -143,7 +143,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 }
                 if alive && pushed {
                     assert_eq!(old_tail, *walk(p, i16at(&p[1 + ci], 8)).last().unwrap());
-                    assert_eq!(sim.cities[ci].members.last(), Some(&b));
+                    assert_eq!(sim.cities.cities[ci].members.last(), Some(&b));
                     p[12 + old_tail][0x74..0x76].copy_from_slice(&id.to_le_bytes());
                     m[0x74..0x76].copy_from_slice(&0xffffu16.to_le_bytes());
                     let seq = |base: usize, n: &mut usize, len: usize| {

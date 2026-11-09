@@ -258,7 +258,7 @@ impl Sim {
     /// derived words no column carries". A tree built by hand leaves them
     /// zero, which is the old seam's answer: `w` collapses to 1.
     fn tech_ai_weights(&self, t: TypeId) -> [i32; AI_WEIGHTS] {
-        self.tech_tree.types[t].ai.map(i32::from)
+        self.tables.tech_tree.types[t].ai.map(i32::from)
     }
 
     /// **Seam** — `leader_flags & 8`, a human leader the AI is driving.
@@ -276,7 +276,8 @@ impl Sim {
     fn max_human_age(&self) -> i32 {
         let mut best = -1;
         for w in 0..self.tech.len() {
-            if self.nation[w].human && !self.defeated[w] && self.tech[w].ages >= best {
+            if self.cities.nation[w].human && !self.leaders.defeated[w] && self.tech[w].ages >= best
+            {
                 best = self.tech[w].ages;
             }
         }
@@ -290,7 +291,7 @@ impl Sim {
     fn best_human_age_stamp(&self, n: usize) -> i64 {
         let mut best = -1i64;
         for w in 0..self.tech.len() {
-            if !self.nation[w].human || self.defeated[w] {
+            if !self.cities.nation[w].human || self.leaders.defeated[w] {
                 continue;
             }
             if let Some(s) = self.tech[w].age_stamp[n]
@@ -311,7 +312,7 @@ impl Sim {
     /// Its slots 1 and 2 (the lobby's age remaps) are empty in the shipped
     /// row and not carried (`docs/AI.md` §304; item 3515, run1161's packet).
     fn transport_bonus_needs(&self, t: TypeId) -> bool {
-        self.tech_tree.roles.transport_preq == Some(t)
+        self.tables.tech_tree.roles.transport_preq == Some(t)
     }
 
     /// **Seam** — `LeaderData::get_gov() < 0`, which the original answers by
@@ -319,8 +320,9 @@ impl Sim {
     /// `has_preq`. The tree has no bonus types; owning a government tech is
     /// the same answer in every ordinary game.
     fn has_no_government(&self, who: Player) -> bool {
-        self.tech_tree
-            .govs_taken(&self.setup, &self.tech[who as usize])
+        self.tables
+            .tech_tree
+            .govs_taken(&self.tables.setup, &self.tech[who as usize])
             == 0
     }
 
@@ -346,7 +348,7 @@ impl Sim {
         (0..RESOURCES)
             .filter(|&g| {
                 self.type_available(who, g)
-                    && self.ledgers[who as usize].over_cap[g] != OverCap::Under
+                    && self.economy.ledgers[who as usize].over_cap[g] != OverCap::Under
             })
             .count() as i32
     }
@@ -355,7 +357,7 @@ impl Sim {
     /// line, and 3 for everything else — every age, plain, final and
     /// government tech.
     pub(crate) fn tech_cat(&self, t: TypeId) -> usize {
-        match self.tech_tree.kind(t) {
+        match self.tables.tech_tree.kind(t) {
             Kind::Epoch { line, .. } => line.index(),
             _ => Line::Science.index(),
         }
@@ -373,14 +375,14 @@ impl Sim {
         if !self.type_available(who, KNOWLEDGE) {
             return false;
         }
-        let stock = self.ledgers[who as usize].bucket[KNOWLEDGE];
+        let stock = self.economy.ledgers[who as usize].bucket[KNOWLEDGE];
         mul(stock, 4) / 3 < self.knowledge_cost(who, t)
     }
 
     /// A tech's name against a list, the way `rondata`'s loader resolves
     /// the same `TypeIndex` constants (`docs/DECISIONS.md` entry 18).
     fn tech_named_in(&self, t: TypeId, names: &[&str]) -> bool {
-        let name = &self.tech_tree.types[t].name;
+        let name = &self.tables.tech_tree.types[t].name;
         names.iter().any(|n| name.eq_ignore_ascii_case(n))
     }
 
@@ -397,13 +399,14 @@ impl Sim {
     /// The government-pair rule the original spells out here is already
     /// `type_avail`'s (`tech::TechTree::type_avail`, `Kind::Gov`).
     fn ai_tech_avail(&self, who: Player, t: TypeId) -> i32 {
-        let def = &self.tech_tree.types[t];
+        let def = &self.tables.tech_tree.types[t];
         if def.kind.is_tech() && def.leader_off & (1u8 << (who & 7)) != 0 {
             return 0;
         }
         if self
+            .tables
             .tech_tree
-            .has_tech(&self.setup, &self.tech[who as usize], t)
+            .has_tech(&self.tables.setup, &self.tech[who as usize], t)
             || self.researching(who, t)
         {
             return 0;
@@ -415,6 +418,7 @@ impl Sim {
     /// lobby only researches while the leader still holds its capital.
     fn holds_capital(&self, who: Player) -> bool {
         self.cities
+            .cities
             .iter()
             .any(|c| c.alive && c.owner == who && c.capital)
     }
@@ -425,10 +429,11 @@ impl Sim {
     /// is clear (the branch's own test is the bit, not `has_tech`'s
     /// prerequisite half).
     fn tech_race_shield(&self, who: Player) -> Option<TypeId> {
-        if self.lobby.starting_resources != 7 || self.lobby.starting_technology != 8 {
+        if self.ai.lobby.starting_resources != 7 || self.ai.lobby.starting_technology != 8 {
             return None;
         }
         let shield = self
+            .tables
             .tech_tree
             .types
             .iter()
@@ -442,13 +447,13 @@ impl Sim {
     /// list. Draws from the sync stream for governments only (§2.14).
     pub fn research_techs(&mut self, who: Player) {
         let w = who as usize;
-        if self.lobby.elimination == 1 && !self.holds_capital(who) {
+        if self.ai.lobby.elimination == 1 && !self.holds_capital(who) {
             return;
         }
         let low = self.lowest_epoch(who);
         let over = self.goods_over_cap(who);
-        let techs: Vec<TypeId> = (0..self.tech_tree.types.len())
-            .filter(|&t| self.tech_tree.kind(t).is_tech())
+        let techs: Vec<TypeId> = (0..self.tables.tech_tree.types.len())
+            .filter(|&t| self.tables.tech_tree.kind(t).is_tech())
             .collect();
         for t in techs {
             if self.ai_tech_avail(who, t) < tech::AVAILABLE {
@@ -456,7 +461,7 @@ impl Sim {
             }
             // The research building, and one of it (or of what it upgrades
             // to) standing: `num_buildings[where] + get_buildings(upgrade)`.
-            let Some(where_) = self.tech_tree.types[t].where_ else {
+            let Some(where_) = self.tables.tech_tree.types[t].where_ else {
                 continue;
             };
             let Some(rec) = self.build_record(where_) else {
@@ -484,7 +489,7 @@ impl Sim {
                 }
             }
             if let Some((val, slot)) = self.tech_value(who, t, rec, low, over) {
-                self.ai[w]
+                self.ai.ai[w]
                     .make_list
                     .make_me(t as i32, val, 1, slot, -1, 0, 1, 0, 0);
             }
@@ -504,14 +509,14 @@ impl Sim {
     ) -> Option<(i32, i32)> {
         let w = who as usize;
         let diff = self.ai_difficulty();
-        let kind = self.tech_tree.kind(t);
+        let kind = self.tables.tech_tree.kind(t);
         let cat = self.tech_cat(t);
 
         // `base = (pop × 200 / max(1, cities + villages)) × infra_mod / 256`.
         // **Seam** — `village_num` has no model, so this is the city count.
         let cities = self.city_num(who);
-        let mut base = self.ai[w].census.pop.wrapping_mul(200) / cities.max(1);
-        base = shr8(mul(base, self.ai[w].infra_mod));
+        let mut base = self.ai.ai[w].census.pop.wrapping_mul(200) / cities.max(1);
+        base = shr8(mul(base, self.ai.ai[w].infra_mod));
 
         // *(The `starting_resources == 7 && starting_technology == 8` lobby's
         // branch stands in [`Sim::research_techs`], before this call — item
@@ -565,16 +570,20 @@ impl Sim {
                 let art_of_war = line == Line::Military && level == 0;
                 let spanish = cat == 3 && self.tech[w].tribe == crate::ai::tribe::SPANISH;
                 let ages = self.tech[w].ages;
-                if ages < self.setup.ending && !art_of_war && !spanish {
+                if ages < self.tables.setup.ending && !art_of_war && !spanish {
                     let age_ty = usize::try_from(ages)
                         .ok()
-                        .and_then(|i| self.tech_tree.ages.get(i).copied().flatten());
+                        .and_then(|i| self.tables.tech_tree.ages.get(i).copied().flatten());
                     if let Some(age_ty) = age_ty {
-                        let mut n =
-                            self.tech_tree
-                                .techs_per_age(&self.setup, &self.tech[w], age_ty);
+                        let mut n = self.tables.tech_tree.techs_per_age(
+                            &self.tables.setup,
+                            &self.tech[w],
+                            age_ty,
+                        );
                         if cat == 0 {
-                            if self.muster[w].cap.wrapping_mul(7) / 8 <= self.ai[w].effective_pop {
+                            if self.roster.muster[w].cap.wrapping_mul(7) / 8
+                                <= self.ai.ai[w].effective_pop
+                            {
                                 n += 4;
                             }
                         } else if cat == 2 && over > 1 {
@@ -592,7 +601,7 @@ impl Sim {
                 } else if level_now > low + 1 {
                     return None;
                 }
-                if matches!(cat, 1 | 2) && matches!(self.lobby.victory, 8 | 9) {
+                if matches!(cat, 1 | 2) && matches!(self.ai.lobby.victory, 8 | 9) {
                     base = mul(base, 30);
                 }
                 if self.world.sea_map() > 1 && self.transport_bonus_needs(t) {
@@ -607,20 +616,20 @@ impl Sim {
         }
 
         // Knowledge comfortably in hand.
-        if self.knowledge_cost(who, t) < self.ledgers[w].bucket[KNOWLEDGE] - 100 {
+        if self.knowledge_cost(who, t) < self.economy.ledgers[w].bucket[KNOWLEDGE] - 100 {
             base = mul(base, 10);
         }
 
         // The eleven weights against the census.
         let ai = self.tech_ai_weights(t);
         let facts = WeightFacts {
-            team_style: self.lobby.team_style,
+            team_style: self.ai.lobby.team_style,
             cities,
-            full_cities: self.ai[w].census.full_cities,
-            my_team_terr: self.ai[w].census.my_team_terr,
-            other_team_terr: self.ai[w].census.other_team_terr,
-            min_other_team_terr: self.ai[w].census.min_other_team_terr,
-            active_wars: self.ai[w].census.active_wars,
+            full_cities: self.ai.ai[w].census.full_cities,
+            my_team_terr: self.ai.ai[w].census.my_team_terr,
+            other_team_terr: self.ai.ai[w].census.other_team_terr,
+            min_other_team_terr: self.ai.ai[w].census.min_other_team_terr,
+            active_wars: self.ai.ai[w].census.active_wars,
             sea_map: self.world.sea_map(),
         };
         let mut val = mul(weight_total(&ai, &facts), base);
@@ -629,9 +638,9 @@ impl Sim {
         match cat {
             0 => {
                 val /= 10;
-                let cap = self.muster[w].cap;
+                let cap = self.roster.muster[w].cap;
                 if cap < 200 {
-                    if cap.wrapping_mul(5) / 6 < self.ai[w].effective_pop {
+                    if cap.wrapping_mul(5) / 6 < self.ai.ai[w].effective_pop {
                         val = mul(val, 20);
                     } else if self.tech[w].epoch[0] > 1 {
                         val /= 10;
@@ -657,7 +666,7 @@ impl Sim {
             _ => {
                 if diff >= 4 && cat == 3 {
                     if let Some(g) = self.gather_line_good(t) {
-                        let e = self.ai[w].econ[g];
+                        let e = self.ai.ai[w].econ[g];
                         if e & 4 != 0 {
                             val = mul(val, 2);
                         }
@@ -668,7 +677,7 @@ impl Sim {
                             val = mul(val, 8);
                         }
                     }
-                    let d = self.tech[w].epoch[3] - self.tech_tree.types[t].age;
+                    let d = self.tech[w].epoch[3] - self.tables.tech_tree.types[t].age;
                     if d > 0 {
                         val = mul(mul(val, d + 1), d);
                     }
@@ -677,14 +686,14 @@ impl Sim {
         }
 
         // The Tech Race.
-        if self.lobby.victory == 9 {
+        if self.ai.lobby.victory == 9 {
             val = mul(val, if matches!(kind, Kind::Age(_)) { 9 } else { 3 });
         }
 
         let mut slot = slot_for(cat);
 
         // The research building.
-        let ident = self.build_types[rec].ident;
+        let ident = self.tables.build_types[rec].ident;
         if ident == Ident::Tower {
             if diff < 2 {
                 return None;
@@ -710,7 +719,7 @@ impl Sim {
             // The coin (one draw, and only when `pers.raid == 0`) picks
             // which column of the three government pairs is thrown away;
             // whichever survives is then multiplied by a second draw.
-            let raid = self.ai[w].pers.raid;
+            let raid = self.ai.ai[w].pers.raid;
             let drop_first = raid < 0
                 || (raid == 0 && {
                     self.mark(SITE_GOV_COIN);
@@ -731,33 +740,36 @@ impl Sim {
 
         // The two recency factors — both pinned constants in practice.
         let f1 = recency(
-            self.frame_delta(self.ai[w].tech_frame),
-            self.ai_speed,
+            self.frame_delta(self.ai.ai[w].tech_frame),
+            self.ai.ai_speed,
             14400,
             12,
             4,
         );
         let f2 = recency(
-            self.frame_delta(self.ai[w].tech_cat_frame[cat]),
-            self.ai_speed,
+            self.frame_delta(self.ai.ai[w].tech_cat_frame[cat]),
+            self.ai.ai_speed,
             25600,
             16,
             3,
         );
         val = mul(f2, mul(f1, val) / 2) / 2;
-        if self.ai[w].shortages == 0 {
+        if self.ai.ai[w].shortages == 0 {
             val = mul(val, 2);
         }
 
         // Coverage: the goods the price is in that the leader can neither
         // gather nor reach.
-        let cost = self.tech_tree.types[t].cost;
+        let cost = self.tables.tech_tree.types[t].cost;
         let mut total: i32 = 0;
         let mut missing: i32 = 0;
         for (g, &c) in cost.iter().enumerate() {
             total = total.wrapping_add(c);
             if !self.type_available(who, g)
-                && !self.tech_tree.has_preq(&self.setup, &self.tech[w], g)
+                && !self
+                    .tables
+                    .tech_tree
+                    .has_preq(&self.tables.setup, &self.tech[w], g)
             {
                 missing = missing.wrapping_add(mul(c, 2));
             }
@@ -768,7 +780,7 @@ impl Sim {
         if val < 0 {
             val = 9_999_999;
         }
-        let no_wonder = self.ai[w].wonder_mod == 0;
+        let no_wonder = self.ai.ai[w].wonder_mod == 0;
         if !no_wonder {
             val /= 2;
         }
@@ -784,9 +796,10 @@ impl Sim {
 
     /// Whether the leader holds the first age tech — `has_tech(CLASSICAL_AGE)`.
     fn has_classical_age(&self, who: Player) -> bool {
-        self.tech_tree.ages[0].is_some_and(|a| {
-            self.tech_tree
-                .has_tech(&self.setup, &self.tech[who as usize], a)
+        self.tables.tech_tree.ages[0].is_some_and(|a| {
+            self.tables
+                .tech_tree
+                .has_tech(&self.tables.setup, &self.tech[who as usize], a)
         })
     }
 
@@ -795,7 +808,7 @@ impl Sim {
     /// easy difficulty is smaller than the ledger's own
     /// ([`Sim::mod_resource_cap`], item 290).
     fn goods_near_cap(&self, who: Player) -> i32 {
-        let l = &self.ledgers[who as usize];
+        let l = &self.economy.ledgers[who as usize];
         (0..RESOURCES)
             .filter(|&g| {
                 g != KNOWLEDGE
@@ -822,10 +835,15 @@ impl Sim {
         // `t`'s lineage ([`Sim::researching_unit`]); only `upgrade_units`
         // takes that arm so far (item 1379), and no walk here holds a unit
         // upgrade bought while a rung below it is in research.
-        if self.tech_tree.has_tech(&self.setup, &self.tech[w], t) || self.researching(who, t) {
+        if self
+            .tables
+            .tech_tree
+            .has_tech(&self.tables.setup, &self.tech[w], t)
+            || self.researching(who, t)
+        {
             return true;
         }
-        let Some(where_) = self.tech_tree.types[t].where_ else {
+        let Some(where_) = self.tables.tech_tree.types[t].where_ else {
             return false;
         };
         let Some(rec) = self.build_record(where_) else {
@@ -833,11 +851,11 @@ impl Sim {
         };
         // `BuildTypeData::is_military_trainer` (`produce_tech`:33) reads the
         // flag on the **root** of the `FROM` chain, not on the type itself.
-        let trainer = crate::build::is_military_trainer(&self.build_types, rec);
+        let trainer = crate::build::is_military_trainer(&self.tables.build_types, rec);
 
         let mut best: Option<(i32, usize)> = None;
         if trainer {
-            for b in self.ai[w].mil_trainers.clone() {
+            for b in self.ai.ai[w].mil_trainers.clone() {
                 if !self.research_candidate(who, b, where_, t) {
                     continue;
                 }
@@ -878,7 +896,7 @@ impl Sim {
         // does not own yet — is the unit queue's research job, priced by
         // `get_cost`'s research arm (`docs/AI.md` §56). `queue_tech` takes
         // only a technology and refused it.
-        if self.tech_tree.kind(t).is_unit() {
+        if self.tables.tech_tree.kind(t).is_unit() {
             let Some(rec) = self.unit_record(t) else {
                 return false;
             };
@@ -895,9 +913,10 @@ impl Sim {
             return false;
         }
         bd.ty
-            .and_then(|r| self.build_types[r].tree)
+            .and_then(|r| self.tables.build_types[r].tree)
             .is_some_and(|bt| {
-                self.tech_tree.is(bt, where_, false) && self.tech_tree.queue_here(bt, t)
+                self.tables.tech_tree.is(bt, where_, false)
+                    && self.tables.tech_tree.queue_here(bt, t)
             })
     }
 }

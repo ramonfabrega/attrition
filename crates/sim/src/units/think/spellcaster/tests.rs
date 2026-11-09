@@ -8,10 +8,10 @@ fn ai_scout() -> (Sim, usize) {
     let mut world = World::new(10, 10);
     world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(9, 9));
     let mut s = Sim::new(Tuning::RON, world, 2);
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities.nation[0].human = true;
+    s.cities.nation[1].human = false;
     let t = s.add_unit_type(crate::UnitType::default());
-    s.unit_types[t].cols.unit_flags2 = uflags2::FLAG2_SCOUT | uflags2::CASTER;
+    s.tables.unit_types[t].cols.unit_flags2 = uflags2::FLAG2_SCOUT | uflags2::CASTER;
     let mut u = crate::Unit::new(1, 0, crate::Pos::new(5 * 768 + 384, 5 * 768 + 384), 20);
     u.ty = Some(t);
     let u = s.add_unit(u);
@@ -25,7 +25,7 @@ fn ai_scout() -> (Sim, usize) {
 fn an_ai_scout_throws_the_special_coin_from_difficulty_two() {
     let (mut sim, scout) = ai_scout();
     for d in 0..=5 {
-        sim.lobby.difficulty = d;
+        sim.ai.lobby.difficulty = d;
         let mut probe = sim.rng;
         let coin = probe.roll();
         let before = sim.rng;
@@ -44,12 +44,12 @@ fn an_ai_scout_throws_the_special_coin_from_difficulty_two() {
 fn ai_general() -> (Sim, usize, [u32; 2]) {
     use crate::orders::{MoveKind, QueuePos, SpellType, spell};
     let (mut s, _) = ai_scout();
-    s.lobby.difficulty = 5;
+    s.ai.lobby.difficulty = 5;
     let t = s.add_unit_type(crate::UnitType::default());
-    s.unit_types[t].cols.unit_flags2 = uflags2::FLAG2_GENERAL;
-    s.unit_types[t].mana = 1000;
+    s.tables.unit_types[t].cols.unit_flags2 = uflags2::FLAG2_GENERAL;
+    s.tables.unit_types[t].mana = 1000;
     // `TypeIndex` `0x36`, the General: the crafts' `FROM`.
-    s.unit_types[t].tree = Some(0x36);
+    s.tables.unit_types[t].tree = Some(0x36);
     let mut u = crate::Unit::new(1, 1, crate::Pos::new(5 * 768 + 384, 5 * 768 + 384), 20);
     u.ty = Some(t);
     u.captain = true;
@@ -76,7 +76,7 @@ fn ai_general() -> (Sim, usize, [u32; 2]) {
             ..Default::default()
         };
     }
-    s.spells = rows;
+    s.orders.spells = rows;
     let seed = |odd: i32| {
         (1..)
             .find(|&k| crate::combat::Rng::new(k).roll() & 1 == odd)
@@ -140,8 +140,8 @@ fn a_forced_march_holds_the_coin_until_it_runs_out() {
     use crate::orders::{Body, spell};
     let (mut sim, g, [_, odd]) = ai_general();
     let row = (spell::FORCED_MARCH - spell::FIRST) as usize;
-    sim.spells[row].job_time = 0;
-    sim.spells[row].duration = 150;
+    sim.orders.spells[row].job_time = 0;
+    sim.orders.spells[row].duration = 150;
     sim.rng = crate::combat::Rng::new(odd);
     assert!(sim.think_spellcaster(g));
     let Some(Body::Cast(c)) = sim.units[g].orders.front().map(|o| o.body) else {
@@ -150,7 +150,7 @@ fn a_forced_march_holds_the_coin_until_it_runs_out() {
     let before = sim.rng;
     sim.do_cast(g, c);
     assert_eq!(sim.rng, before, "the attack slot rolls nothing");
-    assert!(sim.forced_march[1]);
+    assert!(sim.leaders.forced_march[1]);
     assert_eq!(sim.units[g].marching, Some(sim.frame + 150));
     // The next turn: moving again, no coin while the march stands.
     let to = crate::Pos::new(8 * 768, 8 * 768);
@@ -167,9 +167,9 @@ fn a_forced_march_holds_the_coin_until_it_runs_out() {
     // Past the end frame the spell runs out and the flag with it.
     let end = sim.units[g].marching.unwrap();
     sim.process_spells(g, end);
-    assert!(sim.forced_march[1], "held through its end frame");
+    assert!(sim.leaders.forced_march[1], "held through its end frame");
     sim.process_spells(g, end + 1);
-    assert!(!sim.forced_march[1] && sim.units[g].marching.is_none());
+    assert!(!sim.leaders.forced_march[1] && sim.units[g].marching.is_none());
 }
 
 /// run511's block 9318 (`docs/AI.md` §99.15): under a Forced March
@@ -182,7 +182,7 @@ fn a_forced_march_holds_the_coin_until_it_runs_out() {
 fn a_forced_march_lifts_the_units_near_its_hero() {
     let (mut sim, g, _) = ai_general();
     let row = (crate::orders::spell::FORCED_MARCH - crate::orders::spell::FIRST) as usize;
-    sim.spells[row].duration = 150;
+    sim.orders.spells[row].duration = 150;
     let at = sim.units[g].pos;
     let t = sim.add_unit_type(crate::UnitType::default());
     let mut o = 40;
@@ -208,10 +208,10 @@ fn a_forced_march_lifts_the_units_near_its_hero() {
     assert_eq!(sim.unit_speed(out), 25, "one past it");
     assert_eq!(sim.unit_speed(fast), 60, "a march never slows a unit");
     assert_eq!(sim.unit_speed(theirs), 25, "another leader's");
-    sim.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
+    sim.tables.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
     sim.units[a].kind.domain = crate::attrition::Domain::Sea;
     assert_eq!(sim.unit_speed(a), 25, "a type not of the land");
-    sim.unit_types[t].combat.domain = crate::attrition::Domain::Land;
+    sim.tables.unit_types[t].combat.domain = crate::attrition::Domain::Land;
     sim.units[a].kind.domain = crate::attrition::Domain::Land;
     // The Senator's reach: an economic patriot's tile more.
     sim.units[g].type_index = 0x161;
@@ -232,7 +232,7 @@ fn a_siege_unit_near_its_monarch_walks_at_double() {
     let (mut sim, g, _) = ai_general();
     let at = sim.units[g].pos;
     let siege = sim.add_unit_type(crate::UnitType::default());
-    sim.unit_types[siege].combat.siege = true;
+    sim.tables.unit_types[siege].combat.siege = true;
     let foot = sim.add_unit_type(crate::UnitType::default());
     sim.units[g].type_index = 0x162;
     let reach = sim.hero_radius(g) * 0xc0;
@@ -297,13 +297,13 @@ fn a_general_standing_draws_nothing_and_a_still_one_makes_decoys() {
 #[test]
 fn a_human_s_scout_and_a_decoy_throw_nothing() {
     let (mut sim, scout) = ai_scout();
-    sim.lobby.difficulty = 5;
+    sim.ai.lobby.difficulty = 5;
     sim.units[scout].decoy = true;
     let before = sim.rng;
     assert!(!sim.think_spellcaster(scout));
     assert_eq!(sim.rng, before, "a decoy");
     sim.units[scout].decoy = false;
-    sim.nation[1].human = true;
+    sim.cities.nation[1].human = true;
     assert!(!sim.think_spellcaster(scout));
     assert_eq!(sim.rng, before, "a human's");
 }

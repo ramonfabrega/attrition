@@ -3,3 +3,34 @@
 pub mod diplomacy;
 pub mod relations;
 pub mod resign;
+
+/// The `leaders/` subsystem's fields of [`crate::Sim`] (`docs/STRUCTURE.md`
+/// §3, item 4016): moved whole, each with its doc, in `Sim`'s order.
+#[derive(Clone, Debug)]
+pub struct LeadersState {
+    /// Diplomacy, as a full matrix. `at_war[a][b]` is symmetric in practice
+    /// but stored both ways, because the original reads it both ways.
+    pub at_war: Vec<Vec<bool>>,
+    /// Alliance, as a matrix; `is_ally` needs it both ways.
+    pub allied: Vec<Vec<bool>>,
+    /// `LeaderData::treaties` (`+0x94`), `int[8]` — the standing agreements
+    /// between two leaders, of which exactly one bit is modelled here:
+    /// **bit 0, the met bit**, "these two have made contact".
+    /// [`Sim::treaty_on`] is its only writer and [`Sim::has_met`] its only
+    /// reader; `docs/VISION.md` §6.2 and `docs/AI.md` §46.
+    pub treaties: Vec<Vec<i32>>,
+    /// `LeaderData::agendas` (`+0xb4`), `int[8]`. One bit is modelled:
+    /// **`2`, "your building stood in my armed unit's walk"**, which
+    /// `Unit::resolve_block@005fccc0` ors into its owner's slot for a
+    /// building of a player it is not at war with (`5fcdda`, item 1209);
+    /// one direction only, where `treaty_on` writes both.
+    pub agendas: Vec<Vec<i32>>,
+    /// `leader_flags & 0x8000` per player: one of its heroes is on a
+    /// Forced March. `cast_march` sets it and `Leader::verify_spell_flags`
+    /// clears it once no hero's `unit_masks & 0x8000` stands; the hero
+    /// arm of `think_spellcaster` throws no coin while it is up
+    /// (`docs/AI.md` §99.13).
+    pub forced_march: Vec<bool>,
+    /// Whether each player has been defeated — `leader_flags & 2` clear.
+    pub defeated: Vec<bool>,
+}

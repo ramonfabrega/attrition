@@ -157,7 +157,7 @@ mod bodies {
              window, so the guy rows would compare the dump with itself"
         );
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        let players = built.sim.players.len();
+        let players = built.sim.territory.players.len();
         use std::collections::BTreeMap;
         // The block each `(who, o, field)` **first** parts on, with the
         // value diff beside it.
@@ -1306,7 +1306,7 @@ mod bodies {
         borrow_from_siblings(&mut init, &[&sib_init]);
         borrow_pasture(&mut init, &tr);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        let players = built.sim.players.len();
+        let players = built.sim.territory.players.len();
         use std::collections::{BTreeMap, BTreeSet};
         let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
         let mut missing: BTreeSet<String> = BTreeSet::new();
@@ -1372,12 +1372,12 @@ mod bodies {
             // of the window — the half of the purchase run99's `LEADERS=1`
             // record cannot print.
             if site_window_named("RON_MAKE_WALK").is_some_and(|(a, b)| (a..=b).contains(&n)) {
-                let ai = &built.sim.ai[1];
+                let ai = &built.sim.ai.ai[1];
                 eprintln!(
                     "  make {n}: step {:?} script_step {} bucket {:?} offers@{} {:?}",
                     ai.step,
                     ai.script_step,
-                    built.sim.ledgers[1].bucket,
+                    built.sim.economy.ledgers[1].bucket,
                     ai.unit_offers_frame,
                     ai.unit_offers
                 );
@@ -1750,7 +1750,7 @@ mod bodies {
         borrow_from_siblings(&mut init, &[&sib_init]);
         borrow_pasture(&mut init, &tr);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        let players = built.sim.players.len();
+        let players = built.sim.territory.players.len();
         use std::collections::{BTreeMap, BTreeSet};
         let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
         let mut missing: BTreeSet<String> = BTreeSet::new();

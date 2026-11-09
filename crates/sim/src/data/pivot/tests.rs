@@ -2672,8 +2672,8 @@ fn a_turret_short_of_its_aim_holds_its_release_on_any_piece() {
     const PIECE: i32 = 12_345;
     let fire = |node: i8, flags: u16| -> usize {
         let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
-        sim.at_war[0][1] = true;
-        sim.at_war[1][0] = true;
+        sim.leaders.at_war[0][1] = true;
+        sim.leaders.at_war[1][0] = true;
         let ty = sim.add_unit_type(crate::UnitType {
             hits: 100,
             type_index: BATTERY,
@@ -2685,11 +2685,15 @@ fn a_turret_short_of_its_aim_holds_its_release_on_any_piece() {
             },
             ..crate::UnitType::default()
         });
-        sim.art
+        sim.roster
+            .art
             .pivots
             .insert(BATTERY, [(4, (-180, 180))].into_iter().collect());
-        sim.art.lengths.insert((PIECE, crate::anim::ATTACK2), 20);
-        sim.art.releases.insert(
+        sim.roster
+            .art
+            .lengths
+            .insert((PIECE, crate::anim::ATTACK2), 20);
+        sim.roster.art.releases.insert(
             PIECE,
             [(
                 crate::anim::ATTACK2,
@@ -2722,7 +2726,7 @@ fn a_turret_short_of_its_aim_holds_its_release_on_any_piece() {
             sim.units[me].guys[0].cur_time, 4,
             "the clock reached the event"
         );
-        sim.projectiles.len()
+        sim.combat.projectiles.len()
     };
     assert_eq!(release(PIECE, crate::anim::ATTACK2, 4), None);
     assert_eq!(fire(0, 14), 0, "node 0, bit 0 clear: held (run404's 779)");

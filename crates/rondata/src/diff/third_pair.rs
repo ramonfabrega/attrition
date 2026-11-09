@@ -1840,7 +1840,7 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             }
             let sim = &built.sim;
             let mut ours = std::collections::BTreeMap::new();
-            for p in &sim.projectiles {
+            for p in &sim.combat.projectiles {
                 let (who, o) = super::golden::obj_ident(sim, p.shooter);
                 assert!(
                     ours.insert((who, o, n - i64::from(p.cur_time)), p)
@@ -2131,18 +2131,18 @@ fn french_east_indies_buys_its_fifth_city_at_a_third_off() {
         built.tick();
     }
     let sim = &built.sim;
-    let village = (0..sim.build_types.len())
-        .find(|&t| sim.build_types[t].ident == sim::build::Ident::Village)
+    let village = (0..sim.tables.build_types.len())
+        .find(|&t| sim.tables.build_types[t].ident == sim::build::Ident::Village)
         .unwrap();
     assert_eq!(sim.city_limit(1), 5, "four cities and the Pyramids");
     let price = sim.building_price(1, village);
     assert_eq!((price[0], price[1]), (140, 140), "the fifth city's price");
     // Food stands three above the original's from before run623's window
     // (`leader:bucket[0:food]`, 500 against 497 on 9772); timber agrees.
-    let before = sim.ledgers[1].bucket;
+    let before = sim.economy.ledgers[1].bucket;
     assert_eq!(before[1], 158);
     built.tick();
-    let after = built.sim.ledgers[1].bucket;
+    let after = built.sim.economy.ledgers[1].bucket;
     assert_eq!((before[0] - after[0], before[1] - after[1]), (140, 140));
     assert_eq!(after[1], 18);
 }

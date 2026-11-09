@@ -154,8 +154,11 @@ impl Levels {
     /// [`Sim::city_holdings`]' `any(Ident::Lumbermill)` and
     /// `any(Ident::Granary)`, and only the leader half is here.
     pub fn for_player(sim: &Sim, who: Player) -> Levels {
-        debug_assert!((who as usize) < sim.holdings.len(), "no such player");
-        let roles = &sim.tech_tree.roles;
+        debug_assert!(
+            (who as usize) < sim.economy.holdings.len(),
+            "no such player"
+        );
+        let roles = &sim.tables.tech_tree.roles;
         Levels {
             granary: 1 + sim.bonus_level(who, &roles.granary_preq) as i32,
             lumber_mill: 1 + sim.bonus_level(who, &roles.lumbermill_preq) as i32,
@@ -276,10 +279,10 @@ impl Sim {
     /// the mine and the university are not.
     pub fn gather_good(&self, b: usize) -> Option<Resource> {
         let t = self.buildings[b].ty?;
-        if !self.build_types[t].has(build::flags::GATHERER) {
+        if !self.tables.build_types[t].has(build::flags::GATHERER) {
             return None;
         }
-        let is = |i| build::is(&self.build_types, t, i);
+        let is = |i| build::is(&self.tables.build_types, t, i);
         if is(Ident::OilWell) || is(Ident::OilPlatform) {
             Some(Resource::Oil)
         } else if is(Ident::Farm) {
@@ -305,7 +308,7 @@ impl Sim {
     fn is_kind(&self, b: usize, ident: Ident) -> bool {
         self.buildings[b]
             .ty
-            .is_some_and(|t| build::is(&self.build_types, t, ident))
+            .is_some_and(|t| build::is(&self.tables.build_types, t, ident))
     }
 
     /// **The city a leader's CEO stands in** — `calc_city_resources@006d5530:166`
@@ -318,10 +321,16 @@ impl Sim {
     pub(crate) fn ceo_city(&self, who: Player) -> Option<usize> {
         const CEO: i32 = 0x165;
         let counted = self
+            .tables
             .unit_types
             .iter()
             .position(|t| t.type_index == CEO)
-            .and_then(|r| self.muster.get(who as usize).and_then(|m| m.by_type.get(r)))
+            .and_then(|r| {
+                self.roster
+                    .muster
+                    .get(who as usize)
+                    .and_then(|m| m.by_type.get(r))
+            })
             .is_some_and(|&n| n != 0);
         if !counted {
             return None;
@@ -363,7 +372,7 @@ impl Sim {
 
         // The caravan income the city already carries — a field, not a
         // survey: `City::compute_trade` writes it when a route changes.
-        out.trade_val = self.cities[c].trade_val;
+        out.trade_val = self.cities.cities[c].trade_val;
 
         // `CityData::get_taxes` and `get_literacy`, which are
         // `count_buildings(MARKET | TEMPLE)` and
@@ -372,13 +381,13 @@ impl Sim {
         // `get_taxes@00737b50`: the Porcelain Tower raises a market's taxes
         // (`docs/GOLDEN.md` §96, item 2598).
         out.porcelain = out.market
-            && self.wonders_held(self.cities[c].owner)
+            && self.wonders_held(self.cities.cities[c].owner)
                 & (1 << crate::tech::wonder::PORCELAIN_TOWER)
                 != 0;
         out.temple = any(Ident::Temple);
         out.university = any(Ident::University);
         out.library = any(Ident::Library);
-        out.ceo = self.ceo_city(self.cities[c].owner) == Some(c);
+        out.ceo = self.ceo_city(self.cities.cities[c].owner) == Some(c);
 
         // `City::calc_gather@00737c60`'s four bytes ([`economy::calc_gather_steps`],
         // item 2368's sweep): the flags `0x200` / `0x400` are the granary and
@@ -394,7 +403,7 @@ impl Sim {
         };
         let flags = if any(Ident::Granary) { 0x200 } else { 0 }
             | if any(Ident::Lumbermill) { 0x400 } else { 0 };
-        let tuning = &self.tuning;
+        let tuning = &self.tables.tuning;
         let bytes = economy::calc_gather_steps(
             &mut (),
             flags,
@@ -461,24 +470,24 @@ impl Sim {
         // leader (item 3331).
         let nation_pct = if resource == Resource::Food
             && self.is_kind(b, Ident::Farm)
-            && self.tech_tree.has_tribe_bonus(
-                &self.setup,
+            && self.tables.tech_tree.has_tribe_bonus(
+                &self.tables.setup,
                 &self.tech[bd.owner as usize],
                 crate::nations::power::JAPANESE,
             ) {
-            self.tuning.japanese_fishing_boats
+            self.tables.tuning.japanese_fishing_boats
         } else {
             0
         };
         // `calc_gather:997`–`1005`: a Farm's wealth, for an Egyptian leader
         // (item 3332).
         let farm_wealth = if self.is_kind(b, Ident::Farm)
-            && self.tech_tree.has_tribe_bonus(
-                &self.setup,
+            && self.tables.tech_tree.has_tribe_bonus(
+                &self.tables.setup,
                 &self.tech[bd.owner as usize],
                 crate::nations::power::EGYPTIANS,
             ) {
-            self.tuning.egyptian_farm_wealth
+            self.tables.tuning.egyptian_farm_wealth
         } else {
             0
         };
@@ -486,13 +495,13 @@ impl Sim {
         // leader (item 3360). The branch is the mine's — metal, beside
         // `german_miners` — and the constant must be positive.
         let miner_wealth = if resource == Resource::Metal
-            && self.tuning.inca_wealth_per_miner > 0
-            && self.tech_tree.has_tribe_bonus(
-                &self.setup,
+            && self.tables.tuning.inca_wealth_per_miner > 0
+            && self.tables.tech_tree.has_tribe_bonus(
+                &self.tables.setup,
                 &self.tech[bd.owner as usize],
                 crate::nations::power::INCA,
             ) {
-            self.tuning.inca_wealth_per_miner
+            self.tables.tuning.inca_wealth_per_miner
         } else {
             0
         };
@@ -561,13 +570,13 @@ impl Sim {
     /// off the buildings. The Conquer-the-World arm (`conquest_wonders`,
     /// `local_8 = 2`) is cut from v1. `docs/ECONOMY.md` §15.
     pub fn wonders_held(&self, who: Player) -> u32 {
-        let line = &self.tech_tree.roles.wonder_line;
+        let line = &self.tables.tech_tree.roles.wonder_line;
         let mut held = 0u32;
         for b in &self.buildings {
             if b.owner != who || !b.alive || !b.active {
                 continue;
             }
-            let Some(tree) = b.ty.and_then(|t| self.build_types[t].tree) else {
+            let Some(tree) = b.ty.and_then(|t| self.tables.build_types[t].tree) else {
                 continue;
             };
             let Some(k) = line.iter().position(|&w| w == tree) else {
@@ -612,7 +621,7 @@ impl Sim {
         // `calc_gather@006ceee0:66–75` does past its gate — the census
         // writes the array and this is the sum's only writer
         // (`docs/AI.md` §55).
-        if let Some(a) = self.ai.get_mut(w) {
+        if let Some(a) = self.ai.ai.get_mut(w) {
             a.known_rares = a.census.reg_known_rares.iter().sum();
         }
 
@@ -630,38 +639,43 @@ impl Sim {
         let commerce = self.tech[w].epoch[Line::Commerce.index()].max(0) as usize;
         // The republic term's tier: `has_preq(REPUBLIC_3)`, then 2, then 1
         // (`calc_resource_caps@006ce900`, `docs/AI.md` §72).
-        let republic = self.government_bonus_level(who, &self.tech_tree.roles.republic_preq);
+        let republic = self.government_bonus_level(who, &self.tables.tech_tree.roles.republic_preq);
 
         // `LeaderData::get_gather_handicap@006d66a0`: a human takes zero
         // unless the multiplayer handicap option is on, and an AI takes the
         // difficulty's percentage. `semaphore[0] & 4` — the MP handicap — is
         // not modelled, so a human is flatly zero here.
-        let handicap = if self.nation[w].human {
+        let handicap = if self.cities.nation[w].human {
             0
         } else {
-            let d = self.lobby.difficulty.clamp(0, i32::from(u8::MAX));
+            let d = self.ai.lobby.difficulty.clamp(0, i32::from(u8::MAX));
             economy::gather_handicap(u8::try_from(d).unwrap_or(0))
         };
 
         let outside = self.gather_sites_outside_cities(who);
         // Step 6, and the `rare_owned` it rebuilds ([`crate::rares`]).
         let (rares, rare_owned) = self.gather_rares(who);
-        let lakota = self.nation[w].lakota && self.tuning.lakota_food != 0;
+        let lakota = self.cities.nation[w].lakota && self.tables.tuning.lakota_food != 0;
         let iroquois = self.tech.get(w).is_some_and(|p| {
-            self.tech_tree
-                .has_tribe_bonus(&self.setup, p, crate::ai::tribe::IROQUOIS)
+            self.tables
+                .tech_tree
+                .has_tribe_bonus(&self.tables.setup, p, crate::ai::tribe::IROQUOIS)
         });
         let dutch = self.tech.get(w).is_some_and(|p| {
-            self.tech_tree
-                .has_tribe_bonus(&self.setup, p, crate::ai::tribe::DUTCH)
+            self.tables
+                .tech_tree
+                .has_tribe_bonus(&self.tables.setup, p, crate::ai::tribe::DUTCH)
         });
-        let americans = self.tuning.americans_barracks_gather != 0
+        let americans = self.tables.tuning.americans_barracks_gather != 0
             && self.tech.get(w).is_some_and(|p| {
-                self.tech_tree
-                    .has_tribe_bonus(&self.setup, p, crate::ai::tribe::AMERICANS)
+                self.tables.tech_tree.has_tribe_bonus(
+                    &self.tables.setup,
+                    p,
+                    crate::ai::tribe::AMERICANS,
+                )
             });
         let american_units = if americans {
-            self.barracks_units(who) - self.ai[w].census.barracks_garr
+            self.barracks_units(who) - self.ai.ai[w].census.barracks_garr
         } else {
             0
         };
@@ -672,7 +686,7 @@ impl Sim {
         } else {
             0
         };
-        let h = &mut self.holdings[w];
+        let h = &mut self.economy.holdings[w];
         h.cities = cities;
         h.outside = outside;
         h.rares = rares;
@@ -682,20 +696,20 @@ impl Sim {
         h.republic = republic;
         h.handicap = handicap;
         h.taxation = levels.taxation;
-        h.british = self.nation[w].british;
-        h.mongols = self.nation[w].mongols;
-        h.num_nations = self.players.len() as i32;
+        h.british = self.cities.nation[w].british;
+        h.mongols = self.cities.nation[w].mongols;
+        h.num_nations = self.territory.players.len() as i32;
         h.lakota = lakota;
         h.lakota_units = lakota_units;
         h.americans = americans;
         h.american_units = american_units;
         h.capitalism = capitalism;
-        h.romans = self.nation[w].romans;
-        h.germans = self.nation[w].germans;
-        h.egyptians = self.nation[w].egyptians;
-        h.russians = self.nation[w].russians;
-        h.french = self.nation[w].french;
-        h.inca = self.nation[w].inca;
+        h.romans = self.cities.nation[w].romans;
+        h.germans = self.cities.nation[w].germans;
+        h.egyptians = self.cities.nation[w].egyptians;
+        h.russians = self.cities.nation[w].russians;
+        h.french = self.cities.nation[w].french;
+        h.inca = self.cities.nation[w].inca;
         h.iroquois = iroquois;
         h.dutch = dutch;
         h.starting = starting;
@@ -708,14 +722,15 @@ impl Sim {
     /// first-tier bonus asks nothing past its row.
     pub(crate) fn holds_capitalism_bonus(&self, who: Player) -> bool {
         let p = &self.tech[who as usize];
-        self.tech_tree
+        self.tables
+            .tech_tree
             .roles
             .gov_bonuses
             .get(1)
             .is_some_and(|(preqs, _)| {
                 preqs
                     .iter()
-                    .all(|&q| self.tech_tree.has_tech_p(&self.setup, p, q))
+                    .all(|&q| self.tables.tech_tree.has_tech_p(&self.tables.setup, p, q))
             })
     }
 
@@ -739,12 +754,12 @@ impl Sim {
     /// `num_units` over them.
     pub(crate) fn barracks_units(&self, who: Player) -> i32 {
         let w = who as usize;
-        (0..self.unit_types.len())
+        (0..self.tables.unit_types.len())
             .filter(|&t| {
-                self.unit_types[t].combat.attack != 0
+                self.tables.unit_types[t].combat.attack != 0
                     && self.trainer_ident(t) == Some(crate::build::Ident::Barracks)
             })
-            .map(|t| self.muster[w].by_type[t])
+            .map(|t| self.roster.muster[w].by_type[t])
             .sum()
     }
 
@@ -752,23 +767,26 @@ impl Sim {
     /// arm: `has_tribe_bonus(0x14)`, `AMERICANS_BARRACKS_GATHER` set, a
     /// Barracks type (`+0x40 == 0x1ab`) and not `is(SCOUT, 0)`.
     pub(crate) fn american_barracks_unit(&self, who: Player, u: usize, ty: usize) -> bool {
-        self.tuning.americans_barracks_gather != 0
+        self.tables.tuning.americans_barracks_gather != 0
             && self.trainer_ident(ty) == Some(crate::build::Ident::Barracks)
             && self.tech.get(who as usize).is_some_and(|p| {
-                self.tech_tree
-                    .has_tribe_bonus(&self.setup, p, crate::ai::tribe::AMERICANS)
+                self.tables.tech_tree.has_tribe_bonus(
+                    &self.tables.setup,
+                    p,
+                    crate::ai::tribe::AMERICANS,
+                )
             })
             && !self.unit_line_is(u, 0x45)
     }
 
     pub(crate) fn lakota_food_units(&self, who: Player) -> i32 {
         let w = who as usize;
-        let c = &self.ai[w].census;
+        let c = &self.ai.ai[w].census;
         let mut n = c.peasants + c.scouts - c.peasants_garr - c.stable_garr - c.scout_garr;
-        for t in 0..self.unit_types.len() {
-            let k = self.muster[w].by_type[t];
+        for t in 0..self.tables.unit_types.len() {
+            let k = self.roster.muster[w].by_type[t];
             if k != 0
-                && self.unit_types[t].combat.attack != 0
+                && self.tables.unit_types[t].combat.attack != 0
                 && self.trainer_ident(t) == Some(crate::build::Ident::Stable)
             {
                 n += k;
@@ -784,7 +802,7 @@ impl Sim {
     /// walk is the expensive half and the original does it inside the same
     /// gate, so income becomes visible on exactly the frame it does there.
     pub fn holdings_due(&self, who: Player, frame: i64) -> bool {
-        let l = &self.ledgers[who as usize];
+        let l = &self.economy.ledgers[who as usize];
         economy::should_recompute(frame, who, l.gather_stamp, l.dirty)
     }
 }
@@ -796,7 +814,7 @@ impl Sim {
 /// harness can ask "what is the rate?" without waiting for the cadence.
 pub fn rate_now(sim: &mut Sim, who: Player) -> [i32; economy::RESOURCES] {
     sim.assemble_holdings(who);
-    economy::assemble(&sim.tuning, &sim.holdings[who as usize])
+    economy::assemble(&sim.tables.tuning, &sim.economy.holdings[who as usize])
 }
 
 #[cfg(test)]

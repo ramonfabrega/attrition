@@ -49,9 +49,9 @@ impl Sim {
         if !self.in_play {
             // Setup's pass, before the first frame: wholesale, and any pass
             // an earlier setup fix left is superseded by this target.
-            self.border_pass = None;
+            self.territory.border_pass = None;
             let target = self.world.owners();
-            let won = self.territory_won.clone();
+            let won = self.territory.territory_won.clone();
             self.wholesale_bordering(&target, &won);
             self.update_territory_holdings();
             self.claim_oil_from_owners();
@@ -60,15 +60,15 @@ impl Sim {
         let target = self.world.owners();
         self.world.set_owners(&before);
         let index = vec![0; self.world.region_count()];
-        let won = self.territory_won.clone();
-        self.border_pass = Some(BorderPass { target, index, won });
+        let won = self.territory.territory_won.clone();
+        self.territory.border_pass = Some(BorderPass { target, index, won });
     }
 
     /// Every city's `bordering` back to zero — `compute_reg_territory:92`,
     /// which every land region's first call makes (its resume index at 0)
     /// **before** its budget test, so the last region to start wins.
     fn clear_bordering(&mut self) {
-        for leader in &mut self.ai {
+        for leader in &mut self.ai.ai {
             for c in &mut leader.city_ai {
                 c.bordering = 0;
             }
@@ -92,11 +92,11 @@ impl Sim {
         if p == q || !(self.at_war_with(p, q) || self.at_war_with(q, p)) {
             return;
         }
-        let owner = self.cities[c].owner as usize;
+        let owner = self.cities.cities[c].owner as usize;
         let bits = (1i32 << (p & 31)) | (1i32 << (q & 31));
-        let at = self.cities[c].pos.cell();
+        let at = self.cities.cities[c].pos.cell();
         let near = (cell.x - at.x).abs() + (cell.y - at.y).abs() < 5;
-        if let Some(a) = self.ai.get_mut(owner) {
+        if let Some(a) = self.ai.ai.get_mut(owner) {
             // A human's leader never sweeps, so its table starts short.
             if a.city_ai.len() <= c {
                 a.city_ai.resize(c + 1, crate::ai::CityAi::default());
@@ -123,7 +123,7 @@ impl Sim {
     /// who=1 on tick 5575, run1241). The block's third write, the
     /// leader's `ushort` at `+0x145e + 2r`, has no field in this crate.
     fn zero_region_rares(&mut self, r: u16) {
-        for leader in &mut self.ai {
+        for leader in &mut self.ai.ai {
             if let Some(slot) = leader.census.reg_known_rares.get_mut(usize::from(r)) {
                 *slot = 0;
             }
@@ -155,7 +155,7 @@ impl Sim {
     /// at setup, before the first frame, and what a test that wants a fix
     /// visible on the same frame asks for.
     pub fn settle_borders(&mut self) {
-        if let Some(pass) = self.border_pass.take() {
+        if let Some(pass) = self.territory.border_pass.take() {
             self.world.set_owners(&pass.target);
             self.wholesale_bordering(&pass.target, &pass.won);
             self.update_territory_holdings();
@@ -167,7 +167,7 @@ impl Sim {
     /// [`CELLS_PER_FRAME`] cells, land regions in order, each from its
     /// resume index.
     pub(crate) fn advance_border_pass(&mut self) {
-        let Some(mut pass) = self.border_pass.take() else {
+        let Some(mut pass) = self.territory.border_pass.take() else {
             return;
         };
         let mut budget = 0;
@@ -218,7 +218,7 @@ impl Sim {
                 // `compute_reg_territory`'s tail: `leader_flags |= 0x2000000`
                 // on every live leader, the economy's recompute flag.
                 finished_one = true;
-                for l in &mut self.ledgers {
+                for l in &mut self.economy.ledgers {
                     l.dirty = true;
                 }
             } else {
@@ -226,7 +226,7 @@ impl Sim {
             }
         }
         if open {
-            self.border_pass = Some(pass);
+            self.territory.border_pass = Some(pass);
         } else if finished_one {
             // `check_borders`' tail: every region done, so `territory` is
             // the sum of the regions' counts again.

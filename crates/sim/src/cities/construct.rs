@@ -161,7 +161,7 @@ impl ConstructHost for SimConstruct<'_> {
     }
     fn tribe_bonus_7(&mut self) -> bool {
         let who = self.sim.buildings[self.b].owner;
-        self.sim.nation[who as usize].egyptians
+        self.sim.cities.nation[who as usize].egyptians
     }
     fn num_wonders(&mut self, city: i32) -> i32 {
         self.sim.num_wonders(city as usize, true)

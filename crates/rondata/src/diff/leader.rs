@@ -87,9 +87,9 @@ const GOODS: [&str; RESOURCES] = ["food", "timber", "wealth", "knowledge", "meta
 /// The per-good rows are flattened as `bucket[0]` … `bucket[5]`, which is
 /// what makes a residue line name the good rather than a slot.
 pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> Vec<Row> {
-    let l = &built.sim.ledgers[who];
-    let h = &built.sim.holdings[who];
-    let a = &built.sim.ai[who];
+    let l = &built.sim.economy.ledgers[who];
+    let h = &built.sim.economy.holdings[who];
+    let a = &built.sim.ai.ai[who];
     let c = &a.census;
     let mut out: Vec<Row> = Vec::new();
     fn six(out: &mut Vec<Row>, key: &str, v: [i32; RESOURCES]) {
@@ -142,12 +142,12 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // parts on every window until a visibility model exists. It is the
     // gate `weight_total`'s war term hangs on, so it is compared rather
     // than left out (`docs/AI.md` §45).
-    for i in 0..built.sim.players.len() {
+    for i in 0..built.sim.territory.players.len() {
         let d = if i == who {
             2
-        } else if built.sim.at_war[who][i] {
+        } else if built.sim.leaders.at_war[who][i] {
             0
-        } else if built.sim.allied[who][i] {
+        } else if built.sim.leaders.allied[who][i] {
             2
         } else {
             1
@@ -161,7 +161,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         let met = if i == who {
             1
         } else {
-            i64::from(built.sim.treaties[who][i])
+            i64::from(built.sim.leaders.treaties[who][i])
         };
         out.push((format!("treaties[{i}]"), met));
         // `agendas[i]` (`+0xb4`, item 1209): the one bit written here is
@@ -169,6 +169,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         // `who`'s armed walks while the two are not at war.
         let agenda = built
             .sim
+            .leaders
             .agendas
             .get(who)
             .and_then(|r| r.get(i))
@@ -177,7 +178,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         out.push((format!("agendas[{i}]"), i64::from(agenda)));
         // `aggression`, `strong`, `weak` (`+0x210`, `+0x230`, `+0x250`):
         // `Leader::diplomacy`'s view of `i` (item 2384, `docs/AI.md` §220).
-        if let Some(l) = built.sim.ai.get(who).filter(|_| i < 8) {
+        if let Some(l) = built.sim.ai.ai.get(who).filter(|_| i < 8) {
             out.push((format!("aggression[{i}]"), i64::from(l.aggression[i])));
             out.push((format!("strong[{i}]"), i64::from(l.strong[i])));
             out.push((format!("weak[{i}]"), i64::from(l.weak[i])));
@@ -188,7 +189,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // this one.
     out.push((
         "got_diplo_message".to_string(),
-        built.sim.ai.get(who).map_or(0, |l| l.got_diplo_message),
+        built.sim.ai.ai.get(who).map_or(0, |l| l.got_diplo_message),
     ));
     // The AI's own step machine and its biases.
     out.push(("production_step".to_string(), i64::from(a.step.number())));
@@ -209,7 +210,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // flock of birds (`sim::flock`).
     out.push((
         "flock_stamp".to_string(),
-        built.sim.flock_stamp.get(who).copied().unwrap_or(0),
+        built.sim.gaia.flock_stamp.get(who).copied().unwrap_or(0),
     ));
     out.push(("tech_frame".to_string(), a.tech_frame));
     out.push(("frame_attacked".to_string(), a.frame_attacked));
@@ -230,13 +231,16 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // ramp reads it.
     out.push((
         "control".to_string(),
-        i64::from(built.sim.muster[who].control),
+        i64::from(built.sim.roster.muster[who].control),
     ));
     // **`pop_cap`, the cap `control` is measured against** (item 1147):
     // `LeaderData +0x7e4`, which `Leader::calc_pop_cap` writes. It stood on
     // the uncompared pin while the third map's AI held Peacocks, 50 here
     // against 55 there, until the Mercenaries offer read it.
-    out.push(("pop_cap".to_string(), i64::from(built.sim.muster[who].cap)));
+    out.push((
+        "pop_cap".to_string(),
+        i64::from(built.sim.roster.muster[who].cap),
+    ));
     // The census — `docs/AI.md` §2.3, under the PDB's names.
     for (k, v) in [
         ("active", c.active),
@@ -305,7 +309,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // `Leader::process`'s head ([`sim::Sim::retargets`]).
     out.push((
         "retargets".to_string(),
-        i64::from(built.sim.retargets.get(who).copied().unwrap_or(0)),
+        i64::from(built.sim.combat.retargets.get(who).copied().unwrap_or(0)),
     ));
     // `known_rares` (item 327): `calc_gather`'s sum of the census's
     // `reg_known_rares`, and the gate of `create_units`' merchant arm.
@@ -315,6 +319,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         "city_num".to_string(),
         built
             .sim
+            .cities
             .cities
             .iter()
             .filter(|x| x.alive && usize::from(x.owner) == who)
@@ -386,6 +391,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
                 built
                     .sim
                     .cities
+                    .cities
                     .iter()
                     .enumerate()
                     .filter(|(_, x)| x.alive && usize::from(x.owner) == who)
@@ -416,7 +422,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // compared either array. The dump's index is the record's own — the
     // array is keyed by `TypeIndex - BASE_UNITTYPES` and this crate's
     // record index is the same number (`UnitType::type_index`).
-    let m = &built.sim.muster[who];
+    let m = &built.sim.roster.muster[who];
     for (r, n) in m.by_type.iter().enumerate().take(MUSTER_WIDTH) {
         out.push((format!("num_units[{r}]"), i64::from(*n)));
     }
@@ -563,7 +569,7 @@ pub(crate) const REGION_ARRAYS: &[(&str, usize, i64)] = &[
 /// region `d` (`Built::region_map` is the translation); a dump region this
 /// crate has no region for reads 0, which is what a sweep leaves there.
 pub(crate) fn region_rows(built: &Built, who: usize) -> Vec<Row> {
-    let c = &built.sim.ai[who].census;
+    let c = &built.sim.ai.ai[who].census;
     let mut out = Vec::new();
     for &(key, width, base) in REGION_ARRAYS {
         let ours: &[i32] = match key {
@@ -1138,10 +1144,10 @@ mod tests {
             return;
         };
         assert_eq!(
-            built.sim.ai[1].unit_offers_frame, 9380,
+            built.sim.ai.ai[1].unit_offers_frame, 9380,
             "the recorder's frame"
         );
-        let ours: Vec<(i32, i32, i32, i32)> = built.sim.ai[1]
+        let ours: Vec<(i32, i32, i32, i32)> = built.sim.ai.ai[1]
             .unit_offers
             .iter()
             .map(|m| (m.t, m.val, m.city, m.cat))

@@ -146,7 +146,7 @@ fn a_pasture_s_close_takes_its_animals_and_spends_no_draw() {
         hits: 10,
         ..crate::UnitType::default()
     });
-    s.unit_types[chicken].tree = Some(FARMCHICKEN);
+    s.tables.unit_types[chicken].tree = Some(FARMCHICKEN);
     s.buildings[b].farm.farm_type = ANIMAL_FARM;
     let animals = s.farm_add_animals(b, &[]);
     let t = s.buildings[b].ty.unwrap();
@@ -175,7 +175,7 @@ fn a_pasture_spends_no_crop_draw_and_six_on_its_animals() {
         hits: 10,
         ..crate::UnitType::default()
     });
-    s.unit_types[chicken].tree = Some(FARMCHICKEN);
+    s.tables.unit_types[chicken].tree = Some(FARMCHICKEN);
     s.buildings[b].farm.farm_type = ANIMAL_FARM;
     let animals = s.farm_add_animals(b, &[]);
     assert_eq!(animals.len(), FARM_ANIMALS as usize, "five animals");
@@ -244,12 +244,12 @@ fn a_finished_pasture_stocks_five_animals_for_twenty_draws() {
         hits: 10,
         ..crate::UnitType::default()
     });
-    s.unit_types[chicken].tree = Some(FARMCHICKEN);
+    s.tables.unit_types[chicken].tree = Some(FARMCHICKEN);
     let pig = s.add_unit_type(crate::UnitType {
         hits: 10,
         ..crate::UnitType::default()
     });
-    s.unit_types[pig].tree = Some(FARMPIG);
+    s.tables.unit_types[pig].tree = Some(FARMPIG);
 
     let pos = crate::Pos::new(5 * 192 + 96, 5 * 192 + 96);
     let b = s.init_build(0, t, pos, false);
@@ -259,7 +259,7 @@ fn a_finished_pasture_stocks_five_animals_for_twenty_draws() {
     // off zero because zero is the setup's.
     s.buildings[b].farm.farm_type = ANIMAL_FARM;
     s.frame = 1_372;
-    s.trace_phases = true;
+    s.trace.trace_phases = true;
 
     s.rng = Rng::new(0xc91f_99f2);
     s.activate(b, false, true);
@@ -271,7 +271,8 @@ fn a_finished_pasture_stocks_five_animals_for_twenty_draws() {
     );
     assert_eq!(s.rng.seed, 0xafa3_8116, "run33's own word twenty draws on");
     assert_eq!(
-        s.phase_marks
+        s.trace
+            .phase_marks
             .iter()
             .map(|(n, _)| n.as_str())
             .collect::<Vec<_>>(),
@@ -341,7 +342,7 @@ fn think_farm_animal_s_phase_and_its_covers_tile() {
         hits: 10,
         ..crate::UnitType::default()
     });
-    s.unit_types[pig].tree = Some(FARMPIG);
+    s.tables.unit_types[pig].tree = Some(FARMPIG);
     s.buildings[b].farm.farm_type = ANIMAL_FARM;
     let animals = s.farm_add_animals(b, &[]);
 
@@ -359,7 +360,7 @@ fn think_farm_animal_s_phase_and_its_covers_tile() {
     // farm, `been_there` clear — leaves the reference on the **farm**,
     // which covers its own tile, so the draw is spent.
     s.frame = 0;
-    s.build_types[s.buildings[b].ty.unwrap()].flags |= build::flags::GATHERER;
+    s.tables.build_types[s.buildings[b].ty.unwrap()].flags |= build::flags::GATHERER;
     let citizen = s.add_unit_type(crate::UnitType {
         hits: 10,
         worker: crate::orders::Worker::Citizen,
@@ -427,7 +428,7 @@ fn an_animal_is_born_on_the_snap_of_its_two_draws() {
         moves: 25,
         ..crate::UnitType::default()
     });
-    s.unit_types[chicken].tree = Some(FARMCHICKEN);
+    s.tables.unit_types[chicken].tree = Some(FARMCHICKEN);
     s.buildings[b].farm.farm_type = ANIMAL_FARM;
     // `+0x134` and `+0x182` are a `y` and an `x` offset in
     // `[−0xc0, 0xbf]`; neither of these lands on a cell centre.
@@ -460,7 +461,7 @@ fn the_walk_lands_on_the_slot_s_corner_of_the_tile_it_picks() {
         moves: 25,
         ..crate::UnitType::default()
     });
-    s.unit_types[chicken].tree = Some(FARMCHICKEN);
+    s.tables.unit_types[chicken].tree = Some(FARMCHICKEN);
     s.buildings[b].farm.farm_type = ANIMAL_FARM;
     let seeds = [AnimalSeed {
         chicken: true,
@@ -638,7 +639,7 @@ fn city_sim() -> (Sim, usize, usize) {
     // (5, 5) and would join this city, which is not what the table below
     // counts, so it goes.
     s.buildings[first].alive = false;
-    s.farm_order.clear();
+    s.cities.farm_order.clear();
     let c = s.init_build(0, village, Pos::new(20 * 192 + 96, 20 * 192 + 96), false);
     s.activate(c, false, true);
     let city = s.buildings[c].city.expect("a finished city has a record");
@@ -689,11 +690,12 @@ fn farms_add_picks_the_type_and_hands_out_one_ambience_a_city() {
     s.buildings[lone2].alive = false;
 
     // 2. The city's first farm: the roll.
-    s.trace_phases = true;
+    s.trace.trace_phases = true;
     let f1 = s.init_build(0, t, Pos::new(18 * 192 + 96, 20 * 192 + 96), false);
     assert_eq!(s.buildings[f1].city, Some(city), "inside the city");
     assert_eq!(
-        s.phase_marks
+        s.trace
+            .phase_marks
             .iter()
             .map(|m| m.0.as_str())
             .collect::<Vec<_>>(),
@@ -709,17 +711,21 @@ fn farms_add_picks_the_type_and_hands_out_one_ambience_a_city() {
     s.buildings[f1].started = true;
 
     // 3. The second, four tiles off: copied from the first, no draw.
-    s.phase_marks.clear();
+    s.trace.phase_marks.clear();
     let f2 = s.init_build(0, t, Pos::new(22 * 192 + 96, 20 * 192 + 96), false);
     assert_eq!(s.buildings[f2].city, Some(city));
     assert_eq!(s.buildings[f2].farm.farm_type, 0, "the neighbour's type");
-    assert!(s.phase_marks.is_empty(), "one crop is not more than one");
+    assert!(
+        s.trace.phase_marks.is_empty(),
+        "one crop is not more than one"
+    );
 
     // 4. The third: the ambience pair, and the bit.
-    s.phase_marks.clear();
+    s.trace.phase_marks.clear();
     let f3 = s.init_build(0, t, Pos::new(20 * 192 + 96, 22 * 192 + 96), false);
     assert_eq!(
-        s.phase_marks
+        s.trace
+            .phase_marks
             .iter()
             .map(|m| m.0.as_str())
             .collect::<Vec<_>>(),
@@ -734,15 +740,15 @@ fn farms_add_picks_the_type_and_hands_out_one_ambience_a_city() {
     );
 
     // 5. The fourth: the emitter is taken.
-    s.phase_marks.clear();
+    s.trace.phase_marks.clear();
     let f4 = s.init_build(0, t, Pos::new(20 * 192 + 96, 18 * 192 + 96), false);
     assert_eq!(s.buildings[f4].farm.farm_type, 0);
-    assert!(s.phase_marks.is_empty(), "one emitter a city");
+    assert!(s.trace.phase_marks.is_empty(), "one emitter a city");
 
     // And the list is joined at placement — these four have never been
     // activated — in placement order, the first two into the slots the
     // dead `lone` pair left (`Farms::add`'s first free record).
-    assert_eq!(s.farm_order, vec![f1, f2, f3, f4]);
+    assert_eq!(s.cities.farm_order, vec![f1, f2, f3, f4]);
 }
 
 /// **A freed slot is refilled** (item 1639, `docs/AI.md` §175):
@@ -755,16 +761,20 @@ fn a_placement_takes_the_first_freed_slot() {
     let a = s.init_build(0, t, Pos::new(16 * 192 + 96, 16 * 192 + 96), false);
     let b = s.init_build(0, t, Pos::new(24 * 192 + 96, 16 * 192 + 96), false);
     let c = s.init_build(0, t, Pos::new(16 * 192 + 96, 24 * 192 + 96), false);
-    assert_eq!(s.farm_order, vec![a, b, c]);
+    assert_eq!(s.cities.farm_order, vec![a, b, c]);
     s.buildings[a].alive = false;
     let d = s.init_build(0, t, Pos::new(24 * 192 + 96, 24 * 192 + 96), false);
     assert_eq!(
-        s.farm_order,
+        s.cities.farm_order,
         vec![d, b, c],
         "the dead farm's slot, not the end"
     );
     let e = s.init_build(0, t, Pos::new(8 * 192 + 96, 8 * 192 + 96), false);
-    assert_eq!(s.farm_order, vec![d, b, c, e], "none free: it appends");
+    assert_eq!(
+        s.cities.farm_order,
+        vec![d, b, c, e],
+        "none free: it appends"
+    );
 }
 
 /// **A farm site nobody has started is not a neighbour** (`docs/AI.md`
@@ -790,12 +800,12 @@ fn a_farm_beside_an_unstarted_site_is_the_fourth_s_pasture() {
         s.buildings[third].started = started;
         assert_eq!(s.city_count_farms(city), 3);
         // The fourth, five tiles east of the third: 960, as on 23182.
-        s.trace_phases = true;
-        s.phase_marks.clear();
+        s.trace.trace_phases = true;
+        s.trace.phase_marks.clear();
         let seed = s.rng.seed;
         let fourth = s.init_build(0, t, Pos::new(24 * 192 + 96, 23 * 192 + 96), false);
         assert_eq!(s.buildings[fourth].city, Some(city));
-        let marks: Vec<String> = s.phase_marks.iter().map(|m| m.0.clone()).collect();
+        let marks: Vec<String> = s.trace.phase_marks.iter().map(|m| m.0.clone()).collect();
         (
             s.buildings[fourth].farm.farm_type & ANIMAL_FARM,
             s.rng.seed == seed,

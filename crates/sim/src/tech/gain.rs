@@ -11,10 +11,10 @@ impl Sim {
     /// against it; call [`Sim::start_techs`] for each to lay down the starting
     /// position the way `Leader::init` does.
     pub fn set_tech_tree(&mut self, tree: tech::TechTree) {
-        self.tech_tree = tree;
+        self.tables.tech_tree = tree;
         for t in &mut self.tech {
             let (tribe, power, team) = (t.tribe, t.power, t.team);
-            *t = tech::PlayerTech::new(&self.tech_tree);
+            *t = tech::PlayerTech::new(&self.tables.tech_tree);
             t.tribe = tribe;
             t.power = power;
             t.team = team;
@@ -23,7 +23,7 @@ impl Sim {
         // Availability is a fact about the tree, so it is wrong until there
         // is one: every player's two arrays are laid down here and then
         // maintained by [`Sim::apply_gained`].
-        for who in 0..self.holdings.len().min(self.tech.len()) {
+        for who in 0..self.economy.holdings.len().min(self.tech.len()) {
             self.sync_goods_available(u8::try_from(who).expect("too many players"));
         }
     }
@@ -33,9 +33,11 @@ impl Sim {
     /// and unit type whose prerequisites hold, and the nation's free starting
     /// epoch — see `docs/TECH.md`, "The starting position".
     pub fn start_techs(&mut self, who: Player) -> Vec<tech::Gained> {
-        let events = self
-            .tech_tree
-            .start(&self.setup, &self.tuning, &mut self.tech[who as usize]);
+        let events = self.tables.tech_tree.start(
+            &self.tables.setup,
+            &self.tables.tuning,
+            &mut self.tech[who as usize],
+        );
         self.apply_gained(who);
         self.lay_starting_goods(who);
         events
@@ -69,13 +71,15 @@ impl Sim {
     pub fn lay_starting_goods(&mut self, who: Player) {
         let w = who as usize;
         let greek = self
+            .tables
             .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[w], 5)
+            .has_tribe_bonus(&self.tables.setup, &self.tech[w], 5)
             && self.tech[w].ages == 0
-            && self.tuning.greek_delay_knowledge != 0;
+            && self.tables.tuning.greek_delay_knowledge != 0;
         let persian = self
+            .tables
             .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[w], 23);
+            .has_tribe_bonus(&self.tables.setup, &self.tech[w], 23);
         for g in 0..economy::RESOURCES {
             let amount = match self.good_tree_type(g) {
                 // Without a tree there is no availability to test, and the
@@ -89,13 +93,13 @@ impl Sim {
                 Some(_) => 0,
             };
             let amount = match g {
-                0 if persian => amount * (self.tuning.persians_bonus_food + 100) / 100,
+                0 if persian => amount * (self.tables.tuning.persians_bonus_food + 100) / 100,
                 3 if greek => 0,
                 _ => amount,
             };
-            self.ledgers[w].bucket[g] = amount;
+            self.economy.ledgers[w].bucket[g] = amount;
         }
-        self.ledgers[w].dirty = true;
+        self.economy.ledgers[w].dirty = true;
     }
 
     /// **The `resource` cheat** (`ConsoleWin::run_cmd@007d6a70`'s case,
@@ -117,7 +121,7 @@ impl Sim {
                     .is_none_or(|t| self.type_avail(who, t) != tech::NOT_AVAILABLE),
             };
             if hit {
-                let b = &mut self.ledgers[w].bucket[g];
+                let b = &mut self.economy.ledgers[w].bucket[g];
                 *b = (*b + amount).max(0);
             }
         }
@@ -145,19 +149,19 @@ impl Sim {
     /// Conquer the World's `ctw_nomad_starting_res_x` is the third arm and
     /// is cut from v1.
     pub(crate) fn starting_good(&self, who: Player, g: usize) -> i32 {
-        if self.lobby.resources_unlimited() {
+        if self.ai.lobby.resources_unlimited() {
             return economy::UNLIMITED_GOODS;
         }
-        let mut base = self.tuning.starting_goods[g];
-        if self.lobby.starting_resources == 7 && g != 3 {
-            base = self.tuning.starting_goods[0];
+        let mut base = self.tables.tuning.starting_goods[g];
+        if self.ai.lobby.starting_resources == 7 && g != 3 {
+            base = self.tables.tuning.starting_goods[0];
         }
-        let (lo, _hi) = self.lobby.starting_resources_row;
+        let (lo, _hi) = self.ai.lobby.starting_resources_row;
         let amount = if lo == 0 { base / 2 } else { lo * base };
         // Barbarians at the Gates pays the defending team the *other* row's
         // index as a multiplier, which is what both callers write.
-        if self.lobby.game_rules == 8 && self.tech[who as usize].team == 0 {
-            return (self.lobby.starting_resources2 + 1) * amount;
+        if self.ai.lobby.game_rules == 8 && self.tech[who as usize].team == 0 {
+            return (self.ai.lobby.starting_resources2 + 1) * amount;
         }
         amount
     }
@@ -166,7 +170,8 @@ impl Sim {
     /// out of `resourcerules.xml` in order and the first six are
     /// [`economy::Resource`]'s own.
     pub(crate) fn good_tree_type(&self, g: usize) -> Option<tech::TypeId> {
-        self.tech_tree
+        self.tables
+            .tech_tree
             .types
             .iter()
             .enumerate()
@@ -193,8 +198,9 @@ impl Sim {
         // hold the prerequisite for.
         let had_preq: [bool; economy::RESOURCES] = std::array::from_fn(|g| {
             self.good_tree_type(g).is_some_and(|x| {
-                self.tech_tree
-                    .has_preq(&self.setup, &self.tech[who as usize], x)
+                self.tables
+                    .tech_tree
+                    .has_preq(&self.tables.setup, &self.tech[who as usize], x)
             })
         });
         // `LeaderData::has_wonder` is asked live by the wonder-gated blocks
@@ -202,6 +208,7 @@ impl Sim {
         // player's set off the buildings first.
         let held = self.wonders_held(who);
         self.tech[who as usize].wonders = self
+            .tables
             .tech_tree
             .roles
             .wonder_line
@@ -210,20 +217,23 @@ impl Sim {
             .filter(|&(k, _)| held & (1 << k) != 0)
             .map(|(_, &w)| w)
             .collect();
-        let events = self
-            .tech_tree
-            .gain_tech(&self.setup, &mut self.tech[who as usize], t, frame);
+        let events = self.tables.tech_tree.gain_tech(
+            &self.tables.setup,
+            &mut self.tech[who as usize],
+            t,
+            frame,
+        );
         self.pay_arriving_goods(who, &had_preq, &events);
         // Step 9's government arm (`006de29e`–`006de2e4`): with `gov`
         // written, a gained `is(0x274, 0)` — Capitalism — after frame 0
         // takes `CAPITALISM_OIL_GIFT` into the oil bucket (`bucket_add`, a
         // plain add). `0x274` is `gov_bonuses`' second row's government.
         if frame != 0
-            && matches!(self.tech_tree.kind(t), tech::Kind::Gov { .. })
-            && self.tech_tree.roles.gov_bonuses.get(1).map(|g| g.1) == Some(t)
+            && matches!(self.tables.tech_tree.kind(t), tech::Kind::Gov { .. })
+            && self.tables.tech_tree.roles.gov_bonuses.get(1).map(|g| g.1) == Some(t)
         {
-            self.ledgers[who as usize].bucket[economy::Resource::Oil.index()] +=
-                self.tuning.capitalism_oil_gift;
+            self.economy.ledgers[who as usize].bucket[economy::Resource::Oil.index()] +=
+                self.tables.tuning.capitalism_oil_gift;
         }
         // `*this |= 0x2000000` at line 319, on every gain: the economy is
         // reassembled at the next dirty-grid frame, which is what reads a
@@ -249,7 +259,7 @@ impl Sim {
                 _ => {}
             }
         }
-        let wall_stats_were = self.wall_stats_dirty[who as usize];
+        let wall_stats_were = self.cities.wall_stats_dirty[who as usize];
         self.apply_gained(who);
         // **A unit type takes no wall stats** (item 3965): the unit arm
         // (`gain_tech@006dcb60:658`, the type's vslot `+0xc`) raises
@@ -257,13 +267,13 @@ impl Sim {
         // the tail's `|= 0xc000000` (`:2313`). run99's Tower `1/2014` gains
         // the Militia on 10163 and keeps its cached `mylos` 11 to 10334's
         // tech, where this crate's refresh read 13 on 10165.
-        if self.tech_tree.kind(t).is_unit() {
-            self.wall_stats_dirty[who as usize] = wall_stats_were;
+        if self.tables.tech_tree.kind(t).is_unit() {
+            self.cities.wall_stats_dirty[who as usize] = wall_stats_were;
         }
         // Step 10's second half: a Civic level re-masks every city and
         // sweeps the buildings its new reach covers into it.
         if matches!(
-            self.tech_tree.kind(t),
+            self.tables.tech_tree.kind(t),
             tech::Kind::Epoch {
                 line: tech::Line::Civic,
                 ..
@@ -282,7 +292,7 @@ impl Sim {
             .filter(|e| matches!(e, tech::Gained::CityCheck))
         {
             for c in self.cities_of(who) {
-                if self.cities[c].alive {
+                if self.cities.cities[c].alive {
                     self.check_upgrade(c);
                 }
             }
@@ -305,7 +315,7 @@ impl Sim {
         //
         // [`Sim::tick`] runs the buildings after the unit loop, so the snap
         // lands after the frame's own step, which is what run86 shows.
-        if matches!(self.tech_tree.kind(t), tech::Kind::Age(_)) {
+        if matches!(self.tables.tech_tree.kind(t), tech::Kind::Age(_)) {
             self.age_snap_units(who);
         }
         // `Leader::gain_tech`'s tail: `check_transport` (`docs/TRANSPORT.md`
@@ -381,9 +391,10 @@ impl Sim {
     ) {
         let w = who as usize;
         let greek = self
+            .tables
             .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[w], 5)
-            && self.tuning.greek_delay_knowledge != 0;
+            .has_tribe_bonus(&self.tables.setup, &self.tech[w], 5)
+            && self.tables.tuning.greek_delay_knowledge != 0;
         for e in events {
             let tech::Gained::Type(x) = *e else { continue };
             for (g, &held) in had_preq.iter().enumerate() {
@@ -393,18 +404,18 @@ impl Sim {
                 let Some(id) = self.good_tree_type(g) else {
                     continue;
                 };
-                if self.tech_tree.types[id].preq[0] != tech::Preq::Of(x) {
+                if self.tables.tech_tree.types[id].preq[0] != tech::Preq::Of(x) {
                     continue;
                 }
                 let amount = self.starting_good(who, g);
-                self.ledgers[w].bucket[g] += amount;
-                self.ledgers[w].dirty = true;
+                self.economy.ledgers[w].bucket[g] += amount;
+                self.economy.ledgers[w].dirty = true;
             }
             // The Greeks' delayed knowledge, re-granted on the first age.
-            if greek && matches!(self.tech_tree.kind(x), tech::Kind::Age(0)) {
+            if greek && matches!(self.tables.tech_tree.kind(x), tech::Kind::Age(0)) {
                 let amount = self.starting_good(who, 3);
-                self.ledgers[w].bucket[3] += amount;
-                self.ledgers[w].dirty = true;
+                self.economy.ledgers[w].bucket[3] += amount;
+                self.economy.ledgers[w].dirty = true;
             }
         }
     }
@@ -417,7 +428,7 @@ impl Sim {
     /// The gained tech is skipped, and so is anything queued that is not a
     /// technology. Nothing else in the executable calls `refund_cost`.
     pub(crate) fn reprice_library(&mut self, who: Player, t: tech::TypeId) {
-        let tech::Kind::Epoch { line, .. } = self.tech_tree.kind(t) else {
+        let tech::Kind::Epoch { line, .. } = self.tables.tech_tree.kind(t) else {
             return;
         };
         if line != tech::Line::Science {
@@ -430,10 +441,10 @@ impl Sim {
         for slot in 0..self.buildings[lib].queue.items.len() {
             let item = &self.buildings[lib].queue.items[slot];
             let Some(id) = item.tech else { continue };
-            if id == t || !self.tech_tree.kind(id).is_tech() {
+            if id == t || !self.tables.tech_tree.kind(id).is_tech() {
                 continue;
             }
-            let age = self.tech_tree.types[id].age;
+            let age = self.tables.tech_tree.types[id].age;
             let mut back = [0i32; economy::RESOURCES];
             let item = &mut self.buildings[lib].queue.items[slot];
             for pair in 0..production::PAIRS {
@@ -442,11 +453,11 @@ impl Sim {
                     continue;
                 }
                 let paid = i32::from(item.cost[pair]);
-                let now = cost::reprice(&self.tuning, paid, level, age);
+                let now = cost::reprice(&self.tables.tuning, paid, level, age);
                 back[good as usize] += paid - now;
                 item.cost[pair] = now as i16;
             }
-            let ledger = &mut self.ledgers[who as usize];
+            let ledger = &mut self.economy.ledgers[who as usize];
             for (g, amount) in back.iter().enumerate() {
                 ledger.bucket[g] += amount;
             }
@@ -456,14 +467,18 @@ impl Sim {
     /// `LeaderData::type_avail(t, 1)` for a tree entry: 0, 2 or 4. A
     /// wonder type any player has built answers 0 ([`Sim::wonders_built`]).
     pub fn type_avail(&self, who: Player, t: tech::TypeId) -> i32 {
-        let line = &self.tech_tree.roles.wonder_line;
+        let line = &self.tables.tech_tree.roles.wonder_line;
         let built = line
             .iter()
             .position(|&w| w == t)
-            .is_some_and(|k| self.wonders_built & (1 << k) != 0);
-        let a =
-            self.tech_tree
-                .type_avail_built(&self.setup, &self.tech[who as usize], t, true, built);
+            .is_some_and(|k| self.cities.wonders_built & (1 << k) != 0);
+        let a = self.tables.tech_tree.type_avail_built(
+            &self.tables.setup,
+            &self.tech[who as usize],
+            t,
+            true,
+            built,
+        );
         if a == tech::AVAILABLE && !self.senate_avail(who, t) {
             return tech::NOT_AVAILABLE;
         }
@@ -498,7 +513,7 @@ impl Sim {
         let Some(rec) = self.build_record(t) else {
             return true;
         };
-        if self.build_types[rec].ident != crate::build::Ident::Senate {
+        if self.tables.build_types[rec].ident != crate::build::Ident::Senate {
             return true;
         }
         if self.num_sites_of(who, rec) != 0 {
@@ -520,7 +535,7 @@ impl Sim {
             let Some(&g2) = own.get(c2) else {
                 return false;
             };
-            if active_senates(g2) || !self.cities[g2].founding_capital {
+            if active_senates(g2) || !self.cities.cities[g2].founding_capital {
                 return false;
             }
         }
@@ -534,7 +549,7 @@ impl Sim {
                 }
             } else if own
                 .get(c1)
-                .is_some_and(|&g| self.cities[g].founding_capital)
+                .is_some_and(|&g| self.cities.cities[g].founding_capital)
             {
                 return false;
             }
@@ -561,18 +576,18 @@ impl Sim {
             .cities_of(who)
             .into_iter()
             .enumerate()
-            .find(|&(i, c)| self.cities[c].capital && skip != Some((i, who)));
+            .find(|&(i, c)| self.cities.cities[c].capital && skip != Some((i, who)));
         if let Some((i, _)) = mine {
             return Some((i, who));
         }
-        (0..self.players.len() as Player)
+        (0..self.territory.players.len() as Player)
             .filter(|&o| o != who)
             .find_map(|o| {
                 self.cities_of(o)
                     .into_iter()
                     .enumerate()
                     .find(|&(i, c)| {
-                        self.cities[c].was_capital & (1u64 << (who as u32)) != 0
+                        self.cities.cities[c].was_capital & (1u64 << (who as u32)) != 0
                             && skip != Some((i, o))
                     })
                     .map(|(i, _)| (i, o))
@@ -588,21 +603,21 @@ impl Sim {
         // both stats flags, on every tech that reaches it — so the units'
         // cached line of sight is refreshed by the next `Leader::process`
         // (`docs/VISION.md` §2).
-        self.wall_stats_dirty[who as usize] = true;
-        self.unit_stats_dirty[who as usize] = true;
+        self.cities.wall_stats_dirty[who as usize] = true;
+        self.roster.unit_stats_dirty[who as usize] = true;
         self.calc_attrition(who);
         self.sync_researched();
         self.sync_goods_available(who);
         let level = self.tech[who as usize].military_level();
-        if self.muster[who as usize].military_level != level {
-            self.muster[who as usize].military_level = level;
+        if self.roster.muster[who as usize].military_level != level {
+            self.roster.muster[who as usize].military_level = level;
             self.recompute_pop_caps();
         }
         // The Military epoch's sibling: a **Civic** epoch widens every one of
         // this leader's cities, because `compute_reg_territory` reads the
         // level rather than a cached bonus. Guarded on the table actually
         // changing so an ordinary tech does not repaint 3,600 cells.
-        if self.borders[who as usize] != self.player_borders(who) {
+        if self.territory.borders[who as usize] != self.player_borders(who) {
             self.sync_territory();
         }
     }
@@ -628,6 +643,7 @@ impl Sim {
     pub(crate) fn sync_goods_available(&mut self, who: Player) {
         let w = who as usize;
         let goods: Vec<tech::TypeId> = self
+            .tables
             .tech_tree
             .types
             .iter()
@@ -638,10 +654,14 @@ impl Sim {
             .collect();
         for (g, t) in goods.into_iter().enumerate() {
             let p = &self.tech[w];
-            let discovered = self.tech_tree.has_preq(&self.setup, p, t);
-            let available = self.tech_tree.type_avail(&self.setup, p, t, true) == tech::AVAILABLE;
-            self.holdings[w].discovered[g] = discovered;
-            self.holdings[w].available[g] = available;
+            let discovered = self.tables.tech_tree.has_preq(&self.tables.setup, p, t);
+            let available = self
+                .tables
+                .tech_tree
+                .type_avail(&self.tables.setup, p, t, true)
+                == tech::AVAILABLE;
+            self.economy.holdings[w].discovered[g] = discovered;
+            self.economy.holdings[w].available[g] = available;
         }
     }
 
@@ -649,9 +669,9 @@ impl Sim {
     /// keeps a copy because production reads it per slot per frame.
     pub(crate) fn sync_researched(&mut self) {
         for (who, tech) in self.tech.iter().enumerate() {
-            for (ty, ut) in self.unit_types.iter().enumerate() {
+            for (ty, ut) in self.tables.unit_types.iter().enumerate() {
                 if let Some(id) = ut.tree {
-                    self.muster[who].researched[ty] = tech.tech[id];
+                    self.roster.muster[who].researched[ty] = tech.tech[id];
                 }
             }
         }

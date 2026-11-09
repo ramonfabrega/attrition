@@ -157,7 +157,7 @@ impl Sim {
             };
             let c = Cell { x, y };
             if self.world.cell_data(c).flags & BIRD_CELL != 0 {
-                self.gaia.bird_spawns.push((frame, c));
+                self.gaia.gaia.bird_spawns.push((frame, c));
                 self.spawn_bird(c);
             }
             n -= 1;
@@ -168,7 +168,8 @@ impl Sim {
     /// loaded it. A world stood up without the tables has none, and then
     /// the sampling records its spawns and creates nothing.
     pub fn bird_type(&self) -> Option<usize> {
-        self.unit_types
+        self.tables
+            .unit_types
             .iter()
             .position(|t| t.type_index == BIRD_TYPE_INDEX)
     }
@@ -217,14 +218,14 @@ impl Sim {
         let index = self
             .find_free(BIRD_OWNER, crate::UNIT_BASE, crate::BUILD_BASE)
             .unwrap_or(i16::MAX);
-        let mut unit = crate::Unit::new(BIRD_OWNER, index, at, self.unit_types[ty].hits);
-        unit.kind = self.unit_types[ty].kind;
+        let mut unit = crate::Unit::new(BIRD_OWNER, index, at, self.tables.unit_types[ty].hits);
+        unit.kind = self.tables.unit_types[ty].kind;
         unit.ty = Some(ty);
         // `TypeIndex::BIRD`. `set_anim` names it by identity twice — the
         // wing-beat coin and the early return it is exempt from — so a
         // bird that carried the default −1 was a bird whose animation
         // could never resolve (`docs/SYNC.md` §3.9).
-        unit.type_index = self.unit_types[ty].type_index;
+        unit.type_index = self.tables.unit_types[ty].type_index;
         unit.form = crate::init_form(unit.type_index);
         // The flight reads both (`crate::air`): `MOVES` is already position
         // units a frame, and `TURN_SPEED` is what scales the bank's rate.
@@ -241,7 +242,7 @@ impl Sim {
         // distinction did not exist while the bird stood still, and it is
         // the whole of the first seven frames of a flight
         // (`docs/SYNC.md` §3.9).
-        self.gaia.bird_goals.push((u, pos));
+        self.gaia.gaia.bird_goals.push((u, pos));
         Some(u)
     }
 
@@ -316,7 +317,10 @@ impl Sim {
         let r = self.rng.roll() % i32::from(counter);
         if r == 100 || r > 799 {
             self.units[u].spell_time = 0;
-            self.gaia.bird_landings.push((frame, self.units[u].index));
+            self.gaia
+                .gaia
+                .bird_landings
+                .push((frame, self.units[u].index));
             self.bird_landing_search(u);
         }
     }
@@ -376,6 +380,7 @@ impl Sim {
     /// The patrol point of a bird, which starts on the cell it hatched in.
     pub fn bird_goal(&self, u: usize) -> Pos {
         self.gaia
+            .gaia
             .bird_goals
             .iter()
             .find(|(b, _)| *b == u)
@@ -383,9 +388,9 @@ impl Sim {
     }
 
     fn set_bird_goal(&mut self, u: usize, to: Pos) {
-        match self.gaia.bird_goals.iter_mut().find(|(b, _)| *b == u) {
+        match self.gaia.gaia.bird_goals.iter_mut().find(|(b, _)| *b == u) {
             Some((_, p)) => *p = to,
-            None => self.gaia.bird_goals.push((u, to)),
+            None => self.gaia.gaia.bird_goals.push((u, to)),
         }
     }
 
@@ -440,17 +445,17 @@ impl Sim {
     /// point and `8/3` was sent to `(17688, 26616)` where the original
     /// sends it to `(17688, 26328)`.
     fn herd_walk(&mut self, frame: i64) {
-        let count = self.gaia.herds.len() as i64;
+        let count = self.gaia.gaia.herds.len() as i64;
         let idx = (frame >> 6) % count.max(5);
-        if idx >= count || !self.gaia.herds[idx as usize].alive {
+        if idx >= count || !self.gaia.gaia.herds[idx as usize].alive {
             return;
         }
         let h = idx as usize;
-        let (cx, cy) = (self.gaia.herds[h].cx, self.gaia.herds[h].cy);
+        let (cx, cy) = (self.gaia.gaia.herds[h].cx, self.gaia.gaia.herds[h].cy);
         let (rng, marks, trace, world) = (
             &mut self.rng,
-            &mut self.phase_marks,
-            self.trace_phases,
+            &mut self.trace.phase_marks,
+            self.trace.trace_phases,
             &self.world,
         );
         let walked = herd_process_steps(
@@ -472,8 +477,8 @@ impl Sim {
             },
         );
         if let Some((x, y)) = walked {
-            self.gaia.herds[h].wx = x;
-            self.gaia.herds[h].wy = y;
+            self.gaia.gaia.herds[h].wx = x;
+            self.gaia.gaia.herds[h].wy = y;
         }
     }
 }
@@ -512,3 +517,24 @@ mod tests;
 pub mod flock;
 pub mod goody;
 pub mod herd_create_view;
+
+/// The `gaia/` subsystem's fields of [`crate::Sim`] (`docs/STRUCTURE.md`
+/// §3, item 4016): moved whole, each with its doc, in `Sim`'s order.
+#[derive(Clone, Debug)]
+pub struct GaiaState {
+    /// `LeaderData::flock_stamp` (`+0x7b8`): the frame of the player's
+    /// last flock of birds, which `Objects::add_flock` reads to allow one
+    /// in 225 frames per player (`crate::flock`). The leader dump prints
+    /// it.
+    pub flock_stamp: Vec<i64>,
+    /// The goody boxes as `Objects::init_item` laid them down, with each
+    /// one's `ItemData::ever_seen` (`+0x20`): a bit per leader that
+    /// `World::reveal_fog` ORs in when a unit's sight first changes `seen2`
+    /// on one of the box's half-cells, and nothing else (item 3335,
+    /// `docs/GOODY.md` §7.2). Empty when the world was stood up without
+    /// the dump's `ITEM` records; [`Sim::goody_item_is_seen`] then reads
+    /// the fog in its place.
+    pub goody_items: Vec<crate::goody::GoodyItem>,
+    /// The herds and the birds' sampling (`gaia.rs`).
+    pub gaia: crate::gaia::Gaia,
+}

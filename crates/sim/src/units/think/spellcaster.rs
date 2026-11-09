@@ -302,12 +302,13 @@ impl CasterView for SimCaster<'_> {
     }
     fn human(&self) -> bool {
         self.s
+            .cities
             .nation
             .get(self.who() as usize)
             .is_some_and(|n| n.human)
     }
     fn forced_march(&self) -> bool {
-        self.s.forced_march[self.who() as usize]
+        self.s.leaders.forced_march[self.who() as usize]
     }
     fn semaphore(&self) -> [u8; 3] {
         // SEAM: the multiplayer semaphore is not carried; its bytes read 0.

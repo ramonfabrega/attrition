@@ -10,8 +10,8 @@ fn sim() -> Sim {
         crate::world::World::new(200, 200),
         2,
     );
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities.nation[0].human = true;
+    s.cities.nation[1].human = false;
     s
 }
 
@@ -37,7 +37,7 @@ fn ty(s: &mut Sim, masks: u32, x: i32, y: i32) -> usize {
 
 fn spawn(s: &mut Sim, ty: usize, p: Pos) -> usize {
     let index = i16::try_from(s.units.len()).unwrap();
-    let hits = s.unit_types[ty].hits;
+    let hits = s.tables.unit_types[ty].hits;
     let mut u = Unit::new(1, index, p, hits);
     u.ty = Some(ty);
     u.on_map = true;
@@ -54,21 +54,22 @@ fn spawn(s: &mut Sim, ty: usize, p: Pos) -> usize {
 fn an_iroquois_flagged_type_is_modern_infantry_in_any_age() {
     let mut s = sim();
     let t = ty(&mut s, 0, 0, 0);
-    s.unit_types[t].cols.unit_flags |= 0x100;
-    s.unit_types[t].combat.age = 1;
+    s.tables.unit_types[t].cols.unit_flags |= 0x100;
+    s.tables.unit_types[t].combat.age = 1;
     let u = spawn(&mut s, t, Pos::new(1000, 1000));
     assert!(!s.is_modern_infantry(u), "no nation power, age 1");
     s.tech[1].power = Some(crate::nations::power::IROQUOIS);
-    let bonus = s
-        .tech_tree
-        .has_tribe_bonus(&s.setup, &s.tech[1], crate::ai::tribe::IROQUOIS);
+    let bonus =
+        s.tables
+            .tech_tree
+            .has_tribe_bonus(&s.tables.setup, &s.tech[1], crate::ai::tribe::IROQUOIS);
     assert_eq!(s.is_modern_infantry(u), bonus, "the Iroquois arm");
     assert!(bonus, "the bonus holds in this setup");
-    s.unit_types[t].cols.unit_flags &= !0x100;
+    s.tables.unit_types[t].cols.unit_flags &= !0x100;
     assert!(!s.is_modern_infantry(u), "the flag is still asked");
     s.tech[1].power = None;
-    s.unit_types[t].cols.unit_flags |= 0x100;
-    s.unit_types[t].combat.age = 6;
+    s.tables.unit_types[t].cols.unit_flags |= 0x100;
+    s.tables.unit_types[t].combat.age = 6;
     assert!(s.is_modern_infantry(u), "anyone's, past age 5");
 }
 
@@ -112,7 +113,7 @@ fn run29_s_navy_is_a_line_of_four_at_one_spacing_of_six_hundred_and_sixty() {
     // vehicle nor anti-air — which lands it in the artillery bucket.
     let t = ty(&mut s, mask::NAVAL | mask::ARCHERY | mask::LARGE, 660, 660);
     assert_eq!(
-        type_cat(&s.unit_types[t], t, false),
+        type_cat(&s.tables.unit_types[t], t, false),
         cat::FORM_CAT_ARTILLERY,
         "a warship falls off the end of type_cat's tree"
     );
@@ -204,11 +205,11 @@ fn the_rank_stack_puts_a_later_category_behind_an_earlier_one() {
     let foot = ty(&mut s, mask::FOOT, 100, 100);
     let ship = ty(&mut s, mask::NAVAL, 200, 200);
     assert_eq!(
-        type_cat(&s.unit_types[foot], foot, false),
+        type_cat(&s.tables.unit_types[foot], foot, false),
         cat::FORM_CAT_FOOT
     );
     assert_eq!(
-        type_cat(&s.unit_types[ship], ship, false),
+        type_cat(&s.tables.unit_types[ship], ship, false),
         cat::FORM_CAT_ARTILLERY
     );
     let a = spawn(&mut s, foot, Pos::new(0x8000, 0x8000));
@@ -453,8 +454,8 @@ fn the_form_mod_option_is_fifty_and_a_move_keeps_it_there() {
 fn a_follower_hangs_off_the_last_captain_alternating_sides() {
     let mut s = sim();
     let t = ty(&mut s, mask::FOOT, 12 * 12, 12 * 12);
-    s.unit_types[t].combat.uber_size = 3;
-    s.unit_types[t].combat.guy_spacing = 12 * 12;
+    s.tables.unit_types[t].combat.uber_size = 3;
+    s.tables.unit_types[t].combat.guy_spacing = 12 * 12;
     // Two squads of three, laid out as the selection walks them.
     let mut list = Vec::new();
     for squad in 0..2 {
@@ -520,10 +521,10 @@ fn a_modern_infantry_follower_is_scattered_off_its_captain() {
     let layout = |age: i32| {
         let mut s = sim();
         let t = ty(&mut s, mask::FOOT, 144, 144);
-        s.unit_types[t].combat.uber_size = 3;
-        s.unit_types[t].combat.guy_spacing = 144;
-        s.unit_types[t].combat.age = age;
-        s.unit_types[t].cols.unit_flags |= 0x100;
+        s.tables.unit_types[t].combat.uber_size = 3;
+        s.tables.unit_types[t].combat.guy_spacing = 144;
+        s.tables.unit_types[t].combat.age = age;
+        s.tables.unit_types[t].cols.unit_flags |= 0x100;
         let list: Vec<usize> = (0..3)
             .map(|k| {
                 let u = spawn(&mut s, t, Pos::new(20124 + k * 64, 16654));
@@ -596,59 +597,59 @@ fn type_cat_returns_eight_of_its_eighteen_and_the_player_flag_moves_one() {
     let flak = ty(&mut s, mask::ANTI_AIR, 100, 100);
     let horse = ty(&mut s, mask::MOUNTED, 100, 100);
     assert_eq!(
-        type_cat(&s.unit_types[civ], civ, false),
+        type_cat(&s.tables.unit_types[civ], civ, false),
         cat::FORM_CAT_CIVILIAN
     );
     assert_eq!(
-        type_cat(&s.unit_types[foot], foot, false),
+        type_cat(&s.tables.unit_types[foot], foot, false),
         cat::FORM_CAT_FOOT
     );
     assert_eq!(
-        type_cat(&s.unit_types[ship], ship, false),
+        type_cat(&s.tables.unit_types[ship], ship, false),
         cat::FORM_CAT_ARTILLERY
     );
     assert_eq!(
-        type_cat(&s.unit_types[mech], mech, false),
+        type_cat(&s.tables.unit_types[mech], mech, false),
         cat::FORM_CAT_MECH
     );
     assert_eq!(
-        type_cat(&s.unit_types[flak], flak, false),
+        type_cat(&s.tables.unit_types[flak], flak, false),
         cat::FORM_CAT_ARTILLERY
     );
     assert_eq!(
-        type_cat(&s.unit_types[horse], horse, false),
+        type_cat(&s.tables.unit_types[horse], horse, false),
         cat::FORM_CAT_MOUNTED
     );
     // `max_range != 0` is the ranged discriminator for both pairs.
-    s.unit_types[foot].combat.max_range = 6;
-    s.unit_types[horse].combat.max_range = 6;
+    s.tables.unit_types[foot].combat.max_range = 6;
+    s.tables.unit_types[horse].combat.max_range = 6;
     assert_eq!(
-        type_cat(&s.unit_types[foot], foot, false),
+        type_cat(&s.tables.unit_types[foot], foot, false),
         cat::FORM_CAT_FOOT_RANGED
     );
     assert_eq!(
-        type_cat(&s.unit_types[horse], horse, false),
+        type_cat(&s.tables.unit_types[horse], horse, false),
         cat::FORM_CAT_MOUNTED,
         "the AI's horse archer forms up as plain cavalry"
     );
     assert_eq!(
-        type_cat(&s.unit_types[horse], horse, true),
+        type_cat(&s.tables.unit_types[horse], horse, true),
         cat::FORM_CAT_MOUNTED_RANGED,
         "and a human's does not"
     );
     // The tail: an unarmed type is a commander unless it is civilian,
     // and a general or a supply lineage is artillery whatever it is.
-    let mut general = s.unit_types[foot].clone();
+    let mut general = s.tables.unit_types[foot].clone();
     general.combat.attack = 0;
     general.combat.obj_masks = 0;
     let general = s.add_unit_type(general);
     assert_eq!(
-        type_cat(&s.unit_types[general], general, false),
+        type_cat(&s.tables.unit_types[general], general, false),
         cat::FORM_CAT_COMMAND
     );
-    s.unit_types[general].cols.unit_flags2 |= uflags2::FLAG2_GENERAL;
+    s.tables.unit_types[general].cols.unit_flags2 |= uflags2::FLAG2_GENERAL;
     assert_eq!(
-        type_cat(&s.unit_types[general], general, false),
+        type_cat(&s.tables.unit_types[general], general, false),
         cat::FORM_CAT_ARTILLERY
     );
 }

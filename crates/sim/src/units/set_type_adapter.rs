@@ -68,7 +68,8 @@ impl UnitSetTypeView for SimSetType<'_> {
         self.sim.units[self.u].decoy
     }
     fn type_pop(&mut self) -> i32 {
-        self.cur().map_or(0, |t| self.sim.unit_types[t].price.pop)
+        self.cur()
+            .map_or(0, |t| self.sim.tables.unit_types[t].price.pop)
     }
     /// Answers yes so a captain is counted whatever its population, as this
     /// crate always did: answering no narrowed the count to populated types
@@ -92,7 +93,7 @@ impl UnitSetTypeView for SimSetType<'_> {
     fn leader_totals(&mut self, _delta: i32, _pop: i32) {}
     fn is_caravan(&mut self) -> bool {
         self.cur().is_some_and(|t| {
-            self.sim.unit_types[t]
+            self.sim.tables.unit_types[t]
                 .cols
                 .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
         })
@@ -114,7 +115,7 @@ impl UnitSetTypeView for SimSetType<'_> {
         SQUAD_SIZE as i32
     }
     fn crew_size(&mut self, ty: i32) -> i32 {
-        self.sim.unit_types[ty as usize].combat.crew_size
+        self.sim.tables.unit_types[ty as usize].combat.crew_size
     }
     fn kill_and_recycle(&mut self, i: i32, _entry: Option<i32>) {
         if let Ok(i) = usize::try_from(i)
@@ -145,8 +146,8 @@ impl UnitSetTypeView for SimSetType<'_> {
             unit.max_health = hits;
             unit.health = (hits - damage).max(1);
         }
-        self.sim.units[u].kind = self.sim.unit_types[rec].kind;
-        self.sim.units[u].type_index = self.sim.unit_types[rec].type_index;
+        self.sim.units[u].kind = self.sim.tables.unit_types[rec].kind;
+        self.sim.units[u].type_index = self.sim.tables.unit_types[rec].type_index;
         self.sim.units[u].movement.speed = self.sim.own_speed(u, rec);
         // `Unit::set_type@00612fa0:235`: `update_hits`, then `update_los`,
         // `update_armor` and `update_speed` on the new type.

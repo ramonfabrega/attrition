@@ -489,18 +489,18 @@ impl ComeOutView for SimComeOut<'_> {
             .has(crate::combat::mask::MISSILE)
     }
     fn disembark(&self) -> i32 {
-        self.sim.tuning.unit_disembark_distance
+        self.sim.tables.tuning.unit_disembark_distance
     }
     fn train(&self) -> (i32, i32) {
         (
-            self.sim.tuning.unit_train_distance,
-            self.sim.tuning.unit_train_max_distance,
+            self.sim.tables.tuning.unit_train_distance,
+            self.sim.tables.tuning.unit_train_max_distance,
         )
     }
     fn boat_train(&self) -> (i32, i32) {
         (
-            self.sim.tuning.boat_train_distance,
-            self.sim.tuning.boat_train_max_distance,
+            self.sim.tables.tuning.boat_train_distance,
+            self.sim.tables.tuning.boat_train_max_distance,
         )
     }
     fn find(&mut self, f: Find) -> Found {
@@ -608,8 +608,8 @@ impl ComeOutView for SimComeOut<'_> {
             .ty
             .map_or((0, 0), |t| {
                 (
-                    self.sim.build_types[t].x_size,
-                    self.sim.build_types[t].y_size,
+                    self.sim.tables.build_types[t].x_size,
+                    self.sim.tables.build_types[t].y_size,
                 )
             })
     }

@@ -143,7 +143,7 @@ impl WorkGateView for SimWorkGate<'_> {
     }
     fn type_melee_and_ranged(&self) -> bool {
         self.sim.units[self.u].ty.is_some_and(|t| {
-            self.sim.unit_types[t]
+            self.sim.tables.unit_types[t]
                 .cols
                 .flag(crate::ai_load::uflags::MELEE_AND_RANGED)
         })

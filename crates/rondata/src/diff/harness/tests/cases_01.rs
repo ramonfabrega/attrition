@@ -27,7 +27,7 @@ mod bodies {
             crate::diff::testkit::whole_capture::road_build(&loaded, &path)
         };
 
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         let last = trace.frames.last().map_or(0, |(n, _)| *n);
         assert!(
             last >= 1_800,
@@ -525,7 +525,7 @@ mod bodies {
         let mut init = log.initial().unwrap();
         borrow_from_siblings(&mut init, &refs);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         let last = trace.frames.last().map_or(0, |(n, _)| *n);
         // The whole point of this capture is its length; a short one would
         // pass every assertion below and mean nothing.
@@ -1597,7 +1597,7 @@ mod bodies {
             .position(|u| u.alive() && u.owner == 1 && u.index == 31)
             .expect("1/31 is alive at 8442");
         let slot = built.sim.army_of(u31).expect("1/31 is in an army at 8442");
-        let a = &built.sim.armies[1].list[slot];
+        let a = &built.sim.ai.armies[1].list[slot];
         assert_eq!(
             (a.muster.x, a.muster.y),
             (58, 29),
@@ -1810,10 +1810,11 @@ mod bodies {
         for _ in 0..WORD {
             built.tick();
         }
-        built.sim.sweep_watch = Some(sim::collide::SweepWatch::new(WORD, 1, 38));
+        built.sim.trace.sweep_watch = Some(sim::collide::SweepWatch::new(WORD, 1, 38));
         built.tick();
         let ours = built
             .sim
+            .trace
             .sweep_watch
             .take()
             .expect("the recorder")
@@ -2011,7 +2012,7 @@ mod bodies {
                     .map(|i| {
                         (
                             i.tech.map_or_else(
-                                || i64::from(built.sim.unit_types[i.ty].type_index),
+                                || i64::from(built.sim.tables.unit_types[i.ty].type_index),
                                 |x| i64::from(loaded.type_index(x)),
                             ),
                             i64::from(i.job_counter),

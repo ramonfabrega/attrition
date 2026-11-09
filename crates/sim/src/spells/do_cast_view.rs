@@ -363,7 +363,7 @@ impl DoCastClock for SimDoCast<'_> {
                 b,
                 self.sim.units[u].pos,
                 0,
-                self.sim.tuning.unit_board_distance,
+                self.sim.tables.tuning.unit_board_distance,
                 0,
                 crate::transport::BOARD_BEARING,
             )

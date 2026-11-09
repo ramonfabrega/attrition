@@ -119,15 +119,16 @@ impl Sim {
     /// attrition, which no shipped scenario sets.
     pub(crate) fn peasant_alarm(&mut self, u: usize) {
         let who = self.units[u].owner;
-        if self.nation[who as usize].human || self.ai_difficulty() < 2 || !self.is_peasant(u) {
+        if self.cities.nation[who as usize].human || self.ai_difficulty() < 2 || !self.is_peasant(u)
+        {
             return;
         }
         let Some(c) = self.find_city_at(who, self.units[u].pos, None) else {
             return;
         };
-        let b = self.cities[c].building;
+        let b = self.cities.cities[c].building;
         let bd = &self.buildings[b];
-        if !(bd.alive && bd.active) || self.cities[c].alarm {
+        if !(bd.alive && bd.active) || self.cities.cities[c].alarm {
             return;
         }
         self.action_alarm(who, &[b]);
@@ -175,7 +176,7 @@ impl Sim {
     /// holds the type's tree node.
     pub(crate) fn unit_is_index(&self, u: usize, ti: i32) -> bool {
         self.unit_rec_of_index(ti)
-            .and_then(|r| self.unit_types[r].tree)
+            .and_then(|r| self.tables.unit_types[r].tree)
             .is_some_and(|t| self.unit_line_is(u, t))
     }
 
@@ -185,7 +186,9 @@ impl Sim {
         if self.units[u].decoy {
             return 0;
         }
-        self.units[u].ty.map_or(0, |t| self.unit_types[t].price.pop)
+        self.units[u]
+            .ty
+            .map_or(0, |t| self.tables.unit_types[t].price.pop)
     }
 
     /// `Object::eject_contents(0, PEASANTS, 0, 0)@0064cd20` on a building:
@@ -262,7 +265,7 @@ impl Sim {
         let who = g.who;
         let target = self.buildings[b].pos;
         let region = self.world.tregion_alt(target.tile());
-        let human = self.nation[who as usize].human;
+        let human = self.cities.nation[who as usize].human;
         let idle = g
             .list
             .iter()

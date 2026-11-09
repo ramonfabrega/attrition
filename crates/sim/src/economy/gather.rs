@@ -266,7 +266,7 @@ impl Sim {
         // The city `calc_gather` is handed is a seam here: the count it
         // decides reads none of what the sim models of it.
         max_gatherers_steps(
-            self.build_types[ty].has(flags::FLAT),
+            self.tables.build_types[ty].has(flags::FLAT),
             true,
             || bd.alive && bd.active,
             || bd.city.map_or(-1, |c| i32::try_from(c).unwrap_or(-1)),
@@ -283,7 +283,7 @@ impl Sim {
     /// corner tile, as [`Sim::tile_corner`] gives it.
     pub fn max_gatherers_at(&self, ty: usize, who: Player, corner: Pos) -> i32 {
         max_gatherers_steps(
-            self.build_types[ty].has(flags::FLAT),
+            self.tables.build_types[ty].has(flags::FLAT),
             false,
             || false,
             || -1,
@@ -376,7 +376,7 @@ impl Sim {
     /// [`max_gatherers_steps`] applies: [`Sim::site_gather_count`] and
     /// [`Sim::max_gatherers`] are its two readers.
     fn gather_slots_raw(&self, ty: usize, who: Player, corner: Pos, from: &Source) -> i32 {
-        let t = &self.build_types[ty];
+        let t = &self.tables.build_types[ty];
         if t.has(flags::FLAT) {
             return MAX_FLAT_GATHERERS;
         }
@@ -435,8 +435,8 @@ impl Sim {
         }
         // `calc_gather@00639e40`: positive timber capacity takes the
         // French term before the access cap. Empty/taken ground stays so.
-        if slots > 0 && timber && self.nation[who as usize].french {
-            slots += self.tuning.french_woodies;
+        if slots > 0 && timber && self.cities.nation[who as usize].french {
+            slots += self.tables.tuning.french_woodies;
         }
         // The wonder additions (`taj_farms`, `kremlin_farms`) remain unmodelled.
         let list: &[Pos] = match from {
@@ -477,7 +477,7 @@ impl Sim {
     /// beside a cliff on Southwest Mesa lists cliff 7's 189 tiles
     /// (`docs/AI.md` §395, §400).
     pub fn gather_tcoords(&self, ty: usize, who: Player, corner: Pos) -> Vec<Pos> {
-        let t = &self.build_types[ty];
+        let t = &self.tables.build_types[ty];
         let Some(good) = gather_good(t.ident) else {
             return Vec::new();
         };
@@ -595,7 +595,7 @@ impl Sim {
     /// university's list is always empty, so nothing it walks differs.
     fn walks_gather_tiles(&self, b: usize) -> bool {
         self.buildings[b].ty.is_some_and(|ty| {
-            let t = &self.build_types[ty];
+            let t = &self.tables.build_types[ty];
             t.has(flags::GATHERER) && !t.has(flags::FLAT)
         })
     }
@@ -682,7 +682,7 @@ impl Sim {
     /// `corner_tile@006364c0`'s own answer: the footprint's centre in world
     /// units, `(size + 2·corner) · 96`.
     pub fn footprint_centre(&self, ty: usize, corner: Pos) -> Pos {
-        let t = &self.build_types[ty];
+        let t = &self.tables.build_types[ty];
         let half = UNITS_PER_TILE / 2;
         Pos::new(
             corner.x * UNITS_PER_TILE + t.x_size * half,
@@ -693,7 +693,7 @@ impl Sim {
     /// `corner_tile@006364c0`: the footprint's centre in world units, as the
     /// tile the distance test measures from and the cell the walk anchors on.
     fn gather_anchor(&self, ty: usize, corner: Pos) -> (Pos, Cell) {
-        let t = &self.build_types[ty];
+        let t = &self.tables.build_types[ty];
         let half = UNITS_PER_TILE / 2;
         let wx = corner.x * UNITS_PER_TILE + t.x_size * half;
         let wy = corner.y * UNITS_PER_TILE + t.y_size * half;
@@ -757,7 +757,7 @@ impl Sim {
     /// gather access and stand more than three tiles from the footprint's
     /// centre. Twice this is the cap on the count.
     fn total_gather_access(&self, list: &[Pos], ty: usize, corner: Pos, who: Player) -> i32 {
-        let t = &self.build_types[ty];
+        let t = &self.tables.build_types[ty];
         let half = UNITS_PER_TILE / 2;
         let cx = corner.x * UNITS_PER_TILE + t.x_size * half;
         let cy = corner.y * UNITS_PER_TILE + t.y_size * half;
@@ -882,7 +882,7 @@ impl Sim {
     /// again.
     pub fn mine_arm(&self, centre: Pos) -> MineArm {
         let reach = MINE_RADIUS * UNITS_PER_TILE;
-        let mtn = if self.mountains.is_empty() {
+        let mtn = if self.terrain.mountains.is_empty() {
             self.nearest_mountain_cell(centre).map(|(d, _)| d)
         } else {
             self.find_nearest_mountain(centre).map(|(d, _, _)| d)
@@ -926,10 +926,10 @@ impl Sim {
     /// against the templates' 107 on East Indies (`docs/AI.md` §59.3) —
     /// and the region test is made per cell.
     pub fn nearest_mountain_cell(&self, centre: Pos) -> Option<(i32, Cell)> {
-        if !self.mountains.is_empty() {
+        if !self.terrain.mountains.is_empty() {
             return self
                 .nearest_placed(centre)
-                .map(|(d, i, k)| (d, self.mountains[i].solid[k]));
+                .map(|(d, i, k)| (d, self.terrain.mountains[i].solid[k]));
         }
         let reach = MINE_RADIUS * UNITS_PER_TILE;
         let at = centre.cell();
@@ -980,7 +980,7 @@ impl Sim {
     pub fn find_nearest_mountain(&self, centre: Pos) -> Option<(i32, usize, usize)> {
         let site_region = self.world.region_of(centre.cell());
         let mut best: Option<(i32, usize, usize)> = None;
-        for (i, m) in self.mountains.iter().enumerate() {
+        for (i, m) in self.terrain.mountains.iter().enumerate() {
             let Some(&first) = m.solid.first() else {
                 continue;
             };
@@ -1008,7 +1008,7 @@ impl Sim {
     /// original skips a range with no solid cells, and keeps the indices
     /// aligned with the dump's `mtn`.
     pub fn place_mountains(&mut self, placed: &[(Cell, usize)], templates: &[MountainTemplate]) {
-        self.mountains = placed
+        self.terrain.mountains = placed
             .iter()
             .map(|&(loc, template)| {
                 let t = templates.get(template);
@@ -1065,9 +1065,9 @@ impl Sim {
             self.world.tile_in_bounds(t)
                 && self.world.tile_mask(t) & tile::OBJECT == tile::OBJECT_MOUNTAIN
         };
-        if !self.mountains.is_empty() {
+        if !self.terrain.mountains.is_empty() {
             let (_, i, _) = self.nearest_placed(centre)?;
-            let m = &self.mountains[i];
+            let m = &self.terrain.mountains[i];
             let cells = m
                 .solid
                 .iter()

@@ -35,7 +35,7 @@ impl Sim {
     /// raider into [`crate::Sim::do_attack`]'s stance arm, which returns,
     /// so the order it should have dropped stood for ever.
     pub(crate) fn forget(&mut self, dead: Obj) {
-        for p in &mut self.projectiles {
+        for p in &mut self.combat.projectiles {
             if p.target == Some(dead) {
                 p.target = None;
             }
@@ -251,7 +251,7 @@ impl Sim {
                         (here.x - there.x).abs(),
                         (here.y - there.y).abs(),
                     );
-                    let range = (d + 0xc0).min(self.tuning.unit_respond_range * 0x240);
+                    let range = (d + 0xc0).min(self.tables.tuning.unit_respond_range * 0x240);
                     self.find_melee_target_added_in(m, range);
                 } else {
                     self.target_opportunity_in(m, attacker, true);
@@ -639,7 +639,7 @@ impl Sim {
             return None;
         }
         let r = self.max_range_of(me);
-        let t = &self.tuning;
+        let t = &self.tables.tuning;
         let radius = if range == -1 {
             if st.stance == Stance::Defensive {
                 (if r == 0 { 0x120 } else { r * 0xc0 }).max(t.unit_defensive_respond_range * 0xc0)
@@ -702,9 +702,10 @@ impl Sim {
             return;
         };
         let Some(nodes) = self
+            .roster
             .art
             .pivots
-            .get(&self.unit_types[ty].type_index)
+            .get(&self.tables.unit_types[ty].type_index)
             .cloned()
         else {
             return;
@@ -759,7 +760,7 @@ impl Sim {
         if !matches!(head, Some(index::ATTACK_TO | index::GROUP_ATTACK_TO)) {
             return word;
         }
-        let cols = self.units[i].ty.map(|t| self.unit_types[t].cols);
+        let cols = self.units[i].ty.map(|t| self.tables.unit_types[t].cols);
         let mut flags = if cols.is_some_and(|c| c.flag(uflags::FLAG_SIEGE)) {
             if self.ai_driven(self.units[i].owner) {
                 search::BUILDINGS | search::ARMED
@@ -1040,7 +1041,7 @@ impl Sim {
                         let in_range = if must_reach || guard_reach {
                             if !self.is_in_range(attacker, o) {
                                 let wonder = matches!(o, Obj::Building(b)
-                                    if self.buildings[b].ty.is_some_and(|t| self.build_types[t].wonder));
+                                    if self.buildings[b].ty.is_some_and(|t| self.tables.build_types[t].wonder));
                                 if !(packed_ai_siege
                                     && !is_unit
                                     && (self.attack_of(o) != 0 || wonder))
@@ -1205,6 +1206,7 @@ impl Sim {
     ) -> Option<impl Fn(i32) -> i32> {
         let ai_mul: i32 = if ai { 10 } else { 1 };
         let human = self
+            .cities
             .nation
             .get(self.owner_of(attacker) as usize)
             .is_some_and(|n| n.human);
@@ -1212,7 +1214,7 @@ impl Sim {
         if !raiding && !human {
             let bd = &self.buildings[b];
             let ty = bd.ty;
-            let types = &self.build_types;
+            let types = &self.tables.build_types;
             if self.building_is_city(b) {
                 if ai {
                     return None;
@@ -1275,9 +1277,9 @@ impl Sim {
             }
             let bd = &self.buildings[b];
             return bd.index < crate::WALL_BASE
-                && bd
-                    .ty
-                    .is_some_and(|t| self.build_types[t].wonder || self.is_military_trainer(t));
+                && bd.ty.is_some_and(|t| {
+                    self.tables.build_types[t].wonder || self.is_military_trainer(t)
+                });
         }
         !(flags & search::ARMED != 0 && building && self.attack_of(o) == 0)
     }
@@ -1306,7 +1308,7 @@ impl Sim {
         // target's vslot `+0x2c`, `BuildData::is_wonder`): `cost × 4 / 25`,
         // signed, ahead of every multiplier below.
         if matches!(target, Obj::Building(b)
-            if self.buildings[b].ty.is_some_and(|t| self.build_types[t].wonder))
+            if self.buildings[b].ty.is_some_and(|t| self.tables.build_types[t].wonder))
         {
             v /= 25;
         }
@@ -1357,7 +1359,7 @@ impl Sim {
             && (self.fires_on_move(i)
                 || (self.buildings[b]
                     .ty
-                    .is_some_and(|t| crate::build::is_dock(&self.build_types, t))
+                    .is_some_and(|t| crate::build::is_dock(&self.tables.build_types, t))
                     && !ap.has(mask::SIEGE)))
         {
             return 0;
@@ -1432,7 +1434,7 @@ impl Sim {
             // the ranking never discounts a target another shooter has
             // just hit (item 601, `docs/COMBAT.md` §53).
             combat::get_damage_checked(
-                &self.tuning,
+                &self.tables.tuning,
                 &ap,
                 at,
                 &tp,
@@ -1483,6 +1485,7 @@ impl Sim {
                 if self.building_is_city(b) && self.num_inside(b) == 0);
             if armed && !raiding {
                 let human = self
+                    .cities
                     .nation
                     .get(self.owner_of(attacker) as usize)
                     .is_some_and(|n| n.human);
@@ -1510,7 +1513,8 @@ impl Sim {
             // Commando `0/7` sabotaging the Tank `1/7` outranks every decoy.
             if let Obj::Unit(u) = target
                 && self.units[u].ty.is_some_and(|t| {
-                    self.unit_types[t].cols.unit_flags2 & crate::ai_load::uflags2::CASTER != 0
+                    self.tables.unit_types[t].cols.unit_flags2 & crate::ai_load::uflags2::CASTER
+                        != 0
                 })
             {
                 let action = self.action_of(u).map(|i| &self.units[u].orders[i]);
@@ -1559,7 +1563,7 @@ impl Sim {
                 let flags_of = |o: Obj| match o {
                     Obj::Unit(u) => self.units[u]
                         .ty
-                        .map_or(0, |t| self.unit_types[t].cols.unit_flags),
+                        .map_or(0, |t| self.tables.unit_types[t].cols.unit_flags),
                     Obj::Building(_) => 0,
                 };
                 let moving_fire = |o: Obj| flags_of(o) & uflags::FIRES_ON_MOVE != 0;
@@ -1623,7 +1627,7 @@ impl Sim {
                     v /= 400;
                 } else if let Obj::Unit(u) = target
                     && self.units[u].ty.is_some_and(|t| {
-                        self.unit_types[t].cols.unit_flags & uflags::FLAG_TRANSPORT != 0
+                        self.tables.unit_types[t].cols.unit_flags & uflags::FLAG_TRANSPORT != 0
                     })
                 {
                     v = v.wrapping_mul(40);
@@ -1666,7 +1670,7 @@ impl Sim {
         match o {
             Obj::Unit(i) => self.units[i]
                 .ty
-                .map_or(self.units[i].health, |t| self.unit_types[t].hits),
+                .map_or(self.units[i].health, |t| self.tables.unit_types[t].hits),
             Obj::Building(b) => self.buildings[b].hits,
         }
     }

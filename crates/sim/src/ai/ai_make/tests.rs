@@ -94,8 +94,8 @@ fn fx() -> Fx {
     let mut w = World::new(16, 16);
     w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(15, 15));
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    sim.nation[1].human = false;
-    let t = &mut sim.tech_tree;
+    sim.cities.nation[1].human = false;
+    let t = &mut sim.tables.tech_tree;
     for n in ["Food", "Timber", "Wealth", "Knowledge", "Metal", "Oil"] {
         t.add(TypeDef::good(n));
     }
@@ -119,7 +119,7 @@ fn fx() -> Fx {
     t.roles.university = Some(university);
     t.roles.town = Some(town);
     sim.tech = (0..2)
-        .map(|_| crate::tech::PlayerTech::new(&sim.tech_tree))
+        .map(|_| crate::tech::PlayerTech::new(&sim.tables.tech_tree))
         .collect();
 
     let village_rec = sim.add_build_type(bt(Ident::Village, village, 7, 7, 0));
@@ -198,10 +198,10 @@ fn the_head_s_expiry_draws_once_per_matching_slot() {
     // on the type alone and draws for all three.
     let mut f = fx();
     let s = &mut f.sim;
-    s.ai[1].make_list.list[0] = slot(f.tech, 100);
-    s.ai[1].make_list.list[3] = slot(f.tech, 0);
-    s.ai[1].make_list.list[7] = slot(f.tech, 0);
-    s.ledgers[1].bucket = [0; RESOURCES];
+    s.ai.ai[1].make_list.list[0] = slot(f.tech, 100);
+    s.ai.ai[1].make_list.list[3] = slot(f.tech, 0);
+    s.ai.ai[1].make_list.list[7] = slot(f.tech, 0);
+    s.economy.ledgers[1].bucket = [0; RESOURCES];
     let before = s.rng.seed;
     s.make_stuff(1);
     assert_eq!(draws(before, s.rng.seed), 3);
@@ -210,14 +210,14 @@ fn the_head_s_expiry_draws_once_per_matching_slot() {
     // the three draws: the `Random::get` is evaluated before the flag.
     let mut f = fx();
     let s = &mut f.sim;
-    s.ai[1].make_list.list[0] = slot(f.tower, 100);
-    s.ai[1].make_list.list[3] = slot(f.tower, 0);
-    s.ai[1].make_list.list[7] = slot(f.tower, 0);
+    s.ai.ai[1].make_list.list[0] = slot(f.tower, 100);
+    s.ai.ai[1].make_list.list[3] = slot(f.tower, 0);
+    s.ai.ai[1].make_list.list[7] = slot(f.tower, 0);
     let before = s.rng.seed;
     s.make_stuff(1);
     assert_eq!(draws(before, s.rng.seed), 3);
     for k in [0, 3, 7] {
-        assert_eq!(s.ai[1].make_list.list[k].t, -1, "slot {k} cleared");
+        assert_eq!(s.ai.ai[1].make_list.list[k].t, -1, "slot {k} cleared");
     }
 }
 
@@ -269,12 +269,15 @@ fn run18_s_expiry_rolls_decide_exactly_the_slots_the_dump_kept() {
     // sim-frame 6383: slots 0 (the head) and 8 hold it. Rolls 61545 and
     // 25792 — the head clears, slot 8 keeps.
     s.rng = crate::combat::Rng::new(0xc593_8177);
-    s.ai[1].make_list.list[0] = slot(temple, 2_499_999);
-    s.ai[1].make_list.list[8] = slot(temple, 2_499_999);
+    s.ai.ai[1].make_list.list[0] = slot(temple, 2_499_999);
+    s.ai.ai[1].make_list.list[8] = slot(temple, 2_499_999);
     s.expire(1, temple as i32, 0, false);
-    assert_eq!(s.ai[1].make_list.list[0].t, -1, "61545 % 3 == 0: cleared");
     assert_eq!(
-        s.ai[1].make_list.list[8].t, temple as i32,
+        s.ai.ai[1].make_list.list[0].t, -1,
+        "61545 % 3 == 0: cleared"
+    );
+    assert_eq!(
+        s.ai.ai[1].make_list.list[8].t, temple as i32,
         "25792 % 3 == 1: kept"
     );
     assert_eq!(s.rng.seed, 0xbb3f_64c1, "two draws, the trace's next seed");
@@ -284,15 +287,15 @@ fn run18_s_expiry_rolls_decide_exactly_the_slots_the_dump_kept() {
     // (`make_stuff+0x63d`) from slot 5, over the citizen it just bought:
     // 48595 keeps it, and the demoted `val` stays in the list.
     s.rng = crate::combat::Rng::new(0x833a_ab7f);
-    s.ai[1].make_list.list[0] = slot(temple, 2_499_999);
-    s.ai[1].make_list.list[8] = slot(temple, 2_499_999);
-    s.ai[1].make_list.list[5] = slot(f.citizen, 714);
+    s.ai.ai[1].make_list.list[0] = slot(temple, 2_499_999);
+    s.ai.ai[1].make_list.list[8] = slot(temple, 2_499_999);
+    s.ai.ai[1].make_list.list[5] = slot(f.citizen, 714);
     s.expire(1, temple as i32, 0, false);
     assert_eq!(
-        s.ai[1].make_list.list[0].t, temple as i32,
+        s.ai.ai[1].make_list.list[0].t, temple as i32,
         "17105 % 3 == 2: the head survived its own expiry"
     );
-    assert_eq!(s.ai[1].make_list.list[8].t, -1, "1032 % 3 == 0: cleared");
+    assert_eq!(s.ai.ai[1].make_list.list[8].t, -1, "1032 % 3 == 0: cleared");
     assert_eq!(s.rng.seed, 0xeb75_0409, "two draws");
 
     assert!(
@@ -301,7 +304,7 @@ fn run18_s_expiry_rolls_decide_exactly_the_slots_the_dump_kept() {
     );
     s.expire(1, f.citizen as i32, 5, false);
     assert_eq!(
-        s.ai[1].make_list.list[5].t, f.citizen as i32,
+        s.ai.ai[1].make_list.list[5].t, f.citizen as i32,
         "48595 % 3 == 1: the bought slot is demoted, not cleared"
     );
     assert_eq!(
@@ -340,18 +343,21 @@ fn run19_s_head_clause_clears_a_scholar_a_non_head_slot_would_keep() {
     // slot loop's own walk keeps the scholar it just bought at slot 1.
     let coinage = f.tech;
     s.rng = crate::combat::Rng::new(0xa6d1_84cf);
-    s.ai[1].make_list.list[0] = slot(coinage, 9_999_999);
-    s.ai[1].make_list.list[1] = slot(scholar, 9_999_999);
-    s.ai[1].make_list.list[4] = slot(coinage, 9_999_999);
+    s.ai.ai[1].make_list.list[0] = slot(coinage, 9_999_999);
+    s.ai.ai[1].make_list.list[1] = slot(scholar, 9_999_999);
+    s.ai.ai[1].make_list.list[4] = slot(coinage, 9_999_999);
     s.expire(1, coinage as i32, 0, s.expire_all(coinage, true));
     assert_eq!(
-        s.ai[1].make_list.list[0].t, coinage as i32,
+        s.ai.ai[1].make_list.list[0].t, coinage as i32,
         "11233 % 3 == 1: the bought head is demoted, not cleared"
     );
-    assert_eq!(s.ai[1].make_list.list[4].t, -1, "14808 % 3 == 0: cleared");
+    assert_eq!(
+        s.ai.ai[1].make_list.list[4].t, -1,
+        "14808 % 3 == 0: cleared"
+    );
     s.expire(1, scholar as i32, 1, s.expire_all(scholar, false));
     assert_eq!(
-        s.ai[1].make_list.list[1].t, scholar as i32,
+        s.ai.ai[1].make_list.list[1].t, scholar as i32,
         "22883 % 3 == 2: a scholar at a non-head slot survives"
     );
     assert_eq!(s.rng.seed, 0x78f6_5964, "three draws");
@@ -359,11 +365,11 @@ fn run19_s_head_clause_clears_a_scholar_a_non_head_slot_would_keep() {
     // 8185: the same scholar type, now the head, on a residue that would
     // have kept it anywhere else.
     s.rng = crate::combat::Rng::new(0x3f5a_529d);
-    s.ai[1].make_list.list = [MakeObject::EMPTY; MAKE_SLOTS];
-    s.ai[1].make_list.list[0] = slot(scholar, 9_999_999);
+    s.ai.ai[1].make_list.list = [MakeObject::EMPTY; MAKE_SLOTS];
+    s.ai.ai[1].make_list.list[0] = slot(scholar, 9_999_999);
     s.expire(1, scholar as i32, 0, s.expire_all(scholar, true));
     assert_eq!(
-        s.ai[1].make_list.list[0].t, -1,
+        s.ai.ai[1].make_list.list[0].t, -1,
         "45911 % 3 == 2 and it goes anyway: the head clause is unconditional"
     );
     assert_eq!(s.rng.seed, 0x8244_b358, "the roll is still taken");
@@ -388,10 +394,10 @@ fn the_mean_shortfall_gates_the_rest_of_the_list() {
         assert_eq!((pb[fo], pb[ti], pf[fo], pf[ti]), (1000, 1000, 600, 0));
         let mut head = slot(f.barracks, 100);
         head.num = 1; // so `can_pay` can answer no
-        s.ai[1].make_list.list[0] = head;
-        s.ai[1].make_list.list[8] = slot(f.farm, 50);
-        s.ledgers[1].bucket[fo] = pb[fo] + pf[fo] + 100;
-        s.ledgers[1].bucket[ti] = timber_purse;
+        s.ai.ai[1].make_list.list[0] = head;
+        s.ai.ai[1].make_list.list[8] = slot(f.farm, 50);
+        s.economy.ledgers[1].bucket[fo] = pb[fo] + pf[fo] + 100;
+        s.economy.ledgers[1].bucket[ti] = timber_purse;
         let before = s.rng.seed;
         s.make_stuff(1);
         draws(before, s.rng.seed)
@@ -418,9 +424,9 @@ fn slots_four_and_five_have_their_exceptions() {
         let mut f = fx();
         let s = &mut f.sim;
         let head = slot(f.barracks, 100);
-        s.ai[1].make_list.list[0] = head;
-        s.ai[1].make_list.list[slot_no] = slot(t, 50);
-        s.ledgers[1].bucket[Resource::Food as usize] = 600;
+        s.ai.ai[1].make_list.list[0] = head;
+        s.ai.ai[1].make_list.list[slot_no] = slot(t, 50);
+        s.economy.ledgers[1].bucket[Resource::Food as usize] = 600;
         set(s);
         let before = s.rng.seed;
         s.make_stuff(1);
@@ -429,19 +435,19 @@ fn slots_four_and_five_have_their_exceptions() {
     let f = fx();
     let (farm, tower) = (f.farm, f.tower);
     // Slot 5 with a free peasant: skipped. With none: bought anyway.
-    assert_eq!(case(5, farm, |s| s.ai[1].census.free_peasants = 1), 1);
-    assert_eq!(case(5, farm, |s| s.ai[1].census.gatherers = 1), 1);
+    assert_eq!(case(5, farm, |s| s.ai.ai[1].census.free_peasants = 1), 1);
+    assert_eq!(case(5, farm, |s| s.ai.ai[1].census.gatherers = 1), 1);
     assert_eq!(case(5, farm, |_| {}), 2);
     // Slot 4, a farm, with food's `econ` bit 4 clear: skipped; set: bought.
     assert_eq!(case(4, farm, |_| {}), 1);
     assert_eq!(
-        case(4, farm, |s| s.ai[1].econ[Resource::Food as usize] = 4),
+        case(4, farm, |s| s.ai.ai[1].econ[Resource::Food as usize] = 4),
         2
     );
     // The exception is the *type's own* good and only a gather building
     // gets it: a tower in slot 4 is skipped however short food is.
     assert_eq!(
-        case(4, tower, |s| s.ai[1].econ[Resource::Food as usize] = 4),
+        case(4, tower, |s| s.ai.ai[1].econ[Resource::Food as usize] = 4),
         1
     );
     // And neither exception reaches any other slot.
@@ -474,16 +480,16 @@ fn a_slot_that_repeats_the_ranked_four_is_dropped() {
         // slot alive through it.
         let mut head = slot(f.farm, 100);
         head.city = 0;
-        s.ai[1].make_list.list[0] = head;
+        s.ai.ai[1].make_list.list[0] = head;
         if k != 0 {
             let mut m = slot(f.farm, 0); // `val == 0`: the slot loop skips it
             m.city = 0;
-            s.ai[1].make_list.list[k] = m;
+            s.ai.ai[1].make_list.list[k] = m;
         }
         let mut dup = slot(f.farm, 10);
         dup.city = city;
-        s.ai[1].make_list.list[9] = dup;
-        s.ledgers[1].bucket = [10_000; RESOURCES];
+        s.ai.ai[1].make_list.list[9] = dup;
+        s.economy.ledgers[1].bucket = [10_000; RESOURCES];
         let before = s.rng.seed;
         s.make_stuff(1);
         draws(before, s.rng.seed)
@@ -510,21 +516,21 @@ fn make_this_dispatches_by_class_and_demotes_on_a_buy() {
         .into_iter()
         .enumerate()
     {
-        s.ai[1].make_list.list[i] = slot(t, 500);
+        s.ai.ai[1].make_list.list[i] = slot(t, 500);
         assert!(!s.make_this(1, i));
-        assert_eq!(s.ai[1].make_list.list[i].val, 500);
+        assert_eq!(s.ai.ai[1].make_list.list[i].val, 500);
     }
     // A good in the list is the original's bare `return 1`.
-    s.ai[1].make_list.list[0] = slot(0, 500);
+    s.ai.ai[1].make_list.list[0] = slot(0, 500);
     assert!(!s.make_this(1, 0));
     // The `is(TOWN, 0)` arm the listing settled: a Large City is a city
     // type *and* an upgrade, and the upgrade test comes first. Both
     // producers are stubs, so the routing is not yet observable through
     // a return value; what is pinned here is the predicate that picks it.
-    assert!(s.type_is_role(f.town, s.tech_tree.roles.town, false));
+    assert!(s.type_is_role(f.town, s.tables.tech_tree.roles.town, false));
     assert!(s.slot64(f.town), "and it is also is_city, hence the order");
-    assert!(!s.type_is_role(f.village, s.tech_tree.roles.town, false));
-    s.ai[1].make_list.list[0] = slot(f.town, 500);
+    assert!(!s.type_is_role(f.village, s.tables.tech_tree.roles.town, false));
+    s.ai.ai[1].make_list.list[0] = slot(f.town, 500);
     assert!(!s.make_this(1, 0));
 
     // The demotion itself, driven through the one producer that is not a
@@ -535,19 +541,19 @@ fn make_this_dispatches_by_class_and_demotes_on_a_buy() {
     let b = s.init_build(1, f.village_rec, at, false);
     s.activate(b, false, true);
     let c = s.buildings[b].city.expect("a finished city has a record");
-    s.ai[1].city_ai = vec![CityAi::default(); s.cities.len()];
-    s.ai[1].city_ai[c].land = 40;
-    s.ai[1].city_ai[c].space = [40, 40, 40];
-    s.ai[1].census.resize(256, 2);
+    s.ai.ai[1].city_ai = vec![CityAi::default(); s.cities.cities.len()];
+    s.ai.ai[1].city_ai[c].land = 40;
+    s.ai.ai[1].city_ai[c].space = [40, 40, 40];
+    s.ai.ai[1].census.resize(256, 2);
     let reg = s.world.region_of(at.cell()).expect("a region");
-    s.ai[1].census.reg_free_peasants[usize::from(reg)] = 1;
-    s.ledgers[1].bucket = [10_000; RESOURCES];
+    s.ai.ai[1].census.reg_free_peasants[usize::from(reg)] = 1;
+    s.economy.ledgers[1].bucket = [10_000; RESOURCES];
     let mut m = slot(f.farm, 500);
     m.city = c as i32;
-    s.ai[1].make_list.list[0] = m;
+    s.ai.ai[1].make_list.list[0] = m;
     assert!(s.make_this(1, 0), "produce_building placed the farm");
-    assert_eq!(s.ai[1].make_list.list[0].val, 5, "val /= 100");
-    assert_eq!(s.build_types[f.farm_rec].ident, Ident::Farm);
+    assert_eq!(s.ai.ai[1].make_list.list[0].val, 5, "val /= 100");
+    assert_eq!(s.tables.build_types[f.farm_rec].ident, Ident::Farm);
 }
 
 /// An active market of my own, which is half the gate.
@@ -596,22 +602,22 @@ fn market_speculation_buys_the_first_good_its_purse_can_reach() {
         // Oil is not available before the Industrial age, which is what
         // run117's own record says and what keeps a stock of nought out
         // of the tier.
-        s.holdings[1].available[Resource::Oil as usize] = false;
+        s.economy.holdings[1].available[Resource::Oil as usize] = false;
         for (g, (price, flux)) in [(45, 38), (36, 22), (50, 15), (50, 15), (50, 15), (50, 15)]
             .into_iter()
             .enumerate()
         {
-            s.market.price[g] = price;
-            s.market.flux[g] = flux;
+            s.economy.market.price[g] = price;
+            s.economy.market.flux[g] = flux;
         }
-        s.ledgers[1].bucket = [94, 86, purse, 269, 100, 0];
+        s.economy.ledgers[1].bucket = [94, 86, purse, 269, 100, 0];
         // The frame's own prices, asserted rather than assumed: a
         // change in `calc_market_prices` must not quietly turn this
         // test into a statement about some other pair of numbers.
         assert_eq!(s.calc_market_prices(1, 0), (128, 83), "food's price");
         assert_eq!(s.calc_market_prices(1, 1), (94, 58), "timber's price");
         s.market_speculation(1);
-        s.ledgers[1].bucket
+        s.economy.ledgers[1].bucket
     };
     // The original's purse: food is reachable at exactly its price, so
     // food is what it buys and the purse is emptied.
@@ -643,18 +649,18 @@ fn the_buy_pass_ladder_gets_stricter_as_the_pile_grows() {
         let s = &mut f.sim;
         give_a_market(s);
         s.tech[1].epoch[Line::Commerce.index()] = BUY_SELL_COMMERCE_LEVEL;
-        s.holdings[1].available[Resource::Oil as usize] = false;
+        s.economy.holdings[1].available[Resource::Oil as usize] = false;
         // Every other good is priced out of reach, so the row is timber's.
         for g in 0..RESOURCES {
-            s.market.price[g] = 1_000;
-            s.market.flux[g] = 0;
+            s.economy.market.price[g] = 1_000;
+            s.economy.market.flux[g] = 0;
         }
-        s.market.price[1] = price;
-        s.market.flux[1] = flux;
-        s.ledgers[1].bucket = [2_000, stock, 100_000, 2_000, 2_000, 0];
-        let before = s.ledgers[1].bucket[1];
+        s.economy.market.price[1] = price;
+        s.economy.market.flux[1] = flux;
+        s.economy.ledgers[1].bucket = [2_000, stock, 100_000, 2_000, 2_000, 0];
+        let before = s.economy.ledgers[1].bucket[1];
         s.market_speculation(1);
-        s.ledgers[1].bucket[1] == before + 100
+        s.economy.ledgers[1].bucket[1] == before + 100
     };
     // `buy = 2 * price + flux`, so `(12, 1)` is 25 and `(12, 2)` is 26.
     assert!(bought(500, 12, 1), "500 at 25 is under the rung");
@@ -683,15 +689,15 @@ fn the_sell_pass_scales_both_of_its_thresholds_by_the_tier() {
         let s = &mut f.sim;
         give_a_market(s);
         s.tech[1].epoch[Line::Commerce.index()] = BUY_SELL_COMMERCE_LEVEL;
-        s.holdings[1].available[Resource::Oil as usize] = false;
+        s.economy.holdings[1].available[Resource::Oil as usize] = false;
         // Nothing else is sellable (a pile under 250) and nothing is
         // buyable (a price out of reach), so the row is timber's alone.
         for g in 0..RESOURCES {
-            s.market.price[g] = 100_000;
-            s.market.flux[g] = 0;
+            s.economy.market.price[g] = 100_000;
+            s.economy.market.flux[g] = 0;
         }
-        s.market.price[1] = price;
-        s.market.flux[1] = flux;
+        s.economy.market.price[1] = price;
+        s.economy.market.flux[1] = flux;
         let floor = match tier {
             2 => 99,
             1 => 199,
@@ -707,11 +713,11 @@ fn the_sell_pass_scales_both_of_its_thresholds_by_the_tier() {
         // 500 sold down to 400 leaves the 26-rung behind and the
         // 51-rung in front of a price of 50.) The clamp only fires
         // over 4000, so these floors stand.
-        s.ledgers[1].bucket = [floor, stock, floor, floor, floor, 0];
-        s.ledgers[1].escrow[Resource::Wealth as usize] = floor;
-        let before = s.ledgers[1].bucket[1];
+        s.economy.ledgers[1].bucket = [floor, stock, floor, floor, floor, 0];
+        s.economy.ledgers[1].escrow[Resource::Wealth as usize] = floor;
+        let before = s.economy.ledgers[1].bucket[1];
         s.market_speculation(1);
-        s.ledgers[1].bucket[1] == before - 100
+        s.economy.ledgers[1].bucket[1] == before - 100
     };
     // `sell = price + flux`. Tier 0: 2000 of the pile at a price of 75.
     assert!(sold(0, 2_000, 75, 0), "tier 0: 2000 at 75");
@@ -733,10 +739,10 @@ fn the_sell_pass_scales_both_of_its_thresholds_by_the_tier() {
 fn market_speculation_clamps_escrow_behind_the_gate() {
     let mut f = fx();
     let s = &mut f.sim;
-    s.ledgers[1].escrow[Resource::Food as usize] = 9000;
+    s.economy.ledgers[1].escrow[Resource::Food as usize] = 9000;
     s.market_speculation(1);
     assert_eq!(
-        s.ledgers[1].escrow[Resource::Food as usize],
+        s.economy.ledgers[1].escrow[Resource::Food as usize],
         9000,
         "no market: the whole function is skipped"
     );
@@ -746,17 +752,17 @@ fn market_speculation_clamps_escrow_behind_the_gate() {
     give_a_market(s);
     s.market_speculation(1);
     assert_eq!(
-        s.ledgers[1].escrow[Resource::Food as usize],
+        s.economy.ledgers[1].escrow[Resource::Food as usize],
         9000,
         "a market without Coinage is not the ability"
     );
     s.tech[1].epoch[Line::Commerce.index()] = BUY_SELL_COMMERCE_LEVEL;
     s.market_speculation(1);
-    assert_eq!(s.ledgers[1].escrow[Resource::Food as usize], 2000);
+    assert_eq!(s.economy.ledgers[1].escrow[Resource::Food as usize], 2000);
     // Under 4000 it stands.
-    s.ledgers[1].escrow[Resource::Timber as usize] = 3999;
+    s.economy.ledgers[1].escrow[Resource::Timber as usize] = 3999;
     s.market_speculation(1);
-    assert_eq!(s.ledgers[1].escrow[Resource::Timber as usize], 3999);
+    assert_eq!(s.economy.ledgers[1].escrow[Resource::Timber as usize], 3999);
 }
 
 /// **`use_market` spends one draw on a wealth shortfall, and none on
@@ -778,23 +784,24 @@ fn the_market_draws_once_for_wealth_behind_coinage() {
     // A make-list head that costs 64 wealth and nothing else, which is
     // the shape of Great Lakes 8582 — and that map's own bucket.
     let rec = s
+        .tables
         .build_types
         .iter()
         .position(|b| b.ident == Ident::Tower)
         .expect("the fixture's tower");
     // The fixture's prices come out of `type_price` ten times their
     // base, so 6 is the 60 a make-list slot sees.
-    s.build_types[rec].price = cost::Price::free().with_base(Resource::Wealth, 6);
-    s.ai[1].make_list.list[0] = slot(f_tower, 500);
-    s.holdings[1].available = [true, true, true, true, true, false];
-    s.ledgers[1].bucket = [58, 55, 43, 68, 54, 0];
+    s.tables.build_types[rec].price = cost::Price::free().with_base(Resource::Wealth, 6);
+    s.ai.ai[1].make_list.list[0] = slot(f_tower, 500);
+    s.economy.holdings[1].available = [true, true, true, true, true, false];
+    s.economy.ledgers[1].bucket = [58, 55, 43, 68, 54, 0];
     assert_eq!(spent(s), 0, "no market, no ability: nothing is spent");
     give_a_market(s);
     assert_eq!(spent(s), 0, "a market is Barter, not Coinage");
     s.tech[1].epoch[Line::Commerce.index()] = BUY_SELL_COMMERCE_LEVEL;
     assert_eq!(spent(s), 1, "wealth is 43 against a need of 60");
     assert_eq!(
-        s.ledgers[1].bucket,
+        s.economy.ledgers[1].bucket,
         [58, 55, 43, 68, 54, 0],
         "nothing here clears `need <= bucket - 100`, so nothing is sold"
     );
@@ -803,34 +810,34 @@ fn the_market_draws_once_for_wealth_behind_coinage() {
     // sellable, but because the sale covers the need and the outer
     // `while` exits before the once-flag is consulted. A hundred food
     // leaves for the default market's `price + flux`, 65.
-    s.ledgers[1].bucket[Resource::Food as usize] = 300;
+    s.economy.ledgers[1].bucket[Resource::Food as usize] = 300;
     assert_eq!(spent(s), 1, "a covering sale is also one draw");
     assert_eq!(
-        s.ledgers[1].bucket,
+        s.economy.ledgers[1].bucket,
         [200, 55, 108, 68, 54, 0],
         "a hundred food for 65 wealth"
     );
     assert_eq!(
-        s.market.price[Resource::Food as usize],
+        s.economy.market.price[Resource::Food as usize],
         47,
         "supply walks it down"
     );
     // A bucket that covers the need takes nothing at all.
-    s.ledgers[1].bucket[Resource::Wealth as usize] = 60;
+    s.economy.ledgers[1].bucket[Resource::Wealth as usize] = 60;
     assert_eq!(spent(s), 0, "wealth is no longer short");
     // And a shortfall in anything but wealth is **bought**, not sold
     // for, when wealth can stand the buy price — and a buy spends no
     // draw at all.
-    s.build_types[rec].price = cost::Price::free().with_base(Resource::Food, 6);
-    s.ledgers[1].bucket = [0, 0, 10_000, 0, 0, 0];
-    s.market.price = [50; crate::market::GOODS];
+    s.tables.build_types[rec].price = cost::Price::free().with_base(Resource::Food, 6);
+    s.economy.ledgers[1].bucket = [0, 0, 10_000, 0, 0, 0];
+    s.economy.market.price = [50; crate::market::GOODS];
     assert_eq!(
         spent(s),
         0,
         "food's branch is a buy, and a buy is draw-free"
     );
     assert_eq!(
-        s.ledgers[1].bucket,
+        s.economy.ledgers[1].bucket,
         [100, 0, 9_885, 0, 0, 0],
         "a hundred food for the buy price, 2 x 50 + 15"
     );
@@ -843,57 +850,66 @@ fn the_market_draws_once_for_wealth_behind_coinage() {
 fn the_market_prices_a_trade_and_moves_its_own_price() {
     let mut f = fx();
     let s = &mut f.sim;
-    s.holdings[1].available = [true; RESOURCES];
+    s.economy.holdings[1].available = [true; RESOURCES];
     let g = Resource::Timber as usize;
     // The default market: price 50, flux 15. Sell is `price + flux`,
     // buy is `2 x price + flux`.
     assert_eq!(s.calc_market_prices(1, g), (115, 65));
     // The sell floor of 1, and the buy floor of `MARKET_BASEMENT x 2`
     // — which a price of zero reaches before the `sell + 10` floor.
-    s.market.price[g] = 0;
-    s.market.flux[g] = 0;
+    s.economy.market.price[g] = 0;
+    s.economy.market.flux[g] = 0;
     assert_eq!(s.calc_market_prices(1, g), (20, 1));
     // And the spread floor: a buy is never under ten over a sell.
-    s.market.flux[g] = 40;
+    s.economy.market.flux[g] = 40;
     assert_eq!(s.calc_market_prices(1, g), (50, 40));
     // Amber widens the spread by `AMBER_MARKET` in the holder's
     // favour — added to the sell, taken off the buy, never both.
-    s.market.price[g] = 50;
-    s.market.flux[g] = 15;
-    s.ledgers[1].rare = 1 << (crate::economy::AMBER - crate::economy::BASE_RARE);
+    s.economy.market.price[g] = 50;
+    s.economy.market.flux[g] = 15;
+    s.economy.ledgers[1].rare = 1 << (crate::economy::AMBER - crate::economy::BASE_RARE);
     assert_eq!(s.calc_market_prices(1, g), (105, 75));
-    s.ledgers[1].rare = 0;
+    s.economy.ledgers[1].rare = 0;
     // `do_sell`: a hundred out, the sell price in, the price down by
     // `MARKET_SUPPLY_DEMAND`, and the good's escrow released.
-    s.ledgers[1].bucket = [0, 250, 7, 0, 0, 0];
-    s.ledgers[1].escrow[g] = 40;
+    s.economy.ledgers[1].bucket = [0, 250, 7, 0, 0, 0];
+    s.economy.ledgers[1].escrow[g] = 40;
     assert!(s.do_sell(1, g));
-    assert_eq!(s.ledgers[1].bucket, [0, 150, 72, 0, 0, 0]);
-    assert_eq!((s.market.price[g], s.ledgers[1].escrow[g]), (47, 0));
+    assert_eq!(s.economy.ledgers[1].bucket, [0, 150, 72, 0, 0, 0]);
+    assert_eq!(
+        (s.economy.market.price[g], s.economy.ledgers[1].escrow[g]),
+        (47, 0)
+    );
     // Under a hundred in the bucket is the one refusal, and it moves
     // nothing.
-    s.ledgers[1].bucket[g] = 99;
+    s.economy.ledgers[1].bucket[g] = 99;
     assert!(!s.do_sell(1, g));
-    assert_eq!((s.ledgers[1].bucket[g], s.market.price[g]), (99, 47));
+    assert_eq!(
+        (s.economy.ledgers[1].bucket[g], s.economy.market.price[g]),
+        (99, 47)
+    );
     // `do_buy`: the buy price out of **wealth**, a hundred of the
     // good in, the price up, and it is *wealth's* escrow that is
     // released.
-    s.market.price[g] = 50;
-    s.ledgers[1].bucket = [0, 0, 200, 0, 0, 0];
-    s.ledgers[1].escrow = [0, 0, 130, 0, 0, 0];
+    s.economy.market.price[g] = 50;
+    s.economy.ledgers[1].bucket = [0, 0, 200, 0, 0, 0];
+    s.economy.ledgers[1].escrow = [0, 0, 130, 0, 0, 0];
     assert!(s.do_buy(1, g));
-    assert_eq!(s.ledgers[1].bucket, [0, 100, 85, 0, 0, 0]);
+    assert_eq!(s.economy.ledgers[1].bucket, [0, 100, 85, 0, 0, 0]);
     assert_eq!(
         (
-            s.market.price[g],
-            s.ledgers[1].escrow[Resource::Wealth as usize]
+            s.economy.market.price[g],
+            s.economy.ledgers[1].escrow[Resource::Wealth as usize]
         ),
         (53, 30)
     );
     // Wealth under the price refuses, and moves nothing.
-    s.ledgers[1].bucket[Resource::Wealth as usize] = 10;
+    s.economy.ledgers[1].bucket[Resource::Wealth as usize] = 10;
     assert!(!s.do_buy(1, g));
-    assert_eq!((s.ledgers[1].bucket[g], s.market.price[g]), (100, 53));
+    assert_eq!(
+        (s.economy.ledgers[1].bucket[g], s.economy.market.price[g]),
+        (100, 53)
+    );
 }
 
 /// **The builder walk is in object-number order** (item 2130,
@@ -914,21 +930,27 @@ fn a_tied_builder_is_the_lower_object_number_not_the_elder() {
     let b = s.init_build(1, f.village_rec, at, false);
     s.activate(b, false, true);
     let c = s.buildings[b].city.expect("a finished city has a record");
-    s.ai[1].city_ai = vec![CityAi::default(); s.cities.len()];
-    s.ai[1].city_ai[c].land = 40;
-    s.ai[1].city_ai[c].space = [40, 40, 40];
-    s.ai[1].census.resize(256, 2);
+    s.ai.ai[1].city_ai = vec![CityAi::default(); s.cities.cities.len()];
+    s.ai.ai[1].city_ai[c].land = 40;
+    s.ai.ai[1].city_ai[c].space = [40, 40, 40];
+    s.ai.ai[1].census.resize(256, 2);
     let reg = s.world.region_of(at.cell()).expect("a region");
-    s.ai[1].census.reg_free_peasants[usize::from(reg)] = 2;
-    s.ledgers[1].bucket = [10_000; RESOURCES];
+    s.ai.ai[1].census.reg_free_peasants[usize::from(reg)] = 2;
+    s.economy.ledgers[1].bucket = [10_000; RESOURCES];
     // The tree's first unit type is the one `produce_building` counts
     // as a citizen (`0x32`/`0x33` in the original): record 0 here.
     let citizen = s
+        .tables
         .unit_types
         .iter()
         .position(|t| {
             t.tree.is_some_and(|id| {
-                Some(id) == s.tech_tree.types.iter().position(|d| d.kind.is_unit())
+                Some(id)
+                    == s.tables
+                        .tech_tree
+                        .types
+                        .iter()
+                        .position(|d| d.kind.is_unit())
             })
         })
         .expect("the counted type");
@@ -939,7 +961,7 @@ fn a_tied_builder_is_the_lower_object_number_not_the_elder() {
     }
     let mut m = slot(f.farm, 500);
     m.city = c as i32;
-    s.ai[1].make_list.list[0] = m;
+    s.ai.ai[1].make_list.list[0] = m;
     assert!(s.make_this(1, 0), "produce_building placed the farm");
     let sent: Vec<i16> = s
         .units
@@ -995,7 +1017,7 @@ fn a_human_leader_is_skipped() {
     let s = &mut f.sim;
     let b = s.init_build(0, f.farm_rec, at, false);
     s.world.set_danger_at(0, at.cell(), 5);
-    s.nation[0].human = true;
+    s.cities.nation[0].human = true;
     s.check_orphaned_buildings(0);
     assert!(s.buildings[b].alive);
 }

@@ -403,7 +403,7 @@ impl<'a> SimMuster<'a> {
         let city = match target {
             Obj::Building(b) => sim.buildings[b]
                 .city
-                .filter(|&c| sim.cities[c].building == b)
+                .filter(|&c| sim.cities.cities[c].building == b)
                 .map(|c| (b, c)),
             Obj::Unit(_) => None,
         };
@@ -420,11 +420,11 @@ impl<'a> SimMuster<'a> {
     }
 
     fn army(&self) -> &Army {
-        &self.sim.armies[self.who as usize].list[self.slot]
+        &self.sim.ai.armies[self.who as usize].list[self.slot]
     }
 
     fn army_mut(&mut self) -> &mut Army {
-        &mut self.sim.armies[self.who as usize].list[self.slot]
+        &mut self.sim.ai.armies[self.who as usize].list[self.slot]
     }
 
     fn found_at(&mut self, p: Cell) -> i32 {
@@ -477,7 +477,7 @@ impl MusterView for SimMuster<'_> {
     }
     fn friend(&mut self, a: i32, b: i32) -> bool {
         // Total: a leader outside the table is nobody's friend.
-        let n = self.sim.players.len() as i32;
+        let n = self.sim.territory.players.len() as i32;
         (0..n).contains(&a) && (0..n).contains(&b) && self.sim.is_ally(a as Player, b as Player)
     }
     fn transports(&self) -> bool {
@@ -568,25 +568,25 @@ impl MusterView for SimMuster<'_> {
         self.city.map_or(-1, |(_, c)| c as i32)
     }
     fn city_flags(&self, c: i32) -> i32 {
-        let city = &self.sim.cities[c as usize];
+        let city = &self.sim.cities.cities[c as usize];
         i32::from(city.alive) | i32::from(city.no_heal) << 1 | i32::from(city.no_muster) << 13
     }
     fn set_city_flags(&mut self, c: i32, f: i32) {
-        self.sim.cities[c as usize].no_muster = f & 0x2000 != 0;
+        self.sim.cities.cities[c as usize].no_muster = f & 0x2000 != 0;
     }
     fn city_cell(&self, c: i32) -> (i32, i32) {
-        let p = self.sim.cities[c as usize].pos.cell();
+        let p = self.sim.cities.cities[c as usize].pos.cell();
         (p.x, p.y)
     }
 
     fn armies(&self) -> i32 {
-        self.sim.armies[self.who as usize].list.len() as i32
+        self.sim.ai.armies[self.who as usize].list.len() as i32
     }
     fn army_valid(&self, j: i32) -> bool {
-        self.sim.armies[self.who as usize].list[j as usize].valid
+        self.sim.ai.armies[self.who as usize].list[j as usize].valid
     }
     fn army_muster(&self, j: i32) -> (i32, i32) {
-        let m = self.sim.armies[self.who as usize].list[j as usize].muster;
+        let m = self.sim.ai.armies[self.who as usize].list[j as usize].muster;
         (m.x, m.y)
     }
 

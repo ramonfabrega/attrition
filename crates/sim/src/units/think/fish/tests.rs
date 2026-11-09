@@ -44,13 +44,13 @@ fn fish_sim() -> (Sim, usize) {
         }
     }
     let mut s = Sim::new(Tuning::RON, world, 2);
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities.nation[0].human = true;
+    s.cities.nation[1].human = false;
     // The `TypeIndex` space up to `FISHERMEN`, so the lineage tests in
     // `think` and `add_cast_order` are the real ones. `FISH` is 6 and
     // `OIL` 5, as `TypeIndex` has them.
     {
-        let t = &mut s.tech_tree;
+        let t = &mut s.tables.tech_tree;
         for n in [
             "Food",
             "Timber",
@@ -72,7 +72,7 @@ fn fish_sim() -> (Sim, usize) {
         assert_eq!(boat, FISHERMEN, "the fixture's ids are TypeIndex's");
     }
     s.tech = (0..2)
-        .map(|_| crate::tech::PlayerTech::new(&s.tech_tree))
+        .map(|_| crate::tech::PlayerTech::new(&s.tables.tech_tree))
         .collect();
     let t = s.add_unit_type(crate::UnitType {
         hits: 20,
@@ -80,8 +80,8 @@ fn fish_sim() -> (Sim, usize) {
         tree: Some(FISHERMEN),
         ..crate::UnitType::default()
     });
-    s.unit_types[t].combat.packs = true;
-    s.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
+    s.tables.unit_types[t].combat.packs = true;
+    s.tables.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
     let at = Pos::new(20 * 768 + 384, 20 * 768 + 384);
     let mut u = crate::Unit::new(1, 14, at, 20);
     u.ty = Some(t);
@@ -215,9 +215,9 @@ fn the_deploy_waits_out_its_job_time_and_then_clears_the_packed_bit() {
     let (mut s, u) = fish_sim();
     // The craft table as the install has it: 55 rows, and `0x292` is
     // the thirtieth.
-    s.spells = vec![crate::orders::SpellType::default(); 55];
+    s.orders.spells = vec![crate::orders::SpellType::default(); 55];
     let row = usize::try_from(UNPACK_FISHERMEN - crate::orders::spell::FIRST).unwrap();
-    s.spells[row].job_time = 40;
+    s.orders.spells[row].job_time = 40;
     assert_eq!(s.spell_job_time(UNPACK_FISHERMEN), 40);
     let at = s.units[u].pos;
     s.world.add_good(crate::world::Good {
@@ -273,8 +273,8 @@ fn the_deploy_waits_out_its_job_time_and_then_clears_the_packed_bit() {
 #[test]
 fn a_human_s_packed_boat_on_its_fish_walks_and_casts_with_ai_off() {
     let (mut s, u) = fish_sim();
-    s.nation[1].human = true;
-    s.ai_off = true;
+    s.cities.nation[1].human = true;
+    s.ai.ai_off = true;
     let at = s.units[u].pos;
     s.world.add_good(crate::world::Good {
         pos: at,
@@ -294,8 +294,8 @@ fn a_human_s_packed_boat_on_its_fish_walks_and_casts_with_ai_off() {
     // And without the arm nothing would have: a human's boat under
     // `ai off` loses the tail, `think_fish` with it.
     let (mut s, u) = fish_sim();
-    s.nation[1].human = true;
-    s.ai_off = true;
+    s.cities.nation[1].human = true;
+    s.ai.ai_off = true;
     s.units[u].combat.packed = false;
     s.work(u, 0);
     assert!(
@@ -310,15 +310,15 @@ fn a_human_s_packed_boat_on_its_fish_walks_and_casts_with_ai_off() {
 #[test]
 fn a_human_s_packed_boat_with_no_fish_bumps_its_idle() {
     let (mut s, u) = fish_sim();
-    s.nation[1].human = true;
-    s.ai_off = true;
+    s.cities.nation[1].human = true;
+    s.ai.ai_off = true;
     s.units[u].idle = 0;
     s.work(u, 0);
     assert!(s.units[u].orders.is_empty(), "no deploy without a good");
     let once = {
         let (mut s2, u2) = fish_sim();
-        s2.nation[1].human = true;
-        s2.ai_off = true;
+        s2.cities.nation[1].human = true;
+        s2.ai.ai_off = true;
         s2.units[u2].combat.packed = false;
         s2.units[u2].idle = 0;
         s2.work(u2, 0);
@@ -338,7 +338,7 @@ fn a_human_s_packed_boat_with_no_fish_bumps_its_idle() {
 #[test]
 fn a_craft_with_no_row_casts_on_its_first_step() {
     let (s, _) = fish_sim();
-    assert!(s.spells.is_empty());
+    assert!(s.orders.spells.is_empty());
     assert_eq!(s.spell_job_time(crate::orders::spell::TRANSPORT), 0);
     assert_eq!(s.spell_job_time(UNPACK_FISHERMEN), 0);
 }

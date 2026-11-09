@@ -1340,3 +1340,39 @@ pub mod army;
 
 // `ai/transport/` (item 4012, `docs/STRUCTURE.md` §3).
 pub mod transport;
+
+/// The `ai/` subsystem's fields of [`crate::Sim`] (`docs/STRUCTURE.md`
+/// §3, item 4016): moved whole, each with its doc, in `Sim`'s order.
+#[derive(Clone, Debug)]
+pub struct AiState {
+    /// The engine's global `GameAccess::ai_off`, which the `ai off` cheat
+    /// toggles (`Game::action_cheat_ai_toggle@005930c0` is the whole of
+    /// it: one flag, flipped, in a single-player game). Three readers in
+    /// the simulation's own territory — `Leader::production_ai`'s head,
+    /// `Leader::diplomacy`'s head, and the computer block of
+    /// `Unit::think@005f6e40:205` — and they are what `docs/INPUT.md` §11
+    /// models. Off by default; only the golden record's interpreter sets
+    /// it.
+    pub ai_off: bool,
+    /// The lobby's option block, as the AI reads it — `docs/AI.md` §12.1.
+    pub lobby: crate::ai::Lobby,
+    /// `ScenarioData::find_counters[]` and `ScriptTimers` — the global
+    /// state the script host functions keep between calls.
+    pub script_env: crate::ai_host::ScriptEnv,
+    /// The loaded opening scripts and their statics, once
+    /// [`Sim::load_scripts`] has run; `None` is a game with no script.
+    pub scripts: Option<crate::ai_host::Scripts>,
+    /// One per player: the production AI's state — the step machine, the
+    /// personality, the make list, the goods picture (`docs/AI.md` §2).
+    /// A human's is never stepped.
+    pub ai: Vec<crate::ai::Leader>,
+    /// `ai_speed`: 1, plus one per `ai speed increase` cheat.
+    pub ai_speed: i32,
+    /// One per player: the transport level bits, the lock and the scouts
+    /// option (`docs/TRANSPORT.md` §2).
+    pub transport: Vec<crate::transport::LeaderTransport>,
+    /// One per player: the docks registry (`docs/TRANSPORT.md` §5).
+    pub docks: Vec<crate::transport::Docks>,
+    /// One per player: the sixteen army slots (`docs/ARMY.md`).
+    pub armies: Vec<crate::army::Armies>,
+}

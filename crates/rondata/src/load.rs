@@ -254,8 +254,8 @@ impl Loaded {
         for ty in &self.build_types {
             sim.add_build_type(ty.clone());
         }
-        sim.table = self.table.clone();
-        sim.good_types.clone_from(&self.good_types);
+        sim.combat.table = self.table.clone();
+        sim.economy.good_types.clone_from(&self.good_types);
     }
 
     /// A simulation with the loaded data and `players` players, each holding
@@ -3649,9 +3649,9 @@ mod tests {
         let Some(i) = install() else { return };
         let l = load(&i).unwrap();
         let s = l.sim(Tuning::RON, sim::World::new(4, 4), 2);
-        assert_eq!(s.unit_types.len(), 364);
-        assert_eq!(s.build_types.len(), 129);
-        assert_eq!(s.tech_tree.types.len(), l.tree.types.len());
-        assert_eq!(s.table.width(), 364);
+        assert_eq!(s.tables.unit_types.len(), 364);
+        assert_eq!(s.tables.build_types.len(), 129);
+        assert_eq!(s.tables.tech_tree.types.len(), l.tree.types.len());
+        assert_eq!(s.combat.table.width(), 364);
     }
 }

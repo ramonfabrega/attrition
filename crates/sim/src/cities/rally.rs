@@ -315,12 +315,12 @@ impl Sim {
             let Some(c) = b.city else {
                 continue;
             };
-            if !b.alive || !b.active || self.cities[c].building != m {
+            if !b.alive || !b.active || self.cities.cities[c].building != m {
                 continue;
             }
             self.clear_gather(m);
             let chain: Vec<usize> = std::iter::once(m)
-                .chain(self.cities[c].members.iter().copied())
+                .chain(self.cities.cities[c].members.iter().copied())
                 .collect();
             for k in chain {
                 if !self.buildings[k].alive {
@@ -329,7 +329,7 @@ impl Sim {
                 let Some(t) = self.buildings[k].ty else {
                     continue;
                 };
-                let is = |ident| build::is(&self.build_types, t, ident);
+                let is = |ident| build::is(&self.tables.build_types, t, ident);
                 let takes = match kind {
                     crate::gather_view::FARM => is(Ident::Farm),
                     crate::gather_view::WOODCUTTER => is(Ident::Woodcutter),
@@ -454,7 +454,7 @@ impl Sim {
                     && (bd.owner == who || self.is_ally(who, bd.owner))
                     && bd
                         .ty
-                        .is_some_and(|t| build::is(&self.build_types, t, ident))
+                        .is_some_and(|t| build::is(&self.tables.build_types, t, ident))
             })
             .map(|b| {
                 let p = self.buildings[b].pos;
@@ -514,10 +514,13 @@ impl Sim {
     /// slots as the sweep last wrote them; here the origin is kept.
     fn gather_reseat(&mut self, captain: usize, b: usize, bearing: Angle) -> Option<crate::Pos> {
         let t = self.buildings[b].ty?;
-        let (xs, ys) = (self.build_types[t].x_size, self.build_types[t].y_size);
-        let near = self.tuning.unit_train_distance;
+        let (xs, ys) = (
+            self.tables.build_types[t].x_size,
+            self.tables.build_types[t].y_size,
+        );
+        let near = self.tables.tuning.unit_train_distance;
         let ring = (xs + ys) * 0x30 + near;
-        let max = ring + (self.tuning.unit_train_max_distance - near);
+        let max = ring + (self.tables.tuning.unit_train_max_distance - near);
         let host = self.buildings[b].pos;
         if let Some(spot) = self.find_nearby_spot_coll(
             captain,
@@ -580,7 +583,7 @@ impl Sim {
         let Some(ty) = self.units[captain].ty else {
             return;
         };
-        let squad = self.unit_types[ty].combat.uber_size > 1;
+        let squad = self.tables.unit_types[ty].combat.uber_size > 1;
         // `[esp+0x44]/[esp+0x40]`: the gather block's spot for the head,
         // each later point's own free spot; `[esp+0x2c]/[esp+0x54]`: the
         // leg's origin, the exit point, then each waypoint's target.
@@ -693,7 +696,7 @@ impl Sim {
             } else {
                 let gathers = building
                     .ty
-                    .is_some_and(|t| self.build_types[t].has(build::flags::GATHERER));
+                    .is_some_and(|t| self.tables.build_types[t].has(build::flags::GATHERER));
                 if building.alive
                     && gathers
                     && self.building_ident(tb) != Ident::University
@@ -786,7 +789,7 @@ impl Sim {
             {
                 prev = s;
             }
-            let citizen = self.unit_types[ty].type_index;
+            let citizen = self.tables.unit_types[ty].type_index;
             let owner = self.buildings[tb].owner;
             if matches!(citizen, 0x32 | 0x33) {
                 if !self.buildings[tb].active && owner == who {
@@ -795,7 +798,7 @@ impl Sim {
                 } else if self.buildings[tb].damage == 0 {
                     let gathers = self.buildings[tb]
                         .ty
-                        .is_some_and(|t| self.build_types[t].has(build::flags::GATHERER));
+                        .is_some_and(|t| self.tables.build_types[t].has(build::flags::GATHERER));
                     if last.action != 0
                         && self.buildings[tb].alive
                         && gathers
@@ -842,17 +845,20 @@ impl Sim {
             }
         }
         let armed = self.profile(crate::combat::Obj::Unit(captain)).attack != 0;
-        let from_trainer = self.unit_types[ty].garrison.trained_at.is_some_and(|w| {
-            [Ident::Barracks, Ident::Stable, Ident::Dock]
-                .iter()
-                .any(|&i| build::is(&self.build_types, w, i))
-        });
+        let from_trainer = self.tables.unit_types[ty]
+            .garrison
+            .trained_at
+            .is_some_and(|w| {
+                [Ident::Barracks, Ident::Stable, Ident::Dock]
+                    .iter()
+                    .any(|&i| build::is(&self.tables.build_types, w, i))
+            });
         let kind = if armed && self.units[captain].stance != 5 && from_trainer {
             MoveKind::AttackTo
         } else {
             MoveKind::MoveTo
         };
-        let squad = self.unit_types[ty].combat.uber_size > 1;
+        let squad = self.tables.unit_types[ty].combat.uber_size > 1;
         match group {
             Some(g) if squad => {
                 // `Unit::find_nearby_spot(spot, 0, −1, 0, 0x55555555,

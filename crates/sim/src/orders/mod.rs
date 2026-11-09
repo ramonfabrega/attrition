@@ -204,3 +204,45 @@ pub use self::order::*;
 pub use self::order_list::*;
 #[cfg(test)]
 pub(crate) use self::think::*;
+
+/// The `orders/` subsystem's fields of [`crate::Sim`] (`docs/STRUCTURE.md`
+/// §3, item 4016): moved whole, each with its doc, in `Sim`'s order.
+#[derive(Clone, Debug)]
+pub struct OrdersState {
+    /// The craft table — `craftrules.xml`'s 55 rows in file order, which
+    /// is `TypeIndex` [`orders::spell::FIRST`]`..=`[`orders::spell::LAST`]
+    /// (`docs/ORDERS.md` §6.9). Empty until the loader fills it, and
+    /// [`Sim::spell_job_time`] then answers 0 — the transport craft's own
+    /// number, which is what every fixture that casts wants.
+    pub spells: Vec<crate::orders::SpellType>,
+    /// `UnitData +0x80` → `Groups::list[gid]`, the group pool — the
+    /// slots [`Sim::push_group`] installs a stack group into, each with
+    /// the [`group::GroupState`] record an army's group also carries.
+    ///
+    /// **One slot until item 465**, which is what kept Great Lakes' probe
+    /// from ever running `do_group_move`: the six raiders it pushes out
+    /// of the army on frame 8186 are `group 65` in the dump for the next
+    /// two thousand frames, and here the scout's next `go_to` overwrote
+    /// them eleven times before the word (`docs/ORDERS.md` §16). Slots
+    /// are recycled the way `Groups::get_open_slot` recycles them, so the
+    /// pool stays as small as the live groups.
+    pub(crate) pushed: Vec<crate::group::Pushed>,
+    /// `Groups::last_group[who]` — the pool slot each player pushed into
+    /// last, which `push_group` compares against and `get_open_slot` will
+    /// not hand out (`docs/GROUPS.md` §19). `Groups::clear` starts every
+    /// player on its own slot 0.
+    pub(crate) last_group: [u8; 16],
+    /// The record `Group::action_siege_attack_to` sets aside while its
+    /// stack sub-group holds the seat (`docs/GROUPS.md` §26.3), with the
+    /// seat it belongs to: owner, army, pushed slot. A member's own dying
+    /// move hands its mirror back through the unit's `+0x80`, which names
+    /// the **real** group and never the stack (`docs/AI.md` §212), so
+    /// [`Sim::facing_record_mut`] sends that write here. `None` outside the
+    /// call.
+    pub(crate) set_aside: Option<(
+        crate::Player,
+        Option<usize>,
+        Option<usize>,
+        crate::group::GroupState,
+    )>,
+}

@@ -7595,7 +7595,7 @@ mod tests {
             // list's three filters decide nothing on this block (they are
             // `sim::cliff_mine`'s tests); the count, which no dump prints, is
             // `gather_size`'s reading: the 100..210 band, all counted.
-            assert_eq!(s.cliffs[7].tiles.len(), 189, "cliff 7's tcoords");
+            assert_eq!(s.terrain.cliffs[7].tiles.len(), 189, "cliff 7's tcoords");
             assert_eq!(s.max_gatherers_at(ty, 0, corner), 5, "the reading's count");
             checked += 1;
         }

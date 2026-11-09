@@ -26,18 +26,18 @@ fn scout_sim(fog: bool) -> (Sim, usize, usize) {
         assert!(world.set_fog(vec![0; 80 * 80]));
     }
     let mut s = Sim::new(Tuning::RON, world, 2);
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities.nation[0].human = true;
+    s.cities.nation[1].human = false;
     let t = s.add_unit_type(crate::UnitType {
         hits: 20,
         moves: 40,
         ..crate::UnitType::default()
     });
-    s.unit_types[t].cols.role = role::ROLE_SCOUT;
+    s.tables.unit_types[t].cols.role = role::ROLE_SCOUT;
 
     let centre = Pos::new(20 * 768 + 384, 20 * 768 + 384);
     let bldg = s.add_building(1, centre, 4);
-    s.cities.push(crate::city::City {
+    s.cities.cities.push(crate::city::City {
         alive: true,
         owner: 1,
         race: Some(1),
@@ -159,8 +159,8 @@ fn a_computers_caster_scout_throws_the_special_coin_before_the_walk() {
     for d in [0, 5] {
         let (mut s, ai, _) = scout_sim(false);
         let t = s.units[ai].ty.expect("typed");
-        s.unit_types[t].cols.unit_flags2 = flags;
-        s.lobby.difficulty = d;
+        s.tables.unit_types[t].cols.unit_flags2 = flags;
+        s.ai.lobby.difficulty = d;
         let before = s.rng.seed;
         assert!(!s.think_scout(ai), "difficulty {d}: nothing is found");
         spent.push(draws(before, s.rng.seed));
@@ -210,7 +210,7 @@ fn an_unseen_ring_one_is_taken_whole_and_stops_the_walk_two_rings_later() {
 #[test]
 fn an_idle_scout_thinks_on_its_first_frame_and_then_once_in_thirty_two() {
     let (mut s, ai, _) = scout_sim(false);
-    s.trace_phases = true;
+    s.trace.trace_phases = true;
     let o = i64::from(s.units[ai].index);
     // Nothing is unseen, so `think_scout` never issues an order and
     // the scout stays idle for the whole run. `do_idle` is the whole
@@ -218,9 +218,9 @@ fn an_idle_scout_thinks_on_its_first_frame_and_then_once_in_thirty_two() {
     // `think` — so the loop is the tick as this unit sees it.
     let mut thought = Vec::new();
     for frame in 0..96 {
-        s.phase_marks.clear();
+        s.trace.phase_marks.clear();
         s.do_idle(ai, frame);
-        let marks = &s.phase_marks;
+        let marks = &s.trace.phase_marks;
         let drew = marks.iter().enumerate().any(|(i, (label, from))| {
             label == SITE_ROTATION && marks.get(i + 1).map_or(s.rng.seed, |m| m.1) != *from
         });
@@ -269,7 +269,7 @@ fn a_computers_spy_explores_by_the_region_scan() {
         moves: 40,
         ..crate::UnitType::default()
     });
-    s.unit_types[spy_type].tree = Some(SPY);
+    s.tables.unit_types[spy_type].tree = Some(SPY);
     let at = s.units[ai].pos;
     let mut u = crate::Unit::new(1, s.units.len() as i16, at, 20);
     u.ty = Some(spy_type);
@@ -326,7 +326,7 @@ fn a_computers_spy_explores_by_the_region_scan() {
 #[test]
 fn a_leader_with_no_city_scans_its_whole_region() {
     let (mut s, ai, _) = scout_sim(true);
-    s.cities[0].alive = false;
+    s.cities.cities[0].alive = false;
     let region = s
         .world
         .region_of(s.units[ai].pos.cell())
@@ -395,8 +395,8 @@ fn a_leader_with_no_city_scans_its_whole_region() {
 fn an_ai_worker_explores_out_of_a_region_no_city_and_no_site_wants() {
     let citizen = |s: &mut Sim, u: usize| {
         let t = s.units[u].ty.expect("the fixture's type");
-        s.unit_types[t].cols.role = 0;
-        s.unit_types[t].worker = crate::orders::Worker::Citizen;
+        s.tables.unit_types[t].cols.role = 0;
+        s.tables.unit_types[t].worker = crate::orders::Worker::Citizen;
         s.units[u].type_index = 0x32;
         // `stance > 1` is what skips the job search, so the tail is
         // what this test reaches (`005f5920`).
@@ -418,17 +418,17 @@ fn an_ai_worker_explores_out_of_a_region_no_city_and_no_site_wants() {
     let (mut s, ai, _) = scout_sim(true);
     citizen(&mut s, ai);
     let r = region(&s, ai);
-    s.ai[1].census.resize(64, 8);
-    s.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITE_SLOTS];
+    s.ai.ai[1].census.resize(64, 8);
+    s.ai.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITE_SLOTS];
     assert!(s.think_peasant(ai, false), "the tail issued the explore");
     assert!(explored(&s, ai), "and it is an EXPLORE_TO");
 
     // A site claims the region: it waits instead.
     let (mut s, ai, _) = scout_sim(true);
     citizen(&mut s, ai);
-    s.ai[1].census.resize(64, 8);
-    s.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITE_SLOTS];
-    s.ai[1].sites[3] = crate::ai::Site {
+    s.ai.ai[1].census.resize(64, 8);
+    s.ai.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITE_SLOTS];
+    s.ai.ai[1].sites[3] = crate::ai::Site {
         val: 1,
         reg: i32::from(r),
         ..crate::ai::Site::default()
@@ -447,9 +447,9 @@ fn an_ai_worker_explores_out_of_a_region_no_city_and_no_site_wants() {
     // A `val` of zero claims nothing, whatever its `reg` says.
     let (mut s, ai, _) = scout_sim(true);
     citizen(&mut s, ai);
-    s.ai[1].census.resize(64, 8);
-    s.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITE_SLOTS];
-    s.ai[1].sites[3] = crate::ai::Site {
+    s.ai.ai[1].census.resize(64, 8);
+    s.ai.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITE_SLOTS];
+    s.ai.ai[1].sites[3] = crate::ai::Site {
         val: 0,
         reg: i32::from(r),
         ..crate::ai::Site::default()
@@ -460,9 +460,9 @@ fn an_ai_worker_explores_out_of_a_region_no_city_and_no_site_wants() {
     // the sites are read at all.
     let (mut s, ai, _) = scout_sim(true);
     citizen(&mut s, ai);
-    s.ai[1].census.resize(64, 8);
-    s.ai[1].census.reg_cities[r as usize] = 1;
-    s.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITE_SLOTS];
+    s.ai.ai[1].census.resize(64, 8);
+    s.ai.ai[1].census.reg_cities[r as usize] = 1;
+    s.ai.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITE_SLOTS];
     assert!(!s.think_peasant(ai, false), "a city in the region: stay");
     assert!(!explored(&s, ai));
 }
@@ -474,8 +474,8 @@ fn an_ai_worker_explores_out_of_a_region_no_city_and_no_site_wants() {
 fn a_scholar_keeps_its_builder_bit_where_a_citizen_loses_it() {
     let (mut s, ai, _) = scout_sim(true);
     let t = s.units[ai].ty.expect("the fixture's type");
-    s.unit_types[t].cols.role = 0;
-    s.unit_types[t].worker = crate::orders::Worker::Scholar;
+    s.tables.unit_types[t].cols.role = 0;
+    s.tables.unit_types[t].worker = crate::orders::Worker::Scholar;
     s.units[ai].type_index = 0x34;
     s.units[ai].stance = 2;
     s.units[ai].idle = 1;
@@ -484,13 +484,13 @@ fn a_scholar_keeps_its_builder_bit_where_a_citizen_loses_it() {
     assert!(s.units[ai].was_builder, "a scholar never reaches the clear");
 
     s.units[ai].type_index = 0x32;
-    s.unit_types[t].worker = crate::orders::Worker::Citizen;
+    s.tables.unit_types[t].worker = crate::orders::Worker::Citizen;
     let r = s
         .world
         .tregion_alt(s.units[ai].pos.tile())
         .expect("the worker stands in the region");
-    s.ai[1].census.resize(64, 8);
-    s.ai[1].census.reg_cities[r as usize] = 1;
+    s.ai.ai[1].census.resize(64, 8);
+    s.ai.ai[1].census.reg_cities[r as usize] = 1;
     assert!(!s.think_peasant(ai, false));
     assert!(!s.units[ai].was_builder, "a citizen does");
 }
@@ -630,7 +630,7 @@ fn a_sibling_of_the_scout_s_lineage_blocks_a_cell_whatever_its_rung() {
     s.set_tech_tree(tree);
     let rec = s.units[ai].ty.expect("the fixture's type");
     let typed = |s: &mut Sim, t| {
-        let mut ty = s.unit_types[rec].clone();
+        let mut ty = s.tables.unit_types[rec].clone();
         ty.tree = Some(t);
         s.add_unit_type(ty)
     };
@@ -692,15 +692,15 @@ fn a_rival_s_cell_is_doubled_until_the_two_have_met() {
         scan.score
     };
     let unmet = score(&mut s);
-    s.nation[0].human = false;
+    s.cities.nation[0].human = false;
     let unmet_computer = score(&mut s);
-    s.nation[0].human = true;
+    s.cities.nation[0].human = true;
     s.treaty_on(1, 0, 1);
     let met = score(&mut s);
     assert!(met > 0 && met < NOTHING, "the cell is a candidate: {met}");
     assert_eq!(unmet, 2 * met, "a human stranger's cell counts double");
     assert_eq!(unmet_computer, 4 * met, "a computer stranger's four times");
-    s.nation[0].human = false;
+    s.cities.nation[0].human = false;
     assert_eq!(score(&mut s), met, "and a met computer's not at all");
 }
 
@@ -721,17 +721,17 @@ fn a_sea_scout_with_nothing_to_see_joins_the_nearest_sea_army() {
     let mut world = World::new(40, 40);
     let sea = world.fill_region(Terrain::Sea, Cell::new(0, 0), Cell::new(39, 39));
     let mut s = Sim::new(Tuning::RON, world, 2);
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities.nation[0].human = true;
+    s.cities.nation[1].human = false;
     let t = s.add_unit_type(crate::UnitType {
         hits: 20,
         moves: 40,
         ..crate::UnitType::default()
     });
     // A ship in all three places the crate reads a domain from.
-    s.unit_types[t].cols.role = role::ROLE_SCOUT;
-    s.unit_types[t].kind.domain = Domain::Sea;
-    s.unit_types[t].combat.domain = Domain::Sea;
+    s.tables.unit_types[t].cols.role = role::ROLE_SCOUT;
+    s.tables.unit_types[t].kind.domain = Domain::Sea;
+    s.tables.unit_types[t].combat.domain = Domain::Sea;
     let spawn = |s: &mut Sim, at: Pos| {
         let mut u = crate::Unit::new(1, s.units.len() as i16, at, 20);
         u.ty = Some(t);
@@ -741,8 +741,8 @@ fn a_sea_scout_with_nothing_to_see_joins_the_nearest_sea_army() {
     let first = spawn(&mut s, Pos::new(30 * 768 + 384, 20 * 768 + 384));
     let scout = spawn(&mut s, Pos::new(5 * 768 + 384, 20 * 768 + 384));
     let slot = s.init_army(1, None);
-    s.armies[1].list[slot].reg = Some(sea);
-    s.armies[1].list[slot].pos = s.units[first].pos;
+    s.ai.armies[1].list[slot].reg = Some(sea);
+    s.ai.armies[1].list[slot].pos = s.units[first].pos;
     s.army_add_unit(1, slot, first);
     assert_eq!(s.army_of(first), Some(slot));
 
@@ -759,7 +759,7 @@ fn a_sea_scout_with_nothing_to_see_joins_the_nearest_sea_army() {
 #[test]
 fn a_region_of_under_a_hundred_cells_draws_no_offset() {
     let (mut s, ai, _) = scout_sim(true);
-    s.cities[0].alive = false;
+    s.cities.cities[0].alive = false;
     // A region of ten cells around the scout, and the rest of the grid
     // moved to a second one so `region_size` sees only these.
     let small = s.world.add_region(Terrain::Land);

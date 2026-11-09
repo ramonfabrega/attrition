@@ -166,12 +166,12 @@ fn sample(sim: &Sim) -> Sample {
         }
         h.eat(b.garrison.len() as i64);
     }
-    h.eat(sim.cities.len() as i64);
-    for c in &sim.cities {
+    h.eat(sim.cities.cities.len() as i64);
+    for c in &sim.cities.cities {
         h.eat(i64::from(c.owner));
         h.eat_bool(c.alive);
     }
-    for l in &sim.ledgers {
+    for l in &sim.economy.ledgers {
         for good in l.bucket {
             h.eat(i64::from(good));
         }
@@ -277,7 +277,7 @@ fn scenario(rng: &mut Rng) -> (Sim, Types) {
     );
     let mut sim = Sim::new(Tuning::RON, w, 2);
     sim.declare_war(0, 1);
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; economy::RESOURCES];
     }
     let types = install(&mut sim);
@@ -317,7 +317,7 @@ fn scenario(rng: &mut Rng) -> (Sim, Types) {
         let who = (i % 2) as Player;
         let worker = rng.get(0, 1) == 0;
         let ty = if worker { types.citizen } else { types.soldier };
-        let t = &sim.unit_types[ty];
+        let t = &sim.tables.unit_types[ty];
         let (hits, moves, turn) = (t.hits, t.moves, t.turn_speed);
         let pos = centre(Cell::new(rng.get(1, CELLS - 2), rng.get(1, CELLS - 2)));
         let mut u = Unit::new(who, i as i16, pos, hits);

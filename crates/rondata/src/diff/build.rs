@@ -83,9 +83,9 @@ mod tests {
         let mut init = replay_initial(&log).unwrap();
         borrow_from_siblings(&mut init, &refs);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        assert!(built.sim.scripts.is_some(), "the scripts compiled");
-        assert!(!built.sim.nation[1].human, "player 1 is the AI");
-        let ai = &mut built.sim.ai[1];
+        assert!(built.sim.ai.scripts.is_some(), "the scripts compiled");
+        assert!(!built.sim.cities.nation[1].human, "player 1 is the AI");
+        let ai = &mut built.sim.ai.ai[1];
         ai.pers = sim::ai::Personality {
             rush: 1,
             cities: 1,
@@ -120,12 +120,13 @@ mod tests {
         built.tick();
         built.tick();
         assert_eq!(built.sim.frame, 2);
-        assert!(built.sim.ai[1].script_live, "the script is not done");
-        assert_eq!(built.sim.ai[1].script_step, 11, "6 → 7 → 9 → 10 → 11");
+        assert!(built.sim.ai.ai[1].script_live, "the script is not done");
+        assert_eq!(built.sim.ai.ai[1].script_step, 11, "6 → 7 → 9 → 10 → 11");
 
         // The city's queue: three citizens, on the ramp the dump shows.
         let city_b = built
             .sim
+            .cities
             .cities
             .iter()
             .find(|c| c.alive && c.owner == 1)
@@ -233,7 +234,7 @@ mod tests {
             .expect("the WORLD block's sea_map");
         assert!(sea_map > 2, "an islands map: sea_map {sea_map}");
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        assert_eq!(built.sim.lobby.map_style, 18, "East Indies");
+        assert_eq!(built.sim.ai.lobby.map_style, 18, "East Indies");
         assert_eq!(
             built.sim.world.sea_map(),
             sea_map,
@@ -286,7 +287,7 @@ mod tests {
         // `reg_cities`/`reg_land` say about the *site's* region, so an
         // island the AI does not live on is exactly where a census error
         // would hide.
-        let c = &built.sim.ai[1].census;
+        let c = &built.sim.ai.ai[1].census;
         let arr = |key: &str| -> Vec<i64> {
             theirs
                 .all(key)
@@ -341,6 +342,7 @@ mod tests {
             let Some(c) = built
                 .sim
                 .cities
+                .cities
                 .iter()
                 .position(|c| c.alive && i64::from(c.pos.x) == x && i64::from(c.pos.y) == y)
             else {
@@ -348,7 +350,7 @@ mod tests {
                 continue;
             };
             matched += 1;
-            let ours = built.sim.ai[1].city_ai[c];
+            let ours = built.sim.ai.ai[1].city_ai[c];
             let space: Vec<i64> = rec
                 .all("space[scan]")
                 .iter()
@@ -417,7 +419,7 @@ mod tests {
             })
             .collect();
         assert_eq!(theirs_full.len(), 10, "ten SITE records");
-        let ours_full: Vec<(i64, i64, i64, i64, i64)> = built.sim.ai[1]
+        let ours_full: Vec<(i64, i64, i64, i64, i64)> = built.sim.ai.ai[1]
             .sites
             .iter()
             .map(|s| {
@@ -694,7 +696,7 @@ mod tests {
         let log = Log::parse(&text);
         let init = replay_initial(&log).unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        assert_eq!(built.sim.lobby.map_style, 18, "East Indies");
+        assert_eq!(built.sim.ai.lobby.map_style, 18, "East Indies");
 
         let frames = log.frames();
         let block = |n: i64| -> Block<'_> {
@@ -780,6 +782,7 @@ mod tests {
         // it, then place and finish the dock.
         let preq = built
             .sim
+            .tables
             .tech_tree
             .roles
             .transport_preq
@@ -797,9 +800,9 @@ mod tests {
         built.sim.buildings[b].started = true;
         built.sim.activate(b, false, true);
         assert_eq!(built.sim.buildings[b].dock_slot, Some(0));
-        assert_eq!(built.sim.docks[1].slots[0].reg, Some(sim_reg));
+        assert_eq!(built.sim.ai.docks[1].slots[0].reg, Some(sim_reg));
         assert!(
-            built.sim.ai[1].census.reg_docks.iter().all(|n| *n == 0),
+            built.sim.ai.ai[1].census.reg_docks.iter().all(|n| *n == 0),
             "reg_docks stays 0 for a dock in the sea"
         );
         assert_eq!(
@@ -861,16 +864,16 @@ mod tests {
         let init = replay_initial(&log).unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
         let sim = &mut built.sim;
-        assert!(sim.nation[1].british, "run53's AI is tribe 11");
-        assert!(!sim.nation[0].british, "and the human is tribe 4");
+        assert!(sim.cities.nation[1].british, "run53's AI is tribe 11");
+        assert!(!sim.cities.nation[0].british, "and the human is tribe 4");
 
         let barracks = loaded.build_named("Barracks").expect("a Barracks type");
         let bowmen = loaded.unit_named("Bowmen").expect("a Bowmen type");
         assert_eq!(
-            sim.unit_types[bowmen].combat.uber_size, 3,
+            sim.tables.unit_types[bowmen].combat.uber_size, 3,
             "UBER_SIZE 3, from the install's own unitrules.xml"
         );
-        let pop = sim.unit_types[bowmen].price.pop;
+        let pop = sim.tables.unit_types[bowmen].price.pop;
         let archers = |s: &sim::Sim, who: sim::Player| -> Vec<usize> {
             s.units
                 .iter()
@@ -883,7 +886,7 @@ mod tests {
         // A spot clear of everything: `init_build` is the original's own
         // `Build::init`, which runs no placement test.
         let spot = |n: i32| Pos::new(4000 + n * 400, 4000);
-        let control = sim.muster[1].control;
+        let control = sim.roster.muster[1].control;
         let b = sim.init_build(1, barracks, spot(0), false);
         sim.activate(b, false, true);
 
@@ -906,8 +909,11 @@ mod tests {
         }
         // Only the head is counted: `Objects::init_unit` hands every unit
         // with an `o_up` straight back to `track_unit_type(·, −1, ·)`.
-        assert_eq!(sim.muster[1].by_type[bowmen], 1, "one unit, not three");
-        assert_eq!(sim.muster[1].control - control, pop);
+        assert_eq!(
+            sim.roster.muster[1].by_type[bowmen], 1,
+            "one unit, not three"
+        );
+        assert_eq!(sim.roster.muster[1].control - control, pop);
 
         // **Each** Barracks pays — the mark is a high-water mark, not a
         // first-one flag, so the second raises it to two and pays again.
@@ -1087,7 +1093,7 @@ mod tests {
                     continue;
                 }
                 for (i, t) in theirs.iter().enumerate() {
-                    let o = built.sim.ai[who as usize].sites[i];
+                    let o = built.sim.ai.ai[who as usize].sites[i];
                     for (field, ours, theirs) in [
                         ("wx", i64::from(o.wx), t.int("wx")),
                         ("wy", i64::from(o.wy), t.int("wy")),
@@ -1241,7 +1247,7 @@ mod tests {
                 // `my_team_terr` is a snapshot of it taken on the AI's
                 // sweep and lags by up to a sweep, so it is not the field
                 // to compare.
-                let mut owned = vec![0i64; built.sim.players.len()];
+                let mut owned = vec![0i64; built.sim.territory.players.len()];
                 for y in 0..built.sim.world.height() {
                     for x in 0..built.sim.world.width() {
                         if let sim::world::Owner::Player(p) =
@@ -1277,7 +1283,7 @@ mod tests {
                         .collect();
                     assert_eq!(sites.len(), 10, "ten SITE records, frame {n} who {who}");
                     for (i, t) in sites.iter().enumerate() {
-                        let o = built.sim.ai[who as usize].sites[i];
+                        let o = built.sim.ai.ai[who as usize].sites[i];
                         let ours = (
                             i64::from(o.wx),
                             i64::from(o.wy),
@@ -1415,6 +1421,7 @@ mod tests {
             if built
                 .sim
                 .cities
+                .cities
                 .iter()
                 .any(|c| c.alive && c.pos == pos && i64::from(c.owner) == *who)
             {
@@ -1426,14 +1433,14 @@ mod tests {
             built.sim.activate(b, false, false);
         }
         assert_eq!(
-            built.sim.cities.iter().filter(|c| c.alive).count(),
+            built.sim.cities.cities.iter().filter(|c| c.alive).count(),
             3,
             "the window's three cities, and no more"
         );
 
         // Each frame's own leader row, and the border pass under it.
         let owned = |sim: &sim::Sim| -> Vec<i64> {
-            let mut out = vec![0i64; sim.players.len()];
+            let mut out = vec![0i64; sim.territory.players.len()];
             for y in 0..sim.world.height() {
                 for x in 0..sim.world.width() {
                     if let sim::world::Owner::Player(p) =
@@ -1460,7 +1467,7 @@ mod tests {
                         rare |= 1 << i;
                     }
                 }
-                built.sim.ledgers[who].rare = rare;
+                built.sim.economy.ledgers[who].rare = rare;
             }
             built.sim.sync_territory();
             built.sim.settle_borders();
@@ -1479,7 +1486,7 @@ mod tests {
             // this crate computed before the term was wired.
             if gemless.is_empty() {
                 for who in 0..2usize {
-                    built.sim.ledgers[who].rare &=
+                    built.sim.economy.ledgers[who].rare &=
                         !(1u64 << (sim::economy::GEMS - sim::economy::BASE_RARE));
                 }
                 built.sim.sync_territory();
@@ -1822,7 +1829,11 @@ mod tests {
         borrow_from_siblings(&mut init, &[&sib_init]);
         borrow_pasture(&mut init, &tr);
         let built = build_sim(&loaded, &init, Tuning::RON);
-        assert_eq!(built.sim.mountains.len(), 18, "run38's placed mountains");
+        assert_eq!(
+            built.sim.terrain.mountains.len(),
+            18,
+            "run38's placed mountains"
+        );
         let reach = sim::gather::MINE_RADIUS * sim::world::UNITS_PER_TILE;
         // (site, the packet's `find_nearest` distance)
         let rows: [((i32, i32), i32); 8] = [
@@ -1956,8 +1967,9 @@ mod tests {
             let init = replay_initial(&log).expect("a start dump");
             let built = build_sim(&loaded, &init, Tuning::RON);
             let sim = &built.sim;
-            assert_eq!(sim.mountains.len(), ranges, "{name}: placed ranges");
+            assert_eq!(sim.terrain.mountains.len(), ranges, "{name}: placed ranges");
             let placed: BTreeSet<(i32, i32)> = sim
+                .terrain
                 .mountains
                 .iter()
                 .flat_map(|m| m.tiles.iter().map(|t| (t.x, t.y)))
@@ -3987,7 +3999,7 @@ mod tests {
         let mut known: Vec<(i32, i32, i32, i32, i32)> = Vec::new();
         for f in 0..LAST {
             built.tick();
-            for p in &built.sim.projectiles {
+            for p in &built.sim.combat.projectiles {
                 let k = (
                     p.launch.x,
                     p.launch.y,

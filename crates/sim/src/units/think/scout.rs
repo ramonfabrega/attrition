@@ -205,7 +205,7 @@ impl Sim {
     pub fn scout_thinks(&self, u: usize) -> bool {
         let unit = &self.units[u];
         let Some(rec) = unit.ty else { return false };
-        if self.unit_types[rec].kind.supply_unit {
+        if self.tables.unit_types[rec].kind.supply_unit {
             return false;
         }
         if !self.unit_is_scout(u) && !self.unit_is_spy(u) {
@@ -220,13 +220,13 @@ impl Sim {
         let Some(rec) = self.units[u].ty else {
             return false;
         };
-        let cols = self.unit_types[rec].cols.role;
+        let cols = self.tables.unit_types[rec].cols.role;
         if cols != 0 {
             return cols & role::ROLE_SCOUT != 0;
         }
         // A type the loader never filled — a harness fixture. The tree id is
         // what `role_word` needs for its `Scout` lineage test.
-        self.unit_types[rec]
+        self.tables.unit_types[rec]
             .tree
             .is_some_and(|t| self.role_word(t, rec) & role::ROLE_SCOUT != 0)
     }
@@ -246,7 +246,7 @@ impl Sim {
     /// twice: by `Unit::think`'s human block (§2) and by §11's `local_74`.
     pub(crate) fn unit_is_special(&self, u: usize) -> bool {
         self.units[u].ty.is_some_and(|r| {
-            self.unit_types[r]
+            self.tables.unit_types[r]
                 .cols
                 .flag2(crate::ai_load::uflags2::FLAG2_SCOUT)
         })
@@ -258,7 +258,10 @@ impl Sim {
     /// [`Sim::think_join_army`](crate::Sim::think_join_army) already reads;
     /// the AI-driven-human bit `0x8` is the seam left in it.
     pub(crate) fn ai_driven(&self, who: Player) -> bool {
-        self.nation.get(who as usize).is_some_and(|n| !n.human)
+        self.cities
+            .nation
+            .get(who as usize)
+            .is_some_and(|n| !n.human)
     }
 
     /// `unit_masks & 0x40000` as a **unit** carries it: [`Sim::ai_driven`]
@@ -267,7 +270,13 @@ impl Sim {
     /// 6; A4 row 19). The leader-level reads (`leader_flags & 4`) stay on
     /// `ai_driven`.
     pub(crate) fn unit_ai_bit(&self, who: Player) -> bool {
-        self.ai_driven(who) && !self.defeated.get(who as usize).copied().unwrap_or(false)
+        self.ai_driven(who)
+            && !self
+                .leaders
+                .defeated
+                .get(who as usize)
+                .copied()
+                .unwrap_or(false)
     }
 
     /// `Object::find_nearby_target@00648e6e`'s `local_40` — the flag
@@ -320,7 +329,7 @@ impl Sim {
     /// cell's first half reads `2c`, not `2c + 1`
     /// (`docs/PATHFINDER.md` §5).
     pub(crate) fn was_really_seen_fog(&self, fx: i32, fy: i32, who: Player) -> bool {
-        if who >= 8 || self.lobby.reveal_map == 3 {
+        if who >= 8 || self.ai.lobby.reveal_map == 3 {
             return true;
         }
         // The two leader exits, ahead of the grid: the peace pair's who=1
@@ -332,7 +341,12 @@ impl Sim {
         let Some(bits) = self.world.seen2(fx, fy) else {
             return true;
         };
-        let mask = self.ai.get(who as usize).map_or(0, |a| a.census.ally_mask) | (1 << who);
+        let mask = self
+            .ai
+            .ai
+            .get(who as usize)
+            .map_or(0, |a| a.census.ally_mask)
+            | (1 << who);
         u32::from(bits) & mask != 0
     }
 
@@ -347,7 +361,7 @@ impl Sim {
         let Some(rec) = self.units[u].ty else {
             return false;
         };
-        let domain = self.unit_types[rec].kind.domain;
+        let domain = self.tables.unit_types[rec].kind.domain;
         let type_index = self.units[u].type_index;
 
         // The head, and it comes before the region read: a land unit that
@@ -359,8 +373,8 @@ impl Sim {
         // Then a computer leader's caster is offered its crafts
         // (`think_scout+0x7c`, `unit_flags2 & 2`): `think_spellcaster`,
         // whose AI arm draws from difficulty 2 up (`docs/AI.md` §80.5).
-        if !self.nation[who as usize].human
-            && self.unit_types[rec]
+        if !self.cities.nation[who as usize].human
+            && self.tables.unit_types[rec]
                 .cols
                 .flag2(crate::ai_load::uflags2::CASTER)
             && self.think_spellcaster(u)
@@ -450,7 +464,7 @@ impl Sim {
         let near = self.scout_find_city(u, who, region);
         let land = self.units[u]
             .ty
-            .is_some_and(|r| self.unit_types[r].kind.domain == Domain::Land);
+            .is_some_and(|r| self.tables.unit_types[r].kind.domain == Domain::Land);
 
         for i in 0..8u8 {
             let leader = (who + i) & 7;
@@ -473,10 +487,10 @@ impl Sim {
                 let rot = if leader == who { near } else { 0 };
                 let c = list[((rot + j) % n) as usize];
                 j += 1;
-                if !self.cities[c].alive {
+                if !self.cities.cities[c].alive {
                     continue;
                 }
-                if land && self.cities[c].reg != Some(region) {
+                if land && self.cities.cities[c].reg != Some(region) {
                     continue;
                 }
                 // §5's `CityData +0x4c` mark is not carried: only a plain
@@ -493,7 +507,7 @@ impl Sim {
                 };
                 scan.ring = cap;
                 scan.leader = leader;
-                let city = self.cities[c].pos.cell();
+                let city = self.cities.cities[c].pos.cell();
                 let end = self.scout_rings(u, city, step, cap, &mut scan);
                 if end == if leader == who { 12 } else { 8 } {
                     // Unreachable for an AI scout — the ring counter comes
@@ -573,7 +587,7 @@ impl Sim {
     /// §7 and §8 — one candidate cell: the filter, the draw, the score.
     fn scout_cell(&mut self, u: usize, who: Player, c: Cell, scan: &mut Scan, ring: i32) {
         let Some(rec) = self.units[u].ty else { return };
-        let domain = self.unit_types[rec].kind.domain;
+        let domain = self.tables.unit_types[rec].kind.domain;
         if c.x < 0 || c.y < 0 || c.x >= self.world.width() || c.y >= self.world.height() {
             return;
         }
@@ -657,7 +671,8 @@ impl Sim {
     /// bit and whatever else is set, with no defeated test — the read
     /// `think_scout`'s score makes at `005f6688` (`docs/SCOUT.md` §8.3).
     fn scout_treaty(&self, who: Player, other: Player) -> i32 {
-        self.treaties
+        self.leaders
+            .treaties
             .get(who as usize)
             .and_then(|r| r.get(other as usize))
             .copied()
@@ -751,11 +766,11 @@ impl Sim {
     /// own record, so two such units match only on the same record.
     fn unit_base_type(&self, u: usize) -> Result<crate::tech::TypeId, Option<usize>> {
         let rec = self.units[u].ty;
-        let Some(mut t) = rec.and_then(|i| self.unit_types[i].tree) else {
+        let Some(mut t) = rec.and_then(|i| self.tables.unit_types[i].tree) else {
             return Err(rec);
         };
         let mut guard = 0;
-        while let Some(f) = self.tech_tree.types.get(t).and_then(|d| d.from) {
+        while let Some(f) = self.tables.tech_tree.types.get(t).and_then(|d| d.from) {
             t = f;
             guard += 1;
             if guard > 16 {
@@ -771,7 +786,7 @@ impl Sim {
         let here = self.units[u].pos;
         let mut best = (i32::MAX, -1i32);
         for (i, &c) in self.cities_of(who).iter().enumerate() {
-            let city = &self.cities[c];
+            let city = &self.cities.cities[c];
             if city.reg != Some(region) {
                 continue;
             }
@@ -807,7 +822,7 @@ impl Sim {
     /// surface tests.
     fn scout_region_scan(&mut self, u: usize, who: Player, region: u16, scan: &mut Scan) {
         let Some(rec) = self.units[u].ty else { return };
-        let domain = self.unit_types[rec].kind.domain;
+        let domain = self.tables.unit_types[rec].kind.domain;
 
         // `local_74`, stored at `005f68dc` and read twice in the score. The
         // branch at `005f6888` skips the store when the leader **is**

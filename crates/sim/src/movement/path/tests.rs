@@ -308,7 +308,7 @@ fn only_ai_transport_types_drop_same_region_terrain_preferences() {
         for human in [false, true] {
             for transport in [false, true] {
                 let mut sim = flat_sim(4);
-                sim.nation[0].human = human;
+                sim.cities.nation[0].human = human;
                 if water {
                     sim.world
                         .fill_region(Terrain::Sea, Cell::new(0, 0), Cell::new(3, 3));
@@ -328,7 +328,8 @@ fn only_ai_transport_types_drop_same_region_terrain_preferences() {
                 let ty = sim.add_unit_type(crate::UnitType::default());
                 sim.units[u].ty = Some(ty);
                 if transport {
-                    sim.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::FLAG_TRANSPORT;
+                    sim.tables.unit_types[ty].cols.unit_flags |=
+                        crate::ai_load::uflags::FLAG_TRANSPORT;
                 }
                 let want = if !human && transport {
                     (0, 0)
@@ -423,8 +424,8 @@ fn large_recovery_steps_check_intermediate_diagonals() {
             ..crate::UnitType::default()
         });
         sim.units[u].ty = Some(ty);
-        sim.trace_costs = true;
-        sim.probe_refuse = Some(RefuseProbe {
+        sim.trace.trace_costs = true;
+        sim.trace.probe_refuse = Some(RefuseProbe {
             frame: sim.frame,
             unit: (0, 1),
             cell: crate::collide::ucell(Pos::new(start.x + 48, start.y + 48)),
@@ -432,6 +433,7 @@ fn large_recovery_steps_check_intermediate_diagonals() {
         push_goal(&mut sim, u, Pos::new(start.x + 960, start.y + 960));
         assert!(sim.find_upath(u, false) > 0);
         let first: Vec<_> = sim
+            .trace
             .cost_marks
             .iter()
             .filter(|m| m.from == (start.x, start.y))
@@ -647,7 +649,7 @@ fn an_attacker_on_a_suspended_search_retargets_every_fourth_frame() {
         );
         push_goal(&mut sim, u, Pos::new(at.x + 40 * 0x30, at.y + 40 * 0x30));
         assert_eq!(sim.upath(u, false, 10, false), -1, "the plan suspends");
-        sim.repaths[0] = repaths;
+        sim.movement.repaths[0] = repaths;
         sim.units[u].collide = 4;
         sim.units[u].collide_frame = 1000;
         sim.work(u, 1000 + elapsed);
@@ -920,12 +922,12 @@ fn the_first_step_s_shore_test_starts_where_the_plan_does() {
         sim.world.set_tile_mask(t, tile::SURFACE_OCEAN);
     }
     // The plan starts on dry ground: the step into the sea embarks.
-    sim.pf_start = from.tile();
+    sim.movement.pf_start = from.tile();
     let (_, dry) = sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 1, 0, 1);
     assert!(dry, "dry start, wet target");
     // The plan starts at sea, though the unit stands on land: no
     // shoreline crossed from where the search began.
-    sim.pf_start = wet.tile();
+    sim.movement.pf_start = wet.tile();
     let (_, wetstart) = sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 1, 0, 1);
     assert!(!wetstart, "the unit's own tile is not asked");
 }
@@ -973,7 +975,7 @@ fn enemy_territory_charges_and_the_own_discount_clamps_at_zero() {
     assert_eq!(own, 32);
     sim.world
         .set_owner(to.cell(), Owner::Player(1), Owner::None);
-    sim.at_war[0][1] = true;
+    sim.leaders.at_war[0][1] = true;
     let (enemy, _) = sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 2, 0, 1);
     assert_eq!(enemy, 36);
 }
@@ -989,8 +991,8 @@ fn the_no_rush_timer_charges_another_leader_s_cell_during_the_peace() {
     let m = Modes::default();
     let from = Pos::new(0x180, 0x180);
     let to = Pos::new(0x180 + 0x300, 0x180);
-    sim.lobby.rush_rules = 10;
-    sim.lobby.rush_minutes = 5;
+    sim.ai.lobby.rush_rules = 10;
+    sim.ai.lobby.rush_minutes = 5;
     sim.frame = 4499;
     let cost = |sim: &Sim| sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 2, 0, 0).0;
     assert_eq!(cost(&sim), 32, "unowned");
@@ -1000,16 +1002,16 @@ fn the_no_rush_timer_charges_another_leader_s_cell_during_the_peace() {
     sim.world
         .set_owner(to.cell(), Owner::Player(1), Owner::None);
     assert_eq!(cost(&sim), 532, "another leader's, during the peace");
-    sim.allied[0][1] = true;
+    sim.leaders.allied[0][1] = true;
     assert_eq!(cost(&sim), 532, "an ally one way only");
-    sim.allied[1][0] = true;
+    sim.leaders.allied[1][0] = true;
     assert_eq!(cost(&sim), 32, "an ally both ways");
-    sim.allied[0][1] = false;
-    sim.allied[1][0] = false;
+    sim.leaders.allied[0][1] = false;
+    sim.leaders.allied[1][0] = false;
     sim.frame = 4500;
     assert_eq!(cost(&sim), 32, "the peace is over");
     sim.frame = 0;
-    sim.lobby.rush_rules = 0;
+    sim.ai.lobby.rush_rules = 0;
     assert_eq!(cost(&sim), 32, "no rush rules");
 }
 
@@ -1146,7 +1148,7 @@ fn a_human_s_probe_takes_an_unseen_cell_as_valid() {
     let mut sim = lake_sim();
     let u = walker(&mut sim, Pos::new(0x180, 0x180));
     let t = Pos::new(3 * TILES_PER_CELL + 1, 4 * TILES_PER_CELL + 1);
-    sim.nation[0].human = true;
+    sim.cities.nation[0].human = true;
     assert_eq!(
         sim.invalid_loc(u, t, true, true, false, true, false),
         loc::VALID
@@ -1156,14 +1158,14 @@ fn a_human_s_probe_takes_an_unseen_cell_as_valid() {
         loc::TERRAIN,
         "without fog_relax the lake refuses"
     );
-    sim.nation[0].human = false;
+    sim.cities.nation[0].human = false;
     assert_eq!(
         sim.invalid_loc(u, t, true, true, false, true, false),
         loc::TERRAIN,
         "a computer leader's probe reads the terrain"
     );
     // One of the four half-cells seen is enough to read the terrain.
-    sim.nation[0].human = true;
+    sim.cities.nation[0].human = true;
     let mut fog = vec![0u8; 20 * 20];
     fog[9 * 20 + 7] = 1; // (2·3 + 1, 2·4 + 1)
     assert!(sim.world.set_fog(fog));
@@ -1279,7 +1281,7 @@ fn a_world_probe_refuses_a_forest_cell_on_plain_ground() {
 fn a_human_s_world_plan_pops_past_water_to_its_goal() {
     let run = |human: bool| {
         let mut sim = lake_sim();
-        sim.nation[0].human = human;
+        sim.cities.nation[0].human = human;
         let u = walker(&mut sim, Pos::new(0x180, 4 * 0x300 + 0x180));
         let goal = Pos::new(8 * 0x300 + 0x180, 4 * 0x300 + 0x180);
         push_goal(&mut sim, u, goal);
@@ -1426,13 +1428,14 @@ fn a_boat_leaving_a_halfland_cell_is_crossing_regions_on_the_world_grid() {
     );
     sim.units[u].kind.domain = crate::attrition::Domain::Sea;
     push_goal(&mut sim, u, Pos::new(10 * 0x300 + 0x180, 4 * 0x300 + 0x180));
-    sim.trace_costs = true;
+    sim.trace.trace_costs = true;
     assert!(sim.find_wpath(u) >= 1, "the boat found its way out");
 
     // Every step the search priced into open water cost the plain 32
     // (or 40 on a diagonal). With `avoid_sea` derived they would all
     // carry 200 more.
     let open: Vec<i32> = sim
+        .trace
         .cost_marks
         .iter()
         .filter(|c| {

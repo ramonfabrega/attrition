@@ -97,9 +97,9 @@ impl Sim {
         if self.trainer_where(ty) != Some(nations::ty::BARRACKS) {
             return 0;
         }
-        match self.government_bonus_level(who, &self.tech_tree.roles.despotism_preq) {
+        match self.government_bonus_level(who, &self.tables.tech_tree.roles.despotism_preq) {
             0 => 0,
-            n => self.tuning.despotism_military_cheaper[n - 1],
+            n => self.tables.tuning.despotism_military_cheaper[n - 1],
         }
     }
 
@@ -110,18 +110,18 @@ impl Sim {
     /// `MONARCHY_UNIT_PROD` — on either tier; `MONARCHY_UNIT_PROD2` is
     /// `train_time`'s alone (item 2331, `docs/GOLDEN.md` §84).
     pub fn monarchy_cost_discount(&self, who: Player, ty: usize) -> i32 {
-        let trainer = self.unit_types[ty]
+        let trainer = self.tables.unit_types[ty]
             .tree
-            .and_then(|t| self.tech_tree.types.get(t))
+            .and_then(|t| self.tables.tech_tree.types.get(t))
             .and_then(|d| d.where_);
-        let preqs = &self.tech_tree.roles.monarchy_preqs;
+        let preqs = &self.tables.tech_tree.roles.monarchy_preqs;
         let p = &self.tech[who as usize];
         let held = preqs.iter().flatten().any(|qs| {
             qs.iter()
-                .all(|&q| self.tech_tree.has_tech_p(&self.setup, p, q))
+                .all(|&q| self.tables.tech_tree.has_tech_p(&self.tables.setup, p, q))
         });
         if trainer == Some(nations::ty::STABLES[0]) && held {
-            self.tuning.monarchy_unit_prod[0]
+            self.tables.tuning.monarchy_unit_prod[0]
         } else {
             0
         }
@@ -135,9 +135,9 @@ impl Sim {
     /// Socialism arm in [`Sim::train_tail`] (item 2357, `docs/GOLDEN.md`
     /// §85).
     pub fn socialism_cost_discount(&self, who: Player, ty: usize) -> i32 {
-        let trainer = self.unit_types[ty]
+        let trainer = self.tables.unit_types[ty]
             .tree
-            .and_then(|t| self.tech_tree.types.get(t))
+            .and_then(|t| self.tables.tech_tree.types.get(t))
             .and_then(|d| d.where_);
         if trainer.is_some_and(|w| {
             [
@@ -149,11 +149,11 @@ impl Sim {
         }) && self
             .bonus_tier_held(
                 who,
-                std::slice::from_ref(&self.tech_tree.roles.socialism_preqs),
+                std::slice::from_ref(&self.tables.tech_tree.roles.socialism_preqs),
             )
             .is_some()
         {
-            self.tuning.socialism_unit_bonus
+            self.tables.tuning.socialism_unit_bonus
         } else {
             0
         }
@@ -172,18 +172,18 @@ impl Sim {
     /// and escrowed it (item 3514, `docs/AI.md` §301).
     pub fn domain_cost_discounts(&self, who: Player, ty: usize) -> [i32; 2] {
         let held = self.wonders_held(who);
-        match self.unit_types[ty].combat.domain {
+        match self.tables.unit_types[ty].combat.domain {
             attrition::Domain::Sea if held & (1 << tech::wonder::ANGKOR_WAT) != 0 => {
-                [self.tuning.angkor_ships, 0]
+                [self.tables.tuning.angkor_ships, 0]
             }
             attrition::Domain::Air => [
                 if self.has_rare(who, economy::ALUMINUM) {
-                    self.tuning.aluminum_air_cost
+                    self.tables.tuning.aluminum_air_cost
                 } else {
                     0
                 },
                 if held & (1 << tech::wonder::SPACE_PROGRAM) != 0 {
-                    self.tuning.space_air_cost
+                    self.tables.tuning.space_air_cost
                 } else {
                     0
                 },
@@ -197,10 +197,10 @@ impl Sim {
     /// of a player holding Salmon (`+0x6da9 & 1`, else `+0x6dd1 & 1`,
     /// rare 46) (item 2389, `docs/GOLDEN.md` §86).
     pub fn salmon_cost_discount(&self, who: Player, ty: usize) -> i32 {
-        if self.unit_types[ty].combat.domain == attrition::Domain::Sea
+        if self.tables.unit_types[ty].combat.domain == attrition::Domain::Sea
             && self.has_rare(who, economy::SALMON)
         {
-            self.tuning.salmon_naval_cost
+            self.tables.tuning.salmon_naval_cost
         } else {
             0
         }
@@ -211,11 +211,11 @@ impl Sim {
     /// lineage. `get_cost`'s Stable arm and `Unit::update_los`'s troops
     /// term both compare it to fixed `TypeIndex`es.
     pub fn trainer_ident(&self, ty: usize) -> Option<build::Ident> {
-        self.unit_types[ty]
+        self.tables.unit_types[ty]
             .tree
-            .and_then(|t| self.tech_tree.types.get(t))
+            .and_then(|t| self.tables.tech_tree.types.get(t))
             .and_then(|d| d.where_)
-            .and_then(|w| self.build_types.iter().find(|b| b.tree == Some(w)))
+            .and_then(|w| self.tables.build_types.iter().find(|b| b.tree == Some(w)))
             .map(|b| b.ident)
     }
 
@@ -227,7 +227,7 @@ impl Sim {
     /// (`1/2034` on 2183) is priced 927/1069 for it (`docs/AI.md` §167).
     pub fn uranium_discount(&self, who: Player, ty: usize) -> i32 {
         if self.is_nuke_line_type(ty) && self.has_rare(who, economy::URANIUM) {
-            self.tuning.uranium_nuke_cost
+            self.tables.tuning.uranium_nuke_cost
         } else {
             0
         }
@@ -243,14 +243,15 @@ impl Sim {
     /// before 3981 and queue their next Strategic Bomber at `1/2047` on
     /// 3982 for 136, not 173 (`docs/AI.md` §204).
     pub fn liberty_discount(&self, who: Player, ty: usize) -> i32 {
-        let missile = self.unit_types[ty].combat.obj_masks & combat::mask::MISSILE != 0;
+        let missile = self.tables.unit_types[ty].combat.obj_masks & combat::mask::MISSILE != 0;
         let pct = if missile {
-            self.tuning.liberty_missiles
-        } else if self.unit_types[ty].tree.is_some_and(|t| {
+            self.tables.tuning.liberty_missiles
+        } else if self.tables.unit_types[ty].tree.is_some_and(|t| {
             t == air::BOMBER
-                || (t < self.tech_tree.types.len() && self.tech_tree.is(t, air::BOMBER, false))
+                || (t < self.tables.tech_tree.types.len()
+                    && self.tables.tech_tree.is(t, air::BOMBER, false))
         }) {
-            self.tuning.liberty_bombers
+            self.tables.tuning.liberty_bombers
         } else {
             return 0;
         };
@@ -262,10 +263,10 @@ impl Sim {
 
     /// `is(0x13b, 0)` on a unit record's type: the Nuclear Missile's line.
     pub(crate) fn is_nuke_line_type(&self, ty: usize) -> bool {
-        self.unit_types[ty].tree.is_some_and(|t| {
+        self.tables.unit_types[ty].tree.is_some_and(|t| {
             t == airbase::NUCLEARMISSILE
-                || (t < self.tech_tree.types.len()
-                    && self.tech_tree.is(t, airbase::NUCLEARMISSILE, false))
+                || (t < self.tables.tech_tree.types.len()
+                    && self.tables.tech_tree.is(t, airbase::NUCLEARMISSILE, false))
         })
     }
 
@@ -278,10 +279,10 @@ impl Sim {
     /// matching `missiles_used` term (`0x139`, `0x13a`) is not modelled: no
     /// capture prices one after a launch.
     pub(crate) fn nuke_ramp_extra(&self, who: Player, ty: usize) -> i32 {
-        let Some(t) = self.unit_types[ty].tree else {
+        let Some(t) = self.tables.unit_types[ty].tree else {
             return 0;
         };
-        let used = self.nukes.used_of(who);
+        let used = self.combat.nukes.used_of(who);
         let mut extra = 0;
         if t == 0x13b || t == 0x13c {
             extra += used;
@@ -307,7 +308,7 @@ impl Sim {
         let sulphur = if matches!(self.trainer_where(ty), Some(0x1ae | 0x1af))
             && self.has_rare(who, economy::SULPHUR)
         {
-            self.tuning.sulphur_siege_cost
+            self.tables.tuning.sulphur_siege_cost
         } else {
             0
         };
@@ -320,12 +321,12 @@ impl Sim {
         }
         [
             if self.has_rare(who, economy::HORSES) {
-                self.tuning.horses_stable_cost
+                self.tables.tuning.horses_stable_cost
             } else {
                 0
             },
             if self.has_rare(who, economy::RUBBER) {
-                self.tuning.rubber_autoplant_cost
+                self.tables.tuning.rubber_autoplant_cost
             } else {
                 0
             },
@@ -366,26 +367,30 @@ impl Sim {
     /// `1/2013` prices its Rifleman 68/60 there on 1345, 80/70 here before
     /// item 3510 (`docs/AI.md` §303).
     pub fn nation_unit_discount(&self, who: Player, ty: usize) -> i32 {
-        let french = self.nation[who as usize].french;
+        let french = self.cities.nation[who as usize].french;
         if french && matches!(self.trainer_where(ty), Some(0x1ae | 0x1af)) {
-            return self.tuning.french_siege_cost;
+            return self.tables.tuning.french_siege_cost;
         }
         if self.japanese(who) {
             let trainer = self.trainer_where(ty);
             if trainer == Some(nations::ty::BARRACKS) {
-                return self.japanese_per_tier(who, self.tuning.japanese_barracks_cost);
+                return self.japanese_per_tier(who, self.tables.tuning.japanese_barracks_cost);
             }
             if trainer.is_some_and(|t| nations::ty::DOCKS.contains(&t)) {
-                return self.tuning.japanese_ship_cost;
+                return self.tables.tuning.japanese_ship_cost;
             }
         }
-        if self.nation[who as usize].germans
-            && self.unit_types[ty].tree.is_some_and(|t| {
-                self.tech_tree.types.get(nations::ty::FIRERAFT).is_some()
-                    && self.tech_tree.is(t, nations::ty::FIRERAFT, false)
+        if self.cities.nation[who as usize].germans
+            && self.tables.unit_types[ty].tree.is_some_and(|t| {
+                self.tables
+                    .tech_tree
+                    .types
+                    .get(nations::ty::FIRERAFT)
+                    .is_some()
+                    && self.tables.tech_tree.is(t, nations::ty::FIRERAFT, false)
             })
         {
-            return self.tuning.german_submarine_cost;
+            return self.tables.tuning.german_submarine_cost;
         }
         // The tail's last arm (`get_cost:336`–`343`): a Spy or a General
         // under `SPIES_GENERALS_CHEAPER`, a half in the shipped rules
@@ -393,15 +398,17 @@ impl Sim {
         // item 1583). The Russian spy arm before it is [`Sim::russian_spy_discount`].
         if self.is_spy_or_general(ty)
             && self
+                .tables
                 .tech_tree
                 .roles
                 .spy_general_cheaper_preq
                 .is_some_and(|t| {
-                    self.tech_tree
-                        .has_tech(&self.setup, &self.tech[who as usize], t)
+                    self.tables
+                        .tech_tree
+                        .has_tech(&self.tables.setup, &self.tech[who as usize], t)
                 })
         {
-            return self.tuning.spy_general_cost;
+            return self.tables.tuning.spy_general_cost;
         }
         0
     }
@@ -409,8 +416,8 @@ impl Sim {
     /// `has_tribe_bonus(0xf)`: the Japanese, read off the tree as
     /// [`Self::refresh_nation_powers`] leaves them.
     pub(crate) fn japanese(&self, who: Player) -> bool {
-        self.tech_tree.has_tribe_bonus(
-            &self.setup,
+        self.tables.tech_tree.has_tribe_bonus(
+            &self.tables.setup,
             &self.tech[who as usize],
             nations::power::JAPANESE,
         )
@@ -436,12 +443,13 @@ impl Sim {
     /// without it, and `create_units`' income factor read 206 against
     /// theirs' 225 on 2184 (item 3678, `docs/AI.md` §347).
     pub fn british_aa_discount(&self, who: Player, ty: usize) -> i32 {
-        if self.nation[who as usize].british
-            && self.unit_types[ty].tree.is_some_and(|t| {
-                self.tech_tree.types.get(0x119).is_some() && self.tech_tree.is(t, 0x119, false)
+        if self.cities.nation[who as usize].british
+            && self.tables.unit_types[ty].tree.is_some_and(|t| {
+                self.tables.tech_tree.types.get(0x119).is_some()
+                    && self.tables.tech_tree.is(t, 0x119, false)
             })
         {
-            self.tuning.british_aa_cost
+            self.tables.tuning.british_aa_cost
         } else {
             0
         }
@@ -458,16 +466,20 @@ impl Sim {
     /// 3755 (`docs/AI.md` §372.1).
     pub fn american_aircraft_discounts(&self, who: Player, ty: usize) -> [i32; 3] {
         let american = self.tech.get(who as usize).is_some_and(|p| {
-            self.tech_tree
-                .has_tribe_bonus(&self.setup, p, crate::ai::tribe::AMERICANS)
+            self.tables.tech_tree.has_tribe_bonus(
+                &self.tables.setup,
+                p,
+                crate::ai::tribe::AMERICANS,
+            )
         });
         if !american {
             return [0; 3];
         }
-        let k = self.tuning.americans_aircraft;
+        let k = self.tables.tuning.americans_aircraft;
         let line = |root: usize| {
-            self.unit_types[ty].tree.is_some_and(|t| {
-                self.tech_tree.types.get(root).is_some() && self.tech_tree.is(t, root, false)
+            self.tables.unit_types[ty].tree.is_some_and(|t| {
+                self.tables.tech_tree.types.get(root).is_some()
+                    && self.tables.tech_tree.is(t, root, false)
             })
         };
         [
@@ -485,12 +497,13 @@ impl Sim {
     /// (`is(0x3a, 0)`, the loose test) takes `RUSSIAN_SPY_COST` off, a
     /// step of its own before the French/German/Spy-General tail.
     pub fn russian_spy_discount(&self, who: Player, ty: usize) -> i32 {
-        if self.nation[who as usize].russians
-            && self.unit_types[ty].tree.is_some_and(|t| {
-                self.tech_tree.types.get(0x3a).is_some() && self.tech_tree.is(t, 0x3a, false)
+        if self.cities.nation[who as usize].russians
+            && self.tables.unit_types[ty].tree.is_some_and(|t| {
+                self.tables.tech_tree.types.get(0x3a).is_some()
+                    && self.tables.tech_tree.is(t, 0x3a, false)
             })
         {
-            self.tuning.russian_spy_cost
+            self.tables.tuning.russian_spy_cost
         } else {
             0
         }
@@ -499,8 +512,9 @@ impl Sim {
     /// Whether `ty` is of the Legion's lineage (`is(0x84, 0)`, the loose
     /// test) — the test both Roman legion arms make.
     pub(crate) fn is_legion_line(&self, ty: usize) -> bool {
-        self.unit_types[ty].tree.is_some_and(|t| {
-            self.tech_tree.types.get(0x84).is_some() && self.tech_tree.is(t, 0x84, false)
+        self.tables.unit_types[ty].tree.is_some_and(|t| {
+            self.tables.tech_tree.types.get(0x84).is_some()
+                && self.tables.tech_tree.is(t, 0x84, false)
         })
     }
 
@@ -515,12 +529,12 @@ impl Sim {
         }
         [
             if self.has_rare(who, economy::WOOL) {
-                self.tuning.wool_citizens_cost
+                self.tables.tuning.wool_citizens_cost
             } else {
                 0
             },
-            if self.nation[who as usize].turks {
-                self.tuning.turk_citizen
+            if self.cities.nation[who as usize].turks {
+                self.tables.tuning.turk_citizen
             } else {
                 0
             },
@@ -531,8 +545,8 @@ impl Sim {
     /// `ROMAN_LEGION_CHEAP` off, a truncating step of its own after the
     /// Russian spy's and before the Terra Cotta Army's.
     pub fn roman_legion_discount(&self, who: Player, ty: usize) -> i32 {
-        if self.nation[who as usize].romans && self.is_legion_line(ty) {
-            self.tuning.roman_legion_cheap
+        if self.cities.nation[who as usize].romans && self.is_legion_line(ty) {
+            self.tables.tuning.roman_legion_cheap
         } else {
             0
         }
@@ -548,18 +562,20 @@ impl Sim {
     /// 81 food and 47 wealth in theirs, 96 and 56 without the arm (item
     /// 3335, `docs/AI.md` §271).
     pub fn indian_elephant_discount(&self, who: Player, ty: usize) -> i32 {
-        let Some(t) = self.unit_types[ty].tree else {
+        let Some(t) = self.tables.unit_types[ty].tree else {
             return 0;
         };
         let elephant = (0x105..=0x108).any(|x: tech::TypeId| {
-            self.tech_tree.types.get(x).is_some() && self.tech_tree.is(t, x, false)
+            self.tables.tech_tree.types.get(x).is_some() && self.tables.tech_tree.is(t, x, false)
         });
         if elephant
-            && self
-                .tech_tree
-                .has_tribe_bonus(&self.setup, &self.tech[who as usize], 0x15)
+            && self.tables.tech_tree.has_tribe_bonus(
+                &self.tables.setup,
+                &self.tech[who as usize],
+                0x15,
+            )
         {
-            self.tuning.indians_elephant_cost
+            self.tables.tuning.indians_elephant_cost
         } else {
             0
         }
@@ -568,8 +584,8 @@ impl Sim {
     /// `is(0x3a, 1) || is(0x36, 1)`: a Spy or a General, the strict test.
     pub(crate) fn is_spy_or_general(&self, ty: usize) -> bool {
         let strict = |x: tech::TypeId| {
-            self.unit_types[ty].tree.is_some_and(|t| {
-                self.tech_tree.types.get(x).is_some() && self.tech_tree.is(t, x, true)
+            self.tables.unit_types[ty].tree.is_some_and(|t| {
+                self.tables.tech_tree.types.get(x).is_some() && self.tables.tech_tree.is(t, x, true)
             })
         };
         strict(0x3a) || strict(0x36)
@@ -577,9 +593,9 @@ impl Sim {
 
     /// A unit type's trainer as the raw `UnitTypeData +0x40`.
     pub(crate) fn trainer_where(&self, ty: usize) -> Option<tech::TypeId> {
-        self.unit_types[ty]
+        self.tables.unit_types[ty]
             .tree
-            .and_then(|t| self.tech_tree.types.get(t))
+            .and_then(|t| self.tables.tech_tree.types.get(t))
             .and_then(|d| d.where_)
     }
 
@@ -602,7 +618,7 @@ impl Sim {
     /// constant and **no floor on the type's level** (`get_cost:507`–`525`
     /// has none of `:639`'s `max(level, 1)` or its `max(pct, 1)`).
     pub fn research_modifiers(&self, who: Player, ty: usize) -> Option<cost::Research> {
-        let unit = &self.unit_types[ty];
+        let unit = &self.tables.unit_types[ty];
         let t = unit.tree?;
         let w = who as usize;
         if self.tech[w].tech.get(t).copied().unwrap_or(true)
@@ -610,13 +626,14 @@ impl Sim {
         {
             return None;
         }
-        let tree = &self.tech_tree;
-        let resolve = |x: Option<tech::TypeId>| tree.get_graft(&self.setup, &self.tech[w], x);
-        let factor = self.tuning.unit_cost_factor;
+        let tree = &self.tables.tech_tree;
+        let resolve =
+            |x: Option<tech::TypeId>| tree.get_graft(&self.tables.setup, &self.tech[w], x);
+        let factor = self.tables.tuning.unit_cost_factor;
         let mut refit = [0; economy::RESOURCES];
         if !(0x42..=0x44).contains(&t) {
             let from = resolve(tree.types[t].from);
-            for (prec, p) in self.unit_types.iter().enumerate() {
+            for (prec, p) in self.tables.unit_types.iter().enumerate() {
                 let Some(pt) = p.tree.filter(|_| !p.gaia) else {
                     continue;
                 };
@@ -634,7 +651,8 @@ impl Sim {
                 if !hit {
                     continue;
                 }
-                let n = self.muster[w].queued_by_type[prec] + self.muster[w].by_type[prec];
+                let n = self.roster.muster[w].queued_by_type[prec]
+                    + self.roster.muster[w].by_type[prec];
                 if n == 0 {
                     continue;
                 }
@@ -645,7 +663,7 @@ impl Sim {
                         d /= 2;
                     }
                     if d > 0 {
-                        *out += factor * n * d.min(self.tuning.unit_refit_max_cost);
+                        *out += factor * n * d.min(self.tables.tuning.unit_refit_max_cost);
                     }
                 }
             }
@@ -655,10 +673,13 @@ impl Sim {
         let mut american_land = 0;
         if self.role_word_of_rec(ty) & ai_load::role::ROLE_MILITARY != 0 {
             let ahead = self.tech[w].epoch[tech::Line::Military.index()]
-                - self.tech_tree.military_level_in(&self.setup, t);
+                - self
+                    .tables
+                    .tech_tree
+                    .military_level_in(&self.tables.setup, t);
             if ahead > 0 {
-                discount = self.tuning.military_upgrade_discount * ahead;
-                let span = self.setup.ending - self.setup.starting_age + 1;
+                discount = self.tables.tuning.military_upgrade_discount * ahead;
+                let span = self.tables.setup.ending - self.tables.setup.starting_age + 1;
                 if span < 8 {
                     discount = (span * discount + 7) / 8;
                 }
@@ -670,24 +691,26 @@ impl Sim {
             // it (`get_cost:528`–`531`, `has_tribe_bonus(0x14)` and `+0x218
             // == 0`; item 3374: run999's who=1 held 20 food and 20 metal more
             // than ours on block 9376, a quarter of an 80-and-80 upgrade).
-            if self.unit_types[ty].combat.domain == attrition::Domain::Land
-                && self.tech_tree.has_tribe_bonus(
-                    &self.setup,
+            if self.tables.unit_types[ty].combat.domain == attrition::Domain::Land
+                && self.tables.tech_tree.has_tribe_bonus(
+                    &self.tables.setup,
                     &self.tech[w],
                     crate::ai::tribe::AMERICANS,
                 )
             {
-                american_land = self.tuning.americans_upgrade_discount;
+                american_land = self.tables.tuning.americans_upgrade_discount;
             }
-            if self.nation[w].dutch && self.unit_types[ty].combat.domain == attrition::Domain::Sea {
-                dutch_ship = self.tuning.dutch_ship_discount;
+            if self.cities.nation[w].dutch
+                && self.tables.unit_types[ty].combat.domain == attrition::Domain::Sea
+            {
+                dutch_ship = self.tables.tuning.dutch_ship_discount;
             }
         }
         Some(cost::Research {
             american_land,
             dutch_ship,
             wine: if self.has_rare(who, economy::WINE) {
-                self.tuning.wine_unit_upgrades
+                self.tables.tuning.wine_unit_upgrades
             } else {
                 0
             },
@@ -714,16 +737,20 @@ impl Sim {
         if self.role_word_of_rec(ty) & ai_load::role::ROLE_MILITARY == 0 {
             return 0;
         }
-        let level = self.unit_types[ty]
+        let level = self.tables.unit_types[ty]
             .tree
-            .map_or(0, |t| self.tech_tree.military_level_in(&self.setup, t))
+            .map_or(0, |t| {
+                self.tables
+                    .tech_tree
+                    .military_level_in(&self.tables.setup, t)
+            })
             .max(1);
         let ahead = self.tech[who as usize].epoch[tech::Line::Military.index()] - level;
         if ahead <= 0 {
             return 0;
         }
-        let mut d = self.tuning.military_unit_discount * ahead;
-        let span = self.setup.ending - self.setup.starting_age + 1;
+        let mut d = self.tables.tuning.military_unit_discount * ahead;
+        let span = self.tables.setup.ending - self.tables.setup.starting_age + 1;
         if span < 8 {
             d = ((span * d + 7) / 8).max(1);
         }
@@ -748,7 +775,7 @@ impl Sim {
     /// research at `1/2024` makes `1/2028`'s Trebuchet 80 × 95/100.
     pub fn upgrade_bump(&self, who: Player, ty: usize) -> [i32; economy::RESOURCES] {
         let mut bump = [0; economy::RESOURCES];
-        let unit = &self.unit_types[ty];
+        let unit = &self.tables.unit_types[ty];
         let Some(t) = unit.tree else {
             return bump;
         };
@@ -756,13 +783,14 @@ impl Sim {
         if !self.tech[w].tech.get(t).copied().unwrap_or(false) {
             return bump;
         }
-        let tree = &self.tech_tree;
-        let resolve = |x: Option<tech::TypeId>| tree.get_graft(&self.setup, &self.tech[w], x);
-        for (prec, p) in self.unit_types.iter().enumerate() {
+        let tree = &self.tables.tech_tree;
+        let resolve =
+            |x: Option<tech::TypeId>| tree.get_graft(&self.tables.setup, &self.tech[w], x);
+        for (prec, p) in self.tables.unit_types.iter().enumerate() {
             let Some(pt) = p.tree.filter(|_| !p.gaia) else {
                 continue;
             };
-            if self.muster[w].queued_by_type[prec] == 0 {
+            if self.roster.muster[w].queued_by_type[prec] == 0 {
                 continue;
             }
             let mut hit = resolve(tree.types[pt].from) == Some(t);
@@ -796,9 +824,9 @@ impl Sim {
         ty: usize,
         m: &cost::Modifiers,
     ) -> [i32; economy::RESOURCES] {
-        let muster = &self.muster[who as usize];
-        let holdings = &self.holdings[who as usize];
-        let unit = &self.unit_types[ty];
+        let muster = &self.roster.muster[who as usize];
+        let holdings = &self.economy.holdings[who as usize];
+        let unit = &self.tables.unit_types[ty];
         // Built *and* ordered. `LeaderData::get_support_count` sums
         // `num_units` and `num_queued`, so five hoplites ordered at once each
         // pay a ramp step for the ones ahead of them in the queue. The time
@@ -826,13 +854,13 @@ impl Sim {
             &bumped
         };
         cost::charges(
-            &self.tuning,
+            &self.tables.tuning,
             price,
             counts,
             m,
             &holdings.available,
             &holdings.discovered,
-            &self.redirects,
+            &self.economy.redirects,
         )
     }
 
@@ -849,7 +877,7 @@ impl Sim {
     /// type (`UnitData +0x54`, [`Unit::rare`]) is a scholar; it is derived
     /// here from the live militia rather than kept.
     pub fn worker_support(&self, who: Player, ty: usize) -> i32 {
-        let ti = self.unit_types[ty].type_index;
+        let ti = self.tables.unit_types[ty].type_index;
         if !(0x32..=0x35).contains(&ti) {
             return 0;
         }
@@ -868,9 +896,10 @@ impl Sim {
         if ti >= 0x34 {
             return scholar_militia;
         }
-        let m = &self.muster[who as usize];
+        let m = &self.roster.muster[who as usize];
         let support = |t: usize| {
-            self.unit_types
+            self.tables
+                .unit_types
                 .iter()
                 .position(|u| u.type_index == t as i32)
                 .map_or(0, |r| m.by_type[r] + m.queued_by_type[r])

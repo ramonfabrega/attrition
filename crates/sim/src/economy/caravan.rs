@@ -106,7 +106,7 @@ impl Sim {
     /// land** (`UnitTypeData +0x218 == 0`), so a Merchant Fleet takes the
     /// special list instead and never owns a route.
     pub(crate) fn init_caravan(&mut self, who: Player, unit: usize) -> Option<usize> {
-        let list = self.caravans.get_mut(who as usize)?;
+        let list = self.economy.caravans.get_mut(who as usize)?;
         let slot = (0..list.mark)
             .find(|&i| !list.slots[i].alive)
             .or_else(|| (list.mark < list.slots.len()).then_some(list.mark))?;
@@ -123,7 +123,7 @@ impl Sim {
     /// search with it, and the mark walks down past every dead slot at the
     /// top.
     pub(crate) fn close_caravan(&mut self, who: Player, slot: usize) {
-        let Some(list) = self.caravans.get_mut(who as usize) else {
+        let Some(list) = self.economy.caravans.get_mut(who as usize) else {
             return;
         };
         list.slots[slot] = Caravan::default();
@@ -181,7 +181,7 @@ impl Sim {
     /// both still pair with.
     fn find_trade_city(&self, who: Player, at: Pos) -> Option<usize> {
         let mut best: Option<(usize, i32)> = None;
-        for (i, c) in self.cities.iter().enumerate() {
+        for (i, c) in self.cities.cities.iter().enumerate() {
             if !c.alive || !self.is_ally(who, c.owner) {
                 continue;
             }
@@ -200,7 +200,7 @@ impl Sim {
     /// `Search::valid_filter`'s `FILTER_CAN_TRADE` arm: is there any allied
     /// city this one could still be paired with.
     fn city_can_trade(&self, who: Player, city: usize) -> bool {
-        (0..self.cities.len()).any(|o| o != city && self.trade_pair_free(who, city, o))
+        (0..self.cities.cities.len()).any(|o| o != city && self.trade_pair_free(who, city, o))
     }
 
     /// Both halves of the pairing test, which every caller makes together:
@@ -211,7 +211,7 @@ impl Sim {
     /// city's `vans` list that name the other city and answers `1 − count`,
     /// so a pair of cities carries at most one route.
     fn trade_pair_free(&self, who: Player, city: usize, other: usize) -> bool {
-        let b = &self.cities[other];
+        let b = &self.cities.cities[other];
         if !b.alive || !self.is_ally(who, b.owner) {
             return false;
         }
@@ -224,7 +224,7 @@ impl Sim {
     /// One direction of the `vans` test: does any live route of any leader
     /// already join these two.
     fn trade_route_exists(&self, city: usize, other: usize) -> bool {
-        self.caravans.iter().any(|l| {
+        self.economy.caravans.iter().any(|l| {
             l.slots[..l.mark].iter().any(|v| {
                 v.alive
                     && v.linked
@@ -241,7 +241,7 @@ impl Sim {
     /// it is `crate::scout`'s. Every capture's cities are its own or in
     /// sight, so the two have not been told apart.
     fn city_is_seen(&self, city: usize, who: Player) -> bool {
-        let c = &self.cities[city];
+        let c = &self.cities.cities[city];
         c.owner == who || self.was_seen_fog(c.pos.tile().x >> 1, c.pos.tile().y >> 1, who)
     }
 
@@ -285,13 +285,13 @@ impl Sim {
             return;
         };
         let who = self.units[u].owner;
-        if self.caravans[who as usize].slots[v].making_road {
+        if self.economy.caravans[who as usize].slots[v].making_road {
             return;
         }
         let Some(Body::Trade(mut ord)) = self.current_order(u).map(|o| o.body) else {
             return;
         };
-        if !self.cities[ord.home].alive {
+        if !self.cities.cities[ord.home].alive {
             self.kill_current_order(u);
             return;
         }
@@ -301,7 +301,9 @@ impl Sim {
         // original's three region tests (`docs/CARAVAN.md` §11) each ask
         // `can_transport` only when the two regions differ.
         let at = self.world.tregion_alt(self.units[u].pos.tile());
-        let home_at = self.world.tregion_alt(self.cities[ord.home].pos.tile());
+        let home_at = self
+            .world
+            .tregion_alt(self.cities.cities[ord.home].pos.tile());
         let transport = self.unit_can_transport(u);
         if at != home_at && !transport {
             self.kill_current_order(u);
@@ -322,7 +324,7 @@ impl Sim {
         // **The pair, on every call** (`get_tregion` returning at
         // `005ed920`): the caravan off its home's region, or the far city
         // off it, needs `can_transport`.
-        let dest_at = self.world.tregion_alt(self.cities[dest].pos.tile());
+        let dest_at = self.world.tregion_alt(self.cities.cities[dest].pos.tile());
         if (at != home_at || home_at != dest_at) && !transport {
             self.kill_current_order(u);
             return;
@@ -335,19 +337,19 @@ impl Sim {
         // and the further its `city3`.
         let here = self.units[u].pos;
         let da = crate::world::vector_dist(
-            self.cities[ord.home].pos.x - here.x,
-            self.cities[ord.home].pos.y - here.y,
+            self.cities.cities[ord.home].pos.x - here.x,
+            self.cities.cities[ord.home].pos.y - here.y,
         );
         let db = crate::world::vector_dist(
-            self.cities[dest].pos.x - here.x,
-            self.cities[dest].pos.y - here.y,
+            self.cities.cities[dest].pos.x - here.x,
+            self.cities.cities[dest].pos.y - here.y,
         );
         let (a, b) = if da < db {
             (ord.home, dest)
         } else {
             (dest, ord.home)
         };
-        let list = &mut self.caravans[who as usize].slots[v];
+        let list = &mut self.economy.caravans[who as usize].slots[v];
         list.city_a = Some(a);
         list.city_b = Some(b);
         list.alive = true;
@@ -381,7 +383,7 @@ impl Sim {
         // with the destination less the unit's own point (`616edc`..`616f1f`).
         // run357's block 5774 reads it: 546111488 on `1/33`'s move.
         if self.caravan_build_road(who, v) < 0 {
-            let to = self.cities[a].pos;
+            let to = self.cities.cities[a].pos;
             self.add_move_order(
                 u,
                 to,
@@ -419,7 +421,7 @@ impl Sim {
         // checks `is_active_wallbuild` and the vtable's own "am I a city",
         // which is how a route survives its city being replaced in the
         // slot; this crate holds the city index and asks the city.
-        if !self.cities[home].alive || !self.cities[dest].alive {
+        if !self.cities.cities[home].alive || !self.cities.cities[dest].alive {
             self.kill_current_order(u);
             if self.current_order(u).is_none() {
                 self.think_caravan(u);
@@ -429,7 +431,7 @@ impl Sim {
         let target = if ord.loaded { home } else { dest };
         let span = self.city_span(target);
         let here = self.units[u].pos;
-        let c = self.cities[target].pos;
+        let c = self.cities.cities[target].pos;
         if (here.x - c.x).abs() <= span + 0x306 && (here.y - c.y).abs() <= span + 0x306 {
             ord.loaded = !ord.loaded;
             self.set_trade_order(u, ord);
@@ -440,16 +442,16 @@ impl Sim {
             // A **decoy** does none of the rest: `unit_masks & 1`.
             if !self.units[u].decoy {
                 if ord.loaded {
-                    self.city_new_caravan(dest, self.cities[home].owner, home);
+                    self.city_new_caravan(dest, self.cities.cities[home].owner, home);
                 } else {
                     // The home city is where a round trip closes, and the
                     // only place `caravan_flags & 4` is written — which is
                     // the bit `City::compute_trade` counts, so a route pays
                     // nothing at all until its first full return.
-                    self.caravans[who as usize].slots[v].delivered = true;
+                    self.economy.caravans[who as usize].slots[v].delivered = true;
                     self.compute_trade(home);
                     self.compute_trade(dest);
-                    self.city_new_caravan(home, self.cities[dest].owner, dest);
+                    self.city_new_caravan(home, self.cities.cities[dest].owner, dest);
                 }
             }
         }
@@ -481,20 +483,20 @@ impl Sim {
     /// original's `local_38`, which is deliberately the **other** city's.
     fn trade_walk(&mut self, u: usize, v: usize, fallback: usize, span: i32) {
         let who = self.units[u].owner as usize;
-        if self.caravans[who].slots[v].road.is_empty() {
+        if self.economy.caravans[who].slots[v].road.is_empty() {
             self.trade_walk_no_road(u, fallback, span);
             return;
         }
         let here = self.units[u].pos;
-        let road = &self.caravans[who].slots[v].road;
+        let road = &self.economy.caravans[who].slots[v].road;
         let (first, last) = (road[0].to, road[road.len() - 1].to);
         let d_bottom =
             crate::world::vector_dist((first.x - here.x).abs(), (first.y - here.y).abs());
         let d_top = crate::world::vector_dist((last.x - here.x).abs(), (last.y - here.y).abs());
         if d_bottom < d_top {
-            self.caravans[who].slots[v].road.reverse();
+            self.economy.caravans[who].slots[v].road.reverse();
         }
-        let mut path = self.caravans[who].slots[v].road.clone();
+        let mut path = self.economy.caravans[who].slots[v].road.clone();
         offset_road(&mut path);
         self.units[u].path = path;
         self.units[u].path.pop();
@@ -525,7 +527,7 @@ impl Sim {
                 });
             }
         }
-        self.caravans[who].slots[v].road.reverse();
+        self.economy.caravans[who].slots[v].road.reverse();
     }
 
     /// The no-road arm of §7.1: a spot beside the target city, and a move
@@ -537,7 +539,7 @@ impl Sim {
     /// own point. No traced game reaches the arm: a route whose `build_road`
     /// answered 0 has no caravan on it.
     fn trade_walk_no_road(&mut self, u: usize, city: usize, span: i32) {
-        let to = self.cities[city].pos;
+        let to = self.cities.cities[city].pos;
         let here = self.units[u].pos;
         if crate::world::vector_dist((to.x - here.x).abs(), (to.y - here.y).abs()) > span + 0xc6 {
             return;
@@ -555,9 +557,9 @@ impl Sim {
     /// original's `local_38`, half a footprint in world units, and what the
     /// arrival box is measured out from.
     fn city_span(&self, city: usize) -> i32 {
-        let b = self.cities[city].building;
+        let b = self.cities.cities[city].building;
         self.buildings[b].ty.map_or(0, |ty| {
-            let t = &self.build_types[ty];
+            let t = &self.tables.build_types[ty];
             if t.x_size > t.y_size {
                 t.x_size * 0x60
             } else {
@@ -580,13 +582,14 @@ impl Sim {
     /// below its mark for the routes with an end here. An end's leader is
     /// the city's owner today.
     pub(crate) fn compute_trade(&mut self, city: usize) {
-        let was = self.cities[city].trade_val;
-        let owner = self.cities[city].owner;
+        let was = self.cities.cities[city].trade_val;
+        let owner = self.cities.cities[city].owner;
         let end = |c: Option<usize>| match c {
-            Some(c) => (c as i32, self.cities[c].owner as i32),
+            Some(c) => (c as i32, self.cities.cities[c].owner as i32),
             None => (-1, 0),
         };
         let routes: Vec<TradeRoute> = self
+            .economy
             .caravans
             .iter()
             .flat_map(|w| w.slots[..w.mark].iter())
@@ -600,11 +603,11 @@ impl Sim {
         let val = compute_trade_steps(
             owner as i32,
             routes,
-            |c, _| self.cities[c as usize].alive,
+            |c, _| self.cities.cities[c as usize].alive,
             |e, o| self.trade_value(e.0 as usize, o.0 as usize),
         );
         let val = i32::from(val);
-        self.cities[city].trade_val = val;
+        self.cities.cities[city].trade_val = val;
         if was != val {
             self.economy_changed(owner);
         }
@@ -630,17 +633,17 @@ impl Sim {
             return;
         };
         let mask = 1u32 << bit;
-        if self.cities[city].traded_with[w] & mask != 0 {
+        if self.cities.cities[city].traded_with[w] & mask != 0 {
             return;
         }
-        self.cities[city].traded_with[w] |= mask;
+        self.cities.cities[city].traded_with[w] |= mask;
         let level = self.tech[w].epoch[crate::tech::Line::Commerce.index()] + 1;
-        let pay = if who == self.cities[city].owner {
+        let pay = if who == self.cities.cities[city].owner {
             level * 10
         } else {
             level * 20
         };
-        self.ledgers[w].bucket[crate::economy::Resource::Wealth as usize] += pay;
+        self.economy.ledgers[w].bucket[crate::economy::Resource::Wealth as usize] += pay;
     }
 
     /// Rewrite the current order's body in place.
@@ -655,11 +658,11 @@ impl Sim {
     /// home city is the caravan owner's own.
     fn pick_trade_partner(&mut self, u: usize, home: usize) -> Option<usize> {
         let who = self.units[u].owner;
-        let home_at = self.world.tregion_alt(self.cities[home].pos.tile());
+        let home_at = self.world.tregion_alt(self.cities.cities[home].pos.tile());
         let transport = self.unit_can_transport(u);
-        let mine = self.cities[home].owner == who;
+        let mine = self.cities.cities[home].owner == who;
         let mut best: Option<(usize, i32)> = None;
-        for other in 0..self.cities.len() {
+        for other in 0..self.cities.cities.len() {
             if other == home || !self.trade_pair_free(who, home, other) {
                 continue;
             }
@@ -668,7 +671,8 @@ impl Sim {
             // region than the **home city's** is admitted when the caravan
             // `can_transport`. East Indies' London and
             // Newcastle are regions 11 and 5, and the AI's caravan crosses.
-            if self.world.tregion_alt(self.cities[other].pos.tile()) != home_at && !transport {
+            if self.world.tregion_alt(self.cities.cities[other].pos.tile()) != home_at && !transport
+            {
                 continue;
             }
             // `5ed65a`: the caravan's own home goes in `ecx`/`edx` when the
@@ -699,20 +703,23 @@ impl Sim {
         // `rare_conquest`, bit 6) — Great Sahara's who=1 holds Spice, and
         // its two cities' routes went 22 → 26 on 14660 (`docs/CARAVAN.md`
         // §4).
-        let lead = self.cities[a].owner;
+        let lead = self.cities.cities[a].owner;
         trade_value_steps(
-            (self.cities[a].pos, self.cities[b].pos),
-            lead != self.cities[b].owner,
+            (self.cities.cities[a].pos, self.cities.cities[b].pos),
+            lead != self.cities.cities[b].owner,
             |pa, pb| self.trade_distance(pa, pb),
             |end_a| self.city_trade_value(if end_a { a } else { b }),
             |bonus| {
-                self.tech_tree
-                    .has_tribe_bonus(&self.setup, &self.tech[lead as usize], bonus)
+                self.tables.tech_tree.has_tribe_bonus(
+                    &self.tables.setup,
+                    &self.tech[lead as usize],
+                    bonus,
+                )
             },
             self.has_rare(lead, crate::economy::SPICE),
             (
-                self.tuning.indians_caravan,
-                self.tuning.spice_caravan_income,
+                self.tables.tuning.indians_caravan,
+                self.tables.tuning.spice_caravan_income,
             ),
         )
     }
@@ -744,16 +751,16 @@ impl Sim {
     /// scored eight (`docs/CARAVAN.md` §3.1).
     fn city_trade_value(&self, c: usize) -> i32 {
         let n = self.num_buildings(c);
-        let Some(ty) = self.buildings[self.cities[c].building].ty else {
+        let Some(ty) = self.buildings[self.cities.cities[c].building].ty else {
             return n;
         };
         // `TOWN` (0x19f) is the Large City; `METROPOLIS` (0x1a0) and
         // `FORBIDDENCITY` (0x213) are the two that score four.
-        if self.build_types[ty].ident == crate::build::Ident::Town {
+        if self.tables.build_types[ty].ident == crate::build::Ident::Town {
             return n + 2;
         }
         if matches!(
-            self.build_types[ty].ident,
+            self.tables.build_types[ty].ident,
             crate::build::Ident::Metropolis | crate::build::Ident::ForbiddenCity
         ) {
             return n + 4;
@@ -793,25 +800,28 @@ impl Sim {
     /// it wants another frame.
     pub(crate) fn caravan_build_road(&mut self, who: Player, v: usize) -> i32 {
         let w = who as usize;
-        self.caravans[w].slots[v].road.clear();
+        self.economy.caravans[w].slots[v].road.clear();
         let (Some(a), Some(b)) = (
-            self.caravans[w].slots[v].city_a,
-            self.caravans[w].slots[v].city_b,
+            self.economy.caravans[w].slots[v].city_a,
+            self.economy.caravans[w].slots[v].city_b,
         ) else {
             self.clear_temp_road(who, v);
             return 0;
         };
-        if !self.cities[a].alive || !self.cities[b].alive {
+        if !self.cities.cities[a].alive || !self.cities.cities[b].alive {
             self.clear_temp_road(who, v);
             return 0;
         }
-        let ends = (self.cities[a].building, self.cities[b].building);
+        let ends = (
+            self.cities.cities[a].building,
+            self.cities.cities[b].building,
+        );
         // The three-way gate at `build_road`'s head: a parked search that
         // nothing has invalidated is **resumed**; anything else starts over,
         // and `clear_temp_road` throws the parked one away.
-        let resume = Self::road_gate(&mut self.caravans[w].slots[v]);
+        let resume = Self::road_gate(&mut self.economy.caravans[w].slots[v]);
         let mut st = if resume {
-            self.caravans[w].slots[v]
+            self.economy.caravans[w].slots[v]
                 .search
                 .take()
                 .expect("the parked search")
@@ -825,23 +835,23 @@ impl Sim {
         // caravan **unit** — `UnitData::can_transport` — so a route whose
         // caravan may auto-transport prices ocean tiles instead of refusing
         // them (`docs/CARAVAN.md` §5.1).
-        let can_transport = self.caravans[w].slots[v]
+        let can_transport = self.economy.caravans[w].slots[v]
             .unit
             .is_some_and(|u| self.unit_can_transport(u));
         match self.step_road_caravan(&mut st, ends, can_transport) {
             RoadPlan::Budget => {
-                let van = &mut self.caravans[w].slots[v];
+                let van = &mut self.economy.caravans[w].slots[v];
                 van.search = Some(st);
                 van.making_road = true;
                 -1
             }
             RoadPlan::None => {
-                self.caravans[w].slots[v].road.clear();
+                self.economy.caravans[w].slots[v].road.clear();
                 0
             }
             RoadPlan::Road(nodes) => {
                 let road = self.lay_caravan_road(&nodes);
-                let van = &mut self.caravans[w].slots[v];
+                let van = &mut self.economy.caravans[w].slots[v];
                 van.road = road;
                 van.reset_road = false;
                 van.making_road = false;
@@ -948,10 +958,13 @@ impl Sim {
     /// whose every tile is clear is left alone.
     fn caravan_verify_road(&mut self, who: Player, v: usize) {
         use crate::world::tile;
-        let hit = self.caravans[who as usize].slots[v].road.iter().any(|p| {
-            let m = self.world.tile_mask(p.to.tile());
-            m & tile::PLACED != 0 || m & tile::OBJECT == tile::OBJECT_BUILDING
-        });
+        let hit = self.economy.caravans[who as usize].slots[v]
+            .road
+            .iter()
+            .any(|p| {
+                let m = self.world.tile_mask(p.to.tile());
+                m & tile::PLACED != 0 || m & tile::OBJECT == tile::OBJECT_BUILDING
+            });
         if hit {
             self.caravan_build_road(who, v);
         }
@@ -960,7 +973,7 @@ impl Sim {
     /// `Caravan::clear_temp_road@0073de80`: the parked search is freed and
     /// `making_road` cleared with it.
     fn clear_temp_road(&mut self, who: Player, v: usize) {
-        let van = &mut self.caravans[who as usize].slots[v];
+        let van = &mut self.economy.caravans[who as usize].slots[v];
         van.search = None;
         van.making_road = false;
     }
@@ -968,7 +981,7 @@ impl Sim {
     /// `Caravans::reset_paths@0073e060`: every alive route of every leader
     /// that is mid-search is told to start again.
     fn caravans_reset_paths(&mut self) {
-        for l in &mut self.caravans {
+        for l in &mut self.economy.caravans {
             for v in &mut l.slots {
                 if v.alive && v.making_road {
                     v.reset_road = true;
@@ -990,7 +1003,7 @@ impl Sim {
             return;
         };
         let who = self.units[u].owner;
-        if !self.caravans[who as usize].slots[v].linked {
+        if !self.economy.caravans[who as usize].slots[v].linked {
             return;
         }
         if self.order_type(u) == index::CAST_SPELL {
@@ -1006,7 +1019,7 @@ impl Sim {
             self.end_trade_route(u);
             return;
         }
-        if self.caravans[who as usize].slots[v].making_road {
+        if self.economy.caravans[who as usize].slots[v].making_road {
             self.caravan_build_road(who, v);
         }
         // SEAM: `work@0060d180:114`'s tail — when the *current* order is
@@ -1023,7 +1036,7 @@ impl Sim {
         };
         let who = self.units[u].owner;
         self.clear_temp_road(who, v);
-        let van = &mut self.caravans[who as usize].slots[v];
+        let van = &mut self.economy.caravans[who as usize].slots[v];
         van.road.clear();
         van.linked = false;
         van.city_a = None;

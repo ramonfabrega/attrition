@@ -10,7 +10,7 @@ fn a_gaia_owner_has_no_modifiers() {
     assert_eq!(sim.mods_of(9).attack, 0);
     assert_eq!(sim.mods_of(9).armor, 0);
     assert_eq!(sim.mods_of(9).range, 0);
-    assert_eq!(sim.mods_of(1), sim.mods[1]);
+    assert_eq!(sim.mods_of(1), sim.combat.mods[1]);
 }
 
 /// **The Japanese level is the leader's own, read on the blow** (item
@@ -64,7 +64,7 @@ fn a_unit_near_its_owner_s_ceo_reaches_two_tiles_further() {
     let place = |s: &mut Sim, who: u8, ty: usize, x: i32| {
         let mut u = Unit::new(who, 0, Pos::new(x, 9000), 50);
         u.ty = Some(ty);
-        u.type_index = s.unit_types[ty].type_index;
+        u.type_index = s.tables.unit_types[ty].type_index;
         u.on_map = true;
         s.add_unit(u)
     };
@@ -73,17 +73,17 @@ fn a_unit_near_its_owner_s_ceo_reaches_two_tiles_further() {
     assert_eq!(range(&s), 3, "no hero");
     let hero = place(&mut s, 1, ceo, 9000 + 1920);
     assert_eq!(range(&s), 3, "a hero the leader does not count");
-    s.muster[1].by_type[ceo] = 1;
+    s.roster.muster[1].by_type[ceo] = 1;
     assert_eq!(s.hero_radius(hero), 10, "6 × 3 / 2 + 1");
     assert_eq!(range(&s), 5, "inside the radius");
     s.units[hero].pos.x += 1;
     assert_eq!(range(&s), 3, "one past it");
     s.units[hero].pos.x -= 1;
     s.units[hero].owner = 0;
-    s.muster[0].by_type[ceo] = 1;
+    s.roster.muster[0].by_type[ceo] = 1;
     assert_eq!(range(&s), 3, "another player's hero");
     s.units[hero].owner = 1;
-    s.unit_types[shooter].combat.siege = true;
+    s.tables.unit_types[shooter].combat.siege = true;
     assert_eq!(range(&s), 3, "a siege type");
 }
 
@@ -100,8 +100,8 @@ fn at_war() -> (Sim, usize) {
 /// leader bound, not the table's length, is what refuses gaia.
 fn at_war_with_slots(slots: usize) -> (Sim, usize) {
     let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), slots);
-    sim.at_war[0][1] = true;
-    sim.at_war[1][0] = true;
+    sim.leaders.at_war[0][1] = true;
+    sim.leaders.at_war[1][0] = true;
     let ty = sim.add_unit_type(crate::UnitType {
         hits: 100,
         combat: Profile {
@@ -117,11 +117,11 @@ fn at_war_with_slots(slots: usize) -> (Sim, usize) {
 
 fn put(sim: &mut Sim, who: Player, ty: usize, p: Pos) -> usize {
     let index = i16::try_from(sim.units.len()).unwrap();
-    let hits = sim.unit_types[ty].hits;
+    let hits = sim.tables.unit_types[ty].hits;
     let mut u = crate::Unit::new(who, index, p, hits);
     u.ty = Some(ty);
     u.on_map = true;
-    u.kind = sim.unit_types[ty].kind;
+    u.kind = sim.tables.unit_types[ty].kind;
     sim.add_unit(u)
 }
 
@@ -189,9 +189,9 @@ fn a_splash_round_strikes_its_own_target_whoever_owns_it() {
     let other = building(&mut sim, 1, Pos::new(2208, 2016));
     let p = round(&sim, me, Some(Obj::Building(mine)), Pos::new(2016, 2016), 1);
     sim.land(p, 858);
-    let struck: Vec<Obj> = sim.hits.iter().map(|h| h.target).collect();
+    let struck: Vec<Obj> = sim.combat.hits.iter().map(|h| h.target).collect();
     assert_eq!(struck, vec![Obj::Building(mine)], "the target alone");
-    assert!(!sim.hits[0].splash, "at the full count");
+    assert!(!sim.combat.hits[0].splash, "at the full count");
     let _ = other;
 }
 
@@ -226,14 +226,14 @@ fn a_round_whose_target_died_splashes_no_plane() {
     let p = air_round(&live);
     live.land(p, 797);
     assert!(
-        live.hits.iter().any(|h| h.target == Obj::Unit(near)),
+        live.combat.hits.iter().any(|h| h.target == Obj::Unit(near)),
         "a standing target's round splashes the plane beside it"
     );
     sim.units[dead].health = 0;
     let p = air_round(&sim);
     sim.land(p, 797);
     assert!(
-        sim.hits.iter().all(|h| h.target != Obj::Unit(near)),
+        sim.combat.hits.iter().all(|h| h.target != Obj::Unit(near)),
         "a dead target's round lands as ground"
     );
 }
@@ -272,16 +272,17 @@ fn a_burning_round_kills_with_the_ammo_graphic_s_three_draws() {
         sim.units[them].health = 1;
         let mut p = round(&sim, me, Some(Obj::Unit(them)), Pos::new(2016, 2016), 0);
         p.flame = flame;
-        sim.trace_phases = true;
+        sim.trace.trace_phases = true;
         sim.land(p, 3030);
         assert!(!sim.units[them].alive(), "flame {flame}: dead");
         let marks: Vec<String> = sim
+            .trace
             .phase_marks
             .iter()
             .map(|(l, _)| l.clone())
             .filter(|l| l.starts_with("Unit::close"))
             .collect();
-        (marks, sim.deaths.last().map(|d| d.cur_anim))
+        (marks, sim.combat.deaths.last().map(|d| d.cur_anim))
     };
     let (plain, _) = sites(false);
     assert_eq!(plain, [SITE_DEATH_ANIM]);
@@ -304,7 +305,7 @@ fn a_burning_round_kills_with_the_ammo_graphic_s_three_draws() {
 fn a_decoy_squad_falls_to_one_round_on_its_tail() {
     for decoy in [false, true] {
         let (mut sim, ty) = at_war();
-        sim.unit_types[ty].combat.uber_size = 3;
+        sim.tables.unit_types[ty].combat.uber_size = 3;
         let me = put(&mut sim, 1, ty, Pos::new(1000, 1000));
         let chain: Vec<usize> = (0..3)
             .map(|k| put(&mut sim, 0, ty, Pos::new(2016 + 48 * k, 2016)))
@@ -339,7 +340,7 @@ fn a_decoy_squad_falls_to_one_round_on_its_tail() {
 fn a_general_rallies_armour_inside_its_radius() {
     use crate::ai_load::uflags2;
     let (mut sim, ty) = at_war();
-    sim.unit_types[ty].combat.armor = 2;
+    sim.tables.unit_types[ty].combat.armor = 2;
     let mut general = crate::UnitType {
         type_index: 0x100,
         hits: 100,
@@ -353,7 +354,7 @@ fn a_general_rallies_armour_inside_its_radius() {
     let hero = put(&mut sim, 1, general, Pos::new(9000, 9000));
     let reach = sim.hero_radius(hero) * 0xc0;
     sim.units[hero].pos.x += reach;
-    let rally = sim.tuning.general_rally_armor;
+    let rally = sim.tables.tuning.general_rally_armor;
     assert_eq!(rally, 2, "the shipped GENERAL_RALLY_ARMOR");
     assert_eq!(armour(&sim), 2 + rally, "on the radius");
     assert_eq!(sim.armor_of(Obj::Unit(hero)), rally, "the hero itself");
@@ -376,12 +377,12 @@ fn a_comrade_and_a_monarch_add_their_armour_inside_the_rally_arm() {
     use crate::ai_load::uflags2;
     use crate::build::{BuildType, Ident};
     let (mut sim, ty) = at_war();
-    sim.unit_types[ty].combat.armor = 1;
-    let rally = sim.tuning.general_rally_armor;
+    sim.tables.unit_types[ty].combat.armor = 1;
+    let rally = sim.tables.tuning.general_rally_armor;
     assert_eq!(
         (
-            sim.tuning.thecitizen_armor_bonus,
-            sim.tuning.themonarch_cav_armor
+            sim.tables.tuning.thecitizen_armor_bonus,
+            sim.tables.tuning.themonarch_cav_armor
         ),
         (2, 2),
         "the shipped THECITIZEN_ARMOR_BONUS and THEMONARCH_CAV_ARMOR"
@@ -408,7 +409,7 @@ fn a_comrade_and_a_monarch_add_their_armour_inside_the_rally_arm() {
     tree.types[horse].where_ = Some(stab);
     tree.finalize();
     sim.set_tech_tree(tree);
-    sim.build_types.push(BuildType {
+    sim.tables.build_types.push(BuildType {
         ident: Ident::Stable,
         tree: Some(stab),
         ..BuildType::default()
@@ -461,15 +462,15 @@ fn a_senator_armours_its_buildings_before_the_halving() {
     use crate::ai_load::uflags2;
     let (mut sim, _) = at_war();
     assert_eq!(
-        sim.tuning.thesenator_build_armor, 5,
+        sim.tables.tuning.thesenator_build_armor, 5,
         "the shipped THESENATOR_BUILD_ARMOR"
     );
-    sim.build_types.push(crate::build::BuildType {
+    sim.tables.build_types.push(crate::build::BuildType {
         x_size: 3,
         y_size: 3,
         ..crate::build::BuildType::default()
     });
-    let bt = sim.build_types.len() - 1;
+    let bt = sim.tables.build_types.len() - 1;
     let b = sim.add_building(1, Pos::new(9000, 9000), 0);
     sim.buildings[b].ty = Some(bt);
     sim.buildings[b].combat = Some(Profile {
@@ -529,7 +530,7 @@ fn a_decoy_s_round_strikes_nothing() {
         let p = round(&sim, me, Some(Obj::Building(b)), Pos::new(2016, 2016), 1);
         sim.land(p, 1522);
         assert_eq!(
-            sim.hits.len(),
+            sim.combat.hits.len(),
             usize::from(!decoy),
             "decoy {decoy}: a strike"
         );
@@ -570,7 +571,7 @@ fn a_closed_decoy_s_round_in_flight_strikes() {
     sim.close_decoy(me);
     assert!(!sim.units[me].decoy, "a closed unit is no decoy");
     sim.land(p, 3322);
-    assert_eq!(sim.hits.len(), 1, "the round strikes");
+    assert_eq!(sim.combat.hits.len(), 1, "the round strikes");
     assert!(sim.buildings[b].damage > 0, "the building takes it");
 }
 
@@ -584,10 +585,10 @@ fn a_closed_decoy_s_round_in_flight_strikes() {
 fn an_aircraft_s_round_passes_over_its_own_side() {
     for air in [true, false] {
         let (mut sim, ty) = at_war();
-        let mut t = sim.unit_types[ty].clone();
+        let mut t = sim.tables.unit_types[ty].clone();
         t.combat.domain = if air { Domain::Air } else { Domain::Land };
         let shooter_ty = sim.add_unit_type(t);
-        let mut foot = sim.unit_types[ty].clone();
+        let mut foot = sim.tables.unit_types[ty].clone();
         foot.combat.target_size = 300;
         let foot = sim.add_unit_type(foot);
         let me = put(&mut sim, 1, shooter_ty, Pos::new(1000, 1000));
@@ -597,7 +598,7 @@ fn an_aircraft_s_round_passes_over_its_own_side() {
         sim.land(p, 969);
         let want = if air { foe } else { own };
         assert_eq!(
-            sim.hits.last().map(|h| h.target),
+            sim.combat.hits.last().map(|h| h.target),
             Some(Obj::Unit(want)),
             "air {air}"
         );
@@ -620,7 +621,7 @@ fn an_aircraft_s_round_passes_over_its_own_side() {
 fn a_sideways_ship_attacks_broadside_on_the_nearer_side() {
     let (mut sim, ty) = at_war();
     let ship = |sim: &mut Sim, flags: u32, type_index: i32| {
-        let mut t = sim.unit_types[ty].clone();
+        let mut t = sim.tables.unit_types[ty].clone();
         t.cols.unit_flags = flags;
         t.type_index = type_index;
         t.combat.domain = Domain::Sea;
@@ -675,12 +676,13 @@ fn a_pivot_that_bears_shoots_without_turning() {
     let (mut sim, ty) = at_war();
     const CHARIOT: i32 = 195;
     let chariot = {
-        let mut t = sim.unit_types[ty].clone();
+        let mut t = sim.tables.unit_types[ty].clone();
         t.type_index = CHARIOT;
         t.combat.max_range = 8;
         sim.add_unit_type(t)
     };
-    sim.art
+    sim.roster
+        .art
         .pivots
         .insert(CHARIOT, [(4, (-180, 180))].into_iter().collect());
     let here = Pos::new(984, 8136);
@@ -708,15 +710,18 @@ fn a_pivot_that_bears_shoots_without_turning() {
     // No `<RESTRICTION>`: the plain type turns at 37°.
     assert_ne!(shoot(&mut sim, ty, near).0, Angle(0x5555_5555));
     // A node that cannot reach 37°, plain and wrapped.
-    sim.art
+    sim.roster
+        .art
         .pivots
         .insert(CHARIOT, [(4, (-20, 20))].into_iter().collect());
     assert_ne!(shoot(&mut sim, chariot, near).0, Angle(0x5555_5555));
-    sim.art
+    sim.roster
+        .art
         .pivots
         .insert(CHARIOT, [(4, (45, -45))].into_iter().collect());
     assert_ne!(shoot(&mut sim, chariot, near).0, Angle(0x5555_5555));
-    sim.art
+    sim.roster
+        .art
         .pivots
         .insert(CHARIOT, [(4, (-45, -30))].into_iter().collect());
     assert_eq!(shoot(&mut sim, chariot, near).0, Angle(0x5555_5555));
@@ -739,12 +744,13 @@ fn a_pivot_bears_from_its_node() {
     let (mut sim, ty) = at_war();
     const CHARIOT: i32 = 195;
     let chariot = {
-        let mut t = sim.unit_types[ty].clone();
+        let mut t = sim.tables.unit_types[ty].clone();
         t.type_index = CHARIOT;
         t.combat.max_range = 8;
         sim.add_unit_type(t)
     };
-    sim.art
+    sim.roster
+        .art
         .pivots
         .insert(CHARIOT, [(4, (-180, 180))].into_iter().collect());
     let here = Pos::new(984, 8136);
@@ -789,8 +795,8 @@ fn a_gaia_animal_is_no_ones_target_even_at_war() {
     let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
     let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
     let sheep = put(&mut sim, PLAYER_SLOTS, ty, Pos::new(0x1040, 0x1000));
-    sim.at_war[0][usize::from(PLAYER_SLOTS)] = true;
-    sim.at_war[usize::from(PLAYER_SLOTS)][0] = true;
+    sim.leaders.at_war[0][usize::from(PLAYER_SLOTS)] = true;
+    sim.leaders.at_war[usize::from(PLAYER_SLOTS)][0] = true;
     assert!(sim.units[sheep].is_gaia());
     assert!(sim.is_enemy(0, PLAYER_SLOTS), "the table says enemy");
     assert!(sim.valid_target(Obj::Unit(me), Obj::Unit(foe)));
@@ -822,18 +828,18 @@ fn a_gaia_animal_is_no_ones_target_even_at_war() {
 fn a_bomber_never_takes_a_helicopter() {
     let (mut sim, land) = at_war();
     let air_type = |sim: &mut Sim, tree: Option<crate::tech::TypeId>, flags: u32| {
-        let mut t = sim.unit_types[land].clone();
+        let mut t = sim.tables.unit_types[land].clone();
         t.combat.domain = Domain::Air;
         t.cols.unit_flags = flags;
         let ty = sim.add_unit_type(t);
         // The lineage after the add: the fixture keeps no tech table.
-        sim.unit_types[ty].tree = tree;
+        sim.tables.unit_types[ty].tree = tree;
         ty
     };
     let bomber = air_type(&mut sim, Some(crate::air::BOMBER), 0);
     let fighter = air_type(&mut sim, None, 0);
     let heli = air_type(&mut sim, None, crate::ai_load::uflags::FLAG_HELICOPTER);
-    let mut tank = sim.unit_types[land].clone();
+    let mut tank = sim.tables.unit_types[land].clone();
     tank.cols.unit_flags = crate::ai_load::uflags::TANK;
     let tank = sim.add_unit_type(tank);
     let at = |x| Pos::new(0x1000 + x, 0x1000);
@@ -856,7 +862,7 @@ fn a_bomber_never_takes_a_helicopter() {
 #[test]
 fn an_air_target_is_aimed_at_its_figure_s_altitude() {
     let (mut sim, land) = at_war();
-    let mut t = sim.unit_types[land].clone();
+    let mut t = sim.tables.unit_types[land].clone();
     t.combat.domain = Domain::Air;
     t.cols.unit_flags = crate::ai_load::uflags::FLAG_HELICOPTER;
     let heli = sim.add_unit_type(t);
@@ -879,7 +885,7 @@ fn an_air_target_is_aimed_at_its_figure_s_altitude() {
 fn a_fire_ship_or_a_submarine_takes_only_a_ship() {
     let (mut sim, land) = at_war();
     let sea_type = |sim: &mut Sim, flags: u32| {
-        let mut t = sim.unit_types[land].clone();
+        let mut t = sim.tables.unit_types[land].clone();
         t.combat.domain = Domain::Sea;
         t.cols.unit_flags = flags;
         sim.add_unit_type(t)
@@ -1413,7 +1419,7 @@ fn a_hit_group_member_of_a_non_combat_type_keeps_its_orders() {
     });
     let me = put(&mut sim, 0, scout, Pos::new(0x4000, 0x4000));
     let foe = put(&mut sim, 1, soldier, Pos::new(0x4600, 0x4000));
-    sim.pushed.push(crate::group::Pushed {
+    sim.orders.pushed.push(crate::group::Pushed {
         who: 0,
         list: vec![me],
         state: crate::group::GroupState {
@@ -1426,7 +1432,7 @@ fn a_hit_group_member_of_a_non_combat_type_keeps_its_orders() {
     sim.frame = 912;
     sim.target_opportunity(me, Obj::Unit(foe), 912);
     assert!(sim.units[me].orders.is_empty(), "a group member fled");
-    assert_eq!(sim.pushed[0].state.opportunity, 912);
+    assert_eq!(sim.orders.pushed[0].state.opportunity, 912);
     // Without the seat, the same hit is the flee arm's.
     sim.units[me].group_ptr = None;
     sim.target_opportunity(me, Obj::Unit(foe), 913);
@@ -1464,7 +1470,7 @@ fn group_arms_fixture() -> (Sim, usize, usize, usize, usize) {
     let h = put(&mut sim, 0, hoplite, Pos::new(0x4100, 0x4000));
     let near = put(&mut sim, 1, hoplite, Pos::new(0x4000 + 0xc0 * 5, 0x4000));
     let far = put(&mut sim, 1, hoplite, Pos::new(0x4000 + 0xc0 * 9, 0x4000));
-    sim.pushed.push(crate::group::Pushed {
+    sim.orders.pushed.push(crate::group::Pushed {
         who: 0,
         list: vec![s, h],
         state: crate::group::GroupState {
@@ -1489,17 +1495,23 @@ fn a_group_answers_a_hit_once_in_fifteen_frames() {
     let (mut sim, s, h, _near, far) = group_arms_fixture();
     sim.frame = 912;
     sim.target_opportunity(s, Obj::Unit(far), 912);
-    assert_eq!(sim.pushed[0].state.opportunity, 912);
+    assert_eq!(sim.orders.pushed[0].state.opportunity, 912);
     assert!(!sim.units[h].orders.is_empty(), "the first hit is answered");
     sim.units[h].orders.clear();
     sim.units[h].combat.target = None;
     sim.frame = 926;
     sim.target_opportunity(s, Obj::Unit(far), 926);
-    assert_eq!(sim.pushed[0].state.opportunity, 912, "inside the window");
+    assert_eq!(
+        sim.orders.pushed[0].state.opportunity, 912,
+        "inside the window"
+    );
     assert!(sim.units[h].orders.is_empty(), "the gate refused the hit");
     sim.frame = 927;
     sim.target_opportunity(s, Obj::Unit(far), 927);
-    assert_eq!(sim.pushed[0].state.opportunity, 927, "past the window");
+    assert_eq!(
+        sim.orders.pushed[0].state.opportunity, 927,
+        "past the window"
+    );
     assert!(!sim.units[h].orders.is_empty());
 }
 
@@ -1639,14 +1651,14 @@ fn an_armed_citizen_does_not_take_an_attack_order_on_its_idle_frame() {
 fn a_bark_weighs_a_trireme_at_a_four_hundredth_and_a_transport_at_forty() {
     let weigh = |bark: bool, line: u32, flags: u32, sea: bool| {
         let (mut sim, ty) = at_war();
-        let mut at = sim.unit_types[ty].clone();
+        let mut at = sim.tables.unit_types[ty].clone();
         at.combat.domain = Domain::Sea;
         at.kind.domain = Domain::Sea;
         if bark {
             at.combat.roles |= crate::combat::role::IS_BARK;
         }
         let at = sim.add_unit_type(at);
-        let mut tt = sim.unit_types[ty].clone();
+        let mut tt = sim.tables.unit_types[ty].clone();
         let d = if sea { Domain::Sea } else { Domain::Land };
         tt.combat.domain = d;
         tt.kind.domain = d;
@@ -1693,7 +1705,7 @@ fn a_bark_weighs_a_trireme_at_a_four_hundredth_and_a_transport_at_forty() {
 fn a_bark_s_chase_retargets_to_a_fishing_boat_and_not_to_a_warship() {
     let admits = |bark: bool, combat: bool, n: bool| {
         let (mut sim, ty) = at_war();
-        let mut tt = sim.unit_types[ty].clone();
+        let mut tt = sim.tables.unit_types[ty].clone();
         tt.combat.combat_role = combat;
         if n {
             tt.cols.unit_flags |= 0x2000;
@@ -1732,14 +1744,14 @@ fn a_bark_s_chase_retargets_to_a_fishing_boat_and_not_to_a_warship() {
 fn a_computer_s_raiding_ship_weighs_a_peasant_at_nothing_extra() {
     let weigh = |sea: bool, raid: bool, kind: u8| {
         let (mut sim, ty) = at_war();
-        sim.nation[0].human = false;
-        let mut at = sim.unit_types[ty].clone();
+        sim.cities.nation[0].human = false;
+        let mut at = sim.tables.unit_types[ty].clone();
         if sea {
             at.combat.domain = Domain::Sea;
             at.kind.domain = Domain::Sea;
         }
         let at = sim.add_unit_type(at);
-        let mut tt = sim.unit_types[ty].clone();
+        let mut tt = sim.tables.unit_types[ty].clone();
         tt.combat.cost = 5000;
         tt.combat.attack = 0;
         tt.combat.max_range = 0;
@@ -1774,8 +1786,8 @@ fn a_computer_s_raiding_ship_weighs_a_finished_building_at_zero() {
                     active: bool,
                     ident: Option<crate::build::Ident>| {
         let (mut sim, ty) = at_war();
-        sim.nation[0].human = human;
-        let mut at = sim.unit_types[ty].clone();
+        sim.cities.nation[0].human = human;
+        let mut at = sim.tables.unit_types[ty].clone();
         at.combat.domain = Domain::Sea;
         at.kind.domain = Domain::Sea;
         if siege {
@@ -1911,7 +1923,7 @@ fn a_building_s_hit_spills_onto_its_repairers_by_the_attacker_s_domain() {
         (Domain::Land, false, false, None),
     ] {
         let (mut sim, ty) = at_war();
-        let mut at = sim.unit_types[ty].clone();
+        let mut at = sim.tables.unit_types[ty].clone();
         at.combat.domain = domain;
         at.combat.siege = siege;
         at.kind.domain = domain;
@@ -1945,6 +1957,7 @@ fn a_building_s_hit_spills_onto_its_repairers_by_the_attacker_s_domain() {
             700,
         );
         let spilt: Vec<_> = sim
+            .combat
             .hits
             .iter()
             .filter(|h| h.target == Obj::Unit(hand))
@@ -1974,9 +1987,9 @@ fn a_building_s_hit_spills_onto_its_repairers_by_the_attacker_s_domain() {
 /// `JOB_TIME` 80 — `craftrules.xml`'s `0x28b`.
 fn unpacked_packer(block_radius: i32) -> (Sim, usize) {
     let (mut sim, _) = at_war();
-    sim.spells = vec![crate::orders::SpellType::default(); 55];
+    sim.orders.spells = vec![crate::orders::SpellType::default(); 55];
     let row = usize::try_from(crate::orders::spell::PACK - crate::orders::spell::FIRST).unwrap();
-    sim.spells[row].job_time = 80;
+    sim.orders.spells[row].job_time = 80;
     let ty = sim.add_unit_type(crate::UnitType {
         hits: 100,
         combat: Profile {
@@ -2116,7 +2129,7 @@ fn an_unpacked_packer_s_short_move_dies_or_holds() {
 /// the craft table at `craftrules.xml`'s own lengths.
 fn packer_on_post(tree: Option<crate::tech::TypeId>) -> (Sim, usize) {
     let (mut sim, ty) = at_war();
-    sim.spells = vec![crate::orders::SpellType::default(); 55];
+    sim.orders.spells = vec![crate::orders::SpellType::default(); 55];
     for (spell, t) in [
         (crate::orders::spell::PACK, 80),
         (crate::orders::spell::UNPACK, 80),
@@ -2124,7 +2137,7 @@ fn packer_on_post(tree: Option<crate::tech::TypeId>) -> (Sim, usize) {
         (crate::orders::spell::UNPACK_MACHINEGUN, 50),
     ] {
         let row = usize::try_from(spell - crate::orders::spell::FIRST).unwrap();
-        sim.spells[row].job_time = t;
+        sim.orders.spells[row].job_time = t;
     }
     let packer = sim.add_unit_type(crate::UnitType {
         hits: 100,
@@ -2140,10 +2153,10 @@ fn packer_on_post(tree: Option<crate::tech::TypeId>) -> (Sim, usize) {
     });
     // Set after the type is added: `add_unit_type` reads a tree id
     // against the player's research, and this table has none.
-    sim.unit_types[packer].tree = tree;
+    sim.tables.unit_types[packer].tree = tree;
     // `get_stance_type`'s column: a military type that packs is a
     // `STANCE_PACKER`.
-    sim.unit_types[packer].cols.role |= crate::ai_load::role::ROLE_MILITARY;
+    sim.tables.unit_types[packer].cols.role |= crate::ai_load::role::ROLE_MILITARY;
     let post = Pos::new(3768, 12072);
     let wagon = put(&mut sim, 1, ty, Pos::new(3456, 11904));
     let guard = put(&mut sim, 1, packer, post);
@@ -2295,7 +2308,7 @@ fn a_packed_packer_in_range_unpacks_before_it_strikes() {
         "no unpack at the head: {:?}",
         sim.units[me].orders
     );
-    assert!(sim.hits.is_empty(), "a packed engine struck");
+    assert!(sim.combat.hits.is_empty(), "a packed engine struck");
 }
 
 #[test]
@@ -2303,7 +2316,7 @@ fn a_human_s_packed_siege_engine_unpacks_before_it_searches() {
     use crate::orders::{Body, spell};
     let catapult = |human: bool, stance: u8| {
         let (mut sim, _) = at_war();
-        sim.nation[0].human = human;
+        sim.cities.nation[0].human = human;
         let ty = sim.add_unit_type(crate::UnitType {
             hits: 100,
             combat: Profile {
@@ -2320,7 +2333,7 @@ fn a_human_s_packed_siege_engine_unpacks_before_it_searches() {
         });
         // The loader writes `role & 0x10000` twice: the profile's
         // `combat_role` and the column `get_stance_type` reads.
-        sim.unit_types[ty].cols.role |= crate::ai_load::role::ROLE_MILITARY;
+        sim.tables.unit_types[ty].cols.role |= crate::ai_load::role::ROLE_MILITARY;
         let foe_ty = sim.add_unit_type(crate::UnitType {
             hits: 100,
             combat: Profile {
@@ -2587,8 +2600,8 @@ fn the_one_in_five_retarget_freezes_the_frame() {
 #[test]
 fn the_one_in_five_re_search_runs_under_the_attack_move() {
     let (mut sim, ty) = at_war();
-    sim.nation[0].human = true;
-    sim.nation[1].human = false;
+    sim.cities.nation[0].human = true;
+    sim.cities.nation[1].human = false;
     let bt = sim.add_build_type(crate::build::BuildType {
         x_size: 2,
         y_size: 2,
@@ -2669,7 +2682,7 @@ fn a_captains_attack_on_a_building_re_searches_every_frame() {
     let (mut sim, ty) = at_war();
     // A soldier (`role & MILITARY`): its combat stance is its own byte,
     // not `get_combat_stance`'s STAND_GROUND default (item 2265).
-    sim.unit_types[ty].combat.combat_role = true;
+    sim.tables.unit_types[ty].combat.combat_role = true;
     let bt = sim.add_build_type(crate::build::BuildType {
         x_size: 3,
         y_size: 3,
@@ -2741,9 +2754,9 @@ fn a_candidate_in_another_region_is_taken_only_in_range() {
     let (mut sim, ty) = at_war();
     // A soldier (`role & MILITARY`): its combat stance is its own byte,
     // not `get_combat_stance`'s STAND_GROUND default (item 2265).
-    sim.unit_types[ty].combat.combat_role = true;
-    sim.nation[0].human = true;
-    sim.nation[1].human = false;
+    sim.tables.unit_types[ty].combat.combat_role = true;
+    sim.cities.nation[0].human = true;
+    sim.cities.nation[1].human = false;
     let land = sim.world.add_region(Terrain::Land);
     let sea = sim.world.add_region(Terrain::Sea);
     for x in 0..60 {
@@ -2765,8 +2778,8 @@ fn a_candidate_in_another_region_is_taken_only_in_range() {
     sim.buildings[site].combat = Some(Profile::default());
     // A ship: the domain in the type's kind, the type's combat and the
     // unit's kind.
-    sim.unit_types[ty].kind.domain = Domain::Sea;
-    sim.unit_types[ty].combat.domain = Domain::Sea;
+    sim.tables.unit_types[ty].kind.domain = Domain::Sea;
+    sim.tables.unit_types[ty].combat.domain = Domain::Sea;
     let far = put(&mut sim, 1, ty, Pos::new(at.x + 10 * 0xc0, at.y));
     assert_eq!(sim.units[far].kind.domain, Domain::Sea);
     assert!(!sim.is_in_range(Obj::Unit(far), Obj::Building(site)));
@@ -2782,11 +2795,11 @@ fn a_candidate_in_another_region_is_taken_only_in_range() {
     assert_eq!(near.find_melee_target(far, -1), Some(Obj::Building(site)));
     // A computer's siege ship does not ask the regions.
     let mut siege = sim.clone();
-    siege.unit_types[ty].combat.obj_masks |= mask::SIEGE;
+    siege.tables.unit_types[ty].combat.obj_masks |= mask::SIEGE;
     // A human's siege ship asks them (`unit_masks & 0x40000`, item
     // 1254: chapter forty-four's `0/6` against `1/2007`).
     let mut human = siege.clone();
-    human.nation[1].human = true;
+    human.cities.nation[1].human = true;
     assert_eq!(
         human.find_melee_target(far, -1),
         None,
@@ -2848,9 +2861,9 @@ fn an_attack_move_passes_over_an_unarmed_building() {
     let (mut sim, ty) = at_war();
     // A soldier (`role & MILITARY`): its combat stance is its own byte,
     // not `get_combat_stance`'s STAND_GROUND default (item 2265).
-    sim.unit_types[ty].combat.combat_role = true;
-    sim.nation[0].human = true;
-    sim.nation[1].human = false;
+    sim.tables.unit_types[ty].combat.combat_role = true;
+    sim.cities.nation[0].human = true;
+    sim.cities.nation[1].human = false;
     let bt = sim.add_build_type(crate::build::BuildType {
         x_size: 2,
         y_size: 2,
@@ -2901,12 +2914,12 @@ fn an_attack_move_passes_over_an_unarmed_building() {
     // tank (0), and RAZE over any of them (0x20).
     let typed = |flags: u32, stance: Stance, human: bool| {
         let mut s = moving.clone();
-        let mut t = s.unit_types[ty].clone();
+        let mut t = s.tables.unit_types[ty].clone();
         t.cols.unit_flags = flags;
         let t = s.add_unit_type(t);
         s.units[me].ty = Some(t);
         s.units[me].combat.stance = stance;
-        s.nation[1].human = human;
+        s.cities.nation[1].human = human;
         s.melee_search_flags(me)
     };
     assert_eq!(
@@ -2937,8 +2950,8 @@ fn an_attack_move_passes_over_an_unarmed_building() {
 #[test]
 fn a_ranged_chase_on_a_building_stops_at_the_edge_of_its_reach() {
     let (mut sim, ty) = at_war();
-    sim.nation[0].human = true;
-    sim.nation[1].human = false;
+    sim.cities.nation[0].human = true;
+    sim.cities.nation[1].human = false;
     let bt = sim.add_build_type(crate::build::BuildType {
         x_size: 2,
         y_size: 2,
@@ -2971,7 +2984,7 @@ fn a_ranged_chase_on_a_building_stops_at_the_edge_of_its_reach() {
     let chase = |sim: &Sim, from: Pos, t: Obj, siege: bool| {
         let mut s = sim.clone();
         if siege {
-            let mut ut = s.unit_types[ty].clone();
+            let mut ut = s.tables.unit_types[ty].clone();
             ut.cols.unit_flags = uflags::FLAG_SIEGE;
             let ut = s.add_unit_type(ut);
             s.units[me].ty = Some(ut);
@@ -3035,8 +3048,8 @@ fn a_unit_in_the_chaser_s_block_holds_its_chase_on_a_building() {
         },
         ..crate::UnitType::default()
     });
-    sim.nation[0].human = true;
-    sim.nation[1].human = false;
+    sim.cities.nation[0].human = true;
+    sim.cities.nation[1].human = false;
     let bt = sim.add_build_type(crate::build::BuildType {
         x_size: 2,
         y_size: 2,
@@ -3121,8 +3134,8 @@ fn a_unit_in_the_chaser_s_block_holds_its_chase_on_a_unit() {
         },
         ..crate::UnitType::default()
     });
-    sim.nation[0].human = true;
-    sim.nation[1].human = false;
+    sim.cities.nation[0].human = true;
+    sim.cities.nation[1].human = false;
     let at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);
     let foe = put(&mut sim, 0, ty, at);
     let me = put(&mut sim, 1, ty, at);
@@ -3438,8 +3451,8 @@ fn a_packed_computer_siege_engine_skips_what_it_cannot_reach() {
         ("easiest", false, 0, false),
     ] {
         let (mut sim, foe_ty) = at_war();
-        sim.nation[0].human = human;
-        sim.lobby.difficulty = difficulty;
+        sim.cities.nation[0].human = human;
+        sim.ai.lobby.difficulty = difficulty;
         let ty = sim.add_unit_type(crate::UnitType {
             hits: 100,
             combat: Profile {
@@ -3620,7 +3633,7 @@ fn a_busy_unit_answers_a_hit_only_on_duty() {
     use crate::orders::{MoveKind, QueuePos};
     let answer = |role: bool, kind: Option<MoveKind>| {
         let (mut sim, ty) = at_war();
-        sim.unit_types[ty].combat.combat_role = role;
+        sim.tables.unit_types[ty].combat.combat_role = role;
         let me = put(&mut sim, 0, ty, Pos::new(0x4000, 0x4000));
         let foe = put(&mut sim, 1, ty, Pos::new(0x4100, 0x4000));
         if let Some(k) = kind {
@@ -3761,17 +3774,17 @@ fn the_search_budget_keeps_a_dead_target_s_order_a_frame() {
         );
         sim.units[foe].health = 0;
         sim.forget(Obj::Unit(foe));
-        sim.retargets[0] = count;
+        sim.combat.retargets[0] = count;
         sim.work(me, 0);
         if count == 10 {
             assert!(sim.units[me].orders.is_empty(), "at ten, no budget");
             assert_eq!(sim.units[me].waiting, 0);
-            assert_eq!(sim.retargets[0], 11, "the search is counted");
+            assert_eq!(sim.combat.retargets[0], 11, "the search is counted");
             continue;
         }
         assert_eq!(sim.units[me].orders.len(), 1, "past ten the order stands");
         assert_eq!(sim.units[me].waiting, 2);
-        assert_eq!(sim.retargets[0], 11, "nothing is counted");
+        assert_eq!(sim.combat.retargets[0], 11, "nothing is counted");
         assert_ne!(
             sim.units[me].unit_masks2 & combat::umask2::NOT_FIRING,
             0,
@@ -3780,7 +3793,7 @@ fn the_search_budget_keeps_a_dead_target_s_order_a_frame() {
         // The next frame: `Unit::process` takes one off, the leader's
         // count starts again, and the order drops.
         sim.units[me].waiting -= 1;
-        sim.retargets[0] = 0;
+        sim.combat.retargets[0] = 0;
         sim.work(me, 1);
         assert!(
             sim.units[me].orders.is_empty(),
@@ -3877,7 +3890,7 @@ fn an_emplaced_weapon_drops_a_dead_target_s_order_while_recharging() {
     for emplaced in [true, false] {
         let (mut sim, ty) = at_war();
         if emplaced {
-            sim.unit_types[ty].cols.unit_flags2 |= crate::ai_load::uflags2::EMPLACED;
+            sim.tables.unit_types[ty].cols.unit_flags2 |= crate::ai_load::uflags2::EMPLACED;
         }
         let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
         let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
@@ -4119,7 +4132,7 @@ fn a_squad_member_mirrors_its_captain_s_attack_order() {
 #[test]
 fn the_diplomacy_accessors_are_total_past_the_table() {
     let (sim, _) = at_war();
-    assert_eq!(sim.at_war.len(), 2);
+    assert_eq!(sim.leaders.at_war.len(), 2);
     assert!(!sim.is_enemy(0, PLAYER_SLOTS));
     assert!(!sim.is_ally(0, PLAYER_SLOTS));
     assert!(!sim.is_enemy(PLAYER_SLOTS, 0));
@@ -4184,9 +4197,9 @@ fn an_arrow_never_lands_on_gaia() {
 #[test]
 fn a_round_with_no_target_strikes_the_building_it_lands_on() {
     let (mut sim, ty) = at_war();
-    sim.unit_types[ty].combat.attack = 150;
-    sim.unit_types[ty].combat.splash_area = 1;
-    sim.unit_types[ty].combat.splash_percent = 25;
+    sim.tables.unit_types[ty].combat.attack = 150;
+    sim.tables.unit_types[ty].combat.splash_area = 1;
+    sim.tables.unit_types[ty].combat.splash_percent = 25;
     let bt = sim.add_build_type(crate::build::BuildType {
         x_size: 5,
         y_size: 5,
@@ -4315,10 +4328,11 @@ fn a_missed_round_strikes_a_city_at_its_ceiling() {
     );
     assert_eq!(sim.check_hit(&ammo), Some(Obj::Building(b)));
     let sites = |s: &mut Sim| {
-        s.trace_phases = true;
-        s.phase_marks.clear();
+        s.trace.trace_phases = true;
+        s.trace.phase_marks.clear();
         s.land(ammo, 4443);
-        s.phase_marks
+        s.trace
+            .phase_marks
             .iter()
             .map(|(m, _)| m.clone())
             .collect::<Vec<_>>()
@@ -4348,10 +4362,10 @@ fn a_missed_round_strikes_a_city_at_its_ceiling() {
 #[test]
 fn the_shield_closes_a_missile_s_round_in_its_holder_s_land() {
     let (mut sim, ty) = at_war();
-    sim.unit_types[ty].combat.attack = 150;
-    sim.unit_types[ty].combat.splash_area = 1;
-    sim.unit_types[ty].combat.splash_percent = 25;
-    sim.unit_types[ty].combat.obj_masks |= mask::MISSILE;
+    sim.tables.unit_types[ty].combat.attack = 150;
+    sim.tables.unit_types[ty].combat.splash_area = 1;
+    sim.tables.unit_types[ty].combat.splash_percent = 25;
+    sim.tables.unit_types[ty].combat.obj_masks |= mask::MISSILE;
     let bt = sim.add_build_type(crate::build::BuildType {
         x_size: 5,
         y_size: 5,
@@ -4390,7 +4404,7 @@ fn the_shield_closes_a_missile_s_round_in_its_holder_s_land() {
         crash: None,
         spline: None,
     };
-    let mut tree = sim.tech_tree.clone();
+    let mut tree = sim.tables.tech_tree.clone();
     let shield = tree.types.len();
     tree.types.push(crate::tech::TypeDef::new(
         "Missile Shield",
@@ -4450,8 +4464,8 @@ fn a_tied_target_goes_to_the_cell_chain_s_head() {
     use crate::combat::Profile;
     use crate::world::World;
     let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
-    sim.at_war[0][1] = true;
-    sim.at_war[1][0] = true;
+    sim.leaders.at_war[0][1] = true;
+    sim.leaders.at_war[1][0] = true;
     let mut kind = |max_range: i32| {
         sim.add_unit_type(crate::UnitType {
             hits: 120,
@@ -4559,7 +4573,8 @@ fn the_pool_takes_the_lowest_free_slot_and_steps_in_slot_order() {
     sim.add_ammo(shot(me, a, b, 5, 0, 0));
     sim.add_ammo(shot(me, a, b, 6, 0, 0));
     let slots = |s: &Sim| {
-        s.projectiles
+        s.combat
+            .projectiles
             .iter()
             .map(|p| (p.slot, p.total_time))
             .collect::<Vec<_>>()
@@ -4600,7 +4615,7 @@ fn a_harmless_round_lands_without_damage() {
     let full = sim.units[foe].health;
     sim.add_ammo(aimed(true));
     sim.process_projectiles(0);
-    assert!(sim.projectiles.is_empty(), "the round is closed");
+    assert!(sim.combat.projectiles.is_empty(), "the round is closed");
     assert_eq!(sim.units[foe].health, full, "and does no damage");
     let before = sim.rng;
     let mut ground = shot(me, a, Pos::new(0x1000, 0x1400), 1, 0, 0);
@@ -4637,10 +4652,10 @@ fn a_puncturing_round_into_the_ground_stays_two_hundred_frames() {
     };
     sim.add_ammo(ground(false));
     sim.process_projectiles(0);
-    assert!(sim.projectiles.is_empty(), "no puncture: closed");
+    assert!(sim.combat.projectiles.is_empty(), "no puncture: closed");
     sim.add_ammo(ground(true));
     sim.process_projectiles(0);
-    let p = *sim.projectiles.first().expect("the spent arrow");
+    let p = *sim.combat.projectiles.first().expect("the spent arrow");
     assert!(p.spent && !p.rolling && !p.missed, "flags 1");
     assert_eq!((p.slot, p.cur_time), (0, 0), "in its slot, clock reset");
     sim.units[me].health = 0;
@@ -4650,10 +4665,10 @@ fn a_puncturing_round_into_the_ground_stays_two_hundred_frames() {
     for f in 1..SPENT_LIFE {
         sim.process_projectiles(i64::from(f));
     }
-    assert_eq!(sim.projectiles.len(), 1, "199 frames on");
-    assert_eq!(sim.projectiles[0].cur_time, SPENT_LIFE - 1);
+    assert_eq!(sim.combat.projectiles.len(), 1, "199 frames on");
+    assert_eq!(sim.combat.projectiles[0].cur_time, SPENT_LIFE - 1);
     sim.process_projectiles(i64::from(SPENT_LIFE));
-    assert!(sim.projectiles.is_empty(), "closed at 200");
+    assert!(sim.combat.projectiles.is_empty(), "closed at 200");
 }
 
 /// **The death pool holds 100 records and evicts the oldest that does
@@ -4670,7 +4685,7 @@ fn the_death_pool_evicts_the_oldest_record_that_does_not_block() {
         hits: 100,
         ..crate::UnitType::default()
     });
-    sim.unit_types[wreck].cols.unit_flags |= crate::ai_load::uflags::BLOCKS_WHILE_DEAD;
+    sim.tables.unit_types[wreck].cols.unit_flags |= crate::ai_load::uflags::BLOCKS_WHILE_DEAD;
     let mut dead = Vec::new();
     // Slot 0 a wreck on frame 0; slots 1 and 2 two deaths on frame 1;
     // then one a frame to slot 99.
@@ -4692,22 +4707,27 @@ fn the_death_pool_evicts_the_oldest_record_that_does_not_block() {
         sim.close_unit(i, 1, f);
         dead.push(sim.units[i].index);
     }
-    assert_eq!(sim.deaths.len(), combat::DEATH_POOL, "a hundred records");
-    let listed = |sim: &Sim| -> Vec<i32> { sim.deaths.iter().map(|d| d.o).collect() };
+    assert_eq!(
+        sim.combat.deaths.len(),
+        combat::DEATH_POOL,
+        "a hundred records"
+    );
+    let listed = |sim: &Sim| -> Vec<i32> { sim.combat.deaths.iter().map(|d| d.o).collect() };
     let kill = |sim: &mut Sim, f: i64| -> usize {
         let i = put(sim, 1, ty, Pos::new(0x3000, 0x3000));
         sim.frame = f;
         sim.units[i].health = 0;
         sim.close_unit(i, 1, f);
         sim.death_objs_inc_time();
-        sim.death_pool
+        sim.combat
+            .death_pool
             .iter()
             .position(|r| r.is_some_and(|r| r.o == i32::from(sim.units[i].index)))
             .unwrap()
     };
     // The wreck in slot 0 is the oldest and blocks: slot 1 goes.
     assert_eq!(kill(&mut sim, 200), 1, "the oldest that does not block");
-    assert_eq!(sim.deaths.len(), combat::DEATH_POOL);
+    assert_eq!(sim.combat.deaths.len(), combat::DEATH_POOL);
     assert!(
         listed(&sim).contains(&i32::from(dead[0])),
         "the wreck stays"
@@ -4720,7 +4740,11 @@ fn the_death_pool_evicts_the_oldest_record_that_does_not_block() {
     assert_eq!(kill(&mut sim, 201), 2, "the tie's other half");
     assert!(!listed(&sim).contains(&i32::from(dead[2])));
     assert_eq!(kill(&mut sim, 202), 3, "then frame 2's");
-    assert_eq!(sim.deaths.len(), combat::DEATH_POOL, "never past a hundred");
+    assert_eq!(
+        sim.combat.deaths.len(),
+        combat::DEATH_POOL,
+        "never past a hundred"
+    );
 }
 
 /// **A dead unit's number is held while its death object lives**
@@ -4736,7 +4760,7 @@ fn a_dead_unit_s_number_is_held_while_its_death_object_lives() {
     put(&mut sim, 1, ty, Pos::new(0x1400, 0x1000));
     sim.units[a].health = 0;
     sim.hold_dead_slot(a);
-    sim.deaths.push(combat::Death {
+    sim.combat.deaths.push(combat::Death {
         who: 1,
         o: 0,
         first_frame: 0,
@@ -4757,7 +4781,7 @@ fn a_dead_unit_s_number_is_held_while_its_death_object_lives() {
     // takes one off a frame — from `Object::close`'s thirty, which the
     // bump and the take have held level (§59.3).
     assert_eq!(sim.units[a].hold_frames, Sim::CLOSE_HOLD);
-    sim.deaths.clear();
+    sim.combat.deaths.clear();
     for _ in 1..Sim::CLOSE_HOLD {
         sim.tick();
     }
@@ -4797,7 +4821,7 @@ fn a_death_a_round_makes_is_bumped_on_its_own_frame() {
     sim.add_ammo(p);
     sim.tick();
     assert!(!sim.units[foe].alive(), "the round kills it");
-    assert_eq!(sim.deaths.len(), 1, "its death object");
+    assert_eq!(sim.combat.deaths.len(), 1, "its death object");
     assert_eq!(
         sim.units[foe].hold_frames,
         Sim::CLOSE_HOLD + 1,
@@ -4828,7 +4852,7 @@ fn a_crew_s_number_takes_one_bump_per_figure_s_record() {
     let mut figures = combat::Figures::one(None);
     figures.n = 4;
     figures.life[..4].copy_from_slice(&[3, 5, 8, 8]);
-    sim.deaths.push(combat::Death {
+    sim.combat.deaths.push(combat::Death {
         who: 1,
         o: 0,
         first_frame: sim.frame,
@@ -4847,7 +4871,7 @@ fn a_crew_s_number_takes_one_bump_per_figure_s_record() {
         [3, 3, 3, 2, 2, 1, 1, 1, -1, -1],
         "four records, then three, then two; then none and the take alone"
     );
-    assert!(sim.deaths.is_empty(), "culled with its last record");
+    assert!(sim.combat.deaths.is_empty(), "culled with its last record");
 }
 
 /// **A rolled shot comes down on the first step its arc is not above
@@ -4886,9 +4910,9 @@ fn a_rolled_shot_comes_down_on_the_first_step_the_ground_meets_it() {
             "step {step}: the shot lands on {down} and only then"
         );
     }
-    assert!(sim.projectiles.is_empty());
+    assert!(sim.combat.projectiles.is_empty());
     assert_eq!(
-        sim.ground_inexact, 0,
+        sim.trace.ground_inexact, 0,
         "a grid of whole numbers is every corner's own single"
     );
 }
@@ -5100,7 +5124,7 @@ fn a_dead_tail_holds_its_number_until_its_squad_is_gone() {
 #[test]
 fn a_squad_leaves_the_muster_with_its_last_figure() {
     let (mut sim, ty) = at_war();
-    sim.unit_types[ty].price.pop = 1;
+    sim.tables.unit_types[ty].price.pop = 1;
     let [a, b, c] = chain3(&mut sim, ty);
     sim.track_unit_type(0, ty, 1);
     let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
@@ -5110,9 +5134,9 @@ fn a_squad_leaves_the_muster_with_its_last_figure() {
     };
     let count = |s: &Sim| {
         (
-            s.muster[0].by_type[ty],
-            s.muster[0].control,
-            s.ai[0].census.active,
+            s.roster.muster[0].by_type[ty],
+            s.roster.muster[0].control,
+            s.ai.ai[0].census.active,
         )
     };
     for f in [a, b] {
@@ -5133,7 +5157,7 @@ fn a_squad_leaves_the_muster_with_its_last_figure() {
     );
 
     // A lone unit of a type with no population is never counted.
-    sim.unit_types[ty].price.pop = 0;
+    sim.tables.unit_types[ty].price.pop = 0;
     let lone = put(&mut sim, 0, ty, Pos::new(0x1200, 0x1000));
     sim.units[lone].captain = true;
     sim.take_damage(Obj::Unit(lone), hit, Obj::Unit(foe), 10);
@@ -5178,7 +5202,7 @@ fn the_lead_is_the_first_figure_s_average_speed() {
             Pos::new(0x1000, 0x1000),
             0,
         );
-        let p = *s.projectiles.last().expect("a shot");
+        let p = *s.combat.projectiles.last().expect("a shot");
         (p.landing, p.total_time)
     };
     let (still, t) = fire(0);
@@ -5220,7 +5244,7 @@ fn a_rolled_round_is_aimed_at_its_target_s_own_clamped_z() {
             false,
             false,
         );
-        let p = *s.projectiles.last().expect("a shot");
+        let p = *s.combat.projectiles.last().expect("a shot");
         assert!(p.rolling, "a shot at a land unit rolls");
         p.ez
     };
@@ -5263,7 +5287,7 @@ fn a_missile_s_round_is_not_led_and_does_not_roll() {
             false,
             missile,
         );
-        *s.projectiles.last().expect("a shot")
+        *s.combat.projectiles.last().expect("a shot")
     };
     let (shell, missile) = (fire(false, 23), fire(true, 23));
     assert!(shell.rolling, "a shell at a land unit rolls");
@@ -5316,7 +5340,7 @@ fn the_lead_asks_the_target_s_order_and_leads_along_its_angle() {
             Pos::new(0x1000, 0x1000),
             0,
         );
-        let p = *s.projectiles.last().expect("a shot");
+        let p = *s.combat.projectiles.last().expect("a shot");
         (p.landing, p.total_time)
     };
     // A flight between two legs: the head is `FLEE_TO`, the body has no
@@ -5378,7 +5402,7 @@ fn a_shot_strikes_at_its_own_bearing() {
         Pos::new(0x1000, 0x1000),
         0,
     );
-    let mut p = *sim.projectiles.last().expect("a shot");
+    let mut p = *sim.combat.projectiles.last().expect("a shot");
     p.launch = Pos::new(964, 8180);
     p.landing = Pos::new(1717, 8421);
     assert_eq!(p.bearing(), crate::movement::find_angle(753, 241));
@@ -5437,14 +5461,17 @@ fn a_hit_stamps_the_struck_owner_s_frame_attacked_below_difficulty_two() {
     let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
     let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
     let hit = combat::Sixteenths { whole: 1, frac: 0 };
-    sim.lobby.difficulty = 1;
+    sim.ai.lobby.difficulty = 1;
     sim.take_damage(Obj::Unit(me), hit, Obj::Unit(foe), 10_233);
-    assert_eq!(sim.ai[0].frame_attacked, 10_233, "the struck owner's stamp");
-    assert_eq!(sim.ai[1].frame_attacked, 0, "never the attacker's");
-    sim.lobby.difficulty = 2;
+    assert_eq!(
+        sim.ai.ai[0].frame_attacked, 10_233,
+        "the struck owner's stamp"
+    );
+    assert_eq!(sim.ai.ai[1].frame_attacked, 0, "never the attacker's");
+    sim.ai.lobby.difficulty = 2;
     sim.take_damage(Obj::Unit(me), hit, Obj::Unit(foe), 10_300);
     assert_eq!(
-        sim.ai[0].frame_attacked, 10_233,
+        sim.ai.ai[0].frame_attacked, 10_233,
         "difficulty 2 and above: no stamp"
     );
 }
@@ -5598,8 +5625,8 @@ fn packed_ai_siege_takes_its_army_target_before_the_attack_move_search() {
         "hold fire",
     ] {
         let (mut sim, foe_ty) = at_war();
-        sim.nation[0].human = case == "human";
-        sim.lobby.difficulty = if case == "easiest" { 0 } else { 5 };
+        sim.cities.nation[0].human = case == "human";
+        sim.ai.lobby.difficulty = if case == "easiest" { 0 } else { 5 };
         let ty = sim.add_unit_type(crate::UnitType {
             hits: 100,
             combat: Profile {
@@ -5618,7 +5645,7 @@ fn packed_ai_siege_takes_its_army_target_before_the_attack_move_search() {
         if case == "hold fire" {
             sim.units[me].combat.stance = combat::Stance::HoldFire;
         }
-        let limit = sim.tuning.unit_respond_range * 0x180;
+        let limit = sim.tables.tuning.unit_respond_range * 0x180;
         let distance = if case == "boundary" {
             limit
         } else {
@@ -5628,7 +5655,7 @@ fn packed_ai_siege_takes_its_army_target_before_the_attack_move_search() {
         assert_eq!(sim.attack_dist(Obj::Unit(me), Obj::Unit(foe)), distance);
         let army = sim.init_army(0, None);
         sim.army_add_unit(0, army, me);
-        sim.armies[0].list[army].target = (case != "no target").then_some(Obj::Unit(foe));
+        sim.ai.armies[0].list[army].target = (case != "no target").then_some(Obj::Unit(foe));
         let dest = Pos::new(0x6000, 0x1200);
         sim.add_move_order(me, dest, MoveKind::AttackTo, QueuePos::New, true);
         let dest = sim.units[me].orders[0].move_dest().unwrap();
@@ -5659,8 +5686,8 @@ fn packed_ai_siege_takes_its_army_target_before_the_attack_move_search() {
 /// 0x1200), and a foe `distance` east of it as the army's target.
 fn idle_packed_engine(distance: i32, in_army: bool) -> (Sim, usize, usize) {
     let (mut sim, foe_ty) = at_war();
-    sim.nation[0].human = false;
-    sim.lobby.difficulty = 5;
+    sim.cities.nation[0].human = false;
+    sim.ai.lobby.difficulty = 5;
     let ty = sim.add_unit_type(crate::UnitType {
         hits: 100,
         combat: Profile {
@@ -5681,7 +5708,7 @@ fn idle_packed_engine(distance: i32, in_army: bool) -> (Sim, usize, usize) {
     if in_army {
         let army = sim.init_army(0, None);
         sim.army_add_unit(0, army, me);
-        sim.armies[0].list[army].target = Some(Obj::Unit(foe));
+        sim.ai.armies[0].list[army].target = Some(Obj::Unit(foe));
     }
     (sim, me, foe)
 }
@@ -5696,7 +5723,7 @@ fn idle_packed_engine(distance: i32, in_army: bool) -> (Sim, usize, usize) {
 #[test]
 fn an_idle_packed_engine_takes_its_army_target_mandatory() {
     for in_army in [true, false] {
-        let limit = at_war().0.tuning.unit_respond_range * 0x180;
+        let limit = at_war().0.tables.tuning.unit_respond_range * 0x180;
         let (mut sim, me, foe) = idle_packed_engine(limit - 48, in_army);
         sim.units[me].idle = 1;
         sim.think(me, 1);
@@ -5727,7 +5754,7 @@ fn find_new_target_and_target_opportunity_take_the_army_target_mandatory() {
         ("target_opportunity", true),
         ("target_opportunity", false),
     ] {
-        let limit = at_war().0.tuning.unit_respond_range * 0x180;
+        let limit = at_war().0.tables.tuning.unit_respond_range * 0x180;
         let (mut sim, me, foe) = idle_packed_engine(limit - 48, in_army);
         if arm == "find_new_target" {
             sim.find_new_target(me, false);
@@ -5760,7 +5787,7 @@ fn find_new_target_and_target_opportunity_take_the_army_target_mandatory() {
 #[test]
 fn group_action_attack_s_member_search_takes_the_army_target() {
     for in_army in [true, false] {
-        let limit = at_war().0.tuning.unit_respond_range * 0x180;
+        let limit = at_war().0.tables.tuning.unit_respond_range * 0x180;
         let (mut sim, me, foe) = idle_packed_engine(limit - 48, in_army);
         let foe_ty = sim.units[foe].ty.unwrap();
         let at = sim.units[me].pos;
@@ -5803,8 +5830,8 @@ fn group_action_attack_s_member_search_takes_the_army_target() {
 fn an_idle_melee_and_ranged_type_searches_at_its_second_range() {
     for flagged in [true, false] {
         let (mut sim, foe_ty) = at_war();
-        sim.nation[0].human = false;
-        sim.lobby.difficulty = 5;
+        sim.cities.nation[0].human = false;
+        sim.ai.lobby.difficulty = 5;
         let mut ty = crate::UnitType {
             hits: 100,
             combat: Profile {
@@ -5833,7 +5860,7 @@ fn an_idle_melee_and_ranged_type_searches_at_its_second_range() {
             "flagged {flagged}: {:?}",
             sim.units[me].orders
         );
-        assert_eq!(sim.second_range, None);
+        assert_eq!(sim.combat.second_range, None);
     }
 }
 
@@ -5874,9 +5901,9 @@ fn a_mandatory_packer_chases_without_a_re_search() {
 /// enemy stacked above its `GUARD`.
 fn guard_on_post(enemy_at: Pos) -> (Sim, usize, usize) {
     let (mut sim, ty) = at_war();
-    sim.nation[0].human = true;
-    sim.nation[1].human = true;
-    let mut t = sim.unit_types[ty].clone();
+    sim.cities.nation[0].human = true;
+    sim.cities.nation[1].human = true;
+    let mut t = sim.tables.unit_types[ty].clone();
     t.combat.max_range = 8;
     // A chariot is a combat unit (`role & 0x10000`), which is what puts
     // a guard on duty (`Unit::on_duty@005fff70`, item 1040).
@@ -5988,7 +6015,7 @@ fn a_guard_s_search_refuses_what_is_past_its_leash() {
 fn a_guard_s_attack_on_a_building_takes_no_chase() {
     let (mut sim, guard, _) = guard_on_post(Pos::new(3384, 13896));
     let ty = sim.units[guard].ty.unwrap();
-    let mut melee = sim.unit_types[ty].clone();
+    let mut melee = sim.tables.unit_types[ty].clone();
     melee.combat.max_range = 0;
     let melee = sim.add_unit_type(melee);
     sim.units[guard].ty = Some(melee);
@@ -6028,7 +6055,7 @@ fn a_human_guard_does_not_answer_a_hit() {
     assert_eq!(sim.units[guard].combat.target, None);
 
     let (mut sim, guard, enemy) = guard_on_post(Pos::new(3384, 13896));
-    sim.nation[0].human = false;
+    sim.cities.nation[0].human = false;
     sim.target_opportunity(guard, Obj::Unit(enemy), 1091);
     assert_eq!(
         sim.units[guard].combat.target,

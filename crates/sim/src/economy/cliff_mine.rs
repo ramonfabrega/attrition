@@ -75,7 +75,7 @@ impl Sim {
     /// Lays `Cliffs::init`'s mining data down, by queue index — the index a
     /// dump's `MiningList::cliff` prints.
     pub fn place_cliffs(&mut self, mining: &[Vec<(i32, i32)>]) {
-        self.cliffs = mining.iter().map(|t| CliffMining::from_tiles(t)).collect();
+        self.terrain.cliffs = mining.iter().map(|t| CliffMining::from_tiles(t)).collect();
     }
 
     /// **`CliffsData::find_nearest@008a8da0`**: `(distance, cliff index)` of
@@ -86,7 +86,7 @@ impl Sim {
     pub fn find_nearest_cliff(&self, centre: Pos) -> Option<(i32, usize)> {
         let site_region = self.world.region_of(centre.cell());
         let mut best: Option<(i32, usize)> = None;
-        for (k, c) in self.cliffs.iter().enumerate() {
+        for (k, c) in self.terrain.cliffs.iter().enumerate() {
             let Some(&first) = c.cells.first() else {
                 continue;
             };
@@ -125,7 +125,7 @@ impl Sim {
     /// at the first tile that is not forest-surfaced, not in an enemy's cell,
     /// and already `is_gathered_from` — the arm's −1.
     pub fn cliff_taken(&self, k: usize, who: Player) -> bool {
-        self.cliffs[k].tiles.iter().any(|&t| {
+        self.terrain.cliffs[k].tiles.iter().any(|&t| {
             let m = self.world.tile_mask(t);
             m & tile::SURFACE != tile::SURFACE_FOREST
                 && self.cliff_tile_ours(t, who)
@@ -137,7 +137,7 @@ impl Sim {
     /// tile count, scaled by the share of its tiles that are ours (and in
     /// `list`, when one is handed), at least 1 when any is.
     pub fn cliff_gather_size(&self, k: usize, who: Player, list: Option<&[Pos]>) -> i32 {
-        let tiles = &self.cliffs[k].tiles;
+        let tiles = &self.terrain.cliffs[k].tiles;
         let total = i32::try_from(tiles.len()).unwrap_or(i32::MAX);
         let counted = tiles
             .iter()
@@ -159,7 +159,7 @@ impl Sim {
     /// cell is unclaimed, ours or an ally's, and it is not already
     /// `0x1000`.
     pub fn cliff_gather_tcoords(&self, k: usize, who: Player) -> Vec<Pos> {
-        self.cliffs[k]
+        self.terrain.cliffs[k]
             .tiles
             .iter()
             .copied()

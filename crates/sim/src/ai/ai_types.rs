@@ -22,7 +22,7 @@ pub enum Class {
 impl Sim {
     /// The class of a tree id.
     pub fn type_class(&self, t: TypeId) -> Class {
-        match self.tech_tree.kind(t) {
+        match self.tables.tech_tree.kind(t) {
             Kind::Good => Class::Good,
             Kind::Unit(_) => Class::Unit,
             Kind::Building { .. } => Class::Build,
@@ -32,12 +32,18 @@ impl Sim {
 
     /// The unit record (an index into `unit_types`) a tree id names.
     pub fn unit_record(&self, t: TypeId) -> Option<usize> {
-        self.unit_types.iter().position(|u| u.tree == Some(t))
+        self.tables
+            .unit_types
+            .iter()
+            .position(|u| u.tree == Some(t))
     }
 
     /// The building record (an index into `build_types`) a tree id names.
     pub fn build_record(&self, t: TypeId) -> Option<usize> {
-        self.build_types.iter().position(|b| b.tree == Some(t))
+        self.tables
+            .build_types
+            .iter()
+            .position(|b| b.tree == Some(t))
     }
 
     /// `LeaderData::num_buildings[t]`: live, finished buildings of exactly
@@ -65,7 +71,7 @@ impl Sim {
         let mut guard = 0;
         while let Some(x) = r {
             n += self.num_buildings_of(who, x);
-            r = self.build_types[x].to;
+            r = self.tables.build_types[x].to;
             guard += 1;
             if guard > 16 {
                 break;
@@ -93,8 +99,8 @@ impl Sim {
         match self.type_price(who, t) {
             Some(charges) => cost::affordable(
                 &charges,
-                &self.ledgers[who as usize],
-                &self.holdings[who as usize].available,
+                &self.economy.ledgers[who as usize],
+                &self.economy.holdings[who as usize].available,
                 escrow_ignored,
             ),
             None => cost::PLENTY,
@@ -109,6 +115,7 @@ impl Sim {
     /// The leader's live cities in slot order.
     pub fn cities_of(&self, who: Player) -> Vec<usize> {
         self.cities
+            .cities
             .iter()
             .enumerate()
             .filter(|(_, c)| c.alive && c.owner == who)
@@ -119,7 +126,7 @@ impl Sim {
     /// The city's member chain, the centre first — `CityData.o` then the
     /// `city_down` links.
     pub fn city_chain(&self, c: usize) -> Vec<usize> {
-        let city = &self.cities[c];
+        let city = &self.cities.cities[c];
         std::iter::once(city.building)
             .chain(city.members.iter().copied())
             .collect()
@@ -128,7 +135,7 @@ impl Sim {
     /// `get_diff()`: the difficulty the AI plays at — the lobby's in a solo
     /// game (`docs/AI.md` §10).
     pub fn ai_difficulty(&self) -> i32 {
-        self.lobby.difficulty
+        self.ai.lobby.difficulty
     }
 
     /// `LeaderData::get_mod_resource_cap@006d65b0` — the commerce cap **as
@@ -150,11 +157,11 @@ impl Sim {
     /// pass (§2.5), `create_buildings`' three, `create_units`' two and
     /// `research_techs`' one.
     pub fn mod_resource_cap(&self, who: Player, g: usize) -> i32 {
-        if self.lobby.resources_unlimited() {
+        if self.ai.lobby.resources_unlimited() {
             return 0;
         }
-        let cap = self.ledgers[who as usize].cap[g];
-        if self.nation[who as usize].human {
+        let cap = self.economy.ledgers[who as usize].cap[g];
+        if self.cities.nation[who as usize].human {
             return cap;
         }
         match self.ai_difficulty() {
@@ -186,10 +193,10 @@ impl Sim {
                 continue;
             }
             let Some(rec) = bd.ty else { continue };
-            if !self.build_types[rec].has(crate::build::flags::GATHERER) {
+            if !self.tables.build_types[rec].has(crate::build::flags::GATHERER) {
                 continue;
             }
-            let Some(g) = crate::ai_place::gather_good(self.build_types[rec].ident) else {
+            let Some(g) = crate::ai_place::gather_good(self.tables.build_types[rec].ident) else {
                 continue;
             };
             let max = bd.gather_max.unwrap_or(0);
@@ -214,7 +221,7 @@ impl Sim {
 
     /// `LeaderData::village_num` — [`crate::ai::Census::village_num`].
     pub fn village_num(&self, who: Player) -> i32 {
-        self.ai[who as usize].census.village_num
+        self.ai.ai[who as usize].census.village_num
     }
 
     /// `world+0x34`, `sea_map`: the map style's sea class every producer

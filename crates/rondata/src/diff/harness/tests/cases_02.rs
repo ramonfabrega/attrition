@@ -475,7 +475,7 @@ mod bodies {
             "run54's trace reached the setup and East Indies' AI has one pasture"
         );
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.trace_phases = true;
+        built.sim.trace.trace_phases = true;
         let last = trace.frames.last().map_or(0, |(n, _)| *n);
         assert!(
             last >= 23_000,
@@ -661,7 +661,7 @@ mod bodies {
         // from a dump, so the gull's own record is not there to compare —
         // its **object number** is, and it is what says this crate hands
         // gaia its slots where the original does.
-        let gull = built.sim.docks[1].slots[0]
+        let gull = built.sim.ai.docks[1].slots[0]
             .gull
             .expect("the AI's dock spawned its gull");
         assert_eq!(built.sim.units[gull].owner, 9, "the gull is gaia's");
@@ -690,7 +690,12 @@ mod bodies {
             .units
             .iter()
             .filter(|u| u.alive() && u.farm_animal.is_some_and(|fa| fa.build == pasture))
-            .map(|u| (u.owner, u.ty.and_then(|t| built.sim.unit_types[t].tree)))
+            .map(|u| {
+                (
+                    u.owner,
+                    u.ty.and_then(|t| built.sim.tables.unit_types[t].tree),
+                )
+            })
             .collect();
         assert_eq!(
             stock,
@@ -1120,7 +1125,7 @@ mod bodies {
             borrow_pasture(&mut init, &t);
         }
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        let players = built.sim.players.len();
+        let players = built.sim.territory.players.len();
         use std::collections::BTreeMap;
         let mut blocks = 0usize;
         let mut totals = [0usize; 8];
@@ -1596,7 +1601,7 @@ mod bodies {
             borrow_pasture(&mut init, &t);
         }
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        let players = built.sim.players.len();
+        let players = built.sim.territory.players.len();
         use std::collections::{BTreeMap, BTreeSet};
         let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
         let mut missing: BTreeSet<String> = BTreeSet::new();
@@ -1813,7 +1818,7 @@ mod bodies {
             borrow_pasture(&mut init, &t);
         }
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        let players = built.sim.players.len();
+        let players = built.sim.territory.players.len();
         use std::collections::{BTreeMap, BTreeSet};
         let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
         let mut missing: BTreeSet<String> = BTreeSet::new();
@@ -1836,7 +1841,7 @@ mod bodies {
             if let Some((sf, w, o)) = sweep
                 && sf == f
             {
-                built.sim.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
+                built.sim.trace.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
             }
             built.tick();
             if let Some((sf, _, _)) = sweep
@@ -1844,6 +1849,7 @@ mod bodies {
             {
                 for l in built
                     .sim
+                    .trace
                     .sweep_watch
                     .take()
                     .expect("the recorder")
@@ -1974,19 +1980,20 @@ mod bodies {
                     let t = t as sim::tech::TypeId;
                     eprintln!(
                         "  preq {n} t{t}: {:?} level {} epoch {:?} researched {:?}",
-                        built.sim.tech_tree.types[t].preq,
-                        built.sim.tech_tree.military_level_of(t),
+                        built.sim.tables.tech_tree.types[t].preq,
+                        built.sim.tables.tech_tree.military_level_of(t),
                         built.sim.tech[1].epoch,
                         built
                             .sim
+                            .tables
                             .unit_types
                             .iter()
                             .position(|u| u.tree == Some(t))
-                            .map(|r| built.sim.muster[1].researched[r]),
+                            .map(|r| built.sim.roster.muster[1].researched[r]),
                     );
                     eprintln!(
                         "  price {n} 1/t{t} {}: {:?} affordable {} / {}",
-                        built.sim.tech_tree.types[t as usize].name,
+                        built.sim.tables.tech_tree.types[t as usize].name,
                         built.sim.type_price(1, t),
                         built.sim.type_affordable(1, t, true),
                         built.sim.type_affordable(1, t, false),

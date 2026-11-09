@@ -502,7 +502,7 @@ impl SwarmView for SimSwarm<'_> {
     fn set_form(&mut self) {}
     fn leader_flags(&self, p: i32) -> i32 {
         // `leaders[p]`'s flags: bit 2 is the human.
-        if self.sim.nation[p as usize].human {
+        if self.sim.cities.nation[p as usize].human {
             4
         } else {
             0
@@ -525,9 +525,9 @@ impl SwarmView for SimSwarm<'_> {
         let t = self.sim.buildings[b as usize].ty;
         t.map_or(1, |t| {
             if off == 0x234 {
-                self.sim.build_types[t].x_size
+                self.sim.tables.build_types[t].x_size
             } else {
-                self.sim.build_types[t].y_size
+                self.sim.tables.build_types[t].y_size
             }
         })
     }
@@ -542,7 +542,7 @@ impl SwarmView for SimSwarm<'_> {
             // `is(DOCK)`: the lineage a water site is excepted by.
             0x1b0 => self.sim.buildings[b]
                 .ty
-                .is_some_and(|t| crate::build::is_dock(&self.sim.build_types, t)),
+                .is_some_and(|t| crate::build::is_dock(&self.sim.tables.build_types, t)),
             _ => false,
         }
     }
@@ -565,7 +565,7 @@ impl SwarmView for SimSwarm<'_> {
         let u = &self.sim.units[m as usize];
         match u
             .ty
-            .map_or(Domain::Land, |t| self.sim.unit_types[t].kind.domain)
+            .map_or(Domain::Land, |t| self.sim.tables.unit_types[t].kind.domain)
         {
             Domain::Land => 0,
             Domain::Sea => 1,
@@ -603,9 +603,9 @@ impl SwarmView for SimSwarm<'_> {
         true
     }
     fn site_domain(&self, _who: i32, b: i32) -> i32 {
-        let water = self.sim.buildings[b as usize]
-            .ty
-            .is_some_and(|t| self.sim.build_types[t].domain() == crate::build::BuildDomain::Water);
+        let water = self.sim.buildings[b as usize].ty.is_some_and(|t| {
+            self.sim.tables.build_types[t].domain() == crate::build::BuildDomain::Water
+        });
         i32::from(water)
     }
     fn m_is_peasant(&mut self, _p: i32, m: i32) -> bool {

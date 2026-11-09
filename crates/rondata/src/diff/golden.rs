@@ -134,7 +134,7 @@ fn walk_script(run: &str, stem: &str, n: u32, staged: usize, length: i64) -> Opt
         .expect("missing RONT header");
     let loaded = crate::load::load(&inst).unwrap();
     let (mut built, _) = build_golden(run, &dump, &loaded, &trace, true)?;
-    built.sim.trace_phases = true;
+    built.sim.trace.trace_phases = true;
     let mut script = script_named(stem);
     assert_eq!(
         script.lines().len(),
@@ -706,6 +706,7 @@ fn rounds_record_for_record(
             ),
         };
         let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = sim
+            .combat
             .projectiles
             .iter()
             .map(|p| {
@@ -2248,7 +2249,7 @@ fn widen_civilians_walk(
             && std::env::var_os("RON_DISABLE_GOLDEN_READERS").is_none(),
     )
     .with_civilian(ammo);
-    let players = s.built.sim.players.len();
+    let players = s.built.sim.territory.players.len();
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let mut missing: BTreeSet<String> = BTreeSet::new();
     let (mut blocks, mut rows, mut leader_rows, mut good_rows) = (0usize, 0, 0, 0);
@@ -2409,8 +2410,8 @@ fn widen_civilians_walk(
                 let bd = &s.built.sim.buildings[b];
                 let cycles = bd
                     .ty
-                    .and_then(|t| s.built.sim.build_types[t].tree)
-                    .is_some_and(|id| s.built.sim.tech_tree.types[id].wall_cycle.is_some());
+                    .and_then(|t| s.built.sim.tables.build_types[t].tree)
+                    .is_some_and(|id| s.built.sim.tables.tech_tree.types[id].wall_cycle.is_some());
                 // **Every armed building's target** (item 3970, `docs/GOLDEN.md`
                 // §176): `attack_ox`/`attack_whom` on a building whose attack
                 // is not zero as well, the Tower and Fort lines and a city
@@ -2475,7 +2476,7 @@ fn widen_civilians_walk(
                 // A nuke's launch sets the silo's byte to `0xff`
                 // (`Build::do_missile_launch@00622670`), which the dump
                 // prints as −1; that writer lives in `Nukes::shown`.
-                let ours = match s.built.sim.nukes.visible_of(b) {
+                let ours = match s.built.sim.combat.nukes.visible_of(b) {
                     0 => i64::from(s.built.sim.buildings[b].visible),
                     v => v,
                 };
@@ -2693,6 +2694,7 @@ fn widen_civilians_walk(
             };
             let sim = &s.built.sim;
             let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = sim
+                .combat
                 .projectiles
                 .iter()
                 .map(|p| {
@@ -3717,7 +3719,7 @@ fn widen_chapter_three(
     // `!quit` block is written one past it.
     let no_block = LAST - 1;
     let mut s = stage_script(run, stem)?;
-    let players = s.built.sim.players.len();
+    let players = s.built.sim.territory.players.len();
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let mut at_word: Vec<String> = Vec::new();
     let mut missing: BTreeSet<String> = BTreeSet::new();
@@ -3775,6 +3777,7 @@ fn widen_chapter_three(
         let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = s
             .built
             .sim
+            .combat
             .projectiles
             .iter()
             .filter_map(|p| match p.shooter {
@@ -8689,7 +8692,7 @@ fn casts_field_for_field(
 )> {
     use std::collections::BTreeMap;
     let mut s = stage_script(run, stem)?;
-    let players = s.built.sim.players.len() as i64;
+    let players = s.built.sim.territory.players.len() as i64;
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let mut rows = 0usize;
     let mut decoys = 0usize;

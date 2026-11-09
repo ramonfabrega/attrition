@@ -83,7 +83,7 @@ impl ProbeSlots {
             );
             return b[dy as usize] >> dx & 1 != 0;
         }
-        self.readable(sim, p) && sim.coll.get(p.x, p.y)
+        self.readable(sim, p) && sim.movement.coll.get(p.x, p.y)
     }
 
     /// `local_30[slot] == 0`: the slot has a block, the region gate let
@@ -93,7 +93,7 @@ impl ProbeSlots {
             return b.iter().any(|&r| r != 0);
         }
         self.readable(sim, p)
-            && sim.coll.any_in_cell(
+            && sim.movement.coll.any_in_cell(
                 p.x.div_euclid(UCELLS_PER_CELL),
                 p.y.div_euclid(UCELLS_PER_CELL),
             )
@@ -669,7 +669,8 @@ impl BoatView for SimBoat<'_> {
     }
     fn is_transport(&mut self, u: usize) -> bool {
         self.0.units[u].ty.is_some_and(|t| {
-            self.0.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT != 0
+            self.0.tables.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT
+                != 0
         })
     }
     fn find_units(&mut self, u: usize, at: Pos, size: i32, _circles: i32) -> Vec<usize> {
@@ -709,7 +710,7 @@ impl BoatView for SimBoat<'_> {
     fn packs(&mut self, o: usize) -> bool {
         self.0.units[o]
             .ty
-            .map(|t| self.0.unit_types[t].cols)
+            .map(|t| self.0.tables.unit_types[t].cols)
             .is_some_and(|c| c.flag2(crate::ai_load::uflags2::PACKS))
     }
     fn packed(&mut self, o: usize) -> bool {
@@ -724,7 +725,7 @@ impl BoatView for SimBoat<'_> {
     fn is_tank(&mut self, o: usize) -> bool {
         self.0.units[o]
             .ty
-            .map(|t| self.0.unit_types[t].cols)
+            .map(|t| self.0.tables.unit_types[t].cols)
             .is_some_and(|c| c.flag(crate::ai_load::uflags::TANK))
     }
     fn is_moving(&mut self, o: usize) -> bool {
@@ -811,7 +812,7 @@ impl<'a> SimDetect<'a> {
     /// hit cell.
     fn wreck_from(&self, from: usize) -> DetectNode {
         let s = &*self.sim;
-        for (di, d) in s.deaths.iter().enumerate().skip(from) {
+        for (di, d) in s.combat.deaths.iter().enumerate().skip(from) {
             let Some(w) = s
                 .units
                 .iter()
@@ -824,7 +825,9 @@ impl<'a> SimDetect<'a> {
                 || s.units[w].coll_at.is_some()
                 || s.units[w].pos.cell() != self.cell
                 || !s.units[w].ty.is_some_and(|t| {
-                    s.unit_types[t].cols.unit_flags & crate::ai_load::uflags::BLOCKS_WHILE_DEAD != 0
+                    s.tables.unit_types[t].cols.unit_flags
+                        & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
+                        != 0
                 })
                 || !s.unit_is_here(w, self.hit)
             {
@@ -929,7 +932,7 @@ impl DetectCollisionView for SimDetect<'_> {
             y: cell.1,
         };
         let slot = (cell.1 as usize) * (self.sim.world.width() as usize) + (cell.0 as usize);
-        Some(match self.sim.chain_heads[slot] {
+        Some(match self.sim.terrain.chain_heads[slot] {
             Some(h) => DetectNode::Live(h),
             None => self.wreck_from(0),
         })
@@ -1337,7 +1340,7 @@ impl Sim {
             ..m.turning
         };
         let rate = crate::movement::turn_speed(
-            &self.tuning,
+            &self.tables.tuning,
             &turning,
             m.body.last_speed,
             m.body.avg_speed,
@@ -1346,7 +1349,11 @@ impl Sim {
         let was = m.facing;
         let (out, _) = crate::movement::turn_towards(was, bearing, rate);
         if out != was {
-            let outer = self.phase_marks.last().map(|(label, _)| label.clone());
+            let outer = self
+                .trace
+                .phase_marks
+                .last()
+                .map(|(label, _)| label.clone());
             self.mark(crate::anim::SITE_TURN_PUSHED);
             self.do_turn_anim(o, was, out, bearing);
             if let Some(outer) = outer {
@@ -1381,7 +1388,7 @@ impl Sim {
                     continue;
                 }
                 let slot = (c.y as usize) * (self.world.width() as usize) + (c.x as usize);
-                let mut next = self.chain_heads[slot];
+                let mut next = self.terrain.chain_heads[slot];
                 while let Some(o) = next {
                     next = self.units[o].down;
                     if o != u
@@ -1639,7 +1646,7 @@ impl Sim {
                     })
             });
             if !covered {
-                self.coll.set(p.x, p.y, false);
+                self.movement.coll.set(p.x, p.y, false);
             }
         }
     }
@@ -1663,7 +1670,7 @@ impl Sim {
         paint_walk(
             &mut SimPaint {
                 world: &self.world,
-                coll: &mut self.coll,
+                coll: &mut self.movement.coll,
                 region,
             },
             size,
@@ -1712,13 +1719,13 @@ impl Sim {
             for (dx, dy) in &disc {
                 let p = Pos::new(a.x + dx, a.y + dy);
                 if (p.x - b.x).abs() > size || (p.y - b.y).abs() > size {
-                    self.coll.set(p.x, p.y, false);
+                    self.movement.coll.set(p.x, p.y, false);
                 }
             }
             for (dx, dy) in &disc {
                 let p = Pos::new(b.x + dx, b.y + dy);
                 if (p.x - a.x).abs() > size || (p.y - a.y).abs() > size {
-                    self.coll.set(p.x, p.y, true);
+                    self.movement.coll.set(p.x, p.y, true);
                 }
             }
             return;
@@ -1727,7 +1734,7 @@ impl Sim {
             let p = Pos::new(a.x + dx, a.y + dy);
             if ((p.x - b.x).abs() > size || (p.y - b.y).abs() > size) && self.coll_region_ok(ra, p)
             {
-                self.coll.set(p.x, p.y, false);
+                self.movement.coll.set(p.x, p.y, false);
             }
         }
         let rb = self.world.tregion_alt(to.tile());
@@ -1735,7 +1742,7 @@ impl Sim {
             let p = Pos::new(b.x + dx, b.y + dy);
             if ((p.x - a.x).abs() > size || (p.y - a.y).abs() > size) && self.coll_region_ok(rb, p)
             {
-                self.coll.set(p.x, p.y, true);
+                self.movement.coll.set(p.x, p.y, true);
             }
         }
     }
@@ -1769,13 +1776,13 @@ impl Sim {
         let Some(s) = self.chain_slot(self.units[u].pos) else {
             return;
         };
-        let head = self.chain_heads[s];
+        let head = self.terrain.chain_heads[s];
         self.units[u].up = None;
         self.units[u].down = head;
         if let Some(h) = head {
             self.units[h].up = Some(u);
         }
-        self.chain_heads[s] = Some(u);
+        self.terrain.chain_heads[s] = Some(u);
     }
 
     /// The world cell's object chain, head first — the order
@@ -1795,7 +1802,7 @@ impl Sim {
         }
         let s = (c.y as usize) * (self.world.width() as usize) + (c.x as usize);
         let mut out = Vec::new();
-        let mut next = self.chain_heads[s];
+        let mut next = self.terrain.chain_heads[s];
         while let Some(u) = next {
             out.push(u);
             next = self.units[u].down;
@@ -1814,9 +1821,9 @@ impl Sim {
             Some(p) => self.units[p].down = down,
             None => {
                 if let Some(s) = self.chain_slot(self.units[u].pos)
-                    && self.chain_heads[s] == Some(u)
+                    && self.terrain.chain_heads[s] == Some(u)
                 {
-                    self.chain_heads[s] = down;
+                    self.terrain.chain_heads[s] = down;
                 }
             }
         }
@@ -1929,7 +1936,7 @@ impl Sim {
                     && !self.units[u].decoy
                     && self.units[u]
                         .ty
-                        .is_none_or(|t| self.unit_types[t].combat.domain == Domain::Land)
+                        .is_none_or(|t| self.tables.unit_types[t].combat.domain == Domain::Land)
                     && self.world.cell_data(to.cell()).flags & crate::world::cell::GOODY != 0
                 {
                     self.explore_goody(u);
@@ -2095,7 +2102,7 @@ impl Sim {
                 corners.push((x1, y1));
             }
         }
-        let mut copies = self.coll_copies.borrow_mut();
+        let mut copies = self.movement.coll_copies.borrow_mut();
         for (cx, cy) in corners {
             if cx < 0 || cy < 0 || cx >= self.world.width() || cy >= self.world.height() {
                 continue;
@@ -2106,7 +2113,7 @@ impl Sim {
                 if slots.readable(self, base) {
                     for (dy, row) in b.iter_mut().enumerate() {
                         for dx in 0..UCELLS_PER_CELL {
-                            if self.coll.get(base.x + dx, base.y + dy as i32) {
+                            if self.movement.coll.get(base.x + dx, base.y + dy as i32) {
                                 *row |= 1 << dx;
                             }
                         }
@@ -2257,7 +2264,7 @@ impl Sim {
     pub(crate) fn detect_unit_collision(&mut self, u: usize, at: Pos) -> Option<usize> {
         // The recorder, and it is read-only: `sweep_verdict` walks the
         // same scan this call is about to walk and changes nothing.
-        let watching = self.sweep_watch.as_ref().is_some_and(|w| {
+        let watching = self.trace.sweep_watch.as_ref().is_some_and(|w| {
             w.frame == self.frame
                 && w.unit
                     == (
@@ -2267,7 +2274,7 @@ impl Sim {
         });
         if watching {
             let v = self.sweep_verdict(u, at);
-            if let Some(w) = self.sweep_watch.as_mut() {
+            if let Some(w) = self.trace.sweep_watch.as_mut() {
                 w.seen.push((at, v));
             }
         }
@@ -2330,7 +2337,7 @@ impl Sim {
             let Some(s) = self.chain_slot(p) else {
                 continue;
             };
-            let mut next = self.chain_heads[s];
+            let mut next = self.terrain.chain_heads[s];
             while let Some(o) = next {
                 next = self.units[o].down;
                 if o == u || self.is_air(o) || !self.units[o].alive() || !self.units[o].on_map {
@@ -2368,7 +2375,7 @@ impl Sim {
             // (run933's Tank `1/6` on `0/10`'s `collide_o`). This crate
             // unlinks the unit at its death and keeps the disc beside it,
             // so the wrecks are walked from the death list.
-            for d in &self.deaths {
+            for d in &self.combat.deaths {
                 let Some(w) = self
                     .units
                     .iter()
@@ -2381,7 +2388,7 @@ impl Sim {
                     || self.units[w].coll_at.is_some()
                     || self.units[w].pos.cell() != p.cell()
                     || !self.units[w].ty.is_some_and(|t| {
-                        self.unit_types[t].cols.unit_flags
+                        self.tables.unit_types[t].cols.unit_flags
                             & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
                             != 0
                     })
@@ -2734,7 +2741,7 @@ impl Sim {
             if !self.world.contains(c) {
                 return false;
             }
-            let mut next = self.chain_heads[(c.y as usize) * width + (c.x as usize)];
+            let mut next = self.terrain.chain_heads[(c.y as usize) * width + (c.x as usize)];
             while let Some(x) = next {
                 next = self.units[x].down;
                 if hit(x) {
@@ -2873,7 +2880,7 @@ impl Sim {
             mine,
             |dx, dy| {
                 let p = Pos::new(at.x + dx * UNITS_PER_CELL, at.y + dy * UNITS_PER_CELL);
-                self.chain_slot(p).and_then(|s| self.chain_heads[s])
+                self.chain_slot(p).and_then(|s| self.terrain.chain_heads[s])
             },
             |o| self.units[o].down,
             |o| {
@@ -2962,7 +2969,7 @@ impl Sim {
             self.add_attack_order(u, t, QueuePos::First, false, false);
             return true;
         }
-        if self.retargets[usize::from(who)] < 10 {
+        if self.combat.retargets[usize::from(who)] < 10 {
             self.find_new_target(u, true);
             return true;
         }
@@ -3144,7 +3151,7 @@ impl Sim {
                 )
             });
         if (its_move || its_transport_cast) && its_order != index::FLEE_TO {
-            let cap = if self.repaths[who as usize] > 3 {
+            let cap = if self.movement.repaths[who as usize] > 3 {
                 0x80
             } else {
                 0x20
@@ -3263,7 +3270,7 @@ impl Sim {
             return;
         }
         let who = self.units[u].owner as usize;
-        let repaths = self.repaths[who];
+        let repaths = self.movement.repaths[who];
         let collide = i32::from(self.units[u].collide);
         let o = i32::from(self.units[u].index);
         let n = if repaths < 4 {
@@ -3277,7 +3284,7 @@ impl Sim {
         if repaths >= 0x10 || (repaths >= 8 && (o + n) & 0xf != 0) {
             return;
         }
-        self.repaths[who] = repaths + 1;
+        self.movement.repaths[who] = repaths + 1;
         // Pop until an entry is worth keeping, then push the last back.
         let mut kept = PathData {
             to: self.units[u].pos,

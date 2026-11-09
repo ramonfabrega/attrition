@@ -61,7 +61,10 @@ impl Sim {
     pub(super) fn swarm_spot(&self, u: usize, b: usize, building: bool) -> Option<(Pos, Angle)> {
         let bd = &self.buildings[b];
         let (xs, ys) = bd.ty.map_or((1, 1), |t| {
-            (self.build_types[t].x_size, self.build_types[t].y_size)
+            (
+                self.tables.build_types[t].x_size,
+                self.tables.build_types[t].y_size,
+            )
         });
         let mut r = xs.min(ys) * HALF_TILE + SNAP;
         if building && self.building_ident(b) == Ident::Farm {
@@ -125,8 +128,8 @@ impl Sim {
     /// swarm here carries anyone.
     pub(super) fn swarm_seeker_type(&self, u: usize, b: usize) -> Option<usize> {
         let t = self.buildings[b].ty?;
-        if self.build_types[t].domain() != crate::build::BuildDomain::Water
-            || crate::build::is_dock(&self.build_types, t)
+        if self.tables.build_types[t].domain() != crate::build::BuildDomain::Water
+            || crate::build::is_dock(&self.tables.build_types, t)
             || !self.is_peasant(u)
             || self.transport_level(self.units[u].owner) < crate::transport::TransportType::Civilian
         {
@@ -184,7 +187,7 @@ impl Sim {
     /// change is held until both words are measured with it.
     pub(crate) fn swarm_around(&mut self, u: usize, b: usize, body: Body, action: bool) {
         let building = matches!(body, Body::Build(_));
-        let kind = if self.nation[self.units[u].owner as usize].human {
+        let kind = if self.cities.nation[self.units[u].owner as usize].human {
             MoveKind::MoveTo
         } else {
             MoveKind::ExploreTo
@@ -354,8 +357,8 @@ impl Sim {
             if self.find_build_spot(u) || self.find_repair_spot(u) {
                 return;
             }
-            if !self.lobby.resources_unlimited() {
-                self.find_gather_spot(u, self.tuning.unit_gather_respond_range * TILE);
+            if !self.ai.lobby.resources_unlimited() {
+                self.find_gather_spot(u, self.tables.tuning.unit_gather_respond_range * TILE);
             }
             return;
         }
@@ -363,7 +366,9 @@ impl Sim {
         if (stance == 1 || stance == 2) && self.find_build_spot(u) {
             return;
         }
-        if stance <= 1 && self.find_gather_spot(u, self.tuning.unit_gather_respond_range * TILE) {
+        if stance <= 1
+            && self.find_gather_spot(u, self.tables.tuning.unit_gather_respond_range * TILE)
+        {
             // The human arm's gather clears the unit's `+0x80` (`group`),
             // and only the pointer: the pool keeps it listed (`00603cb5`;
             // run430's `0/9` on 1075, a Barracks finished and a Woodcutter's
@@ -422,7 +427,7 @@ impl Sim {
         } else {
             self.units[o]
                 .ty
-                .map_or(0, |t| self.unit_types[t].combat.big_radius)
+                .map_or(0, |t| self.tables.unit_types[t].combat.big_radius)
         }
     }
 
@@ -517,7 +522,7 @@ impl Sim {
                     continue;
                 }
                 let slot = (c.y as usize) * (self.world.width() as usize) + (c.x as usize);
-                let mut next = self.chain_heads[slot];
+                let mut next = self.terrain.chain_heads[slot];
                 while let Some(o) = next {
                     next = self.units[o].down;
                     if self.world.tregion_alt(self.units[o].pos.tile()) != region {
@@ -584,7 +589,7 @@ impl Sim {
     pub(crate) fn find_repair_spot(&mut self, u: usize) -> bool {
         let who = self.units[u].owner;
         let human = !self.unit_ai_bit(who) && !self.ai_driven(who);
-        let mut range = self.tuning.unit_build_respond_range * TILE;
+        let mut range = self.tables.tuning.unit_build_respond_range * TILE;
         if human {
             let stance = self.units[u].stance;
             if stance == 1 || stance == 2 {
@@ -711,7 +716,10 @@ impl Sim {
             Err(GarrisonRefused::NotAdjacent) => {
                 let bd = &self.buildings[b];
                 let (xs, ys) = bd.ty.map_or((1, 1), |t| {
-                    (self.build_types[t].x_size, self.build_types[t].y_size)
+                    (
+                        self.tables.build_types[t].x_size,
+                        self.tables.build_types[t].y_size,
+                    )
                 });
                 let r = xs.min(ys) * HALF_TILE + SNAP;
                 let here = self.units[u].pos;
@@ -804,21 +812,21 @@ impl Sim {
     pub fn is_gather_type(&self, b: usize) -> bool {
         self.buildings[b]
             .ty
-            .is_some_and(|t| self.build_types[t].has(bflags::GATHERER))
+            .is_some_and(|t| self.tables.build_types[t].has(bflags::GATHERER))
     }
 
     /// `build_flags & FLAT`.
     pub fn is_flat(&self, b: usize) -> bool {
         self.buildings[b]
             .ty
-            .is_some_and(|t| self.build_types[t].has(bflags::FLAT))
+            .is_some_and(|t| self.tables.build_types[t].has(bflags::FLAT))
     }
 
     /// The unit type's worker kind.
     pub fn worker_of(&self, u: usize) -> Worker {
         self.units[u]
             .ty
-            .map_or(Worker::None, |t| self.unit_types[t].worker)
+            .map_or(Worker::None, |t| self.tables.unit_types[t].worker)
     }
 
     /// `BuildData::gather_max` against the chain: room for one more.
@@ -1047,7 +1055,10 @@ impl Sim {
         let bpos = self.buildings[b].pos;
         let here = self.units[u].pos;
         let (xs, ys) = self.buildings[b].ty.map_or((1, 1), |t| {
-            (self.build_types[t].x_size, self.build_types[t].y_size)
+            (
+                self.tables.build_types[t].x_size,
+                self.tables.build_types[t].y_size,
+            )
         });
         let d = xs.min(ys) * HALF_TILE + SNAP;
         if !g.goto_build {
@@ -1057,7 +1068,7 @@ impl Sim {
             self.units[u].carry &= !CARRY_ANY;
             if !g.been_there {
                 g.been_there = true;
-                self.ledgers[who as usize].dirty = true;
+                self.economy.ledgers[who as usize].dirty = true;
             }
             if g.wait < 0 {
                 // Return to the camp.
@@ -1224,7 +1235,7 @@ impl Sim {
                 g.wait -= 1;
                 if !g.been_there {
                     g.been_there = true;
-                    self.ledgers[who as usize].dirty = true;
+                    self.economy.ledgers[who as usize].dirty = true;
                 }
                 if g.wait >= 0 {
                     self.units[u]
@@ -1634,11 +1645,11 @@ impl DoBuildView for SimDoBuild<'_> {
         self.s.units[self.u].decoy
     }
     fn accel_construct(&mut self) -> i32 {
-        self.s.tuning.accel_construct
+        self.s.tables.tuning.accel_construct
     }
     fn under_fire_exempt(&mut self) -> bool {
-        self.s.nation[self.s.units[self.u].owner as usize].koreans
-            && self.s.tuning.korean_build_under_fire != 0
+        self.s.cities.nation[self.s.units[self.u].owner as usize].koreans
+            && self.s.tables.tuning.korean_build_under_fire != 0
     }
     fn site_under_attack(&mut self) -> bool {
         self.s.buildings[self.b].is_under_attack()
@@ -2029,7 +2040,7 @@ impl DoRepairView for SimDoRepair<'_> {
         self.s.buildings[self.b].hits_now()
     }
     fn accel_construct(&mut self) -> i32 {
-        self.s.tuning.accel_construct
+        self.s.tables.tuning.accel_construct
     }
     fn construct_time(&mut self) -> i32 {
         self.s.construct_time_of(self.b)
@@ -2039,21 +2050,21 @@ impl DoRepairView for SimDoRepair<'_> {
     }
     fn is_city(&mut self) -> bool {
         let bd = &self.s.buildings[self.b];
-        matches!(bd.city, Some(c) if self.s.building_is_city(self.b) && self.s.cities[c].alive)
+        matches!(bd.city, Some(c) if self.s.building_is_city(self.b) && self.s.cities.cities[c].alive)
     }
     fn captured(&mut self) -> bool {
         let bd = &self.s.buildings[self.b];
         bd.city
-            .is_some_and(|c| self.s.cities[c].race != Some(bd.owner))
+            .is_some_and(|c| self.s.cities.cities[c].race != Some(bd.owner))
     }
     fn korean(&mut self) -> bool {
-        self.s.nation[self.s.units[self.u].owner as usize].koreans
+        self.s.cities.nation[self.s.units[self.u].owner as usize].koreans
     }
     fn korean_repair(&mut self) -> i32 {
-        self.s.tuning.korean_repair
+        self.s.tables.tuning.korean_repair
     }
     fn korean_under_fire(&mut self) -> i32 {
-        self.s.tuning.korean_build_under_fire
+        self.s.tables.tuning.korean_build_under_fire
     }
     fn fresh_hit(&mut self) -> bool {
         self.s.buildings[self.b].under_attack & 0x1 != 0
@@ -2069,7 +2080,7 @@ impl DoRepairView for SimDoRepair<'_> {
         bd.hits_now() - bd.damage
     }
     fn good_avail(&mut self, good: usize) -> bool {
-        self.s.holdings[self.s.units[self.u].owner as usize].available[good]
+        self.s.economy.holdings[self.s.units[self.u].owner as usize].available[good]
     }
     fn price(&mut self, good: usize) -> i32 {
         // The site's owner is the `uid` the type's price is asked for
@@ -2080,7 +2091,7 @@ impl DoRepairView for SimDoRepair<'_> {
             .map_or(0, |t| self.s.building_price(bd.owner, t)[good])
     }
     fn bucket(&mut self, good: usize) -> i32 {
-        self.s.ledgers[self.s.units[self.u].owner as usize].bucket[good]
+        self.s.economy.ledgers[self.s.units[self.u].owner as usize].bucket[good]
     }
     fn feedback_stamp(&mut self) -> i32 {
         // SEAM: the complaint's throttle stamp is not carried; a complaint
@@ -2095,7 +2106,7 @@ impl DoRepairView for SimDoRepair<'_> {
     fn charge(&mut self, good: usize, d: i32) {
         // `Unit::do_repair@005ee420`'s charge draws the escrow down by the
         // same amount, floored at zero (`docs/AI.md` §98).
-        let ledger = &mut self.s.ledgers[self.s.units[self.u].owner as usize];
+        let ledger = &mut self.s.economy.ledgers[self.s.units[self.u].owner as usize];
         ledger.bucket[good] -= d;
         ledger.escrow[good] = (ledger.escrow[good] - d).max(0);
     }
@@ -2587,7 +2598,7 @@ impl DoGatherView for SimDoGather<'_> {
     fn site_domain(&mut self) -> i32 {
         self.s.buildings[self.b]
             .ty
-            .map_or(0, |t| match self.s.build_types[t].domain() {
+            .map_or(0, |t| match self.s.tables.build_types[t].domain() {
                 crate::build::BuildDomain::Land => 0,
                 crate::build::BuildDomain::Water => 1,
                 crate::build::BuildDomain::Both => 2,
@@ -2653,7 +2664,10 @@ impl DoGatherView for SimDoGather<'_> {
     }
     fn site_size(&mut self) -> (i32, i32) {
         self.s.buildings[self.b].ty.map_or((1, 1), |t| {
-            (self.s.build_types[t].x_size, self.s.build_types[t].y_size)
+            (
+                self.s.tables.build_types[t].x_size,
+                self.s.tables.build_types[t].y_size,
+            )
         })
     }
     fn can_transport(&mut self) -> bool {
@@ -2678,7 +2692,7 @@ impl DoGatherView for SimDoGather<'_> {
     }
     fn mark_leader(&mut self) {
         let who = self.s.units[self.u].owner as usize;
-        self.s.ledgers[who].dirty = true;
+        self.s.economy.ledgers[who].dirty = true;
     }
     fn is_scholar(&mut self) -> bool {
         self.s.worker_of(self.u) == Worker::Scholar
@@ -2716,7 +2730,7 @@ impl DoGatherView for SimDoGather<'_> {
     fn city_under_attack(&mut self) -> bool {
         self.s.buildings[self.b]
             .city
-            .is_some_and(|c| self.s.cities[c].no_heal)
+            .is_some_and(|c| self.s.cities.cities[c].no_heal)
     }
     fn add_repair_order(&mut self) {
         self.s
@@ -3130,7 +3144,7 @@ impl GatherSpotView for GatherSpotSim<'_> {
         // `city_ai` only exists as far as the last census reached, and a
         // human leader never runs one — so an absent record is zero, which
         // is what the original's `CityData` holds for the same reason.
-        self.sim.ai[self.who as usize]
+        self.sim.ai.ai[self.who as usize]
             .city_ai
             .get(c as usize)
             .map_or(0, |r| i32::from(r.free) + i32::from(r.gatherers))
@@ -3140,23 +3154,24 @@ impl GatherSpotView for GatherSpotSim<'_> {
         (p.x, p.y)
     }
     fn good_avail(&mut self, g: usize) -> bool {
-        self.sim.holdings[self.who as usize].available[g]
+        self.sim.economy.holdings[self.who as usize].available[g]
     }
     fn gathers(&mut self, i: i32, g: usize) -> bool {
         crate::ai_place::gather_good(self.sim.building_ident(i as usize)) == Some(g)
     }
     fn under_cap(&mut self, g: usize) -> bool {
-        self.sim.ledgers[self.who as usize].over_cap[g] == economy::OverCap::Under
+        self.sim.economy.ledgers[self.who as usize].over_cap[g] == economy::OverCap::Under
     }
     fn headroom(&mut self, g: usize) -> i32 {
-        let l = &self.sim.ledgers[self.who as usize];
+        let l = &self.sim.economy.ledgers[self.who as usize];
         l.cap[g].wrapping_sub(l.income[g])
     }
     fn dutch(&mut self) -> bool {
         let w = self.who as usize;
         self.sim
+            .tables
             .tech_tree
-            .has_tribe_bonus(&self.sim.setup, &self.sim.tech[w], 0x16)
+            .has_tribe_bonus(&self.sim.tables.setup, &self.sim.tech[w], 0x16)
     }
     fn add_gather_order(&mut self, i: i32) {
         self.sim
@@ -3241,7 +3256,7 @@ impl crate::check_build_view::CheckBuildView for SimCheckBuild<'_> {
         i32::from(self.s.units[self.u].owner)
     }
     fn find_units(&mut self) {
-        let range = self.s.tuning.unit_build_respond_range * TILE;
+        let range = self.s.tables.tuning.unit_build_respond_range * TILE;
         self.found = self.s.find_units_friendly(self.u, range);
     }
     fn found_count(&mut self) -> i32 {

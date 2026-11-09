@@ -209,7 +209,7 @@ impl Host for ScriptHost<'_> {
                 .map_or(BAD, |w| int(self.sim.tech[w as usize].ages)),
             "population" => self
                 .leader(a(0))
-                .map_or(BAD, |w| int(self.sim.muster[w as usize].control)),
+                .map_or(BAD, |w| int(self.sim.roster.muster[w as usize].control)),
             "num_cities" => self
                 .leader_any(a(0))
                 .map_or(BAD, |w| int(self.sim.city_num(w))),
@@ -238,6 +238,7 @@ impl Host for ScriptHost<'_> {
                     let tribe = self.sim.tech[w as usize].tribe;
                     Value::Str(
                         self.sim
+                            .tables
                             .tech_tree
                             .tribes
                             .get(tribe)
@@ -264,6 +265,7 @@ impl Host for ScriptHost<'_> {
                 let found = self
                     .sim
                     .cities
+                    .cities
                     .iter()
                     .enumerate()
                     .find(|(c, city)| city.alive && city_name(*c).eq_ignore_ascii_case(&name))
@@ -283,15 +285,18 @@ impl Host for ScriptHost<'_> {
                     } else {
                         match self
                             .sim
+                            .tables
                             .tech_tree
                             .ages
                             .get(p.ages as usize)
                             .copied()
                             .flatten()
                         {
-                            Some(age) => {
-                                int(self.sim.tech_tree.techs_per_age(&self.sim.setup, p, age))
-                            }
+                            Some(age) => int(self.sim.tables.tech_tree.techs_per_age(
+                                &self.sim.tables.setup,
+                                p,
+                                age,
+                            )),
                             None => BAD,
                         }
                     }
@@ -303,9 +308,9 @@ impl Host for ScriptHost<'_> {
             // that is not a live leader. `docs/ECONOMY.md`, "The rares a
             // leader has seen" — and `economic.bhs` divides its merchant
             // count by it, so a stub of zero trained none at all.
-            "num_rare_resources_seen" => self
-                .leader(a(0))
-                .map_or(BAD, |w| int(self.sim.ai[w as usize].new_rares.len() as i32)),
+            "num_rare_resources_seen" => self.leader(a(0)).map_or(BAD, |w| {
+                int(self.sim.ai.ai[w as usize].new_rares.len() as i32)
+            }),
             "find_build_at_city" => self.find_build_at_city(a(0), &s(1), &s(2), a(3) != 0),
             "num_city_buildings" => self.num_city_buildings(a(0), &s(1), &s(2), a(3) != 0),
             "find_idle_citizen" => self.find_idle_citizen(a(0)),
@@ -368,27 +373,28 @@ impl Host for ScriptHost<'_> {
             },
 
             // ---- the lobby ----
-            "get_is_no_nation_powers" => int(self.sim.lobby.no_nation_powers as i32),
-            "get_rush_rules" => int(self.sim.lobby.rush_rules),
-            "get_mapstyle" => Value::Str(self.sim.lobby.map_style_name.clone()),
-            "is_conquest_scenario" => int(self.sim.lobby.conquest as i32),
-            "is_victory_score" => int((self.sim.lobby.victory == 3) as i32),
-            "is_victory_musical_chairs" => int((self.sim.lobby.victory == 5) as i32),
-            "is_victory_wonder" => int((self.sim.lobby.victory == 6) as i32),
-            "is_victory_territory" => int((self.sim.lobby.victory == 7) as i32),
-            "is_victory_economic" => int((self.sim.lobby.victory == 8) as i32),
-            "is_victory_tech_race" => int((self.sim.lobby.victory == 9) as i32),
+            "get_is_no_nation_powers" => int(self.sim.ai.lobby.no_nation_powers as i32),
+            "get_rush_rules" => int(self.sim.ai.lobby.rush_rules),
+            "get_mapstyle" => Value::Str(self.sim.ai.lobby.map_style_name.clone()),
+            "is_conquest_scenario" => int(self.sim.ai.lobby.conquest as i32),
+            "is_victory_score" => int((self.sim.ai.lobby.victory == 3) as i32),
+            "is_victory_musical_chairs" => int((self.sim.ai.lobby.victory == 5) as i32),
+            "is_victory_wonder" => int((self.sim.ai.lobby.victory == 6) as i32),
+            "is_victory_territory" => int((self.sim.ai.lobby.victory == 7) as i32),
+            "is_victory_economic" => int((self.sim.ai.lobby.victory == 8) as i32),
+            "is_victory_tech_race" => int((self.sim.ai.lobby.victory == 9) as i32),
             "get_starting_town_size" => match self.leader(a(0)) {
                 // `leader_flags2 & 0x80` (a scenario's nomad flag) is not
                 // modelled; the patch-version branch answers "do I have a
                 // city" only in a scenario or CtW game.
-                Some(w) if self.sim.lobby.conquest => int((self.sim.city_num(w) > 0) as i32),
-                Some(_) => int(self.sim.lobby.starting_town),
+                Some(w) if self.sim.ai.lobby.conquest => int((self.sim.city_num(w) > 0) as i32),
+                Some(_) => int(self.sim.ai.lobby.starting_town),
                 None => BAD,
             },
             "get_starting_resources" => match self.leader(a(0)) {
                 Some(w) => int(self
                     .sim
+                    .ai
                     .lobby
                     .starting_resources_for(self.sim.tech[w as usize].team)),
                 None => BAD,
@@ -398,7 +404,7 @@ impl Host for ScriptHost<'_> {
             "set_timer" => self.set_timer(&s(0), a(1)),
             "stop_timer" => {
                 let key = s(0);
-                let env = &mut self.sim.script_env;
+                let env = &mut self.sim.ai.script_env;
                 match env.timers.iter().position(|(k, _)| *k == key) {
                     Some(i) => {
                         env.timers.remove(i);
@@ -410,7 +416,7 @@ impl Host for ScriptHost<'_> {
             "timer_expired" => {
                 let key = s(0);
                 let tick = self.sim.frame / FRAMES_PER_TICK;
-                let env = &mut self.sim.script_env;
+                let env = &mut self.sim.ai.script_env;
                 match env.timers.iter().position(|(k, _)| *k == key) {
                     Some(i) if tick >= env.timers[i].1 => {
                         env.timers.remove(i);
@@ -447,13 +453,13 @@ impl ScriptHost<'_> {
     /// (`leader_flags & 1|2`).
     fn leader(&self, who: i32) -> Option<Player> {
         let w = self.leader_any(who)?;
-        (!self.sim.defeated[w as usize]).then_some(w)
+        (!self.sim.leaders.defeated[w as usize]).then_some(w)
     }
 
     /// `leader_flags & 1` only — `num_cities`' weaker guard.
     fn leader_any(&self, who: i32) -> Option<Player> {
         let w0 = who.checked_sub(1)?;
-        (0..self.sim.players.len() as i32)
+        (0..self.sim.territory.players.len() as i32)
             .contains(&w0)
             .then_some(w0 as Player)
     }
@@ -484,6 +490,7 @@ impl ScriptHost<'_> {
     /// `TypeIndex` order for the first display name that matches.
     fn type_index(&self, name: &str) -> Option<TypeId> {
         self.sim
+            .tables
             .tech_tree
             .types
             .iter()
@@ -491,7 +498,7 @@ impl ScriptHost<'_> {
     }
 
     fn class(&self, t: TypeId) -> Class {
-        match self.sim.tech_tree.kind(t) {
+        match self.sim.tables.tech_tree.kind(t) {
             Kind::Good => Class::Good,
             Kind::Unit(_) => Class::Unit,
             Kind::Building { .. } => Class::Build,
@@ -501,12 +508,20 @@ impl ScriptHost<'_> {
 
     /// The unit record a tree id names.
     fn unit_record(&self, t: TypeId) -> Option<usize> {
-        self.sim.unit_types.iter().position(|u| u.tree == Some(t))
+        self.sim
+            .tables
+            .unit_types
+            .iter()
+            .position(|u| u.tree == Some(t))
     }
 
     /// The building record a tree id names.
     fn build_record(&self, t: TypeId) -> Option<usize> {
-        self.sim.build_types.iter().position(|b| b.tree == Some(t))
+        self.sim
+            .tables
+            .build_types
+            .iter()
+            .position(|b| b.tree == Some(t))
     }
 
     /// A good's ledger slot: the tree's goods are the six common ones first.
@@ -519,21 +534,22 @@ impl ScriptHost<'_> {
     fn building_is(&self, b: usize, t: TypeId) -> bool {
         self.sim.buildings[b]
             .ty
-            .and_then(|r| self.sim.build_types[r].tree)
-            .is_some_and(|bt| self.sim.tech_tree.is(bt, t, false))
+            .and_then(|r| self.sim.tables.build_types[r].tree)
+            .is_some_and(|bt| self.sim.tables.tech_tree.is(bt, t, false))
     }
 
     /// The same on a unit.
     fn unit_is(&self, u: usize, t: TypeId) -> bool {
         self.sim.units[u]
             .ty
-            .and_then(|r| self.sim.unit_types[r].tree)
-            .is_some_and(|ut| self.sim.tech_tree.is(ut, t, false))
+            .and_then(|r| self.sim.tables.unit_types[r].tree)
+            .is_some_and(|ut| self.sim.tables.tech_tree.is(ut, t, false))
     }
 
     /// `types.list[BASE_UNITTYPES]` — the Citizen, the tree's first unit.
     fn citizen_type(&self) -> Option<TypeId> {
         self.sim
+            .tables
             .tech_tree
             .types
             .iter()
@@ -543,10 +559,11 @@ impl ScriptHost<'_> {
     /// `LeaderData::current_upgrade` then `get_graft`, the normalisation
     /// `num_type_with_queued` and the trainers apply.
     fn line_of(&self, w: Player, t: TypeId) -> TypeId {
-        let tree = &self.sim.tech_tree;
+        let tree = &self.sim.tables.tech_tree;
         let p = &self.sim.tech[w as usize];
-        let up = tree.current_upgrade(&self.sim.setup, p, t);
-        tree.get_graft(&self.sim.setup, p, Some(up)).unwrap_or(up)
+        let up = tree.current_upgrade(&self.sim.tables.setup, p, t);
+        tree.get_graft(&self.sim.tables.setup, p, Some(up))
+            .unwrap_or(up)
     }
 
     /// `LeaderData::num_buildings[t]`: live, finished buildings of exactly
@@ -584,8 +601,8 @@ impl ScriptHost<'_> {
         match self.price(w, t) {
             Some(charges) => cost::affordable(
                 &charges,
-                &self.sim.ledgers[w as usize],
-                &self.sim.holdings[w as usize].available,
+                &self.sim.economy.ledgers[w as usize],
+                &self.sim.economy.holdings[w as usize].available,
                 true,
             ),
             None => cost::PLENTY,
@@ -606,7 +623,7 @@ impl ScriptHost<'_> {
         if line {
             t = self.line_of(w, t);
         }
-        let m = &self.sim.muster[w as usize];
+        let m = &self.sim.roster.muster[w as usize];
         match self.class(t) {
             Class::Unit => match self.unit_record(t) {
                 Some(r) => int(m.by_type[r] + if queued { m.queued_by_type[r] } else { 0 }),
@@ -619,7 +636,7 @@ impl ScriptHost<'_> {
                 None => NO,
             },
             Class::Good => match self.good_slot(t) {
-                Some(g) => int(self.sim.ledgers[w as usize].bucket[g]),
+                Some(g) => int(self.sim.economy.ledgers[w as usize].bucket[g]),
                 None => BAD,
             },
             Class::Tech => BAD,
@@ -645,6 +662,7 @@ impl ScriptHost<'_> {
     fn cities_of(&self, w: Player) -> Vec<usize> {
         self.sim
             .cities
+            .cities
             .iter()
             .enumerate()
             .filter(|(_, c)| c.alive && c.owner == w)
@@ -667,14 +685,14 @@ impl ScriptHost<'_> {
         let w = self.leader(who)?;
         let c = self.city_index(w, name)?;
         Some(i32::from(
-            self.sim.buildings[self.sim.cities[c].building].index,
+            self.sim.buildings[self.sim.cities.cities[c].building].index,
         ))
     }
 
     /// The city's member chain, the centre first — `CityData.o` then
     /// `city_down` links, tail-appended (`docs/CITIES.md`).
     fn chain(&self, c: usize) -> Vec<usize> {
-        let city = &self.sim.cities[c];
+        let city = &self.sim.cities.cities[c];
         std::iter::once(city.building)
             .chain(city.members.iter().copied())
             .collect()
@@ -703,7 +721,7 @@ impl ScriptHost<'_> {
             }
         };
         let chain = self.chain(c);
-        let fc = &self.sim.script_env.find_counters;
+        let fc = &self.sim.ai.script_env.find_counters;
         let cursor = fc[counter::FIND_BUILD_AT_CITY];
         let mut start = 0;
         let mut resumed = false;
@@ -734,7 +752,7 @@ impl ScriptHost<'_> {
             chain.clone()
         };
         let found = order.into_iter().find(|&h| accept(h));
-        let fc = &mut self.sim.script_env.find_counters;
+        let fc = &mut self.sim.ai.script_env.find_counters;
         match found {
             Some(h) => {
                 let pos = chain.iter().position(|&x| x == h).unwrap_or(0);
@@ -775,7 +793,7 @@ impl ScriptHost<'_> {
     /// One lap over the leader's unit numbers from `cursor + 1`, wrapping
     /// to 0.
     fn lap_units(&self, w: Player, cursor: i32) -> impl Iterator<Item = i16> + '_ {
-        let mark = i32::from(self.sim.marks[w as usize].unit);
+        let mark = i32::from(self.sim.roster.marks[w as usize].unit);
         let start = (cursor + 1).clamp(0, mark.max(0));
         (start..mark)
             .chain(0..start.min(mark))
@@ -786,7 +804,7 @@ impl ScriptHost<'_> {
     /// wrapping to 2000.
     fn lap_builds(&self, w: Player, cursor: i32) -> impl Iterator<Item = i16> + '_ {
         let base = i32::from(BUILD_BASE);
-        let mark = i32::from(self.sim.marks[w as usize].build);
+        let mark = i32::from(self.sim.roster.marks[w as usize].build);
         let start = (cursor + 1).clamp(base, mark.max(base));
         (start..mark)
             .chain(base..start.min(mark))
@@ -803,13 +821,13 @@ impl ScriptHost<'_> {
         else {
             return BAD;
         };
-        let cursor = self.sim.script_env.find_counters[counter::FIND_UNIT].max(0);
+        let cursor = self.sim.ai.script_env.find_counters[counter::FIND_UNIT].max(0);
         let found = self
             .lap_units(w, cursor)
             .find(|&o| self.sim.unit_by_o(w, o).is_some_and(|u| self.unit_is(u, t)));
         match found {
             Some(o) => {
-                self.sim.script_env.find_counters[counter::FIND_UNIT] = i32::from(o);
+                self.sim.ai.script_env.find_counters[counter::FIND_UNIT] = i32::from(o);
                 int(i32::from(o))
             }
             None => BAD,
@@ -827,7 +845,7 @@ impl ScriptHost<'_> {
         else {
             return BAD;
         };
-        let cursor = self.sim.script_env.find_counters[slot];
+        let cursor = self.sim.ai.script_env.find_counters[slot];
         let found = self.lap_builds(w, cursor).find(|&o| {
             self.sim
                 .building_by_o(w, o)
@@ -835,7 +853,7 @@ impl ScriptHost<'_> {
         });
         match found {
             Some(o) => {
-                self.sim.script_env.find_counters[slot] = i32::from(o);
+                self.sim.ai.script_env.find_counters[slot] = i32::from(o);
                 int(i32::from(o))
             }
             None => BAD,
@@ -858,20 +876,22 @@ impl ScriptHost<'_> {
         let p = &self.sim.tech[w as usize];
         let t = if self
             .sim
+            .tables
             .tech_tree
-            .tribe_can_type(&self.sim.setup, p, citizen)
+            .tribe_can_type(&self.sim.tables.setup, p, citizen)
             == 0
         {
             self.sim
+                .tables
                 .tech_tree
-                .get_graft(&self.sim.setup, p, Some(citizen))
+                .get_graft(&self.sim.tables.setup, p, Some(citizen))
                 .unwrap_or(citizen)
         } else {
             citizen
         };
-        let mark = i32::from(self.sim.marks[w as usize].unit);
+        let mark = i32::from(self.sim.roster.marks[w as usize].unit);
         let cursor =
-            self.sim.script_env.find_counters[counter::FIND_IDLE_CITIZEN].clamp(0, mark.max(0));
+            self.sim.ai.script_env.find_counters[counter::FIND_IDLE_CITIZEN].clamp(0, mark.max(0));
         let found = self.lap_units(w, cursor).find(|&o| {
             self.sim
                 .unit_by_o(w, o)
@@ -879,11 +899,11 @@ impl ScriptHost<'_> {
         });
         match found {
             Some(o) => {
-                self.sim.script_env.find_counters[counter::FIND_IDLE_CITIZEN] = i32::from(o);
+                self.sim.ai.script_env.find_counters[counter::FIND_IDLE_CITIZEN] = i32::from(o);
                 int(i32::from(o))
             }
             None => {
-                self.sim.script_env.find_counters[counter::FIND_IDLE_CITIZEN] = 0;
+                self.sim.ai.script_env.find_counters[counter::FIND_IDLE_CITIZEN] = 0;
                 BAD
             }
         }
@@ -932,10 +952,10 @@ impl ScriptHost<'_> {
             .items
             .iter()
             .filter(|i| match i.tech {
-                Some(tt) => self.sim.tech_tree.is(tt, t, false),
-                None => self.sim.unit_types[i.ty]
+                Some(tt) => self.sim.tables.tech_tree.is(tt, t, false),
+                None => self.sim.tables.unit_types[i.ty]
                     .tree
-                    .is_some_and(|ut| self.sim.tech_tree.is(ut, t, false)),
+                    .is_some_and(|ut| self.sim.tables.tech_tree.is(ut, t, false)),
             })
             .count();
         int(n as i32)
@@ -967,7 +987,7 @@ impl ScriptHost<'_> {
             let stamp = if raid {
                 0
             } else {
-                self.sim.cities[c].attack_stamp
+                self.sim.cities.cities[c].attack_stamp
             };
             if seconds < 1 {
                 stamp != 0
@@ -1000,10 +1020,11 @@ impl ScriptHost<'_> {
             return BAD;
         };
         if upgrade {
-            t = self
-                .sim
-                .tech_tree
-                .current_upgrade(&self.sim.setup, &self.sim.tech[w as usize], t);
+            t = self.sim.tables.tech_tree.current_upgrade(
+                &self.sim.tables.setup,
+                &self.sim.tech[w as usize],
+                t,
+            );
         }
         let Some(rec) = self.build_record(t) else {
             return BAD;
@@ -1043,25 +1064,25 @@ impl ScriptHost<'_> {
             None => {
                 // The producing building: the type's `where`, upgraded to
                 // the player's level.
-                let Some(where_) = self.sim.tech_tree.types[t].where_ else {
+                let Some(where_) = self.sim.tables.tech_tree.types[t].where_ else {
                     return BAD;
                 };
-                let producer = self.sim.tech_tree.current_upgrade(
-                    &self.sim.setup,
+                let producer = self.sim.tables.tech_tree.current_upgrade(
+                    &self.sim.tables.setup,
                     &self.sim.tech[w as usize],
                     where_,
                 );
                 if self.affordable(w, t) < num {
                     return NO;
                 }
-                let cursor = self.sim.script_env.find_counters[counter::TRAIN_PRODUCER];
+                let cursor = self.sim.ai.script_env.find_counters[counter::TRAIN_PRODUCER];
                 let found = self.lap_builds(w, cursor).find(|&o| {
                     self.sim.building_by_o(w, o).is_some_and(|b| {
                         self.sim.buildings[b].active && self.building_is(b, producer)
                     })
                 });
                 let Some(o) = found else { return NO };
-                self.sim.script_env.find_counters[counter::TRAIN_PRODUCER] = i32::from(o);
+                self.sim.ai.script_env.find_counters[counter::TRAIN_PRODUCER] = i32::from(o);
                 self.sim.building_by_o(w, o).unwrap_or(0)
             }
             Some(o) => {
@@ -1093,21 +1114,22 @@ impl ScriptHost<'_> {
         if self.sim.tech[w as usize].tech[t] {
             return OK;
         }
-        let Some(where_) = self.sim.tech_tree.types[t].where_ else {
+        let Some(where_) = self.sim.tables.tech_tree.types[t].where_ else {
             return BAD;
         };
-        let producer =
-            self.sim
-                .tech_tree
-                .current_upgrade(&self.sim.setup, &self.sim.tech[w as usize], where_);
-        let cursor = self.sim.script_env.find_counters[counter::RESEARCH_PRODUCER];
+        let producer = self.sim.tables.tech_tree.current_upgrade(
+            &self.sim.tables.setup,
+            &self.sim.tech[w as usize],
+            where_,
+        );
+        let cursor = self.sim.ai.script_env.find_counters[counter::RESEARCH_PRODUCER];
         let found = self.lap_builds(w, cursor).find(|&o| {
             self.sim
                 .building_by_o(w, o)
                 .is_some_and(|b| self.sim.buildings[b].active && self.building_is(b, producer))
         });
         let Some(o) = found else { return NO };
-        self.sim.script_env.find_counters[counter::RESEARCH_PRODUCER] = i32::from(o);
+        self.sim.ai.script_env.find_counters[counter::RESEARCH_PRODUCER] = i32::from(o);
         let Some(b) = self.sim.building_by_o(w, o) else {
             return NO;
         };
@@ -1120,8 +1142,8 @@ impl ScriptHost<'_> {
         let charges = self.sim.tech_price(w, t);
         let paid = cost::affordable(
             &charges,
-            &self.sim.ledgers[w as usize],
-            &self.sim.holdings[w as usize].available,
+            &self.sim.economy.ledgers[w as usize],
+            &self.sim.economy.holdings[w as usize].available,
             true,
         ) >= 1;
         // `could_queue@0062da50` asks `BuildData::can_make@0062db10` first,
@@ -1216,7 +1238,7 @@ impl ScriptHost<'_> {
             return BAD;
         }
         let tick = self.sim.frame / FRAMES_PER_TICK;
-        let env = &mut self.sim.script_env;
+        let env = &mut self.sim.ai.script_env;
         if let Some(i) = env.timers.iter().position(|(k, _)| k == key) {
             env.timers.remove(i);
         }
@@ -1248,7 +1270,7 @@ impl Sim {
     ) -> Result<(), bhs::CompileError> {
         let program = Program::load(roots, sources, &Signatures)?;
         let state = State::new(&program);
-        self.scripts = Some(Scripts { program, state });
+        self.ai.scripts = Some(Scripts { program, state });
         Ok(())
     }
 
@@ -1265,7 +1287,7 @@ impl Sim {
         boom_vs_rush: i32,
         num_loops: i32,
     ) -> Result<(i32, i32), RunError> {
-        let Some(mut scripts) = self.scripts.take() else {
+        let Some(mut scripts) = self.ai.scripts.take() else {
             return Err(RunError::NotFound);
         };
         let mut args = [
@@ -1284,7 +1306,7 @@ impl Sim {
                 &mut args,
             )
         };
-        self.scripts = Some(scripts);
+        self.ai.scripts = Some(scripts);
         result.map(|r| (r.as_int(), args[1].as_int()))
     }
 

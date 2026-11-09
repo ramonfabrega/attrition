@@ -26,7 +26,7 @@ fn a_citizen_heals_a_point_every_45_frames_in_its_own_territory() {
         let mut u = crate::Unit::new(0, index, p, 40);
         u.ty = Some(t);
         u.on_map = true;
-        u.kind = sim.unit_types[t].kind;
+        u.kind = sim.tables.unit_types[t].kind;
         sim.add_unit(u)
     };
     let at = Pos::new(30 * 0x300 + 0x198, 30 * 0x300 + 0x198);
@@ -117,10 +117,10 @@ fn a_carrier_repairs_a_point_every_20_frames_and_citrus_heals_every_ship() {
     let put = |sim: &mut crate::Sim, t: usize, o: i16| {
         let mut u = crate::Unit::new(1, o, at, 600);
         u.ty = Some(t);
-        u.type_index = sim.unit_types[t].type_index;
+        u.type_index = sim.tables.unit_types[t].type_index;
         u.on_map = true;
         u.captain = true;
-        u.kind = sim.unit_types[t].kind;
+        u.kind = sim.tables.unit_types[t].kind;
         let i = sim.add_unit(u);
         sim.units[i].health = 600 - 10;
         sim.units[i].damage_frac = 7;
@@ -145,7 +145,7 @@ fn a_carrier_repairs_a_point_every_20_frames_and_citrus_heals_every_ship() {
         [(591, 0), (590, 7), (590, 7)],
         "on the phase, the carrier alone: a point and the fraction"
     );
-    sim.ledgers[1].rare |= 1 << (crate::economy::CITRUS - crate::economy::BASE_RARE);
+    sim.economy.ledgers[1].rare |= 1 << (crate::economy::CITRUS - crate::economy::BASE_RARE);
     for &i in &ships {
         sim.ship_heal(i, due + 20);
     }
@@ -194,9 +194,9 @@ fn a_ceo_heals_the_hurt_figure_of_a_squad_abroad_every_20_frames() {
         let index = i16::try_from(sim.units.len()).unwrap();
         let mut u = crate::Unit::new(1, index, at, hits);
         u.ty = Some(t);
-        u.type_index = sim.unit_types[t].type_index;
+        u.type_index = sim.tables.unit_types[t].type_index;
         u.on_map = true;
-        u.kind = sim.unit_types[t].kind;
+        u.kind = sim.tables.unit_types[t].kind;
         sim.add_unit(u)
     };
     let squad = [
@@ -270,7 +270,7 @@ fn iroquois_captain(type_index: i32) -> (crate::Sim, usize, usize) {
     u.type_index = type_index;
     u.on_map = true;
     u.captain = true;
-    u.kind = sim.unit_types[ty].kind;
+    u.kind = sim.tables.unit_types[ty].kind;
     let c = sim.add_unit(u);
     sim.units[c].health = 37;
     sim.units[c].damage_frac = 5;
@@ -340,12 +340,12 @@ fn a_french_unit_heals_within_its_supply_radius_every_20_frames() {
     });
     let at = Pos::new(25157, 9797);
     let put = |sim: &mut crate::Sim, t: usize, index: i16, pos: Pos| {
-        let mut u = crate::Unit::new(1, index, pos, sim.unit_types[t].hits);
+        let mut u = crate::Unit::new(1, index, pos, sim.tables.unit_types[t].hits);
         u.ty = Some(t);
-        u.type_index = sim.unit_types[t].type_index;
+        u.type_index = sim.tables.unit_types[t].type_index;
         u.on_map = true;
         u.captain = true;
-        u.kind = sim.unit_types[t].kind;
+        u.kind = sim.tables.unit_types[t].kind;
         sim.add_unit(u)
     };
     let c = put(&mut sim, esf, 17, at);
@@ -443,7 +443,7 @@ fn the_senator_heals_a_walking_column_on_allied_ground() {
     u.type_index = 0x161;
     u.on_map = true;
     u.captain = true;
-    u.kind = sim.unit_types[senator].kind;
+    u.kind = sim.tables.unit_types[senator].kind;
     sim.add_unit(u);
     sim.senator_heal(c, 8189);
     assert_eq!(state(&sim), (37, 5), "off the phase, nothing");
@@ -467,14 +467,14 @@ fn a_patriot_repairs_its_leader_s_building_by_the_ground_under_it() {
     use crate::ai_load::{UnitCols, uflags2};
     use crate::world::{Pos, World};
     let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
-    sim.build_types.push(crate::build::BuildType {
+    sim.tables.build_types.push(crate::build::BuildType {
         x_size: 3,
         y_size: 3,
         ..crate::build::BuildType::default()
     });
     let at = Pos::new(9000, 9000);
     let b = sim.add_building(1, at, 0);
-    sim.buildings[b].ty = Some(sim.build_types.len() - 1);
+    sim.buildings[b].ty = Some(sim.tables.build_types.len() - 1);
     sim.buildings[b].index = 2007;
     sim.buildings[b].active = true;
     sim.buildings[b].hits = 1200;
@@ -493,14 +493,14 @@ fn a_patriot_repairs_its_leader_s_building_by_the_ground_under_it() {
         u.type_index = type_index;
         u.on_map = true;
         u.captain = true;
-        u.kind = sim.unit_types[t].kind;
+        u.kind = sim.tables.unit_types[t].kind;
         (sim.add_unit(u), t)
     };
     let (senator, st) = hero(&mut sim, 0x161);
     let (president, pt) = hero(&mut sim, 0x163);
     sim.units[president].pos.x += 40 * 192;
-    let n = sim.unit_types.len();
-    sim.muster[1].by_type.resize(n, 0);
+    let n = sim.tables.unit_types.len();
+    sim.roster.muster[1].by_type.resize(n, 0);
     let cell = at.cell();
     let run = |sim: &mut crate::Sim, frame: i64, ground: Owner| {
         sim.world.set_owner(cell, ground, Owner::None);
@@ -512,7 +512,7 @@ fn a_patriot_repairs_its_leader_s_building_by_the_ground_under_it() {
     };
     let own = Owner::Player(1);
     assert_eq!(run(&mut sim, 13, own), (10, 5, 0), "no patriot counted");
-    sim.muster[1].by_type[st] = 1;
+    sim.roster.muster[1].by_type[st] = 1;
     assert_eq!(
         run(&mut sim, 13, own),
         (9, 0, 20),
@@ -529,7 +529,7 @@ fn a_patriot_repairs_its_leader_s_building_by_the_ground_under_it() {
         (10, 5, 0),
         "a Senator on an enemy's"
     );
-    sim.muster[1].by_type[pt] = 1;
+    sim.roster.muster[1].by_type[pt] = 1;
     sim.units[president].pos = at;
     assert_eq!(
         run(&mut sim, 33, Owner::None),

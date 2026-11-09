@@ -36,23 +36,23 @@ fn blocked_top() -> (Sim, usize, usize) {
 #[test]
 fn a_building_across_the_walk_is_attacked_at_war_and_noted_at_peace() {
     let (mut sim, u, b) = blocked_top();
-    sim.at_war[0][1] = true;
+    sim.leaders.at_war[0][1] = true;
     assert!(sim.resolve_block(u), "at war the walk stops");
     assert!(matches!(
         sim.units[u].orders.front().map(|o| o.body),
         Some(Body::Attack(_))
     ));
     assert_eq!(sim.units[u].combat.target, Some(Obj::Building(b)));
-    assert_eq!(sim.agendas[0][1], 0);
+    assert_eq!(sim.leaders.agendas[0][1], 0);
 
     let (mut sim, u, _) = blocked_top();
     assert!(!sim.resolve_block(u), "at peace the walk goes on");
     assert!(sim.units[u].orders.is_empty(), "no order at peace");
-    assert_eq!(sim.agendas[0][1], 2, "the walker's leader's slot");
-    assert_eq!(sim.agendas[1][0], 0, "one direction only");
+    assert_eq!(sim.leaders.agendas[0][1], 2, "the walker's leader's slot");
+    assert_eq!(sim.leaders.agendas[1][0], 0, "one direction only");
 
     let (mut sim, u, _) = blocked_top();
-    sim.at_war[0][1] = true;
+    sim.leaders.at_war[0][1] = true;
     sim.units[u].path.last_mut().expect("a top").to = Pos::new(0x480, 0x480);
     assert!(!sim.resolve_block(u), "open ground asks nothing");
     assert!(sim.units[u].orders.is_empty());

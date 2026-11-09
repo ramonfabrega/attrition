@@ -77,7 +77,7 @@ impl Sim {
         // A unit handed in with its number already chosen (the harness reads
         // `o` from the dump) moves the mark past it, so a unit allocated next
         // does not collide with one the original numbered higher.
-        let mark = &mut self.marks[owner].unit;
+        let mark = &mut self.roster.marks[owner].unit;
         *mark = (*mark).max(unit.index.saturating_add(1));
         self.units.push(unit);
         // `Unit::init`'s transport clause (`docs/TRANSPORT.md` §3.4).
@@ -89,7 +89,7 @@ impl Sim {
         // on its first idle frame (`docs/ORDERS.md` §6.8).
         if self.units[i]
             .ty
-            .is_some_and(|t| self.unit_types[t].combat.packs)
+            .is_some_and(|t| self.tables.unit_types[t].combat.packs)
         {
             self.units[i].combat.packed = true;
         }
@@ -107,7 +107,7 @@ impl Sim {
         // loader fills the profile's `combat_role` and `packs` from those
         // two columns, and a hand-built type may set either spelling.
         if self.units[i].ty.is_some_and(|t| {
-            let ty = &self.unit_types[t];
+            let ty = &self.tables.unit_types[t];
             let military = ty.combat.combat_role || ty.cols.is(crate::ai_load::role::ROLE_MILITARY);
             let packs = ty.combat.packs || ty.cols.flag2(crate::ai_load::uflags2::PACKS);
             !military || packs
@@ -115,17 +115,17 @@ impl Sim {
             self.units[i].combat.stance = crate::combat::Stance::StandGround;
         }
         if source {
-            self.units[i].supply_slot = Some(self.supply[owner].list.register(i));
+            self.units[i].supply_slot = Some(self.territory.supply[owner].list.register(i));
         }
         // `Unit::init@00612100:436` — a **land** caravan takes a slot in its
         // leader's `Caravans` list. `is_caravan` is `unit_flags2 & 8` and
         // the domain test is `UnitTypeData +0x218 == 0`, which is what
         // keeps the sea-domain Merchant Fleet out (`crate::caravan` §2).
         if self.units[i].ty.is_some_and(|ty| {
-            self.unit_types[ty]
+            self.tables.unit_types[ty]
                 .cols
                 .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
-                && self.unit_types[ty].combat.domain == attrition::Domain::Land
+                && self.tables.unit_types[ty].combat.domain == attrition::Domain::Land
         }) {
             let who = self.units[i].owner;
             self.units[i].caravan = self.init_caravan(who, i);
@@ -169,9 +169,9 @@ impl Sim {
     pub fn find_free(&mut self, who: Player, base: i16, limit: i16) -> Option<i16> {
         let w = who as usize;
         let mark = if base == BUILD_BASE {
-            self.marks[w].build
+            self.roster.marks[w].build
         } else {
-            self.marks[w].unit
+            self.roster.marks[w].unit
         };
         // A number nothing carries is free; one an object holds is not.
         let mut free = vec![true; (mark - base).max(0) as usize];
@@ -208,9 +208,9 @@ impl Sim {
             free[(i - i32::from(base)) as usize]
         });
         if base == BUILD_BASE {
-            self.marks[w].build = m as i16;
+            self.roster.marks[w].build = m as i16;
         } else {
-            self.marks[w].unit = m as i16;
+            self.roster.marks[w].unit = m as i16;
         }
         (got >= 0).then_some(got as i16)
     }
@@ -262,18 +262,19 @@ impl Sim {
     /// still a type whose count the ramp reads — as zero, which is what makes
     /// the first one cheap.
     pub fn add_unit_type(&mut self, ty: UnitType) -> usize {
-        let id = self.unit_types.len();
+        let id = self.tables.unit_types.len();
         let groups = ty.group.map_or(0, |g| g + 1);
         let tree = ty.tree;
-        self.unit_types.push(ty);
+        self.tables.unit_types.push(ty);
         // The combat table grows with the type space, at 100 until a
         // builder fills the new row and column.
-        if self.table.width() < self.unit_types.len() {
-            self.table = self
+        if self.combat.table.width() < self.tables.unit_types.len() {
+            self.combat.table = self
+                .combat
                 .table
-                .grown(self.unit_types.len(), self.build_types.len());
+                .grown(self.tables.unit_types.len(), self.tables.build_types.len());
         }
-        for (who, m) in self.muster.iter_mut().enumerate() {
+        for (who, m) in self.roster.muster.iter_mut().enumerate() {
             m.by_type.push(0);
             m.queued_by_type.push(0);
             // A type in the tree starts with the tree's bit — a free unit
@@ -300,14 +301,15 @@ impl Sim {
     /// (`006dc490`'s last statement, item 3326, `docs/AI.md` §266).
     pub fn recompute_pop_caps(&mut self) {
         let peacocks = 1u64 << (economy::PEACOCKS - economy::BASE_RARE);
-        let colossus: Vec<bool> = (0..self.muster.len())
+        let colossus: Vec<bool> = (0..self.roster.muster.len())
             .map(|who| {
                 u8::try_from(who)
                     .is_ok_and(|p| self.wonders_held(p) & (1 << tech::wonder::COLOSSUS) != 0)
             })
             .collect();
-        for (who, m) in self.muster.iter_mut().enumerate() {
+        for (who, m) in self.roster.muster.iter_mut().enumerate() {
             m.bonuses.peacocks = self
+                .economy
                 .ledgers
                 .get(who)
                 .is_some_and(|l| l.rare & peacocks != 0);
@@ -316,8 +318,8 @@ impl Sim {
             // flag [`cost::pop_cap`]'s Bantu arm reads, which had no writer
             // until the Bantu word's block 1 printed who=1's cap at 50
             // against this crate's 25 (run978, `docs/AI.md` §276).
-            m.bonuses.bantu = self.nation.get(who).is_some_and(|n| n.bantu);
-            m.cap = cost::pop_cap(&self.tuning, m.military_level, m.limit, &m.bonuses);
+            m.bonuses.bantu = self.cities.nation.get(who).is_some_and(|n| n.bantu);
+            m.cap = cost::pop_cap(&self.tables.tuning, m.military_level, m.limit, &m.bonuses);
         }
     }
 
@@ -328,9 +330,9 @@ impl Sim {
     /// `Guy::init_real`'s draw. `pos` is the snapped birth point.
     pub(crate) fn init_figure(&mut self, who: Player, ty: usize, index: i16, pos: Pos) -> usize {
         let mut unit = Unit::new(who, index, pos, self.unit_hits(who, ty));
-        unit.kind = self.unit_types[ty].kind;
+        unit.kind = self.tables.unit_types[ty].kind;
         unit.ty = Some(ty);
-        unit.type_index = self.unit_types[ty].type_index;
+        unit.type_index = self.tables.unit_types[ty].type_index;
         unit.form = init_form(unit.type_index);
         // The stance is a switch on the *type's* stance kind and then,
         // when the trainer shares that kind, the trainer's own byte —
@@ -355,7 +357,12 @@ impl Sim {
         // every AI Bark on disk carries both.
         if self.unit_line_is(u, crate::army::BARK) {
             self.units[u].unit_masks2 |= crate::combat::umask2::MASK2_BARK;
-            if !self.nation.get(who as usize).is_some_and(|n| n.human) {
+            if !self
+                .cities
+                .nation
+                .get(who as usize)
+                .is_some_and(|n| n.human)
+            {
                 self.units[u].stance = 3;
                 self.units[u].combat.stance = crate::combat::Stance::Raid;
             }
@@ -365,9 +372,13 @@ impl Sim {
         // a Lakota unit the food term counts — a citizen (`TypeIndex`
         // `0x32`, `0x33`), a scout (`is(SCOUT, 0)`) or a Stable type
         // (`+0x40 == 0x1ac`) — raises the leader's `0x2000000`.
-        if self.nation.get(who as usize).is_some_and(|n| n.lakota)
-            && self.tuning.lakota_food != 0
-            && (matches!(self.unit_types[ty].type_index, 0x32 | 0x33)
+        if self
+            .cities
+            .nation
+            .get(who as usize)
+            .is_some_and(|n| n.lakota)
+            && self.tables.tuning.lakota_food != 0
+            && (matches!(self.tables.unit_types[ty].type_index, 0x32 | 0x33)
                 || self.unit_line_is(u, 0x45)
                 || self.trainer_ident(ty) == Some(build::Ident::Stable))
         {
@@ -390,8 +401,8 @@ impl Sim {
         // here off the type, which the unit does not carry yet).
         // run1469's Attack Helicopters fly 30 higher than ours did
         // from their first frame, and their rounds aim at that.
-        if self.unit_types[ty].cols.unit_flags & crate::ai_load::uflags::FLAG_HELICOPTER != 0
-            && self.unit_types[ty].combat.domain == crate::attrition::Domain::Air
+        if self.tables.unit_types[ty].cols.unit_flags & crate::ai_load::uflags::FLAG_HELICOPTER != 0
+            && self.tables.unit_types[ty].combat.domain == crate::attrition::Domain::Air
         {
             let ground = self.ground_z(self.units[u].pos);
             let af = &mut self.units[u].airframe;
@@ -401,10 +412,13 @@ impl Sim {
         // `Unit::init@00612100:467`: a government patriot's birth is
         // stamped on its leader, and that stamp is what keeps a
         // Senate from training a second one.
-        if self.unit_types[ty]
-            .tree
-            .is_some_and(|t| self.tech_tree.kind(t).unit().is_some_and(|x| x.patriot))
-        {
+        if self.tables.unit_types[ty].tree.is_some_and(|t| {
+            self.tables
+                .tech_tree
+                .kind(t)
+                .unit()
+                .is_some_and(|x| x.patriot)
+        }) {
             self.tech[who as usize].gov_hero_frame = self.frame;
         }
         u
@@ -436,7 +450,7 @@ impl Sim {
         // 17; A3 row 3): a trained unit at its trainer's whole-tile centre
         // is born 24 south and east of it, which a unit kept inside shows.
         let pos = Pos::new(gaia::init_snap(pos.x), gaia::init_snap(pos.y));
-        let n = self.unit_types[ty].combat.uber_size.max(1);
+        let n = self.tables.unit_types[ty].combat.uber_size.max(1);
         let mut head = None;
         let mut prev = None;
         for _ in 0..n {
@@ -639,7 +653,7 @@ impl Sim {
         unit.captain
             && unit
                 .ty
-                .is_some_and(|t| self.unit_types[t].price.pop != 0 || self.type_is_hero(t))
+                .is_some_and(|t| self.tables.unit_types[t].price.pop != 0 || self.type_is_hero(t))
     }
 
     /// **`UnitData::is_gov_hero@0046ce70`** on a unit of type `ty`: the
@@ -647,9 +661,9 @@ impl Sim {
     /// `OBJ_MASK` — the six government patriots and a scenario's heroes
     /// (`docs/GOLDEN.md` §149.11, §151.1).
     pub(crate) fn type_is_hero(&self, ty: usize) -> bool {
-        self.unit_types[ty]
+        self.tables.unit_types[ty]
             .tree
-            .and_then(|t| self.tech_tree.types.get(t))
+            .and_then(|t| self.tables.tech_tree.types.get(t))
             .and_then(|d| d.kind.unit())
             .is_some_and(|x| x.hero)
     }
@@ -671,15 +685,15 @@ impl Sim {
     /// [`Sim::track_tree_queued`]: they agree by construction rather than
     /// by inspection.
     pub fn track_unit_type(&mut self, who: Player, ty: usize, delta: i32) {
-        let pop = self.unit_types[ty].price.pop;
-        let group = self.unit_types[ty].group;
-        let muster = &mut self.muster[who as usize];
+        let pop = self.tables.unit_types[ty].price.pop;
+        let group = self.tables.unit_types[ty].group;
+        let muster = &mut self.roster.muster[who as usize];
         muster.by_type[ty] += delta;
         muster.control += pop * delta;
         if let Some(g) = group {
             muster.by_group[g] += delta;
         }
-        self.ai[who as usize].census.active += delta;
+        self.ai.ai[who as usize].census.active += delta;
         self.track_civilian_type(who, ty, delta);
     }
 
@@ -691,21 +705,21 @@ impl Sim {
     /// sweeps is already in the count `create_units` and `make_stuff` read.
     /// The sweep zeroes and recounts them, as the original's does.
     pub(crate) fn track_civilian_type(&mut self, who: Player, ty: usize, delta: i32) {
-        let worker = self.unit_types[ty].worker;
+        let worker = self.tables.unit_types[ty].worker;
         // The live writer uses is_caravan (including Merchant Fleets),
         // while the periodic census counts the land CARA lineage alone.
         // A sweep can drop a fleet from caras before its close subtracts
         // one. docs/AI.md §177 holds this observed asymmetry.
-        let caravan = self.unit_types[ty]
+        let caravan = self.tables.unit_types[ty]
             .cols
             .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN);
         // `scouts` (`+0x988`) is the third arm of the same chain —
         // `role & 0x10` on a type neither peasant nor scholar — and no
         // sweep recounts it (`docs/AI.md` §219).
-        let scout = self.unit_types[ty]
+        let scout = self.tables.unit_types[ty]
             .cols
             .is(crate::ai_load::role::ROLE_SCOUT);
-        let census = &mut self.ai[who as usize].census;
+        let census = &mut self.ai.ai[who as usize].census;
         match worker {
             crate::orders::Worker::Citizen => census.peasants += delta,
             crate::orders::Worker::Scholar => census.scholars += delta,

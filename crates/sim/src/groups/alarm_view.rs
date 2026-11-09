@@ -574,24 +574,24 @@ impl AlarmView for SimAlarm<'_> {
         self.sim.kill_current_order(u as usize);
     }
     fn city_flags(&self, _who: i32, c: i32) -> i32 {
-        let city = &self.sim.cities[c as usize];
+        let city = &self.sim.cities.cities[c as usize];
         i32::from(city.alive) * CITY_LIVE + i32::from(city.alarm) * CITY_BELL
     }
     fn set_city_flags(&mut self, _who: i32, c: i32, v: i32) {
-        self.sim.cities[c as usize].alarm = v & CITY_BELL != 0;
+        self.sim.cities.cities[c as usize].alarm = v & CITY_BELL != 0;
     }
     fn city_building(&self, _who: i32, c: i32) -> i32 {
-        self.sim.cities[c as usize].building as i32
+        self.sim.cities.cities[c as usize].building as i32
     }
     fn city_radius(&mut self, _who: i32, c: i32) -> i32 {
         self.sim.radius_of(c as usize)
     }
     fn city_cell(&self, _who: i32, c: i32) -> (i32, i32) {
-        let cell = self.sim.cities[c as usize].pos.cell();
+        let cell = self.sim.cities.cities[c as usize].pos.cell();
         (cell.x, cell.y)
     }
     fn city_tile(&self, _who: i32, c: i32) -> (i32, i32) {
-        let t = self.sim.cities[c as usize].pos.tile();
+        let t = self.sim.cities.cities[c as usize].pos.tile();
         (t.x, t.y)
     }
     fn console_who(&self) -> i32 {

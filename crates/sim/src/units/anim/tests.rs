@@ -20,10 +20,10 @@ fn an_unpack_puts_a_trackless_crew_figure_on_its_leader() {
         hits: 100,
         ..UnitType::default()
     });
-    s.unit_types[ty].combat.packs = true;
+    s.tables.unit_types[ty].combat.packs = true;
     // Two figures: `CREW_SIZE 1`, which `gpiece_walk` bounds the crew by.
-    s.unit_types[ty].combat.crew_size = 1;
-    s.unit_types[ty].type_index = 0x7f;
+    s.tables.unit_types[ty].combat.crew_size = 1;
+    s.tables.unit_types[ty].type_index = 0x7f;
     let piece = |guy: i32, gender: bool| {
         0x7f - 0x32
             + FIRST_UNIT_PIECE
@@ -32,12 +32,13 @@ fn an_unpack_puts_a_trackless_crew_figure_on_its_leader() {
     };
     for guy in 0..2 {
         for gender in [false, true] {
-            s.art
+            s.roster
+                .art
                 .piece_lengths
                 .insert(piece(guy, gender), BTreeMap::new());
         }
     }
-    s.art.tracks.insert(piece(1, true), (67, -100));
+    s.roster.art.tracks.insert(piece(1, true), (67, -100));
     let at = Pos::new(0x4000, 0x4000);
     let mut unit = Unit::new(1, 3, at, 100);
     unit.ty = Some(ty);
@@ -83,10 +84,10 @@ fn an_unpack_puts_a_tracked_crew_figure_on_its_new_offset() {
         hits: 100,
         ..UnitType::default()
     });
-    s.unit_types[ty].combat.packs = true;
+    s.tables.unit_types[ty].combat.packs = true;
     // Two figures: `CREW_SIZE 1`, which `gpiece_walk` bounds the crew by.
-    s.unit_types[ty].combat.crew_size = 1;
-    s.unit_types[ty].type_index = 0x7f;
+    s.tables.unit_types[ty].combat.crew_size = 1;
+    s.tables.unit_types[ty].type_index = 0x7f;
     let piece = |guy: i32, gender: bool| {
         0x7f - 0x32
             + FIRST_UNIT_PIECE
@@ -95,13 +96,14 @@ fn an_unpack_puts_a_tracked_crew_figure_on_its_new_offset() {
     };
     for guy in 0..2 {
         for gender in [false, true] {
-            s.art
+            s.roster
+                .art
                 .piece_lengths
                 .insert(piece(guy, gender), BTreeMap::new());
         }
     }
-    s.art.tracks.insert(piece(1, true), (67, -100));
-    s.art.tracks.insert(piece(1, false), (0, -192));
+    s.roster.art.tracks.insert(piece(1, true), (67, -100));
+    s.roster.art.tracks.insert(piece(1, false), (0, -192));
     let at = Pos::new(0x4000, 0x4000);
     let mut unit = Unit::new(1, 3, at, 100);
     unit.ty = Some(ty);
@@ -242,7 +244,7 @@ fn a_pushed_unit_s_trackless_crew_rolls_its_idle_alone() {
 fn an_unpacked_packer_s_moving_figure_asks_for_no_walk() {
     let mut s = sim_at(12345);
     let t = s.add_unit_type(crate::UnitType::default());
-    s.unit_types[t].combat.packs = true;
+    s.tables.unit_types[t].combat.packs = true;
     let u = animal(&mut s, 0, 6, -1, DEFAULT, 5, 79);
     s.units[u].ty = Some(t);
     s.units[u].combat.packed = false;
@@ -402,7 +404,8 @@ fn a_known_piece_s_missing_slot_is_three_frames_and_not_a_variant() {
     assert_eq!(s.slot_length(u, 7, IDLE1), None);
     assert!(!s.packet_has(u, 7, IDLE1));
     // The install names it: `CHAR_DEFAULT` and `CHAR_IDLE1` only.
-    s.art
+    s.roster
+        .art
         .piece_lengths
         .insert(7, [(DEFAULT, 61u32), (IDLE1, 76)].into_iter().collect());
     assert_eq!(s.slot_length(u, 7, IDLE1), Some(76));
@@ -410,7 +413,7 @@ fn a_known_piece_s_missing_slot_is_three_frames_and_not_a_variant() {
     assert_eq!(s.slot_length(u, 7, IDLE2), Some(MISSING));
     assert!(!s.packet_has(u, 7, IDLE2));
     // And it wins over a dump row for the same pair.
-    s.art.lengths.insert((7, IDLE1), 61);
+    s.roster.art.lengths.insert((7, IDLE1), 61);
     assert_eq!(s.slot_length(u, 7, IDLE1), Some(76));
 }
 
@@ -439,7 +442,10 @@ fn a_rolled_attack_the_packet_lacks_plays_attack2() {
         if names_attack3 {
             slots.insert(ATTACK3, 27);
         }
-        s.art.piece_lengths.insert(290, slots.into_iter().collect());
+        s.roster
+            .art
+            .piece_lengths
+            .insert(290, slots.into_iter().collect());
         s.guy_set_anim(u, 0, ATTACK1, false, true);
         assert_eq!(s.rng.seed, stepped(seed, 1), "the attack roll is one draw");
         let g = s.units[u].guys[0];
@@ -467,9 +473,9 @@ fn the_scout_s_idle1_runs_seventy_six_frames_not_the_default_s_sixty_one() {
     for (known, wrap) in [(false, 345u32), (true, 360)] {
         let mut s = sim_at(seed);
         let u = animal(&mut s, 0, 0, 371, DEFAULT, 61, 61);
-        s.art.lengths.insert((371, DEFAULT), 61);
+        s.roster.art.lengths.insert((371, DEFAULT), 61);
         if known {
-            s.art.piece_lengths.insert(
+            s.roster.art.piece_lengths.insert(
                 371,
                 [(DEFAULT, 61u32), (IDLE1, 76), (IDLE2, 41), (IDLE3, 190)]
                     .into_iter()
@@ -511,12 +517,12 @@ fn the_categories() {
 fn run13_s_fish_wrap_together() {
     let mut s = sim_at(0x6003_2f25);
     for (p, a) in [(60073, 0), (60074, 1), (60072, 2)] {
-        s.art.lengths.insert((p, a), 0);
+        s.roster.art.lengths.insert((p, a), 0);
     }
     for a in 0..4 {
-        s.art.lengths.insert((60073, a), 101);
-        s.art.lengths.insert((60074, a), 116);
-        s.art.lengths.insert((60072, a), 170);
+        s.roster.art.lengths.insert((60073, a), 101);
+        s.roster.art.lengths.insert((60074, a), 116);
+        s.roster.art.lengths.insert((60072, a), 170);
     }
     let mut fish = Vec::new();
     for o in 4..=37 {
@@ -558,12 +564,12 @@ fn run12_s_forty_first_idles() {
     let mut s = sim_at(stepped(0x3bd3_9ae9, 48));
     s.game_seed = 7236;
     for a in 0..4 {
-        s.art.lengths.insert((60063, a), 90);
-        s.art.lengths.insert((60064, a), 109);
-        s.art.lengths.insert((60065, a), 250);
-        s.art.lengths.insert((60073, a), 101);
-        s.art.lengths.insert((60074, a), 116);
-        s.art.lengths.insert((60072, a), 170);
+        s.roster.art.lengths.insert((60063, a), 90);
+        s.roster.art.lengths.insert((60064, a), 109);
+        s.roster.art.lengths.insert((60065, a), 250);
+        s.roster.art.lengths.insert((60073, a), 101);
+        s.roster.art.lengths.insert((60074, a), 116);
+        s.roster.art.lengths.insert((60072, a), 170);
     }
     let mut units = Vec::new();
     for o in 0..40i16 {
@@ -601,8 +607,8 @@ fn run12_s_forty_first_idles() {
 #[test]
 fn the_arrival_draws_once() {
     let mut s = sim_at(7);
-    s.art.lengths.insert((60063, SLOG), 16);
-    s.art.lengths.insert((60063, DEFAULT), 90);
+    s.roster.art.lengths.insert((60063, SLOG), 16);
+    s.roster.art.lengths.insert((60063, DEFAULT), 90);
     let u = animal(&mut s, 8, 0, 60063, SLOG, 11, 16);
     s.units[u].movement.body.pos = Pos::new(2990, 3000);
     let before = s.rng.seed;
@@ -636,8 +642,8 @@ fn the_arrival_draws_once() {
 #[test]
 fn a_standing_body_still_owed_a_turn_walks_in_place_and_draws_again() {
     let mut s = sim_at(7);
-    s.art.lengths.insert((60063, WALK), 20);
-    s.art.lengths.insert((60063, DEFAULT), 90);
+    s.roster.art.lengths.insert((60063, WALK), 20);
+    s.roster.art.lengths.insert((60063, DEFAULT), 90);
     let u = animal(&mut s, 8, 0, 60063, WALK, 11, 20);
     // On its unit — the body has arrived — but a turn is still owed.
     s.units[u].movement.body.pos = s.units[u].pos;
@@ -650,8 +656,8 @@ fn a_standing_body_still_owed_a_turn_walks_in_place_and_draws_again() {
     // With the facing settled it is an arrival instead: one draw, and
     // the body stops.
     let mut s = sim_at(7);
-    s.art.lengths.insert((60063, WALK), 20);
-    s.art.lengths.insert((60063, DEFAULT), 90);
+    s.roster.art.lengths.insert((60063, WALK), 20);
+    s.roster.art.lengths.insert((60063, DEFAULT), 90);
     let u = animal(&mut s, 8, 0, 60063, WALK, 11, 20);
     s.units[u].movement.body.pos = s.units[u].pos;
     let before = s.rng.seed;
@@ -662,7 +668,7 @@ fn a_standing_body_still_owed_a_turn_walks_in_place_and_draws_again() {
 
     // A ship owed a turn takes the guard: stopped, and no walk.
     let mut s = sim_at(7);
-    s.art.lengths.insert((60063, WALK), 20);
+    s.roster.art.lengths.insert((60063, WALK), 20);
     let u = animal(&mut s, 8, 0, 60063, DEFAULT, 11, 90);
     s.units[u].kind.domain = crate::attrition::Domain::Sea;
     s.units[u].movement.body.pos = s.units[u].pos;
@@ -679,7 +685,7 @@ fn a_standing_body_still_owed_a_turn_walks_in_place_and_draws_again() {
 #[test]
 fn the_step_and_a_silent_restart() {
     let mut s = sim_at(7);
-    s.art.lengths.insert((6688, SOW), 47);
+    s.roster.art.lengths.insert((6688, SOW), 47);
     let u = animal(&mut s, 0, 3, 6688, SOW, 45, 47);
     let before = s.rng.seed;
     s.guys_inc_time();
@@ -698,8 +704,8 @@ fn the_step_and_a_silent_restart() {
 #[test]
 fn the_mirror() {
     let mut s = sim_at(0xa45f_ecaf);
-    s.art.lengths.insert((371, DEFAULT), 61);
-    s.art.lengths.insert((13043, DEFAULT), 61);
+    s.roster.art.lengths.insert((371, DEFAULT), 61);
+    s.roster.art.lengths.insert((13043, DEFAULT), 61);
     let u = animal(&mut s, 0, 0, 371, DEFAULT, 60, 61);
     s.units[u].guys.push(Guy {
         cur_time: 60,
@@ -748,7 +754,7 @@ fn a_crew_figure_rolls_its_idle_without_the_danger_flag() {
     let mut s = sim_at(seed);
     for (piece, lens) in [(145, [31, 80, 70, 31]), (12817, [31, 81, 71, 31])] {
         for (slot, len) in [DEFAULT, IDLE1, IDLE2, IDLE3].into_iter().zip(lens) {
-            s.art.lengths.insert((piece, slot), len);
+            s.roster.art.lengths.insert((piece, slot), len);
         }
     }
     let u = animal(&mut s, 0, 6, 145, IDLE1, 80, 80);
@@ -777,7 +783,7 @@ fn a_suspended_search_idles_without_a_draw() {
     let seed = (1u32..).find(|&x| Rng::new(x).roll() % 100 > 95).unwrap();
     let mut s = sim_at(seed);
     for (slot, len) in [(DEFAULT, 31), (IDLE1, 80), (IDLE2, 70), (IDLE3, 40)] {
-        s.art.lengths.insert((145, slot), len);
+        s.roster.art.lengths.insert((145, slot), len);
     }
     let u = animal(&mut s, 0, 67, 145, DEFAULT, 31, 31);
     s.units[u].search = Some(Box::new(crate::path::Search::suspended_for_test()));
@@ -838,7 +844,7 @@ fn a_wander_onto_an_occupied_cell_is_not_ordered() {
             },
             ..crate::UnitType::default()
         });
-        s.gaia.herds.push(crate::gaia::Herd {
+        s.gaia.gaia.herds.push(crate::gaia::Herd {
             cx: 10,
             cy: 10,
             wx: 10,
@@ -847,7 +853,7 @@ fn a_wander_onto_an_occupied_cell_is_not_ordered() {
             alive: true,
         });
         for slot in 0..4 {
-            s.art.lengths.insert((60063, slot), 90);
+            s.roster.art.lengths.insert((60063, slot), 90);
         }
         let at = herd_centre(10, 10, 10, 10);
         let mut u = Unit::new(8, 1, at, 10);
@@ -1052,7 +1058,7 @@ fn a_walker_that_boards_its_boat_moves_its_figures_that_frame() {
         }
     }
     let mut s = Sim::new(Tuning::RON, w, 2);
-    s.nation[1].human = false;
+    s.cities.nation[1].human = false;
     let walker = s.add_unit_type(UnitType {
         hits: 40,
         ..UnitType::default()
@@ -1065,8 +1071,8 @@ fn a_walker_that_boards_its_boat_moves_its_figures_that_frame() {
     barge.combat.domain = crate::attrition::Domain::Sea;
     barge.combat.block_radius = 48;
     let b = s.add_unit_type(barge);
-    s.unit_types[b].tree = Some(crate::transport::ty::TRANSPORTBARGE);
-    s.unit_types[b].type_index = crate::transport::ty::TRANSPORTBARGE as i32;
+    s.tables.unit_types[b].tree = Some(crate::transport::ty::TRANSPORTBARGE);
+    s.tables.unit_types[b].type_index = crate::transport::ty::TRANSPORTBARGE as i32;
     let index = s.find_free(1, crate::UNIT_BASE, crate::BUILD_BASE).unwrap();
     let mut unit = Unit::new(1, index, tile_pos(30, 14), 40);
     unit.ty = Some(walker);
@@ -1103,7 +1109,7 @@ fn a_walker_that_boards_its_boat_moves_its_figures_that_frame() {
     });
     assert!(!s.set_new_location(u, tile_pos(33, 14), false));
 
-    s.trace_phases = true;
+    s.trace.trace_phases = true;
     let mut events = Vec::new();
     s.process_unit(u, 1, &mut events);
     assert!(s.units[u].inside_unit.is_some(), "the walker is cargo");
@@ -1112,7 +1118,10 @@ fn a_walker_that_boards_its_boat_moves_its_figures_that_frame() {
     assert_eq!(f.body.last_speed, 0, "`Guy::move`'s standing arm");
     assert_eq!(f.body.avg_speed, 12, "(16 × 3 + 0) / 4");
     assert!(
-        s.phase_marks.iter().any(|(l, _)| l == SITE_TURN_STAND),
+        s.trace
+            .phase_marks
+            .iter()
+            .any(|(l, _)| l == SITE_TURN_STAND),
         "the turn's draw"
     );
 }

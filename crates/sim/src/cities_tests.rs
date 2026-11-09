@@ -23,7 +23,7 @@ fn world_sim() -> Sim {
     w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(15, 15));
     let mut sim = Sim::new(Tuning::RON, w, 2);
     sim.declare_war(0, 1);
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; economy::RESOURCES];
     }
     sim
@@ -167,10 +167,10 @@ fn hoplite_type(barracks: usize) -> UnitType {
 
 fn spawn(sim: &mut Sim, owner: Player, ty: usize, pos: Pos) -> usize {
     let index = i16::try_from(sim.units.len()).unwrap();
-    let hits = sim.unit_types[ty].hits;
+    let hits = sim.tables.unit_types[ty].hits;
     let mut u = Unit::new(owner, index, pos, hits);
     u.ty = Some(ty);
-    u.kind = sim.unit_types[ty].kind;
+    u.kind = sim.tables.unit_types[ty].kind;
     // A citizen's speed and turning, so the walk to a site is the
     // original's 25 a frame.
     u.movement.speed = 25;
@@ -237,7 +237,7 @@ fn the_first_city_is_a_foothold_and_the_second_keeps_its_distance() {
         "25 tiles is far enough, but a second city in the region needs friendly ground"
     );
     // The placement was paid for.
-    assert_eq!(sim.ledgers[0].bucket[1], 10_000 - 100);
+    assert_eq!(sim.economy.ledgers[0].bucket[1], 10_000 - 100);
     // Another player's unstarted ghost does not count against us.
     assert_eq!(
         sim.blocked_site(Some(1), t.village, tile_pos(50, 32), None),
@@ -250,9 +250,12 @@ fn a_finished_city_projects_territory_and_the_radius_mask() {
     let mut sim = world_sim();
     let t = install_types(&mut sim);
     let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
-    assert!(sim.buildings[b].active && sim.cities[c].alive);
-    assert_eq!(sim.cities[c].race, Some(0));
-    assert!(sim.cities[c].capital, "the first city is the capital");
+    assert!(sim.buildings[b].active && sim.cities.cities[c].alive);
+    assert_eq!(sim.cities.cities[c].race, Some(0));
+    assert!(
+        sim.cities.cities[c].capital,
+        "the first city is the capital"
+    );
     assert_eq!(sim.city_num(0), 1);
     // Territory: the cell under the city and its neighbours are player 0's.
     assert_eq!(sim.world.owner_at(tile_pos(32, 32)), Owner::Player(0));
@@ -302,7 +305,7 @@ fn a_starting_city_s_region_is_a_player_region_and_takes_the_player_limits() {
         colonized: [32, 4, 4],
     });
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; economy::RESOURCES];
     }
     let t = install_types(&mut sim);
@@ -333,18 +336,18 @@ fn a_city_finished_in_play_counts_at_once_and_takes_its_ground_at_the_pass_s_pac
     let mut w = World::new(40, 40);
     let r = w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 39));
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; economy::RESOURCES];
     }
     let t = install_types(&mut sim);
-    sim.ai[0].census.reg_cities = vec![0; sim.world.region_count()];
+    sim.ai.ai[0].census.reg_cities = vec![0; sim.world.region_count()];
     sim.in_play = true;
     let here = tile_pos(80, 120);
     assert_eq!(here.cell(), Cell::new(20, 30), "row-major index 1,220");
     let (_, c) = city_at(&mut sim, &t, 0, 80, 120);
-    assert!(sim.cities[c].alive);
+    assert!(sim.cities.cities[c].alive);
     assert_eq!(
-        sim.ai[0].census.reg_cities[r as usize], 1,
+        sim.ai.ai[0].census.reg_cities[r as usize], 1,
         "City::init counts it"
     );
     assert_eq!(
@@ -352,7 +355,7 @@ fn a_city_finished_in_play_counts_at_once_and_takes_its_ground_at_the_pass_s_pac
         Owner::None,
         "the fix writes no cell"
     );
-    assert_eq!(sim.holdings[0].territory, 0);
+    assert_eq!(sim.economy.holdings[0].territory, 0);
     let mut frames = 0;
     while sim.world.owner_at(here) != Owner::Player(0) {
         sim.check_borders();
@@ -360,11 +363,17 @@ fn a_city_finished_in_play_counts_at_once_and_takes_its_ground_at_the_pass_s_pac
         assert!(frames < 10, "the pass ends");
     }
     assert_eq!(frames, 5, "1,221 cells at 256 a frame");
-    assert_eq!(sim.holdings[0].territory, 0, "the region is not done yet");
-    while sim.border_pass.is_some() {
+    assert_eq!(
+        sim.economy.holdings[0].territory, 0,
+        "the region is not done yet"
+    );
+    while sim.territory.border_pass.is_some() {
         sim.check_borders();
     }
-    assert!(sim.holdings[0].territory > 0, "summed when the pass ends");
+    assert!(
+        sim.economy.holdings[0].territory > 0,
+        "summed when the pass ends"
+    );
 }
 
 /// **`City::fix_world_vals`: a city wears the map's site values down
@@ -389,7 +398,7 @@ fn a_founded_city_quarters_the_site_values_inside_its_rings_and_halves_three_bey
         }
     }
     let (_, c) = city_at(&mut sim, &t, 0, 32, 32);
-    let centre = sim.cities[c].pos.cell();
+    let centre = sim.cities.cities[c].pos.cell();
     assert_eq!(centre, Cell::new(8, 8));
     assert_eq!(sim.radius_of(c), 20, "the fixture's radius, so k is 5");
     let circle = crate::ai_place::circle();
@@ -476,17 +485,17 @@ fn goody_ruins_refuse_placement_with_the_players_visibility_verdict() {
     assert!(sim.world.set_fog(vec![0; 32 * 32]));
     let verdict = |s: &Sim| s.blocked_tcoord(Some(0), types.town, at, None);
 
-    sim.lobby.reveal_map = 1;
+    sim.ai.lobby.reveal_map = 1;
     assert_eq!(verdict(&sim), Blocked::Seen, "not even territorially seen");
-    sim.lobby.reveal_map = 2;
+    sim.ai.lobby.reveal_map = 2;
     assert_eq!(
         verdict(&sim),
         Blocked::Unseen,
         "seen without revealing ruins"
     );
-    sim.lobby.reveal_map = 3;
+    sim.ai.lobby.reveal_map = 3;
     assert_eq!(verdict(&sim), Blocked::Ruins, "fully revealed");
-    sim.lobby.reveal_map = 1;
+    sim.ai.lobby.reveal_map = 1;
     assert!(sim.world.set_seen2_only(at.x >> 1, at.y >> 1, 1));
     assert_eq!(verdict(&sim), Blocked::Ruins, "actually explored");
     assert_eq!(
@@ -517,7 +526,7 @@ fn blocked_tcoord_answers_seen_for_a_tile_the_leader_has_not_seen() {
     sim.world
         .set_tile_mask(at, plain | tile::RIVER | tile::CITY_RADIUS);
     assert!(sim.world.set_fog(vec![0; 32 * 32]));
-    sim.lobby.reveal_map = 1;
+    sim.ai.lobby.reveal_map = 1;
     assert_eq!(sim.blocked_tcoord(None, t.farm, at, None), Blocked::River);
     assert_eq!(
         sim.blocked_tcoord(Some(0), t.farm, at, None),
@@ -573,7 +582,7 @@ fn blocked_tcoord_s_tile_arms_follow_the_listing() {
         Blocked::CantTransport,
         "no transport level"
     );
-    sim.transport[0].civilian = true;
+    sim.ai.transport[0].civilian = true;
     assert_ne!(
         sim.blocked_tcoord(Some(0), platform, at, None),
         Blocked::CantTransport
@@ -585,7 +594,7 @@ fn blocked_tcoord_s_tile_arms_follow_the_listing() {
     d.flags |= cell::GOODY;
     sim.world.set_cell_data(rc, d);
     assert!(sim.world.set_fog(vec![0; 32 * 32]));
-    sim.lobby.reveal_map = 1;
+    sim.ai.lobby.reveal_map = 1;
     let centre = tile_pos(ruins.x, ruins.y);
     let camp = sim.add_build_type(bt(Ident::Woodcutter, None, "gaef", 2, 2, 150, 400, 0));
     let (verdict, _) = sim.blocked_site_slots(Some(0), camp, centre, None);
@@ -600,7 +609,7 @@ fn blocked_tcoord_s_tile_arms_follow_the_listing() {
 fn a_footprint_more_than_half_unseen_is_refused_seen() {
     let mut sim = world_sim();
     let t = install_types(&mut sim);
-    sim.lobby.reveal_map = 1;
+    sim.ai.lobby.reveal_map = 1;
     let pos = tile_pos(32, 32);
     let corner = sim.tile_corner(t.town, pos);
     let tiles = sim.footprint(t.town, corner);
@@ -642,7 +651,7 @@ fn a_footprint_more_than_half_unseen_is_refused_seen() {
     // `blocked_site` returns a first `0x24` before the tally: a dock the
     // tiles do not refuse (no city radius needed) is what the exemption is
     // about.
-    sim.build_types[dock].flags |= flags::NO_CITY;
+    sim.tables.build_types[dock].flags |= flags::NO_CITY;
     assert_ne!(sim.blocked_site(Some(0), dock, pos, None), Blocked::Seen);
 }
 
@@ -666,7 +675,7 @@ fn a_fort_s_close_fixes_the_borders_only_once_it_is_built() {
     sim.settle_borders();
     sim.close_building(site, false);
     assert!(
-        sim.border_pass.is_none() && !sim.borders_fixed,
+        sim.territory.border_pass.is_none() && !sim.territory.borders_fixed,
         "an unbuilt fort's close fixes nothing"
     );
     let fort = sim
@@ -674,10 +683,10 @@ fn a_fort_s_close_fixes_the_borders_only_once_it_is_built() {
         .expect("a second fort site");
     finish(&mut sim, fort);
     sim.settle_borders();
-    sim.borders_fixed = false;
+    sim.territory.borders_fixed = false;
     sim.close_building(fort, false);
     assert!(
-        sim.border_pass.is_some() && sim.borders_fixed,
+        sim.territory.border_pass.is_some() && sim.territory.borders_fixed,
         "a built fort's close fixes the borders"
     );
 }
@@ -697,7 +706,7 @@ fn an_owner_s_fort_makes_its_region_seen_and_a_regionless_cell_is_no_ruin() {
     let at = Pos::new(20, 20);
     let c = World::cell_of_tile(at);
     assert!(sim.world.set_fog(vec![0; 32 * 32]));
-    sim.lobby.reveal_map = 1;
+    sim.ai.lobby.reveal_map = 1;
     sim.world.set_owner(c, Owner::Player(0), Owner::None);
     assert!(
         sim.was_seen_fog(at.x >> 1, at.y >> 1, 0),
@@ -810,7 +819,7 @@ fn a_library_needs_a_city_and_there_is_one_per_city() {
         Some(c),
         "membership is decided at placement"
     );
-    assert!(sim.cities[c].members.contains(&l1));
+    assert!(sim.cities.cities[c].members.contains(&l1));
     // A second library in the same city is refused even before the first is
     // built — `count_buildings` counts placed ones.
     assert_eq!(
@@ -854,7 +863,7 @@ fn a_civic_level_sweeps_a_straddling_building_into_its_city() {
     sim.start_techs(0);
     let (_, c) = city_at(&mut sim, &t, 0, 32, 32);
     let r = sim.radius_of(c);
-    let centre = sim.cities[c].pos.tile();
+    let centre = sim.cities.cities[c].pos.tile();
     // The first site east of the city that places, joins no city, and
     // whose centre tile the sweep's radius still reaches.
     let b = (33..60)
@@ -887,7 +896,7 @@ fn a_civic_level_sweeps_a_straddling_building_into_its_city() {
     let before = sim.num_buildings(c);
     sim.gain_tech(0, civic);
     assert_eq!(sim.buildings[b].city, Some(c), "the Civic level seats it");
-    assert!(sim.cities[c].members.contains(&b));
+    assert!(sim.cities.cities[c].members.contains(&b));
     assert_eq!(
         sim.num_buildings(c),
         before + 1,
@@ -927,8 +936,8 @@ fn the_city_limit_follows_the_civic_level() {
     sim.tech[0].epoch[tech::Line::Civic as usize] = 1;
     assert_eq!(sim.city_limit(0), 2);
     assert!(sim.place_building(0, t.village, tile_pos(57, 32)).is_ok());
-    sim.nation[0].pyramids = true;
-    sim.nation[0].bantu = true;
+    sim.cities.nation[0].pyramids = true;
+    sim.cities.nation[0].bantu = true;
     assert_eq!(sim.city_limit(0), 4, "civic 1 + Bantu 1 + 1 + Pyramids 1");
 }
 
@@ -954,7 +963,7 @@ fn a_group_s_queue_first_keeps_the_build_behind_the_walk() {
     let mut sim = world_sim();
     let t = install_types(&mut sim);
     let _ = city_at(&mut sim, &t, 0, 32, 32);
-    sim.nation[0].human = false;
+    sim.cities.nation[0].human = false;
     let mut ct = citizen_type(t.village);
     ct.worker = Worker::Citizen;
     ct.cols.role = crate::ai_load::role::ROLE_CITIZEN;
@@ -1023,7 +1032,7 @@ fn a_busy_builder_gets_an_approach_before_its_next_build() {
     let mut sim = world_sim();
     let t = install_types(&mut sim);
     let _ = city_at(&mut sim, &t, 0, 32, 32);
-    sim.nation[0].human = false;
+    sim.cities.nation[0].human = false;
     let mut ct = citizen_type(t.village);
     ct.worker = Worker::Citizen;
     ct.cols.role = crate::ai_load::role::ROLE_CITIZEN;
@@ -1077,9 +1086,9 @@ fn a_human_s_build_drop_gives_each_citizen_a_move_then_the_build() {
         let mut tree = TechTree::new();
         let barracks_t = tree.add(TypeDef::building("Barracks"));
         sim.set_tech_tree(tree);
-        sim.build_types[t.barracks].tree = Some(barracks_t);
+        sim.tables.build_types[t.barracks].tree = Some(barracks_t);
         let _ = city_at(&mut sim, &t, 0, 32, 32);
-        sim.nation[0].human = human;
+        sim.cities.nation[0].human = human;
         let mut ct = citizen_type(t.village);
         ct.worker = Worker::Citizen;
         let citizen = sim.add_unit_type(ct);
@@ -1099,7 +1108,7 @@ fn a_human_s_build_drop_gives_each_citizen_a_move_then_the_build() {
             false,
         );
         let price = sim.building_price(0, t.barracks);
-        let before = sim.ledgers[0].bucket;
+        let before = sim.economy.ledgers[0].bucket;
         let mut g = crate::group::Group::stack(0);
         for &u in &us {
             sim.group_add(&mut g, u);
@@ -1110,7 +1119,7 @@ fn a_human_s_build_drop_gives_each_citizen_a_move_then_the_build() {
             .expect("the site is placed");
         for (r, (was, cost)) in before.iter().zip(price).enumerate() {
             assert_eq!(
-                sim.ledgers[0].bucket[r],
+                sim.economy.ledgers[0].bucket[r],
                 was - cost,
                 "paid once, resource {r}"
             );
@@ -1147,7 +1156,7 @@ fn a_human_s_one_unit_swarm_walks_under_a_move() {
     let citizen = sim.add_unit_type(citizen_type(t.village));
     let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
     for (human, want) in [(true, MoveKind::MoveTo), (false, MoveKind::ExploreTo)] {
-        sim.nation[0].human = human;
+        sim.cities.nation[0].human = human;
         let u = spawn(&mut sim, 0, citizen, tile_pos(30, 44));
         sim.swarm_around(u, b, Body::Build(b), false);
         assert!(
@@ -1170,8 +1179,8 @@ fn a_human_s_one_unit_swarm_walks_under_a_move() {
 fn a_builder_s_re_entry_swarms_the_build_queued_behind_it_afresh() {
     let (mut sim, t, citizen, _) = alarm_sim();
     let _ = city_at(&mut sim, &t, 0, 32, 32);
-    sim.nation[0].human = false;
-    sim.unit_types[citizen].worker = Worker::Citizen;
+    sim.cities.nation[0].human = false;
+    sim.tables.unit_types[citizen].worker = Worker::Citizen;
     let b1 = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
     let b2 = sim.place_building(0, t.barracks, tile_pos(48, 36)).unwrap();
     let u = sim.init_unit(0, citizen, tile_pos(30, 44));
@@ -1217,8 +1226,8 @@ fn a_builder_s_re_entry_swarms_the_build_queued_behind_it_afresh() {
 fn a_re_entry_re_issues_a_queued_build_on_the_site_that_took_its_number() {
     let (mut sim, t, citizen, _) = alarm_sim();
     let _ = city_at(&mut sim, &t, 0, 32, 32);
-    sim.nation[0].human = false;
-    sim.unit_types[citizen].worker = Worker::Citizen;
+    sim.cities.nation[0].human = false;
+    sim.tables.unit_types[citizen].worker = Worker::Citizen;
     let b1 = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
     let b2 = sim.place_building(0, t.barracks, tile_pos(48, 36)).unwrap();
     let u = sim.init_unit(0, citizen, tile_pos(30, 44));
@@ -1444,10 +1453,10 @@ fn a_finished_builder_with_a_queued_build_gathers_only_from_a_group_of_two() {
     let run = |members: usize| {
         let mut sim = world_sim();
         let t = install_types(&mut sim);
-        sim.nation[0].human = true;
+        sim.cities.nation[0].human = true;
         let _ = city_at(&mut sim, &t, 0, 32, 32);
         let citizen = sim.add_unit_type(citizen_type(t.village));
-        sim.unit_types[citizen].worker = Worker::Citizen;
+        sim.tables.unit_types[citizen].worker = Worker::Citizen;
         let site = sim.place_building(0, t.farm, tile_pos(44, 20)).unwrap();
         let later = sim.place_building(0, t.farm, tile_pos(44, 26)).unwrap();
         let us: Vec<usize> = (0..members)
@@ -1541,30 +1550,34 @@ fn a_full_disband_returns_the_price_and_a_lakota_raze_makes_every_disband_full()
     }
     let price = sim.building_price(0, t.village);
     assert!(price.iter().any(|&p| p > 0));
-    let before = sim.ledgers[0].bucket;
+    let before = sim.economy.ledgers[0].bucket;
     sim.disband_building(b, true);
     for g in 0..price.len() {
-        assert_eq!(sim.ledgers[0].bucket[g] - before[g], price[g], "good {g}");
+        assert_eq!(
+            sim.economy.ledgers[0].bucket[g] - before[g],
+            price[g],
+            "good {g}"
+        );
     }
     let b = sim.place_building(0, t.village, pos).unwrap();
     finish(&mut sim, b);
-    let before = sim.ledgers[0].bucket;
+    let before = sim.economy.ledgers[0].bucket;
     sim.disband_building(b, false);
     assert!(!sim.buildings[b].alive);
     assert_eq!(
-        sim.ledgers[0].bucket, before,
+        sim.economy.ledgers[0].bucket, before,
         "a finished building: nothing"
     );
     let b = sim.place_building(0, t.village, pos).unwrap();
     finish(&mut sim, b);
-    sim.nation[0].lakota = true;
-    sim.tuning.lakota_raze_price = 1;
+    sim.cities.nation[0].lakota = true;
+    sim.tables.tuning.lakota_raze_price = 1;
     let price = sim.building_price(0, t.village);
-    let before = sim.ledgers[0].bucket;
+    let before = sim.economy.ledgers[0].bucket;
     sim.disband_building(b, false);
     for g in 0..price.len() {
         assert_eq!(
-            sim.ledgers[0].bucket[g] - before[g],
+            sim.economy.ledgers[0].bucket[g] - before[g],
             price[g],
             "raze, good {g}"
         );
@@ -1581,7 +1594,7 @@ fn a_full_disband_returns_the_price_and_a_lakota_raze_makes_every_disband_full()
 fn a_disband_refunds_the_price_without_itself_in_the_ramp() {
     let mut sim = world_sim();
     let t = install_types(&mut sim);
-    sim.build_types[t.barracks].price = sim.build_types[t.barracks]
+    sim.tables.build_types[t.barracks].price = sim.tables.build_types[t.barracks]
         .price
         .clone()
         .with_support(economy::Resource::Timber, 20);
@@ -1590,14 +1603,14 @@ fn a_disband_refunds_the_price_without_itself_in_the_ramp() {
     finish(&mut sim, a);
     let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
     let live = sim.building_price(0, t.barracks);
-    let before = sim.ledgers[0].bucket;
+    let before = sim.economy.ledgers[0].bucket;
     sim.disband_building(b, true);
     assert!(!sim.buildings[b].alive);
     let closed = sim.building_price(0, t.barracks);
     assert_ne!(live, closed, "the ramp counts the building while it stands");
     for g in 0..closed.len() {
         assert_eq!(
-            sim.ledgers[0].bucket[g] - before[g],
+            sim.economy.ledgers[0].bucket[g] - before[g],
             closed[g],
             "good {g}: the price after the close"
         );
@@ -1614,7 +1627,7 @@ fn a_nomads_first_city_takes_three_times_as_long_and_is_refunded_by_what_is_left
         "CAPITAL_BUILD_TIME 300 %"
     );
     // Build a sixth of it, then cancel: five sixths of the price come back.
-    let before = sim.ledgers[0].bucket[1];
+    let before = sim.economy.ledgers[0].bucket[1];
     for _ in 0..300 {
         sim.do_construct(b, 100);
         sim.buildings[b].helpers = 0;
@@ -1622,7 +1635,7 @@ fn a_nomads_first_city_takes_three_times_as_long_and_is_refunded_by_what_is_left
     assert_eq!(sim.buildings[b].job_counter, 30_000);
     sim.disband_building(b, false);
     assert!(!sim.buildings[b].alive);
-    assert_eq!(sim.ledgers[0].bucket[1], before + 83);
+    assert_eq!(sim.economy.ledgers[0].bucket[1], before + 83);
     // Past the type's own `job_time × 100` — sixty thousand — the partial
     // refund gate closes, tripled clock or not: the original tests
     // `job_counter < type.time(who)`, the unmodified figure.
@@ -1631,9 +1644,9 @@ fn a_nomads_first_city_takes_three_times_as_long_and_is_refunded_by_what_is_left
         sim.do_construct(b, 100);
         sim.buildings[b].helpers = 0;
     }
-    let before = sim.ledgers[0].bucket[1];
+    let before = sim.economy.ledgers[0].bucket[1];
     sim.disband_building(b, false);
-    assert_eq!(sim.ledgers[0].bucket[1], before);
+    assert_eq!(sim.economy.ledgers[0].bucket[1], before);
     // Its tiles are free again.
     assert_eq!(
         sim.world.tile_mask(tile_pos(32, 32).tile()) & tile::OBJECT,
@@ -1676,7 +1689,7 @@ fn a_placed_ghost_is_free_to_cancel_and_blocks_nothing_but_placement() {
     let mut sim = world_sim();
     let t = install_types(&mut sim);
     let b = sim.place_building(0, t.village, tile_pos(32, 32)).unwrap();
-    let before = sim.ledgers[0].bucket[1];
+    let before = sim.economy.ledgers[0].bucket[1];
     // The site verdict (spacing) wins over the tile verdict, so ask the
     // tile: a placed, unstarted building already blocks its tiles.
     assert_eq!(
@@ -1689,7 +1702,7 @@ fn a_placed_ghost_is_free_to_cancel_and_blocks_nothing_but_placement() {
     );
     sim.disband_building(b, false);
     assert_eq!(
-        sim.ledgers[0].bucket[1],
+        sim.economy.ledgers[0].bucket[1],
         before + 100,
         "the whole price: nothing was built"
     );
@@ -1700,7 +1713,7 @@ fn a_building_bleeds_in_enemy_territory_and_a_ghost_is_removed() {
     let mut sim = world_sim();
     // This measures a refund; the city's own trickle is switched off so
     // the ledger moves for no other reason.
-    sim.tuning.city_gather = [0; 6];
+    sim.tables.tuning.city_gather = [0; 6];
     let t = install_types(&mut sim);
     let _ = city_at(&mut sim, &t, 0, 32, 32);
     let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
@@ -1722,12 +1735,12 @@ fn a_building_bleeds_in_enemy_territory_and_a_ghost_is_removed() {
     let g = sim.place_building(0, t.barracks, tile_pos(46, 46)).unwrap();
     sim.world
         .set_owner(tile_pos(46, 46).cell(), Owner::Player(1), Owner::None);
-    let before = sim.ledgers[0].bucket[1];
+    let before = sim.economy.ledgers[0].bucket[1];
     for _ in 0..32 {
         sim.tick();
     }
     assert!(!sim.buildings[g].alive);
-    assert_eq!(sim.ledgers[0].bucket[1], before + 100);
+    assert_eq!(sim.economy.ledgers[0].bucket[1], before + 100);
 }
 
 #[test]
@@ -1737,7 +1750,7 @@ fn the_clock_is_rebaked_when_the_wall_stats_go_stale() {
     w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 15));
     w.fill_region(Terrain::Land, Cell::new(8, 0), Cell::new(15, 15));
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; economy::RESOURCES];
     }
     let t = install_types(&mut sim);
@@ -1757,19 +1770,19 @@ fn the_clock_is_rebaked_when_the_wall_stats_go_stale() {
     assert_eq!(sim.buildings[a].constr_time, 180_000);
     assert_eq!(sim.buildings[b].constr_time, 180_000);
     finish(&mut sim, a);
-    assert!(sim.wall_stats_dirty[0]);
+    assert!(sim.cities.wall_stats_dirty[0]);
     assert_eq!(
         sim.buildings[b].constr_time, 180_000,
         "not until Leader::process runs"
     );
     sim.tick();
     assert_eq!(sim.buildings[b].constr_time, 60_000);
-    assert!(!sim.wall_stats_dirty[0]);
+    assert!(!sim.cities.wall_stats_dirty[0]);
     // A speed tech arriving mid-build does the same.
     for x in ladder {
         sim.tech[0].tech[x] = true;
     }
-    sim.wall_stats_dirty[0] = true;
+    sim.cities.wall_stats_dirty[0] = true;
     sim.tick();
     assert_eq!(sim.buildings[b].constr_time, 42_000);
 }
@@ -1789,7 +1802,7 @@ fn a_set_type_keeps_the_hits_until_the_wall_stats_run() {
     let before = sim.buildings[b].hits;
     sim.set_type(b, t.town);
     assert_eq!(sim.buildings[b].hits, before, "no re-rate on the spot");
-    sim.wall_stats_dirty[0] = true;
+    sim.cities.wall_stats_dirty[0] = true;
     sim.tick();
     assert_ne!(sim.buildings[b].hits, before, "the wall stats re-rate it");
 }
@@ -1804,7 +1817,7 @@ fn construction_takes_a_tenth_off_the_clock_and_adds_a_tenth_to_the_hits() {
     let mut w = World::new(16, 16);
     w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(15, 15));
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; economy::RESOURCES];
     }
     let t = install_types(&mut sim);
@@ -1821,12 +1834,12 @@ fn construction_takes_a_tenth_off_the_clock_and_adds_a_tenth_to_the_hits() {
     let (clock, hits) = (sim.buildings[b].constr_time, sim.buildings[b].hits);
     // A tech off both ladders moves neither.
     sim.tech[0].tech[other] = true;
-    sim.wall_stats_dirty[0] = true;
+    sim.cities.wall_stats_dirty[0] = true;
     sim.tick();
     assert_eq!(sim.buildings[b].constr_time, clock);
     assert_eq!(sim.buildings[b].hits, hits);
     sim.tech[0].tech[construction] = true;
-    sim.wall_stats_dirty[0] = true;
+    sim.cities.wall_stats_dirty[0] = true;
     sim.tick();
     assert_eq!(
         sim.buildings[b].constr_time,
@@ -1911,7 +1924,7 @@ fn the_president_near_a_site_shortens_its_clock_by_a_quarter() {
     sim.units[far].pos = tile_pos(41, 34);
     assert_eq!(
         sim.construct_time_of(b),
-        base * 100 / (sim.tuning.thepresident_building_speed + 100),
+        base * 100 / (sim.tables.tuning.thepresident_building_speed + 100),
         "THEPRESIDENT_BUILDING_SPEED 33 %"
     );
 }
@@ -1957,18 +1970,27 @@ fn the_despot_beside_a_kill_plunders_the_least_stocked_good() {
     let killer = sim.init_unit(1, foot, tile_pos(41, 40));
     // Food, timber, wealth and metal available; oil not; knowledge
     // available and empty, and skipped.
-    sim.holdings[1].available = [true, true, true, true, true, false];
-    sim.ledgers[1].bucket = [500, 500, 500, 0, 44, 0];
-    let start = sim.ledgers[1].bucket;
+    sim.economy.holdings[1].available = [true, true, true, true, true, false];
+    sim.economy.ledgers[1].bucket = [500, 500, 500, 0, 44, 0];
+    let start = sim.economy.ledgers[1].bucket;
     sim.unit_plunder(victim, killer);
-    assert_eq!(sim.ledgers[1].bucket, start, "no Despot, no plunder");
+    assert_eq!(
+        sim.economy.ledgers[1].bucket, start,
+        "no Despot, no plunder"
+    );
     let own = sim.init_unit(0, despot, tile_pos(40, 41));
     sim.unit_plunder(victim, killer);
-    assert_eq!(sim.ledgers[1].bucket, start, "the victim's own Despot");
+    assert_eq!(
+        sim.economy.ledgers[1].bucket, start,
+        "the victim's own Despot"
+    );
     let far = sim.init_unit(1, despot, tile_pos(110, 110));
     let rng = sim.rng;
     sim.unit_plunder(victim, killer);
-    assert_eq!(sim.ledgers[1].bucket, start, "a Despot out of reach");
+    assert_eq!(
+        sim.economy.ledgers[1].bucket, start,
+        "a Despot out of reach"
+    );
     assert_eq!(sim.rng, rng, "and no draw");
     let _ = own;
     sim.units[far].pos = tile_pos(41, 41);
@@ -1979,17 +2001,24 @@ fn the_despot_beside_a_kill_plunders_the_least_stocked_good() {
     sim.unit_plunder(victim, killer);
     assert_eq!(sim.rng, want, "four draws: food, timber, wealth, metal");
     assert_eq!(
-        sim.ledgers[1].bucket,
-        [500, 500, 500, 0, 44 + sim.tuning.thedespot_unit_plunder, 0],
+        sim.economy.ledgers[1].bucket,
+        [
+            500,
+            500,
+            500,
+            0,
+            44 + sim.tables.tuning.thedespot_unit_plunder,
+            0
+        ],
         "metal, the least stocked of the four drawn; THEDESPOT_UNIT_PLUNDER 15"
     );
-    assert_eq!(sim.tuning.thedespot_unit_plunder, 15);
+    assert_eq!(sim.tables.tuning.thedespot_unit_plunder, 15);
     // Its own side's kill, beside its own Despot: the leaders are one.
     let mate = sim.init_unit(0, foot, tile_pos(40, 39));
-    let before = (sim.ledgers[0].bucket, sim.rng);
+    let before = (sim.economy.ledgers[0].bucket, sim.rng);
     sim.unit_plunder(victim, mate);
     assert_eq!(
-        (sim.ledgers[0].bucket, sim.rng),
+        (sim.economy.ledgers[0].bucket, sim.rng),
         before,
         "no plunder of one's own"
     );
@@ -2018,27 +2047,33 @@ fn an_inca_unit_killed_by_an_enemy_refunds_a_quarter_of_its_price() {
     let victim = sim.init_unit(0, foot, tile_pos(40, 40));
     let killer = sim.init_unit(1, foot, tile_pos(41, 40));
     let mate = sim.init_unit(0, foot, tile_pos(40, 41));
-    sim.holdings[0].available = [true, true, true, true, true, false];
-    sim.ledgers[0].bucket = [500, 500, 500, 0, 44, 0];
-    let start = sim.ledgers[0].bucket;
+    sim.economy.holdings[0].available = [true, true, true, true, true, false];
+    sim.economy.ledgers[0].bucket = [500, 500, 500, 0, 44, 0];
+    let start = sim.economy.ledgers[0].bucket;
     sim.inca_refund(victim, Obj::Unit(killer));
-    assert_eq!(sim.ledgers[0].bucket, start, "not the Inca, no refund");
-    sim.holdings[0].inca = true;
+    assert_eq!(
+        sim.economy.ledgers[0].bucket, start,
+        "not the Inca, no refund"
+    );
+    sim.economy.holdings[0].inca = true;
     sim.inca_refund(victim, Obj::Unit(mate));
-    assert_eq!(sim.ledgers[0].bucket, start, "its own side's kill");
+    assert_eq!(sim.economy.ledgers[0].bucket, start, "its own side's kill");
     let price = sim.price_of(0, foot);
     let rng = sim.rng;
     sim.inca_refund(victim, Obj::Unit(killer));
-    assert_eq!(sim.tuning.inca_refund, 25);
+    assert_eq!(sim.tables.tuning.inca_refund, 25);
     let want: Vec<i32> = (0..6)
         .map(|g| start[g] + if g == 5 { 0 } else { price[g] * 25 / 100 })
         .collect();
     assert_eq!(
-        sim.ledgers[0].bucket.to_vec(),
+        sim.economy.ledgers[0].bucket.to_vec(),
         want,
         "a quarter, oil unavailable"
     );
-    assert_ne!(sim.ledgers[0].bucket, start, "the price is not empty");
+    assert_ne!(
+        sim.economy.ledgers[0].bucket, start,
+        "the price is not empty"
+    );
     assert_eq!(sim.rng, rng, "and no draw");
 }
 
@@ -2088,20 +2123,20 @@ fn a_hero_s_killer_takes_general_plunder_in_wealth() {
     let victim = sim.init_unit(0, hero, tile_pos(40, 40));
     let carrier = sim.init_unit(0, wagon, tile_pos(40, 42));
     let killer = sim.init_unit(1, foot, tile_pos(41, 40));
-    sim.holdings[1].available = [true, true, true, true, true, false];
-    sim.ledgers[1].bucket = [500, 500, 500, 0, 44, 0];
+    sim.economy.holdings[1].available = [true, true, true, true, true, false];
+    sim.economy.ledgers[1].bucket = [500, 500, 500, 0, 44, 0];
     let rng = sim.rng;
     sim.unit_plunder(victim, killer);
-    assert_eq!(sim.tuning.general_plunder, 100);
+    assert_eq!(sim.tables.tuning.general_plunder, 100);
     assert_eq!(
-        sim.ledgers[1].bucket,
+        sim.economy.ledgers[1].bucket,
         [500, 500, 600, 0, 44, 0],
         "100 wealth"
     );
     sim.unit_plunder(carrier, killer);
-    assert_eq!(sim.tuning.caravan_plunder, 50);
+    assert_eq!(sim.tables.tuning.caravan_plunder, 50);
     assert_eq!(
-        sim.ledgers[1].bucket,
+        sim.economy.ledgers[1].bucket,
         [500, 500, 650, 0, 44, 0],
         "a wagon's 50"
     );
@@ -2135,10 +2170,10 @@ fn an_aztec_kill_from_a_barracks_line_trainer_pays_its_age() {
     peasant.where_ = Some(village_t);
     let peasant_t = tree.add(peasant);
     sim.set_tech_tree(tree);
-    let stable = sim.add_build_type(sim.build_types[t.barracks].clone());
-    sim.build_types[stable].ident = Ident::Stable;
-    sim.build_types[stable].tree = Some(stable_t);
-    sim.build_types[t.village].tree = Some(village_t);
+    let stable = sim.add_build_type(sim.tables.build_types[t.barracks].clone());
+    sim.tables.build_types[stable].ident = Ident::Stable;
+    sim.tables.build_types[stable].tree = Some(stable_t);
+    sim.tables.build_types[t.village].tree = Some(village_t);
     let foot = |tree| crate::UnitType {
         hits: 40,
         tree,
@@ -2158,15 +2193,15 @@ fn an_aztec_kill_from_a_barracks_line_trainer_pays_its_age() {
     let peasant_killer = sim.init_unit(1, citizen, tile_pos(41, 41));
     // Food, timber, wealth and metal available, oil not; knowledge
     // skipped. Timber is the least stocked.
-    sim.holdings[1].available = [true, true, true, true, true, false];
-    sim.ledgers[1].bucket = [20000, 12714, 20000, 0, 20000, 0];
-    let start = sim.ledgers[1].bucket;
+    sim.economy.holdings[1].available = [true, true, true, true, true, false];
+    sim.economy.ledgers[1].bucket = [20000, 12714, 20000, 0, 20000, 0];
+    let start = sim.economy.ledgers[1].bucket;
     sim.tech[1].ages = 2;
     sim.unit_plunder(victim, killer);
-    assert_eq!(sim.ledgers[1].bucket, start, "not an Aztec");
-    sim.nation[1].aztecs = true;
+    assert_eq!(sim.economy.ledgers[1].bucket, start, "not an Aztec");
+    sim.cities.nation[1].aztecs = true;
     sim.unit_plunder(victim, peasant_killer);
-    assert_eq!(sim.ledgers[1].bucket, start, "a Village's unit");
+    assert_eq!(sim.economy.ledgers[1].bucket, start, "a Village's unit");
     let mut want = sim.rng;
     for _ in 0..4 {
         let _ = want.roll();
@@ -2174,18 +2209,21 @@ fn an_aztec_kill_from_a_barracks_line_trainer_pays_its_age() {
     sim.unit_plunder(victim, killer);
     assert_eq!(sim.rng, want, "four draws: food, timber, wealth, metal");
     assert_eq!(
-        sim.ledgers[1].bucket[1], 12759,
+        sim.economy.ledgers[1].bucket[1], 12759,
         "run1308b's 2557: (2 + 1) × AZTEC_SLAY_BONUS 15, no Despot cut"
     );
     sim.tech[1].ages = 7;
     sim.unit_plunder(victim, killer);
     assert_eq!(
-        sim.ledgers[1].bucket[1],
-        12759 + sim.tuning.aztec_slay_cap,
+        sim.economy.ledgers[1].bucket[1],
+        12759 + sim.tables.tuning.aztec_slay_cap,
         "AZTEC_SLAY_CAP 60"
     );
     assert_eq!(
-        (sim.tuning.aztec_slay_bonus, sim.tuning.aztec_slay_cap),
+        (
+            sim.tables.tuning.aztec_slay_bonus,
+            sim.tables.tuning.aztec_slay_cap
+        ),
         (15, 60)
     );
 }
@@ -2210,8 +2248,11 @@ fn an_iroquois_leader_s_first_senate_is_free_and_instant() {
     assert_ne!(full, [0; economy::RESOURCES], "a Senate costs");
     sim.tech[0].power = Some(crate::nations::power::IROQUOIS);
     assert!(
-        sim.tech_tree
-            .has_tribe_bonus(&sim.setup, &sim.tech[0], crate::ai::tribe::IROQUOIS),
+        sim.tables.tech_tree.has_tribe_bonus(
+            &sim.tables.setup,
+            &sim.tech[0],
+            crate::ai::tribe::IROQUOIS
+        ),
         "the bonus holds in this setup"
     );
     assert_eq!(
@@ -2228,18 +2269,18 @@ fn an_iroquois_leader_s_first_senate_is_free_and_instant() {
     let b = sim.place_building(0, t.senate, tile_pos(40, 32)).unwrap();
     assert!(sim.buildings[b].constr_time > 1);
     assert_eq!(sim.construct_time_of(b), 1, "the first is instant");
-    sim.tuning.iroquois_quick_senate = 0;
+    sim.tables.tuning.iroquois_quick_senate = 0;
     assert_eq!(
         sim.building_price(0, t.senate),
         full,
         "the constant gates it"
     );
     assert_eq!(sim.construct_time_of(b), sim.buildings[b].constr_time);
-    sim.tuning.iroquois_quick_senate = 1;
-    if sim.building_high[0].len() <= t.senate {
-        sim.building_high[0].resize(t.senate + 1, 0);
+    sim.tables.tuning.iroquois_quick_senate = 1;
+    if sim.cities.building_high[0].len() <= t.senate {
+        sim.cities.building_high[0].resize(t.senate + 1, 0);
     }
-    sim.building_high[0][t.senate] = 1;
+    sim.cities.building_high[0][t.senate] = 1;
     assert_eq!(sim.building_price(0, t.senate), full, "one has stood");
     assert_eq!(sim.construct_time_of(b), sim.buildings[b].constr_time);
 }
@@ -2262,14 +2303,17 @@ fn a_senate_site_or_a_finished_senate_in_the_capital_refuses_a_second() {
     let senate_t = tree.add(TypeDef::building("Senate"));
     sim.set_tech_tree(tree);
     sim.start_techs(0);
-    sim.build_types[t.senate].tree = Some(senate_t);
+    sim.tables.build_types[t.senate].tree = Some(senate_t);
     assert_eq!(
         sim.type_avail(0, senate_t),
         tech::NOT_AVAILABLE,
         "no capital"
     );
     let (_, c) = city_at(&mut sim, &t, 0, 32, 32);
-    assert!(sim.cities[c].capital, "the first city is the capital");
+    assert!(
+        sim.cities.cities[c].capital,
+        "the first city is the capital"
+    );
     assert_eq!(sim.type_avail(0, senate_t), tech::AVAILABLE);
     let b = sim.place_building(0, t.senate, tile_pos(40, 32)).unwrap();
     assert!(!sim.buildings[b].active);
@@ -2322,7 +2366,7 @@ fn the_president_near_a_trainer_halves_a_trained_unit_s_time() {
         },
         ..UnitType::default()
     });
-    sim.muster[0].researched[ty] = true;
+    sim.roster.muster[0].researched[ty] = true;
     let c = [0; crate::economy::RESOURCES];
     sim.buildings[b]
         .queue
@@ -2344,11 +2388,11 @@ fn the_president_near_a_trainer_halves_a_trained_unit_s_time() {
     let _ = sim.init_unit(0, president, tile_pos(41, 34));
     assert_eq!(
         sim.queue_target(b, 0),
-        base * 100 / (sim.tuning.thepresident_unit_build_speed + 100),
+        base * 100 / (sim.tables.tuning.thepresident_unit_build_speed + 100),
         "THEPRESIDENT_UNIT_BUILD_SPEED 100 %"
     );
-    assert_eq!(sim.tuning.thepresident_unit_build_speed, 100);
-    sim.muster[0].researched[ty] = false;
+    assert_eq!(sim.tables.tuning.thepresident_unit_build_speed, 100);
+    sim.roster.muster[0].researched[ty] = false;
     let research = sim.queue_target(b, 0);
     for u in sim.units.iter_mut().filter(|u| u.owner == 0) {
         u.pos = tile_pos(110, 110);
@@ -2365,7 +2409,7 @@ fn a_repair_takes_twice_the_build_time_and_costs_the_price_again() {
     let mut sim = world_sim();
     // This measures a price; the city's own trickle is switched off so the
     // ledger moves for no other reason.
-    sim.tuning.city_gather = [0; 6];
+    sim.tables.tuning.city_gather = [0; 6];
     let t = install_types(&mut sim);
     let _ = city_at(&mut sim, &t, 0, 32, 32);
     let citizen = sim.add_unit_type(citizen_type(t.village));
@@ -2375,7 +2419,7 @@ fn a_repair_takes_twice_the_build_time_and_costs_the_price_again() {
     sim.buildings[b].sync_health();
     let u = spawn(&mut sim, 0, citizen, tile_pos(40, 40));
     sim.order_repair(u, b);
-    let before = sim.ledgers[0].bucket[1];
+    let before = sim.economy.ledgers[0].bucket[1];
     let mut frames = 0;
     while sim.buildings[b].damage > 0 {
         sim.tick();
@@ -2387,7 +2431,7 @@ fn a_repair_takes_twice_the_build_time_and_costs_the_price_again() {
     // for half its hits, i.e. twice the build time for all of them.
     assert!((418..=422).contains(&frames), "{frames}");
     assert_eq!(
-        before - sim.ledgers[0].bucket[1],
+        before - sim.economy.ledgers[0].bucket[1],
         50,
         "half the hits, half the price"
     );
@@ -2427,7 +2471,7 @@ fn a_city_growth_does_not_retroactively_flag_its_new_members_roads() {
     finish(&mut sim, sites[4]);
     assert_eq!(sim.city_level_of(c), 2);
     assert_eq!(sim.buildings[outside].city, Some(c));
-    assert!(sim.cities[c].members.contains(&outside));
+    assert!(sim.cities.cities[c].members.contains(&outside));
     assert!(
         !sim.buildings[outside].regen_roads,
         "joined after the road request"
@@ -2520,10 +2564,10 @@ fn the_age_the_large_city_needs_levels_a_ready_city_up_on_the_gain() {
     tree.roles.town = Some(town);
     tree.add_tribe(tech::Tribe::default());
     tree.finalize();
-    sim.build_types[t.town].tree = Some(town);
-    sim.tech_tree = tree;
+    sim.tables.build_types[t.town].tree = Some(town);
+    sim.tables.tech_tree = tree;
     for w in 0..sim.tech.len() {
-        sim.tech[w] = tech::PlayerTech::new(&sim.tech_tree);
+        sim.tech[w] = tech::PlayerTech::new(&sim.tables.tech_tree);
     }
     let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
     let sites = [
@@ -2539,7 +2583,7 @@ fn the_age_the_large_city_needs_levels_a_ready_city_up_on_the_gain() {
     }
     assert_eq!(sim.num_kinds(c), 6, "the kinds are there");
     assert_eq!(sim.city_level_of(c), 1, "the Large City is locked");
-    assert_eq!(sim.ai[0].census.pop, 1);
+    assert_eq!(sim.ai.ai[0].census.pop, 1);
     sim.gain_tech(0, classical);
     assert_eq!(
         sim.city_level_of(c),
@@ -2549,7 +2593,7 @@ fn the_age_the_large_city_needs_levels_a_ready_city_up_on_the_gain() {
     sim.gain_tech(0, medieval);
     assert_eq!(sim.city_level_of(c), 2, "levelled up on the gain");
     assert_eq!(sim.buildings[b].ty, Some(t.town));
-    assert_eq!(sim.ai[0].census.pop, 3, "and `pop` follows it");
+    assert_eq!(sim.ai.ai[0].census.pop, 3, "and `pop` follows it");
 }
 
 /// **The Spice rare and the caravans' nation power scale a route** —
@@ -2569,7 +2613,7 @@ fn spice_and_the_caravan_power_scale_a_route_on_the_computing_city_s_owner() {
     sim.buildings[b0].ty = Some(t.metropolis);
     sim.buildings[b1].ty = Some(t.metropolis);
     let v = sim.init_caravan(1, 0).expect("a slot");
-    let slot = &mut sim.caravans[1].slots[v];
+    let slot = &mut sim.economy.caravans[1].slots[v];
     slot.city_a = Some(c1);
     slot.city_b = Some(c0);
     slot.delivered = true;
@@ -2581,16 +2625,22 @@ fn spice_and_the_caravan_power_scale_a_route_on_the_computing_city_s_owner() {
     sim.compute_trade(c0);
     sim.compute_trade(c1);
     assert_eq!(
-        (sim.cities[c0].trade_val, sim.cities[c1].trade_val),
+        (
+            sim.cities.cities[c0].trade_val,
+            sim.cities.cities[c1].trade_val
+        ),
         (240, 240),
         "30 · 16 / 2 at each end"
     );
     // Spice for who=1 alone: its own city's end is worth 30 · 120 / 100.
-    sim.ledgers[1].rare |= 1 << (economy::SPICE - economy::BASE_RARE);
+    sim.economy.ledgers[1].rare |= 1 << (economy::SPICE - economy::BASE_RARE);
     sim.compute_trade(c0);
     sim.compute_trade(c1);
     assert_eq!(
-        (sim.cities[c0].trade_val, sim.cities[c1].trade_val),
+        (
+            sim.cities.cities[c0].trade_val,
+            sim.cities.cities[c1].trade_val
+        ),
         (240, 288),
         "the rare is the computing city's owner's"
     );
@@ -2598,7 +2648,11 @@ fn spice_and_the_caravan_power_scale_a_route_on_the_computing_city_s_owner() {
     sim.tech[0].power = Some(0x15);
     sim.tech[0].has_city = true;
     sim.compute_trade(c0);
-    assert_eq!(sim.cities[c0].trade_val, 34 * 8, "and so is the power");
+    assert_eq!(
+        sim.cities.cities[c0].trade_val,
+        34 * 8,
+        "and so is the power"
+    );
 }
 
 /// **A new route refreshes both its cities' trade** (item 1275):
@@ -2622,20 +2676,20 @@ fn a_new_route_recomputes_the_trade_its_cities_already_hold() {
     sim.buildings[b1].ty = Some(t.metropolis);
     // The old route, city 0 ↔ 1, has delivered and was summed.
     let old = sim.init_caravan(0, 0).expect("a slot");
-    let slot = &mut sim.caravans[0].slots[old];
+    let slot = &mut sim.economy.caravans[0].slots[old];
     slot.alive = true;
     slot.linked = true;
     slot.city_a = Some(c0);
     slot.city_b = Some(c1);
     slot.delivered = true;
     sim.compute_trade(c1);
-    let before = sim.cities[c1].trade_val;
+    let before = sim.cities.cities[c1].trade_val;
     assert!(before > 0);
     // City 0 is worth less since: the stored sum is stale.
     sim.buildings[b0].ty = Some(t.village);
     let fresh = sim.trade_value(c1, c0) * 16 / 2;
     assert_ne!(fresh, before, "the partner's value moved");
-    assert_eq!(sim.cities[c1].trade_val, before);
+    assert_eq!(sim.cities.cities[c1].trade_val, before);
     // A caravan at city 1 takes a route to city 2.
     let citizen = sim.add_unit_type(citizen_type(t.village));
     let u = spawn(&mut sim, 0, citizen, tile_pos(34, 34));
@@ -2655,10 +2709,13 @@ fn a_new_route_recomputes_the_trade_its_cities_already_hold() {
         crate::orders::QueuePos::New,
     );
     sim.do_trade(u);
-    assert!(sim.caravans[0].slots[v].linked, "the pair is linked");
-    assert!(!sim.caravans[0].slots[v].delivered);
+    assert!(
+        sim.economy.caravans[0].slots[v].linked,
+        "the pair is linked"
+    );
+    assert!(!sim.economy.caravans[0].slots[v].delivered);
     assert_eq!(
-        sim.cities[c1].trade_val, fresh,
+        sim.cities.cities[c1].trade_val, fresh,
         "city 1's old route is re-summed at today's value"
     );
 }
@@ -2679,8 +2736,8 @@ fn a_leader_s_pop_is_one_three_five_by_city_level() {
         .expect("the city stands in a region");
     let pop = |s: &crate::Sim, who: usize| {
         (
-            s.ai[who].census.pop,
-            crate::ai::Census::reg(&s.ai[who].census.reg_pop, reg),
+            s.ai.ai[who].census.pop,
+            crate::ai::Census::reg(&s.ai.ai[who].census.reg_pop, reg),
         )
     };
     assert_eq!(pop(&sim, 0), (1, 1), "a Small City is worth one");
@@ -2721,7 +2778,7 @@ fn a_decoy_moves_no_garrison_count_in_or_out() {
     sim.units[c].captain = true;
     sim.go_inside(c, b);
     assert_eq!(
-        sim.ai[0].census.peasants_garr, 1,
+        sim.ai.ai[0].census.peasants_garr, 1,
         "a citizen captain counts"
     );
     let d = spawn(&mut sim, 0, citizen, tile_pos(32, 32));
@@ -2729,7 +2786,7 @@ fn a_decoy_moves_no_garrison_count_in_or_out() {
     sim.units[d].decoy = true;
     sim.go_inside(d, b);
     assert_eq!(
-        sim.ai[0].census.peasants_garr, 1,
+        sim.ai.ai[0].census.peasants_garr, 1,
         "a decoy goes in uncounted"
     );
     sim.eject_contents(b, false);
@@ -2737,7 +2794,10 @@ fn a_decoy_moves_no_garrison_count_in_or_out() {
         sim.tick();
     }
     assert_eq!(sim.squads_inside(b), 0);
-    assert_eq!(sim.ai[0].census.peasants_garr, 0, "and comes out uncounted");
+    assert_eq!(
+        sim.ai.ai[0].census.peasants_garr, 0,
+        "and comes out uncounted"
+    );
 }
 
 #[test]
@@ -2858,7 +2918,7 @@ fn a_computer_s_squad_members_come_out_with_their_own_orders() {
     let squad = sim.add_unit_type(squad);
     let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
     finish(&mut sim, b);
-    sim.nation[0].human = false;
+    sim.cities.nation[0].human = false;
     let cap = sim.build_train(b, squad).unit;
     for m in sim.squad_members(cap) {
         let u = &sim.units[m];
@@ -2980,7 +3040,7 @@ fn a_press_on_two_buildings_lays_one_entry_a_member_a_pass_from_the_least_queued
     let t = install_types(&mut sim);
     let _ = city_at(&mut sim, &t, 0, 32, 32);
     let ty = sim.add_unit_type(hoplite_type(t.barracks));
-    sim.muster[0].researched[ty] = true;
+    sim.roster.muster[0].researched[ty] = true;
     let busy = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
     let idle = sim.place_building(0, t.barracks, tile_pos(48, 40)).unwrap();
     finish(&mut sim, busy);
@@ -2989,15 +3049,15 @@ fn a_press_on_two_buildings_lays_one_entry_a_member_a_pass_from_the_least_queued
     // the price"), so no member is refused for room.
     sim.buildings[busy].queue.capacity = 20;
     sim.buildings[idle].queue.capacity = 20;
-    sim.ledgers[0].bucket[food] = 100_000;
+    sim.economy.ledgers[0].bucket[food] = 100_000;
     sim.queue_up(busy, ty).unwrap();
     // Exactly three more entries' worth, whatever the ramp.
     let mut probe = sim.clone();
-    let before = probe.ledgers[0].bucket[food];
+    let before = probe.economy.ledgers[0].bucket[food];
     for _ in 0..3 {
         probe.queue_up(idle, ty).unwrap();
     }
-    sim.ledgers[0].bucket[food] = before - probe.ledgers[0].bucket[food];
+    sim.economy.ledgers[0].bucket[food] = before - probe.economy.ledgers[0].bucket[food];
 
     assert_eq!(sim.action_queue_up(&[busy, idle], ty, 3), 3);
     assert_eq!(
@@ -3010,7 +3070,7 @@ fn a_press_on_two_buildings_lays_one_entry_a_member_a_pass_from_the_least_queued
         2,
         "its own and the second"
     );
-    assert_eq!(sim.ledgers[0].bucket[food], 0);
+    assert_eq!(sim.economy.ledgers[0].bucket[food], 0);
     let paid = |b: usize, i: usize| sim.buildings[b].queue.items[i].cost[0];
     assert!(paid(idle, 0) <= paid(busy, 1) && paid(busy, 1) <= paid(idle, 1));
 }
@@ -3130,7 +3190,7 @@ fn the_garrison_heal_runs_every_twenty_frames_where_the_unit_was_trained() {
     // The Red Fort owner heals at 20 × 100 / 600 = 3.
     sim.come_out(h);
     sim.units[h].pos = tile_pos(40, 40);
-    sim.nation[0].red_fort = true;
+    sim.cities.nation[0].red_fort = true;
     assert_eq!(sim.garrison(h, b), Ok(()));
     for _ in 0..30 {
         sim.tick();
@@ -3148,7 +3208,7 @@ fn the_garrison_heal_takes_the_heal_level_s_period() {
     let mut sim = world_sim();
     let t = install_types(&mut sim);
     let _ = city_at(&mut sim, &t, 0, 32, 32);
-    let mut tree = sim.tech_tree.clone();
+    let mut tree = sim.tables.tech_tree.clone();
     let herbal = tree.add(crate::tech::TypeDef::plain("Herbal Lore", 0));
     tree.roles.heal_faster_preq = [Some(herbal), None, None];
     sim.set_tech_tree(tree);
@@ -3314,37 +3374,38 @@ fn a_city_at_zero_falls_to_three_hoplites_but_not_two() {
     let h3 = spawn(&mut sim, 0, hoplite, tile_pos(36, 34));
     assert!(sim.check_capture(b, h3), "three against two");
     // The old record is closed, a new one owns the place.
-    assert!(!sim.cities[c].alive);
+    assert!(!sim.cities.cities[c].alive);
     assert!(!sim.buildings[b].alive);
     let nc = sim
+        .cities
         .cities
         .iter()
         .position(|c| c.alive && c.owner == 0)
         .expect("player 0 has the city now");
-    let nb = sim.cities[nc].building;
+    let nb = sim.cities.cities[nc].building;
     assert_eq!(sim.buildings[nb].owner, 0);
     assert_eq!(
         sim.buildings[nb].health, 10,
         "handed over with ten hit points"
     );
     assert_eq!(
-        sim.cities[nc].race,
+        sim.cities.cities[nc].race,
         Some(1),
         "still the old nation's: unassimilated"
     );
-    assert!(sim.cities[nc].unassimilated);
+    assert!(sim.cities.cities[nc].unassimilated);
     assert_eq!(
-        sim.cities[nc].capture_strength, 1,
+        sim.cities.cities[nc].capture_strength, 1,
         "the triggering hoplite's own value"
     );
-    assert_eq!(sim.cities[nc].capture_stamp, 1000);
+    assert_eq!(sim.cities.cities[nc].capture_stamp, 1000);
     assert!(sim.city_unassimilated(nc));
     // Territory changed hands.
     assert_eq!(sim.world.owner_at(tile_pos(32, 32)), Owner::Player(0));
     // Player 1 lost their last city: defeated.
-    assert!(sim.defeated[1]);
-    assert_eq!(sim.city_tally[0].captured, 1);
-    assert_eq!(sim.city_tally[1].lost, 1);
+    assert!(sim.leaders.defeated[1]);
+    assert_eq!(sim.cities.city_tally[0].captured, 1);
+    assert_eq!(sim.cities.city_tally[1].lost, 1);
 }
 
 #[test]
@@ -3366,10 +3427,11 @@ fn an_unassimilated_city_does_not_heal_or_make_anything_and_assimilates_at_two_t
     assert!(sim.check_capture(b, hs[2]));
     let nc = sim
         .cities
+        .cities
         .iter()
         .position(|c| c.alive && c.owner == 0)
         .unwrap();
-    let nb = sim.cities[nc].building;
+    let nb = sim.cities.cities[nc].building;
     assert_eq!(sim.buildings[nb].health, 10);
     // Not assimilated: no heal, nothing queued, nobody garrisons.
     for _ in 0..100 {
@@ -3391,7 +3453,7 @@ fn an_unassimilated_city_does_not_heal_or_make_anything_and_assimilates_at_two_t
     assert!(sim.city_unassimilated(nc), "1999 frames elapsed");
     sim.tick();
     assert!(!sim.city_unassimilated(nc));
-    assert_eq!(sim.cities[nc].race, Some(0));
+    assert_eq!(sim.cities.cities[nc].race, Some(0));
     let before = sim.buildings[nb].health;
     for _ in 0..40 {
         sim.tick();
@@ -3404,7 +3466,7 @@ fn an_unassimilated_city_does_not_heal_or_make_anything_and_assimilates_at_two_t
     // Now it admits the garrison — but not while under a tenth of its hits.
     assert_eq!(sim.garrison(h, nb), Err(GarrisonRefused::CityTooHurt));
     // And the 75-frame grace after a capture blocks the old owner's revenge.
-    assert!(!sim.defeated[1]);
+    assert!(!sim.leaders.defeated[1]);
 }
 
 /// **A captured city's record is `City::init`'s on a transfer, then
@@ -3434,10 +3496,11 @@ fn a_captured_city_takes_city_init_s_record_and_its_building_s_ever_seen() {
     assert!(sim.check_capture(b, hs[2]));
     let nc = sim
         .cities
+        .cities
         .iter()
         .position(|c| c.alive && c.owner == 0)
         .expect("player 0 has the city now");
-    let c = &sim.cities[nc];
+    let c = &sim.cities.cities[nc];
     assert_eq!(
         [
             c.attack_stamp,
@@ -3449,13 +3512,13 @@ fn a_captured_city_takes_city_init_s_record_and_its_building_s_ever_seen() {
         [1000; 5],
         "every clock City::init stamps on a transfer"
     );
-    let rec = sim.ai[0].city_ai[nc];
+    let rec = sim.ai.ai[0].city_ai[nc];
     assert_eq!((rec.land, rec.filled), (9, 1), "City::init's literal");
     assert_eq!(
         (rec.free, rec.busy, rec.gatherers, rec.ocean, rec.space),
         (0, 0, 0, 0, [0; 3])
     );
-    let nb = sim.cities[nc].building;
+    let nb = sim.cities.cities[nc].building;
     assert_eq!(
         (
             sim.buildings[nb].ever_seen,
@@ -3475,9 +3538,9 @@ fn a_new_city_s_ai_record_is_nine_open_one_filled() {
     let mut sim = world_sim();
     let t = install_types(&mut sim);
     let (_, c) = city_at(&mut sim, &t, 1, 32, 32);
-    let rec = sim.ai[1].city_ai[c];
+    let rec = sim.ai.ai[1].city_ai[c];
     assert_eq!((rec.land, rec.filled, rec.gatherers), (9, 1, 0));
-    let c0 = &sim.cities[c];
+    let c0 = &sim.cities.cities[c];
     assert_eq!(
         (c0.raid_stamp, c0.reduce_stamp, c0.capture_stamp),
         (0, 0, 0),
@@ -3567,7 +3630,7 @@ fn a_held_tikal_raises_a_templed_city_s_hit_points() {
         "the finished Tikal is held"
     );
     sim.update_hits(b);
-    let tu = &sim.tuning;
+    let tu = &sim.tables.tuning;
     let bonus = tu.temple_upgrade_hp[0];
     let k = ((tu.tikal_temple_hp + 100) * bonus + 99) / 100;
     assert_eq!(without, (bonus + 100) * 1200 / 100, "the Temple's level 1");
@@ -3619,20 +3682,23 @@ fn a_finished_colossus_raises_its_owner_s_pop_cap_and_its_loss_lowers_it() {
     col.tree = Some(line[tech::wonder::COLOSSUS]);
     let col = sim.add_build_type(col);
     let _ = city_at(&mut sim, &t, 0, 32, 32);
-    for m in &mut sim.muster {
+    for m in &mut sim.roster.muster {
         m.military_level = 3;
     }
     sim.recompute_pop_caps();
-    assert_eq!((sim.muster[0].cap, sim.muster[1].cap), (100, 100));
+    assert_eq!(
+        (sim.roster.muster[0].cap, sim.roster.muster[1].cap),
+        (100, 100)
+    );
     let w = sim.place_building(0, col, tile_pos(32, 25)).unwrap();
     finish(&mut sim, w);
     assert_eq!(
-        (sim.muster[0].cap, sim.muster[1].cap),
-        (100 + sim.tuning.colossus_pop_cap, 100),
+        (sim.roster.muster[0].cap, sim.roster.muster[1].cap),
+        (100 + sim.tables.tuning.colossus_pop_cap, 100),
         "the owner's alone, on activation"
     );
     sim.close_building(w, false);
-    assert_eq!(sim.muster[0].cap, 100, "and gone with the wonder");
+    assert_eq!(sim.roster.muster[0].cap, 100, "and gone with the wonder");
 }
 
 /// **A held Space Program halves an aircraft's time** (item 2526,
@@ -3676,7 +3742,7 @@ fn a_held_space_program_halves_an_aircraft_s_time() {
         };
         ut.combat.domain = domain;
         let ty = sim.add_unit_type(ut);
-        sim.muster[0].researched[ty] = true;
+        sim.roster.muster[0].researched[ty] = true;
         sim.buildings[b]
             .queue
             .items
@@ -3691,10 +3757,10 @@ fn a_held_space_program_halves_an_aircraft_s_time() {
         0,
         "the finished Space Program is held"
     );
-    assert_eq!(sim.tuning.space_air_speed, 100);
+    assert_eq!(sim.tables.tuning.space_air_speed, 100);
     assert_eq!(
         sim.queue_target(b, 0),
-        base[0] * 100 / (sim.tuning.space_air_speed + 100),
+        base[0] * 100 / (sim.tables.tuning.space_air_speed + 100),
         "an aircraft takes half"
     );
     assert_eq!(
@@ -3747,7 +3813,7 @@ fn a_held_kremlin_trains_a_spy_in_five_frames() {
             tree,
             ..UnitType::default()
         });
-        sim.muster[0].researched[ty] = true;
+        sim.roster.muster[0].researched[ty] = true;
         sim.buildings[b]
             .queue
             .items
@@ -3762,7 +3828,7 @@ fn a_held_kremlin_trains_a_spy_in_five_frames() {
         0,
         "the finished Kremlin is held"
     );
-    assert_eq!(sim.tuning.accel_train, 100);
+    assert_eq!(sim.tables.tuning.accel_train, 100);
     assert_eq!(sim.queue_target(b, 0), 499, "the Spy: ACCEL_TRAIN × 5 − 1");
     assert_eq!(
         sim.queue_target(b, 1),
@@ -3790,7 +3856,7 @@ fn a_held_supercollider_finishes_a_research_job_on_its_next_tick() {
     let monarchy = tree.add(tech::TypeDef::gov("Monarchy", 0, 0).at(senate_t));
     tree.types[monarchy].job_time = 700;
     sim.set_tech_tree(tree);
-    sim.build_types[t.senate].tree = Some(senate_t);
+    sim.tables.build_types[t.senate].tree = Some(senate_t);
     let mut sc = bt(Ident::Temple, None, "jam", 4, 4, 420, 1200, 0);
     sc.ident = Ident::default();
     sc.tree = Some(line[tech::wonder::SUPERCOLLIDER]);
@@ -3868,7 +3934,7 @@ fn the_space_program_halves_an_aircraft_and_angkor_wat_takes_a_quarter_off_a_shi
     assert_eq!(sim.domain_cost_discounts(0, air), [0, 50]);
     assert_eq!(sim.price_of(0, air)[kn.index()], 375, "750 halved");
     assert_eq!(sim.domain_cost_discounts(0, sea), [0, 0], "not a ship's");
-    sim.ledgers[0].rare |= 1 << (economy::ALUMINUM - economy::BASE_RARE);
+    sim.economy.ledgers[0].rare |= 1 << (economy::ALUMINUM - economy::BASE_RARE);
     assert_eq!(sim.domain_cost_discounts(0, air), [15, 50]);
     // `(100 − 15) × 750 / 100 = 637`, then `50 × 637 / 100 = 318`.
     assert_eq!(sim.price_of(0, air)[kn.index()], 318);
@@ -4001,20 +4067,20 @@ fn valid_target_on_a_city_at_its_ceiling_is_a_capture_attempt() {
         "a hoplite never targets a city at its ceiling"
     );
     assert!(
-        sim.cities.iter().any(|c| c.alive && c.owner == 0),
+        sim.cities.cities.iter().any(|c| c.alive && c.owner == 0),
         "…and its question took the city: three against the base of 2"
     );
     let (mut sim, b, hs) = setup(2);
     assert!(!sim.valid_target(Obj::Unit(hs[1]), Obj::Building(b)));
     assert!(
-        !sim.cities.iter().any(|c| c.alive && c.owner == 0),
+        !sim.cities.cities.iter().any(|c| c.alive && c.owner == 0),
         "two against 2 holds"
     );
     let (mut sim, b, hs) = setup(3);
     sim.units[hs[2]].decoy = true;
     assert!(!sim.valid_target(Obj::Unit(hs[2]), Obj::Building(b)));
     assert!(
-        !sim.cities.iter().any(|c| c.alive && c.owner == 0),
+        !sim.cities.cities.iter().any(|c| c.alive && c.owner == 0),
         "a decoy captures nothing"
     );
 }
@@ -4037,7 +4103,7 @@ fn a_packed_engine_unpacks_on_a_city_at_its_ceiling() {
     bd.sync_health();
     sim.tech[1].epoch[tech::Line::Civic as usize] = 1;
     let _ = city_at(&mut sim, &t, 1, 8, 8);
-    sim.nation[0].human = false;
+    sim.cities.nation[0].human = false;
     sim.frame = 1000;
     // An MLRS is a `VEHICLE` and a `WAR_MACHINE`: what keeps a city at its
     // ceiling a valid target under a mandatory attack.
@@ -4097,7 +4163,7 @@ fn a_computer_s_unit_walks_to_capture_a_city_at_its_ceiling() {
         let bd = &mut sim.buildings[b];
         bd.damage = bd.hits;
         bd.sync_health();
-        sim.nation[0].human = human;
+        sim.cities.nation[0].human = human;
         sim.frame = 1000;
         let u = spawn(&mut sim, 0, hoplite, tile_pos(32, ty));
         let city = Obj::Building(b);
@@ -4145,7 +4211,7 @@ fn the_turks_assimilate_three_times_faster() {
     sim.tech[1].epoch[tech::Line::Civic as usize] = 1;
     let _ = city_at(&mut sim, &t, 1, 8, 8);
     let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
-    sim.nation[0].turks = true;
+    sim.cities.nation[0].turks = true;
     let bd = &mut sim.buildings[b];
     bd.damage = bd.hits;
     bd.sync_health();
@@ -4155,6 +4221,7 @@ fn the_turks_assimilate_three_times_faster() {
         .collect();
     assert!(sim.check_capture(b, hs[2]));
     let nc = sim
+        .cities
         .cities
         .iter()
         .position(|c| c.alive && c.owner == 0)
@@ -4179,18 +4246,26 @@ fn killing_a_barracks_plunders_its_good() {
     let bty = sim.add_build_type(barracks);
     let b = sim.place_building(1, bty, tile_pos(40, 40)).unwrap();
     finish(&mut sim, b);
-    let before = sim.ledgers[0].bucket[0];
+    let before = sim.economy.ledgers[0].bucket[0];
     sim.plunder_kill(b, 0);
-    assert_eq!(sim.ledgers[0].bucket[0] - before, 40, "PLUNDER 100 % of 40");
+    assert_eq!(
+        sim.economy.ledgers[0].bucket[0] - before,
+        40,
+        "PLUNDER 100 % of 40"
+    );
     // An unfinished one plunders by its progress: a third built, a third.
     let s = sim.place_building(1, bty, tile_pos(46, 40)).unwrap();
     for _ in 0..140 {
         sim.do_construct(s, 100);
         sim.buildings[s].helpers = 0;
     }
-    let before = sim.ledgers[0].bucket[0];
+    let before = sim.economy.ledgers[0].bucket[0];
     sim.plunder_kill(s, 0);
-    assert_eq!(sim.ledgers[0].bucket[0] - before, 13, "40 × 14000 / 42000");
+    assert_eq!(
+        sim.economy.ledgers[0].bucket[0] - before,
+        13,
+        "40 × 14000 / 42000"
+    );
 }
 
 #[test]
@@ -4204,7 +4279,7 @@ fn the_bare_building_of_the_earlier_mechanics_is_untouched() {
     }
     assert!(sim.buildings[b].alive && sim.buildings[b].active);
     assert_eq!(sim.buildings[b].ty, None);
-    assert_eq!(sim.cities.len(), 0);
+    assert_eq!(sim.cities.cities.len(), 0);
     let _ = UNITS_PER_CELL;
 }
 
@@ -4306,7 +4381,7 @@ fn only_the_snap_arm_s_arrival_faces_the_order_s_angle_under_a_gather() {
     let farm = sim.place_building(0, t.farm, tile_pos(20, 20)).unwrap();
     finish(&mut sim, farm);
     let citizen = sim.add_unit_type(citizen_type(t.village));
-    sim.unit_types[citizen].worker = Worker::Citizen;
+    sim.tables.unit_types[citizen].worker = Worker::Citizen;
 
     // A 48-snapped destination, and two starts: one 7 units of Manhattan
     // away (the snap takes it) and one 29 (a full 25-unit step lands on it
@@ -4387,7 +4462,7 @@ fn a_citizen_with_a_gather_order_walks_to_the_farm_and_then_counts() {
         "a flat type has one slot"
     );
     let citizen = sim.add_unit_type(citizen_type(t.village));
-    sim.unit_types[citizen].worker = Worker::Citizen;
+    sim.tables.unit_types[citizen].worker = Worker::Citizen;
     // Beside the farm, off its footprint: four tiles east of the centre.
     let u = spawn(&mut sim, 0, citizen, tile_pos(44, 32));
     sim.add_gather_order(u, farm, QueuePos::New, false);
@@ -4433,7 +4508,7 @@ fn a_citizen_with_a_gather_order_walks_to_the_farm_and_then_counts() {
         1,
         "now the economy counts it"
     );
-    assert!(sim.ledgers[0].dirty, "and the rate is marked stale");
+    assert!(sim.economy.ledgers[0].dirty, "and the rate is marked stale");
     // A second citizen finds the farm full and gives the order up for a
     // THINK.
     let v = spawn(&mut sim, 0, citizen, tile_pos(44, 33));
@@ -4471,7 +4546,7 @@ fn an_empty_farm_cell_is_sown_unless_the_guy_is_still_reaping() {
         let farm = sim.place_building(0, t.farm, tile_pos(40, 32)).unwrap();
         finish(&mut sim, farm);
         let citizen = sim.add_unit_type(citizen_type(t.village));
-        sim.unit_types[citizen].worker = Worker::Citizen;
+        sim.tables.unit_types[citizen].worker = Worker::Citizen;
         // Standing on the farm, so `do_gather` arrives on the first tick
         // and reaches the switch on the same frame.
         let stand = sim.buildings[farm].pos;
@@ -4479,14 +4554,15 @@ fn an_empty_farm_cell_is_sown_unless_the_guy_is_still_reaping() {
         sim.units[u].guys = vec![crate::anim::Guy::fresh(-1)];
         sim.units[u].guys[0].anim = anim;
         sim.add_gather_order(u, farm, QueuePos::New, false);
-        sim.trace_phases = true;
+        sim.trace.trace_phases = true;
         (sim, u, farm)
     }
 
     // The re-target's own draws, counted by name: the farm's sprout clock
     // is on the same stream, so a seed is not the instrument here.
     let re_picks = |sim: &Sim| {
-        sim.phase_marks
+        sim.trace
+            .phase_marks
             .iter()
             .filter(|(site, _)| site == orders::SITE_FARM_CELL)
             .count()
@@ -4552,11 +4628,11 @@ fn a_gather_walk_onto_an_occupied_spot_is_killed_where_it_stands() {
     let farm = sim.place_building(0, t.farm, tile_pos(40, 32)).unwrap();
     finish(&mut sim, farm);
     let citizen = sim.add_unit_type(citizen_type(t.village));
-    sim.unit_types[citizen].worker = Worker::Citizen;
+    sim.tables.unit_types[citizen].worker = Worker::Citizen;
     // Both blockable: `coll_size` is `block_radius / 48`, and a type with
     // none never collides at all (`docs/COLLISION.md` §2).
-    sim.unit_types[citizen].combat.block_radius = 48;
-    sim.unit_types[citizen].combat.big_radius = 48;
+    sim.tables.unit_types[citizen].combat.block_radius = 48;
+    sim.tables.unit_types[citizen].combat.big_radius = 48;
 
     // The spot the gather's walk ends on: the farm's 48-snapped centre.
     let centre = sim.buildings[farm].pos;
@@ -4597,9 +4673,9 @@ fn a_gather_walk_onto_an_occupied_spot_is_killed_where_it_stands() {
     let farm2 = sim2.place_building(0, t2.farm, tile_pos(40, 32)).unwrap();
     finish(&mut sim2, farm2);
     let c2 = sim2.add_unit_type(citizen_type(t2.village));
-    sim2.unit_types[c2].worker = Worker::Citizen;
-    sim2.unit_types[c2].combat.block_radius = 48;
-    sim2.unit_types[c2].combat.big_radius = 48;
+    sim2.tables.unit_types[c2].worker = Worker::Citizen;
+    sim2.tables.unit_types[c2].combat.block_radius = 48;
+    sim2.tables.unit_types[c2].combat.big_radius = 48;
     let v = spawn(&mut sim2, 0, c2, tile_pos(44, 32));
     sim2.add_gather_order(v, farm2, QueuePos::New, false);
     let from = sim2.units[v].pos;
@@ -4630,8 +4706,8 @@ fn only_a_human_builder_adopts_the_site_it_has_just_finished() {
         use crate::tech::{TechTree, TypeDef};
         let mut sim = world_sim();
         let t = install_types(&mut sim);
-        sim.nation[0].human = human;
-        sim.lobby.starting_resources = if unlimited { 8 } else { 1 };
+        sim.cities.nation[0].human = human;
+        sim.ai.lobby.starting_resources = if unlimited { 8 } else { 1 };
         // An AI leader runs `Leaders::strategy_all` on every tick, and its
         // research step indexes the tech tree by resource. Six goods is the
         // least that makes that sweep legal here; nothing else reads them.
@@ -4642,7 +4718,7 @@ fn only_a_human_builder_adopts_the_site_it_has_just_finished() {
         sim.set_tech_tree(tree);
         let _ = city_at(&mut sim, &t, 0, 32, 32);
         let citizen = sim.add_unit_type(citizen_type(t.village));
-        sim.unit_types[citizen].worker = Worker::Citizen;
+        sim.tables.unit_types[citizen].worker = Worker::Citizen;
 
         let site = sim.place_building(0, t.farm, tile_pos(44, 32)).unwrap();
         assert!(!sim.buildings[site].active, "the site starts unfinished");
@@ -4712,8 +4788,8 @@ fn an_ai_builder_takes_the_next_site_nearest_first_and_least_crowded() {
     fn ground() -> (Sim, Types, usize) {
         let mut sim = world_sim();
         let t = install_types(&mut sim);
-        sim.nation[0].human = false;
-        sim.lobby.starting_resources = 1;
+        sim.cities.nation[0].human = false;
+        sim.ai.lobby.starting_resources = 1;
         let mut tree = TechTree::new();
         for name in ["Food", "Timber", "Metal", "Wealth", "Knowledge", "Oil"] {
             tree.add(TypeDef::good(name));
@@ -4721,7 +4797,7 @@ fn an_ai_builder_takes_the_next_site_nearest_first_and_least_crowded() {
         sim.set_tech_tree(tree);
         let _ = city_at(&mut sim, &t, 0, 32, 32);
         let citizen = sim.add_unit_type(citizen_type(t.village));
-        sim.unit_types[citizen].worker = Worker::Citizen;
+        sim.tables.unit_types[citizen].worker = Worker::Citizen;
         (sim, t, citizen)
     }
 
@@ -4823,8 +4899,8 @@ fn the_builder_tally_walks_the_lists_while_the_counted_units_are_few() {
     let run = |pad_owner: Player| {
         let mut sim = world_sim();
         let t = install_types(&mut sim);
-        sim.nation[0].human = false;
-        sim.lobby.starting_resources = 1;
+        sim.cities.nation[0].human = false;
+        sim.ai.lobby.starting_resources = 1;
         let mut tree = TechTree::new();
         for name in ["Food", "Timber", "Metal", "Wealth", "Knowledge", "Oil"] {
             tree.add(TypeDef::good(name));
@@ -4832,7 +4908,7 @@ fn the_builder_tally_walks_the_lists_while_the_counted_units_are_few() {
         sim.set_tech_tree(tree);
         let _ = city_at(&mut sim, &t, 0, 32, 32);
         let citizen = sim.add_unit_type(citizen_type(t.village));
-        sim.unit_types[citizen].worker = Worker::Citizen;
+        sim.tables.unit_types[citizen].worker = Worker::Citizen;
         let near = sim.place_building(0, t.farm, tile_pos(44, 40)).unwrap();
         let far = sim.place_building(0, t.farm, tile_pos(40, 30)).unwrap();
         let on_near = spawn(&mut sim, 0, citizen, tile_pos(44, 42));
@@ -4890,12 +4966,12 @@ fn the_builder_tally_counts_no_builder_on_a_coastal_cell_s_water() {
         }
         let mut sim = Sim::new(Tuning::RON, w, 2);
         sim.declare_war(0, 1);
-        for l in &mut sim.ledgers {
+        for l in &mut sim.economy.ledgers {
             l.bucket = [10_000; economy::RESOURCES];
         }
         let t = install_types(&mut sim);
-        sim.nation[0].human = false;
-        sim.lobby.starting_resources = 1;
+        sim.cities.nation[0].human = false;
+        sim.ai.lobby.starting_resources = 1;
         let mut tree = TechTree::new();
         for name in ["Food", "Timber", "Metal", "Wealth", "Knowledge", "Oil"] {
             tree.add(TypeDef::good(name));
@@ -4903,7 +4979,7 @@ fn the_builder_tally_counts_no_builder_on_a_coastal_cell_s_water() {
         sim.set_tech_tree(tree);
         let _ = city_at(&mut sim, &t, 0, 32, 32);
         let citizen = sim.add_unit_type(citizen_type(t.village));
-        sim.unit_types[citizen].worker = Worker::Citizen;
+        sim.tables.unit_types[citizen].worker = Worker::Citizen;
         // Cell (9, 10) comes before (11, 10) on the circle (ring 1, `x`
         // ascending), so a tie goes to `first`.
         let first = sim.place_building(0, t.farm, tile_pos(36, 40)).unwrap();
@@ -5039,7 +5115,7 @@ fn the_spot_search_refuses_a_unit_standing_there_and_one_walking_there() {
     let citizen = sim.add_unit_type(citizen_type(t.village));
     // `coll_size` is `block_radius / 48`, and a type with none is in
     // neither index — the whole test would pass vacuously.
-    sim.unit_types[citizen].combat.block_radius = 48;
+    sim.tables.unit_types[citizen].combat.block_radius = 48;
     let east = spawn(&mut sim, 0, citizen, tile_pos(46, 40));
     let other = spawn(&mut sim, 0, citizen, tile_pos(20, 20));
     let site = sim.buildings[b].pos;
@@ -5118,7 +5194,7 @@ fn object_numbers_are_per_player_and_a_dead_slot_is_reused() {
     assert_eq!(sim.buildings[farm2].index, 2001);
     let farm3 = sim.init_build(0, t.farm, tile_pos(28, 36), false);
     assert_eq!(sim.buildings[farm3].index, 2002);
-    assert_eq!(sim.marks[0].build, 2003);
+    assert_eq!(sim.roster.marks[0].build, 2003);
     assert_eq!(sim.building_by_o(0, 2001), Some(farm2));
     assert_eq!(sim.building_by_o(1, 2001), None);
 
@@ -5138,7 +5214,7 @@ fn object_numbers_are_per_player_and_a_dead_slot_is_reused() {
     let mut u = Unit::new(0, 7, tile_pos(30, 30), 40);
     u.ty = Some(citizen);
     sim.add_unit(u);
-    assert_eq!(sim.marks[0].unit, 8);
+    assert_eq!(sim.roster.marks[0].unit, 8);
     let u3 = sim.produce(0, citizen, tile_pos(32, 30)).unwrap();
     assert_eq!(sim.units[u3].index, 1);
 }
@@ -5208,7 +5284,7 @@ fn a_technology_queues_at_the_library_and_completes_as_research() {
     ww.job_time = 40;
     let written_word = tree.add(ww);
     sim.set_tech_tree(tree);
-    sim.build_types[t.library].tree = Some(library_t);
+    sim.tables.build_types[t.library].tree = Some(library_t);
     let (city_b, _) = city_at(&mut sim, &t, 0, 32, 32);
     let lib = sim.init_build(0, t.library, tile_pos(36, 32), false);
     finish(&mut sim, lib);
@@ -5218,11 +5294,11 @@ fn a_technology_queues_at_the_library_and_completes_as_research() {
         sim.queue_tech(city_b, written_word),
         Err(production::QueueFail::CantTrain)
     );
-    let food = sim.ledgers[0].bucket[0];
+    let food = sim.economy.ledgers[0].bucket[0];
     assert_eq!(sim.queue_tech(lib, written_word), Ok(0));
     assert_eq!(
-        sim.ledgers[0].bucket[0],
-        food - 4 * sim.tuning.tech_cost_factor,
+        sim.economy.ledgers[0].bucket[0],
+        food - 4 * sim.tables.tuning.tech_cost_factor,
         "COST times TECH_COST_FACTOR, charged on queue"
     );
     assert!(sim.researching(0, written_word));
@@ -5268,22 +5344,22 @@ fn the_player_s_research_lands_once_behind_its_gate() {
     cs.job_time = 40;
     let city_state = tree.add(cs);
     sim.set_tech_tree(tree);
-    sim.build_types[t.library].tree = Some(library_t);
+    sim.tables.build_types[t.library].tree = Some(library_t);
     let (city_b, _) = city_at(&mut sim, &t, 0, 32, 32);
     let lib = sim.init_build(0, t.library, tile_pos(36, 32), false);
     finish(&mut sim, lib);
-    sim.ledgers[0].bucket[food] = 1_000;
-    let factor = sim.tuning.tech_cost_factor;
+    sim.economy.ledgers[0].bucket[food] = 1_000;
+    let factor = sim.tables.tuning.tech_cost_factor;
 
     assert_eq!(sim.action_queue_research(&[lib], written_word), 1);
-    assert_eq!(sim.ledgers[0].bucket[food], 1_000 - 4 * factor);
+    assert_eq!(sim.economy.ledgers[0].bucket[food], 1_000 - 4 * factor);
     assert_eq!(
         sim.action_queue_research(&[lib], written_word),
         0,
         "researching: the command refused whole"
     );
     assert_eq!(sim.buildings[lib].queue.items.len(), 1);
-    assert_eq!(sim.ledgers[0].bucket[food], 1_000 - 4 * factor);
+    assert_eq!(sim.economy.ledgers[0].bucket[food], 1_000 - 4 * factor);
 
     // The city is idle and cannot make it; the Library is busy. The first
     // pass offers it to the city alone, which refuses, and the second
@@ -5297,14 +5373,17 @@ fn the_player_s_research_lands_once_behind_its_gate() {
     while !sim.tech[0].tech[written_word] {
         sim.tick();
     }
-    let before = sim.ledgers[0].bucket[food];
+    let before = sim.economy.ledgers[0].bucket[food];
     assert_eq!(
         sim.action_queue_research(&[lib], written_word),
         0,
         "held: can_make's has_tech"
     );
     assert_eq!(sim.buildings[lib].queue.items.len(), 1);
-    assert_eq!(sim.ledgers[0].bucket[food], before, "nothing charged");
+    assert_eq!(
+        sim.economy.ledgers[0].bucket[food], before,
+        "nothing charged"
+    );
 
     assert!(sim.cancel(lib, 0).is_some());
     assert!(!sim.researching(0, city_state));
@@ -5354,16 +5433,16 @@ fn the_science_epoch_shortens_the_entry_behind_it_and_refunds_its_price() {
     cs.cost[food] = 12;
     let city_state = tree.add(cs);
     sim.set_tech_tree(tree);
-    sim.build_types[t.library].tree = Some(library_t);
+    sim.tables.build_types[t.library].tree = Some(library_t);
     let _ = city_at(&mut sim, &t, 0, 32, 32);
     let lib = sim.init_build(0, t.library, tile_pos(36, 32), false);
     finish(&mut sim, lib);
-    sim.ledgers[0].bucket[food] = 1_000;
+    sim.economy.ledgers[0].bucket[food] = 1_000;
 
     assert_eq!(sim.queue_tech(lib, written_word), Ok(0));
     assert_eq!(sim.queue_tech(lib, city_state), Ok(1));
     assert_eq!(
-        sim.ledgers[0].bucket[food],
+        sim.economy.ledgers[0].bucket[food],
         1_000 - 120,
         "12f × TECH_COST_FACTOR, charged on queue with no science discount: \
          City State is an epoch, so its level is its AGE of zero and the \
@@ -5429,11 +5508,12 @@ fn a_line_that_clips_a_building_detours_instead_of_re_planning() {
         "the barracks blocks its own tiles"
     );
     let u = spawn(&mut sim, 0, citizen, tile_pos(20, 20));
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     sim.order_move(u, tile_pos(28, 20));
     sim.tick();
     let grid = |s: &Sim| {
-        s.phase_marks
+        s.trace
+            .phase_marks
             .iter()
             .any(|(l, _)| l == orders::SITE_MOVE_GRID)
     };
@@ -5474,12 +5554,13 @@ fn a_unit_on_a_refusing_tile_is_moved_off_it_and_replans() {
     let from = sim.units[u].pos;
     // A pond: water refuses a walker, and the nearest dry spot is a tile away.
     sim.world.set_tile_bits(from.tile(), tile::SURFACE_OCEAN);
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     sim.order_move(u, tile_pos(24, 20));
     let mut grid = false;
     for _ in 0..8 {
         sim.tick();
         grid |= sim
+            .trace
             .phase_marks
             .iter()
             .any(|(l, _)| l == orders::SITE_MOVE_GRID);
@@ -5512,11 +5593,12 @@ fn a_wall_with_no_way_round_gives_up_and_pays_the_grid_draw() {
             .set_tile_bits(Pos::new(24, ty), tile::OBJECT_MOUNTAIN);
     }
     let u = spawn(&mut sim, 0, citizen, tile_pos(20, 20));
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     sim.order_move(u, tile_pos(28, 20));
     sim.tick();
     assert!(
-        sim.phase_marks
+        sim.trace
+            .phase_marks
             .iter()
             .any(|(l, _)| l == orders::SITE_MOVE_GRID),
         "no way round: the grid draw is the original's answer too"
@@ -5546,13 +5628,13 @@ fn a_unit_on_a_coastal_cell_s_water_gathers_nowhere_on_the_land() {
         let t = install_types(&mut sim);
         let camp = sim.add_build_type(bt(Ident::Woodcutter, None, "ga", 4, 4, 150, 400, 0));
         let citizen = sim.add_unit_type(citizen_type(t.village));
-        sim.unit_types[citizen].worker = Worker::Citizen;
+        sim.tables.unit_types[citizen].worker = Worker::Citizen;
         city_at(&mut sim, &t, 0, 30, 30);
         sim.plant_camp_forest(tile_pos(24, 30));
         let wood = sim.place_building(0, camp, tile_pos(24, 30)).unwrap();
         finish(&mut sim, wood);
         sim.buildings[wood].gather_max = Some(4);
-        let l = &mut sim.ledgers[0];
+        let l = &mut sim.economy.ledgers[0];
         l.cap = [70 * economy::RATE_SCALE; economy::RESOURCES];
         l.income = [0; economy::RESOURCES];
         l.over_cap = [economy::OverCap::Under; economy::RESOURCES];
@@ -5568,7 +5650,7 @@ fn a_unit_on_a_coastal_cell_s_water_gathers_nowhere_on_the_land() {
         }
         let t = here.centre_tile();
         let u = spawn(&mut sim, 0, citizen, tile_pos(t.x, t.y));
-        let range = sim.tuning.unit_gather_respond_range * TILE;
+        let range = sim.tables.tuning.unit_gather_respond_range * TILE;
         sim.find_gather_spot(u, range)
     }
     assert!(found(false), "on land the camp is found");
@@ -5595,7 +5677,7 @@ fn a_citizen_gathers_where_the_cap_has_the_most_room_left() {
         let t = install_types(&mut sim);
         let camp = sim.add_build_type(bt(Ident::Woodcutter, None, "ga", 4, 4, 150, 400, 0));
         let citizen = sim.add_unit_type(citizen_type(t.village));
-        sim.unit_types[citizen].worker = Worker::Citizen;
+        sim.tables.unit_types[citizen].worker = Worker::Citizen;
         city_at(&mut sim, &t, 0, 30, 30);
 
         // Six tiles either way: `vector_dist` is 1,152 to both, and
@@ -5612,7 +5694,7 @@ fn a_citizen_gathers_where_the_cap_has_the_most_room_left() {
 
         let food = economy::Resource::Food.index();
         let timber = economy::Resource::Timber.index();
-        let l = &mut sim.ledgers[0];
+        let l = &mut sim.economy.ledgers[0];
         l.cap = [70 * economy::RATE_SCALE; economy::RESOURCES];
         l.income = [0; economy::RESOURCES];
         l.income[food] = food_income;
@@ -5624,7 +5706,7 @@ fn a_citizen_gathers_where_the_cap_has_the_most_room_left() {
 
         let u = spawn(&mut sim, 0, citizen, tile_pos(30, 30));
         // The range the caller passes; both candidates are well inside it.
-        let range = sim.tuning.unit_gather_respond_range * TILE;
+        let range = sim.tables.tuning.unit_gather_respond_range * TILE;
         if !sim.find_gather_spot(u, range) {
             return None;
         }
@@ -5688,7 +5770,7 @@ fn the_return_walk_goes_in_front_of_the_gather_order_it_updates() {
     let t = install_types(&mut sim);
     let camp = sim.add_build_type(bt(Ident::Woodcutter, None, "ga", 4, 4, 150, 400, 0));
     let citizen = sim.add_unit_type(citizen_type(t.village));
-    sim.unit_types[citizen].worker = Worker::Citizen;
+    sim.tables.unit_types[citizen].worker = Worker::Citizen;
     city_at(&mut sim, &t, 0, 30, 30);
     sim.plant_camp_forest(tile_pos(24, 30));
     let wood = sim.place_building(0, camp, tile_pos(24, 30)).unwrap();
@@ -5747,15 +5829,15 @@ fn a_dock_a_market_and_a_temple_each_claim_a_wealth_slot() {
     let dock = sim.add_build_type(bt(Ident::Dock, None, "jam", 4, 4, 420, 1200, 0));
     city_at(&mut sim, &t, 0, 32, 32);
     let w = economy::Resource::Wealth.index();
-    sim.ledgers[0].bucket[w] = 0;
+    sim.economy.ledgers[0].bucket[w] = 0;
     sim.frame = 1;
 
     // The market is the first: one slot, and thirty wealth for it.
     let m = sim.place_building(0, t.market, tile_pos(20, 20)).unwrap();
     finish(&mut sim, m);
-    assert_eq!(sim.ledgers[0].gather_slots[w], 1);
-    assert_eq!(sim.ledgers[0].gather_slots_high[w], 1);
-    assert_eq!(sim.ledgers[0].bucket[w], 30);
+    assert_eq!(sim.economy.ledgers[0].gather_slots[w], 1);
+    assert_eq!(sim.economy.ledgers[0].gather_slots_high[w], 1);
+    assert_eq!(sim.economy.ledgers[0].bucket[w], 30);
 
     // A temple and a dock are the same kind, and each is past the mark.
     let te = sim.place_building(0, t.temple, tile_pos(20, 28)).unwrap();
@@ -5765,25 +5847,31 @@ fn a_dock_a_market_and_a_temple_each_claim_a_wealth_slot() {
     // buildings: `Build::init` then `Build::activate`.
     let d = sim.init_build(0, dock, tile_pos(44, 20), false);
     sim.activate(d, false, true);
-    assert_eq!(sim.ledgers[0].gather_slots[w], 3);
-    assert_eq!(sim.ledgers[0].bucket[w], 90);
+    assert_eq!(sim.economy.ledgers[0].gather_slots[w], 3);
+    assert_eq!(sim.economy.ledgers[0].bucket[w], 90);
 
     // A library is not, and neither is a farm.
     let l = sim.place_building(0, t.library, tile_pos(44, 28)).unwrap();
     finish(&mut sim, l);
-    assert_eq!(sim.ledgers[0].gather_slots[w], 3, "a library is not a slot");
-    assert_eq!(sim.ledgers[0].bucket[w], 90);
+    assert_eq!(
+        sim.economy.ledgers[0].gather_slots[w], 3,
+        "a library is not a slot"
+    );
+    assert_eq!(sim.economy.ledgers[0].bucket[w], 90);
 
     // `Build::close` gives the slot back; the mark stands, so the rebuild
     // is free of bonus. That is the whole point of the high-water pair.
     sim.disband_building(te, true);
-    assert_eq!(sim.ledgers[0].gather_slots[w], 2);
-    assert_eq!(sim.ledgers[0].gather_slots_high[w], 3);
-    sim.ledgers[0].bucket[w] = 0;
+    assert_eq!(sim.economy.ledgers[0].gather_slots[w], 2);
+    assert_eq!(sim.economy.ledgers[0].gather_slots_high[w], 3);
+    sim.economy.ledgers[0].bucket[w] = 0;
     let te2 = sim.place_building(0, t.temple, tile_pos(20, 28)).unwrap();
     finish(&mut sim, te2);
-    assert_eq!(sim.ledgers[0].gather_slots[w], 3);
-    assert_eq!(sim.ledgers[0].bucket[w], 0, "a rebuild is not a new slot");
+    assert_eq!(sim.economy.ledgers[0].gather_slots[w], 3);
+    assert_eq!(
+        sim.economy.ledgers[0].bucket[w], 0,
+        "a rebuild is not a new slot"
+    );
 }
 
 /// **And at frame 0 the slot is claimed and nothing is paid** — the same
@@ -5797,17 +5885,17 @@ fn a_market_stood_up_at_frame_zero_claims_its_slot_and_pays_nothing() {
     let t = install_types(&mut sim);
     city_at(&mut sim, &t, 0, 32, 32);
     let w = economy::Resource::Wealth.index();
-    sim.ledgers[0].bucket[w] = 0;
+    sim.economy.ledgers[0].bucket[w] = 0;
     assert_eq!(sim.frame, 0);
 
     let m = sim.place_building(0, t.market, tile_pos(20, 20)).unwrap();
     finish(&mut sim, m);
-    assert_eq!(sim.ledgers[0].gather_slots[w], 1);
+    assert_eq!(sim.economy.ledgers[0].gather_slots[w], 1);
     assert_eq!(
-        sim.ledgers[0].gather_slots_high[w], 1,
+        sim.economy.ledgers[0].gather_slots_high[w], 1,
         "the mark still rises"
     );
-    assert_eq!(sim.ledgers[0].bucket[w], 0);
+    assert_eq!(sim.economy.ledgers[0].bucket[w], 0);
 }
 
 /// **The carrying walk is `unit_masks & 0x78000000`, not the order.**
@@ -5828,7 +5916,7 @@ fn the_carrying_walk_comes_off_the_mask_and_not_off_goto_build() {
     let t = install_types(&mut sim);
     let camp = sim.add_build_type(bt(Ident::Woodcutter, None, "ga", 4, 4, 150, 400, 0));
     let citizen = sim.add_unit_type(citizen_type(t.village));
-    sim.unit_types[citizen].worker = Worker::Citizen;
+    sim.tables.unit_types[citizen].worker = Worker::Citizen;
     city_at(&mut sim, &t, 0, 30, 30);
     sim.plant_camp_forest(tile_pos(24, 30));
     let wood = sim.place_building(0, camp, tile_pos(24, 30)).unwrap();
@@ -5884,40 +5972,43 @@ fn a_finished_farm_pays_once_and_a_rebuilt_one_pays_nothing() {
     let _ = city_at(&mut sim, &t, 0, 32, 32);
     // Frame 0 is the setup path and pays nothing whatever is finished on it.
     sim.frame = 1;
-    for l in &mut sim.ledgers {
+    for l in &mut sim.economy.ledgers {
         l.gather_slots = [0; economy::RESOURCES];
         l.gather_slots_high = [0; economy::RESOURCES];
     }
-    let food = |s: &Sim| s.ledgers[0].bucket[0];
-    let bonus = sim.tuning.food_bonus_for_farm;
+    let food = |s: &Sim| s.economy.ledgers[0].bucket[0];
+    let bonus = sim.tables.tuning.food_bonus_for_farm;
 
     let before = food(&sim);
     let farm = sim.place_building(0, t.farm, tile_pos(40, 32)).unwrap();
     finish(&mut sim, farm);
     assert_eq!(
-        sim.ledgers[0].gather_slots[0], 1,
+        sim.economy.ledgers[0].gather_slots[0], 1,
         "a flat type has one slot"
     );
-    assert_eq!(sim.ledgers[0].gather_slots_high[0], 1);
+    assert_eq!(sim.economy.ledgers[0].gather_slots_high[0], 1);
     assert_eq!(food(&sim) - before, bonus, "FOOD_BONUS_FOR_FARM, once");
 
     // A second farm is a second slot, so it pays again.
     let before = food(&sim);
     let second = sim.place_building(0, t.farm, tile_pos(44, 36)).unwrap();
     finish(&mut sim, second);
-    assert_eq!(sim.ledgers[0].gather_slots[0], 2);
+    assert_eq!(sim.economy.ledgers[0].gather_slots[0], 2);
     assert_eq!(food(&sim) - before, bonus);
 
     // Raze one and rebuild it: `Build::close` gives the slot back, the
     // high-water does not fall, and the rebuild is free of bonus.
     sim.disband_building(second, true);
-    assert_eq!(sim.ledgers[0].gather_slots[0], 1, "the slot goes back");
+    assert_eq!(
+        sim.economy.ledgers[0].gather_slots[0], 1,
+        "the slot goes back"
+    );
     let before = food(&sim);
     let third = sim.place_building(0, t.farm, tile_pos(44, 36)).unwrap();
     finish(&mut sim, third);
-    assert_eq!(sim.ledgers[0].gather_slots[0], 2);
+    assert_eq!(sim.economy.ledgers[0].gather_slots[0], 2);
     assert_eq!(
-        sim.ledgers[0].gather_slots_high[0], 2,
+        sim.economy.ledgers[0].gather_slots_high[0], 2,
         "the mark does not fall"
     );
     assert_eq!(
@@ -5936,21 +6027,30 @@ fn a_finished_farm_pays_once_and_a_rebuilt_one_pays_nothing() {
 fn a_nomad_has_no_power_between_its_cities() {
     let mut sim = world_sim();
     let t = install_types(&mut sim);
-    sim.lobby.starting_town = 0;
+    sim.ai.lobby.starting_town = 0;
     sim.sync_setup_from_lobby();
-    assert!(!sim.setup.starting_town);
+    assert!(!sim.tables.setup.starting_town);
     assert!(!sim.tech[0].has_city, "no city yet");
     sim.set_tribe(0, 11);
-    assert!(!sim.nation[0].british, "a nomad with no city: no power");
+    assert!(
+        !sim.cities.nation[0].british,
+        "a nomad with no city: no power"
+    );
     let (_, village) = city_at(&mut sim, &t, 0, 32, 32);
-    assert!(sim.nation[0].british, "the first city opens the gate");
+    assert!(
+        sim.cities.nation[0].british,
+        "the first city opens the gate"
+    );
     sim.close_building(village, false);
-    assert!(!sim.nation[0].british, "the last city closed shuts it");
+    assert!(
+        !sim.cities.nation[0].british,
+        "the last city closed shuts it"
+    );
     // And a starting town is the other half: no city, still a power.
-    sim.lobby.starting_town = 2;
+    sim.ai.lobby.starting_town = 2;
     sim.sync_setup_from_lobby();
     sim.refresh_nation_powers(0);
-    assert!(sim.nation[0].british);
+    assert!(sim.cities.nation[0].british);
 }
 
 /// **A Barracks-trained unit garrisons in a Siege Factory or a Factory**
@@ -6013,7 +6113,7 @@ fn the_british_ship_bonus_is_a_third_off_the_clock() {
     // Train jobs, not research ones: the availability bit is what puts a
     // type on the national side of the tail's partition at all.
     for ty in [fisher, archer, aa] {
-        sim.muster[0].researched[ty] = true;
+        sim.roster.muster[0].researched[ty] = true;
     }
     // Each type is read on its own and put back: the target is recomputed
     // every frame, and the ramp has to see nothing of the type owned.
@@ -6034,7 +6134,7 @@ fn the_british_ship_bonus_is_a_third_off_the_clock() {
     // `tribe 11` is the British, and it is player 0 that gets it.
     sim.set_tribe(0, 11);
     assert!(
-        sim.nation[0].british,
+        sim.cities.nation[0].british,
         "the power needs a city, and there is one"
     );
     assert_eq!(
@@ -6108,8 +6208,8 @@ fn a_speed_upgrade_takes_a_tenth_per_level_off_its_own_ladder_only() {
     finish(&mut sim, b);
     let all = [citizen, rider, tank, boat, other];
     for ty in all {
-        sim.muster[0].researched[ty] = true;
-        sim.muster[0].by_type[ty] = 38;
+        sim.roster.muster[0].researched[ty] = true;
+        sim.roster.muster[0].by_type[ty] = 38;
     }
     let target = |sim: &mut Sim, ty: usize| {
         let slot = sim.queue_up(b, ty).expect("the barracks takes the order");
@@ -6144,7 +6244,7 @@ fn a_speed_upgrade_takes_a_tenth_per_level_off_its_own_ladder_only() {
     );
     // A research job — the availability bit clear — never reaches it: the
     // step sits inside the availability branch.
-    sim.muster[0].researched[citizen] = false;
+    sim.roster.muster[0].researched[citizen] = false;
     let held = target(&mut sim, citizen);
     for t in [herbal, medicine, forage] {
         sim.tech[0].tech[t] = false;
@@ -6251,19 +6351,19 @@ fn a_senate_moves_the_capital_to_its_city_unless_the_capital_has_one() {
     let (_, a) = city_at(&mut sim, &t, 0, 32, 32);
     sim.tech[0].epoch[tech::Line::Civic as usize] = 1;
     let (_, b) = city_at(&mut sim, &t, 0, 57, 32);
-    assert!(sim.cities[a].capital && !sim.cities[b].capital);
+    assert!(sim.cities.cities[a].capital && !sim.cities.cities[b].capital);
     let s = sim
         .place_building(0, t.senate, tile_pos(57, 42))
         .unwrap_or_else(|e| panic!("the senate should place: {e:?}"));
     assert_eq!(sim.buildings[s].city, Some(b));
     finish(&mut sim, s);
     assert!(
-        sim.cities[b].capital,
+        sim.cities.cities[b].capital,
         "the capital moves to the Senate's city"
     );
-    assert!(!sim.cities[a].capital, "and leaves the old one");
+    assert!(!sim.cities.cities[a].capital, "and leaves the old one");
     assert!(
-        sim.cities[a].founding_capital,
+        sim.cities.cities[a].founding_capital,
         "the founding mark is the first city's for good"
     );
     let s2 = sim
@@ -6271,7 +6371,7 @@ fn a_senate_moves_the_capital_to_its_city_unless_the_capital_has_one() {
         .unwrap_or_else(|e| panic!("the second senate should place: {e:?}"));
     finish(&mut sim, s2);
     assert!(
-        sim.cities[b].capital && !sim.cities[a].capital,
+        sim.cities.cities[b].capital && !sim.cities.cities[a].capital,
         "a capital that holds a Senate keeps the flag"
     );
 }
@@ -6303,25 +6403,26 @@ fn a_caravan_at_the_limit_is_held_and_the_merchant_behind_it_trains() {
         };
         let caravan = unit(&mut sim);
         let merchant = unit(&mut sim);
-        while sim.tech_tree.types.len() <= crate::nations::ty::CARAVAN {
-            sim.tech_tree
+        while sim.tables.tech_tree.types.len() <= crate::nations::ty::CARAVAN {
+            sim.tables
+                .tech_tree
                 .add(tech::TypeDef::unit("Caravan", tech::UnitTraits::default()));
         }
-        let n = sim.tech_tree.types.len();
+        let n = sim.tables.tech_tree.types.len();
         sim.tech[0].queued.resize(n, 0);
-        sim.unit_types[caravan].tree = Some(crate::nations::ty::CARAVAN);
-        sim.unit_types[caravan].type_index = 0x3b;
-        sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
+        sim.tables.unit_types[caravan].tree = Some(crate::nations::ty::CARAVAN);
+        sim.tables.unit_types[caravan].type_index = 0x3b;
+        sim.tables.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
         // Commerce level 0: the limit is one.
         sim.tech[0].epoch[tech::Line::Commerce as usize] = 0;
         let _ = city_at(&mut sim, &t, 0, 32, 32);
         let m = sim.init_build(0, t.market, tile_pos(38, 32), false);
         finish(&mut sim, m);
-        sim.muster[0].cap = 1000;
-        sim.muster[0].by_type[caravan] = owned;
+        sim.roster.muster[0].cap = 1000;
+        sim.roster.muster[0].by_type[caravan] = owned;
         let c = [0; crate::economy::RESOURCES];
         for ty in [caravan, merchant] {
-            sim.muster[0].researched[ty] = true;
+            sim.roster.muster[0].researched[ty] = true;
             sim.buildings[m]
                 .queue
                 .items
@@ -6373,12 +6474,13 @@ fn a_persian_market_trains_a_caravan_on_its_slot_up_to_the_limit() {
     });
     // `init_unit` reads the type's kind off the tree, so the tree reaches
     // `CARA`'s own number.
-    while sim.tech_tree.types.len() <= crate::nations::ty::CARAVAN {
-        sim.tech_tree
+    while sim.tables.tech_tree.types.len() <= crate::nations::ty::CARAVAN {
+        sim.tables
+            .tech_tree
             .add(tech::TypeDef::unit("Caravan", tech::UnitTraits::default()));
     }
-    sim.unit_types[caravan].tree = Some(crate::nations::ty::CARAVAN);
-    sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
+    sim.tables.unit_types[caravan].tree = Some(crate::nations::ty::CARAVAN);
+    sim.tables.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
     sim.tech[0].epoch[tech::Line::Civic as usize] = 1;
     let _ = city_at(&mut sim, &t, 0, 32, 32);
     let _ = city_at(&mut sim, &t, 0, 57, 32);
@@ -6409,7 +6511,7 @@ fn a_persian_market_trains_a_caravan_on_its_slot_up_to_the_limit() {
     let f = born.expect("a Persian Market trains a caravan within fifteen frames");
     assert_eq!((o + f) % 15, 0, "on the Market's own slot");
     assert_eq!(
-        sim.ai[0].census.caras, 1,
+        sim.ai.ai[0].census.caras, 1,
         "and the caravan is counted at birth"
     );
     for _ in 0..30 {
@@ -6444,16 +6546,17 @@ fn a_terra_cotta_army_counts_its_clock_and_trains_a_soldier() {
         hits: 40,
         ..UnitType::default()
     });
-    while sim.tech_tree.types.len() <= 0x52 {
-        sim.tech_tree
+    while sim.tables.tech_tree.types.len() <= 0x52 {
+        sim.tables
+            .tech_tree
             .add(tech::TypeDef::unit("Slingers", tech::UnitTraits::default()));
     }
-    sim.unit_types[soldier].tree = Some(0x52);
-    while sim.tech_tree.types.len() <= 0x211 {
-        sim.tech_tree.add(tech::TypeDef::building("Filler"));
+    sim.tables.unit_types[soldier].tree = Some(0x52);
+    while sim.tables.tech_tree.types.len() <= 0x211 {
+        sim.tables.tech_tree.add(tech::TypeDef::building("Filler"));
     }
     let _ = city_at(&mut sim, &t, 0, 32, 32);
-    let mut wonder = sim.build_types[t.market].clone();
+    let mut wonder = sim.tables.build_types[t.market].clone();
     wonder.tree = Some(0x211);
     let wonder = sim.add_build_type(wonder);
     let w = sim.init_build(0, wonder, tile_pos(38, 32), false);
@@ -6475,7 +6578,7 @@ fn a_terra_cotta_army_counts_its_clock_and_trains_a_soldier() {
         "and starts the clock again"
     );
     // A player at the cap is not trained for, but the clock still resets.
-    sim.muster[0].cap = sim.muster[0].control;
+    sim.roster.muster[0].cap = sim.roster.muster[0].control;
     sim.buildings[w].recharging = 1;
     sim.tick();
     assert_eq!(soldiers(&sim), 1, "no room, no soldier");
@@ -6504,16 +6607,17 @@ fn a_kremlin_trains_its_spy_on_the_first_slot_and_again_after_it_dies() {
         hits: 40,
         ..UnitType::default()
     });
-    while sim.tech_tree.types.len() <= 0x3a {
-        sim.tech_tree
+    while sim.tables.tech_tree.types.len() <= 0x3a {
+        sim.tables
+            .tech_tree
             .add(tech::TypeDef::unit("Filler", tech::UnitTraits::default()));
     }
-    sim.unit_types[spy].tree = Some(0x3a);
-    while sim.tech_tree.types.len() <= 0x21a {
-        sim.tech_tree.add(tech::TypeDef::building("Filler"));
+    sim.tables.unit_types[spy].tree = Some(0x3a);
+    while sim.tables.tech_tree.types.len() <= 0x21a {
+        sim.tables.tech_tree.add(tech::TypeDef::building("Filler"));
     }
     let _ = city_at(&mut sim, &t, 0, 32, 32);
-    let mut wonder = sim.build_types[t.market].clone();
+    let mut wonder = sim.tables.build_types[t.market].clone();
     wonder.tree = Some(0x21a);
     let wonder = sim.add_build_type(wonder);
     let w = sim.init_build(0, wonder, tile_pos(38, 32), false);
@@ -6525,14 +6629,17 @@ fn a_kremlin_trains_its_spy_on_the_first_slot_and_again_after_it_dies() {
     };
     assert_eq!(sim.buildings[w].recharging, 1, "activation starts it at 1");
     assert!(sim.tech[0].kremlin_spy_due, "and marks the spy due");
-    let control = sim.muster[0].control;
+    let control = sim.roster.muster[0].control;
     for _ in 0..16 {
         sim.tick();
     }
     let born = spies(&sim);
     assert_eq!(born.len(), 1, "the first slot trains a spy");
     assert!(sim.units[born[0]].kremlin_spy, "tagged 0x400");
-    assert_eq!(sim.muster[0].control, control, "outside the population");
+    assert_eq!(
+        sim.roster.muster[0].control, control,
+        "outside the population"
+    );
     assert_eq!(sim.buildings[w].recharging, 30, "KREMLIN_SPY");
     assert!(!sim.tech[0].kremlin_spy_due, "the flag clears");
     for _ in 0..60 {
@@ -6566,16 +6673,16 @@ fn capitalism_gained_after_frame_zero_gifts_its_oil() {
     sim.set_tech_tree(tree);
     let oil = crate::economy::Resource::Oil.index();
     // Frame 0 is the lobby's grant, and takes no gift (`006de2bd`).
-    let before = sim.ledgers[0].bucket[oil];
+    let before = sim.economy.ledgers[0].bucket[oil];
     sim.gain_tech(0, capitalism);
-    assert_eq!(sim.ledgers[0].bucket[oil], before);
+    assert_eq!(sim.economy.ledgers[0].bucket[oil], before);
     assert!(sim.holds_capitalism_bonus(0));
     sim.frame = 10;
     sim.gain_tech(1, socialism);
-    assert_eq!(sim.ledgers[1].bucket[oil], before);
+    assert_eq!(sim.economy.ledgers[1].bucket[oil], before);
     assert!(!sim.holds_capitalism_bonus(1));
     sim.gain_tech(1, capitalism);
-    assert_eq!(sim.ledgers[1].bucket[oil], before + 500);
+    assert_eq!(sim.economy.ledgers[1].bucket[oil], before + 500);
     assert!(sim.holds_capitalism_bonus(1));
 }
 
@@ -6600,7 +6707,7 @@ fn a_senate_activating_with_no_patriot_left_trains_one() {
     let despot_t = tree.add(TypeDef::unit("The Despot", patriot).needs(0, despotism));
     tree.roles.gov_bonuses = vec![([Preq::Of(despotism), Preq::None, Preq::None], despotism)];
     sim.set_tech_tree(tree);
-    sim.build_types[t.senate].tree = Some(senate_t);
+    sim.tables.build_types[t.senate].tree = Some(senate_t);
     let despot = sim.add_unit_type(UnitType {
         tree: Some(despot_t),
         hits: 109,
@@ -6651,7 +6758,7 @@ fn a_dead_government_hero_is_reborn_at_its_senate_on_the_stamped_frame() {
     let despot_t = tree.add(TypeDef::unit("The Despot", patriot).needs(0, despotism));
     tree.roles.gov_bonuses = vec![([Preq::Of(despotism), Preq::None, Preq::None], despotism)];
     sim.set_tech_tree(tree);
-    sim.build_types[t.senate].tree = Some(senate_t);
+    sim.tables.build_types[t.senate].tree = Some(senate_t);
     let despot = sim.add_unit_type(UnitType {
         tree: Some(despot_t),
         hits: 109,
@@ -6681,7 +6788,7 @@ fn a_dead_government_hero_is_reborn_at_its_senate_on_the_stamped_frame() {
     sim.units[born[0]].health = 0;
     sim.die_by_attrition(born[0], death);
     assert!(despots(&sim).is_empty(), "the Despot is gone");
-    let due = i64::from(sim.tuning.gov_hero_respawn) * 15 + death;
+    let due = i64::from(sim.tables.tuning.gov_hero_respawn) * 15 + death;
     assert_eq!(due, death + 450, "GOV_HERO_RESPAWN's 30 seconds");
     assert_eq!(
         sim.tech[0].gov_hero_frame, due,
@@ -6718,7 +6825,7 @@ fn a_senate_that_finishes_a_government_trains_its_patriot_once() {
         ([Preq::Of(despotism), Preq::None, Preq::None], despotism),
     ];
     sim.set_tech_tree(tree);
-    sim.build_types[t.senate].tree = Some(senate_t);
+    sim.tables.build_types[t.senate].tree = Some(senate_t);
     let hero = |tt| UnitType {
         tree: Some(tt),
         hits: 109,
@@ -6753,7 +6860,9 @@ fn a_senate_that_finishes_a_government_trains_its_patriot_once() {
     }
     assert_eq!(despots(&sim), 1, "the Senate trains the Despot");
     assert_eq!(
-        sim.tech_tree.get_gov_hero(&sim.setup, &sim.tech[0]),
+        sim.tables
+            .tech_tree
+            .get_gov_hero(&sim.tables.setup, &sim.tech[0]),
         Some(despot_t)
     );
     assert!(sim.tech[0].gov_hero_frame >= 0, "and its birth is stamped");
@@ -6770,7 +6879,9 @@ fn a_senate_that_finishes_a_government_trains_its_patriot_once() {
         "a patriot already born is not trained again"
     );
     assert_eq!(
-        sim.tech_tree.get_gov_hero(&sim.setup, &sim.tech[0]),
+        sim.tables
+            .tech_tree
+            .get_gov_hero(&sim.tables.setup, &sim.tech[0]),
         Some(monarch_t),
         "get_gov answers the first bonus in its own order"
     );
@@ -6782,7 +6893,12 @@ fn a_senate_that_finishes_a_government_trains_its_patriot_once() {
         .collect();
     assert_eq!(standing, [monarch], "the Despot became the Monarch");
     sim.tech[0].no_patriots = true;
-    assert_eq!(sim.tech_tree.get_gov_hero(&sim.setup, &sim.tech[0]), None);
+    assert_eq!(
+        sim.tables
+            .tech_tree
+            .get_gov_hero(&sim.tables.setup, &sim.tech[0]),
+        None
+    );
 }
 
 /// **An Oil Platform is priced by the Oil Wells too** (`get_cost@00664090`,
@@ -6834,9 +6950,9 @@ fn an_oil_platform_is_counted_with_the_oil_wells_and_a_well_with_the_platforms()
 #[test]
 fn an_oil_platform_site_nobody_is_building_is_disbanded_on_its_128_frame_phase() {
     let mut sim = world_sim();
-    sim.tuning.city_gather = [0; 6];
+    sim.tables.tuning.city_gather = [0; 6];
     let t = install_types(&mut sim);
-    sim.nation[0].human = false;
+    sim.cities.nation[0].human = false;
     let _ = city_at(&mut sim, &t, 0, 32, 32);
     let citizen = sim.add_unit_type(citizen_type(t.village));
     let oil = sim.add_build_type(bt(Ident::OilPlatform, None, "", 2, 2, 2000, 2000, 0));
@@ -6874,11 +6990,11 @@ fn an_oil_platform_site_nobody_is_building_is_disbanded_on_its_128_frame_phase()
         sim.buildings[site].alive,
         "a 32-frame phase is not the arm's"
     );
-    let before = sim.ledgers[0].bucket[1];
+    let before = sim.economy.ledgers[0].bucket[1];
     assert!(!sim.process_building(site, f), "Wall::process returns");
     assert!(!sim.buildings[site].alive, "nobody's action is the site");
     assert_eq!(
-        sim.ledgers[0].bucket[1],
+        sim.economy.ledgers[0].bucket[1],
         before + 100,
         "the whole price back"
     );
@@ -6890,7 +7006,7 @@ fn an_oil_platform_site_nobody_is_building_is_disbanded_on_its_128_frame_phase()
     // 3. A human's site is never the arm's.
     let site = sim.place_building(0, t.barracks, tile_pos(20, 44)).unwrap();
     sim.buildings[site].ty = Some(oil);
-    sim.nation[0].human = true;
+    sim.cities.nation[0].human = true;
     let f = due(&sim, site, f + 1);
     sim.process_building(site, f);
     assert!(sim.buildings[site].alive, "the gate is the owner's");
@@ -6908,14 +7024,14 @@ fn a_second_wonder_site_survives_its_first_builder_only_for_the_egyptians() {
         let t = install_types(&mut sim);
         // Placement lets an Egyptian put two down; the flag under test is
         // set after, when the first builder arrives.
-        sim.nation[0].egyptians = true;
+        sim.cities.nation[0].egyptians = true;
         let _ = city_at(&mut sim, &t, 0, 32, 32);
         let mut wonder_type = bt(Ident::Wonder, None, "a", 4, 4, 2000, 2000, 0);
         wonder_type.wonder = true;
         let wonder = sim.add_build_type(wonder_type);
         let _first = sim.place_building(0, wonder, tile_pos(40, 32)).unwrap();
         let second = sim.place_building(0, wonder, tile_pos(46, 32)).unwrap();
-        sim.nation[0].egyptians = egyptians;
+        sim.cities.nation[0].egyptians = egyptians;
         sim.do_construct(second, 1);
         sim.buildings[second].alive
     }
@@ -6942,8 +7058,8 @@ fn an_unfinished_wonder_calls_in_the_nearest_citizen_that_is_not_busy() {
     fn ground(human: bool) -> Ground {
         let mut sim = world_sim();
         let t = install_types(&mut sim);
-        sim.nation[0].human = human;
-        sim.lobby.starting_resources = 1;
+        sim.cities.nation[0].human = human;
+        sim.ai.lobby.starting_resources = 1;
         let mut tree = TechTree::new();
         // The Citizen is the tree's first unit — `types.list[BASE_UNITTYPES]`,
         // what `FILTER_TYPE 0x32` asks a candidate to be.
@@ -6964,8 +7080,8 @@ fn an_unfinished_wonder_calls_in_the_nearest_citizen_that_is_not_busy() {
         sim.set_tech_tree(tree);
         let _ = city_at(&mut sim, &t, 0, 32, 32);
         let citizen = sim.add_unit_type(citizen_type(t.village));
-        sim.unit_types[citizen].worker = Worker::Citizen;
-        sim.unit_types[citizen].tree = Some(root);
+        sim.tables.unit_types[citizen].worker = Worker::Citizen;
+        sim.tables.unit_types[citizen].tree = Some(root);
         let mut wonder_type = bt(Ident::Wonder, None, "ean", 4, 4, 2000, 2000, 0);
         // The loader sets the range flag with the ident; the recruiter reads
         // the flag (`BuildData::is_wonder`).
@@ -7131,7 +7247,7 @@ fn informer_sim() -> (Sim, usize, Types) {
     let spy_t = tree.add(TypeDef::unit("Spy", crate::tech::UnitTraits::default()));
     let barracks_t = tree.add(TypeDef::building("Barracks"));
     sim.set_tech_tree(tree);
-    sim.build_types[t.barracks].tree = Some(barracks_t);
+    sim.tables.build_types[t.barracks].tree = Some(barracks_t);
     let spy = sim.add_unit_type(UnitType {
         hits: 15,
         mana: 1000,
@@ -7148,7 +7264,7 @@ fn informer_sim() -> (Sim, usize, Types) {
             from: [Some(spy_t), None],
             ..Default::default()
         };
-    sim.spells = rows;
+    sim.orders.spells = rows;
     (sim, spy, t)
 }
 
@@ -7283,10 +7399,11 @@ fn a_detour_the_line_check_pushes_is_the_waypoint() {
         tolerance: 0,
         flags: orders::path_flag::FINAL,
     });
-    sim.trace_phases = true;
+    sim.trace.trace_phases = true;
     sim.tick();
     assert!(
-        sim.phase_marks
+        sim.trace
+            .phase_marks
             .iter()
             .any(|(l, _)| l == orders::SITE_MOVE_GRID),
         "the planner ran, through the grid roll"
@@ -7560,8 +7677,11 @@ fn a_member_turned_past_ninety_degrees_to_its_captain_s_bearing_flips_its_mirror
 /// its quarter-tile centre, for the re-seat tests below.
 fn ring_first(sim: &Sim, b: usize, bearing: crate::movement::Angle) -> Pos {
     let t = sim.buildings[b].ty.unwrap();
-    let (xs, ys) = (sim.build_types[t].x_size, sim.build_types[t].y_size);
-    let r = (xs + ys) * 0x30 + sim.tuning.unit_train_distance;
+    let (xs, ys) = (
+        sim.tables.build_types[t].x_size,
+        sim.tables.build_types[t].y_size,
+    );
+    let r = (xs + ys) * 0x30 + sim.tables.tuning.unit_train_distance;
     let home = sim.buildings[b].pos;
     let x = home.x + crate::movement::sin_component(bearing, r);
     let y = home.y - crate::movement::cos_component(bearing, r);
@@ -7776,7 +7896,7 @@ fn a_city_hit_by_another_player_stops_healing_for_two_decay_ticks() {
     let own = spawn(&mut sim, 1, hoplite, tile_pos(36, 32));
     let foe = spawn(&mut sim, 0, hoplite, tile_pos(36, 33));
     let flags = |s: &Sim| {
-        let cd = &s.cities[c];
+        let cd = &s.cities.cities[c];
         (cd.no_heal, cd.attacking, cd.ever_attacked)
     };
     let hit = |s: &mut Sim, by: usize, f: i64| {
@@ -7839,7 +7959,7 @@ fn a_caravan_trades_across_regions_only_when_it_can_transport() {
         w.fill_region(Terrain::Sea, Cell::new(18, 0), Cell::new(21, 39));
         w.fill_region(Terrain::Land, Cell::new(22, 0), Cell::new(39, 39));
         let mut sim = Sim::new(Tuning::RON, w, 2);
-        for l in &mut sim.ledgers {
+        for l in &mut sim.economy.ledgers {
             l.bucket = [10_000; economy::RESOURCES];
         }
         let t = install_types(&mut sim);
@@ -7847,8 +7967,8 @@ fn a_caravan_trades_across_regions_only_when_it_can_transport() {
         let (_, home) = city_at(&mut sim, &t, 1, 40, 60);
         let (_, far) = city_at(&mut sim, &t, 1, 96, 40);
         assert_ne!(
-            sim.world.tregion(sim.cities[home].pos.tile()),
-            sim.world.tregion(sim.cities[far].pos.tile()),
+            sim.world.tregion(sim.cities.cities[home].pos.tile()),
+            sim.world.tregion(sim.cities.cities[far].pos.tile()),
             "two regions"
         );
         let ty = sim.add_unit_type(citizen_type(t.village));
@@ -7856,7 +7976,7 @@ fn a_caravan_trades_across_regions_only_when_it_can_transport() {
         sim.units[u].auto_transport = transport;
         let v = sim.init_caravan(1, u).expect("a slot");
         sim.units[u].caravan = Some(v);
-        sim.caravans[1].slots[v].unit = Some(u);
+        sim.economy.caravans[1].slots[v].unit = Some(u);
         // The human arm's threshold under the default option.
         sim.units[u].idle = 12;
         assert!(sim.think_caravan(u), "the order is given");
@@ -7867,17 +7987,17 @@ fn a_caravan_trades_across_regions_only_when_it_can_transport() {
     let (sim, u, v, ..) = build(false);
     assert_eq!(sim.units[u].idle, 99, "no partner: the order dies");
     assert!(sim.units[u].orders.is_empty());
-    assert!(!sim.caravans[1].slots[v].linked);
+    assert!(!sim.economy.caravans[1].slots[v].linked);
 
     let (sim, u, v, home, far) = build(true);
-    let van = &sim.caravans[1].slots[v];
+    let van = &sim.economy.caravans[1].slots[v];
     assert!(van.linked, "the route is taken");
     assert_eq!((van.city_a, van.city_b), (Some(home), Some(far)));
     // The search stops at its budget here, so `do_trade`'s failure arm
     // sends the caravan to the near city — `home` — with the bearing to
     // its own point (the order's `dest` is that point snapped).
     assert!(van.making_road, "the plan spans frames");
-    let (here, to) = (sim.units[u].pos, sim.cities[home].pos);
+    let (here, to) = (sim.units[u].pos, sim.cities.cities[home].pos);
     let Some(orders::Body::Move(m)) = sim.units[u].orders.front().map(|o| o.body) else {
         panic!("a move leads: {:?}", sim.units[u].orders);
     };
@@ -7943,7 +8063,7 @@ fn untargeted_sim() -> (Sim, [usize; 4], crate::tech::TypeId) {
         from: [Some(general_t), None],
         ..Default::default()
     };
-    sim.spells = rows;
+    sim.orders.spells = rows;
     (sim, [citizen, militia, general, foot], militia_t)
 }
 
@@ -8075,7 +8195,7 @@ fn a_patriot_s_decoy_cast_uses_its_own_radius() {
         (0x163, 1920, 0),
     ] {
         let (mut sim, [_, _, general, foot], _) = untargeted_sim();
-        sim.unit_types[general].type_index = caster_type;
+        sim.tables.unit_types[general].type_index = caster_type;
         let g = sim.init_unit(0, general, tile_pos(30, 30));
         let p = sim.units[g].pos;
         // `init_unit` snaps its birth point, so the distance under test is
@@ -8123,7 +8243,7 @@ fn a_decoy_closes_at_its_age_and_leaves_no_death() {
             2499
         };
     }
-    let deaths = sim.deaths.len();
+    let deaths = sim.combat.deaths.len();
     sim.tick();
     assert!(!sim.units[first].alive(), "2499 + 1 reaches the life");
     if late != first {
@@ -8132,7 +8252,11 @@ fn a_decoy_closes_at_its_age_and_leaves_no_death() {
         sim.tick();
         assert!(!sim.units[late].alive(), "and a frame later it does");
     }
-    assert_eq!(sim.deaths.len(), deaths, "a close of 0 leaves no death");
+    assert_eq!(
+        sim.combat.deaths.len(),
+        deaths,
+        "a close of 0 leaves no death"
+    );
     assert!(copies.iter().all(|&d| sim.units[d].orders.is_empty()));
     assert!(sim.units[g].alive() && sim.units[near].alive());
 }
@@ -8178,7 +8302,7 @@ fn a_detected_decoy_bleeds_a_point_a_frame() {
     let w = worn(&sim);
     sim.recover_mana(d, frame);
     assert_ne!(worn(&sim), w, "a tick a frame");
-    let (rng, deaths) = (sim.rng, sim.deaths.len());
+    let (rng, deaths) = (sim.rng, sim.combat.deaths.len());
     let mut n = 1;
     while sim.units[d].alive() && n < 2000 {
         // Held young, so the bleed closes it and never its age.
@@ -8188,7 +8312,11 @@ fn a_detected_decoy_bleeds_a_point_a_frame() {
     }
     assert!(!sim.units[d].alive(), "the bleed closes it");
     assert_eq!(sim.rng, rng, "a decoy's death spends no draw");
-    assert_eq!(sim.deaths.len(), deaths, "and leaves no death object");
+    assert_eq!(
+        sim.combat.deaths.len(),
+        deaths,
+        "and leaves no death object"
+    );
 }
 
 /// **A computer's General standing in its army orders Create Decoys on
@@ -8205,10 +8333,10 @@ fn a_detected_decoy_bleeds_a_point_a_frame() {
 fn an_ai_general_standing_orders_create_decoys_and_its_copies_join_its_army() {
     use crate::orders::{Body, spell};
     let (mut sim, [_, _, general, foot], _) = untargeted_sim();
-    sim.unit_types[general].cols.unit_flags2 |=
+    sim.tables.unit_types[general].cols.unit_flags2 |=
         crate::ai_load::uflags2::FLAG2_GENERAL | crate::ai_load::uflags2::CASTER;
-    sim.nation[0].human = false;
-    sim.lobby.difficulty = 5;
+    sim.cities.nation[0].human = false;
+    sim.ai.lobby.difficulty = 5;
     let g = sim.init_unit(0, general, tile_pos(30, 30));
     let near = sim.init_unit(0, foot, tile_pos(33, 30));
     let slot = sim.init_army(0, None);
@@ -8230,7 +8358,7 @@ fn an_ai_general_standing_orders_create_decoys_and_its_copies_join_its_army() {
     assert!(sim.units[copy].decoy);
     assert_eq!(sim.army_of(copy), Some(slot), "the copy joins the army");
     sim.army_normalize(0, slot);
-    let a = &sim.armies[0].list[slot];
+    let a = &sim.ai.armies[0].list[slot];
     assert_eq!((a.num_captains, a.num_decoys), (3, 1));
     assert_eq!(a.num_standard, 1, "the Hoplites alone: the General casts");
     sim.units[g].orders.clear();
@@ -8261,7 +8389,7 @@ fn an_ai_general_standing_orders_create_decoys_and_its_copies_join_its_army() {
 fn a_decoy_is_placed_by_its_general_s_collision_pair() {
     use crate::orders::spell;
     let (mut sim, [_, _, general, foot], _) = untargeted_sim();
-    sim.unit_types[foot].combat.block_radius = 0x200;
+    sim.tables.unit_types[foot].combat.block_radius = 0x200;
     let g = sim.init_unit(0, general, tile_pos(30, 30));
     let _near = sim.init_unit(0, foot, tile_pos(33, 30));
     let before = sim.units.len();
@@ -8292,11 +8420,17 @@ fn a_decoy_s_type_change_is_no_count_of_its_leader_s() {
     let d = sim.init_unit(0, foot, tile_pos(30, 30));
     sim.track_unit_type(0, foot, -1);
     sim.units[d].decoy = true;
-    let before = (sim.muster[0].by_type[foot], sim.muster[0].by_type[militia]);
+    let before = (
+        sim.roster.muster[0].by_type[foot],
+        sim.roster.muster[0].by_type[militia],
+    );
     sim.unit_set_type(d, militia);
     assert_eq!(sim.units[d].ty, Some(militia));
     assert_eq!(
-        (sim.muster[0].by_type[foot], sim.muster[0].by_type[militia]),
+        (
+            sim.roster.muster[0].by_type[foot],
+            sim.roster.muster[0].by_type[militia]
+        ),
         before
     );
 }
@@ -8371,10 +8505,10 @@ fn an_interrupted_cast_hands_its_craft_back_and_its_clock_restarts() {
 fn alarm_sim() -> (Sim, Types, usize, usize) {
     let (mut sim, [citizen, militia, _, _], _) = untargeted_sim();
     let t = install_types(&mut sim);
-    sim.unit_types[citizen].garrison.trained_at = Some(t.village);
-    sim.unit_types[citizen].price.pop = 1;
-    sim.unit_types[militia].garrison.fortify = true;
-    sim.unit_types[militia].price.pop = 1;
+    sim.tables.unit_types[citizen].garrison.trained_at = Some(t.village);
+    sim.tables.unit_types[citizen].price.pop = 1;
+    sim.tables.unit_types[militia].garrison.fortify = true;
+    sim.tables.unit_types[militia].price.pop = 1;
     (sim, t, citizen, militia)
 }
 
@@ -8476,11 +8610,14 @@ fn the_city_s_alarm_rings_then_sounds_the_all_clear() {
         QueuePos::New,
         true,
     );
-    sim.ledgers[0].dirty = false;
+    sim.economy.ledgers[0].dirty = false;
 
     sim.action_alarm(0, &[b]);
-    assert!(sim.cities[c].alarm, "city_flags | 0x40");
-    assert!(sim.ledgers[0].dirty, "the press marks the economy dirty");
+    assert!(sim.cities.cities[c].alarm, "city_flags | 0x40");
+    assert!(
+        sim.economy.ledgers[0].dirty,
+        "the press marks the economy dirty"
+    );
     let kinds: Vec<u8> = sim.units[near].orders.iter().map(|o| o.index()).collect();
     assert_eq!(kinds[0], index::GARRISON, "in front: {kinds:?}");
     assert!(
@@ -8495,10 +8632,10 @@ fn the_city_s_alarm_rings_then_sounds_the_all_clear() {
     );
     assert!(sim.units[far].orders.is_empty(), "past the radius");
 
-    sim.ledgers[0].dirty = false;
+    sim.economy.ledgers[0].dirty = false;
     sim.action_alarm(0, &[b]);
-    assert!(!sim.cities[c].alarm, "city_flags & ~0x40");
-    assert!(sim.ledgers[0].dirty);
+    assert!(!sim.cities.cities[c].alarm, "city_flags & ~0x40");
+    assert!(sim.economy.ledgers[0].dirty);
     assert!(
         !sim.units[near]
             .orders
@@ -8530,10 +8667,10 @@ fn a_citizen_struck_rings_its_city_s_bell_and_only_a_computer_s_once() {
     let fresh = || {
         let (mut sim, t, citizen, militia) = alarm_sim();
         // `ObjectData::is_peasant`: the type's `+0x4` is `0x32`.
-        sim.unit_types[citizen].worker = crate::orders::Worker::Citizen;
+        sim.tables.unit_types[citizen].worker = crate::orders::Worker::Citizen;
         let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
-        sim.nation[0].human = false;
-        sim.lobby.difficulty = 2;
+        sim.cities.nation[0].human = false;
+        sim.ai.lobby.difficulty = 2;
         let near = sim.init_unit(0, citizen, tile_pos(38, 32));
         let other = sim.init_unit(0, citizen, tile_pos(34, 30));
         let far = sim.init_unit(0, citizen, tile_pos(60, 60));
@@ -8547,18 +8684,21 @@ fn a_citizen_struck_rings_its_city_s_bell_and_only_a_computer_s_once() {
 
     let (mut sim, b, c, near, other, _, _) = fresh();
     sim.peasant_alarm(near);
-    assert!(sim.cities[c].alarm, "the bell");
+    assert!(sim.cities.cities[c].alarm, "the bell");
     assert!(garrisoning(&sim, near, b), "{:?}", sim.units[near].orders);
     assert!(garrisoning(&sim, other, b), "every Citizen in the radius");
     // A second blow: the bell is rung, nothing toggles.
     sim.peasant_alarm(other);
-    assert!(sim.cities[c].alarm, "no all-clear from a blow");
+    assert!(sim.cities.cities[c].alarm, "no all-clear from a blow");
     assert!(garrisoning(&sim, other, b));
 
     let (mut sim, _, c, near, other, _, _) = fresh();
-    sim.nation[0].human = true;
+    sim.cities.nation[0].human = true;
     sim.peasant_alarm(near);
-    assert!(!sim.cities[c].alarm, "a human's Citizen rings nothing");
+    assert!(
+        !sim.cities.cities[c].alarm,
+        "a human's Citizen rings nothing"
+    );
     assert!(
         sim.units[other]
             .orders
@@ -8567,15 +8707,15 @@ fn a_citizen_struck_rings_its_city_s_bell_and_only_a_computer_s_once() {
     );
 
     let (mut sim, _, c, near, _, _, _) = fresh();
-    sim.lobby.difficulty = 1;
+    sim.ai.lobby.difficulty = 1;
     sim.peasant_alarm(near);
-    assert!(!sim.cities[c].alarm, "get_diff > 1");
+    assert!(!sim.cities.cities[c].alarm, "get_diff > 1");
 
     let (mut sim, _, c, _, _, far, m) = fresh();
     sim.peasant_alarm(m);
-    assert!(!sim.cities[c].alarm, "a Militia is no peasant");
+    assert!(!sim.cities.cities[c].alarm, "a Militia is no peasant");
     sim.peasant_alarm(far);
-    assert!(!sim.cities[c].alarm, "outside every city");
+    assert!(!sim.cities.cities[c].alarm, "outside every city");
 }
 
 /// **A peasant alarm sends each selected Citizen to the nearest building
@@ -8604,7 +8744,7 @@ fn a_peasant_alarm_sends_each_citizen_to_the_nearest_garrison_however_far() {
         QueuePos::New,
         true,
     );
-    sim.ledgers[0].dirty = false;
+    sim.economy.ledgers[0].dirty = false;
     let mut g = crate::group::Group::stack(0);
     for u in [far, walker, m] {
         sim.group_add(&mut g, u);
@@ -8624,7 +8764,10 @@ fn a_peasant_alarm_sends_each_citizen_to_the_nearest_garrison_however_far() {
     let kinds: Vec<u8> = sim.units[walker].orders.iter().map(|o| o.index()).collect();
     assert!(kinds.contains(&index::MOVE_TO), "the walk kept: {kinds:?}");
     assert!(sim.units[m].orders.is_empty(), "a Militia takes nothing");
-    assert!(sim.ledgers[0].dirty, "the order marks the economy dirty");
+    assert!(
+        sim.economy.ledgers[0].dirty,
+        "the order marks the economy dirty"
+    );
 
     let mut again = crate::group::Group::stack(0);
     sim.group_add(&mut again, far);
@@ -8652,12 +8795,12 @@ fn a_computer_captain_comes_out_clean_and_the_city_flag_waits_for_a_human() {
     use crate::orders::{Body, MoveKind, QueuePos};
     for human in [false, true] {
         let (mut sim, t, _, militia) = alarm_sim();
-        sim.nation[0].human = human;
+        sim.cities.nation[0].human = human;
         let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
         let m = sim.init_unit(0, militia, tile_pos(36, 36));
         sim.go_inside(m, b);
         sim.add_move_order(m, tile_pos(50, 50), MoveKind::MoveTo, QueuePos::New, true);
-        sim.cities[c].alarm = true;
+        sim.cities.cities[c].alarm = true;
         assert!(sim.come_out(m));
         assert_eq!(
             sim.units[m].orders.is_empty(),
@@ -8665,14 +8808,14 @@ fn a_computer_captain_comes_out_clean_and_the_city_flag_waits_for_a_human() {
             "human {human}: a computer's captain wipes its orders"
         );
         assert_eq!(
-            sim.cities[c].alarm, !human,
+            sim.cities.cities[c].alarm, !human,
             "human {human}: only a human's city flag clears"
         );
     }
     // A human's city whose last garrison leaves while a citizen is on its
     // way in keeps the flag.
     let (mut sim, t, citizen, militia) = alarm_sim();
-    sim.nation[0].human = true;
+    sim.cities.nation[0].human = true;
     let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
     let walker = sim.init_unit(0, citizen, tile_pos(40, 32));
     sim.add_garrison_order(walker, b, false, QueuePos::New, true);
@@ -8684,9 +8827,12 @@ fn a_computer_captain_comes_out_clean_and_the_city_flag_waits_for_a_human() {
     );
     let m = sim.init_unit(0, militia, tile_pos(36, 36));
     sim.go_inside(m, b);
-    sim.cities[c].alarm = true;
+    sim.cities.cities[c].alarm = true;
     assert!(sim.come_out(m));
-    assert!(sim.cities[c].alarm, "an inbound GARRISON holds the flag");
+    assert!(
+        sim.cities.cities[c].alarm,
+        "an inbound GARRISON holds the flag"
+    );
 }
 
 /// **A city takes its owner's first dead slot, not anyone's** (twenty-fourth
@@ -8702,7 +8848,7 @@ fn a_new_city_reuses_only_its_owner_s_dead_slot() {
     assert_ne!(c0, c1);
     sim.close_building(b0, false);
     sim.close_building(b1, false);
-    assert!(!sim.cities[c0].alive && !sim.cities[c1].alive);
+    assert!(!sim.cities.cities[c0].alive && !sim.cities.cities[c1].alive);
     let (_, again) = city_at(&mut sim, &t, 1, 50, 20);
     assert_eq!(again, c1, "player 1 takes its own dead slot, not the first");
     let (_, back) = city_at(&mut sim, &t, 0, 20, 50);
@@ -8726,9 +8872,10 @@ fn the_building_walk_is_per_building_in_object_order() {
     sim.buildings[own].index = 2000;
     sim.buildings[hi].index = 2007;
     sim.buildings[lo].index = 2001;
-    sim.building_log.clear();
+    sim.trace.building_log.clear();
     sim.tick();
     let steps: Vec<(usize, &str)> = sim
+        .trace
         .building_log
         .iter()
         .copied()
@@ -8794,7 +8941,7 @@ fn a_unit_comes_out_with_the_speeds_it_went_in_with() {
 fn a_type_with_no_block_comes_out_past_a_unit_on_the_ring() {
     let (mut sim, t, _, militia) = alarm_sim();
     let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
-    sim.unit_types[militia].combat.block_radius = 0;
+    sim.tables.unit_types[militia].combat.block_radius = 0;
     let m = sim.init_unit(0, militia, tile_pos(36, 36));
     assert_eq!(sim.profile(Obj::Unit(m)).block_radius, 0);
     sim.go_inside(m, b);
@@ -8818,7 +8965,7 @@ fn a_builder_that_gathers_at_its_finished_site_drops_its_group_pointer() {
     use crate::orders::{Body, QueuePos, index};
     let (mut sim, t, citizen, _) = alarm_sim();
     let _ = city_at(&mut sim, &t, 0, 32, 32);
-    sim.nation[0].human = true;
+    sim.cities.nation[0].human = true;
     let farm = sim.place_building(0, t.farm, tile_pos(44, 32)).unwrap();
     finish(&mut sim, farm);
     let u = sim.init_unit(0, citizen, tile_pos(44, 36));
@@ -8954,10 +9101,10 @@ fn three_citizens_sent_together_walk_three_plain_moves_to_the_mob_s_rings() {
 fn a_builder_leading_its_group_turns_the_group_s_mirror_as_it_faces_the_site() {
     let mut sim = world_sim();
     let t = install_types(&mut sim);
-    sim.nation[0].human = true;
+    sim.cities.nation[0].human = true;
     let _ = city_at(&mut sim, &t, 0, 32, 32);
     let citizen = sim.add_unit_type(citizen_type(t.village));
-    sim.unit_types[citizen].worker = Worker::Citizen;
+    sim.tables.unit_types[citizen].worker = Worker::Citizen;
     let site = sim.place_building(0, t.farm, tile_pos(44, 20)).unwrap();
     assert!(!sim.buildings[site].active);
     let builder = spawn(&mut sim, 0, citizen, tile_pos(43, 20));
@@ -8994,15 +9141,15 @@ fn a_builder_leading_its_group_turns_the_group_s_mirror_as_it_faces_the_site() {
 fn a_birth_moves_the_census_s_civilian_counts_before_the_sweep() {
     use crate::orders::Worker;
     let (mut sim, [_, _, _, foot], _) = untargeted_sim();
-    sim.unit_types[foot].worker = Worker::Citizen;
+    sim.tables.unit_types[foot].worker = Worker::Citizen;
     sim.track_unit_type(0, foot, 1);
-    assert_eq!(sim.ai[0].census.peasants, 1);
+    assert_eq!(sim.ai.ai[0].census.peasants, 1);
     sim.track_unit_type(0, foot, -1);
-    assert_eq!(sim.ai[0].census.peasants, 0);
-    sim.unit_types[foot].worker = Worker::Scholar;
+    assert_eq!(sim.ai.ai[0].census.peasants, 0);
+    sim.tables.unit_types[foot].worker = Worker::Scholar;
     sim.track_unit_type(0, foot, 1);
     assert_eq!(
-        (sim.ai[0].census.scholars, sim.ai[0].census.peasants),
+        (sim.ai.ai[0].census.scholars, sim.ai.ai[0].census.peasants),
         (1, 0)
     );
 }
@@ -9027,9 +9174,9 @@ fn a_citizen_is_ramped_by_the_militia_too() {
     let scholar = ty(&mut sim, 0x34);
     let militia = ty(&mut sim, 0x42);
     let hoplite = ty(&mut sim, 0x52);
-    sim.muster[1].by_type[citizen] = 25;
-    sim.muster[1].queued_by_type[citizen] = 6;
-    sim.muster[1].queued_by_type[militia] = 1;
+    sim.roster.muster[1].by_type[citizen] = 25;
+    sim.roster.muster[1].queued_by_type[citizen] = 6;
+    sim.roster.muster[1].queued_by_type[militia] = 1;
     assert_eq!(sim.worker_support(1, citizen), 1, "the queued Militia");
     assert_eq!(sim.worker_support(1, scholar), 0);
     assert_eq!(sim.worker_support(1, hoplite), 0, "no other line");
@@ -9041,7 +9188,7 @@ fn a_citizen_is_ramped_by_the_militia_too() {
     u.type_index = 0x42;
     u.rare = 0x34;
     sim.add_unit(u);
-    sim.muster[1].by_type[militia] = 1;
+    sim.roster.muster[1].by_type[militia] = 1;
     assert_eq!(sim.worker_support(1, citizen), 1, "1 + 1 − 1");
     assert_eq!(sim.worker_support(1, scholar), 1);
 }
@@ -9076,7 +9223,7 @@ fn a_gained_militia_reaches_a_citizen_s_hits_at_the_next_leader_pass() {
     let u = sim.add_unit(u);
     sim.gain_tech(1, militia_id);
     assert_eq!(sim.units[u].max_health, 40, "not on the gain's own frame");
-    assert!(sim.unit_stats_dirty[1], "the tail raised 0x4000000");
+    assert!(sim.roster.unit_stats_dirty[1], "the tail raised 0x4000000");
     sim.tick();
     assert_eq!(sim.units[u].max_health, 50, "the next leader pass");
     assert_eq!(sim.units[u].health, 50);
@@ -9113,7 +9260,7 @@ fn a_french_siege_factory_unit_moves_a_fifth_faster() {
     let wagon = ty(&mut sim, wagon_t);
     let foot = ty(&mut sim, foot_t);
     assert_eq!(sim.type_speed(1, wagon), 25);
-    sim.nation[1].french = true;
+    sim.cities.nation[1].french = true;
     assert_eq!(sim.type_speed(1, wagon), 30, "25 × 120 / 100");
     assert_eq!(sim.type_speed(1, foot), 25, "not the factory line");
 }
@@ -9150,10 +9297,10 @@ fn a_french_siege_factory_unit_costs_fifteen_percent_less() {
     let siege = ty(&mut sim, siege_t);
     let foot = ty(&mut sim, foot_t);
     let metal = economy::Resource::Metal.index();
-    sim.holdings[1].available[metal] = true;
-    let scaled = 7 * sim.tuning.unit_cost_factor;
+    sim.economy.holdings[1].available[metal] = true;
+    let scaled = 7 * sim.tables.tuning.unit_cost_factor;
     assert_eq!(sim.price_of(1, siege)[metal], scaled);
-    sim.nation[1].french = true;
+    sim.cities.nation[1].french = true;
     assert_eq!(sim.price_of(1, siege)[metal], scaled * 85 / 100);
     assert_eq!(sim.price_of(1, foot)[metal], scaled, "not the factory line");
 }
@@ -9191,7 +9338,7 @@ fn a_french_siege_factory_unit_trains_a_quarter_faster() {
     let foot = ty(&mut sim, foot_t);
     let time = |s: &Sim, ty| production::adjusted(30000, &s.train_tail(1, ty));
     assert_eq!(time(&sim, siege), 30000, "not a French leader");
-    sim.nation[1].french = true;
+    sim.cities.nation[1].french = true;
     assert_eq!(time(&sim, siege), 24000, "30000 × 100 / 125");
     assert_eq!(time(&sim, tank), 24000, "the Factory too");
     assert_eq!(time(&sim, foot), 30000, "not the factory line");
@@ -9239,9 +9386,9 @@ fn a_german_fire_raft_line_costs_a_quarter_less_and_trains_faster() {
     let plane = ty(&mut sim, trireme_t, true);
     let wealth = economy::Resource::Wealth.index();
     let timber = economy::Resource::Timber.index();
-    sim.holdings[1].available[wealth] = true;
-    sim.holdings[1].available[timber] = true;
-    let w = 4 * sim.tuning.unit_cost_factor;
+    sim.economy.holdings[1].available[wealth] = true;
+    sim.economy.holdings[1].available[timber] = true;
+    let w = 4 * sim.tables.tuning.unit_cost_factor;
     let faster = |s: &Sim, ty| {
         s.train_tail(1, ty)
             .iter()
@@ -9250,11 +9397,11 @@ fn a_german_fire_raft_line_costs_a_quarter_less_and_trains_faster() {
     };
     assert_eq!(sim.price_of(1, raft)[wealth], w, "not a German");
     assert_eq!(faster(&sim, raft), 0, "not a German");
-    sim.nation[1].germans = true;
+    sim.cities.nation[1].germans = true;
     assert_eq!(sim.price_of(1, raft)[wealth], w * 75 / 100);
     assert_eq!(
         sim.price_of(1, raft)[timber],
-        2 * sim.tuning.unit_cost_factor * 75 / 100
+        2 * sim.tables.tuning.unit_cost_factor * 75 / 100
     );
     assert_eq!(sim.price_of(1, heavy)[wealth], w * 75 / 100, "by lineage");
     assert_eq!(sim.price_of(1, trireme)[wealth], w, "not the line");
@@ -9295,8 +9442,8 @@ fn a_roman_legion_line_costs_a_tenth_less_and_trains_faster() {
     let heavy = ty(&mut sim, heavy_t);
     let other = ty(&mut sim, other_t);
     let wealth = economy::Resource::Wealth.index();
-    sim.holdings[1].available[wealth] = true;
-    let w = 4 * sim.tuning.unit_cost_factor;
+    sim.economy.holdings[1].available[wealth] = true;
+    let w = 4 * sim.tables.tuning.unit_cost_factor;
     let faster = |s: &Sim, ty| {
         s.train_tail(1, ty)
             .iter()
@@ -9305,7 +9452,7 @@ fn a_roman_legion_line_costs_a_tenth_less_and_trains_faster() {
     };
     assert_eq!(sim.price_of(1, legion)[wealth], w, "not a Roman");
     assert_eq!(faster(&sim, legion), 0, "not a Roman");
-    sim.nation[1].romans = true;
+    sim.cities.nation[1].romans = true;
     assert_eq!(sim.price_of(1, legion)[wealth], w * 90 / 100);
     assert_eq!(sim.price_of(1, heavy)[wealth], w * 90 / 100, "by lineage");
     assert_eq!(sim.price_of(1, other)[wealth], w, "not the line");
@@ -9333,14 +9480,14 @@ fn a_turkish_citizen_costs_a_third_less() {
     }
     let _ = &mut ty;
     let wealth = economy::Resource::Wealth.index();
-    sim.holdings[1].available[wealth] = true;
+    sim.economy.holdings[1].available[wealth] = true;
     let plain = sim.price_of(1, citizen)[wealth];
     let plain_other = sim.price_of(1, other)[wealth];
     assert!(plain > 0);
-    sim.nation[1].turks = true;
+    sim.cities.nation[1].turks = true;
     assert_eq!(sim.price_of(1, citizen)[wealth], (100 - 33) * plain / 100);
     assert_eq!(sim.price_of(1, other)[wealth], plain_other, "not a citizen");
-    sim.ledgers[1].rare |= 1 << (economy::WOOL - economy::BASE_RARE);
+    sim.economy.ledgers[1].rare |= 1 << (economy::WOOL - economy::BASE_RARE);
     assert_eq!(
         sim.price_of(1, citizen)[wealth],
         (100 - 33) * ((100 - 15) * plain / 100) / 100
@@ -9382,8 +9529,8 @@ fn a_recycled_slot_keeps_its_path_recursion() {
 #[test]
 fn a_city_at_its_ceiling_charges_the_shooters_army_and_is_stamped() {
     let mut sim = world_sim();
-    sim.nation[0].human = true;
-    sim.nation[1].human = false;
+    sim.cities.nation[0].human = true;
+    sim.cities.nation[1].human = false;
     let t = install_types(&mut sim);
     let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
     let (_, home) = city_at(&mut sim, &t, 1, 4, 4);
@@ -9404,7 +9551,7 @@ fn a_city_at_its_ceiling_charges_the_shooters_army_and_is_stamped() {
     let hit = |s: &mut Sim, by: usize, f: i64| {
         s.frame = f;
         // A capture is never the answer in this test: the stamp holds it off.
-        s.cities[c].capture_stamp = f;
+        s.cities.cities[c].capture_stamp = f;
         s.do_damage(
             combat::Obj::Unit(by),
             combat::Obj::Building(b),
@@ -9427,33 +9574,39 @@ fn a_city_at_its_ceiling_charges_the_shooters_army_and_is_stamped() {
     sim.buildings[b].sync_health();
     hit(&mut sim, shooter, 500);
     assert!(sim.buildings[b].damage < sim.buildings[b].hits_now());
-    assert_eq!((sim.cities[c].reduce_stamp, charged(&sim)), (0, false));
+    assert_eq!(
+        (sim.cities.cities[c].reduce_stamp, charged(&sim)),
+        (0, false)
+    );
     // The hit that brings it to the ceiling.
     let bd = &mut sim.buildings[b];
     bd.damage = bd.hits_now() - 1;
     bd.sync_health();
     hit(&mut sim, shooter, 600);
     assert_eq!(sim.buildings[b].damage, sim.buildings[b].hits_now());
-    assert_eq!(sim.cities[c].reduce_stamp, 600, "stamped on the frame");
+    assert_eq!(
+        sim.cities.cities[c].reduce_stamp, 600,
+        "stamped on the frame"
+    );
     assert!(charged(&sim), "the army is charged onto the city");
     assert_eq!(
-        sim.armies[1].list[slot].target,
+        sim.ai.armies[1].list[slot].target,
         Some(combat::Obj::Building(b)),
         "the army's target is the city"
     );
     // A second hit inside the 300 frames charges again and does not
     // re-stamp: run668's second shot on 15377.
     sim.clear_orders(mate);
-    sim.armies[1].list[slot].target = None;
+    sim.ai.armies[1].list[slot].target = None;
     hit(&mut sim, shooter, 610);
     assert!(charged(&sim), "the charge is not behind the cooldown");
     assert_eq!(
-        sim.cities[c].reduce_stamp, 600,
+        sim.cities.cities[c].reduce_stamp, 600,
         "the cooldown holds the stamp"
     );
     // And past it the stamp is written again.
     hit(&mut sim, shooter, 901);
-    assert_eq!(sim.cities[c].reduce_stamp, 901, "300 frames on");
+    assert_eq!(sim.cities.cities[c].reduce_stamp, 901, "300 frames on");
     // A city healed back below its ceiling and struck to it again inside
     // the 300 frames is stamped at once: `fresh` (`local_70`) skips the
     // cooldown.
@@ -9462,13 +9615,16 @@ fn a_city_at_its_ceiling_charges_the_shooters_army_and_is_stamped() {
     bd.sync_health();
     hit(&mut sim, shooter, 910);
     assert_eq!(
-        sim.cities[c].reduce_stamp, 910,
+        sim.cities.cities[c].reduce_stamp, 910,
         "a fresh blow ignores the 300"
     );
     // A shooter that is not siege stamps and charges nothing more.
     sim.clear_orders(mate);
     hit(&mut sim, foot, 1300);
-    assert_eq!(sim.cities[c].reduce_stamp, 1300, "any shooter stamps");
+    assert_eq!(
+        sim.cities.cities[c].reduce_stamp, 1300,
+        "any shooter stamps"
+    );
     assert!(!charged(&sim), "a foot soldier charges no army");
 }
 
@@ -9488,17 +9644,17 @@ fn a_persian_second_city_is_a_second_capital_and_the_third_is_not() {
         let (_, c0) = city_at(&mut sim, &t, 0, 8, 8);
         let (_, c1) = city_at(&mut sim, &t, 0, 33, 8);
         let (_, c2) = city_at(&mut sim, &t, 0, 33, 33);
-        assert!(sim.cities[c0].capital && sim.cities[c0].founding_capital);
+        assert!(sim.cities.cities[c0].capital && sim.cities.cities[c0].founding_capital);
         assert_eq!(
-            sim.cities[c1].capital, second,
+            sim.cities.cities[c1].capital, second,
             "tribe {tribe}: the second city is a capital for the Persians alone"
         );
         assert!(
-            !sim.cities[c1].founding_capital,
+            !sim.cities.cities[c1].founding_capital,
             "and never the founding one"
         );
         assert!(
-            !sim.cities[c2].capital,
+            !sim.cities.cities[c2].capital,
             "tribe {tribe}: the third city is none"
         );
     }
@@ -9519,11 +9675,13 @@ fn a_second_capital_projects_its_level_s_border_not_the_capital_s() {
     sim.tech[0].epoch[tech::Line::Civic as usize] = 3;
     let (_, c0) = city_at(&mut sim, &t, 0, 8, 8);
     let (_, c1) = city_at(&mut sim, &t, 0, 33, 8);
-    assert!(sim.cities[c1].capital && !sim.cities[c1].founding_capital);
-    let bonus = |sim: &Sim, c: usize| sim.sources[sim.cities[c].source.expect("a source")].bonuses;
+    assert!(sim.cities.cities[c1].capital && !sim.cities.cities[c1].founding_capital);
+    let bonus = |sim: &Sim, c: usize| {
+        sim.territory.sources[sim.cities.cities[c].source.expect("a source")].bonuses
+    };
     assert_eq!(
         bonus(&sim, c0) - bonus(&sim, c1),
-        sim.tuning.capital_territory_bonus - sim.tuning.city_upgrade_terr[0],
+        sim.tables.tuning.capital_territory_bonus - sim.tables.tuning.city_upgrade_terr[0],
         "only the founding capital takes the capital's bonus"
     );
 }
@@ -9547,7 +9705,7 @@ fn an_enhancer_is_seated_in_the_city_it_is_placed_for() {
     let (b0, c0) = city_at(&mut sim, &t, 0, 8, 8);
     let (_, c1) = city_at(&mut sim, &t, 0, 33, 8);
     assert_ne!(c0, c1);
-    for (near, city) in [(b0, c0), (sim.cities[c1].building, c1)] {
+    for (near, city) in [(b0, c0), (sim.cities.cities[c1].building, c1)] {
         let before = sim.buildings.len();
         assert!(sim.produce_building(0, t.granary, near, Some(city), false));
         let g = sim.buildings.len() - 1;
@@ -9667,7 +9825,7 @@ fn the_city_alarm_raids_light_attacks_heavy_and_spares_the_capital_s_stamps() {
     );
     let foot = sim.add_unit_type(hoplite_type(t.barracks));
     let shooter = spawn(&mut sim, 0, foot, tile_pos(4, 4));
-    sim.cities[c].capital = false;
+    sim.cities.cities[c].capital = false;
     let hits = sim.buildings[b].hits_now();
     let alarm = |s: &mut Sim, at: usize, siege: bool, whole: i32, f: i64| {
         s.city_alarm(
@@ -9682,45 +9840,57 @@ fn the_city_alarm_raids_light_attacks_heavy_and_spares_the_capital_s_stamps() {
     sim.buildings[b].damage = hits / 10 - 6;
     assert!(!alarm(&mut sim, b, false, 5, 700));
     assert_eq!(
-        (sim.cities[c].raid_stamp, sim.cities[c].attack_stamp),
+        (
+            sim.cities.cities[c].raid_stamp,
+            sim.cities.cities[c].attack_stamp
+        ),
         (700, 0),
         "a light hit raids"
     );
     // At the ceiling: an attack, and the alarm.
     assert!(alarm(&mut sim, b, false, 6, 710));
     assert_eq!(
-        (sim.cities[c].raid_stamp, sim.cities[c].attack_stamp),
+        (
+            sim.cities.cities[c].raid_stamp,
+            sim.cities.cities[c].attack_stamp
+        ),
         (710, 710)
     );
     // Inside 300 frames the stamps move and the alarm does not.
     assert!(!alarm(&mut sim, b, false, 6, 900));
-    assert_eq!(sim.cities[c].attack_stamp, 900);
+    assert_eq!(sim.cities.cities[c].attack_stamp, 900);
     // A siege shooter is heavy on an undamaged Barracks.
     let bh = sim.buildings[barracks].hits_now();
     assert!(alarm(&mut sim, barracks, true, 1, 1300));
-    assert_eq!(sim.cities[c].attack_stamp, 1300);
+    assert_eq!(sim.cities.cities[c].attack_stamp, 1300);
     // Anything else's ceiling is a quarter: a tenth is still a raid.
     sim.buildings[barracks].damage = bh / 10;
     assert!(!alarm(&mut sim, barracks, false, 1, 1400));
     assert_eq!(
-        (sim.cities[c].raid_stamp, sim.cities[c].attack_stamp),
+        (
+            sim.cities.cities[c].raid_stamp,
+            sim.cities.cities[c].attack_stamp
+        ),
         (1400, 1300)
     );
     // The capital: a heavy hit writes neither city stamp, and raises the
     // alarm on the leader's clock.
-    sim.cities[c].capital = true;
+    sim.cities.cities[c].capital = true;
     assert!(alarm(&mut sim, barracks, true, 1, 1500));
     assert_eq!(
-        (sim.cities[c].raid_stamp, sim.cities[c].attack_stamp),
+        (
+            sim.cities.cities[c].raid_stamp,
+            sim.cities.cities[c].attack_stamp
+        ),
         (1400, 1300),
         "the capital's heavy arm writes no city stamp"
     );
-    assert_eq!(sim.ai[1].capital_stamp[0], 1500);
+    assert_eq!(sim.ai.ai[1].capital_stamp[0], 1500);
     assert!(!alarm(&mut sim, barracks, true, 1, 1700));
-    assert_eq!(sim.ai[1].capital_stamp[0], 1500, "stamped only past 300");
+    assert_eq!(sim.ai.ai[1].capital_stamp[0], 1500, "stamped only past 300");
     assert!(!alarm(&mut sim, barracks, false, 1, 1710));
     assert_eq!(
-        sim.cities[c].raid_stamp, 1710,
+        sim.cities.cities[c].raid_stamp, 1710,
         "a light hit on the capital raids"
     );
 }
@@ -9772,8 +9942,8 @@ fn finish_pays_the_queue_head_its_train_time() {
         hits: 40,
         ..UnitType::default()
     });
-    sim.muster[0].researched[ty] = true;
-    sim.muster[0].cap = 1000;
+    sim.roster.muster[0].researched[ty] = true;
+    sim.roster.muster[0].cap = 1000;
     let c = [0; crate::economy::RESOURCES];
     sim.buildings[b]
         .queue
@@ -9818,8 +9988,8 @@ fn finish_pays_the_entry_and_the_building_500000() {
         hits: 40,
         ..UnitType::default()
     });
-    sim.muster[0].researched[ty] = true;
-    sim.muster[0].cap = 1000;
+    sim.roster.muster[0].researched[ty] = true;
+    sim.roster.muster[0].cap = 1000;
     let c = [0; crate::economy::RESOURCES];
     sim.buildings[b]
         .queue
@@ -9882,9 +10052,9 @@ fn relics_take_a_third_off_a_research_job() {
     tree.types[monarchy].job_time = 350;
     sim.set_tech_tree(tree);
     let plain = sim.tech_time(0, monarchy);
-    sim.ledgers[0].rare |= 1 << (economy::SALT - economy::BASE_RARE);
+    sim.economy.ledgers[0].rare |= 1 << (economy::SALT - economy::BASE_RARE);
     assert_eq!(sim.tech_time(0, monarchy), plain, "Salt is not Relics");
-    sim.ledgers[0].rare |= 1 << (economy::RELICS - economy::BASE_RARE);
+    sim.economy.ledgers[0].rare |= 1 << (economy::RELICS - economy::BASE_RARE);
     assert_eq!(sim.tech_time(0, monarchy), 67 * plain / 100);
     assert_eq!(sim.tech_time(1, monarchy), plain, "and only its holder's");
 }
@@ -9943,7 +10113,7 @@ fn a_plain_tech_another_seat_holds_is_researched_faster() {
         tree.types[t].job_time = 400;
     }
     sim.set_tech_tree(tree);
-    let n = sim.players.len() as i32;
+    let n = sim.territory.players.len() as i32;
     assert!(n >= 2, "two seats at least");
     let plain = [classical, despotism].map(|t| sim.tech_time(0, t));
     sim.tech[1].tech[despotism] = true;
@@ -10013,14 +10183,14 @@ fn a_maya_building_costs_a_quarter_less_timber() {
     let timber = economy::Resource::Timber.index();
     // The arm reads the tree's `TypeIndex`; the fallback for a type outside
     // the tree is checked last.
-    sim.build_types[t.senate].tree = Some(0x1b6);
-    sim.build_types[t.barracks].tree = Some(crate::nations::ty::BARRACKS);
+    sim.tables.build_types[t.senate].tree = Some(0x1b6);
+    sim.tables.build_types[t.barracks].tree = Some(crate::nations::ty::BARRACKS);
     let senate = sim.building_price(0, t.senate);
     let barracks = sim.building_price(0, t.barracks);
     assert_ne!(senate[timber], 0, "a Senate costs timber");
     assert_ne!(barracks[timber], 0, "a Barracks costs timber");
-    sim.nation[0].maya = true;
-    assert_eq!(sim.tuning.maya_building_timber, 25);
+    sim.cities.nation[0].maya = true;
+    assert_eq!(sim.tables.tuning.maya_building_timber, 25);
     let off = sim.building_price(0, t.senate);
     assert_eq!(off[timber], 75 * senate[timber] / 100, "timber");
     for r in (0..economy::RESOURCES).filter(|&r| r != timber) {
@@ -10032,7 +10202,7 @@ fn a_maya_building_costs_a_quarter_less_timber() {
         "a Barracks is listed"
     );
     assert_eq!(sim.building_price(1, t.senate), senate, "another nation's");
-    sim.build_types[t.barracks].tree = None;
+    sim.tables.build_types[t.barracks].tree = None;
     assert_eq!(
         sim.building_price(0, t.barracks),
         barracks,
@@ -10060,11 +10230,11 @@ fn a_script_s_second_ask_for_a_tech_in_research_is_refused() {
     let library_t = tree.add(TypeDef::building("Library"));
     let written_word = tree.add(TypeDef::epoch("Written Word", Line::Science, 0).at(library_t));
     sim.set_tech_tree(tree);
-    sim.build_types[t.library].tree = Some(library_t);
+    sim.tables.build_types[t.library].tree = Some(library_t);
     let _ = city_at(&mut sim, &t, 0, 32, 32);
     let lib = sim.init_build(0, t.library, tile_pos(36, 32), false);
     finish(&mut sim, lib);
-    sim.ledgers[0].bucket[food] = 1_000;
+    sim.economy.ledgers[0].bucket[food] = 1_000;
     let ask = |sim: &mut Sim| {
         ScriptHost { sim, who: 0 }
             .call(
@@ -10094,10 +10264,10 @@ fn a_computer_siege_unit_s_find_of_a_city_is_mandatory_and_moves_its_muster() {
         let mut sim = world_sim();
         let t = install_types(&mut sim);
         let (city, _) = city_at(&mut sim, &t, 0, 32, 32);
-        while sim.nation.len() < 2 {
-            sim.nation.push(Default::default());
+        while sim.cities.nation.len() < 2 {
+            sim.cities.nation.push(Default::default());
         }
-        sim.nation[1].human = case == "human";
+        sim.cities.nation[1].human = case == "human";
         let ty = sim.add_unit_type(crate::UnitType {
             hits: 100,
             cols: crate::ai_load::UnitCols {
@@ -10122,7 +10292,7 @@ fn a_computer_siege_unit_s_find_of_a_city_is_mandatory_and_moves_its_muster() {
         let army = (case != "no army").then(|| {
             let a = sim.init_army(1, None);
             sim.army_add_unit(1, a, me);
-            sim.armies[1].list[a].muster = crate::world::Cell { x: 8, y: 8 };
+            sim.ai.armies[1].list[a].muster = crate::world::Cell { x: 8, y: 8 };
             a
         });
         let find = if case == "a unit" {
@@ -10142,7 +10312,7 @@ fn a_computer_siege_unit_s_find_of_a_city_is_mandatory_and_moves_its_muster() {
         let taken = case == "city";
         assert_eq!(sim.units[me].combat.mandatory, taken, "{case}");
         if let Some(a) = army {
-            let a = &sim.armies[1].list[a];
+            let a = &sim.ai.armies[1].list[a];
             let to = sim.buildings[city].pos;
             if taken {
                 assert_eq!(a.target, Some(find), "{case}");
@@ -10183,7 +10353,7 @@ fn a_city_s_gather_all_points_it_at_its_own_resource_buildings() {
         .expect("a library places");
     finish(&mut sim, lib);
     assert!(
-        sim.cities[c].members.contains(&lib),
+        sim.cities.cities[c].members.contains(&lib),
         "the Library is on the chain"
     );
     let stale = GatherPoint {
@@ -10232,13 +10402,13 @@ fn a_militia_tower_and_a_templed_city_reach_a_tile_further() {
         .map(|n| tree.add(TypeDef::unit(n, TechUnit::default())));
     tree.roles.tower_fort_los_units = bits.map(Some);
     sim.set_tech_tree(tree);
-    let mut v = sim.build_types[t.village].clone();
+    let mut v = sim.tables.build_types[t.village].clone();
     v.combat = Some(combat::Profile {
         attack: 12,
         max_range: 8,
         ..combat::Profile::default()
     });
-    sim.build_types[t.village] = v;
+    sim.tables.build_types[t.village] = v;
     let (centre, _) = city_at(&mut sim, &t, 0, 32, 32);
     let tower = sim.place_building(0, t.tower, tile_pos(40, 40)).unwrap();
     finish(&mut sim, tower);
@@ -10282,10 +10452,10 @@ fn a_mayan_building_has_an_arrow_its_type_does_not() {
     let tower = sim.place_building(0, t.tower, tile_pos(40, 40)).unwrap();
     finish(&mut sim, tower);
     assert_eq!(sim.base_garrison_arrows(tower), 0);
-    sim.nation[0].maya = true;
+    sim.cities.nation[0].maya = true;
     assert_eq!(sim.base_garrison_arrows(tower), 1, "the Maya's arrow");
     assert_eq!(sim.base_garrison_arrows(centre), 1, "its own city");
-    sim.cities[c].race = Some(1);
+    sim.cities.cities[c].race = Some(1);
     assert_eq!(
         sim.base_garrison_arrows(centre),
         0,
@@ -10306,7 +10476,7 @@ fn an_obsidian_holder_s_tower_hits_harder() {
     finish(&mut sim, tower);
     let base = sim.attack_of(Obj::Building(tower));
     assert_ne!(base, 0);
-    sim.ledgers[0].rare |= 1 << (economy::OBSIDIAN - economy::BASE_RARE);
+    sim.economy.ledgers[0].rare |= 1 << (economy::OBSIDIAN - economy::BASE_RARE);
     assert_eq!(sim.attack_of(Obj::Building(tower)), base + 10);
     assert_eq!(sim.build_attack_terms(tower), 10);
     let barracks = sim.place_building(0, t.barracks, tile_pos(24, 40)).unwrap();
@@ -10413,9 +10583,9 @@ fn a_closing_first_library_hands_its_queue_to_the_next() {
     item.job_counter = 700;
     sim.buildings[first].queue.items.push(item);
     sim.tech[0].queued[tech] = 1;
-    let units = sim.unit_types.len();
-    sim.muster[0].queued_by_type.resize(units.max(1), 0);
-    sim.muster[0].queued_by_type[0] = 1;
+    let units = sim.tables.unit_types.len();
+    sim.roster.muster[0].queued_by_type.resize(units.max(1), 0);
+    sim.roster.muster[0].queued_by_type[0] = 1;
 
     sim.close_building(first, false);
     assert_eq!(
@@ -10428,14 +10598,14 @@ fn a_closing_first_library_hands_its_queue_to_the_next() {
     assert_eq!(q.len(), 1, "the queue went to the next library");
     assert_eq!((q[0].tech, q[0].job_counter), (Some(tech), 700));
     assert_eq!(sim.tech[0].queued[tech], 1, "a hand-off moves no count");
-    assert_eq!(sim.muster[0].queued_by_type[0], 1);
+    assert_eq!(sim.roster.muster[0].queued_by_type[0], 1);
 
     // The last library closes: a refund, and the count comes off the
     // technology, never record 0.
     sim.close_building(next, false);
     assert_eq!(sim.first_library(0), None);
     assert_eq!(sim.tech[0].queued[tech], 0);
-    assert_eq!(sim.muster[0].queued_by_type[0], 1);
+    assert_eq!(sim.roster.muster[0].queued_by_type[0], 1);
 }
 
 /// **`ages_queued` and `epochs_queued` follow the queue** (item 3982,
@@ -10462,11 +10632,11 @@ fn ages_and_epochs_queued_follow_the_queue() {
     age.job_time = 20;
     let classical = tree.add(age);
     sim.set_tech_tree(tree);
-    sim.build_types[t.library].tree = Some(library_t);
+    sim.tables.build_types[t.library].tree = Some(library_t);
     let _ = city_at(&mut sim, &t, 0, 32, 32);
     let lib = sim.init_build(0, t.library, tile_pos(36, 32), false);
     finish(&mut sim, lib);
-    sim.ledgers[0].bucket[food] = 1_000;
+    sim.economy.ledgers[0].bucket[food] = 1_000;
     // The age quota (`techs_per_age`) met without researching a thing.
     sim.tech[0].epochs = 8;
     let counts = |sim: &Sim| (sim.tech[0].ages_queued, sim.tech[0].epochs_queued);
@@ -10516,7 +10686,7 @@ fn the_age_catch_up_reads_the_queued_ages() {
     }
     sim.set_tech_tree(tree);
     let plain = [classical, city_state].map(|t| sim.tech_time(0, t));
-    let nations = 2 * sim.players.len() as i32;
+    let nations = 2 * sim.territory.players.len() as i32;
     let n = if sim.is_ally(1, 0) { 1 } else { 2 };
     let caught = plain[0] * (nations - n + 2) / (nations + 2);
     sim.tech[1].ages = 1;

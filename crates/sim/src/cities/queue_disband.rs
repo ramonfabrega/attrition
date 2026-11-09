@@ -81,7 +81,7 @@ impl Sim {
 
     /// A building type's `+0x2c0 & 0x10`, `NO_CITY` (flag `e`).
     fn no_city(&self, ty: Option<usize>) -> bool {
-        ty.is_some_and(|t| self.build_types[t].has(crate::build::flags::NO_CITY))
+        ty.is_some_and(|t| self.tables.build_types[t].has(crate::build::flags::NO_CITY))
     }
 
     /// **`SpellTypeData::is_castable@00675bc0`'s 0x29a case** on building
@@ -152,15 +152,15 @@ impl Sim {
     pub(crate) fn disband_time(&self, at: usize) -> i32 {
         let b = &self.buildings[at];
         let Some(ty) = b.ty else { return 0 };
-        let mut t = self.build_types[ty].job_time * crate::production::TIME_SCALE;
+        let mut t = self.tables.build_types[ty].job_time * crate::production::TIME_SCALE;
         if self.building_is(at, Ident::Village) {
-            t = self.tuning.disband_city_rate * t / 100;
+            t = self.tables.tuning.disband_city_rate * t / 100;
         }
         if self.building_is(at, Ident::Senate) {
-            t = self.tuning.disband_senate_rate * t / 100;
+            t = self.tables.tuning.disband_senate_rate * t / 100;
         }
-        if self.nation[b.owner as usize].lakota {
-            t = self.tuning.lakota_raze_speed * t / 100;
+        if self.cities.nation[b.owner as usize].lakota {
+            t = self.tables.tuning.lakota_raze_speed * t / 100;
         }
         t / 2
     }

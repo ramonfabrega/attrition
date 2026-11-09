@@ -26,23 +26,28 @@ impl Sim {
         // `leader_flags & 3 == 3` that is not an ally and not `& 0x10` — the
         // human included (corrected 2026-08-24 against the decompile; the
         // first reading said "computer leader").
-        let rivals: Vec<ai::Rival> = (0..self.players.len())
-            .filter(|&i| i != w && !self.defeated[i] && !(self.allied[w][i] && self.allied[i][w]))
+        let rivals: Vec<ai::Rival> = (0..self.territory.players.len())
+            .filter(|&i| {
+                i != w
+                    && !self.leaders.defeated[i]
+                    && !(self.leaders.allied[w][i] && self.leaders.allied[i][w])
+            })
             .map(|i| ai::Rival {
                 tribe: self.tech[i].tribe,
             })
             .collect();
         let setup = ai::RollSetup {
             sea_map: self.sea_map(),
-            rush_rules_off: self.lobby.rush_rules == 8,
+            rush_rules_off: self.ai.lobby.rush_rules == 8,
         };
         let pers = ai::Personality::roll(&mut self.rng, tribe, &rivals, &setup);
         let lakota = self
+            .tables
             .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[w], 0x13);
+            .has_tribe_bonus(&self.tables.setup, &self.tech[w], 0x13);
         let team = self.tech[w].team;
-        let team_style = self.lobby.team_style;
-        let leader = &mut self.ai[w];
+        let team_style = self.ai.lobby.team_style;
+        let leader = &mut self.ai.ai[w];
         *leader = ai::Leader::new();
         leader.pers = pers;
         leader.player_flags = player_flags;
@@ -62,15 +67,15 @@ impl Sim {
     /// from frame 1 and its `peasant_dist` moving on leader 0's own phase
     /// frame; an AI navy reads the human city's `ocean` when it scores it.
     pub fn strategy_all(&mut self) {
-        for w in 0..self.players.len() {
-            if self.defeated[w] {
+        for w in 0..self.territory.players.len() {
+            if self.leaders.defeated[w] {
                 continue;
             }
             let who = w as Player;
-            if cadence::explore_due(w, self.frame, self.ai_speed) {
+            if cadence::explore_due(w, self.frame, self.ai.ai_speed) {
                 self.check_explore(who);
             }
-            if self.nation[w].human {
+            if self.cities.nation[w].human {
                 self.plan_strategy_human(who);
                 continue;
             }
@@ -91,16 +96,16 @@ impl Sim {
     /// reads a make list only the script fills, and is not taken.
     fn plan_strategy_human(&mut self, who: Player) {
         let w = who as usize;
-        if self.ai[w].step != Step::Idle {
-            self.ai[w].step = Step::Idle;
+        if self.ai.ai[w].step != Step::Idle {
+            self.ai.ai[w].step = Step::Idle;
             return;
         }
-        if !cadence::sweep_due(w, self.frame, self.ai_speed) {
+        if !cadence::sweep_due(w, self.frame, self.ai.ai_speed) {
             return;
         }
         self.census(who);
         self.compute_sites(who, false);
-        self.ai[w].step = Step::Script;
+        self.ai.ai[w].step = Step::Script;
     }
 
     /// `Leader::plan_strategy@006b9620`'s head (`docs/AI.md` §2.2): a
@@ -110,12 +115,12 @@ impl Sim {
     /// off the make list's head.
     fn plan_strategy(&mut self, who: Player) {
         let w = who as usize;
-        if self.ai[w].step != Step::Idle {
+        if self.ai.ai[w].step != Step::Idle {
             self.production_ai(who);
             return;
         }
-        if !cadence::sweep_due(w, self.frame, self.ai_speed) {
-            if cadence::research_tick_due(w, self.frame, self.ai_speed) {
+        if !cadence::sweep_due(w, self.frame, self.ai.ai_speed) {
+            if cadence::research_tick_due(w, self.frame, self.ai.ai_speed) {
                 self.research_tick(who);
             }
             return;
@@ -124,7 +129,7 @@ impl Sim {
         self.census(who);
         self.check_orphaned_buildings(who);
         self.compute_sites(who, false);
-        self.ai[w].step = Step::Script;
+        self.ai.ai[w].step = Step::Script;
     }
 
     /// The cheap tick: buy the top research when it becomes affordable —
@@ -137,16 +142,19 @@ impl Sim {
     /// bucket less its reservation (`docs/AI.md` §2.3).
     pub(crate) fn research_tick(&mut self, who: Player) {
         let w = who as usize;
-        let head = *self.ai[w].make_list.head();
+        let head = *self.ai.ai[w].make_list.head();
         if head.t < 0 {
             return;
         }
         let t = head.t as usize;
-        if t >= self.tech_tree.types.len() || !self.tech_tree.kind(t).is_tech() {
+        if t >= self.tables.tech_tree.types.len() || !self.tables.tech_tree.kind(t).is_tech() {
             return;
         }
         if !self.can_pay_slot(who, &head)
-            || self.tech_tree.has_tech(&self.setup, &self.tech[w], t)
+            || self
+                .tables
+                .tech_tree
+                .has_tech(&self.tables.setup, &self.tech[w], t)
             || self.researching(who, t)
         {
             return;
@@ -166,41 +174,41 @@ impl Sim {
         // (`census`, `check_orphaned_buildings`, `compute_sites` keep
         // their draws, which is why the golden record's frame 0 is
         // unchanged by it); it stops everything the sweep arms.
-        if self.ai_off {
-            self.ai[w].step = Step::Idle;
+        if self.ai.ai_off {
+            self.ai.ai[w].step = Step::Idle;
             return;
         }
-        let unlimited = self.lobby.resources_unlimited();
-        self.ai[w].effective_pop = self.queued_units(who) + self.muster[w].control + 1;
-        self.ai[w].enter(unlimited);
-        match self.ai[w].step {
+        let unlimited = self.ai.lobby.resources_unlimited();
+        self.ai.ai[w].effective_pop = self.queued_units(who) + self.roster.muster[w].control + 1;
+        self.ai.ai[w].enter(unlimited);
+        match self.ai.ai[w].step {
             Step::Idle => {}
             Step::Script => {
-                let name = self.ai[w].script.clone();
-                let step = self.ai[w].script_step;
-                let rush = self.ai[w].pers.rush;
+                let name = self.ai.ai[w].script.clone();
+                let step = self.ai.ai[w].script_step;
+                let rush = self.ai.ai[w].pers.rush;
                 // `(who + 1, ref step, pers.rush + 2, num_loops = 5)`.
                 let r = match name {
                     Some(n) => match self.run_script(who, &n, step, rush + 2, 5) {
                         Ok((ret, back)) => {
-                            self.ai[w].script_step = back;
+                            self.ai.ai[w].script_step = back;
                             ScriptResult::Returned(ret)
                         }
                         Err(_) => ScriptResult::Failed,
                     },
                     None => ScriptResult::Failed,
                 };
-                self.ai[w].after_script(r);
+                self.ai.ai[w].after_script(r);
             }
             Step::Setup => {
                 let setup = self.goods_setup(who);
-                let leader = &mut self.ai[w];
-                ai::goods_picture(leader, &mut self.ledgers[w], &setup);
+                let leader = &mut self.ai.ai[w];
+                ai::goods_picture(leader, &mut self.economy.ledgers[w], &setup);
                 if !unlimited {
                     self.market_speculation(who);
                 }
-                self.ai[w].make_list.clear();
-                self.ai[w].after_producer();
+                self.ai.ai[w].make_list.clear();
+                self.ai.ai[w].after_producer();
             }
             Step::Cities
             | Step::Research
@@ -208,31 +216,31 @@ impl Sim {
             | Step::Units
             | Step::Buildings
             | Step::Units2 => {
-                match self.ai[w].step {
+                match self.ai.ai[w].step {
                     Step::Cities => self.found_cities(who),
                     Step::Research => self.research_techs(who),
                     Step::Upgrades => self.upgrade_units(who),
                     Step::Units | Step::Units2 => self.create_units(who),
                     _ => self.create_buildings(who),
                 }
-                self.ai[w].after_producer();
+                self.ai.ai[w].after_producer();
                 // The tail: the unlimited lobby buys after every producer.
                 if unlimited {
                     self.make_stuff(who);
-                    self.ai[w].make_list.clear();
+                    self.ai.ai[w].make_list.clear();
                 }
             }
             Step::Make => {
                 let bought = self.make_stuff(who);
-                self.ai[w].after_make(bought, unlimited);
+                self.ai.ai[w].after_make(bought, unlimited);
             }
             Step::Buildings2 => {
                 self.create_buildings(who);
-                self.ai[w].after_second_pass();
+                self.ai.ai[w].after_second_pass();
             }
             Step::Make2 => {
                 self.make_stuff(who);
-                self.ai[w].after_second_pass();
+                self.ai.ai[w].after_second_pass();
             }
         }
     }
@@ -245,14 +253,17 @@ impl Sim {
         let p = &self.tech[w];
         let next_age = usize::try_from(p.ages)
             .ok()
-            .and_then(|a| self.tech_tree.ages.get(a).copied().flatten());
+            .and_then(|a| self.tables.tech_tree.ages.get(a).copied().flatten());
         GoodsSetup {
             city_num: self.city_num(who),
-            difficulty: self.lobby.difficulty,
-            resources_unlimited: self.lobby.resources_unlimited(),
-            lakota: self.tech_tree.has_tribe_bonus(&self.setup, p, 0x13),
+            difficulty: self.ai.lobby.difficulty,
+            resources_unlimited: self.ai.lobby.resources_unlimited(),
+            lakota: self
+                .tables
+                .tech_tree
+                .has_tribe_bonus(&self.tables.setup, p, 0x13),
             next_age_cost: next_age.map(|t| self.tech_price(who, t)),
-            available: self.holdings[w].available,
+            available: self.economy.holdings[w].available,
             cap: std::array::from_fn(|g| self.mod_resource_cap(who, g)),
         }
     }

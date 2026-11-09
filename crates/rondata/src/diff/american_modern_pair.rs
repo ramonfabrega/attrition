@@ -197,8 +197,8 @@ fn american_modern_pair_an_american_airbase_pays_a_bomber_in_the_modern_age() {
     let init = replay_initial(&log).unwrap();
     let mut built = build_sim(&loaded, &init, sim::Tuning::RON);
     let sim = &mut built.sim;
-    let modern = sim.tech_tree.ages[5].expect("a sixth age");
-    assert_eq!(sim.tech_tree.types[modern].name, "Modern Age");
+    let modern = sim.tables.tech_tree.ages[5].expect("a sixth age");
+    assert_eq!(sim.tables.tech_tree.types[modern].name, "Modern Age");
     assert_eq!(
         loaded.type_index(modern),
         0x225,

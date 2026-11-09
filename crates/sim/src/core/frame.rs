@@ -77,10 +77,10 @@ impl Sim {
         // The staged input's marks, taken before the clear and put back at
         // the head of the frame's own — `do_frame`'s entry, which is where
         // the cheat channel spends them (`docs/INPUT.md` §11.1).
-        let staged: Vec<(String, u32)> = self.staged_marks.drain(..).collect();
-        if self.trace_phases {
-            self.phase_marks.clear();
-            self.phase_marks.extend(staged);
+        let staged: Vec<(String, u32)> = self.trace.staged_marks.drain(..).collect();
+        if self.trace.trace_phases {
+            self.trace.phase_marks.clear();
+            self.trace.phase_marks.extend(staged);
         }
         self.mark("income");
 
@@ -88,11 +88,11 @@ impl Sim {
         // `Objects::process_all`, so every player is paid for the frame before
         // any unit in it moves, fights or bleeds. That ordering is observable:
         // a citizen that dies this frame was already paid for it.
-        for who in 0..self.players.len() {
+        for who in 0..self.territory.players.len() {
             let player = u8::try_from(who).expect("too many players");
             // `Leader::process@006b88b0`'s head: the frame's retarget
             // count starts again at zero (`docs/COLLISION.md` §14).
-            self.retargets[who] = 0;
+            self.combat.retargets[who] = 0;
             // `Leader::calc_gather` assembles its inputs from the live state
             // inside the same gate it recomputes under, so the holdings are
             // rebuilt only on the frames the rate is actually reassembled —
@@ -108,24 +108,24 @@ impl Sim {
             // frame's income: `library who=1 2` at 600 is 2992 on run157's
             // first block, 605, where the level read at the last
             // reassembly still said 1392 (item 644, parked 633).
-            self.holdings[who].commerce =
+            self.economy.holdings[who].commerce =
                 self.tech[who].epoch[tech::Line::Commerce.index()].max(0) as usize;
             // And its wonder arm reads `has_wonder` there too: the
             // Pyramids `1/2026` activate on Great Lakes' sim-frame 17084
             // and who=1's food and wealth caps are 300, not 250, on 17085
             // (`docs/ECONOMY.md` §15).
-            self.holdings[who].wonders = self.wonders_held(player);
+            self.economy.holdings[who].wonders = self.wonders_held(player);
             // `do_gather`'s escrow arm reads `escrow_rate` on every frame,
             // and a human never escrows (`docs/AI.md` §98).
-            self.holdings[who].escrow_rate = if self.nation[who].human {
+            self.economy.holdings[who].escrow_rate = if self.cities.nation[who].human {
                 [0; economy::RESOURCES]
             } else {
-                self.ai[who].census.escrow_rate
+                self.ai.ai[who].census.escrow_rate
             };
             economy::process(
-                &self.tuning,
-                &mut self.ledgers[who],
-                &self.holdings[who],
+                &self.tables.tuning,
+                &mut self.economy.ledgers[who],
+                &self.economy.holdings[who],
                 player,
                 frame,
             );
@@ -144,8 +144,8 @@ impl Sim {
             // Tobacco on 6751 and the original's Tower drops from 100000
             // to **90909** on 6752, finishing at 7176 where this crate's
             // ran on (`docs/CITIES.md` §3.2).
-            let rare = self.holdings[who].rare_owned;
-            if self.ledgers[who].rare != rare {
+            let rare = self.economy.holdings[who].rare_owned;
+            if self.economy.ledgers[who].rare != rare {
                 // `Leader::calc_gather`'s own border arm, and it is one
                 // bit wide: the writer compares `rare.ptr[2] >> 7` before
                 // and after and calls `Regions::fix_all_borders` only when
@@ -157,10 +157,10 @@ impl Sim {
                 // "Territory"; `docs/audit/2026-09-05-economy-vs-code.md`
                 // R18).
                 let gem = 1u64 << (economy::GEMS - economy::BASE_RARE);
-                let gems_moved = (self.ledgers[who].rare ^ rare) & gem != 0;
-                self.ledgers[who].rare = rare;
-                self.unit_stats_dirty[who] = true;
-                self.wall_stats_dirty[who] = true;
+                let gems_moved = (self.economy.ledgers[who].rare ^ rare) & gem != 0;
+                self.economy.ledgers[who].rare = rare;
+                self.roster.unit_stats_dirty[who] = true;
+                self.cities.wall_stats_dirty[who] = true;
                 if gems_moved {
                     self.sync_territory();
                 }
@@ -173,7 +173,7 @@ impl Sim {
             }
             // `Leader::process` also answers the wall-stats dirty flag here,
             // before any building is touched.
-            if self.wall_stats_dirty[who] {
+            if self.cities.wall_stats_dirty[who] {
                 self.calc_wall_stats(player);
             }
             // And then `0x4000000` — `Leader::calc_unit_stats`, which is
@@ -182,8 +182,8 @@ impl Sim {
             // `Objects::process_all`, so the new speed is the one the
             // frame's own step uses (`docs/ECONOMY.md`, "What an owned
             // rare does").
-            if self.unit_stats_dirty[who] {
-                self.unit_stats_dirty[who] = false;
+            if self.roster.unit_stats_dirty[who] {
+                self.roster.unit_stats_dirty[who] = false;
                 self.calc_unit_stats(player);
             }
             // `Leader::process`'s victory clocks, after the stats: a
@@ -207,7 +207,7 @@ impl Sim {
         // lifetime count — without it the counter only climbs, and a unit
         // that has collided four times in a game is throttled for the rest
         // of it. It draws nothing, so it takes no mark.
-        for r in &mut self.repaths {
+        for r in &mut self.movement.repaths {
             *r /= 2;
             if *r < 3 {
                 *r = 0;
@@ -290,7 +290,7 @@ impl Sim {
         // so the mark alone would leave it unwalked.
         let mut bound = [0i16; 10];
         for (w, b) in bound.iter_mut().enumerate() {
-            *b = self.marks[w].unit;
+            *b = self.roster.marks[w].unit;
         }
         // A dead slot's occupant: `process_all`'s other arm, `hold_frames`
         // down by one (`docs/COMBAT.md` §59). The latest unit numbered `o`
@@ -343,7 +343,7 @@ impl Sim {
                     }
                     seen = self.units.len();
                 }
-                bound[w] = bound[w].max(self.marks[w].unit);
+                bound[w] = bound[w].max(self.roster.marks[w].unit);
                 o += 1;
             }
         }
@@ -477,7 +477,7 @@ impl Sim {
     /// sequence (group 18); nothing outside a test.
     #[cfg(test)]
     pub(crate) fn log_building_step(&mut self, b: usize, step: &'static str) {
-        self.building_log.push((b, step));
+        self.trace.building_log.push((b, step));
     }
 
     #[cfg(not(test))]

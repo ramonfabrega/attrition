@@ -25,7 +25,7 @@ impl Sim {
             return;
         }
         if let Some(t) = self.units[u].ty {
-            let p = &self.unit_types[t].combat;
+            let p = &self.tables.unit_types[t].combat;
             if p.domain == attrition::Domain::Land && p.obj_masks & combat::mask::CIVILIAN == 0 {
                 self.units[u].unit_masks2 |= combat::umask2::CLOAK_MARK;
             }
@@ -38,8 +38,9 @@ impl Sim {
     /// `LeaderData::has_tribe_bonus(0x12)`, the Iroquois.
     pub(crate) fn iroquois(&self, who: Player) -> bool {
         self.tech.get(who as usize).is_some_and(|p| {
-            self.tech_tree
-                .has_tribe_bonus(&self.setup, p, crate::ai::tribe::IROQUOIS)
+            self.tables
+                .tech_tree
+                .has_tribe_bonus(&self.tables.setup, p, crate::ai::tribe::IROQUOIS)
         })
     }
 
@@ -114,7 +115,7 @@ impl Sim {
         if self.iroquois(un.owner)
             && un
                 .ty
-                .is_some_and(|t| self.unit_types[t].combat.domain == attrition::Domain::Land)
+                .is_some_and(|t| self.tables.unit_types[t].combat.domain == attrition::Domain::Land)
         {
             self.units[i].cloak = self.world.tile_mask(at.tile()) & world::tile::SURFACE
                 == world::tile::SURFACE_FOREST;
