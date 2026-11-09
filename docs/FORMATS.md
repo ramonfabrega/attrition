@@ -977,9 +977,59 @@ last-resort `first_build_piece + type`, and each still names a
 `…-DEFAULT-AGE0` entry. A building piece meets condition 1 when its
 `zbuffer` model, its own `anim`, and each addon's model and `anim` decode
 (`artdata::building_decoding`). 20 of the 21 types do, from 80 files.
-The one short is the farm. `FARM-DEFAULT-AGE0` writes `texture`,
+~~The one short is the farm. `FARM-DEFAULT-AGE0` writes `texture`,
 `zbuffer` and `anim` empty, and its look comes from the `<FARM>` element,
-which nothing here reads.
+which nothing here reads.~~ All 21 since item 4037, from 81 (the farm,
+below).
+
+**The farm** (item 4037). It is not a mesh at a point.
+`FARM-DEFAULT-AGE0` writes `texture`, `zbuffer` and `anim` empty, and
+`GraphicPieces::init_farm_map` only returns `LIBERR_OK`. Its
+look is a wheat field that `FarmsOut::draw@008d75f0` builds over the
+farm's footprint every frame. The type is `0x1a1` (417): `Build::init
+@00629740` hands a building of that type to `Farms::add@008d8a40`.
+Three readers feed the field:
+- `Farms::init@008d9310` (called from `Game::init@0058c480`) walks
+  `building_graphics.xml`'s `Root/Buildings/Farm` (strings 400, 401,
+  2673, names compared without case). It reads `stalk_red`,
+  `stalk_green`, `stalk_blue` and `stalk_alpha` (strings 2674–2677,
+  `get_attrib_num`) into four bytes at `farms + 0x40`. It reads
+  `min_height` and `max_height` (2678, 2679, `get_attrib_float`) each
+  × 3.0 into `+ 0x50` and `+ 0x4c`, and names the render state `Farm
+  Blend` (2680). The install writes 166, 216, 188, 173 and 10, 36. The
+  draw lerps a stalk's height between the two by its growth, and its
+  colour from the stalk colour toward white.
+- **The `<FARM>`'s own `texture=` is read and dropped.** `Farms::init`
+  reads string 136 into the scratch `String` at `0xed6730` (`msg`; the
+  listing, `008d93c8`–`008d93e9`), and nothing loads it.
+- **The image is the tileset's.** The draw binds stage 0 to
+  `&tilesets.cur_tileset->wheat_texture` (`008d84b1`–`008d84c5`:
+  `TileSetData +0x98c`; `TileSet::get_wheat_texture` returns
+  the same). `TileSet::init@0087b370` fills it from the tileset's
+  `FARMTEX/TEXTURE` (string 6766) `file=` (743), 32-bit with two mips,
+  and `TileSetData::load_all@008798b0` loads it. The seventeen
+  `<TILESET>`s name three images: `farm_wheat_1.tga` (12),
+  `farm_snowy_wheat_1.tga` (2), `farm_jungle_wheat_1.tga` (3). Great
+  Lakes draws its tileset (`docs/MAPGEN.md` §4). The Aztec Modern lobby
+  draws `early_autumn`, from the seed run1428 prints after `map.cpp`
+  7805, 2,726,892,157.
+
+`artdata::farm_art` reads the field's inputs the same way, and
+`farm_decoding` decodes the image. A farm piece's condition 1 is its
+`<BUILD>` plus that image (`building_decoding`, given the tileset).
+
+**The images** (`render::tga`, item 4037). The install ships 2,901
+`.tga` under `art/` and `terrain art/`, in three kinds, none colour-mapped:
+- type 10, run-length (2,114: 2,113 of them 32-bit, one 24-bit);
+- type 2, uncompressed (786: 782 of them 32-bit, four 24-bit);
+- type 3, 8-bit grey (1).
+
+Each ends exactly at its last pixel (283 files) or at a 26-byte
+version-2 footer ending `TRUEVISION-XFILE.\0`. Every 32-bit file has
+descriptor `0x08`: eight alpha bits, bottom-left origin. The reader
+holds every file to this and decodes 2,901 of 2,901
+(`every_image_the_install_ships_decodes`). Which image a model binds
+is still unread beyond the attributes above.
 
 ### What is checked, and what is not established
 
@@ -1000,7 +1050,8 @@ which nothing here reads.
   same tree without its two `ammo node` leaves. The normals' fourth word.
   The 24-byte `id 10` element. The key's ninth word. Which TGA a model
   binds, beyond the `texture=` attribute. Item 4028 left four things
-  unread: the farm's `<FARM>` reader; what a building's `zbuffer` model
+  unread: ~~the farm's `<FARM>` reader~~ (item 4037: `Farms::init
+  @008d9310`, above); what a building's `zbuffer` model
   is drawn as, read only as a `.bh3` here; the snowy-tileset texture
   variant (string `0x12b9c`), which Great Lakes may take; and the
   building's sprite TGA, which is outside condition 1 as a unit's

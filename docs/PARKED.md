@@ -3877,6 +3877,8 @@ is the finish line's. Names no score; the loop's.
 
 (4045) **A start item's lane gate does not name its own tests** (4033's "for the Loop" line, the seventy-sixth tranche): briefed with the `chapter` kind until a `start` kind exists, 4033's gate line ran `diff::setup coverage:: first_parting …` and none of `diff::start` or `the_handoff_s_start_line_is_the_pinned_counter`; the lane added `diff::start` by hand. Candidate: a `start` kind in `tools/brief.py` whose `ALWAYS_TESTS` carry `diff::start` and `diff::setup`, red first on the kind refused, its rows the start track's (START.md, the lobby counter, the value diff on frame 0) rather than a chapter's. Names no score; the loop's.
 
+(4049) **A K booking can count a type in register on records neither side draws** (4037's "for the Loop" line, the seventy-sixth tranche): the farm's 402 dumped records read in register under §5.4's condition 2 only because `WallOut::draw` skips a finished farm and the draw list carries no `FarmsOut` field, so both sides drew nothing; the booking of 4037 promised K +1 off that. Candidate: condition 2 counts a type in register only on records at least one side draws, and `RENDER_K`'s test says how many of each type's records are drawn, red first on the farm. Names no score; the loop's.
+
 ## Loop, filed 2026-11-08 — the seventy-fifth tranche's
 
 **4023** (The frame's `ccc update att-<n>` names a worktree, and ccc takes the row's name) — **built by the seventy-fifth pass with 4022 (red first: `['ccc update att-<n>'] != []`): the landing row reads `ccc update lane-{item}`, filled per lane, and a test holds every `ccc` verb the frame spells to a `lane-` row.** The row as filed: (4023) **The frame's `ccc update att-<n>` names a worktree, and ccc takes the row's name** (4021's journal, the seventy-fifth
@@ -15833,13 +15835,17 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   checked against the dumps' `treaties[scan]`. Score: none
   until a team game or a revealed-map lobby is built (4034's rows), or the block widens to `treaties`.
 
-## Parked by the next landing, slot DR — reserved
+## Parked by item 4037, 2026-11-09 — the farm's art
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4037a. The farm's wheat field in the draw list** (`docs/RENDERER.md` §3.5, §5.4). The farm decodes since item
+  4037 (21 of 21), and it is out of §5.4's in-register set. The reason is that `WallOut::draw@00641930` skips a
+  finished farm, while `FarmsOut::draw@008d75f0` draws every one as a field: it snaps the corner off
+  `div_3_table` of `x ^ 0x63637` and the type's footprint (`BuildTypeData +0x234`, `+0x238`), and takes each
+  stalk's base `z` from the farm's `FarmStruct` heights (`farms + 0x64`, written by `Farms::recalc_heights
+  @008d88a0`). The draw list carries no such entry, so none of the lobby's 402 dumped farm records is drawn by
+  either side. An entry at the field's corner, drawn on `FarmsOut`'s own gate (the viewer's check at vtable
+  `+0x17c`), with the door carrying the farm's heights, would put the type in register. It names K +1 (58 →
+  59 of 59).
 
 ## Parked by the next landing, slot DS — reserved
 
