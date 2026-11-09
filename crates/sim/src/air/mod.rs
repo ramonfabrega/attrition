@@ -782,7 +782,7 @@ impl Sim {
                 if !self.world.contains(c) {
                     continue;
                 }
-                let mut next = self.chain_heads[(c.y as usize) * width + (c.x as usize)];
+                let mut next = self.terrain.chain_heads[(c.y as usize) * width + (c.x as usize)];
                 while let Some(x) = next {
                     next = self.units[x].down;
                     take(x);

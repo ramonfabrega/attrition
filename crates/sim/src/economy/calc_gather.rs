@@ -414,7 +414,7 @@ impl CalcGatherView for SimGather<'_> {
     }
     fn cell_head(&self, cx: i32, cy: i32) -> Option<usize> {
         let slot = (cy as usize) * (self.s.world.width() as usize) + (cx as usize);
-        self.s.chain_heads.get(slot).copied().flatten()
+        self.s.terrain.chain_heads.get(slot).copied().flatten()
     }
     fn next(&self, h: usize) -> Option<usize> {
         self.s.units[h].down

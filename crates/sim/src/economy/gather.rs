@@ -882,7 +882,7 @@ impl Sim {
     /// again.
     pub fn mine_arm(&self, centre: Pos) -> MineArm {
         let reach = MINE_RADIUS * UNITS_PER_TILE;
-        let mtn = if self.mountains.is_empty() {
+        let mtn = if self.terrain.mountains.is_empty() {
             self.nearest_mountain_cell(centre).map(|(d, _)| d)
         } else {
             self.find_nearest_mountain(centre).map(|(d, _, _)| d)
@@ -926,10 +926,10 @@ impl Sim {
     /// against the templates' 107 on East Indies (`docs/AI.md` §59.3) —
     /// and the region test is made per cell.
     pub fn nearest_mountain_cell(&self, centre: Pos) -> Option<(i32, Cell)> {
-        if !self.mountains.is_empty() {
+        if !self.terrain.mountains.is_empty() {
             return self
                 .nearest_placed(centre)
-                .map(|(d, i, k)| (d, self.mountains[i].solid[k]));
+                .map(|(d, i, k)| (d, self.terrain.mountains[i].solid[k]));
         }
         let reach = MINE_RADIUS * UNITS_PER_TILE;
         let at = centre.cell();
@@ -980,7 +980,7 @@ impl Sim {
     pub fn find_nearest_mountain(&self, centre: Pos) -> Option<(i32, usize, usize)> {
         let site_region = self.world.region_of(centre.cell());
         let mut best: Option<(i32, usize, usize)> = None;
-        for (i, m) in self.mountains.iter().enumerate() {
+        for (i, m) in self.terrain.mountains.iter().enumerate() {
             let Some(&first) = m.solid.first() else {
                 continue;
             };
@@ -1008,7 +1008,7 @@ impl Sim {
     /// original skips a range with no solid cells, and keeps the indices
     /// aligned with the dump's `mtn`.
     pub fn place_mountains(&mut self, placed: &[(Cell, usize)], templates: &[MountainTemplate]) {
-        self.mountains = placed
+        self.terrain.mountains = placed
             .iter()
             .map(|&(loc, template)| {
                 let t = templates.get(template);
@@ -1065,9 +1065,9 @@ impl Sim {
             self.world.tile_in_bounds(t)
                 && self.world.tile_mask(t) & tile::OBJECT == tile::OBJECT_MOUNTAIN
         };
-        if !self.mountains.is_empty() {
+        if !self.terrain.mountains.is_empty() {
             let (_, i, _) = self.nearest_placed(centre)?;
-            let m = &self.mountains[i];
+            let m = &self.terrain.mountains[i];
             let cells = m
                 .solid
                 .iter()

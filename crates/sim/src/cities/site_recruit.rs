@@ -269,7 +269,7 @@ impl Sim {
                 if !self.world.contains(c) || self.world.region_of(c) != region {
                     continue;
                 }
-                let mut next = self.chain_heads[(c.y as usize) * width + (c.x as usize)];
+                let mut next = self.terrain.chain_heads[(c.y as usize) * width + (c.x as usize)];
                 while let Some(u) = next {
                     next = self.units[u].down;
                     take(u, &mut best);

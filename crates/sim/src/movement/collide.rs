@@ -932,7 +932,7 @@ impl DetectCollisionView for SimDetect<'_> {
             y: cell.1,
         };
         let slot = (cell.1 as usize) * (self.sim.world.width() as usize) + (cell.0 as usize);
-        Some(match self.sim.chain_heads[slot] {
+        Some(match self.sim.terrain.chain_heads[slot] {
             Some(h) => DetectNode::Live(h),
             None => self.wreck_from(0),
         })
@@ -1384,7 +1384,7 @@ impl Sim {
                     continue;
                 }
                 let slot = (c.y as usize) * (self.world.width() as usize) + (c.x as usize);
-                let mut next = self.chain_heads[slot];
+                let mut next = self.terrain.chain_heads[slot];
                 while let Some(o) = next {
                     next = self.units[o].down;
                     if o != u
@@ -1772,13 +1772,13 @@ impl Sim {
         let Some(s) = self.chain_slot(self.units[u].pos) else {
             return;
         };
-        let head = self.chain_heads[s];
+        let head = self.terrain.chain_heads[s];
         self.units[u].up = None;
         self.units[u].down = head;
         if let Some(h) = head {
             self.units[h].up = Some(u);
         }
-        self.chain_heads[s] = Some(u);
+        self.terrain.chain_heads[s] = Some(u);
     }
 
     /// The world cell's object chain, head first — the order
@@ -1798,7 +1798,7 @@ impl Sim {
         }
         let s = (c.y as usize) * (self.world.width() as usize) + (c.x as usize);
         let mut out = Vec::new();
-        let mut next = self.chain_heads[s];
+        let mut next = self.terrain.chain_heads[s];
         while let Some(u) = next {
             out.push(u);
             next = self.units[u].down;
@@ -1817,9 +1817,9 @@ impl Sim {
             Some(p) => self.units[p].down = down,
             None => {
                 if let Some(s) = self.chain_slot(self.units[u].pos)
-                    && self.chain_heads[s] == Some(u)
+                    && self.terrain.chain_heads[s] == Some(u)
                 {
-                    self.chain_heads[s] = down;
+                    self.terrain.chain_heads[s] = down;
                 }
             }
         }
@@ -2333,7 +2333,7 @@ impl Sim {
             let Some(s) = self.chain_slot(p) else {
                 continue;
             };
-            let mut next = self.chain_heads[s];
+            let mut next = self.terrain.chain_heads[s];
             while let Some(o) = next {
                 next = self.units[o].down;
                 if o == u || self.is_air(o) || !self.units[o].alive() || !self.units[o].on_map {
@@ -2737,7 +2737,7 @@ impl Sim {
             if !self.world.contains(c) {
                 return false;
             }
-            let mut next = self.chain_heads[(c.y as usize) * width + (c.x as usize)];
+            let mut next = self.terrain.chain_heads[(c.y as usize) * width + (c.x as usize)];
             while let Some(x) = next {
                 next = self.units[x].down;
                 if hit(x) {
@@ -2876,7 +2876,7 @@ impl Sim {
             mine,
             |dx, dy| {
                 let p = Pos::new(at.x + dx * UNITS_PER_CELL, at.y + dy * UNITS_PER_CELL);
-                self.chain_slot(p).and_then(|s| self.chain_heads[s])
+                self.chain_slot(p).and_then(|s| self.terrain.chain_heads[s])
             },
             |o| self.units[o].down,
             |o| {

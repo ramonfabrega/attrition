@@ -721,7 +721,11 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         notes.push(format!(
             "mountains: {} placed ranges, {} solid cells, from the templates",
             placed.len(),
-            sim.mountains.iter().map(|m| m.solid.len()).sum::<usize>()
+            sim.terrain
+                .mountains
+                .iter()
+                .map(|m| m.solid.len())
+                .sum::<usize>()
         ));
     }
     // **And a Southwest Mesa game's cliffs** (item 3943; parked 3942b): no
@@ -742,8 +746,12 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         sim.place_cliffs(&cliffs.mining);
         notes.push(format!(
             "cliffs: {} mining lists, {} tiles, from the generator at 7805's seed {}",
-            sim.cliffs.len(),
-            sim.cliffs.iter().map(|c| c.tiles.len()).sum::<usize>(),
+            sim.terrain.cliffs.len(),
+            sim.terrain
+                .cliffs
+                .iter()
+                .map(|c| c.tiles.len())
+                .sum::<usize>(),
             lobby.at_7805
         ));
     }

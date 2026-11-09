@@ -522,7 +522,7 @@ impl Sim {
                     continue;
                 }
                 let slot = (c.y as usize) * (self.world.width() as usize) + (c.x as usize);
-                let mut next = self.chain_heads[slot];
+                let mut next = self.terrain.chain_heads[slot];
                 while let Some(o) = next {
                     next = self.units[o].down;
                     if self.world.tregion_alt(self.units[o].pos.tile()) != region {

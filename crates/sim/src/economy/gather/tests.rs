@@ -442,7 +442,7 @@ fn a_tie_goes_to_the_first_placed_range() {
     assert_eq!(s.nearest_mountain_cell(site).map(|(_, c)| c), None);
     assert_eq!(
         s.find_nearest_mountain(site)
-            .map(|(_, i, _)| s.mountains[i].loc),
+            .map(|(_, i, _)| s.terrain.mountains[i].loc),
         Some(Cell::new(3, 5))
     );
 }

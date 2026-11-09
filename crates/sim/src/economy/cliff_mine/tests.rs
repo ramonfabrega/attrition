@@ -153,7 +153,7 @@ fn a_strictly_nearer_cliff_takes_the_mine() {
     s.place_cliffs(&[cell_tiles(Cell::new(5, 5))]);
     range(&mut s, Cell::new(10, 10));
     assert_eq!(s.mine_arm(site), MineArm::Cliff(0), "the range past it");
-    s.mountains.clear();
+    s.terrain.mountains.clear();
     s.place_cliffs(&[cell_tiles(Cell::new(9, 5))]);
     assert_eq!(s.mine_arm(site), MineArm::None, "nothing in reach");
 }

@@ -554,16 +554,8 @@ pub struct Sim {
     /// The animation art the clocks read — lengths and pieces, an input
     /// (`docs/ANIM.md` §3).
     pub art: anim::Art,
-    /// The map generator's placed mountains, in its own order
-    /// (`MountainsData::mountain_locs`/`_types`), each with its template's
-    /// tiles and solid cells laid at its location (`gather.rs`,
-    /// [`gather::PlacedMountain`]). Empty when nothing supplied them, and
-    /// then [`Sim::mountain_range`] stands a range up from the tiles.
-    pub mountains: Vec<gather::PlacedMountain>,
-    /// `CliffsData::cliff_mining_data`, the scary cliffs a mine may stand
-    /// against, by queue index ([`cliff_mine::CliffMining`]). Empty when
-    /// nothing laid them ([`Sim::place_cliffs`]); no dump prints them.
-    pub cliffs: Vec<cliff_mine::CliffMining>,
+    /// The `world/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub terrain: crate::world::WorldState,
     /// `GameInfo::seed`, the lobby's map seed, which picks a gaia guy's
     /// piece by `(seed + o) % 3`.
     pub game_seed: i32,
@@ -607,8 +599,6 @@ pub struct Sim {
     /// the value is its 16×16 unit cells, one row a word, as the probe's
     /// region gate left them.
     pub coll_copies: std::cell::RefCell<std::collections::BTreeMap<(i32, i32), [u16; 16]>>,
-    /// `WData::down` per world cell: the head of the object chain (§3).
-    pub chain_heads: Vec<Option<usize>>,
     /// `GameDaemon::repaths[who]`: how many 48-grid recoveries this player
     /// has asked for, the throttle collision recovery reads (§6 step 6).
     pub repaths: Vec<i32>,
@@ -697,8 +687,6 @@ impl Sim {
             market: market::Market::default(),
             gaia: gaia::Gaia::default(),
             art: anim::Art::default(),
-            mountains: Vec::new(),
-            cliffs: Vec::new(),
             game_seed: 0,
             mods: vec![combat::Modifiers::default(); players],
             hits: Vec::new(),
@@ -737,7 +725,11 @@ impl Sim {
             probe_refuse: None,
             path_memo: std::collections::BTreeMap::new(),
             coll_copies: std::cell::RefCell::default(),
-            chain_heads: vec![None; (world.width() * world.height()) as usize],
+            terrain: crate::world::WorldState {
+                mountains: Vec::new(),
+                cliffs: Vec::new(),
+                chain_heads: vec![None; (world.width() * world.height()) as usize],
+            },
             repaths: vec![0; players.max(10)],
             pf_start: Pos::default(),
             building_log: Vec::new(),

@@ -240,8 +240,8 @@ impl Sim {
             && c.y >= 0
             && c.x < self.world.width()
             && c.y < self.world.height()
-            && let Some(o) =
-                self.chain_heads[(c.y as usize) * (self.world.width() as usize) + (c.x as usize)]
+            && let Some(o) = self.terrain.chain_heads
+                [(c.y as usize) * (self.world.width() as usize) + (c.x as usize)]
         {
             return Some((self.units[o].index, self.units[o].owner as i8));
         }

@@ -1823,7 +1823,11 @@ mod tests {
         borrow_from_siblings(&mut init, &[&sib_init]);
         borrow_pasture(&mut init, &tr);
         let built = build_sim(&loaded, &init, Tuning::RON);
-        assert_eq!(built.sim.mountains.len(), 18, "run38's placed mountains");
+        assert_eq!(
+            built.sim.terrain.mountains.len(),
+            18,
+            "run38's placed mountains"
+        );
         let reach = sim::gather::MINE_RADIUS * sim::world::UNITS_PER_TILE;
         // (site, the packet's `find_nearest` distance)
         let rows: [((i32, i32), i32); 8] = [
@@ -1957,8 +1961,9 @@ mod tests {
             let init = replay_initial(&log).expect("a start dump");
             let built = build_sim(&loaded, &init, Tuning::RON);
             let sim = &built.sim;
-            assert_eq!(sim.mountains.len(), ranges, "{name}: placed ranges");
+            assert_eq!(sim.terrain.mountains.len(), ranges, "{name}: placed ranges");
             let placed: BTreeSet<(i32, i32)> = sim
+                .terrain
                 .mountains
                 .iter()
                 .flat_map(|m| m.tiles.iter().map(|t| (t.x, t.y)))

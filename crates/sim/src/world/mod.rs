@@ -2057,3 +2057,21 @@ mod tests;
 // The files of `world/` (item 4011, `docs/STRUCTURE.md` §3).
 pub mod danger;
 pub mod terrain;
+
+/// The `world/` subsystem's fields of [`crate::Sim`] (`docs/STRUCTURE.md`
+/// §3, item 4016): moved whole, each with its doc, in `Sim`'s order.
+#[derive(Clone, Debug)]
+pub struct WorldState {
+    /// The map generator's placed mountains, in its own order
+    /// (`MountainsData::mountain_locs`/`_types`), each with its template's
+    /// tiles and solid cells laid at its location (`gather.rs`,
+    /// [`gather::PlacedMountain`]). Empty when nothing supplied them, and
+    /// then [`Sim::mountain_range`] stands a range up from the tiles.
+    pub mountains: Vec<crate::gather::PlacedMountain>,
+    /// `CliffsData::cliff_mining_data`, the scary cliffs a mine may stand
+    /// against, by queue index ([`cliff_mine::CliffMining`]). Empty when
+    /// nothing laid them ([`Sim::place_cliffs`]); no dump prints them.
+    pub cliffs: Vec<crate::cliff_mine::CliffMining>,
+    /// `WData::down` per world cell: the head of the object chain (§3).
+    pub chain_heads: Vec<Option<usize>>,
+}
