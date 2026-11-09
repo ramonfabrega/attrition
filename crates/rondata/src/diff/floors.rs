@@ -475,9 +475,16 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// `tables`), so the largest is `cities/city.rs`; and `flat` does not count
 /// a `foo.rs` that is a sibling `foo/`'s module file (7, unmoved).
 ///
-/// Item 4035: `largest` 4179 → 4184 (+5), a named rise. `cities/city.rs`'s
-/// `init_build` takes `Building::z` at the push and again after the
-/// building's own terraform (two statements, a comment, a field).
+/// Item 4031: `largest` 4179 → 3721 (−458), §2's last target met.
+/// `cities/city.rs` gave its walk views and their steps, from
+/// `BuildStartView` on, to `cities/city_views.rs` (4179 → 3600). The file
+/// behind it, `ai/army/mod.rs` at 4007, gave `find_besieged_city`'s view and
+/// steps to `ai/army/besieged_view.rs` (4007 → 3721), which is now the
+/// largest.
+///
+/// Item 4035: `largest` unmoved at 3721. Its +5 (`init_build` takes
+/// `Building::z` at the push and after the building's own terraform) sits
+/// in `cities/city.rs`, 3600 → 3605, which is not the largest.
 #[cfg(test)]
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 7),
@@ -485,7 +492,7 @@ pub const STRUCTURE: [(&str, u64); 6] = [
     ("sweep-lines", 17_286),
     ("names", 15),
     ("fields", 21),
-    ("largest", 4_184),
+    ("largest", 3_721),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before

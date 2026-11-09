@@ -7,6 +7,7 @@ pub mod building;
 pub mod capture;
 pub mod capture_view;
 pub mod city;
+pub mod city_views;
 pub(crate) mod construct;
 pub mod farms;
 pub mod find_builds_view;

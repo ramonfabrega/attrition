@@ -113,8 +113,8 @@ says in its doc comment that only the British and Mongol arms are built,
 | Chinese | science techs 20% cheaper | `TypeData::get_cost@00664090` | modelled at queue.rs | `chinese_science_discount` |
 | Chinese | citizens train twice as fast | `ObjectData::train_time@006508c0` | modelled at queue.rs | `chinese_citizen_creation` |
 | Chinese | citizens train instantly (the rules' CHINESE_CITIZEN_INSTANT is 1, the arm returns 1) | `ObjectData::train_time@006508c0` | modelled at queue.rs | `chinese_citizen_instant` |
-| Chinese | a large-city building on a new city | `Build::activate@00623e20` | modelled at city.rs | `chinese_large_cities` |
-| Chinese | a large-city building on assimilation | `City::assimilate@00738e90` | modelled at city.rs | `chinese_large_cities` |
+| Chinese | a large-city building on a new city | `Build::activate@00623e20` | modelled at activate.rs | `chinese_large_cities` |
+| Chinese | a large-city building on assimilation | `City::assimilate@00738e90` | modelled at city_views.rs | `chinese_large_cities` |
 | Chinese | herbal lore applied on tech gain | `Leader::gain_tech@006dcb60` | loaded at load.rs | `chinese_herbal_lore` |
 | Chinese | knowledge upgrades applied on tech gain (0 in the rules) | `Leader::gain_tech@006dcb60` | carried, unread | `chinese_knowledge_upgrades` |
 | Greeks | an age or an epoch researches faster (train_time's research tail) | `ObjectData::train_time@006508c0` | modelled at queue.rs | `greek_research_speed` |
@@ -476,7 +476,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Options::describe@00724460` | 4 22 | not sim | `interface or render side` |
 | `Cities::capture_city@00733380` | 13 23 | carried at cities_capture_city.rs | `00733380` |
 | `City::capture@00736c40` | 23 | carried at city.rs | `00736c40` |
-| `City::assimilate@00738e90` | 14 | carried at city.rs | `00738e90` |
+| `City::assimilate@00738e90` | 14 | carried at city_views.rs | `00738e90` |
 | `Caravan::trade_value@0073d9d0` | 21 | carried at caravan.rs | `0073d9d0` |
 | `ConquestGame::setup_scenario_bonuses@0078be90` | 0 6 13 20 22 23 | not sim | `Conquer the World, cut from v1` |
 | `ConquestGame::build_cities@00796140` | 14 | not sim | `Conquer the World, cut from v1` |

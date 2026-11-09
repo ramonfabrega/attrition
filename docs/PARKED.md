@@ -3869,6 +3869,10 @@ change: the next pass re-opens `docs/TEST_PERFORMANCE.md` with `gates.py`'s tabl
 whole gate's minutes go by test family, and books one lever with its expected minutes; not a `docs/TRACKS.md` row, since that page
 is the finish line's. Names no score; the loop's.
 
+## Loop, filed 2026-11-09 — the seventy-sixth tranche's
+
+(4043) **A shape target's booking reads only the counter's top file** (4031's "for the Loop" line, the seventy-sixth tranche): the seventy-fifth pass booked 4031 as "`cities/city.rs` 4179, the one file over 4,000" off `tools/shape.py`'s `largest`, which prints the top file alone; once the cut landed, `ai/army/mod.rs` read 4007 behind it and the lane made a second, unbooked move to meet ≤ 4000. Candidate: `shape.py` prints every file over a target's ceiling (or the runner-up beside `largest`), and a structure booking cites that list, red first on the base `13c883c62` where it names two files, not one. Names no score; the loop's.
+
 ## Loop, filed 2026-11-08 — the seventy-fifth tranche's
 
 **4023** (The frame's `ccc update att-<n>` names a worktree, and ccc takes the row's name) — **built by the seventy-fifth pass with 4022 (red first: `['ccc update att-<n>'] != []`): the landing row reads `ccc update lane-{item}`, filled per lane, and a test holds every `ccc` verb the frame spells to a `lane-` row.** The row as filed: (4023) **The frame's `ccc update att-<n>` names a worktree, and ccc takes the row's name** (4021's journal, the seventy-fifth
@@ -10377,7 +10381,7 @@ consumed with `field_0x88 == 0`, the `% 5` cadence) while `repaths[0] ≥ 3`, so
 - **3969b. `Build::new_library`'s queue move is not built.** When a Library earlier in the object table becomes the
   owner's first, the original moves the research queue onto it (`new_library@00627fe0`, from
   `City::find_buildings` and `City::assimilate`). This crate keeps the queue where it stands and resolves
-  `queue_home` on read (the `SEAM` at `city.rs`'s `SimFind::new_library`). Item 3969 made `first_library` ask the
+  `queue_home` on read (the `SEAM` at `city_views.rs`'s `SimFind::new_library`, item 4031). Item 3969 made `first_library` ask the
   original's predicate (active, in a city), so a reused lower slot that comes up while another Library holds a queue
   now strands that queue. Chapter one hundred and twenty-five's re-queue reaches a reused slot 2005, but with no
   queue standing. **Score**: none; no capture holds a queue across a change of first Library.
