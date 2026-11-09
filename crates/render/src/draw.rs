@@ -24,6 +24,12 @@
 //! both axes when its `<BUILD>` says `halfoffset="1"`
 //! ([`PlacedBuilding::anchor_point`]); it draws an unfinished building only
 //! past a share of its construction ([`PlacedBuilding::drawn`]).
+//!
+//! **A farm's wheat field** (item 4048) is a second entry for a building
+//! that carries a farm record ([`Field`]): `FarmsOut::draw@008d75f0` builds
+//! the field over the footprint every frame, on its own pass, finished or
+//! not, and skips the pasture. Its entry is anchored at the field's corner
+//! ([`Field::anchor_point`]) and leaves the list with [`Pose::Field`].
 
 use crate::camera::{Camera, Projected, Screen, world_to_screen};
 
@@ -107,6 +113,57 @@ pub struct PlacedBuilding {
     pub active: bool,
     pub job_counter: i32,
     pub construct_time: i32,
+    /// The farm record `FarmsOut::draw@008d75f0` draws a wheat field from,
+    /// or `None` (item 4048).
+    pub field: Option<Field>,
+}
+
+/// A farm's record as `FarmsOut::draw@008d75f0` reads it: the footprint of
+/// the building's type (`BuildTypeData +0x234`, `+0x238`), the record's
+/// `farm_type`, and its 25 corner heights (`FarmStruct::terrain_height`,
+/// `x` index major).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Field {
+    pub x_size: i32,
+    pub y_size: i32,
+    pub farm_type: u8,
+    pub heights: [i32; 25],
+}
+
+/// `FarmType`'s pasture: `FarmsOut::draw` skips a record whose
+/// `farm_type` is this (`+0xbd != 1`).
+pub const PASTURE: u8 = 1;
+
+/// A tile, in world units: `div_3_table[v >> 6]` is the tile `v` falls in.
+pub const TILE: i32 = 0xc0;
+
+impl Field {
+    /// `FarmsOut::draw`'s corner of the field over a building at `(x, y)`,
+    /// in world units — `WallData::tile_corner@00643440`'s tile times
+    /// `0xc0`: the point snapped to its tile (to the tile's centre on an
+    /// odd size), read back as a tile, less half the size (`sar`). The
+    /// field's 25 heights are sampled from here, a tile apart, and its
+    /// first stalk box stands half a tile in.
+    pub fn corner(&self, x: i32, y: i32) -> (i32, i32) {
+        let snap = |v: i32, size: i32| {
+            let t = (v >> 6) / 3;
+            let s = t * TILE + if size & 1 == 1 { HALF_TILE } else { 0 };
+            ((s >> 6) / 3 - (size >> 1)) * TILE
+        };
+        (snap(x, self.x_size), snap(y, self.y_size))
+    }
+
+    /// The point the entry is anchored at: the field's corner on its own
+    /// first height, `terrain_height[0][0]`.
+    pub fn anchor_point(&self, x: i32, y: i32) -> (i32, i32, i32) {
+        let (cx, cy) = self.corner(x, y);
+        (cx, cy, self.heights[0])
+    }
+
+    /// Whether `FarmsOut::draw` draws it: every record but the pasture's.
+    pub fn drawn(&self) -> bool {
+        self.farm_type != PASTURE
+    }
 }
 
 /// `TypeIndex` `0x1a1`, the farm: `WallOut::draw` draws it as a building
@@ -187,6 +244,10 @@ pub enum Pose {
         type_index: i32,
         orig_type: i32,
     },
+    /// A farm's wheat field, `FarmsOut::draw`'s (item 4048).
+    Field {
+        orig_type: i32,
+    },
 }
 
 /// One figure or building the viewer sees, placed on the screen.
@@ -210,12 +271,17 @@ impl Drawn {
     pub fn figure(&self) -> Option<u16> {
         match self.pose {
             Pose::Figure { figure, .. } => Some(figure),
-            Pose::Building { .. } => None,
+            Pose::Building { .. } | Pose::Field { .. } => None,
         }
     }
 
     fn key(&self) -> (u8, i16, i32) {
-        (self.who, self.o, self.figure().map_or(-1, i32::from))
+        let rank = match self.pose {
+            Pose::Figure { figure, .. } => i32::from(figure),
+            Pose::Building { .. } => -1,
+            Pose::Field { .. } => -2,
+        };
+        (self.who, self.o, rank)
     }
 }
 
@@ -267,6 +333,25 @@ pub fn draw_list(
                     piece: b.piece,
                     pose: Pose::Building {
                         type_index: b.type_index,
+                        orig_type: b.orig_type,
+                    },
+                }
+            }),
+    );
+    out.extend(
+        buildings
+            .iter()
+            .filter_map(|b| b.field.filter(Field::drawn).map(|f| (b, f)))
+            .filter(|(b, _)| sight.is_none_or(|s| s.sees(b.who, b.x, b.y)))
+            .map(|(b, f)| {
+                let (x, y, z) = f.anchor_point(b.x, b.y);
+                Drawn {
+                    who: b.who,
+                    o: b.o,
+                    anchor: world_to_screen(&to_screen, screen, x, y, z, size),
+                    depth: depth(x, y, z),
+                    piece: -1,
+                    pose: Pose::Field {
                         orig_type: b.orig_type,
                     },
                 }
@@ -378,6 +463,7 @@ mod tests {
             active,
             job_counter: job,
             construct_time: 1000,
+            field: None,
         }
     }
 
@@ -415,5 +501,46 @@ mod tests {
         let mut none = building(414, true, 0, 0);
         none.piece = -1;
         assert!(!none.drawn());
+    }
+
+    #[test]
+    fn a_farm_s_field_is_drawn_at_its_corner_and_the_pasture_s_is_not() {
+        // A 4×4 farm at run1428's `1/2002` (3648, 29760): the tile is
+        // (19, 155), an even size snaps to its corner, less two tiles.
+        let mut heights = [0; 25];
+        heights[0] = 184;
+        heights[1] = 188;
+        let field = Field {
+            x_size: 4,
+            y_size: 4,
+            farm_type: 0,
+            heights,
+        };
+        assert_eq!(field.corner(3648, 29760), (17 * TILE, 153 * TILE));
+        assert_eq!(field.anchor_point(3648, 29760), (3264, 29376, 184));
+        // An odd size snaps to the tile's centre first; 5 halves to 2.
+        let odd = Field { x_size: 5, ..field };
+        assert_eq!(odd.corner(3648, 29760).0, 17 * TILE);
+        let mut farm = building(FARM, true, 0, 0);
+        farm.x = 3648;
+        farm.y = 29760;
+        farm.field = Some(field);
+        let list = draw_list(&[], &[farm], &camera(), &SCREEN, None, None);
+        // The finished farm's sprite is not drawn; its field is.
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].pose, Pose::Field { orig_type: FARM });
+        farm.field = Some(Field {
+            farm_type: PASTURE,
+            ..field
+        });
+        assert!(draw_list(&[], &[farm], &camera(), &SCREEN, None, None).is_empty());
+        // Unfinished, both: the sprite under 0.88 and the field.
+        farm.field = Some(field);
+        farm.active = false;
+        farm.job_counter = 500;
+        assert_eq!(
+            draw_list(&[], &[farm], &camera(), &SCREEN, None, None).len(),
+            2
+        );
     }
 }

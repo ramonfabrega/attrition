@@ -188,6 +188,12 @@ pub fn placed_buildings(
                 active: b.active,
                 job_counter: b.job_counter,
                 construct_time: b.construct_time,
+                field: b.field.map(|f| render::draw::Field {
+                    x_size: f.x_size,
+                    y_size: f.y_size,
+                    farm_type: f.farm_type,
+                    heights: f.heights,
+                }),
             })
         })
         .collect()

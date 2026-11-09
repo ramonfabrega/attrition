@@ -44,6 +44,16 @@ pub struct Farm {
     /// crop's art and change nothing here: run20's six farms read
     /// `1, 0, 0, 0, 0, 4`. `docs/SYNC.md` §3.6.
     pub farm_type: u8,
+    /// `float terrain_height[5][5]` at `+0x48`: the ground at the 25 tile
+    /// corners of the footprint, `x` index major (`[col][row]`, so
+    /// `heights[col * 5 + row]`), each a `TerrainOut::find_data_z@00866560`
+    /// answer — an integer the float holds exactly. `Farms::add@008d8a40`
+    /// samples them for a crop farm, and `Farms::recalc_heights@008d88a0`
+    /// samples them again when its owner places a building that
+    /// terraforms near it ([`Sim::farms_recalc_heights`]); a pasture's stay
+    /// zero. Art's alone: `FarmsOut::draw@008d75f0` stands the wheat field
+    /// on them (`docs/RENDERER.md` §3.5, item 4048).
+    pub heights: [i32; 25],
     /// Whether this building has a record at all — `BuildData+0x78 >= 0`,
     /// the slot [`Sim::farms_add`] returns, which `Build::init` writes back
     /// only **after** `Farms::add` returns. So the farm being placed is
@@ -397,7 +407,8 @@ pub(crate) fn farms_add_steps<H: FarmsAddHost>(host: &mut H, o: i32) -> i32 {
 
 /// [`farms_add_steps`]' host in a running [`Sim`]: the building being
 /// placed, its city's chain, and `farm_order` as the record list. The
-/// corner, the ambience emitter and the heights are art and take nothing.
+/// ambience emitter is art and takes nothing; the corner and the heights
+/// are art the renderer reads (item 4048), so the heights are kept.
 struct SimFarmsHost<'a> {
     sim: &'a mut Sim,
     b: usize,
@@ -430,7 +441,8 @@ impl FarmsAddHost for SimFarmsHost<'_> {
     }
 
     fn tile_corner(&mut self) -> (i32, i32) {
-        (0, 0)
+        let c = self.sim.farm_corner(self.b);
+        (c.x, c.y)
     }
 
     fn chain_first(&mut self, _city: i32) -> i32 {
@@ -475,7 +487,10 @@ impl FarmsAddHost for SimFarmsHost<'_> {
 
     fn add_ambience(&mut self, _x: i32, _y: i32) {}
 
-    fn terrain_height(&mut self, _row: usize, _col: usize, _x: i32, _y: i32) {}
+    fn terrain_height(&mut self, row: usize, col: usize, x: i32, y: i32) {
+        let z = self.sim.world.data_z(x, y).0;
+        self.sim.buildings[self.b].farm.heights[col * 5 + row] = z;
+    }
 
     fn slot_count(&mut self) -> i32 {
         self.sim.cities.farm_order.len() as i32
@@ -656,6 +671,43 @@ impl Sim {
                 self.cities.farm_order[slot] = b;
             } else {
                 self.cities.farm_order.push(b);
+            }
+        }
+    }
+
+    /// `WallData::tile_corner@00643440` of building `b`: its footprint's
+    /// corner tile, the one `Farms::add` and `Farms::recalc_heights` sample
+    /// a farm's heights from.
+    pub(crate) fn farm_corner(&self, b: usize) -> crate::world::Pos {
+        let bd = &self.buildings[b];
+        self.tile_corner(bd.ty.unwrap_or(0), bd.pos)
+    }
+
+    /// `Farms::recalc_heights@008d88a0(corner.x, corner.y, who)` — from
+    /// `Wall::init@0063e9b0`, straight after a building that is not a farm
+    /// has terraformed under `corner` (its footprint's corner tile): every
+    /// record of `who`'s whose own corner is within eight tiles on both
+    /// axes samples its 25 heights again off the terraformed ground. Only
+    /// the owner's farms: another player's building that flattens the
+    /// ground under a farm leaves its heights as they were. The walk is
+    /// the record list's, so a closed farm's record is sampled too, which
+    /// nothing reads.
+    pub(crate) fn farms_recalc_heights(&mut self, corner: crate::world::Pos, who: crate::Player) {
+        for i in 0..self.cities.farm_order.len() {
+            let b = self.cities.farm_order[i];
+            if self.buildings[b].owner != who {
+                continue;
+            }
+            let c = self.farm_corner(b);
+            if (corner.x - c.x).abs() >= 9 || (corner.y - c.y).abs() >= 9 {
+                continue;
+            }
+            for col in 0..5 {
+                for row in 0..5 {
+                    let (x, y) = ((c.x + col) * 0xc0, (c.y + row) * 0xc0);
+                    self.buildings[b].farm.heights[(col * 5 + row) as usize] =
+                        self.world.data_z(x, y).0;
+                }
             }
         }
     }

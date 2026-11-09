@@ -1096,6 +1096,7 @@ mod tests {
                     farm_type: i64::from(bd.farm.farm_type),
                     status: bd.farm.state.iter().map(|&s| i64::from(s)).collect(),
                     adds: bd.farm.adds.iter().map(|&a| i64::from(a)).collect(),
+                    heights: bd.farm.heights.iter().map(|&h| i64::from(h)).collect(),
                 }
             })
             .collect()

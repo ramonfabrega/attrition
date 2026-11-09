@@ -210,6 +210,9 @@ impl World {
                     let (x, y, z) = b.anchor_point();
                     ([x, y, z], 0, true)
                 }
+                // The wheat field is a mesh `FarmsOut::draw` builds, not a
+                // piece; the client does not build it yet (item 4048).
+                Pose::Field { .. } => continue,
             };
             let Some(mesh) = self.mesh(d.piece, building) else {
                 continue;

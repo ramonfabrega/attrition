@@ -815,7 +815,11 @@ fn original_pixels(
     camera: &str,
     points: &[(String, [i64; 3])],
 ) -> Option<BTreeMap<String, (i32, i32)>> {
-    let dir = std::env::temp_dir().join(format!("att-draw-{}", std::process::id()));
+    // One directory a call: the tests of one process run side by side, and
+    // a directory per process let one remove another's points (item 4048).
+    static CALLS: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let call = CALLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let dir = std::env::temp_dir().join(format!("att-draw-{}-{call}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let file = dir.join("points.txt");
     let mut text = format!("{camera}\n");
@@ -1098,6 +1102,7 @@ fn fog_visible_is_render_s() -> bool {
 /// building types' ([`RENDER_K_BUILDINGS`]). Item 4035: the draw list
 /// carries buildings, so a building type's condition 2 is live.
 /// Item 4037: unchanged at 58; the farm decodes and is not yet drawn.
+/// Item 4048: **59** (+1), the farm's field in the draw list.
 pub(crate) const RENDER_K: usize = RENDER_K_PIECES.0 + RENDER_K_BUILDINGS.0;
 
 /// M's building types that count toward K, `(K, decoding, in register,
@@ -1112,8 +1117,11 @@ pub(crate) const RENDER_K: usize = RENDER_K_PIECES.0 + RENDER_K_BUILDINGS.0;
 /// farm's 402 records were "drawn by neither" only because `WallOut::draw`
 /// skips a finished farm, while the original draws all of them through
 /// `FarmsOut::draw@008d75f0`, which the draw list does not carry yet
-/// (parked 4037a). So K stays **20**, and **K 58 of M 59**.
-pub(crate) const RENDER_K_BUILDINGS: (usize, usize, usize, usize) = (20, 21, 20, 21);
+/// (parked 4037a). So K stays **20**, and **K 58 of M 59**. Item 4048:
+/// in register **21 of 21** (+1): the draw list carries the farm's wheat
+/// field, and all 402 farm records are drawn by both sides within one pixel
+/// ([`FIELDS_IN_REGISTER`]); K **21** (+1), and **K 59 of M 59**.
+pub(crate) const RENDER_K_BUILDINGS: (usize, usize, usize, usize) = (21, 21, 21, 21);
 
 /// The dumped frames that print a building — run1428's two, run1429's
 /// start block and its closing block 3390, and run1429b's 95 — on which
@@ -1132,6 +1140,61 @@ pub(crate) const BUILDINGS_IN_REGISTER: (usize, usize) = (4564, 4564);
 /// ([`crate::artdata::BuildLook::piece`]) — is the dump's `gpiece`, of all
 /// printed (item 4035: new, 4,564 of 4,564).
 pub(crate) const BUILDING_PIECES_AGREEING: (usize, usize) = (4564, 4564);
+
+/// **The farms' fields in register** (item 4048: new), `(in register,
+/// records, drawn by the original, drawn by ours)`: of the farm records the
+/// lobby's dumps print, those whose wheat field — `FarmsOut::draw@008d75f0`'s
+/// corner on its first height ([`render::draw::Field::anchor_point`]) — is
+/// drawn by both sides within one pixel of the original's projection, or by
+/// neither. The original's record is the dump's own list where it prints
+/// one (run1428), the start's on run1429's frame 0, and run1559b's packet
+/// ([`PACKET_3294_FARMS`]) past logger frame 3294.
+pub(crate) const FIELDS_IN_REGISTER: (usize, usize, usize, usize) = (402, 402, 402, 402);
+
+/// The farm records whose `farm_type` and all 25 corner heights are the
+/// original's, of the records printed (item 4048: new) — the record the
+/// field is built from, whole; its anchor reads `terrain_height[0][0]` alone.
+pub(crate) const FIELD_RECORDS_WHOLE: (usize, usize) = (402, 402);
+
+/// The logger frame of run1559b's packet (`docs/RUNS.md`; item 4036).
+const PACKET_FRAME: i64 = 3294;
+
+/// `Farms`' list in run1559b's packet at logger frame 3294 — the lobby's own
+/// game, one frame before run1429b's window — read at the list
+/// `0x00c0a914` (count `0x00c0a908`), `0xc0` a `FarmStruct`: `(who, o,
+/// valid, farm_type, terrain_height[col][row])` (item 4048; packet
+/// SHA-256 `11c3f767…`). Player 0's three are closed, `valid` 0.
+type FarmRow = (sim::Player, i16, bool, u8, [i32; 25]);
+#[rustfmt::skip]
+const PACKET_3294_FARMS: [FarmRow; 7] = [
+    (1, 2002, true, 0, [184, 188, 221, 246, 246, 172, 180, 219, 245, 265, 193, 200, 202, 244, 284, 195, 204, 206, 247, 284, 193, 200, 198, 245, 284]),
+    (1, 2003, true, 0, [179, 179, 180, 182, 184, 165, 159, 163, 172, 172, 166, 170, 181, 181, 193, 165, 170, 176, 178, 195, 160, 170, 174, 180, 193]),
+    (1, 2004, true, 4, [227, 223, 219, 214, 211, 226, 223, 219, 216, 212, 220, 215, 213, 209, 208, 207, 200, 197, 196, 196, 183, 179, 179, 180, 182]),
+    (0, 2002, false, 0, [493, 495, 504, 520, 536, 496, 508, 521, 531, 536, 508, 513, 521, 531, 536, 508, 519, 513, 529, 536, 493, 498, 500, 523, 539]),
+    (0, 2003, false, 0, [478, 476, 502, 536, 545, 481, 496, 513, 538, 538, 491, 508, 511, 517, 527, 500, 502, 498, 493, 512, 502, 496, 485, 483, 505]),
+    (0, 2004, false, 4, [489, 508, 517, 525, 536, 474, 504, 525, 541, 536, 470, 496, 523, 543, 547, 474, 496, 526, 540, 556, 476, 502, 536, 545, 544]),
+    (1, 2015, true, 0, [211, 205, 201, 223, 246, 212, 207, 202, 225, 246, 208, 203, 200, 224, 246, 196, 194, 194, 223, 246, 182, 184, 188, 221, 246]),
+];
+
+/// A farm list as the reference reads it: id → `(farm_type, heights)`.
+type FarmList = BTreeMap<ObjId, (u8, [i32; 25])>;
+
+fn farm_list(farms: &[crate::gamelog::FarmDump]) -> FarmList {
+    farms
+        .iter()
+        .filter(|f| f.valid != 0 || f.heights.iter().any(|&h| h != 0) || f.farm_type == 1)
+        .filter_map(|f| {
+            let h = <[i64; 25]>::try_from(f.heights.as_slice()).ok()?;
+            Some((
+                ObjId {
+                    who: f.who as sim::Player,
+                    o: f.o as i16,
+                },
+                (f.farm_type as u8, h.map(|v| v as i32)),
+            ))
+        })
+        .collect()
+}
 
 /// One building record a dump prints, as the reference reads it.
 #[derive(Clone, Copy, Debug)]
@@ -1179,6 +1242,12 @@ fn the_draw_list_s_buildings_are_in_register() {
     // (dump, frame) → the buildings it prints.
     type Printed = BTreeMap<(usize, i64), BTreeMap<ObjId, DumpedBuilding>>;
     let mut printed = Printed::new();
+    // (dump, frame) → the farm records the original holds (item 4048).
+    let mut listed: BTreeMap<(usize, i64), FarmList> = BTreeMap::new();
+    let farm_size = {
+        let t = &c.loaded.build_types[c.loaded.build_named("Farm").unwrap()];
+        (t.x_size, t.y_size)
+    };
     for (i, path) in paths.iter().enumerate() {
         let mut src = IndexedCapture::open(path).unwrap();
         let setup = src.read_replay_setup().unwrap();
@@ -1213,6 +1282,43 @@ fn the_draw_list_s_buildings_are_in_register() {
             let f: Frame = frame.unwrap();
             put(f.n, &f.builds);
         }
+        // `Farms::log_data`'s list where the dump prints it: the start's,
+        // and a `DUMP_ALL` frame's (item 4048).
+        if !init.farms.is_empty() {
+            listed.insert((i, 0), farm_list(&init.farms));
+        }
+        if i == 0 {
+            let p = path.to_str().unwrap();
+            for (n, farms) in crate::diff::testkit::whole_capture::observations(p, |l| {
+                l.frames()
+                    .into_iter()
+                    .filter_map(|(n, b)| {
+                        let farms = crate::gamelog::farms_of(b.kid("FULL DUMP").unwrap_or(b));
+                        (!farms.is_empty()).then_some((n, farms))
+                    })
+                    .collect()
+            }) {
+                listed.insert((i, n), farm_list(&farms));
+            }
+        }
+    }
+    // The lobby's three captures are one game: a start that prints no list
+    // takes run1428's, and the frames past run1559b's packet take the
+    // packet's ([`PACKET_3294_FARMS`]).
+    if let Some(start) = listed.get(&(0, 0)).cloned() {
+        for i in 1..paths.len() {
+            listed.entry((i, 0)).or_insert_with(|| start.clone());
+        }
+    }
+    let packet: FarmList = PACKET_3294_FARMS
+        .iter()
+        .filter(|r| r.2)
+        .map(|&(who, o, _, ty, h)| (ObjId { who, o }, (ty, h)))
+        .collect();
+    for &(i, n) in printed.keys() {
+        if n > PACKET_FRAME {
+            listed.entry((i, n)).or_insert_with(|| packet.clone());
+        }
     }
     let wanted: BTreeSet<i64> = printed.keys().map(|(_, n)| *n).collect();
     let mut free = c.runner();
@@ -1221,25 +1327,31 @@ fn the_draw_list_s_buildings_are_in_register() {
     // Ours on each wanted frame: id → (placed, drawn pixel if drawn).
     type Ours = BTreeMap<ObjId, (render::draw::PlacedBuilding, Option<(i32, i32)>)>;
     let mut ours: BTreeMap<i64, Ours> = BTreeMap::new();
+    // Ours on each wanted frame: id → the field's drawn pixel (item 4048).
+    let mut our_fields: BTreeMap<i64, BTreeMap<ObjId, (i32, i32)>> = BTreeMap::new();
     let mut see = |s: &Scene| {
         if !wanted.contains(&s.frame) {
             return;
         }
         let blds = placed_buildings(s, &look, &tribes);
         let list = render::draw::draw_list(&[], &blds, &camera, &screen, Some(SIZE), None);
-        let px: BTreeMap<ObjId, (i32, i32)> = list
-            .iter()
-            .map(|d| (ObjId { who: d.who, o: d.o }, (d.anchor.x, d.anchor.y)))
-            .collect();
+        let px = |field: bool| -> BTreeMap<ObjId, (i32, i32)> {
+            list.iter()
+                .filter(|d| matches!(d.pose, render::draw::Pose::Field { .. }) == field)
+                .map(|d| (ObjId { who: d.who, o: d.o }, (d.anchor.x, d.anchor.y)))
+                .collect()
+        };
+        let (sprites, fields) = (px(false), px(true));
         ours.insert(
             s.frame,
             blds.iter()
                 .map(|b| {
                     let id = ObjId { who: b.who, o: b.o };
-                    (id, (*b, px.get(&id).copied()))
+                    (id, (*b, sprites.get(&id).copied()))
                 })
                 .collect(),
         );
+        our_fields.insert(s.frame, fields);
     };
     see(&free.scene(None));
     free.run_to(AZTEC_MODERN.length + 1, None, &mut see);
@@ -1260,6 +1372,7 @@ fn the_draw_list_s_buildings_are_in_register() {
             active: d.active,
             job_counter: d.job_counter as i32,
             construct_time: d.constr_time as i32,
+            field: None,
         }
     };
     let tag = |i: usize, n: i64, id: ObjId| format!("b{i}/{n}/{}/{}", id.who, id.o);
@@ -1274,6 +1387,37 @@ fn the_draw_list_s_buildings_are_in_register() {
             })
         })
         .collect();
+    // The original's field, `FarmsOut::draw@008d75f0`'s, on a printed farm
+    // record: `WallData::tile_corner` of the dumped point by the farm's
+    // footprint — `sim`'s `tile_corner_of`, which item 2122's sweep holds
+    // against the original's own `div_3_table`, not the renderer's copy —
+    // on the record's own first height; `None` where no list holds it.
+    let their_field = |i: usize, n: i64, id: ObjId, d: &DumpedBuilding| {
+        let (ty, heights) = *listed.get(&(i, n))?.get(&id)?;
+        let c = sim::cities::place::tile_corner_of(
+            farm_size.0,
+            farm_size.1,
+            sim::world::Pos::new(d.pos[0] as i32, d.pos[1] as i32),
+        );
+        let field = render::draw::Field {
+            x_size: farm_size.0,
+            y_size: farm_size.1,
+            farm_type: ty,
+            heights,
+        };
+        Some((field, (c.x * 0xc0, c.y * 0xc0, heights[0])))
+    };
+    let ftag = |i: usize, n: i64, id: ObjId| format!("f{i}/{n}/{}/{}", id.who, id.o);
+    let points: Vec<(String, [i64; 3])> = points
+        .into_iter()
+        .chain(printed.iter().flat_map(|(&(i, n), recs)| {
+            recs.iter().filter_map(move |(&id, d)| {
+                let (f, (x, y, z)) = their_field(i, n, id, d)?;
+                f.drawn()
+                    .then(|| (ftag(i, n, id), [x as i64, y as i64, z as i64]))
+            })
+        }))
+        .collect();
     let Some(theirs) = original_pixels(
         &inst.root().join("riseofnations.exe"),
         &state_line(&camera, &screen),
@@ -1281,35 +1425,80 @@ fn the_draw_list_s_buildings_are_in_register() {
     ) else {
         return;
     };
+    // The fields (item 4048): (records, in register, drawn by the
+    // original, drawn by ours, unlisted), and the first parting.
+    let mut fields = (0, 0, 0, 0, 0);
+    let mut field_misses: Vec<String> = Vec::new();
+    let (mut whole, mut whole_miss) = (0, None::<String>);
+    let mut samples: [Option<String>; 3] = [None, None, None];
     let (mut frames_ok, mut recs_ok, mut recs_all) = (0, 0, 0);
     let (mut pieces_ok, mut first_out) = (0, None);
     let mut misses: Vec<String> = Vec::new();
     let mut bad_types: BTreeSet<i64> = BTreeSet::new();
     let mut type_pieces: BTreeMap<i64, BTreeSet<i32>> = BTreeMap::new();
     let mut parted_pieces: BTreeMap<(i64, i32, i32), usize> = BTreeMap::new();
-    // The farm's records (item 4037): (records, drawn by both, the first).
-    let mut farm: (usize, usize, Option<String>) = (0, 0, None);
     for (&(i, n), recs) in &printed {
         let mine = ours.get(&n).cloned().unwrap_or_default();
         let mut frame_ok = true;
         for (&id, d) in recs {
             recs_all += 1;
             if d.orig_type == i64::from(crate::artdata::FARM_TYPE) {
-                let them = theirs.get(&tag(i, n, id)).copied();
-                let m = mine.get(&id);
-                farm.0 += 1;
-                farm.1 += usize::from(them.is_some() && m.is_some_and(|(_, px)| px.is_some()));
-                if farm.2.is_none()
-                    || (them.is_some() && !farm.2.as_ref().unwrap().contains("Some(("))
-                {
-                    farm.2 = Some(format!(
-                        "{} frame {n} {}/{}: dump {:?} gpiece {} → {them:?}; ours {:?}",
+                let them = their_field(i, n, id, d);
+                let them_px = theirs.get(&ftag(i, n, id)).copied();
+                let ours_px = our_fields.get(&n).and_then(|f| f.get(&id)).copied();
+                let ours_field = mine.get(&id).and_then(|(b, _)| b.field);
+                fields.0 += 1;
+                fields.2 += usize::from(them_px.is_some());
+                fields.3 += usize::from(ours_px.is_some());
+                fields.4 += usize::from(them.is_none());
+                let ok = them.is_some()
+                    && match (ours_px, them_px) {
+                        (Some(p), Some(t)) => (p.0 - t.0).abs() <= 1 && (p.1 - t.1).abs() <= 1,
+                        (None, None) => true,
+                        _ => false,
+                    };
+                // The record whole: the type and all 25 heights, of which
+                // the anchor reads one.
+                if let (Some((f, _)), Some(o)) = (them, ours_field) {
+                    if f.farm_type == o.farm_type && f.heights == o.heights {
+                        whole += 1;
+                    } else if whole_miss.is_none() {
+                        whole_miss = Some(format!(
+                            "{} frame {n} {}/{}: theirs {} {:?}, ours {} {:?}",
+                            names[i], id.who, id.o, f.farm_type, f.heights, o.farm_type, o.heights
+                        ));
+                    }
+                }
+                // One record per source, for the value diff: the start, a
+                // printed list past it, and the packet's window.
+                let source = match n {
+                    0 => 0,
+                    n if n > PACKET_FRAME => 2,
+                    _ => 1,
+                };
+                if ok && samples[source].is_none() {
+                    samples[source] = Some(format!(
+                        "{} frame {n} {}/{}: dump {:?}, theirs {:?} → {them_px:?}; ours → {ours_px:?}",
                         names[i],
                         id.who,
                         id.o,
                         d.pos,
-                        d.gpiece,
-                        m.map(|(b, px)| ((b.x, b.y, b.z), b.piece, *px))
+                        them.map(|(f, a)| (f.farm_type, a))
+                    ));
+                }
+                if ok {
+                    fields.1 += 1;
+                } else {
+                    frame_ok = false;
+                    bad_types.insert(d.orig_type);
+                    field_misses.push(format!(
+                        "{} frame {n} {}/{}: dump {:?}, theirs {:?} at {them_px:?}; ours {:?} at {ours_px:?}",
+                        names[i],
+                        id.who,
+                        id.o,
+                        d.pos,
+                        them.map(|(f, a)| (f.farm_type, a)),
+                        ours_field.map(|f| (f.farm_type, f.anchor_point(d.pos[0] as i32, d.pos[1] as i32))),
                     ));
                 }
             }
@@ -1366,23 +1555,44 @@ fn the_draw_list_s_buildings_are_in_register() {
         .filter(|(_, ps)| ps.iter().all(|p| matches!(builds[p], Ok(n) if n > 0)))
         .map(|(t, _)| *t)
         .collect();
-    // The farm is not in register (item 4037): `WallOut::draw` draws none
-    // of its finished records, and the original draws every one through
-    // `FarmsOut::draw@008d75f0`'s wheat field, which the draw list does not
-    // carry. "Drawn by neither" is true only of `WallOut`'s half, so it is
-    // not counted (parked 4037a).
+    // The farm is in register when its sprite half (`WallOut::draw`'s,
+    // which skips a finished farm) and its field half (`FarmsOut::draw`'s,
+    // item 4048) both are, on every record; a record no printed list or
+    // packet holds is out, since the field's inputs are not on disk.
     let registered: BTreeSet<i64> = type_pieces
         .keys()
-        .filter(|t| !bad_types.contains(t) && **t != i64::from(crate::artdata::FARM_TYPE))
+        .filter(|t| !bad_types.contains(t))
         .copied()
         .collect();
     let k = decoding.intersection(&registered).count();
     eprintln!(
-        "FARM records {}, drawn by both {}; {}",
-        farm.0,
-        farm.1,
-        farm.2.unwrap_or_default()
+        "FIELDS records {}, in register {}, drawn by the original {}, by ours {}, unlisted {}\n  {}",
+        fields.0,
+        fields.1,
+        fields.2,
+        fields.3,
+        fields.4,
+        field_misses
+            .iter()
+            .take(20)
+            .cloned()
+            .collect::<Vec<_>>()
+            .join("\n  ")
     );
+    for line in samples.iter().flatten() {
+        eprintln!("FIELD {line}");
+    }
+    eprintln!(
+        "FIELDS whole {whole} of {}; first parting {}",
+        fields.0,
+        whole_miss.unwrap_or_default()
+    );
+    pin_eq!(
+        (fields.1, fields.0, fields.2, fields.3),
+        FIELDS_IN_REGISTER,
+        "farm fields in register"
+    );
+    pin_eq!((whole, fields.0), FIELD_RECORDS_WHOLE, "farm records whole");
     eprintln!(
         "BUILDINGS {}: frames in register {frames_ok} of {}, first out {first_out:?}; records {recs_ok} of {recs_all} \
          ({} drawn by the original's predicate); \

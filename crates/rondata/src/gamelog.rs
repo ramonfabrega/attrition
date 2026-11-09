@@ -3193,6 +3193,13 @@ pub struct FarmDump {
     /// ambiguity, and [`farms_of`] refuses a value that is not within a
     /// tenth of an add of an integer.
     pub adds: Vec<i64>,
+    /// `float terrain_height[5][5]` at `+0x48`, in memory order — the
+    /// `x` index major (`[col][row]`), so the field's corner is `[0]`. Each
+    /// is a `TerrainOut::find_data_z@00866560` answer, an integer stored as
+    /// a float (`Farms::add@008d8a40`, `Farms::recalc_heights@008d88a0`);
+    /// [`farms_of`] refuses one that is not whole. A pasture's stay zero.
+    /// `FarmsOut::draw@008d75f0` stands each stalk on them (item 4048).
+    pub heights: Vec<i64>,
 }
 
 /// One frame's worth of state.
@@ -4073,6 +4080,7 @@ pub(crate) fn farms_of(b: Block<'_>) -> Vec<FarmDump> {
     let mut out = Vec::new();
     let (mut who, mut o, mut valid) = (None, None, None);
     let (mut status, mut adds): (Vec<i64>, Vec<i64>) = (Vec::new(), Vec::new());
+    let mut heights: Vec<i64> = Vec::new();
     for (k, v) in b.fields() {
         match k {
             "who" => who = int(v),
@@ -4090,6 +4098,12 @@ pub(crate) fn farms_of(b: Block<'_>) -> Vec<FarmDump> {
                 );
                 adds.push(n as i64);
             }
+            "terrain_height[scan][scan2]" => {
+                // A `find_data_z` answer: an integer the float holds exactly.
+                let h: f64 = v.trim().parse().unwrap_or(0.0);
+                assert!(h.fract() == 0.0, "a farm's corner height is not whole: {v}");
+                heights.push(h as i64);
+            }
             "farm_type" => {
                 if let (Some(w), Some(oo)) = (who, o) {
                     out.push(FarmDump {
@@ -4099,6 +4113,7 @@ pub(crate) fn farms_of(b: Block<'_>) -> Vec<FarmDump> {
                         farm_type: int(v).unwrap_or(0),
                         status: std::mem::take(&mut status),
                         adds: std::mem::take(&mut adds),
+                        heights: std::mem::take(&mut heights),
                     });
                 }
                 // Each record carries its own pair; a `farm_type` with no
@@ -4108,6 +4123,7 @@ pub(crate) fn farms_of(b: Block<'_>) -> Vec<FarmDump> {
                 valid = None;
                 status.clear();
                 adds.clear();
+                heights.clear();
             }
             _ => {}
         }

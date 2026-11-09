@@ -146,6 +146,26 @@ pub struct BuildingScene {
     /// writes to every building of the player.
     pub tribe: usize,
     pub age: i32,
+    /// A farm's record (`BuildData +0x78 >= 0`), which
+    /// `FarmsOut::draw@008d75f0` draws as a wheat field; `None` for every
+    /// other building (item 4048).
+    pub field: Option<FieldScene>,
+}
+
+/// A farm's `FarmStruct`, as `FarmsOut::draw@008d75f0` reads it
+/// (`docs/RENDERER.md` §3.5; item 4048).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct FieldScene {
+    /// The footprint of its type, `BuildTypeData +0x234` and `+0x238`,
+    /// which `FarmsOut::draw` snaps the field's corner by.
+    pub x_size: i32,
+    pub y_size: i32,
+    /// `farm_type`: [`crate::cities::farms::ANIMAL_FARM`] is the pasture,
+    /// which the field pass skips.
+    pub farm_type: u8,
+    /// `terrain_height[col][row]`, `heights[col * 5 + row]`
+    /// ([`crate::cities::farms::Farm::heights`]).
+    pub heights: [i32; 25],
 }
 
 /// One projectile in flight.
@@ -290,6 +310,15 @@ impl Sim {
                 construct_time: self.construct_time_of(i),
                 tribe: self.tech.get(b.founder as usize).map_or(0, |p| p.tribe),
                 age: self.tech.get(b.owner as usize).map_or(0, |p| p.ages),
+                // A record in the list — `farm.valid` is `Farms::add`'s,
+                // and a farm the harness stood up from a dump joins the
+                // list without it.
+                field: self.cities.farm_order.contains(&i).then(|| FieldScene {
+                    x_size: b.ty.map_or(0, |t| self.tables.build_types[t].x_size),
+                    y_size: b.ty.map_or(0, |t| self.tables.build_types[t].y_size),
+                    farm_type: b.farm.farm_type,
+                    heights: b.farm.heights,
+                }),
             })
             .collect();
         let projectiles = self

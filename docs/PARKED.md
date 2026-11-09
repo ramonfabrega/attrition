@@ -15837,7 +15837,8 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 4037, 2026-11-09 — the farm's art
 
-- **4037a. The farm's wheat field in the draw list** (`docs/RENDERER.md` §3.5, §5.4). The farm decodes since item
+- ~~**4037a. The farm's wheat field in the draw list**~~ — landed by item 4048 (`docs/RENDERER.md` §3.5: 402 of 402
+  farm records in register, K 59 of 59). (`docs/RENDERER.md` §3.5, §5.4). The farm decodes since item
   4037 (21 of 21), and it is out of §5.4's in-register set. The reason is that `WallOut::draw@00641930` skips a
   finished farm, while `FarmsOut::draw@008d75f0` draws every one as a field: it snaps the corner off
   `div_3_table` of `x ^ 0x63637` and the type's footprint (`BuildTypeData +0x234`, `+0x238`), and takes each
@@ -15847,13 +15848,22 @@ words and edits nothing here; a refill lands when two remain.
   `+0x17c`), with the door carrying the farm's heights, would put the type in register. It names K +1 (58 →
   59 of 59).
 
-## Parked by the next landing, slot DS — reserved
+## Parked by item 4048, 2026-11-09 — the farm's wheat field
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4048a. The client does not build the wheat field's mesh** (`docs/RENDERER.md` §3.5). The draw list carries
+  `Pose::Field` at the field's corner, and `client::world` skips it. `FarmsOut::draw@008d75f0` builds 4×4 stalk
+  boxes (`wheat_box_verts`, `_faces`, `_texs`, their `_rows`/`_cols` into the 25 heights) coloured by the `<FARM>`
+  stalk colours between its two heights, on the tileset's wheat image (`render::tga` reads it). Names no K: K is 59 of
+  59. It is the first item of the textured scene (4038's), not a counter's.
+- **4048b. A start dump with no farm list takes the first sibling's `farm_type`s** (`rondata::diff::setup`,
+  `borrow_from_siblings`). run10's first sibling with a list is run3, the same map from another start. Item 4048
+  borrows the heights by the farm building's position (so run10 takes run12's), and leaves the `farm_type` borrow as
+  it was: the types agreed on every frame run12 and run13 print, so nothing parts, but the source is the wrong game.
+  Names no score until a lobby's pasture differs between two starts of one map.
+- **4048c. `Farms::add`'s own height sample is not separated by a capture** (`docs/RENDERER.md` §3.5, not
+  established). With it disabled, the lobby's 402 farm records stay whole: every farm placed during the game is
+  resampled by `Farms::recalc_heights` before any logged frame. A `DUMP_ALL` frame that holds a farm placed with no
+  later building of its owner within eight tiles would separate it.
 
 ## Parked by the next landing, slot DT — reserved
 

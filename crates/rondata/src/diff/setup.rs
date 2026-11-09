@@ -1094,6 +1094,12 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 continue;
             };
             sim.buildings[b].farm.farm_type = u8::try_from(f.farm_type).unwrap_or(0);
+            // The 25 corner heights as the dump prints them: a starting
+            // farm is stood up without `Farms::add`, so they are the
+            // dump's (item 4048). A list short of 25 leaves them zero.
+            if let Ok(h) = <[i64; 25]>::try_from(f.heights.as_slice()) {
+                sim.buildings[b].farm.heights = h.map(|v| v as i32);
+            }
             if sim.buildings[b].farm.farm_type == sim::cities::farms::ANIMAL_FARM {
                 // The five's species and their two offsets, from the run's
                 // own trace where it reached the setup — the harness cannot
@@ -2223,6 +2229,28 @@ pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Ini
         && let Some(s) = siblings.iter().find(|s| !s.farms.is_empty())
     {
         init.farms = s.farms.clone();
+        // The 25 corner heights are the ground under the farm, so a farm
+        // takes them only from a sibling whose own building of that `who`
+        // and `o` stands where ours does, or not at all (item 4048): run10's
+        // first sibling with a list is run3, the same map from another
+        // start, whose farms stand elsewhere — run12, its own game, prints
+        // the heights of the farms run10 holds.
+        let at = |i: &Initial<'_>, who: i64, o: i64| {
+            i.builds
+                .iter()
+                .find(|b| b.who == who && b.o == o)
+                .map(|b| (b.pos.x, b.pos.y))
+        };
+        let own: Vec<Option<(i64, i64)>> =
+            init.farms.iter().map(|f| at(init, f.who, f.o)).collect();
+        for (f, here) in init.farms.iter_mut().zip(own) {
+            f.heights = siblings
+                .iter()
+                .filter(|s| here.is_some() && at(s, f.who, f.o) == here)
+                .find_map(|s| s.farms.iter().find(|g| g.who == f.who && g.o == f.o))
+                .map(|g| g.heights.clone())
+                .unwrap_or_default();
+        }
     }
     // The per-frame words are only the same run's if the setup stream is:
     // a sibling's count from the trace's last word, so its own trace must
