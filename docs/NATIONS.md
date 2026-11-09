@@ -307,8 +307,8 @@ left out; a constant with no reader in the export is dead there too.
 | `KOREAN_TEMPLE_UPGRADES` | 2 | Leader::gain_tech, LeaderData::has_preq, Setup::build_civ_specific | modelled at tech.rs | `korean_temple_upgrades` |
 | `KOREAN_TEMPLE_TAX_UPGRADES` | 0 | Leader::gain_tech | loaded at load.rs | `korean_temple_tax_upgrades` |
 | `KOREAN_MILITIA_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `korean_militia_upgrades` |
-| `KOREAN_BUILD_UNDER_FIRE` | 1 | Object::do_damage, Unit::do_build, Unit::do_repair | modelled at orders.rs | `korean_build_under_fire` |
-| `KOREAN_REPAIR` | 50 | Unit::do_repair | modelled at orders.rs | `korean_repair` |
+| `KOREAN_BUILD_UNDER_FIRE` | 1 | Object::do_damage, Unit::do_build, Unit::do_repair | modelled at jobs.rs | `korean_build_under_fire` |
+| `KOREAN_REPAIR` | 50 | Unit::do_repair | modelled at jobs.rs | `korean_repair` |
 | `KOREAN_TOWER_COST` | 33 | TypeData::get_cost | modelled at cost.rs | `korean_tower_cost` |
 | `MONGOL_STABLE_COST` | 10 | TypeData::get_cost | not carried | `mongol_stable_cost` |
 | `MONGOL_STABLE_SPEED` | 20 | ObjectData::train_time | modelled at queue.rs | `mongol_stable_speed` |
@@ -393,7 +393,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `AnimalData::is_seen@005d8160` | 4 9 | carried at animal_data_is_seen.rs | `005d8160` |
 | `Unit::process_healing@005e0670` | 10 18 | carried at heal.rs | `005e0670` |
 | `Unit::process_cloak@005e1c20` | 18 | carried at combat.rs | `005e1c20` |
-| `Unit::do_build@005eebf0` | 16 | carried at orders.rs | `005eebf0` |
+| `Unit::do_build@005eebf0` | 16 | carried at jobs.rs | `005eebf0` |
 | `Unit::set_new_location@005f8d20` | 18 | carried at collide.rs | `005f8d20` |
 | `Unit::explore_goody@005f9780` | 9 | carried at goody.rs | `005f9780` |
 | `Unit::update_speed@006055c0` | 0 3 10 | carried at rares.rs | `006055c0` |
