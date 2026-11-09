@@ -16,7 +16,7 @@ simulation's only contact is `World::compute_reg_territory@006b0bb0` (lines ~287
 `save_last_who`, which write only into the `Borders` singleton and the region's `border_id` byte
 (`Region+0x30`) — a handle into the render list. Territory ownership itself (`WorldData` tile `+0xf`
 `who`, `+0x10`) is written by `compute_reg_territory` after the call, and is ported in
-`crates/sim/src/territory.rs`. `TerrainBorder` is the terrain-type blend edge renderer (no
+`crates/sim/src/territory/mod.rs`. `TerrainBorder` is the terrain-type blend edge renderer (no
 national meaning). `Wall` is the wall building class (`WallData` its data side), which is simulation.
 
 ## Part 1 — the drawn border (`borders` stem, 37 rows)
@@ -112,7 +112,7 @@ resulting tile-mask residue as bit `0x4` alone.
 **Counts (60):** `ui` 42 · `twin` 9 · `twin-differs` 4 · `dead` 3 · `editor` 1 · `absorbed` 1 ·
 `unmodelled` 0. Of the 37 `borders` rows, 36 are the drawn border line and one its params editor;
 none computes territory. Territory itself is `World::compute_reg_territory@006b0bb0`, ported in
-`crates/sim/src/territory.rs`, which only *notifies* this family (`add_border_region`,
+`crates/sim/src/territory/mod.rs`, which only *notifies* this family (`add_border_region`,
 `remove_border_region`, `save_last_who`).
 
 **Proposed census classes** (Ramon's to accept):

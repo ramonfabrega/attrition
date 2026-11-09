@@ -17935,7 +17935,7 @@ claim is *diff-backed* unless marked.
    guard with the move, idled the boat (`Unit::do_idle+0x7d`, the 2995 word's extra draw) and never landed.
 
 **Built.** `Roles::general_upgrade_preq` (loaded from rows 89–91, `rondata::load`) and `Sim::general_upgrade_level`
-(`crates/sim/src/supply.rs`); the `GENERAL_UPGRADE` constant is gone from `cast.rs`, and `hero_radius`, `cast_march`,
+(`crates/sim/src/territory/supply.rs`); the `GENERAL_UPGRADE` constant is gone from `cast.rs`, and `hero_radius`, `cast_march`,
 `cast_create_decoy`'s limit and a decoy's life read the leader's level. The hero terms of `Sim::type_speed`
 (`rares.rs`), `Sim::unit_hits` (`cast.rs`) and `Sim::unit_los` (`vision.rs`, with `Tuning::general_upgrade_los`,
 `GENERAL_UPGRADE_LOS` 2). `do_move`'s pack arm asks `Sim::near_marching_hero`, and its unreachable-goal arm kills once
@@ -28140,7 +28140,7 @@ not reached is zeroed again on every frame until its first cell is written. The 
 undone on 5575 itself for every region still waiting. This crate cleared `bordering` this way already
 (`advance_border_pass`) but zeroed the rares once, at the fix.
 
-**The build**: `Sim::zero_region_rares` (`crates/sim/src/border_pass.rs`), called beside `clear_bordering` for
+**The build**: `Sim::zero_region_rares` (`crates/sim/src/territory/border_pass.rs`), called beside `clear_bordering` for
 a region at index 0. `check_borders`' zero-once stays, since it is the pass's first frame. The block's
 `+0x145e` short has no field here. Test: `a_census_inside_the_pass_is_undone_for_the_regions_still_waiting`.
 Mutations through `tools/mutate.py`, removing the call: **held** on `egyptian_classical_pair_first_parting`
