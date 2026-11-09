@@ -2466,7 +2466,7 @@ mod tests {
                 "{} nations: CoordInfo 0x20 {} cells, gated (0x84) {}",
                 run.1,
                 count(coord::COASTAL),
-                count(coord::GATE)
+                count(coord::GATE_MASK)
             );
             let parts = half.parts().expect("empty half-land lists");
             for g in &runs[&run] {
@@ -4073,15 +4073,15 @@ mod tests {
             let (mut grid, d) = great_lakes_at_7945(root, g0, *run, range, &makes);
             let coord = coord_flags(&grid);
             let gated: Vec<usize> = (0..coord.len())
-                .filter(|&i| coord[i] & coord::GATE != 0)
+                .filter(|&i| coord[i] & coord::GATE_MASK != 0)
                 .collect();
             let count = |bit: u16| coord.iter().filter(|&&f| f & bit != 0).count();
             eprintln!(
                 "{} nations: CoordInfo NONE {}, 0x4 {}, 0x20 {}, OCEAN {}, shallow (0x80) {}; \
                  gated (0x84) {}",
                 run.1,
-                count(coord::NONE),
-                count(coord::HALF),
+                count(coord::NONE_CELL),
+                count(coord::GATE_HALF),
                 count(coord::COASTAL),
                 count(coord::OCEAN),
                 count(coord::SHALLOW),
@@ -4139,7 +4139,7 @@ mod tests {
                         .collect();
                     let outside: Vec<(i32, i32)> = half
                         .iter()
-                        .filter(|&&i| coord[i] & coord::GATE == 0)
+                        .filter(|&&i| coord[i] & coord::GATE_MASK == 0)
                         .map(|&i| (i as i32 % grid.xs, i as i32 / grid.xs))
                         .collect();
                     assert!(
@@ -4221,7 +4221,7 @@ mod tests {
             sim::map_heights::adjust_for_mountains(&grid, &mut z, &groups.templates, &meshes);
             let gate = coord_flags(&grid);
             let ours_half: Vec<usize> = (0..grid.cells.len())
-                .filter(|&i| gate[i] & coord::GATE != 0 && (1..16).contains(&water[i]))
+                .filter(|&i| gate[i] & coord::GATE_MASK != 0 && (1..16).contains(&water[i]))
                 .collect();
             for name in names {
                 let g = &all.iter().find(|(n, _)| n == name).expect("a file").1;
@@ -5599,14 +5599,14 @@ mod tests {
             let (mut grid, d, _) = east_indies_at_7945(root, gs[0], *run, range, &makes);
             let coord = coord_flags(&grid);
             let gated: Vec<usize> = (0..coord.len())
-                .filter(|&i| coord[i] & coord::GATE != 0)
+                .filter(|&i| coord[i] & coord::GATE_MASK != 0)
                 .collect();
             let count = |bit: u16| coord.iter().filter(|&&f| f & bit != 0).count();
             eprintln!(
                 "{run:?}: CoordInfo NONE {}, 0x4 {}, 0x20 {}, OCEAN {}, shallow (0x80) {}; \
                  gated (0x84) {}",
-                count(coord::NONE),
-                count(coord::HALF),
+                count(coord::NONE_CELL),
+                count(coord::GATE_HALF),
                 count(coord::COASTAL),
                 count(coord::OCEAN),
                 count(coord::SHALLOW),
@@ -5694,7 +5694,7 @@ mod tests {
                         .collect();
                     let outside: Vec<(i32, i32)> = half
                         .iter()
-                        .filter(|&&i| coord[i] & coord::GATE == 0)
+                        .filter(|&&i| coord[i] & coord::GATE_MASK == 0)
                         .map(|&i| (i as i32 % grid.xs, i as i32 / grid.xs))
                         .collect();
                     assert!(
@@ -5770,11 +5770,11 @@ mod tests {
             sim::map_heights::adjust_for_mountains(&grid, &mut z, &groups.templates, &meshes);
             let gate = coord_flags(&grid);
             let ours_half: Vec<usize> = (0..grid.cells.len())
-                .filter(|&i| gate[i] & coord::GATE != 0 && (1..16).contains(&water[i]))
+                .filter(|&i| gate[i] & coord::GATE_MASK != 0 && (1..16).contains(&water[i]))
                 .collect();
             let tally = |pred: &dyn Fn(u32) -> bool| {
                 (0..grid.cells.len())
-                    .filter(|&i| gate[i] & coord::GATE != 0 && pred(water[i]))
+                    .filter(|&i| gate[i] & coord::GATE_MASK != 0 && pred(water[i]))
                     .count()
             };
             eprintln!(
@@ -7123,9 +7123,9 @@ mod tests {
                  {}, 0x4 {}, 0x80 {}, gated (0x84) {}",
                 grid.cells.iter().filter(|c| c.flags & 0x40 != 0).count(),
                 count(coord::COASTAL),
-                count(coord::HALF),
+                count(coord::GATE_HALF),
                 count(coord::SHALLOW),
-                count(coord::GATE)
+                count(coord::GATE_MASK)
             );
             let parts = half.parts().expect("empty half-land lists");
             let part4 = adler_rewrite(

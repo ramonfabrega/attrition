@@ -314,3 +314,75 @@ pub mod domain {
     /// An air type.
     pub const DOMAIN_AIR: i32 = 2;
 }
+
+/// The bits of `WData.flags`, as `WData::log_data@006af7e0` spells them —
+/// each word below is printed exactly when its bit is set, solved from
+/// run20's 3,600 cells (`docs/ORACLE.md`, "The map is a dump too";
+/// 2026-08-25). `0x1`, `0x400`, `0x800`, `0x1000` and `0x2000` have no word
+/// in that dump: the writer tests `0x1000` and `0x2000` and run20 never
+/// sets them; `0x400` has no name here. `0x800` is **`OIL`**, settled by
+/// `WorldData::is_oil_at@00472af0`, which is that bit and nothing else.
+pub mod cell {
+    /// The bit `Build::close@00628980` sets on the cell under a building's
+    /// position when it closes for any reason but 5, a city's capture
+    /// (`:186`, `or $2`): a building lost — destroyed, disbanded, or the old
+    /// half of a conversion. `Leader::produce_building@006e1400` is its
+    /// only reader in the simulation, and its only clearer: the oil arm
+    /// skips a flagged patch for that pass, the spiral a flagged cell with
+    /// an enemy object within `0xf00` (`docs/AI.md` §168). The PDB names no
+    /// `WData` flag.
+    pub const CLOSED: u16 = 0x2;
+    /// `COAST` — a land cell of the shore; the muster search's class 3.
+    pub const COAST: u16 = 0x4;
+    /// `ROCK` — `WorldData::is_rocks@006b4380`; the land class 6, or 7
+    /// with [`OIL`].
+    pub const ROCK: u16 = 0x8;
+    /// `MOUNTAIN` — with the unnamed `0x40`, the muster search's class 5.
+    pub const MOUNTAIN: u16 = 0x10;
+    /// `FOREST` — the muster search's class 4.
+    pub const FOREST: u16 = 0x20;
+    /// `ROAD`.
+    pub const ROAD: u16 = 0x80;
+    /// `HALFLAND` — a coastal cell whose `region2` is the sea region; what
+    /// `WorldData::is_ocean` tests first.
+    pub const HALFLAND: u16 = 0x100;
+    /// `NEARBLOCK`.
+    pub const NEARBLOCK: u16 = 0x200;
+    /// `WorldData::is_oil_at@00472af0` is `flags & 0x800`, and nothing
+    /// else — so the bit the map dump prints no word for is oil. It is
+    /// what turns a rock cell into land class 7 and a water cell into an
+    /// offshore oil patch ([`crate::world::World::land_class`]).
+    pub const OIL: u16 = 0x800;
+    /// `BUILDING` — a cell holding a building's centre.
+    pub const BUILDING: u16 = 0x4000;
+    /// `GOODY`.
+    pub const GOODY: u16 = 0x8000;
+    /// A cliff's footprint, `Cliffs::add_cliff@008a6690`'s mark — the
+    /// bit the map dump prints no word for, which with [`MOUNTAIN`] is the
+    /// muster search's class 5.
+    pub const CLIFF: u16 = 0x40;
+}
+
+/// `CoordInfo.flags` — the bits `crate::terrain_init::coord_flags` sets, and
+/// the vertex codes `TerrainOut::get_vert_codes@0086bf70` ORs
+/// (`crate::map_heights::code`).
+pub mod coord {
+    /// A `NONE` cell, or one whose world flags carry 0x4.
+    pub const NONE_CELL: u16 = 0x8000;
+    /// `NONE`, HALFLAND (0x100) or 0x400: the half-land gate's first bit.
+    pub const GATE_HALF: u16 = 0x4;
+    /// `BASELAND` with a `NONE` or 0x4 cell among its eight neighbours.
+    pub const COASTAL: u16 = 0x20;
+    /// `OCEAN`.
+    pub const OCEAN: u16 = 0x1000;
+    /// `OCEAN` with a `NONE` or 0x4 cell within the 5×5 square: the gate's
+    /// second bit. `check_and_set_halfland`'s tail sets it too.
+    pub const SHALLOW: u16 = 0x80;
+    /// What `check_and_set_halfland_wcoord` tests: `flags & 0x84`.
+    pub const GATE_MASK: u16 = GATE_HALF | SHALLOW;
+    /// Cleared by `convert_beach_to_sandy` on a cell it converts.
+    pub const BEACH: u16 = 0x2000;
+    /// A mountain vertex, which `adjust_for_mountains` marks: 100 (the
+    /// `CoordInfo` code `0x2`; not `cell::MOUNTAIN`, the `WData` bit).
+    pub const MOUNTAIN_VERT: u16 = 0x2;
+}

@@ -190,7 +190,7 @@ fn reveal_fog_marks_the_rare_it_meets_seen() {
 #[test]
 fn an_oil_patch_is_not_in_the_chain_to_be_seen() {
     let (mut s, u) = sea_sim();
-    assert_eq!(good_under(&mut s, u, crate::world::OIL), 0);
+    assert_eq!(good_under(&mut s, u, crate::world::OIL_GOOD), 0);
     let (fx, fy) = fog_of_unit(&s, u);
     assert_eq!(Cell::new(fx >> 1, fy >> 1), s.units[u].pos.cell());
     s.reveal_fog(fx, fy, 1);

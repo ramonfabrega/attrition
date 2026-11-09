@@ -41,24 +41,9 @@ pub fn sea_map_after_make(world: i32, map: i32) -> i32 {
     if map >= 0 { map } else { world }
 }
 
-/// `CoordInfo.flags` bits [`coord_flags`] sets.
-pub mod coord {
-    /// A `NONE` cell, or one whose world flags carry 0x4.
-    pub const NONE: u16 = 0x8000;
-    /// `NONE`, HALFLAND (0x100) or 0x400: the half-land gate's first bit.
-    pub const HALF: u16 = 0x4;
-    /// `BASELAND` with a `NONE` or 0x4 cell among its eight neighbours.
-    pub const COASTAL: u16 = 0x20;
-    /// `OCEAN`.
-    pub const OCEAN: u16 = 0x1000;
-    /// `OCEAN` with a `NONE` or 0x4 cell within the 5×5 square: the gate's
-    /// second bit. [`check_and_set_halfland`]'s tail sets it too.
-    pub const SHALLOW: u16 = 0x80;
-    /// What `check_and_set_halfland_wcoord` tests: `flags & 0x84`.
-    pub const GATE: u16 = HALF | SHALLOW;
-    /// Cleared by `convert_beach_to_sandy` on a cell it converts.
-    pub const BEACH: u16 = 0x2000;
-}
+/// `CoordInfo.flags` bits [`coord_flags`] sets, defined in
+/// [`crate::ids::coord`].
+pub use crate::ids::coord;
 
 /// `move_x/move_y[0..49]` (0xadcaf0, 0xadc400, read off the PE): the
 /// centre, its eight neighbours in `ai_place`'s order, then the 5×5 and
@@ -153,9 +138,9 @@ pub fn coord_flags(g: &MapGrid) -> Vec<u16> {
             let flags = g.cells[i].flags;
             let mut f = 0u16;
             if land == 3 {
-                f |= coord::NONE | coord::HALF;
+                f |= coord::NONE_CELL | coord::GATE_HALF;
             } else if flags & 0x100 != 0 || flags & 0x400 != 0 {
-                f |= coord::HALF;
+                f |= coord::GATE_HALF;
             }
             let near = |ring: &[(i32, i32)]| {
                 ring.iter()
@@ -183,7 +168,7 @@ pub fn coord_flags(g: &MapGrid) -> Vec<u16> {
 pub fn halfland_entered(g: &MapGrid, coord: &[u16]) -> Vec<(i32, i32)> {
     (0..g.ys)
         .flat_map(|y| (0..g.xs).map(move |x| (x, y)))
-        .filter(|&(x, y)| coord[at(g, x, y)] & coord::GATE != 0)
+        .filter(|&(x, y)| coord[at(g, x, y)] & coord::GATE_MASK != 0)
         .collect()
 }
 

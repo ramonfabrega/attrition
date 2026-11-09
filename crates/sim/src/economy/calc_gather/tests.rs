@@ -238,7 +238,7 @@ fn oil_is_not_a_good_calc_gather_can_find() {
     put_good(
         &mut s,
         Pos::new(one.x * UNITS_PER_TILE + 96, one.y * UNITS_PER_TILE + 96),
-        crate::world::OIL,
+        crate::world::OIL_GOOD,
     );
     assert!(!s.calc_gather(u));
     assert_eq!(s.units[u].rare, -1);

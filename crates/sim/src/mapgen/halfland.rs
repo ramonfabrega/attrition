@@ -297,7 +297,7 @@ impl<'a> Pass<'a> {
         if u & 0x1000 != 0 || u & 0x40 != 0 || u & 0x8000 != 0 || self.find_good_at(x, y) >= 0 {
             return false;
         }
-        c.blocked == 0 && self.coord[i] & coord::HALF == 0
+        c.blocked == 0 && self.coord[i] & coord::GATE_HALF == 0
     }
 
     /// `World::set_oil_at@006b2a10`: any live oil good on the cell is
@@ -385,7 +385,7 @@ impl<'a> Pass<'a> {
             if u & (0x100 | 0x10 | 0x28 | 0x800 | 0x1000 | 0x40 | 0x8000) != 0
                 || self.find_good_at(nx, ny) >= 0
                 || self.g.cells[n].blocked != 0
-                || self.coord[n] & coord::HALF != 0
+                || self.coord[n] & coord::GATE_HALF != 0
             {
                 continue;
             }
@@ -438,7 +438,7 @@ impl<'a> Pass<'a> {
                 if u & (0x100 | 0x10 | 0x28 | 0x800 | 0x1000 | 0x40 | 0x8000) != 0
                     || self.find_good_at(nx, ny) >= 0
                     || self.g.cells[n].blocked != 0
-                    || self.coord[n] & coord::HALF != 0
+                    || self.coord[n] & coord::GATE_HALF != 0
                     || self.has_south_forest(nx, ny)
                 {
                     continue;
@@ -570,7 +570,7 @@ impl<'a> Pass<'a> {
     /// **`Terrain::check_and_set_halfland_wcoord@0084dec0`**.
     pub fn wcoord(&mut self, x: i32, y: i32) {
         let i = self.at(x, y);
-        if self.coord[i] & coord::GATE == 0 {
+        if self.coord[i] & coord::GATE_MASK == 0 {
             return;
         }
         self.clear_halfland_wcoord(x, y);
@@ -622,7 +622,7 @@ impl<'a> Pass<'a> {
         }
         self.set_land(i, land, sub);
         self.g.cells[i].flags &= 0xffc3;
-        self.coord[i] &= !coord::HALF;
+        self.coord[i] &= !coord::GATE_HALF;
         for &(dx, dy) in &ORTHOG[1..5] {
             let (nx, ny) = (x + dx, y + dy);
             if !self.inb(nx, ny) {
@@ -631,7 +631,7 @@ impl<'a> Pass<'a> {
             let n = self.at(nx, ny);
             if self.g.cells[n].land != 0 && self.g.cells[n].flags & 0x4 == 0 {
                 self.g.cells[n].flags |= 0x4;
-                self.coord[n] |= coord::HALF;
+                self.coord[n] |= coord::GATE_HALF;
                 self.queue.push(n as i32);
                 break;
             }

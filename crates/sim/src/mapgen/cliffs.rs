@@ -194,7 +194,7 @@ impl Init<'_> {
                         c.flags & 0x10 != 0,
                         dry,
                         c.flags & 0x1000 != 0,
-                        self.coord[ci] & coord::HALF != 0,
+                        self.coord[ci] & coord::GATE_HALF != 0,
                     ];
                     for (n, hit) in self.out.inert.box_skips.iter_mut().zip(skips) {
                         *n += usize::from(hit);
@@ -202,7 +202,7 @@ impl Init<'_> {
                     if c.flags & 0x10 == 0
                         && !dry
                         && c.flags & 0x1000 == 0
-                        && self.coord[ci] & coord::HALF == 0
+                        && self.coord[ci] & coord::GATE_HALF == 0
                     {
                         let v = &mut self.z[(vy * w + vx) as usize];
                         *v = heights[k].addss(*v);

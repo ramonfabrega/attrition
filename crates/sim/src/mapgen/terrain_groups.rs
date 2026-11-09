@@ -48,12 +48,12 @@ pub mod site {
     pub const LADDER: u32 = 0x006a_70d0 + 0x41e;
     pub const CLUMPS: u32 = 0x006a_70d0 + 0x498;
     pub const SIZE: u32 = 0x006a_70d0 + 0x6de;
-    pub const OIL: u32 = 0x006a_70d0 + 0x771;
+    pub const OIL_COUNT: u32 = 0x006a_70d0 + 0x771;
     pub const REGION_START: u32 = 0x006a_70d0 + 0x10ce;
     pub const MTN_SMALL: u32 = 0x0089_ca70 + 0x2d;
     pub const MTN_MED: u32 = 0x0089_ca70 + 0x71;
     pub const MTN_LARGE: u32 = 0x0089_ca70 + 0xc4;
-    pub const ORTHOG: u32 = 0x006a_2320 + 0x69;
+    pub const ORTHOG_DIR: u32 = 0x006a_2320 + 0x69;
     pub const CORNER: u32 = 0x006a_2320 + 0xeb;
     pub const PPG_RING: u32 = 0x006a_4190 + 0x14e;
     pub const PPG_MIRROR: u32 = 0x006a_4190 + 0x99f;
@@ -65,7 +65,7 @@ pub mod site {
     pub const BUSH_S_SIZE: u32 = 0x006a_1540 + 0x1bd;
     pub const BUSH_E: u32 = 0x006a_1540 + 0x319;
     pub const BUSH_E_SIZE: u32 = 0x006a_1540 + 0x33c;
-    pub const ROCK: u32 = 0x006a_1540 + 0x5d7;
+    pub const ROCK_CLUMP: u32 = 0x006a_1540 + 0x5d7;
     pub const ROCK_SIZE: u32 = 0x006a_1540 + 0x602;
     pub const FRINGE_A: u32 = 0x006a_1cc0 + 0xf4;
     pub const FRINGE_B: u32 = 0x006a_1cc0 + 0x213;
@@ -79,19 +79,12 @@ pub mod site {
     pub const NUB_TRANS_X: u32 = 0x006a_1f30 + 0xa0;
     pub const NUB_TRANS_Y: u32 = 0x006a_1f30 + 0x2a5;
     /// `Cliffs::position_cliff@008a8bc0`'s template pick.
-    pub const CLIFF: u32 = 0x008a_8bc0 + 0x16f;
+    pub const CLIFF_TEMPLATE: u32 = 0x008a_8bc0 + 0x16f;
 }
 
 /// `WData::flags` bits this phase reads and writes.
 pub mod flag {
-    pub const COAST: u16 = 0x4;
-    pub const ROCK: u16 = 0x8;
-    /// A cliff's footprint, `Cliffs::add_cliff@008a6690`'s mark.
-    pub const CLIFF: u16 = 0x40;
-    pub const MOUNTAIN: u16 = 0x10;
-    pub const FOREST: u16 = 0x20;
-    pub const ROAD: u16 = 0x80;
-    pub const OIL: u16 = 0x800;
+    pub use crate::ids::cell::{CLIFF, COAST, FOREST, MOUNTAIN, OIL, ROAD, ROCK};
 }
 
 /// The orthogonal and diagonal direction lists as `TerrainGroup::TerrainGroup`
@@ -696,7 +689,7 @@ impl Pass<'_> {
             return false;
         }
         let k = if list.len() >= 2 {
-            (self.d.get(site::CLIFF) % list.len() as i32) as usize
+            (self.d.get(site::CLIFF_TEMPLATE) % list.len() as i32) as usize
         } else {
             0
         };
@@ -774,7 +767,7 @@ impl Pass<'_> {
     /// **`TerrainGroup::randomize_orthogs@006a2320`**: the orthogonal and
     /// diagonal starts, `% 4` each, orthogonal first.
     fn randomize_orthogs(&mut self) -> (usize, usize) {
-        let o = (self.d.get(site::ORTHOG) % 4) as usize;
+        let o = (self.d.get(site::ORTHOG_DIR) % 4) as usize;
         let c = (self.d.get(site::CORNER) % 4) as usize;
         (o, c)
     }
@@ -1508,7 +1501,7 @@ pub fn place_all(grid: &mut MapGrid, d: &mut Draws, inputs: &Inputs) {
             sizes.push(s);
             oils.push(if gr.kind == 6 {
                 if oil_lo < oil_hi {
-                    oil_lo + pass.d.get(site::OIL) % (oil_hi - oil_lo + 1)
+                    oil_lo + pass.d.get(site::OIL_COUNT) % (oil_hi - oil_lo + 1)
                 } else {
                     oil_lo
                 }
@@ -1856,7 +1849,7 @@ fn add_doobers(p: &mut Pass<'_>, ts: &TilesetGroups) {
                 if p.flags(x + MOVE_X[k], y + MOVE_Y[k]) & flag::MOUNTAIN == 0 {
                     continue;
                 }
-                if p.d.get(site::ROCK) % 100 < ts.mnt_rock_clump_prob {
+                if p.d.get(site::ROCK_CLUMP) % 100 < ts.mnt_rock_clump_prob {
                     p.d.get(site::ROCK_SIZE);
                 }
                 break;

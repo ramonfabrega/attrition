@@ -140,7 +140,7 @@ fn a_dry_cell_spreads_0x4_to_its_first_wet_neighbour() {
     let mut p = Pass::new(&mut g, &mut coord, &z, COMBO);
     p.sweeps().expect("nothing unported");
     assert_eq!(g.cells[0].flags, 0);
-    assert_eq!(coord[0] & coord::HALF, 0);
+    assert_eq!(coord[0] & coord::GATE_HALF, 0);
     // Both lake cells are shallow, so gated: each dry visit makes it
     // `BASELAND` at 3 and hands 0x4 on. `verify_land` then grades the
     // subs one step at a time from (1, 0)'s 3 against (0, 0)'s 0.
@@ -243,7 +243,7 @@ fn centre_wet() -> (MapGrid, Vec<u16>, Vec<Single>) {
         c.region = 1;
     }
     let mut coord = vec![0; 25];
-    coord[12] = coord::HALF;
+    coord[12] = coord::GATE_HALF;
     let mut z = flat(5, 5, DRY);
     for v in 8..=9 {
         for u in 8..=9 {
@@ -284,7 +284,7 @@ fn the_dry_arm_spreads_0x4_once() {
     let mut g = MapGrid::new(3, 1);
     g.cells[0].land = 2;
     g.cells[2].land = 2;
-    let mut coord = vec![0, coord::HALF, 0];
+    let mut coord = vec![0, coord::GATE_HALF, 0];
     let z = flat(3, 1, DRY);
     let mut p = Pass::new(&mut g, &mut coord, &z, COMBO);
     p.wcoord(1, 0);

@@ -15,7 +15,7 @@
 
 use crate::orders::{MoveKind, QueuePos};
 use crate::tech::TypeId;
-use crate::world::{Cell, Good, MOVE_289, OIL, Pos, UNITS_PER_CELL};
+use crate::world::{Cell, Good, MOVE_289, OIL_GOOD, Pos, UNITS_PER_CELL};
 use crate::{Player, Sim};
 
 /// `TypeIndex::FISHERMEN` — the lineage `Unit::think@005f6e40:1421` tests
@@ -125,14 +125,14 @@ impl Sim {
     /// in a good; here the terminator is a field, because
     /// `Objects::init_good` is the only thing that ever writes one
     /// ([`crate::world::World::good_at`]). Then: the good must be live, it
-    /// must not be `OIL`, and — since `who` is a real player here —
+    /// must not be `OIL_GOOD`, and — since `who` is a real player here —
     /// `LeaderData::type_avail(t, 1)` must be non-zero.
     ///
     /// Answers the good's **`TypeIndex`**, as the original does; every
     /// caller here only asks whether there is one.
     pub(crate) fn find_good_at(&self, c: Cell, who: Player) -> Option<TypeId> {
         let (_, g): (usize, Good) = self.world.good_at(c)?;
-        if !g.alive || g.ty == OIL {
+        if !g.alive || g.ty == OIL_GOOD {
             return None;
         }
         (self.type_avail(who, g.ty) != crate::tech::NOT_AVAILABLE).then_some(g.ty)

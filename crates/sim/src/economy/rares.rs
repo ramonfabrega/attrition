@@ -446,7 +446,7 @@ impl Sim {
         let Some(gi) = self.first_live_good_at(c) else {
             return;
         };
-        if self.world.goods()[gi].ty == crate::world::OIL {
+        if self.world.goods()[gi].ty == crate::world::OIL_GOOD {
             self.add_oil_patch(who, gi);
             return;
         }
@@ -491,7 +491,7 @@ impl Sim {
         let mut rest = Vec::new();
         for gi in 0..self.world.goods().len() {
             let g = self.world.goods()[gi];
-            if !g.alive || g.ty != crate::world::OIL {
+            if !g.alive || g.ty != crate::world::OIL_GOOD {
                 continue;
             }
             let c = g.pos.cell();
@@ -835,7 +835,7 @@ impl RevealFogView for SimRevealFog<'_> {
         // The index form answers before `type_avail`; the non-`OIL` test is
         // the one [`Sim::find_good_at`] makes.
         match self.sim.world.good_at(crate::world::Cell::new(qx, qy)) {
-            Some((gi, g)) if g.ty != crate::world::OIL => gi as i32,
+            Some((gi, g)) if g.ty != crate::world::OIL_GOOD => gi as i32,
             _ => -1,
         }
     }
