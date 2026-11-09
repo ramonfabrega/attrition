@@ -173,7 +173,7 @@ function's first test is `leader_flags & 0x1000`, `& 0x800` and
 | | |
 |---|---|
 | document | ROADS.md §7.4, "**three predicates hold a corner back** — the cell is water by `is_ocean`'s own predicate …, a mountain or cliff tile stands in the corner's own 3×3 …, or the cell carries a good" |
-| code | `crates/sim/src/terrain.rs:128-130` (`fn terraform_for_building`) |
+| code | `crates/sim/src/world/terrain.rs:128-130` (`fn terraform_for_building`) |
 | document says | three refusals |
 | code does | four: `if d.land != 0 { continue; }` stands between the 3×3 test and the good test, so **any** non-zero land class — not only the shallows and the ocean — is left at its map-generator height |
 | difference shows | the height grid, e.g. `gamelog-run72-greatlakes-marketroad.txt`'s `FRAME 4803` block, on a building placed with a forest, rock or mountain **cell** inside its box. `run72_s_road_nodes_are_where_great_lakes_word_parts` pins all 921,600 tiles, so the code's fourth gate is diff-backed; it is the document that is short |

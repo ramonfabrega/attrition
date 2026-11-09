@@ -1,6 +1,6 @@
 # Adjudication: attrition and territory — Reading A vs Reading B
 
-A = `docs/ATTRITION.md` + `crates/sim/src/{attrition,territory,world}.rs` (+ `lib.rs` where it applies the result).
+A = `docs/ATTRITION.md` + `crates/sim/src/{attrition,territory,world/mod}.rs` (+ `lib.rs` where it applies the result).
 B = `~/.claude/jobs/3c382923/tmp/rederive-attrition.md`.
 
 Every verdict below was settled by re-reading the decompilation under
@@ -363,5 +363,5 @@ ignored. Struct-offset names come from `types.txt` (PDB-derived).
 - Document that wholesale recompute is a simplification of the original's
   budgeted incremental pass.
 
-**`crates/sim/src/world.rs`** — no change required; `vector_dist` and the
+**`crates/sim/src/world/mod.rs`** — no change required; `vector_dist` and the
 unit conversions are doubly confirmed.

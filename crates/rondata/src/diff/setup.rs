@@ -777,7 +777,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             // harness built every capture with an all-peace matrix while
             // every one of them opens at war, so `is_enemy` was false for
             // forty-six readers and `do_danger`'s enemy arm halved twice
-            // (`crates/sim/src/danger.rs`). The diagonal is the leader's
+            // (`crates/sim/src/world/danger.rs`). The diagonal is the leader's
             // own 2 and is skipped; a dump below `LEADERS=1` carries no
             // `diplos` at all and leaves the matrix alone.
             for (other, &d) in l.diplos.iter().enumerate().take(players) {

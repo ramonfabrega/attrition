@@ -149,7 +149,7 @@ refuses.
 
 ## Not established
 
-- **Who reads tile bit 0x8** (row `mark_forest`). `crates/sim/src/world.rs`'s `tile` module
+- **Who reads tile bit 0x8** (row `mark_forest`). `crates/sim/src/world/mod.rs`'s `tile` module
   names no such bit; a grep of the export for `& 8` on the tile array (`+0x138`) hit cell-flag
   reads (`+0x134`) only, in the files checked (`World::gather_at`,
   `PathFinder::calc_road_cost`, `BuildTypeData::blocked_tcoord`).

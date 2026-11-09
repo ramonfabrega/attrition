@@ -217,7 +217,7 @@ if ((local_8.value < 0) || (*(short *)(iVar5 + 4) == local_8.value)) {
 `local_8` is `WorldData::get_tregion` of the pass's own end (`:59`, `:84`,
 `:139`) and `*(short *)(iVar5 + 4)` is the cell's `WData::region`. The escape
 hatch is `local_8 < 0` — the *figure's* region absent — and there is no
-second one for the cell. `World::region_of` (`crates/sim/src/world.rs:1390`)
+second one for the cell. `World::region_of` (`crates/sim/src/world/mod.rs:1390`)
 returns `Option<u16>` and `None` is a real state for an in-bounds cell, so
 `is_none_or` is a widening of the gate, not a bounds guard (the bounds guard
 is `CollGrid::set`'s own `index`, `collide.rs:120`).

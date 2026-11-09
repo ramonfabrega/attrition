@@ -921,7 +921,7 @@ Four of the first reading's open items were **settled by the audit**
   heuristic nor a tie: it was **`WData.blocked` — a count of the cell's
   blocked tiles — that nothing in this crate was keeping**. §5's note on
   `tcost` has the mechanic and `World::set_blocked_at@006b4900`;
-  `crates/sim/src/world.rs` has the implementation and
+  `crates/sim/src/world/mod.rs` has the implementation and
   `Sim::mask_building` is its only caller so far.
 
   The reading that had been carried into this entry — that the original's
