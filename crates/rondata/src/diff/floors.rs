@@ -461,11 +461,17 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// `rng`, `frame`, `in_play`, `game_seed` and the one-field `tech`
 /// stayed. Every read was rewritten by path, so no statement moved. The
 /// per-player record was not built (§5 move 8, optional).
+///
+/// Item 4017: `sweep-lines` 17255 → 17286 (+31), a named rise. Deleting
+/// `lib.rs`'s `pub use` shim rewrote every old flat path in the sweeps to
+/// its full one (`crate::garrison_view` → `crate::groups::garrison_view`),
+/// and rustfmt wrapped the lines that grew. No sweep changed what it
+/// asserts.
 #[cfg(test)]
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 7),
     ("test-tails", 0),
-    ("sweep-lines", 17_255),
+    ("sweep-lines", 17_286),
     ("names", 15),
     ("fields", 21),
     ("largest", 5_437),
