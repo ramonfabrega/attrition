@@ -3867,6 +3867,20 @@ crate, convert the rest in one mechanical `git mv` landing (test names are uncha
 and turn the matching clippy lint on in the gate so the tree cannot drift back; best before or right after 4015, which makes more
 `mod.rs` files. Names no score; the structure track's, the steer's to decide.
 
+(4029) **A chapter's widening can stop one frame short of its trace's end and the `Golden:` count still agree** (3995's booking,
+the seventy-fifth tranche): chapter 136's capture ends on 900 (`last_frame` 900 in run1553's receipt) and the lane pinned the word 900
+with `WIDENING_…_THIRTY_SIX` `(599, 900)` and `widen_civilians` over `(600, 899)`, where chapter 135 pins `(604, 1251)` and widens
+through its end; the guard counts a word closed when it is the window's end minus one, so chapter 136 was counted open, and the lane
+gate passed because the queue still said `129 closed` — the count matched the miscount. The commander re-pinned at the booking
+(`f017dbd6e`: the same eleven rows part through 900). Candidate: a guard that a closed golden word's widening reaches the receipt's
+`last_frame`, red first on `(599, 900)`. Names no score; the loop's.
+
+(4030) **A chapter lane's gate filters never reach the census pin** (3995's booking gate, the seventy-fifth tranche): 3995 wired
+`think_carry_idle`, a port-backed function, and its `--tests golden transport caravan first_parting …` lane gate never ran
+`census::`, so the pin stood at 588 against a measured 589 until the commander's whole booking gate went red on it, the tranche's
+one red gate (the seventy-third's one red was the same pin). Candidate: `release_gate.py --lane` adds `census::` to every lane's
+filters when a path under `crates/sim/src` is touched, as it adds `coverage::`, red first on 3995's tree. Names no score; the loop's.
+
 ## Loop, filed 2026-11-08 — the seventy-third tranche's
 
 **4001** (A bit's writer is grepped in the executable before a packet is booked for it) — **a row of `tools/brief/frame.md`'s capture section since the seventy-fourth pass (a bit's writer at a known offset is grepped in the executable before any packet).** The row as filed: (4001) **A bit's writer is grepped in the executable before a packet is booked for it** (3983's "for the Loop"): the booking ordered a
