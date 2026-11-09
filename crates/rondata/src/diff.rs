@@ -290,6 +290,7 @@ mod spanish_lakes_word;
 mod spanish_modern_pair;
 #[cfg(test)]
 mod spanish_word;
+mod start;
 #[cfg(test)]
 mod third;
 #[cfg(test)]
@@ -639,4 +640,5 @@ pub use order::*;
 pub use report::*;
 pub use setup::*;
 pub use shutdown::*;
+pub use start::*;
 pub use unit::*;

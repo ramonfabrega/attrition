@@ -205,6 +205,8 @@ COMMANDERS_LINES = (
     'the_handoff_s_structure_line_is_the_pinned_shape',
     # The renderer track's line (the seventy-fifth pass, RENDERER §5.4).
     'the_handoff_s_renderer_line_is_the_pinned_counter',
+    # The start track's line (item 4033, START §5).
+    'the_handoff_s_start_line_is_the_pinned_counter',
     'the_handoff_s_golden_line_is_the_pinned_word',
     'the_handoff_s_default_map_is_the_lower_word',
     'the_handoff_s_endpoint_is_the_pinned_counts',
