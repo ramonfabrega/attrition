@@ -15780,13 +15780,23 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   console verb razes a city, and run1017's window (15230..15432) holds none razed or captured. **Score**: none on
   file — a capture whose trade route's city is razed or captured mid-route.
 
-## Parked by the next landing, slot DO — reserved
+## Parked by item 4036, 2026-11-09 — first pixels
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4036a. A building draws its `zbuffer` model, not its sprite.** The client puts the `<BUILD>`'s `zbuffer` `.bh3`
+  at the draw list's anchor, unscaled and unturned. In run1559b's photograph Napata stands at that place but is
+  several times larger: the original draws the `texture=` sprite, and the depth model's own placement in
+  `WallOut::draw@00641930` is unread (`docs/RENDERER.md` §3.6). Names no score: K counts the anchor, which is in
+  register. It books with item 4038 (textures), where the sprite is drawn.
+- **4036b. The camera is not a function of the frame.** run1441's and run1559b's packets, both at logger frame
+  3294 of the same staged game, hold camera loc (3168, 29744.68) and (2104.28, 30816), and run1559's photograph
+  (no packet) agrees with run1559b's. Both takes stage the same cursor pin and inputs. The camera probably moves in
+  real time rather than in sim time, but nothing has been read to show it. Names no score while every photograph
+  is taken with its own packet. It books when a by-eye or silhouette comparison (candidate C) has to pin a camera
+  without a packet.
+- **4036c. The terrain condition stops at frame 37.** Only run1428's `DUMP_ALL` blocks print
+  `master_land_heights` (frames 0, 1 and 37), so no mid-game terraform is checked against the original
+  (`TERRAIN_FRAMES_IN_REGISTER` 3 of 3). It books when a capture of the lobby takes a `DUMP_ALL` block past a
+  building's placement. That costs a capture, and it is booked only once a frame parts on a height.
 
 ## Parked by item 4035, 2026-11-09 — buildings in the draw list
 

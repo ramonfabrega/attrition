@@ -36308,3 +36308,45 @@ launch refused at the header (`GROUPS` beside `DEATHS` at one section); `GROUPS`
   city.
 - The no-army barge: at sea the eject is refused, the squad stays aboard and the barge lives; it holds `MOVEORDER`
   to (38040, 16536), the centre of who=1's nearest city building's cell, from 641.
+## run1559 — the Aztecs at a held Modern age, Great Lakes, at difficulty 5: a photograph of frame 3294 (2026-11-09, item 4036, `att-4036`)
+
+`docs/RENDERER.md` §3.6. **What the disk could not answer**: no photograph of the original on this lobby existed
+(`grep` of `docs/RUNS.md` and `~/ron-data`). It repeats run1441's line without the packet, paused on 3294:
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1559 --map 14 --end-frame 3296 --timeout 420
+--log-window 3292 3296 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 0 --cover cover=0 --profile STARTING_TECHNOLOGY=6
+--profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cmd-file
+~/ron-data/lab-experiments/2026-11-09-item-4036/pause3294.cmd` (one line, `3294 pause 1`), and `poolshot.py run1559
+3294 --map 14` beside it.
+- Pool lane 1, launched 11:59:47. The paused game ran to the timeout, as a paused take does: `success` false,
+  `TimeoutExpired` after 420 s, settings restored (5 files), the lane free afterwards. 116 GiB free before it.
+  Staged `37 !ffwd 4`, `3294 pause 1`, `3296 !quit`, with the cursor pinned at 1400,1000. Not filed.
+- Minutes waited on another lane: none.
+
+Photograph `~/ron-data/lab-experiments/2026-11-09-item-4036/run1559-3294.png`: window 13734, 1920×1080, the
+gamelog at 3295 when it was taken. SHA-256 `2e76137772cd966ba6cc15bc918860b9594c551d72ff84b4eeb00e4f5007e38f`.
+
+**What it holds**: Napata under attack, the derrick, the mountain, the coast. Its camera is not run1441's packet's:
+everything sits ~335 px right of a still drawn at that camera, which is why run1559b was taken.
+
+## run1559b — the same take with a packet at logger frame 3294: the photograph's own camera (2026-11-09, item 4036, `att-4036`)
+
+`docs/RENDERER.md` §3.6. **What the disk could not answer**: the camera of run1559's photograph. run1441's packet
+of the same frame holds another one (parked 4036b). run1559's line plus run1441's tracer defines:
+`--timeout 600 --tracer-def RON_STATE_FRAME=3294 --tracer-def
+'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`, and
+`poolshot.py run1559b 3294 --map 14`.
+- Pool lane 1, launched 12:17:34; exited after 445.4 s. The receipt reads `success` false, `ValueError: extra
+  lifecycle or fault records` (`autostart_receipt.py`): the paused take beside the packet ended as run1559 did, not
+  at its `!quit`. Settings restored (5 files), the lane free afterwards. The packet and the photograph were both
+  written before the end. Not filed.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1559b/map-14/frame-snapshot.bin`, 932,061,508 bytes,
+SHA-256 `11c3f767525ed53e9c2f5888e120839812bbc54c69e15f5f96630c5251cdeedb`.
+
+Photograph `~/ron-data/lab-experiments/2026-11-09-item-4036/run1559b-3294.png`: window 13740, 1920×1080, the
+gamelog at 3295. SHA-256 `7a9146449f92374cf64bb0bf14620385201245d2b57d3445b36446ef2e2f332f`.
+
+**What it holds**: `packet_points.py`'s `state 0` line, which is the client's pinned camera (loc `4503847c`
+`46f0c000`, i.e. (2104.28, 30816); zoom, tilt, dir, projection and screen as run1441's), and `guy_scale` 4.8 at
+`0x00c06244`. The photograph matches run1559's.

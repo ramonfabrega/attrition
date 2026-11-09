@@ -1354,3 +1354,184 @@ fn the_draw_list_s_buildings_are_in_register() {
         "K, decoding, in register, M's building types"
     );
 }
+
+// ---- The terrain's binary condition (item 4036) ----
+
+/// **The terrain's binary condition** (`docs/RENDERER.md` §5.4, §3.6): of
+/// the frames the lobby's dumps print a height table on, those on which
+/// every corner of the free runner's heightfield (`TerrainScene::corners`,
+/// `render::terrain::corner_anchors`) at the pinned camera is within one
+/// pixel of the original's own projection of the dumped corner
+/// (`master_land_heights`, `MiscAccess::world_to_screen` under unicorn).
+/// Only run1428's `DUMP_ALL` blocks print the table — the start (frame 0),
+/// 1 and 37 (`Log::dump_heights`) — so this is (frames, of the frames with
+/// a table). New at item 4036: **3 of 3**. Frame 37's table is not the
+/// start's: the AI's first terraform moved 248 corners round (216..221,
+/// 68..69), so 58,329 distinct points are projected, not 58,081. Made to
+/// fail once by drawing every frame from the frame-0 grid: 2 of 3, frame
+/// 37's corner (220, 68) at z 202 and pixel (5546, 1225) against the
+/// dump's 175 at (5546, 1230).
+pub(crate) const TERRAIN_FRAMES_IN_REGISTER: (usize, usize) = (3, 3);
+
+/// The corners behind it, every corner of every such frame (241 × 241 on
+/// the 60-cell map, three frames): new at item 4036; 174,077 under the
+/// mutation above.
+pub(crate) const TERRAIN_CORNERS_IN_REGISTER: (usize, usize) = (174_243, 174_243);
+
+/// And the heights behind the pixels: the corners whose single prints as
+/// the dump's millionths (`Single::prints_as`), the value half of the
+/// condition, beside it. New at item 4036.
+pub(crate) const TERRAIN_HEIGHTS_AGREEING: (usize, usize) = (174_243, 174_243);
+
+#[test]
+fn the_terrain_s_corners_are_in_register() {
+    let _pins = Pins::hold();
+    let Some(c) = captures() else {
+        return;
+    };
+    let inst = install().unwrap();
+    // The dump's height tables, by frame: the start block's is frame 0's.
+    let text = crate::capture::read(&c.start);
+    let log = Log::parse(&text);
+    let mut tables: BTreeMap<i64, Vec<i64>> = BTreeMap::new();
+    let start = log.terrain_heights();
+    if !start.is_empty() {
+        tables.insert(0, start);
+    }
+    for (n, h) in log.dump_heights() {
+        tables.entry(n).or_insert(h);
+    }
+    drop(log);
+    drop(text);
+    let mut free = c.runner();
+    let mut ours: BTreeMap<i64, sim::observe::TerrainScene> = BTreeMap::new();
+    let last = tables.keys().copied().max().unwrap_or(0);
+    if tables.contains_key(&0) {
+        ours.insert(0, free.terrain());
+    }
+    while free.frame() < last {
+        free.step();
+        if tables.contains_key(&free.frame()) {
+            ours.insert(free.frame(), free.terrain());
+        }
+    }
+    let (width, height) = (ours[&0].width, ours[&0].height);
+    let (camera, screen) = pinned_camera(width, height);
+    let stride = width * 4 + 1;
+    // The original's corners, deduplicated: the projection depends on the
+    // point alone.
+    let point =
+        |cx: i32, cy: i32, m: i64| [i64::from(cx) * 192, i64::from(cy) * 192, m / 1_000_000];
+    let mut unique: BTreeMap<[i64; 3], String> = BTreeMap::new();
+    for h in tables.values() {
+        for (i, &m) in h.iter().enumerate() {
+            let (cx, cy) = ((i as i32) % stride, (i as i32) / stride);
+            let p = point(cx, cy, m);
+            let k = unique.len();
+            unique.entry(p).or_insert_with(|| format!("u{k}"));
+        }
+    }
+    let points: Vec<(String, [i64; 3])> = unique.iter().map(|(p, t)| (t.clone(), *p)).collect();
+    let Some(theirs) = original_pixels(
+        &inst.root().join("riseofnations.exe"),
+        &state_line(&camera, &screen),
+        &points,
+    ) else {
+        return;
+    };
+    let (mut frames_ok, mut corners_ok, mut corners_all, mut heights_ok) = (0, 0, 0, 0);
+    let mut misses: Vec<String> = Vec::new();
+    for (&n, h) in &tables {
+        let Some(t) = ours.get(&n) else {
+            misses.push(format!("frame {n}: no terrain of ours"));
+            continue;
+        };
+        let field = render::terrain::Heightfield {
+            width: t.width,
+            height: t.height,
+            corners: &t.corners,
+        };
+        let mine = render::terrain::corner_anchors(&field, &camera, &screen, Some(SIZE));
+        let mut ok = mine.len() == h.len();
+        if !ok {
+            misses.push(format!(
+                "frame {n}: {} corners of ours, {} dumped",
+                mine.len(),
+                h.len()
+            ));
+        }
+        for (i, &m) in h.iter().enumerate() {
+            corners_all += 1;
+            let (cx, cy) = ((i as i32) % stride, (i as i32) / stride);
+            let them = theirs[&unique[&point(cx, cy, m)]];
+            if t.corners
+                .get(i)
+                .is_some_and(|&b| sim::num::single::Single(b).prints_as(m))
+            {
+                heights_ok += 1;
+            }
+            match mine.get(i) {
+                Some((_, at, px)) if (px.x - them.0).abs() <= 1 && (px.y - them.1).abs() <= 1 => {
+                    let _ = at;
+                    corners_ok += 1;
+                }
+                other => {
+                    ok = false;
+                    if misses.len() < 40 {
+                        misses.push(format!(
+                            "frame {n} corner ({cx}, {cy}): dump {:?} at {them:?}, ours {:?}",
+                            point(cx, cy, m),
+                            other.map(|(_, at, px)| (at, (px.x, px.y)))
+                        ));
+                    }
+                }
+            }
+        }
+        if ok {
+            frames_ok += 1;
+        }
+    }
+    eprintln!(
+        "TERRAIN {}: frames {:?} in register {frames_ok} of {}; corners {corners_ok} of {corners_all}; \
+         heights {heights_ok}; {} distinct points projected\n  {}",
+        AZTEC_MODERN.name,
+        tables.keys().collect::<Vec<_>>(),
+        tables.len(),
+        unique.len(),
+        misses.join("\n  ")
+    );
+    // A corner each side, for the journal's value table.
+    for (cx, cy) in [(0, 0), (120, 120), (16, 155), (240, 240)] {
+        let i = (cy * stride + cx) as usize;
+        let m = tables[&0][i];
+        let field = render::terrain::Heightfield {
+            width,
+            height,
+            corners: &ours[&0].corners,
+        };
+        let px = render::terrain::corner_anchors(&field, &camera, &screen, Some(SIZE))[i].2;
+        eprintln!(
+            "  corner ({cx}, {cy}): dump {m} → {:?} at {:?}; ours {:?} at ({}, {})",
+            point(cx, cy, m),
+            theirs[&unique[&point(cx, cy, m)]],
+            field.point(cx, cy),
+            px.x,
+            px.y
+        );
+    }
+    pin_eq!(
+        (frames_ok, tables.len()),
+        TERRAIN_FRAMES_IN_REGISTER,
+        "terrain frames in register"
+    );
+    pin_eq!(
+        (corners_ok, corners_all),
+        TERRAIN_CORNERS_IN_REGISTER,
+        "terrain corners in register"
+    );
+    pin_eq!(
+        (heights_ok, corners_all),
+        TERRAIN_HEIGHTS_AGREEING,
+        "terrain heights agreeing"
+    );
+}

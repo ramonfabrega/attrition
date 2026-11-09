@@ -741,6 +741,114 @@ the half-tile rule. **Reading only:** the drawn predicate.
 - ~~**A figure's own point apart from its unit's.**~~ Settled by item
   4027: guy 0's is `Movement::body`, and the door reads it now.
 
+## 3.6 First pixels: the terrain's condition, the client and its session trace (item 4036)
+
+*2026-11-09, Opus 5.5. The door's `TerrainScene::corners`; `render::terrain`
+and `render::figure`; the `client` crate. Checked by
+`rondata::free::tests::the_terrain_s_corners_are_in_register` and the
+client's own tests.*
+
+**The terrain's binary condition (§5.4), pinned.** On the lobby's every
+frame that prints a height table — run1428's `DUMP_ALL` start (frame 0),
+1 and 37 (`Log::dump_heights`) — **3 of 3 frames in register, 174,243 of
+174,243 corners**, each within one pixel of the original's own projection
+of the dumped corner, and **174,243 heights** printing as the dump's
+millionths (`TERRAIN_FRAMES_IN_REGISTER`, `TERRAIN_CORNERS_IN_REGISTER`,
+`TERRAIN_HEIGHTS_AGREEING`).
+- *The point.* Corner `(cx, cy)` at `(192·cx, 192·cy)`, the height the
+  corner grid's single (`TerrainData::master_land_heights`) truncated to
+  the integer `world_to_screen` takes; the original's side runs its own
+  `world_to_screen` under unicorn on the dumped value, at the draw list's
+  pinned camera and 1920×1080.
+- *The door, widened.* `TerrainScene` carried the tile heights only, which
+  are the mean of two corners (`find_tcoord_z`). It now carries `corners`,
+  each single as its 32 bits — no float enters `sim`.
+- *Not the start's copy.* Frame 0's grid is the dump's own (`build_sim`
+  installs it), but frame 37's is not: the AI's first terraform moved 248
+  corners round (216..221, 68..69), so 58,329 distinct points project.
+  **Made to fail once**: drawing every frame from the frame-0 grid gives
+  2 of 3 frames and 174,077 corners; corner (220, 68) on frame 37 sits at
+  z 202, pixel (5546, 1225), against the dump's 175 at (5546, 1230).
+
+**What the client draws** (`client`, `wgpu` 30 and `winit` 0.30, earned
+here, §4.2). It opens the install and the pair's captures, stands the free
+runner up and steps it to the frame, then draws:
+- *the terrain*: two triangles a tile from the corners, flat in the land
+  kind's debug colour (`land_key[]`: `BASELAND`, `SANDY`, `OCEAN`, `NONE`),
+  a placed mountain's tiles grey, shaded by slope;
+- *each figure*: its piece's `.BH3` from `unit_art`, carried out of its
+  nodes into model space (`render::figure::rest_pose`: a vertex sits in its
+  node's space, `vertex · node · parent · … · root`), scaled by the
+  `<UNIT>`'s `scale=` times `guy_scale`, turned by `rotate_z(facing° + 180)`
+  and moved to the draw list's point. `GuyOut::draw@005dc490` adds the 180
+  (`__real_43340000`) and multiplies by `guy_scale`, which reads **4.8** on
+  run1441's and run1559b's packets (`?guy_scale@@3MA`, `0x00c06244` by the
+  linker map). No animation is applied;
+- *each building*: its `<BUILD>`'s `zbuffer` model at the draw list's
+  anchor point, unscaled and unturned;
+- *the overlay* (§7.2 item 8): the frame, the last frame's milliseconds and
+  the camera, from a 5×7 font in the crate, with no font dependency.
+The view is the observer's (§7.2 item 7), and the tint is by owner, a
+debug colour, not a team colour (§6's "After these").
+
+**The projection is the camera's own.** The shader multiplies by
+`to_screen_matrix` uploaded row-major (WGSL reads it transposed, so `M · v`
+is the original's `v · M`). The divide by `w` and the viewport are
+`world_to_console`'s. `the_gpu_s_projection_lands_on_the_draw_list_s_anchor`
+holds the arithmetic to the anchor within a pixel. Depth is the client's:
+camera-space z over a fixed range, since the original's near and far
+planes would clip the map's far corners.
+
+**The pinned camera is run1559b's.** That take photographed frame 3294 and
+packed its state on the same frame: loc (2104.28, 30816), the default zoom,
+tilt 60, dir 45, parallel, 1920×1080. run1441's packet of the same frame of
+the same game held loc (3168, 29744.68), and run1559's photograph (no
+packet) matches run1559b's, not run1441's. So the camera is not a function
+of the frame. The first stills, drawn at run1441's camera, put every object
+exactly on run1441's packet pixels (tanks (1191, 770) and (1065, 917)
+against ours (1190, 765) and (1065, 908)), and ~335 px left of the
+photograph.
+
+**Compared by eye** with run1559b's photograph (kept outside the
+repository; the journal names the paths):
+- *Agrees:* the map's west edge, (0, 595)→(1220, 0) against the original's
+  (0, 600)→(1220, 0); the mountain's extent, x 1220–1920 and y 25–385
+  against 1240–1920 and 25–370; the figures' places — the lone figure at
+  (1125, 300), the group by the derrick, the tanks and infantry south of
+  the capital; the figures' size and uprightness.
+- *Does not:* the capital is drawn at Napata's place but far smaller, since
+  a `zbuffer` model is the depth proxy, not the sprite; trees are not
+  drawn (forests are not in the scene); the original darkens the map's
+  edge; there are no textures, no poses and no team colours.
+
+**The session trace** (DECISIONS 114 §4; the profiler chosen here). Every
+session writes the Trace Event Format JSON that Perfetto and
+`about:tracing` open: a span per phase and per drawn frame, the marks
+`frame zero`, `first pixels` and `quit`, and an `rss_kib` counter sampled
+by `ps` every 100 ms (`getrusage` needs `unsafe`, which the workspace
+forbids, so the sampled peak is a floor). `client --read-trace` reads the
+clock from the file. Median of three windowed sessions (300 frames presented, the game
+playing from 2994, on 2026-11-09): **485 ms to frame zero, 1,166 ms to
+first pixels, p99 frame 21.3 ms (vsync), slowest 89 ms (the first, with
+the terrain's upload), peak RSS 437 MiB sampled**; `/usr/bin/time -l`
+read 450 MiB on the same runs. Beside it, the harness reads 540 ms to
+frame zero (`HARNESS_CLOCK`) and the runner 431 ms (`RUNNER_CLOCK`).
+
+**Diff-backed:** the terrain's corners and heights; the figures' anchors
+(§3.5, unchanged). **Listing- and packet-backed:** the 180° and
+`guy_scale`. **Reading only, and by eye:** the rest pose, the facing's
+sense, the scale's source (the piece's `+0x88` and the flag at `+0x92` that
+skips `guy_scale` are unread), the building's model.
+
+**What is not established.**
+- **Why the camera moved between run1441 and run1559.** Both takes stage
+  the same cursor pin and inputs. The camera probably moves in real time
+  rather than in sim time, but nothing has been read to show it.
+- **A mid-game height table.** Only the start's `DUMP_ALL` blocks print
+  one, so the condition is not checked past frame 37.
+- **What a building draws.** The sprite and its anchor are the original's.
+  The `zbuffer` model's own placement is unread.
+
 ## 4. The stack
 
 The rule is `CLAUDE.md`'s **earn every dependency**: a crate enters when it
@@ -793,7 +901,9 @@ this machine, and Vulkan or Direct3D elsewhere.
   built. Teaching it to draw the client's draw list beside the original's
   reference is a small change to an existing diagnostic, not a new stack.
 - **`wgpu` and `winit` are earned by the first decoded mesh** (§6, item 5),
-  in a separate `client` binary crate. That keeps the testable core free of
+  in a separate `client` binary crate. *Earned by item 4036 (§3.6): `wgpu`
+  30 and `winit` 0.30; the lockfile grew by about 230 crates, all of them
+  under `client`.* That keeps the testable core free of
   graphics, which is the same split as `sim` and `rondata` one level up.
 
 *Alternative 1:* grow option A into the client. That is cheapest now, but it
@@ -931,6 +1041,8 @@ pose beyond its frame index, the terrain's look, or any interface.
 
 **The terrain is outside M** and has its own binary condition: the
 heightfield's projected corner points are in register at the pinned camera.
+*Pinned since item 4036 (§3.6): 3 of 3 frames, 174,243 of 174,243
+corners.*
 
 **Counted (item 4020, `rondata::free::tests`; re-counted by 4026).** On
 `GreatLakesAztecModern`:
@@ -1078,6 +1190,9 @@ from `sim`. None is minted: item numbers and the queue are the commander's.
   makes the counted pieces visible, and that is the dependency's earning.
 - *Needs from `sim`:* `observe_terrain` (heights, land types and mountain
   placements).
+- *Built by item 4036* (§3.6): the `client` crate, the door's corner grid,
+  the terrain condition pinned at 3 of 3 frames, K unchanged at 58 of 59,
+  and the session trace with the clock read from it.
 
 **After these**, in the order the counter's misses name them: textures and
 team colours, animation poses, buildings' construction stages, territory

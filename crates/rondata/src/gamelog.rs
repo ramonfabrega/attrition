@@ -1643,6 +1643,17 @@ impl<'a> Log<'a> {
             .unwrap_or_default()
     }
 
+    /// Every dump's height grid, by the frame [`Log::dumps`] keys it on —
+    /// a frame's nested dump and the run's closing one alike, which
+    /// [`Log::frame_heights`] does not reach (item 4036: run1428's 36 and
+    /// 37).
+    pub fn dump_heights(&'a self) -> Vec<(i64, Vec<i64>)> {
+        self.dumps()
+            .into_iter()
+            .filter_map(|(n, b)| Some((n, heights_in(b)?)))
+            .collect()
+    }
+
     /// One leader's whole `LEADERDATA` block at one frame — every field a
     /// `LEADERS=9` run prints (`docs/ORACLE.md`, "`LEADERS=9` is the census
     /// oracle"): the census counts by name, the `[scan]` arrays under their

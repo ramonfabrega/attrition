@@ -173,7 +173,30 @@ fn the_grids_and_their_counters() {
     assert_eq!((t.width, t.height, t.owner.len()), (4, 3, 12));
     let g = sim.observe_terrain();
     assert_eq!((g.land.len(), g.land_sub.len()), (12, 12));
+    assert!(
+        g.corners.is_empty(),
+        "a world with no height table has no corners"
+    );
     let mut sim = sim;
+    let flat = vec![0i64; 17 * 13];
+    let mut ramp = flat.clone();
+    ramp[17 * 2 + 5] = 250_500_000;
+    assert!(sim.world.set_corner_grid(ramp));
+    let g = sim.observe_terrain();
+    assert_eq!(g.corners.len(), 17 * 13, "(4·xs + 1) × (4·ys + 1) corners");
+    assert_eq!(
+        g.corners[17 * 2 + 5],
+        0x437a_8000,
+        "a corner is its single's bits: 250.5"
+    );
+    assert_eq!(
+        g.corners
+            .iter()
+            .zip(sim.world.corner_singles())
+            .filter(|(a, b)| **a != b.bits())
+            .count(),
+        0
+    );
     let tv = sim.world.terrain_version();
     let c = crate::Cell::new(2, 1);
     let mut d = sim.world.cell_data(c);

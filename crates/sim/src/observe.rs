@@ -179,6 +179,12 @@ pub struct TerrainScene {
     /// The tile heights, row-major over `width × 4` by `height × 4` tiles;
     /// empty on a world with no height table.
     pub tile_z: Vec<i32>,
+    /// The corner grid the tile heights are taken from
+    /// (`TerrainData::master_land_heights`), row-major over `width × 4 + 1`
+    /// by `height × 4 + 1` corners, each single as its 32 bits — the
+    /// heightfield a client draws (item 4036); empty on a world with no
+    /// height table.
+    pub corners: Vec<u32>,
     /// Each cell's `WData.land` and `land_sub`, row-major.
     pub land: Vec<i8>,
     pub land_sub: Vec<u8>,
@@ -338,6 +344,7 @@ impl Sim {
             width,
             height,
             tile_z: w.tile_z_grid().to_vec(),
+            corners: w.corner_singles().iter().map(|c| c.bits()).collect(),
             land,
             land_sub,
             mountains: self
