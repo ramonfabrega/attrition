@@ -7,7 +7,7 @@
 /// leader's bits its `holds_unit_bit`.
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    use crate::cast::{MILITIA, PEASANTS};
+    use crate::spells::cast::{MILITIA, PEASANTS};
     let Some(rows) = super::emu_rows("sweep_object_update_hits.py") else {
         return;
     };

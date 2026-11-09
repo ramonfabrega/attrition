@@ -1,6 +1,6 @@
 //! `TypeData::is_build_type@004707c0` under the emulator against the port (item 1704).
 
-use crate::type_index::is_build_type;
+use crate::core::type_index::is_build_type;
 
 /// `TypeData::is_build_type@004707c0`, run by `tools/emu/sweep_type_build.py` under unicorn
 /// (tools/emu): `0x19d < t < 0x21f` on the type record's `type`, over every index -2..=0x33f and the edges, against `type_index::is_build_type` — the bounds `is_build_type`'s readers (`type_index`'s header) stand on.

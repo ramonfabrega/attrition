@@ -1,6 +1,6 @@
 //! `Unit::action_unqueue@005e1f20` with no current upgrade (answer -1, argument 0) under the emulator against the port (item 3391; tools/sweep_gen.py, obj with windows).
 
-use sim::unit_unqueue_view::{self, UnitUnqueueView};
+use sim::cities::unit_unqueue_view::{self, UnitUnqueueView};
 
 #[allow(dead_code)]
 fn rd(m: &[u8], off: usize) -> i32 {

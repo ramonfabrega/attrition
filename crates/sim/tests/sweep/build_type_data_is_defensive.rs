@@ -1,6 +1,6 @@
 //! `BuildTypeData::is_defensive@00473600` under the emulator against the port (item 2083; hand-written on tools/emu/hooks.py).
 
-use crate::build::{Ident, is_defensive_by};
+use crate::cities::build::{Ident, is_defensive_by};
 
 /// `BuildTypeData::is_defensive@00473600`, run by `tools/emu/sweep_build_type_data_is_defensive.py` under unicorn (tools/emu): the record's slot `+0x60` asked `(0x1b7, 0)`, `(0x1bb, 0)`, `(0x1bf, 0)`, then `attack` (`+0x1e8`); the `is` slot
 /// answered per row and per type index, zero half the time. The port's [`is_defensive_by`] is handed a lineage

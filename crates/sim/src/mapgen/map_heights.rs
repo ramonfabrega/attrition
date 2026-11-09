@@ -2,7 +2,7 @@
 //! the corner grid `TerrainData::master_land_heights` that `Terrain::init`
 //! builds between `Terrain.cpp` 699 and 894, in the original's own SSE
 //! singles ([`Single`]) and, for the two fractals' bilinear sample, its
-//! doubles ([`crate::double::Double`]).
+//! doubles ([`crate::num::double::Double`]).
 //!
 //! Three passes write it on a map without water:
 //! - **`TerrainOut::generate_land@0085f8d0`**, one vertex at a time, y
@@ -29,11 +29,11 @@
 
 use std::collections::BTreeMap;
 
+use crate::mapgen::terrain_groups::Template;
+use crate::mapgen::terrain_groups::flag::{OIL, ROCK};
+use crate::mapgen::terrain_init::{MOVE, coord};
 use crate::mapgen::{COAST, Fractal, MapGrid};
-use crate::single::Single;
-use crate::terrain_groups::Template;
-use crate::terrain_groups::flag::{OIL, ROCK};
-use crate::terrain_init::{MOVE, coord};
+use crate::num::single::Single;
 
 /// `TerrainOut+0x4b7c`: vertices per cell each way.
 pub const VERTS: i32 = 4;
@@ -69,7 +69,7 @@ pub enum Unported {
     /// `Cliffs::assess_wcoord@008a6a40`'s slope test,
     /// `TerrainOut::has_plus_slope@00869790`: a tile of a cell flagged
     /// 0x40 that is not COAST, `land` 1 or 2, nor a mountain tile. The
-    /// tiles named. Built in [`crate::cliffs`] (item 3890), which a caller
+    /// tiles named. Built in [`crate::mapgen::cliffs`] (item 3890), which a caller
     /// runs after [`adjust_for_mountains`] instead of [`heights`].
     Slope(Vec<(i32, i32)>),
 }
@@ -869,7 +869,7 @@ fn good_here(g: &MapGrid, x: i32, y: i32) -> bool {
 }
 
 /// [`heights`]' refusal of `Cliffs::init@008a8020` (built in
-/// [`crate::cliffs`]): every tile `assess_wcoord` would hand
+/// [`crate::mapgen::cliffs`]): every tile `assess_wcoord` would hand
 /// to `has_plus_slope` — of a cell flagged 0x40, neither COAST nor `land`
 /// 1 or 2, and not a mountain tile (`mask & 3 == 2`).
 pub fn slope_tiles(g: &MapGrid) -> Vec<(i32, i32)> {
@@ -898,7 +898,7 @@ pub fn slope_tiles(g: &MapGrid) -> Vec<(i32, i32)> {
 /// `generate_land`, the oil cells' terraform, `adjust_for_mountains`, then `Cliffs::init`'s
 /// refusal. Between them, `check_and_set_halfland` reads a height only on
 /// a gated cell, which `sim::terrain_init` already refuses; the troughs
-/// carve only along a river list ([`crate::map_troughs`], not called here:
+/// carve only along a river list ([`crate::mapgen::map_troughs`], not called here:
 /// a style without one carves nothing).
 pub fn heights(
     g: &MapGrid,

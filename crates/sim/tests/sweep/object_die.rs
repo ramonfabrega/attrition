@@ -29,9 +29,9 @@ fn the_emulated_original_agrees_on_every_row() {
         let _ = (&a, &m, &c, &p);
         // `Object::die@00647080` after its stubbed `close` (slot 0x150): c0 the objects record (array at +0x12c, count +0x120), p0 the array, p1..p6 its records, p7 the type (`this+0x18`), c1 the word `nuke_effect+0x108`.
         let n = rd(&c[0], 0x120);
-        let ammo: Vec<crate::fight::DieAmmo> = (0..6usize)
+        let ammo: Vec<crate::combat::fight::DieAmmo> = (0..6usize)
             .take(usize::try_from(n.max(0)).unwrap_or(0))
-            .map(|k| crate::fight::DieAmmo {
+            .map(|k| crate::combat::fight::DieAmmo {
                 flags: p[1 + k][4],
                 who: rd(&p[1 + k], 0x3c),
                 idx: rd(&p[1 + k], 0x40),
@@ -41,7 +41,7 @@ fn the_emulated_original_agrees_on_every_row() {
             .collect();
         let hold = u16::from_le_bytes([m[0x32], m[0x33]]);
         let sh = i16::from_le_bytes([m[0xa], m[0xb]]);
-        let h = crate::fight::die_hold_steps(
+        let h = crate::combat::fight::die_hold_steps(
             hold,
             m[9],
             sh,

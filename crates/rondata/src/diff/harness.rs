@@ -1009,7 +1009,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                     let item = &ours.queue.items[k];
                     let id = item.tech.unwrap_or_else(|| built.unit_tree[item.ty]);
                     let ty = if item.disband {
-                        sim::queue_disband::DISBAND
+                        sim::cities::queue_disband::DISBAND
                     } else {
                         built.type_index.get(id).copied().unwrap_or(-1)
                     };
@@ -1205,7 +1205,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             (
                 "city_flags[0x80]",
                 0x80,
-                built.sim.city_has(ci, sim::build::Ident::Temple),
+                built.sim.city_has(ci, sim::cities::build::Ident::Temple),
             ),
             ("city_flags[0x100]", 0x100, ours.unassimilated),
             ("city_flags[0x2000]", 0x2000, ours.no_muster),
@@ -2256,7 +2256,7 @@ fn widen_block_rows(
                 ("good_obj", i64::from(un.good_obj), them.good_obj),
                 // **A unit's own queue** (item 3960, `docs/AI.md` §404):
                 // an Aircraft Carrier's planes and their clock, ported by
-                // item 3981 (`sim::carrier_queue`, §413) and walked on
+                // item 3981 (`sim::air::carrier_queue`, §413) and walked on
                 // run1066, the one capture that holds a carrier's queue.
                 ("num_queued", i64::from(un.num_queued), them.num_queued),
                 ("queue_time", i64::from(un.queue_time), them.queue_time),
@@ -2415,7 +2415,7 @@ fn widen_block_rows(
                 ] {
                     rows.push((RowLabel(name, Some(k)), ours, theirs));
                 }
-                if un.kind.domain == sim::attrition::Domain::Air {
+                if un.kind.domain == sim::territory::attrition::Domain::Air {
                     rows.push((
                         RowLabel("g.z", Some(k)),
                         i64::from(af.z),
@@ -2765,7 +2765,7 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
             .iter()
             .map(|i| {
                 let t = if i.disband {
-                    sim::queue_disband::DISBAND.to_string()
+                    sim::cities::queue_disband::DISBAND.to_string()
                 } else {
                     i.tech.map_or_else(
                         || built.sim.tables.unit_types[i.ty].type_index.to_string(),
@@ -3499,8 +3499,8 @@ pub(crate) mod tests {
     /// Frame 0 counted 175 against 175 from the moment the scout landed,
     /// and the count was hiding two errors that cancelled. Every mechanic
     /// the frame touches now marks its own draw sites under the original's
-    /// offsets (`sim::ai_sites`, `sim::market`, `sim::anim`, `sim::scout`,
-    /// `sim::farms`, `sim::gaia`), and [`crate::trace::SITES`] names the
+    /// offsets (`sim::ai::ai_sites`, `sim::economy::market`, `sim::units::anim`, `sim::units::think::scout`,
+    /// `sim::cities::farms`, `sim::gaia`), and [`crate::trace::SITES`] names the
     /// same addresses out of the trace's `ebp` chain — so the frame is one
     /// `Vec<String>` on each side and the comparison is an `assert_eq!`.
     ///
@@ -3611,7 +3611,7 @@ pub(crate) mod tests {
     /// call from `Unit::fight@005fd4d0+0xcb4`'s chase.
     ///
     /// **The bound is the assertion.** One call cannot draw more than
-    /// [`sim::fight::ATTACK_POS_CAP_RANGED`] times, so forty-six draws
+    /// [`sim::combat::fight::ATTACK_POS_CAP_RANGED`] times, so forty-six draws
     /// need at least four calls — a lower bound on the cast taken from
     /// the draw stream **alone**, with no hypothesis about who is on the
     /// frame. run19's blocks 8186 and 8187 then name the cast
@@ -4074,7 +4074,7 @@ pub(crate) mod tests {
     const GREAT_LAKES_REGEN_SEARCH: i64 = 10_234;
 
     /// `PathFinder::calc_road_cost@00686300+0x46` — the road search's
-    /// per-node jitter, and [`sim::roads::SITE_COST`]'s own address in
+    /// per-node jitter, and [`sim::movement::roads::SITE_COST`]'s own address in
     /// [`trace::SITES`](crate::trace::SITES).
     const ROAD_COST: u32 = 0x0068_6346;
     /// `PathFinder::astar_caravan_road@00685990+0x52b` — the only caller
@@ -4383,7 +4383,7 @@ pub(crate) mod tests {
     /// step (`length` 2 → 1, `dest` 1 → 0) and the idle is rolled. That is
     /// `docs/COLLISION.md` §5.4's snap arm, field for field, and the draw
     /// stream says the same thing from the other side:
-    /// [`sim::anim::SITE_SNAP_BLOCKED`] is `Guy::set_anim+0x97a <
+    /// [`sim::units::anim::SITE_SNAP_BLOCKED`] is `Guy::set_anim+0x97a <
     /// Unit::move_step+0x4e2`, which is where the original's eighth draw
     /// is spent.
     ///
@@ -4988,7 +4988,8 @@ pub(crate) mod tests {
             if let Some((sf, w, o)) = sweep
                 && sf == f
             {
-                built.sim.trace.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
+                built.sim.trace.sweep_watch =
+                    Some(sim::movement::collide::SweepWatch::new(sf, w, o));
             }
             let tick_started = profiling.then(std::time::Instant::now);
             built.tick();
@@ -8247,7 +8248,7 @@ pub(crate) mod tests {
     /// idle roll (`Guy::set_anim+0x97a < Guy::inc_time+0x271`), where this
     /// crate spends a farm's. The boat's guy carries **no piece** — the
     /// piece table is seeded from the start dump's own `GUY` blocks and no
-    /// Fisherman is in one — so its `end_time` is [`sim::anim::UNKNOWN`]
+    /// Fisherman is in one — so its `end_time` is [`sim::units::anim::UNKNOWN`]
     /// and no animation of its ever wraps (item 152).
     ///
     /// It was **4950** for one item before that, and that item was the
@@ -8524,7 +8525,7 @@ pub(crate) mod tests {
     ///
     /// 1. **They have no `type_index`**, so `Sim::slot_length` cannot
     ///    reach the install's gaia table and every one carries
-    ///    `sim::anim::UNKNOWN`. A clock that never wraps costs no draw,
+    ///    `sim::units::anim::UNKNOWN`. A clock that never wraps costs no draw,
     ///    and that is **three** of the original's six `Guy::inc_time`
     ///    wraps on frame 29.
     /// 2. **They are the wrong species.** `Farms::add_animals@008d8f30`
@@ -8606,7 +8607,7 @@ pub(crate) mod tests {
     ///               it at `speed`. Gaia's `8/2` therefore took ten steps
     ///               over ground the original crosses in nine, reached its
     ///               blocked stand a frame late, and spent
-    ///               `sim::anim::SITE_BLOCKED` on 70 where the original
+    ///               `sim::units::anim::SITE_BLOCKED` on 70 where the original
     ///               spends it on 69. The window holds at 64/64.
     ///               `docs/SYNC.md` §3.13, and
     ///               [`an_animal_more_than_0x180_from_its_order_hurries_by_three_halves`]

@@ -66,10 +66,10 @@ pub(super) fn install_clock(
     frame: i64,
     u: usize,
     n: usize,
-    guy: sim::anim::Guy,
+    guy: sim::units::anim::Guy,
 ) {
     let before = audit.as_ref().map(|_| sim.units[u].guys.get(n).copied());
-    sim.set_guy(u, n, guy);
+    sim.setup().set_guy(u, n, guy);
     // both sides: the audit is optional and `before` is None exactly when
     // it is off; nothing is compared with the audit off.
     if let (Some(audit), Some(before)) = (audit, before) {
@@ -108,7 +108,7 @@ mod tests {
         sim.units
             .push(sim::Unit::new(0, 0, sim::Pos { x: 1, y: 2 }, 100));
         let mut audit = Some(CorrectionAudit::default());
-        let mut guy = sim::anim::Guy::fresh(7);
+        let mut guy = sim::units::anim::Guy::fresh(7);
         install_clock(&mut sim, &mut audit, 7, 0, 0, guy);
         install_clock(&mut sim, &mut audit, 8, 0, 0, guy);
         guy.cur_time += 1;

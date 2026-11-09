@@ -17,7 +17,7 @@ fn unhex(s: &str) -> Vec<u8> {
 }
 
 // hand: view
-use crate::place_roads_view::{self, PlaceRoadsView};
+use crate::movement::place_roads_view::{self, PlaceRoadsView};
 
 /// The row's windows as the view. `m` is the `BuildType`, `c0` the world record (`+0x18` width, `+0x1c`
 /// height, `+0x138` the tile masks, the window `p2`), `c1` the objects cell (the windows `p3`/`p4` hold

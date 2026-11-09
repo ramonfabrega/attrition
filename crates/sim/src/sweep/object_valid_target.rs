@@ -36,7 +36,7 @@ fn the_emulated_original_agrees_on_every_row() {
         // record `p[7]` (`+8` o, `+0xc` who, `+0x1c` mandatory).
         let mut out = rd(&p[0], 0);
         let (p3, p4, p7) = (p[3].clone(), p[4].clone(), p[7].clone());
-        let ok = crate::fight::valid_target_steps(
+        let ok = crate::combat::fight::valid_target_steps(
             &mut (),
             (a[2] != 0).then_some(&mut out),
             |_| a[3] != 0,

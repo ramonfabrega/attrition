@@ -23,7 +23,7 @@
 //! short on 7984 (`docs/ROADS.md` §7.4).
 
 use crate::Sim;
-use crate::single::Single;
+use crate::num::single::Single;
 use crate::world::{Cell, MOVE_8, OIL_GOOD, Pos, TILES_PER_CELL, cell, tile};
 
 impl Sim {

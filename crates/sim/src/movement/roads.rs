@@ -24,11 +24,11 @@
 //! A **caravan's** road is the same search with three things turned on
 //! (§8): all eight directions rather than the four cardinals, a heuristic
 //! sixteen times larger, and — because a trade route is long — the right to
-//! **stop at the budget and carry on next frame**. `crate::caravan` is the
+//! **stop at the budget and carry on next frame**. `crate::economy::caravan` is the
 //! caller; this module owns the search.
 
-use crate::ai_place::{MOVE_X, MOVE_Y};
-use crate::build::{self, Ident, flags};
+use crate::ai::ai_place::{MOVE_X, MOVE_Y};
+use crate::cities::build::{self, Ident, flags};
 use crate::world::{Cell, Owner, Pos, UNITS_PER_TILE, World, cell, tile, vector_dist};
 use crate::{Player, Sim};
 use std::cmp::Reverse;
@@ -307,7 +307,7 @@ impl Sim {
     /// `World::set_road_at@006b43b0` with `set != 0`, as `place_roads` calls
     /// it — the tile's surface becomes road, the cell is marked as carrying
     /// one, and a tile that was **not** already a road goes on to the mesh
-    /// (`crate::mesh`, `docs/ROADS.md` §9), which is where a road can grow a
+    /// (`crate::movement::mesh`, `docs/ROADS.md` §9), which is where a road can grow a
     /// seventeenth tile out of sixteen.
     pub(crate) fn set_road_at(&mut self, t: Pos) {
         self.world_set_road_at(t, true, 0, 0);
@@ -575,7 +575,7 @@ impl Sim {
         RoadPlan::None
     }
 
-    /// The caravan arm of the search, for `crate::caravan`: eight
+    /// The caravan arm of the search, for `crate::economy::caravan`: eight
     /// directions and the larger heuristic, resumable across frames.
     pub(crate) fn step_road_caravan(
         &mut self,
@@ -724,7 +724,7 @@ impl Sim {
     /// `WorldData::was_seen@006b53f0` at the tile's fog cell — the one
     /// **with** the ally-territory shortcut, which is a different function
     /// from `was_really_seen@006b54f0` with one letter between their names
-    /// (`crate::scout`). This read the bare one until run62, and the six
+    /// (`crate::units::think::scout`). This read the bare one until run62, and the six
     /// nodes it doubled that the original did not are what said so
     /// (`docs/ROADS.md` §7.3): every one is a cell of the searcher's own
     /// territory whose `seen2` bit is clear, and the original calls it

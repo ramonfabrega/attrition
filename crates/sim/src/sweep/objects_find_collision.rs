@@ -43,7 +43,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let (ux, uy) = (div3(x >> 4), div3(y >> 4));
         let (mut t8, mut tbc) = (0usize, 0usize);
         let mut scratch = false;
-        let r = crate::collide::find_collision_steps(
+        let r = crate::movement::collide::find_collision_steps(
             fifth != 0,
             domain == 0,
             mine,
@@ -68,7 +68,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     let (idx, who) = (rd16(w, 0x2c), rd16(w, 0x2e));
                     (idx >= 0).then_some((idx, who))
                 };
-                crate::collide::chain_hit_steps(
+                crate::movement::collide::chain_hit_steps(
                     (ux, uy),
                     mine,
                     |dx, dy| {

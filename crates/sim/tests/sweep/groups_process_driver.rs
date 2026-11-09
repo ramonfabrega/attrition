@@ -51,8 +51,8 @@ fn the_emulated_original_agrees_on_every_row() {
                 // use); `p[8 + 2g]` group `g`'s count (+0xc) and `p[9 + 2g]` its +0x3c/+0x40 pair. The group table's base is
                 // not a window, so the stub's `ecx` (`s0:<address>`) is held relative to the first call, the windows
                 // below pinning which group each call was.
-                use crate::groups_process_view::{GroupsProcessView, groups_process_steps};
-                use crate::normalize_view::{NormalizeView, normalize_steps};
+                use crate::groups::groups_process_view::{GroupsProcessView, groups_process_steps};
+                use crate::groups::normalize_view::{NormalizeView, normalize_steps};
                 struct G<'a> {
                     p: &'a mut [Vec<u8>],
                     gid: i32,

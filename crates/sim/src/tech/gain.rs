@@ -341,7 +341,7 @@ impl Sim {
     /// `get_unit_gpiece` is `ages < 5 ? ages / 3 : 2`, so the third and the
     /// fifth ages move every figure one bracket up, and the new piece's
     /// lengths are what its next `set_anim` reads. The flags stay the ones
-    /// `init_real` took ([`crate::anim::Guy::flag_piece`]); `docs/TECH.md`,
+    /// `init_real` took ([`crate::units::anim::Guy::flag_piece`]); `docs/TECH.md`,
     /// "The piece moves with the age".
     pub(crate) fn age_snap_units(&mut self, who: Player) {
         for u in 0..self.units.len() {
@@ -447,13 +447,13 @@ impl Sim {
             let age = self.tables.tech_tree.types[id].age;
             let mut back = [0i32; economy::RESOURCES];
             let item = &mut self.buildings[lib].queue.items[slot];
-            for pair in 0..production::PAIRS {
+            for pair in 0..crate::cities::production::PAIRS {
                 let good = item.good[pair];
                 if good < 0 {
                     continue;
                 }
                 let paid = i32::from(item.cost[pair]);
-                let now = cost::reprice(&self.tables.tuning, paid, level, age);
+                let now = crate::economy::cost::reprice(&self.tables.tuning, paid, level, age);
                 back[good as usize] += paid - now;
                 item.cost[pair] = now as i16;
             }
@@ -513,7 +513,7 @@ impl Sim {
         let Some(rec) = self.build_record(t) else {
             return true;
         };
-        if self.tables.build_types[rec].ident != crate::build::Ident::Senate {
+        if self.tables.build_types[rec].ident != crate::cities::build::Ident::Senate {
             return true;
         }
         if self.num_sites_of(who, rec) != 0 {
@@ -521,7 +521,7 @@ impl Sim {
         }
         let own = self.cities_of(who);
         let active_senates =
-            |c: usize| self.count_buildings(c, crate::build::Ident::Senate, true) != 0;
+            |c: usize| self.count_buildings(c, crate::cities::build::Ident::Senate, true) != 0;
         let Some((c1, o1)) = self.leader_find_capital(who, None) else {
             return false;
         };

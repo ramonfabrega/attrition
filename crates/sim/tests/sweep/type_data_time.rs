@@ -1,7 +1,7 @@
 //! `TypeData::time@00663f20` under the emulator against the port (item 2090; hand-written on tools/emu/hooks.py).
 
-use crate::production::time_by;
-use crate::type_index::is_spell_type;
+use crate::cities::production::time_by;
+use crate::core::type_index::is_spell_type;
 
 /// `TypeData::time@00663f20`, run by `tools/emu/sweep_type_data_time.py` under unicorn (tools/emu): the
 /// record's slot `+0x48` the image's own `is_spell_type` (then [`is_spell_type`] of the index) or a stub asked

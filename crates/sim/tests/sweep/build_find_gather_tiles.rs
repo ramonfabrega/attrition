@@ -38,8 +38,8 @@ fn the_emulated_original_agrees_on_every_row() {
             // (`Sim::find_gather_tiles` calls it); the gate, the `0x1000` marking and `gather_max`
             // are the sweep's, since the crate method needs a whole `Sim` world for `gather_tcoords`.
             use crate::Pos;
-            use crate::gather::extend_and_shuffle_gather_list;
-            use crate::place::tile_corner_of;
+            use crate::cities::place::tile_corner_of;
+            use crate::economy::gather::extend_and_shuffle_gather_list;
             const K: i32 = 0x63637;
             let mut toks = ["-".to_string(), "-".to_string()];
             if a[0] != 0 && a[1] == 0 && a[2] == 0 {

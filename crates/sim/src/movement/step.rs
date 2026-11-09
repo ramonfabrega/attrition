@@ -17,7 +17,7 @@ impl Sim {
     /// (`orders::do_move`), in the same frame and before this.
     pub(crate) fn process_movement(&mut self, i: usize) {
         let (guy_mark, squad, len) = self.guy_walk_counts(i);
-        let walk: Vec<usize> = anim::process_walk(guy_mark, squad, len).collect();
+        let walk: Vec<usize> = crate::units::anim::process_walk(guy_mark, squad, len).collect();
         self.process_movement_on(i, &walk);
     }
 
@@ -100,7 +100,7 @@ impl Sim {
         }
         // A unit with no figure to walk keeps the turn's mark where it was.
         if let Some((was, to, heading)) = turn {
-            self.mark(anim::SITE_TURN_STAND);
+            self.mark(crate::units::anim::SITE_TURN_STAND);
             self.do_turn_anim(i, was, to, heading);
         }
         let unit = &mut self.units[i];
@@ -178,7 +178,7 @@ impl Sim {
         // mark `Unit::set_in_danger` gave it (`docs/ORDERS.md` §22).
         // The flag is guy 0's (`set_in_danger` sets no other), so guy
         // 0's gate is the whole clear: a crew figure has none to drop.
-        if collide::repaint_due(
+        if crate::movement::collide::repaint_due(
             self.frame,
             self.units[i].index,
             self.units[i].movement.body.avg_speed,
@@ -254,7 +254,7 @@ impl Sim {
             &mut (),
             g as i32,
             |_| self.get_speed_at(i, f.body.pos, 1),
-            |_| anim::SQUAD_SIZE as i32,
+            |_| crate::units::anim::SQUAD_SIZE as i32,
             |_| !self.units[i].orders.is_empty(),
             |_| self.current_order(i).is_some(),
             |_| {
@@ -288,7 +288,7 @@ impl Sim {
                 // got and pays the idle roll.
                 let was = next.facing;
                 next.facing = movement::turn_towards(next.facing, next.des_angle, rate).0;
-                self.mark(anim::SITE_TURN_STAND);
+                self.mark(crate::units::anim::SITE_TURN_STAND);
                 self.guy_do_turn_anim(i, g, was, next.facing, next.des_angle);
             }
             next.body.avg_speed = (next.body.avg_speed * 3 + next.body.last_speed) / 4;

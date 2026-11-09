@@ -41,7 +41,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 at = i16::from_le_bytes([p[1 + at as usize][0x74], p[1 + at as usize][0x75]]);
             }
             let (mut w, mut r) = (0usize, 0usize);
-            i64::from(crate::city::count_wonders(
+            i64::from(crate::cities::city::count_wonders(
                 chain,
                 |_| {
                     w += 1;

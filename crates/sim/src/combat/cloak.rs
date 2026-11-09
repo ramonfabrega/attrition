@@ -26,7 +26,9 @@ impl Sim {
         }
         if let Some(t) = self.units[u].ty {
             let p = &self.tables.unit_types[t].combat;
-            if p.domain == attrition::Domain::Land && p.obj_masks & combat::mask::CIVILIAN == 0 {
+            if p.domain == crate::territory::attrition::Domain::Land
+                && p.obj_masks & combat::mask::CIVILIAN == 0
+            {
                 self.units[u].unit_masks2 |= combat::umask2::CLOAK_MARK;
             }
         }
@@ -113,9 +115,9 @@ impl Sim {
     pub(crate) fn step_cloak(&mut self, i: usize, at: Pos) {
         let un = &self.units[i];
         if self.iroquois(un.owner)
-            && un
-                .ty
-                .is_some_and(|t| self.tables.unit_types[t].combat.domain == attrition::Domain::Land)
+            && un.ty.is_some_and(|t| {
+                self.tables.unit_types[t].combat.domain == crate::territory::attrition::Domain::Land
+            })
         {
             self.units[i].cloak = self.world.tile_mask(at.tile()) & world::tile::SURFACE
                 == world::tile::SURFACE_FOREST;
@@ -128,7 +130,7 @@ impl Sim {
     /// ([`combat::umask2::MARINE`]). run1325's Marines print `unit_masks2`
     /// `0x20800`, this and the trench (`docs/AI.md` §341).
     pub(crate) fn init_marine_mask(&mut self, u: usize) {
-        if self.speed_is(u, crate::cast_transport::MARINES, false) {
+        if self.speed_is(u, crate::spells::cast_transport::MARINES, false) {
             self.units[u].unit_masks2 |= crate::combat::umask2::MARINE;
         }
     }

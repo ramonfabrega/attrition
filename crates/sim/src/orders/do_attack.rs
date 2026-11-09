@@ -240,7 +240,7 @@ fn grouped<V: DoAttackView>(v: &mut V) {
 
 /// `project(p, angle, d)` — the crate's polar step.
 fn project(x: i32, y: i32, a: Angle, d: i32) -> (i32, i32) {
-    let p = crate::army::step_along(crate::Pos::new(x, y), a, d);
+    let p = crate::ai::army::step_along(crate::Pos::new(x, y), a, d);
     (p.x, p.y)
 }
 

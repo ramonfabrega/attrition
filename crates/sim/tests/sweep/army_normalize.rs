@@ -32,7 +32,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // the view over the windows. Group id `g` is row `g` of the sparse table, its slices `p[6g..6g+6]`
             // (vtable, num, leader word at +0x10, role, +0x48 word, list word); the units chain is `p[41 + i]`
             // (`+0x14` of unit i's type record). Stub answers: stub 2 `a[5 + k]`, stub 3 `a[17 + k]` for the k-th call.
-            use crate::army_normalize_view::{ArmyNormalizeView, army_normalize_steps};
+            use crate::ai::army::army_normalize_view::{ArmyNormalizeView, army_normalize_steps};
             struct V<'a> {
                 m: &'a mut [u8],
                 p: &'a mut [Vec<u8>],

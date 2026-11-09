@@ -1,5 +1,5 @@
 use super::*;
-use crate::group::Group;
+use crate::groups::group::Group;
 use crate::movement::Angle;
 use crate::orders::QueuePos;
 use crate::world::{Cell, Terrain, World};
@@ -34,7 +34,7 @@ fn fighter(s: &mut Sim) -> usize {
         },
         ..UnitType::default()
     };
-    t.cols.role |= crate::ai_load::role::ROLE_MILITARY;
+    t.cols.role |= crate::ai::ai_load::role::ROLE_MILITARY;
     s.add_unit_type(t)
 }
 
@@ -332,7 +332,7 @@ fn the_tail_invert_turns_over_a_stack_the_move_never_wrote_to() {
             },
             ..UnitType::default()
         };
-        t.cols.role |= crate::ai_load::role::ROLE_MILITARY;
+        t.cols.role |= crate::ai::ai_load::role::ROLE_MILITARY;
         s.add_unit_type(t)
     };
     let slot = s.init_army(1, None);

@@ -12,10 +12,10 @@
 //! nation, wonder and patriot tables: every "+N attack under Alexander" is a
 //! [`Modifiers`] input, the same choice `docs/COSTS.md` made for discounts.
 
-use crate::attrition::Domain;
+use crate::core::tuning::Tuning;
 use crate::movement::Angle;
-use crate::single::Single;
-use crate::tuning::Tuning;
+use crate::num::single::Single;
+use crate::territory::attrition::Domain;
 use crate::world::{Pos, vector_dist};
 
 /// `UNIT_MOVE_SPEED`: the data's `1/192 tile`, which in position units is one —
@@ -203,11 +203,11 @@ pub mod mask {
 /// it plays rather than the rule testing a type id; a profile without the
 /// role leaves the rule inert.
 ///
-/// Not [`crate::balance::line`], whose nine shared words (`CITIZEN`,
+/// Not [`crate::combat::balance::line`], whose nine shared words (`CITIZEN`,
 /// `MILITIA`, `MERCHANT`, `FLAMETHROWER`, `BARK`, `TRIREME`, `V2ROCKET`,
 /// `CITY`, `FORT`) are filled by other predicates — a type here by its
 /// name, a line there by its lineage root — and read at another time; nor
-/// `crate::ai_load::role`, the original's role word. Each member is `IS_`
+/// `crate::ai::ai_load::role`, the original's role word. Each member is `IS_`
 /// so the three cannot be confused by name (item 4013).
 pub mod role {
     /// `PEASANTS`/`PEASANTSKOREAN`/`SCHOLARS`/`SCHOLARSKOREAN` — citizens,
@@ -1070,7 +1070,7 @@ pub fn get_damage_checked(
 ) -> i32 {
     // The twenty-eight steps are `damage::get_damage_steps`, over the view this
     // profile and these two sides make (item 3356).
-    let mut view = crate::damage::Reduced {
+    let mut view = crate::combat::damage::Reduced {
         t,
         a,
         at,
@@ -1082,7 +1082,7 @@ pub fn get_damage_checked(
         frame,
         m,
     };
-    crate::damage::get_damage_steps(&mut view, angle.0, splash, check_overkill, None)
+    crate::combat::damage::get_damage_steps(&mut view, angle.0, splash, check_overkill, None)
 }
 
 /// The flank level of an attack arriving along `angle` at a target facing
@@ -1439,7 +1439,7 @@ pub fn missile_spline(
 ///
 /// - The pitch's index is `cvttss2si(pitch)` folded into `0..360` (`67cbb3`
 ///   –`67cc05`: a negative `p` reads `359 − (−p mod 360)`).
-/// - The angle's is `fast_angle_to_degrees` ([`crate::pivot::fast_degrees`],
+/// - The angle's is `fast_angle_to_degrees` ([`crate::data::pivot::fast_degrees`],
 ///   the top byte's whole degree) **negated** and folded the same way
 ///   (`67cc4d`–`67cc90`), so a degree `d > 0` reads `359 − d`, one more than
 ///   the turn back: a figure parked at 120° leads at 121°.
@@ -1466,7 +1466,7 @@ pub fn missile_lead(launch: Pos, sz: i32, lead: Lead) -> [Single; 3] {
     };
     let v = [Single::ZERO, Single::from_i32(lead.r).neg(), Single::ZERO];
     let v = quat_rotate(quat(fold(lead.pitch.to_i32()), 0), v);
-    let d = crate::pivot::fast_degrees(lead.angle.0);
+    let d = crate::data::pivot::fast_degrees(lead.angle.0);
     let v = quat_rotate(quat(fold(-d), 2), v);
     [
         v[0].addss(Single::from_i32(launch.x)),
@@ -2861,8 +2861,8 @@ pub struct CombatState {
     /// Ammo in flight.
     pub projectiles: Vec<crate::combat::Projectile>,
     /// The nukes' effects and what a nuke writes on its shooter's leader
-    /// and silo (`crate::nuke`, item 1091).
-    pub nukes: crate::nuke::Nukes,
+    /// and silo (`crate::combat::nuke`, item 1091).
+    pub nukes: crate::combat::nuke::Nukes,
     /// **The death objects**, the `DEATH_OBJS` list the dump prints at the
     /// frame level (`docs/COMBAT.md` §42.1). One is made by `Unit::close`
     /// for every unit death whose `dtype` is non-zero, and it carries the

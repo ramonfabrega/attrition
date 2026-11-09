@@ -52,10 +52,10 @@ fn the_emulated_original_agrees_on_every_row() {
                     }
                     let to = rd(&p[3 * w], (0x6c + 4 * o) as usize) == 2;
                     let from = rd(&p[3 * o as usize], (0x6c + 4 * me) as usize) == 2;
-                    if crate::place::friendly_ground(o, me, to, from) {
+                    if crate::cities::place::friendly_ground(o, me, to, from) {
                         continue;
                     }
-                    let near = crate::place::claim_reaches(
+                    let near = crate::cities::place::claim_reaches(
                         rd(&p[3 * w + 1], 0),
                         short(&p[24], rec + 4),
                         |g| {

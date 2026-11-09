@@ -32,7 +32,7 @@ pub(crate) const LAKOTA: Lobby = Lobby {
     // count 6071, sequence 6071 (ours 2 draws, theirs 3, at 0: ours
     // `Ammo::init+0xcd9`, theirs `Unit::do_move+0xe84`). Item 3345
     // promoted it to the AI word (`docs/AI.md` §277). Item 3345, the
-    // `NA`-style Slinger's release bays (piece 1440, `sim::launch`): 6071
+    // `NA`-style Slinger's release bays (piece 1440, `sim::data::launch`): 6071
     // → 7902, the game's last frame, count and sequence (run980b's block
     // 6047, `1/18`'s stone at `0/2` from (4962, 30153) in 7 frames).
     count: 7902,
@@ -144,7 +144,7 @@ fn run980_s_word_frame_is_widened_whole() {
     // the citizen `0/2`, thrown on 6046, landed on 6053 against 6052
     // (`damage_frame`), and `1/20`'s at the city centre on 6059 against
     // 6058 (`raid_stamp`), so `0/2` fled a frame late. The Slinger of the
-    // `NA` art style is piece 1440, which `sim::launch` had no bays for;
+    // `NA` art style is piece 1440, which `sim::data::launch` had no bays for;
     // run980b prints the stone's `sx, sy` (4962, 30153) and `total_time`
     // 7, where ours threw from the unit's own (5016, 30264) in 8. Built:
     // 1147 → 30. What stands: 6065's standing 27 (`form` −1 against 9, the

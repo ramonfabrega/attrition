@@ -39,7 +39,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // + slot` the hero objects. The leaders' power words (`+0x59cc..+0x59e8`) are held zero: the auras
             // are not walked (SEAM, `unit_speed_view`). `is_ally`'s and `find_hero`'s arguments, and the
             // footprint handed to it, are not held (no `--record`); owners 0 and 1 only, never Gaia.
-            use crate::unit_speed_view::{UnitSpeedView, unit_speed};
+            use crate::units::unit_speed_view::{UnitSpeedView, unit_speed};
             const KEY: i32 = 0x63637;
             struct V<'a> {
                 a: &'a [i32],

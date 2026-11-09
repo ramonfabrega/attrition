@@ -36,9 +36,9 @@ fn the_emulated_original_agrees_on_every_row() {
             // (`x` at 19, `y` at 20) and each answering stub's run: slot `+0x18` 21..27, slot `+0xc0` 27..35,
             // `is_on_map` 35..37, `find_leader` 37..41, `get_form_option` 41..44, `get_unit` 44..46.
             //
-            // **The port is the crate's own steps**, `crate::form_view::action_form_steps`, which
+            // **The port is the crate's own steps**, `crate::groups::form_view::action_form_steps`, which
             // `Sim::group_action_form` runs over its `SimActionForm`; here the view is the emulated original's windows.
-            use crate::form_view::{ActionFormView, action_form_steps};
+            use crate::groups::form_view::{ActionFormView, action_form_steps};
             struct V<'a> {
                 a: &'a [i32],
                 m: &'a mut [u8],

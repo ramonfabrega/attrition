@@ -680,9 +680,9 @@ fn a_land_unit_on_a_river_tile_at_or_below_the_waterline_walks_at_half() {
 
     // The arm is the **land** one whole: a boat over the same tile is
     // not slowed by it.
-    s.units[a].kind.domain = crate::attrition::Domain::Sea;
+    s.units[a].kind.domain = crate::territory::attrition::Domain::Sea;
     assert_eq!(s.get_speed(a, 0), 34, "sea takes none of layer three");
-    s.units[a].kind.domain = crate::attrition::Domain::Land;
+    s.units[a].kind.domain = crate::territory::attrition::Domain::Land;
 
     // The floor is below the halving, not above it.
     s.units[a].movement.speed = 4;
@@ -733,7 +733,7 @@ fn the_group_cap_is_flag_zero_s_and_an_action_order_is_exempt() {
     // Great Lakes' group 65 in miniature: a 26 and a 25.
     let fast = make(&mut s, foot, 0, Pos::new(0x1000, 0x1000), 26);
     let slow = make(&mut s, horse, 1, Pos::new(0x1100, 0x1000), 25);
-    let mut g = crate::group::Group {
+    let mut g = crate::groups::group::Group {
         who: 1,
         army: None,
         pushed: None,

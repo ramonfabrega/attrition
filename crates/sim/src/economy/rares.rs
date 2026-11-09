@@ -137,7 +137,8 @@ impl Sim {
             // `is(0x13d, 0) || is_merchant`, then `order_type() == NONE`.
             // A merchant walking somewhere earns nothing, which is also
             // why a boat only ever pays between two `think_fish` searches.
-            if !(self.unit_line_is(u, crate::fish::FISHERMEN) || self.is_merchant(u)) {
+            if !(self.unit_line_is(u, crate::units::think::fish::FISHERMEN) || self.is_merchant(u))
+            {
                 continue;
             }
             if self.order_type(u) != orders::index::NONE {
@@ -168,7 +169,7 @@ impl Sim {
                 self.tables.tech_tree.has_tribe_bonus(
                     &self.tables.setup,
                     &self.tech[who as usize],
-                    crate::nations::power::JAPANESE,
+                    crate::cities::nations::power::JAPANESE,
                 ),
             );
             let share = crowd + 1;
@@ -198,7 +199,7 @@ impl Sim {
         let Ok(i) = usize::try_from(i) else {
             return false;
         };
-        let circle = crate::ai_place::circle();
+        let circle = crate::ai::ai_place::circle();
         let (Some(&dx), Some(&dy)) = (circle.x.get(i), circle.y.get(i)) else {
             return false;
         };
@@ -304,7 +305,7 @@ impl Sim {
             if self.trainer_where(ty) == Some(BARRACKS)
                 || ti == PEASANTS
                 || ti == PEASANTS_KOREAN
-                || lineage(crate::cast::MILITIA)
+                || lineage(crate::spells::cast::MILITIA)
             {
                 speed = (self.tables.tuning.bantu_units_move + 100) * speed / 100;
             }
@@ -332,7 +333,7 @@ impl Sim {
         // Modern word's Bombers sit at 75 on a `MOVES` of 60 (run1397's
         // stride from 3101), and the range a sortie asks of them is the
         // speed times the tank (`docs/AI.md` §366.3).
-        if self.tables.unit_types[ty].kind.domain == crate::attrition::Domain::Air
+        if self.tables.unit_types[ty].kind.domain == crate::territory::attrition::Domain::Air
             && self.has_rare(who, economy::ALUMINUM)
         {
             speed = (self.tables.tuning.aluminum_air_speed + 100) * speed / 100;
@@ -348,13 +349,13 @@ impl Sim {
         // three held (`docs/AI.md` §172).
         if self.tables.unit_types[ty]
             .cols
-            .flag2(crate::ai_load::uflags2::FLAG2_GENERAL)
+            .flag2(crate::ai::ai_load::uflags2::FLAG2_GENERAL)
         {
             speed += self.general_upgrade_level(who) * speed / 4;
         }
         if self.tables.unit_types[ty]
             .cols
-            .flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
+            .flag2(crate::ai::ai_load::uflags2::SUPPLY_OR_HERO)
         {
             speed += self.supply_upgrade_level(who) * speed / 4;
         }

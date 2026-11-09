@@ -1,6 +1,6 @@
 //! `CityData::get_level@00739340` under the emulator against the port (item 2072; hand-written on tools/emu/hooks.py).
 
-use crate::build::{BuildType, Ident, city_level};
+use crate::cities::build::{BuildType, Ident, city_level};
 
 /// `CityData::get_level@00739340`, run by `tools/emu/sweep_city_data_get_level.py` under unicorn (tools/emu): the
 /// city's own object (through the owner's table) is asked once for its data record, and its type id answers the

@@ -18,7 +18,7 @@
 //! `c14` `last_build_built_o`; `p0` the type (`+4` its index), `p(2+4o+i)` the owner's city
 //! `i`, `p9` the region records.
 
-use crate::activate::{
+use crate::cities::activate::{
     ActivateArmsView, ActivateHeadView, activate_arms_steps, activate_head_steps,
 };
 

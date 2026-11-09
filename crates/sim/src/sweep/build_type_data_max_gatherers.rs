@@ -41,7 +41,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let cell = std::cell::RefCell::new(&mut *log);
             let log = &cell;
             let p = &*p;
-            let r = i64::from(crate::gather::max_gatherers_steps(
+            let r = i64::from(crate::economy::gather::max_gatherers_steps(
                 flat,
                 a[0] >= 0 && a[1] >= 0,
                 || {

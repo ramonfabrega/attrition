@@ -13,7 +13,10 @@ fn the_emulated_original_agrees_on_every_row() {
         let table: Vec<u8> = (0..256u32).map(|i| ((i * 7 + 3) & 0xFF) as u8).collect();
         assert_eq!(
             want,
-            i64::from(crate::flag_reads::type_count_at(&table, a[0] as usize)),
+            i64::from(crate::core::flag_reads::type_count_at(
+                &table,
+                a[0] as usize
+            )),
             "get_type_count2 — row `{line}`"
         );
         n += 1;

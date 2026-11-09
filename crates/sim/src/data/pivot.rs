@@ -1290,7 +1290,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // the hull, flew 6, and came down behind the fleeing citizen on 4411.
     (
         189,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         4,
         Release {
             piece: 189,
@@ -1302,7 +1302,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         189,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         21,
         Release {
             piece: 189,
@@ -1314,7 +1314,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         189,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         14,
         Release {
             piece: 189,
@@ -1336,7 +1336,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // after `1/14`'s search of 712.
     (
         201,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         11,
         Release {
             piece: 201,
@@ -1348,7 +1348,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         201,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         23,
         Release {
             piece: 201,
@@ -1360,7 +1360,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         201,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         27,
         Release {
             piece: 201,
@@ -1381,7 +1381,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // this crate's left the hull's square (9432, 31128) at 619.
     (
         190,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         4,
         Release {
             piece: 190,
@@ -1393,7 +1393,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         190,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         21,
         Release {
             piece: 190,
@@ -1405,7 +1405,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         190,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         1,
         Release {
             piece: 190,
@@ -1428,7 +1428,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // `0/5` on 3807.
     (
         278,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         10,
         Release {
             piece: 278,
@@ -1440,7 +1440,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         278,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         12,
         Release {
             piece: 278,
@@ -1452,7 +1452,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         278,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         15,
         Release {
             piece: 278,
@@ -1464,7 +1464,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         278,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         10,
         Release {
             piece: 278,
@@ -1476,7 +1476,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         278,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Release {
             piece: 278,
@@ -1488,7 +1488,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         278,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         15,
         Release {
             piece: 278,
@@ -1500,7 +1500,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         278,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         10,
         Release {
             piece: 278,
@@ -1512,7 +1512,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         278,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         12,
         Release {
             piece: 278,
@@ -1524,7 +1524,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         278,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         15,
         Release {
             piece: 278,
@@ -1546,7 +1546,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // hull's own square `(2808, 11832, 0)` and flew 14 frames against 13.
     (
         299,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         1,
         Release {
             piece: 299,
@@ -1558,7 +1558,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         299,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         7,
         Release {
             piece: 299,
@@ -1570,7 +1570,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         299,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Release {
             piece: 299,
@@ -1582,7 +1582,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         299,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         1,
         Release {
             piece: 299,
@@ -1594,7 +1594,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         299,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         7,
         Release {
             piece: 299,
@@ -1606,7 +1606,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         299,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         12,
         Release {
             piece: 299,
@@ -1629,7 +1629,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // outlived the original's on 4021.
     (
         200,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         4,
         Release {
             piece: 200,
@@ -1641,7 +1641,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         200,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         21,
         Release {
             piece: 200,
@@ -1653,7 +1653,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         200,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         1,
         Release {
             piece: 200,
@@ -1675,7 +1675,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // longer.
     (
         279,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         10,
         Release {
             piece: 279,
@@ -1687,7 +1687,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         279,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         12,
         Release {
             piece: 279,
@@ -1699,7 +1699,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         279,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         15,
         Release {
             piece: 279,
@@ -1711,7 +1711,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         279,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         10,
         Release {
             piece: 279,
@@ -1723,7 +1723,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         279,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Release {
             piece: 279,
@@ -1735,7 +1735,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         279,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         15,
         Release {
             piece: 279,
@@ -1747,7 +1747,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         279,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         10,
         Release {
             piece: 279,
@@ -1759,7 +1759,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         279,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         12,
         Release {
             piece: 279,
@@ -1771,7 +1771,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         279,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         15,
         Release {
             piece: 279,
@@ -1783,7 +1783,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         139,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         12,
         Release {
             piece: 139,
@@ -1795,7 +1795,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         139,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Release {
             piece: 139,
@@ -1807,7 +1807,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         139,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         13,
         Release {
             piece: 139,
@@ -1819,7 +1819,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         139,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         18,
         Release {
             piece: 139,
@@ -1843,7 +1843,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // on 864, a frame after the original's.
     (
         143,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         12,
         Release {
             piece: 143,
@@ -1855,7 +1855,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         143,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Release {
             piece: 143,
@@ -1867,7 +1867,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         143,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         13,
         Release {
             piece: 143,
@@ -1879,7 +1879,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         143,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         18,
         Release {
             piece: 143,
@@ -1901,7 +1901,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // (15828, 15703, 835).
     (
         141,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         13,
         Release {
             piece: 141,
@@ -1913,7 +1913,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         141,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         13,
         Release {
             piece: 141,
@@ -1925,7 +1925,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         141,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         13,
         Release {
             piece: 141,
@@ -1937,7 +1937,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         141,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         10,
         Release {
             piece: 141,
@@ -1955,7 +1955,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // been run for this piece (`tools/recomp/get_position.py … pivot`).
     (
         194,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         4,
         Release {
             piece: 194,
@@ -1967,7 +1967,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         194,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         21,
         Release {
             piece: 194,
@@ -1979,7 +1979,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         194,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         1,
         Release {
             piece: 194,
@@ -2000,7 +2000,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // 750)`, not its square `(9617, 31210)`, and flies 6 frames, not 7.
     (
         166,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         3,
         Release {
             piece: 166,
@@ -2012,7 +2012,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         9,
         Release {
             piece: 166,
@@ -2024,7 +2024,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         12,
         Release {
             piece: 166,
@@ -2042,7 +2042,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         17,
         Release {
             piece: 166,
@@ -2054,7 +2054,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         20,
         Release {
             piece: 166,
@@ -2073,7 +2073,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         22,
         Release {
             piece: 166,
@@ -2085,7 +2085,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         24,
         Release {
             piece: 166,
@@ -2097,7 +2097,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         29,
         Release {
             piece: 166,
@@ -2109,7 +2109,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         3,
         Release {
             piece: 166,
@@ -2121,7 +2121,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         9,
         Release {
             piece: 166,
@@ -2133,7 +2133,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Release {
             piece: 166,
@@ -2145,7 +2145,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         17,
         Release {
             piece: 166,
@@ -2157,7 +2157,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         20,
         Release {
             piece: 166,
@@ -2169,7 +2169,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         22,
         Release {
             piece: 166,
@@ -2198,7 +2198,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         24,
         Release {
             piece: 166,
@@ -2210,7 +2210,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         29,
         Release {
             piece: 166,
@@ -2222,7 +2222,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         3,
         Release {
             piece: 166,
@@ -2234,7 +2234,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         9,
         Release {
             piece: 166,
@@ -2246,7 +2246,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         12,
         Release {
             piece: 166,
@@ -2258,7 +2258,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         17,
         Release {
             piece: 166,
@@ -2281,7 +2281,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         20,
         Release {
             piece: 166,
@@ -2293,7 +2293,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         22,
         Release {
             piece: 166,
@@ -2305,7 +2305,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         24,
         Release {
             piece: 166,
@@ -2317,7 +2317,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         29,
         Release {
             piece: 166,
@@ -2329,7 +2329,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         3,
         Release {
             piece: 166,
@@ -2341,7 +2341,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         9,
         Release {
             piece: 166,
@@ -2353,7 +2353,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         12,
         Release {
             piece: 166,
@@ -2365,7 +2365,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         17,
         Release {
             piece: 166,
@@ -2377,7 +2377,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         20,
         Release {
             piece: 166,
@@ -2389,7 +2389,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         22,
         Release {
             piece: 166,
@@ -2401,7 +2401,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         24,
         Release {
             piece: 166,
@@ -2413,7 +2413,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         166,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         29,
         Release {
             piece: 166,
@@ -2436,7 +2436,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // original's left the muzzle at (6307, 32645, 309).
     (
         170,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         4,
         Release {
             piece: 170,
@@ -2448,7 +2448,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         170,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         19,
         Release {
             piece: 170,
@@ -2460,7 +2460,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         170,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         4,
         Release {
             piece: 170,
@@ -2472,7 +2472,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         170,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         19,
         Release {
             piece: 170,
@@ -2484,7 +2484,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         170,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         4,
         Release {
             piece: 170,
@@ -2496,7 +2496,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         170,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         19,
         Release {
             piece: 170,
@@ -2508,7 +2508,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         170,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         4,
         Release {
             piece: 170,
@@ -2520,7 +2520,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         170,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         19,
         Release {
             piece: 170,
@@ -2547,7 +2547,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // 605).
     (
         204,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         11,
         Release {
             piece: 204,
@@ -2559,7 +2559,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         204,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         23,
         Release {
             piece: 204,
@@ -2571,7 +2571,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         204,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         27,
         Release {
             piece: 204,
@@ -2583,7 +2583,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         204,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         1,
         Release {
             piece: 204,
@@ -2595,7 +2595,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         204,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         7,
         Release {
             piece: 204,
@@ -2607,7 +2607,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         204,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         1,
         Release {
             piece: 204,
@@ -2619,7 +2619,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         204,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         7,
         Release {
             piece: 204,
@@ -2639,7 +2639,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // of the car's own square along the turret.
     (
         168,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         1,
         Release {
             piece: 168,
@@ -2656,7 +2656,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         168,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         1,
         Release {
             piece: 168,
@@ -2668,7 +2668,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         168,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         11,
         Release {
             piece: 168,
@@ -2684,7 +2684,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         168,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         12,
         Release {
             piece: 168,
@@ -2702,7 +2702,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         137,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         18,
         Release {
             piece: 137,
@@ -2714,7 +2714,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         137,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         18,
         Release {
             piece: 137,
@@ -2726,7 +2726,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         137,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         16,
         Release {
             piece: 137,
@@ -2738,7 +2738,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         137,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         18,
         Release {
             piece: 137,
@@ -2767,7 +2767,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // landing at a speed of 100, and flew 3 frames where theirs flew 2.
     (
         138,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         18,
         Release {
             piece: 138,
@@ -2779,7 +2779,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         138,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         18,
         Release {
             piece: 138,
@@ -2791,7 +2791,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         138,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         16,
         Release {
             piece: 138,
@@ -2803,7 +2803,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         138,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         20,
         Release {
             piece: 138,
@@ -2826,7 +2826,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // against 16.
     (
         149,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         18,
         Release {
             piece: 149,
@@ -2838,7 +2838,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         149,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         18,
         Release {
             piece: 149,
@@ -2850,7 +2850,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         149,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         16,
         Release {
             piece: 149,
@@ -2862,7 +2862,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         149,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         19,
         Release {
             piece: 149,
@@ -2884,7 +2884,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // this crate loosed from the figure's own (6312, 10440) at 38.
     (
         150,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         18,
         Release {
             piece: 150,
@@ -2896,7 +2896,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         150,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         18,
         Release {
             piece: 150,
@@ -2908,7 +2908,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         150,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         16,
         Release {
             piece: 150,
@@ -2920,7 +2920,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         150,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         19,
         Release {
             piece: 150,
@@ -2941,7 +2941,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // and 170 up, where this crate loosed from the figure's own square.
     (
         169,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         3,
         Release {
             piece: 169,
@@ -2953,7 +2953,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         169,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         9,
         Release {
             piece: 169,
@@ -2965,7 +2965,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         169,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         12,
         Release {
             piece: 169,
@@ -2977,7 +2977,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         169,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         17,
         Release {
             piece: 169,
@@ -2989,7 +2989,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         169,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         20,
         Release {
             piece: 169,
@@ -3001,7 +3001,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         169,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         22,
         Release {
             piece: 169,
@@ -3013,7 +3013,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         169,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         24,
         Release {
             piece: 169,
@@ -3025,7 +3025,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         169,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         29,
         Release {
             piece: 169,
@@ -3037,7 +3037,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         169,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         3,
         Release {
             piece: 169,
@@ -3049,7 +3049,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         169,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         9,
         Release {
             piece: 169,
@@ -3061,7 +3061,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         169,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         12,
         Release {
             piece: 169,
@@ -3073,7 +3073,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         169,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         17,
         Release {
             piece: 169,
@@ -3085,7 +3085,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         169,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         20,
         Release {
             piece: 169,
@@ -3097,7 +3097,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         169,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         22,
         Release {
             piece: 169,
@@ -3109,7 +3109,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         169,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         24,
         Release {
             piece: 169,
@@ -3121,7 +3121,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         169,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         29,
         Release {
             piece: 169,
@@ -3143,7 +3143,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // 34728, 480) against the original's (4142, 34576, 629).
     (
         199,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         4,
         Release {
             piece: 199,
@@ -3155,7 +3155,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         199,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         21,
         Release {
             piece: 199,
@@ -3167,7 +3167,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         199,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         1,
         Release {
             piece: 199,
@@ -3191,7 +3191,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // where this crate loosed from the figure's own square.
     (
         207,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         11,
         Release {
             piece: 207,
@@ -3203,7 +3203,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         207,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         23,
         Release {
             piece: 207,
@@ -3215,7 +3215,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         207,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         27,
         Release {
             piece: 207,
@@ -3237,7 +3237,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // this crate loosed from the figure's own square.
     (
         208,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         3,
         Release {
             piece: 208,
@@ -3249,7 +3249,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         208,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         3,
         Release {
             piece: 208,
@@ -3261,7 +3261,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         208,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         3,
         Release {
             piece: 208,
@@ -3284,7 +3284,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // original's (4155, 31681, 744).
     (
         196,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         4,
         Release {
             piece: 196,
@@ -3296,7 +3296,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         196,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         21,
         Release {
             piece: 196,
@@ -3308,7 +3308,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         196,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         1,
         Release {
             piece: 196,
@@ -3320,7 +3320,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         145,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         18,
         Release {
             piece: 145,
@@ -3332,7 +3332,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         145,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         18,
         Release {
             piece: 145,
@@ -3344,7 +3344,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         145,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         17,
         Release {
             piece: 145,
@@ -3356,7 +3356,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         145,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         18,
         Release {
             piece: 145,
@@ -3368,7 +3368,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         296,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         3,
         Release {
             piece: 296,
@@ -3380,7 +3380,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         296,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         3,
         Release {
             piece: 296,
@@ -3392,7 +3392,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         296,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         3,
         Release {
             piece: 296,
@@ -3415,7 +3415,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // struck on 3962 and ours was still in the air (the word 3962's draw).
     (
         297,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         3,
         Release {
             piece: 297,
@@ -3427,7 +3427,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         297,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         3,
         Release {
             piece: 297,
@@ -3439,7 +3439,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         297,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         3,
         Release {
             piece: 297,
@@ -3453,7 +3453,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // — anims 10 (`CHAR_ATTACKWALK`), 11, 12 (the stationary round) and 13.
     (
         491,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         12,
         Release {
             piece: 491,
@@ -3470,7 +3470,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         491,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Release {
             piece: 491,
@@ -3482,7 +3482,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         491,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         13,
         Release {
             piece: 491,
@@ -3494,7 +3494,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         491,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         18,
         Release {
             piece: 491,
@@ -3512,7 +3512,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // form; every other cell agrees.
     (
         1545,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         18,
         Release {
             piece: 1545,
@@ -3524,7 +3524,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         1545,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         18,
         Release {
             piece: 1545,
@@ -3536,7 +3536,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         1545,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         16,
         Release {
             piece: 1545,
@@ -3548,7 +3548,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         1545,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         18,
         Release {
             piece: 1545,
@@ -3567,7 +3567,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // and its `float_lands` are `get_position.py pivot 1546 0 13 20 1`'s.
     (
         1546,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         18,
         Release {
             piece: 1546,
@@ -3579,7 +3579,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         1546,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         18,
         Release {
             piece: 1546,
@@ -3591,7 +3591,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         1546,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         16,
         Release {
             piece: 1546,
@@ -3603,7 +3603,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         1546,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         20,
         Release {
             piece: 1546,
@@ -3622,7 +3622,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // integer form on every cell of all four, so none has a `float_lands`.
     (
         1898,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         18,
         Release {
             piece: 1898,
@@ -3634,7 +3634,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         1898,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         18,
         Release {
             piece: 1898,
@@ -3646,7 +3646,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         1898,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         16,
         Release {
             piece: 1898,
@@ -3658,7 +3658,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         1898,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         20,
         Release {
             piece: 1898,
@@ -3678,7 +3678,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // four, which are the rows' `float_lands`.
     (
         841,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         18,
         Release {
             piece: 841,
@@ -3690,7 +3690,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         841,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         18,
         Release {
             piece: 841,
@@ -3702,7 +3702,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         841,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         16,
         Release {
             piece: 841,
@@ -3714,7 +3714,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         841,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         18,
         Release {
             piece: 841,
@@ -3735,7 +3735,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // flew 4 and struck a frame late, which is the word 4187's draw.
     (
         157,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         12,
         Release {
             piece: 157,
@@ -3747,7 +3747,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         157,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         Release {
             piece: 157,
@@ -3759,7 +3759,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         157,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         13,
         Release {
             piece: 157,
@@ -3771,7 +3771,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         157,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         18,
         Release {
             piece: 157,
@@ -3799,7 +3799,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // `CHAR_ATTACK3`, which are its `float_lands`.
     (
         156,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         18,
         Release {
             piece: 156,
@@ -3811,7 +3811,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         156,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         18,
         Release {
             piece: 156,
@@ -3823,7 +3823,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         156,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         16,
         Release {
             piece: 156,
@@ -3835,7 +3835,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         156,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         18,
         Release {
             piece: 156,
@@ -3862,7 +3862,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // form on every cell but one of `CHAR_ATTACK3`, its `float_lands`.
     (
         153,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         18,
         Release {
             piece: 153,
@@ -3874,7 +3874,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         153,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         18,
         Release {
             piece: 153,
@@ -3886,7 +3886,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         153,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         16,
         Release {
             piece: 153,
@@ -3898,7 +3898,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         153,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         19,
         Release {
             piece: 153,
@@ -3919,7 +3919,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // after the original's struck the human's Citizen `0/5`.
     (
         298,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         1,
         Release {
             piece: 298,
@@ -3931,7 +3931,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         298,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         4,
         Release {
             piece: 298,
@@ -3943,7 +3943,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         298,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         1,
         Release {
             piece: 298,
@@ -3955,7 +3955,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         298,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         4,
         Release {
             piece: 298,
@@ -4027,7 +4027,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         280,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         10,
         Release {
             piece: 280,
@@ -4039,7 +4039,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         280,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         10,
         Release {
             piece: 280,
@@ -4051,7 +4051,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         280,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         14,
         Release {
             piece: 280,
@@ -4063,7 +4063,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         280,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         14,
         Release {
             piece: 280,
@@ -4075,7 +4075,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         280,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         10,
         Release {
             piece: 280,
@@ -4087,7 +4087,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         280,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         10,
         Release {
             piece: 280,
@@ -4099,7 +4099,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         280,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         14,
         Release {
             piece: 280,
@@ -4111,7 +4111,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         280,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         14,
         Release {
             piece: 280,
@@ -4135,7 +4135,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // on 654 where the original's was on 652.
     (
         300,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         19,
         Release {
             piece: 300,
@@ -4147,7 +4147,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         300,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         20,
         Release {
             piece: 300,
@@ -4159,7 +4159,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         300,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         21,
         Release {
             piece: 300,
@@ -4171,7 +4171,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         300,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         22,
         Release {
             piece: 300,
@@ -4183,7 +4183,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         300,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         23,
         Release {
             piece: 300,
@@ -4195,7 +4195,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         300,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         23,
         Release {
             piece: 300,
@@ -4207,7 +4207,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         300,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         26,
         Release {
             piece: 300,
@@ -4219,7 +4219,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         300,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         27,
         Release {
             piece: 300,
@@ -4231,7 +4231,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         300,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         28,
         Release {
             piece: 300,
@@ -4243,7 +4243,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         300,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         29,
         Release {
             piece: 300,
@@ -4255,7 +4255,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         300,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         30,
         Release {
             piece: 300,
@@ -4267,7 +4267,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         300,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         31,
         Release {
             piece: 300,
@@ -4292,7 +4292,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // original's (17714, 16065, 741)), and every blast landed elsewhere.
     (
         223,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         5,
         Release {
             piece: 223,
@@ -4304,7 +4304,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         223,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         8,
         Release {
             piece: 223,
@@ -4316,7 +4316,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         223,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         11,
         Release {
             piece: 223,
@@ -4328,7 +4328,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         223,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         14,
         Release {
             piece: 223,
@@ -4340,7 +4340,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         223,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         17,
         Release {
             piece: 223,
@@ -4352,7 +4352,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         223,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         20,
         Release {
             piece: 223,
@@ -4364,7 +4364,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         223,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         23,
         Release {
             piece: 223,
@@ -4376,7 +4376,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     ),
     (
         223,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         26,
         Release {
             piece: 223,

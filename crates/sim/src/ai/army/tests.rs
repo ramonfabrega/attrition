@@ -8,7 +8,7 @@
 /// the scout and Bark rows and fails the other two.
 #[test]
 fn come_out_s_army_coin_is_thrown_by_the_two_scout_lineages_alone() {
-    use crate::ai_load::uflags2;
+    use crate::ai::ai_load::uflags2;
 
     let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(8, 8), 2);
     sim.world.fill_region(
@@ -85,7 +85,7 @@ fn sim_with_city() -> (Sim, usize) {
 
 fn sim_with_city_slots(slots: usize) -> (Sim, usize) {
     let mut sim = Sim::new(
-        crate::tuning::Tuning::RON,
+        crate::core::tuning::Tuning::RON,
         crate::world::World::new(60, 60),
         slots,
     );
@@ -94,7 +94,7 @@ fn sim_with_city_slots(slots: usize) -> (Sim, usize) {
     let pos = Pos::new(0x3000, 0x3000);
     let b = sim.add_building(1, pos, 1);
     let c = sim.cities.cities.len();
-    sim.cities.cities.push(crate::city::City {
+    sim.cities.cities.push(crate::cities::city::City {
         alive: true,
         owner: 1,
         race: Some(1),
@@ -991,7 +991,7 @@ fn send_here_moves_the_point_the_muster_cell_and_the_units() {
 /// not called.
 #[test]
 fn an_army_s_scout_throws_the_special_coin_on_the_spellcaster_turn() {
-    use crate::spellcaster::SITE_SPECIAL_COIN;
+    use crate::units::think::spellcaster::SITE_SPECIAL_COIN;
     let (mut sim, c) = sim_with_city();
     sim.ai.lobby.difficulty = 3;
     // A tree whose `0x45` is a type, so the lineage test answers.
@@ -1007,9 +1007,9 @@ fn an_army_s_scout_throws_the_special_coin_on_the_spellcaster_turn() {
         hits: 100,
         tree: Some(SCOUT),
         type_index: 0x45,
-        cols: crate::ai_load::UnitCols {
+        cols: crate::ai::ai_load::UnitCols {
             unit_flags2: uflags2::FLAG2_SCOUT,
-            ..crate::ai_load::UnitCols::default()
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..crate::UnitType::default()
     });
@@ -1059,9 +1059,9 @@ fn only_a_supply_wagon_or_a_hero_joins_an_army_from_the_think_tail() {
     // The same type with the supply lineage bit — `unit_flags2 & 0x40`.
     let wagon = sim.add_unit_type(crate::UnitType {
         hits: 100,
-        cols: crate::ai_load::UnitCols {
+        cols: crate::ai::ai_load::UnitCols {
             unit_flags2: uflags2::SUPPLY_OR_HERO,
-            ..crate::ai_load::UnitCols::default()
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..crate::UnitType::default()
     });
@@ -1075,9 +1075,9 @@ fn only_a_supply_wagon_or_a_hero_joins_an_army_from_the_think_tail() {
     // And the hero bit — `unit_flags2 & 0x20`.
     let hero = sim.add_unit_type(crate::UnitType {
         hits: 100,
-        cols: crate::ai_load::UnitCols {
+        cols: crate::ai::ai_load::UnitCols {
             unit_flags2: uflags2::FLAG2_GENERAL,
-            ..crate::ai_load::UnitCols::default()
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..crate::UnitType::default()
     });
@@ -1104,9 +1104,9 @@ fn a_government_patriot_is_capped_by_the_army_s_wagons() {
     let ty = |sim: &mut Sim, flags2: u32| {
         sim.add_unit_type(crate::UnitType {
             hits: 100,
-            cols: crate::ai_load::UnitCols {
+            cols: crate::ai::ai_load::UnitCols {
                 unit_flags2: flags2,
-                ..crate::ai_load::UnitCols::default()
+                ..crate::ai::ai_load::UnitCols::default()
             },
             ..crate::UnitType::default()
         })
@@ -1152,7 +1152,7 @@ fn a_government_patriot_is_capped_by_the_army_s_wagons() {
 /// where it is.
 #[test]
 fn think_attack_s_head_joins_a_military_unit_and_leaves_an_armed_citizen() {
-    use crate::ai_load::role;
+    use crate::ai::ai_load::role;
     let (mut sim, _c) = sim_with_city();
     // An attack, and no military bit: `determine_roles`' civilian arm.
     let armed_citizen = soldier_type(&mut sim);
@@ -1171,9 +1171,9 @@ fn think_attack_s_head_joins_a_military_unit_and_leaves_an_armed_citizen() {
             uber_size: 1,
             ..crate::combat::Profile::default()
         },
-        cols: crate::ai_load::UnitCols {
+        cols: crate::ai::ai_load::UnitCols {
             role: role::ROLE_MILITARY,
-            ..crate::ai_load::UnitCols::default()
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..crate::UnitType::default()
     });

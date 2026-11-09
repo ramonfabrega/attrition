@@ -31,7 +31,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // Every row names an index or a player the first test refuses: the
             // original answers 0 before it reads a table.
             assert!(
-                !crate::fight::valid_target_const_args(a[0], a[1]),
+                !crate::combat::fight::valid_target_const_args(a[0], a[1]),
                 "the port lets the arguments through"
             );
             0

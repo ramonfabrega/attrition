@@ -72,9 +72,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 // two `get_down` out-values, then every `--seq` run (`SEQ_AT`), the `+0xb8` flag and the order's
                 // null flag.
                 //
-                // **The port is the crate's own steps**, `crate::alarm_view::action_alarm_steps`, which
+                // **The port is the crate's own steps**, `crate::groups::alarm_view::action_alarm_steps`, which
                 // `Sim::action_alarm` calls over its `SimAlarm`; here the view is the emulated original's windows.
-                use crate::alarm_view::{AlarmHead, AlarmView, action_alarm_steps};
+                use crate::groups::alarm_view::{AlarmHead, AlarmView, action_alarm_steps};
                 const SEQ_AT: [(usize, usize, usize); 17] = [
                     (2, 35, 48),
                     (3, 83, 48),

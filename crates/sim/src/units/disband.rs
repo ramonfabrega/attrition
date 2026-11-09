@@ -22,7 +22,7 @@
 //! has none.
 
 use crate::Sim;
-use crate::single::Single;
+use crate::num::single::Single;
 
 /// The goods the loop walks: `TypeIndex` `BASE_GOODTYPES` up to six.
 const GOODS: i32 = 6;
@@ -404,7 +404,7 @@ impl Sim {
     /// lists; `validate_disband`'s building refusals; the scenario's
     /// ignore-orders sweep; and the "already given" feedback, the user
     /// interface's.
-    pub fn group_action_disband(&mut self, g: &crate::group::Group, all: bool) -> usize {
+    pub fn group_action_disband(&mut self, g: &crate::groups::group::Group, all: bool) -> usize {
         let mut n = 0;
         for &u in g.list.iter().rev() {
             if !self.units[u].alive() {

@@ -33,8 +33,8 @@
 //! wrong hypotenuse the territory pass measures borders with. Supply radii are
 //! octagonal in exactly the way borders are.
 
-use crate::attrition::Domain;
-use crate::tuning::Tuning;
+use crate::core::tuning::Tuning;
+use crate::territory::attrition::Domain;
 use crate::world::{Owner, Player, Pos, UNITS_PER_TILE, vector_dist};
 
 // ---------------------------------------------------------------------------

@@ -35,7 +35,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // `a[0..4]` the coordinates, `a[4]` / `a[6]` the two ends' object index, `a[11]` whether slot +0x64
             // was the real `is_city` (then slot +0x60's answer, else slot +0x64's own). The crate's
             // `valid_roadcoord` is driven on a `Sim` rebuilt from these windows; `covers_tile` is the original's own.
-            use crate::build::{BuildType, Ident};
+            use crate::cities::build::{BuildType, Ident};
             use crate::world::{Pos, World};
             use crate::{Sim, Tuning};
             const K: i32 = 0x63637;

@@ -36,7 +36,7 @@ pub(crate) const FRENCH_ENLIGHTENMENT: Pair = Pair {
     // ours 154 draws against 152, parting at index 151, ours
     // `Ammo::do_damage+0xc59`, theirs `Farms::inc_time+0x1ae`
     // (`docs/AI.md` §351). Item 3691 closes it, 4505 → 4940, the game's
-    // last frame: piece 49's three release bays (`sim::launch`), so
+    // last frame: piece 49's three release bays (`sim::data::launch`), so
     // who=1's Musketeer `1/37` looses its `CHAR_ATTACK2` round of 4499
     // from (6152, 9334, 303), the dump's, flying 4 frames, where it left
     // from the figure's own (6072, 9480, 127) and flew 5.
@@ -324,7 +324,7 @@ fn french_enlightenment_pair_run1360_s_closing_window_is_widened_whole() {
     // Grenadier `1/29`'s damage, 5 in ours since 4552 (parked 3691c); and
     // the capital `0/2000`'s `build:damage` on 4691, ours 421 against
     // theirs' 427, under the Fusiliers' rounds (parked 3691a).
-    // Item 3978: −4, the supply heal (`sim::heal`'s `supply_heal`, period 20): `1/29`'s
+    // Item 3978: −4, the supply heal (`sim::units::heal`'s `supply_heal`, period 20): `1/29`'s
     // `damage_frac`, `hits:damage_frac`, `hits:damage` and `hits_left` on 4685 agree (0, 0, 0
     // and 161 both sides) — parked 3691c.
     pin_eq!(w.firsts.len(), 113, "run1360 baseline");
@@ -396,7 +396,7 @@ fn french_enlightenment_pair_run1344b_s_word_frame_is_widened_whole() {
     // window's first block** by a pixel of launch, and on 4499 **who=1's
     // Musketeer `1/37` (TY 99) fires its `CHAR_ATTACK2` round at `0/10`
     // from its own square in ours** — (6072, 9480, 127), 5 frames' flight
-    // — against theirs' (6152, 9334, 303) and 4: `sim::launch` has no
+    // — against theirs' (6152, 9334, 303) and 4: `sim::data::launch` has no
     // piece-49 `ATTACK2` row. Theirs' round retires on 4504; ours' resolves
     // on the word 4505 beside `1/45`'s, ours' extra `Ammo::do_damage`
     // pair at index 151. On 4504 the Citizen `0/11` carries theirs' 14
@@ -410,7 +410,7 @@ fn french_enlightenment_pair_run1344b_s_word_frame_is_widened_whole() {
     // theirs 0).
     // Item 3961: +1, `healing` on `1/29` (4552, ours 0 theirs 20): the same block's heal, a
     // rate-20 arm (the French patriots', parked 3686a; 3961a).
-    // Item 3978: −5, the supply heal (`sim::heal`'s `supply_heal`, the French period 20, not a
+    // Item 3978: −5, the supply heal (`sim::units::heal`'s `supply_heal`, the French period 20, not a
     // patriot's): `1/29`'s `healing`, `damage_frac`, `hits:damage_frac`, `hits:damage` and
     // `hits_left` on 4552 agree (20, 0, 0, 4 and 157 both sides) — 3961a's run1344b row.
     pin_eq!(w.firsts.len(), 118, "run1344b baseline");

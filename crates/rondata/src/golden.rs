@@ -1027,9 +1027,9 @@ pub struct Keys {
     pub alt: bool,
 }
 
-impl From<Keys> for sim::airbase::Keys {
+impl From<Keys> for sim::air::airbase::Keys {
     fn from(k: Keys) -> Self {
-        sim::airbase::Keys {
+        sim::air::airbase::Keys {
             shift: false,
             ctrl: k.ctrl,
             alt: k.alt,
@@ -1635,7 +1635,7 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
         // `@attackground` and `@comeout` (item 3425, `docs/GOLDEN.md` §145)
         // are staged for the original's coverage and have no entry here:
         // `Group::action_attack_ground@00704520`'s ground arm is walked
-        // (`sim::attack_ground_view`) and not wired, and
+        // (`sim::groups::attack_ground_view`) and not wired, and
         // `Unit::action_come_out@005e20b0` has no port (parked 3425a).
         // `@unqueueunit` is `issue_unqueue@00942ce0` once per unit, an
         // `unqueue` with no `group`, whose entry is
@@ -2105,18 +2105,24 @@ fn run(
             done.ran += 1;
         }
         Cheat::Age { who, level } => {
-            built.sim.set_leader_age(who as sim::Player, level);
+            built.sim.setup().set_leader_age(who as sim::Player, level);
             done.ran += 1;
         }
         Cheat::Library { who, level } => {
             for cat in 0..4 {
-                built.sim.set_leader_epoch(who as sim::Player, cat, level);
+                built
+                    .sim
+                    .setup()
+                    .set_leader_epoch(who as sim::Player, cat, level);
             }
-            built.sim.set_leader_age(who as sim::Player, level);
+            built.sim.setup().set_leader_age(who as sim::Player, level);
             done.ran += 1;
         }
         Cheat::Epoch { who, cat, level } => {
-            built.sim.set_leader_epoch(who as sim::Player, cat, level);
+            built
+                .sim
+                .setup()
+                .set_leader_epoch(who as sim::Player, cat, level);
             done.ran += 1;
         }
         Cheat::Diplo { level, target } => {
@@ -2138,7 +2144,7 @@ fn run(
                 Target::Who(w) => vec![w as sim::Player],
             };
             for w in whom {
-                built.sim.set_diplo(me, w, level);
+                built.sim.setup().set_diplo(me, w, level);
             }
             done.ran += 1;
         }
@@ -2181,7 +2187,7 @@ fn run(
                 .or_else(|| named_unit(loaded, &name).map(|u| loaded.unit_tree[u]));
             match tree {
                 Some(t) => {
-                    built.sim.gain_tech(who as sim::Player, t);
+                    built.sim.setup().gain_tech(who as sim::Player, t);
                     done.ran += 1;
                 }
                 None => done.skip(&word, "no technology of that name"),
@@ -2204,6 +2210,7 @@ fn run(
             };
             match built
                 .sim
+                .setup()
                 .scenario_add_unit((who - 1) as sim::Player, ty, at, num)
             {
                 Some(made) => {
@@ -2244,9 +2251,9 @@ fn run(
             for &(who, o) in selected.iter() {
                 if let Some(b) = built.sim.building_by_o(who as sim::Player, o) {
                     if matches!(finish, Cheat::FinishAll) {
-                        built.sim.cheat_finish_all(b);
+                        built.sim.setup().cheat_finish_all(b);
                     } else {
-                        built.sim.cheat_finish(b);
+                        built.sim.setup().cheat_finish(b);
                     }
                     any = true;
                 }
@@ -2266,7 +2273,7 @@ fn run(
             // `(semaphore & 4) == 0 || no_mouse != 0`, always passes on the
             // channel, which calls with `no_mouse` 1. It is the sampling's
             // own pair, so it is the sampling's entry point.
-            if built.sim.spawn_bird_at(STAGED_CURSOR).is_some() {
+            if built.sim.setup().spawn_bird_at(STAGED_CURSOR).is_some() {
                 done.units += 1;
                 done.ran += 1;
             } else {
@@ -2288,7 +2295,10 @@ fn run(
                 done.skip(&word, "no such leader");
                 return;
             }
-            built.sim.cheat_resource(who as sim::Player, good, amount);
+            built
+                .sim
+                .setup()
+                .cheat_resource(who as sim::Player, good, amount);
             done.ran += 1;
         }
         Cheat::Die(target) => {
@@ -2300,12 +2310,12 @@ fn run(
             let mut any = false;
             for (who, o) in targets {
                 if let Some(b) = built.sim.building_by_o(who as sim::Player, o) {
-                    built.sim.die_building(b);
+                    built.sim.setup().die_building(b);
                     any = true;
                 } else if let Some(u) = built.sim.unit_by_o(who as sim::Player, o) {
                     // The unit arm (item 3989): `Unit::die@0060eda0` with
                     // `dtype` 0 — `close`, no death draw, and the hold.
-                    built.sim.cheat_die_unit(u);
+                    built.sim.setup().cheat_die_unit(u);
                     any = true;
                 }
             }
@@ -2366,7 +2376,7 @@ fn add(
                 done.skip(word, "find_nearby_spot found no room");
                 return;
             };
-            let head = built.sim.init_unit(who as sim::Player, ty, spot);
+            let head = built.sim.setup().init_unit(who as sim::Player, ty, spot);
             let u = &built.sim.units[head];
             done.landed.push(format!(
                 "add {name} who={who}: {}/{} at ({},{}) for ({},{})",
@@ -2402,8 +2412,11 @@ fn add(
         let at = built
             .sim
             .snap_center_placed(ty, at, Some(who as sim::Player));
-        let b = built.sim.init_build(who as sim::Player, ty, at, false);
-        built.sim.activate(b, false, false);
+        let b = built
+            .sim
+            .setup()
+            .init_build(who as sim::Player, ty, at, false);
+        built.sim.setup().activate(b, false, false);
         done.buildings += 1;
         done.ran += 1;
         return;
@@ -3787,11 +3800,11 @@ mod tests {
         let mut sim = sim::Sim::new(sim::Tuning::RON, sim::World::new(60, 60), 2);
         let mut barge = sim::Unit::new(0, 10, sim::Pos::new(14572, 31200), 50);
         barge.on_map = true;
-        let barge = sim.add_unit(barge);
+        let barge = sim.setup().add_unit(barge);
         let mut member = sim::Unit::new(0, 12, sim::Pos::new(14000, 31200), 50);
         member.on_map = true;
         member.captain = false;
-        sim.add_unit(member);
+        sim.setup().add_unit(member);
         let mut built = Built {
             gaia_reseat_skip: None,
             correction_audit: None,

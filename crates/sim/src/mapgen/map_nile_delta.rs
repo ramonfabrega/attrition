@@ -1,8 +1,8 @@
 //! **Nile Delta's land/sea mask** (`docs/MAPGEN.md` §34):
 //! `MapNileDelta::make_continents@00695bf0`, on the region growers Great
-//! Lakes' port carries (`crate::map_lakes`) and the edge-canal pass and
+//! Lakes' port carries (`crate::mapgen::map_lakes`) and the edge-canal pass and
 //! guarded `Map::check_player_land` East Meets West's port carries
-//! (`crate::map_east_west`).
+//! (`crate::mapgen::map_east_west`).
 //!
 //! One continent a player, opened on a ring about the map's centre and
 //! grown in `scale_land_area(4)` passes, each a further share of its size;
@@ -13,11 +13,13 @@
 //! No float: the distances are the engine's integer `vector_dist`, the ring
 //! its integer `project`.
 
-use crate::map_east_west::{check_player_land, coords, eliminate_edge_canals};
-use crate::map_lakes::{Grower, LakeMap, LakeStyle, Lakes, eliminate_pools, scale_land_area};
+use crate::mapgen::map_east_west::{check_player_land, coords, eliminate_edge_canals};
+use crate::mapgen::map_lakes::{
+    Grower, LakeMap, LakeStyle, Lakes, eliminate_pools, scale_land_area,
+};
+use crate::mapgen::terrain_groups::Draws;
 use crate::mapgen::{MapGrid, project};
 use crate::movement::Angle;
-use crate::terrain_groups::Draws;
 
 /// The draw sites, as return addresses (the trace's `Function+0xNN`).
 pub mod site {

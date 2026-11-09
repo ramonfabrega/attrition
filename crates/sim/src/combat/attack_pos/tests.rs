@@ -115,7 +115,7 @@ fn an_edge_start_is_the_face_s_midpoint() {
 fn a_ring_started_on_an_edge_stands_level_with_the_target() {
     use crate::combat::Profile;
     use crate::world::World;
-    let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = crate::Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     sim.leaders.at_war[0][1] = true;
     sim.leaders.at_war[1][0] = true;
     let ty = sim.add_unit_type(crate::UnitType {
@@ -150,7 +150,7 @@ fn a_ring_started_on_an_edge_stands_level_with_the_target() {
             me,
             Obj::Building(city),
             from,
-            crate::fight::SITE_ATTACK_POS_FIGHT,
+            crate::combat::fight::SITE_ATTACK_POS_FIGHT,
         )
         .expect("a spot on the ring");
     assert!(p.x > t.x, "on the east side: {p:?}");
@@ -176,7 +176,7 @@ fn a_ring_started_on_an_edge_stands_level_with_the_target() {
 fn an_asker_s_auto_transport_is_held_clear_while_it_searches() {
     use crate::combat::Profile;
     use crate::world::{World, tile};
-    let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = crate::Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     sim.leaders.at_war[0][1] = true;
     sim.leaders.at_war[1][0] = true;
     let ty = sim.add_unit_type(crate::UnitType {
@@ -220,7 +220,7 @@ fn an_asker_s_auto_transport_is_held_clear_while_it_searches() {
             me,
             Obj::Building(city),
             from,
-            crate::fight::SITE_ATTACK_POS_FIGHT,
+            crate::combat::fight::SITE_ATTACK_POS_FIGHT,
         )
         .expect("a spot on the ring");
     assert_ne!(
@@ -257,7 +257,7 @@ fn an_asker_s_auto_transport_is_held_clear_while_it_searches() {
 fn chapter_one_s_melee_chase_stands_where_the_golden_dump_puts_it() {
     use crate::combat::Profile;
     use crate::world::World;
-    let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = crate::Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     sim.leaders.at_war[0][1] = true;
     sim.leaders.at_war[1][0] = true;
     // HOPLITES as the data loads it: `BLOCK_RADIUS 1` (so `+0x248` is
@@ -298,7 +298,12 @@ fn chapter_one_s_melee_chase_stands_where_the_golden_dump_puts_it() {
     sim.units[b8].orders_pos = Pos::new(1176, 8088);
     let from = sim.units[a6].pos;
     assert_eq!(
-        sim.find_attack_pos(a6, Obj::Unit(b6), from, crate::fight::SITE_ATTACK_POS_FIGHT),
+        sim.find_attack_pos(
+            a6,
+            Obj::Unit(b6),
+            from,
+            crate::combat::fight::SITE_ATTACK_POS_FIGHT
+        ),
         Some(Pos::new(1080, 8280)),
         "the golden dump's own `orders_x`/`orders_y` for `0/6` at block 618"
     );
@@ -328,7 +333,7 @@ fn chapter_one_s_melee_chase_stands_where_the_golden_dump_puts_it() {
 fn chapter_two_s_ranged_chase_stands_where_the_golden_dump_puts_it() {
     use crate::combat::Profile;
     use crate::world::World;
-    let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = crate::Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     sim.leaders.at_war[0][1] = true;
     sim.leaders.at_war[1][0] = true;
     let mut kind = |max_range: i32, hits: i32| {
@@ -368,7 +373,12 @@ fn chapter_two_s_ranged_chase_stands_where_the_golden_dump_puts_it() {
     );
     let from = sim.units[a9].pos;
     assert_eq!(
-        sim.find_attack_pos(a9, Obj::Unit(b8), from, crate::fight::SITE_ATTACK_POS_FIGHT),
+        sim.find_attack_pos(
+            a9,
+            Obj::Unit(b8),
+            from,
+            crate::combat::fight::SITE_ATTACK_POS_FIGHT
+        ),
         Some(Pos::new(1608, 8184)),
         "run112's own `orders_x`/`orders_y` for `0/9` at block 622"
     );
@@ -383,7 +393,7 @@ fn chapter_two_s_ranged_chase_stands_where_the_golden_dump_puts_it() {
             far,
             Obj::Unit(b8),
             sim.units[far].pos,
-            crate::fight::SITE_ATTACK_POS_FIGHT,
+            crate::combat::fight::SITE_ATTACK_POS_FIGHT,
         )
         .expect("the far arm sweeps rather than falling through");
     assert_ne!(
@@ -408,7 +418,7 @@ fn chapter_two_s_ranged_chase_stands_where_the_golden_dump_puts_it() {
 fn the_open_slot_ring_walks_four_sides_and_closes() {
     use crate::combat::Profile;
     use crate::world::World;
-    let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = crate::Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     let ty = sim.add_unit_type(crate::UnitType {
         hits: 120,
         combat: Profile {
@@ -482,7 +492,7 @@ fn a_unit_target_with_no_spot_is_refused_unless_the_attack_is_mandatory_and_far(
     use crate::combat::Profile;
     use crate::orders::QueuePos;
     use crate::world::World;
-    let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = crate::Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     sim.leaders.at_war[0][1] = true;
     sim.leaders.at_war[1][0] = true;
     let ty = sim.add_unit_type(crate::UnitType {

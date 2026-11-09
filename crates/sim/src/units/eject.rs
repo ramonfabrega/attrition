@@ -6,7 +6,7 @@
 //! moved to it. [`eject_steps`] is the original's control flow in its order;
 //! [`EjectView`] is what it reads and the callees it makes, which
 //! `sweep/object_eject_contents.rs` answers from the emulated original's
-//! windows. It sits beside [`crate::disband`], which is built the same way.
+//! windows. It sits beside [`crate::units::disband`], which is built the same way.
 //!
 //! **Arguments.** `kill` (the first) is "a passenger that will not come out
 //! dies" (the second `eject_contents` argument of `transport.rs` and

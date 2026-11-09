@@ -12,7 +12,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let (a, want) = super::row(line);
         assert_eq!(
             want,
-            i64::from(crate::flag_reads::global_cell(
+            i64::from(crate::core::flag_reads::global_cell(
                 i32::try_from(a[0]).expect("a 32-bit word")
             )),
             "GameAccessConst::get_scary_terrain — row `{line}`"

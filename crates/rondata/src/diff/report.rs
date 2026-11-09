@@ -275,7 +275,7 @@ pub fn draws_between(from: u32, to: u32) -> Option<u32> {
 /// `marks` is [`sim::Sim::phase_marks`], each pair a label and the stream's
 /// word *before* that label's draws; `end` is the word after the last of
 /// them. A mark that drew nothing contributes nothing, which is what makes
-/// a guarded site read correctly — `sim::scout` skips its phase draw on
+/// a guarded site read correctly — `sim::units::think::scout` skips its phase draw on
 /// rings under four — rather than as a zero-length hole.
 ///
 /// This is the primitive the seed-anchored check is built on: seed the sim

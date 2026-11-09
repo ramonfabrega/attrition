@@ -1,6 +1,6 @@
 //! `TypeData::is_wonder_type@00470780` under the emulator against the port (item 1705).
 
-use crate::type_index::is_wonder_type;
+use crate::core::type_index::is_wonder_type;
 
 /// `TypeData::is_wonder_type@00470780`, run by `tools/emu/sweep_type_wonder.py` under unicorn
 /// (tools/emu): `0x20d < t < 0x21f` on the type record's `type`, over every index -2..=0x33f and the edges, against `type_index::is_wonder_type` (0x20e..=0x21e).

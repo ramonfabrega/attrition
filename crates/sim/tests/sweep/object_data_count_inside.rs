@@ -28,14 +28,14 @@ fn the_emulated_original_agrees_on_every_row() {
     super::obj_rows(&rows, &obj, |a, m, c, p, log| {
         let _ = (&a, &m, &c, &p);
         // hand: port
-        // The swept steps are `crate::count_inside_view::count_inside` over a view of the
+        // The swept steps are `crate::units::count_inside_view::count_inside` over a view of the
         // emulated windows. The row's layout (`gen.py`): `p0`/`p1` the two leaders' rows,
         // `p3+7w+i` `objects[w][i]`, `p17+7w+i` `units[w][i]`, `p35+6w+i` that unit's type
         // record, `p47+6w+i` that object's type record, `p31..p34` the unit types, `p59` the
         // type list, `c[1]` `div_3_table`. Stub `s` answers `a[23 + 10 s + min(call, 9)]` in
         // its own call order; `a[233]` lays slot `+0xb8` as `ObjectData::is` itself and
         // `a[234]` slot `+0x148` as `has_objmask`, each a flag after the answers.
-        use crate::count_inside_view::{CountInsideView, count_inside};
+        use crate::units::count_inside_view::{CountInsideView, count_inside};
         struct W<'a> {
             a: &'a [i32],
             m: &'a [u8],

@@ -32,8 +32,8 @@ fn the_emulated_original_agrees_on_every_row() {
         // p1 the head node (`+8` its order, `+0xc` its flag byte), p2 the head's order, p3 the cursor's own order (when the
         // head is null), p4..p22 the nineteen accessors' records (slot order below), p23/p24 the vbase tables of slots 0x60 and
         // 0x70 (`+4` the displacement). `remove_current` is the stub that counts `+0x10` down. The port is the crate's own
-        // dispatch, `crate::finish_insert_view::finish_insert`, over a view of the windows.
-        use crate::finish_insert_view::{FinishInsertView, finish_insert};
+        // dispatch, `crate::groups::finish_insert_view::finish_insert`, over a view of the windows.
+        use crate::groups::finish_insert_view::{FinishInsertView, finish_insert};
         const SLOTS: [u32; 19] = [
             0x40, 0x44, 0x48, 0x4c, 0x50, 0x54, 0x60, 0x64, 0x6c, 0x70, 0x74, 0x78, 0x7c, 0x80,
             0x90, 0x98, 0xa0, 0xa4, 0xac,

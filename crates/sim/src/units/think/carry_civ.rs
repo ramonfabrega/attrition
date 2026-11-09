@@ -260,7 +260,10 @@ impl CarryCivView for SimCarryCiv<'_> {
     }
     fn step(&self, d: i32) -> (i32, i32) {
         let d = usize::try_from(d).unwrap_or(0).min(8);
-        (crate::ai_place::MOVE_X[d], crate::ai_place::MOVE_Y[d])
+        (
+            crate::ai::ai_place::MOVE_X[d],
+            crate::ai::ai_place::MOVE_Y[d],
+        )
     }
     fn cell_slot(&self, c: Cell) -> Option<i32> {
         let r = self.sim.world.region_of(c)?;

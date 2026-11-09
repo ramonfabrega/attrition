@@ -23,7 +23,7 @@ fn three() -> (Sim, [usize; 3]) {
 #[test]
 fn a_disband_takes_the_last_member_and_all_takes_every_one() {
     let (mut s, [a, b, c]) = three();
-    let mut g = crate::group::Group::stack(1);
+    let mut g = crate::groups::group::Group::stack(1);
     for u in [a, b, c] {
         s.group_add(&mut g, u);
     }

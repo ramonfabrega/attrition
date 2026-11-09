@@ -280,7 +280,7 @@ pub const BIRD_TYPE: i32 = crate::gaia::BIRD_TYPE_INDEX;
 /// The last of the three gaia bird types — `GULLBIRD`, which a finished
 /// dock spawns (`docs/TRANSPORT.md` §5.2). `FLOCKBIRD` (`0x193`) sits
 /// between them and no capture has one.
-pub const GULL_TYPE: i32 = crate::transport::ty::GULLBIRD as i32;
+pub const GULL_TYPE: i32 = crate::ai::transport::ty::GULLBIRD as i32;
 
 /// The three types `Guy::set_anim`'s walk arm throws the wing-beat coin
 /// for (`set_anim:620`), which is also the set that flies: a bird is
@@ -471,7 +471,7 @@ pub struct Guy {
 /// `des[k]` by 15° (`0xaaa_aaaa`) a frame, snapping inside 15°, and sets
 /// node bit `k` once they meet. A release on node `n` of a pivot piece
 /// fires only with bit `n & 3` set (`execute_game_events`' gate), and
-/// leaves at the turret's angle ([`crate::pivot::release_offset`]).
+/// leaves at the turret's angle ([`crate::data::pivot::release_offset`]).
 /// `GUYS=4` prints all three.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Turret {
@@ -506,7 +506,7 @@ impl Turret {
     pub fn step(&mut self) {
         for k in 0..4 {
             let (a, d) = (self.angles[k], self.des[k]);
-            if a == d || crate::fight::turret_near(a, d) {
+            if a == d || crate::combat::fight::turret_near(a, d) {
                 self.angles[k] = d;
                 self.node_flags |= 1 << k;
             } else if (a.wrapping_sub(d) as u32) < 0x8000_0000 {
@@ -2101,7 +2101,7 @@ impl Sim {
                     // so it holds a round on every pivot piece — the
                     // Battery's among them, whose `get_position` entries
                     // `pivot::RELEASES` has not measured.
-                    let pivot = crate::pivot::release_node(guy.gpiece, guy.anim, start, node);
+                    let pivot = crate::data::pivot::release_node(guy.gpiece, guy.anim, start, node);
                     let pivots = self.units[u]
                         .ty
                         .and_then(|ty| {
@@ -2125,16 +2125,20 @@ impl Sim {
                     // and the aim is then taken from *that* point —
                     // `find_angle(T − launch)`, which is what run108's
                     // `ex, ey` reproduce. A node past the piece's restriction
-                    // count is its own entry alone ([`crate::pivot::release_point`]).
+                    // count is its own entry alone ([`crate::data::pivot::release_point`]).
                     let (from, dz) = match pivot {
                         Some(r) => {
-                            let (x, y, z) =
-                                crate::pivot::release_point(&r, facing, &guy.turret.angles, pivots);
+                            let (x, y, z) = crate::data::pivot::release_point(
+                                &r,
+                                facing,
+                                &guy.turret.angles,
+                                pivots,
+                            );
                             let at = self.units[u].pos;
                             (Pos::new(at.x + x, at.y + y), z)
                         }
                         None => (
-                            crate::launch::launch_point(
+                            crate::data::launch::launch_point(
                                 self.units[u].pos,
                                 self.units[u].movement.facing,
                                 guy.gpiece,
@@ -2150,7 +2154,7 @@ impl Sim {
                             // surface rather than the lake bed under it
                             // (§50.3, run127's trireme rounds at `sz` 88
                             // over a bed at −273).
-                            crate::launch::release_dz(guy.gpiece, guy.anim, start, node)
+                            crate::data::launch::release_dz(guy.gpiece, guy.anim, start, node)
                                 .unwrap_or(0),
                         ),
                     };
@@ -2164,9 +2168,9 @@ impl Sim {
                     // `docs/GOLDEN.md` §152.3): run1469's Attack
                     // Helicopter `2/15` at `z` 330 releases at 371.
                     let domain = self.unit_domain_of(u);
-                    let z = if domain == crate::attrition::Domain::Sea {
+                    let z = if domain == crate::territory::attrition::Domain::Sea {
                         0
-                    } else if domain == crate::attrition::Domain::Air {
+                    } else if domain == crate::territory::attrition::Domain::Air {
                         self.units[u].airframe.z
                     } else {
                         self.ground_z(self.units[u].pos)
@@ -2343,7 +2347,7 @@ impl Sim {
         self.units[u].ty.is_some_and(|t| {
             self.tables.unit_types[t]
                 .cols
-                .flag2(crate::ai_load::uflags2::FLAG2_GENERAL)
+                .flag2(crate::ai::ai_load::uflags2::FLAG2_GENERAL)
         })
     }
 
@@ -2577,7 +2581,7 @@ impl Sim {
             // `SPECIAL_ANIM` order, either of which only marks the body
             // stopped. `SPECIAL_ANIM` is not modelled in this crate at all
             // (`docs/ORDERS.md` §3), so only the first is tested.
-            if self.units[u].kind.domain == crate::attrition::Domain::Sea {
+            if self.units[u].kind.domain == crate::territory::attrition::Domain::Sea {
                 self.units[u].guys[g].stopped = true;
                 return;
             }
@@ -2668,7 +2672,7 @@ impl Sim {
         self.mark(SITE_IDLE_ANIMAL);
         self.set_default_anim(u);
         let unit = &self.units[u];
-        if unit.kind.domain != crate::attrition::Domain::Land {
+        if unit.kind.domain != crate::territory::attrition::Domain::Land {
             return;
         }
         let Some(herd) = unit.herd else {
@@ -2698,10 +2702,10 @@ impl Sim {
             let d = (self.rng.roll() & 7) as usize;
             self.mark(crate::gaia::SITE_WANDER_X);
             let kx = self.rng.roll() & 3;
-            let x = (kx + 1) * crate::ai_place::MOVE_X[d + 1] * 0x30 + here.x;
+            let x = (kx + 1) * crate::ai::ai_place::MOVE_X[d + 1] * 0x30 + here.x;
             self.mark(crate::gaia::SITE_WANDER_Y);
             let ky = self.rng.roll() & 3;
-            let y = (ky + 1) * crate::ai_place::MOVE_Y[d + 1] * 0x30 + here.y;
+            let y = (ky + 1) * crate::ai::ai_place::MOVE_Y[d + 1] * 0x30 + here.y;
             let dest = Pos::new(x, y);
             // `WorldData::is_valid`, then **`detect_unit_collision(dest,
             // quick 1, boats 1, 0, 0, 0)`** — a wander onto an occupied

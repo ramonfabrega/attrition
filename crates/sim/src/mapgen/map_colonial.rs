@@ -1,6 +1,6 @@
 //! **Colonial Powers' land/sea mask** (`docs/MAPGEN.md` §5, §32):
 //! `MapColonialPowers::make_continents@00697dd0`, on the region growers
-//! Great Lakes' port already carries (`crate::map_lakes`).
+//! Great Lakes' port already carries (`crate::mapgen::map_lakes`).
 //!
 //! Two continents in a sea, half a turn apart on a ring about the map's
 //! centre: the old world (region 1), where the lobby's unteamed computers
@@ -11,11 +11,13 @@
 //! over the border only. No float: `grow_region`'s distances are the
 //! engine's integer `vector_dist`.
 
-use crate::map_east_west::check_player_land;
-use crate::map_lakes::{Grower, LakeMap, LakeStyle, Lakes, eliminate_pools_in, scale_land_area};
+use crate::mapgen::map_east_west::check_player_land;
+use crate::mapgen::map_lakes::{
+    Grower, LakeMap, LakeStyle, Lakes, eliminate_pools_in, scale_land_area,
+};
+use crate::mapgen::terrain_groups::Draws;
 use crate::mapgen::{MapGrid, project};
 use crate::movement::Angle;
-use crate::terrain_groups::Draws;
 
 /// The draw sites, as return addresses (the trace's `Function+0xNN`).
 pub mod site {

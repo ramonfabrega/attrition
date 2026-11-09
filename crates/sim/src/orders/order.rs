@@ -133,7 +133,7 @@ impl SpellType {
 ///
 /// `Leader::do_gather` spells the same headroom `dutch_interest_cap × 16`
 /// out of `GameAccess::constants`; the search hard-codes it, so it is a
-/// literal here too rather than a [`crate::tuning::Tuning`] slot. Nothing in
+/// literal here too rather than a [`crate::core::tuning::Tuning`] slot. Nothing in
 /// this simulation pays the bonus yet, so this term only ever moves the
 /// *choice* of building, never the income.
 pub(super) const DUTCH_INTEREST_HEADROOM: i32 = 0x640;
@@ -248,7 +248,7 @@ pub struct MoveOrder {
     pub pause: i32,
     /// **`MoveOrder +0x1c retry`** — the type record's own name, and not
     /// `pause` beside it: the frames a move sits still after a **failed
-    /// unit-grid search** (`crate::path`, `docs/PATHFINDER.md` §21).
+    /// unit-grid search** (`crate::movement::path`, `docs/PATHFINDER.md` §21).
     /// `do_move@005f7b30:348` counts it down and does nothing else on
     /// every frame it is non-zero; the frame it reaches zero,
     /// [`MoveOrder::attempts`] gains 3.
@@ -445,7 +445,7 @@ pub struct PatrolOrder {
 /// the dump prints them.
 ///
 /// The target is a **unit** only. `Group::action_guard`'s building arm is
-/// a seam (`crate::group`), so no building is ever guarded here, and the
+/// a seam (`crate::groups::group`), so no building is ever guarded here, and the
 /// `uid` is the unit's index because this crate never reuses one.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FollowOrder {

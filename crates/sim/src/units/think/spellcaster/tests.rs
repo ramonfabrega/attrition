@@ -1,6 +1,6 @@
 use super::*;
 use crate::Tuning;
-use crate::ai_load::uflags2;
+use crate::ai::ai_load::uflags2;
 use crate::world::{Cell, Terrain, World};
 
 /// A computer leader's scout on open land, in no army.
@@ -208,11 +208,11 @@ fn a_forced_march_lifts_the_units_near_its_hero() {
     assert_eq!(sim.unit_speed(out), 25, "one past it");
     assert_eq!(sim.unit_speed(fast), 60, "a march never slows a unit");
     assert_eq!(sim.unit_speed(theirs), 25, "another leader's");
-    sim.tables.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
-    sim.units[a].kind.domain = crate::attrition::Domain::Sea;
+    sim.tables.unit_types[t].combat.domain = crate::territory::attrition::Domain::Sea;
+    sim.units[a].kind.domain = crate::territory::attrition::Domain::Sea;
     assert_eq!(sim.unit_speed(a), 25, "a type not of the land");
-    sim.tables.unit_types[t].combat.domain = crate::attrition::Domain::Land;
-    sim.units[a].kind.domain = crate::attrition::Domain::Land;
+    sim.tables.unit_types[t].combat.domain = crate::territory::attrition::Domain::Land;
+    sim.units[a].kind.domain = crate::territory::attrition::Domain::Land;
     // The Senator's reach: an economic patriot's tile more.
     sim.units[g].type_index = 0x161;
     assert_eq!(sim.unit_speed(out), 42, "ten tiles for a Senator");

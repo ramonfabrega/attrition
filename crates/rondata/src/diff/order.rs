@@ -1724,12 +1724,13 @@ mod tests {
         let init = initial();
         let mut built = build_sim(loaded, &init, Tuning::RON);
         let u = built.units[1].unit;
-        let b = built.sim.add_building(0, Pos::new(4248, 28680), 8);
+        let b = built.sim.setup().add_building(0, Pos::new(4248, 28680), 8);
         built.builds.push((b, 2001));
         built
             .sim
+            .command()
             .add_build_order(u, b, sim::orders::QueuePos::New, true);
-        built.sim.add_move_order(
+        built.sim.command().add_move_order(
             u,
             Pos::new(4300, 28700),
             sim::orders::MoveKind::ExploreTo,
@@ -2352,7 +2353,8 @@ mod tests {
                         sim::orders::Body::Gather(g)
                             if matches!(
                                 built.sim.building_ident(g.building),
-                                sim::build::Ident::Mine | sim::build::Ident::Woodcutter
+                                sim::cities::build::Ident::Mine
+                                    | sim::cities::build::Ident::Woodcutter
                             ) =>
                         {
                             Some(g)

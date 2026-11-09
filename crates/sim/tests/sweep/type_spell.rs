@@ -1,6 +1,6 @@
 //! `TypeData::is_spell_type@00470590` under the emulator against the port (item 1704).
 
-use crate::type_index::is_spell_type;
+use crate::core::type_index::is_spell_type;
 
 /// `TypeData::is_spell_type@00470590`, run by `tools/emu/sweep_type_spell.py` under unicorn
 /// (tools/emu): `0x274 < t < 0x2ac` on the type record's `type`, over every index -2..=0x33f and the edges, against `type_index::is_spell_type` — the bounds `is_spell_type`'s readers (`type_index`'s header) stand on.

@@ -394,7 +394,7 @@ impl Sim {
                     || self.units[a].ty.is_some_and(|ty| {
                         self.tables.unit_types[ty]
                             .cols
-                            .flag(crate::ai_load::uflags::TANK)
+                            .flag(crate::ai::ai_load::uflags::TANK)
                     })
                     || self.is_bomber(a))
             {
@@ -553,8 +553,8 @@ impl Sim {
             return false;
         };
         let cols = self.tables.unit_types[t].cols;
-        cols.flag(crate::ai_load::uflags::STEALTH)
-            && !cols.flag(crate::ai_load::uflags::CLOAKED)
+        cols.flag(crate::ai::ai_load::uflags::STEALTH)
+            && !cols.flag(crate::ai::ai_load::uflags::CLOAKED)
             && !un.cloak
             && un.unit_masks2 & 0x8000 == 0
     }
@@ -566,9 +566,9 @@ impl Sim {
         };
         let cols = self.tables.unit_types[t].cols;
         let stealthy = un.cloak
-            || cols.flag(crate::ai_load::uflags::CLOAKED)
+            || cols.flag(crate::ai::ai_load::uflags::CLOAKED)
             || un.unit_masks2 & 0x8000 != 0
-            || (cols.flag(crate::ai_load::uflags::STEALTH) && self.is_idle(u));
+            || (cols.flag(crate::ai::ai_load::uflags::STEALTH) && self.is_idle(u));
         // `!(unit_masks & 0x1000)`: a blown unit is seen (item 2785).
         if !stealthy || un.blown || who == un.owner || who >= 8 {
             return false;

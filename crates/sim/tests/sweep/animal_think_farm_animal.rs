@@ -57,7 +57,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // order record's destination, facing and the copy of the destination; the rest of the record
             // and `this`'s two flag words have no state in the port and are taken from the original.
             {
-                use crate::build::{BuildType, Ident};
+                use crate::cities::build::{BuildType, Ident};
                 use crate::world::{Pos, World};
                 use crate::{Sim, Tuning};
                 let i16at = |w: &[u8], o: usize| i16::from_le_bytes([w[o], w[o + 1]]);
@@ -73,7 +73,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     ident: Ident::Farm,
                     x_size: 3,
                     y_size: 3,
-                    flags: crate::build::flags::FLAT,
+                    flags: crate::cities::build::flags::FLAT,
                     job_time: 100,
                     hits: 500,
                     ..BuildType::default()
@@ -97,8 +97,8 @@ fn the_emulated_original_agrees_on_every_row() {
                 };
                 let b = sim.init_build(0, t, bpos, false);
                 sim.activate(b, false, true);
-                sim.buildings[b].farm.farm_type = crate::farms::ANIMAL_FARM;
-                sim.tables.build_types[t].flags |= crate::build::flags::GATHERER;
+                sim.buildings[b].farm.farm_type = crate::cities::farms::ANIMAL_FARM;
+                sim.tables.build_types[t].flags |= crate::cities::build::flags::GATHERER;
                 let pig = sim.add_unit_type(crate::UnitType {
                     hits: 10,
                     moves: 25,
@@ -107,7 +107,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 let mut an = crate::Unit::new(9, o, here, 10);
                 an.kind = sim.tables.unit_types[pig].kind;
                 an.ty = Some(pig);
-                an.farm_animal = Some(crate::farms::FarmAnimal { build: b, slot });
+                an.farm_animal = Some(crate::cities::farms::FarmAnimal { build: b, slot });
                 let u = sim.add_unit(an);
                 if num != 0 {
                     let citizen = sim.add_unit_type(crate::UnitType {

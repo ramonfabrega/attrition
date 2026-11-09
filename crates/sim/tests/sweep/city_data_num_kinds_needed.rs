@@ -1,7 +1,7 @@
 //! `CityData::num_kinds_needed@00736640` under the emulator against the port (item 2112; hand-written on tools/emu/hooks.py).
 
 use crate::Tuning;
-use crate::city::kinds_needed_by;
+use crate::cities::city::kinds_needed_by;
 
 /// `CityData::num_kinds_needed@00736640`, run by `tools/emu/sweep_city_data_num_kinds_needed.py` under unicorn
 /// (tools/emu): the city object's type through `objects[who][o]`, the top levels answered 0 unasked, the next

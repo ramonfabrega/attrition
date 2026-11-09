@@ -38,7 +38,7 @@ pub(crate) const SPANISH_INDUSTRIAL: Pair = Pair {
     // draws against theirs 23, at index 19 ours `Farms::inc_time+0x1ae`,
     // theirs `Object::take_damage+0xe1` (`docs/AI.md` §357). Item 3705:
     // 3229 → 4200, the game's last frame, once the Rifleman's piece 50
-    // looses from its three bays (`sim::launch::BAYS`, §357.2).
+    // looses from its three bays (`sim::data::launch::BAYS`, §357.2).
     count: 4200,
     sequence: 4200,
 };
@@ -262,7 +262,7 @@ fn spanish_industrial_pair_run1368b_s_word_frame_is_widened_whole() {
     // (`form` on 27 units, both leaders' `SITE[i].reg`, who=0's
     // `aggression[1]`, who=1's groups and pools) or a group minted after it
     // (69, 70, 71 on 3204, 3410, 3431): the Riflemen loose from piece 50's
-    // bays (`sim::launch::BAYS`), `1/53`'s round of 3229 leaves (4328,
+    // bays (`sim::data::launch::BAYS`), `1/53`'s round of 3229 leaves (4328,
     // 33795, 588) and flies 2 frames as theirs does, `0/2003`'s
     // `build:damage` 5 on block 3230 both sides, and the Citizen `0/4`'s
     // `damage_frame` agrees.

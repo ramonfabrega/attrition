@@ -1,6 +1,6 @@
 //! `TypeData::is_good_type@00470800` under the emulator against the port (item 1705).
 
-use crate::type_index::is_good_type;
+use crate::core::type_index::is_good_type;
 
 /// `TypeData::is_good_type@00470800`, run by `tools/emu/sweep_type_good.py` under unicorn
 /// (tools/emu): `t < 0x32` on the type record's `type`, over every index -2..=0x33f and the edges, against `type_index::is_good_type` (everything below `0x32`, negatives included).

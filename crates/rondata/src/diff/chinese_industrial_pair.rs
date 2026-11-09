@@ -33,7 +33,7 @@ pub(crate) const CHINESE_INDUSTRIAL: Pair = Pair {
     // Guy::inc_time+0x271`, theirs `Ammo::init+0xcd9`: theirs fires a
     // round ours does not (`docs/AI.md` section 305).
     // Item 3511: 3007 -> 3017, the Armored Car's (piece 166) turret rows
-    // built (`sim::pivot`): `1/23`'s round of 3001 leaves from (9569,
+    // built (`sim::data::pivot`): `1/23`'s round of 3001 leaves from (9569,
     // 31152, 750) and flies 6, as theirs' does (run1155c's packet). Ours
     // 19 draws against 17, index 0 — ours `Unit::fight+0x9b0`, theirs
     // `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x3b6`.
@@ -45,7 +45,7 @@ pub(crate) const CHINESE_INDUSTRIAL: Pair = Pair {
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
     // `Guy::set_anim+0x97a < Unit::move_step+0x823`.
     // Item 3538: 3271 -> 4467, the game's last frame — the Anti-tank
-    // Rifle's (piece 1143) launch rows (`sim::launch`). The state had
+    // Rifle's (piece 1143) launch rows (`sim::data::launch`). The state had
     // parted on 3243: `1/41`'s round at the Citizen `0/4` left from the
     // unit's own square, flew 5 frames against 4 and struck on 3243
     // against theirs' 3242, so `0/4` fled a frame late, stood a step

@@ -32,7 +32,7 @@
 
 use std::path::Path;
 
-use sim::gather::MountainTemplate;
+use sim::economy::gather::MountainTemplate;
 
 use crate::Install;
 
@@ -209,12 +209,12 @@ pub fn mesh_pixels(t: &Tga) -> Vec<(i32, i32, u8)> {
     out
 }
 
-/// Every template's displacement mesh ([`sim::map_heights::Mesh`]), in
+/// Every template's displacement mesh ([`sim::mapgen::map_heights::Mesh`]), in
 /// template order: [`mesh_pixels`] of its `TEMPLATE_TEX` and the
 /// `<MOUNTAIN>`'s `height`, which `MountainRange::init` reads with
 /// `get_attrib_float` (0x899963) — 0 when absent. A template whose image
 /// cannot be read is left empty, as [`templates`] leaves its lists.
-pub fn meshes(install: &Install) -> Vec<sim::map_heights::Mesh> {
+pub fn meshes(install: &Install) -> Vec<sim::mapgen::map_heights::Mesh> {
     template_heights(install)
         .into_iter()
         .zip(template_files(install))
@@ -223,11 +223,11 @@ pub fn meshes(install: &Install) -> Vec<sim::map_heights::Mesh> {
                 .and_then(|p| std::fs::read(p).ok())
                 .and_then(|b| decode_tga(&b))
                 .map(|t| {
-                    sim::map_heights::Mesh::from_pixels(
+                    sim::mapgen::map_heights::Mesh::from_pixels(
                         t.width as i32,
                         t.height as i32,
                         &mesh_pixels(&t),
-                        sim::single::Single::from_i32(height),
+                        sim::num::single::Single::from_i32(height),
                     )
                 })
                 .unwrap_or_default()

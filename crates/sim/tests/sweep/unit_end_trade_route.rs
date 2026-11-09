@@ -10,7 +10,7 @@ fn wr(m: &mut [u8], off: usize, v: i32) {
     m[off..off + 4].copy_from_slice(&v.to_le_bytes());
 }
 
-use crate::caravan::Caravan;
+use crate::economy::caravan::Caravan;
 use crate::orders::PathData;
 use crate::world::World;
 use crate::{Pos, Sim, Tuning, Unit};

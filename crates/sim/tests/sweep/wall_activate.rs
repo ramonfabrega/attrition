@@ -29,7 +29,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let _ = (&a, &m, &c, &p);
         // hand: port
         // No crate method is `Wall::activate`: `Sim::activate` is `Build::activate` (it calls
-        // `crate::activate::activate_head_steps` before its own tail, and its economy bits are the
+        // `crate::cities::activate::activate_head_steps` before its own tail, and its economy bits are the
         // crate's own state, not this function's windows). Ported inline over the windows.
         // Windows: m the building; c0 the options (`+0x90` rebuild), c1 the build types cell (`+0x10`
         // the array), c2 the scene (`+0x22c` recalc_builds), c3 the unit types cell, c4 the objects cell

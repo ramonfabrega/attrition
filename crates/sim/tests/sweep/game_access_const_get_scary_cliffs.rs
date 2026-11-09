@@ -12,7 +12,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let (_, want) = super::row(line);
         assert_eq!(
             want,
-            i64::from(crate::flag_reads::CLIFFS_ADDR),
+            i64::from(crate::core::flag_reads::CLIFFS_ADDR),
             "GameAccessConst::get_scary_cliffs — row `{line}`"
         );
         n += 1;

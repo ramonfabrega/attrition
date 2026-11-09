@@ -15,7 +15,7 @@
 //! nothing in this crate; `Wall::mask_me(1)` on the converted city is the
 //! city arm's own `mask_city`, later.
 
-use crate::build::Ident;
+use crate::cities::build::Ident;
 use crate::{Player, Sim};
 
 /// What `Build::activate`'s head reads and does.

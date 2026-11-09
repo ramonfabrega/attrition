@@ -310,7 +310,7 @@ fn garrison_member<V: GarrisonView>(
 ///   a unit type that packs takes the plain arm.
 pub struct SimGarrison<'a> {
     pub sim: &'a mut crate::Sim,
-    pub g: &'a crate::group::Group,
+    pub g: &'a crate::groups::group::Group,
 }
 
 fn pos_of(queue: i32) -> crate::orders::QueuePos {
@@ -379,7 +379,7 @@ impl GarrisonView for SimGarrison<'_> {
     /// (item 3990): an Airbase, whose garrison column is 0, takes a
     /// helicopter's garrison all the same.
     fn data_is_1bf(&mut self, _p: i32, o: i32) -> bool {
-        self.sim.building_ident(o as usize) == crate::build::Ident::Airbase
+        self.sim.building_ident(o as usize) == crate::cities::build::Ident::Airbase
     }
     fn data_unassimilated(&mut self, _p: i32, o: i32) -> bool {
         // `BuildData::is_unassimilated`: a city whose race is not its owner.

@@ -4,7 +4,7 @@
 //! reads and the callees it makes, which [`SimWpath`] answers from the
 //! crate's [`Sim`] and `sweep/path_finder_find_wpath_00688fc0.rs` from the
 //! emulated original's windows. The method's account is on
-//! [`Sim::find_wpath_from`]. The sibling is [`crate::tpath`].
+//! [`Sim::find_wpath_from`]. The sibling is [`crate::movement::tpath`].
 
 use crate::Sim;
 use crate::movement;
@@ -326,9 +326,9 @@ impl WpathView for SimWpath<'_> {
     }
     fn domain(&self) -> i32 {
         match self.sim.unit_domain_of(self.u) {
-            crate::attrition::Domain::Land => 0,
-            crate::attrition::Domain::Sea => 1,
-            crate::attrition::Domain::Air => 2,
+            crate::territory::attrition::Domain::Land => 0,
+            crate::territory::attrition::Domain::Sea => 1,
+            crate::territory::attrition::Domain::Air => 2,
         }
     }
     fn tregion(&mut self, t: Pos, _site: TregionSite) -> i32 {
@@ -354,7 +354,7 @@ impl WpathView for SimWpath<'_> {
         self.sim.units[self.u].ty.is_some_and(|t| {
             self.sim.tables.unit_types[t]
                 .cols
-                .is(crate::ai_load::role::ROLE_SCOUT)
+                .is(crate::ai::ai_load::role::ROLE_SCOUT)
         })
     }
     fn order_is_explore_to(&mut self) -> bool {
@@ -385,7 +385,7 @@ impl WpathView for SimWpath<'_> {
         self.sim.units[self.u].ty.is_some_and(|t| {
             self.sim.tables.unit_types[t]
                 .cols
-                .flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
+                .flag2(crate::ai::ai_load::uflags2::SUPPLY_OR_HERO)
         })
     }
     fn is_worker(&mut self) -> bool {

@@ -24,8 +24,8 @@
 //! Nothing here is fractional. Every step is an integer multiply followed by a
 //! divide by a hundred or a shift by eight, in the original's order.
 
+use crate::core::tuning::Tuning;
 use crate::economy::{Ledger, RESOURCES, Resource};
-use crate::tuning::Tuning;
 
 /// How many `(resource, amount)` pairs a queue entry can remember.
 ///
@@ -63,7 +63,7 @@ pub struct Item {
     /// which it holds. A tech entry is a research job in every sense
     /// `docs/PRODUCTION.md` gives the word.
     pub tech: Option<usize>,
-    /// **A `DISBAND` entry** (`TypeIndex` 0x29a, [`crate::queue_disband::DISBAND`];
+    /// **A `DISBAND` entry** (`TypeIndex` 0x29a, [`crate::cities::queue_disband::DISBAND`];
     /// item 3918, `docs/GOLDEN.md` §165): a spell the building casts on itself when
     /// the job completes (`Build::finished@00628490`'s spell arm). `ty` and `tech`
     /// are unused when it is set.
@@ -466,7 +466,7 @@ pub fn adjusted(time: i32, tail: &[Adjust]) -> i32 {
 
 /// The research block's science speedup — the `TECH_SCIENCE_SPEEDUP` step of
 /// `ObjectData::train_time@006508c0`, and the time-side twin of
-/// [`crate::cost::science_discount`].
+/// [`crate::economy::cost::science_discount`].
 ///
 /// ```text
 /// if level < science { t -= (science - level) * TECH_SCIENCE_SPEEDUP * t / 100 }
@@ -705,7 +705,7 @@ impl crate::Sim {
         if !b.queue.has_room() {
             return false;
         }
-        if self.building_ident(at) != crate::build::Ident::University
+        if self.building_ident(at) != crate::cities::build::Ident::University
             || self.tables.unit_types[ty].worker != crate::orders::Worker::Scholar
         {
             return true;
@@ -733,7 +733,7 @@ impl crate::Sim {
         let Some(rec) = b.ty else {
             return false;
         };
-        if !crate::build::is_training_building(&self.tables.build_types, rec) {
+        if !crate::cities::build::is_training_building(&self.tables.build_types, rec) {
             return false;
         }
         let researched = &self.roster.muster[b.owner as usize].researched;
@@ -764,7 +764,7 @@ impl crate::Sim {
 
     /// **`Group::action_queue_up@006fdbb0`** on a group of buildings, from
     /// `CommandPackage::process_queue_up@00948230`, for a unit type: the
-    /// crate's [`crate::group_queue_up::action_queue_up_steps`] over this
+    /// crate's [`crate::groups::group_queue_up::action_queue_up_steps`] over this
     /// [`Sim`]. The members are first sorted by `queued`, least first. Then
     /// the type picks the arm:
     ///
@@ -782,7 +782,12 @@ impl crate::Sim {
     ///
     /// Returns the entries laid.
     pub fn action_queue_up(&mut self, buildings: &[usize], ty: usize, num: i32) -> usize {
-        self.queue_group(buildings, crate::group_queue_up::Queued::Unit(ty), ty, num)
+        self.queue_group(
+            buildings,
+            crate::groups::group_queue_up::Queued::Unit(ty),
+            ty,
+            num,
+        )
     }
 
     /// **`Group::action_queue_up@006fdbb0`** for a technology: always the
@@ -793,13 +798,18 @@ impl crate::Sim {
     /// [`Sim::queue_tech`]. `num` is not read: the arm reuses its slot as
     /// the pass counter (`6fe08a`). Returns the entries laid, 0 or 1.
     pub fn action_queue_research(&mut self, buildings: &[usize], t: crate::tech::TypeId) -> usize {
-        self.queue_group(buildings, crate::group_queue_up::Queued::Tech(t), 0, 0)
+        self.queue_group(
+            buildings,
+            crate::groups::group_queue_up::Queued::Tech(t),
+            0,
+            0,
+        )
     }
 
     pub(crate) fn queue_group(
         &mut self,
         buildings: &[usize],
-        what: crate::group_queue_up::Queued,
+        what: crate::groups::group_queue_up::Queued,
         ty: usize,
         num: i32,
     ) -> usize {
@@ -807,13 +817,17 @@ impl crate::Sim {
             Some(&b) => self.buildings[b].owner,
             None => return 0,
         };
-        let mut view = crate::group_queue_up::SimQueueUp {
+        let mut view = crate::groups::group_queue_up::SimQueueUp {
             sim: self,
             who,
             list: buildings,
             what,
         };
-        crate::group_queue_up::action_queue_up_steps(&mut view, i32::try_from(ty).unwrap_or(0), num)
+        crate::groups::group_queue_up::action_queue_up_steps(
+            &mut view,
+            i32::try_from(ty).unwrap_or(0),
+            num,
+        )
     }
 
     /// **`LeaderData::researching@006db510`** for a unit type: an entry of

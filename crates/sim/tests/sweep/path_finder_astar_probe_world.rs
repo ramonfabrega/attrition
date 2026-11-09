@@ -27,7 +27,7 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     super::obj_rows(&rows, &obj, |a, m, c, p, log| {
         let _ = (&a, &m, &c, &p);
-        // **The port is the crate's own steps** (`crate::astar_view`: the
+        // **The port is the crate's own steps** (`crate::movement::astar_view`: the
         // entry, the fresh start, the loop's head, and the wheel's first
         // turn — `wheel_dir`, `child_pos`, `child_metric`, `world_probe`),
         // which `Sim::astar_path` runs over its `SimAstar`; the view is the

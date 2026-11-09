@@ -36,10 +36,10 @@ fn the_emulated_original_agrees_on_every_row() {
             // answering stub's `--seq` run (`SEQ_AT`), 46/47/48 the flags that lay the image's `is_plane`,
             // `is_special` and `ObjectData::is` at the unit's vtable (the original then answers inline) rather than the stub.
             //
-            // **The port is the crate's own steps**, `crate::halt_view::action_halt_steps`, which
+            // **The port is the crate's own steps**, `crate::groups::halt_view::action_halt_steps`, which
             // `Sim::group_action_halt` runs over its `SimHalt`; here the view is the emulated original's windows.
-            use crate::garrison_view::GarrisonHead;
-            use crate::halt_view::{HaltView, action_halt_steps};
+            use crate::groups::garrison_view::GarrisonHead;
+            use crate::groups::halt_view::{HaltView, action_halt_steps};
             const SEQ_AT: [(usize, usize, usize); 8] = [
                 (2, 14, 4),
                 (3, 18, 4),

@@ -145,7 +145,7 @@ impl WorkGateView for SimWorkGate<'_> {
         self.sim.units[self.u].ty.is_some_and(|t| {
             self.sim.tables.unit_types[t]
                 .cols
-                .flag(crate::ai_load::uflags::MELEE_AND_RANGED)
+                .flag(crate::ai::ai_load::uflags::MELEE_AND_RANGED)
         })
     }
 }
@@ -176,7 +176,7 @@ pub trait WorkTailView {
 const MERCHANT_IDS: [i32; 3] = [0x3d, 0x3e, 0x190];
 /// `TypeIndex::FISHERMEN`.
 const FISHERMEN_ID: i32 = 0x13d;
-const _: () = assert!(FISHERMEN_ID == crate::fish::FISHERMEN as i32);
+const _: () = assert!(FISHERMEN_ID == crate::units::think::fish::FISHERMEN as i32);
 
 /// `:0060d733-0060d779`: an order of any type (`local_8 != NONE`) with the
 /// fresh latch up drops it, and a merchant or a fisherman first marks its
@@ -211,7 +211,8 @@ impl WorkTailView for SimWorkGate<'_> {
         self.sim.unit_tree(self.u).map_or(-1, |t| t as i32)
     }
     fn type_is_fisherman(&mut self) -> bool {
-        self.sim.unit_line_is(self.u, crate::fish::FISHERMEN)
+        self.sim
+            .unit_line_is(self.u, crate::units::think::fish::FISHERMEN)
     }
     fn mark_leader_dirty(&mut self) {
         let who = self.sim.units[self.u].owner;

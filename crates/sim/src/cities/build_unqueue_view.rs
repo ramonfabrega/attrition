@@ -40,7 +40,7 @@
 //! neither side, and the port panics on a negative type. A negative `p1` is
 //! likewise undrawn.
 
-use crate::unit_unqueue_view::{
+use crate::cities::unit_unqueue_view::{
     AIR_QUEUED, BARRACKS_QUEUED, COMBAT_QUEUED, DOCK_QUEUED, FACTORY_QUEUED, STABLE_QUEUED,
 };
 

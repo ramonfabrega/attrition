@@ -32,7 +32,7 @@ fn the_emulated_original_agrees_on_every_row() {
             (0..n.max(0) as usize)
                 .filter(|&i| {
                     let t = crate::Pos::new(rd(&p[1], 8 * i), rd(&p[1], 8 * i + 4));
-                    a[4] != 0 && crate::gather::beyond_access_ring(a[1], a[2], t)
+                    a[4] != 0 && crate::economy::gather::beyond_access_ring(a[1], a[2], t)
                 })
                 .count() as i64
         }

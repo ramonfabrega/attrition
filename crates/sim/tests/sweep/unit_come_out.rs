@@ -53,7 +53,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 // `p[28+h]` the gather node, `p[32]` the `div_3_table`. The answers `a`: `a[0]` the argument,
                 // `a[1+stub]` the stubs' single answers, `a[21..25]` the out-words (get_inside's player, find_nearby_spot's
                 // two, find_tcoord_z's), `a[25..52]` the call-order answers by `--seq`, `a[52]`, `a[53]` the two image flags.
-                use crate::come_out_view::{ComeOutView, Exit, Find, Found, Node, come_out_steps};
+                use crate::units::come_out_view::{
+                    ComeOutView, Exit, Find, Found, Node, come_out_steps,
+                };
                 const ENC: i32 = 0x63637;
                 struct V<'a> {
                     m: &'a mut [u8],

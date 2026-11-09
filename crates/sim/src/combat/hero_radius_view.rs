@@ -1,6 +1,6 @@
 //! **`HeroData::get_radius@00739e50`** (item 3396): a hero's aura radius, as a
 //! walk over a [`HeroRadiusView`] that hands the numbers to the crate's own
-//! [`crate::supply::general_radius`].
+//! [`crate::territory::supply::general_radius`].
 //!
 //! The port of the arithmetic is `general_radius`; this module is the original's
 //! *order of asking* — `LeaderData::get_general_upgrade`, then `is(0x168, 0)`,
@@ -11,8 +11,8 @@
 //! asks the same questions of the unit's type directly and reads Terra Cotta
 //! as absent; this walk is standalone (nothing in `Sim` calls it).
 
-use crate::supply::{General, Patriot, general_radius};
-use crate::tuning::Tuning;
+use crate::core::tuning::Tuning;
+use crate::territory::supply::{General, Patriot, general_radius};
 
 /// The type words `is` is asked about.
 pub const IS_PARMENIO: i32 = 0x168;

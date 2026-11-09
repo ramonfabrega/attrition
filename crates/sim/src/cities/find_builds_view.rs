@@ -306,10 +306,10 @@ impl FindBuildsView for SimFindBuilds<'_> {
         crate::orders::NUM_DEF_BUILDS as i32
     }
     fn circle_radius(&mut self, ring: i32) -> i32 {
-        crate::ai_place::circle().radius[ring.clamp(0, 0x40) as usize] as i32
+        crate::ai::ai_place::circle().radius[ring.clamp(0, 0x40) as usize] as i32
     }
     fn circle_point(&mut self, i: i32) -> (i32, i32) {
-        let c = crate::ai_place::circle();
+        let c = crate::ai::ai_place::circle();
         (c.x[i as usize], c.y[i as usize])
     }
     fn link(&mut self, player: i32, id: i32) -> (i32, i32) {

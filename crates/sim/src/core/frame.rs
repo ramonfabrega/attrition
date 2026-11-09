@@ -136,7 +136,7 @@ impl Sim {
             // re-bakes every unfinished building's construction clock.
             // `rare_owned` only moves on a recompute frame, so this can
             // only fire on one — but the original tests it every frame and
-            // so does this ([`crate::rares`]).
+            // so does this ([`crate::economy::rares`]).
             //
             // **The wall half arrived with item 261.** It was `0x4000000`
             // alone here, and the missing half is a whole rare's building
@@ -187,7 +187,7 @@ impl Sim {
                 self.calc_unit_stats(player);
             }
             // `Leader::process`'s victory clocks, after the stats: a
-            // stopped timer's debt paid back (`crate::victory`).
+            // stopped timer's debt paid back (`crate::territory::victory`).
             self.refresh_victory_timers(who);
         }
 
@@ -215,14 +215,14 @@ impl Sim {
         }
 
         // `GameDaemon::process_all` → `process_victory`, its second act:
-        // the territory timers (`crate::victory`). It draws nothing.
+        // the territory timers (`crate::territory::victory`). It draws nothing.
         self.process_victory_territory();
 
         // `GameDaemon::process_all` → `calc_danger`, the third thing that
         // function does: the danger map, rebuilt from scratch every two
-        // hundredth frame (`crate::danger`). It draws nothing, so it takes
+        // hundredth frame (`crate::world::danger`). It draws nothing, so it takes
         // no mark.
-        if frame % crate::danger::PERIOD == 0 {
+        if frame % crate::world::danger::PERIOD == 0 {
             self.calc_danger();
         }
 
@@ -410,7 +410,7 @@ impl Sim {
             self.log_building_step(b, "head");
             // The head's answer is `Wall::process`'s `is_active` gate: a
             // site never reaches the tower or the tail (the roads' replan
-            // is below it, `crate::roads` §1), though its queue is asked.
+            // is below it, `crate::movement::roads` §1), though its queue is asked.
             let live = self.process_building(b, frame);
             if live {
                 self.log_building_step(b, "tower");
@@ -444,7 +444,7 @@ impl Sim {
         // frames and one herd's walk every 64 (`gaia.rs`).
         self.process_gaia(frame);
         // `Objects::inc_time`'s first statement is `Nuke::do_damage`
-        // (`crate::nuke`, item 1091).
+        // (`crate::combat::nuke`, item 1091).
         self.nuke_do_damage(frame);
         self.mark("guys_inc_time");
         // `Objects::inc_time`: every guy's animation clock first — leader
@@ -468,7 +468,7 @@ impl Sim {
         self.refresh_site_hits();
         self.frame += 1;
         // `Game::do_frame`, after the increment: the stray-road sweep
-        // (`crate::mesh`, `docs/ROADS.md` §10).
+        // (`crate::movement::mesh`, `docs/ROADS.md` §10).
         self.scan_and_kill_stray_roads();
         events
     }

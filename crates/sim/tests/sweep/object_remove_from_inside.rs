@@ -35,7 +35,9 @@ fn the_emulated_original_agrees_on_every_row() {
             // `p[20+3l+i]` the hosts, `p[26+3l+i]` the units, `p[32]` the type record. The answers `a`: `a[0..8]`
             // the stubs' (slot 0x8, 0xd4, 0x20, 0xe8, get_inside, add_to_world, is_peasant, has_tribe_bonus),
             // `a[8]` get_inside's list, `a[9]` the 0xe8 image flag.
-            use sim::remove_inside_view::{Garr, RemoveInsideView, remove_from_inside_steps};
+            use sim::units::remove_inside_view::{
+                Garr, RemoveInsideView, remove_from_inside_steps,
+            };
             struct V<'a> {
                 m: &'a mut [u8],
                 c: &'a mut [Vec<u8>],

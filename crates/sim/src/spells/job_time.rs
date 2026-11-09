@@ -56,7 +56,7 @@ impl Sim {
     /// Antipater's alone: run1513's General casts in 60 where the row says
     /// 120.
     pub(crate) fn entrench_job_time(&self, u: usize, t: i16) -> i16 {
-        use crate::nations::power::FRENCH;
+        use crate::cities::nations::power::FRENCH;
         let who = self.units[u].owner as usize;
         let mut t = i32::from(t);
         if self

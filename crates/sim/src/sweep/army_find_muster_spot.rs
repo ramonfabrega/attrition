@@ -58,9 +58,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 // `a[11..21]` `count`'s, `a[21..31]` `find_unit`'s, `a[31..41]` `find_building`'s, `a[41..44]` `find_angle`'s.
                 // The recorded calls' `edx` is whatever the caller left, `*`, but for `find_angle`'s, masked below.
                 //
-                // **The port is the crate's own steps**, `crate::muster::find_muster_spot_steps`, which
+                // **The port is the crate's own steps**, `crate::ai::army::muster::find_muster_spot_steps`, which
                 // `Sim::find_muster_spot` calls over its `SimMuster`; here the view is the emulated original's windows.
-                use crate::muster::{MusterView, find_muster_spot_steps};
+                use crate::ai::army::muster::{MusterView, find_muster_spot_steps};
                 struct V<'a> {
                     a: &'a [i32],
                     m: &'a mut [u8],

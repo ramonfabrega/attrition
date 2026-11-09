@@ -210,7 +210,7 @@ impl Sim {
         let Some(t) = self.units[u].ty else {
             return false;
         };
-        if self.tables.unit_types[t].kind.domain != crate::attrition::Domain::Land {
+        if self.tables.unit_types[t].kind.domain != crate::territory::attrition::Domain::Land {
             return false;
         }
         let who = self.units[u].owner;
@@ -357,7 +357,7 @@ impl Sim {
     fn get_goody_box(&mut self, u: usize, c: Cell) {
         let who = self.units[u].owner;
         let o = goody_box_order(c);
-        let mut g = crate::group::Group::stack(who);
+        let mut g = crate::groups::group::Group::stack(who);
         self.group_add(&mut g, u);
         if !self.push_group(&mut g, o.force) {
             return;

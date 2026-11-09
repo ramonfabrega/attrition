@@ -34,7 +34,7 @@
 //! player".
 
 use crate::Sim;
-use crate::single::Single;
+use crate::num::single::Single;
 
 /// The goods the loops walk: `TypeIndex` `BASE_GOODTYPES` up to six.
 const GOODS: i32 = 6;
@@ -474,7 +474,7 @@ impl PlunderView for SimPlunder<'_> {
         self.sim.units[self.v].ty.is_some_and(|t| {
             self.sim.tables.unit_types[t]
                 .cols
-                .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
+                .flag2(crate::ai::ai_load::uflags2::FLAG2_CARAVAN)
         })
     }
     fn patch_version(&mut self) -> i32 {
@@ -489,7 +489,7 @@ impl PlunderView for SimPlunder<'_> {
     }
     fn rand(&mut self, lo: i32, hi: i32) -> i32 {
         debug_assert_eq!((lo, hi), (0, 0xffff));
-        self.sim.mark(crate::fight::SITE_UNIT_PLUNDER);
+        self.sim.mark(crate::combat::fight::SITE_UNIT_PLUNDER);
         self.sim.rng.roll()
     }
     fn console_who(&mut self) -> i32 {

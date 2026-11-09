@@ -1761,7 +1761,7 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// (`Sim::wonder_ramp_count`).
 ///
 /// **Item 928 banked one**: ARMY 10 → 9, `0x55555555`, the neutral bias
-/// `come_out`'s gather block passes `find_nearby_spot`, which `crate::rally`
+/// `come_out`'s gather block passes `find_nearby_spot`, which `crate::cities::rally`
 /// now carries.
 /// **Item 947 moved one, and it is not a build**: GOLDEN 4 → 3, `11520`,
 /// chapter thirty-two's P1 x, which the item's unit tests in `crate::air`
@@ -1779,7 +1779,7 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// `crate::air` carries beside `LOOKOUT`, `OBSERVATIONPOST`, `RADAR` and
 /// `SAM` (the anti-air building's cycle, `docs/COMBAT.md` §84).
 /// **Item 1115 banked one**: PATHFINDER 1 → 0, `0x8c`, `avoid_sea`, which
-/// `crate::roads`' shore surcharge now cites; the row is gone.
+/// `crate::movement::roads`' shore surcharge now cites; the row is gone.
 /// **Item 1147 raised two, and it is not a build**: AI 35 → 37 and ECONOMY
 /// 15 → 17, `0x6da6` and `0x6dce`, the `rare` and `rare_conquest` bytes
 /// `Leader::calc_pop_cap`'s listing tests for Peacocks (`006dc656`). They
@@ -1789,7 +1789,7 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 ///
 /// **Item 1111 banked six, one each**: AI 37 → 36, COSTS, GOLDEN and
 /// GROUPS 5 → 4, PRODUCTION 10 → 9, TECH 16 → 15 — the Militia line's and
-/// the Citizen's `TypeIndex`es `crate::cast` names (`docs/GOLDEN.md` §48).
+/// the Citizen's `TypeIndex`es `crate::spells::cast` names (`docs/GOLDEN.md` §48).
 ///
 /// **Item 1163 raised two, and it is not a build**: AI 36 → 38, `0x6da4`
 /// and `0x6dcc`, the `rare` and `rare_conquest` bytes `get_cost`'s research

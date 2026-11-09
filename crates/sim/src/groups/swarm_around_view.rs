@@ -17,7 +17,7 @@
 //! The listing's member walk is a `do … while`: a group with no members still
 //! reads its first slot, and the steps keep that.
 
-use crate::garrison_view::{GarrisonHead, garrison_head};
+use crate::groups::garrison_view::{GarrisonHead, garrison_head};
 
 /// `OrderIndex::BUILD_AT`.
 const BUILD_AT: i32 = crate::ids::order::BUILD_AT as i32;
@@ -426,12 +426,12 @@ fn seeker_type<V: SwarmView>(v: &mut V, p: i32, m: i32, b: i32, who: i32) -> i32
 ///   member and the site.
 pub struct SimSwarm<'a> {
     pub sim: &'a mut crate::Sim,
-    pub g: &'a crate::group::Group,
-    insert: Option<crate::group::Insert>,
+    pub g: &'a crate::groups::group::Group,
+    insert: Option<crate::groups::group::Insert>,
 }
 
 impl<'a> SimSwarm<'a> {
-    pub fn new(sim: &'a mut crate::Sim, g: &'a crate::group::Group) -> Self {
+    pub fn new(sim: &'a mut crate::Sim, g: &'a crate::groups::group::Group) -> Self {
         SimSwarm {
             sim,
             g,
@@ -538,11 +538,11 @@ impl SwarmView for SimSwarm<'_> {
         let b = b as usize;
         match id {
             // `is(FARM)`: the swarm of a farm halves the ring.
-            0x1a1 => self.sim.building_ident(b) == crate::build::Ident::Farm,
+            0x1a1 => self.sim.building_ident(b) == crate::cities::build::Ident::Farm,
             // `is(DOCK)`: the lineage a water site is excepted by.
             0x1b0 => self.sim.buildings[b]
                 .ty
-                .is_some_and(|t| crate::build::is_dock(&self.sim.tables.build_types, t)),
+                .is_some_and(|t| crate::cities::build::is_dock(&self.sim.tables.build_types, t)),
             _ => false,
         }
     }
@@ -561,7 +561,7 @@ impl SwarmView for SimSwarm<'_> {
         self.sim.units[m as usize].on_map
     }
     fn m_domain(&self, _p: i32, m: i32) -> i32 {
-        use crate::attrition::Domain;
+        use crate::territory::attrition::Domain;
         let u = &self.sim.units[m as usize];
         match u
             .ty
@@ -604,7 +604,7 @@ impl SwarmView for SimSwarm<'_> {
     }
     fn site_domain(&self, _who: i32, b: i32) -> i32 {
         let water = self.sim.buildings[b as usize].ty.is_some_and(|t| {
-            self.sim.tables.build_types[t].domain() == crate::build::BuildDomain::Water
+            self.sim.tables.build_types[t].domain() == crate::cities::build::BuildDomain::Water
         });
         i32::from(water)
     }

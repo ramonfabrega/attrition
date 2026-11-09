@@ -129,7 +129,7 @@ pub const MAPGEN: Mapgen = Mapgen {
             // and parts 2, 5, 6 and 10–13 at every record from 5012 to 5118
             // on all 185 files (925 records), first run: 59 path and 707
             // bank cells at 5076, the banks gone again at 5116. 7 → 8 by
-            // item 3850: the troughs (`sim::map_troughs`) and
+            // item 3850: the troughs (`sim::mapgen::map_troughs`) and
             // `adjust_for_mountains`, seed and parts 2, 5, 6 and 10–13 at
             // 894 on all 185 files and every vertex of the 45 start grids,
             // first run; the slope arm inert (no 0x40 cell).
@@ -169,7 +169,7 @@ pub const MAPGEN: Mapgen = Mapgen {
             // (4,646 records), first try with no sim change — the gate open
             // round every island (1,921 and 1,932 cells), the 706 heights on
             // every vertex of 56 start dumps and `HALFLAND` cell-exact on
-            // 202 (81,086 cells), and 3843's `sim::halfland` from 720 on
+            // 202 (81,086 cells), and 3843's `sim::mapgen::halfland` from 720 on
             // (1,558 and 1,560 half-land entries). 6 → 7 by item 3846: the
             // rivers, seed and parts 2, 5, 6 and 10–13 at every record from
             // 5012 to 5118 on all 202 files (1,010 records), first try with
@@ -224,7 +224,7 @@ pub const MAPGEN: Mapgen = Mapgen {
             // 2/5/6/10–13 at run1493's five records 5012..5118, first try
             // with no sim change: part 5 3822669751 → 2939507895 at 5014
             // and 5076, back to 3822669751 at 5116 and 5118. 7 → 8 by item
-            // 3890: `Cliffs::init` (`sim::cliffs`) after the heights —
+            // 3890: `Cliffs::init` (`sim::mapgen::cliffs`) after the heights —
             // `place_cliff`'s offsets off the templates' red byte, all 4,672
             // cliff-cell tiles handed to the slope test and 1,827 passed, 39
             // cells 0x40 cleared, one oil and three goods moved, 1,435 tiles
@@ -292,7 +292,7 @@ pub const MAPGEN: Mapgen = Mapgen {
             // 0 → 8 by item 3947 (MAPGEN §28), on run1530's one file (2
             // nations, 60×60, seed 12345, `african_savannah`, `AFRICA.xml`'s
             // one `TILECHANCE`, no draw): the mask is its own
-            // (`sim::map_watering_hole`, 0x69b650: a lake of 180 cells
+            // (`sim::mapgen::map_watering_hole`, 0x69b650: a lake of 180 cells
             // grown and inverted, Great Sahara's ring about it), 7807 and
             // its 91-draw stream (one generation) whole on the first run;
             // 6,044 draws `place_all` through the values; the lake opens
@@ -308,7 +308,7 @@ pub const MAPGEN: Mapgen = Mapgen {
             // 0 → 8 by item 3949 (MAPGEN §30), on run1532's one file (2
             // nations, 60×60, seed 12345, `autumn` drawn from
             // `OUTBACK.xml`'s four `TILECHANCE`s): the mask is its own
-            // (`sim::map_outback`, 0x69a650: an island grown from the two
+            // (`sim::mapgen::map_outback`, 0x69a650: an island grown from the two
             // ring spots and the middle until both join record 9, then
             // grown to `size·5/9`), 7807 and its 17,262-draw stream (one
             // generation, 10,116 of them `grow_valid`'s edges) whole on the
@@ -325,7 +325,7 @@ pub const MAPGEN: Mapgen = Mapgen {
             // 0 → 8 by item 3948 (MAPGEN §29), on run1531's one file (2
             // nations, 60×60, seed 12345, `jungle` drawn from `default.xml`):
             // the mask is its own body at 0x69add0, ported
-            // (`sim::map_mediterranean`), and every phase holds on the port's
+            // (`sim::mapgen::map_mediterranean`), and every phase holds on the port's
             // first walk — 9,926 mask draws, 6,229 `place_all` through the
             // values, East Indies' half-land order on `SEA_MAP` 1 (720's
             // lists as the file's), no river, and at 894 part 5 1780631313.
@@ -337,7 +337,7 @@ pub const MAPGEN: Mapgen = Mapgen {
             // 0 → 8 by item 3950 (MAPGEN §31), on run1533's one file (2
             // nations, 66×66, seed 12345, `early_autumn` drawn from
             // `NEWWORLD.xml`'s own `TILESET`): the mask is its own
-            // (`sim::map_new_world`, 0x6984d0: an island a player on a
+            // (`sim::mapgen::map_new_world`, 0x6984d0: an island a player on a
             // ring of radius 28, a centre continent of 2,570 cells, no
             // inversion), 7807 and its 102,324-draw stream (one generation)
             // whole on the first walk; every later checkpoint 7835..894
@@ -351,7 +351,7 @@ pub const MAPGEN: Mapgen = Mapgen {
             // 0 → 8 by item 3952 (MAPGEN §33), on run1535's one file (2
             // nations, 60×60, seed 12345, `dirty` drawn from `SEAPOWER.xml`'s
             // five `TILECHANCE`s): the mask is its own body at 0x696080,
-            // ported (`sim::map_sea_power`: an island a player on a ring,
+            // ported (`sim::mapgen::map_sea_power`: an island a player on a ring,
             // East Meets West's guarded `check_player_land`, `EDGES_ONLY`,
             // `eliminate_edge_canals`), 7807 at seed 119778082 and its 6,363
             // draws whole on the first walk; 5,183 draws `place_all` through
@@ -367,7 +367,7 @@ pub const MAPGEN: Mapgen = Mapgen {
             map: "NileDelta",
             // 0 → 8 by item 3953 (MAPGEN §34), on run1536's one file (2
             // nations, seed 12345, `gs_desert`): the mask is its own
-            // (`sim::map_nile_delta`, 0x695bf0: a continent a player on a
+            // (`sim::mapgen::map_nile_delta`, 0x695bf0: a continent a player on a
             // ring of radius 22, grown in four passes to 1,350 cells, the
             // edge canals widened, no inversion), 7807 and its stream (one
             // generation) whole on the first walk; every later checkpoint
@@ -381,7 +381,7 @@ pub const MAPGEN: Mapgen = Mapgen {
             // 0 → 8 by item 3951 (MAPGEN §32), on run1534's one file (2
             // nations, 60×60, seed 12345, `dirty` drawn from
             // `COLONIALPOWERS.xml`'s four `TILECHANCE`s): the mask is its
-            // own (`sim::map_colonial`, 0x697dd0: two continents of
+            // own (`sim::mapgen::map_colonial`, 0x697dd0: two continents of
             // `size/3` grown half a turn apart on the ring `3·(m/2)/4`, the
             // second with `avoid_center` at `7r/9`, then
             // `check_player_land` and `eliminate_pools(EDGES_ONLY)`), 7807
@@ -461,11 +461,17 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// `rng`, `frame`, `in_play`, `game_seed` and the one-field `tech`
 /// stayed. Every read was rewritten by path, so no statement moved. The
 /// per-player record was not built (§5 move 8, optional).
+///
+/// Item 4017: `sweep-lines` 17255 → 17286 (+31), a named rise. Deleting
+/// `lib.rs`'s `pub use` shim rewrote every old flat path in the sweeps to
+/// its full one (`crate::garrison_view` → `crate::groups::garrison_view`),
+/// and rustfmt wrapped the lines that grew. No sweep changed what it
+/// asserts.
 #[cfg(test)]
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 7),
     ("test-tails", 0),
-    ("sweep-lines", 17_255),
+    ("sweep-lines", 17_286),
     ("names", 15),
     ("fields", 21),
     ("largest", 5_437),

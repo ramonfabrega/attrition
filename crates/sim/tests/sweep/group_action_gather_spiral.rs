@@ -40,10 +40,12 @@ fn the_emulated_original_agrees_on_every_row() {
             // `get_action` answers. `a`: the two arguments, the stubs' answers (`a[2 + k]`, stub `k`),
             // every `--seq` run (`SEQ_AT`), the two `--slotbase` flags and the four null flags.
             //
-            // **The port is the crate's own steps**, `crate::action_gather_view::action_gather_steps`,
+            // **The port is the crate's own steps**, `crate::groups::action_gather_view::action_gather_steps`,
             // over a view of the emulated original's windows; the crate has no `Group::action_gather`
             // to call (see that module's head).
-            use crate::action_gather_view::{ActionGatherView, GarrisonHead, action_gather_steps};
+            use crate::groups::action_gather_view::{
+                ActionGatherView, GarrisonHead, action_gather_steps,
+            };
             const SEQ_AT: [(usize, usize, usize); 15] = [
                 (1, 32, 12),
                 (2, 44, 12),

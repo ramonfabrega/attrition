@@ -17,7 +17,7 @@
 //! worked pair, and says so.
 
 use crate::{Error, Install, Table, parse, read};
-use sim::balance::{self, Kind};
+use sim::combat::balance::{self, Kind};
 use sim::combat::mask;
 
 /// The number of categories.
@@ -201,9 +201,9 @@ pub fn unit_kind(index: usize, r: &crate::Record) -> Kind {
     // `DOMAIN` is the column (`Land`/`Sea`/`Air`); an earlier draft read a
     // `TYPE` column that does not exist and called every unit a land unit.
     let domain = match r.text("DOMAIN").map(str::to_ascii_lowercase).as_deref() {
-        Some("sea") | Some("naval") => sim::attrition::Domain::Sea,
-        Some("air") => sim::attrition::Domain::Air,
-        _ => sim::attrition::Domain::Land,
+        Some("sea") | Some("naval") => sim::territory::attrition::Domain::Sea,
+        Some("air") => sim::territory::attrition::Domain::Air,
+        _ => sim::territory::attrition::Domain::Land,
     };
     Kind {
         masks,

@@ -67,10 +67,10 @@ fn the_emulated_original_agrees_on_every_row() {
                 // `p[12 + 4 * pl + j]` the units, `p[20 + 4 * pl + j]` the unit's type (at `+0x18`), `p[28]` the
                 // regions. `a`: the two arguments, the stubs' answers (`a[2..22]`) and every `--seq` run (`SEQ_AT`).
                 //
-                // **The port is the crate's own steps**, `crate::board_ship_view::action_board_ship_steps`, over a
+                // **The port is the crate's own steps**, `crate::groups::board_ship_view::action_board_ship_steps`, over a
                 // view of the emulated original's windows; the crate has no `Group::action_board_ship` to call (see
                 // that module's head).
-                use crate::board_ship_view::{
+                use crate::groups::board_ship_view::{
                     BoardShipView, GarrisonHead, action_board_ship_steps,
                 };
                 const SEQ_AT: [(usize, usize, usize); 6] = [

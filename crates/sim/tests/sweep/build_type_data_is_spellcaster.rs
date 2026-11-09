@@ -1,7 +1,7 @@
 //! `BuildTypeData::is_spellcaster@00639840` under the emulator against the port (item 2083; hand-written on
 //! tools/emu/hooks.py and tools/emu/buildtypes.py).
 
-use crate::build::{BuildType, is_spellcaster};
+use crate::cities::build::{BuildType, is_spellcaster};
 
 /// The row's ten records as the port's [`BuildType`]s: a non-negative `FROM` is the parent, the flag word is
 /// `flags` (the original's `+0x2c0`).

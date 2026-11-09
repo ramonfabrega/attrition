@@ -1,5 +1,5 @@
 use super::*;
-use crate::map_east_west::is_near_ocean;
+use crate::mapgen::map_east_west::is_near_ocean;
 
 /// Mediterranean's stock values on a Standard map: `AVOID_CENTER` 12,
 /// `AVOID_CONTINENT` 8, `AVOID_EDGE_0..3` 12.
@@ -138,7 +138,7 @@ fn the_sea_is_inverted_and_the_island_grows_in_it() {
         assert_eq!(m.map.avoid_continent, 8);
         // `check_player_land`'s disc to `start_land` round each
         // start-city cell is land; the island may have taken some of it.
-        let t = crate::scout::circle::table();
+        let t = crate::units::think::scout::circle::table();
         let cities: Vec<(i32, i32)> = grid.starts[2]
             .list
             .iter()

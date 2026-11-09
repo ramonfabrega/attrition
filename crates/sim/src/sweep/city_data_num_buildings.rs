@@ -38,7 +38,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 chain.push(at as usize);
                 at = i16::from_le_bytes([p[1 + at as usize][0x74], p[1 + at as usize][0x75]]);
             }
-            i64::from(crate::city::live_members(chain, |b| p[1 + b][8] & 5 == 5))
+            i64::from(crate::cities::city::live_members(chain, |b| {
+                p[1 + b][8] & 5 == 5
+            }))
         }
     });
 }

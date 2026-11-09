@@ -44,7 +44,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 i16::from_le_bytes([self.p[4][0x86], self.p[4][0x87]]) as usize
             }
         }
-        impl crate::cast::AmbushView for Bytes<'_> {
+        impl crate::spells::cast::AmbushView for Bytes<'_> {
             fn frame(&self) -> i32 {
                 rd(&self.p[2], 0)
             }
@@ -92,7 +92,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 }
             }
         }
-        crate::cast::cast_ambush_steps(&mut Bytes {
+        crate::spells::cast::cast_ambush_steps(&mut Bytes {
             a,
             m,
             p,

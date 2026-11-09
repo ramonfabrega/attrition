@@ -58,7 +58,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 // units list). `a[0]` the type index, `a[1+i]` stub i's answer, `a[24..28]` the four
                 // population values, `a[28..32]` whether the type records' slots `+0xc`, `+0x48`, `+0x14` and
                 // the units' `+0x80` hold the image function.
-                use crate::production::{Handover, finished};
+                use crate::cities::production::{Handover, finished};
                 fn call(log: &mut Vec<String>, s: usize, ecx: &str, args: &[String]) {
                     let mut t = format!("s{s}:{ecx}");
                     for x in args {

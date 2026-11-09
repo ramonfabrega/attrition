@@ -34,7 +34,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // a[1] `has_wonder`; a[2], a[3] unused by the seqs), then `is` answers by slot 0xb8
             // (a[4..16]) and by the type's 0x60 (a[16..28]) in call order, then the slot flag
             // (a[28]: nonzero = slot 0xb8 is `ObjectData::is`, so the type's 0x60 answers).
-            use sim::hero_radius_view::{HeroConstants, HeroRadiusView, hero_radius_steps};
+            use sim::combat::hero_radius_view::{HeroConstants, HeroRadiusView, hero_radius_steps};
             struct V<'a> {
                 a: &'a [i32],
                 m: &'a [u8],

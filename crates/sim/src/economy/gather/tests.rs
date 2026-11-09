@@ -1,6 +1,6 @@
 use super::*;
-use crate::build::{BuildType, Ident};
-use crate::tuning::Tuning;
+use crate::cities::build::{BuildType, Ident};
+use crate::core::tuning::Tuning;
 use crate::world::{Owner, Terrain, UNITS_PER_TILE};
 
 fn tile_pos(tx: i32, ty: i32) -> Pos {

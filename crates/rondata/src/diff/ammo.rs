@@ -623,7 +623,7 @@ pub(crate) mod tests {
     /// host's `{:.6}` is correctly rounded, as the original's printf is;
     /// this is test code, where `no_float.rs` does not reach and an oracle
     /// in the host's arithmetic is the point.
-    pub(crate) fn printed(s: sim::single::Single) -> i64 {
+    pub(crate) fn printed(s: sim::num::single::Single) -> i64 {
         micro(&format!("{:.6}", f32::from_bits(s.bits()))).expect("six decimals")
     }
 
@@ -633,7 +633,7 @@ pub(crate) mod tests {
     /// ulp, because until item 495 this crate had no single-precision
     /// arithmetic to hold it to more. [`sim::combat::arc_v1z`] is that
     /// arithmetic — `Ammo::init`'s own four SSE steps in
-    /// [`sim::single::Single`] — and on every one of run109's 183 records
+    /// [`sim::num::single::Single`] — and on every one of run109's 183 records
     /// its single prints as exactly the six decimals the original printed.
     #[test]
     fn run109_s_v1z_is_arc_v1z_to_the_last_digit() {
@@ -987,7 +987,7 @@ pub(crate) mod tests {
                 g.cur_time.expect("cur_time"),
                 g.gpiece.expect("gpiece"),
             );
-            let n = sim::launch::node(
+            let n = sim::data::launch::node(
                 i32::try_from(piece).unwrap(),
                 i8::try_from(anim).unwrap(),
                 u32::try_from(t).unwrap(),

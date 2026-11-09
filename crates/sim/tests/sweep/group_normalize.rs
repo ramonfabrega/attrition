@@ -27,12 +27,12 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     super::obj_rows(&rows, &obj, |a, m, c, p, log| {
         let _ = (&a, &m, &c, &p);
-        // **The port is the crate's own steps**, `crate::normalize_view::normalize_steps` (the crate's
+        // **The port is the crate's own steps**, `crate::groups::normalize_view::normalize_steps` (the crate's
         // `group_normalize` and `seat_normalize` are namesakes, see that module), here over the emulated
         // original's windows: `m` the group, `p[1+id]` the object, `p[6+id]` the unit. `a`: the five stubs'
         // answers (`a[..5]`), then `--seq 0`'s eight slot-`+0x18` answers (`a[5..13]`) and `--seq 1`'s eight
         // slot-`+0x20` answers (`a[13..21]`).
-        use crate::normalize_view::{NormalizeView, normalize_steps};
+        use crate::groups::normalize_view::{NormalizeView, normalize_steps};
         struct V<'a> {
             a: &'a [i32],
             m: &'a mut [u8],

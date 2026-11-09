@@ -138,7 +138,7 @@ pub(crate) const SEA_MELEE: Melee = Melee {
     // frame sooner (run1485). **820 → 1233** with piece 125's bays: ours
     // 15 against 14, at index 5 ours spends `Unit::close+0xcb6` where
     // theirs spends `Farms::inc_time+0x1ae` — ours acted. Item 3854:
-    // **1233 → 1613** with the ship heal (`sim::heal`): run1485's carriers
+    // **1233 → 1613** with the ship heal (`sim::units::heal`): run1485's carriers
     // heal a point on `(o + frame) % 20`, ours never did, and on 1201
     // `1/18` stood at 545 damage against 522 and `2/18` at 341 against
     // 318; now both agree on every block to 1201. On 1613 ours 12 against
@@ -151,7 +151,7 @@ pub(crate) const SEA_MELEE: Melee = Melee {
     // spend 121: at index 53 ours spends `PathFinder::calc_road_cost+0x46`
     // where theirs spends `Unit::think_scout+0xaba` (§153.3). Item 3857:
     // **1980 → 2090** with the scout's sibling test on the lineage
-    // (`FILTER_BASE_TYPE`, `sim::scout`'s `scout_unit_near`): on 1957 the
+    // (`FILTER_BASE_TYPE`, `sim::units::think::scout`'s `scout_unit_near`): on 1957 the
     // Fluyt `2/20` refuses cell (55,36), where the Aegis Cruiser `2/48`,
     // its lineage-mate under the Bark, is bound, and takes (57,50) as
     // theirs does; the fog the two Fluyts uncover then agrees, and on 1980
@@ -159,7 +159,7 @@ pub(crate) const SEA_MELEE: Melee = Melee {
     // packet). On 2090 ours 13 against 14: at index 0 ours spends
     // `Unit::do_move+0xe84` where theirs spends `Guy::set_anim+0x97a <
     // Unit::move_step+0x823` (§153.4). Item 3860: **2090 → 2598** with
-    // the spiral's centre test on a *started* building (`sim::ai_place`'s
+    // the spiral's centre test on a *started* building (`sim::ai::ai_place`'s
     // `cell_has_centre`, the cell's `0x4000` written by `Wall::start`): on
     // 1985 the French dock of city 1 takes cell (19, 48), beside the
     // unstarted Shipyard `1/2033`, at 4255, as theirs does (run1487's

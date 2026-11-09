@@ -36,9 +36,9 @@ fn the_emulated_original_agrees_on_every_row() {
             // +0x18), `p0` the type record (vtable word at +0, its index at +4). The interface arm
             // (`iface_current`, a cell the image leaves zero) is not reached.
             //
-            // **The port is the crate's own steps**, `crate::city::build_start_steps`, which
+            // **The port is the crate's own steps**, `crate::cities::city::build_start_steps`, which
             // `Sim::start_building` calls over its `StartSite`; here the view is the emulated windows.
-            use crate::city::{BuildStartView, build_start_steps};
+            use crate::cities::city::{BuildStartView, build_start_steps};
             const BUILD_VFTABLE: i32 = 0x00b4_2174;
             const BUILD_TYPE_VFTABLE: i32 = 0x00b4_2b94;
             struct V<'a> {

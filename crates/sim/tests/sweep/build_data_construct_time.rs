@@ -59,7 +59,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 // derives only two of the four; `ClockMods::free_first_wonder` / `hanging_gardens` have no
                 // writer in `Sim`).
                 use crate::Tuning;
-                use crate::build::{BuildType, ClockMods, Ident, construct_time};
+                use crate::cities::build::{BuildType, ClockMods, Ident, construct_time};
                 fn i16at(w: &[u8], o: usize) -> i16 {
                     i16::from_le_bytes([w[o], w[o + 1]])
                 }

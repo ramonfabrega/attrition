@@ -50,7 +50,7 @@ impl Insert {
     }
 }
 
-/// [`crate::finish_insert_view::FinishInsertView`] over an [`Insert`]: the
+/// [`crate::groups::finish_insert_view::FinishInsertView`] over an [`Insert`]: the
 /// copies are typed [`Order`]s, not the original's raw records, so a record's
 /// words are what this crate stores of the order and an action reads the
 /// current order's body where the record names a slot or a pair this crate
@@ -67,7 +67,7 @@ pub(super) struct SimInsert<'a> {
     pub(super) aim: Option<(Obj, bool)>,
 }
 
-impl crate::finish_insert_view::FinishInsertView for SimInsert<'_> {
+impl crate::groups::finish_insert_view::FinishInsertView for SimInsert<'_> {
     fn reseat(&mut self) {}
 
     fn pending(&mut self) -> bool {
@@ -217,8 +217,8 @@ impl crate::finish_insert_view::FinishInsertView for SimInsert<'_> {
 
     fn action_form(&mut self, a: [i32; 5]) {
         // `a[3]` is the leftover `ecx` (parked 3372f): the listing never reads it.
-        let mut v = crate::form_view::SimActionForm::new(&mut *self.sim, self.g);
-        crate::form_view::action_form_steps(&mut v, a[0], a[1], a[2], a[4]);
+        let mut v = crate::groups::form_view::SimActionForm::new(&mut *self.sim, self.g);
+        crate::groups::form_view::action_form_steps(&mut v, a[0], a[1], a[2], a[4]);
     }
 
     fn redo_patrol_order(&mut self, _a: [i32; 2]) {

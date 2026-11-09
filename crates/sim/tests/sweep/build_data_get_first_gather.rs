@@ -1,6 +1,6 @@
 //! `BuildData::get_first_gather@0046f140` under the emulator against the port (item 2090; hand-written on tools/emu/hooks.py).
 
-use crate::rally::GatherPoint;
+use crate::cities::rally::GatherPoint;
 use crate::world::Pos;
 
 fn unhex(s: &str) -> Vec<u8> {

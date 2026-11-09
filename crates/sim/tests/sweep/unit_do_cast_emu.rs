@@ -11,7 +11,7 @@
 //! rows at [`SPELLS`]; `p29` the caster's unit type; `p30` the unit types'
 //! record.
 
-use crate::do_cast_view::{DoCastClock, DoCastHead};
+use crate::spells::do_cast_view::{DoCastClock, DoCastHead};
 
 /// The spell indices the sweeps' orders draw: the row of `SPELLS[k]` is
 /// window `p(14 + k)`.

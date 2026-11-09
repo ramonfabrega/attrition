@@ -36,10 +36,10 @@ fn the_emulated_original_agrees_on_every_row() {
             // (each at `+0x18`), `p[52]` the regions. `a`: the five arguments, the stubs' answers
             // (`a[5..25]`), every `--seq` run (`SEQ_AT`) and the three `--slotbase` flags.
             //
-            // **The port is the crate's own steps**, `crate::trade_view::action_trade_steps`, over a view of
+            // **The port is the crate's own steps**, `crate::groups::trade_view::action_trade_steps`, over a view of
             // the emulated original's windows; the crate has no `Group::action_trade` to call (see that
             // module's head).
-            use crate::trade_view::{GarrisonHead, TradeView, action_trade_steps};
+            use crate::groups::trade_view::{GarrisonHead, TradeView, action_trade_steps};
             const SEQ_AT: [(usize, usize, usize); 13] = [
                 (1, 25, 8),
                 (2, 33, 8),

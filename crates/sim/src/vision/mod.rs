@@ -16,10 +16,10 @@
 //! Nothing here draws on the sync stream.
 
 use crate::Sim;
-use crate::ai_load::uflags2;
-use crate::ai_place::circle;
-use crate::attrition::Domain;
+use crate::ai::ai_load::uflags2;
+use crate::ai::ai_place::circle;
 use crate::movement::{cos_component, sin_component};
+use crate::territory::attrition::Domain;
 use crate::world::{Pos, vector_dist};
 use std::sync::OnceLock;
 
@@ -206,9 +206,9 @@ impl Sim {
         if matches!(
             self.trainer_ident(rec),
             Some(
-                crate::build::Ident::Barracks
-                    | crate::build::Ident::Stable
-                    | crate::build::Ident::AutoPlant
+                crate::cities::build::Ident::Barracks
+                    | crate::cities::build::Ident::Stable
+                    | crate::cities::build::Ident::AutoPlant
             )
         ) {
             los += self.troops_los_level(unit.owner) * self.tables.tuning.troops_upgrade_los;
@@ -455,9 +455,9 @@ impl Sim {
                 .get(bd.owner as usize)
                 .map_or(0, |t| t.epoch[crate::tech::Line::Science.index()]);
             let mut los = ty.los + epoch * ty.science_los;
-            if crate::build::is_fort(&self.tables.build_types, rec) {
+            if crate::cities::build::is_fort(&self.tables.build_types, rec) {
                 los += self.tables.tuning.fort_upgrade_los[self.fort_los(bd.owner) - 1];
-            } else if crate::build::is_tower(&self.tables.build_types, rec) {
+            } else if crate::cities::build::is_tower(&self.tables.build_types, rec) {
                 los +=
                     self.tables.tuning.tower_fort_los[(self.tower_fort_los(bd.owner) - 1) as usize];
             }
@@ -581,8 +581,8 @@ impl Sim {
     fn is_visible_wonder(&self, b: usize) -> bool {
         self.buildings[b].ty.is_some_and(|ty| {
             self.tables.build_types[ty].wonder
-                && !crate::build::is_city(&self.tables.build_types, ty)
-                && !crate::build::is_fort(&self.tables.build_types, ty)
+                && !crate::cities::build::is_city(&self.tables.build_types, ty)
+                && !crate::cities::build::is_fort(&self.tables.build_types, ty)
         })
     }
 
@@ -911,7 +911,7 @@ impl Sim {
         let r = self.units[u]
             .ty
             .map_or(0, |t| self.tables.unit_types[t].combat.circle_radius);
-        let c = crate::ai_place::circle();
+        let c = crate::ai::ai_place::circle();
         let n = c.radius[r.clamp(0, 0x40) as usize];
         let (fx, fy) = (
             self.units[u].pos.x.div_euclid(UNITS_PER_FOG),
@@ -972,8 +972,8 @@ impl Sim {
         // holds for it and it takes the ordinary branch (twenty-fourth pass,
         // group 5; A8 row 4).
         let wonder = self.tables.build_types[ty].wonder
-            && !crate::build::is_city(&self.tables.build_types, ty)
-            && !crate::build::is_fort(&self.tables.build_types, ty);
+            && !crate::cities::build::is_city(&self.tables.build_types, ty)
+            && !crate::cities::build::is_fort(&self.tables.build_types, ty);
         let mask = if wonder && self.buildings[b].started {
             0xff
         } else {

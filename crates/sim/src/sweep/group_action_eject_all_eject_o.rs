@@ -37,7 +37,8 @@ fn the_emulated_original_agrees_on_every_row() {
             log.push("s0:m+0x0".to_string());
             // Not the own-buildings arm: `who` names another player's unit, or the
             // command names `eject_who`.
-            if !crate::group::eject_all_own_arm(i32::from(m[0x4a]), eject_who, who) && eject_o >= 0
+            if !crate::groups::group::eject_all_own_arm(i32::from(m[0x4a]), eject_who, who)
+                && eject_o >= 0
             {
                 let obj_win = |pl: i32, idx: i32| (8 * pl + 1 + idx) as usize;
                 let start = obj_win(eject_who, eject_o);

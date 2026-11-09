@@ -128,10 +128,11 @@ impl Sim {
     /// swarm here carries anyone.
     pub(super) fn swarm_seeker_type(&self, u: usize, b: usize) -> Option<usize> {
         let t = self.buildings[b].ty?;
-        if self.tables.build_types[t].domain() != crate::build::BuildDomain::Water
-            || crate::build::is_dock(&self.tables.build_types, t)
+        if self.tables.build_types[t].domain() != crate::cities::build::BuildDomain::Water
+            || crate::cities::build::is_dock(&self.tables.build_types, t)
             || !self.is_peasant(u)
-            || self.transport_level(self.units[u].owner) < crate::transport::TransportType::Civilian
+            || self.transport_level(self.units[u].owner)
+                < crate::ai::transport::TransportType::Civilian
         {
             return None;
         }
@@ -142,7 +143,7 @@ impl Sim {
     /// (`UnitType::find_nearby_spot`, `0070fbe0:7103e6`/`710472`): the
     /// member's own type, or the barge a citizen swarming water is
     /// searched as ([`Self::swarm_seeker_type`]), around `centre`.
-    /// [`crate::swarm_around_view::SimSwarm`] asks it once for the first
+    /// [`crate::groups::swarm_around_view::SimSwarm`] asks it once for the first
     /// spot and once for the build's nudged one.
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn swarm_ring(
@@ -304,7 +305,7 @@ impl Sim {
     /// `Unit::check_build_order` (§5.3): pop the queued build orders, re-add
     /// the surviving sites, least crowded first, all with the action bit.
     ///
-    /// The walk is [`crate::check_build_view::check_build_order_steps`] over
+    /// The walk is [`crate::orders::check_build_view::check_build_order_steps`] over
     /// [`SimCheckBuild`] (item 3372, swept against the original under
     /// unicorn): a **cursor** walk, not a run of kills (the second reading's
     /// R3 C2). An intervening transit `MOVE_TO` is stepped over, not removed;
@@ -325,7 +326,7 @@ impl Sim {
     /// identical count does *not*; see the audit's R3 F2) — whose action is a
     /// `BUILD_AT` on the site, issued under this owner.
     pub(super) fn check_build_order(&mut self, u: usize) {
-        crate::check_build_view::check_build_order_steps(&mut SimCheckBuild {
+        crate::orders::check_build_view::check_build_order_steps(&mut SimCheckBuild {
             s: self,
             u,
             i: 0,
@@ -422,7 +423,7 @@ impl Sim {
     /// a candidate is kept when `vector_dist − R <= range`, R its
     /// `push_size` if it is a sea unit and its `big_radius` otherwise.
     pub(crate) fn find_units_reach(&self, o: usize) -> i32 {
-        if self.units[o].kind.domain == crate::attrition::Domain::Sea {
+        if self.units[o].kind.domain == crate::territory::attrition::Domain::Sea {
             self.profile(Obj::Unit(o)).push_size
         } else {
             self.units[o]
@@ -453,14 +454,14 @@ impl Sim {
     /// into `chain_heads` here (`docs/QUEUE.md` 48), so the within-cell
     /// half is descending slot order rather than a chain walk.
     ///
-    /// The walk is [`crate::find_builds_view::find_builds_steps`] over
-    /// [`crate::find_builds_view::SimFindBuilds`]; `sweep::objects_find_builds`
+    /// The walk is [`crate::cities::find_builds_view::find_builds_steps`] over
+    /// [`crate::cities::find_builds_view::SimFindBuilds`]; `sweep::objects_find_builds`
     /// runs it against the original under the emulator (item 3379). Its list
     /// walk (past `num_def_builds`' circle) keeps a site when
     /// `vector_dist(dx - 192 * x_size, dx - 192 * y_size) <= range`, `dx` the
     /// **x** offset twice: the listing never reads the building's `+0x14`.
     pub(crate) fn find_construct_sites(&self, u: usize, range: i32) -> Vec<usize> {
-        use crate::find_builds_view::{
+        use crate::cities::find_builds_view::{
             FILTER_CONSTRUCT, FindBuildsArgs, SEARCH_FRIENDLY, SimFindBuilds, find_builds_steps,
         };
         let who = self.units[u].owner;
@@ -497,7 +498,7 @@ impl Sim {
         let who = self.units[u].owner;
         let here = self.units[u].pos;
         let mut out = Vec::new();
-        let circle = crate::ai_place::circle();
+        let circle = crate::ai::ai_place::circle();
         let ring = Self::ring_index(range);
         let live = self.total_units();
         let keep = |sim: &Self, o: usize, out: &mut Vec<usize>| {
@@ -554,8 +555,8 @@ impl Sim {
     /// takes the moment a site is finished, and the one an idle builder
     /// takes ahead of the gather search.
     ///
-    /// The walk is [`crate::build_spot_view::build_spot_steps`] over
-    /// [`crate::build_spot_view::SimBuildSpot`]; `sweep::unit_find_build_spot` runs it against the
+    /// The walk is [`crate::orders::build_spot_view::build_spot_steps`] over
+    /// [`crate::orders::build_spot_view::SimBuildSpot`]; `sweep::unit_find_build_spot` runs it against the
     /// original under the emulator (item 3372). Range is
     /// `UNIT_BUILD_RESPOND_RANGE × 0xc0`, **doubled** on worker stance 1 or 2.
     /// The candidates are [`Self::find_construct_sites`]; the choice is the
@@ -566,9 +567,9 @@ impl Sim {
     /// The original wraps the swarm in a one-member `Group`; every other
     /// swarm call site here is the same single-unit shape (§10).
     pub(crate) fn find_build_spot(&mut self, u: usize) -> bool {
-        crate::build_spot_view::build_spot_steps(&mut crate::build_spot_view::SimBuildSpot::new(
-            self, u,
-        ))
+        crate::orders::build_spot_view::build_spot_steps(
+            &mut crate::orders::build_spot_view::SimBuildSpot::new(self, u),
+        )
     }
 
     /// `Unit::find_repair_spot@00604320` (`docs/ORDERS.md` §5.10), as the
@@ -616,7 +617,7 @@ impl Sim {
         if range < 0 || (range + 0x2ff) / 0x300 > 9 {
             order.extend(0..self.buildings.len());
         } else {
-            let circle = crate::ai_place::circle();
+            let circle = crate::ai::ai_place::circle();
             let ring = Self::ring_index(range);
             let c0 = here.cell();
             for i in 0..circle.radius[ring] {
@@ -700,7 +701,7 @@ impl Sim {
         // `+0x3c = 1` again after `update_order`) put first with the action
         // bit. A base that will not take it gets a `QUEUE_FIRST` move to
         // its point and the red feedback (the console's alone).
-        if self.is_helicopter(u) && self.building_ident(b) == crate::build::Ident::Airbase {
+        if self.is_helicopter(u) && self.building_ident(b) == crate::cities::build::Ident::Airbase {
             self.kill_current_order(u);
             if self.base_can_carry(b, u) {
                 self.add_strafe_order(u, None, Some(b), true, QueuePos::First, true);
@@ -1039,7 +1040,7 @@ impl Sim {
         let who = self.units[u].owner;
         let wood = self.building_ident(b) == Ident::Woodcutter;
         // The recharge bump and the group drop are the swept head
-        // ([`crate::gather_tile::gather_head_steps`], item 3381).
+        // ([`crate::economy::gather_tile::gather_head_steps`], item 3381).
         // **Every call drops the gatherer's group**, a computer's too
         // (`5f0237` `orl $-1`, `5f023e` `movw %ax, 0x80(%ebx)`: both
         // paths from the entry join there, before the `goto_build`
@@ -1048,8 +1049,8 @@ impl Sim {
         // 8369 it is `1/11`'s `group` 65 → −1, the first pool parting
         // once the AI's building groups number the pool
         // (`docs/GROUPS.md` §29).
-        crate::gather_tile::gather_head_steps(
-            &mut crate::gather_tile::SimGatherTile { sim: self, u, b },
+        crate::economy::gather_tile::gather_head_steps(
+            &mut crate::economy::gather_tile::SimGatherTile { sim: self, u, b },
             g.been_there,
         );
         let bpos = self.buildings[b].pos;
@@ -1077,15 +1078,15 @@ impl Sim {
                     None => {
                         // No spot: keep chopping (`do_non_flat_gather:130`).
                         let work = if wood {
-                            crate::anim::CHOP_WOOD
+                            crate::units::anim::CHOP_WOOD
                         } else {
-                            crate::anim::MINE_ORE
+                            crate::units::anim::MINE_ORE
                         };
                         self.set_anim(u, work, false, true);
                         g.wait = 20;
                     }
                     Some(spot) => {
-                        self.mark(crate::anim::SITE_STAND_RETURN);
+                        self.mark(crate::units::anim::SITE_STAND_RETURN);
                         self.set_default_anim(u);
                         self.add_move_order(u, spot, MoveKind::MoveTo, QueuePos::First, false);
                         g.goto_build = true;
@@ -1121,11 +1122,11 @@ impl Sim {
             // worker's clock ran at a third of the original's and sent it
             // home two hundred frames early (§6.4, `docs/SYNC.md` §3.18).
             let anim = self.units[u].guys.first().map_or(0, |g| g.anim);
-            if anim == crate::anim::MINE_ORE {
+            if anim == crate::units::anim::MINE_ORE {
                 self.store_gather(u, g);
                 return;
             }
-            if anim == crate::anim::CHOP_WOOD {
+            if anim == crate::units::anim::CHOP_WOOD {
                 g.wait -= 1;
                 if g.wait != 0 {
                     self.store_gather(u, g);
@@ -1168,9 +1169,9 @@ impl Sim {
                     .movement
                     .set_heading(find_angle(centre.x - here.x, centre.y - here.y));
                 let work = if wood {
-                    crate::anim::CHOP_WOOD
+                    crate::units::anim::CHOP_WOOD
                 } else {
-                    crate::anim::MINE_ORE
+                    crate::units::anim::MINE_ORE
                 };
                 self.set_anim(u, work, false, true);
                 self.store_gather(u, g);
@@ -1181,7 +1182,7 @@ impl Sim {
             // pseudocode has always carried it and the implementation did
             // not; the whole-frame sequence check is what made the gap
             // countable (`docs/SYNC.md` §5.1).
-            self.mark(crate::anim::SITE_STAND_TILE);
+            self.mark(crate::units::anim::SITE_STAND_TILE);
             self.set_default_anim(u);
             let angle = find_angle(here.x - centre.x, here.y - centre.y);
             // Three answers take the no-spot arm (`005f1191`–`005f1318`):
@@ -1242,9 +1243,9 @@ impl Sim {
                         .movement
                         .set_heading(find_angle(bpos.x - here.x, bpos.y - here.y));
                     let dump = if wood {
-                        crate::anim::DUMP_WOOD
+                        crate::units::anim::DUMP_WOOD
                     } else {
-                        crate::anim::DUMP_ORE
+                        crate::units::anim::DUMP_ORE
                     };
                     self.set_anim(u, dump, false, true);
                 }
@@ -1275,7 +1276,7 @@ impl Sim {
             self.store_gather(u, g);
             return;
         }
-        // Choose a tile: [`crate::gather_tile::gather_tile_steps`], the swept
+        // Choose a tile: [`crate::economy::gather_tile::gather_tile_steps`], the swept
         // arm (item 3381) — the stand first (`do_non_flat_gather:512`, whose
         // call is at `005f027a` and whose return address is therefore
         // `+0x10f`; the woodcutters' frame-0 draws on run12 are this call,
@@ -1284,7 +1285,7 @@ impl Sim {
         // East Indies' `1/11` on 10958, item 620), the wait rolled at
         // `+0x54b`. An empty or walled-in list returns before the roll and
         // **leaves a stale held tile in place**.
-        let mut o = crate::gather_tile::TileOrder {
+        let mut o = crate::economy::gather_tile::TileOrder {
             tx: g.tile.map_or(-1, |t| t.x),
             ty: g.tile.map_or(-1, |t| t.y),
             wait: g.wait,
@@ -1293,8 +1294,8 @@ impl Sim {
             been_there: g.been_there,
         };
         let held = (o.tx, o.ty);
-        crate::gather_tile::gather_tile_steps(
-            &mut crate::gather_tile::SimGatherTile { sim: self, u, b },
+        crate::economy::gather_tile::gather_tile_steps(
+            &mut crate::economy::gather_tile::SimGatherTile { sim: self, u, b },
             &mut o,
         );
         if (o.tx, o.ty) != held {
@@ -1605,7 +1606,7 @@ impl DoBuildView for SimDoBuild<'_> {
         // stands (run767's `1/12` on 2877, `docs/AI.md` §189).
         let (u, b) = (self.u, self.b);
         let who = self.s.units[u].owner;
-        let mut g = crate::group::Group::stack(who);
+        let mut g = crate::groups::group::Group::stack(who);
         self.s.group_add(&mut g, u);
         let insert = self.s.group_set_up_insert(&g);
         self.s.group_action_halt(&g, 0);
@@ -1860,7 +1861,7 @@ pub fn do_repair_steps<V: DoRepairView>(v: &mut V) {
         let exempt = korean && v.korean_under_fire() != 0;
         let under_attack = !exempt && v.site_under_attack();
         let fresh_hit = !exempt && v.fresh_hit();
-        let period = crate::build::repair_period(&crate::build::RepairTarget {
+        let period = crate::cities::build::repair_period(&crate::cities::build::RepairTarget {
             helpers,
             construct_time,
             hits,
@@ -2023,7 +2024,7 @@ impl DoRepairView for SimDoRepair<'_> {
         // one and swarms at `QUEUE_FIRST` (item 3346).
         let (u, b) = (self.u, self.b);
         let who = self.s.units[u].owner;
-        let mut g = crate::group::Group::stack(who);
+        let mut g = crate::groups::group::Group::stack(who);
         self.s.group_add(&mut g, u);
         let insert = self.s.group_set_up_insert(&g);
         self.s.group_action_halt(&g, 0);
@@ -2590,18 +2591,18 @@ impl DoGatherView for SimDoGather<'_> {
     }
     fn unit_domain(&mut self) -> i32 {
         match self.s.units[self.u].kind.domain {
-            crate::attrition::Domain::Land => 0,
-            crate::attrition::Domain::Sea => 1,
-            crate::attrition::Domain::Air => 2,
+            crate::territory::attrition::Domain::Land => 0,
+            crate::territory::attrition::Domain::Sea => 1,
+            crate::territory::attrition::Domain::Air => 2,
         }
     }
     fn site_domain(&mut self) -> i32 {
         self.s.buildings[self.b]
             .ty
             .map_or(0, |t| match self.s.tables.build_types[t].domain() {
-                crate::build::BuildDomain::Land => 0,
-                crate::build::BuildDomain::Water => 1,
-                crate::build::BuildDomain::Both => 2,
+                crate::cities::build::BuildDomain::Land => 0,
+                crate::cities::build::BuildDomain::Water => 1,
+                crate::cities::build::BuildDomain::Both => 2,
             })
     }
     fn add_gatherer(&mut self) {
@@ -3157,7 +3158,7 @@ impl GatherSpotView for GatherSpotSim<'_> {
         self.sim.economy.holdings[self.who as usize].available[g]
     }
     fn gathers(&mut self, i: i32, g: usize) -> bool {
-        crate::ai_place::gather_good(self.sim.building_ident(i as usize)) == Some(g)
+        crate::ai::ai_place::gather_good(self.sim.building_ident(i as usize)) == Some(g)
     }
     fn under_cap(&mut self, g: usize) -> bool {
         self.sim.economy.ledgers[self.who as usize].over_cap[g] == economy::OverCap::Under
@@ -3179,7 +3180,7 @@ impl GatherSpotView for GatherSpotSim<'_> {
     }
 }
 
-/// [`crate::check_build_view::CheckBuildView`] over the live [`Sim`]: the
+/// [`crate::orders::check_build_view::CheckBuildView`] over the live [`Sim`]: the
 /// cursor is an index into the unit's order list, the found list the units
 /// `find_units` walked.
 pub(super) struct SimCheckBuild<'a> {
@@ -3203,7 +3204,7 @@ impl SimCheckBuild<'_> {
     }
 }
 
-impl crate::check_build_view::CheckBuildView for SimCheckBuild<'_> {
+impl crate::orders::check_build_view::CheckBuildView for SimCheckBuild<'_> {
     fn orders_present(&mut self) -> bool {
         !self.s.units[self.u].orders.is_empty()
     }

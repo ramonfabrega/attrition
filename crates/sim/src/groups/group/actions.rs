@@ -60,8 +60,8 @@ impl Sim {
             QueuePos::Last => 1,
             QueuePos::New => 2,
         };
-        crate::swarm_around_view::action_swarm_around_steps(
-            &mut crate::swarm_around_view::SimSwarm::new(self, g),
+        crate::groups::swarm_around_view::action_swarm_around_steps(
+            &mut crate::groups::swarm_around_view::SimSwarm::new(self, g),
             b as i32,
             who,
             queue,
@@ -133,7 +133,7 @@ impl Sim {
     /// `Group::finish_insert@0070e620` (§6.2, §17): each copy
     /// [`Self::group_set_up_insert`] saved, re-issued as a **group**
     /// action at `QUEUE_LAST`. The dispatch is
-    /// [`crate::finish_insert_view::finish_insert`], swept against the
+    /// [`crate::groups::finish_insert_view::finish_insert`], swept against the
     /// original (item 3372); this crate's view over the copies is
     /// [`SimInsert`].
     pub(crate) fn group_finish_insert(&mut self, g: &Group, insert: Insert) {
@@ -145,14 +145,14 @@ impl Sim {
             cur: None,
             aim,
         };
-        crate::finish_insert_view::finish_insert(&mut v);
+        crate::groups::finish_insert_view::finish_insert(&mut v);
     }
 
-    /// `Group::action_halt(mask)` (§7): the steps of [`crate::halt_view`]
+    /// `Group::action_halt(mask)` (§7): the steps of [`crate::groups::halt_view`]
     /// over this simulation.
     pub fn group_action_halt(&mut self, g: &Group, mask: i32) {
-        let mut view = crate::halt_view::SimHalt { sim: self, g };
-        crate::halt_view::action_halt_steps(&mut view, mask);
+        let mut view = crate::groups::halt_view::SimHalt { sim: self, g };
+        crate::groups::halt_view::action_halt_steps(&mut view, mask);
     }
 
     /// `Group::action_stance(s)` (§8). A negative `s` cycles: −1 forward,
@@ -537,7 +537,7 @@ impl Sim {
             if !self.units[u].ty.is_some_and(|t| {
                 self.tables.unit_types[t]
                     .cols
-                    .is(crate::ai_load::role::ROLE_CITIZEN)
+                    .is(crate::ai::ai_load::role::ROLE_CITIZEN)
             }) {
                 self.units[u].form = form as i8;
             }
@@ -661,7 +661,7 @@ impl Sim {
                 && !(self.units[u].ty.is_some_and(|t| {
                     self.tables.unit_types[t]
                         .cols
-                        .is(crate::ai_load::role::ROLE_SCOUT)
+                        .is(crate::ai::ai_load::role::ROLE_SCOUT)
                 }) && !self.ai_driven(g.who))
                 && g.num() >= 2
                 && !self.units[u].in_danger
@@ -748,7 +748,7 @@ impl Sim {
         let who = self.units[u].owner;
         if self.tables.unit_types[own].combat.domain == Domain::Land
             && self.invalid_loc(u, s0.tile(), true, true, false, false, false) != 0
-            && self.transport_level(who) != crate::transport::TransportType::None
+            && self.transport_level(who) != crate::ai::transport::TransportType::None
         {
             return self.barge_type(who).or(Some(own));
         }
@@ -1111,9 +1111,9 @@ impl Sim {
     /// A member whose action is already a GARRISON is `repath`ed and has
     /// its head killed first.
     ///
-    /// The walk is [`crate::garrison_view::action_garrison_steps`], swept
+    /// The walk is [`crate::groups::garrison_view::action_garrison_steps`], swept
     /// against the original (item 3376); the SEAMs are
-    /// [`crate::garrison_view::SimGarrison`]'s, none reached by a capture on
+    /// [`crate::groups::garrison_view::SimGarrison`]'s, none reached by a capture on
     /// file.
     pub fn group_action_garrison(&mut self, g: &Group, b: usize, queue: QueuePos) {
         self.group_action_garrison_search(g, b, queue, false);
@@ -1141,8 +1141,8 @@ impl Sim {
             QueuePos::New => 2,
         };
         let who = i32::from(self.buildings[b].owner);
-        let mut view = crate::garrison_view::SimGarrison { sim: self, g };
-        crate::garrison_view::action_garrison_steps(
+        let mut view = crate::groups::garrison_view::SimGarrison { sim: self, g };
+        crate::groups::garrison_view::action_garrison_steps(
             &mut view,
             b as i32,
             who,
@@ -1463,8 +1463,8 @@ impl Sim {
     /// SEAM: the copy of points past the second; see
     /// [`crate::orders::PatrolOrder`].
     pub(crate) fn group_redo_patrol_order(&mut self, g: &Group, p: crate::orders::PatrolOrder) {
-        let mut v = crate::redo_patrol_view::SimRedoPatrol::new(self, g, p);
-        crate::redo_patrol_view::redo_patrol_order_steps(&mut v);
+        let mut v = crate::groups::redo_patrol_view::SimRedoPatrol::new(self, g, p);
+        crate::groups::redo_patrol_view::redo_patrol_order_steps(&mut v);
     }
 
     /// §9's anchor score.
@@ -1537,7 +1537,11 @@ impl Sim {
             (Flight::Home, Obj::Building(b))
                 if self.buildings[b].owner == g.who
                     && self.buildings[b].ty.is_some_and(|t| {
-                        crate::build::is(&self.tables.build_types, t, crate::build::Ident::Airbase)
+                        crate::cities::build::is(
+                            &self.tables.build_types,
+                            t,
+                            crate::cities::build::Ident::Airbase,
+                        )
                     }) =>
             {
                 Some(b)
@@ -1633,9 +1637,9 @@ impl Sim {
 
     /// `Group::action_attack(o, whom, mandatory, queue, ignore)` (§10):
     /// three passes by domain, the `ignore` mask, and the `mandatory == 0`
-    /// melee retarget — **as the steps of [`crate::attack_view`]** (item
+    /// melee retarget — **as the steps of [`crate::groups::attack_view`]** (item
     /// 3362), which the sweep holds to the original call for call; this is
-    /// the crate's view over them ([`crate::attack_view::SimAttack`]).
+    /// the crate's view over them ([`crate::groups::attack_view::SimAttack`]).
     ///
     /// The one line that is the crate's own is the target's liveness: the
     /// original asks only `whom >= 0` (its caller never hands a dead one).
@@ -1650,19 +1654,19 @@ impl Sim {
         if !self.active(target) {
             return;
         }
-        let (whom, wwho) = crate::attack_view::obj_key(self, target);
+        let (whom, wwho) = crate::groups::attack_view::obj_key(self, target);
         let q = match queue {
-            QueuePos::First => crate::attack_view::QUEUE_FIRST,
-            QueuePos::Last => crate::attack_view::QUEUE_LAST,
-            QueuePos::New => crate::attack_view::QUEUE_NEW,
+            QueuePos::First => crate::groups::attack_view::QUEUE_FIRST,
+            QueuePos::Last => crate::groups::attack_view::QUEUE_LAST,
+            QueuePos::New => crate::groups::attack_view::QUEUE_NEW,
         };
-        let mut v = crate::attack_view::SimAttack {
+        let mut v = crate::groups::attack_view::SimAttack {
             sim: self,
             g,
             target,
             insert: None,
         };
-        crate::attack_view::action_attack_steps(
+        crate::groups::attack_view::action_attack_steps(
             &mut v,
             whom,
             wwho,

@@ -24,7 +24,7 @@
 //! original does not round at all — exact integer rationals are the only
 //! representation that neither invents error nor imports it.
 
-use crate::tuning::Tuning;
+use crate::core::tuning::Tuning;
 use crate::world::{Owner, Player};
 
 /// How much attrition a player inflicts on others inside their borders.

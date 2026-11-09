@@ -27,7 +27,7 @@
 //! with an order.
 
 use crate::combat::Obj;
-use crate::group::{Flight, Group};
+use crate::groups::group::{Flight, Group};
 use crate::world::{Player, Pos, vector_dist};
 use crate::{Sim, orders::QueuePos};
 
@@ -75,7 +75,7 @@ impl Sim {
     pub(crate) fn is_air_unit(&self, u: usize) -> bool {
         matches!(
             self.profile(Obj::Unit(u)).domain,
-            crate::attrition::Domain::Air
+            crate::territory::attrition::Domain::Air
         )
     }
 
@@ -312,7 +312,7 @@ impl Sim {
         &mut self,
         u: usize,
         base: usize,
-        q: crate::rally::GatherPoint,
+        q: crate::cities::rally::GatherPoint,
     ) {
         let missile = self.is_missile(u);
         if !self.in_world(q.pos) {
@@ -414,8 +414,9 @@ impl Sim {
     /// `MAX_AIRCRAFT_PER_AIRBASE` (10); the entry stays full and the handover
     /// repeats (item 1714).
     pub(crate) fn airbase_pad_full(&self, at: usize, ty: usize) -> bool {
-        self.building_ident(at) == crate::build::Ident::Airbase
-            && self.tables.unit_types[ty].cols.unit_flags & crate::ai_load::uflags::FLAG_HELICOPTER
+        self.building_ident(at) == crate::cities::build::Ident::Airbase
+            && self.tables.unit_types[ty].cols.unit_flags
+                & crate::ai::ai_load::uflags::FLAG_HELICOPTER
                 == 0
             && self.aircraft_homed(at) >= 10
     }
@@ -441,10 +442,10 @@ impl Sim {
         if self.is_missile(u) || !self.is_hangar(t) {
             return false;
         }
-        if self.is_helicopter(u) && ident != crate::build::Ident::Airbase {
+        if self.is_helicopter(u) && ident != crate::cities::build::Ident::Airbase {
             return false;
         }
-        if ident == crate::build::Ident::MissileSilo {
+        if ident == crate::cities::build::Ident::MissileSilo {
             return false;
         }
         if self.home_base(u) == Some(base) {
@@ -525,7 +526,7 @@ impl Sim {
         }
         let airbase = buildings
             .iter()
-            .any(|&b| self.building_ident(b) == crate::build::Ident::Airbase);
+            .any(|&b| self.building_ident(b) == crate::cities::build::Ident::Airbase);
         let t = self.pos_of(target);
         let whom = self.owner_of(target);
         let want = if self.is_ally(who, whom) || matches!(target, Obj::Unit(_)) {
@@ -619,14 +620,14 @@ impl Sim {
         let Obj::Building(to) = target else {
             return;
         };
-        if self.building_ident(to) == crate::build::Ident::MissileSilo
+        if self.building_ident(to) == crate::cities::build::Ident::MissileSilo
             && !self.buildings[to].garrison.is_empty()
         {
             return;
         }
         let airbase = buildings
             .iter()
-            .any(|&b| self.building_ident(b) == crate::build::Ident::Airbase);
+            .any(|&b| self.building_ident(b) == crate::cities::build::Ident::Airbase);
         let t = self.pos_of(target);
         let mut chosen = Group::stack(who);
         let mut best: Option<(i32, usize)> = None;
@@ -672,7 +673,7 @@ impl Sim {
     /// picks one plane inside and re-points its strike with the action bit.
     /// The general loop after it skips every Airbase under action 3
     /// (`6ffbcc`). The points are laid by the steps
-    /// ([`crate::gather_view::action_gather_point_steps`]), member by member;
+    /// ([`crate::groups::gather_view::action_gather_point_steps`]), member by member;
     /// this is the flight alone.
     pub(crate) fn gather_flight(&mut self, who: Player, airbases: &[usize], at: Pos) {
         if airbases.is_empty() {

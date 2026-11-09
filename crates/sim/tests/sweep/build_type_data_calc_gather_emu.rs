@@ -17,7 +17,9 @@
 //! **Calls.** The log is `--record-order`'s, one token a call (`s<k>:<ecx>,<args>`), then the 22 `--deref`
 //! columns (`9:0`, `9:1`, `10:0`, ..), each `/`-joined or `-`.
 
-use crate::calc_gather_type_view::{Konst, TypeGatherArgs, TypeGatherView, type_calc_gather_steps};
+use crate::economy::calc_gather_type_view::{
+    Konst, TypeGatherArgs, TypeGatherView, type_calc_gather_steps,
+};
 
 /// The function-local static `MiningList` as the log names it: the guard word at `0xee14a4` is the `--at`
 /// window `c7`, so the list at `0xee14a8` is `c7+0x4`.
@@ -344,15 +346,15 @@ impl TypeGatherView for V<'_> {
     }
 
     fn circle_len(&mut self, ring: i32) -> i32 {
-        crate::ai_place::circle().radius[ring as usize] as i32
+        crate::ai::ai_place::circle().radius[ring as usize] as i32
     }
 
     fn circle_x(&mut self, i: i32) -> i32 {
-        crate::ai_place::circle().x[i as usize]
+        crate::ai::ai_place::circle().x[i as usize]
     }
 
     fn circle_y(&mut self, i: i32) -> i32 {
-        crate::ai_place::circle().y[i as usize]
+        crate::ai::ai_place::circle().y[i as usize]
     }
 
     fn cell_valid(&mut self, cx: i32, cy: i32) -> bool {

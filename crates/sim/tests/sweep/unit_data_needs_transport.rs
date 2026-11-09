@@ -1,6 +1,6 @@
 //! `UnitData::needs_transport@00609920` under the emulator against the port (item 2038; hand-written on tools/emu/hooks.py).
 
-use crate::transport::{NEEDS_DISEMBARK, NEEDS_EMBARK};
+use crate::ai::transport::{NEEDS_DISEMBARK, NEEDS_EMBARK};
 use crate::world::tile;
 
 /// `UnitData::needs_transport@00609920`, run by `tools/emu/sweep_unit_data_needs_transport.py` under unicorn

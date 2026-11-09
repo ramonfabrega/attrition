@@ -207,7 +207,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     out.push(("effective_pop".to_string(), i64::from(a.effective_pop)));
     out.push(("gather_stamp".to_string(), l.gather_stamp));
     // `flock_stamp` (`+0x7b8`, item 1293): the frame of the player's last
-    // flock of birds (`sim::flock`).
+    // flock of birds (`sim::gaia::flock`).
     out.push((
         "flock_stamp".to_string(),
         built.sim.gaia.flock_stamp.get(who).copied().unwrap_or(0),
@@ -215,7 +215,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     out.push(("tech_frame".to_string(), a.tech_frame));
     out.push(("frame_attacked".to_string(), a.frame_attacked));
     out.push(("attacked_by".to_string(), i64::from(a.attacked_by)));
-    // The territory victory's clock and flag (`sim::victory`, item 1487):
+    // The territory victory's clock and flag (`sim::territory::victory`, item 1487):
     // `find_target` scores an enemy's city ×100 while the flag stands.
     out.push(("popwin_stamp".to_string(), a.popwin_stamp));
     out.push(("popwin_timer".to_string(), i64::from(a.popwin_timer)));

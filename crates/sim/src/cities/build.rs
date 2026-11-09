@@ -9,9 +9,9 @@
 //! them do not exist yet and the arithmetic is complete without them.
 
 use crate::combat;
-use crate::cost;
+use crate::core::tuning::Tuning;
+use crate::economy::cost;
 use crate::tech;
-use crate::tuning::Tuning;
 
 /// The `BUILD_FLAGS` letters the placement, counting and capture code test —
 /// `docs/CITIES.md` §1.5. Letter `c` is bit `c − 'a'`, digit `d` is bit

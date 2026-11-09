@@ -1,6 +1,6 @@
 //! `CityData::smelter_level@007367a0` under the emulator against the port (item 2112; hand-written on tools/emu/hooks.py).
 
-use crate::holdings::smelter_level_by;
+use crate::economy::holdings::smelter_level_by;
 
 /// `CityData::smelter_level@007367a0`, run by `tools/emu/sweep_city_data_smelter_level.py` under unicorn
 /// (tools/emu): the fifth good type's kind through the jump table, the enhancer type asked of `count_buildings`

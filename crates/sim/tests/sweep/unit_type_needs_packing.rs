@@ -1,6 +1,6 @@
 //! `UnitTypeData::needs_packing@0061dc60` under the emulator against the port (item 1694).
 
-use crate::ai_load::{UnitCols, uflags2};
+use crate::ai::ai_load::{UnitCols, uflags2};
 
 /// `UnitTypeData::needs_packing@0061dc60`, run by `tools/emu/sweep_unit_type_needs_packing.py` under unicorn
 /// (tools/emu): `unit_flags2` (`type+0x2b8`) `& 0x4`, over every bit edge and a seeded band, against `UnitCols::flag2(uflags2::PACKS)` — the bit the port names as the same predicate.

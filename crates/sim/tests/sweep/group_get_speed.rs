@@ -16,7 +16,7 @@ fn the_emulated_original_agrees_on_every_row() {
             i64::from(v),
             "GroupData::get_speed — the raw word, row `{line}`"
         );
-        let g = crate::group::GroupState {
+        let g = crate::groups::group::GroupState {
             speed: v,
             ..Default::default()
         };

@@ -44,7 +44,7 @@ pub(crate) const MONGOL_GUNPOWDER: Pair = Pair {
     // index 2 — ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
     // Item 3632: 4499 → 4632. The Horde's piece 153 looses through its
-    // saddle pivot (`sim::pivot`, run1294's packet), so `1/21`'s round at
+    // saddle pivot (`sim::data::pivot`, run1294's packet), so `1/21`'s round at
     // the Citizen `0/5` leaves from (5570, 10826) on 4458, flies 17 frames
     // and strikes on 4474 as theirs does (`hits_left` 24 and both leaders'
     // `treaties` 3 on block 4475, where ours read 50 and 1). On 4632 ours

@@ -5,10 +5,10 @@
 //! `docs/AI.md` §2.1–§2.5. What is wired today is the shape: every computer
 //! leader takes the frame-0 sweep and the sweep on its own phase, the sweep
 //! arms the step machine, and the machine runs one step a frame — the
-//! script at step 1 (over [`crate::ai_host`]), the goods picture at step 2,
+//! script at step 1 (over [`crate::ai::ai_host`]), the goods picture at step 2,
 //! and the producers as the seams they are until the census lands (§12.1
 //! item 5). `compute_score` is not stepped yet; `diplomacy` is
-//! [`crate::diplomacy`].
+//! [`crate::leaders::diplomacy`].
 
 use crate::ai::{self, GoodsSetup, ScriptResult, Step, cadence};
 use crate::{Player, Sim};
@@ -56,7 +56,7 @@ impl Sim {
 
     /// `Leaders::strategy_all@006ed430`: every leader in play, every frame
     /// — `check_explore`, `plan_strategy`, `compute_score`, `diplomacy`.
-    /// `plan_strategy` and `diplomacy` ([`crate::diplomacy`]) decide; the
+    /// `plan_strategy` and `diplomacy` ([`crate::leaders::diplomacy`]) decide; the
     /// other two are recounts, and `compute_score` is not modelled.
     ///
     /// **The human is swept too** (`docs/AI.md` §23.1, §169). The gate is

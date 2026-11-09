@@ -11,8 +11,8 @@ fn wr(m: &mut [u8], off: usize, v: i32) {
 }
 
 use sim::Tuning;
-use sim::attrition::Domain;
-use sim::balance::{Kind, line as l, type_damage};
+use sim::combat::balance::{Kind, line as l, type_damage};
+use sim::territory::attrition::Domain;
 
 /// `ObjectTypeData::is(id, strict)` -> the crate's lineage bit (rondata `LINE_ROOTS`; MERCHANT and
 /// CITIZEN are not `is` calls: the original compares the record's `TypeIndex`).

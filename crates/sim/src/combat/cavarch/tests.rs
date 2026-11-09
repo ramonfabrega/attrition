@@ -1,4 +1,4 @@
-use crate::ai_load::uflags;
+use crate::ai::ai_load::uflags;
 use crate::combat::{Obj, Profile, Stance};
 use crate::orders::{Body, MoveKind, QueuePos, index};
 use crate::world::World;
@@ -7,7 +7,7 @@ use crate::{Player, Pos, Sim};
 /// Two players at war on open ground, and a Dragoon-shaped type: an
 /// armed, ranged combat unit whose `FLAGS` carry `v` when `fires`.
 fn field(fires: bool) -> (Sim, usize) {
-    let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     sim.leaders.at_war[0][1] = true;
     sim.leaders.at_war[1][0] = true;
     sim.cities.nation[0].human = true;
@@ -39,7 +39,7 @@ fn put(sim: &mut Sim, who: Player, ty: usize, p: Pos) -> usize {
     u.on_map = true;
     u.kind = sim.tables.unit_types[ty].kind;
     let i = sim.add_unit(u);
-    sim.units[i].guys.push(crate::anim::Guy::fresh(-1));
+    sim.units[i].guys.push(crate::units::anim::Guy::fresh(-1));
     i
 }
 
@@ -165,10 +165,10 @@ fn a_city_at_its_ceiling_is_still_borne_on() {
         sim.units[me].cast_target = Some(Obj::Building(b));
         let walk = sim.cavarch_step_anim(me);
         if alive {
-            assert_eq!(walk, crate::anim::ATTACKWALK, "the turret bears");
+            assert_eq!(walk, crate::units::anim::ATTACKWALK, "the turret bears");
             assert_eq!(sim.units[me].cast_target, Some(Obj::Building(b)));
         } else {
-            assert_eq!(walk, crate::anim::WALK, "a gone slot is dropped");
+            assert_eq!(walk, crate::units::anim::WALK, "a gone slot is dropped");
             assert_eq!(sim.cavarch_o(me), -1);
         }
     }
@@ -389,7 +389,7 @@ fn a_melee_swing_whose_graphic_releases_a_round_lands_no_blow() {
             sim.roster.art.releases.insert(
                 piece,
                 [(
-                    crate::anim::ATTACK1,
+                    crate::units::anim::ATTACK1,
                     vec![(1, 0, false, false, false, false)],
                 )]
                 .into_iter()
@@ -481,10 +481,10 @@ fn the_step_attack_walks_while_the_turret_bears() {
         let walk = sim.cavarch_step_anim(me);
         assert_eq!(sim.units[me].guys[0].aim, Some(Obj::Unit(foe)), "aimed");
         if bears {
-            assert_eq!(walk, crate::anim::ATTACKWALK);
+            assert_eq!(walk, crate::units::anim::ATTACKWALK);
             assert_eq!(sim.units[me].cast_target, Some(Obj::Unit(foe)));
         } else {
-            assert_eq!(walk, crate::anim::WALK);
+            assert_eq!(walk, crate::units::anim::WALK);
             assert_eq!(sim.cavarch_o(me), -1, "dropped");
             assert_eq!(sim.units[me].guys[0].turret.des_flags & 1, 1);
         }
@@ -529,15 +529,25 @@ fn an_empty_search_of_a_v_type_resets_the_pivots_and_only_that() {
 #[test]
 fn an_attack_walk_request_clears_a_short_reload_and_refuses_a_long_one() {
     for (rest, from, anim, left) in [
-        (4u8, crate::anim::WALK, crate::anim::ATTACKWALK, 0u8),
-        (6, crate::anim::WALK, crate::anim::WALK, 6),
-        (4, crate::anim::ATTACKWALK, crate::anim::ATTACKWALK, 4),
+        (
+            4u8,
+            crate::units::anim::WALK,
+            crate::units::anim::ATTACKWALK,
+            0u8,
+        ),
+        (6, crate::units::anim::WALK, crate::units::anim::WALK, 6),
+        (
+            4,
+            crate::units::anim::ATTACKWALK,
+            crate::units::anim::ATTACKWALK,
+            4,
+        ),
     ] {
         let (mut sim, ty) = field(true);
         let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
         sim.units[me].guys[0].anim = from;
         sim.units[me].combat.recharging = rest;
-        sim.guy_set_anim(me, 0, crate::anim::ATTACKWALK, false, true);
+        sim.guy_set_anim(me, 0, crate::units::anim::ATTACKWALK, false, true);
         assert_eq!(sim.units[me].guys[0].anim, anim, "from {from}, rest {rest}");
         assert_eq!(sim.units[me].combat.recharging, left);
     }

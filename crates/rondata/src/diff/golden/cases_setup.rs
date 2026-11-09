@@ -441,7 +441,7 @@ pub(super) fn every_object_s_z_is_the_ground_it_stands_on() {
                 .is_none_or(|i| {
                     matches!(
                         built.sim.profile(sim::combat::Obj::Unit(i)).domain,
-                        sim::attrition::Domain::Sea
+                        sim::territory::attrition::Domain::Sea
                     )
                 });
             if is_sea {
@@ -534,7 +534,7 @@ pub(super) fn every_rolled_shot_comes_down_where_the_original_s_does() {
             let z = sim::combat::arc_z(v1z, sz, t);
             let (ground, exact) = world.data_z(at.x, at.y);
             assert!(exact, "shot {o}: the ground at {at:?} is not pinned");
-            if !z.gt(sim::single::Single::from_i32(ground)) {
+            if !z.gt(sim::num::single::Single::from_i32(ground)) {
                 down = Some((t, z.to_i32(), at, ground));
                 break;
             }
@@ -1201,9 +1201,8 @@ pub(super) fn a_turning_catapult_s_crew_mirror_and_never_walk() {
     }
     assert_eq!(turn.len(), 8, "run44 carries 323–330");
     assert!(
-        stepped
-            .keys()
-            .all(|a| sim::anim::category(*a as i8) != sim::anim::category(sim::anim::WALK)),
+        stepped.keys().all(|a| sim::units::anim::category(*a as i8)
+            != sim::units::anim::category(sim::units::anim::WALK)),
         "run44: an unpacked packer's stepping crew played the walk: {stepped:?}"
     );
     assert_eq!(
@@ -1496,7 +1495,7 @@ pub(super) fn stage_walk() {
             }
             let air = matches!(
                 s.profile(sim::combat::Obj::Unit(i)).domain,
-                sim::attrition::Domain::Air
+                sim::territory::attrition::Domain::Air
             );
             if !air && !all {
                 continue;

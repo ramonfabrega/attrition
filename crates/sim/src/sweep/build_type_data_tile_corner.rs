@@ -43,7 +43,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-                let at = crate::place::tile_corner_of(
+                let at = crate::cities::place::tile_corner_of(
                     rd(m, 0x234),
                     rd(m, 0x238),
                     crate::world::Pos::new(a[0], a[1]),

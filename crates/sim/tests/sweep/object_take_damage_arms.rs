@@ -38,9 +38,9 @@ fn the_emulated_original_agrees_on_every_row() {
             // answers. `a`: the nine arguments, the stubs' answers (`a[9..36]`), every `--seq` run
             // (`SEQ_AT`) and the `+0xb8` flag.
             //
-            // **The port is the crate's own steps**, `crate::take_damage_view::take_damage_head` then
+            // **The port is the crate's own steps**, `crate::combat::take_damage_view::take_damage_head` then
             // `take_damage_arms`; here the view is the emulated original's windows.
-            use crate::take_damage_view::{
+            use crate::combat::take_damage_view::{
                 ArmsOut, HeadOut, TakeDamageArms, TakeDamageHead, TdArgs, take_damage_arms,
                 take_damage_head,
             };

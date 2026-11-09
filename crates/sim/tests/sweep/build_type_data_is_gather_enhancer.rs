@@ -1,6 +1,6 @@
 //! `BuildTypeData::is_gather_enhancer@00472b50` under the emulator against the port (item 2090; hand-written on tools/emu/hooks.py).
 
-use crate::build::{Ident, is_gather_enhancer_by};
+use crate::cities::build::{Ident, is_gather_enhancer_by};
 
 /// `BuildTypeData::is_gather_enhancer@00472b50`, run by `tools/emu/sweep_build_type_data_is_gather_enhancer.py`
 /// under unicorn (tools/emu): the record's slot `+0x60` asked `(0x1a7, 0)` to `(0x1aa, 0)` in turn, answered per

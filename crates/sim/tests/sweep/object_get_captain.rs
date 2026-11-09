@@ -12,7 +12,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let (a, want) = super::row(line);
         let o = i16::try_from(a[0]).expect("a signed short");
         assert_eq!(
-            i64::from(crate::flag_reads::object_get_captain(o)),
+            i64::from(crate::core::flag_reads::object_get_captain(o)),
             want,
             "get_captain — row `{line}`"
         );

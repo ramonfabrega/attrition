@@ -37,11 +37,11 @@ pub(crate) const INCA_CLASSICAL: Pair = Pair {
     // at index 153 — ours `Farms::inc_time+0x1ae`, theirs
     // `Object::take_damage+0xe1` (`docs/AI.md` section 327). Item 3616:
     // 4501 → 5357, the Dromon's rounds leaving from piece 274's bays
-    // (`sim::launch`); on 5357 ours spends 149 draws against theirs' 151,
+    // (`sim::data::launch`); on 5357 ours spends 149 draws against theirs' 151,
     // parting at index 146 — ours `Farms::inc_time+0x1ae`, theirs
     // `Ammo::do_damage+0xc59`. Item 3617: 5357 → 6073, the game's last
     // frame — who=1's Archers' rounds leaving from piece 825's bays
-    // (`sim::launch`); the pair is whole.
+    // (`sim::data::launch`); the pair is whole.
     count: 6073,
     sequence: 6073,
 };

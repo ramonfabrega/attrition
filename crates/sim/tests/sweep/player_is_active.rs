@@ -12,7 +12,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let (a, want) = super::row(line);
         assert_eq!(
             want,
-            i64::from(crate::flag_reads::player_is_active(
+            i64::from(crate::core::flag_reads::player_is_active(
                 u16::try_from(a[0]).expect("a word")
             )),
             "Player::is_active — row `{line}`"

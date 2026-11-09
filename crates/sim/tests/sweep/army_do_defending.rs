@@ -32,7 +32,7 @@ fn the_emulated_original_agrees_on_every_row() {
         // (its array `p[5w]`), city `idx` of player `w` is `p[16 + 5w + idx]` (its array `p[15 + 5w]`), the
         // virtual slot's answer record is `p[30]`, `c[1]` is `div_3_table`. Stub answers: count `a[0]`,
         // `is_engaged` `a[2]`, `find_besieged_city` `a[4]`, `find_city` `a[5]`, `find_muster_spot` `a[7]`.
-        use crate::army_do_defending_view::{
+        use crate::ai::army::army_do_defending_view::{
             ArmyDoDefendingView, COUNT_ATTACK, SEARCH_FRIENDLY, army_do_defending_steps,
         };
         struct V<'a> {

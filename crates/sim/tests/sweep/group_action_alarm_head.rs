@@ -51,9 +51,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 // players 0 and 1's ignore-orders counts, `c[3]` `ignore_always`; `p[2 + who]` the elements of
                 // `objects_ignoring_orders[who]` (players 0 and 1 are laid; a player of 8 or more skips the sweep).
                 //
-                // **The port is the crate's own head**, `crate::alarm_view::alarm_head`, which
+                // **The port is the crate's own head**, `crate::groups::alarm_view::alarm_head`, which
                 // `action_alarm_steps` runs first; here the view is the emulated original's windows.
-                use crate::alarm_view::{AlarmHead, alarm_head};
+                use crate::groups::alarm_view::{AlarmHead, alarm_head};
                 struct V<'a> {
                     m: &'a [u8],
                     c: &'a [Vec<u8>],

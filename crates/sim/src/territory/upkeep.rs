@@ -40,11 +40,12 @@ impl Sim {
                 })
             })
             .count();
-        let mods = attrition::StrengthMods {
+        let mods = crate::territory::attrition::StrengthMods {
             russian: self.cities.nation.get(w).is_some_and(|n| n.russians),
-            ..attrition::StrengthMods::default()
+            ..crate::territory::attrition::StrengthMods::default()
         };
-        self.territory.players[w].strength = attrition::strength(&self.tables.tuning, steps, &mods);
+        self.territory.players[w].strength =
+            crate::territory::attrition::strength(&self.tables.tuning, steps, &mods);
     }
 
     /// Gives a dead unit's supply slot back — `Unit::close` — and takes it
@@ -100,7 +101,7 @@ impl Sim {
     pub fn supplied_at(&self, owner: Player, at: Pos) -> bool {
         let upgrades = self.supply_upgrade_level(owner);
         self.territory.supply[owner as usize].supplies(&self.tables.tuning, upgrades, at, |u| {
-            self.units.get(u).map(|w| supply::Wagon {
+            self.units.get(u).map(|w| crate::territory::supply::Wagon {
                 pos: w.pos,
                 active: w.alive(),
                 on_map: w.on_map,
@@ -205,7 +206,7 @@ impl Sim {
     /// invalidated regions on a shared budget of 256 cells a frame, so a cell
     /// can carry stale ownership for up to `land cells / 256` frames after a
     /// city changes hands. In play this is the *target* a fix computes, and
-    /// [`crate::border_pass`] copies it onto the map at that pace (item 1106,
+    /// [`crate::territory::border_pass`] copies it onto the map at that pace (item 1106,
     /// `docs/ATTRITION.md`, "Territory").
     pub fn recompute_territory(&mut self) {
         let players = u8::try_from(self.territory.players.len()).expect("too many players");
@@ -239,11 +240,11 @@ impl Sim {
             let unit = &mut self.units[i];
             unit.sheltered = false;
             match outcome {
-                attrition::Outcome::Exempt(_) => {
+                crate::territory::attrition::Outcome::Exempt(_) => {
                     unit.attrition = 0;
                     unit.ignores_supply = false;
                 }
-                attrition::Outcome::Period {
+                crate::territory::attrition::Outcome::Period {
                     frames,
                     ignores_supply,
                 } => {
@@ -286,12 +287,12 @@ impl Sim {
         // `curr_uber_size`, which walks up to the captain and counts down the
         // chain, and a figure falls at its share of the squad's hit points
         // (`docs/COMBAT.md` §7.2 step 8, `docs/GOLDEN.md` §135, run936).
-        let mut view = suffer_view::SimSuffer {
+        let mut view = crate::territory::suffer_view::SimSuffer {
             sim: self,
             unit: i,
             outcome: None,
         };
-        let killed = suffer_view::suffer_attrition_steps(&mut view, false);
+        let killed = crate::territory::suffer_view::suffer_attrition_steps(&mut view, false);
         let (sixteenths, lost, _) = view.outcome.expect("the hurt call is always made");
         if killed {
             // `Object::take_damage`'s `die` with `dtype` 1 — the whole combat
@@ -308,14 +309,14 @@ impl Sim {
         }
     }
 
-    pub(crate) fn attrition_for(&self, i: usize) -> attrition::Outcome {
+    pub(crate) fn attrition_for(&self, i: usize) -> crate::territory::attrition::Outcome {
         let unit = &self.units[i];
         let ground = self.world.owner_at(unit.pos);
         let victim = &self.territory.players[unit.owner as usize];
         let at_war = ground
             .player()
             .is_none_or(|o| self.leaders.at_war[unit.owner as usize][o as usize]);
-        let situation = attrition::Situation {
+        let situation = crate::territory::attrition::Situation {
             ground,
             in_free_zone: false,
             mutual_treaty: false,
@@ -324,7 +325,7 @@ impl Sim {
             assassin: false,
             conquest_exempt: false,
         };
-        attrition::process(
+        crate::territory::attrition::process(
             &self.tables.tuning,
             &unit.kind,
             unit.owner,

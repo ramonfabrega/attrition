@@ -130,8 +130,8 @@ impl LeaderOptions {
 /// `None` — when it does not.
 #[must_use]
 pub const fn stance_type(role: u32, unit_flags2: u32, type_index: i32) -> StanceType {
-    if role & crate::ai_load::role::ROLE_MILITARY != 0 {
-        if unit_flags2 & crate::ai_load::uflags2::PACKS != 0 {
+    if role & crate::ai::ai_load::role::ROLE_MILITARY != 0 {
+        if unit_flags2 & crate::ai::ai_load::uflags2::PACKS != 0 {
             return StanceType::Packer;
         }
         return StanceType::Combat;
@@ -142,8 +142,8 @@ pub const fn stance_type(role: u32, unit_flags2: u32, type_index: i32) -> Stance
     // `(unit_flags2 & 6) == 2`: a caster that does **not** also pack. The
     // packing casters are picked off by the military arm above, so this is
     // the residue.
-    if unit_flags2 & (crate::ai_load::uflags2::CASTER | crate::ai_load::uflags2::PACKS)
-        == crate::ai_load::uflags2::CASTER
+    if unit_flags2 & (crate::ai::ai_load::uflags2::CASTER | crate::ai::ai_load::uflags2::PACKS)
+        == crate::ai::ai_load::uflags2::CASTER
     {
         return StanceType::Caster;
     }
@@ -152,7 +152,7 @@ pub const fn stance_type(role: u32, unit_flags2: u32, type_index: i32) -> Stance
 
 /// `Unit::init@00612100:282–309` — the byte itself.
 ///
-/// `human` is `leader_flags & 4`, the same bit [`crate::city::Nation::human`]
+/// `human` is `leader_flags & 4`, the same bit [`crate::cities::city::Nation::human`]
 /// already carries, and `resources_unlimited` is `starting_resources == 8`
 /// read **raw** off the lobby: `Unit::init` takes `game->info` directly and
 /// not `get_starting_resources(who)`, so the asymmetric-teams row never
@@ -222,8 +222,8 @@ pub const fn get_stance(holds: bool, stance: u8, kind: StanceType) -> i32 {
 /// 0x208) - STANCE_WORKER` is `0` (`Combat`) for every training building that
 /// is not the Missile Silo, and `-1` (`None`) for it.
 #[must_use]
-pub fn build_stance_type(types: &[crate::build::BuildType], t: usize) -> StanceType {
-    use crate::build::{Ident, is_city, is_fort, is_training_building};
+pub fn build_stance_type(types: &[crate::cities::build::BuildType], t: usize) -> StanceType {
+    use crate::cities::build::{Ident, is_city, is_fort, is_training_building};
     if !is_training_building(types, t) {
         return StanceType::None;
     }

@@ -28,7 +28,7 @@ fn the_emulated_original_agrees_on_every_row() {
     super::obj_rows(&rows, &obj, |a, m, c, p, log| {
         let _ = (&a, &m, &c, &p);
         {
-            // **The port is the crate's own steps**, `crate::cast_decoy::cast_create_decoy_steps`, which
+            // **The port is the crate's own steps**, `crate::spells::cast_decoy::cast_create_decoy_steps`, which
             // `Sim::cast_create_decoy` runs over its `SimDecoy`; here the view is the emulated original's windows.
             //
             // `a`: the four stack arguments (`g`, `who`, two unused), then the eighteen stubs' single answers
@@ -46,7 +46,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // objects' list, the same records), `p16..p19` the heroes, `p21..p24` the armies, `p26..p31` the six
             // units' type records.
             use crate::Pos;
-            use crate::cast_decoy::{DecoyView, cast_create_decoy_steps};
+            use crate::spells::cast_decoy::{DecoyView, cast_create_decoy_steps};
             struct V<'a> {
                 a: &'a [i32],
                 m: &'a mut [u8],

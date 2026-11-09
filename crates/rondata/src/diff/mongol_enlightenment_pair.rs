@@ -35,11 +35,11 @@ pub(crate) const MONGOL_ENLIGHTENMENT: Pair = Pair {
     // theirs 18 draws against 17, parting at index 17, theirs
     // `Unit::close+0xcb6`, ours none (`docs/AI.md` §352). Item 3692 closes
     // it, 4854 → 4949, the game's last frame (§352.1): piece 154, the
-    // Golden Horde, reads piece 153's pivot rows (`sim::pivot::SAME_AS`),
+    // Golden Horde, reads piece 153's pivot rows (`sim::data::pivot::SAME_AS`),
     // so who=1's `1/97` looses its `CHAR_ATTACK2` round of 4841 from
     // (6180, 28775, 715), the dump's, flying 10 frames, where it left from
     // the figure's own (6264, 28728, 480) and flew 11; and piece 1105, the
-    // Mongol Musketeer, has three bays (`sim::launch`), so `1/21`'s round
+    // Mongol Musketeer, has three bays (`sim::data::launch`), so `1/21`'s round
     // of 4854 leaves (6415, 28769, 641) and kills the Citizen `0/6` on the
     // word, as theirs does.
     count: 4949,
@@ -249,7 +249,7 @@ fn mongol_enlightenment_pair_run1346c_s_word_frame_is_widened_whole() {
     // against 46 in theirs**: who=1's Golden Horde `1/97` (TI 204, piece
     // 154) looses its `CHAR_ATTACK2` round at `0/6` on 4841 from its own
     // square in ours — (6264, 28728, 480), 11 frames' flight — against
-    // theirs' (6180, 28775, 715) and 10: `sim::launch` holds no piece-154
+    // theirs' (6180, 28775, 715) and 10: `sim::data::launch` holds no piece-154
     // row. Theirs' round lands on 4850, ours' on 4851. On the word 4854
     // the Musketeer `1/21`'s round (piece 1105, ours from its own square, 3 frames
     // against 2) kills `0/6` in theirs — `Unit::close+0xcb6`, index 17 —

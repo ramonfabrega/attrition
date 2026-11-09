@@ -228,6 +228,23 @@ walks (57 modules), so `view` is taken.
    visible on screen" and no draw order. Projection and culling are the
    client's.
 
+**As built (item 4017, `crates/sim/src/observe/mod.rs`).** The shape above
+holds, with five readings the text left open:
+- `ObjId` is `{ who: Player, o: i16 }`.
+- `buildings` holds the store's buildings with `alive` set. A building's
+  progress pair is `constr_time` against `construct_hits`.
+- `fog` is one byte per half-cell: `fog::UNSEEN` 0, `EXPLORED` 1 (the
+  viewer's `seen2` bit), `VISIBLE` 2 (its `seen` bit). It is `None` for
+  `viewer: None` and on a world with no fog grid.
+- `TerrainScene.mountains` is each placed range's tile list.
+- The counters are `World::terrain_version` and `territory_version`. The
+  terrain counter moves on a changed tile height, corner or cell record,
+  not on the movement bits in a tile's mask. The territory counter moves
+  on a changed `(who, who2)`.
+
+The read-only test is `observe::tests::observing_every_tick_leaves_the_digest_alone`.
+The orders a client issues go through `sim::command`, the other door.
+
 ### 2.4 What changes, and what does not
 
 **In `sim`:** one module (`observe.rs`), three methods, the version counters

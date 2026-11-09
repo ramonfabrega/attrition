@@ -1,6 +1,6 @@
 //! `TypeData::is_gov_type@004706a0` under the emulator against the port (item 1704).
 
-use crate::type_index::is_gov_type;
+use crate::core::type_index::is_gov_type;
 
 /// `TypeData::is_gov_type@004706a0`, run by `tools/emu/sweep_type_gov.py` under unicorn
 /// (tools/emu): `0x26e < t < 0x275` on the type record's `type`, over every index -2..=0x33f and the edges, against `type_index::is_gov_type` — the bounds `is_gov_type`'s readers (`type_index`'s header) stand on.

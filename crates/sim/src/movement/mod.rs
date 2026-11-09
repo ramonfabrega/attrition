@@ -44,7 +44,7 @@
 //! exactly one. Widen that multiply and every unit ordered due north stops
 //! moving. It is commented where it happens.
 
-use crate::tuning::Tuning;
+use crate::core::tuning::Tuning;
 use crate::world::{Pos, UNITS_PER_TILE, vector_dist};
 
 /// A signed 32-bit binary angle: the full circle is 2^32.
@@ -966,11 +966,11 @@ pub mod wpath;
 /// §3, item 4016): moved whole, each with its doc, in `Sim`'s order.
 #[derive(Clone, Debug)]
 pub struct MovementState {
-    /// The road **mesh** — `crate::mesh`, `docs/ROADS.md` §9. One
+    /// The road **mesh** — `crate::movement::mesh`, `docs/ROADS.md` §9. One
     /// `RoadElementCandidate` per road tile, and the pass that lays road of
     /// its own to close a corner two roads leave open.
-    pub mesh: crate::mesh::RoadMesh,
-    /// Whether a building replans the road to its city — `crate::roads` §5.
+    pub mesh: crate::movement::mesh::RoadMesh,
+    /// Whether a building replans the road to its city — `crate::movement::roads` §5.
     /// **On**, as of run32: the search's expansion count is the original's
     /// exactly on every capture that feeds it the map's *own* terraformed
     /// heights, and the road it lays is the original's tile for tile
@@ -980,7 +980,7 @@ pub struct MovementState {
     pub plan_roads: bool,
     /// The collision occupancy index — `CollBlock`, flattened
     /// (`docs/COLLISION.md` §2).
-    pub coll: crate::collide::CollGrid,
+    pub coll: crate::movement::collide::CollGrid,
     /// **`PathFinder +0x50`, the validity memo — the pathfinder's, not a
     /// search's** (`docs/PATHFINDER.md` §24.5). `valid_ucoord` caches each
     /// 48-cell's verdict here under its metric, and only

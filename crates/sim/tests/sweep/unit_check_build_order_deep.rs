@@ -42,7 +42,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // (`target_exists`), `a[90..102]` stub 5's (`+0x4c`), `a[102..114]` stub 6's (`+0xfc`),
             // `a[114..126]` stub 7's (`+0x100`); `a[126]` 1 when the image's `TargetOrder::get_target` stands in
             // slot 0, `a[127]` 1 when its `target_exists` stands in slot 4.
-            use crate::check_build_view::{CheckBuildView, check_build_order_steps};
+            use crate::orders::check_build_view::{CheckBuildView, check_build_order_steps};
             fn r32(w: &[u8], o: usize) -> i32 {
                 i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
             }

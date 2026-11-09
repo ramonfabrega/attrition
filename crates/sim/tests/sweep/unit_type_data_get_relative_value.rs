@@ -14,7 +14,7 @@ fn the_emulated_original_agrees_on_every_row() {
         assert!((0..100).contains(&i));
         assert_eq!(
             want,
-            i64::from(crate::flag_reads::relative_value(v)),
+            i64::from(crate::core::flag_reads::relative_value(v)),
             "UnitTypeData::get_relative_value — row `{line}`"
         );
         n += 1;

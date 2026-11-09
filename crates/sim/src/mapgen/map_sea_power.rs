@@ -1,8 +1,8 @@
 //! **Sea Power's land/sea mask** (`docs/MAPGEN.md` §33, §5, §15 step 1):
 //! `MapSeaPower::make_continents@00696080`, on the region growers Great
-//! Lakes' port carries (`crate::map_lakes`), with East Meets West's
+//! Lakes' port carries (`crate::mapgen::map_lakes`), with East Meets West's
 //! guarded `check_player_land` and `eliminate_edge_canals`
-//! (`crate::map_east_west`) and Mediterranean's `EDGES_ONLY`.
+//! (`crate::mapgen::map_east_west`) and Mediterranean's `EDGES_ONLY`.
 //!
 //! One island a player, opened on a ring about the map's centre on a wiped
 //! (all-water) world and grown in two `grow_region` passes — a quarter of
@@ -13,11 +13,13 @@
 //! float: the growers' distances are the engine's integer `vector_dist`,
 //! the ring its integer `project`.
 
-use crate::map_east_west::{check_player_land, eliminate_edge_canals};
-use crate::map_lakes::{Grower, LakeMap, LakeStyle, Lakes, eliminate_pools_in, scale_land_area};
+use crate::mapgen::map_east_west::{check_player_land, eliminate_edge_canals};
+use crate::mapgen::map_lakes::{
+    Grower, LakeMap, LakeStyle, Lakes, eliminate_pools_in, scale_land_area,
+};
+use crate::mapgen::terrain_groups::Draws;
 use crate::mapgen::{MapGrid, project};
 use crate::movement::Angle;
-use crate::terrain_groups::Draws;
 
 /// The draw sites, as return addresses (the trace's `Function+0xNN`).
 pub mod site {

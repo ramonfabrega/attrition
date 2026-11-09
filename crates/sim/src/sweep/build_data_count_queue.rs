@@ -43,7 +43,7 @@ fn the_emulated_original_agrees_on_every_row() {
             }
         };
         let (mut u, mut t) = (0usize, 0usize);
-        i64::from(crate::ai_units::count_queue_by(
+        i64::from(crate::ai::ai_units::count_queue_by(
             usize::from(m[0x82]),
             a[0],
             |k| {

@@ -9,9 +9,9 @@
 //! [`Log::parse`] reads what it returns.
 
 use crate::gamelog::{CellDump, Log, WorldChecksum, world_cells};
-use sim::map_resources::{Footprint, GOODY_TYPE, Inputs as ResourceInputs, NO_TYPE, Row};
+use sim::mapgen::map_resources::{Footprint, GOODY_TYPE, Inputs as ResourceInputs, NO_TYPE, Row};
+use sim::mapgen::terrain_groups::{CliffTemplate, Group, Inputs, Template, TilesetGroups};
 use sim::mapgen::{Adler32, WCell};
-use sim::terrain_groups::{CliffTemplate, Group, Inputs, Template, TilesetGroups};
 use std::io::{self, BufRead, BufReader};
 use std::path::Path;
 
@@ -719,7 +719,7 @@ pub fn tileset_groups(root: &Path, tileset: &str) -> Option<TilesetGroups> {
 /// A [`crate::mountains`] template as `place_all` lays it: its tiles, the
 /// cells holding them in first-appearance order of the tile scan (`mount_wx`
 /// /`_wy`, `tx >> 2`), and its solid cells.
-pub fn group_template(t: &sim::gather::MountainTemplate) -> Template {
+pub fn group_template(t: &sim::economy::gather::MountainTemplate) -> Template {
     let mut cells = Vec::new();
     for &(tx, ty) in &t.tiles {
         let c = (tx.div_euclid(4), ty.div_euclid(4));
@@ -821,7 +821,7 @@ pub fn tga_rows(bytes: &[u8]) -> Option<(i32, Vec<[u8; 2]>)> {
 
 /// **`CliffsOut::init_templates@008a71a0`**'s templates: every
 /// `Data/Cliffs.xml` `CLIFFS/CLIFF` in document order, its `path` texture's
-/// width the size index and its cell mask [`sim::terrain_groups::cliff_cells`],
+/// width the size index and its cell mask [`sim::mapgen::terrain_groups::cliff_cells`],
 /// its `orientation` the facing (`docs/MAPGEN.md` §18.3).
 pub fn cliff_templates(root: &Path) -> Option<Vec<CliffTemplate>> {
     let text = std::fs::read_to_string(root.join("Data/Cliffs.xml")).ok()?;
@@ -838,10 +838,10 @@ pub fn cliff_templates(root: &Path) -> Option<Vec<CliffTemplate>> {
         let bytes = std::fs::read(root.join(path.trim_start_matches("./"))).ok()?;
         let (w, px) = tga_rows(&bytes)?;
         out.push(CliffTemplate {
-            size: sim::terrain_groups::cliff_size_index(w),
+            size: sim::mapgen::terrain_groups::cliff_size_index(w),
             facing: e.attribute("orientation").map_or(-1, leading_int),
-            cells: sim::terrain_groups::cliff_cells(w, &px),
-            heights: sim::cliffs::template_heights(&px),
+            cells: sim::mapgen::terrain_groups::cliff_cells(w, &px),
+            heights: sim::mapgen::cliffs::template_heights(&px),
         });
     }
     Some(out)
@@ -906,7 +906,7 @@ pub fn resources_part(seg: &[SetupDraw]) -> &[SetupDraw] {
 /// `TypeIndex` — `Food` 0, `Timber` 1, `Wealth` 2, `Knowledge` 3, `Metal` 4,
 /// `Oil` 5 (the `enums/TypeIndex.txt` values) and `none` `TYPE_NONE` (−1).
 /// `None` for a land with other than four slots, or a type outside these.
-pub fn land_makes(root: &Path) -> Option<sim::map_values::LandMakes> {
+pub fn land_makes(root: &Path) -> Option<sim::mapgen::map_values::LandMakes> {
     let text = std::fs::read_to_string(root.join("Data/rules.xml")).ok()?;
     let doc = roxmltree::Document::parse(&text).ok()?;
     let lands = doc.descendants().find(|n| n.has_tag_name("LANDS"))?;
@@ -951,7 +951,7 @@ pub fn sea_map(root: &Path, style_file: &str) -> Option<i32> {
 /// `Map::Map@006a06e0`'s 30 (`docs/MAPGEN.md` §10). `None` when a file is
 /// missing or a value is not a number.
 pub fn river_thresh(root: &Path, style_file: &str) -> Option<i32> {
-    let mut thresh = sim::map_rivers::RIVER_THRESH_UNSET;
+    let mut thresh = sim::mapgen::map_rivers::RIVER_THRESH_UNSET;
     for file in ["default.xml", style_file] {
         let text = std::fs::read_to_string(root.join(format!("mapstyles/{file}"))).ok()?;
         let doc = roxmltree::Document::parse(&text).ok()?;
@@ -971,7 +971,7 @@ pub fn river_thresh(root: &Path, style_file: &str) -> Option<i32> {
 /// as `XMLElement::get_attrib_num` reads it — the leading integer, so
 /// `"12 SCALE"` is 12 and `make_rivers` does the scaling, −1 when absent.
 /// `None` when a file is missing or neither has a `RIVERLIST`.
-pub fn river_list(root: &Path, style_file: &str) -> Option<Vec<sim::map_rivers::River>> {
+pub fn river_list(root: &Path, style_file: &str) -> Option<Vec<sim::mapgen::map_rivers::River>> {
     for file in [style_file, "default.xml"] {
         let text = std::fs::read_to_string(root.join(format!("mapstyles/{file}"))).ok()?;
         let doc = roxmltree::Document::parse(&text).ok()?;
@@ -980,7 +980,7 @@ pub fn river_list(root: &Path, style_file: &str) -> Option<Vec<sim::map_rivers::
             return Some(
                 n.children()
                     .filter(|c| c.has_tag_name("RIVER"))
-                    .map(|r| sim::map_rivers::River {
+                    .map(|r| sim::mapgen::map_rivers::River {
                         start_range: num(&r, "start_range"),
                         end_range: num(&r, "end_range"),
                         river_length: num(&r, "river_length"),
@@ -1010,7 +1010,7 @@ pub fn sea_maps(root: &Path) -> Option<std::collections::BTreeSet<i32>> {
 }
 
 /// **The `Map` fields Great Lakes' mask reads** (`docs/MAPGEN.md` §5,
-/// `sim::map_lakes::LakeStyle`), as `Map::Map@006a06e0` and the two
+/// `sim::mapgen::map_lakes::LakeStyle`), as `Map::Map@006a06e0` and the two
 /// `Map::init_map_data@0069f250` calls leave them: `AVOID_CENTER`,
 /// `AVOID_CONTINENT` (at least `rules.xml`'s `MIN_CONTINENT_SPACING`) and
 /// `AVOID_EDGE_0..3` from `default.xml`, then the style's file over them,
@@ -1024,7 +1024,7 @@ pub fn lake_style(
     (xs, ys, nations, map_size): (i32, i32, i32, i64),
     base_edge: i32,
     max_range_349: i32,
-) -> Option<sim::map_lakes::LakeStyle> {
+) -> Option<sim::mapgen::map_lakes::LakeStyle> {
     let standard = standard_map_size(root)?;
     let rules = std::fs::read_to_string(root.join("Data/rules.xml")).ok()?;
     let rules = roxmltree::Document::parse(&rules).ok()?;
@@ -1063,7 +1063,7 @@ pub fn lake_style(
         }
     }
     let q = max_range_349 >> 2;
-    Some(sim::map_lakes::LakeStyle {
+    Some(sim::mapgen::map_lakes::LakeStyle {
         avoid_center: center,
         avoid_continent: continent,
         avoid_edge: edge,
@@ -1335,17 +1335,19 @@ mod tests {
     use super::*;
     use crate::diff::MAPGEN;
     use sim::combat::Rng;
-    use sim::map_resources::place_resources;
-    use sim::map_rivers::{Phase, make_rivers};
-    use sim::map_values::{adjust_for_blocking, compute_all_vals};
     use sim::mapgen::adler_rewrite;
-    use sim::mapgen::{
-        Fractal, MapGrid, Regions, fertile_partitions, great_sahara_make_continents,
+    use sim::mapgen::map_resources::place_resources;
+    use sim::mapgen::map_rivers::{Phase, make_rivers};
+    use sim::mapgen::map_values::{adjust_for_blocking, compute_all_vals};
+    use sim::mapgen::terrain_groups::{
+        Draws, change_bases, check_player_forest, nubify_forest, place_all,
     };
-    use sim::terrain_groups::{Draws, change_bases, check_player_forest, nubify_forest, place_all};
-    use sim::terrain_init::{
+    use sim::mapgen::terrain_init::{
         HalfLand, PART4_LEN, PART4_SEA_MAP_AT, Unported, WORLD_SEA_MAP_BEFORE, coord, coord_flags,
         sea_map_after_make, terrain_init_without_heights,
+    };
+    use sim::mapgen::{
+        Fractal, MapGrid, Regions, fertile_partitions, great_sahara_make_continents,
     };
     use std::sync::OnceLock;
 
@@ -2183,7 +2185,7 @@ mod tests {
         let mut files = [0; 3];
         for &run in runs.keys() {
             let (mut grid, mut d) = great_sahara_at_7859(run, &fert, root);
-            check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+            check_player_forest(&mut grid, sim::core::tuning::Tuning::RON.city_center_radius);
             files[0] += at_checkpoint(&runs, &run, 7861, &grid, &d);
             nubify_forest(&mut grid, &mut d);
             files[1] += at_checkpoint(&runs, &run, 7865, &grid, &d);
@@ -2236,7 +2238,7 @@ mod tests {
         let mut placed = Vec::new();
         for &run in runs.keys() {
             let (mut grid, mut d) = great_sahara_at_7859(run, &fert, root);
-            check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+            check_player_forest(&mut grid, sim::core::tuning::Tuning::RON.city_center_radius);
             nubify_forest(&mut grid, &mut d);
             change_bases(&mut grid, &mut d, &ts);
             files[0] += at_checkpoint(&runs, &run, 7877, &grid, &d);
@@ -2279,7 +2281,7 @@ mod tests {
         root: &Path,
     ) -> (MapGrid, Draws) {
         let (mut grid, mut d) = great_sahara_at_7859(run, fert, root);
-        check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+        check_player_forest(&mut grid, sim::core::tuning::Tuning::RON.city_center_radius);
         nubify_forest(&mut grid, &mut d);
         change_bases(&mut grid, &mut d, ts);
         let inputs = resource_inputs(root, "SAHARA.xml", run.2, run.3, run.1).expect("the rows");
@@ -2562,7 +2564,7 @@ mod tests {
             "default.xml's threshold, SAHARA.xml's empty list"
         );
         let standard = standard_map_size(root).expect("the Standard map size");
-        let city_radius = sim::tuning::Tuning::RON.city_center_radius;
+        let city_radius = sim::core::tuning::Tuning::RON.city_center_radius;
         let runs = great_sahara_runs(all);
         let (mut files, mut records) = (0, 0);
         for &run in runs.keys() {
@@ -2681,8 +2683,8 @@ mod tests {
         let thresh = river_thresh(root, "SAHARA.xml").expect("RIVER_THRESHOLD");
         let rivers = river_list(root, "SAHARA.xml").expect("a RIVERLIST");
         let meshes = crate::mountains::meshes(&install);
-        let city_radius = sim::tuning::Tuning::RON.city_center_radius;
-        let mut grids: std::collections::BTreeMap<GsRun, Vec<sim::single::Single>> =
+        let city_radius = sim::core::tuning::Tuning::RON.city_center_radius;
+        let mut grids: std::collections::BTreeMap<GsRun, Vec<sim::num::single::Single>> =
             Default::default();
         for &run in great_sahara_runs(all).keys() {
             let (mut grid, mut d) = great_sahara_at_7927(run, &fert, &ts, root);
@@ -2702,7 +2704,7 @@ mod tests {
                 nations: run.1,
             };
             make_rivers(&mut grid, &mut regions, &phase, &mut d, |_, _, _| {});
-            let z = sim::map_heights::heights(
+            let z = sim::mapgen::map_heights::heights(
                 &grid,
                 &mut coord,
                 run.4 as u32,
@@ -2742,7 +2744,7 @@ mod tests {
             drop(crate::diff::build_sim(
                 &loaded,
                 &init,
-                sim::tuning::Tuning::RON,
+                sim::core::tuning::Tuning::RON,
             ));
             let ours = crate::diff::POST_ROSTER_HEIGHTS
                 .with(|h| h.borrow_mut().take())
@@ -2830,7 +2832,7 @@ mod tests {
         root: &Path,
         run: GlRun,
         range: i32,
-    ) -> (MapGrid, Draws, sim::map_lakes::LakeMap) {
+    ) -> (MapGrid, Draws, sim::mapgen::map_lakes::LakeMap) {
         let (seed, nations, xs, ys, map_size) = run;
         let style = lake_style(
             root,
@@ -2842,9 +2844,10 @@ mod tests {
         .expect("Great Lakes' style");
         let mut grid = MapGrid::new(xs, ys);
         let mut draws = Draws::new(seed);
-        let map =
-            sim::map_lakes::great_lakes_make_continents(&mut grid, nations, style, &mut draws)
-                .expect("a lobby inside its allowance");
+        let map = sim::mapgen::map_lakes::great_lakes_make_continents(
+            &mut grid, nations, style, &mut draws,
+        )
+        .expect("a lobby inside its allowance");
         (grid, draws, map)
     }
 
@@ -3224,7 +3227,7 @@ mod tests {
         root: &Path,
         run: EiRun,
         range: i32,
-    ) -> (MapGrid, Draws, sim::map_east_indies::IslandMap) {
+    ) -> (MapGrid, Draws, sim::mapgen::map_east_indies::IslandMap) {
         let (seed, nations, xs, ys, map_size) = run;
         let style = lake_style(
             root,
@@ -3236,7 +3239,7 @@ mod tests {
         .expect("East Indies' style");
         let mut grid = MapGrid::new(xs, ys);
         let mut draws = Draws::new(seed);
-        let map = sim::map_east_indies::east_indies_make_continents(
+        let map = sim::mapgen::map_east_indies::east_indies_make_continents(
             &mut grid, nations, style, &mut draws,
         )
         .expect("a lobby inside its allowance");
@@ -3329,7 +3332,11 @@ mod tests {
         let root = Path::new(&root);
         let range = max_range_349(root);
         let runs = east_indies_runs(all);
-        let ported: Vec<(EiRun, Vec<SetupDraw>, sim::map_east_indies::IslandMap)> = runs
+        let ported: Vec<(
+            EiRun,
+            Vec<SetupDraw>,
+            sim::mapgen::map_east_indies::IslandMap,
+        )> = runs
             .keys()
             .map(|&run| {
                 let (_, d, m) = east_indies_at_7807(root, run, range);
@@ -3664,7 +3671,7 @@ mod tests {
                     }
                 }
             };
-            check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+            check_player_forest(&mut grid, sim::core::tuning::Tuning::RON.city_center_radius);
             check(&grid, &d, 0, 7861);
             nubify_forest(&mut grid, &mut d);
             check(&grid, &d, 1, 7865);
@@ -3752,7 +3759,7 @@ mod tests {
         for (run, (g0, gs)) in &runs {
             let (mut grid, mut d, tileset) = great_lakes_at_7859(root, g0, *run, range);
             let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
-            check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+            check_player_forest(&mut grid, sim::core::tuning::Tuning::RON.city_center_radius);
             nubify_forest(&mut grid, &mut d);
             change_bases(&mut grid, &mut d, &ts);
             let mut check = |grid: &MapGrid, d: &Draws, k: usize, line: i64| {
@@ -3906,16 +3913,16 @@ mod tests {
             let coast_lands: std::collections::BTreeSet<i8> = grid
                 .cells
                 .iter()
-                .filter(|c| c.flags & sim::terrain_groups::flag::COAST != 0)
+                .filter(|c| c.flags & sim::mapgen::terrain_groups::flag::COAST != 0)
                 .map(|c| c.land)
                 .collect();
             let rough_coast = grid
                 .cells
                 .iter()
                 .filter(|c| {
-                    c.flags & sim::terrain_groups::flag::COAST != 0
+                    c.flags & sim::mapgen::terrain_groups::flag::COAST != 0
                         && (c.flags & 0x70 != 0
-                            || (c.flags & sim::terrain_groups::flag::ROCK == 0
+                            || (c.flags & sim::mapgen::terrain_groups::flag::ROCK == 0
                                 && (c.land == 4 || c.land == 5)))
                 })
                 .count();
@@ -3993,7 +4000,7 @@ mod tests {
         g: &StartGrid,
         run: GlRun,
         range: i32,
-        makes: &sim::map_values::LandMakes,
+        makes: &sim::mapgen::map_values::LandMakes,
     ) -> (MapGrid, Draws) {
         let (mut grid, mut d, tileset) = great_lakes_at_7859(root, g, run, range);
         let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
@@ -4211,16 +4218,23 @@ mod tests {
             let groups = place_all_inputs_of(root, "GREATLAKES.xml", &tileset, run.2, run.3, 14)
                 .expect("Great Lakes' place_all inputs");
             let mut coord = coord_flags(&grid);
-            let f = sim::map_heights::fractals(grid.xs, grid.ys, g0.seed as u32);
-            let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
-            sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g0.seed as u32);
+            let f = sim::mapgen::map_heights::fractals(grid.xs, grid.ys, g0.seed as u32);
+            let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &f);
+            sim::mapgen::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g0.seed as u32);
             // The 720 decision: each gated cell's water sub-tiles on these
             // heights, against the start dump's HALFLAND.
             let water: Vec<u32> = (0..grid.cells.len() as i32)
-                .map(|i| sim::map_heights::water_subtiles(&grid, &z, i % grid.xs, i / grid.xs))
+                .map(|i| {
+                    sim::mapgen::map_heights::water_subtiles(&grid, &z, i % grid.xs, i / grid.xs)
+                })
                 .collect();
-            sim::map_heights::create_doobers(&grid, &mut z);
-            sim::map_heights::adjust_for_mountains(&grid, &mut z, &groups.templates, &meshes);
+            sim::mapgen::map_heights::create_doobers(&grid, &mut z);
+            sim::mapgen::map_heights::adjust_for_mountains(
+                &grid,
+                &mut z,
+                &groups.templates,
+                &meshes,
+            );
             let gate = coord_flags(&grid);
             let ours_half: Vec<usize> = (0..grid.cells.len())
                 .filter(|&i| gate[i] & coord::GATE_MASK != 0 && (1..16).contains(&water[i]))
@@ -4259,7 +4273,7 @@ mod tests {
                 drop(crate::diff::build_sim(
                     &loaded,
                     &init,
-                    sim::tuning::Tuning::RON,
+                    sim::core::tuning::Tuning::RON,
                 ));
                 let ours = crate::diff::POST_ROSTER_HEIGHTS
                     .with(|h| h.borrow_mut().take())
@@ -4363,10 +4377,15 @@ mod tests {
             let (_, _, tileset) = great_lakes_at_7859(root, gs[0], *run, range);
             let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
             let mut coord = coord_flags(&grid);
-            let f = sim::map_heights::fractals(grid.xs, grid.ys, gs[0].seed as u32);
-            let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
-            sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, gs[0].seed as u32);
-            let combo = sim::halfland::Combo {
+            let f = sim::mapgen::map_heights::fractals(grid.xs, grid.ys, gs[0].seed as u32);
+            let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &f);
+            sim::mapgen::map_heights::build_coastal_data(
+                &grid,
+                &mut coord,
+                &mut z,
+                gs[0].seed as u32,
+            );
+            let combo = sim::mapgen::halfland::Combo {
                 coast_base: ts.coast_base,
                 num_tiles: [
                     Some(ts.base_tiles),
@@ -4376,7 +4395,7 @@ mod tests {
                 ],
             };
             let mut depth = 0;
-            let lists = sim::terrain_init::check_and_set_halfland_heights(
+            let lists = sim::mapgen::terrain_init::check_and_set_halfland_heights(
                 &mut grid, &mut coord, &z, combo, &mut depth,
             )
             .unwrap_or_else(|e| panic!("{} nations: {e:?}", run.1));
@@ -4384,9 +4403,9 @@ mod tests {
             let lists_parts = [p[0], p[1], p[2], p[3]];
             let state = |g: &MapGrid| (d.rng.seed, g.cell_part(), g.tile_part(), lists_parts);
             let s720 = state(&grid);
-            sim::halfland::create_doobers_flags(&mut grid);
+            sim::mapgen::halfland::create_doobers_flags(&mut grid);
             let s738 = state(&grid);
-            let beach = sim::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
+            let beach = sim::mapgen::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
                 .with_depth(depth)
                 .convert_beach_to_sandy()
                 .unwrap_or_else(|e| panic!("{} nations, the beach: {e:?}", run.1));
@@ -4469,8 +4488,8 @@ mod tests {
                                     let rivers: Vec<SetupDraw> = setup[last + 1..]
                                         .iter()
                                         .take_while(|d| {
-                                            d.0 == sim::map_rivers::site::SPREAD
-                                                || d.0 == sim::map_rivers::site::PRICE
+                                            d.0 == sim::mapgen::map_rivers::site::SPREAD
+                                                || d.0 == sim::mapgen::map_rivers::site::PRICE
                                         })
                                         .copied()
                                         .collect();
@@ -4521,7 +4540,7 @@ mod tests {
             (8, 1, 70),
             "default.xml's threshold, GREATLAKES.xml's one RIVER"
         );
-        let city_radius = sim::tuning::Tuning::RON.city_center_radius;
+        let city_radius = sim::core::tuning::Tuning::RON.city_center_radius;
         let mut runs: std::collections::BTreeMap<GlRun, (&StartGrid, Vec<&StartGrid>)> =
             Default::default();
         let mut carried: std::collections::BTreeMap<i64, usize> = Default::default();
@@ -4557,10 +4576,10 @@ mod tests {
             let (_, _, tileset) = great_lakes_at_7859(root, g0, *run, range);
             let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
             let mut coord = coord_flags(&grid);
-            let f = sim::map_heights::fractals(grid.xs, grid.ys, g0.seed as u32);
-            let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
-            sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g0.seed as u32);
-            let combo = sim::halfland::Combo {
+            let f = sim::mapgen::map_heights::fractals(grid.xs, grid.ys, g0.seed as u32);
+            let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &f);
+            sim::mapgen::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g0.seed as u32);
+            let combo = sim::mapgen::halfland::Combo {
                 coast_base: ts.coast_base,
                 num_tiles: [
                     Some(ts.base_tiles),
@@ -4570,14 +4589,14 @@ mod tests {
                 ],
             };
             let mut depth = 0;
-            let lists = sim::terrain_init::check_and_set_halfland_heights(
+            let lists = sim::mapgen::terrain_init::check_and_set_halfland_heights(
                 &mut grid, &mut coord, &z, combo, &mut depth,
             )
             .unwrap_or_else(|e| panic!("{} nations: {e:?}", run.1));
             let p = lists.parts().expect("the lists' walk");
             let lists_parts = [p[0], p[1], p[2], p[3]];
-            sim::halfland::create_doobers_flags(&mut grid);
-            sim::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
+            sim::mapgen::halfland::create_doobers_flags(&mut grid);
+            sim::mapgen::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
                 .with_depth(depth)
                 .convert_beach_to_sandy()
                 .unwrap_or_else(|e| panic!("{} nations, the beach: {e:?}", run.1));
@@ -4596,7 +4615,10 @@ mod tests {
             let beds = make_rivers(&mut grid, &mut regions, &phase, &mut d, |l, g, d| {
                 if l == 5076 {
                     let n = |b: u16| g.cells.iter().filter(|c| c.flags & b != 0).count();
-                    wrote = (n(sim::map_rivers::bit::PATH), n(sim::map_rivers::bit::BANK));
+                    wrote = (
+                        n(sim::mapgen::map_rivers::bit::PATH),
+                        n(sim::mapgen::map_rivers::bit::BANK),
+                    );
                 }
                 ours.push((
                     l,
@@ -4673,7 +4695,7 @@ mod tests {
     /// One Great Lakes run carried to `Terrain.cpp` 894: the 5012 walk of
     /// [`great_lakes_s_rivers_are_5012_to_5118`] with the oil cells'
     /// terraform (738) on the 706 heights, `make_rivers`, the troughs
-    /// (`sim::map_troughs::calculate_all`) and `adjust_for_mountains`;
+    /// (`sim::mapgen::map_troughs::calculate_all`) and `adjust_for_mountains`;
     /// `Cliffs::init`'s slope arm is asserted inert. Returns the grid, the
     /// heights, the stream, parts 10–13 and what the troughs made.
     fn great_lakes_at_894(
@@ -4681,13 +4703,13 @@ mod tests {
         g0: &StartGrid,
         run: GlRun,
         range: i32,
-        makes: &sim::map_values::LandMakes,
+        makes: &sim::mapgen::map_values::LandMakes,
     ) -> (
         MapGrid,
-        Vec<sim::single::Single>,
+        Vec<sim::num::single::Single>,
         Draws,
         [u32; 4],
-        sim::map_troughs::Troughs,
+        sim::mapgen::map_troughs::Troughs,
     ) {
         let install = crate::Install::new(root);
         let meshes = crate::mountains::meshes(&install);
@@ -4700,10 +4722,10 @@ mod tests {
         let groups = place_all_inputs_of(root, "GREATLAKES.xml", &tileset, run.2, run.3, 14)
             .expect("Great Lakes' place_all inputs");
         let mut coord = coord_flags(&grid);
-        let f = sim::map_heights::fractals(grid.xs, grid.ys, g0.seed as u32);
-        let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
-        sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g0.seed as u32);
-        let combo = sim::halfland::Combo {
+        let f = sim::mapgen::map_heights::fractals(grid.xs, grid.ys, g0.seed as u32);
+        let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &f);
+        sim::mapgen::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g0.seed as u32);
+        let combo = sim::mapgen::halfland::Combo {
             coast_base: ts.coast_base,
             num_tiles: [
                 Some(ts.base_tiles),
@@ -4713,14 +4735,14 @@ mod tests {
             ],
         };
         let mut depth = 0;
-        let lists = sim::terrain_init::check_and_set_halfland_heights(
+        let lists = sim::mapgen::terrain_init::check_and_set_halfland_heights(
             &mut grid, &mut coord, &z, combo, &mut depth,
         )
         .unwrap_or_else(|e| panic!("{} nations: {e:?}", run.1));
         let p = lists.parts().expect("the lists' walk");
-        sim::halfland::create_doobers_flags(&mut grid);
-        sim::map_heights::create_doobers(&grid, &mut z);
-        sim::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
+        sim::mapgen::halfland::create_doobers_flags(&mut grid);
+        sim::mapgen::map_heights::create_doobers(&grid, &mut z);
+        sim::mapgen::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
             .with_depth(depth)
             .convert_beach_to_sandy()
             .unwrap_or_else(|e| panic!("{} nations, the beach: {e:?}", run.1));
@@ -4729,14 +4751,14 @@ mod tests {
         let mut regions = regions_of(&grid);
         let phase = Phase {
             thresh,
-            city_radius: sim::tuning::Tuning::RON.city_center_radius,
+            city_radius: sim::core::tuning::Tuning::RON.city_center_radius,
             rivers: &rivers,
             standard,
             seed: g0.seed as u32,
             nations: run.1,
         };
         make_rivers(&mut grid, &mut regions, &phase, &mut d, |_, _, _| {});
-        let troughs = sim::map_troughs::calculate_all(
+        let troughs = sim::mapgen::map_troughs::calculate_all(
             &mut grid,
             &mut coord,
             &mut z,
@@ -4746,9 +4768,9 @@ mod tests {
             None,
         )
         .unwrap_or_else(|e| panic!("{} nations, the troughs: {e:?}", run.1));
-        sim::map_heights::adjust_for_mountains(&grid, &mut z, &groups.templates, &meshes);
+        sim::mapgen::map_heights::adjust_for_mountains(&grid, &mut z, &groups.templates, &meshes);
         assert_eq!(
-            sim::map_heights::slope_tiles(&grid).len(),
+            sim::mapgen::map_heights::slope_tiles(&grid).len(),
             0,
             "a Great Lakes cell flagged 0x40 reaches the slope arm"
         );
@@ -4884,7 +4906,7 @@ mod tests {
                 drop(crate::diff::build_sim(
                     &loaded,
                     &init,
-                    sim::tuning::Tuning::RON,
+                    sim::core::tuning::Tuning::RON,
                 ));
                 let ours = crate::diff::POST_ROSTER_HEIGHTS
                     .with(|h| h.borrow_mut().take())
@@ -5181,7 +5203,7 @@ mod tests {
                 }
             };
             let forest = grid.cells.iter().filter(|c| c.flags & 0x20 != 0).count();
-            check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+            check_player_forest(&mut grid, sim::core::tuning::Tuning::RON.city_center_radius);
             let patched = grid.cells.iter().filter(|c| c.flags & 0x20 != 0).count() - forest;
             check(&grid, &d, 0, 7861);
             nubify_forest(&mut grid, &mut d);
@@ -5254,7 +5276,7 @@ mod tests {
         for (run, gs) in &runs {
             let (mut grid, mut d, tileset) = east_indies_at_7859(root, gs[0], *run, range);
             let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
-            check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+            check_player_forest(&mut grid, sim::core::tuning::Tuning::RON.city_center_radius);
             nubify_forest(&mut grid, &mut d);
             change_bases(&mut grid, &mut d, &ts);
             let mut check = |grid: &MapGrid, d: &Draws, k: usize, line: i64| {
@@ -5289,7 +5311,7 @@ mod tests {
             for g in grid.goods.iter().flatten() {
                 *kinds.entry(g.0).or_default() += 1;
             }
-            use sim::map_resources::site;
+            use sim::mapgen::map_resources::site;
             let sites = [
                 site::LADDER,
                 site::GET_EARLY,
@@ -5367,7 +5389,7 @@ mod tests {
         for (run, gs) in &runs {
             let (mut grid, mut d, tileset) = east_indies_at_7859(root, gs[0], *run, range);
             let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
-            check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+            check_player_forest(&mut grid, sim::core::tuning::Tuning::RON.city_center_radius);
             nubify_forest(&mut grid, &mut d);
             change_bases(&mut grid, &mut d, &ts);
             let inputs = resource_inputs(root, "EASTINDIES.xml", run.2, run.3, run.1)
@@ -5414,23 +5436,23 @@ mod tests {
             let coast_lands: std::collections::BTreeSet<i8> = grid
                 .cells
                 .iter()
-                .filter(|c| c.flags & sim::terrain_groups::flag::COAST != 0)
+                .filter(|c| c.flags & sim::mapgen::terrain_groups::flag::COAST != 0)
                 .map(|c| c.land)
                 .collect();
             let rough_coast = grid
                 .cells
                 .iter()
                 .filter(|c| {
-                    c.flags & sim::terrain_groups::flag::COAST != 0
+                    c.flags & sim::mapgen::terrain_groups::flag::COAST != 0
                         && (c.flags & 0x70 != 0
-                            || (c.flags & sim::terrain_groups::flag::ROCK == 0
+                            || (c.flags & sim::mapgen::terrain_groups::flag::ROCK == 0
                                 && (c.land == 4 || c.land == 5)))
                 })
                 .count();
             let sea_oil = grid
                 .cells
                 .iter()
-                .filter(|c| c.is_ocean() && c.flags & sim::terrain_groups::flag::OIL != 0)
+                .filter(|c| c.is_ocean() && c.flags & sim::mapgen::terrain_groups::flag::OIL != 0)
                 .count();
             let mut regions = regions_of(&grid);
             let labels: Vec<i16> = grid.cells.iter().map(|c| c.region).collect();
@@ -5524,11 +5546,11 @@ mod tests {
         g: &StartGrid,
         run: EiRun,
         range: i32,
-        makes: &sim::map_values::LandMakes,
+        makes: &sim::mapgen::map_values::LandMakes,
     ) -> (MapGrid, Draws, String) {
         let (mut grid, mut d, tileset) = east_indies_at_7859(root, g, run, range);
         let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
-        check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+        check_player_forest(&mut grid, sim::core::tuning::Tuning::RON.city_center_radius);
         nubify_forest(&mut grid, &mut d);
         change_bases(&mut grid, &mut d, &ts);
         let inputs = resource_inputs(root, "EASTINDIES.xml", run.2, run.3, run.1)
@@ -5762,14 +5784,21 @@ mod tests {
             let groups = place_all_inputs_of(root, "EASTINDIES.xml", &tileset, run.2, run.3, 18)
                 .expect("East Indies' place_all inputs");
             let mut coord = coord_flags(&grid);
-            let f = sim::map_heights::fractals(grid.xs, grid.ys, g0.seed as u32);
-            let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
-            sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g0.seed as u32);
+            let f = sim::mapgen::map_heights::fractals(grid.xs, grid.ys, g0.seed as u32);
+            let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &f);
+            sim::mapgen::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g0.seed as u32);
             let water: Vec<u32> = (0..grid.cells.len() as i32)
-                .map(|i| sim::map_heights::water_subtiles(&grid, &z, i % grid.xs, i / grid.xs))
+                .map(|i| {
+                    sim::mapgen::map_heights::water_subtiles(&grid, &z, i % grid.xs, i / grid.xs)
+                })
                 .collect();
-            sim::map_heights::create_doobers(&grid, &mut z);
-            sim::map_heights::adjust_for_mountains(&grid, &mut z, &groups.templates, &meshes);
+            sim::mapgen::map_heights::create_doobers(&grid, &mut z);
+            sim::mapgen::map_heights::adjust_for_mountains(
+                &grid,
+                &mut z,
+                &groups.templates,
+                &meshes,
+            );
             let gate = coord_flags(&grid);
             let ours_half: Vec<usize> = (0..grid.cells.len())
                 .filter(|&i| gate[i] & coord::GATE_MASK != 0 && (1..16).contains(&water[i]))
@@ -5815,7 +5844,7 @@ mod tests {
                 drop(crate::diff::build_sim(
                     &loaded,
                     &init,
-                    sim::tuning::Tuning::RON,
+                    sim::core::tuning::Tuning::RON,
                 ));
                 let ours = crate::diff::POST_ROSTER_HEIGHTS
                     .with(|h| h.borrow_mut().take())
@@ -5891,10 +5920,15 @@ mod tests {
             let (mut grid, d, tileset) = east_indies_at_7945(root, gs[0], *run, range, &makes);
             let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
             let mut coord = coord_flags(&grid);
-            let f = sim::map_heights::fractals(grid.xs, grid.ys, gs[0].seed as u32);
-            let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
-            sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, gs[0].seed as u32);
-            let combo = sim::halfland::Combo {
+            let f = sim::mapgen::map_heights::fractals(grid.xs, grid.ys, gs[0].seed as u32);
+            let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &f);
+            sim::mapgen::map_heights::build_coastal_data(
+                &grid,
+                &mut coord,
+                &mut z,
+                gs[0].seed as u32,
+            );
+            let combo = sim::mapgen::halfland::Combo {
                 coast_base: ts.coast_base,
                 num_tiles: [
                     Some(ts.base_tiles),
@@ -5904,7 +5938,7 @@ mod tests {
                 ],
             };
             let mut depth = 0;
-            let lists = sim::terrain_init::check_and_set_halfland_heights(
+            let lists = sim::mapgen::terrain_init::check_and_set_halfland_heights(
                 &mut grid, &mut coord, &z, combo, &mut depth,
             )
             .unwrap_or_else(|e| panic!("{} nations: {e:?}", run.1));
@@ -5912,9 +5946,9 @@ mod tests {
             let lists_parts = [p[0], p[1], p[2], p[3]];
             let state = |g: &MapGrid| (d.rng.seed, g.cell_part(), g.tile_part(), lists_parts);
             let s720 = state(&grid);
-            sim::halfland::create_doobers_flags(&mut grid);
+            sim::mapgen::halfland::create_doobers_flags(&mut grid);
             let s738 = state(&grid);
-            let beach = sim::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
+            let beach = sim::mapgen::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
                 .with_depth(depth)
                 .convert_beach_to_sandy()
                 .unwrap_or_else(|e| panic!("{} nations, the beach: {e:?}", run.1));
@@ -5999,7 +6033,7 @@ mod tests {
             (8, 0),
             "default.xml's threshold, EASTINDIES.xml's empty list"
         );
-        let city_radius = sim::tuning::Tuning::RON.city_center_radius;
+        let city_radius = sim::core::tuning::Tuning::RON.city_center_radius;
         let mut runs: std::collections::BTreeMap<EiRun, Vec<&StartGrid>> = Default::default();
         let mut carried: std::collections::BTreeMap<i64, usize> = Default::default();
         for (_, g) in all.iter().filter(|(_, g)| g.style == 18 && g.xs > 0) {
@@ -6021,10 +6055,15 @@ mod tests {
             let (mut grid, mut d, tileset) = east_indies_at_7945(root, gs[0], *run, range, &makes);
             let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
             let mut coord = coord_flags(&grid);
-            let f = sim::map_heights::fractals(grid.xs, grid.ys, gs[0].seed as u32);
-            let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
-            sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, gs[0].seed as u32);
-            let combo = sim::halfland::Combo {
+            let f = sim::mapgen::map_heights::fractals(grid.xs, grid.ys, gs[0].seed as u32);
+            let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &f);
+            sim::mapgen::map_heights::build_coastal_data(
+                &grid,
+                &mut coord,
+                &mut z,
+                gs[0].seed as u32,
+            );
+            let combo = sim::mapgen::halfland::Combo {
                 coast_base: ts.coast_base,
                 num_tiles: [
                     Some(ts.base_tiles),
@@ -6034,14 +6073,14 @@ mod tests {
                 ],
             };
             let mut depth = 0;
-            let lists = sim::terrain_init::check_and_set_halfland_heights(
+            let lists = sim::mapgen::terrain_init::check_and_set_halfland_heights(
                 &mut grid, &mut coord, &z, combo, &mut depth,
             )
             .unwrap_or_else(|e| panic!("{} nations: {e:?}", run.1));
             let p = lists.parts().expect("the lists' walk");
             let lists_parts = [p[0], p[1], p[2], p[3]];
-            sim::halfland::create_doobers_flags(&mut grid);
-            sim::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
+            sim::mapgen::halfland::create_doobers_flags(&mut grid);
+            sim::mapgen::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
                 .with_depth(depth)
                 .convert_beach_to_sandy()
                 .unwrap_or_else(|e| panic!("{} nations, the beach: {e:?}", run.1));
@@ -6110,17 +6149,17 @@ mod tests {
     /// parts 10–13, the troughs and the slope arm's tiles.
     type EiAt894 = (
         MapGrid,
-        Vec<sim::single::Single>,
+        Vec<sim::num::single::Single>,
         Draws,
         [u32; 4],
-        sim::map_troughs::Troughs,
+        sim::mapgen::map_troughs::Troughs,
         Vec<(i32, i32)>,
     );
 
     /// One East Indies run carried to `Terrain.cpp` 894 (item 3851): the
     /// 5118 walk of [`east_indies_s_rivers_are_5012_to_5118`] with the oil
     /// cells' terraform (738) on the 706 heights, `make_rivers`, the
-    /// troughs (`sim::map_troughs::calculate_all`, which `RIVERLIST`'s
+    /// troughs (`sim::mapgen::map_troughs::calculate_all`, which `RIVERLIST`'s
     /// emptiness leaves with nothing to calculate) and
     /// `adjust_for_mountains`. Returns the grid, the heights, the stream,
     /// parts 10–13, what the troughs made and the tiles `Cliffs::init`'s
@@ -6130,7 +6169,7 @@ mod tests {
         g0: &StartGrid,
         run: EiRun,
         range: i32,
-        makes: &sim::map_values::LandMakes,
+        makes: &sim::mapgen::map_values::LandMakes,
     ) -> EiAt894 {
         let install = crate::Install::new(root);
         let meshes = crate::mountains::meshes(&install);
@@ -6142,10 +6181,10 @@ mod tests {
         let groups = place_all_inputs_of(root, "EASTINDIES.xml", &tileset, run.2, run.3, 18)
             .expect("East Indies' place_all inputs");
         let mut coord = coord_flags(&grid);
-        let f = sim::map_heights::fractals(grid.xs, grid.ys, g0.seed as u32);
-        let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
-        sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g0.seed as u32);
-        let combo = sim::halfland::Combo {
+        let f = sim::mapgen::map_heights::fractals(grid.xs, grid.ys, g0.seed as u32);
+        let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &f);
+        sim::mapgen::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g0.seed as u32);
+        let combo = sim::mapgen::halfland::Combo {
             coast_base: ts.coast_base,
             num_tiles: [
                 Some(ts.base_tiles),
@@ -6155,28 +6194,28 @@ mod tests {
             ],
         };
         let mut depth = 0;
-        let lists = sim::terrain_init::check_and_set_halfland_heights(
+        let lists = sim::mapgen::terrain_init::check_and_set_halfland_heights(
             &mut grid, &mut coord, &z, combo, &mut depth,
         )
         .unwrap_or_else(|e| panic!("{} nations: {e:?}", run.1));
         let p = lists.parts().expect("the lists' walk");
-        sim::halfland::create_doobers_flags(&mut grid);
-        sim::map_heights::create_doobers(&grid, &mut z);
-        sim::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
+        sim::mapgen::halfland::create_doobers_flags(&mut grid);
+        sim::mapgen::map_heights::create_doobers(&grid, &mut z);
+        sim::mapgen::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
             .with_depth(depth)
             .convert_beach_to_sandy()
             .unwrap_or_else(|e| panic!("{} nations, the beach: {e:?}", run.1));
         let mut regions = regions_of(&grid);
         let phase = Phase {
             thresh,
-            city_radius: sim::tuning::Tuning::RON.city_center_radius,
+            city_radius: sim::core::tuning::Tuning::RON.city_center_radius,
             rivers: &rivers,
             standard,
             seed: g0.seed as u32,
             nations: run.1,
         };
         make_rivers(&mut grid, &mut regions, &phase, &mut d, |_, _, _| {});
-        let troughs = sim::map_troughs::calculate_all(
+        let troughs = sim::mapgen::map_troughs::calculate_all(
             &mut grid,
             &mut coord,
             &mut z,
@@ -6186,8 +6225,8 @@ mod tests {
             None,
         )
         .unwrap_or_else(|e| panic!("{} nations, the troughs: {e:?}", run.1));
-        sim::map_heights::adjust_for_mountains(&grid, &mut z, &groups.templates, &meshes);
-        let slope = sim::map_heights::slope_tiles(&grid);
+        sim::mapgen::map_heights::adjust_for_mountains(&grid, &mut z, &groups.templates, &meshes);
+        let slope = sim::mapgen::map_heights::slope_tiles(&grid);
         (grid, z, d, [p[0], p[1], p[2], p[3]], troughs, slope)
     }
 
@@ -6338,7 +6377,7 @@ mod tests {
                 drop(crate::diff::build_sim(
                     &loaded,
                     &init,
-                    sim::tuning::Tuning::RON,
+                    sim::core::tuning::Tuning::RON,
                 ));
                 let ours = crate::diff::POST_ROSTER_HEIGHTS
                     .with(|h| h.borrow_mut().take())
@@ -6713,8 +6752,8 @@ mod tests {
             // `check_player_forest`'s count: each start's city disc, rings 0
             // to `city_center_radius / 4 − 1`, in FOREST cells — three or
             // more and the start takes no patch.
-            let t = sim::scout::circle::table();
-            let k = (sim::tuning::Tuning::RON.city_center_radius / 4 - 1) as usize;
+            let t = sim::units::think::scout::circle::table();
+            let k = (sim::core::tuning::Tuning::RON.city_center_radius / 4 - 1) as usize;
             let discs: Vec<usize> = (0..grid.starts[0].list.len())
                 .map(|s| {
                     let (x0, y0) = (grid.starts[0].list[s], grid.starts[1].list[s]);
@@ -6736,7 +6775,7 @@ mod tests {
                 })
                 .collect();
             let forest = grid.cells.iter().filter(|c| c.flags & 0x20 != 0).count();
-            check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+            check_player_forest(&mut grid, sim::core::tuning::Tuning::RON.city_center_radius);
             let patched = grid.cells.iter().filter(|c| c.flags & 0x20 != 0).count() - forest;
             check(&grid, &d, 0, 7861);
             nubify_forest(&mut grid, &mut d);
@@ -6972,13 +7011,13 @@ mod tests {
                     4
                 } else if f & 0x50 != 0 {
                     5
-                } else if f & sim::terrain_groups::flag::ROCK != 0 {
-                    6 + usize::from(f & sim::terrain_groups::flag::OIL != 0)
+                } else if f & sim::mapgen::terrain_groups::flag::ROCK != 0 {
+                    6 + usize::from(f & sim::mapgen::terrain_groups::flag::OIL != 0)
                 } else {
                     c.land as usize
                 }
             };
-            let t = sim::scout::circle::table();
+            let t = sim::units::think::scout::circle::table();
             let food: Vec<usize> = (0..grid.cells.len())
                 .map(|i| {
                     let (x, y) = (i as i32 % grid.xs, i as i32 / grid.xs);
@@ -7213,7 +7252,7 @@ mod tests {
             (8, 0),
             "default.xml's threshold, SOUTHWESTMESA.xml's empty list"
         );
-        let city_radius = sim::tuning::Tuning::RON.city_center_radius;
+        let city_radius = sim::core::tuning::Tuning::RON.city_center_radius;
         let (mut files, mut records, mut parted) = (0, 0, Vec::new());
         for (name, g) in all.iter().filter(|(_, g)| g.style == 10 && g.xs > 0) {
             let carried: Vec<i64> = [5012, 5014, 5076, 5116, 5118]
@@ -7407,7 +7446,7 @@ mod tests {
             );
             // A grid that hands one of them something makes its mutant
             // scorable: this fails so that the next file says which.
-            let decided = sim::cliffs::Inert {
+            let decided = sim::mapgen::cliffs::Inert {
                 nearest_ulps: i.nearest_ulps,
                 ..Default::default()
             };
@@ -7504,7 +7543,7 @@ mod tests {
             sim::world::Cell::new(0, 0),
             sim::world::Cell::new(grid.xs - 1, grid.ys - 1),
         );
-        let mut s = sim::Sim::new(sim::tuning::Tuning::RON, w, 2);
+        let mut s = sim::Sim::new(sim::core::tuning::Tuning::RON, w, 2);
         for bt in &loaded.build_types {
             s.add_build_type(bt.clone());
         }
@@ -7573,9 +7612,9 @@ mod tests {
                 s.max_gatherers_at(ty, b.who as sim::Player, corner),
             );
             let named = match arm {
-                sim::gather::MineArm::Cliff(k) => (-1, k as i64),
-                sim::gather::MineArm::Range => (b.mtn.unwrap_or(-1), -1),
-                sim::gather::MineArm::None => (-1, -1),
+                sim::economy::gather::MineArm::Cliff(k) => (-1, k as i64),
+                sim::economy::gather::MineArm::Range => (b.mtn.unwrap_or(-1), -1),
+                sim::economy::gather::MineArm::None => (-1, -1),
             };
             assert_eq!(
                 named,
@@ -7593,7 +7632,7 @@ mod tests {
             assert_eq!(got, want, "mine {}/{}: the tiles", b.who, b.o);
             // Cliff 7 is 189 tiles and the list keeps every one, so the
             // list's three filters decide nothing on this block (they are
-            // `sim::cliff_mine`'s tests); the count, which no dump prints, is
+            // `sim::economy::cliff_mine`'s tests); the count, which no dump prints, is
             // `gather_size`'s reading: the 100..210 band, all counted.
             assert_eq!(s.terrain.cliffs[7].tiles.len(), 189, "cliff 7's tcoords");
             assert_eq!(s.max_gatherers_at(ty, 0, corner), 5, "the reading's count");
@@ -7667,7 +7706,7 @@ mod tests {
             drop(crate::diff::build_sim(
                 &loaded,
                 &init,
-                sim::tuning::Tuning::RON,
+                sim::core::tuning::Tuning::RON,
             ));
             let ours = crate::diff::POST_ROSTER_HEIGHTS
                 .with(|h| h.borrow_mut().take())
@@ -7868,7 +7907,7 @@ mod tests {
     };
 
     /// Mediterranean (style 12, §29): run1531, item 3948 — its own
-    /// `make_continents` ported (`sim::map_mediterranean`).
+    /// `make_continents` ported (`sim::mapgen::map_mediterranean`).
     static MEDITERRANEAN: Chain = Chain {
         label: "Mediterranean",
         map: "Mediterranean",
@@ -7947,7 +7986,7 @@ mod tests {
     };
 
     /// Sea Power (style 20, §33): run1535, item 3952 — its own
-    /// `make_continents` ported (`sim::map_sea_power`).
+    /// `make_continents` ported (`sim::mapgen::map_sea_power`).
     static SEA_POWER: Chain = Chain {
         label: "Sea Power",
         map: "SeaPower",
@@ -8055,9 +8094,9 @@ mod tests {
         /// The lines `make_rivers` printed, ours, and the river sources.
         printed: Vec<i64>,
         sources: usize,
-        troughs: sim::map_troughs::Troughs,
+        troughs: sim::mapgen::map_troughs::Troughs,
         grid: MapGrid,
-        z: Vec<sim::single::Single>,
+        z: Vec<sim::num::single::Single>,
     }
 
     /// Every file of a chain's style walked, once a process.
@@ -8138,7 +8177,7 @@ mod tests {
                 4,
             )),
             MaskPort::Outback => {
-                let m = sim::map_outback::australian_outback_make_continents(
+                let m = sim::mapgen::map_outback::australian_outback_make_continents(
                     &mut grid,
                     g.nations,
                     lobby_style(),
@@ -8148,7 +8187,7 @@ mod tests {
                 Some((m.start_dist, 2))
             }
             MaskPort::WateringHole => {
-                let m = sim::map_watering_hole::african_watering_hole_make_continents(
+                let m = sim::mapgen::map_watering_hole::african_watering_hole_make_continents(
                     &mut grid,
                     g.nations,
                     lobby_style(),
@@ -8161,7 +8200,7 @@ mod tests {
             MaskPort::Colonial => {
                 // No seat of the corpus' lobbies is an unteamed computer
                 // under `team_style` 7 (§32.1).
-                let m = sim::map_colonial::colonial_powers_make_continents(
+                let m = sim::mapgen::map_colonial::colonial_powers_make_continents(
                     &mut grid,
                     g.nations,
                     0,
@@ -8173,7 +8212,7 @@ mod tests {
                 None
             }
             MaskPort::Mediterranean => {
-                let m = sim::map_mediterranean::mediterranean_make_continents(
+                let m = sim::mapgen::map_mediterranean::mediterranean_make_continents(
                     &mut grid,
                     g.nations,
                     lobby_style(),
@@ -8192,7 +8231,7 @@ mod tests {
                 None
             }
             MaskPort::NewWorld => {
-                let m = sim::map_new_world::new_world_make_continents(
+                let m = sim::mapgen::map_new_world::new_world_make_continents(
                     &mut grid,
                     g.nations,
                     lobby_style(),
@@ -8204,7 +8243,7 @@ mod tests {
                 None
             }
             MaskPort::SeaPower => {
-                let m = sim::map_sea_power::sea_power_make_continents(
+                let m = sim::mapgen::map_sea_power::sea_power_make_continents(
                     &mut grid,
                     g.nations,
                     lobby_style(),
@@ -8223,7 +8262,7 @@ mod tests {
                 None
             }
             MaskPort::NileDelta => {
-                let m = sim::map_nile_delta::nile_delta_make_continents(
+                let m = sim::mapgen::map_nile_delta::nile_delta_make_continents(
                     &mut grid,
                     g.nations,
                     lobby_style(),
@@ -8267,7 +8306,7 @@ mod tests {
         let mut d = Draws::new(d.rng.seed);
         place_all(&mut grid, &mut d, &inputs);
         check(&grid, &d, parts, "map.cpp", 7859);
-        check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+        check_player_forest(&mut grid, sim::core::tuning::Tuning::RON.city_center_radius);
         check(&grid, &d, parts, "map.cpp", 7861);
         nubify_forest(&mut grid, &mut d);
         check(&grid, &d, parts, "map.cpp", 7865);
@@ -8293,7 +8332,7 @@ mod tests {
         // then the heights, `check_and_set_halfland` and the beach before
         // 720 (`great_lakes_at_894`).
         let sea = sea_map(root, c.xml).expect("the style's SEA_MAP");
-        let combo = sim::halfland::Combo {
+        let combo = sim::mapgen::halfland::Combo {
             coast_base: ts.coast_base,
             num_tiles: [
                 Some(ts.base_tiles),
@@ -8317,11 +8356,16 @@ mod tests {
                     check(&grid, &d, parts, f, *l);
                 }
                 let mut coord = coord_flags(&grid);
-                let fr = sim::map_heights::fractals(grid.xs, grid.ys, g.seed as u32);
-                let mut z = sim::map_heights::generate_land(&grid, &coord, &fr);
-                sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g.seed as u32);
+                let fr = sim::mapgen::map_heights::fractals(grid.xs, grid.ys, g.seed as u32);
+                let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &fr);
+                sim::mapgen::map_heights::build_coastal_data(
+                    &grid,
+                    &mut coord,
+                    &mut z,
+                    g.seed as u32,
+                );
                 let mut depth = 0;
-                let lists = sim::terrain_init::check_and_set_halfland_heights(
+                let lists = sim::mapgen::terrain_init::check_and_set_halfland_heights(
                     &mut grid, &mut coord, &z, combo, &mut depth,
                 )
                 .unwrap_or_else(|e| panic!("{name}: check_and_set_halfland: {e:?}"));
@@ -8329,9 +8373,9 @@ mod tests {
                 parts = [p[0], p[1], p[2], p[3]];
                 // 720 is `check_and_set_halfland`'s return.
                 check(&grid, &d, parts, "Terrain.cpp", 720);
-                sim::halfland::create_doobers_flags(&mut grid);
-                sim::map_heights::create_doobers(&grid, &mut z);
-                sim::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
+                sim::mapgen::halfland::create_doobers_flags(&mut grid);
+                sim::mapgen::map_heights::create_doobers(&grid, &mut z);
+                sim::mapgen::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
                     .with_depth(depth)
                     .convert_beach_to_sandy()
                     .unwrap_or_else(|e| panic!("{name}: the beach: {e:?}"));
@@ -8384,7 +8428,7 @@ mod tests {
         let rivers = river_list(root, c.xml).expect("a RIVERLIST");
         let phase = Phase {
             thresh: river_thresh(root, c.xml).expect("RIVER_THRESHOLD"),
-            city_radius: sim::tuning::Tuning::RON.city_center_radius,
+            city_radius: sim::core::tuning::Tuning::RON.city_center_radius,
             rivers: &rivers,
             standard: standard_map_size(root).expect("the Standard map size"),
             seed: g.seed as u32,
@@ -8410,14 +8454,19 @@ mod tests {
         let (mut z, depth) = match wet {
             Some(zd) => zd,
             None => {
-                let f = sim::map_heights::fractals(grid.xs, grid.ys, g.seed as u32);
-                let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
-                sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g.seed as u32);
-                sim::map_heights::create_doobers(&grid, &mut z);
+                let f = sim::mapgen::map_heights::fractals(grid.xs, grid.ys, g.seed as u32);
+                let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &f);
+                sim::mapgen::map_heights::build_coastal_data(
+                    &grid,
+                    &mut coord,
+                    &mut z,
+                    g.seed as u32,
+                );
+                sim::mapgen::map_heights::create_doobers(&grid, &mut z);
                 (z, 0)
             }
         };
-        let troughs = sim::map_troughs::calculate_all(
+        let troughs = sim::mapgen::map_troughs::calculate_all(
             &mut grid,
             &mut coord,
             &mut z,
@@ -8427,8 +8476,8 @@ mod tests {
             Some(&rows.goods),
         )
         .unwrap_or_else(|e| panic!("{name}: the troughs: {e:?}"));
-        sim::map_heights::adjust_for_mountains(&grid, &mut z, &inputs.templates, &meshes);
-        let cliffs = sim::cliffs::init(
+        sim::mapgen::map_heights::adjust_for_mountains(&grid, &mut z, &inputs.templates, &meshes);
+        let cliffs = sim::mapgen::cliffs::init(
             &mut grid,
             &mut coord,
             &mut z,
@@ -8463,7 +8512,8 @@ mod tests {
                 theirs_rivers = setup[last + 1..]
                     .iter()
                     .take_while(|x| {
-                        x.0 == sim::map_rivers::site::SPREAD || x.0 == sim::map_rivers::site::PRICE
+                        x.0 == sim::mapgen::map_rivers::site::SPREAD
+                            || x.0 == sim::mapgen::map_rivers::site::PRICE
                     })
                     .copied()
                     .collect();
@@ -8824,7 +8874,7 @@ mod tests {
             drop(crate::diff::build_sim(
                 &loaded,
                 &init,
-                sim::tuning::Tuning::RON,
+                sim::core::tuning::Tuning::RON,
             ));
             let ours = crate::diff::POST_ROSTER_HEIGHTS
                 .with(|h| h.borrow_mut().take())

@@ -13,7 +13,7 @@
 /// what `LeaderData::tribe` holds and what `has_tribe_bonus(n)` compares
 /// against (`docs/TECH.md` §"`has_preq`"). The AI hardcodes several, and
 /// `Build::activate`'s free-unit block tests the powers by these numbers
-/// (`crate::nations::power` is this module under that name).
+/// (`crate::cities::nations::power` is this module under that name).
 pub mod tribe {
     pub const AZTECS: usize = 0;
     pub const MAYA: usize = 1;
@@ -246,7 +246,7 @@ pub mod order {
 }
 
 /// `ArmyData::status` bits (`docs/AI.md`'s army section, §1) — the field
-/// is `Army::status: i32`, and `crate::army::status` is this module. A
+/// is `Army::status: i32`, and `crate::ai::army::status` is this module. A
 /// walk that reads the word as `u32` widens these (`as u32`): every bit is
 /// below `0x100`, so the cast is the identity on it.
 pub mod army_status {
@@ -363,9 +363,9 @@ pub mod cell {
     pub const CLIFF: u16 = 0x40;
 }
 
-/// `CoordInfo.flags` — the bits `crate::terrain_init::coord_flags` sets, and
+/// `CoordInfo.flags` — the bits `crate::mapgen::terrain_init::coord_flags` sets, and
 /// the vertex codes `TerrainOut::get_vert_codes@0086bf70` ORs
-/// (`crate::map_heights::code`).
+/// (`crate::mapgen::map_heights::code`).
 pub mod coord {
     /// A `NONE` cell, or one whose world flags carry 0x4.
     pub const NONE_CELL: u16 = 0x8000;
@@ -390,8 +390,8 @@ pub mod coord {
 /// `TypeIndex` values the simulation names — the tree index of a type,
 /// which on the shipped data **is** the original's `TypeIndex` (goods
 /// `0..`, units from `0x32`, buildings from `0x19e`, techs from `0x220`;
-/// `rondata::load` builds the tree in that order). `crate::nations::ty`,
-/// `crate::transport::ty` and `crate::ai_census::ty` are this module.
+/// `rondata::load` builds the tree in that order). `crate::cities::nations::ty`,
+/// `crate::ai::transport::ty` and `crate::ai::ai_census::ty` are this module.
 ///
 /// The unit values `Build::activate`'s free-unit block names are each the
 /// *base* of a line: the block hands one to `get_graft` and then — all but
@@ -484,7 +484,7 @@ pub mod ty {
     pub const GULLBIRD: TypeId = 0x194;
 
     /// `TypeIndex` values the census sweep hardcodes; citizens (`0x32`/
-    /// `0x33`) and scholars (`0x34`/`0x35`) are `crate::ai_census::Worker`
+    /// `0x33`) and scholars (`0x34`/`0x35`) are `crate::ai::ai_census::Worker`
     /// instead, which is how `rondata` loads them.
     /// `missile` splits on these two exact types.
     pub const CRUISE: TypeId = 0x139;
@@ -529,7 +529,7 @@ pub mod ty {
 
 /// The position scale and the turn — the units every distance and heading
 /// in the simulation is an integer of. `crate::world`, `crate::vision`,
-/// `crate::collide` and `crate::path` re-export or rename these.
+/// `crate::movement::collide` and `crate::movement::path` re-export or rename these.
 pub mod scale {
     /// Position units per tile — `TCoord`'s scale, and what `<LOS>` is
     /// measured in.

@@ -28,7 +28,7 @@ impl Sim {
         let indian_elephant = self.indian_elephant_discount(who, ty);
         let (rare_goods, gypsum) = self.rare_goods_discounts(who);
         let m = match self.research_modifiers(who, ty) {
-            Some(r) => cost::Modifiers {
+            Some(r) => crate::economy::cost::Modifiers {
                 research: Some(r),
                 indian_elephant,
                 american_aircraft,
@@ -45,9 +45,9 @@ impl Sim {
                 domain,
                 rare_goods,
                 gypsum,
-                ..cost::Modifiers::default()
+                ..crate::economy::cost::Modifiers::default()
             },
-            None => cost::Modifiers {
+            None => crate::economy::cost::Modifiers {
                 late_discount: self.military_unit_discount(who, ty),
                 indian_elephant,
                 monarchy: self.monarchy_cost_discount(who, ty),
@@ -68,7 +68,7 @@ impl Sim {
                 domain,
                 rare_goods,
                 gypsum,
-                ..cost::Modifiers::default()
+                ..crate::economy::cost::Modifiers::default()
             },
         };
         self.price_with(who, ty, &m)
@@ -82,7 +82,8 @@ impl Sim {
     /// 52/35 where the list price with the ramp is 53/34 and 57/38 (item
     /// 3318, `docs/AI.md` §264).
     pub fn salt_barracks_discount(&self, who: Player, ty: usize) -> bool {
-        self.trainer_where(ty) == Some(nations::ty::BARRACKS) && self.has_rare(who, economy::SALT)
+        self.trainer_where(ty) == Some(crate::cities::nations::ty::BARRACKS)
+            && self.has_rare(who, economy::SALT)
     }
 
     /// `TypeData::get_cost@00664090`'s **Despotism arm** (`:382`–`404`, the
@@ -94,7 +95,7 @@ impl Sim {
     /// Iroquois Despot's Javelineers upgrade is 68/68 where the list price
     /// is 80/80 (run937, block 7983; item 3242, `docs/AI.md` §255).
     pub fn despotism_unit_discount(&self, who: Player, ty: usize) -> i32 {
-        if self.trainer_where(ty) != Some(nations::ty::BARRACKS) {
+        if self.trainer_where(ty) != Some(crate::cities::nations::ty::BARRACKS) {
             return 0;
         }
         match self.government_bonus_level(who, &self.tables.tech_tree.roles.despotism_preq) {
@@ -120,7 +121,7 @@ impl Sim {
             qs.iter()
                 .all(|&q| self.tables.tech_tree.has_tech_p(&self.tables.setup, p, q))
         });
-        if trainer == Some(nations::ty::STABLES[0]) && held {
+        if trainer == Some(crate::cities::nations::ty::STABLES[0]) && held {
             self.tables.tuning.monarchy_unit_prod[0]
         } else {
             0
@@ -141,9 +142,9 @@ impl Sim {
             .and_then(|d| d.where_);
         if trainer.is_some_and(|w| {
             [
-                nations::ty::SIEGE_FACTORIES[0],
-                nations::ty::AIRBASE,
-                nations::ty::DOCKS[0],
+                crate::cities::nations::ty::SIEGE_FACTORIES[0],
+                crate::cities::nations::ty::AIRBASE,
+                crate::cities::nations::ty::DOCKS[0],
             ]
             .contains(&w)
         }) && self
@@ -173,10 +174,12 @@ impl Sim {
     pub fn domain_cost_discounts(&self, who: Player, ty: usize) -> [i32; 2] {
         let held = self.wonders_held(who);
         match self.tables.unit_types[ty].combat.domain {
-            attrition::Domain::Sea if held & (1 << tech::wonder::ANGKOR_WAT) != 0 => {
+            crate::territory::attrition::Domain::Sea
+                if held & (1 << tech::wonder::ANGKOR_WAT) != 0 =>
+            {
                 [self.tables.tuning.angkor_ships, 0]
             }
-            attrition::Domain::Air => [
+            crate::territory::attrition::Domain::Air => [
                 if self.has_rare(who, economy::ALUMINUM) {
                     self.tables.tuning.aluminum_air_cost
                 } else {
@@ -197,7 +200,7 @@ impl Sim {
     /// of a player holding Salmon (`+0x6da9 & 1`, else `+0x6dd1 & 1`,
     /// rare 46) (item 2389, `docs/GOLDEN.md` §86).
     pub fn salmon_cost_discount(&self, who: Player, ty: usize) -> i32 {
-        if self.tables.unit_types[ty].combat.domain == attrition::Domain::Sea
+        if self.tables.unit_types[ty].combat.domain == crate::territory::attrition::Domain::Sea
             && self.has_rare(who, economy::SALMON)
         {
             self.tables.tuning.salmon_naval_cost
@@ -210,7 +213,7 @@ impl Sim {
     /// this crate's `where_` — by its [`build::Ident`], exactly and not by
     /// lineage. `get_cost`'s Stable arm and `Unit::update_los`'s troops
     /// term both compare it to fixed `TypeIndex`es.
-    pub fn trainer_ident(&self, ty: usize) -> Option<build::Ident> {
+    pub fn trainer_ident(&self, ty: usize) -> Option<crate::cities::build::Ident> {
         self.tables.unit_types[ty]
             .tree
             .and_then(|t| self.tables.tech_tree.types.get(t))
@@ -264,9 +267,12 @@ impl Sim {
     /// `is(0x13b, 0)` on a unit record's type: the Nuclear Missile's line.
     pub(crate) fn is_nuke_line_type(&self, ty: usize) -> bool {
         self.tables.unit_types[ty].tree.is_some_and(|t| {
-            t == airbase::NUCLEARMISSILE
+            t == crate::air::airbase::NUCLEARMISSILE
                 || (t < self.tables.tech_tree.types.len()
-                    && self.tables.tech_tree.is(t, airbase::NUCLEARMISSILE, false))
+                    && self
+                        .tables
+                        .tech_tree
+                        .is(t, crate::air::airbase::NUCLEARMISSILE, false))
         })
     }
 
@@ -315,7 +321,7 @@ impl Sim {
         let trainer = self.trainer_ident(ty);
         if !matches!(
             trainer,
-            Some(build::Ident::Stable | build::Ident::AutoPlant)
+            Some(crate::cities::build::Ident::Stable | crate::cities::build::Ident::AutoPlant)
         ) {
             return [0, 0, sulphur];
         }
@@ -373,10 +379,10 @@ impl Sim {
         }
         if self.japanese(who) {
             let trainer = self.trainer_where(ty);
-            if trainer == Some(nations::ty::BARRACKS) {
+            if trainer == Some(crate::cities::nations::ty::BARRACKS) {
                 return self.japanese_per_tier(who, self.tables.tuning.japanese_barracks_cost);
             }
-            if trainer.is_some_and(|t| nations::ty::DOCKS.contains(&t)) {
+            if trainer.is_some_and(|t| crate::cities::nations::ty::DOCKS.contains(&t)) {
                 return self.tables.tuning.japanese_ship_cost;
             }
         }
@@ -385,9 +391,12 @@ impl Sim {
                 self.tables
                     .tech_tree
                     .types
-                    .get(nations::ty::FIRERAFT)
+                    .get(crate::cities::nations::ty::FIRERAFT)
                     .is_some()
-                    && self.tables.tech_tree.is(t, nations::ty::FIRERAFT, false)
+                    && self
+                        .tables
+                        .tech_tree
+                        .is(t, crate::cities::nations::ty::FIRERAFT, false)
             })
         {
             return self.tables.tuning.german_submarine_cost;
@@ -419,7 +428,7 @@ impl Sim {
         self.tables.tech_tree.has_tribe_bonus(
             &self.tables.setup,
             &self.tech[who as usize],
-            nations::power::JAPANESE,
+            crate::cities::nations::power::JAPANESE,
         )
     }
 
@@ -617,12 +626,18 @@ impl Sim {
     /// `MILITARY_UPGRADE_DISCOUNT` is the train arm's rule with the upgrade
     /// constant and **no floor on the type's level** (`get_cost:507`–`525`
     /// has none of `:639`'s `max(level, 1)` or its `max(pct, 1)`).
-    pub fn research_modifiers(&self, who: Player, ty: usize) -> Option<cost::Research> {
+    pub fn research_modifiers(
+        &self,
+        who: Player,
+        ty: usize,
+    ) -> Option<crate::economy::cost::Research> {
         let unit = &self.tables.unit_types[ty];
         let t = unit.tree?;
         let w = who as usize;
         if self.tech[w].tech.get(t).copied().unwrap_or(true)
-            || unit.cols.flag(ai_load::uflags::NO_RESEARCH_PRICE)
+            || unit
+                .cols
+                .flag(crate::ai::ai_load::uflags::NO_RESEARCH_PRICE)
         {
             return None;
         }
@@ -671,7 +686,7 @@ impl Sim {
         let mut discount = 0;
         let mut dutch_ship = 0;
         let mut american_land = 0;
-        if self.role_word_of_rec(ty) & ai_load::role::ROLE_MILITARY != 0 {
+        if self.role_word_of_rec(ty) & crate::ai::ai_load::role::ROLE_MILITARY != 0 {
             let ahead = self.tech[w].epoch[tech::Line::Military.index()]
                 - self
                     .tables
@@ -691,7 +706,7 @@ impl Sim {
             // it (`get_cost:528`–`531`, `has_tribe_bonus(0x14)` and `+0x218
             // == 0`; item 3374: run999's who=1 held 20 food and 20 metal more
             // than ours on block 9376, a quarter of an 80-and-80 upgrade).
-            if self.tables.unit_types[ty].combat.domain == attrition::Domain::Land
+            if self.tables.unit_types[ty].combat.domain == crate::territory::attrition::Domain::Land
                 && self.tables.tech_tree.has_tribe_bonus(
                     &self.tables.setup,
                     &self.tech[w],
@@ -701,12 +716,13 @@ impl Sim {
                 american_land = self.tables.tuning.americans_upgrade_discount;
             }
             if self.cities.nation[w].dutch
-                && self.tables.unit_types[ty].combat.domain == attrition::Domain::Sea
+                && self.tables.unit_types[ty].combat.domain
+                    == crate::territory::attrition::Domain::Sea
             {
                 dutch_ship = self.tables.tuning.dutch_ship_discount;
             }
         }
-        Some(cost::Research {
+        Some(crate::economy::cost::Research {
             american_land,
             dutch_ship,
             wine: if self.has_rare(who, economy::WINE) {
@@ -734,7 +750,7 @@ impl Sim {
     /// late discount this crate applies, so the fold into
     /// [`cost::Modifiers::late_discount`] is exact.
     pub fn military_unit_discount(&self, who: Player, ty: usize) -> i32 {
-        if self.role_word_of_rec(ty) & ai_load::role::ROLE_MILITARY == 0 {
+        if self.role_word_of_rec(ty) & crate::ai::ai_load::role::ROLE_MILITARY == 0 {
             return 0;
         }
         let level = self.tables.unit_types[ty]
@@ -822,7 +838,7 @@ impl Sim {
         &self,
         who: Player,
         ty: usize,
-        m: &cost::Modifiers,
+        m: &crate::economy::cost::Modifiers,
     ) -> [i32; economy::RESOURCES] {
         let muster = &self.roster.muster[who as usize];
         let holdings = &self.economy.holdings[who as usize];
@@ -832,7 +848,7 @@ impl Sim {
         // pay a ramp step for the ones ahead of them in the queue. The time
         // ramp reads only the first of the two arrays; see
         // `docs/PRODUCTION.md`.
-        let counts = cost::Counts {
+        let counts = crate::economy::cost::Counts {
             of_type: muster.by_type[ty]
                 + muster.queued_by_type[ty]
                 + self.worker_support(who, ty)
@@ -853,7 +869,7 @@ impl Sim {
             bumped = p;
             &bumped
         };
-        cost::charges(
+        crate::economy::cost::charges(
             &self.tables.tuning,
             price,
             counts,

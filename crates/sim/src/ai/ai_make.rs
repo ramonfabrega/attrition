@@ -9,7 +9,7 @@
 //! `SEAM`.
 
 use crate::ai::{MAKE_SLOTS, MakeObject};
-use crate::build::{self, BuildDomain, Ident, flags};
+use crate::cities::build::{self, BuildDomain, Ident, flags};
 use crate::economy::{RESOURCES, Resource};
 use crate::orders::{Body, Worker, index};
 use crate::tech::{self, Kind, Line, TypeId};

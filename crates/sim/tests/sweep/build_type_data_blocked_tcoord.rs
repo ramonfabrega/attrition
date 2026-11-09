@@ -10,8 +10,8 @@ fn wr(m: &mut [u8], off: usize, v: i32) {
     m[off..off + 4].copy_from_slice(&v.to_le_bytes());
 }
 
-use crate::build::{Ident, flags};
-use crate::tcoord::{TcoordView, blocked_tcoord_steps};
+use crate::cities::build::{Ident, flags};
+use crate::cities::tcoord::{TcoordView, blocked_tcoord_steps};
 
 /// The type index the original's `is(code, 0)` is asked with, per ident.
 const fn code(id: Ident) -> i32 {

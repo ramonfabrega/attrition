@@ -37,7 +37,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let (xs, ys) = (rd(m, 0x234), rd(m, 0x238));
             let (w, h) = (rd(&c[1], 0x18), rd(&c[1], 0x1c));
             let centre = Pos::new(a[0] * 192 + 96, a[1] * 192 + 96);
-            let corner = crate::place::tile_corner_of(xs, ys, centre);
+            let corner = crate::cities::place::tile_corner_of(xs, ys, centre);
             let mut clear = true;
             for x in corner.x..corner.x + xs {
                 for y in corner.y..corner.y + ys {
@@ -50,7 +50,7 @@ fn the_emulated_original_agrees_on_every_row() {
             }
             let found = if !clear {
                 -1
-            } else if crate::place::wants_town(rd(m, 0x2c0) as u32) {
+            } else if crate::cities::place::wants_town(rd(m, 0x2c0) as u32) {
                 a[3]
             } else {
                 a[4]

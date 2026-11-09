@@ -1,14 +1,14 @@
-use crate::attrition::Domain;
 use crate::combat::{self, Obj};
-use crate::group::{Flight, Group};
+use crate::groups::group::{Flight, Group};
 use crate::movement::Angle;
 use crate::orders::{Body, flag};
+use crate::territory::attrition::Domain;
 use crate::world::Pos;
 use crate::{Player, Sim, Unit, UnitType};
 
 fn sim() -> Sim {
     let mut s = Sim::new(
-        crate::tuning::Tuning::RON,
+        crate::core::tuning::Tuning::RON,
         crate::world::World::new(128, 128),
         2,
     );
@@ -23,9 +23,9 @@ fn sim() -> Sim {
 /// who=0's Airbase at run223's point, and who=1's Barracks, finished
 /// and seen by who=0 (`ever_seen` 3 from 762).
 fn base_and_target(s: &mut Sim) -> (usize, usize) {
-    let airbase = s.add_build_type(crate::build::BuildType {
-        ident: crate::build::Ident::Airbase,
-        ..crate::build::BuildType::default()
+    let airbase = s.add_build_type(crate::cities::build::BuildType {
+        ident: crate::cities::build::Ident::Airbase,
+        ..crate::cities::build::BuildType::default()
     });
     let base = s.add_building(0, Pos::new(11616, 13920), 0);
     s.buildings[base].ty = Some(airbase);
@@ -45,9 +45,9 @@ fn fighter_inside(s: &mut Sim, base: usize, mana: i32) -> usize {
         moves: 75,
         mana,
         turn_speed: crate::movement::degrees_to_angle(10).0,
-        kind: crate::attrition::UnitKind {
+        kind: crate::territory::attrition::UnitKind {
             domain: Domain::Air,
-            ..crate::attrition::UnitKind::default()
+            ..crate::territory::attrition::UnitKind::default()
         },
         combat: combat::Profile {
             attack: 15,
@@ -332,7 +332,7 @@ fn a_computer_s_base_sends_its_plane_over_a_city_under_attack() {
         let u = fighter_inside(&mut s, base, 400);
         s.units[u].orders.clear();
         let pos = s.buildings[target].pos;
-        s.cities.cities.push(crate::city::City {
+        s.cities.cities.push(crate::cities::city::City {
             alive: true,
             owner: 1,
             race: Some(1),
@@ -465,9 +465,9 @@ fn an_aircraft_trained_at_an_airbase_stays_inside_with_no_order() {
     s.units[trained].mana_burn = 0;
     s.do_launch(base);
     assert_eq!(s.units[trained].inside, Some(base), "passed over");
-    let barracks = s.add_build_type(crate::build::BuildType {
-        ident: crate::build::Ident::Barracks,
-        ..crate::build::BuildType::default()
+    let barracks = s.add_build_type(crate::cities::build::BuildType {
+        ident: crate::cities::build::Ident::Barracks,
+        ..crate::cities::build::BuildType::default()
     });
     let b = s.add_building(0, Pos::new(5000, 5000), 0);
     s.buildings[b].ty = Some(barracks);
@@ -505,7 +505,7 @@ fn an_airbase_s_gather_point_re_orders_every_plane_homed_there() {
     s.add_air_patrol_order(inside, Pos::new(21120, 16512), Some(base), false);
     s.add_air_patrol_order(flying, Pos::new(21120, 16512), Some(base), false);
     let (p1, p2) = (Pos::new(11520, 7680), Pos::new(5760, 5760));
-    let point = |pos| crate::rally::GatherPoint { pos, action: 0 };
+    let point = |pos| crate::cities::rally::GatherPoint { pos, action: 0 };
     s.add_gather_point(base, point(p1), true);
     for u in [inside, flying] {
         let (p, flags) = patrol_of(&s, u);
@@ -545,7 +545,7 @@ fn the_clear_at_an_airbase_sends_a_flying_plane_home_and_empties_one_inside() {
     s.come_out(flying);
     // A plane on the map is homed by its air order's home.
     s.add_air_patrol_order(flying, Pos::new(21120, 16512), Some(base), false);
-    let p1 = crate::rally::GatherPoint {
+    let p1 = crate::cities::rally::GatherPoint {
         pos: Pos::new(11520, 7680),
         action: 0,
     };
@@ -581,8 +581,8 @@ fn a_plane_trained_under_an_airbase_s_list_takes_a_patrol_over_it() {
     let ty = s.units[first].ty.unwrap();
     let (p1, p2) = (Pos::new(11520, 7680), Pos::new(5760, 5760));
     s.buildings[base].gather = vec![
-        crate::rally::GatherPoint { pos: p1, action: 0 },
-        crate::rally::GatherPoint { pos: p2, action: 0 },
+        crate::cities::rally::GatherPoint { pos: p1, action: 0 },
+        crate::cities::rally::GatherPoint { pos: p2, action: 0 },
     ];
     let trained = s.build_train(base, ty).unit;
     assert_eq!(s.units[trained].inside, Some(base), "inside");
@@ -719,7 +719,7 @@ fn a_strike_from_inside_waits_for_the_tank_and_leaves_on_the_exit() {
     let (base, target) = base_and_target(&mut s);
     let u = fighter_inside(&mut s, base, 400);
     s.units[u].mana_burn = 22;
-    s.units[u].airframe.pitch = crate::single::Single::from_i32(8);
+    s.units[u].airframe.pitch = crate::num::single::Single::from_i32(8);
     s.group_action_flight(&group_of(0, &[u]), Obj::Building(target), Flight::Strike);
     for f in 768..778 {
         s.frame = f;
@@ -759,7 +759,7 @@ fn striking_fighter(s: &mut Sim, strafes: bool) -> (usize, usize, i32, i32) {
     let u = fighter_inside(s, base, 400);
     if strafes {
         let ty = s.units[u].ty.unwrap();
-        s.tables.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::STRAFES;
+        s.tables.unit_types[ty].cols.unit_flags |= crate::ai::ai_load::uflags::STRAFES;
     }
     s.group_action_flight(&group_of(0, &[u]), Obj::Building(target), Flight::Strike);
     s.come_out(u);
@@ -892,7 +892,7 @@ fn a_flying_target_farther_than_0xc00_is_led_a_third_of_the_excess() {
 fn run265_s_climb_comes_down_at_the_strafers_half() {
     let mut s = sim();
     let (u, _, dx, dy) = striking_fighter(&mut s, true);
-    s.units[u].airframe.pitch = crate::single::Single::from_i32(40);
+    s.units[u].airframe.pitch = crate::num::single::Single::from_i32(40);
     s.units[u].airframe.z = 677;
     let mut speed = 75;
     s.pitch_plane(u, dx, dy, 0, &mut speed, false);
@@ -900,7 +900,7 @@ fn run265_s_climb_comes_down_at_the_strafers_half() {
     assert_eq!(s.units[u].airframe.last_pitch.to_i32(), 40);
     let mut plain = sim();
     let (v, _, vdx, vdy) = striking_fighter(&mut plain, false);
-    plain.units[v].airframe.pitch = crate::single::Single::from_i32(40);
+    plain.units[v].airframe.pitch = crate::num::single::Single::from_i32(40);
     plain.units[v].airframe.z = 677;
     let mut speed = 75;
     plain.pitch_plane(v, vdx, vdy, 0, &mut speed, false);
@@ -1074,7 +1074,7 @@ fn a_strafers_landing_walks_with_its_gun() {
     let (u, target, _, _) = striking_fighter(&mut s, true);
     s.units[u].movement.heading = Angle(1_340_473_344);
     let g = &mut s.units[u].guys[0];
-    (g.anim, g.cur_time, g.end_time) = (crate::anim::ATTACK2, 1, 30);
+    (g.anim, g.cur_time, g.end_time) = (crate::units::anim::ATTACK2, 1, 30);
     assert_eq!(fire(&mut s, u, target, 0), Pos::new(20816, 16440), "node 0");
     assert_eq!(fire(&mut s, u, target, 1), Pos::new(20853, 16351), "node 1");
     let (me, it, at) = (
@@ -1088,13 +1088,13 @@ fn a_strafers_landing_walks_with_its_gun() {
         Pos::new(21847, 16865),
         "806 past, at the swing's end"
     );
-    s.units[u].guys[0].anim = crate::anim::WALK;
+    s.units[u].guys[0].anim = crate::units::anim::WALK;
     assert_eq!(s.strafe_walk(me, it, at, 0), at, "out of its attack");
     let mut plain = sim();
     let (v, target, _, _) = striking_fighter(&mut plain, false);
     plain.units[v].movement.heading = Angle(1_340_473_344);
     let g = &mut plain.units[v].guys[0];
-    (g.anim, g.cur_time, g.end_time) = (crate::anim::ATTACK2, 1, 30);
+    (g.anim, g.cur_time, g.end_time) = (crate::units::anim::ATTACK2, 1, 30);
     assert_eq!(
         plain.strafe_walk(Obj::Unit(v), Some(Obj::Building(target)), at, 0),
         at,
@@ -1138,7 +1138,7 @@ fn an_empty_tank_turns_a_strike_for_home() {
 fn biplane_inside(s: &mut Sim, base: usize) -> usize {
     let u = fighter_inside(s, base, 400);
     let ty = s.units[u].ty.unwrap();
-    s.tables.unit_types[ty].tree = Some(crate::airbase::BIPLANE);
+    s.tables.unit_types[ty].tree = Some(crate::air::airbase::BIPLANE);
     s.units[u].mana_burn = 0;
     u
 }

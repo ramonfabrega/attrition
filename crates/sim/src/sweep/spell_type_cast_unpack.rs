@@ -31,7 +31,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // `SpellType::cast_unpack(o = a[0], who = a[1])`: `options->rebuild = 1` (c0+0x90);
             // the object (p4) asked alive (s0, answer a[2]) then on the map (s1, a[3]); the unit
             // (p5) gets `announce_frame = -1` (+0x14c) and the steps run (`cast_unpack_steps`).
-            use crate::transport::{UnpackSteps, cast_unpack_steps};
+            use crate::ai::transport::{UnpackSteps, cast_unpack_steps};
             struct W<'a> {
                 log: &'a mut Vec<String>,
                 c: &'a mut [Vec<u8>],

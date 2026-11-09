@@ -1350,7 +1350,7 @@ mod bodies {
                         let Some(ours) = built.sim.units[u].guys.get(n) else {
                             continue;
                         };
-                        if n >= sim::anim::SQUAD_SIZE {
+                        if n >= sim::units::anim::SQUAD_SIZE {
                             crew_rows += 1;
                         }
                         if (state.who, state.o) == (1, 23) {
@@ -1382,7 +1382,7 @@ mod bodies {
                                 // for both. That is what
                                 // [`sim::Sim::guys_follow`]'s `settled ||
                                 // g >= SQUAD_SIZE` already models.
-                                if n >= sim::anim::SQUAD_SIZE {
+                                if n >= sim::units::anim::SQUAD_SIZE {
                                     built.sim.units[u].movement.facing
                                 } else {
                                     built.sim.units[u].movement.heading

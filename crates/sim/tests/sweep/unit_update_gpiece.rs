@@ -28,7 +28,7 @@ fn the_emulated_original_agrees_on_every_row() {
     super::obj_rows(&rows, &obj, |a, m, c, p, log| {
         let _ = (&a, &m, &c, &p);
         {
-            let walk = crate::anim::gpiece_walk(
+            let walk = crate::units::anim::gpiece_walk(
                 m[0xb5] as i8,
                 rd(&p[0], 0x304),
                 rd(&p[0], 0x30c),

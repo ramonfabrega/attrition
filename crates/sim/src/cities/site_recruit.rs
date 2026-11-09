@@ -53,7 +53,7 @@ impl Sim {
         let wonder = self.is_wonder_site(b);
         let fort = bd
             .ty
-            .is_some_and(|t| crate::build::is_fort(&self.tables.build_types, t))
+            .is_some_and(|t| crate::cities::build::is_fort(&self.tables.build_types, t))
             && bd.damage == 0;
         if !wonder && !fort {
             return;
@@ -95,10 +95,10 @@ impl Sim {
         let bd = &self.buildings[b];
         if bd.phase(frame) & 0x7f != 0
             || !bd.ty.is_some_and(|t| {
-                crate::build::is(
+                crate::cities::build::is(
                     &self.tables.build_types,
                     t,
-                    crate::build::Ident::OilPlatform,
+                    crate::cities::build::Ident::OilPlatform,
                 )
             })
         {
@@ -251,7 +251,7 @@ impl Sim {
                 *best = Some((d, u));
             }
         };
-        let circle = crate::ai_place::circle();
+        let circle = crate::ai::ai_place::circle();
         let ring = ((range + 0x2ff) / 0x300) as usize;
         let live = self.total_units();
         if live < circle.radius[ring] {

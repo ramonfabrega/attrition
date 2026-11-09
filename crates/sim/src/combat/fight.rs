@@ -15,12 +15,12 @@
 //! `602129` the harness printed until item 324. Nothing in this crate marks
 //! either yet — `docs/COMBAT.md` §17 is the specification and says so.
 
-use crate::ai_load::uflags;
-use crate::anim;
-use crate::attrition::Domain;
+use crate::ai::ai_load::uflags;
 use crate::combat::{self, Obj, Profile, Side, Sixteenths, Stance, Taken, mask, role};
 use crate::movement::{Angle, find_angle};
-use crate::single::Single;
+use crate::num::single::Single;
+use crate::territory::attrition::Domain;
+use crate::units::anim;
 use crate::world::{Pos, UNITS_PER_CELL, vector_dist};
 use crate::{Player, Sim};
 
@@ -278,7 +278,7 @@ const COMMANDO: crate::tech::TypeId = 0x49;
 /// `Object::take_damage` on a site: `lost × 50` off the progress, `lost`
 /// the whole points the blow took after its sixteenths carried.
 const fn combat_progress_lost(whole: i32) -> i32 {
-    crate::build::progress_lost(whole)
+    crate::cities::build::progress_lost(whole)
 }
 
 // Item 4015 cut this file six ways (STRUCTURE §5, move 7). Each piece is a

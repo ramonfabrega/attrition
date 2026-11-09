@@ -181,7 +181,7 @@ fn get_range_adds_the_spy_upgrades_and_collapses_on_siege_and_buildings() {
         "not the Informer's"
     );
     s.tables.unit_types[t].combat.siege = false;
-    s.tables.unit_types[t].cols.unit_flags2 |= crate::ai_load::uflags2::SUPPLY_OR_HERO;
+    s.tables.unit_types[t].cols.unit_flags2 |= crate::ai::ai_load::uflags2::SUPPLY_OR_HERO;
     assert_eq!(
         s.spell_range(spell::COUNTERINTEL, who, u),
         192,
@@ -236,7 +236,7 @@ fn strategy_halves_bribe_and_the_informer_s_hold() {
 /// refund dropped and with the CEO test dropped.
 #[test]
 fn a_refused_bribe_hands_its_mana_back() {
-    use crate::ai_load::{UnitCols, uflags2};
+    use crate::ai::ai_load::{UnitCols, uflags2};
     use crate::orders::{SpellType, spell};
     let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
     s.orders.spells =
@@ -275,7 +275,7 @@ fn a_refused_bribe_hands_its_mana_back() {
 /// with the `l` test dropped, and with the Spy exemption dropped.
 #[test]
 fn a_cloaked_caster_of_a_craft_without_l_is_blown() {
-    use crate::ai_load::{UnitCols, uflags};
+    use crate::ai::ai_load::{UnitCols, uflags};
     use crate::orders::{SpellType, spell};
     let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
     s.orders.spells =
@@ -342,7 +342,7 @@ fn a_stop_takes_a_held_cast_and_nothing_else() {
         true,
     );
     s.units[general].spell_time = 7;
-    let mut g = crate::group::Group::stack(1);
+    let mut g = crate::groups::group::Group::stack(1);
     s.group_add(&mut g, spy);
     s.group_add(&mut g, general);
     assert_eq!(s.group_action_stop_spell(&g), 1);
@@ -586,7 +586,7 @@ fn the_recover_craft_bonus_doubles_a_generals_and_a_spys_rate() {
 /// Made to fail with the multiple dropped and with it on every unit.
 #[test]
 fn a_suppliers_pool_grows_with_the_supply_upgrade() {
-    use crate::ai_load::{UnitCols, uflags2};
+    use crate::ai::ai_load::{UnitCols, uflags2};
     let mut s = Sim::new(Tuning::RON, World::new(8, 8), 2);
     let mut tree = crate::tech::TechTree::new();
     let steps = [
@@ -643,7 +643,7 @@ fn a_suppliers_pool_grows_with_the_supply_upgrade() {
 fn a_french_general_recovers_craft_twice_as_fast() {
     let (mut s, [general, spy, memnon, filler]) = casters(Tuning::RON);
     assert_eq!(steps(&mut s, general), [1, 1], "no nation power");
-    s.tech[1].power = Some(crate::nations::power::FRENCH);
+    s.tech[1].power = Some(crate::cities::nations::power::FRENCH);
     assert_eq!(steps(&mut s, general), [2, 2], "the French General");
     assert_eq!(steps(&mut s, spy), [1, 1], "a French Spy");
     assert_eq!(steps(&mut s, filler), [1, 1], "a French caster of no line");
@@ -656,7 +656,7 @@ fn a_french_general_recovers_craft_twice_as_fast() {
     let (mut s, [general, _, memnon, filler]) = casters(modded);
     assert_eq!(steps(&mut s, memnon), [1, 2], "Memnon at 3/2: r = 3");
     assert_eq!(s.unit_mana(general), 1000, "not French");
-    s.tech[1].power = Some(crate::nations::power::FRENCH);
+    s.tech[1].power = Some(crate::cities::nations::power::FRENCH);
     assert_eq!(s.unit_mana(general), 1200, "(20 + 100) × 1000 / 100");
     assert_eq!(s.unit_mana(filler), 1000, "only a General's pool");
 }

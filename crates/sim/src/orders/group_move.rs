@@ -25,7 +25,7 @@
 
 use crate::Sim;
 use crate::combat::Obj;
-use crate::group::Group;
+use crate::groups::group::Group;
 use crate::orders::{Body, Did, GroupMove, QueuePos, index};
 use crate::world::vector_dist;
 

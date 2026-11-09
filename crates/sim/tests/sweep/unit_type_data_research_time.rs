@@ -2,7 +2,7 @@
 
 /// `UnitTypeData::research_time@0061d760`, run by `tools/emu/sweep_unit_type_data_research_time.py` under unicorn
 /// (tools/emu): the base type's `research_time` (hooked — not run, so not backed here — handed the argument and `this`) times `research_premium_time`
-/// (`this+0x2e4`), a wrapping 32-bit product divided by 256 toward zero. [`crate::production::base_time`] writes
+/// (`this+0x2e4`), a wrapping 32-bit product divided by 256 toward zero. [`crate::cities::production::base_time`] writes
 /// the step as `>> 8`, which floors: the two agree on every non-negative product, and the shipped values give
 /// nothing else (both factors are positive); the rows reach negative products too, held to the listing.
 #[test]

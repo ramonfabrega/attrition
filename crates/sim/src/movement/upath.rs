@@ -4,7 +4,7 @@
 //! and the callees it makes, which `Sim`'s `SimUpath` (in `path.rs`, beside
 //! the pathfinder's private parts) answers from the crate's state and
 //! `sweep/path_finder_find_upath_00682f30.rs` from the emulated original's
-//! windows. Modelled on [`crate::tpath`], its tile-grid sibling.
+//! windows. Modelled on [`crate::movement::tpath`], its tile-grid sibling.
 
 use crate::movement;
 use crate::orders::{PathData, path_flag};

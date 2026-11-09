@@ -576,7 +576,7 @@ pub fn spot_ring(
     // half the formation's own span plus a quarter-tile, so a squad
     // asks for the room it will actually stand in.
     let uber_r = p.block_radius + ((p.uber_size - 1) * p.guy_spacing) / 2 + 0x30;
-    let air = matches!(p.domain, crate::attrition::Domain::Air);
+    let air = matches!(p.domain, crate::territory::attrition::Domain::Air);
     // **A warship keeps off the `0x2400` tiles** (`61df8b`–`61dfaf`,
     // the test at `61e3a1`): a sea type whose `attack` (`ObjectTypeData
     // +0x1e8`, the type record's name) is non-zero, or that strictly
@@ -584,7 +584,7 @@ pub fn spot_ring(
     // tile carrying either bit. East Indies' Trireme `1/32` is born
     // due east of Dock `1/2010` because the channel south of it is
     // `0x0420` (`docs/ORDERS.md` §25).
-    let warship = matches!(p.domain, crate::attrition::Domain::Sea)
+    let warship = matches!(p.domain, crate::territory::attrition::Domain::Sea)
         && (p.attack != 0 || { view.is_carrier(who) });
     let mut r = min;
     loop {
@@ -642,7 +642,7 @@ pub fn spot_ring(
             if !air {
                 let mask = view.tile_mask(c.tile());
                 let ocean = mask & tile::SURFACE == tile::SURFACE_OCEAN;
-                if ocean != matches!(p.domain, crate::attrition::Domain::Sea) {
+                if ocean != matches!(p.domain, crate::territory::attrition::Domain::Sea) {
                     continue;
                 }
                 if warship && mask & WARSHIP_REFUSES != 0 {
@@ -740,7 +740,7 @@ impl Sim {
 
         // **The fire on the move** (§4.4 step 1, `005f7b30:60-86`): a
         // `v` type looks for, and shoots at, a target beside its walk
-        // before the step does anything else ([`crate::cavarch`]).
+        // before the step does anything else ([`crate::combat::cavarch`]).
         self.cavarch_head(u, frame);
 
         // **A suspended search** (§4.4 step 2, item 301). `do_move`'s
@@ -961,7 +961,7 @@ impl Sim {
                         let siege = self.units[u].ty.is_some_and(|ty| {
                             self.tables.unit_types[ty]
                                 .cols
-                                .flag(crate::ai_load::uflags::FLAG_SIEGE)
+                                .flag(crate::ai::ai_load::uflags::FLAG_SIEGE)
                         });
                         if !(siege && self.ai_driven(self.units[u].owner))
                             && self.is_in_range(me, t)
@@ -1060,12 +1060,12 @@ impl Sim {
                             let siege = self.units[u].ty.is_some_and(|ty| {
                                 self.tables.unit_types[ty]
                                     .cols
-                                    .flag(crate::ai_load::uflags::FLAG_SIEGE)
+                                    .flag(crate::ai::ai_load::uflags::FLAG_SIEGE)
                             });
                             let word = if siege {
-                                crate::fight::search::BUILDINGS
+                                crate::combat::fight::search::BUILDINGS
                             } else {
-                                crate::fight::search::UNITS
+                                crate::combat::fight::search::UNITS
                             };
                             self.find_melee_target_with(u, -1, word)
                         } else {
@@ -1140,7 +1140,7 @@ impl Sim {
                     );
                     let transport = self.units[u].ty.is_some_and(|t| {
                         self.tables.unit_types[t].cols.unit_flags
-                            & crate::ai_load::uflags::FLAG_TRANSPORT
+                            & crate::ai::ai_load::uflags::FLAG_TRANSPORT
                             != 0
                     });
                     if d <= 0x480 && !transport {
@@ -1191,13 +1191,13 @@ impl Sim {
             self.unit_set_angle(u, facing);
             let at = self.units[u].movement.body.pos;
             self.set_new_location(u, at, true);
-            self.set_anim(u, crate::anim::ANIM_PACK, false, true);
+            self.set_anim(u, crate::units::anim::ANIM_PACK, false, true);
             // A figure with no art has no length (`anim::UNKNOWN`): it
             // does not wait, where the original always has one.
             mo.retry = self.units[u]
                 .guys
                 .first()
-                .filter(|g| g.end_time != crate::anim::UNKNOWN)
+                .filter(|g| g.end_time != crate::units::anim::UNKNOWN)
                 .map_or(0, |g| g.end_time as i32);
             mo.attempts = -3;
             self.store_move(u, mo, flags);
@@ -1612,7 +1612,7 @@ impl Sim {
                 // `5f8c5d`, `docs/GROUPS.md` §32): `peek`, then the order's
                 // `dest_x`/`dest_y` and the unit's `+0x60` tolerance from
                 // the top. A detour `find_path` just pushed and verified
-                // (`go_around_building`, [`crate::find_path_view`]) is the
+                // (`go_around_building`, [`crate::movement::find_path_view`]) is the
                 // top now, so it is what the step walks at — not the world
                 // entry under it. Great Lakes' `1/40` walked past its own
                 // detour for seventeen frames without this (item 795).
@@ -1688,10 +1688,14 @@ impl Sim {
             return false;
         };
         let t = top.to.tile();
-        if self.invalid_loc(u, t, false, false, false, false, false) == crate::path::loc::VALID {
+        if self.invalid_loc(u, t, false, false, false, false, false)
+            == crate::movement::path::loc::VALID
+        {
             return false;
         }
-        if self.invalid_loc(u, t, false, false, true, false, false) != crate::path::loc::VALID {
+        if self.invalid_loc(u, t, false, false, true, false, false)
+            != crate::movement::path::loc::VALID
+        {
             return false;
         }
         let who = self.units[u].owner;
@@ -1737,14 +1741,14 @@ impl Sim {
             return;
         };
         let Some(gm) = mo.group else { return };
-        // The head and the leader arm are [`crate::group_move`]'s steps
+        // The head and the leader arm are [`crate::orders::group_move`]'s steps
         // (item 3376's sweep holds them to the original); the follower arm
         // is entered through its view. `this->group == -1` (`5e79f0`) — the
         // back-pointer ([`crate::Unit::group_ptr`], `docs/GROUPS.md` §23)
         // names no seat — is the view's `group_unset`.
         let g = self.group_of(u);
-        let mut view = crate::group_move::SimGroupMove::new(self, u, frame, g, gm);
-        crate::group_move::do_group_move_steps(&mut view);
+        let mut view = crate::orders::group_move::SimGroupMove::new(self, u, frame, g, gm);
+        crate::orders::group_move::do_group_move_steps(&mut view);
     }
 
     /// `do_group_move`'s follower arm (`5e7c8c`–`5e8660`).
@@ -1752,7 +1756,7 @@ impl Sim {
         &mut self,
         u: usize,
         frame: i64,
-        g: &crate::group::Group,
+        g: &crate::groups::group::Group,
         mut gm: GroupMove,
         mut mo: MoveOrder,
         flags: u8,
@@ -2028,7 +2032,7 @@ impl Sim {
     /// (`Group::kill_group_move@007123f0`): every member's orders lose the
     /// group plan, and every one carrying `id` that is **not** an
     /// attack-move is killed. A `GROUP_ATTACK_TO` survives both arms.
-    pub(crate) fn kill_group_move(&mut self, g: &crate::group::Group, id: i64) {
+    pub(crate) fn kill_group_move(&mut self, g: &crate::groups::group::Group, id: i64) {
         // `007123f9`: `normalize(this)` before anything else, which is
         // where the group's speed goes back to its leader's
         // (`docs/GROUPS.md` §18) after a march's own reports have walked
@@ -2099,13 +2103,13 @@ impl Sim {
     /// `Unit::find_path` (§4.6): 0 = walk straight, 1 = plan, 2 = abort (a
     /// recursive call's answer passed up; nothing produces it at the base).
     ///
-    /// The body is [`crate::find_path_view::find_path_steps`], the original's
+    /// The body is [`crate::movement::find_path_view::find_path_steps`], the original's
     /// flow over a view, which the emulator sweep also runs (item 3386); the
     /// march, the pull-back and the detour's replay are described there and
     /// in `docs/PATHFINDER.md` §9.
     pub(super) fn find_path(&mut self, u: usize, mo: &mut MoveOrder, goal: Pos) -> u8 {
         let mut view = SimFindPath { sim: self, u, mo };
-        crate::find_path_view::find_path_steps(&mut view, goal) as u8
+        crate::movement::find_path_view::find_path_steps(&mut view, goal) as u8
     }
 
     /// `Unit::go_around_building@005fc350` (§4.6) — the answer to a
@@ -2149,11 +2153,11 @@ impl Sim {
         ang: Angle,
         spd: i32,
     ) {
-        // The body is `crate::detour::go_around_building_steps`, the
+        // The body is `crate::movement::detour::go_around_building_steps`, the
         // original's flow over a view, which the emulator sweep also runs
         // (item 3330).
-        let mut view = crate::detour::SimDetour { sim: self, u, mo };
-        crate::detour::go_around_building_steps(&mut view, last, ang, spd);
+        let mut view = crate::movement::detour::SimDetour { sim: self, u, mo };
+        crate::movement::detour::go_around_building_steps(&mut view, last, ang, spd);
     }
 
     /// The unit step and its arrival (§4.5): `move_step` through
@@ -2171,7 +2175,7 @@ impl Sim {
         self.units[u].avoid = None;
         // `move_step@005faf30:66-100`, at its head: a fire-on-the-move
         // type aims its figures at what it holds, and walks under
-        // `CHAR_ATTACKWALK` while its pivots bear ([`crate::cavarch`]).
+        // `CHAR_ATTACKWALK` while its pivots bear ([`crate::combat::cavarch`]).
         let walk = self.cavarch_step_anim(u);
         let unit = &self.units[u];
         let m = unit.movement;
@@ -2244,8 +2248,8 @@ impl Sim {
         // packing type that has none takes the idle roll instead. The two
         // arms are two `do_turn` call sites and so two `ebp` chains.
         match step.turned_in_place {
-            Some(movement::TurnArm::Near) => self.mark(crate::anim::SITE_TURN_NEAR),
-            Some(movement::TurnArm::Far) => self.mark(crate::anim::SITE_TURN_FAR),
+            Some(movement::TurnArm::Near) => self.mark(crate::units::anim::SITE_TURN_NEAR),
+            Some(movement::TurnArm::Far) => self.mark(crate::units::anim::SITE_TURN_FAR),
             None => {}
         }
         if step.turned_in_place.is_some() {
@@ -2350,7 +2354,7 @@ impl Sim {
             self.units[u].collide_who = -1;
             mo.has_waypoint = false;
             let popped = self.units[u].path.pop();
-            self.mark(crate::anim::SITE_SNAP_BLOCKED);
+            self.mark(crate::units::anim::SITE_SNAP_BLOCKED);
             self.set_default_anim(u);
             let flags = self.current_order(u).map_or(0, |o| o.flags);
             self.store_move(u, mo, flags);
@@ -2375,11 +2379,11 @@ impl Sim {
             } else {
                 // The blocked stand — `move_step:281`, the call at
                 // `005fb74e` and so the site `+0x823`
-                // ([`crate::anim::SITE_BLOCKED`], `docs/COLLISION.md` §5).
+                // ([`crate::units::anim::SITE_BLOCKED`], `docs/COLLISION.md` §5).
                 // It sits **before** all three give-up tests, so a unit
                 // still owed a turn has re-rolled its idle by the time
                 // `move_step` returns.
-                self.mark(crate::anim::SITE_BLOCKED);
+                self.mark(crate::units::anim::SITE_BLOCKED);
                 self.set_default_anim(u);
                 // **The two arms `move_step` answers 0 from**
                 // (`005fb689` and `005fb6df`, the only `return 0`s the
@@ -2529,7 +2533,7 @@ impl Sim {
             // (6840, 13704) (`docs/AI.md` §130).
             if step.turned_in_place.is_none() {
                 if step.snapped && mo.waypoint == from && self.units[u].orders.len() < 2 {
-                    self.mark(crate::anim::SITE_SNAP_STAND);
+                    self.mark(crate::units::anim::SITE_SNAP_STAND);
                     self.set_default_anim(u);
                 } else {
                     self.set_anim(u, walk, false, true);
@@ -2652,7 +2656,7 @@ impl Sim {
         adjacent_steps(
             unit.alive(),
             bd.alive,
-            unit.kind.domain == crate::attrition::Domain::Sea,
+            unit.kind.domain == crate::territory::attrition::Domain::Sea,
             // `+0x18` on a `Unit` is `return 1` (`0041e0e0`).
             || true,
             || {
@@ -2693,7 +2697,7 @@ impl Sim {
             self.tables.build_types[ty].x_size,
             self.tables.build_types[ty].y_size,
         );
-        crate::place::footprint_covers(corner, xs, ys, tile)
+        crate::cities::place::footprint_covers(corner, xs, ys, tile)
     }
 
     /// `UnitType::find_nearby_spot(x, y, min, max, step, angle, …)`
@@ -2899,14 +2903,14 @@ impl Sim {
     }
 }
 
-/// [`Sim`] behind [`crate::find_path_view::FindPathView`].
+/// [`Sim`] behind [`crate::movement::find_path_view::FindPathView`].
 pub(super) struct SimFindPath<'a> {
     pub(super) sim: &'a mut Sim,
     pub(super) u: usize,
     pub(super) mo: &'a mut MoveOrder,
 }
 
-impl crate::find_path_view::FindPathView for SimFindPath<'_> {
+impl crate::movement::find_path_view::FindPathView for SimFindPath<'_> {
     fn helicopter(&mut self) -> bool {
         self.sim.is_helicopter(self.u)
     }
@@ -2973,24 +2977,24 @@ impl crate::find_path_view::FindPathView for SimFindPath<'_> {
     fn path_len(&mut self) -> i32 {
         self.sim.units[self.u].path.len() as i32
     }
-    fn path_pop(&mut self) -> Option<crate::find_path_view::PathEntry> {
+    fn path_pop(&mut self) -> Option<crate::movement::find_path_view::PathEntry> {
         self.sim.units[self.u]
             .path
             .pop()
-            .map(|e| crate::find_path_view::PathEntry {
+            .map(|e| crate::movement::find_path_view::PathEntry {
                 to: e.to,
                 tolerance: e.tolerance,
                 flags: u32::from(e.flags),
             })
     }
-    fn path_push(&mut self, e: crate::find_path_view::PathEntry) {
+    fn path_push(&mut self, e: crate::movement::find_path_view::PathEntry) {
         self.sim.units[self.u].path.push(PathData {
             to: e.to,
             tolerance: e.tolerance,
             flags: e.flags as u8,
         });
     }
-    fn path_peek(&mut self) -> crate::find_path_view::PathEntry {
+    fn path_peek(&mut self) -> crate::movement::find_path_view::PathEntry {
         let e = self.sim.units[self.u]
             .path
             .last()
@@ -3000,7 +3004,7 @@ impl crate::find_path_view::FindPathView for SimFindPath<'_> {
                 tolerance: 0,
                 flags: 0,
             });
-        crate::find_path_view::PathEntry {
+        crate::movement::find_path_view::PathEntry {
             to: e.to,
             tolerance: e.tolerance,
             flags: u32::from(e.flags),

@@ -66,7 +66,11 @@ impl Sim {
     ///
     /// The two gates are the original's and in its order — affordability
     /// first, then room in the queue.
-    pub fn queue_up(&mut self, at: usize, ty: usize) -> Result<usize, production::QueueFail> {
+    pub fn queue_up(
+        &mut self,
+        at: usize,
+        ty: usize,
+    ) -> Result<usize, crate::cities::production::QueueFail> {
         self.queue_up_with(at, ty, false)
     }
 
@@ -81,7 +85,7 @@ impl Sim {
         at: usize,
         ty: usize,
         escrow: bool,
-    ) -> Result<usize, production::QueueFail> {
+    ) -> Result<usize, crate::cities::production::QueueFail> {
         let at = self.queue_home(at);
         let who = self.buildings[at].owner;
         // `BuildData::can_make`: not active, or in an unassimilated city, makes
@@ -90,7 +94,7 @@ impl Sim {
             || !self.buildings[at].alive
             || self.building_unassimilated(at)
         {
-            return Err(production::QueueFail::CantTrain);
+            return Err(crate::cities::production::QueueFail::CantTrain);
         }
         // `BuildData::can_make@0062db10:31`–`:36`: `BuildTypeData::queue_here`
         // stands ahead of the per-kind tail and binds a unit too, so a
@@ -104,7 +108,7 @@ impl Sim {
                 .and_then(|b| self.tables.build_types[b].tree)
             && !self.tables.tech_tree.queue_here(b, id)
         {
-            return Err(production::QueueFail::CantTrain);
+            return Err(crate::cities::production::QueueFail::CantTrain);
         }
         // `BuildData::can_make` comes before the price: a type the tree says
         // is not available is refused before anything is charged. Only a type
@@ -117,23 +121,23 @@ impl Sim {
                 true,
             ) == tech::NOT_AVAILABLE
         {
-            return Err(production::QueueFail::CantTrain);
+            return Err(crate::cities::production::QueueFail::CantTrain);
         }
         let charges = self.price_of(who, ty);
         let available = self.economy.holdings[who as usize].available;
-        if cost::affordable(
+        if crate::economy::cost::affordable(
             &charges,
             &self.economy.ledgers[who as usize],
             &available,
             true,
         ) < 1
         {
-            return Err(production::QueueFail::Cost);
+            return Err(crate::cities::production::QueueFail::Cost);
         }
         if !self.unit_queue_has_room(at, ty) {
-            return Err(production::QueueFail::Full);
+            return Err(crate::cities::production::QueueFail::Full);
         }
-        cost::pay(
+        crate::economy::cost::pay(
             &charges,
             &mut self.economy.ledgers[who as usize],
             &available,
@@ -201,16 +205,16 @@ impl Sim {
                 &self.tech[who as usize],
                 0xb,
             );
-        let price = cost::Price {
-            kind: cost::Kind::Tech,
+        let price = crate::economy::cost::Price {
+            kind: crate::economy::cost::Kind::Tech,
             base: self.tables.tech_tree.types[t].cost,
-            ..cost::Price::free()
+            ..crate::economy::cost::Price::free()
         };
-        cost::charges(
+        crate::economy::cost::charges(
             &self.tables.tuning,
             &price,
-            cost::Counts::default(),
-            &cost::Modifiers {
+            crate::economy::cost::Counts::default(),
+            &crate::economy::cost::Modifiers {
                 science_ahead: self.science_ahead(who, t),
                 democracy: self.democracy_tech_discount(who, t),
                 industry: self.industry_tech_discount(who, t),
@@ -225,7 +229,7 @@ impl Sim {
                 silver: self.silver_age_discount(who, t),
                 rare_goods,
                 gypsum,
-                ..cost::Modifiers::default()
+                ..crate::economy::cost::Modifiers::default()
             },
             &holdings.available,
             &holdings.discovered,
@@ -262,7 +266,7 @@ impl Sim {
             && self.tables.tech_tree.has_tribe_bonus(
                 &self.tables.setup,
                 &self.tech[who as usize],
-                crate::nations::power::GERMANS,
+                crate::cities::nations::power::GERMANS,
             )
         {
             self.tables.tuning.german_industry_discount
@@ -298,7 +302,9 @@ impl Sim {
         ) || self.tables.tech_tree.types[t]
             .where_
             .and_then(|at| self.build_record(at))
-            .is_some_and(|at| self.tables.build_types[at].ident == build::Ident::Library)
+            .is_some_and(|at| {
+                self.tables.build_types[at].ident == crate::cities::build::Ident::Library
+            })
         {
             return 0;
         }
@@ -351,7 +357,7 @@ impl Sim {
         ) && self.tables.tech_tree.has_tribe_bonus(
             &self.tables.setup,
             &self.tech[who as usize],
-            crate::nations::power::GREEKS,
+            crate::cities::nations::power::GREEKS,
         ) {
             self.tables.tuning.greek_research_cost
         } else {
@@ -498,22 +504,26 @@ impl Sim {
     /// frame (`docs/AI.md` §216).
     pub fn tech_time(&self, who: Player, t: tech::TypeId) -> i32 {
         if self.wonders_held(who) & (1 << tech::wonder::SUPERCOLLIDER) != 0 {
-            return production::MIN_TIME;
+            return crate::cities::production::MIN_TIME;
         }
-        let time = self.tables.tech_tree.types[t].job_time * production::TIME_SCALE;
-        let time = production::research_tick(time, self.tables.tuning.research_tick_premium);
+        let time = self.tables.tech_tree.types[t].job_time * crate::cities::production::TIME_SCALE;
+        let time = crate::cities::production::research_tick(
+            time,
+            self.tables.tuning.research_tick_premium,
+        );
         let science = self.tech[who as usize].epoch[tech::Line::Science.index()];
         let mut tail = self.held_elsewhere(t);
         tail.extend(self.age_catch_up(who, t));
         tail.extend(self.epoch_catch_up(who, t));
         tail.extend(self.greek_research(who, t));
         tail.extend(self.research_rares(who));
-        tail.extend(production::science_speedup(
+        tail.extend(crate::cities::production::science_speedup(
             &self.tables.tuning,
             science,
             self.tables.tech_tree.types[t].age,
         ));
-        production::adjusted(time, tail.as_slice()).max(production::MIN_TIME)
+        crate::cities::production::adjusted(time, tail.as_slice())
+            .max(crate::cities::production::MIN_TIME)
     }
 
     /// **The held-elsewhere term** of `ObjectData::train_time@006508c0`'s
@@ -534,7 +544,7 @@ impl Sim {
     /// finishes on 958 as theirs does, re-making The Monarch `1/28` as The
     /// Despot; run1413b's coverage enters `count_discovered` first on 557,
     /// the frame who=2's job starts.
-    pub(crate) fn held_elsewhere(&self, t: tech::TypeId) -> Vec<production::Adjust> {
+    pub(crate) fn held_elsewhere(&self, t: tech::TypeId) -> Vec<crate::cities::production::Adjust> {
         if !self.tables.tech_tree.kind(t).is_plain_tech() {
             return Vec::new();
         }
@@ -548,7 +558,10 @@ impl Sim {
             return Vec::new();
         }
         let players = self.territory.players.len() as i32;
-        vec![production::Adjust::Ratio(players - held + 1, players + 1)]
+        vec![crate::cities::production::Adjust::Ratio(
+            players - held + 1,
+            players + 1,
+        )]
     }
 
     /// **The epoch's catch-up term** of `ObjectData::train_time@006508c0`'s
@@ -571,7 +584,11 @@ impl Sim {
     ///
     /// SEAM: `is_team`'s team-style-7 arm (a seat on team 8 is nobody's
     /// team) is not carried; the alliance test answers for it.
-    pub(crate) fn epoch_catch_up(&self, who: Player, t: tech::TypeId) -> Vec<production::Adjust> {
+    pub(crate) fn epoch_catch_up(
+        &self,
+        who: Player,
+        t: tech::TypeId,
+    ) -> Vec<crate::cities::production::Adjust> {
         if !matches!(self.tables.tech_tree.kind(t), tech::Kind::Epoch { .. }) {
             return Vec::new();
         }
@@ -588,7 +605,10 @@ impl Sim {
             return Vec::new();
         }
         let nations = 2 * self.territory.players.len() as i32;
-        vec![production::Adjust::Ratio(nations - n + 2, nations + 2)]
+        vec![crate::cities::production::Adjust::Ratio(
+            nations - n + 2,
+            nations + 2,
+        )]
     }
 
     /// **The age's catch-up term** of `ObjectData::train_time@006508c0`'s
@@ -603,7 +623,11 @@ impl Sim {
     /// cancel lengthens it again (item 3982, `docs/AI.md` §414).
     ///
     /// SEAM: `is_team`'s team-style-7 arm, as the epoch's.
-    pub(crate) fn age_catch_up(&self, who: Player, t: tech::TypeId) -> Vec<production::Adjust> {
+    pub(crate) fn age_catch_up(
+        &self,
+        who: Player,
+        t: tech::TypeId,
+    ) -> Vec<crate::cities::production::Adjust> {
         if !matches!(self.tables.tech_tree.kind(t), tech::Kind::Age(_)) {
             return Vec::new();
         }
@@ -620,7 +644,10 @@ impl Sim {
             return Vec::new();
         }
         let nations = 2 * self.territory.players.len() as i32;
-        vec![production::Adjust::Ratio(nations - n + 2, nations + 2)]
+        vec![crate::cities::production::Adjust::Ratio(
+            nations - n + 2,
+            nations + 2,
+        )]
     }
 
     /// **The Greeks' arm** of `ObjectData::train_time@006508c0`'s research
@@ -638,7 +665,11 @@ impl Sim {
     ///
     /// The age's catch-up term ahead of it is built (item 3982), as the
     /// epoch's is (item 3790).
-    pub(crate) fn greek_research(&self, who: Player, t: tech::TypeId) -> Vec<production::Adjust> {
+    pub(crate) fn greek_research(
+        &self,
+        who: Player,
+        t: tech::TypeId,
+    ) -> Vec<crate::cities::production::Adjust> {
         let age_or_epoch = matches!(
             self.tables.tech_tree.kind(t),
             tech::Kind::Age(_) | tech::Kind::Epoch { .. }
@@ -647,10 +678,10 @@ impl Sim {
             && self.tables.tech_tree.has_tribe_bonus(
                 &self.tables.setup,
                 &self.tech[who as usize],
-                crate::nations::power::GREEKS,
+                crate::cities::nations::power::GREEKS,
             )
         {
-            vec![production::Adjust::Faster(
+            vec![crate::cities::production::Adjust::Faster(
                 self.tables.tuning.greek_research_speed,
             )]
         } else {
@@ -672,9 +703,9 @@ impl Sim {
     /// World's cards, the handicap and the lobby's `tech_cost` — are not
     /// carried (the age's and the epoch's catch-up terms are built, items
     /// 3982 and 3790).
-    pub(crate) fn research_rares(&self, who: Player) -> Vec<production::Adjust> {
+    pub(crate) fn research_rares(&self, who: Player) -> Vec<crate::cities::production::Adjust> {
         if self.has_rare(who, economy::RELICS) {
-            vec![production::Adjust::Scale(
+            vec![crate::cities::production::Adjust::Scale(
                 100 - self.tables.tuning.relics_research_speed,
             )]
         } else {
@@ -700,7 +731,7 @@ impl Sim {
         &mut self,
         at: usize,
         t: tech::TypeId,
-    ) -> Result<usize, production::QueueFail> {
+    ) -> Result<usize, crate::cities::production::QueueFail> {
         self.queue_tech_with(at, t, false)
     }
 
@@ -711,14 +742,14 @@ impl Sim {
         at: usize,
         t: tech::TypeId,
         escrow: bool,
-    ) -> Result<usize, production::QueueFail> {
+    ) -> Result<usize, crate::cities::production::QueueFail> {
         let at = self.queue_home(at);
         let who = self.buildings[at].owner;
         if !self.buildings[at].active
             || !self.buildings[at].alive
             || self.building_unassimilated(at)
         {
-            return Err(production::QueueFail::CantTrain);
+            return Err(crate::cities::production::QueueFail::CantTrain);
         }
         let here = self.buildings[at]
             .ty
@@ -737,23 +768,23 @@ impl Sim {
             || self.tech[who as usize].tech[t]
             || self.researching(who, t)
         {
-            return Err(production::QueueFail::CantTrain);
+            return Err(crate::cities::production::QueueFail::CantTrain);
         }
         let charges = self.tech_price(who, t);
         let available = self.economy.holdings[who as usize].available;
-        if cost::affordable(
+        if crate::economy::cost::affordable(
             &charges,
             &self.economy.ledgers[who as usize],
             &available,
             true,
         ) < 1
         {
-            return Err(production::QueueFail::Cost);
+            return Err(crate::cities::production::QueueFail::Cost);
         }
         if !self.buildings[at].queue.has_room() {
-            return Err(production::QueueFail::Full);
+            return Err(crate::cities::production::QueueFail::Full);
         }
-        cost::pay(
+        crate::economy::cost::pay(
             &charges,
             &mut self.economy.ledgers[who as usize],
             &available,
@@ -781,7 +812,7 @@ impl Sim {
     /// The slot removed is not necessarily the one named: a cancel walks
     /// forward past entries of the same type, so cancelling one of a run
     /// removes the last of it and the one in progress keeps its progress.
-    pub fn cancel(&mut self, at: usize, slot: usize) -> Option<production::Item> {
+    pub fn cancel(&mut self, at: usize, slot: usize) -> Option<crate::cities::production::Item> {
         let at = self.unqueue_home(at, slot);
         let who = self.buildings[at].owner;
         let item = {
@@ -857,7 +888,7 @@ impl Sim {
             // `docs/AI.md` §225).
             let mut tail = Vec::new();
             if president {
-                tail.push(production::Adjust::Faster(
+                tail.push(crate::cities::production::Adjust::Faster(
                     self.tables.tuning.thepresident_unit_build_speed,
                 ));
             }
@@ -875,7 +906,7 @@ impl Sim {
                 _ => 0,
             };
             let mut tail = self.research_rares(who);
-            tail.extend(production::science_speedup(
+            tail.extend(crate::cities::production::science_speedup(
                 &self.tables.tuning,
                 science,
                 level,
@@ -891,7 +922,7 @@ impl Sim {
         } else {
             0
         };
-        production::train_time_from(
+        crate::cities::production::train_time_from(
             &self.tables.tuning,
             &self.tables.unit_types[ty].times,
             researched,
@@ -922,7 +953,11 @@ impl Sim {
     /// arm is built** (item 1744), first of the block. Of the ones
     /// after it, the speed-upgrade step is built; the rest are the queue's
     /// own item.
-    pub(crate) fn train_tail(&self, who: Player, ty: usize) -> Vec<production::Adjust> {
+    pub(crate) fn train_tail(
+        &self,
+        who: Player,
+        ty: usize,
+    ) -> Vec<crate::cities::production::Adjust> {
         let mut tail = Vec::new();
         // **The Mongol stable arm** (`train_time@006508c0:109`–`117`), the
         // first of the national block: a Mongol leader's unit with an attack
@@ -934,9 +969,13 @@ impl Sim {
                 .tree
                 .and_then(|t| self.tables.tech_tree.types.get(t))
                 .and_then(|d| d.where_)
-                .is_some_and(|w| self.tables.tech_tree.is(w, nations::ty::STABLES[0], false))
+                .is_some_and(|w| {
+                    self.tables
+                        .tech_tree
+                        .is(w, crate::cities::nations::ty::STABLES[0], false)
+                })
         {
-            tail.push(production::Adjust::Faster(
+            tail.push(crate::cities::production::Adjust::Faster(
                 self.tables.tuning.mongol_stable_speed,
             ));
         }
@@ -949,17 +988,16 @@ impl Sim {
         // Riflemen leave Barracks `1/2013` on 1351 there (item 3510,
         // `docs/AI.md` §303).
         if self.japanese(who) {
-            if self.trainer_where(ty) == Some(nations::ty::BARRACKS) {
-                tail.push(production::Adjust::Faster(self.japanese_per_tier(
-                    who,
-                    self.tables.tuning.japanese_barracks_speed,
-                )));
+            if self.trainer_where(ty) == Some(crate::cities::nations::ty::BARRACKS) {
+                tail.push(crate::cities::production::Adjust::Faster(
+                    self.japanese_per_tier(who, self.tables.tuning.japanese_barracks_speed),
+                ));
             }
             if self.tables.unit_types[ty].tree.is_some_and(|t| {
                 self.tables.tech_tree.types.get(0x15f).is_some()
                     && self.tables.tech_tree.is(t, 0x15f, false)
             }) {
-                tail.push(production::Adjust::Faster(
+                tail.push(crate::cities::production::Adjust::Faster(
                     self.tables.tuning.japanese_carrier_speed,
                 ));
             }
@@ -977,32 +1015,32 @@ impl Sim {
             let t = &self.tables.unit_types[ty];
             let spared = matches!(ty, 0 | 1)
                 || t.tree.is_some_and(|tr| [0x3d, 0x3e, 0x190].contains(&tr))
-                || t.cols.flag2(ai_load::uflags2::FLAG2_CARAVAN);
+                || t.cols.flag2(crate::ai::ai_load::uflags2::FLAG2_CARAVAN);
             if spared {
                 if self.tables.tuning.chinese_citizen_instant != 0 {
-                    return vec![production::Adjust::Scale(0)];
+                    return vec![crate::cities::production::Adjust::Scale(0)];
                 }
-                tail.push(production::Adjust::Faster(
+                tail.push(crate::cities::production::Adjust::Faster(
                     self.tables.tuning.chinese_citizen_creation,
                 ));
             }
         }
         // `has_tribe_bonus(0xb)`, cached — the lobby's "No Nation Powers"
-        // and the no-city gate apply through it (`crate::nations`).
+        // and the no-city gate apply through it (`crate::cities::nations`).
         if self.cities.nation[who as usize].british {
             let t = &self.tables.unit_types[ty];
-            if t.combat.domain == attrition::Domain::Sea {
-                tail.push(production::Adjust::Faster(
+            if t.combat.domain == crate::territory::attrition::Domain::Sea {
+                tail.push(crate::cities::production::Adjust::Faster(
                     self.tables.tuning.british_ship_speed,
                 ));
             }
             if t.archer {
-                tail.push(production::Adjust::Faster(
+                tail.push(crate::cities::production::Adjust::Faster(
                     self.tables.tuning.british_archer_speed,
                 ));
             }
             if t.anti_air {
-                tail.push(production::Adjust::Faster(
+                tail.push(crate::cities::production::Adjust::Faster(
                     self.tables.tuning.british_aa_speed,
                 ));
             }
@@ -1019,7 +1057,7 @@ impl Sim {
         if self.cities.nation[who as usize].french
             && matches!(self.trainer_where(ty), Some(0x1ae | 0x1af))
         {
-            tail.push(production::Adjust::Faster(
+            tail.push(crate::cities::production::Adjust::Faster(
                 self.tables.tuning.french_siege_speed,
             ));
         }
@@ -1030,8 +1068,9 @@ impl Sim {
         // 100 / (k + 100)`. The battery's German Dock `1/2010` finishes its
         // Fire Raft on 6718 there (`docs/AI.md` §242).
         if self.cities.nation[who as usize].germans {
-            if self.tables.unit_types[ty].combat.domain == attrition::Domain::Air {
-                tail.push(production::Adjust::Faster(
+            if self.tables.unit_types[ty].combat.domain == crate::territory::attrition::Domain::Air
+            {
+                tail.push(crate::cities::production::Adjust::Faster(
                     self.tables.tuning.german_air_speed,
                 ));
             }
@@ -1039,11 +1078,14 @@ impl Sim {
                 self.tables
                     .tech_tree
                     .types
-                    .get(nations::ty::FIRERAFT)
+                    .get(crate::cities::nations::ty::FIRERAFT)
                     .is_some()
-                    && self.tables.tech_tree.is(t, nations::ty::FIRERAFT, false)
+                    && self
+                        .tables
+                        .tech_tree
+                        .is(t, crate::cities::nations::ty::FIRERAFT, false)
             }) {
-                tail.push(production::Adjust::Faster(
+                tail.push(crate::cities::production::Adjust::Faster(
                     self.tables.tuning.german_submarine_speed,
                 ));
             }
@@ -1052,7 +1094,7 @@ impl Sim {
         // German arms and before `TROOPS_FASTER`): a Legion-line unit of a
         // Roman leader takes `ROMAN_LEGION_FAST`, `t × 100 / (k + 100)`.
         if self.cities.nation[who as usize].romans && self.is_legion_line(ty) {
-            tail.push(production::Adjust::Faster(
+            tail.push(crate::cities::production::Adjust::Faster(
                 self.tables.tuning.roman_legion_fast,
             ));
         }
@@ -1067,7 +1109,7 @@ impl Sim {
         // tail's first caller").
         let t = &self.tables.unit_types[ty];
         let roles = &self.tables.tech_tree.roles;
-        let ladder = if t.combat.domain == attrition::Domain::Sea {
+        let ladder = if t.combat.domain == crate::territory::attrition::Domain::Sea {
             Some(&roles.ships_speed_preq)
         } else if t.combat.obj_masks & (combat::mask::FOOT | combat::mask::MOUNTED) != 0 {
             Some(&roles.troops_speed_preq)
@@ -1078,7 +1120,7 @@ impl Sim {
         };
         if let Some(ladder) = ladder {
             let n = self.speed_upgrade_level(who, ladder);
-            tail.push(production::Adjust::Ratio(10 - n, 10));
+            tail.push(crate::cities::production::Adjust::Ratio(10 - n, 10));
         }
         // **The Cotton arm** (`train_time@006508c0:268`–`273`, after the
         // speed-upgrade step and before the spy/general arm): a unit whose
@@ -1095,15 +1137,15 @@ impl Sim {
             .and_then(|d| d.where_)
             .is_some_and(|w| {
                 [
-                    nations::ty::BARRACKS,
-                    nations::ty::STABLES[0],
-                    nations::ty::DOCKS[0],
+                    crate::cities::nations::ty::BARRACKS,
+                    crate::cities::nations::ty::STABLES[0],
+                    crate::cities::nations::ty::DOCKS[0],
                 ]
                 .contains(&w)
             })
             && self.has_rare(who, economy::COTTON)
         {
-            tail.push(production::Adjust::Faster(
+            tail.push(crate::cities::production::Adjust::Faster(
                 self.tables.tuning.cotton_creation_speed,
             ));
         }
@@ -1122,7 +1164,7 @@ impl Sim {
                         .has_tech(&self.tables.setup, &self.tech[who as usize], t)
                 })
         {
-            tail.push(production::Adjust::Ratio(1, 2));
+            tail.push(crate::cities::production::Adjust::Ratio(1, 2));
         }
         // The wool arm, after the spy/general one: a Citizen (`TypeIndex`
         // 0x32 or 0x33, unit types 0 and 1) of a player holding Wool takes
@@ -1130,7 +1172,7 @@ impl Sim {
         // `0x6da7 & 8` or `0x6dcf & 8`, the same mask `has_rare` unions;
         // `docs/AI.md` §184).
         if matches!(ty, 0 | 1) && self.has_rare(who, economy::WOOL) {
-            tail.push(production::Adjust::Faster(
+            tail.push(crate::cities::production::Adjust::Faster(
                 self.tables.tuning.wool_citizens_speed,
             ));
         }
@@ -1145,19 +1187,19 @@ impl Sim {
             .tree
             .and_then(|t| self.tables.tech_tree.types.get(t))
             .and_then(|d| d.where_);
-        if trainer == Some(nations::ty::STABLES[0])
+        if trainer == Some(crate::cities::nations::ty::STABLES[0])
             && let Some(tier) =
                 self.bonus_tier_held(who, &self.tables.tech_tree.roles.monarchy_preqs)
         {
-            tail.push(production::Adjust::Faster(
+            tail.push(crate::cities::production::Adjust::Faster(
                 self.tables.tuning.monarchy_unit_prod[tier],
             ));
         }
         if trainer.is_some_and(|w| {
             [
-                nations::ty::SIEGE_FACTORIES[0],
-                nations::ty::AIRBASE,
-                nations::ty::DOCKS[0],
+                crate::cities::nations::ty::SIEGE_FACTORIES[0],
+                crate::cities::nations::ty::AIRBASE,
+                crate::cities::nations::ty::DOCKS[0],
             ]
             .contains(&w)
         }) && self
@@ -1167,7 +1209,7 @@ impl Sim {
             )
             .is_some()
         {
-            tail.push(production::Adjust::Faster(
+            tail.push(crate::cities::production::Adjust::Faster(
                 self.tables.tuning.socialism_unit_bonus,
             ));
         }
@@ -1181,21 +1223,21 @@ impl Sim {
         // and 32700, against a whole bomber's 33750 (`docs/AI.md` §226).
         let held = self.wonders_held(who);
         let wonder = match self.tables.unit_types[ty].combat.domain {
-            attrition::Domain::Land => (
+            crate::territory::attrition::Domain::Land => (
                 tech::wonder::STATUE_OF_LIBERTY,
                 self.tables.tuning.liberty_units,
             ),
-            attrition::Domain::Sea => (
+            crate::territory::attrition::Domain::Sea => (
                 tech::wonder::PORCELAIN_TOWER,
                 self.tables.tuning.porcelain_ships,
             ),
-            attrition::Domain::Air => (
+            crate::territory::attrition::Domain::Air => (
                 tech::wonder::SPACE_PROGRAM,
                 self.tables.tuning.space_air_speed,
             ),
         };
         if held & (1 << wonder.0) != 0 {
-            tail.push(production::Adjust::Faster(wonder.1));
+            tail.push(crate::cities::production::Adjust::Faster(wonder.1));
         }
         // The Kremlin's `ACCEL_TRAIN * 5 - 1` return after it is
         // [`Self::kremlin_trains_fast`], taken in [`Self::queue_target`]. SEAM: its
@@ -1286,9 +1328,11 @@ impl Sim {
                 let cities = self
                     .cities_of(who)
                     .into_iter()
-                    .filter(|&c| self.count_buildings(c, build::Ident::Library, true) != 0)
+                    .filter(|&c| {
+                        self.count_buildings(c, crate::cities::build::Ident::Library, true) != 0
+                    })
                     .count();
-                let slots = production::parallel_slots(
+                let slots = crate::cities::production::parallel_slots(
                     self.roster.muster[who as usize].library_cities.max(cities),
                     queued,
                 )
@@ -1340,13 +1384,14 @@ impl Sim {
                         && matches!(blocked, Advanced::Limited)
                         && self.buildings[at].queue.items.len() >= 2
                     {
-                        let airbase = self.building_ident(at) == build::Ident::Airbase;
+                        let airbase =
+                            self.building_ident(at) == crate::cities::build::Ident::Airbase;
                         next = (1..self.buildings[at].queue.items.len()).find(|&i| {
                             let it = &self.buildings[at].queue.items[i];
                             if airbase {
                                 it.tech.is_none()
                                     && self.tables.unit_types[it.ty].cols.unit_flags
-                                        & ai_load::uflags::FLAG_HELICOPTER
+                                        & crate::ai::ai_load::uflags::FLAG_HELICOPTER
                                         != 0
                             } else {
                                 it.tech.is_some()
@@ -1386,13 +1431,21 @@ impl Sim {
         let who = self.buildings[at].owner;
         let item = self.buildings[at].queue.items.get(slot)?;
         if let Some(t) = item.tech {
-            let accel = production::accel(&self.tables.tuning, production::Job::Research, 1);
+            let accel = crate::cities::production::accel(
+                &self.tables.tuning,
+                crate::cities::production::Job::Research,
+                1,
+            );
             return Some((self.tech_time(who, t), accel));
         }
         // A `DISBAND` entry is not a unit type: `do_queue` takes the
         // research accelerator, 100 a frame on run1512's `0/2007`.
         if item.disband {
-            let accel = production::accel(&self.tables.tuning, production::Job::Research, 1);
+            let accel = crate::cities::production::accel(
+                &self.tables.tuning,
+                crate::cities::production::Job::Research,
+                1,
+            );
             return Some((self.disband_time(at), accel));
         }
         let ty = item.ty;
@@ -1407,14 +1460,14 @@ impl Sim {
         // from 2582 while the first, `1/50`, stands inside it (run853,
         // `docs/AI.md` §222).
         if researched
-            && self.building_ident(at) == build::Ident::MissileSilo
+            && self.building_ident(at) == crate::cities::build::Ident::MissileSilo
             && !self.buildings[at].garrison.is_empty()
         {
             return None;
         }
-        let accel = production::accel(
+        let accel = crate::cities::production::accel(
             &self.tables.tuning,
-            production::Job::for_unit(researched),
+            crate::cities::production::Job::for_unit(researched),
             1,
         );
         Some((self.queue_target(at, slot), accel))
@@ -1435,8 +1488,11 @@ impl Sim {
             // A technology entry: research pace, and on completion
             // `Leader::gain_tech` and nothing else — no unit, no refund, no
             // population test.
-            let done =
-                production::advance(&mut self.buildings[at].queue.items[slot], target, accel);
+            let done = crate::cities::production::advance(
+                &mut self.buildings[at].queue.items[slot],
+                target,
+                accel,
+            );
             if !done {
                 return Advanced::Pending;
             }
@@ -1452,8 +1508,11 @@ impl Sim {
         if self.buildings[at].queue.items[slot].disband {
             // `Build::finished`'s spell arm, then `do_queue`'s unqueue of
             // the entry — which the disband's close has already emptied.
-            let done =
-                production::advance(&mut self.buildings[at].queue.items[slot], target, accel);
+            let done = crate::cities::production::advance(
+                &mut self.buildings[at].queue.items[slot],
+                target,
+                accel,
+            );
             if !done {
                 return Advanced::Pending;
             }
@@ -1471,7 +1530,11 @@ impl Sim {
         }
         let ty = self.buildings[at].queue.items[slot].ty;
         let researched = self.roster.muster[who as usize].researched[ty];
-        let done = production::advance(&mut self.buildings[at].queue.items[slot], target, accel);
+        let done = crate::cities::production::advance(
+            &mut self.buildings[at].queue.items[slot],
+            target,
+            accel,
+        );
         if !done {
             return Advanced::Pending;
         }
@@ -1484,17 +1547,23 @@ impl Sim {
         let caravan_full = researched
             && self.tables.unit_types[ty]
                 .cols
-                .flag2(ai_load::uflags2::FLAG2_CARAVAN)
+                .flag2(crate::ai::ai_load::uflags2::FLAG2_CARAVAN)
             && self.tables.unit_types[ty]
                 .tree
                 .is_some_and(|t| self.line_count(who, t, false) >= self.caravan_cap(who));
         let pad_full = researched && (caravan_full || self.airbase_pad_full(at, ty));
         let muster = &self.roster.muster[who as usize];
         let pop = self.tables.unit_types[ty].price.pop;
-        match production::finished(researched, muster.cap, muster.control, pop, pad_full) {
-            production::Handover::Population => Advanced::Blocked,
-            production::Handover::Limit => Advanced::Limited,
-            production::Handover::Researched => {
+        match crate::cities::production::finished(
+            researched,
+            muster.cap,
+            muster.control,
+            pop,
+            pad_full,
+        ) {
+            crate::cities::production::Handover::Population => Advanced::Blocked,
+            crate::cities::production::Handover::Limit => Advanced::Limited,
+            crate::cities::production::Handover::Researched => {
                 // `gain_tech`: the bit, and nothing else. No refund, no
                 // skip-forward, no unit, no population.
                 //
@@ -1521,7 +1590,7 @@ impl Sim {
                 self.senate_gov_hero(at);
                 Advanced::Researched
             }
-            production::Handover::Trained => {
+            crate::cities::production::Handover::Trained => {
                 // No refund on completion, and no skip-forward: the original
                 // passes false for both, and they are the same argument.
                 let mut ledger = economy::Ledger::default();
@@ -1553,7 +1622,7 @@ impl Sim {
     /// Sahara at Toughest's Senator `1/80` becomes The President on frame
     /// 11882, Republic (624) giving way to Democracy (626).
     pub(crate) fn senate_gov_hero(&mut self, at: usize) {
-        if !self.building_is(at, build::Ident::Senate) {
+        if !self.building_is(at, crate::cities::build::Ident::Senate) {
             return;
         }
         let who = self.buildings[at].owner;
@@ -1600,7 +1669,7 @@ impl Sim {
     /// The queue is not in it: `do_queue` has already taken the entry off
     /// and dropped `num_queued` before it calls this, and the two callers
     /// that are *not* a queue — `Build::activate`'s free units
-    /// (`crate::nations`) and `Build::finished`'s government hero — pay no
+    /// (`crate::cities::nations`) and `Build::finished`'s government hero — pay no
     /// queue at all.
     ///
     /// **The trained unit is born inside its trainer and walks out.**
@@ -1623,8 +1692,8 @@ impl Sim {
         // halves (item 3367: a computer's Bark out of a Dock is byte 0 in
         // the original, and this crate left it RAID in `combat.stance`).
         if let Some(stance) = self.trained_stance(ty, at) {
-            let combat = (self.type_stance_type(ty) == crate::stance::StanceType::Combat)
-                .then(|| crate::group::combat_stance_of(stance))
+            let combat = (self.type_stance_type(ty) == crate::units::stance::StanceType::Combat)
+                .then(|| crate::groups::group::combat_stance_of(stance))
                 .flatten();
             for f in self.squad_members(unit) {
                 self.units[f].stance = stance;
@@ -1648,7 +1717,7 @@ impl Sim {
         // Great Lakes 8285 is what this is: `1/44`, the game's first
         // scholar, was let out on 8272 by this crate and walked back in
         // thirteen frames later, spending
-        // [`SITE_GO_INSIDE`](crate::anim::SITE_GO_INSIDE) a second time
+        // [`SITE_GO_INSIDE`](crate::units::anim::SITE_GO_INSIDE) a second time
         // where the original spends it once (`docs/CITIES.md` §6.5.2).
         // `num_inside(1)` is [`Sim::squads_inside`] here: a scholar's
         // `uber_size` is 1, so the chain count and the captain count are
@@ -1672,7 +1741,7 @@ impl Sim {
         // alone. SEAM: `come_out`'s refusal, on which the unit dies.
         let hangar = self.buildings[at].ty.is_some_and(|t| self.is_hangar(t));
         let inside = self.squads_inside(at);
-        let stays = self.building_ident(at) == crate::build::Ident::University
+        let stays = self.building_ident(at) == crate::cities::build::Ident::University
             && self.worker_of(unit) == crate::orders::Worker::Scholar
             && self.buildings[at].gather_max.is_none_or(|m| inside <= m);
         // **A point on the trainer itself keeps the unit in** (item 928,
@@ -1683,7 +1752,7 @@ impl Sim {
         // 0), and a unit that is not an Aircraft Carrier (`is(0x15f)`), is
         // left inside with no `come_out`. SEAM: the player's text bubble
         // (`MessageWin::add_event`), which is the interface's.
-        let university = self.building_ident(at) == crate::build::Ident::University;
+        let university = self.building_ident(at) == crate::cities::build::Ident::University;
         let kept = !university && !hangar && self.gather_inside(at) && {
             let limit = self.garrison_limit(at);
             let limit = if limit == 0 { 10 } else { limit };
@@ -1694,7 +1763,7 @@ impl Sim {
         } else if (!hangar && !kept)
             || (hangar
                 && self.buildings[at].gather.is_empty()
-                && self.air_line_is(unit, crate::airbase::HELICOPTER))
+                && self.air_line_is(unit, crate::air::airbase::HELICOPTER))
         {
             self.come_out(unit);
         }
@@ -1749,7 +1818,7 @@ impl Sim {
         // (its Lakota arm is built, `docs/AI.md` §219).
         let container = matches!(
             self.building_ident(at),
-            crate::build::Ident::University | crate::build::Ident::OilPlatform
+            crate::cities::build::Ident::University | crate::cities::build::Ident::OilPlatform
         );
         if matches!(self.tables.unit_types[ty].type_index, 0x34 | 0x35) || container {
             self.economy_changed(who);
@@ -1953,7 +2022,7 @@ impl Sim {
     /// [`Sim::untrack_queued`], and a Disband's is not one this crate keeps.
     /// The close loops took a technology off the Citizen's count instead
     /// (item 3969; parked T71-7).
-    pub(crate) fn untrack_item(&mut self, who: Player, item: &production::Item) {
+    pub(crate) fn untrack_item(&mut self, who: Player, item: &crate::cities::production::Item) {
         if item.disband {
             return;
         }
@@ -2025,15 +2094,20 @@ impl Sim {
         let charges = self.price_of(who, ty);
         let pop = self.tables.unit_types[ty].price.pop;
         let muster = &self.roster.muster[who as usize];
-        if cost::exceeds_population(muster.cap, muster.control, pop) {
+        if crate::economy::cost::exceeds_population(muster.cap, muster.control, pop) {
             return Err(Refused::Population);
         }
 
         let available = self.economy.holdings[who as usize].available;
-        if !cost::can_pay(&charges, &self.economy.ledgers[who as usize], &available, 1) {
+        if !crate::economy::cost::can_pay(
+            &charges,
+            &self.economy.ledgers[who as usize],
+            &available,
+            1,
+        ) {
             return Err(Refused::Cost);
         }
-        cost::pay(
+        crate::economy::cost::pay(
             &charges,
             &mut self.economy.ledgers[who as usize],
             &available,

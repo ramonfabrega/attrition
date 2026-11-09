@@ -251,7 +251,7 @@ pub fn think_spellcaster_steps<V: CasterView>(v: &mut V) -> bool {
 /// the territory test.
 ///
 /// SEAM: Ambush's cloak (`0x800`, [`Sim::cast_ambush`]) and what
-/// Forced March does beyond its flags (`crate::cast`).
+/// Forced March does beyond its flags (`crate::spells::cast`).
 fn hero_arm_steps<V: CasterView>(v: &mut V) -> bool {
     use crate::orders::spell;
     if !v.is_hero() {

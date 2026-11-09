@@ -35,7 +35,7 @@ pub(crate) const CHINESE_MEDIEVAL: Pair = Pair {
     // Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a <
     // Unit::move_step+0x823` (`docs/AI.md` section 313).
     // Item 3577: 2981 -> 3030 — the Fire Lances loose from piece 46's bays
-    // (`sim::launch`), so `1/22`'s round flies 10 frames, not 11, and strikes
+    // (`sim::data::launch`), so `1/22`'s round flies 10 frames, not 11, and strikes
     // the Citizen `0/10` on 2977 as theirs does. Ours 14 draws against 16,
     // index 9, ours `Farms::inc_time+0x1ae`, theirs `Unit::close+0xce6 <
     // Object::die` (a death after a round's `AmmoOut::dirt_splash`).
@@ -394,7 +394,7 @@ fn chinese_medieval_pair_run1223_s_closing_frame_is_widened_whole() {
     // `1/96` (4427) and `1/97` (4428), 3567a's shape (parked 3580b); and
     // on block 4452 the Nubian capital `0/2000`'s `damage_frac`, ours 2
     // against theirs 12 — the Crossbowmen `1/69` (TypeIndex 172, piece
-    // 1178, no `sim::launch` bay) lands its round a frame late, and the
+    // 1178, no `sim::data::launch` bay) lands its round a frame late, and the
     // two agree again on 4453 (parked 3580a). The closing block 4521
     // agrees.
     // Item 3712: 52 → **51**. Piece 1178's `launch::BAYS` rows (the

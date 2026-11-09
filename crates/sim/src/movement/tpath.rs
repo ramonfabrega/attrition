@@ -177,7 +177,7 @@ impl TpathView for SimTpath<'_> {
         self.sim.is_helicopter(self.u)
     }
     fn domain_below_2(&self) -> bool {
-        self.sim.unit_domain_of(self.u) != crate::attrition::Domain::Air
+        self.sim.unit_domain_of(self.u) != crate::territory::attrition::Domain::Air
     }
     fn can_transport(&mut self) -> bool {
         self.sim.unit_can_transport(self.u)

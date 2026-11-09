@@ -280,7 +280,7 @@ mod tests {
             Some(0),
             "site (44,52), fog (89,105)"
         );
-        built.sim.tick();
+        built.sim.command().tick();
         // The per-region census, **every region** — run9's check compares
         // the home region alone, which on one landmass is every land
         // region there is. The site scorer's step 9 multiplies by what
@@ -405,7 +405,7 @@ mod tests {
             "the CITY record disagrees:\n  {}",
             wrong.join("\n  ")
         );
-        built.sim.tick();
+        built.sim.command().tick();
         let theirs_full: Vec<(i64, i64, i64, i64, i64)> = theirs
             .kids("SITE")
             .map(|s| {
@@ -787,18 +787,18 @@ mod tests {
             .roles
             .transport_preq
             .expect("Written Word, from rules.xml's third TECHBONUS");
-        built.sim.gain_tech(1, preq);
+        built.sim.setup().gain_tech(1, preq);
         assert_eq!(
             built.sim.transport_level(1),
-            sim::transport::TransportType::None,
+            sim::ai::transport::TransportType::None,
             "the prerequisite alone grants nothing"
         );
         let ty = loaded.build_of_type_index(432).expect("the dock type");
-        let b = built.sim.add_building(1, pos, 1);
+        let b = built.sim.setup().add_building(1, pos, 1);
         built.sim.buildings[b].ty = Some(ty);
         built.sim.buildings[b].orig_ty = Some(ty);
         built.sim.buildings[b].started = true;
-        built.sim.activate(b, false, true);
+        built.sim.setup().activate(b, false, true);
         assert_eq!(built.sim.buildings[b].dock_slot, Some(0));
         assert_eq!(built.sim.ai.docks[1].slots[0].reg, Some(sim_reg));
         assert!(
@@ -807,7 +807,7 @@ mod tests {
         );
         assert_eq!(
             built.sim.transport_level(1),
-            sim::transport::TransportType::Civilian
+            sim::ai::transport::TransportType::Civilian
         );
         let ai_units: Vec<usize> = (0..built.sim.units.len())
             .filter(|&u| built.sim.units[u].owner == 1 && built.sim.units[u].alive())
@@ -831,7 +831,7 @@ mod tests {
         );
         assert_eq!(
             built.sim.transport_level(0),
-            sim::transport::TransportType::None
+            sim::ai::transport::TransportType::None
         );
     }
 
@@ -887,8 +887,8 @@ mod tests {
         // `Build::init`, which runs no placement test.
         let spot = |n: i32| Pos::new(4000 + n * 400, 4000);
         let control = sim.roster.muster[1].control;
-        let b = sim.init_build(1, barracks, spot(0), false);
-        sim.activate(b, false, true);
+        let b = sim.setup().init_build(1, barracks, spot(0), false);
+        sim.setup().activate(b, false, true);
 
         let squad = archers(sim, 1);
         assert_eq!(squad.len(), 3, "one Bowmen is three objects");
@@ -917,22 +917,22 @@ mod tests {
 
         // **Each** Barracks pays — the mark is a high-water mark, not a
         // first-one flag, so the second raises it to two and pays again.
-        let b2 = sim.init_build(1, barracks, spot(4), false);
-        sim.activate(b2, false, true);
+        let b2 = sim.setup().init_build(1, barracks, spot(4), false);
+        sim.setup().activate(b2, false, true);
         assert_eq!(archers(sim, 1).len(), 6, "the second Barracks pays too");
 
         // What the mark buys is that a **replacement** does not. Lose one
         // and build it again and the count is back at two, which is no
         // longer past the mark.
-        sim.close_building(b2, false);
-        let b3 = sim.init_build(1, barracks, spot(8), false);
-        sim.activate(b3, false, true);
+        sim.setup().close_building(b2, false);
+        let b3 = sim.setup().init_build(1, barracks, spot(8), false);
+        sim.setup().activate(b3, false, true);
         assert_eq!(archers(sim, 1).len(), 6, "a rebuild is not a new one");
 
         // And the Nubian human is paid nothing at all —
         // `NUBIAN_FREE_CARAVAN` is zero and no other arm is theirs.
-        let b4 = sim.init_build(0, barracks, spot(12), false);
-        sim.activate(b4, false, true);
+        let b4 = sim.setup().init_build(0, barracks, spot(12), false);
+        sim.setup().activate(b4, false, true);
         assert!(archers(sim, 0).is_empty(), "the human is not British");
     }
 
@@ -1429,8 +1429,9 @@ mod tests {
             }
             let b = built
                 .sim
+                .setup()
                 .init_build(u8::try_from(*who).unwrap(), ty, pos, false);
-            built.sim.activate(b, false, false);
+            built.sim.setup().activate(b, false, false);
         }
         assert_eq!(
             built.sim.cities.cities.iter().filter(|c| c.alive).count(),
@@ -1469,8 +1470,8 @@ mod tests {
                 }
                 built.sim.economy.ledgers[who].rare = rare;
             }
-            built.sim.sync_territory();
-            built.sim.settle_borders();
+            built.sim.setup().sync_territory();
+            built.sim.setup().settle_borders();
             let ours = owned(&built.sim);
             for (who, mine) in ours.iter().enumerate().take(2) {
                 let blk = log.leader_block(*n, who as i64).expect("a leader row");
@@ -1489,8 +1490,8 @@ mod tests {
                     built.sim.economy.ledgers[who].rare &=
                         !(1u64 << (sim::economy::GEMS - sim::economy::BASE_RARE));
                 }
-                built.sim.sync_territory();
-                built.sim.settle_borders();
+                built.sim.setup().sync_territory();
+                built.sim.setup().settle_borders();
                 gemless.push(owned(&built.sim));
             }
         }
@@ -1834,7 +1835,7 @@ mod tests {
             18,
             "run38's placed mountains"
         );
-        let reach = sim::gather::MINE_RADIUS * sim::world::UNITS_PER_TILE;
+        let reach = sim::economy::gather::MINE_RADIUS * sim::world::UNITS_PER_TILE;
         // (site, the packet's `find_nearest` distance)
         let rows: [((i32, i32), i32); 8] = [
             ((38784, 37248), 1536),
@@ -2047,7 +2048,7 @@ mod tests {
                 built
                     .sim
                     .world
-                    .clear_tile_bits(t, sim::gather::GATHERED_FROM);
+                    .clear_tile_bits(t, sim::economy::gather::GATHERED_FROM);
             }
             let corner = built.sim.tile_corner(ty, pos);
             let ours = built.sim.gather_tcoords(ty, who, corner);
@@ -2063,7 +2064,10 @@ mod tests {
             );
             assert_eq!(a, c, "player {who}'s camp: the tiles themselves");
             for &t in &theirs {
-                built.sim.world.set_tile_bits(t, sim::gather::GATHERED_FROM);
+                built
+                    .sim
+                    .world
+                    .set_tile_bits(t, sim::economy::gather::GATHERED_FROM);
             }
         }
     }
@@ -2236,7 +2240,10 @@ mod tests {
         let ty = loaded
             .build_of_type_index(theirs.orig_type.expect("orig_type") as i32)
             .expect("the camp's build type");
-        let b = built.sim.init_build(1, ty, pos_of(theirs.pos), false);
+        let b = built
+            .sim
+            .setup()
+            .init_build(1, ty, pos_of(theirs.pos), false);
         assert_eq!(
             i64::from(built.sim.buildings[b].index),
             2009,
@@ -3696,7 +3703,7 @@ mod tests {
         let sim = &built.sim;
         let mut got: Vec<(sim::Player, usize, i32)> = Vec::new();
         for b in 0..sim.buildings.len() {
-            if sim.building_ident(b) == sim::build::Ident::Woodcutter {
+            if sim.building_ident(b) == sim::cities::build::Ident::Woodcutter {
                 got.push((
                     sim.buildings[b].owner,
                     sim.buildings[b].gather_from.len(),

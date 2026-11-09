@@ -34,7 +34,7 @@ fn the_turn_rate_is_the_banks_magnitude_over_fifty_five() {
 /// it and pointed where the test wants it pointed.
 fn bird(at: crate::world::Pos, heading: i32) -> (crate::Sim, usize) {
     let mut s = crate::Sim::new(
-        crate::tuning::Tuning::RON,
+        crate::core::tuning::Tuning::RON,
         crate::world::World::new(60, 60),
         2,
     );
@@ -43,16 +43,16 @@ fn bird(at: crate::world::Pos, heading: i32) -> (crate::Sim, usize) {
         hits: 1,
         moves: 35,
         turn_speed: crate::movement::degrees_to_angle(5).0,
-        kind: crate::attrition::UnitKind {
-            domain: crate::attrition::Domain::Air,
-            ..crate::attrition::UnitKind::default()
+        kind: crate::territory::attrition::UnitKind {
+            domain: crate::territory::attrition::Domain::Air,
+            ..crate::territory::attrition::UnitKind::default()
         },
         ..crate::UnitType::default()
     });
     let mut u = crate::Unit::new(crate::gaia::BIRD_OWNER, 0, at, 1);
     u.ty = Some(ty);
     u.kind = s.tables.unit_types[ty].kind;
-    u.type_index = crate::anim::BIRD_TYPE;
+    u.type_index = crate::units::anim::BIRD_TYPE;
     u.movement.speed = 35;
     u.movement.turning = crate::turning_of(&s.tables.unit_types[ty]);
     u.movement.heading = Angle(heading);
@@ -86,10 +86,19 @@ fn a_bird_s_figure_lags_its_unit_and_stands_only_when_the_step_is_refused() {
     let (mut s, b) = bird(at, Angle::WEST.0);
     let goal = crate::world::Pos::new(20_000, 20_000);
     s.gaia.gaia.bird_goals[0].1 = goal;
-    s.roster.art.lengths.insert((-1, crate::anim::WALK), 31);
-    s.roster.art.lengths.insert((-1, crate::anim::JOG), 23);
-    s.roster.art.lengths.insert((-1, crate::anim::DEFAULT), 3);
-    s.units[b].guys[0].anim = crate::anim::WALK;
+    s.roster
+        .art
+        .lengths
+        .insert((-1, crate::units::anim::WALK), 31);
+    s.roster
+        .art
+        .lengths
+        .insert((-1, crate::units::anim::JOG), 23);
+    s.roster
+        .art
+        .lengths
+        .insert((-1, crate::units::anim::DEFAULT), 3);
+    s.units[b].guys[0].anim = crate::units::anim::WALK;
     s.units[b].guys[0].end_time = 31;
     s.units[b].guys[0].stopped = true;
     s.trace.trace_phases = true;
@@ -128,12 +137,12 @@ fn a_bird_s_figure_lags_its_unit_and_stands_only_when_the_step_is_refused() {
     s.trace.phase_marks.clear();
     s.process_movement(b);
     assert_ne!(s.rng.seed, before, "the arrival stand's draw");
-    assert_eq!(s.units[b].guys[0].anim, crate::anim::DEFAULT);
+    assert_eq!(s.units[b].guys[0].anim, crate::units::anim::DEFAULT);
     assert!(
         s.trace
             .phase_marks
             .iter()
-            .any(|(l, _)| l == crate::anim::SITE_ARRIVE),
+            .any(|(l, _)| l == crate::units::anim::SITE_ARRIVE),
         "and it is marked as the arrival stand: {:?}",
         s.trace.phase_marks
     );

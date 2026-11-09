@@ -293,7 +293,7 @@ fn run963c_s_word_frame_is_widened_whole() {
     // against 212.
     // Item 3336: −4, `Wall::set_type` leaving the hits to the next `calc_wall_stats` (`docs/AI.md` §272).
     // Item 3369: 112 -> 74, an unpacked merchant's "over time" piece
-    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     pin_eq!(w.firsts.len(), 74, "keys that part in the window");
 }
 
@@ -345,7 +345,7 @@ fn run963d_s_word_frame_is_widened_whole() {
     // (`num_units[270]`/`[271]`, the merchants' second figures) and the
     // standing set, the last on 23839.
     // Item 3369: 94 -> 92, an unpacked merchant's "over time" piece
-    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     pin_eq!(w.firsts.len(), 92, "keys that part in the window");
 }
 

@@ -28,7 +28,7 @@ fn the_emulated_original_agrees_on_every_row() {
     super::obj_rows(&rows, &obj, |a, m, c, p, log| {
         let _ = (&a, &m, &c, &p);
         {
-            // `Unit::think_merchant`, inline over the windows: `think_merchant` in `crate::merchant` is welded to `Sim`
+            // `Unit::think_merchant`, inline over the windows: `think_merchant` in `crate::units::think::merchant` is welded to `Sim`
             // (its `ai`, `world`, `units`), so this is a re-expression of the same branches, checked against the
             // original. Windows: c0 world, c1 `div_3_table`, c2 the objects cell, c3..c6 the four leaders' `new_rares`
             // headers; p0..p6 goods, p7 the type record, p8 cells, p9 tile flags, p10..p13 danger, p14..p17 the lists'

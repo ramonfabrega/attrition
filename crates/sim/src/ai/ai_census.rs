@@ -25,12 +25,12 @@
 //! [`seams`]. Nothing else here is approximate.
 
 use crate::ai::{Census, CityAi};
-use crate::attrition::Domain;
-use crate::build;
-use crate::city::radius_for_level;
+use crate::cities::build;
+use crate::cities::city::radius_for_level;
 use crate::combat::Obj;
 use crate::economy::RESOURCES;
 use crate::orders::{Body, Worker, index};
+use crate::territory::attrition::Domain;
 use crate::world::{Cell, Owner, Pos, Terrain, tile, vector_dist};
 use crate::{Player, Sim};
 
@@ -799,7 +799,7 @@ impl Sim {
         // Knowledge is the scholar's, not a gatherer's: the original's
         // switch has no `0x1a4` arm here.
         if let Some(b) = target
-            && let Some(good) = crate::ai_place::gather_good(self.building_ident(b))
+            && let Some(good) = crate::ai::ai_place::gather_good(self.building_ident(b))
             && good != 3
         {
             self.ai.ai[w].census.filled_gather_slots[good] += 1;
@@ -908,7 +908,7 @@ impl Sim {
             // guard, so an unfinished Keep counts (item 1377).
             if bd.active
                 && bt.has(build::flags::GATHERER)
-                && let Some(good) = crate::ai_place::gather_good(bt.ident)
+                && let Some(good) = crate::ai::ai_place::gather_good(bt.ident)
             {
                 slots[good] += bd.gather_max.unwrap_or(0);
             }
@@ -980,7 +980,7 @@ impl Sim {
     fn census_city_sites(&mut self, who: Player) {
         let w = who as usize;
         let world_cells = self.world.cell_count();
-        let circle = crate::ai_place::circle();
+        let circle = crate::ai::ai_place::circle();
         for c in self.cities_of(who) {
             let level = self.city_level_of(c);
             let indians = self.cities.nation[w].indians;

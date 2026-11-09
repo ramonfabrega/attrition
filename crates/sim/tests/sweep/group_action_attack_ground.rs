@@ -36,11 +36,11 @@ fn the_emulated_original_agrees_on_every_row() {
             // units' types, `p[20]` the tile table. `a`: the three arguments, then every stub's answer
             // (`a[3 + k]`), then the four `--seq` runs (`SEQ_AT`).
             //
-            // **The port is the crate's own steps**, `crate::attack_ground_view::action_attack_ground_steps`.
+            // **The port is the crate's own steps**, `crate::groups::attack_ground_view::action_attack_ground_steps`.
             // The scratch group's list is a stack local, not a window: the stubbed `Group::add` counts
             // its calls (the generator's `--stub-write ecx+0xc:inc`) and writes no member, so the
             // members the port re-adds read `(0, 0)` here.
-            use crate::attack_ground_view::{AttackGroundView, action_attack_ground_steps};
+            use crate::groups::attack_ground_view::{AttackGroundView, action_attack_ground_steps};
             const SEQ_AT: [(usize, usize); 4] = [(3, 21), (4, 37), (5, 53), (13, 69)];
             const MESSAGE_WIN: i32 = 15_267_872;
             struct V<'a> {

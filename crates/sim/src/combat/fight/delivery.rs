@@ -323,8 +323,8 @@ impl Sim {
         let heavy = (matches!(attacker, Obj::Unit(_)) && siege) || {
             let bd = &self.buildings[b];
             let defense = bd.ty.is_some_and(|t| {
-                crate::build::is_fort(&self.tables.build_types, t)
-                    || crate::build::is_tower(&self.tables.build_types, t)
+                crate::cities::build::is_fort(&self.tables.build_types, t)
+                    || crate::cities::build::is_tower(&self.tables.build_types, t)
             });
             let ceiling = if defense || self.building_is_city(b) {
                 bd.hits_now() / 10
@@ -391,7 +391,7 @@ impl Sim {
         let at = self.owner_of(attacker);
         let centre = self.buildings[b].pos;
         let home = centre.cell();
-        let circ = crate::ai_place::circle();
+        let circ = crate::ai::ai_place::circle();
         for k in 0..circ.radius[1] {
             let cell = crate::Cell::new(home.x + circ.x[k], home.y + circ.y[k]);
             if cell.x < 0
@@ -607,7 +607,7 @@ impl Sim {
     /// `SubObjectData::flags |= 0x10` on `get_captain` (vslot `+0xe4`) —
     /// the bit `Unit::think`'s idle gate reads, carried as `cant_reach`.
     /// Attrition comes through here too (`suffer_attrition`'s slot `0x16c`
-    /// is this function), so [`crate::suffer_view::SimSuffer`] calls it as
+    /// is this function), so [`crate::territory::suffer_view::SimSuffer`] calls it as
     /// well. A building's own arm (the same write on its captain, itself)
     /// is not carried: no building flag is compared.
     pub(crate) fn struck_alive(&mut self, i: usize) {
@@ -650,7 +650,7 @@ impl Sim {
     /// the Citizen `0/13` on 2556 at Medieval (`ages` 2) and who=1's timber
     /// goes 12714 → 12759.
     ///
-    /// The body is [`crate::plunder::plunder_steps`] over [`crate::plunder::SimPlunder`]
+    /// The body is [`crate::combat::plunder::plunder_steps`] over [`crate::combat::plunder::SimPlunder`]
     /// (the original's whole function, swept against it in item 3356).
     ///
     /// A General, caravan or supply-wagon victim (`uflags2::FLAG2_GENERAL`,
@@ -660,7 +660,7 @@ impl Sim {
     /// SEAM: the victim redirect of a type with `+0x2b4 & 0x10` is not
     /// carried.
     pub(crate) fn unit_plunder(&mut self, v: usize, k: usize) {
-        use crate::ai_load::uflags2;
+        use crate::ai::ai_load::uflags2;
         const DESPOT: i32 = 0x160;
         const SPITAMENES: i32 = 0x16d;
         let amount = self.tables.tuning.thedespot_unit_plunder;
@@ -678,12 +678,12 @@ impl Sim {
                 .ty
                 .and_then(|t| self.trainer_ident(t))
                 .is_some_and(|i| {
-                    use crate::build::Ident;
+                    use crate::cities::build::Ident;
                     matches!(i, Ident::Barracks | Ident::Stable | Ident::Dock)
                 });
         if slay {
-            crate::plunder::plunder_steps(
-                &mut crate::plunder::SimPlunder { sim: self, v },
+            crate::combat::plunder::plunder_steps(
+                &mut crate::combat::plunder::SimPlunder { sim: self, v },
                 k as i32,
                 i32::from(who),
                 1,
@@ -699,8 +699,8 @@ impl Sim {
         // the base constant in wealth (item 3788; run1461b's who=2 takes
         // `GENERAL_PLUNDER` 100 for who=1's Despot `1/28` on 1463).
         if kind & (uflags2::FLAG2_GENERAL | uflags2::FLAG2_CARAVAN | uflags2::SUPPLY_OR_HERO) != 0 {
-            crate::plunder::plunder_steps(
-                &mut crate::plunder::SimPlunder { sim: self, v },
+            crate::combat::plunder::plunder_steps(
+                &mut crate::combat::plunder::SimPlunder { sim: self, v },
                 k as i32,
                 i32::from(who),
                 0,
@@ -715,8 +715,8 @@ impl Sim {
         }
         // `Unit::plunder(victim, k, who, 0, 1)`: the Extended Edition's arm,
         // over the crate's own buckets and draws.
-        crate::plunder::plunder_steps(
-            &mut crate::plunder::SimPlunder { sim: self, v },
+        crate::combat::plunder::plunder_steps(
+            &mut crate::combat::plunder::SimPlunder { sim: self, v },
             k as i32,
             i32::from(who),
             0,
@@ -749,8 +749,8 @@ impl Sim {
         {
             return;
         }
-        crate::plunder::plunder_steps(
-            &mut crate::plunder::SimPlunder { sim: self, v },
+        crate::combat::plunder::plunder_steps(
+            &mut crate::combat::plunder::SimPlunder { sim: self, v },
             v as i32,
             i32::from(vw),
             0,
@@ -866,7 +866,7 @@ impl Sim {
             && self.units[i].on_map
             && self.units[i].ty.is_some_and(|t| {
                 self.tables.unit_types[t].cols.unit_flags
-                    & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
+                    & crate::ai::ai_load::uflags::BLOCKS_WHILE_DEAD
                     != 0
             })
     }
@@ -919,9 +919,17 @@ impl Sim {
         let Some(ty) = self.buildings[b].ty else {
             return;
         };
-        let fortlike = crate::build::is_fort(&self.tables.build_types, ty)
-            || crate::build::is(&self.tables.build_types, ty, crate::build::Ident::Temple)
-            || crate::build::is(&self.tables.build_types, ty, crate::build::Ident::Town);
+        let fortlike = crate::cities::build::is_fort(&self.tables.build_types, ty)
+            || crate::cities::build::is(
+                &self.tables.build_types,
+                ty,
+                crate::cities::build::Ident::Temple,
+            )
+            || crate::cities::build::is(
+                &self.tables.build_types,
+                ty,
+                crate::cities::build::Ident::Town,
+            );
         if !fortlike {
             return;
         }
@@ -935,7 +943,7 @@ impl Sim {
         // `Objects::add_flock(x, y, -1, roll % 2 + 3)` — three or four
         // birds over the building, from its tile (`div_3_table[v >> 6]`,
         // `6521ba`–`6521e3`) and with no player's stamp to wait on
-        // (`crate::flock`, item 1293).
+        // (`crate::gaia::flock`, item 1293).
         let n = self.rng.roll() % 2 + 3;
         let at = self.buildings[b].pos.tile();
         self.add_flock(at, None, n);
@@ -1277,7 +1285,8 @@ impl Sim {
         // neighbour's block, and nothing puts it back but the neighbour's
         // sixty-fourth-frame repaint.
         if !self.units[i].ty.is_some_and(|t| {
-            self.tables.unit_types[t].cols.unit_flags & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
+            self.tables.unit_types[t].cols.unit_flags
+                & crate::ai::ai_load::uflags::BLOCKS_WHILE_DEAD
                 != 0
         }) {
             for k in 0..self.units[i].guys.len() {
@@ -1331,7 +1340,7 @@ impl Sim {
             .and_then(|u| self.units[u].ty)
             .is_some_and(|t| {
                 self.tables.unit_types[t].cols.unit_flags
-                    & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
+                    & crate::ai::ai_load::uflags::BLOCKS_WHILE_DEAD
                     != 0
             })
     }
@@ -1440,7 +1449,7 @@ impl Sim {
     /// One guy's record's life, as [`Self::death_life`] reads it.
     pub(super) fn figure_life(&self, i: usize, k: usize, cur_anim: i32) -> Option<i64> {
         let anim = i8::try_from(cur_anim).ok()?;
-        let sea = self.units[i].kind.domain == crate::attrition::Domain::Sea;
+        let sea = self.units[i].kind.domain == crate::territory::attrition::Domain::Sea;
         let gpiece = self.units[i].guys[k].gpiece;
         if gpiece < 0 || !self.roster.art.piece_lengths.contains_key(&gpiece) {
             return None;
@@ -1620,7 +1629,7 @@ impl Sim {
                 let blocks = !self.units[u].alive()
                     && self.units[u].ty.is_some_and(|t| {
                         self.tables.unit_types[t].cols.unit_flags
-                            & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
+                            & crate::ai::ai_load::uflags::BLOCKS_WHILE_DEAD
                             != 0
                     });
                 if blocks && self.units[u].coll_at.is_none() {

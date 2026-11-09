@@ -17,7 +17,7 @@ use crate::world::World;
 /// nearer foe.
 #[test]
 fn a_follower_whose_target_died_takes_its_captain_s() {
-    let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     sim.leaders.at_war[0][1] = true;
     sim.leaders.at_war[1][0] = true;
     let ty = sim.add_unit_type(crate::UnitType {
@@ -84,7 +84,7 @@ fn a_follower_whose_target_died_takes_its_captain_s() {
 /// chase.
 #[test]
 fn a_target_running_from_the_chaser_s_heading_keeps_the_chase() {
-    let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     sim.leaders.at_war[0][1] = true;
     sim.leaders.at_war[1][0] = true;
     let ty = sim.add_unit_type(crate::UnitType {
@@ -167,7 +167,7 @@ fn a_target_running_from_the_chaser_s_heading_keeps_the_chase() {
 /// `valid_target` again: the first arm pops its walk.
 #[test]
 fn a_living_target_out_of_sight_keeps_the_chase() {
-    let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     sim.leaders.at_war[0][1] = true;
     sim.leaders.at_war[1][0] = true;
     assert!(

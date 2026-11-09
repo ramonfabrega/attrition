@@ -1,6 +1,6 @@
 //! `BuildTypeData::connects_to_roads@006398c0` under the emulator against the port (item 2038; hand-written on tools/emu/hooks.py).
 
-use crate::build::flags;
+use crate::cities::build::flags;
 
 /// `BuildTypeData::connects_to_roads@006398c0`, run by `tools/emu/sweep_build_type_data_connects_to_roads.py`
 /// under unicorn (tools/emu): a gatherer ([`flags::GATHERER`], read inline when its own slot `+0x90` is the base,

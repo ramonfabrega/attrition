@@ -45,7 +45,7 @@
 //! `cavarch_o`/`cavarch_who` for a move order (item 1740, `docs/GOLDEN.md`
 //! §65), where an attack order's own target stands first.
 
-use crate::ai_load::uflags;
+use crate::ai::ai_load::uflags;
 use crate::combat::{Obj, Stance};
 use crate::orders::{Body, flag};
 
@@ -247,7 +247,7 @@ impl crate::Sim {
             let research = match target {
                 Obj::Building(_) => true,
                 Obj::Unit(t) => {
-                    self.mark(crate::fight::SITE_FIGHT_RESEARCH);
+                    self.mark(crate::combat::fight::SITE_FIGHT_RESEARCH);
                     let roll = self.rng.roll();
                     let reentry = self
                         .current_order(u)
@@ -283,12 +283,12 @@ impl crate::Sim {
     /// `CHAR_ATTACKWALK`.
     pub(crate) fn cavarch_step_anim(&mut self, u: usize) -> i8 {
         let Some(target) = self.units[u].cast_target else {
-            return crate::anim::WALK;
+            return crate::units::anim::WALK;
         };
         if !self.fires_on_move(u) {
-            return crate::anim::WALK;
+            return crate::units::anim::WALK;
         }
-        let n = self.units[u].guys.len().min(crate::anim::SQUAD_SIZE);
+        let n = self.units[u].guys.len().min(crate::units::anim::SQUAD_SIZE);
         for g in 0..n {
             self.units[u].guys[g].aim = Some(target);
             self.set_all_pivots(u, g, Some(target));
@@ -311,9 +311,9 @@ impl crate::Sim {
                     t.node_flags |= 1;
                 }
             }
-            return crate::anim::WALK;
+            return crate::units::anim::WALK;
         }
-        crate::anim::ATTACKWALK
+        crate::units::anim::ATTACKWALK
     }
 }
 

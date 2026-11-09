@@ -33,7 +33,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // `p[2+l]` objects' arrays (list `l`), `p[4+2l+i]` the objects, `p[10+2l+i]` the unit records, `p[14+2l+i]` their
             // types, `p[22+4l+2i+g]` guy `g`, `p[30]` this's type, `p[31]` the cells, `p[32+k]` cell `k`'s block, `p[41]` the new block.
             // The answers `a`: slot 0x8, slot 0xbc, `get_tregion`, `new_coll_block` (unread), the two string ctors, `Error::report`, close.
-            use sim::add_to_world_view::{AddToWorldView, add_to_world_steps};
+            use sim::units::add_to_world_view::{AddToWorldView, add_to_world_steps};
             struct V<'a> {
                 m: &'a mut [u8],
                 c: &'a mut [Vec<u8>],

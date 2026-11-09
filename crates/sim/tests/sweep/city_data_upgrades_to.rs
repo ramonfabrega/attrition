@@ -1,6 +1,6 @@
 //! `CityData::upgrades_to@007364f0` under the emulator against the port (item 1998; hand-written on tools/emu/hooks.py).
 
-use crate::build::{BuildType, Ident, upgrades_to};
+use crate::cities::build::{BuildType, Ident, upgrades_to};
 
 /// `CityData::upgrades_to@007364f0`, run by `tools/emu/sweep_city_data_upgrades_to.py` under unicorn
 /// (tools/emu): the building's `TypeIndex` (through `objects.list[who][o]`'s type record) mapped to the next city

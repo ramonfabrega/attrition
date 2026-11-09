@@ -37,7 +37,7 @@
 use std::collections::BTreeMap;
 
 use crate::Sim;
-use crate::astar_view::{
+use crate::movement::astar_view::{
     AstarView, MOVE_X, MOVE_Y, NoDangerView, Stash, SuspendView, Top, arrive, child_metric,
     child_pos, diag_probe, entry_steps, fresh_steps, suspend_steps, top_of_loop, wheel_dir,
     world_probe,
@@ -513,9 +513,9 @@ impl Sim {
                 .last()
                 .is_some_and(|p| p.flags & path_flag::BOARDS_TRANSPORT != 0),
             domain: match self.unit_domain_of(u) {
-                crate::attrition::Domain::Land => 0,
-                crate::attrition::Domain::Sea => 1,
-                crate::attrition::Domain::Air => 2,
+                crate::territory::attrition::Domain::Land => 0,
+                crate::territory::attrition::Domain::Sea => 1,
+                crate::territory::attrition::Domain::Air => 2,
             },
             attack_nonzero: self.profile(crate::combat::Obj::Unit(u)).attack != 0,
             // `unit_masks2 & 0x4000`, an Iroquois Scout's (item 3107).
@@ -616,7 +616,7 @@ impl Sim {
                         i32::from(self.units[u].owner),
                         i32::from(self.units[u].index),
                     )
-                && crate::collide::ucell(p) == r.cell
+                && crate::movement::collide::ucell(p) == r.cell
         })
     }
 
@@ -645,7 +645,7 @@ impl Sim {
 
         // `was_really_seen(div3[to >> 7], div3[to >> 7], who)` — the fog
         // read is at the **half-cell** the step lands in, not the cell's
-        // `2c + 1` sample (`crate::scout`). World grid only.
+        // `2c + 1` sample (`crate::units::think::scout`). World grid only.
         let seen = step != STEP_WORLD
             || self.was_really_seen_fog(to.x.div_euclid(0x180), to.y.div_euclid(0x180), who);
         if step == STEP_WORLD && !seen {
@@ -700,7 +700,7 @@ impl Sim {
                 //
                 // The sign is the point: around your own city the map is
                 // negative, and this is 8 to 16 off every expensive step
-                // there (`crate::danger`, `docs/DANGER.md` §5).
+                // there (`crate::world::danger`, `docs/DANGER.md` §5).
                 let mut e = if m.no_danger {
                     0
                 } else {
@@ -904,11 +904,11 @@ impl Sim {
 
     /// The heuristic — `PathFinderData::get_estimate`.
     fn estimate(dx: i32, dy: i32, step: i32) -> i32 {
-        crate::astar_view::estimate(dx, dy, step)
+        crate::movement::astar_view::estimate(dx, dy, step)
     }
 
     /// `astar_path`'s `avoid_land`/`avoid_sea`, off the start's terrain
-    /// (§4.1): [`crate::astar_view::avoid_steps`] over this unit. **The
+    /// (§4.1): [`crate::movement::astar_view::avoid_steps`] over this unit. **The
     /// world grid does not ask `get_tregion`** — it reads `WData.region`
     /// (`+0x4`) of the two cells straight out of the array and compares the
     /// shorts (§4.1, "The same-region test is two functions"); only the tile
@@ -919,7 +919,7 @@ impl Sim {
     /// Not asked again on a resume: the pair is stashed and restored.
     #[cfg(test)]
     fn avoid_flags(&mut self, u: usize, start: Pos, goal: Pos, step: i32) -> (i32, i32) {
-        crate::astar_view::avoid_steps(&mut SimAstar { sim: self, u }, step, start, goal)
+        crate::movement::astar_view::avoid_steps(&mut SimAstar { sim: self, u }, step, start, goal)
     }
 
     /// `PathFinder::astar_path` (`docs/PATHFINDER.md` §4). Returns 1 on a
@@ -932,7 +932,7 @@ impl Sim {
     /// recomputed either way, exactly as `00683770` does: the work cap, the
     /// stride, the row width, the direction increment and `toff`.
     fn astar_path(&mut self, u: usize, m: &Modes, step: i32, anti: i32, resume: bool) -> i32 {
-        // **The entry** is `crate::astar_view::entry_steps` (item 3381,
+        // **The entry** is `crate::movement::astar_view::entry_steps` (item 3381,
         // `sweep::path_finder_astar_suspend`): the work cap, the stride
         // (`max(1, (collision size + 1) / 2)` steps on the unit grid, whose
         // larger units also check the intermediate diagonal positions,
@@ -996,7 +996,7 @@ impl Sim {
                 return 0;
             }
             // The two pops, the root node, the region tests and the wheel's
-            // start are `crate::astar_view::fresh_steps`. The arrival
+            // start are `crate::movement::astar_view::fresh_steps`. The arrival
             // tolerance is the *final* goal's — the entry now on top — not
             // the search-goal entry's.
             let f = fresh_steps(&mut SimAstar { sim: self, u }, step);
@@ -1413,7 +1413,7 @@ impl Sim {
             let can_transport = (self.units[u].auto_transport && !self.units[u].never_transport)
                 || self.units[u].ty.is_some_and(|t| {
                     self.tables.unit_types[t].cols.unit_flags
-                        & crate::ai_load::uflags::FLAG_TRANSPORT
+                        & crate::ai::ai_load::uflags::FLAG_TRANSPORT
                         != 0
                 });
             let mut tolerance = match step {
@@ -1484,7 +1484,10 @@ impl Sim {
     /// it, since a human jumps the whole mode block (`leaders & 4` at
     /// `0068973d`).
     pub(crate) fn find_wpath_from(&mut self, u: usize, here: Pos, army_hint: bool) -> i32 {
-        crate::wpath::find_wpath_steps(&mut crate::wpath::SimWpath::new(self, u, army_hint), here)
+        crate::movement::wpath::find_wpath_steps(
+            &mut crate::movement::wpath::SimWpath::new(self, u, army_hint),
+            here,
+        )
     }
 
     /// `find_wpath`'s search: `astar_path` on the world grid with the modes
@@ -1520,11 +1523,14 @@ impl Sim {
     }
 
     /// `PathFinder::find_tpath` — the tile-grid planner
-    /// (`find_tpath@006897d0`), as [`crate::tpath::find_tpath_steps`] over
+    /// (`find_tpath@006897d0`), as [`crate::movement::tpath::find_tpath_steps`] over
     /// this unit (item 3337).
     pub(crate) fn find_tpath(&mut self, u: usize) -> i32 {
         let here = self.units[u].pos;
-        crate::tpath::find_tpath_steps(&mut crate::tpath::SimTpath { sim: self, u }, here)
+        crate::movement::tpath::find_tpath_steps(
+            &mut crate::movement::tpath::SimTpath { sim: self, u },
+            here,
+        )
     }
 
     /// `PathFinder::find_upath` — the 48-grid planner, collision
@@ -1558,7 +1564,7 @@ impl Sim {
     }
 
     /// `PathFinder::find_upath@00682f30`, as
-    /// [`crate::upath::find_upath_steps`] over this unit (item 3339).
+    /// [`crate::movement::upath::find_upath_steps`] over this unit (item 3339).
     /// `resume` is the global `saving`.
     fn upath(&mut self, u: usize, anti: bool, limit: i32, resume: bool) -> i32 {
         let here = self.units[u].pos;
@@ -1569,7 +1575,7 @@ impl Sim {
             resume,
             keep: Vec::new(),
         };
-        crate::upath::find_upath_steps(&mut v, here, i32::from(anti))
+        crate::movement::upath::find_upath_steps(&mut v, here, i32::from(anti))
     }
 
     /// The `army` mode: a military unit, not a worker, **not attacking**, and
@@ -1611,7 +1617,7 @@ impl Sim {
     fn army_mode(&self, u: usize) -> bool {
         let armed = self.units[u].ty.is_some_and(|t| {
             let ty = &self.tables.unit_types[t];
-            ty.combat.attack > 0 || ty.cols.flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
+            ty.combat.attack > 0 || ty.cols.flag2(crate::ai::ai_load::uflags2::SUPPLY_OR_HERO)
         });
         let worker = self.units[u]
             .ty
@@ -1634,7 +1640,7 @@ impl Sim {
     /// army walking under an attack-to priced its own city's negative
     /// danger and cut through it (`docs/PATHFINDER.md` §28).
     fn no_danger_mode(&self, u: usize) -> bool {
-        crate::astar_view::no_danger_steps(&mut SimNoDanger { sim: self, u })
+        crate::movement::astar_view::no_danger_steps(&mut SimNoDanger { sim: self, u })
     }
 }
 
@@ -1660,7 +1666,7 @@ impl NoDangerView for SimNoDanger<'_> {
 }
 
 /// The crate's [`Sim`] as `astar_path`'s view (item 3381,
-/// [`crate::astar_view`]): unit `u`, its orders, the world and its path
+/// [`crate::movement::astar_view`]): unit `u`, its orders, the world and its path
 /// stack. The pathfinder's own words (`+0x74`, `+0x7c`, `+0x88`, `+0x8c`,
 /// `+0x90`) and the root node's trees have no field here — the loop keeps
 /// them in locals and containers — so their setters are empty.
@@ -1694,7 +1700,8 @@ impl AstarView for SimAstar<'_> {
     }
     fn transport_type(&mut self) -> bool {
         self.sim.units[self.u].ty.is_some_and(|t| {
-            self.sim.tables.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT
+            self.sim.tables.unit_types[t].cols.unit_flags
+                & crate::ai::ai_load::uflags::FLAG_TRANSPORT
                 != 0
         })
     }
@@ -1830,7 +1837,7 @@ struct SimUpath<'a> {
     keep: Vec<PathData>,
 }
 
-impl crate::upath::UpathView for SimUpath<'_> {
+impl crate::movement::upath::UpathView for SimUpath<'_> {
     fn begin(&mut self, here: Pos) {
         // `pathfinder +0x58/+0x5c`; the unit pointer and the zeroed
         // `+0x68/+0x6c/+0x94` have no field of their own here.
@@ -1861,7 +1868,7 @@ impl crate::upath::UpathView for SimUpath<'_> {
         self.sim.units[self.u].path.len() as i32
     }
     fn domain_below_2(&self) -> bool {
-        self.sim.unit_domain_of(self.u) != crate::attrition::Domain::Air
+        self.sim.unit_domain_of(self.u) != crate::territory::attrition::Domain::Air
     }
     fn can_transport(&mut self) -> bool {
         self.sim.unit_can_transport(self.u)

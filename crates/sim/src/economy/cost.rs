@@ -11,8 +11,8 @@
 //! divide by a hundred or a shift by eight, in the original's order, so the
 //! truncations land where the original's land.
 
+use crate::core::tuning::Tuning;
 use crate::economy::{Ledger, RESOURCES, Resource};
-use crate::tuning::Tuning;
 
 /// Which of the four cost factors a type is scaled by.
 ///

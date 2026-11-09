@@ -29,7 +29,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let _ = (&a, &m, &c, &p);
         {
             // **The port is the crate's own steps**,
-            // `crate::upath::find_upath_steps`, which `Sim::upath` runs over
+            // `crate::movement::upath::find_upath_steps`, which `Sim::upath` runs over
             // its `SimUpath`; here the view is the emulated original's
             // windows.
             //
@@ -62,8 +62,8 @@ fn the_emulated_original_agrees_on_every_row() {
             // `keep`'s list, `p8` the order `update_order` answers, `p9` the
             // `MoveOrder` its slot `+0x40` answers (`+0x1c` retry).
             use crate::Pos;
+            use crate::movement::upath::{UpathView, find_upath_steps};
             use crate::orders::PathData;
-            use crate::upath::{UpathView, find_upath_steps};
             fn rd32(w: &[u8], o: usize) -> i32 {
                 i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
             }

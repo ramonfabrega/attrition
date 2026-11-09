@@ -1,6 +1,6 @@
 //! `CityData::get_farm_limit@00738230` under the emulator against the port (item 2090; hand-written on tools/emu/hooks.py).
 
-use crate::city::farm_limit_by;
+use crate::cities::city::farm_limit_by;
 
 /// `CityData::get_farm_limit@00738230`, run by `tools/emu/sweep_city_data_get_farm_limit.py` under unicorn
 /// (tools/emu): the city's object through the per-player list, its slot `+0x3c`'s building's type index read as

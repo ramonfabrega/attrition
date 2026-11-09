@@ -24,8 +24,8 @@
 //! would. They are listed in the worker's report.
 
 use crate::ai::Census;
-use crate::ai_load::{role, uflags, uflags2};
-use crate::build::{self, Ident, flags};
+use crate::ai::ai_load::{role, uflags, uflags2};
+use crate::cities::build::{self, Ident, flags};
 use crate::economy::RESOURCES;
 use crate::orders::Worker;
 use crate::tech::{self, TypeId};
@@ -49,7 +49,7 @@ const KNOWLEDGE: usize = 3;
 
 /// `BUILD_FLAGS` digit `5` — `BuildTypeData::is_military_trainer`, `+0x2c0
 /// & 0x40000000`. `build::flags::parse` already folds it; it has no name in
-/// [`crate::build::flags`] because no other mechanic reads it.
+/// [`crate::cities::build::flags`] because no other mechanic reads it.
 const MILITARY_TRAINER: u32 = 0x4000_0000;
 
 /// The `role` word (`UnitTypeData+0x2c8`, `UnitType::determine_roles`) and
@@ -110,9 +110,9 @@ impl Sim {
         let p = &u.combat;
         let citizen = u.worker != Worker::None;
         let (land, sea, air) = match p.domain {
-            crate::attrition::Domain::Land => (true, false, false),
-            crate::attrition::Domain::Sea => (false, true, false),
-            crate::attrition::Domain::Air => (false, false, true),
+            crate::territory::attrition::Domain::Land => (true, false, false),
+            crate::territory::attrition::Domain::Sea => (false, true, false),
+            crate::territory::attrition::Domain::Air => (false, false, true),
         };
         // The derived words the producers read are on the type now —
         // `docs/DATALAYER.md`, "The derived words no column carries" — so
@@ -149,7 +149,7 @@ impl Sim {
 
     /// The type's `role` word (`UnitTypeData+0x2c8`).
     ///
-    /// The loader derives it — [`crate::ai_load::determine_roles`], checked
+    /// The loader derives it — [`crate::ai::ai_load::determine_roles`], checked
     /// against the original's own dump for all 364 types — and a type that
     /// carries one is authoritative. A type built by hand in a test carries
     /// zero, and this rebuilds a word from what such a type *does* have:
@@ -163,15 +163,15 @@ impl Sim {
             return u.cols.role;
         }
         let p = &u.combat;
-        let land = p.domain == crate::attrition::Domain::Land;
-        let sea = p.domain == crate::attrition::Domain::Sea;
-        let mut r = crate::ai_load::determine_roles(&crate::ai_load::RoleFacts {
+        let land = p.domain == crate::territory::attrition::Domain::Land;
+        let sea = p.domain == crate::territory::attrition::Domain::Sea;
+        let mut r = crate::ai::ai_load::determine_roles(&crate::ai::ai_load::RoleFacts {
             citizen_id: u.worker != Worker::None,
             domain: p.domain,
             cat: if u.worker == Worker::None {
-                crate::ai_load::cat::UNIT_CAT_FOOT
+                crate::ai::ai_load::cat::UNIT_CAT_FOOT
             } else {
-                crate::ai_load::cat::UNIT_CAT_CIVILIAN
+                crate::ai::ai_load::cat::UNIT_CAT_CIVILIAN
             },
             attack: if p.combat_role { p.attack.max(1) } else { 0 },
             max_range: p.max_range,
@@ -249,7 +249,7 @@ impl Sim {
     /// 2026-08-25**: all three are on [`crate::UnitType::cols`], derived by
     /// the loader and checked against the original's own type dump
     /// (`docs/DATALAYER.md`). What replaced them is [`Sim::role_word`] and
-    /// [`crate::ai_load::UnitCols::flag`]/`flag2`.
+    /// [`crate::ai::ai_load::UnitCols::flag`]/`flag2`.
     ///
     /// **Seam** — `leaders[j].leader_flags & 4`, "is a human player"
     /// (`docs/audit/2026-08-23-pathfinder.md`). Stands in as "has no
@@ -1396,7 +1396,7 @@ impl Sim {
     /// and never binds inside eight cells.
     fn find_dock_near(&self, who: Player, at: crate::world::Pos) -> Option<usize> {
         const RADIUS: i32 = 0x1800;
-        let circ = crate::ai_place::circle();
+        let circ = crate::ai::ai_place::circle();
         let home = at.cell();
         let a = at.tile();
         let mut best: Option<(i32, usize)> = None;
@@ -2388,7 +2388,7 @@ impl Sim {
     /// non-siege military type.
     ///
     /// **"Better" is `UnitTypeData::relative_value`**
-    /// ([`crate::relative_value`]), the matchup table the loader fills from
+    /// ([`crate::ai::relative_value`]), the matchup table the loader fills from
     /// the two types' masks — not the combat table's `return_modifier`,
     /// which this read until item 3793 (`docs/GOLDEN.md` §150.5): the
     /// second melee's Light Horse read −24 against the Nubians where the
@@ -2428,7 +2428,7 @@ impl Sim {
                 if !kp.combat_role {
                     continue;
                 }
-                let k_air = kp.domain == crate::attrition::Domain::Air;
+                let k_air = kp.domain == crate::territory::attrition::Domain::Air;
                 let counts = if !f.land {
                     // Not a land type: the domains must match, or `k` is air
                     // and `t` is anti-air.
@@ -2447,8 +2447,8 @@ impl Sim {
                     &self.tables.unit_types[k].rel,
                 );
                 sum = sum.wrapping_add(wm(
-                    crate::relative_value::relative_value(mine, theirs)
-                        - crate::relative_value::relative_value(theirs, mine),
+                    crate::ai::relative_value::relative_value(mine, theirs)
+                        - crate::ai::relative_value::relative_value(theirs, mine),
                     weight,
                 ));
                 total += weight;

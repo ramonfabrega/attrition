@@ -1,4 +1,4 @@
-use crate::build::{BuildType, Ident};
+use crate::cities::build::{BuildType, Ident};
 
 /// **The recruiter's wonder test is the range flag** (twenty-fourth
 /// pass, group 5; A8 row 29): a Forbidden City site recruits like any

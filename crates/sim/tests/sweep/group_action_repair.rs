@@ -34,10 +34,10 @@ fn the_emulated_original_agrees_on_every_row() {
         // their data (`+4` the type). `a`: the three arguments, the sixteen stubs' answers (`a[3..19]`) and
         // the `--seq` runs (`SEQ_AT`).
         //
-        // **The port is the crate's own steps**, `crate::repair_view::action_repair_steps`, **unwired**
+        // **The port is the crate's own steps**, `crate::groups::repair_view::action_repair_steps`, **unwired**
         // (nothing issues the `repair` command); here the view is the emulated original's windows.
-        use crate::garrison_view::GarrisonHead;
-        use crate::repair_view::{RepairView, action_repair_steps};
+        use crate::groups::garrison_view::GarrisonHead;
+        use crate::groups::repair_view::{RepairView, action_repair_steps};
         const SEQ_AT: [(usize, usize, usize); 5] =
             [(2, 19, 4), (3, 23, 4), (8, 27, 5), (9, 32, 4), (10, 36, 4)];
         struct V<'a> {

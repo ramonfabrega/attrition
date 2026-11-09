@@ -13,10 +13,10 @@
 //! `down`/`down_who`. The objects themselves (their checksum lines, the
 //! herds) are not held: what later phases read of them is in the cell.
 
-use crate::ai_place::{MOVE_X, MOVE_Y};
+use crate::ai::ai_place::{MOVE_X, MOVE_Y};
 use crate::mapgen::MapGrid;
-use crate::scout::circle;
-use crate::terrain_groups::{Draws, set_blocked_at};
+use crate::mapgen::terrain_groups::{Draws, set_blocked_at};
+use crate::units::think::scout::circle;
 use crate::world::vector_dist;
 
 /// The draw sites, as return addresses.

@@ -46,7 +46,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-                // **The port is the crate's own steps**, `crate::spellcaster::think_spellcaster_steps`, which
+                // **The port is the crate's own steps**, `crate::units::think::spellcaster::think_spellcaster_steps`, which
                 // `Sim::think_spellcaster` runs over its `SimCaster`; here the view is the emulated original's windows.
                 //
                 // `a`: no stack argument; then the fifteen stubs' single answers (`a[k]` for stub k: 0 the unit's
@@ -68,7 +68,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 // Four words of `find`'s thirteen are the stack's and not the function's (the `sub esp, 0xc` between
                 // its pushes) and so is the `ecx` it is called with (`get_range` left it): both sides are masked in
                 // the comparison below.
-                use crate::spellcaster::{CasterView, think_spellcaster_steps};
+                use crate::units::think::spellcaster::{CasterView, think_spellcaster_steps};
                 struct V<'a> {
                     a: &'a [i32],
                     m: &'a [u8],

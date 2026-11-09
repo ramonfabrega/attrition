@@ -39,7 +39,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let (o1, o2) = (a[0] != 0, a[1] != 0);
             let mut out1 = [0i32; 6];
             let mut out2 = [0i32; 6];
-            let total = crate::ai_types::gather_slots_walk(
+            let total = crate::ai::ai_types::gather_slots_walk(
                 i32::from(i16::from_le_bytes([m[8], m[9]])),
                 |i| i32::from(i16::from_le_bytes([p[8 + i][0x74], p[8 + i][0x75]])),
                 |_| {

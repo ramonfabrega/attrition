@@ -1,6 +1,6 @@
 //! `UnitData::can_ever_transport@0046f290` under the emulator against the port (item 2112; hand-written on tools/emu/hooks.py).
 
-use crate::transport::can_ever_transport_by;
+use crate::ai::transport::can_ever_transport_by;
 
 /// `UnitData::can_ever_transport@0046f290`, run by `tools/emu/sweep_unit_data_can_ever_transport.py` under
 /// unicorn (tools/emu): the domain, `this`'s slot `+0x18`, the looked-up unit's carry and `is(0x15f, 0)` — through

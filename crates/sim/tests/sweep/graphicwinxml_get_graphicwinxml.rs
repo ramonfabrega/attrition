@@ -13,7 +13,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let t = i32::try_from(a[0]).expect("a 32-bit address");
         assert_eq!(
             want,
-            i64::from(crate::flag_reads::graphic_win_xml(t)),
+            i64::from(crate::core::flag_reads::graphic_win_xml(t)),
             "GraphicWinXML::get_graphicwinxml — row `{line}`"
         );
         n += 1;

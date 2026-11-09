@@ -12,7 +12,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let (_, want) = super::row(line);
         assert_eq!(
             want,
-            crate::flag_reads::BUILD_NUM_PREQ,
+            crate::core::flag_reads::BUILD_NUM_PREQ,
             "BuildTypeData::num_preq — row `{line}`"
         );
         n += 1;

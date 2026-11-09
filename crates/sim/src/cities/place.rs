@@ -8,12 +8,12 @@
 //! and cities — and returns a [`Blocked`] with the original's own numbering,
 //! so a refused placement can be named the way the interface names it.
 
-use crate::build::{self, Ident, flags};
+use crate::cities::build::{self, Ident, flags};
 use crate::world::{Owner, Pos, TILES_PER_CELL, UNITS_PER_TILE, tile, vector_dist};
 use crate::{Player, Sim};
 
 /// `move_x[0..=80]` / `move_y[0..=80]` — the offset spiral read from
-/// `.rdata` at `0x00adcaf0` and `0x00adc400` (`crate::ai_sites` carries
+/// `.rdata` at `0x00adcaf0` and `0x00adc400` (`crate::ai::ai_sites` carries
 /// its first 25 and its radius-5 ring): the centre, then rings of radius 1
 /// to 4, which `snap_center`'s dock arm walks from index 1.
 const SPIRAL_X: [i32; 81] = [
@@ -487,7 +487,7 @@ impl Sim {
     }
 
     /// `BuildTypeData::blocked_tcoord@00636db0`: one tile, by
-    /// [`crate::tcoord::blocked_tcoord_steps`] (swept against the original,
+    /// [`crate::cities::tcoord::blocked_tcoord_steps`] (swept against the original,
     /// item 3346); this builds its view. A tile the leader has not seen
     /// answers `Seen` (`0x24`) for every refusal but its three contents
     /// arms, which answer `Unseen` (`0x23`) once the tile is seen and
@@ -500,9 +500,9 @@ impl Sim {
         t: Pos,
         exclude: Option<usize>,
     ) -> Blocked {
-        let mut view = crate::tcoord::SimTcoord { sim: self, ty };
+        let mut view = crate::cities::tcoord::SimTcoord { sim: self, ty };
         let exclude = exclude.map_or(-1, |e| i32::try_from(e).expect("a building index"));
-        Blocked::from_code(crate::tcoord::blocked_tcoord_steps(
+        Blocked::from_code(crate::cities::tcoord::blocked_tcoord_steps(
             &mut view,
             who.map_or(-1, i32::from),
             t.x,
@@ -541,13 +541,13 @@ impl Sim {
 
     /// `BuildTypeData::blocked_location@006375b0`: the site, and the gather
     /// count its tail hands back through `param_7`. By
-    /// [`crate::location::blocked_location_steps`] (swept against the
+    /// [`crate::cities::location::blocked_location_steps`] (swept against the
     /// original, item 3364; `docs/CITIES.md` §2.6); this builds its view.
     ///
     /// **A seam.** The player-less form (`who == None`, the cursor's) skips
     /// every ownership gate as the original does, but its gather survey
     /// walks `calc_gather` with `who = −1`, which has no oracle: the view
-    /// answers a positive count there ([`crate::location::SimLocation`]).
+    /// answers a positive count there ([`crate::cities::location::SimLocation`]).
     pub fn blocked_location(
         &self,
         who: Option<Player>,
@@ -556,14 +556,14 @@ impl Sim {
         corner: Pos,
         exclude: Option<usize>,
     ) -> (Blocked, i32) {
-        let mut view = crate::location::SimLocation {
+        let mut view = crate::cities::location::SimLocation {
             sim: self,
             ty,
             pos,
             corner,
             out: None,
         };
-        let args = crate::location::LocArgs {
+        let args = crate::cities::location::LocArgs {
             px: pos.x,
             py: pos.y,
             tx: corner.x,
@@ -572,14 +572,14 @@ impl Sim {
             exclude: exclude.map_or(-1, |e| i32::try_from(e).expect("a building index")),
             has_out: true,
         };
-        let r = crate::location::blocked_location_steps(&mut view, &args);
+        let r = crate::cities::location::blocked_location_steps(&mut view, &args);
         (Blocked::from_code(r), view.out.unwrap_or(0))
     }
 
     /// `has_preq(COLONIZE_BONUS)`: the bonus row's one prerequisite — the
     /// tree names it in `roles.colonize_preq`; a tree that does not know it
     /// grants it, the way every type outside the tree is ungated
-    /// ([`crate::transport`]'s `transport_preq_held` is the same rule for
+    /// ([`crate::ai::transport`]'s `transport_preq_held` is the same rule for
     /// the third bonus). It is a **technology's** prerequisite rather than a
     /// nation's bonus: the fourth of `rules.xml`'s `TECHBONUSES`, whose
     /// `preq0` is Coinage — carried as a nation flag nothing ever set until

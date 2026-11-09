@@ -1,6 +1,6 @@
 //! `Unit::set_type@00612fa0` under the emulator against the port (item 3402; tools/sweep_gen.py, obj with windows).
 
-use sim::unit_set_type_view::{self, UnitSetTypeView};
+use sim::units::unit_set_type_view::{self, UnitSetTypeView};
 
 #[allow(dead_code)]
 fn rd(m: &[u8], off: usize) -> i32 {

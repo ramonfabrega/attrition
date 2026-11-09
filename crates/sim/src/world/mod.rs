@@ -26,7 +26,7 @@
 //! The table is filled for negative indices too, with `(i - 2) / 3`, which is
 //! floor division rather than C's truncation. [`Pos::cell`] therefore floors.
 
-use crate::single::Single;
+use crate::num::single::Single;
 
 /// A player index.
 ///
@@ -287,7 +287,7 @@ pub struct World {
     /// `int[reg_size]` per leader over a **half-resolution cell** grid
     /// (`reg_xs × reg_ys`, each entry two cells square).
     ///
-    /// [`crate::danger`] is the writer (`GameDaemon::calc_danger`, every
+    /// [`crate::world::danger`] is the writer (`GameDaemon::calc_danger`, every
     /// two hundredth frame) and every consumer indexes it the one way the
     /// executable does — `reg_xs × div3(y >> 9) + div3(x >> 9)`, which is
     /// [`World::danger_half`] at the position's cell. Eight rows, one per
@@ -304,7 +304,7 @@ pub struct World {
     /// `find_tcoord_z` reads, `4·xs + 1` columns by `4·ys + 1` rows, as
     /// the original's own singles: each recovered at load from the
     /// six-decimal print the dump gives it, and rewritten by
-    /// `crate::terrain` in the original's SSE arithmetic (item 3390,
+    /// `crate::world::terrain` in the original's SSE arithmetic (item 3390,
     /// `docs/DECISIONS.md` entry 31's owed upgrade).
     ///
     /// [`World::tile_z`] is the pinned per-tile table derived from it; this
@@ -359,6 +359,14 @@ pub struct World {
     /// deduplicated, empty for a sea region; rebuilt by
     /// [`World::rebuild_coasts`].
     coast: Vec<Vec<u16>>,
+    /// `sim::observe`'s terrain counter: moves on every write that changes
+    /// a tile height, a corner or a cell record ([`World::terrain_version`]).
+    /// No mechanic reads it; it is the renderer's cue to refetch the grid
+    /// (`docs/RENDERER.md` §2.3, item 4017).
+    terrain_version: u32,
+    /// `sim::observe`'s territory counter: moves on every write that
+    /// changes a cell's `(who, who2)` ([`World::territory_version`]).
+    territory_version: u32,
 }
 
 /// `WData::flags`, defined in [`crate::ids::cell`].
@@ -562,7 +570,7 @@ pub mod tile {
     /// both inline (`and $0xefff`): `Build::close@00628980`'s tail over the
     /// closing building's own list, and `Build::verify_gather_tiles@00623570`
     /// over a tile it drops (`docs/ECONOMY.md` §17). Re-exported as
-    /// [`crate::gather::GATHERED_FROM`], which is where the gather-site pass
+    /// [`crate::economy::gather::GATHERED_FROM`], which is where the gather-site pass
     /// that sets it lives; [`World::gather_at`] is the other reader.
     pub const GATHERED_FROM: u16 = 0x1000;
     /// Next to something blocked (`set_bad_path`).
@@ -804,7 +812,28 @@ impl World {
             fog_now: Vec::new(),
             fog_detect: Vec::new(),
             coast: Vec::new(),
+            terrain_version: 0,
+            territory_version: 0,
         }
+    }
+
+    /// How many writes have changed the terrain grids — the tile heights,
+    /// the corner grid or a cell record — since the world was made. Read by
+    /// [`crate::observe`]; nothing in the simulation reads it.
+    pub const fn terrain_version(&self) -> u32 {
+        self.terrain_version
+    }
+
+    /// How many writes have changed a cell's claimants since the world was
+    /// made. Read by [`crate::observe`]; nothing in the simulation reads it.
+    pub const fn territory_version(&self) -> u32 {
+        self.territory_version
+    }
+
+    /// The tile height grid, row-major over `width × 4` columns; empty on a
+    /// world with no height table.
+    pub fn tile_z_grid(&self) -> &[i32] {
+        &self.tile_z
     }
 
     /// `Regions::set_coastals@0067fd70`'s `coast` masks: for every cell of
@@ -1065,6 +1094,9 @@ impl World {
     /// carries the change into [`World::tile_z`].
     pub fn set_corner_z(&mut self, x: i32, y: i32, z: Single, exact: bool) {
         if let Some(i) = self.corner_index(x, y) {
+            if self.corner_z[i] != z || self.corner_exact[i] != exact {
+                self.terrain_version = self.terrain_version.wrapping_add(1);
+            }
             self.corner_z[i] = z;
             self.corner_exact[i] = exact;
         }
@@ -1072,7 +1104,7 @@ impl World {
 
     /// `TerrainOut::find_data_z@00866560(x, y, 0)` — the ground's height
     /// under a world point, as the original's SSE computes it, in
-    /// [`crate::single::Single`] arithmetic (`docs/COMBAT.md` §46.2).
+    /// [`crate::num::single::Single`] arithmetic (`docs/COMBAT.md` §46.2).
     ///
     /// The cell is `div_3_table[x >> 6]`, a floor of `x / 192`, clamped to
     /// the grid; the point's offset in it picks one of the cell's two
@@ -1086,7 +1118,7 @@ impl World {
     ///
     /// Returns the height and whether every corner it read is the
     /// original's own single: a corner whose print is shared by a
-    /// neighbouring single ([`crate::single::Single::from_millionths`]), or one a
+    /// neighbouring single ([`crate::num::single::Single::from_millionths`]), or one a
     /// terraform has rewritten, is a choice and not a recovery. A world
     /// with no grid answers `(0, true)`, as [`World::tile_z`] does.
     pub fn data_z(&self, x: i32, y: i32) -> (i32, bool) {
@@ -1158,6 +1190,7 @@ impl World {
         }
         self.corner_exact = vec![true; z.len()];
         self.corner_z = z;
+        self.terrain_version = self.terrain_version.wrapping_add(1);
         let (tw, th) = (self.width * TILES_PER_CELL, self.height * TILES_PER_CELL);
         for ty in 0..th {
             for tx in 0..tw {
@@ -1197,6 +1230,9 @@ impl World {
             if self.tile_z.is_empty() {
                 self.tile_z = vec![0; self.tiles.len()];
             }
+            if self.tile_z[i] != z {
+                self.terrain_version = self.terrain_version.wrapping_add(1);
+            }
             self.tile_z[i] = z;
         }
     }
@@ -1235,6 +1271,9 @@ impl World {
     /// Writes a cell's record (the map loader's, and a test's).
     pub fn set_cell_data(&mut self, c: Cell, d: CellData) {
         if let Some(i) = self.index(c) {
+            if self.cells[i] != d {
+                self.terrain_version = self.terrain_version.wrapping_add(1);
+            }
             self.cells[i] = d;
         }
     }
@@ -1800,7 +1839,7 @@ impl World {
     }
 
     /// Every cell's `(who, who2)`, row-major — what a border fix's pass
-    /// copies onto the map ([`crate::border_pass`]).
+    /// copies onto the map ([`crate::territory::border_pass`]).
     pub fn owners(&self) -> Vec<(Owner, Owner)> {
         self.who
             .iter()
@@ -1812,6 +1851,9 @@ impl World {
     /// Writes every cell's `(who, who2)` from [`World::owners`]' shape.
     pub fn set_owners(&mut self, all: &[(Owner, Owner)]) {
         for (i, &(a, b)) in all.iter().enumerate().take(self.who.len()) {
+            if self.who[i] != a || self.who2[i] != b {
+                self.territory_version = self.territory_version.wrapping_add(1);
+            }
             self.who[i] = a;
             self.who2[i] = b;
         }
@@ -1824,6 +1866,9 @@ impl World {
 
     pub fn set_owner(&mut self, c: Cell, who: Owner, who2: Owner) {
         if let Some(i) = self.index(c) {
+            if self.who[i] != who || self.who2[i] != who2 {
+                self.territory_version = self.territory_version.wrapping_add(1);
+            }
             self.who[i] = who;
             self.who2[i] = who2;
         }
@@ -2067,11 +2112,11 @@ pub struct WorldState {
     /// tiles and solid cells laid at its location (`gather.rs`,
     /// [`gather::PlacedMountain`]). Empty when nothing supplied them, and
     /// then [`Sim::mountain_range`] stands a range up from the tiles.
-    pub mountains: Vec<crate::gather::PlacedMountain>,
+    pub mountains: Vec<crate::economy::gather::PlacedMountain>,
     /// `CliffsData::cliff_mining_data`, the scary cliffs a mine may stand
     /// against, by queue index ([`cliff_mine::CliffMining`]). Empty when
     /// nothing laid them ([`Sim::place_cliffs`]); no dump prints them.
-    pub cliffs: Vec<crate::cliff_mine::CliffMining>,
+    pub cliffs: Vec<crate::economy::cliff_mine::CliffMining>,
     /// `WData::down` per world cell: the head of the object chain (§3).
     pub chain_heads: Vec<Option<usize>>,
 }

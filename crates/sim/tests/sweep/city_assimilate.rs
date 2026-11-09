@@ -37,9 +37,9 @@ fn the_emulated_original_agrees_on_every_row() {
             // bonus, 8 `find_unit`, 9 `get_gov_hero`, 13 `parse`, 16 `get_neon`), `a[18..]` the slot `+0x4c`,
             // `+0xb8` and `+0x60` stubs' ten answers each, in call order.
             //
-            // **The port is the crate's own steps**, `crate::city::assimilate_steps`, which `Sim::assimilate`
+            // **The port is the crate's own steps**, `crate::cities::city::assimilate_steps`, which `Sim::assimilate`
             // calls over its `SimAssimilate`; here the view is the emulated original's windows.
-            use crate::city::{AssimilateView, assimilate_steps};
+            use crate::cities::city::{AssimilateView, assimilate_steps};
             fn rd16(w: &[u8], o: usize) -> i32 {
                 i16::from_le_bytes([w[o], w[o + 1]]) as i32
             }

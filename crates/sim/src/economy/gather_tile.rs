@@ -213,7 +213,7 @@ impl GatherTileView for SimGatherTile<'_> {
         self.sim.economy.ledgers[who as usize].dirty = true;
     }
     fn stand(&mut self) {
-        self.sim.mark(crate::anim::SITE_STAND_GATHER);
+        self.sim.mark(crate::units::anim::SITE_STAND_GATHER);
         self.sim.set_default_anim(self.u);
     }
     fn order_tile_gatherable(&mut self, tx: i32, ty: i32) -> bool {
@@ -238,14 +238,14 @@ impl GatherTileView for SimGatherTile<'_> {
     }
     fn site_mtn(&mut self) -> i32 {
         // `MiningList::mtn >= 0` is a Mine's range; the crate has no field.
-        if self.sim.building_ident(self.b) == crate::build::Ident::Mine {
+        if self.sim.building_ident(self.b) == crate::cities::build::Ident::Mine {
             0
         } else {
             -1
         }
     }
     fn mtn_tiny(&mut self) -> i32 {
-        crate::gather::MOUNTAIN_GATHER[0].0
+        crate::economy::gather::MOUNTAIN_GATHER[0].0
     }
     fn tile_at(&mut self, i: i32) -> (i32, i32) {
         let t = self.sim.buildings[self.b].gather_from[i as usize];
@@ -272,7 +272,7 @@ impl GatherTileView for SimGatherTile<'_> {
         self.sim.rng.roll()
     }
     fn site_is_woodcutter(&mut self) -> bool {
-        self.sim.building_ident(self.b) == crate::build::Ident::Woodcutter
+        self.sim.building_ident(self.b) == crate::cities::build::Ident::Woodcutter
     }
     fn or_unit_flags(&mut self, bits: u32) {
         self.sim.units[self.u].carry |= bits;

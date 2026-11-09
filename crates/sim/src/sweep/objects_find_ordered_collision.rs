@@ -62,7 +62,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 let (idx, who) = (rd16(w, 0x2c), rd16(w, 0x2e));
                 (idx >= 0).then_some((idx, who))
             };
-            crate::collide::chain_hit_steps(
+            crate::movement::collide::chain_hit_steps(
                 (ux, uy),
                 mine,
                 |dx, dy| {
@@ -114,7 +114,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 .map(|i| rd16(grp, 0x8cc + 2 * i) as usize)
                 .collect();
             let open = g >= 0 && flag && grp[0x49] == 0;
-            crate::collide::ordered_group_steps(
+            crate::movement::collide::ordered_group_steps(
                 open.then_some((grp[0x4a], &list[..])),
                 o as usize,
                 who as crate::Player,

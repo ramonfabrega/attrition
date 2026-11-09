@@ -1,6 +1,6 @@
 use super::*;
 use crate::combat::Rng;
-use crate::tuning::Tuning;
+use crate::core::tuning::Tuning;
 use crate::world::World;
 
 /// A sim on a blank world, its stream set to `seed`.

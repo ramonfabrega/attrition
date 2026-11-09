@@ -17,10 +17,10 @@ use super::*;
 fn run1469_s_attack_helicopter_rockets_leave_from_its_pods() {
     let at = Pos::new(13560, 16056);
     for (node, start, want) in [(0, 0, (13488, 16015)), (1, 6, (13638, 16029))] {
-        let p = launch_point(at, Angle(0), 261, crate::anim::ATTACK2, start, node);
+        let p = launch_point(at, Angle(0), 261, crate::units::anim::ATTACK2, start, node);
         assert_eq!((p.x, p.y), want, "node {node}");
         assert_eq!(
-            release_dz(261, crate::anim::ATTACK2, start, node),
+            release_dz(261, crate::units::anim::ATTACK2, start, node),
             Some(41),
             "node {node}"
         );
@@ -37,10 +37,10 @@ fn run1469_s_attack_helicopter_rockets_leave_from_its_pods() {
 fn run1473_s_advanced_machine_gun_pair_leaves_from_its_muzzle() {
     let (at, facing) = (Pos::new(20520, 18360), Angle(-449_576_960));
     for (start, want, dz) in [(3, (20432, 18244), 98), (4, (20434, 18245), 99)] {
-        let p = launch_point(at, facing, 77, crate::anim::ATTACK3, start, 0);
+        let p = launch_point(at, facing, 77, crate::units::anim::ATTACK3, start, 0);
         assert_eq!((p.x, p.y), want, "frame {start}");
         assert_eq!(
-            release_dz(77, crate::anim::ATTACK3, start, 0),
+            release_dz(77, crate::units::anim::ATTACK3, start, 0),
             Some(dz),
             "frame {start}"
         );
@@ -104,13 +104,13 @@ fn the_fighter_bombers_rounds_leave_from_their_wings() {
             Pos::new(at.0, at.1),
             facing,
             piece,
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             1,
             node,
         );
         assert_eq!((p.x, p.y), want, "piece {piece} node {node}");
         assert_eq!(
-            release_dz(piece, crate::anim::ATTACK2, 1, node),
+            release_dz(piece, crate::units::anim::ATTACK2, 1, node),
             Some(dz),
             "piece {piece} node {node}"
         );
@@ -130,7 +130,7 @@ fn the_original_s_release_agrees_at_every_heading_for_pieces_258_and_259() {
     };
     let (mut rows, mut off) = (0, Vec::new());
     for (piece, node, time) in [(258, 0, 1), (258, 1, 1), (259, 0, 9), (259, 1, 4)] {
-        let b = bay(piece, crate::anim::ATTACK2, 1, node).expect("a row");
+        let b = bay(piece, crate::units::anim::ATTACK2, 1, node).expect("a row");
         let path = format!("{dir}/sweep-{piece}-n{node}-a12-t{time}.txt");
         let table = std::fs::read_to_string(&path).expect("RON_BAY_SWEEPS_3829");
         for line in table.lines() {
@@ -165,10 +165,10 @@ fn run1477_s_mg42_burst_leaves_from_its_muzzle() {
         (3, (17508, 15575), 93),
         (5, (17505, 15573), 98),
     ] {
-        let p = launch_point(at, facing, 80, crate::anim::ATTACK2, start, 0);
+        let p = launch_point(at, facing, 80, crate::units::anim::ATTACK2, start, 0);
         assert_eq!((p.x, p.y), want, "frame {start}");
         assert_eq!(
-            release_dz(80, crate::anim::ATTACK2, start, 0),
+            release_dz(80, crate::units::anim::ATTACK2, start, 0),
             Some(dz),
             "frame {start}"
         );
@@ -226,7 +226,7 @@ fn run1479_s_recoilless_rounds_leave_from_their_muzzles() {
         (
             (18312, 15672),
             -181_600_256,
-            crate::anim::ATTACK3,
+            crate::units::anim::ATTACK3,
             15,
             (18319, 15581),
             73,
@@ -234,7 +234,7 @@ fn run1479_s_recoilless_rounds_leave_from_their_muzzles() {
         (
             (18168, 15528),
             -101_777_408,
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             22,
             (18179, 15450),
             77,
@@ -242,7 +242,7 @@ fn run1479_s_recoilless_rounds_leave_from_their_muzzles() {
         (
             (18168, 15672),
             -87_359_488,
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             22,
             (18182, 15594),
             77,
@@ -318,11 +318,14 @@ fn run1439_s_aircraft_and_tow_rounds_leave_from_their_rows() {
     let keys = |piece: i32| -> Vec<(i8, u32, i8)> {
         match piece {
             91 => vec![
-                (crate::anim::ATTACK1, 17, 0),
-                (crate::anim::ATTACK2, 7, 0),
-                (crate::anim::ATTACK3, 13, 0),
+                (crate::units::anim::ATTACK1, 17, 0),
+                (crate::units::anim::ATTACK2, 7, 0),
+                (crate::units::anim::ATTACK3, 13, 0),
             ],
-            _ => vec![(crate::anim::ATTACK2, 1, 0), (crate::anim::ATTACK2, 1, 1)],
+            _ => vec![
+                (crate::units::anim::ATTACK2, 1, 0),
+                (crate::units::anim::ATTACK2, 1, 1),
+            ],
         }
     };
     let mut hit = std::collections::BTreeSet::new();
@@ -344,7 +347,7 @@ fn run1439_s_aircraft_and_tow_rounds_leave_from_their_rows() {
     for piece in [245, 255] {
         for n in [0, 1] {
             assert!(
-                hit.contains(&(piece, (crate::anim::ATTACK2, 1, n))),
+                hit.contains(&(piece, (crate::units::anim::ATTACK2, 1, n))),
                 "piece {piece} node {n} reproduces none"
             );
         }
@@ -570,7 +573,7 @@ fn run1386_s_mongol_crossbowmen_leave_from_their_bays() {
     const R: &[Round] = &[
         // `1/43`, 3981.
         (
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             3,
             6120,
             11208,
@@ -582,7 +585,7 @@ fn run1386_s_mongol_crossbowmen_leave_from_their_bays() {
         ),
         // `1/44`, 3983.
         (
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             5,
             5976,
             11208,
@@ -594,7 +597,7 @@ fn run1386_s_mongol_crossbowmen_leave_from_their_bays() {
         ),
         // `1/45`, 3989.
         (
-            crate::anim::ATTACK3,
+            crate::units::anim::ATTACK3,
             6,
             6264,
             11208,
@@ -623,11 +626,11 @@ fn run1421_s_egyptian_main_battle_tank_leaves_from_its_bay() {
         Pos::new(5352, 30792),
         Angle(-371_654_656),
         203,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         23,
         0,
     );
-    let z = 515 + release_dz(203, crate::anim::ATTACK2, 23, 0).unwrap_or(0);
+    let z = 515 + release_dz(203, crate::units::anim::ATTACK2, 23, 0).unwrap_or(0);
     assert_eq!((got.x, got.y, z), (5166, 30496, 553));
 }
 
@@ -642,11 +645,11 @@ fn run1424b_s_japanese_bazooka_leaves_from_its_bay() {
         Pos::new(5400, 30744),
         Angle(-1_433_075_712),
         1145,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         7,
         0,
     );
-    let z = 514 + release_dz(1145, crate::anim::ATTACK2, 7, 0).unwrap_or(0);
+    let z = 514 + release_dz(1145, crate::units::anim::ATTACK2, 7, 0).unwrap_or(0);
     assert_eq!((got.x, got.y, z), (5299, 30765, 664));
 }
 
@@ -696,11 +699,11 @@ fn run1425_s_bantu_bazooka_leaves_from_its_bay() {
         Pos::new(6648, 31224),
         Angle(-1_041_694_720),
         441,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         17,
         0,
     );
-    let z = 267 + release_dz(441, crate::anim::ATTACK1, 17, 0).unwrap_or(0);
+    let z = 267 + release_dz(441, crate::units::anim::ATTACK1, 17, 0).unwrap_or(0);
     assert_eq!((got.x, got.y, z), (6527, 31190, 394));
 }
 
@@ -715,11 +718,11 @@ fn run1403b_s_japanese_infantry_leaves_from_its_bay() {
         Pos::new(4200, 34056),
         Angle(-231_997_440),
         1108,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         14,
         0,
     );
-    let z = 489 + release_dz(1108, crate::anim::ATTACK2, 14, 0).unwrap_or(0);
+    let z = 489 + release_dz(1108, crate::units::anim::ATTACK2, 14, 0).unwrap_or(0);
     assert_eq!((got.x, got.y, z), (4203, 33991, 607));
 }
 
@@ -734,11 +737,11 @@ fn run1399b_s_egyptian_assault_infantry_leaves_from_its_bay() {
         Pos::new(5640, 31800),
         Angle(-1_116_995_584),
         54,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         0,
     );
-    let z = 364 + release_dz(54, crate::anim::ATTACK1, 12, 0).unwrap_or(0);
+    let z = 364 + release_dz(54, crate::units::anim::ATTACK1, 12, 0).unwrap_or(0);
     assert_eq!((got.x, got.y, z), (5530, 31784, 533));
 }
 
@@ -815,12 +818,15 @@ fn run1318b_s_persian_javelin_leaves_from_piece_1793_s_bay() {
         Pos::new(5064, 31368),
         Angle(-2_023_817_216),
         1793,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         6,
         0,
     );
     assert_eq!((at.x, at.y), (5054, 31417));
-    assert_eq!(release_dz(1793, crate::anim::ATTACK2, 6, 0), Some(170));
+    assert_eq!(
+        release_dz(1793, crate::units::anim::ATTACK2, 6, 0),
+        Some(170)
+    );
 }
 
 /// **The Persian Archers loose from piece 1881's bays** (item 3663):
@@ -923,9 +929,9 @@ fn run1264_s_japanese_arrows_leave_from_the_bowmen_s_bays() {
         (6888, 5688, 1_624_899_584, 6948, 5748, 160),
     ];
     let keys = [
-        (crate::anim::ATTACK1, 12),
-        (crate::anim::ATTACK2, 9),
-        (crate::anim::ATTACK3, 15),
+        (crate::units::anim::ATTACK1, 12),
+        (crate::units::anim::ATTACK2, 9),
+        (crate::units::anim::ATTACK3, 15),
     ];
     for (x, y, facing, sx, sy, dz) in rows {
         let hit = keys.iter().find(|&&(a, t)| {
@@ -952,22 +958,28 @@ fn run1221_s_korean_stone_and_arrow_leave_from_their_bays() {
         Pos::new(6600, 9768),
         Angle(-124_059_648),
         1088,
-        crate::anim::ATTACK3,
+        crate::units::anim::ATTACK3,
         16,
         0,
     );
     assert_eq!((stone.x, stone.y), (6541, 9663));
-    assert_eq!(release_dz(1088, crate::anim::ATTACK3, 16, 0), Some(176));
+    assert_eq!(
+        release_dz(1088, crate::units::anim::ATTACK3, 16, 0),
+        Some(176)
+    );
     let arrow = launch_point(
         Pos::new(6072, 10728),
         Angle(163_053_568),
         130,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         22,
         0,
     );
     assert_eq!((arrow.x, arrow.y), (6085, 10656));
-    assert_eq!(release_dz(130, crate::anim::ATTACK1, 22, 0), Some(167));
+    assert_eq!(
+        release_dz(130, crate::units::anim::ATTACK1, 22, 0),
+        Some(167)
+    );
 }
 
 /// **The Elite Hwarang's arrows leave from piece 131's bays** (item
@@ -1006,13 +1018,13 @@ fn run1387_s_gun_mahout_round_leaves_from_piece_213_s_howdah() {
         Pos::new(6921, 8712),
         Angle(197_197_824),
         213,
-        crate::anim::ATTACKWALK,
+        crate::units::anim::ATTACKWALK,
         14,
         0,
     );
     assert_eq!((at.x, at.y), (6929, 8608), "1/99's round on 4907");
     assert_eq!(
-        release_dz(213, crate::anim::ATTACKWALK, 14, 0),
+        release_dz(213, crate::units::anim::ATTACKWALK, 14, 0),
         Some(699 - 273)
     );
 }
@@ -1049,12 +1061,15 @@ fn run1289b_s_lakota_arquebusiers_and_bombard_leave_from_their_bays() {
         Pos::new(9000, 27144),
         Angle(-1_623_785_472),
         1625,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         9,
         0,
     );
     assert_eq!((ball.x, ball.y), (8898, 27250), "1/58's round on 4303");
-    assert_eq!(release_dz(1625, crate::anim::ATTACK2, 9, 0), Some(104));
+    assert_eq!(
+        release_dz(1625, crate::units::anim::ATTACK2, 9, 0),
+        Some(104)
+    );
 }
 
 /// **The Iroquois Musketeers leave from piece 1457's bays** (item 3655,
@@ -1200,13 +1215,13 @@ fn run1326b_s_catapult_throws_from_piece_215_s_bay() {
         Pos::new(6456, 10488),
         Angle(-38_862_848),
         215,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         12,
         0,
     );
     assert_eq!((at.x, at.y), (6458, 10521), "1/119's round on 8855");
     assert_eq!(
-        39 + release_dz(215, crate::anim::ATTACK2, 12, 0).unwrap(),
+        39 + release_dz(215, crate::units::anim::ATTACK2, 12, 0).unwrap(),
         284
     );
 }
@@ -1308,9 +1323,9 @@ fn run980b_s_lakota_stones_leave_from_the_na_slinger_s_bays() {
         (5064, 30744, -1_097_334_784, Pos::new(4943, 30718)),
     ] {
         let keys = [
-            (crate::anim::ATTACK1, 21),
-            (crate::anim::ATTACK2, 22),
-            (crate::anim::ATTACK3, 16),
+            (crate::units::anim::ATTACK1, 21),
+            (crate::units::anim::ATTACK2, 22),
+            (crate::units::anim::ATTACK3, 16),
         ];
         let got: Vec<_> = keys.iter().map(|&k| at(x, y, facing, k)).collect();
         assert!(got.contains(&want), "{want:?} from {got:?}");
@@ -1328,9 +1343,9 @@ fn run984d_s_persian_stones_leave_from_piece_1792_s_bays() {
         (2472, 32424, -1_435_041_792, Pos::new(2398, 32523)),
     ] {
         let got: Vec<_> = [
-            (crate::anim::ATTACK1, 21),
-            (crate::anim::ATTACK2, 22),
-            (crate::anim::ATTACK3, 16),
+            (crate::units::anim::ATTACK1, 21),
+            (crate::units::anim::ATTACK2, 22),
+            (crate::units::anim::ATTACK3, 16),
         ]
         .iter()
         .map(|&(anim, start)| launch_point(Pos::new(x, y), Angle(facing), 1792, anim, start, 0))
@@ -1345,19 +1360,22 @@ fn run984d_s_persian_stones_leave_from_piece_1792_s_bays() {
 /// the unit's own square (3768, 33000) at block 6020's facing.
 #[test]
 fn run984_s_immortal_arrow_leaves_from_piece_112_s_bays() {
-    let got: Vec<_> = [(crate::anim::ATTACK2, 14), (crate::anim::ATTACK3, 6)]
-        .iter()
-        .map(|&(anim, start)| {
-            launch_point(
-                Pos::new(3768, 33000),
-                Angle(-173_146_112),
-                112,
-                anim,
-                start,
-                0,
-            )
-        })
-        .collect();
+    let got: Vec<_> = [
+        (crate::units::anim::ATTACK2, 14),
+        (crate::units::anim::ATTACK3, 6),
+    ]
+    .iter()
+    .map(|&(anim, start)| {
+        launch_point(
+            Pos::new(3768, 33000),
+            Angle(-173_146_112),
+            112,
+            anim,
+            start,
+            0,
+        )
+    })
+    .collect();
     assert!(got.contains(&Pos::new(3766, 32893)), "{got:?}");
 }
 
@@ -1372,7 +1390,7 @@ fn run1334b_s_german_anti_tank_rifles_leave_from_piece_88_s_bays() {
         (
             Pos::new(4920, 31848),
             -1_094_451_200,
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             18,
             Pos::new(4740, 31841),
             548 - 488,
@@ -1380,7 +1398,7 @@ fn run1334b_s_german_anti_tank_rifles_leave_from_piece_88_s_bays() {
         (
             Pos::new(4392, 31656),
             -1_232_142_336,
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             4,
             Pos::new(4217, 31694),
             652 - 589,
@@ -1402,13 +1420,16 @@ fn run1338b_s_american_anti_tank_rifle_leaves_from_piece_87_s_bay() {
             Pos::new(9528, 31080),
             Angle(-798_359_552),
             87,
-            crate::anim::ATTACK3,
+            crate::units::anim::ATTACK3,
             16,
             0
         ),
         Pos::new(9379, 31019)
     );
-    assert_eq!(release_dz(87, crate::anim::ATTACK3, 16, 0), Some(695 - 612));
+    assert_eq!(
+        release_dz(87, crate::units::anim::ATTACK3, 16, 0),
+        Some(695 - 612)
+    );
 }
 
 /// **The Chinese Anti-tank Rifles' rounds leave from piece 1143's
@@ -1422,17 +1443,17 @@ fn run1338b_s_american_anti_tank_rifle_leaves_from_piece_87_s_bay() {
 fn run1155c_s_rifle_rounds_leave_from_piece_1143_s_bays() {
     for (anim, start, want) in [
         (
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             18,
             [(17, -180), (180, 17), (-139, 115), (-115, -139)],
         ),
         (
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             4,
             [(4, -179), (179, 4), (-130, 123), (-123, -130)],
         ),
         (
-            crate::anim::ATTACK3,
+            crate::units::anim::ATTACK3,
             16,
             [(-2, -161), (161, -2), (-112, 116), (-116, -112)],
         ),
@@ -1456,17 +1477,17 @@ fn run1155c_s_rifle_rounds_leave_from_piece_1143_s_bays() {
 fn run1185_s_highlander_rounds_leave_from_piece_64_s_bays() {
     for (anim, start, want) in [
         (
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             6,
             [(13, -144), (144, 13), (-111, 92), (-92, -111)],
         ),
         (
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             10,
             [(13, -145), (145, 13), (-112, 93), (-93, -112)],
         ),
         (
-            crate::anim::ATTACK3,
+            crate::units::anim::ATTACK3,
             12,
             [(13, -145), (145, 13), (-112, 93), (-93, -112)],
         ),
@@ -1495,7 +1516,7 @@ fn run1185_s_sloop_rounds_leave_from_piece_277_s_bays() {
             Pos::new(3336, 6840),
             Angle(1_621_622_784),
             277,
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             4,
             0
         ),
@@ -1503,17 +1524,17 @@ fn run1185_s_sloop_rounds_leave_from_piece_277_s_bays() {
     );
     for (anim, node, want) in [
         (
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             0,
             [(29, 0), (0, 29), (-21, -21), (21, -21)],
         ),
         (
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             1,
             [(-98, 4), (-4, -98), (72, 66), (-66, 72)],
         ),
         (
-            crate::anim::ATTACKWALK,
+            crate::units::anim::ATTACKWALK,
             1,
             [(-98, 4), (-4, -98), (72, 66), (-66, 72)],
         ),
@@ -1608,12 +1629,22 @@ fn run235_s_bomb_bays_are_reproduced_to_the_unit() {
         (21, 20501, 16659, -1227423744, 20453, 16744),
     ];
     for &(t, x, y, a, sx, sy) in M {
-        let p = launch_point(Pos::new(x, y), Angle(a), 254, crate::anim::ATTACK2, t, 0);
+        let p = launch_point(
+            Pos::new(x, y),
+            Angle(a),
+            254,
+            crate::units::anim::ATTACK2,
+            t,
+            0,
+        );
         assert_eq!((p.x, p.y), (sx, sy), "frame {t} at {a}");
     }
     assert_eq!(M.len(), 49);
     assert_eq!(whole_degrees(Angle(1_003_487_232)), 83);
-    assert_eq!(release_dz(254, crate::anim::ATTACK2, 21, 1), Some(-19));
+    assert_eq!(
+        release_dz(254, crate::units::anim::ATTACK2, 21, 1),
+        Some(-19)
+    );
 }
 
 /// **run265's 36 Fighter rounds leave from its two guns** (item 853,
@@ -1665,10 +1696,17 @@ fn run265_s_fighter_rounds_leave_from_its_two_guns() {
     ];
     assert_eq!(M.len(), 36);
     for &(n, node, x, y, a, z, sx, sy, sz) in M {
-        let p = launch_point(Pos::new(x, y), Angle(a), 239, crate::anim::ATTACK2, 1, node);
+        let p = launch_point(
+            Pos::new(x, y),
+            Angle(a),
+            239,
+            crate::units::anim::ATTACK2,
+            1,
+            node,
+        );
         assert_eq!((p.x, p.y), (sx, sy), "block {n} node {node}");
         assert_eq!(
-            z + release_dz(239, crate::anim::ATTACK2, 1, node).unwrap(),
+            z + release_dz(239, crate::units::anim::ATTACK2, 1, node).unwrap(),
             sz,
             "block {n} node {node}"
         );
@@ -1686,7 +1724,7 @@ fn run256_s_bowman_arrows_leave_from_the_measured_bays() {
     type Row = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
     const M: &[Row] = &[
         (
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             9,
             6792,
             32760,
@@ -1697,7 +1735,7 @@ fn run256_s_bowman_arrows_leave_from_the_measured_bays() {
             256,
         ),
         (
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             9,
             6648,
             32760,
@@ -1708,7 +1746,7 @@ fn run256_s_bowman_arrows_leave_from_the_measured_bays() {
             283,
         ),
         (
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             9,
             6696,
             32904,
@@ -1719,7 +1757,7 @@ fn run256_s_bowman_arrows_leave_from_the_measured_bays() {
             271,
         ),
         (
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             12,
             6696,
             32904,
@@ -1730,7 +1768,7 @@ fn run256_s_bowman_arrows_leave_from_the_measured_bays() {
             270,
         ),
         (
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             12,
             6792,
             32760,
@@ -1745,7 +1783,7 @@ fn run256_s_bowman_arrows_leave_from_the_measured_bays() {
         // −65), where the two rows above alone gave (−59, −66) and
         // flew the arrow one frame short.
         (
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             12,
             15912,
             16200,
@@ -1756,7 +1794,7 @@ fn run256_s_bowman_arrows_leave_from_the_measured_bays() {
             245,
         ),
         (
-            crate::anim::ATTACK3,
+            crate::units::anim::ATTACK3,
             15,
             6648,
             32760,
@@ -1767,7 +1805,7 @@ fn run256_s_bowman_arrows_leave_from_the_measured_bays() {
             283,
         ),
         (
-            crate::anim::ATTACK3,
+            crate::units::anim::ATTACK3,
             15,
             6792,
             32760,
@@ -1805,30 +1843,30 @@ fn run17_s_slinger_stones_leave_from_the_measured_bays() {
     type Row = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
     #[rustfmt::skip]
     const M: &[Row] = &[
-        (crate::anim::ATTACK2, 22, 37176, 20760, -2116288512, -1, 37133, 20877, 150),
-        (crate::anim::ATTACK2, 22, 37512, 20136, -1443561472, -12, 37391, 20163, 139),
-        (crate::anim::ATTACK2, 22, 37656, 19992, -1478754304, -7, 37536, 20025, 144),
-        (crate::anim::ATTACK2, 22, 37512, 19752, -1628569600, -23, 37403, 19812, 128),
-        (crate::anim::ATTACK2, 22, 37656, 19992, -508821504, -7, 37604, 19879, 144),
-        (crate::anim::ATTACK2, 22, 37656, 19992, 69140480, -7, 37709, 19879, 144),
-        (crate::anim::ATTACK2, 22, 37512, 19752, 318177280, -23, 37599, 19663, 128),
-        (crate::anim::ATTACK2, 22, 37512, 20136, 934674432, -12, 37636, 20149, 139),
-        (crate::anim::ATTACK2, 22, 37656, 19992, 965083136, -7, 37779, 20012, 144),
-        (crate::anim::ATTACK2, 22, 37512, 19752, 1141964800, -23, 37625, 19805, 128),
-        (crate::anim::ATTACK2, 22, 38040, 17256, 654901248, 28, 38160, 17223, 179),
-        (crate::anim::ATTACK2, 22, 38184, 17448, 530382848, 31, 38295, 17392, 182),
-        (crate::anim::ATTACK2, 22, 38040, 17400, 593100800, 27, 38156, 17354, 178),
-        (crate::anim::ATTACK2, 22, 38040, 17256, 936706048, 28, 38164, 17269, 179),
-        (crate::anim::ATTACK2, 22, 38184, 17448, 723517440, 31, 38306, 17425, 182),
-        (crate::anim::ATTACK2, 22, 38184, 17448, 438894592, 31, 38287, 17379, 182),
-        (crate::anim::ATTACK2, 22, 38040, 17400, 507314176, 27, 38149, 17340, 178),
-        (crate::anim::ATTACK2, 22, 39192, 17928, 1329725440, 55, 39287, 18008, 206),
-        (crate::anim::ATTACK3, 16, 37512, 20136, -256573440, -12, 37431, 20047, 165),
-        (crate::anim::ATTACK3, 16, 37512, 19752, 587202560, -23, 37569, 19646, 154),
-        (crate::anim::ATTACK3, 16, 38040, 17400, 800587776, 27, 38126, 17316, 204),
-        (crate::anim::ATTACK3, 16, 38040, 17256, 621740032, 28, 38103, 17154, 205),
-        (crate::anim::ATTACK1, 21, 37512, 20136, 131006464, -12, 37592, 20082, 166),
-        (crate::anim::ATTACK1, 21, 38040, 17400, 593100800, 27, 38136, 17408, 205),
+        (crate::units::anim::ATTACK2, 22, 37176, 20760, -2116288512, -1, 37133, 20877, 150),
+        (crate::units::anim::ATTACK2, 22, 37512, 20136, -1443561472, -12, 37391, 20163, 139),
+        (crate::units::anim::ATTACK2, 22, 37656, 19992, -1478754304, -7, 37536, 20025, 144),
+        (crate::units::anim::ATTACK2, 22, 37512, 19752, -1628569600, -23, 37403, 19812, 128),
+        (crate::units::anim::ATTACK2, 22, 37656, 19992, -508821504, -7, 37604, 19879, 144),
+        (crate::units::anim::ATTACK2, 22, 37656, 19992, 69140480, -7, 37709, 19879, 144),
+        (crate::units::anim::ATTACK2, 22, 37512, 19752, 318177280, -23, 37599, 19663, 128),
+        (crate::units::anim::ATTACK2, 22, 37512, 20136, 934674432, -12, 37636, 20149, 139),
+        (crate::units::anim::ATTACK2, 22, 37656, 19992, 965083136, -7, 37779, 20012, 144),
+        (crate::units::anim::ATTACK2, 22, 37512, 19752, 1141964800, -23, 37625, 19805, 128),
+        (crate::units::anim::ATTACK2, 22, 38040, 17256, 654901248, 28, 38160, 17223, 179),
+        (crate::units::anim::ATTACK2, 22, 38184, 17448, 530382848, 31, 38295, 17392, 182),
+        (crate::units::anim::ATTACK2, 22, 38040, 17400, 593100800, 27, 38156, 17354, 178),
+        (crate::units::anim::ATTACK2, 22, 38040, 17256, 936706048, 28, 38164, 17269, 179),
+        (crate::units::anim::ATTACK2, 22, 38184, 17448, 723517440, 31, 38306, 17425, 182),
+        (crate::units::anim::ATTACK2, 22, 38184, 17448, 438894592, 31, 38287, 17379, 182),
+        (crate::units::anim::ATTACK2, 22, 38040, 17400, 507314176, 27, 38149, 17340, 178),
+        (crate::units::anim::ATTACK2, 22, 39192, 17928, 1329725440, 55, 39287, 18008, 206),
+        (crate::units::anim::ATTACK3, 16, 37512, 20136, -256573440, -12, 37431, 20047, 165),
+        (crate::units::anim::ATTACK3, 16, 37512, 19752, 587202560, -23, 37569, 19646, 154),
+        (crate::units::anim::ATTACK3, 16, 38040, 17400, 800587776, 27, 38126, 17316, 204),
+        (crate::units::anim::ATTACK3, 16, 38040, 17256, 621740032, 28, 38103, 17154, 205),
+        (crate::units::anim::ATTACK1, 21, 37512, 20136, 131006464, -12, 37592, 20082, 166),
+        (crate::units::anim::ATTACK1, 21, 38040, 17400, 593100800, 27, 38136, 17408, 205),
     ];
     for &(anim, t, gx, gy, ga, gz, sx, sy, sz) in M {
         let got = launch_point(Pos::new(gx, gy), Angle(ga), 32, anim, t, 0);
@@ -1855,8 +1893,8 @@ fn run448_s_javelins_leave_from_the_measured_bays() {
     type Row = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
     #[rustfmt::skip]
     const M: &[Row] = &[
-        (crate::anim::ATTACK1, 12, 6120, 28248, -1661468672, 578, 6028, 28300, 741),
-        (crate::anim::ATTACK3, 27, 6360, 28488, -1532166144, 626, 6289, 28517, 782),
+        (crate::units::anim::ATTACK1, 12, 6120, 28248, -1661468672, 578, 6028, 28300, 741),
+        (crate::units::anim::ATTACK3, 27, 6360, 28488, -1532166144, 626, 6289, 28517, 782),
     ];
     for &(anim, t, gx, gy, ga, gz, sx, sy, sz) in M {
         let got = launch_point(Pos::new(gx, gy), Angle(ga), 33, anim, t, 0);
@@ -1864,7 +1902,7 @@ fn run448_s_javelins_leave_from_the_measured_bays() {
         assert_eq!(gz + release_dz(33, anim, t, 0).unwrap(), sz, "piece 33 dz");
     }
     assert!(
-        bay(33, crate::anim::ATTACK2, 6, 0).is_some(),
+        bay(33, crate::units::anim::ATTACK2, 6, 0).is_some(),
         "all three of the piece's events have a row"
     );
 }
@@ -1884,30 +1922,30 @@ fn run835_s_barks_and_run843_s_catapult_leave_from_their_release_nodes() {
     type Row = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
     #[rustfmt::skip]
     const BARK: &[Row] = &[
-        (crate::anim::ATTACK2, 2, 11640, 34680, 982056960, 0, 11707, 34671, 52), // 638 0/6
-        (crate::anim::ATTACK2, 2, 12312, 34872, 1344339968, 0, 12374, 34898, 52), // 638 0/7
-        (crate::anim::ATTACK2, 10, 11640, 34680, 982056960, 0, 11531, 34696, 52), // 646 0/6
-        (crate::anim::ATTACK2, 10, 12312, 34872, 1344339968, 0, 12211, 34830, 52), // 646 0/7
-        (crate::anim::ATTACK2, 17, 11640, 34680, 982056960, 0, 11614, 34681, 52), // 653 0/6
-        (crate::anim::ATTACK2, 17, 12312, 34872, 1344339968, 0, 12289, 34861, 52), // 653 0/7
-        (crate::anim::ATTACK2, 2, 13464, 35880, 494338048, 0, 13508, 35829, 52), // 658 1/8
-        (crate::anim::ATTACK2, 2, 11640, 34680, 531824640, 0, 11687, 34631, 52), // 663 0/6
-        (crate::anim::ATTACK2, 2, 12312, 34872, 787349504, 0, 12373, 34844, 52), // 663 0/7
-        (crate::anim::ATTACK2, 10, 13464, 35880, 494338048, 0, 13393, 35963, 52), // 666 1/8
-        (crate::anim::ATTACK2, 10, 11640, 34680, 531824640, 0, 11565, 34760, 52), // 671 0/6
-        (crate::anim::ATTACK2, 10, 12312, 34872, 787349504, 0, 12213, 34919, 52), // 671 0/7
-        (crate::anim::ATTACK2, 17, 13464, 35880, 494338048, 0, 13446, 35898, 52), // 673 1/8
-        (crate::anim::ATTACK2, 17, 11640, 34680, 531824640, 0, 11621, 34697, 52), // 678 0/6
-        (crate::anim::ATTACK2, 17, 12312, 34872, 787349504, 0, 12288, 34881, 52), // 678 0/7
-        (crate::anim::ATTACK1, 2, 11640, 34680, 531824640, 0, 11687, 34631, 52), // 688 0/6
-        (crate::anim::ATTACK2, 2, 12312, 34872, 494338048, 0, 12356, 34821, 52), // 688 0/7
-        (crate::anim::ATTACK1, 10, 11640, 34680, 531824640, 0, 11565, 34760, 52), // 696 0/6
-        (crate::anim::ATTACK2, 10, 12312, 34872, 494338048, 0, 12241, 34955, 52), // 696 0/7
-        (crate::anim::ATTACK1, 17, 11640, 34680, 531824640, 0, 11621, 34697, 52), // 703 0/6
-        (crate::anim::ATTACK2, 17, 12312, 34872, 494338048, 0, 12294, 34890, 52), // 703 0/7
-        (crate::anim::ATTACK1, 2, 13464, 35880, 494338048, 0, 13508, 35829, 52), // 708 1/8
-        (crate::anim::ATTACK1, 10, 13464, 35880, 494338048, 0, 13393, 35963, 52), // 716 1/8
-        (crate::anim::ATTACK1, 17, 13464, 35880, 494338048, 0, 13446, 35898, 52), // 723 1/8
+        (crate::units::anim::ATTACK2, 2, 11640, 34680, 982056960, 0, 11707, 34671, 52), // 638 0/6
+        (crate::units::anim::ATTACK2, 2, 12312, 34872, 1344339968, 0, 12374, 34898, 52), // 638 0/7
+        (crate::units::anim::ATTACK2, 10, 11640, 34680, 982056960, 0, 11531, 34696, 52), // 646 0/6
+        (crate::units::anim::ATTACK2, 10, 12312, 34872, 1344339968, 0, 12211, 34830, 52), // 646 0/7
+        (crate::units::anim::ATTACK2, 17, 11640, 34680, 982056960, 0, 11614, 34681, 52), // 653 0/6
+        (crate::units::anim::ATTACK2, 17, 12312, 34872, 1344339968, 0, 12289, 34861, 52), // 653 0/7
+        (crate::units::anim::ATTACK2, 2, 13464, 35880, 494338048, 0, 13508, 35829, 52), // 658 1/8
+        (crate::units::anim::ATTACK2, 2, 11640, 34680, 531824640, 0, 11687, 34631, 52), // 663 0/6
+        (crate::units::anim::ATTACK2, 2, 12312, 34872, 787349504, 0, 12373, 34844, 52), // 663 0/7
+        (crate::units::anim::ATTACK2, 10, 13464, 35880, 494338048, 0, 13393, 35963, 52), // 666 1/8
+        (crate::units::anim::ATTACK2, 10, 11640, 34680, 531824640, 0, 11565, 34760, 52), // 671 0/6
+        (crate::units::anim::ATTACK2, 10, 12312, 34872, 787349504, 0, 12213, 34919, 52), // 671 0/7
+        (crate::units::anim::ATTACK2, 17, 13464, 35880, 494338048, 0, 13446, 35898, 52), // 673 1/8
+        (crate::units::anim::ATTACK2, 17, 11640, 34680, 531824640, 0, 11621, 34697, 52), // 678 0/6
+        (crate::units::anim::ATTACK2, 17, 12312, 34872, 787349504, 0, 12288, 34881, 52), // 678 0/7
+        (crate::units::anim::ATTACK1, 2, 11640, 34680, 531824640, 0, 11687, 34631, 52), // 688 0/6
+        (crate::units::anim::ATTACK2, 2, 12312, 34872, 494338048, 0, 12356, 34821, 52), // 688 0/7
+        (crate::units::anim::ATTACK1, 10, 11640, 34680, 531824640, 0, 11565, 34760, 52), // 696 0/6
+        (crate::units::anim::ATTACK2, 10, 12312, 34872, 494338048, 0, 12241, 34955, 52), // 696 0/7
+        (crate::units::anim::ATTACK1, 17, 11640, 34680, 531824640, 0, 11621, 34697, 52), // 703 0/6
+        (crate::units::anim::ATTACK2, 17, 12312, 34872, 494338048, 0, 12294, 34890, 52), // 703 0/7
+        (crate::units::anim::ATTACK1, 2, 13464, 35880, 494338048, 0, 13508, 35829, 52), // 708 1/8
+        (crate::units::anim::ATTACK1, 10, 13464, 35880, 494338048, 0, 13393, 35963, 52), // 716 1/8
+        (crate::units::anim::ATTACK1, 17, 13464, 35880, 494338048, 0, 13446, 35898, 52), // 723 1/8
     ];
     for &(anim, t, gx, gy, ga, gz, sx, sy, sz) in BARK {
         let got = launch_point(Pos::new(gx, gy), Angle(ga), 273, anim, t, 0);
@@ -1926,10 +1964,10 @@ fn run835_s_barks_and_run843_s_catapult_leave_from_their_release_nodes() {
     // packet's since this item: 634's third key was a unit out.
     #[rustfmt::skip]
     const TRIREME: &[Row] = &[
-        (crate::anim::ATTACK2, 5, 12408, 36216, 756678656, 0, 12448, 36196, 88), // 622
-        (crate::anim::ATTACK2, 9, 12408, 36216, 756678656, 0, 12395, 36221, 88), // 626
-        (crate::anim::ATTACK2, 17, 12408, 36216, 756678656, 0, 12349, 36244, 87), // 634
-        (crate::anim::ATTACK1, 17, 12408, 36216, 756678656, 0, 12349, 36244, 87), // 713
+        (crate::units::anim::ATTACK2, 5, 12408, 36216, 756678656, 0, 12448, 36196, 88), // 622
+        (crate::units::anim::ATTACK2, 9, 12408, 36216, 756678656, 0, 12395, 36221, 88), // 626
+        (crate::units::anim::ATTACK2, 17, 12408, 36216, 756678656, 0, 12349, 36244, 87), // 634
+        (crate::units::anim::ATTACK1, 17, 12408, 36216, 756678656, 0, 12349, 36244, 87), // 713
     ];
     for &(anim, t, gx, gy, ga, gz, sx, sy, sz) in TRIREME {
         let got = launch_point(Pos::new(gx, gy), Angle(ga), 290, anim, t, 0);
@@ -1945,13 +1983,13 @@ fn run835_s_barks_and_run843_s_catapult_leave_from_their_release_nodes() {
         Pos::new(34680, 24696),
         Angle(605_028_352),
         567,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         12,
         0,
     );
     assert_eq!((got.x, got.y), (34655, 24716), "piece 567");
     assert_eq!(
-        50 + release_dz(567, crate::anim::ATTACK2, 12, 0).unwrap_or(0),
+        50 + release_dz(567, crate::units::anim::ATTACK2, 12, 0).unwrap_or(0),
         295,
         "piece 567 dz"
     );
@@ -1964,10 +2002,10 @@ fn run587_s_yeoman_arrows_leave_the_bow_hand() {
     let pos = Pos::new(6408, 9960);
     let facing = Angle(-240_975_872);
     for (time, x, y, z) in [(4, 6364, 9890, 198), (22, 6376, 9885, 230)] {
-        let at = launch_point(pos, facing, 129, crate::anim::ATTACK2, time, 0);
+        let at = launch_point(pos, facing, 129, crate::units::anim::ATTACK2, time, 0);
         assert_eq!((at.x, at.y), (x, y));
         assert_eq!(
-            61 + release_dz(129, crate::anim::ATTACK2, time, 0).unwrap(),
+            61 + release_dz(129, crate::units::anim::ATTACK2, time, 0).unwrap(),
             z
         );
     }
@@ -1989,7 +2027,7 @@ fn run912d_s_javelin_leaves_the_throwing_hand() {
         Pos::new(6504, 8904),
         Angle(-600_637_440),
         34,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         6,
         0,
     );
@@ -2009,7 +2047,7 @@ fn run943c_s_arrow_leaves_the_bow_hand() {
         Pos::new(5400, 31416),
         Angle(-1_239_220_224),
         1529,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         9,
         0,
     );
@@ -2036,7 +2074,7 @@ fn run991c_s_hwarang_arrows_leave_the_bow_hand() {
             9336,
             30840,
             -916_717_568,
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             6,
             (9264, 30827),
         ),
@@ -2044,7 +2082,7 @@ fn run991c_s_hwarang_arrows_leave_the_bow_hand() {
             9288,
             30648,
             -979_763_200,
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             6,
             (9215, 30643),
         ),
@@ -2052,7 +2090,7 @@ fn run991c_s_hwarang_arrows_leave_the_bow_hand() {
             9240,
             30936,
             -872_480_768,
-            crate::anim::ATTACK3,
+            crate::units::anim::ATTACK3,
             10,
             (9183, 30911),
         ),
@@ -2078,7 +2116,7 @@ fn run943b_s_javelin_leaves_the_throwing_hand() {
         Pos::new(4872, 31272),
         Angle(-895_811_584),
         1441,
-        crate::anim::ATTACK1,
+        crate::units::anim::ATTACK1,
         12,
         0,
     );
@@ -2126,9 +2164,9 @@ fn run1344b_s_french_musketeers_leave_from_piece_49_s_bays() {
     ];
     for &(x, y, facing, sx, sy, dz) in ROWS {
         let keys: Vec<(i8, u32)> = [
-            (crate::anim::ATTACK1, 1),
-            (crate::anim::ATTACK2, 7),
-            (crate::anim::ATTACK3, 4),
+            (crate::units::anim::ATTACK1, 1),
+            (crate::units::anim::ATTACK2, 7),
+            (crate::units::anim::ATTACK3, 4),
         ]
         .into_iter()
         .filter(|&(anim, t)| {
@@ -2150,8 +2188,8 @@ fn run971_s_musketeer_rounds_leave_from_their_release_nodes() {
     type Row = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
     #[rustfmt::skip]
     const ROWS: &[Row] = &[
-        (crate::anim::ATTACK3, 4, 5448, 26856, -1_656_487_936, 504, 5333, 26970, 682),
-        (crate::anim::ATTACK1, 1, 5544, 26808, -1_641_873_408, 495, 5426, 26889, 713),
+        (crate::units::anim::ATTACK3, 4, 5448, 26856, -1_656_487_936, 504, 5333, 26970, 682),
+        (crate::units::anim::ATTACK1, 1, 5544, 26808, -1_641_873_408, 495, 5426, 26889, 713),
     ];
     for &(anim, t, gx, gy, ga, gz, sx, sy, sz) in ROWS {
         let got = launch_point(Pos::new(gx, gy), Angle(ga), 49, anim, t, 0);
@@ -2173,13 +2211,13 @@ fn run1001b_s_heavy_archer_round_leaves_its_release_node() {
         Pos::new(9048, 31128),
         Angle(-1_464_008_704),
         1531,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         9,
         0,
     );
     assert_eq!((got.x, got.y), (8976, 31176));
     assert_eq!(
-        635 + release_dz(1531, crate::anim::ATTACK2, 9, 0).unwrap_or(0),
+        635 + release_dz(1531, crate::units::anim::ATTACK2, 9, 0).unwrap_or(0),
         799
     );
     for (anim, time) in [(11, 12), (12, 9), (13, 15)] {
@@ -2335,12 +2373,12 @@ fn the_frigate_s_bays_are_the_packet_s_sweep() {
         Pos::new(1896, 5352),
         Angle(104_464_384),
         293,
-        crate::anim::ATTACK2,
+        crate::units::anim::ATTACK2,
         7,
         0,
     );
     assert_eq!((at.x, at.y), (1809, 5233));
-    assert_eq!(release_dz(293, crate::anim::ATTACK2, 7, 0), Some(20));
+    assert_eq!(release_dz(293, crate::units::anim::ATTACK2, 7, 0), Some(20));
 }
 
 /// **Piece 1442, the Native American Peltasts** (item 3287): four
@@ -2606,7 +2644,7 @@ fn run109_launch_points_are_reproduced_to_the_unit() {
             4680,
             29928,
             -1_408_303_104,
-            crate::anim::ATTACK3,
+            crate::units::anim::ATTACK3,
             10,
             4613,
             29951,
@@ -2615,7 +2653,7 @@ fn run109_launch_points_are_reproduced_to_the_unit() {
             4776,
             30168,
             -1_348_206_592,
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             4,
             4708,
             30215,
@@ -2624,7 +2662,7 @@ fn run109_launch_points_are_reproduced_to_the_unit() {
             4680,
             29928,
             -1_408_303_104,
-            crate::anim::ATTACK3,
+            crate::units::anim::ATTACK3,
             24,
             4620,
             29954,
@@ -2633,7 +2671,7 @@ fn run109_launch_points_are_reproduced_to_the_unit() {
             4776,
             30168,
             -1_348_206_592,
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             22,
             4703,
             30204,
@@ -2642,7 +2680,7 @@ fn run109_launch_points_are_reproduced_to_the_unit() {
             4680,
             29928,
             -1_408_303_104,
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             6,
             4609,
             29969,
@@ -2651,7 +2689,7 @@ fn run109_launch_points_are_reproduced_to_the_unit() {
             4584,
             29784,
             -1_449_000_960,
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             4,
             4523,
             29840,
@@ -2660,7 +2698,7 @@ fn run109_launch_points_are_reproduced_to_the_unit() {
             4680,
             29928,
             -1_408_303_104,
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             22,
             4609,
             29969,
@@ -2687,7 +2725,7 @@ fn run982_s_crossbow_and_cavalry_archer_launches_are_reproduced_to_the_unit() {
     const M: &[Round] = &[
         (
             122,
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             3,
             10008,
             30984,
@@ -2699,7 +2737,7 @@ fn run982_s_crossbow_and_cavalry_archer_launches_are_reproduced_to_the_unit() {
         ),
         (
             122,
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             5,
             9624,
             31176,
@@ -2711,7 +2749,7 @@ fn run982_s_crossbow_and_cavalry_archer_launches_are_reproduced_to_the_unit() {
         ),
         (
             122,
-            crate::anim::ATTACK3,
+            crate::units::anim::ATTACK3,
             6,
             9672,
             30984,
@@ -2738,11 +2776,11 @@ fn run982_s_crossbow_and_cavalry_archer_launches_are_reproduced_to_the_unit() {
 fn an_unmeasured_piece_launches_from_the_unit() {
     let p = Pos::new(1234, 5678);
     assert_eq!(
-        launch_point(p, Angle(0x1234_5678), 32, crate::anim::ATTACK1, 6, 0),
+        launch_point(p, Angle(0x1234_5678), 32, crate::units::anim::ATTACK1, 6, 0),
         p
     );
     assert_eq!(
-        launch_point(p, Angle(0), 127, crate::anim::ATTACK1, 7, 0),
+        launch_point(p, Angle(0), 127, crate::units::anim::ATTACK1, 7, 0),
         p
     );
 }
@@ -2772,20 +2810,20 @@ fn the_table_is_every_release_event_a_capture_has_measured() {
     assert_eq!(
         keys,
         vec![
-            (122, crate::anim::ATTACK1, 5),
-            (122, crate::anim::ATTACK2, 3),
-            (122, crate::anim::ATTACK3, 6),
-            (127, crate::anim::ATTACK1, 6),
-            (127, crate::anim::ATTACK1, 22),
-            (127, crate::anim::ATTACK2, 4),
-            (127, crate::anim::ATTACK2, 22),
-            (127, crate::anim::ATTACK3, 10),
-            (127, crate::anim::ATTACK3, 24),
-            (384, crate::anim::ATTACK1, 21),
-            (384, crate::anim::ATTACK2, 22),
-            (472, crate::anim::ATTACK1, 12),
-            (472, crate::anim::ATTACK2, 9),
-            (472, crate::anim::ATTACK3, 15),
+            (122, crate::units::anim::ATTACK1, 5),
+            (122, crate::units::anim::ATTACK2, 3),
+            (122, crate::units::anim::ATTACK3, 6),
+            (127, crate::units::anim::ATTACK1, 6),
+            (127, crate::units::anim::ATTACK1, 22),
+            (127, crate::units::anim::ATTACK2, 4),
+            (127, crate::units::anim::ATTACK2, 22),
+            (127, crate::units::anim::ATTACK3, 10),
+            (127, crate::units::anim::ATTACK3, 24),
+            (384, crate::units::anim::ATTACK1, 21),
+            (384, crate::units::anim::ATTACK2, 22),
+            (472, crate::units::anim::ATTACK1, 12),
+            (472, crate::units::anim::ATTACK2, 9),
+            (472, crate::units::anim::ATTACK3, 15),
         ]
     );
 }
@@ -2819,7 +2857,7 @@ fn run112_launch_points_are_reproduced_to_within_a_unit() {
     const M: &[Row] = &[
         (
             472,
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             9,
             888,
             7800,
@@ -2830,7 +2868,7 @@ fn run112_launch_points_are_reproduced_to_within_a_unit() {
         ),
         (
             472,
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             9,
             888,
             7800,
@@ -2841,7 +2879,7 @@ fn run112_launch_points_are_reproduced_to_within_a_unit() {
         ),
         (
             472,
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             12,
             1032,
             7800,
@@ -2852,7 +2890,7 @@ fn run112_launch_points_are_reproduced_to_within_a_unit() {
         ),
         (
             472,
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             12,
             1032,
             7800,
@@ -2863,7 +2901,7 @@ fn run112_launch_points_are_reproduced_to_within_a_unit() {
         ),
         (
             472,
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             12,
             936,
             7944,
@@ -2874,7 +2912,7 @@ fn run112_launch_points_are_reproduced_to_within_a_unit() {
         ),
         (
             472,
-            crate::anim::ATTACK3,
+            crate::units::anim::ATTACK3,
             15,
             936,
             7944,
@@ -2885,7 +2923,7 @@ fn run112_launch_points_are_reproduced_to_within_a_unit() {
         ),
         (
             384,
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             22,
             1224,
             8184,
@@ -2896,7 +2934,7 @@ fn run112_launch_points_are_reproduced_to_within_a_unit() {
         ),
         (
             384,
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             22,
             936,
             8088,
@@ -2907,7 +2945,7 @@ fn run112_launch_points_are_reproduced_to_within_a_unit() {
         ),
         (
             384,
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             21,
             1320,
             8328,
@@ -2954,10 +2992,17 @@ fn run1260b_s_dromon_rounds_leave_from_piece_274_s_bays() {
         (4531, 17, 2808, 4168, 2807, 4075, 52),
     ];
     for &(block, t, x, y, sx, sy, sz) in M {
-        let got = launch_point(Pos::new(x, y), Angle(0), 274, crate::anim::ATTACKWALK, t, 0);
+        let got = launch_point(
+            Pos::new(x, y),
+            Angle(0),
+            274,
+            crate::units::anim::ATTACKWALK,
+            t,
+            0,
+        );
         assert_eq!((got.x, got.y), (sx, sy), "block {block} t {t}");
         assert_eq!(
-            release_dz(274, crate::anim::ATTACKWALK, t, 0),
+            release_dz(274, crate::units::anim::ATTACKWALK, t, 0),
             Some(sz),
             "block {block}"
         );
@@ -2975,7 +3020,7 @@ fn run1270_s_inca_archers_loose_from_piece_825_s_bays() {
         (
             "1/58",
             5328,
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             7224,
             8952,
             251,
@@ -2987,7 +3032,7 @@ fn run1270_s_inca_archers_loose_from_piece_825_s_bays() {
         (
             "1/73",
             5332,
-            crate::anim::ATTACK1,
+            crate::units::anim::ATTACK1,
             7080,
             9000,
             240,
@@ -2999,7 +3044,7 @@ fn run1270_s_inca_archers_loose_from_piece_825_s_bays() {
         (
             "1/74",
             5343,
-            crate::anim::ATTACK3,
+            crate::units::anim::ATTACK3,
             7080,
             8376,
             308,
@@ -3011,9 +3056,9 @@ fn run1270_s_inca_archers_loose_from_piece_825_s_bays() {
     ];
     for &(who, block, anim, x, y, z, angle, sx, sy, sz) in M {
         let time = [
-            (crate::anim::ATTACK1, 12),
-            (crate::anim::ATTACK2, 9),
-            (crate::anim::ATTACK3, 15),
+            (crate::units::anim::ATTACK1, 12),
+            (crate::units::anim::ATTACK2, 9),
+            (crate::units::anim::ATTACK3, 15),
         ]
         .iter()
         .find(|k| k.0 == anim)
@@ -3044,7 +3089,7 @@ fn run127_trireme_rounds_leave_from_the_keel() {
         (652, 11640, 34680, 17, 11584, 34715, 87),
     ];
     for &(block, x, y, t, sx, sy, sz) in M {
-        for anim in [crate::anim::ATTACK1, crate::anim::ATTACK2] {
+        for anim in [crate::units::anim::ATTACK1, crate::units::anim::ATTACK2] {
             let got = launch_point(Pos::new(x, y), Angle(671_481_856), 290, anim, t, 0);
             assert_eq!((got.x, got.y), (sx, sy), "block {block} t {t}");
             assert_eq!(release_dz(290, anim, t, 0), Some(sz), "block {block}");
@@ -3071,7 +3116,7 @@ fn run437_trireme_rounds_turn_with_the_hull() {
             Pos::new(x, y),
             Angle(2_100_559_872),
             290,
-            crate::anim::ATTACK2,
+            crate::units::anim::ATTACK2,
             t,
             0,
         );
@@ -3092,9 +3137,19 @@ fn run875_biplane_rounds_leave_from_the_589_guns() {
         (37379, 16508, -590_020_608, 0, 37293, 16455),
         (37379, 16508, -590_020_608, 1, 37308, 16436),
     ] {
-        let got = launch_point(Pos::new(x, y), Angle(a), 589, crate::anim::ATTACK2, 1, node);
+        let got = launch_point(
+            Pos::new(x, y),
+            Angle(a),
+            589,
+            crate::units::anim::ATTACK2,
+            1,
+            node,
+        );
         assert_eq!((got.x, got.y), (sx, sy), "node {node} at {x}");
-        assert_eq!(release_dz(589, crate::anim::ATTACK2, 1, node), Some(39));
+        assert_eq!(
+            release_dz(589, crate::units::anim::ATTACK2, 1, node),
+            Some(39)
+        );
     }
 }
 
@@ -3111,8 +3166,18 @@ fn run437_biplane_rounds_leave_from_its_nose_guns() {
         (1614, 42500, 17145, -1_224_702_464, 1, 42399, 17156),
     ];
     for &(block, x, y, a, node, sx, sy) in M {
-        let got = launch_point(Pos::new(x, y), Angle(a), 237, crate::anim::ATTACK2, 1, node);
+        let got = launch_point(
+            Pos::new(x, y),
+            Angle(a),
+            237,
+            crate::units::anim::ATTACK2,
+            1,
+            node,
+        );
         assert_eq!((got.x, got.y), (sx, sy), "block {block} node {node}");
-        assert_eq!(release_dz(237, crate::anim::ATTACK2, 1, node), Some(39));
+        assert_eq!(
+            release_dz(237, crate::units::anim::ATTACK2, 1, node),
+            Some(39)
+        );
     }
 }

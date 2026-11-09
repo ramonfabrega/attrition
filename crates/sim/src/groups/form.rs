@@ -50,7 +50,7 @@
 //!   (§4.1) means a group holds captains unless it was built with
 //!   `keep_captain != 0`, and nothing in this simulation does that.
 
-use crate::group::Group;
+use crate::groups::group::Group;
 use crate::movement::{Angle, cos_component, find_angle, sin_component};
 use crate::orders::QueuePos;
 use crate::world::{Pos, tile, vector_dist};
@@ -199,7 +199,7 @@ pub const fn density(form: i32) -> i32 {
 /// `MOUNTED` for the AI, so the same army forms up differently under the two.
 /// `index` is the type's record index, needed only for the three trader ids.
 pub fn type_cat(t: &UnitType, index: usize, human: bool) -> usize {
-    use crate::ai_load::uflags2;
+    use crate::ai::ai_load::uflags2;
     use crate::combat::mask;
     let p = &t.combat;
     // The gate into the main tree: an armed type that is neither supply nor
@@ -1093,14 +1093,14 @@ impl Sim {
         queue: QueuePos,
         inserting: bool,
     ) {
-        use crate::form_view::{QUEUE_FIRST, QUEUE_LAST, QUEUE_NEW};
+        use crate::groups::form_view::{QUEUE_FIRST, QUEUE_LAST, QUEUE_NEW};
         let q = match queue {
             QueuePos::First => QUEUE_FIRST,
             QueuePos::Last => QUEUE_LAST,
             QueuePos::New => QUEUE_NEW,
         };
-        let mut v = crate::form_view::SimActionForm::new(self, g);
-        crate::form_view::action_form_steps(&mut v, form, rotate, q, i32::from(inserting));
+        let mut v = crate::groups::form_view::SimActionForm::new(self, g);
+        crate::groups::form_view::action_form_steps(&mut v, form, rotate, q, i32::from(inserting));
     }
 
     /// Whether the destination cell is water — `compute_form`'s own test,

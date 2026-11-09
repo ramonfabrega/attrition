@@ -15,7 +15,7 @@
 //! Three things run before the walk: `GroupOut::validate_spell` (a refusal
 //! ends the call with the group's formation untouched), the formation reset,
 //! and — for a craft carrying `m` (0x1000) — the pick of the one member with
-//! the most `mana_left` (the arm [`crate::cast`]'s `group_action_spell`
+//! the most `mana_left` (the arm [`crate::spells::cast`]'s `group_action_spell`
 //! already models as `BEST_MANA`).
 //!
 //! **Not wired.** The crate's `Sim::group_action_spell` is the same arm over
@@ -31,7 +31,7 @@
 //! aircraft arm (a unit type whose `unittypes[ty] + 0x218` is 2) and the
 //! `TRANSPORT` arm, which the view refuses with a panic.
 
-pub use crate::garrison_view::{GarrisonHead, garrison_head};
+pub use crate::groups::garrison_view::{GarrisonHead, garrison_head};
 
 /// `TRANSPORT`'s type index: the arm the view does not model.
 pub const TYPE_TRANSPORT: i32 = 0x28a;

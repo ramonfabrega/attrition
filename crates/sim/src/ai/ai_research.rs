@@ -30,7 +30,7 @@
 //! (The `starting_resources == 7 && starting_technology == 8` lobby's
 //! hard-coded branch is built — [`Sim::tech_race_shield`], item 1496.)
 
-use crate::build::Ident;
+use crate::cities::build::Ident;
 use crate::economy::{OverCap, RESOURCES};
 use crate::tech::{self, Kind, Line, TypeId};
 use crate::{Player, Sim};
@@ -50,13 +50,13 @@ pub const SITE_GOV_ROLL: &str = "Leader::research_techs+0xc72";
 const KNOWLEDGE: usize = 3;
 
 /// How many `ai[]` weights a `TechType` carries.
-pub(crate) const AI_WEIGHTS: usize = crate::ai_load::AI_WEIGHTS;
+pub(crate) const AI_WEIGHTS: usize = crate::ai::ai_load::AI_WEIGHTS;
 
 /// `BuildTypeData::is_military_trainer` — the flag is *derived*, not a
 /// `BUILD_FLAGS` letter (`docs/DATALAYER.md`), and it is read on the root of
-/// the `FROM` chain, which is what [`crate::build::is_military_trainer`] does.
+/// the `FROM` chain, which is what [`crate::cities::build::is_military_trainer`] does.
 #[cfg(test)]
-const MILITARY_TRAINER: u32 = crate::build::flags::MILITARY_TRAINER;
+const MILITARY_TRAINER: u32 = crate::cities::build::flags::MILITARY_TRAINER;
 
 /// `imul`: the original's scores overflow 32 bits in the deep multiplier
 /// chains and wrap, so every product here wraps too.
@@ -253,7 +253,7 @@ impl Sim {
     // ---- the seams ----
 
     /// `TechType::ai[11]`, derived at load by
-    /// [`crate::ai_load::compute_ai_values`] from what each tech unlocks and
+    /// [`crate::ai::ai_load::compute_ai_values`] from what each tech unlocks and
     /// checked against the program's own dump — `docs/DATALAYER.md`, "The
     /// derived words no column carries". A tree built by hand leaves them
     /// zero, which is the old seam's answer: `w` collapses to 1.
@@ -328,7 +328,7 @@ impl Sim {
 
     /// `danger[who][half-cell of the building]`, clamped at zero, which
     /// divides a candidate producer's score in `produce_tech@006ca980:138`
-    /// and `:236`. [`crate::danger`] writes it.
+    /// and `:236`. [`crate::world::danger`] writes it.
     fn danger_at(&self, who: Player, b: usize) -> i32 {
         self.world.danger_at(who, self.buildings[b].pos).max(0)
     }
@@ -851,7 +851,7 @@ impl Sim {
         };
         // `BuildTypeData::is_military_trainer` (`produce_tech`:33) reads the
         // flag on the **root** of the `FROM` chain, not on the type itself.
-        let trainer = crate::build::is_military_trainer(&self.tables.build_types, rec);
+        let trainer = crate::cities::build::is_military_trainer(&self.tables.build_types, rec);
 
         let mut best: Option<(i32, usize)> = None;
         if trainer {

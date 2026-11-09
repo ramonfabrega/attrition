@@ -3,7 +3,7 @@ fn a_gaia_owner_has_no_modifiers() {
     // A nuke's ring strikes the animals around a city (`docs/AI.md`
     // §158): their owner is past `mods`, which holds the players.
     let sim = Sim::new(
-        crate::tuning::Tuning::RON,
+        crate::core::tuning::Tuning::RON,
         crate::world::World::new(16, 16),
         2,
     );
@@ -20,11 +20,11 @@ fn a_gaia_owner_has_no_modifiers() {
 /// Arquebusiers' blow on the Citizen `0/12` is 13 + 10/16, not 12.
 #[test]
 fn a_japanese_owner_s_blow_takes_the_lesser_of_its_ages_and_military_level() {
-    let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(8, 8), 2);
+    let mut sim = Sim::new(crate::core::tuning::Tuning::RON, World::new(8, 8), 2);
     sim.tech[1].ages = 3;
     sim.tech[1].epoch = [2, 4, 0, 0];
     assert_eq!(sim.mods_of(1).japanese_level, None, "no bonus, no level");
-    sim.tech[1].power = Some(crate::nations::power::JAPANESE);
+    sim.tech[1].power = Some(crate::cities::nations::power::JAPANESE);
     assert_eq!(
         sim.mods_of(1).japanese_level,
         Some(2),
@@ -49,9 +49,9 @@ fn a_japanese_owner_s_blow_takes_the_lesser_of_its_ages_and_military_level() {
 /// test dropped.
 #[test]
 fn a_unit_near_its_owner_s_ceo_reaches_two_tiles_further() {
-    use crate::ai_load::uflags2;
+    use crate::ai::ai_load::uflags2;
     use crate::{Unit, UnitType};
-    let mut s = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut s = Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     let mut shooter = UnitType::default();
     shooter.combat.max_range = 3;
     let shooter = s.add_unit_type(shooter);
@@ -99,7 +99,7 @@ fn at_war() -> (Sim, usize) {
 /// diplomacy table past the eight the original has and check that the
 /// leader bound, not the table's length, is what refuses gaia.
 fn at_war_with_slots(slots: usize) -> (Sim, usize) {
-    let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), slots);
+    let mut sim = Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), slots);
     sim.leaders.at_war[0][1] = true;
     sim.leaders.at_war[1][0] = true;
     let ty = sim.add_unit_type(crate::UnitType {
@@ -338,7 +338,7 @@ fn a_decoy_squad_falls_to_one_round_on_its_tail() {
 /// nothing. Made to fail with the arm dropped.
 #[test]
 fn a_general_rallies_armour_inside_its_radius() {
-    use crate::ai_load::uflags2;
+    use crate::ai::ai_load::uflags2;
     let (mut sim, ty) = at_war();
     sim.tables.unit_types[ty].combat.armor = 2;
     let mut general = crate::UnitType {
@@ -374,8 +374,8 @@ fn a_general_rallies_armour_inside_its_radius() {
 /// Made to fail with either term dropped.
 #[test]
 fn a_comrade_and_a_monarch_add_their_armour_inside_the_rally_arm() {
-    use crate::ai_load::uflags2;
-    use crate::build::{BuildType, Ident};
+    use crate::ai::ai_load::uflags2;
+    use crate::cities::build::{BuildType, Ident};
     let (mut sim, ty) = at_war();
     sim.tables.unit_types[ty].combat.armor = 1;
     let rally = sim.tables.tuning.general_rally_armor;
@@ -459,17 +459,19 @@ fn a_comrade_and_a_monarch_add_their_armour_inside_the_rally_arm() {
 /// with it taken after the halving.
 #[test]
 fn a_senator_armours_its_buildings_before_the_halving() {
-    use crate::ai_load::uflags2;
+    use crate::ai::ai_load::uflags2;
     let (mut sim, _) = at_war();
     assert_eq!(
         sim.tables.tuning.thesenator_build_armor, 5,
         "the shipped THESENATOR_BUILD_ARMOR"
     );
-    sim.tables.build_types.push(crate::build::BuildType {
-        x_size: 3,
-        y_size: 3,
-        ..crate::build::BuildType::default()
-    });
+    sim.tables
+        .build_types
+        .push(crate::cities::build::BuildType {
+            x_size: 3,
+            y_size: 3,
+            ..crate::cities::build::BuildType::default()
+        });
     let bt = sim.tables.build_types.len() - 1;
     let b = sim.add_building(1, Pos::new(9000, 9000), 0);
     sim.buildings[b].ty = Some(bt);
@@ -838,9 +840,9 @@ fn a_bomber_never_takes_a_helicopter() {
     };
     let bomber = air_type(&mut sim, Some(crate::air::BOMBER), 0);
     let fighter = air_type(&mut sim, None, 0);
-    let heli = air_type(&mut sim, None, crate::ai_load::uflags::FLAG_HELICOPTER);
+    let heli = air_type(&mut sim, None, crate::ai::ai_load::uflags::FLAG_HELICOPTER);
     let mut tank = sim.tables.unit_types[land].clone();
-    tank.cols.unit_flags = crate::ai_load::uflags::TANK;
+    tank.cols.unit_flags = crate::ai::ai_load::uflags::TANK;
     let tank = sim.add_unit_type(tank);
     let at = |x| Pos::new(0x1000 + x, 0x1000);
     let b = put(&mut sim, 1, bomber, at(0));
@@ -864,7 +866,7 @@ fn an_air_target_is_aimed_at_its_figure_s_altitude() {
     let (mut sim, land) = at_war();
     let mut t = sim.tables.unit_types[land].clone();
     t.combat.domain = Domain::Air;
-    t.cols.unit_flags = crate::ai_load::uflags::FLAG_HELICOPTER;
+    t.cols.unit_flags = crate::ai::ai_load::uflags::FLAG_HELICOPTER;
     let heli = sim.add_unit_type(t);
     let at = Pos::new(0x1000, 0x1000);
     let h = put(&mut sim, 0, heli, at);
@@ -1268,8 +1270,8 @@ fn a_hero_or_supply_unit_flees_on_the_attacker_s_ring() {
         t.cols.unit_flags2 = flags2;
         sim.add_unit_type(t)
     };
-    let hero = mk(&mut sim, crate::ai_load::uflags2::FLAG2_GENERAL);
-    let supply = mk(&mut sim, crate::ai_load::uflags2::SUPPLY_OR_HERO);
+    let hero = mk(&mut sim, crate::ai::ai_load::uflags2::FLAG2_GENERAL);
+    let supply = mk(&mut sim, crate::ai::ai_load::uflags2::SUPPLY_OR_HERO);
     let plain = mk(&mut sim, 0);
     let flight = |sim: &mut Sim, ty: usize, foe_ty: usize, y: i32, ambush: bool| {
         let me = put(sim, 0, ty, Pos::new(0x4000, y));
@@ -1419,12 +1421,12 @@ fn a_hit_group_member_of_a_non_combat_type_keeps_its_orders() {
     });
     let me = put(&mut sim, 0, scout, Pos::new(0x4000, 0x4000));
     let foe = put(&mut sim, 1, soldier, Pos::new(0x4600, 0x4000));
-    sim.orders.pushed.push(crate::group::Pushed {
+    sim.orders.pushed.push(crate::groups::group::Pushed {
         who: 0,
         list: vec![me],
-        state: crate::group::GroupState {
+        state: crate::groups::group::GroupState {
             pool: Some(2),
-            ..crate::group::GroupState::default()
+            ..crate::groups::group::GroupState::default()
         },
         builds: Vec::new(),
     });
@@ -1470,12 +1472,12 @@ fn group_arms_fixture() -> (Sim, usize, usize, usize, usize) {
     let h = put(&mut sim, 0, hoplite, Pos::new(0x4100, 0x4000));
     let near = put(&mut sim, 1, hoplite, Pos::new(0x4000 + 0xc0 * 5, 0x4000));
     let far = put(&mut sim, 1, hoplite, Pos::new(0x4000 + 0xc0 * 9, 0x4000));
-    sim.orders.pushed.push(crate::group::Pushed {
+    sim.orders.pushed.push(crate::groups::group::Pushed {
         who: 0,
         list: vec![s, h],
-        state: crate::group::GroupState {
+        state: crate::groups::group::GroupState {
             pool: Some(2),
-            ..crate::group::GroupState::default()
+            ..crate::groups::group::GroupState::default()
         },
         builds: Vec::new(),
     });
@@ -1757,7 +1759,7 @@ fn a_computer_s_raiding_ship_weighs_a_peasant_at_nothing_extra() {
         tt.combat.max_range = 0;
         match kind {
             1 => tt.worker = crate::orders::Worker::Citizen,
-            2 => tt.cols.unit_flags |= crate::ai_load::uflags::FLAG_TRANSPORT,
+            2 => tt.cols.unit_flags |= crate::ai::ai_load::uflags::FLAG_TRANSPORT,
             _ => {}
         }
         let tt = sim.add_unit_type(tt);
@@ -1784,7 +1786,7 @@ fn a_computer_s_raiding_ship_weighs_a_finished_building_at_zero() {
                     siege: bool,
                     on_move: bool,
                     active: bool,
-                    ident: Option<crate::build::Ident>| {
+                    ident: Option<crate::cities::build::Ident>| {
         let (mut sim, ty) = at_war();
         sim.cities.nation[0].human = human;
         let mut at = sim.tables.unit_types[ty].clone();
@@ -1794,7 +1796,7 @@ fn a_computer_s_raiding_ship_weighs_a_finished_building_at_zero() {
             at.combat.obj_masks |= crate::combat::mask::SIEGE;
         }
         if on_move {
-            at.cols.unit_flags |= crate::ai_load::uflags::FIRES_ON_MOVE;
+            at.cols.unit_flags |= crate::ai::ai_load::uflags::FIRES_ON_MOVE;
         }
         let at = sim.add_unit_type(at);
         let b = sim.add_building(1, Pos::new(3000, 3000), 0);
@@ -1808,11 +1810,11 @@ fn a_computer_s_raiding_ship_weighs_a_finished_building_at_zero() {
             ..Profile::default()
         });
         if let Some(ident) = ident {
-            let bt = sim.add_build_type(crate::build::BuildType {
+            let bt = sim.add_build_type(crate::cities::build::BuildType {
                 ident,
                 x_size: 2,
                 y_size: 2,
-                ..crate::build::BuildType::default()
+                ..crate::cities::build::BuildType::default()
             });
             sim.buildings[b].ty = Some(bt);
         }
@@ -1822,7 +1824,7 @@ fn a_computer_s_raiding_ship_weighs_a_finished_building_at_zero() {
         }
         sim.compare_target(Obj::Unit(me), Obj::Building(b), true, false)
     };
-    let dock = Some(crate::build::Ident::Dock);
+    let dock = Some(crate::cities::build::Ident::Dock);
     let weigh =
         |human, raid, siege, on_move, active| weigh_at(human, raid, siege, on_move, active, dock);
     assert_eq!(weigh(false, true, false, false, true), 0, "the cruiser");
@@ -1834,7 +1836,7 @@ fn a_computer_s_raiding_ship_weighs_a_finished_building_at_zero() {
     // **Item 3642: the second test is `is_dock`.** run1303's raiding
     // Frigate `1/29` takes the human's Farm `0/2004`; a ship that
     // fires on the move still leaves any building alone.
-    let farm = Some(crate::build::Ident::Farm);
+    let farm = Some(crate::cities::build::Ident::Farm);
     assert!(
         weigh_at(false, true, false, false, true, farm) > 0,
         "the Frigate at a Farm"
@@ -2156,7 +2158,7 @@ fn packer_on_post(tree: Option<crate::tech::TypeId>) -> (Sim, usize) {
     sim.tables.unit_types[packer].tree = tree;
     // `get_stance_type`'s column: a military type that packs is a
     // `STANCE_PACKER`.
-    sim.tables.unit_types[packer].cols.role |= crate::ai_load::role::ROLE_MILITARY;
+    sim.tables.unit_types[packer].cols.role |= crate::ai::ai_load::role::ROLE_MILITARY;
     let post = Pos::new(3768, 12072);
     let wagon = put(&mut sim, 1, ty, Pos::new(3456, 11904));
     let guard = put(&mut sim, 1, packer, post);
@@ -2333,7 +2335,7 @@ fn a_human_s_packed_siege_engine_unpacks_before_it_searches() {
         });
         // The loader writes `role & 0x10000` twice: the profile's
         // `combat_role` and the column `get_stance_type` reads.
-        sim.tables.unit_types[ty].cols.role |= crate::ai_load::role::ROLE_MILITARY;
+        sim.tables.unit_types[ty].cols.role |= crate::ai::ai_load::role::ROLE_MILITARY;
         let foe_ty = sim.add_unit_type(crate::UnitType {
             hits: 100,
             combat: Profile {
@@ -2482,10 +2484,10 @@ fn an_unpacked_siege_engine_fires_on_the_ground_under_its_target() {
 #[test]
 fn a_building_is_struck_square_to_its_side() {
     let (mut sim, ty) = at_war();
-    let bt = sim.add_build_type(crate::build::BuildType {
+    let bt = sim.add_build_type(crate::cities::build::BuildType {
         x_size: 3,
         y_size: 3,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);
     let b = sim.add_building(0, at, 0);
@@ -2602,10 +2604,10 @@ fn the_one_in_five_re_search_runs_under_the_attack_move() {
     let (mut sim, ty) = at_war();
     sim.cities.nation[0].human = true;
     sim.cities.nation[1].human = false;
-    let bt = sim.add_build_type(crate::build::BuildType {
+    let bt = sim.add_build_type(crate::cities::build::BuildType {
         x_size: 2,
         y_size: 2,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);
     let b = sim.add_building(0, at, 0);
@@ -2683,10 +2685,10 @@ fn a_captains_attack_on_a_building_re_searches_every_frame() {
     // A soldier (`role & MILITARY`): its combat stance is its own byte,
     // not `get_combat_stance`'s STAND_GROUND default (item 2265).
     sim.tables.unit_types[ty].combat.combat_role = true;
-    let bt = sim.add_build_type(crate::build::BuildType {
+    let bt = sim.add_build_type(crate::cities::build::BuildType {
         x_size: 3,
         y_size: 3,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let target_at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);
     let b = sim.add_building(1, target_at, 0);
@@ -2765,10 +2767,10 @@ fn a_candidate_in_another_region_is_taken_only_in_range() {
             sim.world.set_region(crate::Cell::new(x, y), r);
         }
     }
-    let bt = sim.add_build_type(crate::build::BuildType {
+    let bt = sim.add_build_type(crate::cities::build::BuildType {
         x_size: 2,
         y_size: 2,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let at = Pos::new(29 * 0x300 + 0x180, 30 * 0x300 + 0x180);
     let site = sim.add_building(0, at, 0);
@@ -2864,10 +2866,10 @@ fn an_attack_move_passes_over_an_unarmed_building() {
     sim.tables.unit_types[ty].combat.combat_role = true;
     sim.cities.nation[0].human = true;
     sim.cities.nation[1].human = false;
-    let bt = sim.add_build_type(crate::build::BuildType {
+    let bt = sim.add_build_type(crate::cities::build::BuildType {
         x_size: 2,
         y_size: 2,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);
     let camp = sim.add_building(0, at, 0);
@@ -2952,10 +2954,10 @@ fn a_ranged_chase_on_a_building_stops_at_the_edge_of_its_reach() {
     let (mut sim, ty) = at_war();
     sim.cities.nation[0].human = true;
     sim.cities.nation[1].human = false;
-    let bt = sim.add_build_type(crate::build::BuildType {
+    let bt = sim.add_build_type(crate::cities::build::BuildType {
         x_size: 2,
         y_size: 2,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);
     let city = sim.add_building(0, at, 0);
@@ -3050,10 +3052,10 @@ fn a_unit_in_the_chaser_s_block_holds_its_chase_on_a_building() {
     });
     sim.cities.nation[0].human = true;
     sim.cities.nation[1].human = false;
-    let bt = sim.add_build_type(crate::build::BuildType {
+    let bt = sim.add_build_type(crate::cities::build::BuildType {
         x_size: 2,
         y_size: 2,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);
     let city = sim.add_building(0, at, 0);
@@ -3890,7 +3892,7 @@ fn an_emplaced_weapon_drops_a_dead_target_s_order_while_recharging() {
     for emplaced in [true, false] {
         let (mut sim, ty) = at_war();
         if emplaced {
-            sim.tables.unit_types[ty].cols.unit_flags2 |= crate::ai_load::uflags2::EMPLACED;
+            sim.tables.unit_types[ty].cols.unit_flags2 |= crate::ai::ai_load::uflags2::EMPLACED;
         }
         let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
         let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
@@ -4168,7 +4170,7 @@ fn an_arrow_never_lands_on_gaia() {
         air: false,
         sz: 0,
         ez: 0,
-        v1z: crate::single::Single::ZERO,
+        v1z: crate::num::single::Single::ZERO,
         slot: 0,
         flame: false,
         punctures: false,
@@ -4200,10 +4202,10 @@ fn a_round_with_no_target_strikes_the_building_it_lands_on() {
     sim.tables.unit_types[ty].combat.attack = 150;
     sim.tables.unit_types[ty].combat.splash_area = 1;
     sim.tables.unit_types[ty].combat.splash_percent = 25;
-    let bt = sim.add_build_type(crate::build::BuildType {
+    let bt = sim.add_build_type(crate::cities::build::BuildType {
         x_size: 5,
         y_size: 5,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let at = Pos::new(13824, 14976);
     let b = sim.add_building(1, at, 0);
@@ -4230,7 +4232,7 @@ fn a_round_with_no_target_strikes_the_building_it_lands_on() {
         air: false,
         sz: 466,
         ez: 78,
-        v1z: crate::single::Single::ZERO,
+        v1z: crate::num::single::Single::ZERO,
         slot: 0,
         flame: false,
         punctures: false,
@@ -4284,10 +4286,10 @@ fn a_round_with_no_target_strikes_the_building_it_lands_on() {
 #[test]
 fn a_missed_round_strikes_a_city_at_its_ceiling() {
     let (mut sim, ty) = at_war();
-    let bt = sim.add_build_type(crate::build::BuildType {
+    let bt = sim.add_build_type(crate::cities::build::BuildType {
         x_size: 7,
         y_size: 7,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let at = Pos::new(6240, 7008);
     let b = sim.add_building(0, at, 0);
@@ -4314,7 +4316,7 @@ fn a_missed_round_strikes_a_city_at_its_ceiling() {
         air: false,
         sz: 0,
         ez: 0,
-        v1z: crate::single::Single::ZERO,
+        v1z: crate::num::single::Single::ZERO,
         slot: 0,
         flame: false,
         punctures: false,
@@ -4366,10 +4368,10 @@ fn the_shield_closes_a_missile_s_round_in_its_holder_s_land() {
     sim.tables.unit_types[ty].combat.splash_area = 1;
     sim.tables.unit_types[ty].combat.splash_percent = 25;
     sim.tables.unit_types[ty].combat.obj_masks |= mask::MISSILE;
-    let bt = sim.add_build_type(crate::build::BuildType {
+    let bt = sim.add_build_type(crate::cities::build::BuildType {
         x_size: 5,
         y_size: 5,
-        ..crate::build::BuildType::default()
+        ..crate::cities::build::BuildType::default()
     });
     let at = Pos::new(13824, 14976);
     let b = sim.add_building(1, at, 0);
@@ -4396,7 +4398,7 @@ fn the_shield_closes_a_missile_s_round_in_its_holder_s_land() {
         air: false,
         sz: 466,
         ez: 78,
-        v1z: crate::single::Single::ZERO,
+        v1z: crate::num::single::Single::ZERO,
         slot: 0,
         flame: false,
         punctures: false,
@@ -4463,7 +4465,7 @@ fn the_shield_closes_a_missile_s_round_in_its_holder_s_land() {
 fn a_tied_target_goes_to_the_cell_chain_s_head() {
     use crate::combat::Profile;
     use crate::world::World;
-    let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+    let mut sim = crate::Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
     sim.leaders.at_war[0][1] = true;
     sim.leaders.at_war[1][0] = true;
     let mut kind = |max_range: i32| {
@@ -4685,7 +4687,7 @@ fn the_death_pool_evicts_the_oldest_record_that_does_not_block() {
         hits: 100,
         ..crate::UnitType::default()
     });
-    sim.tables.unit_types[wreck].cols.unit_flags |= crate::ai_load::uflags::BLOCKS_WHILE_DEAD;
+    sim.tables.unit_types[wreck].cols.unit_flags |= crate::ai::ai_load::uflags::BLOCKS_WHILE_DEAD;
     let mut dead = Vec::new();
     // Slot 0 a wreck on frame 0; slots 1 and 2 two deaths on frame 1;
     // then one a frame to slot 99.
@@ -4889,7 +4891,7 @@ fn a_rolled_shot_comes_down_on_the_first_step_the_ground_meets_it() {
     let (launch, landing) = (Pos::new(0x1000, 0x1000), Pos::new(0x1000 + 700, 0x1000));
     let (sz, ez, total) = (400, 200, 7);
     let v1z = combat::arc_v1z(sz, ez, total);
-    let ground = crate::single::Single::from_i32(150);
+    let ground = crate::num::single::Single::from_i32(150);
     let down = (total..=3 * total)
         .find(|&t| !combat::arc_z(v1z, sz, t).gt(ground))
         .expect("the arc meets flat ground at 150 inside three flight times");
@@ -5011,9 +5013,9 @@ fn a_gatherer_killed_by_damage_leaves_its_building_s_chain() {
         ..crate::UnitType::default()
     });
     let camp = sim.add_building(0, Pos::new(0x1000, 0x1000), 1);
-    sim.buildings[camp].ty = Some(sim.add_build_type(crate::build::BuildType {
-        flags: crate::build::flags::GATHERER,
-        ..crate::build::BuildType::default()
+    sim.buildings[camp].ty = Some(sim.add_build_type(crate::cities::build::BuildType {
+        flags: crate::cities::build::flags::GATHERER,
+        ..crate::cities::build::BuildType::default()
     }));
     let stays = put(&mut sim, 0, citizen, Pos::new(0x1100, 0x1000));
     let dies = put(&mut sim, 0, citizen, Pos::new(0x1200, 0x1000));
@@ -5510,8 +5512,8 @@ fn a_reloading_unit_asks_for_the_idle_and_does_not_turn() {
         let (mut sim, ty) = at_war();
         let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
         let foe = put(&mut sim, 1, ty, Pos::new(0x6000, 0x3000));
-        let mut g = crate::anim::Guy::fresh(0);
-        g.anim = crate::anim::WALK;
+        let mut g = crate::units::anim::Guy::fresh(0);
+        g.anim = crate::units::anim::WALK;
         g.aim = aimed.then_some(Obj::Unit(foe));
         sim.units[me].guys = vec![g];
         sim.add_attack_order(
@@ -5528,7 +5530,7 @@ fn a_reloading_unit_asks_for_the_idle_and_does_not_turn() {
             sim.units[me].movement.heading, heading,
             "aimed {aimed}: a reloading unit does not turn"
         );
-        let asked = sim.units[me].guys[0].anim != crate::anim::WALK;
+        let asked = sim.units[me].guys[0].anim != crate::units::anim::WALK;
         assert_eq!(asked, !aimed, "aimed {aimed}: the idle request");
     }
 }
@@ -5586,9 +5588,9 @@ fn a_strike_reseats_tracked_crew_before_requesting_their_attack() {
     let foe = put(&mut sim, 1, ty, Pos::new(at.x + 192, at.y));
     sim.units[me].movement.heading = Angle::NORTH;
     sim.units[me].movement.facing = Angle::NORTH;
-    sim.units[me].guys.push(crate::anim::Guy::fresh(-1));
+    sim.units[me].guys.push(crate::units::anim::Guy::fresh(-1));
     let mut crew = sim.units[me].guys[0];
-    crew.follow = Some(crate::anim::Follow {
+    crew.follow = Some(crate::units::anim::Follow {
         body: crate::movement::Body::at(Pos::new(at.x + 48, at.y)),
         des: Pos::new(at.x + 48, at.y),
         facing: Angle::NORTH,
@@ -5608,7 +5610,7 @@ fn a_strike_reseats_tracked_crew_before_requesting_their_attack() {
     assert_eq!(follow.body.pos, follow.des);
     assert_eq!(follow.facing, follow.des_angle);
     assert_eq!(crew.pending_attack, 0, "the crew can attack immediately");
-    assert_eq!(crate::anim::category(crew.anim), 12);
+    assert_eq!(crate::units::anim::category(crew.anim), 12);
 }
 
 #[test]
@@ -5794,7 +5796,7 @@ fn group_action_attack_s_member_search_takes_the_army_target() {
         let blocker = put(&mut sim, 1, foe_ty, Pos::new(at.x, at.y + 600));
         let g = match sim.army_of(me) {
             Some(slot) => sim.army_group(0, slot),
-            None => crate::group::Group {
+            None => crate::groups::group::Group {
                 who: 0,
                 army: None,
                 pushed: None,
@@ -5845,7 +5847,7 @@ fn an_idle_melee_and_ranged_type_searches_at_its_second_range() {
             ..crate::UnitType::default()
         };
         if flagged {
-            ty.cols.unit_flags |= crate::ai_load::uflags::MELEE_AND_RANGED;
+            ty.cols.unit_flags |= crate::ai::ai_load::uflags::MELEE_AND_RANGED;
         }
         let ty = sim.add_unit_type(ty);
         let at = Pos::new(0x1200, 0x1200);

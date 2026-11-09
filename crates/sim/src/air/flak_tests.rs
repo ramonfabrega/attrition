@@ -1,12 +1,12 @@
-use crate::attrition::Domain;
 use crate::combat::{self, Obj, mask};
 use crate::orders::{Body, Order, StrafeOrder};
+use crate::territory::attrition::Domain;
 use crate::world::Pos;
 use crate::{Sim, Unit, UnitType};
 
 fn sim() -> Sim {
     let mut s = Sim::new(
-        crate::tuning::Tuning::RON,
+        crate::core::tuning::Tuning::RON,
         crate::world::World::new(128, 128),
         2,
     );
@@ -28,9 +28,9 @@ fn building(s: &mut Sim, who: crate::Player, at: Pos, prof: combat::Profile) -> 
 fn unit(s: &mut Sim, who: crate::Player, at: Pos, prof: combat::Profile) -> usize {
     let ty = s.add_unit_type(UnitType {
         hits: 300,
-        kind: crate::attrition::UnitKind {
+        kind: crate::territory::attrition::UnitKind {
             domain: prof.domain,
-            ..crate::attrition::UnitKind::default()
+            ..crate::territory::attrition::UnitKind::default()
         },
         combat: prof,
         ..UnitType::default()
@@ -105,9 +105,9 @@ fn radar(s: &mut Sim, with_cycle: bool) -> usize {
             launch: Some((136, -136, 227)),
         });
         let id = s.tables.tech_tree.add(d);
-        let bt = s.add_build_type(crate::build::BuildType {
+        let bt = s.add_build_type(crate::cities::build::BuildType {
             tree: Some(id),
-            ..crate::build::BuildType::default()
+            ..crate::cities::build::BuildType::default()
         });
         s.buildings[b].ty = Some(bt);
     }
@@ -803,16 +803,16 @@ fn stockade_and_scout(s: &mut Sim) -> (usize, usize) {
 fn a_british_tower_line_building_reaches_two_tiles_further() {
     let mut s = sim();
     let (b, _) = stockade_and_scout(&mut s);
-    let bt = s.add_build_type(crate::build::BuildType {
-        ident: crate::build::Ident::Tower,
-        ..crate::build::BuildType::default()
+    let bt = s.add_build_type(crate::cities::build::BuildType {
+        ident: crate::cities::build::Ident::Tower,
+        ..crate::cities::build::BuildType::default()
     });
     s.buildings[b].ty = Some(bt);
     let me = Obj::Building(b);
     assert_eq!(s.max_range_of(me), 11, "not British");
     s.cities.nation[1].british = true;
     assert_eq!(s.max_range_of(me), 13, "British Tower line");
-    let other = s.add_build_type(crate::build::BuildType::default());
+    let other = s.add_build_type(crate::cities::build::BuildType::default());
     s.buildings[b].ty = Some(other);
     assert_eq!(s.max_range_of(me), 11, "British, not a tower");
 }

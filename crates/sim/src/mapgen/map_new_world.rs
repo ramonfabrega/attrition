@@ -1,8 +1,8 @@
 //! **New World's land/sea mask** (`docs/MAPGEN.md` §31):
 //! `MapNewWorld::make_continents@006984d0`, on the region growers Great
-//! Lakes' port carries (`crate::map_lakes`) and the guarded
+//! Lakes' port carries (`crate::mapgen::map_lakes`) and the guarded
 //! `Map::check_player_land` East Meets West's port carries
-//! (`crate::map_east_west`).
+//! (`crate::mapgen::map_east_west`).
 //!
 //! An island a player on a ring about the map's centre, and one continent
 //! in the middle. Each player's region opens on the ring and is grown in
@@ -15,11 +15,13 @@
 //! distances are the engine's integer `vector_dist`, the ring its integer
 //! `project`.
 
-use crate::map_east_west::check_player_land;
-use crate::map_lakes::{Grower, LakeMap, LakeStyle, Lakes, eliminate_pools, scale_land_area};
+use crate::mapgen::map_east_west::check_player_land;
+use crate::mapgen::map_lakes::{
+    Grower, LakeMap, LakeStyle, Lakes, eliminate_pools, scale_land_area,
+};
+use crate::mapgen::terrain_groups::Draws;
 use crate::mapgen::{MapGrid, project};
 use crate::movement::Angle;
-use crate::terrain_groups::Draws;
 
 /// The draw sites, as return addresses (the trace's `Function+0xNN`).
 pub mod site {

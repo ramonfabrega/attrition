@@ -1,6 +1,6 @@
 //! `BuildTypeData::get_kill_value@00639790` under the emulator against the port (item 2112; hand-written on tools/emu/hooks.py).
 
-use crate::cost::kill_value_by;
+use crate::economy::cost::kill_value_by;
 
 /// `BuildTypeData::get_kill_value@00639790`, run by `tools/emu/sweep_build_type_data_get_kill_value.py` under
 /// unicorn (tools/emu): the base slot `+0x7c` asked first with `0`, then, for `who >= 0`, the two support words

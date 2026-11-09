@@ -4,7 +4,7 @@
 //! in its order; the view is the state it reads and the callees it makes, which
 //! `sweep/group_action_attack_ground.rs` answers from the emulated original's
 //! windows. The crate has no group-level method of this name yet: the
-//! [`crate::group`] adapter's `action_attack_ground` is an empty arm, and
+//! [`crate::groups::group`] adapter's `action_attack_ground` is an empty arm, and
 //! wiring it wants `Group::add` and `action_air_attack_ground`, neither built.
 //!
 //! ```text

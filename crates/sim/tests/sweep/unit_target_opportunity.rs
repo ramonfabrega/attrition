@@ -45,7 +45,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = &c;
-            use crate::topp::{Head, TargetOppView, target_opportunity_head};
+            use crate::orders::topp::{Head, TargetOppView, target_opportunity_head};
             // `p[0..24]`: p[2r] the team slice of `leaders[r]` (+8), p[2r+1] its treaty row (+0x74);
             // p[16+r] the treaty row of `leadersc[r]`. p[24..64] the objects tables (not read here:
             // the walk's `get_captain` is stub 5, answering the next of p[65..], in call order);

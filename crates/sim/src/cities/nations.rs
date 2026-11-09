@@ -21,7 +21,7 @@
 //! the measurement that made the wire worth having.
 //!
 //! [`TechTree::has_tribe_bonus`]: crate::tech::TechTree::has_tribe_bonus
-//! [`city::Nation`]: crate::city::Nation
+//! [`city::Nation`]: crate::cities::city::Nation
 
 use crate::tech::TypeId;
 use crate::{Player, Sim};
@@ -160,7 +160,7 @@ impl Sim {
     ///
     /// Call it after anything `has_tribe_bonus` reads changes — the power
     /// itself, `has_city`, or the lobby's "No Nation Powers". The seven
-    /// nations with no flag on [`crate::city::Nation`] — the Greeks, Spanish,
+    /// nations with no flag on [`crate::cities::city::Nation`] — the Greeks, Spanish,
     /// Japanese, Mongols, Iroquois, Americans and Persians — are not missing:
     /// their powers are read straight off `has_tribe_bonus` at the rules that
     /// use them, and this cache exists only for the mechanics that took a
@@ -293,7 +293,7 @@ impl Sim {
             // The third arm with no `current_upgrade`.
             let scholars = self.tables.tuning.americans_free_scholar;
             self.free_train(b, power::AMERICANS, ty::SCHOLARS, scholars, false);
-        } else if crate::build::is_fort(&self.tables.build_types, rec) {
+        } else if crate::cities::build::is_fort(&self.tables.build_types, rec) {
             let generals = i32::from(self.tables.tuning.french_free_general != 0);
             self.free_train(b, power::FRENCH, ty::GENERAL, generals, false);
         } else if t == Some(ty::AIRBASE) {
@@ -397,9 +397,9 @@ impl Sim {
     pub(crate) fn persian_market_caravan(&mut self, b: usize, frame: i64) {
         // The type itself, `== 0x1b4`, not its lineage: the record's own
         // `Ident`.
-        let market = self.buildings[b]
-            .ty
-            .is_some_and(|r| self.tables.build_types[r].ident == crate::build::Ident::Market);
+        let market = self.buildings[b].ty.is_some_and(|r| {
+            self.tables.build_types[r].ident == crate::cities::build::Ident::Market
+        });
         if !market || self.buildings[b].phase(frame) % 15 != 0 {
             return;
         }
@@ -422,8 +422,11 @@ impl Sim {
             return;
         };
         let m = &self.roster.muster[w];
-        if crate::cost::exceeds_population(m.cap, m.control, self.tables.unit_types[rec].price.pop)
-        {
+        if crate::economy::cost::exceeds_population(
+            m.cap,
+            m.control,
+            self.tables.unit_types[rec].price.pop,
+        ) {
             return;
         }
         self.build_train(b, rec);
@@ -564,7 +567,7 @@ impl Sim {
         if who >= self.tech.len() || self.tech[who].gov_hero_frame != frame + 1 {
             return;
         }
-        if !self.building_is(b, crate::build::Ident::Senate) {
+        if !self.building_is(b, crate::cities::build::Ident::Senate) {
             return;
         }
         let Some(hero) = self
@@ -677,7 +680,7 @@ impl Sim {
         let pop = self.tables.unit_types[rec].price.pop;
         for _ in 0..n {
             let m = &self.roster.muster[w];
-            if crate::cost::exceeds_population(m.cap, m.control, pop) {
+            if crate::economy::cost::exceeds_population(m.cap, m.control, pop) {
                 continue;
             }
             self.build_train(b, rec);

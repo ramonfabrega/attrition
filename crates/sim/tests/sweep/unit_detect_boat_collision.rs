@@ -66,9 +66,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 // `Sim::detect_boat_collision` runs over its `BoatView`; here the view is the
                 // emulated original's windows.
                 use crate::Player;
-                use crate::attrition::Domain;
-                use crate::collide::{BoatView, detect_boat_collision_steps};
                 use crate::movement::Angle;
+                use crate::movement::collide::{BoatView, detect_boat_collision_steps};
+                use crate::territory::attrition::Domain;
                 use crate::world::Pos;
                 struct V<'a> {
                     a: &'a [i32],

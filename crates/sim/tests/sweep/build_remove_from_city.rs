@@ -58,8 +58,8 @@ fn the_emulated_original_agrees_on_every_row() {
                 // `Sim::remove_from_city` is driven on a `Sim` rebuilt from them (the chain is `members`, tail
                 // last); the city's flag bits, `Wall::decrement_stats` and the unlink's `next` write have no state
                 // in it and are inline.
-                use crate::build::{BuildType, Ident};
-                use crate::city::City;
+                use crate::cities::build::{BuildType, Ident};
+                use crate::cities::city::City;
                 use crate::world::{Pos, World};
                 use crate::{Sim, Tuning};
                 let i16at = |w: &[u8], o: usize| i16::from_le_bytes([w[o], w[o + 1]]);

@@ -16,7 +16,7 @@
 //! way.
 
 use crate::Sim;
-use crate::group::Group;
+use crate::groups::group::Group;
 use crate::orders::{Body, QueuePos, index};
 
 impl Sim {

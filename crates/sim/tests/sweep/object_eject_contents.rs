@@ -16,7 +16,7 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-use crate::eject::{EjectView, eject_steps};
+use crate::units::eject::{EjectView, eject_steps};
 
 // **The windows** (item 3356; `tools/emu/sweep_obj.tsv`'s row `object_eject_contents`). `m`
 // is `this`: who 0, index 3, and `units[0][3]`, `objects[0][3]` too (aliased

@@ -51,7 +51,7 @@ pub(crate) const CHINESE_GUNPOWDER: Pair = Pair {
     // `1/97`'s `CHAR_ATTACKWALK` round of 5130 (TypeIndex 189, piece 1195),
     // which left its own square here, (8022, 10152), and flew 4; theirs
     // left the pivot's release, (8009, 10001), and flew 3. Piece 1195's
-    // rows are piece 139's (`sim::pivot::SAME_AS`, run1237's packet). On
+    // rows are piece 139's (`sim::data::pivot::SAME_AS`, run1237's packet). On
     // 5384 ours spends 49 draws against theirs' 53, parting at index 30 —
     // ours `Guy::set_anim+0x97a < Unit::move_step+0x823` (`1/154`),
     // theirs four `Guy::set_anim+0xf2f < Unit::set_anim < Unit::fight+
@@ -61,7 +61,7 @@ pub(crate) const CHINESE_GUNPOWDER: Pair = Pair {
     //
     // Item 3641: 5384 → 5568, the game's last frame — the pair is whole.
     // The supply radius reads the research held (`SupplyData::get_radius`),
-    // where `sim::supply` read a stored count no one wrote: who=1 researches
+    // where `sim::territory::supply` read a stored count no one wrote: who=1 researches
     // Forage (605, the first step) on 5192, so its wagons reach 16 tiles,
     // not 14. On
     // 5324 the Bombard `1/98` at (7608, 10680) fires with the Supply Wagon

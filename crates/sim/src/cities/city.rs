@@ -9,12 +9,12 @@
 //! on is `build.rs`'s; the placement predicates are `place.rs`'s; the
 //! garrison `garrison.rs`'s.
 
-use crate::build::{self, Ident, flags};
-use crate::capture_view::{SimCapture, capture_city_steps};
+use crate::cities::build::{self, Ident, flags};
+use crate::cities::capture_view::{SimCapture, capture_city_steps};
+use crate::cities::place::Blocked;
 use crate::combat::Obj;
-use crate::cost;
 use crate::economy::RESOURCES;
-use crate::place::Blocked;
+use crate::economy::cost;
 use crate::territory;
 use crate::world::{Pos, UNITS_PER_TILE, cell, tile, vector_dist};
 use crate::{Building, Player, Sim};
@@ -565,7 +565,7 @@ impl Sim {
     fn fix_world_vals(&mut self, c: usize) {
         let centre = self.cities.cities[c].pos.cell();
         let r = self.radius_of(c);
-        let circle = crate::ai_place::circle();
+        let circle = crate::ai::ai_place::circle();
         wear_site_vals(
             &mut self.world,
             centre,
@@ -741,7 +741,7 @@ impl Sim {
     /// 0`, a city centre and an unattached building do nothing — and both
     /// callers here already hold it, so it is the caller's.
     ///
-    /// **`City::regen_roads` is called from here too** (`crate::roads` §1),
+    /// **`City::regen_roads` is called from here too** (`crate::movement::roads` §1),
     /// and it is the writer Great Lakes 10230 reaches: the building is
     /// unlinked from the `city_down` chain *first*, so what gets flagged is
     /// the city's **remaining** buildings, and each of them then replans on
@@ -869,7 +869,7 @@ impl Sim {
     /// The territory sources the cities and forts project, rebuilt from the
     /// records — a border fix (`Regions::fix_all_borders@0067f7d0`). The
     /// owners the new sources claim are computed here and reach the map at
-    /// the daemon's pace, 256 cells a frame ([`crate::border_pass`], item
+    /// the daemon's pace, 256 cells a frame ([`crate::territory::border_pass`], item
     /// 1106); [`Sim::settle_borders`] is setup's wholesale pass.
     pub fn sync_territory(&mut self) {
         self.fix_borders();
@@ -1002,7 +1002,7 @@ impl Sim {
     /// `known_rares`, and `create_units`' Merchant arm reads that sum
     /// (`docs/AI.md` §76). `reg_terr`'s zero is the transient this crate
     /// does not model (parked 568): the cells themselves reach the map at the
-    /// pass's pace since item 1106 ([`crate::border_pass`]), and `reg_terr`
+    /// pass's pace since item 1106 ([`crate::territory::border_pass`]), and `reg_terr`
     /// is read off them.
     ///
     /// Every [`Sim::sync_territory`] is a fix: its call sites are the
@@ -1276,7 +1276,7 @@ impl Sim {
     fn greek_library_discount(&self, who: Player, ty: usize) -> i32 {
         let library = matches!(
             self.tables.build_types[ty].tree,
-            Some(crate::nations::ty::LIBRARY | crate::nations::ty::UNIVERSITY)
+            Some(crate::cities::nations::ty::LIBRARY | crate::cities::nations::ty::UNIVERSITY)
         ) || matches!(
             self.tables.build_types[ty].ident,
             Ident::Library | Ident::University
@@ -1285,7 +1285,7 @@ impl Sim {
             && self.tables.tech_tree.has_tribe_bonus(
                 &self.tables.setup,
                 &self.tech[who as usize],
-                crate::nations::power::GREEKS,
+                crate::cities::nations::power::GREEKS,
             )
         {
             self.tables.tuning.greek_library_cost
@@ -1306,7 +1306,7 @@ impl Sim {
             return 0;
         }
         let full = match types[ty].tree {
-            Some(t) => crate::nations::ty::MAYA_FULL_TIMBER.contains(&t),
+            Some(t) => crate::cities::nations::ty::MAYA_FULL_TIMBER.contains(&t),
             None => matches!(
                 types[ty].ident,
                 Ident::Barracks
@@ -1342,7 +1342,7 @@ impl Sim {
         if !self.tables.tech_tree.has_tribe_bonus(
             &self.tables.setup,
             &self.tech[who as usize],
-            crate::nations::power::INDIANS,
+            crate::cities::nations::power::INDIANS,
         ) {
             return cost::IndianRamp::Off;
         }
@@ -1363,13 +1363,13 @@ impl Sim {
     /// run965's block 570: who=1's timber 52 against theirs 78 (item 3331,
     /// `docs/AI.md` §268).
     fn japanese_farm_discount(&self, who: Player, ty: usize) -> i32 {
-        let farm = self.tables.build_types[ty].tree == Some(crate::nations::ty::FARM)
+        let farm = self.tables.build_types[ty].tree == Some(crate::cities::nations::ty::FARM)
             || self.tables.build_types[ty].ident == Ident::Farm;
         if farm
             && self.tables.tech_tree.has_tribe_bonus(
                 &self.tables.setup,
                 &self.tech[who as usize],
-                crate::nations::power::JAPANESE,
+                crate::cities::nations::power::JAPANESE,
             )
         {
             self.tables.tuning.japanese_farms_cheaper
@@ -1530,7 +1530,7 @@ impl Sim {
     pub fn init_build(&mut self, who: Player, ty: usize, pos: Pos, restore: bool) -> usize {
         let pos = self.snap_center(ty, pos);
         let bt = self.tables.build_types[ty].clone();
-        let capacity = crate::build::queue_capacity(&self.tables.build_types, ty);
+        let capacity = crate::cities::build::queue_capacity(&self.tables.build_types, ty);
         let b = self.buildings.len();
         let index = self
             .find_free(who, crate::BUILD_BASE, crate::WALL_BASE)
@@ -1539,7 +1539,7 @@ impl Sim {
             owner: who,
             index,
             pos,
-            queue: crate::production::Queue::new(capacity),
+            queue: crate::cities::production::Queue::new(capacity),
             is_library: bt.ident == Ident::Library,
             combat: Some(bt.combat.unwrap_or_default()),
             hits: 0,
@@ -1675,7 +1675,7 @@ impl Sim {
         // empty list, as the original's does. ~~and keeps it~~ — the old
         // half's `Build::close` then gives those tiles back and flags the
         // region, and the copy re-walks them on the next region pass
-        // (`crate::gather::Sim::gather_region_building`, `docs/ECONOMY.md` §17).
+        // (`crate::economy::gather::Sim::gather_region_building`, `docs/ECONOMY.md` §17).
         let t = &self.tables.build_types[ty];
         if t.has(build::flags::GATHERER)
             && !t.has(build::flags::FLAT)
@@ -2105,7 +2105,7 @@ impl Sim {
         // `is_city || connects_to_roads` — the one predicate both of
         // `mask_me`'s road arms read, from opposite sides.
         let lays = build::is_city(&self.tables.build_types, ty)
-            || crate::roads::connects_to_roads(&self.tables.build_types, ty);
+            || crate::movement::roads::connects_to_roads(&self.tables.build_types, ty);
         for (i, t) in self.footprint(ty, corner).into_iter().enumerate() {
             let (u, v) = (i as i32 % xs, i as i32 / xs);
             debug_assert!(v < ys);
@@ -2244,8 +2244,8 @@ impl Sim {
         if !self.buildings[b].alive {
             return false;
         }
-        crate::construct::do_construct_steps(
-            &mut crate::construct::SimConstruct { sim: self, b },
+        crate::cities::construct::do_construct_steps(
+            &mut crate::cities::construct::SimConstruct { sim: self, b },
             amount,
         )
     }
@@ -2407,10 +2407,10 @@ impl Sim {
             self.defense_add(who, 1);
         }
         // `Build::activate@00623e20`, entry to `Wall::activate`: the library
-        // hand-down and the Chinese Large City founding (`crate::activate`,
+        // hand-down and the Chinese Large City founding (`crate::cities::activate`,
         // item 3364). `Wall::activate` is the rest of this function.
-        crate::activate::activate_head_steps(
-            &mut crate::activate::SimHead { sim: self, b, who },
+        crate::cities::activate::activate_head_steps(
+            &mut crate::cities::activate::SimHead { sim: self, b, who },
             i32::from(captured),
             0,
             i32::from(counted),
@@ -2482,9 +2482,9 @@ impl Sim {
         } else {
             // `Build::activate@00623e20`, lines 160-445: the arm the type's
             // lineage takes after `Wall::activate` — the Temple's border
-            // fix, the Senate's capital move (`crate::activate`, item 3364).
-            crate::activate::activate_arms_steps(
-                &mut crate::activate::SimArms::new(self, b, who),
+            // fix, the Senate's capital move (`crate::cities::activate`, item 3364).
+            crate::cities::activate::activate_arms_steps(
+                &mut crate::cities::activate::SimArms::new(self, b, who),
                 i32::from(captured),
                 0,
             );
@@ -2517,7 +2517,7 @@ impl Sim {
         }
         // `Build::activate@00623e20+0x744`: the city's roads want
         // replanning, which is what flags every one of its buildings
-        // (`crate::roads` §1). ~~It is the only writer a traced game
+        // (`crate::movement::roads` §1). ~~It is the only writer a traced game
         // reaches.~~ **Not so**: `Build::remove_from_city` is the other,
         // and Great Lakes 10230 reaches it when a farm finally falls
         // (`docs/ROADS.md` §1.2, item 478).
@@ -2532,7 +2532,7 @@ impl Sim {
         self.claim_commerce_slot(b, captured, counted);
         // `Build::activate@00623e20` lines 603–1150, between the two: the
         // building high-water mark, and the nation's free units for a
-        // first-of-its-kind building (`crate::nations`, §4.3).
+        // first-of-its-kind building (`crate::cities::nations`, §4.3).
         self.claim_building_high(b, captured, counted);
         // `Build::activate@00623e20` lines 1151–1205: the gather slots, and
         // the bonus for the ones the player has never held.
@@ -2638,7 +2638,7 @@ impl Sim {
         // above jumps to, are the same call: whatever the bonus did or did
         // not do, a finished **food** gather building runs
         // `Farms::add_animals`, and there a pasture costs twenty draws
-        // (`crate::farms::Sim::farm_stock_pasture`).
+        // (`crate::cities::farms::Sim::farm_stock_pasture`).
         //
         // **Not at frame 0**, which is where this crate parts from the
         // original and does so knowingly: the original's starting farms are
@@ -2655,15 +2655,15 @@ impl Sim {
 
     /// `Object::disband(full)`: the building goes back; the refund is the
     /// fraction not yet built, or the whole price. The steps are
-    /// [`crate::disband::disband_steps`], swept against the original
+    /// [`crate::units::disband::disband_steps`], swept against the original
     /// (item 3346), and the prices are read inside them, after the close,
     /// as the original reads them (item 3516).
     pub fn disband_building(&mut self, b: usize, full: bool) {
         if !self.buildings[b].alive {
             return;
         }
-        crate::disband::disband_steps(
-            &mut crate::disband::SimDisband { sim: self, b },
+        crate::units::disband::disband_steps(
+            &mut crate::units::disband::SimDisband { sim: self, b },
             i32::from(full),
         );
     }
@@ -2919,7 +2919,7 @@ impl Sim {
                 bd.under_attack &= !0x2;
             }
         }
-        // The site recruiter (`crate::site_recruit`, `docs/AI.md` §69), in
+        // The site recruiter (`crate::cities::site_recruit`, `docs/AI.md` §69), in
         // the same 32-frame block as the decay and **ahead of** the helpers
         // reset below, so it reads the builders the site had last frame.
         if phase & 31 == 0
@@ -3013,7 +3013,7 @@ impl Sim {
                 if !u.alive() || !u.on_map || u.is_gaia() || !self.is_enemy(who, u.owner) {
                     continue;
                 }
-                if !matches!(u.kind.domain, crate::attrition::Domain::Land) {
+                if !matches!(u.kind.domain, crate::territory::attrition::Domain::Land) {
                     continue;
                 }
                 let d = vector_dist(u.pos.x - pos.x, u.pos.y - pos.y);
@@ -3052,7 +3052,7 @@ impl Sim {
         // however the flag was set; the flag simply stays until the site
         // finishes. This crate ran the replan beside the helpers reset,
         // above the gate, and East Indies 8193 is the frame that says so
-        // (`crate::roads` §1, `docs/ROADS.md` §1.1).
+        // (`crate::movement::roads` §1, `docs/ROADS.md` §1.1).
         self.regen_roads_due(b, frame);
     }
 

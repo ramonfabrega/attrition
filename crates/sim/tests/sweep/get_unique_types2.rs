@@ -12,7 +12,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let (a, want) = super::row(line);
         assert_eq!(
             want,
-            i64::from(crate::flag_reads::global_byte(a[0] as u8)),
+            i64::from(crate::core::flag_reads::global_byte(a[0] as u8)),
             "get_unique_types2 — row `{line}`"
         );
         n += 1;

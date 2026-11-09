@@ -15,11 +15,11 @@
 //! fallback is one `+0x941` and one `+0xaba` a cell, and run39's frame
 //! 1373 is the only frame in the corpus that reaches it.
 
-use crate::ai_load::role;
-use crate::attrition::Domain;
-use crate::group::Group;
+use crate::ai::ai_load::role;
+use crate::groups::group::Group;
 use crate::movement::Angle;
 use crate::orders::{MoveKind, QueuePos};
+use crate::territory::attrition::Domain;
 use crate::world::{Cell, Pos, UNITS_PER_TILE, tile, vector_dist};
 use crate::{Player, Sim};
 
@@ -215,7 +215,7 @@ impl Sim {
     }
 
     /// `role & 0x10` on the unit's type — the scout bit
-    /// ([`crate::ai_load::role::ROLE_SCOUT`]).
+    /// ([`crate::ai::ai_load::role::ROLE_SCOUT`]).
     pub fn unit_is_scout(&self, u: usize) -> bool {
         let Some(rec) = self.units[u].ty else {
             return false;
@@ -242,13 +242,13 @@ impl Sim {
     }
 
     /// `UnitData::is_special@0046cea0`, which the vtable resolves to
-    /// `unit_flags2 & 0x10` — [`crate::ai_load::uflags2::FLAG2_SCOUT`]. Read
+    /// `unit_flags2 & 0x10` — [`crate::ai::ai_load::uflags2::FLAG2_SCOUT`]. Read
     /// twice: by `Unit::think`'s human block (§2) and by §11's `local_74`.
     pub(crate) fn unit_is_special(&self, u: usize) -> bool {
         self.units[u].ty.is_some_and(|r| {
             self.tables.unit_types[r]
                 .cols
-                .flag2(crate::ai_load::uflags2::FLAG2_SCOUT)
+                .flag2(crate::ai::ai_load::uflags2::FLAG2_SCOUT)
         })
     }
 
@@ -304,7 +304,7 @@ impl Sim {
 
     /// `WorldData::was_really_seen@006b54f0` — the **bare** fog read, with
     /// none of `was_seen`'s ally-territory shortcut
-    /// (`crate::ai_sites`' `site_was_seen` is that one, and they are
+    /// (`crate::ai::ai_sites`' `site_was_seen` is that one, and they are
     /// different functions with one letter between their names). Answers
     /// true when no fog grid is loaded, which is the flat harness world.
     ///
@@ -376,7 +376,7 @@ impl Sim {
         if !self.cities.nation[who as usize].human
             && self.tables.unit_types[rec]
                 .cols
-                .flag2(crate::ai_load::uflags2::CASTER)
+                .flag2(crate::ai::ai_load::uflags2::CASTER)
             && self.think_spellcaster(u)
         {
             return true;

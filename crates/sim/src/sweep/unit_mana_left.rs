@@ -21,14 +21,14 @@ fn the_emulated_original_agrees_on_every_row() {
     world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 7));
     let mut s = Sim::new(Tuning::RON, world, 2);
     let mut t = crate::tech::TechTree::new();
-    while t.types.len() <= crate::nations::ty::GENERAL {
+    while t.types.len() <= crate::cities::nations::ty::GENERAL {
         t.add(TypeDef::unit("filler", UnitTraits::default()));
     }
     s.set_tech_tree(t);
     // [general?][owner] -> the unit.
     let units = [0usize, 1].map(|general| {
         let row = if general == 1 {
-            crate::nations::ty::GENERAL
+            crate::cities::nations::ty::GENERAL
         } else {
             0
         };
@@ -67,7 +67,8 @@ fn the_emulated_original_agrees_on_every_row() {
         s.tables.setup.no_nation_powers = nonation != 0;
         s.tables.setup.starting_town = town != 0;
         s.tech[owner as usize].has_city = city != 0;
-        s.tech[owner as usize].power = (french != 0).then_some(crate::nations::power::FRENCH);
+        s.tech[owner as usize].power =
+            (french != 0).then_some(crate::cities::nations::power::FRENCH);
         s.tech[1 - owner as usize].power = None;
         assert_eq!(
             i64::from(s.mana_left(u)),

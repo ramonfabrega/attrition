@@ -16,7 +16,11 @@ fn the_emulated_original_agrees_on_every_row() {
         );
         assert_eq!(
             want,
-            i64::from(crate::flag_reads::wall_data_hits(a[0] as i32, v20, v54)),
+            i64::from(crate::core::flag_reads::wall_data_hits(
+                a[0] as i32,
+                v20,
+                v54
+            )),
             "WallData::hits — row `{line}`"
         );
         n += 1;

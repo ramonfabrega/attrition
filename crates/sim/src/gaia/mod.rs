@@ -232,7 +232,7 @@ impl Sim {
         unit.movement.speed = self.type_speed(BIRD_OWNER, ty);
         unit.movement.turning = self.turning_for(ty);
         // `Unit::init@00612100:282–309` — a bird's type answers
-        // `STANCE_NONE`, so this is the `default:` arm (`crate::stance`).
+        // `STANCE_NONE`, so this is the `default:` arm (`crate::units::stance`).
         unit.stance = self.init_stance(BIRD_OWNER, ty);
         let u = self.add_unit(unit);
         self.init_guys(u, Some(ty));
@@ -399,7 +399,7 @@ impl Sim {
     /// [`Sim::set_guy`].
     ///
     /// An animal wanders when its idle animation runs out and a `% 10` comes
-    /// up under 3 (`Animal::do_idle`, `crate::anim`), so where it walks and
+    /// up under 3 (`Animal::do_idle`, `crate::units::anim`), so where it walks and
     /// when it arrives are decided by draws on the sync stream. Between two
     /// traced frames the harness's stream is **not** the original's — that
     /// is why the word is re-installed at all — so the animals drift, and
@@ -524,7 +524,7 @@ pub mod herd_create_view;
 pub struct GaiaState {
     /// `LeaderData::flock_stamp` (`+0x7b8`): the frame of the player's
     /// last flock of birds, which `Objects::add_flock` reads to allow one
-    /// in 225 frames per player (`crate::flock`). The leader dump prints
+    /// in 225 frames per player (`crate::gaia::flock`). The leader dump prints
     /// it.
     pub flock_stamp: Vec<i64>,
     /// The goody boxes as `Objects::init_item` laid them down, with each
@@ -534,7 +534,7 @@ pub struct GaiaState {
     /// `docs/GOODY.md` §7.2). Empty when the world was stood up without
     /// the dump's `ITEM` records; [`Sim::goody_item_is_seen`] then reads
     /// the fog in its place.
-    pub goody_items: Vec<crate::goody::GoodyItem>,
+    pub goody_items: Vec<crate::gaia::goody::GoodyItem>,
     /// The herds and the birds' sampling (`gaia.rs`).
     pub gaia: crate::gaia::Gaia,
 }

@@ -154,14 +154,14 @@ impl AttackGroundView for SimAttackGround<'_> {
         self.s.units[self.u].ty.is_some_and(|t| {
             self.s.tables.unit_types[t]
                 .cols
-                .flag(crate::ai_load::uflags::SIDEWAYS)
+                .flag(crate::ai::ai_load::uflags::SIDEWAYS)
         })
     }
     fn rocks(&self) -> bool {
         self.s.units[self.u].ty.is_some_and(|t| {
             self.s.tables.unit_types[t]
                 .cols
-                .flag(crate::ai_load::uflags::ROCKS)
+                .flag(crate::ai::ai_load::uflags::ROCKS)
         })
     }
     fn heading(&self) -> i32 {
@@ -310,7 +310,7 @@ impl Sim {
         }
         let siege = ai && self.is_siege_unit(u);
         let unit = &self.units[u];
-        if unit.kind.domain != crate::attrition::Domain::Land {
+        if unit.kind.domain != crate::territory::attrition::Domain::Land {
             return false;
         }
         let can_capture = !unit.decoy && !self.is_siege_unit(u);
@@ -419,7 +419,9 @@ impl Sim {
                 .flag(uflags::MELEE_AND_RANGED)
         });
         if state.recharging == 0 || latch || walks_on {
-            let snap = crate::collide::ucell_centre(crate::collide::ucell(self.units[u].pos));
+            let snap = crate::movement::collide::ucell_centre(crate::movement::collide::ucell(
+                self.units[u].pos,
+            ));
             self.set_new_location(u, snap, true);
         }
         // **The reload gate**, `Unit::fight@005fd4d0:100-127`. A recharging
@@ -629,7 +631,7 @@ impl Sim {
             let mut drop = false;
             if self.units[u].captain && self.ai_driven(self.units[u].owner) {
                 use_poor = true;
-                self.mark(crate::fight::SITE_FIGHT_GUARD_ROLL);
+                self.mark(crate::combat::fight::SITE_FIGHT_GUARD_ROLL);
                 drop = self.rng.roll() & 1 != 0;
             }
             if drop || !self.guard_check_target(u, &g, target, use_poor) {
@@ -702,7 +704,7 @@ impl Sim {
             let research = match target {
                 Obj::Building(_) => true,
                 Obj::Unit(t) => {
-                    self.mark(crate::fight::SITE_FIGHT_RESEARCH);
+                    self.mark(crate::combat::fight::SITE_FIGHT_RESEARCH);
                     let roll = self.rng.roll();
                     // `fight@005fd4d0:394-400`: a unit with
                     // `unit_masks2 & 4` (a Bark, item 2165, parked 2100)
@@ -843,8 +845,12 @@ impl Sim {
         // position, which is what this crate did for all of them until
         // item 328.
         let here = self.units[u].pos;
-        let dest = match self.find_attack_pos(u, target, here, crate::fight::SITE_ATTACK_POS_FIGHT)
-        {
+        let dest = match self.find_attack_pos(
+            u,
+            target,
+            here,
+            crate::combat::fight::SITE_ATTACK_POS_FIGHT,
+        ) {
             Some(_) if self.fight_post_leash(u, target, state.mandatory) => return false,
             Some(p) => p,
             None if self.attack_pos_refused(u, target) => {
@@ -1155,12 +1161,16 @@ impl Sim {
             && self.is_in_range(target, Obj::Unit(u))
         {
             let here = self.units[u].pos;
-            let spot =
-                match self.find_attack_pos(u, target, here, crate::fight::SITE_ATTACK_POS_SIEGE) {
-                    Some(p) => Some(p),
-                    None if self.attack_pos_refused(u, target) => None,
-                    None => Some(self.pos_of(target)),
-                };
+            let spot = match self.find_attack_pos(
+                u,
+                target,
+                here,
+                crate::combat::fight::SITE_ATTACK_POS_SIEGE,
+            ) {
+                Some(p) => Some(p),
+                None if self.attack_pos_refused(u, target) => None,
+                None => Some(self.pos_of(target)),
+            };
             if let Some(spot) = spot
                 && (spot.x != here.x || spot.y != here.y)
             {
@@ -1218,7 +1228,10 @@ impl Sim {
         self.set_attacking(u, self.owner_of(target));
         self.store_attack(u, a);
         let at = self.units[v].pos;
-        let sea = matches!(self.profile(target).domain, crate::attrition::Domain::Sea);
+        let sea = matches!(
+            self.profile(target).domain,
+            crate::territory::attrition::Domain::Sea
+        );
         let order = Order {
             flags: 0,
             body: Body::AttackGround(AttackGroundOrder {
@@ -2021,7 +2034,7 @@ impl CheckTargetView for SimCheckTarget<'_> {
     fn site(&mut self) -> (i32, i32) {
         // The action's record `+0x8`/`+0xc`: the attack's own target.
         self.target
-            .map_or((-1, -1), |t| crate::attack_view::obj_key(self.s, t))
+            .map_or((-1, -1), |t| crate::groups::attack_view::obj_key(self.s, t))
     }
     fn order_flag4(&mut self) -> bool {
         self.action().is_some_and(|o| o.flags & 4 != 0)
@@ -2058,7 +2071,12 @@ impl CheckTargetView for SimCheckTarget<'_> {
     fn find_attack_pos(&mut self) -> Option<(i32, i32)> {
         let here = self.s.units[self.u].pos;
         self.s
-            .find_attack_pos(self.u, self.t(), here, crate::fight::SITE_ATTACK_POS_REVIEW)
+            .find_attack_pos(
+                self.u,
+                self.t(),
+                here,
+                crate::combat::fight::SITE_ATTACK_POS_REVIEW,
+            )
             .map(|p| (p.x, p.y))
     }
     fn stance(&mut self) -> i32 {

@@ -1920,7 +1920,7 @@ pub(super) fn chapter_two_s_word_frame_is_widened_whole() {
     //   differs from the figure's own `angle` (§45.1).
     // - **`g.gpiece` on ten pre-existing units at 606**, the window's
     //   floor, on both players and five types: this crate's piece is
-    //   exactly [`sim::anim::PIECES_PER_AGE`] below the dump's on every
+    //   exactly [`sim::units::anim::PIECES_PER_AGE`] below the dump's on every
     //   one of them — one age bracket. The animation clock agrees on all
     //   ten for the whole window, so the two pieces share their lengths
     //   here and it spends no draw; it is named so it cannot hide, and it
@@ -5397,7 +5397,7 @@ pub(super) fn chapter_seven_b_s_control_scout_search_is_priced_as_the_original()
     built.tick();
     let ours = std::mem::take(&mut built.sim.trace.cost_marks);
     let theirs = trace.calls_in(SEARCH, crate::trace::call_site::CALC_COST);
-    let theirs_by_key: std::collections::BTreeMap<sim::path::CostKey, i32> = theirs
+    let theirs_by_key: std::collections::BTreeMap<sim::movement::path::CostKey, i32> = theirs
         .iter()
         .map(|c| (c.cost_key().expect("a calc_cost call"), c.ret))
         .collect();

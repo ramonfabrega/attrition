@@ -35,9 +35,9 @@ fn the_emulated_original_agrees_on_every_row() {
         // regions' first cells, `p10` the leader's city pointers, `p11..p14` the city records (flags the ushort at
         // +4, building the short at +8, region the short at +10, centre at +0xc / +0x10).
         //
-        // **The port is the crate's own steps**, `crate::army::do_transporting_steps`, which
+        // **The port is the crate's own steps**, `crate::ai::army::do_transporting_steps`, which
         // `Sim::do_transporting` calls over its `TransSim`; here the view is the emulated original's windows.
-        use crate::army::{TransView, do_transporting_steps};
+        use crate::ai::army::{TransView, do_transporting_steps};
         fn rd32(w: &[u8], o: usize) -> i32 {
             i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
         }

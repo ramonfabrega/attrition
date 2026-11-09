@@ -1,6 +1,6 @@
 //! `Army::find_target@006f69b0`, **the score and the tail** (item 3362, the
 //! second slice, `sweep/army_find_target_run.rs`): from the draw to the
-//! return. [`crate::target_gate`] is the first slice, entry to the draw.
+//! return. [`crate::ai::army::target_gate`] is the first slice, entry to the draw.
 //!
 //! The score is one city's `v`, a chain of multipliers and divisions the
 //! original writes in one block of `ebx`; the tail picks the best, hands
@@ -16,7 +16,7 @@
 //! answers its first call `-1`, which returns), `leaders[who] +0x7e8`, the
 //! two wonder arms and `has_preq(0x2b9)` (the sim answers all three off).
 
-use crate::target_gate::{SimGate, TargetGateView, diff_of};
+use crate::ai::army::target_gate::{SimGate, TargetGateView, diff_of};
 use crate::world::vector_dist;
 
 /// What the head and the gates leave for the score (`target_gate::Head`
@@ -495,7 +495,7 @@ impl TargetScoreView for SimGate<'_> {
     }
     fn army_open(&self, j: usize) -> Option<(i32, i32)> {
         let b = &self.sim.ai.armies[self.who as usize].list[j];
-        if !b.valid || b.status & crate::army::status::MUSTERING != 0 {
+        if !b.valid || b.status & crate::ai::army::status::MUSTERING != 0 {
             return None;
         }
         let none = Some((-1, -1));

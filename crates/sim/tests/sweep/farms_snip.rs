@@ -1,6 +1,6 @@
 //! `Farms::snip@008d9240` under the emulator against `farms::Farm::snip`.
 
-use crate::farms::Farm;
+use crate::cities::farms::Farm;
 
 /// The record stride (`0x30 * 4` bytes) and the status grid's offset in it.
 const STRIDE: i64 = 0xC0;

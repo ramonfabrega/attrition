@@ -14,12 +14,12 @@
 //! the gull's angle, on the sync stream, in the order the original takes it
 //! (§5.2).
 
-use crate::ai_place::{MOVE_X, MOVE_Y};
-use crate::attrition::Domain;
-use crate::build;
+use crate::ai::ai_place::{MOVE_X, MOVE_Y};
+use crate::cities::build;
 use crate::combat::Obj;
 use crate::orders::Worker;
 use crate::tech::TypeId;
+use crate::territory::attrition::Domain;
 use crate::world::{Cell, Pos, TILES_PER_CELL, UNITS_PER_TILE, tile};
 use crate::{BUILD_BASE, Player, Sim, UNIT_BASE, Unit};
 
@@ -448,7 +448,7 @@ impl Sim {
             unit.type_index = self.tables.unit_types[gt].type_index;
             unit.movement.speed = self.type_speed(9, gt);
             unit.movement.turning = self.turning_for(gt);
-            // `Unit::init@00612100:282–309` (`crate::stance`).
+            // `Unit::init@00612100:282–309` (`crate::units::stance`).
             unit.stance = self.init_stance(9, gt);
             let u = self.add_unit(unit);
             self.init_guys(u, Some(gt));
@@ -574,8 +574,8 @@ impl Sim {
     /// a scout from choosing home is the scouted bit its own tail has
     /// just set. Amended in §7.
     pub(crate) fn think_civilian_transport(&mut self, u: usize, colonise: bool) -> bool {
-        let mut v = crate::civ_transport::SimCivTransport::new(self, u);
-        crate::civ_transport::think_civilian_transport_steps(&mut v, colonise) != 0
+        let mut v = crate::units::think::civ_transport::SimCivTransport::new(self, u);
+        crate::units::think::civ_transport::think_civilian_transport_steps(&mut v, colonise) != 0
     }
 
     /// `Unit::think_carry@005f2ee0`'s dispatch (`docs/AI.md` §195), reached from
@@ -723,8 +723,8 @@ impl Sim {
     /// QUEUE_NEW, 0)`: the bearing is taken to the unsnapped centre, the
     /// destination snapped to 48.
     pub(crate) fn think_carry_civilian(&mut self, u: usize, workers: bool) -> bool {
-        let mut v = crate::carry_civ::SimCarryCiv::new(self, u);
-        crate::carry_civ::think_carry_civilian_steps(&mut v, workers)
+        let mut v = crate::units::think::carry_civ::SimCarryCiv::new(self, u);
+        crate::units::think::carry_civ::think_carry_civilian_steps(&mut v, workers)
     }
 
     // ------------------------------------------------------------------
@@ -784,11 +784,11 @@ impl Sim {
     pub(crate) fn do_cast(&mut self, u: usize, order: crate::orders::CastOrder) {
         let s = order.spell;
         if self.spell(s).is_some_and(|d| d.targeted()) {
-            // The targeted half, `crate::cast` (item 790).
+            // The targeted half, `crate::spells::cast` (item 790).
             self.do_cast_targeted(u, order);
             return;
         }
-        // The whole untargeted half, `crate::do_cast_view`: the craft the rest
+        // The whole untargeted half, `crate::spells::do_cast_view`: the craft the rest
         // acts on, the once-only cost (`pay_cast_costs@00676c40`: a unit
         // caster's `mana_burn` takes the craft's `MANA` — Create Decoys'
         // 1,000 on the General, `docs/GOLDEN.md` §48; the pack, unpack and
@@ -796,12 +796,12 @@ impl Sim {
         // animations (`docs/AI.md` §137, §285), the clock, the member's wait
         // on its captain's transport (item 2077, `docs/AI.md` §207: East
         // Indies' `1/24` on 3835) and the cast itself.
-        let mut v = crate::do_cast_view::SimDoCast {
+        let mut v = crate::spells::do_cast_view::SimDoCast {
             sim: &mut *self,
             u,
             order,
         };
-        let _ = crate::do_cast_view::do_cast_clock_steps(&mut v);
+        let _ = crate::spells::do_cast_view::do_cast_clock_steps(&mut v);
     }
 
     /// `SpellType::cast@00676ce0`'s untargeted arms this crate carries, behind
@@ -1022,11 +1022,11 @@ impl Sim {
     /// caravan's slot hand-over~~ is built (item 3370): the fleet takes
     /// [`Unit::caravan`] and [`Sim::disembark`] gives it back.
     pub(crate) fn cast_transport(&mut self, u: usize) {
-        // The body is `crate::cast_transport::cast_transport_steps` (item
+        // The body is `crate::spells::cast_transport::cast_transport_steps` (item
         // 3330), the original's control flow over a view; the Sim answers it.
         let who = self.units[u].owner;
-        let mut view = crate::cast_transport::SimTransport::new(self, who as usize);
-        crate::cast_transport::cast_transport_steps(&mut view, u as i32, who as i32);
+        let mut view = crate::spells::cast_transport::SimTransport::new(self, who as usize);
+        crate::spells::cast_transport::cast_transport_steps(&mut view, u as i32, who as i32);
     }
 
     /// `LeaderData::current_upgrade(base)` of `who`, as a tree id.
@@ -1060,7 +1060,7 @@ impl Sim {
         // (`docs/TRANSPORT.md` §6.2, `docs/MOVEMENT.md` §1).
         boat.movement.speed = self.type_speed(who, ty);
         boat.movement.turning = self.turning_for(ty);
-        // `Unit::init@00612100:282–309` (`crate::stance`).
+        // `Unit::init@00612100:282–309` (`crate::units::stance`).
         boat.stance = self.init_stance(who, ty);
         let b = self.add_unit(boat);
         // `Unit::init` → `Guy::init_real`: the boat's one figure, one draw.
@@ -1361,7 +1361,7 @@ impl Sim {
             if self.units[boat].ty.is_some_and(|t| {
                 self.tables.unit_types[t]
                     .cols
-                    .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
+                    .flag2(crate::ai::ai_load::uflags2::FLAG2_CARAVAN)
             }) {
                 let who = self.units[boat].owner as usize;
                 let slot = self.units[boat].caravan.take();
@@ -1601,7 +1601,7 @@ impl Sim {
         // from there (run841's `GROUPDATA` reads 1 on 4482) and ours was
         // 0 until the formation on 4602 came out mirrored.
         let des_angle = self.units[r].movement.des_angle;
-        let turned = crate::group::reversing(crate::movement::Angle(
+        let turned = crate::groups::group::reversing(crate::movement::Angle(
             angle.0.wrapping_sub(self.units[r].movement.heading.0),
         ));
         self.units[r].movement.set_facing(angle);
@@ -1650,7 +1650,7 @@ impl Sim {
         if self.ai_driven(owner) && self.army_of(r).is_some() {
             return;
         }
-        let mut g = crate::group::Group::stack(owner);
+        let mut g = crate::groups::group::Group::stack(owner);
         self.group_add(&mut g, boat);
         let insert = self.group_set_up_insert(&g);
         g.list.retain(|&m| m != boat);
@@ -1793,7 +1793,7 @@ pub(crate) fn cast_unpack_steps<C: UnpackSteps>(cx: &mut C, usable: bool, tree: 
     if !usable {
         return;
     }
-    if tree.is_some_and(|t| crate::ai_census::ty::MERCHANTS.contains(&t)) {
+    if tree.is_some_and(|t| crate::ai::ai_census::ty::MERCHANTS.contains(&t)) {
         let (x, y) = cx.pos();
         let t = Pos::new(x, y).tile();
         if !cx.good_merchant_spot(t.x, t.y) {

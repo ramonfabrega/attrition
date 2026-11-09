@@ -59,7 +59,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            use sim::balance::{Pack, compute_modifier_with, pack_categories};
+            use sim::combat::balance::{Pack, compute_modifier_with, pack_categories};
             // `a`: ta tb table | the stubs' answers (is_gaia, return_pack, type_damage) | the slotbase flag |
             // the two five-word packs `return_pack` writes, in call order.
             let pack = |w: &[i32]| Pack {

@@ -9,14 +9,14 @@
 //! The arithmetic is integers, and one single-precision site: the pattern-2
 //! and -3 region weights (`addss`/`divss`/`mulss`/`cvttss2si`, listing
 //! 0x6a7e24..0x6a7f29), each operation correctly rounded, which
-//! [`crate::single`] reproduces exactly (`docs/DECISIONS.md` 19). On a map
+//! [`crate::num::single`] reproduces exactly (`docs/DECISIONS.md` 19). On a map
 //! with one region the weight is `(c / c)·n = n` exactly.
 
-use crate::ai_place::{MOVE_X, MOVE_Y};
+use crate::ai::ai_place::{MOVE_X, MOVE_Y};
 use crate::combat::Rng;
 use crate::mapgen::MapGrid;
-use crate::scout::circle;
-use crate::single::Single;
+use crate::num::single::Single;
+use crate::units::think::scout::circle;
 use crate::world::vector_dist;
 
 /// A `game_random` stream that records, for every draw, the site the
@@ -175,7 +175,7 @@ pub struct TilesetGroups {
     pub coast_growth_prob: i32,
     /// The `TILESET` element's `riverbase` (`TileSet+0x229`): the
     /// `BASELAND` sub-tile `spot_update_land_batch` gives a river trough's
-    /// cells ([`crate::map_troughs`]); 0 when absent.
+    /// cells ([`crate::mapgen::map_troughs`]); 0 when absent.
     pub riverbase: i32,
 }
 
@@ -185,13 +185,13 @@ pub struct TilesetGroups {
 /// ([`cliff_size_index`]), its `orientation` (1 NW, 2 NE, 3 SE, 4 SW), and
 /// the cells of its `n × n` box it covers ([`cliff_cells`]), y outer and x
 /// inner, relative to the box's corner; and the per-pixel heights
-/// `Cliffs::place_cliff` adds ([`crate::cliffs::template_heights`]).
+/// `Cliffs::place_cliff` adds ([`crate::mapgen::cliffs::template_heights`]).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct CliffTemplate {
     pub size: usize,
     pub facing: i32,
     pub cells: Vec<(i32, i32)>,
-    pub heights: Vec<crate::single::Single>,
+    pub heights: Vec<crate::num::single::Single>,
 }
 
 /// `init_templates`' size index from a texture's width: 64 → 4, 32 → 3,

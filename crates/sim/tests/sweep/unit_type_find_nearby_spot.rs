@@ -151,9 +151,9 @@ fn the_emulated_original_agrees_on_every_row() {
                     big_radius,
                     block_radius,
                     domain: match dom {
-                        1 => crate::attrition::Domain::Sea,
-                        2 => crate::attrition::Domain::Air,
-                        _ => crate::attrition::Domain::Land,
+                        1 => crate::territory::attrition::Domain::Sea,
+                        2 => crate::territory::attrition::Domain::Air,
+                        _ => crate::territory::attrition::Domain::Land,
                     },
                     ..Default::default()
                 };

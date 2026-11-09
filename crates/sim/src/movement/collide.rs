@@ -15,11 +15,13 @@
 //! `coll_size 1` — every unit in every capture so far — the blocks overlap
 //! most of the time.
 
-use crate::attrition::Domain;
 use crate::combat::Obj;
-use crate::detect_collision_view::{DetectArgs, DetectCollisionView, detect_unit_collision_steps};
+use crate::movement::detect_collision_view::{
+    DetectArgs, DetectCollisionView, detect_unit_collision_steps,
+};
 use crate::movement::{Angle, cos_component, find_angle, sin_component};
 use crate::orders::{Body, MoveOrder, Order, PathData, QueuePos, index, path_flag};
+use crate::territory::attrition::Domain;
 use crate::world::{Cell, Pos, UNITS_PER_CELL, World, tile, vector_dist};
 
 /// The distance `Unit::detect_boat_collision` measures between two circle
@@ -669,7 +671,7 @@ impl BoatView for SimBoat<'_> {
     }
     fn is_transport(&mut self, u: usize) -> bool {
         self.0.units[u].ty.is_some_and(|t| {
-            self.0.tables.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT
+            self.0.tables.unit_types[t].cols.unit_flags & crate::ai::ai_load::uflags::FLAG_TRANSPORT
                 != 0
         })
     }
@@ -711,7 +713,7 @@ impl BoatView for SimBoat<'_> {
         self.0.units[o]
             .ty
             .map(|t| self.0.tables.unit_types[t].cols)
-            .is_some_and(|c| c.flag2(crate::ai_load::uflags2::PACKS))
+            .is_some_and(|c| c.flag2(crate::ai::ai_load::uflags2::PACKS))
     }
     fn packed(&mut self, o: usize) -> bool {
         self.0.units[o].combat.packed
@@ -726,7 +728,7 @@ impl BoatView for SimBoat<'_> {
         self.0.units[o]
             .ty
             .map(|t| self.0.tables.unit_types[t].cols)
-            .is_some_and(|c| c.flag(crate::ai_load::uflags::TANK))
+            .is_some_and(|c| c.flag(crate::ai::ai_load::uflags::TANK))
     }
     fn is_moving(&mut self, o: usize) -> bool {
         self.0.is_moving(o)
@@ -826,7 +828,7 @@ impl<'a> SimDetect<'a> {
                 || s.units[w].pos.cell() != self.cell
                 || !s.units[w].ty.is_some_and(|t| {
                     s.tables.unit_types[t].cols.unit_flags
-                        & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
+                        & crate::ai::ai_load::uflags::BLOCKS_WHILE_DEAD
                         != 0
                 })
                 || !s.unit_is_here(w, self.hit)
@@ -1255,7 +1257,7 @@ impl Sim {
     /// the simulation ever stands up is gaia's bird (`crate::gaia`), which
     /// must not paint the occupancy grid a citizen walks on.
     fn is_air(&self, u: usize) -> bool {
-        self.units[u].kind.domain == crate::attrition::Domain::Air
+        self.units[u].kind.domain == crate::territory::attrition::Domain::Air
     }
 
     /// Whether `detect_unit_collision@00617060` takes its **second arm**
@@ -1281,7 +1283,7 @@ impl Sim {
     /// under a player's move, pushes the guard standing on its post (21,
     /// 1) and names itself in the guard's `collide_o` (run191's brackets).
     pub(crate) fn takes_boat_arm(&self, u: usize) -> bool {
-        self.units[u].kind.domain == crate::attrition::Domain::Sea
+        self.units[u].kind.domain == crate::territory::attrition::Domain::Sea
             || self.is_siege_unit(u)
             || self.is_hero_unit(u)
             || self.is_supply_unit(u)
@@ -1354,7 +1356,7 @@ impl Sim {
                 .phase_marks
                 .last()
                 .map(|(label, _)| label.clone());
-            self.mark(crate::anim::SITE_TURN_PUSHED);
+            self.mark(crate::units::anim::SITE_TURN_PUSHED);
             self.do_turn_anim(o, was, out, bearing);
             if let Some(outer) = outer {
                 self.mark(&outer);
@@ -1375,7 +1377,7 @@ impl Sim {
     /// tested on each candidate's tile, including the coastal refinement;
     /// a cell's primary region cannot stand in for all its occupants.
     fn find_push_candidates(&self, u: usize, at: Pos, range: i32) -> Vec<usize> {
-        let circle = crate::ai_place::circle();
+        let circle = crate::ai::ai_place::circle();
         let ring = ((range.max(0) + 0x2ff) / 0x300).min(0x40) as usize;
         let live = self.total_units();
         let region = self.world.tregion_alt(at.tile());
@@ -1547,7 +1549,7 @@ impl Sim {
         // for a dead unit on that one arm alone.
         let dead_boat = !self.units[u].alive()
             && !self.units[u].on_map
-            && self.units[u].kind.domain == crate::attrition::Domain::Sea;
+            && self.units[u].kind.domain == crate::territory::attrition::Domain::Sea;
         if !(self.units[u].alive() && self.units[u].on_map) && !dead_boat {
             return;
         }
@@ -2017,11 +2019,11 @@ impl Sim {
         let ocean = self.world.tile_mask(to.tile()) & crate::world::tile::SURFACE
             == crate::world::tile::SURFACE_OCEAN;
         match self.profile(crate::combat::Obj::Unit(u)).domain {
-            crate::attrition::Domain::Land if ocean => {
+            crate::territory::attrition::Domain::Land if ocean => {
                 self.add_cast_order(u, crate::orders::spell::TRANSPORT);
                 false
             }
-            crate::attrition::Domain::Sea if !ocean => {
+            crate::territory::attrition::Domain::Sea if !ocean => {
                 self.disembark(u);
                 false
             }
@@ -2146,7 +2148,7 @@ impl Sim {
     ///
     /// ~~The two answers come apart twice: for a **crew** figure, which
     /// stands on a track offset a whole cell or more from its leader; and~~
-    /// **`guy_mark` is 1** ([`crate::anim::SQUAD_SIZE`]), so the walk is
+    /// **`guy_mark` is 1** ([`crate::units::anim::SQUAD_SIZE`]), so the walk is
     /// figure 0 and no crew figure is ever asked (item 1524, `docs/AI.md`
     /// §140: a Bombard decoy's second figure turned a hard collision into
     /// a slip-past on Great Sahara at Toughest's 15246). The two answers
@@ -2168,14 +2170,14 @@ impl Sim {
         }
         let body = self.units[o].movement.body.pos;
         // **`0 .. guy_mark`, and `guy_mark` is 1** (item 1524,
-        // [`crate::anim::SQUAD_SIZE`]): the loop is the squad's figures and
+        // [`crate::units::anim::SQUAD_SIZE`]): the loop is the squad's figures and
         // never the crew's. A Bombard decoy's four figures stand a cell off
         // their leader and the second one's NW/SE corner cancelled the
         // asker's own, so ours slipped past a blocker the original refused.
         self.units[o]
             .guys
             .iter()
-            .take(crate::anim::SQUAD_SIZE)
+            .take(crate::units::anim::SQUAD_SIZE)
             .map(|g| g.follow.map_or(body, |f| f.body.pos))
             .map(|p| Self::corner_of(size, ucell(p), cell))
             .find(|&c| c != 0)
@@ -2389,7 +2391,7 @@ impl Sim {
                     || self.units[w].pos.cell() != p.cell()
                     || !self.units[w].ty.is_some_and(|t| {
                         self.tables.unit_types[t].cols.unit_flags
-                            & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
+                            & crate::ai::ai_load::uflags::BLOCKS_WHILE_DEAD
                             != 0
                     })
                     || !self.unit_is_here(w, cell)
@@ -2589,7 +2591,7 @@ impl Sim {
     /// `short`, `+0x80` against `+0x80` and against −1
     /// (`detect_unit_collision@00617060:307`), which is the
     /// `Groups::list` slot; a group here sits either in an army or in a
-    /// [`crate::group::Pushed`] pool slot, and `push_group` takes its
+    /// [`crate::groups::group::Pushed`] pool slot, and `push_group` takes its
     /// members **out** of the army when it installs one. So from item
     /// 465 — which gave the AI's raiders a real `GROUP_MOVE` in the pool
     /// — every member of a pushed group was hard to every other, and a
@@ -2655,7 +2657,7 @@ impl Sim {
     pub(crate) fn find_collision(&self, u: usize, at: Pos) -> bool {
         find_collision_steps(
             false,
-            self.units[u].kind.domain == crate::attrition::Domain::Land,
+            self.units[u].kind.domain == crate::territory::attrition::Domain::Land,
             self.coll_size(u),
             || i32::from(self.collide_here(u, ucell(at), false).is_some()),
             || self.chain_hit(u, at, |s, o| ucell(s.units[o].pos)),
@@ -2729,7 +2731,7 @@ impl Sim {
                 && crate::world::vector_dist(at.x - u.pos.x, at.y - u.pos.y)
                     <= self.profile(Obj::Unit(o)).big_radius + r_coll
         };
-        let circle = crate::ai_place::circle();
+        let circle = crate::ai::ai_place::circle();
         let ring = ((r_coll + 0x2ff) / 0x300) as usize;
         if r_coll < 0 || ring >= circle.radius.len() || self.total_units() < circle.radius[ring] {
             return (0..self.units.len()).any(hit);

@@ -19,15 +19,15 @@
 //! No height is read, and no float: each stretch's spline points
 //! (`RiversOut::start_river`, `RiverOut::add_spline_point`) are recorded
 //! as cells in [`MapGrid::rivers`], and the troughs they carve are
-//! [`crate::map_troughs`]'.
+//! [`crate::mapgen::map_troughs`]'.
 
 use std::cmp::Reverse;
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::ai_place::circle;
+use crate::ai::ai_place::circle;
+use crate::mapgen::terrain_groups::Draws;
+use crate::mapgen::terrain_init::{MOVE, ORTHOG};
 use crate::mapgen::{MapGrid, Regions, WCell};
-use crate::terrain_groups::Draws;
-use crate::terrain_init::{MOVE, ORTHOG};
 
 /// `Map::river_thresh` before any file sets it (`Map::Map@006a06e0`): 30.
 /// `Map::init_map_data@0069f250` takes `MAP/RIVER_THRESHOLD`'s value from

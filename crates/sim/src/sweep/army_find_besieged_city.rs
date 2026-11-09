@@ -58,9 +58,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 // `p[215]` the `div_3_table`. Logs, one per recorded stub, each call `ecx,edx,args`; the `edx` of a
                 // callee that is not handed one is whatever was left, `*`, masked below.
                 //
-                // **The port is the crate's own steps**, `crate::army::find_besieged_city_steps`, which
+                // **The port is the crate's own steps**, `crate::ai::army::find_besieged_city_steps`, which
                 // `Sim::find_besieged_city` calls over its `BesiegedSim`; here the view is the emulated original's windows.
-                use crate::army::{BesiegedView, find_besieged_city_steps};
+                use crate::ai::army::{BesiegedView, find_besieged_city_steps};
                 use crate::movement::Angle;
                 use crate::world::Pos;
                 struct V<'a> {

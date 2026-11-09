@@ -38,10 +38,10 @@ fn the_emulated_original_agrees_on_every_row() {
             // arguments, one answer a stub (`a[4 + k]`, k the stub), then the `--seq` runs in flag order
             // (stubs 2, 3, 5, 6, 7, 8, 9, 10, 14, 16) and the `basic_type` flag (`a[195]`).
             //
-            // **The port is the crate's own steps**, `crate::gather_view::action_gather_point_steps`, which
+            // **The port is the crate's own steps**, `crate::groups::gather_view::action_gather_point_steps`, which
             // `Sim::action_gather_point` calls over its `SimGather`; here the view is the emulated original's
             // windows.
-            use crate::gather_view::{GatherPointView, action_gather_point_steps};
+            use crate::groups::gather_view::{GatherPointView, action_gather_point_steps};
             const SEQ_AT: [(usize, usize, usize); 10] = [
                 (2, 25, 24),
                 (3, 49, 24),

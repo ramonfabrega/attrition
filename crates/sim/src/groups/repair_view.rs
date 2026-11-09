@@ -16,7 +16,7 @@
 //! `queue` is the original's numbering: `0` `QUEUE_FIRST` (the re-entry),
 //! `1` `QUEUE_LAST`, anything else the `QUEUE_NEW` arm.
 
-use crate::garrison_view::{GarrisonHead, garrison_head};
+use crate::groups::garrison_view::{GarrisonHead, garrison_head};
 
 /// What `Group::action_repair` asks of the group, the world and the objects.
 /// `depth` is the `QUEUE_FIRST` re-entry's: its frame sits `0x64` bytes

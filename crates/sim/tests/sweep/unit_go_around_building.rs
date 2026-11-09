@@ -56,7 +56,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             // **The port is the crate's own steps**,
-            // `crate::detour::go_around_building_steps`, which
+            // `crate::movement::detour::go_around_building_steps`, which
             // `Sim::go_around_building` runs over its `SimDetour`; here the
             // view is the emulated original's windows.
             //
@@ -77,8 +77,8 @@ fn the_emulated_original_agrees_on_every_row() {
             // node (`+4` its prev), `p1` that node (`+8` its order, `+0xc` its
             // metric), `p2` the order, `p3` the `MoveOrder`.
             use crate::Pos;
-            use crate::detour::{DetourView, go_around_building_steps};
             use crate::movement::Angle;
+            use crate::movement::detour::{DetourView, go_around_building_steps};
             use crate::orders::PathData;
             fn rd32(w: &[u8], o: usize) -> i32 {
                 i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))

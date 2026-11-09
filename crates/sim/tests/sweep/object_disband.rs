@@ -16,7 +16,7 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-use crate::disband::{DisbandView, disband_steps};
+use crate::units::disband::{DisbandView, disband_steps};
 
 // **Held out of the draw, by name** (item 3346). The garrison recursion
 // (`disband(inside, 0)` on `+0x28`'s chain): `Harness` hooks a callee by its

@@ -1,6 +1,6 @@
 //! `WallData::is_started@00472360` under the emulator against the port (item 1705).
 
-use crate::flag_reads::wall_is_started;
+use crate::core::flag_reads::wall_is_started;
 
 /// `WallData::is_started@00472360`, run by `tools/emu/sweep_wall_is_started.py` under unicorn
 /// (tools/emu): `+0x8` byte `& 2`, over every bit edge and a seeded band, against `flag_reads::wall_is_started` — what is proved is the bit's identity (0x2), that the other bits and the sign do not leak, and that the original returns the masked value itself.

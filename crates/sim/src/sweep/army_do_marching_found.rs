@@ -54,9 +54,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 // target's data record (flags +8, damage +0x24, build masks +0x60, city number the short at +0x72, the
                 // vtable word at +0 either `Build::vftable` or the stubbed table).
                 //
-                // **The port is the crate's own steps**, `crate::army::do_marching_steps`, which `Sim::do_marching`
+                // **The port is the crate's own steps**, `crate::ai::army::do_marching_steps`, which `Sim::do_marching`
                 // calls over its `MarchSim`; here the view is the emulated original's windows.
-                use crate::army::{MarchView, do_marching_steps};
+                use crate::ai::army::{MarchView, do_marching_steps};
                 struct V<'a> {
                     a: &'a [i32],
                     m: &'a mut [u8],

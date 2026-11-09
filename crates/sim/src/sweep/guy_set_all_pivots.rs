@@ -62,14 +62,14 @@ fn the_emulated_original_agrees_on_every_row() {
                     let w = &p[1 + 4 * owner as usize + unit as usize];
                     let (ux, uy) = (rd(w, 0x10) ^ 0x63637, rd(w, 0x14) ^ 0x63637);
                     let facing = crate::movement::Angle(rd(m, 0x18));
-                    let mut t = crate::anim::Turret {
+                    let mut t = crate::units::anim::Turret {
                         angles: std::array::from_fn(|k| rd(m, 0x20 + 4 * k)),
                         des: std::array::from_fn(|k| rd(m, 0x30 + 4 * k)),
                         node_flags: 0,
                         des_flags: 0,
                     };
                     let vx = f32::from_bits(vx_bits as u32) as i32;
-                    let can = crate::fight::pivot_steps(
+                    let can = crate::combat::fight::pivot_steps(
                         nodes as usize,
                         |_| (lo, hi),
                         |_| (vx, 0),

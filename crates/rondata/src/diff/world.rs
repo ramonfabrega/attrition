@@ -246,16 +246,16 @@ mod tests {
         // Frame 0 through the harness, so frame 1 starts on the original's
         // own word and its clocks; then frame 1 raw, so the marks survive.
         built.tick();
-        built.sim.tick();
+        built.sim.command().tick();
         let ours = mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed).expect("our sites");
         let theirs = trace.labels(1);
         assert_eq!(theirs.len(), 53, "the original's frame 1");
 
         let count = |v: &[String], site: &str| v.iter().filter(|l| *l == site).count();
         for (site, n) in [
-            (sim::farms::SITE_AMBIENCE_X, 1),
-            (sim::farms::SITE_AMBIENCE_Y, 1),
-            (sim::farms::SITE_TYPE_COIN, 0),
+            (sim::cities::farms::SITE_AMBIENCE_X, 1),
+            (sim::cities::farms::SITE_AMBIENCE_Y, 1),
+            (sim::cities::farms::SITE_TYPE_COIN, 0),
         ] {
             assert_eq!(count(&theirs, site), n, "the original's {site}");
             assert_eq!(count(&ours, site), n, "ours: {site}");
@@ -263,14 +263,16 @@ mod tests {
         // And they are adjacent, x before y, which a count cannot say.
         let at = ours
             .iter()
-            .position(|l| l == sim::farms::SITE_AMBIENCE_X)
+            .position(|l| l == sim::cities::farms::SITE_AMBIENCE_X)
             .expect("the x offset");
         assert_eq!(
             ours.get(at + 1).map(String::as_str),
-            Some(sim::farms::SITE_AMBIENCE_Y)
+            Some(sim::cities::farms::SITE_AMBIENCE_Y)
         );
         assert_eq!(
-            theirs.iter().position(|l| l == sim::farms::SITE_AMBIENCE_X),
+            theirs
+                .iter()
+                .position(|l| l == sim::cities::farms::SITE_AMBIENCE_X),
             Some(43),
             "the original spends them right after `produce_building`'s 43"
         );
@@ -339,20 +341,23 @@ mod tests {
         // `produce_building`, site for site: the spiral's friendless
         // FARM/MINE candidates and the 2×2 jitter's unblocked
         // sub-positions, both the original's counts.
-        for site in [sim::ai_place::SITE_SPIRAL, sim::ai_place::SITE_JITTER] {
+        for site in [
+            sim::ai::ai_place::SITE_SPIRAL,
+            sim::ai::ai_place::SITE_JITTER,
+        ] {
             assert_eq!(count(&ours, site), count(&theirs, site), "{site}");
         }
-        assert_eq!(count(&theirs, sim::ai_place::SITE_SPIRAL), 39);
-        assert_eq!(count(&theirs, sim::ai_place::SITE_JITTER), 4);
+        assert_eq!(count(&theirs, sim::ai::ai_place::SITE_SPIRAL), 39);
+        assert_eq!(count(&theirs, sim::ai::ai_place::SITE_JITTER), 4);
         // And they are one call, in the original's order: every spiral
         // draw before every jitter draw.
         let last_spiral = ours
             .iter()
-            .rposition(|l| *l == sim::ai_place::SITE_SPIRAL)
+            .rposition(|l| *l == sim::ai::ai_place::SITE_SPIRAL)
             .expect("a spiral draw");
         let first_jitter = ours
             .iter()
-            .position(|l| *l == sim::ai_place::SITE_JITTER)
+            .position(|l| *l == sim::ai::ai_place::SITE_JITTER)
             .expect("a jitter draw");
         assert!(
             last_spiral < first_jitter,
@@ -417,23 +422,23 @@ mod tests {
         built.sim.trace.trace_phases = true;
 
         built.tick();
-        built.sim.tick();
+        built.sim.command().tick();
         let ours = mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed).expect("our sites");
         let theirs = trace.labels(1);
         assert_eq!(theirs.len(), 45, "the original's frame 1");
 
         let count = |v: &[String], site: &str| v.iter().filter(|l| *l == site).count();
-        assert_eq!(count(&theirs, sim::ai_place::SITE_JITTER), 3);
+        assert_eq!(count(&theirs, sim::ai::ai_place::SITE_JITTER), 3);
         assert_eq!(
-            count(&ours, sim::ai_place::SITE_JITTER),
+            count(&ours, sim::ai::ai_place::SITE_JITTER),
             3,
             "one of the 2×2's four sub-positions is blocked on this map"
         );
         // The residues, as they stand.
         assert_eq!(
             (
-                count(&theirs, sim::ai_place::SITE_SPIRAL),
-                count(&ours, sim::ai_place::SITE_SPIRAL),
+                count(&theirs, sim::ai::ai_place::SITE_SPIRAL),
+                count(&ours, sim::ai::ai_place::SITE_SPIRAL),
             ),
             (30, 30),
             "the spiral walks the original's own candidates"
@@ -508,12 +513,16 @@ mod tests {
             eprintln!("skipping the sequence half: no rontrace-run20.log");
             return;
         };
-        let draws = trace.run_in(0, sim::scout::CODE.start, sim::scout::CODE.end);
+        let draws = trace.run_in(
+            0,
+            sim::units::think::scout::CODE.start,
+            sim::units::think::scout::CODE.end,
+        );
         // Named through `trace::SITES`, which is the same string
-        // `sim::scout`'s own marks write — so the two sides of the
+        // `sim::units::think::scout`'s own marks write — so the two sides of the
         // comparison below share one vocabulary.
         let theirs: Vec<String> = draws.iter().map(|d| trace.label(d)).collect();
-        use sim::scout::{SITE_CELL, SITE_PHASE, SITE_ROTATION};
+        use sim::units::think::scout::{SITE_CELL, SITE_PHASE, SITE_ROTATION};
         assert_eq!(
             theirs,
             vec![
@@ -538,7 +547,7 @@ mod tests {
         built.sim.trace.trace_phases = true;
         built.sim.trace.phase_marks.clear();
         built.sim.rng = sim::combat::Rng::new(first);
-        assert!(built.sim.think_scout(scout), "a target is found");
+        assert!(built.sim.setup().think_scout(scout), "a target is found");
         let ours = mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed).expect("our sites");
         assert_eq!(
             ours, theirs,
@@ -888,12 +897,14 @@ mod tests {
                 else {
                     continue;
                 };
-                if sim::build::is_city(&loaded.build_types, ty) != pass {
+                if sim::cities::build::is_city(&loaded.build_types, ty) != pass {
                     continue;
                 }
-                let h = sim.init_build(b.who as sim::Player, ty, pos_of(b.pos), false);
+                let h = sim
+                    .setup()
+                    .init_build(b.who as sim::Player, ty, pos_of(b.pos), false);
                 sim.buildings[h].index = b.o as i16;
-                sim.activate(h, false, false);
+                sim.setup().activate(h, false, false);
             }
         }
         // Standing them up moved the map (footprints, `mask_city`,
@@ -913,9 +924,13 @@ mod tests {
         let mut laid: std::collections::BTreeSet<(i32, i32)> = std::collections::BTreeSet::new();
         let mut costed: Vec<u32> = Vec::new();
         for (id, tile, seed) in [
-            (sim::build::Ident::Granary, Pos::new(6, 171), draws[0].seed),
             (
-                sim::build::Ident::Smelter,
+                sim::cities::build::Ident::Granary,
+                Pos::new(6, 171),
+                draws[0].seed,
+            ),
+            (
+                sim::cities::build::Ident::Smelter,
                 Pos::new(33, 161),
                 draws[first].seed,
             ),
@@ -925,7 +940,7 @@ mod tests {
                 .iter()
                 .position(|b| b.ident == id)
                 .unwrap_or_else(|| panic!("a {id:?} type"));
-            let b = sim.init_build(
+            let b = sim.setup().init_build(
                 0,
                 ty,
                 Pos::new(
@@ -944,7 +959,7 @@ mod tests {
             // Not `place_roads` directly: `Build::activate` → `Wall::start`
             // → `mask_me(1, REGEN_FORCE)` → `place_roads` is the chain the
             // channel's `add` ran, and nothing else on it draws.
-            sim.activate(b, false, false);
+            sim.setup().activate(b, false, false);
             costed.push(draws_between(seed, sim.rng.seed).unwrap_or(0));
             laid.extend(roads(&sim.world).difference(&mine).copied());
         }
@@ -1041,7 +1056,7 @@ mod tests {
             let mine = roads(&at.sim.world);
             at.sim.movement.plan_roads = true;
             at.sim.rng.seed = draws[0].seed;
-            at.sim.place_roads(b);
+            at.sim.setup().place_roads(b);
             let laid: Vec<(i32, i32)> = roads(&at.sim.world).difference(&mine).copied().collect();
             assert!(
                 laid.is_empty(),
@@ -1402,14 +1417,18 @@ mod tests {
                 continue;
             }
             birds += 1;
-            let mut s = sim::Sim::new(sim::tuning::Tuning::RON, sim::world::World::new(64, 64), 2);
+            let mut s = sim::Sim::new(
+                sim::core::tuning::Tuning::RON,
+                sim::world::World::new(64, 64),
+                2,
+            );
             let ty = s.add_unit_type(sim::UnitType {
                 hits: 1,
                 moves: 35,
                 turn_speed: sim::movement::degrees_to_angle(5).0,
-                kind: sim::attrition::UnitKind {
-                    domain: sim::attrition::Domain::Air,
-                    ..sim::attrition::UnitKind::default()
+                kind: sim::territory::attrition::UnitKind {
+                    domain: sim::territory::attrition::Domain::Air,
+                    ..sim::territory::attrition::UnitKind::default()
                 },
                 ..sim::UnitType::default()
             });
@@ -2320,11 +2339,15 @@ mod tests {
                 .elem(&built.sim.world, t)
                 .map(|e| e.flags)
         };
-        assert_eq!(n(Pos::new(220, 97)), Some(sim::mesh::dir::N), "(220, 97)");
+        assert_eq!(
+            n(Pos::new(220, 97)),
+            Some(sim::movement::mesh::dir::N),
+            "(220, 97)"
+        );
         assert_eq!(n(Pos::new(220, 98)), None, "(220, 98)");
         assert_eq!(
             n(Pos::new(216, 116)),
-            Some(sim::mesh::dir::SW),
+            Some(sim::movement::mesh::dir::SW),
             "(216, 116)"
         );
     }
@@ -2501,14 +2524,14 @@ mod tests {
         built.sim.trace.trace_costs = true;
         built.sim.trace.cost_marks.clear();
         built.tick();
-        let ours: Vec<(sim::path::CostKey, i32, usize)> = built
+        let ours: Vec<(sim::movement::path::CostKey, i32, usize)> = built
             .sim
             .trace
             .cost_marks
             .iter()
             .map(|m| (m.key(), m.cost, m.unit))
             .collect();
-        let theirs: Vec<(sim::path::CostKey, i32)> = t240
+        let theirs: Vec<(sim::movement::path::CostKey, i32)> = t240
             .calls_in(BLOCK, crate::trace::call_site::CALC_COST)
             .iter()
             .filter_map(|c| Some((c.cost_key()?, c.ret)))
@@ -2699,7 +2722,7 @@ mod tests {
         built.sim.trace.trace_costs = true;
         built.sim.trace.cost_marks.clear();
         built.tick();
-        let ours: Vec<(sim::path::CostKey, i32, usize)> = built
+        let ours: Vec<(sim::movement::path::CostKey, i32, usize)> = built
             .sim
             .trace
             .cost_marks
@@ -2716,7 +2739,7 @@ mod tests {
         let Some(t248) = trace("rontrace-run248.log") else {
             return;
         };
-        let theirs: Vec<(sim::path::CostKey, i32)> = t248
+        let theirs: Vec<(sim::movement::path::CostKey, i32)> = t248
             .calls_in(BLOCK, crate::trace::call_site::CALC_COST)
             .iter()
             .filter_map(|c| Some((c.cost_key()?, c.ret)))
@@ -3077,9 +3100,13 @@ mod tests {
 
         // The original's side: frame 361's draws, filtered to the ones
         // `Unit::think_scout` took itself.
-        use sim::scout::{SITE_CELL, SITE_PHASE, SITE_ROTATION};
+        use sim::units::think::scout::{SITE_CELL, SITE_PHASE, SITE_ROTATION};
         let theirs: Vec<String> = trace
-            .run_in(361, sim::scout::CODE.start, sim::scout::CODE.end)
+            .run_in(
+                361,
+                sim::units::think::scout::CODE.start,
+                sim::units::think::scout::CODE.end,
+            )
             .iter()
             .map(|d| trace.label(d))
             .collect();
@@ -3221,9 +3248,13 @@ mod tests {
             built
         });
 
-        use sim::scout::{SITE_CELL, SITE_PHASE, SITE_ROTATION};
+        use sim::units::think::scout::{SITE_CELL, SITE_PHASE, SITE_ROTATION};
         let theirs: Vec<String> = trace
-            .run_in(482, sim::scout::CODE.start, sim::scout::CODE.end)
+            .run_in(
+                482,
+                sim::units::think::scout::CODE.start,
+                sim::units::think::scout::CODE.end,
+            )
             .iter()
             .map(|d| trace.label(d))
             .collect();
@@ -3873,11 +3904,15 @@ mod tests {
 
         // The original's side: frame 1373's draws, filtered to the ones
         // `Unit::think_scout` took itself.
-        use sim::scout::{
+        use sim::units::think::scout::{
             SITE_CELL, SITE_PHASE, SITE_REGION_CELL, SITE_REGION_STRIDE, SITE_ROTATION,
         };
         let theirs: Vec<String> = tr
-            .run_in(1373, sim::scout::CODE.start, sim::scout::CODE.end)
+            .run_in(
+                1373,
+                sim::units::think::scout::CODE.start,
+                sim::units::think::scout::CODE.end,
+            )
             .iter()
             .map(|d| tr.label(d))
             .collect();
@@ -4426,7 +4461,7 @@ mod tests {
         );
         assert_eq!(
             f879.iter()
-                .filter(|s| *s == sim::scout::SITE_ROTATION)
+                .filter(|s| *s == sim::units::think::scout::SITE_ROTATION)
                 .count(),
             6,
             "an AI scout skips the even rings, so `max_ring` 12 walks six"
@@ -4570,7 +4605,9 @@ mod tests {
             "frame 867 is the goody's three draws and the farms' six"
         );
         assert_eq!(
-            ours.iter().filter(|s| *s == sim::goody::SITE_PICK).count(),
+            ours.iter()
+                .filter(|s| *s == sim::gaia::goody::SITE_PICK)
+                .count(),
             3,
             "food, timber and wealth are the candidates; knowledge, metal and oil are not"
         );
@@ -4995,7 +5032,7 @@ mod tests {
         // The pasture, and the one citizen registered at it. Named rather
         // than searched for, so a capture whose setup changes says so.
         let pasture = (0..built.sim.buildings.len())
-            .find(|&b| built.sim.buildings[b].farm.farm_type & sim::farms::ANIMAL_FARM != 0)
+            .find(|&b| built.sim.buildings[b].farm.farm_type & sim::cities::farms::ANIMAL_FARM != 0)
             .expect("run39's AI built one pasture");
         let herder = *built.sim.buildings[pasture]
             .gatherers
@@ -5152,8 +5189,10 @@ mod tests {
         borrow_from_siblings(&mut init, &refs);
         borrow_pasture(&mut init, &t53);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        let mut theirs_by: std::collections::BTreeMap<i64, Vec<(sim::path::CostKey, i32)>> =
-            std::collections::BTreeMap::new();
+        let mut theirs_by: std::collections::BTreeMap<
+            i64,
+            Vec<(sim::movement::path::CostKey, i32)>,
+        > = std::collections::BTreeMap::new();
         for c in t240
             .calls
             .iter()
@@ -5182,7 +5221,7 @@ mod tests {
             let f = built.sim.frame;
             built.sim.trace.cost_marks.clear();
             built.tick();
-            let ours: Vec<(sim::path::CostKey, i32)> = built
+            let ours: Vec<(sim::movement::path::CostKey, i32)> = built
                 .sim
                 .trace
                 .cost_marks
@@ -5272,14 +5311,14 @@ mod tests {
         built.sim.trace.trace_costs = true;
         built.sim.trace.cost_marks.clear();
         built.tick();
-        let ours: Vec<(sim::path::CostKey, i32)> = built
+        let ours: Vec<(sim::movement::path::CostKey, i32)> = built
             .sim
             .trace
             .cost_marks
             .iter()
             .map(|m| (m.key(), m.cost))
             .collect();
-        let theirs: Vec<(sim::path::CostKey, i32)> = t240
+        let theirs: Vec<(sim::movement::path::CostKey, i32)> = t240
             .calls_in(TICK, crate::trace::call_site::CALC_COST)
             .iter()
             .filter_map(|c| Some((c.cost_key()?, c.ret)))
@@ -5300,7 +5339,7 @@ mod tests {
             ((1, 40), (1920, 31104)),
             "the first search is the group's, on its leader, from the far point"
         );
-        let group: Vec<&sim::path::CostMark> = built
+        let group: Vec<&sim::movement::path::CostMark> = built
             .sim
             .trace
             .cost_marks
@@ -5311,7 +5350,7 @@ mod tests {
         assert!(
             group
                 .iter()
-                .all(|m| m.cost < 1_000 || m.cost == sim::path::REFUSED),
+                .all(|m| m.cost < 1_000 || m.cost == sim::movement::path::REFUSED),
             "no army term on the walk home"
         );
     }

@@ -28,11 +28,11 @@ impl Sim {
         // until the countdown ends). A type with `unit_flags & 0x400` ("melee
         // AND ranged") has no gate (parked 3106). An animal has none:
         // `Animal::work@005d7330` is its own entry. The steps — the clock,
-        // the latch drop and the gate — are [`crate::work_gate::work_gate_steps`],
+        // the latch drop and the gate — are [`crate::units::think::work_gate::work_gate_steps`],
         // swept to the first call after them (item 3348).
-        if crate::work_gate::work_gate_steps(&mut crate::work_gate::SimWorkGate::new(
-            self, u, frame,
-        )) == crate::work_gate::Gate::Return
+        if crate::units::think::work_gate::work_gate_steps(
+            &mut crate::units::think::work_gate::SimWorkGate::new(self, u, frame),
+        ) == crate::units::think::work_gate::Gate::Return
         {
             return;
         }
@@ -81,20 +81,20 @@ impl Sim {
         // `Unit::work@0060d180:268`: a unit that has an order and is still
         // carrying the idle latch drops it, and a **fisherman or merchant**
         // marks its owner's economy dirty on the way — it has just left
-        // `Leader::calc_gather` step 6's walk ([`crate::rares`]).
-        // The steps are [`crate::work_gate::fresh_latch_steps`] (swept, item
+        // `Leader::calc_gather` step 6's walk ([`crate::economy::rares`]).
+        // The steps are [`crate::units::think::work_gate::fresh_latch_steps`] (swept, item
         // 3348). SEAM: the original runs them after the dispatch, with the
         // type the dispatch left; this crate runs them here, with the front
         // order's.
         let ty = i32::from(self.order_type(u));
-        crate::work_gate::fresh_latch_steps(
-            &mut crate::work_gate::SimWorkGate::new(self, u, frame),
+        crate::units::think::work_gate::fresh_latch_steps(
+            &mut crate::units::think::work_gate::SimWorkGate::new(self, u, frame),
             ty,
         );
         // `Unit::work@0060d180:97` — the caravan block, ahead of the
         // dispatch: a linked trade route runs another frame of its road
         // plan, or is ended when the order under it is no longer one
-        // (`crate::caravan` §6).
+        // (`crate::economy::caravan` §6).
         self.caravan_work(u);
         // `Unit::work@0060d180:440` — **the chase's sixteen-frame review**,
         // and it sits above the dispatch, so a chase it ends is answered by
@@ -117,10 +117,10 @@ impl Sim {
         // before the dispatch, whatever the order.
         // `Unit::work@0060d180:0060d77d`, just above it: an open path search
         // under a head order that is not a move is dropped
-        // ([`crate::work_gate::partial_path_steps`], swept, item 3348).
+        // ([`crate::units::think::work_gate::partial_path_steps`], swept, item 3348).
         let has_head = self.current_order(u).is_some();
-        crate::work_gate::partial_path_steps(
-            &mut crate::work_gate::SimWorkGate::new(self, u, frame),
+        crate::units::think::work_gate::partial_path_steps(
+            &mut crate::units::think::work_gate::SimWorkGate::new(self, u, frame),
             has_head,
         );
         let action = self.update_action(u);
@@ -570,7 +570,7 @@ impl Sim {
     /// [`Self::do_attack_to_pause`] describes it: `normalize`, then the
     /// armed captains within `0x600` of `at`, yes when `near ≠ 0` and no
     /// more than half of them are walking.
-    pub(super) fn is_attacking_near(&mut self, seat: crate::group::Seat, at: Pos) -> bool {
+    pub(super) fn is_attacking_near(&mut self, seat: crate::groups::group::Seat, at: Pos) -> bool {
         self.seat_normalize(seat);
         let (mut near, mut attacking) = (0, 0);
         for m in self.seat_list(seat).clone() {
@@ -672,7 +672,7 @@ impl Sim {
             }
             return PackArm::Held;
         }
-        if crate::collide::ucell(at) == crate::collide::ucell(m.dest) {
+        if crate::movement::collide::ucell(at) == crate::movement::collide::ucell(m.dest) {
             self.kill_current_order(u);
             return PackArm::Killed;
         }
@@ -875,16 +875,16 @@ impl Sim {
             // the *flight* is unmodelled — but what reaches the stream is
             // here (`docs/SYNC.md` §3.9, `docs/TRANSPORT.md` §5.2).
             let t = self.units[u].type_index;
-            if crate::anim::is_air_gaia(t) {
+            if crate::units::anim::is_air_gaia(t) {
                 // `Animal::think_bird`'s `0x192` arm, under
                 // `Unit::do_air_patrol+0x28`. A **gull** is on a
                 // `StrafeOrder`, so `Unit::do_strafe` calls the same
                 // `+0x180` virtual — and `think_bird`'s `0x194` arm
                 // returns after an `order_type` call and draws nothing.
-                if t == crate::anim::BIRD_TYPE {
+                if t == crate::units::anim::BIRD_TYPE {
                     self.think_bird(u, frame);
                 }
-                self.set_anim(u, crate::anim::WALK, false, true);
+                self.set_anim(u, crate::units::anim::WALK, false, true);
                 // **The flight**, `Unit::do_air_patrol`'s second half —
                 // [`crate::air`]'s bank, step and edge coin
                 // (`docs/SYNC.md` §3.9). run61 proxies the original's own
@@ -894,7 +894,7 @@ impl Sim {
                 // The thirty-three-frame error this used to carry was
                 // never the flight — it was the birth, and
                 // `Gaia::spawn_bird` now takes `Unit::init`'s tile snap.
-                if t == crate::anim::BIRD_TYPE {
+                if t == crate::units::anim::BIRD_TYPE {
                     let goal = self.bird_goal(u);
                     self.do_air_physics(u, goal, frame);
                 }
@@ -906,7 +906,7 @@ impl Sim {
                 // their docks' centres and the second gull's edge coin on
                 // 9655. SEAM: the order itself is not carried; the goal
                 // is read off the dock slot that holds the gull.
-                if t == crate::anim::GULL_TYPE
+                if t == crate::units::anim::GULL_TYPE
                     && let Some(goal) = self.gull_dock(u)
                 {
                     self.do_air_physics(u, goal, frame);
@@ -922,7 +922,7 @@ impl Sim {
                 // 1256 turned on (`docs/SYNC.md` §3.9). The tail is
                 // `do_air_patrol`'s; `do_strafe` has none, so the gull
                 // does not take it.
-                if t == crate::anim::BIRD_TYPE && self.units[u].spell_time == 0 {
+                if t == crate::units::anim::BIRD_TYPE && self.units[u].spell_time == 0 {
                     self.units[u].spell_time = 1;
                 }
                 return;
@@ -930,7 +930,7 @@ impl Sim {
             self.animal_idle(u);
             return;
         }
-        self.mark(crate::anim::SITE_IDLE_UNIT);
+        self.mark(crate::units::anim::SITE_IDLE_UNIT);
         // **The own-land cloak is lifted for the idle step** (`do_idle@
         // 0060dcd0:13-16`, `:34-36`; item 3958, `docs/AI.md` §402): a unit
         // holding `unit_masks2 & 0x8000` drops it before `set_anim`,
@@ -964,13 +964,13 @@ impl Sim {
             return None;
         }
         Some(if m & CARRY_TO_WOOD != 0 {
-            crate::anim::WALK_TO_WOOD
+            crate::units::anim::WALK_TO_WOOD
         } else if m & CARRY_WITH_WOOD != 0 {
-            crate::anim::WALK_WITH_WOOD
+            crate::units::anim::WALK_WITH_WOOD
         } else if m & CARRY_TO_ORE != 0 {
-            crate::anim::WALK_TO_ORE
+            crate::units::anim::WALK_TO_ORE
         } else {
-            crate::anim::WALK_WITH_ORE
+            crate::units::anim::WALK_WITH_ORE
         })
     }
 
@@ -1018,7 +1018,7 @@ impl Sim {
         // just joined `Leader::calc_gather` step 6's walk. That is what
         // drops the recompute period from 512 frames to 8 and puts a
         // newly-arrived boat's deposit on the books within the same
-        // handful of frames ([`crate::rares`]).
+        // handful of frames ([`crate::economy::rares`]).
         //
         // **The latch is `0x18`, not `8`** (`check_idle@006032c0:69`, item
         // 3983, `docs/AI.md` §415): the same write raises `0x10`, the bit
@@ -1030,7 +1030,7 @@ impl Sim {
         if !self.units[u].idle_latch {
             self.units[u].idle_latch = true;
             self.units[u].cant_reach = true;
-            if self.unit_line_is(u, crate::fish::FISHERMEN) || self.is_merchant(u) {
+            if self.unit_line_is(u, crate::units::think::fish::FISHERMEN) || self.is_merchant(u) {
                 self.economy_changed(self.units[u].owner);
             }
         }
@@ -1144,7 +1144,7 @@ impl Sim {
             && unit.combat.stance != combat::Stance::HoldFire
             && self.is_in_range_struck(me, t)
         {
-            let packer_auto = self.unit_stance_type(u) == crate::group::StanceType::Packer
+            let packer_auto = self.unit_stance_type(u) == crate::groups::group::StanceType::Packer
                 && self.units[u].stance == PACKER_AUTO;
             if self.units[u]
                 .ty
@@ -1289,7 +1289,7 @@ impl Sim {
         }
         // Step 5's first arm, and it sits **above** the tail's gate: a
         // caravan takes `think_caravan`, whose own idle threshold is its
-        // only cadence (`crate::caravan` §3).
+        // only cadence (`crate::economy::caravan` §3).
         if self.units[u].caravan.is_some() && self.think_caravan(u) {
             return;
         }
@@ -1375,11 +1375,11 @@ impl Sim {
         // and a `1` back ends the think (`docs/ORDERS.md` §6.8). It sits
         // above the scout/army tail and below everything else, which is
         // why a fishing boat never joins an army.
-        if self.unit_line_is(u, crate::fish::FISHERMEN) && self.think_fish(u, frame) {
+        if self.unit_line_is(u, crate::units::think::fish::FISHERMEN) && self.think_fish(u, frame) {
             return;
         }
         // `is_merchant` — the three exact ids — takes `think_merchant`
-        // (`crate::merchant`), and it has a **cadence of its own** on top
+        // (`crate::units::think::merchant`), and it has a **cadence of its own** on top
         // of the tail's: `think@005f7515` runs it on the first idle frame
         // and then one frame in a hundred and twenty-eight, phased by
         // `o`, where everything either side of it runs one in thirty-two.
@@ -1465,7 +1465,7 @@ impl Sim {
             return false;
         }
         let who = self.units[u].owner;
-        if self.unit_stance_type(u) == crate::group::StanceType::Packer
+        if self.unit_stance_type(u) == crate::groups::group::StanceType::Packer
             && self.units[u].stance == PACKER_AUTO
         {
             let threshold = if self.unit_line_is(u, MACHINEGUN) {
@@ -1540,7 +1540,7 @@ impl Sim {
     /// and its walk — and the collision that ends it at 122 — hangs off that
     /// frame (`docs/SYNC.md` §3.16).
     ///
-    /// **A human's is [`crate::stance::LeaderOptions::idle_wait`], and it is
+    /// **A human's is [`crate::units::stance::LeaderOptions::idle_wait`], and it is
     /// 12** — the option's switch, not the option itself (item 494,
     /// `docs/ORDERS.md` §21). Reading `peasants_wait` as the wait put the
     /// human's citizen back to work ten frames early, which is Great Lakes'
@@ -1595,7 +1595,7 @@ impl Sim {
         // citizen asked, and run69's `1/6` left the original's point on
         // **103**. `Unit::init` and `Build::train` between them make an
         // AI's trained citizen **0**, so the arm now asks who the original
-        // asks (`crate::stance`, §5.10).
+        // asks (`crate::units::stance`, §5.10).
         if !matches!(self.units[u].type_index, 0x34 | 0x35)
             && (self.units[u].was_builder || stance == 1 || stance == 2)
             && self.find_build_spot(u)
@@ -1810,7 +1810,7 @@ impl Sim {
             let transport = self.units[u].ty.is_some_and(|ty| {
                 self.tables.unit_types[ty]
                     .cols
-                    .flag(crate::ai_load::uflags::FLAG_TRANSPORT)
+                    .flag(crate::ai::ai_load::uflags::FLAG_TRANSPORT)
             });
             let water = self.world.tile_mask(Pos::new(qx >> 2, qy >> 2)) & tile::SURFACE
                 == tile::SURFACE_OCEAN;
@@ -1901,7 +1901,7 @@ impl Sim {
             return false;
         };
         if !self.tables.unit_types[t].combat.packs
-            || self.unit_stance_type(u) != crate::group::StanceType::Packer
+            || self.unit_stance_type(u) != crate::groups::group::StanceType::Packer
             || self.units[u].stance != PACKER_AUTO
             || !self.units[u].combat.packed
             || self.is_unpacking(u)
@@ -1973,8 +1973,8 @@ impl Sim {
         }
         let heading = self.units[t].movement.heading;
         let bearing = Angle(0x5555_5555);
-        let toward = crate::army::step_along(tp, find_angle(me.x - tp.x, me.y - tp.y), s);
-        let behind = crate::army::step_along(tp, Angle(heading.0.wrapping_sub(i32::MIN)), s);
+        let toward = crate::ai::army::step_along(tp, find_angle(me.x - tp.x, me.y - tp.y), s);
+        let behind = crate::ai::army::step_along(tp, Angle(heading.0.wrapping_sub(i32::MIN)), s);
         let spot = self
             .find_nearby_spot(u, toward, 0, -1, 0, bearing, None)
             .or_else(|| self.find_nearby_spot(u, behind, 0, -1, 0, bearing, None))

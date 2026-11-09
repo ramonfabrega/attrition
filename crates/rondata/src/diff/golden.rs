@@ -1626,7 +1626,7 @@ fn chapter_two_stood_up() -> Option<(String, crate::capture::Text, Built)> {
 /// - **a figure's `z`**, which `Guy::update_z@005d9950` writes as
 ///   `TerrainOut::find_data_z(x, y, 0)` for any unit not of sea domain —
 ///   the surface a rolled shot comes down on, read by
-///   [`sim::World::data_z`] in [`sim::single::Single`] arithmetic;
+///   [`sim::World::data_z`] in [`sim::num::single::Single`] arithmetic;
 /// - **a unit's own `z`**, which `Unit::update_z@00606590` writes as
 ///   `find_tcoord_z` at its tile — [`sim::World::tile_z`], and one of the
 ///   two heights `get_damage`'s step 23 compares;
@@ -2037,7 +2037,7 @@ pub(super) fn visible_rows(frame: crate::gamelog::Block<'_>) -> Vec<((i64, i64),
 /// **A pivot figure's turret, every figure, both directions** (item
 /// 1117, `docs/COMBAT.md` §55.3): `GUY`'s `turret_angles[4]`,
 /// `des_turret_angles[4]`, `node_flags` and `des_node_flags` against
-/// `sim::anim::Turret`, on every figure of every unit both sides hold.
+/// `sim::units::anim::Turret`, on every figure of every unit both sides hold.
 /// `widen_block` compares the rest of the record; these four were parsed
 /// by nothing until this item (parked 1119), and a pivot piece's release
 /// waits on `node_flags`. A figure whose dump does not print them — a

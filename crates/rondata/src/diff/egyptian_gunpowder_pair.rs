@@ -38,7 +38,7 @@ pub(crate) const EGYPTIAN_GUNPOWDER: Pair = Pair {
     // section 324): the state parts on block 3119, the Citizen `0/9`
     // (TypeIndex 50) dying in theirs to the Arquebusiers `1/32`'s round a
     // frame before ours. Item 3603: 3118 → **3238** (+120) — piece 48's
-    // bays (`sim::launch::BAYS`, run1254c's packet) put `1/32`'s round of
+    // bays (`sim::data::launch::BAYS`, run1254c's packet) put `1/32`'s round of
     // 3114 on (7459, 30915), 5 frames, as theirs. The new word is ours 8
     // draws against 7, index 5 — ours `Guy::set_anim+0x97a <
     // Guy::inc_time+0x1ed`, theirs `Farms::inc_time+0x1ae`; the state

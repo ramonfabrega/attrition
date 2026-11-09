@@ -189,7 +189,7 @@ impl Sim {
         // held, and the layout reads that group's `facing` (§28).
         let (slot, prev) = self.pool_record(g.who, pool);
         let state = GroupState::copied(prev, pool, self.frame, g.list.len());
-        let entry = crate::group::Pushed {
+        let entry = crate::groups::group::Pushed {
             who: g.who,
             list: g.list.clone(),
             state,
@@ -363,7 +363,7 @@ impl Sim {
             .pushed
             .iter()
             .position(|x| x.who == who && x.state.pool == state.pool);
-        let entry = crate::group::Pushed {
+        let entry = crate::groups::group::Pushed {
             who,
             list,
             state,
@@ -984,7 +984,7 @@ impl Sim {
         self.orders.last_group[w] = pool;
         let (slot, prev) = self.pool_record(who, pool);
         let state = GroupState::copied(prev, pool, self.frame, list.len());
-        let entry = crate::group::Pushed {
+        let entry = crate::groups::group::Pushed {
             who,
             list: Vec::new(),
             state,

@@ -27,7 +27,7 @@
 //! functions of columns the caller already has.
 
 use crate::tech::{Kind, Preq, Setup, TechTree, TypeId};
-use crate::{UnitType, attrition::Domain, build::BuildType};
+use crate::{UnitType, cities::build::BuildType, territory::attrition::Domain};
 
 /// The bits of the `role` word (`UnitTypeData+0x2c8`).
 ///
@@ -106,7 +106,7 @@ pub mod uflags {
     /// Archer's `mhv`). `Unit::do_move@005f7b30:60` calls
     /// `Unit::cavarch_fight` for such a type, and `Unit::move_step` walks
     /// it under `CHAR_ATTACKWALK` while it is aimed (`docs/AI.md` §134,
-    /// [`crate::cavarch`]).
+    /// [`crate::combat::cavarch`]).
     pub const FIRES_ON_MOVE: u32 = 0x20_0000;
     /// `UnitTypeData::blocks_while_dead` (`unit_flags & 0x800000`, the type's
     /// vslot `+0x120`): a combat death of such a type leaves its occupancy
@@ -135,7 +135,7 @@ pub mod uflags {
     /// (`docs/ORDERS.md` §39).
     pub const STRAFES: u32 = 0x40_0000;
     /// `k` — "Unit has melee AND ranged attacks". `Unit::work@0060d180:79-86`
-    /// lets such a type step while it recharges (`crate::work_gate`).
+    /// lets such a type step while it recharges (`crate::units::think::work_gate`).
     pub const MELEE_AND_RANGED: u32 = 0x400;
     /// `o` — "Unit is cloaked" (the Spy, the submarines). `UnitData::is_seen`'s
     /// stealth arm tests the type's `0x4000` (`docs/GOLDEN.md` §101).
@@ -194,7 +194,7 @@ pub struct UnitCols {
     /// `+0x2e0`, the `RESEARCH_PREMIUM_COST` column through
     /// `String::fraction(…, 0x100)` (`UnitType::init@0061ab50:606`–`613`):
     /// 8.8, so the shipped `2` is 512. What researching the type costs over
-    /// one of it — `get_cost`'s research arm, [`crate::cost::Research`].
+    /// one of it — `get_cost`'s research arm, [`crate::economy::cost::Research`].
     pub research_premium_cost: i32,
 }
 
@@ -753,7 +753,7 @@ impl AiValuesView for TreeView<'_> {
         self.units[u].garrison.trained_at == Some(b)
     }
     fn build_is(&mut self, b: usize, r: Root) -> bool {
-        use crate::build::Ident;
+        use crate::cities::build::Ident;
         let roles = &self.tree.roles;
         match r {
             Root::Village => self.is_root(b, roles.village),
@@ -769,7 +769,7 @@ impl AiValuesView for TreeView<'_> {
         }
     }
     fn build_is_town(&self, b: usize) -> bool {
-        self.builds[b].ident == crate::build::Ident::Town
+        self.builds[b].ident == crate::cities::build::Ident::Town
     }
     fn build_is_enhancer(&self, b: usize) -> bool {
         enhancer(self.builds[b].ident)
@@ -778,16 +778,16 @@ impl AiValuesView for TreeView<'_> {
         self.builds[b].from.is_none()
     }
     fn build_gather(&mut self, b: usize) -> bool {
-        self.builds[b].has(crate::build::flags::GATHERER)
+        self.builds[b].has(crate::cities::build::flags::GATHERER)
     }
     fn build_research_here(&self, b: usize) -> bool {
-        self.builds[b].has(crate::build::flags::RESEARCH_HERE)
+        self.builds[b].has(crate::cities::build::flags::RESEARCH_HERE)
     }
     fn build_attack(&self, b: usize) -> bool {
         self.builds[b].attack != 0
     }
     fn build_trains(&self, b: usize) -> bool {
-        self.builds[b].has(crate::build::flags::TRAINS)
+        self.builds[b].has(crate::cities::build::flags::TRAINS)
     }
     fn fundamental(&mut self, b: usize) -> usize {
         let mut cur = b;
@@ -885,13 +885,13 @@ pub fn compute_ai_values(
 }
 
 /// The four gather-enhancer buildings, which `compute_ai_values` names by id.
-const fn enhancer(i: crate::build::Ident) -> bool {
+const fn enhancer(i: crate::cities::build::Ident) -> bool {
     matches!(
         i,
-        crate::build::Ident::Granary
-            | crate::build::Ident::Lumbermill
-            | crate::build::Ident::Smelter
-            | crate::build::Ident::Refinery
+        crate::cities::build::Ident::Granary
+            | crate::cities::build::Ident::Lumbermill
+            | crate::cities::build::Ident::Smelter
+            | crate::cities::build::Ident::Refinery
     )
 }
 

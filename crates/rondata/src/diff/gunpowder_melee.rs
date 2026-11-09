@@ -610,13 +610,15 @@ fn gunpowder_melee_s_strike_meets_before_the_census() {
     let (f, ours) = built.frame_sites.last().expect("760's draws");
     assert_eq!(*f, WORD);
     assert!(
-        !ours.iter().any(|l| l == sim::army::SITE_FIND_TARGET_SCORE),
+        !ours
+            .iter()
+            .any(|l| l == sim::ai::army::SITE_FIND_TARGET_SCORE),
         "army 2/0 does not march on 760"
     );
     assert_eq!(*ours, tr.labels(WORD), "760's whole draw sequence");
     let a = &built.sim.ai.armies[2].list[0];
     assert_eq!(
-        a.status & sim::army::status::MARCHING,
+        a.status & sim::ai::army::status::MARCHING,
         0,
         "army 2/0 is released, not marching"
     );
@@ -1215,9 +1217,9 @@ fn gunpowder_melee_s_bombard_crew_pays_its_ground_swing_in_guy_move() {
     assert_eq!(
         bombard,
         [
-            sim::fight::SITE_FIGHT_RESEARCH,
-            sim::anim::SITE_ATTACK_STAND,
-            sim::anim::SITE_ATTACK_STAND
+            sim::combat::fight::SITE_FIGHT_RESEARCH,
+            sim::units::anim::SITE_ATTACK_STAND,
+            sim::units::anim::SITE_ATTACK_STAND
         ],
         "2/23's draws on 759: the re-search, then the two trackless crew's deferred swing"
     );
@@ -1392,7 +1394,7 @@ pub(crate) fn seat_walk(
             if closing_next {
                 for who in 0..players {
                     if built.sim.cities.nation[who].human {
-                        built.sim.resign(who as sim::Player);
+                        built.sim.command().resign(who as sim::Player);
                     }
                 }
             }

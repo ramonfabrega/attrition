@@ -16,7 +16,7 @@ fn the_emulated_original_agrees_on_every_row() {
             .collect();
         assert_eq!(
             want,
-            i64::from(crate::flag_reads::select_group(&rec, !w)),
+            i64::from(crate::core::flag_reads::select_group(&rec, !w)),
             "GameAccessConst::get_scary_select_group — row `{line}`"
         );
         n += 1;

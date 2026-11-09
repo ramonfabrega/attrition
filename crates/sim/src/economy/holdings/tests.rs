@@ -1,9 +1,11 @@
 use super::*;
+use crate::core::tuning::Tuning;
 use crate::economy::{RATE_SCALE, RESOURCES};
 use crate::orders::{QueuePos, Worker};
-use crate::tuning::Tuning;
 use crate::world::{Cell, Player as P, Pos, Terrain, World};
-use crate::{Unit, UnitType, build::BuildType, build::flags, cost, movement};
+use crate::{
+    Unit, UnitType, cities::build::BuildType, cities::build::flags, economy::cost, movement,
+};
 
 const TILE: i32 = crate::world::UNITS_PER_TILE;
 
@@ -96,9 +98,9 @@ fn worker_type(village: usize, worker: Worker) -> UnitType {
         },
         hits: 40,
         worker,
-        garrison: crate::garrison::UnitTraits {
+        garrison: crate::units::garrison::UnitTraits {
             trained_at: Some(village),
-            ..crate::garrison::UnitTraits::default()
+            ..crate::units::garrison::UnitTraits::default()
         },
         ..UnitType::default()
     }
@@ -157,7 +159,7 @@ fn gather_until_arrived(sim: &mut Sim, u: usize, b: usize) {
 /// city at its position, which the city's income then reads.
 #[test]
 fn the_ceo_s_city_is_where_a_counted_on_map_hero_stands() {
-    use crate::ai_load::uflags2;
+    use crate::ai::ai_load::uflags2;
     let mut sim = world_sim();
     let t = install(&mut sim);
     let b = build(&mut sim, 0, t.village, 32, 32);
@@ -292,7 +294,7 @@ fn an_inca_mine_pays_ten_wealth_a_miner() {
                 let p = Pos::new(44 + tx, cy * crate::world::TILES_PER_CELL + ty);
                 sim.world.set_tile_bits(
                     p,
-                    crate::world::tile::OBJECT_MOUNTAIN | crate::gather::GATHERABLE,
+                    crate::world::tile::OBJECT_MOUNTAIN | crate::economy::gather::GATHERABLE,
                 );
             }
         }
@@ -640,7 +642,7 @@ fn an_oil_well_s_gatherer_stands_on_the_farm_animation_and_rolls_no_arrival() {
     }
     let well = build(&mut sim, 0, t.oil_well, 40, 32);
     let u = spawn(&mut sim, 0, t.citizen, tile_pos(44, 32));
-    sim.units[u].guys.push(crate::anim::Guy::fresh(0));
+    sim.units[u].guys.push(crate::units::anim::Guy::fresh(0));
     sim.trace.trace_phases = true;
     gather_until_arrived(&mut sim, u, well);
     sim.trace.phase_marks.clear();
@@ -651,13 +653,13 @@ fn an_oil_well_s_gatherer_stands_on_the_farm_animation_and_rolls_no_arrival() {
             .trace
             .phase_marks
             .iter()
-            .filter(|(l, _)| l == crate::anim::SITE_ARRIVE)
+            .filter(|(l, _)| l == crate::units::anim::SITE_ARRIVE)
             .count();
         sim.trace.phase_marks.clear();
     }
     assert_eq!(
         sim.units[u].guys[0].anim,
-        crate::anim::ANIM_FARM,
+        crate::units::anim::ANIM_FARM,
         "the worker works the well on the farm animation"
     );
     assert_eq!(arrivals, 0, "and it rolls no arrival stand");

@@ -156,7 +156,7 @@ impl Sim {
         // time it is called.
         //
         // `calc_gather` is `docs/ORDERS.md` §6.10 and
-        // [`crate::calc_gather`]; with `param_7` set it never writes the
+        // [`crate::economy::calc_gather`]; with `param_7` set it never writes the
         // `0x20` bit, so the head's only visible effect on a fishing boat
         // is `rare`, `good_obj` and this early return. run58's `1/14`
         // reaches it once, on frame **5106**, where it is standing on its

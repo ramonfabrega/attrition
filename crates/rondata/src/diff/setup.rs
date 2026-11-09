@@ -108,11 +108,11 @@ pub(crate) fn with_staged_script<R>(script: crate::golden::Script, f: impl FnOnc
 
 /// A sim guy from a dump's `GUY` record, when the record carries the
 /// clock.
-pub(crate) fn guy_of(g: &crate::gamelog::Guy) -> Option<sim::anim::Guy> {
+pub(crate) fn guy_of(g: &crate::gamelog::Guy) -> Option<sim::units::anim::Guy> {
     if !g.has_clock() {
         return None;
     }
-    Some(sim::anim::Guy {
+    Some(sim::units::anim::Guy {
         cur_time: g.cur_time? as u32,
         end_time: match g.end_time? {
             0 => 0,
@@ -145,7 +145,7 @@ pub(crate) fn guy_of(g: &crate::gamelog::Guy) -> Option<sim::anim::Guy> {
         // printed at `GUYS=4` only. Every capture that stands one up
         // stands it up before its first attack, when all three are
         // `Guy::clear`'s zero.
-        turret: sim::anim::Turret::ZERO,
+        turret: sim::units::anim::Turret::ZERO,
     })
 }
 
@@ -401,7 +401,7 @@ pub fn world_from(
         let hw = tw + 1;
         // The **corner** grid goes into the world whole, and every tile's
         // height is derived from it: a building re-terraforms it when it is
-        // placed (`sim::terrain`), so this is no longer a table the loader
+        // placed (`sim::world::terrain`), so this is no longer a table the loader
         // pins once and nothing writes.
         let heights_loaded = tiles_loaded
             && heights.len() == hw * (th + 1)
@@ -540,15 +540,17 @@ pub fn sim_at_frame(loaded: &Loaded, log: &Log, frame: i64, tuning: Tuning) -> O
             ));
             return None;
         };
-        let h = sim.init_build(b.who as sim::Player, ty, pos_of(b.pos), false);
+        let h = sim
+            .setup()
+            .init_build(b.who as sim::Player, ty, pos_of(b.pos), false);
         sim.buildings[h].index = b.o as i16;
-        sim.activate(h, false, false);
+        sim.setup().activate(h, false, false);
         Some((h, b.o))
     };
     let city_of = |b: &crate::gamelog::BuildDump| {
         b.orig_type
             .and_then(|t| loaded.build_of_type_index(t as i32))
-            .is_some_and(|ty| sim::build::is_city(&loaded.build_types, ty))
+            .is_some_and(|ty| sim::cities::build::is_city(&loaded.build_types, ty))
     };
     for b in builds
         .iter()
@@ -639,7 +641,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // `info.flags & 4` is asked of two layers — the AI's host function
     // `get_is_no_nation_powers` reads the lobby, `has_tribe_bonus` reads the
     // tech tree's `Setup` — and it is one bit, so they are kept the same.
-    sim.sync_setup_from_lobby();
+    sim.setup().sync_setup_from_lobby();
     // The map seed, which picks a gaia guy's piece (`docs/ANIM.md` §3).
     sim.game_seed = get("seed").unwrap_or(0) as i32;
     // The animation art: the lengths a `DUMP_ALL` dump (or a sibling)
@@ -717,7 +719,8 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 )
             })
             .collect();
-        sim.place_mountains(&placed, &loaded.mountain_templates);
+        sim.setup()
+            .place_mountains(&placed, &loaded.mountain_templates);
         notes.push(format!(
             "mountains: {} placed ranges, {} solid cells, from the templates",
             placed.len(),
@@ -733,7 +736,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // `Cliffs::init` (`crate::mapgen::mesa`, checked phase by phase on
     // run1493, `docs/MAPGEN.md` §18.3) runs at the lobby's seed and its
     // mining lists are laid by queue index — what a Mine's cliff arm
-    // (`sim::cliff_mine`, `docs/AI.md` §400) reads. It needs the setup
+    // (`sim::economy::cliff_mine`, `docs/AI.md` §400) reads. It needs the setup
     // trace's 7805 seed: a start dump without the trace (or a sibling's)
     // lays none, and its Mines take the old empty list.
     // both sides: no install root (tables alone) or no Mesa lobby at 7805
@@ -743,7 +746,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         crate::mapgen::mesa::MesaLobby::of_initial(init),
     ) {
         let (.., cliffs) = crate::mapgen::mesa::southwest_mesa_at_894(root, &lobby);
-        sim.place_cliffs(&cliffs.mining);
+        sim.setup().place_cliffs(&cliffs.mining);
         notes.push(format!(
             "cliffs: {} mining lists, {} tiles, from the generator at 7805's seed {}",
             sim.terrain.cliffs.len(),
@@ -776,7 +779,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             // roster index — run40's 11 and 4 are the British and the
             // Nubians — and `-1`, which a gaia leader carries, is a leader
             // with no nation rather than the Aztecs.
-            sim.set_tribe(who as u8, l.tribe);
+            sim.setup().set_tribe(who as u8, l.tribe);
             // `leader_flags & 4` is `LeaderData::is_human` — the bit that
             // picks `find_wpath`'s pull-back variant and withholds the
             // `army`/`worker` cost modes (`docs/PATHFINDER.md` §3).
@@ -813,7 +816,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // also gives `starting_age` the dump's own value rather than the
     // default.
     for who in 0..players {
-        sim.start_techs(who as sim::Player);
+        sim.setup().start_techs(who as sim::Player);
     }
 
     // The opening scripts, compiled against the host's table
@@ -832,12 +835,15 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // personality sets it from a `LEADERS=9` dump's `PERSONALITY` block
     // (`docs/AI.md` §5).
     if !loaded.scripts.is_empty() {
-        let sources: Vec<sim::bhs::Source> = loaded
+        let sources: Vec<sim::ai::bhs::Source> = loaded
             .scripts
             .iter()
-            .map(|(name, text)| sim::bhs::Source { name, text })
+            .map(|(name, text)| sim::ai::bhs::Source { name, text })
             .collect();
-        if let Err(e) = sim.load_scripts(&["economic.bhs", "defensive.bhs"], &sources) {
+        if let Err(e) = sim
+            .setup()
+            .load_scripts(&["economic.bhs", "defensive.bhs"], &sources)
+        {
             notes.push(format!("the opening scripts did not compile: {e}"));
         }
     }
@@ -867,7 +873,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         if let Some((before, _)) = bracket {
             sim.rng.seed = before;
         }
-        sim.init_leader_ai(who as sim::Player, flags);
+        sim.setup().init_leader_ai(who as sim::Player, flags);
         if let Some((before, after)) = bracket {
             if sim.rng.seed == after {
                 notes.push(format!(
@@ -933,14 +939,14 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         // `blocked_site`, neither of which the original does here.
         let placed = match city_ty {
             Some(ty) => {
-                let b = sim.init_build(who, ty, pos, false);
-                sim.activate(b, false, false);
+                let b = sim.setup().init_build(who, ty, pos, false);
+                sim.setup().activate(b, false, false);
                 Ok(b)
             }
             None => Err("no Small City type".to_string()),
         };
         if let Err(why) = placed {
-            let b = sim.add_building(who, pos, 8);
+            let b = sim.setup().add_building(who, pos, 8);
             sim.buildings[b].ty = city_ty;
             notes.push(format!(
                 "player {who}: the city at {} {} was added untyped — place_building refused it ({why})",
@@ -998,7 +1004,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 .iter()
                 .position(|h| Some(h.t) == u.guys.first().and_then(|g| g.kind));
         }
-        // `UnitData::stance` (`sim::stance`). A unit stood up from a dump
+        // `UnitData::stance` (`sim::units::stance`). A unit stood up from a dump
         // takes the dump's, which is the stronger seed: it carries whatever
         // a player's clicks have done to the byte since the unit was born.
         // Where the dump is thin enough not to print it, the crate computes
@@ -1008,11 +1014,11 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             Some(v) => u8::try_from(v).unwrap_or(0),
             None => kind.map_or(0, |t| sim.init_stance(u.who as sim::Player, t)),
         };
-        let idx = sim.add_unit(unit);
+        let idx = sim.setup().add_unit(unit);
         // `Unit::init`'s Iroquois Scout mask (item 3107): the forest walker
         // `invalid_loc` reads on frame 0's explore.
         if (0..players as i64).contains(&u.who) {
-            sim.init_iroquois_masks(idx);
+            sim.setup().init_iroquois_masks(idx);
         }
         // The figures' clocks and pieces (`docs/ANIM.md` §1, §3). A
         // `DUMP_ALL` start dump carries both; any other carries neither,
@@ -1034,7 +1040,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                     .insert((u.who as sim::Player, k, sub, n as u8), piece as i32);
             }
             if let Some(guy) = guy_of(g) {
-                sim.set_guy(idx, n, guy);
+                sim.setup().set_guy(idx, n, guy);
                 clocks += 1;
             }
         }
@@ -1043,7 +1049,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         // rather than on its leader. Deriving the position rather than
         // reading the dump's `GUY x/y` is deliberate — it is what lets
         // `run56_s_scout_dog_walks_its_own_body` compare the two.
-        sim.seat_guys(idx);
+        sim.setup().seat_guys(idx);
         // `Unit::init`'s tally — `num_units`, the group count, `control`
         // and `active` — which the price ramp, `population()` and the make
         // list read. A unit stood up from the dump counts exactly as a
@@ -1054,7 +1060,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         if let Some(ty) = kind
             && !gaia
         {
-            sim.track_unit_type(u.who as sim::Player, ty, 1);
+            sim.setup().track_unit_type(u.who as sim::Player, ty, 1);
         }
         units.push(UnitLink {
             who: u.who,
@@ -1088,14 +1094,14 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 continue;
             };
             sim.buildings[b].farm.farm_type = u8::try_from(f.farm_type).unwrap_or(0);
-            if sim.buildings[b].farm.farm_type == sim::farms::ANIMAL_FARM {
+            if sim.buildings[b].farm.farm_type == sim::cities::farms::ANIMAL_FARM {
                 // The five's species and their two offsets, from the run's
                 // own trace where it reached the setup — the harness cannot
                 // draw them (`docs/SYNC.md` §3.11).
-                let seeds: &[sim::farms::AnimalSeed] =
+                let seeds: &[sim::cities::farms::AnimalSeed] =
                     init.pasture.get(pastures).map_or(&[], Vec::as_slice);
                 pastures += 1;
-                animals += sim.farm_add_animals(b, seeds).len();
+                animals += sim.setup().farm_add_animals(b, seeds).len();
             }
         }
         notes.push(format!(
@@ -1126,8 +1132,9 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // keep the old uncapped stand-in so their pins measure what they did.
     if region_map.is_empty() {
         for b in &mut sim.buildings {
-            let flat =
-                b.ty.is_some_and(|t| sim.tables.build_types[t].has(sim::build::flags::FLAT));
+            let flat = b
+                .ty
+                .is_some_and(|t| sim.tables.build_types[t].has(sim::cities::build::flags::FLAT));
             if !flat {
                 b.gather_max = None;
             }
@@ -1152,7 +1159,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // item 3335): the dump's own, never replayed off `seen2` — a box under
     // a building's light is in `seen2` and in no item's `ever_seen`.
     for it in &init.items {
-        sim.add_goody_item(
+        sim.setup().add_goody_item(
             Pos::new(it.x as i32, it.y as i32),
             it.flags & 1 != 0,
             it.ever_seen as u8,
@@ -1165,12 +1172,12 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // once, after the goods are in and the leaders' `human` bits are set,
     // because `Leader::new_rare` reads both (item 207,
     // `sim::Sim::seed_new_rares_from_fog`).
-    sim.seed_new_rares_from_fog();
+    sim.setup().seed_new_rares_from_fog();
     // The oil patches the same two passes left in each leader's list: the
     // fog reveals above (the oil arm of `reveal_fog`) and the owner grid's
     // per-cell goods scan (`compute_reg_territory`), the one the installed
     // owners stand in for (`docs/AI.md` §133).
-    sim.claim_oil_from_owners();
+    sim.setup().claim_oil_from_owners();
     let seeded: usize = (0..players).map(|w| sim.ai.ai[w].new_rares.len()).sum();
     if seeded > 0 {
         notes.push(format!(
@@ -1430,9 +1437,9 @@ pub(crate) fn start_of_game(
             // outside a city, which is what the order diff caught when the
             // harness went through `place_building` and it was refused.
             let handle = match ty {
-                Some(t) => sim.init_build(who, t, pos, false),
+                Some(t) => sim.setup().init_build(who, t, pos, false),
                 None => {
-                    let h = sim.add_building(who, pos, 8);
+                    let h = sim.setup().add_building(who, pos, 8);
                     sim.buildings[h].active = true;
                     sim.buildings[h].activated = true;
                     sim.buildings[h].started = true;
@@ -1469,7 +1476,7 @@ pub(crate) fn start_of_game(
                 sim.buildings[handle].gather_max = Some(sim.max_gatherers(handle));
             }
             if ty.is_some() {
-                sim.activate(handle, false, true);
+                sim.setup().activate(handle, false, true);
             }
             // `find_free` numbers the building as it is placed; the dump's
             // `o` is the original's own numbering of the same placement
@@ -1512,7 +1519,7 @@ pub(crate) fn start_of_game(
         let workable = |sim: &Sim, b: usize| {
             sim.buildings[b].active
                 && sim.is_gather_type(b)
-                && sim.building_ident(b) != sim::build::Ident::University
+                && sim.building_ident(b) != sim::cities::build::Ident::University
         };
         let mut births: Vec<(usize, i64, usize)> = Vec::new();
         let mut cursor = 0i64;
@@ -1561,7 +1568,8 @@ pub(crate) fn start_of_game(
             // `starting_resources == 8` places the citizen at the building
             // and gives it no order.
             if !skip_orders {
-                sim.add_gather_order(link.unit, b, sim::orders::QueuePos::New, false);
+                sim.command()
+                    .add_gather_order(link.unit, b, sim::orders::QueuePos::New, false);
             }
             births.push((link.unit, link.o, b));
         }
@@ -1578,7 +1586,7 @@ pub(crate) fn start_of_game(
                 .filter(|l| l.who != w || l.o > o)
                 .map(|l| l.unit)
                 .collect();
-            sim.birth_come_out(u, birth, &later);
+            sim.setup().birth_come_out(u, birth, &later);
         }
     }
     // `Setup::build_game@005ac190` builds the starting positions in the
@@ -1600,7 +1608,7 @@ pub(crate) fn start_of_game(
     // flattens ground that is flat already, and a second pass over a box
     // whose border was blended is not the identity. The grid the dump
     // printed is the truth at frame 0; put it back
-    // (`sim::terrain`, `docs/ROADS.md` §7.4).
+    // (`sim::world::terrain`, `docs/ROADS.md` §7.4).
     #[cfg(test)]
     if ON_GENERATED.with(|g| g.replace(false)) {
         let after = sim.world.corner_singles().to_vec();
@@ -1621,9 +1629,9 @@ thread_local! {
     /// terraforms leave is kept in [`POST_ROSTER_HEIGHTS`] before the
     /// dump's own is put back — so a generated grid meets the start dump's
     /// print through the roster's own `terraform_for_building`.
-    pub(crate) static PRE_ROSTER_HEIGHTS: std::cell::RefCell<Option<Vec<sim::single::Single>>> =
+    pub(crate) static PRE_ROSTER_HEIGHTS: std::cell::RefCell<Option<Vec<sim::num::single::Single>>> =
         const { std::cell::RefCell::new(None) };
-    pub(crate) static POST_ROSTER_HEIGHTS: std::cell::RefCell<Option<Vec<sim::single::Single>>> =
+    pub(crate) static POST_ROSTER_HEIGHTS: std::cell::RefCell<Option<Vec<sim::num::single::Single>>> =
         const { std::cell::RefCell::new(None) };
     static ON_GENERATED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
 }
@@ -1723,7 +1731,7 @@ impl Built {
         }
         let frame = self.sim.frame;
         let word_before = self.sim.rng.seed;
-        self.sim.tick();
+        self.sim.command().tick();
         // The frame's own draws, named, before anything is installed —
         // the harness's side of `Trace::labels(frame)`.
         if self.sim.trace.trace_phases
@@ -1805,8 +1813,11 @@ impl Built {
                             skip.hits += 1;
                             0
                         } else {
-                            self.sim
-                                .reseat_animal(u, pos_of(state.pos), state.goal.map(pos_of))
+                            self.sim.setup().reseat_animal(
+                                u,
+                                pos_of(state.pos),
+                                state.goal.map(pos_of),
+                            )
                         };
                         // both sides: the audit is optional and `before` is
                         // None exactly when it is off; nothing is compared
@@ -1867,7 +1878,7 @@ impl Built {
                     let walking_there = guys
                         .first()
                         .and_then(|g| g.cur_anim)
-                        .is_some_and(|a| sim::anim::category(a as i8) == 8);
+                        .is_some_and(|a| sim::units::anim::category(a as i8) == 8);
                     if walking_here != walking_there {
                         if !(walking_there && state.orderless && !walking_here) {
                             if let Some(audit) = &mut self.correction_audit {
@@ -2292,9 +2303,9 @@ mod tests {
     #[test]
     fn the_style_s_six_territory_limits_are_the_start_dump_s() {
         let rules = [
-            sim::tuning::Tuning::RON.territory_limit_base,
-            sim::tuning::Tuning::RON.territory_limit_civic,
-            sim::tuning::Tuning::RON.territory_limit_city,
+            sim::core::tuning::Tuning::RON.territory_limit_base,
+            sim::core::tuning::Tuning::RON.territory_limit_civic,
+            sim::core::tuning::Tuning::RON.territory_limit_city,
         ];
         let carried = |init: &Initial<'_>| -> [i32; 6] {
             let (world, _) = world_from(&init.world, &[], &mut Vec::new());
@@ -2411,7 +2422,7 @@ mod tests {
                 .and_then(|(_, v)| v.trim().parse::<i32>().ok())
                 .expect("xs");
             let wrong = |init: &Initial<'_>| -> (usize, usize) {
-                let built = build_sim(&loaded, init, sim::tuning::Tuning::RON);
+                let built = build_sim(&loaded, init, sim::core::tuning::Tuning::RON);
                 let w = &built.sim.world;
                 let mut n = (0, 0);
                 for (i, c) in cells.iter().enumerate() {
@@ -2640,7 +2651,7 @@ mod tests {
             ..Frame::default()
         };
         let mut built = built;
-        built.sim.tick();
+        built.sim.command().tick();
         let r = compare(&built, &frame, 1);
         assert_eq!(r.compared, 2);
         assert!(r.diverged.is_empty());
@@ -2709,7 +2720,7 @@ mod tests {
         assert_eq!(theirs.int("peasants"), Some(5), "the record is level 9");
 
         // Frame 0: the sweep, which arms the step machine.
-        built.sim.tick();
+        built.sim.command().tick();
         let c = &built.sim.ai.ai[1].census;
         let scalars: [(&str, i32); 15] = [
             ("active", c.active),
@@ -2810,7 +2821,7 @@ mod tests {
         // original's, and with run3's heights the slide is the original's,
         // so the record's best site is asserted when both are on hand and
         // reported otherwise.
-        built.sim.tick();
+        built.sim.command().tick();
         let theirs_sites: Vec<(i64, i64, i64, i64)> = theirs
             .kids("SITE")
             .map(|s| {
@@ -3300,19 +3311,19 @@ mod tests {
         assert_eq!(
             checked,
             vec![
-                (0x198, 0, sim::anim::DEFAULT, 90),
-                (0x198, 1, sim::anim::DEFAULT, 109),
-                (0x198, 2, sim::anim::DEFAULT, 250),
-                (0x19b, 0, sim::anim::DEFAULT, 170),
-                (0x19b, 0, sim::anim::IDLE1, 170),
-                (0x19b, 0, sim::anim::IDLE2, 170),
-                (0x19b, 0, sim::anim::IDLE3, 170),
-                (0x19b, 1, sim::anim::DEFAULT, 101),
-                (0x19b, 1, sim::anim::IDLE1, 101),
-                (0x19b, 1, sim::anim::IDLE2, 101),
-                (0x19b, 2, sim::anim::DEFAULT, 116),
-                (0x19b, 2, sim::anim::IDLE1, 116),
-                (0x19b, 2, sim::anim::IDLE3, 116),
+                (0x198, 0, sim::units::anim::DEFAULT, 90),
+                (0x198, 1, sim::units::anim::DEFAULT, 109),
+                (0x198, 2, sim::units::anim::DEFAULT, 250),
+                (0x19b, 0, sim::units::anim::DEFAULT, 170),
+                (0x19b, 0, sim::units::anim::IDLE1, 170),
+                (0x19b, 0, sim::units::anim::IDLE2, 170),
+                (0x19b, 0, sim::units::anim::IDLE3, 170),
+                (0x19b, 1, sim::units::anim::DEFAULT, 101),
+                (0x19b, 1, sim::units::anim::IDLE1, 101),
+                (0x19b, 1, sim::units::anim::IDLE2, 101),
+                (0x19b, 2, sim::units::anim::DEFAULT, 116),
+                (0x19b, 2, sim::units::anim::IDLE1, 116),
+                (0x19b, 2, sim::units::anim::IDLE3, 116),
             ],
             "the six lengths both oracles state"
         );
@@ -3322,17 +3333,19 @@ mod tests {
         // what run14's stream confirms.
         for v in 0..3u8 {
             assert_eq!(
-                loaded.gaia_lengths.get(&(0x192, v, sim::anim::WALK)),
+                loaded.gaia_lengths.get(&(0x192, v, sim::units::anim::WALK)),
                 Some(&31),
                 "the bird's Bird Soar"
             );
             assert_eq!(
-                loaded.gaia_lengths.get(&(0x192, v, sim::anim::JOG)),
+                loaded.gaia_lengths.get(&(0x192, v, sim::units::anim::JOG)),
                 Some(&23),
                 "the bird's Bird Flap"
             );
             assert_eq!(
-                loaded.gaia_lengths.get(&(0x192, v, sim::anim::DEFAULT)),
+                loaded
+                    .gaia_lengths
+                    .get(&(0x192, v, sim::units::anim::DEFAULT)),
                 None,
                 "and no idle at all, which is worth three frames"
             );
@@ -3347,7 +3360,7 @@ mod tests {
     /// `Unit::init@00612100:282–309` asks the *type* which of the four kinds
     /// it carries (`UnitTypeData::get_stance_type@0061d350`) and then reads a
     /// different place for each — the player's options, the leader's flags,
-    /// the lobby (`sim::stance`).
+    /// the lobby (`sim::units::stance`).
     ///
     /// Two captures print the whole table at their start block, and they
     /// agree object for object across two maps and two lobbies:

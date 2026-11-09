@@ -50,7 +50,7 @@ fn the_emulated_original_agrees_on_every_row() {
             *k += 1;
             a[at + (*k - 1).min(5)] != 0
         };
-        let got = crate::garrison::inside_count(
+        let got = crate::units::garrison::inside_count(
             || a[1] != 0,
             a[0] != 0,
             figs,

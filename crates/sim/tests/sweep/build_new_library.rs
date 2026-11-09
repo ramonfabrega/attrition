@@ -51,7 +51,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 m: &'a mut [u8],
                 p: &'a mut [Vec<u8>],
             }
-            impl crate::city::NewLibraryView for V<'_> {
+            impl crate::cities::city::NewLibraryView for V<'_> {
                 fn is_library(&mut self) -> bool {
                     (if rd(self.m, 0) == 0x00b4_2174 {
                         self.a[0]
@@ -80,7 +80,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     self.p[1 + first as usize][0x82] = 0;
                 }
             }
-            crate::city::new_library_steps(&mut V { a, m, p });
+            crate::cities::city::new_library_steps(&mut V { a, m, p });
             want_eax
         };
         let _ = (got, want_eax);

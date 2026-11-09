@@ -227,7 +227,8 @@ impl QueueUpView for SimQueueUp<'_> {
         false
     }
     fn is(&mut self, o: i32, ty: i32) -> bool {
-        ty == SILO && self.sim.building_ident(o as usize) == crate::build::Ident::MissileSilo
+        ty == SILO
+            && self.sim.building_ident(o as usize) == crate::cities::build::Ident::MissileSilo
     }
     fn can_carry(&mut self, o: i32, _ty: i32) -> bool {
         match self.what {

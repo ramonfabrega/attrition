@@ -48,7 +48,7 @@ fn sea_sim() -> (Sim, usize) {
         ] {
             t.add(tech::TypeDef::good(n));
         }
-        while t.types.len() < crate::fish::FISHERMEN {
+        while t.types.len() < crate::units::think::fish::FISHERMEN {
             t.add(tech::TypeDef::plain("filler", -1));
         }
         let boat = t.add(tech::TypeDef::unit(
@@ -57,7 +57,7 @@ fn sea_sim() -> (Sim, usize) {
         ));
         assert_eq!(
             boat,
-            crate::fish::FISHERMEN,
+            crate::units::think::fish::FISHERMEN,
             "the fixture's ids are TypeIndex's"
         );
     }
@@ -67,11 +67,11 @@ fn sea_sim() -> (Sim, usize) {
     let t = s.add_unit_type(crate::UnitType {
         hits: 20,
         moves: 40,
-        tree: Some(crate::fish::FISHERMEN),
+        tree: Some(crate::units::think::fish::FISHERMEN),
         ..crate::UnitType::default()
     });
     s.tables.unit_types[t].combat.packs = true;
-    s.tables.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
+    s.tables.unit_types[t].combat.domain = crate::territory::attrition::Domain::Sea;
     let at = Pos::new(20 * 768 + 384, 20 * 768 + 384);
     let mut u = crate::Unit::new(1, 14, at, 20);
     u.ty = Some(t);
@@ -122,7 +122,7 @@ fn an_empty_sea_answers_no_and_leaves_rare_at_minus_one() {
 fn a_fish_beside_the_boat_s_tile_answers_yes_at_ring_one() {
     let (mut s, u) = sea_sim();
     let t0 = s.units[u].pos.tile();
-    let circle = crate::ai_place::circle();
+    let circle = crate::ai::ai_place::circle();
     let one = Pos::new(t0.x + circle.x[1], t0.y + circle.y[1]);
     put_good(
         &mut s,
@@ -142,7 +142,7 @@ fn a_fish_beside_the_boat_s_tile_answers_yes_at_ring_one() {
 fn the_remembered_index_is_retried_first_and_kept() {
     let (mut s, u) = sea_sim();
     let t0 = s.units[u].pos.tile();
-    let circle = crate::ai_place::circle();
+    let circle = crate::ai::ai_place::circle();
     let one = Pos::new(t0.x + circle.x[1], t0.y + circle.y[1]);
     put_good(
         &mut s,
@@ -161,7 +161,7 @@ fn the_remembered_index_is_retried_first_and_kept() {
 fn a_remembered_index_that_has_lost_its_good_is_cleared() {
     let (mut s, u) = sea_sim();
     let t0 = s.units[u].pos.tile();
-    let circle = crate::ai_place::circle();
+    let circle = crate::ai::ai_place::circle();
     let one = Pos::new(t0.x + circle.x[1], t0.y + circle.y[1]);
     // The tile keeps its `AS_BUILDING` bit and the cell loses its good.
     let m = s.world.tile_mask(one);
@@ -179,7 +179,7 @@ fn a_remembered_index_that_has_lost_its_good_is_cleared() {
 fn a_second_boat_on_the_same_fish_turns_the_answer_round() {
     let (mut s, u) = sea_sim();
     let t0 = s.units[u].pos.tile();
-    let circle = crate::ai_place::circle();
+    let circle = crate::ai::ai_place::circle();
     let one = Pos::new(t0.x + circle.x[1], t0.y + circle.y[1]);
     put_good(
         &mut s,
@@ -210,7 +210,7 @@ fn a_second_boat_on_the_same_fish_turns_the_answer_round() {
 fn another_player_s_boat_is_not_counted() {
     let (mut s, u) = sea_sim();
     let t0 = s.units[u].pos.tile();
-    let circle = crate::ai_place::circle();
+    let circle = crate::ai::ai_place::circle();
     let one = Pos::new(t0.x + circle.x[1], t0.y + circle.y[1]);
     put_good(
         &mut s,
@@ -233,7 +233,7 @@ fn another_player_s_boat_is_not_counted() {
 fn oil_is_not_a_good_calc_gather_can_find() {
     let (mut s, u) = sea_sim();
     let t0 = s.units[u].pos.tile();
-    let circle = crate::ai_place::circle();
+    let circle = crate::ai::ai_place::circle();
     let one = Pos::new(t0.x + circle.x[1], t0.y + circle.y[1]);
     put_good(
         &mut s,
@@ -250,7 +250,7 @@ fn oil_is_not_a_good_calc_gather_can_find() {
 fn a_fisherman_refuses_a_land_tile() {
     let (mut s, u) = sea_sim();
     let t0 = s.units[u].pos.tile();
-    let circle = crate::ai_place::circle();
+    let circle = crate::ai::ai_place::circle();
     let one = Pos::new(t0.x + circle.x[1], t0.y + circle.y[1]);
     put_good(
         &mut s,

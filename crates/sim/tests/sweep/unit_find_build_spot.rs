@@ -35,7 +35,7 @@ fn the_emulated_original_agrees_on_every_row() {
         // action, `p[28+k]` the k-th `+0xd8` answer (`+8` site, `+0xc` owner). The answers `a`: `a[0..15]` the stubs'
         // single answers (0 `+0xf8`, 1 `+0x104`, 2 `+0x134`), `a[15..21]` the `+0x10` answers in call order, `a[21]` the
         // `+0xf8` slot flag (1 = `get_worker_stance`), `a[22]` the `+0x104` slot flag (1 = `has_stance_type`).
-        use sim::build_spot_view::{BuildSpotView, build_spot_steps};
+        use sim::orders::build_spot_view::{BuildSpotView, build_spot_steps};
         const ENC: i32 = 0x63637;
         struct V<'a> {
             m: &'a [u8],

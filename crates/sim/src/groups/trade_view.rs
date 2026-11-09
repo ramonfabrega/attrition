@@ -10,7 +10,7 @@
 //! original indexes both arrays by one object index. `who` is the building's
 //! player (the command's second argument), `p` the group's own. The head is
 //! the garrison order's, instruction for instruction
-//! ([`crate::garrison_view::garrison_head`]).
+//! ([`crate::groups::garrison_view::garrison_head`]).
 //!
 //! **Not wired.** The crate has no `Group::action_trade`: `group.rs`'s
 //! `FinishInsertView::action_trade` is an empty stub, and the callee at the
@@ -21,7 +21,7 @@
 //! every capture whose human clicks a caravan onto a market, so it is parked
 //! rather than done here.
 
-pub use crate::garrison_view::{GarrisonHead, garrison_head};
+pub use crate::groups::garrison_view::{GarrisonHead, garrison_head};
 
 /// `GroupData::count`'s first argument: `COUNT_TYPE`.
 pub use crate::ids::count::COUNT_TYPE;

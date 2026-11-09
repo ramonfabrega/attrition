@@ -38,7 +38,9 @@ fn the_emulated_original_agrees_on_every_row() {
         // `p3 + 4h ..` the objects of player `h` (`p4..6`, `p8..10`), `p11` the site's
         // record, `p12` the tile masks, `p13` the unit's type, `p14` the site's inner record,
         // `p15` its tile list's data.
-        use crate::gather_tile::{GatherTileView, TileOrder, gather_head_steps, gather_tile_steps};
+        use crate::economy::gather_tile::{
+            GatherTileView, TileOrder, gather_head_steps, gather_tile_steps,
+        };
         struct V<'a> {
             a: &'a [i32],
             m: &'a mut [u8],

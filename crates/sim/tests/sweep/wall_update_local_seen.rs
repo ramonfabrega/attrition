@@ -130,18 +130,18 @@ fn the_emulated_original_agrees_on_every_row() {
                 let fort = a[3] != 0;
                 let city = m[8] & 0x20 != 0;
                 let ident = if city {
-                    crate::build::Ident::Village
+                    crate::cities::build::Ident::Village
                 } else if fort {
-                    crate::build::Ident::Fort
+                    crate::cities::build::Ident::Fort
                 } else {
-                    crate::build::Ident::Farm
+                    crate::cities::build::Ident::Farm
                 };
-                let ty = sim.add_build_type(crate::build::BuildType {
+                let ty = sim.add_build_type(crate::cities::build::BuildType {
                     ident,
                     wonder: wonder_slot,
                     x_size: xs,
                     y_size: ys,
-                    ..crate::build::BuildType::default()
+                    ..crate::cities::build::BuildType::default()
                 });
                 // A position whose tile is `corner + size / 2`, so `tile_corner` lands on `(cx, cy)`.
                 let pos = crate::Pos::new((cx + (xs >> 1)) * 192, (cy + (ys >> 1)) * 192);

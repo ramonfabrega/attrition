@@ -12,9 +12,9 @@ use crate::{Tuning, Unit, World};
 fn a_supply_wagon_plans_as_an_army_and_an_unarmed_plain_unit_does_not() {
     let mut sim = flat_sim(8);
     let wagon = sim.add_unit_type(crate::UnitType {
-        cols: crate::ai_load::UnitCols {
-            unit_flags2: crate::ai_load::uflags2::SUPPLY_OR_HERO,
-            ..crate::ai_load::UnitCols::default()
+        cols: crate::ai::ai_load::UnitCols {
+            unit_flags2: crate::ai::ai_load::uflags2::SUPPLY_OR_HERO,
+            ..crate::ai::ai_load::UnitCols::default()
         },
         ..crate::UnitType::default()
     });
@@ -329,7 +329,7 @@ fn only_ai_transport_types_drop_same_region_terrain_preferences() {
                 sim.units[u].ty = Some(ty);
                 if transport {
                     sim.tables.unit_types[ty].cols.unit_flags |=
-                        crate::ai_load::uflags::FLAG_TRANSPORT;
+                        crate::ai::ai_load::uflags::FLAG_TRANSPORT;
                 }
                 let want = if !human && transport {
                     (0, 0)
@@ -428,7 +428,7 @@ fn large_recovery_steps_check_intermediate_diagonals() {
         sim.trace.probe_refuse = Some(RefuseProbe {
             frame: sim.frame,
             unit: (0, 1),
-            cell: crate::collide::ucell(Pos::new(start.x + 48, start.y + 48)),
+            cell: crate::movement::collide::ucell(Pos::new(start.x + 48, start.y + 48)),
         });
         push_goal(&mut sim, u, Pos::new(start.x + 960, start.y + 960));
         assert!(sim.find_upath(u, false) > 0);
@@ -1183,7 +1183,7 @@ fn ring_tile(armed: bool) -> (Sim, usize, usize, Pos) {
     let mut sim = flat_sim(10);
     let u = walker(&mut sim, Pos::new(0x180, 0x180));
     let mut ty = crate::UnitType::default();
-    ty.combat.domain = crate::attrition::Domain::Land;
+    ty.combat.domain = crate::territory::attrition::Domain::Land;
     ty.combat.attack = if armed { 40 } else { 0 };
     let t = sim.add_unit_type(ty);
     sim.units[u].ty = Some(t);
@@ -1426,7 +1426,7 @@ fn a_boat_leaving_a_halfland_cell_is_crossing_regions_on_the_world_grid() {
         &mut sim,
         Pos::new(berth.x * 0x300 + 0x180, berth.y * 0x300 + 0x180),
     );
-    sim.units[u].kind.domain = crate::attrition::Domain::Sea;
+    sim.units[u].kind.domain = crate::territory::attrition::Domain::Sea;
     push_goal(&mut sim, u, Pos::new(10 * 0x300 + 0x180, 4 * 0x300 + 0x180));
     sim.trace.trace_costs = true;
     assert!(sim.find_wpath(u) >= 1, "the boat found its way out");
@@ -1480,7 +1480,7 @@ fn a_sea_goal_whose_tile_refuses_the_boat_is_stepped_back_over_water() {
     sim.world
         .set_tile_mask(shore, tile::SURFACE_OCEAN | tile::BLOCKED);
     let u = walker(&mut sim, Pos::new(10 * 0x300 + 0x180, 6 * 0x300 + 0x180));
-    sim.units[u].kind.domain = crate::attrition::Domain::Sea;
+    sim.units[u].kind.domain = crate::territory::attrition::Domain::Sea;
     assert_ne!(
         sim.invalid_loc(u, shore, false, true, true, true, false),
         0,

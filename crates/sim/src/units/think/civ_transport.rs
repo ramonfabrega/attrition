@@ -241,7 +241,7 @@ pub struct SimCivTransport<'a> {
     sizes: Vec<i32>,
     /// A land slot's coordinate list, read from the grid once.
     coords: std::collections::BTreeMap<i32, Vec<Cell>>,
-    group: Option<crate::group::Group>,
+    group: Option<crate::groups::group::Group>,
     pushed: bool,
 }
 
@@ -314,16 +314,16 @@ impl CivTransportView for SimCivTransport<'_> {
     }
     fn domain(&self) -> i32 {
         match self.sim.unit_domain_of(self.u) {
-            crate::attrition::Domain::Land => 0,
-            crate::attrition::Domain::Sea => 1,
-            crate::attrition::Domain::Air => 2,
+            crate::territory::attrition::Domain::Land => 0,
+            crate::territory::attrition::Domain::Sea => 1,
+            crate::territory::attrition::Domain::Air => 2,
         }
     }
     fn type_flags(&self) -> i32 {
         self.rec_type_flags()
     }
     fn leader_flags(&self) -> i32 {
-        use crate::transport::TransportType as T;
+        use crate::ai::transport::TransportType as T;
         match self.sim.transport_level(self.sim.units[self.u].owner) {
             T::Civilian => 0x100,
             T::Military => 0x200,
@@ -445,7 +445,9 @@ impl CivTransportView for SimCivTransport<'_> {
         self.sim.world.danger_half(self.sim.units[self.u].owner, c)
     }
     fn group_clear(&mut self) {
-        self.group = Some(crate::group::Group::stack(self.sim.units[self.u].owner));
+        self.group = Some(crate::groups::group::Group::stack(
+            self.sim.units[self.u].owner,
+        ));
     }
     fn group_add(&mut self) {
         if let Some(g) = self.group.as_mut() {

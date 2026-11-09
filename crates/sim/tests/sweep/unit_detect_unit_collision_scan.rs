@@ -56,7 +56,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // `TargetOrder::get_target` (vtable slot 0) in the vtable, `a[102]` the flag that
             // makes `get_action`'s later calls answer null. This slice is the scan: `top_only` is
             // 1 and `quick` 0 every row (the gates are the other slice's).
-            use sim::detect_collision_view::{DetectArgs, detect_unit_collision_steps};
+            use sim::movement::detect_collision_view::{DetectArgs, detect_unit_collision_steps};
             let args = DetectArgs {
                 x: a[0],
                 y: a[1],
@@ -129,7 +129,7 @@ fn the_emulated_original_agrees_on_every_row() {
 }
 
 // hand: view
-use sim::detect_collision_view::{DetectCollisionView, unit_cell_of};
+use sim::movement::detect_collision_view::{DetectCollisionView, unit_cell_of};
 
 /// The row's windows as the view. `m` the unit; cells `c0` the world, `c1` the game (`+0x550` the
 /// frame), `c2` the `div_3_table`, `c3` the objects table, `c4` the spell types; `p0..p5` the

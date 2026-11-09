@@ -19,12 +19,12 @@
 //! `add_to_army`'s walk to the army's first member (§4.3) with it. The
 //! rest of the stand-ins are in [`seams`].
 
-use crate::ai_load::{role, uflags2};
-use crate::attrition::Domain;
-use crate::build::{self, Ident};
+use crate::ai::ai_load::{role, uflags2};
+use crate::cities::build::{self, Ident};
 use crate::combat::{Obj, Stance};
 use crate::movement::{self, Angle, find_angle};
 use crate::orders::{MoveKind, QueuePos};
+use crate::territory::attrition::Domain;
 use crate::world::{Cell, Pos, Terrain, UNITS_PER_CELL, vector_dist};
 #[cfg(test)]
 use crate::world::{Owner, cell};
@@ -112,7 +112,7 @@ pub struct Army {
     pub units: Vec<usize>,
     /// The persistent half of that group's `GroupData` (`docs/GROUPS.md`
     /// §1). The army's `list[16]` of group ids collapses to this one.
-    pub group: crate::group::GroupState,
+    pub group: crate::groups::group::GroupState,
 }
 
 impl Army {
@@ -139,7 +139,7 @@ impl Army {
             muster: Cell { x: -1, y: -1 },
             muster_angle: Angle(0),
             units: Vec::new(),
-            group: crate::group::GroupState::default(),
+            group: crate::groups::group::GroupState::default(),
         }
     }
 
@@ -576,7 +576,7 @@ impl Sim {
     /// group's `army` (`+8`) to −1 and halts it, and nothing else: the
     /// record, its pool index and its list stay in the pool, and every
     /// member's `+0x80` still names it. So the group moves to a
-    /// [`crate::group::Pushed`] seat on the same index, orphaned, and the
+    /// [`crate::groups::group::Pushed`] seat on the same index, orphaned, and the
     /// next `get_open_slot` passes it by while a member still points at
     /// it. East Indies' army 1 closed on 18682 from `find_target`, and the
     /// original's group 71 still lists `1/69` and `1/72` on 18933; the
@@ -715,7 +715,7 @@ impl Sim {
         // army `1/0` takes its periodic normalize on 1434, `1434 − 30 + 4 ≡
         // 0 (mod 128)`, and its leader `1/28` lifts the cap from the slow
         // squad's 25 to its own 47 (`docs/AI.md` §161).
-        self.seat_set_speed(crate::group::Seat::Army(who, slot));
+        self.seat_set_speed(crate::groups::group::Seat::Army(who, slot));
         let a = &mut self.ai.armies[w].list[slot];
         a.role = 0;
         a.num_units = a.units.len() as i32;
@@ -775,7 +775,7 @@ impl Sim {
         let group = &self.ai.armies[w].list[slot].group;
         let pool = if group.pool.is_none() || (!live && !group.unlinked) {
             // The stack group's `Group::add`: `captain, o_down, …`.
-            let mut g = crate::group::Group::stack(who);
+            let mut g = crate::groups::group::Group::stack(who);
             self.group_add(&mut g, u);
             let chain = g.list;
             let last = self.orders.last_group[w];
@@ -795,13 +795,13 @@ impl Sim {
                 }
             }
             self.ai.armies[w].list[slot].group = if equal {
-                crate::group::GroupState {
+                crate::groups::group::GroupState {
                     pool: Some(s),
                     unlinked: false,
                     ..prev
                 }
             } else {
-                crate::group::GroupState::copied(prev, s, self.frame, chain.len())
+                crate::groups::group::GroupState::copied(prev, s, self.frame, chain.len())
             };
             for f in chain {
                 let captain = self.is_captain(f);
@@ -815,7 +815,7 @@ impl Sim {
             }
             s
         } else {
-            let seat = crate::group::Seat::Army(who, slot);
+            let seat = crate::groups::group::Seat::Army(who, slot);
             let before = self.ai.armies[w].list[slot].units.len() as i32;
             self.seat_add(seat, u, false, false);
             let a = &mut self.ai.armies[w].list[slot];
@@ -975,7 +975,7 @@ impl Sim {
             if let Some(first) = first {
                 self.go_to_unit(u, first);
             }
-            self.seat_add(crate::group::Seat::Pushed(p), u, false, false);
+            self.seat_add(crate::groups::group::Seat::Pushed(p), u, false, false);
             self.set_group(u, s);
             return Some(slot);
         }
@@ -1003,7 +1003,7 @@ impl Sim {
     /// there. So `normalize` (§3.3), `get_unit(0)` and `add_unit`'s
     /// `Group::add` on `list[0]` all read whatever group stands on the
     /// index. This crate keeps the army's record on the army; the answer
-    /// is the [`crate::group::Pushed`] entry of the same player on the
+    /// is the [`crate::groups::group::Pushed`] entry of the same player on the
     /// army's index with a live member, when the army's own seat lists
     /// none.
     fn army_pool_record(&self, who: Player, slot: usize) -> Option<usize> {
@@ -1057,7 +1057,7 @@ impl Sim {
         let Some(spot) = self.find_nearby_spot_squad(u, to, min, max, 0, Angle(0x5555_5555)) else {
             return;
         };
-        let mut g = crate::group::Group::stack(self.units[u].owner);
+        let mut g = crate::groups::group::Group::stack(self.units[u].owner);
         self.group_add(&mut g, u);
         if !self.push_group(&mut g, true) {
             return;
@@ -1281,7 +1281,7 @@ impl Sim {
     /// variable and the army slot gate, is [`Self::think_attack_tail`]
     /// (item 3369).
     pub(crate) fn think_attack_join_army(&mut self, u: usize) -> Option<usize> {
-        use crate::ai_load::{role, uflags2};
+        use crate::ai::ai_load::{role, uflags2};
         use crate::combat::mask;
         let who = self.units[u].owner;
         if !self.ai_driven(who) || self.leaders.defeated[who as usize] {
@@ -1407,9 +1407,12 @@ impl Sim {
     }
 
     /// `Army::process@006f93d0` (§5–§6): the walk of
-    /// [`crate::army_process_view::army_process`] over this army's slot.
+    /// [`crate::ai::army::army_process_view::army_process`] over this army's slot.
     pub fn army_process(&mut self, who: Player, slot: usize, bypass: bool) {
-        crate::army_process_view::army_process(&mut SimProcess { s: self, who, slot }, bypass);
+        crate::ai::army::army_process_view::army_process(
+            &mut SimProcess { s: self, who, slot },
+            bypass,
+        );
     }
 
     /// `Army::use_generals@006f4c30`: every member of the army's groups,
@@ -1685,13 +1688,13 @@ impl Sim {
             |sim, _| sim.ai.armies[who as usize].list[slot].units.len() as i32,
             |sim, _| {
                 let g = sim.army_group(who, slot);
-                sim.group_stance_type(&g) == crate::group::StanceType::Combat
+                sim.group_stance_type(&g) == crate::groups::group::StanceType::Combat
             },
             |sim, _, s| {
                 let g = sim.army_group(who, slot);
                 sim.group_action_stance(&g, s);
             },
-            crate::group::stance_option(s),
+            crate::groups::group::stance_option(s),
         );
     }
 
@@ -1886,9 +1889,13 @@ impl Sim {
 
     /// `Army::is_moving@006f5470`: more than a sixth of the units either
     /// standing outside the region or walking near the centre of gravity
-    /// (the walk is [`crate::army_is_moving_view::army_is_moving`]).
+    /// (the walk is [`crate::ai::army::army_is_moving_view::army_is_moving`]).
     pub fn army_is_moving(&self, who: Player, slot: usize) -> bool {
-        crate::army_is_moving_view::army_is_moving(&mut SimIsMoving { s: self, who, slot })
+        crate::ai::army::army_is_moving_view::army_is_moving(&mut SimIsMoving {
+            s: self,
+            who,
+            slot,
+        })
     }
 
     /// `Army::engagement`'s seed (§11): which member's attack the army
@@ -1996,8 +2003,10 @@ impl Sim {
     /// `Army::find_target` over cities. The forts pass and the fields the
     /// sim lacks are seams; see the module doc.
     pub fn find_target(&mut self, who: Player, slot: usize) {
-        use crate::target_gate::{SimGate, target_city_gate, target_head, target_leader_gate};
-        use crate::target_score::{Ctx, target_score, target_tail};
+        use crate::ai::army::target_gate::{
+            SimGate, target_city_gate, target_head, target_leader_gate,
+        };
+        use crate::ai::army::target_score::{Ctx, target_score, target_tail};
         // `epoch[0] ^ 0x63187`, the Military library level, is read at every
         // site below (§12); the forts pass's `ages ^ 0x62766` is a seam.
         // The head (`target_gate::target_head`, swept against the original
@@ -2182,7 +2191,7 @@ impl Sim {
         let (Some(&first), Some(&last)) = (units.first(), units.last()) else {
             return;
         };
-        let mut g = crate::group::Group {
+        let mut g = crate::groups::group::Group {
             who,
             army: None,
             pushed: None,
@@ -2304,9 +2313,9 @@ impl Sim {
     /// muster set. Kept as it is, because `do_mustering` and
     /// `do_defending` act on that 0.
     pub fn find_muster_spot(&mut self, who: Player, slot: usize, target: Obj, flag: bool) -> bool {
-        crate::muster::find_muster_spot_steps(&mut crate::muster::SimMuster::new(
-            self, who, slot, target, flag,
-        ))
+        crate::ai::army::muster::find_muster_spot_steps(
+            &mut crate::ai::army::muster::SimMuster::new(self, who, slot, target, flag),
+        )
     }
 
     /// `find_unit(SEARCH_ENEMY, FILTER_COMBAT)`: the nearest enemy unit of
@@ -2513,7 +2522,7 @@ impl Sim {
                     a.valid,
                     a.num_captains,
                     a.status,
-                    crate::place::owner_byte(self.world.owner(a.pos.cell())),
+                    crate::cities::place::owner_byte(self.world.owner(a.pos.cell())),
                     i32::from(who),
                 )
             })
@@ -3759,7 +3768,7 @@ impl TransView for TransSim<'_> {
     }
 }
 
-/// [`crate::army_process_view::ArmyProcessView`] over one army of the sim.
+/// [`crate::ai::army::army_process_view::ArmyProcessView`] over one army of the sim.
 struct SimProcess<'a> {
     s: &'a mut Sim,
     who: Player,
@@ -3775,7 +3784,7 @@ impl SimProcess<'_> {
     }
 }
 
-impl crate::army_process_view::ArmyProcessView for SimProcess<'_> {
+impl crate::ai::army::army_process_view::ArmyProcessView for SimProcess<'_> {
     fn human_frame(&self) -> i32 {
         self.a().human_frame
     }
@@ -3850,9 +3859,9 @@ impl crate::army_process_view::ArmyProcessView for SimProcess<'_> {
         let c = self.s.cities_of(self.who)[i as usize];
         self.s.cities.cities[c].pos
     }
-    fn peer(&mut self, k: usize) -> crate::army_process_view::Peer {
+    fn peer(&mut self, k: usize) -> crate::ai::army::army_process_view::Peer {
         let b = &self.s.ai.armies[self.who as usize].list[k];
-        crate::army_process_view::Peer {
+        crate::ai::army::army_process_view::Peer {
             valid: b.valid,
             navy: b.navy,
             reg: b.reg.map_or(-1, i32::from),
@@ -3865,7 +3874,7 @@ impl crate::army_process_view::ArmyProcessView for SimProcess<'_> {
         self.s.army_normalize(self.who, self.slot);
     }
     fn count_type(&mut self, ty: i32) -> i32 {
-        use crate::army_process_view::{COUNT_GENERAL, COUNT_SPY};
+        use crate::ai::army::army_process_view::{COUNT_GENERAL, COUNT_SPY};
         let line = match ty {
             COUNT_GENERAL => GENERAL,
             COUNT_SPY => SPY,
@@ -3946,14 +3955,14 @@ impl crate::army_process_view::ArmyProcessView for SimProcess<'_> {
     }
 }
 
-/// [`crate::army_is_moving_view::ArmyIsMovingView`] over one army of the sim.
+/// [`crate::ai::army::army_is_moving_view::ArmyIsMovingView`] over one army of the sim.
 struct SimIsMoving<'a> {
     s: &'a Sim,
     who: Player,
     slot: usize,
 }
 
-impl crate::army_is_moving_view::ArmyIsMovingView for SimIsMoving<'_> {
+impl crate::ai::army::army_is_moving_view::ArmyIsMovingView for SimIsMoving<'_> {
     fn count(&self) -> i32 {
         self.s.ai.armies[self.who as usize].list[self.slot].num_units
     }

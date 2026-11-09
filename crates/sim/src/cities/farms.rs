@@ -127,7 +127,7 @@ pub const SITE_AMBIENCE_Y: &str = "Farms::add+0x25b";
 /// the species coin, the `y` offset and the `x` — spent only on the
 /// *drawing* path ([`Sim::farm_stock_pasture`]). The fourth of an animal's
 /// four is `Guy::init_real`'s, inside `Objects::init_unit`, and is marked
-/// by [`crate::anim::SITE_INIT_REAL`] where it is spent.
+/// by [`crate::units::anim::SITE_INIT_REAL`] where it is spent.
 pub const SITE_ANIMAL_COIN: &str = "Farms::add_animals+0x92";
 pub const SITE_ANIMAL_Y: &str = "Farms::add_animals+0x134";
 pub const SITE_ANIMAL_X: &str = "Farms::add_animals+0x182";
@@ -413,7 +413,7 @@ impl FarmsAddHost for SimFarmsHost<'_> {
 
     fn count_buildings(&mut self, city: i32) -> i32 {
         self.sim
-            .count_buildings(city as usize, crate::build::Ident::Farm, false)
+            .count_buildings(city as usize, crate::cities::build::Ident::Farm, false)
     }
 
     fn count_farms(&mut self, city: i32) -> i32 {
@@ -442,7 +442,8 @@ impl FarmsAddHost for SimFarmsHost<'_> {
     // `at` is the walk, so a building listed twice cannot loop it.
     fn member_is_farm(&mut self, m: i32) -> bool {
         let b = self.members[m as usize];
-        self.sim.buildings[b].alive && self.sim.building_ident(b) == crate::build::Ident::Farm
+        self.sim.buildings[b].alive
+            && self.sim.building_ident(b) == crate::cities::build::Ident::Farm
     }
 
     fn member_farm_slot(&mut self, m: i32) -> i32 {
@@ -665,7 +666,7 @@ impl Sim {
     /// farm has from `Build::init` onwards and nothing else ever has.
     fn is_farm_record(&self, b: usize) -> bool {
         self.buildings[b].alive
-            && self.building_ident(b) == crate::build::Ident::Farm
+            && self.building_ident(b) == crate::cities::build::Ident::Farm
             && self.buildings[b].farm.valid
     }
 
@@ -878,7 +879,7 @@ impl Sim {
         if typed {
             unit.type_index = self.tables.unit_types[ty].type_index;
         }
-        // `Unit::init@00612100:282–309` (`crate::stance`); a pasture
+        // `Unit::init@00612100:282–309` (`crate::units::stance`); a pasture
         // animal is not a worker type and takes the `default:` 0.
         unit.stance = self.init_stance(9, ty);
         // `Unit::init`'s formation byte: not a civilian, so 0.
@@ -894,7 +895,7 @@ impl Sim {
             // piece stays −1 — no dump prints an owner-9 object, so the
             // piece pool cannot name one — and the gaia table is keyed
             // by the type instead.
-            self.units[u].guys = vec![crate::anim::Guy::fresh(-1)];
+            self.units[u].guys = vec![crate::units::anim::Guy::fresh(-1)];
         }
         Some(u)
     }
@@ -1000,7 +1001,7 @@ impl Sim {
             let unit = &self.units[u];
             if !unit.alive()
                 || unit.herd.is_some()
-                || unit.kind.domain == crate::attrition::Domain::Air
+                || unit.kind.domain == crate::territory::attrition::Domain::Air
                 || unit.farm_animal.is_none_or(|fa| fa.build != b)
             {
                 continue;
@@ -1026,7 +1027,7 @@ impl Sim {
             if !bd.alive || !bd.active || bd.farm.farm_type == ANIMAL_FARM {
                 continue;
             }
-            if self.building_ident(b) != crate::build::Ident::Farm {
+            if self.building_ident(b) != crate::cities::build::Ident::Farm {
                 continue;
             }
             let empty = self.buildings[b].farm.advance();

@@ -128,7 +128,7 @@ impl GatherPointView for GatherSim<'_> {
         self.sim.units[u].alive()
             && matches!(
                 self.sim.profile(crate::combat::Obj::Unit(u)).domain,
-                crate::attrition::Domain::Air
+                crate::territory::attrition::Domain::Air
             )
             && self.sim.home_base(u) == Some(self.b)
     }
@@ -174,7 +174,7 @@ impl GatherPointView for GatherSim<'_> {
 }
 
 use crate::Sim;
-use crate::build::{self, Ident};
+use crate::cities::build::{self, Ident};
 use crate::movement::{Angle, find_angle};
 use crate::orders::{MoveKind, QueuePos};
 use crate::world::Player;
@@ -191,8 +191,8 @@ impl Sim {
     /// `Group::action_gather_point@006ff1b0(x, y, action, add_to_end)` on a
     /// group of `who`'s buildings (`docs/PRODUCTION.md`, "The gather
     /// point"; run312). The steps are
-    /// [`crate::gather_view::action_gather_point_steps`]'s (item 3358's
-    /// sweep), over [`crate::gather_view::SimGather`]; under the emulator and
+    /// [`crate::groups::gather_view::action_gather_point_steps`]'s (item 3358's
+    /// sweep), over [`crate::groups::gather_view::SimGather`]; under the emulator and
     /// on the capture alike:
     ///
     /// - `x < 0 || y < 0` is the Clear: `clear_gather` on every member;
@@ -223,14 +223,14 @@ impl Sim {
         action: i32,
         add_to_end: bool,
     ) {
-        let mut v = crate::gather_view::SimGather {
+        let mut v = crate::groups::gather_view::SimGather {
             sim: self,
             who,
             members,
             flight: Vec::new(),
             at,
         };
-        crate::gather_view::action_gather_point_steps(
+        crate::groups::gather_view::action_gather_point_steps(
             &mut v,
             at.x,
             at.y,
@@ -308,7 +308,7 @@ impl Sim {
     /// SEAM: the console's half — when no point was laid and the group is
     /// the console's, the last member is cleared again, with the red
     /// feedback and a sound off the sound generator's own `Random`; this
-    /// crate keeps no console, as [`crate::gather_view::SimGather`].
+    /// crate keeps no console, as [`crate::groups::gather_view::SimGather`].
     pub fn group_action_city_gather(&mut self, buildings: &[usize], kind: i32) {
         for &m in buildings {
             let b = &self.buildings[m];
@@ -331,9 +331,9 @@ impl Sim {
                 };
                 let is = |ident| build::is(&self.tables.build_types, t, ident);
                 let takes = match kind {
-                    crate::gather_view::FARM => is(Ident::Farm),
-                    crate::gather_view::WOODCUTTER => is(Ident::Woodcutter),
-                    crate::gather_view::MINE => is(Ident::Mine),
+                    crate::groups::gather_view::FARM => is(Ident::Farm),
+                    crate::groups::gather_view::WOODCUTTER => is(Ident::Woodcutter),
+                    crate::groups::gather_view::MINE => is(Ident::Mine),
                     _ if kind < 0 => is(Ident::Farm) || is(Ident::Woodcutter) || is(Ident::Mine),
                     _ => false,
                 };
@@ -363,7 +363,7 @@ impl Sim {
                     && un.alive()
                     && matches!(
                         self.profile(crate::combat::Obj::Unit(u)).domain,
-                        crate::attrition::Domain::Air
+                        crate::territory::attrition::Domain::Air
                     )
                     && self.home_base(u) == Some(b)
             })
@@ -574,7 +574,7 @@ impl Sim {
         b: usize,
         spot: crate::Pos,
         exit: crate::Pos,
-        group: Option<&crate::group::Group>,
+        group: Option<&crate::groups::group::Group>,
     ) {
         if self.gather_inside(b) || !self.units[captain].orders.is_empty() {
             return;
@@ -772,7 +772,7 @@ impl Sim {
         last: GatherPoint,
         spot: crate::Pos,
         mut prev: crate::Pos,
-        group: Option<&crate::group::Group>,
+        group: Option<&crate::groups::group::Group>,
     ) {
         if last.action == 3 {
             return;

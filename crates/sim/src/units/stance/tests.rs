@@ -1,5 +1,5 @@
 use super::*;
-use crate::ai_load::{role, uflags2};
+use crate::ai::ai_load::{role, uflags2};
 
 /// `peasants_wait` is an **index**, and the default index is not the
 /// default arm (item 494).
@@ -159,7 +159,7 @@ fn a_building_s_worker_arm_is_not_a_unit_s() {
 #[test]
 fn a_trained_combat_unit_takes_the_trainer_s_byte_as_its_combat_stance() {
     let mut s = crate::Sim::new(
-        crate::tuning::Tuning::RON,
+        crate::core::tuning::Tuning::RON,
         crate::world::World::new(40, 40),
         2,
     );
@@ -174,10 +174,10 @@ fn a_trained_combat_unit_takes_the_trainer_s_byte_as_its_combat_stance() {
     t.cols.role = role::ROLE_MILITARY;
     let ty = s.add_unit_type(t);
     assert_eq!(s.type_stance_type(ty), StanceType::Combat);
-    let barracks = s.add_build_type(crate::build::BuildType {
-        ident: crate::build::Ident::Barracks,
-        flags: crate::build::flags::TRAINS,
-        ..crate::build::BuildType::default()
+    let barracks = s.add_build_type(crate::cities::build::BuildType {
+        ident: crate::cities::build::Ident::Barracks,
+        flags: crate::cities::build::flags::TRAINS,
+        ..crate::cities::build::BuildType::default()
     });
     let b = s.add_building(0, crate::Pos::new(5000, 5000), 0);
     s.buildings[b].ty = Some(barracks);
@@ -187,7 +187,7 @@ fn a_trained_combat_unit_takes_the_trainer_s_byte_as_its_combat_stance() {
     assert_eq!(byte, s.build_stance(b), "the trainer's byte");
     assert_eq!(
         Some(s.units[u].combat.stance),
-        crate::group::combat_stance_of(byte),
+        crate::groups::group::combat_stance_of(byte),
         "and the combat stance it reads as"
     );
 }

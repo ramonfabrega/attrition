@@ -94,8 +94,8 @@ fn a_census_inside_the_pass_is_undone_for_the_regions_still_waiting() {
     );
 }
 /// A city of `who`'s, as `init_city` records it.
-fn city_of(who: crate::Player) -> crate::city::City {
-    crate::city::City {
+fn city_of(who: crate::Player) -> crate::cities::city::City {
+    crate::cities::city::City {
         alive: true,
         owner: who,
         race: None,

@@ -28,14 +28,14 @@ fn the_emulated_original_agrees_on_every_row() {
     super::obj_rows(&rows, &obj, |a, m, c, p, log| {
         let _ = (&a, &m, &c, &p);
         // hand: port
-        // The port is the crate's own switch, `crate::spell_cast_view::spell_cast_steps`; here the view is
+        // The port is the crate's own switch, `crate::spells::spell_cast_view::spell_cast_steps`; here the view is
         // the emulated original's stubs. Window layout: `m` the spell-type row (`+4` its index); the
         // arguments are `p1..p4`, then each stub's answer in stub order (0 `is_castable`, 1
         // `is_valid_target`, then the casts), then the `ecx` stub 0 leaves (`a[32]`, drawn from a list so
         // an arm that reloads `this` and one that does not tell apart). The function is `void`: `eax` is
         // what the last call left (the last stub's answer; `spell - 0x275` where the jump table or its
         // range check sends the index nowhere; `is_castable`'s answer when it is not 3).
-        use crate::spell_cast_view::{Callee, Ecx, SpellCastView, spell_cast_steps};
+        use crate::spells::spell_cast_view::{Callee, Ecx, SpellCastView, spell_cast_steps};
         struct V<'a> {
             m: &'a [u8],
             a: &'a [i32],

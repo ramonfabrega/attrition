@@ -1,6 +1,6 @@
 //! `TypeData::is_unit_type@004707e0` under the emulator against the port (item 1704).
 
-use crate::type_index::is_unit_type;
+use crate::core::type_index::is_unit_type;
 
 /// `TypeData::is_unit_type@004707e0`, run by `tools/emu/sweep_type_unit.py` under unicorn
 /// (tools/emu): `0x31 < t < 0x19e` on the type record's `type`, over every index -2..=0x33f and the edges, against `type_index::is_unit_type` — the bounds `is_unit_type`'s readers (`type_index`'s header) stand on.

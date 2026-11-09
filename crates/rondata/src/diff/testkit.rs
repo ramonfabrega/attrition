@@ -607,7 +607,7 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// `Scholar Teach1`, thirty frames long, and 8466 + 30 − 1 is 8495. The
 /// original re-rolls that wrap instead of restarting the slot; this crate
 /// restarted it, so the frame was one `Guy::set_anim+0x97a <
-/// Guy::inc_time+0x271` short. `sim::anim::Sim::seated_scholar` and
+/// Guy::inc_time+0x271` short. `sim::units::anim::Sim::seated_scholar` and
 /// `docs/ANIM.md` §5.1. One change moved both maps for the second item
 /// running, and again neither map's brief named the other.
 ///
@@ -814,7 +814,7 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// word to the window's end. On the way the sequence parted on 15378, a
 /// bare `6c7812` against ours' unnamed draw: the Senate arm's survivor
 /// roll in `research_techs`, the same draw, which this crate now names
-/// (`sim::ai_research::SITE_GOV_ROLL`). **15782** is past run166 and
+/// (`sim::ai::ai_research::SITE_GOV_ROLL`). **15782** is past run166 and
 /// inside run78's [15700, 15900] (`LEADERS=1`): the original spends three
 /// `Guy::init_real+0x52` and a wrap before the bird, the birth of the
 /// three-figure unit `1/60` run78 counted, and ours births nothing.
@@ -1267,7 +1267,7 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// caster scout throws from difficulty 2 up and no Easiest capture ever
 /// reached (`docs/AI.md` §80.5).
 ///
-/// **0 → 10 on item 971**, the coin built (`sim::spellcaster`). **The
+/// **0 → 10 on item 971**, the coin built (`sim::units::think::spellcaster`). **The
 /// move's value diff (the word's delta, here; its block is
 /// `run349_s_word_frame_is_widened_whole`'s):** on block 1 the AI scout
 /// `1/0`'s `orders_x`/`orders_y` went 41976/36600 against 35832/42744 →
@@ -1313,7 +1313,7 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// (`run357_s_word_frame_is_widened_whole`).
 ///
 /// **5606 → 5773 on item 1106** (`docs/AI.md` §84): a border fix reaches
-/// the map at the daemon's 256 cells a frame (`sim::border_pass`), and a
+/// the map at the daemon's 256 cells a frame (`sim::territory::border_pass`), and a
 /// city counts in its region's `reg_cities` on the frame `City::init` makes
 /// it. **The move's value diff (the word's delta, here; its block is
 /// `run357_s_word_frame_is_widened_whole`'s):** the AI citizen `1/14`
@@ -3388,9 +3388,9 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// draws all read as the coarse `strategy_all` mark and any one of
 /// them parted the *sequence* a frame after the count: the matchup
 /// bias in `create_units` and in `upgrade_units`
-/// ([`sim::ai_units::SITE_UNIT_BIAS`], [`sim::ai_units::SITE_UPGRADE_BIAS`])
+/// ([`sim::ai::ai_units::SITE_UNIT_BIAS`], [`sim::ai::ai_units::SITE_UPGRADE_BIAS`])
 /// and `create_buildings`' wonder pair
-/// ([`sim::ai_build::SITE_WONDER_MOD`], [`sim::ai_build::SITE_WONDER_SCALE`]).
+/// ([`sim::ai::ai_build::SITE_WONDER_MOD`], [`sim::ai::ai_build::SITE_WONDER_SCALE`]).
 ///
 /// **6782 until 2026-09-04**, and it was a building this crate bought
 /// and the original did not: both sides spent `make_stuff`'s two
@@ -3421,7 +3421,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 ///
 /// It was **6862** for one item, and it was one missing
 /// `Guy::set_anim+0x97a < Unit::move_step+0x823` — the blocked walker's
-/// stand (`sim::anim::SITE_BLOCKED`, `docs/COLLISION.md` §5), where the
+/// stand (`sim::units::anim::SITE_BLOCKED`, `docs/COLLISION.md` §5), where the
 /// squad meets the standing citizen `1/13`. The stand was not the
 /// mechanic: what the record showed was that on that frame the original
 /// **ungroups the squad** and this crate did not. `move_step` answers 0
@@ -3489,7 +3489,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 ///
 /// ~~**7585**~~ — the AI rather than the animals: seven draws against
 /// nine, parting at index 2 where the original spends a
-/// `Leader::make_stuff+0x63d` ([`sim::ai_make::SITE_EXPIRE_SLOT`],
+/// `Leader::make_stuff+0x63d` ([`sim::ai::ai_make::SITE_EXPIRE_SLOT`],
 /// `docs/AI.md` §2.6) this crate did not. Item 287 read that as the AI's
 /// stockpile and run91 refuted it (§34); item 295 found the head of the
 /// make list instead, and under the head **`census_units` reading the
@@ -3697,7 +3697,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// window over `[8029, 9348]`, and `1/44`'s slot over its 1,320 blocks
 /// goes 27→25→25→28→27→25→25→25→27→25→…→26, which a
 /// `set_anim(same, 0, 1)` restart cannot produce.
-/// [`sim::anim::Sim::seated_scholar`], `docs/ANIM.md` §5.1.
+/// [`sim::units::anim::Sim::seated_scholar`], `docs/ANIM.md` §5.1.
 ///
 /// **8582 was the AI's first market draw** (item 348). `Leader::make_stuff`
 /// calls `use_market` first thing, and `use_market@006c91c0+0x1ed` is the
@@ -3707,7 +3707,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// Commerce 2) and not the Market building (Barter, Commerce 1) this crate
 /// had been reading it off. A wealth shortfall enters the sell branch
 /// without a price, so the draw is exact where it is taken.
-/// [`sim::ai_make::SITE_MARKET_SELL`], `docs/AI.md` §40.
+/// [`sim::ai::ai_make::SITE_MARKET_SELL`], `docs/AI.md` §40.
 ///
 /// **8628 since item 350**, which is `Unit::do_idle` again and a different
 /// unit: 8619's extra idle draw was `1/39`'s, and `1/39` was standing at
@@ -3960,7 +3960,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// original's read `678cb9`/`678cde` against this crate's unattributed
 /// `projectiles` phase mark. 10242 and 10249 were the same shape, and
 /// those three frames are the only ones in 24,000 where either side
-/// takes the draw. With `sim::fight::SITE_PUNCTURE_X`/`_Y` named and
+/// takes the draw. With `sim::combat::fight::SITE_PUNCTURE_X`/`_Y` named and
 /// both addresses in the table, all three agree draw for draw, the
 /// sequence word rises to the count's 10244, and the whole
 /// 24,000-frame label dump is unchanged on every other frame
@@ -4997,7 +4997,7 @@ pub(crate) const WIDENING_CHAPTER_ONE: (i64, i64) = (605, 901);
 /// **9**, parting at draw **1**: `0/7` and `0/8` each end an attack
 /// animation (`Guy::set_anim+0x97a < Guy::inc_time+0x1ed`) and the
 /// original spends a second draw after each of them —
-/// `Guy::set_anim+0xf2f < Guy::inc_time+0x271`, [`sim::anim::SITE_ATTACK_WRAP`],
+/// `Guy::set_anim+0xf2f < Guy::inc_time+0x271`, [`sim::units::anim::SITE_ATTACK_WRAP`],
 /// the **queued attack** `Guy::inc_time`'s attack-end arm plays when
 /// `queued_attack` is non-zero. So the delta is two, one per figure, and
 /// it is `docs/ANIM.md` §6.2's deferred attack rather than anything in
@@ -5047,7 +5047,7 @@ pub(crate) const WIDENING_CHAPTER_ONE: (i64, i64) = (605, 901);
 /// constant's delta, +37 (`docs/COMBAT.md` §46). Four things, each read
 /// off the frame the last one left: the rolled shot comes down on the
 /// original's step through the arc and `find_data_z` in
-/// [`sim::single::Single`]; the ammo pool is stepped in slot order, so the
+/// [`sim::num::single::Single`]; the ammo pool is stepped in slot order, so the
 /// right bowman's shot rolls; `get_damage`'s height bonus reads each
 /// side's `tile_z`; and `compare_target` ranks at the real bearing, where
 /// the decompiler printed `find_angle(0, 0)`. On 686 every record now
@@ -5099,7 +5099,7 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 900;
 /// `× 3 / 200`. The two agree on every release measured before run127 and
 /// part on the Trireme's `400`: frame 5, one before this crate's 6. The
 /// point is node 0 walking the keel, measured from run127 into
-/// `sim::launch`'s table (piece 290, three rows). The widening then found
+/// `sim::data::launch`'s table (piece 290, three rows). The widening then found
 /// a third defect the draw never named: a sea figure's `z` is 0, not the
 /// lake bed's `find_data_z`, so every trireme round had left at `sz −185`
 /// against 88. With all three, the seven rounds launched through 662 agree
@@ -6183,7 +6183,7 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_THREE: i64 = 2200;
 /// sequence and values. The round flew 40 frames here against 39 because
 /// it left from the ship's own square: `1/6`'s release goes through
 /// `get_position`'s pivot branch (`docs/COMBAT.md` §55) with the Bomb
-/// Vessel's piece 296, which `sim::pivot` had no rows for, and at
+/// Vessel's piece 296, which `sim::data::pivot` had no rows for, and at
 /// `fast_angle_to_degrees` of its facing, 353, not `angle_to_degrees`'
 /// 354. The value diff on block 633, the round's first: `sx, sy, sz`
 /// ours `(21288, 14712, 0)` against `(21301, 14867, 134)`, `total_time`
@@ -7602,7 +7602,7 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// six-decimal print names one single, and on no corner a terraform has
 /// rewritten. The residue the zero stands over is 2,058 of Great Lakes'
 /// 58,081 corners, every one under 16 in magnitude, where two to four
-/// singles print alike and [`sim::single::Single::from_millionths`] takes
+/// singles print alike and [`sim::num::single::Single::from_millionths`] takes
 /// the nearest — at most a few ulp, under 2e-6 of a world unit.
 ///
 /// **Chapter seventeen's bombs** (item 770, `docs/ORDERS.md` §35.3). A

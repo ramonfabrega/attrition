@@ -17,7 +17,7 @@ fn unhex(s: &str) -> Vec<u8> {
 }
 
 use crate::combat::{Obj, Profile};
-use crate::group::{GroupState, Pushed, Seat};
+use crate::groups::group::{GroupState, Pushed, Seat};
 use crate::orders::{Body, GroupMove, MoveKind, Order, QueuePos};
 use crate::world::World;
 use crate::{Pos, Sim, Tuning, Unit, UnitType};

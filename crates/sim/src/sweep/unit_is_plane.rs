@@ -1,8 +1,8 @@
 //! `UnitData::is_plane@0046ce40` under the emulator against the port (item 1691).
 
 use crate::UnitType;
-use crate::ai_load::UnitCols;
-use crate::attrition::Domain;
+use crate::ai::ai_load::UnitCols;
+use crate::territory::attrition::Domain;
 
 /// `UnitData::is_plane@0046ce40`, run by `tools/emu/sweep_unit_is_plane.py` under unicorn
 /// (tools/emu): `type+0x218 == 2 && !(type+0x2b4 & 0x20)` — domain 2 is Air, bit `0x20` the helicopter flag — over domains −1..=4 against flag words, against `Sim::is_plane`. Domains outside the port's three (land 0, sea 1, air 2) are left out: the port's `Domain` cannot spell them.

@@ -1,7 +1,7 @@
 //! `UnitData::decoy_time@00609d70` under the emulator against the port (item 2072; hand-written on
 //! tools/emu/hooks.py).
 
-use crate::cast::decoy_time_left;
+use crate::spells::cast::decoy_time_left;
 
 /// `UnitData::decoy_time@00609d70`, run by `tools/emu/sweep_unit_data_decoy_time.py` under unicorn (tools/emu):
 /// the owner's general upgrade (a hooked callee, asked once of the owner's leader record), `DECOY_TIME` and the

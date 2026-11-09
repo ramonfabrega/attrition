@@ -41,7 +41,7 @@ fn the_emulated_original_agrees_on_every_row() {
         // dispatch that is none of the move family (`get_type` drawn from 5..17), the
         // fresh-latch lines and the open-search line. **The port is the crate's own
         // steps**: `work_gate_steps`, `fresh_latch_steps`, `partial_path_steps`.
-        use crate::work_gate::{
+        use crate::units::think::work_gate::{
             Gate, WorkGateView, WorkTailView, fresh_latch_steps, partial_path_steps,
             work_gate_steps,
         };

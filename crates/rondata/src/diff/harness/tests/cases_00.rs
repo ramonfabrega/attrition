@@ -10,11 +10,11 @@ mod bodies {
             sim::world::Cell::new(0, 0),
             sim::world::Cell::new(15, 15),
         );
-        let mut s = sim::Sim::new(sim::tuning::Tuning::RON, w, 2);
-        let ty = s.add_build_type(sim::build::BuildType {
+        let mut s = sim::Sim::new(sim::core::tuning::Tuning::RON, w, 2);
+        let ty = s.add_build_type(sim::cities::build::BuildType {
             x_size: 2,
             y_size: 2,
-            ..sim::build::BuildType::default()
+            ..sim::cities::build::BuildType::default()
         });
         let at = |t: i32| sim::Pos::new(t * 192 + 96, t * 192 + 96);
         let dead = s.init_build(1, ty, at(5), false);
@@ -1169,7 +1169,7 @@ mod bodies {
             assert_eq!(built.sim.rng.seed, word, "{dump_name}: and the harness's");
 
             built.sim.trace.trace_phases = true;
-            built.sim.tick();
+            built.sim.command().tick();
             let ours =
                 mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed).expect("our sites");
             let theirs = trace.labels(0);
@@ -1199,9 +1199,9 @@ mod bodies {
             let count = |site: &str| ours.iter().filter(|l| *l == site).count();
             assert_eq!(
                 (
-                    count(sim::anim::SITE_IDLE_UNIT),
-                    count(sim::anim::SITE_STAND_GATHER),
-                    count(sim::anim::SITE_WRAP),
+                    count(sim::units::anim::SITE_IDLE_UNIT),
+                    count(sim::units::anim::SITE_STAND_GATHER),
+                    count(sim::units::anim::SITE_WRAP),
                 ),
                 (4, 0, 4),
                 "{dump_name}: the scouts' four, no camp stand, four wraps"
@@ -1225,8 +1225,8 @@ mod bodies {
             assert_eq!(
                 last_three,
                 vec![
-                    (sim::farms::SITE_CHANCE, farms),
-                    (sim::anim::SITE_WRAP, 4),
+                    (sim::cities::farms::SITE_CHANCE, farms),
+                    (sim::units::anim::SITE_WRAP, 4),
                     (sim::gaia::SITE_HERD_Y, 1),
                 ],
                 "{dump_name}: the frame ends farms ← wraps ← herd"
@@ -1471,7 +1471,7 @@ mod bodies {
         );
         assert_eq!(
             trace.labels(96)[6],
-            sim::anim::SITE_INIT_REAL,
+            sim::units::anim::SITE_INIT_REAL,
             "the hatching roll is draw 6 of the original's sampling frame"
         );
         // **The hatch frame is a mechanism again, not drift.** run14's
@@ -1517,7 +1517,11 @@ mod bodies {
         // the word divergence at 122 and is ours.
         let coin_frames = |at: &dyn Fn(i64) -> Vec<String>, upto: i64| -> Vec<i64> {
             (0..=upto)
-                .filter(|f| at(*f).iter().any(|l| *l == sim::anim::SITE_BIRD_COIN))
+                .filter(|f| {
+                    at(*f)
+                        .iter()
+                        .any(|l| *l == sim::units::anim::SITE_BIRD_COIN)
+                })
                 .collect()
         };
         let ours_at = |f: i64| -> Vec<String> {
@@ -1553,7 +1557,7 @@ mod bodies {
             .1;
         assert_eq!(
             &frame_one[..8],
-            &[sim::ai_host::SITE_RAND_INT; 8],
+            &[sim::ai::ai_host::SITE_RAND_INT; 8],
             "the script VM's eight, and no others"
         );
         // Frame 101 is the farmers' re-target: six farmers, two
@@ -1600,7 +1604,7 @@ mod bodies {
             trace
                 .labels(232)
                 .iter()
-                .any(|l| l == sim::anim::SITE_ARRIVE),
+                .any(|l| l == sim::units::anim::SITE_ARRIVE),
             "the arrival stand is named on the trace's frame 232"
         );
         // **The blocked stand, on the original's own frames** (item 49).
@@ -1610,7 +1614,7 @@ mod bodies {
         // original's frames, which is what carries the word from 122 to
         // 185. The third is past the divergence and neither side is
         // measuring the same game by then.
-        let blocked = |sites: &[String]| sites.iter().any(|l| l == sim::anim::SITE_BLOCKED);
+        let blocked = |sites: &[String]| sites.iter().any(|l| l == sim::units::anim::SITE_BLOCKED);
         let theirs_blocked: Vec<i64> = (0..=last).filter(|&f| blocked(&trace.labels(f))).collect();
         assert_eq!(
             theirs_blocked,
@@ -1642,6 +1646,6 @@ mod bodies {
             .iter()
             .find(|u| u.owner == sim::gaia::BIRD_OWNER)
             .expect("a bird");
-        assert_eq!(bird.kind.domain, sim::attrition::Domain::Air);
+        assert_eq!(bird.kind.domain, sim::territory::attrition::Domain::Air);
     }
 }

@@ -53,6 +53,7 @@ mod bodies {
         assert!(
             built
                 .sim
+                .setup()
                 .probe_relocate(u64, sim::Pos::new(seat.x as i32, seat.y as i32))
         );
         built.tick();
@@ -890,8 +891,8 @@ mod bodies {
                         // why the stream runs 139 frames past the first of
                         // them. Counted and floored rather than listed; a
                         // disagreement anywhere else is a failure.
-                        let walking = i64::from(sim::anim::category(ours.anim)) == 8
-                            || g.cur_anim.map(|a| sim::anim::category(a as i8)) == Some(8);
+                        let walking = i64::from(sim::units::anim::category(ours.anim)) == 8
+                            || g.cur_anim.map(|a| sim::units::anim::category(a as i8)) == Some(8);
                         let rows: [(&str, i64, Option<i64>); 4] = [
                             ("cur_anim", i64::from(ours.anim), g.cur_anim),
                             ("cur_time", i64::from(ours.cur_time), g.cur_time),

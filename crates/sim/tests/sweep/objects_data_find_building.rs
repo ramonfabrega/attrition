@@ -123,7 +123,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     }
                 }
             } else {
-                let ring = crate::ai_place::circle();
+                let ring = crate::ai::ai_place::circle();
                 let (cx, cy) = (div3(px >> 8), div3(py >> 8));
                 for q in 0..ring.radius[usize::try_from(ring_no).expect("ring")] {
                     let (nx, ny) = (ring.x[q] + cx, ring.y[q] + cy);

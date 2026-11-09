@@ -107,9 +107,13 @@ fn the_unpack_s_first_frame_seats_the_merchant_s_crew() {
     // re-seat's `set_new_location` then has `from == to`, and used to
     // return before it reached the crew. The fixture's world-cell
     // centre is a 48-grid *boundary*, not a centre.
-    let at = crate::collide::ucell_centre(crate::collide::ucell(s.units[u].pos));
+    let at =
+        crate::movement::collide::ucell_centre(crate::movement::collide::ucell(s.units[u].pos));
     assert!(s.set_new_location(u, at, true));
-    assert_eq!(crate::collide::ucell_centre(crate::collide::ucell(at)), at);
+    assert_eq!(
+        crate::movement::collide::ucell_centre(crate::movement::collide::ucell(at)),
+        at
+    );
     // The tile has to answer `good_merchant_spot`, whose last test is
     // `calc_gather` — a good on the tile, and the tile's own
     // `AS_BUILDING` bit.
@@ -124,12 +128,15 @@ fn the_unpack_s_first_frame_seats_the_merchant_s_crew() {
 
     // A crew figure with a track offset, seated and then dragged
     // behind — the state the Merchant `1/24` is in when it arrives.
-    s.units[u].guys = vec![crate::anim::Guy::fresh(1), crate::anim::Guy::fresh(2)];
+    s.units[u].guys = vec![
+        crate::units::anim::Guy::fresh(1),
+        crate::units::anim::Guy::fresh(2),
+    ];
     s.roster.art.tracks.insert(2, (-48, -192));
     s.seat_guys(u);
     let seated = s.units[u].guys[1].follow.expect("a tracked crew guy").des;
     s.units[u].guys[1].follow.as_mut().unwrap().body.pos = Pos::new(seated.x - 300, seated.y - 300);
-    s.units[u].guys[1].anim = crate::anim::JOG;
+    s.units[u].guys[1].anim = crate::units::anim::JOG;
 
     // `craftrules.xml` gives the Merchant's `0x290` a `JOB_TIME` of
     // 148 (`docs/ORDERS.md` §6.9), so the first frame seats and starts
@@ -154,7 +161,7 @@ fn the_unpack_s_first_frame_seats_the_merchant_s_crew() {
     assert_eq!(s.units[u].pos, at, "and the merchant itself has not moved");
     assert_eq!(
         s.units[u].guys[0].anim,
-        crate::anim::ANIM_UNPACK,
+        crate::units::anim::ANIM_UNPACK,
         "the animation the re-seat comes just ahead of"
     );
     assert_eq!(s.units[u].spell_time, 1, "and the clock has started");
@@ -177,9 +184,9 @@ fn a_unit_on_a_candidate_s_corner_refuses_the_spot() {
     // The merchant stands inside tile `t`, off its corner's unit cell.
     let t = Pos::new(82, 106);
     let corner = Pos::new(t.x * UNITS_PER_TILE, t.y * UNITS_PER_TILE);
-    let at = crate::collide::ucell_centre(Pos::new(
-        crate::collide::ucell(corner).x + 2,
-        crate::collide::ucell(corner).y + 2,
+    let at = crate::movement::collide::ucell_centre(Pos::new(
+        crate::movement::collide::ucell(corner).x + 2,
+        crate::movement::collide::ucell(corner).y + 2,
     ));
     assert!(s.set_new_location(u, at, true));
     assert_eq!(at.tile(), t);
@@ -202,7 +209,7 @@ fn a_unit_on_a_candidate_s_corner_refuses_the_spot() {
     let mut b = crate::Unit::new(
         0,
         20,
-        crate::collide::ucell_centre(crate::collide::ucell(corner)),
+        crate::movement::collide::ucell_centre(crate::movement::collide::ucell(corner)),
         20,
     );
     b.ty = ty;
@@ -223,7 +230,8 @@ fn a_unit_on_a_candidate_s_corner_refuses_the_spot() {
 #[test]
 fn a_deployed_merchant_sits_on_its_corner_and_blocks_its_square() {
     let (mut s, u) = merchant_sim();
-    let at = crate::collide::ucell_centre(crate::collide::ucell(s.units[u].pos));
+    let at =
+        crate::movement::collide::ucell_centre(crate::movement::collide::ucell(s.units[u].pos));
     assert!(s.set_new_location(u, at, true));
     s.world.add_good(Good {
         pos: at,
@@ -384,7 +392,7 @@ fn a_caravan_with_the_attack_bonus_has_its_attack_replaced() {
     }
     s.tech[1].tech[tech] = true;
     assert_eq!(s.attack_of(o), 30, "not a caravan: its own");
-    s.tables.unit_types[rec].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
+    s.tables.unit_types[rec].cols.unit_flags2 |= crate::ai::ai_load::uflags2::FLAG2_CARAVAN;
     assert_eq!(
         s.attack_of(o),
         s.tables.tuning.caravan_attack_bonus,
@@ -413,7 +421,7 @@ fn the_caravan_arm_is_off_without_the_tech_and_the_dutch_kinds_are_exact() {
     let (mut s, u) = merchant_sim();
     let rec = s.units[u].ty.unwrap();
     s.tables.unit_types[rec].combat.attack = 30;
-    s.tables.unit_types[rec].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
+    s.tables.unit_types[rec].cols.unit_flags2 |= crate::ai::ai_load::uflags2::FLAG2_CARAVAN;
     let o = Obj::Unit(u);
     assert_eq!(s.tables.tech_tree.roles.caravan_attack_preq, None);
     assert_eq!(s.attack_of(o), 30, "no role named: no replacement");
@@ -424,12 +432,12 @@ fn the_caravan_arm_is_off_without_the_tech_and_the_dutch_kinds_are_exact() {
     s.tech[1].has_city = true;
     s.tech[1].power = Some(crate::ai::tribe::DUTCH);
     assert_eq!(s.attack_of(o), 30, "0x3c is no merchant");
-    s.tables.unit_types[rec].cols.unit_flags2 = crate::ai_load::uflags2::SUPPLY_OR_HERO;
+    s.tables.unit_types[rec].cols.unit_flags2 = crate::ai::ai_load::uflags2::SUPPLY_OR_HERO;
     assert_eq!(
         s.attack_of(o),
         30 + 2 * s.tables.tuning.dutch_attack_bonus * 10
     );
-    s.tables.unit_types[rec].cols.unit_flags2 = crate::ai_load::uflags2::FLAG2_CARAVAN;
+    s.tables.unit_types[rec].cols.unit_flags2 = crate::ai::ai_load::uflags2::FLAG2_CARAVAN;
     assert_eq!(
         s.attack_of(o),
         30 + 2 * s.tables.tuning.dutch_attack_bonus * 10

@@ -7,7 +7,7 @@
 //!
 //! Every leaf is one virtual call, one direct callee or one inline read of
 //! the listing, asked in the listing's order, which is what the sweeps hold.
-//! The targeted half is [`crate::cast`]'s, dispatched before this one.
+//! The targeted half is [`crate::spells::cast`]'s, dispatched before this one.
 //!
 //! The craft the rest acts on is **not** the order's own index when its type
 //! is not a spell type: the original keeps the order's index for the cost
@@ -145,7 +145,7 @@ pub enum DoCastFlow {
     /// The function returned: the order killed, the clock still running, or
     /// the cast made.
     Ended,
-    /// The craft is targeted: `crate::cast`'s half.
+    /// The craft is targeted: `crate::spells::cast`'s half.
     Targeted { idx: i32, craft: i32 },
 }
 
@@ -174,7 +174,7 @@ pub fn do_cast_clock_steps(v: &mut impl DoCastClock) -> DoCastFlow {
                 v.merchant_repiece();
             }
             v.face_guy0();
-            (crate::anim::ANIM_PACK, true)
+            (crate::units::anim::ANIM_PACK, true)
         } else if v.type_is_unpack(idx) {
             v.rebuild_options();
             if !v.packed() {
@@ -192,17 +192,17 @@ pub fn do_cast_clock_steps(v: &mut impl DoCastClock) -> DoCastFlow {
                 v.seat_on_cell();
             }
             v.face_guy0();
-            (crate::anim::ANIM_UNPACK, true)
+            (crate::units::anim::ANIM_UNPACK, true)
         } else if !v.caster_is_hero() {
-            (crate::anim::DEFAULT, true)
+            (crate::units::anim::DEFAULT, true)
         } else {
             // The hero's crafts are matched on the **craft** (`edi`), not on
             // the order's own index the type questions were asked of.
             match craft {
-                spell::AMBUSH => (crate::anim::ATTACK1, false),
-                spell::FORCED_MARCH => (crate::anim::ATTACK2, false),
-                spell::RALLY => (crate::anim::ATTACK3, false),
-                _ => (crate::anim::DEFAULT, true),
+                spell::AMBUSH => (crate::units::anim::ATTACK1, false),
+                spell::FORCED_MARCH => (crate::units::anim::ATTACK2, false),
+                spell::RALLY => (crate::units::anim::ATTACK3, false),
+                _ => (crate::units::anim::DEFAULT, true),
             }
         };
         v.set_anim(i32::from(anim), p3);
@@ -298,7 +298,7 @@ impl DoCastHead for SimDoCast<'_> {
 
 impl DoCastClock for SimDoCast<'_> {
     fn untargeted(&mut self, _craft: i32) -> bool {
-        // The targeted crafts were handed to `crate::cast` before this runs.
+        // The targeted crafts were handed to `crate::spells::cast` before this runs.
         true
     }
     fn spell_time(&self) -> i32 {
@@ -333,7 +333,7 @@ impl DoCastClock for SimDoCast<'_> {
         self.sim.is_hero_unit(self.u)
     }
     fn set_anim(&mut self, anim: i32, p3: bool) {
-        self.sim.mark(crate::anim::SITE_CAST);
+        self.sim.mark(crate::units::anim::SITE_CAST);
         self.sim.set_anim(self.u, anim as i8, false, p3);
     }
     fn rebuild_options(&mut self) {}
@@ -345,7 +345,9 @@ impl DoCastClock for SimDoCast<'_> {
         self.sim.good_merchant_spot(self.u, tile)
     }
     fn seat_on_cell(&mut self) {
-        let seat = crate::collide::ucell_centre(crate::collide::ucell(self.sim.units[self.u].pos));
+        let seat = crate::movement::collide::ucell_centre(crate::movement::collide::ucell(
+            self.sim.units[self.u].pos,
+        ));
         self.sim.set_new_location(self.u, seat, true);
     }
     fn kill_current_order(&mut self) {
@@ -365,7 +367,7 @@ impl DoCastClock for SimDoCast<'_> {
                 0,
                 self.sim.tables.tuning.unit_board_distance,
                 0,
-                crate::transport::BOARD_BEARING,
+                crate::ai::transport::BOARD_BEARING,
             )
         });
         spot.is_none()

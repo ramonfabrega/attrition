@@ -1,8 +1,8 @@
 use super::*;
 use crate::Pos;
-use crate::build::{self, Ident};
+use crate::cities::build::{self, Ident};
 use crate::combat::Rng;
-use crate::tuning::Tuning;
+use crate::core::tuning::Tuning;
 use crate::world::World;
 
 /// Draws between two words of the stream, walked forward.
@@ -280,7 +280,7 @@ fn a_finished_pasture_stocks_five_animals_for_twenty_draws() {
             SITE_ANIMAL_COIN,
             SITE_ANIMAL_Y,
             SITE_ANIMAL_X,
-            crate::anim::SITE_INIT_REAL
+            crate::units::anim::SITE_INIT_REAL
         ]
         .repeat(5),
         "the coin, the y, the x and the guy — five times over"

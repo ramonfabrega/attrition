@@ -94,7 +94,7 @@ pub fn compare_shutdown(built: &mut Built, fin: &Frame, players: usize) -> Shutd
     // orders on the frame the dump is written in.
     for who in 0..players.min(built.sim.cities.nation.len()) {
         if built.sim.cities.nation[who].human {
-            built.sim.resign(who as sim::Player);
+            built.sim.command().resign(who as sim::Player);
         }
     }
     built.tick();

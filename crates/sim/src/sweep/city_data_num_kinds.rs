@@ -38,7 +38,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 chain.push(at as usize);
                 at = i16::from_le_bytes([p[1 + at as usize][0x74], p[1 + at as usize][0x75]]);
             }
-            let (n, _) = crate::city::distinct_kinds(
+            let (n, _) = crate::cities::city::distinct_kinds(
                 chain,
                 |b| p[1 + b][8] & 5 == 5,
                 |b| Some(rd(&p[7 + b], 4)),

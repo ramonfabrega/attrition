@@ -1,4 +1,4 @@
-use crate::build::BuildType;
+use crate::cities::build::BuildType;
 use crate::{Pos, Sim, Tuning, World};
 
 /// `BuildTypeData::corner_tile@006364c0` — the original's function run under

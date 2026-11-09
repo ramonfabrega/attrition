@@ -1,6 +1,6 @@
 //! `UnitTypeData::is_tank@00470450` under the emulator against the port (item 1691).
 
-use crate::ai_load::{UnitCols, uflags};
+use crate::ai::ai_load::{UnitCols, uflags};
 
 /// `UnitTypeData::is_tank@00470450`, run by `tools/emu/sweep_unit_type_is_tank.py` under unicorn
 /// (tools/emu): `unit_flags` (`type+0x2b4`) `& 0x80000` over every single bit, every all-but-one, all and none, and a seeded random band, against `UnitCols::flag(uflags::TANK)` — the bit `docs/COLLISION.md` §13.3 reads.

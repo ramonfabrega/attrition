@@ -612,7 +612,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 let ring = (nn.wrapping_add(1)).clamp(0, 0x40) as usize;
                 let tx = self.div3(f18 >> 6);
                 let ty = self.div3(f1c >> 6);
-                let circle = crate::ai_place::circle();
+                let circle = crate::ai::ai_place::circle();
                 let (w3, h3) = (rd(&self.c[2], 0x18), rd(&self.c[2], 0x1c));
                 for i in 0..circle.radius[ring] {
                     let y = circle.y[i] + ty;

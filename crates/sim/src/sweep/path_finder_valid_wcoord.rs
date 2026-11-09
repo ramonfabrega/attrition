@@ -31,7 +31,7 @@ fn the_emulated_original_agrees_on_every_row() {
             if a[0] == rd(&p[0], 0x120) && a[1] == rd(&p[0], 0x124) {
                 0
             } else {
-                i64::from(crate::path::wcoord_verdict(
+                i64::from(crate::movement::path::wcoord_verdict(
                     a[5],
                     crate::Pos::new(a[0], a[1]),
                     crate::Pos::new(a[3], a[4]),

@@ -68,7 +68,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 }
             }
             lg.borrow_mut().push("s1:m+0x0".to_string());
-            if crate::group::eject_all_own_arm(player, eject_who, who) {
+            if crate::groups::group::eject_all_own_arm(player, eject_who, who) {
                 wr(m, 0x10, -1);
                 let count = rd(m, 0xc);
                 let (k5, k6, k4, k2) = (
@@ -86,7 +86,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     let idx = i16::from_le_bytes([m[0x8cc + 2 * i], m[0x8cc + 2 * i + 1]]) as usize;
                     let (o, inner, unit) = (1 + idx, 9 + idx, 5 + idx);
                     let alive = rd(&p[o], 8) & 1 != 0;
-                    let ejects = crate::group::eject_all_wants(
+                    let ejects = crate::groups::group::eject_all_wants(
                         alive,
                         || {
                             rec(&format!("s5:p{o}+0x0"), &[1]);

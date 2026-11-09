@@ -3,8 +3,8 @@
 //! (`sweep/wall_do_construct.rs`) runs the same steps against the original
 //! under the emulator, and [`Sim::do_construct`] runs them on the world.
 
-use crate::place::Blocked;
-use crate::{Sim, build};
+use crate::cities::place::Blocked;
+use crate::{Sim, cities::build};
 
 /// What `Wall::do_construct@006434d0` asks of the world, one method a call
 /// the original makes (the sweep records them in order).

@@ -1,7 +1,7 @@
 //! **`Groups::process@006fa210`'s driver** (item 3396): the leaders walk, the group each
 //! in-use leader names this frame and the cursor, as a pure walk over a
 //! [`GroupsProcessView`]. The per-group body is `Group::normalize@00711540` inlined, so it is
-//! [`crate::normalize_view::normalize_steps`] over the view's group (`docs/GROUPS.md` §3.3, §19).
+//! [`crate::groups::normalize_view::normalize_steps`] over the view's group (`docs/GROUPS.md` §3.3, §19).
 //! The sweep's port is a view over the emulated original's windows
 //! (`sweep::groups_process_driver`, `sweep::groups_process_body`).
 //!

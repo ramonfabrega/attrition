@@ -1,6 +1,6 @@
 //! `UnitData::is_blown@0060a6e0` under the emulator against the port (item 1705).
 
-use crate::flag_reads::unit_is_blown;
+use crate::core::flag_reads::unit_is_blown;
 
 /// `UnitData::is_blown@0060a6e0`, run by `tools/emu/sweep_unit_is_blown.py` under unicorn
 /// (tools/emu): `unit_masks` (`+0x68`) `& 0x1000`, over every bit edge and a seeded band, against `flag_reads::unit_is_blown` — what is proved is the bit's identity (0x1000), that the other bits and the sign do not leak, and that the original returns the masked value itself.

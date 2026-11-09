@@ -1,7 +1,7 @@
 //! `UnitData::control_cost@00609d40` under the emulator against the port (item 1701).
 
 use crate::UnitType;
-use crate::cost::Price;
+use crate::economy::cost::Price;
 
 /// `UnitData::control_cost@00609d40`, run by `tools/emu/sweep_unit_control_cost.py` under unicorn
 /// (tools/emu): 0 when the argument is 0 and `unit_masks & 1` (a decoy), else `type+0x2f0` — the `POP` column — over the cross of the decoy bit, the argument and the edges, against `UnitType::price.pop` and `Unit::decoy`. The port has no function of its own (`ai_units` reads `price.pop` inline), so the row asserts the rule from the port's two fields.

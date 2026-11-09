@@ -35,8 +35,8 @@ fn the_emulated_original_agrees_on_every_row() {
             // The scratch group's first `clear` (stub 2) comes before the sweep.
             //
             // **The port is the crate's own head**: `action_gather_steps` begins with `list_clear` and
-            // `crate::garrison_view::garrison_head`; here the view is the emulated original's windows.
-            use crate::action_gather_view::{GarrisonHead, garrison_head};
+            // `crate::groups::garrison_view::garrison_head`; here the view is the emulated original's windows.
+            use crate::groups::action_gather_view::{GarrisonHead, garrison_head};
             struct V<'a> {
                 m: &'a [u8],
                 c: &'a [Vec<u8>],

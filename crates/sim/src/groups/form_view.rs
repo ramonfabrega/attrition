@@ -203,13 +203,13 @@ pub struct SimActionForm<'a> {
     /// The simulation.
     pub sim: &'a mut crate::Sim,
     /// The group.
-    pub g: &'a crate::group::Group,
-    insert: Option<crate::group::Insert>,
+    pub g: &'a crate::groups::group::Group,
+    insert: Option<crate::groups::group::Insert>,
 }
 
 impl<'a> SimActionForm<'a> {
     /// A view over `sim` and `g`.
-    pub fn new(sim: &'a mut crate::Sim, g: &'a crate::group::Group) -> Self {
+    pub fn new(sim: &'a mut crate::Sim, g: &'a crate::groups::group::Group) -> Self {
         Self {
             sim,
             g,

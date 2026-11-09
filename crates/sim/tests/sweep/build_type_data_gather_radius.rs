@@ -10,9 +10,9 @@
 /// is `calc_gather.rs`'s unrelated `gather_radius`, a unit's ring.)
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    use crate::build::flags::{FLAT, GATHERER};
-    use crate::gather::{MINE_RADIUS, WOODCUTTER_RADIUS};
-    use crate::nations::ty::UNIVERSITY;
+    use crate::cities::build::flags::{FLAT, GATHERER};
+    use crate::cities::nations::ty::UNIVERSITY;
+    use crate::economy::gather::{MINE_RADIUS, WOODCUTTER_RADIUS};
     let Some(rows) = super::emu_rows("sweep_build_type_data_gather_radius.py") else {
         return;
     };
