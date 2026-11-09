@@ -2766,7 +2766,7 @@ which is what a grep of every dumped record says.
 - ~~**The rates.**~~ Landed 2026-09-02: `LeaderData::calc_rare@006e08d0`, the
   ally-territory flag that scales them (block A takes
   `LeaderData::is_ally@006edb50`; block B inlines a team comparison) and the
-  division by `count + 1` are all in `crates/sim/src/rares.rs`, reached by the
+  division by `count + 1` are all in `crates/sim/src/economy/rares.rs`, reached by the
   third caller above — the two named here really do discard the array.
   `docs/ECONOMY.md` step 6 is the specification, and run59's census is the
   diff: the AI's `income[food]` and `income[wealth]` were 160 sixteenths short

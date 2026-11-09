@@ -56,7 +56,7 @@ is noted here only so a later pass does not read the omission as a code gap.
 | document | MOVEMENT.md `:777`–`780` — "`GuyData::get_speed` is `UnitData::get_speed(body x, body y, 1)` — the body's tile, and **flag 1, so the group cap never applies to the body** — plus nine … `crates/sim` feeds the body the same speed input as the unit; the `+9` and the cap difference are not modelled" |
 | code | `crates/sim/src/lib.rs:3184` (`fn process_follower`) → `crates/sim/src/movement/mod.rs:803` |
 | document says | the difference between the body's speed and the unit's is exactly two things: the `+9` and the group cap |
-| code does | `let speed = self.units[i].movement.speed;` — the **cached** layer-1/2 value (`Sim::type_speed`, `crates/sim/src/rares.rs:172`), not `Sim::get_speed`. So a crew figure's `(speed × 11) / 8` misses the action scale (×9/8 / ×10/8) and the river halving as well |
+| code does | `let speed = self.units[i].movement.speed;` — the **cached** layer-1/2 value (`Sim::type_speed`, `crates/sim/src/economy/rares.rs:172`), not `Sim::get_speed`. So a crew figure's `(speed × 11) / 8` misses the action scale (×9/8 / ×10/8) and the river halving as well |
 | difference shows | a tracked crew figure's own `GUY` `x`/`y` in a per-frame `UNITDATA` window, on any frame its leader is under an `ATTACK` or `GUARD` action or standing on a `0x800` tile at `z <= 0`: the sim's figure steps `11/8 × moves` where the original steps `11/8 × (9/8 × moves)` or `11/8 × (moves/2)`. Divergence is immediate — one frame — and then compounds until the Manhattan snap. No capture is known to reach it: run56's scout and run67's merchant are on plain ground under a plain move, which is why `run56_s_figures_stand_where_the_original_s_do` and `run67_s_window_is_every_figure_s_whole_record` both pass |
 | reached | reached (`GuyData::get_speed` is not on the blind list — every guy calls it every frame) |
 
@@ -136,7 +136,7 @@ A later pass need not re-derive these. Each was read in the document and then
 found, by name or inlined, in the code cited beside it.
 
 **The unit of speed.** `MOVES` is already position units per frame and no
-converter is applied (`crates/sim/src/lib.rs:2038`, `crates/sim/src/rares.rs:172`
+converter is applied (`crates/sim/src/lib.rs:2038`, `crates/sim/src/economy/rares.rs:172`
 — `type_speed` starts from `t.moves`); there is no `unit_move_speed` slot in
 `Tuning` at all, which is the identity converter written down as an absence.
 The floor of 3 is `movement::SPEED_FLOOR` (`crates/sim/src/movement/mod.rs:416`)
@@ -235,7 +235,7 @@ the unit rather than the type at both call sites
 (`crates/sim/src/orders/mod.rs:2760`–`2763`, `crates/sim/src/lib.rs:3062`–`3065`).
 
 **The speed pipeline.** Layer 1 is the `MOVES` value plus the whales arm, which
-is what the document says is landed (`crates/sim/src/rares.rs:170`–`177`);
+is what the document says is landed (`crates/sim/src/economy/rares.rs:170`–`177`);
 layers 1 and 2 are otherwise stated inputs in both. Layer 3's action scale is
 `×9/8` for `ATTACK` (index 10) and, for `GUARD` (index 12), `×10/8` under the
 AI bit and `×9/8` otherwise — which is `00608720`'s `local_8 != 10 / != 0xc /

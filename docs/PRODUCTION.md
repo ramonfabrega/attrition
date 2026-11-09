@@ -2190,7 +2190,7 @@ damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
   returns `value − ahead × TECH_SCIENCE_DISCOUNT × value / 100` with `ahead`
   the decrypted `epoch[3]` less the tech's own level — the `AGE` column plus
   one unless the type is an age (`0x220..0x226`) or an epoch
-  (`0x227..0x242`); it is `crates/sim/src/cost.rs`'s `science_discount`,
+  (`0x227..0x242`); it is `crates/sim/src/economy/cost.rs`'s `science_discount`,
   reached from `Sim::tech_price` through `Modifiers::science_ahead`, and it
   is **reading-only**: no traced capture queues anything but the two epochs
   `0x227` and `0x235`, for which `ahead` is zero. `docs/COSTS.md`

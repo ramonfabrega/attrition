@@ -125,7 +125,7 @@ good `i` is visited once every eight ticks, drawing three when its
 −3, −1, −9`; `flux_length = 15, 8, 21, 22, 11, 20`; good 0's price stepped
 50 → 51 first) are reproduced by draws **2–19** of the frame and by no other
 offset — the pin that places the market and proves the two phases before it
-draw exactly the sweep's two. Landed: `crates/sim/src/market.rs`.
+draw exactly the sweep's two. Landed: `crates/sim/src/economy/market.rs`.
 
 ## 3.2 The objects — `Objects::process_all@0065dce0`
 

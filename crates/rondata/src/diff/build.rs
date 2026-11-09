@@ -1042,7 +1042,7 @@ mod tests {
         //   **whale** that frame and `Unit::update_speed`'s one rare arm
         //   puts every naval type at `(WHALES_SHIPS_MOVE + 100)%` —
         //   `myspeed` 38 → 45 on all three boats and 25 → 30 on the barge,
-        //   in the dump and now here (`crates/sim/src/rares.rs`). The
+        //   in the dump and now here (`crates/sim/src/economy/rares.rs`). The
         //   apparent late turn was a slower boat reaching its waypoint
         //   later; the twenty-three frames it lost afterwards were East
         //   Indies' word.
@@ -1607,7 +1607,7 @@ mod tests {
     /// building of both players, every entry of every `MiningList`, on
     /// every frame of the capture.
     ///
-    /// The list is the *input* `crates/sim/src/gather.rs` surveys the slot
+    /// The list is the *input* `crates/sim/src/economy/gather.rs` surveys the slot
     /// count out of, and nothing had ever compared it: the leader record's
     /// `gather_slots` is checked (the census windows), and the count is
     /// derived from the list, so a wrong count and a wrong list read the
@@ -3669,7 +3669,7 @@ mod tests {
     /// `BUILDDATA` gives each camp its `gather_from` list — 82 tiles for
     /// player 0's, 61 for player 1's — and the `LEADERS=9` record gives the
     /// counts those lists produced, `gather_slots[1]` of 7 and 5
-    /// (`crates/sim/src/gather.rs`).
+    /// (`crates/sim/src/economy/gather.rs`).
     #[test]
     fn run9_s_camps_get_the_original_s_gatherer_counts() {
         let Some(inst) = install() else { return };

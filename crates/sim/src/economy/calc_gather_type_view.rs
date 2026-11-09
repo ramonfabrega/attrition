@@ -2,7 +2,7 @@
 //! building's type yields at a corner tile, as a walk over a [`TypeGatherView`].
 //! The swept steps read the world, the leaders and the constants only through
 //! the view, so a sweep's port is a view over the emulated original's windows
-//! (`docs/ECONOMY.md`, `crates/sim/src/gather.rs`).
+//! (`docs/ECONOMY.md`, `crates/sim/src/economy/gather.rs`).
 //!
 //! The control flow is the listing's, call for call: every leaf is one direct
 //! callee, one virtual call or one inline read of the constants, asked in the
@@ -13,7 +13,7 @@
 //! mine (`is(0x1a3)`) takes the nearest mountain range or cliff; anything else
 //! (the woodcutter's camp) walks the octagonal circle of cells.
 //!
-//! **Not wired.** `crates/sim/src/gather.rs` (`gather_slots_raw`, the count) and
+//! **Not wired.** `crates/sim/src/economy/gather.rs` (`gather_slots_raw`, the count) and
 //! `economy.rs` (`per_gatherer`, the rate) split this one function in two and
 //! model neither the leader's nation and wonder terms nor the circle's own
 //! scratch list in the original's shape; wiring either would move pins

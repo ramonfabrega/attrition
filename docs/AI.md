@@ -1776,7 +1776,7 @@ folded back into §2's prose.
   the live cities and gather chains (`Leader::calc_gather`'s job,
   `docs/ECONOMY.md`). With no food the script cannot pay for the city at
   step 11 and the food-bound citizens of 1297/1505 never train. **The
-  holdings assembly landed the same session** (`crates/sim/src/holdings.rs`,
+  holdings assembly landed the same session** (`crates/sim/src/economy/holdings.rs`,
   pinned against run8's frame-2 rate): run10 now scores **268 unlinked
   unit-frames** — the script gets through `city_placement` and step 12 on
   our map, `1/9` trains at **1297**, the original's own frame, and every
@@ -12708,7 +12708,7 @@ city 2's delivered route to city 1 at today's `trade_value`, the partner's
 building count, which had grown since that route's last round trip: 176
 → 184. Ours recomputed a city's trade only at a round trip's close
 (`do_trade:476–478`), and took the eight on 7061 with the next one. The
-recompute is now in ours' establishment arm (`crates/sim/src/caravan.rs`).
+recompute is now in ours' establishment arm (`crates/sim/src/economy/caravan.rs`).
 
 **The value diff.** run495 block 6592: `income[2:wealth]` ours 992
 against 1000 → **both 1000**, and who=1's goods agree on every block
@@ -16669,7 +16669,7 @@ back **every setting** from their own `GAME INFO` (`docs/RUNS.md`), and `rngcmp.
    (`Sim::advance_border_pass`, `border_pass.rs`), and its per-cell goods scan adds a patch the moment a cell is given. The harness's stand-in for that
    pass, `Sim::claim_oil_from_owners` (setup's wholesale recompute, `settle_borders`, the dump's installed owner grid), walked the goods list. **Built**:
    a land patch is added in `(region, cell index)` order and a patch outside any land region keeps the goods list's order after them
-   (`crates/sim/src/rares.rs`); unit test `ai_place::tests::a_wholesale_claim_adds_land_patches_in_cell_scan_order` (it ends a tied pick on the earlier row's patch).
+   (`crates/sim/src/economy/rares.rs`); unit test `ai_place::tests::a_wholesale_claim_adds_land_patches_in_cell_scan_order` (it ends a tied pick on the earlier row's patch).
 
 **The value diff, and the word now.** run677: **395 keys → 69** — the 67 standing keys, leader 1's `known_rares` on block 8 and leader 0's `production_step` on
 201 (the control's too: §144's run669 has it). `1/2013` and `1/1`, `1/2`, `1/6`'s order stacks agree on every block. `sahara_coverage_first_parting`: **frame 12 →
@@ -19521,7 +19521,7 @@ Statue `1/2044` (`orig_type` 537) is a site on run790's first block
 (`construct_hits` 13820) and complete by 3981 (24310, `wonder` 0); the
 frame it completes on is not dated here.
 
-Built: `Modifiers::liberty` (`crates/sim/src/cost.rs`), applied after the
+Built: `Modifiers::liberty` (`crates/sim/src/economy/cost.rs`), applied after the
 stable rares and before Uranium; `Sim::liberty_discount`
 (`crates/sim/src/lib.rs`) reading `Sim::wonders_held`'s `has_wonder` and
 the two percentages (`Tuning::liberty_bombers`, `liberty_missiles`, slotted
@@ -35535,7 +35535,7 @@ The byte is the Whales arm's: Aluminum is mask bit 24 (byte 3, bit 0), and Whale
 `rules.xml` ships `ALUMINUM_AIR_SPEED` at 25. `Leader::calc_unit_stats` already re-speeds every unit when a rare is
 gained, so the arm needs no new caller.
 
-**Built**: `crates/sim/src/rares.rs` (`speed_of`) and `crates/sim/src/core/tuning.rs` (`aluminum_air_speed`, the
+**Built**: `crates/sim/src/economy/rares.rs` (`speed_of`) and `crates/sim/src/core/tuning.rs` (`aluminum_air_speed`, the
 `ALUMINUM_AIR_SPEED` slot). Test: `rares::tests::aluminum_speeds_the_aircraft_and_nothing_else`.
 
 **The score: 4586 → 5304 of 5304, closed**, count and sequence. Every other lobby's `first_parting` holds (101 of

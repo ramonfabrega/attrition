@@ -15,7 +15,7 @@ sys.path.insert(0, str(ROOT / 'tools'))
 import gates  # noqa: E402
 
 SCOPED = """Gate pid: 10718 — kill this gate by its pid, never by `pkill -f` on a name every lane shares (parked 1713)
-Booking gate scoped to a5d76b6b: every timed test — a merge touches 3 path(s) that can move the pins (crates/sim/src/cost.rs, …)
+Booking gate scoped to a5d76b6b: every timed test — a merge touches 3 path(s) that can move the pins (crates/sim/src/economy/cost.rs, …)
 test_one ... ok
 Gate steps: 2 of 6 ran (offline, clippy); not reached: fmt, survey, release, guard
 Admission wait: 999.0 s over 1 leases, longest 999.0 s

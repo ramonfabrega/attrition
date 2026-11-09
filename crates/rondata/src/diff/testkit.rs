@@ -500,7 +500,7 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// `WHALES_SHIPS_MOVE` — `myspeed` 38 → 45 on the same frame, in the
 /// dump and now here. The third Fisherman, still walking to its own
 /// deposit, then arrived twenty-three frames late and did not spend
-/// `think_fish`'s 175 draws on 5669 (`crates/sim/src/rares.rs`,
+/// `think_fish`'s 175 draws on 5669 (`crates/sim/src/economy/rares.rs`,
 /// `docs/ECONOMY.md` step 6; run63 is the capture, and run59's census
 /// had the same finding as an income of 160 food and 160 wealth the AI
 /// was not earning).

@@ -245,7 +245,7 @@ AI's own citizens rather than an edge case.
 
 §12's other named constant with no code behind it is `MTN_TINY_SIZE` — "the
 miner's `dist_mod` cap, §6.4" — which is R13; grep over `crates/` finds it
-only in a test comment in `crates/sim/src/gather.rs:905`, about
+only in a test comment in `crates/sim/src/economy/gather.rs:905`, about
 `max_gatherers`, not about `dist_mod`.
 
 ### R17 — §7.2's 1-in-5 re-search predicate is inverted; the code (and the decompile) trigger on `% 5 != 0`

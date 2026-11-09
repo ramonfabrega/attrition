@@ -682,7 +682,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         }
     }
     // **The gather record, whole.** `BuildData::gather_from` is the one
-    // input `crates/sim/src/gather.rs` surveys the slot count out of, and
+    // input `crates/sim/src/economy/gather.rs` surveys the slot count out of, and
     // until this the dump's copy of it went uncompared on every frame of
     // every capture — the whole list, printed for every building at
     // `BUILDS=7`, beside a `gather_down` printed at `BUILDS=1`. A camp

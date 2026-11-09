@@ -550,7 +550,7 @@ accumulator costs nothing and keeps the guard load-bearing.
 The cost path has a sharper one. `TypeData::can_pay_cost` answers "how many of
 these can I afford" and takes the **maximum** across resources where the answer
 is the minimum. It is not ambiguous and it is not a decompiler artefact; it is
-a `<` that should be a `>`. `crates/sim/src/cost.rs` takes the maximum, and the
+a `<` that should be a `>`. `crates/sim/src/economy/cost.rs` takes the maximum, and the
 test that pins it is called `the_affordability_count_takes_the_maximum`.
 
 Three reasons, in order of weight.

@@ -74,17 +74,20 @@ pub use self::territory::border_pass;
 pub mod spells;
 pub use self::combat::build_attack_view;
 // `combat::build_family` is private and named through `combat` alone (item 4012).
+pub use self::air::carrier_queue;
 pub use self::cities::build_unqueue_view;
-pub use self::combat::build_plunder_view;
-pub use self::orders::build_spot_view;
-pub mod calc_gather;
-pub mod calc_gather_type_view;
 pub use self::cities::capture;
 pub use self::cities::capture_view;
-pub mod caravan;
-pub use self::air::carrier_queue;
 pub use self::cities::city;
+pub use self::combat::build_plunder_view;
 pub use self::combat::cavarch;
+pub use self::economy::calc_gather;
+pub use self::economy::calc_gather_type_view;
+pub use self::economy::caravan;
+pub use self::economy::cliff_mine;
+pub use self::mapgen::cliffs;
+pub use self::movement::collide;
+pub use self::orders::build_spot_view;
 pub use self::orders::check_build_view;
 pub use self::spells::cast_decoy;
 pub use self::spells::cast_transport;
@@ -94,15 +97,12 @@ pub use self::units::think::carry_civ;
 pub use self::units::think::carry_idle;
 pub use self::units::think::carry_mil;
 pub use self::units::think::civ_transport;
-pub mod cliff_mine;
-pub use self::mapgen::cliffs;
-pub use self::movement::collide;
 pub mod combat;
 pub(crate) use self::cities::construct;
 pub use self::units::come_out_view;
 pub mod core;
-pub mod cost;
 pub use self::combat::damage;
+pub use self::economy::cost;
 pub use self::movement::detect_collision_view;
 pub use self::movement::detour;
 pub use self::units::count_inside_view;
@@ -125,11 +125,11 @@ pub use self::cities::friends;
 pub use self::groups::form;
 pub use self::groups::form_view;
 pub mod gaia;
+pub use self::economy::gather;
+pub use self::economy::gather_tile;
 pub use self::groups::garrison_view;
-pub use self::units::garrison;
-pub mod gather;
-pub mod gather_tile;
 pub use self::groups::gather_view;
+pub use self::units::garrison;
 pub mod goody;
 pub use self::groups::group;
 pub use self::groups::group_queue_up;
@@ -141,10 +141,10 @@ pub use self::orders::group_move;
 pub use self::units::heal;
 pub mod data;
 pub mod herd_create_view;
-pub use self::combat::hero_radius_view;
-pub mod holdings;
 pub use self::air::land_plane_view;
 pub use self::cities::location;
+pub use self::combat::hero_radius_view;
+pub use self::economy::holdings;
 pub use self::mapgen::map_colonial;
 pub use self::mapgen::map_east_indies;
 pub use self::mapgen::map_east_west;
@@ -161,7 +161,7 @@ pub use self::mapgen::map_troughs;
 pub use self::mapgen::map_values;
 pub use self::mapgen::map_watering_hole;
 pub mod mapgen;
-pub mod market;
+pub use self::economy::market;
 pub use self::movement::mesh;
 pub use self::units::think::merchant;
 pub mod movement;
@@ -178,10 +178,10 @@ pub use self::cities::queue_disband;
 pub use self::cities::rally;
 pub use self::combat::plunder;
 pub use self::data::{launch, pivot};
+pub use self::economy::rares;
+pub use self::groups::redo_patrol_view;
 pub use self::movement::path;
 pub use self::movement::place_roads_view;
-pub mod rares;
-pub use self::groups::redo_patrol_view;
 pub mod relative_value;
 pub use self::groups::repair_view;
 pub use self::units::remove_inside_view;
@@ -6362,7 +6362,7 @@ impl Sim {
     }
 
     /// Which of the six basic resources this player may spend, and which they
-    /// hold the prerequisite for — the two arrays `crates/sim/src/cost.rs`
+    /// hold the prerequisite for — the two arrays `crates/sim/src/economy/cost.rs`
     /// steers its redirect tables by.
     ///
     /// `docs/COSTS.md`, "Three of the six resources are not available from
@@ -7092,7 +7092,7 @@ impl Sim {
             // inside the same gate it recomputes under, so the holdings are
             // rebuilt only on the frames the rate is actually reassembled —
             // which makes income appear on exactly the frame it does there
-            // (`crates/sim/src/holdings.rs`).
+            // (`crates/sim/src/economy/holdings.rs`).
             if self.holdings_due(player, frame) {
                 self.assemble_holdings(player);
             }

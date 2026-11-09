@@ -13037,7 +13037,7 @@ which is where `LeaderData::calc_rare@006e08d0` reads a rare's payout from, not
 from any constant in `rules.xml` as ECONOMY's open list had it. One mechanic,
 two booked items, and the headline.
 
-**What landed** (`crates/sim/src/rares.rs`, `docs/ECONOMY.md` step 6):
+**What landed** (`crates/sim/src/economy/rares.rs`, `docs/ECONOMY.md` step 6):
 
 - `UnitData::calc_gather`'s **`param_7 = 0`** form, which is a different
   function from the one `docs/ORDERS.md` §6.10 specified: a packed fisherman or
@@ -13639,7 +13639,7 @@ has been parsed for months and only the caravan's own top was ever
 compared.
 
 **By-catch, unfixed.** `do_trade@005ed270` calls `WorldData::get_tregion`
-at all four of its region sites; `crates/sim/src/caravan.rs` asks the
+at all four of its region sites; `crates/sim/src/economy/caravan.rs` asks the
 plain `World::tregion` at both of its. It changes nothing on this cell —
 `(50, 52)` has `flags 0x80`, so the coastal refinement never fires — and
 it is two more of item 142's eleven unaudited callers. It was checked

@@ -22,7 +22,7 @@ that was made before they were dumped. High for what a city contributes and for
 the per-gatherer rates, which are read at their consumers. ~~**Lower for the
 gatherer *count*:** `BuildTypeData::calc_gather` is a thousand lines of inlined
 tile walking and only its arithmetic tail has been read.~~ The count is read
-and verified as of 2026-08-24 (`crates/sim/src/gather.rs`; the last item
+and verified as of 2026-08-24 (`crates/sim/src/economy/gather.rs`; the last item
 below). What remains open is listed at the end.
 
 A blind second reading (`docs/audit/2026-08-20-economy.md`) doubly confirmed
@@ -32,9 +32,9 @@ handicap applies to, which enhancer bytes are ever non-zero. **No number
 changed.** Those corrections are landed below and marked where they changed
 what an earlier draft said.
 
-**Where the implementation is.** `crates/sim/src/economy.rs` for the
-arithmetic, `crates/sim/src/holdings.rs` for the walk that fills its inputs,
-and `crates/sim/src/rares.rs` for step 6 and what an owned rare does to a
+**Where the implementation is.** `crates/sim/src/economy/mod.rs` for the
+arithmetic, `crates/sim/src/economy/holdings.rs` for the walk that fills its inputs,
+and `crates/sim/src/economy/rares.rs` for step 6 and what an owned rare does to a
 unit. Every constant
 below is re-read from the user's own install by
 `cargo run -p rondata -- <install>`, which fails if any has drifted.
@@ -1483,7 +1483,7 @@ far as anything read goes they are as dead as `calc_support`.
 ## What is not established
 
 - ~~**How many gatherers a building has, and how many it may have.**~~ **The
-  slot count is read and implemented, 2026-08-24** — `crates/sim/src/gather.rs`,
+  slot count is read and implemented, 2026-08-24** — `crates/sim/src/economy/gather.rs`,
   from `BuildTypeData::max_gatherers@0063c430` → `calc_gather@00639e40`'s
   count out-parameter: a flat type (farm, **and the oil well and platform**,
   which `init_final_flags` marks flat) is 1, a university 7, a mine the
@@ -1529,7 +1529,7 @@ far as anything read goes they are as dead as `calc_support`.
 - ~~**Merchants and caravans.**~~ Both are read: merchants pay in the idle-unit
   loop and are what makes an owned rare pay at all; caravans pay through their
   cities' `trade_val`. ~~What is still unread is `UnitData::calc_gather`'s own
-  body~~ — read and landed 2026-09-02 (step 6, above; `crates/sim/src/rares.rs`).
+  body~~ — read and landed 2026-09-02 (step 6, above; `crates/sim/src/economy/rares.rs`).
 - ~~**Rare resources.** `LeaderData::calc_rare`, forty-four of them, each with
   its own constant in `rules.xml`.~~ **What each one pays is `resourcerules.xml`'s
   own two `BONUS_TYPE`/`BONUS_NUM` pairs**, not a constant in `rules.xml`, and
@@ -1546,7 +1546,7 @@ far as anything read goes they are as dead as `calc_support`.
   and the rest describe a price simulation with supply and demand. ~~Entirely
   unread, and the only part of the economy that is not a sum of rates.~~
   **The price cycle is read and landed, 2026-08-24** (`docs/SYNC.md` §3.1,
-  `crates/sim/src/market.rs`): `GameDaemon::calc_markets` — the drift toward
+  `crates/sim/src/economy/market.rs`): `GameDaemon::calc_markets` — the drift toward
   the equilibrium, the eight-tick rota, and the three sync-stream draws a
   good takes when its trend runs out, pinned on run12's frame-0 values.
   ~~What a *trade* does with the price and the flux (`Leader::buy/sell`,
@@ -1648,7 +1648,7 @@ not about a number. **No arithmetic changed and every existing test stands.**
 All nine are landed above, each marked where it changed what an earlier draft
 said, and the one implementation change they force — deleting `City::refinery`,
 a field the original always writes zero and a caller could have used to count
-refineries twice — is landed in `crates/sim/src/economy.rs` on the same day.
+refineries twice — is landed in `crates/sim/src/economy/mod.rs` on the same day.
 The two that most change what a reader would build: caravans and rares pay
 somewhere other than where this document put them, and the difficulty handicap
 is the AI's.

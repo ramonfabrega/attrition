@@ -82,7 +82,7 @@ so they are `dead`, not `replaced`. Proposed census mark for the stem:
 
 | va | name | kind | entered | ruling | evidence |
 |---|---|---|---|---|---|
-| 00583370 | GameAccessConst::get_scary_cliffs | layout | L | absorbed | `return &cliffs;`. Five call sites, all in `BuildTypeData::calc_gather@00639e40` (`0x63a6a8`, `0x63aaf5`, `0x63ab1f`, `0x63ab49`, `0x63acf7`), before `CliffsData::find_nearest`. The crate owns its cliffs on `Sim` and needs no accessor; the call site is named in `crates/sim/src/calc_gather_type_view.rs:181` (whose cliff arm is itself a seam, `gather.rs:460` — that is `find_nearest`'s ruling, not this one's). |
+| 00583370 | GameAccessConst::get_scary_cliffs | layout | L | absorbed | `return &cliffs;`. Five call sites, all in `BuildTypeData::calc_gather@00639e40` (`0x63a6a8`, `0x63aaf5`, `0x63ab1f`, `0x63ab49`, `0x63acf7`), before `CliffsData::find_nearest`. The crate owns its cliffs on `Sim` and needs no accessor; the call site is named in `crates/sim/src/economy/calc_gather_type_view.rs:181` (whose cliff arm is itself a seam, `gather.rs:460` — that is `find_nearest`'s ruling, not this one's). |
 | 00583380 | GameAccessConst::get_scary_scenario_editor | layout | - | dead | Returns the scenario editor singleton. No call site in `.text`, no pointer in the file. Census: `^GameAccessConst::get_scary_` or `uncalled`. |
 | 00583390 | GameAccessConst::get_scary_iface_main | layout | - | dead | Returns the main interface window. No caller, no pointer. Same mark. |
 | 005833a0 | GameAccessConst::get_scary_camera | layout | - | dead | Returns the camera. No caller, no pointer. Same mark. |

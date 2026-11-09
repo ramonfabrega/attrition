@@ -43,7 +43,7 @@ survived (2026-09-07; the recovered work is on branch `rescue-234`, commit
   other seven kinds, and the two seams (`+0x104`, `CHANGE_FORM`) are named
   in place.
 - **232** re-booked — `Levels::for_player` in
-  `crates/sim/src/holdings.rs` still returns `Levels::BASE` and ignores its
+  `crates/sim/src/economy/holdings.rs` still returns `Levels::BASE` and ignores its
   player. Re-booked in the queue under its own number.
 - **233** re-booked — `Sim::process_building` in
   `crates/sim/src/cities/city.rs` still keys the 32-frame phase on

@@ -1,7 +1,7 @@
 //! `Leader::calc_gather`'s **inputs**: filling [`economy::Holdings`] from the
 //! live simulation.
 //!
-//! `crates/sim/src/economy.rs` is the arithmetic — the rate in sixteenths, the
+//! `crates/sim/src/economy/mod.rs` is the arithmetic — the rate in sixteenths, the
 //! caps, the accrual, the 512-frame cadence. It reads a [`economy::Holdings`], and
 //! until this module existed nothing in the simulation ever wrote one: every
 //! test hand-built it and the replay harness ran whole games in which both
@@ -271,7 +271,7 @@ impl Sim {
     /// The gate is `is_gather_type` (`build_flags & 0x40`); the answer is the
     /// type's `GOOD` column, which this crate's [`Ident`] lineage stands in
     /// for. Those are the only six gather lineages the shipped data has —
-    /// `crates/sim/src/gather.rs` reaches the same list from the other end,
+    /// `crates/sim/src/economy/gather.rs` reaches the same list from the other end,
     /// where farm, oil well and oil platform are the flat ones and the camp,
     /// the mine and the university are not.
     pub fn gather_good(&self, b: usize) -> Option<Resource> {

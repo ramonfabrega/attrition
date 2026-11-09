@@ -123,7 +123,7 @@ difference the moment it fires.
 | | |
 |---|---|
 | document | ROADS.md §5, "Reconstruction starts at the arrived node's *parent* and stops before the root"; §9.1, "**each tile is a full pass of the mesh on its own**, not a batch at the end of the frame" |
-| code | `crates/sim/src/movement/roads.rs:227-235` (`fn place_roads`), against `crates/sim/src/movement/roads.rs:750` (`fn reconstruct`) and `crates/sim/src/caravan.rs:789-820` (`fn lay_caravan_road`) |
+| code | `crates/sim/src/movement/roads.rs:227-235` (`fn place_roads`), against `crates/sim/src/movement/roads.rs:750` (`fn reconstruct`) and `crates/sim/src/economy/caravan.rs:789-820` (`fn lay_caravan_road`) |
 | document says | the original pops its `Stack<PathData>` **from the top down**, and the top is the end nearest the **start** — the building — so tiles are laid from the building outward to the city |
 | code does | iterates `reconstruct`'s vector front to back, and `reconstruct` pushes the arrived node's parent first — the **goal** end — so `place_roads` lays from the city inward to the building, exactly reversed |
 | difference shows | any tile `Roads::set_diags` lays as a consequence (§9.3), which depends on which neighbours are already road when each tile goes down: the mesh's own tile on `gamelog-run72-greatlakes-marketroad.txt` frame 4803 (the seventeenth tile, `(223, 79)`), and thereafter the `PathFinder::calc_road_cost` price of any later search crossing that ground. It is invisible to a diff only while a road's tiles happen to be order-independent |

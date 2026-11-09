@@ -261,7 +261,7 @@ mod tests {
         // `resourcerules.xml`. `Leader::calc_gather` **step 6** is what
         // pays them: the AI's `1/14` has been standing on its fish since
         // frame 4992 and nothing here walked the idle fishermen
-        // (`crates/sim/src/rares.rs`, item 165). Every one of both players'
+        // (`crates/sim/src/economy/rares.rs`, item 165). Every one of both players'
         // six rates and six incomes is now the original's on every frame of
         // the window.
         for g in 0..sim::economy::RESOURCES {

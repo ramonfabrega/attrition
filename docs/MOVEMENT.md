@@ -1025,7 +1025,7 @@ is raised — and writes a cached value on the unit. One arm of it is landed
 (2026-09-02): the **whales** bonus, `+WHALES_SHIPS_MOVE%` for an objmask
 `0x2000` (`NAVAL`) type whose owner holds rare bit 25, which run63 measures as
 `myspeed` 38 → 45 on three Fishermen and 25 → 30 on a Transport Barge in one
-frame (`docs/ECONOMY.md`, "What an owned rare does"; `crates/sim/src/rares.rs`).
+frame (`docs/ECONOMY.md`, "What an owned rare does"; `crates/sim/src/economy/rares.rs`).
 **Every birth takes the cached value, and one in this crate did not**: the
 boat `cast_transport` spawns was given the type's raw `MOVES`, which is the
 only place a `NAVAL` unit is born here — so the one arm of `update_speed`
