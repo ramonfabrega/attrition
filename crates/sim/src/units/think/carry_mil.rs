@@ -4,10 +4,10 @@
 //! [`think_carry_military_steps`] is the original's control flow in its
 //! order; [`CarryMilView`] is what it reads and the callees it makes, which
 //! `sweep/unit_think_carry_military.rs` answers from the emulated
-//! original's windows. UNWIRED: [`crate::Sim::think_carry_army`] is the
-//! live, partial namesake (it models the army arm only, with the eject, the
-//! no-army search and the region-centre arms as SEAMs); this module is the
-//! whole function and nothing in `Sim` runs it yet.
+//! original's windows. Wired by item 3995 (`docs/GOLDEN.md` §188):
+//! [`crate::Sim::think_carry_army`] runs these steps over [`SimCarryMil`],
+//! except for an army with no live target away from its region, whose
+//! region-centre arm this crate does not carry (a SEAM there).
 //!
 //! What the steps say, in order:
 //!
@@ -49,6 +49,8 @@
 //! boat's x on every path); a sweep against the emulated original holds
 //! them.
 
+use crate::Sim;
+use crate::combat::Obj;
 use crate::movement::{Angle, find_angle};
 use crate::world::{Cell, Pos, vector_dist};
 
@@ -225,4 +227,130 @@ pub fn think_carry_military_steps<V: CarryMilView>(v: &mut V) -> i32 {
     let angle = find_angle(to.x.wrapping_sub(pos.x), to.y.wrapping_sub(pos.y));
     v.order_move_to(to, angle);
     1
+}
+
+/// The live view: boat `u`, its head rider's group `group` (a pool slot) and
+/// the army that group answers to, if any (`a.group.pool`, read through the
+/// crate's army list rather than the slot's stale `+8`). The city list is
+/// the owner's live cities in slot order; a city's `obj` is its index here,
+/// and [`CarryMilView::object`] reads the city building through it.
+pub struct SimCarryMil<'a> {
+    pub sim: &'a mut Sim,
+    pub u: usize,
+    pub group: usize,
+    pub army: Option<usize>,
+    pub cities: Vec<usize>,
+}
+
+impl SimCarryMil<'_> {
+    fn who(&self) -> usize {
+        self.sim.units[self.u].owner as usize
+    }
+}
+
+impl CarryMilView for SimCarryMil<'_> {
+    fn cargo_group(&mut self) -> i32 {
+        self.group as i32
+    }
+    fn group_army(&mut self, _group: i32) -> i32 {
+        self.army.map_or(-1, |a| a as i32)
+    }
+    fn army(&mut self, army: i32) -> (i32, i32, i32) {
+        let a = &self.sim.ai.armies[self.who()].list[army as usize];
+        // The target is read back through `object`, which takes the army's
+        // own `Obj`; the table is any non-negative word.
+        (
+            i32::from(a.target.is_some()) - 1,
+            a.reg.map_or(-1, i32::from),
+            0,
+        )
+    }
+    fn cargo_slot(&mut self) -> i32 {
+        let u = self.u;
+        if self.sim.units.iter().any(|r| r.alive() && r.inside_unit == Some(u)) {
+            0
+        } else {
+            -1
+        }
+    }
+    fn eject(&mut self) {
+        self.sim.eject_riders(self.u, false);
+    }
+    fn die_is_base(&mut self) -> bool {
+        true
+    }
+    fn die_base(&mut self) {
+        self.sim.transport_dies(self.u);
+    }
+    fn die_virtual(&mut self) {
+        self.sim.transport_dies(self.u);
+    }
+    fn owner(&self) -> i32 {
+        self.who() as i32
+    }
+    fn pos(&self) -> Pos {
+        self.sim.units[self.u].pos
+    }
+    fn city_count(&mut self, _who: i32) -> i32 {
+        self.cities.len() as i32
+    }
+    fn city(&mut self, _who: i32, i: i32) -> City {
+        let c = &self.sim.cities.cities[self.cities[i as usize]];
+        City {
+            flags: u16::from(c.alive) | (u16::from(c.no_heal) << 1),
+            obj: i,
+            region: c.reg.map_or(-1, i32::from),
+            x: c.pos.x,
+            y: c.pos.y,
+        }
+    }
+    fn div3(&mut self, i: i32) -> i32 {
+        i.div_euclid(3)
+    }
+    fn step(&self, k: i32) -> (i32, i32) {
+        use crate::ai::ai_place::{MOVE_X, MOVE_Y};
+        (MOVE_X[k as usize], MOVE_Y[k as usize])
+    }
+    fn world_size(&mut self) -> (i32, i32) {
+        (self.sim.world.width(), self.sim.world.height())
+    }
+    fn cell_region(&mut self, c: Cell) -> i32 {
+        self.sim.world.region_of(c).map_or(-1, i32::from)
+    }
+    fn object(&mut self, table: i32, index: i32) -> (bool, i32, i32) {
+        let target = if self.army.is_some() {
+            self.army
+                .and_then(|a| self.sim.ai.armies[self.who()].list[a].target)
+        } else {
+            let _ = table;
+            Some(Obj::Building(
+                self.sim.cities.cities[self.cities[index as usize]].building,
+            ))
+        };
+        match target {
+            Some(t) if self.sim.obj_alive(t) => {
+                let p = self.sim.pos_of(t);
+                (true, p.x ^ 0x63637, p.y ^ 0x63637)
+            }
+            _ => (false, 0, 0),
+        }
+    }
+    fn region_centre(&mut self, _region: i32) -> (i32, i32) {
+        unreachable!("think_carry_army answers false before the region-centre arm")
+    }
+    fn region_marked(&mut self, _who: i32, _region: i32) -> bool {
+        false
+    }
+    fn order_move_to(&mut self, to: Pos, angle: Angle) {
+        self.sim.add_move_facing_order(
+            self.u,
+            to,
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::New,
+            false,
+            angle,
+            None,
+            false,
+        );
+    }
 }

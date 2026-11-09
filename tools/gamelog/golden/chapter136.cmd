@@ -27,7 +27,7 @@
 #   run1553 (cover=0):
 #   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch136 \
 #       --map 14 --end-frame 900 --log-window 600 900 --timeout 3600 \
-#       --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=2,GROUPS=1,DEATHS=1 \
+#       --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=2,DEATHS=1 \
 #       --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
 #       --detail misc:COMMANDMANAGER=1 \
 #       --cmd-file tools/gamelog/golden/chapter136.cmd

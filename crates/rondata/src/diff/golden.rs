@@ -6865,6 +6865,23 @@ fn chapter_one_hundred_and_thirty_five_s_window_is_widened_whole() {
     cases_80_89::chapter_one_hundred_and_thirty_five_s_window_is_widened_whole();
 }
 
+/// **Chapter one hundred and thirty-six** (item 3995, `docs/GOLDEN.md`
+/// §188, run1553): the boats — `think_carry_idle` and
+/// `think_carry_military`'s no-army arm.
+#[test]
+fn chapter_one_hundred_and_thirty_six_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_thirty_six_holds_to_the_golden_word();
+}
+
+/// **run1553 whole, both directions** (item 3995, `docs/GOLDEN.md` §188).
+#[test]
+fn chapter_one_hundred_and_thirty_six_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_thirty_six_s_window_is_widened_whole();
+}
+
+/// What parts in run1553's window, blocks 600–899 (item 3995).
+const WANT_CH136: &[&str] = &[];
+
 /// What parts in run1552's window, blocks 605–1250 (item 3994): the eleven
 /// `form` rows every golden start carries; the Chariot `1/6`'s rows from
 /// 809, where the Helicopter `0/13`'s first round lands a frame late here
