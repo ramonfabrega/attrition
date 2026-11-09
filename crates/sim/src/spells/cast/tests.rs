@@ -477,10 +477,10 @@ fn counterintelligence_kills_an_enemy_spy_and_clears_a_friend() {
     });
     s.units[foe_spy].on_map = true;
     s.declare_war(0, 1);
-    let deaths = s.deaths.len();
+    let deaths = s.combat.deaths.len();
     s.cast_counterintel(1, foe_spy);
     assert!(!s.units[foe_spy].alive(), "the enemy Spy is dead");
-    assert_eq!(s.deaths.len(), deaths + 1, "a death object, dtype 2");
+    assert_eq!(s.combat.deaths.len(), deaths + 1, "a death object, dtype 2");
     s.units[filler].infiltrated = 1;
     let owner = s.units[filler].owner;
     s.cast_counterintel(owner, filler);

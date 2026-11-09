@@ -92,7 +92,7 @@ impl Sim {
             let player = u8::try_from(who).expect("too many players");
             // `Leader::process@006b88b0`'s head: the frame's retarget
             // count starts again at zero (`docs/COLLISION.md` §14).
-            self.retargets[who] = 0;
+            self.combat.retargets[who] = 0;
             // `Leader::calc_gather` assembles its inputs from the live state
             // inside the same gate it recomputes under, so the holdings are
             // rebuilt only on the frames the rate is actually reassembled —

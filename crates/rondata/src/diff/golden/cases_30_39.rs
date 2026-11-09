@@ -756,6 +756,7 @@ pub(super) fn chapter_thirty_eight_s_battery_is_short_of_its_aim_on_the_word_s_b
     let mine = s
         .built
         .sim
+        .combat
         .projectiles
         .iter()
         .filter(|p| p.shooter == sim::combat::Obj::Unit(u))
@@ -919,7 +920,7 @@ pub(super) fn chapter_thirty_seven_s_nuke_is_launched_and_fired_field_for_field(
             0,
             2007,
             "visible",
-            sim.nukes.visible_of(silo),
+            sim.combat.nukes.visible_of(silo),
             get("visible"),
         );
         // The nuke.
@@ -933,6 +934,7 @@ pub(super) fn chapter_thirty_seven_s_nuke_is_launched_and_fired_field_for_field(
             .map(|(a, _)| (a.index, a))
             .collect();
         let ours: BTreeMap<i64, sim::combat::Projectile> = sim
+            .combat
             .projectiles
             .iter()
             .filter(|p| match p.shooter {
@@ -1075,6 +1077,7 @@ pub(super) fn chapter_thirty_five_s_v2_is_counted_out_and_fired_field_for_field(
             .map(|(a, _)| (a.index, a))
             .collect();
         let ours: BTreeMap<i64, sim::combat::Projectile> = sim
+            .combat
             .projectiles
             .iter()
             .filter(|p| match p.shooter {
@@ -1232,6 +1235,7 @@ pub(super) fn chapter_thirty_five_s_v2_blast_is_compared_field_for_field() {
             .filter(|(a, _)| a.flags & 2 != 0 && a.who == 0 && a.o == 10)
             .count();
         let ours = sim
+            .combat
             .projectiles
             .iter()
             .filter(|p| match p.shooter {

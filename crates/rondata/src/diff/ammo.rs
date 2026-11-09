@@ -567,7 +567,7 @@ pub(crate) mod tests {
                     i64::from(s.buildings[b].index),
                 ),
             };
-            for p in &built.sim.projectiles {
+            for p in &built.sim.combat.projectiles {
                 let (who, o) = ident(&built.sim, p.shooter);
                 let (whom, ox) = p.target.map_or((-1, -1), |t| ident(&built.sim, t));
                 ours.push([

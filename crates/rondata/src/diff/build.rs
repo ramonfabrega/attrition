@@ -3996,7 +3996,7 @@ mod tests {
         let mut known: Vec<(i32, i32, i32, i32, i32)> = Vec::new();
         for f in 0..LAST {
             built.tick();
-            for p in &built.sim.projectiles {
+            for p in &built.sim.combat.projectiles {
                 let k = (
                     p.launch.x,
                     p.launch.y,

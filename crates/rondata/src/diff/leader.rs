@@ -308,7 +308,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // `Leader::process`'s head ([`sim::Sim::retargets`]).
     out.push((
         "retargets".to_string(),
-        i64::from(built.sim.retargets.get(who).copied().unwrap_or(0)),
+        i64::from(built.sim.combat.retargets.get(who).copied().unwrap_or(0)),
     ));
     // `known_rares` (item 327): `calc_gather`'s sum of the census's
     // `reg_known_rares`, and the gate of `create_units`' merchant arm.

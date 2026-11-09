@@ -2198,7 +2198,7 @@ fn a_spent_nuke_ramps_the_next_missile_and_uranium_takes_five_percent_off() {
         (p[kn.index()], p[oil.index()])
     };
     assert_eq!(at(&sim, 0), (750, 900), "no nuke spent, nothing queued");
-    sim.nukes.used = vec![1, 0];
+    sim.combat.nukes.used = vec![1, 0];
     assert_eq!(
         at(&sim, 0),
         (750 + 150, 900 + 150),
@@ -2958,7 +2958,8 @@ fn combatant(sim: &mut Sim, owner: Player, ty: usize, at: Pos, facing: movement:
 }
 
 fn hits_on(sim: &Sim, target: usize) -> Vec<&combat::Hit> {
-    sim.hits
+    sim.combat
+        .hits
         .iter()
         .filter(|h| h.target == Obj::Unit(target))
         .collect()
@@ -3150,7 +3151,7 @@ fn the_combat_table_multiplies_the_attack_before_armour() {
     let hop = sim.add_unit_type(hoplite_type());
     let arc = sim.add_unit_type(archer_type());
     // Heavy infantry against foot archers: the shipped table says 86 %.
-    sim.table.set(hop, arc, 86);
+    sim.combat.table.set(hop, arc, 86);
     let b = combatant(
         &mut sim,
         1,
@@ -3202,8 +3203,8 @@ fn a_shot_flies_for_its_distance_and_lands_where_the_rng_put_it() {
     sim.tick();
     control.tick();
     // One projectile, launched this frame.
-    assert_eq!(sim.projectiles.len(), 1);
-    let p = sim.projectiles[0];
+    assert_eq!(sim.combat.projectiles.len(), 1);
+    let p = sim.combat.projectiles[0];
     assert_eq!(p.shooter, Obj::Unit(a));
     assert_eq!(p.target, Some(Obj::Unit(b)));
     // Accuracy: 80 − attenuate × (attack_dist / 192). attack_dist: 576 − 48
@@ -3225,7 +3226,7 @@ fn a_shot_flies_for_its_distance_and_lands_where_the_rng_put_it() {
     for _ in 1..(p.total_time - 1) {
         sim.tick();
         control.tick();
-        assert_eq!(sim.projectiles.len(), 1);
+        assert_eq!(sim.combat.projectiles.len(), 1);
     }
     sim.tick();
     control.tick();
@@ -3233,7 +3234,7 @@ fn a_shot_flies_for_its_distance_and_lands_where_the_rng_put_it() {
     let d = vector_dist(p.landing.x - 1000, p.landing.y - 1000);
     let hit = hits_on(&sim, b);
     if d <= 48 {
-        assert_eq!(sim.projectiles.len(), 0);
+        assert_eq!(sim.combat.projectiles.len(), 0);
         assert_eq!(hit.len(), 1);
         assert_eq!(hit[0].frame, i64::from(p.total_time) - 1);
         // 60 → (65) / 10 − 3 = 3.
@@ -3246,9 +3247,12 @@ fn a_shot_flies_for_its_distance_and_lands_where_the_rng_put_it() {
         // `0/8` arrow does on frame 683, and the two draws the old arm
         // spent there are the two the golden word was waiting on.
         assert!(hit.is_empty(), "a miss lands on nothing here");
-        assert_eq!(sim.projectiles.len(), 1, "a rolling miss stays up");
-        assert!(sim.projectiles[0].missed);
-        assert!(sim.projectiles[0].target.is_none(), "hit_target forgets it");
+        assert_eq!(sim.combat.projectiles.len(), 1, "a rolling miss stays up");
+        assert!(sim.combat.projectiles[0].missed);
+        assert!(
+            sim.combat.projectiles[0].target.is_none(),
+            "hit_target forgets it"
+        );
     }
     // Two RNG draws were taken for the scatter, and **none** for a miss —
     // where the puncture pair used to be.
@@ -3264,7 +3268,7 @@ fn a_shot_flies_for_its_distance_and_lands_where_the_rng_put_it() {
             sim.tick();
         }
         assert!(
-            sim.projectiles.iter().all(|q| !q.missed),
+            sim.combat.projectiles.iter().all(|q| !q.missed),
             "a rolled shot is dropped past 3 × total_time"
         );
         assert!(hits_on(&sim, b).is_empty());
@@ -3289,7 +3293,7 @@ fn the_same_seed_gives_the_same_fight() {
             sim.order_attack(i, Obj::Unit(k as usize));
         }
         run(&mut sim, 300);
-        (sim.hits.clone(), sim.rng)
+        (sim.combat.hits.clone(), sim.rng)
     };
     assert_eq!(fight(11), fight(11));
     let (h1, _) = fight(11);
@@ -3451,7 +3455,7 @@ fn a_tower_picks_a_target_and_reloads_by_its_arrows() {
     assert_eq!(sim.buildings[tower].index, 2000);
     run(&mut sim, 17);
     assert_eq!(sim.buildings[tower].target, Some(Obj::Unit(b)));
-    assert_eq!(sim.projectiles.len(), 1);
+    assert_eq!(sim.combat.projectiles.len(), 1);
     assert_eq!(
         sim.buildings[tower].recharging, 60,
         "one arrow: the full reload"
@@ -3509,7 +3513,7 @@ fn a_towers_arrow_flies_at_ninety_until_the_fourth_age() {
         );
         sim.set_stance(b, Stance::HoldFire);
         run(&mut sim, 17);
-        let p = sim.projectiles[0];
+        let p = sim.combat.projectiles[0];
         let dx = i64::from(p.landing.x - p.launch.x);
         let dy = i64::from(p.landing.y - p.launch.y);
         (p.total_time, dx * dx + dy * dy)
@@ -3561,7 +3565,7 @@ fn a_towers_arrow_leads_a_target_that_is_walking() {
             sim.order_move(b, Pos::new(1000 + 5 * 192, 1000 + 40 * 192));
         }
         run(&mut sim, 17);
-        sim.projectiles[0].landing.y - sim.pos_of(Obj::Unit(b)).y
+        sim.combat.projectiles[0].landing.y - sim.pos_of(Obj::Unit(b)).y
     };
     // The shot is aimed at the Hoplite's own position; a walker's is led.
     let (still, walk) = (landing(false), landing(true));
@@ -3609,12 +3613,12 @@ fn a_tower_site_does_not_shoot_until_it_is_finished() {
         sim.buildings[tower].target, None,
         "a site looks for nothing"
     );
-    assert!(sim.projectiles.is_empty(), "and fires nothing");
+    assert!(sim.combat.projectiles.is_empty(), "and fires nothing");
     sim.buildings[tower].active = true;
     // The next think is frame 80, `(80 + 2000) & 0x1f == 0`.
     run(&mut sim, 32);
     assert_eq!(sim.buildings[tower].target, Some(Obj::Unit(b)));
-    assert_eq!(sim.projectiles.len(), 1);
+    assert_eq!(sim.combat.projectiles.len(), 1);
 }
 
 /// **A site holds half its armour** (item 1350, `docs/COMBAT.md` §4.2):
@@ -3669,6 +3673,7 @@ fn a_site_holds_half_its_armour() {
         2,
     );
     let dealt: Vec<i32> = sim
+        .combat
         .hits
         .iter()
         .filter(|h| h.target == site)
@@ -3744,6 +3749,7 @@ fn a_building_on_unfriendly_ground_holds_no_armour() {
     sim.buildings[tower].combat.as_mut().unwrap().attack = 0;
     blow(&mut sim, 4);
     let dealt: Vec<i32> = sim
+        .combat
         .hits
         .iter()
         .filter(|h| h.target == site)
@@ -3920,11 +3926,11 @@ fn siege_fires_at_the_ground_under_a_unit_and_hits_whoever_stands_there() {
     sim.order_attack(c, Obj::Unit(t0));
     sim.tick();
     // The shot has no target: it is aimed at the ground where the unit stood.
-    assert_eq!(sim.projectiles.len(), 1);
-    assert_eq!(sim.projectiles[0].target, None);
+    assert_eq!(sim.combat.projectiles.len(), 1);
+    assert_eq!(sim.combat.projectiles[0].target, None);
     // A siege shot's flight time is its range, not its distance: 8 × 192 /
     // 200 = 7.
-    assert_eq!(sim.projectiles[0].total_time, 7);
+    assert_eq!(sim.combat.projectiles[0].total_time, 7);
     run(&mut sim, 8);
     // It found the unit standing there.
     assert_eq!(hits_on(&sim, t0).len(), 1);

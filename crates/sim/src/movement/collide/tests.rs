@@ -1514,7 +1514,7 @@ fn a_captain_bumped_by_another_enemy_strikes_what_it_can_reach() {
         );
         sim.units[me].collide_o = sim.units[bump].index;
         sim.units[me].collide_who = 1;
-        sim.retargets[0] = retargets;
+        sim.combat.retargets[0] = retargets;
         (sim, me, far, bump)
     };
 

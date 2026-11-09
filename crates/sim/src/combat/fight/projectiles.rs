@@ -239,16 +239,16 @@ impl Sim {
     /// whatever `check_hit` finds there, or into the ground if nothing.
     pub(crate) fn process_projectiles(&mut self, frame: i64) {
         let mut i = 0;
-        while i < self.projectiles.len() {
-            self.projectiles[i].cur_time += 1;
-            let p = self.projectiles[i];
+        while i < self.combat.projectiles.len() {
+            self.combat.projectiles[i].cur_time += 1;
+            let p = self.combat.projectiles[i];
             // **A spent arrow** (item 3679, `docs/COMBAT.md` §46.7):
             // `inc_time`'s `flags & 2` clear arm returns until `cur_time`
             // reaches 200, and then closes it. Its dead shooter's bump is
             // [`Sim::hold_frames_tick`]'s, as for any round.
             if p.spent {
                 if p.cur_time >= SPENT_LIFE {
-                    self.projectiles.remove(i);
+                    self.combat.projectiles.remove(i);
                 } else {
                     i += 1;
                 }
@@ -272,7 +272,7 @@ impl Sim {
                     // (`67d726` → `67d39a`): `cur_time` and a dead
                     // shooter's `hold_frames` are bumped a second time,
                     // and `cur_time >= total_time` ends it.
-                    self.projectiles[i].cur_time += 1;
+                    self.combat.projectiles[i].cur_time += 1;
                     if let Obj::Unit(s) = p.shooter
                         && !self.active(p.shooter)
                     {
@@ -283,12 +283,20 @@ impl Sim {
                 // `inc_time`'s tail restricts the point and runs
                 // `Ammo::do_damage` — `init_crash` cleared flag `0x10` —
                 // and only then closes, as an ordinary round does below.
-                let p = self.projectiles[i];
+                let p = self.combat.projectiles[i];
                 self.land(p, frame);
-                if let Some(k) = self.projectiles.iter().position(|q| q.slot == p.slot) {
-                    self.projectiles.remove(k);
+                if let Some(k) = self
+                    .combat
+                    .projectiles
+                    .iter()
+                    .position(|q| q.slot == p.slot)
+                {
+                    self.combat.projectiles.remove(k);
                 }
-                i = self.projectiles.partition_point(|q| q.slot <= p.slot);
+                i = self
+                    .combat
+                    .projectiles
+                    .partition_point(|q| q.slot <= p.slot);
                 continue;
             }
             // **A guided round** (item 3802): `inc_time`'s spline arm, which
@@ -305,18 +313,18 @@ impl Sim {
                     // after it rolled, with `flags 14` beside it.
                     let hit = self.hit_target(&p);
                     if !hit {
-                        self.projectiles[i].target = None;
+                        self.combat.projectiles[i].target = None;
                         if self.check_hit(&p).is_none() {
-                            self.projectiles[i].missed = true;
+                            self.combat.projectiles[i].missed = true;
                         }
                     }
                 }
-                if self.projectiles[i].missed {
+                if self.combat.projectiles[i].missed {
                     // `if ((uint)(total_time * 3) < cur_time) close()` —
                     // and `close` is not `do_damage`, so a shot that
                     // never meets the ground damages nothing.
                     if (p.total_time.wrapping_mul(3) as u32) < p.cur_time as u32 {
-                        self.projectiles.remove(i);
+                        self.combat.projectiles.remove(i);
                         continue;
                     }
                     // On along the line, and down the arc (§46.1): the
@@ -329,7 +337,7 @@ impl Sim {
                         || at.x >= self.world.width() * UNITS_PER_CELL
                         || at.y >= self.world.height() * UNITS_PER_CELL
                     {
-                        self.projectiles.remove(i);
+                        self.combat.projectiles.remove(i);
                         continue;
                     }
                     let z = combat::arc_z(p.v1z, p.sz, p.cur_time);
@@ -340,7 +348,7 @@ impl Sim {
                     }
                     // Landed: `pos = (x, y, (int)z)` and `total_time =
                     // cur_time`, then `do_damage` at the new point.
-                    let q = &mut self.projectiles[i];
+                    let q = &mut self.combat.projectiles[i];
                     q.landing = at;
                     q.ez = z.to_i32();
                     q.total_time = q.cur_time;
@@ -352,18 +360,25 @@ impl Sim {
             // the next free slot — run405's `0/6` crash takes index 1 under
             // the Battery's round in 0. The walk then goes on from the next
             // slot past this one, as the pool's own walk does.
-            let p = self.projectiles[i];
+            let p = self.combat.projectiles[i];
             // `inc_time:260`: a round with flag `0x10` is closed, and
             // `Ammo::do_damage` is never called for it (§39.5).
             if !p.harmless {
                 self.land(p, frame);
             }
-            if let Some(k) = self.projectiles.iter().position(|q| q.slot == p.slot)
-                && !self.projectiles[k].spent
+            if let Some(k) = self
+                .combat
+                .projectiles
+                .iter()
+                .position(|q| q.slot == p.slot)
+                && !self.combat.projectiles[k].spent
             {
-                self.projectiles.remove(k);
+                self.combat.projectiles.remove(k);
             }
-            i = self.projectiles.partition_point(|q| q.slot <= p.slot);
+            i = self
+                .combat
+                .projectiles
+                .partition_point(|q| q.slot <= p.slot);
         }
     }
 
@@ -397,7 +412,7 @@ impl Sim {
     /// SEAM: a ground unit's figure height (`guys[0] +0x14`) is read as its
     /// object's, which this crate carries; an aircraft's is its airframe's.
     pub(super) fn guided_closes(&mut self, i: usize) -> bool {
-        let p = self.projectiles[i];
+        let p = self.combat.projectiles[i];
         let Some(path) = p.spline else {
             return false;
         };
@@ -421,7 +436,7 @@ impl Sim {
         if vector_dist((pt[0] - at.x).abs(), (pt[1] - at.y).abs()) < radius
             && (pt[2] - tz).abs() < 0xc0
         {
-            let q = &mut self.projectiles[i];
+            let q = &mut self.combat.projectiles[i];
             q.landing = Pos::new(pt[0], pt[1]);
             q.ez = pt[2];
             q.total_time = q.cur_time - 1;
@@ -441,7 +456,7 @@ impl Sim {
             let end = [at.x, at.y, tz].map(Single::from_i32);
             let speed = Single::from_i32(200 * combat::UNIT_MOVE_SPEED);
             let next = combat::Spline::from_dir(from, dir, end, speed);
-            let q = &mut self.projectiles[i];
+            let q = &mut self.combat.projectiles[i];
             q.landing = at;
             q.ez = tz;
             q.spline = Some(next);
@@ -467,12 +482,12 @@ impl Sim {
     /// short of their `total_time` (13 of 18, 12 of 17), which only the
     /// test does.
     pub(super) fn crash_comes_down(&mut self, i: usize) -> bool {
-        let p = self.projectiles[i];
+        let p = self.combat.projectiles[i];
         let Some(c) = p.crash else { return false };
         let mut landing = p.landing;
         if c.bank != (0, 0) {
             landing = self.restrict_pos(Pos::new(landing.x + c.bank.0, landing.y + c.bank.1));
-            self.projectiles[i].landing = landing;
+            self.combat.projectiles[i].landing = landing;
         }
         let at = combat::arc_point(p.launch, landing, p.cur_time, p.total_time);
         let ground = self.ground_z(at);
@@ -480,7 +495,7 @@ impl Sim {
         if !crate::single::Single::from_i32(ground).gt(z) {
             return false;
         }
-        let q = &mut self.projectiles[i];
+        let q = &mut self.combat.projectiles[i];
         q.landing = at;
         q.total_time = q.cur_time + 1;
         q.ez = ground;
@@ -526,7 +541,12 @@ impl Sim {
         // `flags = 1` whole, so the rolled and missed bits go with the live
         // one (run1331b: `1/52`'s spent arrow reads `flags 1` from 3333,
         // where ours kept `4` and `8`); the target pair is not written.
-        if let Some(q) = self.projectiles.iter_mut().find(|q| q.slot == p.slot) {
+        if let Some(q) = self
+            .combat
+            .projectiles
+            .iter_mut()
+            .find(|q| q.slot == p.slot)
+        {
             q.spent = true;
             q.cur_time = 0;
             q.rolling = false;

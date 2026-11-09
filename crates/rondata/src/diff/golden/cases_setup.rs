@@ -202,6 +202,7 @@ pub(super) fn run235_s_bombs_are_the_original_s_record_for_record() {
             ),
         };
         let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = sim
+            .combat
             .projectiles
             .iter()
             .map(|p| {

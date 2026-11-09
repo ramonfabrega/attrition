@@ -613,7 +613,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
     // death piece, `DeathObj::init`'s `vtable[0x178](param_7, packed)`,
     // and this crate loads no art for it (§42.5).
     {
-        let ours: Vec<&sim::combat::Death> = built.sim.deaths.iter().collect();
+        let ours: Vec<&sim::combat::Death> = built.sim.combat.deaths.iter().collect();
         for d in &frame.deaths {
             let (Some(who), Some(o)) = (d.who, d.o) else {
                 continue;
@@ -1545,7 +1545,13 @@ pub(crate) fn debug_gap(
             format!("{}/{}", s.buildings[b].owner, s.buildings[b].index)
         }
     };
-    for h in s.hits.iter().rev().take_while(|h| h.frame + 1 >= frame) {
+    for h in s
+        .combat
+        .hits
+        .iter()
+        .rev()
+        .take_while(|h| h.frame + 1 >= frame)
+    {
         if h.frame + 1 == frame {
             eprintln!(
                 "  gap f{frame} hit {} -> {} dmg {} dealt {:?} splash {} killed {}",
@@ -1602,7 +1608,7 @@ pub(crate) fn debug_ammo(built: &Built, frame: i64) {
                 last[i] = (b.damage, b.damage_frac);
             }
         }
-        for p in &built.sim.projectiles {
+        for p in &built.sim.combat.projectiles {
             if let Some(sim::combat::Obj::Building(b)) = p.target {
                 let tp = built.sim.profile(sim::combat::Obj::Building(b));
                 eprintln!(
@@ -1620,7 +1626,7 @@ pub(crate) fn debug_ammo(built: &Built, frame: i64) {
             }
         }
     }
-    for p in &built.sim.projectiles {
+    for p in &built.sim.combat.projectiles {
         let tpos = p.target.and_then(|t| match t {
             sim::combat::Obj::Unit(u) => Some(built.sim.units[u].pos),
             sim::combat::Obj::Building(_) => None,
@@ -2030,6 +2036,7 @@ fn widen_block_rows(
         };
         let ours = built
             .sim
+            .combat
             .deaths
             .iter()
             .find(|m| i64::from(m.who) == who && i64::from(m.o) == o);
@@ -4739,6 +4746,7 @@ pub(crate) mod tests {
             ),
         };
         let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = sim
+            .combat
             .projectiles
             .iter()
             .map(|p| {

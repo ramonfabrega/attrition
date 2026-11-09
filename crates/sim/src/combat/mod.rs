@@ -2850,3 +2850,55 @@ pub mod object_attack_view;
 pub mod plunder;
 pub mod take_damage_view;
 pub mod unit_attack_view;
+
+/// The `combat/` subsystem's fields of [`crate::Sim`] (`docs/STRUCTURE.md`
+/// §3, item 4016): moved whole, each with its doc, in `Sim`'s order.
+#[derive(Clone, Debug)]
+pub struct CombatState {
+    /// The combat table — `docs/COMBAT.md` §5 — over [`Sim::unit_types`]
+    /// ids. [`combat::Table::uniform`] until something builds one.
+    pub table: crate::combat::Table,
+    /// Ammo in flight.
+    pub projectiles: Vec<crate::combat::Projectile>,
+    /// The nukes' effects and what a nuke writes on its shooter's leader
+    /// and silo (`crate::nuke`, item 1091).
+    pub nukes: crate::nuke::Nukes,
+    /// **The death objects**, the `DEATH_OBJS` list the dump prints at the
+    /// frame level (`docs/COMBAT.md` §42.1). One is made by `Unit::close`
+    /// for every unit death whose `dtype` is non-zero, and it carries the
+    /// animation index the draw at `Unit::close+0xcb6` chose.
+    ///
+    /// Each figure's record ends at its life (`DeathObj::inc_time`,
+    /// [`Sim::death_objs_inc_time`], `docs/GOLDEN.md` §127), and the pool
+    /// of 100 behind them evicts the oldest non-blocking record when full
+    /// ([`Self::death_pool`], §177).
+    pub deaths: Vec<crate::combat::Death>,
+    /// **The death pool's slots** (item 3971, `docs/GOLDEN.md` §177):
+    /// which figure's record each of `Objects`' 100 `DeathObj` slots
+    /// holds, in slot order, grown to [`combat::DEATH_POOL`] as records
+    /// arrive. [`Self::deaths`] is the list the dump prints; this is the
+    /// capacity behind it, and the order `Objects::add_death` evicts in.
+    pub death_pool: Vec<Option<crate::combat::DeathSlot>>,
+    /// One per player: the nation, wonder and patriot layer of the damage
+    /// formula, as inputs.
+    pub mods: Vec<crate::combat::Modifiers>,
+    /// Every delivery of damage so far, newest last. Tests read it; nothing
+    /// in the simulation does.
+    pub hits: Vec<crate::combat::Hit>,
+    /// `LeaderData::retargets` (`+0x9f4`): the frame's count of attacks
+    /// whose target went invalid. `Leader::process@006b88b0` zeroes it
+    /// at the head of each leader's frame, `Unit::fight@005fd4d0`'s
+    /// invalid-target tail adds one, and `resolve_unit_collision`'s
+    /// enemy ladder lets a captain re-search only while it is under ten
+    /// (`docs/COLLISION.md` §14). Not dumped per frame at `LEADERS=5`.
+    pub retargets: Vec<i32>,
+    /// **A melee-and-ranged type's second range, swapped in for one call**
+    /// (item 3383, `docs/AI.md` §291): `Unit::cavarch_fight@005ff4b0`
+    /// writes the type's `second_max_range` (`UnitTypeData +0x2d0`) into
+    /// its `max_range` (`+0x1fc`) before `fight` when the type's flags
+    /// carry `0x400` ([`ai_load::uflags::MELEE_AND_RANGED`]), and 0 back after. The
+    /// write is to the **type**, so every reader inside the call sees it;
+    /// [`Sim::profile`] answers the type's second range for a unit whose
+    /// type this holds. `None` outside such a call.
+    pub(crate) second_range: Option<usize>,
+}

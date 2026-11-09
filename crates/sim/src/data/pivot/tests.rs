@@ -2726,7 +2726,7 @@ fn a_turret_short_of_its_aim_holds_its_release_on_any_piece() {
             sim.units[me].guys[0].cur_time, 4,
             "the clock reached the event"
         );
-        sim.projectiles.len()
+        sim.combat.projectiles.len()
     };
     assert_eq!(release(PIECE, crate::anim::ATTACK2, 4), None);
     assert_eq!(fire(0, 14), 0, "node 0, bit 0 clear: held (run404's 779)");

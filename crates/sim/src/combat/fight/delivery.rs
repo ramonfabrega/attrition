@@ -234,7 +234,7 @@ impl Sim {
                 }
             }
         }
-        self.hits.push(combat::Hit {
+        self.combat.hits.push(combat::Hit {
             frame,
             attacker,
             target,
@@ -1288,7 +1288,7 @@ impl Sim {
         let life = self.death_life(i, cur_anim);
         let u = &self.units[i];
         let (who, o) = (i32::from(u.owner), i32::from(u.index));
-        self.deaths.push(combat::Death {
+        self.combat.deaths.push(combat::Death {
             who,
             o,
             first_frame: frame,
@@ -1313,7 +1313,7 @@ impl Sim {
     /// stands and that figure's life has not run out.
     pub(super) fn death_slot_live(&self, r: &combat::DeathSlot) -> bool {
         let age = self.frame - r.first_frame;
-        self.deaths.iter().any(|d| {
+        self.combat.deaths.iter().any(|d| {
             d.who == r.who
                 && d.o == r.o
                 && d.first_frame == r.first_frame
@@ -1353,13 +1353,13 @@ impl Sim {
     /// ([`Self::death_objs_inc_time`]), and a [`combat::Death`] left with
     /// no live figure is culled this frame and leaves the dump's list.
     pub(crate) fn add_death(&mut self, rec: combat::DeathSlot) -> usize {
-        if self.death_pool.len() < combat::DEATH_POOL {
-            self.death_pool.resize(combat::DEATH_POOL, None);
+        if self.combat.death_pool.len() < combat::DEATH_POOL {
+            self.combat.death_pool.resize(combat::DEATH_POOL, None);
         }
         let mut best = (0usize, self.frame + 1);
         let mut free = None;
         for k in 0..combat::DEATH_POOL {
-            let Some(r) = self.death_pool[k].filter(|r| self.death_slot_live(r)) else {
+            let Some(r) = self.combat.death_pool[k].filter(|r| self.death_slot_live(r)) else {
                 free = Some(k);
                 break;
             };
@@ -1368,9 +1368,10 @@ impl Sim {
             }
         }
         let k = free.unwrap_or(best.0);
-        if let Some(old) = self.death_pool[k].filter(|r| self.death_slot_live(r)) {
+        if let Some(old) = self.combat.death_pool[k].filter(|r| self.death_slot_live(r)) {
             let age = self.frame - old.first_frame;
             if let Some(d) = self
+                .combat
                 .deaths
                 .iter_mut()
                 .find(|d| d.who == old.who && d.o == old.o && d.first_frame == old.first_frame)
@@ -1381,7 +1382,7 @@ impl Sim {
                 d.life = (last != i64::MAX).then_some(last);
             }
         }
-        self.death_pool[k] = Some(rec);
+        self.combat.death_pool[k] = Some(rec);
         k
     }
 
@@ -1497,6 +1498,7 @@ impl Sim {
         // it is read as set; `die_hold_steps` takes it for the sweep.
         let (who, idx) = (self.units[i].owner, self.units[i].index);
         let ammo: Vec<DieAmmo> = self
+            .combat
             .projectiles
             .iter()
             .filter(|p| p.shooter == Obj::Unit(i))
@@ -1543,13 +1545,13 @@ impl Sim {
     /// capture — the row `crate::diff::compare` now carries. The death
     /// objects' own bump is [`Self::death_objs_inc_time`], after the walk.
     pub(crate) fn hold_frames_tick(&mut self) {
-        for k in 0..self.projectiles.len() {
+        for k in 0..self.combat.projectiles.len() {
             // A crash round bumps its own plane's slot in its step
             // ([`Sim::process_projectiles`]).
-            if self.projectiles[k].crash.is_some() {
+            if self.combat.projectiles[k].crash.is_some() {
                 continue;
             }
-            let Obj::Unit(s) = self.projectiles[k].shooter else {
+            let Obj::Unit(s) = self.combat.projectiles[k].shooter else {
                 continue;
             };
             if !self.active(Obj::Unit(s)) {
@@ -1571,15 +1573,15 @@ impl Sim {
     /// bump ahead of the walk left 1, and the Jet that ours put into 18 on
     /// tick 1539 takes 41 in theirs.
     pub(crate) fn death_objs_inc_time(&mut self) {
-        for k in 0..self.deaths.len() {
-            let (who, o) = (self.deaths[k].who, self.deaths[k].o);
+        for k in 0..self.combat.deaths.len() {
+            let (who, o) = (self.combat.deaths[k].who, self.combat.deaths[k].o);
             // **One bump a record** (item 3784, `docs/GOLDEN.md` §149.10):
             // `DeathObj::inc_time`'s first statement is on each guy's
             // record, and `process_all` takes one off a frame — so a dead
             // Bombard's four records hold its number long past their cull.
-            let bumps = self.deaths[k]
+            let bumps = self.combat.deaths[k]
                 .figures
-                .live(self.frame - self.deaths[k].first_frame);
+                .live(self.frame - self.combat.deaths[k].first_frame);
             // The object in the slot, dead or not: `unit_by_o` finds only
             // the living, and this bump is on the dead (§59).
             if let Some(u) = self
@@ -1602,14 +1604,14 @@ impl Sim {
     pub(super) fn cull_deaths(&mut self) {
         let frame = self.frame;
         let mut k = 0;
-        while k < self.deaths.len() {
-            let d = self.deaths[k];
+        while k < self.combat.deaths.len() {
+            let d = self.combat.deaths[k];
             let ended = d.life.is_some_and(|l| frame - d.first_frame + 1 >= l);
             if !ended {
                 k += 1;
                 continue;
             }
-            self.deaths.remove(k);
+            self.combat.deaths.remove(k);
             if let Some(u) = self
                 .units
                 .iter()

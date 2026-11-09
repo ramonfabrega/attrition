@@ -2659,6 +2659,7 @@ pub(super) fn chapter_five_s_word_frame_is_widened_whole() {
             .collect();
         let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = built
             .sim
+            .combat
             .projectiles
             .iter()
             .filter_map(|p| match p.shooter {
@@ -4621,6 +4622,7 @@ pub(super) fn chapter_three_s_catapult_fires_on_the_ground() {
                 .find(|(a, _)| a.who == 0 && a.o == 6)
             {
                 let mine = sim
+                    .combat
                     .projectiles
                     .iter()
                     .find(|p| p.shooter == sim::combat::Obj::Unit(i))
@@ -4949,6 +4951,7 @@ pub(super) fn chapter_three_s_restage_numbers_its_objects() {
             .collect();
         let raw = s.ix.read_frame(at).unwrap();
         let o_do: BTreeSet<(i64, i64, i64)> = sim
+            .combat
             .deaths
             .iter()
             .map(|d| (i64::from(d.who), i64::from(d.o), d.first_frame))
@@ -4960,6 +4963,7 @@ pub(super) fn chapter_three_s_restage_numbers_its_objects() {
             .filter_map(|d| Some((d.who?, d.o?, d.first_frame?)))
             .collect();
         let o_ammo: BTreeSet<(i64, i64, i64)> = sim
+            .combat
             .projectiles
             .iter()
             // Live rounds, as theirs' `flags & 2` (item 3679: a spent

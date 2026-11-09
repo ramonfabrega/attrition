@@ -576,9 +576,9 @@ fn a_strafe_releases_a_bomb_that_falls_a_tile_ahead() {
     assert_eq!(s.units[u].guys[0].anim, crate::anim::ATTACK2);
     let seed = s.rng.seed;
     s.guys_inc_time();
-    assert_eq!(s.projectiles.len(), 1, "the first event's round");
+    assert_eq!(s.combat.projectiles.len(), 1, "the first event's round");
     assert_eq!(s.rng.seed, seed, "a bomb spends no draw");
-    let p = s.projectiles[0];
+    let p = s.combat.projectiles[0];
     assert_eq!(p.target, Some(Obj::Building(target)));
     let from = s.units[u].pos;
     assert_eq!(
@@ -600,11 +600,14 @@ fn a_strafe_releases_a_bomb_that_falls_a_tile_ahead() {
     for _ in 0..16 {
         s.process_projectiles(806);
     }
-    assert_eq!(s.projectiles.len(), 1, "still falling after 16");
+    assert_eq!(s.combat.projectiles.len(), 1, "still falling after 16");
     s.process_projectiles(822);
-    assert!(s.projectiles.is_empty(), "down on the seventeenth");
+    assert!(s.combat.projectiles.is_empty(), "down on the seventeenth");
     assert!(
-        s.hits.iter().any(|h| h.target == Obj::Building(target)),
+        s.combat
+            .hits
+            .iter()
+            .any(|h| h.target == Obj::Building(target)),
         "and it strikes"
     );
 }

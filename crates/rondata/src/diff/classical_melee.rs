@@ -255,7 +255,8 @@ fn classical_melee_s_kushite_archers_loose_from_the_bow() {
     let bow = sim::combat::Obj::Unit(unit(&built.sim, 0, 14).expect("0/14 on 673"));
     let p = unit(&built.sim, 1, 19).expect("1/19 on 673");
     let find = |sim: &sim::Sim| {
-        sim.projectiles
+        sim.combat
+            .projectiles
             .iter()
             .find(|r| r.shooter == bow && r.target == Some(sim::combat::Obj::Unit(p)))
             .copied()
@@ -327,7 +328,8 @@ fn classical_melee_s_royal_balamob_slingers_loose_from_the_sling() {
     let sling = sim::combat::Obj::Unit(unit(&built.sim, 0, 19).expect("0/19 on 713"));
     let cat = sim::combat::Obj::Unit(unit(&built.sim, 1, 26).expect("1/26 on 713"));
     let find = |sim: &sim::Sim| {
-        sim.projectiles
+        sim.combat
+            .projectiles
             .iter()
             .find(|r| r.shooter == sling && r.target == Some(cat))
             .copied()

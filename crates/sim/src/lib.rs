@@ -293,9 +293,8 @@ pub struct Sim {
     /// One per player: the tech bits and counters — `LeaderData::tech`,
     /// `ages`, `epochs`, `epoch[4]`.
     pub tech: Vec<tech::PlayerTech>,
-    /// The combat table — `docs/COMBAT.md` §5 — over [`Sim::unit_types`]
-    /// ids. [`combat::Table::uniform`] until something builds one.
-    pub table: combat::Table,
+    /// The `combat/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub combat: crate::combat::CombatState,
     /// The `orders/` subsystem's state (`docs/STRUCTURE.md` §3).
     pub orders: crate::orders::OrdersState,
     /// The game's random stream, `game_random`. Combat draws from it for
@@ -344,39 +343,12 @@ pub struct Sim {
     /// — and comparing the two folds is how the frame-0 gap was taken
     /// apart (`docs/SYNC.md` §4.2).
     pub phase_marks: Vec<(String, u32)>,
-    /// Ammo in flight.
-    pub projectiles: Vec<combat::Projectile>,
-    /// The nukes' effects and what a nuke writes on its shooter's leader
-    /// and silo (`crate::nuke`, item 1091).
-    pub nukes: nuke::Nukes,
     /// How many [`Sim::ground_z`] reads have touched a height corner that
     /// is not known to be the original's own single — one whose six-decimal
     /// print a neighbouring single shares, or one a terraform rewrote in
     /// millionths (`docs/COMBAT.md` §46.3). Every window the harness replays
     /// pins it, so the day a read lands on one is a failing test by name.
     pub ground_inexact: u32,
-    /// **The death objects**, the `DEATH_OBJS` list the dump prints at the
-    /// frame level (`docs/COMBAT.md` §42.1). One is made by `Unit::close`
-    /// for every unit death whose `dtype` is non-zero, and it carries the
-    /// animation index the draw at `Unit::close+0xcb6` chose.
-    ///
-    /// Each figure's record ends at its life (`DeathObj::inc_time`,
-    /// [`Sim::death_objs_inc_time`], `docs/GOLDEN.md` §127), and the pool
-    /// of 100 behind them evicts the oldest non-blocking record when full
-    /// ([`Self::death_pool`], §177).
-    pub deaths: Vec<combat::Death>,
-    /// **The death pool's slots** (item 3971, `docs/GOLDEN.md` §177):
-    /// which figure's record each of `Objects`' 100 `DeathObj` slots
-    /// holds, in slot order, grown to [`combat::DEATH_POOL`] as records
-    /// arrive. [`Self::deaths`] is the list the dump prints; this is the
-    /// capacity behind it, and the order `Objects::add_death` evicts in.
-    pub death_pool: Vec<Option<combat::DeathSlot>>,
-    /// One per player: the nation, wonder and patriot layer of the damage
-    /// formula, as inputs.
-    pub mods: Vec<combat::Modifiers>,
-    /// Every delivery of damage so far, newest last. Tests read it; nothing
-    /// in the simulation does.
-    pub hits: Vec<combat::Hit>,
     /// The city records — `docs/CITIES.md` §5.
     pub cities: Vec<city::City>,
     /// One per player: the nation, wonder and tech inputs this mechanic reads.
@@ -499,22 +471,6 @@ pub struct Sim {
     /// only under test — for the test that holds `Build::process`'s sequence (group 18).
     #[allow(dead_code)]
     pub(crate) building_log: Vec<(usize, &'static str)>,
-    /// `LeaderData::retargets` (`+0x9f4`): the frame's count of attacks
-    /// whose target went invalid. `Leader::process@006b88b0` zeroes it
-    /// at the head of each leader's frame, `Unit::fight@005fd4d0`'s
-    /// invalid-target tail adds one, and `resolve_unit_collision`'s
-    /// enemy ladder lets a captain re-search only while it is under ten
-    /// (`docs/COLLISION.md` §14). Not dumped per frame at `LEADERS=5`.
-    pub retargets: Vec<i32>,
-    /// **A melee-and-ranged type's second range, swapped in for one call**
-    /// (item 3383, `docs/AI.md` §291): `Unit::cavarch_fight@005ff4b0`
-    /// writes the type's `second_max_range` (`UnitTypeData +0x2d0`) into
-    /// its `max_range` (`+0x1fc`) before `fight` when the type's flags
-    /// carry `0x400` ([`ai_load::uflags::MELEE_AND_RANGED`]), and 0 back after. The
-    /// write is to the **type**, so every reader inside the call sees it;
-    /// [`Sim::profile`] answers the type's second range for a unit whose
-    /// type this holds. `None` outside such a call.
-    pub(crate) second_range: Option<usize>,
     pub frame: i64,
 }
 
@@ -553,7 +509,6 @@ impl Sim {
             redirects: cost::Redirects::RON,
             buildings: Vec::new(),
             farm_order: Vec::new(),
-            table: combat::Table::uniform(0),
             orders: crate::orders::OrdersState {
                 pushed: Vec::new(),
                 last_group: [0; 16],
@@ -561,16 +516,10 @@ impl Sim {
                 spells: Vec::new(),
             },
             rng: combat::Rng::new(0),
-            projectiles: Vec::new(),
-            nukes: nuke::Nukes::default(),
             ground_inexact: 0,
-            deaths: Vec::new(),
-            death_pool: Vec::new(),
             market: market::Market::default(),
             gaia: gaia::Gaia::default(),
             game_seed: 0,
-            mods: vec![combat::Modifiers::default(); players],
-            hits: Vec::new(),
             cities: Vec::new(),
             nation: vec![city::Nation::default(); players],
             allied: vec![vec![false; players]; players],
@@ -628,8 +577,17 @@ impl Sim {
                 pf_start: Pos::default(),
             },
             building_log: Vec::new(),
-            retargets: vec![0; players.max(10)],
-            second_range: None,
+            combat: crate::combat::CombatState {
+                table: combat::Table::uniform(0),
+                projectiles: Vec::new(),
+                nukes: nuke::Nukes::default(),
+                deaths: Vec::new(),
+                death_pool: Vec::new(),
+                mods: vec![combat::Modifiers::default(); players],
+                hits: Vec::new(),
+                retargets: vec![0; players.max(10)],
+                second_range: None,
+            },
             tables: crate::core::Tables {
                 tech_tree,
                 setup: tech::Setup::STANDARD,
@@ -660,7 +618,7 @@ impl Sim {
         self.ledgers
             .push(economy::Ledger::starting(&self.tables.tuning));
         self.roster.muster.push(Muster::new(&self.tables.tuning));
-        self.mods.push(combat::Modifiers::default());
+        self.combat.mods.push(combat::Modifiers::default());
         self.nation.push(city::Nation::default());
         self.territory
             .borders
@@ -672,7 +630,7 @@ impl Sim {
         self.wall_stats_dirty.push(false);
         self.roster.marks.push(Marks::default());
         self.movement.repaths.push(0);
-        self.retargets.push(0);
+        self.combat.retargets.push(0);
         self.ai.push(ai::Leader::new());
         self.transport.push(transport::LeaderTransport::default());
         self.docks.push(transport::Docks::default());

@@ -35,7 +35,7 @@ impl Sim {
     /// raider into [`crate::Sim::do_attack`]'s stance arm, which returns,
     /// so the order it should have dropped stood for ever.
     pub(crate) fn forget(&mut self, dead: Obj) {
-        for p in &mut self.projectiles {
+        for p in &mut self.combat.projectiles {
             if p.target == Some(dead) {
                 p.target = None;
             }

@@ -254,7 +254,7 @@ impl Loaded {
         for ty in &self.build_types {
             sim.add_build_type(ty.clone());
         }
-        sim.table = self.table.clone();
+        sim.combat.table = self.table.clone();
         sim.good_types.clone_from(&self.good_types);
     }
 
@@ -3652,6 +3652,6 @@ mod tests {
         assert_eq!(s.tables.unit_types.len(), 364);
         assert_eq!(s.tables.build_types.len(), 129);
         assert_eq!(s.tables.tech_tree.types.len(), l.tree.types.len());
-        assert_eq!(s.table.width(), 364);
+        assert_eq!(s.combat.table.width(), 364);
     }
 }

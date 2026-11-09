@@ -1840,7 +1840,7 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             }
             let sim = &built.sim;
             let mut ours = std::collections::BTreeMap::new();
-            for p in &sim.projectiles {
+            for p in &sim.combat.projectiles {
                 let (who, o) = super::golden::obj_ident(sim, p.shooter);
                 assert!(
                     ours.insert((who, o, n - i64::from(p.cur_time)), p)

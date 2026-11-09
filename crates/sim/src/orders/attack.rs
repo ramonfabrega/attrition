@@ -535,7 +535,7 @@ impl Sim {
             // keeps its `ATTACKORDER` on the dead Citizen `0/12` one frame
             // past ours (`waiting` 2, `unit_masks2` 16 on block 6718).
             let who = usize::from(self.units[u].owner);
-            if self.units[u].waiting < 5 && self.retargets[who] > 10 {
+            if self.units[u].waiting < 5 && self.combat.retargets[who] > 10 {
                 self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
                 self.units[u].waiting += 2;
                 return false;
@@ -595,7 +595,7 @@ impl Sim {
             // (item 3598). run112 says it did not fire there: `0/6`'s
             // `waiting` is 0 on block 696, where the throttle would have
             // left 2.
-            self.retargets[who] += 1;
+            self.combat.retargets[who] += 1;
             if matches!(
                 self.current_order(u).map(|o| &o.body),
                 Some(Body::Attack(_))

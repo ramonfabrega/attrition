@@ -1809,9 +1809,9 @@ impl Sim {
                 self.current_order(u).map(|o| o.body),
                 Some(crate::orders::Body::AirAttackGround(_))
             )
-            && !self.nukes.shown.contains(&b)
+            && !self.combat.nukes.shown.contains(&b)
         {
-            self.nukes.shown.push(b);
+            self.combat.nukes.shown.push(b);
         }
         self.come_out(u);
         let frame = self.frame;
@@ -2908,7 +2908,7 @@ impl Sim {
         let angle = find_angle(to.x - from.x, to.y - from.y);
         let frame = self.frame;
         self.fire_ammo_pub(me, t, angle, frame, from, z + dz, node, harmless, false);
-        for p in self.projectiles.iter_mut() {
+        for p in self.combat.projectiles.iter_mut() {
             if p.shooter == me && p.cur_time == 0 && !p.spent {
                 p.num_guys = 0;
             }

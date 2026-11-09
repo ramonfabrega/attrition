@@ -1011,7 +1011,7 @@ fn a_strafers_round_at_a_land_unit_does_not_roll() {
             false,
             false,
         );
-        let p = s.projectiles.last().unwrap();
+        let p = s.combat.projectiles.last().unwrap();
         assert_eq!(p.rolling, !strafes, "strafes {strafes}");
     }
 }
@@ -1029,7 +1029,7 @@ fn a_strafers_round_spends_no_draw() {
     s.units[u].kind = s.tables.unit_types[ty].kind;
     let before = s.rng;
     let at = s.units[u].pos;
-    let n = s.projectiles.len();
+    let n = s.combat.projectiles.len();
     s.fire_ammo_pub(
         Obj::Unit(u),
         Obj::Building(target),
@@ -1041,7 +1041,7 @@ fn a_strafers_round_spends_no_draw() {
         false,
         false,
     );
-    assert_eq!(s.projectiles.len(), n + 1, "a round");
+    assert_eq!(s.combat.projectiles.len(), n + 1, "a round");
     assert_eq!(s.rng, before, "and no draw");
 }
 
@@ -1068,7 +1068,7 @@ fn a_strafers_landing_walks_with_its_gun() {
             false,
             false,
         );
-        s.projectiles.last().unwrap().landing
+        s.combat.projectiles.last().unwrap().landing
     };
     let mut s = sim();
     let (u, target, _, _) = striking_fighter(&mut s, true);

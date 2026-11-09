@@ -706,6 +706,7 @@ fn rounds_record_for_record(
             ),
         };
         let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = sim
+            .combat
             .projectiles
             .iter()
             .map(|p| {
@@ -2475,7 +2476,7 @@ fn widen_civilians_walk(
                 // A nuke's launch sets the silo's byte to `0xff`
                 // (`Build::do_missile_launch@00622670`), which the dump
                 // prints as −1; that writer lives in `Nukes::shown`.
-                let ours = match s.built.sim.nukes.visible_of(b) {
+                let ours = match s.built.sim.combat.nukes.visible_of(b) {
                     0 => i64::from(s.built.sim.buildings[b].visible),
                     v => v,
                 };
@@ -2693,6 +2694,7 @@ fn widen_civilians_walk(
             };
             let sim = &s.built.sim;
             let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = sim
+                .combat
                 .projectiles
                 .iter()
                 .map(|p| {
@@ -3775,6 +3777,7 @@ fn widen_chapter_three(
         let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = s
             .built
             .sim
+            .combat
             .projectiles
             .iter()
             .filter_map(|p| match p.shooter {

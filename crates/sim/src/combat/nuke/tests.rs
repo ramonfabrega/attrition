@@ -124,13 +124,16 @@ fn the_ring_strikes_each_on_the_frame_it_reaches_it() {
     // Through the round's own landing (`Sim::land`'s nuke arm): the
     // round's last frame lays the blast, and strikes nothing where it
     // lands.
-    s.projectiles.push(crate::combat::Projectile {
+    s.combat.projectiles.push(crate::combat::Projectile {
         cur_time: 119,
         ..round
     });
     s.process_projectiles(3200);
-    assert!(s.projectiles.is_empty(), "the round is closed");
-    assert_eq!((s.nukes.stamp_of(0), s.nukes.used_of(0)), (3200, 1));
+    assert!(s.combat.projectiles.is_empty(), "the round is closed");
+    assert_eq!(
+        (s.combat.nukes.stamp_of(0), s.combat.nukes.used_of(0)),
+        (3200, 1)
+    );
     assert_eq!(s.buildings[far].health, 1200, "no splash walk");
     let mut first = [None; 4];
     let mut far_first = None;
@@ -149,7 +152,7 @@ fn the_ring_strikes_each_on_the_frame_it_reaches_it() {
     }
     assert_eq!(first, [Some(3217), Some(3226), Some(3239), None]);
     assert_eq!(far_first, Some(3239));
-    assert_eq!(s.nukes.blasts[0].struck.len(), 4, "each once");
+    assert_eq!(s.combat.nukes.blasts[0].struck.len(), 4, "each once");
 }
 
 /// **The ring never strikes an animal** (item 1591,
@@ -185,7 +188,7 @@ fn the_ring_never_strikes_an_animal() {
     let animal = put(&mut s, 9, Pos::new(23544, 34680));
     let shooter = put(&mut s, 1, Pos::new(19200, 34560));
     s.units[shooter].on_map = false;
-    s.nukes.blasts.push(Blast {
+    s.combat.nukes.blasts.push(Blast {
         at: Pos::new(23040, 34560),
         min: RING_MIN,
         max: 10 * RING_PER_SPLASH,
@@ -254,7 +257,7 @@ fn a_landing_lights_its_circle_and_a_hit_marks_the_treaties() {
     s.units[n].on_map = false;
     put(&mut s, 0, probe, Pos::new(23040, 34560));
     assert_eq!(s.treaties[0][1], 0);
-    s.projectiles.push(crate::combat::Projectile {
+    s.combat.projectiles.push(crate::combat::Projectile {
         shooter: Obj::Unit(n),
         owner: 1,
         target: None,

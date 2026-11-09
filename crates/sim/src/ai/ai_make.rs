@@ -540,12 +540,13 @@ impl Sim {
     /// SEAM: `Game::armageddon` (`+0x6e0`) is not carried; the shipped
     /// `NUKE_EMBARGO_WORLD` is `0 frames`, which makes the term vanish.
     fn my_nuke_embargo(&self, who: Player) -> i32 {
-        let stamp = self.nukes.stamp_of(who);
+        let stamp = self.combat.nukes.stamp_of(who);
         if stamp == 0 || self.wonders_held(who) & (1 << crate::tech::wonder::SPACE_PROGRAM) != 0 {
             return 0;
         }
         let t = &self.tables.tuning;
-        let v = i64::from(t.nuke_embargo_nation) * i64::from(self.nukes.used_of(who)) - self.frame
+        let v = i64::from(t.nuke_embargo_nation) * i64::from(self.combat.nukes.used_of(who))
+            - self.frame
             + i64::from(t.nuke_embargo_base)
             + stamp;
         v.max(0) as i32

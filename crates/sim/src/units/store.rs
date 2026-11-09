@@ -268,8 +268,9 @@ impl Sim {
         self.tables.unit_types.push(ty);
         // The combat table grows with the type space, at 100 until a
         // builder fills the new row and column.
-        if self.table.width() < self.tables.unit_types.len() {
-            self.table = self
+        if self.combat.table.width() < self.tables.unit_types.len() {
+            self.combat.table = self
+                .combat
                 .table
                 .grown(self.tables.unit_types.len(), self.tables.build_types.len());
         }

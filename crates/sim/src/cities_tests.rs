@@ -8158,7 +8158,7 @@ fn a_decoy_closes_at_its_age_and_leaves_no_death() {
             2499
         };
     }
-    let deaths = sim.deaths.len();
+    let deaths = sim.combat.deaths.len();
     sim.tick();
     assert!(!sim.units[first].alive(), "2499 + 1 reaches the life");
     if late != first {
@@ -8167,7 +8167,11 @@ fn a_decoy_closes_at_its_age_and_leaves_no_death() {
         sim.tick();
         assert!(!sim.units[late].alive(), "and a frame later it does");
     }
-    assert_eq!(sim.deaths.len(), deaths, "a close of 0 leaves no death");
+    assert_eq!(
+        sim.combat.deaths.len(),
+        deaths,
+        "a close of 0 leaves no death"
+    );
     assert!(copies.iter().all(|&d| sim.units[d].orders.is_empty()));
     assert!(sim.units[g].alive() && sim.units[near].alive());
 }
@@ -8213,7 +8217,7 @@ fn a_detected_decoy_bleeds_a_point_a_frame() {
     let w = worn(&sim);
     sim.recover_mana(d, frame);
     assert_ne!(worn(&sim), w, "a tick a frame");
-    let (rng, deaths) = (sim.rng, sim.deaths.len());
+    let (rng, deaths) = (sim.rng, sim.combat.deaths.len());
     let mut n = 1;
     while sim.units[d].alive() && n < 2000 {
         // Held young, so the bleed closes it and never its age.
@@ -8223,7 +8227,11 @@ fn a_detected_decoy_bleeds_a_point_a_frame() {
     }
     assert!(!sim.units[d].alive(), "the bleed closes it");
     assert_eq!(sim.rng, rng, "a decoy's death spends no draw");
-    assert_eq!(sim.deaths.len(), deaths, "and leaves no death object");
+    assert_eq!(
+        sim.combat.deaths.len(),
+        deaths,
+        "and leaves no death object"
+    );
 }
 
 /// **A computer's General standing in its army orders Create Decoys on

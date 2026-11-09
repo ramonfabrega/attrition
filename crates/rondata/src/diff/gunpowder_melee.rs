@@ -734,7 +734,8 @@ fn gunpowder_melee_s_camel_raider_looses_from_its_pivot() {
     let raider = sim::combat::Obj::Unit(unit(&built.sim, 0, 17).expect("0/17 on 859"));
     let bombard = sim::combat::Obj::Unit(unit(&built.sim, 2, 23).expect("2/23 on 859"));
     let find = |sim: &sim::Sim| {
-        sim.projectiles
+        sim.combat
+            .projectiles
             .iter()
             .find(|p| p.shooter == raider && p.target == Some(bombard))
             .copied()
@@ -804,7 +805,8 @@ fn gunpowder_melee_s_arquebusiers_loose_from_the_gun() {
     let gun = sim::combat::Obj::Unit(unit(&built.sim, 2, 16).expect("2/16 on 953"));
     let knight = sim::combat::Obj::Unit(unit(&built.sim, 1, 22).expect("1/22 on 953"));
     let find = |sim: &sim::Sim| {
-        sim.projectiles
+        sim.combat
+            .projectiles
             .iter()
             .find(|p| p.shooter == gun && p.target == Some(knight))
             .copied()

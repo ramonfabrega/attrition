@@ -234,13 +234,13 @@ impl crate::Sim {
             .filter(|&t| self.valid_target(me, t))
         else {
             self.cavarch_clear(u);
-            if self.units[u].waiting < 5 && self.retargets[who] > 10 {
+            if self.units[u].waiting < 5 && self.combat.retargets[who] > 10 {
                 self.units[u].waiting += 2;
                 return;
             }
             let found = self.find_melee_target_as(u, -1, 0, true);
             self.cavarch_take(u, found);
-            self.retargets[who] += 1;
+            self.combat.retargets[who] += 1;
             return;
         };
         if self.units[u].combat.captain == i32::from(self.units[u].index) {

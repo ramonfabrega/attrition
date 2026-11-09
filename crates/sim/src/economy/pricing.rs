@@ -282,7 +282,7 @@ impl Sim {
         let Some(t) = self.tables.unit_types[ty].tree else {
             return 0;
         };
-        let used = self.nukes.used_of(who);
+        let used = self.combat.nukes.used_of(who);
         let mut extra = 0;
         if t == 0x13b || t == 0x13c {
             extra += used;

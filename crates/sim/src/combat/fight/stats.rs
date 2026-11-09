@@ -16,7 +16,7 @@ impl Sim {
             Obj::Building(b) => self.buildings[b].ty.map(combat::TypeRef::Build),
         };
         match (at(attacker), at(target)) {
-            (Some(a), Some(b)) => self.table.pct_of(a, b),
+            (Some(a), Some(b)) => self.combat.table.pct_of(a, b),
             _ => 100,
         }
     }
@@ -26,7 +26,7 @@ impl Sim {
         match o {
             Obj::Unit(i) => self.units[i].ty.map_or_else(no_profile, |t| {
                 let mut p = self.tables.unit_types[t].combat;
-                if self.second_range == Some(t) {
+                if self.combat.second_range == Some(t) {
                     p.max_range = p.second_max_range;
                 }
                 p
@@ -50,9 +50,9 @@ impl Sim {
         let Some(t) = swap else {
             return f(self);
         };
-        let held = self.second_range.replace(t);
+        let held = self.combat.second_range.replace(t);
         let r = f(self);
-        self.second_range = held;
+        self.combat.second_range = held;
         r
     }
 
@@ -203,7 +203,7 @@ impl Sim {
     /// `1/20` struck the Citizen `0/12` for 12 where the original's +15 %
     /// (ages 3, `epoch[0]` 3) struck 13 + 10/16 (`docs/AI.md` §316).
     pub(super) fn mods_of(&self, owner: usize) -> combat::Modifiers {
-        let mut m = self.mods.get(owner).copied().unwrap_or_default();
+        let mut m = self.combat.mods.get(owner).copied().unwrap_or_default();
         if let Some(p) = self.tech.get(owner)
             && self
                 .tables

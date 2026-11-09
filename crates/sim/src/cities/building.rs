@@ -227,8 +227,9 @@ impl Sim {
     /// Registers a building type and returns its id.
     pub fn add_build_type(&mut self, ty: build::BuildType) -> usize {
         self.tables.build_types.push(ty);
-        if self.table.builds() < self.tables.build_types.len() {
-            self.table = self
+        if self.combat.table.builds() < self.tables.build_types.len() {
+            self.combat.table = self
+                .combat
                 .table
                 .grown(self.tables.unit_types.len(), self.tables.build_types.len());
         }

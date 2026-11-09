@@ -812,7 +812,7 @@ impl<'a> SimDetect<'a> {
     /// hit cell.
     fn wreck_from(&self, from: usize) -> DetectNode {
         let s = &*self.sim;
-        for (di, d) in s.deaths.iter().enumerate().skip(from) {
+        for (di, d) in s.combat.deaths.iter().enumerate().skip(from) {
             let Some(w) = s
                 .units
                 .iter()
@@ -2371,7 +2371,7 @@ impl Sim {
             // (run933's Tank `1/6` on `0/10`'s `collide_o`). This crate
             // unlinks the unit at its death and keeps the disc beside it,
             // so the wrecks are walked from the death list.
-            for d in &self.deaths {
+            for d in &self.combat.deaths {
                 let Some(w) = self
                     .units
                     .iter()
@@ -2965,7 +2965,7 @@ impl Sim {
             self.add_attack_order(u, t, QueuePos::First, false, false);
             return true;
         }
-        if self.retargets[usize::from(who)] < 10 {
+        if self.combat.retargets[usize::from(who)] < 10 {
             self.find_new_target(u, true);
             return true;
         }

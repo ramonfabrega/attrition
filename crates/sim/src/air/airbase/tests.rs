@@ -1090,10 +1090,10 @@ fn a_nuke_s_launch_shows_its_silo_and_its_round_does_not_scatter() {
         }
         spent.push(n);
         assert!(!s.units[m].alive(), "fired and gone");
-        assert_eq!(s.nukes.shown.contains(&silo), nuke, "the silo shown");
+        assert_eq!(s.combat.nukes.shown.contains(&silo), nuke, "the silo shown");
         if nuke {
             assert_eq!(
-                s.projectiles[0].landing, s.buildings[enemy].pos,
+                s.combat.projectiles[0].landing, s.buildings[enemy].pos,
                 "on the point"
             );
         }
@@ -1298,7 +1298,7 @@ fn the_silo_counts_its_missile_out_and_it_fires_on_the_thirtieth() {
         assert_eq!(s.buildings[silo].launch_frames, 0, "it stands");
         assert_eq!(s.units[v2].inside, Some(silo));
     }
-    assert!(s.projectiles.is_empty());
+    assert!(s.combat.projectiles.is_empty());
     s.frame += 1;
     s.do_launch(silo);
     assert_eq!(s.buildings[silo].recharging, 0);
@@ -1312,8 +1312,8 @@ fn the_silo_counts_its_missile_out_and_it_fires_on_the_thirtieth() {
         step > 0 && step <= s.get_speed(v2, 1) + 1,
         "one step from the silo's own point: {at:?}"
     );
-    assert_eq!(s.projectiles.len(), 1, "one round");
-    let p = s.projectiles[0];
+    assert_eq!(s.combat.projectiles.len(), 1, "one round");
+    let p = s.combat.projectiles[0];
     let (dx, dy, dz) = crate::air::MISSILE_OFFSET;
     assert_eq!(p.launch, Pos::new(at.x + dx, at.y + dy));
     assert_eq!(p.sz, dz, "the ground at 0 and the offset's height");
@@ -1340,7 +1340,7 @@ fn a_missile_s_round_is_run371_s_to_the_unit() {
     let _ = silo;
     s.rng.seed = 0x14e7_3b8f;
     s.missile_round(v2, Pos::new(13824, 14976));
-    let p = s.projectiles[0];
+    let p = s.combat.projectiles[0];
     assert_eq!(p.launch, Pos::new(9974, 12347), "sx, sy");
     assert_eq!(p.accuracy, 228);
     assert_eq!(p.landing, Pos::new(13834, 14969), "ex, ey");

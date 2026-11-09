@@ -685,11 +685,11 @@ impl Sim {
     /// slots 1 and 2, and the first to come down on 683 takes `1/8` while
     /// the second finds it dead and rolls on.
     pub(crate) fn add_ammo(&mut self, mut p: combat::Projectile) {
-        let live: Vec<u32> = self.projectiles.iter().map(|q| q.slot).collect();
+        let live: Vec<u32> = self.combat.projectiles.iter().map(|q| q.slot).collect();
         let slot = lowest_free_slot(&live);
         p.slot = slot;
-        let at = self.projectiles.partition_point(|q| q.slot < slot);
-        self.projectiles.insert(at, p);
+        let at = self.combat.projectiles.partition_point(|q| q.slot < slot);
+        self.combat.projectiles.insert(at, p);
     }
 
     /// `TerrainOut::find_data_z(x, y, 0)` — [`crate::World::data_z`] — with

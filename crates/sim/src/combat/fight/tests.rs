@@ -10,7 +10,7 @@ fn a_gaia_owner_has_no_modifiers() {
     assert_eq!(sim.mods_of(9).attack, 0);
     assert_eq!(sim.mods_of(9).armor, 0);
     assert_eq!(sim.mods_of(9).range, 0);
-    assert_eq!(sim.mods_of(1), sim.mods[1]);
+    assert_eq!(sim.mods_of(1), sim.combat.mods[1]);
 }
 
 /// **The Japanese level is the leader's own, read on the blow** (item
@@ -189,9 +189,9 @@ fn a_splash_round_strikes_its_own_target_whoever_owns_it() {
     let other = building(&mut sim, 1, Pos::new(2208, 2016));
     let p = round(&sim, me, Some(Obj::Building(mine)), Pos::new(2016, 2016), 1);
     sim.land(p, 858);
-    let struck: Vec<Obj> = sim.hits.iter().map(|h| h.target).collect();
+    let struck: Vec<Obj> = sim.combat.hits.iter().map(|h| h.target).collect();
     assert_eq!(struck, vec![Obj::Building(mine)], "the target alone");
-    assert!(!sim.hits[0].splash, "at the full count");
+    assert!(!sim.combat.hits[0].splash, "at the full count");
     let _ = other;
 }
 
@@ -226,14 +226,14 @@ fn a_round_whose_target_died_splashes_no_plane() {
     let p = air_round(&live);
     live.land(p, 797);
     assert!(
-        live.hits.iter().any(|h| h.target == Obj::Unit(near)),
+        live.combat.hits.iter().any(|h| h.target == Obj::Unit(near)),
         "a standing target's round splashes the plane beside it"
     );
     sim.units[dead].health = 0;
     let p = air_round(&sim);
     sim.land(p, 797);
     assert!(
-        sim.hits.iter().all(|h| h.target != Obj::Unit(near)),
+        sim.combat.hits.iter().all(|h| h.target != Obj::Unit(near)),
         "a dead target's round lands as ground"
     );
 }
@@ -281,7 +281,7 @@ fn a_burning_round_kills_with_the_ammo_graphic_s_three_draws() {
             .map(|(l, _)| l.clone())
             .filter(|l| l.starts_with("Unit::close"))
             .collect();
-        (marks, sim.deaths.last().map(|d| d.cur_anim))
+        (marks, sim.combat.deaths.last().map(|d| d.cur_anim))
     };
     let (plain, _) = sites(false);
     assert_eq!(plain, [SITE_DEATH_ANIM]);
@@ -529,7 +529,7 @@ fn a_decoy_s_round_strikes_nothing() {
         let p = round(&sim, me, Some(Obj::Building(b)), Pos::new(2016, 2016), 1);
         sim.land(p, 1522);
         assert_eq!(
-            sim.hits.len(),
+            sim.combat.hits.len(),
             usize::from(!decoy),
             "decoy {decoy}: a strike"
         );
@@ -570,7 +570,7 @@ fn a_closed_decoy_s_round_in_flight_strikes() {
     sim.close_decoy(me);
     assert!(!sim.units[me].decoy, "a closed unit is no decoy");
     sim.land(p, 3322);
-    assert_eq!(sim.hits.len(), 1, "the round strikes");
+    assert_eq!(sim.combat.hits.len(), 1, "the round strikes");
     assert!(sim.buildings[b].damage > 0, "the building takes it");
 }
 
@@ -597,7 +597,7 @@ fn an_aircraft_s_round_passes_over_its_own_side() {
         sim.land(p, 969);
         let want = if air { foe } else { own };
         assert_eq!(
-            sim.hits.last().map(|h| h.target),
+            sim.combat.hits.last().map(|h| h.target),
             Some(Obj::Unit(want)),
             "air {air}"
         );
@@ -1956,6 +1956,7 @@ fn a_building_s_hit_spills_onto_its_repairers_by_the_attacker_s_domain() {
             700,
         );
         let spilt: Vec<_> = sim
+            .combat
             .hits
             .iter()
             .filter(|h| h.target == Obj::Unit(hand))
@@ -2306,7 +2307,7 @@ fn a_packed_packer_in_range_unpacks_before_it_strikes() {
         "no unpack at the head: {:?}",
         sim.units[me].orders
     );
-    assert!(sim.hits.is_empty(), "a packed engine struck");
+    assert!(sim.combat.hits.is_empty(), "a packed engine struck");
 }
 
 #[test]
@@ -3772,17 +3773,17 @@ fn the_search_budget_keeps_a_dead_target_s_order_a_frame() {
         );
         sim.units[foe].health = 0;
         sim.forget(Obj::Unit(foe));
-        sim.retargets[0] = count;
+        sim.combat.retargets[0] = count;
         sim.work(me, 0);
         if count == 10 {
             assert!(sim.units[me].orders.is_empty(), "at ten, no budget");
             assert_eq!(sim.units[me].waiting, 0);
-            assert_eq!(sim.retargets[0], 11, "the search is counted");
+            assert_eq!(sim.combat.retargets[0], 11, "the search is counted");
             continue;
         }
         assert_eq!(sim.units[me].orders.len(), 1, "past ten the order stands");
         assert_eq!(sim.units[me].waiting, 2);
-        assert_eq!(sim.retargets[0], 11, "nothing is counted");
+        assert_eq!(sim.combat.retargets[0], 11, "nothing is counted");
         assert_ne!(
             sim.units[me].unit_masks2 & combat::umask2::NOT_FIRING,
             0,
@@ -3791,7 +3792,7 @@ fn the_search_budget_keeps_a_dead_target_s_order_a_frame() {
         // The next frame: `Unit::process` takes one off, the leader's
         // count starts again, and the order drops.
         sim.units[me].waiting -= 1;
-        sim.retargets[0] = 0;
+        sim.combat.retargets[0] = 0;
         sim.work(me, 1);
         assert!(
             sim.units[me].orders.is_empty(),
@@ -4570,7 +4571,8 @@ fn the_pool_takes_the_lowest_free_slot_and_steps_in_slot_order() {
     sim.add_ammo(shot(me, a, b, 5, 0, 0));
     sim.add_ammo(shot(me, a, b, 6, 0, 0));
     let slots = |s: &Sim| {
-        s.projectiles
+        s.combat
+            .projectiles
             .iter()
             .map(|p| (p.slot, p.total_time))
             .collect::<Vec<_>>()
@@ -4611,7 +4613,7 @@ fn a_harmless_round_lands_without_damage() {
     let full = sim.units[foe].health;
     sim.add_ammo(aimed(true));
     sim.process_projectiles(0);
-    assert!(sim.projectiles.is_empty(), "the round is closed");
+    assert!(sim.combat.projectiles.is_empty(), "the round is closed");
     assert_eq!(sim.units[foe].health, full, "and does no damage");
     let before = sim.rng;
     let mut ground = shot(me, a, Pos::new(0x1000, 0x1400), 1, 0, 0);
@@ -4648,10 +4650,10 @@ fn a_puncturing_round_into_the_ground_stays_two_hundred_frames() {
     };
     sim.add_ammo(ground(false));
     sim.process_projectiles(0);
-    assert!(sim.projectiles.is_empty(), "no puncture: closed");
+    assert!(sim.combat.projectiles.is_empty(), "no puncture: closed");
     sim.add_ammo(ground(true));
     sim.process_projectiles(0);
-    let p = *sim.projectiles.first().expect("the spent arrow");
+    let p = *sim.combat.projectiles.first().expect("the spent arrow");
     assert!(p.spent && !p.rolling && !p.missed, "flags 1");
     assert_eq!((p.slot, p.cur_time), (0, 0), "in its slot, clock reset");
     sim.units[me].health = 0;
@@ -4661,10 +4663,10 @@ fn a_puncturing_round_into_the_ground_stays_two_hundred_frames() {
     for f in 1..SPENT_LIFE {
         sim.process_projectiles(i64::from(f));
     }
-    assert_eq!(sim.projectiles.len(), 1, "199 frames on");
-    assert_eq!(sim.projectiles[0].cur_time, SPENT_LIFE - 1);
+    assert_eq!(sim.combat.projectiles.len(), 1, "199 frames on");
+    assert_eq!(sim.combat.projectiles[0].cur_time, SPENT_LIFE - 1);
     sim.process_projectiles(i64::from(SPENT_LIFE));
-    assert!(sim.projectiles.is_empty(), "closed at 200");
+    assert!(sim.combat.projectiles.is_empty(), "closed at 200");
 }
 
 /// **The death pool holds 100 records and evicts the oldest that does
@@ -4703,22 +4705,27 @@ fn the_death_pool_evicts_the_oldest_record_that_does_not_block() {
         sim.close_unit(i, 1, f);
         dead.push(sim.units[i].index);
     }
-    assert_eq!(sim.deaths.len(), combat::DEATH_POOL, "a hundred records");
-    let listed = |sim: &Sim| -> Vec<i32> { sim.deaths.iter().map(|d| d.o).collect() };
+    assert_eq!(
+        sim.combat.deaths.len(),
+        combat::DEATH_POOL,
+        "a hundred records"
+    );
+    let listed = |sim: &Sim| -> Vec<i32> { sim.combat.deaths.iter().map(|d| d.o).collect() };
     let kill = |sim: &mut Sim, f: i64| -> usize {
         let i = put(sim, 1, ty, Pos::new(0x3000, 0x3000));
         sim.frame = f;
         sim.units[i].health = 0;
         sim.close_unit(i, 1, f);
         sim.death_objs_inc_time();
-        sim.death_pool
+        sim.combat
+            .death_pool
             .iter()
             .position(|r| r.is_some_and(|r| r.o == i32::from(sim.units[i].index)))
             .unwrap()
     };
     // The wreck in slot 0 is the oldest and blocks: slot 1 goes.
     assert_eq!(kill(&mut sim, 200), 1, "the oldest that does not block");
-    assert_eq!(sim.deaths.len(), combat::DEATH_POOL);
+    assert_eq!(sim.combat.deaths.len(), combat::DEATH_POOL);
     assert!(
         listed(&sim).contains(&i32::from(dead[0])),
         "the wreck stays"
@@ -4731,7 +4738,11 @@ fn the_death_pool_evicts_the_oldest_record_that_does_not_block() {
     assert_eq!(kill(&mut sim, 201), 2, "the tie's other half");
     assert!(!listed(&sim).contains(&i32::from(dead[2])));
     assert_eq!(kill(&mut sim, 202), 3, "then frame 2's");
-    assert_eq!(sim.deaths.len(), combat::DEATH_POOL, "never past a hundred");
+    assert_eq!(
+        sim.combat.deaths.len(),
+        combat::DEATH_POOL,
+        "never past a hundred"
+    );
 }
 
 /// **A dead unit's number is held while its death object lives**
@@ -4747,7 +4758,7 @@ fn a_dead_unit_s_number_is_held_while_its_death_object_lives() {
     put(&mut sim, 1, ty, Pos::new(0x1400, 0x1000));
     sim.units[a].health = 0;
     sim.hold_dead_slot(a);
-    sim.deaths.push(combat::Death {
+    sim.combat.deaths.push(combat::Death {
         who: 1,
         o: 0,
         first_frame: 0,
@@ -4768,7 +4779,7 @@ fn a_dead_unit_s_number_is_held_while_its_death_object_lives() {
     // takes one off a frame — from `Object::close`'s thirty, which the
     // bump and the take have held level (§59.3).
     assert_eq!(sim.units[a].hold_frames, Sim::CLOSE_HOLD);
-    sim.deaths.clear();
+    sim.combat.deaths.clear();
     for _ in 1..Sim::CLOSE_HOLD {
         sim.tick();
     }
@@ -4808,7 +4819,7 @@ fn a_death_a_round_makes_is_bumped_on_its_own_frame() {
     sim.add_ammo(p);
     sim.tick();
     assert!(!sim.units[foe].alive(), "the round kills it");
-    assert_eq!(sim.deaths.len(), 1, "its death object");
+    assert_eq!(sim.combat.deaths.len(), 1, "its death object");
     assert_eq!(
         sim.units[foe].hold_frames,
         Sim::CLOSE_HOLD + 1,
@@ -4839,7 +4850,7 @@ fn a_crew_s_number_takes_one_bump_per_figure_s_record() {
     let mut figures = combat::Figures::one(None);
     figures.n = 4;
     figures.life[..4].copy_from_slice(&[3, 5, 8, 8]);
-    sim.deaths.push(combat::Death {
+    sim.combat.deaths.push(combat::Death {
         who: 1,
         o: 0,
         first_frame: sim.frame,
@@ -4858,7 +4869,7 @@ fn a_crew_s_number_takes_one_bump_per_figure_s_record() {
         [3, 3, 3, 2, 2, 1, 1, 1, -1, -1],
         "four records, then three, then two; then none and the take alone"
     );
-    assert!(sim.deaths.is_empty(), "culled with its last record");
+    assert!(sim.combat.deaths.is_empty(), "culled with its last record");
 }
 
 /// **A rolled shot comes down on the first step its arc is not above
@@ -4897,7 +4908,7 @@ fn a_rolled_shot_comes_down_on_the_first_step_the_ground_meets_it() {
             "step {step}: the shot lands on {down} and only then"
         );
     }
-    assert!(sim.projectiles.is_empty());
+    assert!(sim.combat.projectiles.is_empty());
     assert_eq!(
         sim.ground_inexact, 0,
         "a grid of whole numbers is every corner's own single"
@@ -5189,7 +5200,7 @@ fn the_lead_is_the_first_figure_s_average_speed() {
             Pos::new(0x1000, 0x1000),
             0,
         );
-        let p = *s.projectiles.last().expect("a shot");
+        let p = *s.combat.projectiles.last().expect("a shot");
         (p.landing, p.total_time)
     };
     let (still, t) = fire(0);
@@ -5231,7 +5242,7 @@ fn a_rolled_round_is_aimed_at_its_target_s_own_clamped_z() {
             false,
             false,
         );
-        let p = *s.projectiles.last().expect("a shot");
+        let p = *s.combat.projectiles.last().expect("a shot");
         assert!(p.rolling, "a shot at a land unit rolls");
         p.ez
     };
@@ -5274,7 +5285,7 @@ fn a_missile_s_round_is_not_led_and_does_not_roll() {
             false,
             missile,
         );
-        *s.projectiles.last().expect("a shot")
+        *s.combat.projectiles.last().expect("a shot")
     };
     let (shell, missile) = (fire(false, 23), fire(true, 23));
     assert!(shell.rolling, "a shell at a land unit rolls");
@@ -5327,7 +5338,7 @@ fn the_lead_asks_the_target_s_order_and_leads_along_its_angle() {
             Pos::new(0x1000, 0x1000),
             0,
         );
-        let p = *s.projectiles.last().expect("a shot");
+        let p = *s.combat.projectiles.last().expect("a shot");
         (p.landing, p.total_time)
     };
     // A flight between two legs: the head is `FLEE_TO`, the body has no
@@ -5389,7 +5400,7 @@ fn a_shot_strikes_at_its_own_bearing() {
         Pos::new(0x1000, 0x1000),
         0,
     );
-    let mut p = *sim.projectiles.last().expect("a shot");
+    let mut p = *sim.combat.projectiles.last().expect("a shot");
     p.launch = Pos::new(964, 8180);
     p.landing = Pos::new(1717, 8421);
     assert_eq!(p.bearing(), crate::movement::find_angle(753, 241));
@@ -5844,7 +5855,7 @@ fn an_idle_melee_and_ranged_type_searches_at_its_second_range() {
             "flagged {flagged}: {:?}",
             sim.units[me].orders
         );
-        assert_eq!(sim.second_range, None);
+        assert_eq!(sim.combat.second_range, None);
     }
 }
 
