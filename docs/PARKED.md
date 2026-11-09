@@ -3854,6 +3854,21 @@ instead. Candidate: a filter runs against both crates (`-p sim -p rondata`, or `
 either is named, as `release_gate.py`'s `unmatched_filters` names one, red first on a `rondata` filter; the price is one `rondata`
 test build in the reflex, which a lane builds anyway. Names no score; the loop's.
 
+(4041) **A guard that reads source files by path can go blind on a move, and stays green** (Loop 4029's build, the seventy-fifth
+pass; Ramon's word, 2026-11-09: queue it after the commander spawns): `a_golden_widening_s_window_reaches_its_trace_s_end` read
+`golden.rs` alone, found none of the 130 rows after `e8404b99e` moved the walks, and skipped each without a word for three weeks;
+`docs_guard`'s seam table and test-file list were made path-robust by 4008, but nothing says so for the rest. Candidate: a
+guard-of-guards — every pinned guard that reads a source or document set asserts it found at least one row (and, where the count is
+knowable, the count), red first on 4029's shape with the walks' files hidden; the next pass builds it. Names no score; the loop's.
+
+(4042) **The whole gate is the waiting, and its length has no owner** (the seventy-fifth pass, with Ramon on the row): fourteen whole
+booking gates ran 52.8–63.7 release minutes, 790 of the tranche's 873 gate minutes, with `other` at 0.3 and the suite at 3.0 a
+session; scoping the render lane (DECISIONS 115 §3) takes the avoidable half, and the structure's whole gates and every third
+widened merge keep the rest. Candidate, in the autoresearch shape Ramon named — a number, a lever, a measurement before any
+change: the next pass re-opens `docs/TEST_PERFORMANCE.md` with `gates.py`'s table and `suite_timings.py`'s file, names where a
+whole gate's minutes go by test family, and books one lever with its expected minutes; not a `docs/TRACKS.md` row, since that page
+is the finish line's. Names no score; the loop's.
+
 ## Loop, filed 2026-11-08 — the seventy-fifth tranche's
 
 **4023** (The frame's `ccc update att-<n>` names a worktree, and ccc takes the row's name) — **built by the seventy-fifth pass with 4022 (red first: `['ccc update att-<n>'] != []`): the landing row reads `ccc update lane-{item}`, filled per lane, and a test holds every `ccc` verb the frame spells to a `lane-` row.** The row as filed: (4023) **The frame's `ccc update att-<n>` names a worktree, and ccc takes the row's name** (4021's journal, the seventy-fifth
