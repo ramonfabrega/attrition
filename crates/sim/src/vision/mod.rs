@@ -25,9 +25,9 @@ use std::sync::OnceLock;
 
 /// A tile in position units — `TCoord`'s scale, and what `<LOS>` is measured
 /// in.
-const UNITS_PER_TILE: i32 = 0xc0;
+use crate::ids::scale::UNITS_PER_TILE;
 /// A fog cell in position units: half a world cell.
-pub const UNITS_PER_FOG: i32 = 0x180;
+pub use crate::ids::scale::UNITS_PER_FOG;
 /// `Object::update_seen`'s cap on the radius, in fog cells.
 const MAX_RADIUS: i32 = 0x40;
 /// `ring_init`'s last ring, and the ring branch's own clamp.

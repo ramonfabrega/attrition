@@ -41,7 +41,7 @@ const ESCROW_RATE: i32 = 40;
 const PEASANT_DIST_NONE: i32 = 100;
 
 /// Position units per cell — the divisor `peasant_dist` is measured in.
-const CELL: i32 = 0x300;
+const CELL: i32 = crate::ids::scale::UNITS_PER_CELL;
 
 pub(crate) use crate::ids::ty;
 

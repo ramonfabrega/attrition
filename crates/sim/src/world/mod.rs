@@ -54,12 +54,9 @@ pub type Player = u8;
 /// `treaties[0]` — the original has no answer there either.
 pub const PLAYER_SLOTS: Player = 8;
 
-/// Position units per tile.
-pub const UNITS_PER_TILE: i32 = 192;
-/// Tiles per world cell.
-pub const TILES_PER_CELL: i32 = 4;
-/// Position units per world cell.
-pub const UNITS_PER_CELL: i32 = UNITS_PER_TILE * TILES_PER_CELL;
+/// Position units per tile and per world cell, and tiles per world cell
+/// ([`crate::ids::scale`]).
+pub use crate::ids::scale::{TILES_PER_CELL, UNITS_PER_CELL, UNITS_PER_TILE};
 
 /// A position in the original's stored coordinate units.
 ///

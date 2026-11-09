@@ -526,3 +526,30 @@ pub mod ty {
         ("Merchant", MERCHANTS[0]),
     ];
 }
+
+/// The position scale and the turn — the units every distance and heading
+/// in the simulation is an integer of. `crate::world`, `crate::vision`,
+/// `crate::collide` and `crate::path` re-export or rename these.
+pub mod scale {
+    /// Position units per tile — `TCoord`'s scale, and what `<LOS>` is
+    /// measured in.
+    pub const UNITS_PER_TILE: i32 = 192;
+    /// Half a tile.
+    pub const HALF_TILE: i32 = UNITS_PER_TILE / 2;
+    /// A unit cell, a quarter tile — the grid the collision index is keyed
+    /// on and the pathfinder's finest step.
+    pub const UNITS_PER_UCELL: i32 = UNITS_PER_TILE / 4;
+    /// Tiles per world cell.
+    pub const TILES_PER_CELL: i32 = 4;
+    /// Position units per world cell.
+    pub const UNITS_PER_CELL: i32 = UNITS_PER_TILE * TILES_PER_CELL;
+    /// A fog cell in position units: half a world cell, two tiles.
+    pub const UNITS_PER_FOG: i32 = UNITS_PER_CELL / 2;
+    /// A quarter turn: an `Angle` is a full turn in `2^32`.
+    pub const QUARTER_TURN: i32 = 0x4000_0000;
+    /// A half turn — due south — `0x8000_0000`, which as an `i32` is
+    /// `i32::MIN` and is reached by wrapping.
+    pub const HALF_TURN: i32 = i32::MIN;
+    /// One in 8.8 fixed point.
+    pub const ONE_8_8: i32 = 256;
+}

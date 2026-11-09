@@ -101,7 +101,7 @@ impl ProbeSlots {
 }
 
 /// A unit cell, `0x30` position units — the grid the index is keyed on.
-pub const UNITS_PER_UCELL: i32 = 0x30;
+pub use crate::ids::scale::UNITS_PER_UCELL;
 /// Unit cells to a world cell, each way.
 pub const UCELLS_PER_CELL: i32 = UNITS_PER_CELL / UNITS_PER_UCELL;
 /// `Constants::unit_block_radius` — the scale `BLOCK_RADIUS` is loaded at.

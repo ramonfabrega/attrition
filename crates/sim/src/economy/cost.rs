@@ -849,7 +849,7 @@ impl Redirects {
         // The four rates the tables use, in 8.8.
         const THREE_HALVES: i32 = 384;
         const FIVE_QUARTERS: i32 = 320;
-        const ONE: i32 = 256;
+        const ONE: i32 = crate::ids::scale::ONE_8_8;
         const HALF: i32 = 128;
         Redirects {
             undiscovered: [

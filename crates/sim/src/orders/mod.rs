@@ -1270,7 +1270,7 @@ pub fn do_attack_ground_steps<V: AttackGroundView>(v: &mut V) {
     let direct = v.find_angle(dx, dy);
     let mut facing = direct;
     if v.sideways() {
-        const QUARTER: i32 = 0x4000_0000;
+        const QUARTER: i32 = crate::ids::scale::QUARTER_TURN;
         let heading = v.heading();
         let off = |a: i32| {
             let d = heading.wrapping_sub(a) as u32;
@@ -1483,9 +1483,9 @@ const PACKER_AUTO: u8 = 0;
 
 const SNAP: i32 = 0x30;
 const SNAP_CENTRE: i32 = 0x18;
-const HALF_TILE: i32 = 0x60;
-const TILE: i32 = 0xc0;
-const CELL: i32 = 0x300;
+use crate::ids::scale::HALF_TILE;
+const TILE: i32 = crate::ids::scale::UNITS_PER_TILE;
+const CELL: i32 = crate::ids::scale::UNITS_PER_CELL;
 /// `Game::init_data@0058dca0`: `num_def_builds = 200`, the per-player
 /// building slot count, and the threshold `Objects::find_builds` compares
 /// its circle against.

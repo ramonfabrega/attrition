@@ -2072,7 +2072,7 @@ impl Sim {
         if t.type_index == PATROLBOAT && matches!(self.profile(target).domain, Domain::Sea) {
             return direct;
         }
-        const QUARTER: i32 = 0x4000_0000;
+        const QUARTER: i32 = crate::ids::scale::QUARTER_TURN;
         let heading = self.units[i].movement.heading.0;
         let off = |a: i32| {
             let d = heading.wrapping_sub(a) as u32;

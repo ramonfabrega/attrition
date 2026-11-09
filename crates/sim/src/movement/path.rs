@@ -61,9 +61,9 @@ pub struct RefuseProbe {
 }
 
 /// The three grids' steps, in position units.
-pub const STEP_WORLD: i32 = 0x300;
-pub const STEP_TILE: i32 = 0xc0;
-pub const STEP_UNIT: i32 = 0x30;
+pub const STEP_WORLD: i32 = crate::ids::scale::UNITS_PER_CELL;
+pub const STEP_TILE: i32 = crate::ids::scale::UNITS_PER_TILE;
+pub const STEP_UNIT: i32 = crate::ids::scale::UNITS_PER_UCELL;
 
 /// A step the cost function refuses.
 pub const REFUSED: i32 = 0x7fff_ffff;
