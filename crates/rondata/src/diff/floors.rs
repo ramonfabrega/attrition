@@ -444,6 +444,12 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// and associated constants of `docs/STRUCTURE.md` §2's target.
 /// `largest` 13442 → 13336 (−106): `orders/mod.rs` gave its `spell` and
 /// `index` constants to `sim::ids` (rustfmt rewrapped five renamed lines).
+/// `largest` 13336 → 5437 (−7,899), item 4015's cuts: `orders/mod.rs` six
+/// ways (the largest piece `orders/jobs.rs`, 3,268), `combat/fight.rs` six
+/// and `groups/group.rs` four, every chunk moved whole. The leader is now
+/// `data/launch.rs`, a constant table (`BAYS` alone is 4,695 lines), then
+/// `data/pivot.rs` (4,517, `RELEASES`) and `cities/city.rs` (4,113), the
+/// one production file left above `docs/STRUCTURE.md` §2's 4,000.
 #[cfg(test)]
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 7),
@@ -451,7 +457,7 @@ pub const STRUCTURE: [(&str, u64); 6] = [
     ("sweep-lines", 17_255),
     ("names", 15),
     ("fields", 92),
-    ("largest", 13_336),
+    ("largest", 5_437),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before
