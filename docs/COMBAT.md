@@ -8395,7 +8395,7 @@ the air arm of `ez`, and the spent arrow's 200-frame hold.
 
 One lesson for the next reader. Grep the crate for the *type*, not only
 for the name the brief used. This item first wrote a software single
-from scratch over `crates/sim/src/single.rs`, which already had every
+from scratch over `crates/sim/src/num/single.rs`, which already had every
 operation, and caught it only on the module list.
 
 ## 47. The captain the roll reads, and the shot's own bearing (item 523, 2026-09-22)

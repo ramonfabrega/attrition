@@ -748,7 +748,7 @@ the orbit, and it is a limit cycle — perturbing a bird's initial heading by
 one unit leaves its position 1,700 frames later unchanged to the unit.
 
 **The arithmetic is single-precision, and is done in integers.**
-`crates/sim/src/single.rs` reproduces `addss`/`subss`/`mulss`/`divss`,
+`crates/sim/src/num/single.rs` reproduces `addss`/`subss`/`mulss`/`divss`,
 `cvtdq2ps`, `cvtdq2pd`+`cvtpd2ps` and `cvttss2si` exactly, each checked
 against the host's own float over random bit patterns. The constants are
 `0xb69680` = 55, `0xb69490` = 0.33, `0xb694c0` = 0.5, `0xb695c0` = 2,
