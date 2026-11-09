@@ -3605,6 +3605,66 @@ fn a_bomber_takes_a_fighter_strafing_it_low() {
         sim.valid_target(b, f),
         "the Bomber may not take the Fighter strafing it low"
     );
+    // The two `low` arms, each a searcher or target with `FLY_LOW` 0: a
+    // gun that reaches only high (`FLY_HIGH` 50) is refused the low Fighter,
+    // and a gun that reaches both is refused a strafing plane that can be
+    // struck only high.
+    let ground = |fly_high, fly_low| crate::UnitType {
+        hits: 100,
+        combat: Profile {
+            attack: 200,
+            max_range: 10,
+            fly_high,
+            fly_low,
+            uber_size: 1,
+            obj_masks: mask::GUN,
+            combat_role: true,
+            ..Profile::default()
+        },
+        ..crate::UnitType::default()
+    };
+    let (high_ty, both_ty) = (
+        sim.add_unit_type(ground(50, 0)),
+        sim.add_unit_type(ground(50, 20)),
+    );
+    let high_gun = put(&mut sim, 1, high_ty, Pos::new(0x4000 + 96, y + 192));
+    let both_gun = put(&mut sim, 1, both_ty, Pos::new(0x4000 + 96, y + 384));
+    assert!(
+        !sim.valid_target(Obj::Unit(high_gun), f),
+        "a gun that reaches only high took the low Fighter"
+    );
+    let high_only_ty = sim.add_unit_type(crate::UnitType {
+        hits: 100,
+        combat: Profile {
+            attack: 450,
+            max_range: 7,
+            fly_high: 30,
+            fly_low: 0,
+            uber_size: 1,
+            obj_masks: mask::AIR,
+            domain: Domain::Air,
+            combat_role: true,
+            ..Profile::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let high_only = put(
+        &mut sim,
+        0,
+        high_only_ty,
+        Pos::new(0x4000 + 96 + 900, y + 384),
+    );
+    let h = Obj::Unit(high_only);
+    assert!(
+        sim.valid_target(Obj::Unit(both_gun), h),
+        "a plane flying high"
+    );
+    let strafe = sim.units[fighter].orders[0];
+    sim.units[high_only].orders.push_back(strafe);
+    assert!(
+        !sim.valid_target(Obj::Unit(both_gun), h),
+        "a plane struck only high was taken flying low"
+    );
     sim.units[fighter].pos = Pos::new(0x4000 + 96 + 0x900, y);
     assert!(
         !sim.valid_target(b, f),
