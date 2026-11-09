@@ -105,6 +105,10 @@ pub struct TribeDef {
     /// style, which `get_unit_gpiece` also reads for an unpacked merchant
     /// (`sim::tech::Tribe::build_continent`; item 3369).
     pub build_continent: i32,
+    /// `<BACKUP_BUILD_CONTINENT>`, `Tribe +0x60` — the style
+    /// `GraphicPieces::get_build_gpiece@0090bce0` walks second, where the
+    /// nation's own has no `<BUILD>` for a type (item 4035).
+    pub backup_build_continent: i32,
 }
 
 impl Install {
@@ -228,6 +232,7 @@ impl Install {
                         name,
                         unit_continent: number("UNIT_CONTINENT"),
                         build_continent: number("BUILD_CONTINENT"),
+                        backup_build_continent: number("BACKUP_BUILD_CONTINENT"),
                     })
                 })
                 .unwrap_or_default();

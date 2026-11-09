@@ -152,6 +152,47 @@ pub fn placed(scene: &Scene) -> Vec<render::draw::Placed> {
         .collect()
 }
 
+/// **The scene's buildings as the draw list takes them** (item 4035): one
+/// [`render::draw::PlacedBuilding`] per building in use, at its own point
+/// and height, with its piece resolved through the loader
+/// ([`crate::artdata::BuildLook::piece`]: the type it is now, its owner's
+/// nation's style and backup style, its owner's age) and its type's
+/// `halfoffset`. `sim` models no piece; the door carries what the walk
+/// reads, and `tribes` is the install's nations in the tree's order
+/// ([`crate::Install::tribe_defs`]). A bare object, with no type, is left
+/// out: it has no `<BUILD>`.
+pub fn placed_buildings(
+    scene: &Scene,
+    look: &crate::artdata::BuildLook,
+    tribes: &[crate::TribeDef],
+) -> Vec<render::draw::PlacedBuilding> {
+    let base = crate::load::BASE_BUILDTYPES;
+    scene
+        .buildings
+        .iter()
+        .filter_map(|b| {
+            let type_index = base + b.ty? as i32;
+            let (style, backup) = tribes
+                .get(b.tribe)
+                .map_or((0, 0), |t| (t.build_continent, t.backup_build_continent));
+            Some(render::draw::PlacedBuilding {
+                who: b.id.who,
+                o: b.id.o,
+                x: b.pos.x,
+                y: b.pos.y,
+                z: b.z,
+                type_index,
+                orig_type: b.orig_ty.map_or(type_index, |t| base + t as i32),
+                piece: look.piece(type_index, style, backup, b.age),
+                half_offset: look.half_offset(type_index),
+                active: b.active,
+                job_counter: b.job_counter,
+                construct_time: b.construct_time,
+            })
+        })
+        .collect()
+}
+
 /// `viewer`'s sight on a scene observed for it, or `None` for a scene with
 /// no fog plane — the observer's. `width` is the map's in cells
 /// ([`sim::observe::TerrainScene::width`]).

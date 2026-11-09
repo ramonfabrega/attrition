@@ -482,6 +482,10 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// steps to `ai/army/besieged_view.rs` (4007 → 3721), which is now the
 /// largest.
 ///
+/// Item 4035: `largest` unmoved at 3721. Its +5 (`init_build` takes
+/// `Building::z` at the push and after the building's own terraform) sits
+/// in `cities/city.rs`, 3600 → 3605, which is not the largest.
+///
 /// Item 4032: every count unchanged. The 29 `mod.rs` files became
 /// `foo.rs` beside `foo/` (§5.11), which `flat` does not count as loose;
 /// `sweep-lines` held at 17286 once `tools/shape.py` read `sweep.rs`, the
@@ -545,7 +549,7 @@ pub fn renderer_line() -> String {
     let (pieces, of_pieces) = crate::artdata::PIECES_DECODING;
     format!(
         "Renderer: K {} of M {RENDER_M} \u{b7} frames {frames} of {of_frames} \u{b7} pieces {pieces} of {of_pieces}",
-        RENDER_K.0
+        RENDER_K
     )
 }
 

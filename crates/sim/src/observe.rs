@@ -114,6 +114,9 @@ pub struct BuildingScene {
     /// An index into the building types; `None` for the bare object.
     pub ty: Option<usize>,
     pub pos: Pos,
+    /// Its own height, `SubObjectData::z_internal` ([`crate::cities::building::Building::z`]):
+    /// the ground under it once its own terraform has run, which a later
+    /// terraform does not move (item 4035).
     pub z: i32,
     /// Hit points left and the hit points it was built with.
     pub health: i32,
@@ -124,6 +127,25 @@ pub struct BuildingScene {
     /// against `construct_hits` (`docs/CITIES.md` §3).
     pub constr_time: i32,
     pub construct_hits: i32,
+    /// The type it was placed as, `BuildData::orig_type` — the one type a
+    /// dump prints, and the type the renderer's K of M counts
+    /// (`docs/RENDERER.md` §5.4; item 4035).
+    pub orig_ty: Option<usize>,
+    /// `WallData::job_counter` and `BuildData::construct_time(0)`: the
+    /// share built, which `WallOut::draw@00641930` reads to choose whether
+    /// an unfinished building is drawn (`docs/RENDERER.md` §3.5).
+    pub job_counter: i32,
+    pub construct_time: i32,
+    /// The art coordinates `GraphicPieces::get_build_gpiece` walks from
+    /// (item 4035), as `Wall::update_gpiece@00643070` passes them: the
+    /// nation of its **founder** (`BuildData::founder`, `+0x7f`), an index
+    /// into the tech tree's tribes — a captured city keeps the art of the
+    /// nation that built it — and its age, `BuildData::max_age`, which this
+    /// crate does not keep: the owner's ages owned
+    /// (`LeaderDataEncrypt::ages`) stand in, the value `Leader::gain_tech`
+    /// writes to every building of the player.
+    pub tribe: usize,
+    pub age: i32,
 }
 
 /// One projectile in flight.
@@ -241,8 +263,9 @@ impl Sim {
         let buildings = self
             .buildings
             .iter()
-            .filter(|b| b.alive)
-            .map(|b| BuildingScene {
+            .enumerate()
+            .filter(|(_, b)| b.alive)
+            .map(|(i, b)| BuildingScene {
                 id: ObjId {
                     who: b.owner,
                     o: b.index,
@@ -250,12 +273,17 @@ impl Sim {
                 owner: b.owner,
                 ty: b.ty,
                 pos: b.pos,
-                z: self.world.tile_z(b.pos.tile()),
+                z: b.z,
                 health: b.health,
                 hits: b.hits,
                 active: b.active,
                 constr_time: b.constr_time,
                 construct_hits: b.construct_hits,
+                orig_ty: b.orig_ty,
+                job_counter: b.job_counter,
+                construct_time: self.construct_time_of(i),
+                tribe: self.tech.get(b.founder as usize).map_or(0, |p| p.tribe),
+                age: self.tech.get(b.owner as usize).map_or(0, |p| p.ages),
             })
             .collect();
         let projectiles = self

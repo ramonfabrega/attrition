@@ -944,7 +944,26 @@ and `build_art`).
 - `texture`, string 136, with a snowy-tileset variant;
 - `zbuffer`, string 3850. This is a `.bh3`, and the piece loads only when
   `zbuffer` is empty or its file exists;
-- `anim`, through `decipher_animation`.
+- `anim`, through `decipher_animation`;
+- `halfoffset`, string 3854 (`int_str_array + 0x12d18`, default 0), into
+  `BuildRDataStruct::build_half_tcoord` (item 4035). The install writes
+  it 0 on 622 `<BUILD>` entries and 1 on 291, and the same value on every
+  entry of one `GRAPH` (133 of 133). Its neighbours read the same way:
+  3850 `zbuffer`, 3851 `constructsize` into `build_construction`.
+  `WallOut::draw@00641930` moves a building's anchor back `0x60` world
+  units on both axes for each unit of it (`docs/RENDERER.md` §3.5).
+  Diff-backed: 4,564 dumped building records anchor within a pixel of the
+  original's projection with it, 3,397 without.
+
+**Which piece a building plays** (item 4035). `Wall::update_gpiece@00643070`
+calls `get_build_gpiece@0090bce0` with the current type, the founder
+(`BuildData::founder`, `+0x7f`) and the building's `max_age`. The walk:
+down the ages from `max_age` (clamped to 0–7) in the founder's nation's
+`BUILD_CONTINENT` (`Tribe +0x64`); then, where it differs, in its
+`BACKUP_BUILD_CONTINENT` (`+0x60`); then in the default style; the first
+piece that loads, else `first_build_piece + type`. Diff-backed: on all
+4,564 building records of the Aztec Modern lobby's dumps, the walk from
+the simulation's state gives the dump's `gpiece` (`artdata::BuildLook`).
 
 Each `EXISTEVENT` in `init_build_events@008ea3c0` names a `subject`, an
 ammo piece matched by `<AMMO name>` in `effects_graphics.xml`, and an

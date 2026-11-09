@@ -666,8 +666,78 @@ point (`GuyOut::draw`).
   where a viewer's check would start.
 - **The depth key's order** against the original's. No dump prints a
   draw order.
-- **Buildings.** They are not in the list. `BuildingScene` carries no
-  piece, and run1429's frames print no building.
+- ~~**Buildings.** They are not in the list. `BuildingScene` carries no
+  piece, and run1429's frames print no building.~~ In the list since item
+  4035, below.
+- **A building's drawn set is a reading.** Both sides run the same
+  `WallOut::draw` predicate, each on its own state, so the comparison
+  checks the inputs (finished, `job_counter`, the construction time) and
+  not the predicate. `is_force_construction`, and the caller's own gate
+  on `WallOut::draw`, are unread. So is whether a viewer sees a fogged
+  building it has seen before (`ever_seen`); the `Sight` rule for
+  figures is applied to buildings unchanged.
+- **The piece drawn is `render_gpiece`, not `gpiece`.** `WallOut::draw`
+  draws `+0x68`, which `Wall::update_gpiece@00643070` may set an age
+  lower, or to the console player's age. The list carries `gpiece`, the
+  field the dump prints. The anchor does not depend on it: `halfoffset`
+  is the same for every `<BUILD>` of a type.
+
+**Buildings in the list** (item 4035). `render::draw::PlacedBuilding`, one
+per building in use, copied by `rondata::free::placed_buildings`, leaves
+the list as a `Drawn` whose `Pose` is `Building`. The reference is
+`WallOut::draw@00641930`:
+
+- *The anchor.* `world_to_screen(x − 0x60·h, y − 0x60·h, z, −1, −1)` on
+  the building's own `x_internal`, `y_internal`, `z_internal`
+  (`SubObjectData +0x10`, `+0x14`, `+0xc`), where `h` is
+  `BuildRDataStruct::build_half_tcoord`, the drawn piece's `<BUILD>`'s
+  `halfoffset` (0 or 1; the listing at `00642033`–`0064207d`). A building
+  is a sprite: the half tile back is where the sprite's own origin sits.
+  `AIRDEFENSE`, `RADAR` and `SAM` take a model at the point, no offset.
+- *Drawn.* The alpha is opaque past 0.88 of the share built
+  (`job_counter / BuildData::construct_time(0)`, 1 when finished), fades
+  in from 0.84, and is inverted for every type but the farm. So an
+  unfinished building is drawn past 0.84, a farm only before 0.88, and
+  type `0x1a6` only finished.
+- *The piece.* `GraphicPieces::get_build_gpiece@0090bce0` from the
+  current type, the **founder's** nation (`BuildData::founder`; a captured
+  city keeps the art of the nation that built it) and the building's age:
+  down the ages in the nation's style, then its backup style, then the
+  default, the first `<BUILD>` that loads (`artdata::BuildLook`).
+
+**The score.** On the lobby's every frame that prints buildings — run1428's
+two, run1429's start and closing block, run1429b's 95 — **99 of 99 frames
+in register, 4,564 of 4,564 records** (3,285 drawn, the rest drawn by
+neither side), each anchor within one pixel of the original's projection
+of the dumped point, and **4,564 of 4,564 pieces the dump's `gpiece`**
+(`BUILDING_FRAMES_IN_REGISTER`, `BUILDINGS_IN_REGISTER`,
+`BUILDING_PIECES_AGREEING`). Building K **20 of 21** (§5.4).
+
+**The door, widened.** `BuildingScene` gained `orig_ty`, `job_counter`,
+`construct_time`, and the founder's tribe and the owner's age. Its `z` is
+`Building::z` now, not the live tile:
+
+| record | dump `z_internal` | ours, wrong | pixel, theirs | pixel, ours wrong | ours now |
+|---|---|---|---|---|---|
+| run1429b 3295 `1/2026` (Factory) | 185 | 214, the live tile | (3766, 1725) | (3766, 1720) | 185, (3766, 1725) |
+| run1428 0 `0/2000` (capital) | 536 | 546, after its own terraform only | (−3384, −527) | (−3384, −529) | 536, (−3384, −527) |
+
+- A building's height is the ground after **its own** terraform, at
+  placement, and nothing rewrites it. The Factory's tile went 176 → 185
+  when it was placed (1583), and 185 → 214 when a later terraform reached
+  it (2186). The original kept 185.
+- The start's buildings take the setup block's `z_internal`
+  (`diff::build_sim`). Standing them up one at a time leaves each capital
+  on the ground its own terraform left, before its neighbours' moved it.
+
+**Made to fail once.** No `halfoffset`: 3,397 of 4,564 records, building K
+13, every half-offset type 15 pixels low. The owner's style for the
+founder's: 4,563, the captured capital `1/2047` on the Aztecs' piece 57015
+against the dump's 57144. The live tile for `Building::z`: 4,468, the
+Factory 5 pixels off.
+
+**Diff-backed:** the anchors, the heights, the pieces. **Listing-backed:**
+the half-tile rule. **Reading only:** the drawn predicate.
 - ~~**A figure's own point apart from its unit's.**~~ Settled by item
   4027: guy 0's is `Movement::body`, and the door reads it now.
 
@@ -834,12 +904,12 @@ It is the art phase's counter, not the first one.
 - **A building type's condition 2 is unmet, not vacuous**:
   - the dumps print every building's position on the logged frames, so
     there is a dumped frame to compare against;
-  - but the draw list carries no building entry to put in register.
+  - ~~but the draw list carries no building entry to put in register.~~
+    Since item 4035 it does (§3.5): a type is in register when every
+    record of it the dumps print is drawn by both sides or neither and,
+    drawn, sits within one pixel with the dump's piece.
 
-  A decoded building therefore earns no K until the draw list carries
-  buildings and their anchors are compared with the original's projection
-  of the dumped positions. That is the next render item's ground, and it
-  is not stubbed true.
+  A decoded building earns K only then. Nothing is stubbed true.
 
 **The shape.** It reads like the rubric's "unit types seen 296 of 302". It
 has a denominator from the oracle's own files. It rises one piece at a time,
@@ -869,16 +939,19 @@ heightfield's projected corner points are in register at the pinned camera.
   lobby's three captures hold. 4020 counted 39 and M = 60. Piece 265 was
   played only by a unit at no health, which the door no longer reports
   (§2.3).
-- **K = 38 of M's 59** (`RENDER_K`, §3.5; 29 at item 4026, 31 at 4027,
-  38 at 4028), with both conditions live:
+- **K = 58 of M's 59** (`RENDER_K`, the sum of `RENDER_K_PIECES` and
+  `RENDER_K_BUILDINGS`, §3.5; 29 at item 4026, 31 at 4027, 38 at 4028, 58
+  at 4035), with both conditions live:
   - 38 of the 38 pieces decode (condition 1, on the slots played);
   - all 38 are in register on every logged frame they are played on
     (condition 2). Item 4027 brought in pieces 232 and 11264.
   - ~~The 21 building types have neither a decoder nor a dumped frame, so
     they count toward no K.~~ Since item 4028, 20 of the 21 building types
-    decode (`M_BUILDING_TYPES_DECODING`: 25 pieces, 80 files). They count
+    decode (`M_BUILDING_TYPES_DECODING`: 25 pieces, 80 files). ~~They count
     toward no K, because the draw list does not carry them (the ruling
-    above). The farm is short: its `<BUILD>` names no model.
+    above).~~ Since item 4035 all 21 are in register (§3.5), and the 20
+    that decode count: `RENDER_K_BUILDINGS` 20. The farm is short on
+    condition 1 alone: its `<BUILD>` names no model (item 4037's).
 - **The dumps check every figure they print a `gpiece` for.** Only the
   `DUMP_ALL` states print one: run1428's two, and run1429's start block.
   That is 306 figures on the map, all 306 agreeing, and on each dump's
@@ -897,9 +970,9 @@ heightfield's projected corner points are in register at the pinned camera.
 *What M is not yet:*
 - one pair;
 - figures of units on the map only. Five garrisoned figures fall outside it;
-- no building's own `gpiece` in the scene. `BUILDDATA` prints one, which
-  `BuildDump::gpiece` reads since item 4028, and `BuildingScene` does not
-  carry it;
+- ~~no building's own `gpiece` in the scene.~~ Since item 4035 the draw
+  list carries one, resolved in `rondata` from what the door carries, and
+  it is the dump's on all 4,564 records;
 - no corpse or projectile art;
 - the building half counts types made, not types drawn. A capital's
   upgrade is outside it: the runner's scenes hold 23 types, the dumps 21.

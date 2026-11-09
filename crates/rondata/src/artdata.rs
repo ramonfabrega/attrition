@@ -1459,6 +1459,93 @@ pub fn build_art(
     out
 }
 
+/// **The building pieces' look, as the loader holds it** (item 4035): which
+/// `<BUILD>` entries load, and each type's `halfoffset`. A piece loads —
+/// `data_pieces[piece] != 0` after `verify_load` — when its
+/// [`build_piece_name`] names a `<BUILD>` whose `zbuffer` is empty or a file
+/// of the install (`init_build_data@008f2f20`). `halfoffset` is
+/// `internal_strings.xml`'s `halfoffset`, the attribute `init_build_data`
+/// reads into `BuildRDataStruct::build_half_tcoord`, default 0; every
+/// `<BUILD>` of one `GRAPH` carries the same value, so it is kept by type.
+#[derive(Clone, Debug, Default)]
+pub struct BuildLook {
+    /// The pieces that load, by piece number.
+    loads: std::collections::BTreeSet<i32>,
+    /// `halfoffset` by `TypeIndex`.
+    half: BTreeMap<i32, i32>,
+}
+
+impl BuildLook {
+    pub fn new(install: &Install) -> Self {
+        let path = install.data("building_graphics.xml");
+        let (Ok(text), Ok(rules)) = (crate::read(&path), install.buildings()) else {
+            return Self::default();
+        };
+        let Ok(doc) = crate::parse(&path, &text) else {
+            return Self::default();
+        };
+        let graphs: Vec<String> = rules
+            .records
+            .iter()
+            .map(|r| r.text("GRAPH").unwrap_or_default().to_string())
+            .collect();
+        let builds: BTreeMap<String, roxmltree::Node<'_, '_>> = doc
+            .descendants()
+            .filter(|n| n.has_tag_name("BUILD"))
+            .filter_map(|n| Some((n.attribute("name")?.trim().to_ascii_uppercase(), n)))
+            .collect();
+        let mut look = Self::default();
+        for piece in FIRST_BUILD_PIECE..FIRST_BUILD_PIECE + 8 * BUILD_PIECES_PER_AGE {
+            let Some((type_index, name)) = build_piece_name(piece, &graphs) else {
+                continue;
+            };
+            let Some(b) = builds.get(&name) else {
+                continue;
+            };
+            let zbuffer = b.attribute("zbuffer").map(str::trim).unwrap_or_default();
+            if zbuffer.is_empty() || resolve(install.root(), zbuffer).is_some() {
+                look.loads.insert(piece);
+            }
+            let half = b
+                .attribute("halfoffset")
+                .and_then(|v| v.trim().parse().ok())
+                .unwrap_or(0);
+            look.half.entry(type_index).or_insert(half);
+        }
+        look
+    }
+
+    /// `halfoffset` of the type's `<BUILD>` entries; 0 where it has none.
+    pub fn half_offset(&self, type_index: i32) -> i32 {
+        self.half.get(&type_index).copied().unwrap_or(0)
+    }
+
+    /// **`GraphicPieces::get_build_gpiece@0090bce0`**, as `Wall::update_gpiece
+    /// @00643070` calls it for a building (`param_4` its `max_age` less its
+    /// leader's age, so the walk starts at the building's own age): from
+    /// the age, clamped to 0..=7, down to 0 in the nation's style; then,
+    /// where the backup style differs, down again in it; then down in the
+    /// default style; the first piece that loads. Nothing loading is the
+    /// type's age-0 default piece.
+    pub fn piece(&self, type_index: i32, style: i32, backup: i32, age: i32) -> i32 {
+        let ty = type_index - 0x19e;
+        let at = |style: i32, age: i32| {
+            FIRST_BUILD_PIECE + NUM_BUILD_PIECES * style + BUILD_PIECES_PER_AGE * age + ty
+        };
+        let top = age.clamp(0, 7);
+        let mut styles = vec![style];
+        if backup != style {
+            styles.push(backup);
+        }
+        styles.push(0);
+        styles
+            .into_iter()
+            .flat_map(|s| (0..=top).rev().map(move |a| at(s, a)))
+            .find(|p| self.loads.contains(p))
+            .unwrap_or(FIRST_BUILD_PIECE + ty)
+    }
+}
+
 /// **A building piece's condition 1** (item 4028, `docs/RENDERER.md`
 /// §5.4): every model and animation its [`BuildArt`] names — the
 /// `zbuffer` `.bh3`, the building's own `anim`, each addon's `.bh3` and
