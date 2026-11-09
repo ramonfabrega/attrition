@@ -7627,7 +7627,7 @@ only under a repeating base** (item 842, the listing's tail of
 action bit cleared (`flags &= ~4`). When it is clear, `close_orders`,
 the partial path and `update_action` follow. run265's Airbase reads 4232,
 whose bit 7 is set. ~~This crate closes the orders always
-(`Building` carries no `build_masks`, `lib.rs`), which is the widening's
+(`Building` carries no `build_masks`, `cities/building.rs`), which is the widening's
 one order on 1385 and 1489. Parked.~~ Built by item 854, §40:
 `Building::repeat_air`, and the rows agree.
 

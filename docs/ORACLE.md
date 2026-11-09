@@ -1935,7 +1935,7 @@ only a word-for-word comparison against run21 caught it.
   walked stream, which opens with a length-prefixed UTF-16 version string
   (`Version: 00.2017.08.2100` in the sample).
 - **Whether `SimulationFps` moves the 15 frames per second** that
-  `crates/sim/src/lib.rs` holds as `FRAMES_PER_SECOND`, or something else.
+  `crates/sim/src/core/frame.rs` holds as `FRAMES_PER_SECOND`, or something else.
 - ~~**Where `read_package` stops** — the stream has no count that has been
   seen, so the reader presumably runs to end of file. Unconfirmed.~~ End of
   file, confirmed by the sample: the package stream parses to exactly EOF

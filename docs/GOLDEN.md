@@ -11183,7 +11183,7 @@ Read, then built; two of the three close.
 reaches one fog cell further east. run805 shows the members **born at their seated spots** on 603, not stacked.
 `Unit::set_new_location@005f8d20` brackets a world-cell change (>>8) with `remove_from_world`/`add_to_world`, and
 `add_to_world` ends in `update_seen(0)`; this crate's `set_new_location` did `chain_add` only, so
-`Objects::init_unit`'s seating of members 1.. lit nothing at the new spot. **Built** (`lib.rs`, `init_unit`'s seating):
+`Objects::init_unit`'s seating of members 1.. lit nothing at the new spot. **Built** (`units/store.rs`, `init_unit`'s seating):
 a member whose seat crosses a world cell calls `update_seen(u, false)`. **Not in `set_new_location` itself**: the first
 build put the call there (every cell crossing) and moved the successor pair's first draw parting 3188 → 1387 and
 eight pair widenings; the seating alone leaves the pair at 3188 (it seats no member across a cell). Value diff: `1/2006 ever_seen` 0 → 1 on 607, `treaties` 0 → 1 both sides, `ever_seen_completed`
@@ -11688,7 +11688,7 @@ reads `stance 2`, group 1, and its found attack on the fishing boat is gone for 
 **Built**, each held by the widening (`tools/mutate.py`, cargo exit 101 on `chapter_sixty_four_s_word_frame_is_
 widened_whole`):
 
-- **The birth arm** (`crates/sim/src/lib.rs`, `init_unit`; `combat::umask2::BARK`). Without it, block 622: `1/8`
+- **The birth arm** (`crates/sim/src/units/store.rs`, `init_unit`; `combat::umask2::BARK`). Without it, block 622: `1/8`
   `stance` 0 here against 3 there (402 rows against 401).
 - **`fight`'s predicate** (`crates/sim/src/orders/mod.rs`, the captain's re-search, `fight@005fd4d0:394-400`): with the
   bit, a target whose role is combat and whose type is not `n` (`unit_flags & 0x2000`) is searched past; without
@@ -11903,7 +11903,7 @@ Catapult, whose raw byte is `PACKER_AUTO` 0, searches as STAND_GROUND: (15 + 1) 
 Small City's cell is on the fifth. This crate kept `combat::Stance` apart from the byte and gave every unit
 AGGRESSIVE, so it searched at 3456.
 
-**Built.** `Sim::add_unit` (`crates/sim/src/lib.rs`): a type whose stance type is not `Combat` takes `combat.stance =
+**Built.** `Sim::add_unit` (`crates/sim/src/units/store.rs`): a type whose stance type is not `Combat` takes `combat.stance =
 StandGround` — every reader of vslot `+0xf4` in the original sees 2 for a packer, a worker, a caster or a type with no
 stances. That moved two closed floors (Great Sahara at Toughest 15432 → 15025, East Indies at Toughest 18140 →
 17944): run589's packed cannon `1/132`, attack-moving, takes `0/2000` on 17944 and the original walks at it on 17945
@@ -14633,7 +14633,7 @@ term is (§264 of `docs/AI.md`). run1413b's coverage enters `count_discovered` f
 job starts, which is a job of the type the slot is asked for. The term stands ahead of `RESEARCH_FASTER`, Relics
 and the science speedup, and the Greeks' arm never meets it (that one is the age and epoch branches').
 
-**The build.** `Sim::held_elsewhere` (`crates/sim/src/lib.rs`), first in `tech_time`'s tail:
+**The build.** `Sim::held_elsewhere` (`crates/sim/src/cities/queue.rs`), first in `tech_time`'s tail:
 `Adjust::Ratio(players − n + 1, players + 1)` on a `tech::Kind::is_plain_tech` type, `n` the seats whose `tech` bit
 holds it, `players` the seat count.
 
@@ -15262,7 +15262,7 @@ more than three — `is_team` (in play `is_ally`) adds 1, anyone else 2 — and 
 holds 8 epochs from 1004 and 9 from 1129, who=2 4 from 811 and 5 from 1019, every `ages` 1. So from 1004 who=2's
 epochs run at 6/8.
 
-**The build** (`crates/sim/src/lib.rs`, `Sim::epoch_catch_up`, in `tech_time`'s tail where `held_elsewhere` sits):
+**The build** (`crates/sim/src/cities/queue.rs`, `Sim::epoch_catch_up`, in `tech_time`'s tail where `held_elsewhere` sits):
 who=2's Military epoch (572) finishes on 1018 rather than 1087, City State lands by 1228 rather than 1362, its sweep
 pulls the Stable into Thebes, and the Stable's activation on 1279 flags the chain — the replans of 1284–1291.
 
@@ -17990,7 +17990,7 @@ Hoplites are `0/7..9`, 384 to 528 away. All four stand on cell (10, 45), which w
 - run1513 and run1513b are one game on all 1001 frames (`rngcmp`).
 
 **What this crate does.** `Sim::cast_entrench` (`crates/sim/src/spells/cast.rs`) is the body, called from `do_cast_effect`'s
-`ENTRENCH` arm. `Sim::entrench_job_time` (`crates/sim/src/lib.rs`) is `cast_job_time`'s `0x27d` arm, with
+`ENTRENCH` arm. `Sim::entrench_job_time` (`crates/sim/src/spells/job_time.rs`) is `cast_job_time`'s `0x27d` arm, with
 `tuning.french_entrench` (100) and `tuning.antipater_entrench_rate` (128). `umask2::ANTIPATER_TRENCH` is the
 Antipater bit. The draw stream agrees to the trace's end: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_SIXTEEN` = **1000**,
 closed (`chapter_one_hundred_and_sixteen_holds_to_the_golden_word`). The widening over 605..1000
@@ -19119,7 +19119,7 @@ tests.
 **Built.**
 - `Sim::replace_gather` (`rally.rs`), called from `close_count` on the squad gate alone, ground arm only. SEAM: the
   hotkey-successor arm, since this crate keeps no hotkey groups (parked 3989a).
-- `Sim::unqueue_home` (`lib.rs`): `cancel` and `action_unqueue` keep a slot holding `DISBAND` at home.
+- `Sim::unqueue_home` (`cities/queue.rs`): `cancel` and `action_unqueue` keep a slot holding `DISBAND` at home.
 - `process_queue`: `do_queue@0061e410`'s non-first-library gate passes a `DISBAND` slot (`TVar21 != DISBAND`).
   Found by the widening: run1547's `0/2008` ran its Disband at 100 a frame from 632, and ours held 0.
 - `cancel` of a Disband takes no unit count off (its `ty` 0 is no unit's). Found by the test fixture's panic.

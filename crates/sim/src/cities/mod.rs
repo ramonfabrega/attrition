@@ -3,6 +3,7 @@
 pub mod activate;
 pub mod build;
 pub mod build_unqueue_view;
+pub mod building;
 pub mod capture;
 pub mod capture_view;
 pub mod city;
@@ -14,6 +15,7 @@ pub mod location;
 pub mod nations;
 pub mod place;
 pub mod production;
+pub mod queue;
 pub mod queue_disband;
 pub mod rally;
 pub mod site_recruit;

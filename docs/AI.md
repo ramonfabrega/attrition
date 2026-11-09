@@ -15907,7 +15907,7 @@ without a packet, from the dump's own `GUY` records, and the trace's seeds.
    crew, a Senator's), where the two orders coincide.
 
 **Built.** `Sim::guys_follow` (`anim.rs`) runs `process_follower` at a tracked figure's own slot; the gull's early return runs it for the tracked figures
-it skips. `Sim::process_movement` (`lib.rs`) writes the crew's `des` (`crew_des`) **before** the figures run, as guy 0's `Guy::move` does, instead of
+it skips. `Sim::process_movement` (`movement/step.rs`) writes the crew's `des` (`crew_des`) **before** the figures run, as guy 0's `Guy::move` does, instead of
 after them: a tracked figure later than guy 0 reads a destination already rewritten, and `crew_des` reads only the unit's position and the frame's new
 facing, neither of which a figure's animation touches. Test `a_tracked_crew_figure_between_untracked_ones_turns_in_its_slot`
 (`harness_tests.rs`), a four-figure unit with guy 2 tracked: three `SITE_ARRIVE` and the turn between the second and the third. Mutation: the tracked
@@ -17695,7 +17695,7 @@ which no capture here has.
 
 **The word 2185's first parting, 2183.** Building `1/2034`'s queue holds a second ICBM (`TypeIndex` 316; the first stands at `1/2017` at 742/891, 99 % of 750/900): the original 927/1069, ours 816/965. Two terms, solved from the pair — 927/0.99 = 937 = 750 · 95 % + 225 and 1069/0.99 = 1080 = 900 · 95 % + 225 — and each read:
 
-- **The ramp counts spent nukes twice.** `get_support_count` adds `nukes_used` for `0x13b` and `0x13c` by index, and `get_cost:546` adds the field again for any type `is(0x13b)` (the ICBM's `FROM` is the Nuclear Missile, `0x13b`; probed). One queued ICBM and one spent nuke make count 3, 225 on each support slot (`Oil 75`, `Knowledge 75`), where ours counted 1. Built: `Sim::nuke_ramp_extra` (`lib.rs`), in `price_with`'s count. The matching `missiles_used` (the two missile types below the nuke) is not tracked.
+- **The ramp counts spent nukes twice.** `get_support_count` adds `nukes_used` for `0x13b` and `0x13c` by index, and `get_cost:546` adds the field again for any type `is(0x13b)` (the ICBM's `FROM` is the Nuclear Missile, `0x13b`; probed). One queued ICBM and one spent nuke make count 3, 225 on each support slot (`Oil 75`, `Knowledge 75`), where ours counted 1. Built: `Sim::nuke_ramp_extra` (`economy/pricing.rs`), in `price_with`'s count. The matching `missiles_used` (the two missile types below the nuke) is not tracked.
 - **Uranium takes `URANIUM_NUKE_COST` (5 %) off the scaled base** of a type of the nuke's line, in the pre-ramp tail (`get_cost:416`–`420`; `rare` bit `35 − 6 = 29`, byte 3 bit 5). The Persians hold it from between 1985 and 2182 (`rares_collected[29]`). Built: `Modifiers::uranium`, `Sim::uranium_discount`, `Tuning::uranium_nuke_cost` (`rules.xml` `5%`), `economy::URANIUM`.
 
 **The word 2185 itself, 2185.** With the price agreed the make list's row 8 still parted: the original lists a **Bunker** (`TypeIndex` 442, `val` 80000, `escrow` 1, city 1) where ours listed the Library (435, 39981, city 5). Ours' Bunker for the city was 8000 — ten times less. `create_buildings:821`–`841`: for a Tower- or Fort-line type, `CityData.bordering == 0` leaves a tower as it is (a fort `/ 100`) and **any `bordering` ≠ 0 multiplies by 10**; the Temple arm multiplies by 100 (`:324`). The dump's `bordering` of Persian city `1/2018` is 3 (bits 1 and 0) from 1980 and ours read 0 — §76.4's `compute_reg_territory` clears it, and this is its other half. **`compute_reg_territory` sets it** per cell it writes: the winner `local_14` and the runner-up `local_24` (both players, the winner's claim a *city* — `local_1c` ≥ 0, a fort's win clears it) and `leaders[a].diplos[b] == 0 || leaders[b].diplos[a] == 0` (at war either side): the winner's city takes `1 << a | 1 << b`. Every land region's first call (resume index 0) clears every city's `bordering` before its budget test, so the last region started keeps it. Built: `territory::compute_all_territory_won` (the winning city per cell), `Sim::territory_won`, `BorderPass::won`, `Sim::mark_bordering`, `clear_bordering` and `wholesale_bordering` (`border_pass.rs`); read by `building_value`'s tower, fort and temple arms.
@@ -18250,7 +18250,7 @@ table in `ai_census.rs` said "no fisherman is idle", and
 `census_zero_scalars` was the only writer of the field. §2.3's sweep
 (line 189 above) adds `idle_fishermen++` to a fisherman whose
 `unit_masks & 0x80000` is set — *packed*. A fisherman is born packed
-(`Unit::init`, `lib.rs` `combat.packed`) and unpacks only to fish, so a boat
+(`Unit::init`, `units/store.rs` `combat.packed`) and unpacks only to fish, so a boat
 that has not found its fish is idle. Counted from `combat.packed`, the
 offers at 3580 vanish and the list agrees from block 3581 through the
 widening's MAKE rows, `t`, `val`, `city`, `escrow`, `cat` and `num`.
@@ -18572,7 +18572,7 @@ its full progress and the attempt repeats. `num_aircraft_here(0)` is not the gar
 it walks the owner's units, alive, domain 2, whose `UnitData::home_base` is this
 building. The crate passed `at_limit` false always, so the Jet Fighter was handed over
 on 4425. Built: `Sim::aircraft_homed`, `Sim::airbase_pad_full` (`airbase.rs`), read by
-`advance_slot` (`lib.rs`) into `production::finished`'s `at_limit`. Test
+`advance_slot` (`cities/queue.rs`) into `production::finished`'s `at_limit`. Test
 `an_airbase_with_ten_homed_aircraft_refuses_another`.
 
 **Score.** The word moves **4425 -> 4582** (count and sequence), 549 versus 551 draws,
@@ -19828,7 +19828,7 @@ for the figure's: the figure is not on its `des`, and `Guy::move` steps it on th
 
 ### 208.4 The build
 
-`Sim::process_unit`'s dead-boat arm (`lib.rs`, item 1191's, whose comment said `coll_follow` could skip the dead boat because its figure
+`Sim::process_unit`'s dead-boat arm (`units/process.rs`, item 1191's, whose comment said `coll_follow` could skip the dead boat because its figure
 was on its `des`) runs `coll_move(i, body before, body after)` round its `process_movement`; `coll_move` is `pub(crate)`. `move_unit`
 asks nothing of the unit's life, so the disc moves with the body as on a live one.
 
@@ -20412,7 +20412,7 @@ the `max(1, local_8)` at the foot answers 1. The function's last `has_wonder(0x2
 that is neither a unit nor a building. So a unit's research job keeps its time. `docs/PRODUCTION.md` names the arm
 ("the Supercollider … zeroes research time entirely"); this crate's `tech_time` had only the science speedup.
 
-`Sim::tech_time` (`crates/sim/src/lib.rs`) answers `production::MIN_TIME` when `wonders_held` holds
+`Sim::tech_time` (`crates/sim/src/cities/queue.rs`) answers `production::MIN_TIME` when `wonders_held` holds
 `tech::wonder::SUPERCOLLIDER`. `advance` passes a `MIN_TIME` target at any counter, so the job finishes on its next
 tick. Both sides see the completion inside the frame: theirs' Senate finishes on 4671, the Supercollider's own frame,
 and so does ours with the arm built. Which pass of the original's frame orders the two is not read. Test: `cities_tests::a_held_supercollider_finishes_a_research_job_on_its_next_tick`.
@@ -20485,7 +20485,7 @@ trainer (`TypeData +0x40`) **by equality**, not by lineage:
 
 All three constants ship as 25. `MONARCHY_1`/`_2` are bonuses `0x320`/`0x321`, and `SOCIALISM_1` is `0x324`.
 
-Built in `Sim::train_tail` (`crates/sim/src/lib.rs`), after the wool arm, as `production::Adjust::Faster`. The bonus
+Built in `Sim::train_tail` (`crates/sim/src/cities/queue.rs`), after the wool arm, as `production::Adjust::Faster`. The bonus
 rows are `Roles::monarchy_preqs` and `Roles::socialism_preqs` (`crates/rondata/src/load.rs`). They are asked through
 `Sim::bonus_tier_held`, the tier walk Democracy's price discount already used, now shared. The tuning entries are
 `monarchy_unit_prod` and `socialism_unit_bonus` (378 slots).
@@ -22243,7 +22243,7 @@ French arm: the same nation's aircraft (`+0x218 == 2`) take `GERMAN_AIR_SPEED` a
 `GERMAN_SUBMARINE_SPEED`, each `t × 100 / (k + 100)`, both 33 as shipped.
 
 **Built.**
-- `Sim::nation_unit_discount` (`lib.rs`) carries the German arm beside the French: one answer per type is the tail's
+- `Sim::nation_unit_discount` (`economy/pricing.rs`) carries the German arm beside the French: one answer per type is the tail's
   product, since the nations' arms are exclusive by tribe.
 - `Sim::train_tail` carries the German block after the British arm: the air test, then the lineage test.
 - `tuning.rs`: `GERMAN_SUBMARINE_COST` 25, `GERMAN_SUBMARINE_SPEED` 33, `GERMAN_AIR_SPEED` 33, in the slot table.
@@ -23029,7 +23029,7 @@ Statue of Liberty's `has_wonder` (`00664da7`), so it runs ahead of the fork at `
 well as the training. All three tiers ship at 15%. This crate carried Despotism only on the military library line
 (`line_discounts`, §99.8).
 
-**Built**: `Sim::despotism_unit_discount` (`lib.rs`), the trainer by `trainer_where` and the tier by
+**Built**: `Sim::despotism_unit_discount` (`economy/pricing.rs`), the trainer by `trainer_where` and the tier by
 `government_bonus_level` on `despotism_preq` (the `has_preq` gate the library-line arm already uses), carried as
 `cost::Modifiers::despotism` on both arms, applied after the Citizen arms and before Liberty.
 
@@ -23093,7 +23093,7 @@ Ours gained the same Cotton on the same frame: `resources` and `income` are comp
 themselves (`bits`/`bit_values`) and `rares_collected` are on the coverage's unread list, so the dump's mask is the
 reading here, not a diff.
 
-**Built**: the arm in `Sim::train_tail` (`lib.rs`), the trainer by `where_` against `nations::ty::BARRACKS`,
+**Built**: the arm in `Sim::train_tail` (`cities/queue.rs`), the trainer by `where_` against `nations::ty::BARRACKS`,
 `STABLES[0]` and `DOCKS[0]`, and `has_rare(who, economy::COTTON)`; `Tuning::cotton_creation_speed`, 25, checked against
 `rules.xml`'s `COTTON_CREATION_SPEED`.
 
@@ -25675,7 +25675,7 @@ then the late 99 %, gives **872 and 942**, which is the bucket's drop to the uni
 `ANGKOR_SHIPS` with `has_wonder(0x217)`; an air unit (`2`) takes `ALUMINUM_AIR_COST` with Aluminium (`rare` byte 3
 bit 0), and then `SPACE_AIR_COST` (50 %) with `has_wonder(0x21e)`, the Space Program. Each step truncates on its
 own, after the Citizen arms and ahead of Despotism, Liberty and Uranium, in the tail the train and research arms
-share. None of the three steps was built. Built: `Sim::domain_cost_discounts` (`lib.rs`), `Modifiers::domain`
+share. None of the three steps was built. Built: `Sim::domain_cost_discounts` (`economy/pricing.rs`), `Modifiers::domain`
 (`cost.rs`), `Tuning::{angkor_ships, aluminum_air_cost, space_air_cost}`, `economy::ALUMINUM`.
 
 **The move: 4382 → 4565 of 4565**, by the count and the sequence alike, so the pair is **whole**. The closing
@@ -27041,7 +27041,7 @@ block 4341:
   `init_real` zero the word). So the bit lives from any turn until the guy's own next `Guy::process`: a push
   by a unit processed earlier in the frame skips that frame's body turn, and one processed later skips the
   next. Ours took `frame_facing` at the head of the unit's process, which forgot the earlier push; it is now
-  taken after the figures' `Guy::move` (`lib.rs`, `process_movement_on`). Parked 1339 had named the bit.
+  taken after the figures' `Guy::move` (`movement/step.rs`, `process_movement_on`). Parked 1339 had named the bit.
 
 `a_push_before_the_pushed_unit_s_process_takes_its_body_s_turn` (`collide.rs`) tests it. `tools/mutate.py`
 reversing the fix fails it (exit 101) and walks the pair back to 4341 (exit 101). Every other lobby's

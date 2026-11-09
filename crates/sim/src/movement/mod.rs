@@ -957,6 +957,7 @@ pub mod path;
 pub mod place_roads_view;
 pub mod roads;
 pub mod roads_view;
+pub mod step;
 pub mod tpath;
 pub mod upath;
 pub mod wpath;

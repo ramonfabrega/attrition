@@ -603,14 +603,18 @@ fn drive(text: &str, out: &mut Paths) {
 /// beside `widen_block`'s `spell_time` row, and the list is empty.
 const UNREAD_UNIT_FIELDS_OWED: &[(&str, u32)] = &[];
 
-/// The field names of `pub struct Unit` in `crates/sim/src/lib.rs`.
+/// The field names of `pub struct Unit` in `crates/sim/src/units/unit.rs`
+/// (item 4014 moved it out of `lib.rs`).
 fn sim_unit_fields() -> BTreeSet<String> {
-    let source = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../sim/src/lib.rs"))
-        .expect("crates/sim/src/lib.rs");
+    let source = std::fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../sim/src/units/unit.rs"
+    ))
+    .expect("crates/sim/src/units/unit.rs");
     let body = source
         .split("pub struct Unit {")
         .nth(1)
-        .expect("`pub struct Unit {` in crates/sim/src/lib.rs")
+        .expect("`pub struct Unit {` in crates/sim/src/units/unit.rs")
         .split("\n}\n")
         .next()
         .unwrap();

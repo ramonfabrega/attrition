@@ -84,7 +84,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 scored word reaches. Each row is one `has_tribe_bonus` arm (or, for the
 `train_time` block, one nation's arm of it) read in the export and looked
 for in the sim. The block under the three nations is the rest of
-`ObjectData::train_time@006508c0`'s national tail: `lib.rs`'s `train_tail`
+`ObjectData::train_time@006508c0`'s national tail: `cities/queue.rs`'s `train_tail`
 says in its doc comment that only the British and Mongol arms are built,
 "the nine other arms inert in every capture on disk".
 
@@ -110,30 +110,30 @@ says in its doc comment that only the British and Mongol arms are built,
 | Russians | oil well counts as held (has_preq) | `LeaderData::has_preq@006db810` | modelled at tech.rs | `has_tribe_bonus(setup, p, 13)` |
 | Russians | attrition upgrades applied on tech gain | `Leader::gain_tech@006dcb60` | loaded at load.rs | `russian_attrition_upgrades` |
 | Russians | market prices pinned at 100 after the fifth age (gate is 0) | `LeaderData::calc_market_prices@006dc2a0` | carried, unread | `russian_communism` |
-| Chinese | science techs 20% cheaper | `TypeData::get_cost@00664090` | modelled at lib.rs | `chinese_science_discount` |
-| Chinese | citizens train twice as fast | `ObjectData::train_time@006508c0` | modelled at lib.rs | `chinese_citizen_creation` |
-| Chinese | citizens train instantly (the rules' CHINESE_CITIZEN_INSTANT is 1, the arm returns 1) | `ObjectData::train_time@006508c0` | modelled at lib.rs | `chinese_citizen_instant` |
+| Chinese | science techs 20% cheaper | `TypeData::get_cost@00664090` | modelled at queue.rs | `chinese_science_discount` |
+| Chinese | citizens train twice as fast | `ObjectData::train_time@006508c0` | modelled at queue.rs | `chinese_citizen_creation` |
+| Chinese | citizens train instantly (the rules' CHINESE_CITIZEN_INSTANT is 1, the arm returns 1) | `ObjectData::train_time@006508c0` | modelled at queue.rs | `chinese_citizen_instant` |
 | Chinese | a large-city building on a new city | `Build::activate@00623e20` | modelled at city.rs | `chinese_large_cities` |
 | Chinese | a large-city building on assimilation | `City::assimilate@00738e90` | modelled at city.rs | `chinese_large_cities` |
 | Chinese | herbal lore applied on tech gain | `Leader::gain_tech@006dcb60` | loaded at load.rs | `chinese_herbal_lore` |
 | Chinese | knowledge upgrades applied on tech gain (0 in the rules) | `Leader::gain_tech@006dcb60` | carried, unread | `chinese_knowledge_upgrades` |
-| Greeks | an age or an epoch researches faster (train_time's research tail) | `ObjectData::train_time@006508c0` | modelled at lib.rs | `greek_research_speed` |
-| Greeks | an age or an epoch costs 10% less in every good but knowledge | `TypeData::get_cost@00664090` | modelled at lib.rs | `greek_research_cost` |
+| Greeks | an age or an epoch researches faster (train_time's research tail) | `ObjectData::train_time@006508c0` | modelled at queue.rs | `greek_research_speed` |
+| Greeks | an age or an epoch costs 10% less in every good but knowledge | `TypeData::get_cost@00664090` | modelled at queue.rs | `greek_research_cost` |
 | Greeks | a Library or a University costs 66% less | `TypeData::get_cost@00664090` | modelled at city.rs | `greek_library_cost` |
-| Romans | legions train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `roman_legion_fast` |
-| French | siege units train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `french_siege_speed` |
+| Romans | legions train faster | `ObjectData::train_time@006508c0` | modelled at queue.rs | `roman_legion_fast` |
+| French | siege units train faster | `ObjectData::train_time@006508c0` | modelled at queue.rs | `french_siege_speed` |
 | French | special (general) units train faster, 0 in the rules | `ObjectData::train_time@006508c0` | not modelled | `french_special_speed` |
-| Germans | aircraft train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `german_air_speed` |
-| Germans | submarines train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `german_submarine_speed` |
-| Japanese | barracks units train faster (negative in the rules) | `ObjectData::train_time@006508c0` | modelled at lib.rs | `japanese_barracks_speed` |
-| Japanese | carriers train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `japanese_carrier_speed` |
+| Germans | aircraft train faster | `ObjectData::train_time@006508c0` | modelled at queue.rs | `german_air_speed` |
+| Germans | submarines train faster | `ObjectData::train_time@006508c0` | modelled at queue.rs | `german_submarine_speed` |
+| Japanese | barracks units train faster (negative in the rules) | `ObjectData::train_time@006508c0` | modelled at queue.rs | `japanese_barracks_speed` |
+| Japanese | carriers train faster | `ObjectData::train_time@006508c0` | modelled at queue.rs | `japanese_carrier_speed` |
 | Japanese | a Farm costs 50% less | `TypeData::get_cost@00664090` | modelled at city.rs | `japanese_farms_cheaper` |
 | Japanese | a farmer gathers 25% more food (calc_gather's flat branch) | `BuildTypeData::calc_gather@00639e40` | modelled at holdings.rs | `japanese_fishing_boats` |
 | Indians | a building's support ramp zeroed, halved rounding up for a wonder or a defence | `TypeData::get_cost@00664090` | modelled at cost.rs | `indian_ramp` |
 | Indians | an elephant-line unit costs 15% less, the last step | `TypeData::get_cost@00664090` | modelled at cost.rs | `indian_elephant` |
 | Lakota | raze speed (train_time's tail) | `ObjectData::train_time@006508c0` | modelled at queue_disband.rs | `lakota_raze_speed` |
-| Mongols | stable units train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `mongol_stable_speed` |
-| British | ships, archers and anti-air train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `british_ship_speed` |
+| Mongols | stable units train faster | `ObjectData::train_time@006508c0` | modelled at queue.rs | `mongol_stable_speed` |
+| British | ships, archers and anti-air train faster | `ObjectData::train_time@006508c0` | modelled at queue.rs | `british_ship_speed` |
 
 ## 4.1 Constants: Aztecs to Romans
 
@@ -171,8 +171,8 @@ left out; a constant with no reader in the export is dead there too.
 | `NUBIAN_MERCHANTS` | 10 | TypeData::get_cost | not carried | `nubian_merchants` |
 | `NUBIAN_HIT_POINTS` | 50 | Unit::update_hits, Wall::update_hits | modelled at build.rs | `nubian_hit_points` |
 | `NUBIAN_MARKET_PRICES` | 20 | LeaderData::calc_market_prices | modelled at ai_make.rs | `nubian_market_prices` |
-| `GREEK_RESEARCH_SPEED` | 100 | ObjectData::train_time | modelled at lib.rs | `greek_research_speed` |
-| `GREEK_RESEARCH_COST` | 10 | TypeData::get_cost | modelled at lib.rs | `greek_research_cost` |
+| `GREEK_RESEARCH_SPEED` | 100 | ObjectData::train_time | modelled at queue.rs | `greek_research_speed` |
+| `GREEK_RESEARCH_COST` | 10 | TypeData::get_cost | modelled at queue.rs | `greek_research_cost` |
 | `GREEK_KNOWLEDGE_EARLY` | 1 | LeaderData::has_preq | modelled at tech.rs | `greek_knowledge_early` |
 | `GREEK_UNIVERSITY_EARLY` | 2 | LeaderData::has_preq, Setup::build_civ_specific | modelled at tech.rs | `greek_university_early` |
 | `GREEK_START_SCHOLARS` | 0 | Setup::build_units | not carried | `greek_start_scholars` |
@@ -180,7 +180,7 @@ left out; a constant with no reader in the export is dead there too.
 | `GREEK_CLASSICAL` | 0 | TypeData::get_cost | not carried | `greek_classical` |
 | `GREEK_LIBRARY_COST` | 66 | TypeData::get_cost | modelled at city.rs | `greek_library_cost` |
 | `GREEK_SCHOLARS_FAST` | 0 | no reader in the export | not carried | `greek_scholars_fast` |
-| `GREEK_DELAY_KNOWLEDGE` | 1 | Leader::gain_tech, Leader::init | modelled at lib.rs | `greek_delay_knowledge` |
+| `GREEK_DELAY_KNOWLEDGE` | 1 | Leader::gain_tech, Leader::init | modelled at gain.rs | `greek_delay_knowledge` |
 
 ## 4.2 Constants: Egyptians to Germans
 
@@ -201,7 +201,7 @@ left out; a constant with no reader in the export is dead there too.
 | `ROMAN_MAX_LEGION` | 3 | Build::activate | modelled at nations.rs | `roman_max_legion` |
 | `ROMAN_CITY_GATHER` | 10 | LeaderData::calc_city_resources | modelled at economy.rs | `roman_city_gather` |
 | `ROMAN_LEGION_CHEAP` | 10 | TypeData::get_cost | modelled at cost.rs | `roman_legion_cheap` |
-| `ROMAN_LEGION_FAST` | 10 | ObjectData::train_time | modelled at lib.rs | `roman_legion_fast` |
+| `ROMAN_LEGION_FAST` | 10 | ObjectData::train_time | modelled at queue.rs | `roman_legion_fast` |
 | `ROMAN_FREE_MILITARY` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `roman_free_military` |
 | `EGYPTIAN_WONDERS` | 25 | TypeData::get_cost | modelled at cost.rs | `egyptian_wonders` |
 | `EGYPTIAN_GRANARY_EARLY` | 2 | LeaderData::has_preq, Setup::build_civ_specific | modelled at tech.rs | `egyptian_granary_early` |
@@ -214,11 +214,11 @@ left out; a constant with no reader in the export is dead there too.
 | `TURK_SIEGE_RANGE` | 3 | UnitData::max_range | modelled at fight.rs | `turk_siege_range` |
 | `TURK_SIEGE_LOS` | 3 | Unit::update_los | modelled at vision.rs | `turk_siege_los` |
 | `TURK_ASSIMILATE` | 200 | Build::process, IFaceSelected::update_progress | modelled at city.rs | `turk_assimilate` |
-| `TURK_CITIZEN` | 33 | TypeData::get_cost | modelled at lib.rs | `turk_citizen` |
+| `TURK_CITIZEN` | 33 | TypeData::get_cost | modelled at pricing.rs | `turk_citizen` |
 | `TURK_FREE_SIEGE` | 2 | Build::activate | modelled at nations.rs | `turk_free_siege` |
 | `TURK_FREE_SIEGE_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `turk_free_siege_upgrades` |
 | `TURK_PACK` | 100 | SpellTypeData::get_job_time | not carried | `turk_pack` |
-| `TURK_MILITARY_CHEAP` | 33 | TypeData::get_cost | modelled at lib.rs | `turk_military_cheap` |
+| `TURK_MILITARY_CHEAP` | 33 | TypeData::get_cost | modelled at queue.rs | `turk_military_cheap` |
 | `SPANISH_LOS` | 0 | Unit::update_los | not carried | `spanish_los` |
 | `SPANISH_EXTRA_SCOUT` | 1 | Setup::build_units | not carried | `spanish_extra_scout` |
 | `SPANISH_FREE_TRIREME` | 1 | Build::activate | modelled at nations.rs | `spanish_free_trireme` |
@@ -230,29 +230,29 @@ left out; a constant with no reader in the export is dead there too.
 | `FRENCH_SPECIAL_CRAFT` | 0 | UnitData::mana | modelled at cast.rs | `french_special_craft` |
 | `FRENCH_SPECIAL_COST` | 0 | TypeData::get_cost | not carried | `french_special_cost` |
 | `FRENCH_SPECIAL_SPEED` | 0 | ObjectData::train_time | not carried | `french_special_speed` |
-| `FRENCH_SIEGE_COST` | 15 | TypeData::get_cost | modelled at lib.rs | `french_siege_cost` |
-| `FRENCH_SIEGE_SPEED` | 25 | ObjectData::train_time | modelled at lib.rs | `french_siege_speed` |
+| `FRENCH_SIEGE_COST` | 15 | TypeData::get_cost | modelled at pricing.rs | `french_siege_cost` |
+| `FRENCH_SIEGE_SPEED` | 25 | ObjectData::train_time | modelled at queue.rs | `french_siege_speed` |
 | `FRENCH_SIEGE_MOVE` | 20 | Unit::update_speed | modelled at rares.rs | `french_siege_move` |
 | `FRENCH_FREE_GENERAL` | 1 | Build::activate | modelled at nations.rs | `french_free_general` |
 | `FRENCH_FREE_SUPPLY` | 1 | Build::activate | modelled at nations.rs | `french_free_supply` |
-| `FRENCH_ENTRENCH` | 100 | SpellTypeData::get_job_time | modelled at lib.rs | `french_entrench` |
+| `FRENCH_ENTRENCH` | 100 | SpellTypeData::get_job_time | modelled at job_time.rs | `french_entrench` |
 | `FRENCH_LUMBERMILL_EARLY` | 2 | LeaderData::has_preq, Setup::build_civ_specific | modelled at tech.rs | `french_lumbermill_early` |
 | `FRENCH_LUMBERMILL_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `french_lumbermill_upgrades` |
 | `FRENCH_WOODIES` | 1 | BuildTypeData::calc_gather | modelled at gather.rs | `french_woodies` |
 | `FRENCH_TIMBER_COMMERCE` | 10 | Leader::calc_resource_caps | modelled at economy.rs | `french_timber_commerce` |
 | `BRITISH_COMMERCE` | 25 | Leader::calc_resource_caps | modelled at economy.rs | `british_commerce` |
-| `BRITISH_SHIP_SPEED` | 33 | ObjectData::train_time | modelled at lib.rs | `british_ship_speed` |
-| `BRITISH_ARCHER_SPEED` | 0 | ObjectData::train_time | modelled at lib.rs | `british_archer_speed` |
+| `BRITISH_SHIP_SPEED` | 33 | ObjectData::train_time | modelled at queue.rs | `british_ship_speed` |
+| `BRITISH_ARCHER_SPEED` | 0 | ObjectData::train_time | modelled at queue.rs | `british_archer_speed` |
 | `BRITISH_ARCHER_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `british_archer_upgrades` |
 | `BRITISH_AA_COST` | 25 | TypeData::get_cost | modelled at cost.rs | `british_aa_cost` |
 | `BRITISH_AA_SPEED` | 33 | ObjectData::train_time, Wall::update_construct_time | modelled at build.rs | `british_aa_speed` |
 | `BRITISH_FREE_SHIP` | 0 | no reader in the export | not carried | `british_free_ship` |
-| `BRITISH_TAXATION` | 100 | Leader::calc_gather, TypeData::get_desc_parsed | modelled at lib.rs | `british_taxation` |
+| `BRITISH_TAXATION` | 100 | Leader::calc_gather, TypeData::get_desc_parsed | modelled at queue.rs | `british_taxation` |
 | `BRITISH_TOWER_RANGE` | 2 | BuildTypeData::get_building_range | modelled at build_family.rs | `british_tower_range` |
 | `BRITISH_AGE_FOR_1_ARCHER` | 0 | Build::activate | modelled at nations.rs | `british_age_for_1_archer` |
 | `BRITISH_AGE_FOR_2_ARCHERS` | 2 | Build::activate | modelled at nations.rs | `british_age_for_2_archers` |
 | `BRITISH_AGE_FOR_3_ARCHERS` | 3 | Build::activate | modelled at nations.rs | `british_age_for_3_archers` |
-| `BRITISH_TAXATION_DISCOUNT` | 50 | TypeData::get_cost | modelled at lib.rs | `british_taxation_discount` |
+| `BRITISH_TAXATION_DISCOUNT` | 50 | TypeData::get_cost | modelled at queue.rs | `british_taxation_discount` |
 | `BRITISH_FREE_FISHERMEN` | 0 | Build::activate | modelled at nations.rs | `british_free_fishermen` |
 
 ## 4.3 Constants: Russians to Mongols
@@ -260,9 +260,9 @@ left out; a constant with no reader in the export is dead there too.
 <!-- GENERATED:consts3 -->
 | constant | rules | the export reads it in | status | witness |
 |---|---:|---|---|---|
-| `GERMAN_SUBMARINE_COST` | 25 | TypeData::get_cost | modelled at lib.rs | `german_submarine_cost` |
-| `GERMAN_SUBMARINE_SPEED` | 33 | ObjectData::train_time | modelled at lib.rs | `german_submarine_speed` |
-| `GERMAN_AIR_SPEED` | 33 | ObjectData::train_time | modelled at lib.rs | `german_air_speed` |
+| `GERMAN_SUBMARINE_COST` | 25 | TypeData::get_cost | modelled at pricing.rs | `german_submarine_cost` |
+| `GERMAN_SUBMARINE_SPEED` | 33 | ObjectData::train_time | modelled at queue.rs | `german_submarine_speed` |
+| `GERMAN_AIR_SPEED` | 33 | ObjectData::train_time | modelled at queue.rs | `german_air_speed` |
 | `GERMAN_FREE_FIGHTER` | 2 | Build::activate | modelled at nations.rs | `german_free_fighter` |
 | `GERMAN_FREE_BOMBER` | 0 | no reader in the export | not carried | `german_free_bomber` |
 | `GERMAN_METAL_EARLY` | 0 | LeaderData::has_preq | modelled at tech.rs | `german_metal_early` |
@@ -288,18 +288,18 @@ left out; a constant with no reader in the export is dead there too.
 | `RUSSIAN_FREE_CIVIC` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `russian_free_civic` |
 | `CHINESE_KNOWLEDGE_UPGRADES` | 0 | Leader::gain_tech | loaded at load.rs | `chinese_knowledge_upgrades` |
 | `CHINESE_HERBAL_LORE` | 1 | Leader::gain_tech | loaded at load.rs | `chinese_herbal_lore` |
-| `CHINESE_SCIENCE_DISCOUNT` | 20 | TypeData::get_cost | modelled at lib.rs | `chinese_science_discount` |
-| `CHINESE_CITIZEN_INSTANT` | 1 | ObjectData::train_time | modelled at lib.rs | `chinese_citizen_instant` |
-| `CHINESE_CITIZEN_CREATION` | 100 | ObjectData::train_time | modelled at lib.rs | `chinese_citizen_creation` |
+| `CHINESE_SCIENCE_DISCOUNT` | 20 | TypeData::get_cost | modelled at queue.rs | `chinese_science_discount` |
+| `CHINESE_CITIZEN_INSTANT` | 1 | ObjectData::train_time | modelled at queue.rs | `chinese_citizen_instant` |
+| `CHINESE_CITIZEN_CREATION` | 100 | ObjectData::train_time | modelled at queue.rs | `chinese_citizen_creation` |
 | `CHINESE_LARGE_CITY` | 1 | ConquestGame::build_cities, Setup::build_cities | not carried | `chinese_large_city` |
 | `CHINESE_LARGE_CITIES` | 1 | Build::activate, City::assimilate, ConquestGame::build_cities +1 | modelled at activate.rs | `chinese_large_cities` |
 | `JAPANESE_DAMAGE` | -5 | ObjectData::get_damage | modelled at damage.rs | `japanese_damage` |
-| `JAPANESE_BARRACKS_COST` | -7 | TypeData::get_cost | modelled at lib.rs | `japanese_barracks_cost` |
-| `JAPANESE_BARRACKS_SPEED` | -10 | ObjectData::train_time | modelled at lib.rs | `japanese_barracks_speed` |
-| `JAPANESE_SHIP_COST` | 10 | TypeData::get_cost | modelled at lib.rs | `japanese_ship_cost` |
+| `JAPANESE_BARRACKS_COST` | -7 | TypeData::get_cost | modelled at pricing.rs | `japanese_barracks_cost` |
+| `JAPANESE_BARRACKS_SPEED` | -10 | ObjectData::train_time | modelled at queue.rs | `japanese_barracks_speed` |
+| `JAPANESE_SHIP_COST` | 10 | TypeData::get_cost | modelled at pricing.rs | `japanese_ship_cost` |
 | `JAPANESE_AIRCRAFT_CARRIERS_SPEED` | 33 | no reader in the export | not carried | `japanese_aircraft_carriers_speed` |
 | `JAPANESE_FISHING_BOATS` | 25 | BuildTypeData::calc_gather, LeaderData::calc_rare | modelled at economy.rs | `japanese_fishing_boats` |
-| `JAPANESE_CARRIER_SPEED` | 33 | ObjectData::train_time | modelled at lib.rs | `japanese_carrier_speed` |
+| `JAPANESE_CARRIER_SPEED` | 33 | ObjectData::train_time | modelled at queue.rs | `japanese_carrier_speed` |
 | `JAPANESE_FARMS_CHEAPER` | 50 | TypeData::get_cost | modelled at cost.rs | `japanese_farms_cheaper` |
 | `KOREAN_START_CITIZEN` | 3 | no reader in the export | not carried | `korean_start_citizen` |
 | `KOREAN_FREE_CITIZEN` | 5 | no reader in the export | not carried | `korean_free_citizen` |
@@ -311,7 +311,7 @@ left out; a constant with no reader in the export is dead there too.
 | `KOREAN_REPAIR` | 50 | Unit::do_repair | modelled at orders.rs | `korean_repair` |
 | `KOREAN_TOWER_COST` | 33 | TypeData::get_cost | modelled at cost.rs | `korean_tower_cost` |
 | `MONGOL_STABLE_COST` | 10 | TypeData::get_cost | not carried | `mongol_stable_cost` |
-| `MONGOL_STABLE_SPEED` | 20 | ObjectData::train_time | modelled at lib.rs | `mongol_stable_speed` |
+| `MONGOL_STABLE_SPEED` | 20 | ObjectData::train_time | modelled at queue.rs | `mongol_stable_speed` |
 | `MONGOL_ATTRITION` | 50 | Leader::calc_anti_attrition | modelled at attrition.rs | `mongol_attrition` |
 | `MONGOL_THREE_MIL_CAVALRY` | 3 | Build::activate, CheckSums::check_constants, Game::walk_rules_data +3 | modelled at nations.rs | `mongol_three_mil_cavalry` |
 | `MONGOL_FREE_CAVALRY` | 2 | Build::activate | modelled at nations.rs | `mongol_free_cavalry` |
@@ -348,7 +348,7 @@ left out; a constant with no reader in the export is dead there too.
 | `AMERICANS_MARINE_ENTRENCH` | 5 | Unit::check_idle | carried, unread | `americans_marine_entrench` |
 | `AMERICANS_STARTING_FARMS` | 3 | Setup::build_units, Setup::small_city_buildings | not carried | `americans_starting_farms` |
 | `AMERICANS_FREE_SCIENCE` | 0 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `americans_free_science` |
-| `AMERICANS_SCIENCE_DISCOUNT` | 0 | TypeData::get_cost | modelled at lib.rs | `americans_science_discount` |
+| `AMERICANS_SCIENCE_DISCOUNT` | 0 | TypeData::get_cost | modelled at queue.rs | `americans_science_discount` |
 | `AMERICANS_UPGRADE_DISCOUNT` | 25 | TypeData::get_cost | modelled at cost.rs | `americans_upgrade_discount` |
 | `AMERICANS_BARRACKS_GATHER` | 2 | Leader::calc_gather, Object::insert_inside, Object::remove_from_inside +2 | modelled at holdings.rs | `americans_barracks_gather` |
 | `INDIANS_CITY_RADIUS` | 4 | Leader::plan_strategy, LeaderData::get_radius | modelled at city.rs | `indians_city_radius` |
@@ -356,7 +356,7 @@ left out; a constant with no reader in the export is dead there too.
 | `INDIANS_ELEPHANT_COST` | 15 | TypeData::get_cost | modelled at cost.rs | `indians_elephant_cost` |
 | `INDIANS_ELEPHANT_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `indians_elephant_upgrades` |
 | `DUTCH_FREE_COMMERCE` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `dutch_free_commerce` |
-| `DUTCH_COMMERCE_DISCOUNT` | 10 | TypeData::get_cost | modelled at lib.rs | `dutch_commerce_discount` |
+| `DUTCH_COMMERCE_DISCOUNT` | 10 | TypeData::get_cost | modelled at queue.rs | `dutch_commerce_discount` |
 | `DUTCH_FORT_PLACEMENT` | 0 | BuildTypeData::blocked_tcoord | modelled at tcoord.rs | `dutch_fort_placement` |
 | `DUTCH_INTEREST` | 5 | Leader::do_gather, Options::describe | modelled at economy.rs | `dutch_interest` |
 | `DUTCH_INTEREST_CAP` | 50 | Leader::do_gather, Options::describe | modelled at economy.rs | `dutch_interest_cap` |
@@ -366,8 +366,8 @@ left out; a constant with no reader in the export is dead there too.
 | `DUTCH_HP_BONUS` | 10 | Unit::update_hits | modelled at cast.rs | `dutch_hp_bonus` |
 | `DUTCH_SHIP_DISCOUNT` | 10 | TypeData::get_cost | modelled at cost.rs | `dutch_ship_discount` |
 | `PERSIANS_DESPOTISM` | 0 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `persians_despotism` |
-| `PERSIANS_BONUS_FOOD` | 50 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at lib.rs | `persians_bonus_food` |
-| `PERSIANS_CIVIC_DISCOUNT` | 30 | TypeData::get_cost | modelled at lib.rs | `persians_civic_discount` |
+| `PERSIANS_BONUS_FOOD` | 50 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at gain.rs | `persians_bonus_food` |
+| `PERSIANS_CIVIC_DISCOUNT` | 30 | TypeData::get_cost | modelled at queue.rs | `persians_civic_discount` |
 | `PERSIANS_TAXATION` | 1 | Leader::gain_tech | loaded at load.rs | `persians_taxation` |
 
 ## 5.1 The census of `has_tribe_bonus` callers, by address (first half)
@@ -392,7 +392,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Setup::build_empire@005abb80` | 9 | modelled at ai_sites.rs | `sees_every_cell` |
 | `AnimalData::is_seen@005d8160` | 4 9 | carried at animal_data_is_seen.rs | `005d8160` |
 | `Unit::process_healing@005e0670` | 10 18 | carried at heal.rs | `005e0670` |
-| `Unit::process_cloak@005e1c20` | 18 | carried at lib.rs | `005e1c20` |
+| `Unit::process_cloak@005e1c20` | 18 | carried at combat.rs | `005e1c20` |
 | `Unit::do_build@005eebf0` | 16 | carried at orders.rs | `005eebf0` |
 | `Unit::set_new_location@005f8d20` | 18 | carried at collide.rs | `005f8d20` |
 | `Unit::explore_goody@005f9780` | 9 | carried at goody.rs | `005f9780` |
@@ -402,7 +402,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Unit::update_hits@0060e930` | 4 18 22 | carried at unit_update_hits.rs | `0060e930` |
 | `Unit::close@0060ee50` | 19 20 | carried at fight.rs | `0060ee50` |
 | `UnitData::max_range@0060fe90` | 8 | carried at fight.rs | `0060fe90` |
-| `Unit::init@00612100` | 18 19 20 | carried at lib.rs | `00612100` |
+| `Unit::init@00612100` | 18 19 20 | carried at store.rs | `00612100` |
 | `Build::process@0061edf0` | 8 23 | carried at city.rs | `0061edf0` |
 | `Build::plunder@00623660` | 0 12 13 19 | modelled at city.rs | `russian_plunder_steal` |
 | `Build::activate@00623e20` | 4 8 9 10 11 14 16 20 23 | carried at city.rs | `00623e20` |
@@ -419,10 +419,10 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Object::disband@006455c0` | 0 19 | carried at disband.rs | `006455c0` |
 | `Object::insert_inside@00647e90` | 19 20 | carried at holdings.rs | `00647e90` |
 | `Object::remove_from_inside@006480f0` | 19 20 | carried at object_remove_from_inside.rs | `006480f0` |
-| `ObjectData::train_time@006508c0` | 5 15 | carried at lib.rs | `006508c0` |
+| `ObjectData::train_time@006508c0` | 5 15 | carried at queue.rs | `006508c0` |
 | `Object::take_damage@00652020` | 0 2 | carried at fight.rs | `00652020` |
 | `TypeData::get_desc_parsed@006626e0` | 11 | not sim | `interface or render side` |
-| `TypeData::get_cost@00664090` | 5 7 8 12 14 15 20 22 23 | carried at lib.rs | `00664090` |
+| `TypeData::get_cost@00664090` | 5 7 8 12 14 15 20 22 23 | carried at pricing.rs | `00664090` |
 | `GoodData::is_seen@0066e4c0` | 4 9 | carried at good_data_is_seen.rs | `0066e4c0` |
 | `SpellTypeData::get_job_time@00675800` | 9 | carried at spell_type_get_job_time.rs | `00675800` |
 | `World::compute_reg_territory@006b0bb0` | 6 13 | carried at border_pass.rs | `006b0bb0` |
@@ -434,7 +434,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Leader::production_ai_setup@006c83e0` | 19 | carried at ai.rs | `006c83e0` |
 | `Leader::use_market@006c91c0` | 4 | carried at ai_make.rs | `006c91c0` |
 | `Leader::calc_anti_attrition@006cdcc0` | 17 | modelled at attrition.rs | `mongol_attrition` |
-| `Leader::calc_attrition@006cdea0` | 4 13 | carried at lib.rs | `006cdea0` |
+| `Leader::calc_attrition@006cdea0` | 4 13 | carried at tech.rs | `006cdea0` |
 
 ## 5.2 The census (second half)
 
@@ -449,8 +449,8 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `LeaderData::can_see_borders@006d5f60` | 19 | not modelled | `006d5f60` |
 | `LeaderData::get_city_limit@006d6130` | 3 | carried at place.rs | `006d6130` |
 | `LeaderData::special_preq@006d7030` | 3 6 7 12 | modelled at tech.rs | `egyptian_wonders_early` |
-| `LeaderData::get_support_count@006da110` | 20 | carried at lib.rs | `006da110` |
-| `LeaderData::get_ships_speed_upgrade@006da800` | 4 | carried at lib.rs | `006da800` |
+| `LeaderData::get_support_count@006da110` | 20 | carried at ai_units.rs | `006da110` |
+| `LeaderData::get_ships_speed_upgrade@006da800` | 4 | carried at queue.rs | `006da800` |
 | `LeaderData::get_troops_speed_upgrade@006da850` | 4 | carried at tech.rs | `006da850` |
 | `LeaderData::get_vehicle_speed_upgrade@006da8a0` | 4 | carried at tech.rs | `006da8a0` |
 | `LeaderData::get_building_speed_upgrade@006dae90` | 4 | carried at tech.rs | `006dae90` |
@@ -463,7 +463,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Leader::calc_pop_cap@006dc490` | 3 | carried at build_finished_628490.rs | `006dc490` |
 | `Leader::lost_a_city@006dc6d0` | 23 | carried at city.rs | `fn lost_a_city` |
 | `LeaderData::get_caravan_limit@006dca50` | 4 | carried at ai_units.rs | `006dca50` |
-| `Leader::gain_tech@006dcb60` | 5 6 7 8 9 10 11 12 13 14 16 17 18 19 20 21 23 | carried at lib.rs | `006dcb60` |
+| `Leader::gain_tech@006dcb60` | 5 6 7 8 9 10 11 12 13 14 16 17 18 19 20 21 23 | carried at gain.rs | `006dcb60` |
 | `LeaderData::get_general_upgrade@006e0830` | 4 | carried at cast_decoy.rs | `006e0830` |
 | `LeaderData::get_supply_upgrade@006e0880` | 4 | carried at supply.rs | `006e0880` |
 | `LeaderData::calc_rare@006e08d0` | 4 15 | carried at economy.rs | `006e08d0` |
@@ -472,7 +472,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `LeaderData::get_troops_los_upgrade@006e1110` | 4 | carried at tech.rs | `006e1110` |
 | `LeaderData::get_heal_level@006e12e0` | 4 | carried at heal.rs | `006e12e0` |
 | `LeaderData::has_tribe_bonus@006e1370` |  +var | carried at animal_data_is_seen.rs | `006e1370` |
-| `Leader::init@006e3930` | 0 5 6 13 19 20 22 23 | carried at lib.rs | `006e3930` |
+| `Leader::init@006e3930` | 0 5 6 13 19 20 22 23 | carried at gain.rs | `006e3930` |
 | `Options::describe@00724460` | 4 22 | not sim | `interface or render side` |
 | `Cities::capture_city@00733380` | 13 23 | carried at cities_capture_city.rs | `00733380` |
 | `City::capture@00736c40` | 23 | carried at city.rs | `00736c40` |
@@ -554,7 +554,7 @@ never debugged against, so a candidate is a row for the successor item that
 a pass books against a word, not a fix for the lobby that exposed it.
 
 1. ~~**Chinese citizens (`ObjectData::train_time@006508c0`, arm 0xe).**~~
-   **Built, item 3092** (`train_tail`, `lib.rs`). The arm sits after the
+   **Built, item 3092** (`train_tail`, `cities/queue.rs`). The arm sits after the
    Japanese arms and before the British, and applies when the unit's type
    index is `BASE_UNITTYPES`/`PEASANTSKOREAN` (0x32/0x33, unit types 0 and
    1), or `TypeData::is_merchant` (the three exact ids), or the type has

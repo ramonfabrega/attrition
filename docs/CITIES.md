@@ -2131,7 +2131,7 @@ assimilation tick, the city heal, plunder on capture, `lost_a_city` in the
 default mode. `crates/sim/src/units/garrison.rs` — the chain as a FIFO list on the
 building, `can_garrison`, `garrison_limit`, the `do_garrison` gates,
 `go_inside`/`come_out`, deferred ejection one squad a frame, the garrison
-heal. `lib.rs` wires them into `Sim::tick` in the original's order: units
+heal. `core/frame.rs` wires them into `Sim::tick` in the original's order: units
 (`do_build`, `do_repair`, the heal) before buildings (`Wall::process`, the
 construction attrition, the capture re-test, the assimilation tick, the city
 heal, ejection), then the sites' `construct_hits` refresh.

@@ -549,4 +549,5 @@ pub mod attrition;
 pub mod border_pass;
 pub mod suffer_view;
 pub mod supply;
+pub mod upkeep;
 pub mod victory;

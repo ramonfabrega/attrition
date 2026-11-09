@@ -5858,7 +5858,7 @@ arm (00686441–00686477); `Objects::find_free` gained the `UnitData +0x8e` capt
 lobby's `first_parting`.
 
 ~~(2441) **`find_free`'s captain term is a SEAM: `UnitData +0x8e`'s field is unnamed** (the commander's, at 2400's
-booking gate; `crates/sim/src/lib.rs`, `Sim::find_free`). 2400 built the reuse test's third term — a dead unit's
+booking gate; `crates/sim/src/units/store.rs`, `Sim::find_free`). 2400 built the reuse test's third term — a dead unit's
 number is reused only if it is no unit or a captain (`+0x8e` negative, `0065adde`) — and fed it `o_up.is_none()`.
 The third pair's floor fell 17379 → 14461 (ours `Unit::do_guard`, theirs `Unit::do_idle`) and run587's projectile
 lifetimes 131 → 10; bisected to 3d3cdf0f. The call now passes `true` (every dead unit a captain, the old behaviour)
@@ -8682,7 +8682,7 @@ reading, not a measurement.
 - (3318d) **The Spanish payout pair** (`docs/GOODY.md` §3, "The Spanish pair replaces both halves"): reading only.
   Whether the Spanish Scout opens a box before 22700 is a grep of run896b's trace for `explore_goody`'s draws; no
   word waits on it.
-- (3318e) **`research_rares`' SEAMs** (`crates/sim/src/lib.rs`): RESEARCH_FASTER, Angkor, Conquer the World, the
+- (3318e) **`research_rares`' SEAMs** (`crates/sim/src/cities/queue.rs`): RESEARCH_FASTER, Angkor, Conquer the World, the
   handicap, `tech_cost`, the catch-up arms are not modelled (~~the held-elsewhere arm~~: built by item 3783, `docs/GOLDEN.md` §149.9; ~~the epoch's catch-up~~: built by item 3790, §150.4); and `fix_tech_flags` clearing
   `leader_flags 0x1000` on `lose_tech` is never reached by any capture. Each returns when a word's frame reaches it.
 - (3318f) **3318's "for the Loop"** (the journal's line, filed by the lane): `zsh tools/check.sh test …` exited 0 on a
@@ -9402,7 +9402,7 @@ Names no score, so parked, not queued.
 
 ## Parked by item 3400, 2026-10-21 — the fourth sweep's first batch
 
-- **3400a. `Unit::process_attrition@005e11a0` is swept (30000 rows, 14 breaks caught, 2 equivalent: `n < cur` → `n <= cur` stores the word's own value, `v >> 8` against the round-toward-zero adjust is hidden by the `max(1)`) against an inline port; the crate's `attrition::process` is a namesake.** It takes a pre-digested `Situation`; `Sim::attrition_for` (`lib.rs`) fixes `in_free_zone`, `mutual_treaty`, `in_war_grace`, `assassin` and `conquest_exempt` to false, where the original reads the free-points table, the leaders' treaty pair, the `0x2b0`/`0x2d0` alliance-break stamps against `ally_to_war_delay`/`ally_to_war_grace`, team style 2 with `get_target`, and `has_conquest_bonus(9)`. A view-trait port of the whole function is the item that would test the sim against it. No generator flag lacking. The `who < 0` read of `leaders[-1]` cannot be varied: no flag lays drawn bytes before an `--at @VA` sparse table (assumed zero image bytes).
+- **3400a. `Unit::process_attrition@005e11a0` is swept (30000 rows, 14 breaks caught, 2 equivalent: `n < cur` → `n <= cur` stores the word's own value, `v >> 8` against the round-toward-zero adjust is hidden by the `max(1)`) against an inline port; the crate's `attrition::process` is a namesake.** It takes a pre-digested `Situation`; `Sim::attrition_for` (`territory/upkeep.rs`) fixes `in_free_zone`, `mutual_treaty`, `in_war_grace`, `assassin` and `conquest_exempt` to false, where the original reads the free-points table, the leaders' treaty pair, the `0x2b0`/`0x2d0` alliance-break stamps against `ally_to_war_delay`/`ally_to_war_grace`, team style 2 with `get_target`, and `has_conquest_bonus(9)`. A view-trait port of the whole function is the item that would test the sim against it. No generator flag lacking. The `who < 0` read of `leaders[-1]` cannot be varied: no flag lays drawn bytes before an `--at @VA` sparse table (assumed zero image bytes).
 - **3400b. `Unit::repair_damage@0060de10` is swept (4000 rows, 25 breaks caught, 1 equivalent: `<` → `<=` at `d == param_1`); the crate has no `Unit::repair_damage`** (`heal.rs`'s `civilian_heal` models the caller's tail; `orders.rs`, `city.rs`, `sweep/unit_do_repair.rs` are `Build::repair_damage`). Inline port. Unchecked: the `Underlays::add` stub's xmm2/xmm3 and edx (a stub-time register record extended to xmm, `--record-edx` is `ecx`/`edx` only); `Error::report`'s two unwritten argument slots are a hypothesis `(1,0)` if the sparkle ran else `(0,0)` that fits all rows; `Error::report` is answered 0 on every row (a nonzero answer hits the `int3` at `60e0c8`). The emulator rows are about 420 MB, over the 16 MB cache cap, so each run re-runs the emulator (25 s).
 - **3400c. `Unit::think_merchant@005f4740` is swept (9000 rows, 46 breaks, all caught on the final draw); `Sim::think_merchant` (`merchant.rs:67`) is a faithful port of the branches but welded to `Sim`, so the sweep inlines.** The original calls `find_unit_ordered` with `ecx = who` (byte `+9`), and the enemy `find_unit` is handed a leftover `ecx` (= `who`); `merchant_refused` models neither and need not. Flags lacked: **(i)** `--record-edx` is refused with `--record-order`, so `find_angle`'s `edx` (`dy`) is unverified; **(ii)** a `SimpleArray` header on the stack in an `--at` window needed four `--at` windows plus four `--vtat-also` and `--place` (a `--sparse @VA` form was not tried); **(iii)** no tie or lattice bias for window words: five scoring mutants (`score += 100`, `max(1)`, `score0 -= 10`, `score0 = 200`, `k4.min(3)`) survived until hand-tuned `--wbias` lattices.
 - **3400d. `BuildType::mask_me@006312a0` is swept (2400 rows, 34 breaks: 33 caught, 1 equivalent `ax -= 0x60` → `0x30`); the crate's `Sim::mask_building` (`city.rs`) is a namesake** (no Coord pair, object indices, `RegenRoads` argument or mask-template pointer). Inline port. A parity break survived until `div_3_table` was redrawn as `i//3 + (i%3==1)` (`--fill=c2:i//3` made `3d` and `3d+1` indistinguishable). No flag lacking.
@@ -15300,7 +15300,7 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   built and closed by item 3969, `docs/GOLDEN.md` §175, run1540): the
   close and capture loops (`city.rs:2611–2619`, `:3077–3081`) call `untrack_queued(who, 0)` for a tech item (`ty = 0`,
   `production.rs:108`), which takes one off the Citizen's count and never `tech[who].queued[t]`, so `researching()`
-  (`lib.rs:4037`) stays true and `queue_tech_with` refuses that technology for good (`lib.rs:4086`); the original walks the
+  (`cities/queue.rs:669`) stays true and `queue_tech_with` refuses that technology for good (`cities/queue.rs:691`); the original walks the
   live queues instead and hands a closing Library's queue to the owner's next Library (`Build::close:465–500`). Reachable at
   eight building kinds (46 of 85 `WHERE` entries). No window parted because the crate emits no tech `num_queued` rows
   (`leader.rs:402`; the comparator skips keys the crate has no row for, `harness.rs:4939`) and none of 1,831 tech-queued

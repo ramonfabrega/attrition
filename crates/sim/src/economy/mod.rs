@@ -1467,4 +1467,5 @@ pub mod gather;
 pub mod gather_tile;
 pub mod holdings;
 pub mod market;
+pub mod pricing;
 pub mod rares;

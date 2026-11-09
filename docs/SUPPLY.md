@@ -29,7 +29,7 @@ observation is that `PARMENIO_RADIUS_ADJUST` is loaded as 8.8 fixed point;
 the reasoning is given where it is used. What remains open is listed at the end.
 
 **Where the implementation is.** `crates/sim/src/territory/supply.rs`, and the shelter
-branch of `Sim::tick` in `crates/sim/src/lib.rs`. Every constant below is
+branch of `Sim::tick` in `crates/sim/src/core/frame.rs`. Every constant below is
 re-read from the user's own install by `cargo run -p rondata -- <install>`,
 which fails if any has drifted. The domain field this document shares with
 attrition has one definition in the crate, `attrition::Domain`, and `supply`
