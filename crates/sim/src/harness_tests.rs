@@ -2246,7 +2246,7 @@ fn a_military_unit_is_priced_by_its_research_until_owned_then_at_the_military_di
                 .with_support(economy::Resource::Metal, 1)
         },
         cols: crate::ai_load::UnitCols {
-            role: crate::ai_load::role::MILITARY,
+            role: crate::ai_load::role::ROLE_MILITARY,
             research_premium_cost: 512,
             ..crate::ai_load::UnitCols::default()
         },
@@ -4335,7 +4335,7 @@ fn a_monarch_halves_a_siege_unit_s_unpack() {
         sim.seat_guys(unit);
         sim.units[unit].combat.packed = true;
         let hero = sim.add_unit_type(crate::UnitType::default());
-        sim.unit_types[hero].cols.unit_flags2 = crate::ai_load::uflags2::GENERAL;
+        sim.unit_types[hero].cols.unit_flags2 = crate::ai_load::uflags2::FLAG2_GENERAL;
         let mut m = Unit::new(0, 1, monarch_at, 20);
         m.ty = Some(hero);
         m.type_index = 0x162;

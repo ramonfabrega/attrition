@@ -414,7 +414,7 @@ impl Sim {
     /// repeats (item 1714).
     pub(crate) fn airbase_pad_full(&self, at: usize, ty: usize) -> bool {
         self.building_ident(at) == crate::build::Ident::Airbase
-            && self.unit_types[ty].cols.unit_flags & crate::ai_load::uflags::HELICOPTER == 0
+            && self.unit_types[ty].cols.unit_flags & crate::ai_load::uflags::FLAG_HELICOPTER == 0
             && self.aircraft_homed(at) >= 10
     }
 

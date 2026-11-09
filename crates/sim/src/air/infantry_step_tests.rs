@@ -59,7 +59,7 @@ fn a_walking_modern_infantry_packs_on_its_own_phase() {
         if general {
             // A marching General standing where the walk starts.
             let mut ty = UnitType::default();
-            ty.cols.unit_flags2 = crate::ai_load::uflags2::GENERAL;
+            ty.cols.unit_flags2 = crate::ai_load::uflags2::FLAG2_GENERAL;
             let ty = s.add_unit_type(ty);
             let mut g = Unit::new(1, 0, s.units[u].pos, 50);
             g.ty = Some(ty);

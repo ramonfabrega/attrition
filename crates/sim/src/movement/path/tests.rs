@@ -328,7 +328,7 @@ fn only_ai_transport_types_drop_same_region_terrain_preferences() {
                 let ty = sim.add_unit_type(crate::UnitType::default());
                 sim.units[u].ty = Some(ty);
                 if transport {
-                    sim.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::TRANSPORT;
+                    sim.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::FLAG_TRANSPORT;
                 }
                 let want = if !human && transport {
                     (0, 0)

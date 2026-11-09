@@ -72,7 +72,7 @@ fn a_unit_beside_its_own_ceo_sees_two_tiles_further() {
         type_index: 0x165,
         ..crate::UnitType::default()
     });
-    s.unit_types[ceo].cols.unit_flags2 |= crate::ai_load::uflags2::GENERAL;
+    s.unit_types[ceo].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_GENERAL;
     let at = s.units[u].pos;
     let mut h = crate::Unit::new(0, 1, Pos::new(at.x + 0x300, at.y), 20);
     h.ty = Some(ceo);

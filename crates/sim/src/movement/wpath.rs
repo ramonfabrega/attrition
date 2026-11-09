@@ -352,7 +352,7 @@ impl WpathView for SimWpath<'_> {
         // `1/1`).
         self.sim.units[self.u]
             .ty
-            .is_some_and(|t| self.sim.unit_types[t].cols.is(crate::ai_load::role::SCOUT))
+            .is_some_and(|t| self.sim.unit_types[t].cols.is(crate::ai_load::role::ROLE_SCOUT))
     }
     fn order_is_explore_to(&mut self) -> bool {
         self.sim

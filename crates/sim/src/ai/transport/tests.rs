@@ -645,7 +645,7 @@ fn a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is() {
     fleet_t.combat.domain = Domain::Sea;
     fleet_t.combat.block_radius = 48;
     fleet_t.price.pop = 1;
-    fleet_t.cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
+    fleet_t.cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
     let fleet = f.sim.add_unit_type(fleet_t);
     f.sim.unit_types[fleet].tree = Some(ty::MERCHANTFLEET);
     f.sim.unit_types[fleet].type_index = ty::MERCHANTFLEET as i32;
@@ -655,7 +655,7 @@ fn a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is() {
     });
     f.sim.unit_types[caravan].tree = Some(ty::CARAVAN);
     f.sim.unit_types[caravan].price.pop = 1;
-    f.sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
+    f.sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
 
     for (walker_t, boat_t, counted, sweep) in [
         (caravan, fleet, 1, false),
@@ -723,7 +723,7 @@ fn a_caravan_s_route_slot_goes_with_it_onto_the_fleet_and_back() {
     };
     fleet_t.combat.domain = Domain::Sea;
     fleet_t.combat.block_radius = 48;
-    fleet_t.cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
+    fleet_t.cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
     let fleet = f.sim.add_unit_type(fleet_t);
     f.sim.unit_types[fleet].tree = Some(ty::MERCHANTFLEET);
     f.sim.unit_types[fleet].type_index = ty::MERCHANTFLEET as i32;
@@ -732,7 +732,7 @@ fn a_caravan_s_route_slot_goes_with_it_onto_the_fleet_and_back() {
         ..UnitType::default()
     });
     f.sim.unit_types[caravan].tree = Some(ty::CARAVAN);
-    f.sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
+    f.sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
 
     // A route below it, so the walker's slot is not 0.
     let other = unit(&mut f.sim, 1, caravan, tile_pos(10, 10));
@@ -1294,7 +1294,7 @@ fn a_passenger_put_ashore_takes_the_boat_s_ring_and_the_boat_s_orders() {
     f.sim.unit_types[f.scout].combat.block_radius = 48;
     // `is_special` is `is(SCOUT)` folded into `unit_flags2` by the
     // loader, and it is what puts this unit on the coin's `% 2` arm.
-    f.sim.unit_types[f.scout].cols.unit_flags2 |= crate::ai_load::uflags2::SCOUT;
+    f.sim.unit_types[f.scout].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_SCOUT;
     let rider = unit(&mut f.sim, 1, f.scout, tile_pos(30, 14));
     f.sim.units[rider].movement.speed = 34;
     let boat = unit(&mut f.sim, 1, b, tile_pos(33, 14));

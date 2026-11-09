@@ -1411,7 +1411,7 @@ impl Sim {
             // frames early with it.
             let can_transport = (self.units[u].auto_transport && !self.units[u].never_transport)
                 || self.units[u].ty.is_some_and(|t| {
-                    self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::TRANSPORT != 0
+                    self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT != 0
                 });
             let mut tolerance = match step {
                 STEP_WORLD => 0x180,
@@ -1687,7 +1687,7 @@ impl AstarView for SimAstar<'_> {
     }
     fn transport_type(&mut self) -> bool {
         self.sim.units[self.u].ty.is_some_and(|t| {
-            self.sim.unit_types[t].cols.unit_flags & crate::ai_load::uflags::TRANSPORT != 0
+            self.sim.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT != 0
         })
     }
     fn ai_bit(&mut self) -> bool {

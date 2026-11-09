@@ -11,7 +11,7 @@ fn ai_scout() -> (Sim, usize) {
     s.nation[0].human = true;
     s.nation[1].human = false;
     let t = s.add_unit_type(crate::UnitType::default());
-    s.unit_types[t].cols.unit_flags2 = uflags2::SCOUT | uflags2::CASTER;
+    s.unit_types[t].cols.unit_flags2 = uflags2::FLAG2_SCOUT | uflags2::CASTER;
     let mut u = crate::Unit::new(1, 0, crate::Pos::new(5 * 768 + 384, 5 * 768 + 384), 20);
     u.ty = Some(t);
     let u = s.add_unit(u);
@@ -46,7 +46,7 @@ fn ai_general() -> (Sim, usize, [u32; 2]) {
     let (mut s, _) = ai_scout();
     s.lobby.difficulty = 5;
     let t = s.add_unit_type(crate::UnitType::default());
-    s.unit_types[t].cols.unit_flags2 = uflags2::GENERAL;
+    s.unit_types[t].cols.unit_flags2 = uflags2::FLAG2_GENERAL;
     s.unit_types[t].mana = 1000;
     // `TypeIndex` `0x36`, the General: the crafts' `FROM`.
     s.unit_types[t].tree = Some(0x36);

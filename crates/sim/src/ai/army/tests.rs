@@ -42,7 +42,7 @@ fn come_out_s_army_coin_is_thrown_by_the_two_scout_lineages_alone() {
     assert!(sim.army_of(citizen).is_none());
 
     // A scout: `is_special` is `is(SCOUT)` folded into `unit_flags2`.
-    let scout = make(&mut sim, uflags2::SCOUT, None);
+    let scout = make(&mut sim, uflags2::FLAG2_SCOUT, None);
     let before = sim.rng.seed;
     sim.come_out_join_army(scout);
     assert_ne!(sim.rng.seed, before, "the scout arm's `% 2`");
@@ -167,7 +167,7 @@ fn the_hoplite_and_siege_terms_skip_decoys() {
         let (mut sim, c) = sim_with_city();
         sim.nation[1].human = human;
         let hop = soldier_type(&mut sim);
-        sim.unit_types[hop].cols.role |= role::HOPLITE;
+        sim.unit_types[hop].cols.role |= role::ROLE_HOPLITE;
         let ram = soldier_type(&mut sim);
         sim.unit_types[ram].combat.siege = true;
         let slot = sim.init_army(1, Some(c));
@@ -256,7 +256,7 @@ fn an_enemy_city_s_bordering_is_read_off_its_owner() {
     sim.cities[c].no_muster = true;
     let slot = sim.init_army(1, Some(c));
     let hop = soldier_type(&mut sim);
-    sim.unit_types[hop].cols.role |= role::HOPLITE;
+    sim.unit_types[hop].cols.role |= role::ROLE_HOPLITE;
     for i in 0..4 {
         let u = put(&mut sim, 1, hop, Pos::new(0x3000 + i * 48, 0x3000));
         sim.army_add_unit(1, slot, u);
@@ -400,7 +400,7 @@ fn sim_with_rival_city() -> (Sim, usize, usize) {
     sim.cities[c].reg = sim.world.region_of(sim.cities[c].pos.cell());
     sim.cities[c].no_heal = true;
     let hop = soldier_type(&mut sim);
-    sim.unit_types[hop].cols.role |= role::HOPLITE;
+    sim.unit_types[hop].cols.role |= role::ROLE_HOPLITE;
     let slot = sim.init_army(1, Some(c));
     for i in 0..4 {
         let u = put(&mut sim, 1, hop, Pos::new(0x3000 + i * 48, 0x3000));
@@ -1002,7 +1002,7 @@ fn an_army_s_scout_throws_the_special_coin_on_the_spellcaster_turn() {
         tree: Some(SCOUT),
         type_index: 0x45,
         cols: crate::ai_load::UnitCols {
-            unit_flags2: uflags2::SCOUT,
+            unit_flags2: uflags2::FLAG2_SCOUT,
             ..crate::ai_load::UnitCols::default()
         },
         ..crate::UnitType::default()
@@ -1067,7 +1067,7 @@ fn only_a_supply_wagon_or_a_hero_joins_an_army_from_the_think_tail() {
     let hero = sim.add_unit_type(crate::UnitType {
         hits: 100,
         cols: crate::ai_load::UnitCols {
-            unit_flags2: uflags2::GENERAL,
+            unit_flags2: uflags2::FLAG2_GENERAL,
             ..crate::ai_load::UnitCols::default()
         },
         ..crate::UnitType::default()
@@ -1103,8 +1103,8 @@ fn a_government_patriot_is_capped_by_the_army_s_wagons() {
         })
     };
     let wagon = ty(&mut sim, uflags2::SUPPLY_OR_HERO);
-    let general = ty(&mut sim, uflags2::GENERAL);
-    let despot = ty(&mut sim, uflags2::GENERAL | uflags2::SUPPLY_OR_HERO);
+    let general = ty(&mut sim, uflags2::FLAG2_GENERAL);
+    let despot = ty(&mut sim, uflags2::FLAG2_GENERAL | uflags2::SUPPLY_OR_HERO);
     for _ in 0..3 {
         let w = put(&mut sim, 1, wagon, here);
         sim.army_add_unit(1, near, w);
@@ -1163,7 +1163,7 @@ fn think_attack_s_head_joins_a_military_unit_and_leaves_an_armed_citizen() {
             ..crate::combat::Profile::default()
         },
         cols: crate::ai_load::UnitCols {
-            role: role::MILITARY,
+            role: role::ROLE_MILITARY,
             ..crate::ai_load::UnitCols::default()
         },
         ..crate::UnitType::default()

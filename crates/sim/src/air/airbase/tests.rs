@@ -415,7 +415,7 @@ fn an_airbase_with_ten_homed_aircraft_refuses_another() {
     plane(&mut s, b, BIPLANE);
     assert_eq!(s.aircraft_homed(b), 10);
     assert!(s.airbase_pad_full(b, ty), "ten homed: full");
-    s.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::HELICOPTER;
+    s.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
     assert!(!s.airbase_pad_full(b, ty), "a helicopter's type is exempt");
 }
 
@@ -433,7 +433,7 @@ fn a_full_airbase_trains_the_helicopter_behind_a_refused_plane() {
         let plane_ty = s.units[planes[2]].ty.unwrap();
         let h = plane(&mut s, b, HELICOPTER);
         let heli_ty = s.units[h].ty.unwrap();
-        s.unit_types[heli_ty].cols.unit_flags |= crate::ai_load::uflags::HELICOPTER;
+        s.unit_types[heli_ty].cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
         // No technology tree in this fixture: the lines are ids a
         // tree would index.
         s.unit_types[heli_ty].tree = None;
@@ -528,7 +528,7 @@ fn a_helicopter_launched_on_the_ground_takes_a_move_to_the_cell_centre() {
     let (mut s, b, [b8, b7, f6, f9]) = hangar([0, 0, 40, 40]);
     let h = plane(&mut s, b, HELICOPTER);
     let t = s.units[h].ty.unwrap();
-    s.unit_types[t].cols.unit_flags |= crate::ai_load::uflags::HELICOPTER;
+    s.unit_types[t].cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
     let here = s.units[h].pos;
     s.group_action_launch_patrol(&[b], p, QueuePos::New, Keys::default());
     assert!(
@@ -564,7 +564,7 @@ fn air_type(s: &mut Sim, b: usize, line: crate::tech::TypeId, heli: bool, missil
     let p = plane(s, b, line);
     let t = s.units[p].ty.unwrap();
     if heli {
-        s.unit_types[t].cols.unit_flags |= crate::ai_load::uflags::HELICOPTER;
+        s.unit_types[t].cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
     }
     if missile {
         s.unit_types[t].combat.obj_masks |= crate::combat::mask::MISSILE;

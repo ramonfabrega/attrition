@@ -167,7 +167,7 @@ fn the_ceo_s_city_is_where_a_counted_on_map_hero_stands() {
         hits: 50,
         ..UnitType::default()
     };
-    ceo.cols.unit_flags2 = uflags2::GENERAL;
+    ceo.cols.unit_flags2 = uflags2::FLAG2_GENERAL;
     let ceo = sim.add_unit_type(ceo);
     let h = spawn(&mut sim, 0, ceo, tile_pos(33, 33));
     sim.units[h].type_index = 0x165;
@@ -181,7 +181,7 @@ fn the_ceo_s_city_is_where_a_counted_on_map_hero_stands() {
     sim.units[h].on_map = true;
     sim.unit_types[ceo].cols.unit_flags2 = 0;
     assert_eq!(sim.ceo_city(0), None, "not a hero");
-    sim.unit_types[ceo].cols.unit_flags2 = uflags2::GENERAL;
+    sim.unit_types[ceo].cols.unit_flags2 = uflags2::FLAG2_GENERAL;
     sim.muster[1].by_type[ceo] = 1;
     assert_eq!(sim.ceo_city(1), None, "another player's hero");
 }

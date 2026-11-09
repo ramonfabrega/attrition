@@ -4132,7 +4132,7 @@ mod tests {
                 let c = &loaded.unit_types[t].cols;
                 c.unit_flags2 & 4 != 0
                     && c.unit_flags & 0x20000 == 0
-                    && c.is(sim::ai_load::role::MILITARY)
+                    && c.is(sim::ai_load::role::ROLE_MILITARY)
             })
             .collect();
         // Machine Gun ×2, Heavy ×2, Advanced ×3 and the German MG42; each

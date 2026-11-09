@@ -3478,7 +3478,7 @@ impl Sim {
     /// The body is [`crate::plunder::plunder_steps`] over [`crate::plunder::SimPlunder`]
     /// (the original's whole function, swept against it in item 3356).
     ///
-    /// A General, caravan or supply-wagon victim (`uflags2::GENERAL`,
+    /// A General, caravan or supply-wagon victim (`uflags2::FLAG2_GENERAL`,
     /// `CARAVAN`, `SUPPLY_OR_HERO`) plunders by its own constant, `p3` and
     /// `p4` both 0 (item 3788). The Inca refund is [`Sim::inca_refund`].
     ///
@@ -3523,7 +3523,7 @@ impl Sim {
         // arm (`LAB_0065332c`): `plunder(v, k, who, 0, 0)` — no Despot search,
         // the base constant in wealth (item 3788; run1461b's who=2 takes
         // `GENERAL_PLUNDER` 100 for who=1's Despot `1/28` on 1463).
-        if kind & (uflags2::GENERAL | uflags2::CARAVAN | uflags2::SUPPLY_OR_HERO) != 0 {
+        if kind & (uflags2::FLAG2_GENERAL | uflags2::FLAG2_CARAVAN | uflags2::SUPPLY_OR_HERO) != 0 {
             crate::plunder::plunder_steps(
                 &mut crate::plunder::SimPlunder { sim: self, v },
                 k as i32,
@@ -5194,7 +5194,7 @@ impl Sim {
             return word;
         }
         let cols = self.units[i].ty.map(|t| self.unit_types[t].cols);
-        let mut flags = if cols.is_some_and(|c| c.flag(uflags::SIEGE)) {
+        let mut flags = if cols.is_some_and(|c| c.flag(uflags::FLAG_SIEGE)) {
             if self.ai_driven(self.units[i].owner) {
                 search::BUILDINGS | search::ARMED
             } else {
@@ -6006,7 +6006,7 @@ impl Sim {
                     }
                 } else if moving_fire(attacker) && line(target, FIRESHIP) {
                     v = v.wrapping_add(1_000_000);
-                } else if flags_of(target) & uflags::TRANSPORT != 0 {
+                } else if flags_of(target) & uflags::FLAG_TRANSPORT != 0 {
                     v = v.wrapping_add(900_000);
                 } else if line(target, crate::fish::FISHERMEN) {
                     v = v.wrapping_add(100_000);
@@ -6057,7 +6057,7 @@ impl Sim {
                     v /= 400;
                 } else if let Obj::Unit(u) = target
                     && self.units[u].ty.is_some_and(|t| {
-                        self.unit_types[t].cols.unit_flags & uflags::TRANSPORT != 0
+                        self.unit_types[t].cols.unit_flags & uflags::FLAG_TRANSPORT != 0
                     })
                 {
                     v = v.wrapping_mul(40);
@@ -7403,7 +7403,7 @@ impl crate::object_attack_view::ObjectAttackView for SimObjectAttack<'_> {
         self.rec().is_some_and(|r| {
             self.sim.unit_types[r]
                 .cols
-                .flag2(crate::ai_load::uflags2::CARAVAN)
+                .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
         })
     }
     fn has_caravan_preq(&mut self) -> bool {

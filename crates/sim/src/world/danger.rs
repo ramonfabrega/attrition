@@ -98,7 +98,7 @@ impl crate::Sim {
                     && u.on_map
                     && u.owner < 8
                     && u.ty
-                        .is_some_and(|t| self.unit_types[t].cols.is(crate::ai_load::role::MILITARY))
+                        .is_some_and(|t| self.unit_types[t].cols.is(crate::ai_load::role::ROLE_MILITARY))
             })
             .map(|i| {
                 let u = &self.units[i];

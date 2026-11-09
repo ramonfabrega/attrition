@@ -184,7 +184,7 @@ impl crate::Sim {
     /// ours re-found `0/11`.
     pub(crate) fn captain_research_admits(&self, u: usize, t: usize) -> bool {
         let p = self.profile(Obj::Unit(t));
-        if self.units[u].unit_masks2 & crate::combat::umask2::BARK != 0 {
+        if self.units[u].unit_masks2 & crate::combat::umask2::MASK2_BARK != 0 {
             p.combat_role
                 && self.units[t]
                     .ty

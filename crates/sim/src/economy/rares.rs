@@ -338,7 +338,7 @@ impl Sim {
         // three held (`docs/AI.md` §172).
         if self.unit_types[ty]
             .cols
-            .flag2(crate::ai_load::uflags2::GENERAL)
+            .flag2(crate::ai_load::uflags2::FLAG2_GENERAL)
         {
             speed += self.general_upgrade_level(who) * speed / 4;
         }

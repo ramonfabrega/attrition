@@ -3852,7 +3852,7 @@ impl Sim {
             && self.current_order(u).map(Order::index) == Some(index::GROUP_ATTACK_TO);
         let siege = self.units[u]
             .ty
-            .is_some_and(|ty| self.unit_types[ty].cols.flag(uflags::SIEGE));
+            .is_some_and(|ty| self.unit_types[ty].cols.flag(uflags::FLAG_SIEGE));
         if group_move
             && !siege
             && let Some(g) = self.group_of(u)
@@ -3921,7 +3921,7 @@ impl Sim {
             }
             let special = unit.ty.is_some_and(|t| {
                 let c = self.unit_types[t].cols;
-                c.flag2(uflags2::SUPPLY_OR_HERO) || c.flag2(uflags2::GENERAL)
+                c.flag2(uflags2::SUPPLY_OR_HERO) || c.flag2(uflags2::FLAG2_GENERAL)
             });
             if special {
                 continue;
@@ -5148,7 +5148,7 @@ impl Sim {
             let transport = self.units[u].ty.is_some_and(|ty| {
                 self.unit_types[ty]
                     .cols
-                    .flag(crate::ai_load::uflags::TRANSPORT)
+                    .flag(crate::ai_load::uflags::FLAG_TRANSPORT)
             });
             let water = self.world.tile_mask(Pos::new(qx >> 2, qy >> 2)) & tile::SURFACE
                 == tile::SURFACE_OCEAN;
@@ -5583,7 +5583,7 @@ impl Sim {
                         && let crate::combat::Obj::Building(_) = t
                     {
                         let siege = self.units[u].ty.is_some_and(|ty| {
-                            self.unit_types[ty].cols.flag(crate::ai_load::uflags::SIEGE)
+                            self.unit_types[ty].cols.flag(crate::ai_load::uflags::FLAG_SIEGE)
                         });
                         if !(siege && self.ai_driven(self.units[u].owner))
                             && self.is_in_range(me, t)
@@ -5680,7 +5680,7 @@ impl Sim {
                             && self.units[u].phase(frame) % 16 == 0
                         {
                             let siege = self.units[u].ty.is_some_and(|ty| {
-                                self.unit_types[ty].cols.flag(crate::ai_load::uflags::SIEGE)
+                                self.unit_types[ty].cols.flag(crate::ai_load::uflags::FLAG_SIEGE)
                             });
                             let word = if siege {
                                 crate::fight::search::BUILDINGS
@@ -5759,7 +5759,7 @@ impl Sim {
                         (self.units[u].pos.y - mo.dest.y).abs(),
                     );
                     let transport = self.units[u].ty.is_some_and(|t| {
-                        self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::TRANSPORT != 0
+                        self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT != 0
                     });
                     if d <= 0x480 && !transport {
                         self.repath(u);
@@ -7275,7 +7275,7 @@ impl Sim {
             || {
                 let transport = unit
                     .ty
-                    .is_some_and(|t| self.unit_types[t].cols.flag(uflags::TRANSPORT));
+                    .is_some_and(|t| self.unit_types[t].cols.flag(uflags::FLAG_TRANSPORT));
                 (transport, self.coll_size(u))
             },
             self.tuning.boat_garrison_max_distance,
@@ -9838,7 +9838,7 @@ impl Sim {
     /// `change_target(1/8 → 1/7)`, the fishing boat in range.
     pub(crate) fn retarget_admits(&self, u: usize, c: Obj) -> bool {
         let combat = self.profile(c).combat_role;
-        if self.units[u].unit_masks2 & combat::umask2::BARK == 0 {
+        if self.units[u].unit_masks2 & combat::umask2::MASK2_BARK == 0 {
             return combat;
         }
         let n = match c {
@@ -10053,7 +10053,7 @@ impl Sim {
         let who = self.units[u].owner;
         let siege = self.units[u]
             .ty
-            .is_some_and(|ty| self.unit_types[ty].cols.flag(uflags::SIEGE));
+            .is_some_and(|ty| self.unit_types[ty].cols.flag(uflags::FLAG_SIEGE));
         let city = self.buildings[b]
             .city
             .is_some_and(|c| self.cities[c].building == b);

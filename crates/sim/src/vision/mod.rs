@@ -231,7 +231,7 @@ impl Sim {
         // A hero sees `GENERAL_UPGRADE_LOS` more per General upgrade
         // (`0060e8a3`..`0060e8db`): the coverage pair's General `1/150`
         // prints 14 on its type's 8 (`docs/AI.md` §172).
-        if ty.cols.flag2(uflags2::GENERAL) {
+        if ty.cols.flag2(uflags2::FLAG2_GENERAL) {
             los += self.general_upgrade_level(unit.owner) * self.tuning.general_upgrade_los;
         }
         // The last word: a decoy (`unit_masks & 1`) sees one tile

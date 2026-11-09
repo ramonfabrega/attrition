@@ -473,8 +473,8 @@ fn a_supply_unit_adds_the_supply_hp_upgrade() {
         ..crate::UnitType::default()
     };
     let wagon = s.add_unit_type(ty(uflags2::SUPPLY_OR_HERO));
-    let general = s.add_unit_type(ty(uflags2::GENERAL));
-    let patriot = s.add_unit_type(ty(uflags2::GENERAL | uflags2::SUPPLY_OR_HERO));
+    let general = s.add_unit_type(ty(uflags2::FLAG2_GENERAL));
+    let patriot = s.add_unit_type(ty(uflags2::FLAG2_GENERAL | uflags2::SUPPLY_OR_HERO));
     let other = s.add_unit_type(ty(0));
     assert_eq!(s.unit_hits(0, wagon), 90);
     for (step, expected) in [(steps[0], 110), (steps[1], 130), (steps[2], 150)] {
@@ -570,7 +570,7 @@ fn a_general_climbs_with_the_general_upgrades() {
         },
         ..crate::UnitType::default()
     };
-    let general = s.add_unit_type(ty(crate::ai_load::uflags2::GENERAL));
+    let general = s.add_unit_type(ty(crate::ai_load::uflags2::FLAG2_GENERAL));
     let citizen = s.add_unit_type(ty(0));
     let mut unit = crate::Unit::new(0, 0, crate::Pos::new(1000, 1000), 40);
     unit.ty = Some(general);
@@ -942,7 +942,7 @@ fn supply_upgrade_speed_counts_sparse_steps_and_refreshes_existing_units() {
         moves: 25,
         hits: 90,
         cols: crate::ai_load::UnitCols {
-            unit_flags2: uflags2::GENERAL,
+            unit_flags2: uflags2::FLAG2_GENERAL,
             ..crate::ai_load::UnitCols::default()
         },
         ..crate::UnitType::default()

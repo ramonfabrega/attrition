@@ -2314,13 +2314,13 @@ impl Sim {
 
     /// `UnitData::is_hero@0046ce?0` as `Guy::inc_time` inlines it —
     /// `unit_flags2 & 0x20`, the government hero and the general
-    /// ([`uflags2::GENERAL`]). It gates the queued attack's in-loop
+    /// ([`uflags2::FLAG2_GENERAL`]). It gates the queued attack's in-loop
     /// payment and nothing else here.
     fn is_hero(&self, u: usize) -> bool {
         self.units[u].ty.is_some_and(|t| {
             self.unit_types[t]
                 .cols
-                .flag2(crate::ai_load::uflags2::GENERAL)
+                .flag2(crate::ai_load::uflags2::FLAG2_GENERAL)
         })
     }
 

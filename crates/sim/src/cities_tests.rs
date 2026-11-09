@@ -957,7 +957,7 @@ fn a_group_s_queue_first_keeps_the_build_behind_the_walk() {
     sim.nation[0].human = false;
     let mut ct = citizen_type(t.village);
     ct.worker = Worker::Citizen;
-    ct.cols.role = crate::ai_load::role::CITIZEN;
+    ct.cols.role = crate::ai_load::role::ROLE_CITIZEN;
     let citizen = sim.add_unit_type(ct);
     let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
     let u = spawn(&mut sim, 0, citizen, tile_pos(30, 44));
@@ -1026,7 +1026,7 @@ fn a_busy_builder_gets_an_approach_before_its_next_build() {
     sim.nation[0].human = false;
     let mut ct = citizen_type(t.village);
     ct.worker = Worker::Citizen;
-    ct.cols.role = crate::ai_load::role::CITIZEN;
+    ct.cols.role = crate::ai_load::role::ROLE_CITIZEN;
     let citizen = sim.add_unit_type(ct);
     let first = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
     let next = sim.place_building(0, t.barracks, tile_pos(24, 40)).unwrap();
@@ -1890,7 +1890,7 @@ fn the_president_near_a_site_shortens_its_clock_by_a_quarter() {
             hits: 100,
             type_index,
             cols: crate::ai_load::UnitCols {
-                unit_flags2: crate::ai_load::uflags2::GENERAL,
+                unit_flags2: crate::ai_load::uflags2::FLAG2_GENERAL,
                 ..crate::ai_load::UnitCols::default()
             },
             ..crate::UnitType::default()
@@ -1939,7 +1939,7 @@ fn the_despot_beside_a_kill_plunders_the_least_stocked_good() {
             ..crate::cost::Price::default()
         },
         cols: crate::ai_load::UnitCols {
-            unit_flags2: crate::ai_load::uflags2::GENERAL,
+            unit_flags2: crate::ai_load::uflags2::FLAG2_GENERAL,
             ..crate::ai_load::UnitCols::default()
         },
         ..crate::UnitType::default()
@@ -2058,7 +2058,7 @@ fn a_hero_s_killer_takes_general_plunder_in_wealth() {
             ..crate::cost::Price::default()
         },
         cols: crate::ai_load::UnitCols {
-            unit_flags2: crate::ai_load::uflags2::GENERAL,
+            unit_flags2: crate::ai_load::uflags2::FLAG2_GENERAL,
             ..crate::ai_load::UnitCols::default()
         },
         ..crate::UnitType::default()
@@ -2334,7 +2334,7 @@ fn the_president_near_a_trainer_halves_a_trained_unit_s_time() {
         hits: 100,
         type_index: 0x163,
         cols: crate::ai_load::UnitCols {
-            unit_flags2: crate::ai_load::uflags2::GENERAL,
+            unit_flags2: crate::ai_load::uflags2::FLAG2_GENERAL,
             ..crate::ai_load::UnitCols::default()
         },
         ..crate::UnitType::default()
@@ -6311,7 +6311,7 @@ fn a_caravan_at_the_limit_is_held_and_the_merchant_behind_it_trains() {
         sim.tech[0].queued.resize(n, 0);
         sim.unit_types[caravan].tree = Some(crate::nations::ty::CARAVAN);
         sim.unit_types[caravan].type_index = 0x3b;
-        sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
+        sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
         // Commerce level 0: the limit is one.
         sim.tech[0].epoch[tech::Line::Commerce as usize] = 0;
         let _ = city_at(&mut sim, &t, 0, 32, 32);
@@ -6378,7 +6378,7 @@ fn a_persian_market_trains_a_caravan_on_its_slot_up_to_the_limit() {
             .add(tech::TypeDef::unit("Caravan", tech::UnitTraits::default()));
     }
     sim.unit_types[caravan].tree = Some(crate::nations::ty::CARAVAN);
-    sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
+    sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
     sim.tech[0].epoch[tech::Line::Civic as usize] = 1;
     let _ = city_at(&mut sim, &t, 0, 32, 32);
     let _ = city_at(&mut sim, &t, 0, 57, 32);
@@ -8206,7 +8206,7 @@ fn an_ai_general_standing_orders_create_decoys_and_its_copies_join_its_army() {
     use crate::orders::{Body, spell};
     let (mut sim, [_, _, general, foot], _) = untargeted_sim();
     sim.unit_types[general].cols.unit_flags2 |=
-        crate::ai_load::uflags2::GENERAL | crate::ai_load::uflags2::CASTER;
+        crate::ai_load::uflags2::FLAG2_GENERAL | crate::ai_load::uflags2::CASTER;
     sim.nation[0].human = false;
     sim.lobby.difficulty = 5;
     let g = sim.init_unit(0, general, tile_pos(30, 30));
@@ -10104,7 +10104,7 @@ fn a_computer_siege_unit_s_find_of_a_city_is_mandatory_and_moves_its_muster() {
                 unit_flags: if case == "not siege" {
                     0
                 } else {
-                    crate::ai_load::uflags::SIEGE
+                    crate::ai_load::uflags::FLAG_SIEGE
                 },
                 ..crate::ai_load::UnitCols::default()
             },

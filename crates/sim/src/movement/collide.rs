@@ -669,7 +669,7 @@ impl BoatView for SimBoat<'_> {
     }
     fn is_transport(&mut self, u: usize) -> bool {
         self.0.units[u].ty.is_some_and(|t| {
-            self.0.unit_types[t].cols.unit_flags & crate::ai_load::uflags::TRANSPORT != 0
+            self.0.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT != 0
         })
     }
     fn find_units(&mut self, u: usize, at: Pos, size: i32, _circles: i32) -> Vec<usize> {

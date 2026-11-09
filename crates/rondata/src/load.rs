@@ -1434,7 +1434,7 @@ pub fn load_tables(
             // reading's stand-in and disagrees on two of the 364 (the Armed
             // Supply Wagon, which the `Civilian` *category* refuses, and
             // Boadicea, which carries the mask but is `Foot`).
-            combat_role: cols[i].is(ai_load::role::MILITARY),
+            combat_role: cols[i].is(ai_load::role::ROLE_MILITARY),
             hoplites: unit_is(i, HOPLITES),
             cost: c.cost.iter().sum::<i32>() * 10,
             build_class: BuildClass::Other,
@@ -1445,7 +1445,7 @@ pub fn load_tables(
             gov_hero: PATRIOTS.contains(&i),
             // `unit_flags & 0x10` on the **final** word: `init_final_flags`
             // adds the bit to the Transport Barge and Merchant Fleet lines.
-            transport: cols[i].flag(ai_load::uflags::TRANSPORT) && c.domain == Domain::Sea,
+            transport: cols[i].flag(ai_load::uflags::FLAG_TRANSPORT) && c.domain == Domain::Sea,
         };
         let _ = r;
         unit_types.push(UnitType {
@@ -1480,7 +1480,7 @@ pub fn load_tables(
             rel: sim::relative_value::Facts {
                 masks: combat.obj_masks,
                 melee: combat.max_range == 0,
-                combat_role: cols[i].is(ai_load::role::MILITARY),
+                combat_role: cols[i].is(ai_load::role::ROLE_MILITARY),
                 machinegun: unit_is(i, MACHINEGUN),
                 trireme: unit_is(i, TRIREME),
                 bomb_vessel: unit_is(i, BOMBARDSHIP),
@@ -1736,7 +1736,7 @@ pub fn load_tables(
                 };
                 !cols[*i].flag(ai_load::uflags::NO_PRODUCE)
                     && c.attack != 0
-                    && !cols[*i].is(ai_load::role::CIVILIAN)
+                    && !cols[*i].is(ai_load::role::ROLE_CIVILIAN)
                     && !build_is(w, VILLAGE)
             })
             .filter_map(|(_, c)| c.where_)

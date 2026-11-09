@@ -549,7 +549,7 @@ impl Sim {
         }
         let owner = u.owner;
         let ut = &self.unit_types[t];
-        let transport = ut.cols.flag(crate::ai_load::uflags::TRANSPORT);
+        let transport = ut.cols.flag(crate::ai_load::uflags::FLAG_TRANSPORT);
         let carrier = ut.type_index == AIRCRAFTCARRIER
             || ut.tree.is_some_and(|tr| {
                 self.tech_tree.types.get(AIRCRAFTCARRIER as usize).is_some()
@@ -667,7 +667,7 @@ impl Sim {
         }
         let id = self.unit_types[t].type_index;
         let civilian = WORKERS.contains(&id)
-            || cols.flag2(uflags2::CARAVAN)
+            || cols.flag2(uflags2::FLAG2_CARAVAN)
             || self.is_merchant(i)
             || id == FISHERMEN;
         if !civilian {

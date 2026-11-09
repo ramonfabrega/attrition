@@ -74,7 +74,7 @@ pub mod umask2 {
     /// such unit, whoever owns it, and cleared on every other. `Unit::fight`
     /// reads it for its captain's re-search predicate ([`crate::Sim`]'s
     /// `fight`, parked 2100).
-    pub const BARK: u32 = 0x4;
+    pub const MASK2_BARK: u32 = 0x4;
     /// **`0x80` and `0x4000` — an Iroquois Scout** (`Unit::init@00612100:
     /// 341-357`, item 3107, `docs/AI.md` §246): a unit of a leader with
     /// tribe bonus 0x12 that `is(SCOUT)` takes `0x4080` at birth.

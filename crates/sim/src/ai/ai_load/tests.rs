@@ -13,42 +13,42 @@ fn the_citizen_s_word_is_the_original_s() {
     // civilian — an `ATTACK` of 40 that the `Civilian` category refuses.
     let r = determine_roles(&RoleFacts {
         citizen_id: true,
-        cat: cat::CIVILIAN,
+        cat: cat::UNIT_CAT_CIVILIAN,
         attack: 40,
         ..facts()
     });
     assert_eq!(r, 0x40300);
-    assert_eq!(r, role::LAND | role::CITIZEN | role::CIVILIAN);
+    assert_eq!(r, role::ROLE_LAND | role::ROLE_CITIZEN | role::ROLE_CIVILIAN);
 }
 
 #[test]
 fn a_hoplite_takes_the_hoplite_bit_and_not_the_infantry_one() {
     let h = determine_roles(&RoleFacts {
-        cat: cat::FOOT,
+        cat: cat::UNIT_CAT_FOOT,
         attack: 60,
         hoplite: true,
         ..facts()
     });
-    assert!(h & role::HOPLITE != 0 && h & role::INFANTRY == 0);
+    assert!(h & role::ROLE_HOPLITE != 0 && h & role::ROLE_INFANTRY == 0);
     let s = determine_roles(&RoleFacts {
-        cat: cat::FOOT,
+        cat: cat::UNIT_CAT_FOOT,
         attack: 60,
         ..facts()
     });
-    assert!(s & role::INFANTRY != 0 && s & role::HOPLITE == 0);
-    assert!(h & role::MELEE != 0 && s & role::MELEE != 0);
+    assert!(s & role::ROLE_INFANTRY != 0 && s & role::ROLE_HOPLITE == 0);
+    assert!(h & role::ROLE_MELEE != 0 && s & role::ROLE_MELEE != 0);
 }
 
 #[test]
 fn command_and_civilian_categories_are_never_military() {
-    for c in [cat::COMMAND, cat::CIVILIAN] {
+    for c in [cat::UNIT_CAT_COMMAND, cat::UNIT_CAT_CIVILIAN] {
         let r = determine_roles(&RoleFacts {
             cat: c,
             attack: 90,
             ..facts()
         });
-        assert!(r & role::MILITARY == 0);
-        assert!(r & role::CIVILIAN != 0);
+        assert!(r & role::ROLE_MILITARY == 0);
+        assert!(r & role::ROLE_CIVILIAN != 0);
     }
 }
 
@@ -62,7 +62,7 @@ fn the_sea_and_air_military_bits_come_with_the_domain() {
     });
     assert_eq!(
         sea,
-        role::SEA | role::MILITARY | role::SEA_MILITARY | role::RANGED
+        role::ROLE_SEA | role::ROLE_MILITARY | role::ROLE_SEA_MILITARY | role::ROLE_RANGED
     );
     let air = determine_roles(&RoleFacts {
         domain: Domain::Air,
@@ -71,7 +71,7 @@ fn the_sea_and_air_military_bits_come_with_the_domain() {
     });
     assert_eq!(
         air,
-        role::AIR | role::MILITARY | role::AIR_MILITARY | role::MELEE
+        role::ROLE_AIR | role::ROLE_MILITARY | role::ROLE_AIR_MILITARY | role::ROLE_MELEE
     );
 }
 
@@ -82,7 +82,7 @@ fn a_carrier_takes_the_carry_bit_whatever_else_it_is() {
         carry: 8,
         ..facts()
     });
-    assert!(r & role::CARRY != 0 && r & role::CIVILIAN != 0);
+    assert!(r & role::ROLE_CARRY != 0 && r & role::ROLE_CIVILIAN != 0);
 }
 
 #[test]
@@ -129,7 +129,7 @@ fn small_tree() -> (TechTree, Vec<UnitType>, Vec<BuildType>) {
     let unit = UnitType {
         tree: Some(unit_id),
         cols: UnitCols {
-            role: role::LAND | role::MILITARY | role::FOOT | role::INFANTRY | role::MELEE,
+            role: role::ROLE_LAND | role::ROLE_MILITARY | role::ROLE_FOOT | role::ROLE_INFANTRY | role::ROLE_MELEE,
             ..UnitCols::default()
         },
         ..UnitType::default()

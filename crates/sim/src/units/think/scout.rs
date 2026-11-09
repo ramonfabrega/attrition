@@ -215,20 +215,20 @@ impl Sim {
     }
 
     /// `role & 0x10` on the unit's type — the scout bit
-    /// ([`crate::ai_load::role::SCOUT`]).
+    /// ([`crate::ai_load::role::ROLE_SCOUT`]).
     pub fn unit_is_scout(&self, u: usize) -> bool {
         let Some(rec) = self.units[u].ty else {
             return false;
         };
         let cols = self.unit_types[rec].cols.role;
         if cols != 0 {
-            return cols & role::SCOUT != 0;
+            return cols & role::ROLE_SCOUT != 0;
         }
         // A type the loader never filled — a harness fixture. The tree id is
         // what `role_word` needs for its `Scout` lineage test.
         self.unit_types[rec]
             .tree
-            .is_some_and(|t| self.role_word(t, rec) & role::SCOUT != 0)
+            .is_some_and(|t| self.role_word(t, rec) & role::ROLE_SCOUT != 0)
     }
 
     /// `ObjectData::is(SPY, 0)` — the type's own lineage test through its
@@ -242,13 +242,13 @@ impl Sim {
     }
 
     /// `UnitData::is_special@0046cea0`, which the vtable resolves to
-    /// `unit_flags2 & 0x10` — [`crate::ai_load::uflags2::SCOUT`]. Read
+    /// `unit_flags2 & 0x10` — [`crate::ai_load::uflags2::FLAG2_SCOUT`]. Read
     /// twice: by `Unit::think`'s human block (§2) and by §11's `local_74`.
     pub(crate) fn unit_is_special(&self, u: usize) -> bool {
         self.units[u].ty.is_some_and(|r| {
             self.unit_types[r]
                 .cols
-                .flag2(crate::ai_load::uflags2::SCOUT)
+                .flag2(crate::ai_load::uflags2::FLAG2_SCOUT)
         })
     }
 

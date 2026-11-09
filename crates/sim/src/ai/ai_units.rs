@@ -122,15 +122,15 @@ impl Sim {
         let role = self.role_word(t, rec);
         Some(Facts {
             rec,
-            citizen: role & role::CITIZEN != 0,
-            military: role & role::MILITARY != 0,
+            citizen: role & role::ROLE_CITIZEN != 0,
+            military: role & role::ROLE_MILITARY != 0,
             land,
             sea,
             air,
-            scout: role & role::SCOUT != 0,
-            carry: role & role::CARRY != 0,
+            scout: role & role::ROLE_SCOUT != 0,
+            carry: role & role::ROLE_CARRY != 0,
             siege: p.siege,
-            caravan: c.flag2(uflags2::CARAVAN) || p.roles & combat::role::IS_CARAVAN != 0,
+            caravan: c.flag2(uflags2::FLAG2_CARAVAN) || p.roles & combat::role::IS_CARAVAN != 0,
             merchant: p.roles & combat::role::IS_MERCHANT != 0,
             worker: citizen,
             peasant: u.worker == Worker::Citizen,
@@ -169,9 +169,9 @@ impl Sim {
             citizen_id: u.worker != Worker::None,
             domain: p.domain,
             cat: if u.worker == Worker::None {
-                crate::ai_load::cat::FOOT
+                crate::ai_load::cat::UNIT_CAT_FOOT
             } else {
-                crate::ai_load::cat::CIVILIAN
+                crate::ai_load::cat::UNIT_CAT_CIVILIAN
             },
             attack: if p.combat_role { p.attack.max(1) } else { 0 },
             max_range: p.max_range,
@@ -183,7 +183,7 @@ impl Sim {
         // `determine_roles` reads `CARRY`, which a hand-built type has no
         // column for; the garrison layer's `transport` stands in.
         if u.garrison.transport {
-            r |= role::CARRY;
+            r |= role::ROLE_CARRY;
         }
         r
     }

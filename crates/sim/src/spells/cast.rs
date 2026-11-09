@@ -296,7 +296,7 @@ impl Sim {
             return 0;
         };
         let kind = matches!(t.type_index, 0x3d | 0x3e | 400)
-            || t.cols.flag2(crate::ai_load::uflags2::CARAVAN)
+            || t.cols.flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
             || t.cols.flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO);
         let gov_hero = t
             .tree
@@ -423,7 +423,7 @@ impl Sim {
         let caravan = self.units[v].ty.is_some_and(|t| {
             self.unit_types[t]
                 .cols
-                .flag2(crate::ai_load::uflags2::CARAVAN)
+                .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
         });
         !(caravan || self.is_worker(v) || self.is_merchant(v))
     }
@@ -503,7 +503,7 @@ impl Sim {
         let caravan = unit.ty.is_some_and(|t| {
             self.unit_types[t]
                 .cols
-                .flag2(crate::ai_load::uflags2::CARAVAN)
+                .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
         });
         !(self.unit_is_spy(v)
             || !(armed || self.is_hero_unit(v))
@@ -1901,7 +1901,7 @@ impl crate::unit_update_hits_view::UnitHitsView for TypeHits<'_> {
     }
     fn is_type(&mut self, n: i32) -> bool {
         match n {
-            0x45 => self.t().cols.is(crate::ai_load::role::SCOUT),
+            0x45 => self.t().cols.is(crate::ai_load::role::ROLE_SCOUT),
             0x3a => self.sim.is_spy_type(self.rec),
             _ => false,
         }
@@ -1910,7 +1910,7 @@ impl crate::unit_update_hits_view::UnitHitsView for TypeHits<'_> {
         self.t().type_index
     }
     fn is_caravan(&mut self) -> bool {
-        self.t().cols.flag2(crate::ai_load::uflags2::CARAVAN)
+        self.t().cols.flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
     }
     fn is_supply(&mut self) -> bool {
         self.t().cols.flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
@@ -1932,7 +1932,7 @@ impl crate::unit_update_hits_view::UnitHitsView for TypeHits<'_> {
         self.sim.spy_upgrade_level(self.who)
     }
     fn is_hero(&mut self) -> bool {
-        self.t().cols.flag2(crate::ai_load::uflags2::GENERAL)
+        self.t().cols.flag2(crate::ai_load::uflags2::FLAG2_GENERAL)
     }
     fn general_upgrade(&mut self) -> i32 {
         self.sim.general_upgrade_level(self.who)

@@ -1346,7 +1346,7 @@ impl Sim {
             if self.units[boat].ty.is_some_and(|t| {
                 self.unit_types[t]
                     .cols
-                    .flag2(crate::ai_load::uflags2::CARAVAN)
+                    .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
             }) {
                 let who = self.units[boat].owner as usize;
                 let slot = self.units[boat].caravan.take();

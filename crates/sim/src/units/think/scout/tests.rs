@@ -33,7 +33,7 @@ fn scout_sim(fog: bool) -> (Sim, usize, usize) {
         moves: 40,
         ..crate::UnitType::default()
     });
-    s.unit_types[t].cols.role = role::SCOUT;
+    s.unit_types[t].cols.role = role::ROLE_SCOUT;
 
     let centre = Pos::new(20 * 768 + 384, 20 * 768 + 384);
     let bldg = s.add_building(1, centre, 4);
@@ -154,7 +154,7 @@ fn an_ai_scout_takes_every_other_ring_and_the_phase_draw_from_ring_four() {
 /// one draw more at Toughest than at Easiest, and nothing more.
 #[test]
 fn a_computers_caster_scout_throws_the_special_coin_before_the_walk() {
-    let flags = crate::ai_load::uflags2::SCOUT | crate::ai_load::uflags2::CASTER;
+    let flags = crate::ai_load::uflags2::FLAG2_SCOUT | crate::ai_load::uflags2::CASTER;
     let mut spent = Vec::new();
     for d in [0, 5] {
         let (mut s, ai, _) = scout_sim(false);
@@ -729,7 +729,7 @@ fn a_sea_scout_with_nothing_to_see_joins_the_nearest_sea_army() {
         ..crate::UnitType::default()
     });
     // A ship in all three places the crate reads a domain from.
-    s.unit_types[t].cols.role = role::SCOUT;
+    s.unit_types[t].cols.role = role::ROLE_SCOUT;
     s.unit_types[t].kind.domain = Domain::Sea;
     s.unit_types[t].combat.domain = Domain::Sea;
     let spawn = |s: &mut Sim, at: Pos| {

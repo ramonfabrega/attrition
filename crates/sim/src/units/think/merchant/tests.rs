@@ -378,7 +378,7 @@ fn a_caravan_with_the_attack_bonus_has_its_attack_replaced() {
     }
     s.tech[1].tech[tech] = true;
     assert_eq!(s.attack_of(o), 30, "not a caravan: its own");
-    s.unit_types[rec].cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
+    s.unit_types[rec].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
     assert_eq!(s.attack_of(o), s.tuning.caravan_attack_bonus, "replaced");
     assert_eq!(s.tuning.caravan_attack_bonus, 20);
     s.tech[1].tech[tech] = false;
@@ -400,7 +400,7 @@ fn the_caravan_arm_is_off_without_the_tech_and_the_dutch_kinds_are_exact() {
     let (mut s, u) = merchant_sim();
     let rec = s.units[u].ty.unwrap();
     s.unit_types[rec].combat.attack = 30;
-    s.unit_types[rec].cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
+    s.unit_types[rec].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
     let o = Obj::Unit(u);
     assert_eq!(s.tech_tree.roles.caravan_attack_preq, None);
     assert_eq!(s.attack_of(o), 30, "no role named: no replacement");
@@ -413,7 +413,7 @@ fn the_caravan_arm_is_off_without_the_tech_and_the_dutch_kinds_are_exact() {
     assert_eq!(s.attack_of(o), 30, "0x3c is no merchant");
     s.unit_types[rec].cols.unit_flags2 = crate::ai_load::uflags2::SUPPLY_OR_HERO;
     assert_eq!(s.attack_of(o), 30 + 2 * s.tuning.dutch_attack_bonus * 10);
-    s.unit_types[rec].cols.unit_flags2 = crate::ai_load::uflags2::CARAVAN;
+    s.unit_types[rec].cols.unit_flags2 = crate::ai_load::uflags2::FLAG2_CARAVAN;
     assert_eq!(s.attack_of(o), 30 + 2 * s.tuning.dutch_attack_bonus * 10);
 }
 

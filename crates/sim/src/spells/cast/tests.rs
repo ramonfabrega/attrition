@@ -253,7 +253,7 @@ fn a_refused_bribe_hands_its_mana_back() {
     s.units[filler].type_index = 0x165;
     let ty = s.units[filler].ty.unwrap();
     s.unit_types[ty].cols = UnitCols {
-        unit_flags2: uflags2::GENERAL,
+        unit_flags2: uflags2::FLAG2_GENERAL,
         ..UnitCols::default()
     };
     s.units[spy].mana_burn = 500;
@@ -599,7 +599,7 @@ fn a_suppliers_pool_grows_with_the_supply_upgrade() {
         })
     };
     let monarch = ty(&mut s, uflags2::SUPPLY_OR_HERO);
-    let general = ty(&mut s, uflags2::GENERAL);
+    let general = ty(&mut s, uflags2::FLAG2_GENERAL);
     let unit = |s: &mut Sim, who: u8, t: usize| {
         let mut u = Unit::new(who, 0, Pos::new(3 * 768, 3 * 768), 20);
         u.ty = Some(t);

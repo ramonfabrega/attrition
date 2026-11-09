@@ -226,7 +226,7 @@ fn a_bark_captain_firing_on_the_move_keeps_a_target_that_is_not_combat() {
         let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
         let held = put(&mut sim, 0, cheap, Pos::new(3000, 3900));
         let dear = put(&mut sim, 0, ty, Pos::new(3200, 3900));
-        sim.units[me].unit_masks2 |= crate::combat::umask2::BARK;
+        sim.units[me].unit_masks2 |= crate::combat::umask2::MASK2_BARK;
         sim.units[me].combat.captain = i32::from(sim.units[me].index);
         while {
             let mut r = sim.rng;
