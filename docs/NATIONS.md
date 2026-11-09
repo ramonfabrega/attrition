@@ -476,7 +476,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Options::describe@00724460` | 4 22 | not sim | `interface or render side` |
 | `Cities::capture_city@00733380` | 13 23 | carried at cities_capture_city.rs | `00733380` |
 | `City::capture@00736c40` | 23 | carried at city.rs | `00736c40` |
-| `City::assimilate@00738e90` | 14 | carried at city.rs | `00738e90` |
+| `City::assimilate@00738e90` | 14 | carried at city_views.rs | `00738e90` |
 | `Caravan::trade_value@0073d9d0` | 21 | carried at caravan.rs | `0073d9d0` |
 | `ConquestGame::setup_scenario_bonuses@0078be90` | 0 6 13 20 22 23 | not sim | `Conquer the World, cut from v1` |
 | `ConquestGame::build_cities@00796140` | 14 | not sim | `Conquer the World, cut from v1` |

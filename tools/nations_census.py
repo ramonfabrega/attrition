@@ -215,8 +215,8 @@ HAND = [
     ("Chinese", "science techs 20% cheaper", "TypeData::get_cost@00664090", "modelled at queue.rs", "chinese_science_discount"),
     ("Chinese", "citizens train twice as fast", "ObjectData::train_time@006508c0", "modelled at queue.rs", "chinese_citizen_creation"),
     ("Chinese", "citizens train instantly (the rules' CHINESE_CITIZEN_INSTANT is 1, the arm returns 1)", "ObjectData::train_time@006508c0", "modelled at queue.rs", "chinese_citizen_instant"),
-    ("Chinese", "a large-city building on a new city", "Build::activate@00623e20", "modelled at city.rs", "chinese_large_cities"),
-    ("Chinese", "a large-city building on assimilation", "City::assimilate@00738e90", "modelled at city.rs", "chinese_large_cities"),
+    ("Chinese", "a large-city building on a new city", "Build::activate@00623e20", "modelled at activate.rs", "chinese_large_cities"),
+    ("Chinese", "a large-city building on assimilation", "City::assimilate@00738e90", "modelled at city_views.rs", "chinese_large_cities"),
     ("Chinese", "herbal lore applied on tech gain", "Leader::gain_tech@006dcb60", "loaded at load.rs", "chinese_herbal_lore"),
     ("Chinese", "knowledge upgrades applied on tech gain (0 in the rules)", "Leader::gain_tech@006dcb60", "carried, unread", "chinese_knowledge_upgrades"),
 ]
@@ -251,6 +251,9 @@ OVERRIDES = {
     "BuildData::construct_time@0062d5c0": ("modelled at build.rs", "iroquois_quick_senate"),
     "Build::plunder@00623660": ("modelled at city.rs", "russian_plunder_steal"),
     "Leader::lost_a_city@006dc6d0": ("carried at city.rs", "fn lost_a_city"),
+    # Its walk view left city.rs at item 4031; the sweep file cites the
+    # address more often, and the census names the live module.
+    "City::assimilate@00738e90": ("carried at city_views.rs", "00738e90"),
     # The Despot's arm is built (fight.rs, item 3279), and the Aztec slay
     # arm `take_damage` calls with `param_3 = 1` (item 3657): its pay is read
     # in plunder.rs's view.
