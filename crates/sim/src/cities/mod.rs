@@ -3,6 +3,7 @@
 pub mod activate;
 pub mod build;
 pub mod build_unqueue_view;
+pub mod building;
 pub mod capture;
 pub mod capture_view;
 pub mod city;
