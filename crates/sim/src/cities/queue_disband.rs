@@ -125,6 +125,44 @@ impl Sim {
         true
     }
 
+    /// **`GroupOut::validate_disband@0070a4a0` on a building group** (`+0x49`
+    /// set; item 3994, `docs/GOLDEN.md` §187): true when it refuses. More
+    /// than one building refuses outright. One building that is active
+    /// (vslots `0x20` and `0x4c` on its `0x40`) refuses while it holds a
+    /// `DISBAND` (`count_queue(1, 0x29a)`, the listing's pushes at
+    /// `0x70a5e8`), and, not a city, while its city's
+    /// [`Sim::city_disbanding`] is non-zero — unless its type is `NO_CITY` or
+    /// it stands in no city. Every building that is not refused there asks
+    /// `SpellTypeData::is_castable(DISBAND, o, who, 0)`
+    /// ([`Sim::disband_castable`]), and refuses on 0. An empty group
+    /// passes.
+    ///
+    /// SEAM: an active city's own arms (`cities[c] + 4 & 0x10`, other
+    /// players' claims on `+0x68`, `num_city_buildings`), which no staging
+    /// reaches; this crate goes on to the castable test there. A wall
+    /// (vslot `0x20` answering 0) is not a building here.
+    pub fn disband_refused(&self, list: &[usize]) -> bool {
+        let b = match list {
+            [] => return false,
+            [b] => *b,
+            _ => return true,
+        };
+        let bd = &self.buildings[b];
+        if bd.active {
+            if bd.queue.count_disband() != 0 {
+                return true;
+            }
+            if !self.building_is_city(b)
+                && let Some(c) = bd.city
+                && !self.no_city(bd.ty)
+                && self.city_disbanding(c) != 0
+            {
+                return true;
+            }
+        }
+        !self.disband_castable(b, false)
+    }
+
     /// **`Build::queue_up@00620f40(DISBAND, 1)`**: no library forward;
     /// `BuildData::could_queue` → `can_make` (the building active; the
     /// unassimilated arm exempts `DISBAND`; `has_spell` → [`Sim::

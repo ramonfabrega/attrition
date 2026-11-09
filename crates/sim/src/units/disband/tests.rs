@@ -53,3 +53,34 @@ fn a_disbanded_holder_disbands_its_rider_first() {
     assert!(!s.units[rider].alive(), "the rider is disbanded with it");
     assert!(s.units[other].alive());
 }
+
+/// **`action_disband`'s building arms** (item 3994, `docs/GOLDEN.md`
+/// §187): a group of two buildings is refused whole by `validate_disband`;
+/// a finished building queues a `DISBAND` and stands, and a second press on
+/// it is refused while the entry stands; an unfinished one is disbanded at
+/// once. Made to fail with the arms swapped and with the two-building
+/// refusal dropped.
+#[test]
+fn delete_queues_a_disband_at_a_finished_building_and_razes_an_unfinished_one() {
+    let (mut s, _) = three();
+    let done = s.add_building(1, Pos::new(5 * 768, 5 * 768), 5);
+    let site = s.add_building(1, Pos::new(2 * 768, 6 * 768), 5);
+    s.buildings[site].active = false;
+    assert!(s.disband_refused(&[done, site]), "two buildings refuse");
+    assert_eq!(s.group_action_disband_buildings(&[done, site], true), 0);
+    assert!(s.buildings[site].alive && s.buildings[done].queue.items.is_empty());
+
+    assert_eq!(s.group_action_disband_buildings(&[done], false), 1);
+    assert!(s.buildings[done].alive, "a finished building is not razed");
+    assert_eq!(s.buildings[done].queue.count_disband(), 1);
+    assert!(s.disband_refused(&[done]), "a second press is refused");
+    assert_eq!(s.group_action_disband_buildings(&[done], false), 0);
+    assert_eq!(s.buildings[done].queue.count_disband(), 1);
+
+    assert_eq!(s.group_action_disband_buildings(&[site], false), 1);
+    assert!(
+        !s.buildings[site].alive,
+        "an unfinished building goes at once"
+    );
+    assert!(s.buildings[site].queue.items.is_empty());
+}
