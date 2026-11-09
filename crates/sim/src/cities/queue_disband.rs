@@ -189,13 +189,28 @@ impl Sim {
     /// `DISBAND_SENATE_RATE` / 100, a Lakota owner × `LAKOTA_RAZE_SPEED` /
     /// 100, and the whole halved. run1512's Barracks: 42000 / 2 = 21000.
     ///
-    /// SEAM: the block's recursive `train_time(type)` runs the whole
-    /// function for the building type; for a building type its time is
-    /// `TypeData::time`'s alone in every arm this crate carries.
+    /// **The block's recursive `train_time(type)` runs the whole function
+    /// for the building type** (item 3994, `docs/GOLDEN.md` §187): its base
+    /// is `TypeData::time` (`0x6c`: a building type is no unit type), and a
+    /// type whose availability bit (`leader + 0x6c18`, [`crate::tech::PlayerTech::
+    /// tech`]) is clear takes the research block (`:339`–`:420`,
+    /// [`Self::research_tail`]) — run1552's Barracks, its bit clear under
+    /// who=0's second Science epoch, holds its entry to 16800 = 42000 × 80 /
+    /// 100 / 2 and goes on block 1076, where 21000 ran to 1117.
+    ///
+    /// SEAM: the research block's other steps ([`Self::research_rares`]'s);
+    /// and `:597`–`:615`, a building in a city its owner does not hold, × 5
+    /// / 4 on both the inner and the outer call, which no staging reaches.
     pub(crate) fn disband_time(&self, at: usize) -> i32 {
         let b = &self.buildings[at];
         let Some(ty) = b.ty else { return 0 };
+        let tree = self.tables.build_types[ty].tree;
         let mut t = self.tables.build_types[ty].job_time * crate::cities::production::TIME_SCALE;
+        if !tree.is_some_and(|id| self.tech[b.owner as usize].tech.get(id) == Some(&true)) {
+            let tail = self.research_tail(b.owner, tree);
+            t = crate::cities::production::adjusted(t, &tail)
+                .max(crate::cities::production::MIN_TIME);
+        }
         if self.building_is(at, Ident::Village) {
             t = self.tables.tuning.disband_city_rate * t / 100;
         }

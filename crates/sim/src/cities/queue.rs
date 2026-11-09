@@ -895,23 +895,7 @@ impl Sim {
             tail.extend(self.train_tail(who, ty));
             tail
         } else {
-            let science = self.tech[who as usize].epoch[tech::Line::Science.index()];
-            let level = match self.tables.unit_types[ty]
-                .tree
-                .map(|id| self.tables.tech_tree.types[id].preq[0])
-            {
-                Some(tech::Preq::Of(p)) if self.tables.tech_tree.kind(p).is_tech() => {
-                    self.tables.tech_tree.types[p].age
-                }
-                _ => 0,
-            };
-            let mut tail = self.research_rares(who);
-            tail.extend(crate::cities::production::science_speedup(
-                &self.tables.tuning,
-                science,
-                level,
-            ));
-            tail
+            self.research_tail(who, self.tables.unit_types[ty].tree)
         };
         // `train_time@006508c0:79`–`85`, before the ramp: a type of the
         // Nuclear Missile line (`is(0x13b, 0)`) of a player holding Uranium
@@ -930,6 +914,33 @@ impl Sim {
             base_faster,
             &tail,
         )
+    }
+
+    /// The research half of `ObjectData::train_time`'s tail as this crate
+    /// carries it, for a type of tree id `tree` whose availability bit is
+    /// clear: [`Self::research_rares`], then the science speedup, whose level
+    /// is the type's first prerequisite's `AGE` (`TypeData +0x30`, then
+    /// `TechTypeData +0x1c8`) — a prerequisite that is not a technology, or
+    /// none, reads as zero.
+    pub(crate) fn research_tail(
+        &self,
+        who: Player,
+        tree: Option<tech::TypeId>,
+    ) -> Vec<crate::cities::production::Adjust> {
+        let science = self.tech[who as usize].epoch[tech::Line::Science.index()];
+        let level = match tree.map(|id| self.tables.tech_tree.types[id].preq[0]) {
+            Some(tech::Preq::Of(p)) if self.tables.tech_tree.kind(p).is_tech() => {
+                self.tables.tech_tree.types[p].age
+            }
+            _ => 0,
+        };
+        let mut tail = self.research_rares(who);
+        tail.extend(crate::cities::production::science_speedup(
+            &self.tables.tuning,
+            science,
+            level,
+        ));
+        tail
     }
 
     /// The national block of `ObjectData::train_time`'s tail, in the
