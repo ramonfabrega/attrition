@@ -1039,6 +1039,30 @@ fn claude_md_carries_no_findings() {
     );
 }
 
+/// **`CLAUDE.md` stays under its ceiling** (the seventy-sixth pass, DECISIONS
+/// 116). Every worker, every subagent and every blind reader inherits that
+/// file whole, and it grew by a clause a scar for eleven weeks: 36,627 bytes
+/// on 2026-11-09, 19,763 of them a working agreement whose residue-chase
+/// rules a render or start lane never uses. The pass moved the method to
+/// `docs/METHOD.md`, which the brief kinds that need it name, and this is
+/// what keeps it moved: a clause that wants in says what it replaces. Made
+/// to fail first on the file as it stood, against a first ceiling of 24,000
+/// (`CLAUDE.md is 36627 bytes, over its ceiling of 24000`); the split
+/// reached 25,599 bytes and the ceiling is pinned just above that.
+#[test]
+fn claude_md_stays_under_its_ceiling() {
+    const CEILING: usize = 26_000;
+    let bytes = std::fs::read(docs().join("../CLAUDE.md"))
+        .expect("CLAUDE.md")
+        .len();
+    assert!(
+        bytes <= CEILING,
+        "CLAUDE.md is {bytes} bytes, over its ceiling of {CEILING}: every session inherits it \
+         whole. Move method to docs/METHOD.md and loop mechanics to docs/LOOP.md, or cut a \
+         clause whose reason no longer holds"
+    );
+}
+
 /// **No conflict marker survives anywhere in the tree** (parked 420, the
 /// seventh pass). One stray `=======` at `tools/gamelog/captures.txt:3387`,
 /// left by merge `9ae8070` with neither `<<<<<<<` nor `>>>>>>>` beside it,

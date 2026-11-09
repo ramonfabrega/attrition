@@ -44,6 +44,10 @@ FRAME = ROOT / 'tools/brief/frame.md'
 # twenty-first pass): a row added by a pass is paid for by one struck.
 # 12,959 was the twentieth pass's; the twenty-first left it under 13,000.
 FRAME_CEILING = 13_000
+# The kinds that chase a word, a chapter or a blind row: they read
+# `docs/METHOD.md`, the long middle's method moved out of `CLAUDE.md` by the
+# seventy-sixth pass (DECISIONS 116). A structure or render lane does not.
+METHOD_KINDS = {'residue', 'chapter', 'coverage', 'reading', 'sweep'}
 QUEUE = ROOT / 'docs/QUEUE.md'
 
 # The frame's sections a kind of brief carries, in the order they are read.
@@ -407,6 +411,9 @@ def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read
         out += [fill(body['booked']), '']
     out += ['## Read first', '']
     out += [f'- `docs/QUEUE.md`: the opener, and item {item}.']
+    if kind in METHOD_KINDS:
+        out += ['- `docs/METHOD.md`, before your first probe: the booking, widening, capture and '
+                'reading clauses `CLAUDE.md` keeps in a sentence each.']
     out += [f'- `{r}`' if not r.startswith('`') else f'- {r}' for r in read]
     out += ['- `docs/audit/README.md`, "The brief checklist": the story behind any row '
             'below, by its number, when a row is not clear.', '']

@@ -77,7 +77,8 @@ testable, and makes the eventual art swap free.
 ## Phases
 
 Each phase produces something independently valuable, and each phase's
-artifact is the next phase's tool.
+artifact is the next phase's tool. **The finish line, and the tracks that
+reach it, are `docs/TRACKS.md`**; this list is the arc.
 
 0. **Extract** — one tool that reads the user's install and emits the XML
    tables as typed, index-keyed open data, plus the PDB type stream as
@@ -97,36 +98,20 @@ artifact is the next phase's tool.
    That file, not a recording, is the per-frame ground truth the sim is diffed
    against.
 3. **Sim skeleton** — the rules of a match, mechanic by mechanic, diffed
-   against the original's own per-frame dumps. **The score is ticks before
-   divergence** on each of the two maps the finish line names — the lower
-   map first, and the default item is its nearest divergence — pinned as
-   floors in `rondata::diff` and stated first in `docs/QUEUE.md`. **Done when** a
-   fixed-seed, traced human-versus-AI capture on two maps stays in lockstep
-   — no position or order disagreement — for its full length. This is the
-   long middle, and the number is how anyone can tell where in it we are.
-   Closing the current captures is the milestone, not the phase:
-   `docs/DECISIONS.md` entry 29 names the three counters that define the
-   sim complete, and the renderer waits on them. **A pair that closes is
-   succeeded by the one whose lobby reaches the most census rows no
-   trace has entered** — it names those rows before its capture is
-   booked, and it may vary more than one setting — and the AI's word
-   is the newest pair's; a closed pair's pins stay as floors
-   (`docs/DECISIONS.md` entry 53, amended by 61). **A third map is
-   scored in the first pair's lobby beside them, and the held-out map
-   is measured and never debugged against** (entry 54) — **and so is
-   a held-out battery, at every pass**: games nobody tuned for, each
-   scored by how far it runs on its first try, which is the number
-   that says when minting pairs can stop (entry 61). **A game that ends closes
-   with its closing state scored, and the lower map is the lower open
-   word** (entry 55). **A closed map is succeeded by the same map in
-   the newest pair's lobby, and the rules track stages the arms the AI
-   track built and no walk holds** (entry 56).
+   against the original's own per-frame dumps. **Done**: every captured game
+   replays in lockstep for its full length, and those lengths are floors in
+   `rondata::diff` that run on every gate and fall only on a named
+   regression. `docs/DECISIONS.md` entry 29 names the three counters that
+   define the sim complete; how the long middle was run, and the rules a
+   residue or chapter item still follows, are `docs/METHOD.md`.
 4. **Renderer** — thin client. Original assets first; they are the visual
-   oracle.
-5. **AI** — hardest, least-oracled, and less bad than it looked: build order
-   and economic posture are scripted in the open under `game/ai/scripts/`, and
-   the whole BHS toolchain is enumerated in the symbols. Combat and target
-   selection are still in the executable. Ship vs-human first.
+   oracle. **Open**, with the start, checksum, orders, lobby and save tracks
+   beside it.
+5. **AI** — the computer's decisions are ported as far as the captured games
+   reach, because lockstep needs them. What remains is the branches no
+   capture entered, and a whole game against a person in our own client.
+   Build order and economic posture are scripted in the open under
+   `game/ai/scripts/`; combat and target selection are in the executable.
 6. **The fork** — swap the assets, then build past the original.
 
 **Cut from v1**, to be revisited only once the above stands up: Conquer the
@@ -137,64 +122,47 @@ not worth building first.
 
 ## Working agreement
 
-Phase 3 is a long middle, and it is done one mechanic at a time. This is what
-has been working, written down so a fresh session can pick up without
-re-deriving it.
+The long middle was done one mechanic at a time, and what is left is done
+the same way. This is what has been working, written down so a fresh session
+can pick up without re-deriving it.
 
-**Which file holds what.** The column that matters is the last one: a
-subagent inherits this file and the memory index, and nothing else
-(`docs/DECISIONS.md` entry 21).
+**Which file holds what.** A subagent inherits this file and the memory
+index, and nothing else (`docs/DECISIONS.md` entry 21).
 
-| file | holds | how it grows | inherited by a subagent |
-|---|---|---|---|
-| `CLAUDE.md` | the rules | rarely changes | **yes** |
-| `docs/QUEUE.md` | where things stand, and the backlog | rewritten every session; **deletes** finished items; guarded | no |
-| `docs/LOOP.md` | the loop's machinery: the roster, the brief, the chain, the lanes, the passes | amended in place by a pass; a commander's one-clause safety fix | no |
-| `docs/journal/<date>-item-<N>.md` | a landing's story, one file per item | written once, by the worker whose item it is; nobody else edits it | no |
-| `docs/JOURNAL.md` | the chronicle to 2026-09-17, and the steering passes' entries since | append-only, the main thread only | no |
-| `docs/<MECHANIC>.md` | the specification: rules, fields, formulas, coverage | amended in place; its section numbers are an API the code cites; the story goes to the journal; size guarded | no |
-| `docs/DECISIONS.md` | decisions and their rationale | append; amend in place, never delete | no |
-| `docs/audit/` | the second readings' verdicts, and the method's record | one file per audit | no |
-| `docs/RUNS.md` | the oracle's ledger, one section per capture | a capture appends its section and git merges the file by union; `docs/ORACLE.md` keeps the runbook | no |
-| memory (`~/.claude/projects/…/memory/`) | machine and account facts only | per user, outside git | **the index is** — keep its hooks free of findings |
+| file | holds | inherited by a subagent |
+|---|---|---|
+| `CLAUDE.md` | the rules; rarely changes, held under a size ceiling | **yes** |
+| `docs/QUEUE.md` | where things stand and the backlog; rewritten every session, **deletes** finished items | no |
+| `docs/TRACKS.md` | the finish line and the track each item serves; the pass maintains it | no |
+| `docs/METHOD.md` | the method of the long middle; a brief names it for the kinds that need it | no |
+| `docs/LOOP.md` | the loop's machinery, read by the driver | no |
+| `docs/journal/<date>-item-<N>.md` | a landing's story, written once by the worker whose item it is | no |
+| `docs/JOURNAL.md` | the chronicle to 2026-09-17 and the passes' entries since; the main thread only | no |
+| `docs/<MECHANIC>.md` | the specification, amended in place; its section numbers are an API the code cites | no |
+| `docs/DECISIONS.md` | decisions and their rationale; append, amend in place, never delete | no |
+| `docs/audit/` | the second readings' verdicts and the passes' records | no |
+| `docs/RUNS.md` | the oracle's ledger, one section per capture; `docs/ORACLE.md` keeps the runbook | no |
+| memory (`~/.claude/projects/…/memory/`) | machine and account facts only, outside git | **the index is** — keep its hooks free of findings |
 
 Read `docs/QUEUE.md` first — its opening section is the handoff and its last
-line is the next session's opener — then the document of the item you take.
-A finding never goes in this file: it goes in the mechanic's document, the
-journal, or the queue.
+line is the next session's opener — then `docs/TRACKS.md` for the track your
+item serves, then the document of the item you take. A finding never goes in
+this file: it goes in the mechanic's document, the journal, or the queue.
 
 **One mechanic per session.** The document is the handoff: a fresh session
 reads `docs/<MECHANIC>.md` and knows what the last one knew. That is what makes
 `/clear` between mechanics free, and it is why the document is written before
 the implementation rather than after.
 
-**An item is booked with the score it moves.** The headline, or a sub-score
-the queue names — and the item nearest the headline's first divergence is
-the default. **A finding that names no score parks** (`docs/PARKED.md`)
-rather than queues: the queue holds only what names the headline's frame,
-a floor, or a takes-chain to one. **And the headline slot is never
-empty**: when no open item names the current word's frame and draw, the
-next brief is to widen every dumped record on that frame and name the
-cause, not to run the nearest residue row. An item that turns out to be
-something else spawns its successors in the parked file, and a session
-that moved no score says so in the handoff. **A word that moved lands with the
-value diff beside it** — the dump's own coordinates on the frame it moved —
-because a draw stream can agree on a wrong destination for a long time,
-and only a value comparison tells the two apart — **and a widening's row
-count is not one**: the value diff names the record, the field and both
-sides' values on the word's frame — or, where nothing dumped parts
-there, on the frame the state first parted, walked back from it — and
-eight of one tranche's twenty landings reported a floor triple in its
-place. This is the stopping rule
-for the long middle: the residue chase is productive and unbounded, and
-only the number says whether the whole is converging. **A residue item is
-booked by its frame and its draw delta**; a mechanism its title names is
-the previous item's hypothesis and is written as one, because the frame
-has been right every time the named mechanism was wrong
-(`docs/DECISIONS.md` entry 42). **And a hypothesis the floor kills is
-not built by the item that killed it** — it parks with its kill; one
-was built anyway "because it was the booked hypothesis", and the
-booking is a frame, never a promise to build a name.
+**An item is booked with the score it moves**, and a finding that names no
+score parks in `docs/PARKED.md` rather than queues. A session that moved no
+score says so in the handoff. **A number that moved lands with the value
+diff beside it** — the record, the field and both sides' values, in the
+oracle's own coordinates — because two sides can agree on a wrong answer for
+a long time, and a row count is not a value diff. **A mechanism an item's
+title names is a hypothesis, never a promise to build it**: a hypothesis the
+evidence kills parks with its kill. The booking rules a residue or chapter
+item follows are `docs/METHOD.md`.
 
 **Definition of done**, all five:
 
@@ -207,20 +175,14 @@ booking is a frame, never a promise to build a name.
   clean, and `cargo run -p rondata -- <install>` exiting zero — which is
   `python3 tools/release_gate.py <install> --test-threads 4` in one
   command, under the memory cap, with the fixture audit and the paperwork
-  guards; that is the gate a landing names. **A worker's is the same
-  line with `--lane --tests <the word's filters>`** — the brief names
-  the filters and adds every lobby's `first_parting` (parked 1910, 2000:
-  a fix on one map broke another lobby's floor and took a capture to
-  read); the lane gate runs those, the fast tests and the guards,
-  and leaves the timed ones to the booking gate (item 1567: 703 s → 74
-  s) — red only on the queue's lines — the commander's to write at the
-  merge — or on the journal's own gate quote, which cannot exist before
-  the gate has run (3277: fourteen first gates of one tranche were red
-  on it alone) — it goes on to the guards and exits 0, and red on anything
-  else it stops and names the test; the commander's booking
-  gate takes no flag and forgives nothing. The debug profile is for the
-  reflex (`tools/guard.sh`) and for stepping through one test; a debug
-  run that reaches a kept dump refuses, by design.
+  guards; that is the gate a landing names. **A worker's is the same line
+  with `--lane --tests <its filters>`**: it runs those, the fast tests and
+  the guards, and leaves the timed ones to the booking gate. It forgives a
+  red only on the queue's lines, which are the driver's to write at the
+  merge, and on the journal's own gate quote, which cannot exist before the
+  gate has run; red on anything else it stops and names the test. The debug
+  profile is for the reflex (`tools/guard.sh`) and for stepping through one
+  test; a debug run that reaches a kept dump refuses, by design.
 - Committed. Any open question this closes in another document is struck
   through there and pointed at its answer, per the amend-in-place rule below.
 
@@ -252,16 +214,7 @@ it, say where things stand and what you would do next — then it is a good
 moment to clear the context and start the next one fresh, because the document
 carries everything forward.
 
-**A behavioural check is a logged run, and it is cheap.** The original runs
-here (`docs/ORACLE.md`, last section): fix the seed in `rise.ini`, enable the
-mechanic's categories under `[End Frame]` in `gamelog.ini`, play a minute, quit
-through the in-game menu, read `Logs\gamelog.txt`. A claim that needs a
-behavioural check is still written into the document's open questions with the
-check named — and then, when it is the cheapest way to settle it, the check is
-run rather than deferred. Do not enable everything per frame; it slows the
-simulation to a crawl.
-
-**The checks with teeth are the ones that can fail.** Three guards now stand
+**The checks with teeth are the ones that can fail.** These guards stand
 outside the per-mechanic tests, and each was written by first making it fail:
 
 - `crates/sim/src/no_float.rs` reads the simulation's own source and rejects
@@ -277,7 +230,8 @@ outside the per-mechanic tests, and each was written by first making it fail:
   a commit message. The dumps live outside the repo; a machine without them
   says so rather than passing quietly.
 - `crates/sim/src/docs_guard.rs` reads the paperwork: the queue deletes
-  rather than strikes and stays short, this file names no finding, every
+  rather than strikes and stays short, this file names no finding and stays
+  under its size ceiling, every
   function address a specification cites is checked against the decompile
   export's index, and a document *section* over the size ceiling may only
   shrink — the unit is the section because that is what a session reads.
@@ -290,102 +244,28 @@ broken within the week; the queue's own rules were.
 
 **Prefer a diff to a reading, and convert readings into diffs.** Reading is
 how we find out what to check; a differential check against the original's
-own dump is how we *know*, and it keeps knowing on every later commit. Two
-rules follow:
+own dump is how we *know*, and it keeps knowing on every later commit.
 
 - **When the original dumps a record, diff the whole record** — every slot,
-  every field — not the field the mechanic happens to care about. Nine tenths
-  of a dumped record once went uncompared for a month, and the first widening
-  failed on its first run. **And every unit on the frame, not the ones the
-  brief names**: a call chain names a function, never a cast, and the whole
-  cast either side of a frame answers "who changed" without a hypothesis.
-  **A row is a field, never a unit** — a key that collapses a record's
-  fields hides all but the first for the rest of the run — and the blocks a
-  residue count gates on the position are read again at the parting,
-  because the frame a position parts is the frame a word is read on.
-  Twice in a day the named mechanism was wrong and the widening said so in
-  twenty minutes.
-- **A word is pinned with its widening.** The first item on a new word
-  compares every dumped record on the word's own frame, both directions,
-  and the pin names that test (`rondata::diff::testkit::WIDENINGS`) or
-  the item that owes it; no item that names a mechanism runs on a word
-  whose widening is not on file. A value diff read a few frames past the
-  word is not the widening, and one once stood in three documents for
-  four items. **A widening's own framing is a hypothesis** too: a stanza
-  writes what would kill each reading before the run, **and a killer
-  tests the claim's own unit, never the first row** — one was false and
-  its killer did not fire (item 711). **A payoff probe
-  changes only the frames under test** — one wide enough to touch a
-  frame that already agrees reports that frame's breakage as its result.
-  **A probe of a decision the original makes mid-frame runs inside the
-  decision**, never at the frame boundary: the two are different
-  measurements, and the cheap one has named the wrong mechanism.
-  **A dumped record's slot index is not an identity**; compare on what
-  the slot holds.
-- **A finding that can become an assertion must become one before its audit
-  is closed.** A second reading's budget is best spent on *what to assert*,
-  not on more prose; the twenty-minute widening has out-produced the
-  million-token reading.
-- **Diff first, then read what no run reaches.** Before a blind reading,
-  widen every dumped record the mechanic touches; then brief the readers
-  with the mechanic's *never-executed* functions, not the whole mechanic,
-  and ask each claim to name the capture that would falsify it — the ini
-  category, the frame, the field. A claim a run has already confirmed does
-  not need a second reader. The soak tests the simulation against itself —
-  determinism and termination, never fidelity — and stays for that.
-- **Grep the dump before booking a reading.** An open question whose
-  answer is a field the original already prints costs a `grep` and has
-  more than once cost a reading instead.
-- **Grep this crate for a field before reading the original's writers of
-  it.** A comparison against a field this crate does not carry is a
-  comparison against nothing, and one once carried five items.
-- **And read what the tree says it left out, by name, before the
-  original.** `tools/seams.py` prints the live `SEAM`s and the "not
-  modelled" paragraphs that name a word's chain; `tools/standing.py`
-  puts a widening's standing keys beside who in `sim` reads them. Both
-  were rows of the checklist in prose, and the landings that filed them
-  had been briefed with them (`docs/DECISIONS.md` entry 56).
-- **A quiet field is checked against the reader before it is called
-  agreeing.** A key the dump prints that nothing parses cannot part, and
-  quiet is what a blind instrument looks like; `rondata::diff::coverage`
-  pins every such key on the headline windows, a reader added to the
-  harness is added to its driver, and a key a landing reads leaves the
-  pin in the same landing. **And a word's widening puts its window in
-  the coverage driver**: the pin walks only the windows it is handed, so
-  a record a new capture prints stays unpinned until its window is
-  driven (621). **And the compared pin walks the newest word's
-  window**: a field pinned as uncompared on a closed pair's window is
-  a field nobody watches on the open one (parked 1067).
-- **And grep the disk before booking a capture.** Widen every dumped
-  record the mechanic touches first; book the capture only for what no
-  record already on disk can answer, and **the booking cites what the
-  disk could not answer**. The same rule one level up, and it
-  orders the *booking*, not the screen — an idle screen may still run
-  the capture lane. **A field is cited for a question only when its
-  write condition can answer it**: a footprint written on one branch
-  is silent on the other (parked 508).
-- **Where a reading's product is a formula, the implementation is a pass
-  of the audit — so build before ratifying, or alongside.** Prose can cite
-  every address correctly and still have the arithmetic wrong, and an
-  adjudicator cannot tell without doing the work: a row read as
-  "additions, as cited" is exactly the row nobody re-derived. Writing the
-  code, and running the diff, is what finds that. So a mechanic whose
-  reading yields arithmetic gets its implementation *before* the
-  ratification pass, or in parallel with the reading; a mechanic whose
-  reading yields predicates and call graphs does not have to wait.
+  every field, every unit on the frame — not the field the mechanic happens
+  to care about. **A quiet field is checked against the reader before it is
+  called agreeing**: a key nothing parses cannot part, and quiet is what a
+  blind instrument looks like.
+- **A finding that can become an assertion must become one** before its
+  audit is closed.
+- **Look at what is on disk first.** Grep the dump before booking a reading,
+  grep this crate for a field before reading the original's writers of it,
+  and grep the archive before booking a capture.
+- **Where a reading's product is a formula, the implementation is a pass of
+  the audit** — build before ratifying, or alongside. Prose can cite every
+  address correctly and still have the arithmetic wrong.
+- **A comparison must be able to fail.** A check whose two sides are built
+  from one helper agrees with itself; perturb one side once and watch it
+  turn red.
 
-The last one is a **default, not a gate** — the point is that tools and
-implementations earn their place ahead of reads wherever they can, not
-that a fixed order is owed.
-
-The reason reading does not go away is coverage, and it is measurable: the
-trace's report (`tools/trace/report.py … blind docs/`) lists the functions
-`docs/` cites that have never executed in any traced game. A diff can only
-check what a run reaches, so for those the reading is the only evidence there
-is. **Every behavioural run shrinks that list, and shrinking it is what would
-eventually make the second reading unnecessary** — so the list is the queue
-of runs, and a run that lights up a whole family is worth more than one that
-lights up a function.
+The clauses these were distilled from, each with the case that taught it,
+are `docs/METHOD.md`. A residue, chapter, coverage, reading or sweep item
+reads that file before its first probe.
 
 **Every reading-only claim gets a blind second reading before it is called
 done.** A claim a diff against the original's dump has confirmed needs no
@@ -398,8 +278,8 @@ document or the implementation, re-derives the same mechanic from the same
 export and writes a report; a third adjudicates every disagreement back to the
 decompiled function and records the verdicts under `docs/audit/`. When the
 adjudication ran on Opus, its `FABLE:` markers and its code-changing verdicts
-go on the ledger for the next **batched** ratification (see the fan-out rules
-below); the next mechanic does not wait on one. The full decompile export
+go on the ledger for the next **batched** ratification (`docs/LOOP.md`); the
+next mechanic does not wait on one. The full decompile export
 under `tools/ghidra/` is what makes the second reading cost an hour rather
 than a session. Its record and its lessons are in
 `docs/audit/README.md`; the ones that have recurred most: the arithmetic is
@@ -414,22 +294,20 @@ listing (`llvm-objdump`) or the PE bytes settle it in a minute. A blind
 reader inherits this file — so **this file must never name what a reader is
 meant to re-derive**; findings go in the mechanic's document and the queue.
 
-**The loop's machinery is `docs/LOOP.md`** — the roster, the brief, the
-commander's chain, the lanes, the ratification passes, the steer's fence
-— read by the commander and the pass, never needed by a worker. What a
-worker keeps of it: **Opus drives**, the model is said in user-visible
-text, and a commit's trailer names the model the worker's own system
-prompt names; **a landing is verified by refs and announced by the
-worker** — its tip SHA, a non-empty `git log <base>..<branch>`, one line
-to its commander — its story is its own `docs/journal/<date>-item-<N>.md`
-and it touches neither `docs/JOURNAL.md` nor `docs/QUEUE.md`; **it
-commits before it gates**, reads the gate's exit before saying pushed,
-takes `ccc update <ref>` at the gate's exit and `--keep-conflicts` on a
-conflict, sends a one-line status at ninety minutes unlanded, and never
-hands its word over for where the code sits (`docs/DECISIONS.md` entries
-34, 55). **A number it reports is measured on the tree after its last
-`ccc update`.** The pinned constants and the widenings are the worker's
-to re-pin; the queue's lines are the commander's.
+**The loop's machinery is `docs/LOOP.md`** — the driver, the roster, the
+brief, the chain, the passes — read by the driver, never needed by a worker.
+What a worker keeps of it: the model is said in user-visible text, and a
+commit's trailer names the model the worker's own system prompt names; **a
+landing is verified by refs and announced by the worker** — its tip SHA, a
+non-empty `git log <base>..<branch>`, one line to the driver — its story is
+its own `docs/journal/<date>-item-<N>.md` and it touches neither
+`docs/JOURNAL.md` nor `docs/QUEUE.md`; **it commits before it gates**, reads
+the gate's exit before saying pushed, takes `ccc update <ref>` at the gate's
+exit and `--keep-conflicts` on a conflict, sends a one-line status at ninety
+minutes unlanded, and never hands its word over for where the code sits
+(`docs/DECISIONS.md` entries 34, 55). **A number it reports is measured on
+the tree after its last update.** The pinned constants and the widenings are
+the worker's to re-pin; the queue's lines are the driver's.
 
 **Emit traces under the original's own names.** `docs/ORACLE.md` lists the 37
 `SyncDefine` categories the engine considers sync-critical. Where a mechanic
@@ -446,47 +324,29 @@ and makes the eventual diff mechanical rather than a translation exercise.
   are authored once and invoked thereafter; one-off hypothesis probes
   stay scratch scripts, because a wrong abstraction costs more than the
   typing it saves.
-- **Host admission stays** (`docs/DECISIONS.md` entries 75 and 76: the
-  thirty-eighth tranche waited 32.0 minutes a landing against 36.5 with
-  the admission waiting 2–41 s a gate): `tools/guard.sh` and every gate
-  mode reserve from one host budget (`tools/resource_budget.py`), each
-  gate's last lines carry `Gate minutes:` by step, an `Admission wait:`
-  receipt and `Host load:` (DECISIONS 80), and `touch
+- **Every test run joins one host budget** (`tools/resource_budget.py`):
+  `tools/guard.sh` and every gate mode reserve from it themselves, and a
+  standalone `cargo test …` joins as `zsh tools/check.sh test …`; nothing
+  wraps `guard.sh` or a gate again. `touch
   ~/Library/Caches/attrition/admission-off` is the kill switch for every
-  worktree at once. A standalone `cargo test …` joins the budget as `zsh
-  tools/check.sh test …`; nothing wraps `guard.sh` or a gate again. The
-  design and its limits are `docs/TEST_PERFORMANCE.md`.
+  worktree at once. The design and its limits are
+  `docs/TEST_PERFORMANCE.md`.
 - **`tools/guard.sh [filter …]` is the reflex between edits** — the
   paperwork guards plus the current item's tests, debug, seconds. The
   full `--release` diff suite remains the gate: before a commit and
   after a document rewrite.
 - **A wait on an external process is backgrounded** (`run_in_background`,
   Monitor), never a foreground sleep-and-grep loop — every poll turn
-  re-bills the whole context — **and then the turn ENDS.** The harness
-  re-invokes the session when the task exits, so there is nothing to stay
-  alive for: a no-op turn held open to wait gains no information and costs
-  a full context read each time. **A detached capture is waited on with
-  `tools/gamelog/waitrun.sh <viadriver log>`** in that background lane —
-  it keys on the receipt lines the click-free runner prints and on a
-  capture script's `=== captured: ` line, and a wait keyed on any
-  other file has sat for two hours on a finished capture (parked 656)
-  — **and with the Bash tool's `timeout: 3600000`, past the capture's
-  length** — the tool's argument, never a `timeout` command, which
-  macOS has not: the background default is thirty minutes, and a wait
-  died at it before the banner (parked 1672); a wait prefixed with the
-  command exited at once and reported a running capture as done (Loop
-  2599).
-  **The ban is on any command whose purpose
-  is to yield the turn**, never on a list of spellings — `true`, `:`,
-  `echo waiting` and `echo .` have all been used here, and enumerating them
-  is how the next one gets through. `lore polls` measured the shape on
-  2026-09-07 — the figures and their source are in
-  `docs/audit/2026-09-07-fable-pass-2.md` — and every session that did it
-  was one of this repo's own workers, which had backgrounded its wait
-  correctly and been told only how *not* to wait. **A number in a rule
-  names its source**: the first figure written here was wrong by 3x.
-  **And a price names the day of its rate table**: a tranche once read
-  half as dear as the one before and had cost the same (entry 56).
+  re-bills the whole context — **and then the turn ends.** The harness
+  re-invokes the session when the task exits, so a turn held open to wait
+  gains nothing and costs a full context read each time. The ban is on any
+  command whose purpose is to yield the turn, never on a list of spellings.
+  **A detached capture is waited on with `tools/gamelog/waitrun.sh
+  <viadriver log>`** in that background lane, with the Bash tool's own
+  `timeout: 3600000` — the tool's argument, never a `timeout` command, which
+  macOS has not.
+- **A number in a rule names its source, and a price names the day of its
+  rate table.**
 - **A multi-line Rust patch from Bash rides the python-heredoc pattern**
   (`python3 - <<'PYEOF'` with `old="""…"""`/`new="""…"""`), chained with
   its test run in the same call — edit and verify in one turn, and safer
@@ -507,51 +367,30 @@ and makes the eventual diff mechanical rather than a translation exercise.
 
 - `llvm-pdbutil` (Homebrew LLVM) reads `rise.pdb` on macOS. `dump --types`
   works; `pretty` needs the Windows DIA SDK and does not.
-- Ghidra 12.1.3 (`brew install ghidra` — a formula now, not a cask; it wants
-  `openjdk@21`). With the PDB loaded it gives named, typed decompilation.
-  **`tools/ghidra/` holds everything**: `analyze.sh` builds the project once
+- **Ghidra, with the PDB loaded, gives named, typed decompilation, and
+  `tools/ghidra/` holds everything**: `analyze.sh` builds the project once
   (hours), `export.sh` decompiles all 48k functions plus every struct and
   vtable to files (minutes), and after that reading is `grep` over
-  `decomp/` rather than a two-minute pass per question. `run.sh` runs the
-  remaining one-off scripts. Its README lists the traps that have each cost a
-  wrong conclusion once. The two things the decompiler does not do for you —
-  name the field behind a `field_0xNN`, name the method behind
-  `(*(code **)(*this + 0xcc))()` — are `types.txt` and `vtables.txt` in the
-  export.
-- **The original runs on this machine, on nothing we do not control.**
-  Free WineHQ Stable 11.0 in the prefix `~/wine-ron`, with DXVK-macOS for
-  the one D3D11 device the game asks for. `tools/gamelog/prefix.sh` builds
-  the prefix, `winelaunch.sh` is the single launch line every capture script
-  sources, and `focus.sh` the single window query; see `docs/ORACLE.md`,
-  "Off CrossOver", for why each is needed and `docs/DECISIONS.md` 32 for why
-  it is not a licence. `cliclick` drives it; System Events clicks do not
-  reach it. The launch line holds a **lane lock** keyed on the capture
-  script's pid and the game's: a capture takes it before its first
-  staging write, a second launch into a held lane refuses and names the
-  holder, and the lock releases itself when both have exited. It carries
-  each pid's start time, so a pid handed to another process holds
-  nothing; `ron_lane_state` says which of free, stale and held the lane
-  is, and a stale lock is never removed by hand.
-- **A function of the executable can be called outside the game.**
-  `tools/emu/callfn.py` maps it under unicorn (`uv run`, dependency declared
-  in the script) and enters a function with chosen arguments; a sweep is a
-  `#[test]` in `crates/sim`. Free for a pure function, an hour of synthesized
-  state for one that reads a singleton; `docs/EMULATOR.md` has the costs.
-- **And it can be called on the original's own state.** The lab's two
-  rungs (`docs/DECISIONS.md` entry 47; `docs/EMULATOR.md`'s last section
-  has the costs): a **packet** — `tools/explore/frame_snapshot.py`,
-  a `RON_STATE_FRAME` tracer build — copies the process's private data
-  at one frame boundary, and `tools/recomp/step4.py` runs a function on
-  it under unicorn with its writes watched; `tools/recomp/lift.py` is
-  the native twin for a pure function and the float oracle on chosen
-  inputs. Reach for them when the question is **a value the original
-  holds or computes** — a value row on a widening, a float residue, a
-  field no dump prints — before a reading and before a detail capture;
-  not for "why did it diverge", which is the draw stream's. **A packet
-  is taken at the word's own frame, read as a logger frame**; it is a
-  second game on the single capture lane, ~4 min and 843 MB; and lifted
-  C is a reading tool exactly as the decompiler is — never a source,
-  never in git.
+  `decomp/`. Its README lists the traps that have each cost a wrong
+  conclusion once. The two things the decompiler does not do for you — name
+  the field behind a `field_0xNN`, name the method behind a vtable call —
+  are `types.txt` and `vtables.txt` in the export.
+- **The original runs on this machine, on nothing we do not control**: free
+  WineHQ in the prefix `~/wine-ron`, with DXVK-macOS (`docs/ORACLE.md`, "Off
+  CrossOver"). `tools/gamelog/winelaunch.sh` is the single launch line every
+  capture script sources, and `cliclick` drives it. The launch line holds a
+  **lane lock**: one game at a time, a second launch refuses and names the
+  holder, and a stale lock is never removed by hand (`ron_lane_state` says
+  which of free, stale and held the lane is).
+- **A function of the executable can be called outside the game**
+  (`tools/emu/callfn.py`, under unicorn; a sweep is a `#[test]` in
+  `crates/sim`), **and on the original's own state**: a packet
+  (`tools/explore/frame_snapshot.py`) copies the process's data at one frame
+  boundary, and `tools/recomp/step4.py` runs a function on it. Reach for
+  them when the question is a value the original holds or computes, before
+  a reading and before a detail capture. Lifted C is a reading tool exactly
+  as the decompiler is: never a source, never in git. `docs/EMULATOR.md` has
+  the costs.
 - Constants are not all loaded in the representation the file writes. At least
   one rational arrives scaled to 8.8 fixed point. Read the consumer before
   believing the digits.
@@ -560,13 +399,16 @@ and makes the eventual diff mechanical rather than a translation exercise.
   claim stops being true it exits non-zero. Run it after touching anything
   that reads the game's data.
 - **The lab** (`docs/lab/`, `tools/explore/`, `tools/viewer/`) is a second
-  harness's exploration, merged whole on 2026-09-17 (`docs/DECISIONS.md`
-  entry 38). Its claim ledger is `docs/lab/LEDGER.md`; the guards do not
-  scan it. Two of its products are opt-in tools: a read-only diff viewer
-  with in-memory replay checkpoints (`docs/DEBUG_VIEWER.md`), and a
-  click-free capture lane (`tools/explore/unattended_capture.py`, a
-  `RON_AUTOSTART` tracer build) that needs no TCC grant and no human at
-  the menu, and starts most pairs rather than all of them.
+  harness's exploration, merged whole (`docs/DECISIONS.md` entry 38); the
+  guards do not scan it. Two of its products are opt-in tools: a read-only
+  diff viewer (`docs/DEBUG_VIEWER.md`) and a click-free capture lane
+  (`tools/explore/unattended_capture.py`) that needs no TCC grant and no
+  human at the menu.
+- **A behavioural check is a logged run, and it is cheap** (`docs/ORACLE.md`,
+  last section): fix the seed in `rise.ini`, enable the mechanic's
+  categories under `[End Frame]` in `gamelog.ini`, play a minute, quit
+  through the in-game menu, read `Logs\gamelog.txt`. Do not enable
+  everything per frame; it slows the simulation to a crawl.
 
 ## Prior art worth reading
 

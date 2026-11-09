@@ -494,6 +494,21 @@ class AStructureOrRenderItemHasItsKind(unittest.TestCase):
             self.compose(4008, 'structure', tests=['coverage::'])
         self.assertEqual(brief.filters('structure', []), [])
 
+    def test_a_brief_names_the_method_for_the_kinds_that_use_it_and_the_driver(self):
+        # The seventy-sixth pass (DECISIONS 116): `CLAUDE.md` keeps the long
+        # middle's method in a sentence a rule and `docs/METHOD.md` the
+        # clauses, so the kinds that chase a word are told to read it and a
+        # structure or render lane is not. And the row a lane reports to is
+        # `steer`, the driver: the commander's row is retired.
+        for kind in sorted(brief.KINDS):
+            text = self.compose(4008, kind) if kind in ('structure', 'render') else \
+                self.compose(4008, kind, tests=['coverage::'])
+            named = '`docs/METHOD.md`' in text.split('## Read first')[1].split('\n## ')[0]
+            self.assertEqual(named, kind in brief.METHOD_KINDS, kind)
+            self.assertNotIn('`commander`', text, kind)
+            self.assertIn('I am `steer`, the driver', text, kind)
+        self.assertEqual(brief.METHOD_KINDS, {'residue', 'chapter', 'coverage', 'reading', 'sweep'})
+
     def test_a_render_brief_carries_the_counter_the_rungs_the_pins_and_a_scoped_gate(self):
         text = self.compose(4018, 'render', sections=['docs/RENDERER.md §3.4'])
         self.assertIn('the render track', text)

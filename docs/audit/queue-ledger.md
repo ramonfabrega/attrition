@@ -136,3 +136,25 @@ file; each one is a ten-minute read of the code the row names.
   Knight blow. 3688's fix (the Monarch's cavalry bonus in
   `UnitData::attack`) closed it whole, 2926 → 4062 of 4062
   (`docs/journal/2026-10-26-item-3688.md`). Nothing landed under 3689.
+- **4043** closed at the seventy-sixth pass, unbuilt: `shape.py` printing every file over a
+  target's ceiling. The structure track is done and no structure booking will cite `largest`
+  again; the row's text is in `docs/audit/2026-11-09-fable-pass-76-closed-rows.md`.
+- **4045** closed at the seventy-sixth pass, unbuilt: a `start` kind for `tools/brief.py`. The
+  start track is the driver's own from this pass, built by in-session builders whose brief
+  is not the frame, and the driver gates at the merge (DECISIONS 116).
+- **3997** closed at the seventy-sixth pass: the rule it asked for is in the chain (the push
+  reads the gate log's own `gate exit 0`) and in the driver's definition of banked; no
+  drain pushed red in four tranches.
+- **3821** closed at the seventy-sixth pass, superseded: there is no second row for a drain to
+  arm. The driver clears itself and reads `--status` before the arm (`docs/LOOP.md`, "The
+  driver").
+- **3382** closed at the seventy-sixth pass, folded into Loop 4042, the whole gate's length
+  with an owner: one slow test a pass was never taken in twenty passes.
+- **3350** and **3237** closed at the seventy-sixth pass, folded into item 4039, the census
+  filler: both are definitions of what the census counts, and 4039 lands the readers' marks.
+- **3188** closed at the seventy-sixth pass: the nations lane it spoke for has not run since
+  the fifty-fourth, and the rules track is whole.
+- **3143** closed at the seventy-sixth pass: host admission stays (DECISIONS 75, 76) and its
+  receipts are on every gate; the slot policy and the reaper were Ramon's and are not asked.
+- **3118** closed at the seventy-sixth pass: no pass can hear the box. The muted-launch trial
+  is Ramon's whenever the sound bothers him.
