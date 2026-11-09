@@ -19,7 +19,9 @@ A brief is four things, and this writes three of them:
 Kinds: `residue` — a word on the AI track, a pair's or the third map's;
 `chapter` — the rules track's; `sweep` — a batch of never-backed functions;
 `reading` — the never-entered functions a document cites, read into claims
-that each name their falsifying capture (DECISIONS 84). A refusal is a `ValueError` and exit 2: an
+that each name their falsifying capture (DECISIONS 84); `coverage` — a
+pinned lobby's `cover=1` trace; `structure` — a `docs/STRUCTURE.md` §5
+move, gated whole; `render` — a `docs/RENDERER.md` §6 item (Loop 4022). A refusal is a `ValueError` and exit 2: an
 item the queue does not book has no brief, and a `--tests` filter that matches no test in the
 workspace, or only `#[ignore]` ones, has no lane gate (Loop 3818, 3227); one whose every match is
 in `crates/sim` is noted on stderr, since a lane that touches no sim path drops it (Loop 3823).
@@ -63,9 +65,16 @@ KINDS = {
     # twin and pinned into `blind::TRACES`, so the functions a reading's
     # captures-owed table names leave `blind::NEVER`. No word moves.
     'coverage': ('opening', 'lanes', 'capture', 'coverage-item', 'landing'),
+    # A structure move (Loop 4022; `docs/STRUCTURE.md` §1, §5): no behaviour
+    # change, every floor unchanged, gated whole; its number is `shape.py`'s.
+    'structure': ('opening', 'booked', 'lanes', 'structure', 'landing'),
+    # A render item (Loop 4022; `docs/RENDERER.md` §5.4, §6): K of M, the
+    # oracle's rungs, and the render tests' preconditions (4018's Loop line).
+    'render': ('opening', 'booked', 'lanes', 'render', 'landing'),
 }
 TRACKS = {'residue': 'the AI track', 'chapter': 'the rules track', 'sweep': 'the sweep track',
-          'reading': 'the reading track', 'coverage': 'the coverage track'}
+          'reading': 'the reading track', 'coverage': 'the coverage track',
+          'structure': 'the structure track', 'render': 'the render track'}
 # The lane gate's filters every word lane runs (parked 1623): a widening
 # puts its window in the coverage driver, so `coverage::` is a word's own.
 # And every lobby's `first_parting` (parked 1910, 2000, the thirty-first
@@ -94,9 +103,21 @@ ALWAYS_TESTS = {'residue': ('coverage::', 'first_parting', 'battery_floors', 'bl
                 'reading': ('blind::',),
                 # A coverage capture moves the blind list alone; its word
                 # check is `rngcmp.py` against the twin, a script, not a test.
-                'coverage': ('blind::',)}
+                'coverage': ('blind::',),
+                # A structure lane gates whole (`WHOLE`): it names no filter.
+                'structure': (),
+                # A render lane (the seventy-fifth pass's ruling): the render
+                # crate's tests, `rondata`'s `free` and `artdata`, the coverage
+                # and census pins. Never `render::`: cargo prints a crate's
+                # tests crate-less (`camera::tests::…`), so that filter matches
+                # nothing; the crate's modules are named instead.
+                'render': ('free::', 'artdata::', 'bh3::', 'bha::', 'camera', 'chunk::', 'draw::',
+                           'coverage::', 'census::', 'blind::')}
 # The kinds whose lane gate names no filter of its own: no word moves.
-NO_WORD = ('sweep', 'reading', 'coverage')
+NO_WORD = ('sweep', 'reading', 'coverage', 'structure', 'render')
+# The kinds whose lane gate is `--lane --whole` (Loop 4022, the seventy-fifth
+# pass): a structure move certifies no behaviour change by every test.
+WHOLE = ('structure',)
 # Rows of the checklist that are the commander's to follow in composing, or
 # the pass's, and say nothing to a worker.
 NOT_A_BRIEF_S = frozenset()
@@ -277,6 +298,11 @@ def filters(kind, tests):
     A filter that matches no test is refused (3818), and so is one whose
     every matching test is `#[ignore]` (3227)."""
     tests = [t for t in (tests or ()) if t]
+    if kind in WHOLE:
+        if tests:
+            raise ValueError(f"a {kind} lane gates --lane --whole, every test: it names no --tests "
+                             f"({' '.join(tests)}) (Loop 4022)")
+        return []
     if kind not in NO_WORD and not tests:
         raise ValueError("a word's brief names its lane gate's filters: --tests FILTER [FILTER ...]")
     fns = test_fns()
@@ -359,6 +385,8 @@ def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read
         raise ValueError(f'tools/brief/frame.md has no section {missing}')
 
     def fill(text):
+        if kind in WHOLE:
+            text = text.replace('--tests {tests}{widen}', '--whole')
         return (text.replace('{item}', str(item)).replace('{model}', model)
                 .replace('{base}', base).replace('{track}', TRACKS[kind])
                 .replace('{tests}', ' '.join(tests))
@@ -410,6 +438,7 @@ def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read
     titles = {'before-reading': 'Before any reading', 'reading': 'Reading the original',
               'capture': 'A capture or a packet', 'chapter': 'A chapter', 'sweep': 'The sweep',
               'reading-item': 'A reading item', 'coverage-item': 'A coverage capture',
+              'structure': 'A structure item', 'render': 'A render item',
               'build': 'Build', 'landing': 'Landing'}
     for name in KINDS[kind]:
         if name in ('opening', 'booked', 'lanes'):
