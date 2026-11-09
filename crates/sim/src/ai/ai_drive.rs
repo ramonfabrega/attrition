@@ -71,7 +71,7 @@ impl Sim {
             if cadence::explore_due(w, self.frame, self.ai_speed) {
                 self.check_explore(who);
             }
-            if self.nation[w].human {
+            if self.cities_state.nation[w].human {
                 self.plan_strategy_human(who);
                 continue;
             }

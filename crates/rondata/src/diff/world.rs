@@ -559,11 +559,12 @@ mod tests {
         assert_eq!(m.kind, sim::orders::MoveKind::ExploreTo);
         let ci = built
             .sim
+            .cities_state
             .cities
             .iter()
             .position(|c| c.alive && c.owner == 1)
             .expect("the AI's city");
-        let city = built.sim.cities[ci].pos.cell();
+        let city = built.sim.cities_state.cities[ci].pos.cell();
         let d = sim::world::vector_dist(m.dest.cell().x - city.x, m.dest.cell().y - city.y);
         assert_eq!(d, 5, "ring 5, where the four cells were");
     }
@@ -1068,7 +1069,8 @@ mod tests {
     /// record in `Sim::farm_order`, the cells in the record's own memory
     /// order (`status[dx][dy]`, index `dx * 4 + dy`).
     fn farm_rows(sim: &Sim) -> Vec<crate::gamelog::FarmDump> {
-        sim.farm_order
+        sim.cities_state
+            .farm_order
             .iter()
             .map(|&b| {
                 let bd = &sim.buildings[b];

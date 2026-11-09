@@ -41,7 +41,7 @@ impl Sim {
             })
             .count();
         let mods = attrition::StrengthMods {
-            russian: self.nation.get(w).is_some_and(|n| n.russians),
+            russian: self.cities_state.nation.get(w).is_some_and(|n| n.russians),
             ..attrition::StrengthMods::default()
         };
         self.territory.players[w].strength = attrition::strength(&self.tables.tuning, steps, &mods);
@@ -176,7 +176,7 @@ impl Sim {
         let roles = &self.tables.tech_tree.roles;
         let temple_level = 1 + self.bonus_level(who, &roles.temple_borders_preq) as i32;
         let fort_level = 1 + self.bonus_level(who, &roles.fort_borders_preq) as i32;
-        let n = &self.nation[w];
+        let n = &self.cities_state.nation[w];
         let held = self.wonders_held(who);
         territory::PlayerBorders::new(
             &self.tables.tuning,
@@ -216,7 +216,7 @@ impl Sim {
             players,
         );
         let mut city_of = vec![-1; self.territory.sources.len()];
-        for (c, city) in self.cities.iter().enumerate() {
+        for (c, city) in self.cities_state.cities.iter().enumerate() {
             if let Some(si) = city.source.filter(|&si| si < city_of.len()) {
                 city_of[si] = c as i32;
             }

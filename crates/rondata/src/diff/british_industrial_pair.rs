@@ -308,7 +308,7 @@ fn british_industrial_pair_a_british_aa_gun_costs_a_quarter_less() {
         0x119,
         "ANTIAIRCRAFTGUN in the original"
     );
-    assert!(sim.nation[1].british && !sim.nation[0].british);
+    assert!(sim.cities_state.nation[1].british && !sim.cities_state.nation[0].british);
     let price = sim.price_of(1, aa);
     assert_eq!((price[0], price[2]), (60, 60), "the British price");
     let nubian = sim.price_of(0, aa);

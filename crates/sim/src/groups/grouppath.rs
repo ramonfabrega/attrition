@@ -118,7 +118,7 @@ impl Sim {
             return;
         };
 
-        let human = self.nation[g.who as usize].human;
+        let human = self.cities_state.nation[g.who as usize].human;
         while let Some(w) = chain.pop() {
             let lpos = self.units[leader].pos;
             let last = w.flags & path_flag::FINAL != 0;

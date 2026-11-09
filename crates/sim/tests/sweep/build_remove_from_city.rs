@@ -92,7 +92,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     let before: Vec<Vec<usize>> =
                         (0..3).map(|k| walk(p, i16at(&p[1 + k], 8))).collect();
                     for (k, chain) in before.iter().enumerate() {
-                        sim.cities.push(City {
+                        sim.cities_state.cities.push(City {
                             alive: i16at(&p[1 + k], 4) & 1 != 0,
                             owner: who,
                             race: Some(who),
@@ -142,9 +142,10 @@ fn the_emulated_original_agrees_on_every_row() {
                     p[12 + prev][0x74..0x76].copy_from_slice(&next.to_le_bytes());
                     let after = walk(p, i16at(&p[1 + ci], 8));
                     let alive = i16at(&p[1 + ci], 4) & 1 != 0;
-                    let crate_chain: Vec<usize> = std::iter::once(sim.cities[ci].building)
-                        .chain(sim.cities[ci].members.iter().copied())
-                        .collect();
+                    let crate_chain: Vec<usize> =
+                        std::iter::once(sim.cities_state.cities[ci].building)
+                            .chain(sim.cities_state.cities[ci].members.iter().copied())
+                            .collect();
                     // The game keeps `this+0x74` and the chain record's link one field; the rows draw them
                     // apart, and then the original's unlink splices the *wrong* tail onto the predecessor
                     // (the crate removes the member, which is the invariant's reading).

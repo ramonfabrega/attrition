@@ -2143,7 +2143,7 @@ fn run(
             done.ran += 1;
         }
         Cheat::Control { who, human } => {
-            if let Some(n) = built.sim.nation.get_mut(who as usize) {
+            if let Some(n) = built.sim.cities_state.nation.get_mut(who as usize) {
                 n.human = human;
                 done.ran += 1;
             } else {

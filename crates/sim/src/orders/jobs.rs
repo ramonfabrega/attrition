@@ -187,7 +187,7 @@ impl Sim {
     /// change is held until both words are measured with it.
     pub(crate) fn swarm_around(&mut self, u: usize, b: usize, body: Body, action: bool) {
         let building = matches!(body, Body::Build(_));
-        let kind = if self.nation[self.units[u].owner as usize].human {
+        let kind = if self.cities_state.nation[self.units[u].owner as usize].human {
             MoveKind::MoveTo
         } else {
             MoveKind::ExploreTo
@@ -1648,7 +1648,7 @@ impl DoBuildView for SimDoBuild<'_> {
         self.s.tables.tuning.accel_construct
     }
     fn under_fire_exempt(&mut self) -> bool {
-        self.s.nation[self.s.units[self.u].owner as usize].koreans
+        self.s.cities_state.nation[self.s.units[self.u].owner as usize].koreans
             && self.s.tables.tuning.korean_build_under_fire != 0
     }
     fn site_under_attack(&mut self) -> bool {
@@ -2050,15 +2050,15 @@ impl DoRepairView for SimDoRepair<'_> {
     }
     fn is_city(&mut self) -> bool {
         let bd = &self.s.buildings[self.b];
-        matches!(bd.city, Some(c) if self.s.building_is_city(self.b) && self.s.cities[c].alive)
+        matches!(bd.city, Some(c) if self.s.building_is_city(self.b) && self.s.cities_state.cities[c].alive)
     }
     fn captured(&mut self) -> bool {
         let bd = &self.s.buildings[self.b];
         bd.city
-            .is_some_and(|c| self.s.cities[c].race != Some(bd.owner))
+            .is_some_and(|c| self.s.cities_state.cities[c].race != Some(bd.owner))
     }
     fn korean(&mut self) -> bool {
-        self.s.nation[self.s.units[self.u].owner as usize].koreans
+        self.s.cities_state.nation[self.s.units[self.u].owner as usize].koreans
     }
     fn korean_repair(&mut self) -> i32 {
         self.s.tables.tuning.korean_repair
@@ -2730,7 +2730,7 @@ impl DoGatherView for SimDoGather<'_> {
     fn city_under_attack(&mut self) -> bool {
         self.s.buildings[self.b]
             .city
-            .is_some_and(|c| self.s.cities[c].no_heal)
+            .is_some_and(|c| self.s.cities_state.cities[c].no_heal)
     }
     fn add_repair_order(&mut self) {
         self.s

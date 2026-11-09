@@ -1604,7 +1604,7 @@ pub(super) fn stage_walk() {
         // Item 1182: each city's members and its attack bits, which the
         // computer's sortie reads (`city_flags & 3`).
         if all {
-            for (c, city) in s.cities.iter().enumerate() {
+            for (c, city) in s.cities_state.cities.iter().enumerate() {
                 let members: Vec<i16> =
                     city.members.iter().map(|&m| s.buildings[m].index).collect();
                 now.push((

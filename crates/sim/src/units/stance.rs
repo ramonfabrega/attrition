@@ -289,7 +289,11 @@ impl crate::Sim {
     /// The stance `Unit::init` gives a unit of type `ty` created for `who`.
     #[must_use]
     pub fn init_stance(&self, who: Player, ty: usize) -> u8 {
-        let human = self.nation.get(who as usize).is_some_and(|n| n.human);
+        let human = self
+            .cities_state
+            .nation
+            .get(who as usize)
+            .is_some_and(|n| n.human);
         init_stance(
             self.type_stance_type(ty),
             self.leader_options(who),
@@ -311,7 +315,11 @@ impl crate::Sim {
     pub fn build_stance(&self, b: usize) -> u8 {
         let bl = &self.buildings[b];
         let Some(t) = bl.ty else { return 0 };
-        let human = self.nation.get(bl.owner as usize).is_some_and(|n| n.human);
+        let human = self
+            .cities_state
+            .nation
+            .get(bl.owner as usize)
+            .is_some_and(|n| n.human);
         build_init_stance(
             build_stance_type(&self.tables.build_types, t),
             self.leader_options(bl.owner),

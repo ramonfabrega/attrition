@@ -318,6 +318,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         "city_num".to_string(),
         built
             .sim
+            .cities_state
             .cities
             .iter()
             .filter(|x| x.alive && usize::from(x.owner) == who)
@@ -388,6 +389,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
             .and_then(|c| {
                 built
                     .sim
+                    .cities_state
                     .cities
                     .iter()
                     .enumerate()

@@ -109,7 +109,7 @@ impl Sim {
     /// fills: the winner's **index in `list`**, which `compute_form` uses to
     /// read the leader's own `angles` byte (§6.3).
     pub fn group_find_leader_slot(&self, g: &Group) -> Option<(usize, usize)> {
-        let human = self.nation[g.who as usize].human;
+        let human = self.cities_state.nation[g.who as usize].human;
         for on_map_only in [true, false] {
             let mut best: Option<(usize, usize, usize)> = None;
             for (i, &u) in g.list.iter().enumerate() {
@@ -648,7 +648,12 @@ impl Sim {
 
     /// §6.5's `ai_group`: `!(leaders[who].flags & 4) && group.army >= 0`.
     pub(super) fn ai_army_group(&self, g: &Group) -> bool {
-        g.army.is_some() && self.nation.get(g.who as usize).is_some_and(|n| !n.human)
+        g.army.is_some()
+            && self
+                .cities_state
+                .nation
+                .get(g.who as usize)
+                .is_some_and(|n| !n.human)
     }
 
     /// `ObjectsData::find_city(SEARCH_FRIENDLY, who, 0x200, FILTER_ALL)`
@@ -657,10 +662,10 @@ impl Sim {
         let reg = self.world.tregion(p.tile());
         let mut best: Option<(i32, usize)> = None;
         for c in self.cities_of(who) {
-            if self.cities[c].reg != reg {
+            if self.cities_state.cities[c].reg != reg {
                 continue;
             }
-            let q = self.cities[c].pos;
+            let q = self.cities_state.cities[c].pos;
             let d = crate::world::vector_dist((p.x - q.x).abs(), (p.y - q.y).abs());
             if best.is_none_or(|(bd, _)| d < bd) {
                 best = Some((d, c));
@@ -672,8 +677,8 @@ impl Sim {
     /// §6.5's stable: `can_garrison` → a garrison order, else a move to a
     /// spot around the city between `0x300` and `0x600`.
     pub(super) fn stable_in_city(&mut self, u: usize, c: usize, angle: Angle) {
-        let b = self.cities[c].building;
-        let p = self.cities[c].pos;
+        let b = self.cities_state.cities[c].building;
+        let p = self.cities_state.cities[c].pos;
         if self.units[u]
             .ty
             .zip(self.buildings[b].ty)

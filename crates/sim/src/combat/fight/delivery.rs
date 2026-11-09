@@ -35,10 +35,10 @@ impl Sim {
         {
             self.army_charge(who, slot, Obj::Building(b));
         }
-        if !fresh && self.frame - self.cities[c].reduce_stamp < 300 {
+        if !fresh && self.frame - self.cities_state.cities[c].reduce_stamp < 300 {
             return;
         }
-        self.cities[c].reduce_stamp = self.frame;
+        self.cities_state.cities[c].reduce_stamp = self.frame;
     }
 
     /// `Object::do_damage` (§7.1): computes, scales and delivers one hit from
@@ -311,7 +311,7 @@ impl Sim {
                     && bd.owner == vic
                     && let Some(c) = bd.city
                 {
-                    self.cities[c].raid_stamp = frame;
+                    self.cities_state.cities[c].raid_stamp = frame;
                 }
                 return false;
             }
@@ -334,10 +334,10 @@ impl Sim {
             bd.damage + whole >= ceiling
         };
         if !heavy {
-            self.cities[c].raid_stamp = frame;
+            self.cities_state.cities[c].raid_stamp = frame;
             return false;
         }
-        if self.cities[c].capital {
+        if self.cities_state.cities[c].capital {
             let stamp = &mut self.ai[vic as usize].capital_stamp[att as usize];
             if frame - *stamp > 300 {
                 *stamp = frame;
@@ -345,7 +345,7 @@ impl Sim {
             }
             return false;
         }
-        let city = &mut self.cities[c];
+        let city = &mut self.cities_state.cities[c];
         let alarm = frame - city.attack_stamp > 300;
         city.attack_stamp = frame;
         city.raid_stamp = frame;
@@ -411,7 +411,7 @@ impl Sim {
                 {
                     continue;
                 }
-                if self.nation[unit.owner as usize].koreans
+                if self.cities_state.nation[unit.owner as usize].koreans
                     && self.tables.tuning.korean_build_under_fire != 0
                 {
                     continue;
@@ -673,7 +673,7 @@ impl Sim {
         if who == vw || self.is_ally(vw, who) {
             return;
         }
-        let slay = self.nation[who as usize].aztecs
+        let slay = self.cities_state.nation[who as usize].aztecs
             && self.units[k]
                 .ty
                 .and_then(|t| self.trainer_ident(t))
@@ -974,7 +974,7 @@ impl Sim {
             // under attack, attacking and ever attacked. The first of the
             // three is the city heal's veto.
             if let Some(c) = self.buildings[b].city {
-                let cd = &mut self.cities[c];
+                let cd = &mut self.cities_state.cities[c];
                 cd.no_heal = true;
                 cd.attacking = true;
                 cd.ever_attacked = true;

@@ -264,6 +264,7 @@ impl Host for ScriptHost<'_> {
                 let name = s(0);
                 let found = self
                     .sim
+                    .cities_state
                     .cities
                     .iter()
                     .enumerate()
@@ -659,6 +660,7 @@ impl ScriptHost<'_> {
     /// The leader's live cities in slot order.
     fn cities_of(&self, w: Player) -> Vec<usize> {
         self.sim
+            .cities_state
             .cities
             .iter()
             .enumerate()
@@ -682,14 +684,14 @@ impl ScriptHost<'_> {
         let w = self.leader(who)?;
         let c = self.city_index(w, name)?;
         Some(i32::from(
-            self.sim.buildings[self.sim.cities[c].building].index,
+            self.sim.buildings[self.sim.cities_state.cities[c].building].index,
         ))
     }
 
     /// The city's member chain, the centre first — `CityData.o` then
     /// `city_down` links, tail-appended (`docs/CITIES.md`).
     fn chain(&self, c: usize) -> Vec<usize> {
-        let city = &self.sim.cities[c];
+        let city = &self.sim.cities_state.cities[c];
         std::iter::once(city.building)
             .chain(city.members.iter().copied())
             .collect()
@@ -984,7 +986,7 @@ impl ScriptHost<'_> {
             let stamp = if raid {
                 0
             } else {
-                self.sim.cities[c].attack_stamp
+                self.sim.cities_state.cities[c].attack_stamp
             };
             if seconds < 1 {
                 stamp != 0

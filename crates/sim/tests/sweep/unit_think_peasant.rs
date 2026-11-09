@@ -235,7 +235,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let (owner, flags0, idle) = (usize::from(m0[9]), rd(&m0, 0x68), m0[0xb0]);
             let ai = flags0 & 0x40000 != 0;
             let mut sim = Sim::new(Tuning::RON, World::new(8, 8), 4);
-            sim.nation[owner].human = !ai;
+            sim.cities_state.nation[owner].human = !ai;
             sim.roster.leader_options[owner].peasants_wait = rd(&c0, owner * 32 + 8);
             let mut un = Unit::new(owner as u8, 0, Pos::new(0, 0), 20);
             un.idle = idle;

@@ -195,7 +195,7 @@ fn sim() -> (Sim, Types) {
     for (rec, id) in recs.iter().zip(ids.iter()) {
         sim.tables.build_types[*rec].tree = Some(*id);
     }
-    sim.nation[0].human = true;
+    sim.cities_state.nation[0].human = true;
     let t = Types {
         village,
         library,
@@ -233,7 +233,7 @@ fn city(sim: &mut Sim, t: &Types, who: Player, tx: i32, ty: i32) -> usize {
         .resize(sim.world.region_count(), sim.territory.players.len());
     sim.ai[w]
         .city_ai
-        .resize(sim.cities.len(), Default::default());
+        .resize(sim.cities_state.cities.len(), Default::default());
     sim.ai[w].census.pop = 20;
     c
 }
@@ -757,10 +757,10 @@ fn the_capital_countdown_lobby_stops_a_leader_that_lost_its_capital() {
     let c = city(&mut sim, &t, 1, 5, 5);
     building(&mut sim, 1, t.library, 12, 5);
     sim.lobby.elimination = 1;
-    sim.cities[c].capital = false;
+    sim.cities_state.cities[c].capital = false;
     sim.research_techs(1);
     assert_eq!(sim.ai[1].make_list.head().t, -1);
-    sim.cities[c].capital = true;
+    sim.cities_state.cities[c].capital = true;
     sim.research_techs(1);
     assert!(sim.ai[1].make_list.head().t >= 0);
 }

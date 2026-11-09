@@ -964,7 +964,7 @@ fn a_turkish_siege_engine_sees_three_tiles_past_the_packed_clamp() {
     u.ty = Some(t);
     let u = s.add_unit(u);
     assert_eq!(s.unit_los(u), PACKED_LOS, "not Turkish");
-    s.nation[1].turks = true;
+    s.cities_state.nation[1].turks = true;
     assert_eq!(s.unit_los(u), PACKED_LOS + 3, "Turkish, packed");
     s.units[u].combat.packed = false;
     assert_eq!(s.unit_los(u), 13, "Turkish, unpacked");

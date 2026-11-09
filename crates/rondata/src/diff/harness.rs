@@ -1136,7 +1136,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             r.city_unlinked += 1;
             continue;
         };
-        let ours = &built.sim.cities[ci];
+        let ours = &built.sim.cities_state.cities[ci];
         let w = c.who as usize;
         compared::note(
             "CityDump",
@@ -1764,7 +1764,7 @@ pub(crate) fn debug_leader(built: &Built, frame: i64) {
         return;
     }
     for w in 0..built.sim.territory.players.len() {
-        if built.sim.nation[w].human || built.sim.defeated[w] {
+        if built.sim.cities_state.nation[w].human || built.sim.defeated[w] {
             continue;
         }
         let l = &built.sim.ai[w];
@@ -2689,7 +2689,7 @@ pub(crate) fn debug_tech(built: &Built, frame: i64) {
         let mut last = last.borrow_mut();
         last.resize(built.sim.territory.players.len(), Vec::new());
         for w in 0..built.sim.territory.players.len() {
-            if built.sim.nation[w].human || built.sim.defeated[w] {
+            if built.sim.cities_state.nation[w].human || built.sim.defeated[w] {
                 continue;
             }
             let p = &built.sim.tech[w];

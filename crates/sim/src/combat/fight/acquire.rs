@@ -1206,6 +1206,7 @@ impl Sim {
     ) -> Option<impl Fn(i32) -> i32> {
         let ai_mul: i32 = if ai { 10 } else { 1 };
         let human = self
+            .cities_state
             .nation
             .get(self.owner_of(attacker) as usize)
             .is_some_and(|n| n.human);
@@ -1484,6 +1485,7 @@ impl Sim {
                 if self.building_is_city(b) && self.num_inside(b) == 0);
             if armed && !raiding {
                 let human = self
+                    .cities_state
                     .nation
                     .get(self.owner_of(attacker) as usize)
                     .is_some_and(|n| n.human);

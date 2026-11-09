@@ -388,6 +388,7 @@ impl Sim {
             (false, unit)
         } else {
             let found = self
+                .cities_state
                 .cities
                 .iter()
                 .any(|c| c.alive && c.owner == who && c.reg == Some(reg));
@@ -747,7 +748,7 @@ impl Sim {
         let k = {
             let mut k = 1i32;
             if city {
-                for c in self.cities.iter().filter(|c| c.owner == who) {
+                for c in self.cities_state.cities.iter().filter(|c| c.owner == who) {
                     if !c.alive || c.reg != Some(reg) {
                         return zero(sx, sy);
                     }
@@ -800,7 +801,7 @@ impl Sim {
                 if self.lobby.team_style == 2 && cities >= 2 && self.leader_target(who) != Some(l) {
                     continue;
                 }
-                for c in self.cities.iter().filter(|c| c.owner == l) {
+                for c in self.cities_state.cities.iter().filter(|c| c.owner == l) {
                     // `city_flags & 0x11 == 0x11`: alive **and capital**,
                     // not "every active city" as `docs/AI.md` §2.13 has it.
                     if !(c.alive && c.capital) {
@@ -873,7 +874,7 @@ impl Sim {
 
         // `param_1 != 0 || (leader_flags & 0xc) != 4` — forced, or not a
         // human leader.
-        if !(force || !self.nation[w].human) {
+        if !(force || !self.cities_state.nation[w].human) {
             return;
         }
 
@@ -1023,8 +1024,8 @@ impl Sim {
     /// human.
     fn max_human_cities(&self) -> i32 {
         let mut best = -1;
-        for i in 0..self.nation.len() {
-            if self.defeated[i] || !self.nation[i].human {
+        for i in 0..self.cities_state.nation.len() {
+            if self.defeated[i] || !self.cities_state.nation[i].human {
                 continue;
             }
             best = best.max(self.total_cities(i as Player));
@@ -1295,7 +1296,7 @@ impl Sim {
         );
         let ureg = self.world.region_of(cp);
         let mut near: Option<(i32, usize)> = None;
-        for (ci, c) in self.cities.iter().enumerate() {
+        for (ci, c) in self.cities_state.cities.iter().enumerate() {
             if !c.alive || c.owner != who || c.reg != ureg {
                 continue;
             }
@@ -1306,10 +1307,10 @@ impl Sim {
         }
         let reg = site_reg.unwrap_or(0);
         let gatherer = last_kind == index::GATHER;
-        if self.ai[w].city_ai.len() < self.cities.len() {
+        if self.ai[w].city_ai.len() < self.cities_state.cities.len() {
             self.ai[w]
                 .city_ai
-                .resize(self.cities.len(), crate::ai::CityAi::default());
+                .resize(self.cities_state.cities.len(), crate::ai::CityAi::default());
         }
         if let Some((_, ci)) = near {
             if gatherer {

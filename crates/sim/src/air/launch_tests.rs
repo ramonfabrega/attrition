@@ -12,8 +12,8 @@ fn sim() -> Sim {
         crate::world::World::new(128, 128),
         2,
     );
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities_state.nation[0].human = true;
+    s.cities_state.nation[1].human = false;
     s.at_war[0][1] = true;
     s.at_war[1][0] = true;
     s.frame = 766;
@@ -327,12 +327,12 @@ fn a_computer_s_base_sends_its_plane_over_a_city_under_attack() {
         (false, true, false, false),
     ] {
         let mut s = sim();
-        s.nation[0].human = human;
+        s.cities_state.nation[0].human = human;
         let (base, target) = base_and_target(&mut s);
         let u = fighter_inside(&mut s, base, 400);
         s.units[u].orders.clear();
         let pos = s.buildings[target].pos;
-        s.cities.push(crate::city::City {
+        s.cities_state.cities.push(crate::city::City {
             alive: true,
             owner: 1,
             race: Some(1),

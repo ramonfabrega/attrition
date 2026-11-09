@@ -114,7 +114,8 @@ impl Sim {
 
     /// The leader's live cities in slot order.
     pub fn cities_of(&self, who: Player) -> Vec<usize> {
-        self.cities
+        self.cities_state
+            .cities
             .iter()
             .enumerate()
             .filter(|(_, c)| c.alive && c.owner == who)
@@ -125,7 +126,7 @@ impl Sim {
     /// The city's member chain, the centre first — `CityData.o` then the
     /// `city_down` links.
     pub fn city_chain(&self, c: usize) -> Vec<usize> {
-        let city = &self.cities[c];
+        let city = &self.cities_state.cities[c];
         std::iter::once(city.building)
             .chain(city.members.iter().copied())
             .collect()
@@ -160,7 +161,7 @@ impl Sim {
             return 0;
         }
         let cap = self.ledgers[who as usize].cap[g];
-        if self.nation[who as usize].human {
+        if self.cities_state.nation[who as usize].human {
             return cap;
         }
         match self.ai_difficulty() {

@@ -283,13 +283,8 @@ pub struct Sim {
     pub redirects: cost::Redirects,
     /// The production buildings, each with its own queue.
     pub buildings: Vec<Building>,
-    /// `Farms`' list: every farm in the order it was activated
-    /// (`Farms::add` runs from `Build::activate`), which is the order
-    /// `Farms::inc_time` walks and so the order the farm draws are spent in
-    /// (`docs/SYNC.md` §3.3, §4.1). It is not the buildings' order: the
-    /// starting positions are built from the higher start slot down, so
-    /// the AI's farms come before the human's in every `DUMP_ALL` dump.
-    pub farm_order: Vec<usize>,
+    /// The `cities/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub cities_state: crate::cities::CitiesState,
     /// One per player: the tech bits and counters — `LeaderData::tech`,
     /// `ages`, `epochs`, `epoch[4]`.
     pub tech: Vec<tech::PlayerTech>,
@@ -349,10 +344,6 @@ pub struct Sim {
     /// millionths (`docs/COMBAT.md` §46.3). Every window the harness replays
     /// pins it, so the day a read lands on one is a failing test by name.
     pub ground_inexact: u32,
-    /// The city records — `docs/CITIES.md` §5.
-    pub cities: Vec<city::City>,
-    /// One per player: the nation, wonder and tech inputs this mechanic reads.
-    pub nation: Vec<city::Nation>,
     /// Alliance, as a matrix; `is_ally` needs it both ways.
     pub allied: Vec<Vec<bool>>,
     /// `LeaderData::treaties` (`+0x94`), `int[8]` — the standing agreements
@@ -380,31 +371,8 @@ pub struct Sim {
     pub forced_march: Vec<bool>,
     /// Whether each player has been defeated — `leader_flags & 2` clear.
     pub defeated: Vec<bool>,
-    /// `LeaderData::lost_city_stamp`: the frame each player last lost a city.
-    pub lost_city_stamp: Vec<Option<i64>>,
-    /// `LeaderData::cities_built`, `cities_captured`, `cities_lost`.
-    pub city_tally: Vec<city::Tally>,
-    /// `LeaderData::high_buildings` (`+0x5660`): per player, the most
-    /// buildings of a lineage this player has ever held finished at once,
-    /// indexed by the lineage's **root** record. Only `Build::activate`
-    /// raises it, and what it gates is the nation's free units
-    /// (`crate::nations`). Grown on demand, because the build types are
-    /// loaded after the simulation is stood up.
-    pub building_high: Vec<Vec<i32>>,
     /// Buildings disbanded or died this frame, for tests.
     pub removed: Vec<usize>,
-    /// `leader_flags & 0x8000000` per player: the wall stats are stale.
-    /// `Leader::process` answers it with `calc_wall_stats` — every unfinished
-    /// building's clock re-baked and every building's hit points refreshed —
-    /// before any object is processed. `docs/CITIES.md` §3.2.
-    pub wall_stats_dirty: Vec<bool>,
-    /// `Game::wonders` (`Game +0x618`, `int[17]`), a bit per
-    /// [`tech::wonder`] offset: a wonder type some player has activated.
-    /// `Wonders::init_wonder@0073c860` sets it (`Wonder::init@0073c5e0` has no caller),
-    /// nothing clears it, and `BuildTypeData::already_built@0063ce10` reads
-    /// it for [`Sim::type_avail`] (`docs/TECH.md`, "A built wonder is
-    /// built for everyone").
-    pub wonders_built: u32,
     /// The goody boxes as `Objects::init_item` laid them down, with each
     /// one's `ItemData::ever_seen` (`+0x20`): a bit per leader that
     /// `World::reveal_fog` ORs in when a unit's sight first changes `seen2`
@@ -508,7 +476,6 @@ impl Sim {
             good_types: Vec::new(),
             redirects: cost::Redirects::RON,
             buildings: Vec::new(),
-            farm_order: Vec::new(),
             orders: crate::orders::OrdersState {
                 pushed: Vec::new(),
                 last_group: [0; 16],
@@ -520,20 +487,23 @@ impl Sim {
             market: market::Market::default(),
             gaia: gaia::Gaia::default(),
             game_seed: 0,
-            cities: Vec::new(),
-            nation: vec![city::Nation::default(); players],
             allied: vec![vec![false; players]; players],
             treaties: vec![vec![0; players]; players],
             agendas: vec![vec![0; players]; players],
             flock_stamp: vec![0; players],
             forced_march: vec![false; players],
             defeated: vec![false; players],
-            lost_city_stamp: vec![None; players],
-            city_tally: vec![city::Tally::default(); players],
-            building_high: vec![Vec::new(); players],
             removed: Vec::new(),
-            wall_stats_dirty: vec![false; players],
-            wonders_built: 0,
+            cities_state: crate::cities::CitiesState {
+                farm_order: Vec::new(),
+                cities: Vec::new(),
+                nation: vec![city::Nation::default(); players],
+                lost_city_stamp: vec![None; players],
+                city_tally: vec![city::Tally::default(); players],
+                building_high: vec![Vec::new(); players],
+                wall_stats_dirty: vec![false; players],
+                wonders_built: 0,
+            },
             territory: crate::territory::TerritoryState {
                 players: vec![attrition::PlayerState::default(); players],
                 sources: Vec::new(),
@@ -619,15 +589,15 @@ impl Sim {
             .push(economy::Ledger::starting(&self.tables.tuning));
         self.roster.muster.push(Muster::new(&self.tables.tuning));
         self.combat.mods.push(combat::Modifiers::default());
-        self.nation.push(city::Nation::default());
+        self.cities_state.nation.push(city::Nation::default());
         self.territory
             .borders
             .push(territory::PlayerBorders::plain(&self.tables.tuning));
         self.defeated.push(false);
-        self.lost_city_stamp.push(None);
-        self.city_tally.push(city::Tally::default());
-        self.building_high.push(Vec::new());
-        self.wall_stats_dirty.push(false);
+        self.cities_state.lost_city_stamp.push(None);
+        self.cities_state.city_tally.push(city::Tally::default());
+        self.cities_state.building_high.push(Vec::new());
+        self.cities_state.wall_stats_dirty.push(false);
         self.roster.marks.push(Marks::default());
         self.movement.repaths.push(0);
         self.combat.retargets.push(0);

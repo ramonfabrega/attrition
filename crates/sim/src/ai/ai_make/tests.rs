@@ -94,7 +94,7 @@ fn fx() -> Fx {
     let mut w = World::new(16, 16);
     w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(15, 15));
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    sim.nation[1].human = false;
+    sim.cities_state.nation[1].human = false;
     let t = &mut sim.tables.tech_tree;
     for n in ["Food", "Timber", "Wealth", "Knowledge", "Metal", "Oil"] {
         t.add(TypeDef::good(n));
@@ -535,7 +535,7 @@ fn make_this_dispatches_by_class_and_demotes_on_a_buy() {
     let b = s.init_build(1, f.village_rec, at, false);
     s.activate(b, false, true);
     let c = s.buildings[b].city.expect("a finished city has a record");
-    s.ai[1].city_ai = vec![CityAi::default(); s.cities.len()];
+    s.ai[1].city_ai = vec![CityAi::default(); s.cities_state.cities.len()];
     s.ai[1].city_ai[c].land = 40;
     s.ai[1].city_ai[c].space = [40, 40, 40];
     s.ai[1].census.resize(256, 2);
@@ -915,7 +915,7 @@ fn a_tied_builder_is_the_lower_object_number_not_the_elder() {
     let b = s.init_build(1, f.village_rec, at, false);
     s.activate(b, false, true);
     let c = s.buildings[b].city.expect("a finished city has a record");
-    s.ai[1].city_ai = vec![CityAi::default(); s.cities.len()];
+    s.ai[1].city_ai = vec![CityAi::default(); s.cities_state.cities.len()];
     s.ai[1].city_ai[c].land = 40;
     s.ai[1].city_ai[c].space = [40, 40, 40];
     s.ai[1].census.resize(256, 2);
@@ -1002,7 +1002,7 @@ fn a_human_leader_is_skipped() {
     let s = &mut f.sim;
     let b = s.init_build(0, f.farm_rec, at, false);
     s.world.set_danger_at(0, at.cell(), 5);
-    s.nation[0].human = true;
+    s.cities_state.nation[0].human = true;
     s.check_orphaned_buildings(0);
     assert!(s.buildings[b].alive);
 }

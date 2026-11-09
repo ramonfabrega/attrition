@@ -403,7 +403,7 @@ impl<'a> SimMuster<'a> {
         let city = match target {
             Obj::Building(b) => sim.buildings[b]
                 .city
-                .filter(|&c| sim.cities[c].building == b)
+                .filter(|&c| sim.cities_state.cities[c].building == b)
                 .map(|c| (b, c)),
             Obj::Unit(_) => None,
         };
@@ -568,14 +568,14 @@ impl MusterView for SimMuster<'_> {
         self.city.map_or(-1, |(_, c)| c as i32)
     }
     fn city_flags(&self, c: i32) -> i32 {
-        let city = &self.sim.cities[c as usize];
+        let city = &self.sim.cities_state.cities[c as usize];
         i32::from(city.alive) | i32::from(city.no_heal) << 1 | i32::from(city.no_muster) << 13
     }
     fn set_city_flags(&mut self, c: i32, f: i32) {
-        self.sim.cities[c as usize].no_muster = f & 0x2000 != 0;
+        self.sim.cities_state.cities[c as usize].no_muster = f & 0x2000 != 0;
     }
     fn city_cell(&self, c: i32) -> (i32, i32) {
-        let p = self.sim.cities[c as usize].pos.cell();
+        let p = self.sim.cities_state.cities[c as usize].pos.cell();
         (p.x, p.y)
     }
 

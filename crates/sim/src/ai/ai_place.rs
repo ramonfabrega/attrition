@@ -451,7 +451,7 @@ impl Sim {
     /// activation re-flagged the city's roads on 568 (`docs/AI.md` §144).
     pub(crate) fn order_builder(&mut self, who: Player, u: usize, kind: u8, o: usize) {
         if kind == index::BUILD_AT {
-            let approach = if self.nation[who as usize].human {
+            let approach = if self.cities_state.nation[who as usize].human {
                 crate::orders::MoveKind::MoveTo
             } else {
                 crate::orders::MoveKind::ExploreTo
@@ -481,7 +481,7 @@ impl Sim {
         let frame = self.frame;
         // 4.1 The anchor and the permission: an active city building lends
         // its city; anything else only to a type that needs none.
-        let city = city.filter(|&c| self.cities[c].alive);
+        let city = city.filter(|&c| self.cities_state.cities[c].alive);
         if city.is_none() && !bt.has(flags::NO_CITY) {
             return false;
         }
@@ -853,7 +853,7 @@ impl Sim {
         let corner = self.tile_corner(rec, cand);
         let radius = match city {
             Some(c) => self
-                .city_radius(who, self.buildings[self.cities[c].building].ty)
+                .city_radius(who, self.buildings[self.cities_state.cities[c].building].ty)
                 .min(0x40),
             None => 0x1200,
         };

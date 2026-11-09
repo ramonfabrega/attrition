@@ -43,8 +43,8 @@ fn sea_sim() -> (Sim, usize) {
         }
     }
     let mut s = Sim::new(Tuning::RON, world, 2);
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities_state.nation[0].human = true;
+    s.cities_state.nation[1].human = false;
     s.good_types = good_table();
     {
         let t = &mut s.tables.tech_tree;
@@ -765,7 +765,7 @@ fn a_bantu_citizen_moves_a_quarter_faster() {
     let korean = foot(&mut s, PEASANTS_KOREAN);
     let other = foot(&mut s, PEASANTS_KOREAN + 1);
     assert_eq!(s.type_speed(1, citizen), 25, "not a Bantu leader");
-    s.nation[1].bantu = true;
+    s.cities_state.nation[1].bantu = true;
     assert_eq!(s.type_speed(1, citizen), 31, "run978: 25 x 125 / 100");
     assert_eq!(s.type_speed(1, korean), 31);
     assert_eq!(s.type_speed(1, other), 25, "neither citizen");

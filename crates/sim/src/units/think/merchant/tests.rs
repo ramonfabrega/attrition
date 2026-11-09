@@ -17,8 +17,8 @@ fn merchant_sim() -> (Sim, usize) {
     world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(19, 39));
     world.fill_region(Terrain::Land, Cell::new(20, 0), Cell::new(39, 39));
     let mut s = Sim::new(Tuning::RON, world, 2);
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities_state.nation[0].human = true;
+    s.cities_state.nation[1].human = false;
     {
         let t = &mut s.tables.tech_tree;
         while t.types.len() < 0x3d {

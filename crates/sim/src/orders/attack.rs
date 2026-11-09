@@ -1566,7 +1566,7 @@ impl Sim {
             .is_some_and(|ty| self.tables.unit_types[ty].cols.flag(uflags::FLAG_SIEGE));
         let city = self.buildings[b]
             .city
-            .is_some_and(|c| self.cities[c].building == b);
+            .is_some_and(|c| self.cities_state.cities[c].building == b);
         if !siege
             || !self.ai_driven(who)
             || !city

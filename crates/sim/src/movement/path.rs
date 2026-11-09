@@ -504,6 +504,7 @@ impl Sim {
             height: self.world.height() * TILES_PER_CELL,
             owner: i32::from(unit.owner),
             human: self
+                .cities_state
                 .nation
                 .get(unit.owner as usize)
                 .is_some_and(|n| n.human),

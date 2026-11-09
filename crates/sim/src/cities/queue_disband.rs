@@ -159,7 +159,7 @@ impl Sim {
         if self.building_is(at, Ident::Senate) {
             t = self.tables.tuning.disband_senate_rate * t / 100;
         }
-        if self.nation[b.owner as usize].lakota {
+        if self.cities_state.nation[b.owner as usize].lakota {
             t = self.tables.tuning.lakota_raze_speed * t / 100;
         }
         t / 2

@@ -9,7 +9,7 @@ fn sim() -> Sim {
         crate::world::World::new(128, 128),
         2,
     );
-    s.nation[0].human = true;
+    s.cities_state.nation[0].human = true;
     s.at_war[0][1] = true;
     s.at_war[1][0] = true;
     s
@@ -1122,7 +1122,7 @@ fn a_computer_s_silo_strikes_an_enemy_city_with_its_nuke() {
         ("human", false),
     ] {
         let (mut s, silo, m, enemy) = silo_with_a_v2();
-        s.nation[0].human = case == "human";
+        s.cities_state.nation[0].human = case == "human";
         if case != "a V2" {
             let ty = s.units[m].ty.unwrap();
             s.tables.unit_types[ty].tree = Some(NUCLEARMISSILE);
@@ -1137,7 +1137,7 @@ fn a_computer_s_silo_strikes_an_enemy_city_with_its_nuke() {
             friend(&mut s, Pos::new(at.x + 0x1800, at.y));
         }
         let pos = s.buildings[enemy].pos;
-        s.cities.push(crate::city::City {
+        s.cities_state.cities.push(crate::city::City {
             alive: true,
             owner: 1,
             race: Some(1),

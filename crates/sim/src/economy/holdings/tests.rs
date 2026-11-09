@@ -19,7 +19,7 @@ fn world_sim() -> Sim {
         l.bucket = [10_000; RESOURCES];
     }
     // Both players are people: no difficulty handicap in these tests.
-    for n in &mut sim.nation {
+    for n in &mut sim.cities_state.nation {
         n.human = true;
     }
     sim
@@ -843,7 +843,7 @@ fn only_an_ai_carries_the_difficulty_handicap() {
     build(&mut sim, 0, t.village, 32, 32);
     build(&mut sim, 1, t.village, 8, 8);
     sim.lobby.difficulty = 5;
-    sim.nation[1].human = false;
+    sim.cities_state.nation[1].human = false;
 
     sim.assemble_holdings(0);
     sim.assemble_holdings(1);
@@ -893,7 +893,7 @@ fn a_lost_city_stops_paying() {
 
     sim.buildings[city].alive = false;
     let c = sim.buildings[city].city.unwrap();
-    sim.cities[c].alive = false;
+    sim.cities_state.cities[c].alive = false;
     sim.assemble_holdings(0);
     assert!(sim.holdings[0].cities.is_empty());
     let without = economy::assemble(&sim.tables.tuning, &sim.holdings[0]);

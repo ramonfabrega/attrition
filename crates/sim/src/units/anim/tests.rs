@@ -1058,7 +1058,7 @@ fn a_walker_that_boards_its_boat_moves_its_figures_that_frame() {
         }
     }
     let mut s = Sim::new(Tuning::RON, w, 2);
-    s.nation[1].human = false;
+    s.cities_state.nation[1].human = false;
     let walker = s.add_unit_type(UnitType {
         hits: 40,
         ..UnitType::default()

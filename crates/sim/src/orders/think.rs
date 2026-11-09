@@ -1314,7 +1314,7 @@ impl Sim {
         // recently" bit (`docs/MERCHANT.md` §7), which this crate does not
         // keep, so a boat is always taken as not recently ordered.
         if self.is_rare_collector(u)
-            && self.nation[self.units[u].owner as usize].human
+            && self.cities_state.nation[self.units[u].owner as usize].human
             && self.units[u].combat.packed
             && (self.units[u].idle == 1 || phase & 31 == 0)
         {
@@ -1469,7 +1469,7 @@ impl Sim {
         {
             let threshold = if self.unit_line_is(u, MACHINEGUN) {
                 3
-            } else if self.nation[who as usize].human {
+            } else if self.cities_state.nation[who as usize].human {
                 7
             } else {
                 0x15

@@ -385,7 +385,11 @@ impl TargetGateView for SimGate<'_> {
         if !self.live(a) {
             return 0;
         }
-        3 | if self.sim.nation[a].human { 4 } else { 0 }
+        3 | if self.sim.cities_state.nation[a].human {
+            4
+        } else {
+            0
+        }
     }
     fn lid(&self, a: usize) -> i32 {
         a as i32
@@ -476,12 +480,12 @@ impl TargetGateView for SimGate<'_> {
     }
     fn city_reg(&self, a: usize, k: usize) -> i32 {
         self.city(a, k)
-            .and_then(|c| self.sim.cities[c].reg)
+            .and_then(|c| self.sim.cities_state.cities[c].reg)
             .map_or(-1, i32::from)
     }
     fn city_founder(&self, a: usize, k: usize) -> i32 {
         self.city(a, k)
-            .map_or(-1, |c| i32::from(self.sim.cities[c].founder))
+            .map_or(-1, |c| i32::from(self.sim.cities_state.cities[c].founder))
     }
     fn city_ocean(&self, a: usize, k: usize) -> i32 {
         self.city(a, k)
@@ -489,7 +493,7 @@ impl TargetGateView for SimGate<'_> {
     }
     fn capital_cell(&self, owner: i32, idx: i32) -> (i32, i32) {
         let c = self.sim.cities_of(owner as crate::Player)[idx as usize];
-        let cell = self.sim.cities[c].pos.cell();
+        let cell = self.sim.cities_state.cities[c].pos.cell();
         (cell.x, cell.y)
     }
     fn count(&mut self, kind: i32, arg: i32) -> i32 {
@@ -511,7 +515,7 @@ impl TargetGateView for SimGate<'_> {
             .sim
             .cities_of(w)
             .into_iter()
-            .position(|c| self.sim.cities[c].capital);
+            .position(|c| self.sim.cities_state.cities[c].capital);
         (idx.map_or(-1, |i| i as i32), i32::from(w))
     }
     fn tribute(&mut self, _b: usize) -> bool {

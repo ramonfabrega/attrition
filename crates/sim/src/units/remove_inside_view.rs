@@ -206,7 +206,12 @@ impl RemoveInsideView for SimRemoveInside<'_> {
     fn has_tribe_bonus(&mut self, id: i32) -> bool {
         let who = self.sim.units[self.unit].owner as usize;
         match id {
-            BONUS_LAKOTA => self.sim.nation.get(who).is_some_and(|n| n.lakota),
+            BONUS_LAKOTA => self
+                .sim
+                .cities_state
+                .nation
+                .get(who)
+                .is_some_and(|n| n.lakota),
             BONUS_AMERICANS => self.sim.tech.get(who).is_some_and(|p| {
                 self.sim.tables.tech_tree.has_tribe_bonus(
                     &self.sim.tables.setup,

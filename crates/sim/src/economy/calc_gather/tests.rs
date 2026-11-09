@@ -33,8 +33,8 @@ fn sea_sim() -> (Sim, usize) {
         }
     }
     let mut s = Sim::new(Tuning::RON, world, 2);
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities_state.nation[0].human = true;
+    s.cities_state.nation[1].human = false;
     {
         let t = &mut s.tables.tech_tree;
         for n in [

@@ -495,7 +495,7 @@ mod tests {
             if (0..players as i64).contains(&l.who) {
                 let who = l.who as usize;
                 sim.set_tribe(who as u8, l.tribe);
-                sim.nation[who].human = l.leader_flags & 4 != 0;
+                sim.cities_state.nation[who].human = l.leader_flags & 4 != 0;
                 let t = &mut sim.transport[who];
                 t.civilian = l.leader_flags & 0x100 != 0;
                 t.military = l.leader_flags & 0x200 != 0;
@@ -592,7 +592,7 @@ mod tests {
             let b = sim.init_build(who as sim::Player, ty, pos, false);
             sim.activate(b, false, false);
             let ci = sim.buildings[b].city.expect("activate founded the city");
-            let city = &mut sim.cities[ci];
+            let city = &mut sim.cities_state.cities[ci];
             city.alive = flags & 1 != 0;
             city.no_heal = flags & 2 != 0;
             city.capital = flags & 0x10 != 0;
@@ -953,7 +953,7 @@ mod tests {
         for s in [0, 1] {
             sc.sim.armies[1].list[s].valid = true;
             let c = sc.sim.armies[1].list[s].city.expect("mustering at a city");
-            let b = sc.sim.cities[c].building;
+            let b = sc.sim.cities_state.cities[c].building;
             assert!(
                 sc.sim.find_muster_spot(1, s, Obj::Building(b), true),
                 "army {s}: a spot"
@@ -961,7 +961,7 @@ mod tests {
             let a = &sc.sim.armies[1].list[s];
             assert_eq!(a.muster, theirs[s].0, "army {s}'s muster cell");
             assert_eq!(a.muster_angle.0, theirs[s].1, "army {s}'s muster angle");
-            assert!(!sc.sim.cities[c].no_muster);
+            assert!(!sc.sim.cities_state.cities[c].no_muster);
         }
     }
 
@@ -981,14 +981,18 @@ mod tests {
         assert!(a1.valid && a1.status == 0x11 && !a1.navy);
         assert_eq!(a1.muster, Cell::new(49, 54), "the spot it had held");
         let c = a1.city.expect("at its city");
-        assert_eq!(sc.sim.cities[c].pos, Pos::new(34656, 36192), "Norwich");
-        let b = sc.sim.cities[c].building;
-        assert!(!sc.sim.cities[c].no_muster, "0x0001 before");
+        assert_eq!(
+            sc.sim.cities_state.cities[c].pos,
+            Pos::new(34656, 36192),
+            "Norwich"
+        );
+        let b = sc.sim.cities_state.cities[c].building;
+        assert!(!sc.sim.cities_state.cities[c].no_muster, "0x0001 before");
         assert!(
             !sc.sim.find_muster_spot(1, 1, Obj::Building(b), true),
             "no cell at Norwich"
         );
-        assert!(sc.sim.cities[c].no_muster, "0x2001 after");
+        assert!(sc.sim.cities_state.cities[c].no_muster, "0x2001 after");
 
         let a2 = &sc.sim.armies[1].list[2];
         assert!(a2.valid && a2.navy);
@@ -1022,10 +1026,13 @@ mod tests {
             "init's cell, one south of Norwich"
         );
         let c = a0.city.expect("at its city");
-        assert!(sc.sim.cities[c].no_muster, "marked since 12129");
-        let b = sc.sim.cities[c].building;
+        assert!(
+            sc.sim.cities_state.cities[c].no_muster,
+            "marked since 12129"
+        );
+        let b = sc.sim.cities_state.cities[c].building;
         assert!(!sc.sim.find_muster_spot(1, 0, Obj::Building(b), true));
-        assert!(sc.sim.cities[c].no_muster);
+        assert!(sc.sim.cities_state.cities[c].no_muster);
 
         let a2 = &sc.sim.armies[1].list[2];
         let t = a2.target.expect("the navy's target");
@@ -1074,7 +1081,7 @@ mod tests {
             .map(|(_, _, b)| *b)
             .expect("London");
         let lc = sc.sim.buildings[london].city.unwrap();
-        assert!(sc.sim.cities[lc].capital && sc.sim.cities[lc].no_heal);
+        assert!(sc.sim.cities_state.cities[lc].capital && sc.sim.cities_state.cities[lc].no_heal);
         let bd = &sc.sim.buildings[london];
         assert_eq!(bd.hits - bd.health, 12, "London's damage");
         assert_eq!(sc.sim.ai[1].frame_attacked, 12005);
@@ -1271,8 +1278,8 @@ mod tests {
         // `order_num` by exactly one and leaves `form` alone; `action_halt`
         // clears the group's `form` and bumps nothing.
         let mut s = sim::Sim::new(Tuning::RON, World::new(60, 60), 2);
-        s.nation[0].human = true;
-        s.nation[1].human = false;
+        s.cities_state.nation[0].human = true;
+        s.cities_state.nation[1].human = false;
         s.at_war[0][1] = true;
         s.at_war[1][0] = true;
         let ty = s.add_unit_type(sim::UnitType {
@@ -1455,7 +1462,7 @@ mod tests {
             sim::world::World::new(200, 200),
             2,
         );
-        s.nation[1].human = false;
+        s.cities_state.nation[1].human = false;
         let mut proto = loaded.unit_types[galley].clone();
         // The harness here carries no tech tree; the columns are the point.
         proto.tree = None;
@@ -2227,7 +2234,7 @@ mod tests {
             sim::world::World::new(400, 400),
             2,
         );
-        s.nation[0].human = true;
+        s.cities_state.nation[0].human = true;
         let mut ours = Vec::new();
         for &t in &[ranged, foot] {
             let mut proto = loaded.unit_types[t].clone();

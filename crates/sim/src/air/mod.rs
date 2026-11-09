@@ -1578,7 +1578,12 @@ impl Sim {
     /// tiles from `find_building`'s tile arithmetic and not run.
     fn computer_sortie(&mut self, b: usize) {
         let owner = self.buildings[b].owner;
-        if self.nation.get(owner as usize).is_none_or(|n| n.human) {
+        if self
+            .cities_state
+            .nation
+            .get(owner as usize)
+            .is_none_or(|n| n.human)
+        {
             return;
         }
         let id = i64::from(self.buildings[b].index);
@@ -1604,8 +1609,8 @@ impl Sim {
             if self.defeated[l as usize] || self.is_peace(owner, l) {
                 continue;
             }
-            for c in 0..self.cities.len() {
-                let city = &self.cities[c];
+            for c in 0..self.cities_state.cities.len() {
+                let city = &self.cities_state.cities[c];
                 if city.owner != l || !city.alive || !city.no_heal {
                     continue;
                 }
@@ -1707,8 +1712,8 @@ impl Sim {
             if !self.is_enemy(owner, l) || self.missile_defense_held(l) {
                 continue;
             }
-            for c in 0..self.cities.len() {
-                let city = &self.cities[c];
+            for c in 0..self.cities_state.cities.len() {
+                let city = &self.cities_state.cities[c];
                 if city.owner != l || !city.alive {
                     continue;
                 }

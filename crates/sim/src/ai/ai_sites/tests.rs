@@ -287,7 +287,7 @@ fn seen_shortcut_matches_reference_after_live_mutations() {
 fn the_rank_counts_the_sites_that_score_no_more_including_itself() {
     let (mut sim, _) = kit(8, 8, 2);
     sim.frame = 1;
-    sim.nation[1].human = false;
+    sim.cities_state.nation[1].human = false;
     // The nomad's wood test would otherwise zero every site.
     sim.lobby.starting_resources = 8;
     sim.ai[1].census.reg_peasants[0] = 1;
@@ -357,7 +357,7 @@ fn a_large_region_strides_by_the_two_draws_and_a_small_one_by_two() {
     // 20 × 20 = 400 cells, one region.
     let (mut sim, _) = kit(20, 20, 2);
     sim.frame = 1;
-    sim.nation[1].human = false;
+    sim.cities_state.nation[1].human = false;
     sim.ai[1].census.reg_peasants[0] = 1;
     sim.ai[1].site_mark = 16;
     let before = sim.rng.seed;
@@ -383,7 +383,7 @@ fn a_large_region_strides_by_the_two_draws_and_a_small_one_by_two() {
     // A small region draws nothing.
     let (mut small, _) = kit(8, 8, 2);
     small.frame = 1;
-    small.nation[1].human = false;
+    small.cities_state.nation[1].human = false;
     small.ai[1].census.reg_peasants[0] = 1;
     small.ai[1].site_mark = 16;
     let seed = small.rng.seed;
@@ -398,7 +398,7 @@ fn a_large_region_strides_by_the_two_draws_and_a_small_one_by_two() {
 fn a_human_leader_is_only_sampled_when_forced() {
     let (mut sim, _) = kit(20, 20, 2);
     sim.frame = 1;
-    sim.nation[1].human = true;
+    sim.cities_state.nation[1].human = true;
     sim.ai[1].census.reg_peasants[0] = 1;
     let seed = sim.rng.seed;
     sim.compute_sites(1, false);
@@ -412,7 +412,7 @@ fn a_human_leader_is_only_sampled_when_forced() {
 fn frame_zero_clears_every_site_first() {
     let (mut sim, _) = kit(8, 8, 2);
     sim.frame = 0;
-    sim.nation[1].human = false;
+    sim.cities_state.nation[1].human = false;
     sim.ai[1].sites[3] = Site {
         wx: 4,
         wy: 4,
@@ -432,7 +432,7 @@ fn frame_zero_clears_every_site_first() {
 fn a_kept_site_needs_rank_six_and_a_positive_score() {
     let (mut sim, _) = kit(8, 8, 2);
     sim.frame = 1;
-    sim.nation[1].human = true;
+    sim.cities_state.nation[1].human = true;
     sim.ai[1].sites[0] = Site {
         wx: 4,
         wy: 4,
@@ -600,8 +600,8 @@ fn a_fort_is_found_once_it_is_built_not_once_it_is_placed() {
 fn city_ai_fixture() -> (Sim, usize, TypeId) {
     let (mut sim, k) = kit(16, 16, 2);
     sim.frame = 1;
-    sim.nation[0].human = false;
-    sim.nation[1].human = false;
+    sim.cities_state.nation[0].human = false;
+    sim.cities_state.nation[1].human = false;
     sim.ai[1].census.free_peasants = 1;
     sim.ai[1].census.reg_free_peasants[0] = 1;
     sim.ai[1].census.home_reg = 0;
@@ -690,8 +690,8 @@ fn a_city_within_five_cells_drops_the_site() {
 fn the_human_cap_stops_the_ai_at_the_best_human_s_count() {
     let (mut sim, k) = kit(16, 16, 2);
     sim.frame = 1;
-    sim.nation[0].human = true;
-    sim.nation[1].human = false;
+    sim.cities_state.nation[0].human = true;
+    sim.cities_state.nation[1].human = false;
     sim.lobby.difficulty = 0;
     sim.ai[1].census.free_peasants = 1;
     sim.ai[1].census.reg_free_peasants[0] = 1;

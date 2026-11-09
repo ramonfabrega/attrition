@@ -335,27 +335,27 @@ impl Sim {
         radius_for_level(
             &self.tables.tuning,
             level,
-            self.nation[who as usize].indians,
+            self.cities_state.nation[who as usize].indians,
         )
     }
 
     /// `CityData::get_level`.
     pub fn city_level_of(&self, c: usize) -> i32 {
-        self.buildings[self.cities[c].building]
+        self.buildings[self.cities_state.cities[c].building]
             .ty
             .map_or(1, |t| build::city_level(&self.tables.build_types, t).max(1))
     }
 
     /// The city's radius, `CityData::get_radius`.
     pub fn radius_of(&self, c: usize) -> i32 {
-        let city = &self.cities[c];
+        let city = &self.cities_state.cities[c];
         self.city_radius(city.owner, self.buildings[city.building].ty)
     }
 
     /// `CityData::count_buildings(t, exact = 0, active_only)`: members,
     /// including the city building, whose type `is(t, 0)`.
     pub fn count_buildings(&self, c: usize, ident: Ident, active_only: bool) -> i32 {
-        let city = &self.cities[c];
+        let city = &self.cities_state.cities[c];
         count_typed(
             std::iter::once(city.building).chain(city.members.iter().copied()),
             |b| self.buildings[b].alive,
@@ -367,7 +367,7 @@ impl Sim {
     /// `CityData::num_buildings`: alive, active members — the city building
     /// counts itself.
     pub fn num_buildings(&self, c: usize) -> i32 {
-        let city = &self.cities[c];
+        let city = &self.cities_state.cities[c];
         live_members(
             std::iter::once(city.building).chain(city.members.iter().copied()),
             |b| self.buildings[b].alive && self.buildings[b].active,
@@ -382,7 +382,7 @@ impl Sim {
     /// why `Wall::do_construct`'s bound is `<= 1 + egyptians` — the site
     /// counts itself — and `blocked_location`'s is `> egyptians`.
     pub fn num_wonders(&self, c: usize, exclude_city: bool) -> i32 {
-        let city = &self.cities[c];
+        let city = &self.cities_state.cities[c];
         count_wonders(
             std::iter::once(city.building).chain(city.members.iter().copied()),
             |b| {
@@ -396,7 +396,7 @@ impl Sim {
 
     /// `CityData::get_farm_limit`.
     pub fn farm_limit(&self, c: usize) -> i32 {
-        let n = &self.nation[self.cities[c].owner as usize];
+        let n = &self.cities_state.nation[self.cities_state.cities[c].owner as usize];
         let base = if n.egyptians {
             self.tables.tuning.egyptian_farms_per_city_base
         } else {
@@ -422,7 +422,7 @@ impl Sim {
         let Some(c) = bd.city else {
             return false;
         };
-        let city = &self.cities[c];
+        let city = &self.cities_state.cities[c];
         city.alive
             && city.race != Some(bd.owner)
             && (self.building_is_city(b)
@@ -433,7 +433,7 @@ impl Sim {
 
     /// `CityData::is_unassimilated`.
     pub fn city_unassimilated(&self, c: usize) -> bool {
-        let city = &self.cities[c];
+        let city = &self.cities_state.cities[c];
         city.race != Some(city.owner)
     }
 
@@ -488,18 +488,23 @@ impl Sim {
         // record keeps its owner, so the first dead record of `who`'s is the
         // same position in `who`'s sequence (twenty-fourth pass, group 20;
         // A5 #11). Another leader's dead slot is not taken.
-        let c = match self.cities.iter().position(|c| !c.alive && c.owner == who) {
+        let c = match self
+            .cities_state
+            .cities
+            .iter()
+            .position(|c| !c.alive && c.owner == who)
+        {
             Some(i) => {
-                self.cities[i] = city;
+                self.cities_state.cities[i] = city;
                 i
             }
             None => {
-                self.cities.push(city);
-                self.cities.len() - 1
+                self.cities_state.cities.push(city);
+                self.cities_state.cities.len() - 1
             }
         };
-        self.cities[c].pop = 1;
-        self.sync_has_city(self.cities[c].owner);
+        self.cities_state.cities[c].pop = 1;
+        self.sync_has_city(self.cities_state.cities[c].owner);
         self.buildings[b].city = Some(c);
         // **The AI half of the record, as `City::init` leaves it** (item
         // 2106): `free`, `busy`, `gatherers`, `peasant_dist`, `in_port`,
@@ -558,7 +563,7 @@ impl Sim {
     /// worn down round it, and a second city on the same ground wears it
     /// down again. `City::close` gives nothing back.
     fn fix_world_vals(&mut self, c: usize) {
-        let centre = self.cities[c].pos.cell();
+        let centre = self.cities_state.cities[c].pos.cell();
         let r = self.radius_of(c);
         let circle = crate::ai_place::circle();
         wear_site_vals(
@@ -573,19 +578,19 @@ impl Sim {
 
     /// `City::close`: the record dies; members re-home.
     fn close_city(&mut self, c: usize, captor: Option<Player>) {
-        let owner = self.cities[c].owner;
-        let building = self.cities[c].building;
+        let owner = self.cities_state.cities[c].owner;
+        let building = self.cities_state.cities[c].building;
         self.armies_city_closed(c, building);
-        let was_capital = self.cities[c].capital;
+        let was_capital = self.cities_state.cities[c].capital;
         // `City::close@00737550`'s `reg_cities[reg] − 1`, the region of the
         // city building's cell as `City::init` counted it.
         let reg = self.world.region_of(self.buildings[building].pos.cell());
         self.bump_reg_cities(owner, reg, -1);
-        self.cities[c].alive = false;
+        self.cities_state.cities[c].alive = false;
         self.sync_has_city(owner);
-        self.lost_city_stamp[owner as usize] = Some(self.frame);
+        self.cities_state.lost_city_stamp[owner as usize] = Some(self.frame);
         self.remove_source_of_city(c);
-        let members = std::mem::take(&mut self.cities[c].members);
+        let members = std::mem::take(&mut self.cities_state.cities[c].members);
         for m in members {
             self.buildings[m].city = None;
             if self.buildings[m].alive && !self.building_is_city(m) {
@@ -616,12 +621,12 @@ impl Sim {
         self.defeated[who as usize] = true;
         self.armies_leader_defeated(who);
         if let Some(by) = by {
-            for c in 0..self.cities.len() {
-                if !self.cities[c].alive || self.cities[c].owner != who {
+            for c in 0..self.cities_state.cities.len() {
+                if !self.cities_state.cities[c].alive || self.cities_state.cities[c].owner != who {
                     continue;
                 }
-                let founder = self.cities[c].founder;
-                let race = self.cities[c].race;
+                let founder = self.cities_state.cities[c].founder;
+                let race = self.cities_state.cities[c].race;
                 let taker = if founder != who
                     && founder != by
                     && self.is_ally(by, founder)
@@ -722,8 +727,8 @@ impl Sim {
         if self.building_is_city(b) {
             return;
         }
-        if !self.cities[c].members.contains(&b) {
-            self.cities[c].members.push(b);
+        if !self.cities_state.cities[c].members.contains(&b) {
+            self.cities_state.cities[c].members.push(b);
         }
         if self.buildings[b].active && self.building_is(b, Ident::Temple) {
             self.sync_territory();
@@ -746,7 +751,7 @@ impl Sim {
     /// way, and taking it first is what keeps the borrow local here.
     pub fn remove_from_city(&mut self, b: usize) {
         if let Some(c) = self.buildings[b].city.take() {
-            self.cities[c].members.retain(|&m| m != b);
+            self.cities_state.cities[c].members.retain(|&m| m != b);
             if self.buildings[b].active && self.building_is(b, Ident::Temple) {
                 self.sync_territory();
             }
@@ -759,7 +764,10 @@ impl Sim {
     /// converted. Ends in `check_upgrade`. The steps are
     /// [`find_buildings_steps`], run over the live state.
     pub fn find_buildings(&mut self, c: usize) {
-        let (who, pos) = (self.cities[c].owner, self.cities[c].pos);
+        let (who, pos) = (
+            self.cities_state.cities[c].owner,
+            self.cities_state.cities[c].pos,
+        );
         let n = self.buildings.len();
         find_buildings_steps(&mut SimFind {
             sim: self,
@@ -810,7 +818,7 @@ impl Sim {
     }
 
     fn kinds_on_chain(&self, c: usize, cap: i32) -> (i32, bool) {
-        let city = &self.cities[c];
+        let city = &self.cities_state.cities[c];
         distinct_kinds(
             std::iter::once(city.building).chain(city.members.iter().copied()),
             |b| self.buildings[b].alive && self.buildings[b].active,
@@ -822,7 +830,7 @@ impl Sim {
     /// `CityData::ready_to_upgrade`: not at the top, the next level
     /// available to the owner, and enough kinds.
     pub fn ready_to_upgrade(&self, c: usize) -> Option<usize> {
-        let city = &self.cities[c];
+        let city = &self.cities_state.cities[c];
         let t = self.buildings[city.building].ty?;
         let next = build::upgrades_to(&self.tables.build_types, t)?;
         if let Some(id) = self.tables.build_types[next].tree
@@ -884,6 +892,7 @@ impl Sim {
         // Drop every source a city or fort owns, keep the ones tests put in
         // by hand, then add the live ones back.
         let mut owned: Vec<usize> = self
+            .cities_state
             .cities
             .iter()
             .filter_map(|c| c.source)
@@ -894,17 +903,17 @@ impl Sim {
         for i in owned.into_iter().rev() {
             self.territory.sources.remove(i);
         }
-        for c in &mut self.cities {
+        for c in &mut self.cities_state.cities {
             c.source = None;
         }
         for b in &mut self.buildings {
             b.fort_source = None;
         }
-        for c in 0..self.cities.len() {
-            if !self.cities[c].alive {
+        for c in 0..self.cities_state.cities.len() {
+            if !self.cities_state.cities[c].alive {
                 continue;
             }
-            let city = &self.cities[c];
+            let city = &self.cities_state.cities[c];
             let owner = city.owner;
             let level = (self.city_level_of(c) - 1).clamp(0, 2) as usize;
             let src = territory::city_source(
@@ -926,7 +935,7 @@ impl Sim {
                 },
             );
             self.territory.sources.push(src);
-            self.cities[c].source = Some(self.territory.sources.len() - 1);
+            self.cities_state.cities[c].source = Some(self.territory.sources.len() - 1);
         }
         for b in 0..self.buildings.len() {
             let bd = &self.buildings[b];
@@ -1055,8 +1064,8 @@ impl Sim {
         for m in &mut self.roster.muster {
             m.bonuses.cities.clear();
         }
-        for c in 0..self.cities.len() {
-            if !self.cities[c].alive {
+        for c in 0..self.cities_state.cities.len() {
+            if !self.cities_state.cities[c].alive {
                 continue;
             }
             let level = match self.city_level_of(c) {
@@ -1064,7 +1073,7 @@ impl Sim {
                 3 => cost::CityLevel::Metropolis,
                 _ => cost::CityLevel::Village,
             };
-            let owner = self.cities[c].owner as usize;
+            let owner = self.cities_state.cities[c].owner as usize;
             self.roster.muster[owner].bonuses.cities.push(level);
         }
         self.sync_leader_pop();
@@ -1097,18 +1106,20 @@ impl Sim {
             a.census.reg_pop.clear();
             a.census.reg_pop.resize(regions, 0);
         }
-        for c in 0..self.cities.len() {
-            if !self.cities[c].alive {
+        for c in 0..self.cities_state.cities.len() {
+            if !self.cities_state.cities[c].alive {
                 continue;
             }
-            let owner = self.cities[c].owner as usize;
+            let owner = self.cities_state.cities[c].owner as usize;
             let value = 2 * self.city_level_of(c) - 1;
             // The city building's cell, not `CityData::reg` — the same
             // source step 8's `reg_cities` recount reads, and the one that
             // is already there when a city is stood up from a dump.
-            let reg = self
-                .world
-                .region_of(self.buildings[self.cities[c].building].pos.cell());
+            let reg = self.world.region_of(
+                self.buildings[self.cities_state.cities[c].building]
+                    .pos
+                    .cell(),
+            );
             let Some(a) = self.ai.get_mut(owner) else {
                 continue;
             };
@@ -1195,7 +1206,7 @@ impl Sim {
             },
             &cost::Modifiers {
                 wonder,
-                egyptian_wonders: if wonder && self.nation[who as usize].egyptians {
+                egyptian_wonders: if wonder && self.cities_state.nation[who as usize].egyptians {
                     self.tables.tuning.egyptian_wonders
                 } else {
                     0
@@ -1251,7 +1262,8 @@ impl Sim {
         ) {
             return false;
         }
-        self.building_high
+        self.cities_state
+            .building_high
             .get(w)
             .and_then(|h| h.get(ty))
             .copied()
@@ -1295,7 +1307,7 @@ impl Sim {
     /// not pay one (item 3338, `docs/AI.md` §273).
     fn maya_timber_discount(&self, who: Player, ty: usize) -> i32 {
         let types = &self.tables.build_types;
-        if types[ty].wonder || !self.nation[who as usize].maya {
+        if types[ty].wonder || !self.cities_state.nation[who as usize].maya {
             return 0;
         }
         let full = match types[ty].tree {
@@ -1377,7 +1389,7 @@ impl Sim {
     /// (`has_wonder(0x20e)`, [`Sim::wonders_held`]). `docs/COSTS.md`,
     /// "The Pyramids take a third off a city".
     fn city_discounts(&self, who: Player) -> [i32; 2] {
-        let bantu = if self.nation[who as usize].bantu {
+        let bantu = if self.cities_state.nation[who as usize].bantu {
             self.tables.tuning.bantu_city_cost
         } else {
             0
@@ -1397,7 +1409,9 @@ impl Sim {
     /// and metal 175 ours against 96 and 192 theirs, the third off its
     /// towers that ours charged whole (item 3365, `docs/AI.md` §283).
     fn korean_tower_discount(&self, who: Player, ty: usize) -> i32 {
-        if build::is_tower(&self.tables.build_types, ty) && self.nation[who as usize].koreans {
+        if build::is_tower(&self.tables.build_types, ty)
+            && self.cities_state.nation[who as usize].koreans
+        {
             self.tables.tuning.korean_tower_cost
         } else {
             0
@@ -1418,7 +1432,7 @@ impl Sim {
         } else {
             0
         };
-        let roman = if self.nation[who as usize].romans {
+        let roman = if self.cities_state.nation[who as usize].romans {
             self.tables.tuning.roman_fort_cost
         } else {
             0
@@ -1688,7 +1702,12 @@ impl Sim {
     /// so a tally it moved would never be recounted; a human's stays at
     /// nought, which is the original's value whenever it holds no tower.
     fn defense_add(&mut self, who: Player, n: i32) {
-        if self.nation.get(who as usize).is_some_and(|n| n.human) {
+        if self
+            .cities_state
+            .nation
+            .get(who as usize)
+            .is_some_and(|n| n.human)
+        {
             return;
         }
         if let Some(l) = self.ai.get_mut(who as usize) {
@@ -1845,9 +1864,9 @@ impl Sim {
         };
         let bd = &self.buildings[b];
         let owner = bd.owner as usize;
-        let n = &self.nation[owner];
+        let n = &self.cities_state.nation[owner];
         let (city_level, has_temple) = match bd.city {
-            Some(c) if self.cities[c].alive => {
+            Some(c) if self.cities_state.cities[c].alive => {
                 (self.city_level_of(c), self.city_has(c, Ident::Temple))
             }
             _ => (0, false),
@@ -1910,7 +1929,7 @@ impl Sim {
     /// unfinished building of the player has its clock re-baked
     /// (`update_construct_time`) and every building its hit points refreshed.
     pub(crate) fn calc_wall_stats(&mut self, who: Player) {
-        self.wall_stats_dirty[who as usize] = false;
+        self.cities_state.wall_stats_dirty[who as usize] = false;
         for b in 0..self.buildings.len() {
             if !self.buildings[b].alive || self.buildings[b].owner != who {
                 continue;
@@ -1930,7 +1949,7 @@ impl Sim {
     /// The nation, wonder and tech layer of `update_construct_time`, read off
     /// the player's inputs and their city count now.
     fn build_mods(&self, who: Player) -> build::BuildMods {
-        let n = &self.nation[who as usize];
+        let n = &self.cities_state.nation[who as usize];
         build::BuildMods {
             maya: n.maya,
             created_faster: n.created_faster,
@@ -2145,7 +2164,7 @@ impl Sim {
         }
         if build::is_city(&self.tables.build_types, ty) {
             let r = match self.buildings[b].city {
-                Some(c) if self.cities[c].alive => self.radius_of(c),
+                Some(c) if self.cities_state.cities[c].alive => self.radius_of(c),
                 _ => self.city_radius(self.buildings[b].owner, Some(ty)),
             };
             let pos = self.buildings[b].pos;
@@ -2159,8 +2178,10 @@ impl Sim {
             if !on {
                 // `Build::close`: every other alive started city re-lays its
                 // mask, so an overlap survives.
-                for o in 0..self.cities.len() {
-                    if self.cities[o].alive && o != self.buildings[b].city.unwrap_or(usize::MAX) {
+                for o in 0..self.cities_state.cities.len() {
+                    if self.cities_state.cities[o].alive
+                        && o != self.buildings[b].city.unwrap_or(usize::MAX)
+                    {
                         self.mask_city(o, true);
                     }
                 }
@@ -2207,7 +2228,7 @@ impl Sim {
     /// `Wall::mask_city` for a city record.
     fn mask_city(&mut self, c: usize, on: bool) {
         let r = self.radius_of(c);
-        let pos = self.cities[c].pos;
+        let pos = self.cities_state.cities[c].pos;
         for t in self.city_mask_tiles(pos, r) {
             if on {
                 self.world.set_tile_bits(t, tile::CITY_RADIUS);
@@ -2251,12 +2272,14 @@ impl Sim {
             return false;
         }
         let own = self
+            .cities_state
             .cities
             .iter()
             .filter(|c| c.alive && c.owner == who && c.capital)
             .count();
         own == 1
             && !self
+                .cities_state
                 .cities
                 .iter()
                 .any(|c| c.alive && c.owner != who && c.was_capital & (1u64 << (who as u32)) != 0)
@@ -2395,8 +2418,10 @@ impl Sim {
         // The `Farms` list is joined at *placement* (`Sim::farms_add`), not
         // here — `Farms::add` runs from `Build::init`. This catches a farm
         // the harness stood up from a dump without going through it.
-        if self.tables.build_types[ty].ident == Ident::Farm && !self.farm_order.contains(&b) {
-            self.farm_order.push(b);
+        if self.tables.build_types[ty].ident == Ident::Farm
+            && !self.cities_state.farm_order.contains(&b)
+        {
+            self.cities_state.farm_order.push(b);
         }
         {
             let bd = &mut self.buildings[b];
@@ -2415,7 +2440,7 @@ impl Sim {
         // `leader_flags |= 0x2000000 | 0x8000000`: the wall stats go stale —
         // which is how a nomad's other sites lose the ×3 once the first city
         // stands.
-        self.wall_stats_dirty[who as usize] = true;
+        self.cities_state.wall_stats_dirty[who as usize] = true;
         // `Build::activate@00623e20:1970`: a **wonder** (`TypeIndex`
         // `0x20e..0x21e`, else the type's own test) raises `0x4000000` too,
         // so every unit's line of sight is refreshed at the next
@@ -2442,14 +2467,14 @@ impl Sim {
             let second = !capital && self.persian_second_capital(who);
             let c = self.init_city(who, b, captured, capital);
             if second {
-                self.cities[c].capital = true;
+                self.cities_state.cities[c].capital = true;
             }
             if !captured {
-                self.cities[c].race = Some(who);
-                self.cities[c].founder = who;
+                self.cities_state.cities[c].race = Some(who);
+                self.cities_state.cities[c].founder = who;
             }
             if counted {
-                self.city_tally[who as usize].built += 1;
+                self.cities_state.city_tally[who as usize].built += 1;
             }
             self.mask_city(c, true);
             self.find_buildings(c);
@@ -2498,7 +2523,7 @@ impl Sim {
         // and Great Lakes 10230 reaches it when a farm finally falls
         // (`docs/ROADS.md` §1.2, item 478).
         if let Some(c) = self.buildings[b].city
-            && self.cities[c].alive
+            && self.cities_state.cities[c].alive
         {
             self.city_regen_roads(c);
         }
@@ -2517,7 +2542,7 @@ impl Sim {
         // sweep can attach buildings inside the enlarged radius (AI §176).
         if !self.building_is_city(b)
             && let Some(c) = self.buildings[b].city
-            && self.cities[c].alive
+            && self.cities_state.cities[c].alive
         {
             self.check_upgrade(c);
         }
@@ -2559,7 +2584,7 @@ impl Sim {
                 // `Constants` slot, through the same German multiplier the
                 // gather bonuses take.
                 let mut amount = 30;
-                if self.nation[who].germans {
+                if self.cities_state.nation[who].germans {
                     amount = (self.tables.tuning.german_completion_bonus + 100) * amount / 100;
                 }
                 self.ledgers[who].bucket[i] += amount;
@@ -2602,7 +2627,7 @@ impl Sim {
             ledger.gather_slots_high[i] = ledger.gather_slots[i];
             if self.frame != 0 && !captured && counted {
                 let mut amount = crate::economy::completion_bonus(&self.tables.tuning, r, fresh);
-                if self.nation[who].germans {
+                if self.cities_state.nation[who].germans {
                     amount = (self.tables.tuning.german_completion_bonus + 100) * amount / 100;
                 }
                 self.ledgers[who].bucket[i] += amount;
@@ -2794,7 +2819,7 @@ impl Sim {
         self.buildings[b].hold_frames = Self::CLOSE_HOLD;
         self.buildings[b].damage = self.buildings[b].hits_now();
         self.buildings[b].sync_health();
-        self.wall_stats_dirty[who as usize] = true;
+        self.cities_state.wall_stats_dirty[who as usize] = true;
         // `Build::close@00628980:319`: a wonder's close raises `0x4000000`
         // beside `Wonders::close_wonder` (`docs/VISION.md` §2).
         if self.buildings[b]
@@ -2811,8 +2836,8 @@ impl Sim {
         self.forget(Obj::Building(b));
         if self.building_is_city(b) {
             if let Some(c) = self.buildings[b].city
-                && self.cities[c].alive
-                && self.cities[c].building == b
+                && self.cities_state.cities[c].alive
+                && self.cities_state.cities[c].building == b
             {
                 self.close_city(c, None);
             }
@@ -2900,7 +2925,7 @@ impl Sim {
         // reset below, so it reads the builders the site had last frame.
         if phase & 31 == 0
             && !self.buildings[b].active
-            && !self.nation[self.buildings[b].owner as usize].human
+            && !self.cities_state.nation[self.buildings[b].owner as usize].human
         {
             if self.oil_platform_abandoned(b, frame) {
                 return false;
@@ -2911,7 +2936,7 @@ impl Sim {
         // A building in enemy territory bleeds.
         let who = self.buildings[b].owner;
         if phase % build::ENEMY_TERRITORY_PERIOD == 0
-            && !self.nation[who as usize].disable_building_attrition
+            && !self.cities_state.nation[who as usize].disable_building_attrition
             && self.bleeds_in_enemy_land(b)
         {
             if !self.buildings[b].started {
@@ -2971,7 +2996,7 @@ impl Sim {
             && self.building_is_city(b)
             && let Some(c) = self.buildings[b].city
         {
-            let cd = &mut self.cities[c];
+            let cd = &mut self.cities_state.cities[c];
             if cd.attacking {
                 cd.attacking = false;
             } else {
@@ -3005,14 +3030,14 @@ impl Sim {
         }
         if self.building_is_city(b)
             && let Some(c) = self.buildings[b].city
-            && self.cities[c].alive
+            && self.cities_state.cities[c].alive
         {
             self.assimilation_tick(c, frame);
             // The city heal.
             let bd = &self.buildings[b];
             if bd.damage != 0
-                && self.cities[c].race == Some(bd.owner)
-                && !self.cities[c].no_heal
+                && self.cities_state.cities[c].race == Some(bd.owner)
+                && !self.cities_state.cities[c].no_heal
                 && self.tables.tuning.city_heal_rate > 0
                 && phase % i64::from(self.tables.tuning.city_heal_rate) == 0
             {
@@ -3081,15 +3106,15 @@ impl Sim {
     /// `Cities::capture_city(A, c, O)`: the hand-over. Returns the new city's
     /// index. `docs/CITIES.md` §7.3.
     pub fn capture_city(&mut self, a: Player, c: usize, o: Player) -> Option<usize> {
-        if !self.cities[c].alive {
+        if !self.cities_state.cities[c].alive {
             return None;
         }
-        let was_capital = self.cities[c].capital;
+        let was_capital = self.cities_state.cities[c].capital;
         // The head — entry to `City::find_buildings` — is
         // `capture_view::capture_city_steps`, swept against the original
         // (item 3362); the failed-swap arm below is not.
         let (head, to_close) = {
-            let members = self.cities[c].members.clone();
+            let members = self.cities_state.cities[c].members.clone();
             let mut view = SimCapture {
                 sim: self,
                 members,
@@ -3104,7 +3129,7 @@ impl Sim {
         let mut to_close: Vec<usize> = to_close;
         if newcity.is_none() {
             base = 0;
-            for m in self.cities[c].members.clone() {
+            for m in self.cities_state.cities[c].members.clone() {
                 if self.buildings[m]
                     .ty
                     .is_some_and(|t| !self.tables.build_types[t].has(flags::NO_CITY))
@@ -3124,21 +3149,25 @@ impl Sim {
                 }
             }
         }
-        if was_capital && self.city_tally[o as usize].lost_capital_frame.is_none() {
-            self.city_tally[o as usize].lost_capital_frame = Some(self.frame);
+        if was_capital
+            && self.cities_state.city_tally[o as usize]
+                .lost_capital_frame
+                .is_none()
+        {
+            self.cities_state.city_tally[o as usize].lost_capital_frame = Some(self.frame);
         }
         if let Some(nc) = newcity
-            && self.cities[nc].capital
+            && self.cities_state.cities[nc].capital
         {
-            self.city_tally[a as usize].lost_capital_frame = None;
+            self.cities_state.city_tally[a as usize].lost_capital_frame = None;
         }
         // The old record.
-        if self.cities[c].alive {
-            self.cities[c].members.clear();
+        if self.cities_state.cities[c].alive {
+            self.cities_state.cities[c].members.clear();
             self.close_city(c, Some(a));
         }
         if let Some(nc) = newcity {
-            let nb = self.cities[nc].building;
+            let nb = self.cities_state.cities[nc].building;
             self.update_hits(nb);
             let bd = &mut self.buildings[nb];
             bd.damage = bd.hits_now() - 10;
@@ -3153,11 +3182,11 @@ impl Sim {
 
     /// `City::capture(new, old, c, A, o)`: the record hand-over.
     pub(crate) fn city_capture_record(&mut self, newcity: usize, old: usize, a: Player, n: usize) {
-        let o = self.cities[old].owner;
-        let oldc = self.cities[old].clone();
+        let o = self.cities_state.cities[old].owner;
+        let oldc = self.cities_state.cities[old].clone();
         let friendly = o == a || self.is_ally(a, o);
-        let assimilate_now = friendly || self.nation[a as usize].global_government;
-        let nc = &mut self.cities[newcity];
+        let assimilate_now = friendly || self.cities_state.nation[a as usize].global_government;
+        let nc = &mut self.cities_state.cities[newcity];
         nc.owner = a;
         nc.building = n;
         nc.attack_stamp = self.frame;
@@ -3248,19 +3277,19 @@ impl Sim {
 
     /// The assimilation tick of `Build::process` for an unassimilated city.
     fn assimilation_tick(&mut self, c: usize, frame: i64) {
-        let owner = self.cities[c].owner;
-        if self.cities[c].race == Some(owner) {
+        let owner = self.cities_state.cities[c].owner;
+        if self.cities_state.cities[c].race == Some(owner) {
             return;
         }
-        if self.cities[c].has_citizen {
-            self.cities[c].assimilation_timer +=
+        if self.cities_state.cities[c].has_citizen {
+            self.cities_state.cities[c].assimilation_timer +=
                 1 - i64::from(self.tables.tuning.thecitizen_assimilation_speed);
         }
-        let mut e = frame - self.cities[c].assimilation_timer;
-        if self.nation[owner as usize].turks {
+        let mut e = frame - self.cities_state.cities[c].assimilation_timer;
+        if self.cities_state.nation[owner as usize].turks {
             e = i64::from(self.tables.tuning.turk_assimilate + 100) * e / 100;
         }
-        if self.cities[c].founder == owner {
+        if self.cities_state.cities[c].founder == owner {
             e = i64::from(self.tables.tuning.reassimilation + 100) * e / 100;
         }
         if e >= i64::from(self.tables.tuning.assimilation_timer) {
@@ -3271,8 +3300,8 @@ impl Sim {
     /// `City::assimilate@00738e90`, run by [`assimilate_steps`] over the
     /// live state.
     pub fn assimilate(&mut self, c: usize) {
-        let mut chain = vec![self.cities[c].building];
-        chain.extend(self.cities[c].members.iter().copied());
+        let mut chain = vec![self.cities_state.cities[c].building];
+        chain.extend(self.cities_state.cities[c].members.iter().copied());
         assimilate_steps(&mut SimAssimilate {
             sim: self,
             c,
@@ -3285,15 +3314,16 @@ impl Sim {
         if base == 0 && !was_capital {
             return;
         }
-        let old = &self.cities[c];
+        let old = &self.cities_state.cities[c];
         if old.unassimilated || (old.capture_stamp != 0 && self.frame - old.capture_stamp < 0x1195)
         {
             return;
         }
-        let hero = self.nation[a as usize].plunder_hero;
-        let russian =
-            self.nation[o as usize].russians && self.tables.tuning.russian_plunder_steal != 0;
-        let first_capital = was_capital && !self.city_tally[o as usize].capital_plundered;
+        let hero = self.cities_state.nation[a as usize].plunder_hero;
+        let russian = self.cities_state.nation[o as usize].russians
+            && self.tables.tuning.russian_plunder_steal != 0;
+        let first_capital =
+            was_capital && !self.cities_state.city_tally[o as usize].capital_plundered;
         let usable: Vec<usize> = (0..5)
             .filter(|g| {
                 self.holdings[a as usize].available[*g] && self.holdings[o as usize].available[*g]
@@ -3327,7 +3357,7 @@ impl Sim {
                 self.ledgers[o as usize].bucket[g] += steal;
             }
         } else {
-            self.city_tally[o as usize].capital_plundered = true;
+            self.cities_state.city_tally[o as usize].capital_plundered = true;
             let base = base.max(self.tables.tuning.capital_plunder);
             let (take, steal) = if !russian {
                 (
@@ -3354,7 +3384,7 @@ impl Sim {
             return;
         };
         let owner = self.buildings[b].owner;
-        let no = &self.nation[owner as usize];
+        let no = &self.cities_state.nation[owner as usize];
         if killer == owner && no.lakota && self.tables.tuning.lakota_raze_price != 0 {
             return;
         }
@@ -3384,9 +3414,9 @@ impl Sim {
             let jc2 = bd.job_counter_2.min(ct);
             v = ((i64::from(v) * i64::from(jc2)) / i64::from(ct)) as i32;
         } else if killer == owner {
-            let foreign = bd
-                .city
-                .is_some_and(|c| self.cities[c].alive && self.cities[c].race != Some(owner));
+            let foreign = bd.city.is_some_and(|c| {
+                self.cities_state.cities[c].alive && self.cities_state.cities[c].race != Some(owner)
+            });
             if foreign {
                 v = self.tables.tuning.plunder * v / 100;
             }
@@ -3398,7 +3428,7 @@ impl Sim {
         }
         if self.tables.tuning.aztec_plunder != 0
             && killer != owner
-            && self.nation[killer as usize].aztecs
+            && self.cities_state.nation[killer as usize].aztecs
         {
             v = (self.tables.tuning.aztec_plunder + 100) * v / 100;
         }
@@ -3877,7 +3907,7 @@ impl CheckUpgradeView for SimUpgrade<'_> {
         self.next.expect("ready_to_upgrade answered a type")
     }
     fn set_type(&mut self, next: usize) {
-        let b = self.sim.cities[self.c].building;
+        let b = self.sim.cities_state.cities[self.c].building;
         self.sim.set_type(b, next);
     }
     fn mask_city(&mut self) {
@@ -3886,8 +3916,8 @@ impl CheckUpgradeView for SimUpgrade<'_> {
     fn flag_wall_stats(&mut self) {
         // The Senate bonus and the new hits arrive through `calc_wall_stats`
         // on the next frame.
-        let owner = self.sim.cities[self.c].owner as usize;
-        self.sim.wall_stats_dirty[owner] = true;
+        let owner = self.sim.cities_state.cities[self.c].owner as usize;
+        self.sim.cities_state.wall_stats_dirty[owner] = true;
     }
     fn find_buildings(&mut self) {
         self.sim.find_buildings(self.c);
@@ -4054,19 +4084,19 @@ struct SimAssimilate<'a> {
 
 impl SimAssimilate<'_> {
     fn owner(&self) -> Player {
-        self.sim.cities[self.c].owner
+        self.sim.cities_state.cities[self.c].owner
     }
 }
 
 impl AssimilateView for SimAssimilate<'_> {
     fn clear_unassimilated(&mut self) {
-        self.sim.cities[self.c].unassimilated = false;
+        self.sim.cities_state.cities[self.c].unassimilated = false;
     }
     fn race_pending(&mut self) -> bool {
-        self.sim.cities[self.c].race != Some(self.owner())
+        self.sim.cities_state.cities[self.c].race != Some(self.owner())
     }
     fn adopt_race(&mut self) {
-        self.sim.cities[self.c].race = Some(self.owner());
+        self.sim.cities_state.cities[self.c].race = Some(self.owner());
     }
     /// SEAM: the region's border count is not carried; the territory pass
     /// below rebuilds it whole every time.
@@ -4077,11 +4107,11 @@ impl AssimilateView for SimAssimilate<'_> {
         self.sim.sync_territory();
     }
     fn chinese_large_cities(&mut self) -> bool {
-        self.sim.nation[self.owner() as usize].chinese
+        self.sim.cities_state.nation[self.owner() as usize].chinese
             && self.sim.tables.tuning.chinese_large_cities != 0
     }
     fn town_up(&mut self) {
-        let b = self.sim.cities[self.c].building;
+        let b = self.sim.cities_state.cities[self.c].building;
         if let Some(town) = self
             .sim
             .tables

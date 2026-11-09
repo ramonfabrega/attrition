@@ -8,8 +8,8 @@ fn ai_scout() -> (Sim, usize) {
     let mut world = World::new(10, 10);
     world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(9, 9));
     let mut s = Sim::new(Tuning::RON, world, 2);
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities_state.nation[0].human = true;
+    s.cities_state.nation[1].human = false;
     let t = s.add_unit_type(crate::UnitType::default());
     s.tables.unit_types[t].cols.unit_flags2 = uflags2::FLAG2_SCOUT | uflags2::CASTER;
     let mut u = crate::Unit::new(1, 0, crate::Pos::new(5 * 768 + 384, 5 * 768 + 384), 20);
@@ -303,7 +303,7 @@ fn a_human_s_scout_and_a_decoy_throw_nothing() {
     assert!(!sim.think_spellcaster(scout));
     assert_eq!(sim.rng, before, "a decoy");
     sim.units[scout].decoy = false;
-    sim.nation[1].human = true;
+    sim.cities_state.nation[1].human = true;
     assert!(!sim.think_spellcaster(scout));
     assert_eq!(sim.rng, before, "a human's");
 }

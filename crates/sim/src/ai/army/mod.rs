@@ -384,6 +384,7 @@ impl BesiegedSim<'_> {
     }
     fn nth_city(&self, j: i32, k: i32) -> Option<usize> {
         self.sim
+            .cities_state
             .cities
             .iter()
             .enumerate()
@@ -420,6 +421,7 @@ impl BesiegedView for BesiegedSim<'_> {
     }
     fn city_bound(&self) -> i32 {
         self.sim
+            .cities_state
             .cities
             .iter()
             .filter(|c| c.owner == self.who)
@@ -427,13 +429,13 @@ impl BesiegedView for BesiegedSim<'_> {
     }
     fn city_flags(&mut self, j: i32, k: i32) -> i32 {
         self.nth_city(j, k).map_or(0, |c| {
-            let cd = &self.sim.cities[c];
+            let cd = &self.sim.cities_state.cities[c];
             i32::from(cd.alive) | i32::from(cd.no_heal) << 1
         })
     }
     fn city_reg(&self, j: i32, k: i32) -> i32 {
         self.nth_city(j, k)
-            .and_then(|c| self.sim.cities[c].reg)
+            .and_then(|c| self.sim.cities_state.cities[c].reg)
             .map_or(-1, i32::from)
     }
     fn is_coast(&mut self, reg: i32, city_reg: i32) -> bool {
@@ -453,7 +455,7 @@ impl BesiegedView for BesiegedSim<'_> {
         let Some(c) = self.nth_city(j, k) else {
             return false;
         };
-        let at = self.sim.cities[c].pos;
+        let at = self.sim.cities_state.cities[c].pos;
         self.sim.units.iter().any(|u| {
             u.alive()
                 && u.on_map
@@ -474,14 +476,14 @@ impl BesiegedView for BesiegedSim<'_> {
         self.sim.armies[j as usize].list[s as usize].num_standard
     }
     fn city_pos(&self, j: i32, k: i32) -> Pos {
-        self.sim.cities[self.nth_city(j, k).expect("a found city")].pos
+        self.sim.cities_state.cities[self.nth_city(j, k).expect("a found city")].pos
     }
     fn world_cells(&self) -> (i32, i32) {
         (self.sim.world.width(), self.sim.world.height())
     }
     fn find_muster_spot(&mut self, j: i32, k: i32) {
         let c = self.nth_city(j, k).expect("a found city");
-        let target = Obj::Building(self.sim.cities[c].building);
+        let target = Obj::Building(self.sim.cities_state.cities[c].building);
         self.sim
             .find_muster_spot(self.who, self.slot, target, false);
     }
@@ -504,7 +506,7 @@ impl BesiegedView for BesiegedSim<'_> {
     }
     fn set_target(&mut self, j: i32, k: i32) {
         let c = self.nth_city(j, k).expect("a found city");
-        let b = self.sim.cities[c].building;
+        let b = self.sim.cities_state.cities[c].building;
         self.sim.armies[self.who as usize].list[self.slot].target = Some(Obj::Building(b));
     }
 }
@@ -558,7 +560,7 @@ impl Sim {
         a.status = status::MUSTERING;
         a.city = city;
         if let Some(c) = city {
-            let cd = &self.cities[c];
+            let cd = &self.cities_state.cities[c];
             a.reg = cd.reg;
             a.pos = Pos::new(cd.pos.x, cd.pos.y + UNITS_PER_CELL);
             a.muster = a.pos.cell();
@@ -1068,10 +1070,10 @@ impl Sim {
         let reg = self.world.tregion(pos.tile());
         let mut best: Option<(i32, usize)> = None;
         for c in self.cities_of(who) {
-            if self.cities[c].reg != reg {
+            if self.cities_state.cities[c].reg != reg {
                 continue;
             }
-            let d = dist(pos, self.cities[c].pos);
+            let d = dist(pos, self.cities_state.cities[c].pos);
             if best.is_none_or(|(bd, _)| d < bd) {
                 best = Some((d, c));
             }
@@ -1116,7 +1118,7 @@ impl Sim {
     pub(crate) fn think_join_army(&mut self, u: usize) {
         let unit = &self.units[u];
         let w = unit.owner as usize;
-        if self.nation.get(w).is_none_or(|n| n.human) || self.defeated[w] {
+        if self.cities_state.nation.get(w).is_none_or(|n| n.human) || self.defeated[w] {
             return;
         }
         let Some(t) = unit.ty else { return };
@@ -1167,7 +1169,7 @@ impl Sim {
         let mut best = 99_999_999;
         let mut idx = None;
         for c in self.cities_of(who) {
-            let city = &self.cities[c];
+            let city = &self.cities_state.cities[c];
             if city.reg != reg {
                 continue;
             }
@@ -1190,7 +1192,7 @@ impl Sim {
     /// 0x240, 0)` (listing `5f7a27`–`5f7a35`; `go_to_unit` pushes `0,
     /// 0x300` in the same two slots).
     fn go_to_city(&mut self, u: usize, c: usize) {
-        let to = self.buildings[self.cities[c].building].pos;
+        let to = self.buildings[self.cities_state.cities[c].building].pos;
         let at = self.units[u].pos;
         if vector_dist(to.x - at.x, to.y - at.y) > 0x480 {
             self.go_to(u, to, MoveKind::AttackTo, 0x240, 0);
@@ -1386,7 +1388,7 @@ impl Sim {
     /// armies, the hurry bit consumed into the bypass.
     pub fn armies_process_all(&mut self) {
         for w in 0..self.territory.players.len() {
-            if self.nation[w].human {
+            if self.cities_state.nation[w].human {
                 continue;
             }
             let who = w as Player;
@@ -1482,9 +1484,9 @@ impl Sim {
         let level = self.transport_level(who) as i32 >= 2;
         let new_status = if !released {
             if let Some(c) = city
-                && self.cities[c].alive
+                && self.cities_state.cities[c].alive
             {
-                let b = self.cities[c].building;
+                let b = self.cities_state.cities[c].building;
                 if self.find_muster_spot(who, slot, Obj::Building(b), true) {
                     self.armies[w].list[slot].status |= status::FORMING;
                     return;
@@ -1518,7 +1520,7 @@ impl Sim {
         let w = who as usize;
         let a = &self.armies[w].list[slot];
         let Some(c) = a.city else { return true };
-        if self.cities[c].owner != who || !self.cities[c].alive {
+        if self.cities_state.cities[c].owner != who || !self.cities_state.cities[c].alive {
             return true;
         }
         // **The pre-war gate** (`006f87c0`, after the city test: `rush_rules
@@ -1539,7 +1541,7 @@ impl Sim {
                 continue;
             }
             for c in self.cities_of(ip) {
-                if self.cities[c].no_heal && (i == w || n > 4) {
+                if self.cities_state.cities[c].no_heal && (i == w || n > 4) {
                     return true;
                 }
             }
@@ -1754,8 +1756,8 @@ impl Sim {
         {
             if let Obj::Building(b) = t
                 && let Some(c) = self.buildings[b].city
-                && self.cities[c].alive
-                && self.cities[c].no_heal
+                && self.cities_state.cities[c].alive
+                && self.cities_state.cities[c].no_heal
             {
                 return;
             }
@@ -1778,10 +1780,10 @@ impl Sim {
         }
         if let Some(c) = city {
             self.armies[w].list[slot].status &= !(status::DEFENDING | status::MARCHING);
-            let cpos = self.cities[c].pos;
+            let cpos = self.cities_state.cities[c].pos;
             let p = self.restrict(Pos::new(cpos.x, cpos.y + UNITS_PER_CELL));
             self.armies[w].list[slot].pos = p;
-            let b = self.cities[c].building;
+            let b = self.cities_state.cities[c].building;
             if self.find_muster_spot(who, slot, Obj::Building(b), true) {
                 self.armies[w].list[slot].status |= status::FORMING;
             } else {
@@ -2127,7 +2129,7 @@ impl Sim {
         let w = who as usize;
         // `leader_flags & 5 == 1`: active and not human. `leader_flags2 &
         // 0xa`, the stop bits, are never set here (the module doc).
-        if self.nation[w].human || self.defeated[w] {
+        if self.cities_state.nation[w].human || self.defeated[w] {
             return;
         }
         let (Some(a), Some(b)) = (reg_a, reg_b) else {
@@ -2191,7 +2193,7 @@ impl Sim {
         if !self.push_group(&mut g, true) {
             return;
         }
-        let target = Obj::Building(self.cities[c].building);
+        let target = Obj::Building(self.cities_state.cities[c].building);
         let tpos = self.pos_of(target);
         let farm = if self.ai[tw as usize].census.combat == 0 {
             self.find_probe_farm(tpos, tw)
@@ -2528,7 +2530,7 @@ impl Sim {
     /// new owner's own armies are hurried.
     pub fn armies_update_city(&mut self, old: Obj, new: Obj, new_who: Player) {
         for w in 0..self.territory.players.len() {
-            if self.nation[w].human {
+            if self.cities_state.nation[w].human {
                 continue;
             }
             for s in 0..SLOTS {
@@ -2547,7 +2549,7 @@ impl Sim {
     /// once. From `do_damage` on an AI leader's object.
     pub fn armies_emergency(&mut self, who: Player) {
         let w = who as usize;
-        if self.nation[w].human || self.defeated[w] {
+        if self.cities_state.nation[w].human || self.defeated[w] {
             return;
         }
         for s in 0..SLOTS {
@@ -2562,7 +2564,7 @@ impl Sim {
     /// `Armies::diplo_change(who)`: every army ticks at once.
     pub fn armies_diplo_change(&mut self, who: Player) {
         let w = who as usize;
-        if self.nation[w].human || self.defeated[w] {
+        if self.cities_state.nation[w].human || self.defeated[w] {
             return;
         }
         for s in 0..SLOTS {
@@ -2589,7 +2591,7 @@ impl Sim {
     /// `City::close`'s army pass: armies mustering at the city close,
     /// armies targeting its building drop the target.
     pub fn armies_city_closed(&mut self, c: usize, building: usize) {
-        let owner = self.cities[c].owner as usize;
+        let owner = self.cities_state.cities[c].owner as usize;
         for w in 0..self.territory.players.len() {
             for s in 0..SLOTS {
                 let a = &self.armies[w].list[s];
@@ -2613,7 +2615,7 @@ impl Sim {
         let cities = self.cities_of(who);
         let mut regions: Vec<Option<u16>> = Vec::new();
         for &c in &cities {
-            let r = self.cities[c].reg;
+            let r = self.cities_state.cities[c].reg;
             if !regions.contains(&r) {
                 regions.push(r);
             }
@@ -2634,7 +2636,7 @@ impl Sim {
             }
             let mut best: Option<(i32, usize)> = None;
             for &k in &cities {
-                if self.cities[k].reg != reg {
+                if self.cities_state.cities[k].reg != reg {
                     continue;
                 }
                 if self.armies[w]
@@ -2663,10 +2665,10 @@ impl Sim {
                     }
                 }
                 let mut v = self.city_level_of(k) * 20 * (trainers * 4 + 1 + docks);
-                if self.cities[k].no_heal {
+                if self.cities_state.cities[k].no_heal {
                     v /= 3;
                 }
-                v *= match self.find_army(who, self.cities[k].pos, -1, None) {
+                v *= match self.find_army(who, self.cities_state.cities[k].pos, -1, None) {
                     None => 12,
                     Some((_, d)) => d / 4 + 6,
                 };
@@ -2994,7 +2996,7 @@ impl FormView for FormSim<'_> {
         let t = self.sim.armies[self.who as usize].list[self.slot].target?;
         match t {
             Obj::Building(b) => self.sim.buildings[b].city.map(|c| {
-                let cd = &self.sim.cities[c];
+                let cd = &self.sim.cities_state.cities[c];
                 i32::from(cd.alive) | i32::from(cd.no_heal) << 1
             }),
             _ => None,
@@ -3277,7 +3279,7 @@ impl MarchToView for MarchToSim<'_> {
     fn target_city_flags(&mut self) -> Option<i32> {
         match self.army().target? {
             Obj::Building(b) => self.sim.buildings[b].city.map(|c| {
-                let cd = &self.sim.cities[c];
+                let cd = &self.sim.cities_state.cities[c];
                 i32::from(cd.alive) | i32::from(cd.no_heal) << 1
             }),
             Obj::Unit(_) => None,
@@ -3297,7 +3299,8 @@ impl MarchToView for MarchToSim<'_> {
         match self.army().target {
             Some(Obj::Building(b)) => {
                 let bd = &self.sim.buildings[b];
-                bd.city.is_some_and(|c| self.sim.cities[c].building == b)
+                bd.city
+                    .is_some_and(|c| self.sim.cities_state.cities[c].building == b)
             }
             _ => false,
         }
@@ -3500,7 +3503,7 @@ impl MarchView for MarchSim<'_> {
     }
     fn target_city_flags(&mut self) -> Option<i32> {
         self.city().map(|c| {
-            let cd = &self.sim.cities[c];
+            let cd = &self.sim.cities_state.cities[c];
             i32::from(cd.alive) | i32::from(cd.no_heal) << 1
         })
     }
@@ -3509,7 +3512,7 @@ impl MarchView for MarchSim<'_> {
     }
     fn city_unassimilated(&mut self) -> bool {
         self.city()
-            .is_some_and(|c| self.sim.cities[c].unassimilated)
+            .is_some_and(|c| self.sim.cities_state.cities[c].unassimilated)
     }
     fn target_hits(&mut self) -> i32 {
         match self.t {
@@ -3716,7 +3719,7 @@ impl TransView for TransSim<'_> {
         self.sim.cities_of(self.who)
     }
     fn city_in(&mut self, c: usize, r: u16) -> bool {
-        self.sim.cities[c].reg == Some(r) && self.sim.cities[c].no_heal
+        self.sim.cities_state.cities[c].reg == Some(r) && self.sim.cities_state.cities[c].no_heal
     }
     fn city_level(&mut self, c: usize) -> i32 {
         self.sim.city_level_of(c)
@@ -3741,11 +3744,11 @@ impl TransView for TransSim<'_> {
         self.army().reg = here;
     }
     fn target_city(&mut self, c: usize) {
-        let target = Obj::Building(self.sim.cities[c].building);
+        let target = Obj::Building(self.sim.cities_state.cities[c].building);
         self.army().target = Some(target);
     }
     fn find_muster_spot(&mut self, c: usize) -> bool {
-        let target = Obj::Building(self.sim.cities[c].building);
+        let target = Obj::Building(self.sim.cities_state.cities[c].building);
         self.sim.find_muster_spot(self.who, self.slot, target, true)
     }
     fn muster_fallback(&mut self, _c: usize) {}
@@ -3839,11 +3842,11 @@ impl crate::army_process_view::ArmyProcessView for SimProcess<'_> {
     fn set_scan(&mut self, _i: i32) {}
     fn city_alive(&mut self, i: i32) -> bool {
         let c = self.s.cities_of(self.who)[i as usize];
-        self.s.cities[c].alive
+        self.s.cities_state.cities[c].alive
     }
     fn city_pos(&mut self, i: i32) -> Pos {
         let c = self.s.cities_of(self.who)[i as usize];
-        self.s.cities[c].pos
+        self.s.cities_state.cities[c].pos
     }
     fn peer(&mut self, k: usize) -> crate::army_process_view::Peer {
         let b = &self.s.armies[self.who as usize].list[k];

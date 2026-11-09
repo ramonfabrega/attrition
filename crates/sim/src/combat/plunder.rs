@@ -428,7 +428,7 @@ impl PlunderView for SimPlunder<'_> {
         self.sim.holdings[who as usize].available[good as usize]
     }
     fn has_tribe_bonus(&mut self, who: i32, bonus: i32) -> bool {
-        bonus == 0 && self.sim.nation[who as usize].aztecs
+        bonus == 0 && self.sim.cities_state.nation[who as usize].aztecs
     }
     fn bucket(&mut self, who: i32, good: i32) -> i32 {
         self.sim.ledgers[who as usize].bucket[good as usize]

@@ -258,7 +258,10 @@ impl Sim {
     /// [`Sim::think_join_army`](crate::Sim::think_join_army) already reads;
     /// the AI-driven-human bit `0x8` is the seam left in it.
     pub(crate) fn ai_driven(&self, who: Player) -> bool {
-        self.nation.get(who as usize).is_some_and(|n| !n.human)
+        self.cities_state
+            .nation
+            .get(who as usize)
+            .is_some_and(|n| !n.human)
     }
 
     /// `unit_masks & 0x40000` as a **unit** carries it: [`Sim::ai_driven`]
@@ -359,7 +362,7 @@ impl Sim {
         // Then a computer leader's caster is offered its crafts
         // (`think_scout+0x7c`, `unit_flags2 & 2`): `think_spellcaster`,
         // whose AI arm draws from difficulty 2 up (`docs/AI.md` §80.5).
-        if !self.nation[who as usize].human
+        if !self.cities_state.nation[who as usize].human
             && self.tables.unit_types[rec]
                 .cols
                 .flag2(crate::ai_load::uflags2::CASTER)
@@ -473,10 +476,10 @@ impl Sim {
                 let rot = if leader == who { near } else { 0 };
                 let c = list[((rot + j) % n) as usize];
                 j += 1;
-                if !self.cities[c].alive {
+                if !self.cities_state.cities[c].alive {
                     continue;
                 }
-                if land && self.cities[c].reg != Some(region) {
+                if land && self.cities_state.cities[c].reg != Some(region) {
                     continue;
                 }
                 // §5's `CityData +0x4c` mark is not carried: only a plain
@@ -493,7 +496,7 @@ impl Sim {
                 };
                 scan.ring = cap;
                 scan.leader = leader;
-                let city = self.cities[c].pos.cell();
+                let city = self.cities_state.cities[c].pos.cell();
                 let end = self.scout_rings(u, city, step, cap, &mut scan);
                 if end == if leader == who { 12 } else { 8 } {
                     // Unreachable for an AI scout — the ring counter comes
@@ -771,7 +774,7 @@ impl Sim {
         let here = self.units[u].pos;
         let mut best = (i32::MAX, -1i32);
         for (i, &c) in self.cities_of(who).iter().enumerate() {
-            let city = &self.cities[c];
+            let city = &self.cities_state.cities[c];
             if city.reg != Some(region) {
                 continue;
             }

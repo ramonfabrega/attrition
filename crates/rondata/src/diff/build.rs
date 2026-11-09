@@ -84,7 +84,10 @@ mod tests {
         borrow_from_siblings(&mut init, &refs);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
         assert!(built.sim.scripts.is_some(), "the scripts compiled");
-        assert!(!built.sim.nation[1].human, "player 1 is the AI");
+        assert!(
+            !built.sim.cities_state.nation[1].human,
+            "player 1 is the AI"
+        );
         let ai = &mut built.sim.ai[1];
         ai.pers = sim::ai::Personality {
             rush: 1,
@@ -126,6 +129,7 @@ mod tests {
         // The city's queue: three citizens, on the ramp the dump shows.
         let city_b = built
             .sim
+            .cities_state
             .cities
             .iter()
             .find(|c| c.alive && c.owner == 1)
@@ -340,6 +344,7 @@ mod tests {
             let (x, y) = (rec.int("x").unwrap_or(-1), rec.int("y").unwrap_or(-1));
             let Some(c) = built
                 .sim
+                .cities_state
                 .cities
                 .iter()
                 .position(|c| c.alive && i64::from(c.pos.x) == x && i64::from(c.pos.y) == y)
@@ -862,8 +867,11 @@ mod tests {
         let init = replay_initial(&log).unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
         let sim = &mut built.sim;
-        assert!(sim.nation[1].british, "run53's AI is tribe 11");
-        assert!(!sim.nation[0].british, "and the human is tribe 4");
+        assert!(sim.cities_state.nation[1].british, "run53's AI is tribe 11");
+        assert!(
+            !sim.cities_state.nation[0].british,
+            "and the human is tribe 4"
+        );
 
         let barracks = loaded.build_named("Barracks").expect("a Barracks type");
         let bowmen = loaded.unit_named("Bowmen").expect("a Bowmen type");
@@ -1418,6 +1426,7 @@ mod tests {
             let pos = sim::world::Pos::new(*x as i32, *y as i32);
             if built
                 .sim
+                .cities_state
                 .cities
                 .iter()
                 .any(|c| c.alive && c.pos == pos && i64::from(c.owner) == *who)
@@ -1430,7 +1439,13 @@ mod tests {
             built.sim.activate(b, false, false);
         }
         assert_eq!(
-            built.sim.cities.iter().filter(|c| c.alive).count(),
+            built
+                .sim
+                .cities_state
+                .cities
+                .iter()
+                .filter(|c| c.alive)
+                .count(),
             3,
             "the window's three cities, and no more"
         );

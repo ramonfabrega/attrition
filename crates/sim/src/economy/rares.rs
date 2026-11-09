@@ -293,7 +293,12 @@ impl Sim {
         // `PEASANTSKOREAN` (`0x32`, `0x33`, by identity), or it is of the
         // Militia line (`is(0x42, 0)`). The Bantu word's citizens step 31
         // on a `MOVES` of 25 from frame 1 (run978, `docs/AI.md` §276).
-        if self.nation.get(who as usize).is_some_and(|n| n.bantu) {
+        if self
+            .cities_state
+            .nation
+            .get(who as usize)
+            .is_some_and(|n| n.bantu)
+        {
             let ti = self.tables.unit_types[ty].type_index;
             if self.trainer_where(ty) == Some(BARRACKS)
                 || ti == PEASANTS
@@ -311,7 +316,7 @@ impl Sim {
         // siege move"). French East Indies' Supply Wagon `1/72` is born at
         // 30 there, 25 here before item 1455.
         if matches!(self.trainer_where(ty), Some(0x1ae | 0x1af)) {
-            if self.nation[who as usize].french {
+            if self.cities_state.nation[who as usize].french {
                 speed = (self.tables.tuning.french_siege_move + 100) * speed / 100;
             }
             if self.wonders_held(who) & (1 << crate::tech::wonder::VERSAILLES) != 0 {
@@ -593,7 +598,7 @@ impl Sim {
     ///   (`LeaderData::calc_rare` pays them to a boat, not to a merchant),
     ///   so a coast full of fish never buys a merchant.
     pub(crate) fn new_rare(&mut self, who: Player, gi: usize) {
-        if self.nation[who as usize].human {
+        if self.cities_state.nation[who as usize].human {
             return;
         }
         let Some(ty) = self.world.goods().get(gi).map(|g| g.ty) else {
@@ -605,7 +610,7 @@ impl Sim {
             return;
         }
         for w in 0..self.territory.players.len() {
-            if self.defeated[w] || self.nation[w].human {
+            if self.defeated[w] || self.cities_state.nation[w].human {
                 continue;
             }
             if w != who as usize && !(self.allied[who as usize][w] && self.allied[w][who as usize])

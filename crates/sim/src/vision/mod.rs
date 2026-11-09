@@ -220,7 +220,7 @@ impl Sim {
         // Trebuchets and Catapults print `mylos 7` in run1005, not 4. The
         // arm's Liberty (`0x219`) and Eiffel (`0x21c`) wonder terms are not
         // carried.
-        if self.is_siege_unit(u) && self.nation[who].turks {
+        if self.is_siege_unit(u) && self.cities_state.nation[who].turks {
             los += self.tables.tuning.turk_siege_los;
         }
         // A Spy sees `SPY_UPGRADE_LOS` more per upgrade held (`0060e87c`,

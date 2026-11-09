@@ -317,7 +317,7 @@ impl Sim {
             // flag [`cost::pop_cap`]'s Bantu arm reads, which had no writer
             // until the Bantu word's block 1 printed who=1's cap at 50
             // against this crate's 25 (run978, `docs/AI.md` §276).
-            m.bonuses.bantu = self.nation.get(who).is_some_and(|n| n.bantu);
+            m.bonuses.bantu = self.cities_state.nation.get(who).is_some_and(|n| n.bantu);
             m.cap = cost::pop_cap(&self.tables.tuning, m.military_level, m.limit, &m.bonuses);
         }
     }
@@ -356,7 +356,12 @@ impl Sim {
         // every AI Bark on disk carries both.
         if self.unit_line_is(u, crate::army::BARK) {
             self.units[u].unit_masks2 |= crate::combat::umask2::MASK2_BARK;
-            if !self.nation.get(who as usize).is_some_and(|n| n.human) {
+            if !self
+                .cities_state
+                .nation
+                .get(who as usize)
+                .is_some_and(|n| n.human)
+            {
                 self.units[u].stance = 3;
                 self.units[u].combat.stance = crate::combat::Stance::Raid;
             }
@@ -366,7 +371,11 @@ impl Sim {
         // a Lakota unit the food term counts — a citizen (`TypeIndex`
         // `0x32`, `0x33`), a scout (`is(SCOUT, 0)`) or a Stable type
         // (`+0x40 == 0x1ac`) — raises the leader's `0x2000000`.
-        if self.nation.get(who as usize).is_some_and(|n| n.lakota)
+        if self
+            .cities_state
+            .nation
+            .get(who as usize)
+            .is_some_and(|n| n.lakota)
             && self.tables.tuning.lakota_food != 0
             && (matches!(self.tables.unit_types[ty].type_index, 0x32 | 0x33)
                 || self.unit_line_is(u, 0x45)

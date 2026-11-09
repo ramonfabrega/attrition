@@ -522,7 +522,7 @@ pub fn sim_at_frame(loaded: &Loaded, log: &Log, frame: i64, tuning: Tuning) -> O
     let mut sim = loaded.sim(tuning, world.clone(), players);
     for l in &leaders {
         if (0..players as i64).contains(&l.who) {
-            sim.nation[l.who as usize].human = l.leader_flags & 4 != 0;
+            sim.cities_state.nation[l.who as usize].human = l.leader_flags & 4 != 0;
         }
     }
 
@@ -578,7 +578,7 @@ pub fn sim_at_frame(loaded: &Loaded, log: &Log, frame: i64, tuning: Tuning) -> O
     notes.push(format!(
         "frame {frame}: {} buildings, {} cities, {} regions mapped",
         out.len(),
-        sim.cities.iter().filter(|c| c.alive).count(),
+        sim.cities_state.cities.iter().filter(|c| c.alive).count(),
         region_map.len()
     ));
     Some(AtFrame {
@@ -780,7 +780,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             // `leader_flags & 4` is `LeaderData::is_human` — the bit that
             // picks `find_wpath`'s pull-back variant and withholds the
             // `army`/`worker` cost modes (`docs/PATHFINDER.md` §3).
-            sim.nation[who].human = l.leader_flags & 4 != 0;
+            sim.cities_state.nation[who].human = l.leader_flags & 4 != 0;
             // **`diplos`, which nothing installed until 2026-09-02.** The
             // harness built every capture with an all-peace matrix while
             // every one of them opens at war, so `is_enemy` was false for
@@ -850,7 +850,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         None => (0..players).collect::<Vec<_>>(),
     };
     for who in order {
-        if sim.nation[who].human {
+        if sim.cities_state.nation[who].human {
             continue;
         }
         let flags = init
@@ -1117,9 +1117,9 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 .position(|f| f.who == i64::from(bd.owner) && f.o == i64::from(bd.index))
                 .unwrap_or(usize::MAX)
         };
-        let mut order = std::mem::take(&mut sim.farm_order);
+        let mut order = std::mem::take(&mut sim.cities_state.farm_order);
         order.sort_by_key(|&h| rank(h));
-        sim.farm_order = order;
+        sim.cities_state.farm_order = order;
     }
     // On the flat fallback world a camp's survey (`gather.rs`) finds no
     // forest and would cap it at zero slots; the map-less dumps (run6, run7)
@@ -1591,7 +1591,8 @@ pub(crate) fn start_of_game(
     // ordered here as the original activated them: the higher slot first,
     // stable within a player.
     let owners: Vec<sim::Player> = sim.buildings.iter().map(|b| b.owner).collect();
-    sim.farm_order
+    sim.cities_state
+        .farm_order
         .sort_by_key(|&h| std::cmp::Reverse(owners[h]));
     // **The dump's height grid is already terraformed for every building
     // the dump lists** — run12's frame-0 heights have p0's city standing on

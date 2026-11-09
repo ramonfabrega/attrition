@@ -367,7 +367,7 @@ impl Sim {
     /// `1/2013` prices its Rifleman 68/60 there on 1345, 80/70 here before
     /// item 3510 (`docs/AI.md` §303).
     pub fn nation_unit_discount(&self, who: Player, ty: usize) -> i32 {
-        let french = self.nation[who as usize].french;
+        let french = self.cities_state.nation[who as usize].french;
         if french && matches!(self.trainer_where(ty), Some(0x1ae | 0x1af)) {
             return self.tables.tuning.french_siege_cost;
         }
@@ -380,7 +380,7 @@ impl Sim {
                 return self.tables.tuning.japanese_ship_cost;
             }
         }
-        if self.nation[who as usize].germans
+        if self.cities_state.nation[who as usize].germans
             && self.tables.unit_types[ty].tree.is_some_and(|t| {
                 self.tables
                     .tech_tree
@@ -443,7 +443,7 @@ impl Sim {
     /// without it, and `create_units`' income factor read 206 against
     /// theirs' 225 on 2184 (item 3678, `docs/AI.md` §347).
     pub fn british_aa_discount(&self, who: Player, ty: usize) -> i32 {
-        if self.nation[who as usize].british
+        if self.cities_state.nation[who as usize].british
             && self.tables.unit_types[ty].tree.is_some_and(|t| {
                 self.tables.tech_tree.types.get(0x119).is_some()
                     && self.tables.tech_tree.is(t, 0x119, false)
@@ -497,7 +497,7 @@ impl Sim {
     /// (`is(0x3a, 0)`, the loose test) takes `RUSSIAN_SPY_COST` off, a
     /// step of its own before the French/German/Spy-General tail.
     pub fn russian_spy_discount(&self, who: Player, ty: usize) -> i32 {
-        if self.nation[who as usize].russians
+        if self.cities_state.nation[who as usize].russians
             && self.tables.unit_types[ty].tree.is_some_and(|t| {
                 self.tables.tech_tree.types.get(0x3a).is_some()
                     && self.tables.tech_tree.is(t, 0x3a, false)
@@ -533,7 +533,7 @@ impl Sim {
             } else {
                 0
             },
-            if self.nation[who as usize].turks {
+            if self.cities_state.nation[who as usize].turks {
                 self.tables.tuning.turk_citizen
             } else {
                 0
@@ -545,7 +545,7 @@ impl Sim {
     /// `ROMAN_LEGION_CHEAP` off, a truncating step of its own after the
     /// Russian spy's and before the Terra Cotta Army's.
     pub fn roman_legion_discount(&self, who: Player, ty: usize) -> i32 {
-        if self.nation[who as usize].romans && self.is_legion_line(ty) {
+        if self.cities_state.nation[who as usize].romans && self.is_legion_line(ty) {
             self.tables.tuning.roman_legion_cheap
         } else {
             0
@@ -700,7 +700,7 @@ impl Sim {
             {
                 american_land = self.tables.tuning.americans_upgrade_discount;
             }
-            if self.nation[w].dutch
+            if self.cities_state.nation[w].dutch
                 && self.tables.unit_types[ty].combat.domain == attrition::Domain::Sea
             {
                 dutch_ship = self.tables.tuning.dutch_ship_discount;

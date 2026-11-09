@@ -369,7 +369,7 @@ impl Sim {
 
         // The caravan income the city already carries — a field, not a
         // survey: `City::compute_trade` writes it when a route changes.
-        out.trade_val = self.cities[c].trade_val;
+        out.trade_val = self.cities_state.cities[c].trade_val;
 
         // `CityData::get_taxes` and `get_literacy`, which are
         // `count_buildings(MARKET | TEMPLE)` and
@@ -378,13 +378,13 @@ impl Sim {
         // `get_taxes@00737b50`: the Porcelain Tower raises a market's taxes
         // (`docs/GOLDEN.md` §96, item 2598).
         out.porcelain = out.market
-            && self.wonders_held(self.cities[c].owner)
+            && self.wonders_held(self.cities_state.cities[c].owner)
                 & (1 << crate::tech::wonder::PORCELAIN_TOWER)
                 != 0;
         out.temple = any(Ident::Temple);
         out.university = any(Ident::University);
         out.library = any(Ident::Library);
-        out.ceo = self.ceo_city(self.cities[c].owner) == Some(c);
+        out.ceo = self.ceo_city(self.cities_state.cities[c].owner) == Some(c);
 
         // `City::calc_gather@00737c60`'s four bytes ([`economy::calc_gather_steps`],
         // item 2368's sweep): the flags `0x200` / `0x400` are the granary and
@@ -642,7 +642,7 @@ impl Sim {
         // unless the multiplayer handicap option is on, and an AI takes the
         // difficulty's percentage. `semaphore[0] & 4` — the MP handicap — is
         // not modelled, so a human is flatly zero here.
-        let handicap = if self.nation[w].human {
+        let handicap = if self.cities_state.nation[w].human {
             0
         } else {
             let d = self.lobby.difficulty.clamp(0, i32::from(u8::MAX));
@@ -652,7 +652,7 @@ impl Sim {
         let outside = self.gather_sites_outside_cities(who);
         // Step 6, and the `rare_owned` it rebuilds ([`crate::rares`]).
         let (rares, rare_owned) = self.gather_rares(who);
-        let lakota = self.nation[w].lakota && self.tables.tuning.lakota_food != 0;
+        let lakota = self.cities_state.nation[w].lakota && self.tables.tuning.lakota_food != 0;
         let iroquois = self.tech.get(w).is_some_and(|p| {
             self.tables
                 .tech_tree
@@ -693,20 +693,20 @@ impl Sim {
         h.republic = republic;
         h.handicap = handicap;
         h.taxation = levels.taxation;
-        h.british = self.nation[w].british;
-        h.mongols = self.nation[w].mongols;
+        h.british = self.cities_state.nation[w].british;
+        h.mongols = self.cities_state.nation[w].mongols;
         h.num_nations = self.territory.players.len() as i32;
         h.lakota = lakota;
         h.lakota_units = lakota_units;
         h.americans = americans;
         h.american_units = american_units;
         h.capitalism = capitalism;
-        h.romans = self.nation[w].romans;
-        h.germans = self.nation[w].germans;
-        h.egyptians = self.nation[w].egyptians;
-        h.russians = self.nation[w].russians;
-        h.french = self.nation[w].french;
-        h.inca = self.nation[w].inca;
+        h.romans = self.cities_state.nation[w].romans;
+        h.germans = self.cities_state.nation[w].germans;
+        h.egyptians = self.cities_state.nation[w].egyptians;
+        h.russians = self.cities_state.nation[w].russians;
+        h.french = self.cities_state.nation[w].french;
+        h.inca = self.cities_state.nation[w].inca;
         h.iroquois = iroquois;
         h.dutch = dutch;
         h.starting = starting;

@@ -214,7 +214,11 @@ impl Sim {
                 // (item 2165, `docs/GOLDEN.md` §79): run835's `0/7` drops
                 // the attack it found on the fishing boat on 681.
                 1 | 2 | 5 => {
-                    let human = self.nation.get(g.who as usize).is_some_and(|n| n.human);
+                    let human = self
+                        .cities_state
+                        .nation
+                        .get(g.who as usize)
+                        .is_some_and(|n| n.human);
                     if human
                         && self
                             .current_order(u)
@@ -794,7 +798,12 @@ impl Sim {
         // A **human** leader skips the widening and the anchor scoring and
         // takes the sub-group's own leader (`0070dabd`). No army's leader
         // is human, so this arm is the player's siege-attack command.
-        if self.nation.get(g.who as usize).is_some_and(|n| n.human) {
+        if self
+            .cities_state
+            .nation
+            .get(g.who as usize)
+            .is_some_and(|n| n.human)
+        {
             // The anchor is only read by `action_guard`, which is the seam;
             // whether the sub-group has a leader is what chooses the arm.
             let escort = self.group_find_leader(&sub).is_some();
@@ -1023,7 +1032,11 @@ impl Sim {
         // standing, and the guard flag. The stack group's `facing` is the
         // `clear`ed zero, so the mirror is the leader toggle alone; the
         // reverse negation is skipped because the guard flag is set.
-        let human = self.nation.get(g.who as usize).is_some_and(|n| n.human);
+        let human = self
+            .cities_state
+            .nation
+            .get(g.who as usize)
+            .is_some_and(|n| n.human);
         let form = i32::from(human);
         let tp = self.units[cap].pos;
         let reverse = self.group_leader_faces_away(&local, Angle(0));

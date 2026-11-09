@@ -552,7 +552,7 @@ fn barracks_sim(upgradeable: bool) -> (Sim, Barracks) {
 
     let b = sim.add_building(0, crate::Pos::new(4 * 256, 4 * 256), 8);
     sim.buildings[b].ty = Some(brec);
-    sim.cities.push(crate::city::City {
+    sim.cities_state.cities.push(crate::city::City {
         alive: true,
         owner: 0,
         race: Some(0),
@@ -583,10 +583,10 @@ fn barracks_sim(upgradeable: bool) -> (Sim, Barracks) {
         trade_val: 0,
         traded_with: [0; 8],
     });
-    sim.buildings[b].city = Some(sim.cities.len() - 1);
+    sim.buildings[b].city = Some(sim.cities_state.cities.len() - 1);
     sim.ai[0]
         .city_ai
-        .resize(sim.cities.len(), crate::ai::CityAi::default());
+        .resize(sim.cities_state.cities.len(), crate::ai::CityAi::default());
     sim.ai[0].mil_trainers = vec![b];
     sim.roster.muster[0].cap = 100;
     sim.ai[0].census.pop = 10;

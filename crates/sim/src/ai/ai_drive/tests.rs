@@ -6,7 +6,7 @@ use crate::{Tuning, World};
 #[test]
 fn the_step_machine_runs_one_step_a_frame_from_the_sweep() {
     let mut sim = Sim::new(Tuning::RON, World::new(2, 2), 2);
-    sim.nation[1].human = false;
+    sim.cities_state.nation[1].human = false;
     sim.ai[1].script_live = false;
     let mut steps = Vec::new();
     for _ in 0..12 {

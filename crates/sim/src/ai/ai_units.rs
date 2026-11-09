@@ -263,7 +263,7 @@ impl Sim {
     /// The sea branch's `init_navy` asks its own `find_army` around the
     /// dock's sea tile ([`Sim::sea_value`]).
     fn army_at(&self, who: Player, city: usize) -> i32 {
-        self.find_army(who, self.cities[city].pos, -1, None)
+        self.find_army(who, self.cities_state.cities[city].pos, -1, None)
             .map_or(-1, |(s, _)| s as i32)
     }
 
@@ -446,7 +446,7 @@ impl Sim {
 
     /// The city's region as the per-region census arrays index it.
     fn city_region(&self, c: usize) -> u16 {
-        self.cities[c].reg.unwrap_or(0)
+        self.cities_state.cities[c].reg.unwrap_or(0)
     }
 }
 
@@ -650,19 +650,21 @@ impl Sim {
             .filter(|(_, d)| d.kind.is_unit())
             .map(|(i, _)| i)
             .collect();
-        let cities: Vec<usize> = (0..self.cities.len())
-            .filter(|&c| self.cities[c].alive && self.cities[c].owner == who)
+        let cities: Vec<usize> = (0..self.cities_state.cities.len())
+            .filter(|&c| {
+                self.cities_state.cities[c].alive && self.cities_state.cities[c].owner == who
+            })
             .collect();
 
         for c in cities {
-            let city_o = self.cities[c].building;
+            let city_o = self.cities_state.cities[c].building;
             let r = self.city_region(c);
             let army_here = self.army_at(who, c);
             let (slots, _gmax, gfree) = self.gather_slot_picture(c);
             // `city_flags & 2`, which `docs/CITIES.md` §1.4 records as
             // "do not heal / auto-repair" with no setter found and the
             // report reads as "attacked". The bit is `no_heal`.
-            let city_attacked = self.cities[c].no_heal;
+            let city_attacked = self.cities_state.cities[c].no_heal;
 
             for &t in &units {
                 // 1. The population and the availability.
@@ -1245,7 +1247,7 @@ impl Sim {
         }
         // The dock: the nearest of mine around the city's centre, whichever
         // city it belongs to (§57).
-        let dock = self.find_dock_near(who, self.cities[c].pos)?;
+        let dock = self.find_dock_near(who, self.cities_state.cities[c].pos)?;
         let (sea_reg, sea_tile) = self.dock_sea_tile(dock)?;
         if self.world.cells_in(sea_reg).count() <= 19 {
             return None;
@@ -1456,7 +1458,7 @@ impl Sim {
     fn navy_city(&self, who: Player, at: crate::world::Pos) -> Option<usize> {
         let mut best: Option<(usize, i32)> = None;
         for c in self.cities_of(who) {
-            let p = self.cities[c].pos;
+            let p = self.cities_state.cities[c].pos;
             let d = crate::world::vector_dist(p.x - at.x, p.y - at.y);
             if best.is_none_or(|(_, bd)| d <= bd) {
                 best = Some((c, d));
@@ -1836,7 +1838,8 @@ impl Sim {
 
     /// `elimination == 1` → the capital's owner is me.
     fn owns_capital(&self, who: Player) -> bool {
-        self.cities
+        self.cities_state
+            .cities
             .iter()
             .any(|c| c.alive && c.capital && c.owner == who)
     }

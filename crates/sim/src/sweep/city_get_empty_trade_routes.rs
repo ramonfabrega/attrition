@@ -59,8 +59,8 @@ fn port_free(vans: &[Van], idle: u8) -> bool {
     let mut world = World::new(8, 8);
     world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 7));
     let mut s = Sim::new(Tuning::RON, world, 2);
-    s.cities.push(city(Pos::new(2 * 768, 2 * 768)));
-    s.cities.push(city(Pos::new(5 * 768, 5 * 768)));
+    s.cities_state.cities.push(city(Pos::new(2 * 768, 2 * 768)));
+    s.cities_state.cities.push(city(Pos::new(5 * 768, 5 * 768)));
     let u = {
         let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
         u.idle = idle;

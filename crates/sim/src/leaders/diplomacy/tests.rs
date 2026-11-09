@@ -5,8 +5,8 @@ use crate::{Sim, Tuning, World};
 /// minutes' peace, no shared region and no buildings.
 fn peace_pair() -> Sim {
     let mut sim = Sim::new(Tuning::RON, World::new(2, 2), 2);
-    sim.nation[0].human = true;
-    sim.nation[1].human = false;
+    sim.cities_state.nation[0].human = true;
+    sim.cities_state.nation[1].human = false;
     sim.lobby.team_style = 1;
     sim.lobby.difficulty = 3;
     sim.lobby.rush_rules = 10;

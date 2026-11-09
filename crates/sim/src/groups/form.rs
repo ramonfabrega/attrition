@@ -421,7 +421,11 @@ impl Sim {
             f.x_spacing[cat::FORM_CAT_ARTILLERY] = 0xc0;
             f.y_spacing[cat::FORM_CAT_ARTILLERY] = 0x180;
         }
-        let human = self.nation.get(f.who as usize).is_some_and(|n| n.human);
+        let human = self
+            .cities_state
+            .nation
+            .get(f.who as usize)
+            .is_some_and(|n| n.human);
         let mut biggest = cat::FORM_CAT_COMMAND;
         let mut biggest_count = 0;
         let mut leader: Option<usize> = None;

@@ -85,7 +85,7 @@ fn the_emulated_original_agrees_on_every_row() {
         };
         let scratch = mk(&mut s, 1);
         let u = mk(&mut s, 0);
-        s.nation[1].human = ai == 0;
+        s.cities_state.nation[1].human = ai == 0;
         s.units[u].movement.speed = speed as i32;
         for k in [o1, o2, o3].into_iter().filter(|&k| k != 0) {
             let o = order(&mut s, scratch, k);

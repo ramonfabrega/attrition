@@ -58,7 +58,7 @@ fn fix() -> Fix {
         }
     }
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    sim.nation[1].human = false;
+    sim.cities_state.nation[1].human = false;
     // Room for six cities, so the escrow and thin-region tests can found
     // more than one.
     sim.tech[1].epoch[crate::tech::Line::Civic as usize] = 5;
@@ -568,7 +568,7 @@ fn the_gather_slot_books_are_kept_by_building_type() {
     assert_eq!(cs.scholars, 1);
     // `count_gather_slots` leaves knowledge out of its total, so the
     // region sees 3 + 5 and not 3 + 5 + 4 — run8's `reg_gather_slots 8`.
-    let r = f.sim.cities[c].reg.unwrap() as usize;
+    let r = f.sim.cities_state.cities[c].reg.unwrap() as usize;
     assert_eq!(cs.reg_gather_slots[r], 8);
 }
 
@@ -732,7 +732,7 @@ fn a_human_s_sweep_fills_its_city_and_seeds_no_army() {
         "and `production_ai`'s default disarms it"
     );
     f.sim.frame = 0;
-    f.sim.nation[0].human = false;
+    f.sim.cities_state.nation[0].human = false;
     f.sim.strategy_all();
     assert_eq!(
         f.sim.armies[0].valid().count(),
@@ -751,7 +751,7 @@ fn the_site_picture_counts_the_open_cells_of_the_circle() {
     let c = f.sim.buildings[b].city.unwrap();
     f.sim.census(1);
     let rec = f.sim.ai[1].city_ai[c];
-    let r = f.sim.cities[c].reg.unwrap() as usize;
+    let r = f.sim.cities_state.cities[c].reg.unwrap() as usize;
     // The radius is the city's own `get_radius` — 20 tiles for a level
     // one city — so `(20 + 2) / 4 = 5` picks `circle_radius[5]`, and
     // the inner cutoff is `circle_radius[5]` too... one ring in.
@@ -789,7 +789,7 @@ fn the_circle_walk_starts_at_entry_one() {
         let mut f = fix();
         let b = build(&mut f.sim, 1, f.village, 20, 20);
         let c = f.sim.buildings[b].city.unwrap();
-        let centre = f.sim.cities[c].pos.cell();
+        let centre = f.sim.cities_state.cities[c].pos.cell();
         if let Some((dx, dy)) = owned {
             let cell = Cell::new(centre.x + dx, centre.y + dy);
             f.sim.world.set_owner(cell, Owner::Player(0), Owner::None);

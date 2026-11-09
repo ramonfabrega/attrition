@@ -141,7 +141,7 @@ fn city(sim: &mut Sim, t: &Types, who: Player, tx: i32, ty: i32) -> usize {
     sim.ai[w].census.resize(regions, players);
     sim.ai[w]
         .city_ai
-        .resize(sim.cities.len(), crate::ai::CityAi::default());
+        .resize(sim.cities_state.cities.len(), crate::ai::CityAi::default());
     sim.ai[w].city_ai[c] = crate::ai::CityAi {
         free: 4,
         busy: 0,
@@ -157,7 +157,7 @@ fn city(sim: &mut Sim, t: &Types, who: Player, tx: i32, ty: i32) -> usize {
         ..Default::default()
     };
     sim.ai[w].census.pop = 10;
-    if let Some(r) = sim.cities[c].reg {
+    if let Some(r) = sim.cities_state.cities[c].reg {
         let i = r as usize;
         sim.ai[w].census.reg_free_peasants[i] = 4;
         sim.ai[w].census.reg_cities[i] = 1;
@@ -191,7 +191,7 @@ fn listed(sim: &Sim, who: Player, rec: usize) -> Option<MakeObject> {
 fn the_sweep_lists_what_a_first_city_can_build_and_nothing_else() {
     let (mut sim, t) = sim();
     let c = city(&mut sim, &t, 0, 40, 40);
-    assert_eq!(sim.cities[c].race, Some(0));
+    assert_eq!(sim.cities_state.cities[c].race, Some(0));
     sim.create_buildings(0);
     // The city type itself is never listed: `is_city` is the first gate.
     assert!(listed(&sim, 0, t.village).is_none());
@@ -217,7 +217,7 @@ fn the_sweep_lists_what_a_first_city_can_build_and_nothing_else() {
 fn nothing_is_listed_for_a_city_still_assimilating() {
     let (mut sim, t) = sim();
     let c = city(&mut sim, &t, 0, 40, 40);
-    sim.cities[c].race = Some(1);
+    sim.cities_state.cities[c].race = Some(1);
     sim.create_buildings(0);
     assert_eq!(sim.ai[0].make_list, crate::ai::MakeList::new());
 }
@@ -281,15 +281,15 @@ fn a_temple_is_the_capital_s_alone_on_an_easy_difficulty() {
     let (mut sim, t) = sim();
     let c = city(&mut sim, &t, 0, 40, 40);
     sim.lobby.difficulty = 0;
-    sim.cities[c].capital = false;
+    sim.cities_state.cities[c].capital = false;
     assert!(value(&mut sim, 0, c, t.temple).is_none());
-    sim.cities[c].capital = true;
+    sim.cities_state.cities[c].capital = true;
     let l = value(&mut sim, 0, c, t.temple).expect("the capital wants a temple");
     assert_eq!(l.escrow, 1, "a temple is always worth saving for");
     // 1000 × 10000 for a first temple, then the open-ground ×4/3.
     assert_eq!(l.val, 1000 * 10000 * 4 / 3);
     // On a hard difficulty it is wanted anywhere.
-    sim.cities[c].capital = false;
+    sim.cities_state.cities[c].capital = false;
     sim.lobby.difficulty = 3;
     assert!(value(&mut sim, 0, c, t.temple).is_some());
 }
@@ -299,18 +299,18 @@ fn the_capital_countdown_leaves_only_military_trainers() {
     let (mut sim, t) = sim();
     let c = city(&mut sim, &t, 0, 40, 40);
     sim.lobby.elimination = 1;
-    sim.cities[c].capital = false;
+    sim.cities_state.cities[c].capital = false;
     // With no capital of my own and nobody else holding one, the
     // original's `find_capital` still answers "me", so nothing changes.
     assert!(value(&mut sim, 0, c, t.market).is_some());
     // Player 1 holds a city that was mine.
     let c2 = city(&mut sim, &t, 1, 80, 40);
-    sim.cities[c2].was_capital |= 1;
+    sim.cities_state.cities[c2].was_capital |= 1;
     assert!(value(&mut sim, 0, c, t.barracks).is_some());
     assert!(value(&mut sim, 0, c, t.market).is_none());
     assert!(value(&mut sim, 0, c, t.farm).is_none());
     // And a capital of my own puts everything back.
-    sim.cities[c].capital = true;
+    sim.cities_state.cities[c].capital = true;
     assert!(value(&mut sim, 0, c, t.market).is_some());
 }
 
@@ -416,7 +416,7 @@ fn an_enhancer_needs_three_filled_slots_of_its_own_good() {
         let u = sim.add_unit(u);
         sim.buildings[b].gatherers.push(u);
     }
-    assert_eq!(sim.cities[c].members.len(), 3);
+    assert_eq!(sim.cities_state.cities[c].members.len(), 3);
     let g = value(&mut sim, 0, c, t.granary).expect("three filled slots want a granary");
     assert_eq!(g.cat, 4, "an enhancer is an economy entry");
     // v = 1000 (level) × 4/3 (open ground) × n² with n = 3 filled slots;
@@ -541,7 +541,7 @@ fn a_temple_near_a_marked_border_cell_is_worth_ten_times() {
         near.val,
         plain.val
     );
-    sim.cities[c].no_heal = true;
+    sim.cities_state.cities[c].no_heal = true;
     let hurt = value(&mut sim, 0, c, t.temple).expect("still listed");
     // A `no_heal` city is also worth a hundredth outside the arm.
     assert!(
@@ -567,7 +567,10 @@ fn the_gather_multiplier_saturates_at_one() {
     // base = ((pop·7000)/cities + level·3000 + open·4000) × infra/256,
     // ×5 for the first farm and ×10 for a city with no members yet, then
     // the tail's ×4/3 and a divisor of one.
-    assert!(sim.cities[c].capital, "the first city is the capital");
+    assert!(
+        sim.cities_state.cities[c].capital,
+        "the first city is the capital"
+    );
     let open = 40 - 1;
     let base = (10 * 7000 + 3000 + open * 4000) * 5 * 10 / 2;
     assert_eq!(f.val, base * 4 / 3);

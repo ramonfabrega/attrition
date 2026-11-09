@@ -48,7 +48,7 @@ fn fix() -> Fix {
         }
     }
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    sim.nation[1].human = false;
+    sim.cities_state.nation[1].human = false;
     let dock = sim.add_build_type(BuildType {
         ident: Ident::Dock,
         x_size: 4,
@@ -1386,7 +1386,7 @@ fn a_passenger_put_ashore_takes_the_boat_s_ring_and_the_boat_s_orders() {
 /// computer player: the rider's `orders_x/y` and its guys' speeds.
 fn ashore(human: bool, avg: i32) -> (Fix, usize, Pos) {
     let mut f = fix();
-    f.sim.nation[1].human = human;
+    f.sim.cities_state.nation[1].human = human;
     let b = barge(&mut f.sim);
     f.sim.tables.unit_types[f.scout].combat.uber_size = 1;
     f.sim.tables.unit_types[f.scout].combat.block_radius = 48;

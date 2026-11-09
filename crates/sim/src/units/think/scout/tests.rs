@@ -26,8 +26,8 @@ fn scout_sim(fog: bool) -> (Sim, usize, usize) {
         assert!(world.set_fog(vec![0; 80 * 80]));
     }
     let mut s = Sim::new(Tuning::RON, world, 2);
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities_state.nation[0].human = true;
+    s.cities_state.nation[1].human = false;
     let t = s.add_unit_type(crate::UnitType {
         hits: 20,
         moves: 40,
@@ -37,7 +37,7 @@ fn scout_sim(fog: bool) -> (Sim, usize, usize) {
 
     let centre = Pos::new(20 * 768 + 384, 20 * 768 + 384);
     let bldg = s.add_building(1, centre, 4);
-    s.cities.push(crate::city::City {
+    s.cities_state.cities.push(crate::city::City {
         alive: true,
         owner: 1,
         race: Some(1),
@@ -326,7 +326,7 @@ fn a_computers_spy_explores_by_the_region_scan() {
 #[test]
 fn a_leader_with_no_city_scans_its_whole_region() {
     let (mut s, ai, _) = scout_sim(true);
-    s.cities[0].alive = false;
+    s.cities_state.cities[0].alive = false;
     let region = s
         .world
         .region_of(s.units[ai].pos.cell())
@@ -692,15 +692,15 @@ fn a_rival_s_cell_is_doubled_until_the_two_have_met() {
         scan.score
     };
     let unmet = score(&mut s);
-    s.nation[0].human = false;
+    s.cities_state.nation[0].human = false;
     let unmet_computer = score(&mut s);
-    s.nation[0].human = true;
+    s.cities_state.nation[0].human = true;
     s.treaty_on(1, 0, 1);
     let met = score(&mut s);
     assert!(met > 0 && met < NOTHING, "the cell is a candidate: {met}");
     assert_eq!(unmet, 2 * met, "a human stranger's cell counts double");
     assert_eq!(unmet_computer, 4 * met, "a computer stranger's four times");
-    s.nation[0].human = false;
+    s.cities_state.nation[0].human = false;
     assert_eq!(score(&mut s), met, "and a met computer's not at all");
 }
 
@@ -721,8 +721,8 @@ fn a_sea_scout_with_nothing_to_see_joins_the_nearest_sea_army() {
     let mut world = World::new(40, 40);
     let sea = world.fill_region(Terrain::Sea, Cell::new(0, 0), Cell::new(39, 39));
     let mut s = Sim::new(Tuning::RON, world, 2);
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities_state.nation[0].human = true;
+    s.cities_state.nation[1].human = false;
     let t = s.add_unit_type(crate::UnitType {
         hits: 20,
         moves: 40,
@@ -759,7 +759,7 @@ fn a_sea_scout_with_nothing_to_see_joins_the_nearest_sea_army() {
 #[test]
 fn a_region_of_under_a_hundred_cells_draws_no_offset() {
     let (mut s, ai, _) = scout_sim(true);
-    s.cities[0].alive = false;
+    s.cities_state.cities[0].alive = false;
     // A region of ten cells around the scout, and the rest of the grid
     // moved to a second one so `region_size` sees only these.
     let small = s.world.add_region(Terrain::Land);

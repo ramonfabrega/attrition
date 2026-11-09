@@ -436,10 +436,12 @@ impl Sim {
             return self.produce_city(who, t, m.wx, m.wy, m.escrow);
         }
         // An ordinary building or a wonder, placed near a city of mine.
-        let Some(c) = city.filter(|&c| c < self.cities.len() && self.cities[c].alive) else {
+        let Some(c) = city
+            .filter(|&c| c < self.cities_state.cities.len() && self.cities_state.cities[c].alive)
+        else {
             return false;
         };
-        let centre = self.cities[c].building;
+        let centre = self.cities_state.cities[c].building;
         let reg = self
             .buildings
             .get(centre)
@@ -890,7 +892,7 @@ impl Sim {
     /// sites, or send a builder.
     pub fn check_orphaned_buildings(&mut self, who: Player) {
         let w = who as usize;
-        if self.nation[w].human {
+        if self.cities_state.nation[w].human {
             return;
         }
         // SEAM: the first arm — a building whose `build_masks & 1` (the

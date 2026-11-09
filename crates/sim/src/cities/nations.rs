@@ -172,7 +172,7 @@ impl Sim {
                 .tech_tree
                 .has_tribe_bonus(&self.tables.setup, &self.tech[w], n)
         });
-        let n = &mut self.nation[w];
+        let n = &mut self.cities_state.nation[w];
         n.aztecs = on[0];
         n.maya = on[1];
         n.inca = on[2];
@@ -225,16 +225,16 @@ impl Sim {
         let root = self.base_build_type(rec);
         let w = who as usize;
         // Gaia owns buildings in some fixtures and has no leader record.
-        if w >= self.building_high.len() {
+        if w >= self.cities_state.building_high.len() {
             return;
         }
-        if self.building_high[w].len() <= root {
-            self.building_high[w].resize(root + 1, 0);
+        if self.cities_state.building_high[w].len() <= root {
+            self.cities_state.building_high[w].resize(root + 1, 0);
         }
-        if self.building_high[w][root] >= n || captured {
+        if self.cities_state.building_high[w][root] >= n || captured {
             return;
         }
-        self.building_high[w][root] = n;
+        self.cities_state.building_high[w][root] = n;
         if counted {
             self.free_units_for(b, rec);
         }

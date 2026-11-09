@@ -143,7 +143,7 @@ impl Sim {
         let me = who as usize;
         // The head: a human (`leader_flags & 4`) and `ai off` return.
         // SEAM: `semaphore[1] & 2`, which also returns, is not carried.
-        if self.nation[me].human || self.ai_off {
+        if self.cities_state.nation[me].human || self.ai_off {
             return;
         }
         let players = self.territory.players.len().min(8);
@@ -207,11 +207,13 @@ impl Sim {
 
         // My cities of the target's race, and the target's of mine.
         let mine_theirs = self
+            .cities_state
             .cities
             .iter()
             .filter(|c| c.alive && c.owner as usize == me && c.race == Some(t as Player))
             .count();
         let theirs_mine = self
+            .cities_state
             .cities
             .iter()
             .filter(|c| c.alive && c.owner as usize == t && c.race == Some(me as Player))
@@ -229,6 +231,7 @@ impl Sim {
                 continue;
             }
             founded_by_me += self
+                .cities_state
                 .cities
                 .iter()
                 .filter(|c| c.alive && c.owner as usize == k && c.founder as usize == me)
@@ -323,7 +326,7 @@ impl Sim {
             strong += self.ai[me].census.invaders.get(t).copied().unwrap_or(0);
         }
         let diff = self.ai_difficulty();
-        let target_human = self.nation[t].human;
+        let target_human = self.cities_state.nation[t].human;
         if target_human {
             if diff >= 4 {
                 strong += 2;

@@ -2043,6 +2043,7 @@ mod tests {
             fin.cities.iter().map(|c| (c.who, c.x, c.y)).collect();
         let mut ours: Vec<(i64, i64, i64)> = built
             .sim
+            .cities_state
             .cities
             .iter()
             .filter(|c| c.alive)
@@ -2056,13 +2057,14 @@ mod tests {
             "the human holds no building at the closing"
         );
         pin_eq!(
-            built.sim.city_tally[1].captured,
+            built.sim.cities_state.city_tally[1].captured,
             1,
             "the army took one city, the human's"
         );
         pin_eq!(
             built
                 .sim
+                .cities_state
                 .cities
                 .iter()
                 .filter(|c| c.alive && (c.pos.x, c.pos.y) == (6240, 30048))

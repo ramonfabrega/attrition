@@ -181,7 +181,7 @@ impl Sim {
     /// both still pair with.
     fn find_trade_city(&self, who: Player, at: Pos) -> Option<usize> {
         let mut best: Option<(usize, i32)> = None;
-        for (i, c) in self.cities.iter().enumerate() {
+        for (i, c) in self.cities_state.cities.iter().enumerate() {
             if !c.alive || !self.is_ally(who, c.owner) {
                 continue;
             }
@@ -200,7 +200,7 @@ impl Sim {
     /// `Search::valid_filter`'s `FILTER_CAN_TRADE` arm: is there any allied
     /// city this one could still be paired with.
     fn city_can_trade(&self, who: Player, city: usize) -> bool {
-        (0..self.cities.len()).any(|o| o != city && self.trade_pair_free(who, city, o))
+        (0..self.cities_state.cities.len()).any(|o| o != city && self.trade_pair_free(who, city, o))
     }
 
     /// Both halves of the pairing test, which every caller makes together:
@@ -211,7 +211,7 @@ impl Sim {
     /// city's `vans` list that name the other city and answers `1 − count`,
     /// so a pair of cities carries at most one route.
     fn trade_pair_free(&self, who: Player, city: usize, other: usize) -> bool {
-        let b = &self.cities[other];
+        let b = &self.cities_state.cities[other];
         if !b.alive || !self.is_ally(who, b.owner) {
             return false;
         }
@@ -241,7 +241,7 @@ impl Sim {
     /// it is `crate::scout`'s. Every capture's cities are its own or in
     /// sight, so the two have not been told apart.
     fn city_is_seen(&self, city: usize, who: Player) -> bool {
-        let c = &self.cities[city];
+        let c = &self.cities_state.cities[city];
         c.owner == who || self.was_seen_fog(c.pos.tile().x >> 1, c.pos.tile().y >> 1, who)
     }
 
@@ -291,7 +291,7 @@ impl Sim {
         let Some(Body::Trade(mut ord)) = self.current_order(u).map(|o| o.body) else {
             return;
         };
-        if !self.cities[ord.home].alive {
+        if !self.cities_state.cities[ord.home].alive {
             self.kill_current_order(u);
             return;
         }
@@ -301,7 +301,9 @@ impl Sim {
         // original's three region tests (`docs/CARAVAN.md` §11) each ask
         // `can_transport` only when the two regions differ.
         let at = self.world.tregion_alt(self.units[u].pos.tile());
-        let home_at = self.world.tregion_alt(self.cities[ord.home].pos.tile());
+        let home_at = self
+            .world
+            .tregion_alt(self.cities_state.cities[ord.home].pos.tile());
         let transport = self.unit_can_transport(u);
         if at != home_at && !transport {
             self.kill_current_order(u);
@@ -322,7 +324,9 @@ impl Sim {
         // **The pair, on every call** (`get_tregion` returning at
         // `005ed920`): the caravan off its home's region, or the far city
         // off it, needs `can_transport`.
-        let dest_at = self.world.tregion_alt(self.cities[dest].pos.tile());
+        let dest_at = self
+            .world
+            .tregion_alt(self.cities_state.cities[dest].pos.tile());
         if (at != home_at || home_at != dest_at) && !transport {
             self.kill_current_order(u);
             return;
@@ -335,12 +339,12 @@ impl Sim {
         // and the further its `city3`.
         let here = self.units[u].pos;
         let da = crate::world::vector_dist(
-            self.cities[ord.home].pos.x - here.x,
-            self.cities[ord.home].pos.y - here.y,
+            self.cities_state.cities[ord.home].pos.x - here.x,
+            self.cities_state.cities[ord.home].pos.y - here.y,
         );
         let db = crate::world::vector_dist(
-            self.cities[dest].pos.x - here.x,
-            self.cities[dest].pos.y - here.y,
+            self.cities_state.cities[dest].pos.x - here.x,
+            self.cities_state.cities[dest].pos.y - here.y,
         );
         let (a, b) = if da < db {
             (ord.home, dest)
@@ -381,7 +385,7 @@ impl Sim {
         // with the destination less the unit's own point (`616edc`..`616f1f`).
         // run357's block 5774 reads it: 546111488 on `1/33`'s move.
         if self.caravan_build_road(who, v) < 0 {
-            let to = self.cities[a].pos;
+            let to = self.cities_state.cities[a].pos;
             self.add_move_order(
                 u,
                 to,
@@ -419,7 +423,7 @@ impl Sim {
         // checks `is_active_wallbuild` and the vtable's own "am I a city",
         // which is how a route survives its city being replaced in the
         // slot; this crate holds the city index and asks the city.
-        if !self.cities[home].alive || !self.cities[dest].alive {
+        if !self.cities_state.cities[home].alive || !self.cities_state.cities[dest].alive {
             self.kill_current_order(u);
             if self.current_order(u).is_none() {
                 self.think_caravan(u);
@@ -429,7 +433,7 @@ impl Sim {
         let target = if ord.loaded { home } else { dest };
         let span = self.city_span(target);
         let here = self.units[u].pos;
-        let c = self.cities[target].pos;
+        let c = self.cities_state.cities[target].pos;
         if (here.x - c.x).abs() <= span + 0x306 && (here.y - c.y).abs() <= span + 0x306 {
             ord.loaded = !ord.loaded;
             self.set_trade_order(u, ord);
@@ -440,7 +444,7 @@ impl Sim {
             // A **decoy** does none of the rest: `unit_masks & 1`.
             if !self.units[u].decoy {
                 if ord.loaded {
-                    self.city_new_caravan(dest, self.cities[home].owner, home);
+                    self.city_new_caravan(dest, self.cities_state.cities[home].owner, home);
                 } else {
                     // The home city is where a round trip closes, and the
                     // only place `caravan_flags & 4` is written — which is
@@ -449,7 +453,7 @@ impl Sim {
                     self.caravans[who as usize].slots[v].delivered = true;
                     self.compute_trade(home);
                     self.compute_trade(dest);
-                    self.city_new_caravan(home, self.cities[dest].owner, dest);
+                    self.city_new_caravan(home, self.cities_state.cities[dest].owner, dest);
                 }
             }
         }
@@ -537,7 +541,7 @@ impl Sim {
     /// own point. No traced game reaches the arm: a route whose `build_road`
     /// answered 0 has no caravan on it.
     fn trade_walk_no_road(&mut self, u: usize, city: usize, span: i32) {
-        let to = self.cities[city].pos;
+        let to = self.cities_state.cities[city].pos;
         let here = self.units[u].pos;
         if crate::world::vector_dist((to.x - here.x).abs(), (to.y - here.y).abs()) > span + 0xc6 {
             return;
@@ -555,7 +559,7 @@ impl Sim {
     /// original's `local_38`, half a footprint in world units, and what the
     /// arrival box is measured out from.
     fn city_span(&self, city: usize) -> i32 {
-        let b = self.cities[city].building;
+        let b = self.cities_state.cities[city].building;
         self.buildings[b].ty.map_or(0, |ty| {
             let t = &self.tables.build_types[ty];
             if t.x_size > t.y_size {
@@ -580,10 +584,10 @@ impl Sim {
     /// below its mark for the routes with an end here. An end's leader is
     /// the city's owner today.
     pub(crate) fn compute_trade(&mut self, city: usize) {
-        let was = self.cities[city].trade_val;
-        let owner = self.cities[city].owner;
+        let was = self.cities_state.cities[city].trade_val;
+        let owner = self.cities_state.cities[city].owner;
         let end = |c: Option<usize>| match c {
-            Some(c) => (c as i32, self.cities[c].owner as i32),
+            Some(c) => (c as i32, self.cities_state.cities[c].owner as i32),
             None => (-1, 0),
         };
         let routes: Vec<TradeRoute> = self
@@ -600,11 +604,11 @@ impl Sim {
         let val = compute_trade_steps(
             owner as i32,
             routes,
-            |c, _| self.cities[c as usize].alive,
+            |c, _| self.cities_state.cities[c as usize].alive,
             |e, o| self.trade_value(e.0 as usize, o.0 as usize),
         );
         let val = i32::from(val);
-        self.cities[city].trade_val = val;
+        self.cities_state.cities[city].trade_val = val;
         if was != val {
             self.economy_changed(owner);
         }
@@ -630,12 +634,12 @@ impl Sim {
             return;
         };
         let mask = 1u32 << bit;
-        if self.cities[city].traded_with[w] & mask != 0 {
+        if self.cities_state.cities[city].traded_with[w] & mask != 0 {
             return;
         }
-        self.cities[city].traded_with[w] |= mask;
+        self.cities_state.cities[city].traded_with[w] |= mask;
         let level = self.tech[w].epoch[crate::tech::Line::Commerce.index()] + 1;
-        let pay = if who == self.cities[city].owner {
+        let pay = if who == self.cities_state.cities[city].owner {
             level * 10
         } else {
             level * 20
@@ -655,11 +659,13 @@ impl Sim {
     /// home city is the caravan owner's own.
     fn pick_trade_partner(&mut self, u: usize, home: usize) -> Option<usize> {
         let who = self.units[u].owner;
-        let home_at = self.world.tregion_alt(self.cities[home].pos.tile());
+        let home_at = self
+            .world
+            .tregion_alt(self.cities_state.cities[home].pos.tile());
         let transport = self.unit_can_transport(u);
-        let mine = self.cities[home].owner == who;
+        let mine = self.cities_state.cities[home].owner == who;
         let mut best: Option<(usize, i32)> = None;
-        for other in 0..self.cities.len() {
+        for other in 0..self.cities_state.cities.len() {
             if other == home || !self.trade_pair_free(who, home, other) {
                 continue;
             }
@@ -668,7 +674,12 @@ impl Sim {
             // region than the **home city's** is admitted when the caravan
             // `can_transport`. East Indies' London and
             // Newcastle are regions 11 and 5, and the AI's caravan crosses.
-            if self.world.tregion_alt(self.cities[other].pos.tile()) != home_at && !transport {
+            if self
+                .world
+                .tregion_alt(self.cities_state.cities[other].pos.tile())
+                != home_at
+                && !transport
+            {
                 continue;
             }
             // `5ed65a`: the caravan's own home goes in `ecx`/`edx` when the
@@ -699,10 +710,13 @@ impl Sim {
         // `rare_conquest`, bit 6) — Great Sahara's who=1 holds Spice, and
         // its two cities' routes went 22 → 26 on 14660 (`docs/CARAVAN.md`
         // §4).
-        let lead = self.cities[a].owner;
+        let lead = self.cities_state.cities[a].owner;
         trade_value_steps(
-            (self.cities[a].pos, self.cities[b].pos),
-            lead != self.cities[b].owner,
+            (
+                self.cities_state.cities[a].pos,
+                self.cities_state.cities[b].pos,
+            ),
+            lead != self.cities_state.cities[b].owner,
             |pa, pb| self.trade_distance(pa, pb),
             |end_a| self.city_trade_value(if end_a { a } else { b }),
             |bonus| {
@@ -747,7 +761,7 @@ impl Sim {
     /// scored eight (`docs/CARAVAN.md` §3.1).
     fn city_trade_value(&self, c: usize) -> i32 {
         let n = self.num_buildings(c);
-        let Some(ty) = self.buildings[self.cities[c].building].ty else {
+        let Some(ty) = self.buildings[self.cities_state.cities[c].building].ty else {
             return n;
         };
         // `TOWN` (0x19f) is the Large City; `METROPOLIS` (0x1a0) and
@@ -804,11 +818,14 @@ impl Sim {
             self.clear_temp_road(who, v);
             return 0;
         };
-        if !self.cities[a].alive || !self.cities[b].alive {
+        if !self.cities_state.cities[a].alive || !self.cities_state.cities[b].alive {
             self.clear_temp_road(who, v);
             return 0;
         }
-        let ends = (self.cities[a].building, self.cities[b].building);
+        let ends = (
+            self.cities_state.cities[a].building,
+            self.cities_state.cities[b].building,
+        );
         // The three-way gate at `build_road`'s head: a parked search that
         // nothing has invalidated is **resumed**; anything else starts over,
         // and `clear_temp_road` throws the parked one away.

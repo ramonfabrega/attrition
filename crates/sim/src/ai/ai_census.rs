@@ -212,7 +212,7 @@ impl Sim {
     fn census_find_city(&self, who: Player, at: Pos) -> Option<(usize, i32)> {
         let reg = self.world.region_of(at.cell());
         let mut best: Option<(usize, i32)> = None;
-        for (i, c) in self.cities.iter().enumerate() {
+        for (i, c) in self.cities_state.cities.iter().enumerate() {
             if !c.alive || c.owner != who || c.reg != reg {
                 continue;
             }
@@ -299,7 +299,7 @@ impl Sim {
         let regions = self.world.region_count();
         let players = self.territory.players.len();
         self.ai[w].census.resize(regions, players);
-        let n = self.cities.len();
+        let n = self.cities_state.cities.len();
         self.ai[w].city_ai.resize(n, CityAi::default());
 
         self.census_escrow_rate(who);
@@ -320,7 +320,7 @@ impl Sim {
         // Step 16, the army seeding (`docs/ARMY.md` §15): not for a human
         // leader without computer assist, `(leader_flags & 0xc) != 4`
         // (`plan_strategy@006b9620:1642`).
-        if !self.nation[w].human {
+        if !self.cities_state.nation[w].human {
             self.census_seed_army(who);
         }
     }
@@ -385,7 +385,7 @@ impl Sim {
         let w = who as usize;
         let mut mask = 1u32 << (w & 0x1f);
         for i in 0..self.territory.players.len() {
-            if i == w || self.defeated[i] || self.nation[i].human {
+            if i == w || self.defeated[i] || self.cities_state.nation[i].human {
                 continue;
             }
             if self.diplo_ally(w, i) && self.diplo_ally(i, w) {
@@ -982,14 +982,14 @@ impl Sim {
         let circle = crate::ai_place::circle();
         for c in self.cities_of(who) {
             let level = self.city_level_of(c);
-            let indians = self.nation[w].indians;
+            let indians = self.cities_state.nation[w].indians;
             let radius = radius_for_level(&self.tables.tuning, level, indians);
             let k = ((radius + 2) / 4) as usize;
-            let city_reg = self.cities[c].reg;
-            let centre = self.cities[c].pos.cell();
+            let city_reg = self.cities_state.cities[c].reg;
+            let centre = self.cities_state.cities[c].pos.cell();
 
             {
-                let pop = self.cities[c].pop;
+                let pop = self.cities_state.cities[c].pop;
                 let cs = &mut self.ai[w].census;
                 cs.city_pop_high = cs.city_pop_high.max(pop);
             }
@@ -1006,7 +1006,7 @@ impl Sim {
             if let Some(r) = city_reg {
                 self.ai[w].census.reg_gather_slots[r as usize] += slots;
             }
-            if self.cities[c].no_heal {
+            if self.cities_state.cities[c].no_heal {
                 self.ai[w].census.attacked += 1;
                 if let Some(r) = city_reg.filter(|r| self.region_is_land(*r)) {
                     self.ai[w].census.reg_attacked[r as usize] += 1;
@@ -1316,7 +1316,7 @@ impl Sim {
                     .and_then(|t| self.tables.build_types[t].tree);
                 let line = &self.tables.tech_tree.roles.wonder_line;
                 if let Some(k) = tree.and_then(|tr| line.iter().position(|&w| w == tr)) {
-                    self.wonders_built |= 1 << k;
+                    self.cities_state.wonders_built |= 1 << k;
                 }
             }
         }

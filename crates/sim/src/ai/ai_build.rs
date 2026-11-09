@@ -295,13 +295,15 @@ impl Sim {
     /// capital of its own and another leader holds a city that was one.
     fn capital_lost(&self, who: Player) -> bool {
         if self
+            .cities_state
             .cities
             .iter()
             .any(|c| c.alive && c.owner == who && c.capital)
         {
             return false;
         }
-        self.cities
+        self.cities_state
+            .cities
             .iter()
             .any(|c| c.alive && c.owner != who && c.was_capital & (1u64 << (who as u32)) != 0)
     }
@@ -362,7 +364,7 @@ impl Sim {
     /// The city loop's head — `create-buildings.md` §2.1. `None` when the
     /// city is skipped outright.
     fn city_facts(&self, who: Player, c: usize, ci: usize) -> Option<Facts> {
-        let city = &self.cities[c];
+        let city = &self.cities_state.cities[c];
         let b = city.building;
         // "No buildings for a city still assimilating after capture": the
         // record's `race` must already be the city building's owner.
@@ -511,7 +513,7 @@ impl Sim {
                 v /= reg_cities + 1;
             }
             if ident == Ident::Temple {
-                if !self.cities[f.c].capital && self.ai_difficulty() < 3 {
+                if !self.cities_state.cities[f.c].capital && self.ai_difficulty() < 3 {
                     return None;
                 }
                 let mut t = v.wrapping_mul(500);
@@ -532,7 +534,11 @@ impl Sim {
                 // `city_flags & 0x1000`: ×2, or ×10 while the city is not
                 // `no_heal` (`create_buildings:328`).
                 if self.ai[w].city_ai.get(f.c).is_some_and(|r| r.near_border) {
-                    t = t.wrapping_mul(if self.cities[f.c].no_heal { 2 } else { 10 });
+                    t = t.wrapping_mul(if self.cities_state.cities[f.c].no_heal {
+                        2
+                    } else {
+                        10
+                    });
                 }
                 v = t;
             }
@@ -809,7 +815,7 @@ impl Sim {
                     v = v.wrapping_mul(self.ai[w].infra_mod).wrapping_mul(10000) / 256;
                 }
                 if is_senate {
-                    if self.cities[f.c].no_heal || f.nb < 5 {
+                    if self.cities_state.cities[f.c].no_heal || f.nb < 5 {
                         return None;
                     }
                     v = if self.highest_epoch(who) > 2 {
@@ -864,10 +870,14 @@ impl Sim {
                 // (`create_buildings:847`). `& 0x8` still reads 0, so the
                 // halving always applies.
                 if self.ai[w].city_ai.get(f.c).is_some_and(|r| r.near_border) {
-                    x = x.wrapping_mul(if self.cities[f.c].no_heal { 2 } else { 10 });
+                    x = x.wrapping_mul(if self.cities_state.cities[f.c].no_heal {
+                        2
+                    } else {
+                        10
+                    });
                 }
                 x /= 2;
-                if self.cities[f.c].founder != who {
+                if self.cities_state.cities[f.c].founder != who {
                     x = x.wrapping_mul(3);
                 }
                 if self.city_unassimilated(f.c) {
@@ -883,7 +893,7 @@ impl Sim {
                             escrow = 1;
                             v = v.wrapping_mul(10);
                         }
-                        if self.cities[f.c].capital {
+                        if self.cities_state.cities[f.c].capital {
                             escrow = 1;
                         }
                     }
@@ -897,7 +907,7 @@ impl Sim {
                         escrow = 1;
                     }
                     // Central cities want forts.
-                    let cell = self.cities[f.c].pos.cell();
+                    let cell = self.cities_state.cities[f.c].pos.cell();
                     let (xs, ys) = (self.world.width(), self.world.height());
                     let dx = xs / 2 - cell.x;
                     let dy = ys / 2 - cell.y;
@@ -928,7 +938,7 @@ impl Sim {
         if v < 0 {
             v = if bt.wonder { 9_999_075 } else { 9_999_999 };
         }
-        if self.cities[f.c].no_heal
+        if self.cities_state.cities[f.c].no_heal
             && !self.is_defensive_type(rec)
             && (!self.is_trainer_type(rec) || self.city_count_line(f.c, rec, true) != 0)
         {
@@ -1050,7 +1060,7 @@ impl Sim {
                 base / 10
             };
         }
-        if self.cities[f.c].members.is_empty() {
+        if self.cities_state.cities[f.c].members.is_empty() {
             // The city building has no member below it yet.
             base = base.wrapping_mul(10);
         } else {
@@ -1067,7 +1077,7 @@ impl Sim {
                 base = base.wrapping_mul(2);
             }
         }
-        if self.cities[f.c].capital {
+        if self.cities_state.cities[f.c].capital {
             base /= 2;
         }
         let cat = 4;
@@ -1151,7 +1161,7 @@ impl Sim {
                 m = (k + floor).wrapping_mul(m0) / k;
             }
             found = true;
-            if self.ai[w].rate[g] < self.cities[f.c].pop * 20 {
+            if self.ai[w].rate[g] < self.cities_state.cities[f.c].pop * 20 {
                 m = m.wrapping_mul(2);
             }
             if g == worst {
@@ -1446,7 +1456,9 @@ impl Sim {
         escrow: i32,
     ) -> bool {
         let _ = escrow;
-        let Some(c) = city.filter(|&c| c < self.cities.len() && self.cities[c].alive) else {
+        let Some(c) = city
+            .filter(|&c| c < self.cities_state.cities.len() && self.cities_state.cities[c].alive)
+        else {
             return false;
         };
         let level = self.city_level_of(c).max(1);

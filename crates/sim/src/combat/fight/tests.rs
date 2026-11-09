@@ -1743,7 +1743,7 @@ fn a_bark_s_chase_retargets_to_a_fishing_boat_and_not_to_a_warship() {
 fn a_computer_s_raiding_ship_weighs_a_peasant_at_nothing_extra() {
     let weigh = |sea: bool, raid: bool, kind: u8| {
         let (mut sim, ty) = at_war();
-        sim.nation[0].human = false;
+        sim.cities_state.nation[0].human = false;
         let mut at = sim.tables.unit_types[ty].clone();
         if sea {
             at.combat.domain = Domain::Sea;
@@ -1785,7 +1785,7 @@ fn a_computer_s_raiding_ship_weighs_a_finished_building_at_zero() {
                     active: bool,
                     ident: Option<crate::build::Ident>| {
         let (mut sim, ty) = at_war();
-        sim.nation[0].human = human;
+        sim.cities_state.nation[0].human = human;
         let mut at = sim.tables.unit_types[ty].clone();
         at.combat.domain = Domain::Sea;
         at.kind.domain = Domain::Sea;
@@ -2315,7 +2315,7 @@ fn a_human_s_packed_siege_engine_unpacks_before_it_searches() {
     use crate::orders::{Body, spell};
     let catapult = |human: bool, stance: u8| {
         let (mut sim, _) = at_war();
-        sim.nation[0].human = human;
+        sim.cities_state.nation[0].human = human;
         let ty = sim.add_unit_type(crate::UnitType {
             hits: 100,
             combat: Profile {
@@ -2599,8 +2599,8 @@ fn the_one_in_five_retarget_freezes_the_frame() {
 #[test]
 fn the_one_in_five_re_search_runs_under_the_attack_move() {
     let (mut sim, ty) = at_war();
-    sim.nation[0].human = true;
-    sim.nation[1].human = false;
+    sim.cities_state.nation[0].human = true;
+    sim.cities_state.nation[1].human = false;
     let bt = sim.add_build_type(crate::build::BuildType {
         x_size: 2,
         y_size: 2,
@@ -2754,8 +2754,8 @@ fn a_candidate_in_another_region_is_taken_only_in_range() {
     // A soldier (`role & MILITARY`): its combat stance is its own byte,
     // not `get_combat_stance`'s STAND_GROUND default (item 2265).
     sim.tables.unit_types[ty].combat.combat_role = true;
-    sim.nation[0].human = true;
-    sim.nation[1].human = false;
+    sim.cities_state.nation[0].human = true;
+    sim.cities_state.nation[1].human = false;
     let land = sim.world.add_region(Terrain::Land);
     let sea = sim.world.add_region(Terrain::Sea);
     for x in 0..60 {
@@ -2798,7 +2798,7 @@ fn a_candidate_in_another_region_is_taken_only_in_range() {
     // A human's siege ship asks them (`unit_masks & 0x40000`, item
     // 1254: chapter forty-four's `0/6` against `1/2007`).
     let mut human = siege.clone();
-    human.nation[1].human = true;
+    human.cities_state.nation[1].human = true;
     assert_eq!(
         human.find_melee_target(far, -1),
         None,
@@ -2861,8 +2861,8 @@ fn an_attack_move_passes_over_an_unarmed_building() {
     // A soldier (`role & MILITARY`): its combat stance is its own byte,
     // not `get_combat_stance`'s STAND_GROUND default (item 2265).
     sim.tables.unit_types[ty].combat.combat_role = true;
-    sim.nation[0].human = true;
-    sim.nation[1].human = false;
+    sim.cities_state.nation[0].human = true;
+    sim.cities_state.nation[1].human = false;
     let bt = sim.add_build_type(crate::build::BuildType {
         x_size: 2,
         y_size: 2,
@@ -2918,7 +2918,7 @@ fn an_attack_move_passes_over_an_unarmed_building() {
         let t = s.add_unit_type(t);
         s.units[me].ty = Some(t);
         s.units[me].combat.stance = stance;
-        s.nation[1].human = human;
+        s.cities_state.nation[1].human = human;
         s.melee_search_flags(me)
     };
     assert_eq!(
@@ -2949,8 +2949,8 @@ fn an_attack_move_passes_over_an_unarmed_building() {
 #[test]
 fn a_ranged_chase_on_a_building_stops_at_the_edge_of_its_reach() {
     let (mut sim, ty) = at_war();
-    sim.nation[0].human = true;
-    sim.nation[1].human = false;
+    sim.cities_state.nation[0].human = true;
+    sim.cities_state.nation[1].human = false;
     let bt = sim.add_build_type(crate::build::BuildType {
         x_size: 2,
         y_size: 2,
@@ -3047,8 +3047,8 @@ fn a_unit_in_the_chaser_s_block_holds_its_chase_on_a_building() {
         },
         ..crate::UnitType::default()
     });
-    sim.nation[0].human = true;
-    sim.nation[1].human = false;
+    sim.cities_state.nation[0].human = true;
+    sim.cities_state.nation[1].human = false;
     let bt = sim.add_build_type(crate::build::BuildType {
         x_size: 2,
         y_size: 2,
@@ -3133,8 +3133,8 @@ fn a_unit_in_the_chaser_s_block_holds_its_chase_on_a_unit() {
         },
         ..crate::UnitType::default()
     });
-    sim.nation[0].human = true;
-    sim.nation[1].human = false;
+    sim.cities_state.nation[0].human = true;
+    sim.cities_state.nation[1].human = false;
     let at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);
     let foe = put(&mut sim, 0, ty, at);
     let me = put(&mut sim, 1, ty, at);
@@ -3450,7 +3450,7 @@ fn a_packed_computer_siege_engine_skips_what_it_cannot_reach() {
         ("easiest", false, 0, false),
     ] {
         let (mut sim, foe_ty) = at_war();
-        sim.nation[0].human = human;
+        sim.cities_state.nation[0].human = human;
         sim.lobby.difficulty = difficulty;
         let ty = sim.add_unit_type(crate::UnitType {
             hits: 100,
@@ -5620,7 +5620,7 @@ fn packed_ai_siege_takes_its_army_target_before_the_attack_move_search() {
         "hold fire",
     ] {
         let (mut sim, foe_ty) = at_war();
-        sim.nation[0].human = case == "human";
+        sim.cities_state.nation[0].human = case == "human";
         sim.lobby.difficulty = if case == "easiest" { 0 } else { 5 };
         let ty = sim.add_unit_type(crate::UnitType {
             hits: 100,
@@ -5681,7 +5681,7 @@ fn packed_ai_siege_takes_its_army_target_before_the_attack_move_search() {
 /// 0x1200), and a foe `distance` east of it as the army's target.
 fn idle_packed_engine(distance: i32, in_army: bool) -> (Sim, usize, usize) {
     let (mut sim, foe_ty) = at_war();
-    sim.nation[0].human = false;
+    sim.cities_state.nation[0].human = false;
     sim.lobby.difficulty = 5;
     let ty = sim.add_unit_type(crate::UnitType {
         hits: 100,
@@ -5825,7 +5825,7 @@ fn group_action_attack_s_member_search_takes_the_army_target() {
 fn an_idle_melee_and_ranged_type_searches_at_its_second_range() {
     for flagged in [true, false] {
         let (mut sim, foe_ty) = at_war();
-        sim.nation[0].human = false;
+        sim.cities_state.nation[0].human = false;
         sim.lobby.difficulty = 5;
         let mut ty = crate::UnitType {
             hits: 100,
@@ -5896,8 +5896,8 @@ fn a_mandatory_packer_chases_without_a_re_search() {
 /// enemy stacked above its `GUARD`.
 fn guard_on_post(enemy_at: Pos) -> (Sim, usize, usize) {
     let (mut sim, ty) = at_war();
-    sim.nation[0].human = true;
-    sim.nation[1].human = true;
+    sim.cities_state.nation[0].human = true;
+    sim.cities_state.nation[1].human = true;
     let mut t = sim.tables.unit_types[ty].clone();
     t.combat.max_range = 8;
     // A chariot is a combat unit (`role & 0x10000`), which is what puts
@@ -6050,7 +6050,7 @@ fn a_human_guard_does_not_answer_a_hit() {
     assert_eq!(sim.units[guard].combat.target, None);
 
     let (mut sim, guard, enemy) = guard_on_post(Pos::new(3384, 13896));
-    sim.nation[0].human = false;
+    sim.cities_state.nation[0].human = false;
     sim.target_opportunity(guard, Obj::Unit(enemy), 1091);
     assert_eq!(
         sim.units[guard].combat.target,

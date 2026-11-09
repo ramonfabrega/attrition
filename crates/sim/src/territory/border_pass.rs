@@ -92,9 +92,9 @@ impl Sim {
         if p == q || !(self.at_war_with(p, q) || self.at_war_with(q, p)) {
             return;
         }
-        let owner = self.cities[c].owner as usize;
+        let owner = self.cities_state.cities[c].owner as usize;
         let bits = (1i32 << (p & 31)) | (1i32 << (q & 31));
-        let at = self.cities[c].pos.cell();
+        let at = self.cities_state.cities[c].pos.cell();
         let near = (cell.x - at.x).abs() + (cell.y - at.y).abs() < 5;
         if let Some(a) = self.ai.get_mut(owner) {
             // A human's leader never sweeps, so its table starts short.

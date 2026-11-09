@@ -139,7 +139,7 @@ fn city_of(who: crate::Player) -> crate::city::City {
 #[test]
 fn a_rival_s_runner_up_marks_the_winning_city_s_bordering() {
     let mut sim = Sim::new(crate::Tuning::RON, rows(8, 1), 2);
-    sim.cities.push(city_of(1));
+    sim.cities_state.cities.push(city_of(1));
     sim.in_play = true;
     let run = |sim: &mut Sim, won: i32| {
         let before = sim.world.owners();

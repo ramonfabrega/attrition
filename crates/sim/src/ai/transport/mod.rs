@@ -1572,7 +1572,7 @@ impl Sim {
         // heading still — the dump's `dest_angle` 292814848 against
         // `angle` 165478400 on the same block says `set_angle` comes
         // after — which is step 1's value, kept below.
-        if !self.nation[usize::from(self.units[r].owner)].human
+        if !self.cities_state.nation[usize::from(self.units[r].owner)].human
             && !(0x32..=0x35).contains(&self.units[r].type_index)
         {
             self.units[r].orders_pos = at;

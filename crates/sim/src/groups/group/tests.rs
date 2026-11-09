@@ -10,8 +10,8 @@ fn sim() -> Sim {
         crate::world::World::new(60, 60),
         2,
     );
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities_state.nation[0].human = true;
+    s.cities_state.nation[1].human = false;
     s.at_war[0][1] = true;
     s.at_war[1][0] = true;
     s
@@ -727,7 +727,7 @@ fn find_leader_takes_the_lowest_type_cat_and_ties_to_the_first() {
     let archer = typed(&mut s, mask::FOOT, 0x600);
     let mounted = typed(&mut s, mask::MOUNTED, 0);
     let mech = typed(&mut s, mask::VEHICLE, 0);
-    let human = s.nation[1].human;
+    let human = s.cities_state.nation[1].human;
     assert_eq!(
         type_cat(&s.tables.unit_types[mech], mech, human),
         cat::FORM_CAT_MECH
@@ -2508,8 +2508,8 @@ fn a_hurrying_army_stables_its_siege_and_marches_the_rest() {
     let siege = siege_type(&mut s);
     let city_pos = Pos::new(0x4000, 0x4000);
     let bldg = s.add_building(1, city_pos, 4);
-    let c = s.cities.len();
-    s.cities.push(crate::city::City {
+    let c = s.cities_state.cities.len();
+    s.cities_state.cities.push(crate::city::City {
         alive: true,
         owner: 1,
         race: Some(1),
@@ -2926,8 +2926,8 @@ fn action_halt_skips_the_dead_the_absent_and_planes_and_the_mask_exempts_special
 #[test]
 fn a_human_s_stand_ground_kills_an_order_without_the_action_bit() {
     let mut s = sim();
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities_state.nation[0].human = true;
+    s.cities_state.nation[1].human = false;
     let t = fighter(&mut s);
     let found = spawn(&mut s, 0, t, Pos::new(0x1000, 0x1000));
     let given = spawn(&mut s, 0, t, Pos::new(0x1100, 0x1000));

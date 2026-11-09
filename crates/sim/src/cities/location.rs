@@ -570,6 +570,7 @@ impl SimLocation<'_> {
             return Vec::new();
         };
         self.sim
+            .cities_state
             .cities
             .iter()
             .enumerate()
@@ -747,7 +748,7 @@ impl LocationView for SimLocation<'_> {
             .in_enemy_territory(who as crate::Player, self.ty, self.corner)
     }
     fn has_tribe_bonus(&mut self, who: i32, bonus: i32) -> bool {
-        let n = &self.sim.nation[who as usize];
+        let n = &self.sim.cities_state.nation[who as usize];
         match bonus {
             0x13 => n.lakota,
             7 => n.egyptians,
@@ -773,7 +774,7 @@ impl LocationView for SimLocation<'_> {
     fn get_town(&mut self, _x: i32, _y: i32, who: i32) -> i32 {
         self.sim
             .get_town(who as crate::Player, self.ty, self.pos)
-            .map_or(-1, |c| self.sim.cities[c].building as i32)
+            .map_or(-1, |c| self.sim.cities_state.cities[c].building as i32)
     }
     fn count_water(&mut self) -> i32 {
         self.sim.count_water(self.ty, self.corner)
@@ -829,24 +830,30 @@ impl LocationView for SimLocation<'_> {
     }
 
     fn city_alive(&self, i: i32, j: i32) -> bool {
-        self.sim.cities[self.city_at(i, j)].alive
+        self.sim.cities_state.cities[self.city_at(i, j)].alive
     }
     fn city_reg(&self, i: i32, j: i32) -> i32 {
-        self.sim.cities[self.city_at(i, j)]
+        self.sim.cities_state.cities[self.city_at(i, j)]
             .reg
             .map_or(-1, i32::from)
     }
     fn city_tx(&self, i: i32, j: i32) -> i32 {
-        self.sim.cities[self.city_at(i, j)].pos.tile().x
+        self.sim.cities_state.cities[self.city_at(i, j)]
+            .pos
+            .tile()
+            .x
     }
     fn city_ty(&self, i: i32, j: i32) -> i32 {
-        self.sim.cities[self.city_at(i, j)].pos.tile().y
+        self.sim.cities_state.cities[self.city_at(i, j)]
+            .pos
+            .tile()
+            .y
     }
     fn city_owner(&self, i: i32, j: i32) -> i32 {
-        i32::from(self.sim.cities[self.city_at(i, j)].owner)
+        i32::from(self.sim.cities_state.cities[self.city_at(i, j)].owner)
     }
     fn city_bld(&self, i: i32, j: i32) -> i32 {
-        self.sim.cities[self.city_at(i, j)].building as i32
+        self.sim.cities_state.cities[self.city_at(i, j)].building as i32
     }
     fn object_type(&self, _owner: i32, idx: i32) -> i32 {
         usize::try_from(idx)
@@ -893,13 +900,14 @@ impl LocationView for SimLocation<'_> {
     fn bd_city(&self, b: usize) -> i32 {
         let Some(c) = self
             .sim
+            .cities_state
             .cities
             .iter()
             .position(|c| c.building == b || c.members.contains(&b))
         else {
             return 0;
         };
-        let owner = i32::from(self.sim.cities[c].owner);
+        let owner = i32::from(self.sim.cities_state.cities[c].owner);
         self.owner_cities(owner)
             .iter()
             .position(|&x| x == c)

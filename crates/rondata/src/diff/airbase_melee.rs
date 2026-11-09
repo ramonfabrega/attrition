@@ -95,6 +95,7 @@ fn airbase_melee_staging_walk() {
             Some(who),
         );
         let capital = s
+            .cities_state
             .cities
             .iter()
             .position(|c| c.alive && c.owner == who && c.capital);

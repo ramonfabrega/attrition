@@ -10,8 +10,8 @@ fn sim() -> Sim {
         crate::world::World::new(200, 200),
         2,
     );
-    s.nation[0].human = true;
-    s.nation[1].human = false;
+    s.cities_state.nation[0].human = true;
+    s.cities_state.nation[1].human = false;
     s
 }
 

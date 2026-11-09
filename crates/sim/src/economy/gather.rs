@@ -435,7 +435,7 @@ impl Sim {
         }
         // `calc_gather@00639e40`: positive timber capacity takes the
         // French term before the access cap. Empty/taken ground stays so.
-        if slots > 0 && timber && self.nation[who as usize].french {
+        if slots > 0 && timber && self.cities_state.nation[who as usize].french {
             slots += self.tables.tuning.french_woodies;
         }
         // The wonder additions (`taj_farms`, `kremlin_farms`) remain unmodelled.
