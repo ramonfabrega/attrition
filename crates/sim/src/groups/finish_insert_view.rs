@@ -24,15 +24,15 @@
 /// `QUEUE_LAST`.
 pub const QUEUE_LAST: i32 = 1;
 /// `OrderIndex`'s `MOVE_TO`.
-pub const MOVE_TO: i32 = 1;
+const MOVE_TO: i32 = crate::ids::order::MOVE_TO as i32;
 /// `ATTACK_TO`.
-pub const ATTACK_TO: i32 = 2;
+const ATTACK_TO: i32 = crate::ids::order::ATTACK_TO as i32;
 /// `EXPLORE_TO`.
-pub const EXPLORE_TO: i32 = 3;
+const EXPLORE_TO: i32 = crate::ids::order::EXPLORE_TO as i32;
 /// `FLEE_TO`.
-pub const FLEE_TO: i32 = 4;
+const FLEE_TO: i32 = crate::ids::order::FLEE_TO as i32;
 /// `REPAIR`.
-pub const REPAIR: i32 = 0xd;
+const REPAIR: i32 = crate::ids::order::REPAIR as i32;
 
 /// What `finish_insert` reads and calls. Slots are the order's vtable
 /// offsets; `word(slot, off)` is the 32-bit word at `off` of the record that

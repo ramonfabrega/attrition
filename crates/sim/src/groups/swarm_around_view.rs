@@ -20,11 +20,11 @@
 use crate::garrison_view::{GarrisonHead, garrison_head};
 
 /// `OrderIndex::BUILD_AT`.
-pub const BUILD_AT: i32 = 6;
+const BUILD_AT: i32 = crate::ids::order::BUILD_AT as i32;
 /// `OrderIndex::GATHER`.
-pub const GATHER: i32 = 7;
+const GATHER: i32 = crate::ids::order::GATHER as i32;
 /// `OrderIndex::REPAIR`.
-pub const REPAIR: i32 = 0xd;
+const REPAIR: i32 = crate::ids::order::REPAIR as i32;
 
 /// The head of `Group::action_swarm_around`: the scratch group's clear, the
 /// two refusals (the group is off the map, the site is gone), the scenario's

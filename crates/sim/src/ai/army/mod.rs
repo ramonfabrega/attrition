@@ -3880,7 +3880,7 @@ impl crate::army_process_view::ArmyProcessView for SimProcess<'_> {
         self.s.use_scouts(self.who, self.slot);
     }
     fn send_here(&mut self, p: Pos, kind: i32) {
-        let kind = if kind == crate::army_process_view::ATTACK_TO {
+        let kind = if kind == crate::orders::index::ATTACK_TO as i32 {
             MoveKind::AttackTo
         } else {
             MoveKind::MoveTo

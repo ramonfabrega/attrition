@@ -242,7 +242,7 @@ impl crate::finish_insert_view::FinishInsertView for SimInsert<'_> {
         let Some(now) = self.sim.building_by_o(bd.owner, bd.index) else {
             return;
         };
-        let body = if a[3] == crate::finish_insert_view::REPAIR {
+        let body = if a[3] == crate::orders::index::REPAIR as i32 {
             Body::Repair(now)
         } else {
             Body::Build(now)
@@ -2417,9 +2417,9 @@ impl Sim {
             return;
         };
         let order = if matches!(body, Body::Repair(_)) {
-            crate::swarm_around_view::REPAIR
+            crate::orders::index::REPAIR as i32
         } else {
-            crate::swarm_around_view::BUILD_AT
+            crate::orders::index::BUILD_AT as i32
         };
         let queue = match pos {
             QueuePos::First => 0,

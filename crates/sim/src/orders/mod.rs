@@ -29,64 +29,7 @@ use crate::{Player, Pos, Sim, Unit, farms};
 
 /// `OrderIndex` — the value the gamelog's `type` line carries.
 pub mod index {
-    pub const NONE: u8 = 0;
-    pub const MOVE_TO: u8 = 1;
-    pub const ATTACK_TO: u8 = 2;
-    pub const EXPLORE_TO: u8 = 3;
-    pub const FLEE_TO: u8 = 4;
-    pub const BUILD_AT: u8 = 6;
-    pub const GATHER: u8 = 7;
-    pub const ATTACK: u8 = 10;
-    /// `FollowOrder` — [`super::Body::Follow`], issued by
-    /// `Group::action_follow@006fd510` from a player's follow command
-    /// (`docs/ORDERS.md` §28).
-    pub const FOLLOW: u8 = 11;
-    /// `GuardOrder` — [`super::Body::Guard`], issued by
-    /// `Group::action_guard` (`docs/ORDERS.md` §7.5, §24) and read by
-    /// `UnitData::get_speed`'s order scale (`docs/MOVEMENT.md`, "The
-    /// effective speed here, now").
-    pub const GUARD: u8 = 12;
-    pub const REPAIR: u8 = 13;
-    pub const CAST_SPELL: u8 = 14;
-    pub const TRADE_ROUTE: u8 = 15;
-    pub const GARRISON: u8 = 26;
-    pub const THINK: u8 = 27;
-
-    /// The three kinds of the **move family** this crate does not spell as
-    /// a plain `MoveKind`. `CHANGE_FORM` is `FormOrder`, which this crate
-    /// has no order for at all; the other two are what the original calls
-    /// a move whose `MoveOrder` carries a [`super::GroupMove`], and
-    /// [`super::Order::index`] returns them because `get_type()` does
-    /// (`GroupMoveOrder::get_type@00485a10` → `GROUP_MOVE`,
-    /// `GroupAttackToOrder::get_type@004825b0` → `GROUP_ATTACK_TO`).
-    pub const CHANGE_FORM: u8 = 18;
-    pub const GROUP_MOVE: u8 = 19;
-    pub const GROUP_ATTACK_TO: u8 = 21;
-    /// `GroupPatrolOrder` — [`super::Body::Patrol`]. `PATROL` (5) is a
-    /// class that is never constructed alone: `Unit::add_patrol_order@
-    /// 005e4560` asks `OrdersMemManager::get_obj` for `GROUP_PATROL` and
-    /// nothing else (`docs/ORDERS.md` §7.7, §27).
-    pub const GROUP_PATROL: u8 = 22;
-    /// `AttackGroundOrder` — [`super::Body::AttackGround`], which this
-    /// crate issues from one place: `Unit::fight`'s siege arm, an
-    /// unpacked packer's shot at a unit (`docs/COMBAT.md` §57).
-    pub const ATTACK_GROUND: u8 = 23;
-    /// `StrafeOrder` — [`super::Body::Strafe`], the one class
-    /// `CommandManager::issue_flight@00941d40` makes, through
-    /// `Unit::add_strafe_order@005e48c0` (`docs/ORDERS.md` §32). `AirOrder`
-    /// has no index of its own: it is this class's second base.
-    pub const STRAFE: u8 = 16;
-    /// `AirPatrolOrder` — [`super::Body::AirPatrol`], which this crate
-    /// makes in one place: `Unit::do_strafe`'s arm for a strike whose
-    /// target it may not take, `add_air_patrol_order` over the strike's
-    /// point (`docs/ORDERS.md` §34).
-    pub const AIR_PATROL: u8 = 17;
-    /// `AirAttackGroundOrder` — [`super::Body::AirAttackGround`], a
-    /// missile's strike: `Unit::add_strafe_order@005e48c0`'s head turns a
-    /// strafe of a missile type on a valid target into
-    /// `add_air_attack_ground_order@005e41c0` at the target's point
-    /// (`docs/PRODUCTION.md`, "The missile's launch and round").
-    pub const AIR_ATTACK_GROUND: u8 = 24;
+    pub use crate::ids::order::*;
 
     /// **The move family** — the seven kinds whose class derives from
     /// `MoveOrder`, which `kill_current_order`, `work`, `repath`,

@@ -39,8 +39,8 @@ pub const DEFENDING: i32 = 0x20;
 pub const TRANSPORTING: i32 = 0x40;
 
 /// The order `send_here` is given: the original's `1` and `2`.
-pub const MOVE_TO: i32 = 1;
-pub const ATTACK_TO: i32 = 2;
+const MOVE_TO: i32 = crate::ids::order::MOVE_TO as i32;
+const ATTACK_TO: i32 = crate::ids::order::ATTACK_TO as i32;
 
 /// Another army of the same leader, as the merge reads it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

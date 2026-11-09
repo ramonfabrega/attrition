@@ -31,7 +31,7 @@ pub const QUEUE_LAST: i32 = 1;
 /// `QUEUE_FIRST`.
 pub const QUEUE_FIRST: i32 = 0;
 /// `MOVE_TO`.
-pub const MOVE_TO: i32 = 1;
+const MOVE_TO: i32 = crate::ids::order::MOVE_TO as i32;
 
 /// What `Group::action_form` asks of the group, the objects and the units.
 /// `i` is a unit's index (the group's short at `+0x8cc`, or an answer).

@@ -28,7 +28,7 @@ pub use crate::path::{STEP_TILE, STEP_UNIT, STEP_WORLD};
 
 /// The `UnitOrder::get_type` of an attack (`ATTACK`), which `get_action`
 /// answers for an attacking unit.
-pub const ACTION_ATTACK: i32 = 10;
+const ACTION_ATTACK: i32 = crate::ids::order::ATTACK as i32;
 /// `OrderIndex::ATTACK_TO` and `GROUP_ATTACK_TO` (`UnitData::order_type`).
 pub const ORDER_ATTACK_TO: i32 = 2;
 pub const ORDER_GROUP_ATTACK_TO: i32 = 0x15;
