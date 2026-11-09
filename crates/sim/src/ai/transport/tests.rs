@@ -48,7 +48,7 @@ fn fix() -> Fix {
         }
     }
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    sim.cities_state.nation[1].human = false;
+    sim.cities.nation[1].human = false;
     let dock = sim.add_build_type(BuildType {
         ident: Ident::Dock,
         x_size: 4,
@@ -154,7 +154,7 @@ fn the_level_is_granted_by_a_dock_and_revoked_with_it() {
 #[test]
 fn scouts_stay_off_without_the_option_and_the_veto_holds() {
     let mut f = fix();
-    f.sim.ai_state.transport[1].scouts_option = false;
+    f.sim.ai.transport[1].scouts_option = false;
     let s = unit(&mut f.sim, 1, f.scout, tile_pos(4, 5));
     let c = unit(&mut f.sim, 1, f.citizen, tile_pos(4, 4));
     let b = place_dock(&mut f.sim, 1, f.dock, tile_pos(30, 16));
@@ -167,7 +167,7 @@ fn scouts_stay_off_without_the_option_and_the_veto_holds() {
     f.sim.tables.unit_types[f.citizen].cols.unit_flags |= 0x10;
     assert!(f.sim.unit_can_transport(c));
     // The lock freezes the level.
-    f.sim.ai_state.transport[1].locked = true;
+    f.sim.ai.transport[1].locked = true;
     f.sim.close_building(b, false);
     assert_eq!(f.sim.transport_level(1), TransportType::Civilian);
 }
@@ -181,23 +181,23 @@ fn the_registry_keeps_reg_docks_and_the_slot_rule() {
     f.sim.activate(b, false, true);
     assert_eq!(f.sim.buildings[a].dock_slot, Some(0));
     assert_eq!(f.sim.buildings[b].dock_slot, Some(1));
-    assert_eq!(f.sim.ai_state.docks[1].mark, 2);
-    assert_eq!(f.sim.ai_state.ai[1].census.reg_docks[f.land as usize], 2);
-    assert_eq!(f.sim.ai_state.docks[1].slots[0].reg, Some(f.land));
+    assert_eq!(f.sim.ai.docks[1].mark, 2);
+    assert_eq!(f.sim.ai.ai[1].census.reg_docks[f.land as usize], 2);
+    assert_eq!(f.sim.ai.docks[1].slots[0].reg, Some(f.land));
     // Close the first: its slot frees, the mark stays at 2 (slot 1 is
     // still active); a third dock reuses slot 0.
     f.sim.close_building(a, false);
-    assert_eq!(f.sim.ai_state.ai[1].census.reg_docks[f.land as usize], 1);
-    assert!(!f.sim.ai_state.docks[1].slots[0].active());
-    assert_eq!(f.sim.ai_state.docks[1].mark, 2);
+    assert_eq!(f.sim.ai.ai[1].census.reg_docks[f.land as usize], 1);
+    assert!(!f.sim.ai.docks[1].slots[0].active());
+    assert_eq!(f.sim.ai.docks[1].mark, 2);
     let c = place_dock(&mut f.sim, 1, f.dock, tile_pos(30, 8));
     f.sim.activate(c, false, true);
     assert_eq!(f.sim.buildings[c].dock_slot, Some(0));
     // Close both: the mark walks down to 0.
     f.sim.close_building(b, false);
     f.sim.close_building(c, false);
-    assert_eq!(f.sim.ai_state.docks[1].mark, 0);
-    assert_eq!(f.sim.ai_state.ai[1].census.reg_docks[f.land as usize], 0);
+    assert_eq!(f.sim.ai.docks[1].mark, 0);
+    assert_eq!(f.sim.ai.ai[1].census.reg_docks[f.land as usize], 0);
     assert_eq!(f.sim.transport_level(1), TransportType::None);
 }
 
@@ -219,7 +219,7 @@ fn a_dock_with_a_gull_type_draws_twice() {
     probe.roll();
     probe.roll();
     assert_eq!(f.sim.rng.seed, probe.seed);
-    let g = f.sim.ai_state.docks[1].slots[0].gull.expect("a gull");
+    let g = f.sim.ai.docks[1].slots[0].gull.expect("a gull");
     assert_eq!(f.sim.units[g].owner, 9);
     assert_eq!(f.sim.units[g].ty, Some(gull));
     let dock_pos = f.sim.buildings[a].pos;
@@ -235,8 +235,8 @@ fn a_dock_with_a_gull_type_draws_twice() {
     // (`Dock::close` does not clear `gull_o`).
     f.sim.close_building(a, false);
     assert!(!f.sim.units[g].alive());
-    assert!(!f.sim.ai_state.docks[1].slots[0].active());
-    assert_eq!(f.sim.ai_state.docks[1].slots[0].gull, Some(g));
+    assert!(!f.sim.ai.docks[1].slots[0].active());
+    assert_eq!(f.sim.ai.docks[1].slots[0].gull, Some(g));
 }
 
 /// **A transport that reaches its oil platform dies there, and its
@@ -327,7 +327,7 @@ fn a_land_member_whose_slot_zero_is_at_sea_sweeps_as_the_leader_s_barge() {
         Some(tank),
         "no transport: the member's own type"
     );
-    f.sim.ai_state.transport[1].military = true;
+    f.sim.ai.transport[1].military = true;
     assert_eq!(
         f.sim.region_spot_type(u, sea),
         Some(b),
@@ -666,7 +666,7 @@ fn a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is() {
         f.sim.init_guys(u, Some(walker_t));
         f.sim.units[u].auto_transport = true;
         let control = f.sim.roster.muster[1].control;
-        let caras = f.sim.ai_state.ai[1].census.caras;
+        let caras = f.sim.ai.ai[1].census.caras;
         assert!(!f.sim.set_new_location(u, tile_pos(33, 14), false));
         let boat = f.sim.units.len();
         f.sim.work(u, 1);
@@ -676,7 +676,7 @@ fn a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is() {
             "`set_type`'s `+1`, for a type with population"
         );
         assert_eq!(f.sim.roster.muster[1].control, control + counted);
-        assert_eq!(f.sim.ai_state.ai[1].census.caras, caras + counted);
+        assert_eq!(f.sim.ai.ai[1].census.caras, caras + counted);
         // Item 1647: a census drops fleets from caras, but closing
         // one afterward still subtracts. Preserve that asymmetry.
         if sweep {
@@ -687,9 +687,9 @@ fn a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is() {
                 .iter()
                 .filter(|u| u.alive() && u.owner == 1 && u.ty == Some(caravan))
                 .count() as i32;
-            assert_eq!(f.sim.ai_state.ai[1].census.caras, land_caravans);
+            assert_eq!(f.sim.ai.ai[1].census.caras, land_caravans);
         }
-        let before_close = f.sim.ai_state.ai[1].census.caras;
+        let before_close = f.sim.ai.ai[1].census.caras;
         // Ashore again: the boat puts its passenger out and closes.
         assert!(!f.sim.set_new_location(boat, tile_pos(30, 14), false));
         assert!(!f.sim.units[boat].alive());
@@ -698,7 +698,7 @@ fn a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is() {
             "`Unit::close`'s `−1` at `0060f3db`"
         );
         assert_eq!(f.sim.roster.muster[1].control, control);
-        assert_eq!(f.sim.ai_state.ai[1].census.caras, before_close - counted);
+        assert_eq!(f.sim.ai.ai[1].census.caras, before_close - counted);
     }
 }
 
@@ -794,7 +794,7 @@ fn a_passenger_that_lands_as_its_group_s_leader_toggles_the_group_s_mirror() {
     f.sim.units[boat]
         .movement
         .set_facing(crate::movement::Angle::SOUTH);
-    assert!(!f.sim.ai_state.armies[1].list[slot].group.facing);
+    assert!(!f.sim.ai.armies[1].list[slot].group.facing);
     f.sim.disembark(boat);
     assert!(f.sim.units[rider].on_map, "it is ashore");
     assert_eq!(
@@ -803,7 +803,7 @@ fn a_passenger_that_lands_as_its_group_s_leader_toggles_the_group_s_mirror() {
         "turned to the boat's heading"
     );
     assert!(
-        f.sim.ai_state.armies[1].list[slot].group.facing,
+        f.sim.ai.armies[1].list[slot].group.facing,
         "a reversing turn by the leader toggles the army's flag"
     );
 }
@@ -1386,7 +1386,7 @@ fn a_passenger_put_ashore_takes_the_boat_s_ring_and_the_boat_s_orders() {
 /// computer player: the rider's `orders_x/y` and its guys' speeds.
 fn ashore(human: bool, avg: i32) -> (Fix, usize, Pos) {
     let mut f = fix();
-    f.sim.cities_state.nation[1].human = human;
+    f.sim.cities.nation[1].human = human;
     let b = barge(&mut f.sim);
     f.sim.tables.unit_types[f.scout].combat.uber_size = 1;
     f.sim.tables.unit_types[f.scout].combat.block_radius = 48;
@@ -1660,11 +1660,8 @@ fn the_island_search_sends_a_scout_to_another_region_s_shore() {
     let u = unit(&mut f.sim, 1, f.scout, tile_pos(10, 14));
     f.sim.units[u].auto_transport = true;
     f.sim.units[u].type_index = ty::SCOUT as i32;
-    f.sim
-        .ai_state
-        .transport
-        .resize_with(2, LeaderTransport::default);
-    f.sim.ai_state.transport[1].set_all();
+    f.sim.ai.transport.resize_with(2, LeaderTransport::default);
+    f.sim.ai.transport[1].set_all();
     assert!(
         f.sim.think_civilian_transport(u, false),
         "a resource region across the water, and nothing scouted"
@@ -1829,7 +1826,7 @@ fn a_boat_carrying_a_soldier_sails_to_its_army_s_target() {
     let slot = f.sim.init_army(1, None);
     let target = unit(&mut f.sim, 0, f.citizen, Pos::new(6240, 2000));
     {
-        let a = &mut f.sim.ai_state.armies[1].list[slot];
+        let a = &mut f.sim.ai.armies[1].list[slot];
         a.group.pool = Some(3);
         a.target = Some(Obj::Unit(target));
         a.reg = None;
@@ -1854,7 +1851,7 @@ fn a_boat_carrying_a_soldier_sails_to_its_army_s_target() {
     // Beside the army's region: `eject_contents(0, -1, 0, 1)`, the
     // rider ashore with its own empty list, and the emptied boat dead.
     f.sim.units[boat].pos = Pos::new(8 * 0x300 + 700, 3 * 0x300 + 0x180);
-    f.sim.ai_state.armies[1].list[slot].reg = Some(f.land);
+    f.sim.ai.armies[1].list[slot].reg = Some(f.land);
     assert!(f.sim.think_carry(boat), "ashore beside its army's region");
     assert_eq!(f.sim.units[rider].inside_unit, None, "the rider is out");
     assert!(f.sim.units[rider].on_map, "and on the map");

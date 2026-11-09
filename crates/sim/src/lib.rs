@@ -256,52 +256,55 @@ pub use world::{Cell, Owner, Player, Pos, Terrain, World};
 /// recomputed territory map — rather than only through its parts.
 #[derive(Clone, Debug)]
 pub struct Sim {
-    /// The load-time tables: the unit, building and tech types, the lobby
-    /// setup and the tuning (`core::Tables`).
-    pub tables: crate::core::Tables,
-    pub world: World,
-    /// The `territory/` subsystem's state (`docs/STRUCTURE.md` §3).
-    pub territory: crate::territory::TerritoryState,
-    pub units: Vec<Unit>,
-    /// The `leaders/` subsystem's state (`docs/STRUCTURE.md` §3).
-    pub leaders: crate::leaders::LeadersState,
-    /// The `economy/` subsystem's state (`docs/STRUCTURE.md` §3).
-    pub economy: crate::economy::EconomyState,
-    /// The `units/` subsystem's state (`docs/STRUCTURE.md` §3).
-    pub roster: crate::units::UnitsState,
-    /// The production buildings, each with its own queue.
-    pub buildings: Vec<Building>,
-    /// The `cities/` subsystem's state (`docs/STRUCTURE.md` §3).
-    pub cities_state: crate::cities::CitiesState,
-    /// One per player: the tech bits and counters — `LeaderData::tech`,
-    /// `ages`, `epochs`, `epoch[4]`.
-    pub tech: Vec<tech::PlayerTech>,
-    /// The `combat/` subsystem's state (`docs/STRUCTURE.md` §3).
-    pub combat: crate::combat::CombatState,
-    /// The `orders/` subsystem's state (`docs/STRUCTURE.md` §3).
-    pub orders: crate::orders::OrdersState,
-    /// The game's random stream, `game_random`. Combat draws from it for
-    /// projectile scatter and the one-in-five retarget roll.
-    pub rng: combat::Rng,
-    /// The `trace/` subsystem's state (`docs/STRUCTURE.md` §3).
-    pub trace: crate::trace::TraceState,
-    /// The `ai/` subsystem's state (`docs/STRUCTURE.md` §3).
-    pub ai_state: crate::ai::AiState,
-    /// The `movement/` subsystem's state (`docs/STRUCTURE.md` §3).
-    pub movement: crate::movement::MovementState,
-    /// The `gaia/` subsystem's state (`docs/STRUCTURE.md` §3).
-    pub gaia_state: crate::gaia::GaiaState,
+    /// The frame count: how many ticks have run.
+    pub frame: i64,
     /// Whether a frame has run. A border fix before the first is setup's —
     /// `World::compute_all_territory` with the budget unlimited, on the
     /// map at once — and one after it takes the daemon's pass
     /// ([`border_pass`], item 1106).
     pub in_play: bool,
-    /// The `world/` subsystem's state (`docs/STRUCTURE.md` §3).
-    pub terrain: crate::world::WorldState,
     /// `GameInfo::seed`, the lobby's map seed, which picks a gaia guy's
     /// piece by `(seed + o) % 3`.
     pub game_seed: i32,
-    pub frame: i64,
+    /// The game's random stream, `game_random`. Combat draws from it for
+    /// projectile scatter and the one-in-five retarget roll.
+    pub rng: combat::Rng,
+    // The object store, which every subsystem reads and writes.
+    pub world: World,
+    pub units: Vec<Unit>,
+    /// The production buildings, each with its own queue.
+    pub buildings: Vec<Building>,
+    // One state per subsystem directory (`docs/STRUCTURE.md` §3, item 4016).
+    /// The load-time tables: the unit, building and tech types, the lobby
+    /// setup and the tuning (`core::Tables`).
+    pub tables: crate::core::Tables,
+    /// The `world/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub terrain: crate::world::WorldState,
+    /// The `territory/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub territory: crate::territory::TerritoryState,
+    /// The `units/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub roster: crate::units::UnitsState,
+    /// The `movement/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub movement: crate::movement::MovementState,
+    /// The `orders/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub orders: crate::orders::OrdersState,
+    /// The `combat/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub combat: crate::combat::CombatState,
+    /// The `cities/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub cities: crate::cities::CitiesState,
+    /// The `economy/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub economy: crate::economy::EconomyState,
+    /// The `leaders/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub leaders: crate::leaders::LeadersState,
+    /// One per player: the tech bits and counters — `LeaderData::tech`,
+    /// `ages`, `epochs`, `epoch[4]`.
+    pub tech: Vec<tech::PlayerTech>,
+    /// The `ai/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub ai: crate::ai::AiState,
+    /// The `gaia/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub gaia: crate::gaia::GaiaState,
+    /// The `trace/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub trace: crate::trace::TraceState,
 }
 
 pub use farms::Farm;
@@ -344,7 +347,7 @@ impl Sim {
                 forced_march: vec![false; players],
                 defeated: vec![false; players],
             },
-            cities_state: crate::cities::CitiesState {
+            cities: crate::cities::CitiesState {
                 farm_order: Vec::new(),
                 cities: Vec::new(),
                 nation: vec![city::Nation::default(); players],
@@ -364,7 +367,7 @@ impl Sim {
                 territory_won: Vec::new(),
                 good_seen_bits: Vec::new(),
             },
-            gaia_state: crate::gaia::GaiaState {
+            gaia: crate::gaia::GaiaState {
                 gaia: gaia::Gaia::default(),
                 flock_stamp: vec![0; players],
                 goody_items: Vec::new(),
@@ -379,7 +382,7 @@ impl Sim {
                 marks: vec![Marks::default(); players.max(10)],
                 leader_options: vec![stance::LeaderOptions::default(); players.max(10)],
             },
-            ai_state: crate::ai::AiState {
+            ai: crate::ai::AiState {
                 transport: vec![transport::LeaderTransport::default(); players],
                 docks: vec![transport::Docks::default(); players],
                 armies: (0..players)
@@ -462,24 +465,24 @@ impl Sim {
             .push(economy::Ledger::starting(&self.tables.tuning));
         self.roster.muster.push(Muster::new(&self.tables.tuning));
         self.combat.mods.push(combat::Modifiers::default());
-        self.cities_state.nation.push(city::Nation::default());
+        self.cities.nation.push(city::Nation::default());
         self.territory
             .borders
             .push(territory::PlayerBorders::plain(&self.tables.tuning));
         self.leaders.defeated.push(false);
-        self.cities_state.lost_city_stamp.push(None);
-        self.cities_state.city_tally.push(city::Tally::default());
-        self.cities_state.building_high.push(Vec::new());
-        self.cities_state.wall_stats_dirty.push(false);
+        self.cities.lost_city_stamp.push(None);
+        self.cities.city_tally.push(city::Tally::default());
+        self.cities.building_high.push(Vec::new());
+        self.cities.wall_stats_dirty.push(false);
         self.roster.marks.push(Marks::default());
         self.movement.repaths.push(0);
         self.combat.retargets.push(0);
-        self.ai_state.ai.push(ai::Leader::new());
-        self.ai_state
+        self.ai.ai.push(ai::Leader::new());
+        self.ai
             .transport
             .push(transport::LeaderTransport::default());
-        self.ai_state.docks.push(transport::Docks::default());
-        self.ai_state.armies.push(army::Armies::new(
+        self.ai.docks.push(transport::Docks::default());
+        self.ai.armies.push(army::Armies::new(
             u8::try_from(who).expect("too many players"),
         ));
         for row in &mut self.leaders.at_war {

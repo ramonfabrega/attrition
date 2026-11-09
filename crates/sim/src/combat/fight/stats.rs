@@ -358,7 +358,7 @@ impl Sim {
             return 0;
         }
         let who = self.units[u].owner as usize;
-        if self.cities_state.nation[who].turks {
+        if self.cities.nation[who].turks {
             self.tables.tuning.turk_siege_range
         } else {
             0

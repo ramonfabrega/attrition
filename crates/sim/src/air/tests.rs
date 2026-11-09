@@ -60,7 +60,7 @@ fn bird(at: crate::world::Pos, heading: i32) -> (crate::Sim, usize) {
     // The figure, because `Guy::move` runs for a bird like anybody
     // else and the arrival stand is its own draw.
     s.init_guys(b, Some(ty));
-    s.gaia_state.gaia.bird_goals.push((b, at));
+    s.gaia.gaia.bird_goals.push((b, at));
     (s, b)
 }
 
@@ -85,7 +85,7 @@ fn a_bird_s_figure_lags_its_unit_and_stands_only_when_the_step_is_refused() {
     let at = crate::world::Pos::new(16, 20_000);
     let (mut s, b) = bird(at, Angle::WEST.0);
     let goal = crate::world::Pos::new(20_000, 20_000);
-    s.gaia_state.gaia.bird_goals[0].1 = goal;
+    s.gaia.gaia.bird_goals[0].1 = goal;
     s.roster.art.lengths.insert((-1, crate::anim::WALK), 31);
     s.roster.art.lengths.insert((-1, crate::anim::JOG), 23);
     s.roster.art.lengths.insert((-1, crate::anim::DEFAULT), 3);
@@ -153,7 +153,7 @@ fn a_bird_pushed_off_the_map_spends_one_coin_and_then_circles() {
     let at = crate::world::Pos::new(16, 20_000);
     let (mut s, b) = bird(at, Angle::WEST.0);
     let goal = crate::world::Pos::new(20_000, 20_000);
-    s.gaia_state.gaia.bird_goals[0].1 = goal;
+    s.gaia.gaia.bird_goals[0].1 = goal;
     s.trace.trace_phases = true;
 
     let before = s.rng.seed;
@@ -184,7 +184,7 @@ fn the_bank_ramps_by_ten_and_the_heading_lags_it_by_a_frame() {
     // Half a turn owed, and far enough that the keep-heading arm does
     // not fire.
     let goal = crate::world::Pos::new(20_000, 30_000);
-    s.gaia_state.gaia.bird_goals[0].1 = goal;
+    s.gaia.gaia.bird_goals[0].1 = goal;
 
     let raw = ((crate::movement::degrees_to_angle(5).0 as u32) >> 8) * 256;
     let mut heading = s.units[b].movement.heading.0;
@@ -231,7 +231,7 @@ fn a_bird_over_its_patrol_point_keeps_the_heading_it_has() {
     // The point a hundred units behind it: half a turn owed, well
     // inside `0x300`.
     let goal = crate::world::Pos::new(20_000, 20_100);
-    s.gaia_state.gaia.bird_goals[0].1 = goal;
+    s.gaia.gaia.bird_goals[0].1 = goal;
     for f in 1..10 {
         s.do_air_physics(b, goal, f);
     }

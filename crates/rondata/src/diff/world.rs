@@ -559,12 +559,12 @@ mod tests {
         assert_eq!(m.kind, sim::orders::MoveKind::ExploreTo);
         let ci = built
             .sim
-            .cities_state
+            .cities
             .cities
             .iter()
             .position(|c| c.alive && c.owner == 1)
             .expect("the AI's city");
-        let city = built.sim.cities_state.cities[ci].pos.cell();
+        let city = built.sim.cities.cities[ci].pos.cell();
         let d = sim::world::vector_dist(m.dest.cell().x - city.x, m.dest.cell().y - city.y);
         assert_eq!(d, 5, "ring 5, where the four cells were");
     }
@@ -1069,7 +1069,7 @@ mod tests {
     /// record in `Sim::farm_order`, the cells in the record's own memory
     /// order (`status[dx][dy]`, index `dx * 4 + dy`).
     fn farm_rows(sim: &Sim) -> Vec<crate::gamelog::FarmDump> {
-        sim.cities_state
+        sim.cities
             .farm_order
             .iter()
             .map(|&b| {
@@ -1423,7 +1423,7 @@ mod tests {
             u.movement.turning = sim::turning_of(&s.tables.unit_types[ty]);
             let b = s.add_unit(u);
             assert_eq!(s.units[b].movement.heading, sim::movement::Angle::INITIAL);
-            s.gaia_state
+            s.gaia
                 .gaia
                 .bird_goals
                 .push((b, sim::world::Pos::new(goal.0, goal.1)));
@@ -4785,7 +4785,7 @@ mod tests {
 
         // The landing itself: one bird, on the original's frame.
         assert_eq!(
-            built.sim.gaia_state.gaia.bird_landings,
+            built.sim.gaia.gaia.bird_landings,
             vec![(576, 8)],
             "gaia's `9/8` is the only bird to land by 576, and it lands there"
         );
@@ -4908,7 +4908,7 @@ mod tests {
         }
         let ours: Vec<i64> = built
             .sim
-            .gaia_state
+            .gaia
             .gaia
             .bird_landings
             .iter()

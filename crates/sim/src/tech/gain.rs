@@ -149,19 +149,19 @@ impl Sim {
     /// Conquer the World's `ctw_nomad_starting_res_x` is the third arm and
     /// is cut from v1.
     pub(crate) fn starting_good(&self, who: Player, g: usize) -> i32 {
-        if self.ai_state.lobby.resources_unlimited() {
+        if self.ai.lobby.resources_unlimited() {
             return economy::UNLIMITED_GOODS;
         }
         let mut base = self.tables.tuning.starting_goods[g];
-        if self.ai_state.lobby.starting_resources == 7 && g != 3 {
+        if self.ai.lobby.starting_resources == 7 && g != 3 {
             base = self.tables.tuning.starting_goods[0];
         }
-        let (lo, _hi) = self.ai_state.lobby.starting_resources_row;
+        let (lo, _hi) = self.ai.lobby.starting_resources_row;
         let amount = if lo == 0 { base / 2 } else { lo * base };
         // Barbarians at the Gates pays the defending team the *other* row's
         // index as a multiplier, which is what both callers write.
-        if self.ai_state.lobby.game_rules == 8 && self.tech[who as usize].team == 0 {
-            return (self.ai_state.lobby.starting_resources2 + 1) * amount;
+        if self.ai.lobby.game_rules == 8 && self.tech[who as usize].team == 0 {
+            return (self.ai.lobby.starting_resources2 + 1) * amount;
         }
         amount
     }
@@ -259,7 +259,7 @@ impl Sim {
                 _ => {}
             }
         }
-        let wall_stats_were = self.cities_state.wall_stats_dirty[who as usize];
+        let wall_stats_were = self.cities.wall_stats_dirty[who as usize];
         self.apply_gained(who);
         // **A unit type takes no wall stats** (item 3965): the unit arm
         // (`gain_tech@006dcb60:658`, the type's vslot `+0xc`) raises
@@ -268,7 +268,7 @@ impl Sim {
         // the Militia on 10163 and keeps its cached `mylos` 11 to 10334's
         // tech, where this crate's refresh read 13 on 10165.
         if self.tables.tech_tree.kind(t).is_unit() {
-            self.cities_state.wall_stats_dirty[who as usize] = wall_stats_were;
+            self.cities.wall_stats_dirty[who as usize] = wall_stats_were;
         }
         // Step 10's second half: a Civic level re-masks every city and
         // sweeps the buildings its new reach covers into it.
@@ -292,7 +292,7 @@ impl Sim {
             .filter(|e| matches!(e, tech::Gained::CityCheck))
         {
             for c in self.cities_of(who) {
-                if self.cities_state.cities[c].alive {
+                if self.cities.cities[c].alive {
                     self.check_upgrade(c);
                 }
             }
@@ -471,7 +471,7 @@ impl Sim {
         let built = line
             .iter()
             .position(|&w| w == t)
-            .is_some_and(|k| self.cities_state.wonders_built & (1 << k) != 0);
+            .is_some_and(|k| self.cities.wonders_built & (1 << k) != 0);
         let a = self.tables.tech_tree.type_avail_built(
             &self.tables.setup,
             &self.tech[who as usize],
@@ -535,7 +535,7 @@ impl Sim {
             let Some(&g2) = own.get(c2) else {
                 return false;
             };
-            if active_senates(g2) || !self.cities_state.cities[g2].founding_capital {
+            if active_senates(g2) || !self.cities.cities[g2].founding_capital {
                 return false;
             }
         }
@@ -549,7 +549,7 @@ impl Sim {
                 }
             } else if own
                 .get(c1)
-                .is_some_and(|&g| self.cities_state.cities[g].founding_capital)
+                .is_some_and(|&g| self.cities.cities[g].founding_capital)
             {
                 return false;
             }
@@ -576,7 +576,7 @@ impl Sim {
             .cities_of(who)
             .into_iter()
             .enumerate()
-            .find(|&(i, c)| self.cities_state.cities[c].capital && skip != Some((i, who)));
+            .find(|&(i, c)| self.cities.cities[c].capital && skip != Some((i, who)));
         if let Some((i, _)) = mine {
             return Some((i, who));
         }
@@ -587,7 +587,7 @@ impl Sim {
                     .into_iter()
                     .enumerate()
                     .find(|&(i, c)| {
-                        self.cities_state.cities[c].was_capital & (1u64 << (who as u32)) != 0
+                        self.cities.cities[c].was_capital & (1u64 << (who as u32)) != 0
                             && skip != Some((i, o))
                     })
                     .map(|(i, _)| (i, o))
@@ -603,7 +603,7 @@ impl Sim {
         // both stats flags, on every tech that reaches it — so the units'
         // cached line of sight is refreshed by the next `Leader::process`
         // (`docs/VISION.md` §2).
-        self.cities_state.wall_stats_dirty[who as usize] = true;
+        self.cities.wall_stats_dirty[who as usize] = true;
         self.roster.unit_stats_dirty[who as usize] = true;
         self.calc_attrition(who);
         self.sync_researched();

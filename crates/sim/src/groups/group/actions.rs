@@ -215,7 +215,7 @@ impl Sim {
                 // the attack it found on the fishing boat on 681.
                 1 | 2 | 5 => {
                     let human = self
-                        .cities_state
+                        .cities
                         .nation
                         .get(g.who as usize)
                         .is_some_and(|n| n.human);
@@ -362,7 +362,7 @@ impl Sim {
         // different facts, because the clear loop and the order loop do not
         // gate on the same one.
         let ai = self.ai_army_group(g);
-        let hurry = ai && self.ai_state.armies[g.who as usize].list[g.army.unwrap_or(0)].hurry != 0;
+        let hurry = ai && self.ai.armies[g.who as usize].list[g.army.unwrap_or(0)].hurry != 0;
         let hurry_city = if hurry {
             self.city_near(g.who, to)
         } else {
@@ -799,7 +799,7 @@ impl Sim {
         // takes the sub-group's own leader (`0070dabd`). No army's leader
         // is human, so this arm is the player's siege-attack command.
         if self
-            .cities_state
+            .cities
             .nation
             .get(g.who as usize)
             .is_some_and(|n| n.human)
@@ -1033,7 +1033,7 @@ impl Sim {
         // `clear`ed zero, so the mirror is the leader toggle alone; the
         // reverse negation is skipped because the guard flag is set.
         let human = self
-            .cities_state
+            .cities
             .nation
             .get(g.who as usize)
             .is_some_and(|n| n.human);

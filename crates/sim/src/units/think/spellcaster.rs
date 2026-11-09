@@ -302,7 +302,7 @@ impl CasterView for SimCaster<'_> {
     }
     fn human(&self) -> bool {
         self.s
-            .cities_state
+            .cities
             .nation
             .get(self.who() as usize)
             .is_some_and(|n| n.human)

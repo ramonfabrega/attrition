@@ -661,7 +661,7 @@ mod bodies {
         // from a dump, so the gull's own record is not there to compare —
         // its **object number** is, and it is what says this crate hands
         // gaia its slots where the original does.
-        let gull = built.sim.ai_state.docks[1].slots[0]
+        let gull = built.sim.ai.docks[1].slots[0]
             .gull
             .expect("the AI's dock spawned its gull");
         assert_eq!(built.sim.units[gull].owner, 9, "the gull is gaia's");

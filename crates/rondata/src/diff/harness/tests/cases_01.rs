@@ -1597,7 +1597,7 @@ mod bodies {
             .position(|u| u.alive() && u.owner == 1 && u.index == 31)
             .expect("1/31 is alive at 8442");
         let slot = built.sim.army_of(u31).expect("1/31 is in an army at 8442");
-        let a = &built.sim.ai_state.armies[1].list[slot];
+        let a = &built.sim.ai.armies[1].list[slot];
         assert_eq!(
             (a.muster.x, a.muster.y),
             (58, 29),

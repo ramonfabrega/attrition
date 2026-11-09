@@ -118,16 +118,16 @@ impl Sim {
     /// [`crate::tech::Setup`] holds them — "No Nation Powers" and the
     /// starting town — and every player's city half brought in line.
     pub fn sync_setup_from_lobby(&mut self) {
-        self.tables.setup.no_nation_powers = self.ai_state.lobby.no_nation_powers;
-        self.tables.setup.starting_town = self.ai_state.lobby.starting_town != 0;
+        self.tables.setup.no_nation_powers = self.ai.lobby.no_nation_powers;
+        self.tables.setup.starting_town = self.ai.lobby.starting_town != 0;
         // The age the game opens in, which `Leader::init`'s starting
         // position reads (`docs/TECH.md`, "The starting position"): every
         // lobby on file before item 1466 was Ancient, to the Information
         // age, so the default `Setup::STANDARD` was right until a lobby
         // said otherwise (run650..652).
-        self.tables.setup.starting_age = self.ai_state.lobby.starting_technology;
-        self.tables.setup.starting_age2 = self.ai_state.lobby.starting_technology2;
-        self.tables.setup.ending = self.ai_state.lobby.ending_technology;
+        self.tables.setup.starting_age = self.ai.lobby.starting_technology;
+        self.tables.setup.starting_age2 = self.ai.lobby.starting_technology2;
+        self.tables.setup.ending = self.ai.lobby.ending_technology;
         for who in 0..self.tech.len() {
             self.sync_has_city(who as Player);
         }
@@ -172,7 +172,7 @@ impl Sim {
                 .tech_tree
                 .has_tribe_bonus(&self.tables.setup, &self.tech[w], n)
         });
-        let n = &mut self.cities_state.nation[w];
+        let n = &mut self.cities.nation[w];
         n.aztecs = on[0];
         n.maya = on[1];
         n.inca = on[2];
@@ -225,16 +225,16 @@ impl Sim {
         let root = self.base_build_type(rec);
         let w = who as usize;
         // Gaia owns buildings in some fixtures and has no leader record.
-        if w >= self.cities_state.building_high.len() {
+        if w >= self.cities.building_high.len() {
             return;
         }
-        if self.cities_state.building_high[w].len() <= root {
-            self.cities_state.building_high[w].resize(root + 1, 0);
+        if self.cities.building_high[w].len() <= root {
+            self.cities.building_high[w].resize(root + 1, 0);
         }
-        if self.cities_state.building_high[w][root] >= n || captured {
+        if self.cities.building_high[w][root] >= n || captured {
             return;
         }
-        self.cities_state.building_high[w][root] = n;
+        self.cities.building_high[w][root] = n;
         if counted {
             self.free_units_for(b, rec);
         }
@@ -414,7 +414,7 @@ impl Sim {
         {
             return;
         }
-        let caras = self.ai_state.ai.get(w).map_or(0, |l| l.census.caras);
+        let caras = self.ai.ai.get(w).map_or(0, |l| l.census.caras);
         if caras >= self.caravan_limit(who) {
             return;
         }

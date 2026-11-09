@@ -187,7 +187,7 @@ impl Sim {
     pub(crate) fn building_range_terms(&self, b: usize) -> i32 {
         let bd = &self.buildings[b];
         let who = bd.owner;
-        let n = &self.cities_state.nation[who as usize];
+        let n = &self.cities.nation[who as usize];
         let held = self.wonders_held(who);
         let wonder = |w: usize| held & (1 << w) != 0;
         let (tower, fort) = (self.is_tower_building(b), self.is_fort_building(b));
@@ -218,7 +218,7 @@ impl Sim {
         if let Some(c) = bd.city
             && self.is_city_building(b)
         {
-            if self.cities_state.cities[c].alive && self.city_has(c, build::Ident::Temple) {
+            if self.cities.cities[c].alive && self.city_has(c, build::Ident::Temple) {
                 let mut t = self.tables.tuning.temple_upgrade_range
                     [self.bonus_level(who, &self.tables.tech_tree.roles.temple_range_preq)];
                 if wonder(crate::tech::wonder::TIKAL) {
@@ -240,13 +240,13 @@ impl Sim {
     pub(crate) fn base_garrison_arrows(&self, b: usize) -> i32 {
         let bd = &self.buildings[b];
         let base = self.profile(Obj::Building(b)).base_arrows;
-        if !self.cities_state.nation[bd.owner as usize].maya {
+        if !self.cities.nation[bd.owner as usize].maya {
             return base;
         }
         if self.is_city_building(b)
             && bd.active
             && let Some(c) = bd.city
-            && self.cities_state.cities[c].race != Some(bd.owner)
+            && self.cities.cities[c].race != Some(bd.owner)
         {
             return base;
         }

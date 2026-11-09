@@ -110,7 +110,7 @@ impl ActivateHeadView for SimHead<'_> {
     fn cities_add(&mut self, _d: i32) {}
     fn tribe_bonus(&mut self, bonus: i32) -> bool {
         debug_assert_eq!(bonus, 0xe, "the head asks the Chinese bonus only");
-        self.sim.cities_state.nation[self.who as usize].chinese
+        self.sim.cities.nation[self.who as usize].chinese
     }
     fn chinese_large_cities(&mut self) -> bool {
         self.sim.tables.tuning.chinese_large_cities != 0
@@ -133,7 +133,7 @@ impl ActivateHeadView for SimHead<'_> {
     /// SEAM: the city arm's `mask_city` masks the converted centre.
     fn mask_me(&mut self) {}
     fn flag_wall_stats(&mut self) {
-        self.sim.cities_state.wall_stats_dirty[self.who as usize] = true;
+        self.sim.cities.wall_stats_dirty[self.who as usize] = true;
     }
     /// SEAM: nothing here reads the tables.
     fn record_last_built(&mut self) {}
@@ -300,15 +300,15 @@ pub(crate) struct SimArms<'a> {
 
 impl<'a> SimArms<'a> {
     pub(crate) fn new(sim: &'a mut Sim, b: usize, who: Player) -> Self {
-        let own = (0..sim.cities_state.cities.len())
-            .filter(|&k| sim.cities_state.cities[k].owner == who)
+        let own = (0..sim.cities.cities.len())
+            .filter(|&k| sim.cities.cities[k].owner == who)
             .collect();
         SimArms { sim, b, who, own }
     }
     fn city(&self) -> Option<usize> {
         self.sim.buildings[self.b]
             .city
-            .filter(|&c| self.sim.cities_state.cities[c].alive)
+            .filter(|&c| self.sim.cities.cities[c].alive)
     }
 }
 
@@ -394,7 +394,7 @@ impl ActivateArmsView for SimArms<'_> {
     fn senates_built_inc(&mut self) {}
     fn city_race_is_owner(&mut self) -> bool {
         self.city()
-            .is_some_and(|c| self.sim.cities_state.cities[c].race == Some(self.who))
+            .is_some_and(|c| self.sim.cities.cities[c].race == Some(self.who))
     }
     /// SEAM: the crate's search is the leader's first live capital; the
     /// original's `find_capital(-1, -1)` also reads another leader's
@@ -402,9 +402,7 @@ impl ActivateArmsView for SimArms<'_> {
     fn find_capital(&mut self) -> Option<i32> {
         self.own
             .iter()
-            .position(|&k| {
-                self.sim.cities_state.cities[k].alive && self.sim.cities_state.cities[k].capital
-            })
+            .position(|&k| self.sim.cities.cities[k].alive && self.sim.cities.cities[k].capital)
             .map(|i| i as i32)
     }
     fn count_senates(&mut self, city: i32) -> i32 {
@@ -415,17 +413,17 @@ impl ActivateArmsView for SimArms<'_> {
         self.own.len() as i32
     }
     fn own_city_flags(&mut self, i: i32) -> u16 {
-        let c = &self.sim.cities_state.cities[self.own[i as usize]];
+        let c = &self.sim.cities.cities[self.own[i as usize]];
         u16::from(c.alive) | u16::from(c.capital) << 4 | u16::from(c.founding_capital) << 14
     }
     fn set_own_city_flags(&mut self, i: i32, f: u16) {
         let k = self.own[i as usize];
-        self.sim.cities_state.cities[k].capital = f & 0x10 != 0;
+        self.sim.cities.cities[k].capital = f & 0x10 != 0;
     }
     fn city_make_capital(&mut self) {
         if let Some(c) = self.city() {
-            self.sim.cities_state.cities[c].capital = true;
-            self.sim.cities_state.cities[c].founder = self.who;
+            self.sim.cities.cities[c].capital = true;
+            self.sim.cities.cities[c].founder = self.who;
         }
     }
     /// The console is the renderer's; the sim has none.

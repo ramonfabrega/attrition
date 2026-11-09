@@ -92,8 +92,8 @@ pub fn compare_shutdown(built: &mut Built, fin: &Frame, players: usize) -> Shutd
     // `Player::resign` → `Leader::defeat(6, −1, 0)` runs before any unit
     // does, so the human's planes die and its other units drop their
     // orders on the frame the dump is written in.
-    for who in 0..players.min(built.sim.cities_state.nation.len()) {
-        if built.sim.cities_state.nation[who].human {
+    for who in 0..players.min(built.sim.cities.nation.len()) {
+        if built.sim.cities.nation[who].human {
             built.sim.resign(who as sim::Player);
         }
     }

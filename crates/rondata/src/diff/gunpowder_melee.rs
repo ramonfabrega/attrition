@@ -86,7 +86,7 @@ fn gunpowder_melee_staging_walk() {
     for line in &st.applied.landed {
         eprintln!("  {line}");
     }
-    for (w, n) in built.sim.cities_state.nation.iter().enumerate() {
+    for (w, n) in built.sim.cities.nation.iter().enumerate() {
         eprintln!(
             "  who={w} human={} age {}",
             n.human, built.sim.territory.players[w].age
@@ -128,7 +128,7 @@ fn gunpowder_melee_s_farms_stand_in_the_dump_s_order() {
     let built = build_sim(&loaded, &init, Tuning::RON);
     let got: Vec<(i64, i64)> = built
         .sim
-        .cities_state
+        .cities
         .farm_order
         .iter()
         .map(|&b| {
@@ -568,7 +568,7 @@ fn gunpowder_melee_s_strike_meets_before_the_census() {
     });
     built.sim.trace.trace_phases = true;
     assert_ne!(
-        built.sim.ai_state.lobby.reveal_map, 0,
+        built.sim.ai.lobby.reveal_map, 0,
         "the lobby is REVEAL_MAP 1"
     );
     // The frame each pair's met bit lands on: the tick that processes it.
@@ -614,7 +614,7 @@ fn gunpowder_melee_s_strike_meets_before_the_census() {
         "army 2/0 does not march on 760"
     );
     assert_eq!(*ours, tr.labels(WORD), "760's whole draw sequence");
-    let a = &built.sim.ai_state.armies[2].list[0];
+    let a = &built.sim.ai.armies[2].list[0];
     assert_eq!(
         a.status & sim::army::status::MARCHING,
         0,
@@ -1391,7 +1391,7 @@ pub(crate) fn seat_walk(
             let closing_next = closing && n + 1 == last && trailing.keys().any(|(f, _)| *f == last);
             if closing_next {
                 for who in 0..players {
-                    if built.sim.cities_state.nation[who].human {
+                    if built.sim.cities.nation[who].human {
                         built.sim.resign(who as sim::Player);
                     }
                 }
@@ -1400,7 +1400,7 @@ pub(crate) fn seat_walk(
                 // A trailing dump is written after the computers' resource
                 // step of its frame and before the human's: a computer is
                 // read at n, the human at n − 1 (measured, §151).
-                let at = if built.sim.cities_state.nation[who].human {
+                let at = if built.sim.cities.nation[who].human {
                     n + 1
                 } else {
                     n

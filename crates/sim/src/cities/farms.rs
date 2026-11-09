@@ -477,11 +477,11 @@ impl FarmsAddHost for SimFarmsHost<'_> {
     fn terrain_height(&mut self, _row: usize, _col: usize, _x: i32, _y: i32) {}
 
     fn slot_count(&mut self) -> i32 {
-        self.sim.cities_state.farm_order.len() as i32
+        self.sim.cities.farm_order.len() as i32
     }
 
     fn slot_valid(&mut self, i: i32) -> bool {
-        self.sim.buildings[self.sim.cities_state.farm_order[i as usize]].alive
+        self.sim.buildings[self.sim.cities.farm_order[i as usize]].alive
     }
 
     fn slot_capacity(&mut self) -> i32 {
@@ -632,7 +632,7 @@ impl Sim {
         // slot and is walked ahead of the farms placed between (item 1639,
         // `docs/AI.md` §175). [`farms_add_steps`] finds it; a farm already
         // in the order (`city.rs`'s activation push) keeps its place.
-        let placed = self.cities_state.farm_order.contains(&b);
+        let placed = self.cities.farm_order.contains(&b);
         let (o, city) = {
             let bd = &self.buildings[b];
             (i32::from(bd.index), bd.city)
@@ -651,10 +651,10 @@ impl Sim {
         };
         let slot = farms_add_steps(&mut host, o) as usize;
         if !placed {
-            if slot < self.cities_state.farm_order.len() {
-                self.cities_state.farm_order[slot] = b;
+            if slot < self.cities.farm_order.len() {
+                self.cities.farm_order[slot] = b;
             } else {
-                self.cities_state.farm_order.push(b);
+                self.cities.farm_order.push(b);
             }
         }
     }
@@ -672,7 +672,7 @@ impl Sim {
     /// The city's building chain — the head and its members, which is the
     /// order `CityData`'s walks take.
     fn city_members(&self, c: usize) -> impl Iterator<Item = usize> + '_ {
-        let city = &self.cities_state.cities[c];
+        let city = &self.cities.cities[c];
         std::iter::once(city.building).chain(city.members.iter().copied())
     }
 
@@ -1020,7 +1020,7 @@ impl Sim {
         // The `Farms` list, in activation order (`Sim::farm_order`) — not
         // the buildings' — because the sprout's `% empty` draw is spent by
         // whichever farm the walk reaches first (`docs/SYNC.md` §4.1).
-        let order = self.cities_state.farm_order.clone();
+        let order = self.cities.farm_order.clone();
         for b in order {
             let bd = &self.buildings[b];
             if !bd.alive || !bd.active || bd.farm.farm_type == ANIMAL_FARM {

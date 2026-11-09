@@ -450,13 +450,24 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// `data/launch.rs`, a constant table (`BAYS` alone is 4,695 lines), then
 /// `data/pivot.rs` (4,517, `RELEASES`) and `cities/city.rs` (4,113), the
 /// one production file left above `docs/STRUCTURE.md` §2's 4,000.
+///
+/// Item 4016: `fields` 92 → 21 (−71), the `Sim` split. Five load-time
+/// fields became `core::Tables` (`tuning`, `unit_types`, `build_types`,
+/// `tech_tree`, `setup`); §3's sixth, `nation`, is rewritten when a city
+/// is gained or lost and went to `cities/`'s state. Eighty-two more became
+/// twelve per-directory states (`terrain`, `territory`, `roster`,
+/// `movement`, `orders`, `combat`, `cities`, `economy`, `leaders`, `ai`,
+/// `gaia`, `trace`). The object store (`world`, `units`, `buildings`),
+/// `rng`, `frame`, `in_play`, `game_seed` and the one-field `tech`
+/// stayed. Every read was rewritten by path, so no statement moved. The
+/// per-player record was not built (§5 move 8, optional).
 #[cfg(test)]
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 7),
     ("test-tails", 0),
     ("sweep-lines", 17_255),
     ("names", 15),
-    ("fields", 92),
+    ("fields", 21),
     ("largest", 5_437),
 ];
 

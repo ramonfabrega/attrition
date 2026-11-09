@@ -1372,7 +1372,7 @@ mod bodies {
             // of the window — the half of the purchase run99's `LEADERS=1`
             // record cannot print.
             if site_window_named("RON_MAKE_WALK").is_some_and(|(a, b)| (a..=b).contains(&n)) {
-                let ai = &built.sim.ai_state.ai[1];
+                let ai = &built.sim.ai.ai[1];
                 eprintln!(
                     "  make {n}: step {:?} script_step {} bucket {:?} offers@{} {:?}",
                     ai.step,

@@ -639,7 +639,7 @@ fn city_sim() -> (Sim, usize, usize) {
     // (5, 5) and would join this city, which is not what the table below
     // counts, so it goes.
     s.buildings[first].alive = false;
-    s.cities_state.farm_order.clear();
+    s.cities.farm_order.clear();
     let c = s.init_build(0, village, Pos::new(20 * 192 + 96, 20 * 192 + 96), false);
     s.activate(c, false, true);
     let city = s.buildings[c].city.expect("a finished city has a record");
@@ -748,7 +748,7 @@ fn farms_add_picks_the_type_and_hands_out_one_ambience_a_city() {
     // And the list is joined at placement — these four have never been
     // activated — in placement order, the first two into the slots the
     // dead `lone` pair left (`Farms::add`'s first free record).
-    assert_eq!(s.cities_state.farm_order, vec![f1, f2, f3, f4]);
+    assert_eq!(s.cities.farm_order, vec![f1, f2, f3, f4]);
 }
 
 /// **A freed slot is refilled** (item 1639, `docs/AI.md` §175):
@@ -761,17 +761,17 @@ fn a_placement_takes_the_first_freed_slot() {
     let a = s.init_build(0, t, Pos::new(16 * 192 + 96, 16 * 192 + 96), false);
     let b = s.init_build(0, t, Pos::new(24 * 192 + 96, 16 * 192 + 96), false);
     let c = s.init_build(0, t, Pos::new(16 * 192 + 96, 24 * 192 + 96), false);
-    assert_eq!(s.cities_state.farm_order, vec![a, b, c]);
+    assert_eq!(s.cities.farm_order, vec![a, b, c]);
     s.buildings[a].alive = false;
     let d = s.init_build(0, t, Pos::new(24 * 192 + 96, 24 * 192 + 96), false);
     assert_eq!(
-        s.cities_state.farm_order,
+        s.cities.farm_order,
         vec![d, b, c],
         "the dead farm's slot, not the end"
     );
     let e = s.init_build(0, t, Pos::new(8 * 192 + 96, 8 * 192 + 96), false);
     assert_eq!(
-        s.cities_state.farm_order,
+        s.cities.farm_order,
         vec![d, b, c, e],
         "none free: it appends"
     );

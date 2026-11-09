@@ -66,7 +66,7 @@ impl Sim {
         let Some(ty) = self.buildings[b].ty else {
             return 0;
         };
-        let level = self.cities_state.nation[self.buildings[b].owner as usize]
+        let level = self.cities.nation[self.buildings[b].owner as usize]
             .fort_garrison_level
             .clamp(1, 4);
         let mut limit = self.tables.build_types[ty].garrison_max;
@@ -268,8 +268,8 @@ impl Sim {
         }
         if self.building_is_city(b) {
             if let Some(c) = bd.city
-                && self.cities_state.cities[c].alive
-                && self.cities_state.cities[c].race != Some(bd.owner)
+                && self.cities.cities[c].alive
+                && self.cities.cities[c].race != Some(bd.owner)
             {
                 return Err(GarrisonRefused::Unassimilated);
             }
@@ -421,7 +421,7 @@ impl Sim {
         // orders closed, partial path cleared, then `update_action`. The
         // unconditional `update_action` below stays for a human's captain,
         // which run208 diffs and whose writer is another one.
-        if !self.cities_state.nation[self.units[captain].owner as usize].human
+        if !self.cities.nation[self.units[captain].owner as usize].human
             && !self.is_plane(captain)
             && !(0x32..=0x35).contains(&self.units[captain].type_index)
         {
@@ -455,7 +455,7 @@ impl Sim {
                 // Hoplite members `1/81` and `1/82` on run630's 10766 read
                 // their own points there, and the spawn point here before
                 // item 1457 (`docs/CITIES.md` §6.5.3).
-                let human = self.cities_state.nation[self.units[f].owner as usize].human;
+                let human = self.cities.nation[self.units[f].owner as usize].human;
                 if !human && !self.is_plane(f) && !(0x32..=0x35).contains(&self.units[f].type_index)
                 {
                     self.units[f].path.clear();
@@ -508,8 +508,8 @@ impl Sim {
                             |o| matches!(o.body, Body::Garrison { building, .. } if building == b),
                         )
             });
-            if self.cities_state.nation[who as usize].human && !inbound {
-                self.cities_state.cities[c].alarm = false;
+            if self.cities.nation[who as usize].human && !inbound {
+                self.cities.cities[c].alarm = false;
             }
         }
         // **The tail's `SpecialAnimOrder`** (`619fe2`, `docs/GOLDEN.md`
@@ -562,7 +562,7 @@ impl Sim {
         s: u8,
     ) -> Option<(&crate::group::GroupState, Vec<i16>)> {
         let army = self
-            .ai_state
+            .ai
             .armies
             .get(who as usize)
             .is_some_and(|x| x.list.iter().any(|a| a.valid && a.group.pool == Some(s)));
@@ -759,7 +759,7 @@ impl Sim {
             return;
         };
         let owner = u.owner as usize;
-        let n = &self.cities_state.nation[owner];
+        let n = &self.cities.nation[owner];
         let level = self.heal_level(u.owner);
         let mut period = self.tables.tuning.unit_heal_rate[level];
         if self.tables.build_types[bty].ident == Ident::RedFort || n.red_fort {

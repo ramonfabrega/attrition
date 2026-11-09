@@ -88,31 +88,28 @@ fn the_dump_s_tribe_turns_one_flag_on_and_the_rest_off() {
     let mut s = sim();
     s.set_tribe(0, 11);
     assert_eq!(s.tech[0].power, Some(11));
-    assert!(s.cities_state.nation[0].british);
-    assert!(!s.cities_state.nation[0].french);
-    assert!(!s.cities_state.nation[0].nubians);
+    assert!(s.cities.nation[0].british);
+    assert!(!s.cities.nation[0].french);
+    assert!(!s.cities.nation[0].nubians);
 
     // Nubians on the other side, from the same capture.
     s.set_tribe(1, 4);
-    assert!(s.cities_state.nation[1].nubians);
-    assert!(!s.cities_state.nation[1].british);
+    assert!(s.cities.nation[1].nubians);
+    assert!(!s.cities.nation[1].british);
     // And the first player is untouched by the second's.
-    assert!(s.cities_state.nation[0].british);
+    assert!(s.cities.nation[0].british);
 }
 
 #[test]
 fn a_tribe_of_minus_one_is_a_leader_with_no_nation() {
     let mut s = sim();
     s.set_tribe(0, 11);
-    assert!(s.cities_state.nation[0].british);
+    assert!(s.cities.nation[0].british);
     s.set_tribe(0, -1);
     assert_eq!(s.tech[0].power, None);
     assert_eq!(s.tech[0].tribe, 0, "the graft table stays in range");
-    assert!(!s.cities_state.nation[0].british);
-    assert!(
-        !s.cities_state.nation[0].aztecs,
-        "and −1 is not roster index 0"
-    );
+    assert!(!s.cities.nation[0].british);
+    assert!(!s.cities.nation[0].aztecs, "and −1 is not roster index 0");
 }
 
 #[test]
@@ -121,7 +118,7 @@ fn the_lobby_s_no_nation_powers_puts_every_flag_out() {
     s.tables.setup.no_nation_powers = true;
     s.set_tribe(0, 11);
     assert_eq!(s.tech[0].power, Some(11), "the nation is still the nation");
-    assert!(!s.cities_state.nation[0].british, "but the power is off");
+    assert!(!s.cities.nation[0].british, "but the power is off");
 
     // And a leader with no city takes none of it either — in a nomad
     // lobby. With a starting town the gate is `starting_town || city_num`
@@ -129,24 +126,18 @@ fn the_lobby_s_no_nation_powers_puts_every_flag_out() {
     let mut t = sim();
     t.tech[0].has_city = false;
     t.set_tribe(0, 11);
-    assert!(
-        t.cities_state.nation[0].british,
-        "a starting town opens the gate"
-    );
+    assert!(t.cities.nation[0].british, "a starting town opens the gate");
     let mut n = sim();
     n.tables.setup.starting_town = false;
     n.tech[0].has_city = false;
     n.set_tribe(0, 11);
     assert!(
-        !n.cities_state.nation[0].british,
+        !n.cities.nation[0].british,
         "nomads have no power without a city"
     );
     n.tech[0].has_city = true;
     n.refresh_nation_powers(0);
-    assert!(
-        n.cities_state.nation[0].british,
-        "and the first city turns it on"
-    );
+    assert!(n.cities.nation[0].british, "and the first city turns it on");
 }
 
 /// The measurement the wire was worth: run40's AI is the British and

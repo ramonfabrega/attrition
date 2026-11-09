@@ -87,7 +87,7 @@ fn classical_melee_staging_walk() {
     for line in &st.applied.landed {
         eprintln!("  {line}");
     }
-    for (w, n) in built.sim.cities_state.nation.iter().enumerate() {
+    for (w, n) in built.sim.cities.nation.iter().enumerate() {
         eprintln!(
             "  who={w} human={} age {} tribe {:?}",
             n.human, built.sim.territory.players[w].age, built.sim.tech[w].power
@@ -514,8 +514,8 @@ fn classical_melee_s_egyptians_catch_up_to_city_state() {
     );
     assert_eq!(
         (
-            built.sim.ai_state.ai[2].tech_cat_frame[0],
-            built.sim.ai_state.ai[1].tech_cat_frame[1]
+            built.sim.ai.ai[2].tech_cat_frame[0],
+            built.sim.ai.ai[1].tech_cat_frame[1]
         ),
         (1157, 1182),
         "theirs' closing LEADERDATA's queue frames"

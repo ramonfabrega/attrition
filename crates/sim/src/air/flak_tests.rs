@@ -656,7 +656,7 @@ fn striking_bomber() -> combat::Profile {
 fn a_human_s_bomber_weighs_an_armed_building_without_the_computer_s_five() {
     let weigh = |human: bool| {
         let mut s = sim();
-        s.cities_state.nation[0].human = human;
+        s.cities.nation[0].human = human;
         let r = radar(&mut s, true);
         if let Some(p) = s.buildings[r].combat.as_mut() {
             p.cost = 250;
@@ -810,7 +810,7 @@ fn a_british_tower_line_building_reaches_two_tiles_further() {
     s.buildings[b].ty = Some(bt);
     let me = Obj::Building(b);
     assert_eq!(s.max_range_of(me), 11, "not British");
-    s.cities_state.nation[1].british = true;
+    s.cities.nation[1].british = true;
     assert_eq!(s.max_range_of(me), 13, "British Tower line");
     let other = s.add_build_type(crate::build::BuildType::default());
     s.buildings[b].ty = Some(other);
@@ -842,7 +842,7 @@ fn a_turkish_siege_unit_reaches_three_tiles_further() {
         },
     ));
     assert_eq!(s.max_range_of(treb), 16, "not Turkish");
-    s.cities_state.nation[1].turks = true;
+    s.cities.nation[1].turks = true;
     assert_eq!(s.max_range_of(treb), 19, "a Turkish siege unit");
     assert_eq!(s.max_range_of(archer), 16, "Turkish, not siege");
 }

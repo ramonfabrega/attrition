@@ -295,7 +295,7 @@ impl Sim {
         // Militia line (`is(0x42, 0)`). The Bantu word's citizens step 31
         // on a `MOVES` of 25 from frame 1 (run978, `docs/AI.md` §276).
         if self
-            .cities_state
+            .cities
             .nation
             .get(who as usize)
             .is_some_and(|n| n.bantu)
@@ -317,7 +317,7 @@ impl Sim {
         // siege move"). French East Indies' Supply Wagon `1/72` is born at
         // 30 there, 25 here before item 1455.
         if matches!(self.trainer_where(ty), Some(0x1ae | 0x1af)) {
-            if self.cities_state.nation[who as usize].french {
+            if self.cities.nation[who as usize].french {
                 speed = (self.tables.tuning.french_siege_move + 100) * speed / 100;
             }
             if self.wonders_held(who) & (1 << crate::tech::wonder::VERSAILLES) != 0 {
@@ -441,7 +441,7 @@ impl Sim {
     /// `ArrayBase<int>::add` guarded by the linear scan both writers make
     /// first: the patch joins the leader's list once.
     pub(crate) fn add_oil_patch(&mut self, who: Player, gi: usize) {
-        let list = &mut self.ai_state.ai[who as usize].oil_patches;
+        let list = &mut self.ai.ai[who as usize].oil_patches;
         if !list.contains(&gi) {
             list.push(gi);
         }
@@ -599,7 +599,7 @@ impl Sim {
     ///   (`LeaderData::calc_rare` pays them to a boat, not to a merchant),
     ///   so a coast full of fish never buys a merchant.
     pub(crate) fn new_rare(&mut self, who: Player, gi: usize) {
-        if self.cities_state.nation[who as usize].human {
+        if self.cities.nation[who as usize].human {
             return;
         }
         let Some(ty) = self.world.goods().get(gi).map(|g| g.ty) else {
@@ -611,7 +611,7 @@ impl Sim {
             return;
         }
         for w in 0..self.territory.players.len() {
-            if self.leaders.defeated[w] || self.cities_state.nation[w].human {
+            if self.leaders.defeated[w] || self.cities.nation[w].human {
                 continue;
             }
             if w != who as usize
@@ -619,13 +619,13 @@ impl Sim {
             {
                 continue;
             }
-            if self.ai_state.ai[w].new_rares.contains(&gi) {
+            if self.ai.ai[w].new_rares.contains(&gi) {
                 continue;
             }
             if self.type_avail(w as Player, ty) == crate::tech::NOT_AVAILABLE {
                 continue;
             }
-            self.ai_state.ai[w].new_rares.push(gi);
+            self.ai.ai[w].new_rares.push(gi);
         }
     }
 
@@ -912,15 +912,13 @@ impl RevealFogView for SimRevealFog<'_> {
         (c.x, c.y)
     }
     fn oil_count(&mut self, who: i32) -> i32 {
-        self.sim.ai_state.ai[who as usize].oil_patches.len() as i32
+        self.sim.ai.ai[who as usize].oil_patches.len() as i32
     }
     fn oil_at(&mut self, who: i32, k: i32) -> i32 {
-        self.sim.ai_state.ai[who as usize].oil_patches[k as usize] as i32
+        self.sim.ai.ai[who as usize].oil_patches[k as usize] as i32
     }
     fn oil_add(&mut self, who: i32, gi: i32) {
-        self.sim.ai_state.ai[who as usize]
-            .oil_patches
-            .push(gi as usize);
+        self.sim.ai.ai[who as usize].oil_patches.push(gi as usize);
     }
     fn find_goody_at(&mut self, cx: i32, cy: i32) -> i32 {
         let c = crate::world::Cell::new(cx, cy);
@@ -931,7 +929,7 @@ impl RevealFogView for SimRevealFog<'_> {
     }
     fn mark_item_seen(&mut self, gi: i32, who: i32) {
         if (0..8).contains(&who) {
-            self.sim.gaia_state.goody_items[gi as usize].ever_seen |= 1 << who;
+            self.sim.gaia.goody_items[gi as usize].ever_seen |= 1 << who;
         }
     }
     fn unit_is_unit(&mut self, _who: i32, _unit: i32) -> bool {

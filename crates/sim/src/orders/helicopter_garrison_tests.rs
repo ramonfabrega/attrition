@@ -11,7 +11,7 @@ fn airbase_and_helicopter() -> (Sim, usize, usize) {
         crate::world::World::new(128, 128),
         2,
     );
-    s.cities_state.nation[0].human = true;
+    s.cities.nation[0].human = true;
     s.frame = 1260;
     let airbase = s.add_build_type(crate::build::BuildType {
         ident: crate::build::Ident::Airbase,

@@ -116,7 +116,7 @@ fn a_land_squad_on_land_is_formed_and_snapped_to_its_slots() {
 #[test]
 fn a_soldier_at_sea_with_a_dock_goes_aboard_a_barge() {
     let mut f = fix();
-    f.sim.ai_state.transport[1].military = true;
+    f.sim.ai.transport[1].military = true;
     let made = f.sim.scenario_add_unit(1, f.foot, SEA, 2).unwrap();
     assert_eq!(made.len(), 2);
     for &u in &made {

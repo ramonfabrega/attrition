@@ -87,7 +87,7 @@ fn a_step_past_one_tile_is_not_displaced() {
 #[test]
 fn the_arrival_bonus_is_paid_once_and_doubles_for_a_foreigner() {
     let mut sim = bare();
-    sim.cities_state.cities.push(crate::city::City {
+    sim.cities.cities.push(crate::city::City {
         alive: true,
         owner: 0,
         race: Some(0),

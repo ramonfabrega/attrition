@@ -181,13 +181,13 @@ struct SimFlock<'a> {
 
 impl FlockView for SimFlock<'_> {
     fn leader_live(&self, who: i32) -> bool {
-        self.sim.gaia_state.flock_stamp.get(who as usize).is_some()
+        self.sim.gaia.flock_stamp.get(who as usize).is_some()
     }
     fn stamp(&self, who: i32) -> i64 {
-        self.sim.gaia_state.flock_stamp[who as usize]
+        self.sim.gaia.flock_stamp[who as usize]
     }
     fn set_stamp(&mut self, who: i32, frame: i64) {
-        self.sim.gaia_state.flock_stamp[who as usize] = frame;
+        self.sim.gaia.flock_stamp[who as usize] = frame;
     }
     fn frame(&self) -> i64 {
         self.sim.frame
@@ -394,8 +394,8 @@ impl Sim {
         let at = self.units[u].pos;
         let (dx, dy) = (gx - at.x, gy - at.y);
         let mut speed = self.get_speed(u, 1);
-        if self.ai_state.ai_speed > 1 {
-            speed *= self.ai_state.ai_speed;
+        if self.ai.ai_speed > 1 {
+            speed *= self.ai.ai_speed;
         }
         if returning && dx.abs() + dy.abs() < speed * 3 / 2 && !clamped {
             self.flockbird_dies(u);

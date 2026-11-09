@@ -14,8 +14,8 @@ fn flat(cells: i32) -> Sim {
         Cell::new(cells - 1, cells - 1),
     );
     let mut s = Sim::new(Tuning::RON, world, 2);
-    s.cities_state.nation[0].human = true;
-    s.cities_state.nation[1].human = false;
+    s.cities.nation[0].human = true;
+    s.cities.nation[1].human = false;
     s
 }
 

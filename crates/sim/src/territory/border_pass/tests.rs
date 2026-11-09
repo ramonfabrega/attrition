@@ -73,10 +73,10 @@ fn a_census_inside_the_pass_is_undone_for_the_regions_still_waiting() {
     sim.advance_border_pass();
     // The census refills every region between frames one and two.
     let n = sim.world.region_count();
-    sim.ai_state.ai[1].census.reg_known_rares = vec![1; n.max(3)];
+    sim.ai.ai[1].census.reg_known_rares = vec![1; n.max(3)];
     sim.advance_border_pass();
     let r = |c: Cell| usize::from(sim.world.region_of(c).unwrap());
-    let rares = &sim.ai_state.ai[1].census.reg_known_rares;
+    let rares = &sim.ai.ai[1].census.reg_known_rares;
     assert_eq!(
         rares[r(Cell::new(0, 0))],
         1,
@@ -139,7 +139,7 @@ fn city_of(who: crate::Player) -> crate::city::City {
 #[test]
 fn a_rival_s_runner_up_marks_the_winning_city_s_bordering() {
     let mut sim = Sim::new(crate::Tuning::RON, rows(8, 1), 2);
-    sim.cities_state.cities.push(city_of(1));
+    sim.cities.cities.push(city_of(1));
     sim.in_play = true;
     let run = |sim: &mut Sim, won: i32| {
         let before = sim.world.owners();
@@ -150,12 +150,7 @@ fn a_rival_s_runner_up_marks_the_winning_city_s_bordering() {
         sim.start_border_pass(before);
         sim.advance_border_pass();
     };
-    let bordering = |sim: &Sim| {
-        sim.ai_state.ai[1]
-            .city_ai
-            .first()
-            .map_or(0, |c| c.bordering)
-    };
+    let bordering = |sim: &Sim| sim.ai.ai[1].city_ai.first().map_or(0, |c| c.bordering);
     run(&mut sim, 0);
     assert_eq!(bordering(&sim), 0, "at peace, nothing is marked");
     sim.declare_war(0, 1);

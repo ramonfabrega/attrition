@@ -10,8 +10,8 @@ fn sim() -> Sim {
         crate::world::World::new(60, 60),
         2,
     );
-    s.cities_state.nation[0].human = true;
-    s.cities_state.nation[1].human = false;
+    s.cities.nation[0].human = true;
+    s.cities.nation[1].human = false;
     s.leaders.at_war[0][1] = true;
     s.leaders.at_war[1][0] = true;
     s
@@ -728,7 +728,7 @@ fn find_leader_takes_the_lowest_type_cat_and_ties_to_the_first() {
     let archer = typed(&mut s, mask::FOOT, 0x600);
     let mounted = typed(&mut s, mask::MOUNTED, 0);
     let mech = typed(&mut s, mask::VEHICLE, 0);
-    let human = s.cities_state.nation[1].human;
+    let human = s.cities.nation[1].human;
     assert_eq!(
         type_cat(&s.tables.unit_types[mech], mech, human),
         cat::FORM_CAT_MECH
@@ -921,7 +921,7 @@ fn compute_form_negates_the_offsets_when_the_bearing_opposes_the_angle() {
             MoveKind::AttackTo,
             true,
         );
-        let off = s.ai_state.armies[1].list[slot].group.off.clone();
+        let off = s.ai.armies[1].list[slot].group.off.clone();
         let dests: Vec<Pos> = [a, b]
             .iter()
             .map(|&u| match s.current_order(u).expect("a move order").body {
@@ -1425,8 +1425,8 @@ fn a_pushed_group_takes_its_members_out_of_the_army() {
     s.army_add_unit(1, slot, b);
     assert_eq!(
         (
-            s.ai_state.armies[1].list[slot].units.clone(),
-            s.ai_state.armies[1].list[slot].num_captains
+            s.ai.armies[1].list[slot].units.clone(),
+            s.ai.armies[1].list[slot].num_captains
         ),
         (vec![a, b], 2),
         "the army's one group holds both"
@@ -1434,15 +1434,15 @@ fn a_pushed_group_takes_its_members_out_of_the_army() {
     // `push_group(force = 1)`, the probe's own call.
     assert!(s.push_group(&mut group_of(1, &[a]), true));
     assert_eq!(
-        s.ai_state.armies[1].list[slot].units,
+        s.ai.armies[1].list[slot].units,
         vec![b],
         "the pushed member is killed out of the army's group"
     );
     assert_eq!(
         (
-            s.ai_state.armies[1].list[slot].num_units,
-            s.ai_state.armies[1].list[slot].num_captains,
-            s.ai_state.armies[1].list[slot].num_standard
+            s.ai.armies[1].list[slot].num_units,
+            s.ai.armies[1].list[slot].num_captains,
+            s.ai.armies[1].list[slot].num_standard
         ),
         (1, 1, 1),
         "and `Army::normalize` recounts what is left"
@@ -1451,7 +1451,7 @@ fn a_pushed_group_takes_its_members_out_of_the_army() {
     let c = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
     assert!(s.push_group(&mut group_of(1, &[c]), true));
     assert_eq!(
-        s.ai_state.armies[1].list[slot].units,
+        s.ai.armies[1].list[slot].units,
         vec![b],
         "a non-member's push is not the army's business"
     );
@@ -1479,17 +1479,13 @@ fn a_member_leaving_an_army_group_takes_its_slot_with_it() {
     for u in [a, b, c] {
         s.army_add_unit(1, slot, u);
     }
-    let st = &mut s.ai_state.armies[1].list[slot].group;
+    let st = &mut s.ai.armies[1].list[slot].group;
     st.off = vec![(1, 1), (2, 2), (3, 3)];
     st.curr = vec![Pos::new(10, 10), Pos::new(20, 20), Pos::new(30, 30)];
     st.angles = vec![1, 2, 3];
     assert!(s.push_group(&mut group_of(1, &[a]), true));
-    let st = &s.ai_state.armies[1].list[slot].group;
-    assert_eq!(
-        s.ai_state.armies[1].list[slot].units,
-        vec![b, c],
-        "`a` left"
-    );
+    let st = &s.ai.armies[1].list[slot].group;
+    assert_eq!(s.ai.armies[1].list[slot].units, vec![b, c], "`a` left");
     assert_eq!(
         (st.off.clone(), st.curr.clone(), st.angles.clone()),
         (
@@ -1548,13 +1544,13 @@ fn a_member_taking_the_formation_over_turns_it_by_its_waypoint() {
         }
     }
     let i = g.list.iter().position(|&u| u == b).expect("b is listed");
-    s.ai_state.armies[1].list[slot].group.off = if i == 0 {
+    s.ai.armies[1].list[slot].group.off = if i == 0 {
         vec![(0, 0), (21, 0)]
     } else {
         vec![(21, 0), (0, 0)]
     };
     assert!(s.group_refresh_order(&g, b));
-    let st = &s.ai_state.armies[1].list[slot].group;
+    let st = &s.ai.armies[1].list[slot].group;
     let theta = find_angle(-7, -6);
     assert_eq!(theta, Angle(-586_678_272), "the bearing run457 dumps");
     assert_eq!(
@@ -1902,7 +1898,7 @@ fn a_queue_first_guard_is_laid_out_over_the_sorted_list() {
         }
         // The follower listed second, its captain not at all: the
         // list `Group::sort` finds a stray in.
-        s.ai_state.armies[1].list[slot].units = if sorted {
+        s.ai.armies[1].list[slot].units = if sorted {
             vec![a, b, c, cap, sub]
         } else {
             vec![a, sub, b, c]
@@ -2197,8 +2193,8 @@ fn a_squad_joins_a_small_army() -> (Sim, usize, [usize; 5]) {
 #[test]
 fn a_squad_joining_a_small_seated_group_is_listed_by_its_tail_alone() {
     let (s, slot, [a, b, cap, mid, tail]) = a_squad_joins_a_small_army();
-    assert_eq!(s.ai_state.armies[1].list[slot].units, vec![a, b, tail]);
-    let pool = s.ai_state.armies[1].list[slot].group.pool;
+    assert_eq!(s.ai.armies[1].list[slot].units, vec![a, b, tail]);
+    let pool = s.ai.armies[1].list[slot].group.pool;
     for u in [cap, mid, tail] {
         assert_eq!(
             s.units[u].group_ptr, pool,
@@ -2222,7 +2218,7 @@ fn a_squad_joining_a_small_seated_group_is_listed_by_its_tail_alone() {
 #[test]
 fn the_sort_re_seats_a_stray_follower_s_squad_and_clears_its_pointer() {
     let (mut s, slot, [a, b, cap, mid, tail]) = a_squad_joins_a_small_army();
-    let pool = s.ai_state.armies[1].list[slot].group.pool;
+    let pool = s.ai.armies[1].list[slot].group.pool;
     let g = s.army_group(1, slot);
     s.group_action_move_to(
         &g,
@@ -2233,10 +2229,7 @@ fn the_sort_re_seats_a_stray_follower_s_squad_and_clears_its_pointer() {
         MoveKind::MoveTo,
         true,
     );
-    assert_eq!(
-        s.ai_state.armies[1].list[slot].units,
-        vec![a, b, cap, mid, tail]
-    );
+    assert_eq!(s.ai.armies[1].list[slot].units, vec![a, b, cap, mid, tail]);
     assert_eq!(s.units[tail].group_ptr, None, "the kill cleared it");
     assert_eq!(s.units[cap].group_ptr, pool, "the re-add wrote nothing");
     assert_eq!(s.units[mid].group_ptr, pool);
@@ -2244,7 +2237,7 @@ fn the_sort_re_seats_a_stray_follower_s_squad_and_clears_its_pointer() {
     // And the army's own normalize then drops it, as the pool's
     // per-frame pass does on the slot's frame.
     s.army_normalize(1, slot);
-    assert_eq!(s.ai_state.armies[1].list[slot].units, vec![a, b, cap, mid]);
+    assert_eq!(s.ai.armies[1].list[slot].units, vec![a, b, cap, mid]);
 }
 
 /// `ungroup_move_order` walks **up to the captain and back down every
@@ -2516,8 +2509,8 @@ fn a_hurrying_army_stables_its_siege_and_marches_the_rest() {
     let siege = siege_type(&mut s);
     let city_pos = Pos::new(0x4000, 0x4000);
     let bldg = s.add_building(1, city_pos, 4);
-    let c = s.cities_state.cities.len();
-    s.cities_state.cities.push(crate::city::City {
+    let c = s.cities.cities.len();
+    s.cities.cities.push(crate::city::City {
         alive: true,
         owner: 1,
         race: Some(1),
@@ -2581,7 +2574,7 @@ fn a_hurrying_army_stables_its_siege_and_marches_the_rest() {
 
     // Hurrying, with a city at the destination: the siege is stabled
     // and the footman still marches.
-    s.ai_state.armies[1].list[slot].hurry = 1;
+    s.ai.armies[1].list[slot].hurry = 1;
     let g = s.army_group(1, slot);
     s.group_action_move_to(
         &g,
@@ -2934,8 +2927,8 @@ fn action_halt_skips_the_dead_the_absent_and_planes_and_the_mask_exempts_special
 #[test]
 fn a_human_s_stand_ground_kills_an_order_without_the_action_bit() {
     let mut s = sim();
-    s.cities_state.nation[0].human = true;
-    s.cities_state.nation[1].human = false;
+    s.cities.nation[0].human = true;
+    s.cities.nation[1].human = false;
     let t = fighter(&mut s);
     let found = spawn(&mut s, 0, t, Pos::new(0x1000, 0x1000));
     let given = spawn(&mut s, 0, t, Pos::new(0x1100, 0x1000));
@@ -3169,8 +3162,8 @@ fn the_anchor_s_sub_group_lays_out_on_its_own_cleared_facing() {
         s.army_add_unit(1, slot, u);
         s.units[u].movement.set_facing(Angle::NORTH);
     }
-    s.ai_state.armies[1].list[slot].group.facing = true;
-    let before = s.ai_state.armies[1].list[slot].group.clone();
+    s.ai.armies[1].list[slot].group.facing = true;
+    let before = s.ai.armies[1].list[slot].group.clone();
     let g = s.army_group(1, slot);
     s.group_action_siege_attack_to(&g, Pos::new(0x1400, 0x4000), Angle::NORTH);
     assert_eq!(s.order_type(w), index::ATTACK_TO, "the wagon walks in");
@@ -3184,7 +3177,7 @@ fn the_anchor_s_sub_group_lays_out_on_its_own_cleared_facing() {
         "the stack record's 0, not the army's 1: {:?}",
         s.units[w].orders
     );
-    let after = &s.ai_state.armies[1].list[slot].group;
+    let after = &s.ai.armies[1].list[slot].group;
     assert!(after.facing, "the army's own flag is left alone");
     assert_eq!(
         (after.o, after.o_angle, after.order_num),
@@ -3224,7 +3217,7 @@ fn a_member_s_dying_move_hands_its_mirror_to_the_army_not_the_stack() {
         Some(false),
         false,
     );
-    assert!(!s.ai_state.armies[1].list[slot].group.facing);
+    assert!(!s.ai.armies[1].list[slot].group.facing);
     let g = s.army_group(1, slot);
     s.group_action_siege_attack_to(&g, to, Angle::NORTH);
     let facing = s.units[w].orders.iter().find_map(|o| match o.body {
@@ -3238,7 +3231,7 @@ fn a_member_s_dying_move_hands_its_mirror_to_the_army_not_the_stack() {
         s.units[w].orders
     );
     assert!(
-        s.ai_state.armies[1].list[slot].group.facing,
+        s.ai.armies[1].list[slot].group.facing,
         "the army's record keeps the dying move's hand-back"
     );
 }
@@ -3274,7 +3267,7 @@ fn a_siege_unit_s_slot_is_copied_into_the_army_s_table_at_its_own_index() {
     let form_id = |u: usize| s.current_move(u).and_then(|m| m.group).map(|gm| gm.form_id);
     assert_eq!(form_id(m1), Some(3), "the leader's index in the army");
     assert_eq!(form_id(m2), Some(4), "and the follower's, not 1");
-    let st = &s.ai_state.armies[1].list[slot].group;
+    let st = &s.ai.armies[1].list[slot].group;
     assert_eq!(
         st.off[3],
         (0, 0),
@@ -3286,7 +3279,7 @@ fn a_siege_unit_s_slot_is_copied_into_the_army_s_table_at_its_own_index() {
     // leader's rotation leaves the tail's `curr` as the copy made it.
     let before = st.curr[4];
     s.group_update_positions(&g, m1);
-    assert_eq!(s.ai_state.armies[1].list[slot].group.curr[4], before);
+    assert_eq!(s.ai.armies[1].list[slot].group.curr[4], before);
 }
 
 /// **The anchor's sub-group sorts its own list, not the army's**
@@ -3320,7 +3313,7 @@ fn the_anchor_s_sub_group_sorts_its_own_list_and_walks_alone() {
     assert!(s.push_group(&mut sq, true));
     s.army_add_unit(1, slot, tail);
     assert_eq!(
-        s.ai_state.armies[1].list[slot].units,
+        s.ai.armies[1].list[slot].units,
         vec![w, b, tail],
         "the stray tail"
     );
@@ -3334,7 +3327,7 @@ fn the_anchor_s_sub_group_sorts_its_own_list_and_walks_alone() {
         m.group
     );
     assert_eq!(
-        s.ai_state.armies[1].list[slot].units,
+        s.ai.armies[1].list[slot].units,
         vec![w, b, tail],
         "and the army's list is not the one sorted"
     );
@@ -3678,14 +3671,14 @@ fn halt_clears_the_group_s_form_and_leaves_every_member_s_own() {
         true,
     );
     assert_eq!(
-        s.ai_state.armies[1].list[slot].group.form, 0,
+        s.ai.armies[1].list[slot].group.form, 0,
         "the move settled 0"
     );
     assert_eq!(s.group_get_form(&g), 0, "and wrote it to both members");
 
     s.group_action_halt(&g, 0);
     assert_eq!(
-        s.ai_state.armies[1].list[slot].group.form, -1,
+        s.ai.armies[1].list[slot].group.form, -1,
         "the halt clears the group's own form"
     );
     assert_eq!(
@@ -3869,7 +3862,7 @@ fn a_hurrying_army_with_no_city_clears_and_marches_its_shooting_siege() {
     let foe = spawn(&mut s, 0, siege, Pos::new(0x1080, 0x1000));
     s.army_add_unit(1, slot, m);
     s.add_attack_order(m, Obj::Unit(foe), QueuePos::New, true, true);
-    s.ai_state.armies[1].list[slot].hurry = 1; // hurrying, and there is no city
+    s.ai.armies[1].list[slot].hurry = 1; // hurrying, and there is no city
     let g = s.army_group(1, slot);
     s.group_action_move_to(
         &g,
@@ -4278,10 +4271,7 @@ fn a_group_s_mirror_is_the_last_layout_s_and_not_the_march_s() {
         Some(a),
         "the first of one category"
     );
-    assert!(
-        !s.ai_state.armies[1].list[slot].group.facing,
-        "Group::clear"
-    );
+    assert!(!s.ai.armies[1].list[slot].group.facing, "Group::clear");
     // Both face north to start. `Unit::init` would leave them on
     // `Angle::INITIAL` — 120°, which is inside the first order's window
     // too, but the march below is written in round numbers from north.
@@ -4308,7 +4298,7 @@ fn a_group_s_mirror_is_the_last_layout_s_and_not_the_march_s() {
     );
     assert_eq!(order_facing(&s, a), Some(false), "an unmirrored block");
     assert!(
-        !s.ai_state.armies[1].list[slot].group.facing,
+        !s.ai.armies[1].list[slot].group.facing,
         "and the toggle around Form::compute put the flag back"
     );
 
@@ -4319,13 +4309,13 @@ fn a_group_s_mirror_is_the_last_layout_s_and_not_the_march_s() {
     // frame 327 and the state that made §6.3 look wrong.
     s.unit_set_angle(a, deg(100));
     assert!(
-        s.ai_state.armies[1].list[slot].group.facing,
+        s.ai.armies[1].list[slot].group.facing,
         "set_angle toggles the leader's group"
     );
     s.unit_set_angle(a, first);
     s.unit_set_angle(b, deg(-100));
     assert!(
-        s.ai_state.armies[1].list[slot].group.facing,
+        s.ai.armies[1].list[slot].group.facing,
         "a small turn does not, and a follower's never does"
     );
 
@@ -4350,7 +4340,7 @@ fn a_group_s_mirror_is_the_last_layout_s_and_not_the_march_s() {
              last layout's — reading `facing` straight would mirror here"
     );
     assert!(
-        !s.ai_state.armies[1].list[slot].group.facing,
+        !s.ai.armies[1].list[slot].group.facing,
         "and the march's 1 is gone: the hand-back **assigns**, so a \
              record dumped after this click shows the last layout's flag \
              until the leader turns again"

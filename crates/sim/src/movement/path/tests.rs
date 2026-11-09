@@ -308,7 +308,7 @@ fn only_ai_transport_types_drop_same_region_terrain_preferences() {
         for human in [false, true] {
             for transport in [false, true] {
                 let mut sim = flat_sim(4);
-                sim.cities_state.nation[0].human = human;
+                sim.cities.nation[0].human = human;
                 if water {
                     sim.world
                         .fill_region(Terrain::Sea, Cell::new(0, 0), Cell::new(3, 3));
@@ -991,8 +991,8 @@ fn the_no_rush_timer_charges_another_leader_s_cell_during_the_peace() {
     let m = Modes::default();
     let from = Pos::new(0x180, 0x180);
     let to = Pos::new(0x180 + 0x300, 0x180);
-    sim.ai_state.lobby.rush_rules = 10;
-    sim.ai_state.lobby.rush_minutes = 5;
+    sim.ai.lobby.rush_rules = 10;
+    sim.ai.lobby.rush_minutes = 5;
     sim.frame = 4499;
     let cost = |sim: &Sim| sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 2, 0, 0).0;
     assert_eq!(cost(&sim), 32, "unowned");
@@ -1011,7 +1011,7 @@ fn the_no_rush_timer_charges_another_leader_s_cell_during_the_peace() {
     sim.frame = 4500;
     assert_eq!(cost(&sim), 32, "the peace is over");
     sim.frame = 0;
-    sim.ai_state.lobby.rush_rules = 0;
+    sim.ai.lobby.rush_rules = 0;
     assert_eq!(cost(&sim), 32, "no rush rules");
 }
 
@@ -1148,7 +1148,7 @@ fn a_human_s_probe_takes_an_unseen_cell_as_valid() {
     let mut sim = lake_sim();
     let u = walker(&mut sim, Pos::new(0x180, 0x180));
     let t = Pos::new(3 * TILES_PER_CELL + 1, 4 * TILES_PER_CELL + 1);
-    sim.cities_state.nation[0].human = true;
+    sim.cities.nation[0].human = true;
     assert_eq!(
         sim.invalid_loc(u, t, true, true, false, true, false),
         loc::VALID
@@ -1158,14 +1158,14 @@ fn a_human_s_probe_takes_an_unseen_cell_as_valid() {
         loc::TERRAIN,
         "without fog_relax the lake refuses"
     );
-    sim.cities_state.nation[0].human = false;
+    sim.cities.nation[0].human = false;
     assert_eq!(
         sim.invalid_loc(u, t, true, true, false, true, false),
         loc::TERRAIN,
         "a computer leader's probe reads the terrain"
     );
     // One of the four half-cells seen is enough to read the terrain.
-    sim.cities_state.nation[0].human = true;
+    sim.cities.nation[0].human = true;
     let mut fog = vec![0u8; 20 * 20];
     fog[9 * 20 + 7] = 1; // (2·3 + 1, 2·4 + 1)
     assert!(sim.world.set_fog(fog));
@@ -1281,7 +1281,7 @@ fn a_world_probe_refuses_a_forest_cell_on_plain_ground() {
 fn a_human_s_world_plan_pops_past_water_to_its_goal() {
     let run = |human: bool| {
         let mut sim = lake_sim();
-        sim.cities_state.nation[0].human = human;
+        sim.cities.nation[0].human = human;
         let u = walker(&mut sim, Pos::new(0x180, 4 * 0x300 + 0x180));
         let goal = Pos::new(8 * 0x300 + 0x180, 4 * 0x300 + 0x180);
         push_goal(&mut sim, u, goal);

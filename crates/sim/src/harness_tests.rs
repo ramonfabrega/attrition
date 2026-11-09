@@ -712,7 +712,7 @@ fn a_city_pays_from_the_first_frame_of_the_game() {
     let mut world = World::new(16, 16);
     world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(15, 15));
     let mut sim = Sim::new(Tuning::RON, world, 2);
-    sim.cities_state.nation[0].human = true;
+    sim.cities.nation[0].human = true;
     let village = sim.add_build_type(crate::build::BuildType {
         ident: crate::build::Ident::Village,
         x_size: 7,
@@ -771,20 +771,20 @@ fn the_lobbys_resource_row_prices_the_opening_stockpile() {
         "row 1: as written"
     );
 
-    sim.ai_state.lobby.starting_resources = 7;
-    sim.ai_state.lobby.starting_resources_row = (100, 100);
+    sim.ai.lobby.starting_resources = 7;
+    sim.ai.lobby.starting_resources_row = (100, 100);
     assert_eq!(
         paid(&mut sim),
         [20000, 20000, 20000, 10000, 20000, 20000],
         "Deathmatch"
     );
 
-    sim.ai_state.lobby.starting_resources = 0;
-    sim.ai_state.lobby.starting_resources_row = (0, 0);
+    sim.ai.lobby.starting_resources = 0;
+    sim.ai.lobby.starting_resources_row = (0, 0);
     assert_eq!(paid(&mut sim), [100, 100, 50, 50, 50, 50], "Low halves");
 
-    sim.ai_state.lobby.starting_resources = 5;
-    sim.ai_state.lobby.starting_resources_row = (10, 10);
+    sim.ai.lobby.starting_resources = 5;
+    sim.ai.lobby.starting_resources_row = (10, 10);
     assert_eq!(
         paid(&mut sim),
         [2000, 2000, 1000, 1000, 1000, 1000],
@@ -2403,7 +2403,7 @@ fn a_chinese_citizen_trains_at_once() {
             .any(|a| matches!(a, production::Adjust::Scale(0)))
     };
     assert!(!instant(&sim, citizen), "not Chinese");
-    sim.cities_state.nation[0].chinese = true;
+    sim.cities.nation[0].chinese = true;
     assert!(instant(&sim, citizen), "Chinese: a Citizen is instant");
     assert!(
         !instant(&sim, other),
@@ -2547,7 +2547,7 @@ fn a_mongol_attacker_from_the_stable_trains_faster() {
             .any(|a| matches!(a, production::Adjust::Faster(20)))
     };
     assert!(!faster(&sim, rider), "not a Mongol");
-    sim.cities_state.nation[0].mongols = true;
+    sim.cities.nation[0].mongols = true;
     assert!(faster(&sim, rider), "a Mongol's Stable attacker");
     assert!(!faster(&sim, peaceful), "no attack, no bonus");
 }
@@ -4045,7 +4045,7 @@ fn a_crew_guy_walks_on_after_its_unit_has_arrived() {
 fn a_guarding_computer_s_crew_steps_on_the_guard_s_speed() {
     for (human, step) in [(false, 71), (true, 64)] {
         let mut sim = skirmish(0);
-        sim.cities_state.nation[1].human = human;
+        sim.cities.nation[1].human = human;
         let charge = sim.add_unit(Unit::new(1, 1, Pos::new(4000, 400), 100));
         let mut u = Unit::new(1, 2, Pos::new(4000, 400), 100);
         u.guys = vec![anim::Guy::fresh(1), anim::Guy::fresh(2)];

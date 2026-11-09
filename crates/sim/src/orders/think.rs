@@ -338,7 +338,7 @@ impl Sim {
         if hurry_gate
             && self.ai_driven(who)
             && let Some(slot) = self.army_of(u)
-            && let Some(a) = self.ai_state.armies[who as usize].list.get(slot)
+            && let Some(a) = self.ai.armies[who as usize].list.get(slot)
             && a.hurry != 0
         {
             let (c, m) = (self.units[u].pos.cell(), a.muster);
@@ -456,7 +456,7 @@ impl Sim {
             return None;
         }
         let slot = self.army_of(u)?;
-        let target = self.ai_state.armies[who as usize].list.get(slot)?.target?;
+        let target = self.ai.armies[who as usize].list.get(slot)?.target?;
         if !self.valid_target(Obj::Unit(u), target)
             || self.attack_dist(Obj::Unit(u), target)
                 >= self.tables.tuning.unit_respond_range * 0x180
@@ -1315,7 +1315,7 @@ impl Sim {
         // recently" bit (`docs/MERCHANT.md` §7), which this crate does not
         // keep, so a boat is always taken as not recently ordered.
         if self.is_rare_collector(u)
-            && self.cities_state.nation[self.units[u].owner as usize].human
+            && self.cities.nation[self.units[u].owner as usize].human
             && self.units[u].combat.packed
             && (self.units[u].idle == 1 || phase & 31 == 0)
         {
@@ -1348,7 +1348,7 @@ impl Sim {
         // who leaves the auto-manage option on has citizens carrying
         // `0x40000` under a leader that is not computer-controlled — so
         // when a per-unit bit lands, this reverts to the two-term form.
-        if self.ai_state.ai_off && !self.ai_driven(self.units[u].owner) {
+        if self.ai.ai_off && !self.ai_driven(self.units[u].owner) {
             return;
         }
         // **The tail's own cadence gate** (§2.4 step 5), the second of the
@@ -1470,7 +1470,7 @@ impl Sim {
         {
             let threshold = if self.unit_line_is(u, MACHINEGUN) {
                 3
-            } else if self.cities_state.nation[who as usize].human {
+            } else if self.cities.nation[who as usize].human {
                 7
             } else {
                 0x15
@@ -1652,8 +1652,8 @@ impl Sim {
         let Some(region) = self.world.tregion_alt(t) else {
             return false;
         };
-        if crate::ai::Census::reg(&self.ai_state.ai[who].census.reg_cities, region) == 0 {
-            let claimed = self.ai_state.ai[who]
+        if crate::ai::Census::reg(&self.ai.ai[who].census.reg_cities, region) == 0 {
+            let claimed = self.ai.ai[who]
                 .sites
                 .iter()
                 .any(|s| s.val != 0 && s.reg == i32::from(region));

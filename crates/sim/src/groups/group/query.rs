@@ -24,17 +24,17 @@ impl Sim {
     /// `GroupData::role` is.
     pub(crate) fn groups_process(&mut self, frame: i64) {
         let s = u8::try_from(frame.rem_euclid(64)).expect("under 64");
-        for w in 0..self.ai_state.armies.len() {
+        for w in 0..self.ai.armies.len() {
             let who = w as Player;
-            for a in 0..self.ai_state.armies[w].list.len() {
-                if self.ai_state.armies[w].list[a].group.pool != Some(s) {
+            for a in 0..self.ai.armies[w].list.len() {
+                if self.ai.armies[w].list[a].group.pool != Some(s) {
                     continue;
                 }
                 // `normalize`'s prune, on the army's list too (§23): a
                 // member whose `+0x80` no longer names this slot is
                 // dropped. The army's own counts are `Army::normalize`'s
                 // and wait for it.
-                let keep: Vec<usize> = self.ai_state.armies[w].list[a]
+                let keep: Vec<usize> = self.ai.armies[w].list[a]
                     .units
                     .iter()
                     .copied()
@@ -43,7 +43,7 @@ impl Sim {
                 self.army_keep_units(w, a, keep);
                 let g = self.army_group(who, a);
                 let v = self.group_compute_speed(&g);
-                let st = &mut self.ai_state.armies[w].list[a].group;
+                let st = &mut self.ai.armies[w].list[a].group;
                 st.speed = v;
                 st.new_speed = v;
             }
@@ -109,7 +109,7 @@ impl Sim {
     /// fills: the winner's **index in `list`**, which `compute_form` uses to
     /// read the leader's own `angles` byte (§6.3).
     pub fn group_find_leader_slot(&self, g: &Group) -> Option<(usize, usize)> {
-        let human = self.cities_state.nation[g.who as usize].human;
+        let human = self.cities.nation[g.who as usize].human;
         for on_map_only in [true, false] {
             let mut best: Option<(usize, usize, usize)> = None;
             for (i, &u) in g.list.iter().enumerate() {
@@ -193,7 +193,7 @@ impl Sim {
     /// moving unit per frame and [`Sim::group_of`] clones the list.
     pub(crate) fn group_speed_of(&self, u: usize) -> i32 {
         match self.seat_of(u) {
-            Some(Seat::Army(w, a)) => self.ai_state.armies[w as usize].list[a].group.speed,
+            Some(Seat::Army(w, a)) => self.ai.armies[w as usize].list[a].group.speed,
             Some(Seat::Pushed(i)) => self.orders.pushed[i].state.speed,
             None => 0,
         }
@@ -205,7 +205,7 @@ impl Sim {
     /// simulation calls it.
     pub fn group_speed_pair_of(&self, u: usize) -> Option<(i32, i32)> {
         let st = match self.seat_of(u)? {
-            Seat::Army(w, a) => &self.ai_state.armies[w as usize].list[a].group,
+            Seat::Army(w, a) => &self.ai.armies[w as usize].list[a].group,
             Seat::Pushed(i) => &self.orders.pushed[i].state,
         };
         Some((st.speed, st.new_speed))
@@ -650,7 +650,7 @@ impl Sim {
     pub(super) fn ai_army_group(&self, g: &Group) -> bool {
         g.army.is_some()
             && self
-                .cities_state
+                .cities
                 .nation
                 .get(g.who as usize)
                 .is_some_and(|n| !n.human)
@@ -662,10 +662,10 @@ impl Sim {
         let reg = self.world.tregion(p.tile());
         let mut best: Option<(i32, usize)> = None;
         for c in self.cities_of(who) {
-            if self.cities_state.cities[c].reg != reg {
+            if self.cities.cities[c].reg != reg {
                 continue;
             }
-            let q = self.cities_state.cities[c].pos;
+            let q = self.cities.cities[c].pos;
             let d = crate::world::vector_dist((p.x - q.x).abs(), (p.y - q.y).abs());
             if best.is_none_or(|(bd, _)| d < bd) {
                 best = Some((d, c));
@@ -677,8 +677,8 @@ impl Sim {
     /// §6.5's stable: `can_garrison` → a garrison order, else a move to a
     /// spot around the city between `0x300` and `0x600`.
     pub(super) fn stable_in_city(&mut self, u: usize, c: usize, angle: Angle) {
-        let b = self.cities_state.cities[c].building;
-        let p = self.cities_state.cities[c].pos;
+        let b = self.cities.cities[c].building;
+        let p = self.cities.cities[c].pos;
         if self.units[u]
             .ty
             .zip(self.buildings[b].ty)
@@ -708,7 +708,7 @@ impl Sim {
         match (g.army, g.pushed) {
             (Some(s), _) => {
                 let slot = self
-                    .ai_state
+                    .ai
                     .armies
                     .get(g.who as usize)
                     .and_then(|a| a.list.get(s))

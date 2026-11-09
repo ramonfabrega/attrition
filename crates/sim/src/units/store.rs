@@ -318,7 +318,7 @@ impl Sim {
             // flag [`cost::pop_cap`]'s Bantu arm reads, which had no writer
             // until the Bantu word's block 1 printed who=1's cap at 50
             // against this crate's 25 (run978, `docs/AI.md` §276).
-            m.bonuses.bantu = self.cities_state.nation.get(who).is_some_and(|n| n.bantu);
+            m.bonuses.bantu = self.cities.nation.get(who).is_some_and(|n| n.bantu);
             m.cap = cost::pop_cap(&self.tables.tuning, m.military_level, m.limit, &m.bonuses);
         }
     }
@@ -358,7 +358,7 @@ impl Sim {
         if self.unit_line_is(u, crate::army::BARK) {
             self.units[u].unit_masks2 |= crate::combat::umask2::MASK2_BARK;
             if !self
-                .cities_state
+                .cities
                 .nation
                 .get(who as usize)
                 .is_some_and(|n| n.human)
@@ -373,7 +373,7 @@ impl Sim {
         // `0x32`, `0x33`), a scout (`is(SCOUT, 0)`) or a Stable type
         // (`+0x40 == 0x1ac`) — raises the leader's `0x2000000`.
         if self
-            .cities_state
+            .cities
             .nation
             .get(who as usize)
             .is_some_and(|n| n.lakota)
@@ -693,7 +693,7 @@ impl Sim {
         if let Some(g) = group {
             muster.by_group[g] += delta;
         }
-        self.ai_state.ai[who as usize].census.active += delta;
+        self.ai.ai[who as usize].census.active += delta;
         self.track_civilian_type(who, ty, delta);
     }
 
@@ -719,7 +719,7 @@ impl Sim {
         let scout = self.tables.unit_types[ty]
             .cols
             .is(crate::ai_load::role::ROLE_SCOUT);
-        let census = &mut self.ai_state.ai[who as usize].census;
+        let census = &mut self.ai.ai[who as usize].census;
         match worker {
             crate::orders::Worker::Citizen => census.peasants += delta,
             crate::orders::Worker::Scholar => census.scholars += delta,

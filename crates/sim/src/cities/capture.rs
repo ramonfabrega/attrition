@@ -603,21 +603,19 @@ impl CaptureView for SimCapture<'_> {
         }
     }
     fn city_stamp(&mut self) -> i32 {
-        self.s.cities_state.cities[self.c].capture_stamp as i32
+        self.s.cities.cities[self.c].capture_stamp as i32
     }
     fn city_strength(&mut self) -> i32 {
-        self.s.cities_state.cities[self.c].capture_strength
+        self.s.cities.cities[self.c].capture_strength
     }
     fn city_index(&mut self) -> i32 {
         self.c as i32
     }
     fn city_founder(&mut self) -> i32 {
-        i32::from(self.s.cities_state.cities[self.c].founder)
+        i32::from(self.s.cities.cities[self.c].founder)
     }
     fn city_race(&mut self) -> i32 {
-        self.s.cities_state.cities[self.c]
-            .race
-            .map_or(-1, i32::from)
+        self.s.cities.cities[self.c].race.map_or(-1, i32::from)
     }
     fn frame(&mut self) -> i32 {
         self.s.frame as i32
@@ -648,7 +646,7 @@ impl CaptureView for SimCapture<'_> {
     }
     fn set_city_strength(&mut self, _taker: i32, city: i32, v: i32) {
         if let Ok(n) = usize::try_from(city) {
-            self.s.cities_state.cities[n].capture_strength = v;
+            self.s.cities.cities[n].capture_strength = v;
         }
     }
     fn swap_team(&mut self, _who: i32) -> i32 {

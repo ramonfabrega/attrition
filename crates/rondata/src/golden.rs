@@ -2101,7 +2101,7 @@ fn run(
     }
     match parse(&line.text) {
         Cheat::Ai(state) => {
-            built.sim.ai_state.ai_off = state.map_or(!built.sim.ai_state.ai_off, |on| !on);
+            built.sim.ai.ai_off = state.map_or(!built.sim.ai.ai_off, |on| !on);
             done.ran += 1;
         }
         Cheat::Age { who, level } => {
@@ -2143,7 +2143,7 @@ fn run(
             done.ran += 1;
         }
         Cheat::Control { who, human } => {
-            if let Some(n) = built.sim.cities_state.nation.get_mut(who as usize) {
+            if let Some(n) = built.sim.cities.nation.get_mut(who as usize) {
                 n.human = human;
                 done.ran += 1;
             } else {

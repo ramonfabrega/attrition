@@ -150,7 +150,7 @@ impl Sim {
                 id,
                 true,
             ) == tech::RESEARCHABLE
-            && let Some(ai) = self.ai_state.ai.get_mut(who as usize)
+            && let Some(ai) = self.ai.ai.get_mut(who as usize)
         {
             ai.tech_frame = self.frame;
         }
@@ -767,7 +767,7 @@ impl Sim {
         // frame, for every technology queued (item 1496: run656's block 5
         // holds both at 4, the frame the AI bought Missile Shield).
         let cat = self.tech_cat(t);
-        if let Some(ai) = self.ai_state.ai.get_mut(who as usize) {
+        if let Some(ai) = self.ai.ai.get_mut(who as usize) {
             ai.tech_frame = self.frame;
             if let Some(f) = ai.tech_cat_frame.get_mut(cat) {
                 *f = self.frame;
@@ -928,7 +928,7 @@ impl Sim {
         // first of the national block: a Mongol leader's unit with an attack
         // (`type +0x1e8`) whose trainer is of the Stable line (`is(0x1ac)`,
         // the Auto Plant included) takes `MONGOL_STABLE_SPEED` percent off.
-        if self.cities_state.nation[who as usize].mongols
+        if self.cities.nation[who as usize].mongols
             && self.tables.unit_types[ty].combat.attack != 0
             && self.tables.unit_types[ty]
                 .tree
@@ -973,7 +973,7 @@ impl Sim {
         // after it, the whole remaining tail included, is applied. The
         // result is clamped at `MIN_TIME` (1), so a lone scale to zero is
         // the return.
-        if self.cities_state.nation[who as usize].chinese {
+        if self.cities.nation[who as usize].chinese {
             let t = &self.tables.unit_types[ty];
             let spared = matches!(ty, 0 | 1)
                 || t.tree.is_some_and(|tr| [0x3d, 0x3e, 0x190].contains(&tr))
@@ -989,7 +989,7 @@ impl Sim {
         }
         // `has_tribe_bonus(0xb)`, cached — the lobby's "No Nation Powers"
         // and the no-city gate apply through it (`crate::nations`).
-        if self.cities_state.nation[who as usize].british {
+        if self.cities.nation[who as usize].british {
             let t = &self.tables.unit_types[ty];
             if t.combat.domain == attrition::Domain::Sea {
                 tail.push(production::Adjust::Faster(
@@ -1016,7 +1016,7 @@ impl Sim {
         // 3347, `docs/AI.md` §278). The arm's other branch, a type of class
         // `0x36` taking `FRENCH_SPECIAL_SPEED`, ships as 0 and is not
         // modelled.
-        if self.cities_state.nation[who as usize].french
+        if self.cities.nation[who as usize].french
             && matches!(self.trainer_where(ty), Some(0x1ae | 0x1af))
         {
             tail.push(production::Adjust::Faster(
@@ -1029,7 +1029,7 @@ impl Sim {
         // 0)`, through the Submarine) `GERMAN_SUBMARINE_SPEED`, each `t ×
         // 100 / (k + 100)`. The battery's German Dock `1/2010` finishes its
         // Fire Raft on 6718 there (`docs/AI.md` §242).
-        if self.cities_state.nation[who as usize].germans {
+        if self.cities.nation[who as usize].germans {
             if self.tables.unit_types[ty].combat.domain == attrition::Domain::Air {
                 tail.push(production::Adjust::Faster(
                     self.tables.tuning.german_air_speed,
@@ -1051,7 +1051,7 @@ impl Sim {
         // **The Roman arm** (`train_time@006508c0:208`–`213`, after the
         // German arms and before `TROOPS_FASTER`): a Legion-line unit of a
         // Roman leader takes `ROMAN_LEGION_FAST`, `t × 100 / (k + 100)`.
-        if self.cities_state.nation[who as usize].romans && self.is_legion_line(ty) {
+        if self.cities.nation[who as usize].romans && self.is_legion_line(ty) {
             tail.push(production::Adjust::Faster(
                 self.tables.tuning.roman_legion_fast,
             ));

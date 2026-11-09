@@ -82,10 +82,10 @@ fn find_repair_spot_is_a_tier_arm_and_takes_the_nearest_damaged_building() {
     u.ty = Some(citizen);
     u.on_map = true;
     let u = sim.add_unit(u);
-    sim.cities_state.nation[1].human = false;
-    sim.ai_state.lobby.difficulty = 1;
+    sim.cities.nation[1].human = false;
+    sim.ai.lobby.difficulty = 1;
     assert!(!sim.find_repair_spot(u), "tier 1 never repairs");
-    sim.ai_state.lobby.difficulty = 2;
+    sim.ai.lobby.difficulty = 2;
     sim.buildings[far].under_attack = 2;
     sim.buildings[near].under_attack = 2;
     assert!(

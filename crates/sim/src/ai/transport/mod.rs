@@ -182,7 +182,7 @@ impl Sim {
 
     /// `LeaderData::can_transport`.
     pub fn transport_level(&self, who: Player) -> TransportType {
-        self.ai_state
+        self.ai
             .transport
             .get(who as usize)
             .map_or(TransportType::None, LeaderTransport::level)
@@ -307,7 +307,7 @@ impl Sim {
     /// or lost and after every technology gained.
     pub fn check_transport(&mut self, who: Player) {
         let w = who as usize;
-        if w >= self.ai_state.transport.len() || self.ai_state.transport[w].locked {
+        if w >= self.ai.transport.len() || self.ai.transport[w].locked {
             return;
         }
         let want = if self.transport_preq_held(who) {
@@ -316,11 +316,11 @@ impl Sim {
             TransportType::None
         };
         if want != TransportType::None && self.dock_count(who) != 0 {
-            if self.ai_state.transport[w].level() == want {
+            if self.ai.transport[w].level() == want {
                 return;
             }
-            self.ai_state.transport[w].set_all();
-            let option = self.ai_state.transport[w].scouts_option;
+            self.ai.transport[w].set_all();
+            let option = self.ai.transport[w].scouts_option;
             for u in 0..self.units.len() {
                 let unit = &self.units[u];
                 if unit.owner != who || !unit.alive() || !self.unit_can_ever_transport(u) {
@@ -335,8 +335,8 @@ impl Sim {
             }
             return;
         }
-        if self.ai_state.transport[w].level() != TransportType::None {
-            self.ai_state.transport[w].clear();
+        if self.ai.transport[w].level() != TransportType::None {
+            self.ai.transport[w].clear();
             for unit in &mut self.units {
                 if unit.owner == who && unit.alive() {
                     unit.auto_transport = false;
@@ -349,7 +349,7 @@ impl Sim {
     /// the leader's level starts with the bit, scouts only under the option.
     pub(crate) fn transport_init_unit(&mut self, u: usize) {
         let who = self.units[u].owner;
-        let Some(lt) = self.ai_state.transport.get(who as usize).copied() else {
+        let Some(lt) = self.ai.transport.get(who as usize).copied() else {
             return;
         };
         if self.unit_transport_type(u) <= lt.level()
@@ -384,11 +384,11 @@ impl Sim {
     pub(crate) fn dock_open(&mut self, b: usize) -> usize {
         let who = self.buildings[b].owner;
         let w = who as usize;
-        if self.ai_state.docks.len() <= w {
-            self.ai_state.docks.resize_with(w + 1, Docks::default);
+        if self.ai.docks.len() <= w {
+            self.ai.docks.resize_with(w + 1, Docks::default);
         }
         let slot = {
-            let docks = &mut self.ai_state.docks[w];
+            let docks = &mut self.ai.docks[w];
             let mark = docks.mark.min(docks.slots.len());
             let reused = (0..mark).find(|&i| !docks.slots[i].active());
             let slot = match reused {
@@ -408,10 +408,10 @@ impl Sim {
         let reg = self.world.region_of(pos.cell());
         if let Some(r) = reg
             && self.world.terrain(r) == crate::world::Terrain::Land
-            && w < self.ai_state.ai.len()
+            && w < self.ai.ai.len()
         {
             let regs = self.world.region_count();
-            let cs = &mut self.ai_state.ai[w].census;
+            let cs = &mut self.ai.ai[w].census;
             if cs.reg_docks.len() < regs {
                 cs.reg_docks.resize(regs, 0);
             }
@@ -462,7 +462,7 @@ impl Sim {
             self.unit_set_angle(u, crate::movement::Angle(angle));
             gull = Some(u);
         }
-        self.ai_state.docks[w].slots[slot] = DockSlot {
+        self.ai.docks[w].slots[slot] = DockSlot {
             building: Some(b),
             reg,
             gull,
@@ -473,7 +473,7 @@ impl Sim {
     /// The position of the live dock whose slot holds gull `u` — the
     /// target of the gull's `StrafeOrder` (item 1453).
     pub fn gull_dock(&self, u: usize) -> Option<Pos> {
-        self.ai_state
+        self.ai
             .docks
             .iter()
             .flat_map(|d| d.slots.iter())
@@ -491,7 +491,7 @@ impl Sim {
             return;
         };
         let w = self.buildings[b].owner as usize;
-        let Some(docks) = self.ai_state.docks.get_mut(w) else {
+        let Some(docks) = self.ai.docks.get_mut(w) else {
             return;
         };
         let Some(rec) = docks.slots.get_mut(slot).copied() else {
@@ -501,15 +501,15 @@ impl Sim {
             && self.buildings[b].alive
             && let Some(r) = rec.reg
             && self.world.terrain(r) == crate::world::Terrain::Land
-            && w < self.ai_state.ai.len()
-            && let Some(n) = self.ai_state.ai[w].census.reg_docks.get_mut(r as usize)
+            && w < self.ai.ai.len()
+            && let Some(n) = self.ai.ai[w].census.reg_docks.get_mut(r as usize)
         {
             *n -= 1;
         }
         // `Dock::close` clears `o`, `reg`, `who` and the active bit and
         // leaves `gull_o` as it was (audit B.13) — a dump of a closed slot
         // shows the stale gull.
-        self.ai_state.docks[w].slots[slot] = DockSlot {
+        self.ai.docks[w].slots[slot] = DockSlot {
             building: None,
             reg: None,
             gull: rec.gull,
@@ -523,7 +523,7 @@ impl Sim {
             gull.on_map = false;
             gull.hold_frames = Sim::CLOSE_HOLD;
         }
-        let docks = &mut self.ai_state.docks[w];
+        let docks = &mut self.ai.docks[w];
         while docks.mark > 0 && !docks.slots[docks.mark - 1].active() {
             docks.mark -= 1;
         }
@@ -640,7 +640,7 @@ impl Sim {
         let Some(s) = self.units[head].group_ptr else {
             return false;
         };
-        let Some((reg, target)) = self.ai_state.armies.get(who as usize).and_then(|x| {
+        let Some((reg, target)) = self.ai.armies.get(who as usize).and_then(|x| {
             x.list
                 .iter()
                 .find(|a| a.valid && a.group.pool == Some(s))
@@ -1574,7 +1574,7 @@ impl Sim {
         // heading still — the dump's `dest_angle` 292814848 against
         // `angle` 165478400 on the same block says `set_angle` comes
         // after — which is step 1's value, kept below.
-        if !self.cities_state.nation[usize::from(self.units[r].owner)].human
+        if !self.cities.nation[usize::from(self.units[r].owner)].human
             && !(0x32..=0x35).contains(&self.units[r].type_index)
         {
             self.units[r].orders_pos = at;

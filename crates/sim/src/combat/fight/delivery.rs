@@ -35,10 +35,10 @@ impl Sim {
         {
             self.army_charge(who, slot, Obj::Building(b));
         }
-        if !fresh && self.frame - self.cities_state.cities[c].reduce_stamp < 300 {
+        if !fresh && self.frame - self.cities.cities[c].reduce_stamp < 300 {
             return;
         }
-        self.cities_state.cities[c].reduce_stamp = self.frame;
+        self.cities.cities[c].reduce_stamp = self.frame;
     }
 
     /// `Object::do_damage` (§7.1): computes, scales and delivers one hit from
@@ -201,7 +201,7 @@ impl Sim {
         // (item 2235, `docs/GOLDEN.md` §81).
         if alarm && !killed {
             let tw = self.owner_of(target);
-            if (tw as usize) < self.ai_state.armies.len() {
+            if (tw as usize) < self.ai.armies.len() {
                 self.armies_emergency(tw);
             }
         }
@@ -311,7 +311,7 @@ impl Sim {
                     && bd.owner == vic
                     && let Some(c) = bd.city
                 {
-                    self.cities_state.cities[c].raid_stamp = frame;
+                    self.cities.cities[c].raid_stamp = frame;
                 }
                 return false;
             }
@@ -334,18 +334,18 @@ impl Sim {
             bd.damage + whole >= ceiling
         };
         if !heavy {
-            self.cities_state.cities[c].raid_stamp = frame;
+            self.cities.cities[c].raid_stamp = frame;
             return false;
         }
-        if self.cities_state.cities[c].capital {
-            let stamp = &mut self.ai_state.ai[vic as usize].capital_stamp[att as usize];
+        if self.cities.cities[c].capital {
+            let stamp = &mut self.ai.ai[vic as usize].capital_stamp[att as usize];
             if frame - *stamp > 300 {
                 *stamp = frame;
                 return true;
             }
             return false;
         }
-        let city = &mut self.cities_state.cities[c];
+        let city = &mut self.cities.cities[c];
         let alarm = frame - city.attack_stamp > 300;
         city.attack_stamp = frame;
         city.raid_stamp = frame;
@@ -411,7 +411,7 @@ impl Sim {
                 {
                     continue;
                 }
-                if self.cities_state.nation[unit.owner as usize].koreans
+                if self.cities.nation[unit.owner as usize].koreans
                     && self.tables.tuning.korean_build_under_fire != 0
                 {
                     continue;
@@ -483,7 +483,7 @@ impl Sim {
         // frames (`docs/ARMY.md` §12, `docs/AI.md` §71).
         if self.ai_difficulty() < 2 {
             let owner = self.owner_of(target) as usize;
-            if let Some(l) = self.ai_state.ai.get_mut(owner) {
+            if let Some(l) = self.ai.ai.get_mut(owner) {
                 l.frame_attacked = _frame;
             }
         }
@@ -673,7 +673,7 @@ impl Sim {
         if who == vw || self.is_ally(vw, who) {
             return;
         }
-        let slay = self.cities_state.nation[who as usize].aztecs
+        let slay = self.cities.nation[who as usize].aztecs
             && self.units[k]
                 .ty
                 .and_then(|t| self.trainer_ident(t))
@@ -974,7 +974,7 @@ impl Sim {
             // under attack, attacking and ever attacked. The first of the
             // three is the city heal's veto.
             if let Some(c) = self.buildings[b].city {
-                let cd = &mut self.cities_state.cities[c];
+                let cd = &mut self.cities.cities[c];
                 cd.no_heal = true;
                 cd.attacking = true;
                 cd.ever_attacked = true;
@@ -1096,7 +1096,7 @@ impl Sim {
         // Gaia's animals carry population in some rows and hold no muster
         // here: this crate keeps one per player slot.
         let who = u.owner;
-        if (who as usize) < self.roster.muster.len() && (who as usize) < self.ai_state.ai.len() {
+        if (who as usize) < self.roster.muster.len() && (who as usize) < self.ai.ai.len() {
             self.track_unit_type(who, ty, -1);
         }
     }

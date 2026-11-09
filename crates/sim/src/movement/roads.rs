@@ -150,12 +150,12 @@ impl Sim {
     /// the flag on a farm or a city centre, neither of which `place_roads`
     /// would ever flag itself.
     pub(crate) fn city_regen_roads(&mut self, c: usize) {
-        if !self.cities_state.cities[c].alive {
+        if !self.cities.cities[c].alive {
             return;
         }
-        let head = self.cities_state.cities[c].building;
+        let head = self.cities.cities[c].building;
         self.buildings[head].regen_roads = true;
-        let members = self.cities_state.cities[c].members.clone();
+        let members = self.cities.cities[c].members.clone();
         for b in members {
             self.buildings[b].regen_roads = true;
         }
@@ -227,10 +227,10 @@ impl Sim {
         let Some(c) = self.buildings[b].city else {
             return;
         };
-        if !self.cities_state.cities[c].alive {
+        if !self.cities.cities[c].alive {
             return;
         }
-        let centre = self.cities_state.cities[c].building;
+        let centre = self.cities.cities[c].building;
         let road = self.find_road(b, centre);
         // `reconstruct` appends goal-end first, as `astar_caravan_road`
         // does (`00685990`), and `place_roads@0063c580` pops that stack from

@@ -83,12 +83,9 @@ mod tests {
         let mut init = replay_initial(&log).unwrap();
         borrow_from_siblings(&mut init, &refs);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        assert!(built.sim.ai_state.scripts.is_some(), "the scripts compiled");
-        assert!(
-            !built.sim.cities_state.nation[1].human,
-            "player 1 is the AI"
-        );
-        let ai = &mut built.sim.ai_state.ai[1];
+        assert!(built.sim.ai.scripts.is_some(), "the scripts compiled");
+        assert!(!built.sim.cities.nation[1].human, "player 1 is the AI");
+        let ai = &mut built.sim.ai.ai[1];
         ai.pers = sim::ai::Personality {
             rush: 1,
             cities: 1,
@@ -123,19 +120,13 @@ mod tests {
         built.tick();
         built.tick();
         assert_eq!(built.sim.frame, 2);
-        assert!(
-            built.sim.ai_state.ai[1].script_live,
-            "the script is not done"
-        );
-        assert_eq!(
-            built.sim.ai_state.ai[1].script_step, 11,
-            "6 → 7 → 9 → 10 → 11"
-        );
+        assert!(built.sim.ai.ai[1].script_live, "the script is not done");
+        assert_eq!(built.sim.ai.ai[1].script_step, 11, "6 → 7 → 9 → 10 → 11");
 
         // The city's queue: three citizens, on the ramp the dump shows.
         let city_b = built
             .sim
-            .cities_state
+            .cities
             .cities
             .iter()
             .find(|c| c.alive && c.owner == 1)
@@ -243,7 +234,7 @@ mod tests {
             .expect("the WORLD block's sea_map");
         assert!(sea_map > 2, "an islands map: sea_map {sea_map}");
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        assert_eq!(built.sim.ai_state.lobby.map_style, 18, "East Indies");
+        assert_eq!(built.sim.ai.lobby.map_style, 18, "East Indies");
         assert_eq!(
             built.sim.world.sea_map(),
             sea_map,
@@ -296,7 +287,7 @@ mod tests {
         // `reg_cities`/`reg_land` say about the *site's* region, so an
         // island the AI does not live on is exactly where a census error
         // would hide.
-        let c = &built.sim.ai_state.ai[1].census;
+        let c = &built.sim.ai.ai[1].census;
         let arr = |key: &str| -> Vec<i64> {
             theirs
                 .all(key)
@@ -350,7 +341,7 @@ mod tests {
             let (x, y) = (rec.int("x").unwrap_or(-1), rec.int("y").unwrap_or(-1));
             let Some(c) = built
                 .sim
-                .cities_state
+                .cities
                 .cities
                 .iter()
                 .position(|c| c.alive && i64::from(c.pos.x) == x && i64::from(c.pos.y) == y)
@@ -359,7 +350,7 @@ mod tests {
                 continue;
             };
             matched += 1;
-            let ours = built.sim.ai_state.ai[1].city_ai[c];
+            let ours = built.sim.ai.ai[1].city_ai[c];
             let space: Vec<i64> = rec
                 .all("space[scan]")
                 .iter()
@@ -428,7 +419,7 @@ mod tests {
             })
             .collect();
         assert_eq!(theirs_full.len(), 10, "ten SITE records");
-        let ours_full: Vec<(i64, i64, i64, i64, i64)> = built.sim.ai_state.ai[1]
+        let ours_full: Vec<(i64, i64, i64, i64, i64)> = built.sim.ai.ai[1]
             .sites
             .iter()
             .map(|s| {
@@ -705,7 +696,7 @@ mod tests {
         let log = Log::parse(&text);
         let init = replay_initial(&log).unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        assert_eq!(built.sim.ai_state.lobby.map_style, 18, "East Indies");
+        assert_eq!(built.sim.ai.lobby.map_style, 18, "East Indies");
 
         let frames = log.frames();
         let block = |n: i64| -> Block<'_> {
@@ -809,13 +800,9 @@ mod tests {
         built.sim.buildings[b].started = true;
         built.sim.activate(b, false, true);
         assert_eq!(built.sim.buildings[b].dock_slot, Some(0));
-        assert_eq!(built.sim.ai_state.docks[1].slots[0].reg, Some(sim_reg));
+        assert_eq!(built.sim.ai.docks[1].slots[0].reg, Some(sim_reg));
         assert!(
-            built.sim.ai_state.ai[1]
-                .census
-                .reg_docks
-                .iter()
-                .all(|n| *n == 0),
+            built.sim.ai.ai[1].census.reg_docks.iter().all(|n| *n == 0),
             "reg_docks stays 0 for a dock in the sea"
         );
         assert_eq!(
@@ -877,11 +864,8 @@ mod tests {
         let init = replay_initial(&log).unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
         let sim = &mut built.sim;
-        assert!(sim.cities_state.nation[1].british, "run53's AI is tribe 11");
-        assert!(
-            !sim.cities_state.nation[0].british,
-            "and the human is tribe 4"
-        );
+        assert!(sim.cities.nation[1].british, "run53's AI is tribe 11");
+        assert!(!sim.cities.nation[0].british, "and the human is tribe 4");
 
         let barracks = loaded.build_named("Barracks").expect("a Barracks type");
         let bowmen = loaded.unit_named("Bowmen").expect("a Bowmen type");
@@ -1109,7 +1093,7 @@ mod tests {
                     continue;
                 }
                 for (i, t) in theirs.iter().enumerate() {
-                    let o = built.sim.ai_state.ai[who as usize].sites[i];
+                    let o = built.sim.ai.ai[who as usize].sites[i];
                     for (field, ours, theirs) in [
                         ("wx", i64::from(o.wx), t.int("wx")),
                         ("wy", i64::from(o.wy), t.int("wy")),
@@ -1299,7 +1283,7 @@ mod tests {
                         .collect();
                     assert_eq!(sites.len(), 10, "ten SITE records, frame {n} who {who}");
                     for (i, t) in sites.iter().enumerate() {
-                        let o = built.sim.ai_state.ai[who as usize].sites[i];
+                        let o = built.sim.ai.ai[who as usize].sites[i];
                         let ours = (
                             i64::from(o.wx),
                             i64::from(o.wy),
@@ -1436,7 +1420,7 @@ mod tests {
             let pos = sim::world::Pos::new(*x as i32, *y as i32);
             if built
                 .sim
-                .cities_state
+                .cities
                 .cities
                 .iter()
                 .any(|c| c.alive && c.pos == pos && i64::from(c.owner) == *who)
@@ -1449,13 +1433,7 @@ mod tests {
             built.sim.activate(b, false, false);
         }
         assert_eq!(
-            built
-                .sim
-                .cities_state
-                .cities
-                .iter()
-                .filter(|c| c.alive)
-                .count(),
+            built.sim.cities.cities.iter().filter(|c| c.alive).count(),
             3,
             "the window's three cities, and no more"
         );

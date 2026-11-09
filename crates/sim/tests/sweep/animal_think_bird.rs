@@ -105,8 +105,8 @@ fn the_emulated_original_agrees_on_every_row() {
                     wr(&mut p[4], 0x48, -1);
                 }
                 sim.units[u].spell_time = st;
-                sim.gaia_state.gaia.bird_goals = vec![(u, Pos::new(rd(&p[5], 0), rd(&p[6], 0)))];
-                sim.gaia_state.gaia.bird_landings.clear();
+                sim.gaia.gaia.bird_goals = vec![(u, Pos::new(rd(&p[5], 0), rd(&p[6], 0)))];
+                sim.gaia.gaia.bird_landings.clear();
                 sim.rng.seed = rd(&c[1], 0) as u32;
                 sim.think_bird(u, i64::from(frame));
                 let g = sim.bird_goal(u);

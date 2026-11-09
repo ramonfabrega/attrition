@@ -3,7 +3,7 @@
 #[test]
 fn a_defeat_clears_the_units_computer_bit() {
     let mut s = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(8, 8), 2);
-    s.cities_state.nation[1].human = false;
+    s.cities.nation[1].human = false;
     assert!(s.unit_ai_bit(1));
     s.leaders.defeated[1] = true;
     assert!(!s.unit_ai_bit(1), "the units' bit is cleared");

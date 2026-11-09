@@ -472,7 +472,7 @@ fn coverage_pair_start_owns_every_age() {
     let log = Log::parse(&text);
     let init = log.initial().expect("a start dump");
     let built = build_sim(&loaded, &init, Tuning::RON);
-    assert_eq!(built.sim.ai_state.lobby.starting_technology, 8);
+    assert_eq!(built.sim.ai.lobby.starting_technology, 8);
     assert_eq!(built.sim.tables.setup.starting_age, 8);
     for who in 0..2 {
         let t = &built.sim.tech[who];
@@ -509,7 +509,7 @@ fn coverage_pair_start_pays_its_lobby() {
     let log = Log::parse(&text);
     let init = log.initial().expect("a start dump");
     let built = build_sim(&loaded, &init, Tuning::RON);
-    assert_eq!(built.sim.ai_state.lobby.starting_resources_row, (100, 100));
+    assert_eq!(built.sim.ai.lobby.starting_resources_row, (100, 100));
     // Nubians' food is the table's own; the Persians' is half as much again
     // (`PERSIANS_BONUS_FOOD`, `Leader::init`).
     assert_eq!(
@@ -2315,7 +2315,7 @@ fn run1075_s_garrison_counts_part_by_the_record() {
                 continue;
             };
             let theirs = crate::diff::leader::theirs(&block);
-            let c = &built.sim.ai_state.ai[who].census;
+            let c = &built.sim.ai.ai[who].census;
             let ours = [
                 c.peasants_garr,
                 c.stable_garr,

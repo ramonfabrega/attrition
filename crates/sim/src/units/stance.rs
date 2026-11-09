@@ -290,7 +290,7 @@ impl crate::Sim {
     #[must_use]
     pub fn init_stance(&self, who: Player, ty: usize) -> u8 {
         let human = self
-            .cities_state
+            .cities
             .nation
             .get(who as usize)
             .is_some_and(|n| n.human);
@@ -298,7 +298,7 @@ impl crate::Sim {
             self.type_stance_type(ty),
             self.leader_options(who),
             human,
-            self.ai_state.lobby.resources_unlimited(),
+            self.ai.lobby.resources_unlimited(),
         )
     }
 
@@ -316,7 +316,7 @@ impl crate::Sim {
         let bl = &self.buildings[b];
         let Some(t) = bl.ty else { return 0 };
         let human = self
-            .cities_state
+            .cities
             .nation
             .get(bl.owner as usize)
             .is_some_and(|n| n.human);
@@ -324,7 +324,7 @@ impl crate::Sim {
             build_stance_type(&self.tables.build_types, t),
             self.leader_options(bl.owner),
             human,
-            self.ai_state.lobby.resources_unlimited(),
+            self.ai.lobby.resources_unlimited(),
         )
     }
 

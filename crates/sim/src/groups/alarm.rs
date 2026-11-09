@@ -119,18 +119,16 @@ impl Sim {
     /// attrition, which no shipped scenario sets.
     pub(crate) fn peasant_alarm(&mut self, u: usize) {
         let who = self.units[u].owner;
-        if self.cities_state.nation[who as usize].human
-            || self.ai_difficulty() < 2
-            || !self.is_peasant(u)
+        if self.cities.nation[who as usize].human || self.ai_difficulty() < 2 || !self.is_peasant(u)
         {
             return;
         }
         let Some(c) = self.find_city_at(who, self.units[u].pos, None) else {
             return;
         };
-        let b = self.cities_state.cities[c].building;
+        let b = self.cities.cities[c].building;
         let bd = &self.buildings[b];
-        if !(bd.alive && bd.active) || self.cities_state.cities[c].alarm {
+        if !(bd.alive && bd.active) || self.cities.cities[c].alarm {
             return;
         }
         self.action_alarm(who, &[b]);
@@ -267,7 +265,7 @@ impl Sim {
         let who = g.who;
         let target = self.buildings[b].pos;
         let region = self.world.tregion_alt(target.tile());
-        let human = self.cities_state.nation[who as usize].human;
+        let human = self.cities.nation[who as usize].human;
         let idle = g
             .list
             .iter()

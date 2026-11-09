@@ -117,10 +117,10 @@ impl Sim {
             self.economy.holdings[who].wonders = self.wonders_held(player);
             // `do_gather`'s escrow arm reads `escrow_rate` on every frame,
             // and a human never escrows (`docs/AI.md` §98).
-            self.economy.holdings[who].escrow_rate = if self.cities_state.nation[who].human {
+            self.economy.holdings[who].escrow_rate = if self.cities.nation[who].human {
                 [0; economy::RESOURCES]
             } else {
-                self.ai_state.ai[who].census.escrow_rate
+                self.ai.ai[who].census.escrow_rate
             };
             economy::process(
                 &self.tables.tuning,
@@ -160,7 +160,7 @@ impl Sim {
                 let gems_moved = (self.economy.ledgers[who].rare ^ rare) & gem != 0;
                 self.economy.ledgers[who].rare = rare;
                 self.roster.unit_stats_dirty[who] = true;
-                self.cities_state.wall_stats_dirty[who] = true;
+                self.cities.wall_stats_dirty[who] = true;
                 if gems_moved {
                     self.sync_territory();
                 }
@@ -173,7 +173,7 @@ impl Sim {
             }
             // `Leader::process` also answers the wall-stats dirty flag here,
             // before any building is touched.
-            if self.cities_state.wall_stats_dirty[who] {
+            if self.cities.wall_stats_dirty[who] {
                 self.calc_wall_stats(player);
             }
             // And then `0x4000000` — `Leader::calc_unit_stats`, which is

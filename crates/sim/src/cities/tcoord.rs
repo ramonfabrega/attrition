@@ -313,7 +313,7 @@ impl TcoordView for SimTcoord<'_> {
         self.sim.tables.build_types[self.ty].has(flags::FLAT)
     }
     fn has_tribe_bonus(&mut self, who: i32, bonus: i32) -> bool {
-        let n = &self.sim.cities_state.nation[who as usize];
+        let n = &self.sim.cities.nation[who as usize];
         match bonus {
             0x13 => n.lakota,
             0x16 => n.dutch,

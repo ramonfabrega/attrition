@@ -422,7 +422,7 @@ impl Sim {
             f.y_spacing[cat::FORM_CAT_ARTILLERY] = 0x180;
         }
         let human = self
-            .cities_state
+            .cities
             .nation
             .get(f.who as usize)
             .is_some_and(|n| n.human);

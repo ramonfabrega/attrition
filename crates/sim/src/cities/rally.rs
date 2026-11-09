@@ -315,12 +315,12 @@ impl Sim {
             let Some(c) = b.city else {
                 continue;
             };
-            if !b.alive || !b.active || self.cities_state.cities[c].building != m {
+            if !b.alive || !b.active || self.cities.cities[c].building != m {
                 continue;
             }
             self.clear_gather(m);
             let chain: Vec<usize> = std::iter::once(m)
-                .chain(self.cities_state.cities[c].members.iter().copied())
+                .chain(self.cities.cities[c].members.iter().copied())
                 .collect();
             for k in chain {
                 if !self.buildings[k].alive {

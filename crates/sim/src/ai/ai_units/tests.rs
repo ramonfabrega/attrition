@@ -59,13 +59,9 @@ fn bare() -> Sim {
         crate::world::Cell::new(15, 15),
     );
     let mut sim = Sim::new(crate::Tuning::RON, w, 1);
-    sim.ai_state.ai = vec![Leader::new()];
-    sim.ai_state.ai[0]
-        .census
-        .resize(sim.world.region_count(), 1);
-    sim.ai_state.ai[0]
-        .city_ai
-        .resize(4, crate::ai::CityAi::default());
+    sim.ai.ai = vec![Leader::new()];
+    sim.ai.ai[0].census.resize(sim.world.region_count(), 1);
+    sim.ai.ai[0].city_ai.resize(4, crate::ai::CityAi::default());
     sim
 }
 
@@ -375,7 +371,7 @@ fn the_air_arm_sets_remaining_to_the_air_cap() {
     sim.buildings[b].ty = Some(rec);
     let f = sim.unit_facts(unit).expect("a unit record");
     for (difficulty, cap) in [(0, 2), (2, 4), (3, 16)] {
-        sim.ai_state.lobby.difficulty = difficulty;
+        sim.ai.lobby.difficulty = difficulty;
         let (mut remaining, mut escrow, mut num) = (5, 0, 0);
         sim.air_value(
             0,
@@ -442,7 +438,7 @@ fn create_units_offers_nothing_without_a_tree() {
     let before = sim.rng;
     sim.create_units(0);
     assert_eq!(draws(&mut sim, before), 0);
-    assert_eq!(sim.ai_state.ai[0].make_list.head().t, -1);
+    assert_eq!(sim.ai.ai[0].make_list.head().t, -1);
 }
 
 /// The ids a [`barracks_sim`] hands back: the unit's tree entry, its
@@ -556,7 +552,7 @@ fn barracks_sim(upgradeable: bool) -> (Sim, Barracks) {
 
     let b = sim.add_building(0, crate::Pos::new(4 * 256, 4 * 256), 8);
     sim.buildings[b].ty = Some(brec);
-    sim.cities_state.cities.push(crate::city::City {
+    sim.cities.cities.push(crate::city::City {
         alive: true,
         owner: 0,
         race: Some(0),
@@ -587,13 +583,13 @@ fn barracks_sim(upgradeable: bool) -> (Sim, Barracks) {
         trade_val: 0,
         traded_with: [0; 8],
     });
-    sim.buildings[b].city = Some(sim.cities_state.cities.len() - 1);
-    sim.ai_state.ai[0]
+    sim.buildings[b].city = Some(sim.cities.cities.len() - 1);
+    sim.ai.ai[0]
         .city_ai
-        .resize(sim.cities_state.cities.len(), crate::ai::CityAi::default());
-    sim.ai_state.ai[0].mil_trainers = vec![b];
+        .resize(sim.cities.cities.len(), crate::ai::CityAi::default());
+    sim.ai.ai[0].mil_trainers = vec![b];
     sim.roster.muster[0].cap = 100;
-    sim.ai_state.ai[0].census.pop = 10;
+    sim.ai.ai[0].census.pop = 10;
     for l in &mut sim.economy.ledgers {
         l.bucket = [10_000; RESOURCES];
     }
@@ -609,7 +605,7 @@ fn a_trainer_joins_the_leader_s_list_on_activation_and_leaves_on_close() {
     let city = sim.buildings[ids.b].city;
     // The fixture files its own barracks by hand; this is about the
     // registry the building lifecycle keeps.
-    sim.ai_state.ai[0].mil_trainers.clear();
+    sim.ai.ai[0].mil_trainers.clear();
     sim.buildings[ids.b].active = false;
 
     // A second trainer, to make the order and the removal observable.
@@ -627,19 +623,19 @@ fn a_trainer_joins_the_leader_s_list_on_activation_and_leaves_on_close() {
     // order, and `SimpleArray::add` never checks for a duplicate — but
     // `Wall::activate` only reaches it on the transition.
     sim.activate(ids.b, false, true);
-    assert_eq!(sim.ai_state.ai[0].mil_trainers, vec![ids.b]);
+    assert_eq!(sim.ai.ai[0].mil_trainers, vec![ids.b]);
     sim.activate(b2, false, true);
     sim.activate(b3, false, true);
     sim.activate(b4, false, true);
-    assert_eq!(sim.ai_state.ai[0].mil_trainers, vec![ids.b, b2, b3, b4]);
+    assert_eq!(sim.ai.ai[0].mil_trainers, vec![ids.b, b2, b3, b4]);
 
     // `SimpleArray<int>::remove@00462e70` finds the first slot holding
     // the value and shifts the tail down, so closing one from the middle
     // leaves the order of the rest — it is not a swap with the last.
     sim.close_building(b2, false);
-    assert_eq!(sim.ai_state.ai[0].mil_trainers, vec![ids.b, b3, b4]);
+    assert_eq!(sim.ai.ai[0].mil_trainers, vec![ids.b, b3, b4]);
     sim.close_building(b4, false);
-    assert_eq!(sim.ai_state.ai[0].mil_trainers, vec![ids.b, b3]);
+    assert_eq!(sim.ai.ai[0].mil_trainers, vec![ids.b, b3]);
 
     // Not a military trainer: never filed. `bare`'s type table has one
     // record with no flags at all.
@@ -654,35 +650,35 @@ fn a_trainer_joins_the_leader_s_list_on_activation_and_leaves_on_close() {
     sim.buildings[g].ty = Some(plain);
     sim.buildings[g].city = city;
     sim.activate(g, false, true);
-    assert_eq!(sim.ai_state.ai[0].mil_trainers, vec![ids.b, b3]);
+    assert_eq!(sim.ai.ai[0].mil_trainers, vec![ids.b, b3]);
 
     // A trainer outside a city, with no `NO_CITY` on its type, is what
     // `Wall::activate`'s own guard refuses.
     let out = trainer(&mut sim, 4);
     sim.buildings[out].city = None;
     sim.activate(out, false, true);
-    assert_eq!(sim.ai_state.ai[0].mil_trainers, vec![ids.b, b3]);
+    assert_eq!(sim.ai.ai[0].mil_trainers, vec![ids.b, b3]);
     // With `NO_CITY` the same building would have joined.
     sim.tables.build_types[ids.brec].flags |= crate::build::flags::NO_CITY;
     let free = trainer(&mut sim, 6);
     sim.buildings[free].city = None;
     sim.activate(free, false, true);
-    assert_eq!(sim.ai_state.ai[0].mil_trainers, vec![ids.b, b3, free]);
+    assert_eq!(sim.ai.ai[0].mil_trainers, vec![ids.b, b3, free]);
 }
 
 #[test]
 fn the_army_size_gate_draws_once_per_military_type_and_never_on_moderate() {
     for d in [0, 1, 2, 3, 4] {
         let (mut sim, ids) = barracks_sim(false);
-        sim.ai_state.lobby.difficulty = d;
+        sim.ai.lobby.difficulty = d;
         let before = sim.rng;
         sim.create_units(0);
         let n = draws(&mut sim, before);
         assert_eq!(n, usize::from(d != 2), "difficulty {d}");
         // And the type reached the make list, in the military category.
-        assert_eq!(sim.ai_state.ai[0].make_list.head().t, ids.unit as i32);
-        assert_eq!(sim.ai_state.ai[0].make_list.list[6].t, ids.unit as i32);
-        assert_eq!(sim.ai_state.ai[0].make_list.head().city, 0);
+        assert_eq!(sim.ai.ai[0].make_list.head().t, ids.unit as i32);
+        assert_eq!(sim.ai.ai[0].make_list.list[6].t, ids.unit as i32);
+        assert_eq!(sim.ai.ai[0].make_list.head().city, 0);
     }
 }
 
@@ -693,7 +689,7 @@ fn upgrade_units_draws_once_per_eligible_type_and_never_on_moderate() {
         // as research.
         let (mut sim, ids) = barracks_sim(true);
         assert_eq!(sim.type_avail(0, ids.unit), tech::RESEARCHABLE);
-        sim.ai_state.lobby.difficulty = d;
+        sim.ai.lobby.difficulty = d;
         let before = sim.rng;
         sim.upgrade_units(0);
         assert_eq!(
@@ -702,15 +698,15 @@ fn upgrade_units_draws_once_per_eligible_type_and_never_on_moderate() {
             "difficulty {d}"
         );
         // A military upgrade lands in category 7.
-        assert_eq!(sim.ai_state.ai[0].make_list.list[7].t, ids.unit as i32);
-        assert_eq!(sim.ai_state.ai[0].make_list.list[7].escrow, 1);
+        assert_eq!(sim.ai.ai[0].make_list.list[7].t, ids.unit as i32);
+        assert_eq!(sim.ai.ai[0].make_list.list[7].escrow, 1);
     }
     // A type that is already available is not an upgrade at all.
     let (mut sim, _) = barracks_sim(false);
     let before = sim.rng;
     sim.upgrade_units(0);
     assert_eq!(draws(&mut sim, before), 0);
-    assert_eq!(sim.ai_state.ai[0].make_list.list[7].t, -1);
+    assert_eq!(sim.ai.ai[0].make_list.list[7].t, -1);
 }
 
 /// **An upgrade whose line is already in research is not offered**
@@ -757,9 +753,9 @@ fn an_upgrade_whose_predecessor_is_in_research_is_not_offered() {
         sim.add_unit_type(ty);
     }
     sim.roster.muster[0].by_type[ids.rec] = 1;
-    sim.ai_state.lobby.difficulty = 5;
+    sim.ai.lobby.difficulty = 5;
     let offered = |sim: &mut Sim| {
-        sim.ai_state.ai[0].make_list.clear();
+        sim.ai.ai[0].make_list.clear();
         let before = sim.rng;
         sim.upgrade_units(0);
         draws(sim, before)
@@ -890,7 +886,7 @@ fn produce_unit_queues_at_the_military_trainer_with_the_shallowest_queue() {
     // A second trainer, three deep; the first is empty.
     let b2 = sim.add_building(0, crate::Pos::new(8 * 256, 8 * 256), 8);
     sim.buildings[b2].ty = Some(ids.brec);
-    sim.ai_state.ai[0].mil_trainers = vec![b2, ids.b];
+    sim.ai.ai[0].mil_trainers = vec![b2, ids.b];
     for _ in 0..3 {
         sim.queue_up(b2, ids.rec).expect("queued");
     }
@@ -898,7 +894,7 @@ fn produce_unit_queues_at_the_military_trainer_with_the_shallowest_queue() {
     assert_eq!(sim.buildings[ids.b].queue.items.len(), 1, "the empty one");
     assert_eq!(sim.buildings[b2].queue.items.len(), 3);
     // A trainer already four deep is not a candidate at all.
-    sim.ai_state.ai[0].mil_trainers = vec![b2];
+    sim.ai.ai[0].mil_trainers = vec![b2];
     sim.queue_up(b2, ids.rec).expect("queued");
     assert!(!sim.produce_unit(0, ids.unit, None, 1, 0));
     assert_eq!(sim.buildings[b2].queue.items.len(), 4);
@@ -925,7 +921,7 @@ fn produce_unit_queues_the_whole_batch_down_the_city_walk() {
     // city-chain branch; the building is still the type the unit is
     // made at, and it is the capital's own.
     sim.tables.build_types[ids.brec].flags &= !MILITARY_TRAINER;
-    sim.ai_state.ai[0].mil_trainers.clear();
+    sim.ai.ai[0].mil_trainers.clear();
     assert!(sim.produce_unit(0, ids.unit, Some(0), 3, 0));
     assert_eq!(
         sim.buildings[ids.b].queue.items.len(),

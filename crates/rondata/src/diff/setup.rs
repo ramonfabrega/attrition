@@ -522,7 +522,7 @@ pub fn sim_at_frame(loaded: &Loaded, log: &Log, frame: i64, tuning: Tuning) -> O
     let mut sim = loaded.sim(tuning, world.clone(), players);
     for l in &leaders {
         if (0..players as i64).contains(&l.who) {
-            sim.cities_state.nation[l.who as usize].human = l.leader_flags & 4 != 0;
+            sim.cities.nation[l.who as usize].human = l.leader_flags & 4 != 0;
         }
     }
 
@@ -578,7 +578,7 @@ pub fn sim_at_frame(loaded: &Loaded, log: &Log, frame: i64, tuning: Tuning) -> O
     notes.push(format!(
         "frame {frame}: {} buildings, {} cities, {} regions mapped",
         out.len(),
-        sim.cities_state.cities.iter().filter(|c| c.alive).count(),
+        sim.cities.cities.iter().filter(|c| c.alive).count(),
         region_map.len()
     ));
     Some(AtFrame {
@@ -628,7 +628,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // sim's own draws are lined up against the trace's sites with
     // (`docs/SYNC.md` §4.2). Everything else leaves it off.
     sim.trace.trace_phases = true;
-    sim.ai_state.lobby = lobby_of(
+    sim.ai.lobby = lobby_of(
         &init.game_info,
         &loaded.map_styles,
         &loaded.wonder_wins,
@@ -780,7 +780,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             // `leader_flags & 4` is `LeaderData::is_human` — the bit that
             // picks `find_wpath`'s pull-back variant and withholds the
             // `army`/`worker` cost modes (`docs/PATHFINDER.md` §3).
-            sim.cities_state.nation[who].human = l.leader_flags & 4 != 0;
+            sim.cities.nation[who].human = l.leader_flags & 4 != 0;
             // **`diplos`, which nothing installed until 2026-09-02.** The
             // harness built every capture with an all-peace matrix while
             // every one of them opens at war, so `is_enemy` was false for
@@ -850,7 +850,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         None => (0..players).collect::<Vec<_>>(),
     };
     for who in order {
-        if sim.cities_state.nation[who].human {
+        if sim.cities.nation[who].human {
             continue;
         }
         let flags = init
@@ -1117,9 +1117,9 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 .position(|f| f.who == i64::from(bd.owner) && f.o == i64::from(bd.index))
                 .unwrap_or(usize::MAX)
         };
-        let mut order = std::mem::take(&mut sim.cities_state.farm_order);
+        let mut order = std::mem::take(&mut sim.cities.farm_order);
         order.sort_by_key(|&h| rank(h));
-        sim.cities_state.farm_order = order;
+        sim.cities.farm_order = order;
     }
     // On the flat fallback world a camp's survey (`gather.rs`) finds no
     // forest and would cap it at zero slots; the map-less dumps (run6, run7)
@@ -1136,7 +1136,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // The herds, as the dump's `HERDS` block prints them — their walk every
     // 64 frames is on the sync stream (`docs/SYNC.md` §3.2).
     for h in &init.herds {
-        sim.gaia_state.gaia.herds.push(sim::gaia::Herd {
+        sim.gaia.gaia.herds.push(sim::gaia::Herd {
             cx: h.cx as i32,
             cy: h.cy as i32,
             wx: h.wx as i32,
@@ -1171,9 +1171,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // per-cell goods scan (`compute_reg_territory`), the one the installed
     // owners stand in for (`docs/AI.md` §133).
     sim.claim_oil_from_owners();
-    let seeded: usize = (0..players)
-        .map(|w| sim.ai_state.ai[w].new_rares.len())
-        .sum();
+    let seeded: usize = (0..players).map(|w| sim.ai.ai[w].new_rares.len()).sum();
     if seeded > 0 {
         notes.push(format!(
             "rares: {seeded} already-seen good(s) replayed into new_rares"
@@ -1370,7 +1368,7 @@ pub(crate) fn start_of_game(
         // `starting_resources == 7` adds 8, `== 8` adds 12), which is what
         // lets run651's thirteen citizens read as a Small Town's five
         // (item 1496, `docs/AI.md` §129).
-        let lobby_extra = match sim.ai_state.lobby.starting_resources {
+        let lobby_extra = match sim.ai.lobby.starting_resources {
             7 => 8,
             8 => 12,
             _ => 0,
@@ -1518,7 +1516,7 @@ pub(crate) fn start_of_game(
         };
         let mut births: Vec<(usize, i64, usize)> = Vec::new();
         let mut cursor = 0i64;
-        let skip_orders = sim.ai_state.lobby.starting_resources == 8;
+        let skip_orders = sim.ai.lobby.starting_resources == 8;
         for (i, link) in citizens.iter().enumerate() {
             let target = if i < ordered {
                 // Unconditional — a dead `2001` sends the citizen idle rather
@@ -1593,7 +1591,7 @@ pub(crate) fn start_of_game(
     // ordered here as the original activated them: the higher slot first,
     // stable within a player.
     let owners: Vec<sim::Player> = sim.buildings.iter().map(|b| b.owner).collect();
-    sim.cities_state
+    sim.cities
         .farm_order
         .sort_by_key(|&h| std::cmp::Reverse(owners[h]));
     // **The dump's height grid is already terraformed for every building
@@ -2712,7 +2710,7 @@ mod tests {
 
         // Frame 0: the sweep, which arms the step machine.
         built.sim.tick();
-        let c = &built.sim.ai_state.ai[1].census;
+        let c = &built.sim.ai.ai[1].census;
         let scalars: [(&str, i32); 15] = [
             ("active", c.active),
             ("combat", c.combat),
@@ -2824,7 +2822,7 @@ mod tests {
                 )
             })
             .collect();
-        let ours_sites: Vec<(i32, i32, i32, i32)> = built.sim.ai_state.ai[1]
+        let ours_sites: Vec<(i32, i32, i32, i32)> = built.sim.ai.ai[1]
             .sites
             .iter()
             .map(|s| (s.wx, s.wy, s.val, s.rank))
@@ -2832,7 +2830,7 @@ mod tests {
         eprintln!(
             "sites — theirs: {theirs_sites:?}\n        ours:   {ours_sites:?}\n  site_mark theirs {:?} ours {}",
             theirs.int("site_mark"),
-            built.sim.ai_state.ai[1].site_mark
+            built.sim.ai.ai[1].site_mark
         );
         if traced {
             let best_theirs = theirs_sites
@@ -2871,7 +2869,7 @@ mod tests {
                     )
                 })
                 .collect();
-            let ours_full: Vec<(i64, i64, i64, i64, i64)> = built.sim.ai_state.ai[1]
+            let ours_full: Vec<(i64, i64, i64, i64, i64)> = built.sim.ai.ai[1]
                 .sites
                 .iter()
                 .map(|s| {
@@ -2904,7 +2902,7 @@ mod tests {
         // `Array<MakeObject>::init@0047d300` fills and `MakeList::clear`
         // rewrites, and the harness must start from the same one.
         let theirs_list = make_list_of(theirs);
-        let ours_list = built.sim.ai_state.ai[1].make_list.list;
+        let ours_list = built.sim.ai.ai[1].make_list.list;
         assert_eq!(
             theirs_list
                 .iter()
@@ -3153,7 +3151,7 @@ mod tests {
                 if let Some(e) = expiries.iter().find(|e| e.frame == frame) {
                     let mut s = loaded.sim(Tuning::RON, World::new(4, 4), 2);
                     let who = w.who as sim::Player;
-                    s.ai_state.ai[w.who as usize].make_list.list = prev;
+                    s.ai.ai[w.who as usize].make_list.list = prev;
                     s.rng = sim::combat::Rng::new(e.seed);
                     // Step 3: the head's `make_this` demotes it before step
                     // 4's walk; step 6: each bought slot's `make_this`, then
@@ -3161,13 +3159,13 @@ mod tests {
                     let head = prev[0];
                     let wi = w.who as usize;
                     if e.bought.contains(&0) {
-                        s.ai_state.ai[wi].make_list.list[0].val /= 100;
+                        s.ai.ai[wi].make_list.list[0].val /= 100;
                     }
                     let unc = s.expire_all(head.t as usize, true);
                     s.expire(who, head.t, 0, unc);
                     for &slot in e.bought.iter().filter(|&&k| k != 0) {
-                        s.ai_state.ai[wi].make_list.list[slot].val /= 100;
-                        let t = s.ai_state.ai[wi].make_list.list[slot].t;
+                        s.ai.ai[wi].make_list.list[slot].val /= 100;
+                        let t = s.ai.ai[wi].make_list.list[slot].t;
                         let unc = s.expire_all(t as usize, false);
                         s.expire(who, t, slot, unc);
                     }
@@ -3175,7 +3173,7 @@ mod tests {
                         s.rng.seed, e.after,
                         "{what}: the walk's draw count, by the trace's seeds"
                     );
-                    assert_list_eq(&what, &next, &s.ai_state.ai[wi].make_list.list);
+                    assert_list_eq(&what, &next, &s.ai.ai[wi].make_list.list);
                     make_stuffs.push(frame);
                     continue;
                 }
@@ -3538,7 +3536,7 @@ mod tests {
             built.notes
         );
         assert_eq!(
-            personality_fields(&built.sim.ai_state.ai[1].pers),
+            personality_fields(&built.sim.ai.ai[1].pers),
             personality_of(&log, 1),
             "the personality, rolled from the original's own state, is the original's"
         );

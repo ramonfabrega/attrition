@@ -1566,7 +1566,7 @@ impl Sim {
             .is_some_and(|ty| self.tables.unit_types[ty].cols.flag(uflags::FLAG_SIEGE));
         let city = self.buildings[b]
             .city
-            .is_some_and(|c| self.cities_state.cities[c].building == b);
+            .is_some_and(|c| self.cities.cities[c].building == b);
         if !siege
             || !self.ai_driven(who)
             || !city
@@ -1576,7 +1576,7 @@ impl Sim {
         }
         if let Some(slot) = self.army_of(u) {
             let (at, to) = (self.units[u].pos, self.buildings[b].pos);
-            let a = &mut self.ai_state.armies[who as usize].list[slot];
+            let a = &mut self.ai.armies[who as usize].list[slot];
             a.target = Some(t);
             a.muster = at.cell();
             a.muster_angle = find_angle(to.x - at.x, to.y - at.y);

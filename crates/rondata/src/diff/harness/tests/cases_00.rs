@@ -1493,7 +1493,7 @@ mod bodies {
         // makes, on its frame.
         let hatches: Vec<i64> = built
             .sim
-            .gaia_state
+            .gaia
             .gaia
             .bird_spawns
             .iter()

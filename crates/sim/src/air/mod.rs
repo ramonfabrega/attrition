@@ -383,7 +383,7 @@ impl AirPhysicsView for SimAirPhysics<'_> {
         self.sim.get_speed(self.u, 1)
     }
     fn ai_speed(&self) -> i32 {
-        self.sim.ai_state.ai_speed
+        self.sim.ai.ai_speed
     }
     fn heading(&self) -> Angle {
         self.sim.units[self.u].movement.heading
@@ -417,7 +417,7 @@ impl AirPhysicsView for SimAirPhysics<'_> {
 impl Sim {
     /// A bird's [`Flight`], which starts at a zero bank and no turn.
     pub fn flight(&self, u: usize) -> Flight {
-        self.gaia_state
+        self.gaia
             .gaia
             .bird_flight
             .iter()
@@ -426,15 +426,9 @@ impl Sim {
     }
 
     fn set_flight(&mut self, u: usize, f: Flight) {
-        match self
-            .gaia_state
-            .gaia
-            .bird_flight
-            .iter_mut()
-            .find(|(b, _)| *b == u)
-        {
+        match self.gaia.gaia.bird_flight.iter_mut().find(|(b, _)| *b == u) {
             Some((_, slot)) => *slot = f,
-            None => self.gaia_state.gaia.bird_flight.push((u, f)),
+            None => self.gaia.gaia.bird_flight.push((u, f)),
         }
     }
 
@@ -957,8 +951,8 @@ impl Sim {
         let at = self.units[u].pos;
         let (dx, dy) = (gx - at.x, gy - at.y);
         let mut speed = self.get_speed(u, 1);
-        if self.ai_state.ai_speed > 1 {
-            speed *= self.ai_state.ai_speed;
+        if self.ai.ai_speed > 1 {
+            speed *= self.ai.ai_speed;
         }
         // **The landing test** (`+0x1ea`), a flight home's alone:
         // Manhattan inside a step and a half, the point not clamped. The
@@ -1586,7 +1580,7 @@ impl Sim {
     fn computer_sortie(&mut self, b: usize) {
         let owner = self.buildings[b].owner;
         if self
-            .cities_state
+            .cities
             .nation
             .get(owner as usize)
             .is_none_or(|n| n.human)
@@ -1616,8 +1610,8 @@ impl Sim {
             if self.leaders.defeated[l as usize] || self.is_peace(owner, l) {
                 continue;
             }
-            for c in 0..self.cities_state.cities.len() {
-                let city = &self.cities_state.cities[c];
+            for c in 0..self.cities.cities.len() {
+                let city = &self.cities.cities[c];
                 if city.owner != l || !city.alive || !city.no_heal {
                     continue;
                 }
@@ -1719,8 +1713,8 @@ impl Sim {
             if !self.is_enemy(owner, l) || self.missile_defense_held(l) {
                 continue;
             }
-            for c in 0..self.cities_state.cities.len() {
-                let city = &self.cities_state.cities[c];
+            for c in 0..self.cities.cities.len() {
+                let city = &self.cities.cities[c];
                 if city.owner != l || !city.alive {
                     continue;
                 }

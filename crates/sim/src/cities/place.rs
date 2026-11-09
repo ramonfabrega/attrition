@@ -303,7 +303,7 @@ impl Sim {
 
     /// `LeaderData::city_num`: live cities.
     pub fn city_num(&self, who: Player) -> i32 {
-        self.cities_state
+        self.cities
             .cities
             .iter()
             .filter(|c| c.alive && c.owner == who)
@@ -315,7 +315,7 @@ impl Sim {
         if reg >= REGION_COUNTERS {
             return 0;
         }
-        self.cities_state
+        self.cities
             .cities
             .iter()
             .filter(|c| c.alive && c.owner == who && c.reg == Some(reg))
@@ -431,13 +431,12 @@ impl Sim {
         // not place a city.
         if build::is_city(&self.tables.build_types, ty)
             && let Some(w) = who
-            && self.cities_state.nation[w as usize].human
+            && self.cities.nation[w as usize].human
         {
             for i in self.players() {
                 if (i == w || self.is_ally(w, i))
                     && self.player_alive(i)
-                    && self.cities_state.lost_city_stamp[i as usize]
-                        .is_some_and(|s| self.frame - 75 < s)
+                    && self.cities.lost_city_stamp[i as usize].is_some_and(|s| self.frame - 75 < s)
                 {
                     return (Blocked::LostCity, 0);
                 }
@@ -733,7 +732,7 @@ impl Sim {
                     self.allied_with(p, w),
                 )
             });
-            if friendly || (o == -1 && self.cities_state.nation[w as usize].lakota) {
+            if friendly || (o == -1 && self.cities.nation[w as usize].lakota) {
                 return 0;
             }
             r = 1;
@@ -779,7 +778,7 @@ impl Sim {
             _ => return None,
         }
         let mut best: Option<(i32, usize)> = None;
-        for (ci, c) in self.cities_state.cities.iter().enumerate() {
+        for (ci, c) in self.cities.cities.iter().enumerate() {
             if !c.alive || c.owner != who {
                 continue;
             }
@@ -807,7 +806,7 @@ impl Sim {
     pub fn find_town_at(&self, who: Player, pos: Pos) -> Option<usize> {
         let t = pos.tile();
         let mut best: Option<(i32, usize)> = None;
-        for (ci, c) in self.cities_state.cities.iter().enumerate() {
+        for (ci, c) in self.cities.cities.iter().enumerate() {
             if !c.alive || c.owner != who {
                 continue;
             }
@@ -845,7 +844,7 @@ impl Sim {
     /// crate stood at four of four. `Nation::pyramids` stays as a unit
     /// test's stand-in.
     pub fn city_limit(&self, who: Player) -> i32 {
-        let n = &self.cities_state.nation[who as usize];
+        let n = &self.cities.nation[who as usize];
         let mut civic = self.tech[who as usize].epoch[crate::tech::Line::Civic as usize];
         if n.bantu && civic != 0 {
             civic += self.tables.tuning.bantu_city_limit;
@@ -862,7 +861,7 @@ impl Sim {
     /// yet finished, less one for the Forbidden City.
     pub fn total_cities(&self, who: Player) -> i32 {
         let mut n = self.city_num(who) + self.unbuilt_cities(who).count() as i32;
-        if self.cities_state.cities.iter().any(|c| {
+        if self.cities.cities.iter().any(|c| {
             c.alive && c.owner == who && self.building_ident(c.building) == Ident::ForbiddenCity
         }) {
             n -= 1;

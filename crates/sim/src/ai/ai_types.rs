@@ -114,7 +114,7 @@ impl Sim {
 
     /// The leader's live cities in slot order.
     pub fn cities_of(&self, who: Player) -> Vec<usize> {
-        self.cities_state
+        self.cities
             .cities
             .iter()
             .enumerate()
@@ -126,7 +126,7 @@ impl Sim {
     /// The city's member chain, the centre first — `CityData.o` then the
     /// `city_down` links.
     pub fn city_chain(&self, c: usize) -> Vec<usize> {
-        let city = &self.cities_state.cities[c];
+        let city = &self.cities.cities[c];
         std::iter::once(city.building)
             .chain(city.members.iter().copied())
             .collect()
@@ -135,7 +135,7 @@ impl Sim {
     /// `get_diff()`: the difficulty the AI plays at — the lobby's in a solo
     /// game (`docs/AI.md` §10).
     pub fn ai_difficulty(&self) -> i32 {
-        self.ai_state.lobby.difficulty
+        self.ai.lobby.difficulty
     }
 
     /// `LeaderData::get_mod_resource_cap@006d65b0` — the commerce cap **as
@@ -157,11 +157,11 @@ impl Sim {
     /// pass (§2.5), `create_buildings`' three, `create_units`' two and
     /// `research_techs`' one.
     pub fn mod_resource_cap(&self, who: Player, g: usize) -> i32 {
-        if self.ai_state.lobby.resources_unlimited() {
+        if self.ai.lobby.resources_unlimited() {
             return 0;
         }
         let cap = self.economy.ledgers[who as usize].cap[g];
-        if self.cities_state.nation[who as usize].human {
+        if self.cities.nation[who as usize].human {
             return cap;
         }
         match self.ai_difficulty() {
@@ -221,7 +221,7 @@ impl Sim {
 
     /// `LeaderData::village_num` — [`crate::ai::Census::village_num`].
     pub fn village_num(&self, who: Player) -> i32 {
-        self.ai_state.ai[who as usize].census.village_num
+        self.ai.ai[who as usize].census.village_num
     }
 
     /// `world+0x34`, `sea_map`: the map style's sea class every producer

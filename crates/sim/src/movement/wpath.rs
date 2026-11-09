@@ -313,7 +313,7 @@ impl WpathView for SimWpath<'_> {
         // the human's `0x800113`. So an owner with no row here is not
         // human, and a wandering animal takes the AI's mode block.
         self.sim
-            .cities_state
+            .cities
             .nation
             .get(self.sim.units[self.u].owner as usize)
             .is_some_and(|n| n.human)

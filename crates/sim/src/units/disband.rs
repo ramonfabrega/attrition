@@ -309,7 +309,7 @@ impl DisbandView for SimDisband<'_> {
     }
     fn unit_clear_orders(&mut self, _i: i32) {}
     fn has_tribe_bonus(&mut self, who: i32, n: i32) -> bool {
-        n == 0x13 && self.sim.cities_state.nation[who as usize].lakota
+        n == 0x13 && self.sim.cities.nation[who as usize].lakota
     }
     fn lakota_raze_price(&mut self) -> i32 {
         self.sim.tables.tuning.lakota_raze_price

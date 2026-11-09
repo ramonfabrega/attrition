@@ -43,8 +43,8 @@ fn sea_sim() -> (Sim, usize) {
         }
     }
     let mut s = Sim::new(Tuning::RON, world, 2);
-    s.cities_state.nation[0].human = true;
-    s.cities_state.nation[1].human = false;
+    s.cities.nation[0].human = true;
+    s.cities.nation[1].human = false;
     s.economy.good_types = good_table();
     {
         let t = &mut s.tables.tech_tree;
@@ -138,14 +138,11 @@ fn a_fish_and_a_whale_are_never_a_seen_rare() {
     let citrus = good_under(&mut s, u, 26);
     s.new_rare(1, fish);
     s.new_rare(1, whale);
-    assert!(
-        s.ai_state.ai[1].new_rares.is_empty(),
-        "the fisherman's two rares"
-    );
+    assert!(s.ai.ai[1].new_rares.is_empty(), "the fisherman's two rares");
     s.new_rare(1, citrus);
     s.new_rare(1, citrus);
     assert_eq!(
-        s.ai_state.ai[1].new_rares,
+        s.ai.ai[1].new_rares,
         vec![citrus],
         "recorded once, and once only"
     );
@@ -159,17 +156,14 @@ fn a_human_s_reveal_records_nothing_on_either_side() {
     let (mut s, u) = sea_sim();
     let citrus = good_under(&mut s, u, 26);
     s.new_rare(0, citrus);
-    assert!(
-        s.ai_state.ai[0].new_rares.is_empty(),
-        "the human's own reveal"
-    );
-    assert!(s.ai_state.ai[1].new_rares.is_empty(), "and it told nobody");
+    assert!(s.ai.ai[0].new_rares.is_empty(), "the human's own reveal");
+    assert!(s.ai.ai[1].new_rares.is_empty(), "and it told nobody");
     s.leaders.allied[0][1] = true;
     s.leaders.allied[1][0] = true;
     s.new_rare(1, citrus);
-    assert_eq!(s.ai_state.ai[1].new_rares, vec![citrus]);
+    assert_eq!(s.ai.ai[1].new_rares, vec![citrus]);
     assert!(
-        s.ai_state.ai[0].new_rares.is_empty(),
+        s.ai.ai[0].new_rares.is_empty(),
         "an ally that is a human is skipped"
     );
 }
@@ -184,7 +178,7 @@ fn reveal_fog_marks_the_rare_it_meets_seen() {
     assert!(!s.good_seen_bit(g, 1));
     let (fx, fy) = fog_of_unit(&s, u);
     s.reveal_fog(fx, fy, 1);
-    assert_eq!(s.ai_state.ai[1].new_rares, vec![g]);
+    assert_eq!(s.ai.ai[1].new_rares, vec![g]);
     assert!(s.good_seen_bit(g, 1), "seen by its revealer");
     assert!(!s.good_seen_bit(g, 0), "and by nobody else");
 }
@@ -201,7 +195,7 @@ fn an_oil_patch_is_not_in_the_chain_to_be_seen() {
     assert_eq!(Cell::new(fx >> 1, fy >> 1), s.units[u].pos.cell());
     s.reveal_fog(fx, fy, 1);
     assert!(
-        s.ai_state.ai[1].new_rares.is_empty(),
+        s.ai.ai[1].new_rares.is_empty(),
         "an oil patch is not a rare"
     );
 }
@@ -215,7 +209,7 @@ fn reveal_fog_looks_only_where_the_ground_is_marked() {
     assert_eq!(good_under(&mut s, u, 26), 0);
     let (fx, fy) = fog_of_unit(&s, u);
     s.reveal_fog(fx, fy, 1);
-    assert_eq!(s.ai_state.ai[1].new_rares, vec![0]);
+    assert_eq!(s.ai.ai[1].new_rares, vec![0]);
 
     let (mut s, u) = sea_sim();
     assert_eq!(good_under(&mut s, u, 26), 0);
@@ -223,7 +217,7 @@ fn reveal_fog_looks_only_where_the_ground_is_marked() {
     let was = s.world.tile_mask(mark);
     s.world.set_tile_mask(mark, was & !tile::AS_BUILDING);
     s.reveal_fog(fx, fy, 1);
-    assert!(s.ai_state.ai[1].new_rares.is_empty(), "no mark, no look");
+    assert!(s.ai.ai[1].new_rares.is_empty(), "no mark, no look");
 }
 
 /// **The border pass meets a rare the reveal's tile gate missed** (item
@@ -240,23 +234,20 @@ fn the_border_pass_meets_a_seen_rare_the_reveal_never_looked_for() {
     let g = good_under(&mut s, u, 26);
     let c = s.units[u].pos.cell();
     s.claim_cell_goods(c, 1);
-    assert!(
-        s.ai_state.ai[1].new_rares.is_empty(),
-        "an unseen cell is not met"
-    );
+    assert!(s.ai.ai[1].new_rares.is_empty(), "an unseen cell is not met");
     assert!(!s.good_seen_bit(g, 1));
     // The odd half-cell is the one the scan reads: a seen even one is
     // no reason to meet the good.
     s.world.set_seen(2 * c.x, 2 * c.y, 1 << 1);
     s.claim_cell_goods(c, 1);
     assert!(
-        s.ai_state.ai[1].new_rares.is_empty(),
+        s.ai.ai[1].new_rares.is_empty(),
         "the even half-cell is not it"
     );
     s.world.set_seen(2 * c.x + 1, 2 * c.y + 1, 1 << 1);
     s.claim_cell_goods(c, 1);
     s.claim_cell_goods(c, 1);
-    assert_eq!(s.ai_state.ai[1].new_rares, vec![g], "met once");
+    assert_eq!(s.ai.ai[1].new_rares, vec![g], "met once");
     assert!(s.good_seen_bit(g, 1), "and seen by its owner");
     assert!(!s.good_seen_bit(g, 0), "and by nobody else");
 }
@@ -780,7 +771,7 @@ fn a_bantu_citizen_moves_a_quarter_faster() {
     let korean = foot(&mut s, PEASANTS_KOREAN);
     let other = foot(&mut s, PEASANTS_KOREAN + 1);
     assert_eq!(s.type_speed(1, citizen), 25, "not a Bantu leader");
-    s.cities_state.nation[1].bantu = true;
+    s.cities.nation[1].bantu = true;
     assert_eq!(s.type_speed(1, citizen), 31, "run978: 25 x 125 / 100");
     assert_eq!(s.type_speed(1, korean), 31);
     assert_eq!(s.type_speed(1, other), 25, "neither citizen");

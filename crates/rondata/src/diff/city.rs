@@ -1134,7 +1134,7 @@ mod tests {
                 n,
                 built
                     .sim
-                    .cities_state
+                    .cities
                     .cities
                     .iter()
                     .filter(|c| c.alive)

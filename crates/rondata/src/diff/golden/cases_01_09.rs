@@ -817,12 +817,7 @@ pub(super) fn chapter_one_s_word_frame_is_widened_whole() {
                     if g.num == 0 || g.buildings != 0 || who >= players {
                         continue;
                     }
-                    let Some(a) = built
-                        .sim
-                        .ai_state
-                        .armies
-                        .get(who)
-                        .and_then(|a| a.list.get(slot))
+                    let Some(a) = built.sim.ai.armies.get(who).and_then(|a| a.list.get(slot))
                     else {
                         continue;
                     };

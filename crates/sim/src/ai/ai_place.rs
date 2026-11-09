@@ -375,10 +375,10 @@ impl Sim {
     ) -> (i32, i32, Option<Pos>) {
         let (mut best, mut best_sp, mut best_cand) = (0, 0, None);
         let transport = self.transport_level(who) as i32 != 0;
-        let mut i = self.ai_state.ai[who as usize].oil_patches.len();
+        let mut i = self.ai.ai[who as usize].oil_patches.len();
         while i > 0 {
             i -= 1;
-            let gi = self.ai_state.ai[who as usize].oil_patches[i];
+            let gi = self.ai.ai[who as usize].oil_patches[i];
             let g = self.world.goods()[gi];
             if !g.alive {
                 continue;
@@ -389,7 +389,7 @@ impl Sim {
                     continue;
                 }
             } else if self.world.owner(c).player() != Some(who) {
-                self.ai_state.ai[who as usize].oil_patches.remove(i);
+                self.ai.ai[who as usize].oil_patches.remove(i);
                 continue;
             }
             let mask = self
@@ -451,7 +451,7 @@ impl Sim {
     /// activation re-flagged the city's roads on 568 (`docs/AI.md` §144).
     pub(crate) fn order_builder(&mut self, who: Player, u: usize, kind: u8, o: usize) {
         if kind == index::BUILD_AT {
-            let approach = if self.cities_state.nation[who as usize].human {
+            let approach = if self.cities.nation[who as usize].human {
                 crate::orders::MoveKind::MoveTo
             } else {
                 crate::orders::MoveKind::ExploreTo
@@ -481,7 +481,7 @@ impl Sim {
         let frame = self.frame;
         // 4.1 The anchor and the permission: an active city building lends
         // its city; anything else only to a type that needs none.
-        let city = city.filter(|&c| self.cities_state.cities[c].alive);
+        let city = city.filter(|&c| self.cities.cities[c].alive);
         if city.is_none() && !bt.has(flags::NO_CITY) {
             return false;
         }
@@ -537,7 +537,7 @@ impl Sim {
         }
         let (xs, ys) = (self.world.width(), self.world.height());
         let big = bt.x_size.max(bt.y_size);
-        let unlimited = self.ai_state.lobby.resources_unlimited();
+        let unlimited = self.ai.lobby.resources_unlimited();
         let mut step = 1;
         let mut best = oil_best;
         let mut best_sp = oil_sp;
@@ -742,11 +742,7 @@ impl Sim {
                     let o2 = self.world.second(cell).player();
                     match o2 {
                         Some(p) if p != who && !self.is_ally(who, p) => {
-                            score *= if self.ai_state.lobby.team_style == 2 {
-                                4
-                            } else {
-                                8
-                            };
+                            score *= if self.ai.lobby.team_style == 2 { 4 } else { 8 };
                         }
                         _ => score /= 2,
                     }
@@ -761,7 +757,7 @@ impl Sim {
                     // weighs the distance and danger terms ten to one
                     // against `0xff − val`, which is added after it.
                     let bordering = city.is_some_and(|c| {
-                        self.ai_state.ai[who as usize]
+                        self.ai.ai[who as usize]
                             .city_ai
                             .get(c)
                             .is_some_and(|r| r.bordering != 0)
@@ -857,7 +853,7 @@ impl Sim {
         let corner = self.tile_corner(rec, cand);
         let radius = match city {
             Some(c) => self
-                .city_radius(who, self.buildings[self.cities_state.cities[c].building].ty)
+                .city_radius(who, self.buildings[self.cities.cities[c].building].ty)
                 .min(0x40),
             None => 0x1200,
         };
@@ -1045,7 +1041,7 @@ impl Sim {
         // frame 2 shows `gatherers 5 → 4` for exactly this farm.
         let w = who as usize;
         if let Some(c) = city {
-            let leader = &mut self.ai_state.ai[w];
+            let leader = &mut self.ai.ai[w];
             if leader.city_ai.len() <= c {
                 leader.city_ai.resize(c + 1, crate::ai::CityAi::default());
             }
@@ -1057,7 +1053,7 @@ impl Sim {
             }
         }
         if frame != 0 {
-            let leader = &mut self.ai_state.ai[w];
+            let leader = &mut self.ai.ai[w];
             let reg = areg.map(|r| r as usize);
             let gatherer = builder.is_some_and(|(_, k)| k == index::GATHER);
             if gatherer {

@@ -371,7 +371,7 @@ impl CivTransportView for SimCivTransport<'_> {
     }
     fn xport_peasants(&self) -> i32 {
         let w = self.sim.units[self.u].owner as usize;
-        self.sim.ai_state.ai[w].census.xport_peasants
+        self.sim.ai.ai[w].census.xport_peasants
     }
     fn city_num(&self) -> i32 {
         self.sim.city_num(self.sim.units[self.u].owner)
@@ -413,7 +413,7 @@ impl CivTransportView for SimCivTransport<'_> {
     fn reg_xport(&self, slot: i32) -> i32 {
         let w = self.sim.units[self.u].owner as usize;
         self.region(slot).map_or(1, |r| {
-            self.sim.ai_state.ai[w]
+            self.sim.ai.ai[w]
                 .census
                 .reg_xport_peasants
                 .get(r as usize)
@@ -484,12 +484,12 @@ impl CivTransportView for SimCivTransport<'_> {
     }
     fn bump_xport(&mut self) {
         let w = self.sim.units[self.u].owner as usize;
-        self.sim.ai_state.ai[w].census.xport_peasants += 1;
+        self.sim.ai.ai[w].census.xport_peasants += 1;
     }
     fn bump_reg_xport(&mut self, slot: i32) {
         let w = self.sim.units[self.u].owner as usize;
         if let Some(r) = self.region(slot)
-            && let Some(n) = self.sim.ai_state.ai[w]
+            && let Some(n) = self.sim.ai.ai[w]
                 .census
                 .reg_xport_peasants
                 .get_mut(r as usize)

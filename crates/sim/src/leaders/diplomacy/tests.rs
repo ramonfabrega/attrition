@@ -5,12 +5,12 @@ use crate::{Sim, Tuning, World};
 /// minutes' peace, no shared region and no buildings.
 fn peace_pair() -> Sim {
     let mut sim = Sim::new(Tuning::RON, World::new(2, 2), 2);
-    sim.cities_state.nation[0].human = true;
-    sim.cities_state.nation[1].human = false;
-    sim.ai_state.lobby.team_style = 1;
-    sim.ai_state.lobby.difficulty = 3;
-    sim.ai_state.lobby.rush_rules = 10;
-    sim.ai_state.lobby.rush_minutes = 5;
+    sim.cities.nation[0].human = true;
+    sim.cities.nation[1].human = false;
+    sim.ai.lobby.team_style = 1;
+    sim.ai.lobby.difficulty = 3;
+    sim.ai.lobby.rush_rules = 10;
+    sim.ai.lobby.rush_minutes = 5;
     sim.leaders.treaties[1][0] = 1;
     sim
 }
@@ -24,12 +24,12 @@ fn a_pair_is_viewed_once_a_period_on_its_own_phase() {
     let mut fired = Vec::new();
     for f in 0..2100 {
         sim.frame = f;
-        let before = sim.ai_state.ai[0].got_diplo_message;
+        let before = sim.ai.ai[0].got_diplo_message;
         sim.diplomacy(1);
-        if sim.ai_state.ai[0].got_diplo_message != before || sim.ai_state.ai[1].strong[0] != 0 {
+        if sim.ai.ai[0].got_diplo_message != before || sim.ai.ai[1].strong[0] != 0 {
             fired.push(f);
-            sim.ai_state.ai[0].got_diplo_message = 0;
-            sim.ai_state.ai[1].strong[0] = 0;
+            sim.ai.ai[0].got_diplo_message = 0;
+            sim.ai.ai[1].strong[0] = 0;
             sim.leaders.agendas[1][0] = 0;
         }
     }
@@ -37,10 +37,7 @@ fn a_pair_is_viewed_once_a_period_on_its_own_phase() {
     sim.leaders.treaties[1][0] = 0;
     sim.frame = 2496;
     sim.diplomacy(1);
-    assert_eq!(
-        sim.ai_state.ai[1].strong[0], 0,
-        "an unmet target is skipped"
-    );
+    assert_eq!(sim.ai.ai[1].strong[0], 0, "an unmet target is skipped");
 }
 
 /// Run849's block 1985: `aggression` 1 (difficulty > 1, one
@@ -56,13 +53,13 @@ fn the_peace_arm_sends_one_message_and_stamps_the_receiver() {
     let seed = sim.rng.seed;
     sim.diplomacy(1);
     assert_ne!(sim.rng.seed, seed, "the peace coin draws");
-    assert_eq!(sim.ai_state.ai[1].aggression[0], 1);
-    assert_eq!(sim.ai_state.ai[1].strong[0], 1 << 5);
-    assert_eq!(sim.ai_state.ai[1].weak[0], 0);
+    assert_eq!(sim.ai.ai[1].aggression[0], 1);
+    assert_eq!(sim.ai.ai[1].strong[0], 1 << 5);
+    assert_eq!(sim.ai.ai[1].weak[0], 0);
     assert_eq!(sim.leaders.agendas[1][0], 0x40);
-    assert_eq!(sim.ai_state.ai[0].got_diplo_message, 1984);
+    assert_eq!(sim.ai.ai[0].got_diplo_message, 1984);
     assert_eq!(
-        sim.ai_state.ai[1].got_diplo_message, 0,
+        sim.ai.ai[1].got_diplo_message, 0,
         "the stamp is the target's"
     );
 
@@ -71,7 +68,7 @@ fn the_peace_arm_sends_one_message_and_stamps_the_receiver() {
     sim.frame = 1984 + 512 - 64; // not on the phase: nothing at all
     sim.diplomacy(1);
     assert_eq!(sim.leaders.agendas[1][0], 0);
-    sim.ai_state.ai[0].got_diplo_message = 1984 + 100;
+    sim.ai.ai[0].got_diplo_message = 1984 + 100;
     sim.frame = 2496;
     sim.diplomacy(1);
     assert_eq!(
@@ -81,14 +78,11 @@ fn the_peace_arm_sends_one_message_and_stamps_the_receiver() {
 
     // At difficulty 1 nothing raises `aggression` and nothing is sent.
     let mut sim = peace_pair();
-    sim.ai_state.lobby.difficulty = 1;
+    sim.ai.lobby.difficulty = 1;
     sim.frame = 1984;
     sim.diplomacy(1);
-    assert_eq!(
-        sim.ai_state.ai[1].aggression[0], 1,
-        "team style 1 still sets it"
-    );
-    assert_eq!(sim.ai_state.ai[1].strong[0], 0, "no human bonus below 3");
+    assert_eq!(sim.ai.ai[1].aggression[0], 1, "team style 1 still sets it");
+    assert_eq!(sim.ai.ai[1].strong[0], 0, "no human bonus below 3");
 }
 
 /// Run855's block 4538: `diplos` 0 both ways between who=0 and
@@ -129,13 +123,13 @@ fn the_peace_s_end_declares_war_both_ways_on_its_one_frame() {
     assert_eq!(sim.diplos(1, 0), 0);
 
     let mut sim = peace_pair();
-    sim.ai_state.lobby.rush_rules = 8;
+    sim.ai.lobby.rush_rules = 8;
     sim.frame = 4500;
     sim.end_the_peace();
     assert!(!sim.leaders.at_war[0][1], "an age rule ends no clock");
 
     let mut sim = peace_pair();
-    sim.ai_state.lobby.team_style = 0;
+    sim.ai.lobby.team_style = 0;
     sim.frame = 4500;
     sim.end_the_peace();
     assert!(!sim.leaders.at_war[0][1], "style 0 declares in `diplomacy`");
@@ -149,7 +143,7 @@ fn war_is_allowed_after_the_rush_minutes() {
     assert!(!sim.war_allowed());
     sim.frame = 4500;
     assert!(sim.war_allowed());
-    sim.ai_state.lobby.rush_rules = 0;
+    sim.ai.lobby.rush_rules = 0;
     sim.frame = 0;
     assert!(sim.war_allowed());
 }

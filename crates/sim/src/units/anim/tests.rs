@@ -844,7 +844,7 @@ fn a_wander_onto_an_occupied_cell_is_not_ordered() {
             },
             ..crate::UnitType::default()
         });
-        s.gaia_state.gaia.herds.push(crate::gaia::Herd {
+        s.gaia.gaia.herds.push(crate::gaia::Herd {
             cx: 10,
             cy: 10,
             wx: 10,
@@ -1058,7 +1058,7 @@ fn a_walker_that_boards_its_boat_moves_its_figures_that_frame() {
         }
     }
     let mut s = Sim::new(Tuning::RON, w, 2);
-    s.cities_state.nation[1].human = false;
+    s.cities.nation[1].human = false;
     let walker = s.add_unit_type(UnitType {
         hits: 40,
         ..UnitType::default()

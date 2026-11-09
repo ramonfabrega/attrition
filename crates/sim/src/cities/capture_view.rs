@@ -201,20 +201,20 @@ impl CaptureView for SimCapture<'_> {
     }
     fn action_clear_all(&mut self, _o: Player, _a: Player) {}
     fn city_is_capital(&mut self, _o: Player, c: usize) -> bool {
-        self.sim.cities_state.cities[c].capital
+        self.sim.cities.cities[c].capital
     }
     /// SEAM: only the Lakota bonus is a nation flag here; the Persians' is
     /// asked only to feed `find_capital`, which this crate does not model.
     fn has_tribe_bonus(&mut self, who: Player, id: i32) -> bool {
-        id == TRIBE_LAKOTA && self.sim.cities_state.nation[who as usize].lakota
+        id == TRIBE_LAKOTA && self.sim.cities.nation[who as usize].lakota
     }
     /// SEAM: the Persian second-capital flag is read after the plunder.
     fn find_capital(&mut self, _o: Player, _c: usize) {}
     fn count_lost(&mut self, o: Player) {
-        self.sim.cities_state.city_tally[o as usize].lost += 1;
+        self.sim.cities.city_tally[o as usize].lost += 1;
     }
     fn count_captured(&mut self, a: Player) {
-        self.sim.cities_state.city_tally[a as usize].captured += 1;
+        self.sim.cities.city_tally[a as usize].captured += 1;
     }
     /// The console and the achievements are the renderer's.
     fn achievement_ping(&mut self, _a: Player) {}
@@ -224,7 +224,7 @@ impl CaptureView for SimCapture<'_> {
     /// SEAM: the allied circle sweep is not modelled.
     fn city_radius_probe(&mut self, _o: Player, _c: usize) {}
     fn city_building(&mut self, _o: Player, c: usize) -> usize {
-        self.sim.cities_state.cities[c].building
+        self.sim.cities.cities[c].building
     }
     fn swap_head(&mut self, _o: Player, b: usize, a: Player) -> Option<usize> {
         self.sim.swap_team(b, a)

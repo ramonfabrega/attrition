@@ -295,14 +295,14 @@ impl Sim {
     /// capital of its own and another leader holds a city that was one.
     fn capital_lost(&self, who: Player) -> bool {
         if self
-            .cities_state
+            .cities
             .cities
             .iter()
             .any(|c| c.alive && c.owner == who && c.capital)
         {
             return false;
         }
-        self.cities_state
+        self.cities
             .cities
             .iter()
             .any(|c| c.alive && c.owner != who && c.was_capital & (1u64 << (who as u32)) != 0)
@@ -324,7 +324,7 @@ impl Sim {
     /// valued per city and offered to the make list.
     pub fn create_buildings(&mut self, who: Player) {
         let w = who as usize;
-        if w >= self.ai_state.ai.len() {
+        if w >= self.ai.ai.len() {
             return;
         }
         let cities = self.cities_of(who);
@@ -353,7 +353,7 @@ impl Sim {
                         l.escrow,
                     );
                     let val = inc.wrapping_mul(l.val) / 256;
-                    self.ai_state.ai[w]
+                    self.ai.ai[w]
                         .make_list
                         .make_me(t as i32, val, l.escrow, l.cat, c as i32, l.up, 1, 0, 0);
                 }
@@ -364,7 +364,7 @@ impl Sim {
     /// The city loop's head — `create-buildings.md` §2.1. `None` when the
     /// city is skipped outright.
     fn city_facts(&self, who: Player, c: usize, ci: usize) -> Option<Facts> {
-        let city = &self.cities_state.cities[c];
+        let city = &self.cities.cities[c];
         let b = city.building;
         // "No buildings for a city still assimilating after capture": the
         // record's `race` must already be the city building's owner.
@@ -373,7 +373,7 @@ impl Sim {
         }
         let level = self.city_level_of(c).max(1);
         let nb = self.num_buildings(c);
-        let ai = self.ai_state.ai[who as usize].city_ai.get(c)?;
+        let ai = self.ai.ai[who as usize].city_ai.get(c)?;
         let open = ai.land - ai.filled;
         // `ocean_filled` (+0x66) has no field here.
         let ocean_open = ai.ocean;
@@ -425,10 +425,7 @@ impl Sim {
         }
         // The capital countdown: with my capital in someone else's hands,
         // only military trainers are listed.
-        if self.ai_state.lobby.elimination == 1
-            && self.capital_lost(who)
-            && !self.is_trainer_type(rec)
-        {
+        if self.ai.lobby.elimination == 1 && self.capital_lost(who) && !self.is_trainer_type(rec) {
             return None;
         }
         let n = (bt.x_size.max(bt.y_size) - 2).clamp(0, 2) as usize;
@@ -465,8 +462,7 @@ impl Sim {
         if water && !dock {
             return None;
         }
-        if self.ai_state.lobby.rush_rules == 8
-            && build::is(&self.tables.build_types, rec, Ident::Lookout)
+        if self.ai.lobby.rush_rules == 8 && build::is(&self.tables.build_types, rec, Ident::Lookout)
         {
             return None;
         }
@@ -513,12 +509,12 @@ impl Sim {
         if !gather {
             // ---- §3.1 the non-gather base ----
             v = f.level.wrapping_mul(1000);
-            let reg_cities = Census::reg(&self.ai_state.ai[w].census.reg_cities, f.reg);
+            let reg_cities = Census::reg(&self.ai.ai[w].census.reg_cities, f.reg);
             if reg_cities <= self.reg_buildings_raw(who, f.reg, rec) + self.queued_of(who, rec) {
                 v /= reg_cities + 1;
             }
             if ident == Ident::Temple {
-                if !self.cities_state.cities[f.c].capital && self.ai_difficulty() < 3 {
+                if !self.cities.cities[f.c].capital && self.ai_difficulty() < 3 {
                     return None;
                 }
                 let mut t = v.wrapping_mul(500);
@@ -529,7 +525,7 @@ impl Sim {
                 // `CityData.bordering`: a city a rival's border touches
                 // wants its temple a hundred times more
                 // (`create_buildings:324`–`326`, `docs/AI.md` §167).
-                if self.ai_state.ai[w]
+                if self.ai.ai[w]
                     .city_ai
                     .get(f.c)
                     .is_some_and(|r| r.bordering != 0)
@@ -538,12 +534,12 @@ impl Sim {
                 }
                 // `city_flags & 0x1000`: ×2, or ×10 while the city is not
                 // `no_heal` (`create_buildings:328`).
-                if self.ai_state.ai[w]
+                if self.ai.ai[w]
                     .city_ai
                     .get(f.c)
                     .is_some_and(|r| r.near_border)
                 {
-                    t = t.wrapping_mul(if self.cities_state.cities[f.c].no_heal {
+                    t = t.wrapping_mul(if self.cities.cities[f.c].no_heal {
                         2
                     } else {
                         10
@@ -570,7 +566,7 @@ impl Sim {
             }
             if bt.wonder {
                 wonder_branch = true;
-            } else if self.ai_state.ai[w].wonder_mod != 0 {
+            } else if self.ai.ai[w].wonder_mod != 0 {
                 // A wonder is wanted: everything else is worth a hundredth.
                 v /= 100;
             }
@@ -591,8 +587,7 @@ impl Sim {
             if f.peasant_dist > 4 {
                 v /= (f.peasant_dist + 5) / 5;
             }
-            if f.free == 0 && Census::reg(&self.ai_state.ai[w].census.reg_free_peasants, f.reg) != 0
-            {
+            if f.free == 0 && Census::reg(&self.ai.ai[w].census.reg_free_peasants, f.reg) != 0 {
                 v = v.wrapping_mul(3) / 4;
                 if f.gatherers == 0 && f.busy != 0 {
                     v /= 2;
@@ -602,7 +597,7 @@ impl Sim {
                 if f.open < 2 && fit < 2 {
                     return None;
                 }
-                let land = self.ai_state.ai[w].city_ai[f.c].land;
+                let land = self.ai.ai[w].city_ai[f.c].land;
                 if land * 7 / 8 <= f.open {
                     v = v.wrapping_mul(4) / 3;
                 }
@@ -614,13 +609,13 @@ impl Sim {
 
         // ---- §3.4 the gather enhancers ----
         if is_enhancer(ident) {
-            if self.ai_state.lobby.starting_resources == 8 {
+            if self.ai.lobby.starting_resources == 8 {
                 return None;
             }
-            if self.ai_state.lobby.victory == 8 {
+            if self.ai.lobby.victory == 8 {
                 v = v.wrapping_mul(100);
             }
-            v = v.wrapping_mul(self.ai_state.ai[w].infra_mod) / 256;
+            v = v.wrapping_mul(self.ai.ai[w].infra_mod) / 256;
             cat = 4;
             let g = enhancing_good(ident)?;
             let mut nfilled = f.slots[g] - f.open_slots[g];
@@ -643,7 +638,7 @@ impl Sim {
             {
                 return None;
             }
-            let econ = self.ai_state.ai[w].econ[g];
+            let econ = self.ai.ai[w].econ[g];
             v = nfilled.wrapping_mul(nfilled).wrapping_mul(v);
             if econ & 4 != 0 {
                 v = v.wrapping_mul(2);
@@ -661,11 +656,11 @@ impl Sim {
         // ---- §3.5 military trainers, then the dock family ----
         let deep = bt.has(flags::RESEARCH_HERE);
         if !deep && !dock && self.is_trainer_type(rec) {
-            if self.ai_state.lobby.rush_rules == 8 || !(have == 0 || up != 0) {
+            if self.ai.lobby.rush_rules == 8 || !(have == 0 || up != 0) {
                 return None;
             }
             cat = 7;
-            let cen = &self.ai_state.ai[w].census;
+            let cen = &self.ai.ai[w].census;
             let k = cen.wars
                 + Census::reg(&cen.reg_neutrals, f.reg)
                 + Census::reg(&cen.reg_wars, f.reg)
@@ -690,7 +685,7 @@ impl Sim {
             if total < (age + 2) / 2 {
                 v = v.wrapping_mul(100);
             }
-            if !(self.ai_state.lobby.starting_resources == 8 || total <= age) {
+            if !(self.ai.lobby.starting_resources == 8 || total <= age) {
                 return None;
             }
             // The nation's favourite trainer. The Dock arm of this chain is
@@ -717,11 +712,11 @@ impl Sim {
             let rawq = self.queued_of(who, rec);
             let raw = self.num_buildings_of(who, rec);
             if !((have == 0 || up != 0)
-                && (self.ai_state.lobby.starting_resources == 8 || rawq + raw <= age))
+                && (self.ai.lobby.starting_resources == 8 || rawq + raw <= age))
             {
                 return None;
             }
-            let base = v.wrapping_mul(self.ai_state.ai[w].sea_mod) / 256;
+            let base = v.wrapping_mul(self.ai.ai[w].sea_mod) / 256;
             let mut d = base;
             if self.buildings_of_line(who, rec) == 0 && rawq == 0 {
                 d = base.wrapping_mul(4);
@@ -736,7 +731,7 @@ impl Sim {
             if self.reg_buildings_of_line(who, f.reg, rec) == 0 {
                 d = d.wrapping_mul(8);
             }
-            let cen = &self.ai_state.ai[w].census;
+            let cen = &self.ai.ai[w].census;
             d = if Census::reg(&cen.reg_wars, f.reg) == 0 {
                 if cen.active_wars != 0 {
                     d.wrapping_mul(4)
@@ -771,7 +766,7 @@ impl Sim {
                     if up == 0 && city_num <= 2 * (owned + queued) {
                         return None;
                     }
-                    if self.ai_state.lobby.starting_resources != 8
+                    if self.ai.lobby.starting_resources != 8
                         && self.tech[w].ages < 2 * (owned + queued)
                     {
                         return None;
@@ -781,18 +776,18 @@ impl Sim {
                     let mut m = 10;
                     if is_temple {
                         m = 18;
-                        v = v.wrapping_mul(self.ai_state.ai[w].infra_mod) / 256;
-                        let cen = &self.ai_state.ai[w].census;
+                        v = v.wrapping_mul(self.ai.ai[w].infra_mod) / 256;
+                        let cen = &self.ai.ai[w].census;
                         if cen.min_other_team_terr <= cen.my_team_terr {
                             m = 9;
                         }
-                        if self.ai_state.ai[w].econ[2] & 3 != 0 {
+                        if self.ai.ai[w].econ[2] & 3 != 0 {
                             m *= 2;
                         }
                     }
                     if is_market {
                         m += 1;
-                        if self.ai_state.ai[w].econ[2] & 3 != 0 {
+                        if self.ai.ai[w].econ[2] & 3 != 0 {
                             m *= 2;
                         }
                     }
@@ -819,19 +814,13 @@ impl Sim {
                     }
                 }
                 if is_library && self.buildings_of_line(who, rec) < 2 && city_num > 3 {
-                    v = v
-                        .wrapping_mul(self.ai_state.ai[w].infra_mod)
-                        .wrapping_mul(10000)
-                        / 256;
+                    v = v.wrapping_mul(self.ai.ai[w].infra_mod).wrapping_mul(10000) / 256;
                 }
                 if is_market && self.buildings_of_line(who, rec) < 1 {
-                    v = v
-                        .wrapping_mul(self.ai_state.ai[w].infra_mod)
-                        .wrapping_mul(10000)
-                        / 256;
+                    v = v.wrapping_mul(self.ai.ai[w].infra_mod).wrapping_mul(10000) / 256;
                 }
                 if is_senate {
-                    if self.cities_state.cities[f.c].no_heal || f.nb < 5 {
+                    if self.cities.cities[f.c].no_heal || f.nb < 5 {
                         return None;
                     }
                     v = if self.highest_epoch(who) > 2 {
@@ -846,10 +835,10 @@ impl Sim {
             let tower = build::is(&self.tables.build_types, rec, Ident::Tower);
             let fort = build::is_fort(&self.tables.build_types, rec);
             if tower || fort {
-                let dmod = self.ai_state.ai[w].defense_mod;
+                let dmod = self.ai.ai[w].defense_mod;
                 let d = dmod.wrapping_mul(v);
-                if self.ai_state.lobby.rush_rules == 8 {
-                    let cen = &self.ai_state.ai[w].census;
+                if self.ai.lobby.rush_rules == 8 {
+                    let cen = &self.ai.ai[w].census;
                     if !fort || cen.other_team_terr < cen.my_team_terr {
                         return None;
                     }
@@ -873,7 +862,7 @@ impl Sim {
                 // city a rival's border touches is worth ten times, and
                 // one it does not touch a hundredth for a fort, a tower
                 // unchanged (`docs/AI.md` §167).
-                if self.ai_state.ai[w]
+                if self.ai.ai[w]
                     .city_ai
                     .get(f.c)
                     .is_some_and(|r| r.bordering != 0)
@@ -885,25 +874,25 @@ impl Sim {
                 // `city_flags & 0x1000`: ×2, or ×10 while not `no_heal`
                 // (`create_buildings:847`). `& 0x8` still reads 0, so the
                 // halving always applies.
-                if self.ai_state.ai[w]
+                if self.ai.ai[w]
                     .city_ai
                     .get(f.c)
                     .is_some_and(|r| r.near_border)
                 {
-                    x = x.wrapping_mul(if self.cities_state.cities[f.c].no_heal {
+                    x = x.wrapping_mul(if self.cities.cities[f.c].no_heal {
                         2
                     } else {
                         10
                     });
                 }
                 x /= 2;
-                if self.cities_state.cities[f.c].founder != who {
+                if self.cities.cities[f.c].founder != who {
                     x = x.wrapping_mul(3);
                 }
                 if self.city_unassimilated(f.c) {
                     x = x.wrapping_mul(3) / 4;
                 }
-                if Census::reg(&self.ai_state.ai[w].census.reg_wars, f.reg) == 0 {
+                if Census::reg(&self.ai.ai[w].census.reg_wars, f.reg) == 0 {
                     x /= 2;
                 }
                 if !fort {
@@ -913,12 +902,12 @@ impl Sim {
                             escrow = 1;
                             v = v.wrapping_mul(10);
                         }
-                        if self.cities_state.cities[f.c].capital {
+                        if self.cities.cities[f.c].capital {
                             escrow = 1;
                         }
                     }
                 } else {
-                    let cen = &self.ai_state.ai[w].census;
+                    let cen = &self.ai.ai[w].census;
                     if cen.my_team_terr < cen.min_other_team_terr {
                         x = x.wrapping_mul(2);
                     }
@@ -927,7 +916,7 @@ impl Sim {
                         escrow = 1;
                     }
                     // Central cities want forts.
-                    let cell = self.cities_state.cities[f.c].pos.cell();
+                    let cell = self.cities.cities[f.c].pos.cell();
                     let (xs, ys) = (self.world.width(), self.world.height());
                     let dx = xs / 2 - cell.x;
                     let dy = ys / 2 - cell.y;
@@ -936,29 +925,29 @@ impl Sim {
                 }
             }
             if build::is(&self.tables.build_types, rec, Ident::Airbase) {
-                if self.ai_state.lobby.rush_rules == 8 {
+                if self.ai.lobby.rush_rules == 8 {
                     return None;
                 }
                 let n = self.queued_of(who, rec) + self.reg_buildings_of_line(who, f.reg, rec);
                 let mut x = if n == 0 { v.wrapping_mul(10) } else { v / n };
-                if Census::reg(&self.ai_state.ai[w].census.reg_wars, f.reg) == 0 {
+                if Census::reg(&self.ai.ai[w].census.reg_wars, f.reg) == 0 {
                     x /= 2;
                 }
                 if n == 0 {
                     escrow = 1;
                 }
-                v = x.wrapping_mul(self.ai_state.ai[w].air_mod) / 256;
+                v = x.wrapping_mul(self.ai.ai[w].air_mod) / 256;
             }
         }
 
         // ---- §3.8 the common tail, everything ----
-        if Census::reg(&self.ai_state.ai[w].census.reg_free_peasants, f.reg) == 0 {
+        if Census::reg(&self.ai.ai[w].census.reg_free_peasants, f.reg) == 0 {
             v = v.wrapping_mul(4) / 5;
         }
         if v < 0 {
             v = if bt.wonder { 9_999_075 } else { 9_999_999 };
         }
-        if self.cities_state.cities[f.c].no_heal
+        if self.cities.cities[f.c].no_heal
             && !self.is_defensive_type(rec)
             && (!self.is_trainer_type(rec) || self.city_count_line(f.c, rec, true) != 0)
         {
@@ -985,7 +974,7 @@ impl Sim {
             v /= d;
         } else {
             v /= self.queued_of(who, rec) + 1;
-            let head: MakeObject = self.ai_state.ai[w].make_list.list[0];
+            let head: MakeObject = self.ai.ai[w].make_list.list[0];
             if v < head.val && head.t >= 0 && !self.head_affordable(who, &head) {
                 let ht = head.t as usize;
                 let head_gather = matches!(self.type_class(ht), Class::Build)
@@ -1051,12 +1040,12 @@ impl Sim {
     ) -> Option<(i32, i32, i32)> {
         let w = who as usize;
         let mut escrow = *escrow_in;
-        if self.ai_state.lobby.starting_resources == 8 {
+        if self.ai.lobby.starting_resources == 8 {
             return None;
         }
         let ident = self.tables.build_types[rec].ident;
         let good = gather_good(ident)?;
-        let cen = &self.ai_state.ai[w].census;
+        let cen = &self.ai.ai[w].census;
         if cen.filled_gather_slots[good] < self.economy.ledgers[w].gather_slots[good] * 3 / 4 {
             return None;
         }
@@ -1064,9 +1053,9 @@ impl Sim {
         let mut base = (cen.pop.wrapping_mul(7000) / cv
             + f.level.wrapping_mul(3000)
             + f.open.wrapping_mul(4000))
-        .wrapping_mul(self.ai_state.ai[w].infra_mod)
+        .wrapping_mul(self.ai.ai[w].infra_mod)
             / 256;
-        if self.ai_state.lobby.victory == 8 {
+        if self.ai.lobby.victory == 8 {
             base = base.wrapping_mul(100);
         }
         if self.num_buildings_of(who, rec) == 0 {
@@ -1080,7 +1069,7 @@ impl Sim {
                 base / 10
             };
         }
-        if self.cities_state.cities[f.c].members.is_empty() {
+        if self.cities.cities[f.c].members.is_empty() {
             // The city building has no member below it yet.
             base = base.wrapping_mul(10);
         } else {
@@ -1097,7 +1086,7 @@ impl Sim {
                 base = base.wrapping_mul(2);
             }
         }
-        if self.cities_state.cities[f.c].capital {
+        if self.cities.cities[f.c].capital {
             base /= 2;
         }
         let cat = 4;
@@ -1107,11 +1096,9 @@ impl Sim {
         if free_peasants == 0 && self.roster.muster[w].cap - self.roster.muster[w].control <= 1 {
             return None;
         }
-        let worst = self.ai_state.ai[w].worst_good;
-        let best = self.ai_state.ai[w].best_good;
-        if free_peasants > 2
-            && self.ai_state.ai[w].rate[worst] < self.mod_resource_cap(who, worst) / 32
-        {
+        let worst = self.ai.ai[w].worst_good;
+        let best = self.ai.ai[w].best_good;
+        if free_peasants > 2 && self.ai.ai[w].rate[worst] < self.mod_resource_cap(who, worst) / 32 {
             escrow = 1;
         }
         for g in 0..RESOURCES {
@@ -1131,7 +1118,7 @@ impl Sim {
             if g == 5 {
                 oil_ok = f.ci == 0
                     && self.economy.ledgers[w].gather_slots[5]
-                        < self.ai_state.ai[w].oil_patches.len() as i32;
+                        < self.ai.ai[w].oil_patches.len() as i32;
                 base = base.wrapping_mul(10);
             }
             let ter = f.ter[g];
@@ -1166,14 +1153,14 @@ impl Sim {
                     if fit < 2 {
                         continue;
                     }
-                    if fit < 3 && self.ai_state.ai[w].econ[g] & 2 == 0 {
+                    if fit < 3 && self.ai.ai[w].econ[g] & 2 == 0 {
                         m0 >>= 1;
                     }
                     if fit < 4 && ter < 2 && g != 5 {
                         m0 >>= 1;
                     }
                 }
-                let econ = self.ai_state.ai[w].econ[g];
+                let econ = self.ai.ai[w].econ[g];
                 let k = if econ & 8 != 0 {
                     4
                 } else if econ & 2 != 0 {
@@ -1184,7 +1171,7 @@ impl Sim {
                 m = (k + floor).wrapping_mul(m0) / k;
             }
             found = true;
-            if self.ai_state.ai[w].rate[g] < self.cities_state.cities[f.c].pop * 20 {
+            if self.ai.ai[w].rate[g] < self.cities.cities[f.c].pop * 20 {
                 m = m.wrapping_mul(2);
             }
             if g == worst {
@@ -1193,7 +1180,7 @@ impl Sim {
             if g == best {
                 m /= 2;
             }
-            let econ = self.ai_state.ai[w].econ[g];
+            let econ = self.ai.ai[w].econ[g];
             if econ & 8 != 0 {
                 m /= 2;
             }
@@ -1263,9 +1250,9 @@ impl Sim {
         escrow: &mut i32,
     ) -> Option<i32> {
         let w = who as usize;
-        if self.ai_state.lobby.conquest
+        if self.ai.lobby.conquest
             || self.num_wonders(f.c, true) != 0
-            || (self.ai_state.lobby.starting_resources == 7 && self.city_num(who) <= 1)
+            || (self.ai.lobby.starting_resources == 7 && self.city_num(who) <= 1)
         {
             return None;
         }
@@ -1301,14 +1288,14 @@ impl Sim {
                 }
             }
         }
-        let val = if self.ai_state.ai[w].wonder_mod == 0 {
+        let val = if self.ai.ai[w].wonder_mod == 0 {
             let diff = self.ai_difficulty();
             // `LeaderData::wonder_mark` (+0x424): one past the leader's
             // highest wonder entry, so an easy AI outside a wonder victory
             // wants no wonder once one of its own has activated (§75).
-            let wonder_mark = self.ai_state.ai[w].census.wonder_mark;
+            let wonder_mark = self.ai.ai[w].census.wonder_mark;
             if diff < 2 {
-                let ok = if self.ai_state.lobby.victory == 6 {
+                let ok = if self.ai.lobby.victory == 6 {
                     self.team_wonder_points(who) < self.enemy_wonder_points(who) + 1
                 } else {
                     wonder_mark == 0
@@ -1323,11 +1310,11 @@ impl Sim {
             let ev = self
                 .enemy_wonder_points(who)
                 .wrapping_add(self.enemy_unbuilt_wonder_points(who));
-            let mut val = if self.ai_state.lobby.victory == 6 {
+            let mut val = if self.ai.lobby.victory == 6 {
                 *escrow = 1;
                 (ev + 1).wrapping_mul(100_000)
             } else if (winning >= 0 && winning != who as i32)
-                || self.ai_state.lobby.wonder_win_points / 2 <= ev
+                || self.ai.lobby.wonder_win_points / 2 <= ev
                 || ev > 4
             {
                 *escrow = 1;
@@ -1370,7 +1357,7 @@ impl Sim {
     ///
     /// [`BuildType::wonder_points`]: crate::build::BuildType::wonder_points
     pub fn wonder_points(&self, who: Player) -> i32 {
-        let Some(a) = self.ai_state.ai.get(who as usize) else {
+        let Some(a) = self.ai.ai.get(who as usize) else {
             return 0;
         };
         let mark = usize::try_from(a.census.wonder_mark).unwrap_or(0);
@@ -1451,7 +1438,7 @@ impl Sim {
     /// points (`0059490e`).
     pub fn wonder_winning(&self) -> i32 {
         wonder_lead(
-            self.ai_state.lobby.wonder_win_points,
+            self.ai.lobby.wonder_win_points,
             self.wonder_leaders(),
             |p| self.wonder_net(p),
             |p, q| self.is_ally(p, q),
@@ -1479,8 +1466,7 @@ impl Sim {
         escrow: i32,
     ) -> bool {
         let _ = escrow;
-        let Some(c) = city
-            .filter(|&c| c < self.cities_state.cities.len() && self.cities_state.cities[c].alive)
+        let Some(c) = city.filter(|&c| c < self.cities.cities.len() && self.cities.cities[c].alive)
         else {
             return false;
         };

@@ -964,7 +964,7 @@ fn a_turkish_siege_engine_sees_three_tiles_past_the_packed_clamp() {
     u.ty = Some(t);
     let u = s.add_unit(u);
     assert_eq!(s.unit_los(u), PACKED_LOS, "not Turkish");
-    s.cities_state.nation[1].turks = true;
+    s.cities.nation[1].turks = true;
     assert_eq!(s.unit_los(u), PACKED_LOS + 3, "Turkish, packed");
     s.units[u].combat.packed = false;
     assert_eq!(s.unit_los(u), 13, "Turkish, unpacked");
@@ -1062,7 +1062,7 @@ fn an_animal_is_seen_through_the_ever_seen_plane() {
     a.herd = Some(0);
     let a = s.add_unit(a);
     let t = crate::combat::Obj::Unit(a);
-    s.ai_state.lobby.reveal_map = 2;
+    s.ai.lobby.reveal_map = 2;
     assert!(
         !s.target_seen_by(1, t),
         "a herd animal reads was_really_seen"

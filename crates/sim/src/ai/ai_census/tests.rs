@@ -58,7 +58,7 @@ fn fix() -> Fix {
         }
     }
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    sim.cities_state.nation[1].human = false;
+    sim.cities.nation[1].human = false;
     // Room for six cities, so the escrow and thin-region tests can found
     // more than one.
     sim.tech[1].epoch[crate::tech::Line::Civic as usize] = 5;
@@ -155,43 +155,37 @@ fn step_9_counts_the_seen_rares_a_merchant_may_reach() {
         .set_owner(Cell::new(4, 4), Owner::Player(1), Owner::None);
     s.world
         .set_owner(Cell::new(6, 6), Owner::Player(0), Owner::None);
-    s.ai_state.ai[1].new_rares = vec![unowned, mine, theirs];
+    s.ai.ai[1].new_rares = vec![unowned, mine, theirs];
     let land = s.world.region_of(Cell::new(2, 2)).expect("land") as usize;
 
     s.census(1);
     assert_eq!(
-        s.ai_state.ai[1].census.reg_known_rares[land], 2,
+        s.ai.ai[1].census.reg_known_rares[land], 2,
         "unowned and own ground count; the human's does not"
     );
     assert_eq!(
-        s.ai_state.ai[1].known_rares, 0,
+        s.ai.ai[1].known_rares, 0,
         "the census writes the array, not the sum"
     );
     s.assemble_holdings(1);
-    assert_eq!(
-        s.ai_state.ai[1].known_rares, 2,
-        "calc_gather's recompute sums it"
-    );
+    assert_eq!(s.ai.ai[1].known_rares, 2, "calc_gather's recompute sums it");
 
     // A mutual ally's ground counts; a one-sided alliance does not.
     s.leaders.allied[1][0] = true;
     s.census(1);
     assert_eq!(
-        s.ai_state.ai[1].census.reg_known_rares[land], 2,
+        s.ai.ai[1].census.reg_known_rares[land], 2,
         "one side is not an ally"
     );
     s.leaders.allied[0][1] = true;
     s.census(1);
-    assert_eq!(
-        s.ai_state.ai[1].census.reg_known_rares[land], 3,
-        "both sides are"
-    );
+    assert_eq!(s.ai.ai[1].census.reg_known_rares[land], 3, "both sides are");
 
     // And the sweep zeroes before it counts, so a list that shrank
     // would not leave a stale count behind.
-    s.ai_state.ai[1].new_rares.clear();
+    s.ai.ai[1].new_rares.clear();
     s.census(1);
-    assert_eq!(s.ai_state.ai[1].census.reg_known_rares[land], 0);
+    assert_eq!(s.ai.ai[1].census.reg_known_rares[land], 0);
 }
 
 /// A border fix between the census and `calc_gather`'s recompute
@@ -208,32 +202,26 @@ fn a_border_fix_zeroes_the_rares_until_the_next_census() {
         ty: 20,
         alive: true,
     });
-    s.ai_state.ai[1].new_rares = vec![g];
+    s.ai.ai[1].new_rares = vec![g];
     let land = s.world.region_of(Cell::new(2, 2)).expect("land") as usize;
     s.in_play = true;
     s.census(1);
-    assert_eq!(s.ai_state.ai[1].census.reg_known_rares[land], 1, "counted");
+    assert_eq!(s.ai.ai[1].census.reg_known_rares[land], 1, "counted");
     s.sync_territory();
     assert_eq!(
-        s.ai_state.ai[1].census.reg_known_rares[land], 1,
+        s.ai.ai[1].census.reg_known_rares[land], 1,
         "the fix only marks the regions"
     );
     s.check_borders();
     assert_eq!(
-        s.ai_state.ai[1].census.reg_known_rares[land], 0,
+        s.ai.ai[1].census.reg_known_rares[land], 0,
         "the next check_borders zeroes every region"
     );
     s.assemble_holdings(1);
-    assert_eq!(
-        s.ai_state.ai[1].known_rares, 0,
-        "the recompute sums the zero"
-    );
+    assert_eq!(s.ai.ai[1].known_rares, 0, "the recompute sums the zero");
     s.census(1);
     s.assemble_holdings(1);
-    assert_eq!(
-        s.ai_state.ai[1].known_rares, 1,
-        "the next sweep counts it again"
-    );
+    assert_eq!(s.ai.ai[1].known_rares, 1, "the next sweep counts it again");
 }
 
 /// **A setup fix leaves frame 0's census count standing** (item 3170,
@@ -250,18 +238,18 @@ fn a_setup_fix_leaves_frame_0_s_rares_standing() {
         ty: 20,
         alive: true,
     });
-    s.ai_state.ai[1].new_rares = vec![g];
+    s.ai.ai[1].new_rares = vec![g];
     let land = s.world.region_of(Cell::new(2, 2)).expect("land") as usize;
     assert!(!s.in_play, "the fixture stands before the first frame");
     s.sync_territory();
     s.census(1);
     s.check_borders();
     assert_eq!(
-        s.ai_state.ai[1].census.reg_known_rares[land], 1,
+        s.ai.ai[1].census.reg_known_rares[land], 1,
         "setup's fix marked nothing for frame 0's check_borders"
     );
     s.assemble_holdings(1);
-    assert_eq!(s.ai_state.ai[1].known_rares, 1, "and the recompute sums it");
+    assert_eq!(s.ai.ai[1].known_rares, 1, "and the recompute sums it");
 }
 
 fn finish(sim: &mut Sim, b: usize) {
@@ -388,7 +376,7 @@ fn a_rider_is_an_xport_peasant_where_its_boat_is_going() {
         .push_back(sail(tile_pos(4 * TILES_PER_CELL, 12 * TILES_PER_CELL)));
 
     f.sim.census(1);
-    let cs = &f.sim.ai_state.ai[1].census;
+    let cs = &f.sim.ai.ai[1].census;
     let reg = |v: &[i32], r: u16| Census::reg(v, r);
     assert_eq!(cs.peasants, 2, "the rider is a peasant");
     assert_eq!(cs.free_peasants, 1, "only the one ashore is free");
@@ -406,7 +394,7 @@ fn a_rider_is_an_xport_peasant_where_its_boat_is_going() {
     // own tile's region, the sea, where a land unit is not active.
     f.sim.units[boat].orders.clear();
     f.sim.census(1);
-    let cs = &f.sim.ai_state.ai[1].census;
+    let cs = &f.sim.ai.ai[1].census;
     assert_eq!((cs.free_peasants, cs.xport_peasants), (1, 0));
     assert_eq!(reg(&cs.reg_active, far), 0);
     assert_eq!(reg(&cs.reg_active, sea), 0);
@@ -457,14 +445,14 @@ fn the_free_busy_split_follows_the_action_kind() {
     });
 
     f.sim.census(1);
-    let cs = &f.sim.ai_state.ai[1].census;
+    let cs = &f.sim.ai.ai[1].census;
     assert_eq!(cs.peasants, 6, "six citizens, the scout is not one");
     assert_eq!(cs.gatherers, 5);
     assert_eq!(cs.free_peasants, 1, "only the idle citizen is free");
     assert_eq!(cs.active, 7);
     // Five gatherers, all working buildings of this city, so the
     // `busy--`/`busy++` pair puts them all back on the same record.
-    let rec = f.sim.ai_state.ai[1].city_ai[c];
+    let rec = f.sim.ai.ai[1].city_ai[c];
     assert_eq!(rec.free, 1);
     assert_eq!(rec.busy, 5);
     assert_eq!(rec.gatherers, 5);
@@ -495,10 +483,7 @@ fn a_gatherer_counts_in_its_building_s_city_not_the_nearest() {
     f.sim.units[u].orders.push_back(gather_order(wood_b));
 
     f.sim.census(1);
-    let (n, fa) = (
-        f.sim.ai_state.ai[1].city_ai[near],
-        f.sim.ai_state.ai[1].city_ai[far],
-    );
+    let (n, fa) = (f.sim.ai.ai[1].city_ai[near], f.sim.ai.ai[1].city_ai[far]);
     assert_eq!((n.busy, n.gatherers), (0, 0), "not the nearest city");
     assert_eq!((fa.busy, fa.gatherers), (1, 1), "the building's city");
     assert!(fa.peasant_dist < PEASANT_DIST_NONE, "its distance goes too");
@@ -576,14 +561,14 @@ fn the_gather_slot_books_are_kept_by_building_type() {
     assert_eq!(slots[1], 5, "the woodcutter");
     assert_eq!(slots[3], 4, "the university");
     assert_eq!(slots[2], 0, "wealth is never written");
-    let cs = &f.sim.ai_state.ai[1].census;
+    let cs = &f.sim.ai.ai[1].census;
     assert_eq!(cs.filled_gather_slots[0], 3);
     assert_eq!(cs.filled_gather_slots[1], 2);
     assert_eq!(cs.filled_gather_slots[3], 1, "the garrisoned scholar");
     assert_eq!(cs.scholars, 1);
     // `count_gather_slots` leaves knowledge out of its total, so the
     // region sees 3 + 5 and not 3 + 5 + 4 — run8's `reg_gather_slots 8`.
-    let r = f.sim.cities_state.cities[c].reg.unwrap() as usize;
+    let r = f.sim.cities.cities[c].reg.unwrap() as usize;
     assert_eq!(cs.reg_gather_slots[r], 8);
 }
 
@@ -624,9 +609,9 @@ fn defence_counts_towers_and_forts_and_exempts_the_dock() {
     build(&mut f.sim, 1, f.fort, 20, 28);
     force_build(&mut f.sim, 1, f.dock, 47, 20);
     f.sim.census(1);
-    assert_eq!(f.sim.ai_state.ai[1].census.defense, 3);
+    assert_eq!(f.sim.ai.ai[1].census.defense, 3);
     let r = f.sim.world.region_of(Cell::new(5, 5)).unwrap() as usize;
-    assert_eq!(f.sim.ai_state.ai[1].census.reg_defense[r], 3);
+    assert_eq!(f.sim.ai.ai[1].census.reg_defense[r], 3);
 }
 
 /// **`defense` between sweeps, and an unfinished site in one** (item
@@ -639,31 +624,22 @@ fn defence_counts_towers_and_forts_and_exempts_the_dock() {
 fn defence_moves_with_a_site_s_life_and_the_sweep_counts_a_site() {
     let mut f = fix();
     f.sim.census(1);
-    assert_eq!(f.sim.ai_state.ai[1].census.defense, 0);
+    assert_eq!(f.sim.ai.ai[1].census.defense, 0);
     let site = f.sim.init_build(1, f.tower, tile_pos(28, 20), false);
-    assert_eq!(f.sim.ai_state.ai[1].census.defense, 1, "`Build::init`'s +1");
+    assert_eq!(f.sim.ai.ai[1].census.defense, 1, "`Build::init`'s +1");
     f.sim.census(1);
     assert_eq!(
-        f.sim.ai_state.ai[1].census.defense, 1,
+        f.sim.ai.ai[1].census.defense, 1,
         "the sweep counts the unfinished site"
     );
     let r = f.sim.world.region_of(Cell::new(7, 5)).unwrap() as usize;
-    assert_eq!(f.sim.ai_state.ai[1].census.reg_defense[r], 1);
+    assert_eq!(f.sim.ai.ai[1].census.reg_defense[r], 1);
     f.sim.activate(site, false, true);
-    assert_eq!(
-        f.sim.ai_state.ai[1].census.defense, 2,
-        "`Build::activate`'s +1"
-    );
+    assert_eq!(f.sim.ai.ai[1].census.defense, 2, "`Build::activate`'s +1");
     f.sim.close_building(site, true);
-    assert_eq!(
-        f.sim.ai_state.ai[1].census.defense, 1,
-        "`Build::close`'s -1"
-    );
+    assert_eq!(f.sim.ai.ai[1].census.defense, 1, "`Build::close`'s -1");
     f.sim.init_build(0, f.tower, tile_pos(28, 28), false);
-    assert_eq!(
-        f.sim.ai_state.ai[0].census.defense, 0,
-        "a human's is not moved"
-    );
+    assert_eq!(f.sim.ai.ai[0].census.defense, 0, "a human's is not moved");
 }
 
 /// The maxima only ever climb, and the escrow rate switches on at the
@@ -676,10 +652,10 @@ fn the_maxima_climb_and_the_escrow_rate_latches() {
         spawn(&mut f.sim, 1, f.citizen, 21, 21);
     }
     f.sim.census(1);
-    assert_eq!(f.sim.ai_state.ai[1].census.peasants, 4);
-    assert_eq!(f.sim.ai_state.ai[1].census.peasant_high, 4);
+    assert_eq!(f.sim.ai.ai[1].census.peasants, 4);
+    assert_eq!(f.sim.ai.ai[1].census.peasant_high, 4);
     assert_eq!(
-        f.sim.ai_state.ai[1].census.escrow_rate, [0; RESOURCES],
+        f.sim.ai.ai[1].census.escrow_rate, [0; RESOURCES],
         "one city"
     );
 
@@ -692,11 +668,11 @@ fn the_maxima_climb_and_the_escrow_rate_latches() {
     build(&mut f.sim, 1, f.village, 40, 20);
     build(&mut f.sim, 1, f.village, 20, 40);
     f.sim.census(1);
-    assert_eq!(f.sim.ai_state.ai[1].census.peasants, 1);
-    assert_eq!(f.sim.ai_state.ai[1].census.peasant_high, 4);
-    assert_eq!(f.sim.ai_state.ai[1].census.city_high, 3);
+    assert_eq!(f.sim.ai.ai[1].census.peasants, 1);
+    assert_eq!(f.sim.ai.ai[1].census.peasant_high, 4);
+    assert_eq!(f.sim.ai.ai[1].census.city_high, 3);
     assert_eq!(
-        f.sim.ai_state.ai[1].census.escrow_rate, [ESCROW_RATE; RESOURCES],
+        f.sim.ai.ai[1].census.escrow_rate, [ESCROW_RATE; RESOURCES],
         "three cities is more than two"
     );
 }
@@ -716,15 +692,15 @@ fn the_thin_bit_and_the_eight_that_replaces_it() {
     f.sim.census(1);
     let r = f.sim.world.region_of(Cell::new(5, 5)).unwrap() as usize;
     // 12 × 16 = 192 cells, one city: 50 < 192, so thin.
-    assert_eq!(f.sim.ai_state.ai[1].census.strategy[r], 1);
-    assert_eq!(f.sim.ai_state.ai[1].census.reg_cities[r], 1);
+    assert_eq!(f.sim.ai.ai[1].census.strategy[r], 1);
+    assert_eq!(f.sim.ai.ai[1].census.reg_cities[r], 1);
 
     // Four cities fill it: 4 × 50 = 200 ≥ 192.
     build(&mut f.sim, 1, f.village, 40, 20);
     build(&mut f.sim, 1, f.village, 20, 40);
     build(&mut f.sim, 1, f.village, 40, 40);
     f.sim.census(1);
-    assert_eq!(f.sim.ai_state.ai[1].census.strategy[r], 8);
+    assert_eq!(f.sim.ai.ai[1].census.strategy[r], 8);
 }
 
 /// **A human leader takes the sweep, but for its army** (item 1605,
@@ -742,34 +718,31 @@ fn a_human_s_sweep_fills_its_city_and_seeds_no_army() {
     f.sim.frame = 0;
     f.sim.strategy_all();
     assert!(
-        f.sim.ai_state.ai[0]
-            .city_ai
-            .get(c)
-            .is_some_and(|r| r.land > 0),
+        f.sim.ai.ai[0].city_ai.get(c).is_some_and(|r| r.land > 0),
         "the human's city is swept"
     );
     assert_eq!(
-        f.sim.ai_state.armies[0].valid().count(),
+        f.sim.ai.armies[0].valid().count(),
         0,
         "and no army is seeded"
     );
     assert_eq!(
-        f.sim.ai_state.ai[0].step,
+        f.sim.ai.ai[0].step,
         crate::ai::Step::Script,
         "the sweep arms the machine"
     );
     f.sim.frame = 1;
     f.sim.strategy_all();
     assert_eq!(
-        f.sim.ai_state.ai[0].step,
+        f.sim.ai.ai[0].step,
         crate::ai::Step::Idle,
         "and `production_ai`'s default disarms it"
     );
     f.sim.frame = 0;
-    f.sim.cities_state.nation[0].human = false;
+    f.sim.cities.nation[0].human = false;
     f.sim.strategy_all();
     assert_eq!(
-        f.sim.ai_state.armies[0].valid().count(),
+        f.sim.ai.armies[0].valid().count(),
         1,
         "a computer leader's same city seeds one"
     );
@@ -784,8 +757,8 @@ fn the_site_picture_counts_the_open_cells_of_the_circle() {
     let b = build(&mut f.sim, 1, f.village, 20, 20);
     let c = f.sim.buildings[b].city.unwrap();
     f.sim.census(1);
-    let rec = f.sim.ai_state.ai[1].city_ai[c];
-    let r = f.sim.cities_state.cities[c].reg.unwrap() as usize;
+    let rec = f.sim.ai.ai[1].city_ai[c];
+    let r = f.sim.cities.cities[c].reg.unwrap() as usize;
     // The radius is the city's own `get_radius` — 20 tiles for a level
     // one city — so `(20 + 2) / 4 = 5` picks `circle_radius[5]`, and
     // the inner cutoff is `circle_radius[5]` too... one ring in.
@@ -797,11 +770,11 @@ fn the_site_picture_counts_the_open_cells_of_the_circle() {
     );
     assert_eq!(rec.ocean, 0, "no water in reach");
     assert_eq!(
-        f.sim.ai_state.ai[1].census.reg_land[r],
+        f.sim.ai.ai[1].census.reg_land[r],
         rec.land - rec.filled,
         "the region takes the open remainder"
     );
-    assert_eq!(f.sim.ai_state.ai[1].census.full_cities, 0);
+    assert_eq!(f.sim.ai.ai[1].census.full_cities, 0);
 }
 
 /// **The circle walk starts at entry 1** (`docs/AI.md` §122, item 1477).
@@ -823,13 +796,13 @@ fn the_circle_walk_starts_at_entry_one() {
         let mut f = fix();
         let b = build(&mut f.sim, 1, f.village, 20, 20);
         let c = f.sim.buildings[b].city.unwrap();
-        let centre = f.sim.cities_state.cities[c].pos.cell();
+        let centre = f.sim.cities.cities[c].pos.cell();
         if let Some((dx, dy)) = owned {
             let cell = Cell::new(centre.x + dx, centre.y + dy);
             f.sim.world.set_owner(cell, Owner::Player(0), Owner::None);
         }
         f.sim.census(1);
-        f.sim.ai_state.ai[1].city_ai[c].land
+        f.sim.ai.ai[1].city_ai[c].land
     };
     let base = land_with(None);
     assert_eq!(
@@ -857,7 +830,7 @@ fn check_explore_counts_the_whole_region_grid() {
     let mut f = fix();
     f.sim.check_explore(1);
     assert_eq!(
-        f.sim.ai_state.ai[1].census.explored,
+        f.sim.ai.ai[1].census.explored,
         8 * 8,
         "a 16x16 cell world is 8x8 region cells"
     );
@@ -887,9 +860,7 @@ fn check_explore_counts_the_whole_region_grid() {
 fn the_census_counts_captains_under_the_original_s_role_word() {
     let mut f = fix();
     build(&mut f.sim, 1, f.village, 20, 20);
-    f.sim.ai_state.ai[1]
-        .census
-        .resize(f.sim.world.region_count(), 2);
+    f.sim.ai.ai[1].census.resize(f.sim.world.region_count(), 2);
 
     // A military type by the original's word, and a caravan by this
     // crate's — whose `1 << 16` the sweep used to read as military.
@@ -912,7 +883,7 @@ fn the_census_counts_captains_under_the_original_s_role_word() {
     spawn(&mut f.sim, 1, trader, 24, 22);
 
     f.sim.census(1);
-    let c = &f.sim.ai_state.ai[1].census;
+    let c = &f.sim.ai.ai[1].census;
     assert_eq!(c.active, 2, "the squad's followers are counted as units");
     assert_eq!(c.combat, 1, "one squad is one soldier");
     assert_eq!(c.non_siege, 1);
@@ -929,9 +900,7 @@ fn the_census_counts_captains_under_the_original_s_role_word() {
 fn a_decoy_is_no_unit_of_the_census() {
     let mut f = fix();
     build(&mut f.sim, 1, f.village, 20, 20);
-    f.sim.ai_state.ai[1]
-        .census
-        .resize(f.sim.world.region_count(), 2);
+    f.sim.ai.ai[1].census.resize(f.sim.world.region_count(), 2);
     let soldier = f.sim.tables.unit_types[f.scout].clone();
     let soldier = f.sim.add_unit_type(soldier);
     f.sim.tables.unit_types[soldier].cols.role = ROLE_MILITARY;
@@ -940,7 +909,7 @@ fn a_decoy_is_no_unit_of_the_census() {
     let copy = spawn(&mut f.sim, 1, soldier, 22, 22);
     f.sim.units[copy].decoy = true;
     f.sim.census(1);
-    let c = &f.sim.ai_state.ai[1].census;
+    let c = &f.sim.ai.ai[1].census;
     assert_eq!((c.active, c.combat, c.non_siege), (1, 1, 1));
 }
 
@@ -961,16 +930,14 @@ fn invaders_land_on_the_owner_s_record() {
     let u = spawn(&mut f.sim, 1, f.scout, 34, 34);
     let ty = f.sim.units[u].ty.unwrap();
     f.sim.tables.unit_types[ty].cols.role = ROLE_MILITARY;
-    f.sim.ai_state.ai[0]
-        .census
-        .resize(f.sim.world.region_count(), 2);
+    f.sim.ai.ai[0].census.resize(f.sim.world.region_count(), 2);
 
     f.sim.census(1);
-    assert_eq!(f.sim.ai_state.ai[0].census.invaders[1], 1);
-    assert_eq!(f.sim.ai_state.ai[1].census.combat, 1);
+    assert_eq!(f.sim.ai.ai[0].census.invaders[1], 1);
+    assert_eq!(f.sim.ai.ai[1].census.combat, 1);
 
     // Move it home: the next sweep clears the old count.
     f.sim.units[u].pos = tile_pos(20, 22);
     f.sim.census(1);
-    assert_eq!(f.sim.ai_state.ai[0].census.invaders[1], 0);
+    assert_eq!(f.sim.ai.ai[0].census.invaders[1], 0);
 }

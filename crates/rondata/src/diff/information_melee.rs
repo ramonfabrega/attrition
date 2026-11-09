@@ -88,7 +88,7 @@ fn information_melee_staging_walk() {
     for line in &st.applied.landed {
         eprintln!("  {line}");
     }
-    for (w, n) in built.sim.cities_state.nation.iter().enumerate() {
+    for (w, n) in built.sim.cities.nation.iter().enumerate() {
         eprintln!(
             "  who={w} human={} age {} tribe {:?}",
             n.human, built.sim.territory.players[w].age, built.sim.tech[w].power

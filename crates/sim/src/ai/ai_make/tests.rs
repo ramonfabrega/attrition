@@ -94,7 +94,7 @@ fn fx() -> Fx {
     let mut w = World::new(16, 16);
     w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(15, 15));
     let mut sim = Sim::new(Tuning::RON, w, 2);
-    sim.cities_state.nation[1].human = false;
+    sim.cities.nation[1].human = false;
     let t = &mut sim.tables.tech_tree;
     for n in ["Food", "Timber", "Wealth", "Knowledge", "Metal", "Oil"] {
         t.add(TypeDef::good(n));
@@ -198,9 +198,9 @@ fn the_head_s_expiry_draws_once_per_matching_slot() {
     // on the type alone and draws for all three.
     let mut f = fx();
     let s = &mut f.sim;
-    s.ai_state.ai[1].make_list.list[0] = slot(f.tech, 100);
-    s.ai_state.ai[1].make_list.list[3] = slot(f.tech, 0);
-    s.ai_state.ai[1].make_list.list[7] = slot(f.tech, 0);
+    s.ai.ai[1].make_list.list[0] = slot(f.tech, 100);
+    s.ai.ai[1].make_list.list[3] = slot(f.tech, 0);
+    s.ai.ai[1].make_list.list[7] = slot(f.tech, 0);
     s.economy.ledgers[1].bucket = [0; RESOURCES];
     let before = s.rng.seed;
     s.make_stuff(1);
@@ -210,14 +210,14 @@ fn the_head_s_expiry_draws_once_per_matching_slot() {
     // the three draws: the `Random::get` is evaluated before the flag.
     let mut f = fx();
     let s = &mut f.sim;
-    s.ai_state.ai[1].make_list.list[0] = slot(f.tower, 100);
-    s.ai_state.ai[1].make_list.list[3] = slot(f.tower, 0);
-    s.ai_state.ai[1].make_list.list[7] = slot(f.tower, 0);
+    s.ai.ai[1].make_list.list[0] = slot(f.tower, 100);
+    s.ai.ai[1].make_list.list[3] = slot(f.tower, 0);
+    s.ai.ai[1].make_list.list[7] = slot(f.tower, 0);
     let before = s.rng.seed;
     s.make_stuff(1);
     assert_eq!(draws(before, s.rng.seed), 3);
     for k in [0, 3, 7] {
-        assert_eq!(s.ai_state.ai[1].make_list.list[k].t, -1, "slot {k} cleared");
+        assert_eq!(s.ai.ai[1].make_list.list[k].t, -1, "slot {k} cleared");
     }
 }
 
@@ -269,15 +269,15 @@ fn run18_s_expiry_rolls_decide_exactly_the_slots_the_dump_kept() {
     // sim-frame 6383: slots 0 (the head) and 8 hold it. Rolls 61545 and
     // 25792 — the head clears, slot 8 keeps.
     s.rng = crate::combat::Rng::new(0xc593_8177);
-    s.ai_state.ai[1].make_list.list[0] = slot(temple, 2_499_999);
-    s.ai_state.ai[1].make_list.list[8] = slot(temple, 2_499_999);
+    s.ai.ai[1].make_list.list[0] = slot(temple, 2_499_999);
+    s.ai.ai[1].make_list.list[8] = slot(temple, 2_499_999);
     s.expire(1, temple as i32, 0, false);
     assert_eq!(
-        s.ai_state.ai[1].make_list.list[0].t, -1,
+        s.ai.ai[1].make_list.list[0].t, -1,
         "61545 % 3 == 0: cleared"
     );
     assert_eq!(
-        s.ai_state.ai[1].make_list.list[8].t, temple as i32,
+        s.ai.ai[1].make_list.list[8].t, temple as i32,
         "25792 % 3 == 1: kept"
     );
     assert_eq!(s.rng.seed, 0xbb3f_64c1, "two draws, the trace's next seed");
@@ -287,18 +287,15 @@ fn run18_s_expiry_rolls_decide_exactly_the_slots_the_dump_kept() {
     // (`make_stuff+0x63d`) from slot 5, over the citizen it just bought:
     // 48595 keeps it, and the demoted `val` stays in the list.
     s.rng = crate::combat::Rng::new(0x833a_ab7f);
-    s.ai_state.ai[1].make_list.list[0] = slot(temple, 2_499_999);
-    s.ai_state.ai[1].make_list.list[8] = slot(temple, 2_499_999);
-    s.ai_state.ai[1].make_list.list[5] = slot(f.citizen, 714);
+    s.ai.ai[1].make_list.list[0] = slot(temple, 2_499_999);
+    s.ai.ai[1].make_list.list[8] = slot(temple, 2_499_999);
+    s.ai.ai[1].make_list.list[5] = slot(f.citizen, 714);
     s.expire(1, temple as i32, 0, false);
     assert_eq!(
-        s.ai_state.ai[1].make_list.list[0].t, temple as i32,
+        s.ai.ai[1].make_list.list[0].t, temple as i32,
         "17105 % 3 == 2: the head survived its own expiry"
     );
-    assert_eq!(
-        s.ai_state.ai[1].make_list.list[8].t, -1,
-        "1032 % 3 == 0: cleared"
-    );
+    assert_eq!(s.ai.ai[1].make_list.list[8].t, -1, "1032 % 3 == 0: cleared");
     assert_eq!(s.rng.seed, 0xeb75_0409, "two draws");
 
     assert!(
@@ -307,7 +304,7 @@ fn run18_s_expiry_rolls_decide_exactly_the_slots_the_dump_kept() {
     );
     s.expire(1, f.citizen as i32, 5, false);
     assert_eq!(
-        s.ai_state.ai[1].make_list.list[5].t, f.citizen as i32,
+        s.ai.ai[1].make_list.list[5].t, f.citizen as i32,
         "48595 % 3 == 1: the bought slot is demoted, not cleared"
     );
     assert_eq!(
@@ -346,21 +343,21 @@ fn run19_s_head_clause_clears_a_scholar_a_non_head_slot_would_keep() {
     // slot loop's own walk keeps the scholar it just bought at slot 1.
     let coinage = f.tech;
     s.rng = crate::combat::Rng::new(0xa6d1_84cf);
-    s.ai_state.ai[1].make_list.list[0] = slot(coinage, 9_999_999);
-    s.ai_state.ai[1].make_list.list[1] = slot(scholar, 9_999_999);
-    s.ai_state.ai[1].make_list.list[4] = slot(coinage, 9_999_999);
+    s.ai.ai[1].make_list.list[0] = slot(coinage, 9_999_999);
+    s.ai.ai[1].make_list.list[1] = slot(scholar, 9_999_999);
+    s.ai.ai[1].make_list.list[4] = slot(coinage, 9_999_999);
     s.expire(1, coinage as i32, 0, s.expire_all(coinage, true));
     assert_eq!(
-        s.ai_state.ai[1].make_list.list[0].t, coinage as i32,
+        s.ai.ai[1].make_list.list[0].t, coinage as i32,
         "11233 % 3 == 1: the bought head is demoted, not cleared"
     );
     assert_eq!(
-        s.ai_state.ai[1].make_list.list[4].t, -1,
+        s.ai.ai[1].make_list.list[4].t, -1,
         "14808 % 3 == 0: cleared"
     );
     s.expire(1, scholar as i32, 1, s.expire_all(scholar, false));
     assert_eq!(
-        s.ai_state.ai[1].make_list.list[1].t, scholar as i32,
+        s.ai.ai[1].make_list.list[1].t, scholar as i32,
         "22883 % 3 == 2: a scholar at a non-head slot survives"
     );
     assert_eq!(s.rng.seed, 0x78f6_5964, "three draws");
@@ -368,11 +365,11 @@ fn run19_s_head_clause_clears_a_scholar_a_non_head_slot_would_keep() {
     // 8185: the same scholar type, now the head, on a residue that would
     // have kept it anywhere else.
     s.rng = crate::combat::Rng::new(0x3f5a_529d);
-    s.ai_state.ai[1].make_list.list = [MakeObject::EMPTY; MAKE_SLOTS];
-    s.ai_state.ai[1].make_list.list[0] = slot(scholar, 9_999_999);
+    s.ai.ai[1].make_list.list = [MakeObject::EMPTY; MAKE_SLOTS];
+    s.ai.ai[1].make_list.list[0] = slot(scholar, 9_999_999);
     s.expire(1, scholar as i32, 0, s.expire_all(scholar, true));
     assert_eq!(
-        s.ai_state.ai[1].make_list.list[0].t, -1,
+        s.ai.ai[1].make_list.list[0].t, -1,
         "45911 % 3 == 2 and it goes anyway: the head clause is unconditional"
     );
     assert_eq!(s.rng.seed, 0x8244_b358, "the roll is still taken");
@@ -397,8 +394,8 @@ fn the_mean_shortfall_gates_the_rest_of_the_list() {
         assert_eq!((pb[fo], pb[ti], pf[fo], pf[ti]), (1000, 1000, 600, 0));
         let mut head = slot(f.barracks, 100);
         head.num = 1; // so `can_pay` can answer no
-        s.ai_state.ai[1].make_list.list[0] = head;
-        s.ai_state.ai[1].make_list.list[8] = slot(f.farm, 50);
+        s.ai.ai[1].make_list.list[0] = head;
+        s.ai.ai[1].make_list.list[8] = slot(f.farm, 50);
         s.economy.ledgers[1].bucket[fo] = pb[fo] + pf[fo] + 100;
         s.economy.ledgers[1].bucket[ti] = timber_purse;
         let before = s.rng.seed;
@@ -427,8 +424,8 @@ fn slots_four_and_five_have_their_exceptions() {
         let mut f = fx();
         let s = &mut f.sim;
         let head = slot(f.barracks, 100);
-        s.ai_state.ai[1].make_list.list[0] = head;
-        s.ai_state.ai[1].make_list.list[slot_no] = slot(t, 50);
+        s.ai.ai[1].make_list.list[0] = head;
+        s.ai.ai[1].make_list.list[slot_no] = slot(t, 50);
         s.economy.ledgers[1].bucket[Resource::Food as usize] = 600;
         set(s);
         let before = s.rng.seed;
@@ -438,24 +435,19 @@ fn slots_four_and_five_have_their_exceptions() {
     let f = fx();
     let (farm, tower) = (f.farm, f.tower);
     // Slot 5 with a free peasant: skipped. With none: bought anyway.
-    assert_eq!(
-        case(5, farm, |s| s.ai_state.ai[1].census.free_peasants = 1),
-        1
-    );
-    assert_eq!(case(5, farm, |s| s.ai_state.ai[1].census.gatherers = 1), 1);
+    assert_eq!(case(5, farm, |s| s.ai.ai[1].census.free_peasants = 1), 1);
+    assert_eq!(case(5, farm, |s| s.ai.ai[1].census.gatherers = 1), 1);
     assert_eq!(case(5, farm, |_| {}), 2);
     // Slot 4, a farm, with food's `econ` bit 4 clear: skipped; set: bought.
     assert_eq!(case(4, farm, |_| {}), 1);
     assert_eq!(
-        case(4, farm, |s| s.ai_state.ai[1].econ
-            [Resource::Food as usize] = 4),
+        case(4, farm, |s| s.ai.ai[1].econ[Resource::Food as usize] = 4),
         2
     );
     // The exception is the *type's own* good and only a gather building
     // gets it: a tower in slot 4 is skipped however short food is.
     assert_eq!(
-        case(4, tower, |s| s.ai_state.ai[1].econ
-            [Resource::Food as usize] = 4),
+        case(4, tower, |s| s.ai.ai[1].econ[Resource::Food as usize] = 4),
         1
     );
     // And neither exception reaches any other slot.
@@ -488,15 +480,15 @@ fn a_slot_that_repeats_the_ranked_four_is_dropped() {
         // slot alive through it.
         let mut head = slot(f.farm, 100);
         head.city = 0;
-        s.ai_state.ai[1].make_list.list[0] = head;
+        s.ai.ai[1].make_list.list[0] = head;
         if k != 0 {
             let mut m = slot(f.farm, 0); // `val == 0`: the slot loop skips it
             m.city = 0;
-            s.ai_state.ai[1].make_list.list[k] = m;
+            s.ai.ai[1].make_list.list[k] = m;
         }
         let mut dup = slot(f.farm, 10);
         dup.city = city;
-        s.ai_state.ai[1].make_list.list[9] = dup;
+        s.ai.ai[1].make_list.list[9] = dup;
         s.economy.ledgers[1].bucket = [10_000; RESOURCES];
         let before = s.rng.seed;
         s.make_stuff(1);
@@ -524,12 +516,12 @@ fn make_this_dispatches_by_class_and_demotes_on_a_buy() {
         .into_iter()
         .enumerate()
     {
-        s.ai_state.ai[1].make_list.list[i] = slot(t, 500);
+        s.ai.ai[1].make_list.list[i] = slot(t, 500);
         assert!(!s.make_this(1, i));
-        assert_eq!(s.ai_state.ai[1].make_list.list[i].val, 500);
+        assert_eq!(s.ai.ai[1].make_list.list[i].val, 500);
     }
     // A good in the list is the original's bare `return 1`.
-    s.ai_state.ai[1].make_list.list[0] = slot(0, 500);
+    s.ai.ai[1].make_list.list[0] = slot(0, 500);
     assert!(!s.make_this(1, 0));
     // The `is(TOWN, 0)` arm the listing settled: a Large City is a city
     // type *and* an upgrade, and the upgrade test comes first. Both
@@ -538,7 +530,7 @@ fn make_this_dispatches_by_class_and_demotes_on_a_buy() {
     assert!(s.type_is_role(f.town, s.tables.tech_tree.roles.town, false));
     assert!(s.slot64(f.town), "and it is also is_city, hence the order");
     assert!(!s.type_is_role(f.village, s.tables.tech_tree.roles.town, false));
-    s.ai_state.ai[1].make_list.list[0] = slot(f.town, 500);
+    s.ai.ai[1].make_list.list[0] = slot(f.town, 500);
     assert!(!s.make_this(1, 0));
 
     // The demotion itself, driven through the one producer that is not a
@@ -549,18 +541,18 @@ fn make_this_dispatches_by_class_and_demotes_on_a_buy() {
     let b = s.init_build(1, f.village_rec, at, false);
     s.activate(b, false, true);
     let c = s.buildings[b].city.expect("a finished city has a record");
-    s.ai_state.ai[1].city_ai = vec![CityAi::default(); s.cities_state.cities.len()];
-    s.ai_state.ai[1].city_ai[c].land = 40;
-    s.ai_state.ai[1].city_ai[c].space = [40, 40, 40];
-    s.ai_state.ai[1].census.resize(256, 2);
+    s.ai.ai[1].city_ai = vec![CityAi::default(); s.cities.cities.len()];
+    s.ai.ai[1].city_ai[c].land = 40;
+    s.ai.ai[1].city_ai[c].space = [40, 40, 40];
+    s.ai.ai[1].census.resize(256, 2);
     let reg = s.world.region_of(at.cell()).expect("a region");
-    s.ai_state.ai[1].census.reg_free_peasants[usize::from(reg)] = 1;
+    s.ai.ai[1].census.reg_free_peasants[usize::from(reg)] = 1;
     s.economy.ledgers[1].bucket = [10_000; RESOURCES];
     let mut m = slot(f.farm, 500);
     m.city = c as i32;
-    s.ai_state.ai[1].make_list.list[0] = m;
+    s.ai.ai[1].make_list.list[0] = m;
     assert!(s.make_this(1, 0), "produce_building placed the farm");
-    assert_eq!(s.ai_state.ai[1].make_list.list[0].val, 5, "val /= 100");
+    assert_eq!(s.ai.ai[1].make_list.list[0].val, 5, "val /= 100");
     assert_eq!(s.tables.build_types[f.farm_rec].ident, Ident::Farm);
 }
 
@@ -800,7 +792,7 @@ fn the_market_draws_once_for_wealth_behind_coinage() {
     // The fixture's prices come out of `type_price` ten times their
     // base, so 6 is the 60 a make-list slot sees.
     s.tables.build_types[rec].price = cost::Price::free().with_base(Resource::Wealth, 6);
-    s.ai_state.ai[1].make_list.list[0] = slot(f_tower, 500);
+    s.ai.ai[1].make_list.list[0] = slot(f_tower, 500);
     s.economy.holdings[1].available = [true, true, true, true, true, false];
     s.economy.ledgers[1].bucket = [58, 55, 43, 68, 54, 0];
     assert_eq!(spent(s), 0, "no market, no ability: nothing is spent");
@@ -938,12 +930,12 @@ fn a_tied_builder_is_the_lower_object_number_not_the_elder() {
     let b = s.init_build(1, f.village_rec, at, false);
     s.activate(b, false, true);
     let c = s.buildings[b].city.expect("a finished city has a record");
-    s.ai_state.ai[1].city_ai = vec![CityAi::default(); s.cities_state.cities.len()];
-    s.ai_state.ai[1].city_ai[c].land = 40;
-    s.ai_state.ai[1].city_ai[c].space = [40, 40, 40];
-    s.ai_state.ai[1].census.resize(256, 2);
+    s.ai.ai[1].city_ai = vec![CityAi::default(); s.cities.cities.len()];
+    s.ai.ai[1].city_ai[c].land = 40;
+    s.ai.ai[1].city_ai[c].space = [40, 40, 40];
+    s.ai.ai[1].census.resize(256, 2);
     let reg = s.world.region_of(at.cell()).expect("a region");
-    s.ai_state.ai[1].census.reg_free_peasants[usize::from(reg)] = 2;
+    s.ai.ai[1].census.reg_free_peasants[usize::from(reg)] = 2;
     s.economy.ledgers[1].bucket = [10_000; RESOURCES];
     // The tree's first unit type is the one `produce_building` counts
     // as a citizen (`0x32`/`0x33` in the original): record 0 here.
@@ -969,7 +961,7 @@ fn a_tied_builder_is_the_lower_object_number_not_the_elder() {
     }
     let mut m = slot(f.farm, 500);
     m.city = c as i32;
-    s.ai_state.ai[1].make_list.list[0] = m;
+    s.ai.ai[1].make_list.list[0] = m;
     assert!(s.make_this(1, 0), "produce_building placed the farm");
     let sent: Vec<i16> = s
         .units
@@ -1025,7 +1017,7 @@ fn a_human_leader_is_skipped() {
     let s = &mut f.sim;
     let b = s.init_build(0, f.farm_rec, at, false);
     s.world.set_danger_at(0, at.cell(), 5);
-    s.cities_state.nation[0].human = true;
+    s.cities.nation[0].human = true;
     s.check_orphaned_buildings(0);
     assert!(s.buildings[b].alive);
 }

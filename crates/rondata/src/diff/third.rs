@@ -138,7 +138,7 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
     borrow_pasture(&mut init, &tr);
     let mut built = build_sim(&loaded, &init, Tuning::RON);
     built.sim.trace.trace_phases = true;
-    let difficulty = built.sim.ai_state.lobby.difficulty;
+    let difficulty = built.sim.ai.lobby.difficulty;
     let last = tr.frames.last().map_or(0, |(n, _)| *n);
     let (mut count, mut sequence) = (None, None);
     for _ in 0..last {

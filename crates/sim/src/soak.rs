@@ -166,8 +166,8 @@ fn sample(sim: &Sim) -> Sample {
         }
         h.eat(b.garrison.len() as i64);
     }
-    h.eat(sim.cities_state.cities.len() as i64);
-    for c in &sim.cities_state.cities {
+    h.eat(sim.cities.cities.len() as i64);
+    for c in &sim.cities.cities {
         h.eat(i64::from(c.owner));
         h.eat_bool(c.alive);
     }

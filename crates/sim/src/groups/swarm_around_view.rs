@@ -502,7 +502,7 @@ impl SwarmView for SimSwarm<'_> {
     fn set_form(&mut self) {}
     fn leader_flags(&self, p: i32) -> i32 {
         // `leaders[p]`'s flags: bit 2 is the human.
-        if self.sim.cities_state.nation[p as usize].human {
+        if self.sim.cities.nation[p as usize].human {
             4
         } else {
             0

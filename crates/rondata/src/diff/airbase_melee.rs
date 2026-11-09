@@ -95,7 +95,7 @@ fn airbase_melee_staging_walk() {
             Some(who),
         );
         let capital = s
-            .cities_state
+            .cities
             .cities
             .iter()
             .position(|c| c.alive && c.owner == who && c.capital);
@@ -138,7 +138,7 @@ fn airbase_melee_staging_walk() {
             bd.pos.y,
             bd.active,
             bd.city,
-            s.ai_state.ai[bd.owner as usize].mil_trainers.contains(&b),
+            s.ai.ai[bd.owner as usize].mil_trainers.contains(&b),
             bd.queue.items.iter().map(|i| i.ty).collect::<Vec<_>>()
         );
     }
@@ -166,7 +166,7 @@ fn airbase_melee_staging_walk() {
                 && bd.ty == Some(ab)
                 && bd.active
                 && bd.city.is_some()
-                && s.ai_state.ai[who as usize].mil_trainers.contains(b)
+                && s.ai.ai[who as usize].mil_trainers.contains(b)
         });
         assert_eq!(
             filed.count(),

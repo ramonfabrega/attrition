@@ -900,7 +900,7 @@ pub(super) fn run249_s_transport_is_the_original_s_unit_for_unit() {
         for l in &frame.leaders {
             let Some(t) = usize::try_from(l.who)
                 .ok()
-                .and_then(|w| sim.ai_state.transport.get(w))
+                .and_then(|w| sim.ai.transport.get(w))
             else {
                 continue;
             };
@@ -1604,7 +1604,7 @@ pub(super) fn stage_walk() {
         // Item 1182: each city's members and its attack bits, which the
         // computer's sortie reads (`city_flags & 3`).
         if all {
-            for (c, city) in s.cities_state.cities.iter().enumerate() {
+            for (c, city) in s.cities.cities.iter().enumerate() {
                 let members: Vec<i16> =
                     city.members.iter().map(|&m| s.buildings[m].index).collect();
                 now.push((

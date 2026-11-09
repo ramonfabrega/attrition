@@ -157,7 +157,7 @@ impl Sim {
             };
             let c = Cell { x, y };
             if self.world.cell_data(c).flags & BIRD_CELL != 0 {
-                self.gaia_state.gaia.bird_spawns.push((frame, c));
+                self.gaia.gaia.bird_spawns.push((frame, c));
                 self.spawn_bird(c);
             }
             n -= 1;
@@ -242,7 +242,7 @@ impl Sim {
         // distinction did not exist while the bird stood still, and it is
         // the whole of the first seven frames of a flight
         // (`docs/SYNC.md` §3.9).
-        self.gaia_state.gaia.bird_goals.push((u, pos));
+        self.gaia.gaia.bird_goals.push((u, pos));
         Some(u)
     }
 
@@ -317,7 +317,7 @@ impl Sim {
         let r = self.rng.roll() % i32::from(counter);
         if r == 100 || r > 799 {
             self.units[u].spell_time = 0;
-            self.gaia_state
+            self.gaia
                 .gaia
                 .bird_landings
                 .push((frame, self.units[u].index));
@@ -379,7 +379,7 @@ impl Sim {
 
     /// The patrol point of a bird, which starts on the cell it hatched in.
     pub fn bird_goal(&self, u: usize) -> Pos {
-        self.gaia_state
+        self.gaia
             .gaia
             .bird_goals
             .iter()
@@ -388,15 +388,9 @@ impl Sim {
     }
 
     fn set_bird_goal(&mut self, u: usize, to: Pos) {
-        match self
-            .gaia_state
-            .gaia
-            .bird_goals
-            .iter_mut()
-            .find(|(b, _)| *b == u)
-        {
+        match self.gaia.gaia.bird_goals.iter_mut().find(|(b, _)| *b == u) {
             Some((_, p)) => *p = to,
-            None => self.gaia_state.gaia.bird_goals.push((u, to)),
+            None => self.gaia.gaia.bird_goals.push((u, to)),
         }
     }
 
@@ -451,16 +445,13 @@ impl Sim {
     /// point and `8/3` was sent to `(17688, 26616)` where the original
     /// sends it to `(17688, 26328)`.
     fn herd_walk(&mut self, frame: i64) {
-        let count = self.gaia_state.gaia.herds.len() as i64;
+        let count = self.gaia.gaia.herds.len() as i64;
         let idx = (frame >> 6) % count.max(5);
-        if idx >= count || !self.gaia_state.gaia.herds[idx as usize].alive {
+        if idx >= count || !self.gaia.gaia.herds[idx as usize].alive {
             return;
         }
         let h = idx as usize;
-        let (cx, cy) = (
-            self.gaia_state.gaia.herds[h].cx,
-            self.gaia_state.gaia.herds[h].cy,
-        );
+        let (cx, cy) = (self.gaia.gaia.herds[h].cx, self.gaia.gaia.herds[h].cy);
         let (rng, marks, trace, world) = (
             &mut self.rng,
             &mut self.trace.phase_marks,
@@ -486,8 +477,8 @@ impl Sim {
             },
         );
         if let Some((x, y)) = walked {
-            self.gaia_state.gaia.herds[h].wx = x;
-            self.gaia_state.gaia.herds[h].wy = y;
+            self.gaia.gaia.herds[h].wx = x;
+            self.gaia.gaia.herds[h].wy = y;
         }
     }
 }

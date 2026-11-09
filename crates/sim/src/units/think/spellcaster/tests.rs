@@ -8,8 +8,8 @@ fn ai_scout() -> (Sim, usize) {
     let mut world = World::new(10, 10);
     world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(9, 9));
     let mut s = Sim::new(Tuning::RON, world, 2);
-    s.cities_state.nation[0].human = true;
-    s.cities_state.nation[1].human = false;
+    s.cities.nation[0].human = true;
+    s.cities.nation[1].human = false;
     let t = s.add_unit_type(crate::UnitType::default());
     s.tables.unit_types[t].cols.unit_flags2 = uflags2::FLAG2_SCOUT | uflags2::CASTER;
     let mut u = crate::Unit::new(1, 0, crate::Pos::new(5 * 768 + 384, 5 * 768 + 384), 20);
@@ -25,7 +25,7 @@ fn ai_scout() -> (Sim, usize) {
 fn an_ai_scout_throws_the_special_coin_from_difficulty_two() {
     let (mut sim, scout) = ai_scout();
     for d in 0..=5 {
-        sim.ai_state.lobby.difficulty = d;
+        sim.ai.lobby.difficulty = d;
         let mut probe = sim.rng;
         let coin = probe.roll();
         let before = sim.rng;
@@ -44,7 +44,7 @@ fn an_ai_scout_throws_the_special_coin_from_difficulty_two() {
 fn ai_general() -> (Sim, usize, [u32; 2]) {
     use crate::orders::{MoveKind, QueuePos, SpellType, spell};
     let (mut s, _) = ai_scout();
-    s.ai_state.lobby.difficulty = 5;
+    s.ai.lobby.difficulty = 5;
     let t = s.add_unit_type(crate::UnitType::default());
     s.tables.unit_types[t].cols.unit_flags2 = uflags2::FLAG2_GENERAL;
     s.tables.unit_types[t].mana = 1000;
@@ -297,13 +297,13 @@ fn a_general_standing_draws_nothing_and_a_still_one_makes_decoys() {
 #[test]
 fn a_human_s_scout_and_a_decoy_throw_nothing() {
     let (mut sim, scout) = ai_scout();
-    sim.ai_state.lobby.difficulty = 5;
+    sim.ai.lobby.difficulty = 5;
     sim.units[scout].decoy = true;
     let before = sim.rng;
     assert!(!sim.think_spellcaster(scout));
     assert_eq!(sim.rng, before, "a decoy");
     sim.units[scout].decoy = false;
-    sim.cities_state.nation[1].human = true;
+    sim.cities.nation[1].human = true;
     assert!(!sim.think_spellcaster(scout));
     assert_eq!(sim.rng, before, "a human's");
 }

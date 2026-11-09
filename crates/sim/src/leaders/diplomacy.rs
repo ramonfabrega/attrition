@@ -45,10 +45,10 @@ impl Sim {
     /// highest age at or past the rule (`Game::current_age`); or a timed
     /// rule (past 8) whose minutes × 900 have run.
     pub fn war_allowed(&self) -> bool {
-        let rr = self.ai_state.lobby.rush_rules;
+        let rr = self.ai.lobby.rush_rules;
         rr == 0
             || self.current_age() >= rr
-            || (rr > 8 && self.frame >= i64::from(self.ai_state.lobby.rush_minutes) * 900)
+            || (rr > 8 && self.frame >= i64::from(self.ai.lobby.rush_minutes) * 900)
     }
 
     /// `Game::current_age@005946d0`: the highest `ages` among the leaders
@@ -72,11 +72,11 @@ impl Sim {
     /// the outer walk runs from slot 0, so in a pair whose slot 0 is the
     /// human the declarer is the human and no army runs. `docs/AI.md` §224.
     pub fn end_the_peace(&mut self) {
-        let rr = self.ai_state.lobby.rush_rules;
-        if rr <= 8 || self.frame != i64::from(self.ai_state.lobby.rush_minutes) * 900 {
+        let rr = self.ai.lobby.rush_rules;
+        if rr <= 8 || self.frame != i64::from(self.ai.lobby.rush_minutes) * 900 {
             return;
         }
-        if matches!(self.ai_state.lobby.team_style, 0 | 8 | 11) {
+        if matches!(self.ai.lobby.team_style, 0 | 8 | 11) {
             return;
         }
         // SEAM: team style 7's neutral leaders (`LeaderData::is_neutral`,
@@ -143,7 +143,7 @@ impl Sim {
         let me = who as usize;
         // The head: a human (`leader_flags & 4`) and `ai off` return.
         // SEAM: `semaphore[1] & 2`, which also returns, is not carried.
-        if self.cities_state.nation[me].human || self.ai_state.ai_off {
+        if self.cities.nation[me].human || self.ai.ai_off {
             return;
         }
         let players = self.territory.players.len().min(8);
@@ -191,7 +191,7 @@ impl Sim {
         self.leaders.agendas[me][t] = agenda & !4;
 
         let age_gap = self.tech[me].ages - self.tech[t].ages;
-        let flags = self.ai_state.ai[me].player_flags;
+        let flags = self.ai.ai[me].player_flags;
         let rusher = flags >> 12 & 1 != 0;
         let boomer = flags >> 13 & 1 != 0;
         let seed = self.game_seed as u32;
@@ -207,13 +207,13 @@ impl Sim {
 
         // My cities of the target's race, and the target's of mine.
         let mine_theirs = self
-            .cities_state
+            .cities
             .cities
             .iter()
             .filter(|c| c.alive && c.owner as usize == me && c.race == Some(t as Player))
             .count();
         let theirs_mine = self
-            .cities_state
+            .cities
             .cities
             .iter()
             .filter(|c| c.alive && c.owner as usize == t && c.race == Some(me as Player))
@@ -231,19 +231,12 @@ impl Sim {
                 continue;
             }
             founded_by_me += self
-                .cities_state
+                .cities
                 .cities
                 .iter()
                 .filter(|c| c.alive && c.owner as usize == k && c.founder as usize == me)
                 .count();
-            if self.ai_state.ai[me]
-                .census
-                .invaders
-                .get(k)
-                .copied()
-                .unwrap_or(0)
-                > 14
-            {
+            if self.ai.ai[me].census.invaders.get(k).copied().unwrap_or(0) > 14 {
                 invaded_by += 1;
             }
         }
@@ -258,8 +251,8 @@ impl Sim {
         // region must hold for the weakness test.
         let halve = (self.city_num(me as Player) + self.village_num(me as Player)) / 2;
         {
-            let mine = &self.ai_state.ai[me].census;
-            let theirs = &self.ai_state.ai[t].census;
+            let mine = &self.ai.ai[me].census;
+            let theirs = &self.ai.ai[t].census;
             // SEAM: the original walks land slots 1..63 and skips slot 0;
             // this crate's regions carry no original number, so every land
             // region is walked.
@@ -317,10 +310,10 @@ impl Sim {
             !self.leaders.defeated[l]
                 && l != t
                 && (self.diplos(l, t) == 0 || self.diplos(t, l) == 0)
-                && self.ai_state.ai[l].weak[t] == 0
+                && self.ai.ai[l].weak[t] == 0
         });
-        let my_attack = self.ai_state.ai[me].census.attack;
-        let their_attack = self.ai_state.ai[t].census.attack;
+        let my_attack = self.ai.ai[me].census.attack;
+        let their_attack = self.ai.ai[t].census.attack;
         if (weak != 0 || their_attack > my_attack * 3) && !someone_unafraid {
             aggression = 0;
         }
@@ -330,15 +323,10 @@ impl Sim {
             strong = strong * 3 / 4;
         }
         if agenda & 0x10 != 0 && self.not_at_war(me, t) {
-            strong += self.ai_state.ai[me]
-                .census
-                .invaders
-                .get(t)
-                .copied()
-                .unwrap_or(0);
+            strong += self.ai.ai[me].census.invaders.get(t).copied().unwrap_or(0);
         }
         let diff = self.ai_difficulty();
-        let target_human = self.cities_state.nation[t].human;
+        let target_human = self.cities.nation[t].human;
         if target_human {
             if diff >= 4 {
                 strong += 2;
@@ -372,12 +360,7 @@ impl Sim {
         // read and spent here.
         let mut grievance = i32::from(self.leaders.agendas[me][t] & 2 != 0);
         self.leaders.agendas[me][t] &= !2;
-        let invaders = self.ai_state.ai[me]
-            .census
-            .invaders
-            .get(t)
-            .copied()
-            .unwrap_or(0);
+        let invaders = self.ai.ai[me].census.invaders.get(t).copied().unwrap_or(0);
         if self.leaders.agendas[me][t] & 0x10 != 0
             && self.not_at_war(me, t)
             && (if boomer { 4 } else { 1 }) < invaders
@@ -385,12 +368,12 @@ impl Sim {
             grievance = 1;
         }
         let at_war = i32::from(!self.not_at_war(me, t));
-        let tolerated = if self.ai_state.ai[me].pers.friendly_human >= 0 {
+        let tolerated = if self.ai.ai[me].pers.friendly_human >= 0 {
             at_war
         } else {
             at_war + 1
         };
-        let wars = self.ai_state.ai[me].census.wars;
+        let wars = self.ai.ai[me].census.wars;
         let mut too_many_wars = tolerated < wars - grievance;
         if too_many_wars {
             aggression = 0;
@@ -414,7 +397,7 @@ impl Sim {
         if self.diplos(me, t) != 0 && self.diplos(t, me) != 0 && target_human {
             // SEAM: `dow` (`+0x270`) and `blacken` (`+0x20c`) are not
             // carried, so the clearing arm reads both as 0.
-            let their_wars = self.ai_state.ai[t].census.wars;
+            let their_wars = self.ai.ai[t].census.wars;
             if their_wars > 0 {
                 let clear = match diff {
                     d if d < 2 => true,
@@ -482,7 +465,7 @@ impl Sim {
         if plan_war && plan_frame <= frame {
             aggression = 1;
         }
-        match self.ai_state.lobby.team_style {
+        match self.ai.lobby.team_style {
             0 | 8 | 11 | 7 => {
                 // SEAM: the elimination and capital arms of team styles 0,
                 // 8 and 11, and team style 7's — every capture is style 1.
@@ -515,7 +498,7 @@ impl Sim {
         // `LAB_006bed3f` whether war is allowed or not; the declaring arm
         // past `LAB_006be54c` is team styles 0, 8 and 11 alone.
         let quiet = {
-            let stamp = self.ai_state.ai[t].got_diplo_message;
+            let stamp = self.ai.ai[t].got_diplo_message;
             stamp != 0 && frame - stamp < 0x1c2
         };
         if self.leaders.agendas[me][t] & 0x48 != 0 || quiet {
@@ -523,13 +506,13 @@ impl Sim {
         }
         // The message itself (`receive_chat` to the console player) draws
         // only from the interface's own streams.
-        self.ai_state.ai[t].got_diplo_message = frame;
+        self.ai.ai[t].got_diplo_message = frame;
         self.leaders.agendas[me][t] |= 0x40;
     }
 
     /// The three per-target words, as `Leader::diplomacy` leaves them.
     fn store_view(&mut self, me: usize, t: usize, aggression: i32, strong: i32, weak: i32) {
-        let l = &mut self.ai_state.ai[me];
+        let l = &mut self.ai.ai[me];
         l.aggression[t] = aggression;
         l.strong[t] = strong;
         l.weak[t] = weak;
