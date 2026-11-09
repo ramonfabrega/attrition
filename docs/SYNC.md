@@ -2353,7 +2353,7 @@ struck through and point there.
   the sheep with the scale variant `o % 3`; the scout's idle is 41 or 61,
   the citizen's 33, the sow 47), and worth 12 of sim-frame 100's 18 draws
   and 2 of 101's 21.~~ **Done, 2026-08-24 —
-  `docs/ANIM.md`, `crates/sim/src/anim.rs`.** The clock, the wrap's roll,
+  `docs/ANIM.md`, `crates/sim/src/units/anim.rs`.** The clock, the wrap's roll,
   `init_real`'s, the arrival, the mirror, the animals as units of owner 8
   with the wander; the lengths and pieces as the `Art` input read out of
   the dumps (the variant is `(seed + o) % 3` for gaia, the gender bit `o &

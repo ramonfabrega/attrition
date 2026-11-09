@@ -591,7 +591,7 @@ mod tests {
         // **And no piece any traced unit carries has a turn animation** —
         // which is what makes `Guy::do_turn@005d97a0:15` unreachable on
         // every capture there is. That arm overrides `Guy::move`'s
-        // standing walk (`crates/sim/src/anim.rs`, `guys_follow`) with
+        // standing walk (`crates/sim/src/units/anim.rs`, `guys_follow`) with
         // `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` when `guy_flags & 8`, and
         // `Guy::init_real@005db6b0:179` sets that bit only when the guy's
         // piece names one. 273 of the install's 1,359 unit pieces do, so

@@ -4,7 +4,7 @@
 under `decomp/`), the executable's own `UnitAnimCat` table, the install's
 `anim_graphics.xml`, and two `DUMP_ALL` oracles: run12 (frames 0–3) and
 run13 (sim-frames 95–103), read with `tools/gamelog/anims.py`. Implemented
-in `crates/sim/src/anim.rs`, wired through `lib.rs`'s tick and `orders.rs`'s
+in `crates/sim/src/units/anim.rs`, wired through `lib.rs`'s tick and `orders.rs`'s
 stands; the harness side is `crates/rondata/src/{gamelog,diff}.rs`. The
 document says how each claim was established and what it has not.*
 
@@ -700,7 +700,7 @@ original's argument is the same. None of them moved a number either way on
 the two traced maps.
 
 **The arm itself, modelled 2026-08-30** (`Guy::move@005d9240:73–89`,
-`crates/sim/src/anim.rs`'s `guys_follow`). A body standing on its unit with
+`crates/sim/src/units/anim.rs`'s `guys_follow`). A body standing on its unit with
 `des_angle != angle` is put back on `CHAR_WALK` — the plain one; the carrying
 walk is resolved in the *moving* half — and marked unstopped, so the next
 frame's `do_idle` sees the walk category and a stopped body and rolls again.
@@ -1555,7 +1555,7 @@ crew of more than one figure, which no capture reaches.
 
 ## 6. What the sim does with it
 
-`crates/sim/src/anim.rs`, in the order the frame reaches it:
+`crates/sim/src/units/anim.rs`, in the order the frame reaches it:
 
 - **`Sim::guy_set_anim`** — §4 whole, minus the boat-crew offsets and the
   squad's group-idle synchronisation (a one-guy unit has no partner). The

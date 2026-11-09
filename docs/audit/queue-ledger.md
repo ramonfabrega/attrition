@@ -24,7 +24,7 @@ Two of the five had in fact landed. **Three had not**, and nobody noticed
 for a day, because every check anyone ran was a *branch* check and the loss
 was one level below it: `loop-234`'s branch tip was a docs-only handoff
 commit that merged clean while the item's actual product — 406 lines of
-`crates/sim/src/anim.rs` — sat uncommitted in the worktree, scheduled for
+`crates/sim/src/units/anim.rs` — sat uncommitted in the worktree, scheduled for
 reaping. `git worktree remove` refusing a dirty tree is the only reason it
 survived (2026-09-07; the recovered work is on branch `rescue-234`, commit
 `0e14e48`).

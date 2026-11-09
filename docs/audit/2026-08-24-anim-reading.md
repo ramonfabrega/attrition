@@ -3,7 +3,7 @@
 2026-08-24. Derived from the decompile export (`~/ghidra-projects/decomp/`), the
 PDB type stream, the shipped executable's `.rdata`, `game/Data/anim_graphics.xml`
 and the two `DUMP_ALL` gamelogs. Written without reading `docs/ANIM.md`,
-`crates/sim/src/anim.rs`, the latest commit, or the animation paragraphs of
+`crates/sim/src/units/anim.rs`, the latest commit, or the animation paragraphs of
 `docs/SYNC.md` §2 step 7 / §4.1 / §6.
 
 Line numbers of the form `set_anim:NNN` refer to the exported decompiled C in

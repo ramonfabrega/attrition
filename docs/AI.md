@@ -32778,7 +32778,7 @@ lines **are fielded** (`rubric.py --dumps` over run1338 and run1338b):
     the hurt figure below an unhurt captain. Its sparkle draws
     `internal_random` only for the console's allies.
   - Built as `Sim::ceo_heal` and `Sim::repair_unit_damage`
-    (`crates/sim/src/heal.rs`), called beside the civilian heal.
+    (`crates/sim/src/units/heal.rs`), called beside the civilian heal.
 
 **The value diff:**
 
@@ -34955,7 +34955,7 @@ with every count 0, nothing torn, off, unlinked or extra, and `Closing fields: n
   file is in `<NONLOOPING>` (34 turn-named files, every one looping). `sim::anim::non_looping` had decided by slot
   name, "the attacks, deaths, turns, pack/unpack and the two dumps", and the turns were wrong.
 
-**The build.** `non_looping` drops `CHAR_TURN_LEFT` and `CHAR_TURN_RIGHT` (`crates/sim/src/anim.rs`), and
+**The build.** `non_looping` drops `CHAR_TURN_LEFT` and `CHAR_TURN_RIGHT` (`crates/sim/src/units/anim.rs`), and
 `rondata::artdata`'s `every_turn_slot_names_a_looping_file` holds the install to it: 546 rows, none non-looping,
 the packed Trebuchet's on its wagon's walk. Restoring the old rule (`tools/mutate.py`) fails both that test and
 `french_medieval_pair_first_parting`, `…_run1393b_s_word_frame_is_widened_whole` and `…_run1393_s_closing_state`.

@@ -37,7 +37,7 @@ questions ("`crates/sim` treats it as 1") and so is not a row; the 5/4 is not.
 | | |
 |---|---|
 | document | MOVEMENT.md "The body step", `:477`–`478` — "`elif domain == sea or order is SPECIAL_ANIM:` / `stopped = 0   # turn, but leave the animation`" |
-| code | `crates/sim/src/anim.rs:1273`–`1276` (`fn guy_follow_anim`) |
+| code | `crates/sim/src/units/anim.rs:1273`–`1276` (`fn guy_follow_anim`) |
 | document says | a sea unit standing on its destination but still owed a turn comes out of the arm **unstopped** |
 | code does | `if … Domain::Sea { self.units[u].guys[g].stopped = true; return; }` — marks it **stopped** |
 | difference shows | no sim divergence: the code is right and the document is wrong. Settled against `Guy::move@005d9240` in the decompile — the arm is `if ((*(int *)(… + 0x218) == 1) || (OVar3 = UnitData::order_type(this_00), OVar3 == SPECIAL_ANIM)) { this->field_0x9d = 1; }`, and `field_0x9d` is the same byte the settled arm writes 1 and the walk arm writes 0. Were the document followed, a ship arriving and still turning would re-request `CHAR_DEFAULT` on the frame after (the arrival's `anim == WALK && stopped` gate), spending an idle roll and a `Guy::set_anim` draw the original does not — visible in a `UNITS`/trace window on any docked-ship arrival (run22's dock window) |
@@ -76,7 +76,7 @@ for a crew figure's speed at all.
 | | |
 |---|---|
 | document | MOVEMENT.md `:543`–`546` — "The two arms above the turn are `Guy::move`'s own `set_anim` callers, and the second of them — the **turn arm** — is not modelled yet … What it costs to land is in the queue" |
-| code | `crates/sim/src/anim.rs:1261`–`1279` (`fn guy_follow_anim`) |
+| code | `crates/sim/src/units/anim.rs:1261`–`1279` (`fn guy_follow_anim`) |
 | document says | a body that has arrived but has not come round to the order's angle is not put back on the walk here |
 | code does | it is: the arm is implemented, guard and all — the sea/`SPECIAL_ANIM` branch first (R2), then `if anim != TURN_LEFT && anim != TURN_RIGHT && anim != ATTACKWALK { self.guy_set_anim(u, g, WALK, false, true); }` and `stopped` cleared |
 | difference shows | no observable — the document lags the code |
@@ -87,7 +87,7 @@ for a crew figure's speed at all.
 | | |
 |---|---|
 | document | MOVEMENT.md `:547`–`550` — "`Guy::do_turn` overrides the walk with `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` whenever the guy's piece has a turn animation (`guy_flags & 8`, `Guy::init_real@005db6b0:179`), which this crate does not model at all" |
-| code | `crates/sim/src/anim.rs:803`–`819` (`fn guy_do_turn_anim`), reached from `crates/sim/src/lib.rs:3086`, `crates/sim/src/lib.rs:3208` and `crates/sim/src/orders.rs:2808` |
+| code | `crates/sim/src/units/anim.rs:803`–`819` (`fn guy_do_turn_anim`), reached from `crates/sim/src/lib.rs:3086`, `crates/sim/src/lib.rs:3208` and `crates/sim/src/orders.rs:2808` |
 | document says | neither the override nor `guy_flags & 8` is in the crate |
 | code does | both are: `if to == was || !self.guy_turns(u, g) { return; }` is the `guy_flags & 8` gate, and the sign of `heading − was` picks `TURN_RIGHT` or `TURN_LEFT` |
 | difference shows | no observable — the document lags the code |

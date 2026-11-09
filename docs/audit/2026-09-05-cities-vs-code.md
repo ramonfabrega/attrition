@@ -240,7 +240,7 @@ three lineage calls, all `is`, and the third is `LOOKOUT`. The Roman clause at
 | document | CITIES.md §3.4, "`h ≤ damage and a garrison and not can_carry(AIR) → eject_contents(1, −1, 0, 1)`" |
 | code | `crates/sim/src/city.rs:1100-1102` (`fn update_hits`) |
 | document says | An airbase, carrier or missile silo whose `construct_hits` has fallen to its damage does **not** eject — its contents are killed elsewhere (§6.6, `kill_contents`). |
-| code does | `if bd.construct_hits <= bd.damage && !bd.garrison.is_empty() { bd.eject_pending = true; }` — no `can_carry(AIR)` test, though `Sim::is_hangar` exists at `crates/sim/src/garrison.rs:558-563`. |
+| code does | `if bd.construct_hits <= bd.damage && !bd.garrison.is_empty() { bd.eject_pending = true; }` — no `can_carry(AIR)` test, though `Sim::is_hangar` exists at `crates/sim/src/units/garrison.rs:558-563`. |
 | difference shows | A damaged airbase would push its planes onto the map rather than keeping or killing them: `UNITDATA` rows appearing beside the building. Airbases are past every capture on disk (no traced game reaches the Industrial age), so this is unreachable now. |
 | reached | reached (`Wall::update_hits@0063f0d0`) |
 

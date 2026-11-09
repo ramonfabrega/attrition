@@ -9502,7 +9502,7 @@ is an oracle-agreed module the live sim does not call.
 ## Parked by item 3412, 2026-10-21 — NATIONS's never-entered functions read: port gaps and stale texts the reading found
 
 - **3412a. `Sim::has_market` (`crates/sim/src/ai_make.rs:496`) asks for an active Market building of mine; `LeaderData::has_market@006d5410` asks `num_buildings[0x16] ≠ 0` and then a city the leader owns with `city_flags & 1` and `& 0x800`** (`docs/NATIONS.md` §9.1). What `0x800` is, and whether any capture holds a Market with no qualifying city, is not established. No score names it until a market capture (§9.2's first rows) is taken.
-- **3412b. `Object::disband`'s two port questions** (§9.1): `SimDisband::price` (`crates/sim/src/disband.rs`) answers the full arm (last argument −1) and the partial (`orig_type`) with one price, and the Aztec plunder arm is the sweep's alone because the sim disbands no unit. Books with §9.2's Lakota delete.
+- **3412b. `Object::disband`'s two port questions** (§9.1): `SimDisband::price` (`crates/sim/src/units/disband.rs`) answers the full arm (last argument −1) and the partial (`orig_type`) with one price, and the Aztec plunder arm is the sweep's alone because the sim disbands no unit. Books with §9.2's Lakota delete.
 - **3412c. `get_vehicle_speed_upgrade`'s port asks one stored prerequisite per bonus where the original's `has_preq` asks the bonus's whole PREQ list** (§9.1). Inert while each `VEHICLES_FASTER` has one; books with §9.2's queue-time capture.
 - **3412d. Stale texts, none a score.** `crates/rondata/src/input.rs:1189` skips `Command::Buy`/`Sell` as "the market is not modelled", but `ai_make.rs` carries `do_buy`, `do_sell` and `calc_market_prices`. §5's generated census calls `process_sell` `carried at command_package_process_sell.rs`: that is the emulator sweep, and `crates/sim` has no `process_sell` (§9.1); `tools/nations_census.py`'s `HAND` could say so.
 
@@ -12821,7 +12821,7 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
     `set_angle` from `do_cast`, `do_non_flat_gather` or a turret arm.
 - **3762b. The booking's "theirs moves the Bombard" was the site label read as a walk** — killed, unbuilt.
   `Guy::set_anim+0xf2f < Guy::move+0x166` is `anim::SITE_ATTACK_STAND`, the deferred attack paid; both sides fire.
-  The killer was the label table in `crates/sim/src/anim.rs`; the frame was right and the mechanism was not
+  The killer was the label table in `crates/sim/src/units/anim.rs`; the frame was right and the mechanism was not
   (DECISIONS 42).
 
 ## Parked by item 3763, 2026-10-28 — a strike is first contact

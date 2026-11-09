@@ -383,7 +383,7 @@ dated heading on, the journal is by date.
     guy's `cur_time`/`end_time`, the wrap's draw, the lengths read from a
     dump's `GUY` blocks as an input), which is worth 14 of the window's 16
     missing draws~~ — **the animation clock landed, 2026-08-24 (seventh
-    session)**, `docs/ANIM.md` and `crates/sim/src/anim.rs`: `UnitAnimCat`
+    session)**, `docs/ANIM.md` and `crates/sim/src/units/anim.rs`: `UnitAnimCat`
     read out of the executable's `.rdata` (the idles are one category,
     the seven walks one, the attacks one — the category decides every
     branch), `Guy::set_anim`'s idle roll with its thresholds and its
@@ -11776,7 +11776,7 @@ and this crate two, and the extra one is `Guy::set_anim+0x97a` under a
 chain the trace's site table has no entry for —
 `Guy::do_turn+0x4a < Unit::move_step+0x3b6`. A **ninth caller** of the
 animation coin, and a turning stand rather than any of the eight
-`crates/sim/src/anim.rs` names. The frame after, the original's
+`crates/sim/src/units/anim.rs` names. The frame after, the original's
 `Animal::do_idle` spends one draw where this crate spends four: the same
 guy, re-anchored.
 
@@ -14643,7 +14643,7 @@ sizes the option array from `StanceTypes` — six for a combat unit, four for a
 worker, two each for a caster and a packer — so the byte is an index into a
 list whose length its *type* fixes, and `Unit::init@00612100:282–309` reads a
 different place for each. `docs/ORDERS.md` §5.10 is the whole switch;
-`crates/sim/src/stance.rs` is the code.
+`crates/sim/src/units/stance.rs` is the code.
 
 **The worker arm is inverted from what its field name says.** `leader_flags &
 4` is `LeaderData::is_human@006ec170`, and it is the *human* that takes
@@ -18135,7 +18135,7 @@ words, and nothing here touches a mechanic.
 The reap the opener asked for was meant to be housekeeping. Eight worktrees
 came off clean and the ninth would not: `git worktree remove` refuses a
 dirty tree, and `loop-234`'s held **406 uncommitted lines of
-`crates/sim/src/anim.rs`** — the product of a booked item, doc-commented
+`crates/sim/src/units/anim.rs`** — the product of a booked item, doc-commented
 against the decompile, citing two `rondata::diff` tests that were never
 written. A worker had died mid-item and no branch carried a line of it.
 
