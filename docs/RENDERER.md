@@ -816,7 +816,7 @@ It is the art phase's counter, not the first one.
   2. on every logged frame of every pinned capture where an object plays it,
      that object's draw-list entry is in register in candidate A's sense.
 
-*Ruled by item 4028, for the pass to confirm:*
+*Ruled by item 4028; confirmed by the seventy-fifth steering pass (2026-11-09, `docs/DECISIONS.md` entry 115): condition 1 is the definition's own words read on what the run shows, and a building that is decoded but not drawn is not in register — nothing is stubbed true.*
 - **Condition 1 is read on the slots the run plays**, as written. A slot
   the run never shows the piece in is not drawn, so its file is not asked
   (`PieceDecoding::decodes_on`, with slots from the runner's scenes, which
@@ -848,7 +848,10 @@ condition, so frames in register is checked on every gate without being the
 headline.
 
 **Pinned** in a `render` test, with the scoreboard line parsed the way
-`rondata::diff` parses the queue's.
+`rondata::diff` parses the queue's. The queue's line is
+`Renderer: K <k> of M <m> · frames <a> of <b> · pieces <c> of <d>`, built
+from the pins by `rondata::diff::floors::renderer_line` and held by
+`the_handoff_s_renderer_line_is_the_pinned_counter`, a commander's line.
 
 **It measures:** that the client can resolve, decode and place everything the
 scored games show.
@@ -1043,25 +1046,43 @@ Each line names what would settle it.
 
 ### 7.2 Ramon's word
 
-1. **The counter.** Pieces in register K of M (recommended), frames in
-   register alone, or another.
-2. **The stack.** Headless first and `wgpu` at the first mesh (recommended),
-   or the browser client grown, or `wgpu` from the start.
-3. **Replay viewer first, or playable first.** Playable needs order minting
+1. ~~**The counter.** Pieces in register K of M (recommended), frames in
+   register alone, or another.~~ K of M, in use since item 4020; the queue's
+   `Renderer:` line carries it from the seventy-fifth pass (entry 115).
+2. ~~**The stack.** Headless first and `wgpu` at the first mesh (recommended),
+   or the browser client grown, or `wgpu` from the start.~~ As recommended
+   (entry 114 §4); `wgpu` and `winit` are earned by §6 item 5, booked at the
+   seventy-fifth pass.
+3. ~~**Replay viewer first, or playable first.** Playable needs order minting
    and a game start without the original's dump. Both are simulation work,
-   and the first is the larger one.
-4. **Starting a game without the dump.** Is the rest of map generation's
+   and the first is the larger one.~~ Playable, by the finish line (entry 114
+   §1); the viewer is the road there, and the two simulation halves are the
+   `start` and `orders` tracks (`docs/TRACKS.md`).
+4. ~~**Starting a game without the dump.** Is the rest of map generation's
    chain (`docs/MAPGEN.md` §15) and the start block booked alongside phase 4,
-   or after it?
-5. **The simulation track beside the renderer.** Entry 110 §3's
+   or after it?~~ Alongside: the `start` track opens on the sim lane at the
+   seventy-fifth pass, once the structure's last two items land (entry 115).
+5. ~~**The simulation track beside the renderer.** Entry 110 §3's
    recommendation runs the held-out style beside phase 4. Does it run, and on
-   how many lanes?
-6. **The crate layout.** A headless `render` crate plus a `client` binary,
-   and decoders in `rondata` (recommended), or another split.
+   how many lanes?~~ Two lanes, one of them the sim's (entry 114 §3); the
+   held-out style landed (MAPGEN §24) and the sim lane's word is the `start`
+   track.
+6. ~~**The crate layout.** A headless `render` crate plus a `client` binary,
+   and decoders in `rondata` (recommended), or another split.~~ As
+   recommended, with the decoders in `render` (item 4019's amendment, §6
+   item 4): `rondata` depends on `render`, never the reverse.
 7. **Which viewer the client shows by default:** one player under fog, or an
    omniscient observer. The counter needs one pinned, and the default
-   proposed is the human's seat, whose fog the dump prints.
+   proposed is the human's seat, whose fog the dump prints. *The seventy-fifth
+   pass's ruling, Ramon's to overturn:* first pixels (§6 item 5) show the
+   observer, because K's register half is counted on the observer's view and
+   no logged frame of the pair prints a fog plane (parked 4026a); the human's
+   seat becomes the default when 4026a checks the viewer's drawn set against
+   the original.
 8. **How much interface comes in with the client** beyond a debug overlay:
    selection outlines, health bars and a resource line. `UnitOut::draw`'s
    neighbours (`draw_health_bar`, `draw_unit_circles`) are drawing, not
-   `iface*` windows. Still, every one is scope.
+   `iface*` windows. Still, every one is scope. *The seventy-fifth pass's
+   ruling, Ramon's to overturn:* a debug overlay only — the frame number, the
+   clock and the camera — until candidate C is counted; every drawn element
+   that is not a piece or the terrain is scope the counter cannot see.

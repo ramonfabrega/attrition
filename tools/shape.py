@@ -18,6 +18,12 @@ count whole, and `rondata::diff::floors::STRUCTURE` pins the exact ones,
 so the line cannot hide a move that changed a count by less than a
 rounding step.
 
+The seventy-fifth pass (2026-11-09) ruled on two of them: `largest`
+counts lines of code, so the rows inside an item-level table literal are
+left out (`--json` prints them as `tables`, information only, never on
+the line), and `flat` counts loose root files, so a `foo.rs` that is the
+module file of a sibling `foo/` is not one.
+
 It reads the tree and prints; it decides nothing.
 """
 import argparse
@@ -31,6 +37,8 @@ SIM = ROOT / 'crates/sim/src'
 RONDATA = ROOT / 'crates/rondata/src'
 
 ORDER = ('flat', 'test-tails', 'sweep-lines', 'names', 'fields', 'largest')
+# Printed by `--json` as information; not a count of §2, not on the line.
+INFORMATION = ('tables',)
 THOUSANDS = ('test-tails', 'sweep-lines')
 
 
@@ -47,8 +55,11 @@ def in_sweep(path, root):
 
 def flat(sim=SIM):
     """`.rs` files in the flat root of `crates/sim/src` — `lib.rs` and
-    every module that has not moved into a directory. Target ≤ 12."""
-    return sum(1 for p in sim.glob('*.rs'))
+    every module that has not moved into a directory. Target ≤ 12. A
+    `foo.rs` beside a `foo/` directory is that directory's module file,
+    its front page, and not a loose file (the seventy-fifth pass's
+    ruling: the `mod.rs` → `foo.rs` + `foo/` layout does not move it)."""
+    return sum(1 for p in sim.glob('*.rs') if not p.with_suffix('').is_dir())
 
 
 def test_mounted(sim=SIM):
@@ -187,20 +198,66 @@ def fields(sim=SIM):
     raise SystemExit('shape.py: no `pub struct Sim {` under crates/sim/src')
 
 
-def largest(sim=SIM):
-    """Lines (`wc -l`) of the largest production file of `crates/sim/src`:
-    every `.rs` file there but those `lib.rs` (or a `mod.rs`) mounts only
-    under `#[cfg(test)]` and their directories (`sweep/`, the whole test
-    files, the guards). A file's own test tail counts: it moves out in
-    §5's third step. Target ≤ 4,000."""
+TABLE_OPEN = re.compile(
+    r'^(?:pub(?:\([^)]*\))?\s+)?(?:const|static)\s+(?:mut\s+)?'
+    r'[A-Za-z_][A-Za-z0-9_]*\s*:.*=\s*&?\[\s*$')
+TABLE_CLOSE = re.compile(r'^\];\s*$')
+
+
+def table_rows(text):
+    """Lines strictly inside an item-level `const`/`static` array literal:
+    after a column-0 line that opens `= &[` or `= [` (`pub const X: … =
+    &[`, `const X: … = [`, `static …`), up to the column-0 `];` that
+    closes it. The two bracket lines are not rows; a row's own braces
+    and brackets (tuples, struct literals) are the row's. An opener with
+    no closer leaves nothing out."""
+    held = text.split('\n')
+    rows, i = 0, 0
+    while i < len(held):
+        if TABLE_OPEN.match(held[i]):
+            for k in range(i + 1, len(held)):
+                if TABLE_CLOSE.match(held[k]):
+                    rows += k - i - 1
+                    i = k
+                    break
+        i += 1
+    return rows
+
+
+def production(sim=SIM):
+    """The production files of `crates/sim/src`: every `.rs` file there but
+    those `lib.rs` (or a `mod.rs`) mounts only under `#[cfg(test)]` and
+    their directories (`sweep/`, the whole test files, the guards)."""
     files, dirs = test_mounted(sim)
-    best = 0
-    for p in sim.rglob('*.rs'):
+    for p in sorted(sim.rglob('*.rs')):
         rel = p.relative_to(sim)
         if rel in files or any(d in rel.parents for d in dirs):
             continue
-        best = max(best, lines(p))
-    return best
+        yield p
+
+
+def largest(sim=SIM):
+    """Lines of code of the largest production file of `crates/sim/src`
+    (see `production`): its `wc -l` lines less its `table_rows`. A file's
+    own test tail counts: it moves out in §5's third step. The rows of a
+    table literal do not (the seventy-fifth pass's ruling: the target is
+    readable code, a pinned table is data, and a 4,700-row table split
+    into files of 1,000 rows helps nobody). Target ≤ 4,000."""
+    return max((lines(p) - table_rows(p.read_text()) for p in production(sim)),
+               default=0)
+
+
+def largest_file(sim=SIM):
+    """The file `largest` measured, relative to `sim`."""
+    best = max(production(sim),
+               key=lambda p: lines(p) - table_rows(p.read_text()))
+    return best.relative_to(sim)
+
+
+def tables(sim=SIM):
+    """The table rows `largest` leaves out, summed over every production
+    file: information, not one of §2's counts."""
+    return sum(table_rows(p.read_text()) for p in production(sim))
 
 
 def measure(sim=SIM, rondata=RONDATA):
@@ -211,6 +268,7 @@ def measure(sim=SIM, rondata=RONDATA):
         'names': names((sim, rondata)),
         'fields': fields(sim),
         'largest': largest(sim),
+        'tables': tables(sim),
     }
 
 

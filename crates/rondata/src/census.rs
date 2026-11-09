@@ -328,10 +328,12 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// open 1290 — measured on its base `1bc2e2e0` as on its tip, so the move
 /// is item 3942's (`sim::economy::cliff_mine`), re-pinned here. The seventy-fourth
 /// pass: ported 549, open 1286 — the seventy-third tranche's three ports,
-/// measured by `rubric.py --record` on `c8053180f`.
-pub const RUBRIC_TERRITORY_PORTED: usize = 549;
+/// measured by `rubric.py --record` on `c8053180f`. The seventy-fifth pass:
+/// ported 550, open 1285 — item 3995's `think_carry_idle`, measured on
+/// `ce78c2179`.
+pub const RUBRIC_TERRITORY_PORTED: usize = 550;
 pub const RUBRIC_TERRITORY_REPLACED: usize = 318;
-pub const RUBRIC_TERRITORY_OPEN: usize = 1286;
+pub const RUBRIC_TERRITORY_OPEN: usize = 1285;
 /// **Lockstep since the fifty-first pass** (Ramon, 2026-10-22: the rubric
 /// answers how close the port is to a 1:1 sim). The ages and the unit types
 /// below are read from the dumps of **lockstep games** only — a game whose

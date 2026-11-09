@@ -467,6 +467,13 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// its full one (`crate::garrison_view` → `crate::groups::garrison_view`),
 /// and rustfmt wrapped the lines that grew. No sweep changed what it
 /// asserts.
+///
+/// The seventy-fifth pass's rulings (2026-11-09): `largest` 5437 → 4179
+/// counts lines of code — the rows strictly inside an item-level
+/// `const`/`static` array literal are left out (`data/launch.rs`'s `BAYS`
+/// is one 4,695-line table; `shape.py --json` prints the rows as
+/// `tables`), so the largest is `cities/city.rs`; and `flat` does not count
+/// a `foo.rs` that is a sibling `foo/`'s module file (7, unmoved).
 #[cfg(test)]
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 7),
@@ -474,7 +481,7 @@ pub const STRUCTURE: [(&str, u64); 6] = [
     ("sweep-lines", 17_286),
     ("names", 15),
     ("fields", 21),
-    ("largest", 5_437),
+    ("largest", 4_179),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before
@@ -509,6 +516,25 @@ pub fn structure_line(counts: &[(&str, u64)]) -> String {
         })
         .collect();
     format!("Structure: {}", parts.join(" \u{b7} "))
+}
+
+/// The queue's `Renderer:` line (the seventy-fifth pass, `docs/RENDERER.md`
+/// §5.4): K of M from [`crate::free::tests::RENDER_K`]'s K and
+/// [`crate::free::tests::RENDER_M`], the frames in register
+/// ([`crate::free::tests::FRAMES_IN_REGISTER`]) and the pieces decoding
+/// ([`crate::artdata::PIECES_DECODING`]), parted by a middle dot. The
+/// camera sweep's 240 of 240 is pinned only inside `render`'s
+/// `tests/camera_sweep.rs`, a test binary this crate cannot reach, so it is
+/// not on the line.
+#[cfg(test)]
+pub fn renderer_line() -> String {
+    use crate::free::tests::{FRAMES_IN_REGISTER, RENDER_K, RENDER_M};
+    let (frames, of_frames) = FRAMES_IN_REGISTER;
+    let (pieces, of_pieces) = crate::artdata::PIECES_DECODING;
+    format!(
+        "Renderer: K {} of M {RENDER_M} \u{b7} frames {frames} of {of_frames} \u{b7} pieces {pieces} of {of_pieces}",
+        RENDER_K.0
+    )
 }
 
 /// One of the AI track's handoff lines read part by part: `<map> w<word>
@@ -1079,6 +1105,31 @@ mod tests {
                 "STRUCTURE_LINE_BEFORE_SHAPE is the measured line now; set it to None"
             );
         }
+    }
+
+    /// **The handoff's renderer line is the pinned counter** (the
+    /// seventy-fifth pass, `docs/RENDERER.md` §5.4): the queue's
+    /// `Renderer:` line is [`renderer_line`] of the renderer's pins. A
+    /// commander's line (`release_gate.py`'s `COMMANDERS_LINES`): a worker
+    /// re-pins K, the frames or the pieces and the commander writes the
+    /// line at the booking. Made to fail first on a handoff with no such
+    /// line.
+    #[test]
+    fn the_handoff_s_renderer_line_is_the_pinned_counter() {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../..");
+        let q = std::fs::read_to_string(format!("{root}/docs/QUEUE.md")).expect("docs/QUEUE.md");
+        let want = renderer_line();
+        let line = q
+            .lines()
+            .find(|l| l.starts_with("Renderer:"))
+            .map(str::trim_end);
+        assert_eq!(
+            line,
+            Some(want.as_str()),
+            "docs/QUEUE.md's handoff carries\n{want}\n(`rondata::diff::floors::renderer_line`: \
+             `free::tests::RENDER_K`'s K, `RENDER_M`, `FRAMES_IN_REGISTER`, \
+             `artdata::PIECES_DECODING`); it says {line:?}"
+        );
     }
 
     /// **The pinned shape is the tree's** (item 4008): `tools/shape.py

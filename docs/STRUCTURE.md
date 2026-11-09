@@ -54,13 +54,23 @@ names · fields · largest`, in this table's order; each may only fall.
 
 | count | at `db6c12985` | target | source |
 |---|---|---|---|
-| `.rs` files in the flat root of `crates/sim/src` | 203 | ≤ 12 (`lib.rs`, the subsystem `mod.rs` files' parents, the guards) | structure §2 |
+| `.rs` files in the flat root of `crates/sim/src` that are not a sibling directory's module file | 203 | ≤ 12 (`lib.rs`, the subsystem `mod.rs` files' parents, the guards) | structure §2 |
 | lines of inline `#[cfg(test)]` tails inside production files of `crates/sim/src` | 65k across 100 files (19k more in sibling test files already) | 0 — in sibling `tests.rs` files or the crate's `tests/` | tests §2 |
 | lines of sweep code under `crates/sim/src` | 149.5k in 1,462 files (124k of them obj-with-windows, 58 % generated row parsing and asserts, 32 % one generated doc line) | ≤ 60k, outside `src/`: the generated parsing folded into one harness function taking the port as a closure, the hand-written ports kept | tests §1 |
 | `pub` constant names defined more than once | 130 | 15 (the per-module ones) | constants §1 |
 | fields of `Sim` | 92 | ≤ 24: the core, the object store, the load-time tables, the per-player records, and one state per subsystem | structure §1b |
-| lines of the largest production file | 14,223 (`orders.rs`) | ≤ 4,000 | structure §3 |
+| lines of code of the largest production file (the rows of an item-level table literal excluded — the seventy-fifth pass's ruling, 2026-11-09: `data/launch.rs`'s `BAYS` is one 4,695-line `const`) | 14,223 (`orders.rs`) | ≤ 4,000 | structure §3 |
 | `Sim` fields and methods `rondata` touches directly | 56 fields, 161 methods | through `observe` and `command` only, with the harness's setup paths named as the third door | structure §4 |
+
+The seventy-fifth pass's two rulings (2026-11-09). `largest` counts code:
+a file's lines strictly inside an item-level `const`/`static` array
+literal (after a column-0 line ending `= &[` or `= [`, before its `];`)
+are left out, the bracket lines kept — the target is readable code, a
+pinned table is data, and a 4,700-row table cut into files of 1,000 rows
+helps nobody; `shape.py --json` prints the rows left out as `tables`,
+information only. `flat` counts loose files: `foo.rs` beside `foo/` is
+that directory's front page, so the `mod.rs` → `foo.rs` layout cannot
+move it.
 
 ## 3. The map
 
@@ -115,6 +125,8 @@ Each is one queue item of the `structure` kind, gated as §1 says; the item name
 8. **The `Sim` split.** The load-time `tables` bundle; one state struct per subsystem directory holding its §3 fields; the object store and `rng` stay on `Sim`; the per-player record last and optional.
 9. **The two doors.** `sim::observe` (`docs/RENDERER.md` §2.3) as the read surface and `sim::command` as the order surface, defined without changing `rondata`; then `rondata` moved onto them door by door, the harness's setup paths named as the third; the shim deleted when nothing reads the old paths.
 10. **The README**, written for a person: what this is, the finish line (`docs/TRACKS.md`), how to run the sim against an install, where the documents are.
+11. **One module layout** (Loop 4025, Ramon's; ruled by the seventy-fifth pass, `docs/DECISIONS.md` entry 115 §1; item 4032). The crate stands with 29 `mod.rs` directory roots (moves 4 and 7) beside 85 `foo.rs` + `foo/` pairs (move 3), and Rust allows both. The convention is the `foo.rs` + `foo/` one: 29 moves rather than 85, and no two files share a name. `world/mod.rs` becomes `world.rs` beside `world/`, a nested `ai/army/mod.rs` becomes `ai/army.rs`; module paths, test names and line numbers hold; `tools/paths.py` rewrites the citations; `clippy::mod_module_files = "deny"` in the workspace lints keeps it so (`rondata` and `render` already carry no `mod.rs`). `flat` does not move: §2 counts a root file loose only when no directory bears its name.
+12. **The last cut** (item 4031): `cities/city.rs`, 4,179 lines of code, is the one file over §2's ceiling once `largest` reads code; its four walk views and their step functions (from `StartSite` on) move to a sibling file.
 
 ## 6. What is not established
 

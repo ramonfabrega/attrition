@@ -2,7 +2,8 @@
 
 A small crate in a temporary directory, with each count's edge on it:
 
-(a) `flat` counts the root's `.rs` files only;
+(a) `flat` counts the root's `.rs` files only, and not `air.rs`, which
+    is `air/`'s module file;
 (b) `test-tails` counts a production file's `#[cfg(test)] mod … { … }`
     lines, attribute to closing brace, and never a test-mounted file's —
     neither one `lib.rs` mounts under `#[cfg(test)]` (with or without
@@ -15,7 +16,13 @@ A small crate in a temporary directory, with each count's edge on it:
 (f) `largest` is the longest production file by `wc -l`, a test file
     excluded however long — `air.rs`'s `#[cfg(test)] mod tests;` makes
     `air/tests.rs` one;
-(g) the line rounds the two line counts to thousands, half up.
+(g) the line rounds the two line counts to thousands, half up;
+(h) `largest` counts lines of code: the rows strictly inside an
+    item-level `const`/`static` array literal are not counted, its two
+    bracket lines are, and `--json`'s `tables` is the rows left out (the
+    seventy-fifth pass's ruling);
+(i) `flat` does not count a root `foo.rs` beside a `foo/` directory —
+    that directory's module file (the seventy-fifth pass's ruling).
 """
 import sys
 import tempfile
@@ -75,6 +82,48 @@ FILES = {
 }
 
 
+def crate(files):
+    """A temporary directory holding `files`, and its `sim/src`."""
+    tmp = tempfile.TemporaryDirectory()
+    root = Path(tmp.name)
+    for rel, text in files.items():
+        path = root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
+    return tmp, root / 'sim/src'
+
+
+TABLE = ('fn a() {}\nfn b() {}\n'
+         'pub const T: &[(i32, i32)] = &[\n'
+         + ''.join(f'    ({i}, {i}),\n' for i in range(10))
+         + '];\nfn c() {}\n')
+
+
+class RulingsTest(unittest.TestCase):
+    """The seventy-fifth pass's two rulings on the counters."""
+
+    def test_largest_leaves_out_a_table_s_rows(self):
+        tmp, sim = crate({'sim/src/lib.rs': TABLE})
+        try:
+            self.assertEqual(shape.lines(sim / 'lib.rs'), 15)
+            self.assertEqual(shape.largest(sim), 5)
+            self.assertEqual(shape.tables(sim), 10)
+        finally:
+            tmp.cleanup()
+
+    def test_flat_leaves_out_a_directory_s_module_file(self):
+        tmp, sim = crate({
+            'sim/src/lib.rs': 'pub mod foo;\npub mod bar;\n',
+            'sim/src/foo.rs': 'pub mod x;\n',
+            'sim/src/foo/x.rs': 'fn x() {}\n',
+            'sim/src/bar.rs': 'fn bar() {}\n',
+        })
+        try:
+            self.assertEqual(shape.flat(sim), 2)
+        finally:
+            tmp.cleanup()
+
+
 class ShapeTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -91,12 +140,13 @@ class ShapeTest(unittest.TestCase):
 
     def test_the_six_counts(self):
         self.assertEqual(shape.measure(self.sim, self.rondata), {
-            'flat': 5,
+            'flat': 4,
             'test-tails': 5,
             'sweep-lines': 3,
             'names': 2,
             'fields': 3,
             'largest': 21,
+            'tables': 0,
         })
 
     def test_the_line(self):

@@ -22,13 +22,13 @@ Each is a finish line of its own, after this one is finished and tested.
 
 ## The tracks
 
-| track | what "done" is | the number | its gate | state at the seventy-fourth pass |
+| track | what "done" is | the number | its gate | state at the seventy-fifth pass (2026-11-09; the seventy-fourth's in `docs/audit/2026-11-08-fable-pass-74.md`) |
 |---|---|---|---|---|
-| **rules** (phase 3) | every captured game replays in lockstep for its full length | the scoreboard's words, `rondata::diff`'s floors; entry 29's three counters | the release diff suite | **whole**: every word stands at its length but chapter 134 (w969 of 1,400); supply three shelved items and the parked chapters; filler from here |
-| **structure** | the sim crate has a public surface and subsystem boundaries, the tests and sweeps live outside the source, nothing is defined twice | `docs/STRUCTURE.md`'s shape counts (files in the flat root, lines of test code in `src/`, duplicated names, the `Sim` struct's fields), each falling to its target; **every floor unchanged on every landing** | the whole release gate, no behaviour diff | **open**, booked from `docs/STRUCTURE.md`; runs alone on the sim side until it lands |
-| **renderer** (phase 4) | a captured game drawn with the original's art, placed where the original would draw it | pieces in register K of M (`docs/RENDERER.md` §5.4); frames in register as its floor; the clock: seconds to lobby, seconds to frame zero, slowest-percentile frame milliseconds, peak resident memory | a `render` crate's pins, parsed as the queue's | **open** on Ramon's word; the pure camera and the first decoder first (§6 items 2 and 4), the scene after the structure's snapshot lands (item 1), then the draw list and first pixels |
-| **start** | a game starts from a lobby's choices with no dump of the original: map generation's remaining chain and the frame-zero start builder | the start block equal to the original's on every lobby on disk (the dumps print it) | `rondata::diff` on the start blocks | **open**, the sim lane's word after the structure; the territory's group E |
-| **checksum** | the original's full-state hash, ported, compared per frame against the original's own | frames whose hash agrees, of the frames the original prints under `CHECKSUM=2` | the diff suite | **open**, the sim lane's word after the structure; the territory's group G |
+| **rules** (phase 3) | every captured game replays in lockstep for its full length | the scoreboard's words, `rondata::diff`'s floors; entry 29's three counters | the release diff suite | **whole**: every word at its length, 130 chapters closed (134–136 closed by the shelved items on their first takes); no item stands; a chapter is booked only when another track's frame needs one |
+| **structure** | the sim crate has a public surface and subsystem boundaries, the tests and sweeps live outside the source, nothing is defined twice | `docs/STRUCTURE.md`'s shape counts (files in the flat root, lines of test code in `src/`, duplicated names, the `Sim` struct's fields), each falling to its target; **every floor unchanged on every landing** | the whole release gate, no behaviour diff | **landed but two items**: `fields` 21, `flat` 7, `test-tails` 0, `names` 15, the doors; `largest` reads code, not tables (entry 115 §1) and `cities/city.rs` 4179 is the one file over 4,000 — its cut and the module-layout convention (Loop 4025) are the sim lane's first two items |
+| **renderer** (phase 4) | a captured game drawn with the original's art, placed where the original would draw it | pieces in register K of M (`docs/RENDERER.md` §5.4); frames in register as its floor; the clock: seconds to lobby, seconds to frame zero, slowest-percentile frame milliseconds, peak resident memory | a `render` crate's pins, parsed as the queue's | **K 38 of M 59**, frames in register 35 of 35, pieces decoding 1,465 of 1,478, the camera 240 of 240; the queue's `Renderer:` line (entry 115 §2); next buildings in the draw list (4028a, up to K +20), then first pixels (§6 item 5) |
+| **start** | a game starts from a lobby's choices with no dump of the original: map generation's remaining chain and the frame-zero start builder | the start block equal to the original's on every lobby on disk (the dumps print it) | `rondata::diff` on the start blocks | **opens at the seventy-fifth pass**: `docs/START.md` and the `Start:` counter, the harness's lobby first (ORDERS §9.2–9.4 is the reading; the territory's group E) |
+| **checksum** | the original's full-state hash, ported, compared per frame against the original's own | frames whose hash agrees, of the frames the original prints under `CHECKSUM=2` | the diff suite | **open**, the sim lane's word after the start; the territory's group G |
 | **orders** | a mouse and keyboard mint the same order stream the replays carry; the stream is the replay and, later, the network format | orders issued through the public `Command` API replaying in lockstep | the diff suite on a minted stream | **not started**; the territory's group B is its specification |
 | **lobby** | our own screen producing the start's choices | a page of client code; no counter | the client's tests | **not started**; theirs is cut (the `iface*` windows, GameSpy) |
 | **AI** (phase 5) | a computer opponent plays a whole game | to be invented when the track opens; the scripts under `game/ai/scripts/` are open, combat and targeting are in the executable | — | **not started** |
@@ -39,7 +39,9 @@ Each is a finish line of its own, after this one is finished and tested.
 renderer's two sim-free items beside it; then the start and the checksum on
 the sim lane while the renderer reaches first pixels; then orders, the
 lobby and save; then the AI. The rules track is whole and stays whole — its
-floors run on every gate forever.
+floors run on every gate forever. *At the seventy-fifth pass the structure's
+code moves have landed and the sim lane turns to the start track after two
+short structure items; the census filler (entry 114 §6) fills an idle lane.*
 
 **Two lanes** (entry 114 §3), and the count moves only when a pass names
 the bottleneck a third would relieve.

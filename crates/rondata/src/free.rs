@@ -187,4 +187,4 @@ fn with_sibling_initials<R>(
 }
 
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;
