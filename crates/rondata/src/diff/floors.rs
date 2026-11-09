@@ -557,6 +557,19 @@ pub fn renderer_line() -> String {
     )
 }
 
+/// The queue's `Start:` line (item 4033, `docs/START.md` §5): the lobbies
+/// whose start block is built from their choices alone
+/// ([`crate::diff::START_BUILT`]) of those on disk with a `[Start Game]`
+/// dump ([`crate::diff::START_LOBBIES`]).
+#[cfg(test)]
+pub fn start_line() -> String {
+    format!(
+        "Start: {} of {} lobbies",
+        crate::diff::START_BUILT,
+        crate::diff::START_LOBBIES
+    )
+}
+
 /// One of the AI track's handoff lines read part by part: `<map> w<word>
 /// of <length>`, the length with or without its comma. The one parser of
 /// those lines — the floors guards read it against `AI_WORDS`, and the
@@ -1149,6 +1162,29 @@ mod tests {
             "docs/QUEUE.md's handoff carries\n{want}\n(`rondata::diff::floors::renderer_line`: \
              `free::tests::RENDER_K`'s K, `RENDER_M`, `FRAMES_IN_REGISTER`, \
              `artdata::PIECES_DECODING`); it says {line:?}"
+        );
+    }
+
+    /// **The handoff's start line is the pinned counter** (item 4033,
+    /// `docs/START.md` §5): the queue's `Start:` line is [`start_line`] of
+    /// `START_BUILT` and `START_LOBBIES`. A commander's line
+    /// (`release_gate.py`'s `COMMANDERS_LINES`): the worker re-pins the
+    /// counter and the commander writes the line at the booking. Made to
+    /// fail first on the handoff before 4033's booking, which had none.
+    #[test]
+    fn the_handoff_s_start_line_is_the_pinned_counter() {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../..");
+        let q = std::fs::read_to_string(format!("{root}/docs/QUEUE.md")).expect("docs/QUEUE.md");
+        let want = start_line();
+        let line = q
+            .lines()
+            .find(|l| l.starts_with("Start:"))
+            .map(str::trim_end);
+        assert_eq!(
+            line,
+            Some(want.as_str()),
+            "docs/QUEUE.md's handoff carries\n{want}\n(`rondata::diff::floors::start_line`: \
+             `diff::START_BUILT`, `diff::START_LOBBIES`); it says {line:?}"
         );
     }
 
