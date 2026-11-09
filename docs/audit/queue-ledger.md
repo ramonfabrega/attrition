@@ -158,3 +158,10 @@ file; each one is a ten-minute read of the code the row names.
   receipts are on every gate; the slot policy and the reaper were Ramon's and are not asked.
 - **3118** closed at the seventy-sixth pass: no pass can hear the box. The muted-launch trial
   is Ramon's whenever the sound bothers him.
+- **4040**, **4041** and **4044** built at the seventy-sixth pass by one Opus 5.5 builder, each red
+  first (`docs/audit/2026-11-09-guard-of-guards.md`): the reflex runs a filter on both crates
+  and names one that matches nothing; thirteen walks hold a floor on what they read; the
+  sweep's readers take its files off the module tree.
+- **4049** built at the seventy-sixth pass by an Opus 5.5 builder, red first on the farm's old
+  shape: a type counts in register only on records some side draws. K re-pinned 59 → 55 on
+  four building types no side draws; item 4061 is the scaffold that brings them back.

@@ -3826,28 +3826,9 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 ## Loop, filed 2026-11-09 — the seventy-fifth pass's own
 
-(4040) **`tools/guard.sh <filter>` runs its filters against `sim` alone, and exits green on a `rondata` filter it never ran** (Loop
-4029's builder, the seventy-fifth pass): line 59 is `cargo test -p sim "$f"` for every filter, while the `rondata` steps are fixed
-(the blind pin, `the_handoff` outside a lane), so a worker whose item's tests live in `rondata` — every render and diff item —
-passes a filter the reflex silently ignores and reads a green that measured nothing; the builder ran its tests through `check.sh`
-instead. Candidate: a filter runs against both crates (`-p sim -p rondata`, or `--workspace`), and a filter that matches no test in
-either is named, as `release_gate.py`'s `unmatched_filters` names one, red first on a `rondata` filter; the price is one `rondata`
-test build in the reflex, which a lane builds anyway. Names no score; the loop's.
-
-(4041) **A guard that reads source files by path can go blind on a move, and stays green** (Loop 4029's build, the seventy-fifth
-pass; Ramon's word, 2026-11-09: queue it after the commander spawns): `a_golden_widening_s_window_reaches_its_trace_s_end` read
-`golden.rs` alone, found none of the 130 rows after `e8404b99e` moved the walks, and skipped each without a word for three weeks;
-`docs_guard`'s seam table and test-file list were made path-robust by 4008, but nothing says so for the rest. Candidate: a
-guard-of-guards — every pinned guard that reads a source or document set asserts it found at least one row (and, where the count is
-knowable, the count), red first on 4029's shape with the walks' files hidden; the next pass builds it. Names no score; the loop's.
-
 (4042) **The whole gate is the waiting, and its length is one binary running at a quarter of its threads** (the seventy-fifth pass, with Ramon on the row; measured by the seventy-sixth): the seventy-sixth drain's whole gate ran 49.3 release minutes, and its log reads the build at 1.2, the `sim` library at 1.1, the four sweep binaries at 6.5 together and **the `rondata` library at 40.4 — 2,424 s for 2,179 tests whose alone-timed sum is 5,105 s** (`docs/audit/2026-10-15-suite-timings.txt`), so eight slots gave it the work of 2.1. On 2026-10-16 the same runner took 237 s for 876 tests summing 1,502 s, the work of 6.3 (`docs/TEST_PERFORMANCE.md`, the isolation experiment). By family the seconds are `diff::golden` 974, `mapgen::tests` 526, `diff::harness` 471, `diff::audit` 252, `diff::second` 246, `diff::coverage` 221; five tests run over 30 s and sum 390, one of them 202 (`every_parsed_field_is_compared_by_the_instrument_or_pinned`), so no single test is the length. **Hypothesis**: the isolated runner's estimated-RSS budget, not its slot count, bounds the suite now that the tests have tripled. **What would kill it**: the suite's wall time unchanged with the RSS budget doubled at the same eight slots. Candidate: a builder reads the runner's scheduling log for one whole gate, names what each idle slot waited on, and moves that bound, red first on a fixture where a free slot stands idle under memory; at the work of five the library reads about 17 minutes and a whole gate about 26. The chain's every step touches `crates/sim` and gates whole, so this is the chain's clock. Names no score; the loop's.
 
 ## Loop, filed 2026-11-09 — the seventy-sixth tranche's
-
-(4044) **A reader that knows a module by its directory goes blind when the module file moves** (4032's "for the Loop" line, the seventy-sixth tranche): seven readers skipped `sweep/` by name and none failed when `sweep.rs` left it — only `shape.py`'s pinned count moved; and at the booking `shape.py`'s `flat` read 7 in the lane's worktree and 11 on the committed tree, because a `git mv` of a lone `foo/mod.rs` leaves `foo/` empty on the mover's disk and `flat` asked only `is_dir()` (fixed at the booking, red first on an empty `command/`: 10 → 11). Candidate: the readers read the module tree (`no_float::module_tree`) rather than a directory's name, and a guard that skips a set asserts the set's size; a lane gate that reads the tree's shape reads it from `git ls-files`, never the disk. Names no score; the loop's.
-
-(4049) **A K booking can count a type in register on records neither side draws** (4037's "for the Loop" line, the seventy-sixth tranche): the farm's 402 dumped records read in register under §5.4's condition 2 only because `WallOut::draw` skips a finished farm and the draw list carries no `FarmsOut` field, so both sides drew nothing; the booking of 4037 promised K +1 off that. Candidate: condition 2 counts a type in register only on records at least one side draws, and `RENDER_K`'s test says how many of each type's records are drawn, red first on the farm. Names no score; the loop's.
 
 (4050) **A comparison cannot fail on a helper both sides call** (4048's "for the Loop" line, the seventy-sixth tranche): 4048's farm field drew its reference and its port through one shared helper, so a mutation of that helper moved both sides and the in-register count stayed whole — the lane rebuilt the reference from the oracle's own swept function. Candidate: a render or diff test names which side owns each helper it calls, and a mutation run (one helper perturbed) must turn the count red, red first on 4048's shared helper. Names no score; the loop's.
 
@@ -3864,6 +3845,8 @@ knowable, the count), red first on 4029's shape with the walks' files hidden; th
 (4055) **The chain section of `docs/LOOP.md` is the commander's scar tissue, kept whole** (the seventy-sixth pass): 160 lines of clauses, most of them the waiter's, that the driver now reads at every boot for one render lane. Candidate: once 4051 has measured which clauses the new harness still needs, rewrite the section to half its length, each rule with its scope and its reason, and move the cases to `docs/audit/2026-11-09-loop-retired-clauses.md`. Names no score; the loop's.
 
 (4056) **The pilot's builders may be invisible to lore** (the seventy-sixth pass; the seventy-first measured `lore spawns --session` at zero for Agent-tool builders): the pilot is judged on points a milestone, and an in-session builder's tokens are not in the driver's own trace. Candidate: `lore spawns --session <the driver's>` read after this pass's two builders, and if it is still zero, lore asked to index those transcripts; until then the price is the weekly window's delta, read before and after each step. Names no score; the loop's.
+
+(4062) **The leader-seat guard has read the wrong files since it was written** (Loop 4041's builder, the seventy-sixth pass): `diff::oracle`'s guard that a leader compare walks the lobby's seats and never a literal reads a fixed list of included sources, and the bodies it means had already moved to the harness's and the golden's `cases_*.rs` files; pointed at them it is red on nine literal two-seat loops (`harness/tests/cases_02.rs:1628` is one). Candidate: rule whether those loops are wrong or exempt on a two-seat lobby, then point the guard at the files and pin what it finds, red first by construction. Names no score; the loop's.
 
 ## Loop, filed 2026-11-08 — the seventy-fifth tranche's
 

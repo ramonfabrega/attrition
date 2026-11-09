@@ -1142,8 +1142,10 @@ corners.*
     their scaffold in `WallOut::draw_overlays@00641600`
     (`GraphicPieces::draw_scaffold@00907420`), which the draw list does
     not carry: the farm's shape before 4048. Under the rule the test
-    reads `RENDER_K_BUILDINGS` (17, 21, 17, 21), K 55; the pin stays at
-    59 for the pass's ruling.
+    reads `RENDER_K_BUILDINGS` (17, 21, 17, 21), K 55. **The seventy-sixth
+    pass re-pinned it: K 55 of M 59** (`docs/DECISIONS.md` entry 116), a
+    named fall of the counter and not of the picture, and the scaffold in
+    the draw list is item 4061.
 - **The dumps check every figure they print a `gpiece` for.** Only the
   `DUMP_ALL` states print one: run1428's two, and run1429's start block.
   That is 306 figures on the map, all 306 agreeing, and on each dump's

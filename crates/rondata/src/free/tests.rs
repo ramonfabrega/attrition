@@ -1102,7 +1102,8 @@ fn fog_visible_is_render_s() -> bool {
 /// building types' ([`RENDER_K_BUILDINGS`]). Item 4035: the draw list
 /// carries buildings, so a building type's condition 2 is live.
 /// Item 4037: unchanged at 58; the farm decodes and is not yet drawn.
-/// Item 4048: **59** (+1), the farm's field in the draw list.
+/// Item 4048: **59** (+1), the farm's field in the draw list. Loop 4049,
+/// the seventy-sixth pass: **55** (−4), four building types no side draws.
 pub(crate) const RENDER_K: usize = RENDER_K_PIECES.0 + RENDER_K_BUILDINGS.0;
 
 /// M's building types that count toward K, `(K, decoding, in register,
@@ -1126,8 +1127,12 @@ pub(crate) const RENDER_K: usize = RENDER_K_PIECES.0 + RENDER_K_BUILDINGS.0;
 /// Terra Cotta Army (529) and Angkor Wat (535) are drawn by neither on
 /// every record (under construction throughout; the original's scaffold,
 /// `WallOut::draw_overlays@00641600`, is not in the draw list), so the
-/// test reads (17, 21, 17, 21). The pin is left for the pass's ruling.
-pub(crate) const RENDER_K_BUILDINGS: (usize, usize, usize, usize) = (21, 21, 21, 21);
+/// test reads (17, 21, 17, 21). **The seventy-sixth pass's ruling
+/// (DECISIONS 116): re-pinned, K 55 of M 59, a named fall of the counter
+/// and not of the picture** — the rule that read 59 could not fail on a
+/// type nobody drew; the scaffold in the draw list (item 4061) is what
+/// brings the four back.
+pub(crate) const RENDER_K_BUILDINGS: (usize, usize, usize, usize) = (17, 21, 17, 21);
 
 /// The dumped frames that print a building — run1428's two, run1429's
 /// start block and its closing block 3390, and run1429b's 95 — on which
@@ -1711,9 +1716,12 @@ fn the_draw_list_s_buildings_are_in_register() {
             tally[t].records, type_pieces[t], first_record[t]
         );
     }
+    // The seventy-sixth pass's pin (Loop 4049): the four types under
+    // construction on every dumped frame, whose scaffold neither draw list
+    // carries. Item 4061 empties this set.
     pin_eq!(
         undrawn,
-        BTreeSet::<i64>::new(),
+        BTreeSet::from([446i64, 528, 529, 535]),
         "building types drawn by neither side on every record (not in register)"
     );
     let k = decoding.intersection(&registered).count();

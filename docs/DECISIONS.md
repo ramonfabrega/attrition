@@ -120,8 +120,9 @@ is append-only and amended in place, as it always was.
 - 111 extended by 112 — The seventy-first: phase 4 open, the territory read, East Meets West held out
 - 112 extended by 113 — T71's rows booked
 - 113 extended by 114 — rows booked
-- 114 extended by 115 — finish line
-- 115 standing — the start track opens
+- 114 extended by 116 — finish line
+- 115 extended by 116 — the start track opens
+- 116 standing — one driver, the milestone
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
 - 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types, the pass and the commander stop messaging each other
 - 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself, the fifty-first booked on what a capture can enter
@@ -11621,3 +11622,124 @@ the integration tree's debug profile cleaned (13,873 files, 9.1 GiB, 21 →
 harness's lobby built from its choices by 4034; K past 50 of 59 and the
 first pixels on screen by the drain; the gate class under 20 minutes a
 session with the render lane scoped.
+
+## 116. One driver replaces the commander and the steer, supply calls the pass, the milestone is one lobby taken all the way through, the chain is Fable 5.2's pilot and the render lane its control, `CLAUDE.md` loses the method to `docs/METHOD.md` under a size ceiling, and the renderer's counter falls 59 → 55 on a rule that can fail
+
+*2026-11-09, the seventy-sixth pass (the `steer` session, on Fable 5.2 from
+the harness update), called early by Ramon as a steer once the
+seventy-sixth tranche had drained at eight on his pit stop; **the decisions
+below are his, taken in conversation on the row**, with the `lore` session
+supplying the numbers on his word. The record is
+`docs/audit/2026-11-09-fable-pass-76.md`. Extends entries 114 and 115;
+retires the roster, lane and handover clauses of `docs/LOOP.md`, kept whole
+in `docs/audit/2026-11-09-loop-retired-clauses.md`.*
+
+**What was measured.** The seventy-sixth tranche: eight landings on two
+Opus 5.5 lanes at medium from `13c883c62`, 62.05 USD list over ten
+sessions, 7.76 a landing, 39.1 minutes waiting a landing, two deep
+sessions; seven gates, three whole, none red, 235.7 minutes. lore, over
+tranches 49 to 76 with one classifier and the rate table of 2026-11-09:
+the lane's price a landing is flat at a median of 7.25 USD on that roster
+and effort; the gate is about 60 % of a lane's clock and under 8 % of its
+requests; reading is 56 to 60 % of a lane's instructions; a landing's
+price follows the tranche's count of deep sessions (5.03 with none, 10.61
+with twelve); a tranche of twenty costs about ten points of the weekly
+window, and points and clock ran out together this week; the commander's
+fee is 11 to 15 % of a landing. The whole gate, read off the drain's log:
+49.3 release minutes, 40.4 of them the `rondata` library at the work of
+2.1 slots of eight. `CLAUDE.md` 36,627 bytes, 19,763 of them the working
+agreement.
+
+**What it means.**
+
+1. **One driver.** The `steer` row, on Fable 5.2, is the only session that
+   owns the integration worktree: it books, merges, gates, pushes, spawns
+   the workers, and at a boundary is the pass. The `commander` row is
+   retired. Ramon's two reasons: he wants to steer at will by talking to
+   one session, and two permanent rows alternating on one worktree is
+   error-prone by construction. The commander's cost was never the
+   argument — it was flat and small — the handover's fragility and the
+   text it took to hold were. The driver banks and then clears itself: at a
+   milestone, at a supply boundary, and past 230 k of context, the depth
+   lore measured landings getting dear at.
+
+2. **Supply calls the pass, not a count of twenty.** Twenty was the length
+   of an unattended half day when Ramon steered by hand; four of the last
+   nine tranches drained on supply instead. Twenty landings stays as a
+   backstop.
+
+3. **The milestone: one lobby, all the way through.** A game played here,
+   on a start built here, replayed by the original and agreeing for its
+   full length: the start built, the game run from it, a recorded game
+   written and played by the original, orders minted through the order
+   door, the checksum (`docs/TRACKS.md`). Once a person plays there is no
+   capture to diff against, and the original replaying our game is the
+   only oracle left. Breadth — the start block on the other 160 lobbies, M
+   on a second lobby, the census filler — is filler behind it. The pass's
+   reason: every counter the loop still had on offer could absorb tranches
+   without bringing a playable game nearer, and points and clock bind
+   together, so what a landing buys matters more than how many land.
+
+4. **The chain is Fable 5.2's pilot, and the render lane is its control.**
+   Ramon: "could be a huge leap in unlock … I'd like to try it", and asked
+   that it not be over-constrained. The chain is the driver's own: it holds
+   the design across the steps and gives each build to an in-session
+   builder in a worktree, briefed with the goal and the score and never the
+   frame, on the model the step needs. The driver gates once at the merge.
+   The render track stays one ccc lane on Opus 5.5 at medium under the
+   frame, against 27 tranches of baseline. It is a pilot, not a controlled
+   trial: it is judged by milestones landing with every floor held and by
+   points of the window a milestone. Two kill rules: a floor pushed down
+   with no named regression, and no milestone inside ten points of the
+   window; on either the chain goes to an Opus lane under the frame and
+   Ramon is told. "Fable never reads blind and is never a subagent" is
+   retired for builders; blind readers stay on Opus.
+
+5. **`CLAUDE.md` is held to what every session needs.** Ramon: "claude.md
+   and autoloaded files should all be load bearing". The long middle's
+   method — booking against a word, widenings, captures, readings, the
+   waiting clauses with their measurements — moved whole to
+   `docs/METHOD.md`, which `tools/brief.py` names for the residue, chapter,
+   coverage, reading and sweep kinds; `CLAUDE.md` keeps each rule in a
+   sentence. 36,627 → 25,599 bytes, under a `docs_guard` ceiling of 26,000
+   made to fail first on the old file. The pass's own correction: the file
+   is about an eighth of a lane's 70 k boot, so the case is what a model
+   that follows instructions closely does with clauses that are not its
+   item's, not tokens; the token lever is the brief, and how much reading
+   repeats across workers is Loop 4054. `docs/LOOP.md` went 44,254 →
+   30,238 bytes by the same move.
+
+6. **`origin/main` is the trunk and is always a gated tip.** Ramon offered
+   to retire the integration branch or work on main. Measured, main was
+   already a fast-forward of the branch after every booking and five
+   behind only for the pit stop; a harness-made worktree branches from it,
+   so the driver fast-forwards it after every green gate. The branch keeps
+   its name: renaming buys nothing a builder would notice and needs a
+   remote delete only Ramon can do.
+
+7. **The renderer's counter falls 59 → 55, a named fall of the counter.**
+   Loop 4049, built red first: a type counts in register only on records
+   some side draws. Four building types are under construction on every
+   dumped frame and drawn by neither side, so the rule that read 59 could
+   not have failed on them. Item 4061 carries the scaffold. The renderer's
+   next number after it is candidate C's silhouettes (item 4038).
+
+8. **The Loop backlog, 18 → 11.** Built by two Opus 5.5 builders, red
+   first: the reflex runs a filter on both crates (4040), thirteen walks
+   hold a floor on what they read (4041), the sweep's readers take its
+   files off the module tree (4044), the K rule (4049). Ten rows closed
+   with ledger lines, their text kept in
+   `docs/audit/2026-11-09-fable-pass-76-closed-rows.md`. Seven filed:
+   the waiter's clauses against a harness that no longer kills a cleared
+   agent's commands (4051), a `Re-pinned:` trailer (4052), a builder and a
+   long gate (4053), repeated reading (4054), the chain section's rewrite
+   (4055), the builders' visibility to lore (4056), a leader-seat guard
+   that reads the wrong files (4062). Loop 4042 took its measurement, a
+   hypothesis and what would kill it.
+
+**Against this entry's estimate**: `Start: 1 of 161` and the game run from
+a built start inside ten points of the window from 37 %; no floor moved
+down unnamed; the driver's sessions clearing under 230 k; the render lane
+reading within a fifth of 7.25 USD a landing; and the next steer learning
+where the project stands from the tracks page and the queue, in one read.
+
