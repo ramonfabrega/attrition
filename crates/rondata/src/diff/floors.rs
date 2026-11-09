@@ -1993,6 +1993,11 @@ mod tests {
             WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_FOUR,
         ),
         (
+            "ch135",
+            GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_FIVE,
+            WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_FIVE,
+        ),
+        (
             "restage",
             GOLDEN_WORD_CHAPTER_THREE_RESTAGE,
             WIDENING_CHAPTER_THREE_RESTAGE,

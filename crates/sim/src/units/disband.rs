@@ -398,12 +398,10 @@ impl Sim {
     /// `Object::disband(o, 0)` ([`Sim::disband_unit`]), and with `all` 0
     /// the walk stops after the first. Returns the units disbanded.
     ///
-    /// SEAM: the building arms — an unfinished building disbanded the same
-    /// way, a finished one queued `DISBAND` (`Build::queue_up`, vslot
-    /// `0xac`'s `+400` gate) — which this crate's unit [`Group`] never
-    /// lists; `validate_disband`'s building refusals; the scenario's
-    /// ignore-orders sweep; and the "already given" feedback, the user
-    /// interface's.
+    /// The building arms are [`Sim::group_action_disband_buildings`].
+    ///
+    /// SEAM: the scenario's ignore-orders sweep; and the "already given"
+    /// feedback, the user interface's.
     pub fn group_action_disband(&mut self, g: &crate::groups::group::Group, all: bool) -> usize {
         let mut n = 0;
         for &u in g.list.iter().rev() {
@@ -414,6 +412,48 @@ impl Sim {
             n += 1;
             if !all {
                 break;
+            }
+        }
+        n
+    }
+
+    /// **`Group::action_disband@0070e260` on a group of buildings** (item
+    /// 3994, `docs/GOLDEN.md` §187): `OPTION_DISBAND` with the seat's
+    /// buildings selected. [`Sim::disband_refused`] (`validate_disband`'s
+    /// building arms) refuses the whole command; then the walk runs from
+    /// the last member down, and for each live one (`+8 & 1`):
+    ///
+    /// - not active (vslot `0x4c`: an unfinished site) → `Object::disband(o,
+    ///   0)` ([`Sim::disband_building`], the refund the fraction not built),
+    ///   and with `all` 0 the walk stops;
+    /// - active, holding neither a `DISBAND` nor a `0x286` entry
+    ///   (`count_queue(1, 0x29a)`, then `count_queue(1, 0x286)`, the
+    ///   listing's pushes at `0x70e38e` and `0x70e3c6`: the decompile
+    ///   prints neither argument) → `Build::queue_up(DISBAND, 0)`
+    ///   ([`Sim::queue_disband`]; the second argument reaches only the
+    ///   library forward, which `DISBAND` skips). The walk goes on.
+    ///
+    /// Returns the members disbanded or queued (`local_14`).
+    ///
+    /// SEAM: a `0x286` entry, which this crate's queue never holds.
+    pub fn group_action_disband_buildings(&mut self, list: &[usize], all: bool) -> usize {
+        if self.disband_refused(list) {
+            return 0;
+        }
+        let mut n = 0;
+        for &b in list.iter().rev() {
+            if !self.buildings[b].alive {
+                continue;
+            }
+            if !self.buildings[b].active {
+                self.disband_building(b, false);
+                n += 1;
+                if !all {
+                    break;
+                }
+            } else if self.buildings[b].queue.count_disband() == 0 {
+                self.queue_disband(b);
+                n += 1;
             }
         }
         n

@@ -6852,6 +6852,50 @@ fn chapter_one_hundred_and_thirty_four_s_window_is_widened_whole() {
     cases_80_89::chapter_one_hundred_and_thirty_four_s_window_is_widened_whole();
 }
 
+/// **Chapter one hundred and thirty-five** (item 3994, `docs/GOLDEN.md`
+/// §187, run1552): the Helicopter's stand-off, and Delete on a building.
+#[test]
+fn chapter_one_hundred_and_thirty_five_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_thirty_five_holds_to_the_golden_word();
+}
+
+/// **run1552 whole, both directions** (item 3994, `docs/GOLDEN.md` §187).
+#[test]
+fn chapter_one_hundred_and_thirty_five_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_thirty_five_s_window_is_widened_whole();
+}
+
+/// What parts in run1552's window, blocks 605–1250 (item 3994): the eleven
+/// `form` rows every golden start carries; the Chariot `1/6`'s rows from
+/// 809, where the Helicopter `0/13`'s first round lands a frame late here
+/// (12 on both sides, theirs `damage_frame 808`; parked 3994a); and pool
+/// slot 2's speed on 930, the site's building group seated over the
+/// Citizen's (parked 3994b). Nothing parts on the General `0/9`'s 702
+/// stand-off move, on the Barracks `0/2007`'s `DISBAND` entry (908..1075,
+/// gone on 1076) or on the site `0/2008`'s disband on 929.
+const WANT_CH135: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+    "809 1/6 damage_frame",
+    "809 1/6 hits:damage",
+    "809 1/6 hits_left",
+    "839 1/6 damage_o",
+    "848 1/6 damage_frac",
+    "848 1/6 hits:damage_frac",
+    "877 1/6 death:extra",
+    "930 slot 2 new_speed",
+    "930 slot 2 speed",
+];
+
 /// What parts in run1549's window, blocks 605–1400 (item 3991; item 4007
 /// closed the word, 691 → 85 rows): the eleven standing `form` rows on 605;
 /// the chapter's standing families — the Bombers' `accuracy` (§35.3's
