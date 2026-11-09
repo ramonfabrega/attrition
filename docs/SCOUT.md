@@ -910,14 +910,14 @@ run58's block 4314 holds as its `EXPLORE_TO`. With this arm the word is
   reads is no longer frozen** (2026-08-27): `crate::vision` writes `seen2`
   as units move, so a scout that has walked for a hundred frames filters
   its candidate cells against what it has actually seen. `docs/VISION.md`.
-- `Sim::think_peasant`'s tail, in `crates/sim/src/orders/mod.rs` — §11.1's
+- `Sim::think_peasant`'s tail, in `crates/sim/src/orders.rs` — §11.1's
   second call site, landed 2026-09-01 (item 143), which took East Indies'
   word 4313 → 4461. `find_repair_spot` is a seam on both of its arms, so
   what the crate carries is the scholar exemption, the `was_builder`
   clear, the `reg_cities` gate, the ten-site walk and the `idle > 6`
   cut-off.
 - `Sim::scout_thinks` and `Sim::unit_is_scout` — §2's gate, wired into
-  `Sim::think`'s tail in `crates/sim/src/orders/mod.rs`, where it is exclusive
+  `Sim::think`'s tail in `crates/sim/src/orders.rs`, where it is exclusive
   with `think_join_army` as it is in the original. **The other arm caught
   up 2026-08-29** (item 68): `think_join_army` was joining any attacker,
   where §2's listing joins a supply wagon or a hero and nothing else, so

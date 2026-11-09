@@ -635,7 +635,7 @@ over all 24,001 frames):
   where the Colosseum and Eiffel arms add to it — but the line above zeroes
   that slot, so gems-first-then-add is the same shape, and its one step
   onto the limit is `+= TERRITORY_LIMIT_CIVIC`.
-  `crates/sim/src/territory/mod.rs` builds them in that order. And
+  `crates/sim/src/territory.rs` builds them in that order. And
   `fix_all_borders` only zeroes each region's border stamp (64 records,
   stride `0x88`, offset `0x2c`), so the sweep it schedules reads the *new*
   mask: the decompile's assign-after-invalidate order is not observable,

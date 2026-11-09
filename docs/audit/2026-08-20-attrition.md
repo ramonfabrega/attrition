@@ -357,11 +357,11 @@ ignored. Struct-offset names come from `types.txt` (PDB-derived).
   (or keep `health` in sixteenths explicitly); today a lone figure loses 16
   HP per tick where the original loses 1.
 
-**`crates/sim/src/territory/mod.rs`**
+**`crates/sim/src/territory.rs`**
 - Optional: match the fort-path runner-up overwrite, or document the
   divergence (who2 only).
 - Document that wholesale recompute is a simplification of the original's
   budgeted incremental pass.
 
-**`crates/sim/src/world/mod.rs`** — no change required; `vector_dist` and the
+**`crates/sim/src/world.rs`** — no change required; `vector_dist` and the
 unit conversions are doubly confirmed.

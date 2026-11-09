@@ -33,3 +33,6 @@ unsafe_code = "forbid"
 [lints.clippy]
 float_arithmetic = "deny"
 disallowed_types = "deny"
+# The workspace's one module layout (item 4032): this table replaces the
+# workspace's, so it is said again here.
+mod_module_files = "deny"

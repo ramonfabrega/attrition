@@ -225,8 +225,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 EMU = ROOT / 'tools/emu'
 SWEEP = ROOT / 'crates/sim/src/sweep'
+# The module file that registers `SWEEP`'s sweeps: `sweep.rs` beside the
+# directory since item 4032 (one module layout, no `mod.rs`).
+SWEEP_MAIN = ROOT / 'crates/sim/src/sweep.rs'
 # The standalone partitions and their sweeps, outside `src/` since item 4009;
-# `sweep/mod.rs`'s crate-private sweeps stay in `SWEEP`.
+# `sweep.rs`'s crate-private sweeps stay in `SWEEP`.
 STANDALONE = ROOT / 'crates/sim/tests/sweep'
 # A method `Class::name`, or a free function `name` (item 2346: `add_type_bucket2`).
 NAME = re.compile(r'^([A-Za-z_][A-Za-z0-9_]*(?:::[A-Za-z_~][A-Za-z0-9_<>=!\[\]+\-*/%&|^]*)*)@(00[0-9a-f]{6})$')
@@ -2789,7 +2792,7 @@ def sweep_registry(line, test):
     a new test in the library. Compilation remains the authority on privacy.
     """
     registration(line)
-    main = SWEEP / 'mod.rs'
+    main = SWEEP_MAIN
     name = line[4:-1]
     owners = [main] if main.exists() and line in main.read_text().splitlines() else []
     for family in SWEEP_FAMILIES:
@@ -2818,7 +2821,7 @@ def validate_sweep_registrations(crate):
             raise ValueError('automatic sweep test targets are disabled')
         if any(t.get('name') in {f'sweep_{f}' for f in SWEEP_FAMILIES} for t in config.get('test', [])):
             raise ValueError('sweep partitions require unmodified automatic Cargo test targets')
-    main = re.findall(r'^mod ([a-z][a-z0-9_]*);$', (folder / 'mod.rs').read_text(), re.M)
+    main = re.findall(r'^mod ([a-z][a-z0-9_]*);$', (crate / 'src/sweep.rs').read_text(), re.M)
     names = [name for name in main if name != 'support']
     for family in SWEEP_FAMILIES:
         path = standalone / f'standalone_{family}.rs'
@@ -3728,11 +3731,11 @@ def main(argv=None):
         # what a regen would write (Loop 3407).
         try:
             mp = sweep_registry(mod, test)
-            registered = mod if mp.name == 'mod.rs' else registration(mod).rstrip()
+            registered = mod if mp == SWEEP_MAIN else registration(mod).rstrip()
         except ValueError as e:
             print(f'sweep_gen.py: {e}', file=sys.stderr)
             return 2
-        tp = mp.parent / tp.name
+        tp = (SWEEP if mp == SWEEP_MAIN else mp.parent) / tp.name
         print(f'# {obj_table_path() if as_row else sp}\n{script}\n# {tp}\n{test}\n# {mp}\n{registered}')
         return 0
     for p in (sp, tp):
@@ -3743,12 +3746,12 @@ def main(argv=None):
             return 2
     try:
         mp = sweep_registry(mod, test)
-        registered = mod if mp.name == 'mod.rs' else registration(mod).rstrip()
-        tp = mp.parent / tp.name
+        registered = mod if mp == SWEEP_MAIN else registration(mod).rstrip()
+        tp = (SWEEP if mp == SWEEP_MAIN else mp.parent) / tp.name
         updated = None
         if args.write_mod:
             text = mp.read_text() if mp.exists() else ''
-            updated = insert_mod(text, mod) if mp.name == 'mod.rs' else insert_standalone(text, mod)
+            updated = insert_mod(text, mod) if mp == SWEEP_MAIN else insert_standalone(text, mod)
     except ValueError as e:
         print(f'sweep_gen.py: {e}', file=sys.stderr)
         return 2

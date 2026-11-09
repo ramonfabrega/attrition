@@ -108,7 +108,9 @@ def load(export, rules_path):
         src_raw[key(p)] += open(p, errors="replace").read()
     dirs = {}
     for p in paths:
-        dirs.setdefault(key(p), set()).add(os.path.basename(os.path.dirname(p)) == "sweep")
+        # `sweep.rs` beside `sweep/` is the directory's module file (item 4032).
+        dirs.setdefault(key(p), set()).add(os.path.basename(os.path.dirname(p)) == "sweep"
+                                           or p == os.path.join(SIM, "sweep.rs"))
     sweep_only = {k for k, v in dirs.items() if v == {True}}
     load_code = re.sub(r"//[^\n]*", "", open(ROOT / "crates/rondata/src/load.rs", errors="replace").read())
     src_code = {k: re.sub(r"//[^\n]*", "", v) for k, v in src_raw.items()}

@@ -569,14 +569,14 @@ mod tests {
             "no_float.rs",
             "docs_guard.rs",
             "soak.rs",
-            "sweep/mod.rs",
+            "sweep.rs",
             "test_support/install.rs",
         ] {
             assert!(test(name), "{name} read as production");
         }
         for name in [
             "lib.rs",
-            "orders/mod.rs",
+            "orders.rs",
             "orders/do_attack.rs",
             "orders/do_attack/live.rs",
         ] {

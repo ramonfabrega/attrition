@@ -860,7 +860,7 @@ Four of the first reading's open items were **settled by the audit**
   leaders_slot` compares it whole). See §5's note on why the two terms
   had to land together.
 - ~~**The fog the sim reads is the frame-0 snapshot.**~~ **Closed
-  2026-08-27** — `docs/VISION.md` and `crates/sim/src/vision/mod.rs`. A unit
+  2026-08-27** — `docs/VISION.md` and `crates/sim/src/vision.rs`. A unit
   now lights a disc of `LOS / 2` fog cells every time it crosses a
   half-cell, centred (below radius four) a half-cell ahead of its own
   facing, and `Object::update_seen`'s hundredth-frame resync runs from
@@ -921,7 +921,7 @@ Four of the first reading's open items were **settled by the audit**
   heuristic nor a tie: it was **`WData.blocked` — a count of the cell's
   blocked tiles — that nothing in this crate was keeping**. §5's note on
   `tcost` has the mechanic and `World::set_blocked_at@006b4900`;
-  `crates/sim/src/world/mod.rs` has the implementation and
+  `crates/sim/src/world.rs` has the implementation and
   `Sim::mask_building` is its only caller so far.
 
   The reading that had been carried into this entry — that the original's

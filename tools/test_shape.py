@@ -76,7 +76,7 @@ FILES = {
     'sim/src/air/think.rs': 'pub const PRIVATE: i32 = 3;\n',
     'sim/src/harness_tests.rs': '\n' * 50 + '#[cfg(test)]\nmod inner {\n}\n',
     'sim/src/guard.rs': '#[cfg(test)]\nmod tests {\n}\n',
-    'sim/src/sweep/mod.rs': 'mod one;\n',
+    'sim/src/sweep.rs': 'mod one;\n',
     'sim/src/sweep/one.rs': 'pub const ONE: i32 = 1;\nfn s() {}\n',
     'rondata/src/lib.rs': 'pub const TWO: i32 = 2;\npub const THREE: i32 = 3;\n',
 }

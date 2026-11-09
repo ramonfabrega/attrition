@@ -77,7 +77,7 @@ file; each one is a ten-minute read of the code the row names.
 
 ## Item 7, and the parser that hid it, 2026-09-07 / 2026-09-17
 
-- **7** landed — Orders, `docs/ORDERS.md` and `crates/sim/src/orders/mod.rs`,
+- **7** landed — Orders, `docs/ORDERS.md` and `crates/sim/src/orders.rs`,
   struck through in the queue as done on 2026-08-21 (`57546c07`) and never
   named `item 7` in the journal because the entry predates the phrasing.
 - The 09-07 row here said 7 "was never booked", and that was wrong:

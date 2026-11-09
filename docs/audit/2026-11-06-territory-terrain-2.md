@@ -89,7 +89,7 @@ evidence.
 | 006a2ab0 | TerrainGroup::drop_tile | name | 6 | twin | `terrain_groups.rs:521` `Pass::drop_tile`. Compared the switch: 4 `available_rough_tile(0x20)` and `vector_dist` to the first tile `> maxd` refuses, COAST → `land 2`, flags `& 0xffc3 \| 0x20`, 16 tiles blocked; 5 `Mountains::add_mountain` (excluding); 6 as 4 with 0x8 and no block; 7 `set_oil_at(1)`; 8 `Cliffs::position_cliff`. Agree. |
 | 006a2f60 | TerrainGroup::place_region_group | name | 6 | twin | 38,933 bytes, read by its first screen, its caller (`place_all` alone) and `docs/MAPGEN.md` §7. Twin `terrain_groups.rs:1224` `Pass::place_region_group`: one start draw, the 16-bit Galois LFSR walk (`(s >> 1) ^ 0xB400`), the type-7 wet-disc start test to `circle_radius[rock_space]`. Stream-backed; not re-derived here. |
 | 006a4190 | TerrainGroup::place_player_group | name | 6 | twin | 50,751 bytes, read by its first screen, its caller (`place_all` alone) and §7. Twin `terrain_groups.rs:985` `Pass::place_player_group` (with `player_candidate`, `player_place`, `player_grow`, `player_mountain`): ring-start draw, growth draws, the mirror `r & 3`, the cliff arm. Stream-backed; not re-derived here. |
-| 006a6f90 | TerrainGroups::fill_fertile | name | 6 | twin | `crates/sim/src/mapgen/mod.rs:730` `MapGrid::fill_fertile`. Compared: x outer, y inner; `land == 0`; count of leading partitions until the fractal byte is below one (`break` on `byte < p`); `land_sub = count`, `land = 0`. Agree. |
+| 006a6f90 | TerrainGroups::fill_fertile | name | 6 | twin | `crates/sim/src/mapgen.rs:730` `MapGrid::fill_fertile`. Compared: x outer, y inner; `land == 0`; count of leading partitions until the fractal byte is below one (`break` on `byte < p`); `land_sub = count`, `land = 0`. Agree. |
 | 006a70d0 | TerrainGroups::place_all | name | 6 | twin | 62,740 bytes, read by its first screen, its caller (`Map::make@0068bc90:149`, under `semaphore & 2` clear) and §7. Twin `terrain_groups.rs:1412` `place_all`. Stream-backed on every corpus trace. The pattern-2/3 weight (`clumps > 6 && regions < 6`) never ran with more than one region (3803b); `sim::single` holds it (§11). |
 | 006a93b0 | TerrainGroups::nubify_forest | name | 6 | twin | `terrain_groups.rs:2126` `nubify_forest`: columns then rows, a run of four forest-edge cells draws `r & 3` and re-forests the side cell that many back, skipping a start-city cell, ocean and a region edge. Stream-backed (5 GS, 3 GL draws). Known inert difference recorded in §7: keeping COAST/ROCK/MOUNTAIN bits turns nothing red. |
 | 006a9f70 | TerrainGroups::fix_transitions | name | 6 | twin | `terrain_groups.rs:2254` `fix_transitions`: `nubify_transitions(3)`, step 3 → 2 over the eight neighbours (not wet unless COAST, not already 3/2), `nubify_transitions(2)`, step 2 → 1, `nubify_transitions(1)`. Stream-backed through 7870. |
@@ -149,7 +149,7 @@ refuses.
 
 ## Not established
 
-- **Who reads tile bit 0x8** (row `mark_forest`). `crates/sim/src/world/mod.rs`'s `tile` module
+- **Who reads tile bit 0x8** (row `mark_forest`). `crates/sim/src/world.rs`'s `tile` module
   names no such bit; a grep of the export for `& 8` on the tile array (`+0x138`) hit cell-flag
   reads (`+0x134`) only, in the files checked (`World::gather_at`,
   `PathFinder::calc_road_cost`, `BuildTypeData::blocked_tcoord`).

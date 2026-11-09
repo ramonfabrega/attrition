@@ -389,7 +389,7 @@ addresses are the two arms, and that is what names them. Run21's first
 the frame is odd; run33's 1,850 frames enter neither this nor
 `Army::add_unit`.
 
-`crates/sim/src/ai/army/mod.rs`'s `come_out_join_army` is the tail, called from
+`crates/sim/src/ai/army.rs`'s `come_out_join_army` is the tail, called from
 `garrison::come_out` (the trained unit's way in) and from
 `transport::disembark` (the passenger's).
 
@@ -482,7 +482,7 @@ Two readings the listing settles and the decompiler does not:
   by `go_to(x, y, ATTACK_TO, 0x240, 0)` when farther than `0x480`.
 
 **What this crate carries** (`Sim::think_attack_join_army`, called from
-`Unit::think`'s step 3 in `crates/sim/src/orders/mod.rs`): the whole gate but
+`Unit::think`'s step 3 in `crates/sim/src/orders.rs`): the whole gate but
 `leader_flags2 & 8` (no capture sets it) and `ObjectData::healing` (not a
 field here — it only widens the stay-and-heal arm, and only for a damaged
 unit that is neither foot nor mounted). ~~The merchant-lineage entry
@@ -1789,7 +1789,7 @@ against `Farms::inc_time+0x1ae` at 8663.
 
 ## 17. What the simulation carries, and what checks it
 
-`crates/sim/src/ai/army/mod.rs`: the record and the pool (§2 — `init_army`'s
+`crates/sim/src/ai/army.rs`: the record and the pool (§2 — `init_army`'s
 slot rule and eviction, `Army::init`'s muster cell from the city, `close`),
 the counts as a function of the groups' units (§3.3), `add_to_army`'s
 army choice **and its walk to `get_unit(0)`** — `army_get_unit`,

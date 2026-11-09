@@ -896,7 +896,7 @@ run240's world pin.
 
 ## 8. What the simulation carries, and what checks it
 
-`crates/sim/src/vision/mod.rs`, and the fog planes on `crate::world::World`.
+`crates/sim/src/vision.rs`, and the fog planes on `crate::world::World`.
 
 | § | what | where |
 |---|---|---|

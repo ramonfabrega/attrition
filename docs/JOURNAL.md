@@ -40,7 +40,7 @@ dated heading on, the journal is by date.
    mechanic, each re-verifying every claim against the decompile before
    changing it, document first, then implementation and tests.
 1. ~~**The tech tree**~~ — **done, 2026-08-20**, `docs/TECH.md` and
-   `crates/sim/src/tech/mod.rs`: `has_tech`, `get_preq`, `has_preq`,
+   `crates/sim/src/tech.rs`: `has_tech`, `get_preq`, `has_preq`,
    `type_eligible`, `type_avail`, `queue_here`, `gain_tech` with its cascades,
    `lose_tech`, `set_age`, the starting position, the lobby's start/end ages.
    The `TypeIndex` enum is now dumped whole by
@@ -146,7 +146,7 @@ dated heading on, the journal is by date.
    domain, `BuildType::set_domain` from `BUILD_FLAGS b`.
 
 7. ~~**Orders**~~ — **done, 2026-08-21**, `docs/ORDERS.md`,
-   `crates/sim/src/orders/mod.rs`: the order list and its three enqueue modes,
+   `crates/sim/src/orders.rs`: the order list and its three enqueue modes,
    one order stepped per frame, the move order end to end with the
    pathfinder as a named seam, build/repair/garrison through the swarm ring,
    the gather registration and the wood/ore machine, the attack order's
@@ -274,7 +274,7 @@ dated heading on, the journal is by date.
     reading is complete (the driver, the census, the step machine, the
     make list, the sites, the city AI, research, the market, the scripts;
     four readers' reports for the language, the 55 host functions and the
-    two `create_*` producers, ratified in §11), `crates/sim/src/ai/mod.rs`
+    two `create_*` producers, ratified in §11), `crates/sim/src/ai.rs`
     holds the driver's pure half and `crates/sim/src/ai/bhs.rs` the script
     interpreter (`docs/DECISIONS.md` entry 20). The finding that reframes
     this item: **the skirmish AI's opening is the shipped `economic.bhs` /
@@ -775,7 +775,7 @@ from `/clear` to commit.
   `do_mustering`'s expand arm hands an army to `do_transporting`, which is
   a one-shot region retarget; `init_navy`/`send_navy` are the navy's two
   hooks.
-- **The implementation** (`crates/sim/src/ai/transport/mod.rs`): the level, the
+- **The implementation** (`crates/sim/src/ai/transport.rs`): the level, the
   predicates, the registry with its draws, `needs_transport`,
   `is_dock_tile`, and the coast masks from the cells. Two census seams
   closed, `carry` and fishermen wired. The unit AI's island choice and the
@@ -864,7 +864,7 @@ past 14586.
   `do_mustering` set marching, `do_marching` found no attacker, `close`.
   The ring search is the seam the first capture reaches; `docs/ARMY.md`
   §18 says so and what would close it.
-- **Landed.** `docs/ARMY.md` (19 sections), `crates/sim/src/ai/army/mod.rs` (the
+- **Landed.** `docs/ARMY.md` (19 sections), `crates/sim/src/ai/army.rs` (the
   record and the decisions; the group orders, the ring search and the
   fort pass as named seams), wired into the census's step 16,
   `create_units`, the unit think, city close and capture, defeat, damage
@@ -3052,7 +3052,7 @@ claim about the world, and a claim about the world goes stale.
 
 ## 2026-08-27 — item 33: the fog moves, and the field the dump was already printing
 
-`docs/VISION.md`, `crates/sim/src/vision/mod.rs`, `seen`/`seen2` on
+`docs/VISION.md`, `crates/sim/src/vision.rs`, `seen`/`seen2` on
 `crate::world::World`, `mylos` in `rondata::diff`.
 
 Item 32 left the pathfinder reading a fog grid nothing wrote. This closed
@@ -12691,7 +12691,7 @@ first time the two maps have wanted the same item.
 ## 2026-09-02, Opus — the bird flies, in a module nobody calls
 
 *Item 120. `docs/SYNC.md` §3.9 "The flight", `docs/DECISIONS.md` 30,
-`crates/sim/src/air/mod.rs`, `crates/sim/src/num/single.rs`. **The score did not
+`crates/sim/src/air.rs`, `crates/sim/src/num/single.rs`. **The score did not
 move**: EastIndies 5437, GreatLakes 1802, both still parted by
 `Unit::do_air_physics+0x639`.*
 
@@ -16601,7 +16601,7 @@ the start, and 26 for the rest.
 **What it moved.** All three Archers walk the original's own points from
 6652 to **6861** (run76's window now asserts it), and run53's word moved
 **6848 → 6862** — the first time the soft-collision arm has shown up in a
-score. `crates/sim/src/movement/mod.rs`'s `move_step` takes the bit as an
+score. `crates/sim/src/movement.rs`'s `move_step` takes the bit as an
 argument and reports back through `Step::half_step_used`; the caller owns
 the clearing. The unit test was made to fail once, on both halves: the
 one-shot spends itself, and the hard-turn arm does not spend it.

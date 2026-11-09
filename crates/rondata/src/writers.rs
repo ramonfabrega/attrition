@@ -285,7 +285,9 @@ fn sim_files() -> Vec<(PathBuf, bool)> {
                 if !(top && (path.ends_with("sweep") || path.ends_with("test_support"))) {
                     walk(&path, false, out);
                 }
-            } else if path.extension().and_then(|e| e.to_str()) == Some("rs") {
+            } else if path.extension().and_then(|e| e.to_str()) == Some("rs")
+                && !(top && path.ends_with("sweep.rs"))
+            {
                 let sibling = !top
                     && path
                         .file_stem()
@@ -1229,6 +1231,9 @@ fn three_views() -> (String, String, String) {
             }
         }
     }
+    // `sweep.rs`, the directory's module file beside it (item 4032).
+    tests.push_str(&std::fs::read_to_string(sim_dir().join("sweep.rs")).expect("read"));
+    tests.push('\n');
     tests_under(&sim_dir().join("sweep"), &mut tests);
     // The test tails item 4010 moved out of `foo.rs` into `foo/tests.rs`
     // (and `foo/<name>_tests.rs`), mounted by `#[cfg(test)] mod tests;`.

@@ -101,7 +101,7 @@ impl Setup<'_> {
         self.sim.die_building(b)
     }
 
-    /// [`Sim::spawn_bird_at`] (`gaia/mod.rs`).
+    /// [`Sim::spawn_bird_at`] (`gaia.rs`).
     pub fn spawn_bird_at(&mut self, pos: Pos) -> Option<usize> {
         self.sim.spawn_bird_at(pos)
     }
@@ -228,7 +228,7 @@ impl Setup<'_> {
         self.sim.birth_come_out(u, birth, later)
     }
 
-    /// [`Sim::reseat_animal`] (`gaia/mod.rs`).
+    /// [`Sim::reseat_animal`] (`gaia.rs`).
     pub fn reseat_animal(&mut self, u: usize, pos: Pos, goal: Option<Pos>) -> i32 {
         self.sim.reseat_animal(u, pos, goal)
     }
@@ -255,27 +255,27 @@ impl Setup<'_> {
     }
 
     // One mechanic stepped alone, in a window that compares it to a dump.
-    /// [`Sim::army_engagement_seed`] (`ai/army/mod.rs`).
+    /// [`Sim::army_engagement_seed`] (`ai/army.rs`).
     pub fn army_engagement_seed(&mut self, who: Player, slot: usize) -> Option<(usize, Obj)> {
         self.sim.army_engagement_seed(who, slot)
     }
 
-    /// [`Sim::army_is_engaged`] (`ai/army/mod.rs`).
+    /// [`Sim::army_is_engaged`] (`ai/army.rs`).
     pub fn army_is_engaged(&mut self, who: Player, slot: usize) -> bool {
         self.sim.army_is_engaged(who, slot)
     }
 
-    /// [`Sim::do_mustering`] (`ai/army/mod.rs`).
+    /// [`Sim::do_mustering`] (`ai/army.rs`).
     pub fn do_mustering(&mut self, who: Player, slot: usize) {
         self.sim.do_mustering(who, slot)
     }
 
-    /// [`Sim::find_muster_spot`] (`ai/army/mod.rs`).
+    /// [`Sim::find_muster_spot`] (`ai/army.rs`).
     pub fn find_muster_spot(&mut self, who: Player, slot: usize, target: Obj, flag: bool) -> bool {
         self.sim.find_muster_spot(who, slot, target, flag)
     }
 
-    /// [`Sim::find_target`] (`ai/army/mod.rs`).
+    /// [`Sim::find_target`] (`ai/army.rs`).
     pub fn find_target(&mut self, who: Player, slot: usize) {
         self.sim.find_target(who, slot)
     }

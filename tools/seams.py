@@ -114,7 +114,7 @@ def views(sim=None):
     was wrong until item 3550, and the Persian word stood on it (2226).
     `sweep/` is the emulated original's answers, not a live twin."""
     sim = SIM if sim is None else sim
-    files = {f: f.read_text() for f in sorted(sim.rglob('*.rs')) if 'sweep' not in f.parts}
+    files = {f: f.read_text() for f in sorted(sim.rglob('*.rs')) if 'sweep' not in f.with_suffix('').parts}
     rows = []
     for f, text in files.items():
         head = '\n'.join(text.split('\n')[:3])

@@ -1,7 +1,7 @@
 //! `Leader::calc_gather`'s **inputs**: filling [`economy::Holdings`] from the
 //! live simulation.
 //!
-//! `crates/sim/src/economy/mod.rs` is the arithmetic — the rate in sixteenths, the
+//! `crates/sim/src/economy.rs` is the arithmetic — the rate in sixteenths, the
 //! caps, the accrual, the 512-frame cadence. It reads a [`economy::Holdings`], and
 //! until this module existed nothing in the simulation ever wrote one: every
 //! test hand-built it and the replay harness ran whole games in which both
@@ -74,7 +74,7 @@
 //!
 //! So it is **both**: a building finishing sets it and a citizen arriving sets
 //! it. [`Sim::economy_changed`] is this crate's name for the flag, and
-//! `crates/sim/src/orders/mod.rs` raises it on the arrival and on both halves of
+//! `crates/sim/src/orders.rs` raises it on the arrival and on both halves of
 //! the idle latch; the building half is listed as an open edit in this
 //! module's notes.
 //!

@@ -50,7 +50,9 @@ def lines(path):
 
 
 def in_sweep(path, root):
-    return 'sweep' in path.relative_to(root).parts
+    """Under a `sweep/` directory, or `sweep.rs` itself: the directory's
+    module file stands beside it since item 4032 (one module layout)."""
+    return 'sweep' in path.relative_to(root).with_suffix('').parts
 
 
 def flat(sim=SIM):
