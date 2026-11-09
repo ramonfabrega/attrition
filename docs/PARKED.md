@@ -8940,7 +8940,7 @@ The word closed at 7902 and the close compares whole (`docs/AI.md` §277). What 
   opening captain mirror (`get_action`, `valid_target`, `add_attack_order`) needs vtable slots `0x10` and `0xcc`, and
   `0xcc` is also `this`'s `is_supply`, kept half the rows; one stubbed vtable cannot serve both. A module with `is_supply`
   stubbed only covers it; the generator can spell it (`--answer-win` takes a negative size). The port is also inline: the
-  crate's `Sim::think` (`orders.rs:4399`) reads `self.units` and its `think_*` callees run for real, so a view trait over
+  crate's `Sim::think` (`orders/think.rs:1038`) reads `self.units` and its `think_*` callees run for real, so a view trait over
   the whole dispatcher is the owed refactor. Reading only: the citizen arm (`TypeIndex` 0x32/0x33) also does
   `leaders[who].word0 |= 0x80000` (the crate clears carry only); the comment at `orders.rs` ~4437 is stale.
 - **3346c. `Object::disband@006455c0`: three holes.** (1) The garrison recursion cannot be stubbed — the function's own
@@ -8999,7 +8999,7 @@ What the French word's landing (`docs/AI.md` §278) read and did not build:
   guard reading `ThreadLocalStoragePointer`. Order: `--stub-alloc` (bump-heap malloc stub), then a `RoadsView`.~~ Answered by item 3376: `roads_view.rs` (`add_roads_steps`, `SimRoads`) and three sweeps (`roads_add_roads{,_redo,_amb}`, 3400 rows); no `--stub-alloc` was needed and the port is level.
 ~~- **3348c. `Unit::find_path@005fb910`: `--stub-alloc IDX` lacking** (as 3348b) **plus a stateful `Stack<PathData>` model**~~ **Struck by item 3386:** swept whole (`find_path_view.rs`, 3000 + 4000 rows, 85 of 89 breaks held, 3 equivalent, 1 starved then fixed); neither flag was needed (`Stack<PathData>` runs natively, `malloc`/`free`/`memcpy` stubbed) and `Sim::find_path` runs `find_path_steps`. The old text below is the dead hypothesis.
   (`push`/`pop`/`peek` moving `length`; no flag does, e.g. `--stack-model LOC:LEN:SIZE:ENTRY`), and the port is not level:
-  `Sim::find_path` (`orders.rs:6679`) does not model the `go_around_building` replay or the recursive return 2. ~15 callees.
+  `Sim::find_path` (`orders/moving.rs:2104`) does not model the `go_around_building` replay or the recursive return 2. ~15 callees.
   Alternative: split a `find_path_march` and sweep that. Sits over 3339c's residue.
 - **3348d. `Unit::work@0060d180`: the caravan block and the move-family dispatch** unswept: `LinkListBase::tail/prev` must
   answer a window pointer in `ecx`, and `--ecx-out IDX:V,..` takes integers only (flag lacking: a pointer form of `--ecx-out`).
@@ -9249,7 +9249,7 @@ closing state is none apart. Names no score (`docs/AI.md` §290).
 
 ## Parked by item 3381, 2026-10-20 — the second sweep's fifth batch
 
-- **3381a. `Group::action_trade@00701cc0` swept whole (1600 rows) and by head (400), 47 breaks, none equivalent; not wired.** `trade_view.rs::action_trade_steps`; the stub at `group.rs:281` stays empty and `Unit::add_trade_order@005e4dc0(b, who, c, d, queue, 1)` has no crate twin (`caravan.rs`'s `add_trade_order(u, home)` is a `QUEUE_NEW` reduction). Wiring adds trade orders to every capture whose human clicks a caravan onto a market: the likeliest pin mover. Next: sweep `Unit::add_trade_order`, then a `SimTrade` adapter. No flag lacking.
+- **3381a. `Group::action_trade@00701cc0` swept whole (1600 rows) and by head (400), 47 breaks, none equivalent; not wired.** `trade_view.rs::action_trade_steps`; the stub at `group/state.rs:216` stays empty and `Unit::add_trade_order@005e4dc0(b, who, c, d, queue, 1)` has no crate twin (`caravan.rs`'s `add_trade_order(u, home)` is a `QUEUE_NEW` reduction). Wiring adds trade orders to every capture whose human clicks a caravan onto a market: the likeliest pin mover. Next: sweep `Unit::add_trade_order`, then a `SimTrade` adapter. No flag lacking.
 - **3381b. `Group::distribute_attack@00713390` swept (2000 rows, 36 of 37 breaks held, one equivalent); not wired.** `distribute_attack_view.rs`; `SimGroupMove::distribute_attack` (`group_move.rs:320`) stays `{}`. A Sim adapter needs the update-order record's counterparts (`+8/+0xc`, `+0x1c` plausibly `combat.target`/`mandatory`); the `& 4` flag at `rec + 8 + [[rec+4]+4]`, the `is_plane` gate (`+0x218 == 2`, `+0x2b4 & 0x20`) and the `+0xdc` order-list cache are unmodelled; `Group::normalize` is stubbed so the walk over a changing member list is unswept. Wiring re-issues attack orders to groups: a pin mover. No flag lacking.
 - **3381c. `Unit::do_non_flat_gather@005f0170`: the other arms.** Unswept: the `goto_build == 0` half (`5f0b9c`..`5f13fb`: carry clear, return to camp, the chop/mine animation tests, arrival and `find_nearby_spot`, `is_gathered_by`, `add_move_order`, `add_hold_doober` x2, `remove_hold_doobers`); the camp arm (`wait >= 0`, `5f073f`..`5f0ef1`: vcall `+0x170` with `set_angle`, `get_tregion` x2, `can_transport`, `find_nearby_spot`); the remaining `PANCAKE` arms. No flag lacking (`--stub slot:OFF:N` per slot spells the multi-slot vcall; `--stub-alloc` was not needed). **Sim fix**: a held tile that loses `has_gather_access` now stays held when no replacement is found (the original writes `tx`/`ty` only on a pick); a pin mover only if a tile closes with no eligible one. The hold doobers (`+0x86`) are not carried. The rows are 48 MB, over the emu cache cap (16 MB): the test re-runs the emulator, 9 to 80 s.
 - **3381d. `Group::action_attack_ground@00704520` swept (3000 rows + 400 head, 43 of 45 breaks held, two equivalent); not wired.** `attack_ground_view.rs`; `group.rs` ~291 stays empty (wiring needs `Group::add` and `action_air_attack_ground` at group level). Lacking in `sweep_gen.py`: a `--wbias` conditioned on another word (the flagged-group leader's sign-extended short at `m+0x8cc`), and a `--stub-write` offset or value indexed by the stub's own call count or taken from a call argument (the scratch group's re-add loop reads (0, 0); `Group::add`'s dedupe/0x80 cap and `clear`'s count zero are uncompared). World held to 1..3 cells.
@@ -15288,7 +15288,7 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   test. **Score**: the same `firsts` count, 67 → 65. No capture.
 - **T71-3. A stance press sets bit `0x10`, which the crate reads as `cant_reach`** (adjudication 2; `Group::action_stance (0070d440)`):
   the original sets `SubObjectData::flags |= 0x10` on every unit of the group; the crate reads that bit as `cant_reach`,
-  which exempts a unit from `Unit::think`'s one-in-sixteen idle check (`orders.rs:4480`), so after every `Army::set_stance`
+  which exempts a unit from `Unit::think`'s one-in-sixteen idle check (`orders/think.rs:1081`), so after every `Army::set_stance`
   the original's units think on the next frame and ours wait for their phase. The flags byte is printed and uncompared
   (`coverage.rs:3411`); the buildings arm writes `BuildData::stance`, printed by `log_data:126` and unparsed
   (`coverage.rs:187`). **Score**: a widening row `flags & 0x10` against `cant_reach` on run1017's `set_stance` frames (on disk)
@@ -15324,7 +15324,7 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   General ×10, Obsidian ×10 and Antipater ×30 arms; `get_base_garrison_arrows`'s Maya +1 (`NATIONS.md:154`); `BuildData::hits`'s
   single-precision loss while a Disband runs (run1512's take to widen); `get_building_range`'s `TOWER_FORT_RANGE` and
   `FORT_UPGRADE_RANGE` (parked 1420); `max_range`'s garrisoned-General and temple terms; `compare_target`'s garrison weight
-  (`fight.rs:5595` passes `bd.garrison_attack`, 0 in play) and the temple range (`TEMPLE_UPGRADE_RANGE` ships `entry0="1"`,
+  (`fight/acquire.rs:1398` passes `bd.garrison_attack`, 0 in play) and the temple range (`TEMPLE_UPGRADE_RANGE` ships `entry0="1"`,
   `rules.xml:91`: every city centre with a Temple shoots one tile farther, and the crate has none). Entered by every
   lockstep run; a building holds a target in only 4 of 3,725 dumps on disk (Towers and a Radar, none garrisoned), so the
   case never arose. **Score**: a comparator line for `attack_ox`/`attack_whom` on every armed building (today only
@@ -15347,7 +15347,7 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   extends to 6, 8 and 9. **Score**: the `Mapgen:` line, booked.
 - **T71-12. The rest, each with its capture** (adjudications 1–4): `Objects::remove`'s number reuse within 30 frames (a unit
   test, no score); `find_city_at` treating `Owner::Ambiguous` as unowned (`place.rs:718`, one line and a test); `Group::kill`'s
-  stale `order_num`/`facing`/`form_num` on a re-pushed slot (`GroupState::copied`, `group.rs:825`; a `GROUPDATA` scan for a
+  stale `order_num`/`facing`/`form_num` on a re-pushed slot (`GroupState::copied`, `group/state.rs:330`; a `GROUPDATA` scan for a
   town-bell gather then a push); `think_carry_idle` (`RON_FIRSTS=1` on run1483's and run1492's stride tests, then wire
   `carry_idle.rs`, parked 3411a); `Caravans::new_danger` and `Caravan::restart_trade_route` (run353's 1007, `CITY trade_val`);
   `check_enemy_adjacent`'s dock ring (`BUILDDATA damage` on a dock, 8 per 32 frames); `City::capture`'s Senate disband and

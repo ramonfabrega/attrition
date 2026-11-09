@@ -211,7 +211,7 @@ left out; a constant with no reader in the export is dead there too.
 | `EGYPTIAN_FARMS_PER_CITY_BASE` | 7 | LeaderData::get_farm_limit | modelled at city.rs | `egyptian_farms_per_city_base` |
 | `EGYPTIAN_FOOD_COMMERCE` | 10 | Leader::calc_resource_caps | modelled at economy.rs | `egyptian_food_commerce` |
 | `EGYPTIAN_FARM_WEALTH` | 2 | BuildTypeData::calc_gather | modelled at holdings.rs | `egyptian_farm_wealth` |
-| `TURK_SIEGE_RANGE` | 3 | UnitData::max_range | modelled at fight.rs | `turk_siege_range` |
+| `TURK_SIEGE_RANGE` | 3 | UnitData::max_range | modelled at stats.rs | `turk_siege_range` |
 | `TURK_SIEGE_LOS` | 3 | Unit::update_los | modelled at vision.rs | `turk_siege_los` |
 | `TURK_ASSIMILATE` | 200 | Build::process, IFaceSelected::update_progress | modelled at city.rs | `turk_assimilate` |
 | `TURK_CITIZEN` | 33 | TypeData::get_cost | modelled at pricing.rs | `turk_citizen` |
@@ -307,8 +307,8 @@ left out; a constant with no reader in the export is dead there too.
 | `KOREAN_TEMPLE_UPGRADES` | 2 | Leader::gain_tech, LeaderData::has_preq, Setup::build_civ_specific | modelled at tech.rs | `korean_temple_upgrades` |
 | `KOREAN_TEMPLE_TAX_UPGRADES` | 0 | Leader::gain_tech | loaded at load.rs | `korean_temple_tax_upgrades` |
 | `KOREAN_MILITIA_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `korean_militia_upgrades` |
-| `KOREAN_BUILD_UNDER_FIRE` | 1 | Object::do_damage, Unit::do_build, Unit::do_repair | modelled at orders.rs | `korean_build_under_fire` |
-| `KOREAN_REPAIR` | 50 | Unit::do_repair | modelled at orders.rs | `korean_repair` |
+| `KOREAN_BUILD_UNDER_FIRE` | 1 | Object::do_damage, Unit::do_build, Unit::do_repair | modelled at jobs.rs | `korean_build_under_fire` |
+| `KOREAN_REPAIR` | 50 | Unit::do_repair | modelled at jobs.rs | `korean_repair` |
 | `KOREAN_TOWER_COST` | 33 | TypeData::get_cost | modelled at cost.rs | `korean_tower_cost` |
 | `MONGOL_STABLE_COST` | 10 | TypeData::get_cost | not carried | `mongol_stable_cost` |
 | `MONGOL_STABLE_SPEED` | 20 | ObjectData::train_time | modelled at queue.rs | `mongol_stable_speed` |
@@ -393,7 +393,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `AnimalData::is_seen@005d8160` | 4 9 | carried at animal_data_is_seen.rs | `005d8160` |
 | `Unit::process_healing@005e0670` | 10 18 | carried at heal.rs | `005e0670` |
 | `Unit::process_cloak@005e1c20` | 18 | carried at combat.rs | `005e1c20` |
-| `Unit::do_build@005eebf0` | 16 | carried at orders.rs | `005eebf0` |
+| `Unit::do_build@005eebf0` | 16 | carried at jobs.rs | `005eebf0` |
 | `Unit::set_new_location@005f8d20` | 18 | carried at collide.rs | `005f8d20` |
 | `Unit::explore_goody@005f9780` | 9 | carried at goody.rs | `005f9780` |
 | `Unit::update_speed@006055c0` | 0 3 10 | carried at rares.rs | `006055c0` |
@@ -401,7 +401,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Unit::update_los@0060e4d0` | 8 9 18 | carried at vision.rs | `0060e4d0` |
 | `Unit::update_hits@0060e930` | 4 18 22 | carried at unit_update_hits.rs | `0060e930` |
 | `Unit::close@0060ee50` | 19 20 | carried at fight.rs | `0060ee50` |
-| `UnitData::max_range@0060fe90` | 8 | carried at fight.rs | `0060fe90` |
+| `UnitData::max_range@0060fe90` | 8 | carried at stats.rs | `0060fe90` |
 | `Unit::init@00612100` | 18 19 20 | carried at store.rs | `00612100` |
 | `Build::process@0061edf0` | 8 23 | carried at city.rs | `0061edf0` |
 | `Build::plunder@00623660` | 0 12 13 19 | modelled at city.rs | `russian_plunder_steal` |
@@ -420,7 +420,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Object::insert_inside@00647e90` | 19 20 | carried at holdings.rs | `00647e90` |
 | `Object::remove_from_inside@006480f0` | 19 20 | carried at object_remove_from_inside.rs | `006480f0` |
 | `ObjectData::train_time@006508c0` | 5 15 | carried at queue.rs | `006508c0` |
-| `Object::take_damage@00652020` | 0 2 | carried at fight.rs | `00652020` |
+| `Object::take_damage@00652020` | 0 2 | carried at delivery.rs | `00652020` |
 | `TypeData::get_desc_parsed@006626e0` | 11 | not sim | `interface or render side` |
 | `TypeData::get_cost@00664090` | 5 7 8 12 14 15 20 22 23 | carried at pricing.rs | `00664090` |
 | `GoodData::is_seen@0066e4c0` | 4 9 | carried at good_data_is_seen.rs | `0066e4c0` |
