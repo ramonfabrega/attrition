@@ -36286,3 +36286,25 @@ on ch15's start (`RON_STAGE=ch15:chapter135:1250 RON_STAGE_ALL=1`).
 - The stand-off: on 702 the General `0/9` holds `MOVEORDER` to (2904, 14328), at the Helicopter's range off `1/6`.
 - The finished Barracks: `666 DISBAND` from 908, 16800 on 1075, gone on 1076 with no death record.
 - The site: placed on 923, gone on 929.
+
+## run1553 — chapter one hundred and thirty-six: an idle boat's walk to a Dock city, and a soldier barge with no army (2026-11-09, item 3995, `att-3995`)
+
+`docs/GOLDEN.md` §188. **What the disk could not answer**: `think_carry_idle`'s two lockstep entries (run1483b and
+run1492b, the Transport Freighter `1/19` on 630) fall between dumped blocks 2501/2601 and 701, so neither says
+whether the arm refused or was overwritten; no water lies inside any city's `CITY_RADIUS` on that start, so no Dock
+joins a city. No kept dump holds a soldier barge whose group has no army.
+
+Recipe `tools/gamelog/golden/chapter136.cmd` on the golden start (map 14), `!ai off`: 600 `library who=1 1`; 602 a
+second who=1 city on the east lake's shore (`1/2006`), 604 its Dock (`1/2007`); 610 an empty Transport Freighter
+`1/6`; 640 a Hoplites squad by `create_unit`, which `action_transport(1)` puts aboard a barge `1/10`. The first
+launch refused at the header (`GROUPS` beside `DEATHS` at one section); `GROUPS` was dropped.
+
+`success`, lifecycle verified, `map_verified`, map style 14, 901 frames, `last_frame` 900, seed 12345, log window
+600..900. PLAYER records: who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11). `~/ron-golden/run1553` links to
+`ch136`.
+- run1553 (`ch136`, `cover=0`, pool lane 1): 06:09:14–06:09:42, 27.9 s from launch to exit, no relaunch. The word's.
+  No cover twin was taken.
+- The idle walk: `1/6` holds `MOVEORDER` to (36168, 19560) from 611, the spot `find_nearby_spot` gives by the Dock
+  city.
+- The no-army barge: at sea the eject is refused, the squad stays aboard and the barge lives; it holds `MOVEORDER`
+  to (38040, 16536), the centre of who=1's nearest city building's cell, from 641.

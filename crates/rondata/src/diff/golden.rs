@@ -6301,14 +6301,10 @@ fn chapter_one_hundred_and_fourteen_s_window_is_widened_whole() {
 }
 
 /// What parts in run1511's window, blocks 605–900 (item 3917): the eleven
-/// standing `form` rows, and **the barge's snap point, a regression this
-/// item names** (`docs/GOLDEN.md` §164). `add_unit` swaps each passenger
-/// for its host in the local group, so `action_form` forms the barge `0/9`
-/// once per passenger, and that is what made its `form` 0 and `form_mod`
-/// 50 agree; with three copies it takes three moves, and
-/// `dbg_jump_to_action` pops them to the third slot, (11880, 35544), where
-/// run1511 keeps it on its own point, (12024, 35304). Which slot the last
-/// copy draws is parked 3917a.
+/// standing `form` rows. The barge `0/9`'s snap point parted until item
+/// 3995 formed it once (`docs/GOLDEN.md` §188; parked 3917a): seven rows
+/// on 621, its three copies' third slot (11880, 35544) against run1511's
+/// own point (12024, 35304).
 const WANT_CH114: &[&str] = &[
     "605 0/0 form",
     "605 0/1 form",
@@ -6321,13 +6317,6 @@ const WANT_CH114: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "621 0/9 g.des_x[0]",
-    "621 0/9 g.des_y[0]",
-    "621 0/9 g.x[0]",
-    "621 0/9 g.y[0]",
-    "621 0/9 orders_x",
-    "621 0/9 orders_y",
-    "621 0/9 pos",
 ];
 
 /// Chapter one hundred and fourteen holds to its golden word (item 3917, run1511).
@@ -6864,6 +6853,39 @@ fn chapter_one_hundred_and_thirty_five_holds_to_the_golden_word() {
 fn chapter_one_hundred_and_thirty_five_s_window_is_widened_whole() {
     cases_80_89::chapter_one_hundred_and_thirty_five_s_window_is_widened_whole();
 }
+
+/// **Chapter one hundred and thirty-six** (item 3995, `docs/GOLDEN.md`
+/// §188, run1553): the boats — `think_carry_idle` and
+/// `think_carry_military`'s no-army arm.
+#[test]
+fn chapter_one_hundred_and_thirty_six_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_thirty_six_holds_to_the_golden_word();
+}
+
+/// **run1553 whole, both directions** (item 3995, `docs/GOLDEN.md` §188).
+#[test]
+fn chapter_one_hundred_and_thirty_six_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_thirty_six_s_window_is_widened_whole();
+}
+
+/// What parts in run1553's window, blocks 600–899 (item 3995): the eleven
+/// standing `form` rows, and nothing else. The Transport Freighter `1/6`
+/// holds `think_carry_idle`'s MOVEORDER to (36168, 19560) from 611 in both;
+/// the barge `1/10` holds the no-army arm's MOVEORDER to (38040, 16536),
+/// the added city's cell, from 641 in both, its squad aboard.
+const WANT_CH136: &[&str] = &[
+    "600 0/0 form",
+    "600 0/1 form",
+    "600 0/2 form",
+    "600 0/3 form",
+    "600 0/4 form",
+    "600 0/5 form",
+    "600 1/1 form",
+    "600 1/2 form",
+    "600 1/3 form",
+    "600 1/4 form",
+    "600 1/5 form",
+];
 
 /// What parts in run1552's window, blocks 605–1250 (item 3994): the eleven
 /// `form` rows every golden start carries; the Chariot `1/6`'s rows from

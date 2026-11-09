@@ -590,9 +590,9 @@ impl Sim {
     /// (`count_inside(COUNT_ATTACK)`) takes the attack-carrier's arm,
     /// [`Sim::think_carry_army`] (`docs/AI.md` §235).
     ///
-    /// SEAM: the arm with nothing of the three aboard — `think_carry_idle`
-    /// (`005f2f30`), the walk to the nearest coastal city with a dock — is
-    /// not modelled, and answers `false`: the think goes on to the tail.
+    /// The arm with nothing of the three aboard is `think_carry_idle`
+    /// (`005f2f30`, [`Sim::think_carry_idle`]), the walk to the nearest
+    /// coastal city with a dock (item 3995).
     pub(crate) fn think_carry(&mut self, u: usize) -> bool {
         // `count_inside` opens on `is_on_map` of the carrier itself.
         let riders: Vec<usize> = if self.units[u].on_map {
@@ -630,60 +630,68 @@ impl Sim {
     ///    48: run879's `1/225` holds (6552, 7320) for the human's `0/2000`
     ///    at (6240, 7008), `off_x/off_y` 408.
     ///
-    /// SEAMS, answering `false`: the group with no army (an eject, then a
-    /// coastal city's search), and the army with no live target (its
-    /// region's centre, or a city of the region its leader marks `& 4`).
-    /// The rider chain's head is taken as the lowest-numbered rider; a boat
-    /// carries one squad here.
+    /// 3. **no army** (item 3995, `docs/GOLDEN.md` §188): the riders are
+    ///    ejected — at sea `come_out` refuses and they stay — and an
+    ///    emptied boat dies; a boat still carrying sails for **its owner's
+    ///    nearest live city** (a quarter of the distance for a city under
+    ///    attack), the centre of the city building's cell: run1553's barge
+    ///    `1/10` takes (38040, 16536) for who=1's added city on its birth
+    ///    frame.
+    ///
+    /// The steps are [`crate::units::think::carry_mil`]'s, swept against the
+    /// original (item 3411). SEAM, answering `false`: the army with no live
+    /// target away from its region (its region's centre, or a city of the
+    /// region its leader marks `& 4`). The rider chain's head is taken as
+    /// the lowest-numbered rider; a boat carries one squad here.
     pub(crate) fn think_carry_army(&mut self, u: usize, head: usize) -> bool {
         let who = self.units[u].owner;
         let Some(s) = self.units[head].group_ptr else {
             return false;
         };
-        let Some((reg, target)) = self.ai.armies.get(who as usize).and_then(|x| {
+        let army = self.ai.armies.get(who as usize).and_then(|x| {
             x.list
                 .iter()
-                .find(|a| a.valid && a.group.pool == Some(s))
-                .map(|a| (a.reg, a.target))
-        }) else {
-            return false;
+                .position(|a| a.valid && a.group.pool == Some(s))
+        });
+        // SEAM: an army with no live target walks to its region's centre
+        // (`Region +0x7c`) or a city of a region its leader marks `& 4`;
+        // this crate carries no region centre, and answers `false` there.
+        if let Some(a) = army
+            && !self.ai.armies[who as usize].list[a]
+                .target
+                .is_some_and(|t| self.obj_alive(t))
+        {
+            let reg = self.ai.armies[who as usize].list[a].reg;
+            if !self.carry_ashore(u, reg) {
+                return false;
+            }
+        }
+        let cities = (0..self.cities.cities.len())
+            .filter(|&c| self.cities.cities[c].alive && self.cities.cities[c].owner == who)
+            .collect();
+        let mut v = crate::units::think::carry_mil::SimCarryMil {
+            sim: self,
+            u,
+            group: usize::from(s),
+            army,
+            cities,
         };
+        crate::units::think::carry_mil::think_carry_military_steps(&mut v) != 0
+    }
+
+    /// Whether any of the boat's nine cells (its own and its eight
+    /// neighbours) lies in `reg` — `think_carry_military`'s ashore test.
+    fn carry_ashore(&self, u: usize, reg: Option<u16>) -> bool {
         let my_cell = self.units[u].pos.cell();
         let (width, height) = (self.world.width(), self.world.height());
-        let ashore = (0..9).any(|k| {
+        (0..9).any(|k| {
             let c = Cell::new(my_cell.x + MOVE_X[k], my_cell.y + MOVE_Y[k]);
             c.x >= 0
                 && c.y >= 0
                 && c.x < width
                 && c.y < height
                 && self.world.region_of(c).map_or(-1, i32::from) == reg.map_or(-1, i32::from)
-        });
-        if ashore {
-            // `eject_contents(0, -1, 0, 1)` (`think_carry@005f2ee0:108`): a
-            // unit host is never deferred (the head's `+0x60 |= 0x4000` arm
-            // is a building's), so the riders come out now, keeping their
-            // own empty lists (`param_3 = 0`). Then `inside_down >= 0`
-            // answers 1, and an emptied boat dies, `Object::die(boat, 0,
-            // -1, 0)` — whatever its type (item 3640: run1301's `1/68`).
-            self.eject_riders(u, false);
-            if !(0..self.units.len()).any(|i| self.units[i].inside_unit == Some(u)) {
-                self.transport_dies(u);
-            }
-            return true;
-        }
-        let Some(t) = target.filter(|&t| self.obj_alive(t)) else {
-            return false;
-        };
-        let c = self.pos_of(t).cell();
-        let to = Pos::new(c.x * 0x300 + 0x180, c.y * 0x300 + 0x180);
-        self.add_move_order(
-            u,
-            to,
-            crate::orders::MoveKind::MoveTo,
-            crate::orders::QueuePos::New,
-            false,
-        );
-        true
+        })
     }
 
     /// `Unit::think_carry_civilian(workers)@005f37c0` (`docs/AI.md` §195): a
@@ -1256,7 +1264,7 @@ impl Sim {
 
     /// `Object::eject_contents(boat, 0, −1, carry, 1)@0064cd20`'s loop:
     /// steps 1–4 of [`Sim::disembark`], step 4 on `carry` (`param_3`) alone.
-    fn eject_riders(&mut self, boat: usize, carry: bool) {
+    pub(crate) fn eject_riders(&mut self, boat: usize, carry: bool) {
         let bearing = self.units[boat].movement.heading;
         let riders: Vec<usize> = (0..self.units.len())
             .filter(|&i| self.units[i].inside_unit == Some(boat))
@@ -1422,7 +1430,7 @@ impl Sim {
     /// callers: [`Sim::disembark`] ashore, and
     /// [`Sim::boat_dies_into`] at an oil platform. `dtype` 0, so
     /// no death draw and no death object.
-    fn transport_dies(&mut self, boat: usize) {
+    pub(crate) fn transport_dies(&mut self, boat: usize) {
         self.units[boat].health = 0;
         // `Unit::close@0060ee50`'s count, at `0060f3db` (§16): the boat
         // that came in through `set_type`'s `+1` goes out the same gate.
@@ -1916,10 +1924,10 @@ impl CarryView for SimCarry<'_> {
     fn military(&mut self) -> i32 {
         i32::from(self.sim.think_carry_army(self.u, self.riders[0]))
     }
-    /// SEAM: `think_carry_idle` (`005f2f30`), the walk to the nearest coastal
-    /// city with a dock, is not modelled and answers `false`.
+    /// `think_carry_idle` (`005f2f30`), the walk to the nearest coastal city
+    /// with a dock (item 3995, `crate::units::think::carry_idle`).
     fn idle(&mut self) -> i32 {
-        0
+        i32::from(self.sim.think_carry_idle(self.u))
     }
 }
 
