@@ -2557,7 +2557,7 @@ impl UnitCols {
         let support = l
             .text("SUPPORT")
             .and_then(Cost::parse)
-            .map(|c| c.0.into_iter().map(|(res, n)| (res, n)).collect())
+            .map(|c| c.0.into_iter().collect())
             .unwrap_or_default();
         let job_extra_time = l
             .text("JOB_EXTRA_TIME")
