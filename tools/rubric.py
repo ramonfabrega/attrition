@@ -831,7 +831,7 @@ def print_matrix(cells, traces_per_age, never_any, unplaced, top=None):
 # --- the denominator of table 3 ---------------------------------------------
 
 
-# The tribe ids, in `rules.xml`'s `TRIBES` order (`crates/sim/src/nations.rs`'s
+# The tribe ids, in `rules.xml`'s `TRIBES` order (`crates/sim/src/cities/nations.rs`'s
 # roster); `TRIBE_MASK` is a 24-bit string MSB-first, so the rightmost
 # character is tribe 0 (`docs/FORMATS.md`, "TRIBE_MASK is a 24-bit string").
 TRIBES = ("Aztecs", "Maya", "Inca", "Bantu", "Nubians", "Greeks", "Romans", "Egyptians",

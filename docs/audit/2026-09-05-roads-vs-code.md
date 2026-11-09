@@ -105,7 +105,7 @@ where the parent test bites.
 | | |
 |---|---|
 | document | ROADS.md §1, "**The bit is set by `City::regen_roads@00738aa0`** … Its callers are `Build::activate` (a building finished) and **`Build::remove_from_city`**." |
-| code | `crates/sim/src/city.rs:566` (`fn remove_from_city`); the only `city_regen_roads` call site is `crates/sim/src/city.rs:1443` |
+| code | `crates/sim/src/cities/city.rs:566` (`fn remove_from_city`); the only `city_regen_roads` call site is `crates/sim/src/cities/city.rs:1443` |
 | document says | a building leaving its city flags every remaining member for a replan |
 | code does | `remove_from_city` clears the membership and re-syncs territory for a temple, and nothing else — no member is flagged, so no replan follows a building's removal |
 | difference shows | `BUILDS`' `build_masks` bit `0x100` on the frame a building leaves a city, and then the `PathFinder::calc_road_cost` draw count sixteen frames later. No capture on disk is known to reach it: run14's only `regen_roads` event is `1/2006` **activating** at frame 167 (§1's table). A capture that destroys or converts a city member — a raid, or `Wall::swap_team` — would show it |
@@ -123,7 +123,7 @@ difference the moment it fires.
 | | |
 |---|---|
 | document | ROADS.md §5, "Reconstruction starts at the arrived node's *parent* and stops before the root"; §9.1, "**each tile is a full pass of the mesh on its own**, not a batch at the end of the frame" |
-| code | `crates/sim/src/movement/roads.rs:227-235` (`fn place_roads`), against `crates/sim/src/movement/roads.rs:750` (`fn reconstruct`) and `crates/sim/src/caravan.rs:789-820` (`fn lay_caravan_road`) |
+| code | `crates/sim/src/movement/roads.rs:227-235` (`fn place_roads`), against `crates/sim/src/movement/roads.rs:750` (`fn reconstruct`) and `crates/sim/src/economy/caravan.rs:789-820` (`fn lay_caravan_road`) |
 | document says | the original pops its `Stack<PathData>` **from the top down**, and the top is the end nearest the **start** — the building — so tiles are laid from the building outward to the city |
 | code does | iterates `reconstruct`'s vector front to back, and `reconstruct` pushes the arrived node's parent first — the **goal** end — so `place_roads` lays from the city inward to the building, exactly reversed |
 | difference shows | any tile `Roads::set_diags` lays as a consequence (§9.3), which depends on which neighbours are already road when each tile goes down: the mesh's own tile on `gamelog-run72-greatlakes-marketroad.txt` frame 4803 (the seventeenth tile, `(223, 79)`), and thereafter the `PathFinder::calc_road_cost` price of any later search crossing that ground. It is invisible to a diff only while a road's tiles happen to be order-independent |
@@ -146,7 +146,7 @@ true before §9's mesh made each `set_road_at` a full pass.
 | | |
 |---|---|
 | document | ROADS.md §7.3, "a cell whose owner is an ally … is seen outright when that owner's `reg_cities` **or** `reg_forts` for the cell's *region* is non-zero (`LeaderData +0x125e` / `+0x12de`)" |
-| code | `crates/sim/src/ai_sites.rs:183-189` (`fn was_seen_fog`) |
+| code | `crates/sim/src/ai/ai_sites.rs:183-189` (`fn was_seen_fog`) |
 | document says | either count opens the shortcut |
 | code does | tests `self.leader_reg_cities(o, r) != 0` and nothing else — a region where the owner holds a fort but no city falls through to the fog read, and `calc_road_cost` doubles the node the original leaves alone |
 | difference shows | a doubled `PathFinder::calc_road_cost` price under the run62 recipe, on a node in a fogged cell of a region where the searcher has a fort and no city — the same signature as §7.3's six nodes. No capture on disk reaches it: `ai_sites.rs:146` records that no fort stands in any capture at the sweep, so the term has never been exercised |

@@ -207,7 +207,7 @@ fn the_emulated_original_agrees_on_every_row() {
     // The port's `(state, adds)` as the float the original holds: `adds`
     // single-precision adds of `0.005f` from zero, the exact `1.0f` for a
     // ripe cell, `1.0f` less `(200 − adds) / 2` subtractions of `0.01f` for
-    // a cut one (`crates/sim/src/farms.rs`' module comment). Inside the
+    // a cut one (`crates/sim/src/cities/farms.rs`' module comment). Inside the
     // `#[test]`, where the no-float lint stands aside.
     let percent_bits = |state: u8, adds: i32| -> u32 {
         let v = match state {

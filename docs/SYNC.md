@@ -125,7 +125,7 @@ good `i` is visited once every eight ticks, drawing three when its
 −3, −1, −9`; `flux_length = 15, 8, 21, 22, 11, 20`; good 0's price stepped
 50 → 51 first) are reproduced by draws **2–19** of the frame and by no other
 offset — the pin that places the market and proves the two phases before it
-draw exactly the sweep's two. Landed: `crates/sim/src/market.rs`.
+draw exactly the sweep's two. Landed: `crates/sim/src/economy/market.rs`.
 
 ## 3.2 The objects — `Objects::process_all@0065dce0`
 
@@ -188,7 +188,7 @@ Then, still inside `process_all`:
   986 → 1372 (`docs/ANIM.md` §7).
 
 Landed: the birds' sampling, the bird itself (§3.9) and the herd walk,
-`crates/sim/src/gaia.rs`.
+`crates/sim/src/gaia/mod.rs`.
 
 ## 3.3 The farms — `Farms::inc_time@008d8600`
 
@@ -250,7 +250,7 @@ Not per frame: per dock finished. `Build::activate` → `Docks::init_dock` →
 `process` in the objects phase (§3.2). Run21, frame 3579: draws 0 and 1
 are `Guy::init_real+0x52 < Unit::init < Animal::init` and `Dock::init+0x125
 < Docks::init_dock+0x128 < Build::activate+0xcbf`. `docs/TRANSPORT.md`
-§5.2; landed in `crates/sim/src/transport.rs` (`dock_open`).
+§5.2; landed in `crates/sim/src/ai/transport/mod.rs` (`dock_open`).
 
 **The dock's own frame is not the end of it, and that was East Indies'
 word at 3579** (2026-09-01). Two things stood in the way and both were
@@ -380,7 +380,7 @@ its own word's parting. `run_traced` now takes the trace as a source beside
 the siblings, and the second map's score asserts the pasture is there
 (item 69).
 
-Landed: `crates/sim/src/farms.rs` (`Farm::farm_type`, `Sim::farm_add_animals`,
+Landed: `crates/sim/src/cities/farms.rs` (`Farm::farm_type`, `Sim::farm_add_animals`,
 `Sim::think_farm_animal`), `Sim::build_covers_tile`, and
 `gamelog::Initial::farms` — the `Farms` list read off the dump, which has no
 block of its own (`Farms::log_data` writes `who`, `o`, the cells, the corner
@@ -475,7 +475,7 @@ and spends neither, on both sides. No coin appears on any capture: run20's
 new farm joins the city that holds the map's pasture, so `others != crops`
 settles the type without one.
 
-`crates/sim/src/farms.rs` (`Sim::farms_add`, `Sim::city_count_farms`,
+`crates/sim/src/cities/farms.rs` (`Sim::farms_add`, `Sim::city_count_farms`,
 `Sim::nearest_farm_type`, `Farm::valid`, `farms::AMBIENCE`), called from
 `Sim::init_build`. The check is
 `diff::tests::run20_s_frame_1_spends_the_farm_s_ambience_pair` and
@@ -682,7 +682,7 @@ fourth.
 #### The flight — `Unit::do_air_physics@005e86d0` (2026-09-02)
 
 A wild bird takes a narrow path through a function written for the game's
-aircraft. Everything below is `crates/sim/src/air.rs`; the addresses are the
+aircraft. Everything below is `crates/sim/src/air/mod.rs`; the addresses are the
 whole of the argument, because **nothing dumps owner 9 and the flight has
 exactly one observable** — the coin at `+0x639`.
 
@@ -918,7 +918,7 @@ fuzzed map's carry their own fifteen, so this is not one capture's trick.
 
 ### The pasture, landed (2026-08-30)
 
-`crates/sim/src/farms.rs` now creates each animal with its species and so
+`crates/sim/src/cities/farms.rs` now creates each animal with its species and so
 with a **`type_index`** — which is the whole of why the clock never wrapped,
 since `Sim::slot_length` keys the install's gaia table by it — at its
 borrowed position, with `Objects::init_unit`'s speed and turn rate, and
@@ -979,7 +979,7 @@ facings were the original's, both together cost run33's word 780 → 584,
 because the arm reads `des_angle != angle` on *every* standing unit. With
 §3.12 in first they cost nothing: run39's early window is **64 of 64 on the
 count and 64 draw for draw**, the word goes 19 → **69**, and Great Lakes holds
-at 780 and improves to 954/843. `crates/sim/src/farms.rs` snaps the animal at
+at 780 and improves to 954/843. `crates/sim/src/cities/farms.rs` snaps the animal at
 birth; `anim.rs`'s `guys_follow` carries the arm and its sea guard.
 
 **The named suspect for the other map was a dead end, and that is now an
@@ -1871,7 +1871,7 @@ it agrees now. Nothing at all parts at or below block 7585 but run87's own
 carried residue. `rondata::diff`'s
 `run89_s_window_is_great_lakes_word_frame`, and
 `a_bird_s_figure_lags_its_unit_and_stands_only_when_the_step_is_refused`
-in `crates/sim/src/air.rs`.
+in `crates/sim/src/air/mod.rs`.
 
 **The gull is a seam, not a rule.** `Unit::do_strafe` is still unmodelled
 (§3.9), so this crate flies no gull; a figure sitting on its unit for
@@ -2365,7 +2365,7 @@ struck through and point there.
   eighth frame per live bird, and its landing search is sixty more on the
   frame a bird lands (2026-08-31).
   ~~`do_air_physics` stays open~~ — **read whole 2026-09-02**, §3.9 "The
-  flight", and implemented in `crates/sim/src/air.rs`; what stays open is
+  flight", and implemented in `crates/sim/src/air/mod.rs`; what stays open is
   the *phase* of the orbit it flies, which is why the module is not called.
   `Guy::set_anim`'s bird branch stays open, and the 25 phase-7 wraps it
   leaves unspent are what still stands between the simulation's stream and
@@ -2582,7 +2582,7 @@ kind honest.
   1256. **The flight is diff-backed too, since run61**: proxying
   `do_air_physics` and the two functions it calls turns a bird's position,
   goal and bank into a per-frame record, and
-  `run61_s_birds_fly_where_the_original_s_do` holds `crates/sim/src/air.rs`
+  `run61_s_birds_fly_where_the_original_s_do` holds `crates/sim/src/air/mod.rs`
   to 45,712 of them — ten birds, birth to frame 5,400, every position and
   every bank zero-crossing (§3.9, "The birth"). `air::tests` and
   `single::tests` still hold the module and its arithmetic to the reading

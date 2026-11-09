@@ -2,7 +2,7 @@
 
 Method: every disagreement below was re-read in `~/ghidra-projects/decomp/funcs/<Class>/<method>@<addr>.c`, with `types.txt`/`vtables.txt`, and — where Ghidra dropped the argument of a devirtualised `ObjectData::is` call (vtable +0xb8) — settled from the raw bytes of `riseofnations.exe` with `llvm-objdump` (image base 0x400000, section .text VA = file VA). Type indices were mapped by position in `game/data/unitrules.xml` (units start 0x32) and `buildingrules.xml` (buildings start 0x19e).
 
-Files: A = `docs/PRODUCTION.md`, `crates/sim/src/production.rs`, `crates/sim/src/lib.rs` (queue_up/cancel/queue_target/process_queues/advance_slot). B = `/Users/rf-studio/.claude/jobs/3c382923/tmp/rederive-production.md`.
+Files: A = `docs/PRODUCTION.md`, `crates/sim/src/cities/production.rs`, `crates/sim/src/lib.rs` (queue_up/cancel/queue_target/process_queues/advance_slot). B = `/Users/rf-studio/.claude/jobs/3c382923/tmp/rederive-production.md`.
 
 ---
 
@@ -103,7 +103,7 @@ Files: A = `docs/PRODUCTION.md`, `crates/sim/src/production.rs`, `crates/sim/src
 6. Wonder 0x21d is the Supercollider. Add: research-only modifier block vs train-only block (B1); ordinary-tech catch-up `(P - n + 1)/(P + 1)` with Greek only on age/epoch (B2); unassimilated ×5/4 common tail (B3); silo gate and infinite-queue flag as noted (B4, B6).
 7. Strike open questions: `queue_size` (20/10/2 from `Build::init`), availability bit = `LeaderData::tech` BitMask set by `gain_tech:303`, `can_make` (read), semaphore bit 11 = scenario editor, single ×3 ceiling.
 
-**crates/sim/src/production.rs / lib.rs**
+**crates/sim/src/cities/production.rs / lib.rs**
 1. `process_queues`: drop the per-building `parallel_slots(...).max(1)` fan-out; only a library (first library) uses `get_building_cities`; everything else advances slot 0. [D1]
 2. `advance_slot`: on `Population`/`Limit` at slot 0, advance the first slot ≥ 1 whose entry is a research job (`!researched[ty]`) — and, once caravans/aircraft exist, the non-caravan/helicopter fallback on `Limit`. [D2]
 3. `advance_slot`: a research entry (`!researched[ty]`) completing sets `researched[ty] = true`, removes the entry with no refund, spawns no unit, bumps no `by_type`/`control`/`by_group`, and skips `hand_over`. [D4]

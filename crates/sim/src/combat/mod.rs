@@ -2826,3 +2826,19 @@ mod tests;
 
 #[cfg(test)]
 mod table_tests;
+
+// The files of `combat/` (item 4012, `docs/STRUCTURE.md` §3).
+pub mod attack_pos;
+pub mod balance;
+pub mod build_attack_view;
+pub(crate) mod build_family;
+pub mod build_plunder_view;
+pub mod cavarch;
+pub mod damage;
+pub mod fight;
+pub mod hero_radius_view;
+pub mod nuke;
+pub mod object_attack_view;
+pub mod plunder;
+pub mod take_damage_view;
+pub mod unit_attack_view;

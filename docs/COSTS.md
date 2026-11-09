@@ -33,7 +33,7 @@ was the second reading's most common correction. The research path — what an
 open is listed at the end, and the building and wonder ramps are the largest
 piece of it.
 
-**Where the implementation is.** `crates/sim/src/cost.rs`. Every constant below
+**Where the implementation is.** `crates/sim/src/economy/cost.rs`. Every constant below
 is re-read from the user's own install by `cargo run -p rondata -- <install>`,
 which fails if any has drifted.
 
@@ -602,7 +602,7 @@ Three that are not the standard shape, and are the interesting ones:
   this list. `Build::refund_cost` inverts exactly this expression, which is why
   a queued item's price is re-derived rather than remembered — see §Paying,
   where it is written out and landed. ~~The purchase side is still not
-  applied.~~ Applied 2026-08-30: `crates/sim/src/cost.rs`'s
+  applied.~~ Applied 2026-08-30: `crates/sim/src/economy/cost.rs`'s
   `science_discount`, carried into `cost_of` as `Modifiers::science_ahead`
   and set by `Sim::tech_price`. It sits where the original calls it — after
   `TECH_COST_FACTOR` and the nation tail, before the age-behind discount and
@@ -1444,7 +1444,7 @@ population chain from the scenario override to the Colossus.
 
 Nine disagreements, eight resolved against the earlier draft of this document
 and one an implementation slip neither reading had stated; all landed above and
-in `crates/sim/src/cost.rs` (with `lib.rs`, `harness_tests.rs` and the `rondata`
+in `crates/sim/src/economy/cost.rs` (with `lib.rs`, `harness_tests.rs` and the `rondata`
 check) on the same day, and each place that changed says so inline. Three
 changed observable behaviour:
 

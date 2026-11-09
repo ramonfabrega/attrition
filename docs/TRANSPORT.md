@@ -627,7 +627,7 @@ right after the think it died in: a boat standing on its `des` on the walk
 with `stopped` set pays the arrival stand on its last frame — a draw no dump
 shows. East Indies' `1/56` on 8519 (the journal, item 1191).
 
-`crates/sim/src/transport.rs`'s `disembark` is steps 1–4 in the original's
+`crates/sim/src/ai/transport/mod.rs`'s `disembark` is steps 1–4 in the original's
 own order. What is **not** established: step 5's `is(0x45)` clause and the
 `leader_options` bit (the crate's `auto_transport` is never cleared by
 boarding, so the passenger keeps the flag either way and no capture
@@ -1085,7 +1085,7 @@ Under `DUMP_ALL` (run20, every frame block; `docs/ORACLE.md`):
 
 ## 12. What the simulation carries, and what checks it
 
-`crates/sim/src/transport.rs`: the level (§2, §4), the three unit
+`crates/sim/src/ai/transport/mod.rs`: the level (§2, §4), the three unit
 predicates (§3), `needs_transport` (§6), the dock registry as `reg_docks`
 plus the two draws at activation and the decrement at close (§5), the gull
 as a bird whose walk request and wing beat are on the stream (§5.2.1, with

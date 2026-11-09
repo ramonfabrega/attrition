@@ -425,14 +425,23 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// `docs/STRUCTURE.md` §3 — `core/`, `num/`, `world/`, `mapgen/`,
 /// `territory/`, `vision/`, `units/`, `units/think/`, `movement/`,
 /// `data/` — took 75 root files, each by `git mv`.
+///
+/// Item 4012: `flat` 128 → 7 (−121): the other fourteen — `orders/`,
+/// `groups/`, `combat/`, `spells/`, `air/`, `cities/`, `economy/`,
+/// `leaders/`, `tech/`, `ai/`, `ai/army/`, `ai/transport/`, `gaia/`
+/// took 121 root files (`trace/` has none until `lib.rs` is split); the
+/// seven left are `lib.rs` and its six test and guard modules.
+/// `largest` 13437 → 13442 (+5), the one count that rose: `orders.rs`
+/// became `orders/mod.rs` and must declare its five siblings, and the
+/// module tree has no other place to say them; 4015's cut takes it down.
 #[cfg(test)]
 pub const STRUCTURE: [(&str, u64); 6] = [
-    ("flat", 128),
+    ("flat", 7),
     ("test-tails", 0),
     ("sweep-lines", 17_255),
     ("names", 130),
     ("fields", 92),
-    ("largest", 13_437),
+    ("largest", 13_442),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before

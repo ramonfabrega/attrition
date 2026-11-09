@@ -550,7 +550,7 @@ accumulator costs nothing and keeps the guard load-bearing.
 The cost path has a sharper one. `TypeData::can_pay_cost` answers "how many of
 these can I afford" and takes the **maximum** across resources where the answer
 is the minimum. It is not ambiguous and it is not a decompiler artefact; it is
-a `<` that should be a `>`. `crates/sim/src/cost.rs` takes the maximum, and the
+a `<` that should be a `>`. `crates/sim/src/economy/cost.rs` takes the maximum, and the
 test that pins it is called `the_affordability_count_takes_the_maximum`.
 
 Three reasons, in order of weight.
@@ -737,7 +737,7 @@ rounded, so the original is deterministic here and the port is exact.
 
 **Chosen:** the shipped `ai/scripts/*.bhs` are read from the user's install at
 load time, like the XML tables, and executed by an interpreter of our own —
-`crates/sim/src/bhs.rs`, a tree-walker written from the language's observed
+`crates/sim/src/ai/bhs.rs`, a tree-walker written from the language's observed
 semantics (`docs/AI.md` §3, §11) over a `Host` trait the simulation
 implements. The engine's bytecode compiler and VM were read for what the
 language *means* — that truth is `> 0`, that arguments evaluate right to left,
@@ -1326,7 +1326,7 @@ first thing this project has read whole, implemented faithfully, and then
 **not called**. The rule it settles is worth writing down, because the case
 will recur.
 
-`crates/sim/src/air.rs` reproduces the function arm for arm against the
+`crates/sim/src/air/mod.rs` reproduces the function arm for arm against the
 listing, and `crates/sim/src/num/single.rs` reproduces the single-precision
 arithmetic its bank angle is written in, exactly, in integers. Wired into
 the unit loop it flies a bird the way the original flies one — the same

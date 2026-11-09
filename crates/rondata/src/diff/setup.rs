@@ -764,7 +764,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         if (0..players as i64).contains(&l.who) {
             let who = l.who as usize;
             // The nation, and every power that follows from it
-            // (`crates/sim/src/nations.rs`). The dump's `tribe` is the
+            // (`crates/sim/src/cities/nations.rs`). The dump's `tribe` is the
             // roster index — run40's 11 and 4 are the British and the
             // Nubians — and `-1`, which a gaia leader carries, is a leader
             // with no nation rather than the Aztecs.
@@ -1455,7 +1455,7 @@ pub(crate) fn start_of_game(
                     .map(|&(x, y)| Pos::new(x as i32, y as i32))
                     .collect();
                 // `Build::find_gather_tiles` line 88: the list is what the
-                // slot count is surveyed from (`crates/sim/src/gather.rs`).
+                // slot count is surveyed from (`crates/sim/src/economy/gather.rs`).
                 sim.buildings[handle].gather_max = Some(sim.max_gatherers(handle));
             }
             if ty.is_some() {
@@ -2750,7 +2750,7 @@ mod tests {
         }
         // `gather_slots` sums each finished gather building's `gather_max`:
         // the farms (flat, 1 each) and the woodcutter camp's five, surveyed
-        // from its `gather_from` list by `crates/sim/src/gather.rs`.
+        // from its `gather_from` list by `crates/sim/src/economy/gather.rs`.
         let t = arr("gather_slots[scan]");
         let slots = built.sim.ledgers[1].gather_slots;
         assert_eq!(i64::from(slots[0]), t[0], "food slots");

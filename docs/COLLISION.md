@@ -1019,7 +1019,7 @@ In order, with the first that fires winning:
 ## 7. What this crate models
 
 `crates/sim/src/movement/collide.rs`, wired into `Sim::unit_step`
-(`crates/sim/src/orders.rs`), `Sim::set_new_location` and
+(`crates/sim/src/orders/mod.rs`), `Sim::set_new_location` and
 `Sim::find_nearby_spot`.
 
 Modelled: the bitmask with its clear-on-move semantics and the region gate;
@@ -3116,7 +3116,7 @@ add reads the same stance, so it is `QUEUE_NEW`. The defensive-post arm
   the met bit's one writer).
 - **`fight`'s own budget arm**, `waiting < 5 && retargets > 10`, which
   returns without searching, is still not modelled
-  (`crates/sim/src/orders.rs`). The counter it reads now is.
+  (`crates/sim/src/orders/mod.rs`). The counter it reads now is.
 - The follower branch, the captain-at-ten branch and the siege exemption
   are reading only. run171 reaches the first captain branch alone.
 - `find_new_target`'s defensive post, and its `GUARD`-activity and
@@ -3187,7 +3187,7 @@ and `return 0`.
 For `1/43` on 14649: elapsed 6, and `vector_dist(96, 240) = 240 + 96² /
 480 = 259 < 288`. The first frame the arm could fire, it did.
 
-`Sim::do_move`'s suspended block (`crates/sim/src/orders.rs`) carries it
+`Sim::do_move`'s suspended block (`crates/sim/src/orders/mod.rs`) carries it
 now, replacing the SEAM line that called it dormant. ~~The `ATTACK` retarget
 above it is still a seam.~~ Built by item 3336 (`docs/AI.md` §272).
 
@@ -3395,7 +3395,7 @@ arrived` and did not say that no step was taken. This crate stepped onto
 Since the tolerance is twice the distance, the test always passes from
 where the unit stands. The code still runs the original's test rather
 than assuming it (`Sim::move_step`'s `gave_up` arm in
-`crates/sim/src/orders.rs`), and a unit test pins that it arrives.
+`crates/sim/src/orders/mod.rs`), and a unit test pins that it arrives.
 
 ### 17.3 What it moved
 

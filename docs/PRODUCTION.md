@@ -45,7 +45,7 @@ earlier draft said. Where the decompile had to settle a devirtualised `is`
 call whose argument Ghidra dropped, the audit did it from the raw bytes; this
 document cites the audit for those.
 
-**Where the implementation is.** `crates/sim/src/production.rs`. Every constant
+**Where the implementation is.** `crates/sim/src/cities/production.rs`. Every constant
 below is re-read from the user's own install by
 `cargo run -p rondata -- <install>`, which fails if any has drifted.
 
@@ -132,7 +132,7 @@ freely. What the cap stops is further down, at completion.
 `queue_size` is decided in `Build::init`: **20** for a building whose
 `build_flags` say military trainer or training building, **10** for one with
 `build_flags & 0x08000000`, **2** for everything else, and `BuildQueue::init`
-accepts only those three. ~~`crates/sim/src/production.rs` still takes the
+accepts only those three. ~~`crates/sim/src/cities/production.rs` still takes the
 capacity as an input, because the flags that choose it are a building-type
 system the simulation does not have.~~ **The flags exist now**
 (`docs/DATALAYER.md`, "The derived words no column carries"): all three are
@@ -350,7 +350,7 @@ Roughly thirty modifiers follow, all of the same three shapes —
 `t = t * 100 / (K + 100)` to speed up by K percent, `t = K * t / 100` to scale
 directly, and a plain `t * num / den` for the handful written as shifts. Which
 of them apply depends on the tech tree, the wonder list and the nation roster,
-none of which the simulation models yet, so `crates/sim/src/production.rs`
+none of which the simulation models yet, so `crates/sim/src/cities/production.rs`
 takes the tail as an ordered list of those three shapes rather than as thirty
 predicates — the same call `docs/MOVEMENT.md` made for `speed`. They are
 enumerated here rather than each derived:
@@ -405,7 +405,7 @@ enumerated here rather than each derived:
   type's own, since only a tech record has an `AGE`, but its first
   prerequisite's: `TypeData +0x30` is `preq[0]`, `TechTypeData +0x1c8` is the
   column, and a negative `preq[0]` reads as level zero.
-  `crates/sim/src/production.rs`'s `science_speedup`, and **diff-backed** —
+  `crates/sim/src/cities/production.rs`'s `science_speedup`, and **diff-backed** —
   see "The record, diffed".
 - **An unassimilated-city penalty** at the very end, applied to everything:
   a building in a city whose owner's race is not the player's, while the
@@ -420,7 +420,7 @@ it to the common tail. The train-only block — `UNIT_RATE_BASE`, the ramp, the
 national unit bonuses, `TROOPS_FASTER`, the speed-upgrade counts, cotton, wool,
 `SPIES_GENERALS_CREATED_FASTER`, Monarchy, Socialism, the unit wonders,
 Kremlin and `INSTANT_UNIT_BONUS` — is reached only with the bit set. Since
-`crates/sim/src/production.rs` takes the tail as an ordered input, **the
+`crates/sim/src/cities/production.rs` takes the tail as an ordered input, **the
 caller must never feed a research-only modifier to a train job or a train-only
 one to a research job.** The full order, spot-checked against the decompile, is
 in `docs/audit/2026-08-20-production.md` §3 O7.
@@ -455,7 +455,7 @@ line's root, and `0x119` the **Anti-Aircraft Gun**. `BRITISH_SHIP_SPEED` and
 `BRITISH_AA_SPEED` both ship as **33**; `BRITISH_ARCHER_SPEED` ships as
 **0**, so that middle test is live and inert at once — `t * 100 / 100`. The
 anti-air constant is one constant with two readers: this one and
-`Wall::update_construct_time@0063d560`, which `crates/sim/src/build.rs`
+`Wall::update_construct_time@0063d560`, which `crates/sim/src/cities/build.rs`
 already had.
 
 **Starting the tail at the British arm is exact here rather than
@@ -840,7 +840,7 @@ and staged in "The player's research" below (item 883).
 **In the code**: `production::Queue::infinite` is the bit, and
 `Queue::unqueue` clears it on the empty queue; `Sim::can_infinite`,
 `Sim::requeue_infinite` and `Sim::action_queue_up` are in
-`crates/sim/src/production.rs`; the 0x40 arm of `Sim::action_buildmask`
+`crates/sim/src/cities/production.rs`; the 0x40 arm of `Sim::action_buildmask`
 is in `air.rs`; `do_queue`'s read-before-unqueue is `Sim::advance_slot`'s
 `Handover::Trained` arm. The harness compares the bit beside 0x80.
 
@@ -874,7 +874,7 @@ walk over the run, the recorded pairs refunded, `num_queued` and the AI
 tallies taken down (neither below 0), `queued` less one and the tail
 copied down; a slot past the end is nothing.
 
-**In the code**: `Sim::action_unqueue` in `crates/sim/src/production.rs`
+**In the code**: `Sim::action_unqueue` in `crates/sim/src/cities/production.rs`
 over `Sim::cancel`; `input::unqueue` is the command's entry, and the
 recorded stream's `Unqueue` goes through it (no kept stream carries one).
 
@@ -924,7 +924,7 @@ is asked before it (`can_pay_cost` at `vslot 0x84`, then `could_queue`).
 **In the code**: `Sim::action_queue_research` (a technology) and
 `Sim::action_queue_up`'s research arm (a unit type whose bit is clear),
 over `group_queue_up::action_queue_up_steps` (swept, item 3330) and
-`Sim::researching_unit`, in `crates/sim/src/production.rs`; `Sim::queue_tech` carries `can_make`'s
+`Sim::researching_unit`, in `crates/sim/src/cities/production.rs`; `Sim::queue_tech` carries `can_make`'s
 held and researching refusals; `input::group_queue_up` maps a
 technology's `TypeIndex`. A building type's arm is not mapped.
 
@@ -2139,7 +2139,7 @@ damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
 - ~~**`BuildQueue::init` and where `queue_size` comes from.**~~ Closed by the
   second reading: `Build::init` chooses 20, 10 or 2 from the building type's
   flags (see "Queueing charges the price"), and `BuildQueue::init` accepts
-  only those. `crates/sim/src/production.rs` still takes the capacity as an
+  only those. `crates/sim/src/cities/production.rs` still takes the capacity as an
   input, because the flags are a building-type system the simulation lacks.
 - ~~**`BuildData::can_make`**, the first gate in `could_queue`.~~ Read by the
   second reading: active; unless the scenario-editor semaphore or
@@ -2172,7 +2172,7 @@ damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
   clauses are the Americans' free first wonder, the Hanging Gardens, the
   President and the Iroquois' first senate. It is the foundation clock that
   `Wall::do_construct` compares `job_counter` against; implemented in
-  `crates/sim/src/build.rs`.
+  `crates/sim/src/cities/build.rs`.
 - ~~**The build-time analogue of the price ramp's four ceilings.**~~ There is
   exactly one cap in `train_time`, the `×3`, and the second reading found no
   other. Closed.
@@ -2183,14 +2183,14 @@ damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
 - ~~**`TECH_SCIENCE_SPEEDUP` is loaded and never applied.**~~ Applied, both
   sides, 2026-08-30. The **time** side is `ObjectData::train_time`'s own
   inline step and is enumerated under "Time" above; it is
-  `crates/sim/src/production.rs`'s `science_speedup`, reached from
+  `crates/sim/src/cities/production.rs`'s `science_speedup`, reached from
   `Sim::tech_time` for a technology and from `Sim::queue_target` for a unit
   research job, and it is **diff-backed** — see "The record, diffed". The
   **price** side is `LeaderData::calc_science_discount@006da630`, which
   returns `value − ahead × TECH_SCIENCE_DISCOUNT × value / 100` with `ahead`
   the decrypted `epoch[3]` less the tech's own level — the `AGE` column plus
   one unless the type is an age (`0x220..0x226`) or an epoch
-  (`0x227..0x242`); it is `crates/sim/src/cost.rs`'s `science_discount`,
+  (`0x227..0x242`); it is `crates/sim/src/economy/cost.rs`'s `science_discount`,
   reached from `Sim::tech_price` through `Modifiers::science_ahead`, and it
   is **reading-only**: no traced capture queues anything but the two epochs
   `0x227` and `0x235`, for which `ahead` is zero. `docs/COSTS.md`

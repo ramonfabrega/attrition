@@ -178,7 +178,7 @@ address so the next reader can check the bytes:
    "1,000,000 divided by 1.15, 1.1 and 4.4" is therefore 20/23 (k = 20,
    pop cap 50, three Merchants), 30/33 (k = 30, pop cap 75), and 30/33 × ¼
    — the same formula at three states, not three constants.
-4. **The port has the formula.** `crates/sim/src/ai_units.rs`:
+4. **The port has the formula.** `crates/sim/src/ai/ai_units.rs`:
    `offer_value(fac, want, val, divisor)` is `fac × (want × val / divisor)
    / 256` with `divisor = want + queued + units` and `want_civ = pop_cap ×
    2 / 5` (min 4); the merchant arm returns `(1_000_000, 4, want_civ)`

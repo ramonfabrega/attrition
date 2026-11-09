@@ -48,7 +48,7 @@ loaders' derived fields (a combat unit's implicit Military requirement, the
 below and marked "second reading" where they changed what an earlier draft
 said.
 
-**Where the implementation is.** `crates/sim/src/tech.rs`: the tree as data
+**Where the implementation is.** `crates/sim/src/tech/mod.rs`: the tree as data
 (`TechTree`, `TypeDef`, `Kind`), one `PlayerTech` per player, and the
 predicates and procedures below under their original names. The rules that
 name a particular type do so through `Roles` (`docs/DECISIONS.md` entry 18).
@@ -156,7 +156,7 @@ Which column feeds which field, read at each class's `init`:
 | good | `resourcerules.xml` | `PREQ0 PREQ1` | — | — | — | `OBS` |
 
 **Four things the loaders derive after reading the columns** (second
-reading; `crates/sim/src/tech.rs` does them in `TechTree::finalize`):
+reading; `crates/sim/src/tech/mod.rs` does them in `TechTree::finalize`):
 
 - **A combat unit that names only an age also needs that age's Military
   epoch.** `UnitType::init`: if `preq[0]` is an age, `preq[1]` is `none` and
@@ -402,7 +402,7 @@ record's position is the nation's identity everywhere: the `n` of
 | 12 Germans | 13 Russians | 14 Chinese | 15 Japanese | 16 Koreans | 17 Mongols |
 | 18 Iroquois | 19 Lakota | 20 Americans | 21 Indians | 22 Dutch | 23 Persians |
 
-`crates/sim/src/nations.rs` holds it as `ROSTER`, and
+`crates/sim/src/cities/nations.rs` holds it as `ROSTER`, and
 `cargo run -p rondata -- <install>` re-derives the whole list from the user's
 own `rules.xml` and `tribes/` and exits non-zero if a name has moved — a
 nation that shifted by one would silently hand its power to its neighbour.

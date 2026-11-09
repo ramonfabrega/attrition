@@ -4341,7 +4341,7 @@ block: 782, 802, 929, 930, 931, 932, 968, 969, 1023, 1083.
 **The word: `GOLDEN_WORD_CHAPTER_TWENTY_ONE` = 1300, closed** (item 824;
 ~~1141, open, on the first walk~~, item 813). The command's entry —
 `input::group_swarm_around` → `Sim::group_swarm_around`
-(`crates/sim/src/swarm.rs`) → `group_action_swarm_around` — and piece
+(`crates/sim/src/groups/swarm.rs`) → `group_action_swarm_around` — and piece
 120's bays landed with the chapter, and nothing of the repair line parts.
 813's word was past it: on 1141 the original spent `0/7`'s and `0/8`'s
 walk-step draws (`Guy::set_anim` < `Unit::move_step`), and this crate
@@ -11292,7 +11292,7 @@ ours (2006, 1) against (−1, −1) — the original's follower re-adds its capt
 writes no `near`; this crate's search wrote it. On **770**, `0/8`'s `order:kind` 10 against 12 and `orders.len` 2
 against 1: this crate's search took who=1's Citizen added on 760 and attacked it where the head re-added the Stockade
 and `chase_refused` killed it; its tails on 771, 778 (`order:guard.idle` 103 against 111) and 786.
-**Built** (`crates/sim/src/orders.rs`): `Sim::find_melee_target_headed` — `melee_squad_head`, then the search and
+**Built** (`crates/sim/src/orders/mod.rs`): `Sim::find_melee_target_headed` — `melee_squad_head`, then the search and
 `nearby_add` — for `find_new_target` (the refused chase, the captain's re-search and the enemy ladder's
 `stand` call alike) and for `fight`'s guard refusal; the head's add is `Sim::squad_head_add`, which
 `find_melee_target_added_in` now shares. The value diff after: 690 `0/8 near` (−1, −1) both sides, 770 `order:kind`
@@ -11442,7 +11442,7 @@ there. Its search's `check_target(…, param_6 1, param_7 0)` asks `poor_target`
 refused before `near` is written. Nothing is found: `local_4c` stays above `0xf00`, `near` goes to −1/−1, and the
 attack is gone with the `GUARD` in front. That is the original's block 779.
 
-**Built** (`crates/sim/src/orders.rs`, `fight`'s captain arm): `research` is the old predicate **or**
+**Built** (`crates/sim/src/orders/mod.rs`, `fight`'s captain arm): `research` is the old predicate **or**
 `poor_target(me, target)` on a unit target. **The value diff on block 779**: `0/10`'s `near` was (6, 1) here
 against (−1, −1) there, and is (−1, −1) both sides; `orders.len` was 3 against 1, and is 1 both sides (the `GUARD`).
 All eighteen of the word's rows on 779–780 leave, and the pool's 780 `facing` with them.
@@ -11506,13 +11506,13 @@ On 900 `1/12` finds army 0 with `units []`.
 
 **Two builds.**
 
-- **`think`'s step 3 adds its attack as `find_nearby_target` does** (`crates/sim/src/orders.rs`,
+- **`think`'s step 3 adds its attack as `find_nearby_target` does** (`crates/sim/src/orders/mod.rs`,
   [`Sim::nearby_add`]). `think_attack` calls `find_melee_target(−1, &whom, 0, 1, 0)`, which adds its own order:
   `QUEUE_FIRST` under an attack-move. This crate added `QUEUE_NEW`, which dropped `1/9`'s walk on 701 under its
   attack on `0/7`. **Value diff, block 702**: `1/9 orders.len` was 1 here against 2 there, and is 2 on both sides
   (`[ATTACK 0/7, ATTACK_TO (45720, 32472)]`). Block 703's `path[0].to` was (44376, 31656) against (45720, 32472),
   and now agrees. All four of 702–703's rows leave.
-- **An army reads the pool record on its index** (`crates/sim/src/army.rs`, `army_pool_record` and `add_to_army`).
+- **An army reads the pool record on its index** (`crates/sim/src/ai/army/mod.rs`, `army_pool_record` and `add_to_army`).
   When the army's own seat lists no live member and a pushed group of the same player stands on the army's pool
   index with a live member, that group is the army's record: its first live member is `get_unit(0)`, the walk goes
   there, and the join is that group's `Group::add`. A joiner the record already lists is `Army::member` there, and the
@@ -11613,7 +11613,7 @@ capture.**
 read from the Chariot. `facing` is 0 against 1. `0/11`'s and `0/12`'s slots are swapped: `x` 13416 against 13608,
 and the pool's `curr[1]`/`curr[2]` and `off[1]`/`off[2]` swapped too. 42 rows and 6 pool keys in all.
 
-**Built** (`crates/sim/src/group.rs`, `Sim::unit_final_loc`): `Body::Follow` answers its leader's point when the
+**Built** (`crates/sim/src/groups/group.rs`, `Sim::unit_final_loc`): `Body::Follow` answers its leader's point when the
 leader is `flags & 1`, as a guard does. With it, every row on 662 and 712 agrees. That holds under the leg too,
 since the walk starts at the bottom. The widening over run827 whole (605..761) leaves the eleven standing `form` rows
 (605). The pool parts nothing.
@@ -11690,11 +11690,11 @@ widened_whole`):
 
 - **The birth arm** (`crates/sim/src/lib.rs`, `init_unit`; `combat::umask2::BARK`). Without it, block 622: `1/8`
   `stance` 0 here against 3 there (402 rows against 401).
-- **`fight`'s predicate** (`crates/sim/src/orders.rs`, the captain's re-search, `fight@005fd4d0:394-400`): with the
+- **`fight`'s predicate** (`crates/sim/src/orders/mod.rs`, the captain's re-search, `fight@005fd4d0:394-400`): with the
   bit, a target whose role is combat and whose type is not `n` (`unit_flags & 0x2000`) is searched past; without
   it, one whose role is not. Without the arm, block 635: `0/7`'s `near` (6, 1) here against (7, 1) there — the
   original drops the Bark it was handed for the fishing boat (402 rows).
-- **The stance button's human arm** (`crates/sim/src/group.rs`, `group_action_stance`): for options 1, 2 and 5, a
+- **The stance button's human arm** (`crates/sim/src/groups/group.rs`, `group_action_stance`): for options 1, 2 and 5, a
   human's current order without the action bit, under an action order without it, is `repath`ed and killed. Without
   it, block 682: `0/7`'s `idle` 0 here against 1 there, and its stale attack held (411 rows).
   `a_human_s_stand_ground_kills_an_order_without_the_action_bit` holds it on a fixture.
@@ -11746,7 +11746,7 @@ attacker (`type +0x218 == 1`) of the Bark line (`is(0x143)`) against a sea targe
 (`is(0x154)`, TRIREME: Trireme, Galley, …) by 400 (`imul 0x51eb851f; sar 7`) and multiplies a transport
 (`unit_flags & 0x10`, `lea; shl 3`) by 40; then every unit target divides by its `full + 1` (`movsbl 0xac`, `idiv`).
 
-**Built** (`crates/sim/src/fight.rs`, `compare_target`; `combat::role::TRIREME`, loaded by id in
+**Built** (`crates/sim/src/combat/fight.rs`, `compare_target`; `combat::role::TRIREME`, loaded by id in
 `crates/rondata/src/load.rs`): the sea arm. `full` is 0 on every unit of the dump and is not carried (a SEAM).
 With it block 634 agrees, and block 635's `0/6` takes the fishing boat as the original does.
 
@@ -11756,7 +11756,7 @@ the original too — and the original's `Unit::do_move+0x6e6` then calls `change
 retarget (`docs/COMBAT.md` §37.2) hands `0/7` the fishing boat in range. Its candidate predicate is `fight`'s
 (`uVar17`, `do_move@005f7b30:262`–`271`): with `unit_masks2 & 4` a non-combat candidate or an `n` one, without it a
 combat role. This crate had the second sense for every attacker. **Built**: `Sim::retarget_admits`
-(`crates/sim/src/orders.rs`).
+(`crates/sim/src/orders/mod.rs`).
 
 **The word: 820, the trace's end — closed** (637 → 820). Value diff on the word's old frame, block 635, `0/7`:
 ours now `ATTACKORDER` on `1/7`, `in_range 1`, at (12312, 34872), as theirs; before, ours chased `1/8` with a
@@ -11816,7 +11816,7 @@ long pins (the third pair's closing, run714's) stood on `1/2000 city:raid_stamp`
   non-zero `take_damage` returns first) and the victim is a computer. This crate fired it on every cross-owner hit
   on a city building.
 
-**Built** (`crates/sim/src/fight.rs`, `Sim::city_alarm`, called before the take; `AiLeader::capital_stamp`): both
+**Built** (`crates/sim/src/combat/fight.rs`, `Sim::city_alarm`, called before the take; `AiLeader::capital_stamp`): both
 arms, and the emergency gated on the alarm's answer and on `!killed`.
 `the_city_alarm_raids_light_attacks_heavy_and_spares_the_capital_s_stamps` (`crates/sim/src/cities_tests.rs`)
 holds the ceilings and the capital on a fixture. Each arm is held by a mutation (`tools/mutate.py`, cargo exit 101):
@@ -11909,7 +11909,7 @@ stances. That moved two closed floors (Great Sahara at Toughest 15432 → 15025,
 17944): run589's packed cannon `1/132`, attack-moving, takes `0/2000` on 17944 and the original walks at it on 17945
 (a `MOVEORDER` pushed, `find_attack_pos < fight+0xcb4` the extra draw at Toughest's 15025). **`Unit::fight`'s chase
 gate reads `get_combat_stance() == 2 && !Unit::on_duty()`** (`005fe139`–`005fe151`), and this crate had the stance
-alone: built (`crates/sim/src/orders.rs`), both floors hold again.
+alone: built (`crates/sim/src/orders/mod.rs`), both floors hold again.
 
 **The word: 777 → 1100, the trace's end — chapter sixty-five closed.** The value diff on 777: `0/9`'s `near` (−1, −1)
 and `orders.len` 0 on both sides (were (2006, 1) and 1 here); on 792 both take the Barracks `1/2008`. The widening
@@ -12215,7 +12215,7 @@ Item 2416 (Claude Sonnet 5.5, `--effort medium`). **Not a closed chapter, and no
 census row moved, and run 857 was not taken. This section is the staging analysis the queue asked for first, so the next
 lane that books one of these arms starts from it.
 
-**How it was established.** `crates/sim/src/diplomacy.rs`'s `SEAM`s read against parked 2387, 2390, 2391 and 2332;
+**How it was established.** `crates/sim/src/leaders/diplomacy.rs`'s `SEAM`s read against parked 2387, 2390, 2391 and 2332;
 `tools/seams.py --item 2416`; `tools/gamelog/captures.txt`'s run 846–849 recipes (the peace pair's `--profile` lines);
 `crates/rondata/src/diff/setup.rs::lobby_of` (`TEAM_STYLE` is read from `GAME INFO`).
 
@@ -13008,7 +13008,7 @@ whose **head order is a move** (`UnitData::is_moving@00610af0`, vslot `+0xd8`) �
 the same frame, whose out-of-range arm computes a new spot for the target's new square. `0/7` is `o` 7: `(1177 + 7) & 0xf == 0`,
 and 1177 is the frame before the block that shows it.
 
-**Built.** `Sim::check_cast_target_path` (`crates/sim/src/orders.rs`), one more arm of `check_target_path_review`. `WANT_CH85` loses
+**Built.** `Sim::check_cast_target_path` (`crates/sim/src/orders/mod.rs`), one more arm of `check_target_path_review`. `WANT_CH85` loses
 **19 rows** (31 → 12): every `0/7` row, 1178 through 1185 — `order:flags`, the move's `dest`, `off_x/off_y`, `x/y`, `orders_x/y`,
 `path:length`, `pos`, 1179's `dest_x/y` and `path[0].to`, 1183's `order:kind/length` and `orders.len` (the two-orders-against-one
 the booking named), 1184's `dest_angle` and `order:move.angle`, 1185's `heading`. One cause for all of them; what stands is the
@@ -13580,7 +13580,7 @@ view (`Console::on_right_up@007cd3c0`), never one of these.
 |---|---|---|
 | **`WorldMap::on_right_up@008c7050` is the minimap's right-click**, not the main view's: it bumps `accum_minimap_clicks` (:60) and is vslot `+0xf8` of a `WorldMap` vftable `Window::right_up_event` dispatches. §17's "a plain right-click's arguments, form −1, width −1" (:203) is the minimap's. A main-view ground click is `Console::execute_at_cursor@007c6630:2585` with `drag_form = max(0, get_form)` and `drag_form_mod` from `GroupData::get_form_mod_option`, set at the press (`Console::down@007cd8f0:89–100`). §13's and §23's ctrl arm (:199) has the same bytes as the main view's :411. §18's :206 is a minimap click with a plane selected | the listing; `vtables.txt` lacks this vftable (`.rdata 0xb54b38`) | a main-view ground right-click in run30's or run50's package carrying form −1, width −1 |
 | **`Console::hurry_action@007c3810` is `hurry`, not `finish`**: `run_cmd` case `0x51` (`this` 1 for the bare token) and cheat key `0x45` (`this` 0) are its only callers. `finish` is case `0x4f`, inline (§94), so §90's "the one-token `finish`" names the wrong verb, and ~~**no capture has entered it at any cover**~~ run1063 enters it (item 3445, §91) | `ConsoleWin::run_cmd@007d6a70:8842`, `Console::exec_keymap@007c2ce0:269` | chapter seventy-four's take with `hurry` for `finish`: the Library's `job_counter` moves 500000, not 10000 |
-| **`ScenarioFuncSet::citizen_repair_order@009f85b0` is reachable in a skirmish**: the computer's nomad opening calls it (`ai/scripts/economic.bhs:398`, `defensive.bhs:433`) on every Citizen once its Small City is placed. §29's "cut with the trigger system" is wrong. Ported at `crates/sim/src/ai_host.rs:1192`. Its two gaps, `0x32`/`0x33` and `group` −1, are read in §148 | the export; the install's scripts | a nomad capture whose computer Citizen gains no `BUILDORDER` on the new city at the head (`QUEUE_FIRST`); run1068 |
+| **`ScenarioFuncSet::citizen_repair_order@009f85b0` is reachable in a skirmish**: the computer's nomad opening calls it (`ai/scripts/economic.bhs:398`, `defensive.bhs:433`) on every Citizen once its Small City is placed. §29's "cut with the trigger system" is wrong. Ported at `crates/sim/src/ai/ai_host.rs:1192`. Its two gaps, `0x32`/`0x33` and `group` −1, are read in §148 | the export; the install's scripts | a nomad capture whose computer Citizen gains no `BUILDORDER` on the new city at the head (`QUEUE_FIRST`); run1068 |
 | **`ScenarioData::issue_order@00996ac0` is a scenario file's initial orders**, applied once at import (`ScenarioRead::import` chunk 6 → `issue_queued_orders`), not the trigger system as §29 says. Cut from v1 with scenario games either way | the export | a random-map trace entering `ScenarioRead::import` |
 | `Options::picked_spot@00721c40`'s Repair pick always passes `QUEUE_NEW`, whatever the keys, and on an undamaged own building with room and gatherers selected it issues `issue_gather` (:668), not a repair. A right-click reaches `picked_spot` only under the profile pref `prefs & 0x20` | :536–727 | a shift-held Repair pick logging queued ≠ 2 in `CM` |
 | `Options::set_air_repeat@0071c740` has a units arm §32 omits: with planes selected it sends an inline command `0x20` (`unitmask 0x200000, set 1`), so it always sets and never toggles. No port | :53–76 | a second press logging `set 0` |
@@ -13929,7 +13929,7 @@ squads stand in the open land between the two: who 1 on tile row 76, who 2 on ro
 own token (`local_4c = -2`) and walks every type below `0x326`. A type that passes `is_tech_type` takes
 `Leader::gain_tech`, and every other type's bit is set in `LeaderData +0x6c0c` (`tech`, `BitMask<806>`). The PE's
 `TypeData::is_tech_type@004706c0` reads `0x21f < type < 0x275`. It was read with `llvm-objdump`, because every type
-vtable's slot `0x28` folds to the one function. The seven ages, the seven types from `0x220` in `crates/sim/src/tech.rs`, are
+vtable's slot `0x28` folds to the one function. The seven ages, the seven types from `0x220` in `crates/sim/src/tech/mod.rs`, are
 inside that range. So the line would gain all seven ages, lift the held age to Information and empty the cell the
 item is booked on. The premise does not need the techs: `add` places the units and the lobby holds the age. The
 crate's `Cheat::Tech` reads `all` as a name prefix, which does not match this arm (parked 3733a).
@@ -14253,10 +14253,10 @@ sides release.
   both leaders human. An `ever_seen` bit that arrived later would have passed `check_ever_seen`'s `Leader::meet`. A
   probe of ours' 750 census agrees: no British or Nubian building answers `build_is_seen(b, 2)`.
 
-**The fix** (`crates/sim/src/fight.rs`): `Sim::set_attacking` calls `treaty_on(owner, who, 1)` first. Ours'
+**The fix** (`crates/sim/src/combat/fight.rs`): `Sim::set_attacking` calls `treaty_on(owner, who, 1)` first. Ours'
 British and Inca now meet on 620, and the Nubians meet each computer on 659 and 661. Step 15 gives the region word
 `& 4`, and army `2/0` releases on 760 into `DEFENDING`. `Sim::census_meet` (step 6, buildings and walls,
-`crates/sim/src/ai_census.rs`) stays as the export reads it. A first build walked units too. That build reached the
+`crates/sim/src/ai/ai_census.rs`) stays as the export reads it. A first build walked units too. That build reached the
 same 839, but it met chapters 43 and 46 on 1400, where theirs did not.
 **Every `first_parting` holds**, and chapters 8, 43, 46 and 62 lose their `leader:treaties` rows (ours read 2, `do_damage`'s bit, where theirs read
 3).
@@ -14328,7 +14328,7 @@ packet, at logger frame 809, runs `step4.py --entry 64e5c0 --this <0/14>` with `
 | `2/18` Elite Pikemen | 278,027 | 278,027 |
 | `2/21` | 194,000 | 194,000 |
 
-**The fix** (`crates/sim/src/fight.rs`). `Object::compare_target@0064e5c0` keeps its value in an `int`: `imul` and
+**The fix** (`crates/sim/src/combat/fight.rs`). `Object::compare_target@0064e5c0` keeps its value in an `int`: `imul` and
 `idiv` throughout. For `2/23` the product passes 2³¹ and wraps negative, and the tail's `v < 0 → 9,999,999` gives
 `(9,999,999 + 99) / 100` compressed to 100,000. The crate carried `i64` and saw the true product.
 `compare_target` and `building_class_weight`'s closure now run in `i32` with wrapping `*` and `+`. The compression's
@@ -14461,7 +14461,7 @@ blocks, and whether the original re-enters `work` on it (see the loop below). A 
   `do_attack` → `fight` → **`find_new_target` #2 from `fight+0xd94`** → `find_melee_target` → `add_move_order` to
   cell (450, 382), the post. `work` is entered once.
 
-**The two arms** (`crates/sim/src/orders.rs`).
+**The two arms** (`crates/sim/src/orders/mod.rs`).
 1. **`Unit::find_new_target@005ff6a0`'s `bVar3`**, a `SEAM` until now: a `DEFENSIVE` unit whose
    `UnitData::find_def_pos@00608560` answers (a defensive attack's `+0x14/+0x18`, or a move flagged `& 8`) reads
    the post before its order goes. A find whose order is an `ATTACK` takes it (`+0x1d = 1`, the post); a unit left
@@ -14705,7 +14705,7 @@ attack in `do_attack_fight`'s invalid-target branch. That branch was inlined as 
 **The original.** `Unit::fight@005fd4d0`'s `LAB_005fdb9e`, with `param_5 == 0`, calls `find_new_target(this, NULL,
 0)` whole, its post arm (`bVar3`) included (the decompile's lines 202–213).
 
-**The build** (`crates/sim/src/orders.rs`, `do_attack_fight`): the branch reads the post (`def_post`, on a
+**The build** (`crates/sim/src/orders/mod.rs`, `do_attack_fight`): the branch reads the post (`def_post`, on a
 `Defensive` stance) before the kill, and applies `keep_def_post` after the find. `find_melee_target_added` is kept,
 and the branch still calls no `repath` where `find_new_target` does (parked 3784a).
 
@@ -14744,7 +14744,7 @@ record**, and `Objects::kill_guy` makes one record per guy. `Objects::process_al
 object a frame (lines 38–39, 87–88). A four-figure crew nets +3 a frame while all four records live. Ours kept one
 `Death` per unit and bumped once, netting 0, and freed 23 about thirty frames after the cull.
 
-**The build** (`crates/sim/src/combat.rs`, `crates/sim/src/fight.rs`): `combat::Figures` holds each guy's record
+**The build** (`crates/sim/src/combat/mod.rs`, `crates/sim/src/combat/fight.rs`): `combat::Figures` holds each guy's record
 life (`i64::MAX` where the install does not describe the piece); `Sim::death_figures` and `figure_life` fill it, and
 `death_life` is the max of `figure_life`. `hold_frames_tick` bumps by `figures.live(frame − first_frame)`.
 
@@ -14820,7 +14820,7 @@ Guy::inc_time+0x271`. No capture was taken (run 1458 unused).
   `get_buildings(SENATE)` under 1). It is not built (parked 3786a): who=1 holds the Senate `1/2007`.
 
 **The build.**
-- `Sim::gov_hero_closed` (`crates/sim/src/nations.rs`) is the stamp. `close_count`, the head of this crate's
+- `Sim::gov_hero_closed` (`crates/sim/src/cities/nations.rs`) is the stamp. `close_count`, the head of this crate's
   `Unit::close`, calls it on every death path.
 - `Sim::gov_hero_respawn` is the train. It runs in the building pass's live tail, after `kremlin_spy`.
 - `Tuning::gov_hero_respawn` holds the constant; the tuning table checks it against the file.
@@ -14889,7 +14889,7 @@ Senate's `frame + 1` rest on the decompile and the one birth they move.
   wealth): who=1's Despot `1/28` dies on 1463.
 
 **The build.**
-- `Sim::inca_refund` (`crates/sim/src/fight.rs`) is called from `take_damage_typed`'s death arm and runs
+- `Sim::inca_refund` (`crates/sim/src/combat/fight.rs`) is called from `take_damage_typed`'s death arm and runs
   `plunder_steps(v, v, v.who, 0, 0)`.
 - `Sim::unit_plunder` runs the steps for the General, caravan and supply-wagon victims instead of returning
   before them. `SimPlunder` answers `general_plunder`, `caravan_plunder`, `unit_is_hero`, `unit_is_supply` and
@@ -15138,7 +15138,7 @@ and row 311 at x 343–345 in `0/24`'s. They form one radius-2 disc around (343,
 720–779, so no walk punched them. Theirs' Catapult `1/26` (TI 265, `CREW_SIZE` 2, `BLOCK_RADIUS` 2) has its crew
 guy 2 at (16509, 15030), cell (343, 313), and dies on 747.
 
-**The first build** (`crates/sim/src/fight.rs` `close_unit`). `Unit::close@0060ee50`'s death arm runs
+**The first build** (`crates/sim/src/combat/fight.rs` `close_unit`). `Unit::close@0060ee50`'s death arm runs
 `Objects::kill_guy@00659410` over the squad and the crew. Its last arm clears `radius[coll_size]` around each figure's
 own cell unless the type blocks while dead. Ours cleared guy 0's disc alone. With the loop, ours' mask over cells
 336–352 × 308–322 matches both packets cell for cell. The word moved to **828**. Ours spends 11 draws against 15 there.
@@ -15190,7 +15190,7 @@ target facing elsewhere. The state first parts on **860**: theirs pushes a `MOVE
 whose path ends (17352, 15288), where ours walked toward (17112, 14760), the Light Horse `1/16`'s own side.
 `take_damage@00652020`'s share (95 / `UBER_SIZE`, the remainder for a lone captain) is ours, and not the cause.
 
-**The build** (`crates/sim/src/attack_pos.rs`, `Sim::chase_lead`, asked by `chase_spot`): `Unit::find_attack_pos@00601280`'s
+**The build** (`crates/sim/src/combat/attack_pos.rs`, `Sim::chase_lead`, asked by `chase_spot`): `Unit::find_attack_pos@00601280`'s
 flanking branch, `6027d4`–`602abc`, read off the listing (COMBAT §32.4's struck bullet). Its gates: a unit target; the
 asker's `unit_masks & 0x40000` clear (a player's unit); the asker's type's domain (`+0x218`) air or the target's; the
 target's current order a move (vslot `+0x14`); the asker's type a range (`+0x1fc`). With `bearing = find_angle(target −
@@ -15335,7 +15335,7 @@ no range):
 halving (`0061c26d`–`0061c289`) jumps to the clamp, so the AA gun's third is taken only on the other paths
 (`0061c28b`).
 
-**The build.** `crates/sim/src/relative_value.rs` (`Facts`, `relative_value`), filled at load in
+**The build.** `crates/sim/src/ai/relative_value.rs` (`Facts`, `relative_value`), filled at load in
 `crates/rondata/src/load.rs` as `UnitType::rel`. `unit_prod_value` reads it and stops at the gaia types, as the
 original's `0x32..0x192` does.
 
@@ -15583,7 +15583,7 @@ lines 92–110): a target whose type's `unit_flags` carries `0x20` refuses a sea
 (`ObjectTypeData::is_siege`) or `+0x110` (`UnitTypeData::is_tank`), or whose `+0x1e4` carries `0x8000000` (the
 missile), and otherwise returns `!is(0x130, 0)` — the Bomber line refuses it. This crate kept that arm as "ranged and
 not a missile", so its Stealth Bomber took the helicopter, rolled `fight`'s re-search on 623, and on 701 stood at
-(16344, 15720) against (15960, 15384). Built in `Sim::valid_target_const` for a unit searcher (`crates/sim/src/fight.rs`,
+(16344, 15720) against (15960, 15384). Built in `Sim::valid_target_const` for a unit searcher (`crates/sim/src/combat/fight.rs`,
 `a_bomber_never_takes_a_helicopter`); a building searcher's arm (vslot `+0x60` through the base `is`) is not.
 
 **The value diff** (`information_melee_run1468_s_word_window_is_widened_whole`, 601..878, the same three blocks):
@@ -16355,7 +16355,7 @@ shooter's `+0x32` every frame, so the slot is held for good.
 Ours rooted the negative quotient to 0 and raised it to 1. Every one of the twelve came down on the frame after
 its release, drew nothing, and left the slot to free 30 frames after the bomber's death (795).
 
-**Built** (`crates/sim/src/combat.rs`, `fight.rs`):
+**Built** (`crates/sim/src/combat/mod.rs`, `fight.rs`):
 
 - `combat::fall_time` answers `i32::MIN` for a negative quotient (0 for either zero);
 - the Bomber arm raises only a zero to 1;
@@ -16454,7 +16454,7 @@ The leader keys follow from `0/16` alone:
 - `active` and `control` come off with the close (`close_count`: `+0x93c` and the population, POP 1);
 - `num_units[263]` is the V2's count.
 
-**Built** (`crates/sim/src/resign.rs`): `Sim::resign(who)`. It sets the leader defeated, lets the armies go, and walks
+**Built** (`crates/sim/src/leaders/resign.rs`): `Sim::resign(who)`. It sets the leader defeated, lets the armies go, and walks
 every live unit of who's. A plane (`Sim::is_plane`) dies quietly: the `cast_sniper_unit` tail at `dtype` 0, with
 `close_unit`'s first test drawing nothing. `close_unit` is `pub(crate)` for it.
 
@@ -17270,7 +17270,7 @@ Carrier was sunk by a round on 1390, so its record took a bump on 1390: `Object:
 had folded both bumps into one pass **ahead of** `process_projectiles`, with the comment "no capture can see the
 order". A record made in the walk was therefore first bumped on the frame after its death, and the hold settled
 one lower. Now `Sim::hold_frames_tick` keeps `Ammo::inc_time`'s dead-shooter bump ahead of the walk, and
-`Sim::death_objs_inc_time` runs the records' bump and cull after it (`crates/sim/src/fight.rs`, the call order in
+`Sim::death_objs_inc_time` runs the records' bump and cull after it (`crates/sim/src/combat/fight.rs`, the call order in
 `Sim::tick`). Test: `fight::tests::a_death_a_round_makes_is_bumped_on_its_own_frame`.
 
 **What moved**: **1817 → 2600, the game whole** (the count 2184 → 2600; `airbase_melee_first_parting`), and the
@@ -17310,7 +17310,7 @@ regions, the same loop as `Regions::fix_all_borders@0067f7d0`. A fort's death re
 as `sim` does. The gate is the fort index: `Build::close@00628980:211`–`:222` calls `close_fort` only when the type
 answers the fort slot (`+0xfc`) and `+0x78 > -1`, and `Build::activate`'s `init_fort` is that index's one writer. An
 unbuilt site takes `remove_unbuilt_fort` and fixes nothing. `sim` had re-synced on any fort's close; now only an
-`active` one (`crates/sim/src/city.rs`; `cities_tests::a_fort_s_close_fixes_the_borders_only_once_it_is_built`, a
+`active` one (`crates/sim/src/cities/city.rs`; `cities_tests::a_fort_s_close_fixes_the_borders_only_once_it_is_built`, a
 reading alone, since no capture closes an unbuilt fort). The console's `die` (`run_cmd`, `007dde60`–`007ddf1d`) calls
 vslot `+0x158` with `(0, -1, 0)`, which for a building is `Wall::die` → `Object::die`: `close` through `+0x150`,
 then the hold. The interpreter now acts on it (`golden::Cheat::Die` → `Sim::die_building`).
@@ -17383,7 +17383,7 @@ which run1505b takes from the Airbase: `is_in_air_range`, `execute_at_cursor` an
 `0/2007`. On 854 `0/8` holds one `STRAFEORDER`, target −1, `mandatory 0`, home 2007, `cruising_alt` 1600 kept and
 `returning 1`, with the patrol behind it closed. The console's `select` takes a building on the lane.
 
-**Built** (`crates/sim/src/group.rs`): `group_action_air_patrol` (`group_action_patrol` hands it a plane leader or
+**Built** (`crates/sim/src/groups/group.rs`): `group_action_air_patrol` (`group_action_patrol` hands it a plane leader or
 an air member); `group_action_recall`, which sends a domain-2 leader to `group_action_return` (the building arm is
 item 3912's `group_action_recall_buildings`, §159); `group_action_return`; `group_action_air_attack_ground`; and
 `is_in_air_range`, `vector_dist(target − building)` against `UnitData::mana × get_speed(own point, 1)` of any plane
@@ -17395,7 +17395,7 @@ harness's, and the DLL ignores them.
 **ch17ag's first word was 846, and it named the attack-ground's release.** On 846 the original draws `Guy::set_anim
 < Unit::set_anim` and on 847 `0/7` reads `cur_anim` 12, `recharging` 31: the Bomber released at (21120, 16512)
 from (20198, 16533), 922 off it. `Unit::do_air_attack_ground@005ea420` had only its missile arm here. Its other
-arm, now built (`crates/sim/src/air.rs`):
+arm, now built (`crates/sim/src/air/mod.rs`):
 
 - `ObjectData::is_in_range@0064e4a0` of the point. For a unit, vtable slot `+0x18` is a folded `return 1`
   (`Buffer::is_pending_load@0041e0e0`), so the distance is taken less the unit's own `big_radius` (type `+0x244`),
@@ -17458,7 +17458,7 @@ reached from the Airbase's two buttons, `OPTION_AIRBASE_RECALL` and `OPTION_AIRB
   The listing (`7114dc`..`7114fa`) pushes the host's `y` as the `QueuePos`, which the fixed-wing arm never reads. A
   helicopter instead takes a built `MOVE_TO` to the host's cell centre (reading only; no capture holds one).
 
-Built in `crates/sim/src/airbase.rs`: `Sim::group_action_recall_buildings` and `Sim::group_action_scramble`, with
+Built in `crates/sim/src/air/airbase.rs`: `Sim::group_action_recall_buildings` and `Sim::group_action_scramble`, with
 `airbase::tests::the_recall_sends_every_plane_homed_at_the_base_home` and
 `the_scramble_sends_every_full_plane_inside_up_over_its_base`. The harness's `@key <vk>` resolves through the
 chapter's `# bindkey` lines against the console's selection on the key's frame and reaches the pump on F + 1
@@ -17540,7 +17540,7 @@ gone), `idle` 1, and its figure starts a 60-frame idle animation. `1/2006` is ne
 `Options::exec`, `Console::exec_keymap`, `issue_stop_spell` and `action_stop_spell` on trace frame 770, the pump's half of
 it. run1507 is run245's game to 771 (`rngcmp` first differing 772) and the twin's on all 901 frames.
 
-**What this crate does.** `Sim::group_action_stop_spell` (`crates/sim/src/cast.rs`) is the member walk. The harness's
+**What this crate does.** `Sim::group_action_stop_spell` (`crates/sim/src/spells/cast.rs`) is the member walk. The harness's
 `@key` (`rondata::golden`) reads a chapter's `# bindkey ACTION=VK` comment, the same parser as item 3912's (§159), and
 carries the seat's selection to the pump. `OPTION_QUEUE` is `input::group_stop_spell`: one pushed group and one stop for
 each selected unit, as the 0xa6 loop issues them. The draw stream agrees to the trace's end:
@@ -17691,11 +17691,11 @@ with `find_any_building_at` on its tile (`FILTER_SEEN`). It ends the walk there,
   unit's `control_cost` beside `num_inside(0)` ends the walk, and no room passes the point over.
 - **An enemy's building** with an armed non-worker under action 2 ends the walk.
 
-A pass wins over an end: the listing tests `local_a08` first. Built as `Sim::gather_waypoint` (`crates/sim/src/rally.rs`).
+A pass wins over an end: the listing tests `local_a08` first. Built as `Sim::gather_waypoint` (`crates/sim/src/cities/rally.rs`).
 With it, `0/6` on 716 and `0/7` on 822 are born where the original has them and sent to gather at `0/2001`, two of its
 five slots taken.
 
-**What this crate does.** `Sim::group_action_city_gather` (`crates/sim/src/rally.rs`) is the member walk, with
+**What this crate does.** `Sim::group_action_city_gather` (`crates/sim/src/cities/rally.rs`) is the member walk, with
 `cities_tests::a_city_s_gather_all_points_it_at_its_own_resource_buildings`. `rondata::golden`'s `@key` reads the
 chapter's `# bindkey` line (§159's parser), and `OPTION_VILLAGE_GATHER_ALL` is `input::group_city_gather`: the
 building group pushed, then the walk with −1. The draw stream agrees to the trace's end:
@@ -17768,7 +17768,7 @@ The journal has the falsifiers, written before each take.
   `action_alarm_peasant`, `find_building`, `UnitData::can_garrison` and `UnitTypeData::can_garrison` on trace frame 622.
 - run1510, run1510c and run1510d are one game on all 901 frames (`rngcmp`).
 
-**What this crate does.** `Sim::action_alarm_peasant` (`crates/sim/src/alarm.rs`) is the member walk, and
+**What this crate does.** `Sim::action_alarm_peasant` (`crates/sim/src/groups/alarm.rs`) is the member walk, and
 `Sim::nearest_garrison_for` is the search. The harness's `@key` arm `OPTION_PEASANT_ALARM` is
 `input::group_alarm_peasant`: one pushed group and one alarm, as `do_alarm` issues them. The draw stream agrees to the
 trace's end: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTEEN` = **900**, closed
@@ -17837,7 +17837,7 @@ own point. Block 641: Hoplites `0/10`–`0/15` with no orders, at their slots. N
 is run1511's game on all 901 frames (`rngcmp`).
 
 **What this crate does.** `Sim::scenario_add_unit`, `group_action_transport`, `group_dbg_jump_to_action` and
-`unit_dbg_jump_to_action` (`crates/sim/src/scenario_add.rs`). The harness's console takes `eval create_unit(…)` as
+`unit_dbg_jump_to_action` (`crates/sim/src/ai/scenario_add.rs`). The harness's console takes `eval create_unit(…)` as
 `Cheat::CreateUnit` (`crates/rondata/src/golden.rs`), and `eval` joins the console-only words. The draw stream agrees
 to the trace's end, by value and by site: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FOURTEEN` = **900**, closed
 (`chapter_one_hundred_and_fourteen_holds_to_the_golden_word`). Two findings were built on the way. The host swap
@@ -17912,7 +17912,7 @@ has the five falsifiers, written before the take.
 - The pool's slot 1, the pushed group `[2007]`, is dropped on block 834: `833 mod 64` is the slot's turn after the close.
 - run1512 and run1512b are one game on all 1101 frames (`rngcmp`).
 
-**What this crate does.** `crates/sim/src/queue_disband.rs`: `Sim::action_queue_disband` (the group, through
+**What this crate does.** `crates/sim/src/cities/queue_disband.rs`: `Sim::action_queue_disband` (the group, through
 `queue_group`'s new `Queued::Disband`), `researching_disband` (both of `researching`'s forms), `disband_castable`
 (`is_castable`'s 0x29a case), `queue_disband` (`Build::queue_up`), `disband_time` (`train_time:51`) and
 `finish_disband` (the spell arm into `cast_disband`, which reuses `Sim::plunder_kill` and §161's
@@ -17989,7 +17989,7 @@ Hoplites are `0/7..9`, 384 to 528 away. All four stand on cell (10, 45), which w
   The General's `unit_masks` stays 0, because its type fails the `attack` or role test.
 - run1513 and run1513b are one game on all 1001 frames (`rngcmp`).
 
-**What this crate does.** `Sim::cast_entrench` (`crates/sim/src/cast.rs`) is the body, called from `do_cast_effect`'s
+**What this crate does.** `Sim::cast_entrench` (`crates/sim/src/spells/cast.rs`) is the body, called from `do_cast_effect`'s
 `ENTRENCH` arm. `Sim::entrench_job_time` (`crates/sim/src/lib.rs`) is `cast_job_time`'s `0x27d` arm, with
 `tuning.french_entrench` (100) and `tuning.antipater_entrench_rate` (128). `umask2::ANTIPATER_TRENCH` is the
 Antipater bit. The draw stream agrees to the trace's end: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_SIXTEEN` = **1000**,
@@ -18050,7 +18050,7 @@ tracks it, frame for frame, with ours. The Spy is gone from 659: a death object 
 `SpellType::cast` and `cast_counterintel` first on 658, `Unit::do_cast` on 621. All three takes are one game on all
 901 frames (`rngcmp`).
 
-**What this crate does.** `Sim::cast_counterintel` (`crates/sim/src/cast.rs`) is the body without the leader
+**What this crate does.** `Sim::cast_counterintel` (`crates/sim/src/spells/cast.rs`) is the body without the leader
 counters, and `cast_on`'s `0x277` arm calls it behind `counterintel_valid_target`. **The first word was 661** (ours
 10 draws, theirs 9): one extra `Guy::set_anim+0x97a < Unit::do_idle+0x7d` on the Scout. run1514c's figures say why.
 On 622, theirs' crew figure (guy 1, piece 13043, track (−96, 48)) stands on its rotated track point, `stopped` 1, and

@@ -1071,9 +1071,9 @@ frame 1, step 1 again: the script's `place_farm`.
 before this function was read; what follows is the *implementation*
 reading (one worker, 2026-08-24, line by line against the decompile and
 the listing where the decompile printed a local that could not be right),
-promoted here from what used to be §14.5 so that the blind second reading
-has a claim to compare against. The full derivation is
-`crates/sim/src/ai_units.rs`'s docstrings; this is its load-bearing half.
+promoted here from what was §14.5 so that the blind second reading
+has a claim to compare against. The derivation is
+`crates/sim/src/ai/ai_units.rs`'s docstrings; this is its load-bearing half.
 
 1. **The army-size ladder differs by branch**: rung 2 is `×3/2` in the air
    branch (line 442) and `×2` in the land branch (1430).
@@ -1100,7 +1100,7 @@ has a claim to compare against. The full derivation is
 
 ### 2.19 Buildings — `create_buildings@006c1be0`
 
-Same provenance as §2.18 (was §14.6; `crates/sim/src/ai_build.rs`).
+Same provenance as §2.18 (was §14.6; `crates/sim/src/ai/ai_build.rs`).
 
 1. **The gather multiplier's cap is a real `min` at `0x100`** (listing
    `0x6c2762–0x6c276b`: `cmp; cmovl; mov` — the running cap ratchets
@@ -1142,7 +1142,7 @@ Same provenance as §2.18 (was §14.6; `crates/sim/src/ai_build.rs`).
 
 ### 2.20 Placing one — `produce_building`
 
-Same provenance as §2.18 (was §14.7; `crates/sim/src/ai_place.rs`).
+Same provenance as §2.18 (was §14.7; `crates/sim/src/ai/ai_place.rs`).
 
 The census adjustments at the tail (lines 1114–1151) are **kept, not
 discarded**: `filled += 1`, `space[n − 2] = max(0, · − 1)` for
@@ -1580,7 +1580,7 @@ The script side: §3.
    `make_stuff`/`use_market`/`market_speculation` — with `MakeList` and
    `produce_*`. Pin: run7's table in §5, all of it.
 4. ~~**Armies**, as its own document (`docs/ARMY.md`)~~ — **done
-   2026-08-25**: `docs/ARMY.md`, `crates/sim/src/army.rs`,
+   2026-08-25**: `docs/ARMY.md`, `crates/sim/src/ai/army/mod.rs`,
    `docs/audit/2026-08-25-army.md`; the sea half's part stays in
    `docs/TRANSPORT.md` §8. ~~The state machine and
    `find_target`. Its oracle is a longer run with a war in it, which does
@@ -1707,19 +1707,19 @@ held as an errata section until 2026-08-25 and are now folded into §2 itself
 (§14 records where each went). What is not yet
 folded back into §2's prose.
 
-- **`crates/sim/src/ai.rs`** — the driver's pure half: `Personality::roll`,
+- **`crates/sim/src/ai/mod.rs`** — the driver's pure half: `Personality::roll`,
   `Leader::choose_script`, `MakeList::make_me`, the goods picture, the
   cadence, the `Step` machine, `Lobby`; and now the records the sweep
   writes — `Census` (every count under `LeaderData`'s names, the per-region
   arrays one slot per sim region), `CityAi` (the per-city `free`/`busy`/
   `gatherers`/`peasant_dist` and the circle picture), `Site` × 10,
   `mil_trainers`, `tech_frame`/`tech_cat_frame`.
-- **`crates/sim/src/ai_types.rs`** — the shared type helpers: `Class`,
+- **`crates/sim/src/ai/ai_types.rs`** — the shared type helpers: `Class`,
   `unit_record`/`build_record`, `num_buildings_of`/`num_sites_of`/
   `buildings_of_line`, `type_price`/`type_affordable`/`type_available`,
   `cities_of`/`city_chain`, `count_gather_slots` (`City::count_gather_slots
   @00737dc0`, knowledge excluded from the total), `village_num`, `sea_map`.
-- **`crates/sim/src/ai_census.rs`** — `plan_strategy`'s sixteen sweep steps
+- **`crates/sim/src/ai/ai_census.rs`** — `plan_strategy`'s sixteen sweep steps
   (§2.3) and `check_explore`; the seams tabulated in the module. **Pinned
   against the original's own leader record**: run9's frame-1 `LEADERDATA
   who 1` (`LEADERS=9`, §5) agrees with the harness's frame-0 sweep on the
@@ -1727,27 +1727,27 @@ folded back into §2's prose.
   per-region active/peasants/gatherers/cities, `reg_land 43`, `strategy 1`,
   `escrow_rate`, `filled_gather_slots` — with one ceiling: the woodcutter
   camp's five gather slots are `calc_gather`'s (§13).
-- **`crates/sim/src/ai_sites.rs`** — `compute_sites`, `compute_site_stats`,
+- **`crates/sim/src/ai/ai_sites.rs`** — `compute_sites`, `compute_site_stats`,
   `found_cities`, `produce_city`, `place_city_with_cost`'s body
   (`place_city_ai_impl`); `move_x/move_y[0..25]`, the ring `[81..121]` and
   `corner_x/y` read from the PE's `.rdata` (`rise_z.map` names them,
   `compass.obj`); §13's distance loop settled in the listing.
-- **`crates/sim/src/ai_research.rs`** — `research_techs`, `produce_tech`;
+- **`crates/sim/src/ai/ai_research.rs`** — `research_techs`, `produce_tech`;
   the eleven `ai[]` weights traced to `TechType::compute_ai_values@0066cdc0`
   (§2.14) and seamed to zero until the loader ports them.
-- **`crates/sim/src/ai_units.rs`** — `create_units` (every branch: air,
+- **`crates/sim/src/ai/ai_units.rs`** — `create_units` (every branch: air,
   missiles, sea, land civilians, scout, land military, the shared tail),
   `upgrade_units`, `produce_unit`, `queued_units`, `check_income`,
   `unit_prod_value`; the type flags the sim does not carry are seams.
-- **`crates/sim/src/ai_build.rs`** — `create_buildings` (both passes, every
+- **`crates/sim/src/ai/ai_build.rs`** — `create_buildings` (both passes, every
   family), `produce_upgrade`, `produce_spell`; the gather multiplier's cap
   settled (§2.19).
-- **`crates/sim/src/ai_make.rs`** — `make_stuff`, `make_this`, `use_market`,
+- **`crates/sim/src/ai/ai_make.rs`** — `make_stuff`, `make_this`, `use_market`,
   `market_speculation` (the market's gates and draws' *positions*; it trades
   nothing until `docs/ECONOMY.md`'s market lands), `check_orphaned_buildings`.
-- **`crates/sim/src/ai_place.rs`** — `produce_building`, now with §4.6's
+- **`crates/sim/src/ai/ai_place.rs`** — `produce_building`, now with §4.6's
   census adjustments in place (run8 frame 2: `gatherers 5 → 4`).
-- **`crates/sim/src/ai_drive.rs`** — the sweep calls the census, the orphan
+- **`crates/sim/src/ai/ai_drive.rs`** — the sweep calls the census, the orphan
   check and `compute_sites`; the cheap research tick; every step calls its
   producer; `effective_pop` computed on entry.
 - **The world** (`world.rs`) carries the rest of each cell's `WData` —
@@ -1776,7 +1776,7 @@ folded back into §2's prose.
   the live cities and gather chains (`Leader::calc_gather`'s job,
   `docs/ECONOMY.md`). With no food the script cannot pay for the city at
   step 11 and the food-bound citizens of 1297/1505 never train. **The
-  holdings assembly landed the same session** (`crates/sim/src/holdings.rs`,
+  holdings assembly landed the same session** (`crates/sim/src/economy/holdings.rs`,
   pinned against run8's frame-2 rate): run10 now scores **268 unlinked
   unit-frames** — the script gets through `city_placement` and step 12 on
   our map, `1/9` trains at **1297**, the original's own frame, and every
@@ -1828,7 +1828,7 @@ folded back into §2's prose.
    — is `docs/SYNC.md` §6, and it is the next item here.
 3. ~~**The loader's half of the producers**~~ — **done, 2026-08-25**,
    `docs/DATALAYER.md`, "The derived words no column carries", and
-   `crates/sim/src/ai_load.rs`: `UnitType::cols` (`unit_flags`,
+   `crates/sim/src/ai/ai_load.rs`: `UnitType::cols` (`unit_flags`,
    `unit_flags2`, `cat`, `carry`, `role`), the six derived `build_flags`
    bits, and `TypeDef::ai[11]`. Every one of them is checked against the
    program's own loaded values — a `DUMP_ALL` type dump prints `role`,
@@ -2467,9 +2467,9 @@ without looking at any corner when the cell is another leader's (`who ≥ 0
 its own `flags & 0x70` test, so the first two are redundant there; the
 placement spiral (§2.20) reaches it directly, and there they are new.
 
-**Landed**: `crates/sim/src/ai_place.rs` — `GRID_ORDER`, `GRID_THREES`, the
+**Landed**: `crates/sim/src/ai/ai_place.rs` — `GRID_ORDER`, `GRID_THREES`, the
 rewritten `space_at_corner`, the three-way gate; three unit tests, one of
-which fails on the old code at `space(&[(0,0)]) == 3` and at every-non-
+which fails on old code at `space(&[(0,0)]) == 3` and at every-non-
 centre-tile-blocked `== 2`; and the run20 guard's pin retired — the record
 is now compared whole, `space[0..3]` included, and the pin flipped
 (`ours 58 (was 48)`) on the first run after the walk order landed, before
@@ -3019,7 +3019,7 @@ Indies' scout to the wrong island on 11549.
 `CityData::ter[6]` is the best per-good gather amount over the city's
 occupied tiles, written by step 13's circle sweep out of
 `World::gather_at@006b07f0`. `World::gather_at` is a **declared seam** in
-`crates/sim/src/ai_census.rs` that answers `[0; 6]`, so `CityAi::ter` is
+`crates/sim/src/ai/ai_census.rs` that answers `[0; 6]`, so `CityAi::ter` is
 zero everywhere, for every player, on every frame.
 
 It is not inert. `gather_value` — §3.2, the gather families' half of the
@@ -3410,7 +3410,7 @@ of one city**: `City::init@00737050` (`+`), `City::close@00737550` (`−`),
 level). So a recount over the live cities is the same number at every
 instant the sweep can read it, and each of those five is already a call
 site of `Sim::sync_pop_cities`, which is where
-[`Sim::sync_leader_pop`](../crates/sim/src/city.rs) now runs.
+[`Sim::sync_leader_pop`](../crates/sim/src/cities/city.rs) now runs.
 
 `reg_pop` (`+0xe62`, `ushort[64]`) is the same sum per region, written only
 for a region index below `0x40` — the array's own bound — and `reg_cities`
@@ -4058,7 +4058,7 @@ The dump carries the receipt on the next block: slot 5's `val` goes
 `9999999` is not a valuation. It is `create_units`' tail —
 `out = fac × (want × val / divisor) / 256`, and then **`if out < 0 { out =
 9999999 }`**, the guard the original puts on a wrapped 32-bit product
-(`crates/sim/src/ai_units.rs`, the `wm` note). The original's answer for
+(`crates/sim/src/ai/ai_units.rs`, the `wm` note). The original's answer for
 the same Slingers on the same frame is **360,000**, so its product did not
 wrap. This crate's did, the guard turned a negative into the largest value
 in the list, and the Slingers took rank 0 from the Temple.
@@ -4119,7 +4119,7 @@ crate's own arithmetic applied to a **census that had two independent
 faults**, and with the census right the same code produces the original's
 `val 360000, num 1` on the first run.
 
-Both faults are in `Sim::census_units` (`crates/sim/src/ai_census.rs`),
+Both faults are in `Sim::census_units` (`crates/sim/src/ai/ai_census.rs`),
 §2.3's step 10, and the widening found them without a reading: run91
 already prints the whole leader record, and `combat`/`non_siege` part at
 **ours 1, theirs 3** on every one of its 86 blocks.
@@ -5244,7 +5244,7 @@ is. On block 9178, read off this crate's own `check_income`, `income` is
 | this crate | 26,400,000 | 1,689,600,000 | **6,600,000** |
 
 `the_tech_ceiling_is_the_income_multiply_wrapping_not_a_saturation`
-(`crates/sim/src/ai_research.rs`) pins both rows and the cliff either
+(`crates/sim/src/ai/ai_research.rs`) pins both rows and the cliff either
 side, and [`ai_research::income_scaled`] is that tail as one function so
 the claim has something to assert against. Made to fail on purpose.
 
@@ -5962,7 +5962,7 @@ and not in the offer's final value.
 ### 49.5 Coverage
 
 `the_scholar_offer_on_great_lakes_9380_is_a_positive_wrap`
-(`crates/sim/src/ai_units.rs`) — the five terms, the 64-bit product, the
+(`crates/sim/src/ai/ai_units.rs`) — the five terms, the 64-bit product, the
 wrap, the sign, and §45's guard still firing on a negative wrap, which is
 what says the finding is about the sign. This crate's five terms are
 instrument-measured; the original's 5,755,741 is read off run111 block
@@ -8684,7 +8684,7 @@ a tie wins.
   busy**, so the recruit is the nearest citizen who is not building,
   fighting or on some other errand.
 
-`crates/sim/src/site_recruit.rs` carries it. `process_building` calls it
+`crates/sim/src/cities/site_recruit.rs` carries it. `process_building` calls it
 ahead of its `helpers` reset. The rival count is exact rational arithmetic,
 cross-multiplied, with `0.35f` as its binary fraction `11744051 / 2^25`.
 `cities_tests::an_unfinished_wonder_calls_in_the_nearest_citizen_that_is_not_busy`
@@ -8803,7 +8803,7 @@ killer it had to survive.
 
 ### 70.3 The fix
 
-`City::num_wonders` (`crates/sim/src/city.rs`) drops its `active` filter.
+`City::num_wonders` (`crates/sim/src/cities/city.rs`) drops its `active` filter.
 Its three readers are the original's three that this crate carries, and
 all three move with it:
 
@@ -8968,14 +8968,14 @@ two hits are `Leader::init` and `LeaderData::log_data`):
   `leaders[this.who].frame_attacked = frame` — **the struck object's
   owner**, human or computer, with no `attacked_by`.
 
-This crate wrote only the first (`crates/sim/src/ai.rs` called the field
+This crate wrote only the first (`crates/sim/src/ai/mod.rs` called the field
 "the frame an enemy army last took a target of this leader's", and
 `docs/ARMY.md` §12's gate "7,200 frames since I last took a target against
 `L`"; `docs/COMBAT.md` §7.2 step 3 named the stamp as "the owner's
 last-attacked frame (AI, on low difficulty)", and nothing carried it). All
 three are amended in place.
 
-**The fix**: `take_damage_typed` (`crates/sim/src/fight.rs`), the one
+**The fix**: `take_damage_typed` (`crates/sim/src/combat/fight.rs`), the one
 combat entry (`do_damage`'s; the city path passes attrition), stamps the
 struck object's owner at difficulty below 2, first after the sixteenth
 floor as in the original. With it, who=0 is stamped on every hit its
@@ -9485,7 +9485,7 @@ stands.
 ### 75.4 The fix
 
 - `Census::wonder_slots` carries the list, by building index.
-- `Sim::note_wonders` (`crates/sim/src/ai_census.rs`) derives both
+- `Sim::note_wonders` (`crates/sim/src/ai/ai_census.rs`) derives both
   writers off the buildings, for every leader. An entry closes when its
   building is no longer an alive, activated wonder of the leader's. An
   activation takes the first clear entry under the mark.
@@ -9676,7 +9676,7 @@ fix's own, 16528.
 
 ### 76.4 The fix
 
-- `Sim::fix_borders` (`crates/sim/src/city.rs`) is called from the head
+- `Sim::fix_borders` (`crates/sim/src/cities/city.rs`) is called from the head
   of `Sim::sync_territory`, whose call sites are the original's fixes. It
   raises `Sim::borders_fixed`.
 - `Sim::check_borders` consumes the flag at the daemon's point in the
@@ -10011,7 +10011,7 @@ The packet booked at 23181 (run306) was not taken. The disk answered it
 
 ### 78.3 The fix
 
-`Sim::blocked_tcoord` (`crates/sim/src/place.rs`) gains the two arms, in
+`Sim::blocked_tcoord` (`crates/sim/src/cities/place.rs`) gains the two arms, in
 the listing's order:
 
 - **After `AS_BUILDING`**: an Oil Well or Oil Platform (`is(0x1a5)`,
@@ -10164,7 +10164,7 @@ and run299's `BUILDDATA` answered.
 
 ### 79.3 The fix
 
-- `Sim::nearest_farm_type` (`crates/sim/src/farms.rs`) skips a farm whose
+- `Sim::nearest_farm_type` (`crates/sim/src/cities/farms.rs`) skips a farm whose
   `started` is clear. The crate already carried `started`, the dump's
   `flags & 2`.
 - `farms::SITE_PIG_Y` and `SITE_PIG_X` name the pig arm's two offset
@@ -12670,8 +12670,8 @@ Tower by exact identity. `Wall::update_hits@0063f0d0` reads the Tower,
 the Lookout and the Market as lines (`is(0x1b7, 0)`, `is(0x209, 0)`,
 `is(0x1b4, 0)`); the Tower's two tests (the Senate bonus and the Romans')
 and the Lookout's now use `build::is_tower` and `build::is`
-(`crates/sim/src/build.rs`; `docs/CITIES.md` §3.4's formula names them
-without saying lines, and its section is at its size bound). **Held by no walk**: `myhits` and
+(`crates/sim/src/cities/build.rs`; `docs/CITIES.md` §3.4's formula names them
+without saying lines; its section is at its bound). **Held by no walk**: `myhits` and
 `construct_hits` are compared by no site; the unit test
 `the_senate_bonus_and_the_temple_bonus` holds it (a Keep in a Large City,
 1000).
@@ -12708,7 +12708,7 @@ city 2's delivered route to city 1 at today's `trade_value`, the partner's
 building count, which had grown since that route's last round trip: 176
 → 184. Ours recomputed a city's trade only at a round trip's close
 (`do_trade:476–478`), and took the eight on 7061 with the next one. The
-recompute is now in ours' establishment arm (`crates/sim/src/caravan.rs`).
+recompute is now in ours' establishment arm (`crates/sim/src/economy/caravan.rs`).
 
 **The value diff.** run495 block 6592: `income[2:wealth]` ours 992
 against 1000 → **both 1000**, and who=1's goods agree on every block
@@ -12781,9 +12781,9 @@ records `build_types[0]` and `[1]`): the original's count is 3 and the price
 160 and 160, ours' count was 1. At 160 the timber (138) cannot pay, the
 sites are quartered, and `use_market`'s shortfall — two city rows in the
 first `epoch[Commerce]` = 2 slots, 320 of each — buys a hundred food and
-spends two draws of its sell branch, which ours now spends on the same
-frame. This crate's `building_price` counted `b.ty == ty` alone; a city now
-counts every alive building of the three (`crates/sim/src/city.rs`;
+spends two draws of its sell branch, which ours now spends that
+frame. Our `building_price` counted `b.ty == ty` alone; a city now
+counts every alive building of the three (`crates/sim/src/cities/city.rs`;
 `docs/COSTS.md`, "A city is ramped by every city").
 
 **The value diff.** run491 block 8378: who=1's `MAKE[0].val` ours −1
@@ -14149,7 +14149,7 @@ exactly, so it is not taken there (the French lobby does not hold it).
 `UnitData::mana@00609a50` has the same French arm. A French General's pool
 is `(FRENCH_SPECIAL_CRAFT + 100) × MANA / 100`, and the constant ships as
 `0% bonus` (`get_item`, plain). Both are built in
-[`Sim::craft_rate`] and [`Sim::unit_mana`] (`crates/sim/src/cast.rs`).
+[`Sim::craft_rate`] and [`Sim::unit_mana`] (`crates/sim/src/spells/cast.rs`).
 
 **What moved.** French East Indies **12952 → 14090**. Ours holds 102 on
 11376 and 1000 on 12953, the original's own values. run635's widening
@@ -14392,7 +14392,7 @@ every other city of every capture is a rim cell of `space` 0 too, so the
 totals agreed by luck wherever that rim cell was out of the city's radius.
 `1/2031`'s rim cell `(35, 27)` is inside it and open.
 
-**Built.** `Sim::census_city_sites` (`crates/sim/src/ai_census.rs`) walks
+**Built.** `Sim::census_city_sites` (`crates/sim/src/ai/ai_census.rs`) walks
 `1..outer`, and `census_site_cell`'s inner cutoff is `i >= inner`. Test
 `the_circle_walk_starts_at_entry_one` (`ai_census.rs`): a neighbour owning
 the centre cell changes nothing, one owning the last inner entry takes a
@@ -15055,12 +15055,12 @@ Two companions, both found by the same dump:
   (23, 0) at indices another member held by block 14357 (the original has
   shifted them with the list). `Sim::army_keep_units` drops both.
 
-**Built.** `Sim::group_action_siege_attack_to` (`crates/sim/src/group.rs`) keeps
+**Built.** `Sim::group_action_siege_attack_to` (`crates/sim/src/groups/group.rs`) keeps
 the sub-group's record, sorts its list as the layout did and writes the parent's
 `off`/`curr`/`angles` at each member's parent index (the arrays are brought up to
 the list's length first) and re-points every group order of the member
 (`GroupMove::form_id`); `Sim::group_update_positions` rotates `form_num` slots;
-`Sim::army_keep_units` (`crates/sim/src/army.rs`), called from `army_normalize`
+`Sim::army_keep_units` (`crates/sim/src/ai/army/mod.rs`), called from `army_normalize`
 and `groups_process`. Test
 `a_siege_unit_s_slot_is_copied_into_the_army_s_table_at_its_own_index`.
 The diff harness's slot loop (`second::widen_records`) ran to `form_num`; it runs
@@ -15451,7 +15451,7 @@ mask test is skipped, `param_4` 0), and `vector_dist(dx, dy) − reach ≤
 get_radius × 0xc0` — the shape `near_marching_hero` already carries
 (`cast.rs`), with the type test instead of the Forced March mask.
 
-**Built.** `Sim::president_near_building` (`crates/sim/src/city.rs`), read by
+**Built.** `Sim::president_near_building` (`crates/sim/src/cities/city.rs`), read by
 `construct_time_of` into `ClockMods::president` — which nothing had written
 since the field was added (`ClockMods` is still `bd.clock`'s other three
 clauses: the free first wonder, the Hanging Gardens ~~and the Iroquois Senate~~ stay
@@ -16613,7 +16613,7 @@ Objects::init_unit` three times. run672 (577..833) widens it. Each claim is *dif
    city_num·(city_num − 1)/2)`, and leader 1's `city_num` went 1 → 2 on block 612; so the limit is 1 and `caras` 0 is under it.
    The next slots (682, 697, …) find `caras` 1 at the limit, and the trace has no birth on them.
 
-**Built.** `Sim::persian_market_caravan` (`crates/sim/src/nations.rs`), called by the tick's building walk after the gather step and
+**Built.** `Sim::persian_market_caravan` (`crates/sim/src/cities/nations.rs`), called by the tick's building walk after the gather step and
 before the tail, for an active building only: the Market by its record's own `Ident` (the type itself, not its lineage), the
 building's phase `% 15`, `has_tribe_bonus(23)`, the census's live `caras` against `Sim::caravan_limit` (now `pub(crate)`), and
 `cost::exceeds_population` for `CARA`'s own `POP`; then `build_train`. Unit test `cities_tests::
@@ -16669,7 +16669,7 @@ back **every setting** from their own `GAME INFO` (`docs/RUNS.md`), and `rngcmp.
    (`Sim::advance_border_pass`, `border_pass.rs`), and its per-cell goods scan adds a patch the moment a cell is given. The harness's stand-in for that
    pass, `Sim::claim_oil_from_owners` (setup's wholesale recompute, `settle_borders`, the dump's installed owner grid), walked the goods list. **Built**:
    a land patch is added in `(region, cell index)` order and a patch outside any land region keeps the goods list's order after them
-   (`crates/sim/src/rares.rs`); unit test `ai_place::tests::a_wholesale_claim_adds_land_patches_in_cell_scan_order` (it ends a tied pick on the earlier row's patch).
+   (`crates/sim/src/economy/rares.rs`); unit test `ai_place::tests::a_wholesale_claim_adds_land_patches_in_cell_scan_order` (it ends a tied pick on the earlier row's patch).
 
 **The value diff, and the word now.** run677: **395 keys → 69** — the 67 standing keys, leader 1's `known_rares` on block 8 and leader 0's `production_step` on
 201 (the control's too: §144's run669 has it). `1/2013` and `1/1`, `1/2`, `1/6`'s order stacks agree on every block. `sahara_coverage_first_parting`: **frame 12 →
@@ -16774,7 +16774,7 @@ holds it whole. Each claim is *diff-backed* unless marked.
    holds a city whose `was_capital_flags` names me), the new city takes `0x10` alone, times `~leader_flags2 & 1`. Every dump
    prints `leader_flags2` 0.
 
-**Built.** `Sim::persian_second_capital` (`crates/sim/src/city.rs`), asked in `activate`'s city arm before `init_city` (so the new
+**Built.** `Sim::persian_second_capital` (`crates/sim/src/cities/city.rs`), asked in `activate`'s city arm before `init_city` (so the new
 record is not searched): tribe bonus `0x17`, exactly one own live capital, and no other leader's live city carrying my
 `was_capital` bit; the new city's `capital` is set and `founding_capital` left clear. A captured city is handed over by
 `City::capture` after `activate`, which rewrites both bits, in ours (`city_capture_record`) as in the original. Unit test
@@ -16883,7 +16883,7 @@ run678 (977..1233) holds it whole. Each claim is *diff-backed* unless marked.
    citizens (`count_inside(PEASANTS)`) swarming a **land** building searches as its `inside_down` passenger's type, and every
    other member as its own.
 
-**Built.** `Sim::swarm_seeker_type` (`crates/sim/src/orders.rs`), asked by `swarm_spot` for both sweeps (a `Seeker::TypeFor`
+**Built.** `Sim::swarm_seeker_type` (`crates/sim/src/orders/mod.rs`), asked by `swarm_spot` for both sweeps (a `Seeker::TypeFor`
 with the site's footprint), and `Sim::barge_type` (`transport.rs`, `current_upgrade(TRANSPORTBARGE)` as a unit type, shared
 with `transport_type_for`). Unit test `transport::tests::a_citizen_swarms_a_sea_site_as_the_barge_once_its_leader_transports`:
 no level, no approach; the civilian level, an `ExploreTo` on the water; a water Dock, the citizen's own ring. `docs/ORDERS.md`
@@ -17006,7 +17006,7 @@ unless marked.
    row, "All units and buildings in your territory revealed", **Computerization**, which the All Technologies start holds.
    `WorldData::is_really_seen` carries the same arm; nothing here reads it.
 
-**Built.** `Sim::world_is_seen_fog` (`crates/sim/src/fight.rs`) — `WorldData::is_seen` whole, its leader arms through
+**Built.** `Sim::world_is_seen_fog` (`crates/sim/src/combat/fight.rs`) — `WorldData::is_seen` whole, its leader arms through
 `Sim::sees_every_unit` and `Sim::holds_bonus` (`ai_sites.rs`, `sees_every_cell` now `explore_map` over the two) and the
 territory arm through `Roles::territory_reveal_preq` (`tech.rs`, loaded from the eighth bonus in `rondata`'s `load.rs`).
 `Sim::world_sees` — `target_is_seen`'s and `set_attacking`'s fog read — is it at a position, so `fight.rs`'s seam on the
@@ -17117,7 +17117,7 @@ marked.
    `1/24` (42665, 36966) is a citizen carried at sea towards the Mine — its tile is the water of a coastal cell, `tregion_alt`
    0 against the searcher's 12 — so the original counts 2028 at **1**, and the first strict minimum is 2028.
 
-**Built.** `Sim::build_crowd`'s circle walk (`crates/sim/src/orders.rs`) walks every cell of the ring and gates each unit by
+**Built.** `Sim::build_crowd`'s circle walk (`crates/sim/src/orders/mod.rs`) walks every cell of the ring and gates each unit by
 `World::tregion_alt` of its own tile against the searcher's, as the list walk has since §148. Unit test
 `cities_tests::the_builder_tally_counts_no_builder_on_a_coastal_cell_s_water`: a builder on a coastal cell's water is not
 counted (the tie goes to the first site), one on its land is. `docs/ORDERS.md` §5.10's region-gate paragraph is struck and
@@ -17361,7 +17361,7 @@ claim is *diff-backed* unless marked.
    time, whatever the members reported. Ours' `Sim::army_normalize` pruned and recounted but never wrote the cap.
    *Listing-backed* as far as the condition's arithmetic: ours' `army_process` already took the same phase.
 
-**Built.** `Sim::army_normalize` (`crates/sim/src/army.rs`) ends its prune with `Group::normalize`'s speed tail
+**Built.** `Sim::army_normalize` (`crates/sim/src/ai/army/mod.rs`) ends its prune with `Group::normalize`'s speed tail
 (`Sim::seat_set_speed` on the army's seat). It runs on every army normalize — the periodic one, the 256-frame tick's, and the
 ones `army_add_unit`'s kill half asks for — as the original's does. Unit test
 `army::tests::an_army_normalize_resets_its_group_s_cap_to_the_leader_s_speed`: a cap a slow follower drove to 25 goes back to
@@ -17422,7 +17422,7 @@ run710 (1527..1783) holds it whole. Each claim is *diff-backed* unless marked.
    unit whose **action** targets the site keeps it; claim 3's `1/10` does not, and the site goes. *Listing-backed*; the diff
    confirms it on its one frame.
 
-**Built.** `Sim::oil_platform_abandoned` (`crates/sim/src/site_recruit.rs`), called from `Sim::process_building` inside the
+**Built.** `Sim::oil_platform_abandoned` (`crates/sim/src/cities/site_recruit.rs`), called from `Sim::process_building` inside the
 recruiter's gates and ahead of it; a disband returns from the head as `Wall::process` does. The target test is
 `action_of`'s order: `Build`, `Repair`, `Garrison`, `Gather` (its building), `Attack` (the unit's combat target) or `Cast` on
 the site. `site_recruit.rs`'s SEAM for this arm is gone. Unit test
@@ -17541,9 +17541,9 @@ Each claim is *diff-backed* unless marked.
    non-air animal whose farm reference (`AnimalData +0x150/+0x152`) is the building, through `Unit::close(0, −1, 0)`:
    no death draw. *Listing-backed*; each moved the word in its own run.
 
-**Built.** `Sim::silo_strike` (`crates/sim/src/air.rs`), from `computer_sortie` where a silo returned: the nuke arm, the
-cities' loop, and `own_object_within` for the friendly search. `Sim::nuke_do_damage` (`crates/sim/src/nuke.rs`) passes over a
-unit of owner 8 or more. `Sim::close_pasture_animals` (`crates/sim/src/farms.rs`), from `close_building` for a Farm. Unit
+**Built.** `Sim::silo_strike` (`crates/sim/src/air/mod.rs`), from `computer_sortie` where a silo returned: the nuke arm, the
+cities' loop, and `own_object_within` for the friendly search. `Sim::nuke_do_damage` (`crates/sim/src/combat/nuke.rs`) passes over a
+unit of owner 8 or more. `Sim::close_pasture_animals` (`crates/sim/src/cities/farms.rs`), from `close_building` for a Farm. Unit
 tests `airbase::tests::a_computer_s_silo_strikes_an_enemy_city_with_its_nuke` (cadence, a V2, an unseen city, a friend
 within 0x1800, a human's silo), `nuke::tests::the_ring_never_strikes_an_animal` and
 `farms::tests::a_pasture_s_close_takes_its_animals_and_spends_no_draw`.
@@ -17608,9 +17608,9 @@ unless marked.
    ICBM's number is held to about 1871 rather than 1841, so the 1852 birth takes 62 and the 1908 citizen 42, as the
    original's uids 129 and 131 do. *Listing-backed* for the arithmetic; the births confirm the 30 on this one number.
 
-**Built.** `Sim::transport_into_platform` (`crates/sim/src/transport.rs`), from `do_gather`'s arrival for an Oil Platform
+**Built.** `Sim::transport_into_platform` (`crates/sim/src/ai/transport/mod.rs`), from `do_gather`'s arrival for an Oil Platform
 before the scholar-and-platform `go_inside`; `Sim::transport_dies`, the boat's death `disembark` already carried, now
-shared by both. `Sim::NUKE_SPREAD` (`crates/sim/src/fight.rs`), added in `hold_dead_slot`. Unit test
+shared by both. `Sim::NUKE_SPREAD` (`crates/sim/src/combat/fight.rs`), added in `hold_dead_slot`. Unit test
 `transport::tests::a_transport_at_its_oil_platform_dies_and_hands_in_its_passenger` (through `work`, and a ship with no
 `carry` passed by); `airbase::tests::the_silo_counts_its_missile_out_and_it_fires_on_the_thirtieth` reads 151 for the
 V2's hold (121 before). Mutations (`tools/mutate.py`, scored by exit and the failed tests' names): the arm cut from
@@ -17670,7 +17670,7 @@ position on 2164. Each claim is *diff-backed* unless marked.
    then reaches `CollCheck::move_unit(old, spot)` through `Guy::set_new_location@005d86f0`, clearing the old disc's cells
    farther than `coll_size` from the spot. *Export-backed*; the bit's clear on 1113 is the diff. `docs/COLLISION.md` §25.
 
-**Built.** `Sim::coll_come_out` (`crates/sim/src/movement/collide.rs`), from `land_passenger` (`crates/sim/src/transport.rs`) with
+**Built.** `Sim::coll_come_out` (`crates/sim/src/movement/collide.rs`), from `land_passenger` (`crates/sim/src/ai/transport/mod.rs`) with
 the body's point as it was aboard. Unit test `transport::tests::a_passenger_put_ashore_clears_the_disc_it_boarded_from`.
 
 **What it moved.** The word **2166 → 2288**, count and sequence: ours 38 game draws against 39, index 34, ours
@@ -17744,8 +17744,8 @@ run711's 2183. Each claim is *diff-backed* unless marked.
    With the setter it agrees on every cell.
 
 **Built.** `world::cell::CLOSED` (`0x2`); `Sim::mark_closed_cell`, from `close_building` for every reason but 5 and from
-the two conversions (`crates/sim/src/city.rs`); the oil arm names the bit and the spiral's arm is new
-(`crates/sim/src/ai_place.rs`). Unit tests `ai_place::tests::a_patch_a_building_closed_on_is_passed_over_once` and
+the two conversions (`crates/sim/src/cities/city.rs`); the oil arm names the bit and the spiral's arm is new
+(`crates/sim/src/ai/ai_place.rs`). Unit tests `ai_place::tests::a_patch_a_building_closed_on_is_passed_over_once` and
 `cities_tests::a_closed_building_s_cell_refuses_the_spiral_only_with_an_enemy_near`.
 
 **What it moved.** The word **2288 → 2296**, count and sequence: ours 51 game draws against 52, index 3, ours
@@ -17791,9 +17791,9 @@ hypothesis leader 1's pool row 70 on 2293. Each claim is *diff-backed* unless ma
    `gatherers`, `free_peasants`, `attacked`, `wars`, `active_wars` and `active_wars_with` (§43, §45: the human's war census
    on run115's 8001 agrees).
 
-**Built.** `Sim::plan_strategy_human` (`crates/sim/src/ai_drive.rs`): on the human's phase frame the census and
+**Built.** `Sim::plan_strategy_human` (`crates/sim/src/ai/ai_drive.rs`): on the human's phase frame the census and
 `compute_sites` (whose own human gate stands), then the machine armed; on the next frame disarmed. Step 16 is gated on a
-human in `Sim::census` (`crates/sim/src/ai_census.rs`). Unit test `ai_census::tests::a_human_s_sweep_fills_its_city_and_seeds_no_army`.
+human in `Sim::census` (`crates/sim/src/ai/ai_census.rs`). Unit test `ai_census::tests::a_human_s_sweep_fills_its_city_and_seeds_no_army`.
 
 **What it moved.** The word **2296 → 2868**, count and sequence: ours 17 game draws against 18, index 7, ours
 `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`, past run714's last
@@ -17849,7 +17849,7 @@ Each claim is *diff-backed* unless marked.
    when it has none. The machine gun's unpacked crew piece names no track, so `1/74`'s second figure stands on guy 0's
    point on block 2894, (35208, 36984) where it had stood at (35275, 36884); run715's `1/89` likewise on 2928.
 
-**Built.** `Sim::guard_unpacks` (`crates/sim/src/orders.rs`) from `do_guard`'s tail; `Sim::cast_job_time`
+**Built.** `Sim::guard_unpacks` (`crates/sim/src/orders/mod.rs`) from `do_guard`'s tail; `Sim::cast_job_time`
 (`crates/sim/src/lib.rs`), which `do_cast`'s clock reads; `cast_unpack`'s tail re-seat (`transport.rs`); and
 `Sim::update_gpiece` (`anim.rs`) re-reading a crew figure's track — a tracked figure whose new piece has none loses its
 `Follow`, and one that gains a track is given one on guy 0's point. `UnitData::spell_time` is now compared on every
@@ -18398,7 +18398,7 @@ those types. `Build::activate@00623e20:1370` starts the clock at
 `TERRA_COTTA_FREE * 15` = 450: run721 reads `1/2042` at 449 on 3395, 6 on
 3838 (443 frames on), so the first soldier is the 3843 one. Built:
 `Sim::terra_cotta_army` and `terra_cotta_activate`
-(`crates/sim/src/nations.rs`), called after the Persian caravan in the
+(`crates/sim/src/cities/nations.rs`), called after the Persian caravan in the
 tick's building walk and from `activate`.
 `a_terra_cotta_army_counts_its_clock_and_trains_a_soldier`
 (`cities_tests`) fails without the call.
@@ -18615,7 +18615,7 @@ owner-of-the-second-border test, so the test's `/ 2`, `× 8` or `× 4` scales
 it too. This crate carried the arm without the term (a SEAM: "no walk reaches
 a Fort placement on a cell with danger", §100). The Persians' danger map is
 non-zero around the second city. Built in `Sim::produce_building`
-(`crates/sim/src/ai_place.rs`); `a_fort_is_placed_where_the_danger_is`
+(`crates/sim/src/ai/ai_place.rs`); `a_fort_is_placed_where_the_danger_is`
 (`cities_tests`) fails without it (made to fail once, the term × 0).
 Hypotheses the floor killed on the way: a stride phase one candidate off
 (`idx >= circle_radius[3]`: run766 parts on 5620 keys from the first
@@ -18718,7 +18718,7 @@ at `QUEUE_NEW`, and `finish_insert` re-issues each copy at `QUEUE_LAST` — a
 Build copy through `action_swarm_around(QUEUE_LAST)`, i.e. a *fresh* approach
 from where the unit stands. This crate took the re-entry as a plain
 `swarm_around`, which left the queued second site's old approach. Built in
-`Sim::do_build` (`crates/sim/src/orders.rs`) with the existing
+`Sim::do_build` (`crates/sim/src/orders/mod.rs`) with the existing
 `group_set_up_insert` / `group_action_halt` / `group_finish_insert`;
 `a_builder_s_re_entry_swarms_the_build_queued_behind_it_afresh` (`cities_tests`)
 fails without it (made to fail once, the dance replaced by the plain swarm).
@@ -18943,7 +18943,7 @@ candidates below.
 
 **Candidates, none built.** (a) The original's `Unit::think` tail gives an idle `TRANSPORTFREIGHTER` a job ours omits —
 `think_civilian_transport(u, false)` is reached only through `think_scout`'s tail and a citizen's colonist arm in this crate
-(`crates/sim/src/transport.rs`, `docs/TRANSPORT.md` §7). Killer: a packet at 2178 (`docs/EMULATOR.md` §8) and a call trace of the
+(`crates/sim/src/ai/transport/mod.rs`, `docs/TRANSPORT.md` §7). Killer: a packet at 2178 (`docs/EMULATOR.md` §8) and a call trace of the
 unit's whole `think`. (b) The slot-reuse kill and the Build order's `exists` test differ in the original by a frame (ours kills twice in
 2177; `Unit::work@0060d180:319` kills once and returns). Killer: whether theirs holds `[Build]` on 2178 — a window around 2170 would
 say, and no dump on disk does.
@@ -19271,7 +19271,7 @@ flagged, the unit walks to the shore, stops there on 3130, and the army's cast p
 
 ### 200.3 What was built
 
-`crates/sim/src/orders.rs` (`do_move`'s refusal branch, the non-final top's pop): a popped top with `TRANSPORT` pops the next entry, sets
+`crates/sim/src/orders/mod.rs` (`do_move`'s refusal branch, the non-final top's pop): a popped top with `TRANSPORT` pops the next entry, sets
 the bit and pushes it back. Walk-held: run788's window 151 → 149 keys (`1/27`'s two rows), run799's `1/27` rows gone after 3131 and **the word 3131 →
 3188** (`mongol_pair::`; the floors and the diff walks that reach a refusal with a flagged top moved nothing else).
 A mutation (the hand-down block removed) fails `run788_s_word_frame_is_widened_whole` (151 against 149) and `mongol_pair_first_parting` (3131).
@@ -19385,7 +19385,7 @@ It sits inside the Fort arm only (the `else` that reads the danger grid),
 and `0xff − val` is added after it. Ten times over, the distance and
 danger terms outweigh `val`: (49, 28) is 40212 and (49, 31) 40215, the
 original's cell. Built in `Sim::produce_building`
-(`crates/sim/src/ai_place.rs`), reading `city_ai[c].bordering`, which the
+(`crates/sim/src/ai/ai_place.rs`), reading `city_ai[c].bordering`, which the
 border pass writes (item 1600).
 
 **What moved.** The Redoubt stands at (38304, 24288) as the original's
@@ -19521,7 +19521,7 @@ Statue `1/2044` (`orig_type` 537) is a site on run790's first block
 (`construct_hits` 13820) and complete by 3981 (24310, `wonder` 0); the
 frame it completes on is not dated here.
 
-Built: `Modifiers::liberty` (`crates/sim/src/cost.rs`), applied after the
+Built: `Modifiers::liberty` (`crates/sim/src/economy/cost.rs`), applied after the
 stable rares and before Uranium; `Sim::liberty_discount`
 (`crates/sim/src/lib.rs`) reading `Sim::wonders_held`'s `has_wonder` and
 the two percentages (`Tuning::liberty_bombers`, `liberty_missiles`, slotted
@@ -20115,7 +20115,7 @@ hand-back writes the group **its unit's `+0x80` names**, which is the army's gro
 by its seat, and the sub-group holds the army's seat while it lays out. So the wagon, the army's leader, wrote its dying move's 1
 onto the stack record, and `compute_form` read `facing 1` XOR `faces_away 1` = 0. The original reads 0 XOR 1 = 1.
 
-**Built** (`crates/sim/src/group.rs`, `crates/sim/src/lib.rs`): the parent's record is set aside in `Sim::set_aside` with its
+**Built** (`crates/sim/src/groups/group.rs`, `crates/sim/src/lib.rs`): the parent's record is set aside in `Sim::set_aside` with its
 seat for the length of the sub-group's `action_move_to`, and the two member-side writers of `GroupData::facing` (the hand-back and
 `unit_set_angle`'s toggle) go through `Sim::facing_record_mut`, which answers the set-aside record for its seat. Test
 `group::tests::a_member_s_dying_move_hands_its_mirror_to_the_army_not_the_stack` (a lone wagon facing south of a north march: the
@@ -20193,7 +20193,7 @@ General carries `0x20` alone and a Supply Wagon `0x40` alone.
    sent The Despot down the hero arm: army 0 has no General, so the nearer army won. The original sends it down the wagon arm.
    Army 0's three wagons refuse it, and army 5's two admit it. Group 89 is that army.
 
-**Built** (`crates/sim/src/cast.rs`, `crates/sim/src/army.rs`): `unit_hits`' supply term on `SUPPLY_OR_HERO` alone, and
+**Built** (`crates/sim/src/spells/cast.rs`, `crates/sim/src/ai/army/mod.rs`): `unit_hits`' supply term on `SUPPLY_OR_HERO` alone, and
 `army_admits`' arm on the joiner's `SUPPLY_OR_HERO` alone. The counts are unchanged: `army_count_supply` still counts `0x40`
 without `0x20`, which is what `COUNT_TYPE 0x3f`'s lineage counts for every type this lobby has. Tests
 `rares::tests::a_supply_unit_adds_the_supply_hp_upgrade` (a patriot type of both bits is 150 at level 3) and
@@ -20271,8 +20271,8 @@ it to 0 and back to 1, and 4482 reads 1.
 
 ### 214.4 The build
 
-`Sim::toggle_leader_facing` (`crates/sim/src/group.rs`) is `set_angle`'s group arm on its own. `unit_set_angle` calls it,
-and so does `land_tail` (`crates/sim/src/transport.rs`) on a reversing turn to the host's angle. The probe counted
+`Sim::toggle_leader_facing` (`crates/sim/src/groups/group.rs`) is `set_angle`'s group arm on its own. `unit_set_angle` calls it,
+and so does `land_tail` (`crates/sim/src/ai/transport/mod.rs`) on a reversing turn to the host's angle. The probe counted
 thirty reversing landings in this game before 4637, twelve of them by the group's leader, which now toggle. They run
 from 2105 on: `1/29` on 4255, `1/48` on 4195, and army 0's wagons among them.
 The walk stays clean past all of them, because a later hand-back overwrites the flag before a layout reads it.
@@ -20346,7 +20346,7 @@ bit. The copy named the dead `2057`, so it was dropped.
 
 ### 215.4 The build
 
-`Sim::group_finish_insert` (`crates/sim/src/group.rs`) resolves a build or repair copy through `building_by_o`: the
+`Sim::group_finish_insert` (`crates/sim/src/groups/group.rs`) resolves a build or repair copy through `building_by_o`: the
 live building with the copy's owner and object number. It re-issues the order on that building, and drops the copy
 when the slot is empty. Test: `cities_tests::a_re_entry_re_issues_a_queued_build_on_the_site_that_took_its_number`.
 A builder holds a build on `b1` and one queued on `b2`. `b2` closes, `b3` takes its number, and the builder is carried
@@ -20599,7 +20599,7 @@ capture's player holds one.
 **What is not established.** Which arm makes the Lakota's food income 864 on frame 1 (the successor pair's was the
 Mongol food term, §191); that the word's draw delta is that income's (the frame is the booking, the mechanism the next
 item's hypothesis). Every census row in point 1 is a prediction. The peace's end at 4500 and `Game::war_allowed`'s time
-arm stand modelled as "always allowed" (`crates/sim/src/army.rs`'s seam list), parked 2321.
+arm stand modelled as "always allowed" (`crates/sim/src/ai/army/mod.rs`'s seam list), parked 2321.
 
 **Diff-backed**: the lobby's read-back, the game's end at 6822, the first word and its widening. **Reading only**: the
 callers in point 1.
@@ -20706,7 +20706,7 @@ block 1474. So 1984 is the first view after contact. `when Leader::diplomacy` on
 - The draw at `+0x1168` is the peace coin: difficulty 3, a human target with no more wars than mine.
 
 **Built.**
-- `crates/sim/src/diplomacy.rs`: `Sim::diplomacy` (one leader, from `strategy_all` after `plan_strategy`),
+- `crates/sim/src/leaders/diplomacy.rs`: `Sim::diplomacy` (one leader, from `strategy_all` after `plan_strategy`),
   `diplomacy_with` (one target), `war_allowed` and `current_age`. Four draw sites: `+0x1168` (peace coin),
   `+0x1322` (the target's cities that were mine), `+0x1388` (mine that were the target's), `+0x1b12` (the quiet
   coin).
@@ -20962,7 +20962,7 @@ agrees through 4543 in both.
 **Not carried before.** No code in `crates/sim` wrote `at_war` during a game. The matrix stood as the lobby left
 it.
 
-**Built.** `Sim::end_the_peace` (`crates/sim/src/diplomacy.rs`), called before `strategy_all` in the frame step:
+**Built.** `Sim::end_the_peace` (`crates/sim/src/leaders/diplomacy.rs`), called before `strategy_all` in the frame step:
 the rule's frame, the team-style gate, and the pair walk through `allied_both` and `not_at_war`. Team style 7's
 neutrals and a computer declarer's `diplo_change` are `SEAM`s. `update_leader_list` is the interface's. Test:
 `diplomacy::tests::the_peace_s_end_declares_war_both_ways_on_its_one_frame` (4499 and 4501 nothing; 4500 both
@@ -21570,7 +21570,7 @@ figure (`+0x90 < 0`), or whose next figure's slot is not active (`flags & 1` cle
 or a governor hero). A head over a live figure goes to `0060f679` instead and hands the squad down; a follower
 (`+0x8e >= 0`) goes there too. So a squad is counted until its last figure dies.
 
-**Built**: `Sim::close_count` (`crates/sim/src/fight.rs`), before the relink on the combat death
+**Built**: `Sim::close_count` (`crates/sim/src/combat/fight.rs`), before the relink on the combat death
 (`take_damage_typed`), attrition, the pasture's animals and the flock's birds; gaia, which holds no muster here, is
 skipped. The gate is `Sim::counts_in_muster`'s, read off the chain: no `o_up`, no live `o_down`, not a decoy, a
 type with population.
@@ -21811,7 +21811,7 @@ Army 1's target is the human's `0/2000` at (6240, 7008) (`RON_DEBUG_ARMIES`, sta
 which snaps to **(6552, 7320)**. The snap's remainder is 6552 − 8 × 768 = **408**: theirs' order and offset, to the unit. This
 crate had no attack arm. `think_carry` answered no, the tail asked nothing of a boat, and the freighter stood.
 
-**Built** (`crates/sim/src/transport.rs`):
+**Built** (`crates/sim/src/ai/transport/mod.rs`):
 - `Sim::think_carry` counts the attacking captains aboard;
 - `Sim::think_carry_army` reads the head rider's `group_ptr` and the army on that pool slot (straight off the group, not through
   `get_army`'s membership test). It runs the nine-cell test against `reg`, then sends the live target's cell centre through
@@ -21885,7 +21885,7 @@ when `HeroesData::find_hero@0073a1b0` finds one of the owner's heroes, active an
 `0x165` (§225's President), at (7965, 9718) on 6452: 2371 from the bomber, inside its radius. The reach is `5 × 0xc0 + 6` =
 966, and 918 is inside it. On 6451 the bomber was at 1021, outside, so the release falls on 6452 exactly.
 
-**Built** (`crates/sim/src/fight.rs`): `Sim::ceo_unit_range`, added in `max_range_of` for a unit: not `is_siege_unit`, the
+**Built** (`crates/sim/src/combat/fight.rs`): `Sim::ceo_unit_range`, added in `max_range_of` for a unit: not `is_siege_unit`, the
 owner's `muster.by_type` of the `0x165` type non-zero, and the unit itself a `0x165` hero or an alive, on-map `0x165` hero of
 its owner within `hero_radius × 0xc0`. `Tuning::theceo_unit_range` (2), checked against `rules.xml`'s
 `THECEO_UNIT_RANGE`. SEAMs: the siege arm below it (`TURK_SIEGE_RANGE`, the Liberty and Eiffel wonders, Napoleon), Ptolemy's
@@ -21946,7 +21946,7 @@ restore on every exit: `docs/COMBAT.md` §17.7.
 `0x167` unit); `find_ordered_collision` (the freighters `1/163` and `1/217` are ordered onto the row but stand far off, and the
 chain walk agrees); units or buildings near the ring (none, either side).
 
-**Built** (`crates/sim/src/attack_pos.rs`): `find_attack_pos` holds `auto_transport` false around `find_attack_pos_grounded`
+**Built** (`crates/sim/src/combat/attack_pos.rs`): `find_attack_pos` holds `auto_transport` false around `find_attack_pos_grounded`
 and ORs it back. Test `an_asker_s_auto_transport_is_held_clear_while_it_searches` (water east of the face); mutation keeping
 the bit through the call: exit 101, held.
 
@@ -21983,7 +21983,7 @@ nearby_add`, mandatory false. On the word's block 6822, before the fix: `1/124` 
 652]` (the unpack). The target `0/2000`, the human's capital, reaches `damage` 1560 of `myhits` 1560 on 6821 on both sides —
 capture-eligible, health 0.
 
-**Three terms, each read off the original and built** (`crates/sim/src/orders.rs`):
+**Three terms, each read off the original and built** (`crates/sim/src/orders/mod.rs`):
 
 1. **The army shortcut on the idle think.** `find_nearby_target@00648da0:198`–`222` gives a packed computer siege engine its
    army's target (`Army +0x30/+0x34`) at `QUEUE_FIRST`, **mandatory 1**. This crate had it as `take_siege_army_target`
@@ -25905,7 +25905,7 @@ shore cell, and when it already stands in that quarter-cell it builds a one-boat
 holds anything and is not `can_carry(AIR)` (`is(0x1bf|0x15f|0x208, 1)`), `Object::eject_contents(0, −1, 0, 1)`:
 `disembark`'s steps with **`param_3 = 0`**, so the passenger keeps its own empty list (`eject_contents:254`). Then a
 boat of the `TRANSPORTBARGE` or `MERCHANTFLEET` lineage with nothing left inside dies. The eject had been a stated
-seam (`SimCarryCiv::eject_all`, parked 3346e). It is `Sim::boat_eject_all` now (`crates/sim/src/transport.rs`),
+seam (`SimCarryCiv::eject_all`, parked 3346e). It is `Sim::boat_eject_all` now (`crates/sim/src/ai/transport/mod.rs`),
 sharing `disembark`'s loop through `eject_riders(boat, carry)`.
 
 **The value diff, on the word's frame** (run1153c, block 3674): `1/10 pos` ours (37236, 26520) against theirs
@@ -26279,7 +26279,7 @@ Off the heading, `0/11` bears 0x2a37_ffff from it — inside 60°, ×2, **3048**
 3920: `0/3` wins, as theirs'. Item 3385 cited `+0x50` and built on the facing; a horse archer's body and heading
 agree on most frames.
 
-**Built** (`crates/sim/src/fight.rs`): the bearing off `movement.heading`. `cavarch::tests::
+**Built** (`crates/sim/src/combat/fight.rs`): the bearing off `movement.heading`. `cavarch::tests::
 the_fire_on_the_move_bears_off_the_heading_not_the_facing`: two like foes at one distance, one on the heading
 and one on the facing a quarter turn away; the search takes the one on the heading, either way round.
 
@@ -26341,7 +26341,7 @@ the reload ends (`docs/ORDERS.md` §7.12) and stands. The draws agree throughout
 **The mechanism** (`Unit::fight@005fd4d0:94`–`102`): `local_1c` is set when the type's `unit_flags2 & 1` (the
 machine-gun and flamethrower lineages, `uflags2::EMPLACED`) is set and the order's target fails `valid_target`.
 It walks past the reload gate at `:102` to `:196`'s kill. This crate had it as a `SEAM` ("no capture on disk has a
-unit in it"). **Built** (`crates/sim/src/orders.rs`, `do_attack_fight`'s `latch`). The test is
+unit in it"). **Built** (`crates/sim/src/orders/mod.rs`, `do_attack_fight`'s `latch`). The test is
 `fight::tests::an_emplaced_weapon_drops_a_dead_target_s_order_while_recharging`, with the bit and without it.
 `tools/mutate.py` was run with the latch forced false. It held: the unit test failed, the closing state went back
 to 14 off, and run1184 went back to 239 keys. The latch's other half is still not modelled (3540c): the current
@@ -29775,7 +29775,7 @@ re-issues the copied action-flagged build on 2030 at `QUEUE_LAST`, which is
 the new explore to (36600, 43320) and the `0x2000` clear. Theirs:
 `[BUILD 2030, EXPLORE (36600, 43320)]`.
 
-`Sim::swarm_around` (`crates/sim/src/orders.rs`) queued the approach only
+`Sim::swarm_around` (`crates/sim/src/orders/mod.rs`) queued the approach only
 when a spot was found, but inserted the order every time. So ours kept a
 `Build(2023)` with no approach in front of it, and `1/17` stood on it.
 `swarm_around` now returns when the ring finds no spot. This is the shape
@@ -30086,7 +30086,7 @@ General"). The Monarch is a supplier (`UnitType::init_final_flags`'s
 1818, the previous army turn: theirs' 2000 ≥ 1767 casts, and on 1818 1000
 < 1895 refuses on both sides, which is why the stride agreed through 1901.
 
-**Built.** `Sim::unit_mana` (`crates/sim/src/cast.rs`) multiplies a
+**Built.** `Sim::unit_mana` (`crates/sim/src/spells/cast.rs`) multiplies a
 supplier's pool by `supply_upgrade_level + 1`; the space-air arm
 (`+0x218 == 2`, `has_wonder(0x21e)`) stays the seam. Every reader of the
 pool takes it — the hero arm's afford, `mana_left`, the regeneration cap,
@@ -30227,7 +30227,7 @@ caller: a `GROUP_ATTACK_TO` head on an active member of a group still
 walking its attack-move hands the find to `Group::action_attack`. Ours had
 it as a SEAM, carried "for the attack-move's own look alone".
 
-**Built.** `crates/sim/src/orders.rs`: `nearby_add` is
+**Built.** `crates/sim/src/orders/mod.rs`: `nearby_add` is
 `attack_move_add`, the whole arm (the guard's `local_2c`, the group
 hand-off, else the alone add); the seam is retired. Mutation through
 `tools/mutate.py`, `nearby_add` back to `nearby_normalize` +
@@ -30377,7 +30377,7 @@ frames counting it down (4863..4868), gains `attempts` 3 and re-paths on
 
 **The hypothesis for the next item.** `Sim::roll_upath_retry`
 (`crates/sim/src/movement/path.rs`) writes `retry` into the unit's front order, and
-`do_move`'s refused-line branch (`crates/sim/src/orders.rs`, the `r == 0`
+`do_move`'s refused-line branch (`crates/sim/src/orders/mod.rs`, the `r == 0`
 arm with a non-final top: `mo.has_waypoint = false; self.store_move(u, mo,
 flags)`) stores back its copy `mo`, taken before the search, over it. The
 original clears `dest` in place and keeps the roll. I built nothing.
@@ -30421,7 +30421,7 @@ order into `mo` at entry, and every store after the planner call wrote the
 pre-search copy back; here it was the refused arm's `store_move`.
 `seams.py --field retry` names no seam on the arm, and `roll_upath_retry`
 is the one planner writer of `retry`. So **the fix re-reads `retry` from
-the live order after the planner call** (`crates/sim/src/orders.rs`,
+the live order after the planner call** (`crates/sim/src/orders/mod.rs`,
 beside the unchanged-length refusal), and every later store carries it.
 3625's hypothesis was right, and it is built as read.
 
@@ -30763,7 +30763,7 @@ and kept the cargo.
 `eject_contents`' deferral (`+0x60 |= 0x4000`) is not a unit host's: the
 riders come out on the frame, as `boat_eject_all`'s do (§303).
 
-**Built** (`crates/sim/src/transport.rs`, `Sim::think_carry_army`): the
+**Built** (`crates/sim/src/ai/transport/mod.rs`, `Sim::think_carry_army`): the
 ashore arm calls `eject_riders(boat, false)`, which is
 `eject_contents`' loop with `param_3 = 0`, so each rider keeps its own
 empty list. Then the boat goes through `transport_dies` when nothing is
@@ -30853,7 +30853,7 @@ TypeIndex 432, `DOCK`. So the arm is:
 §203's run810 took the first return (`64e7e5`), ahead of the dock test,
 so that reading never reached a capture until now.
 
-**Built** (`crates/sim/src/fight.rs`, `Sim::compare_target`): the
+**Built** (`crates/sim/src/combat/fight.rs`, `Sim::compare_target`): the
 second term is `crate::build::is_dock` on the target's type, and
 `!SIEGE`. `fight::tests::a_computer_s_raiding_ship_weighs_a_finished_building_at_zero`
 gives its zero cases a Dock and adds two Farm cases: weighed above zero,
@@ -31747,7 +31747,7 @@ not the word's draw: §341.1): `SpellType::cast_transport`'s
 `MARINES` arm (§6.1 of `docs/TRANSPORT.md`: `unit_masks2 |= 0x200` and
 `update_speed`) and `Unit::update_hits`'s American-marines term, both
 SEAMs here (`SimTransport::marines` is empty in
-`crates/sim/src/cast_transport.rs`; `cast.rs`'s `unit_hits` names the
+`crates/sim/src/spells/cast_transport.rs`; `cast.rs`'s `unit_hits` names the
 term "which no scored nation or holding takes", and `TypeHits::is_marine`
 answers `false`). The shipped `rules.xml` carries
 `AMERICANS_MARINE_HP_BONUS` "70 extra hitpoints for marine transports"
@@ -35432,7 +35432,7 @@ The halving needs **both** the attacker's `who` and its `o` to differ from the c
 jumps to the return. The Special Forces line `is` the Commando (`0x49`), and the cast's `x, y` is the caster's own
 position, which run1397b's `CASTORDER x=4248 y=31896` reads.
 
-**Built**: `Sim::counter_craft` (`crates/sim/src/fight.rs`), called from `target_opportunity_in` ahead of the flee
+**Built**: `Sim::counter_craft` (`crates/sim/src/combat/fight.rs`), called from `target_opportunity_in` ahead of the flee
 arm, when the held attack did not yield. A craft whose tests fail falls through to the next, then to the flee arm.
 
 **The score: 4299 → 4586 of 5304**, count and sequence. On 4586 ours spends 94 draws against theirs' 99, parting at
@@ -35535,7 +35535,7 @@ The byte is the Whales arm's: Aluminum is mask bit 24 (byte 3, bit 0), and Whale
 `rules.xml` ships `ALUMINUM_AIR_SPEED` at 25. `Leader::calc_unit_stats` already re-speeds every unit when a rare is
 gained, so the arm needs no new caller.
 
-**Built**: `crates/sim/src/rares.rs` (`speed_of`) and `crates/sim/src/core/tuning.rs` (`aluminum_air_speed`, the
+**Built**: `crates/sim/src/economy/rares.rs` (`speed_of`) and `crates/sim/src/core/tuning.rs` (`aluminum_air_speed`, the
 `ALUMINUM_AIR_SPEED` slot). Test: `rares::tests::aluminum_speeds_the_aircraft_and_nothing_else`.
 
 **The score: 4586 → 5304 of 5304, closed**, count and sequence. Every other lobby's `first_parting` holds (101 of
@@ -35948,7 +35948,7 @@ The arm then **points the unit's army at the find** (`Object::get_army@00649d70`
 Only after that does the tail choose the queue and hand a non-siege `GROUP_ATTACK_TO` member's find to
 `Group::action_attack` (`649c88`–`649d13`), so the hand-off never meets the arm.
 
-**Built**: `Sim::nearby_siege_city` (`crates/sim/src/orders.rs`), asked after `nearby_normalize` on the three
+**Built**: `Sim::nearby_siege_city` (`crates/sim/src/orders/mod.rs`), asked after `nearby_normalize` on the three
 adds that follow it:
 - the attack-move look's `attack_move_add`;
 - `find_melee_target_added_in` (`find_new_target`, `think`, `target_opportunity`);
@@ -40839,7 +40839,7 @@ entry `input::unqueue_unit` is `process_unqueue@009466f0`'s unit arm:
 no shared prefix (`setup::script_staged`), since a prefix an unstaged walk
 of the same start put carries no staging.
 
-**The three writers** (`crates/sim/src/carrier_queue.rs`, its header has the
+**The three writers** (`crates/sim/src/air/carrier_queue.rs`, its header has the
 pseudocode):
 
 - `Group::action_spell@006fe1a0:171`, the carrier arm, taken when the
@@ -41101,7 +41101,7 @@ puts a `GARRISONORDER` in front of every Citizen in the city's radius. The spill
 front order (`BUILD_AT` or `REPAIR` on this building), so it passes the other three by.
 
 This crate carried the arm only as a swept walk (`take_damage_view::peasant_alarm`, item 3376). The
-live `take_damage_typed` never called it. **Built:** `Sim::peasant_alarm` (`crates/sim/src/alarm.rs`),
+live `take_damage_typed` never called it. **Built:** `Sim::peasant_alarm` (`crates/sim/src/groups/alarm.rs`),
 called from `take_damage_typed` on a unit after the accumulate. The gates are this crate's
 `Nation::human` (`leader_flags & 4`, not "out" as the view's constant names it), `ai_difficulty`,
 `is_peasant`, `find_city_at`, the city building `alive && active`, and `City::alarm`.

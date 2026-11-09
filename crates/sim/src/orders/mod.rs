@@ -13433,5 +13433,10 @@ impl crate::check_build_view::CheckBuildView for SimCheckBuild<'_> {
     }
 }
 
+pub mod build_spot_view;
+pub mod check_build_view;
+pub mod do_attack;
+pub mod group_move;
 #[cfg(test)]
 mod helicopter_garrison_tests;
+pub mod topp;

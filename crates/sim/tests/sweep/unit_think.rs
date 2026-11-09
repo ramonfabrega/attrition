@@ -29,7 +29,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let _ = (&a, &m, &c, &p);
         {
             // **`Unit::think@005f6e40`, the captain's dispatcher, as the original orders it.** No crate method can
-            // be called over windows: `Sim::think` (crates/sim/src/orders.rs) reads `self.units` and the
+            // be called over windows: `Sim::think` (crates/sim/src/orders/mod.rs) reads `self.units` and the
             // `Sim::think_*` it calls are the real ones, so this is the inline port, written from the listing in
             // the original's order of tests and calls. The non-captain half (the captain mirror) is a sibling.
             //

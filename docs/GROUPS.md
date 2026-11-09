@@ -9,7 +9,7 @@ never move a unit, because the simulation had no `Group::action_*`.*
 ***Second reading run, adjudicated and applied, 2026-08-26** —
 `docs/audit/2026-08-25-groups.md`, 124 verdict rows. Two blind readers and
 an adjudicator, all on Opus 5. Every correction it names has landed in this
-document and in `crates/sim/src/group.rs`; §14 is the record of what was
+document and in `crates/sim/src/groups/group.rs`; §14 is the record of what was
 wrong and where each fix went. The first reading gave this document **low**
 standing and was right to: it never opened `rise_z.map`, and §13 guessed at
 five vtable slots the PE names outright.*
@@ -350,7 +350,7 @@ active on-map member, and **−1 as soon as two differ** — a mixed group has
 no formation. ~~`get_form_mod_option` is its width twin at `+0xab`.~~
 **It is not a twin**: `get_form_mod_option@0070bd00` is the **mean** of
 the members' `+0xab` bytes over those that are not −1, falling back to
-`0x32` when none qualifies, which is what `crates/sim/src/form.rs`
+`0x32` when none qualifies, which is what `crates/sim/src/groups/form.rs`
 implemented from the function itself. Run29 separates the two outright:
 army 0's seven members carry `form_mod` `[−1, 50, 50, −1, 50, 50, 50]` and
 the option is **50**, where a `get_form`-shaped rule would give −1
@@ -428,7 +428,7 @@ unit go to the first group, everything else to the second — and the same
 recursion applies under the same `army < 0` guard. The test at `704cf4` is
 `(ptype->+0x2b4 & 0x10) == 0`, `unit_flags` bit `e`, which this project has
 named `uflags::TRANSPORT` since the AI mechanic
-(`crates/sim/src/ai_load.rs`); it is **not** `is_special`, which is
+(`crates/sim/src/ai/ai_load.rs`); it is **not** `is_special`, which is
 `unit_flags2 +0x2b8 & 0x10`.
 
 ### 6.2 `QUEUE_FIRST`
@@ -587,9 +587,9 @@ leader-slot offset is 216 (§6.4).
 
 ### 6.4 The slot table
 
-**Implemented and diffed** — `crates/sim/src/form.rs`, and
+**Implemented and diffed** — `crates/sim/src/groups/form.rs`, and
 `run29_s_navy_slot_table_is_reproduced_from_the_install_s_own_spacing` in
-`rondata::diff` reproduces run29's own row from the install's own columns.
+`rondata::diff` reproduces run29's row from the install's own columns.
 This section is the table itself; what it still does not reproduce is at
 the end, and every one of those is the original's doing rather than the
 port's.
@@ -951,8 +951,8 @@ the unit **takes the move like every other member**. The whole truth of
 the shooting siege unit, by queue position: not hurrying → left alone;
 hurrying with a city → into the city; hurrying without one → under
 `QUEUE_NEW` cleared and marched, under `QUEUE_LAST`/`QUEUE_FIRST` (no
-clear loop) still shooting and skipped. `crates/sim/src/group.rs` does
-exactly that
+clear loop) still shooting and skipped. `crates/sim/src/groups/group.rs` does
+that
 (`a_hurrying_army_with_no_city_clears_and_marches_its_shooting_siege`).
 
 ### 6.6 The ordinary path, per member
@@ -1070,8 +1070,8 @@ both `GroupData::facing` writers.
 
 ### 6.7 The path
 
-**Implemented 2026-08-26** — `crates/sim/src/grouppath.rs`, and §16 has
-what building it corrected in the text below.
+**Implemented 2026-08-26** — `crates/sim/src/groups/grouppath.rs`, and §16 has
+what building it corrected below.
 
 One path is planned and offset, exactly as `docs/ORDERS.md` §8.2 outlines:
 a single-entry `grouppath` at the **leader's slot destination** with the
@@ -1464,7 +1464,7 @@ that nothing before it did:
 
 ## 12. What the simulation carries, and what checks it
 
-`crates/sim/src/group.rs` models the group as a **value** — the members and
+`crates/sim/src/groups/group.rs` models the group as a **value** — the members and
 the fields an action reads and writes — because the simulation collapses an
 army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
 
@@ -1486,14 +1486,14 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
   `QUEUE_FIRST` rotation, `get_form`/`get_loc`, `compute_form`'s angle and
   reverse rules, **the AI branch of §6.5 whole**, and the ordinary path's
   order choice. ~~**Not §6.7**~~ — **§6.7 landed 2026-08-26**, in
-  `crates/sim/src/grouppath.rs`: the one search off the leader's raw slot,
+  `crates/sim/src/groups/grouppath.rs`: the one search off the leader's raw slot,
   the `0x900` short-circuit, the `pathfinder +0x70` hint, the per-member
   translation with its clamp and its area guard, the follower cutoff, the
   no-leader arm and the ungated tail invert. §6.6 step 2's `QUEUE_LAST`
-  pre-invert lands with it, because it means nothing without a stack to
+  pre-invert lands with it: it means nothing without a stack to
   invert, and the orders the member loop issues are now born `PATHED`
   (`add_move_facing_order`'s `param_5`). §12.4 has what it moved;
-- **`Form::compute`'s slot table** (§6.4) whole, in `crates/sim/src/form.rs`
+- **`Form::compute`'s slot table** (§6.4) whole, in `crates/sim/src/groups/form.rs`
   — `type_cat`, `categorize`, `compute_rows_and_columns`, `compute_dests`,
   `get_form_mod_option` and `update_positions` — so each member now takes
   **its own slot destination** and the group carries `form_num`, `off`,
@@ -1528,7 +1528,7 @@ landing either closes a row or narrows one. Nothing cites it by number, and
 
 | seam | stands in for | what it costs |
 | --- | --- | --- |
-| ~~`Form::compute`'s slot table (§6.4)~~ | — | **Closed 2026-08-26**: `crates/sim/src/form.rs`, diffed against run29's `GROUPDATA` from the install's own columns. What is left is the four limits at the end of §6.4 — Square, the wedge's uninitialised seed, Mob's rings, and `categorize`'s two type substitutions — and every one of them is the original's |
+| ~~`Form::compute`'s slot table (§6.4)~~ | — | **Closed 2026-08-26**: `crates/sim/src/groups/form.rs`, diffed against run29's `GROUPDATA` from the install's own columns. What is left is the four limits at the end of §6.4 — Square, the wedge's uninitialised seed, Mob's rings, and `categorize`'s two type substitutions — and every one of them is the original's |
 | the group pool (§3) | 64 slots a leader, `get_open_slot`'s recycling | one group per army, never recycled; `push_group`'s `force == 0` rule, `equals_group` and **its kill out of the old group** (item 350, `docs/ARMY.md` §3.4) are modelled, the slot allocation is not — so the only group a push can empty is an army's |
 | `GroupMoveOrder` | §6.6's per-frame formation — the follower that tracks the leader's *current* position plus a rotated offset | every member gets a `MoveOrder` and marches to its own slot independently; `docs/ORDERS.md` §8.4's verdict, unchanged. ~~And the order's angle: step 6's `angle + (angles[i] << 24)`.~~ **The angle has left this row 2026-08-26**: `Sim::add_move_facing_order` carries the formation's own bearing plus the slot's packed byte, and `MoveOrder::facing` carries the mirror, which is what §6.3's hand-back reads |
 | **Column's `cols[i]`** (§6.7) | the slot index a Column formation translates a non-final waypoint by | the member's own slot. `cols` is a function-local static of `action_move_near` (`0xee155c`) that nothing writes, so the original reads uninitialised heap there; every simulated group is form 0, and a `debug_assert!` refuses to pretend otherwise |
@@ -2037,7 +2037,7 @@ Still open:
   member's own position on the same block.
 
 - ~~**§6.7 is not implemented at all**, and run20 measures the cost.~~
-  **Implemented 2026-08-26**, `crates/sim/src/grouppath.rs`; §12.4 has the
+  **Implemented 2026-08-26**, `crates/sim/src/groups/grouppath.rs`; §12.4 has the
   table and §16 has what the listing corrected on the way. Of the three
   disagreements this entry named, the **goal** and the **timing** are
   closed and the **route** is not:
@@ -2222,7 +2222,7 @@ The four largest errors, and where each answer now lives:
   built rules on the guesses. → **§4.3, §8, §10, §13**.
 - **§13's "`Group::priority` has no writer in the export" was wrong** —
   there are five. → **§1**.
-- **Two live bugs in `crates/sim/src/group.rs`**: `group_action_halt` wrote
+- **Two live bugs in `crates/sim/src/groups/group.rs`**: `group_action_halt` wrote
   each *unit's* `form` where `0070d0c0:29` writes the *group's* — and
   `group_get_form` reads the unit bytes, so it was not cosmetic — and
   `group_action_attack`'s "already attacking" skip was unconditional where
@@ -2399,7 +2399,7 @@ did until this item, having passed the queue position straight down to
 
 `finish_insert@0070e620` re-issues each copy as a **group** action at
 `QUEUE_LAST`, switching on the order's own index over twenty-one cases.
-`crates/sim/src/group.rs` carries the move and the attack arms and stands
+`crates/sim/src/groups/group.rs` carries the move and the attack arms and stands
 in for the rest; ~~no capture on disk reaches a group `QUEUE_FIRST` whose
 leader holds one of the others~~ run157 reaches the `BUILD_AT` case, which
 §24 builds; `army_charge` is the only other caller.
@@ -2408,7 +2408,7 @@ leader holds one of the others~~ run157 reaches the `BUILD_AT` case, which
 
 `UnitData::get_speed@00608720`'s last arm is four lines, and until this
 item they were a declared seam in three places
-(`crates/sim/src/orders.rs`, `docs/MOVEMENT.md`'s layer 3, and
+(`crates/sim/src/orders/mod.rs`, `docs/MOVEMENT.md`'s layer 3, and
 `do_group_move`'s own comment). They are the reason a mixed formation
 marches at its slowest member's pace, and they cost Great Lakes' word 583
 blocks of drift:
@@ -3607,7 +3607,7 @@ had left at 1, and its `form`, `o`, `o_angle` and slot angles. It also
 wrote its layout onto that record. On 15095, the first issue, the army's
 `facing` was 0 and the two agreed. On 15350 it was 1.
 
-**Built** (`crates/sim/src/group.rs`, `group_action_siege_attack_to`
+**Built** (`crates/sim/src/groups/group.rs`, `group_action_siege_attack_to`
 only, by the commander's leave): for the sub-group's `action_move_to`,
 the seat's record is replaced by `GroupState::default()` (which is
 `Group::clear`'s), with the parent's `pool` (the carried `id`) and
@@ -3772,7 +3772,7 @@ handed the layout the seat's group, so the sub-group became the whole
 army. `1/60` was laid out as slot 0 of four, a `GROUP_ATTACK_TO`, and
 stood as a leader waiting for its followers.
 
-**Built** (`crates/sim/src/group.rs`): a value that names a seat but
+**Built** (`crates/sim/src/groups/group.rs`): a value that names a seat but
 holds another list is a group on the stack, read at entry, before the
 clear. Its sort is `Sim::stack_sort`, over its own list. The seat's sort
 still runs for a seated group. `the_anchor_s_sub_group_sorts_its_own_
@@ -4088,7 +4088,7 @@ gatherer's group, a computer's too.** That is parked 831, 824's measured
 writer. The pool keeps listing the unit, and only the back-pointer goes,
 as with `think_peasant`'s human arm.
 
-**Built** (`crates/sim/src/orders.rs`, the head of `do_non_flat_gather`).
+**Built** (`crates/sim/src/orders/mod.rs`, the head of `do_non_flat_gather`).
 
 ### 29.3 The walk
 

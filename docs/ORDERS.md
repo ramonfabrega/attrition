@@ -582,7 +582,7 @@ citizen mask-clear, `think@005f6e40:87` returns when
 by `o`, and only the "could not reach" bit (§6.3) restores every-frame
 searching. This changes when an idle citizen re-picks a job and when an idle
 soldier runs its target search, and it was a live divergence in
-`crates/sim/src/orders.rs` until it was landed. Then, in order:
+`crates/sim/src/orders/mod.rs` until it was landed. Then, in order:
 
 1. A non-captain whose captain's action is `ATTACK` with a valid target:
    `add_attack_order(target, QUEUE_NEW, …)` — squads follow the captain's
@@ -754,7 +754,7 @@ that is neither, returning it (or `NULL` when the queue is moves only).
 `is_move()` and either it is the last node or it carries the action bit
 (`update_action@0060a870:47`) — without that clause the mechanism could not
 produce the `dest_angle` the gamelog shows for a player's move, which is how
-the second reading caught it (R1). `crates/sim/src/orders.rs` already does
+the second reading caught it (R1). `crates/sim/src/orders/mod.rs` already does
 this.
 `UnitData::get_action@00608450` is the same walk without the writes.
 
@@ -1122,8 +1122,8 @@ Two further exits belong to the same block and are now modelled: the goal
 walking all the way back onto the unit sets `avoid = goal` and returns 1, and
 the loop breaks when both components have been clamped to zero.
 
-`crates/sim/src/orders.rs`, `Sim::find_path` — which now takes the move order
-by `&mut` for exactly this reason, and the goal by value, because the
+`crates/sim/src/orders/mod.rs`, `Sim::find_path` — which now takes the move order
+by `&mut` for this reason, and the goal by value, because the
 detour's recursive call passes a waypoint of its own rather than
 `mo->dest_x/dest_y`. `go_around_building@005fc350`, which the pull-back
 cannot stand in for, is §4.6.1 and landed 2026-08-26.
@@ -1230,7 +1230,7 @@ a leg crossing the shore turns in place before it walks. Then
 `mo->last = the unit's position`, the new top gets the same treatment
 against the unit's own tile, and `unit_masks |= 8`.
 
-`crates/sim/src/orders.rs`: `Sim::go_around_building`, `edge_walk`,
+`crates/sim/src/orders/mod.rs`: `Sim::go_around_building`, `edge_walk`,
 `detour_mid`, `detour_gave_up`, `detour_verified`, `shore_flagged`. The
 checks are `diff::tests::run20_s_frame_1_spends_the_farm_s_ambience_pair`
 (the original's own stack, entry for entry) and, without the install,
@@ -2766,7 +2766,7 @@ which is what a grep of every dumped record says.
 - ~~**The rates.**~~ Landed 2026-09-02: `LeaderData::calc_rare@006e08d0`, the
   ally-territory flag that scales them (block A takes
   `LeaderData::is_ally@006edb50`; block B inlines a team comparison) and the
-  division by `count + 1` are all in `crates/sim/src/rares.rs`, reached by the
+  division by `count + 1` are all in `crates/sim/src/economy/rares.rs`, reached by the
   third caller above — the two named here really do discard the array.
   `docs/ECONOMY.md` step 6 is the specification, and run59's census is the
   diff: the AI's `income[food]` and `income[wealth]` were 160 sixteenths short
@@ -3963,7 +3963,7 @@ capped 9, the 60° cone `0x55555555`, the `0x900` attack radius.
 
 ## 13. What `crates/sim` models, and how
 
-`crates/sim/src/orders.rs` replaces three stubs — `Unit::job`, `movement.dest`
+`crates/sim/src/orders/mod.rs` replaces three stubs — `Unit::job`, `movement.dest`
 as an order, `combat.target` as the attack order — with the thing the
 original has (what is listed as modelled is implemented and under test;
 what is listed as an input is stated as such in the code):
@@ -4072,7 +4072,7 @@ what is listed as an input is stated as such in the code):
   now asks who the original asks and neither map's word moved.
   `find_repair_spot` needs `FILTER_DAMAGED` and the difficulty gate and is
   still absent.
-- **The group orders** — **landed 2026-08-25** as `crates/sim/src/group.rs`
+- **The group orders** — **landed 2026-08-25** as `crates/sim/src/groups/group.rs`
   (`docs/GROUPS.md`), which reads the layer §8 only entered: the record and
   the pool, membership, and `action_move_to`/`action_move_near`,
   `action_siege_attack_to`, `action_attack`, `action_stance`,
@@ -5261,7 +5261,7 @@ goes `2004 → 2005` on the same block) and flags what is left of the city.
 **This crate had only `Build::activate`'s call.** `Sim::remove_from_city`
 unlinked the building and stopped, so nothing was ever flagged, no
 building ever replanned, and the search simply never happened. The whole
-change is one line, and `crates/sim/src/city.rs` carried a comment saying
+change is one line, and `crates/sim/src/cities/city.rs` carried a comment saying
 `Build::activate` "is the only writer a traced game reaches" — struck
 there now, with this frame beside it.
 
@@ -5570,7 +5570,7 @@ one).
   ungroup, held by neither side of the comparison.
 - **The arms above the re-path.** The unit-target kill's flank clause and
   its `Objects::find_collision` conjunct are still unmodelled
-  (`crates/sim/src/orders.rs`, `do_move`'s own note); this item touched
+  (`crates/sim/src/orders/mod.rs`, `do_move`'s own note); this item touched
   neither.
 
 ---
@@ -6724,7 +6724,7 @@ which copies an order that exists. So `CHANGE_FORM` (§3.3's `0x12`) is a
 save-game class in this build, and `finish_insert`'s case `0x12` replays
 an order that nothing makes. run210 holds no `FORMORDER` on any block.
 
-**The action** (`Sim::group_action_form`, `crates/sim/src/form.rs`):
+**The action** (`Sim::group_action_form`, `crates/sim/src/groups/form.rs`):
 
 - **The gates.** It returns early for a group that is off the map or holds
   buildings, or that is empty, leaderless or led by a plane.
@@ -6911,8 +6911,8 @@ is the generic one (§7.5's).
     `add_strafe_order(−1, −1, base, who, 1, QUEUE_NEW, 1)` unless the
     member already stands in that base.
 
-**Built** (`Sim::group_action_flight`, `crates/sim/src/group.rs`;
-`Sim::add_strafe_order` and `Body::Strafe`, `crates/sim/src/orders.rs`;
+**Built** (`Sim::group_action_flight`, `crates/sim/src/groups/group.rs`;
+`Sim::add_strafe_order` and `Body::Strafe`, `crates/sim/src/orders/mod.rs`;
 `rondata::input::group_flight`).
 - The two gates, the re-point, the flight home, and the unbased strike's
   skip.

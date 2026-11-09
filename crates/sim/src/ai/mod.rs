@@ -1345,3 +1345,25 @@ pub fn goods_picture(leader: &mut Leader, ledger: &mut Ledger, s: &GoodsSetup) {
 
 #[cfg(test)]
 mod tests;
+
+// The files of `ai/` (item 4012, `docs/STRUCTURE.md` §3).
+pub mod ai_build;
+pub mod ai_census;
+pub mod ai_drive;
+pub mod ai_host;
+pub mod ai_load;
+pub mod ai_make;
+pub mod ai_place;
+pub mod ai_research;
+pub mod ai_sites;
+pub mod ai_types;
+pub mod ai_units;
+pub mod bhs;
+pub mod relative_value;
+pub mod scenario_add;
+
+// `ai/army/` (item 4012, `docs/STRUCTURE.md` §3).
+pub mod army;
+
+// `ai/transport/` (item 4012, `docs/STRUCTURE.md` §3).
+pub mod transport;

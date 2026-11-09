@@ -507,3 +507,8 @@ pub(crate) fn herd_process_steps(
 
 #[cfg(test)]
 mod tests;
+
+// The files of `gaia/` (item 4012, `docs/STRUCTURE.md` §3).
+pub mod flock;
+pub mod goody;
+pub mod herd_create_view;

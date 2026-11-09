@@ -40,7 +40,7 @@ dated heading on, the journal is by date.
    mechanic, each re-verifying every claim against the decompile before
    changing it, document first, then implementation and tests.
 1. ~~**The tech tree**~~ — **done, 2026-08-20**, `docs/TECH.md` and
-   `crates/sim/src/tech.rs`: `has_tech`, `get_preq`, `has_preq`,
+   `crates/sim/src/tech/mod.rs`: `has_tech`, `get_preq`, `has_preq`,
    `type_eligible`, `type_avail`, `queue_here`, `gain_tech` with its cascades,
    `lose_tech`, `set_age`, the starting position, the lobby's start/end ages.
    The `TypeIndex` enum is now dumped whole by
@@ -60,7 +60,7 @@ dated heading on, the journal is by date.
    convention (a behavioural check) and the `balance.xml` flag-row separator
    (the `RULES=1` log settles it).
 3. ~~**Cities and buildings**~~ — **done, 2026-08-20**, `docs/CITIES.md`,
-   `crates/sim/src/build.rs` (the type, the construction clock, the site's
+   `crates/sim/src/cities/build.rs` (the type, the construction clock, the site's
    hit points, repair, refunds), `place.rs` (the tile layer and the
    `blocked_site` predicates with the original's `BlockIndex` verdicts),
    `city.rs` (the record, membership, the automatic level-up, capture,
@@ -146,7 +146,7 @@ dated heading on, the journal is by date.
    domain, `BuildType::set_domain` from `BUILD_FLAGS b`.
 
 7. ~~**Orders**~~ — **done, 2026-08-21**, `docs/ORDERS.md`,
-   `crates/sim/src/orders.rs`: the order list and its three enqueue modes,
+   `crates/sim/src/orders/mod.rs`: the order list and its three enqueue modes,
    one order stepped per frame, the move order end to end with the
    pathfinder as a named seam, build/repair/garrison through the swarm ring,
    the gather registration and the wood/ore machine, the attack order's
@@ -274,8 +274,8 @@ dated heading on, the journal is by date.
     reading is complete (the driver, the census, the step machine, the
     make list, the sites, the city AI, research, the market, the scripts;
     four readers' reports for the language, the 55 host functions and the
-    two `create_*` producers, ratified in §11), `crates/sim/src/ai.rs`
-    holds the driver's pure half and `crates/sim/src/bhs.rs` the script
+    two `create_*` producers, ratified in §11), `crates/sim/src/ai/mod.rs`
+    holds the driver's pure half and `crates/sim/src/ai/bhs.rs` the script
     interpreter (`docs/DECISIONS.md` entry 20). The finding that reframes
     this item: **the skirmish AI's opening is the shipped `economic.bhs` /
     `defensive.bhs`**, run through the scripting VM at production step 1 —
@@ -509,7 +509,7 @@ dated heading on, the journal is by date.
 
     **The loader's half of the producers' seams landed, 2026-08-25** —
     `docs/DATALAYER.md`, "The derived words no column carries", and
-    `crates/sim/src/ai_load.rs`. What made it cheap: **the type dump carries
+    `crates/sim/src/ai/ai_load.rs`. What made it cheap: **the type dump carries
     the derived words too.** `UnitType::log_data` prints `role`,
     `unit_flags` and `unit_flags2`; `BuildType::log_data` prints
     `build_flags`; `TechType::log_data` prints the **eleven `ai[scan]`
@@ -775,7 +775,7 @@ from `/clear` to commit.
   `do_mustering`'s expand arm hands an army to `do_transporting`, which is
   a one-shot region retarget; `init_navy`/`send_navy` are the navy's two
   hooks.
-- **The implementation** (`crates/sim/src/transport.rs`): the level, the
+- **The implementation** (`crates/sim/src/ai/transport/mod.rs`): the level, the
   predicates, the registry with its draws, `needs_transport`,
   `is_dock_tile`, and the coast masks from the cells. Two census seams
   closed, `carry` and fishermen wired. The unit AI's island choice and the
@@ -864,7 +864,7 @@ past 14586.
   `do_mustering` set marching, `do_marching` found no attacker, `close`.
   The ring search is the seam the first capture reaches; `docs/ARMY.md`
   §18 says so and what would close it.
-- **Landed.** `docs/ARMY.md` (19 sections), `crates/sim/src/army.rs` (the
+- **Landed.** `docs/ARMY.md` (19 sections), `crates/sim/src/ai/army/mod.rs` (the
   record and the decisions; the group orders, the ring search and the
   fort pass as named seams), wired into the census's step 16,
   `create_units`, the unit think, city close and capture, defeat, damage
@@ -984,7 +984,7 @@ The obvious next use, taken: the navy's first live target choice
 ## 2026-08-25 — the group orders: the army's other half, and the run that made `engagement` fire
 
 The queue's next item, taken whole: `docs/GROUPS.md`,
-`crates/sim/src/group.rs`, and run28. On Opus 5 in the main thread —
+`crates/sim/src/groups/group.rs`, and run28. On Opus 5 in the main thread —
 Fable is being saved for the next architecture, so this session's
 reading, implementation and adjudication are all one model's, and the
 document says so.
@@ -1062,7 +1062,7 @@ document says so.
   what the whole run was for: **no `FORMING` bit survives the release**.
   Made to fail by ORing `0x10` into the tail. `scenes()` parses a 250 MB
   window once for both blocks.
-- **Landed.** `docs/GROUPS.md` (13 sections), `crates/sim/src/group.rs`
+- **Landed.** `docs/GROUPS.md` (13 sections), `crates/sim/src/groups/group.rs`
   (9 tests), `army.rs`'s `do_forming` / `march_to_target` / `engagement` /
   `send_here` / `charge` / `set_stance` / `close`'s halt (7 tests, one
   end-to-end: the order the group issues is stepped and the unit is nearer
@@ -1290,9 +1290,9 @@ cheapest way to clear most of it.
 ## 2026-08-26 — item 17: the slot table, and three accepted verdicts overturned
 
 **Landed.** `Form::compute`'s slot table, whole, in
-`crates/sim/src/form.rs` — `type_cat`, `categorize`,
+`crates/sim/src/groups/form.rs` — `type_cat`, `categorize`,
 `compute_rows_and_columns`, `compute_dests`, `get_form_mod_option` and
-`update_positions` — with `crates/sim/src/group.rs` giving each member
+`update_positions` — with `crates/sim/src/groups/group.rs` giving each member
 **its own slot destination** instead of the group's, and `GroupState`
 carrying `form_num`, `off`, `curr` and `angles` so the record has
 something to compare. Two type columns joined the loader
@@ -2837,7 +2837,7 @@ Last session found the owner of run20's `0x18` residue and named it:
 `Group::action_move_near` plans one path of its own, at order time, off
 the leader's **raw** slot, and hands every member a translated copy.
 `docs/GROUPS.md` §6.7 had the mechanic in plain words and the simulation
-had none of it. This session built it — `crates/sim/src/grouppath.rs`,
+had none of it. This session built it — `crates/sim/src/groups/grouppath.rs`,
 about 250 lines — and the interesting part is not the code.
 
 ### Two of three, and the third changed owner
@@ -5563,7 +5563,7 @@ makes a frame before this simulation makes its own, onto a different cell
 ### The lesson, which is the audit README's
 
 The identification cost one `grep`. `docs/CITIES.md` had `+0x94 is_flat` in
-its vtable table, `crates/sim/src/build.rs` had the derived bit with the
+its vtable table, `crates/sim/src/cities/build.rs` had the derived bit with the
 listing quoted in its doc comment, and `Sim::add_gather_order` was already
 reading `is_flat` for the *same* virtual at the *same* call shape — one
 function away in the same decompiled file. What was missing was anybody
@@ -7128,7 +7128,7 @@ ever set it. So the claim "no nation power on either side" was true of the
 half of the codebase that the cap happens to live in, and false of the
 other half.
 
-**The wire**, `crates/sim/src/nations.rs`: `ROSTER`, the twenty-four
+**The wire**, `crates/sim/src/cities/nations.rs`: `ROSTER`, the twenty-four
 nations in `rules.xml`'s own `TRIBES` order; `Sim::set_tribe`, which takes
 the dump's number; and `Sim::refresh_nation_powers`, which recomputes the
 booleans. They are computed **through `has_tribe_bonus`**, one call per
@@ -8829,7 +8829,7 @@ $0xfffffffd, %edx; movw %dx, 0x8(...)` at `5f98ff`). It is the `flags &=
 
 ### What landed
 
-`crates/sim/src/goody.rs`, four constants in `Tuning` (all checked against
+`crates/sim/src/gaia/goody.rs`, four constants in `Tuning` (all checked against
 `rules.xml` by `cargo run -p rondata`, made to fail once), a
 `goody_box_resources` counter on `Ledger` for `LeaderData +0x86c`, the four
 guards in `Sim::set_new_location`, one row in `rondata::trace::SITES`, and
@@ -8958,7 +8958,7 @@ The correction could not go in §6.2, which the size guard pins; it is
 ### What landed
 
 `Sim::find_goody_box`, `Sim::get_goody_box` and the two fog gates in
-`crates/sim/src/goody.rs`; `Sim::was_seen_fog`, split out of
+`crates/sim/src/gaia/goody.rs`; `Sim::was_seen_fog`, split out of
 `ai_sites::site_was_seen` so the sweep can sample all four half-cells;
 `do_explore_to`'s tail in `orders.rs`; `think_scout`'s head in `scout.rs`;
 the group `QUEUE_FIRST` arm in `group.rs`; `docs/GOODY.md` §7,
@@ -11618,7 +11618,7 @@ nothing has ever been built below it. Item 145.
   question; the queue record answered a third thing — the target — before
   anyone had to choose between them.
 - **A nation is a modifier, and a capture has one.** Twenty-four nation
-  powers have been inert in this crate since `crates/sim/src/nations.rs`
+  powers have been inert in this crate since `crates/sim/src/cities/nations.rs`
   wired `has_tribe_bonus`, and it took a ship to notice that the AI has
   been playing a nation the whole time.
 
@@ -12691,7 +12691,7 @@ first time the two maps have wanted the same item.
 ## 2026-09-02, Opus — the bird flies, in a module nobody calls
 
 *Item 120. `docs/SYNC.md` §3.9 "The flight", `docs/DECISIONS.md` 30,
-`crates/sim/src/air.rs`, `crates/sim/src/num/single.rs`. **The score did not
+`crates/sim/src/air/mod.rs`, `crates/sim/src/num/single.rs`. **The score did not
 move**: EastIndies 5437, GreatLakes 1802, both still parted by
 `Unit::do_air_physics+0x639`.*
 
@@ -13037,7 +13037,7 @@ which is where `LeaderData::calc_rare@006e08d0` reads a rare's payout from, not
 from any constant in `rules.xml` as ECONOMY's open list had it. One mechanic,
 two booked items, and the headline.
 
-**What landed** (`crates/sim/src/rares.rs`, `docs/ECONOMY.md` step 6):
+**What landed** (`crates/sim/src/economy/rares.rs`, `docs/ECONOMY.md` step 6):
 
 - `UnitData::calc_gather`'s **`param_7 = 0`** form, which is a different
   function from the one `docs/ORDERS.md` §6.10 specified: a packed fisherman or
@@ -13639,7 +13639,7 @@ has been parsed for months and only the caravan's own top was ever
 compared.
 
 **By-catch, unfixed.** `do_trade@005ed270` calls `WorldData::get_tregion`
-at all four of its region sites; `crates/sim/src/caravan.rs` asks the
+at all four of its region sites; `crates/sim/src/economy/caravan.rs` asks the
 plain `World::tregion` at both of its. It changes nothing on this cell —
 `(50, 52)` has `flags 0x80`, so the coastal refinement never fires — and
 it is two more of item 142's eleven unaudited callers. It was checked
@@ -13678,7 +13678,7 @@ a capture and not a reading.
 
 **The cause was one host function returning zero.** `game/ai/scripts/
 economic.bhs` builds merchants inside a loop bounded by
-`num_rare_resources_seen(who)`, and `crates/sim/src/ai_host.rs` answered a
+`num_rare_resources_seen(who)`, and `crates/sim/src/ai/ai_host.rs` answered a
 flat `0` with the comment "Rares are not in the simulation: none seen" —
 true when it was written and false since `rares.rs` landed. So no AI on any
 map had ever trained a Merchant.

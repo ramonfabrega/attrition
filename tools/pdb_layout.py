@@ -47,9 +47,9 @@ found under the derived struct (`Leader` lists none of `LeaderData`'s).
   `Leaders::list` is `Leader[10]` and `Leader` is size `0x6eec` (eight
   bytes past `LeaderData`'s `0x6ee4`); the base and the stride are
   `GameAccessConst::get_scary_console_leader@005833e0`'s
-  (`crates/sim/src/core/flag_reads.rs`, `crates/sim/src/groups_process_view.rs`),
+  (`crates/sim/src/core/flag_reads.rs`, `crates/sim/src/groups/groups_process_view.rs`),
   and `LeaderData` sits at `+0` of `Leader`: `0x00e3a424` is leader 0's
-  `treaties` at `+0x94` (`crates/sim/src/fight.rs`, `docs/SCOUT.md`).
+  `treaties` at `+0x94` (`crates/sim/src/combat/fight.rs`, `docs/SCOUT.md`).
 """
 import os
 import re

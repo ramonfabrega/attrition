@@ -3570,3 +3570,8 @@ impl PatrolView for SimPatrol<'_> {
 
 #[cfg(test)]
 mod infantry_step_tests;
+
+// The files of `air/` (item 4012, `docs/STRUCTURE.md` §3).
+pub mod airbase;
+pub mod carrier_queue;
+pub mod land_plane_view;

@@ -43,10 +43,10 @@ survived (2026-09-07; the recovered work is on branch `rescue-234`, commit
   other seven kinds, and the two seams (`+0x104`, `CHANGE_FORM`) are named
   in place.
 - **232** re-booked — `Levels::for_player` in
-  `crates/sim/src/holdings.rs` still returns `Levels::BASE` and ignores its
+  `crates/sim/src/economy/holdings.rs` still returns `Levels::BASE` and ignores its
   player. Re-booked in the queue under its own number.
 - **233** re-booked — `Sim::process_building` in
-  `crates/sim/src/city.rs` still keys the 32-frame phase on
+  `crates/sim/src/cities/city.rs` still keys the 32-frame phase on
   `frame + b as i64`, the `Vec` index, where `Build::process@0061edf0:728`
   keys it on the object number. Wrong the first time a slot is reused.
   Re-booked.
@@ -77,7 +77,7 @@ file; each one is a ten-minute read of the code the row names.
 
 ## Item 7, and the parser that hid it, 2026-09-07 / 2026-09-17
 
-- **7** landed — Orders, `docs/ORDERS.md` and `crates/sim/src/orders.rs`,
+- **7** landed — Orders, `docs/ORDERS.md` and `crates/sim/src/orders/mod.rs`,
   struck through in the queue as done on 2026-08-21 (`57546c07`) and never
   named `item 7` in the journal because the entry predates the phrasing.
 - The 09-07 row here said 7 "was never booked", and that was wrong:

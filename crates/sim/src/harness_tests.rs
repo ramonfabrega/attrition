@@ -706,7 +706,7 @@ fn a_city_pays_from_the_first_frame_of_the_game() {
     // Income runs before objects, and the reassembly is unconditional on frame
     // zero, so a player who owns something is earning on the very first tick
     // rather than waiting out the 512-frame cadence. The holdings are
-    // assembled from the live state (`crates/sim/src/holdings.rs`), so the
+    // assembled from the live state (`crates/sim/src/economy/holdings.rs`), so the
     // "something" is a real city: a finished Small City is worth
     // `CITY_GATHER` of food and timber on its own.
     let mut world = World::new(16, 16);

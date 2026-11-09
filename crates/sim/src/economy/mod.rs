@@ -605,17 +605,17 @@ pub struct Holdings {
     /// Whether the player holds each good's prerequisite — `has_preq`. Only
     /// the cost path reads it, and only for a resource that is *not*
     /// available: it chooses which of the two redirect tables in
-    /// `crates/sim/src/cost.rs` charges the price somewhere else.
+    /// `crates/sim/src/economy/cost.rs` charges the price somewhere else.
     pub discovered: [bool; RESOURCES],
     /// Gather buildings that pay outside any city — every oil well and
     /// platform, and every camp or mine with no city link.
     /// `Leader::calc_gather` steps 4 and 5, which take no city enhancer
-    /// and no `CITY_GATHER` (`crates/sim/src/holdings.rs`).
+    /// and no `CITY_GATHER` (`crates/sim/src/economy/holdings.rs`).
     pub outside: Vec<Site>,
     /// **Step 6**, already summed: what the player's idle fishermen and
     /// merchants pay, in sixteenths, each one's `LeaderData::calc_rare`
     /// divided by the crowd sharing its deposit
-    /// (`crates/sim/src/holdings.rs`).
+    /// (`crates/sim/src/economy/holdings.rs`).
     pub rares: [i32; RESOURCES],
     /// `LeaderData::rare_owned` (`+0x6dac`): a bit per rare a unit of this
     /// player's was standing on when step 6 last ran. Cleared and rebuilt
@@ -653,7 +653,7 @@ pub struct Ledger {
     /// The stockpile: what can be spent.
     pub bucket: [i32; RESOURCES],
     /// A reservation held back from ordinary spending, fed at `escrow_rate`
-    /// percent of income. `crates/sim/src/cost.rs` is what reads it: a payment
+    /// percent of income. `crates/sim/src/economy/cost.rs` is what reads it: a payment
     /// may not dip into it, and a payment that needs to abandons the whole
     /// reservation rather than consuming part of it. [`pay`] feeds it at
     /// [`Holdings::escrow_rate`] (`docs/AI.md` §98).
@@ -886,7 +886,7 @@ pub fn assemble(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
     }
 
     // Step 6: every idle fisherman and merchant, and with them every rare
-    // anyone is standing on. `crates/sim/src/holdings.rs` is the walk; the
+    // anyone is standing on. `crates/sim/src/economy/holdings.rs` is the walk; the
     // sum arrives here already in sixteenths and already divided by each
     // deposit's crowd.
     for r in Resource::ALL {
@@ -1429,3 +1429,15 @@ pub fn process(t: &Tuning, ledger: &mut Ledger, h: &Holdings, who: Player, frame
 
 #[cfg(test)]
 mod tests;
+
+// The files of `economy/` (item 4012, `docs/STRUCTURE.md` §3).
+pub mod calc_gather;
+pub mod calc_gather_type_view;
+pub mod caravan;
+pub mod cliff_mine;
+pub mod cost;
+pub mod gather;
+pub mod gather_tile;
+pub mod holdings;
+pub mod market;
+pub mod rares;

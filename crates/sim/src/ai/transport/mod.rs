@@ -1927,3 +1927,5 @@ impl CarryView for SimCarry<'_> {
 
 #[cfg(test)]
 mod tests;
+
+// The files of `ai/transport/` (item 4012, `docs/STRUCTURE.md` §3).

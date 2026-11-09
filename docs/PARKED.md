@@ -5536,7 +5536,7 @@ The port assumes every member already points at the slot. The sweep holds the he
 
 (2321) **The peace pair's rush rules: `Game::war_allowed`'s time arm and its readers** (item 2320, `docs/AI.md` §218).
     `RUSH_RULES 10` forbids war until frame 4500 (`rush_rules` table minutes 5 × 900; `war_allowed@00594670`, the
-    `9 <= rush_rules` arm after `current_age@005946d0`). ~~`crates/sim/src/army.rs`'s seam list models it as "always
+    `9 <= rush_rules` arm after `current_age@005946d0`). ~~`crates/sim/src/ai/army/mod.rs`'s seam list models it as "always
     allowed" in `release_mustering`~~ (item 2388, `docs/AI.md` §221: built, the word 2040 → 3302), and the other readers — `Unit::process_attrition`, `PathFinder::calc_cost`,
     ~~`Leader::diplomacy`~~ (item 2384, `docs/AI.md` §220: modelled; team style 1 sends its message whether war is
     allowed or not), `Leader::gain_tech`, `Wall::process`, `Group::action_launch_flight`,
@@ -9444,10 +9444,10 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3408, 2026-10-21 — GOLDEN's never-entered functions read: port gaps and stale texts the reading found
 
-- **3408a. Port gaps against `citizen_repair_order` (`docs/GOLDEN.md` §144.2)**, no score until a Nomad lobby is captured: the original admits citizen kinds `0x32` and `0x33`, and the port's `citizen_type` (`crates/sim/src/ai_host.rs:535`) has not been shown to cover Korea's; the original writes the unit's `UnitData.group` −1 and the port does not. A Nomad capture (§144.3's last row) is what names a score.
-- **3408b. `Sim::unit_swap_team` (`crates/sim/src/bribe.rs:47`) walks both squads' chains and stops when either ends, where the original's bound is the old chain only; and the original's unlink loop overwrites `this->o/who` with cargo** (§144.2). No Bribe is staged, so no score names it; it books with §107's staging.
-- **3408c. `Sim::disembark_squad` (`crates/sim/src/transport.rs:1548`) writes `orig = dest` for every `Body::Move`.** The original writes `orig_x/orig_y := x/y` only for an order whose vslot `0x14` answers. Whether every order the crate files as `Body::Move` (group moves and form changes included) answers that slot, and whether the crate's `dest` is the original's `+0x4/+0x8`, is not established. It books with §144.3's `chapter46.cmd` re-take.
-- **3408d. Stale texts this reading found, none a score.** `crates/sim/src/city.rs:2192`'s doc calls the arm "the console's `finish`", but it is `hurry` (§144.2). `docs/CENSUS.md`'s row for `Unit::do_flee_to` says "pointer only", but it is dead (§144.4). `tools/ghidra/`'s `vtables.txt` lacks `GroupAttackOrder::vftable` (`0xb491fc`) and the minimap's `WorldMap` vftable (`.rdata 0xb54b38` holds the slot): an export gap, to be checked against the export script.
+- **3408a. Port gaps against `citizen_repair_order` (`docs/GOLDEN.md` §144.2)**, no score until a Nomad lobby is captured: the original admits citizen kinds `0x32` and `0x33`, and the port's `citizen_type` (`crates/sim/src/ai/ai_host.rs:535`) has not been shown to cover Korea's; the original writes the unit's `UnitData.group` −1 and the port does not. A Nomad capture (§144.3's last row) is what names a score.
+- **3408b. `Sim::unit_swap_team` (`crates/sim/src/spells/bribe.rs:47`) walks both squads' chains and stops when either ends, where the original's bound is the old chain only; and the original's unlink loop overwrites `this->o/who` with cargo** (§144.2). No Bribe is staged, so no score names it; it books with §107's staging.
+- **3408c. `Sim::disembark_squad` (`crates/sim/src/ai/transport/mod.rs:1548`) writes `orig = dest` for every `Body::Move`.** The original writes `orig_x/orig_y := x/y` only for an order whose vslot `0x14` answers. Whether every order the crate files as `Body::Move` (group moves and form changes included) answers that slot, and whether the crate's `dest` is the original's `+0x4/+0x8`, is not established. It books with §144.3's `chapter46.cmd` re-take.
+- **3408d. Stale texts this reading found, none a score.** `crates/sim/src/cities/city.rs:2192`'s doc calls the arm "the console's `finish`", but it is `hurry` (§144.2). `docs/CENSUS.md`'s row for `Unit::do_flee_to` says "pointer only", but it is dead (§144.4). `tools/ghidra/`'s `vtables.txt` lacks `GroupAttackOrder::vftable` (`0xb491fc`) and the minimap's `WorldMap` vftable (`.rdata 0xb54b38` holds the slot): an export gap, to be checked against the export script.
 
 ## Parked by item 3409, 2026-10-21 — the AI track's blind readings: a leader bit, a vtable-only predicate, a stale backed list
 
@@ -9510,7 +9510,7 @@ is an oracle-agreed module the live sim does not call.
 
 ## Parked by item 3412, 2026-10-21 — NATIONS's never-entered functions read: port gaps and stale texts the reading found
 
-- **3412a. `Sim::has_market` (`crates/sim/src/ai_make.rs:496`) asks for an active Market building of mine; `LeaderData::has_market@006d5410` asks `num_buildings[0x16] ≠ 0` and then a city the leader owns with `city_flags & 1` and `& 0x800`** (`docs/NATIONS.md` §9.1). What `0x800` is, and whether any capture holds a Market with no qualifying city, is not established. No score names it until a market capture (§9.2's first rows) is taken.
+- **3412a. `Sim::has_market` (`crates/sim/src/ai/ai_make.rs:496`) asks for an active Market building of mine; `LeaderData::has_market@006d5410` asks `num_buildings[0x16] ≠ 0` and then a city the leader owns with `city_flags & 1` and `& 0x800`** (`docs/NATIONS.md` §9.1). What `0x800` is, and whether any capture holds a Market with no qualifying city, is not established. No score names it until a market capture (§9.2's first rows) is taken.
 - **3412b. `Object::disband`'s two port questions** (§9.1): `SimDisband::price` (`crates/sim/src/units/disband.rs`) answers the full arm (last argument −1) and the partial (`orig_type`) with one price, and the Aztec plunder arm is the sweep's alone because the sim disbands no unit. Books with §9.2's Lakota delete.
 - **3412c. `get_vehicle_speed_upgrade`'s port asks one stored prerequisite per bonus where the original's `has_preq` asks the bonus's whole PREQ list** (§9.1). Inert while each `VEHICLES_FASTER` has one; books with §9.2's queue-time capture.
 - **3412d. Stale texts, none a score.** `crates/rondata/src/input.rs:1189` skips `Command::Buy`/`Sell` as "the market is not modelled", but `ai_make.rs` carries `do_buy`, `do_sell` and `calc_market_prices`. §5's generated census calls `process_sell` `carried at command_package_process_sell.rs`: that is the emulator sweep, and `crates/sim` has no `process_sell` (§9.1); `tools/nations_census.py`'s `HAND` could say so.
@@ -9696,7 +9696,7 @@ is an oracle-agreed module the live sim does not call.
 ## Parked by item 3443, 2026-10-22 — the first human trade route on disk
 
 - **3443a. run1060 is a diff source for `Group::action_trade@00701cc0`, which this crate does not wire.**
-  `crates/sim/src/trade_view.rs` writes the steps (item 3381) and says "Not wired": `FinishInsertView::action_trade` is
+  `crates/sim/src/groups/trade_view.rs` writes the steps (item 3381) and says "Not wired": `FinishInsertView::action_trade` is
   an empty stub. run1060 enters it on 650, from a human Caravan's right-click on a second city. Its dump carries `0/7`'s
   `TRADEORDER` from 652 to 910 (`ox 2007`, `oxx 2000`, `started 1`, a `MOVEORDER` to (7800, 30840)), with `GOODS=3` and
   `CITIES=5` beside it. Wiring `action_trade` could be pinned against it frame for frame. Names no score.
@@ -9719,7 +9719,7 @@ is an oracle-agreed module the live sim does not call.
 
 - **3438a. The bribed unit's `damage` is copied, and no dump has tested it.** run1054 and run880 both bribe `1/6`..`1/8`
   at `damage 0`, `myhits 120`, and `0/8`..`0/10` are born at `damage 0`. A copy and a fresh unit print the same thing.
-  `crates/sim/src/bribe.rs` carries `max_health - health` and `damage_frac` across (its module line 16, a reading of
+  `crates/sim/src/spells/bribe.rs` carries `max_health - health` and `damage_frac` across (its module line 16, a reading of
   `Unit::swap_team@006118d0`). A staging that hurts the target before 1212 would test the copy, for example a who=0
   archer's `@attack` on `1/6` from 1150. The check is `U3` `damage` and `damage_frac` on block 1213 against 1212's.
   Names no score.
@@ -9772,7 +9772,7 @@ is an oracle-agreed module the live sim does not call.
 compared it against the port's `citizen_type()`. Score: a `NEVER`-neutral fidelity row. It needs the Nomad lobby
 (run1068's line) with `--ai-tribe` set to that nation, read on the computer's step-2 frame. One reach.
 
-(3447b) **The port's `citizen_repair_order` pushes no group** (GOLDEN §148, gap 2; `crates/sim/src/ai_host.rs:1192`).
+(3447b) **The port's `citizen_repair_order` pushes no group** (GOLDEN §148, gap 2; `crates/sim/src/ai/ai_host.rs:1192`).
 The original clears `UnitData.group` to −1, `Group::add`s the Citizen into a fresh group, `push_group`s it and swarms
 from the pushed group. On run1068's block 377 the computer's `1/1` reads `group 65` where block 376 read 67, and
 `1/0` (66) and `1/2` (64) read back their old indices. The port leaves the placement's group. Nothing pins the
@@ -9791,7 +9791,7 @@ Score: none yet (the golden start is not a word); it books when a pinned lobby's
 as a fidelity row against run1071's 861–863. One reach.
 
 (3448b) **The port's `distribute_attack` is empty, and now a capture enters it** (parked 3381b;
-`crates/sim/src/group_move.rs:320`). run1070's six Hoplites hold `[ATTACK 1/6, MOVE, group move (flags 1)]` from 634
+`crates/sim/src/orders/group_move.rs:320`). run1070's six Hoplites hold `[ATTACK 1/6, MOVE, group move (flags 1)]` from 634
 to 686. On 687 every member has dropped the group move and kept `ATTACKORDER ox 6 whom 1`, and the leader `0/9` reads
 `collide_o 9`, `collide_who 1`. The only player order that reaches the arm is `action_gather`'s walk for
 non-gatherers (action 0) with a shift-queued attack behind it (`docs/ORDERS.md` §42.2), and no pinned lobby issues
@@ -13000,7 +13000,7 @@ score.
 ## Parked by item 3784, 2026-10-29 — the Dragoon walks home, and a dead crew holds its number once per figure
 
 - **3784a. The invalid-target branch's two spellings of `find_new_target`** (`docs/GOLDEN.md` §149.10.1):
-  `do_attack_fight`'s inlined branch (`crates/sim/src/orders.rs`) now keeps the post arm, but still calls no
+  `do_attack_fight`'s inlined branch (`crates/sim/src/orders/mod.rs`) now keeps the post arm, but still calls no
   `repath` where `Sim::find_new_target` does, and finds through `find_melee_target_added` where `find_new_target`
   uses `find_melee_target_headed`. `Unit::fight`'s `LAB_005fdb9e` calls the whole function, so one of the two is
   a spelling of the other or a divergence. Unexamined against the floors; it names no score.

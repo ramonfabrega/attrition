@@ -2114,17 +2114,17 @@ unless noted. Shipped values from the user's `rules.xml`; `rondata` checks them.
 
 ## 11. What `crates/sim` models, and how
 
-`crates/sim/src/build.rs` — the building type (`BuildType`: footprint, flags,
+`crates/sim/src/cities/build.rs` — the building type (`BuildType`: footprint, flags,
 domain, lineage, `job_time`, `hits`, `garrison_max`, plunder, the tree id),
 the construction clock (`construct_base` with its nation/tech factors as a
 `BuildMods` input, `construct_time` with the four per-call clauses as
 inputs), `do_construct` with the harmonic `helpers`, `construct_hits`,
 `update_hits` with the multipliers as a `HitsMods` input, the repair period
 and its price, the cancel refund, the building's own attrition.
-`crates/sim/src/place.rs` — the tile layer (`TileMask`, four by four per
+`crates/sim/src/cities/place.rs` — the tile layer (`TileMask`, four by four per
 cell, on `World`), `blocked_site`/`blocked_tcoord`/`blocked_location` with
 the `Blocked` verdicts, city and fort spacing, the foothold, the colonise
-rule, `get_town`, the city limit. `crates/sim/src/city.rs` — the record,
+rule, `get_town`, the city limit. `crates/sim/src/cities/city.rs` — the record,
 membership, the radius, `find_buildings`, `check_upgrade`, the pop value and
 cap, the capital, `check_capture`/`capture_city`/`City::capture`, the
 assimilation tick, the city heal, plunder on capture, `lost_a_city` in the
