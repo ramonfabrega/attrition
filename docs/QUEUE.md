@@ -11,12 +11,12 @@ it by items (18 at 8 lines, the handoff 32). **A finding that names no
 score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
-*2026-11-08, **the seventy-fourth steering pass, with Ramon on the row: the finish line is written (`docs/TRACKS.md`), phase 4 is open, and the seventy-fifth tranche is the structure tranche, 6 of 20 landed from `3e4ea444a`** (DECISIONS 114). Two Opus 5.5 lanes at `--effort medium`, the count fixed on Ramon's word: lane A runs `docs/STRUCTURE.md` §5's moves in order, alone on the sim side; lane B runs the renderer's two sim-free items (`docs/RENDERER.md` §6 items 2 and 4). The record is `docs/audit/2026-11-08-fable-pass-74.md`.*
+*2026-11-08, **the seventy-fourth steering pass, with Ramon on the row: the finish line is written (`docs/TRACKS.md`), phase 4 is open, and the seventy-fifth tranche is the structure tranche, 7 of 20 landed from `3e4ea444a`** (DECISIONS 114). Two Opus 5.5 lanes at `--effort medium`, the count fixed on Ramon's word: lane A runs `docs/STRUCTURE.md` §5's moves in order, alone on the sim side; lane B runs the renderer's two sim-free items (`docs/RENDERER.md` §6 items 2 and 4). The record is `docs/audit/2026-11-08-fable-pass-74.md`.*
 - **The rule of every structure landing is no behaviour change**: every floor below unchanged, the soak digest unchanged, the census reading the same; the gate is the whole release gate, no `--scope`. **The rules track is whole**: every word stands at its length but chapter 134 (w969 of 1,400); its three items (4007, 3994, 3995) are shelved whole in `docs/PARKED.md` and re-book as filler once the moves land, never beside them; lower map first — closed.
 - **The structure's number is the `Structure:` line**, `tools/shape.py`'s counts (item 4008 built it; `rondata::diff::floors::STRUCTURE` pins the exact counts): each may only fall. The renderer's is `docs/RENDERER.md` §5.4's K of M, pinned from item 4020 on — the camera stands in register 240 of 240 sweep states and 394 of 394 packet points (4018, `crates/render/tests/camera_sweep.rs` `IN_REGISTER`), and 1,439 of 1,452 pieces decode (4019, `rondata::artdata::PIECES_DECODING`; the 13 are three `.bha` the install does not ship and one `.bh3` with a node past its vertices); its clock (seconds to lobby and to frame zero, slowest-percentile frame ms, peak RSS) from the first client item.
 - **Fable backlog: 12 Loop items** (4022, 4023 (the frame spells `ccc update att-<n>`; ccc takes `lane-<N>`), `brief.py` gains the `structure` and `render` kinds — until then the commander briefs a structure item from `docs/STRUCTURE.md` §1 and §5 and a render item from `docs/RENDERER.md` §6 with the frame's shared sections; 3997; 3848, 3821, 3799, 3382, 3350, 3237, 3188, 3143, 3118).
 - **The blind list: open 0** (never 331 · residue 331). The territory 549 · 318 · 1286; the census and the per-group rulings are a lane's filler from lore's scoring (DECISIONS 114 §6), after the structure.
-- **Lanes: lane-4011 (A, park DK); lane B empty until 4017 lands (4020 waits on it; the sim side takes one structure lane, DECISIONS 114 §2), run 1559 held.** `ccc spawn --name lane-<N> --worktree=att-<N> --model 'claude-opus-5-5[1m]' --effort medium`; a structure lane's gate is `python3 tools/release_gate.py <install> --test-threads 4 --lane --whole` — the whole suite, since a move touches every path; a render lane's is `--lane --tests render` once the crate exists, the fast suite before. Next 4024, run 1559. Pools: AI §417–§419; GOLDEN §194–§198; MAPGEN §35–§37; park DG, DL and DM–DR free. Disk: 28 GB free after the pass's acts, `~/ron-golden` still compressing; the spawn floor is 10 GB.
+- **Lanes: lane-4012 (A, park DK); lane B empty until 4017 lands (4020 waits on it; the sim side takes one structure lane, DECISIONS 114 §2), run 1559 held.** `ccc spawn --name lane-<N> --worktree=att-<N> --model 'claude-opus-5-5[1m]' --effort medium`; a structure lane's gate is `python3 tools/release_gate.py <install> --test-threads 4 --lane --whole` — the whole suite, since a move touches every path; a render lane's is `--lane --tests render` once the crate exists, the fast suite before. Next 4024, run 1559. Pools: AI §417–§419; GOLDEN §194–§198; MAPGEN §35–§37; park DG, DL and DM–DR free. Disk: 28 GB free after the pass's acts, `~/ron-golden` still compressing; the spawn floor is 10 GB.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -36,7 +36,7 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 Blind: never 331 · residue 331 · open 0
 Rubric: ported 549 · replaced by design 318 · open 1286 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
 Held-out: 8 of 9 whole · shortest 6147
-Structure: flat 203 · test-tails 0k · sweep-lines 17.3k · names 130 · fields 92 · largest 13437
+Structure: flat 128 · test-tails 0k · sweep-lines 17.3k · names 130 · fields 92 · largest 13437
 
 
 **Opener: the seventy-fourth steering pass (steer, Fable) — the seventy-third tranche drained at twenty from `3f3a403b5`, every chapter closed but 134 (w969 of 1,400); Ramon joins on this row, so open with his piled-up asks (`docs/RENDERER.md` §7.2, the two census defects, the per-group rulings) and where the project goes next; run `lore index`, read "The drain" above, then rule on the lane rule's reading (49.3 minutes waiting a landing), on what feeds the lanes with three items left (4007, 3994, 3995), on the disk (the spawn floor hit three times) and on Loop 4006; write the base as this file's `from` line, book the first items, and arm the commander.**
@@ -48,10 +48,6 @@ Structure: flat 203 · test-tails 0k · sweep-lines 17.3k · names 130 · fields
 In dependency order; **the roster is Ramon's** (DECISIONS 84–93, 114 §3). The shapes are DECISIONS 90–94 and 100 §3, and from this
 pass a `structure` item (`docs/STRUCTURE.md` §1: a move, split, rename or re-export with no behaviour change, gated whole) and a
 `render` item (`docs/RENDERER.md` §6). A residue or chapter item re-books from `docs/PARKED.md` only once the structure has landed.
-
-4011. **The directories, first half** (a `structure` item; STRUCTURE §3, §5.4): `core/`, `num/`, `world/`, `mapgen/`, `territory/`,
-`vision/`, `units/`, `units/think/`, `movement/`, `data/` — each file a `git mv`, the `mod` tree, a `pub use` shim at the old path
-in `lib.rs`, the citations rewritten by `tools/paths.py`; the three `GatherView` traits renamed. Lane A, after 4010.
 
 4012. **The directories, second half** (a `structure` item; STRUCTURE §3, §5.4): `orders/`, `groups/`, `combat/`, `spells/`,
 `air/`, `cities/`, `economy/`, `leaders/`, `tech/`, `ai/`, `ai/army/`, `ai/transport/`, `gaia/`, `trace/`. Moves `flat 203 → ≤ 12`.
