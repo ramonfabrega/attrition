@@ -1071,6 +1071,11 @@ It is the art phase's counter, not the first one.
     Since item 4035 it does (§3.5): a type is in register when every
     record of it the dumps print is drawn by both sides or neither and,
     drawn, sits within one pixel with the dump's piece.
+  - **And only on records some side draws** (Loop 4049): a record drawn
+    by neither must still agree, but it is no evidence of register. A
+    type every record of which is drawn by neither is not in register,
+    and the test names it (`types_in_register`, with each type's drawn
+    count printed beside its records).
 
   A decoded building earns K only then. Nothing is stubbed true.
 
@@ -1128,7 +1133,17 @@ corners.*
   - Since item 4048, **21 of 21 in register**: the draw list carries the
     wheat field (§3.5), and the 402 farm records are drawn by both sides,
     all in register — `RENDER_K_BUILDINGS` (21, 21, 21, 21), **K 59 of M
-    59**. Every record counted is drawn (Loop 4049's rule).
+    59**. ~~Every record counted is drawn (Loop 4049's rule).~~
+  - Loop 4049 measured that rule, and it does not hold for four types:
+    the Redoubt (446, 192 records), Hanging Gardens (528, 96), Terra
+    Cotta Army (529, 96) and Angkor Wat (535, 8) are under construction
+    on every dumped frame, below the share `WallOut::draw` draws a piece
+    at, so neither side draws any record of them. The original draws
+    their scaffold in `WallOut::draw_overlays@00641600`
+    (`GraphicPieces::draw_scaffold@00907420`), which the draw list does
+    not carry: the farm's shape before 4048. Under the rule the test
+    reads `RENDER_K_BUILDINGS` (17, 21, 17, 21), K 55; the pin stays at
+    59 for the pass's ruling.
 - **The dumps check every figure they print a `gpiece` for.** Only the
   `DUMP_ALL` states print one: run1428's two, and run1429's start block.
   That is 306 figures on the map, all 306 agreeing, and on each dump's

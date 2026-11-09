@@ -1120,7 +1120,13 @@ pub(crate) const RENDER_K: usize = RENDER_K_PIECES.0 + RENDER_K_BUILDINGS.0;
 /// (parked 4037a). So K stays **20**, and **K 58 of M 59**. Item 4048:
 /// in register **21 of 21** (+1): the draw list carries the farm's wheat
 /// field, and all 402 farm records are drawn by both sides within one pixel
-/// ([`FIELDS_IN_REGISTER`]); K **21** (+1), and **K 59 of M 59**.
+/// ([`FIELDS_IN_REGISTER`]); K **21** (+1), and **K 59 of M 59**. Loop
+/// 4049: condition 2 counts a type only on records some side draws
+/// ([`types_in_register`]); the Redoubt (446), Hanging Gardens (528),
+/// Terra Cotta Army (529) and Angkor Wat (535) are drawn by neither on
+/// every record (under construction throughout; the original's scaffold,
+/// `WallOut::draw_overlays@00641600`, is not in the draw list), so the
+/// test reads (17, 21, 17, 21). The pin is left for the pass's ruling.
 pub(crate) const RENDER_K_BUILDINGS: (usize, usize, usize, usize) = (21, 21, 21, 21);
 
 /// The dumped frames that print a building — run1428's two, run1429's
@@ -1194,6 +1200,75 @@ fn farm_list(farms: &[crate::gamelog::FarmDump]) -> FarmList {
             ))
         })
         .collect()
+}
+
+/// One building type's condition-2 tally (`docs/RENDERER.md` §5.4; Loop
+/// 4049): of the records the lobby's dumps print for it, how many, how many
+/// at least one side draws (sprite or field), and how many are out of
+/// register.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+struct TypeTally {
+    records: usize,
+    drawn: usize,
+    out: usize,
+}
+
+impl TypeTally {
+    fn add(&mut self, drawn: bool, ok: bool) {
+        self.records += 1;
+        self.drawn += usize::from(drawn);
+        self.out += usize::from(!ok);
+    }
+}
+
+/// §5.4's condition 2 on a type's tally: `(in register, drawn by neither)`.
+/// A type is in register when none of its records is out of register **and
+/// at least one side draws at least one of them** (Loop 4049): records
+/// drawn by neither must still agree, but they are no evidence of register,
+/// so a type every record of which is drawn by neither does not count and
+/// is named. Until 4049 the second clause was missing, and item 4037's
+/// farm — 402 records, none drawn by either side — counted.
+fn types_in_register(tally: &BTreeMap<i64, TypeTally>) -> (BTreeSet<i64>, BTreeSet<i64>) {
+    let registered = tally
+        .iter()
+        .filter(|(_, t)| t.out == 0 && t.drawn > 0)
+        .map(|(ty, _)| *ty)
+        .collect();
+    let undrawn = tally
+        .iter()
+        .filter(|(_, t)| t.drawn == 0)
+        .map(|(ty, _)| *ty)
+        .collect();
+    (registered, undrawn)
+}
+
+/// Loop 4049, red first on a fixture: the farm as item 4037 left it — 402
+/// records, every one "in register" because neither side drew any
+/// (`WallOut::draw` skips a finished farm and the draw list carried no
+/// field) — beside a type both sides draw. The farm must not count, and
+/// must be named.
+#[test]
+fn a_type_no_side_draws_is_not_in_register() {
+    let mut tally: BTreeMap<i64, TypeTally> = BTreeMap::new();
+    let farm = i64::from(crate::artdata::FARM_TYPE);
+    for _ in 0..402 {
+        tally.entry(farm).or_default().add(false, true);
+    }
+    for k in 0..30 {
+        // A drawn type, with a few records neither side draws (a
+        // foundation, say): those still have to agree, and do.
+        tally.entry(9).or_default().add(k % 5 != 0, true);
+    }
+    let (registered, undrawn) = types_in_register(&tally);
+    assert_eq!(undrawn, BTreeSet::from([farm]), "the farm is named");
+    assert_eq!(
+        registered,
+        BTreeSet::from([9]),
+        "a type no side draws is not in register (the farm counted under the old rule)"
+    );
+    // A drawn record out of register still keeps its type out.
+    tally.entry(9).or_default().add(true, false);
+    assert!(types_in_register(&tally).0.is_empty());
 }
 
 /// One building record a dump prints, as the reference reads it.
@@ -1435,6 +1510,12 @@ fn the_draw_list_s_buildings_are_in_register() {
     let (mut pieces_ok, mut first_out) = (0, None);
     let mut misses: Vec<String> = Vec::new();
     let mut bad_types: BTreeSet<i64> = BTreeSet::new();
+    // Condition 2 per type (Loop 4049): the whole record, and the sprite
+    // half alone — the draw list as item 4037 left it, with no field.
+    let mut tally: BTreeMap<i64, TypeTally> = BTreeMap::new();
+    let mut sprite_tally: BTreeMap<i64, TypeTally> = BTreeMap::new();
+    // A type's first record, for naming a type no side draws.
+    let mut first_record: BTreeMap<i64, String> = BTreeMap::new();
     let mut type_pieces: BTreeMap<i64, BTreeSet<i32>> = BTreeMap::new();
     let mut parted_pieces: BTreeMap<(i64, i32, i32), usize> = BTreeMap::new();
     for (&(i, n), recs) in &printed {
@@ -1442,6 +1523,9 @@ fn the_draw_list_s_buildings_are_in_register() {
         let mut frame_ok = true;
         for (&id, d) in recs {
             recs_all += 1;
+            // The field half's verdict, `(drawn by either side, in
+            // register)`; a record that is not a farm has none.
+            let mut field_half = (false, true);
             if d.orig_type == i64::from(crate::artdata::FARM_TYPE) {
                 let them = their_field(i, n, id, d);
                 let them_px = theirs.get(&ftag(i, n, id)).copied();
@@ -1486,6 +1570,7 @@ fn the_draw_list_s_buildings_are_in_register() {
                         them.map(|(f, a)| (f.farm_type, a))
                     ));
                 }
+                field_half = (ours_px.is_some() || them_px.is_some(), ok);
                 if ok {
                     fields.1 += 1;
                 } else {
@@ -1523,6 +1608,29 @@ fn the_draw_list_s_buildings_are_in_register() {
                 }
                 None => false,
             };
+            let sprite_drawn = them.is_some() || mine.get(&id).is_some_and(|(_, px)| px.is_some());
+            first_record.entry(d.orig_type).or_insert_with(|| {
+                let p = theirs_placed(id, d);
+                format!(
+                    "{} frame {n} {}/{}: piece {}, type_index {:#x}, active {}, job {} of {}",
+                    names[i],
+                    id.who,
+                    id.o,
+                    p.piece,
+                    p.type_index,
+                    p.active,
+                    p.job_counter,
+                    p.construct_time
+                )
+            });
+            sprite_tally
+                .entry(d.orig_type)
+                .or_default()
+                .add(sprite_drawn, ok);
+            tally
+                .entry(d.orig_type)
+                .or_default()
+                .add(sprite_drawn || field_half.0, ok && field_half.1);
             if ok {
                 recs_ok += 1;
             } else {
@@ -1558,12 +1666,56 @@ fn the_draw_list_s_buildings_are_in_register() {
     // The farm is in register when its sprite half (`WallOut::draw`'s,
     // which skips a finished farm) and its field half (`FarmsOut::draw`'s,
     // item 4048) both are, on every record; a record no printed list or
-    // packet holds is out, since the field's inputs are not on disk.
-    let registered: BTreeSet<i64> = type_pieces
-        .keys()
-        .filter(|t| !bad_types.contains(t))
-        .copied()
+    // packet holds is out, since the field's inputs are not on disk. And a
+    // type is in register only on records some side draws (Loop 4049).
+    let (registered, undrawn) = types_in_register(&tally);
+    let out: BTreeSet<i64> = tally
+        .iter()
+        .filter(|(_, c)| c.out > 0)
+        .map(|(t, _)| *t)
         .collect();
+    assert_eq!(
+        out, bad_types,
+        "the tally and the record loop disagree on which types are out"
+    );
+    eprintln!(
+        "BUILDING TYPES drawn (type: drawn of records, out): {}",
+        tally
+            .iter()
+            .map(|(t, c)| format!("{t}: {} of {}, {}", c.drawn, c.records, c.out))
+            .collect::<Vec<_>>()
+            .join("; ")
+    );
+    // Loop 4049's red, on the live records: the draw list without its
+    // field (item 4037's) draws no farm record on either side, so the
+    // farm is drawn by neither and refused — the old rule counted it.
+    let farm = i64::from(crate::artdata::FARM_TYPE);
+    let (sprite_registered, sprite_undrawn) = types_in_register(&sprite_tally);
+    let sprite_farm = sprite_tally.get(&farm).copied().unwrap_or_default();
+    eprintln!(
+        "BUILDING TYPES without the field: farm drawn {} of {}, out {}; drawn by neither {sprite_undrawn:?}",
+        sprite_farm.drawn, sprite_farm.records, sprite_farm.out
+    );
+    pin_eq!(
+        (
+            sprite_farm.out == 0 && sprite_farm.records > 0,
+            sprite_undrawn.contains(&farm),
+            sprite_registered.contains(&farm),
+        ),
+        (true, true, false),
+        "without the field: farm agrees, is drawn by neither, and is refused"
+    );
+    for t in &undrawn {
+        eprintln!(
+            "BUILDING TYPE {t} drawn by neither side on any of its {} records, pieces {:?}; first {}",
+            tally[t].records, type_pieces[t], first_record[t]
+        );
+    }
+    pin_eq!(
+        undrawn,
+        BTreeSet::<i64>::new(),
+        "building types drawn by neither side on every record (not in register)"
+    );
     let k = decoding.intersection(&registered).count();
     eprintln!(
         "FIELDS records {}, in register {}, drawn by the original {}, by ours {}, unlisted {}\n  {}",
