@@ -188,13 +188,18 @@ fn sim_sources() -> Vec<(String, String, String)> {
                 .join("\n");
             let mut name = p.file_name().expect("name").to_string_lossy().into_owned();
             // A test tail item 4010 moved from `foo.rs` to `foo/tests.rs`
-            // (or `foo/<name>_tests.rs`) is still `foo.rs`'s.
+            // (or `foo/<name>_tests.rs`) is still `foo.rs`'s, and a
+            // `foo/mod.rs` is `foo.rs` (item 4011's directories), at any
+            // depth under `src/` but `sweep/`.
             let src = root.join("src");
             if let Some(dir) = p.parent()
-                && dir.parent() == Some(src.as_path())
-                && !dir.ends_with("sweep")
-                && p.file_stem()
-                    .is_some_and(|s| s.to_string_lossy().ends_with("tests"))
+                && dir != src.as_path()
+                && dir.starts_with(&src)
+                && !dir.components().any(|c| c.as_os_str() == "sweep")
+                && p.file_stem().is_some_and(|s| {
+                    let s = s.to_string_lossy();
+                    s.ends_with("tests") || s == "mod"
+                })
             {
                 name = format!("{}.rs", dir.file_name().expect("dir").to_string_lossy());
             }

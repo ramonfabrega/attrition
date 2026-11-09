@@ -272,6 +272,35 @@ fn sim_dir() -> PathBuf {
     PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/../sim/src"))
 }
 
+/// The simulation's own source files, sorted: `(path, sibling)`, where
+/// `sibling` marks a test file item 4010 moved out of its module
+/// (`foo/tests.rs`, `foo/<name>_tests.rs`). The walk is recursive — item
+/// 4011 moved the flat files into directories — and leaves out `sweep/`
+/// (read as test source on its own) and `test_support/`.
+fn sim_files() -> Vec<(PathBuf, bool)> {
+    fn walk(dir: &std::path::Path, top: bool, out: &mut Vec<(PathBuf, bool)>) {
+        for entry in std::fs::read_dir(dir).expect("crates/sim/src") {
+            let path = entry.expect("entry").path();
+            if path.is_dir() {
+                if !(top && (path.ends_with("sweep") || path.ends_with("test_support"))) {
+                    walk(&path, false, out);
+                }
+            } else if path.extension().and_then(|e| e.to_str()) == Some("rs") {
+                let sibling = !top
+                    && path
+                        .file_stem()
+                        .and_then(|s| s.to_str())
+                        .is_some_and(|s| s.ends_with("tests"));
+                out.push((path, sibling));
+            }
+        }
+    }
+    let mut out = Vec::new();
+    walk(&sim_dir(), true, &mut out);
+    out.sort();
+    out
+}
+
 /// Every source file the diff harness is spread across: `src/diff.rs`, and
 /// every `.rs` under `src/diff/` however deeply nested.
 ///
@@ -658,9 +687,8 @@ fn read_sim() -> Sim {
     let mut structs: BTreeSet<String> = BTreeSet::new();
     let mut sources = Vec::new();
 
-    for entry in std::fs::read_dir(sim_dir()).expect("crates/sim/src") {
-        let path = entry.expect("entry").path();
-        if path.extension().and_then(|e| e.to_str()) != Some("rs") {
+    for (path, sibling) in sim_files() {
+        if sibling {
             continue;
         }
         let text = std::fs::read_to_string(&path).expect("read");
@@ -1158,11 +1186,7 @@ fn reads_field(src: &str, field: &str) -> bool {
 fn three_views() -> (String, String, String) {
     let mut prod = String::new();
     let mut tests = String::new();
-    for entry in std::fs::read_dir(sim_dir()).expect("crates/sim/src") {
-        let path = entry.expect("entry").path();
-        if path.extension().and_then(|e| e.to_str()) != Some("rs") {
-            continue;
-        }
+    for (path, _) in sim_files().into_iter().filter(|(_, sibling)| !sibling) {
         let raw = std::fs::read_to_string(&path).expect("read");
         let mut p = raw.clone().into_bytes();
         blank_tests(&mut p);
@@ -1200,20 +1224,10 @@ fn three_views() -> (String, String, String) {
     tests_under(&sim_dir().join("sweep"), &mut tests);
     // The test tails item 4010 moved out of `foo.rs` into `foo/tests.rs`
     // (and `foo/<name>_tests.rs`), mounted by `#[cfg(test)] mod tests;`.
-    let mut siblings: Vec<PathBuf> = std::fs::read_dir(sim_dir())
-        .expect("crates/sim/src")
-        .map(|e| e.expect("entry").path())
-        .filter(|p| p.is_dir() && !p.ends_with("sweep"))
-        .flat_map(|d| std::fs::read_dir(d).expect("a source directory"))
-        .map(|e| e.expect("entry").path())
-        .filter(|p| {
-            p.extension().and_then(|e| e.to_str()) == Some("rs")
-                && p.file_stem()
-                    .and_then(|s| s.to_str())
-                    .is_some_and(|s| s.ends_with("tests"))
-        })
+    let siblings: Vec<PathBuf> = sim_files()
+        .into_iter()
+        .filter_map(|(p, sibling)| sibling.then_some(p))
         .collect();
-    siblings.sort();
     for path in siblings {
         tests.push_str(&std::fs::read_to_string(&path).expect("read"));
         tests.push('\n');

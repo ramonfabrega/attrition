@@ -43,7 +43,7 @@ const MERCHANTS: [TypeId; 3] = [0x3d, 0x3e, 0x190];
 /// where the two searches above it are in tiles.
 const CROWD_RING: usize = 2;
 
-/// Whose record a read of [`GatherView`] is about: the unit calling
+/// Whose record a read of [`CalcGatherView`] is about: the unit calling
 /// `calc_gather`, or one of the others on the crowd walk.
 #[derive(Clone, Copy)]
 pub enum Who<H> {
@@ -73,7 +73,7 @@ pub struct GatherArgs {
 /// Everything `UnitData::calc_gather` reads or writes outside its own
 /// locals, one method a distinct access, so an emulated window and the
 /// `Sim` answer the same questions in the same order (item 3330).
-pub trait GatherView {
+pub trait CalcGatherView {
     /// A unit as the chain walk names it: the `Sim`'s index, the sweep's
     /// `(list, index)` pair.
     type H: Copy;
@@ -155,7 +155,7 @@ fn merchant_id(t: i32) -> bool {
 /// The ring index the searches run to and the radius the crowd test sums:
 /// `upgrade_level × 4 + 4` for a merchant id or a fisherman, `+ 2` for
 /// anything else. The merchant ids skip the `is(0x13d)` call.
-fn gather_ring<V: GatherView>(v: &mut V, w: Who<V::H>) -> i32 {
+fn gather_ring<V: CalcGatherView>(v: &mut V, w: Who<V::H>) -> i32 {
     if merchant_id(v.type_index(w)) {
         return v.type_radius_base(w).wrapping_mul(4).wrapping_add(4);
     }
@@ -166,10 +166,10 @@ fn gather_ring<V: GatherView>(v: &mut V, w: Who<V::H>) -> i32 {
     }
 }
 
-/// `UnitData::calc_gather@00609180`, step for step over a [`GatherView`]:
+/// `UnitData::calc_gather@00609180`, step for step over a [`CalcGatherView`]:
 /// the head, the remembered ring index (block A), the spiral (block B), and
 /// the crowd count behind both. Answers the executable's `eax`.
-pub fn unit_calc_gather_steps<V: GatherView>(v: &mut V, a: &GatherArgs) -> i32 {
+pub fn unit_calc_gather_steps<V: CalcGatherView>(v: &mut V, a: &GatherArgs) -> i32 {
     // `*param_1 = -1`, `*param_2 = 0`, the six rates to zero — before every
     // other test.
     if a.rare {
@@ -260,7 +260,7 @@ pub fn unit_calc_gather_steps<V: GatherView>(v: &mut V, a: &GatherArgs) -> i32 {
 
 /// `LAB_00609573`: the writes a hit makes, `calc_rare`, and the crowd count
 /// that decides the answer.
-fn gather_tail<V: GatherView>(
+fn gather_tail<V: CalcGatherView>(
     v: &mut V,
     a: &GatherArgs,
     g: i32,
@@ -333,7 +333,7 @@ fn gather_tail<V: GatherView>(
     1
 }
 
-/// The `Sim` answering [`GatherView`] for unit `u`. `found` and `divisor`
+/// The `Sim` answering [`CalcGatherView`] for unit `u`. `found` and `divisor`
 /// are what the callers that want the rates read back: the good
 /// `calc_rare` was asked about, and the `count + 1` the rates were divided
 /// by (1 when they were not).
@@ -362,7 +362,7 @@ impl<'a> SimGather<'a> {
     }
 }
 
-impl GatherView for SimGather<'_> {
+impl CalcGatherView for SimGather<'_> {
     type H = usize;
     fn type_index(&self, w: Who<usize>) -> i32 {
         self.s

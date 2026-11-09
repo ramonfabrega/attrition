@@ -21,7 +21,7 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-LAUNCH = os.path.join(HERE, "..", "..", "crates", "sim", "src", "launch.rs")
+LAUNCH = os.path.join(HERE, "..", "..", "crates", "sim", "src", "data", "launch.rs")
 DEN = 1000 << 30
 
 

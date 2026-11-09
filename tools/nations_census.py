@@ -89,14 +89,21 @@ def load(export, rules_path):
     paths = glob.glob(SIM + "/**/*.rs", recursive=True) + glob.glob(SWEEPS + "/**/*.rs", recursive=True)
     # Item 4010 moved `foo.rs`'s test tails to `foo/tests.rs` (and
     # `foo/<name>_tests.rs`): they are still `foo.rs`'s, as they were inline.
-    def sibling(p):
+    # Item 4011's directories put them at any depth, and a `foo/mod.rs` is
+    # `foo.rs`.
+    def nested(p):
         d = os.path.dirname(p)
-        return (os.path.dirname(d) == SIM and os.path.basename(d) != "sweep"
-                and os.path.basename(p)[:-3].endswith("tests"))
+        rel = os.path.relpath(d, SIM)
+        return d != SIM and not rel.startswith("..") and "sweep" not in rel.split(os.sep)
+
+    def sibling(p):
+        return nested(p) and os.path.basename(p)[:-3].endswith("tests")
 
     def key(p):
-        return os.path.basename(os.path.dirname(p)) + ".rs" if sibling(p) else os.path.basename(p)
-    src_raw = {os.path.basename(p): open(p, errors="replace").read() for p in paths if not sibling(p)}
+        if sibling(p) or (nested(p) and os.path.basename(p) == "mod.rs"):
+            return os.path.basename(os.path.dirname(p)) + ".rs"
+        return os.path.basename(p)
+    src_raw = {key(p): open(p, errors="replace").read() for p in paths if not sibling(p)}
     for p in sorted(p for p in paths if sibling(p)):
         src_raw[key(p)] += open(p, errors="replace").read()
     dirs = {}
