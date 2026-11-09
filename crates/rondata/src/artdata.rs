@@ -1121,6 +1121,9 @@ pub struct PieceDecoding {
     pub same_shape: usize,
     /// Every failing file, with the pieces it costs.
     pub failures: BTreeMap<String, (ArtFailure, usize)>,
+    /// The K's pieces themselves, so a count over another set — the
+    /// renderer's M (item 4020) — can be taken against them.
+    pub decoded_pieces: std::collections::BTreeSet<i32>,
 }
 
 /// **Pieces decoding: K of N** (item 4019; `docs/RENDERER.md` §5.4's
@@ -1188,7 +1191,16 @@ pub fn piece_decoding(install: &Install, graphs: &[String]) -> PieceDecoding {
                 (Err(f), _) => fails.push((file.clone(), f.clone())),
             }
         }
-        let fresh = e.pieces.iter().filter(|p| seen.insert(**p)).count();
+        let fresh: Vec<i32> = e
+            .pieces
+            .iter()
+            .copied()
+            .filter(|p| seen.insert(*p))
+            .collect();
+        if fails.is_empty() {
+            out.decoded_pieces.extend(&fresh);
+        }
+        let fresh = fresh.len();
         out.pieces += fresh;
         if fails.is_empty() {
             out.decoded += fresh;

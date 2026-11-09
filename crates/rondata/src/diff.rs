@@ -52,7 +52,7 @@ mod aztec_ancient_pair;
 #[cfg(test)]
 mod aztec_medieval_pair;
 #[cfg(test)]
-mod aztec_modern_pair;
+pub(crate) mod aztec_modern_pair;
 #[cfg(test)]
 mod aztec_word;
 #[cfg(test)]
