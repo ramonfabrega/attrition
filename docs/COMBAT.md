@@ -3151,7 +3151,7 @@ bit cleared by thinking, and a unit that has just failed to reach something
 keeps searching every frame until something else clears it.
 
 This crate **never clears it at all** — `cant_reach` has three writers and
-no reader but the gate (`grep cant_reach crates/sim/src/orders.rs`) — so the
+no reader but the gate (`grep cant_reach crates/sim/src/orders/mod.rs`) — so the
 mirror's return is faithful by accident and the captain path is not. Not
 implemented, because the clear moves the cadence of every unit on both long
 captures that has ever failed to reach anything and no diff asks for it.

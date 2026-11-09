@@ -11292,7 +11292,7 @@ ours (2006, 1) against (−1, −1) — the original's follower re-adds its capt
 writes no `near`; this crate's search wrote it. On **770**, `0/8`'s `order:kind` 10 against 12 and `orders.len` 2
 against 1: this crate's search took who=1's Citizen added on 760 and attacked it where the head re-added the Stockade
 and `chase_refused` killed it; its tails on 771, 778 (`order:guard.idle` 103 against 111) and 786.
-**Built** (`crates/sim/src/orders.rs`): `Sim::find_melee_target_headed` — `melee_squad_head`, then the search and
+**Built** (`crates/sim/src/orders/mod.rs`): `Sim::find_melee_target_headed` — `melee_squad_head`, then the search and
 `nearby_add` — for `find_new_target` (the refused chase, the captain's re-search and the enemy ladder's
 `stand` call alike) and for `fight`'s guard refusal; the head's add is `Sim::squad_head_add`, which
 `find_melee_target_added_in` now shares. The value diff after: 690 `0/8 near` (−1, −1) both sides, 770 `order:kind`
@@ -11442,7 +11442,7 @@ there. Its search's `check_target(…, param_6 1, param_7 0)` asks `poor_target`
 refused before `near` is written. Nothing is found: `local_4c` stays above `0xf00`, `near` goes to −1/−1, and the
 attack is gone with the `GUARD` in front. That is the original's block 779.
 
-**Built** (`crates/sim/src/orders.rs`, `fight`'s captain arm): `research` is the old predicate **or**
+**Built** (`crates/sim/src/orders/mod.rs`, `fight`'s captain arm): `research` is the old predicate **or**
 `poor_target(me, target)` on a unit target. **The value diff on block 779**: `0/10`'s `near` was (6, 1) here
 against (−1, −1) there, and is (−1, −1) both sides; `orders.len` was 3 against 1, and is 1 both sides (the `GUARD`).
 All eighteen of the word's rows on 779–780 leave, and the pool's 780 `facing` with them.
@@ -11506,7 +11506,7 @@ On 900 `1/12` finds army 0 with `units []`.
 
 **Two builds.**
 
-- **`think`'s step 3 adds its attack as `find_nearby_target` does** (`crates/sim/src/orders.rs`,
+- **`think`'s step 3 adds its attack as `find_nearby_target` does** (`crates/sim/src/orders/mod.rs`,
   [`Sim::nearby_add`]). `think_attack` calls `find_melee_target(−1, &whom, 0, 1, 0)`, which adds its own order:
   `QUEUE_FIRST` under an attack-move. This crate added `QUEUE_NEW`, which dropped `1/9`'s walk on 701 under its
   attack on `0/7`. **Value diff, block 702**: `1/9 orders.len` was 1 here against 2 there, and is 2 on both sides
@@ -11690,7 +11690,7 @@ widened_whole`):
 
 - **The birth arm** (`crates/sim/src/lib.rs`, `init_unit`; `combat::umask2::BARK`). Without it, block 622: `1/8`
   `stance` 0 here against 3 there (402 rows against 401).
-- **`fight`'s predicate** (`crates/sim/src/orders.rs`, the captain's re-search, `fight@005fd4d0:394-400`): with the
+- **`fight`'s predicate** (`crates/sim/src/orders/mod.rs`, the captain's re-search, `fight@005fd4d0:394-400`): with the
   bit, a target whose role is combat and whose type is not `n` (`unit_flags & 0x2000`) is searched past; without
   it, one whose role is not. Without the arm, block 635: `0/7`'s `near` (6, 1) here against (7, 1) there — the
   original drops the Bark it was handed for the fishing boat (402 rows).
@@ -11756,7 +11756,7 @@ the original too — and the original's `Unit::do_move+0x6e6` then calls `change
 retarget (`docs/COMBAT.md` §37.2) hands `0/7` the fishing boat in range. Its candidate predicate is `fight`'s
 (`uVar17`, `do_move@005f7b30:262`–`271`): with `unit_masks2 & 4` a non-combat candidate or an `n` one, without it a
 combat role. This crate had the second sense for every attacker. **Built**: `Sim::retarget_admits`
-(`crates/sim/src/orders.rs`).
+(`crates/sim/src/orders/mod.rs`).
 
 **The word: 820, the trace's end — closed** (637 → 820). Value diff on the word's old frame, block 635, `0/7`:
 ours now `ATTACKORDER` on `1/7`, `in_range 1`, at (12312, 34872), as theirs; before, ours chased `1/8` with a
@@ -11909,7 +11909,7 @@ stances. That moved two closed floors (Great Sahara at Toughest 15432 → 15025,
 17944): run589's packed cannon `1/132`, attack-moving, takes `0/2000` on 17944 and the original walks at it on 17945
 (a `MOVEORDER` pushed, `find_attack_pos < fight+0xcb4` the extra draw at Toughest's 15025). **`Unit::fight`'s chase
 gate reads `get_combat_stance() == 2 && !Unit::on_duty()`** (`005fe139`–`005fe151`), and this crate had the stance
-alone: built (`crates/sim/src/orders.rs`), both floors hold again.
+alone: built (`crates/sim/src/orders/mod.rs`), both floors hold again.
 
 **The word: 777 → 1100, the trace's end — chapter sixty-five closed.** The value diff on 777: `0/9`'s `near` (−1, −1)
 and `orders.len` 0 on both sides (were (2006, 1) and 1 here); on 792 both take the Barracks `1/2008`. The widening
@@ -13008,7 +13008,7 @@ whose **head order is a move** (`UnitData::is_moving@00610af0`, vslot `+0xd8`) �
 the same frame, whose out-of-range arm computes a new spot for the target's new square. `0/7` is `o` 7: `(1177 + 7) & 0xf == 0`,
 and 1177 is the frame before the block that shows it.
 
-**Built.** `Sim::check_cast_target_path` (`crates/sim/src/orders.rs`), one more arm of `check_target_path_review`. `WANT_CH85` loses
+**Built.** `Sim::check_cast_target_path` (`crates/sim/src/orders/mod.rs`), one more arm of `check_target_path_review`. `WANT_CH85` loses
 **19 rows** (31 → 12): every `0/7` row, 1178 through 1185 — `order:flags`, the move's `dest`, `off_x/off_y`, `x/y`, `orders_x/y`,
 `path:length`, `pos`, 1179's `dest_x/y` and `path[0].to`, 1183's `order:kind/length` and `orders.len` (the two-orders-against-one
 the booking named), 1184's `dest_angle` and `order:move.angle`, 1185's `heading`. One cause for all of them; what stands is the
@@ -14461,7 +14461,7 @@ blocks, and whether the original re-enters `work` on it (see the loop below). A 
   `do_attack` → `fight` → **`find_new_target` #2 from `fight+0xd94`** → `find_melee_target` → `add_move_order` to
   cell (450, 382), the post. `work` is entered once.
 
-**The two arms** (`crates/sim/src/orders.rs`).
+**The two arms** (`crates/sim/src/orders/mod.rs`).
 1. **`Unit::find_new_target@005ff6a0`'s `bVar3`**, a `SEAM` until now: a `DEFENSIVE` unit whose
    `UnitData::find_def_pos@00608560` answers (a defensive attack's `+0x14/+0x18`, or a move flagged `& 8`) reads
    the post before its order goes. A find whose order is an `ATTACK` takes it (`+0x1d = 1`, the post); a unit left
@@ -14705,7 +14705,7 @@ attack in `do_attack_fight`'s invalid-target branch. That branch was inlined as 
 **The original.** `Unit::fight@005fd4d0`'s `LAB_005fdb9e`, with `param_5 == 0`, calls `find_new_target(this, NULL,
 0)` whole, its post arm (`bVar3`) included (the decompile's lines 202–213).
 
-**The build** (`crates/sim/src/orders.rs`, `do_attack_fight`): the branch reads the post (`def_post`, on a
+**The build** (`crates/sim/src/orders/mod.rs`, `do_attack_fight`): the branch reads the post (`def_post`, on a
 `Defensive` stance) before the kill, and applies `keep_def_post` after the find. `find_melee_target_added` is kept,
 and the branch still calls no `repath` where `find_new_target` does (parked 3784a).
 

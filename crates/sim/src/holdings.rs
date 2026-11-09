@@ -74,7 +74,7 @@
 //!
 //! So it is **both**: a building finishing sets it and a citizen arriving sets
 //! it. [`Sim::economy_changed`] is this crate's name for the flag, and
-//! `crates/sim/src/orders.rs` raises it on the arrival and on both halves of
+//! `crates/sim/src/orders/mod.rs` raises it on the arrival and on both halves of
 //! the idle latch; the building half is listed as an open edit in this
 //! module's notes.
 //!

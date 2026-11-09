@@ -129,7 +129,7 @@ let its_move = matches!(
 ```
 
 `docs/ORDERS.md:216` gives `18 | CHANGE_FORM | FormOrder`, and
-`crates/sim/src/orders.rs` has no `index::CHANGE_FORM` constant. The
+`crates/sim/src/orders/mod.rs` has no `index::CHANGE_FORM` constant. The
 consequence is a *narrowing* of both step 4 and step 5; the document names
 the kind and the code cannot express it. COLLISION.md §7 and §9 do not list
 this as a seam.
@@ -162,7 +162,7 @@ LAB_005fa559:
 }
 ```
 
-`spell::TRANSPORT` is `0x28a` in `crates/sim/src/orders.rs:60`, so the
+`spell::TRANSPORT` is `0x28a` in `crates/sim/src/orders/mod.rs:60`, so the
 constant is already in the crate; only the arm is missing. Note the code's
 `its_order != index::FLEE_TO` is *correct* and the document's "one of the
 move kinds above" is the looser statement — the decompile brackets the whole
@@ -174,7 +174,7 @@ which is what `collide.rs:998` implements.
 | | |
 |---|---|
 | document | COLLISION.md §5.1, "if the waypoint is **final** (`flags & 1`) and the unit's *action* is `TRADE_ROUTE`, `GATHER`, `ATTACK` or `BUILD_AT` → `kill_current_order`" |
-| code | `crates/sim/src/orders.rs:1716-1723` (`do_move`'s waypoint test) |
+| code | `crates/sim/src/orders/mod.rs:1716-1723` (`do_move`'s waypoint test) |
 | document says | four actions kill the walk where the unit stands |
 | code does | three: `GATHER`, `ATTACK`, `BUILD_AT`. `index::TRADE_ROUTE` exists (`orders.rs:43`) and is not in the `matches!` |
 | difference shows | a Caravan or Merchant on a `TRADE_ROUTE` action taking a final waypoint into an occupied cell: the original kills the order and re-decides next frame, the crate walks on (or widens tolerance via the second arm). `MOVEORDER` presence/absence in the next `UNITDATA` block and the merchant's position. run66 holds East Indies' AI Merchant at `[6340, 6600)` but that merchant's action there is a gather, not a trade route — no capture on disk reaches this arm. |

@@ -27,7 +27,7 @@ Only three functions ECONOMY.md cites by address are on it:
 | reached | reached (`Leader::do_gather` runs every frame in every trace; the Dutch arm itself is unreached) |
 
 `grep -rn "dutch_interest" crates --include='*.rs'` answers only
-`crates/sim/src/orders.rs:123`, a comment citing the constant by name from
+`crates/sim/src/orders/mod.rs:123`, a comment citing the constant by name from
 another mechanic's document. `Tuning` (`crates/sim/src/core/tuning.rs`) has
 `dutch_fort_speed`, `dutch_fort_placement` and `dutch_free_light_ship` and
 neither of the two interest constants, so this is not a wiring gap — the

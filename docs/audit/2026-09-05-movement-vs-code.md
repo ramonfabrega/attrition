@@ -16,7 +16,7 @@ stated; three rows below are the *document* being wrong and the code right.
 | | |
 |---|---|
 | document | MOVEMENT.md "The unit step", `:341` — "a step already computed by `do_move` — `get_speed(x, y, 0)`, × `ai_speed` if that is above 1, and × 5/4 for modern infantry"; restated at `:963`–`966` |
-| code | `crates/sim/src/orders.rs:1768` (`fn do_move`), `crates/sim/src/orders.rs:1941` |
+| code | `crates/sim/src/orders/mod.rs:1768` (`fn do_move`), `crates/sim/src/orders/mod.rs:1941` |
 | document says | `do_move` scales `get_speed`'s answer by 5/4 for a `UnitData::is_modern_infantry` type before handing it to `move_step` |
 | code does | `let speed = self.get_speed(u);` and then `self.unit_step(u, mo, speed)` — nothing between them. No caller of `is_modern_infantry` scales a speed |
 | difference shows | a modern-infantry unit's per-frame `x_internal`/`y_internal` delta: 4/5 of the original's on every walking frame, so the two sides part on the first frame such a unit walks, and `myspeed` in the same `UNITDATA` record would agree while the step did not — which is the signature of a `do_move` scale rather than a pipeline one. **UNSURE** whether any capture reaches the true arm: the corpus is openings and the predicate wants `unit_flags & 0x100` at age 6 or later |
@@ -67,7 +67,7 @@ tracked branch is `iVar9 = GuyData::get_speed((GuyData *)local_10);` and then
 `0x800` mask is read from comes from the **passed** `param_1`/`param_2` while
 the `z` gate reads the unit's own `field_0xc` — so for a crew figure standing
 on a different tile from its leader the original mixes the crew's tile with the
-unit's height. `Sim::on_river` (`crates/sim/src/orders.rs:645`) takes both from
+unit's height. `Sim::on_river` (`crates/sim/src/orders/mod.rs:645`) takes both from
 one `Pos` and cannot express that; it is moot only while the crate never asks
 for a crew figure's speed at all.
 
@@ -87,7 +87,7 @@ for a crew figure's speed at all.
 | | |
 |---|---|
 | document | MOVEMENT.md `:547`–`550` — "`Guy::do_turn` overrides the walk with `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` whenever the guy's piece has a turn animation (`guy_flags & 8`, `Guy::init_real@005db6b0:179`), which this crate does not model at all" |
-| code | `crates/sim/src/units/anim.rs:803`–`819` (`fn guy_do_turn_anim`), reached from `crates/sim/src/lib.rs:3086`, `crates/sim/src/lib.rs:3208` and `crates/sim/src/orders.rs:2808` |
+| code | `crates/sim/src/units/anim.rs:803`–`819` (`fn guy_do_turn_anim`), reached from `crates/sim/src/lib.rs:3086`, `crates/sim/src/lib.rs:3208` and `crates/sim/src/orders/mod.rs:2808` |
 | document says | neither the override nor `guy_flags & 8` is in the crate |
 | code does | both are: `if to == was || !self.guy_turns(u, g) { return; }` is the `guy_flags & 8` gate, and the sign of `heading − was` picks `TURN_RIGHT` or `TURN_LEFT` |
 | difference shows | no observable — the document lags the code |
@@ -98,9 +98,9 @@ for a crew figure's speed at all.
 | | |
 |---|---|
 | document | MOVEMENT.md `:457`–`458` — "SEAM: the original also clears `unit_masks & 8` on the refusal. The bit has no reader this crate models." |
-| code | `crates/sim/src/orders.rs:2896`–`2899` (`fn unit_step`); the bit is `crates/sim/src/lib.rs:193`, `pub line_ok: bool`, documented there as "`unit_masks & 8`: a straight line to the waypoint has been verified" |
+| code | `crates/sim/src/orders/mod.rs:2896`–`2899` (`fn unit_step`); the bit is `crates/sim/src/lib.rs:193`, `pub line_ok: bool`, documented there as "`unit_masks & 8`: a straight line to the waypoint has been verified" |
 | document says | the crate has no reader for `unit_masks & 8`, so not clearing it costs nothing |
-| code does | the crate has exactly one, and it is on the hot path: `crates/sim/src/orders.rs:1782`, `if !self.units[u].line_ok { … find_path … }`. So the original re-verifies its line on the frame after a refused step and the crate steps straight again |
+| code does | the crate has exactly one, and it is on the hot path: `crates/sim/src/orders/mod.rs:1782`, `if !self.units[u].line_ok { … find_path … }`. So the original re-verifies its line on the frame after a refused step and the crate steps straight again |
 | difference shows | the frame after any tile refusal. run65's caravan is the known one: `move_step` drops the step on sim-frame 6206, and on 6207 the original enters `Unit::find_path@005fb910` (and `go_around_building` behind it, which may push a waypoint) before stepping, where this crate goes straight to `move_step`. Falsifiable two ways in the existing capture — the trace's `Unit::find_path` entry on 6207 in `rontrace-run65*`, and the caravan's `x_internal`/`y_internal` on 6207 onward if the re-plan pushes any detour at all |
 | reached | reached (`Unit::move_step@005faf30`) |
 
@@ -118,10 +118,10 @@ with the clear added.
 | | |
 |---|---|
 | document | MOVEMENT.md `:413`–`416` — "**A step outside the world is refused, not clamped**, and the order continues; the unit tries again next frame. (`crates/sim` asks `World::accepts`, which is the same bounds test.)"; and `:441`–`444`, "`move_step` returns 0 where every other refusal returns 1" |
-| code | `crates/sim/src/orders.rs:2961`–`2965` (`fn unit_step`) |
+| code | `crates/sim/src/orders/mod.rs:2961`–`2965` (`fn unit_step`) |
 | document says | the order continues unchanged and the unit re-tries the same step next frame; this refusal is one of the ones that return 1 |
 | code does | `self.units[u].line_ok = false; self.units[u].movement.dest = None; return Did::Nothing;` — it clears the verified-line bit (forcing a re-path next frame) and returns the value the original reserves for the two refusals that return 0 |
-| difference shows | two ways, both at the map edge. (a) the re-plan: a `Unit::find_path` entry in the trace on the frame after, and any detour it pushes moves the unit's position. (b) the return value: `do_move`'s answer is discarded for a plain move (`crates/sim/src/orders.rs:1193`–`1206`, which drops the `Did`) but not for a **group** leader — `group_move_leader` (`crates/sim/src/orders.rs:2014`–`2016`) ungroups the whole formation when `do_move` answers `Did::Nothing`, so a marching group whose leader's step leaves the world dissolves here and does not in the original. No capture is known to reach either; the corpus has no edge-of-map march |
+| difference shows | two ways, both at the map edge. (a) the re-plan: a `Unit::find_path` entry in the trace on the frame after, and any detour it pushes moves the unit's position. (b) the return value: `do_move`'s answer is discarded for a plain move (`crates/sim/src/orders/mod.rs:1193`–`1206`, which drops the `Did`) but not for a **group** leader — `group_move_leader` (`crates/sim/src/orders/mod.rs:2014`–`2016`) ungroups the whole formation when `do_move` answers `Did::Nothing`, so a marching group whose leader's step leaves the world dissolves here and does not in the original. No capture is known to reach either; the corpus has no edge-of-map march |
 | reached | reached (`Unit::move_step@005faf30`) |
 
 The four bounds tests in the decompile each `return 1` on their own
@@ -141,7 +141,7 @@ converter is applied (`crates/sim/src/lib.rs:2038`, `crates/sim/src/rares.rs:172
 `Tuning` at all, which is the identity converter written down as an absence.
 The floor of 3 is `movement::SPEED_FLOOR` (`crates/sim/src/movement/mod.rs:416`)
 and is applied last, after the cap, in both `Sim::get_speed`
-(`crates/sim/src/orders.rs:624`) and `movement::group_capped`
+(`crates/sim/src/orders/mod.rs:624`) and `movement::group_capped`
 (`crates/sim/src/movement/mod.rs:424`) — which is the original's order at
 `00608720`.
 
@@ -174,15 +174,15 @@ in `movement::move_step` (`crates/sim/src/movement/mod.rs:524`–`620`) in the
 original's order: heading before the turn; `slow` from `type_turn_speed <
 SLOW_TURN_BELOW`; the near gate `manh < slow × 192` **or** the waypoint's
 `TURN_FIRST` (read off the top of the path stack at
-`crates/sim/src/orders.rs:2776`–`2779`, `false` for an empty stack); the far
+`crates/sim/src/orders/mod.rs:2776`–`2779`, `false` for an empty stack); the far
 gate at 45°, or 80° for a `wide_limit` type at `slow × 384`; the half step at
 `45° / slow`; the Manhattan snap; the trig along the **post-turn** facing; the
 clamps gated on `manh < 2 × step`; `y` subtracted. The two turn-in-place arms
 are told apart as `TurnArm::Near`/`Far` and marked as two draw sites. Arrival
 by the waypoint's `tolerance` is Manhattan, as at `005fb2f1`
-(`crates/sim/src/orders.rs:2952`–`2959`). The tile-permission refusal —
+(`crates/sim/src/orders/mod.rs:2952`–`2959`). The tile-permission refusal —
 `div_3_table` tile compare, `invalid_loc` with all five flags clear, `return 0`
-— is at `crates/sim/src/orders.rs:2896`–`2899` (but see R6 for the bit it does
+— is at `crates/sim/src/orders/mod.rs:2896`–`2899` (but see R6 for the bit it does
 not clear). The `unit_masks & 0x100000` one-shot half step is a stated seam in
 both.
 
@@ -232,7 +232,7 @@ bitwise-NOT magnitude that comes out one short
 type — not a packing type, `FOOT`/`MOUNTED`/`TRANSPORT`, and not `CART` — in
 `sim::turning_of` (`crates/sim/src/lib.rs:468`–`479`), and `packed` read off
 the unit rather than the type at both call sites
-(`crates/sim/src/orders.rs:2760`–`2763`, `crates/sim/src/lib.rs:3062`–`3065`).
+(`crates/sim/src/orders/mod.rs:2760`–`2763`, `crates/sim/src/lib.rs:3062`–`3065`).
 
 **The speed pipeline.** Layer 1 is the `MOVES` value plus the whales arm, which
 is what the document says is landed (`crates/sim/src/rares.rs:170`–`177`);
@@ -240,18 +240,18 @@ layers 1 and 2 are otherwise stated inputs in both. Layer 3's action scale is
 `×9/8` for `ATTACK` (index 10) and, for `GUARD` (index 12), `×10/8` under the
 AI bit and `×9/8` otherwise — which is `00608720`'s `local_8 != 10 / != 0xc /
 unit_masks & 0x40000` exactly, with `ai_driven` as this project's established
-stand-in for `0x40000` (`crates/sim/src/orders.rs:603`–`608`). The land gate,
+stand-in for `0x40000` (`crates/sim/src/orders/mod.rs:603`–`608`). The land gate,
 the river halving with `z <= 0`, and the floor are
-`crates/sim/src/orders.rs:609`–`624` and `Sim::on_river`
-(`crates/sim/src/orders.rs:645`–`648`), with `unit_masks & 0x10`, the general's
+`crates/sim/src/orders/mod.rs:609`–`624` and `Sim::on_river`
+(`crates/sim/src/orders/mod.rs:645`–`648`), with `unit_masks & 0x10`, the general's
 siege doubling and the group cap as stated seams in both.
 
 **The animal's own `get_speed`.** The whole replacement — layer 2 only, the
 air return before both the hurry and the floor, `is_move` on the current order,
 the distance to the order's **goal** (`Order::move_dest` is `MoveOrder`'s
-`+0x4/+0x8` `dest`, not the waypoint, `crates/sim/src/orders.rs:363`), the
+`+0x4/+0x8` `dest`, not the waypoint, `crates/sim/src/orders/mod.rs:363`), the
 strict `> 0x180`, `× 3 / 2` truncating, and `max(3)` — is
-`crates/sim/src/orders.rs:584`–`593`, with `is_gaia` as the stated stand-in for
+`crates/sim/src/orders/mod.rs:584`–`593`, with `is_gaia` as the stated stand-in for
 the class split.
 
 

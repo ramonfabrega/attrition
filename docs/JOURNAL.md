@@ -146,7 +146,7 @@ dated heading on, the journal is by date.
    domain, `BuildType::set_domain` from `BUILD_FLAGS b`.
 
 7. ~~**Orders**~~ — **done, 2026-08-21**, `docs/ORDERS.md`,
-   `crates/sim/src/orders.rs`: the order list and its three enqueue modes,
+   `crates/sim/src/orders/mod.rs`: the order list and its three enqueue modes,
    one order stepped per frame, the move order end to end with the
    pathfinder as a named seam, build/repair/garrison through the swarm ring,
    the gather registration and the wood/ore machine, the attack order's

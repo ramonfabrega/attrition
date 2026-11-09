@@ -16883,7 +16883,7 @@ run678 (977..1233) holds it whole. Each claim is *diff-backed* unless marked.
    citizens (`count_inside(PEASANTS)`) swarming a **land** building searches as its `inside_down` passenger's type, and every
    other member as its own.
 
-**Built.** `Sim::swarm_seeker_type` (`crates/sim/src/orders.rs`), asked by `swarm_spot` for both sweeps (a `Seeker::TypeFor`
+**Built.** `Sim::swarm_seeker_type` (`crates/sim/src/orders/mod.rs`), asked by `swarm_spot` for both sweeps (a `Seeker::TypeFor`
 with the site's footprint), and `Sim::barge_type` (`transport.rs`, `current_upgrade(TRANSPORTBARGE)` as a unit type, shared
 with `transport_type_for`). Unit test `transport::tests::a_citizen_swarms_a_sea_site_as_the_barge_once_its_leader_transports`:
 no level, no approach; the civilian level, an `ExploreTo` on the water; a water Dock, the citizen's own ring. `docs/ORDERS.md`
@@ -17117,7 +17117,7 @@ marked.
    `1/24` (42665, 36966) is a citizen carried at sea towards the Mine — its tile is the water of a coastal cell, `tregion_alt`
    0 against the searcher's 12 — so the original counts 2028 at **1**, and the first strict minimum is 2028.
 
-**Built.** `Sim::build_crowd`'s circle walk (`crates/sim/src/orders.rs`) walks every cell of the ring and gates each unit by
+**Built.** `Sim::build_crowd`'s circle walk (`crates/sim/src/orders/mod.rs`) walks every cell of the ring and gates each unit by
 `World::tregion_alt` of its own tile against the searcher's, as the list walk has since §148. Unit test
 `cities_tests::the_builder_tally_counts_no_builder_on_a_coastal_cell_s_water`: a builder on a coastal cell's water is not
 counted (the tie goes to the first site), one on its land is. `docs/ORDERS.md` §5.10's region-gate paragraph is struck and
@@ -17849,7 +17849,7 @@ Each claim is *diff-backed* unless marked.
    when it has none. The machine gun's unpacked crew piece names no track, so `1/74`'s second figure stands on guy 0's
    point on block 2894, (35208, 36984) where it had stood at (35275, 36884); run715's `1/89` likewise on 2928.
 
-**Built.** `Sim::guard_unpacks` (`crates/sim/src/orders.rs`) from `do_guard`'s tail; `Sim::cast_job_time`
+**Built.** `Sim::guard_unpacks` (`crates/sim/src/orders/mod.rs`) from `do_guard`'s tail; `Sim::cast_job_time`
 (`crates/sim/src/lib.rs`), which `do_cast`'s clock reads; `cast_unpack`'s tail re-seat (`transport.rs`); and
 `Sim::update_gpiece` (`anim.rs`) re-reading a crew figure's track — a tracked figure whose new piece has none loses its
 `Follow`, and one that gains a track is given one on guy 0's point. `UnitData::spell_time` is now compared on every
@@ -18718,7 +18718,7 @@ at `QUEUE_NEW`, and `finish_insert` re-issues each copy at `QUEUE_LAST` — a
 Build copy through `action_swarm_around(QUEUE_LAST)`, i.e. a *fresh* approach
 from where the unit stands. This crate took the re-entry as a plain
 `swarm_around`, which left the queued second site's old approach. Built in
-`Sim::do_build` (`crates/sim/src/orders.rs`) with the existing
+`Sim::do_build` (`crates/sim/src/orders/mod.rs`) with the existing
 `group_set_up_insert` / `group_action_halt` / `group_finish_insert`;
 `a_builder_s_re_entry_swarms_the_build_queued_behind_it_afresh` (`cities_tests`)
 fails without it (made to fail once, the dance replaced by the plain swarm).
@@ -19271,7 +19271,7 @@ flagged, the unit walks to the shore, stops there on 3130, and the army's cast p
 
 ### 200.3 What was built
 
-`crates/sim/src/orders.rs` (`do_move`'s refusal branch, the non-final top's pop): a popped top with `TRANSPORT` pops the next entry, sets
+`crates/sim/src/orders/mod.rs` (`do_move`'s refusal branch, the non-final top's pop): a popped top with `TRANSPORT` pops the next entry, sets
 the bit and pushes it back. Walk-held: run788's window 151 → 149 keys (`1/27`'s two rows), run799's `1/27` rows gone after 3131 and **the word 3131 →
 3188** (`mongol_pair::`; the floors and the diff walks that reach a refusal with a flagged top moved nothing else).
 A mutation (the hand-down block removed) fails `run788_s_word_frame_is_widened_whole` (151 against 149) and `mongol_pair_first_parting` (3131).
@@ -21983,7 +21983,7 @@ nearby_add`, mandatory false. On the word's block 6822, before the fix: `1/124` 
 652]` (the unpack). The target `0/2000`, the human's capital, reaches `damage` 1560 of `myhits` 1560 on 6821 on both sides —
 capture-eligible, health 0.
 
-**Three terms, each read off the original and built** (`crates/sim/src/orders.rs`):
+**Three terms, each read off the original and built** (`crates/sim/src/orders/mod.rs`):
 
 1. **The army shortcut on the idle think.** `find_nearby_target@00648da0:198`–`222` gives a packed computer siege engine its
    army's target (`Army +0x30/+0x34`) at `QUEUE_FIRST`, **mandatory 1**. This crate had it as `take_siege_army_target`
@@ -26341,7 +26341,7 @@ the reload ends (`docs/ORDERS.md` §7.12) and stands. The draws agree throughout
 **The mechanism** (`Unit::fight@005fd4d0:94`–`102`): `local_1c` is set when the type's `unit_flags2 & 1` (the
 machine-gun and flamethrower lineages, `uflags2::EMPLACED`) is set and the order's target fails `valid_target`.
 It walks past the reload gate at `:102` to `:196`'s kill. This crate had it as a `SEAM` ("no capture on disk has a
-unit in it"). **Built** (`crates/sim/src/orders.rs`, `do_attack_fight`'s `latch`). The test is
+unit in it"). **Built** (`crates/sim/src/orders/mod.rs`, `do_attack_fight`'s `latch`). The test is
 `fight::tests::an_emplaced_weapon_drops_a_dead_target_s_order_while_recharging`, with the bit and without it.
 `tools/mutate.py` was run with the latch forced false. It held: the unit test failed, the closing state went back
 to 14 off, and run1184 went back to 239 keys. The latch's other half is still not modelled (3540c): the current
@@ -29775,7 +29775,7 @@ re-issues the copied action-flagged build on 2030 at `QUEUE_LAST`, which is
 the new explore to (36600, 43320) and the `0x2000` clear. Theirs:
 `[BUILD 2030, EXPLORE (36600, 43320)]`.
 
-`Sim::swarm_around` (`crates/sim/src/orders.rs`) queued the approach only
+`Sim::swarm_around` (`crates/sim/src/orders/mod.rs`) queued the approach only
 when a spot was found, but inserted the order every time. So ours kept a
 `Build(2023)` with no approach in front of it, and `1/17` stood on it.
 `swarm_around` now returns when the ring finds no spot. This is the shape
@@ -30227,7 +30227,7 @@ caller: a `GROUP_ATTACK_TO` head on an active member of a group still
 walking its attack-move hands the find to `Group::action_attack`. Ours had
 it as a SEAM, carried "for the attack-move's own look alone".
 
-**Built.** `crates/sim/src/orders.rs`: `nearby_add` is
+**Built.** `crates/sim/src/orders/mod.rs`: `nearby_add` is
 `attack_move_add`, the whole arm (the guard's `local_2c`, the group
 hand-off, else the alone add); the seam is retired. Mutation through
 `tools/mutate.py`, `nearby_add` back to `nearby_normalize` +
@@ -30377,7 +30377,7 @@ frames counting it down (4863..4868), gains `attempts` 3 and re-paths on
 
 **The hypothesis for the next item.** `Sim::roll_upath_retry`
 (`crates/sim/src/movement/path.rs`) writes `retry` into the unit's front order, and
-`do_move`'s refused-line branch (`crates/sim/src/orders.rs`, the `r == 0`
+`do_move`'s refused-line branch (`crates/sim/src/orders/mod.rs`, the `r == 0`
 arm with a non-final top: `mo.has_waypoint = false; self.store_move(u, mo,
 flags)`) stores back its copy `mo`, taken before the search, over it. The
 original clears `dest` in place and keeps the roll. I built nothing.
@@ -30421,7 +30421,7 @@ order into `mo` at entry, and every store after the planner call wrote the
 pre-search copy back; here it was the refused arm's `store_move`.
 `seams.py --field retry` names no seam on the arm, and `roll_upath_retry`
 is the one planner writer of `retry`. So **the fix re-reads `retry` from
-the live order after the planner call** (`crates/sim/src/orders.rs`,
+the live order after the planner call** (`crates/sim/src/orders/mod.rs`,
 beside the unchanged-length refusal), and every later store carries it.
 3625's hypothesis was right, and it is built as read.
 
@@ -35948,7 +35948,7 @@ The arm then **points the unit's army at the find** (`Object::get_army@00649d70`
 Only after that does the tail choose the queue and hand a non-siege `GROUP_ATTACK_TO` member's find to
 `Group::action_attack` (`649c88`–`649d13`), so the hand-off never meets the arm.
 
-**Built**: `Sim::nearby_siege_city` (`crates/sim/src/orders.rs`), asked after `nearby_normalize` on the three
+**Built**: `Sim::nearby_siege_city` (`crates/sim/src/orders/mod.rs`), asked after `nearby_normalize` on the three
 adds that follow it:
 - the attack-move look's `attack_move_add`;
 - `find_melee_target_added_in` (`find_new_target`, `think`, `target_opportunity`);

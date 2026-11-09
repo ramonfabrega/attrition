@@ -9791,7 +9791,7 @@ Score: none yet (the golden start is not a word); it books when a pinned lobby's
 as a fidelity row against run1071's 861–863. One reach.
 
 (3448b) **The port's `distribute_attack` is empty, and now a capture enters it** (parked 3381b;
-`crates/sim/src/group_move.rs:320`). run1070's six Hoplites hold `[ATTACK 1/6, MOVE, group move (flags 1)]` from 634
+`crates/sim/src/orders/group_move.rs:320`). run1070's six Hoplites hold `[ATTACK 1/6, MOVE, group move (flags 1)]` from 634
 to 686. On 687 every member has dropped the group move and kept `ATTACKORDER ox 6 whom 1`, and the leader `0/9` reads
 `collide_o 9`, `collide_who 1`. The only player order that reaches the arm is `action_gather`'s walk for
 non-gatherers (action 0) with a shift-queued attack behind it (`docs/ORDERS.md` §42.2), and no pinned lobby issues
@@ -13000,7 +13000,7 @@ score.
 ## Parked by item 3784, 2026-10-29 — the Dragoon walks home, and a dead crew holds its number once per figure
 
 - **3784a. The invalid-target branch's two spellings of `find_new_target`** (`docs/GOLDEN.md` §149.10.1):
-  `do_attack_fight`'s inlined branch (`crates/sim/src/orders.rs`) now keeps the post arm, but still calls no
+  `do_attack_fight`'s inlined branch (`crates/sim/src/orders/mod.rs`) now keeps the post arm, but still calls no
   `repath` where `Sim::find_new_target` does, and finds through `find_melee_target_added` where `find_new_target`
   uses `find_melee_target_headed`. `Unit::fight`'s `LAB_005fdb9e` calls the whole function, so one of the two is
   a spelling of the other or a divergence. Unexamined against the floors; it names no score.

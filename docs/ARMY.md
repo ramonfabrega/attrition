@@ -482,7 +482,7 @@ Two readings the listing settles and the decompiler does not:
   by `go_to(x, y, ATTACK_TO, 0x240, 0)` when farther than `0x480`.
 
 **What this crate carries** (`Sim::think_attack_join_army`, called from
-`Unit::think`'s step 3 in `crates/sim/src/orders.rs`): the whole gate but
+`Unit::think`'s step 3 in `crates/sim/src/orders/mod.rs`): the whole gate but
 `leader_flags2 & 8` (no capture sets it) and `ObjectData::healing` (not a
 field here — it only widens the stay-and-heal arm, and only for a damaged
 unit that is neither foot nor mounted). ~~The merchant-lineage entry

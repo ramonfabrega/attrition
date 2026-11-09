@@ -2408,7 +2408,7 @@ leader holds one of the others~~ run157 reaches the `BUILD_AT` case, which
 
 `UnitData::get_speed@00608720`'s last arm is four lines, and until this
 item they were a declared seam in three places
-(`crates/sim/src/orders.rs`, `docs/MOVEMENT.md`'s layer 3, and
+(`crates/sim/src/orders/mod.rs`, `docs/MOVEMENT.md`'s layer 3, and
 `do_group_move`'s own comment). They are the reason a mixed formation
 marches at its slowest member's pace, and they cost Great Lakes' word 583
 blocks of drift:
@@ -4088,7 +4088,7 @@ gatherer's group, a computer's too.** That is parked 831, 824's measured
 writer. The pool keeps listing the unit, and only the back-pointer goes,
 as with `think_peasant`'s human arm.
 
-**Built** (`crates/sim/src/orders.rs`, the head of `do_non_flat_gather`).
+**Built** (`crates/sim/src/orders/mod.rs`, the head of `do_non_flat_gather`).
 
 ### 29.3 The walk
 

@@ -34,7 +34,7 @@ contains either. Where that is so, the row's "difference shows" says it.
 | document | CITIES.md §3.3, "`share = amount / (helpers + 1);  if build_masks & 0x800 == 0: recharging++, build_masks \|= 0x800`" — and the confirmed-run paragraph, "**`recharging` counts up one per frame while building** (0, 1, 2, …), which is the `build_masks & 0x800` step" |
 | code | `crates/sim/src/city.rs:1332-1343` (`fn do_construct`) |
 | document says | Every frame a builder contributes, the site's `recharging` (`BuildData +0x7a`) is incremented once — once per *frame*, not once per builder — and `build_masks & 0x800` is the once-a-frame latch that enforces it. |
-| code does | `do_construct` computes the share, bumps `helpers`, adds to `job_counter`/`job_counter_2` and returns. It touches neither `recharging` nor `gather_bumped` (this crate's name for `build_masks & 0x800`, `crates/sim/src/lib.rs:1026`). The only writers of a building's `recharging` in the crate are the two gather paths — `crates/sim/src/orders.rs:4166` and `crates/sim/src/orders.rs:4221` — and the tower reload, `crates/sim/src/fight.rs:1112`/`1034`. |
+| code does | `do_construct` computes the share, bumps `helpers`, adds to `job_counter`/`job_counter_2` and returns. It touches neither `recharging` nor `gather_bumped` (this crate's name for `build_masks & 0x800`, `crates/sim/src/lib.rs:1026`). The only writers of a building's `recharging` in the crate are the two gather paths — `crates/sim/src/orders/mod.rs:4166` and `crates/sim/src/orders/mod.rs:4221` — and the tower reload, `crates/sim/src/fight.rs:1112`/`1034`. |
 | difference shows | `BUILDDATA.recharging` for any site under construction, from the first frame a builder is adjacent. Printed from `BUILDS=6`; the 2026-08-20 tower/barracks run the document cites (§3.3) is exactly the capture that read it. Not currently asserted — `crates/rondata/src/diff.rs:2440-2460` compares only `x_internal`, `y_internal`, the queue and the gather list out of a `BUILDDATA` row, so this diverges silently today. |
 | reached | reached (`Wall::do_construct@006434d0` is not in `/Users/rf-studio/ron-audit-scratch/blind-all-68traces.txt`) |
 
@@ -54,7 +54,7 @@ bd.job_counter += share;
 that sits between the share and the counters in the document has no
 counterpart. The gather side does model the latch — `if
 !self.buildings[b].gather_bumped { self.buildings[b].recharging += 1;
-self.buildings[b].gather_bumped = true; }` at `crates/sim/src/orders.rs:4165-4168`
+self.buildings[b].gather_bumped = true; }` at `crates/sim/src/orders/mod.rs:4165-4168`
 — so the omission is specific to the construction path, not a missing field.
 
 ### R2 — `Build::activate` does not clear `recharging`
