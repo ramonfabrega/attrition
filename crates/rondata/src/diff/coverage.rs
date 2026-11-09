@@ -606,8 +606,11 @@ const UNREAD_UNIT_FIELDS_OWED: &[(&str, u32)] = &[];
 /// The field names of `pub struct Unit` in `crates/sim/src/units/unit.rs`
 /// (item 4014 moved it out of `lib.rs`).
 fn sim_unit_fields() -> BTreeSet<String> {
-    let source = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../sim/src/units/unit.rs"))
-        .expect("crates/sim/src/units/unit.rs");
+    let source = std::fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../sim/src/units/unit.rs"
+    ))
+    .expect("crates/sim/src/units/unit.rs");
     let body = source
         .split("pub struct Unit {")
         .nth(1)
