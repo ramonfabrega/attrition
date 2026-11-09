@@ -127,6 +127,10 @@ fn diff_sources() -> Vec<String> {
 #[cfg(test)]
 const NOT_A_DIFFER: &[(&str, &str)] = &[
     (
+        "diff/start.rs",
+        "the lobby-built frame 0 against build_sim's install of the same start, Sim with Sim; no dump record is read",
+    ),
+    (
         "diff/cant_reach.rs",
         "the cant_reach tally and its pins; the row is compared in harness.rs's widen_block",
     ),
