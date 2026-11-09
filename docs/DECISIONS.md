@@ -120,8 +120,9 @@ is append-only and amended in place, as it always was.
 - 111 extended by 112 — The seventy-first: phase 4 open, the territory read, East Meets West held out
 - 112 extended by 113 — T71's rows booked
 - 113 extended by 114 — rows booked
-- 114 standing — finish line
-- 92 amended by 93 — The fifty-third tranche: two Opus lanes, twenty in 9 h 57, nine pairs stand and eight run whole, the twins move lockstep bytes 77.0 → 77.4, unit types 162 of 302, a third lane added by the rule, the fifty-fourth booked on the Persian word
+- 114 extended by 115 — finish line
+- 115 standing — the start track opens
+- 92 amended by 93 — the fifty-third tranche, two Opus lanes
 - 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types, the pass and the commander stop messaging each other
 - 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself, the fifty-first booked on what a capture can enter
 - 88 amended by 90 — The forty-ninth tranche: two Opus lanes, sixteen `cover=1` landings drained on a pit stop, the blind list 300 → 240 open, the click layer to the pool, two residue rows ratified, the oracle cache key reads the parser and codec only, sixteen Loop items ruled
@@ -11517,3 +11518,106 @@ targets; the renderer's camera agrees with the original's projection within
 a pixel on its sweep; the next pass reads waiting under 34 a session with
 the suite class named; and the tracks page, not a conversation, is where
 the next steer learns where the project stands.
+
+## 115. The seventy-fifth tranche is scored on two Opus lanes at twenty landings in 10 h 12, the structure's code moves land with every floor unchanged, `largest` is ruled to count code and `flat` loose files, the module layout is Ramon's `foo.rs` + `foo/`, 4028's two counter rulings are confirmed and the renderer takes a scoreboard line, the sim lane turns to the start track, render lanes gate scoped, and five Loop items are built — two of them refuting their rows
+
+*2026-11-09, the seventy-fifth pass (the `steer` session, Fable), started
+by the seventy-fifth drain's `ccc clear steer --then` at 09:03 −05:00, a
+minute after the drain's gate and push. The record is
+`docs/audit/2026-11-09-fable-pass-75.md`. Extends entries 29, 61, 114;
+amends `docs/STRUCTURE.md` §2 and §5, `docs/RENDERER.md` §5.4 and §7.2,
+`docs/TRACKS.md`.*
+
+**What was measured.** Twenty landings on two Opus 5.5 lanes at `--effort
+medium` from `3e4ea444a` (2026-11-08 22:0x) to the drain's handoff
+(`ce78c2179`, 08:07 on 11-09): the structure's ten code moves (4008–4017)
+and its README (4021), the three shelved rules items (4007, 3994, 3995,
+chapters 134–136 closed on their first takes), the renderer's 4018–4020
+and 4026–4028; every scoreboard word delta 0, the census port 588 → 589.
+**The price: 144.27 USD list over 22 sessions, 7.21 a landing; waiting
+31.8 minutes a landing, 28.9 a session (gate 23.8, suite 3.0, script 1.5,
+other 0.3).** Sixteen booking gates with the drain's: fourteen whole at
+52.8–63.7 release minutes (the structure rule's), two scoped (3.0, 14.3),
+one red (3995's census pin, re-pinned at the booking); 873.2 gate minutes,
+790 of them the whole gates'; admission 4,779.1 s summed, longest 89.7;
+four gate ends of sixteen past the cores. The disk 21 GB free at the start:
+the integration tree's debug profile cleaned (13,873 files, 9.1 GiB, 21 →
+28) and both archives compressed. The seven-day window 30 % at 09:03.
+
+**What it means.**
+
+1. **`largest` counts code, and the module layout is `foo.rs` + `foo/`.**
+   The shape counter's `largest` read 5437 on `data/launch.rs`, whose
+   `BAYS` is one 4,695-line `const` of pinned tuples; `data/pivot.rs`'s
+   `NODES` is 4,222 lines of the same. A pinned table is what CLAUDE.md's
+   hard constraint asks for where the original builds one with doubles
+   before the first frame, and splitting it into files of a thousand rows
+   serves nobody, so `tools/shape.py` leaves the rows of an item-level
+   array literal out of `largest` and prints them as `tables` (10,061) for
+   information: `largest` reads 4179, `cities/city.rs`, the one file over
+   the ≤ 4000 target, and its cut is item 4031. Ramon's Loop 4025 — the
+   crate mixes `mod.rs` roots (29) with `foo.rs` + `foo/` pairs (85) —
+   is ruled for the pairs: 29 moves rather than 85, and no two files
+   share a name; `clippy::mod_module_files` is denied at the workspace in
+   the same landing (item 4032), and `flat` counts a root file loose only
+   when no directory bears its name, so the 23 directory files do not
+   move it. Both rules are in STRUCTURE §2 and §5 and were built red
+   first (`tools/test_shape.py`).
+
+2. **4028's two rulings stand, and the renderer has a line.** Condition 1
+   of §5.4 is read on the slots the run plays — the definition's own
+   words — and a decoded building earns no K until the draw list carries
+   it: honest, nothing stubbed true. The queue now carries `Renderer: K
+   <k> of M <m> · frames <a> of <b> · pieces <c> of <d>`, parsed against
+   `RENDER_K`, `RENDER_M`, `FRAMES_IN_REGISTER` and `PIECES_DECODING` by
+   `the_handoff_s_renderer_line_is_the_pinned_counter`, a commander's
+   line. The clock stays off the line: it is a reading of this machine.
+
+3. **What feeds the two lanes, and how a render lane gates.** The structure
+   track has two short items left (4031, 4032); then the sim lane turns
+   to the **start track** (`docs/TRACKS.md`'s order of play), whose first
+   item writes `docs/START.md` from ORDERS §9.2–9.4 and the setup-path
+   checksum trace and pins `Start: <built> of <N> lobbies` red first, the
+   harness's own lobby first — the finish line's "one click, and the game
+   is on screen" needs a frame zero built from the lobby's choices, and
+   the `[Start Game]` dumps are its oracle on every lobby on disk. The
+   render lane runs 4028a (buildings in the draw list, up to K +20), first
+   pixels (§6 item 5, the `client` crate earning `wgpu` and `winit`), the
+   farm's art and textures. **No new chapter is booked**: the rules track
+   is whole, a chapter costs a capture and ~10 USD to move the territory
+   by zero or one, and a chapter is booked again only when another
+   track's frame needs one; the census filler (entry 114 §6) fills an
+   idle lane. **A render lane's gate is scoped** — the render kind's filters
+   (`free:: artdata:: bh3:: bha:: camera chunk:: draw:: coverage::
+   census:: blind::`, `--no-widen`; a `render::` filter matches nothing,
+   since cargo prints a crate's tests without its name) and the guards —
+   because a render item touches `crates/render` and `rondata`'s `free`,
+   `artdata` and oracle codec; one that touches `crates/sim`, as 4026 and
+   4027 did, gates whole; the structure items stay whole;
+   the booking gate keeps entry 79's every-third-whole rule. The tranche's
+   lesson is the gate class: fourteen whole gates at an hour each were 790
+   of 873 gate minutes, for items whose scoped gate would have run in 15.
+
+4. **The Loop items, two refuted.** 4030 as filed said a chapter lane's
+   filters never reach the census pin; 3995's lane gate ran it and the red
+   was forgiven by design (the pin is a commander's line, Loop 2367), with
+   the verdict naming the test and never the count — so a forgiven census
+   red now carries the measured `(backed, port, functions)` against the
+   pin's and says whose re-pin it is; stopping the forgiveness would
+   reverse 2367's merge-conflict reason and is not taken. 4029 is built, and it found a blind guard: `a_golden_widening_s_window_reaches_its_trace_s_end` has pinned this shape since item 2099, read `golden.rs` alone, and skipped every one of the 130 rows without a word after the walks moved to `golden/cases_*.rs` on 2026-10-16 — repaired to read them all, with an unfound row a failure, and joined by a test over every row's word and widening; CLAUDE.md's quiet-field rule applies to the guards themselves, and Loop 4040 files the reflex's own case (`guard.sh` runs a filter against `sim` alone and exits green on a `rondata` one it never ran).
+   4022 and 4023 are built: `brief.py` has the `structure` (whole) and `render` (scoped) kinds, red first on 4008's and 4018's lines, 4,694 and 5,311 characters against the 13,000 ceiling, and the frame spells `ccc update lane-<N>`. 4024 is built as a per-line windowed `git blame -w -C -C -M` (the row's whole-file candidate took 201 s and left a third of a cut file at the cut): the sim seams dated to the move 37 → 2. 3997 stays filed: no drain pushed
+   red. The standing rows (3848, 3821, 3799, 3382, 3350, 3237, 3188, 3143,
+   3118) take their measured lines in `docs/PARKED.md`; 3848's twenty
+   lane branches were reaped on origin by the drain itself this time.
+
+5. **The lane rule's reading.** Two lanes read 28.9 waiting a session,
+   under entry 114's 34, with the suite class 3.0 and `other` 0.3: the
+   waiting is the gate, and the gate was whole by the structure rule. The
+   count stays two; the lever for the seventy-sixth is §3's scoped render
+   gate.
+
+**Against this entry's estimate**: `largest` ≤ 4000 and one layout on
+4032's landing with every floor unchanged; `Start:` pinned and the
+harness's lobby built from its choices by 4034; K past 50 of 59 and the
+first pixels on screen by the drain; the gate class under 20 minutes a
+session with the render lane scoped.

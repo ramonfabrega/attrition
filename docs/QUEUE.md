@@ -11,13 +11,13 @@ it by items (18 at 8 lines, the handoff 32). **A finding that names no
 score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
-*2026-11-09, **the seventy-fifth tranche drained at 20 of 20 from `3e4ea444a`; the seventy-fifth steering pass is due.** The structure tranche (DECISIONS 114): two Opus 5.5 lanes at `--effort medium`; lane A ran `docs/STRUCTURE.md` §5's moves in order (4008–4017), then the three rules items the pass shelved (4007, 3994, 3995); lane B ran the renderer's items (4018, 4019, 4021, then 4020, 4026, 4027, 4028 on `sim::observe`). The last pass's record is `docs/audit/2026-11-08-fable-pass-74.md`.*
-- **The structure: every code move landed, no floor moved.** `Structure:` below — `fields` 92 → 21 (4016: a five-field `tables` bundle, twelve per-directory states; `nation` to `cities/`, since `refresh_nation_powers` writes it; the per-player record not built), `largest` 13336 → 5437 (4015's cuts: `orders/` six ways, `combat/fight/` six, `groups/group/` four), the doors `sim::observe`, `sim::command` (40) and `sim::setup` (47) with `rondata`'s 161 direct calls down to 74 reads plus `Sim::new` and `form_update_positions` and its 74 flat paths 0 (4017); 5,819 → 5,822 test names, none renamed. **For the pass**: `largest` is led by two constant tables (`data/launch.rs` 5437, `data/pivot.rs` 4517) the brief left uncut, and `cities/city.rs` 4113 is the one production file over 4,000 — the ≤ 4000 target wants a ruling on tables; `sweep-lines` rose 17255 → 17286 on 4017's rewraps (the line's 17.3k hides it); §5's last move, the README, was 4021.
-- **The rules track: every chapter closed, 130.** Chapter 134 closed at 1,400 (4007: `valid_target_const`'s air ladder asks the target's own `is_flying_high`/`is_flying_low`), 135 at 1250 (3994, run1552: Delete on a building, the Disband clock's research arm) and 136 at 900 (3995, run1553: `think_carry_idle` and the barge's no-army arm), each on its first take; the census port 588 → 589 (`think_carry_idle`). No rules item stands: the next is a new chapter (GOLDEN §13, §14) or the census and per-group filler (DECISIONS 114 §6). **The blind list: open 0** (never 331 · residue 331); the territory 549 · 318 · 1286; lower map first — closed.
-- **The renderer: K 38 of M 59, frames in register 35 of 35** on GreatLakesAztecModern (`RENDER_K`, `FRAMES_IN_REGISTER`); the free runner's scene equals the harness's on 3390 of 3390 ticks (4020); the camera 240 of 240 sweep states (4018); 1,465 of 1,478 pieces decode (`PIECES_DECODING`); the clock 434 ms to frame zero and 325 MiB with the draw list, against the harness's 540 ms and 458 MiB. `sim::observe` widened twice under §2.3 (4026: `FigureScene.z`, dead units dropped; 4027: guy 0's point off `Movement::body`). **For the pass**: 4028's two §5.4 rulings (buildings count toward no K until the draw list carries them; condition 1 counts only played slots); the next words are 4028a (buildings in the draw list, up to +20 on K), §6 item 5 (first pixels, the `client` crate), and the `Renderer:` line the scoreboard does not yet carry.
-- **Fable backlog: 16 Loop items** (4029, a closed chapter's widening one frame short of its trace's end, the `Golden:` count agreeing with the miscount; 4030, a lane's filters never reach the census pin, the tranche's one red gate; 4025, Ramon's: the crate mixes `mod.rs` and `foo.rs` + `foo/` layouts — one convention, one landing, a clippy lint, before or right after 4015; 4024, `seams.py` blames without `-C`; 4022, 4023 (the frame spells `ccc update att-<n>`; ccc takes `lane-<N>`), `brief.py` gains the `structure` and `render` kinds — until then the commander briefs a structure item from `docs/STRUCTURE.md` §1 and §5 and a render item from `docs/RENDERER.md` §6 with the frame's shared sections; 3997; 3848, 3821, 3799, 3382, 3350, 3237, 3188, 3143, 3118).
-- **The drain** (after `lore index`): `gates.py` — 15 gates: 13 whole, 2 scoped (1 widened), 1 red; 818.3 minutes in all; admission 4765.5 s summed, longest 89.7 s; 4 ended past the cores. `tranche.py` — handoff: 20 landings · four DEEP (3994 at 325 k, 3995 at 337 k, 4013 at 334 k, 4018 at 308 k) · 31.8 minutes waiting a landing · 7.21 USD a landing (144.27 over 22 sessions); captures 2 over 20 items. The one red booking gate was the census pin on 3995's tree (Loop 4030); 3995's widening stopped a frame short of its trace's end and the commander re-pinned it at the booking (Loop 4029); the 4015 booking's gate log lost its `gate exit` line to a detached launch and was read green off its steps and summaries.
-- **Lanes: none live.** Every lane branch of the tranche reaped on origin. `ccc spawn --name lane-<N> --worktree=att-<N> --model 'claude-opus-5-5[1m]' --effort medium`; a structure lane's gate is `--lane --whole`, a render lane's `--lane --whole` as 4019–4028 ran it. Next 4031, run 1559. Pools: AI §417–§419; GOLDEN §195–§198; MAPGEN §35–§37; park DO–DR free. Disk 21–33 GB free over the tranche (the commander's `cargo clean --profile dev` freed 18.5 GiB once); the spawn floor is 10 GB.
+*2026-11-09, **the seventy-sixth tranche is booked from `BASE_SHA` by the seventy-fifth steering pass** (`docs/audit/2026-11-09-fable-pass-75.md`, DECISIONS 115): two Opus 5.5 lanes at `--effort medium`; lane A the structure's last two items (4031, 4032) then the start track (4033, 4034); lane B the renderer (4035–4038); 4039 the census filler for an idle lane. The seventy-fifth tranche drained at 20 of 20 from `3e4ea444a`: 144.27 USD, 7.21 a landing, 31.8 minutes waiting a landing, 28.9 a session (gate 23.8 on fourteen whole gates of sixteen, the structure rule's).*
+- **The structure: every code move landed, two items left.** `Structure:` below — `largest` now counts code, not the rows of a pinned table literal (STRUCTURE §2, the pass's ruling: `data/launch.rs`'s `BAYS` is one 4,695-line `const`; `shape.py --json` prints the rows as `tables`, 10,061), and reads 4179 on `cities/city.rs`, the one file over 4,000 — its cut is 4031. Ramon's Loop 4025 is ruled for the `foo.rs` + `foo/` layout (85 pairs stand against 29 `mod.rs`), one `git mv` landing with `clippy::mod_module_files` denied — 4032; `flat` counts a root file loose only when no directory bears its name, so it stays 7. Gated whole, as every structure item.
+- **The rules track: whole, 130 closed, no item stands.** No new chapter is booked: a chapter costs a capture and ~10 USD to move the territory by zero or one, and books again only when another track's frame needs one. The territory 549 → 550 (3995's `think_carry_idle`). **The blind list: open 0** (never 331 · residue 331); lower map first — closed.
+- **The start track opens on the sim lane** (TRACKS; DECISIONS 115 §3): 4033 writes `docs/START.md` from ORDERS §9.2–9.4 and the setup-path checksum trace, pins `Start: <built> of <N> lobbies` red first and builds the harness's own lobby from its choices; 4034 every lobby on disk. The `Start:` line joins the scoreboard when 4033 pins it. The checksum track (group G) follows.
+- **The renderer: K 38 of M 59, frames in register 35 of 35, pieces 1,465 of 1,478**; the `Renderer:` line below is parsed against the pins (`floors::renderer_line`, a commander's line; the camera's 240 of 240 stays off it — its pins live in an integration-test binary). 4028's two §5.4 rulings confirmed. **A render lane's gate is scoped**: the `render` kind's filters (`free:: artdata:: bh3:: bha:: camera chunk:: draw:: coverage:: census:: blind::`, `--no-widen`), whole only if the branch touches `crates/sim` (4026 and 4027 did). First pixels (4036) show the observer with a debug overlay (RENDERER §7.2 items 7 and 8, the pass's rulings, Ramon's to overturn).
+- **Fable backlog: 11 Loop items** (4040, `guard.sh <filter>` runs filters against `sim` alone and exits green on a `rondata` filter it never ran; 3997; 3848, 3821, 3799, 3382, 3350, 3237, 3188, 3143, 3118). Built this pass: 4029 (and the guard that had pinned its shape since item 2099 found blind since 2026-10-16), 4030 (refuted: the pin ran and was forgiven; the verdict now carries the measured count), 4022, 4023, 4024; `brief.py` has the `structure` and `render` kinds, so the commander briefs with it.
+- **Lanes: none live.** `ccc spawn --name lane-<N> --worktree=att-<N> --model 'claude-opus-5-5[1m]' --effort medium`; a structure lane's gate is `--lane --whole`, a render lane's the kind's scoped line, a start lane's `--lane --tests` with the brief's filters. Next 4041, run 1559 (unminted). Pools: AI §417–§419; GOLDEN §195–§198; MAPGEN §35–§37; park DO–DR free; `docs/START.md` is 4033's to create. Disk 28 GB free after the pass's clean, the archives compressing; the spawn floor is 10 GB.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -35,19 +35,72 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · 130 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 Blind: never 331 · residue 331 · open 0
-Rubric: ported 549 · replaced by design 318 · open 1286 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
+Rubric: ported 550 · replaced by design 318 · open 1285 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
 Held-out: 8 of 9 whole · shortest 6147
-Structure: flat 7 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 5437
+Structure: flat 7 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 4179
+Renderer: K 38 of M 59 · frames 35 of 35 · pieces 1465 of 1478
 
-
-
-**Opener: the seventy-fifth steering pass (steer, Fable) — the seventy-fifth tranche drained at twenty from `3e4ea444a`: the structure's code moves all landed (`fields` 21, `largest` 5437, the two doors), every chapter closed (130), the renderer at K 38 of M 59 with frames in register 35 of 35; run `lore index`, read "The drain" above, then rule on the `largest` target for constant tables, 4028's two §5.4 rulings and the `Renderer:` scoreboard line, on what feeds the next tranche's two lanes (the renderer's 4028a and first pixels; the census and per-group filler; a new chapter), and on Loop 4025, 4029 and 4030; write the base as this file's `from` line, book the first items, and arm the commander.**
+**Opener: the seventy-sixth tranche's commander (commander, Opus) — the seventy-sixth tranche from `BASE_SHA`, booked by the seventy-fifth steering pass: two Opus 5.5 lanes at `--effort medium`; lane A 4031 and 4032 (structure, gated whole) then 4033 and 4034 (the start track); lane B 4035–4038 (render, gated scoped); 4039 the census filler for an idle lane; read this file first, `docs/LOOP.md`'s chain and `docs/TRACKS.md`; brief with `tools/brief.py`'s `structure`, `render` and — for the start items — the `chapter` kind until a `start` kind exists, from `docs/ORDERS.md` §9 and `docs/TRACKS.md`; spawn 4031 and 4035 first; drain at twenty or on supply, and end with `ccc clear steer --then "<the seventy-sixth pass's opener>"`.**
 
 ## The queue
 
-In dependency order; **the roster is Ramon's** (DECISIONS 84–93, 114 §3). The shapes are DECISIONS 90–94 and 100 §3, and from this
-pass a `structure` item (`docs/STRUCTURE.md` §1: a move, split, rename or re-export with no behaviour change, gated whole) and a
-`render` item (`docs/RENDERER.md` §6). A residue or chapter item re-books from `docs/PARKED.md` only once the structure has landed.
+In dependency order; **the roster is Ramon's** (DECISIONS 84–93, 114 §3). The shapes are DECISIONS 90–94 and 100 §3, a
+`structure` item (`docs/STRUCTURE.md` §1: a move, split, rename or re-export with no behaviour change, gated whole), a
+`render` item (`docs/RENDERER.md` §6; gate scoped, DECISIONS 115 §3) and from this pass a `start` item (`docs/TRACKS.md`, the
+start track: the frame-zero state built from the lobby's choices, the `[Start Game]` dump its oracle). A residue or chapter
+item books only when another track's frame needs one.
+
+4031. **`cities/city.rs`'s cut** (a `structure` item; STRUCTURE §2's ruling on `largest`, §5.7): the four walk views and their
+step functions from line 3629 on — `StartSite` with `BuildStartView`, `find_buildings_steps` with `SimFind`, `check_upgrade_steps`
+with `SimUpgrade`, `new_library_steps` and `assimilate_steps` with `SimAssimilate` — to one sibling file under `cities/`, re-exported
+where read; `impl Sim` (309–3459) stays. Moves `largest 4179 → ≤ 4000`, the last shape target. Lane A, first; gate whole.
+
+4032. **One module layout** (a `structure` item; Loop 4025, Ramon's; STRUCTURE §5.11, DECISIONS 115 §1): the 29 `mod.rs` files
+of `crates/sim/src` become `<dir>.rs` beside `<dir>/` (`world/mod.rs` → `world.rs`; the nested `ai/army/mod.rs` → `ai/army.rs`),
+module paths, test names and line numbers unchanged; `tools/paths.py` rewrites the citations; `clippy::mod_module_files = "deny"`
+in the workspace lints so the tree cannot drift back (`rondata` and `render` carry no `mod.rs`); `flat` stays 7 by §2's rule.
+Lane A, after 4031; gate whole.
+
+4033. **The start track opens: `docs/START.md` and the `Start:` counter** (a `start` item; TRACKS; `docs/ORDERS.md` §9.2–9.4 and
+`docs/ORACLE.md`'s setup-path checksum trace are the reading, `rondata::diff::setup` the installer it replaces): the document first
+— `Setup::build_game`'s walk from the re-seed through the start permutation, `Leader::init`, each `build_empire` (`build_cities`,
+`produce_building` at frame 0 with its spiral and draws, `build_civ_specific`, `build_units`' citizens and scout, `place_unit`),
+`Herd::create_units`, `compute_all_territory` — with its confidence and what it has not established; `Start: <built> of <N>
+lobbies` pinned red first at 0, N the lobbies on disk with a `[Start Game]` dump; then the harness's own lobby (seed 12345, Great
+Lakes, Small, two players; run11's 337 setup-path records) built through `sim::setup` and compared field by field with the
+installed start state, the value diff in the journal. Lane A, after 4032; gate `--lane --tests` with the brief's filters.
+
+4034. **The start block, every lobby on disk** (a `start` item; START.md): the nations' civ-specific buildings, the Large Town
+list, the Americans' farms, the Lakota and Korean citizen arms, the Spanish scouts (ORDERS §9.3) — each lobby a row of the
+counter, cheapest first, the value diff per lobby; `Start: N of N` closes the track's first number. Lane A, after 4033.
+
+4035. **Buildings in the draw list** (a `render` item; parked 4028a; RENDERER §5.4 condition 2 for the building types, §3.5):
+`BuildingScene` carries the building's piece (the dump's `gpiece`, read by `rondata`'s `BuildDump`, is the oracle; `sim` models no piece, so the door carries
+`orig_type` and `rondata` resolves the piece through the loader's name as 4028 did); the draw list gains a building entry anchored
+at the building's position, compared with the original's projection of each dumped `BUILDDATA` position on the logged frames (grep
+run1429's frames for buildings first; read `GraphicPieces::draw_build` for how a sprite is anchored — a TGA, not a mesh at its
+point). Score: K 38 → up to 58 of 59. Lane B, first; gate scoped (the render kind's filters, `--no-widen`; whole if the branch touches `crates/sim`).
+
+4036. **First pixels** (a `render` item; RENDERER §6 item 5; §4.2 earns `wgpu` and `winit` here, in a `client` crate): the terrain
+heightfield in flat land-type colours from `observe_terrain`, each figure's decoded mesh at its draw-list anchor and facing,
+untextured, at the pinned camera; the observer's view and a debug overlay only (§7.2 items 7 and 8, the pass's rulings); compared
+by eye with a screenshot of the original on GreatLakesAztecModern at the same frame and camera, taken on the oracle lane and kept outside the repository;
+the client writes a session trace from launch to quit in a standard trace format (DECISIONS 114 §4) and the clock is read from it.
+Score: the terrain's binary condition (§5.4) pinned; K unchanged. Lane B, after 4035.
+
+4037. **The farm's art** (a `render` item; parked 4028b): the `<FARM>` element's reader — `GraphicPieces::init_farm_map` is empty,
+so `tools/trace/report.py` names who reads `farm_wheat_1.tga` and the stalk colours — and the 21st building type's condition 1.
+Score: K +1. Lane B, after 4035, before or after 4036 as the lane idles.
+
+4038. **Textures and team colours** (a `render` item; RENDERER §6, "After these"): the TGA each `<UNIT>` and `<BUILD>` entry names
+decoded and bound to the drawn mesh, the team-colour mask applied; the by-eye comparison becomes candidate C's silhouette metric
+(§5.3) on one frame, pinned. Score: candidate C's first row. Lane B, after 4036.
+
+4039. **The census filler** (DECISIONS 114 §6; `tools/census.py`, `docs/RUBRIC.md`; either lane, when idle): defect A accepted
+(82 rows, `territory_kind`'s ordering); the readers' twin spellings landed row by row toward defect B's 272; lore's groups A, C, D
+and F `replaced` with their reversal triggers written, B with the port's issuer as owner, E the start track and G the checksum
+track named on the territory line; the 66 `unmodelled` take a fourth mark. Moves `Rubric:`'s open 1286 toward 156 and the
+`Census:` line with it, re-pinned at the booking.
 
 ## How to maintain this file
 

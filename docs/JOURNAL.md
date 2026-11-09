@@ -21978,3 +21978,25 @@ lobby, their start rules; the order stream as the network; the census and
 territory rulings a lane's filler from lore's scoring, the data walk its
 own track as the original's full-state checksum. **DECISIONS 114.**
 `docs/audit/2026-11-08-fable-pass-74.md`.
+
+**2026-11-09, the seventy-fifth pass (Fable, steering).** The seventy-fifth
+tranche drained at twenty on two Opus 5.5 lanes, 144.27 USD, 7.21 a landing,
+31.8 waiting a landing and 28.9 a session (gate 23.8 on fourteen whole gates
+of sixteen, the structure rule's hour each); the structure's ten code moves,
+its README, the three shelved rules items (134–136 closed on their first
+takes) and the renderer's six landed with every floor unchanged, the census
+port 588 → 589, the territory 549 → 550. Rulings: `largest` counts code, not
+the rows of a pinned table (`data/launch.rs`'s `BAYS` is one 4,695-line
+`const`), so it reads 4179 on `cities/city.rs`, the one file over the
+ceiling; Ramon's Loop 4025 for the `foo.rs` + `foo/` layout, 29 moves and no
+two files named alike, with the clippy lint denied; 4028's two §5.4 rulings
+confirmed; the renderer takes a scoreboard line parsed against its pins; the
+sim lane turns to the start track after two short structure items, no new
+chapter; a render lane's gate is scoped. Five Loop items built by Opus
+subagents, two refuting their rows and one finding a guard blind for three
+weeks: 4030's census pin was run and forgiven by design, so the verdict now
+carries the measured count; 4029's shape had a guard since item 2099 that
+read a file the walks had left, skipping every row in silence; 4024's
+candidate took 201 s and failed, a windowed per-line blame took 42 s and
+worked; 4022 and 4023 give `brief.py` the `structure` and `render` kinds.
+**DECISIONS 115.** `docs/audit/2026-11-09-fable-pass-75.md`.
