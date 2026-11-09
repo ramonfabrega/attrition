@@ -3776,7 +3776,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// frames here against 26 there and its arrow arrived a frame after the
 /// draw it owed. run109 (`AMMO=5` over `[9420, 9480)`) prints the arrow's
 /// own `sx, sy`, so the offset is measured rather than derived:
-/// `docs/COMBAT.md` §22, and `crates/sim/src/launch.rs` is the table.
+/// `docs/COMBAT.md` §22, and `crates/sim/src/data/launch.rs` is the table.
 ///
 /// The fifty-nine frames it bought are the rest of that fight — **sixteen
 /// launches below the word against four**, of which the first nine have

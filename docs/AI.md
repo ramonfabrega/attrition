@@ -26133,7 +26133,7 @@ The Cruiser is a pivot piece with three `<RESTRICTION name="Cruiser">` rows (nod
 no row for piece 279. Its turrets therefore bore from the hull, and its rounds left through `launch::launch_point`'s
 unmeasured branch. On `CHAR_ATTACKWALK`, `CHAR_ATTACK1` and `CHAR_ATTACK2` (the bits are the same on all three),
 there is one release per turret: node 0 on frame 10, node 1 on 12 and node 2 on 15. `get_position@0090b750` bears
-each release from pivot `(node & 3) + 4`. **Built** (`crates/sim/src/pivot.rs`): `NODES` (279, 4/5/6), `RDATA_SCALE`
+each release from pivot `(node & 3) + 4`. **Built** (`crates/sim/src/data/pivot.rs`): `NODES` (279, 4/5/6), `RDATA_SCALE`
 (279, 9/10), and nine `RELEASES` rows. `pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_279` checks the sweep's cells (item 3519's
 journal). **The two halves carry different things.** Without the `RELEASES` rows the
 word holds at 3921 (190 keys); without the `NODES` rows it falls back to 3778 (751). So the turrets' bearings (their node bits, and the release they gate) are
@@ -26239,7 +26239,7 @@ bound for `0/3`:
 | `1/23` | (9569, 31152, 750) | (9617, 31210) | (7122, 30513, 753) | t 2/**6**, ours 7 |
 | `1/52` | (8817, 30322, 788) | (8852, 30346) | (7169, 30512, 753) | t 2/4 |
 
-**Built** (`crates/sim/src/pivot.rs`), 3518's shape on piece 166. From run1155c's packet, `get_position.py …
+**Built** (`crates/sim/src/data/pivot.rs`), 3518's shape on piece 166. From run1155c's packet, `get_position.py …
 entries 166` reads 73 entries, `RData +0x88` 1.1. `NODES` gets `(166, 4, (0, 11.14))` and `RDATA_SCALE` gets
 `(166, 11/10)`. `RELEASES` gets thirty-two rows: `CHAR_ATTACKWALK`, `CHAR_ATTACK1`, `CHAR_ATTACK2` and
 `CHAR_ATTACK3`, each at frames 3, 9, 12, 17, 20, 22, 24 and 29. The two events on 29 carry the same bits. Unlike the
@@ -26311,7 +26311,7 @@ on 3239 from the unit's own square (8808, 30648), 1,823 from its landing, and fl
 striking on 3243. The draws agree through 3270, so the launch frame is theirs'. Blocks 3180 (`0/2004`, `1/49`'s round)
 and 3204 (`0/13`, `1/31`'s) are the same shape (3530a): every late round is a rifle's.
 
-**Built** (`crates/sim/src/launch.rs`): piece **1143** (`87 + 3 × 0x160`, the Asian art style) in `BAYS`. run1155c's
+**Built** (`crates/sim/src/data/launch.rs`): piece **1143** (`87 + 3 × 0x160`, the Asian art style) in `BAYS`. run1155c's
 packet (`get_position.py … entries 1143`) holds three `AttachPos` rows, node 0 at 18 of `CHAR_ATTACK1`, 4 of `2` and
 16 of `3`, scale 1.0; each row's sweep is reproduced at all 361 headings, x and y, by the centroid of its exact
 region (62, 160 and 57 lattice points): `right` 17 058, 4 863 and −2 310, `fwd` 180 195, 179 398 and 161 815 (in
@@ -29374,7 +29374,7 @@ So either (H1) the Dromon model's node 0 sits further forward, or (H2) a moving 
 points with `y` 31.88 model units lower: (0.04, −50.04, 14.03), (−0.296, −2.42, 14.03) and (0.460, −24.88, 14.02),
 at the same `RData +0x88` 0.78. **H1 holds and H2 is killed**: the lead belongs to the model, not to the movement.
 
-**Built** (`crates/sim/src/launch.rs`): nine `BAYS` rows for piece 274, frames 2, 10 and 17 of anims 10, 11 and
+**Built** (`crates/sim/src/data/launch.rs`): nine `BAYS` rows for piece 274, frames 2, 10 and 17 of anims 10, 11 and
 12. Each is the model point × 4.8 × 0.78, `right = −s·x` and `fwd = −s·y` in thousandths, `dz` 52 over the
 water. `sweep 274 0 10 <t>` under unicorn checks each row at all 361 whole degrees: frames 10 and 17 reproduce
 every heading as derived, and frame 2's region is three lattice points, with (−148, 187 348) its middle.
@@ -29450,7 +29450,7 @@ round reads. `fit_bay.py` on each attack key's 361-heading sweep finds **piece 4
 anywhere but its `sx, sy` and `sz − z`. It did not fire. All three are exact in x, y and height (163, 163, 164)
 at their own facings.
 
-**Built** (`crates/sim/src/launch.rs`): three `BAYS` rows for piece 825 at 473's centroids.
+**Built** (`crates/sim/src/data/launch.rs`): three `BAYS` rows for piece 825 at 473's centroids.
 `run1270_s_inca_archers_loose_from_piece_825_s_bays` holds the three dumped launches. Mutation
 (`tools/mutate.py --patch`, the three rows renamed to piece 9825): **held**, cargo 101. Four tests fail:
 `inca_classical_pair_first_parting`, `…_run1260_s_closing_state`, `…_run1269_s_word_frame_is_widened_whole` and
@@ -30173,7 +30173,7 @@ form on all 4 × 92,416 cells but one (`CHAR_ATTACK3` at `(307, 187)`,
 its `float_lands`); the nine dumped Horde rounds are cells of it (the
 journal).
 
-**Built.** `crates/sim/src/pivot.rs`: `NODES` `(153, 4)`, `RELEASES`
+**Built.** `crates/sim/src/data/pivot.rs`: `NODES` `(153, 4)`, `RELEASES`
 for piece 153's four keys. Tests
 `the_original_s_release_agrees_on_every_cell_for_piece_153` (the
 packet's table, `$RON_RELEASE_TABLE_153`, outside git) and
@@ -32821,7 +32821,7 @@ keys, rounds (166, 191), 52 parting.
 (`RON_STATE_FRAME` 5619), run1359b (5677, the wrong frame) and run1359c
 (5678), run1337's lobby; no new window.*
 
-**Piece 167's bays** (`crates/sim/src/launch.rs`). The Greyhound (TY
+**Piece 167's bays** (`crates/sim/src/data/launch.rs`). The Greyhound (TY
 217, `GREYHOUND-DEFAULT-AGE0`, `armoredscoutcar_na.bh3`) is not a pivot
 piece: no `<RESTRICTION>` names it, and its `turret_angles` are 0 on
 `GUYS=4`. Its sixteen rows are node 0 at `CHAR_ATTACKWALK` and
@@ -35092,7 +35092,7 @@ packet) hold its 27 entries, bit for bit the same. Those are the three pivots at
 the pivot node's entry `((node & 3) + 4)` and the release node's. `CHAR_ATTACK1`'s and `CHAR_ATTACK2`'s bits
 differ (the x component's sign), so there are six rows, each with its own sweep.
 
-**What was built** (`crates/sim/src/pivot.rs`): three `NODES` rows, a `RDATA_SCALE` row and six `RELEASES` rows.
+**What was built** (`crates/sim/src/data/pivot.rs`): three `NODES` rows, a `RDATA_SCALE` row and six `RELEASES` rows.
 Each row's `float_lands` comes from `get_position.py … pivot 299 <node> <anim> <time> 3` on run1165, which covers
 361 facings × 256 turret steps a row. The exact integer form disagrees on 6, 8, 4, 13, 8 and 5 cells; those are
 the float lists.
@@ -35180,10 +35180,10 @@ both lines on the field. `get_position.py … entries`:
   of `3`.
 
 **What was built.**
-- `crates/sim/src/pivot.rs`: piece 200's `NODES` row, its `RDATA_SCALE` (4/5) and three `RELEASES` rows. The
+- `crates/sim/src/data/pivot.rs`: piece 200's `NODES` row, its `RDATA_SCALE` (4/5) and three `RELEASES` rows. The
   original's pivot branch (`pivot 200 0 <anim> <time> 1`, 92,416 cells a row) agrees with the integer form on
   277,244 of 277,248 cells. The four left are all on `CHAR_ATTACK1`, and they are its `float_lands`.
-- `crates/sim/src/launch.rs`: piece 90's three `BAYS`, each fitted by `fit_bay.py` to its sweep (114, 396 and 254
+- `crates/sim/src/data/launch.rs`: piece 90's three `BAYS`, each fitted by `fit_bay.py` to its sweep (114, 396 and 254
   lattice points, 361 of 361 headings; the centroid kept). Their heights are 120, 146 and 139, and ours' round
   left 146 low on `CHAR_ATTACK2`.
 

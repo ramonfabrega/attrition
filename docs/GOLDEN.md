@@ -11975,7 +11975,7 @@ mod 32 to the even degree. The Bark `0/7` faces `1344339968`, byte 80, 112.5°, 
 `fast_angle_to_degrees` of the angle less a half turn gives 293, and only 113 puts the round at the dump's (12374,
 34898). `whole_degrees` is now that table's answer turned back by the half turn (`sim::pivot::release_rotation`).
 
-**Built** (`crates/sim/src/launch.rs`): nine Bark rows, one Catapult row, the Trireme's three replaced, and
+**Built** (`crates/sim/src/data/launch.rs`): nine Bark rows, one Catapult row, the Trireme's three replaced, and
 `whole_degrees`. `run835_s_barks_and_run843_s_catapult_leave_from_their_release_nodes` holds every distinct launch
 point of the three Barks (24 rows, five headings), the Trireme's four and the Catapult's, read off the dumps — the
 rows came off the packets, so the two are independent. It failed first on the half-way byte. Mutations
@@ -14390,7 +14390,7 @@ each `<RELEASEEVENT>` (node 0; frame 12 of `CHAR_ATTACKWALK` and `CHAR_ATTACK1`,
 `CHAR_ATTACK2` and 265 for `CHAR_ATTACK3`, the two dumped rounds' `sz − z` exactly; and at the dump's own turret
 step (4, the top byte of 73138176) each round's `(sx, sy)` is reproduced by its row and by no other step.
 
-**The fix** (`crates/sim/src/pivot.rs`). `RELEASES` gains piece 143's four rows, `RDATA_SCALE` its 0.9, `NODES`
+**The fix** (`crates/sim/src/data/pivot.rs`). `RELEASES` gains piece 143's four rows, `RDATA_SCALE` its 0.9, `NODES`
 its pivot node. That node is not a whole hundredth: `Node` carried hundredths, and −3.32 misses the original's
 `sweep 143 4 0 0` on 8 of 361 degrees (25°, 65°, 115°, …), so **`Node` now carries millionths** — the form
 `Release` already keeps — every existing row × 10⁴, and `offset_at` runs in `i128` (the Battleship's 117.49 passes
@@ -14538,7 +14538,7 @@ mechanism was booked.
   `total_time` is the plan distance over `dx`: 1001.6 / 500.8 = 2. Its round of 907 (`CHAR_ATTACK3`) is 1167.4 /
   389.1 = 3. Ours' 1133.7 from the square is 3.
 
-**The rows** (`crates/sim/src/launch.rs`, `BAYS`). run1451's `RON_STATE_FRAME=945` packet loads piece 752.
+**The rows** (`crates/sim/src/data/launch.rs`, `BAYS`). run1451's `RON_STATE_FRAME=945` packet loads piece 752.
 `get_position.py … entries 752` reads three attack `AttachPos` rows, all node 0: frame 6 of `CHAR_ATTACK1`, 25 of
 `CHAR_ATTACK2` and 23 of `CHAR_ATTACK3`, with `RData +0x88` 1.0. `fit_bay.py` fits each sweep over 361 of 361
 headings, and the centroids are kept:
@@ -15080,7 +15080,7 @@ time (`Unit::fight+0x9b0`) and ours walks the General `2/28`. On block 701 the G
   (TI 89, piece 39). Their stones leave bays in theirs: `0/19`'s of 713 at (16772, 15529, 699), flying 4. No `BAYS`
   row for piece 39.
 
-**The rows** (`crates/sim/src/launch.rs` `BAYS`, `crates/sim/src/pivot.rs` `NODES`, `RDATA_SCALE`, `RELEASES`).
+**The rows** (`crates/sim/src/data/launch.rs` `BAYS`, `crates/sim/src/data/pivot.rs` `NODES`, `RDATA_SCALE`, `RELEASES`).
 run1457's `RON_STATE_FRAME=700` packet fields all three pieces; `get_position.py … entries`:
 
 | piece | type | rows | `RData +0x88` | fit |

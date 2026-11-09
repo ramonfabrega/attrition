@@ -5,7 +5,7 @@
 
 A sweep (`get_position.py <exe> <packet> sweep <piece> <node> <anim> <time>`)
 prints the original's truncated launch offset `(x, y, z)` at every whole
-degree `0..=360`. `Bay::point` (`crates/sim/src/launch.rs`) turns an integer
+degree `0..=360`. `Bay::point` (`crates/sim/src/data/launch.rs`) turns an integer
 `(right, fwd)` in thousandths by the whole degree `(deg + 180) % 360` with
 `COS_DEG` and truncates each axis toward zero. This walks `right` around the
 float estimate, intersects the `fwd` interval each of the 361 headings allows

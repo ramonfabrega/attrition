@@ -3922,7 +3922,7 @@ mod tests {
     /// aimed and how long it flies.
     ///
     /// It is read out of the archive each run rather than pinned as
-    /// constants, which is what `crates/sim/src/launch.rs`'s own unit test
+    /// constants, which is what `crates/sim/src/data/launch.rs`'s own unit test
     /// is not: that one carries the dump's columns as literals and so
     /// cannot notice the archive changing. This can.
     ///

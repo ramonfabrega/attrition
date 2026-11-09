@@ -3235,7 +3235,7 @@ this section would otherwise have had to buy.
 
 ### 22.3 The port's table, and why it is not a float
 
-`crates/sim/src/launch.rs`. The entry is stored the way the rest of the crate
+`crates/sim/src/data/launch.rs`. The entry is stored the way the rest of the crate
 stores a direction — a bearing **relative to the guy's facing** and a radius —
 so the world offset is `movement::sin_component`/`cos_component` and nothing
 else. `docs/DECISIONS.md` entry 16's second shape: the original builds its
