@@ -863,7 +863,7 @@ fn the_census_counts_captains_under_the_original_s_role_word() {
     f.sim.unit_types[soldier].combat.attack = 150;
     let trader = f.sim.unit_types[f.scout].clone();
     let trader = f.sim.add_unit_type(trader);
-    f.sim.unit_types[trader].combat.roles = crate::combat::role::CARAVAN;
+    f.sim.unit_types[trader].combat.roles = crate::combat::role::IS_CARAVAN;
 
     let squad: Vec<usize> = (0..3)
         .map(|i| spawn(&mut f.sim, 1, soldier, 20 + i, 22))

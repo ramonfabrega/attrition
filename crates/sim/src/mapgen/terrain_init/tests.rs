@@ -49,7 +49,7 @@ fn the_flags_read_their_rings() {
         cell(&mut g, x, y).land = 2;
     }
     let f = coord_flags(&g);
-    assert_eq!(f[at(&g, 4, 4)], coord::NONE | coord::HALF);
+    assert_eq!(f[at(&g, 4, 4)], coord::NONE_CELL | coord::GATE_HALF);
     assert_eq!(f[at(&g, 5, 4)], coord::OCEAN | coord::SHALLOW);
     assert_eq!(f[at(&g, 6, 4)], coord::OCEAN | coord::SHALLOW);
     assert_eq!(f[at(&g, 7, 4)], coord::OCEAN);

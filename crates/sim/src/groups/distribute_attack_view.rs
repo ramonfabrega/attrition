@@ -22,7 +22,7 @@
 //! the `& 4` flag has none named) is parked.
 
 /// `QUEUE_FIRST`, the queue position the second walk pushes.
-pub const QUEUE_FIRST: i32 = 0;
+pub use crate::ids::queue::QUEUE_FIRST;
 /// The xor the original keeps a unit's position under (`ObjectData +0x10/+0x14`).
 pub const COORD_KEY: i32 = 0x63637;
 

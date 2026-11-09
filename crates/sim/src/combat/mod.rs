@@ -74,7 +74,7 @@ pub mod umask2 {
     /// such unit, whoever owns it, and cleared on every other. `Unit::fight`
     /// reads it for its captain's re-search predicate ([`crate::Sim`]'s
     /// `fight`, parked 2100).
-    pub const BARK: u32 = 0x4;
+    pub const MASK2_BARK: u32 = 0x4;
     /// **`0x80` and `0x4000` — an Iroquois Scout** (`Unit::init@00612100:
     /// 341-357`, item 3107, `docs/AI.md` §246): a unit of a leader with
     /// tribe bonus 0x12 that `is(SCOUT)` takes `0x4080` at birth.
@@ -202,50 +202,57 @@ pub mod mask {
 /// `STABLE`", …). Per `docs/DECISIONS.md` entry 18 a type declares the roles
 /// it plays rather than the rule testing a type id; a profile without the
 /// role leaves the rule inert.
+///
+/// Not [`crate::balance::line`], whose nine shared words (`CITIZEN`,
+/// `MILITIA`, `MERCHANT`, `FLAMETHROWER`, `BARK`, `TRIREME`, `V2ROCKET`,
+/// `CITY`, `FORT`) are filled by other predicates — a type here by its
+/// name, a line there by its lineage root — and read at another time; nor
+/// `crate::ai_load::role`, the original's role word. Each member is `IS_`
+/// so the three cannot be confused by name (item 4013).
 pub mod role {
     /// `PEASANTS`/`PEASANTSKOREAN`/`SCHOLARS`/`SCHOLARSKOREAN` — citizens,
     /// scholars: half against buildings outside their borders.
-    pub const CITIZEN: u32 = 1 << 0;
+    pub const IS_CITIZEN: u32 = 1 << 0;
     /// `is(MILITIA)`.
-    pub const MILITIA: u32 = 1 << 1;
+    pub const IS_MILITIA: u32 = 1 << 1;
     /// `CASTLE`/`FORTX`: a fort whose arrows turn to bullets with Gunpowder.
-    pub const FORT: u32 = 1 << 2;
+    pub const IS_FORT: u32 = 1 << 2;
     /// A city building (object flag `0x20`).
-    pub const CITY: u32 = 1 << 3;
+    pub const IS_CITY: u32 = 1 << 3;
     /// `is(V2ROCKET)`.
-    pub const V2ROCKET: u32 = 1 << 4;
+    pub const IS_V2ROCKET: u32 = 1 << 4;
     /// `is(REDFORT, strict)`.
-    pub const REDFORT: u32 = 1 << 5;
+    pub const IS_REDFORT: u32 = 1 << 5;
     /// The type's `where` is the Factory (Wellington's bonus).
-    pub const FACTORY_MADE: u32 = 1 << 6;
+    pub const IS_FACTORY_MADE: u32 = 1 << 6;
     /// The type's `where` is the Barracks (the Japanese bonus).
-    pub const BARRACKS_MADE: u32 = 1 << 7;
+    pub const IS_BARRACKS_MADE: u32 = 1 << 7;
     /// The type's `where` is the Stable (Cossacks).
-    pub const STABLE_MADE: u32 = 1 << 8;
+    pub const IS_STABLE_MADE: u32 = 1 << 8;
     /// `is(BARK)`: quarter splash.
-    pub const BARK: u32 = 1 << 9;
+    pub const IS_BARK: u32 = 1 << 9;
     /// `is(CATAPULT)`: halves overkill from a non-siege attacker.
-    pub const CATAPULT: u32 = 1 << 10;
+    pub const IS_CATAPULT: u32 = 1 << 10;
     /// `is(FLAMETHROWER)`: ignores entrenchment, ejects garrisons.
-    pub const FLAMETHROWER: u32 = 1 << 11;
+    pub const IS_FLAMETHROWER: u32 = 1 << 11;
     /// The `SUPERCOLLIDER` wonder.
-    pub const SUPERCOLLIDER: u32 = 1 << 12;
+    pub const IS_SUPERCOLLIDER: u32 = 1 << 12;
     /// `is(BOMBARD)`: the artillery reload class.
-    pub const BOMBARD: u32 = 1 << 13;
+    pub const IS_BOMBARD: u32 = 1 << 13;
     /// Merchant, Dutch merchant, fur trapper.
-    pub const MERCHANT: u32 = 1 << 14;
+    pub const IS_MERCHANT: u32 = 1 << 14;
     /// A supply unit (`UnitData::is_supply`).
-    pub const SUPPLY: u32 = 1 << 15;
+    pub const IS_SUPPLY: u32 = 1 << 15;
     /// A caravan (`UnitData::is_caravan`).
-    pub const CARAVAN: u32 = 1 << 16;
+    pub const IS_CARAVAN: u32 = 1 << 16;
     /// `is(IMMORTALS)`: a melee type whose special strike lands inline.
-    pub const IMMORTALS: u32 = 1 << 17;
+    pub const IS_IMMORTALS: u32 = 1 << 17;
     /// A `GUN`-flagged ship that does not broadside — `PATROLBOAT`.
-    pub const PATROLBOAT: u32 = 1 << 18;
+    pub const IS_PATROLBOAT: u32 = 1 << 18;
     /// `is(TRIREME)` (`TypeIndex` 0x154: Trireme → Galley → Carrack …):
     /// a Bark's target search takes a four-hundredth of one
     /// (`Object::compare_target@0064e5c0`'s sea arm, `0064f09b`).
-    pub const TRIREME: u32 = 1 << 19;
+    pub const IS_TRIREME: u32 = 1 << 19;
 }
 
 /// The combat columns of a type and the derived bits the formula reads (§2.1).

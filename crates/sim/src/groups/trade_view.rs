@@ -24,7 +24,7 @@
 pub use crate::garrison_view::{GarrisonHead, garrison_head};
 
 /// `GroupData::count`'s first argument: `COUNT_TYPE`.
-pub const COUNT_TYPE: i32 = 0x11;
+pub use crate::ids::count::COUNT_TYPE;
 /// The caravan's type (`0x3b`).
 pub const TYPE_CARAVAN: i32 = 0x3b;
 /// The second type a group may trade with (`0x13e`), which also asks the

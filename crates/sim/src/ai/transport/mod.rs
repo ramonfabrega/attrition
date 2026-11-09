@@ -23,24 +23,7 @@ use crate::tech::TypeId;
 use crate::world::{Cell, Pos, TILES_PER_CELL, UNITS_PER_TILE, tile};
 use crate::{BUILD_BASE, Player, Sim, UNIT_BASE, Unit};
 
-/// `TypeIndex` values this mechanic compares against (§3.1, §3.3, §5.2).
-pub mod ty {
-    use crate::tech::TypeId;
-    /// `SCOUT` — the lineage test `is(0x45)`.
-    pub const SCOUT: TypeId = 0x45;
-    /// `CARAVAN` — `is(0x3b)`.
-    pub const CARAVAN: TypeId = 0x3b;
-    /// `MERCHANT`, `ECHINESEMERCHANT`, `MERCHANT2` — exact base types.
-    pub const MERCHANTS: [TypeId; 3] = [0x3d, 0x3e, 0x190];
-    /// `AIRCRAFTCARRIER` — the one carrier that can never transport.
-    pub const AIRCRAFTCARRIER: TypeId = 0x15f;
-    /// `TRANSPORTBARGE` — the boat a land unit becomes at the shore (§6).
-    pub const TRANSPORTBARGE: TypeId = 0x140;
-    /// `MERCHANTFLEET` — a caravan's own boat.
-    pub const MERCHANTFLEET: TypeId = 0x13e;
-    /// `GULLBIRD` — what a finished dock spawns.
-    pub const GULLBIRD: TypeId = 0x194;
-}
+pub use crate::ids::ty;
 
 /// The bias angle `Unit::do_cast` and `SpellType::cast_transport` both hand
 /// `find_nearby_spot` — `0x55555555`, a third of a turn, which
@@ -172,8 +155,8 @@ pub const GULL_OFFSET: i32 = 0xc0;
 pub const SITE_GULL_ANGLE: &str = "Dock::init+0x125";
 
 /// `needs_transport`'s answers (§6).
-pub const DISEMBARK: i32 = 1;
-pub const EMBARK: i32 = 2;
+pub const NEEDS_DISEMBARK: i32 = 1;
+pub const NEEDS_EMBARK: i32 = 2;
 
 /// `orthog_x[1..=4]`, `orthog_y[1..=4]` — north, east, south, west
 /// (`.rdata 0x00add250` / `0x00add210`).
@@ -276,9 +259,9 @@ impl Sim {
         if a == b {
             0
         } else if a {
-            DISEMBARK
+            NEEDS_DISEMBARK
         } else {
-            EMBARK
+            NEEDS_EMBARK
         }
     }
 
@@ -848,7 +831,7 @@ impl Sim {
         if matches!(
             s,
             spell::TO_ARMS
-                | spell::CIVILIAN
+                | spell::CAST_CIVILIAN
                 | spell::CREATE_DECOY
                 | spell::FORCED_MARCH
                 | spell::AMBUSH
@@ -857,7 +840,7 @@ impl Sim {
         {
             match s {
                 spell::TO_ARMS => self.cast_to_arms(u),
-                spell::CIVILIAN => self.cast_civilian(u),
+                spell::CAST_CIVILIAN => self.cast_civilian(u),
                 spell::FORCED_MARCH => self.cast_march(u),
                 spell::AMBUSH => self.cast_ambush(u),
                 // …and its Entrench (`cast_entrench`, item 3919).
@@ -1363,7 +1346,7 @@ impl Sim {
             if self.units[boat].ty.is_some_and(|t| {
                 self.unit_types[t]
                     .cols
-                    .flag2(crate::ai_load::uflags2::CARAVAN)
+                    .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
             }) {
                 let who = self.units[boat].owner as usize;
                 let slot = self.units[boat].caravan.take();
@@ -1416,7 +1399,7 @@ impl Sim {
         let path = std::mem::take(&mut self.units[boat].path);
         self.units[r].path.extend(path);
         if let Some(top) = self.units[r].path.last_mut() {
-            top.flags &= !crate::orders::path_flag::TRANSPORT;
+            top.flags &= !crate::orders::path_flag::BOARDS_TRANSPORT;
         }
     }
 

@@ -130,7 +130,7 @@ impl LeaderOptions {
 /// `None` — when it does not.
 #[must_use]
 pub const fn stance_type(role: u32, unit_flags2: u32, type_index: i32) -> StanceType {
-    if role & crate::ai_load::role::MILITARY != 0 {
+    if role & crate::ai_load::role::ROLE_MILITARY != 0 {
         if unit_flags2 & crate::ai_load::uflags2::PACKS != 0 {
             return StanceType::Packer;
         }

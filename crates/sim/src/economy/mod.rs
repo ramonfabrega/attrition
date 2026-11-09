@@ -70,6 +70,33 @@ impl Resource {
     pub const fn index(self) -> usize {
         self as usize
     }
+
+    /// The letter a `COST` or `SUPPORT` field suffixes a number with.
+    pub const fn letter(self) -> char {
+        match self {
+            Resource::Food => 'f',
+            Resource::Timber => 't',
+            Resource::Wealth => 'g',
+            Resource::Knowledge => 'k',
+            Resource::Metal => 'm',
+            Resource::Oil => 'o',
+        }
+    }
+
+    /// Parses a resource letter. Case-sensitive: the data only ever uses
+    /// lowercase here, and accepting uppercase would collide with the flag
+    /// letters used by `OBJ_MASK`.
+    pub const fn from_letter(c: char) -> Option<Resource> {
+        match c {
+            'f' => Some(Resource::Food),
+            't' => Some(Resource::Timber),
+            'g' => Some(Resource::Wealth),
+            'k' => Some(Resource::Knowledge),
+            'm' => Some(Resource::Metal),
+            'o' => Some(Resource::Oil),
+            _ => None,
+        }
+    }
 }
 
 /// Sixteenths per whole resource. Every rate in this module is in these.

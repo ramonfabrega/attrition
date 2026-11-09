@@ -307,7 +307,7 @@ impl TcoordView for SimTcoord<'_> {
         build::is_fort(&self.sim.build_types, self.ty)
     }
     fn gathers(&mut self) -> bool {
-        self.sim.build_types[self.ty].has(flags::GATHER)
+        self.sim.build_types[self.ty].has(flags::GATHERER)
     }
     fn flat(&mut self) -> bool {
         self.sim.build_types[self.ty].has(flags::FLAT)

@@ -26,7 +26,7 @@
 //!
 //! A **site** is a building. `calc_city_resources` walks the city's member
 //! chain and calls `BuildData::calc_gather` on every member that is active,
-//! whose type `is_gather_type` (`build_flags & 0x40`, [`build::flags::GATHER`]),
+//! whose type `is_gather_type` (`build_flags & 0x40`, [`build::flags::GATHERER`]),
 //! that is not an oil well or platform (those are counted once at the player
 //! level, from the `oil_wells` list, whether or not they sit in a city), and
 //! whose `city` link is this city. `BuildData::calc_gather@0062d360` then
@@ -276,7 +276,7 @@ impl Sim {
     /// the mine and the university are not.
     pub fn gather_good(&self, b: usize) -> Option<Resource> {
         let t = self.buildings[b].ty?;
-        if !self.build_types[t].has(build::flags::GATHER) {
+        if !self.build_types[t].has(build::flags::GATHERER) {
             return None;
         }
         let is = |i| build::is(&self.build_types, t, i);

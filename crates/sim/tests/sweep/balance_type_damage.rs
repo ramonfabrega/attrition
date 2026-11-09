@@ -17,47 +17,47 @@ use sim::balance::{Kind, line as l, type_damage};
 /// `ObjectTypeData::is(id, strict)` -> the crate's lineage bit (rondata `LINE_ROOTS`; MERCHANT and
 /// CITIZEN are not `is` calls: the original compares the record's `TypeIndex`).
 const LINES: [(i32, bool, u64); 41] = [
-    (0xd8, false, l::ARMOREDCAR),
-    (0xef, false, l::LIGHTTANK),
-    (0x7b, false, l::MACHINEGUN),
-    (0x83, false, l::FLAMETHROWER),
-    (0x83, true, l::FLAMETHROWER_STRICT),
-    (0x42, false, l::MILITIA),
-    (0x15a, false, l::BOMBARDSHIP),
-    (0x143, false, l::BARK),
-    (0x152, false, l::SUB),
-    (0x14e, false, l::FIRERAFT),
-    (0x154, false, l::TRIREME),
-    (0x130, false, l::BOMBER),
-    (0x134, false, l::FIGHTERBOMBER),
-    (0x136, false, l::HELICOPTER),
-    (0x139, false, l::V2ROCKET),
-    (0x3f, false, l::SUPPLYWAGON),
-    (0x58, false, l::BALAMOBSLINGERS),
-    (0xae, false, l::KUSHITEARCHERS),
-    (0xae, true, l::KUSHITEARCHERS_STRICT),
-    (0x5b, false, l::INTICLUBMEN),
-    (0xbf, false, l::CAMELRANGE2),
-    (0xc3, false, l::CHARIOT),
-    (0xc7, false, l::NOMAD),
-    (0xe0, false, l::RUSINYLANCER),
-    (0xb1, true, l::LONGBOWMEN_STRICT),
-    (0xb2, true, l::ELONGBOWMEN_STRICT),
-    (0xb3, true, l::KINGSYEOMANRY_STRICT),
-    (0xe8, false, l::ECOMPANION),
-    (0x92, false, l::LEGIONS),
-    (0xa0, true, l::SAMURAI_STRICT),
-    (0x95, false, l::HALBERDIERS),
-    (0x97, false, l::TERCIOS),
-    (0x90, false, l::RECOILGUN),
-    (0x72, false, l::HIGHLANDERS),
-    (0x82, true, l::MG42_STRICT),
-    (0x102, true, l::TIGERTANK_STRICT),
-    (0x103, true, l::LEOPARDTANK_STRICT),
-    (0x117, false, l::FLAMINGARROW),
-    (0x114, false, l::BASILICABOMBARD),
-    (0x112, false, l::MORTAR),
-    (0x1bf, false, l::AIRBASE),
+    (0xd8, false, l::LINE_ARMOREDCAR),
+    (0xef, false, l::LINE_LIGHTTANK),
+    (0x7b, false, l::LINE_MACHINEGUN),
+    (0x83, false, l::LINE_FLAMETHROWER),
+    (0x83, true, l::LINE_FLAMETHROWER_STRICT),
+    (0x42, false, l::LINE_MILITIA),
+    (0x15a, false, l::LINE_BOMBARDSHIP),
+    (0x143, false, l::LINE_BARK),
+    (0x152, false, l::LINE_SUB),
+    (0x14e, false, l::LINE_FIRERAFT),
+    (0x154, false, l::LINE_TRIREME),
+    (0x130, false, l::LINE_BOMBER),
+    (0x134, false, l::LINE_FIGHTERBOMBER),
+    (0x136, false, l::LINE_HELICOPTER),
+    (0x139, false, l::LINE_V2ROCKET),
+    (0x3f, false, l::LINE_SUPPLYWAGON),
+    (0x58, false, l::LINE_BALAMOBSLINGERS),
+    (0xae, false, l::LINE_KUSHITEARCHERS),
+    (0xae, true, l::LINE_KUSHITEARCHERS_STRICT),
+    (0x5b, false, l::LINE_INTICLUBMEN),
+    (0xbf, false, l::LINE_CAMELRANGE2),
+    (0xc3, false, l::LINE_CHARIOT),
+    (0xc7, false, l::LINE_NOMAD),
+    (0xe0, false, l::LINE_RUSINYLANCER),
+    (0xb1, true, l::LINE_LONGBOWMEN_STRICT),
+    (0xb2, true, l::LINE_ELONGBOWMEN_STRICT),
+    (0xb3, true, l::LINE_KINGSYEOMANRY_STRICT),
+    (0xe8, false, l::LINE_ECOMPANION),
+    (0x92, false, l::LINE_LEGIONS),
+    (0xa0, true, l::LINE_SAMURAI_STRICT),
+    (0x95, false, l::LINE_HALBERDIERS),
+    (0x97, false, l::LINE_TERCIOS),
+    (0x90, false, l::LINE_RECOILGUN),
+    (0x72, false, l::LINE_HIGHLANDERS),
+    (0x82, true, l::LINE_MG42_STRICT),
+    (0x102, true, l::LINE_TIGERTANK_STRICT),
+    (0x103, true, l::LINE_LEOPARDTANK_STRICT),
+    (0x117, false, l::LINE_FLAMINGARROW),
+    (0x114, false, l::LINE_BASILICABOMBARD),
+    (0x112, false, l::LINE_MORTAR),
+    (0x1bf, false, l::LINE_AIRBASE),
 ];
 
 fn ushorts(w: &[u8], n: i32) -> Vec<i32> {
@@ -81,10 +81,10 @@ fn kind_of(rec: &[u8], list: &[u8], strict: &[u8]) -> Kind {
         }
     }
     if matches!(idx, 0x3d | 0x3e | 0x190) {
-        lines |= l::MERCHANT;
+        lines |= l::LINE_MERCHANT;
     }
     if (0x32..=0x35).contains(&idx) {
-        lines |= l::CITIZEN;
+        lines |= l::LINE_CITIZEN;
     }
     // Bit 27 (missile) is the answer of slot +0x114, never the record's own word.
     let mut masks = rd(rec, 0x1e4) as u32 & !(1 << 27);

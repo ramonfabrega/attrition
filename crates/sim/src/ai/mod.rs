@@ -16,35 +16,8 @@
 use crate::combat::Rng;
 use crate::economy::{Ledger, RESOURCES};
 
-/// The nation roster's indices — `rules.xml`'s `TRIBES` order, which is
-/// what `LeaderData::tribe` holds and what `has_tribe_bonus(n)` compares
-/// against (`docs/TECH.md` §"`has_preq`"). The AI hardcodes several.
-pub mod tribe {
-    pub const AZTECS: usize = 0;
-    pub const MAYA: usize = 1;
-    pub const INCA: usize = 2;
-    pub const BANTU: usize = 3;
-    pub const NUBIANS: usize = 4;
-    pub const GREEKS: usize = 5;
-    pub const ROMANS: usize = 6;
-    pub const EGYPTIANS: usize = 7;
-    pub const TURKS: usize = 8;
-    pub const SPANISH: usize = 9;
-    pub const FRENCH: usize = 10;
-    pub const BRITISH: usize = 11;
-    pub const GERMANS: usize = 12;
-    pub const RUSSIANS: usize = 13;
-    pub const CHINESE: usize = 14;
-    pub const JAPANESE: usize = 15;
-    pub const KOREANS: usize = 16;
-    pub const MONGOLS: usize = 17;
-    pub const IROQUOIS: usize = 18;
-    pub const LAKOTA: usize = 19;
-    pub const AMERICANS: usize = 20;
-    pub const INDIANS: usize = 21;
-    pub const DUTCH: usize = 22;
-    pub const PERSIANS: usize = 23;
-}
+/// The nation roster's indices, defined in [`crate::ids::tribe`].
+pub use crate::ids::tribe;
 
 /// `Personality` — `LeaderData+0x6dd4`, 24 ints, each −1/0/1 unless a
 /// nation pins it. Rolled once per computer leader by
@@ -429,7 +402,7 @@ pub struct Site {
 }
 
 /// `Sites` holds ten.
-pub const SITES: usize = 10;
+pub const SITE_SLOTS: usize = 10;
 
 /// The per-city AI record — the `CityData` fields the census writes and
 /// the producers read (`docs/AI.md` §2.3 steps 2 and 13; `create-buildings.md`
@@ -711,7 +684,7 @@ pub struct Leader {
     /// census.
     pub city_ai: Vec<CityAi>,
     /// The ten city sites — `docs/AI.md` §2.7.
-    pub sites: [Site; SITES],
+    pub sites: [Site; SITE_SLOTS],
     /// `mil_trainers`: the leader's military trainers, by building index.
     pub mil_trainers: Vec<usize>,
     /// `tech_frame`, `tech_cat_frame[4]`: written by `Leader::init` and by
@@ -924,7 +897,7 @@ impl Leader {
                 reg: 0,
                 dist: 0,
                 rank: 0,
-            }; SITES],
+            }; SITE_SLOTS],
             mil_trainers: Vec::new(),
             tech_frame: 0,
             frame_attacked: 0,

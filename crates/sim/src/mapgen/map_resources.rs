@@ -35,7 +35,7 @@ pub mod site {
 /// `TYPE_NONE`: a divvy row's type before the pool names it.
 pub const NO_TYPE: i32 = -1;
 /// The goody box's item type (`BASE_ITEMTYPES`).
-pub const GOODY: i32 = 0x21f;
+pub const GOODY_TYPE: i32 = 0x21f;
 /// `OIL`, which a spacing test never counts.
 const OIL: i32 = 5;
 /// The two sea goods (`Fish`, `Whales`), which only space against each other.
@@ -294,7 +294,7 @@ impl Pass<'_> {
     /// Spacing against the goods (oil never; the sea goods only against
     /// each other) or, for a goody box, against every box.
     fn spaced(&self, ty: i32, sea: bool, x: i32, y: i32, spacing: i32) -> bool {
-        if ty == GOODY {
+        if ty == GOODY_TYPE {
             self.placed
                 .items
                 .iter()
@@ -346,7 +346,7 @@ impl Pass<'_> {
     /// the cell's flag and its `down`/`down_who`.
     fn create(&mut self, ty: i32, x: i32, y: i32) {
         let i = self.at(x, y);
-        if ty == GOODY {
+        if ty == GOODY_TYPE {
             let n = self.placed.items.len() as i16;
             let c = &mut self.g.cells[i];
             c.flags |= 0x8000;
@@ -468,7 +468,7 @@ impl Pass<'_> {
         if self.border(x, y) || !self.spaced(ty, sea, x, y, spacing) {
             return false;
         }
-        if ty != GOODY
+        if ty != GOODY_TYPE
             && [2, 4, 6, 8].into_iter().any(|k| {
                 let (u, v) = (x + MOVE_X[k], y + MOVE_Y[k]);
                 self.inb(u, v) && self.flags(u, v) & 0x4 != 0
@@ -479,7 +479,7 @@ impl Pass<'_> {
         if self.mountain_tiles(x, y) {
             return false;
         }
-        let fits = if ty == GOODY {
+        let fits = if ty == GOODY_TYPE {
             !self.g.cells[self.at(x, y)].is_ocean() && f & 0x70 == 0
         } else {
             self.allows(self.land_class(x, y), ty)
@@ -543,7 +543,7 @@ impl Pass<'_> {
     /// region after each try, `continent` after each pass, `corner` never —
     /// it runs one pass per corner.
     fn region(&mut self, r: &Row) -> i32 {
-        let water = r.ty >= 0 && r.ty != GOODY && self.allows(2, r.ty);
+        let water = r.ty >= 0 && r.ty != GOODY_TYPE && self.allows(2, r.ty);
         let (regs, mut cur) = self.avail_regions(water, r.pattern);
         if regs.is_empty() {
             return 0;
@@ -702,7 +702,7 @@ impl Pass<'_> {
         if touches || self.mountain_tiles(x, y) || self.border(x, y) || self.south_forest(x, y) {
             return false;
         }
-        let fits = if ty == GOODY {
+        let fits = if ty == GOODY_TYPE {
             f & 0x70 == 0
         } else {
             self.allows(self.land_class(x, y), ty) && (!water || f & 0x4 == 0)

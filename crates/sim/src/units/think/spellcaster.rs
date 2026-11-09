@@ -54,20 +54,12 @@ const SPY: crate::tech::TypeId = 0x3a;
 /// The crafts `think_spellcaster` asks about (`SpellType` rows
 /// `0x275..=0x281`, the table's slots `+0x9d4..=+0xa04`).
 pub mod craft {
-    /// Bribe, the Spy's.
-    pub const BRIBE: i32 = 0x275;
-    /// Counterintelligence, a Spy's and a Scout's.
-    pub const COUNTERINTEL: i32 = 0x277;
-    /// Sniper, the special unit's.
-    pub const SNIPER: i32 = 0x281;
+    pub use crate::ids::spell::{BRIBE, COUNTERINTEL, SNIPER};
 }
 
 /// `find`'s search mode (its third argument).
 pub mod search {
-    /// `SEARCH_INDEX_SEARCH_ALL`.
-    pub const ALL: i32 = 0;
-    /// `SEARCH_FRIENDLY`.
-    pub const FRIENDLY: i32 = 1;
+    pub use crate::ids::search::{SEARCH_ALL as ALL, SEARCH_FRIENDLY as FRIENDLY};
 }
 
 /// What `Unit::think_spellcaster` reads and does, for the unit `this` it is

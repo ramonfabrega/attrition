@@ -455,7 +455,7 @@ impl DamageFacts for Reduced<'_> {
         self.tp.obj_masks
     }
     fn attacker_fort_or_city(&mut self) -> bool {
-        self.a.is(role::FORT) || self.a.is(role::CITY)
+        self.a.is(role::IS_FORT) || self.a.is(role::IS_CITY)
     }
     fn gunpowder(&mut self) -> bool {
         self.m.gunpowder
@@ -485,10 +485,10 @@ impl DamageFacts for Reduced<'_> {
         self.tp.siege
     }
     fn target_is_supply(&mut self) -> bool {
-        self.tp.is(role::SUPPLY)
+        self.tp.is(role::IS_SUPPLY)
     }
     fn target_is_caravan(&mut self) -> bool {
-        self.tp.is(role::CARAVAN)
+        self.tp.is(role::IS_CARAVAN)
     }
     fn target_is_build(&mut self) -> bool {
         self.tt.build_proper
@@ -497,16 +497,16 @@ impl DamageFacts for Reduced<'_> {
         !self.tt.under_construction
     }
     fn attacker_citizen(&mut self) -> bool {
-        self.a.is(role::CITIZEN)
+        self.a.is(role::IS_CITIZEN)
     }
     fn attacker_militia(&mut self) -> bool {
-        self.a.is(role::MILITIA)
+        self.a.is(role::IS_MILITIA)
     }
     fn tile_owned_by_attacker(&mut self) -> bool {
         self.tt.tile_owned_by_attacker
     }
     fn attacker_v2rocket(&mut self) -> bool {
-        self.a.is(role::V2ROCKET)
+        self.a.is(role::IS_V2ROCKET)
     }
     fn attacker_is_unit(&mut self) -> bool {
         self.at.unit
@@ -518,7 +518,7 @@ impl DamageFacts for Reduced<'_> {
         domain(self.tp.domain)
     }
     fn target_redfort(&mut self) -> bool {
-        self.tp.is(role::REDFORT)
+        self.tp.is(role::IS_REDFORT)
     }
     fn attacker_is_building(&mut self) -> bool {
         self.at.building
@@ -531,13 +531,13 @@ impl DamageFacts for Reduced<'_> {
         self.m.wellington
     }
     fn target_factory_made(&mut self) -> bool {
-        self.tp.is(role::FACTORY_MADE)
+        self.tp.is(role::IS_FACTORY_MADE)
     }
     fn attacker_obj_is_unit(&mut self) -> bool {
         self.at.unit
     }
     fn attacker_barracks_made(&mut self) -> bool {
-        self.a.is(role::BARRACKS_MADE)
+        self.a.is(role::IS_BARRACKS_MADE)
     }
     fn japanese_level(&mut self) -> Option<i32> {
         self.m.japanese_level
@@ -561,7 +561,7 @@ impl DamageFacts for Reduced<'_> {
         self.tp.siege
     }
     fn target_bark(&mut self) -> bool {
-        self.tp.is(role::BARK)
+        self.tp.is(role::IS_BARK)
     }
     fn target_unit_z(&mut self) -> i32 {
         self.tt.z
@@ -603,7 +603,7 @@ impl DamageFacts for Reduced<'_> {
         self.tt.damage_o
     }
     fn target_catapult(&mut self) -> bool {
-        self.tp.is(role::CATAPULT)
+        self.tp.is(role::IS_CATAPULT)
     }
     fn attacker_type_siege(&mut self) -> bool {
         self.a.siege
@@ -624,7 +624,7 @@ impl DamageFacts for Reduced<'_> {
         self.tt.entrenched
     }
     fn attacker_obj_flamethrower(&mut self) -> bool {
-        self.a.is(role::FLAMETHROWER)
+        self.a.is(role::IS_FLAMETHROWER)
     }
     fn trench_facing(&mut self) -> i32 {
         self.tt.trench_facing.0
@@ -636,10 +636,10 @@ impl DamageFacts for Reduced<'_> {
         self.m.russian
     }
     fn attacker_stable_made(&mut self) -> bool {
-        self.a.is(role::STABLE_MADE)
+        self.a.is(role::IS_STABLE_MADE)
     }
     fn target_type_supercollider(&mut self) -> bool {
-        self.tp.is(role::SUPERCOLLIDER)
+        self.tp.is(role::IS_SUPERCOLLIDER)
     }
     fn recapturable_city(&mut self) -> bool {
         self.tt.recapturable_city

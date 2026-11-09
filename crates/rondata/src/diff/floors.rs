@@ -434,14 +434,24 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// `largest` 13437 → 13442 (+5), the one count that rose: `orders.rs`
 /// became `orders/mod.rs` and must declare its five siblings, and the
 /// module tree has no other place to say them; 4015's cut takes it down.
+///
+/// Item 4013: `names` 130 → 15 (−115): every id family defined once in
+/// `sim::ids` (nations, spells, order kinds, army status, the walks'
+/// enums, the terrain bits, the type ids, the scales) with the old homes
+/// re-exporting, and every collision renamed per family (`LINE_`, `IS_`,
+/// `ROLE_`, `UNIT_CAT_`, `FORM_CAT_`, and the members the inventory's rows
+/// name); the fifteen left are the per-module draw sites, trace labels
+/// and associated constants of `docs/STRUCTURE.md` §2's target.
+/// `largest` 13442 → 13336 (−106): `orders/mod.rs` gave its `spell` and
+/// `index` constants to `sim::ids` (rustfmt rewrapped five renamed lines).
 #[cfg(test)]
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 7),
     ("test-tails", 0),
     ("sweep-lines", 17_255),
-    ("names", 130),
+    ("names", 15),
     ("fields", 92),
-    ("largest", 13_442),
+    ("largest", 13_336),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before

@@ -35,41 +35,41 @@ use crate::{UnitType, attrition::Domain, build::BuildType};
 /// the word logged by the original can be compared with ours whole.
 pub mod role {
     /// A ranged military type — `max_range != 0`.
-    pub const RANGED: u32 = 0x400;
+    pub const ROLE_RANGED: u32 = 0x400;
     /// A melee military type. Mutually exclusive with [`RANGED`].
-    pub const MELEE: u32 = 0x1;
+    pub const ROLE_MELEE: u32 = 0x1;
     /// `is(HOPLITES)`, on a land `Foot` military type.
-    pub const HOPLITE: u32 = 0x2;
+    pub const ROLE_HOPLITE: u32 = 0x2;
     /// A `Mounted` land type: both bits, always together.
-    pub const MOUNTED: u32 = 0xc;
+    pub const ROLE_MOUNTED: u32 = 0xc;
     /// `is(SCOUT)` on land, `is(BARK)` at sea — the bit that keeps a type out
     /// of the census's invader count.
-    pub const SCOUT: u32 = 0x10;
+    pub const ROLE_SCOUT: u32 = 0x10;
     /// A land `Foot` military type.
-    pub const FOOT: u32 = 0x800;
+    pub const ROLE_FOOT: u32 = 0x800;
     /// An air type, military or not.
-    pub const AIR: u32 = 0x1000;
+    pub const ROLE_AIR: u32 = 0x1000;
     /// A military sea type.
-    pub const SEA_MILITARY: u32 = 0x2000;
+    pub const ROLE_SEA_MILITARY: u32 = 0x2000;
     /// A military air type.
-    pub const AIR_MILITARY: u32 = 0x4000;
+    pub const ROLE_AIR_MILITARY: u32 = 0x4000;
     /// `CARRY != 0`: the type carries other units.
-    pub const CARRY: u32 = 0x8000;
+    pub const ROLE_CARRY: u32 = 0x8000;
     /// The military bit — `combat_role`.
-    pub const MILITARY: u32 = 0x10000;
+    pub const ROLE_MILITARY: u32 = 0x10000;
     /// Not military: the `else` of the military test.
-    pub const CIVILIAN: u32 = 0x100;
+    pub const ROLE_CIVILIAN: u32 = 0x100;
     /// One of the four citizen/scholar ids.
-    pub const CITIZEN: u32 = 0x200;
+    pub const ROLE_CITIZEN: u32 = 0x200;
     /// A land `Foot` military type that is not a hoplite.
-    pub const INFANTRY: u32 = 0x100_000;
+    pub const ROLE_INFANTRY: u32 = 0x100_000;
     /// A land type.
-    pub const LAND: u32 = 0x40000;
+    pub const ROLE_LAND: u32 = 0x40000;
     /// A sea type.
-    pub const SEA: u32 = 0x80000;
+    pub const ROLE_SEA: u32 = 0x80000;
     /// `create_units`' trainer test: `role & 0x180c0 == 0` scores a building's
     /// output as economic rather than military (`docs/DATALAYER.md`).
-    pub const MILITARY_OR_CARRY: u32 = 0x180c0;
+    pub const ROLE_MILITARY_OR_CARRY: u32 = 0x180c0;
 }
 
 /// The bits of `unit_flags` (`UnitTypeData+0x2b4`) the producers read. The
@@ -81,7 +81,7 @@ pub mod uflags {
     /// not pivot.
     pub const CART: u32 = 0x2;
     /// `e` — a sea transport.
-    pub const TRANSPORT: u32 = 0x10;
+    pub const FLAG_TRANSPORT: u32 = 0x10;
     /// `f` — `unitrules.xml`'s own legend: "Unit flies like a helicopter".
     /// Exactly three types carry it — `Helicopter` and the two
     /// `Attack Helicopter`s — and all three are `<DOMAIN>Air`. It is the
@@ -89,7 +89,7 @@ pub mod uflags {
     /// (`domain == 2 && !(unit_flags & 0x20)`), so a helicopter is **not** a
     /// plane: it is halted, stanced and given group orders like a ground
     /// unit (`docs/GROUPS.md` §7, §8, §6.6).
-    pub const HELICOPTER: u32 = 0x20;
+    pub const FLAG_HELICOPTER: u32 = 0x20;
     /// `c` — the class the AI caps by city count.
     pub const CITY_CAPPED: u32 = 0x4;
     /// `d` — the second such class.
@@ -101,7 +101,7 @@ pub mod uflags {
     /// the 364 records: the citizens, the starting lines, the carts.
     pub const NO_RESEARCH_PRICE: u32 = 0x80;
     /// `r` — `is_siege`.
-    pub const SIEGE: u32 = 0x20000;
+    pub const FLAG_SIEGE: u32 = 0x20000;
     /// `v` — **fires on the move** (the Dragoon's `majv`, the Horse
     /// Archer's `mhv`). `Unit::do_move@005f7b30:60` calls
     /// `Unit::cavarch_fight` for such a type, and `Unit::move_step` walks
@@ -156,11 +156,11 @@ pub mod uflags2 {
     /// `needs_packing` — the sim's `Profile::packs`.
     pub const PACKS: u32 = 0x4;
     /// `is_caravan`.
-    pub const CARAVAN: u32 = 0x8;
+    pub const FLAG2_CARAVAN: u32 = 0x8;
     /// `is(SCOUT)`.
-    pub const SCOUT: u32 = 0x10;
+    pub const FLAG2_SCOUT: u32 = 0x10;
     /// `is(GENERAL)`.
-    pub const GENERAL: u32 = 0x20;
+    pub const FLAG2_GENERAL: u32 = 0x20;
     /// The supply and government-hero lineages.
     pub const SUPPLY_OR_HERO: u32 = 0x40;
     /// `create_units`' special-forces class: `& 0x60`.
@@ -170,10 +170,10 @@ pub mod uflags2 {
 /// The unit `CAT` column — `rules.xml`'s `<CATEGORIES id="unit_cats">`, in
 /// file order. `determine_roles` reads three of the nine.
 pub mod cat {
-    pub const FOOT: i32 = 0;
-    pub const MOUNTED: i32 = 1;
-    pub const COMMAND: i32 = 4;
-    pub const CIVILIAN: i32 = 5;
+    pub const UNIT_CAT_FOOT: i32 = 0;
+    pub const UNIT_CAT_MOUNTED: i32 = 1;
+    pub const UNIT_CAT_COMMAND: i32 = 4;
+    pub const UNIT_CAT_CIVILIAN: i32 = 5;
 }
 
 /// The derived words a unit type carries. Every field is the original's,
@@ -244,53 +244,55 @@ pub struct RoleFacts {
 pub fn determine_roles(f: &RoleFacts) -> u32 {
     let mut r = 0;
     if f.citizen_id {
-        r = role::CITIZEN;
+        r = role::ROLE_CITIZEN;
     }
     match f.domain {
-        Domain::Air => r |= role::AIR,
+        Domain::Air => r |= role::ROLE_AIR,
         Domain::Land => {
-            r |= role::LAND;
+            r |= role::ROLE_LAND;
             if f.scout {
-                r |= role::SCOUT;
+                r |= role::ROLE_SCOUT;
             }
-            if f.cat == cat::MOUNTED {
-                r |= role::MOUNTED;
+            if f.cat == cat::UNIT_CAT_MOUNTED {
+                r |= role::ROLE_MOUNTED;
             }
         }
         Domain::Sea => {
-            r |= role::SEA;
+            r |= role::ROLE_SEA;
             if f.bark {
-                r |= role::SCOUT;
+                r |= role::ROLE_SCOUT;
             }
         }
     }
     if f.carry != 0 {
-        r |= role::CARRY;
+        r |= role::ROLE_CARRY;
     }
-    let military =
-        f.attack != 0 && f.cat != cat::CIVILIAN && f.cat != cat::COMMAND && r & role::CITIZEN == 0;
+    let military = f.attack != 0
+        && f.cat != cat::UNIT_CAT_CIVILIAN
+        && f.cat != cat::UNIT_CAT_COMMAND
+        && r & role::ROLE_CITIZEN == 0;
     if !military {
-        return r | role::CIVILIAN;
+        return r | role::ROLE_CIVILIAN;
     }
-    r |= role::MILITARY;
+    r |= role::ROLE_MILITARY;
     match f.domain {
-        Domain::Sea => r |= role::SEA_MILITARY,
-        Domain::Air => r |= role::AIR_MILITARY,
+        Domain::Sea => r |= role::ROLE_SEA_MILITARY,
+        Domain::Air => r |= role::ROLE_AIR_MILITARY,
         Domain::Land => {
-            if f.cat == cat::FOOT {
-                r |= role::FOOT;
+            if f.cat == cat::UNIT_CAT_FOOT {
+                r |= role::ROLE_FOOT;
                 r |= if f.hoplite {
-                    role::HOPLITE
+                    role::ROLE_HOPLITE
                 } else {
-                    role::INFANTRY
+                    role::ROLE_INFANTRY
                 };
             }
         }
     }
     r | if f.max_range != 0 {
-        role::RANGED
+        role::ROLE_RANGED
     } else {
-        role::MELEE
+        role::ROLE_MELEE
     }
 }
 
@@ -334,18 +336,25 @@ pub fn flags2(f: &Flags2Facts) -> (u32, u32) {
         v |= uflags2::SUPPLY_OR_HERO;
     }
     if f.general {
-        v |= uflags2::GENERAL;
+        v |= uflags2::FLAG2_GENERAL;
     }
     if f.caravan {
-        v |= uflags2::CARAVAN;
+        v |= uflags2::FLAG2_CARAVAN;
     }
     if f.scout {
-        v |= uflags2::SCOUT;
+        v |= uflags2::FLAG2_SCOUT;
     }
     if f.machinegun || f.flamethrower {
         v |= uflags2::EMPLACED;
     }
-    (v, if f.transport { uflags::TRANSPORT } else { 0 })
+    (
+        v,
+        if f.transport {
+            uflags::FLAG_TRANSPORT
+        } else {
+            0
+        },
+    )
 }
 
 /// `UnitType::init_spellcasters@0061aae0`, over every type in id order.
@@ -505,16 +514,16 @@ pub fn compute_ai_values_steps<V: AiValuesView>(v: &mut V) {
             continue;
         }
         let r = v.unit_role(u);
-        if r & role::MILITARY != 0 {
+        if r & role::ROLE_MILITARY != 0 {
             v.add(0, 1);
         }
-        if r & role::CITIZEN != 0 {
+        if r & role::ROLE_CITIZEN != 0 {
             v.add(1, 1);
             v.add(9, 1);
         }
         match v.unit_domain(u) {
             0 => {
-                if r & role::MILITARY != 0 {
+                if r & role::ROLE_MILITARY != 0 {
                     v.add(8, 1);
                 }
             }
@@ -593,7 +602,7 @@ pub fn compute_ai_values_steps<V: AiValuesView>(v: &mut V) {
                 if !v.unit_trained_at(u, b) {
                     continue;
                 }
-                if v.unit_role(u) & role::MILITARY_OR_CARRY == 0 {
+                if v.unit_role(u) & role::ROLE_MILITARY_OR_CARRY == 0 {
                     v.add(1, 1);
                 } else {
                     v.add(0, s);
@@ -769,7 +778,7 @@ impl AiValuesView for TreeView<'_> {
         self.builds[b].from.is_none()
     }
     fn build_gather(&mut self, b: usize) -> bool {
-        self.builds[b].has(crate::build::flags::GATHER)
+        self.builds[b].has(crate::build::flags::GATHERER)
     }
     fn build_research_here(&self, b: usize) -> bool {
         self.builds[b].has(crate::build::flags::RESEARCH_HERE)

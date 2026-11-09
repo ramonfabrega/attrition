@@ -350,9 +350,11 @@ impl WpathView for SimWpath<'_> {
         // against unseen `8`, so any unit given an `EXPLORE_TO` walked
         // toward the fog before the type half was read (run10's AI citizen
         // `1/1`).
-        self.sim.units[self.u]
-            .ty
-            .is_some_and(|t| self.sim.unit_types[t].cols.is(crate::ai_load::role::SCOUT))
+        self.sim.units[self.u].ty.is_some_and(|t| {
+            self.sim.unit_types[t]
+                .cols
+                .is(crate::ai_load::role::ROLE_SCOUT)
+        })
     }
     fn order_is_explore_to(&mut self) -> bool {
         self.sim

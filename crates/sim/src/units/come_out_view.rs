@@ -36,14 +36,14 @@ pub const IS_A4: i32 = 0x1a4;
 /// `is(0x1a6, 0)`.
 pub const IS_A6: i32 = 0x1a6;
 /// The default sweep bearing, due south: `Angle(i32::MIN)`.
-pub const SOUTH: i32 = i32::MIN;
+const SOUTH: i32 = crate::movement::Angle::SOUTH.0;
 /// The float `90.0` a missile's figure is given at `+0x40`.
 pub const MISSILE_FIGURE_90: u32 = 0x42b4_0000;
 /// The gather block's reach (`0x600`) and its bearing (`0x55555555`).
 pub const GATHER_REACH: i32 = 0x600;
 pub const GATHER_BIAS: i32 = 0x5555_5555;
 /// The tail's `set_new_location(·, ·, 1, 1)`.
-pub const PLACED: (i32, i32) = (1, 1);
+pub const PLACE_ARGS: (i32, i32) = (1, 1);
 
 /// One `UnitType::find_nearby_spot@0061de70` call, the arguments it varies:
 /// the centre, the ring `[min, max]`, the bearing, the filter and the two

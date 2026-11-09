@@ -36,6 +36,7 @@
 //! only add rounding the original does not have.
 
 pub mod groups;
+pub mod ids;
 pub use self::groups::{action_gather_view, action_spell_view};
 pub mod ai;
 pub use self::ai::ai_build;
@@ -951,7 +952,7 @@ pub fn turning_of(t: &UnitType) -> movement::Turning {
         type_turn_speed: t.turn_speed,
         packed: false,
         instant_from_stop: !t.cols.flag2(ai_load::uflags2::PACKS)
-            && (foot_or_mounted || t.cols.flag(ai_load::uflags::TRANSPORT))
+            && (foot_or_mounted || t.cols.flag(ai_load::uflags::FLAG_TRANSPORT))
             && !t.cols.flag(ai_load::uflags::CART),
         wide_limit: t.combat.domain != attrition::Domain::Land
             || objmask & combat::mask::VEHICLE != 0,
@@ -2318,7 +2319,7 @@ impl Sim {
         // two columns, and a hand-built type may set either spelling.
         if self.units[i].ty.is_some_and(|t| {
             let ty = &self.unit_types[t];
-            let military = ty.combat.combat_role || ty.cols.is(crate::ai_load::role::MILITARY);
+            let military = ty.combat.combat_role || ty.cols.is(crate::ai_load::role::ROLE_MILITARY);
             let packs = ty.combat.packs || ty.cols.flag2(crate::ai_load::uflags2::PACKS);
             !military || packs
         }) {
@@ -2334,7 +2335,7 @@ impl Sim {
         if self.units[i].ty.is_some_and(|ty| {
             self.unit_types[ty]
                 .cols
-                .flag2(crate::ai_load::uflags2::CARAVAN)
+                .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
                 && self.unit_types[ty].combat.domain == attrition::Domain::Land
         }) {
             let who = self.units[i].owner;
@@ -2801,7 +2802,7 @@ impl Sim {
             .and_then(|d| d.where_);
         if trainer.is_some_and(|w| {
             [
-                nations::ty::SIEGE[0],
+                nations::ty::SIEGE_FACTORIES[0],
                 nations::ty::AIRBASE,
                 nations::ty::DOCKS[0],
             ]
@@ -3313,7 +3314,7 @@ impl Sim {
         let mut discount = 0;
         let mut dutch_ship = 0;
         let mut american_land = 0;
-        if self.role_word_of_rec(ty) & ai_load::role::MILITARY != 0 {
+        if self.role_word_of_rec(ty) & ai_load::role::ROLE_MILITARY != 0 {
             let ahead = self.tech[w].epoch[tech::Line::Military.index()]
                 - self.tech_tree.military_level_in(&self.setup, t);
             if ahead > 0 {
@@ -3371,7 +3372,7 @@ impl Sim {
     /// late discount this crate applies, so the fold into
     /// [`cost::Modifiers::late_discount`] is exact.
     pub fn military_unit_discount(&self, who: Player, ty: usize) -> i32 {
-        if self.role_word_of_rec(ty) & ai_load::role::MILITARY == 0 {
+        if self.role_word_of_rec(ty) & ai_load::role::ROLE_MILITARY == 0 {
             return 0;
         }
         let level = self.unit_types[ty]
@@ -4540,7 +4541,7 @@ impl Sim {
             let t = &self.unit_types[ty];
             let spared = matches!(ty, 0 | 1)
                 || t.tree.is_some_and(|tr| [0x3d, 0x3e, 0x190].contains(&tr))
-                || t.cols.flag2(ai_load::uflags2::CARAVAN);
+                || t.cols.flag2(ai_load::uflags2::FLAG2_CARAVAN);
             if spared {
                 if self.tuning.chinese_citizen_instant != 0 {
                     return vec![production::Adjust::Scale(0)];
@@ -4696,7 +4697,7 @@ impl Sim {
         }
         if trainer.is_some_and(|w| {
             [
-                nations::ty::SIEGE[0],
+                nations::ty::SIEGE_FACTORIES[0],
                 nations::ty::AIRBASE,
                 nations::ty::DOCKS[0],
             ]
@@ -4876,7 +4877,7 @@ impl Sim {
                             if airbase {
                                 it.tech.is_none()
                                     && self.unit_types[it.ty].cols.unit_flags
-                                        & ai_load::uflags::HELICOPTER
+                                        & ai_load::uflags::FLAG_HELICOPTER
                                         != 0
                             } else {
                                 it.tech.is_some() || self.unit_types[it.ty].type_index != 0x3b
@@ -5002,7 +5003,9 @@ impl Sim {
         // Airbase's pad. Run834's Market `1/2019` holds a done Caravan at
         // 17304 from 2995 to the game's end with `caras` 8 at the limit 8.
         let caravan_full = researched
-            && self.unit_types[ty].cols.flag2(ai_load::uflags2::CARAVAN)
+            && self.unit_types[ty]
+                .cols
+                .flag2(ai_load::uflags2::FLAG2_CARAVAN)
             && self.unit_types[ty]
                 .tree
                 .is_some_and(|t| self.line_count(who, t, false) >= self.caravan_cap(who));
@@ -5304,7 +5307,7 @@ impl Sim {
         // `1/8` is born `stance 3`, the human `0/6` and `0/7` at 0;
         // every AI Bark on disk carries both.
         if self.unit_line_is(u, crate::army::BARK) {
-            self.units[u].unit_masks2 |= crate::combat::umask2::BARK;
+            self.units[u].unit_masks2 |= crate::combat::umask2::MASK2_BARK;
             if !self.nation.get(who as usize).is_some_and(|n| n.human) {
                 self.units[u].stance = 3;
                 self.units[u].combat.stance = crate::combat::Stance::Raid;
@@ -5340,7 +5343,7 @@ impl Sim {
         // here off the type, which the unit does not carry yet).
         // run1469's Attack Helicopters fly 30 higher than ours did
         // from their first frame, and their rounds aim at that.
-        if self.unit_types[ty].cols.unit_flags & crate::ai_load::uflags::HELICOPTER != 0
+        if self.unit_types[ty].cols.unit_flags & crate::ai_load::uflags::FLAG_HELICOPTER != 0
             && self.unit_types[ty].combat.domain == crate::attrition::Domain::Air
         {
             let ground = self.ground_z(self.units[u].pos);
@@ -6579,11 +6582,13 @@ impl Sim {
         // one. docs/AI.md §177 holds this observed asymmetry.
         let caravan = self.unit_types[ty]
             .cols
-            .flag2(crate::ai_load::uflags2::CARAVAN);
+            .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN);
         // `scouts` (`+0x988`) is the third arm of the same chain —
         // `role & 0x10` on a type neither peasant nor scholar — and no
         // sweep recounts it (`docs/AI.md` §219).
-        let scout = self.unit_types[ty].cols.is(crate::ai_load::role::SCOUT);
+        let scout = self.unit_types[ty]
+            .cols
+            .is(crate::ai_load::role::ROLE_SCOUT);
         let census = &mut self.ai[who as usize].census;
         match worker {
             crate::orders::Worker::Citizen => census.peasants += delta,

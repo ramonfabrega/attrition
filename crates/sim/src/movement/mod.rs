@@ -63,7 +63,7 @@ impl Angle {
     /// Every unit the original creates faces 120° until its first order.
     pub const INITIAL: Angle = Angle(0x5555_5555);
     pub const EAST: Angle = Angle(0x4000_0000);
-    pub const SOUTH: Angle = Angle(i32::MIN);
+    pub const SOUTH: Angle = Angle(crate::ids::scale::HALF_TURN);
     pub const WEST: Angle = Angle(-0x4000_0000);
 
     /// A quarter turn later. `cos` is `sin` of this.
@@ -181,8 +181,8 @@ pub const fn find_angle(dx: i32, dy: i32) -> Angle {
     // the sign of each axis and by which one dominates. A half turn is
     // `i32::MIN`, and reaching it needs wrapping because `0x80000000` is not a
     // positive `i32`.
-    const HALF: i32 = i32::MIN;
-    const QUARTER: i32 = 0x4000_0000;
+    const HALF: i32 = crate::ids::scale::HALF_TURN;
+    const QUARTER: i32 = crate::ids::scale::QUARTER_TURN;
     Angle(match (dx > 0, cy > 0, y_dominant) {
         (false, false, true) => q.wrapping_add(HALF),
         (false, false, false) => q.wrapping_neg().wrapping_sub(QUARTER),

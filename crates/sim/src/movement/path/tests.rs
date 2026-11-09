@@ -328,7 +328,7 @@ fn only_ai_transport_types_drop_same_region_terrain_preferences() {
                 let ty = sim.add_unit_type(crate::UnitType::default());
                 sim.units[u].ty = Some(ty);
                 if transport {
-                    sim.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::TRANSPORT;
+                    sim.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::FLAG_TRANSPORT;
                 }
                 let want = if !human && transport {
                     (0, 0)
@@ -1205,11 +1205,11 @@ fn an_armed_walker_passes_another_player_s_footprint_and_not_its_own() {
     assert_eq!(tile_search(&sim), loc::VALID, "player 1's footprint");
     assert_eq!(
         sim.invalid_loc(u, t, false, true, false, true, false),
-        loc::BUILDING,
+        loc::ON_BUILDING,
         "without `param_5` every footprint refuses"
     );
     sim.buildings[b].owner = 0;
-    assert_eq!(tile_search(&sim), loc::BUILDING, "its own refuses");
+    assert_eq!(tile_search(&sim), loc::ON_BUILDING, "its own refuses");
     sim.buildings[b].alive = false;
     assert_eq!(
         tile_search(&sim),
@@ -1219,7 +1219,7 @@ fn an_armed_walker_passes_another_player_s_footprint_and_not_its_own() {
     let (sim, u, _, t) = ring_tile(false);
     assert_eq!(
         sim.invalid_loc(u, t, false, true, true, true, false),
-        loc::BUILDING,
+        loc::ON_BUILDING,
         "an unarmed walker is refused whoever owns it"
     );
 }

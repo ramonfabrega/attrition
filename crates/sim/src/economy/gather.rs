@@ -596,7 +596,7 @@ impl Sim {
     fn walks_gather_tiles(&self, b: usize) -> bool {
         self.buildings[b].ty.is_some_and(|ty| {
             let t = &self.build_types[ty];
-            t.has(flags::GATHER) && !t.has(flags::FLAT)
+            t.has(flags::GATHERER) && !t.has(flags::FLAT)
         })
     }
 

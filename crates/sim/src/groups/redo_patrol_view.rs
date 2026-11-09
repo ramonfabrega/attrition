@@ -16,9 +16,9 @@ use crate::orders::{Body, PatrolOrder, QueuePos};
 use crate::world::Pos;
 
 /// `obj_masks & 0x8000000`: a missile, which is not re-ordered.
-pub const MISSILE: u32 = 0x800_0000;
+pub use crate::combat::mask::MISSILE;
 /// `QUEUE_LAST` in the original's numbering.
-pub const QUEUE_LAST: i32 = 1;
+pub use crate::ids::queue::QUEUE_LAST;
 
 /// What `Group::redo_patrol_order` asks of the group, the objects and the
 /// two records. `m` is a member's index (the group's short at `+0x8cc`).

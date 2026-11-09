@@ -29,64 +29,7 @@ use crate::{Player, Pos, Sim, Unit, farms};
 
 /// `OrderIndex` — the value the gamelog's `type` line carries.
 pub mod index {
-    pub const NONE: u8 = 0;
-    pub const MOVE_TO: u8 = 1;
-    pub const ATTACK_TO: u8 = 2;
-    pub const EXPLORE_TO: u8 = 3;
-    pub const FLEE_TO: u8 = 4;
-    pub const BUILD_AT: u8 = 6;
-    pub const GATHER: u8 = 7;
-    pub const ATTACK: u8 = 10;
-    /// `FollowOrder` — [`super::Body::Follow`], issued by
-    /// `Group::action_follow@006fd510` from a player's follow command
-    /// (`docs/ORDERS.md` §28).
-    pub const FOLLOW: u8 = 11;
-    /// `GuardOrder` — [`super::Body::Guard`], issued by
-    /// `Group::action_guard` (`docs/ORDERS.md` §7.5, §24) and read by
-    /// `UnitData::get_speed`'s order scale (`docs/MOVEMENT.md`, "The
-    /// effective speed here, now").
-    pub const GUARD: u8 = 12;
-    pub const REPAIR: u8 = 13;
-    pub const CAST_SPELL: u8 = 14;
-    pub const TRADE_ROUTE: u8 = 15;
-    pub const GARRISON: u8 = 26;
-    pub const THINK: u8 = 27;
-
-    /// The three kinds of the **move family** this crate does not spell as
-    /// a plain `MoveKind`. `CHANGE_FORM` is `FormOrder`, which this crate
-    /// has no order for at all; the other two are what the original calls
-    /// a move whose `MoveOrder` carries a [`super::GroupMove`], and
-    /// [`super::Order::index`] returns them because `get_type()` does
-    /// (`GroupMoveOrder::get_type@00485a10` → `GROUP_MOVE`,
-    /// `GroupAttackToOrder::get_type@004825b0` → `GROUP_ATTACK_TO`).
-    pub const CHANGE_FORM: u8 = 18;
-    pub const GROUP_MOVE: u8 = 19;
-    pub const GROUP_ATTACK_TO: u8 = 21;
-    /// `GroupPatrolOrder` — [`super::Body::Patrol`]. `PATROL` (5) is a
-    /// class that is never constructed alone: `Unit::add_patrol_order@
-    /// 005e4560` asks `OrdersMemManager::get_obj` for `GROUP_PATROL` and
-    /// nothing else (`docs/ORDERS.md` §7.7, §27).
-    pub const GROUP_PATROL: u8 = 22;
-    /// `AttackGroundOrder` — [`super::Body::AttackGround`], which this
-    /// crate issues from one place: `Unit::fight`'s siege arm, an
-    /// unpacked packer's shot at a unit (`docs/COMBAT.md` §57).
-    pub const ATTACK_GROUND: u8 = 23;
-    /// `StrafeOrder` — [`super::Body::Strafe`], the one class
-    /// `CommandManager::issue_flight@00941d40` makes, through
-    /// `Unit::add_strafe_order@005e48c0` (`docs/ORDERS.md` §32). `AirOrder`
-    /// has no index of its own: it is this class's second base.
-    pub const STRAFE: u8 = 16;
-    /// `AirPatrolOrder` — [`super::Body::AirPatrol`], which this crate
-    /// makes in one place: `Unit::do_strafe`'s arm for a strike whose
-    /// target it may not take, `add_air_patrol_order` over the strike's
-    /// point (`docs/ORDERS.md` §34).
-    pub const AIR_PATROL: u8 = 17;
-    /// `AirAttackGroundOrder` — [`super::Body::AirAttackGround`], a
-    /// missile's strike: `Unit::add_strafe_order@005e48c0`'s head turns a
-    /// strafe of a missile type on a valid target into
-    /// `add_air_attack_ground_order@005e41c0` at the target's point
-    /// (`docs/PRODUCTION.md`, "The missile's launch and round").
-    pub const AIR_ATTACK_GROUND: u8 = 24;
+    pub use crate::ids::order::*;
 
     /// **The move family** — the seven kinds whose class derives from
     /// `MoveOrder`, which `kill_current_order`, `work`, `repath`,
@@ -149,61 +92,7 @@ pub mod index {
 /// and `SpellType::cast` switches on. The spell rows are `0x275..=0x2ab`,
 /// in `craftrules.xml`'s own order (`docs/DATALAYER.md`).
 pub mod spell {
-    /// The first row of `craftrules.xml`, `Bribe` — the base `SpellType`
-    /// index and the offset [`crate::Sim::spell`] subtracts.
-    pub const FIRST: i32 = 0x275;
-    /// The last, the eighth `Cancel Alliance`. `TypeData::is_spell_type`
-    /// is `FIRST <= i <= LAST` and nothing else (`Unit::do_cast`'s head).
-    pub const LAST: i32 = 0x2ab;
-
-    /// `TRANSPORT` — the shore conversion (`docs/TRANSPORT.md` §6).
-    pub const TRANSPORT: i32 = 0x28a;
-
-    /// The Spy's three crafts (`FROM Spy`), each targeted: `BRIBE` (`fcbhm`,
-    /// `MANA 1000`), `COUNTERINTEL` (`febchm`, `MANA 500`; the one a human
-    /// Spy's `think_spellcaster` casts by itself) and `INFORMER` (`fbcml`,
-    /// `MANA 500`), which `SpellType::cast` hands to `cast_double_agent`
-    /// and `GroupOut::validate_spell` names `DOUBLE_AGENT`
-    /// (`docs/GOLDEN.md` §27).
-    pub const BRIBE: i32 = 0x275;
-    pub const COUNTERINTEL: i32 = 0x277;
-    pub const INFORMER: i32 = 0x27f;
-
-    /// The three untargeted crafts chapter thirty-nine casts
-    /// (`docs/GOLDEN.md` §48): the General's `CREATE_DECOY` (`lm`,
-    /// `MANA 1000`, `JOB_TIME 100`), which `SpellType::cast` hands to
-    /// `cast_create_decoy@00674370`; the Militia's `CIVILIAN` and the
-    /// Citizen's and Scholar's `TO_ARMS` (no flags, `JOB_TIME 5`), handed
-    /// to `cast_civilian@006704a0` and `cast_to_arms@00670880`.
-    pub const CREATE_DECOY: i32 = 0x27a;
-    /// The General's two crafts behind its moving arm
-    /// (`Unit::think_spellcaster`'s hero arm, `docs/AI.md` §99.13):
-    /// `AMBUSH` and `FORCED_MARCH`, untargeted. What they do when cast is
-    /// not carried.
-    pub const AMBUSH: i32 = 0x27b;
-    pub const FORCED_MARCH: i32 = 0x27c;
-    /// `Entrench`, the General's third untargeted craft
-    /// (`SpellType::cast_entrench@00672820`, `docs/GOLDEN.md` §166).
-    pub const ENTRENCH: i32 = 0x27d;
-    /// `Rally!`, the row before `CREATE_DECOY` — the third craft
-    /// `Unit::do_cast` plays a hero's attack slot for.
-    pub const RALLY: i32 = 0x279;
-    pub const CIVILIAN: i32 = 0x293;
-    pub const TO_ARMS: i32 = 0x294;
-
-    /// The four **pack** rows and the four **unpack** ones, in the pairs
-    /// `add_cast_order` rewrites `PACK`/`UNPACK` into: the siege engine's
-    /// (the generic pair, and the one the file names `Catapult`), the
-    /// machine gun's, the merchants' and the fishing boat's
-    /// (`docs/ORDERS.md` §6.9).
-    pub const PACK: i32 = 0x28b;
-    pub const UNPACK: i32 = 0x28c;
-    pub const PACK_MACHINEGUN: i32 = 0x28d;
-    pub const UNPACK_MACHINEGUN: i32 = 0x28e;
-    pub const PACK_MERCHANT: i32 = 0x28f;
-    pub const UNPACK_MERCHANT: i32 = 0x290;
-    pub const PACK_FISHERMEN: i32 = 0x291;
-    pub const UNPACK_FISHERMEN: i32 = 0x292;
+    pub use crate::ids::spell::*;
 
     /// `TypeData::is_pack` — the vtable slot `+0x50`, which `Unit::do_cast`
     /// inlines as these four identities and nothing else.
@@ -464,7 +353,7 @@ pub mod path_flag {
     pub const TURN_FIRST: u8 = 0x4;
     /// The same bit, as the pathfinder writes it: this waypoint boards a
     /// transport (`docs/PATHFINDER.md` §7). One bit, two producers.
-    pub const TRANSPORT: u8 = 0x4;
+    pub const BOARDS_TRANSPORT: u8 = 0x4;
     /// A `go_around_building` mid-detour point — the turn-in corner between
     /// the lane the unit is in and the one it is stepping into. It
     /// suppresses the collision test entirely (`docs/ORDERS.md` §4.1).
@@ -482,7 +371,7 @@ pub mod path_flag {
     /// ~~Nothing in the executable reads it back.~~ `Unit::do_move@005f7b30`
     /// does, on the waypoint a caravan takes: a road tile that has been
     /// built over verifies the route (`docs/CARAVAN.md` §10, item 695).
-    pub const ROAD: u8 = 0x20;
+    pub const ROAD_LAID: u8 = 0x20;
 }
 
 /// The fields of `GatherOrder` (§1.1, §6).
@@ -1381,7 +1270,7 @@ pub fn do_attack_ground_steps<V: AttackGroundView>(v: &mut V) {
     let direct = v.find_angle(dx, dy);
     let mut facing = direct;
     if v.sideways() {
-        const QUARTER: i32 = 0x4000_0000;
+        const QUARTER: i32 = crate::ids::scale::QUARTER_TURN;
         let heading = v.heading();
         let off = |a: i32| {
             let d = heading.wrapping_sub(a) as u32;
@@ -1594,9 +1483,9 @@ const PACKER_AUTO: u8 = 0;
 
 const SNAP: i32 = 0x30;
 const SNAP_CENTRE: i32 = 0x18;
-const HALF_TILE: i32 = 0x60;
-const TILE: i32 = 0xc0;
-const CELL: i32 = 0x300;
+use crate::ids::scale::HALF_TILE;
+const TILE: i32 = crate::ids::scale::UNITS_PER_TILE;
+const CELL: i32 = crate::ids::scale::UNITS_PER_CELL;
 /// `Game::init_data@0058dca0`: `num_def_builds = 200`, the per-player
 /// building slot count, and the threshold `Objects::find_builds` compares
 /// its circle against.
@@ -3963,7 +3852,7 @@ impl Sim {
             && self.current_order(u).map(Order::index) == Some(index::GROUP_ATTACK_TO);
         let siege = self.units[u]
             .ty
-            .is_some_and(|ty| self.unit_types[ty].cols.flag(uflags::SIEGE));
+            .is_some_and(|ty| self.unit_types[ty].cols.flag(uflags::FLAG_SIEGE));
         if group_move
             && !siege
             && let Some(g) = self.group_of(u)
@@ -4032,7 +3921,7 @@ impl Sim {
             }
             let special = unit.ty.is_some_and(|t| {
                 let c = self.unit_types[t].cols;
-                c.flag2(uflags2::SUPPLY_OR_HERO) || c.flag2(uflags2::GENERAL)
+                c.flag2(uflags2::SUPPLY_OR_HERO) || c.flag2(uflags2::FLAG2_GENERAL)
             });
             if special {
                 continue;
@@ -5259,7 +5148,7 @@ impl Sim {
             let transport = self.units[u].ty.is_some_and(|ty| {
                 self.unit_types[ty]
                     .cols
-                    .flag(crate::ai_load::uflags::TRANSPORT)
+                    .flag(crate::ai_load::uflags::FLAG_TRANSPORT)
             });
             let water = self.world.tile_mask(Pos::new(qx >> 2, qy >> 2)) & tile::SURFACE
                 == tile::SURFACE_OCEAN;
@@ -5694,7 +5583,9 @@ impl Sim {
                         && let crate::combat::Obj::Building(_) = t
                     {
                         let siege = self.units[u].ty.is_some_and(|ty| {
-                            self.unit_types[ty].cols.flag(crate::ai_load::uflags::SIEGE)
+                            self.unit_types[ty]
+                                .cols
+                                .flag(crate::ai_load::uflags::FLAG_SIEGE)
                         });
                         if !(siege && self.ai_driven(self.units[u].owner))
                             && self.is_in_range(me, t)
@@ -5791,7 +5682,9 @@ impl Sim {
                             && self.units[u].phase(frame) % 16 == 0
                         {
                             let siege = self.units[u].ty.is_some_and(|ty| {
-                                self.unit_types[ty].cols.flag(crate::ai_load::uflags::SIEGE)
+                                self.unit_types[ty]
+                                    .cols
+                                    .flag(crate::ai_load::uflags::FLAG_SIEGE)
                             });
                             let word = if siege {
                                 crate::fight::search::BUILDINGS
@@ -5870,7 +5763,8 @@ impl Sim {
                         (self.units[u].pos.y - mo.dest.y).abs(),
                     );
                     let transport = self.units[u].ty.is_some_and(|t| {
-                        self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::TRANSPORT != 0
+                        self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT
+                            != 0
                     });
                     if d <= 0x480 && !transport {
                         self.repath(u);
@@ -5920,7 +5814,7 @@ impl Sim {
             self.unit_set_angle(u, facing);
             let at = self.units[u].movement.body.pos;
             self.set_new_location(u, at, true);
-            self.set_anim(u, crate::anim::PACK, false, true);
+            self.set_anim(u, crate::anim::ANIM_PACK, false, true);
             // A figure with no art has no length (`anim::UNKNOWN`): it
             // does not wait, where the original always has one.
             mo.retry = self.units[u]
@@ -5980,7 +5874,7 @@ impl Sim {
             // `do_move@005f7b30:437`: under a `TRADE_ROUTE` action, a
             // waypoint the road was laid on asks whether the road is still
             // there (`docs/CARAVAN.md` §10).
-            if top.flags & path_flag::ROAD != 0
+            if top.flags & path_flag::ROAD_LAID != 0
                 && self
                     .action_of(u)
                     .is_some_and(|i| self.units[u].orders[i].index() == index::TRADE_ROUTE)
@@ -6013,7 +5907,7 @@ impl Sim {
             {
                 let flagged = PathData {
                     tolerance: 0,
-                    flags: top.flags | path_flag::TRANSPORT,
+                    flags: top.flags | path_flag::BOARDS_TRANSPORT,
                     ..top
                 };
                 self.units[u].path.pop();
@@ -6262,10 +6156,10 @@ impl Sim {
                         // back with `flags |= 4`, tolerance kept — the walk
                         // to a shore the first plan marked still ends in a
                         // cast.
-                        if top.flags & path_flag::TRANSPORT != 0
+                        if top.flags & path_flag::BOARDS_TRANSPORT != 0
                             && let Some(mut next) = self.units[u].path.pop()
                         {
-                            next.flags |= path_flag::TRANSPORT;
+                            next.flags |= path_flag::BOARDS_TRANSPORT;
                             self.units[u].path.push(next);
                         }
                         mo.has_waypoint = false;
@@ -7386,7 +7280,7 @@ impl Sim {
             || {
                 let transport = unit
                     .ty
-                    .is_some_and(|t| self.unit_types[t].cols.flag(uflags::TRANSPORT));
+                    .is_some_and(|t| self.unit_types[t].cols.flag(uflags::FLAG_TRANSPORT));
                 (transport, self.coll_size(u))
             },
             self.tuning.boat_garrison_max_distance,
@@ -7846,9 +7740,9 @@ impl Sim {
         // (`−1, −1`) at the point it stands on at the swarm
         // (`00710520`/`007105a3`, item 1167, `docs/GOLDEN.md` §49).
         // SEAM: `BUILD_AT`'s clear of the site's `+0x60 & 0x2000`.
-        if self.spell_castable(spell::CIVILIAN, u) {
+        if self.spell_castable(spell::CAST_CIVILIAN, u) {
             let at = self.units[u].pos;
-            self.add_cast_order_on(u, spell::CIVILIAN, None, at, QueuePos::Last, action);
+            self.add_cast_order_on(u, spell::CAST_CIVILIAN, None, at, QueuePos::Last, action);
         }
         match body {
             Body::Repair(_) => self.add_repair_order(u, b, QueuePos::Last, action),
@@ -8382,7 +8276,7 @@ impl Sim {
     pub fn is_gather_type(&self, b: usize) -> bool {
         self.buildings[b]
             .ty
-            .is_some_and(|t| self.build_types[t].has(bflags::GATHER))
+            .is_some_and(|t| self.build_types[t].has(bflags::GATHERER))
     }
 
     /// `build_flags & FLAT`.
@@ -9949,7 +9843,7 @@ impl Sim {
     /// `change_target(1/8 → 1/7)`, the fishing boat in range.
     pub(crate) fn retarget_admits(&self, u: usize, c: Obj) -> bool {
         let combat = self.profile(c).combat_role;
-        if self.units[u].unit_masks2 & combat::umask2::BARK == 0 {
+        if self.units[u].unit_masks2 & combat::umask2::MASK2_BARK == 0 {
             return combat;
         }
         let n = match c {
@@ -10164,7 +10058,7 @@ impl Sim {
         let who = self.units[u].owner;
         let siege = self.units[u]
             .ty
-            .is_some_and(|ty| self.unit_types[ty].cols.flag(uflags::SIEGE));
+            .is_some_and(|ty| self.unit_types[ty].cols.flag(uflags::FLAG_SIEGE));
         let city = self.buildings[b]
             .city
             .is_some_and(|c| self.cities[c].building == b);
@@ -11089,7 +10983,7 @@ impl DoRepairView for SimDoRepair<'_> {
         // §5.6's first line, and unlike `do_build`'s it is **ahead of every
         // gate**: a repairer is put on `CHAR_REPAIR` even on the frame the
         // order dies. Same reason as `do_build`'s (`docs/ANIM.md` §4.6).
-        self.s.set_anim(self.u, anim::REPAIR, false, true);
+        self.s.set_anim(self.u, anim::ANIM_REPAIR, false, true);
     }
     fn site_damage(&mut self) -> i32 {
         self.s.buildings[self.b].damage
@@ -11593,10 +11487,10 @@ pub fn do_gather_steps<V: DoGatherView>(v: &mut V) {
         if !v.site_counted() {
             v.bump_site_counter();
         }
-        if v.cur_anim() == i32::from(anim::FARM) {
+        if v.cur_anim() == i32::from(anim::ANIM_FARM) {
             return;
         }
-        v.set_anim(i32::from(anim::FARM));
+        v.set_anim(i32::from(anim::ANIM_FARM));
         v.face_east();
         let (sx, sy) = v.site_pos();
         v.set_new_location(sx.wrapping_add(OILWELL_OFFSET), sy);

@@ -113,8 +113,8 @@ const SLOTS: &[(&str, i8)] = &[
     ("CHAR_DEATH_SPLODED2", sim::anim::DEATH_SPLODED2),
     ("CHAR_TURN_LEFT", sim::anim::TURN_LEFT),
     ("CHAR_TURN_RIGHT", sim::anim::TURN_RIGHT),
-    ("CHAR_PACK", sim::anim::PACK),
-    ("CHAR_UNPACK", sim::anim::UNPACK),
+    ("CHAR_PACK", sim::anim::ANIM_PACK),
+    ("CHAR_UNPACK", sim::anim::ANIM_UNPACK),
     ("CHAR_CHOP_WOOD", sim::anim::CHOP_WOOD),
     ("CHAR_WALK_WITH_WOOD", sim::anim::WALK_WITH_WOOD),
     ("CHAR_DUMP_WOOD", sim::anim::DUMP_WOOD),
@@ -124,10 +124,10 @@ const SLOTS: &[(&str, i8)] = &[
     ("CHAR_DUMP_ORE", sim::anim::DUMP_ORE),
     ("CHAR_WALK_TO_ORE", sim::anim::WALK_TO_ORE),
     ("CHAR_BUILD", sim::anim::BUILD),
-    ("CHAR_REPAIR", sim::anim::REPAIR),
+    ("CHAR_REPAIR", sim::anim::ANIM_REPAIR),
     ("CHAR_SOW", sim::anim::SOW),
     ("CHAR_REAP", sim::anim::REAP),
-    ("CHAR_FARM", sim::anim::FARM),
+    ("CHAR_FARM", sim::anim::ANIM_FARM),
 ];
 
 /// The `<UNIT name="…">` prefix of each gaia `TypeIndex`, in the order the
@@ -290,7 +290,7 @@ pub const OVER_TIME: [&str; 6] = [
 ];
 
 /// `total_num_unit_pieces`, the first index past the unit pieces.
-pub const TOTAL_UNIT_PIECES: i32 = 0xc606;
+pub use sim::anim::TOTAL_UNIT_PIECES;
 
 /// Every piece a `<UNIT>` entry is: an "over time" name's one index
 /// ([`OVER_TIME`]), or the arithmetic's for each `TypeIndex` that plays

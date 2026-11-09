@@ -200,7 +200,7 @@ impl RemoveInsideView for SimRemoveInside<'_> {
         self.sim.units[self.unit].ty.is_some_and(|t| {
             self.sim.unit_types[t]
                 .cols
-                .flag2(crate::ai_load::uflags2::SCOUT)
+                .flag2(crate::ai_load::uflags2::FLAG2_SCOUT)
         })
     }
     fn has_tribe_bonus(&mut self, id: i32) -> bool {

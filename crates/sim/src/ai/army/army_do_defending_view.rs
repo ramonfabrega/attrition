@@ -22,17 +22,17 @@
 //! value is unestablished.
 
 /// `Army::count`'s first argument.
-pub const COUNT_ATTACK: i32 = 2;
+pub use crate::ids::count::COUNT_ATTACK;
 /// `ObjectsData::find_city`'s search index: friendly cities.
-pub const SEARCH_FRIENDLY: i32 = 1;
+pub use crate::ids::search::SEARCH_FRIENDLY;
 /// The status bits this walk touches.
-pub const MARCHING: u32 = 0x02;
+const MARCHING: u32 = crate::ids::army_status::MARCHING as u32;
 /// Cleared at entry.
-pub const MARCHED: u32 = 0x04;
+const MARCHED: u32 = crate::ids::army_status::MARCHED as u32;
 /// Set when the army has somewhere to muster.
-pub const FORMING: u32 = 0x10;
+const FORMING: u32 = crate::ids::army_status::FORMING as u32;
 /// Cleared whenever the army has a target or a city.
-pub const DEFENDING: u32 = 0x20;
+const DEFENDING: u32 = crate::ids::army_status::DEFENDING as u32;
 
 /// What `Army::do_defending` asks of the army, the object and city tables
 /// and its callees.

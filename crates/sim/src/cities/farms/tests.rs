@@ -235,7 +235,7 @@ fn a_finished_pasture_stocks_five_animals_for_twenty_draws() {
         ident: Ident::Farm,
         x_size: 3,
         y_size: 3,
-        flags: build::flags::FLAT | build::flags::GATHER,
+        flags: build::flags::FLAT | build::flags::GATHERER,
         job_time: 100,
         hits: 500,
         ..build::BuildType::default()
@@ -359,7 +359,7 @@ fn think_farm_animal_s_phase_and_its_covers_tile() {
     // farm, `been_there` clear — leaves the reference on the **farm**,
     // which covers its own tile, so the draw is spent.
     s.frame = 0;
-    s.build_types[s.buildings[b].ty.unwrap()].flags |= build::flags::GATHER;
+    s.build_types[s.buildings[b].ty.unwrap()].flags |= build::flags::GATHERER;
     let citizen = s.add_unit_type(crate::UnitType {
         hits: 10,
         worker: crate::orders::Worker::Citizen,

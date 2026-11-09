@@ -29,18 +29,7 @@
 
 /// `SpellType` rows this function names.
 pub mod craft {
-    /// Bribe.
-    pub const BRIBE: i32 = 0x275;
-    /// Pilfer.
-    pub const PILFER: i32 = 0x276;
-    /// Counterintelligence.
-    pub const COUNTERINTEL: i32 = 0x277;
-    /// Informer.
-    pub const INFORMER: i32 = 0x27f;
-    /// Sabotage.
-    pub const SABOTAGE: i32 = 0x280;
-    /// Sniper.
-    pub const SNIPER: i32 = 0x281;
+    pub use crate::ids::spell::{BRIBE, COUNTERINTEL, INFORMER, PILFER, SABOTAGE, SNIPER};
 }
 
 /// `TypeIndex` rows the `is(type, 0)` tests ask.

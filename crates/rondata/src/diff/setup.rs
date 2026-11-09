@@ -1175,7 +1175,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             sim.world
                 .goods()
                 .iter()
-                .filter(|g| g.ty != sim::world::OIL)
+                .filter(|g| g.ty != sim::world::OIL_GOOD)
                 .count(),
             if unknown.is_empty() {
                 String::new()

@@ -440,7 +440,15 @@ fn blank_tests(src: &mut [u8]) {
             i += semi + 1;
             continue;
         }
-        match src[i..].iter().position(|&b| b == b'{') {
+        // A bodiless test-only item (`#[cfg(test)] const X: T = 0x3f;`) ends
+        // at its `;`: reading on to the next `{` would blank whatever
+        // production item follows it (item 4013: `Army`, once the module
+        // that used to follow `army`'s test-only constant moved away).
+        match src[i..].iter().position(|&b| b == b'{' || b == b';') {
+            Some(off) if src[i + off] == b';' => {
+                blank(src, i, i + off);
+                i += off + 1;
+            }
             Some(off) => {
                 let open = i + off;
                 let close = close_brace(src, open);

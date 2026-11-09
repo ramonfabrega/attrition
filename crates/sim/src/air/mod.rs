@@ -653,7 +653,7 @@ impl Sim {
     /// `unit_flags & 0x20`, "flies like a helicopter" (`ai_load::uflags`).
     pub(crate) fn is_helicopter(&self, u: usize) -> bool {
         self.units[u].ty.is_some_and(|t| {
-            self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::HELICOPTER != 0
+            self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_HELICOPTER != 0
         })
     }
 

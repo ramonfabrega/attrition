@@ -17,7 +17,7 @@ fn sim() -> Sim {
     s
 }
 
-/// Every hand-built combatant carries `role::MILITARY`, which is what
+/// Every hand-built combatant carries `role::ROLE_MILITARY`, which is what
 /// `UnitTypeData::get_stance_type` keys on — for a type loaded from the
 /// install `ai_load` derives it from the same facts the original does.
 fn fighter(sim: &mut Sim) -> usize {
@@ -30,7 +30,7 @@ fn fighter(sim: &mut Sim) -> usize {
         },
         ..UnitType::default()
     };
-    t.cols.role |= role::MILITARY;
+    t.cols.role |= role::ROLE_MILITARY;
     sim.add_unit_type(t)
 }
 
@@ -48,9 +48,9 @@ fn flier(sim: &mut Sim, helicopter: bool) -> usize {
         ..UnitType::default()
     };
     if helicopter {
-        t.cols.unit_flags |= uflags::HELICOPTER;
+        t.cols.unit_flags |= uflags::FLAG_HELICOPTER;
     }
-    t.cols.role |= role::MILITARY;
+    t.cols.role |= role::ROLE_MILITARY;
     sim.add_unit_type(t)
 }
 
@@ -661,7 +661,7 @@ fn siege_type(sim: &mut Sim) -> usize {
         },
         ..UnitType::default()
     };
-    t.cols.role |= role::MILITARY;
+    t.cols.role |= role::ROLE_MILITARY;
     sim.add_unit_type(t)
 }
 
@@ -698,7 +698,7 @@ fn typed(sim: &mut Sim, obj_masks: u32, max_range: i32) -> usize {
         },
         ..UnitType::default()
     };
-    t.cols.role |= role::MILITARY;
+    t.cols.role |= role::ROLE_MILITARY;
     sim.add_unit_type(t)
 }
 
@@ -725,15 +725,21 @@ fn find_leader_takes_the_lowest_type_cat_and_ties_to_the_first() {
     let mounted = typed(&mut s, mask::MOUNTED, 0);
     let mech = typed(&mut s, mask::VEHICLE, 0);
     let human = s.nation[1].human;
-    assert_eq!(type_cat(&s.unit_types[mech], mech, human), cat::MECH);
+    assert_eq!(
+        type_cat(&s.unit_types[mech], mech, human),
+        cat::FORM_CAT_MECH
+    );
     assert_eq!(
         type_cat(&s.unit_types[mounted], mounted, human),
-        cat::MOUNTED
+        cat::FORM_CAT_MOUNTED
     );
-    assert_eq!(type_cat(&s.unit_types[foot], foot, human), cat::FOOT);
+    assert_eq!(
+        type_cat(&s.unit_types[foot], foot, human),
+        cat::FORM_CAT_FOOT
+    );
     assert_eq!(
         type_cat(&s.unit_types[archer], archer, human),
-        cat::FOOT_RANGED
+        cat::FORM_CAT_FOOT_RANGED
     );
 
     let at = |s: &mut Sim, t: usize, n: i32| spawn(s, 1, t, Pos::new(0x1000 + n * 0x80, 0x1000));
@@ -893,7 +899,7 @@ fn compute_form_negates_the_offsets_when_the_bearing_opposes_the_angle() {
                 },
                 ..UnitType::default()
             };
-            t.cols.role |= role::MILITARY;
+            t.cols.role |= role::ROLE_MILITARY;
             s.add_unit_type(t)
         };
         let slot = s.init_army(1, None);
@@ -2866,7 +2872,7 @@ fn action_halt_skips_the_dead_the_absent_and_planes_and_the_mask_exempts_special
         hits: 100,
         ..UnitType::default()
     };
-    scout.cols.unit_flags2 |= uflags2::SCOUT;
+    scout.cols.unit_flags2 |= uflags2::FLAG2_SCOUT;
     let scout = s.add_unit_type(scout);
     let ground = spawn(&mut s, 1, foot, Pos::new(0x1000, 0x1000));
     let dead = spawn(&mut s, 1, foot, Pos::new(0x1100, 0x1000));
@@ -3108,7 +3114,7 @@ fn a_hero_with_the_supply_bit_is_the_anchor_before_a_later_wagon() {
     let citizen = s.add_unit_type(UnitType {
         hits: 100,
         cols: crate::ai_load::UnitCols {
-            unit_flags2: uflags2::SUPPLY_OR_HERO | uflags2::GENERAL,
+            unit_flags2: uflags2::SUPPLY_OR_HERO | uflags2::FLAG2_GENERAL,
             ..crate::ai_load::UnitCols::default()
         },
         ..UnitType::default()
@@ -3911,12 +3917,12 @@ fn the_stance_type_is_decided_by_the_military_role_first() {
             "an attack alone is not military",
         ),
         (
-            base(role::MILITARY, uflags2::CASTER, false, 15),
+            base(role::ROLE_MILITARY, uflags2::CASTER, false, 15),
             StanceType::Combat,
             "a military caster is combat",
         ),
         (
-            base(role::MILITARY, 0, true, 15),
+            base(role::ROLE_MILITARY, 0, true, 15),
             StanceType::Packer,
             "a military packer packs",
         ),
@@ -3926,7 +3932,7 @@ fn the_stance_type_is_decided_by_the_military_role_first() {
             "a civilian packer has no stance",
         ),
         (
-            base(role::CITIZEN, 0, false, 0),
+            base(role::ROLE_CITIZEN, 0, false, 0),
             StanceType::Worker,
             "a citizen works",
         ),

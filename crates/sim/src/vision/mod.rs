@@ -23,11 +23,11 @@ use crate::movement::{cos_component, sin_component};
 use crate::world::{Pos, vector_dist};
 use std::sync::OnceLock;
 
+/// A fog cell in position units: half a world cell.
+pub use crate::ids::scale::UNITS_PER_FOG;
 /// A tile in position units — `TCoord`'s scale, and what `<LOS>` is measured
 /// in.
-const UNITS_PER_TILE: i32 = 0xc0;
-/// A fog cell in position units: half a world cell.
-pub const UNITS_PER_FOG: i32 = 0x180;
+use crate::ids::scale::UNITS_PER_TILE;
 /// `Object::update_seen`'s cap on the radius, in fog cells.
 const MAX_RADIUS: i32 = 0x40;
 /// `ring_init`'s last ring, and the ring branch's own clamp.
@@ -231,7 +231,7 @@ impl Sim {
         // A hero sees `GENERAL_UPGRADE_LOS` more per General upgrade
         // (`0060e8a3`..`0060e8db`): the coverage pair's General `1/150`
         // prints 14 on its type's 8 (`docs/AI.md` §172).
-        if ty.cols.flag2(uflags2::GENERAL) {
+        if ty.cols.flag2(uflags2::FLAG2_GENERAL) {
             los += self.general_upgrade_level(unit.owner) * self.tuning.general_upgrade_los;
         }
         // The last word: a decoy (`unit_masks & 1`) sees one tile

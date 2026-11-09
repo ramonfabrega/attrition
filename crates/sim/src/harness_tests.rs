@@ -2246,7 +2246,7 @@ fn a_military_unit_is_priced_by_its_research_until_owned_then_at_the_military_di
                 .with_support(economy::Resource::Metal, 1)
         },
         cols: crate::ai_load::UnitCols {
-            role: crate::ai_load::role::MILITARY,
+            role: crate::ai_load::role::ROLE_MILITARY,
             research_premium_cost: 512,
             ..crate::ai_load::UnitCols::default()
         },
@@ -4306,7 +4306,11 @@ fn an_unpack_brings_the_units_angle_to_guy_zero_s_and_the_crew_with_it() {
         facing,
         "and the tracked figure's des_angle follows it"
     );
-    assert_eq!(sim.units[unit].guys[0].anim, anim::UNPACK, "and unpacks");
+    assert_eq!(
+        sim.units[unit].guys[0].anim,
+        anim::ANIM_UNPACK,
+        "and unpacks"
+    );
 }
 
 /// **A Monarch halves a siege unit's unpack** (item 3390, `docs/AI.md`
@@ -4335,7 +4339,7 @@ fn a_monarch_halves_a_siege_unit_s_unpack() {
         sim.seat_guys(unit);
         sim.units[unit].combat.packed = true;
         let hero = sim.add_unit_type(crate::UnitType::default());
-        sim.unit_types[hero].cols.unit_flags2 = crate::ai_load::uflags2::GENERAL;
+        sim.unit_types[hero].cols.unit_flags2 = crate::ai_load::uflags2::FLAG2_GENERAL;
         let mut m = Unit::new(0, 1, monarch_at, 20);
         m.ty = Some(hero);
         m.type_index = 0x162;
@@ -4390,7 +4394,7 @@ fn a_pack_brings_the_units_angle_to_guy_zero_s_too() {
         sim.units[unit].movement.heading, sim.units[unit].movement.facing,
         "the unit's angle is guy 0's"
     );
-    assert_eq!(sim.units[unit].guys[0].anim, anim::PACK, "and packs");
+    assert_eq!(sim.units[unit].guys[0].anim, anim::ANIM_PACK, "and packs");
 }
 
 /// **Three of the six resources are not available from the start, and until

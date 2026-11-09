@@ -474,7 +474,7 @@ impl PlunderView for SimPlunder<'_> {
         self.sim.units[self.v].ty.is_some_and(|t| {
             self.sim.unit_types[t]
                 .cols
-                .flag2(crate::ai_load::uflags2::CARAVAN)
+                .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
         })
     }
     fn patch_version(&mut self) -> i32 {

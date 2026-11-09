@@ -156,9 +156,9 @@ pub trait DetectCollisionView {
 
 /// `Domain` of the type record.
 pub const DOMAIN_SEA: i32 = 1;
-pub const DOMAIN_AIR: i32 = 2;
+pub use crate::ids::domain::DOMAIN_AIR;
 /// `UnitData::action_type` / `get_type` values the walk tests.
-pub const ACTION_ATTACK: i32 = 10;
+const ACTION_ATTACK: i32 = crate::ids::order::ATTACK as i32;
 pub const ACTION_GUARD: i32 = 0xc;
 pub const ACTION_CAST: i32 = 0xe;
 pub const ACTION_TRADE_ROUTE: i32 = 0xf;

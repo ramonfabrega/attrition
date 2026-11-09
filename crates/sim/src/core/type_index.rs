@@ -15,7 +15,7 @@
 //!   `Roles` bonus tables index off;
 //! - [`is_gov_hero_type`]: the six government patriots, `UnitTraits::patriot`;
 //! - [`is_specialty_type`]: the two units whose `type` the flamethrower and
-//!   mech-infantry rules key on (`role::FLAMETHROWER`);
+//!   mech-infantry rules key on (`role::IS_FLAMETHROWER`);
 //! - [`is_item_type`], [`is_wonder_type`], [`is_gaia_type`], [`is_good_type`]
 //!   (item 1705): the blocks `TypeIndex` names around the units and
 //!   buildings — goods below `0x32`, gaia's `0x192..=0x19d` tail of the unit

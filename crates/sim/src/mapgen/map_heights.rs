@@ -60,12 +60,7 @@ const BYTE_MAX: Single = Single(0x437f_0000);
 /// The `CoordInfo` codes `TerrainOut::get_vert_codes@0086bf70` ORs from a
 /// vertex's cells (`param_3 == 0`).
 pub mod code {
-    /// `OCEAN`: the sea floor's arm.
-    pub const OCEAN: u16 = 0x1000;
-    /// `NONE`, HALFLAND or 0x400: zero.
-    pub const HALF: u16 = 0x4;
-    /// A mountain cell, which `adjust_for_mountains` marks: 100.
-    pub const MOUNTAIN: u16 = 0x2;
+    pub use crate::ids::coord::{GATE_HALF, MOUNTAIN_VERT, OCEAN};
 }
 
 /// The arms a map can enter that are not built.
@@ -260,10 +255,10 @@ fn vertex_height(
     if codes & code::OCEAN != 0 {
         return SEA_FLOOR.addss(LAND_HEIGHT).mulss(ONE);
     }
-    if codes & code::HALF != 0 {
+    if codes & code::GATE_HALF != 0 {
         return Single::ZERO;
     }
-    if codes & code::MOUNTAIN != 0 {
+    if codes & code::MOUNTAIN_VERT != 0 {
         return BANK;
     }
     let h = Single::from_i32(i32::from(a.get_height(x, y)))
@@ -457,7 +452,7 @@ pub fn valid_coastal_influencers(
             }
             // n: NW, N, NE, E, SE, S, SW, W.
             let c = |k: usize| n[k] & coord::COASTAL != 0;
-            let h = |k: usize| n[k] & coord::HALF != 0;
+            let h = |k: usize| n[k] & coord::GATE_HALF != 0;
             let bend = (c(1) && c(7) && h(0))
                 || (c(1) && c(3) && h(2))
                 || (c(5) && c(7) && h(6))

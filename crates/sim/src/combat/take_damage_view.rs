@@ -198,7 +198,7 @@ fn notice<V: TakeDamageHead>(v: &mut V, p7: i32, p8: i32) {
 /// `ObjectData` type test the building arm asks of the attacker.
 pub const IS_ATTACKER_WALL: i32 = 0x42;
 /// The city's flags `+4`: the alarm bell is rung.
-pub const CITY_BELL: i32 = 0x40;
+pub use crate::ids::city_flag::CITY_BELL;
 /// What a hit marks on the city it strikes: under attack, attacking, ever
 /// attacked.
 pub const CITY_STRUCK: i32 = 0xe;

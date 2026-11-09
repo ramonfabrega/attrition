@@ -22,7 +22,7 @@ pub const COUNT_DECOYS: i32 = 6;
 /// The casters.
 pub const COUNT_CASTERS: i32 = 5;
 /// The non-decoy types (the supply wagon `0x3f`, the AA gun `0x119`).
-pub const COUNT_NON_DECOY_TYPE: i32 = 19;
+pub use crate::ids::count::COUNT_NON_DECOY_TYPE;
 
 /// What `Army::normalize` asks of the army, the groups and the units.
 pub trait ArmyNormalizeView {

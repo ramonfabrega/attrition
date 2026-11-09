@@ -410,7 +410,7 @@ impl Sim {
         if build::is_city(&self.build_types, rec) {
             return None;
         }
-        let gather = bt.has(flags::GATHER);
+        let gather = bt.has(flags::GATHERER);
         if (pass == 1) != gather {
             return None;
         }
@@ -957,7 +957,7 @@ impl Sim {
                 let head_gather = matches!(self.type_class(ht), Class::Build)
                     && self
                         .build_record(ht)
-                        .is_some_and(|r| self.build_types[r].has(flags::GATHER));
+                        .is_some_and(|r| self.build_types[r].has(flags::GATHERER));
                 if !head_gather {
                     let mine = gather_good(ident);
                     for g in 0..RESOURCES {

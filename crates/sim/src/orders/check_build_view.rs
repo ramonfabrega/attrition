@@ -81,11 +81,11 @@ pub trait CheckBuildView {
 }
 
 /// `get_type` of `MOVE_TO`.
-pub const MOVE_TO: i32 = 1;
+const MOVE_TO: i32 = crate::ids::order::MOVE_TO as i32;
 /// `get_type` of `EXPLORE_TO`.
-pub const EXPLORE_TO: i32 = 3;
+const EXPLORE_TO: i32 = crate::ids::order::EXPLORE_TO as i32;
 /// `get_type` of `BUILD_AT`.
-pub const BUILD_AT: i32 = 6;
+const BUILD_AT: i32 = crate::ids::order::BUILD_AT as i32;
 
 /// `Unit::check_build_order`: scan, then re-add.
 pub fn check_build_order_steps<V: CheckBuildView + ?Sized>(v: &mut V) {

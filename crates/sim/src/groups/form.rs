@@ -64,41 +64,41 @@ pub const NUM_FORM_CAT: usize = 18;
 /// `FormData::type_cat` returns only eight of the eighteen — 0, 2, 3, 4, 5,
 /// 6, 8 and 10 — so the naval, sail and air categories are declared and
 /// never produced, and four of the `_RANGED` variants are unreachable. The
-/// ninth value that can occur is [`cat::COMMAND_RANGED`], and only as the
+/// ninth value that can occur is [`cat::FORM_CAT_COMMAND_RANGED`], and only as the
 /// commander fold's fallback in a group of nothing but commanders.
 pub mod cat {
-    pub const MECH: usize = 0;
-    pub const MECH_RANGED: usize = 1;
-    pub const MOUNTED: usize = 2;
-    pub const FOOT: usize = 3;
-    pub const FOOT_RANGED: usize = 4;
-    pub const MOUNTED_RANGED: usize = 5;
-    pub const ARTILLERY: usize = 6;
-    pub const ARTILLERY_RANGED: usize = 7;
-    pub const COMMAND: usize = 8;
-    pub const COMMAND_RANGED: usize = 9;
-    pub const CIVILIAN: usize = 10;
-    pub const CIVILIAN_RANGED: usize = 11;
-    pub const SAIL: usize = 12;
-    pub const SAIL_RANGED: usize = 13;
-    pub const NAVAL: usize = 14;
-    pub const NAVAL_RANGED: usize = 15;
-    pub const AIR: usize = 16;
-    pub const AIR_RANGED: usize = 17;
+    pub const FORM_CAT_MECH: usize = 0;
+    pub const FORM_CAT_MECH_RANGED: usize = 1;
+    pub const FORM_CAT_MOUNTED: usize = 2;
+    pub const FORM_CAT_FOOT: usize = 3;
+    pub const FORM_CAT_FOOT_RANGED: usize = 4;
+    pub const FORM_CAT_MOUNTED_RANGED: usize = 5;
+    pub const FORM_CAT_ARTILLERY: usize = 6;
+    pub const FORM_CAT_ARTILLERY_RANGED: usize = 7;
+    pub const FORM_CAT_COMMAND: usize = 8;
+    pub const FORM_CAT_COMMAND_RANGED: usize = 9;
+    pub const FORM_CAT_CIVILIAN: usize = 10;
+    pub const FORM_CAT_CIVILIAN_RANGED: usize = 11;
+    pub const FORM_CAT_SAIL: usize = 12;
+    pub const FORM_CAT_SAIL_RANGED: usize = 13;
+    pub const FORM_CAT_NAVAL: usize = 14;
+    pub const FORM_CAT_NAVAL_RANGED: usize = 15;
+    pub const FORM_CAT_AIR: usize = 16;
+    pub const FORM_CAT_AIR_RANGED: usize = 17;
     /// `NUM_FORM_CAT` — the PDB's own end marker, and `find_leader`'s
     /// starting key (`docs/GROUPS.md` §4.4).
-    pub const NUM: usize = 18;
+    pub const FORM_CAT_NUM: usize = 18;
 }
 
 /// The ten formations `rules.xml` lists, in document order — the index is
 /// `FormData::form` and `Forms::init@0072e9a0` errors unless there are ten.
 pub mod formation {
     pub const LINE: i32 = 0;
-    pub const REFUSED: i32 = 1;
+    pub const FORMATION_REFUSED: i32 = 1;
     pub const ENVELOP: i32 = 2;
     pub const ECHELON_RIGHT: i32 = 3;
     pub const ECHELON_LEFT: i32 = 4;
-    pub const SPARSE: i32 = 5;
+    pub const FORMATION_SPARSE: i32 = 5;
     /// Dead in the shipped executable — see the module docs.
     pub const SQUARE: i32 = 6;
     pub const WEDGE: i32 = 7;
@@ -206,44 +206,44 @@ pub fn type_cat(t: &UnitType, index: usize, human: bool) -> usize {
     // hero, is not a caravan, and is not one of the three traders.
     let armed = p.attack != 0
         && !t.cols.flag2(uflags2::SUPPLY_OR_HERO)
-        && !t.cols.flag2(uflags2::CARAVAN)
+        && !t.cols.flag2(uflags2::FLAG2_CARAVAN)
         && !TRADER_IDS.contains(&index);
     if armed {
         if p.obj_masks & mask::CIVILIAN != 0 {
-            return cat::CIVILIAN;
+            return cat::FORM_CAT_CIVILIAN;
         }
         if p.obj_masks & mask::FOOT != 0 {
             // `+0x1fc max_range != 0` is the ranged discriminator, and it is
             // the *stored* one — `FLAGS k` has already zeroed a cavalry
             // archer's (`ai_load::RoleFacts::max_range`).
-            return cat::FOOT + usize::from(p.max_range != 0);
+            return cat::FORM_CAT_FOOT + usize::from(p.max_range != 0);
         }
         if t.cols.flag2(uflags2::PACKS) || p.obj_masks & mask::ANTI_AIR != 0 {
-            return cat::ARTILLERY;
+            return cat::FORM_CAT_ARTILLERY;
         }
         if p.obj_masks & mask::MOUNTED != 0 {
             return if p.max_range != 0 && human {
-                cat::MOUNTED_RANGED
+                cat::FORM_CAT_MOUNTED_RANGED
             } else {
-                cat::MOUNTED
+                cat::FORM_CAT_MOUNTED
             };
         }
         return if p.obj_masks & mask::VEHICLE != 0 {
-            cat::MECH
+            cat::FORM_CAT_MECH
         } else {
-            cat::ARTILLERY
+            cat::FORM_CAT_ARTILLERY
         };
     }
     // The tail: a general or a supply/hero lineage is artillery, and
     // everything else is a commander unless the `CIVILIAN` mask says
     // otherwise. `uflags2 & 0x60` is `ai_load::uflags2::SPECIAL_FORCES`.
     if t.cols.flag2(uflags2::SPECIAL_FORCES) {
-        return cat::ARTILLERY;
+        return cat::FORM_CAT_ARTILLERY;
     }
     if p.obj_masks & mask::CIVILIAN != 0 {
-        cat::CIVILIAN
+        cat::FORM_CAT_CIVILIAN
     } else {
-        cat::COMMAND
+        cat::FORM_CAT_COMMAND
     }
 }
 
@@ -417,12 +417,12 @@ impl Sim {
         // `+0xd1c != 0` injects a phantom artillery member — this is what
         // `action_guard` reserves the escorted unit's rank with.
         if f.guarding {
-            f.num_category[cat::ARTILLERY] += 1;
-            f.x_spacing[cat::ARTILLERY] = 0xc0;
-            f.y_spacing[cat::ARTILLERY] = 0x180;
+            f.num_category[cat::FORM_CAT_ARTILLERY] += 1;
+            f.x_spacing[cat::FORM_CAT_ARTILLERY] = 0xc0;
+            f.y_spacing[cat::FORM_CAT_ARTILLERY] = 0x180;
         }
         let human = self.nation.get(f.who as usize).is_some_and(|n| n.human);
-        let mut biggest = cat::COMMAND;
+        let mut biggest = cat::FORM_CAT_COMMAND;
         let mut biggest_count = 0;
         let mut leader: Option<usize> = None;
         let mut leader_cat = NUM_FORM_CAT;
@@ -433,7 +433,7 @@ impl Sim {
                 }
                 let Some(t) = self.units[u].ty else { continue };
                 let c = type_cat(&self.unit_types[t], t, human);
-                if (c == cat::COMMAND) != commanders {
+                if (c == cat::FORM_CAT_COMMAND) != commanders {
                     continue;
                 }
                 let c = if commanders {
@@ -442,7 +442,7 @@ impl Sim {
                     // the first non-empty category, and settles on
                     // `biggest + 1` itself when there is none.
                     if f.form == formation::SQUARE {
-                        cat::COMMAND
+                        cat::FORM_CAT_COMMAND
                     } else {
                         let start = biggest + 1;
                         (start..NUM_FORM_CAT)
@@ -570,14 +570,14 @@ impl Sim {
             // ranged, mounted, mounted ranged, mech, mech ranged,
             // artillery, artillery ranged, then the first non-empty.
             const PREFERENCE: [usize; 8] = [
-                cat::FOOT,
-                cat::FOOT_RANGED,
-                cat::MOUNTED,
-                cat::MOUNTED_RANGED,
-                cat::MECH,
-                cat::MECH_RANGED,
-                cat::ARTILLERY,
-                cat::ARTILLERY_RANGED,
+                cat::FORM_CAT_FOOT,
+                cat::FORM_CAT_FOOT_RANGED,
+                cat::FORM_CAT_MOUNTED,
+                cat::FORM_CAT_MOUNTED_RANGED,
+                cat::FORM_CAT_MECH,
+                cat::FORM_CAT_MECH_RANGED,
+                cat::FORM_CAT_ARTILLERY,
+                cat::FORM_CAT_ARTILLERY_RANGED,
             ];
             let mut wedge = *PREFERENCE.last().expect("PREFERENCE is not empty");
             for &c in &PREFERENCE {
@@ -746,12 +746,12 @@ impl Sim {
                         x += w / 2;
                     }
                     // And these categories stagger their odd rows.
-                    if (c < 3 || c == cat::ARTILLERY || c > 11) && row % 2 != 0 {
+                    if (c < 3 || c == cat::FORM_CAT_ARTILLERY || c > 11) && row % 2 != 0 {
                         x += w / 2;
                     }
                     let base = -k * row * f.y_spacing[c];
                     let y = match f.form {
-                        formation::REFUSED => base - x.abs(),
+                        formation::FORMATION_REFUSED => base - x.abs(),
                         formation::ENVELOP => base + x.abs(),
                         formation::ECHELON_LEFT if f.reverse => base - x,
                         formation::ECHELON_LEFT => base + x,
@@ -798,7 +798,7 @@ impl Sim {
             if prev == Some(c) && slot == 0 {
                 anchor_x = x;
                 anchor_y = y;
-                if f.guarding && c == cat::ARTILLERY {
+                if f.guarding && c == cat::FORM_CAT_ARTILLERY {
                     anchor_x = 0;
                     anchor_y = 0;
                 }
@@ -831,7 +831,7 @@ impl Sim {
                 } else {
                     prev = Some(c2);
                 }
-                if c2 < cat::ARTILLERY {
+                if c2 < cat::FORM_CAT_ARTILLERY {
                     shift -= ((2 * rank - 1) * depth * k) / 2;
                 }
             }
@@ -880,7 +880,7 @@ impl Sim {
         // The last captain's own `x`, before the anchor slide.
         let lean = f.off[last_cap].0;
         let dy = match f.form {
-            formation::REFUSED => match lean.cmp(&0) {
+            formation::FORMATION_REFUSED => match lean.cmp(&0) {
                 std::cmp::Ordering::Greater => -dx,
                 std::cmp::Ordering::Equal => -dx.abs(),
                 std::cmp::Ordering::Less => dx,

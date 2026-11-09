@@ -353,7 +353,7 @@ fn oil_is_not_a_good_a_fisherman_can_see() {
     let at = s.units[u].pos;
     s.world.add_good(crate::world::Good {
         pos: at,
-        ty: OIL,
+        ty: OIL_GOOD,
         alive: true,
     });
     assert!(s.find_good_at(at.cell(), 1).is_none());

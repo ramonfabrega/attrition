@@ -31,7 +31,7 @@ fn airbase_and_helicopter() -> (Sim, usize, usize) {
         },
         ..UnitType::default()
     };
-    t.cols.unit_flags |= crate::ai_load::uflags::HELICOPTER;
+    t.cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
     let ty = s.add_unit_type(t);
     s.unit_types[ty].tree = Some(crate::airbase::HELICOPTER);
     s.unit_types[ty].garrison.trained_at = Some(airbase);

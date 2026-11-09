@@ -32,7 +32,7 @@ pub use crate::garrison_view::{GarrisonHead, garrison_head};
 /// The key the original xors into every stored coordinate.
 pub const POS_KEY: i32 = 0x63637;
 /// `GroupData::count`'s kinds, as the listing pushes them.
-pub const COUNT_TYPE: i32 = 0x11;
+pub use crate::ids::count::COUNT_TYPE;
 /// The type the scholar branch counts.
 pub const TYPE_SCHOLAR_COUNT: i32 = 0x34;
 /// The spiral's last usable step is `SPIRAL_STEPS - 1`; the next hands the rest over.

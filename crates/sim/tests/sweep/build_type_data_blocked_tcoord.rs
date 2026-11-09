@@ -158,7 +158,7 @@ impl TcoordView for Emu<'_> {
     }
     fn gathers(&mut self) -> bool {
         if self.a[52] != 0 {
-            return self.flags() & flags::GATHER != 0;
+            return self.flags() & flags::GATHERER != 0;
         }
         self.log.push("s3:m+0x0".to_string());
         self.ans(3, 34, 1) != 0

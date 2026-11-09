@@ -48,12 +48,18 @@ fn get_stance_type_tests_military_before_everything_else() {
     assert_eq!(stance_type(0, 0, 0x36), StanceType::None);
     assert_eq!(stance_type(0, 0, 0x31), StanceType::None);
     // Military wins over the worker indices, though nothing is both.
-    assert_eq!(stance_type(role::MILITARY, 0, 0x32), StanceType::Combat);
     assert_eq!(
-        stance_type(role::MILITARY, uflags2::PACKS, 0x60),
+        stance_type(role::ROLE_MILITARY, 0, 0x32),
+        StanceType::Combat
+    );
+    assert_eq!(
+        stance_type(role::ROLE_MILITARY, uflags2::PACKS, 0x60),
         StanceType::Packer
     );
-    assert_eq!(stance_type(role::MILITARY, 0, 0x60), StanceType::Combat);
+    assert_eq!(
+        stance_type(role::ROLE_MILITARY, 0, 0x60),
+        StanceType::Combat
+    );
     // `(unit_flags2 & 6) == 2` — a caster that does not also pack. A
     // civilian type that packs is neither, because the packer arm is
     // military-only.
@@ -165,7 +171,7 @@ fn a_trained_combat_unit_takes_the_trainer_s_byte_as_its_combat_stance() {
         2
     ];
     let mut t = crate::UnitType::default();
-    t.cols.role = role::MILITARY;
+    t.cols.role = role::ROLE_MILITARY;
     let ty = s.add_unit_type(t);
     assert_eq!(s.type_stance_type(ty), StanceType::Combat);
     let barracks = s.add_build_type(crate::build::BuildType {

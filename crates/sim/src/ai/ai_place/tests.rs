@@ -383,7 +383,7 @@ fn oil_world(cells: &[(i32, i32)]) -> (Sim, Vec<usize>) {
             .set_owner(c, crate::Owner::Player(1), crate::Owner::None);
         let gi = sim.world.add_good(crate::world::Good {
             pos: Pos::new(x * UNITS_PER_CELL + 384, y * UNITS_PER_CELL + 384),
-            ty: crate::world::OIL,
+            ty: crate::world::OIL_GOOD,
             alive: true,
         });
         gis.push(gi);

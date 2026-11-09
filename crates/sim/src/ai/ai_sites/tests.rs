@@ -320,7 +320,7 @@ fn the_rank_counts_the_sites_that_score_no_more_including_itself() {
 /// slot is the one displaced.
 #[test]
 fn the_insertion_takes_a_beaten_positive_slot_over_an_earlier_empty_one() {
-    let pick = |sites: [i32; SITES], val: i32| -> i32 {
+    let pick = |sites: [i32; SITE_SLOTS], val: i32| -> i32 {
         let mut min = 0i32;
         let mut idx = -1i32;
         for (j, s) in sites.iter().enumerate() {
@@ -332,10 +332,10 @@ fn the_insertion_takes_a_beaten_positive_slot_over_an_earlier_empty_one() {
         idx
     };
     // All empty: the last slot wins (every 0 is "taken").
-    assert_eq!(pick([0; SITES], 50), 9);
+    assert_eq!(pick([0; SITE_SLOTS], 50), 9);
     // Slot 1 scores 5 and we score 100: slot 1 is taken, then slots
     // 2..9 are empty and the last empty wins.
-    let mut s = [0; SITES];
+    let mut s = [0; SITE_SLOTS];
     s[1] = 5;
     assert_eq!(pick(s, 100), 9);
     // With every slot filled, the smallest wins, ties to the later.

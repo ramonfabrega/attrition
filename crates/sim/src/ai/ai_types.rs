@@ -186,7 +186,7 @@ impl Sim {
                 continue;
             }
             let Some(rec) = bd.ty else { continue };
-            if !self.build_types[rec].has(crate::build::flags::GATHER) {
+            if !self.build_types[rec].has(crate::build::flags::GATHERER) {
                 continue;
             }
             let Some(g) = crate::ai_place::gather_good(self.build_types[rec].ident) else {

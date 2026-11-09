@@ -214,7 +214,7 @@ pub fn find_upath_steps<V: UpathView>(v: &mut V, here: Pos, anti: i32) -> i32 {
                     && ay.wrapping_sub(mid.to.y) == mid.to.y.wrapping_sub(next.to.y);
                 let one_step = ax.wrapping_sub(next.to.x).wrapping_abs() == 0x30
                     && ay.wrapping_sub(next.to.y).wrapping_abs() == 0x30;
-                if mid.flags & path_flag::TRANSPORT != 0 || (!collinear && !one_step) {
+                if mid.flags & path_flag::BOARDS_TRANSPORT != 0 || (!collinear && !one_step) {
                     v.keep_push(mid);
                     ax = mid.to.x;
                     ay = mid.to.y;

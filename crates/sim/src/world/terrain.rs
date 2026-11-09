@@ -24,7 +24,7 @@
 
 use crate::Sim;
 use crate::single::Single;
-use crate::world::{Cell, MOVE_8, OIL, Pos, TILES_PER_CELL, cell, tile};
+use crate::world::{Cell, MOVE_8, OIL_GOOD, Pos, TILES_PER_CELL, cell, tile};
 
 impl Sim {
     /// `TerrainOut::terraform_for_building@00875210(corner.x, corner.y,
@@ -146,7 +146,7 @@ impl Sim {
     fn good_here(&self, c: Cell) -> bool {
         self.world
             .good_at(c)
-            .is_some_and(|(_, g)| g.alive && g.ty != OIL)
+            .is_some_and(|(_, g)| g.alive && g.ty != OIL_GOOD)
     }
 }
 

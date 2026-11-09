@@ -3,7 +3,7 @@
 use crate::ai_load::{UnitCols, uflags2};
 
 /// `UnitData::is_hero@0046ce60`, run by `tools/emu/sweep_unit_is_hero.py` under unicorn
-/// (tools/emu): `unit_flags2` (`type+0x2b8`) `& 0x20` through the unit's type pointer, over every bit edge and a seeded band, against `UnitCols::flag2(uflags2::GENERAL)` — the bit the port names as the same predicate.
+/// (tools/emu): `unit_flags2` (`type+0x2b8`) `& 0x20` through the unit's type pointer, over every bit edge and a seeded band, against `UnitCols::flag2(uflags2::FLAG2_GENERAL)` — the bit the port names as the same predicate.
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_unit_is_hero.py") else {
@@ -17,7 +17,7 @@ fn the_emulated_original_agrees_on_every_row() {
             unit_flags2: word,
             ..UnitCols::default()
         }
-        .flag2(uflags2::GENERAL);
+        .flag2(uflags2::FLAG2_GENERAL);
         assert_eq!(ours, want != 0, "is_hero — row `{line}`");
         n += 1;
     }

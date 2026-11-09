@@ -434,12 +434,12 @@ pub fn southwest_mesa_make_continents(grid: &mut MapGrid, players: i32, rng: &mu
     great_sahara_make_continents(grid, players, rng)
 }
 
-/// `WData::flags` bit 0x100, HALFLAND (`crate::world`'s `HALFLAND`): a cell
-/// that carries it is never ocean.
-pub const HALFLAND: u16 = 0x100;
 /// `WData::flags` bit 4, COAST, which `Map::make_coastlines@006947a0` sets
 /// with 0x400 and its thinning clears.
-pub const COAST: u16 = 4;
+pub use crate::ids::cell::COAST;
+/// `WData::flags` bit 0x100, HALFLAND (`crate::world`'s `HALFLAND`): a cell
+/// that carries it is never ocean.
+pub use crate::ids::cell::HALFLAND;
 
 impl WCell {
     /// `WorldData::is_ocean@006b4830`: HALFLAND clear and `land` `SANDY`

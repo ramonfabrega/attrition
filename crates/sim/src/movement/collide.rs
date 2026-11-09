@@ -101,7 +101,7 @@ impl ProbeSlots {
 }
 
 /// A unit cell, `0x30` position units — the grid the index is keyed on.
-pub const UNITS_PER_UCELL: i32 = 0x30;
+pub use crate::ids::scale::UNITS_PER_UCELL;
 /// Unit cells to a world cell, each way.
 pub const UCELLS_PER_CELL: i32 = UNITS_PER_CELL / UNITS_PER_UCELL;
 /// `Constants::unit_block_radius` — the scale `BLOCK_RADIUS` is loaded at.
@@ -669,7 +669,7 @@ impl BoatView for SimBoat<'_> {
     }
     fn is_transport(&mut self, u: usize) -> bool {
         self.0.units[u].ty.is_some_and(|t| {
-            self.0.unit_types[t].cols.unit_flags & crate::ai_load::uflags::TRANSPORT != 0
+            self.0.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT != 0
         })
     }
     fn find_units(&mut self, u: usize, at: Pos, size: i32, _circles: i32) -> Vec<usize> {

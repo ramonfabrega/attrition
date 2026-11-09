@@ -18,7 +18,7 @@ use crate::movement::{Angle, find_angle};
 use crate::world::{Cell, Pos, vector_dist};
 
 /// The slots the scan walks: `local_10 < 0x2200` at `0x88` a record.
-pub const SLOTS: i32 = 63;
+pub const CARRY_SLOTS: i32 = 63;
 
 /// What `think_carry_civilian` reads of the unit, the region table and the
 /// world, and the callees it makes.
@@ -72,7 +72,7 @@ pub fn think_carry_civilian_steps<V: CarryCivView>(v: &mut V, workers: bool) -> 
     let mut best_slot = -1;
     let mut best_cell = Cell::new(0, 0);
     let mut last_dir = 0;
-    for slot in 1..=SLOTS {
+    for slot in 1..=CARRY_SLOTS {
         let size = v.size(slot);
         if size == 0 {
             continue;

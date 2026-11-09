@@ -41,25 +41,9 @@ const ESCROW_RATE: i32 = 40;
 const PEASANT_DIST_NONE: i32 = 100;
 
 /// Position units per cell — the divisor `peasant_dist` is measured in.
-const CELL: i32 = 0x300;
+const CELL: i32 = crate::ids::scale::UNITS_PER_CELL;
 
-/// `TypeIndex` values the sweep hardcodes and the simulation cannot name any
-/// other way. Citizens (`0x32`/`0x33`) and scholars (`0x34`/`0x35`) are
-/// [`Worker`] instead, which is how `rondata` loads them.
-pub(crate) mod ty {
-    use crate::tech::TypeId;
-    /// `MERCHANT`, `ECHINESEMERCHANT`, `MERCHANT2` — the three base types
-    /// the merchant test compares against exactly.
-    pub const MERCHANTS: [TypeId; 3] = [0x3d, 0x3e, 0x190];
-    /// `CARAVAN` — the lineage test `is(0x3b)`.
-    pub const CARAVAN: TypeId = 0x3b;
-    /// `missile` splits on these two exact types.
-    pub const CRUISE: TypeId = 0x139;
-    pub const NUKE: TypeId = 0x13b;
-    /// `air` splits on these two.
-    pub const FIGHTER: TypeId = 0x11f;
-    pub const BOMBER: TypeId = 0x130;
-}
+pub(crate) use crate::ids::ty;
 
 /// `UnitTypeData::role & 0x10000` — a military unit.
 const ROLE_MILITARY: u32 = 0x1_0000;
@@ -655,7 +639,7 @@ impl Sim {
                         } else if self.unit_line_is(u, ty::NUKE) {
                             self.ai[w].census.nuke += 1;
                         }
-                    } else if self.unit_line_is(u, ty::FIGHTER) {
+                    } else if self.unit_line_is(u, ty::BIPLANE) {
                         self.ai[w].census.fighters += 1;
                     } else if self.unit_line_is(u, ty::BOMBER) {
                         self.ai[w].census.bombers += 1;
@@ -918,7 +902,7 @@ impl Sim {
             // at `006bb09c` lands on `006bb15a`, the defensive count's own
             // guard, so an unfinished Keep counts (item 1377).
             if bd.active
-                && bt.has(build::flags::GATHER)
+                && bt.has(build::flags::GATHERER)
                 && let Some(good) = crate::ai_place::gather_good(bt.ident)
             {
                 slots[good] += bd.gather_max.unwrap_or(0);

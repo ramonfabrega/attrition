@@ -59,7 +59,7 @@ fn a_unit_near_its_owner_s_ceo_reaches_two_tiles_further() {
         type_index: 0x165,
         ..UnitType::default()
     };
-    ceo.cols.unit_flags2 = uflags2::GENERAL;
+    ceo.cols.unit_flags2 = uflags2::FLAG2_GENERAL;
     let ceo = s.add_unit_type(ceo);
     let place = |s: &mut Sim, who: u8, ty: usize, x: i32| {
         let mut u = Unit::new(who, 0, Pos::new(x, 9000), 50);
@@ -345,7 +345,7 @@ fn a_general_rallies_armour_inside_its_radius() {
         hits: 100,
         ..crate::UnitType::default()
     };
-    general.cols.unit_flags2 = uflags2::GENERAL;
+    general.cols.unit_flags2 = uflags2::FLAG2_GENERAL;
     let general = sim.add_unit_type(general);
     let me = put(&mut sim, 1, ty, Pos::new(9000, 9000));
     let armour = |s: &Sim| s.armor_of(Obj::Unit(me));
@@ -392,7 +392,7 @@ fn a_comrade_and_a_monarch_add_their_armour_inside_the_rally_arm() {
             hits: 100,
             ..crate::UnitType::default()
         };
-        t.cols.unit_flags2 = uflags2::GENERAL;
+        t.cols.unit_flags2 = uflags2::FLAG2_GENERAL;
         sim.add_unit_type(t)
     };
     let comrade = hero(&mut sim, 0x164);
@@ -485,7 +485,7 @@ fn a_senator_armours_its_buildings_before_the_halving() {
         hits: 100,
         ..crate::UnitType::default()
     };
-    t.cols.unit_flags2 = uflags2::GENERAL;
+    t.cols.unit_flags2 = uflags2::FLAG2_GENERAL;
     let senator = sim.add_unit_type(t);
     let reach = (3 + 3) * 0x60;
     let h = put(&mut sim, 1, senator, Pos::new(9000, 9000));
@@ -832,7 +832,7 @@ fn a_bomber_never_takes_a_helicopter() {
     };
     let bomber = air_type(&mut sim, Some(crate::air::BOMBER), 0);
     let fighter = air_type(&mut sim, None, 0);
-    let heli = air_type(&mut sim, None, crate::ai_load::uflags::HELICOPTER);
+    let heli = air_type(&mut sim, None, crate::ai_load::uflags::FLAG_HELICOPTER);
     let mut tank = sim.unit_types[land].clone();
     tank.cols.unit_flags = crate::ai_load::uflags::TANK;
     let tank = sim.add_unit_type(tank);
@@ -858,7 +858,7 @@ fn an_air_target_is_aimed_at_its_figure_s_altitude() {
     let (mut sim, land) = at_war();
     let mut t = sim.unit_types[land].clone();
     t.combat.domain = Domain::Air;
-    t.cols.unit_flags = crate::ai_load::uflags::HELICOPTER;
+    t.cols.unit_flags = crate::ai_load::uflags::FLAG_HELICOPTER;
     let heli = sim.add_unit_type(t);
     let at = Pos::new(0x1000, 0x1000);
     let h = put(&mut sim, 0, heli, at);
@@ -1262,7 +1262,7 @@ fn a_hero_or_supply_unit_flees_on_the_attacker_s_ring() {
         t.cols.unit_flags2 = flags2;
         sim.add_unit_type(t)
     };
-    let hero = mk(&mut sim, crate::ai_load::uflags2::GENERAL);
+    let hero = mk(&mut sim, crate::ai_load::uflags2::FLAG2_GENERAL);
     let supply = mk(&mut sim, crate::ai_load::uflags2::SUPPLY_OR_HERO);
     let plain = mk(&mut sim, 0);
     let flight = |sim: &mut Sim, ty: usize, foe_ty: usize, y: i32, ambush: bool| {
@@ -1643,7 +1643,7 @@ fn a_bark_weighs_a_trireme_at_a_four_hundredth_and_a_transport_at_forty() {
         at.combat.domain = Domain::Sea;
         at.kind.domain = Domain::Sea;
         if bark {
-            at.combat.roles |= crate::combat::role::BARK;
+            at.combat.roles |= crate::combat::role::IS_BARK;
         }
         let at = sim.add_unit_type(at);
         let mut tt = sim.unit_types[ty].clone();
@@ -1657,7 +1657,7 @@ fn a_bark_weighs_a_trireme_at_a_four_hundredth_and_a_transport_at_forty() {
         let t = put(&mut sim, 1, tt, Pos::new(3300, 3000));
         sim.compare_target(Obj::Unit(me), Obj::Unit(t), true, false)
     };
-    let (trireme, transport) = (crate::combat::role::TRIREME, uflags::TRANSPORT);
+    let (trireme, transport) = (crate::combat::role::IS_TRIREME, uflags::FLAG_TRANSPORT);
     let plain = weigh(true, 0, 0, true);
     assert!(
         weigh(true, trireme, 0, true) < plain / 50,
@@ -1701,7 +1701,7 @@ fn a_bark_s_chase_retargets_to_a_fishing_boat_and_not_to_a_warship() {
         let tt = sim.add_unit_type(tt);
         let me = put(&mut sim, 0, ty, Pos::new(3000, 3000));
         if bark {
-            sim.units[me].unit_masks2 |= crate::combat::umask2::BARK;
+            sim.units[me].unit_masks2 |= crate::combat::umask2::MASK2_BARK;
         }
         let t = put(&mut sim, 1, tt, Pos::new(3300, 3000));
         sim.retarget_admits(me, Obj::Unit(t))
@@ -1745,7 +1745,7 @@ fn a_computer_s_raiding_ship_weighs_a_peasant_at_nothing_extra() {
         tt.combat.max_range = 0;
         match kind {
             1 => tt.worker = crate::orders::Worker::Citizen,
-            2 => tt.cols.unit_flags |= crate::ai_load::uflags::TRANSPORT,
+            2 => tt.cols.unit_flags |= crate::ai_load::uflags::FLAG_TRANSPORT,
             _ => {}
         }
         let tt = sim.add_unit_type(tt);
@@ -2143,7 +2143,7 @@ fn packer_on_post(tree: Option<crate::tech::TypeId>) -> (Sim, usize) {
     sim.unit_types[packer].tree = tree;
     // `get_stance_type`'s column: a military type that packs is a
     // `STANCE_PACKER`.
-    sim.unit_types[packer].cols.role |= crate::ai_load::role::MILITARY;
+    sim.unit_types[packer].cols.role |= crate::ai_load::role::ROLE_MILITARY;
     let post = Pos::new(3768, 12072);
     let wagon = put(&mut sim, 1, ty, Pos::new(3456, 11904));
     let guard = put(&mut sim, 1, packer, post);
@@ -2320,7 +2320,7 @@ fn a_human_s_packed_siege_engine_unpacks_before_it_searches() {
         });
         // The loader writes `role & 0x10000` twice: the profile's
         // `combat_role` and the column `get_stance_type` reads.
-        sim.unit_types[ty].cols.role |= crate::ai_load::role::MILITARY;
+        sim.unit_types[ty].cols.role |= crate::ai_load::role::ROLE_MILITARY;
         let foe_ty = sim.add_unit_type(crate::UnitType {
             hits: 100,
             combat: Profile {
@@ -2910,10 +2910,10 @@ fn an_attack_move_passes_over_an_unarmed_building() {
         s.melee_search_flags(me)
     };
     assert_eq!(
-        typed(uflags::SIEGE, Stance::Aggressive, false),
+        typed(uflags::FLAG_SIEGE, Stance::Aggressive, false),
         search::BUILDINGS | search::ARMED
     );
-    assert_eq!(typed(uflags::SIEGE, Stance::Aggressive, true), 0);
+    assert_eq!(typed(uflags::FLAG_SIEGE, Stance::Aggressive, true), 0);
     assert_eq!(typed(uflags::TANK, Stance::Aggressive, false), 0);
     assert_eq!(
         typed(uflags::TANK, Stance::Raze, false),
@@ -2972,7 +2972,7 @@ fn a_ranged_chase_on_a_building_stops_at_the_edge_of_its_reach() {
         let mut s = sim.clone();
         if siege {
             let mut ut = s.unit_types[ty].clone();
-            ut.cols.unit_flags = uflags::SIEGE;
+            ut.cols.unit_flags = uflags::FLAG_SIEGE;
             let ut = s.add_unit_type(ut);
             s.units[me].ty = Some(ut);
         }
@@ -4988,7 +4988,7 @@ fn a_gatherer_killed_by_damage_leaves_its_building_s_chain() {
     });
     let camp = sim.add_building(0, Pos::new(0x1000, 0x1000), 1);
     sim.buildings[camp].ty = Some(sim.add_build_type(crate::build::BuildType {
-        flags: crate::build::flags::GATHER,
+        flags: crate::build::flags::GATHERER,
         ..crate::build::BuildType::default()
     }));
     let stays = put(&mut sim, 0, citizen, Pos::new(0x1100, 0x1000));

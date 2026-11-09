@@ -20,7 +20,7 @@ pub const SOUND_ALL_CLEAR: i32 = 4;
 /// `CityData` flags `+4`: the city is live.
 pub const CITY_LIVE: i32 = 0x01;
 /// `CityData` flags `+4`: the bell is rung.
-pub const CITY_BELL: i32 = 0x40;
+pub use crate::ids::city_flag::CITY_BELL;
 /// `Object` flags `+8`: a city building.
 pub const OBJ_CITY: i32 = 0x20;
 

@@ -24,7 +24,7 @@
 //! Two substitutions worth naming here rather than only in the document:
 //!
 //! - §6.6 step 1 exempts exactly `TypeIndex` `0x32..=0x35` from the
-//!   per-member `+0xaa` write. This module tests `role::CITIZEN`, and for
+//!   per-member `+0xaa` write. This module tests `role::ROLE_CITIZEN`, and for
 //!   types loaded from the install the two are the **same set**:
 //!   `UnitType::determine_roles@0061c320` opens by setting `role = 0x200`
 //!   for those four ids and nothing else ever sets that bit
@@ -242,7 +242,7 @@ impl crate::finish_insert_view::FinishInsertView for SimInsert<'_> {
         let Some(now) = self.sim.building_by_o(bd.owner, bd.index) else {
             return;
         };
-        let body = if a[3] == crate::finish_insert_view::REPAIR {
+        let body = if a[3] == crate::orders::index::REPAIR as i32 {
             Body::Repair(now)
         } else {
             Body::Build(now)
@@ -1851,9 +1851,11 @@ impl Sim {
                 if on_map_only && !self.units[u].on_map {
                     continue;
                 }
-                let key = self.units[u].ty.map_or(crate::form::cat::NUM, |t| {
-                    crate::form::type_cat(&self.unit_types[t], t, human)
-                });
+                let key = self.units[u]
+                    .ty
+                    .map_or(crate::form::cat::FORM_CAT_NUM, |t| {
+                        crate::form::type_cat(&self.unit_types[t], t, human)
+                    });
                 if best.is_none_or(|(k, _, _)| key < k) {
                     best = Some((key, u, i));
                 }
@@ -2041,7 +2043,7 @@ impl Sim {
     ///
     /// 1. `role & MILITARY` → `PACKER` if `unit_flags2 & 4`, else
     ///    `COMBAT` — so a military caster is *combat*;
-    /// 2. the four citizen ids (`role::CITIZEN`, set for exactly those) →
+    /// 2. the four citizen ids (`role::ROLE_CITIZEN`, set for exactly those) →
     ///    `WORKER`;
     /// 3. `(unit_flags2 & 6) == 2` — a caster that does not pack → `CASTER`;
     /// 4. else `NONE`. Having an attack decides nothing on its own.
@@ -2052,14 +2054,14 @@ impl Sim {
             return StanceType::None;
         };
         let c = &self.unit_types[t];
-        if c.cols.is(crate::ai_load::role::MILITARY) {
+        if c.cols.is(crate::ai_load::role::ROLE_MILITARY) {
             return if c.combat.packs {
                 StanceType::Packer
             } else {
                 StanceType::Combat
             };
         }
-        if c.cols.is(crate::ai_load::role::CITIZEN) {
+        if c.cols.is(crate::ai_load::role::ROLE_CITIZEN) {
             return StanceType::Worker;
         }
         if c.cols.flag2(uflags2::CASTER) && !c.combat.packs {
@@ -2301,14 +2303,14 @@ impl Sim {
 
     pub(crate) fn is_siege_unit(&self, u: usize) -> bool {
         self.units[u].ty.is_some_and(|t| {
-            self.unit_types[t].combat.siege || self.unit_types[t].cols.flag(uflags::SIEGE)
+            self.unit_types[t].combat.siege || self.unit_types[t].cols.flag(uflags::FLAG_SIEGE)
         })
     }
 
     pub(crate) fn is_hero_unit(&self, u: usize) -> bool {
         self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::GENERAL))
+            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::FLAG2_GENERAL))
     }
 
     /// `UnitData::is_supply@0046ce80`, the base every unit vtable's `+0xcc`
@@ -2325,7 +2327,7 @@ impl Sim {
     pub(crate) fn is_special_unit(&self, u: usize) -> bool {
         self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::SCOUT))
+            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::FLAG2_SCOUT))
     }
 
     pub(crate) fn group_domain(&self, u: usize) -> Domain {
@@ -2344,7 +2346,7 @@ impl Sim {
         self.group_domain(u) == Domain::Air
             && !self.units[u]
                 .ty
-                .is_some_and(|t| self.unit_types[t].cols.flag(uflags::HELICOPTER))
+                .is_some_and(|t| self.unit_types[t].cols.flag(uflags::FLAG_HELICOPTER))
     }
 
     /// `Group::is_attacking_to@0070ea70` (item 1012, `docs/COMBAT.md`
@@ -2417,9 +2419,9 @@ impl Sim {
             return;
         };
         let order = if matches!(body, Body::Repair(_)) {
-            crate::swarm_around_view::REPAIR
+            crate::orders::index::REPAIR as i32
         } else {
-            crate::swarm_around_view::BUILD_AT
+            crate::orders::index::BUILD_AT as i32
         };
         let queue = match pos {
             QueuePos::First => 0,
@@ -2896,10 +2898,11 @@ impl Sim {
             // store at `00705749` (`+0xab`) is outside the test, so a
             // citizen carries the group's `form_mod` like every other
             // member (run157's `1/1` on 990, §24).
-            if !self.units[u]
-                .ty
-                .is_some_and(|t| self.unit_types[t].cols.is(crate::ai_load::role::CITIZEN))
-            {
+            if !self.units[u].ty.is_some_and(|t| {
+                self.unit_types[t]
+                    .cols
+                    .is(crate::ai_load::role::ROLE_CITIZEN)
+            }) {
                 self.units[u].form = form as i8;
             }
             self.units[u].form_width = width as i8;
@@ -3021,7 +3024,7 @@ impl Sim {
                 && !self.is_modern_infantry(u)
                 && !(self.units[u]
                     .ty
-                    .is_some_and(|t| self.unit_types[t].cols.is(crate::ai_load::role::SCOUT))
+                    .is_some_and(|t| self.unit_types[t].cols.is(crate::ai_load::role::ROLE_SCOUT))
                     && !self.ai_driven(g.who))
                 && g.num() >= 2
                 && !self.units[u].in_danger
@@ -3352,9 +3355,9 @@ impl Sim {
                     .ty
                     .is_some_and(|t| self.unit_types[t].cols.flag(f))
             };
-            let admitted = flag(uflags::HELICOPTER)
+            let admitted = flag(uflags::FLAG_HELICOPTER)
                 || self.group_domain(m) == dom
-                || (flag(uflags::TRANSPORT) && dom == Domain::Land);
+                || (flag(uflags::FLAG_TRANSPORT) && dom == Domain::Land);
             if !admitted || (no_siege && self.is_siege_unit(m)) {
                 continue;
             }

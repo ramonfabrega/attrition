@@ -20,11 +20,11 @@
 use crate::garrison_view::{GarrisonHead, garrison_head};
 
 /// `OrderIndex::BUILD_AT`.
-pub const BUILD_AT: i32 = 6;
+const BUILD_AT: i32 = crate::ids::order::BUILD_AT as i32;
 /// `OrderIndex::GATHER`.
-pub const GATHER: i32 = 7;
+const GATHER: i32 = crate::ids::order::GATHER as i32;
 /// `OrderIndex::REPAIR`.
-pub const REPAIR: i32 = 0xd;
+const REPAIR: i32 = crate::ids::order::REPAIR as i32;
 
 /// The head of `Group::action_swarm_around`: the scratch group's clear, the
 /// two refusals (the group is off the map, the site is gone), the scenario's
@@ -597,7 +597,7 @@ impl SwarmView for SimSwarm<'_> {
     }
     fn m_castable(&mut self, _p: i32, m: i32) -> bool {
         self.sim
-            .spell_castable(crate::orders::spell::CIVILIAN, m as usize)
+            .spell_castable(crate::orders::spell::CAST_CIVILIAN, m as usize)
     }
     fn site_slot_1c(&mut self, _who: i32, _b: i32) -> bool {
         true
@@ -694,7 +694,7 @@ impl SwarmView for SimSwarm<'_> {
     fn add_cast(&mut self, _p: i32, m: i32, x: i32, y: i32, action: i32) {
         self.sim.add_cast_order_on(
             m as usize,
-            crate::orders::spell::CIVILIAN,
+            crate::orders::spell::CAST_CIVILIAN,
             None,
             crate::Pos::new(x, y),
             crate::orders::QueuePos::Last,

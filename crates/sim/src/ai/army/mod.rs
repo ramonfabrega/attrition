@@ -79,17 +79,8 @@ pub(crate) const BARK: crate::tech::TypeId = 0x143;
 /// `SPY` — the lineage test `is(0x3a, 0)`.
 const SPY: crate::tech::TypeId = 0x3a;
 
-/// `ArmyData::status` bits (§1).
-pub mod status {
-    pub const MUSTERING: i32 = 0x01;
-    pub const MARCHING: i32 = 0x02;
-    pub const MARCHED: i32 = 0x04;
-    pub const NO_TARGET: i32 = 0x08;
-    pub const FORMING: i32 = 0x10;
-    pub const DEFENDING: i32 = 0x20;
-    pub const TRANSPORTING: i32 = 0x40;
-    pub const HURRY: i32 = 0x80;
-}
+/// `ArmyData::status` bits (§1), defined in [`crate::ids::army_status`].
+pub use crate::ids::army_status as status;
 
 /// One `ArmyData` (§1). Regions and cities are the sim's indices; the
 /// target is a sim object; positions are coordinate units and the muster
@@ -629,14 +620,14 @@ impl Sim {
     fn is_supply_wagon(&self, u: usize) -> bool {
         self.units[u].ty.is_some_and(|t| {
             let c = self.unit_types[t].cols;
-            c.flag2(uflags2::SUPPLY_OR_HERO) && !c.flag2(uflags2::GENERAL)
+            c.flag2(uflags2::SUPPLY_OR_HERO) && !c.flag2(uflags2::FLAG2_GENERAL)
         })
     }
 
     fn is_general(&self, u: usize) -> bool {
         self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::GENERAL))
+            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::FLAG2_GENERAL))
     }
 
     /// Shrink an army's list to `keep` (a subsequence of it) **and shift the
@@ -920,7 +911,7 @@ impl Sim {
             !s.units[u].decoy
                 && s.units[u]
                     .ty
-                    .is_some_and(|t| s.unit_types[t].cols.is(role::HOPLITE))
+                    .is_some_and(|t| s.unit_types[t].cols.is(role::ROLE_HOPLITE))
         })
     }
 
@@ -1103,7 +1094,7 @@ impl Sim {
     ///
     /// `is_supply` is `unit_flags2 & 0x40`
     /// ([`uflags2::SUPPLY_OR_HERO`]) and `is_hero` is `& 0x20`
-    /// ([`uflags2::GENERAL`]); **everything else returns without an
+    /// ([`uflags2::FLAG2_GENERAL`]); **everything else returns without an
     /// army**. `think_attack@005f5a80:155`'s own `add_to_army` is a
     /// different site, behind that function's city search, and is not
     /// modelled — no capture reaches it (§17).
@@ -1127,7 +1118,7 @@ impl Sim {
         }
         let Some(t) = unit.ty else { return };
         let cols = self.unit_types[t].cols;
-        if cols.flag2(uflags2::SUPPLY_OR_HERO) || cols.flag2(uflags2::GENERAL) {
+        if cols.flag2(uflags2::SUPPLY_OR_HERO) || cols.flag2(uflags2::FLAG2_GENERAL) {
             self.add_to_army(u);
         }
     }
@@ -1298,7 +1289,8 @@ impl Sim {
         // conscripted run53's woodcutters on frame 307. The other arm —
         // `is(0x3e, 1) && !is_packing_or_unpacking()`, the merchant
         // lineage's — is a seam; a merchant is filtered again below.
-        if self.unit_types[t].combat.attack == 0 || !self.unit_types[t].cols.is(role::MILITARY) {
+        if self.unit_types[t].combat.attack == 0 || !self.unit_types[t].cols.is(role::ROLE_MILITARY)
+        {
             return None;
         }
         // The own-territory arm: inside a city's radius (`tile & 0x100`)
@@ -1310,10 +1302,10 @@ impl Sim {
         {
             return None;
         }
-        if self.unit_types[t].cols.is(role::SCOUT) {
+        if self.unit_types[t].cols.is(role::ROLE_SCOUT) {
             return None;
         }
-        if self.is_merchant(u) || self.unit_types[t].cols.flag2(uflags2::CARAVAN) {
+        if self.is_merchant(u) || self.unit_types[t].cols.flag2(uflags2::FLAG2_CARAVAN) {
             return None;
         }
         self.add_to_army(u)
@@ -1361,14 +1353,14 @@ impl Sim {
             return;
         }
         let Some(t) = self.units[u].ty else { return };
-        if self.unit_types[t].cols.flag2(uflags2::CARAVAN) {
+        if self.unit_types[t].cols.flag2(uflags2::FLAG2_CARAVAN) {
             return;
         }
         if self.unit_tree(u).is_some_and(|ti| MERCHANTS.contains(&ti)) {
             return;
         }
         let bark = self.unit_line_is(u, BARK);
-        let join = if !self.unit_types[t].cols.flag2(uflags2::SCOUT) && !bark {
+        let join = if !self.unit_types[t].cols.flag2(uflags2::FLAG2_SCOUT) && !bark {
             self.unit_line_is(u, SPY)
         } else {
             self.mark(if bark {
@@ -3880,7 +3872,7 @@ impl crate::army_process_view::ArmyProcessView for SimProcess<'_> {
         self.s.use_scouts(self.who, self.slot);
     }
     fn send_here(&mut self, p: Pos, kind: i32) {
-        let kind = if kind == crate::army_process_view::ATTACK_TO {
+        let kind = if kind == crate::orders::index::ATTACK_TO as i32 {
             MoveKind::AttackTo
         } else {
             MoveKind::MoveTo

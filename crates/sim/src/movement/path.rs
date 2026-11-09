@@ -61,9 +61,9 @@ pub struct RefuseProbe {
 }
 
 /// The three grids' steps, in position units.
-pub const STEP_WORLD: i32 = 0x300;
-pub const STEP_TILE: i32 = 0xc0;
-pub const STEP_UNIT: i32 = 0x30;
+pub const STEP_WORLD: i32 = crate::ids::scale::UNITS_PER_CELL;
+pub const STEP_TILE: i32 = crate::ids::scale::UNITS_PER_TILE;
+pub const STEP_UNIT: i32 = crate::ids::scale::UNITS_PER_UCELL;
 
 /// A step the cost function refuses.
 pub const REFUSED: i32 = 0x7fff_ffff;
@@ -237,7 +237,7 @@ pub(crate) mod loc {
     /// Shallows/river hazard for an armed ship — the code `valid_wcoord`
     /// forgives inside the goal cell.
     pub const HAZARD: i32 = 3;
-    pub const BUILDING: i32 = 4;
+    pub const ON_BUILDING: i32 = 4;
 }
 
 /// The cell flags a boat's disembark tile may not carry —
@@ -402,12 +402,12 @@ pub(crate) fn invalid_loc_steps<E: InvalidLocEnv>(i: &InvalidLocIn, env: &mut E)
         if m & 0x4000 != 0 && (m & 0x30 != 0x30 || !fw) && env.own_mask() & 0x4000 == 0 {
             if i.attack_nonzero && i.enemy_builds_only && env.is_built() {
                 return if env.building_who() == i.owner {
-                    loc::BUILDING
+                    loc::ON_BUILDING
                 } else {
                     loc::VALID
                 };
             }
-            return loc::BUILDING;
+            return loc::ON_BUILDING;
         }
     }
     loc::VALID
@@ -510,7 +510,7 @@ impl Sim {
             path_top_transport: unit
                 .path
                 .last()
-                .is_some_and(|p| p.flags & path_flag::TRANSPORT != 0),
+                .is_some_and(|p| p.flags & path_flag::BOARDS_TRANSPORT != 0),
             domain: match self.unit_domain_of(u) {
                 crate::attrition::Domain::Land => 0,
                 crate::attrition::Domain::Sea => 1,
@@ -1152,7 +1152,7 @@ impl Sim {
                                 && self.unit_can_transport(u)
                                 && let Some(mut top) = self.units[u].path.pop()
                             {
-                                top.flags |= path_flag::TRANSPORT;
+                                top.flags |= path_flag::BOARDS_TRANSPORT;
                                 self.units[u].path.push(top);
                             }
                         }
@@ -1411,7 +1411,7 @@ impl Sim {
             // frames early with it.
             let can_transport = (self.units[u].auto_transport && !self.units[u].never_transport)
                 || self.units[u].ty.is_some_and(|t| {
-                    self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::TRANSPORT != 0
+                    self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT != 0
                 });
             let mut tolerance = match step {
                 STEP_WORLD => 0x180,
@@ -1428,7 +1428,7 @@ impl Sim {
                 flags |= path_flag::BLOCK;
             }
             if n.transport {
-                flags |= path_flag::TRANSPORT;
+                flags |= path_flag::BOARDS_TRANSPORT;
                 tolerance = 0;
             }
             // World: `node + toff − 0x180`. Tile: `node + toff % 0xc0 −
@@ -1687,7 +1687,7 @@ impl AstarView for SimAstar<'_> {
     }
     fn transport_type(&mut self) -> bool {
         self.sim.units[self.u].ty.is_some_and(|t| {
-            self.sim.unit_types[t].cols.unit_flags & crate::ai_load::uflags::TRANSPORT != 0
+            self.sim.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT != 0
         })
     }
     fn ai_bit(&mut self) -> bool {

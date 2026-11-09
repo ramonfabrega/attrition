@@ -65,7 +65,7 @@ pub(crate) enum Leash {
 /// tests with `is(0x84, 0)` before it chooses between the two melee
 /// reaches (`docs/COMBAT.md` §13.2). The golden record's `add hoplite`
 /// lands on the type whose tech-tree id is this.
-pub const HOPLITES: crate::tech::TypeId = 0x84;
+pub use crate::ids::ty::HOPLITES;
 
 /// `Ammo::inc_time@0067d380`'s `cur_time < 200` on a round whose `flags & 2`
 /// is clear — the frames a spent arrow keeps its slot (item 3679,
@@ -1794,7 +1794,7 @@ impl Sim {
             // `Unit::fight@005fd4d0`, before 005feec1 (COMBAT §89).
             let snap = crate::collide::ucell_centre(crate::collide::ucell(self.units[i].pos));
             self.set_new_location(i, snap, true);
-            if p.is(role::IMMORTALS) && reach < 0xc0 {
+            if p.is(role::IS_IMMORTALS) && reach < 0xc0 {
                 // **The Immortals' special strike** (`fight@005fd4d0:784`
                 // –`:803`; item 3355, `docs/AI.md` §279): inside `0xc0`
                 // the swing is `CHAR_ATTACKSPECIAL` with no roll, and the
@@ -1873,7 +1873,7 @@ impl Sim {
         } else {
             false
         };
-        combat::recharge(p.recharge, out, p.is(role::BOMBARD)) as u8
+        combat::recharge(p.recharge, out, p.is(role::IS_BOMBARD)) as u8
     }
 
     /// **`Unit::set_attack(−1, −1)`** (`005fce70`): the aimed figures,
@@ -2072,7 +2072,7 @@ impl Sim {
         if t.type_index == PATROLBOAT && matches!(self.profile(target).domain, Domain::Sea) {
             return direct;
         }
-        const QUARTER: i32 = 0x4000_0000;
+        const QUARTER: i32 = crate::ids::scale::QUARTER_TURN;
         let heading = self.units[i].movement.heading.0;
         let off = |a: i32| {
             let d = heading.wrapping_sub(a) as u32;
@@ -3478,7 +3478,7 @@ impl Sim {
     /// The body is [`crate::plunder::plunder_steps`] over [`crate::plunder::SimPlunder`]
     /// (the original's whole function, swept against it in item 3356).
     ///
-    /// A General, caravan or supply-wagon victim (`uflags2::GENERAL`,
+    /// A General, caravan or supply-wagon victim (`uflags2::FLAG2_GENERAL`,
     /// `CARAVAN`, `SUPPLY_OR_HERO`) plunders by its own constant, `p3` and
     /// `p4` both 0 (item 3788). The Inca refund is [`Sim::inca_refund`].
     ///
@@ -3523,7 +3523,7 @@ impl Sim {
         // arm (`LAB_0065332c`): `plunder(v, k, who, 0, 0)` — no Despot search,
         // the base constant in wealth (item 3788; run1461b's who=2 takes
         // `GENERAL_PLUNDER` 100 for who=1's Despot `1/28` on 1463).
-        if kind & (uflags2::GENERAL | uflags2::CARAVAN | uflags2::SUPPLY_OR_HERO) != 0 {
+        if kind & (uflags2::FLAG2_GENERAL | uflags2::FLAG2_CARAVAN | uflags2::SUPPLY_OR_HERO) != 0 {
             crate::plunder::plunder_steps(
                 &mut crate::plunder::SimPlunder { sim: self, v },
                 k as i32,
@@ -4059,7 +4059,7 @@ impl Sim {
         if !u.on_map || u.decoy {
             return;
         }
-        if self.profile(Obj::Unit(i)).is(combat::role::MERCHANT) {
+        if self.profile(Obj::Unit(i)).is(combat::role::IS_MERCHANT) {
             return;
         }
         self.mark(SITE_DEATH_ANIM);
@@ -5194,7 +5194,7 @@ impl Sim {
             return word;
         }
         let cols = self.units[i].ty.map(|t| self.unit_types[t].cols);
-        let mut flags = if cols.is_some_and(|c| c.flag(uflags::SIEGE)) {
+        let mut flags = if cols.is_some_and(|c| c.flag(uflags::FLAG_SIEGE)) {
             if self.ai_driven(self.units[i].owner) {
                 search::BUILDINGS | search::ARMED
             } else {
@@ -5846,7 +5846,7 @@ impl Sim {
             if self.units[u].movement.dest.is_some() {
                 v /= 4;
             }
-            if tp.is(role::SUPPLY) {
+            if tp.is(role::IS_SUPPLY) {
                 v = v.wrapping_mul(5000);
             }
         }
@@ -6006,7 +6006,7 @@ impl Sim {
                     }
                 } else if moving_fire(attacker) && line(target, FIRESHIP) {
                     v = v.wrapping_add(1_000_000);
-                } else if flags_of(target) & uflags::TRANSPORT != 0 {
+                } else if flags_of(target) & uflags::FLAG_TRANSPORT != 0 {
                     v = v.wrapping_add(900_000);
                 } else if line(target, crate::fish::FISHERMEN) {
                     v = v.wrapping_add(100_000);
@@ -6014,7 +6014,7 @@ impl Sim {
                     v = v.wrapping_add(10_000);
                 }
             } else if raiding {
-                if peasant || tp.is(role::CARAVAN) {
+                if peasant || tp.is(role::IS_CARAVAN) {
                     v = v.wrapping_add(if ai_raider { 900_000 } else { 9_000_000 });
                 } else if ai_raider && tp.combat_role {
                     v = v.wrapping_add(10_000);
@@ -6023,7 +6023,7 @@ impl Sim {
                 }
             } else if tp.combat_role {
                 v = v.wrapping_add(1_000_000);
-            } else if tp.is(role::SUPPLY) {
+            } else if tp.is(role::IS_SUPPLY) {
                 v = v.wrapping_add(if matches!(attacker, Obj::Building(_)) {
                     4_000_000
                 } else {
@@ -6051,13 +6051,13 @@ impl Sim {
             //
             if matches!(ap.domain, Domain::Sea)
                 && matches!(tp.domain, Domain::Sea)
-                && ap.is(role::BARK)
+                && ap.is(role::IS_BARK)
             {
-                if tp.is(role::TRIREME) {
+                if tp.is(role::IS_TRIREME) {
                     v /= 400;
                 } else if let Obj::Unit(u) = target
                     && self.units[u].ty.is_some_and(|t| {
-                        self.unit_types[t].cols.unit_flags & uflags::TRANSPORT != 0
+                        self.unit_types[t].cols.unit_flags & uflags::FLAG_TRANSPORT != 0
                     })
                 {
                     v = v.wrapping_mul(40);
@@ -7403,7 +7403,7 @@ impl crate::object_attack_view::ObjectAttackView for SimObjectAttack<'_> {
         self.rec().is_some_and(|r| {
             self.sim.unit_types[r]
                 .cols
-                .flag2(crate::ai_load::uflags2::CARAVAN)
+                .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
         })
     }
     fn has_caravan_preq(&mut self) -> bool {

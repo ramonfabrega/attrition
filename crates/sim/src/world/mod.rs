@@ -54,12 +54,9 @@ pub type Player = u8;
 /// `treaties[0]` — the original has no answer there either.
 pub const PLAYER_SLOTS: Player = 8;
 
-/// Position units per tile.
-pub const UNITS_PER_TILE: i32 = 192;
-/// Tiles per world cell.
-pub const TILES_PER_CELL: i32 = 4;
-/// Position units per world cell.
-pub const UNITS_PER_CELL: i32 = UNITS_PER_TILE * TILES_PER_CELL;
+/// Position units per tile and per world cell, and tiles per world cell
+/// ([`crate::ids::scale`]).
+pub use crate::ids::scale::{TILES_PER_CELL, UNITS_PER_CELL, UNITS_PER_TILE};
 
 /// A position in the original's stored coordinate units.
 ///
@@ -364,49 +361,8 @@ pub struct World {
     coast: Vec<Vec<u16>>,
 }
 
-/// The bits of `WData.flags`, as `WData::log_data@006af7e0` spells them —
-/// each word below is printed exactly when its bit is set, solved from
-/// run20's 3,600 cells (`docs/ORACLE.md`, "The map is a dump too";
-/// 2026-08-25). `0x1`, `0x400`, `0x800`, `0x1000` and `0x2000` have no word
-/// in that dump: the writer tests `0x1000` and `0x2000` and run20 never
-/// sets them; `0x400` has no name here. `0x800` is **`OIL`**, settled by
-/// `WorldData::is_oil_at@00472af0`, which is that bit and nothing else.
-pub mod cell {
-    /// The bit `Build::close@00628980` sets on the cell under a building's
-    /// position when it closes for any reason but 5, a city's capture
-    /// (`:186`, `or $2`): a building lost — destroyed, disbanded, or the old
-    /// half of a conversion. `Leader::produce_building@006e1400` is its
-    /// only reader in the simulation, and its only clearer: the oil arm
-    /// skips a flagged patch for that pass, the spiral a flagged cell with
-    /// an enemy object within `0xf00` (`docs/AI.md` §168). The PDB names no
-    /// `WData` flag.
-    pub const CLOSED: u16 = 0x2;
-    /// `COAST` — a land cell of the shore; the muster search's class 3.
-    pub const COAST: u16 = 0x4;
-    /// `ROCK` — `WorldData::is_rocks@006b4380`; the land class 6, or 7
-    /// with [`OIL`].
-    pub const ROCK: u16 = 0x8;
-    /// `MOUNTAIN` — with the unnamed `0x40`, the muster search's class 5.
-    pub const MOUNTAIN: u16 = 0x10;
-    /// `FOREST` — the muster search's class 4.
-    pub const FOREST: u16 = 0x20;
-    /// `ROAD`.
-    pub const ROAD: u16 = 0x80;
-    /// `HALFLAND` — a coastal cell whose `region2` is the sea region; what
-    /// `WorldData::is_ocean` tests first.
-    pub const HALFLAND: u16 = 0x100;
-    /// `NEARBLOCK`.
-    pub const NEARBLOCK: u16 = 0x200;
-    /// `WorldData::is_oil_at@00472af0` is `flags & 0x800`, and nothing
-    /// else — so the bit the map dump prints no word for is oil. It is
-    /// what turns a rock cell into land class 7 and a water cell into an
-    /// offshore oil patch ([`World::land_class`]).
-    pub const OIL: u16 = 0x800;
-    /// `BUILDING` — a cell holding a building's centre.
-    pub const BUILDING: u16 = 0x4000;
-    /// `GOODY`.
-    pub const GOODY: u16 = 0x8000;
-}
+/// `WData::flags`, defined in [`crate::ids::cell`].
+pub use crate::ids::cell;
 
 /// `move_x[1..=8]`, `move_y[1..=8]` — the original's compass ring
 /// (`.rdata 0x00adcaf0` / `0x00adc400`), the eight neighbours in its order.
@@ -568,8 +524,8 @@ pub struct Good {
 
 /// `TypeIndex::OIL`. `Objects::init_good` skips **every** world-side effect
 /// for it — the cell's terminator included — so an oil patch is in the
-/// goods list and in no cell's chain.
-pub const OIL: usize = 5;
+/// goods list and in no cell's chain. (Not `cell::OIL`, the `WData` bit.)
+pub const OIL_GOOD: usize = 5;
 
 /// The bits of a tile mask, as the placement code names them — `TData.mask`
 /// in the original. Two-bit fields are tested as `(mask & field) == value`.
@@ -1256,7 +1212,7 @@ impl World {
     pub fn add_good(&mut self, g: Good) -> usize {
         let i = self.goods.len();
         self.goods.push(g);
-        if g.ty != OIL
+        if g.ty != OIL_GOOD
             && let Some(c) = self.index(g.pos.cell())
         {
             self.cell_good[c] = i as i32;

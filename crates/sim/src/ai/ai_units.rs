@@ -122,16 +122,16 @@ impl Sim {
         let role = self.role_word(t, rec);
         Some(Facts {
             rec,
-            citizen: role & role::CITIZEN != 0,
-            military: role & role::MILITARY != 0,
+            citizen: role & role::ROLE_CITIZEN != 0,
+            military: role & role::ROLE_MILITARY != 0,
             land,
             sea,
             air,
-            scout: role & role::SCOUT != 0,
-            carry: role & role::CARRY != 0,
+            scout: role & role::ROLE_SCOUT != 0,
+            carry: role & role::ROLE_CARRY != 0,
             siege: p.siege,
-            caravan: c.flag2(uflags2::CARAVAN) || p.roles & combat::role::CARAVAN != 0,
-            merchant: p.roles & combat::role::MERCHANT != 0,
+            caravan: c.flag2(uflags2::FLAG2_CARAVAN) || p.roles & combat::role::IS_CARAVAN != 0,
+            merchant: p.roles & combat::role::IS_MERCHANT != 0,
             worker: citizen,
             peasant: u.worker == Worker::Citizen,
             scholar: u.worker == Worker::Scholar,
@@ -169,21 +169,21 @@ impl Sim {
             citizen_id: u.worker != Worker::None,
             domain: p.domain,
             cat: if u.worker == Worker::None {
-                crate::ai_load::cat::FOOT
+                crate::ai_load::cat::UNIT_CAT_FOOT
             } else {
-                crate::ai_load::cat::CIVILIAN
+                crate::ai_load::cat::UNIT_CAT_CIVILIAN
             },
             attack: if p.combat_role { p.attack.max(1) } else { 0 },
             max_range: p.max_range,
             carry: i32::from(u.garrison.transport),
             scout: land && self.named_is(t, "Scout"),
-            bark: sea && p.roles & combat::role::BARK != 0,
+            bark: sea && p.roles & combat::role::IS_BARK != 0,
             hoplite: false,
         });
         // `determine_roles` reads `CARRY`, which a hand-built type has no
         // column for; the garrison layer's `transport` stands in.
         if u.garrison.transport {
-            r |= role::CARRY;
+            r |= role::ROLE_CARRY;
         }
         r
     }
@@ -227,7 +227,7 @@ impl Sim {
     /// `V2ROCKET` role and the tree's `nuclearmissile`/`icbm` roles.
     fn seam_missile(&self, t: TypeId) -> bool {
         if let Some(rec) = self.unit_record(t)
-            && self.unit_types[rec].combat.roles & combat::role::V2ROCKET != 0
+            && self.unit_types[rec].combat.roles & combat::role::IS_V2ROCKET != 0
         {
             return true;
         }
@@ -1243,7 +1243,7 @@ impl Sim {
         }
         let n = self.line_count(who, t, false) + self.line_count(who, t, true);
         let sea_map = self.world.sea_map();
-        let bark = self.unit_types[f.rec].combat.roles & combat::role::BARK != 0;
+        let bark = self.unit_types[f.rec].combat.roles & combat::role::IS_BARK != 0;
         let reg_combat = Census::reg(&self.ai[w].census.reg_combat, sea_reg);
         if !(sea_map > 2 || !bark || reg_combat < sea_map * 2) {
             return None;

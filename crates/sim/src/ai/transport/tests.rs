@@ -468,7 +468,7 @@ fn a_step_into_the_sea_becomes_a_boat_with_the_walker_inside() {
     let top = crate::orders::PathData {
         to: tile_pos(33, 14),
         tolerance: 0,
-        flags: crate::orders::path_flag::TRANSPORT,
+        flags: crate::orders::path_flag::BOARDS_TRANSPORT,
     };
     f.sim.units[u].path.push(top);
 
@@ -645,7 +645,7 @@ fn a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is() {
     fleet_t.combat.domain = Domain::Sea;
     fleet_t.combat.block_radius = 48;
     fleet_t.price.pop = 1;
-    fleet_t.cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
+    fleet_t.cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
     let fleet = f.sim.add_unit_type(fleet_t);
     f.sim.unit_types[fleet].tree = Some(ty::MERCHANTFLEET);
     f.sim.unit_types[fleet].type_index = ty::MERCHANTFLEET as i32;
@@ -655,7 +655,7 @@ fn a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is() {
     });
     f.sim.unit_types[caravan].tree = Some(ty::CARAVAN);
     f.sim.unit_types[caravan].price.pop = 1;
-    f.sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
+    f.sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
 
     for (walker_t, boat_t, counted, sweep) in [
         (caravan, fleet, 1, false),
@@ -723,7 +723,7 @@ fn a_caravan_s_route_slot_goes_with_it_onto_the_fleet_and_back() {
     };
     fleet_t.combat.domain = Domain::Sea;
     fleet_t.combat.block_radius = 48;
-    fleet_t.cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
+    fleet_t.cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
     let fleet = f.sim.add_unit_type(fleet_t);
     f.sim.unit_types[fleet].tree = Some(ty::MERCHANTFLEET);
     f.sim.unit_types[fleet].type_index = ty::MERCHANTFLEET as i32;
@@ -732,7 +732,7 @@ fn a_caravan_s_route_slot_goes_with_it_onto_the_fleet_and_back() {
         ..UnitType::default()
     });
     f.sim.unit_types[caravan].tree = Some(ty::CARAVAN);
-    f.sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
+    f.sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
 
     // A route below it, so the walker's slot is not 0.
     let other = unit(&mut f.sim, 1, caravan, tile_pos(10, 10));
@@ -837,7 +837,7 @@ fn the_boat_s_orders_queue_behind_what_the_passenger_s_tail_gave_it() {
     f.sim.units[rider].path = vec![node(attack, 1), node(tile_pos(25, 17), 0)];
     f.sim.units[boat].path = vec![
         node(explore, 1),
-        node(tile_pos(29, 12), path_flag::TRANSPORT),
+        node(tile_pos(29, 12), path_flag::BOARDS_TRANSPORT),
     ];
     f.sim.hand_over_orders(boat, rider);
     let kinds: Vec<_> = f.sim.units[rider]
@@ -1294,7 +1294,7 @@ fn a_passenger_put_ashore_takes_the_boat_s_ring_and_the_boat_s_orders() {
     f.sim.unit_types[f.scout].combat.block_radius = 48;
     // `is_special` is `is(SCOUT)` folded into `unit_flags2` by the
     // loader, and it is what puts this unit on the coin's `% 2` arm.
-    f.sim.unit_types[f.scout].cols.unit_flags2 |= crate::ai_load::uflags2::SCOUT;
+    f.sim.unit_types[f.scout].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_SCOUT;
     let rider = unit(&mut f.sim, 1, f.scout, tile_pos(30, 14));
     f.sim.units[rider].movement.speed = 34;
     let boat = unit(&mut f.sim, 1, b, tile_pos(33, 14));
@@ -1318,7 +1318,7 @@ fn a_passenger_put_ashore_takes_the_boat_s_ring_and_the_boat_s_orders() {
     f.sim.units[boat].path.push(crate::orders::PathData {
         to: tile_pos(30, 14),
         tolerance: 0,
-        flags: crate::orders::path_flag::TRANSPORT,
+        flags: crate::orders::path_flag::BOARDS_TRANSPORT,
     });
     f.sim.units[rider]
         .movement
@@ -1543,7 +1543,7 @@ fn a_barge_taking_a_goal_ashore_flags_it_and_keeps_it() {
             .path
             .last()
             .map(|p| (p.to, p.tolerance, p.flags)),
-        Some((goal, 0, 1 | crate::orders::path_flag::TRANSPORT)),
+        Some((goal, 0, 1 | crate::orders::path_flag::BOARDS_TRANSPORT)),
         "the final leg is flagged, and its point is the land tile still"
     );
     assert_eq!(
@@ -1596,12 +1596,12 @@ fn a_trade_walker_s_region_push_carries_the_stripped_road_flag() {
         PathData {
             to: tile_pos(20, 14),
             tolerance: 96,
-            flags: path_flag::FINAL | path_flag::ROAD,
+            flags: path_flag::FINAL | path_flag::ROAD_LAID,
         },
         PathData {
             to: goal,
             tolerance: 96,
-            flags: path_flag::ROAD,
+            flags: path_flag::ROAD_LAID,
         },
     ];
     assert_ne!(
@@ -1616,7 +1616,7 @@ fn a_trade_walker_s_region_push_carries_the_stripped_road_flag() {
             .iter()
             .map(|p| p.flags)
             .collect::<Vec<_>>(),
-        vec![path_flag::FINAL, path_flag::TRANSPORT],
+        vec![path_flag::FINAL, path_flag::BOARDS_TRANSPORT],
         "the strip reaches every entry, the pushed top's too"
     );
 }
@@ -1859,8 +1859,8 @@ fn needs_transport_reads_the_shore() {
     let land2 = Pos::new(21, 10);
     let water = Pos::new(40, 10);
     assert_eq!(f.sim.needs_transport(land, land2), 0);
-    assert_eq!(f.sim.needs_transport(land, water), EMBARK);
-    assert_eq!(f.sim.needs_transport(water, land), DISEMBARK);
+    assert_eq!(f.sim.needs_transport(land, water), NEEDS_EMBARK);
+    assert_eq!(f.sim.needs_transport(water, land), NEEDS_DISEMBARK);
     assert_eq!(f.sim.needs_transport(water, water), 0);
 }
 

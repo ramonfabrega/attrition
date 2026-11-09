@@ -30,17 +30,17 @@ pub const COUNT_GENERAL: i32 = 0x36;
 pub const COUNT_SPY: i32 = 0x3a;
 pub const COUNT_SCOUT: i32 = 0x45;
 
+pub use crate::ids::army_status::DEFENDING;
+pub use crate::ids::army_status::FORMING;
+pub use crate::ids::army_status::MARCHING;
 /// `Army::status` bits the driver tests.
-pub const MUSTERING: i32 = 0x01;
-pub const MARCHING: i32 = 0x02;
-pub const NO_TARGET: i32 = 0x08;
-pub const FORMING: i32 = 0x10;
-pub const DEFENDING: i32 = 0x20;
-pub const TRANSPORTING: i32 = 0x40;
+pub use crate::ids::army_status::MUSTERING;
+pub use crate::ids::army_status::NO_TARGET;
+pub use crate::ids::army_status::TRANSPORTING;
 
 /// The order `send_here` is given: the original's `1` and `2`.
-pub const MOVE_TO: i32 = 1;
-pub const ATTACK_TO: i32 = 2;
+const MOVE_TO: i32 = crate::ids::order::MOVE_TO as i32;
+const ATTACK_TO: i32 = crate::ids::order::ATTACK_TO as i32;
 
 /// Another army of the same leader, as the merge reads it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

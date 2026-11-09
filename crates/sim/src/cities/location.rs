@@ -652,7 +652,7 @@ impl LocationView for SimLocation<'_> {
         build::is_fort(&self.sim.build_types, self.ty)
     }
     fn gathers(&mut self) -> bool {
-        self.bt().has(flags::GATHER)
+        self.bt().has(flags::GATHERER)
     }
     fn flat(&mut self) -> bool {
         self.bt().has(flags::FLAT)

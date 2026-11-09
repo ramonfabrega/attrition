@@ -209,7 +209,7 @@ impl Sim {
             // A gatherer gets nothing at all — not the ring, not the road.
             // This is why the four farms and the woodcutter fire their flag
             // on run14's frames 12 to 15 and draw nothing there.
-            if self.build_types[ty].has(flags::GATHER) {
+            if self.build_types[ty].has(flags::GATHERER) {
                 return;
             }
             if self.buildings[b].city.is_none() {
@@ -260,7 +260,7 @@ impl Sim {
         let corner = self.tile_corner(ty, self.buildings[b].pos);
         if build::is_city(&self.build_types, ty) || connects_to_roads(&self.build_types, ty) {
             self.road_ring(corner, w, h, 0, false);
-        } else if !self.build_types[ty].has(flags::GATHER) && self.buildings[b].city.is_some() {
+        } else if !self.build_types[ty].has(flags::GATHERER) && self.buildings[b].city.is_some() {
             self.road_ring(corner, w, h, 1, false);
         }
     }
@@ -891,7 +891,7 @@ pub(crate) fn road_cost_steps(
 /// needs no city, connects only if it is a University; everything else
 /// connects.
 pub fn connects_to_roads(types: &[build::BuildType], t: usize) -> bool {
-    if types[t].has(flags::GATHER) || types[t].has(flags::NO_CITY) {
+    if types[t].has(flags::GATHERER) || types[t].has(flags::NO_CITY) {
         return build::is(types, t, Ident::University);
     }
     true

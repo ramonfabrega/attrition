@@ -26,11 +26,11 @@
 pub use crate::garrison_view::{GarrisonHead, garrison_head};
 
 /// `QueuePos`: the order goes to the front, after the others, or alone.
-pub const QUEUE_FIRST: i32 = 0;
+pub use crate::ids::queue::QUEUE_FIRST;
 /// `QueuePos::QUEUE_LAST`.
-pub const QUEUE_LAST: i32 = 1;
+pub use crate::ids::queue::QUEUE_LAST;
 /// `QueuePos::QUEUE_NEW`.
-pub const QUEUE_NEW: i32 = 2;
+pub use crate::ids::queue::QUEUE_NEW;
 
 /// What `Group::action_board_ship` asks of the group, the world and the
 /// objects.

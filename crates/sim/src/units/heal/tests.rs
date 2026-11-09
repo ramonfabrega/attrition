@@ -111,7 +111,7 @@ fn a_carrier_repairs_a_point_every_20_frames_and_citrus_heals_every_ship() {
     };
     let carrier = ty(&mut sim, 0x15f, 0);
     let destroyer = ty(&mut sim, 328, 0);
-    let freighter = ty(&mut sim, 322, uflags::TRANSPORT);
+    let freighter = ty(&mut sim, 322, uflags::FLAG_TRANSPORT);
     let at = Pos::new(30 * 0x300 + 0x198, 30 * 0x300 + 0x198);
     // `o` 18, 38 and 58: one phase of 20 for all three.
     let put = |sim: &mut crate::Sim, t: usize, o: i16| {
@@ -184,7 +184,7 @@ fn a_ceo_heals_the_hurt_figure_of_a_squad_abroad_every_20_frames() {
         hits: 110,
         type_index: 0x165,
         cols: UnitCols {
-            unit_flags2: uflags2::GENERAL | uflags2::SUPPLY_OR_HERO,
+            unit_flags2: uflags2::FLAG2_GENERAL | uflags2::SUPPLY_OR_HERO,
             ..UnitCols::default()
         },
         ..crate::UnitType::default()
@@ -433,7 +433,7 @@ fn the_senator_heals_a_walking_column_on_allied_ground() {
         hits: 110,
         type_index: 0x161,
         cols: UnitCols {
-            unit_flags2: uflags2::GENERAL | uflags2::SUPPLY_OR_HERO,
+            unit_flags2: uflags2::FLAG2_GENERAL | uflags2::SUPPLY_OR_HERO,
             ..UnitCols::default()
         },
         ..crate::UnitType::default()
@@ -483,7 +483,7 @@ fn a_patriot_repairs_its_leader_s_building_by_the_ground_under_it() {
             hits: 110,
             type_index,
             cols: UnitCols {
-                unit_flags2: uflags2::GENERAL | uflags2::SUPPLY_OR_HERO,
+                unit_flags2: uflags2::FLAG2_GENERAL | uflags2::SUPPLY_OR_HERO,
                 ..UnitCols::default()
             },
             ..crate::UnitType::default()
