@@ -13433,12 +13433,10 @@ impl crate::check_build_view::CheckBuildView for SimCheckBuild<'_> {
     }
 }
 
-#[cfg(test)]
-mod helicopter_garrison_tests;
-
-// The files of `orders/` (item 4012, `docs/STRUCTURE.md` §3).
 pub mod build_spot_view;
 pub mod check_build_view;
 pub mod do_attack;
 pub mod group_move;
+#[cfg(test)]
+mod helicopter_garrison_tests;
 pub mod topp;
