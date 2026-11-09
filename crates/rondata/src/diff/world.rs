@@ -538,7 +538,7 @@ mod tests {
         built.sim.trace.trace_phases = true;
         built.sim.trace.phase_marks.clear();
         built.sim.rng = sim::combat::Rng::new(first);
-        assert!(built.sim.think_scout(scout), "a target is found");
+        assert!(built.sim.setup().think_scout(scout), "a target is found");
         let ours = mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed).expect("our sites");
         assert_eq!(
             ours, theirs,
@@ -891,9 +891,11 @@ mod tests {
                 if sim::build::is_city(&loaded.build_types, ty) != pass {
                     continue;
                 }
-                let h = sim.init_build(b.who as sim::Player, ty, pos_of(b.pos), false);
+                let h = sim
+                    .setup()
+                    .init_build(b.who as sim::Player, ty, pos_of(b.pos), false);
                 sim.buildings[h].index = b.o as i16;
-                sim.activate(h, false, false);
+                sim.setup().activate(h, false, false);
             }
         }
         // Standing them up moved the map (footprints, `mask_city`,
@@ -925,7 +927,7 @@ mod tests {
                 .iter()
                 .position(|b| b.ident == id)
                 .unwrap_or_else(|| panic!("a {id:?} type"));
-            let b = sim.init_build(
+            let b = sim.setup().init_build(
                 0,
                 ty,
                 Pos::new(
@@ -944,7 +946,7 @@ mod tests {
             // Not `place_roads` directly: `Build::activate` → `Wall::start`
             // → `mask_me(1, REGEN_FORCE)` → `place_roads` is the chain the
             // channel's `add` ran, and nothing else on it draws.
-            sim.activate(b, false, false);
+            sim.setup().activate(b, false, false);
             costed.push(draws_between(seed, sim.rng.seed).unwrap_or(0));
             laid.extend(roads(&sim.world).difference(&mine).copied());
         }
@@ -1041,7 +1043,7 @@ mod tests {
             let mine = roads(&at.sim.world);
             at.sim.movement.plan_roads = true;
             at.sim.rng.seed = draws[0].seed;
-            at.sim.place_roads(b);
+            at.sim.setup().place_roads(b);
             let laid: Vec<(i32, i32)> = roads(&at.sim.world).difference(&mine).copied().collect();
             assert!(
                 laid.is_empty(),

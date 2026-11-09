@@ -53,6 +53,7 @@ mod bodies {
         assert!(
             built
                 .sim
+                .setup()
                 .probe_relocate(u64, sim::Pos::new(seat.x as i32, seat.y as i32))
         );
         built.tick();

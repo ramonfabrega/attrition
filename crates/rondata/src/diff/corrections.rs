@@ -69,7 +69,7 @@ pub(super) fn install_clock(
     guy: sim::anim::Guy,
 ) {
     let before = audit.as_ref().map(|_| sim.units[u].guys.get(n).copied());
-    sim.set_guy(u, n, guy);
+    sim.setup().set_guy(u, n, guy);
     // both sides: the audit is optional and `before` is None exactly when
     // it is off; nothing is compared with the audit off.
     if let (Some(audit), Some(before)) = (audit, before) {

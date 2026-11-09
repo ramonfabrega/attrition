@@ -247,12 +247,12 @@ impl Loaded {
     /// the combat table — `add_unit_type` grows the table with 100s as it
     /// goes, and the loaded one replaces it whole.
     pub fn install_into(&self, sim: &mut sim::Sim) {
-        sim.set_tech_tree(self.tree.clone());
+        sim.setup().set_tech_tree(self.tree.clone());
         for ty in &self.unit_types {
-            sim.add_unit_type(ty.clone());
+            sim.setup().add_unit_type(ty.clone());
         }
         for ty in &self.build_types {
-            sim.add_build_type(ty.clone());
+            sim.setup().add_build_type(ty.clone());
         }
         sim.combat.table = self.table.clone();
         sim.economy.good_types.clone_from(&self.good_types);

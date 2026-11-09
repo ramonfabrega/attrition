@@ -540,9 +540,11 @@ pub fn sim_at_frame(loaded: &Loaded, log: &Log, frame: i64, tuning: Tuning) -> O
             ));
             return None;
         };
-        let h = sim.init_build(b.who as sim::Player, ty, pos_of(b.pos), false);
+        let h = sim
+            .setup()
+            .init_build(b.who as sim::Player, ty, pos_of(b.pos), false);
         sim.buildings[h].index = b.o as i16;
-        sim.activate(h, false, false);
+        sim.setup().activate(h, false, false);
         Some((h, b.o))
     };
     let city_of = |b: &crate::gamelog::BuildDump| {
@@ -639,7 +641,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // `info.flags & 4` is asked of two layers — the AI's host function
     // `get_is_no_nation_powers` reads the lobby, `has_tribe_bonus` reads the
     // tech tree's `Setup` — and it is one bit, so they are kept the same.
-    sim.sync_setup_from_lobby();
+    sim.setup().sync_setup_from_lobby();
     // The map seed, which picks a gaia guy's piece (`docs/ANIM.md` §3).
     sim.game_seed = get("seed").unwrap_or(0) as i32;
     // The animation art: the lengths a `DUMP_ALL` dump (or a sibling)
@@ -717,7 +719,8 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 )
             })
             .collect();
-        sim.place_mountains(&placed, &loaded.mountain_templates);
+        sim.setup()
+            .place_mountains(&placed, &loaded.mountain_templates);
         notes.push(format!(
             "mountains: {} placed ranges, {} solid cells, from the templates",
             placed.len(),
@@ -743,7 +746,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         crate::mapgen::mesa::MesaLobby::of_initial(init),
     ) {
         let (.., cliffs) = crate::mapgen::mesa::southwest_mesa_at_894(root, &lobby);
-        sim.place_cliffs(&cliffs.mining);
+        sim.setup().place_cliffs(&cliffs.mining);
         notes.push(format!(
             "cliffs: {} mining lists, {} tiles, from the generator at 7805's seed {}",
             sim.terrain.cliffs.len(),
@@ -776,7 +779,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             // roster index — run40's 11 and 4 are the British and the
             // Nubians — and `-1`, which a gaia leader carries, is a leader
             // with no nation rather than the Aztecs.
-            sim.set_tribe(who as u8, l.tribe);
+            sim.setup().set_tribe(who as u8, l.tribe);
             // `leader_flags & 4` is `LeaderData::is_human` — the bit that
             // picks `find_wpath`'s pull-back variant and withholds the
             // `army`/`worker` cost modes (`docs/PATHFINDER.md` §3).
@@ -813,7 +816,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // also gives `starting_age` the dump's own value rather than the
     // default.
     for who in 0..players {
-        sim.start_techs(who as sim::Player);
+        sim.setup().start_techs(who as sim::Player);
     }
 
     // The opening scripts, compiled against the host's table
@@ -837,7 +840,10 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             .iter()
             .map(|(name, text)| sim::bhs::Source { name, text })
             .collect();
-        if let Err(e) = sim.load_scripts(&["economic.bhs", "defensive.bhs"], &sources) {
+        if let Err(e) = sim
+            .setup()
+            .load_scripts(&["economic.bhs", "defensive.bhs"], &sources)
+        {
             notes.push(format!("the opening scripts did not compile: {e}"));
         }
     }
@@ -867,7 +873,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         if let Some((before, _)) = bracket {
             sim.rng.seed = before;
         }
-        sim.init_leader_ai(who as sim::Player, flags);
+        sim.setup().init_leader_ai(who as sim::Player, flags);
         if let Some((before, after)) = bracket {
             if sim.rng.seed == after {
                 notes.push(format!(
@@ -933,14 +939,14 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         // `blocked_site`, neither of which the original does here.
         let placed = match city_ty {
             Some(ty) => {
-                let b = sim.init_build(who, ty, pos, false);
-                sim.activate(b, false, false);
+                let b = sim.setup().init_build(who, ty, pos, false);
+                sim.setup().activate(b, false, false);
                 Ok(b)
             }
             None => Err("no Small City type".to_string()),
         };
         if let Err(why) = placed {
-            let b = sim.add_building(who, pos, 8);
+            let b = sim.setup().add_building(who, pos, 8);
             sim.buildings[b].ty = city_ty;
             notes.push(format!(
                 "player {who}: the city at {} {} was added untyped — place_building refused it ({why})",
@@ -1008,11 +1014,11 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             Some(v) => u8::try_from(v).unwrap_or(0),
             None => kind.map_or(0, |t| sim.init_stance(u.who as sim::Player, t)),
         };
-        let idx = sim.add_unit(unit);
+        let idx = sim.setup().add_unit(unit);
         // `Unit::init`'s Iroquois Scout mask (item 3107): the forest walker
         // `invalid_loc` reads on frame 0's explore.
         if (0..players as i64).contains(&u.who) {
-            sim.init_iroquois_masks(idx);
+            sim.setup().init_iroquois_masks(idx);
         }
         // The figures' clocks and pieces (`docs/ANIM.md` §1, §3). A
         // `DUMP_ALL` start dump carries both; any other carries neither,
@@ -1034,7 +1040,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                     .insert((u.who as sim::Player, k, sub, n as u8), piece as i32);
             }
             if let Some(guy) = guy_of(g) {
-                sim.set_guy(idx, n, guy);
+                sim.setup().set_guy(idx, n, guy);
                 clocks += 1;
             }
         }
@@ -1043,7 +1049,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         // rather than on its leader. Deriving the position rather than
         // reading the dump's `GUY x/y` is deliberate — it is what lets
         // `run56_s_scout_dog_walks_its_own_body` compare the two.
-        sim.seat_guys(idx);
+        sim.setup().seat_guys(idx);
         // `Unit::init`'s tally — `num_units`, the group count, `control`
         // and `active` — which the price ramp, `population()` and the make
         // list read. A unit stood up from the dump counts exactly as a
@@ -1054,7 +1060,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         if let Some(ty) = kind
             && !gaia
         {
-            sim.track_unit_type(u.who as sim::Player, ty, 1);
+            sim.setup().track_unit_type(u.who as sim::Player, ty, 1);
         }
         units.push(UnitLink {
             who: u.who,
@@ -1095,7 +1101,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 let seeds: &[sim::farms::AnimalSeed] =
                     init.pasture.get(pastures).map_or(&[], Vec::as_slice);
                 pastures += 1;
-                animals += sim.farm_add_animals(b, seeds).len();
+                animals += sim.setup().farm_add_animals(b, seeds).len();
             }
         }
         notes.push(format!(
@@ -1152,7 +1158,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // item 3335): the dump's own, never replayed off `seen2` — a box under
     // a building's light is in `seen2` and in no item's `ever_seen`.
     for it in &init.items {
-        sim.add_goody_item(
+        sim.setup().add_goody_item(
             Pos::new(it.x as i32, it.y as i32),
             it.flags & 1 != 0,
             it.ever_seen as u8,
@@ -1165,12 +1171,12 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // once, after the goods are in and the leaders' `human` bits are set,
     // because `Leader::new_rare` reads both (item 207,
     // `sim::Sim::seed_new_rares_from_fog`).
-    sim.seed_new_rares_from_fog();
+    sim.setup().seed_new_rares_from_fog();
     // The oil patches the same two passes left in each leader's list: the
     // fog reveals above (the oil arm of `reveal_fog`) and the owner grid's
     // per-cell goods scan (`compute_reg_territory`), the one the installed
     // owners stand in for (`docs/AI.md` §133).
-    sim.claim_oil_from_owners();
+    sim.setup().claim_oil_from_owners();
     let seeded: usize = (0..players).map(|w| sim.ai.ai[w].new_rares.len()).sum();
     if seeded > 0 {
         notes.push(format!(
@@ -1430,9 +1436,9 @@ pub(crate) fn start_of_game(
             // outside a city, which is what the order diff caught when the
             // harness went through `place_building` and it was refused.
             let handle = match ty {
-                Some(t) => sim.init_build(who, t, pos, false),
+                Some(t) => sim.setup().init_build(who, t, pos, false),
                 None => {
-                    let h = sim.add_building(who, pos, 8);
+                    let h = sim.setup().add_building(who, pos, 8);
                     sim.buildings[h].active = true;
                     sim.buildings[h].activated = true;
                     sim.buildings[h].started = true;
@@ -1469,7 +1475,7 @@ pub(crate) fn start_of_game(
                 sim.buildings[handle].gather_max = Some(sim.max_gatherers(handle));
             }
             if ty.is_some() {
-                sim.activate(handle, false, true);
+                sim.setup().activate(handle, false, true);
             }
             // `find_free` numbers the building as it is placed; the dump's
             // `o` is the original's own numbering of the same placement
@@ -1579,7 +1585,7 @@ pub(crate) fn start_of_game(
                 .filter(|l| l.who != w || l.o > o)
                 .map(|l| l.unit)
                 .collect();
-            sim.birth_come_out(u, birth, &later);
+            sim.setup().birth_come_out(u, birth, &later);
         }
     }
     // `Setup::build_game@005ac190` builds the starting positions in the
@@ -1806,8 +1812,11 @@ impl Built {
                             skip.hits += 1;
                             0
                         } else {
-                            self.sim
-                                .reseat_animal(u, pos_of(state.pos), state.goal.map(pos_of))
+                            self.sim.setup().reseat_animal(
+                                u,
+                                pos_of(state.pos),
+                                state.goal.map(pos_of),
+                            )
                         };
                         // both sides: the audit is optional and `before` is
                         // None exactly when it is off; nothing is compared

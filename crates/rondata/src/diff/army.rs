@@ -481,7 +481,7 @@ mod tests {
             &loaded.pop_wins,
             &loaded.rush_minutes,
         );
-        sim.sync_setup_from_lobby();
+        sim.setup().sync_setup_from_lobby();
         // Block `n` is the state sim-frame `n` begins on (`docs/SYNC.md`
         // §1): the frame the stamps are compared against, and the sync
         // stream's word its `say_checksum` record carries — what the
@@ -494,7 +494,7 @@ mod tests {
         for l in &leaders {
             if (0..players as i64).contains(&l.who) {
                 let who = l.who as usize;
-                sim.set_tribe(who as u8, l.tribe);
+                sim.setup().set_tribe(who as u8, l.tribe);
                 sim.cities.nation[who].human = l.leader_flags & 4 != 0;
                 let t = &mut sim.ai.transport[who];
                 t.civilian = l.leader_flags & 0x100 != 0;
@@ -508,7 +508,7 @@ mod tests {
         // mid-game one, so laying it for `tribe = 0` would give every
         // leader the Aztecs' unit variants.
         for who in 0..players {
-            sim.start_techs(who as sim::Player);
+            sim.setup().start_techs(who as sim::Player);
         }
         // The `LEADERDATA` words `find_target` reads (`docs/ARMY.md` §12):
         // the diplomacy table (0 war, 1 peace, 2 allied; the diagonal is
@@ -589,8 +589,8 @@ mod tests {
                 .and_then(|t| loaded.build_of_type_index(t as i32))
                 .expect("the city building's type");
             let pos = Pos::new(c.int("x").unwrap() as i32, c.int("y").unwrap() as i32);
-            let b = sim.init_build(who as sim::Player, ty, pos, false);
-            sim.activate(b, false, false);
+            let b = sim.setup().init_build(who as sim::Player, ty, pos, false);
+            sim.setup().activate(b, false, false);
             let ci = sim.buildings[b].city.expect("activate founded the city");
             let city = &mut sim.cities.cities[ci];
             city.alive = flags & 1 != 0;
@@ -726,7 +726,7 @@ mod tests {
                 .group
                 .filter(|&g| g >= 0 && g / 64 == u.who)
                 .and_then(|g| u8::try_from(g - 64 * u.who).ok());
-            let h = sim.add_unit(unit);
+            let h = sim.setup().add_unit(unit);
             units.push((u.who, u.o, h));
         }
         // The attack targets, once every unit has a handle. The target is
@@ -957,7 +957,9 @@ mod tests {
                 .expect("mustering at a city");
             let b = sc.sim.cities.cities[c].building;
             assert!(
-                sc.sim.find_muster_spot(1, s, Obj::Building(b), true),
+                sc.sim
+                    .setup()
+                    .find_muster_spot(1, s, Obj::Building(b), true),
                 "army {s}: a spot"
             );
             let a = &sc.sim.ai.armies[1].list[s];
@@ -991,7 +993,9 @@ mod tests {
         let b = sc.sim.cities.cities[c].building;
         assert!(!sc.sim.cities.cities[c].no_muster, "0x0001 before");
         assert!(
-            !sc.sim.find_muster_spot(1, 1, Obj::Building(b), true),
+            !sc.sim
+                .setup()
+                .find_muster_spot(1, 1, Obj::Building(b), true),
             "no cell at Norwich"
         );
         assert!(sc.sim.cities.cities[c].no_muster, "0x2001 after");
@@ -1000,7 +1004,10 @@ mod tests {
         assert!(a2.valid && a2.navy);
         let t = a2.target.expect("the navy's target");
         assert_eq!(a2.pos.cell(), Cell::new(51, 53));
-        assert!(sc.sim.find_muster_spot(1, 2, t, false), "a sea cell");
+        assert!(
+            sc.sim.setup().find_muster_spot(1, 2, t, false),
+            "a sea cell"
+        );
         let a2 = &sc.sim.ai.armies[1].list[2];
         assert_eq!(a2.muster, Cell::new(46, 58));
         // `find_target`'s tail turns the search's angle about (§12).
@@ -1030,7 +1037,11 @@ mod tests {
         let c = a0.city.expect("at its city");
         assert!(sc.sim.cities.cities[c].no_muster, "marked since 12129");
         let b = sc.sim.cities.cities[c].building;
-        assert!(!sc.sim.find_muster_spot(1, 0, Obj::Building(b), true));
+        assert!(
+            !sc.sim
+                .setup()
+                .find_muster_spot(1, 0, Obj::Building(b), true)
+        );
         assert!(sc.sim.cities.cities[c].no_muster);
 
         let a2 = &sc.sim.ai.armies[1].list[2];
@@ -1039,7 +1050,7 @@ mod tests {
             panic!("a building target")
         };
         assert_eq!(sc.sim.buildings[tb].owner, 0, "the captured capital");
-        assert!(sc.sim.find_muster_spot(1, 2, t, false));
+        assert!(sc.sim.setup().find_muster_spot(1, 2, t, false));
         let a2 = &sc.sim.ai.armies[1].list[2];
         assert_eq!(a2.muster, Cell::new(46, 58));
         assert_eq!(a2.muster_angle.0, -1_605_566_464);
@@ -1112,7 +1123,7 @@ mod tests {
         }
         assert_eq!(sc.sim.find_aggressive_army(1), Some(2));
 
-        sc.sim.find_target(1, 2);
+        sc.sim.setup().find_target(1, 2);
 
         assert_eq!(sc.sim.rng.seed, 0xad03_8188, "three draws, the trace's");
         let a2 = &sc.sim.ai.armies[1].list[2];
@@ -1808,7 +1819,7 @@ mod tests {
             .resize(reg as usize + 1, 0);
         before.sim.ai.ai[1].census.strategy[reg as usize] |= 4;
 
-        before.sim.do_mustering(1, 0);
+        before.sim.setup().do_mustering(1, 0);
 
         let got = &before.sim.ai.armies[1].list[0];
         let want = &after.sim.ai.armies[1].list[0];
@@ -1954,11 +1965,12 @@ mod tests {
         );
 
         assert!(
-            before.sim.army_is_engaged(1, 0),
+            before.sim.setup().army_is_engaged(1, 0),
             "the tick that reaches engagement at all"
         );
         let (seed, target) = before
             .sim
+            .setup()
             .army_engagement_seed(1, 0)
             .expect("a seed on this frame");
         assert_eq!(

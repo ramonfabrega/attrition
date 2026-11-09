@@ -88,6 +88,7 @@ mod bodies {
                 let u = built.sim.unit_by_o(1, po as i16).expect("the probed unit");
                 let ok = built
                     .sim
+                    .setup()
                     .probe_relocate(u, sim::Pos::new(px as i32, py as i32));
                 eprintln!("  probe {f}: 1/{po} seated at ({px},{py}): {ok}");
             }

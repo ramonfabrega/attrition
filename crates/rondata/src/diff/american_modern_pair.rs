@@ -213,8 +213,10 @@ fn american_modern_pair_an_american_airbase_pays_a_bomber_in_the_modern_age() {
             .count()
     };
     let before = bombers(sim, 1);
-    let b = sim.init_build(1, airbase, sim::Pos::new(35040, 15456), false);
-    sim.activate(b, false, true);
+    let b = sim
+        .setup()
+        .init_build(1, airbase, sim::Pos::new(35040, 15456), false);
+    sim.setup().activate(b, false, true);
     assert_eq!(
         bombers(sim, 1),
         before + 1,
@@ -222,8 +224,10 @@ fn american_modern_pair_an_american_airbase_pays_a_bomber_in_the_modern_age() {
     );
     // The human is Nubian: the arm is the Americans' alone.
     let h = bombers(sim, 0);
-    let b0 = sim.init_build(0, airbase, sim::Pos::new(8000, 8000), false);
-    sim.activate(b0, false, true);
+    let b0 = sim
+        .setup()
+        .init_build(0, airbase, sim::Pos::new(8000, 8000), false);
+    sim.setup().activate(b0, false, true);
     assert_eq!(bombers(sim, 0), h, "the human is not American");
 }
 

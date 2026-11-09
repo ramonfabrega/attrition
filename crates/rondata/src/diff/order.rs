@@ -1724,7 +1724,7 @@ mod tests {
         let init = initial();
         let mut built = build_sim(loaded, &init, Tuning::RON);
         let u = built.units[1].unit;
-        let b = built.sim.add_building(0, Pos::new(4248, 28680), 8);
+        let b = built.sim.setup().add_building(0, Pos::new(4248, 28680), 8);
         built.builds.push((b, 2001));
         built
             .sim
