@@ -2369,3 +2369,5 @@ impl TechTree {
 
 #[cfg(test)]
 mod tests;
+
+// The files of `tech/` (item 4012, `docs/STRUCTURE.md` §3).

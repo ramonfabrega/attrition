@@ -40,7 +40,7 @@ dated heading on, the journal is by date.
    mechanic, each re-verifying every claim against the decompile before
    changing it, document first, then implementation and tests.
 1. ~~**The tech tree**~~ — **done, 2026-08-20**, `docs/TECH.md` and
-   `crates/sim/src/tech.rs`: `has_tech`, `get_preq`, `has_preq`,
+   `crates/sim/src/tech/mod.rs`: `has_tech`, `get_preq`, `has_preq`,
    `type_eligible`, `type_avail`, `queue_here`, `gain_tech` with its cascades,
    `lose_tech`, `set_age`, the starting position, the lobby's start/end ages.
    The `TypeIndex` enum is now dumped whole by
