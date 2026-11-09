@@ -123,6 +123,53 @@ impl FreeRunner {
     }
 }
 
+/// **The scene as the draw list takes it** (`docs/RENDERER.md` §3.5, item
+/// 4026): one [`render::draw::Placed`] per figure of every unit on the map,
+/// at the figure's own point and height. `render` depends on nothing in
+/// `sim`, so the copy is made here, in the crate that holds both; the
+/// dependency stays one-way, `rondata` → `render`, as item 4019 set it.
+pub fn placed(scene: &Scene) -> Vec<render::draw::Placed> {
+    scene
+        .units
+        .iter()
+        .flat_map(|u| {
+            u.figures
+                .iter()
+                .enumerate()
+                .map(move |(k, f)| render::draw::Placed {
+                    who: u.id.who,
+                    o: u.id.o,
+                    figure: k as u16,
+                    x: f.pos.x,
+                    y: f.pos.y,
+                    z: f.z,
+                    piece: f.gpiece,
+                    slot: f.anim,
+                    frame: f.cur_time,
+                    facing: f.facing.0 as u32,
+                })
+        })
+        .collect()
+}
+
+/// `viewer`'s sight on a scene observed for it, or `None` for a scene with
+/// no fog plane — the observer's. `width` is the map's in cells
+/// ([`sim::observe::TerrainScene::width`]).
+pub fn sight(
+    scene: &Scene,
+    viewer: sim::Player,
+    width: i32,
+    height: i32,
+) -> Option<render::draw::Sight<'_>> {
+    scene.fog.as_deref().map(|plane| render::draw::Sight {
+        viewer,
+        plane,
+        xs: width * 2,
+        ys: height * 2,
+        cell: sim::world::UNITS_PER_CELL / 2,
+    })
+}
+
 /// Each sibling's `Initial` with its frames' observations, scoped to `f`.
 fn with_sibling_initials<R>(
     paths: &[&Path],

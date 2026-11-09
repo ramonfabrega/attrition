@@ -3,7 +3,8 @@
 *2026-11-06. A proposal, not a decision: Ramon decides what phase 4's first
 items are, and this document is what he decides from. Every choice below is
 marked **Choice**, with the alternative beside it. Nothing here was built
-when it was written; item 4018 built the camera (§3.4).
+when it was written; item 4018 built the camera (§3.4), item 4026 the draw
+list (§3.5).
 Written by a worker on Opus 5.5 from the tree at `4314ac355`.*
 
 **Why now.** Entry 29's three counters stand (`docs/DECISIONS.md` entry 29;
@@ -242,7 +243,21 @@ holds, with five readings the text left open:
   not on the movement bits in a tile's mask. The territory counter moves
   on a changed `(who, who2)`.
 
-The read-only test is `observe::tests::observing_every_tick_leaves_the_digest_alone`.
+**Widened by item 4026** (§3.5), the door's one change for the draw list:
+- `FigureScene.z`: the figure's own height, as `Guy::update_z@005d9950`
+  keeps it. A sea unit's figure is at 0. An aircraft's is at its
+  `Airframe::z`. Every other figure is on `World::data_z` of its own point,
+  which may be below zero. The draw list anchors there, and so does
+  `GuyOut::draw`. `follow.body` was already in: `FigureScene::pos` is a
+  crew body's own point.
+- `units` holds the **living** units on the map. A unit at no health keeps
+  its record, but the original has taken it out of its object array.
+- `o` **is** reused within one game: on the pair, `1/68`'s number belongs to
+  a new plane by 2701. A client keys a figure on `(who, o)` per frame,
+  never across a death.
+
+The read-only test is `observe::tests::observing_every_tick_leaves_the_digest_alone`,
+which still holds.
 The orders a client issues go through `sim::command`, the other door.
 
 ### 2.4 What changes, and what does not
@@ -403,7 +418,7 @@ transforms and filtering. A pixel difference against that measures the
 translation stack as much as the port. Rung 4 is for the art phase's eyes and
 for the silhouette metric in §5's third candidate. It is not a gate.
 
-### 3.4 The camera, read and in register (item 4018)
+## 3.4 The camera, read and in register (item 4018)
 
 *2026-11-08, Opus 5.5. Built in `crates/render/src/camera.rs`; checked by
 `crates/render/tests/camera_sweep.rs` and `camera_packet.rs`.*
@@ -541,6 +556,98 @@ pinned test.
 - **Culling.** `compute_clip_planes` was stubbed, not read.
 - **Points behind a perspective eye.** They are outside the sweep's domain.
   The game's camera is parallel, where they do not arise.
+
+## 3.5 The draw list, and frames in register (item 4026)
+
+*2026-11-09, Opus 5.5. Built in `crates/render/src/draw.rs`, fed by
+`rondata::free::placed`; checked by `rondata::free::tests::the_draw_list_s_frames_are_in_register`.*
+
+**The score.** On `GreatLakesAztecModern` (4020's pair), run1429's logged
+frames: **33 of 35 in register** (`FRAMES_IN_REGISTER`), 3,840 of 3,842
+figures within one pixel of the original's own projection, and the drawn
+sets equal on all 35. **K 29 of M 59** (§5.4).
+
+**What the list is.** `render::draw::draw_list` takes one `Placed` per
+figure (object id, figure index, the figure's own point and height, piece,
+slot, frame, facing), a `Camera`, a `Screen` and an optional `Sight`, and
+returns one `Drawn` per figure drawn: the same identity and pose, the
+anchor from `world_to_screen`, and a depth key. The depth is the point's
+camera-space z (`render_matrix`'s third column), furthest first, ties by
+identity. `render` still depends on nothing in `sim`. `rondata`, which holds
+both, copies a `Scene` into `Placed` (`free::placed`, `free::sight`), so the
+edge stays `rondata` → `render`, as item 4019 set it.
+
+- *Drawn:* a figure with a piece (`-1` draws nothing). For a viewer, also
+  only its own figures and those on a half-cell its plane holds `VISIBLE`.
+- *Not culled:* the clip planes (`Camera::compute_clip_planes@00842950`)
+  are unread, so an off-screen figure is listed at its off-screen pixel.
+
+**The reference.** `GuyOut::draw@005dc490` calls `world_to_console` on the
+guy's own `+0xc`, `+0x10`, `+0x14` with `w = h = −1`, then adds the
+console's offset (the listing, `005dc4d8`–`005dc52a`). So a figure's anchor
+is the `GUY` record's `x y z`, not its unit's `x_internal`. The point is not
+interpolated there. The bank at `+0x44`/`+0x48` is blended by
+`graphic_percent`. For each logged frame, every figure the dump prints for
+a unit with `inside_up` −1 goes through the original's `update_transforms`
+and `world_to_screen` under unicorn (`tools/render/camera_oracle.py
+points`, 4018's harness, `tools/emu` untouched). The camera is pinned:
+run1484's game camera moved to the map's centre, at 1920×1080. A frame is
+in register when the two drawn sets are equal and every anchor is within
+one pixel on both axes.
+
+**The door, widened twice** (§2.3's "As built"):
+
+- **A figure's height.** `FigureScene` had no `z`, and `UnitScene::z` is
+  the tile under the unit. A figure stands on `find_data_z` of its own
+  point, or on its own altitude. Before the change, 3,240 of 3,842 figures
+  agreed and 0 of 35 frames.
+- **A dead unit.** `observe` filtered `on_map` only. A unit at no health
+  keeps its record until the slot is reused, and the original has taken it
+  out of its object array (run1429 stops printing `0/3`, `0/4`, `0/12` and
+  `0/13` by 2601). `1/68`'s number belongs to a new plane by 2701. Before
+  the change, 24 of 35 frames were in register.
+
+**The two frames out**, each one figure whose own point stands apart from
+its unit's. The simulation does not carry that point for a figure with no
+crew body (`FigureScene::pos` is the unit's):
+
+| frame | figure | dump `GUY` | original's pixel | ours | our pixel |
+|---|---|---|---|---|---|
+| 2501 | `1/9` guy 0, piece 11264 | (39869, 23358, 305) | (3554, 1827) | (39879, 23369, 305) | (3554, 1829) |
+| 3001 | `1/67` guy 0, piece 232 | (37576, 19846, −16) | (3746, 1433) | (37591, 19892, −14) | (3741, 1438) |
+
+Each "ours" point is the dump's own `x_internal`, `y_internal` for the
+unit. `1/9`'s figure stands on its unit's `orders_x`, `orders_y`.
+
+**Made to fail once.** Reading a figure's height as its unit's tile
+(`UnitScene::z`) gives 0 of 35 frames and 3,240 of 3,842 figures.
+
+**The clock** (`DRAW_CLOCK`, measured as §2.4's): 434 ms to frame zero,
+994 ms to frame 3390, 325 MiB peak. The runner alone, the same hour, read
+428 ms, 974 ms and 325 MiB. The list costs about 20 ms over 3,390 ticks
+(6 µs a tick for 109 figures), and no memory. The slowest single list took
+18 µs.
+
+**Diff-backed:** the anchors, the height rule, the dead-unit rule and the
+drawn sets on the observer's view, all against run1429's dump and the
+original's own projection. **Listing-backed:** the reference's choice of
+point (`GuyOut::draw`).
+
+**What is not established.**
+
+- **The viewer's drawn set.** run1429 dumps `UNITS` and `GUYS` only, with
+  no fog plane on its frames. So the reference here is the observer's:
+  every figure on the map. The `Sight` rule is unit-tested, not diffed.
+  The original's own draw predicate (`UnitOut::draw@00615b80`'s gate) is
+  unread. run1428's `DUMP_ALL` frames print `seen` planes, which is
+  where a viewer's check would start.
+- **The depth key's order** against the original's. No dump prints a
+  draw order.
+- **Buildings.** They are not in the list. `BuildingScene` carries no
+  piece, and run1429's frames print no building.
+- **A figure's own point apart from its unit's.** This is the two misses
+  above. `Guy` would need its own `x`/`y` wherever the original moves a
+  figure off its unit's point.
 
 ## 4. The stack
 
@@ -705,18 +812,28 @@ pose beyond its frame index, the terrain's look, or any interface.
 **The terrain is outside M** and has its own binary condition: the
 heightfield's projected corner points are in register at the pinned camera.
 
-**Counted (item 4020, `rondata::free::tests`).** On `GreatLakesAztecModern`:
-- **M = 60** (`RENDER_M`): 39 pieces the runner's 3,391 scenes play, with
+**Counted (item 4020, `rondata::free::tests`; re-counted by 4026).** On
+`GreatLakesAztecModern`:
+- **M = 59** (`RENDER_M`): 38 pieces the runner's 3,391 scenes play, with
   `-1` (no piece) left out, plus the 21 building types (`orig_type`) the
-  lobby's three captures hold.
+  lobby's three captures hold. 4020 counted 39 and M = 60. Piece 265 was
+  played only by a unit at no health, which the door no longer reports
+  (§2.3).
+- **K = 29 of M's 59** (item 4026, `RENDER_K`, §3.5), with both conditions
+  live:
+  - 31 of the 38 pieces decode (condition 1);
+  - 36 are in register on every logged frame they are played on
+    (condition 2). Pieces 232 and 11264 are out, one figure each.
+  - The 21 building types have neither a decoder nor a dumped frame, so
+    they count toward no K.
 - **The dumps check every figure they print a `gpiece` for.** Only the
   `DUMP_ALL` states print one: run1428's two, and run1429's start block.
   That is 306 figures on the map, all 306 agreeing, and on each dump's
   frames the two sides hold the same set of pieces (12 and 32 of the 39).
   run1429's stride and run1429b's window print guys without `gpiece`. The
   other pieces rest on the scene's equality with the harness.
-- **32 of the 39 pieces decode** under item 4019's readers
-  (`M_PIECES_DECODING`). The seven short are six gaia pieces, which no
+- **31 of the 38 pieces decode** under item 4019's readers
+  (`M_PIECES_DECODING`; 32 of 39 before piece 265 left). The seven short are six gaia pieces, which no
   `<UNIT>` entry names, and one citizen crew row with a failing file.
 
 *What M is not yet:*
@@ -787,6 +904,9 @@ from `sim`. None is minted: item numbers and the queue are the commander's.
   half arrives in item 4.
 - *Needs from `sim`:* the viewer's fog plane in `Scene`, and the figures'
   `follow.body` positions, so a crew piece draws where its body is.
+- *Built by item 4026* (§3.5): **33 of 35 frames in register** on the pair,
+  and K 29 of M 59, both conditions live. The door gained `FigureScene.z`
+  and dropped dead units (§2.3).
 
 **4. The asset resolution, and the first decoder.**
 
@@ -833,17 +953,18 @@ Each line names what would settle it.
   pairs do (entry 100 §4), and on `GreatLakesAztecModern` the free runner
   agrees with the harness on every tick (item 4020). For the long ones, run
   the same comparison on one.
-- **Whether `o` is reused within one game.** This decides whether `ObjId`
-  needs a generation counter. Grep the dumps for a `(who, o)` whose type
-  changes mid-capture.
-- ~~**How many pieces M holds.**~~ 39 on the first pair, and M = 60 with
-  the building types (item 4020, §5.4). Whether every lobby's pinned capture
+- ~~**Whether `o` is reused within one game.**~~ It is (item 4026, §2.3):
+  `1/68` on the pair. A client keys on `(who, o)` within a frame.
+- ~~**How many pieces M holds.**~~ 38 on the first pair, and M = 59 with
+  the building types (items 4020 and 4026, §5.4). Whether every lobby's pinned capture
   has a `DUMP_ALL` sibling to check its count against is still a grep of the
   archive. On this lobby, only the start states print a unit's `gpiece`.
 - **Whether the original interpolates figures between simulation frames**
-  when it draws. `GuyOut::draw` is the place to read. It does not affect the
-  counter, which compares at frame boundaries. It does decide whether the
-  client's motion looks like the original's.
+  when it draws. In `GuyOut::draw`, ~~the place to read~~ the anchor's point
+  is not interpolated and the bank is (§3.5). Whether the mesh's own
+  transform is interpolated is still unread past that function's head.
+  It does not affect the counter, which compares at frame boundaries. It
+  does decide whether the client's motion looks like the original's.
 - ~~**`world_to_screen`'s inputs beyond the camera.** It takes two `Coord`s and
   two more integers. Whether height enters through those, or through a
   lookup inside, is a reading item 2 owes.~~ Settled by item 4018 (§3.4):

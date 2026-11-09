@@ -15689,13 +15689,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DM — reserved
+## Parked by item 4026, 2026-11-09 — the draw list's viewer, order and buildings
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4026a. The viewer's drawn set against the original** (`docs/RENDERER.md` §3.5, "What is not established").
+  `render::draw::Sight` draws a viewer's own figures and those on a `VISIBLE` half-cell. That rule is unit-tested
+  only. run1429's frames print no fog plane, so §3.5's drawn sets are the observer's. `UnitOut::draw`'s gate is
+  unread. run1428's `DUMP_ALL` frames print `seen`, `seen2` and `seen3` with every unit, which is where a
+  viewer's check would start. It names no score while K's register half is counted on the observer's view.
+- **4026b. The depth key's order** (§3.5). The list orders on camera-space depth, and nothing on disk prints the
+  original's draw order. It names no score until silhouettes are compared (§5.3).
+- **4026c. Buildings in the draw list** (§3.5, §5.4's "What M is not yet"). `BuildingScene` carries no piece,
+  and run1429's frames print no building. run1429b's window prints `BUILDDATA` with a piece on 95 blocks. It
+  names no score until a building decoder exists, since M's 21 building types count toward no K without one.
 
 ## Parked by the next landing, slot DN — reserved
 

@@ -29,6 +29,16 @@ Rows, one per line, every float as its 32-bit pattern in hex:
     pt <i> <x> <y> <z> <w> <h> -> <sx> <sy> <off>
 
 `w h` of `0 0` takes the screen size from `graphsys` as the original does.
+
+    ... camera_oracle.py <install>/riseofnations.exe points <file>
+
+The draw list's reference (item 4026, `docs/RENDERER.md` §3.5): one camera
+and a list of chosen points, read from `<file>` — a `state` line in the
+sweep's own field order (the hex patterns, `parallel`, the screen and the
+console offset, without the index), then one `pt <tag> <x> <y> <z> <w> <h>`
+per point, `<tag>` any token the caller keys on. It prints the `state` and
+`mat` rows as the sweep does, then `pt <tag> <x> <y> <z> <w> <h> -> <sx>
+<sy> <off>` per point, in the file's order.
 The table, like every emulator table, is derived from the user's own files
 and stays outside the repository.
 """
@@ -208,7 +218,34 @@ def sweep(o, seed, nstates, npoints):
             made += 1
 
 
+def unhex(h):
+    return struct.unpack("<f", struct.pack("<I", int(h, 16)))[0]
+
+
+def points(o, path):
+    keys = ("zoom", "scale", "tilt", "dir", "lx", "ly", "ax", "ay", "az", "angle", "near", "far", "ratio")
+    with open(path) as fh:
+        lines = [ln.split() for ln in fh if ln.strip()]
+    head = lines[0]
+    assert head[0] == "state", "the file opens with its camera"
+    v = head[1:]
+    s = {k: unhex(v[i]) for i, k in enumerate(keys)}
+    s.update(parallel=int(v[13]), pdist=unhex(v[14]), xs=int(v[15]), ys=int(v[16]), natural=unhex(v[17]),
+             conoff=int(v[18]))
+    m = o.build(s)
+    print("state 0 " + " ".join(v))
+    print("mat 0 " + " ".join(f"{fbits(x):08x}" for x in m))
+    for t in lines[1:]:
+        assert t[0] == "pt", t
+        tag, (x, y, z, w, hgt) = t[1], map(int, t[2:7])
+        sx, sy, off = o.project(x, y, z, w, hgt)
+        print(f"pt {tag} {x} {y} {z} {w} {hgt} -> {sx} {sy} {off}")
+
+
 def main(argv):
+    if len(argv) >= 4 and argv[2] == "points":
+        points(Oracle(argv[1]), argv[3])
+        return 0
     if len(argv) < 3 or argv[2] != "sweep":
         print(__doc__)
         return 2
