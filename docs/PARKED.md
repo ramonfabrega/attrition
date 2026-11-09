@@ -15827,13 +15827,13 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   building it has seen before (`ever_seen`). Books with the viewer's check, `docs/RENDERER.md` §3.5's first open
   question, which run1428's `seen` planes would start.
 
-## Parked by the next landing, slot DQ — reserved
+## Parked by item 4046, 2026-11-09 — the start's war matrix
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4046a. `Leader::init`'s diplomacy loop writes two more fields the builder leaves at `Sim::new`'s**
+  (`docs/START.md` §2 step 6): `treaties[u]` (`+0x94`) = `reveal_map == 3`, or'd with 1 for a teammate (the met bit
+  `Sim::has_met` reads), and `aggression[u]` (`+0x210`) = the war bit. The start block compares neither; neither was
+  checked against the dumps' `treaties[scan]`. Score: none
+  until a team game or a revealed-map lobby is built (4034's rows), or the block widens to `treaties`.
 
 ## Parked by item 4037, 2026-11-09 — the farm's art
 

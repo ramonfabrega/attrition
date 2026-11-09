@@ -67,7 +67,8 @@ it (**not built**).
    nation draw is not walked: `build_game` re-seeds right after, so nothing
    at frame 0 observes it. **Not built**: a random
    style, a random age, a spread row's draws (refused, with a note), the
-   team assignment — and the war matrix, §4.
+   team assignment. (The war matrix is not this step's: it is
+   `Leader::init`'s, step 6.)
 3. **`Setup::build_game@005ac190`'s head**: re-seed from `info.seed`,
    `frame = tick = 0`, the market tables, `Objects::clear@0065d740` (per
    player `unit_mark = 0`, `build_mark = 2000`, `wall_mark = 3000`), and
@@ -91,6 +92,19 @@ it (**not built**).
    ported and reproduces the trace's far word from its near one (ORACLE);
    what it needs is the stream's word at its bracket, which steps 4–5
    produce. **Not built.**
+   **The diplomacy row** is the same call's, and draws nothing: for each
+   other leader `u`, `diplos[u]` (`LeaderData +0x74`, written as
+   `puVar23[-0x18]` off a cursor at `good_deeds`, `+0xd4`, lines 199–227 of
+   the decompile) is left alone in a conquest game (`semaphore[2] & 2`);
+   else 2 when `LeaderData::is_team@006ebd30(u, 0)` holds at frame 0 (the
+   same `PLAYER` `team` in `0..4`, refused under team style 7 to a seat on
+   team 8); else 1 when `RUSH_RULES` is above the leader's `starting_age`;
+   else 0, war, when `Game::teams_locked@00594880` (team style not 0, 8 or
+   11), and 1 otherwise. Then `semaphore[1] & 2` forces 0 off the
+   diagonal, which no lobby field sets. **Built** (`Sim::init_diplos`,
+   item 4046), ahead of the map, which it does not read; the
+   `semaphore[1]` arm and the loop's other writes (`treaties`,
+   `aggression`) not.
 7. **`Setup::build_empire@005abb80(who, slot)`** for each player in start
    order: `Setup::build_cities@005ab910` (the village at the start cell,
    `Build::init` + `Build::activate(0, 0, 0)`, finished and active; then
@@ -148,22 +162,30 @@ personality (from the trace's bracket) and the sync word.
 builds run9's lobby (`gamelog-run9-world6.txt`, `WORLD=6`, with run11's
 setup trace and run3's heights borrowed) from its `GAMEINFO` block alone
 and compares it with `build_sim`'s install of the same capture;
-`RON_START_DIFF=1` prints the value diff. **9,087 of 18,264 fields agree.**
+`RON_START_DIFF=1` prints the value diff. **9,089 of 18,264 fields agree**
+(9,087 at item 4033).
 
-- **The first parted row is the war matrix**: `LEADER 0 at_war` ours
-  `[false, false]`, theirs `[false, true]` (and `LEADER 1`'s mirror). The
-  dump's `diplos` (`LeaderData +0x74`) is 0, war, off the diagonal at frame
-  0; this walk leaves the matrix at `Sim::new`'s peace. Who writes it
-  before frame 0 is **not established**: not `Leader::init`'s head, and
-  not `Game::init_teams`' tail, which writes `chat_status` (`+0x54`, a
-  neighbour) — `Leader::set_diplo@006ec6a0` writes `+0x74` on later
-  changes. The writers are next to count by offset in every spelling.
-- Every row ahead of it agrees: both nations, both human bits, the goods,
-  the ages, the techs.
-- After it: the extent and `world->seed` agree; the map parts on every
-  cell (3,600 `region`, 2,303 `val`, 1,706 `flags`, 790 `land`), the
-  computer's personality, all 13 buildings and 52 units on every field,
-  527 territory cells and the sync word — each downstream of step 4.
+- **The war matrix agrees** (item 4046; 4033 had it first parted, ours
+  `[false, false]`, theirs `[false, true]`). Its writer is `Leader::init`'s
+  diplomacy row (§2 step 6), found by counting the writers of `+0x74` on a
+  leader record in every spelling: `diplos[` (no writer by name),
+  `field_0x74 +` on `leaders.list` (`Leader::set_diplo@006ec6a0`, whose
+  callers are live play, the console, CtW and scenarios; the scenario
+  editor; `ScenarioRead::load_leader_chunk`, the scenario path), the bulk zeroing
+  (`Leaders::clear@006ed5d0`'s `memset` of each record's first `0x6929`
+  bytes, and `Leader::init`'s own fresh arm, `param_2 < 0`), and the
+  cursor spelling `puVar23[-0x18]` inside `Leader::init`'s per-leader loop.
+  `Game::do_frame`'s `set_diplo(…, 0)` (the end of a rush's peace) runs
+  after the dump. On this lobby (`TEAM_STYLE 1`, `RUSH_RULES 0`, both seats
+  on team 8) the row is 0 off the diagonal.
+- **The first parted row is now the map's first cell**, `CELL 0 0
+  region` ours `false` theirs `true`, and every row ahead of it agrees:
+  both nations, both human bits, the goods, the ages, the techs, the war
+  matrix, the extent and `world->seed`. **9,089 of 18,264 fields agree.**
+- After it: the map parts on every cell (3,600 `region`, 2,303 `val`,
+  1,706 `flags`, 790 `land`), the computer's personality, all 13 buildings
+  and 52 units on every field, 527 territory cells and the sync word —
+  each downstream of step 4.
 
 ## 5. The counter
 
@@ -181,13 +203,22 @@ comparison, so the counter cannot read 1 while that lobby parts.
 
 - **Diff-backed** (the comparison above): the extent on Small, the
   nations and human bits from `PLAYER`, `world->seed` after one nation
-  draw and the re-seed.
+  draw and the re-seed, the war matrix. The diplomacy row's formula was
+  also scored against **every start dump on disk** (item 4046, a scratch
+  scan of each log's `GAMEINFO` against its `LEADERDATA diplos[scan]`):
+  633 logs, 1,334 ordered pairs, every one predicted — 1,322 at war under
+  `TEAM_STYLE 1`, 12 at peace under `RUSH_RULES 10`.
 - **Read once, from the decompile**: the extent's style-16 and half-size
   arms; that `GAMEINFO`'s `PLAYER tribe` is the nation *after* the random
   roll — which is what the builder takes; the roll's one draw is spent
   on a stream the re-seed discards, so whether a nation was chosen or
   rolled changes nothing at frame 0.
-- **Not established**: the war matrix's writer (§4); the team assignment
+- **Read only**: the diplomacy row's team arm (2), its unlocked styles
+  (0, 8, 11), its conquest and `semaphore[1]` arms, and the style-7
+  refusal — no capture on disk has a team game or an unlocked style.
+  The style-7 refusal is equivalent at frame 0 (a seat on team 8 already
+  fails the `0..4` test), so no lobby can tell it apart.
+- **Not established**: the team assignment
   and the handicaps; the composition of the map chain into a `World` and
   the start cells; the start permutation; every placement draw of
   `build_empire`; `Herd::create_units`. ORDERS §9.2–9.3 hold the readings

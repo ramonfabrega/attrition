@@ -5,6 +5,16 @@
 
 use crate::*;
 
+/// One lobby seat as `Leader::init`'s diplomacy reads it: `GameInfo`'s
+/// `player[k]`, found by its `who` as `LeaderData::get_player` finds it —
+/// the `PLAYER` row's `flags` and `team` (a signed byte; 8 is no team).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Seat {
+    pub who: Player,
+    pub flags: u32,
+    pub team: i32,
+}
+
 impl Sim {
     /// Whether `who` is at war with `p` — false for an owner outside the
     /// player table (gaia's units path through territory too).
@@ -129,6 +139,71 @@ impl Sim {
         }
     }
 
+    /// **`Leader::init@006e3930`'s diplomacy row** for a leader with a
+    /// nation (`param_2 >= 0`, the call `Setup::build_game` makes for every
+    /// active player; item 4046, `docs/START.md` §2 step 6). For each other
+    /// leader `u`, `diplos[u]` (`+0x74`, written as `puVar23[-0x18]` off
+    /// `good_deeds` at `+0xd4`, lines 199–227 of the decompile) is
+    ///
+    /// - left alone in a Conquer-the-World or scenario game
+    ///   (`semaphore[2] & 2`, [`crate::ai::Lobby::conquest`]);
+    /// - else **2** when `LeaderData::is_team@006ebd30(u, 0)` at frame 0 — the same `team`
+    ///   in `0..4`, refused under `team_style 7` to a seat on team 8;
+    /// - else **1**, peace, when `RUSH_RULES` is set above the leader's
+    ///   `starting_age`;
+    /// - else **0**, war, when `Game::teams_locked@00594880` (team style
+    ///   neither 0, 8 nor 11), and 1 otherwise.
+    ///
+    /// Only this leader's row is written; the other's own `Leader::init`
+    /// writes the mirror. The diagonal is the crate's untouched `false`.
+    /// SEAM: the arm after it, `semaphore[1] & 2` forcing war with every
+    /// other leader, is not a lobby field and is not carried; nor are the
+    /// loop's other writes (`treaties` = `reveal_map == 3` or'd with the
+    /// team bit, `aggression` = the war bit), which the start block does
+    /// not compare.
+    pub fn init_diplos(&mut self, who: Player, seats: &[Seat]) {
+        let lobby = &self.ai.lobby;
+        if lobby.conquest {
+            return;
+        }
+        let w = who as usize;
+        let seat = |p: usize| seats.iter().find(|s| s.who as usize == p);
+        let is_team = |a: usize, b: usize| -> bool {
+            if a == b {
+                return true;
+            }
+            let (Some(sa), Some(sb)) = (seat(a), seat(b)) else {
+                return false;
+            };
+            if lobby.team_style == 7 && [sa, sb].iter().any(|s| s.flags & 1 != 0 && s.team == 8) {
+                return false;
+            }
+            (0..4).contains(&sa.team) && sa.team == sb.team
+        };
+        let starting_age = match self.tech.get(w) {
+            Some(p) => self.tables.tech_tree.starting_age(&self.tables.setup, p),
+            None => lobby.starting_technology.min(7),
+        };
+        let teams_locked = !matches!(lobby.team_style, 0 | 8 | 11);
+        let n = self.leaders.at_war.len();
+        if w >= n {
+            return;
+        }
+        for u in (0..n).filter(|&u| u != w) {
+            let d = if is_team(w, u) {
+                2
+            } else if lobby.rush_rules != 0 && starting_age < lobby.rush_rules {
+                1
+            } else if teams_locked {
+                0
+            } else {
+                1
+            };
+            self.leaders.at_war[w][u] = d == 0;
+            self.leaders.allied[w][u] = d == 2;
+        }
+    }
+
     /// `Leader::set_age(n)` on one leader, which is all the `age` cheat
     /// does — the four epochs stay where they were (`docs/INPUT.md` §11).
     pub fn set_leader_age(&mut self, who: Player, n: i32) -> Vec<tech::Gained> {
@@ -215,3 +290,6 @@ impl Sim {
         }
     }
 }
+
+#[cfg(test)]
+mod tests;

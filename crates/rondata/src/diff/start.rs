@@ -327,6 +327,24 @@ pub fn from_lobby(
     sim.game_seed = rng.get(0, 0xffff) % 0xffff + 1;
     sim.rng = rng;
     steps.push(("build_game: re-seed, world->seed", true));
+    // 6, ahead of the map it does not read: `Leader::init`'s diplomacy row
+    // (`diplos`, `+0x74`), off the lobby's team style, rush rules and the
+    // `PLAYER` rows' teams (item 4046).
+    let seats: Vec<sim::leaders::relations::Seat> = player_rows
+        .iter()
+        .filter_map(|p| {
+            let w = row_int(p, "who").filter(|w| (0..players as i64).contains(w))?;
+            Some(sim::leaders::relations::Seat {
+                who: w as sim::Player,
+                flags: row_int(p, "flags").unwrap_or(0) as u32,
+                team: row_int(p, "team").unwrap_or(8) as i32,
+            })
+        })
+        .collect();
+    for who in 0..players {
+        sim.setup().init_diplos(who as sim::Player, &seats);
+    }
+    steps.push(("Leader::init: diplos", true));
     // 4. The map, and everything after it.
     for step in [
         "Map::make and Terrain::init",
@@ -434,18 +452,17 @@ mod tests {
         });
     }
 
-    /// The harness lobby's first parted row, `record field: ours theirs`
-    /// (item 4033): the war matrix the installer reads off the dump's
-    /// `diplos` (0, war, off the diagonal) against this walk's all-peace
-    /// default — its writer before frame 0 is not yet read (`docs/START.md`
-    /// §4). Every row ahead of it agrees: the nations, the human bits, the
-    /// goods, the ages, the techs.
-    const START_FIRST_PARTING: Option<&str> =
-        Some("LEADER 0 at_war: ours [false, false] theirs [false, true]");
-    /// The harness lobby's agreeing fields, of the installed block's (item
-    /// 4033): 9,087 of 18,264 — the parted are the two war rows, the map's
-    /// cells (3,600 region, 2,303 val, 1,706 flags, 790 land, 527 owner),
-    /// the personality, 13 buildings and 52 units (each of four fields)
-    /// and the sync word.
-    const START_AGREE: (usize, usize) = (9087, 18264);
+    /// The harness lobby's first parted row, `record field: ours theirs`:
+    /// the map's first cell, which no path composes into a `World` yet
+    /// (item 4047; `docs/START.md` §4). Item 4033 pinned `LEADER 0 at_war`,
+    /// ours `[false, false]` theirs `[false, true]`; item 4046 built its
+    /// writer, `Leader::init`'s diplomacy row, and both war rows agree.
+    /// Every row ahead agrees: the leaders, the extent, the world seed.
+    const START_FIRST_PARTING: Option<&str> = Some("CELL 0 0 region: ours false theirs true");
+    /// The harness lobby's agreeing fields, of the installed block's:
+    /// 9,089 of 18,264 (item 4046, +2 on 4033's 9,087: the two war rows) —
+    /// the parted are the map's cells (3,600 region, 2,303 val, 1,706
+    /// flags, 790 land, 527 owner), the personality, 13 buildings and 52
+    /// units (each of four fields) and the sync word.
+    const START_AGREE: (usize, usize) = (9089, 18264);
 }
