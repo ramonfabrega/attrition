@@ -34,60 +34,13 @@
 
 use fixed::Fx;
 
-/// One of the game's six resources.
-///
-/// The letters are the ones used in `COST` and `SUPPORT` fields. The ordering
-/// is the ordering of the `entry0`..`entry5` slots in `STARTING_GOODS`, whose
-/// trailing commentary names them: food, timber, gold, knowledge, metal, oil.
-/// That ordering is the engine's, so it is worth keeping.
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub enum Resource {
-    Food,
-    Timber,
-    Gold,
-    Knowledge,
-    Metal,
-    Oil,
-}
-
-impl Resource {
-    /// The letter used as a numeric suffix in `COST` and `SUPPORT`.
-    pub const fn letter(self) -> char {
-        match self {
-            Resource::Food => 'f',
-            Resource::Timber => 't',
-            Resource::Gold => 'g',
-            Resource::Knowledge => 'k',
-            Resource::Metal => 'm',
-            Resource::Oil => 'o',
-        }
-    }
-
-    /// Parses a resource letter. Case-sensitive: the data only ever uses
-    /// lowercase here, and accepting uppercase would collide with the flag
-    /// letters used by `OBJ_MASK`.
-    pub const fn from_letter(c: char) -> Option<Resource> {
-        match c {
-            'f' => Some(Resource::Food),
-            't' => Some(Resource::Timber),
-            'g' => Some(Resource::Gold),
-            'k' => Some(Resource::Knowledge),
-            'm' => Some(Resource::Metal),
-            'o' => Some(Resource::Oil),
-            _ => None,
-        }
-    }
-
-    /// All six, in the engine's own order.
-    pub const ALL: [Resource; 6] = [
-        Resource::Food,
-        Resource::Timber,
-        Resource::Gold,
-        Resource::Knowledge,
-        Resource::Metal,
-        Resource::Oil,
-    ];
-}
+/// One of the game's six resources — `sim::economy::Resource`, whose
+/// variant 2 is `Wealth` (`g` in a cost string, "gold" to everybody else).
+/// The letters are the ones used in `COST` and `SUPPORT` fields, and the
+/// ordering is the `entry0`..`entry5` slots of `STARTING_GOODS`, whose
+/// trailing commentary names them: food, timber, gold, knowledge, metal,
+/// oil. This crate kept a second enum of the same six until item 4013.
+pub use sim::economy::Resource;
 
 /// A single numeric value from a data file, in the form the file wrote it.
 ///
@@ -477,7 +430,7 @@ mod tests {
         // This is the distinction that matters. In a cost, 75g/40m is two
         // resources; read as a rational it would be "one point eight".
         let c = Cost::parse("75g/40m").unwrap();
-        assert_eq!(c.of(Resource::Gold), 75);
+        assert_eq!(c.of(Resource::Wealth), 75);
         assert_eq!(c.of(Resource::Metal), 40);
         assert_eq!(c.of(Resource::Food), 0);
     }

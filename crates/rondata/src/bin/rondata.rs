@@ -1735,7 +1735,7 @@ fn name_of(r: Resource) -> &'static str {
     match r {
         Resource::Food => "food",
         Resource::Timber => "timber",
-        Resource::Gold => "gold",
+        Resource::Wealth => "gold",
         Resource::Knowledge => "knowledge",
         Resource::Metal => "metal",
         Resource::Oil => "oil",

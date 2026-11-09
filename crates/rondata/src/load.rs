@@ -2405,23 +2405,12 @@ pub fn resource_word(s: &str) -> Option<Resource> {
     }
 }
 
-fn to_sim_resource(r: crate::Resource) -> Resource {
-    match r {
-        crate::Resource::Food => Resource::Food,
-        crate::Resource::Timber => Resource::Timber,
-        crate::Resource::Gold => Resource::Wealth,
-        crate::Resource::Knowledge => Resource::Knowledge,
-        crate::Resource::Metal => Resource::Metal,
-        crate::Resource::Oil => Resource::Oil,
-    }
-}
-
 /// `Type::load_cost`: the six-slot array, written order, duplicates overwrite.
 fn cost_slots(text: Option<&str>) -> [i32; RESOURCES] {
     let mut out = [0; RESOURCES];
     if let Some(c) = text.and_then(Cost::parse) {
         for (r, n) in c.0 {
-            out[to_sim_resource(r).index()] = n;
+            out[r.index()] = n;
         }
     }
     out
@@ -2566,7 +2555,7 @@ impl UnitCols {
             .and_then(Cost::parse)
             .map(|c| {
                 c.0.into_iter()
-                    .map(|(res, n)| (to_sim_resource(res), n))
+                    .map(|(res, n)| (res, n))
                     .collect()
             })
             .unwrap_or_default();
