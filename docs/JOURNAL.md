@@ -3052,7 +3052,7 @@ claim about the world, and a claim about the world goes stale.
 
 ## 2026-08-27 — item 33: the fog moves, and the field the dump was already printing
 
-`docs/VISION.md`, `crates/sim/src/vision.rs`, `seen`/`seen2` on
+`docs/VISION.md`, `crates/sim/src/vision/mod.rs`, `seen`/`seen2` on
 `crate::world::World`, `mylos` in `rondata::diff`.
 
 Item 32 left the pathfinder reading a fog grid nothing wrote. This closed

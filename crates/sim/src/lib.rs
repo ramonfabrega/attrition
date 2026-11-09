@@ -227,7 +227,7 @@ pub mod upath;
 pub mod update_positions_view;
 pub use self::territory::victory;
 pub mod vision;
-pub mod wall_los_view;
+pub use self::vision::wall_los_view;
 pub mod work_gate;
 pub mod world;
 pub mod wpath;

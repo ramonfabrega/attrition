@@ -9537,7 +9537,7 @@ is an oracle-agreed module the live sim does not call.
 ## Parked by item 3417, 2026-10-21 — the peace pair at `cover=1`: an unmodelled cheat, and an owed table's wrong level
 
 - **3417a. The sim has no `treaty_off`, and run1016c is its diff.** `Sim::treaty_on` writes the met bit
-  (`crates/sim/src/vision.rs`), but nothing clears it, and the console's `unmeet` (`ConsoleWin::run_cmd` case `0x30`) is
+  (`crates/sim/src/vision/mod.rs`), but nothing clears it, and the console's `unmeet` (`ConsoleWin::run_cmd` case `0x30`) is
   not an input the harness takes. run1016c (`1480 unmeet who=1`) clears bit 0 on both sides at 1481, and the two
   leaders meet again at 1488. Which writer re-sets it is not established: the dump prints the bit, not who wrote it
   (`docs/AI.md` §297). It is a cheat path that no pinned word plays, so it names no score.
