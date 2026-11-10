@@ -4032,6 +4032,9 @@ fn the_mask_and_skip_pins_name_what_they_measure() {
     assert!(stale[1].contains("`agendas[]`: pinned 6"), "{stale:#?}");
 }
 
+/// One window of the coverage walk: a replay that registers what it compares.
+type Window = fn() -> Option<super::harness::tests::Widened>;
+
 /// What one walker of [`every_parsed_field_is_compared_by_the_instrument_or_pinned`]
 /// saw: its registrations and mask words (unions, merged by the caller),
 /// its blocks, the closing window's blocks when it walked index 0, and
@@ -4061,10 +4064,7 @@ fn coverage_walkers() -> usize {
 /// consecutive windows that share a module, in order, under its own replay
 /// prefix batch and its own recorder. Each walker thread carries the test
 /// thread's name, which the fixture audit records as the requesting test.
-fn walk_by_module(
-    windows: &[(&str, fn() -> Option<super::harness::tests::Widened>)],
-    walkers: usize,
-) -> Vec<Walk> {
+fn walk_by_module(windows: &[(&str, Window)], walkers: usize) -> Vec<Walk> {
     use super::compared;
     let mut groups: Vec<std::ops::Range<usize>> = Vec::new();
     for (index, (module, _)) in windows.iter().enumerate() {
@@ -4158,13 +4158,10 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // nowhere else.
     macro_rules! w {
         ($m:ident :: $f:ident) => {
-            (
-                stringify!($m),
-                (|| super::$m::$f()) as fn() -> Option<super::harness::tests::Widened>,
-            )
+            (stringify!($m), (|| super::$m::$f()) as Window)
         };
     }
-    let windows: &[(&str, fn() -> Option<super::harness::tests::Widened>)] = &[
+    let windows: &[(&str, Window)] = &[
         w!(second::east_indies_closing_window),
         w!(sahara_toughest::great_sahara_toughest_15378_window),
         w!(third_pair::french_east_indies_scholar_window),
