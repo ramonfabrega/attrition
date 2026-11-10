@@ -124,6 +124,7 @@ is append-only and amended in place, as it always was.
 - 115 extended by 116 — the start track opens
 - 116 standing — one driver, the milestone
 - 117 standing — the gate in its own tree, an experiment
+- 118 standing — kill rule, arm's close
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
 - 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types, the pass and the commander stop messaging each other
 - 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself, the fifty-first booked on what a capture can enter
@@ -11791,3 +11792,62 @@ worktree, that is reported and items 3 and 4 run alone.
 
 **Beside it**, and first: the gate itself made shorter (Loop 4042, 4070;
 the queue's handoff has the measurement).
+
+## 118. The window's kill rule counts from the last chain milestone and reroutes rather than stops, and a turn that arms a clear ends with no ask (2026-11-10)
+
+**What happened.** The driver's fourth session stopped spawning at 48 % of
+the seven-day window at 03:00 −05:00, the render lane left empty "on
+Ramon's word", and armed its clear at 03:20. The clear never fired: the
+row stood until Ramon cleared it by hand at 11:00, seven and a half hours
+with run 1560 finished at 03:24 and unfiled. Two causes, read off the
+job's own `timeline.jsonl` and the transcripts:
+
+1. **The stop was not the rule.** Entry 116's second kill rule is ten
+   points of the window without a chain milestone. The handoff counted the
+   ten from step 1's close at 40 % and read 50 %; step 2 had closed at
+   about 43 %. The session then set a stop of its own two points under
+   that, and applied it to the render lane, which the rule does not
+   govern. And a tripped rule moves the chain to an Opus lane: it stops
+   nothing.
+2. **The arm sat on a `blocked` row.** The three driver clears that fired
+   did so within seconds of a turn that ended in state `done`. This turn's
+   closing message put two asks to Ramon, the row's state read `blocked`,
+   and `ccc clear --status` answered "armed … fires when the row is idle"
+   until the manual clear dropped it. The `ccc` row confirmed it from its
+   own fire path the same morning (0.1.40): a roster state of `blocked`
+   waits, checked before tempo and by design — it cannot yet tell a turn
+   that ended on a prose ask from a dialog open mid-turn — and an
+   ask-ended turn reads `tempo: blocked` as well, so it is held twice; the
+   wait has no bound and writes nothing. ccc is making `--status` name
+   what it waits on and measuring whether the two shapes can be told
+   apart.
+
+**Ramon, on the driver's row:** "53% is fine as kill rule, if we trip it
+we can adjust / add more imo / we'll see."
+
+**Decided.**
+
+1. **The rule's number is the last closed chain milestone's window reading
+   plus ten**, written in the queue's handoff as a number beside the
+   reading it was counted from. Today that is 53 %, from step 2's close at
+   about 43 %; it moves when step 3 closes. It governs the chain only. A
+   trip sends the chain to an Opus lane under the frame and reaches Ramon
+   at once, who may move the number; no lane is held for it, and no driver
+   sets a stop of its own under it.
+2. **A turn that arms a clear ends with a report and no ask.** What is
+   Ramon's goes in the queue's handoff, where the next session raises it
+   in its first message; the arming turn's closing text names it as
+   written there and asks nothing. When a session seems not to have
+   started, the job's `timeline.jsonl` last row is read beside `ccc clear
+   <row> --status`.
+3. **Nothing is held overnight on Ramon's word** but the three things
+   entry 116 already sends him at once. A question that can wait is
+   decided under a stated assumption and reported.
+
+The close is kept free of anything that reads as a request, not only of
+questions: `blocked` is the daemon's reading of the closing prose.
+
+**Not established:** whether a `permissions`
+allow rule for the one reap command passes the classifier in practice
+(the documentation says a narrow rule resolves before the classifier —
+the rule is Ramon's to add, never a session's).
