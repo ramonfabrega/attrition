@@ -460,6 +460,21 @@ class RunnerTest(unittest.TestCase):
         self.assertIsNone(runner.refused_full_start(True, None))
         self.assertIsNone(runner.refused_full_start(False, (605, 1200)))
 
+    def test_a_playback_takes_dumpall_lines_and_nothing_else(self):
+        # Item 4088: the recording owns the lobby and the orders, so a
+        # command file beside it holds `@dumpall` lines only — run 1562's
+        # packet and its windowed record are a pair through one.
+        self.assertIsNone(runner.refused_playback_cmd_file(None))
+        f = self.root / 'dumpall.cmd'
+        f.write_text('# the packet frame\n91 @dumpall\n\n')
+        self.assertIsNone(runner.refused_playback_cmd_file(f))
+        f.write_text('91 @dumpall\n95 !ai off\n')
+        why = runner.refused_playback_cmd_file(f)
+        self.assertIn('@dumpall', why)
+        self.assertIn('!ai off', why)
+        f.write_text('91 @dumpallx\n')
+        self.assertIsNotNone(runner.refused_playback_cmd_file(f))
+
     def test_a_stall_is_no_gamelog_at_all(self):
         # Parked 762: the two stalls on record had no gamelog.txt; a game
         # past the device has bytes there and is the timeout's to judge.
