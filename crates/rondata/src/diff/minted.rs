@@ -494,7 +494,7 @@ fn effect_theirs(f: &crate::gamelog::Frame) -> Effect {
     let scout = unit(SCOUT);
     Effect {
         frame: f.n,
-        scout: scout.map_or((-1, -1), |u| (i64::from(u.pos.x), i64::from(u.pos.y))),
+        scout: scout.map_or((-1, -1), |u| (u.pos.x, u.pos.y)),
         scout_to: scout
             .and_then(|u| u.current_order())
             .and_then(|o| Some((o.x?, o.y?))),
@@ -502,13 +502,7 @@ fn effect_theirs(f: &crate::gamelog::Frame) -> Effect {
             let live = b.queued.unwrap_or(0).max(0) as usize;
             b.queue.iter().take(live).map(|q| q.ty).collect()
         }),
-        site: build(FARM_SITE).map(|b| {
-            (
-                b.orig_type.unwrap_or(-1),
-                i64::from(b.pos.x),
-                i64::from(b.pos.y),
-            )
-        }),
+        site: build(FARM_SITE).map(|b| (b.orig_type.unwrap_or(-1), b.pos.x, b.pos.y)),
         builder: unit(BUILDER).map_or_else(Vec::new, |u| {
             u.orders_front_first().map(|o| class(&o.kind)).collect()
         }),
@@ -637,7 +631,7 @@ fn the_original_s_playback_of_the_minted_file_walks_in_lockstep() {
     }
     // The effects, both sides, on the take that prints records.
     let (take, ..) = MINTED_WALKED[0];
-    let mut source = crate::capture::indexed::IndexedCapture::open(&dump(take).unwrap()).unwrap();
+    let mut source = crate::capture::indexed::IndexedCapture::open(dump(take).unwrap()).unwrap();
     let mut theirs = Vec::new();
     for i in 0..source.frames().len() {
         if READ_AT.contains(&source.frames()[i].number) {

@@ -27,7 +27,11 @@
 //!
 //! Established from the sample: the recording's `MoveTo` for unit `0/1` sits
 //! at frame 376, and the un-fed harness's first order disagreement for that
-//! unit is at gamelog frame 377.
+//! unit is at gamelog frame 377. And diff-backed on a file written here
+//! (item 4059, `docs/RECGAME.md` §9): the original's playback of a `move_to`,
+//! a `queue_up` and a `build` on recording frames 30, 60 and 90 shows each
+//! effect on gamelog frames 31, 61 and 91, and [`Stream::pump`] applied at
+//! this convention keeps lockstep with it.
 
 use std::collections::BTreeMap;
 
