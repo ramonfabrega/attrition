@@ -179,7 +179,9 @@ it (**not built**).
    (`Objects::init_good@00653f30`'s `Herds::init_herd`: FISH →
    `HERDFISH` 0x19b, WHALES → `HERDWHALE` 0x19c, 0x21 → `HERDSHEEP`
    0x198, and the four others), numbered in the goods list's slot order;
-   then `Herds::start_herds@00741d10` founds each through
+   then `Setup::build_game@005ac190`'s own loop over the herd list (the
+   body of `Herds::start_herds`, inlined: the function itself is entered
+   only by the scenario editor's load) founds each live one through
    `Sim::found_herd`, the crate's view over item 3391's swept
    `herd_create_view` (owner 8, `init_unit` at the cell centre, one
    `Guy::init_real` draw, `find_nearby_spot(…, 0xc0, -1, 0, 0x55555555,

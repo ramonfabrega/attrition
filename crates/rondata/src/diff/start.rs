@@ -919,8 +919,8 @@ pub fn from_lobby(
         sim.setup().settle_borders();
         steps.push(("World::compute_all_territory", true));
         words.push(("setup.cpp", 1169, sim.rng.seed));
-        // `Herds::start_herds`: each live herd's `Herd::create_units`, in
-        // the herd list's order.
+        // `Setup::build_game`'s herd loop: each live herd's
+        // `Herd::create_units`, in the herd list's order.
         let herds = herds_from_goods(&goods);
         let mut herds_built = true;
         for h in &herds {
@@ -1088,7 +1088,7 @@ mod tests {
         // And past `build_empire` (item 4063): 1148 after both empires'
         // units, 1169 after `World::analyze_map` and
         // `compute_all_territory` (no draw), 1240 after
-        // `Herds::start_herds`' 44, 1244 the walk's last setup line.
+        // the herd loop's 44, 1244 the walk's last setup line.
         assert_eq!(
             ours.words.iter().map(|w| w.1).collect::<Vec<_>>(),
             [955, 13457, 1032, 1148, 1169, 1240, 1244]
@@ -1206,7 +1206,7 @@ mod tests {
             // The herd list the walk founded its animals from, against the
             // start dump's `HERDS` (run12's, borrowed): every herd's cell,
             // walk centre, type and alive bit, in the list's order — the
-            // order `Herds::start_herds` visits and the tag each animal
+            // order `build_game`'s herd loop visits and the tag each animal
             // carries (item 4063).
             let herd = |h: &sim::gaia::Herd| (h.cx, h.cy, h.wx, h.wy, h.kind, h.alive);
             let (mine, yours): (Vec<_>, Vec<_>) = (

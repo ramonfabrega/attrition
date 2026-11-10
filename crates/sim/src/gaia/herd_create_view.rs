@@ -119,8 +119,8 @@ pub const HERD_SPOT_MIN: i32 = 0xc0;
 pub const HERD_SPOT_BEARING: i32 = 0x5555_5555;
 
 /// [`HerdView`] over a [`crate::Sim`] (item 4063): the founding a lobby's
-/// start walks after the players' units (`Herds::start_herds@00741d10`,
-/// `docs/START.md` §2 step 8). Each animal is born as
+/// start walks after the players' units (`Setup::build_game@005ac190`'s
+/// own loop over the herd list, `docs/START.md` §2 step 8). Each animal is born as
 /// [`crate::Sim::spawn_bird_at`] births a bird — `Unit::init`'s snap, the
 /// type's record, one `Guy::init_real` draw a figure — but of owner 8, and
 /// moved by `UnitType::find_nearby_spot(…, 0xc0, -1, 0, 0x55555555,
