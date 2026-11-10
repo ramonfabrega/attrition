@@ -79,6 +79,64 @@ pub fn rest_pose(model: &Model) -> Vec<[f32; 3]> {
 ///   move to the next, within 0.01 and 0.1) only skip a blend that would
 ///   change nothing at that tolerance, and are not reproduced.
 pub fn posed(model: &Model, anim: &crate::bha::Anim, ms: u32) -> Vec<[f32; 3]> {
+    let world = worlds(model, anim, ms);
+    let mut out = model.verts.clone();
+    for (n, m) in model.nodes.iter().zip(&world) {
+        let (s, e) = (n.start as usize, (n.start + n.num) as usize);
+        if let Some(run) = model.verts.get(s..e) {
+            for (o, v) in out[s..e].iter_mut().zip(run) {
+                *o = apply(m, *v);
+            }
+        }
+    }
+    out
+}
+
+/// Each node's world transform at `ms`, `parent.world · parent2local ·
+/// local` ([`posed`]).
+fn worlds(model: &Model, anim: &crate::bha::Anim, ms: u32) -> Vec<Mat4> {
+    let keys = keyed(model, anim, ms);
+    let mut world: Vec<Mat4> = Vec::with_capacity(model.nodes.len());
+    for (i, n) in model.nodes.iter().enumerate() {
+        let rest = fill(Some(n.loaded_rotation()), n.loaded_translation());
+        let local = match keys[i] {
+            Some(k) => Mat4::then(&fill(Some(k.rotation), k.translation), &rest),
+            None => rest,
+        };
+        let m = match n.parent {
+            Some(p) => Mat4::then(&local, &world[p]),
+            None => local,
+        };
+        world.push(m);
+    }
+    world
+}
+
+/// **Each node's origin in the model's space at `ms`** (item 4092): the
+/// translation of its world transform, `HierObj::world_transform.trans`
+/// (+0x74) after `update_all_transforms@00536db0`.
+pub fn joints(model: &Model, anim: &crate::bha::Anim, ms: u32) -> Vec<[f32; 3]> {
+    worlds(model, anim, ms)
+        .iter()
+        .map(|m| apply(m, [0.0; 3]))
+        .collect()
+}
+
+/// One model node's `local` transform at a time, as [`posed`] takes it
+/// (item 4092): the two keys blended — `HierObj::iKey1`/`iKey2` (+0xac,
+/// +0xae), which `set_to_time@00536e30` leaves on the node — and the
+/// blend's rotation and translation (`local_transform`, +0x34).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Keyed {
+    pub keys: (usize, usize),
+    pub rotation: [f32; 4],
+    pub translation: [f32; 3],
+}
+
+/// **Each model node's key at `ms`** (item 4092), in the model's node
+/// order: `None` for a node the animation's tree has no place for (it
+/// stands at rest, [`posed`]). A one-key node reports `(0, 0)`.
+pub fn keyed(model: &Model, anim: &crate::bha::Anim, ms: u32) -> Vec<Option<Keyed>> {
     let played = anim.played();
     let mut partner: Vec<Option<usize>> = vec![None; model.nodes.len()];
     let mut taken: Vec<usize> = vec![0; played.len()];
@@ -102,41 +160,36 @@ pub fn posed(model: &Model, anim: &crate::bha::Anim, ms: u32) -> Vec<[f32; 3]> {
             }),
         };
     }
-    let mut world: Vec<Mat4> = Vec::with_capacity(model.nodes.len());
-    let mut out = model.verts.clone();
-    for (i, n) in model.nodes.iter().enumerate() {
-        let rest = fill(Some(n.loaded_rotation()), n.loaded_translation());
-        let local = match partner[i] {
-            Some(a) => {
-                let (q, t) = sample(&played[a], ms);
-                Mat4::then(&fill(Some(q), t), &rest)
-            }
-            None => rest,
-        };
-        let m = match n.parent {
-            Some(p) => Mat4::then(&local, &world[p]),
-            None => local,
-        };
-        let (s, e) = (n.start as usize, (n.start + n.num) as usize);
-        if let Some(run) = model.verts.get(s..e) {
-            for (o, v) in out[s..e].iter_mut().zip(run) {
-                *o = apply(&m, *v);
-            }
-        }
-        world.push(m);
-    }
-    out
+    partner
+        .iter()
+        .map(|p| {
+            p.map(|a| {
+                let (rotation, translation, keys) = sample_keyed(&played[a], ms);
+                Keyed {
+                    keys,
+                    rotation,
+                    translation,
+                }
+            })
+        })
+        .collect()
 }
 
 /// One animation node's rotation and translation at `ms` ([`posed`]).
 pub fn sample(node: &crate::bha::AnimNode, ms: u32) -> ([f32; 4], [f32; 3]) {
+    let (q, t, _) = sample_keyed(node, ms);
+    (q, t)
+}
+
+/// [`sample`] with the two keys it blends, `iKey1` and `iKey2`.
+fn sample_keyed(node: &crate::bha::AnimNode, ms: u32) -> ([f32; 4], [f32; 3], (usize, usize)) {
     let keys = &node.keys;
-    let rest = || ([0.0, 0.0, 0.0, 1.0], [0.0; 3]);
+    let rest = || ([0.0, 0.0, 0.0, 1.0], [0.0; 3], (0, 0));
     let Some(first) = keys.first() else {
         return rest();
     };
     if keys.len() == 1 {
-        return (first.loaded_rotation(), first.loaded_translation());
+        return (first.loaded_rotation(), first.loaded_translation(), (0, 0));
     }
     let times = node.times();
     let n = keys.len();
@@ -174,6 +227,7 @@ pub fn sample(node: &crate::bha::AnimNode, ms: u32) -> ([f32; 4], [f32; 3]) {
     (
         [0, 1, 2, 3].map(|i| q1[i] * g + q2[i] * f),
         [0, 1, 2].map(|i| t1[i] * g + t2[i] * f),
+        (k1, k2),
     )
 }
 

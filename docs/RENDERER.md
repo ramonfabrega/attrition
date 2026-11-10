@@ -878,7 +878,17 @@ runner up and steps it to the frame, then draws:
   parent2local · local` (`HierObj::update_transforms@00536c60`). The two
   trees are paired by place, and a node the animation lacks stands at rest.
   The clock is `cur_time · 200 / 3` ms clamped to the clip, with key `k`
-  reached at `times[k − 1]` (`HierObj::set_to_time@00536e30`). Posed, a
+  reached at `times[k − 1]` (`HierObj::set_to_time@00536e30`). **The
+  pose is the original's on the packet** (item 4092): `draw_unit@008e7da0`
+  writes the slot and that clock to the piece's `AnimationPacket`
+  (`8e8be6`), and the transform method hands `set_to_time` the clip
+  `action_ids[slot]` names (`9247a4`). Run there on run1559b's packet,
+  every joint of five riflemen at 3279 and 3294 lies within 0.44 model
+  units of ours (`tree_points.py --pose`,
+  `the_riflemen_s_pose_against_the_packet`). `draw_unit`'s remap of a slot
+  to a shared clip on `Game::frame`'s clock (`8e7e0b`) is off there
+  (`mem_grade` 0, `section_render[11]` 1); the clamp is `animmgr.times`
+  (parked 4092b). Posed, a
   citizen's body turns with its `Bip01` key, and every figure then reads a
   quarter turn off the photograph (§5.3, parked 4067a);
 - *each building*: its `<BUILD>`'s `texture=` sprite (item 4076), a quad in
@@ -1262,7 +1272,7 @@ rest (`RUN1559B_3279`); run1441's camera reads 0 of 24 under both readers.
   item 4077's reader (`RUN1559B_3279_TRACED`): **31 of 33** (4089); its
   steps from 27 of 33 (4077–4089) are the pin's comment and each item's
   journal; treeless 30 of 33; run1441's camera 0 of 32.
-  Out: 1/20 and 1/32 (4089b). The
+  Out: 1/20 and 1/32 (4092a). The
   `RUN1559B_3279_*` rows above are the `zbuffer` draw's, kept by name.
 - *The trees* (4080, before its count; §3.7). A tree hides what is
   behind it; its pixel is the ground's; it is never scored. Rejected:

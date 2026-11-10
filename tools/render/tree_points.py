@@ -69,6 +69,24 @@ three `TerrainOut::find_data_z@00866560(·, ·, 0)` heights it reads, at
 
 The normal is the world function's, before `GuyData::find_slope_normal`
 negates it.
+`--pose WHO/O:SLOT:CLOCK ...` (item 4092) prints instead, for each, what
+`GuyOut::draw@005dc490` hands the skeleton of piece 60 (the rifleman,
+`--piece N` to name another) for a guy in `SLOT` at `CLOCK`: the action
+`AnimationPacket::action_ids[SLOT]` names, `animmgr.times` of it, and the
+time `min(CLOCK · 200 / 3, times)` (`graphic_dt` 0, as the client draws);
+then the original's own `HierObj::set_to_time@00536e30` and
+`update_all_transforms@00536db0` run on the piece's `HierObj`
+(`RData +0x48 → +8`) on the packet, and every node in the order its
+child-then-sibling walk takes them:
+
+    packet <piece> cur_action <a> cur_time <ms> mem_grade <g> section_render11 <b>
+    pose <who>/<o> slot <s> clock <c> action <a> flags6c <f> anim_time <t> len <ms> ms <ms>
+      pnode <i> depth <d> start <s> num <n> dead <0|1> keys <iKey1> <iKey2> q <x y z w> t <x y z> world <x y z>
+
+`packet` is the piece's `AnimationPacket` as the last guy drawn left it,
+and the two inputs `draw_unit@008e7da0` reads before it remaps a slot
+(`8e7e0b`: it does when `mem_grade` ≥ 3 or `section_render[11]` is 0).
+`world` is `world_transform.trans` (+0x74).
 """
 import os
 import struct
@@ -156,6 +174,65 @@ def guytree(snap):
         )
 
 
+SET_TO_TIME, UPDATE_ALL_TRANSFORMS = 0x00536E30, 0x00536DB0
+# `animmgr` (rise_z.map 0003:002b96a0): `actions` +0x0, `times` +0x1c
+ANIMMGR, UNITS = 0x00EBF6A0, 0x00C0AEB0
+GAMEC = 0x00C061E8
+
+
+def pose(exe, packet, args):
+    """Item 4092: the original's pose of a guy on the packet."""
+    piece = 60
+    if args[:1] == ["--piece"]:
+        piece, args = int(args[1]), args[2:]
+    snap = Snapshot(packet)
+    m = PacketMachine(Image(exe), snap)
+    m.uc.mem_map(0, 0x1000)
+
+    def rd(a, n):
+        try:
+            return bytes(m.uc.mem_read(a, n))
+        except Exception:
+            return snap.read(a, n)
+
+    u32 = lambda a: struct.unpack("<I", rd(a, 4))[0]
+    rec = u32(u32(u32(GRAPHIC_PIECES) + 0x718 + 0x10) + 4 * piece)
+    hier, ap = u32(u32(rec + 0x48) + 8), u32(rec + 0x54)
+    gs = u32(GRAPHSYS)
+    print(f"packet {piece} cur_action {u32(ap + 8)} cur_time {u32(ap + 0xC)} "
+          f"mem_grade {u32(gs + 0xE4)} section_render11 {rd(u32(gs + 0x13C) + 11, 1)[0]}")
+    nodes, stack = [], [(hier, 0)]
+    while stack:
+        h, d = stack.pop()
+        while h:
+            nodes.append((h, d))
+            if u32(h + 0x9C):
+                stack.append((u32(h + 0x9C), d))
+            h, d = u32(h + 0x98), d + 1
+    ids, acts, times = u32(ap + 0x20), u32(ANIMMGR + 0x10), u32(ANIMMGR + 0x1C + 0x10)
+    for w in args:
+        wo, slot, clock = w.split(":")
+        who, o = (int(v) for v in wo.split("/"))
+        slot, clock = int(slot), int(clock)
+        act = struct.unpack("<i", rd(ids + 4 * slot, 4))[0]
+        obj, length = u32(acts + 4 * act), u32(times + 4 * act)
+        ms = min(clock * 200 // 3, length)
+        flags = rd(u32(u32(UNITS + 0x10 + who * 0x1C) + 4 * o) + 0x6C, 1)[0]
+        anim_time = struct.unpack("<f", rd(obj + 4, 4))[0]
+        print(f"pose {who}/{o} slot {slot} clock {clock} action {act} flags6c {flags:#x} "
+              f"anim_time {anim_time!r} len {length} ms {ms}")
+        m.call(SET_TO_TIME, (obj, ms), ecx=hier, max_insns=5_000_000)
+        m.call(UPDATE_ALL_TRANSFORMS, (), max_insns=5_000_000)
+        for i, (h, d) in enumerate(nodes):
+            k1, k2 = struct.unpack("<HH", rd(h + 0xAC, 4))
+            q = struct.unpack("<4f", rd(h + 0x34, 16))
+            t = struct.unpack("<3f", rd(h + 0x44, 12))
+            wt = struct.unpack("<3f", rd(h + 0x74, 12))
+            f = lambda v, p: " ".join(f"{x:.{p}f}" for x in v)
+            print(f"  pnode {i} depth {d} start {u32(h + 0xA0)} num {u32(h + 0xA4)} dead {rd(h + 0xB0, 1)[0]} "
+                  f"keys {k1} {k2} q {f(q, 6)} t {f(t, 4)} world {f(wt, 3)}")
+
+
 def main(argv):
     if len(argv) < 3:
         print(__doc__)
@@ -183,6 +260,9 @@ def main(argv):
             n = struct.unpack("<3f", raw)
             bits = " ".join(f"{v:08x}" for v in struct.unpack("<3I", raw))
             print(f"slope {x} {y} z {zs[0]} {zs[1]} {zs[2]} normal {n[0]!r} {n[1]!r} {n[2]!r} bits {bits}")
+        return 0
+    if argv[3:4] == ["--pose"]:
+        pose(exe, packet, argv[4:])
         return 0
     if argv[3:4] == ["--guytree"]:
         guytree(Snapshot(packet))
