@@ -16084,7 +16084,8 @@ words and edits nothing here; a refill lands when two remain.
   18×30 (cut by the interface at row 688), 22×43 and 13×31. The clear figure 1/35, in the row at 0.701, is 391 px
   in 19×43, and the photograph's 1/35 is 22×49. No rifleman is drawn larger than the figure that passes. Values:
   `~/ron-data/lab-experiments/2026-11-10-item-4086/the-riflemen-by-row.txt`.
-- **4086c. Another pose: the state is the original's; the pose drawn from it is not read**
+- **4086c. Another pose: the state is the original's; ~~the pose drawn from it is not read~~: read by item 4092,
+  the original's (4092a)**
   (`client::silhouette::tests::the_riflemen_by_the_tank_by_row`). At 3294, our point, `anim` slot, `cur_time`
   and facing equal run1559b's packet's `GuyData` for 1/31, 1/20, 1/32, 1/35 and 1/38 (`tree_points.py --guys`;
   asserted, and red once with 1/31's `cur_time` set to 22). At 3279, the photograph's frame, ours rests on
@@ -16156,15 +16157,26 @@ words and edits nothing here; a refill lands when two remain.
   the eased reading, at one draw a frame, also scores 31 of 33. Names no score: no row parts between the two.
 - **4089b. 1/20 and 1/32 stay out** (`RUN1559B_3279_TRACED`, 31 of 33). With the tilt, 1/20 goes 0.482 → 0.489
   and 1/32 0.283 → 0.287, against the half. Neither is tilted (`CAT` 0). Their windows hold the tank's hull, and
-  their excess is as 4086a measured it. Names candidate C's score.
+  their excess is as 4086a measured it. Names candidate C's score. *Read* (4092): not the pose (4092a).
 
-## Parked by the next landing, slot EP — reserved
+## Parked by item 4092, 2026-11-10 — the riflemen's pose by the tank: the original's
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4092a. 1/20 and 1/32 stay out, and the pose is not why: killed by the table** (`RUN1559B_3279_TRACED`, 31 of
+  33; `docs/RENDERER.md` §3.6; `client::silhouette::tests::the_riflemen_s_pose_against_the_packet`). The original's
+  own `HierObj::set_to_time` and `update_all_transforms`, run on run1559b's packet on piece 60's skeleton at each
+  guy's slot and clock (`tree_points.py --pose`), put every joint of 1/20, 1/31, 1/32, 1/35 and 1/38, at 3279 and
+  at 3294, within 0.44 model units of ours. The clip `action_ids[slot]` names is the file ours loads, and the time
+  is ours on all ten. At 3279, 1/20 walks at 800 ms. Its feet are 10.75 units apart on the original's side and
+  10.76 on ours, and every standing pose in the table has them 9.6 apart. So the photograph's legs together are
+  not a pose the state yields. Asserted, and red with 1/20's clock three ticks on (13.2 off). Under the tilt the
+  windows are: 1/20 has ours 599, theirs 375, both 320; 279 of ours are not theirs, 182 of them its own and 97
+  another's (1/32 228, 1/27 45 in the window). 1/32 has 546, 203 and 167; 379 not theirs, 194 its own and 185
+  another's (1/20 202). For 1/32, even with every one of its own pixels not theirs gone, the row stays under the
+  half. Values: `~/ron-data/lab-experiments/2026-11-10-item-4092/`. Names candidate C's score.
+- **4092b. The clock's clamp is `animmgr.times`, not the root's last key** (`client::world::anim_ms`;
+  `GuyOut::draw@005dc490`). On the packet, `inf_attack1.bha` (action 1142) reads `times` 2112, while its root
+  `AnimObj::anim_time` and ours read 2145. Ours clamps at 2145. They part only past 2112 ms, which is clock 32,
+  `end_time` for 1/31. No figure on 3279 or 3294 is there, so it names no score.
 
 ## Parked by the next landing, slot EQ — reserved
 

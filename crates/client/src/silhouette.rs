@@ -1324,6 +1324,270 @@ mod tests {
         );
     }
 
+    /// **Item 4092, step 1: the pose as a value.** What `GuyOut::draw
+    /// @005dc490` hands the skeleton for a guy: its `anim` slot names the
+    /// clip through the piece's `AnimationPacket::action_ids`, and the time
+    /// is `cur_time · 200 / 3` (+ `graphic_dt`) clamped to `animmgr.times`;
+    /// `draw_unit@008e7da0` writes both to the packet (`8e8be6`) and the
+    /// transform method hands them to `HierObj::set_to_time@00536e30`
+    /// (`9247a4`). For each rifleman by the tank and the two controls, at
+    /// the photograph's frame and the packet's: our slot, clock, clip and
+    /// time, and every node's two keys, beside the original's own
+    /// `set_to_time` run on run1559b's packet (`tree_points.py --pose`).
+    #[test]
+    fn the_riflemen_s_pose_against_the_packet() {
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let size = (photo.width, photo.height);
+        let camera = crate::pinned_camera();
+        let mut rows: Vec<String> = Vec::new();
+        for frame in [PHOTO_FRAME, 3294] {
+            world.run_to(frame);
+            let (figures, _, _) = world.draw_list(
+                &camera,
+                &crate::pinned_screen(),
+                (size.0 as i32, size.1 as i32),
+            );
+            for o in [20i16, 31, 32, 35, 38] {
+                let p = figures
+                    .iter()
+                    .find(|p| (p.who, p.o) == (1, o))
+                    .expect("placed");
+                let files = world.unit_slot_files(p.piece).expect("a unit piece");
+                let mesh = world.mesh(p.piece, false).expect("the piece decodes");
+                let file = files
+                    .iter()
+                    .find(|(s, _)| *s == p.slot)
+                    .map_or("-", |(_, f)| f.as_str());
+                let anim = mesh.anims.get(&p.slot).expect("the slot names a clip");
+                let ms = crate::world::anim_ms(p.frame, anim);
+                let len = anim
+                    .played()
+                    .first()
+                    .and_then(|n| n.times().last().copied())
+                    .unwrap_or(0);
+                rows.push(format!(
+                    "fig 1/{o} frame {frame} piece {} slot {} clock {} file {file} len {len} ms {ms}",
+                    p.piece, p.slot, p.frame
+                ));
+                let joints = render::figure::joints(&mesh.model, anim, ms);
+                for (i, (n, k)) in mesh
+                    .model
+                    .nodes
+                    .iter()
+                    .zip(render::figure::keyed(&mesh.model, anim, ms))
+                    .enumerate()
+                {
+                    let w = joints[i].map(|v| format!("{v:.3}")).join(" ");
+                    let k = k.map_or("rest".to_string(), |k| {
+                        format!(
+                            "keys {} {} q {} t {}",
+                            k.keys.0,
+                            k.keys.1,
+                            k.rotation.map(|v| format!("{v:.6}")).join(" "),
+                            k.translation.map(|v| format!("{v:.4}")).join(" ")
+                        )
+                    });
+                    rows.push(format!(
+                        "  node {i} start {} num {} parent {} {k} world {w}",
+                        n.start,
+                        n.num,
+                        n.parent.map_or(-1, |p| p as i64)
+                    ));
+                }
+            }
+        }
+        for r in &rows {
+            println!("{r}");
+        }
+        // The original's own `HierObj::set_to_time@00536e30`, then
+        // `update_all_transforms@00536db0`, on run1559b's packet (piece 60's
+        // skeleton, `RData +0x48 → +8`, its 35 nodes): the world origin
+        // (`world_transform.trans`, +0x74) of the pelvis, the two feet and
+        // the two hands, theirs 4, 8, 30, 18, 23 — ours 4, 8, 33, 19, 25,
+        // the 35 aligned by `(start, num)` with ours' five vertex-less nodes
+        // 10, 21, 30, 38, 39 left out. `(o, slot, clock, ms, joints)`.
+        type Joints = [[f32; 3]; 5];
+        const PACKET_POSE: [(i16, i8, u32, u32, Joints); 10] = [
+            (
+                20,
+                8,
+                12,
+                800,
+                [
+                    [1.15, 1.69, 20.88],
+                    [2.67, 0.68, 1.12],
+                    [-0.58, 10.93, 4.89],
+                    [6.284, -5.371, 24.172],
+                    [-3.19, -1.74, 24.74],
+                ],
+            ),
+            (
+                31,
+                11,
+                8,
+                533,
+                [
+                    [-0.23, -1.98, 21.50],
+                    [3.20, -3.83, 2.22],
+                    [-1.94, 4.31, 2.27],
+                    [-2.17, -14.00, 32.78],
+                    [-4.62, -4.12, 34.74],
+                ],
+            ),
+            (
+                32,
+                0,
+                14,
+                933,
+                [
+                    [0.05, -0.11, 22.07],
+                    [2.66, -4.33, 2.22],
+                    [-2.37, 3.88, 2.28],
+                    [-2.00, -9.84, 25.09],
+                    [-4.98, 1.24, 25.74],
+                ],
+            ),
+            (
+                35,
+                9,
+                1,
+                66,
+                [
+                    [-0.76, 1.42, 21.66],
+                    [0.42, 2.59, 2.43],
+                    [-2.87, 10.06, 14.29],
+                    [5.41, -5.34, 24.06],
+                    [-2.54, -5.16, 27.03],
+                ],
+            ),
+            (
+                38,
+                0,
+                10,
+                666,
+                [
+                    [0.05, -0.11, 22.07],
+                    [2.74, -4.23, 2.21],
+                    [-2.29, 3.98, 2.28],
+                    [-2.08, -9.91, 24.93],
+                    [-5.08, 1.21, 25.58],
+                ],
+            ),
+            (
+                20,
+                0,
+                15,
+                1000,
+                [
+                    [0.05, -0.11, 22.07],
+                    [2.63, -4.36, 2.22],
+                    [-2.40, 3.85, 2.28],
+                    [-1.99, -9.86, 25.12],
+                    [-4.99, 1.26, 25.75],
+                ],
+            ),
+            (
+                31,
+                11,
+                23,
+                1533,
+                [
+                    [-0.20, -2.06, 21.48],
+                    [3.15, -3.85, 2.13],
+                    [-1.88, 4.34, 2.22],
+                    [-1.48, -13.21, 32.13],
+                    [-4.20, -4.10, 33.64],
+                ],
+            ),
+            (
+                32,
+                0,
+                29,
+                1933,
+                [
+                    [0.05, -0.11, 22.07],
+                    [3.06, -3.94, 2.18],
+                    [-1.97, 4.29, 2.29],
+                    [-2.27, -10.00, 24.53],
+                    [-5.27, 1.07, 25.22],
+                ],
+            ),
+            (
+                35,
+                9,
+                4,
+                266,
+                [
+                    [-0.97, 1.17, 23.50],
+                    [1.42, 13.49, 7.67],
+                    [-3.46, -1.23, 4.66],
+                    [3.64, -7.02, 26.59],
+                    [-4.65, -2.96, 28.52],
+                ],
+            ),
+            (
+                38,
+                0,
+                25,
+                1666,
+                [
+                    [0.05, -0.11, 22.07],
+                    [2.98, -4.03, 2.19],
+                    [-2.05, 4.19, 2.29],
+                    [-2.16, -9.95, 24.70],
+                    [-5.17, 1.10, 25.36],
+                ],
+            ),
+        ];
+        const OURS: [usize; 5] = [4, 8, 33, 19, 25];
+        let mesh = world.mesh(60, false).expect("the rifleman decodes");
+        let parted = |slot: i8, ms: u32, want: &Joints| -> f32 {
+            let j = render::figure::joints(&mesh.model, &mesh.anims[&slot], ms);
+            OURS.iter()
+                .zip(want)
+                .flat_map(|(&i, w)| {
+                    let at = j[i];
+                    (0..3).map(move |c| (at[c] - w[c]).abs())
+                })
+                .fold(0.0, f32::max)
+        };
+        for (k, (o, slot, clock, ms, want)) in PACKET_POSE.iter().enumerate() {
+            let at = if k < 5 { PHOTO_FRAME } else { 3294 };
+            let ours = rows
+                .iter()
+                .find(|r| r.starts_with(&format!("fig 1/{o} frame {at} ")))
+                .expect("a row");
+            assert!(
+                ours.contains(&format!(" slot {slot} clock {clock} "))
+                    && ours.ends_with(&format!(" ms {ms}")),
+                "ours names the packet's clip and time: {ours}"
+            );
+            let d = parted(*slot, *ms, want);
+            println!("1/{o} at {at}: joints within {d:.3} of the original's");
+            assert!(d < 0.5, "1/{o}'s pose at {at} is the original's");
+        }
+        // Seen to fail: 1/20's clock three ticks on (800 → 1000 ms).
+        let (_, slot, _, _, want) = PACKET_POSE[0];
+        let d = parted(slot, 1000, &want);
+        println!("1/20 at 1000 ms: {d:.3} off");
+        assert!(d > 2.0, "a perturbed clock parts the pose");
+    }
+
     /// **The woodcutter's right edge** (item 4079): on frame 3279 at
     /// run1559b's camera our sprite reaches x 1700 where the photograph's
     /// traced building ends nearer 1686. The sprite is drawn as the

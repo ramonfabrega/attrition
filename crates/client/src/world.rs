@@ -589,7 +589,14 @@ impl World {
         (figures, buildings, list)
     }
 
-    fn mesh(&mut self, piece: i32, building: bool) -> Option<std::sync::Arc<Mesh>> {
+    /// A unit piece's slots and the `.BHa` file each names, as the mesh
+    /// loads them (item 4092).
+    #[cfg(test)]
+    pub(crate) fn unit_slot_files(&self, piece: i32) -> Option<Vec<(i8, String)>> {
+        self.unit_models.get(&piece).map(|(_, _, f)| f.clone())
+    }
+
+    pub(crate) fn mesh(&mut self, piece: i32, building: bool) -> Option<std::sync::Arc<Mesh>> {
         if let Some(m) = self.meshes.get(&piece) {
             return m.clone();
         }
