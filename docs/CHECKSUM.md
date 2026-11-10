@@ -16,7 +16,9 @@ later (§3). The ledger's field names come from the type records
 where the export's record is incomplete). Its byte counts are measured
 on those two frames (§4). The first state line ported, items, agrees
 byte for byte on run 1562's frame (§11), and so does the second, cities
-(§12). Goods is held out on one byte, good 15's `ever_seen` (§13). What
+(§12), and so does the third, goods (§13, item 4093), once the built
+start runs setup's goods scan. ~~Goods is held out on one byte, good 15's
+`ever_seen` (§13).~~ What
 rests on a reading alone is listed in §10.
 
 ## 1. What the checksum is
@@ -255,15 +257,17 @@ items after 4088 follow. The three empty lines are not counted there
 and are named last; by bytes:
 
 1. cities (228; ported, §12) · 2. items (484; ported, §11) · 3. goods
-(792; held out on one byte, §13) ·
+(792; ported, §13) ·
 4. builds (4,923) · 5. guys (9,308) · 6. units (19,642; it walks the
 guys again) · 7. groups (37,010) · 8. leaders (58,343) ·
 9. world (294,769) · then walls, ammo and deaths (0 each), counted on a
 frame that holds one.
 
 Cities and items swapped places against run1100's frame (630 and 352
-there). Goods is the record items is, over another array; its one
-parting byte is a setup writer our built start does not run (§13).
+there). Goods is the record items is, over another array; ~~its one
+parting byte is a setup writer our built start does not run~~ its one
+parting byte was a setup writer our built start did not run, and runs
+since item 4093 (§13).
 
 *On run1100's frame 5408* (item 4060), by the bytes there, with the
 three empty lines first:
@@ -288,13 +292,14 @@ item 4060's was run1100, 5408, 3502) and `CHECKSUM_STATE` (the state
 lines our simulation emits equal to the original's, of twelve, and the
 bytes of the twelve walks ours reproduces, of 425,499 on that frame):
 
-    Checksum: instrument 15 of 15 lines (run1562 f91) · state 2 of 12 lines, 712 of 425,499 bytes
+    Checksum: instrument 15 of 15 lines (run1562 f91) · state 3 of 12 lines, 1,504 of 425,499 bytes
 
 Item 4088 moved it from `instrument 15 of 15 lines (run1100 f5408) ·
 state 0 of 12 lines, 0 of 501,543 bytes`: the pair moved to the minted
 game, and items is ported (§11). Item 4091 moved it from `state 1 of 12
 lines, 484 of 425,499 bytes`: cities is ported (§12), and goods is held
-out on one byte (§13).
+out on one byte (§13). Item 4093 moved it from `state 2 of 12 lines, 712
+of 425,499 bytes`: goods is ported (§13).
 
 `floors::tests::the_handoff_s_checksum_line_is_the_pinned_counter` holds
 the queue's line against it. `checksum::tests::the_instrument_reproduces_the_printed_record`
@@ -738,14 +743,15 @@ the shape of a non-empty `vans` array (run1100's stream, not ours).
 - Which leaders are "active": the walk takes every owner of a live city
   in slot order, and the original takes `leaders.list & 1`.
 
-## 13. The goods line, held out on one byte (item 4091)
+## 13. The goods line, ported (item 4093; held out on one byte at item 4091)
 
 `Sim::checksum_goods` is §11's record over the goods array, per live good
 in `World::goods`' order (`o` its index): `ever_seen`, `flags` 1,
 `must_walk` 1, `who` 255, `o`, `z` as `refresh_good_z` last wrote it,
 `x`, `y`, and the type local, the good's own `TypeIndex`.
-`rondata::diff::checksum_lines::the_goods_line_is_held_out_on_good_15_s_ever_seen`
-holds it against the stream.
+`rondata::diff::checksum_lines::the_goods_line_is_the_original_s_range_by_range`
+holds it against the stream (item 4091's
+`the_goods_line_is_held_out_on_good_15_s_ever_seen` turned into it).
 
 **`GoodData::ever_seen` (+0x20), and its writers.** The type record names
 it a `uchar`, a bit per leader. `Good::log_data@0066e610` prints it, and
@@ -773,17 +779,36 @@ first). Every writer in the export:
    24..35.
 
 This crate holds the field as `territory.good_seen_bits`, written by
-`Sim::mark_good_seen` from arms 2 and 3 (items 1555 and 3332).
+`Sim::mark_good_seen` from arms 2 and 3 (items 1555 and 3332), and from
+arm 3 at setup since item 4093 (`Sim::claim_rares_from_owners`).
 `Sim::good_ever_seen_byte` reads it for the image. Arms 4 and 5 are not
 modelled.
 
-**The value diff, and the byte held out**: 179 of 180 ranges equal, and
+**The value diff, ported (item 4093)**: 180 of 180 ranges equal, and
+792 of 792 bytes. Every good's nine fields agree. One good of 36 has a
+bit on the frame, on both sides:
+
+| good | type | point | `ever_seen` ours | theirs |
+|---|---|---|---|---|
+| 15 | 17 (`AMBER`) | (40320, 14208) | 2 (leader 1) | 2 (leader 1) |
+
+Ours sums to **1939436390**, the printed `Goods`. Made to fail: good 15's
+byte at the unported 0 parts on range 75 alone, and the Adler with it;
+good 3's `x` perturbed parts on range 18 alone; the empty image parts on
+all 180. The frame-0 line beside it: run9's `[Start Game]` prints 35 of
+the 36 goods' `ever_seen` (the first record lost its head lines in the
+print), and the built start's agree on all 35, good 15 at 2
+(`diff::start_walk::the_built_start_s_goods_ever_seen_is_the_start_dump_s`).
+Leader 1's `new_rares` is `[15]` from frame 0 (ours; no dump prints the
+list), and on frame 91 its `known_rares` is 1 on both sides.
+
+**The value diff at item 4091, and the byte held out**: 179 of 180 ranges equal, and
 791 of 792 bytes. Every good's `flags`, `must_walk`, `who`, `o`, `z`,
 `x`, `y` and type agree, and every `ever_seen` agrees but one:
 
 | good | type | point | `ever_seen` ours | theirs |
 |---|---|---|---|---|
-| 15 | 17 (the SILK) | (40320, 14208) | 0 | **2** (leader 1) |
+| 15 | 17 (~~the SILK~~ `AMBER`: `TypeIndex` 17, and run9's `GOOD` prints `Amber`) | (40320, 14208) | 0 | **2** (leader 1) |
 
 Ours sums to 1878881124 against the printed 1939436390. With that one
 byte at the original's 2, a substitution made only in the test, ours
@@ -806,18 +831,21 @@ on **frame 387**, and from then on ours reads 2 (probed on the walk:
 
 So the byte is not a field the simulation lacks. It is a writer the
 built start does not run: setup's goods scan, and with it the AI's
-`new_rares` and `known_rares` for the first 296 frames. Porting it is
+`new_rares` and `known_rares` for the first 296 frames. ~~Porting it is
 not this line's to do. It changes the AI's state on the minted walk
 (its merchant reads `new_rares`), which is a mechanic under its own
 document (`docs/ECONOMY.md`, "The rares a leader has seen"), with every
 floor run against it. **The goods line is held out on good 15's
 `ever_seen`**, and the test pins it so, both ways: a setup pass that
-sets the bit turns it red, and so does any other byte that parts.
+sets the bit turns it red, and so does any other byte that parts.~~
+Ported by item 4093 under that document ("Setup's goods scan"), with
+every floor that walks a built start run against it and none moved
+(the value diff above).
 
-**Made to fail**: the empty image parts on all 180 ranges. One more
+~~**Made to fail**: the empty image parts on all 180 ranges. One more
 perturbed byte of ours, good 3's `x`, parts on its own range as well as
 good 15's, and on no other. The held-out byte is itself the measured
-parting.
+parting.~~ The line's own made-to-fail is in the value diff above.
 
 **The items line is not touched by this reading.** An item's
 `ItemData::ever_seen` (+0x20) has its own writers: `Item::init` and
@@ -825,9 +853,9 @@ parting.
 (item 3335). None of the five above writes an item. All 22 boxes read 0
 on both sides, and items stays 110 of 110.
 
-**How it was established, and how confident.** Diff-backed: 791 bytes
-of the line on one frame, and the one byte that parts with both sides'
-values. On a reading: the five writers (found by grepping the export
+**How it was established, and how confident.** Diff-backed: all 792
+bytes of the line on frame 91 (item 4093; 791 and the one parting byte
+at item 4091), and every printed good's `ever_seen` at frame 0. On a reading: the five writers (found by grepping the export
 for every `|= 1 << who` and every store at +0x20 of a goods-list
 pointer, then read with their callers), and arm 4's redundancy outside
 an alliance. Probed on our walk: the frame ours sets the bit.
@@ -840,6 +868,9 @@ an alliance. Probed on our walk: the frame ours sets the bit.
   91 every herd good (19, 24..35) reads 0 on both sides, so those
   goods agree by default here.
 - Arm 4 in an alliance (no allied lobby is read).
-- The order of `new_rares` when the setup scan is ported. Arm 3 appends
-  in the pass's region-and-cell order (`docs/ECONOMY.md`).
+- The order of `new_rares` ~~when the setup scan is ported~~ that setup
+  leaves. The scan is ported (item 4093) and appends in the pass's
+  region-and-cell order (`docs/ECONOMY.md`, "Setup's goods scan"), but
+  on this lobby each leader meets one rare at most, so no diff has
+  tested the order.
 - A dead good (`flags` 0, not walked), and a good a terraform moved.
