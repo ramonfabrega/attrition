@@ -666,6 +666,201 @@ pub fn write_gz(rec: &RecGame) -> Vec<u8> {
     gz.finish().expect("writing to a Vec cannot fail")
 }
 
+/// The lobby options in `GameInfo_u_24_s_0`'s order, as the `GAMEINFO`
+/// block names them — the thirty bytes [`RecGame::options`] walks.
+pub const OPTION_KEYS: [&str; 30] = [
+    "TEAM_STYLE",
+    "MAP_STYLE",
+    "MAP_SIZE",
+    "PLAYERS",
+    "MAX_OBSERVERS",
+    "GAME_SPEED",
+    "GAME_RULES",
+    "DIFFICULTY",
+    "STARTING_TOWN",
+    "STARTING_RESOURCES",
+    "STARTING_RESOURCES2",
+    "TECH_COST",
+    "REVEAL_MAP",
+    "POP_LIMIT",
+    "RUSH_RULES",
+    "CANNON_TIMES",
+    "STARTING_TECHNOLOGY",
+    "STARTING_TECHNOLOGY2",
+    "ENDING_TECHNOLOGY",
+    "ELIMINATION",
+    "VICTORY",
+    "WONDERWIN",
+    "SCORE_GOAL",
+    "POPWIN",
+    "TIME_LIMIT",
+    "CHAIRS",
+    "ECONWIN",
+    "SCENARIO_TYPE",
+    "SCRIPT_TYPE",
+    "MODS",
+];
+
+/// The `PLAYER` rows' ten input counters, in `Player`'s order.
+const SYNCED_KEYS: [&str; 10] = [
+    "synced_used_zoom_control",
+    "synced_frames_zoomed_in",
+    "synced_frames_zoomed_out",
+    "synced_clicks",
+    "synced_hotkeys",
+    "synced_minimap_clicks",
+    "synced_mainmap_clicks",
+    "synced_cheated",
+    "synced_control_groups_formed",
+    "synced_control_groups_activated",
+];
+
+/// **A recording of our own, from the lobby's choices** (`docs/RECGAME.md`
+/// §8): the header computed from the `GAMEINFO` block's fields and `PLAYER`
+/// rows — the same input [`crate::diff::from_lobby`] builds the start from —
+/// and the packages the caller hands in.
+///
+/// What nothing here can build from the XML today is **borrowed from
+/// `donor`**, a recording this install made of a lobby with the same
+/// version and the same thirty option bytes (the rules section varies with
+/// the options — `STARTING_TECHNOLOGY` moves type ages inside Types — and
+/// with nothing else across the recordings on disk): the section markers,
+/// `Game`'s run-state stretch, the semaphore, and the whole rules section.
+/// Read at run time from the user's install, never kept.
+///
+/// Chosen rather than read: `graphic_tick` 0 (the render clock), every
+/// slot's `caravan_frame` 0 (the block does not print it), and each active
+/// slot's name `Player <play + 1>` (the lobby's default; the block prints
+/// the leader's name instead, and nothing in the simulation reads it).
+pub fn from_lobby(
+    game_info: &[(&str, &str)],
+    players: &[Vec<(&str, &str)>],
+    donor: &RecGame,
+    packages: Vec<Package>,
+) -> Result<RecGame, String> {
+    let get = |key: &str| game_info.iter().find(|(k, _)| *k == key).map(|(_, v)| *v);
+    let int = |key: &str| -> Result<i64, String> {
+        get(key)
+            .and_then(|v| v.trim().parse().ok())
+            .ok_or_else(|| format!("GAMEINFO has no integer {key}"))
+    };
+    let version = game_info
+        .iter()
+        .find(|(k, _)| k.starts_with("(Version"))
+        .map(|(k, v)| format!("{k} {v}"))
+        .ok_or("GAMEINFO has no version line")?;
+    // `(int) version 111935788` splits at its first blank.
+    let info_version = game_info
+        .iter()
+        .find_map(|(k, v)| (*k == "(int)").then(|| v.strip_prefix("version "))?)
+        .and_then(|v| v.trim().parse::<u32>().ok())
+        .ok_or("GAMEINFO has no (int) version")?;
+    let mut options = [0u8; 30];
+    for (o, key) in options.iter_mut().zip(OPTION_KEYS) {
+        *o = int(key)? as u8;
+    }
+    let mut slots = vec![Slot::default(); 8];
+    let mut random_info = Vec::new();
+    if players.len() > 8 {
+        return Err(format!("{} PLAYER rows for eight slots", players.len()));
+    }
+    for (slot, row) in slots.iter_mut().zip(players) {
+        let f = |key: &str| -> Result<i64, String> {
+            row.iter()
+                .find(|(k, _)| *k == key)
+                .and_then(|(_, v)| v.trim().parse().ok())
+                .ok_or_else(|| format!("PLAYER row has no {key}"))
+        };
+        let flags = f("flags")? as u16;
+        let mut synced = [0i32; 10];
+        for (s, key) in synced.iter_mut().zip(SYNCED_KEYS) {
+            *s = f(key)? as i32;
+        }
+        *slot = Slot {
+            flags,
+            synced,
+            caravan_frame: 0,
+            pop_cap_frame: f("pop_cap_frame")? as i32,
+            record_flags: flags,
+            tribe: f("tribe")? as u8,
+            who: f("who")? as u8,
+            team: f("team")? as i8,
+            handicap: f("handicap")? as u8,
+            play: f("play")? as u8,
+            pauses: f("pauses")? as u8,
+            diff: f("diff")? as u8,
+            name: String::new(),
+        };
+        if slot.active() {
+            slot.name = format!("Player {}", u32::from(slot.play) + 1);
+            if slot.who < 8 {
+                random_info.push((slot.team, u32::from(slot.tribe)));
+            }
+        }
+    }
+    if donor.version != version || donor.options != options {
+        return Err(format!(
+            "the donor is another lobby: {:?} {:02x?} against ours {version:?} {options:02x?}",
+            donor.version, donor.options
+        ));
+    }
+    let rules = donor
+        .rules
+        .clone()
+        .ok_or("the donor carries no rules section")?;
+    Ok(RecGame {
+        markers: donor.markers,
+        version,
+        info_version,
+        seed: int("(int)seed")? as u32,
+        checksum: [
+            int("checksum_deep")? as u32,
+            int("checksum_window_size")? as u32,
+            int("checksum_failure_threshold")? as u32,
+        ],
+        flags: int("flags")? as u32,
+        options,
+        slots,
+        tail: InfoTail::default(),
+        start_frame: 0,
+        run_state: donor.run_state.clone(),
+        semaphore_bits: donor.semaphore_bits,
+        semaphore: donor.semaphore.clone(),
+        graphic_tick: 0,
+        save_name: String::new(),
+        random_info,
+        world_style: int("MAP_STYLE")? as u32,
+        rules: Some(rules),
+        spans: Spans::default(),
+        packages,
+        truncated: Vec::new(),
+    })
+}
+
+/// The package stream of a game with no input, played to `last` frames:
+/// the client's frame-0 push of its auto-manage settings (`valid` 1, as on
+/// every recording on disk), and one empty package on frame `last`, so
+/// `read_package` meets end of file only after it (`docs/RECGAME.md` §4.3,
+/// §8). Stamps run 1, 2.
+pub fn no_input_packages(leader_options: crate::commands::Command, last: i32) -> Vec<Package> {
+    vec![
+        Package {
+            frame: 0,
+            play: 0,
+            valid: 1,
+            stamp: 1,
+            data: crate::commands::encode(&[leader_options]),
+        },
+        Package {
+            frame: last,
+            play: 0,
+            valid: 0,
+            stamp: 2,
+            data: Vec::new(),
+        },
+    ]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1038,5 +1233,162 @@ mod tests {
         assert_eq!(back.slots, rec.slots);
         assert_eq!(back.packages, rec.packages);
         assert_eq!(back.random_info, rec.random_info);
+    }
+
+    /// The lobby's long capture, whose `GAMEINFO` block is the lobby's
+    /// choices (`docs/START.md` §7.4).
+    const LOBBY_DUMP: &str = "gamelog-run53-greatlakes-24k-trace.txt";
+    /// The frames our file plays: the long trace's length.
+    const LOBBY_FRAMES: i32 = 24_000;
+
+    /// The harness lobby's recording, written here: `(ours, donor, twin)` —
+    /// the twin is the original's own recording of this lobby's 24,000-frame
+    /// game, when the corpus has it.
+    fn lobby_recording() -> Option<(RecGame, RecGame, Option<RecGame>)> {
+        let path = crate::testenv::dump(LOBBY_DUMP)?;
+        let text = crate::capture::read(&path);
+        let log = crate::gamelog::Log::parse(&text);
+        let init = log.replay_initial()?;
+        let corpus: Vec<RecGame> = recordings_on_disk()
+            .iter()
+            .filter_map(|f| read(f).ok())
+            .filter(|r| r.truncated.is_empty())
+            .collect();
+        // The first finished recording of the same lobby, in file order.
+        let probe = from_lobby(
+            &init.game_info,
+            &init.players,
+            corpus.iter().find(|r| r.rules.is_some())?,
+            Vec::new(),
+        )
+        .err();
+        let donor = corpus
+            .iter()
+            .find(|r| from_lobby(&init.game_info, &init.players, r, Vec::new()).is_ok())
+            .unwrap_or_else(|| panic!("no recording of this lobby on disk: {probe:?}"))
+            .clone();
+        let twin = corpus
+            .iter()
+            .find(|r| {
+                r.options == donor.options
+                    && r.seed == donor.seed
+                    && r.packages.last().map(|p| p.frame) == Some(LOBBY_FRAMES)
+            })
+            .cloned();
+        let lo = crate::commands::decode(&donor.packages[0].data).unwrap();
+        assert!(
+            matches!(lo[..], [crate::commands::Command::LeaderOptions { .. }]),
+            "the donor's frame 0 is not the leader_options push: {lo:?}"
+        );
+        let packages = no_input_packages(lo[0].clone(), LOBBY_FRAMES);
+        let ours = from_lobby(&init.game_info, &init.players, &donor, packages).unwrap();
+        Some((ours, donor, twin))
+    }
+
+    /// The header fields where two recordings part, by name.
+    fn header_parts(a: &RecGame, b: &RecGame) -> Vec<String> {
+        let mut out = Vec::new();
+        let mut cmp = |name: &str, x: String, y: String| {
+            if x != y {
+                out.push(format!("{name}: {x} vs {y}"));
+            }
+        };
+        cmp(
+            "markers",
+            format!("{:?}", a.markers),
+            format!("{:?}", b.markers),
+        );
+        cmp("version", a.version.clone(), b.version.clone());
+        cmp(
+            "info_version",
+            a.info_version.to_string(),
+            b.info_version.to_string(),
+        );
+        cmp("seed", a.seed.to_string(), b.seed.to_string());
+        cmp(
+            "checksum",
+            format!("{:?}", a.checksum),
+            format!("{:?}", b.checksum),
+        );
+        cmp("flags", a.flags.to_string(), b.flags.to_string());
+        for (k, key) in OPTION_KEYS.iter().enumerate() {
+            cmp(key, a.options[k].to_string(), b.options[k].to_string());
+        }
+        for (n, (x, y)) in a.slots.iter().zip(&b.slots).enumerate() {
+            cmp(&format!("slot {n}"), format!("{x:?}"), format!("{y:?}"));
+        }
+        cmp("tail", format!("{:?}", a.tail), format!("{:?}", b.tail));
+        cmp(
+            "start_frame",
+            a.start_frame.to_string(),
+            b.start_frame.to_string(),
+        );
+        cmp(
+            "run_state",
+            format!("{:02x?}", a.run_state),
+            format!("{:02x?}", b.run_state),
+        );
+        cmp(
+            "semaphore",
+            format!("{} {:02x?}", a.semaphore_bits, a.semaphore),
+            format!("{} {:02x?}", b.semaphore_bits, b.semaphore),
+        );
+        cmp(
+            "graphic_tick",
+            a.graphic_tick.to_string(),
+            b.graphic_tick.to_string(),
+        );
+        cmp("save_name", a.save_name.clone(), b.save_name.clone());
+        cmp(
+            "random_info",
+            format!("{:?} {}", a.random_info, a.world_style),
+            format!("{:?} {}", b.random_info, b.world_style),
+        );
+        cmp(
+            "rules",
+            format!("{}", a.rules == b.rules),
+            "true".to_string(),
+        );
+        out
+    }
+
+    /// **The harness lobby's recording, written here and read back**
+    /// (item 4058, `docs/RECGAME.md` §8): the header from run53's `GAMEINFO`
+    /// block, the rest borrowed from a recording of the same lobby; it
+    /// parses back to itself, and against the original's own recording of
+    /// this lobby's game it parts only where §8 says it does. With
+    /// `RON_RCX_OUT=<file>` it also writes the `.rcx` the playback take
+    /// opens.
+    #[test]
+    fn the_lobby_s_recording_is_written_and_reads_back() {
+        let Some((ours, _donor, twin)) = lobby_recording() else {
+            eprintln!("skipping: no {LOBBY_DUMP} or no recording (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let bytes = write(&ours);
+        let back = parse(&bytes, "ours").expect("our file parses");
+        assert_eq!(write(&back), bytes);
+        assert_eq!(back.packages, ours.packages);
+        assert_eq!(back.slots, ours.slots);
+        assert_eq!(back.seed, 12345);
+        let twin = twin.expect("the original's own recording of the lobby's 24,000-frame game");
+        let parts = header_parts(&ours, &twin);
+        eprintln!("OURS vs THE TWIN: {parts:#?}");
+        assert_eq!(
+            parts,
+            vec![
+                "slot 1: Slot { flags: 1, synced: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], caravan_frame: 0, \
+                 pop_cap_frame: 0, record_flags: 1, tribe: 11, who: 1, team: 8, handicap: 0, play: 1, \
+                 pauses: 0, diff: 2, name: \"Player 2\" } vs Slot { flags: 1, synced: [0, 0, 0, 0, 0, \
+                 0, 0, 0, 0, 0], caravan_frame: 0, pop_cap_frame: 0, record_flags: 1, tribe: 24, who: \
+                 1, team: 8, handicap: 0, play: 1, pauses: 0, diff: 2, name: \"Player 2\" }"
+                    .to_string(),
+                format!("graphic_tick: 0 vs {}", twin.graphic_tick),
+            ]
+        );
+        if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+            std::fs::write(&out, write_gz(&ours)).unwrap();
+            eprintln!("wrote {}", out.to_string_lossy());
+        }
     }
 }
