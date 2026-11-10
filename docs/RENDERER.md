@@ -868,7 +868,16 @@ runner up and steps it to the frame, then draws:
   and moved to the draw list's point. `GuyOut::draw@005dc490` adds the 180
   (`__real_43340000`) and multiplies by `guy_scale`, which reads **4.8** on
   run1441's and run1559b's packets (`?guy_scale@@3MA`, `0x00c06244` by the
-  linker map). No animation is applied;
+  linker map). No animation is applied by default. `--pose` (item 4067)
+  poses each figure at its `anim` slot and `cur_time` through the `.BHa`
+  its `<UNIT>` names (`render::figure::posed`). The key is the node's
+  `local` transform *inside* its `.BH3` rest transform, `parent.world ·
+  parent2local · local` (`HierObj::update_transforms@00536c60`). The two
+  trees are paired by place, and a node the animation lacks stands at rest.
+  The clock is `cur_time · 200 / 3` ms clamped to the clip, with key `k`
+  reached at `times[k − 1]` (`HierObj::set_to_time@00536e30`). Posed, a
+  citizen's body turns with its `Bip01` key, and every figure then reads a
+  quarter turn off the photograph (§5.3, parked 4067a);
 - *each building*: its `<BUILD>`'s `zbuffer` model at the draw list's
   anchor point, unscaled and unturned;
 - *the overlay* (§7.2 item 8): the frame, the last frame's milliseconds and
@@ -929,7 +938,13 @@ source (item 4065): the chad starts at `(1, −1, 1)`
 packet piece 196 reads 0.85 and `0x1`, pieces 60 and 10912 1.0 and `0x1`, so
 the client's `scale=` × 4.8 is the original's (parked 4065a). The chad's
 `sy = −1` is not applied (parked 4065c). **Reading only, and by eye:** the
-rest pose, the facing's sense, the building's model.
+rest pose, the facing's sense, the building's model. The pose's composition
+is pinned by `figure::tests::the_key_is_applied_inside_the_rest_transform`,
+which turns red with the order swapped, and by eye a posed rifleman aims
+with both hands at the shoulder. The `graphic_dt` inside a frame (the client
+draws at 0) and `load_hier`'s key flags (a blend skipped within 0.01 and 0.1)
+are not reproduced. **The facing's sense is now measured wrong:** a quarter
+turn, on figures and tanks alike (parked 4067a).
 
 **What is not established.**
 - **Why the camera moved between run1441 and run1559.** Both takes stage
@@ -1100,8 +1115,14 @@ photograph (`RUN1559B_3294`).
   4065b, 4065c). The capital is drawn as its
   `zbuffer` model (4036a). One figure has no counterpart in the
   photograph (4038c). The figures stand in the rest pose, while the
-  photograph's have limbs out. The figures by the derrick stand among
-  trees the client does not draw.
+  photograph's have limbs out. **The pose is not the miss** (item 4067).
+  Posed at their slot and clock (`--pose`), they score 1 of 23
+  (`RUN1559B_3294_POSED`): 1/23 0.491 → 0.280, 1/34 0.452 → 0.286. A posed
+  rifleman stands side-on and aims, and at the drawn facing he aims a
+  quarter turn off the photograph's. With 90° added to every figure (a
+  diagnostic, not landed) the posed frame reads 5 of 23, and the tanks
+  improve too, so the miss is the facing chain (parked 4067a). The
+  figures by the derrick stand among trees the client does not draw.
 - *What it does not measure.* Colour: textures and team colours are not
   bound (4038a), and binding them would not move this row.
 - *Where the inputs are.* The photograph is converted once to `.tga`

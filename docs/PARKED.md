@@ -15851,13 +15851,21 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   Korean or Dutch seat by name (with 4047b's Americans) rather than guess the count. Names no score until a
   lobby with one of them is compared (item 4034's lobbies).
 
-## Parked by the next landing, slot DY — reserved
+## Parked by item 4067, 2026-11-09 — the figures' pose, killed as the miss
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4067a. Every figure is drawn a quarter turn off the original's facing** (`docs/RENDERER.md` §5.3, §3.6; the
+  facing half of 4065c). On frame 3294 at run1559b's camera, with every figure posed at its slot and clock
+  (`client --pose`, `render::figure::posed`), candidate C reads 1 of 23 at the drawn facing and **5 of 23 with a
+  constant 90° added to every figure** (a diagnostic sweep in 15° steps, not landed). The riflemen then aim right,
+  where the photograph's muzzle flashes are, and at +270° they aim left. The booked rows pass: 1/23 0.280 → 0.58,
+  1/34 0.286 → 0.51. The tanks, which no animation turns, want the same quarter turn: 1/40 0.135 → 0.277 and 1/16
+  0.052 → 0.140 (the "drawn sideways" of 4065c). At rest the best turn is near +315° (also 5 of 23). That is the same
+  body direction once the animation's `Bip01` key, which turns a citizen's body by 232.5° about z, is counted. The
+  rows the turn moves face between −45° and +5° (0/0, at 120°, is the one exception, and the rows near ±135° score
+  under 0.3 either way), so a constant offset is not yet told apart from a sign flip. The drawn angle is `GuyOut::draw@005dc490`'s `fast_angle_to_degrees(·) + 180` turned by `rotate_z`.
+  Which `GuyData` angle it reads (the render angle interpolates `last_angle` → `angle`) is garbled in the decompile
+  (`_padding_` and `unaff_EDI`), and the listing at `005dc490` settles it. Candidate C posed 1 → 5 of 23, the rest
+  row 3 held. The `RUN1559B_3294_POSED` pin is the one it lands against; with it the client draws posed by default.
 
 ## Parked by the next landing, slot DZ — reserved
 

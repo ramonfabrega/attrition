@@ -201,6 +201,14 @@ mod tests {
             "candidate C's first row"
         );
 
+        world.pose = true;
+        let rows = score_frame(&mut world, &camera, &photo);
+        let footprints: Vec<Footprint> = rows.iter().map(|(f, _)| *f).collect();
+        let posed = score(&footprints, &READING);
+        println!("posed: {} of {}", posed.0, posed.1);
+        assert_eq!(posed, render::silhouette::RUN1559B_3294_POSED);
+        world.pose = false;
+
         let mut elsewhere = camera;
         (elsewhere.loc_x, elsewhere.loc_y) = (3168.0, 29744.68);
         let rows = score_frame(&mut world, &elsewhere, &photo);
