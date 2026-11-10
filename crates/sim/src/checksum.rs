@@ -482,5 +482,7 @@ impl Sim {
     }
 }
 
+pub mod builds;
+
 #[cfg(test)]
 mod tests;

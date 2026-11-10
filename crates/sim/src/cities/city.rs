@@ -1536,6 +1536,7 @@ impl Sim {
             .find_free(who, crate::BUILD_BASE, crate::WALL_BASE)
             .expect("a player's building band is full");
         let z = self.world.object_z(pos.tile());
+        let uid = self.next_uid(who);
         self.buildings.push(Building {
             owner: who,
             index,
@@ -1578,6 +1579,11 @@ impl Sim {
             launch_frames: 0,
             launching: Vec::new(),
             founder: who,
+            // `Wall::init@0063e9b0` → `Object::init@00647750`: the owner's
+            // next uid; `frame_started` −1 until `Wall::start`.
+            uid,
+            frame_started: -1,
+            had_helpers: false,
             clock: build::ClockMods::default(),
             hit_frame: None,
             fort_source: None,
@@ -1994,6 +2000,8 @@ impl Sim {
         if self.buildings[b].started {
             return true;
         }
+        // `this->frame_started = game->frame`, beside `flags |= 2`.
+        self.buildings[b].frame_started = self.frame as i32;
         let Some(ty) = self.buildings[b].ty else {
             self.buildings[b].started = true;
             return false;
@@ -2939,6 +2947,9 @@ impl Sim {
             }
             self.site_recruit(b);
         }
+        // `Wall::process@00640450`: `helpers` nonzero sets `build_masks
+        // |= 0x400`, zero clears it, and `helpers` is zeroed.
+        self.buildings[b].had_helpers = self.buildings[b].helpers != 0;
         self.buildings[b].helpers = 0;
         // A building in enemy territory bleeds.
         let who = self.buildings[b].owner;
