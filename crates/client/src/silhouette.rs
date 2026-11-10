@@ -1019,6 +1019,17 @@ mod tests {
         );
         let tree_scene = print("traced, a tree's pixel as scene", &tree_scene_rows);
         world.tree_pixels = crate::world::TreePixels::Ground;
+        // The leaves' rejected reading, every triangle whole (item 4082).
+        world.leaves = crate::world::Leaves::Solid;
+        let solid_rows = read(
+            &mut world,
+            &camera,
+            &TRACED,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let solid = print("traced, the leaves solid", &solid_rows);
+        world.leaves = crate::world::Leaves::Alpha;
         world.trees = false;
         let treeless_rows = read(
             &mut world,
@@ -1233,6 +1244,7 @@ mod tests {
         use render::silhouette as s;
         assert_eq!(got, s::RUN1559B_3279_TRACED);
         assert_eq!(tree_scene, s::RUN1559B_3279_TRACED_TREES_SCENE);
+        assert_eq!(solid, s::RUN1559B_3279_TRACED_LEAVES_SOLID);
         assert_eq!(treeless, s::RUN1559B_3279_TRACED_TREELESS);
         assert_eq!(scene, s::RUN1559B_3279_TRACED_SCENE);
         assert_eq!(skip, s::RUN1559B_3279_TRACED_SKIP);

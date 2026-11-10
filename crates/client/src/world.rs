@@ -142,12 +142,14 @@ pub type TreeLeaves = (Vec<[f32; 2]>, Vec<usize>);
 /// **How a tree's leaves are drawn** (item 4082, `docs/RENDERER.md` §3.7).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Leaves {
-    /// Every triangle whole, item 4080's draw.
-    Solid,
-    /// The original's alpha test: a fragment is kept where its texture's
-    /// alpha is above `render_states[9]`'s `alpha_ref`, 0
-    /// ([`TREE_ALPHA_REF`]).
+    /// Every triangle whole, item 4080's draw: the rejected reading
+    /// (`docs/RENDERER.md` §5.3, "The leaves").
     #[cfg_attr(not(test), allow(dead_code))]
+    Solid,
+    /// The original's alpha test, the default: a fragment is kept where its
+    /// texture's alpha is above `render_states[9]`'s `alpha_ref`, 0
+    /// ([`TREE_ALPHA_REF`]), and a triangle wound against [`TREE_CULL`] is
+    /// culled.
     Alpha,
 }
 
@@ -313,7 +315,7 @@ impl World {
             terrain: (u32::MAX, TerrainMesh::default()),
             trees: true,
             tree_pixels: TreePixels::Ground,
-            leaves: Leaves::Solid,
+            leaves: Leaves::Alpha,
             tree_cull: TREE_CULL,
             tree_art,
         })
