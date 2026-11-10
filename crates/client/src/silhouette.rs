@@ -1840,4 +1840,408 @@ mod tests {
         println!("0/10's window: the woodcutter outside its trace {outside}, at x >= 1688 {past}");
         assert_eq!((outside, past), (307, 99));
     }
+
+    /// **Item 4086, step 1: the riflemen by the tank, by row.** On frame
+    /// 3279 at run1559b's camera, on the default draw, each of 1/31, 1/20
+    /// and 1/32, and a player-1 figure in the row that stands clear, read
+    /// as `read_traced` reads its window: `own` our pixels keyed to the
+    /// figure, `other` ours keyed to anything else, `theirs` the
+    /// photograph's pixels the window's ground does not hold. Per figure:
+    /// both sides' box, size and centroid, the rows, and the window as a
+    /// map. Shifted ten pixels, our figure no longer stands on theirs.
+    #[test]
+    fn the_riflemen_by_the_tank_by_row() {
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        world.run_to(PHOTO_FRAME);
+        let rows = score_frame_traced(
+            &mut world,
+            &camera,
+            &photo,
+            &TRACED,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let size = (photo.width, photo.height);
+        let (keys, who) = frame_keys(&mut world, &camera, size);
+        let p = Photo {
+            width: photo.width,
+            height: photo.height,
+            rgba: &photo.rgba,
+        };
+        let w = size.0;
+        // Each figure drawn alone: its whole extent on our draw.
+        let (figures, buildings, list) = world.draw_list(
+            &camera,
+            &crate::pinned_screen(),
+            (size.0 as i32, size.1 as i32),
+        );
+        let drawings = world.objects(&figures, &buildings, &list);
+        let alone_of = |o: i16| {
+            let objs: Vec<Object> = objects(&drawings)
+                .into_iter()
+                .filter(|b| {
+                    let d = &drawings[b.key as usize - 1];
+                    (d.who, d.o, d.building) == (1, o, false)
+                })
+                .collect();
+            rasterize_cut(&objs, &[], &[], &camera, size).keys
+        };
+        let iface = |x: i32, y: i32| {
+            INTERFACE
+                .iter()
+                .any(|r| (r.x0..r.x1).contains(&x) && (r.y0..r.y1).contains(&y))
+        };
+        // A clear figure: player 1's, in the row, its window holding no
+        // pixel of ours but its own and no trace.
+        let traces: Vec<(u32, &[(i32, i32)])> = TRACED
+            .iter()
+            .map(|&(name, poly)| {
+                let k = who
+                    .iter()
+                    .position(|&(a, o, _, _)| format!("{a}/{o}") == name)
+                    .map_or(u32::MAX, |i| i as u32 + 1);
+                (k, poly)
+            })
+            .collect();
+        let own_of = |f: &Footprint| -> (u8, i16) {
+            let d = who[f.key as usize - 1];
+            (d.0, d.1)
+        };
+        let clear = rows
+            .iter()
+            .filter(|(f, d)| d.0 == 1 && !d.3 && f.overlap() >= READING.threshold)
+            .find(|(f, _)| {
+                let me = own_of(f);
+                let r = READING.ring;
+                let win = Rect::new(
+                    f.window.x0 - r,
+                    f.window.y0 - r,
+                    f.window.x1 + r,
+                    f.window.y1 + r,
+                );
+                (win.y0..win.y1).all(|y| {
+                    (win.x0..win.x1).all(|x| {
+                        let k = keys.at(x as usize, y as usize);
+                        (k == 0 || {
+                            let d = who[k as usize - 1];
+                            (d.0, d.1) == me && !d.3
+                        }) && !traces.iter().any(|t| render::silhouette::inside(t.1, x, y))
+                    })
+                })
+            })
+            .map(|(_, d)| d.1)
+            .expect("a clear figure of player 1's in the row");
+        println!("the clear figure: 1/{clear}");
+        let mut owed = Vec::new();
+        for o in [31i16, 20, 32, clear] {
+            let (f, d) = rows
+                .iter()
+                .find(|(_, d)| (d.0, d.1, d.3) == (1, o, false))
+                .copied()
+                .expect("the figure is scored");
+            let win = f.window;
+            let r = READING.ring;
+            let outer = Rect::new(win.x0 - r, win.y0 - r, win.x1 + r, win.y1 + r);
+            let key = f.key;
+            let alone = alone_of(o);
+            let whole = |x: i32, y: i32| alone.at(x as usize, y as usize) != 0;
+            let kind = |x: i32, y: i32| -> u8 {
+                if iface(x, y) {
+                    return 3;
+                }
+                let mut k = 0;
+                for t in &traces {
+                    if render::silhouette::inside(t.1, x, y) {
+                        if t.0 == key {
+                            return 1;
+                        }
+                        k = 2;
+                    }
+                }
+                k
+            };
+            let g = render::silhouette::ground_where(&keys, &p, win, outer, &READING, |x, y| {
+                kind(x, y) == 0
+            });
+            let own = |x: i32, y: i32| {
+                let k = keys.at(x as usize, y as usize);
+                k != 0 && {
+                    let e = who[k as usize - 1];
+                    (e.0, e.1, e.3) == (1, o, false)
+                }
+            };
+            let theirs = |x: i32, y: i32| kind(x, y) == 0 && !g.holds(&p, x, y);
+            // Box, size, centroid and count of a mask in the window.
+            let measure = |m: &dyn Fn(i32, i32) -> bool| {
+                let (mut n, mut sx, mut sy) = (0i64, 0i64, 0i64);
+                let (mut x0, mut y0, mut x1, mut y1) = (i32::MAX, i32::MAX, i32::MIN, i32::MIN);
+                for y in win.y0..win.y1 {
+                    for x in win.x0..win.x1 {
+                        if kind(x, y) >= 2 || !m(x, y) {
+                            continue;
+                        }
+                        n += 1;
+                        sx += i64::from(x);
+                        sy += i64::from(y);
+                        (x0, y0, x1, y1) = (x0.min(x), y0.min(y), x1.max(x), y1.max(y));
+                    }
+                }
+                let n1 = n.max(1) as f64;
+                (
+                    n,
+                    (x0, y0, x1, y1),
+                    if n == 0 {
+                        (0, 0)
+                    } else {
+                        (x1 - x0 + 1, y1 - y0 + 1)
+                    },
+                    (sx as f64 / n1, sy as f64 / n1),
+                )
+            };
+            let mo = measure(&own);
+            let mt = measure(&theirs);
+            let mot = measure(&|x, y| own(x, y) && theirs(x, y));
+            let mw = measure(&whole);
+            let mwt = measure(&|x, y| whole(x, y) && theirs(x, y));
+            println!(
+                "1/{o} piece {} window ({}, {})..({}, {}): ours {} theirs {} both {} overlap {:.3}",
+                d.2,
+                win.x0,
+                win.y0,
+                win.x1,
+                win.y1,
+                f.ours,
+                f.theirs,
+                f.both,
+                f.overlap()
+            );
+            println!(
+                "  own: {} px, box {:?}, {}x{}, centroid ({:.1}, {:.1})",
+                mo.0, mo.1, mo.2.0, mo.2.1, mo.3.0, mo.3.1
+            );
+            println!(
+                "  theirs: {} px, box {:?}, {}x{}, centroid ({:.1}, {:.1}); on own {}",
+                mt.0, mt.1, mt.2.0, mt.2.1, mt.3.0, mt.3.1, mot.0
+            );
+            println!(
+                "  alone: {} px, box {:?}, {}x{}, centroid ({:.1}, {:.1}); on theirs {}; hidden in our draw {}",
+                mw.0,
+                mw.1,
+                mw.2.0,
+                mw.2.1,
+                mw.3.0,
+                mw.3.1,
+                mwt.0,
+                mw.0 - mo.0
+            );
+            // Who else of ours is in the window, by key.
+            let mut others: std::collections::BTreeMap<String, u32> = Default::default();
+            for y in win.y0..win.y1 {
+                for x in win.x0..win.x1 {
+                    let k = keys.at(x as usize, y as usize);
+                    if k != 0 && !own(x, y) && kind(x, y) < 2 {
+                        let e = who[k as usize - 1];
+                        *others
+                            .entry(format!("{}/{} piece {}", e.0, e.1, e.2))
+                            .or_default() += 1;
+                    }
+                }
+            }
+            println!("  others of ours in the window: {others:?}");
+            // What the photograph holds on our own pixels it does not read
+            // as the figure's: their mean colour and how many are red.
+            let (mut n, mut sum, mut reds) = (0u32, [0u32; 3], 0u32);
+            for y in win.y0..win.y1 {
+                for x in win.x0..win.x1 {
+                    if own(x, y) && kind(x, y) == 0 && !theirs(x, y) {
+                        let i = (y as usize * w + x as usize) * 4;
+                        let c = [photo.rgba[i], photo.rgba[i + 1], photo.rgba[i + 2]];
+                        n += 1;
+                        for k in 0..3 {
+                            sum[k] += u32::from(c[k]);
+                        }
+                        let (r, gg, b) = (i32::from(c[0]), i32::from(c[1]), i32::from(c[2]));
+                        reds += u32::from(r - gg > 60 && r - b > 60);
+                    }
+                }
+            }
+            println!(
+                "  own, not theirs: {n} px, mean {:?}, red {reds}",
+                sum.map(|v| v / n.max(1))
+            );
+            // The window by row, then as a map: '#' own and theirs, 'o' own
+            // only, '%' another of ours and theirs, '-' another only, '+'
+            // theirs only, 'T' a neighbour's trace, '=' its own trace.
+            // The photograph's red among theirs, on our own, on another of
+            // ours, and on nothing of ours.
+            let mut red = [0u32; 3];
+            for y in win.y0..win.y1 {
+                for x in win.x0..win.x1 {
+                    if !theirs(x, y) {
+                        continue;
+                    }
+                    let i = (y as usize * w + x as usize) * 4;
+                    let (r, gg, b) = (
+                        i32::from(photo.rgba[i]),
+                        i32::from(photo.rgba[i + 1]),
+                        i32::from(photo.rgba[i + 2]),
+                    );
+                    if r - gg > 60 && r - b > 60 {
+                        let k = keys.at(x as usize, y as usize);
+                        red[if own(x, y) {
+                            0
+                        } else if k != 0 {
+                            1
+                        } else {
+                            2
+                        }] += 1;
+                    }
+                }
+            }
+            println!(
+                "  theirs red: on own {}, on another {}, on none {}",
+                red[0], red[1], red[2]
+            );
+            println!(
+                "  row: own other theirs own&theirs | map ('*' hidden by another, 'I' interface)"
+            );
+            for y in win.y0..win.y1 {
+                let (mut a, mut b, mut c, mut e) = (0, 0, 0, 0);
+                let mut line = String::new();
+                for x in win.x0..win.x1 {
+                    let k = kind(x, y);
+                    let ow = own(x, y);
+                    let ot = keys.at(x as usize, y as usize) != 0 && !ow;
+                    let th = theirs(x, y);
+                    if k < 2 {
+                        a += i32::from(ow);
+                        b += i32::from(ot);
+                        c += i32::from(th);
+                        e += i32::from(ow && th);
+                    }
+                    let hid = whole(x, y) && !ow;
+                    line.push(match (k, ow, ot, th) {
+                        (3, _, _, _) => 'I',
+                        (2, _, _, _) => 'T',
+                        (_, _, true, _) if hid => '*',
+                        (1, _, _, _) => '=',
+                        (_, true, _, true) => '#',
+                        (_, true, _, false) => 'o',
+                        (_, _, true, true) => '%',
+                        (_, _, true, false) => '-',
+                        (_, _, _, true) => '+',
+                        _ => '.',
+                    });
+                }
+                println!("  {y:4}: {a:3} {b:3} {c:3} {e:3} | {line}");
+            }
+            // The photograph's luminance by tenths of 256, ring-free, beside
+            // the figure drawn alone ('A') and where ours is another ('-').
+            println!("  row: photograph's luminance | ours");
+            for y in win.y0..win.y1 {
+                let (mut l, mut m) = (String::new(), String::new());
+                for x in win.x0..win.x1 {
+                    let i = (y as usize * w + x as usize) * 4;
+                    let lum = (299 * u32::from(photo.rgba[i])
+                        + 587 * u32::from(photo.rgba[i + 1])
+                        + 114 * u32::from(photo.rgba[i + 2]))
+                        / 1000;
+                    l.push(char::from(b'0' + (lum * 10 / 256) as u8));
+                    let k = keys.at(x as usize, y as usize);
+                    m.push(if whole(x, y) {
+                        'A'
+                    } else if k != 0 {
+                        '-'
+                    } else {
+                        '.'
+                    });
+                }
+                println!("  {y:4}: {l} | {m}");
+            }
+            // Seen to fail: our own mask shifted ten pixels right.
+            let shifted = measure(&|x, y| own(x - 10, y) && theirs(x, y));
+            println!("  own shifted 10 px, on theirs: {} of {}", shifted.0, mo.0);
+            owed.push((o, mo, mt, mot.0, shifted.0, mw, mwt.0));
+        }
+        // Step 2: each figure's state as our draw takes it, at the
+        // photograph's frame and at the packet's (3294), beside
+        // `tree_points.py --guys`'s rows of the packet.
+        // `(o, x, y, z, cur_anim, cur_time, angle)` of each `GuyData` on
+        // run1559b's packet (`tree_points.py --guys`, item 4086).
+        const PACKET_3294: [(i16, i32, i32, i32, i8, u32, u32); 5] = [
+            (31, 4776, 31464, 534, 11, 23, 0xcfa9_0000),
+            (20, 4536, 31224, 593, 0, 15, 0x9d08_0000),
+            (32, 4584, 31320, 578, 0, 29, 0x5d77_0000),
+            (35, 5208, 31272, 487, 9, 4, 0xd112_0000),
+            (38, 4920, 31560, 506, 0, 25, 0x3781_0000),
+        ];
+        let state = |world: &mut World| -> Vec<(i16, i32, i32, i32, i8, u32, u32)> {
+            let mut out = Vec::new();
+            let (figures, _, list) = world.draw_list(
+                &camera,
+                &crate::pinned_screen(),
+                (size.0 as i32, size.1 as i32),
+            );
+            for o in [31i16, 20, 32, 35, 38] {
+                let p = figures
+                    .iter()
+                    .find(|p| (p.who, p.o) == (1, o))
+                    .expect("placed");
+                let facing = list.iter().find_map(|d| match d.pose {
+                    render::draw::Pose::Figure { facing, .. } if (d.who, d.o) == (1, o) => {
+                        Some(facing)
+                    }
+                    _ => None,
+                });
+                println!(
+                    "ours 1/{o} at {}: x {} {} {} piece {} slot {} frame {} ms {} facing {:#x}",
+                    world.runner.frame(),
+                    p.x,
+                    p.y,
+                    p.z,
+                    p.piece,
+                    p.slot,
+                    p.frame,
+                    p.frame * 200 / 3,
+                    facing.unwrap_or(0)
+                );
+                out.push((o, p.x, p.y, p.z, p.slot, p.frame, facing.unwrap_or(0)));
+            }
+            out
+        };
+        state(&mut world);
+        world.run_to(3294);
+        assert_eq!(
+            state(&mut world),
+            PACKET_3294,
+            "ours is the packet's at 3294"
+        );
+        // The clear figure: ours and theirs alike, and not so shifted.
+        let (_, mo, mt, both, shifted, _, _) = owed[3];
+        assert!(
+            (mo.3.0 - mt.3.0).abs() < 3.0 && (mo.3.1 - mt.3.1).abs() < 3.0,
+            "the clear figure's centroids agree"
+        );
+        assert!(
+            both * 10 >= mo.0 * 6,
+            "the clear figure's own stands on theirs"
+        );
+        assert!(shifted * 2 < both, "shifted, it does not");
+    }
 }
