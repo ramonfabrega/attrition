@@ -3852,6 +3852,8 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 (4068) **The park pool ran dry inside a session, and two rows refilled it at once** (the driver's second session, 2026-11-09): the handoff left two reserved headings, DW with the render lane and DX for 4063's builder, and called the refill "owed at the pass" — but `the_park_pool_holds_two_unassigned_headings` asks for two *free*, so the first landing to rename its slot was red by construction. The driver appended DY–EB in `817151a57` while lane-4065's own lane gate was going red on the same guard; the lane appended a DY of its own (`82fdfed5f`), then merged the driver's and resolved the conflict at the file's tail by hand, keeping both. Nothing was lost, and it cost the lane a second gate (8.8 release minutes) and a conflicted merge. The rule that would have held: the refill lands at the booking that assigns the pool down to two free or fewer, never "at the pass"; and a worker's brief says the pool is the driver's, so a red on that guard is reported, not repaired. A guard could read the queue's `park <A>` assignments beside the live lanes and fail the booking, not the landing.
 
+(4070) **A builder's reflex does not run the structure pin, and a whole gate found it at minute 49** (the driver's second session, 2026-11-09): 4063's builder ended a new production file, `crates/sim/src/units/starting.rs`, in a 69-line inline `#[cfg(test)]` tail. `diff::floors::tests::the_pinned_shape_is_the_tree_s` holds that count at 0, but it reads `tools/shape.py` from a `rondata` test the builder's `tools/guard.sh diff::start` reported nothing on, and the driver's own `guard.sh diff::start diff::floors` at the booking passed 22 floors tests in the debug profile with the tail in the tree. The first whole gate on `4db10248d` went red on that one test after 49.5 release minutes; the builder, resumed, moved the tail. The same booking had already caught, on the blind guard, a citation of a function no trace enters. Both are paperwork-shaped pins that a builder's own filters never reach. What would have held: the builder's brief names `python3 tools/shape.py` and the blind guard as checks before the hand-back (done from this session on); and the debug reflex is to be made to reach it: `diff::floors` runs 37 tests in release and 22 under `guard.sh`'s debug profile (measured at this booking), the shape pin among the fifteen it leaves out, and a pin the reflex skips is a pin only the gate holds.
+
 ## Loop, filed 2026-11-09 — the driver's first session
 
 (4064) **The journal guard asks a builder's journal for a lane gate it never runs, and a lane's done line can precede its quote** (the driver's first session, 2026-11-09): `a_journal_quotes_its_lane_verdict_and_gate_minutes` reads every journal for two strings. A driver's builder runs no lane gate (`docs/LOOP.md`, "Who builds"), so 4047's journal carries a `Lane verdict: none` line written for the reader and proving nothing; and 4061's lane sent its done line with neither string, though its own gate's last verdict told it to quote them — the waiter had read the push as `PUSHED … progress, not a landing`, the done line overrode it, and the driver pasted the two lines from the lane's gate log at the booking. Candidate: a builder's journal carries `Booking gate:` and the guard reads either; the chain checks the journal's quote before the merge, as it checks origin.
@@ -15887,6 +15889,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot EB renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EC — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ED — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ED renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EF renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
