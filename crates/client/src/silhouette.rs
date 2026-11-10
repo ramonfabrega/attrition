@@ -1291,7 +1291,7 @@ mod tests {
             row("1/27", &tank_rows).map(|f| f.overlap())
         );
         use render::silhouette as s;
-        assert_eq!(got, s::RUN1559B_3279_TRACED);
+        assert_eq!(got, s::RUN1559B_3279_TRACED_CURRENT);
         assert_eq!(level, s::RUN1559B_3279_TRACED_LEVEL);
         assert_eq!(eased, s::RUN1559B_3279_TRACED_EASED);
         assert_eq!(hidden, s::RUN1559B_3279_TRACED_NO_SILHOUETTES);
@@ -1322,6 +1322,34 @@ mod tests {
             f.overlap() < READING.threshold,
             "the tank's trace shifted by its own width drops its row"
         );
+        // The point (item 4095, §5.3, committed before this count): frame
+        // 3280's slot, clock and facing at the points held on 3279.
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let point_rows = read(
+            &mut world,
+            &camera,
+            &TRACED,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let point = print("traced, the point", &point_rows);
+        for (f, (who, o, _, _)) in &point_rows {
+            let name = format!("{who}/{o}");
+            let was = row(&name, &rule).map(|g| g.overlap());
+            let now = f.overlap();
+            let t = READING.threshold;
+            if was.is_none_or(|w| (w >= t) != (now >= t) || (w - now).abs() > 0.02) {
+                println!("the point: {name} {was:?} -> {now:.3}");
+            }
+        }
+        println!("the point: {point:?} against {got:?}");
+        assert_eq!(point, s::RUN1559B_3279_TRACED);
+        for name in ["1/20", "1/32"] {
+            let f = row(name, &point_rows).expect("scored");
+            assert!(f.overlap() >= READING.threshold, "{name} passes");
+        }
+        world.blend = crate::world::Blend::Current;
     }
 
     /// **Item 4092, step 1: the pose as a value.** What `GuyOut::draw
@@ -2530,6 +2558,399 @@ mod tests {
             "the clear figure's own stands on theirs"
         );
         assert!(shifted * 2 < both, "shifted, it does not");
+    }
+
+    /// Item 4095: **the frame each rifleman shows**, a value before a draw.
+    /// For each frame 3264 to 3294 of our walk, 1/20 and 1/32 and the
+    /// controls 1/31, 1/35 and 1/38, each drawn alone from that frame's
+    /// state (place, facing, slot, clock), held against theirs in the
+    /// figure's window as `RUN1559B_3279_TRACED` scores it on 3279: the
+    /// window and theirs (the ground-model mask, a neighbour's trace and
+    /// the interface left out) are frozen at 3279, ours moves. Per frame:
+    /// ours, both, the overlap `both / (ours + theirs − both)`, ours' box
+    /// and its centroid's offset from theirs. Each figure's best frame by
+    /// the overlap and its margin over 3279.
+    #[test]
+    fn the_frame_each_rifleman_shows() {
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        // A frame and each figure's pixels on it.
+        type FramePixels = (i64, Vec<Vec<(i32, i32)>>);
+        const FIGURES: [i16; 5] = [20, 32, 31, 35, 38];
+        const FIRST: i64 = 3264;
+        const LAST: i64 = 3294;
+        let camera = crate::pinned_camera();
+        let size = (photo.width, photo.height);
+        // Each figure drawn alone on a frame, as its pixels.
+        // `at`: another frame's points to draw this frame's figures at.
+        let alone = |world: &mut World,
+                     at: Option<&[render::draw::Placed]>|
+         -> (Vec<Vec<(i32, i32)>>, Vec<render::draw::Placed>) {
+            let (mut figures, buildings, list) = world.draw_list(
+                &camera,
+                &crate::pinned_screen(),
+                (size.0 as i32, size.1 as i32),
+            );
+            let own = figures.clone();
+            if let Some(at) = at {
+                for f in figures.iter_mut() {
+                    if let Some(p) = at
+                        .iter()
+                        .find(|p| (p.who, p.o, p.figure) == (f.who, f.o, f.figure))
+                    {
+                        (f.x, f.y, f.z) = (p.x, p.y, p.z);
+                    }
+                }
+            }
+            let drawings = world.objects(&figures, &buildings, &list);
+            let pixels = FIGURES
+                .iter()
+                .map(|&o| {
+                    let objs: Vec<Object> = objects(&drawings)
+                        .into_iter()
+                        .filter(|b| {
+                            let d = &drawings[b.key as usize - 1];
+                            (d.who, d.o, d.building) == (1, o, false)
+                        })
+                        .collect();
+                    let keys = rasterize_cut(&objs, &[], &[], &camera, size).keys;
+                    let mut px = Vec::new();
+                    for y in 0..size.1 {
+                        for x in 0..size.0 {
+                            if keys.at(x, y) != 0 {
+                                px.push((x as i32, y as i32));
+                            }
+                        }
+                    }
+                    px
+                })
+                .collect::<Vec<_>>();
+            (pixels, own)
+        };
+        world.run_to(FIRST);
+        let mut frames: Vec<FramePixels> = Vec::new();
+        // Frame n's slot, clock and facing at frame n − 1's points.
+        let mut hybrid: Vec<FramePixels> = Vec::new();
+        let mut prev: Option<Vec<render::draw::Placed>> = None;
+        // At 3279, per figure: the window, and theirs and the pixels left
+        // out (a neighbour's trace, the interface) in it.
+        type Frozen = (Rect, Vec<bool>, Vec<bool>);
+        let mut frozen: Vec<Frozen> = Vec::new();
+        loop {
+            let n = world.runner.frame();
+            let (px, own) = alone(&mut world, None);
+            frames.push((n, px));
+            if let Some(p) = &prev {
+                hybrid.push((n, alone(&mut world, Some(p)).0));
+            }
+            prev = Some(own);
+            if n == PHOTO_FRAME {
+                let rows = score_frame_traced(
+                    &mut world,
+                    &camera,
+                    &photo,
+                    &TRACED,
+                    Neighbour::Neither,
+                    Interface::Neither,
+                );
+                let (keys, who) = frame_keys(&mut world, &camera, size);
+                let p = Photo {
+                    width: photo.width,
+                    height: photo.height,
+                    rgba: &photo.rgba,
+                };
+                let traces: Vec<(u32, &[(i32, i32)])> = TRACED
+                    .iter()
+                    .map(|&(name, poly)| {
+                        let k = who
+                            .iter()
+                            .position(|&(a, o, _, _)| format!("{a}/{o}") == name)
+                            .map_or(u32::MAX, |i| i as u32 + 1);
+                        (k, poly)
+                    })
+                    .collect();
+                for o in FIGURES {
+                    let (f, _) = rows
+                        .iter()
+                        .find(|(_, d)| (d.0, d.1, d.3) == (1, o, false))
+                        .copied()
+                        .expect("the figure is scored on 3279");
+                    let win = f.window;
+                    let r = READING.ring;
+                    let outer = Rect::new(win.x0 - r, win.y0 - r, win.x1 + r, win.y1 + r);
+                    let kind = |x: i32, y: i32| -> u8 {
+                        if INTERFACE
+                            .iter()
+                            .any(|r| (r.x0..r.x1).contains(&x) && (r.y0..r.y1).contains(&y))
+                        {
+                            return 3;
+                        }
+                        let mut k = 0;
+                        for t in &traces {
+                            if render::silhouette::inside(t.1, x, y) {
+                                if t.0 == f.key {
+                                    return 1;
+                                }
+                                k = 2;
+                            }
+                        }
+                        k
+                    };
+                    let g = render::silhouette::ground_where(
+                        &keys,
+                        &p,
+                        win,
+                        outer,
+                        &READING,
+                        |x, y| kind(x, y) == 0,
+                    );
+                    let (w, h) = (win.x1 - win.x0, win.y1 - win.y0);
+                    let mut theirs = vec![false; (w * h) as usize];
+                    let mut out = vec![false; (w * h) as usize];
+                    for y in win.y0..win.y1 {
+                        for x in win.x0..win.x1 {
+                            let i = ((y - win.y0) * w + (x - win.x0)) as usize;
+                            out[i] = kind(x, y) >= 2;
+                            theirs[i] = kind(x, y) == 0 && !g.holds(&p, x, y);
+                        }
+                    }
+                    frozen.push((win, theirs, out));
+                }
+            }
+            if n >= LAST {
+                break;
+            }
+            world.run_to(n + 1);
+        }
+        // One figure on one frame against its frozen window.
+        struct Read {
+            ours: i64,
+            theirs: i64,
+            both: i64,
+            outside: i64,
+            boxed: (i32, i32),
+            off: (f64, f64),
+        }
+        let read = |k: usize, px: &[(i32, i32)]| -> Read {
+            let (win, theirs, out) = &frozen[k];
+            let w = win.x1 - win.x0;
+            let at = |x: i32, y: i32| ((y - win.y0) * w + (x - win.x0)) as usize;
+            let (mut tn, mut tx, mut ty) = (0i64, 0i64, 0i64);
+            for y in win.y0..win.y1 {
+                for x in win.x0..win.x1 {
+                    if theirs[at(x, y)] {
+                        tn += 1;
+                        tx += i64::from(x);
+                        ty += i64::from(y);
+                    }
+                }
+            }
+            let (mut on, mut ox, mut oy, mut both, mut outside) = (0i64, 0i64, 0i64, 0i64, 0i64);
+            let (mut x0, mut y0, mut x1, mut y1) = (i32::MAX, i32::MAX, i32::MIN, i32::MIN);
+            for &(x, y) in px {
+                if !((win.x0..win.x1).contains(&x) && (win.y0..win.y1).contains(&y)) {
+                    outside += 1;
+                    continue;
+                }
+                if out[at(x, y)] {
+                    continue;
+                }
+                on += 1;
+                ox += i64::from(x);
+                oy += i64::from(y);
+                (x0, y0, x1, y1) = (x0.min(x), y0.min(y), x1.max(x), y1.max(y));
+                both += i64::from(theirs[at(x, y)]);
+            }
+            let c = |s: i64, n: i64| s as f64 / n.max(1) as f64;
+            Read {
+                ours: on,
+                theirs: tn,
+                both,
+                outside,
+                boxed: if on == 0 {
+                    (0, 0)
+                } else {
+                    (x1 - x0 + 1, y1 - y0 + 1)
+                },
+                off: (c(ox, on) - c(tx, tn), c(oy, on) - c(ty, tn)),
+            }
+        };
+        let overlap = |r: &Read| r.both as f64 / (r.ours + r.theirs - r.both).max(1) as f64;
+        let mut best = Vec::new();
+        for (k, &o) in FIGURES.iter().enumerate() {
+            let (win, _, _) = frozen[k];
+            println!(
+                "1/{o} window ({}, {})..({}, {}): frame ours theirs both outside overlap box centroid-off",
+                win.x0, win.y0, win.x1, win.y1
+            );
+            let mut table: Vec<(i64, f64)> = Vec::new();
+            for (n, px) in &frames {
+                let r = read(k, &px[k]);
+                let v = overlap(&r);
+                table.push((*n, v));
+                println!(
+                    "  {n} {} {} {} {} {v:.3} {}x{} ({:+.1}, {:+.1})",
+                    r.ours, r.theirs, r.both, r.outside, r.boxed.0, r.boxed.1, r.off.0, r.off.1
+                );
+            }
+            let at_photo = table.iter().find(|t| t.0 == PHOTO_FRAME).expect("3279").1;
+            let top = table
+                .iter()
+                .copied()
+                .fold((0, f64::MIN), |a, t| if t.1 > a.1 { t } else { a });
+            let runner_up = table
+                .iter()
+                .filter(|t| t.0 != top.0)
+                .map(|t| t.1)
+                .fold(f64::MIN, f64::max);
+            println!(
+                "1/{o}: best {} at {:.3}; 3279 at {at_photo:.3}; margin {:+.3} ({})",
+                top.0,
+                top.1,
+                if top.0 == PHOTO_FRAME {
+                    top.1 - runner_up
+                } else {
+                    top.1 - at_photo
+                },
+                if top.0 == PHOTO_FRAME {
+                    "over the runner-up"
+                } else {
+                    "over 3279"
+                }
+            );
+            best.push((o, top.0, top.1, at_photo));
+        }
+        println!("best frames: {best:?}");
+        // The control mover reads 3279 by a margin; 1/20 parts from it by
+        // more than the standing control 1/31 moves.
+        let get = |o: i16| *best.iter().find(|b| b.0 == o).expect("a figure");
+        let (_, at35, _, _) = get(35);
+        assert_eq!(
+            at35, PHOTO_FRAME,
+            "the control mover reads the photograph's frame"
+        );
+        let (_, at20, top20, photo20) = get(20);
+        let (_, _, top31, photo31) = get(31);
+        assert!(at20 > PHOTO_FRAME && top20 - photo20 > 0.1, "1/20 parts");
+        assert!(top31 - photo31 < 0.01, "the standing control does not");
+        // Each figure's own pixels in its window left out of the reading
+        // (under a neighbour's trace or the interface), at 3279.
+        for (k, &o) in FIGURES.iter().enumerate() {
+            let (win, _, out) = &frozen[k];
+            let w = win.x1 - win.x0;
+            let px = &frames.iter().find(|f| f.0 == PHOTO_FRAME).expect("3279").1[k];
+            let masked = px
+                .iter()
+                .filter(|&&(x, y)| {
+                    (win.x0..win.x1).contains(&x)
+                        && (win.y0..win.y1).contains(&y)
+                        && out[((y - win.y0) * w + (x - win.x0)) as usize]
+                })
+                .count();
+            println!("1/{o} at 3279: {} px alone, {masked} left out", px.len());
+        }
+        // 1/20 and 1/32 drawn together against theirs over both windows:
+        // if the photograph's blob by 1/20 holds 1/32 too, the pair reads
+        // 3279 where 1/20 alone does not.
+        let held = |x: i32, y: i32, k: usize| -> Option<(bool, bool)> {
+            let (win, theirs, out) = &frozen[k];
+            ((win.x0..win.x1).contains(&x) && (win.y0..win.y1).contains(&y)).then(|| {
+                let i = ((y - win.y0) * (win.x1 - win.x0) + (x - win.x0)) as usize;
+                (theirs[i], out[i])
+            })
+        };
+        let cell = |x: i32, y: i32| -> Option<bool> {
+            let (a, b) = (held(x, y, 0), held(x, y, 1));
+            if a.is_none() && b.is_none() {
+                return None;
+            }
+            if a.is_some_and(|v| v.1) || b.is_some_and(|v| v.1) {
+                return None;
+            }
+            Some(a.is_some_and(|v| v.0) || b.is_some_and(|v| v.0))
+        };
+        let (w0, w1) = (frozen[0].0, frozen[1].0);
+        let u = Rect::new(
+            w0.x0.min(w1.x0),
+            w0.y0.min(w1.y0),
+            w0.x1.max(w1.x1),
+            w0.y1.max(w1.y1),
+        );
+        let tn = (u.y0..u.y1)
+            .flat_map(|y| (u.x0..u.x1).map(move |x| (x, y)))
+            .filter(|&(x, y)| cell(x, y) == Some(true))
+            .count() as i64;
+        println!("1/20 with 1/32 over both windows: frame ours theirs both overlap");
+        let mut pair = Vec::new();
+        for (n, px) in &frames {
+            let mut set: std::collections::BTreeSet<(i32, i32)> = px[0].iter().copied().collect();
+            set.extend(px[1].iter().copied());
+            let (mut on, mut both) = (0i64, 0i64);
+            for &(x, y) in &set {
+                if let Some(t) = cell(x, y) {
+                    on += 1;
+                    both += i64::from(t);
+                }
+            }
+            let v = both as f64 / (on + tn - both).max(1) as f64;
+            println!("  {n} {on} {tn} {both} {v:.3}");
+            pair.push((*n, v));
+        }
+        let top = pair
+            .iter()
+            .copied()
+            .fold((0, f64::MIN), |a, t| if t.1 > a.1 { t } else { a });
+        let at_photo = pair.iter().find(|t| t.0 == PHOTO_FRAME).expect("3279").1;
+        println!(
+            "the pair: best {} at {:.3}; 3279 at {at_photo:.3}; margin {:+.3}",
+            top.0,
+            top.1,
+            top.1 - at_photo
+        );
+        // Frame n's slot and clock at n − 1's place, each figure.
+        for (k, &o) in FIGURES.iter().enumerate() {
+            println!("1/{o}, n's pose at n − 1's place: n ours both overlap box centroid-off");
+            if o == 20 || o == 35 {
+                // §5.3's point: 3280 at 3279's points beats 3279 whole.
+                let h = &hybrid
+                    .iter()
+                    .find(|h| h.0 == PHOTO_FRAME + 1)
+                    .expect("3280")
+                    .1;
+                let p = &frames.iter().find(|f| f.0 == PHOTO_FRAME).expect("3279").1;
+                assert!(
+                    overlap(&read(k, &h[k])) > overlap(&read(k, &p[k])) + 0.1,
+                    "1/{o}: the point's draw reads nearer"
+                );
+            }
+            for (n, px) in hybrid.iter().filter(|h| (3277..=3283).contains(&h.0)) {
+                let r = read(k, &px[k]);
+                println!(
+                    "  {n} {} {} {:.3} {}x{} ({:+.1}, {:+.1})",
+                    r.ours,
+                    r.both,
+                    overlap(&r),
+                    r.boxed.0,
+                    r.boxed.1,
+                    r.off.0,
+                    r.off.1
+                );
+            }
+        }
     }
 
     /// Item 4087, step 1: a value before a cause. On the pixels where our

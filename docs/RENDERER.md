@@ -1221,8 +1221,8 @@ It is the art phase's counter, not the first one.
 Aztec Modern pair's frame 3294 at run1559b's camera, against that take's
 photograph, drawn as the client draws by default: posed, at the
 original's facing, with the tanks read by the hand-traced mask
-(`RUN1559B_3294_MASKED`, item 4071: 6 → 7). By colour alone it reads 6
-(`RUN1559B_3294_POSED`), and drawn at rest 2 (`RUN1559B_3294`).
+(`RUN1559B_3294_MASKED`, item 4071: 6 → 7); colour and rest are their
+pins'.
 **The photograph shows frame 3279** (item 4073): on frame 3279, at the same
 camera, readers and constants, the row reads **16 of 24**
 (`RUN1559B_3279_MASKED`), 13 by colour (`RUN1559B_3279_POSED`) and 4 at
@@ -1266,13 +1266,11 @@ rest (`RUN1559B_3279`); run1441's camera reads 0 of 24 under both readers.
   pixels lie outside the interface. Every trace is named by its object,
   tanks and figures included (`Reader::Traced`). The rejected readings,
   reported beside it: kind (3) as footprint, and the interface as before.
-- *The misses* (on 3279). ~~The capital as its `zbuffer` model (4036a);
-  the figures by the derrick (4082a, 4085).~~
 - **The row on the default draw**, the buildings as their sprites, by
-  item 4077's reader (`RUN1559B_3279_TRACED`): **31 of 33** (4089); its
-  steps from 27 of 33 (4077–4089) are the pin's comment and each item's
-  journal; treeless 30 of 33; run1441's camera 0 of 32.
-  Out: 1/20 and 1/32 (4092a). The
+  item 4077's reader (`RUN1559B_3279_TRACED`): **33 of 33** (4095;
+  3279 whole 31, `_CURRENT`); its steps (4077–4095) are the
+  pin's comment and the journals; treeless 30 of 33; run1441's camera
+  0 of 32. The
   `RUN1559B_3279_*` rows above are the `zbuffer` draw's, kept by name.
 - *The trees* (4080, before its count; §3.7). A tree hides what is
   behind it; its pixel is the ground's; it is never scored. Rejected:
@@ -1290,6 +1288,8 @@ rest (`RUN1559B_3279`); run1441's camera reads 0 of 24 under both readers.
   negated `WorldData::find_slope_normal` at its point, taken whole, when
   that z is under 0.999 (`Tilt::Target`). Beside it: the ease at a draw a
   frame from 3200 (`Tilt::Eased`); kept, `Tilt::Level`.
+- *The point* (4095, before its count). 3280's slots, clocks and
+  facings at the 3279 points (`Blend::Last`).
 - *What it does not measure.* Colour: textures and team colours are not
   bound (4038a).
 - *The constants* and interface are this frame's, pinned, never tuned

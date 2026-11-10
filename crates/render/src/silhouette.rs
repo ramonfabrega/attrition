@@ -470,7 +470,21 @@ pub const RUN1559B_3279_SPRITES_POSED: (usize, usize) = (13, 23);
 /// 0.744, 1/36 0.503 → 0.724, 1/38 0.807 → 0.834, 1/33 0.549 → 0.546, 1/40
 /// 0.788 → 0.721. No row crosses down. Level, as before:
 /// [`RUN1559B_3279_TRACED_LEVEL`]; eased: [`RUN1559B_3279_TRACED_EASED`].
-pub const RUN1559B_3279_TRACED: (usize, usize) = (31, 33);
+///
+/// **31 of 33 → 33 of 33** (item 4095): the photograph is frame 3280's
+/// state drawn at the points held on 3279 (`Blend::Last`, run to 3280),
+/// under §5.3's point rule (`e3df24b04`, before its count). 1/20 0.489 →
+/// 0.803 (ours 599 → 634, theirs 375 → 554, both 320 → 529) and 1/32 0.287
+/// → 0.828 (546 → 549, 203 → 471, 167 → 462) cross up. 1/35 0.701 → 0.851,
+/// 1/15 0.768 → 0.862, 1/16 0.855 → 0.895, 1/33 0.546 → 0.826, 0/10 0.541 →
+/// 0.949, 0/2 0.692 → 0.942, 1/31 0.537 → 0.601, 1/27 0.713 → 0.742; 1/38
+/// 0.834 → 0.773. No row crosses down. Frame 3279 whole, as before:
+/// [`RUN1559B_3279_TRACED_CURRENT`]; the readings below are its own.
+pub const RUN1559B_3279_TRACED: (usize, usize) = (33, 33);
+
+/// [`RUN1559B_3279_TRACED`] on frame 3279 whole (`Blend::Current`): the
+/// draw before item 4095, and the one every reading below is taken on.
+pub const RUN1559B_3279_TRACED_CURRENT: (usize, usize) = (31, 33);
 
 /// [`RUN1559B_3279_TRACED`] with every figure level (`Tilt::Level`): the
 /// draw before item 4089.

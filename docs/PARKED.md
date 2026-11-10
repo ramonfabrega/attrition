@@ -15930,7 +15930,9 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   there is not in doubt; the image is fifteen frames older. The take ran `!ffwd 4` from frame 37 and paused at
   3294 with the gamelog at 3295. Whether the presented image trails the simulation under fast-forward, under the
   pause, or under DXVK's present is not read. Names no score until a second photograph is booked. A photograph's
-  frame should then be read off its movers before its row is pinned.
+  frame should then be read off its movers before its row is pinned. *Read in part* (4095): it shows 3280's slots,
+  clocks and facings at the points held on 3279 (`last_*` at `graphic_percent` 0); the movers' 3279 is their points'.
+  Why the image is fourteen frames before the pause, and why the blend is 0, still not read.
 
 ## Parked by item 4076, 2026-11-10 — the buildings as the original draws them
 
@@ -16204,7 +16206,8 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 4092, 2026-11-10 — the riflemen's pose by the tank: the original's
 
-- **4092a. 1/20 and 1/32 stay out, and the pose is not why: killed by the table** (`RUN1559B_3279_TRACED`, 31 of
+- **4092a. 1/20 and 1/32 stay out, and the pose is not why: killed by the table** ~~(out)~~ *In* (4095: the
+  frame, not the pose — frame 3280's slot and clock at 3279's points; RENDERER §5.3, "The point") (`RUN1559B_3279_TRACED`, 31 of
   33; `docs/RENDERER.md` §3.6; `client::silhouette::tests::the_riflemen_s_pose_against_the_packet`). The original's
   own `HierObj::set_to_time` and `update_all_transforms`, run on run1559b's packet on piece 60's skeleton at each
   guy's slot and clock (`tree_points.py --pose`), put every joint of 1/20, 1/31, 1/32, 1/35 and 1/38, at 3279 and
