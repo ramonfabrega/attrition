@@ -90,10 +90,10 @@ pub const QUEUE_ITEM_FIELDS: &[(&str, usize, usize)] = &[
 
 /// `BASE_BUILDTYPES`: a building type's `TypeIndex` is this plus its index
 /// in the build-type table (`docs/TECH.md`, "The type space").
-pub const BASE_BUILDTYPES: i32 = 0x19e;
+const BASE_BUILDTYPES: i32 = 0x19e;
 
 /// `BASE_TECHTYPES`: the first age's `TypeIndex`, where the techs begin.
-pub const BASE_TECHTYPES: i32 = 0x220;
+const BASE_TECHTYPES: i32 = 0x220;
 
 /// `DISBAND`'s `TypeIndex`, a queue entry's `type` for a disband job.
 const DISBAND_TYPE: i16 = 0x29a;
@@ -174,18 +174,23 @@ impl Sim {
         let mut p = |at, w, x: i64| put(&mut v, 0x20, at, w, x);
         p(0x20, 4, i64::from(bd.hits));
         p(0x24, 4, i64::from(bd.damage));
-        let inside = bd
-            .garrison
-            .last()
-            .map(|&u| (i64::from(self.units[u].index), i64::from(self.units[u].owner)));
+        let inside = bd.garrison.last().map(|&u| {
+            (
+                i64::from(self.units[u].index),
+                i64::from(self.units[u].owner),
+            )
+        });
         p(0x28, 2, inside.map_or(-1, |x| x.0));
         // The world cell's object chain (`Object::add_to_world@0064d8c0`):
         // this crate threads units only, so the building stands below
         // every unit on its cell.
         let chain = self.cell_chain(bd.pos.cell());
-        let up = chain
-            .last()
-            .map(|&u| (i64::from(self.units[u].index), i64::from(self.units[u].owner)));
+        let up = chain.last().map(|&u| {
+            (
+                i64::from(self.units[u].index),
+                i64::from(self.units[u].owner),
+            )
+        });
         p(0x2a, 2, up.map_or(-1, |x| x.0));
         p(0x2c, 2, -1);
         p(0x2e, 2, 0);
@@ -321,8 +326,16 @@ impl Sim {
         p(0x0, 4, i64::from(it.job_counter));
         p(0x4, 2, ty);
         for k in 0..3 {
-            p(0x6 + 2 * k, 2, i64::from(it.good.get(k).copied().unwrap_or(0)));
-            p(0xc + 2 * k, 2, i64::from(it.cost.get(k).copied().unwrap_or(0)));
+            p(
+                0x6 + 2 * k,
+                2,
+                i64::from(it.good.get(k).copied().unwrap_or(0)),
+            );
+            p(
+                0xc + 2 * k,
+                2,
+                i64::from(it.cost.get(k).copied().unwrap_or(0)),
+            );
         }
         v
     }
@@ -334,7 +347,12 @@ impl Sim {
     /// does not load, so the data layer supplies it.
     pub fn checksum_builds(&self, gpiece: &dyn Fn(usize) -> i32) -> Line {
         let mut ranges = Vec::new();
-        let owners = self.buildings.iter().filter(|b| b.alive).map(|b| b.owner).max();
+        let owners = self
+            .buildings
+            .iter()
+            .filter(|b| b.alive)
+            .map(|b| b.owner)
+            .max();
         let Some(last) = owners else {
             return Line {
                 name: "builds",
@@ -429,7 +447,10 @@ impl Sim {
             }
         }
         // `PtrLinkListAbstract<GatherPoint>::walk_data@004708a0`.
-        put("gather.length", (bd.gather.len() as i32).to_le_bytes().to_vec());
+        put(
+            "gather.length",
+            (bd.gather.len() as i32).to_le_bytes().to_vec(),
+        );
         for g in &bd.gather {
             put("gather[k].type", 0i32.to_le_bytes().to_vec());
             put("gather[k].metric", vec![0]);
@@ -438,7 +459,10 @@ impl Sim {
             v.push(g.action);
             put("gather[k]", v);
         }
-        let orig = bd.orig_ty.or(bd.ty).map_or(0, |t| BASE_BUILDTYPES + t as i32);
+        let orig = bd
+            .orig_ty
+            .or(bd.ty)
+            .map_or(0, |t| BASE_BUILDTYPES + t as i32);
         put("orig_type", orig.to_le_bytes().to_vec());
     }
 }

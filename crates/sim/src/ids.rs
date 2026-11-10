@@ -388,9 +388,12 @@ pub mod coord {
 }
 
 /// `TypeIndex` values the simulation names — the tree index of a type,
-/// which on the shipped data **is** the original's `TypeIndex` (goods
-/// `0..`, units from `0x32`, buildings from `0x19e`, techs from `0x220`;
-/// `rondata::load` builds the tree in that order). `crate::cities::nations::ty`,
+/// which on the shipped data **is** the original's `TypeIndex` for goods
+/// (`0..`), units (from `0x32`) and buildings (from `0x19e`); `rondata::load`
+/// builds the tree in that order. **Not for a technology**: the tree holds
+/// no entry for the goody box's `0x21f`, so a tech's id is one below its
+/// `TypeIndex` (`0x220` on), as the British Library's queue on run 1562's
+/// frame 91 reads (`docs/CHECKSUM.md` §14, item 4094). `crate::cities::nations::ty`,
 /// `crate::ai::transport::ty` and `crate::ai::ai_census::ty` are this module.
 ///
 /// The unit values `Build::activate`'s free-unit block names are each the

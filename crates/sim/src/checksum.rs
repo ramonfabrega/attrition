@@ -11,8 +11,9 @@
 //! is read last, and only says whether a whole line agrees.
 //!
 //! Ported so far: **items** (item 4088), **cities** and **goods** (item
-//! 4091). Every other line is its own item, cheapest first by
-//! `docs/CHECKSUM.md` §4's ledger.
+//! 4091), and **builds** ([`builds`], item 4094), held out on three fields
+//! (`docs/CHECKSUM.md` §14). Every other line is its own item, cheapest
+//! first by `docs/CHECKSUM.md` §4's ledger.
 
 use crate::Sim;
 
