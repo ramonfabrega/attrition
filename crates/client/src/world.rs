@@ -126,6 +126,10 @@ pub struct TreeMeshes {
     /// Each model's texcoords and the texture each face samples (item
     /// 4082, `render::trees::face_textures`), beside [`TreeMeshes::models`].
     pub leaves: Vec<Option<TreeLeaves>>,
+    /// Each model's six node slots (`render::trees::slots`), beside
+    /// [`TreeMeshes::models`].
+    #[cfg_attr(not(test), allow(dead_code))]
+    pub slots: Vec<Option<[Option<render::trees::Slot>; 6]>>,
     /// The seven textures (`rondata::artdata::TreeArt::textures`), `None`
     /// where one does not decode.
     pub textures: Vec<Option<render::tga::Image>>,
@@ -274,6 +278,14 @@ impl World {
                             let model = bh3::decode(&bytes).ok()?;
                             let faces = render::trees::face_textures(&model);
                             Some((model.texcoords, faces))
+                        })
+                        .collect(),
+                    slots: art
+                        .models
+                        .iter()
+                        .map(|m| {
+                            let bytes = std::fs::read(resolve_art(&root, m)?).ok()?;
+                            Some(render::trees::slots(&bh3::decode(&bytes).ok()?))
                         })
                         .collect(),
                     textures: art
@@ -897,6 +909,76 @@ mod tests {
         };
         assert_eq!(agree(art.scale), 12, "every cached cell's extent");
         assert_eq!(agree(art.scale * 1.05), 0, "at 1.05 times tree_scale");
+    }
+
+    /// **The leaves are the packet's own sections** (item 4082,
+    /// `docs/RENDERER.md` §3.7): for each of the 12 cells whose trees
+    /// `RTreeData::tree_cache` holds on run1559b's packet, each of the seven
+    /// sections' vertex and index counts (`tools/render/tree_points.py`'s
+    /// `section` rows) is the sum over the cell's five trees of the vertices
+    /// `render::trees::slots` gives that texture and three indices for each
+    /// face `face_textures` gives it. Made to fail: each texture shifted one
+    /// on, no cell agrees.
+    #[test]
+    fn the_leaves_are_the_packets_own_sections() {
+        let path = std::env::var_os("RON_TREE_SECTIONS")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                PathBuf::from(std::env::var_os("HOME").unwrap_or_default())
+                    .join("ron-data/lab-experiments/2026-11-10-item-4082/run1559b-trees.txt")
+            });
+        let Ok(text) = std::fs::read_to_string(path) else {
+            println!("skipping: no section oracle on disk");
+            return;
+        };
+        let mut packet: std::collections::BTreeMap<(i32, i32), [(u32, u32); 7]> =
+            std::collections::BTreeMap::new();
+        for l in text.lines().filter_map(|l| l.strip_prefix("section ")) {
+            let w: Vec<u32> = l.split(' ').map(|v| v.parse().unwrap()).collect();
+            packet.entry((w[0] as i32, w[1] as i32)).or_default()[w[2] as usize] = (w[3], w[5]);
+        }
+        assert_eq!(packet.len(), 12, "the packet's cached cells");
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let mut world = match World::open(&install, &gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        world.run_to(crate::silhouette::PHOTO_FRAME);
+        let art = world.tree_meshes().expect("the lobby's trees read");
+        let list = world.tree_list();
+        let ours = |cell: (i32, i32), shift: usize| {
+            let mut out = [(0u32, 0u32); 7];
+            for t in list.iter().filter(|t| t.cell == cell) {
+                let slots = art.slots[t.model].as_ref().expect("decodes");
+                for s in slots.iter().flatten() {
+                    out[(s.texture + shift) % 7].0 += s.num;
+                }
+                let (_, faces) = art.leaves[t.model].as_ref().expect("decodes");
+                for &f in faces {
+                    out[(f + shift) % 7].1 += 3;
+                }
+            }
+            out
+        };
+        let agree = |shift: usize| {
+            packet
+                .iter()
+                .filter(|(cell, theirs)| {
+                    let ours = ours(**cell, shift);
+                    if shift == 0 {
+                        println!("sections {cell:?}: ours {ours:?} theirs {theirs:?}");
+                    }
+                    ours == **theirs
+                })
+                .count()
+        };
+        assert_eq!(agree(0), 12, "every cached cell's sections");
+        assert_eq!(agree(1), 0, "each texture shifted one on");
     }
 
     use sim::data::pivot::{Release, release_offset_at, release_rotation};
