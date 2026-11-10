@@ -258,7 +258,7 @@ and are named last; by bytes:
 
 1. cities (228; ported, §12) · 2. items (484; ported, §11) · 3. goods
 (792; ported, §13) ·
-4. builds (4,923; held out on three fields, §14) · 5. guys (9,308) ·
+4. builds (4,923; held out on one field, §14) · 5. guys (9,308) ·
 6. units (19,642; it walks the
 guys again) · 7. groups (37,010) · 8. leaders (58,343) ·
 9. world (294,769) · then walls, ammo and deaths (0 each), counted on a
@@ -303,7 +303,9 @@ out on one byte (§13). Item 4093 moved it from `state 2 of 12 lines, 712
 of 425,499 bytes`: goods is ported (§13). Item 4094 left it at `state 3
 of 12 lines, 1,504 of 425,499 bytes`: builds is held out on three fields
 of the two camps, 516 of its 519 ranges and 4,845 of its 4,923 bytes
-agreeing, which `CHECKSUM_STATE` does not count (§14).
+agreeing, which `CHECKSUM_STATE` does not count (§14). Item 4097 left it
+there too: builds is held out on one `up_who`, 518 of 519 ranges and
+4,889 bytes agreeing.
 
 `floors::tests::the_handoff_s_checksum_line_is_the_pinned_counter` holds
 the queue's line against it. `checksum::tests::the_instrument_reproduces_the_printed_record`
@@ -565,9 +567,10 @@ on either frame read), and `say_checksum`'s labels beyond the fifteen.
   and a unit's collision and path-finding state. *For builds* (item 4094,
   §14): three fields were not held and are carried now (`uid`,
   `frame_started`, `build_masks & 0x400`); `WallData::gpiece` is art the
-  data layer hands in; and two stand unheld, holding the line out — a
-  camp's `recharging`, short of `Guy::move`'s bump, and one `up_who`, the
-  object chain's history of a building.
+  data layer hands in; and two stand unheld, holding the line out — ~~a
+  camp's `recharging`, short of `Guy::move`'s bump~~ (held since item
+  4097, `docs/ORDERS.md` §6.11), and one `up_who`, the object chain's
+  history of a building.
 
 ## 11. The items line, ported (item 4088)
 
@@ -894,17 +897,19 @@ an alliance. Probed on our walk: the frame ours sets the bit.
   tested the order.
 - A dead good (`flags` 0, not walked), and a good a terraform moved.
 
-## 14. The builds line, ported (item 4094; held out on three fields)
+## 14. The builds line, ported (items 4094, 4097; held out on one field)
 
 `Sim::checksum_builds` (`crates/sim/src/checksum/builds.rs`) emits
 `CheckSums::check_builds@00937290`'s image from this crate's state, and
-`rondata::diff::checksum_lines::the_builds_line_is_held_out_on_the_camps_recharging_and_up_who`
+`rondata::diff::checksum_lines::the_builds_line_is_held_out_on_one_up_who`
 holds it against the instrument's stream of run 1562's packet the way §11
 to §13 hold theirs: on the minted walk's frame 91, range by range, every
 range decoded field by field on both sides (ours by our range names,
 theirs by each row's call site), then the Adler against record 3201's
-`Builds`. **The line is held out on three fields of the two Woodcutter's
-Camps**; every other byte of it is the original's.
+`Builds`. **The line is held out on ~~three fields of the two
+Woodcutter's Camps~~ one field, the British camp's `up_who`** (the camps'
+`recharging` agree since item 4097, below); every other byte of it is
+the original's.
 
 **Which buildings, in which order.** Per leader whose `leaders.list & 1`
 is set, in slot order; per slot of that leader's object array from
@@ -990,7 +995,8 @@ changes.
   city's place in its owner's list) and `city_down` (the next building of
   the city's chain, `city_chain`) derive; `wonder` is init's −1
   (`Build::init@00629740`); the union at +0x78 derives (a farm's place in
-  `Farms`' list, a dock's slot, else −1); `recharging` holds and **parts**;
+  `Farms`' list, a dock's slot, else −1); `recharging` holds (~~and
+  **parts**~~ — agrees since item 4097);
   `attack_ox`/`attack_whom` derive from `target`; `stance` derives
   (`Sim::build_stance`, `BuildTypeData::get_stance_type@006396c0`'s
   switch); `founder`, `gather_max` hold; `queued` is the live entries;
@@ -1033,30 +1039,28 @@ the tree has no entry for the goody box's 0x21f, so a tech's id is one
 below its `TypeIndex`. `docs/` says the tree index *is* the `TypeIndex`
 (`ids.rs`); that holds for goods, units and buildings only.
 
-**The three fields the line is held out on**:
+**The ~~three fields~~ field the line is held out on** (the two
+`recharging` rows were ranges 50 and 339, ours 83 and 67 against 90 and
+89; struck at item 4097):
 
 | range | building | field | ours | theirs | what writes it |
 |---|---|---|---|---|---|
-| 50 | `0/2001`, the human's camp | `BuildData::recharging` (+0x7a) | 83 | 90 | `Guy::move@005d9240`'s carrying-walk arm |
-| 339 | `1/2001`, the British camp | `BuildData::recharging` | 67 | 89 | the same |
 | 334 | `1/2001` | `ObjectData::up_who` (+0x3f) | −1 | 1 | `Object::add_to_world`; left behind by `Object::remove_from_world@00647970` |
 
-*`recharging`.* On a gather building it counts the frames a gatherer
-worked it: each frame, the first of `Unit::do_gather@005ef2a0`,
-`Unit::do_non_flat_gather@005f0170` and `Guy::move`'s carrying walk to
-reach it adds one and sets `build_masks & 0x800`, which the frame's end
-clears. This crate ports the first two and not the third: a guy moving
-with a carry bit (`CHAR_WALK_TO_WOOD` and its three siblings), whose
-action is a gather (type 7) on a gather building and whose order's byte
-`+0x27` is set. **Probed on our walk**: the frames on which a camp's
-gatherer moved with a carry bit and nothing bumped the camp are 7 for the
-human's camp (4..10) and 22 for the British (4..15 and 17..26), exactly
-the 7 and 22 ours lacks. `recharging` has readers (`Wall::inc_time
-@0063fb60` compares it, and this crate's `units/think/work_gate.rs`), so
-porting the arm changes behaviour: it is a mechanic under its own
-document, not this line's to carry. **No dump compares it**:
-`gamelog::BuildDump` does not parse `recharging`, so the field has been a
-quiet one until this line.
+*`recharging`* — **answered by item 4097, `docs/ORDERS.md` §6.11**: on
+a gather building it counts the frames a gatherer worked it, the first
+of `Unit::do_gather@005ef2a0`, `Unit::do_non_flat_gather@005f0170`,
+`Wall::do_construct@006434d0` and `Guy::move`'s carrying walk to reach
+it each frame adding one under `build_masks & 0x800`. The fourth is
+ported; with it every building's `recharging` is run1561a's on all 299
+of its frames, and the camps read 90 and 89 here. ~~`recharging` has
+readers (`Wall::inc_time@0063fb60` compares it, and this crate's
+`units/think/work_gate.rs`), so porting the arm changes behaviour~~: on
+a camp it has no reader in the simulation — `Wall::inc_time`'s arm is
+the anti-air types', and the work gate reads the *unit's* `+0xae`; its
+reader is the renderer's work-animation clock (§6.11). ~~No dump
+compares it~~: the dump **prints** it on every `BUILDDATA`, and
+`gamelog::BuildDump` does not parse it (§6.11 has the hand-back).
 
 *`up_who`.* The British camp's cell has had a British unit above it on
 its object chain, which moved off: `remove_from_world` sets the
@@ -1064,12 +1068,13 @@ building's `up` back to −1 and leaves `up_who`. This crate does not
 thread buildings on the chain (`Sim::cell_chain` is units only), so it
 holds no such history.
 
-**The value diff**: 516 of 519 ranges equal, and 4,845 of 4,923 bytes in
-the ranges that agree; every field of all 15 buildings, their 100 queue
-slots and 143 tiles agrees but the three above. Ours sums to 3593622376
-against the printed **2869973639**; with the three fields at the
-original's values (90, 89 and 1, a substitution made only in the test)
-the image is the stream's, range for range, and sums to 2869973639. Two
+**The value diff**: ~~516 of 519 ranges equal, and 4,845~~ **518 of
+519 ranges equal, and 4,889** of 4,923 bytes in the ranges that agree
+(item 4097); every field of all 15 buildings, their 100 queue slots and
+143 tiles agrees but the one above. Ours sums to ~~3593622376~~
+3506852741 against the printed **2869973639**; with the field at the
+original's value (1, a substitution made only in the test) the image is
+the stream's, range for range, and sums to 2869973639. Two
 values on both sides, for a reader: the human's city `myhits` 1200,
 `constr_time` 180000, `gpiece` 51339, `city_down` 2001, `queued` 1, its
 queue slot 0 `(3100, 50, [0, −1, −1], [25, 0, 0])`; the British farm
@@ -1078,18 +1083,19 @@ queue slot 0 `(3100, 50, [0, −1, −1], [25, 0, 0])`; the British farm
 
 **Made to fail**: the image before the carried fields parted on 18 ranges
 (above), and the empty image on all 519. One perturbed byte more, the
-fourth building's `x`, parts on its range beside the three, and on no
-other.
+fourth building's `x`, parts on its range beside the held one, and on
+no other.
 
 **How it was established, and how confident.** Diff-backed: every byte
-of the line on one frame but the three held out, against the stream, and
-the whole line's Adler with those three substituted. From the type
+of the line on one frame but the one held out, against the stream, and
+the whole line's Adler with it substituted; `recharging` on every
+building of 299 frames, against run1561a's dump. From the type
 records: every field name, offset and width; the union's members are the
 dump's names. From the walkers: the order and the locals; the stream
 agrees on all 519. On a reading, held by that diff on this frame: what
 `Object::init`, `Wall::init`, `Build::init`, `BuildQueue::init` and
-`Wall::start` write, the `0x400` latch, and the two held-out fields'
-writers. Probed: the frames ours misses `Guy::move`'s bump.
+`Wall::start` write, the `0x400` latch, and the held-out field's
+writer.
 
 **Not established**:
 

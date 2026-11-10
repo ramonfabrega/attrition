@@ -5965,6 +5965,82 @@ fn the_carrying_walk_comes_off_the_mask_and_not_off_goto_build() {
     assert_eq!(sim.units[u].carry, 0);
 }
 
+/// **`Guy::move@005d9240`'s carrying-walk arm** (item 4097, `docs/ORDERS.md`
+/// §6.11): a moving figure of a unit carrying a gather bit, whose action is
+/// its gather order with `been_there`, bumps the order's live gather
+/// building's `recharging` by one under the frame's `0x800` latch — past a
+/// transit move in front of the order, and never from the standing arm.
+#[test]
+fn a_carrying_walk_bumps_its_camp_s_recharging_once_a_frame() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let camp = sim.add_build_type(bt(Ident::Woodcutter, None, "ga", 4, 4, 150, 400, 0));
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    sim.tables.unit_types[citizen].worker = Worker::Citizen;
+    city_at(&mut sim, &t, 0, 30, 30);
+    sim.plant_camp_forest(tile_pos(24, 30));
+    let wood = sim.place_building(0, camp, tile_pos(24, 30)).unwrap();
+    finish(&mut sim, wood);
+    sim.buildings[wood].gather_max = Some(4);
+    let u = spawn(&mut sim, 0, citizen, tile_pos(30, 30));
+    sim.add_gather_order(u, wood, orders::QueuePos::Last, false);
+    let r = |sim: &Sim| {
+        (
+            sim.buildings[wood].recharging,
+            sim.buildings[wood].gather_bumped,
+        )
+    };
+    let start = sim.buildings[wood].recharging;
+    // A new frame: `Build::process` has cleared the latch.
+    sim.buildings[wood].gather_bumped = false;
+
+    // No carry bit: the arm is not entered.
+    sim.carrying_walk_bump(u);
+    assert_eq!(r(&sim), (start, false), "no carry bit");
+    // A carry bit, but the order has not been there.
+    sim.units[u].carry = orders::CARRY_TO_WOOD;
+    sim.carrying_walk_bump(u);
+    assert_eq!(r(&sim), (start, false), "not been_there");
+    // Been there: one, and the latch.
+    if let Some(Body::Gather(g)) = sim.units[u].orders.front_mut().map(|o| &mut o.body) {
+        g.been_there = true;
+    }
+    sim.carrying_walk_bump(u);
+    assert_eq!(r(&sim), (start + 1, true), "the bump");
+    sim.carrying_walk_bump(u);
+    assert_eq!(r(&sim), (start + 1, true), "once a frame");
+
+    // A transit move in front of the gather: the action is still the
+    // gather (`get_action` walks past it).
+    sim.buildings[wood].gather_bumped = false;
+    sim.add_move_order(
+        u,
+        tile_pos(27, 30),
+        orders::MoveKind::MoveTo,
+        orders::QueuePos::First,
+        false,
+    );
+    sim.carrying_walk_bump(u);
+    assert_eq!(r(&sim), (start + 2, true), "past a transit move");
+
+    // Through `Guy::move`'s two halves: the standing arm writes nothing,
+    // the moving arm bumps.
+    if sim.units[u].guys.is_empty() {
+        sim.units[u].guys.push(crate::units::anim::Guy::fresh(-1));
+    }
+    sim.buildings[wood].gather_bumped = false;
+    sim.guy_follow_anim(u, 0, true, true);
+    assert_eq!(r(&sim), (start + 2, false), "the standing arm");
+    sim.guy_follow_anim(u, 0, false, true);
+    assert_eq!(r(&sim), (start + 3, true), "the moving arm");
+
+    // A dead building takes nothing.
+    sim.buildings[wood].gather_bumped = false;
+    sim.buildings[wood].alive = false;
+    sim.carrying_walk_bump(u);
+    assert_eq!(r(&sim), (start + 3, false), "a dead camp");
+}
+
 /// `Build::activate`'s tail (`docs/ECONOMY.md`, "What a finished gather
 /// building pays"): the slots join the leader's count, and only the part of
 /// them past the high-water mark is paid for. So the first farm of a game is

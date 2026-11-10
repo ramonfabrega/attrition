@@ -13691,8 +13691,11 @@ constructor, `Build::init` and `Build::activate` (0); `Wall::do_construct`
 (+1 while building); `do_attack`'s countdown and reload; `Wall::inc_time`;
 and three that other types own (the Kremlin's and the Terracotta Army's
 arms of `Build::process`, `Object::do_launch`'s airbase,
-`Build::do_missile_launch`). `Unit::*` and `Guy::move` write `UnitData
-+0x7a`, a different field.
+`Build::do_missile_launch`). ~~`Unit::*` and `Guy::move` write `UnitData
++0x7a`, a different field~~ — `Unit::do_gather`, `Unit::do_non_flat_gather`
+and `Guy::move` write this field too, through the building's vslot
+`+0xac`: a gather building's work count (`docs/ORDERS.md` §6.11, item
+4097).
 
 ### 84.2 The packet: the building is drawn as a unit
 
