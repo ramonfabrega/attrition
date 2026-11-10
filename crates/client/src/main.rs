@@ -414,7 +414,12 @@ fn main() {
                 eprintln!("client: {}: {e}", path.display());
                 std::process::exit(1);
             });
-        let rows = silhouette::score_frame(&mut world, &camera, &photo);
+        let rows = silhouette::score_frame(
+            &mut world,
+            &camera,
+            &photo,
+            render::silhouette::Reader::Colour,
+        );
         for (f, (who, o, piece, building)) in &rows {
             println!(
                 "{who}/{o} piece {piece}{} window ({}, {})..({}, {}) ours {} theirs {} both {} \

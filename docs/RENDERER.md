@@ -1111,11 +1111,12 @@ for every data point, and it inherits the translation stack's noise (§3.3).
 It is the art phase's counter, not the first one.
 
 **The first row, pinned** (item 4038, 2026-11-09, Opus 5.5;
-`render::silhouette`, `client::silhouette`). **6 of 23 objects** on the
+`render::silhouette`, `client::silhouette`). **7 of 23 objects** on the
 Aztec Modern pair's frame 3294 at run1559b's camera, against that take's
 photograph, drawn as the client draws by default: posed, at the
-original's facing (`RUN1559B_3294_POSED`, item 4069: 1 → 6). Drawn at
-rest the frame reads 2 (`RUN1559B_3294`, 3 → 2).
+original's facing, with the tanks read by the hand-traced mask
+(`RUN1559B_3294_MASKED`, item 4071: 6 → 7). By colour alone it reads 6
+(`RUN1559B_3294_POSED`), and drawn at rest 2 (`RUN1559B_3294`).
 - *Ours.* Each drawn object's world-space triangles are rasterized on the
   CPU with the client shader's arithmetic into a buffer of object keys,
   the nearest winning by camera-space depth.
@@ -1141,11 +1142,20 @@ rest the frame reads 2 (`RUN1559B_3294`, 3 → 2).
   reads 6. Five rows pass: 0/0 0.160 → 0.938, 0/8 0.245 → 0.565, 0/9
   0.313 → 0.571, 1/21 0.498 → 0.647, 1/23 0.280 → 0.616. 0/5 holds at
   0.566 → 0.820. At rest, 1/24 falls 0.528 → 0.394.
-- *The misses.* The tanks sit about 40 px above the photograph's, at the
-  original's own scale and now its facing (items 4065, 4069; 1/40 0.135 →
-  0.300, 1/16 0.037 → 0.091). Their photograph footprints read small
-  because the ring's ground colours take in an olive tank on grass, so a
-  tank row cannot pass by drawing alone (parked 4065b, 4065c). The capital
+- *The second reader* (item 4071). The colour reader keeps the union of
+  the ring's colours, so a tank of the photograph standing past a window
+  placed by ours puts its own olive in the ground. The tanks are read
+  instead off a mask traced by hand on the photograph (`TRACED`,
+  `Reader::Mask`). The mask never reads our draw or a colour, and was
+  pinned before its first count. It reads both bare-grass windows
+  (`BARE`) empty, and run1441's camera 0 of 25. On four figures colour
+  passes, it gives the same verdict and shares 0.53–0.80 of colour's
+  pixels. The tanks read by it give **7 of 23**
+  (`RUN1559B_3294_MASKED`): 1/40 0.300 → 0.710. A first try, a robust
+  ring (median and MAD, 3σ), is refused: bare grass reads 323 and 113
+  pixels (`ROBUST_BARE`).
+- *The misses.* 1/15 (0.237) and 1/16 (0.357) sit about 40 px above the
+  photograph's, at the original's own scale and facing (4065c). The capital
   is drawn as its `zbuffer` model (4036a). One figure has no counterpart
   in the photograph (4038c). The figures by the derrick stand among trees
   the client does not draw.
