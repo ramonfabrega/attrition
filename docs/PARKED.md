@@ -3826,7 +3826,7 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 ## Loop, filed 2026-11-09 — the seventy-fifth pass's own
 
-(4042) **The whole gate is the waiting, and its length is one binary running at a quarter of its threads** (the seventy-fifth pass, with Ramon on the row; measured by the seventy-sixth): the seventy-sixth drain's whole gate ran 49.3 release minutes, and its log reads the build at 1.2, the `sim` library at 1.1, the four sweep binaries at 6.5 together and **the `rondata` library at 40.4 — 2,424 s for 2,179 tests whose alone-timed sum is 5,105 s** (`docs/audit/2026-10-15-suite-timings.txt`), so eight slots gave it the work of 2.1. On 2026-10-16 the same runner took 237 s for 876 tests summing 1,502 s, the work of 6.3 (`docs/TEST_PERFORMANCE.md`, the isolation experiment). By family the seconds are `diff::golden` 974, `mapgen::tests` 526, `diff::harness` 471, `diff::audit` 252, `diff::second` 246, `diff::coverage` 221; five tests run over 30 s and sum 390, one of them 202 (`every_parsed_field_is_compared_by_the_instrument_or_pinned`), so no single test is the length. **Hypothesis**: the isolated runner's estimated-RSS budget, not its slot count, bounds the suite now that the tests have tripled. **What would kill it**: the suite's wall time unchanged with the RSS budget doubled at the same eight slots. Candidate: a builder reads the runner's scheduling log for one whole gate, names what each idle slot waited on, and moves that bound, red first on a fixture where a free slot stands idle under memory; at the work of five the library reads about 17 minutes and a whole gate about 26. The chain's every step touches `crates/sim` and gates whole, so this is the chain's clock. Names no score; the loop's. **Measured by item 4072 (2026-11-10): the bound was one test, not the budget.** On `dc1e1fd39`'s whole gate the coverage pin's serial 436-window walk ran 2,519 s, as long as the whole library; every other test was done by second 1,070, and admission waited 16.3 s over 2,202 leases — the RSS hypothesis is killed. The walk now runs eight-wide by module (347.5 s, the same 52.6 × 10¹² instructions) and the runner reserves a profile row's `cpu` width. The library is projected at 21.4 minutes and the gate at about 31; the booking gate measures it. **Measured on `0e28830d6`: the library 1,250 s of 2,519, the release step 28.5 minutes of 49.9, the whole gate 31.8 of 52.1, at a host load of 44.6; on `38726faf9`, every test on a quieter host, the library 609 s and the release step 11.5.** Still open: overlap the 7.7 serial minutes of sweeps and `sim` with the library's tail. **Closed by Loop 4042's builder (2026-11-10): on `0e28830d6` the 454 s of sweeps and `sim` ran one after another before the library (Cargo's order), not after it, with the library's pool 99.3 % held; they now run beside the library in a second lane (`tools/isolated_tests.py`), projected to take the release step from 28.5 minutes to 20.9–23.4 and the whole gate from 31.8 to 24.2–26.7; the booking gate measures it.**
+(4042) **The whole gate is the waiting, and its length is one binary running at a quarter of its threads** (the seventy-fifth pass, with Ramon on the row; measured by the seventy-sixth): the seventy-sixth drain's whole gate ran 49.3 release minutes, and its log reads the build at 1.2, the `sim` library at 1.1, the four sweep binaries at 6.5 together and **the `rondata` library at 40.4 — 2,424 s for 2,179 tests whose alone-timed sum is 5,105 s** (`docs/audit/2026-10-15-suite-timings.txt`), so eight slots gave it the work of 2.1. On 2026-10-16 the same runner took 237 s for 876 tests summing 1,502 s, the work of 6.3 (`docs/TEST_PERFORMANCE.md`, the isolation experiment). By family the seconds are `diff::golden` 974, `mapgen::tests` 526, `diff::harness` 471, `diff::audit` 252, `diff::second` 246, `diff::coverage` 221; five tests run over 30 s and sum 390, one of them 202 (`every_parsed_field_is_compared_by_the_instrument_or_pinned`), so no single test is the length. **Hypothesis**: the isolated runner's estimated-RSS budget, not its slot count, bounds the suite now that the tests have tripled. **What would kill it**: the suite's wall time unchanged with the RSS budget doubled at the same eight slots. Candidate: a builder reads the runner's scheduling log for one whole gate, names what each idle slot waited on, and moves that bound, red first on a fixture where a free slot stands idle under memory; at the work of five the library reads about 17 minutes and a whole gate about 26. The chain's every step touches `crates/sim` and gates whole, so this is the chain's clock. Names no score; the loop's. **Measured by item 4072 (2026-11-10): the bound was one test, not the budget.** On `dc1e1fd39`'s whole gate the coverage pin's serial 436-window walk ran 2,519 s, as long as the whole library; every other test was done by second 1,070, and admission waited 16.3 s over 2,202 leases — the RSS hypothesis is killed. The walk now runs eight-wide by module (347.5 s, the same 52.6 × 10¹² instructions) and the runner reserves a profile row's `cpu` width. The library is projected at 21.4 minutes and the gate at about 31; the booking gate measures it. **Measured on `0e28830d6`: the library 1,250 s of 2,519, the release step 28.5 minutes of 49.9, the whole gate 31.8 of 52.1, at a host load of 44.6; on `38726faf9`, every test on a quieter host, the library 609 s and the release step 11.5.** Still open: overlap the 7.7 serial minutes of sweeps and `sim` with the library's tail. **Closed by Loop 4042's builder (2026-11-10): on `0e28830d6` the 454 s of sweeps and `sim` ran one after another before the library (Cargo's order), not after it, with the library's pool 99.3 % held; they now run beside the library in a second lane (`tools/isolated_tests.py`), projected to take the release step from 28.5 minutes to 20.9–23.4 and the whole gate from 31.8 to 24.2–26.7; the booking gate measures it.** *Measured, the driver's sixth to eighth sessions (2026-11-10), kept here when the queue's gate bullet was deleted:* the remainder is merged (`60cf9abe6`), the release step's other binaries running beside the `rondata` library; whole on `1686403e6` the release step read 26.7 minutes under two builders, a lane and a take, and whole on `22a7eff45` 22.4 under a lane and a reader (load 29.8 → 47.0); scoped on `88f294491` 12.2, on `48a615745` 10.5 and on `ffaa8d184` 10.6; a quiet host is unmeasured.
 
 ## Loop, filed 2026-11-09 — the seventy-sixth tranche's
 
@@ -16112,18 +16112,54 @@ words and edits nothing here; a refill lands when two remain.
   is 1100110848 and 1/27's 2460072192, so the tank is drawn after the rifleman. `render_states[0..3]` hold `zbias`
   0 and list 0 writes depth (`rbias` rows), so no order puts a farther opaque figure over a nearer hull.
 
-## Parked by the next landing, slot EN — reserved
+## Parked by item 4060, 2026-11-10 — the checksum's instrument
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4060a. The rules line is not one value across games** (`docs/CHECKSUM.md` §3, §10). It reads 314192132 on both of
+  run1100's records and 1227894240 on run1420's packet; the recon read it as static. Whether it follows the lobby
+  (the tribes and their bonuses) is unread. Names no score until the rules line is booked (DECISIONS 119 §1).
+- **4060b. The decompile export's type records lack the fields of a class with a virtual base** (`docs/CHECKSUM.md`
+  §6): `AttackToOrder` has none and the `TargetOrder` and `MoveOrder` bases are missing; the PDB's own field lists
+  (`llvm-pdbutil dump --types`) name them. Candidate: the export's type pass walks virtual bases. Names no score.
+- **4060c. 4060's "for the Loop"** (the journal's line, filed at its merge): a packet's run with an `@dumpall` line
+  at the packet's own frame (run1100's shape) is a packet and its windowed record by construction, the cheapest way
+  to stand the instrument on a new frame. Taken at once: item 4088's run 1562 is that shape (DECISIONS 120 §1).
 
 ## Parked by the next landing, slot EO — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot EO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ER — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ER renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ES — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ES renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
