@@ -115,8 +115,8 @@ is append-only and amended in place, as it always was.
 - 106 extended by 107 — The sixty-sixth tranche: two Opus lanes, twenty in 11 h 12, the fourth melee whole at sea, every map chain whole, two pairs whole first try, the third lane returns, ten blind rows residue
 - 107 extended by 108 — The sixty-seventh tranche: three Opus lanes, twenty in 7 h 51, the fifth melee whole, Mesa 1 → 7 of 8, three lanes stand, eight blind rows residue
 - 108 extended by 109 — The sixty-eighth tranche: three Opus lanes, thirteen in 3 h 51 on supply, blind open 2, Mesa whole, three lanes stand; the implicit residue 81, the pool
-- 109 extended by 110 — The sixty-ninth tranche: three Opus lanes, twenty in 8 h 38, the implicit residue 0, blind open 4, 42.1 waiting so the third lane goes
-- 110 extended by 111 — The seventieth: two Opus lanes, seven in 3 h 10, blind open 0, entry 29's counters stand
+- 109 extended by 110 — The sixty-ninth tranche: three Opus lanes, twenty in 8 h 38, the implicit residue 0, blind open 4
+- 110 extended by 111 — The seventieth: two Opus lanes, seven in 3 h 10, blind open 0
 - 111 extended by 112 — The seventy-first: phase 4 open, the territory read, East Meets West held out
 - 112 extended by 113 — T71's rows booked
 - 113 extended by 114 — rows booked
@@ -125,6 +125,7 @@ is append-only and amended in place, as it always was.
 - 116 standing — one driver, the milestone
 - 117 standing — the gate in its own tree, an experiment
 - 118 standing — kill rule, arm's close
+- 119 standing — step 5: twelve lines, an instrument first
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
 - 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types, the pass and the commander stop messaging each other
 - 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself, the fifty-first booked on what a capture can enter
@@ -11851,3 +11852,63 @@ questions: `blocked` is the daemon's reading of the closing prose.
 allow rule for the one reap command passes the classifier in practice
 (the documentation says a narrow rule resolves before the classifier —
 the rule is Ramon's to add, never a session's).
+
+## 119. Step 5 is twelve lines on a window, reached through an instrument first (2026-11-10)
+
+**What the recon read** (one reader, Opus 5.5, from the decompile; its
+report is `~/ron-data/lab-experiments/2026-11-10-item-4060/recon.md`; every
+line below is a reading until item 4060's instrument reproduces a printed
+record):
+
+1. **The checksum is Adler-32 over raw memory.** A checksum walk is a
+   `DataWalk` whose fold, `CheckSum::walk_function@00936ff0`, adds the
+   bytes of each range a `walk_data` hands it, in walk order, padding
+   included. Each subsystem starts from 1 and is its own sum.
+2. **The original's sync checksum is fifteen of them and their total**
+   (`CheckSums::check_all@00936560`, every turn in every mode): units,
+   builds, walls, ammo, deaths, groups, guys, leaders, cities, items,
+   goods, world, rules, scenario data and the script run time. The command
+   that carries them between machines holds the same fifteen.
+3. **A frame's record prints only inside a `DUMP_ALL` window**
+   (`GameLog::say_checksum@00930b30`, reached per frame from the full
+   dump alone): twice a frame, 67 lines, beside a whole dump. No setting
+   prints the record by itself, and `check_all`'s own values go to a sync
+   log that a game without a desync snips.
+4. **A checksum command in a recording is not held against the player's
+   state**: the comparison is between the recorded slots, so a file of
+   ours carrying one proves nothing.
+
+**Decided**, under these readings:
+
+1. **The number is lines, not frames.** Of the fifteen, twelve are the
+   simulation's state — units, builds, walls, ammo, deaths, groups, guys,
+   leaders, cities, items, goods, world. Step 5 stands when those twelve
+   agree on the frames a window of the minted game's playback prints. The
+   rules line is the data layer's and static, booked after as its own
+   item; the scenario and script lines are the scripting machine's image,
+   replaced by design, and are named as never ported. The total cannot
+   agree while those two stand out, and the queue says so beside the count.
+2. **An instrument before a port.** A hash that disagrees says nothing
+   about which byte. So the first item changes no simulation code: it
+   runs the original's fifteen walks under the emulator on a packet, with
+   the fold hooked, reproduces the printed lines from it, and prints the
+   stream — owner, range, bytes. Every later item diffs our bytes against
+   that stream range by range, and reads the Adler last.
+3. **Then one line an item, cheapest first by the instrument's own
+   ledger**, each emitting the original's byte image from our state in a
+   module of its own (`sim::checksum`, traced as `ChecksumSync`). A range
+   that needs a field the simulation does not hold is the finding the
+   step exists for: it is ported under its own mechanic's document, or
+   named with the line it holds out.
+4. **The track's number is amended in `docs/TRACKS.md`**: it said frames
+   printed under `CHECKSUM=2`, and that setting prints no frame.
+
+**What it risks.** Step 5 is a chain of its own, not one builder: a line
+agrees only when every walked byte does, and the units' line walks a raw
+111-byte range of each unit beside its orders, path and figures. The
+window's kill rule reads 61 % from step 4's close; if the twelve are not
+in by then, the rule reroutes the chain as written and Ramon moves the
+number or does not. Not established: whether any walked range of the
+twelve holds a pointer or a float (the original compares them across
+machines, which argues not; the ledger answers it), and the world line's
+size on this map.
