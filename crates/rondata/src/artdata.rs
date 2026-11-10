@@ -1083,6 +1083,10 @@ pub struct UnitArt {
     /// `scale=`, as the XML writes it (`"1.1"`), empty when absent — the
     /// model's size the client draws it at (item 4036).
     pub scale: String,
+    /// `texture=`, as the XML writes it (`.\art\assault_infantry.tga`),
+    /// empty when absent — the image the model's texcoords sample (item
+    /// 4099).
+    pub texture: String,
     /// `(slot, the name the row cites, its file if anim_graphics names it)`.
     pub anims: Vec<(i8, String, Option<String>)>,
     /// The graphic pieces the entry is; empty when it is none.
@@ -1126,6 +1130,11 @@ pub fn unit_art(install: &Install, graphs: &[String]) -> Vec<UnitArt> {
             name,
             model: model.trim().to_string(),
             scale: u.attribute("scale").unwrap_or_default().trim().to_string(),
+            texture: u
+                .attribute("texture")
+                .unwrap_or_default()
+                .trim()
+                .to_string(),
             anims,
             pieces,
         });

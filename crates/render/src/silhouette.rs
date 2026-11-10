@@ -182,74 +182,30 @@ pub fn rasterize_cut(
     size: (usize, usize),
 ) -> Raster {
     let (w, h) = size;
-    let m = camera.to_screen_matrix().0;
-    let r = camera.render_matrix().0;
-    let d = [r[2], r[6], r[10], r[14]];
+    let project = Projector::new(camera, size);
     let mut keys = vec![0u32; w * h];
     let mut depth = vec![f32::INFINITY; w * h];
-    let project = |p: [f32; 3]| -> Option<[f32; 4]> {
-        let v = [p[0], p[1], p[2], 1.0];
-        let col = |c: usize| (0..4).map(|i| v[i] * m[i * 4 + c]).sum::<f32>();
-        let (cx, cy, cw) = (col(0), col(1), col(3));
-        if cw.abs() < 1e-6 {
-            return None;
-        }
-        let z: f32 = (0..4).map(|i| v[i] * d[i]).sum();
-        Some([
-            (cx / cw + 1.0) * w as f32 * 0.5,
-            (1.0 - cy / cw) * h as f32 * 0.5,
-            z,
-            cw,
-        ])
-    };
     for (n, o) in objects.iter().enumerate() {
-        let cut = cuts.get(n).copied().flatten();
+        let cut = cut_at(cuts, n);
         for (ti, t) in o.tris.iter().enumerate() {
-            let (Some(a), Some(b), Some(c)) = (project(t[0]), project(t[1]), project(t[2])) else {
-                continue;
-            };
-            let area = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
-            if area.abs() < 1e-9 || cut.is_some_and(|c| c.cull.culls(area)) {
-                continue;
-            }
-            let lo = |i: usize| a[i].min(b[i]).min(c[i]);
-            let hi = |i: usize| a[i].max(b[i]).max(c[i]);
-            let x0 = (lo(0) - 0.5).ceil().max(0.0) as usize;
-            let y0 = (lo(1) - 0.5).ceil().max(0.0) as usize;
-            let x1 = ((hi(0) - 0.5).floor() + 1.0).clamp(0.0, w as f32) as usize;
-            let y1 = ((hi(1) - 0.5).floor() + 1.0).clamp(0.0, h as f32) as usize;
             let test = cut.and_then(|c| {
                 let image = c.images.get(*c.image.get(ti)?)?.as_ref()?;
                 Some((image, c.uvs.get(ti)?, c.alpha_ref as f32))
             });
-            for y in y0..y1 {
-                let py = y as f32 + 0.5;
-                for x in x0..x1 {
-                    let px = x as f32 + 0.5;
-                    let e = |p: [f32; 4], q: [f32; 4]| {
-                        ((q[0] - p[0]) * (py - p[1]) - (q[1] - p[1]) * (px - p[0])) / area
-                    };
-                    let (wa, wb, wc) = (e(b, c), e(c, a), e(a, b));
-                    if wa < 0.0 || wb < 0.0 || wc < 0.0 {
-                        continue;
-                    }
-                    let z = wa * a[2] + wb * b[2] + wc * c[2];
-                    let i = y * w + x;
-                    if z < depth[i] {
-                        if let Some((image, uv, reference)) = test {
-                            let (qa, qb, qc) = (wa / a[3], wb / b[3], wc / c[3]);
-                            let q = qa + qb + qc;
-                            let u = (qa * uv[0][0] + qb * uv[1][0] + qc * uv[2][0]) / q;
-                            let v = (qa * uv[0][1] + qb * uv[1][1] + qc * uv[2][1]) / q;
-                            if alpha_bilinear(image, u, v) <= reference {
-                                continue;
-                            }
-                        }
-                        depth[i] = z;
-                        keys[i] = o.key;
+            let cull = cut.map_or(Cull::None, |c| c.cull);
+            project.fragments(t, cull, |i, z, q| {
+                if z >= depth[i] {
+                    return;
+                }
+                if let Some((image, uv, reference)) = test {
+                    let (u, v) = at_weights(uv, q);
+                    if alpha_bilinear(image, u, v) <= reference {
+                        return;
                     }
                 }
-            }
+                depth[i] = z;
+                keys[i] = o.key;
+            });
         }
     }
     for st in stamps {
@@ -290,6 +246,381 @@ pub fn rasterize_cut(
         },
         depth,
     }
+}
+
+fn cut_at<'a>(cuts: &'a [Option<&'a Cut<'a>>], n: usize) -> Option<&'a Cut<'a>> {
+    cuts.get(n).copied().flatten()
+}
+
+/// A texcoord at a fragment's perspective-correct weights.
+fn at_weights(uv: &[[f32; 2]; 3], q: [f32; 3]) -> (f32, f32) {
+    (
+        q[0] * uv[0][0] + q[1] * uv[1][0] + q[2] * uv[2][0],
+        q[0] * uv[0][1] + q[1] * uv[1][1] + q[2] * uv[2][1],
+    )
+}
+
+/// **The client shader's arithmetic, once** (items 4038, 4099): a world
+/// point through `to_screen_matrix`, the divide by `w` and the viewport, and
+/// the camera-space depth `render_matrix`'s third column gives. The key
+/// buffer ([`rasterize_cut`]) and the colour ([`paint`]) both walk their
+/// fragments through it, so the two cannot disagree on a pixel.
+struct Projector {
+    m: [f32; 16],
+    d: [f32; 4],
+    w: usize,
+    h: usize,
+}
+
+impl Projector {
+    fn new(camera: &Camera, size: (usize, usize)) -> Projector {
+        let r = camera.render_matrix().0;
+        Projector {
+            m: camera.to_screen_matrix().0,
+            d: [r[2], r[6], r[10], r[14]],
+            w: size.0,
+            h: size.1,
+        }
+    }
+
+    /// Pixel x, y, camera-space depth and clip `w`.
+    fn project(&self, p: [f32; 3]) -> Option<[f32; 4]> {
+        let v = [p[0], p[1], p[2], 1.0];
+        let m = &self.m;
+        let col = |c: usize| (0..4).map(|i| v[i] * m[i * 4 + c]).sum::<f32>();
+        let (cx, cy, cw) = (col(0), col(1), col(3));
+        if cw.abs() < 1e-6 {
+            return None;
+        }
+        let z: f32 = (0..4).map(|i| v[i] * self.d[i]).sum();
+        Some([
+            (cx / cw + 1.0) * self.w as f32 * 0.5,
+            (1.0 - cy / cw) * self.h as f32 * 0.5,
+            z,
+            cw,
+        ])
+    }
+
+    /// Every pixel whose centre the projected triangle covers, either
+    /// winding unless `cull` drops it: its index, its depth, and its
+    /// perspective-correct weights (summing to 1).
+    fn fragments(&self, t: &[[f32; 3]; 3], cull: Cull, mut f: impl FnMut(usize, f32, [f32; 3])) {
+        let (w, h) = (self.w, self.h);
+        let (Some(a), Some(b), Some(c)) =
+            (self.project(t[0]), self.project(t[1]), self.project(t[2]))
+        else {
+            return;
+        };
+        let area = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+        if area.abs() < 1e-9 || cull.culls(area) {
+            return;
+        }
+        let lo = |i: usize| a[i].min(b[i]).min(c[i]);
+        let hi = |i: usize| a[i].max(b[i]).max(c[i]);
+        let x0 = (lo(0) - 0.5).ceil().max(0.0) as usize;
+        let y0 = (lo(1) - 0.5).ceil().max(0.0) as usize;
+        let x1 = ((hi(0) - 0.5).floor() + 1.0).clamp(0.0, w as f32) as usize;
+        let y1 = ((hi(1) - 0.5).floor() + 1.0).clamp(0.0, h as f32) as usize;
+        for y in y0..y1 {
+            let py = y as f32 + 0.5;
+            for x in x0..x1 {
+                let px = x as f32 + 0.5;
+                let e = |p: [f32; 4], q: [f32; 4]| {
+                    ((q[0] - p[0]) * (py - p[1]) - (q[1] - p[1]) * (px - p[0])) / area
+                };
+                let (wa, wb, wc) = (e(b, c), e(c, a), e(a, b));
+                if wa < 0.0 || wb < 0.0 || wc < 0.0 {
+                    continue;
+                }
+                let z = wa * a[2] + wb * b[2] + wc * c[2];
+                let (qa, qb, qc) = (wa / a[3], wb / b[3], wc / c[3]);
+                let q = qa + qb + qc;
+                f(y * w + x, z, [qa / q, qb / q, qc / q]);
+            }
+        }
+    }
+}
+
+/// **A texture and its box-filtered levels** (item 4099), level 0 the
+/// image, each next level the 2×2 mean of the one before, down to 1×1.
+/// That the original's card samples the figure's texture from such a chain
+/// is a supposition (`docs/RENDERER.md` §5.3, "The colour reader").
+#[derive(Clone, Debug)]
+pub struct Mips {
+    pub levels: Vec<crate::tga::Image>,
+}
+
+impl Mips {
+    pub fn new(image: crate::tga::Image) -> Mips {
+        let mut levels = vec![image];
+        loop {
+            let last = levels.last().expect("level 0");
+            if last.width <= 1 && last.height <= 1 {
+                break;
+            }
+            let (w, h) = ((last.width / 2).max(1), (last.height / 2).max(1));
+            let mut rgba = vec![0u8; w * h * 4];
+            for y in 0..h {
+                for x in 0..w {
+                    for c in 0..4 {
+                        let mut sum = 0u32;
+                        for (dx, dy) in [(0, 0), (1, 0), (0, 1), (1, 1)] {
+                            let sx = (2 * x + dx).min(last.width - 1);
+                            let sy = (2 * y + dy).min(last.height - 1);
+                            sum += u32::from(last.rgba[(sy * last.width + sx) * 4 + c]);
+                        }
+                        rgba[(y * w + x) * 4 + c] = ((sum + 2) / 4) as u8;
+                    }
+                }
+            }
+            levels.push(crate::tga::Image {
+                width: w,
+                height: h,
+                rgba,
+                ..last.clone()
+            });
+        }
+        Mips { levels }
+    }
+
+    /// The level a triangle samples: the texels its texcoords span over
+    /// the pixels its projection covers, as a power of four.
+    pub fn level(&self, texel_area: f32, pixel_area: f32) -> usize {
+        if pixel_area <= 0.0 || texel_area <= pixel_area {
+            return 0;
+        }
+        let lod = 0.5 * (texel_area / pixel_area).log2();
+        (lod.floor() as usize).min(self.levels.len() - 1)
+    }
+
+    /// RGBA at `(u, v)` on `level`, bilinear, wrapped: `v = 0` the top row,
+    /// as [`alpha_bilinear`] reads the trees' textures.
+    pub fn sample(&self, level: usize, u: f32, v: f32) -> [f32; 4] {
+        let image = &self.levels[level];
+        let (w, h) = (image.width as i64, image.height as i64);
+        let fx = u * w as f32 - 0.5;
+        let fy = v * h as f32 - 0.5;
+        let (x0, y0) = (fx.floor() as i64, fy.floor() as i64);
+        let (tx, ty) = (fx - x0 as f32, fy - y0 as f32);
+        let at = |x: i64, y: i64, c: usize| {
+            let (x, y) = (x.rem_euclid(w) as usize, y.rem_euclid(h) as usize);
+            f32::from(image.rgba[(y * image.width + x) * 4 + c])
+        };
+        [0, 1, 2, 3].map(|c| {
+            let top = at(x0, y0, c) * (1.0 - tx) + at(x0 + 1, y0, c) * tx;
+            let bottom = at(x0, y0 + 1, c) * (1.0 - tx) + at(x0 + 1, y0 + 1, c) * tx;
+            top * (1.0 - ty) + bottom * ty
+        })
+    }
+}
+
+/// How an object is coloured for [`paint`].
+pub enum Paint<'a> {
+    /// One colour on every triangle: the debug tint.
+    Flat([u8; 3]),
+    /// Each triangle's texcoords into one texture.
+    Texture {
+        uvs: &'a [[[f32; 2]; 3]],
+        mips: &'a Mips,
+    },
+}
+
+/// One painted pixel: its colour and, when textured, the texel's alpha.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Texel {
+    pub rgb: [f32; 3],
+    pub alpha: f32,
+}
+
+/// **An object's own colour over a window** (item 4099): `object` alone,
+/// through [`rasterize_cut`]'s fragments, the nearest fragment's colour at
+/// each of `window`'s pixels (row-major), `None` where it covers none.
+pub fn paint(
+    object: &Object,
+    paint: &Paint<'_>,
+    camera: &Camera,
+    size: (usize, usize),
+    window: Rect,
+) -> Vec<Option<Texel>> {
+    let project = Projector::new(camera, size);
+    let (w, _) = size;
+    let ww = (window.x1 - window.x0).max(0) as usize;
+    let wh = (window.y1 - window.y0).max(0) as usize;
+    let mut out: Vec<Option<Texel>> = vec![None; ww * wh];
+    let mut depth = vec![f32::INFINITY; ww * wh];
+    for (ti, t) in object.tris.iter().enumerate() {
+        let level = match paint {
+            Paint::Texture { uvs, mips } => uvs.get(ti).map(|uv| {
+                let base = &mips.levels[0];
+                let du = [uv[1][0] - uv[0][0], uv[1][1] - uv[0][1]];
+                let dv = [uv[2][0] - uv[0][0], uv[2][1] - uv[0][1]];
+                let texels =
+                    0.5 * (du[0] * dv[1] - du[1] * dv[0]).abs() * (base.width * base.height) as f32;
+                let pa = project.project(t[0]);
+                let pb = project.project(t[1]);
+                let pc = project.project(t[2]);
+                let pixels = match (pa, pb, pc) {
+                    (Some(a), Some(b), Some(c)) => {
+                        0.5 * ((b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])).abs()
+                    }
+                    _ => 0.0,
+                };
+                mips.level(texels, pixels)
+            }),
+            Paint::Flat(_) => None,
+        };
+        project.fragments(t, Cull::None, |i, z, q| {
+            let (x, y) = ((i % w) as i32, (i / w) as i32);
+            if !window.contains(x, y) {
+                return;
+            }
+            let j = (y - window.y0) as usize * ww + (x - window.x0) as usize;
+            if z >= depth[j] {
+                return;
+            }
+            let texel = match paint {
+                Paint::Flat(c) => Texel {
+                    rgb: c.map(f32::from),
+                    alpha: 255.0,
+                },
+                Paint::Texture { uvs, mips } => {
+                    let Some(uv) = uvs.get(ti) else {
+                        return;
+                    };
+                    let (u, v) = at_weights(uv, q);
+                    let s = mips.sample(level.unwrap_or(0), u, v);
+                    Texel {
+                        rgb: [s[0], s[1], s[2]],
+                        alpha: s[3],
+                    }
+                }
+            };
+            depth[j] = z;
+            out[j] = Some(texel);
+        });
+    }
+    out
+}
+
+/// **The colour reader's constants** (item 4099; `docs/RENDERER.md` §5.3,
+/// "The colour reader"), pinned before its first count.
+#[derive(Clone, Copy, Debug)]
+pub struct Hue {
+    /// A pixel whose channel sum is under this, on either side, is dark:
+    /// its chromaticity is noise, and it is left out.
+    pub dark: f32,
+    /// Two chromaticities agree within this distance.
+    pub distance: f32,
+    /// An object passes when this share of its lit pixels agree...
+    pub share: f32,
+    /// ...and it holds at least this many.
+    pub min_pixels: u32,
+    /// A texel whose alpha is under this is the mask's, by supposition.
+    pub mask_alpha: f32,
+}
+
+/// The reading the colour row is counted at.
+pub const HUE: Hue = Hue {
+    dark: 60.0,
+    distance: 0.05,
+    share: 0.5,
+    min_pixels: 40,
+    mask_alpha: 255.0,
+};
+
+/// `(r, g) / (r + g + b)`.
+pub fn chromaticity(rgb: [f32; 3]) -> [f32; 2] {
+    let s = rgb[0] + rgb[1] + rgb[2];
+    if s <= 0.0 {
+        [1.0 / 3.0, 1.0 / 3.0]
+    } else {
+        [rgb[0] / s, rgb[1] / s]
+    }
+}
+
+/// One object's colours on the pixels both footprints hold.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Colours {
+    pub key: u32,
+    /// Pixels its own key holds and the photograph's footprint holds.
+    pub held: u32,
+    /// Of those, dark on either side.
+    pub dark: u32,
+    /// The rest, and how many of them agree.
+    pub lit: u32,
+    pub agree: u32,
+    /// Lit pixels whose texel is the mask's ([`Hue::mask_alpha`]), and how
+    /// many of those part.
+    pub masked: u32,
+    pub masked_part: u32,
+    /// The mean distance over the lit pixels.
+    pub mean: f32,
+}
+
+impl Colours {
+    pub fn passes(&self, hue: &Hue) -> bool {
+        self.lit >= hue.min_pixels && self.agree as f32 >= hue.share * self.lit as f32
+    }
+
+    /// The lit pixels that part.
+    pub fn part(&self) -> u32 {
+        self.lit - self.agree
+    }
+}
+
+/// **The colour reader** (item 4099; §5.3): over `window`, the pixels whose
+/// key is `key` and where `theirs` (window-sized, [`traced_theirs`]) holds,
+/// `painted`'s colour against the photograph's.
+pub fn read_colours(
+    keys: &Keys,
+    photo: &Photo<'_>,
+    key: u32,
+    window: Rect,
+    theirs: &[Option<bool>],
+    painted: &[Option<Texel>],
+    hue: &Hue,
+) -> Colours {
+    let ww = (window.x1 - window.x0) as usize;
+    let mut c = Colours {
+        key,
+        ..Colours::default()
+    };
+    let mut total = 0.0f32;
+    for y in window.y0..window.y1 {
+        for x in window.x0..window.x1 {
+            let j = (y - window.y0) as usize * ww + (x - window.x0) as usize;
+            if keys.at(x as usize, y as usize) != key || theirs[j] != Some(true) {
+                continue;
+            }
+            let Some(ours) = painted[j] else {
+                continue;
+            };
+            c.held += 1;
+            let i = (y as usize * photo.width + x as usize) * 4;
+            let them = [0, 1, 2].map(|k| f32::from(photo.rgba[i + k]));
+            let sum = |p: [f32; 3]| p[0] + p[1] + p[2];
+            if sum(ours.rgb) < hue.dark || sum(them) < hue.dark {
+                c.dark += 1;
+                continue;
+            }
+            let (a, b) = (chromaticity(ours.rgb), chromaticity(them));
+            let d = ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2)).sqrt();
+            c.lit += 1;
+            total += d;
+            let agrees = d <= hue.distance;
+            c.agree += u32::from(agrees);
+            if ours.alpha < hue.mask_alpha {
+                c.masked += 1;
+                c.masked_part += u32::from(!agrees);
+            }
+        }
+    }
+    c.mean = if c.lit == 0 {
+        0.0
+    } else {
+        total / c.lit as f32
+    };
+    c
 }
 
 /// The photograph: `width · height` RGBA8 pixels, the top row first — what
@@ -750,6 +1081,47 @@ pub fn read_traced(
     key: u32,
     window: Rect,
 ) -> Footprint {
+    let theirs = traced_theirs(
+        keys, photo, interface, reading, traces, neighbour, iface, key, window,
+    );
+    let ww = (window.x1 - window.x0) as usize;
+    let mut f = Footprint {
+        key,
+        window,
+        ours: 0,
+        theirs: 0,
+        both: 0,
+    };
+    for y in window.y0..window.y1 {
+        for x in window.x0..window.x1 {
+            let Some(t) = theirs[(y - window.y0) as usize * ww + (x - window.x0) as usize] else {
+                continue;
+            };
+            let o = keys.at(x as usize, y as usize) != 0;
+            f.ours += u32::from(o);
+            f.theirs += u32::from(t);
+            f.both += u32::from(o && t);
+        }
+    }
+    f
+}
+
+/// [`read_traced`]'s photograph side, pixel by pixel over `window`
+/// (row-major): `None` where the rule leaves the pixel out of both sides,
+/// else whether it is the original's footprint. The colour reader
+/// ([`read_colours`], item 4099) reads its pixels off this.
+#[allow(clippy::too_many_arguments)]
+pub fn traced_theirs(
+    keys: &Keys,
+    photo: &Photo<'_>,
+    interface: &[Rect],
+    reading: &Reading,
+    traces: &[Trace<'_>],
+    neighbour: Neighbour,
+    iface: Interface,
+    key: u32,
+    window: Rect,
+) -> Vec<Option<bool>> {
     let outer = window.grown(reading.ring);
     // 0 elsewhere, 1 its own trace, 2 a neighbour's, 3 the interface; its
     // own trace wins where two overlap.
@@ -769,27 +1141,17 @@ pub fn read_traced(
         k
     };
     let g = ground_where(keys, photo, window, outer, reading, |x, y| kind(x, y) == 0);
-    let mut f = Footprint {
-        key,
-        window,
-        ours: 0,
-        theirs: 0,
-        both: 0,
-    };
+    let mut out = Vec::with_capacity(((window.x1 - window.x0) * (window.y1 - window.y0)) as usize);
     for y in window.y0..window.y1 {
         for x in window.x0..window.x1 {
-            let t = match (kind(x, y), neighbour) {
-                (3, _) | (2, Neighbour::Neither) => continue,
-                (1, _) | (2, Neighbour::Scene) => true,
-                _ => !g.holds(photo, x, y),
-            };
-            let o = keys.at(x as usize, y as usize) != 0;
-            f.ours += u32::from(o);
-            f.theirs += u32::from(t);
-            f.both += u32::from(o && t);
+            out.push(match (kind(x, y), neighbour) {
+                (3, _) | (2, Neighbour::Neither) => None,
+                (1, _) | (2, Neighbour::Scene) => Some(true),
+                _ => Some(!g.holds(photo, x, y)),
+            });
         }
     }
-    f
+    out
 }
 
 /// How the photograph's side of a window is read.
