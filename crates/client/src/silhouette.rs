@@ -709,10 +709,9 @@ mod tests {
             let posed = score(&posed, &READING);
             let by_mask = mixed(&colour, &masked);
             world.pose = false;
-            let rest: Vec<Footprint> = score_frame(&mut world, &camera, &photo, Reader::Colour)
-                .iter()
-                .map(|(f, _)| *f)
-                .collect();
+            let rest_rows = score_frame(&mut world, &camera, &photo, Reader::Colour);
+            print_rows("at rest", &rest_rows, &rest_rows);
+            let rest: Vec<Footprint> = rest_rows.iter().map(|(f, _)| *f).collect();
             let rest = score(&rest, &READING);
             world.pose = true;
             let off = score_frame(&mut world, &elsewhere, &photo, Reader::Colour);
@@ -2614,7 +2613,7 @@ mod tests {
                 [6170, 32078, 243],
                 [243, 239, 242],
                 [0xbe48_94fd, 0xbd48_94fd, 0xbf7a_ba3d],
-                [0.102_563_336, 0.014_875_433, 0.991_204_6],
+                [0.102_563_34, 0.014_875_433, 0.991_204_6],
             ),
         ];
         let deg = |a: [f32; 3], b: [f32; 3]| {

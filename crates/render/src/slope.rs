@@ -56,9 +56,10 @@ pub fn normal_of(x: i32, y: i32, z: [i32; 3]) -> [f32; 3] {
     let (x0, y0) = (x as f32, y as f32);
     let (x1, y2) = ((x + 20) as f32, (y + 20) as f32);
     let (z0, z1, z2) = (z[0] as f32, z[1] as f32, z[2] as f32);
-    // A = p1 − p0, B = p2 − p0.
-    let (ax, ay, az) = (x1 - x0, y0 - y0, z1 - z0);
-    let (bx, by, bz) = (x0 - x0, y2 - y0, z2 - z0);
+    // A = p1 − p0, B = p2 − p0; the original's `y0 − y0` and `x0 − x0`
+    // are exactly 0.
+    let (ax, ay, az) = (x1 - x0, 0.0, z1 - z0);
+    let (bx, by, bz) = (0.0, y2 - y0, z2 - z0);
     let n = [by * az - bz * ay, bz * ax - bx * az, bx * ay - by * ax];
     normalized(n)
 }
@@ -76,7 +77,7 @@ fn normalized(n: [f32; 3]) -> [f32; 3] {
 
 /// The guy's target: the world normal times −1.
 pub fn target(world: [f32; 3]) -> [f32; 3] {
-    [world[0] * -1.0, world[1] * -1.0, world[2] * -1.0]
+    [-world[0], -world[1], -world[2]]
 }
 
 /// One call of `GuyData::find_slope_normal@005de140`: `last` eased a quarter

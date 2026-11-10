@@ -16093,7 +16093,8 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 4087, 2026-11-10 — 1/31 over the tank's hull: a depth, not an order
 
-- **4087a. The tank's tilt to the slope, which our client does not draw** (`docs/RENDERER.md` §3.7, §5.3;
+- **4087a. ~~The tank's tilt to the slope, which our client does not draw~~: drawn by item 4089** (4089 below;
+  `RUN1559B_3279_TRACED` 30 → 31 of 33, 1/31 0.469 → 0.537). The record: (`docs/RENDERER.md` §3.7, §5.3;
   `RUN1559B_3279_TRACED`, 30 of 33). On frame 3279, 1/31 and our tank 1/27 interpenetrate. 1/31's point is 28.4
   nearer than the tank's, by camera-space depth (18558.9 against 18587.3), inside the hull's 157.7 toward the
   camera. On the 358 pixels both draw, figure − hull runs −130.9 to +40.0 (p50 −5.7, p90 19.6), and the figure is
@@ -16124,13 +16125,18 @@ words and edits nothing here; a refill lands when two remain.
   at the packet's own frame (run1100's shape) is a packet and its windowed record by construction, the cheapest way
   to stand the instrument on a new frame. Taken at once: item 4088's run 1562 is that shape (DECISIONS 120 §1).
 
-## Parked by the next landing, slot EO — reserved
+## Parked by item 4089, 2026-11-10 — the tank's tilt drawn; the draw clock and two riflemen left
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4089a. The draw clock the tilt's ease runs on** (`docs/RENDERER.md` §3.7, §5.3 "The tilt"; `Tilt::Eased`).
+  `GuyOut::draw` eases `last_norm` a quarter of the way per draw, so a tank that stands sits at the target. On
+  run1559b's packet, 1/27 has stood since 3283 and its `last_norm` is still 3.33° off. Replayed at one draw every m
+  frames on one clock for all four tanks, the worst tank is 0.69° off at m = 14, and 0.81°–0.94° for m = 11..16.
+  At k draws a frame (k = 1..8) the worst is 3.2°–6.2°. So the capture drew about once per 14 sim frames. That is a
+  hypothesis about the capture's render rate, not a reading. The client draws the fixed point (`Tilt::Target`);
+  the eased reading, at one draw a frame, also scores 31 of 33. Names no score: no row parts between the two.
+- **4089b. 1/20 and 1/32 stay out** (`RUN1559B_3279_TRACED`, 31 of 33). With the tilt, 1/20 goes 0.482 → 0.489
+  and 1/32 0.283 → 0.287, against the half. Neither is tilted (`CAT` 0). Their windows hold the tank's hull, and
+  their excess is as 4086a measured it. Names candidate C's score.
 
 ## Parked by the next landing, slot EP — reserved
 
