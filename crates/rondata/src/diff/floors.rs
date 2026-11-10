@@ -574,6 +574,35 @@ pub fn start_line() -> String {
     )
 }
 
+/// The queue's `Checksum:` line (item 4060, `docs/CHECKSUM.md` §5): the
+/// lines of the original's fifteen that the instrument reproduces from
+/// its packet ([`crate::checksum::CHECKSUM_REPRODUCED`], on
+/// [`crate::checksum::CHECKSUM_PACKET`]'s run and frame), and the twelve
+/// state lines our simulation emits equal to the original's, with the
+/// bytes of the twelve walks ours reproduces ([`crate::checksum::CHECKSUM_STATE`]).
+#[cfg(test)]
+pub fn checksum_line() -> String {
+    let (lines, of_lines) = crate::checksum::CHECKSUM_REPRODUCED;
+    let (run, frame, _) = crate::checksum::CHECKSUM_PACKET;
+    let (state, of_state, bytes, of_bytes) = crate::checksum::CHECKSUM_STATE;
+    let grouped = |n: u64| {
+        let s = n.to_string();
+        let mut out = String::new();
+        for (i, c) in s.chars().enumerate() {
+            if i > 0 && (s.len() - i).is_multiple_of(3) {
+                out.push(',');
+            }
+            out.push(c);
+        }
+        out
+    };
+    format!(
+        "Checksum: instrument {lines} of {of_lines} lines ({run} f{frame}) \u{b7} state {state} of {of_state} lines, {} of {} bytes",
+        grouped(bytes),
+        grouped(of_bytes),
+    )
+}
+
 /// One of the AI track's handoff lines read part by part: `<map> w<word>
 /// of <length>`, the length with or without its comma. The one parser of
 /// those lines — the floors guards read it against `AI_WORDS`, and the
@@ -1189,6 +1218,39 @@ mod tests {
             Some(want.as_str()),
             "docs/QUEUE.md's handoff carries\n{want}\n(`rondata::diff::floors::start_line`: \
              `diff::START_BUILT`, `diff::START_LOBBIES`); it says {line:?}"
+        );
+    }
+
+    /// **The handoff's checksum line is the pinned counter** (item 4060,
+    /// `docs/CHECKSUM.md` §5): the queue's `Checksum:` line is
+    /// [`checksum_line`] of `checksum::CHECKSUM_REPRODUCED`,
+    /// `CHECKSUM_PACKET` and `CHECKSUM_STATE`. A driver's line
+    /// (`release_gate.py`'s `COMMANDERS_LINES`): the worker re-pins the
+    /// counters and the driver writes the line at the merge. Made to fail
+    /// first on the handoff before 4060's merge, which had none.
+    #[test]
+    fn the_handoff_s_checksum_line_is_the_pinned_counter() {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../..");
+        let q = std::fs::read_to_string(format!("{root}/docs/QUEUE.md")).expect("docs/QUEUE.md");
+        let want = checksum_line();
+        let line = q
+            .lines()
+            .find(|l| l.starts_with("Checksum:"))
+            .map(str::trim_end);
+        assert_eq!(
+            line,
+            Some(want.as_str()),
+            "docs/QUEUE.md's handoff carries\n{want}\n(`rondata::diff::floors::checksum_line`: \
+             `checksum::CHECKSUM_REPRODUCED`, `CHECKSUM_PACKET`, `CHECKSUM_STATE`); it says {line:?}"
+        );
+    }
+
+    #[test]
+    fn the_checksum_line_groups_its_bytes() {
+        assert!(
+            checksum_line().ends_with(" of 501,543 bytes"),
+            "{}",
+            checksum_line()
         );
     }
 
