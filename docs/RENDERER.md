@@ -1269,10 +1269,11 @@ rest (`RUN1559B_3279`); run1441's camera reads 0 of 24 under both readers.
 - *The misses* (on 3279). ~~The capital as its `zbuffer` model (4036a);
   the figures by the derrick (4082a, 4085).~~
 - **The row on the default draw**, the buildings as their sprites, by
-  item 4077's reader (`RUN1559B_3279_TRACED`): **31 of 33** (4089); its
-  steps from 27 of 33 (4077–4089) are the pin's comment and each item's
-  journal; treeless 30 of 33; run1441's camera 0 of 32.
-  Out: 1/20 and 1/32 (4092a). The
+  item 4077's reader (`RUN1559B_3279_TRACED`): **33 of 33** (4095, under
+  the point's rule below; 31 of 33 on 3279 whole, `_CURRENT`); its
+  steps from 27 of 33 (4077–4095) are the pin's comment and each item's
+  journal; treeless 30 of 33 and the other readings on 3279 whole;
+  run1441's camera 0 of 32. ~~Out: 1/20 and 1/32 (4092a).~~ In (4095). The
   `RUN1559B_3279_*` rows above are the `zbuffer` draw's, kept by name.
 - *The trees* (4080, before its count; §3.7). A tree hides what is
   behind it; its pixel is the ground's; it is never scored. Rejected:

@@ -116,6 +116,10 @@ pub struct World {
     pub tree_cull: render::silhouette::Cull,
     /// How a tracked figure leans to the ground (item 4089).
     pub tilt: Tilt,
+    /// Which point a figure is drawn at (item 4095).
+    pub blend: Blend,
+    /// The figures' points before [`World::run_to`]'s last step.
+    last: Vec<Placed>,
     /// Each unit type's `CAT` (`UnitTypeData +0x14`, an index into
     /// `rules.xml`'s `unit_cats`), by type index.
     cats: Vec<i32>,
@@ -170,6 +174,20 @@ pub enum Leaves {
 /// `GuyData::last_norm`, which eases a quarter of the way to the negated
 /// `WorldData::find_slope_normal` at every draw; the client replays no
 /// draw clock.
+/// **Which point a figure is drawn at** (item 4095, `docs/RENDERER.md`
+/// §5.3, "The point"). The original draws a guy at `GuyData`'s point
+/// blended from `last_*` by `graphic_percent`; its slot, clock and facing
+/// are the frame's own.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Blend {
+    /// The default: the frame's own point.
+    Current,
+    /// The point the figure held a frame before ([`World::run_to`]'s last
+    /// step keeps it): `graphic_percent` at 0.
+    #[cfg_attr(not(test), allow(dead_code))]
+    Last,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Tilt {
     /// Every figure level: the draw before item 4089.
@@ -375,6 +393,8 @@ impl World {
             silhouettes: Silhouettes::Drawn,
             tree_cull: TREE_CULL,
             tilt: Tilt::Target,
+            blend: Blend::Current,
+            last: Vec::new(),
             cats,
             eased: BTreeMap::new(),
             tree_art,
@@ -384,6 +404,9 @@ impl World {
     /// Step the game to `frame` (the dump's `FRAME frame`).
     pub fn run_to(&mut self, frame: i64) {
         while self.runner.frame() < frame {
+            if self.runner.frame() + 1 == frame {
+                self.last = placed(&self.runner.scene(None));
+            }
             self.runner.step();
             if self.runner.frame() >= EASE_FROM {
                 self.ease();
@@ -575,7 +598,18 @@ impl World {
         size: (i32, i32),
     ) -> (Vec<Placed>, Vec<PlacedBuilding>, Vec<Drawn>) {
         let scene = self.runner.scene(None);
-        let figures = placed(&scene);
+        let mut figures = placed(&scene);
+        if self.blend == Blend::Last {
+            for f in figures.iter_mut() {
+                if let Some(p) = self
+                    .last
+                    .iter()
+                    .find(|p| (p.who, p.o, p.figure) == (f.who, f.o, f.figure))
+                {
+                    (f.x, f.y, f.z) = (p.x, p.y, p.z);
+                }
+            }
+        }
         let buildings = placed_buildings(&scene, &self.look, &self.tribes);
         let list = render::draw::draw_list(
             &figures,

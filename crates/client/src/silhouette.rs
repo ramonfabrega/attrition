@@ -1291,7 +1291,7 @@ mod tests {
             row("1/27", &tank_rows).map(|f| f.overlap())
         );
         use render::silhouette as s;
-        assert_eq!(got, s::RUN1559B_3279_TRACED);
+        assert_eq!(got, s::RUN1559B_3279_TRACED_CURRENT);
         assert_eq!(level, s::RUN1559B_3279_TRACED_LEVEL);
         assert_eq!(eased, s::RUN1559B_3279_TRACED_EASED);
         assert_eq!(hidden, s::RUN1559B_3279_TRACED_NO_SILHOUETTES);
@@ -1322,6 +1322,34 @@ mod tests {
             f.overlap() < READING.threshold,
             "the tank's trace shifted by its own width drops its row"
         );
+        // The point (item 4095, §5.3, committed before this count): frame
+        // 3280's slot, clock and facing at the points held on 3279.
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let point_rows = read(
+            &mut world,
+            &camera,
+            &TRACED,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let point = print("traced, the point", &point_rows);
+        for (f, (who, o, _, _)) in &point_rows {
+            let name = format!("{who}/{o}");
+            let was = row(&name, &rule).map(|g| g.overlap());
+            let now = f.overlap();
+            let t = READING.threshold;
+            if was.is_none_or(|w| (w >= t) != (now >= t) || (w - now).abs() > 0.02) {
+                println!("the point: {name} {was:?} -> {now:.3}");
+            }
+        }
+        println!("the point: {point:?} against {got:?}");
+        assert_eq!(point, s::RUN1559B_3279_TRACED);
+        for name in ["1/20", "1/32"] {
+            let f = row(name, &point_rows).expect("scored");
+            assert!(f.overlap() >= READING.threshold, "{name} passes");
+        }
+        world.blend = crate::world::Blend::Current;
     }
 
     /// **Item 4092, step 1: the pose as a value.** What `GuyOut::draw
@@ -2560,6 +2588,8 @@ mod tests {
                 return;
             }
         };
+        // A frame and each figure's pixels on it.
+        type FramePixels = (i64, Vec<Vec<(i32, i32)>>);
         const FIGURES: [i16; 5] = [20, 32, 31, 35, 38];
         const FIRST: i64 = 3264;
         const LAST: i64 = 3294;
@@ -2612,9 +2642,9 @@ mod tests {
             (pixels, own)
         };
         world.run_to(FIRST);
-        let mut frames: Vec<(i64, Vec<Vec<(i32, i32)>>)> = Vec::new();
+        let mut frames: Vec<FramePixels> = Vec::new();
         // Frame n's slot, clock and facing at frame n − 1's points.
-        let mut hybrid: Vec<(i64, Vec<Vec<(i32, i32)>>)> = Vec::new();
+        let mut hybrid: Vec<FramePixels> = Vec::new();
         let mut prev: Option<Vec<render::draw::Placed>> = None;
         // At 3279, per figure: the window, and theirs and the pixels left
         // out (a neighbour's trace, the interface) in it.
@@ -2805,6 +2835,18 @@ mod tests {
             best.push((o, top.0, top.1, at_photo));
         }
         println!("best frames: {best:?}");
+        // The control mover reads 3279 by a margin; 1/20 parts from it by
+        // more than the standing control 1/31 moves.
+        let get = |o: i16| *best.iter().find(|b| b.0 == o).expect("a figure");
+        let (_, at35, _, _) = get(35);
+        assert_eq!(
+            at35, PHOTO_FRAME,
+            "the control mover reads the photograph's frame"
+        );
+        let (_, at20, top20, photo20) = get(20);
+        let (_, _, top31, photo31) = get(31);
+        assert!(at20 > PHOTO_FRAME && top20 - photo20 > 0.1, "1/20 parts");
+        assert!(top31 - photo31 < 0.01, "the standing control does not");
         // Each figure's own pixels in its window left out of the reading
         // (under a neighbour's trace or the interface), at 3279.
         for (k, &o) in FIGURES.iter().enumerate() {
@@ -2882,6 +2924,19 @@ mod tests {
         // Frame n's slot and clock at n − 1's place, each figure.
         for (k, &o) in FIGURES.iter().enumerate() {
             println!("1/{o}, n's pose at n − 1's place: n ours both overlap box centroid-off");
+            if o == 20 || o == 35 {
+                // §5.3's point: 3280 at 3279's points beats 3279 whole.
+                let h = &hybrid
+                    .iter()
+                    .find(|h| h.0 == PHOTO_FRAME + 1)
+                    .expect("3280")
+                    .1;
+                let p = &frames.iter().find(|f| f.0 == PHOTO_FRAME).expect("3279").1;
+                assert!(
+                    overlap(&read(k, &h[k])) > overlap(&read(k, &p[k])) + 0.1,
+                    "1/{o}: the point's draw reads nearer"
+                );
+            }
             for (n, px) in hybrid.iter().filter(|h| (3277..=3283).contains(&h.0)) {
                 let r = read(k, &px[k]);
                 println!(
