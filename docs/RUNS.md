@@ -36352,3 +36352,41 @@ gamelog at 3295. SHA-256 `7a9146449f92374cf64bb0bf14620385201245d2b57d3445b36446
 `0x00c06244`. The photograph matches run1559's. **Amended by item 4073**: the photograph shows frame
 **3279**'s state, not the packet's 3294. Its movers (1/15, 1/16, 1/35) sit on it at 3279 within 5.1 px and miss it
 by 28–120 px at 3294 (`client::silhouette::PHOTO_FRAME`); why is parked 4073a.
+
+## run1560a — the original playing a file this repository wrote: the harness lobby, 0..300 (2026-11-10, item 4058)
+
+`docs/RECGAME.md` §8. **What the disk could not answer**: whether the original opens and plays a `.rcx` written by
+`rondata::recgame::write` rather than by itself. No such file existed. The file:
+`~/ron-golden/recordings/item4058-ours-greatlakes-24000.rcx`, 59,215 bytes, SHA-256
+`f437c1065651ef89dd3109960037edbae857cab931b36bdab5a4a47f3166ca14`, written by
+`RON_RCX_OUT=<it> … test --release -p rondata the_lobby_s_recording` (`recgame::from_lobby` on run53's `GAMEINFO`,
+no input, closing package on frame 24,000). The take:
+`TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1560a --recording
+<the file> --end-frame 300 --cover cover=1 --log-window 0 300 --detail end:MISC,UNITS=3 --timeout 540
+--stall-seconds 120`, waited on with `waitrun.sh` in the foreground.
+- Pool lane 1, launched 02:33:04; **34.0 s launch to exit**, exit 0, `success`, lifecycle verified, 301 frames,
+  `last_frame` 300, seed observed 12345, `MAP_STYLE 14`, players tribe 4 (flags 7) and tribe 11 (flags 1), five
+  settings restored. Minutes waited on another lane: none.
+- `rngcmp.py` against `rontrace-run53.log` (the live game of the same lobby): **301 in common, 0 differing**.
+- The built start's walk against it (`PLAYBACK_WALKED`): draws agree on all 300 frames, count and sequence; 299
+  records compared whole, **none parted**.
+- Filed with `filerun.py run1560a greatlakes-playback-of-ours-300`.
+
+Archive `gamelog-run1560a-greatlakes-playback-of-ours-300.txt`, 24,663,249 bytes,
+SHA-256 `012b362bfcfd86d4b0e02f423f68c8cdf4fc94da9e02023baf5bb7a30e71e3e3`; `rontrace-run1560a.log`, 9,467,552 bytes,
+SHA-256 `024e97e1a35b097c401c8cdf229aff7917d8de4a5afa0ace0f4b1b1f7fa46742`.
+
+## run1560b — the same file at the trace-only recipe, 0..2400: the playback's pace (2026-11-10, item 4058)
+
+The same file and line as run1560a with `--end-frame 2400 --log-window 0 2401 --detail end:MISC`.
+- Pool lane 1, launched 02:36:33; **179.7 s launch to exit**, exit 0, `success`, 2,401 frames, `last_frame` 2400, seed
+  12345, five settings restored. The runner's pace line: **700 frames in 60 s (11.7/s)** — so 24,000 frames is about
+  35 minutes, past one call's ten. Minutes waited on another lane: none.
+- `end:MISC` writes two blocks into a playback's `gamelog_p.txt` (2,451 bytes), as run900 found; the trace is
+  whole. `rngcmp.py` against `rontrace-run53.log`: **2,401 in common, 0 differing**. The built walk
+  (`PLAYBACK_WALKED`): draws agree on all 2,400 frames, count and sequence; 1 record, none parted.
+- Filed with `filerun.py run1560b greatlakes-playback-of-ours-2400`.
+
+Archive `gamelog-run1560b-greatlakes-playback-of-ours-2400.txt`, 2,451 bytes,
+SHA-256 `8e717ac0aea58b3070f6689f67ab60bbab89358fe1cc4197dd5ce90b6916c8b9`; `rontrace-run1560b.log`, 15,483,968 bytes,
+SHA-256 `9458a41c3a8fe5208a0962f61f913cd173c859a863627e83fc5a41f39d1976f8`.
