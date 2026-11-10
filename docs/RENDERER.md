@@ -1043,12 +1043,22 @@ above (`Leaves::Alpha`, the default), so it hides what stands behind it, and it 
 0/6 0.348 → 0.513. Before the count, on our buffers: of the five figures' pixels a tree's triangle covers, the
 leaves' texels cut 12, all 0/6's, and on every covered pixel the tree is the nearer, by 190–1,300 camera units.
 So four figures by the woodcutter, which the photograph shows in front of the pine, stay hidden (parked 4082a).
-The rejected readings, `TreePixels::Scene` and `Leaves::Solid`, read 26 and 25 of 29.
+The rejected readings, `TreePixels::Scene` and `Leaves::Solid`, read 26 and 25 of 29. **→ 30 of 33** with the
+figures' silhouettes (4085, §5.3 "The silhouettes"): on the pixels our pine covers, the photograph holds neither the
+figure's own colours nor the leaf's but `render_states[1]`'s `tfactor`, (255, 82, 34) at 128/255, over the leaf —
+red on 94–97 % of each of the four figures' covered pixels and 4–22 % ten pixels over, the colour's share by least
+squares at a mode of 0.5–0.6 — and the pine stands where ours does. The figure stands behind the tree in the
+original too; it is drawn over it. The rejected readings with the silhouettes: `Silhouettes::None` 26 of 29,
+`TreePixels::Scene` 29 of 33, `Leaves::Solid` 29 of 33.
 
 **What is not established.**
 - ~~The leaves' alpha~~: read and applied, above (item 4082).
-- Why four figures the photograph shows in front of the pine stand behind it in ours: a figure's depth or
-  position against the tree, or the photograph's reading (parked 4082a).
+- ~~Why four figures the photograph shows in front of the pine stand behind it in ours~~: they stand behind it in
+  the original too, and are drawn over it as silhouettes, `render_states[1]` (item 4085, §5.3 "The silhouettes").
+- Which land units take method list 1 rather than 0, 2 or 4 of `init_land_unit_map`: every figure on frame 3279's
+  photograph that stands behind a tree or the woodcutter is drawn so, and the selector is not read.
+- The order of figures among themselves in the guys pass (`Tree<Guy*,float>::ordered_insert`'s key), so whether a
+  farther figure's silhouette lies over a nearer figure.
 - The blend: the key buffer keeps a fragment whole where its alpha passes; the original blends it, which moves
   colour, not a footprint.
 - The depth of a building's sprite against a tree. Ours puts the anchor's flat draw-list depth against the tree's
@@ -1200,7 +1210,6 @@ original's facing, with the tanks read by the hand-traced mask
 camera, readers and constants, the row reads **16 of 24**
 (`RUN1559B_3279_MASKED`), 13 by colour (`RUN1559B_3279_POSED`) and 4 at
 rest (`RUN1559B_3279`); run1441's camera reads 0 of 24 under both readers.
-The 3294 rows are kept as the packet's frame.
 - *Ours.* Each drawn object's world-space triangles are rasterized on the
   CPU with the client shader's arithmetic into a buffer of object keys,
   the nearest winning by camera-space depth.
@@ -1217,11 +1226,10 @@ The 3294 rows are kept as the packet's frame.
   the photograph's interface (eleven rectangles placed by eye, among them
   the city's label and the selected figure's portrait), or when it shows
   fewer than 40 pixels.
-- *Made to fail.* The same frame at run1441's camera, which the
-  photograph was not taken at, scores 0 of 25 (`RUN1441_CAMERA_3294`).
-- *The facing* (item 4069, §3.6): the drawn map was a reflection of the
-  original's in world y, a sign flip, not an offset; posed, 1 → 6 of 23
-  (the rows: item 4069's journal).
+- *Made to fail.* The same frame at run1441's camera scores 0 of 25
+  (`RUN1441_CAMERA_3294`).
+- *The facing*: a sign flip in world y, not an offset (§3.6; item 4069's
+  journal).
 - *The second reader* (item 4071): a mask traced by hand on the photograph
   (`TRACED`, `Reader::Mask`), which reads neither our draw nor a colour,
   pinned before its first count. It reads both bare windows (`BARE`) empty
@@ -1243,14 +1251,13 @@ The 3294 rows are kept as the packet's frame.
   pixels lie outside the interface. Every trace is named by its object,
   tanks and figures included (`Reader::Traced`). The rejected readings,
   reported beside it: kind (3) as footprint, and the interface as before.
-- *The misses* (on 3279). ~~The capital is drawn as its `zbuffer` model
-  (4036a).~~ The figures by the derrick: 4082a.
+- *The misses* (on 3279). ~~The capital as its `zbuffer` model (4036a);
+  the figures by the derrick (4082a, 4085).~~
 - **The row on the default draw**, the buildings as their sprites, by
-  item 4077's reader (`RUN1559B_3279_TRACED`): 27 of 33 (4077), 29 of 33
-  (4079, tank 1/27 traced), 25 of 29 with the trees (4080, §3.7) and
-  **26 of 29** with the leaves cut (4082); treeless 29 of 33; run1441's
-  camera 0 of 28. Each step's rows: its journal.
-  Out: three riflemen (4079b) and the figures the trees hide (4082a). The
+  item 4077's reader (`RUN1559B_3279_TRACED`): **30 of 33** (4085); its
+  steps from 27 of 33 (4077–4085) are the pin's comment and each item's
+  journal; treeless 29 of 33; run1441's camera 0 of 32.
+  Out: three riflemen (4079b). The
   `RUN1559B_3279_*` rows above are the `zbuffer` draw's, kept by name.
 - *The trees* (4080, before its count; §3.7). A tree hides what is
   behind it; its pixel is the ground's; it is never scored. Rejected:
@@ -1258,6 +1265,11 @@ The 3294 rows are kept as the packet's frame.
 - *The leaves* (4082, before its count; §3.7). A tree's fragment is kept
   where its bilinear texel alpha exceeds 0, culled counter-clockwise
   (`Leaves::Alpha`). Rejected: `Leaves::Solid`. The window does not cut.
+- *The silhouettes* (4085, before its count; §3.7). Where a tree or a
+  sprite is nearer than a land figure, the pixel is the figure's and the
+  nearer depth stays; figures keep depth order among themselves
+  (`Silhouettes::Drawn`; `render_states[1]`, 4085's journal).
+  Rejected: `Silhouettes::None`.
 - *What it does not measure.* Colour: textures and team colours are not
   bound (4038a).
 - *Where the inputs are.* The photograph is converted once to `.tga`

@@ -109,6 +109,9 @@ pub struct World {
     pub tree_pixels: TreePixels,
     /// How the trees' leaves are drawn in the key buffer (item 4082).
     pub leaves: Leaves,
+    /// Whether a figure behind a tree or a sprite is drawn as its
+    /// silhouette (item 4085).
+    pub silhouettes: Silhouettes,
     /// The winding the trees' alpha-tested draw culls ([`TREE_CULL`]).
     pub tree_cull: render::silhouette::Cull,
     /// The lobby's tileset's trees: `tree_scale` and each model at rest,
@@ -151,6 +154,23 @@ pub enum Leaves {
     /// ([`TREE_ALPHA_REF`]), and a triangle wound against [`TREE_CULL`] is
     /// culled.
     Alpha,
+}
+
+/// **Whether a land figure is drawn over what stands nearer** (item 4085,
+/// `docs/RENDERER.md` §5.3, "The silhouettes").
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Silhouettes {
+    /// The figure is hidden where a tree or a sprite is nearer: the
+    /// rejected reading, items 4080 and 4082's draw.
+    #[cfg_attr(not(test), allow(dead_code))]
+    None,
+    /// The default: `GraphicPieces::init_land_unit_map@008fa4b0`'s method
+    /// list 1 draws a land figure under `render_states[1]` before `[0]`,
+    /// depth Greater and no depth write, after the trees are flushed. So
+    /// where a tree or a building's sprite is nearer, the pixel is the
+    /// figure's and the nearer depth stays. Figures and building meshes
+    /// keep depth order.
+    Drawn,
 }
 
 /// `render_states[9].alpha_ref` on run1559b's packet (item 4082,
@@ -316,6 +336,7 @@ impl World {
             trees: true,
             tree_pixels: TreePixels::Ground,
             leaves: Leaves::Alpha,
+            silhouettes: Silhouettes::Drawn,
             tree_cull: TREE_CULL,
             tree_art,
         })

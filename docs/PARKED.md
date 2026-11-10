@@ -16033,7 +16033,9 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 4082, 2026-11-10 — the pine stands nearer than the figures
 
-- **4082a. Four figures the photograph shows in front of the pine stand behind it in ours** (`docs/RENDERER.md`
+- **~~4082a. Four figures the photograph shows in front of the pine stand behind it in ours~~** — answered by item
+  4085: they stand behind it in the original too, drawn over it as silhouettes (`render_states[1]`; RENDERER §5.3,
+  "The silhouettes"; 26 of 29 → 30 of 33). (`docs/RENDERER.md`
   §3.7, §5.3; `RUN1559B_3279_TRACED`, 26 of 29). On frame 3279 at run1559b's camera, our trees cover 134 of
   0/1's 134 pixels, 328 of 0/2's 328, 318 of 0/8's 318 and 301 of 0/10's 301. The leaves' own texels, under
   `render_states[9]`'s test at 0 and its counter-clockwise cull, pass every one of them: the layered cards close
@@ -16047,13 +16049,21 @@ words and edits nothing here; a refill lands when two remain.
   - The rule was not moved to absorb it. Names candidate C's score: it books with a figure's depth against a
     tree diffed, or its place read on the packet, before a count.
 
-## Parked by the next landing, slot EJ — reserved
+## Parked by item 4085, 2026-11-10 — the figures behind the pine, drawn as silhouettes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4085a. Two of 4082a's candidates, killed by the photograph's own pixels** (`docs/RENDERER.md` §5.3, "The
+  silhouettes"; `client::silhouette::tests::the_photograph_on_the_pixels_the_pine_covers`). *A figure drawn whole
+  in front of the tree, at another depth or place*: on the pixels our pine covers, the photograph holds none of the
+  figure's own colours, but one flat colour over the leaf; the figure's photograph red lies on ours (red on 126 of
+  0/1's 134, 313 of 0/2's 328, 305 of 0/8's 318, 292 of 0/10's 301; centroids within 2.1 px, but 0/1's 9.7 px in y,
+  its box holding 0/10's red), and the photograph's foliage edge is ours within 5 px on 16 of 25 rows (on the other
+  nine the walk runs further left, into logs or ground; on none does it stop short). *What a tree's fragment carries besides its texel*: a leaf seen through would show
+  the figure's shading; the photograph shows `tfactor`'s (255, 82, 34) at a share whose mode is 0.5–0.6 by least
+  squares, `render_states[1]`'s 128/255. Neither was read further.
+- **4085b. Which land units take `init_land_unit_map`'s method list 1, and the guys pass's order** (§3.7, "What is
+  not established"). Every figure on the photograph behind the pine or the woodcutter is a silhouette, so the rule
+  draws every land figure so; the selector among lists 0–4 is not read, nor `Tree<Guy*,float>::ordered_insert`'s
+  key, which says whether a farther figure's silhouette lies over a nearer figure. Names no score.
 
 ## Parked by the next landing, slot EK — reserved
 
