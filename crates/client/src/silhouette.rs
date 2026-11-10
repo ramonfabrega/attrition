@@ -52,8 +52,19 @@ pub const BARE: [Rect; 2] = [
 /// reader was read: the three tanks, and four figures the colour reader
 /// passes, to hold the trace against it. Gun barrels, antennae and swords
 /// are left out; each vertex is good to a pixel or two.
+///
+/// **The two buildings** (item 4077), traced the same way on 2× and 4×
+/// crops of the photograph alone, before the reader that counts with them
+/// was written: the capital 0/2000's five buildings, the dark tower and
+/// the fountain on its sandy terrace, smoke and fire left in where they
+/// lie over a wall and out where they lie over grass, the paved plaza
+/// left out as flat ground ([`PLAZA`] is the other reading); and the
+/// woodcutter 0/2001's tower, boom and two log piles, its shadow left out
+/// and notched round the figure standing on the logs at (1652..1662,
+/// 372..405). Each vertex is good to two or three pixels, the boom's to
+/// four.
 #[cfg(test)]
-pub const TRACED: [(&str, &[(i32, i32)]); 7] = [
+pub const TRACED: [(&str, &[(i32, i32)]); 9] = [
     (
         "1/40",
         &[(1129, 641), (1168, 641), (1173, 709), (1132, 709)],
@@ -144,7 +155,90 @@ pub const TRACED: [(&str, &[(i32, i32)]); 7] = [
             (1516, 601),
         ],
     ),
+    (
+        "0/2000",
+        &[
+            (952, 460),
+            (977, 442),
+            (980, 412),
+            (1015, 400),
+            (1047, 410),
+            (1050, 435),
+            (1070, 435),
+            (1071, 400),
+            (1090, 394),
+            (1102, 395),
+            (1105, 352),
+            (1140, 342),
+            (1171, 360),
+            (1167, 415),
+            (1175, 425),
+            (1220, 417),
+            (1225, 435),
+            (1240, 432),
+            (1270, 442),
+            (1272, 510),
+            (1240, 520),
+            (1205, 512),
+            (1175, 512),
+            (1170, 535),
+            (1171, 555),
+            (1155, 561),
+            (1140, 557),
+            (1135, 550),
+            (1105, 550),
+            (1070, 550),
+            (1052, 542),
+            (1052, 525),
+            (1010, 525),
+            (985, 522),
+            (960, 510),
+            (955, 480),
+        ],
+    ),
+    (
+        "0/2001",
+        &[
+            (1636, 322),
+            (1648, 320),
+            (1650, 343),
+            (1656, 346),
+            (1655, 360),
+            (1657, 372),
+            (1651, 372),
+            (1651, 405),
+            (1662, 405),
+            (1662, 394),
+            (1686, 393),
+            (1688, 400),
+            (1685, 418),
+            (1670, 432),
+            (1660, 436),
+            (1644, 438),
+            (1641, 451),
+            (1607, 452),
+            (1590, 447),
+            (1586, 436),
+            (1597, 426),
+            (1615, 421),
+            (1603, 365),
+            (1603, 360),
+            (1608, 361),
+            (1622, 360),
+            (1620, 344),
+            (1632, 340),
+        ],
+    ),
 ];
+
+/// **The capital's paved plaza** (item 4077), the other reading of what
+/// the photograph shows as the capital: the diamond its red border draws,
+/// its top corner hidden behind the buildings and placed where the two
+/// upper edges would meet. Traced with [`TRACED`] and pinned beside it;
+/// the instrument leaves it out as flat ground, and the count with it is
+/// reported beside the instrument's.
+#[cfg(test)]
+pub const PLAZA: &[(i32, i32)] = &[(945, 502), (1150, 395), (1322, 502), (1165, 583)];
 
 /// **The frame the photograph shows** (item 4073): 3279, fifteen frames
 /// before the packet's 3294. The photograph was taken paused on 3294
@@ -181,6 +275,8 @@ pub const TRACED_POLYGONS: [&[(i32, i32)]; 7] = [
     TRACED[5].1,
     TRACED[6].1,
 ];
+// The buildings' traces, [`TRACED`]'s last two, are read by item 4077's
+// reader by their names and enter no [`Reader::Mask`] row.
 
 /// The photograph's path.
 pub fn photo_path() -> PathBuf {
