@@ -459,10 +459,11 @@ red: names written `Player <play + 2>` adds both slots to the list.
 
 ### 8.3 The original playing it
 
-The click-free lane opens our file and plays it (`docs/RUNS.md`, run1560a
-and run1560b): 301 and 2,401 frames, exit 0, seed 12345, map 14, the two
-players. The original's playback agrees with run53's live game on every
-frame's RNG word (`rngcmp.py`: 301 and 2,401 in common, 0 differing).
+The click-free lane opens our file and plays it (`docs/RUNS.md`, run1560a,
+run1560b and run1560): 301, 2,401 and 24,001 frames, exit 0, seed 12345,
+map 14, the two players. The original's playback agrees with run53's live
+game on every frame's RNG word (`rngcmp.py`: 301, 2,401 and 24,001 in
+common, 0 differing).
 
 `the_original_s_playback_of_our_file_walks_in_lockstep` walks the built
 start (`docs/START.md` §7.4) against each take, the playback's trace for
@@ -472,32 +473,34 @@ draws and its dump for records (`PLAYBACK_WALKED`):
   count and sequence; **299 records compared whole, none parted**.
 - run1560b, `end:MISC`: draws agree on **2,400 of 2,400** frames; one record,
   none parted.
+- run1560, `end:MISC`, the game's whole length: draws agree on **24,000 of
+  24,000** frames; one record, none parted.
 
 **The value diff: nothing parted.** No frame, no record, no field. Seen red:
 the lobby's seed given to the built start as 12346 parts the draws at frame
 0 and all 299 records (first: frame 1, `unlinked_units` 12).
 
 The playback's pace at the trace-only recipe is **11.7 frames a second**
-(run1560b's runner), so the full 24,000 frames need about 35 minutes: the
-full-length take, run1560, is the driver's.
+(run1560b's runner); the full-length take, run1560, ran 28.7 minutes.
 
 ### 8.4 Confidence, and what is not established
 
 - **Diff-backed**: the wire layout of every field §8.1 re-encodes (50
   recordings byte for byte, five perturbations red); the re-walk's
   derivation; the constancy of what our file borrows; the original opening
-  our file and playing it in agreement with its own live game (2,401 frames
-  of RNG words) and with this crate's built walk (2,400 frames of draws, 300
+  our file and playing it in agreement with its own live game (24,001 frames
+  of RNG words) and with this crate's built walk (24,000 frames of draws, 300
   records).
 - **Read once, from the decompile**: that a size-0 package is legal
   (`read_package`'s `size != 0` guard, 0x952d90) and that end of file one
   frame after the last package ends playback (the `feof` arm). Our closing
-  package sits on frame 24,000, which no take has reached.
+  package sits on frame 24,000: run1560 read it in step and quit by command
+  on that frame, so the size-0 package is now seen and the end of file one
+  frame on is not.
 - **Not established**: whether a slot written with tribe 24, as the original
   writes it, replays the same (both takes used 11); what reads
   `graphic_tick`; whether a playback without `camera` and `player_speed`
-  differs in anything beyond units over 300 frames and draws over 2,400;
-  frames past 2,400. The Types stretch is still not derived, so our file
+  differs in anything beyond units over 300 frames and draws over 24,000. The Types stretch is still not derived, so our file
   needs a donor with the same options: one exists only for a lobby this
   install has recorded. Multiplayer, CtW and scenario recordings are out of
   scope.

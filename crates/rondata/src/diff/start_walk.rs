@@ -518,7 +518,8 @@ const START_WALK_RECORDS: (usize, usize) = (2770, 10);
 /// parted)`. The built start's walk reads the playback's trace for its
 /// draws and the playback's dump for its records: run1560a prints every
 /// unit for 300 frames (`end:MISC,UNITS=3`), run1560b only the trace for
-/// 2,400 (`end:MISC`, whose playback dump holds two blocks).
+/// 2,400 (`end:MISC`, whose playback dump holds two blocks), and run1560
+/// the same recipe for the game's whole length, 24,000.
 pub(crate) const PLAYBACK_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[
     (
         "gamelog-run1560a-greatlakes-playback-of-ours-300.txt",
@@ -533,6 +534,14 @@ pub(crate) const PLAYBACK_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[
         "rontrace-run1560b.log",
         2400,
         2400,
+        1,
+        0,
+    ),
+    (
+        "gamelog-run1560-greatlakes-playback-of-ours-24000.txt",
+        "rontrace-run1560.log",
+        24000,
+        24000,
         1,
         0,
     ),

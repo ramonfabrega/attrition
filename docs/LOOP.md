@@ -31,8 +31,10 @@ in-session builder in flight. A ccc lane may be out across a clear: the
 handoff names it, its item and its waiter's arguments. Then the driver
 reads `ccc clear <own ref> --status`, arms `ccc clear <own ref> --then "<the
 queue's opener>"` as the turn's last act, and the turn ends. An arm fires
-only on an idle row, so nothing follows it; it is asked only with
-`--status`, never cancelled; and a draft left in the prompt box, which ccc
+only on an idle row, so nothing follows it — **and the arming turn's closing
+text asks nothing**: an ask leaves the row `blocked`, and an arm sat seven
+hours on one (DECISIONS 118); what is Ramon's goes in the handoff. It is
+asked only with `--status`, never cancelled; and a draft left in the prompt box, which ccc
 never submits, is a permission-shaped block that goes to Ramon in the
 closing message. **It clears at a milestone of the track it is driving, at
 a supply boundary, and whenever its next turn would carry more than 230 k**
@@ -92,8 +94,10 @@ another model takes that model's own default effort, not the driver's.
 
 **Two kill rules ride with the pilot**: a floor that falls with no named
 regression and is pushed; and no chain milestone inside ten points of the
-weekly window. On either the chain goes to an Opus lane under the frame,
-and Ramon is told at once. No driver changes the roster or the worker
+weekly window — **counted from the last closed milestone's reading, and
+written in the handoff as that number** (DECISIONS 118). On either the
+chain goes to an Opus lane under the frame, and Ramon is told at once; a
+trip stops no lane, and the render lane is not the rule's. No driver changes the roster or the worker
 count: it scores them and recommends under "For Ramon".
 
 **Three things reach Ramon at once**: a kill rule tripped, a

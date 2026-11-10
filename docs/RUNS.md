@@ -36390,3 +36390,22 @@ The same file and line as run1560a with `--end-frame 2400 --log-window 0 2401 --
 Archive `gamelog-run1560b-greatlakes-playback-of-ours-2400.txt`, 2,451 bytes,
 SHA-256 `8e717ac0aea58b3070f6689f67ab60bbab89358fe1cc4197dd5ce90b6916c8b9`; `rontrace-run1560b.log`, 15,483,968 bytes,
 SHA-256 `9458a41c3a8fe5208a0962f61f913cd173c859a863627e83fc5a41f39d1976f8`.
+
+## run1560 — the same file for the game's whole length, 0..24000: step 3's take (2026-11-10, the driver's)
+
+The same file and line as run1560b with `--end-frame 24000 --log-window 0 24001 --detail end:MISC`; the runner's
+commands `37 !ffwd 27` and `24000 !quit`.
+- Pool lane 1, launched 02:56:02 −05:00; **1,719.7 s launch to exit**, exit 0, `success`, 24,001 frames, `last_frame`
+  24000, `ended_early` false, seed 12345, map 14, players tribe 4 and tribe 11, five settings restored, no page
+  fault, no relaunch. The runner's pace line: 649 frames in 60 s (10.8/s). Minutes waited on another lane: none.
+- `rngcmp.py` against `rontrace-run53.log`: **24,001 in common, 0 differing**. The built walk (`PLAYBACK_WALKED`):
+  **draws agree on all 24,000 frames, count and sequence; 1 record, none parted.** Seen red first: the row pinned
+  `(0, 0, 0, 0)` failed and printed `(24000, 24000, 1, 0)`.
+- The file's closing package, size 0 on frame 24,000, was read with the game still in step. The take quits by
+  command on that frame, so the end of file one frame on is still unobserved.
+- Filed with `filerun.py run1560 greatlakes-playback-of-ours-24000`; the walk was not run until 11:20 −05:00, the
+  armed clear having sat (DECISIONS 118).
+
+Archive `gamelog-run1560-greatlakes-playback-of-ours-24000.txt`, 2,453 bytes,
+SHA-256 `6ac5c455bc6e8fc00e4bfc213f0796dda3a50520c140d3681acc18ec6702ec8e`; `rontrace-run1560.log`, 104,790,656 bytes,
+SHA-256 `09ce37a18940ba9188482894a8233c843fc9833a1d937dfee7320299006ad4f0`.
