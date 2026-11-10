@@ -173,7 +173,15 @@ it (**not built**).
    `Herd::create_units@007417f0`** (44 draws here), the scripts.
    **`compute_all_territory` built** (item 4063: `sync_territory`,
    `settle_borders`; it changes no owner here — `build_cities`' own pass
-   is the last writer of every one); **`analyze_map` not walked** (no
+   is the last writer of every one). **Its per-cell goods scan, the
+   rares' half, built** (item 4093): before the first frame
+   `settle_borders` runs `Sim::claim_rares_from_owners`, here and at
+   `build_cities`' own call, so a rare on a cell a leader owns and has
+   seen goes to `new_rare` and takes the leader's `ever_seen` bit by
+   region and cell (`docs/ECONOMY.md`, "Setup's goods scan"). On this
+   lobby the setup scan meets good 15 for seat 1 (`AMBER`, cell
+   (52, 18)), and frame 0's `GOOD` `ever_seen` is run9's on all 35 printed
+   goods. **`analyze_map` not walked** (no
    field the block compares reads it). **The herds built** (item 4063):
    `herds_from_goods` — one herd per herd good of the composed map
    (`Objects::init_good@00653f30`'s `Herds::init_herd`: FISH →
@@ -386,7 +394,7 @@ an assumption the dump cannot settle.
 | herds | `HERDS` | `herds_from_goods` | built; §4 |
 | goody boxes | `ITEM` | the cells' `down` −3, by `down_who` | built, red first (22 absent); wide |
 | building `ever_seen` | the dump's | `update_seen_ally`'s mask | built, red first (2 part); wide |
-| `new_rares` | a replay off the dump's fog | the walk's own reveals | dump-only: the installer's replay gives seat 1 rare 15 and the walk none; the original's frame-0 list is in no dump |
+| `new_rares` | a replay off the dump's fog | the walk's own reveals and setup's goods scan (item 4093) | dump-only: ~~the installer's replay gives seat 1 rare 15 and the walk none~~ both give seat 1 `[15]` (item 4093); the original's frame-0 list is in no dump, and its `ever_seen` bit is: run9's `GOOD 15` 2, ours 2 |
 | oil claims | a replay off the owners | the walk's territory | built; whole comparison |
 | the sync word | the trace's last word | the walk | built; block |
 | a building's `z` | the setup block | its own terraform | not read by the simulation (the renderer's) |
@@ -511,6 +519,8 @@ walk's word is 0, first parting `Unit::think_scout+0x64c` against
   not read one).
 - **Not established**: §7.3's three; which of `squad_size`'s two values
   the walk reads (it agrees either way); whether anything reads a cell's
-  own `down` copy; the original's frame-0 `new_rares`; the gaia pieces'
+  own `down` copy; the original's frame-0 `new_rares` (its count's
+  first print is frame 91's `known_rares 1` for seat 1, which ours
+  holds; item 4093); the gaia pieces'
   source; the heights below the dump's print. One lobby: any other needs
   its own composed map (`docs/START.md` §6) and its own captures.

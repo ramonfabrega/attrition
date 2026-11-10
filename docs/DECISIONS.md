@@ -122,14 +122,15 @@ is append-only and amended in place, as it always was.
 - 113 extended by 114 — rows booked
 - 114 extended by 116 — finish line
 - 115 extended by 116 — the start track opens
-- 116 standing — one driver, the milestone
+- 116 amended by 121 — one driver, the milestone
 - 117 standing — the gate in its own tree, an experiment
-- 118 standing — kill rule, arm's close
+- 118 amended by 121 — kill rule, arm's close
 - 119 standing — step 5: twelve lines, an instrument first
 - 120 standing — step 5's frame; the floats
+- 121 standing — no window kill rule; a soft stop, 85 %
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
-- 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types, the pass and the commander stop messaging each other
-- 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself, the fifty-first booked on what a capture can enter
+- 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types
+- 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself
 - 88 amended by 90 — The forty-ninth tranche: two Opus lanes, sixteen `cover=1` landings drained on a pit stop, the blind list 300 → 240 open, the click layer to the pool, two residue rows ratified, the oracle cache key reads the parser and codec only, sixteen Loop items ruled
 - 87 standing — The forty-eighth tranche: five readings and two sweeps at the loop's cheapest landing, forty-five residue rows ratified, the blind list 345 → 300, the forty-ninth booked as `cover=1` captures under a fifth brief kind, a pinned `Blind:` line, eleven Loop items ruled
 
@@ -11956,3 +11957,66 @@ minted game's frame re-measures it, and the order of the items after 4088
 follows that measurement. The window's rule reads 61 % and the window
 read 55 % when the instrument landed; one line a builder at about a point
 each does not fit, and entry 118 says what a trip does.
+
+## 121. The window's kill rule is removed: a soft stop Ramon moves at will takes its place, and the handoff reports the week's pace and what a step cost (2026-11-10)
+
+**What happened.** The driver's eleventh session cut item 4094's builder
+at 60 % of the seven-day window with the rule of entry 118 reading 61 %,
+and the window crossed it inside the half hour, as entries 119 and 120
+had both said it would: step 5 is a chain of lines, not one builder.
+
+**Ramon, on the driver's row:** "its at 61% so dont kill not worth", and
+then: "we have some banked resets so may be fine running the limits
+hard... our goal is to be able to stop/resume as we're still not close to
+24/7 running as we spend too many tokens still."
+
+**What the driver measured and said** (lore and the clock, 17:28 −05:00):
+61 % used at 49.7 % of the week, 0.73 points an hour, which reaches the
+wall about Thursday 23:00 −05:00, some 31 hours before the reset; 57 to
+61 in two hours with a builder, the render lane, the driver and two gates
+out. The reroute entry 118 orders changes almost nothing here: all ten
+builders of the pilot were Opus 5.5 already, and the Fable spend is the
+driver's merges and bookings, which a ccc lane needs as well. The
+instrument and three lines cost ten points with the render lane's inside
+them; six lines stand, each larger than the last.
+
+**The driver proposed** a rule by the line (four points with no line
+booked calls a design look) and no stop under the wall. **Ramon, in the
+same turn:** "i think we remove kill rule / rework it into being a
+reserve/stop? e.g. stopping at x percent soft (e.g. we may say, ok go to
+85%... but maybe friday comes on and we're ok with running to 100%?) i
+think we just care to be mindful of percentage limit... to see how we're
+doing in the week as we never really want to reach lims mid work as we'd
+have a costly resume after lims clear."
+
+**Decided**, on that word; the driver's proposal is not adopted.
+
+1. **The window's kill rule is removed** — entry 116's second rule and
+   entry 118 §1's number with it. Nothing reroutes the chain on a
+   percentage, and the trip at 61 % is void. The chain stays with
+   in-session builders, Opus 5.5 for a line's port. Entry 116's first
+   rule stands: a floor pushed down unnamed.
+2. **A soft stop takes its place, and its number is Ramon's to move at
+   will: 85 % today.** At or past it the driver cuts no builder and
+   refills no lane; what is in flight finishes, is merged, gated and
+   booked; the driver banks and ends its turn with a report that names
+   the reading. It governs every worker, the render lane included. Ramon
+   raises it by a word on the driver's row — to 100 % on a Friday with a
+   reset near, say — and the word is written here before the next clear.
+   It exists so the wall is never met mid-work: a wall kills every agent
+   in flight at once, and the resume after it is the dear part.
+3. **Under the stop, the driver sizes the last step to the room.** A
+   builder is about a point and a session's merges, gates and bookings
+   about as much again (the driver's estimate, to be measured): inside
+   three points of the stop nothing new is cut that cannot be booked
+   before it.
+4. **The handoff reports the week**: the window's reading and when it was
+   read, the stop, the pace in points an hour and the hour it meets the
+   wall against the reset, and what the session's steps cost — points of
+   the window and each builder's tokens beside the score it moved. A
+   number to watch, not a rule: the goal Ramon named is fewer tokens a
+   step.
+
+**Not established:** how many resets are banked; whether a builder killed
+by the wall can be resumed rather than re-cut; what a line of step 5
+should cost, which the next bookings measure.

@@ -15,8 +15,11 @@ later (§3). The ledger's field names come from the type records
 (`types.txt` in the decompile export, and the PDB's own field lists
 where the export's record is incomplete). Its byte counts are measured
 on those two frames (§4). The first state line ported, items, agrees
-byte for byte on run 1562's frame (§11). What rests on a reading alone
-is listed in §10.
+byte for byte on run 1562's frame (§11), and so does the second, cities
+(§12), and so does the third, goods (§13, item 4093), once the built
+start runs setup's goods scan. ~~Goods is held out on one byte, good 15's
+`ever_seen` (§13).~~ What
+rests on a reading alone is listed in §10.
 
 ## 1. What the checksum is
 
@@ -253,15 +256,18 @@ IEEE-754 bit patterns. That is the residue's question, and §10 states it.
 items after 4088 follow. The three empty lines are not counted there
 and are named last; by bytes:
 
-1. cities (228) · 2. items (484; ported, §11) · 3. goods (792) ·
+1. cities (228; ported, §12) · 2. items (484; ported, §11) · 3. goods
+(792; ported, §13) ·
 4. builds (4,923) · 5. guys (9,308) · 6. units (19,642; it walks the
 guys again) · 7. groups (37,010) · 8. leaders (58,343) ·
 9. world (294,769) · then walls, ammo and deaths (0 each), counted on a
 frame that holds one.
 
 Cities and items swapped places against run1100's frame (630 and 352
-there). Goods is the record items is, over another array, and needs
-one field this crate does not hold (§11).
+there). Goods is the record items is, over another array; ~~its one
+parting byte is a setup writer our built start does not run~~ its one
+parting byte was a setup writer our built start did not run, and runs
+since item 4093 (§13).
 
 *On run1100's frame 5408* (item 4060), by the bytes there, with the
 three empty lines first:
@@ -286,11 +292,14 @@ item 4060's was run1100, 5408, 3502) and `CHECKSUM_STATE` (the state
 lines our simulation emits equal to the original's, of twelve, and the
 bytes of the twelve walks ours reproduces, of 425,499 on that frame):
 
-    Checksum: instrument 15 of 15 lines (run1562 f91) · state 1 of 12 lines, 484 of 425,499 bytes
+    Checksum: instrument 15 of 15 lines (run1562 f91) · state 3 of 12 lines, 1,504 of 425,499 bytes
 
 Item 4088 moved it from `instrument 15 of 15 lines (run1100 f5408) ·
 state 0 of 12 lines, 0 of 501,543 bytes`: the pair moved to the minted
-game, and items is ported (§11).
+game, and items is ported (§11). Item 4091 moved it from `state 1 of 12
+lines, 484 of 425,499 bytes`: cities is ported (§12), and goods is held
+out on one byte (§13). Item 4093 moved it from `state 2 of 12 lines, 712
+of 425,499 bytes`: goods is ported (§13).
 
 `floors::tests::the_handoff_s_checksum_line_is_the_pinned_counter` holds
 the queue's line against it. `checksum::tests::the_instrument_reproduces_the_printed_record`
@@ -415,8 +424,16 @@ also hand over:
 **Cities** (`CheckSums::check_cities@00937600`): per active leader, per
 `City` with `flags & 1`, [+0x4, +0x6) `city_flags` and [+0x6, +0x72)
 `city`..`ter` (108 bytes; `vfptr` at +0 and the two `String` names at
-+0x90 and +0xa4 are skipped). Then the `vans` `Array<CaravanLink>`
-(header, then 8 bytes, `cara` and `who`, per link): 5 cities, 4 links.
++0x90 and +0xa4 are skipped — an input walk alone takes them). Then
+**that city's own** `vans` (`Array<CaravanLink>` at +0x74) through
+`Array<CaravanLink>::walk_data@00489040` — per city, not once after
+the last, as the recon read it (the stream settles it, item 4091): its
+length as a 4-byte local; with links, its size (a 4-byte local, 10 on
+every link array read), `increment` [+0xc, +0xe) (−1), the flags byte
+`& 0xbf` (a 1-byte local) and 8 bytes a link, `cara` and `who`. An
+empty array is its length alone. 5 cities and 4 links on run1100's
+frame (31 ranges); 2 cities and no link on run 1562's (6 ranges, 228
+bytes; §12).
 
 **Items** (`CheckSums::check_items@00937790`) and **goods**
 (`CheckSums::check_goods@00937710`): each live record (`flags & 1`, the
@@ -595,6 +612,9 @@ array, but its first byte is `GoodData::ever_seen` (+0x20), which
 `world::Good` does not hold: one good of 36 reads 2 on this frame
 (leader 1 has seen it), the rest 0. Holding it needs a reading of that
 field's writers, which items did not, so it is the next goods item's.
+~~Not read~~ — read by item 4091 (§13): the crate holds the field as
+`territory.good_seen_bits`, and the one parting byte is a setup writer
+our built start does not run.
 The rest of the record — `flags` 1, `who` 255, `o`, `z` by the same
 `refresh_good_z`, `x`, `y` and the type local — is what items already
 emits.
@@ -615,3 +635,242 @@ on this frame: a later frame, after the scout has seen a box, is the
 check); a box taken (`flags` 0, not walked) or one whose ground a later
 terraform moved, which `refresh_good_z` follows and this crate's boxes
 read live; a box on an ocean tile or below zero.
+
+## 12. The cities line, ported (item 4091)
+
+`Sim::checksum_cities` (`crates/sim/src/checksum.rs`) emits
+`CheckSums::check_cities@00937600`'s image from this crate's state, and
+`rondata::diff::checksum_lines::the_cities_line_is_the_original_s_range_by_range`
+holds it against the instrument's stream of run 1562's packet the way
+§11 holds items: on the minted walk's frame 91, range by range, then
+every field decoded on both sides, then the Adler against record 3201's
+`Cities`.
+
+**The line, per active leader in slot order, per live city in that
+leader's list** — 3 ranges a city with no link, 114 bytes:
+
+| # | range | ours |
+|---|---|---|
+| 1 | `CityData::city_flags` (+0x4), 2 | the word from the city's own bits and its building marks (below) |
+| 2 | `city`..`ter` (+0x6..+0x72), 108 | the table below |
+| 3 | `vans.length`, a 4-byte local | the caravan links ending at the city; with links, §8's four more ranges |
+
+`city_flags` is built bit by bit (`docs/CITIES.md` §1.4): `0x1` alive,
+`0x2`/`0x4`/`0x8` the attack stages, `0x10` capital, `0x40` alarm,
+`0x100` unassimilated, `0x2000` no muster, `0x4000` founding capital,
+`0x8000` was founding capital, all on the city record; `0x80`, `0x200`,
+`0x400` and `0x800`, an active Temple, Granary, Lumbermill and Market
+in the city, read off its building chain (`Sim::city_has`); `0x1000`,
+the owner's `CityAi::near_border`. **The human's city reads `0x4811`
+and the British `0x4011`**: the `0x800` is the human's Market, which
+ours holds in the city (it is the bit run1031's `CITIES=5` row
+recorded, `docs/RUNS.md`). Bit `0x20` is not held; no frame read sets
+it.
+
+**The 108 bytes, as the type record names them** (`types.txt`,
+`CityData`, size 0xb8; `sim::checksum::CITY_FIELDS`, which a test holds
+to tile +0x6..+0x72 exactly). "Holds" is a field of this crate's;
+"derives" is computed from state it holds; "zero" is a field no writer
+here keeps, written as the constant `City::init@00737050` leaves.
+
+| field | offset, width | ours | city 0 (who 0) | city 1 (who 1) |
+|---|---|---|---|---|
+| `city` | +0x6, 2 | derives: the city's place in its owner's list | 0 | 0 |
+| `o` | +0x8, 2 | holds: the city building's `index` | 2000 | 2000 |
+| `reg` | +0xa, 2 | derives: `City::reg` in the original's numbering (`World::region_number`) | 1 | 1 |
+| `x`, `y` | +0xc, +0x10, 4 each | holds: `pos`, **plain** (`City::init` unmasks the building's `Coord`s) | 3168, 30816 | 42336, 16224 |
+| `attack_stamp`, `raid_stamp`, `reduce_stamp`, `capture_stamp`, `assimilation_timer` | +0x14..+0x28, 4 each | holds | 0 each | 0 each |
+| `capture_strength` | +0x28, 4 | holds | 0 | 0 |
+| `traded_with[8]` | +0x2c, 4 each | holds | 0 each | 0 each |
+| `scouted` | +0x4c, 2 | zero (`City::init`, copied by `City::capture@00736c40`) | 0 | 0 |
+| `in_port`, `peasant_dist` | +0x4e, +0x50, 2 each | holds (`CityAi`, the owner's copy) | 0, 1 | 0, 1 |
+| `trade_val` | +0x52, 2 | holds | 0 | 0 |
+| `conquest_node` | +0x54, 2 | zero: −1, `City::init`'s `0xffff` (Conquer the World, cut) | −1 | −1 |
+| `granary`, `lumber_mill`, `smelter`, `refinery` | +0x56..+0x5a, 1 each | derives: `City::calc_gather@00737c60`'s four bytes (`Sim::city_holdings`), the fourth an unconditional 0 | 0 each | 0 each |
+| `free`, `busy`, `gatherers` | +0x5a..+0x5d, 1 each | holds (`CityAi`) | 0, 5, 5 | 0, 5, 4 |
+| `pop` | +0x5d, 1 | holds | 1 | 1 |
+| `who`, `race`, `founder` | +0x5e..+0x61, 1 each (`char`) | holds (`race` −1 when `None`) | 0, 0, 0 | 1, 1, 1 |
+| `plundered` | +0x61, 1 | zero (`City::init`; `Build::process@0061edf0` counts it down every 200 frames; its setter not read) | 0 | 0 |
+| `ocean`, `land`, `filled`, `bordering`, `ocean_filled`, `dock_tile` | +0x62..+0x68, 1 each | holds (`CityAi`) | 0, 77, 38, 0, 0, 0 | 0, 82, 40, 0, 0, 0 |
+| `was_capital_flags` | +0x68, 1 | holds | 0 | 0 |
+| `space[3]` | +0x69, 1 each | holds (`CityAi`) | 45, 45, 39 | 53, 53, 42 |
+| `ter[6]` | +0x6c, 1 each | holds (`CityAi`) | 1, 2, 0, 1, 2, 0 | 1, 2, 0, 1, 2, 0 |
+
+Every value in the last two columns is the same on both sides.
+
+**The value diff**: 6 of 6 ranges and 228 of 228 bytes equal; every
+field of both cities equal (`city_flags` and the 52 fields above, both
+sides decoded by the same table); ours sums to 1233128295, the printed
+`Cities`. The original prints the same values in frame 91's `CITY`
+records (`CityData::log_data@004895c0`), which `diff::harness` already
+compares on every capture that dumps them, which is why the AI's half
+agreed on the first image.
+
+**Made to fail**: the empty image parted on all 6 ranges (red first,
+before the port). One perturbed byte of ours, the second city's `land`,
+parts on that range alone (range 4, `city..ter`), and the Adler with
+it.
+
+**How it was established, and how confident.** Diff-backed: every byte
+of the line on one frame, against the stream, and the Adler against the
+printed record; the walk's order (each city's `vans` after its own two
+ranges) is the stream's. From the type record: every field name,
+offset and width. On a reading, held by that diff on this frame: what
+`City::init` writes to `scouted`, `conquest_node` and `plundered`, and
+the shape of a non-empty `vans` array (run1100's stream, not ours).
+
+**Not established**:
+
+- Any frame but 91, and any lobby but the minted game's.
+- **Agreeing by default on this frame** (the same constant on both
+  cities, so the diff cannot tell a held field from a written zero):
+  every stamp and `capture_strength`; `traded_with[8]`; `scouted`,
+  `in_port`, `trade_val`; `conquest_node` (−1); the four enhancer
+  bytes; `free`; `plundered`; `ocean`, `bordering`, `ocean_filled`,
+  `dock_tile`, `was_capital_flags`; `ter[2]` and `ter[5]`; and city
+  flags `0x2`, `0x4`, `0x8`, `0x20`, `0x40`, `0x80`, `0x100`, `0x200`,
+  `0x400`, `0x1000`, `0x2000`, `0x8000`. `scouted` and `plundered` have
+  no writer here; a capture that sets one is the check.
+- **A city with a caravan link.** The image emits §8's shape with `size`
+  10, `cara` the caravan's slot in its owner's list and `who` that
+  owner, in owner-then-slot order. Each of those is an assumption: no
+  link stands on the scored frame, and the array's growth and add order
+  are not read.
+- A leader whose list holds a dead slot before a live one, or a captured
+  city. `city` is the city's place among its owner's live cities, and
+  the original's is its slot in the leader's `PtrArray<City>`. The two
+  agree until a slot dies.
+- Which leaders are "active": the walk takes every owner of a live city
+  in slot order, and the original takes `leaders.list & 1`.
+
+## 13. The goods line, ported (item 4093; held out on one byte at item 4091)
+
+`Sim::checksum_goods` is §11's record over the goods array, per live good
+in `World::goods`' order (`o` its index): `ever_seen`, `flags` 1,
+`must_walk` 1, `who` 255, `o`, `z` as `refresh_good_z` last wrote it,
+`x`, `y`, and the type local, the good's own `TypeIndex`.
+`rondata::diff::checksum_lines::the_goods_line_is_the_original_s_range_by_range`
+holds it against the stream (item 4091's
+`the_goods_line_is_held_out_on_good_15_s_ever_seen` turned into it).
+
+**`GoodData::ever_seen` (+0x20), and its writers.** The type record names
+it a `uchar`, a bit per leader. `Good::log_data@0066e610` prints it, and
+its one reader is `GoodData::is_seen@0066e4c0` (`ever_seen & ally_mask`
+first). Every writer in the export:
+
+1. `Good::init@0066da20`: zero.
+2. `World::reveal_fog@006b3d30:87`, the rare arm: `|= 1 << who` right
+   after `Leader::new_rare@006d9e70`, on a fog cell `World::set_seen`
+   newly revealed whose tile carries a good's footprint (`0x200`).
+3. `World::compute_reg_territory@006b0bb0:651`, the per-cell goods
+   scan: `|= 1 << who` beside `new_rare`, on a cell the pass gives
+   `who`, where the cell's first live good is not oil and `who` or an
+   ally has seen its second half-cell each way.
+4. `Leader::plan_strategy@006b9620:337`, the census's step 9: `|= 1 <<
+   who` on every good of the leader's own `new_rares` that it has
+   explored. `new_rare` hands a good to every ally as well as the finder
+   (`diplos` 2 both ways), so this arm adds a bit only in an alliance.
+   Outside one, the leader's `new_rares` holds only goods arms 2 and 3
+   put there, and each set the same bit.
+5. `Animal::work@005d7330:53`, the herd arm: every 16 frames, phased by
+   the animal's `o`, an animal of a herd whose `HerdData::good_o` names
+   a good sets the bit of every live leader that `WorldData::is_seen`
+   the animal's fog cell. On Great Lakes the herds name goods 19 and
+   24..35.
+
+This crate holds the field as `territory.good_seen_bits`, written by
+`Sim::mark_good_seen` from arms 2 and 3 (items 1555 and 3332), and from
+arm 3 at setup since item 4093 (`Sim::claim_rares_from_owners`).
+`Sim::good_ever_seen_byte` reads it for the image. Arms 4 and 5 are not
+modelled.
+
+**The value diff, ported (item 4093)**: 180 of 180 ranges equal, and
+792 of 792 bytes. Every good's nine fields agree. One good of 36 has a
+bit on the frame, on both sides:
+
+| good | type | point | `ever_seen` ours | theirs |
+|---|---|---|---|---|
+| 15 | 17 (`AMBER`) | (40320, 14208) | 2 (leader 1) | 2 (leader 1) |
+
+Ours sums to **1939436390**, the printed `Goods`. Made to fail: good 15's
+byte at the unported 0 parts on range 75 alone, and the Adler with it;
+good 3's `x` perturbed parts on range 18 alone; the empty image parts on
+all 180. The frame-0 line beside it: run9's `[Start Game]` prints 35 of
+the 36 goods' `ever_seen` (the first record lost its head lines in the
+print), and the built start's agree on all 35, good 15 at 2
+(`diff::start_walk::the_built_start_s_goods_ever_seen_is_the_start_dump_s`).
+Leader 1's `new_rares` is `[15]` from frame 0 (ours; no dump prints the
+list), and on frame 91 its `known_rares` is 1 on both sides.
+
+**The value diff at item 4091, and the byte held out**: 179 of 180 ranges equal, and
+791 of 792 bytes. Every good's `flags`, `must_walk`, `who`, `o`, `z`,
+`x`, `y` and type agree, and every `ever_seen` agrees but one:
+
+| good | type | point | `ever_seen` ours | theirs |
+|---|---|---|---|---|
+| 15 | 17 (~~the SILK~~ `AMBER`: `TypeIndex` 17, and run9's `GOOD` prints `Amber`) | (40320, 14208) | 0 | **2** (leader 1) |
+
+Ours sums to 1878881124 against the printed 1939436390. With that one
+byte at the original's 2, a substitution made only in the test, ours
+sums to 1939436390. So the rest of the line is the original's.
+
+**Why ours lacks it.** The good stands on a cell leader 1 owns (cell
+(52, 18)), and leader 1's `seen2` holds that cell's half-cell (fog
+(105, 37) reads 2). The cell is seen through the starting city's
+`Object::update_seen_ally@006537a0`, which writes `seen2` directly and
+never calls `reveal_fog`, so arm 2 does not fire. The original's
+setup `compute_all_territory` then runs arm 3 on the cell: `new_rare`,
+then the bit. Its frame-91 `LEADERDATA` prints leader 1's `known_rares 1`,
+the census's count of that list. Our built start's wholesale setup pass
+(`start_border_pass` before play, and `settle_borders`) runs only the oil
+half of the scan (`claim_oil_from_owners`), so on frame 91 ours holds
+`new_rares[1]` empty, `known_rares` 0 and no bit. Our first in-play
+border pass gives the same cell to leader 1 through `claim_cell_goods`
+on **frame 387**, and from then on ours reads 2 (probed on the walk:
+`new_rares[1]` `[15]` from 387, `[15, 17]` by 2000).
+
+So the byte is not a field the simulation lacks. It is a writer the
+built start does not run: setup's goods scan, and with it the AI's
+`new_rares` and `known_rares` for the first 296 frames. ~~Porting it is
+not this line's to do. It changes the AI's state on the minted walk
+(its merchant reads `new_rares`), which is a mechanic under its own
+document (`docs/ECONOMY.md`, "The rares a leader has seen"), with every
+floor run against it. **The goods line is held out on good 15's
+`ever_seen`**, and the test pins it so, both ways: a setup pass that
+sets the bit turns it red, and so does any other byte that parts.~~
+Ported by item 4093 under that document ("Setup's goods scan"), with
+every floor that walks a built start run against it and none moved
+(the value diff above).
+
+~~**Made to fail**: the empty image parts on all 180 ranges. One more
+perturbed byte of ours, good 3's `x`, parts on its own range as well as
+good 15's, and on no other. The held-out byte is itself the measured
+parting.~~ The line's own made-to-fail is in the value diff above.
+
+**The items line is not touched by this reading.** An item's
+`ItemData::ever_seen` (+0x20) has its own writers: `Item::init` and
+`reveal_fog`'s goody arm (`:148`), which `GoodyItem::ever_seen` carries
+(item 3335). None of the five above writes an item. All 22 boxes read 0
+on both sides, and items stays 110 of 110.
+
+**How it was established, and how confident.** Diff-backed: all 792
+bytes of the line on frame 91 (item 4093; 791 and the one parting byte
+at item 4091), and every printed good's `ever_seen` at frame 0. On a reading: the five writers (found by grepping the export
+for every `|= 1 << who` and every store at +0x20 of a goods-list
+pointer, then read with their callers), and arm 4's redundancy outside
+an alliance. Probed on our walk: the frame ours sets the bit.
+
+**Not established**:
+
+- Any frame but 91. After frame 387 ours holds good 15's bit. Whether
+  the line then agrees depends on arm 5: a leader that sees a herd
+  animal sets its good's bit in the original and not in ours. On frame
+  91 every herd good (19, 24..35) reads 0 on both sides, so those
+  goods agree by default here.
+- Arm 4 in an alliance (no allied lobby is read).
+- The order of `new_rares` ~~when the setup scan is ported~~ that setup
+  leaves. The scan is ported (item 4093) and appends in the pass's
+  region-and-cell order (`docs/ECONOMY.md`, "Setup's goods scan"), but
+  on this lobby each leader meets one rare at most, so no diff has
+  tested the order.
+- A dead good (`flags` 0, not walked), and a good a terraform moved.

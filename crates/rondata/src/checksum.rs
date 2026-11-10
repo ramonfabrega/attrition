@@ -134,8 +134,10 @@ pub const CHECKSUM_PACKET: (&str, i64, u64) = ("run1562", 91, 3201);
 /// bytes the original's twelve walks hand over there (the ledger,
 /// `docs/CHECKSUM.md` §4), how many ours reproduces, on
 /// [`CHECKSUM_PACKET`]'s frame. Item 4088: items, 484 of run 1562's
-/// 425,499 (`diff::checksum_lines`).
-pub const CHECKSUM_STATE: (usize, usize, u64, u64) = (1, 12, 484, 425_499);
+/// 425,499 (`diff::checksum_lines`). Item 4091: cities, 228 more; goods
+/// held out on good 15's `ever_seen`. Item 4093: goods, 792 more, once
+/// the built start runs setup's goods scan (`docs/CHECKSUM.md` §13).
+pub const CHECKSUM_STATE: (usize, usize, u64, u64) = (3, 12, 1_504, 425_499);
 
 /// Which logger hook printed a record.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
