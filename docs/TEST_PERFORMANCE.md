@@ -351,10 +351,86 @@ the driver's booking gate is the measurement. The walk at four walkers (no verdi
 alone time (verifiers, load, or growth). Whether the walk scales past four walkers
 on a quiet host. The rest of the isolated profile is a month stale (876 rows for
 2,181 tests; 1,305 reserve the unknown 8 GiB), harmless while admission does not
-bind, and not refreshed here. The non-`rondata` binaries (sweeps 387 s, `sim`
+bind, and not refreshed here. ~~The non-`rondata` binaries (sweeps 387 s, `sim`
 64 s, the rest about 10 s) still run after the library, serially; overlapping them
 with the library's last minutes is the next scheduling move, worth at most their
-7.7 minutes.
+7.7 minutes.~~ They ran serially, but on `0e28830d6`'s build before the library, not
+after it; they now run beside it: "The release step's lanes (Loop 4042)", next.
+
+## The release step's lanes (Loop 4042)
+
+**What was measured.** The whole gate on `0e28830d6` (2026-11-10, `--test-threads 8`, report
+`attrition-gate-7_l8tlgl`, host load 8.0 at the start and 44.6 at the end). I read each binary's span off its
+`resource budget timing` receipt in `release-tests.log` and the report files' birth and modification times. The
+release step is 1,711 s, from 01:17:04 to 01:45:35:
+
+| span | seconds |
+|---|---|
+| build (`--no-run`, already built by the guard step) | 2 |
+| the binaries Cargo lists **before** the library, one after another: `sweep_a_f` 85.5, `sweep_p_t` 74.0, `sim` 63.6, `sweep_u_z` 175.4, `sweep_g_o` 55.5, the `rondata` bin 0.0 | 453.9 |
+| the isolated `rondata` library, 2,183 tests, 10,230 CPU-seconds | 1,250.0 |
+| the small binaries after it (`camera_packet`, `camera_sweep`, `render`, `fixed`, `client`, 2.6 s) and the doctests | 5 |
+
+The library's own pool was full. From each test's log (birth to last write, the 4072 method), 9,927 of the
+8 × 1,250 slot-seconds held a test, or 99.3 %. Every minute averaged 7.75 to 8.00 busy slots, and so did the last
+50 s. The coverage walk ran eight-wide from 0 to 345.7 s. Admission waited 14.7 s over 2,205 leases, 0.1 s at
+most. The tail was therefore not where the 4072 section put it: Cargo's artifact order put the sweeps and `sim`
+**before** the library on this build. A later build, the scoped gate on `38726faf9`, put them after it. Either
+way they ran serially, so the move is the same.
+
+A second gate shows how much of this the verifiers cost. The scoped booking gate on `38726faf9` ran every timed
+test without `RON_VERIFY_*` (a scoped gate does not verify). There the library took 609.4 s and 5,172
+CPU-seconds, against 1,250.0 s and 10,230 with the verifiers. The sweep and `sim` binaries took about 74 s in all,
+against 454. Its release step was 691 s.
+
+**What moved.** `tools/isolated_tests.py`'s `release` now runs two lanes. The first is the isolated library on its
+pool, as before. The second runs every other binary one at a time, at the gate's width and under the reservations
+`target_budget` already gave them, so the gate holds 8 + 8 of the budget's 20 CPU slots while both run where it
+held 8. The second lane starts once the library's head test is running, meaning its log shows libtest's banner or
+it has finished, so the eight-wide coverage walk is admitted before an eight-wide sweep can take its slots. Each
+binary's output goes to its own log, `isolated/beside/NN-name.log`. The runner prints that log whole, header
+first, after the library's block. That way `summarize_tests` keys every verdict and every `FAILED` line to its
+own binary.
+
+The runner now refuses two silent outcomes:
+
+- A binary that exits 0 without exactly one `test result:` line is 125.
+- If any executable Cargo built has no exit, the step is 125 and the runner names that executable.
+
+Some behaviour is unchanged. A signal stops both lanes and is still 130, and a 137 keeps its own exit. The
+doctests run after both lanes. `exit-codes.json` keeps Cargo's order. The lanes' spans are written to
+`isolated/lanes.json`, and the step prints them as one line beginning `Release lanes:`, so the booking gate
+measures the overlap. `--lane` and `--scope` pass the same skip selection to both lanes, and
+`--exclude-package sim` leaves those binaries out of the second lane.
+
+The fixtures are `tools/explore/test_isolated_tests.py`'s `Lanes`. They were red first on the booked runner:
+
+- The first binary started 1.84 s before the library, where the fixture requires it to start after.
+- A zero-verdict binary passed: `0 != 125`.
+- A cancelled library let a 30 s binary run out its time: 33.5 s against a 10 s bound.
+
+**Projected** (a projection, not a measurement; the booking gate is the measurement):
+
+- **Whole gate, from `0e28830d6`'s rows.** The step becomes the build, the library and the doctests: 2 + 1,250 +
+  about 2.5 = **about 1,255 s (20.9 minutes)** against 1,711 (28.5). The binaries beside the library total
+  456.5 s, so they finish 794 s before it. Contention is the caveat. The gate now has 16 CPU-bound threads
+  runnable on 12 performance and 4 efficiency cores. If every thread advanced at 12/16 while both lanes ran, the
+  second lane would last 608 s and cost the library 152 s, for about 1,406 s (23.4 minutes). So the release step
+  is projected at 20.9 to 23.4 minutes. Adding the other steps' 3.3 minutes on that gate, the whole gate comes to
+  24.2 to 26.7 minutes, against 31.8.
+- **Scoped gate with every timed test, from `38726faf9`'s rows.** About 2 + 609 + 2 = 613 s (10.2 minutes)
+  against 691 (11.5).
+
+**What is not established.**
+
+- **The contention.** No library ran beside a sweep here, so the 12/16 dilation is a bound I chose, not a
+  measurement.
+- **The host share.** For about eight minutes of a whole gate, the gate holds 16 of 20 CPU slots. A lane gate
+  admitted then may wait longer than it did. Nothing here measured those waits.
+- **Why the verifiers double the library's CPU.** The 609 s gate and the 1,250 s gate also differ in host load
+  (26 to 14 against 8 to 44), so not all of the 2× is the verifiers. I did not split it by test.
+- **A real run of the new step.** The runner has run only on fixtures and on one real libtest binary: `fixed`,
+  13 tests, one verdict read through the shared budget.
 
 ## Persistent setup observations
 
