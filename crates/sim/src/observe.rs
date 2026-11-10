@@ -123,6 +123,11 @@ pub struct BuildingScene {
     pub hits: i32,
     /// `WallData::is_active`: finished.
     pub active: bool,
+    /// `WallData::is_started` (`flags & 2`, [`crate::cities::building::Building::started`]):
+    /// `Wall::start` has run. `WallOut::draw_overlays@00641600` draws a
+    /// building's scaffold only while it is started and not active
+    /// (`docs/RENDERER.md` §3.5; item 4061).
+    pub started: bool,
     /// Construction progress as the simulation keeps it: `constr_time`
     /// against `construct_hits` (`docs/CITIES.md` §3).
     pub constr_time: i32,
@@ -303,6 +308,7 @@ impl Sim {
                 health: b.health,
                 hits: b.hits,
                 active: b.active,
+                started: b.started,
                 constr_time: b.constr_time,
                 construct_hits: b.construct_hits,
                 orig_ty: b.orig_ty,
