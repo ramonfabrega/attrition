@@ -16145,6 +16145,28 @@ words and edits nothing here; a refill lands when two remain.
   scout has seen a box, is the check; it names the `Checksum:` line once the twelve are counted on more than
   one frame.
 
+## Parked by item 4091, 2026-11-10 — the cities line ported, the goods line held out on one byte
+
+- **4091a. `Animal::work`'s herd arm of a good's `ever_seen` is not modelled** (`docs/CHECKSUM.md` §13, writer 5):
+  every 16 frames a herd animal that a live leader sees sets that leader's bit on the herd's good. On Great Lakes
+  the herds name goods 19 and 24..35, all 0 on run 1562's frame 91, so the goods line agrees there by default.
+  Names the `Checksum:` goods line on the first frame after a leader sees a herd animal: no score until the
+  twelve are counted on a second frame.
+- **4091b. What the cities line's one frame does not hold** (`docs/CHECKSUM.md` §12): a city with a caravan link
+  (the image assumes the link's size, `cara` as the caravan's slot in its owner's list and owner-then-slot order;
+  none is read, no link stands on the frame); the city list's order once a slot dies or a city is captured
+  (`city` is taken as the place among the owner's live cities); and every field that reads one constant on both
+  cities — the stamps, `traded_with`, `scouted`, `in_port`, `trade_val`, `conquest_node`, the enhancer bytes,
+  `free`, `plundered`, `ocean`, `bordering`, `ocean_filled`, `dock_tile`, `was_capital_flags`, and twelve bits of
+  `city_flags`. A second packet on a later frame of the minted game is the check, as 4088c.
+- **4091c. 4091's "for the Loop"** (the journal's line, filed at its merge): the brief named the goods byte as
+  "what the simulation already knows a leader has seen"; the crate already held the field
+  (`territory.good_seen_bits`), and the parting is a setup writer the built start skips, which also leaves the
+  AI's `new_rares` and `known_rares` short over frames 0..386 of the minted walk. Booked as 4093. Nothing left
+  to build.
+- **4091d. `ai_census`'s seam table calls `GoodData::ever_seen` unwritten** where `good_seen_bits` holds it
+  (writers 2 and 3). The census filler's (4039) to correct; names no score.
+
 ## Parked by item 4089, 2026-11-10 — the tank's tilt drawn; the draw clock and two riflemen left
 
 - **4089a. The draw clock the tilt's ease runs on** (`docs/RENDERER.md` §3.7, §5.3 "The tilt"; `Tilt::Eased`).
