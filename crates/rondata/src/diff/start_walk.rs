@@ -509,3 +509,87 @@ fn the_lobby_walked_from_the_built_start() {
 /// run226 one citizen a few units off), the same ten from the installed
 /// start.
 const START_WALK_RECORDS: (usize, usize) = (2770, 10);
+
+/// **The original playing a file we wrote** (item 4058, `docs/RECGAME.md`
+/// §8): `recgame::from_lobby`'s `.rcx` of this lobby — header from run53's
+/// `GAMEINFO`, no input — opened by the original on the click-free lane
+/// and its playback captured, per take: `(the take's dump, its trace,
+/// frames whose draws agree, frames walked, records compared, records
+/// parted)`. The built start's walk reads the playback's trace for its
+/// draws and the playback's dump for its records: run1560a prints every
+/// unit for 300 frames (`end:MISC,UNITS=3`), run1560b only the trace for
+/// 2,400 (`end:MISC`, whose playback dump holds two blocks).
+pub(crate) const PLAYBACK_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[
+    (
+        "gamelog-run1560a-greatlakes-playback-of-ours-300.txt",
+        "rontrace-run1560a.log",
+        300,
+        300,
+        299,
+        0,
+    ),
+    (
+        "gamelog-run1560b-greatlakes-playback-of-ours-2400.txt",
+        "rontrace-run1560b.log",
+        2400,
+        2400,
+        1,
+        0,
+    ),
+];
+
+/// **The playback of our file, walked from the built start** (item 4058):
+/// the same walk as [`the_lobby_walked_from_the_built_start`], from the
+/// same `Built`, against the original's playback of the `.rcx` this crate
+/// wrote of that lobby rather than against the live game — every frame's
+/// draws against the playback's trace, every record of its dump compared
+/// whole. The value diff when they part is printed: the first frame, the
+/// first parted record and what parted.
+#[test]
+fn the_original_s_playback_of_our_file_walks_in_lockstep() {
+    let Some(inst) = install() else { return };
+    let Some(lobby) = dump("gamelog-run53-greatlakes-24k-trace.txt") else {
+        eprintln!("skipping: no run53 capture (set RON_GAMELOG_DIR)");
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in PLAYBACK_WALKED {
+        let (Some(playback), Some(tr)) = (dump(take), trace(take_trace)) else {
+            eprintln!("skipping {take}: not filed (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut source = crate::capture::indexed::IndexedCapture::open(&lobby).unwrap();
+        let (built, players) = source
+            .with_replay_initial(|init| {
+                let players = player_count(&init);
+                let ours = from_lobby(&loaded, &init.game_info, &init.players, Tuning::RON);
+                (built_from_lobby(&loaded, ours).0, players)
+            })
+            .unwrap();
+        drop(source);
+        let w = walk(built, players, &[(take, playback)], &tr, i64::MAX);
+        eprintln!(
+            "PLAYBACK WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        if let Some((o, t)) = &w.sites
+            && let Some((_, d)) = first_parting(o, t)
+        {
+            eprintln!("the first parting frame, {:?}: {d}", w.first_sequence);
+        }
+        let agreeing = w.first_sequence.unwrap_or(w.last);
+        walked.push((
+            take,
+            take_trace,
+            agreeing,
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    assert_eq!(
+        walked, PLAYBACK_WALKED,
+        "PLAYBACK_WALKED: frames agreeing, frames walked, records, parted"
+    );
+}
