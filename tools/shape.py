@@ -4,6 +4,7 @@
     python3 tools/shape.py            # the queue's `Structure:` line
     python3 tools/shape.py --exact    # the same six counts, unrounded
     python3 tools/shape.py --json
+    python3 tools/shape.py --check    # the counts against the Rust pin, exit 1 on a move
 
 `docs/STRUCTURE.md` §2 names six counts, each of which may only fall, and
 the queue's `Structure:` line carries them in this order:
@@ -24,7 +25,14 @@ left out (`--json` prints them as `tables`, information only, never on
 the line), and `flat` counts loose root files, so a `foo.rs` that is the
 module file of a sibling `foo/` is not one.
 
-It reads the tree and prints; it decides nothing.
+It reads the tree and prints; it decides nothing — except under
+`--check` (Loop 4070): the counts against `STRUCTURE` as
+`crates/rondata/src/diff/floors.rs` writes it, exit 1 naming every count
+that moved. That is the structure pin's comparison
+(`diff::floors::tests::the_pinned_shape_is_the_tree_s`, which stays the
+authority and still runs in the release suite) made in under a second
+with nothing built, so the gate's first step and the reflex both hold
+it: 4063's inline test tail was red only at minute 49 of a whole gate.
 """
 import argparse
 import json
@@ -296,12 +304,54 @@ def line(counts, exact=False):
     return 'Structure: ' + ' · '.join(parts)
 
 
+FLOORS = ROOT / 'crates/rondata/src/diff/floors.rs'
+PIN = re.compile(r'^pub const STRUCTURE: \[\(&str, u64\); (\d+)\] = \[\n(.*?)^\];', re.M | re.S)
+PIN_ROW = re.compile(r'^\s*\("([a-z-]+)", ([\d_]+)\),\s*$')
+
+
+def pinned(text):
+    """`STRUCTURE`'s rows, in order, from `floors.rs`'s text: `[(key, n)]`.
+    A pin this cannot read is an error, never an empty pin that agrees."""
+    found = PIN.search(text)
+    if not found:
+        raise ValueError('no `pub const STRUCTURE: [(&str, u64); N] = [ … ];` in floors.rs')
+    rows = []
+    for row in found[2].splitlines():
+        m = PIN_ROW.match(row)
+        if not m:
+            raise ValueError(f'unreadable STRUCTURE row: {row!r}')
+        rows.append((m[1], int(m[2].replace('_', ''))))
+    if len(rows) != int(found[1]) or [k for k, _ in rows] != list(ORDER):
+        raise ValueError(f'STRUCTURE is not the six counts in order: {rows}')
+    return rows
+
+
+def check(counts, pin):
+    """The refusal lines for every pinned count the tree's differs from,
+    `[]` when the tree is the pin."""
+    return [f'{key}: the tree has {counts[key]}, STRUCTURE pins {n} ({counts[key] - n:+d})'
+            for key, n in pin if counts[key] != n]
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('--exact', action='store_true', help='every count whole')
     ap.add_argument('--json', action='store_true')
+    ap.add_argument('--check', action='store_true',
+                    help="exit 1 when a count is not floors.rs's STRUCTURE pin")
     args = ap.parse_args(argv)
     counts = measure()
+    if args.check:
+        moved = check(counts, pinned(FLOORS.read_text()))
+        if moved:
+            print('shape.py --check: the tree\'s shape is not the pin '
+                  '(`rondata::diff::floors::STRUCTURE`); re-pin the count a move '
+                  'changed, with its delta, or undo the move:', file=sys.stderr)
+            for row in moved:
+                print(f'  {row}', file=sys.stderr)
+            return 1
+        print(f'shape.py --check: the tree is the pin ({line(counts, exact=True)})')
+        return 0
     if args.json:
         print(json.dumps(counts))
     else:

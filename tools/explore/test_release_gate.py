@@ -120,8 +120,8 @@ class IsolatedGate(unittest.TestCase):
                     release_ran(kwargs, RELEASE_LOG.replace('FAILED', 'ok'))
             report = gate.gate(install, report_dir=Path(d)/'report', require_fixtures=True,
                                test_threads=4, isolated=True, run=run)
-            self.assertEqual(len(calls), 6)
-            self.assertIn('tools/isolated_tests.py', calls[4])
+            self.assertEqual(len(calls), 7)
+            self.assertIn('tools/isolated_tests.py', calls[gate.RELEASE_STEP])
             self.assertEqual(json.loads((report/'fixture-coverage.json').read_text())['missing_fixtures'], 0)
             self.assertEqual(json.loads((report/'gate-policy.json').read_text())['memory_cap_gib'], 32)
 
@@ -129,8 +129,14 @@ class IsolatedGate(unittest.TestCase):
         self.assertEqual(gate.phase_budget(['python3', 'tools/offline_tests.py']), (2, 1024))
         self.assertEqual(gate.phase_budget(['cargo', 'fmt', '--check']), (2, 1024))
         self.assertEqual(gate.phase_budget(['cargo', 'clippy']), (8, 32768))
-        self.assertEqual(gate.phase_budget(['zsh', 'tools/guard.sh', '--built']), (2, 4096))
-        self.assertEqual(gate.phase_limit(['zsh', 'tools/guard.sh', '--built']), 16384)
+        self.assertEqual(gate.phase_budget([sys.executable, 'tools/shape.py', '--check']), (2, 1024))
+        # Loop 4070: the gate's guard step builds the release binaries now —
+        # a build's reservation; a guard that is not `--built` keeps the
+        # reflex's, and its debug rebuild ceiling.
+        self.assertEqual(gate.phase_budget(['zsh', 'tools/guard.sh', '--built']), (8, 32768))
+        self.assertIsNone(gate.phase_limit(['zsh', 'tools/guard.sh', '--built']))
+        self.assertEqual(gate.phase_budget(['zsh', 'tools/guard.sh']), (2, 4096))
+        self.assertEqual(gate.phase_limit(['zsh', 'tools/guard.sh']), 16384)
         self.assertIsNone(gate.phase_limit(['cargo', 'clippy']))
         # Selection and mode are checked separately from the admission wrapper.
 
@@ -152,8 +158,8 @@ class SharedEntryPoints(unittest.TestCase):
                         release_ran(kwargs, RELEASE_LOG.replace('FAILED', 'ok'))
                 with patch.object(gate, 'branch_paths', return_value=[]):
                     gate.gate(install, report_dir=Path(d)/'report', run=run, git=UNMOVED, **options)
-                self.assertEqual('tools/isolated_tests.py' in calls[4], isolated)
-                self.assertEqual(len(calls), 6)
+                self.assertEqual('tools/isolated_tests.py' in calls[gate.RELEASE_STEP], isolated)
+                self.assertEqual(len(calls), 7)
 
     def test_isolated_and_combined_receive_identical_exact_exclusions(self):
         for options in [{}, {'scope': 'HEAD'}, {'lane': True, 'tests': WORD}]:
@@ -191,6 +197,7 @@ class SharedEntryPoints(unittest.TestCase):
             (tools/'explore'/'test_sweep_gen.py').write_text('import unittest\nclass FamilyRegistrations(unittest.TestCase):\n def test_ok(self): self.assertTrue(True)\n')
             (tools/'queueledger.py').write_text('')
             (tools/'nations_census.py').write_text('')  # the guard's --check (Loop 3972); a stub answers 0
+            (tools/'shape.py').write_text('')  # the guard's --check (Loop 4070); a stub answers 0
             cargo = root/'bin/cargo'
             # A filter that ran no test is named (Loop 4040): the stub answers one passed.
             cargo.write_text('#!/bin/sh\nprintf "%s|%s|%s|%s\\n" "$*" "$CARGO_BUILD_JOBS" "$RUST_TEST_THREADS" "$RON_LANE" >> cargo-calls\n'
@@ -245,6 +252,7 @@ class SharedEntryPoints(unittest.TestCase):
             (tools/'explore'/'test_sweep_gen.py').write_text('import unittest\nclass FamilyRegistrations(unittest.TestCase):\n def test_ok(self): self.assertTrue(True)\n')
             (tools/'queueledger.py').write_text('')
             (tools/'nations_census.py').write_text('')
+            (tools/'shape.py').write_text('')
             cargo = root/'bin/cargo'
             cargo.write_text(
                 '#!/bin/sh\nprintf "%s\\n" "$*" >> cargo-calls\n'
@@ -352,10 +360,11 @@ class GateTests(unittest.TestCase):
                 if '--release' in command:
                     release_ran(kwargs)
             gate.gate(path, report_dir=path/'report', run=run)
-            self.assertEqual(len(calls), 6)
-            self.assertEqual(calls[0], [sys.executable, 'tools/offline_tests.py'])
-            self.assertEqual(calls[3][:4], ['cargo','run','-p','rondata'])
-            self.assertIn('--release', calls[4])
+            self.assertEqual(len(calls), 7)
+            self.assertEqual(calls[0], [sys.executable, 'tools/shape.py', '--check'])
+            self.assertEqual(calls[1], [sys.executable, 'tools/offline_tests.py'])
+            self.assertEqual(calls[4][:4], ['cargo','run','-p','rondata'])
+            self.assertIn('--release', calls[gate.RELEASE_STEP])
 
     def test_clippy_and_fmt_run_before_the_release_suite(self):
         # 639: a worker whose suite was red only on the queue's lines stopped
@@ -373,7 +382,7 @@ class GateTests(unittest.TestCase):
             with self.assertRaises(subprocess.CalledProcessError):
                 gate.gate(path, report_dir=path/'report', run=run)
             names=[gate.step_name(c) for c in calls]
-            self.assertEqual(names, ['offline','clippy','fmt','survey','release'])
+            self.assertEqual(names, ['pins','offline','clippy','fmt','survey','guard','release'])
             self.assertLess(names.index('clippy'), names.index('release'))
             self.assertLess(names.index('fmt'), names.index('release'))
 
@@ -411,8 +420,8 @@ class GateTests(unittest.TestCase):
             with contextlib.redirect_stdout(out):
                 gate.gate(install, report_dir=Path(d)/'report', test_threads=4, isolated=True, run=run)
             lines = out.getvalue().splitlines()
-            self.assertTrue(lines[-4].startswith('Gate minutes: offline '), lines[-4:])
-            self.assertTrue(lines[-3].startswith('Gate steps: 6 of 6 ran'), lines[-4:])
+            self.assertTrue(lines[-4].startswith('Gate minutes: pins '), lines[-4:])
+            self.assertTrue(lines[-3].startswith('Gate steps: 7 of 7 ran'), lines[-4:])
 
     def test_the_receipt_carries_the_host_load(self):
         # Loop 3091: the admission receipt reads seconds while the lane gates
@@ -451,7 +460,7 @@ class GateTests(unittest.TestCase):
                         release_ran(kwargs)
                 with patch.dict('os.environ', RUST_TEST_THREADS='16', RON_TEST_MEMCAP_GIB='999'):
                     gate.gate(path, report_dir=path/'report', test_threads=width, run=run, isolated=False)
-                self.assertEqual(len(calls), 6)
+                self.assertEqual(len(calls), 7)
                 policy=json.loads((path/'report/gate-policy.json').read_text())
                 self.assertEqual(policy['release_test_threads'], width)
                 self.assertEqual(policy['memory_cap_gib'], 20 if width <= 4 else 32)
@@ -475,7 +484,35 @@ class GateTests(unittest.TestCase):
                     release_ran(kwargs)
             with self.assertRaises(subprocess.CalledProcessError):
                 gate.gate(path, report_dir=path/'report', run=run)
-            self.assertEqual(calls, [[sys.executable, 'tools/offline_tests.py']])
+            self.assertEqual(calls, [[sys.executable, 'tools/shape.py', '--check'],
+                                     [sys.executable, 'tools/offline_tests.py']])
+
+    def test_a_pin_that_reads_the_tree_is_red_in_the_first_step_and_the_guard_before_release(self):
+        # Loop 4070: 4063's inline test tail was red on the structure pin
+        # at minute 49.5 of a whole gate, and the blind list and the
+        # paperwork guards sat in the release step and the guard step behind
+        # it. Red first: the gate's first step was the offline suites and
+        # its last the guard. The pins step (`shape.py --check`, nothing
+        # built) is first and stops the gate; the guard step precedes the
+        # release step, so its reds stop the gate before the suite.
+        for failing, ran in [('pins', ['pins']),
+                             ('guard', ['pins', 'offline', 'clippy', 'fmt', 'survey', 'guard'])]:
+            with self.subTest(failing=failing), tempfile.TemporaryDirectory() as tmp:
+                path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+                calls=[]
+                def run(command, **kwargs):
+                    calls.append(command)
+                    if gate.step_name(command) == failing:
+                        raise subprocess.CalledProcessError(1, command)
+                    if '--release' in command:
+                        release_ran(kwargs)
+                out = io.StringIO()
+                with contextlib.redirect_stdout(out), self.assertRaises(subprocess.CalledProcessError):
+                    gate.gate(path, report_dir=path/'report', run=run)
+                self.assertEqual([gate.step_name(c) for c in calls], ran)
+                steps = out.getvalue().splitlines()[-3]
+                self.assertTrue(steps.startswith('Gate steps: ') and 'not reached: ' in steps, steps)
+                self.assertTrue(steps.endswith(', release') or steps.endswith(': release'), steps)
 
     def test_failed_survey_stops_before_tests(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -487,7 +524,7 @@ class GateTests(unittest.TestCase):
                     raise subprocess.CalledProcessError(1, command)
             with self.assertRaises(subprocess.CalledProcessError):
                 gate.gate(path, report_dir=path/'report', run=fail)
-            self.assertEqual([gate.step_name(c) for c in calls], ['offline','clippy','fmt','survey'])
+            self.assertEqual([gate.step_name(c) for c in calls], ['pins','offline','clippy','fmt','survey'])
 
     def test_summary_reports_requests_not_skipped_tests(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -556,7 +593,7 @@ class GateTests(unittest.TestCase):
                     self.assertLess(command.index('--no-fail-fast'), command.index('--'))
                     release_ran(kwargs)
             gate.gate(path, report_dir=path/'report', run=run, isolated=False)
-            self.assertIn('--no-fail-fast', calls[4])
+            self.assertIn('--no-fail-fast', calls[gate.RELEASE_STEP])
 
     def test_release_without_a_test_result_is_unobserved(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -600,10 +637,10 @@ class GateTests(unittest.TestCase):
                 gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD, git=UNMOVED)
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
             self.assertEqual([gate.step_name(c) for c, _ in calls],
-                             ['offline','clippy','fmt','survey','release','guard'])
+                             ['pins','offline','clippy','fmt','survey','guard','release'])
             self.assertEqual(calls[5][1].get('RON_LANE'), '1')
             self.assertIn("Lane verdict: red only on the commander's lines (2)", said)
-            self.assertIn('Gate steps: 6 of 6 ran', said)
+            self.assertIn('Gate steps: 7 of 7 ran', said)
 
     def test_a_wholly_green_lane_gate_prints_its_verdict_before_its_minutes(self):
         # Loop 3761: 3758's lane gate ran six of six with nothing red and
@@ -621,7 +658,7 @@ class GateTests(unittest.TestCase):
             with patch('builtins.print') as printed:
                 gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD, git=UNMOVED)
             lines=[str(c.args[0]) for c in printed.call_args_list if c.args]
-            self.assertEqual(len(calls), 6)
+            self.assertEqual(len(calls), 7)
             verdicts=[l for l in lines if l.startswith('Lane verdict:')]
             self.assertEqual(verdicts, ['Lane verdict: green, nothing red'])
             minutes=next(i for i, l in enumerate(lines) if l.startswith('Gate minutes:'))
@@ -676,7 +713,7 @@ class GateTests(unittest.TestCase):
                           git=UNMOVED)
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
             self.assertIn('Gate pid: ', said)
-            self.assertEqual(len(calls), 6)
+            self.assertEqual(len(calls), 7)
             with self.assertRaises(ValueError):
                 gate.gate(path, report_dir=path/'report3', run=run, item=1735)
 
@@ -876,7 +913,7 @@ class GateTests(unittest.TestCase):
                 gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD, git=UNMOVED)
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
             self.assertIn('Base moved: 2 commit(s)', said)
-            self.assertIn('Gate steps: 6 of 6 ran', said)
+            self.assertIn('Gate steps: 7 of 7 ran', said)
             self.assertIn('battery.rs', str(refused.exception))
 
     def test_every_test_that_reads_the_handoff_is_one_of_the_commander_s_lines(self):
@@ -1076,7 +1113,7 @@ class GateTests(unittest.TestCase):
         green = RELEASE_LOG.replace(' ... FAILED', ' ... ok') + 'test diff::mapgen::tests::the_mapgen_walk ... ok\n'
         calls, policy, out = self.lane_with(['crates/rondata/src/diff/mapgen.rs', 'docs/MAPGEN.md'],
                                             ['mapgen', 'map_lakes'] + WORD, log=green)
-        self.assertEqual(gate.step_name(calls[-1]), 'guard')
+        self.assertEqual(gate.step_name(calls[-1]), 'release')  # the last step since Loop 4070
         self.assertEqual(policy['lane']['sim_crate'], 'left to the booking gate')
         self.assertEqual(policy['lane']['tests'], ['mapgen'] + WORD)
         self.assertEqual(policy['lane']['dropped'], ['map_lakes'])
@@ -1353,7 +1390,7 @@ class GateTests(unittest.TestCase):
                           git=git_fixture(commits=['c2729a5 Book 3337'], theirs=['docs/QUEUE.md'],
                                           ours=['crates/sim/src/city.rs']))
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
-            self.assertEqual(len(calls), 6)
+            self.assertEqual(len(calls), 7)
             self.assertIn('no path both sides touched', said)
 
     def test_a_moved_base_whose_only_overlap_is_the_commander_s_paperwork_gates_and_lands(self):
@@ -1379,7 +1416,7 @@ class GateTests(unittest.TestCase):
                                           theirs=['docs/PARKED.md', 'docs/QUEUE.md'],
                                           ours=['docs/PARKED.md', 'crates/sim/src/city.rs']))
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
-            self.assertEqual(len(calls), 6)
+            self.assertEqual(len(calls), 7)
             self.assertIn("commander's paperwork (docs/PARKED.md)", said)
             self.assertIn('land on this verdict', said)
         # The re-read after the steps follows the same rule.
@@ -1390,7 +1427,7 @@ class GateTests(unittest.TestCase):
                  patch.object(gate, 'base_moved', side_effect=[([], []), (commits, ['docs/PARKED.md'])]):
                 gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD, git=UNMOVED)
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
-            self.assertIn('Gate steps: 6 of 6 ran', said)
+            self.assertIn('Gate steps: 7 of 7 ran', said)
             self.assertIn('land on this verdict', said)
         # (b) PARKED.md beside a real path still refuses, for the real path.
         with tempfile.TemporaryDirectory() as tmp:
@@ -1451,7 +1488,7 @@ class GateTests(unittest.TestCase):
                           git=git_fixture(commits=commits, theirs=overlap + ['docs/QUEUE.md'],
                                           ours=overlap + ['crates/sim/src/data/launch.rs'], theirs_diff=rows))
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
-            self.assertEqual(len(calls), 6)
+            self.assertEqual(len(calls), 7)
             self.assertIn("row lists on the base's side", said)
             self.assertIn('land on this verdict', said)
             policy = json.loads((path/'report'/'gate-policy.json').read_text())
@@ -1564,7 +1601,7 @@ class WholeLaneGate(unittest.TestCase):
                 gate.gate(path, report_dir=path/'report', run=run, lane=True, whole=True, git=UNMOVED)
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
             self.assertEqual([gate.step_name(c) for c, _ in calls],
-                             ['offline','clippy','fmt','survey','release','guard'])
+                             ['pins','offline','clippy','fmt','survey','guard','release'])
             self.assertIn("Lane verdict: red only on the commander's lines (2)", said)
             self.assertIn('Lane suite: every test, the timed ones included (--whole', said)
             release = next(c for c, _ in calls if '--release' in c)

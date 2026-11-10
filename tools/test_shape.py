@@ -161,5 +161,64 @@ class ShapeTest(unittest.TestCase):
         self.assertIn('test-tails 64958', shape.line(counts, exact=True))
 
 
+FLOORS = '''/// The pin.
+pub const STRUCTURE: [(&str, u64); 6] = [
+    ("flat", 4),
+    ("test-tails", 5),
+    ("sweep-lines", 3),
+    ("names", 2),
+    ("fields", 3),
+    ("largest", 21),
+];
+
+pub const STRUCTURE_LINE_BEFORE_SHAPE: Option<&str> = None;
+'''
+
+
+class CheckTest(unittest.TestCase):
+    """`--check` (Loop 4070): the counts against floors.rs's `STRUCTURE`,
+    so the gate's first step and the reflex hold the structure pin with
+    nothing built."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        root = Path(self.tmp.name)
+        for rel, text in FILES.items():
+            path = root / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text)
+        self.sim = root / 'sim/src'
+        self.rondata = root / 'rondata/src'
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_the_pin_reads_with_its_digit_separators(self):
+        self.assertEqual(shape.pinned(FLOORS.replace('("largest", 21)', '("largest", 3_721)')),
+                         [('flat', 4), ('test-tails', 5), ('sweep-lines', 3), ('names', 2),
+                          ('fields', 3), ('largest', 3721)])
+
+    def test_the_tree_that_is_the_pin_passes(self):
+        self.assertEqual(shape.check(shape.measure(self.sim, self.rondata), shape.pinned(FLOORS)), [])
+
+    def test_an_inline_test_tail_in_a_production_file_is_refused(self):
+        # 4063's shape: a new production file ending in a `#[cfg(test)] mod
+        # tests { … }` tail, which `test-tails` counts and the pin holds.
+        (self.sim / 'starting.rs').write_text(
+            'pub fn place() {}\n#[cfg(test)]\nmod tests {\n    #[test]\n    fn t() {}\n}\n')
+        moved = shape.check(shape.measure(self.sim, self.rondata), shape.pinned(FLOORS))
+        self.assertEqual(moved, ['flat: the tree has 5, STRUCTURE pins 4 (+1)',
+                                 'test-tails: the tree has 10, STRUCTURE pins 5 (+5)'])
+
+    def test_an_unreadable_pin_is_an_error_not_agreement(self):
+        for text in ('', FLOORS.replace('("names", 2),\n', ''),
+                     FLOORS.replace('("names", 2)', '("names", NAMES)')):
+            with self.assertRaises(ValueError):
+                shape.pinned(text)
+
+    def test_the_tree_s_own_pin_reads(self):
+        self.assertEqual([k for k, _ in shape.pinned(shape.FLOORS.read_text())], list(shape.ORDER))
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -495,8 +495,9 @@
       "rss_bytes": 114327552
     },
     "diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned": {
-      "elapsed": 47.07998354198935,
-      "rss_bytes": 2009333760
+      "elapsed": 347.52,
+      "rss_bytes": 3109191680,
+      "cpu": 8
     },
     "diff::coverage::the_recorder_tells_one_object_block_from_another": {
       "elapsed": 0.005005833998438902,

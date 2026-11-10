@@ -58,6 +58,17 @@ def reservation(name, profile):
         math.ceil(row['rss_bytes'] / (QUANTUM_MIB * 2**20)) * QUANTUM_MIB))
 
 
+def width(name, profile, slots):
+    """The CPU slots a test reserves: its profile row's `cpu`, default one,
+    never more than the pool (item 4072, Loop 4042). A test whose row says
+    `cpu: k` runs k-wide inside its one process — the coverage pin's walk —
+    and is told so by `RON_TEST_CPU`; the pool counts it as k of its slots,
+    so the width is reserved rather than taken from tests the pool thinks
+    are alone."""
+    row = profile.get(name) or {}
+    return max(1, min(slots, int(row.get('cpu', 1))))
+
+
 def wrapper(directory, memory, cpu=1, limit=None, timeout=None):
     return [sys.executable, str(ROOT / 'tools/resource_budget.py'), '--directory', str(directory),
             '--cpu', str(cpu), '--memory-mib', str(memory)] + (
@@ -100,14 +111,15 @@ def resource_timing(log):
     return None
 
 
-def run_one(binary, name, number, output, directory, memory, cancelled, known=True):
+def run_one(binary, name, number, output, directory, memory, cancelled, known=True, cpu=1):
     log = output / 'tests' / f'{number:04d}.log'
     start = time.monotonic()
     stamp = binary_stamp(binary)
     env = child_environment(test_name=name)
+    env['RON_TEST_CPU'] = str(cpu)
     with log.open('x') as sink:
         limit = min(MEMORY_MIB, math.ceil(memory * 1.5 / QUANTUM_MIB) * QUANTUM_MIB) if known else UNKNOWN_LIMIT_MIB
-        command = wrapper(directory, memory, limit=limit, timeout=execution_timeout(name)) + ['/usr/bin/time', '-l', str(binary), '--exact', name, '--test-threads=1']
+        command = wrapper(directory, memory, cpu=cpu, limit=limit, timeout=execution_timeout(name)) + ['/usr/bin/time', '-l', str(binary), '--exact', name, '--test-threads=1']
         with subprocess.Popen(command, stdout=sink, stderr=subprocess.STDOUT, env=env) as child:
             while child.poll() is None:
                 if cancelled():
@@ -123,7 +135,7 @@ def run_one(binary, name, number, output, directory, memory, cancelled, known=Tr
     return dict(name=name, success=success, exit=child.returncode, elapsed=time.monotonic()-start,
                 user=clock[0] if clock else None, system=clock[1] if clock else None,
                 rss_bytes=rss, reservation_mib=memory, stopped_mib=stopped, limit_mib=seen_limit or limit,
-                log=str(log), allocator=allocator_policy(env), resource_timing=resource_timing(log))
+                log=str(log), allocator=allocator_policy(env), resource_timing=resource_timing(log), cpu_slots=cpu)
 
 
 def isolated(binary, output, directory, slots=8, skips=()):
@@ -153,16 +165,22 @@ def isolated(binary, output, directory, slots=8, skips=()):
     start = time.monotonic()
     try:
         with ThreadPoolExecutor(max_workers=slots) as pool:
+            # Slots are counted by width (item 4072): the head of the queue
+            # starts when its width fits, and waits otherwise — first in,
+            # first out, so a wide test is never starved by narrow ones.
             active = {}
+            used = 0
             while (pending and not cancelled) or active:
-                while pending and not cancelled and len(active) < slots:
+                while pending and not cancelled and used + width(pending[0][1], profile, slots) <= slots:
                     i, name = pending.pop(0)
+                    cpu = width(name, profile, slots)
                     future = pool.submit(run_one, binary, name, i, output, directory,
-                                         reservation(name, profile), lambda: cancelled, name in profile)
-                    active[future] = name
+                                         reservation(name, profile), lambda: cancelled, name in profile, cpu)
+                    active[future] = cpu
+                    used += cpu
                 done, _ = wait(active, return_when=FIRST_COMPLETED, timeout=0.5)
                 for future in done:
-                    active.pop(future)
+                    used -= active.pop(future)
                     row = future.result()
                     rows.append(row)
                     with (output / 'measurements.jsonl').open('a') as sink:

@@ -282,6 +282,80 @@ assertion logs are read in bounded chunks.
 No result or comparison verdict is reused. Independent review remains owed.
 
 
+## The rondata library's length (item 4072, Loop 4042)
+
+**What was measured.** The whole gate on `dc1e1fd39` (2026-11-09, `--test-threads 8`,
+report `attrition-gate-v93am7t9`): release 49.9 minutes, of which the isolated
+`rondata` library is 2,519.1 s for 2,181 tests. Each test's start is its log's birth
+time and its end the log's last write (`isolated/rondata/tests/NNNN.log`; the span
+reproduces `summary.json`'s 2,519.1 s to the tenth).
+
+- **Occupancy.** 10,004 of the 8 × 2,519.1 = 20,153 slot-seconds held a test: 49.6 %.
+- **What a held slot did.** CPU (user + system) 9,965 s against 10,004 s of wall:
+  0.996. The tests were computing, not waiting on I/O or the host; the runner's own
+  overhead (a test's wall less the budget's `run_seconds`) is 161 s in all, 74 ms a
+  test, and admission waited 16.3 s in all, 0.15 s at most.
+- **What an idle slot waited on: nothing — the queue was empty.** One test,
+  `diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned`, ran
+  from second 0 to second 2,519.1: 2,156.6 s user, 254.5 s system, 1,364 MiB. The
+  other 2,180 tests held 7,485 s, the last started at second 1,068.6 and ended at
+  1,070.5 — 6.99 slots busy beside the coverage pin for the first 1,070 s, then seven
+  slots idle for 1,449 s (10,140 slot-seconds).
+- **The bound is that one test's serial walk.** It walks 436 windows one after
+  another; on 2026-10-15 it walked 61 and ran 202 s alone, the row the timings file
+  still carries (`docs/audit/2026-10-15-suite-timings.txt`: `--stale-only` re-times
+  only untimed tests, so a test that grew keeps its old row). Each chapter's landing
+  adds its window, and the test's isolated ceiling is 3,600 s (`tools/test_runtime.py`,
+  Loop 3681): at 2,519 s it was some tens of chapters from being killed.
+- **The hypothesis killed.** The park row's estimated-RSS budget does not bound
+  anything here: admission waited 16.3 s over 2,202 leases, and for the first
+  1,070 s all eight slots were held. Doubling the budget would change no start.
+- **The alone-timed sum is stale.** The 2,171 tests the table times sum 5,105 s
+  alone; the same tests held 9,995 s of the gate's slots (CPU 9,959 s). The coverage
+  pin accounts for 2,317 of the 4,890 s difference; the rest is spread over the
+  1,416 tests between 0.5 s and 5 s alone (3,171 s alone, 5,638 s in the gate, CPU
+  close to wall), which ran about 1.8× their alone time — under the whole gate's
+  verifiers (`RON_VERIFY_*`), at a host load of 3.0–4.8, or grown since timed; this
+  gate cannot tell which. So "the work of 2.1 slots" was the stale sum's reading:
+  the library's real work is 9,965 CPU-seconds, and its floor on eight slots, fully
+  packed, is 1,246 s (20.8 minutes), not 17.
+
+**What moved.** The coverage walk runs on `RON_TEST_CPU` walker threads (default the
+host's parallelism, at most four). A walker takes the next run of consecutive windows
+of one module, in order, under its own replay prefix batch and recorder, so within a
+module a walker's prefix reuse is the serial walk's; the field registrations, mask
+words and skipped keys are unions, merged after the walk. Walker threads carry the
+test thread's name, which is what the fixture audit records. The isolated runner
+reads a profile row's `cpu: k`, reserves k slots in its pool and k CPU slots in the
+host budget, and passes `RON_TEST_CPU=k`; the head of the queue starts when its
+width fits (first in, first out, so a wide test is never starved). The coverage row
+carries `cpu`, and its `elapsed` and `rss_bytes` are re-measured so it sorts first.
+Red first: `tools/explore/test_isolated_tests.py`'s `Width` fixture, where the
+booked runner gave the wide test one slot (`{'wide': 1}` against `{'wide': 4}`).
+
+**Measured (2026-11-10, this branch, release, the whole gate's `RON_VERIFY_*` set, run as the runner runs a
+test under `/usr/bin/time -l` and the shared budget).** Eight walkers: **347.5 s** wall, passed, 2,339.9 s
+user + 319.1 s system, 3,109 MB maximum resident (2,409 MiB sampled), 52.65 × 10¹² instructions retired. The
+serial walk in the gate retired 52.44 × 10¹² in 2,519.0 s. So the parallel walk does the same work, within
+0.4 %: module-grouped prefix reuse lost nothing measurable. The CPU-seconds rose 10 %, which reads as
+contention (load 7–16), not work. A four-walker run at a host load of 40 hit the 600 s cap I set and gave no
+verdict. The profile row is `cpu: 8`, `elapsed: 347.52` (it sorts first), and `rss_bytes` from this run, which
+reserves 3,072 MiB under a 4,608 MiB ceiling. **Projected from this gate's rows** (a projection, not a
+measurement): 347.5 s with the pin holding the pool, then the other 7,485 slot-seconds over eight slots in about
+936 s, so the library takes about 1,283 s (21.4 minutes) where it took 2,519 s. The release step comes to about
+29 minutes and the whole gate about 31, against 49.9 and 52.1.
+
+**What is not established.** The whole-gate number: the library's new length is a
+projection from this gate's per-test rows and one measured walk, not a measurement;
+the driver's booking gate is the measurement. The walk at four walkers (no verdict). Why the mid-sized tests ran 1.8× their
+alone time (verifiers, load, or growth). Whether the walk scales past four walkers
+on a quiet host. The rest of the isolated profile is a month stale (876 rows for
+2,181 tests; 1,305 reserve the unknown 8 GiB), harmless while admission does not
+bind, and not refreshed here. The non-`rondata` binaries (sweeps 387 s, `sim`
+64 s, the rest about 10 s) still run after the library, serially; overlapping them
+with the library's last minutes is the next scheduling move, worth at most their
+7.7 minutes.
+
 ## Persistent setup observations
 
 Indexed setup can load the complete source-derived seed sequence, animation
