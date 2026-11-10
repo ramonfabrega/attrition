@@ -1117,6 +1117,11 @@ photograph, drawn as the client draws by default: posed, at the
 original's facing, with the tanks read by the hand-traced mask
 (`RUN1559B_3294_MASKED`, item 4071: 6 → 7). By colour alone it reads 6
 (`RUN1559B_3294_POSED`), and drawn at rest 2 (`RUN1559B_3294`).
+**The photograph shows frame 3279** (item 4073): on frame 3279, at the same
+camera, readers and constants, the row reads **16 of 24**
+(`RUN1559B_3279_MASKED`), 13 by colour (`RUN1559B_3279_POSED`) and 4 at
+rest (`RUN1559B_3279`); run1441's camera reads 0 of 24 under both readers.
+The 3294 rows are kept as the packet's frame.
 - *Ours.* Each drawn object's world-space triangles are rasterized on the
   CPU with the client shader's arithmetic into a buffer of object keys,
   the nearest winning by camera-space depth.
@@ -1154,11 +1159,21 @@ original's facing, with the tanks read by the hand-traced mask
   (`RUN1559B_3294_MASKED`): 1/40 0.300 → 0.710. A first try, a robust
   ring (median and MAD, 3σ), is refused: bare grass reads 323 and 113
   pixels (`ROBUST_BARE`).
-- *The misses.* 1/15 (0.237) and 1/16 (0.357) sit about 40 px above the
-  photograph's, at the original's own scale and facing (4065c). The capital
-  is drawn as its `zbuffer` model (4036a). One figure has no counterpart
-  in the photograph (4038c). The figures by the derrick stand among trees
-  the client does not draw.
+- *The photograph's frame* (item 4073). On 3294, 1/15 (0.237) and 1/16
+  (0.357) sat 34 and 28 px from the photograph's, and 1/35 (4038c) had no
+  counterpart. All three are moving, and nothing that stands still misses
+  this way. The placement was right. Run1559b's packet holds 1/15's
+  `GuyData` at (5880, 30984, 423), as the dump and the client have it, with
+  `last_*` equal to it. `GuyOut::draw@005dc490` draws that point blended from
+  `last_*` by `graphic_percent`. Walked over 3270..=3294, the movers
+  project nearest the photograph at **3279**: 3.0, 5.1 and 3.2 px
+  (`client::silhouette::PHOTO_FRAME`, `PHOTO_ANCHORS`, asserted). At 3279
+  the tanks pass: 1/40 0.790, 1/15 0.669, 1/16 0.781, and 1/35 passes at
+  0.701. Why a photograph taken paused on 3294 shows 3279 is not
+  established (parked 4073a).
+- *The misses* (on 3279). The capital is drawn as its `zbuffer` model
+  (4036a). The figures by the derrick stand among trees the client does not
+  draw.
 - *What it does not measure.* Colour: textures and team colours are not
   bound (4038a), and binding them would not move this row.
 - *Where the inputs are.* The photograph is converted once to `.tga`

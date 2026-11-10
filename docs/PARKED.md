@@ -15812,6 +15812,8 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
 - **4038c. A figure the photograph does not show** (§5.3). Frame 3294, 1/35, piece 60, window (1365, 678)..(1388,
   734): ours 319 pixels, the photograph's 0. The draw list's anchors are in register on the dumped frames (§3.5),
   but 3294 prints no `gpiece`, so whether the original draws 1/35 there, or at all, is open. Candidate C +1 at most.
+  **Closed by item 4073**: 1/35 is a mover. The photograph shows frame 3279, where it stands at (5880, 31553, 347)
+  and its window reads 0.701 by colour (4073a).
 
 ## Parked by item 4065, 2026-11-09 — the tanks' scale, killed
 
@@ -15841,6 +15843,9 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   no `gpiece` or facing to diff the tank's heading against. Candidate C +3 at most, with 4065b.
   **Facing half closed by item 4069** (4067a): the tanks are now drawn by `get_position`'s map, which
   includes the chad's `sy = −1`. 1/40 0.135 → 0.300, 1/16 0.037 → 0.091. The ~40 px place stands.
+  **Place half closed by item 4073**: not a placement. The packet's `GuyData` is the drawn point, and the
+  photograph shows frame 3279 (4073a). There, under the mask, 1/40 0.710 → 0.790, 1/15 0.237 → 0.669 and 1/16
+  0.357 → 0.781.
 
 ## Parked by item 4063, 2026-11-09 — the start's units
 
@@ -15899,13 +15904,16 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   the instrument's rule without a trace is open: a ground model of the whole scene rather than a ring, or the
   terrain's own texture drawn under the camera. It names no score until a second photographed frame is booked.
 
-## Parked by the next landing, slot EB — reserved
+## Parked by item 4073, 2026-11-10 — the photograph's frame
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4073a. Why run1559's and run1559b's photograph, taken paused on 3294, shows frame 3279** (`docs/RENDERER.md`
+  §5.3; `docs/RUNS.md` run1559, run1559b). Measured: the three movers on the frame (1/15, 1/16, 1/35) project
+  nearest the photograph at 3279, 3.0, 5.1 and 3.2 px, against 34.0, 27.8 and 119.6 at 3294
+  (`client::silhouette::PHOTO_FRAME`, asserted). Run1559b's packet agrees with the dump at 3294, so the state
+  there is not in doubt; the image is fifteen frames older. The take ran `!ffwd 4` from frame 37 and paused at
+  3294 with the gamelog at 3295. Whether the presented image trails the simulation under fast-forward, under the
+  pause, or under DXVK's present is not read. Names no score until a second photograph is booked. A photograph's
+  frame should then be read off its movers before its row is pinned.
 
 ## Parked by the next landing, slot EC — reserved
 

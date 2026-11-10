@@ -146,6 +146,30 @@ pub const TRACED: [(&str, &[(i32, i32)]); 7] = [
     ),
 ];
 
+/// **The frame the photograph shows** (item 4073): 3279, fifteen frames
+/// before the packet's 3294. The photograph was taken paused on 3294
+/// (`docs/RUNS.md`, run1559 and run1559b), and the packet agrees with the
+/// dump there: the drawn point is `GuyData`'s own, blended from `last_*` by
+/// `graphic_percent`, and 1/15's `last_*` is its point. What stands still
+/// sits on the photograph at any of these frames; what moves sits only at
+/// 3279 ([`PHOTO_ANCHORS`]). Why the photograph trails the paused frame is
+/// not established (parked 4073a).
+#[cfg(test)]
+pub const PHOTO_FRAME: i64 = 3279;
+
+/// **The movers' anchors on the photograph**, in its pixels (item 4073):
+/// the two moving tanks' points, each [`TRACED`] polygon's pixel centroid
+/// less the 14 px our tank's centroid stands above its anchor, and 1/35's
+/// feet, by eye on a 2× crop. They are the frame's clock: the frame
+/// between 3270 and 3294 whose movers project nearest them is
+/// [`PHOTO_FRAME`].
+#[cfg(test)]
+pub const PHOTO_ANCHORS: [((u8, i16), (i32, i32)); 3] = [
+    ((1, 15), (1527, 802)),
+    ((1, 16), (1622, 823)),
+    ((1, 35), (1440, 827)),
+];
+
 /// [`TRACED`]'s polygons, as [`Reader::Mask`] takes them.
 #[cfg(test)]
 pub const TRACED_POLYGONS: [&[(i32, i32)]; 7] = [
@@ -295,6 +319,9 @@ mod tests {
     /// objects whose footprint overlaps the photograph's by half or more,
     /// of the objects scored. Made to fail on run1441's camera of the same
     /// frame, which the photograph was not taken at.
+    /// One scored row and its drawing, as [`score_frame`] gives it.
+    type Scored = (Footprint, (u8, i16, i32, bool));
+
     #[test]
     fn silhouette_frame_3294_against_run1559b_s_photograph() {
         let install = std::env::var_os("RON_INSTALL")
@@ -314,10 +341,122 @@ mod tests {
                 return;
             }
         };
-        world.run_to(3294);
         let camera = crate::pinned_camera();
+        let mut elsewhere = camera;
+        (elsewhere.loc_x, elsewhere.loc_y) = (3168.0, 29744.68);
         // The default drawing: every figure posed, at the original's facing.
         assert!(world.pose, "the client draws posed by default");
+
+        // The photograph's frame (item 4073): the frame whose movers project
+        // nearest the photograph's, walked over 3270..=3294, and candidate C
+        // scored on it.
+        let (m, screen) = (camera.to_screen_matrix(), crate::pinned_screen());
+        let mut misses = Vec::new();
+        let mut at_photo = None;
+        for n in 3270..=3294 {
+            world.run_to(n);
+            let (figures, _, _) = world.draw_list(&camera, &screen, (1920, 1080));
+            let mut miss = 0.0f64;
+            let mut line = format!("frame {n}:");
+            for ((who, o), (px, py)) in PHOTO_ANCHORS {
+                let f = figures
+                    .iter()
+                    .find(|f| (f.who, f.o) == (who, o))
+                    .expect("each mover is on the map");
+                let q =
+                    render::camera::world_to_screen(&m, &screen, f.x, f.y, f.z, Some((1920, 1080)));
+                let d = f64::from((q.x - px).pow(2) + (q.y - py).pow(2)).sqrt();
+                miss += d;
+                line += &format!(
+                    " {who}/{o} ({}, {}, {}) -> ({}, {}) {d:.1};",
+                    f.x, f.y, f.z, q.x, q.y
+                );
+            }
+            println!("{line} total {miss:.1}");
+            misses.push((n, miss));
+            if n != PHOTO_FRAME {
+                continue;
+            }
+            let colour = score_frame(&mut world, &camera, &photo, Reader::Colour);
+            let masked = score_frame(&mut world, &camera, &photo, Reader::Mask(&TRACED_POLYGONS));
+            for ((c, (who, o, piece, building)), (k, _)) in colour.iter().zip(&masked) {
+                println!(
+                    "{PHOTO_FRAME}: {who}/{o} piece {piece}{} window ({}, {})..({}, {}) ours {} theirs colour {} mask {} overlap colour {:.3} mask {:.3}",
+                    if *building { " building" } else { "" },
+                    c.window.x0,
+                    c.window.y0,
+                    c.window.x1,
+                    c.window.y1,
+                    c.ours,
+                    c.theirs,
+                    k.theirs,
+                    c.overlap(),
+                    k.overlap()
+                );
+            }
+            let mixed = |colour: &[Scored], masked: &[Scored]| {
+                let rows: Vec<Footprint> = colour
+                    .iter()
+                    .zip(masked)
+                    .map(|((c, (_, _, piece, _)), (k, _))| if *piece == 196 { *k } else { *c })
+                    .collect();
+                score(&rows, &READING)
+            };
+            let posed: Vec<Footprint> = colour.iter().map(|(f, _)| *f).collect();
+            let posed = score(&posed, &READING);
+            let by_mask = mixed(&colour, &masked);
+            world.pose = false;
+            let rest: Vec<Footprint> = score_frame(&mut world, &camera, &photo, Reader::Colour)
+                .iter()
+                .map(|(f, _)| *f)
+                .collect();
+            let rest = score(&rest, &READING);
+            world.pose = true;
+            let off = score_frame(&mut world, &elsewhere, &photo, Reader::Colour);
+            let off_masked = score_frame(
+                &mut world,
+                &elsewhere,
+                &photo,
+                Reader::Mask(&TRACED_POLYGONS),
+            );
+            let off_colour: Vec<Footprint> = off.iter().map(|(f, _)| *f).collect();
+            let off = (score(&off_colour, &READING), mixed(&off, &off_masked));
+            println!(
+                "frame {PHOTO_FRAME}: posed {posed:?}, the tanks by the mask {by_mask:?}, at rest {rest:?}; at run1441's camera {:?} and {:?}",
+                off.0, off.1
+            );
+            at_photo = Some((posed, by_mask, rest, off));
+        }
+        let nearest = misses
+            .iter()
+            .min_by(|a, b| a.1.total_cmp(&b.1))
+            .expect("frames walked");
+        assert_eq!(
+            nearest.0, PHOTO_FRAME,
+            "the movers sit on the photograph at its frame"
+        );
+        let (posed, by_mask, rest, off) = at_photo.expect("the photograph's frame was walked");
+        assert_eq!(posed, render::silhouette::RUN1559B_3279_POSED);
+        assert_eq!(by_mask, render::silhouette::RUN1559B_3279_MASKED);
+        assert_eq!(rest, render::silhouette::RUN1559B_3279);
+        assert_eq!(
+            off,
+            (
+                render::silhouette::RUN1441_CAMERA_3279,
+                render::silhouette::RUN1441_CAMERA_3279_MASKED
+            )
+        );
+        assert!(
+            off.1.0 < by_mask.0,
+            "the photograph's camera scores above another"
+        );
+        assert!(
+            by_mask.0 > render::silhouette::RUN1559B_3294_MASKED.0,
+            "the photograph's frame scores above the packet's"
+        );
+
+        // The packet's frame, as items 4038 to 4071 scored it.
+        world.run_to(3294);
         let rows = score_frame(&mut world, &camera, &photo, Reader::Colour);
         for (f, (who, o, piece, building)) in &rows {
             println!(
@@ -350,8 +489,6 @@ mod tests {
         assert_eq!(rest, render::silhouette::RUN1559B_3294);
         world.pose = true;
 
-        let mut elsewhere = camera;
-        (elsewhere.loc_x, elsewhere.loc_y) = (3168.0, 29744.68);
         let rows = score_frame(&mut world, &elsewhere, &photo, Reader::Colour);
         let footprints: Vec<Footprint> = rows.iter().map(|(f, _)| *f).collect();
         let off = score(&footprints, &READING);
