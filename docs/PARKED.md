@@ -3850,6 +3850,8 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 ## Loop, filed 2026-11-10 — the driver's third session
 
+(4078) **A pinned row may be scored on a draw the client no longer makes** (4076's "for the Loop" line, the driver's fourth session, 2026-11-10): 4076 drew the buildings as the original does and candidate C read lower for it, 16 of 24 → 14 of 23, because the colour reader takes a ring round each window for the ground and a large neighbour drawn right fills that ring. The lane left the instrument alone, as briefed, so the pinned rows are scored with `World::sprites` off while the client draws sprites by default. Candidate: a render item whose build changes the default draw scores the pinned row on the new default in the same landing, or its journal names the reader as the next item and the queue's renderer line says which draw the row is scored on; and RENDERER §5.3 states the ring's assumption beside what breaks it. Item 4077 takes the reader. Names no score; the loop's.
+
 (4075) **A photograph's frame is read off its movers before its row is pinned** (4073's "for the Loop" line, the driver's third session, 2026-11-10): run1559's photograph was booked as "of frame 3294" for six items, 4036 to 4071, and every place hypothesis on the moving units was spent against the wrong frame — the movers sit on it at 3279 within 5 px and miss at 3294 by 28 to 120. The capture paused on 3294 and nothing checked that the shot showed it. Candidate: the silhouette instrument refuses to pin a row for a photograph until the movers' anchors have been scored across the neighbouring frames and the best one named, and a render brief says so. Names no score; the loop's.
 
 (4074) **The alone-timings table and the isolated profile are re-measured by nothing** (4072's "for the Loop" line, the driver's third session, 2026-11-10): `docs/audit/2026-10-15-suite-timings.txt` keeps a test's first row — `--stale-only` never re-times a test it already timed — so the coverage pin read 202 s there and ran 2,519 s in a whole gate, and Loop 4042's estimate of 17 minutes rested on a sum of 5,105 s where the gate's own slots held 9,995 s. The isolated profile (`docs/audit/2026-10-16-isolated-profile.json`) holds 876 rows for 2,181 tests, so 1,305 reserve the unknown 8 GiB — harmless while admission does not bind, and it will bind first on a wider runner. Candidate: both are re-derived from the last whole gate's `measurements.jsonl`, which every gate already writes, by a tool the pass runs. Loop 4070 is closed by item 4072 (the `pins` step and the reflex's `shape.py --check`; its "22 under debug" was `the_handoff`'s count, and the real gap was a builder's filter not naming the pin). Names no score; the loop's.
@@ -15961,6 +15963,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot EF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EJ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
