@@ -1148,37 +1148,30 @@ The 3294 rows are kept as the packet's frame.
   fewer than 40 pixels.
 - *Made to fail.* The same frame at run1441's camera, which the
   photograph was not taken at, scores 0 of 25 (`RUN1441_CAMERA_3294`).
-- *The facing* (item 4069, §3.6). Item 4067's pose read 1 of 23 at the
-  drawn facing, and a constant 90° added read 5 (parked 4067a). The cause
-  was the drawn map, a reflection of the original's in world y: a sign
-  flip, not an offset. Drawn by `get_position`'s map, the posed frame
-  reads 6. Five rows pass: 0/0 0.160 → 0.938, 0/8 0.245 → 0.565, 0/9
-  0.313 → 0.571, 1/21 0.498 → 0.647, 1/23 0.280 → 0.616. 0/5 holds at
-  0.566 → 0.820. At rest, 1/24 falls 0.528 → 0.394.
-- *The second reader* (item 4071). The colour reader keeps the union of
-  the ring's colours, so a tank of the photograph standing past a window
-  placed by ours puts its own olive in the ground. The tanks are read
-  instead off a mask traced by hand on the photograph (`TRACED`,
-  `Reader::Mask`). The mask never reads our draw or a colour, and was
-  pinned before its first count. It reads both bare-grass windows
-  (`BARE`) empty, and run1441's camera 0 of 25. On four figures colour
-  passes, it gives the same verdict and shares 0.53–0.80 of colour's
-  pixels. The tanks read by it give **7 of 23**
-  (`RUN1559B_3294_MASKED`): 1/40 0.300 → 0.710. A first try, a robust
-  ring (median and MAD, 3σ), is refused: bare grass reads 323 and 113
-  pixels (`ROBUST_BARE`).
-- *The photograph's frame* (item 4073). On 3294, 1/15 (0.237) and 1/16
-  (0.357) sat 34 and 28 px from the photograph's, and 1/35 (4038c) had no
-  counterpart. All three are moving, and nothing that stands still misses
-  this way. The placement was right. Run1559b's packet holds 1/15's
-  `GuyData` at (5880, 30984, 423), as the dump and the client have it, with
-  `last_*` equal to it. `GuyOut::draw@005dc490` draws that point blended from
-  `last_*` by `graphic_percent`. Walked over 3270..=3294, the movers
-  project nearest the photograph at **3279**: 3.0, 5.1 and 3.2 px
-  (`client::silhouette::PHOTO_FRAME`, `PHOTO_ANCHORS`, asserted). At 3279
-  the tanks pass: 1/40 0.790, 1/15 0.669, 1/16 0.781, and 1/35 passes at
-  0.701. Why a photograph taken paused on 3294 shows 3279 is not
-  established (parked 4073a).
+- *The facing* (item 4069, §3.6): the drawn map was a reflection of the
+  original's in world y, a sign flip, not an offset; posed, 1 → 6 of 23
+  (the rows: item 4069's journal).
+- *The second reader* (item 4071): a mask traced by hand on the photograph
+  (`TRACED`, `Reader::Mask`), which reads neither our draw nor a colour,
+  pinned before its first count. It reads both bare windows (`BARE`) empty
+  and agrees with colour where colour passes. A robust ring is refused
+  (`ROBUST_BARE`). The trace holds for this photograph alone (4071a).
+- *The photograph's frame* (item 4073): the movers project nearest the
+  photograph at **3279**, 3.0, 5.1 and 3.2 px (`PHOTO_FRAME`,
+  `PHOTO_ANCHORS`, asserted), not the paused 3294 (4073a).
+- *A traced region* (item 4077; the rule written before its count). An
+  object's window and ring hold four kinds of pixel: (1) under an
+  `INTERFACE` rectangle, neither ground nor footprint: left out of ours,
+  theirs and the ground, since the photograph cannot know what it covers;
+  (2) inside a trace of its own: its footprint; (3) inside a trace of
+  another object: neither, since the trace says whose the pixel is, and
+  counting it under a neighbour scores the traced object a second time
+  under the neighbour's name; (4) elsewhere: by colour, the ground being
+  the ring's kind-4 pixels where none of ours lies. An object is not
+  scored when its ring meets the frame's edge or fewer than 40 of its
+  pixels lie outside the interface. Every trace is named by its object,
+  tanks and figures included (`Reader::Traced`). The rejected readings,
+  reported beside it: kind (3) as footprint, and the interface as before.
 - *The misses* (on 3279). ~~The capital is drawn as its `zbuffer` model
   (4036a).~~ The figures by the derrick stand among trees the client does not
   draw.
