@@ -393,22 +393,18 @@ fn the_cities_line_is_the_original_s_range_by_range() {
 }
 
 /// The pinned outcome of the goods line on run 1562's packet: `(goods,
-/// ranges, bytes, ranges parted)`. **Held out on one byte** (`docs/CHECKSUM.md`
-/// §13): good 15's `ever_seen`.
-const GOODS: (usize, usize, usize, usize) = (36, 180, 792, 1);
+/// ranges, bytes, ranges parted)` (`docs/CHECKSUM.md` §13).
+const GOODS: (usize, usize, usize, usize) = (36, 180, 792, 0);
 
-/// **The goods line, ours against the original's, range by range, held
-/// out on one byte** (`docs/CHECKSUM.md` §13): our `Sim::checksum_goods`
-/// against the instrument's stream of the goods line, every range, then
-/// each good's nine fields decoded both sides, then the Adler against the
-/// printed `Goods`. 179 of 180 ranges agree; the one that parts is good
-/// 15's `GoodData::ever_seen` — the SILK at (40320, 14208), 2 in the
-/// original (leader 1's bit, set by setup's `compute_all_territory`
-/// goods scan) and 0 in ours until our first in-play border pass sets it
-/// on frame 387. The pin can fail both ways: a fix of the setup pass turns
-/// it red, and so does any other byte that parts.
+/// **The goods line, ours against the original's, range by range**
+/// (`docs/CHECKSUM.md` §13, item 4093): our `Sim::checksum_goods` against
+/// the instrument's stream of the goods line, every range, then each good's
+/// nine fields decoded both sides, then the Adler against the printed
+/// `Goods`. One good of 36 has been seen on the frame, good 15 (`AMBER`,
+/// type 17) by leader 1: `ever_seen` 2 on both sides, the bit setup's
+/// `compute_all_territory` goods scan sets (`Sim::claim_rares_from_owners`).
 #[test]
-fn the_goods_line_is_held_out_on_good_15_s_ever_seen() {
+fn the_goods_line_is_the_original_s_range_by_range() {
     let Some((theirs, want, sim)) = line_inputs("goods", "Goods") else {
         return;
     };
@@ -470,28 +466,28 @@ fn the_goods_line_is_held_out_on_good_15_s_ever_seen() {
         GOODS,
         "the goods line: goods, the stream's ranges and bytes, ranges parted"
     );
-    // One good of 36 has been seen in the original, good 15 (the SILK,
-    // type 17), by leader 1: `ever_seen` 2 there, 0 in ours.
-    assert_eq!(seen, [(15, 0, 2)], "the goods a leader has seen");
+    // One good of 36 has been seen, good 15 (type 17), by leader 1:
+    // `ever_seen` 2 on both sides.
+    assert_eq!(seen, [(15, 2, 2)], "the goods a leader has seen");
+    assert_eq!(ours.bytes(), GOODS.2);
+    // The Adler, last: ours against the line the original printed.
+    assert_eq!(ours.adler(), want, "the goods line's Adler");
+
+    // **It can part.** Good 15's `ever_seen` back at the unported 0 parts
+    // on its own range alone, and the Adler with it.
+    let mut unseen = ours.clone();
+    unseen.ranges[15 * 5].bytes[0] = 0;
+    let p = parting(&unseen, &theirs);
     assert_eq!(
-        parted
-            .iter()
+        p.iter()
             .map(|p| (p.0, p.1, p.2.as_str(), p.3.as_str(), p.4.as_str()))
             .collect::<Vec<_>>(),
         [(75, 15, "ever_seen", "00", "02")],
-        "the one byte the goods line is held out on"
+        "the setup scan's byte parts on its range"
     );
-    assert_eq!(ours.bytes(), GOODS.2);
-    assert_ne!(ours.adler(), want, "the goods line is held out");
-    // The rest of the line is the original's: with that one byte as the
-    // original holds it, ours sums to the printed `Goods`. A test-side
-    // substitution, never the image.
-    let mut held = ours.clone();
-    held.ranges[15 * 5].bytes[0] = 2;
-    assert_eq!(held.adler(), want, "791 of 792 bytes are the original's");
-
-    // **It can part.** One more byte of ours perturbed — good 3's `x`,
-    // low byte — parts on that range as well, and only there.
+    assert_ne!(unseen.adler(), want);
+    // One byte elsewhere perturbed, good 3's `x` low byte, parts on that
+    // range alone.
     let mut bent = ours.clone();
     bent.ranges[3 * 5 + 3].bytes[7] ^= 1;
     let p = parting(&bent, &theirs);
@@ -499,13 +495,12 @@ fn the_goods_line_is_held_out_on_good_15_s_ever_seen() {
         p.iter()
             .map(|p| (p.0, p.1, p.2.as_str()))
             .collect::<Vec<_>>(),
-        [(18, 3, "who..y_internal"), (75, 15, "ever_seen")],
+        [(18, 3, "who..y_internal")],
         "one perturbed byte parts on its range"
     );
-    assert_eq!(
-        parting(&sim::checksum::Line::default(), &theirs).len(),
-        GOODS.1
-    );
+    assert_ne!(bent.adler(), want);
+    // And an empty image parts on every range of theirs.
+    assert_eq!(parting(&Line::default(), &theirs).len(), GOODS.1);
 }
 
 /// **The score**: the state lines ported are the ones `CHECKSUM_STATE`
@@ -516,8 +511,11 @@ fn the_ported_lines_are_checksum_state() {
     let Some((_, _, sim)) = line_inputs("items", "Items") else {
         return;
     };
-    // Goods is held out (`the_goods_line_is_held_out_on_good_15_s_ever_seen`).
-    let lines = [sim.checksum_items(), sim.checksum_cities()];
+    let lines = [
+        sim.checksum_items(),
+        sim.checksum_cities(),
+        sim.checksum_goods(),
+    ];
     let bytes: usize = lines.iter().map(sim::checksum::Line::bytes).sum();
     let (n, _, b, _) = crate::checksum::CHECKSUM_STATE;
     assert_eq!((n, b), (lines.len(), bytes as u64), "CHECKSUM_STATE");

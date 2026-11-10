@@ -461,6 +461,12 @@ impl Sim {
             self.add_oil_patch(who, gi);
             return;
         }
+        self.claim_cell_rare(c, who, gi);
+    }
+
+    /// [`Sim::claim_cell_goods`]' other branch: `gi`, the first live good on
+    /// `c` and not an oil patch, met on a cell the pass gives `who`.
+    fn claim_cell_rare(&mut self, c: crate::world::Cell, who: Player, gi: usize) {
         // **The rare arm** (item 1555, `docs/AI.md` §152): a good the pass
         // finds on a cell it gives `who` goes to `Leader::new_rare` when
         // `who` or an ally has seen the cell's second half-cell each way
@@ -526,6 +532,43 @@ impl Sim {
             let c = self.world.goods()[gi].pos.cell();
             if let Some(p) = self.world.owner(c).player() {
                 self.add_oil_patch(p, gi);
+            }
+        }
+    }
+
+    /// **Setup's goods scan, its rares' half** (item 4093,
+    /// `docs/ECONOMY.md`, "The rares a leader has seen"):
+    /// `World::compute_all_territory@006b5700` calls
+    /// `World::compute_reg_territory@006b0bb0(r, 1)` on every land region in
+    /// slot order with the daemon's budget off (`borders = -1`), so every
+    /// cell of every land region is written in one call, each region's
+    /// cells in their list's row-major order, and the per-cell goods scan
+    /// runs on each cell given a player — the same scan as the in-play pass
+    /// ([`Sim::claim_cell_goods`]), reached all at once. This is its
+    /// non-oil branch over the owners as they stand: the first live good
+    /// on the cell, when it is not oil, goes to `Leader::new_rare` and
+    /// takes the owner's `ever_seen` bit once the owner or an ally has seen
+    /// the cell's second half-cell. The oil branch is
+    /// [`Sim::claim_oil_from_owners`]'; the two write different lists, so
+    /// their order against each other is no state.
+    pub fn claim_rares_from_owners(&mut self) {
+        let lands: Vec<u16> = self
+            .world
+            .regions()
+            .filter(|&(_, t)| t == crate::world::Terrain::Land)
+            .map(|(r, _)| r)
+            .collect();
+        for r in lands {
+            for c in self.world.region_coords_strided(r, 0, 1) {
+                let Some(p) = self.world.owner(c).player() else {
+                    continue;
+                };
+                let Some(gi) = self.first_live_good_at(c) else {
+                    continue;
+                };
+                if self.world.goods()[gi].ty != crate::world::OIL_GOOD {
+                    self.claim_cell_rare(c, p, gi);
+                }
             }
         }
     }

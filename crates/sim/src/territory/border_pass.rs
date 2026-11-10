@@ -154,12 +154,27 @@ impl Sim {
     /// Finishes a pass at once — the wholesale recompute the original makes
     /// at setup, before the first frame, and what a test that wants a fix
     /// visible on the same frame asks for.
+    ///
+    /// **Before the first frame it is setup's `World::compute_all_territory`
+    /// itself** (`Setup::build_cities@005ab910` after each city's
+    /// `update_seen_ally`, and `Setup::build_game@005ac190` after
+    /// `analyze_map`): a pre-play fix has already written the owners
+    /// wholesale ([`Self::start_border_pass`]), and what is left of the
+    /// call is its per-cell goods scan's rares' half,
+    /// [`Sim::claim_rares_from_owners`] (item 4093), run over the `seen2`
+    /// the setup steps have written so far.
     pub fn settle_borders(&mut self) {
-        if let Some(pass) = self.territory.border_pass.take() {
+        let settled = if let Some(pass) = self.territory.border_pass.take() {
             self.world.set_owners(&pass.target);
             self.wholesale_bordering(&pass.target, &pass.won);
             self.update_territory_holdings();
             self.claim_oil_from_owners();
+            true
+        } else {
+            false
+        };
+        if settled || !self.in_play {
+            self.claim_rares_from_owners();
         }
     }
 
