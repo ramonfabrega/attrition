@@ -36349,4 +36349,6 @@ gamelog at 3295. SHA-256 `7a9146449f92374cf64bb0bf14620385201245d2b57d3445b36446
 
 **What it holds**: `packet_points.py`'s `state 0` line, which is the client's pinned camera (loc `4503847c`
 `46f0c000`, i.e. (2104.28, 30816); zoom, tilt, dir, projection and screen as run1441's), and `guy_scale` 4.8 at
-`0x00c06244`. The photograph matches run1559's.
+`0x00c06244`. The photograph matches run1559's. **Amended by item 4073**: the photograph shows frame
+**3279**'s state, not the packet's 3294. Its movers (1/15, 1/16, 1/35) sit on it at 3279 within 5.1 px and miss it
+by 28–120 px at 3294 (`client::silhouette::PHOTO_FRAME`); why is parked 4073a.

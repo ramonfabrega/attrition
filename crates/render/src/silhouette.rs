@@ -212,6 +212,27 @@ pub const RUN1559B_3294_MASKED: (usize, usize) = (7, 23);
 /// The mask at run1441's camera: the made-to-fail, as for colour.
 pub const RUN1441_CAMERA_3294_MASKED: (usize, usize) = (0, 25);
 
+/// **Candidate C on the frame the photograph shows** (item 4073): frame
+/// 3279, `client::silhouette::PHOTO_FRAME`, the frame whose movers sit on
+/// the photograph, drawn by default and the tanks read by the mask, at the
+/// same camera, readers and constants as the 3294 rows. 7 of 23 at 3294 →
+/// **16 of 24**: the tanks 1/40 0.710 → 0.790, 1/15 0.237 → 0.669 and 1/16
+/// 0.357 → 0.781 pass; 1/35, the figure with no counterpart (4038c), is a
+/// mover and passes at 0.701 by colour. The tanks were placed right: the
+/// photograph is fifteen frames older than the packet.
+pub const RUN1559B_3279_MASKED: (usize, usize) = (16, 24);
+
+/// The same frame by colour alone: 6 of 23 at 3294 → 13 of 24.
+pub const RUN1559B_3279_POSED: (usize, usize) = (13, 24);
+
+/// The same frame drawn at rest, by colour: 2 of 23 at 3294 → 4 of 24.
+pub const RUN1559B_3279: (usize, usize) = (4, 24);
+
+/// The photograph's frame at run1441's camera, by colour and by the mask:
+/// the made-to-fail.
+pub const RUN1441_CAMERA_3279: (usize, usize) = (0, 24);
+pub const RUN1441_CAMERA_3279_MASKED: (usize, usize) = (0, 24);
+
 /// **The first try, refused** (item 4071): [`ROBUST`] reads the default
 /// frame 9 of 23 but loses 0/9 (colour 0.571, robust 0.023, its ring the
 /// derrick's trees), and reads bare grass as objects: 323 of 12,000 and
