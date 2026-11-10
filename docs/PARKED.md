@@ -16118,13 +16118,31 @@ words and edits nothing here; a refill lands when two remain.
 
 - **4060a. The rules line is not one value across games** (`docs/CHECKSUM.md` §3, §10). It reads 314192132 on both of
   run1100's records and 1227894240 on run1420's packet; the recon read it as static. Whether it follows the lobby
-  (the tribes and their bonuses) is unread. Names no score until the rules line is booked (DECISIONS 119 §1).
+  (the tribes and their bonuses) is unread. Names no score until the rules line is booked (DECISIONS 119 §1). *Read* (4088): run 1562's record, the harness lobby, prints 314192132 as run1100's did; run1420 is
+  the one that parts.
 - **4060b. The decompile export's type records lack the fields of a class with a virtual base** (`docs/CHECKSUM.md`
   §6): `AttackToOrder` has none and the `TargetOrder` and `MoveOrder` bases are missing; the PDB's own field lists
   (`llvm-pdbutil dump --types`) name them. Candidate: the export's type pass walks virtual bases. Names no score.
 - **4060c. 4060's "for the Loop"** (the journal's line, filed at its merge): a packet's run with an `@dumpall` line
   at the packet's own frame (run1100's shape) is a packet and its windowed record by construction, the cheapest way
   to stand the instrument on a new frame. Taken at once: item 4088's run 1562 is that shape (DECISIONS 120 §1).
+
+## Parked by item 4088, 2026-11-10 — the pair on the minted game, and the items line
+
+- **4088a. The reader's `Begin`/`End` names where a checksum record printed, not which half of the tick it is**
+  (`docs/CHECKSUM.md` §2). Run1100's packet reproduces a record the reader places at `End(5408)`; run 1562's
+  reproduces one placed at `Begin(91)`. In both the packet's record is the window's first and the second is one
+  tick later, and the instrument's test takes "the first windowed record of the frame". Names no score unless a
+  later reader relies on the half.
+- **4088b. 4088's "for the Loop"** (the journal's line, filed at its merge): the brief's "an `@dumpall` line at
+  that frame, run1100's shape" assumed a playback takes a command file, and `tools/explore/unattended_capture.py`
+  refused any `--cmd-file` beside `--recording`. Built by the item: a command file of `@dumpall` lines alone is
+  let through (`refused_playback_cmd_file`, its test red with the refusal stubbed out). Nothing left to build.
+- **4088c. What the items line's one frame does not hold** (`docs/CHECKSUM.md` §11): an `ever_seen` other than 0
+  (all 22 boxes read 0 on frame 91, so that byte agrees by default), a box taken, a box whose ground a later
+  terraform moved, and a box on an ocean tile. A second packet on a later frame of the minted game, after the
+  scout has seen a box, is the check; it names the `Checksum:` line once the twelve are counted on more than
+  one frame.
 
 ## Parked by the next landing, slot EO — reserved
 
