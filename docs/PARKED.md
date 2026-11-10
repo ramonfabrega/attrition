@@ -15962,7 +15962,7 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
 ## Parked by item 4077, 2026-11-10 — a reader that can score a building
 
 - **4077a. Six rows miss on the default draw, five of them round one untraced tank** (`docs/RENDERER.md` §5.3;
-  `RUN1559B_3279_TRACED`). The tank 1/27 (piece 196), out of every row before because its ring met the selected
+  `RUN1559B_3279_TRACED`). ~~The tank 1/27 (piece 196), out of every row before because its ring met the selected
   figure's portrait, is scored now that the interface reads as neither, and reads 0.259 (ours 4,244, theirs
   1,249). It is the one tank of four 4071 did not trace, and its olive reads as the ground, as 4071 found of the
   others. The riflemen 1/20, 1/32, 1/31 and 1/36 (piece 60, 0.497, 0.352, 0.429, 0.340) stand inside its window,
@@ -15970,15 +15970,32 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   made on the photograph and pinned before its count; it was not made here because this item's count was already
   read. The sixth, 0/10 (piece 4576, 0.383, ours 763 against 309), stands at the woodcutter's right edge, where our
   sprite reaches x 1700 and the photograph's building, as traced, ends at 1688: the boom's addon (4076c), the
-  trace's edge, or the sprite's, not read. Names candidate C's score.
+  trace's edge, or the sprite's, not read. Names candidate C's score.~~ **Closed by item 4079**: 1/27 traced on the
+  photograph, 27 → 29 of 33 (1/27 0.662, 1/36 0.503); the three riflemen still out are 4079b; 0/10's edge is a pine
+  the client does not draw, 4079a.
 
-## Parked by the next landing, slot EF — reserved
+## Parked by item 4079, 2026-11-10 — the last tank traced, and a pine in front of the woodcutter
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4079a. A tree the client does not draw stands in front of the woodcutter's crate** (`docs/RENDERER.md` §5.3;
+  `RUN1559B_3279_TRACED`, 0/10 0.383). On frame 3279 at run1559b's camera the photograph's woodcutter 0/2001 ends,
+  as traced, at x 1686 on row 404 and runs diagonally to 1660 on row 435, where our sprite's crate reaches 1699
+  down to row 444. Measured, not the cause: the sprite is `woodcutter_6.tga`, 173 × 201, offset (83, 178), at
+  the anchor (1640, 438) less `(int)(83 · s)`, `(int)(178 · s)`, `s` = 13905/20858, so left 1585 and right
+  1700.3; its alpha is two-level in every column past screen x 1688 (0 of 758 opaque pixels partial) and its last
+  column is opaque on 40 rows. The cause, by eye on 6× crops: the photograph shows a pine's foliage over the
+  crate's lower right, x 1660–1715, rows 405–460, drawn in front of it; the client draws no trees. 307 of the
+  sprite's pixels in 0/10's window lie outside the trace, 99 of them at x ≥ 1688
+  (`client::silhouette::tests::the_woodcutter_s_right_edge_is_the_sprite_s_own`). Not established: which tree
+  object it is and its depth against the building's. The reader was not moved to absorb it. Names candidate C's
+  score: it books with the map's trees drawn (or traced) in front of the buildings they occlude.
+- **4079b. Three riflemen in the tank's window stay out with 1/27 traced** (`docs/RENDERER.md` §5.3;
+  `RUN1559B_3279_TRACED`). 1/31 0.429 → 0.469 (ours 669, theirs 318), 1/20 0.497 → 0.482 (594 / 371) and 1/32
+  0.352 → 0.283 (540 / 203): each window's ours now loses the tank's traced pixels as a neighbour's, and what is
+  left of ours is still about twice the photograph's. The trace's two notches are the photograph's figures in front
+  of the hull; un-notched (`TANK_1_27_WHOLE`) 1/31 reads 0.293 and 1/36 0.436, 27 of 33. Read with a neighbour's
+  trace as the scene, 1/31 0.650 and 1/20 0.525 pass, 1/32 0.410 does not, and the row reads 31 of 33, the
+  rejected reading. Not read: whether our riflemen's poses or facings stand where the photograph's do. Names candidate C's
+  score.
 
 ## Parked by the next landing, slot EG — reserved
 

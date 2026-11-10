@@ -1187,4 +1187,99 @@ mod tests {
             "the tank's trace shifted by its own width drops its row"
         );
     }
+
+    /// **The woodcutter's right edge** (item 4079): on frame 3279 at
+    /// run1559b's camera our sprite reaches x 1700 where the photograph's
+    /// traced building ends nearer 1686. The sprite is drawn as the
+    /// original places it: `woodcutter_6.tga`, 173 × 201, its alpha two-level
+    /// (0 or 255) in every column past screen x 1688 and its last column
+    /// opaque; at the anchor (1640, 438) less
+    /// `(int)(83 · s)`, `(int)(178 · s)`, `s` = 13905 / 20858, its left is
+    /// 1585 and its right 1585 + 173 · s = 1700.3. The 307 of its pixels in
+    /// 0/10's window that lie outside the trace are the crate's lower right,
+    /// which the photograph shows behind a pine the client does not draw
+    /// (parked 4079a).
+    #[test]
+    fn the_woodcutter_s_right_edge_is_the_sprite_s_own() {
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        world.run_to(PHOTO_FRAME);
+        let (_, buildings, list) = world.draw_list(&camera, &crate::pinned_screen(), (1920, 1080));
+        let d = list
+            .iter()
+            .find(|d| (d.who, d.o) == (0, 2001))
+            .expect("listed");
+        assert_eq!((d.anchor.x, d.anchor.y), (1640, 438));
+        let sprites = world.sprite_drawings(&buildings, &list, camera.zoom_distance);
+        let sp = sprites
+            .iter()
+            .find(|s| (s.who, s.o) == (0, 2001))
+            .expect("drawn as its sprite");
+        let im = &sp.image.image;
+        assert_eq!((im.width, im.height), (173, 201));
+        assert_eq!(sp.image.offset, (83, 178));
+        assert_eq!((sp.at.left, sp.at.top), (1585, 320));
+        // Partial alpha, over the image and in its columns past screen x
+        // 1688 (u >= 155).
+        let partial = |u0: usize| {
+            (0..im.height)
+                .flat_map(|v| (u0..im.width).map(move |u| (v, u)))
+                .filter(|&(v, u)| {
+                    let a = im.rgba[(v * im.width + u) * 4 + 3];
+                    a != 0 && a != 255
+                })
+                .count()
+        };
+        let opaque_past = (0..im.height)
+            .flat_map(|v| (155..im.width).map(move |u| (v, u)))
+            .filter(|&(v, u)| im.rgba[(v * im.width + u) * 4 + 3] == 255)
+            .count();
+        println!(
+            "partial alpha: {} in the image, {} past column 155; opaque past it {opaque_past}",
+            partial(0),
+            partial(155)
+        );
+        assert_eq!(partial(155), 0, "the right columns are two-level");
+        let last = (0..im.height)
+            .filter(|&v| im.rgba[(v * im.width + im.width - 1) * 4 + 3] == 255)
+            .count();
+        println!("opaque rows in the last column: {last}");
+        assert!(last > 0, "the image's last column is opaque");
+        let right = sp.at.left as f32 + im.width as f32 * sp.at.scale;
+        println!("the sprite's right edge: {right:.1}");
+        assert_eq!(right as i32, 1700);
+        let (keys, who) = frame_keys(&mut world, &camera, (1920, 1080));
+        let wood = who
+            .iter()
+            .position(|&(w, o, _, _)| (w, o) == (0, 2001))
+            .expect("keyed") as u32
+            + 1;
+        let trace = TRACED
+            .iter()
+            .find(|(n, _)| *n == "0/2001")
+            .expect("traced")
+            .1;
+        let (mut outside, mut past) = (0, 0);
+        for y in 404..452i32 {
+            for x in 1680..1710i32 {
+                if keys.keys[y as usize * 1920 + x as usize] == wood
+                    && !render::silhouette::inside(trace, x, y)
+                {
+                    outside += 1;
+                    past += usize::from(x >= 1688);
+                }
+            }
+        }
+        println!("0/10's window: the woodcutter outside its trace {outside}, at x >= 1688 {past}");
+        assert_eq!((outside, past), (307, 99));
+    }
 }
