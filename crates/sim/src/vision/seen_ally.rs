@@ -15,7 +15,7 @@ impl Sim {
     /// way); and when `who` is human, every other human (the original
     /// gates that arm on `semaphore[0] & 4` clear, which no lobby field
     /// sets). SEAM: the `game_rules == 8` arm (a team-0 leader under
-    /// that rule set) is read and not carried — no capture on disk has it.
+    /// that rule set) is read and not carried (`docs/START.md` §7.5).
     pub(crate) fn seen_ally_reach(&self, who: crate::Player) -> u8 {
         let n = self.territory.players.len().min(8);
         let human = |p: usize| self.cities.nation.get(p).is_some_and(|x| x.human);
