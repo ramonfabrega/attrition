@@ -843,22 +843,64 @@ pub fn from_lobby(
 /// `read_package` meets end of file only after it (`docs/RECGAME.md` §4.3,
 /// §8). Stamps run 1, 2.
 pub fn no_input_packages(leader_options: crate::commands::Command, last: i32) -> Vec<Package> {
-    vec![
-        Package {
-            frame: 0,
-            play: 0,
-            valid: 1,
-            stamp: 1,
-            data: crate::commands::encode(&[leader_options]),
-        },
-        Package {
-            frame: last,
-            play: 0,
+    minted_packages(leader_options, &[], last).expect("no orders is a valid script")
+}
+
+/// One package of a script: the recording frame it is consumed on, the
+/// issuing slot, and its commands in the wire's typed vocabulary.
+pub type Order = (i32, i32, Vec<crate::commands::Command>);
+
+/// A person's orders as a single-player recording stores them (item 4059,
+/// `docs/RECGAME.md` §9; `docs/COMMANDS.md` §2): frame 0's `leader_options`
+/// first, then each order its own package on its own frame, then the
+/// closing empty package on `last`. Stamps run contiguous from 1, `valid`
+/// is 1 on the first record only, the payloads plain — the single-player
+/// arm of `CommandManager::process_turn@0093ef10` writes one stamped package
+/// per turn with input, and `process_all` clears `valid` after the first.
+///
+/// Refuses a script whose frames are not strictly inside `(0, last)` and
+/// strictly increasing (the pump writes at most one package a turn), or
+/// whose package would pass `add_command`'s 0x200-byte buffer.
+pub fn minted_packages(
+    leader_options: crate::commands::Command,
+    orders: &[Order],
+    last: i32,
+) -> Result<Vec<Package>, String> {
+    let mut out = vec![Package {
+        frame: 0,
+        play: 0,
+        valid: 1,
+        stamp: 1,
+        data: crate::commands::encode(&[leader_options]),
+    }];
+    let mut frame = 0;
+    for (f, play, cmds) in orders {
+        if *f <= frame || *f >= last {
+            return Err(format!(
+                "an order on frame {f} after frame {frame}, before {last}"
+            ));
+        }
+        frame = *f;
+        let data = crate::commands::encode(cmds);
+        if data.is_empty() || data.len() > 0x200 {
+            return Err(format!("frame {f}: a package of {} bytes", data.len()));
+        }
+        out.push(Package {
+            frame: *f,
+            play: *play,
             valid: 0,
-            stamp: 2,
-            data: Vec::new(),
-        },
-    ]
+            stamp: out.len() as u32 + 1,
+            data,
+        });
+    }
+    out.push(Package {
+        frame: last,
+        play: 0,
+        valid: 0,
+        stamp: out.len() as u32 + 1,
+        data: Vec::new(),
+    });
+    Ok(out)
 }
 
 #[cfg(test)]

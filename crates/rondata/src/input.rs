@@ -1385,11 +1385,20 @@ impl Applied {
 /// `objects` — means "the same selection as this player's previous group
 /// command" (`docs/COMMANDS.md` §3). The selection is therefore *state*, and
 /// it has to be carried across frames exactly as the engine carries it.
+///
+/// Two modes. [`Stream::new`] is the capture replays' stream: `move_to`
+/// per selected unit, `queue_up` and `build` skipped, the arms the kept
+/// captures' pins were taken under. [`Stream::pump`] is the turn pump's
+/// (item 4059, `docs/RECGAME.md` §9): `group` with `move_to`, `queue_up`
+/// and `build` go through the command's own entries, the ones the golden
+/// chapters issue — [`group_move_to`], [`group_queue_up`], [`group_build`]
+/// — and every other command takes `new`'s arm.
 #[derive(Clone)]
 pub struct Stream {
     input: Vec<Input>,
     next: usize,
     selection: Vec<Vec<i16>>,
+    pump: bool,
 }
 
 impl Stream {
@@ -1398,6 +1407,24 @@ impl Stream {
             input: input(rec),
             next: 0,
             selection: vec![Vec::new(); 8],
+            pump: false,
+        }
+    }
+
+    /// The turn pump's stream: `CommandPackage::process_all@0094c500`
+    /// walking each package front to back, `process_group` setting the
+    /// selection and `process_move_to`, `process_queue_up` and
+    /// `process_build` acting on it through the entries this module keeps
+    /// for them. A package's `play` is the group's leader, as
+    /// `process_group`'s player test requires of a solo game's packages.
+    ///
+    /// SEAM: each entry pushes its own group, so a package holding one
+    /// `group` and two commands behind it pushes two where the original
+    /// pushes one; a minted script puts one command behind each `group`.
+    pub fn pump(rec: &RecGame) -> Stream {
+        Stream {
+            pump: true,
+            ..Stream::new(rec)
         }
     }
 
@@ -1438,6 +1465,9 @@ impl Stream {
     }
 
     fn one(&mut self, it: &Input, built: &mut Built, done: &mut Applied) {
+        if self.pump && self.pumped(it, built, done) {
+            return;
+        }
         match &it.cmd {
             // The selection, which every unit-targeted command below reads.
             Command::Group { who, objects } => {
@@ -1527,6 +1557,51 @@ impl Stream {
             }
             _ => done.skip(&it.cmd, "not mapped"),
         }
+    }
+
+    /// [`Stream::pump`]'s three commands, through their entries; `false`
+    /// for any other, which `one` then takes as [`Stream::new`] does.
+    fn pumped(&mut self, it: &Input, built: &mut Built, done: &mut Applied) -> bool {
+        let objects = self
+            .selection
+            .get(it.play as usize)
+            .cloned()
+            .unwrap_or_default();
+        let n = match &it.cmd {
+            Command::MoveTo {
+                to_x,
+                to_y,
+                set_angle,
+                angle,
+                orders,
+                queued,
+                ..
+            } => group_move_to(
+                built,
+                it.play,
+                &objects,
+                Pos::new(*to_x, *to_y),
+                i32::from(*queued),
+                *set_angle != 0,
+                *angle,
+                i32::from(*orders),
+            ),
+            Command::QueueUp { unit, num } => group_queue_up(built, it.play, &objects, *unit, *num),
+            Command::Build {
+                x,
+                y,
+                build,
+                queued,
+                ..
+            } => group_build(built, it.play, &objects, Pos::new(*x, *y), *build, *queued),
+            _ => return false,
+        };
+        if n == 0 {
+            done.skip(&it.cmd, "the selection acted on nothing in the simulation");
+        } else {
+            done.orders += 1;
+        }
+        true
     }
 
     /// The issuing player's selection, as simulation unit handles.
