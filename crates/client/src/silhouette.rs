@@ -7,7 +7,7 @@
 //! (`sips -s format tga`): `$RON_PHOTO`, else
 //! `~/ron-data/lab-experiments/2026-11-09-item-4038/run1559b-3294.tga`.
 
-use crate::world::{Drawing, SpriteDrawing, World};
+use crate::world::{Drawing, SpriteDrawing, TREE_WHO, TreePixels, World};
 use render::silhouette::{
     Footprint, Object, Photo, READING, Reader, Rect, Stamp, footprints_read, rasterize_with,
 };
@@ -415,11 +415,25 @@ pub fn frame_keys(
     let drawings: Vec<Drawing> = world.objects(&figures, &buildings, &list);
     let sprites = world.sprite_drawings(&buildings, &list, camera.zoom_distance);
     let first = drawings.len() as u32 + 1;
-    let keys = rasterize_with(&objects(&drawings), &stamps(&sprites, first), camera, size);
+    // The map's trees (item 4080) after the sprites, keyed from `trees`.
+    let trees = world.tree_drawings();
+    let first_tree = first + sprites.len() as u32;
+    let mut meshes = objects(&drawings);
+    meshes.extend(trees.iter().enumerate().map(|(j, d)| Object {
+        key: first_tree + j as u32,
+        tris: d.tris.clone(),
+    }));
+    let mut keys = rasterize_with(&meshes, &stamps(&sprites, first), camera, size);
+    if world.tree_pixels == TreePixels::Ground {
+        for k in keys.keys.iter_mut().filter(|k| **k >= first_tree) {
+            *k = 0;
+        }
+    }
     let who = drawings
         .iter()
         .map(|d| (d.who, d.o, d.piece, d.building))
         .chain(sprites.iter().map(|s| (s.who, s.o, s.piece, true)))
+        .chain(trees.iter().map(|d| (d.who, d.o, d.piece, false)))
         .collect();
     (keys, who)
 }
@@ -445,6 +459,7 @@ pub fn score_frame(
             let d = drawings[f.key as usize - 1];
             (f, d)
         })
+        .filter(|(_, d)| d.0 != TREE_WHO)
         .collect()
 }
 
@@ -484,6 +499,7 @@ pub fn score_frame_traced(
     )
     .into_iter()
     .map(|f| (f, drawings[f.key as usize - 1]))
+    .filter(|(_, d)| d.0 != TREE_WHO)
     .collect()
 }
 
@@ -581,6 +597,8 @@ mod tests {
         (elsewhere.loc_x, elsewhere.loc_y) = (3168.0, 29744.68);
         // The default drawing: every figure posed, at the original's facing.
         assert!(world.pose, "the client draws posed by default");
+        // These rows are the treeless draw's, kept by name (item 4080).
+        world.trees = false;
 
         // The photograph's frame (item 4073): the frame whose movers project
         // nearest the photograph's, walked over 3270..=3294, and candidate C
@@ -983,6 +1001,51 @@ mod tests {
             Interface::Neither,
         );
         let got = print("traced", &rule);
+        // The trees' rejected reading, and the treeless draw (item 4080).
+        world.tree_pixels = crate::world::TreePixels::Scene;
+        let tree_scene_rows = read(
+            &mut world,
+            &camera,
+            &TRACED,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let tree_scene = print("traced, a tree's pixel as scene", &tree_scene_rows);
+        world.tree_pixels = crate::world::TreePixels::Ground;
+        world.trees = false;
+        let treeless_rows = read(
+            &mut world,
+            &camera,
+            &TRACED,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let treeless = print("traced, no trees", &treeless_rows);
+        world.trees = true;
+        for (g, (who, o, piece, _)) in &treeless_rows {
+            if !rule
+                .iter()
+                .any(|(_, w)| (w.0, w.1, w.2) == (*who, *o, *piece))
+            {
+                println!(
+                    "unscored with trees {who}/{o} piece {piece}: ours {} theirs {} both {} overlap {:.3}",
+                    g.ours,
+                    g.theirs,
+                    g.both,
+                    g.overlap()
+                );
+            }
+        }
+        for (f, (who, o, piece, _)) in &rule {
+            let before = treeless_rows
+                .iter()
+                .find(|(_, w)| (w.0, w.1, w.2) == (*who, *o, *piece))
+                .map(|(g, _)| (g.ours, g.theirs, g.both, g.overlap()));
+            let now = (f.ours, f.theirs, f.both, f.overlap());
+            if before.map(|b| (b.0, b.1, b.2)) != Some((now.0, now.1, now.2)) {
+                println!("moved {who}/{o} piece {piece}: no trees {before:?} trees {now:?}");
+            }
+        }
         let scene = print(
             "traced, a neighbour's trace as scene",
             &read(
@@ -1162,6 +1225,8 @@ mod tests {
         );
         use render::silhouette as s;
         assert_eq!(got, s::RUN1559B_3279_TRACED);
+        assert_eq!(tree_scene, s::RUN1559B_3279_TRACED_TREES_SCENE);
+        assert_eq!(treeless, s::RUN1559B_3279_TRACED_TREELESS);
         assert_eq!(scene, s::RUN1559B_3279_TRACED_SCENE);
         assert_eq!(skip, s::RUN1559B_3279_TRACED_SKIP);
         assert_eq!(plaza, s::RUN1559B_3279_TRACED_PLAZA);
@@ -1212,6 +1277,8 @@ mod tests {
             }
         };
         let camera = crate::pinned_camera();
+        // The sprite's own edge, read on the treeless draw (item 4080).
+        world.trees = false;
         world.run_to(PHOTO_FRAME);
         let (_, buildings, list) = world.draw_list(&camera, &crate::pinned_screen(), (1920, 1080));
         let d = list

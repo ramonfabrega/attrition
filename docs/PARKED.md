@@ -15990,6 +15990,8 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   (`client::silhouette::tests::the_woodcutter_s_right_edge_is_the_sprite_s_own`). Not established: which tree
   object it is and its depth against the building's. The reader was not moved to absorb it. Names candidate C's
   score: it books with the map's trees drawn (or traced) in front of the buildings they occlude.
+  *Item 4080:* the trees are drawn, and their geometry is the packet's. Drawn as solid cards they hide 0/10
+  whole, so it leaves the row rather than passing (4080a).
 - **4079b. Three riflemen in the tank's window stay out with 1/27 traced** (`docs/RENDERER.md` §5.3;
   `RUN1559B_3279_TRACED`). 1/31 0.429 → 0.469 (ours 669, theirs 318), 1/20 0.497 → 0.482 (594 / 371) and 1/32
   0.352 → 0.283 (540 / 203): each window's ours now loses the tank's traced pixels as a neighbour's, and what is
@@ -15999,13 +16001,21 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   rejected reading. Not read: whether our riflemen's poses or facings stand where the photograph's do. Names candidate C's
   score.
 
-## Parked by the next landing, slot EG — reserved
+## Parked by item 4080, 2026-11-10 — the map's trees, drawn as solid cards
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4080a. The trees hide four figures that the photograph shows** (`docs/RENDERER.md` §3.7, §5.3;
+  `RUN1559B_3279_TRACED`, 29 of 33 → 25 of 29). The trees stand where the original stands them, and their
+  world-space extent is the packet's own `RTreeData::tree_cache` to within 0.001 on all 12 cached cells
+  (`client::world::tests::the_trees_are_the_packets_own_geometry`). Drawn as solid triangles, they cover
+  0/1 (0.796 treeless), 0/2 (0.690), 0/8 (0.587) and 0/10 (0.383). Each of those keeps fewer than 40 pixels of
+  its own and leaves the row. 0/6 falls 0.522 → 0.348. By eye on a crop of the photograph beside our key
+  buffer, x 1540–1760, rows 280–540, those figures stand in front of the pine at the woodcutter, and through
+  its foliage. Ours hides them behind a solid green mass.
+  - Two causes, neither read. The leaves are seven textured sections a tree (`RTreeData::tree_textures[7]`),
+    whose alpha we do not apply. And the original may order a figure against a tree by something other than
+    our per-pixel camera depth.
+  - The rule was not moved to absorb it. Names candidate C's score: it books with the leaves' alpha read from
+    their textures, or the figures' depth against the trees read, before a count.
 
 ## Parked by the next landing, slot EH — reserved
 

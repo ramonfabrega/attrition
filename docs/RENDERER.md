@@ -987,6 +987,47 @@ has not been read again.
   and whether a figure behind the sprite is hidden by it or by the
   anchor's depth, are unread (parked 4076b).
 
+## 3.7 The map's trees, where the original stands them (item 4080)
+
+**How it was established.** The placement is ported from `ObjectsOut::sort_trees`' path and checked as a value
+diff against the original's own functions on run1559b's packet (`tools/render/tree_points.py`, which calls
+`make_tree_mask`, `place_tree` and `world_to_screen` under unicorn). A forest cell is `WData.flags & 0x20`, carried
+through the door as `TerrainScene::flags`. Each cell draws its own local `Random` seeded `(ulong)(cx·7 + cy)` at its
+centre, so a tree's place is a function of the map, not of the session. Slot 0 falls into slot 1 (the jump table
+sends it to code with no break between them). The model is `(y + x) % 24`. The transform is `(s, −s, s)` then the
+place, with no turn, and `s` = `treescale` × 3. z is `find_data_z` over the cell's corners. `rondata::artdata::
+tree_art` reads the tileset's `treescale` and `graphics.txt`'s `#<TILESET>_TREE_MODELS0` list.
+
+**Diff-backed:** on frame 3279 the runner's forest cells are the packet's 189, and all 60 trees on the 12 visible
+forest cells agree on cell, mask, slot, place, z, model and pixel
+(`client::world::tests::the_trees_stand_where_the_packet_stands_them`; shifted one cell, 0). 320 sweep rows (16
+masks × 5 slots at four cells) agree too (`render::trees::tests::every_place_the_packet_prints_is_ours`).
+
+**Diff-backed, the geometry:** the packet holds each visible forest cell's trees as the original assembled
+them, in world space (`RTreeData::tree_cache`, `TreeCacheEntry::cache_verts[7]`, printed by
+`tree_points.py`'s `cache` rows). On all 12 cached cells, our five models placed by `tree_placement` span the
+same extent to within 0.001 on all six bounds. At 1.05 × `tree_scale` no cell agrees
+(`client::world::tests::the_trees_are_the_packets_own_geometry`). The scale, the `(s, −s, s)` transform and the
+models are therefore the original's.
+
+**The draw.** Each tree is its model at rest. The window draws it flat green, and `--no-trees` leaves it out. In
+candidate C's key buffer a tree is rasterized after the sprites, so it hides what stands behind it, and it is
+scored by §5.3's tree rule. A tree is not a draw-list piece, so K's M (§5.4) is not widened and K holds at 59 of 59.
+
+**The count** (§5.3): **29 of 33 → 25 of 29**. The trees are drawn as solid cards, and they hide four figures
+by the woodcutter that the photograph shows in front of the pine (parked 4080a). The rejected reading, `Scene`,
+reads 26 of 29.
+
+**What is not established.**
+- The leaves' alpha: seven textured sections a tree (`RTreeData::tree_textures`), drawn here as solid
+  triangles (parked 4080a).
+- The depth of a building's sprite against a tree. Ours puts the anchor's flat draw-list depth against the tree's
+  per-pixel depth. The original's sprite may carry its `zbuffer` model's depth (parked 4076b).
+- The tree's idle animation, which is not posed.
+- The section name `#<TILESET>_TREE_MODELS0`. It is a reading, checked by the count of models (24, all of
+  which decode), and since by the packet's geometry on 12 cells.
+- Whether cutting a tree moves `terrain_version`.
+
 ## 4. The stack
 
 The rule is `CLAUDE.md`'s **earn every dependency**: a crate enters when it
@@ -1173,19 +1214,21 @@ The 3294 rows are kept as the packet's frame.
   tanks and figures included (`Reader::Traced`). The rejected readings,
   reported beside it: kind (3) as footprint, and the interface as before.
 - *The misses* (on 3279). ~~The capital is drawn as its `zbuffer` model
-  (4036a).~~ The figures by the derrick stand among trees the client does not
-  draw.
+  (4036a).~~ The figures by the derrick: 4080a.
 - **The row on the default draw**, the buildings as their sprites (item
   4076: 14 of 23 by the mask, `RUN1559B_3279_SPRITES`), by item 4077's reader:
   27 of 33, both buildings passing; with the last tank 1/27 traced (item
   4079, `ebcbcb0f7` before its count) **29 of 33** (`RUN1559B_3279_TRACED`);
   run1441's camera 0 of 32. The rejected readings and every row's values are
-  the journals of 4077 and 4079. Out: three riflemen by the tank (4079b) and
-  0/10, behind a pine the client does not draw (4079a). The `RUN1559B_3279_*`
-  rows above are the `zbuffer` draw's, kept by name. A second photograph
-  needs its own traces, made on it before a count (4071a).
+  the journals of 4077 and 4079. **With the trees drawn: 25 of 29** (4080,
+  §3.7); treeless, 29 of 33. Out: three riflemen (4079b) and the figures
+  the trees hide (4080a). The `RUN1559B_3279_*`
+  rows above are the `zbuffer` draw's, kept by name.
+- *The trees* (4080, before its count; §3.7). A tree hides what is
+  behind it; its pixel is the ground's; it is never scored. Rejected:
+  `TreePixels::Scene`.
 - *What it does not measure.* Colour: textures and team colours are not
-  bound (4038a), and binding them would not move this row.
+  bound (4038a); the trees' leaf alpha would move the row (4080a).
 - *Where the inputs are.* The photograph is converted once to `.tga`
   (`sips -s format tga`), so `render::tga` reads it with no new
   dependency. `client --silhouette OUT.bmp` prints every row and writes

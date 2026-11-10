@@ -109,6 +109,9 @@ struct Args {
     /// Draw the buildings as their sprites (`world::World::sprites`, item
     /// 4076); `--zbuffer` draws the depth model instead.
     sprites: bool,
+    /// Draw the map's trees (`world::World::trees`, item 4080);
+    /// `--no-trees` leaves them out.
+    trees: bool,
 }
 
 fn parse() -> Result<Args, String> {
@@ -127,6 +130,7 @@ fn parse() -> Result<Args, String> {
         silhouette: None,
         pose: true,
         sprites: true,
+        trees: true,
         trace: std::env::temp_dir().join(format!("attrition-client-{}.json", std::process::id())),
     };
     let mut it = std::env::args().skip(1);
@@ -149,6 +153,7 @@ fn parse() -> Result<Args, String> {
             "--play" => a.play = true,
             "--rest" => a.pose = false,
             "--zbuffer" => a.sprites = false,
+            "--no-trees" => a.trees = false,
             "--silhouette" => a.silhouette = Some(v()?.into()),
             "--zoom" => a.zoom = v()?.parse().map_err(|e| format!("--zoom: {e}"))?,
             "--look" => {
@@ -192,7 +197,8 @@ fn build(world: &mut World, camera: &render::Camera, size: (u32, u32), frame_ms:
     let (figures, buildings, list) =
         world.draw_list(camera, &pinned_screen(), (size.0 as i32, size.1 as i32));
     let sprites = world.sprite_drawings(&buildings, &list, camera.zoom_distance);
-    let figures = world.figures(&figures, &buildings, &list);
+    let mut figures = world.figures(&figures, &buildings, &list);
+    world.tree_soup(&mut figures);
     let lines = overlay::Lines {
         frame: world.runner.frame(),
         frame_ms,
@@ -418,6 +424,7 @@ fn main() {
     };
     world.pose = args.pose;
     world.sprites = args.sprites;
+    world.trees = args.trees;
     session.mark("frame zero");
     session.phase("run to the frame", || world.run_to(args.frame));
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());

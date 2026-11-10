@@ -39,5 +39,6 @@ pub mod figure;
 pub mod silhouette;
 pub mod terrain;
 pub mod tga;
+pub mod trees;
 
 pub use camera::{Camera, Mat4, Projected, Screen};
