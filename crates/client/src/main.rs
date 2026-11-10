@@ -8,7 +8,7 @@
 //! ```text
 //! client [--install DIR] [--logs DIR] [--frame N] [--size WxH]
 //!        [--still OUT.bmp] [--frames N] [--play] [--trace OUT.json]
-//!        [--look X,Y] [--zoom F] [--silhouette OUT.bmp] [--pose]
+//!        [--look X,Y] [--zoom F] [--silhouette OUT.bmp] [--rest]
 //! client --read-trace SESSION.json
 //! ```
 //!
@@ -16,8 +16,9 @@
 //! opens (arrows pan, `+`/`-` zoom, space plays, `Q` or Escape quits), and
 //! `--frames N` quits after N presented frames. `--silhouette` scores the
 //! frame's silhouettes against run1559b's photograph (`silhouette`) and
-//! writes the picture of the scoring. `--pose` draws each figure posed at
-//! its animation slot and clock rather than at rest (item 4067). Every session writes its
+//! writes the picture of the scoring. Each figure is drawn posed at its
+//! animation slot and clock (item 4067, the default since item 4069);
+//! `--rest` draws it in its model's rest pose. Every session writes its
 //! trace (`trace`), and `--read-trace` prints the clock it holds.
 //!
 //! The simulation stays headless: this crate depends on `sim`, `rondata`
@@ -113,7 +114,7 @@ fn parse() -> Result<Args, String> {
         look: None,
         zoom: 1.0,
         silhouette: None,
-        pose: false,
+        pose: true,
         trace: std::env::temp_dir().join(format!("attrition-client-{}.json", std::process::id())),
     };
     let mut it = std::env::args().skip(1);
@@ -134,7 +135,7 @@ fn parse() -> Result<Args, String> {
             "--still" => a.still = Some(v()?.into()),
             "--frames" => a.frames = Some(v()?.parse().map_err(|e| format!("--frames: {e}"))?),
             "--play" => a.play = true,
-            "--pose" => a.pose = true,
+            "--rest" => a.pose = false,
             "--silhouette" => a.silhouette = Some(v()?.into()),
             "--zoom" => a.zoom = v()?.parse().map_err(|e| format!("--zoom: {e}"))?,
             "--look" => {

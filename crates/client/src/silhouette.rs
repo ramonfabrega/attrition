@@ -177,6 +177,8 @@ mod tests {
         };
         world.run_to(3294);
         let camera = crate::pinned_camera();
+        // The default drawing: every figure posed, at the original's facing.
+        assert!(world.pose, "the client draws posed by default");
         let rows = score_frame(&mut world, &camera, &photo);
         for (f, (who, o, piece, building)) in &rows {
             println!(
@@ -194,20 +196,20 @@ mod tests {
         }
         let footprints: Vec<Footprint> = rows.iter().map(|(f, _)| *f).collect();
         let got = score(&footprints, &READING);
-        println!("silhouettes {} of {}", got.0, got.1);
+        println!("posed: {} of {}", got.0, got.1);
         assert_eq!(
             got,
-            render::silhouette::RUN1559B_3294,
-            "candidate C's first row"
+            render::silhouette::RUN1559B_3294_POSED,
+            "candidate C's row"
         );
 
-        world.pose = true;
+        world.pose = false;
         let rows = score_frame(&mut world, &camera, &photo);
         let footprints: Vec<Footprint> = rows.iter().map(|(f, _)| *f).collect();
-        let posed = score(&footprints, &READING);
-        println!("posed: {} of {}", posed.0, posed.1);
-        assert_eq!(posed, render::silhouette::RUN1559B_3294_POSED);
-        world.pose = false;
+        let rest = score(&footprints, &READING);
+        println!("at rest: {} of {}", rest.0, rest.1);
+        assert_eq!(rest, render::silhouette::RUN1559B_3294);
+        world.pose = true;
 
         let mut elsewhere = camera;
         (elsewhere.loc_x, elsewhere.loc_y) = (3168.0, 29744.68);

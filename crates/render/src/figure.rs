@@ -13,13 +13,15 @@
 //! place (`HierObj::set_to_time@00536e30`, `update_transforms@00536c60`).
 //!
 //! **The placement** is read from `GuyOut::draw@005dc490`: the angle drawn
-//! is the figure's facing in degrees plus 180 (`__real_43340000`), turned
-//! with `Transform<float>::rotate_z`, and the piece's scale multiplies the
-//! model. The scale is `RData +0x88` (the `<UNIT>`'s `scale=`) times the
-//! global `guy_scale`, read off run1559b's packet (item 4065); the chad's
-//! `sy = −1` is not applied. What `GraphicPieces::draw` does past that —
-//! the bank, the pivots — is not read, and no bank is drawn
-//! (`docs/RENDERER.md` §3.6).
+//! is `fast_angle_to_degrees` of `GuyData::angle` plus 180
+//! (`__real_43340000`), turned with `Transform<float>::rotate_z`, and the
+//! piece's scale multiplies the model. The scale is `RData +0x88` (the
+//! `<UNIT>`'s `scale=`) times the global `guy_scale`, read off run1559b's
+//! packet (item 4065). A figure's turn and its mirror are the original's
+//! model-to-world map, `get_position`'s, as [`guy_placement`] draws it
+//! (item 4069); a building keeps [`placement`]. What `GraphicPieces::draw`
+//! does past that — the bank, the pivots — is not read, and no bank is
+//! drawn (`docs/RENDERER.md` §3.6).
 
 use crate::bh3::Model;
 use crate::camera::{Mat4, fill, rotate};
@@ -203,6 +205,43 @@ pub fn placement(at: [i32; 3], facing: u32, scale: f32) -> Mat4 {
     s.0[5] = scale;
     s.0[10] = scale;
     Mat4::then(&s, &turn)
+}
+
+/// **A figure's model-to-world transform** (item 4069): the model's y
+/// negated, then turned by `drawn` whole degrees, with x towards y, scaled
+/// and moved to `at`. A model point `m` lands at
+/// `at + s·(m.x·c + m.y·s_, m.x·s_ − m.y·c, m.z)`, `c, s_` the cosine and
+/// sine of `drawn`.
+///
+/// `drawn` is the angle `GuyOut::draw@005dc490` hands `rotate_z`:
+/// `fast_angle_to_degrees` of `GuyData::angle` (`+0x18`) blended from
+/// `last_angle` (`+0x1c`) by `graphic_percent` (listing `5dcac4`–`5dcb3b`),
+/// plus 180 (`5dcb45`, `__real_43340000`), into `GraphicChad::angle`
+/// (`+0x3c`), which `draw_unit@008e7da0` truncates into `rotate_z`
+/// (`8e8887`). The client draws at a blend of 0 (a sim frame's own angle),
+/// which is [`sim::data::pivot::release_rotation`]'s degree.
+///
+/// The sense and the mirror are the original's own model-to-world map,
+/// `GraphicPieces::get_position@0090b750`, as `sim::data::pivot::
+/// release_offset_at` ports it, packet-backed at all 256 headings
+/// (`v = s·R(d)·P` with y negated, `d` that same `fast_angle_to_degrees +
+/// 180`). [`placement`]'s quaternion turn, applied with no mirror, is that
+/// map reflected in world y through the anchor: a sign flip of every
+/// figure's heading (parked 4067a's quarter turn on figures facing
+/// near −45°).
+pub fn guy_placement(at: [i32; 3], drawn: i32, scale: f32) -> Mat4 {
+    let r = (drawn.rem_euclid(360) as f32).to_radians();
+    let (c, s) = (r.cos() * scale, r.sin() * scale);
+    let mut m = Mat4::IDENTITY;
+    m.0[0] = c;
+    m.0[1] = s;
+    m.0[4] = s;
+    m.0[5] = -c;
+    m.0[10] = scale;
+    m.0[12] = at[0] as f32;
+    m.0[13] = at[1] as f32;
+    m.0[14] = at[2] as f32;
+    m
 }
 
 #[cfg(test)]

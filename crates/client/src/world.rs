@@ -5,7 +5,7 @@
 
 use render::bh3;
 use render::draw::{Drawn, Placed, PlacedBuilding, Pose};
-use render::figure::{apply, placement, posed, rest_pose};
+use render::figure::{apply, guy_placement, placement, posed, rest_pose};
 use render::terrain::{Heightfield, TerrainMesh};
 use rondata::artdata::{BuildLook, build_art, resolve_art, unit_art};
 use rondata::free::{FreeRunner, placed, placed_buildings};
@@ -86,11 +86,10 @@ pub struct World {
     unit_models: BTreeMap<i32, UnitModel>,
     root: PathBuf,
     install: Install,
-    /// Pose each figure at its slot and clock (item 4067, `--pose`). Off by
-    /// default: posed at the drawn facing, candidate C's row falls from 3 to
-    /// 1 of 23, because the facing chain is a quarter turn off for every
-    /// figure (`docs/RENDERER.md` §5.3, parked 4067a); the rest pose hides
-    /// that for a figure whose silhouette is near symmetric.
+    /// Pose each figure at its slot and clock (item 4067). On by default
+    /// since item 4069 drew the original's facing (`guy_placement`): posed,
+    /// candidate C reads 6 of 23, at rest 2 (`docs/RENDERER.md` §5.3);
+    /// `--rest` turns it off.
     pub pose: bool,
     terrain: (u32, TerrainMesh),
 }
@@ -144,7 +143,7 @@ impl World {
             unit_models,
             root: install.root().to_path_buf(),
             install,
-            pose: false,
+            pose: true,
             runner,
             terrain: (u32::MAX, TerrainMesh::default()),
         })
@@ -274,7 +273,12 @@ impl World {
             let Some(mesh) = self.mesh(d.piece, building) else {
                 continue;
             };
-            let m = placement(point, facing, mesh.scale);
+            let m = if building {
+                placement(point, facing, mesh.scale)
+            } else {
+                let drawn = sim::data::pivot::release_rotation(sim::movement::Angle(facing as i32));
+                guy_placement(point, drawn, mesh.scale)
+            };
             let pose = clock
                 .filter(|_| self.pose)
                 .and_then(|(slot, t)| mesh.anims.get(&slot).map(|a| (a, t)))
@@ -361,4 +365,50 @@ fn shade(t: [[f32; 3]; 3]) -> f32 {
     let light = [-0.4f32, -0.4, 0.82];
     let ll = (light[0] * light[0] + light[1] * light[1] + light[2] * light[2]).sqrt();
     0.45 + 0.55 * ((n[0] * light[0] + n[1] * light[1] + n[2] * light[2]) / (l * ll)).abs()
+}
+
+#[cfg(test)]
+mod tests {
+    use render::figure::{apply, guy_placement, placement};
+    use sim::data::pivot::{Release, release_offset_at, release_rotation};
+    use sim::movement::Angle;
+
+    /// **A figure is drawn by the original's own model-to-world map**
+    /// (item 4069): `guy_placement` at the degree `GuyOut::draw` hands
+    /// `rotate_z` lands a model point where `get_position`'s port
+    /// (`release_offset_at`, packet-backed at all 256 headings) puts it, to
+    /// the unit it truncates to, at every top-byte facing. `placement`'s
+    /// unmirrored turn, which the client drew figures by before, misses —
+    /// the reflection in world y.
+    #[test]
+    fn a_figure_is_turned_as_get_position_turns_a_model_point() {
+        let m = [100.0, 40.0, 30.0];
+        let r = Release {
+            piece: -1,
+            node: 0,
+            pivot: [0; 3],
+            at: [100_000_000, 40_000_000, 30_000_000],
+            float_lands: &[],
+        };
+        let mut old_misses = 0;
+        for i in 0..256u32 {
+            let facing = i << 24;
+            let d = release_rotation(Angle(facing as i32));
+            let (x, y, z) = release_offset_at(&r, d, 0);
+            let p = apply(&guy_placement([0, 0, 0], d, 4.8), m);
+            let near = |a: f32, b: i32| (a - b as f32).abs() < 1.0;
+            assert!(
+                near(p[0], x) && near(p[1], y) && near(p[2], z),
+                "facing {facing:#x} at {d}°: drawn {p:?}, get_position ({x}, {y}, {z})"
+            );
+            let q = apply(&placement([0, 0, 0], facing, 4.8), m);
+            if !(near(q[0], x) && near(q[1], y)) {
+                old_misses += 1;
+            }
+        }
+        assert!(
+            old_misses > 200,
+            "the unmirrored turn agrees too often: {old_misses}"
+        );
+    }
 }

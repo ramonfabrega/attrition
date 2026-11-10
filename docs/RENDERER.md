@@ -864,12 +864,15 @@ runner up and steps it to the frame, then draws:
 - *each figure*: its piece's `.BH3` from `unit_art`, carried out of its
   nodes into model space (`render::figure::rest_pose`: a vertex sits in its
   node's space, `vertex · node · parent · … · root`), scaled by the
-  `<UNIT>`'s `scale=` times `guy_scale`, turned by `rotate_z(facing° + 180)`
-  and moved to the draw list's point. `GuyOut::draw@005dc490` adds the 180
+  `<UNIT>`'s `scale=` times `guy_scale`, its y negated and turned by
+  `d = fast_angle_to_degrees(angle) + 180` with x towards y
+  (`render::figure::guy_placement`, item 4069), and moved to the draw
+  list's point. `GuyOut::draw@005dc490` adds the 180
   (`__real_43340000`) and multiplies by `guy_scale`, which reads **4.8** on
   run1441's and run1559b's packets (`?guy_scale@@3MA`, `0x00c06244` by the
-  linker map). No animation is applied by default. `--pose` (item 4067)
-  poses each figure at its `anim` slot and `cur_time` through the `.BHa`
+  linker map). Each figure is posed by default (item 4069; `--rest` for
+  the rest pose): item 4067's pose
+  sets each figure at its `anim` slot and `cur_time` through the `.BHa`
   its `<UNIT>` names (`render::figure::posed`). The key is the node's
   `local` transform *inside* its `.BH3` rest transform, `parent.world ·
   parent2local · local` (`HierObj::update_transforms@00536c60`). The two
@@ -936,15 +939,36 @@ source (item 4065): the chad starts at `(1, −1, 1)`
 `init_unit_data@008f4290` sets only on a piece it turns into building data;
 `scale` is the `<UNIT>`'s `scale=` (below 0.1 read as 1). On run1559b's own
 packet piece 196 reads 0.85 and `0x1`, pieces 60 and 10912 1.0 and `0x1`, so
-the client's `scale=` × 4.8 is the original's (parked 4065a). The chad's
-`sy = −1` is not applied (parked 4065c). **Reading only, and by eye:** the
-rest pose, the facing's sense, the building's model. The pose's composition
+the client's `scale=` × 4.8 is the original's (parked 4065a). **The facing
+and its sense** (item 4069). The angle is `GuyData::angle` (`+0x18`),
+blended from `last_angle` (`+0x1c`) by `graphic_percent`, in the listing at
+`5dcac4`–`5dcb3b` (`edi` is `this` throughout, set at `5dc4b0`); the
+decompile garbles it as `_padding_`. Then `fast_angle_to_degrees`, whose
+table is `angle_to_degrees` of each top byte, monotone with no sign of its
+own (`a28f70`, `a28e00`), and `+ 180` into `GraphicChad::angle` (`+0x3c`),
+which `draw_unit` truncates into `rotate_z` (`8e8887`). `draw_unit` adds a
+per-slot offset (`0xc8c774`) only for a slot in `0..7` (`8e80dc`–`8e8119`).
+The sense and the mirror come from the original's own model-to-world map,
+`get_position@0090b750`, whose port (`sim::data::pivot::release_offset_at`)
+is packet-backed at all 256 headings: `v = s·R(d)·P` with y negated, `d`
+the same degree. The client turned the figure by `placement`'s quaternion
+with no mirror. That is the same map reflected in world y through the
+anchor: a sign flip of every heading. It read as a quarter turn on the
+figures facing near −45° (parked 4067a), because the error is twice the
+heading's angle from the x axis. `client::world::tests::
+a_figure_is_turned_as_get_position_turns_a_model_point` holds the drawn map
+against the port at every top-byte facing, and the unmirrored turn misses.
+**Reading only, and by eye:** the rest pose, the building's model. The
+pose's composition
 is pinned by `figure::tests::the_key_is_applied_inside_the_rest_transform`,
 which turns red with the order swapped, and by eye a posed rifleman aims
 with both hands at the shoulder. The `graphic_dt` inside a frame (the client
 draws at 0) and `load_hier`'s key flags (a blend skipped within 0.01 and 0.1)
-are not reproduced. **The facing's sense is now measured wrong:** a quarter
-turn, on figures and tanks alike (parked 4067a).
+are not reproduced. Not established: why our `fill` of a `rotate_z`
+quaternion turns opposite to `get_position`'s `R(d)`, when the same `fill`
+of the nodes' rotations poses a figure that looks right by eye. The
+figure-level map is pinned to the port, and the node-level convention
+has not been read again.
 
 **What is not established.**
 - **Why the camera moved between run1441 and run1559.** Both takes stage
@@ -1087,9 +1111,11 @@ for every data point, and it inherits the translation stack's noise (§3.3).
 It is the art phase's counter, not the first one.
 
 **The first row, pinned** (item 4038, 2026-11-09, Opus 5.5;
-`render::silhouette`, `client::silhouette`). **3 of 23 objects** on the
+`render::silhouette`, `client::silhouette`). **6 of 23 objects** on the
 Aztec Modern pair's frame 3294 at run1559b's camera, against that take's
-photograph (`RUN1559B_3294`).
+photograph, drawn as the client draws by default: posed, at the
+original's facing (`RUN1559B_3294_POSED`, item 4069: 1 → 6). Drawn at
+rest the frame reads 2 (`RUN1559B_3294`, 3 → 2).
 - *Ours.* Each drawn object's world-space triangles are rasterized on the
   CPU with the client shader's arithmetic into a buffer of object keys,
   the nearest winning by camera-space depth.
@@ -1108,21 +1134,21 @@ photograph (`RUN1559B_3294`).
   fewer than 40 pixels.
 - *Made to fail.* The same frame at run1441's camera, which the
   photograph was not taken at, scores 0 of 25 (`RUN1441_CAMERA_3294`).
-- *The misses.* The tanks sit about 40 px above the photograph's, two of
-  them turned a quarter, at the original's own scale (item 4065, §3.6); their
-  photograph footprints read small because the ring's ground colours take in
-  an olive tank on grass, so a tank row cannot pass by drawing alone (parked
-  4065b, 4065c). The capital is drawn as its
-  `zbuffer` model (4036a). One figure has no counterpart in the
-  photograph (4038c). The figures stand in the rest pose, while the
-  photograph's have limbs out. **The pose is not the miss** (item 4067).
-  Posed at their slot and clock (`--pose`), they score 1 of 23
-  (`RUN1559B_3294_POSED`): 1/23 0.491 → 0.280, 1/34 0.452 → 0.286. A posed
-  rifleman stands side-on and aims, and at the drawn facing he aims a
-  quarter turn off the photograph's. With 90° added to every figure (a
-  diagnostic, not landed) the posed frame reads 5 of 23, and the tanks
-  improve too, so the miss is the facing chain (parked 4067a). The
-  figures by the derrick stand among trees the client does not draw.
+- *The facing* (item 4069, §3.6). Item 4067's pose read 1 of 23 at the
+  drawn facing, and a constant 90° added read 5 (parked 4067a). The cause
+  was the drawn map, a reflection of the original's in world y: a sign
+  flip, not an offset. Drawn by `get_position`'s map, the posed frame
+  reads 6. Five rows pass: 0/0 0.160 → 0.938, 0/8 0.245 → 0.565, 0/9
+  0.313 → 0.571, 1/21 0.498 → 0.647, 1/23 0.280 → 0.616. 0/5 holds at
+  0.566 → 0.820. At rest, 1/24 falls 0.528 → 0.394.
+- *The misses.* The tanks sit about 40 px above the photograph's, at the
+  original's own scale and now its facing (items 4065, 4069; 1/40 0.135 →
+  0.300, 1/16 0.037 → 0.091). Their photograph footprints read small
+  because the ring's ground colours take in an olive tank on grass, so a
+  tank row cannot pass by drawing alone (parked 4065b, 4065c). The capital
+  is drawn as its `zbuffer` model (4036a). One figure has no counterpart
+  in the photograph (4038c). The figures by the derrick stand among trees
+  the client does not draw.
 - *What it does not measure.* Colour: textures and team colours are not
   bound (4038a), and binding them would not move this row.
 - *Where the inputs are.* The photograph is converted once to `.tga`

@@ -15836,6 +15836,8 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   nothing on this frame (1/40 0.135 → 0.171, 1/15 0.011, 1/16 0.052 → 0.074; still 3 of 23), and how
   `draw_unit@008e7da0` consumes the chad's scale is unread (it does not decompile), so it was not landed. 3294 prints
   no `gpiece` or facing to diff the tank's heading against. Candidate C +3 at most, with 4065b.
+  **Facing half closed by item 4069** (4067a): the tanks are now drawn by `get_position`'s map, which
+  includes the chad's `sy = −1`. 1/40 0.135 → 0.300, 1/16 0.037 → 0.091. The ~40 px place stands.
 
 ## Parked by item 4063, 2026-11-09 — the start's units
 
@@ -15868,14 +15870,20 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   Which `GuyData` angle it reads (the render angle interpolates `last_angle` → `angle`) is garbled in the decompile
   (`_padding_` and `unaff_EDI`), and the listing at `005dc490` settles it. Candidate C posed 1 → 5 of 23, the rest
   row 3 held. The `RUN1559B_3294_POSED` pin is the one it lands against; with it the client draws posed by default.
+  **Closed by item 4069**: a sign flip, not an offset. The figure was drawn reflected in world y, against
+  `get_position`'s packet-backed map. Posed 1 → 6 of 23, and posed is the default (`docs/RENDERER.md` §3.6,
+  §5.3). This closes 4065c's facing half too; its ~40 px place stands.
 
-## Parked by the next landing, slot DZ — reserved
+## Parked by item 4069, 2026-11-09 — the figures' facing
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4069a. Our `fill` of a `rotate_z` quaternion turns opposite to `get_position`'s `R(d)`** (`docs/RENDERER.md`
+  §3.6). `render::figure::guy_placement` now builds the figure's map directly from the port
+  (`sim::data::pivot::release_offset_at`), with the model's y negated and turned with x towards y. The same
+  `camera::fill` also builds every node's rest and keyed transform, and by eye those pose a figure correctly.
+  Which of the two conventions the original's `Transform<float>` keeps, and whether a node's rotation is
+  inverted somewhere a symmetric body hides, is unread. `Matrix::fill` and `draw_unit@008e7da0`'s vertex
+  transform settle it from the listing; a node's world point on a packet settles it by value. Names no score:
+  candidate C's posed frame reads 6 of 23 with the figure map pinned to the port.
 
 ## Parked by the next landing, slot EA — reserved
 
