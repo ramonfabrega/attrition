@@ -1006,4 +1006,5 @@ impl Sim {
 mod tests;
 
 // The files of `vision/` (item 4011, `docs/STRUCTURE.md` §3).
+mod seen_ally;
 pub mod wall_los_view;

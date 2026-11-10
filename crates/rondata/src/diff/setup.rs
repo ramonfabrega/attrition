@@ -590,6 +590,65 @@ pub fn sim_at_frame(loaded: &Loaded, log: &Log, frame: i64, tuning: Tuning) -> O
     })
 }
 
+/// **The install's takes** (`docs/START.md` §7): what `build_sim` stands
+/// in a `Sim` from the install alone, never from a dump — which types take
+/// gaia's three-piece rule, the gaia types' and every unit piece's slot
+/// lists and skeletons, the craft table, the crew track offsets, the
+/// arrow-release frames and the pivot restrictions. Lobby-independent, so
+/// the built start ([`crate::diff::built_from_lobby`]) takes them exactly
+/// as the installed one does.
+pub(crate) fn install_art(sim: &mut Sim, loaded: &Loaded, notes: &mut Vec<String>) {
+    for t in 0x192..0x19e {
+        if let Some(k) = loaded.unit_of_type_index(t) {
+            sim.roster.art.gaia_types.insert(k);
+        }
+    }
+    // And the gaia types' whole slot lists, from the install rather than
+    // the dump — which is what gives a bird a length at all
+    // (`crate::artdata`, `docs/SYNC.md` §3.9).
+    sim.roster.art.gaia_lengths = loaded.gaia_lengths.clone();
+    if !loaded.gaia_lengths.is_empty() {
+        notes.push(format!(
+            "anim: {} (type, variant, slot) gaia lengths from the install",
+            loaded.gaia_lengths.len()
+        ));
+    }
+    // And every player unit piece's whole slot list, from the same three
+    // files — which is what stops an idle variant nothing has played from
+    // being handed the default's length (`docs/ANIM.md` §3.2).
+    sim.roster.art.piece_lengths = loaded.piece_lengths.clone();
+    sim.roster.art.piece_skeletons = loaded.piece_skeletons.clone();
+    if !loaded.piece_lengths.is_empty() {
+        notes.push(format!(
+            "anim: {} unit pieces' slot lists from the install",
+            loaded.piece_lengths.len()
+        ));
+    }
+    // The craft table — `craftrules.xml`'s own rows, which is what tells a
+    // cast how long it takes (`docs/ORDERS.md` §6.9). Without it every
+    // `JOB_TIME` reads 0 and the fishing boat's deploy would land on the
+    // frame it is queued instead of forty frames later.
+    sim.orders.spells = loaded.spells.clone();
+    if !loaded.spells.is_empty() {
+        notes.push(format!(
+            "crafts: {} rows from the install",
+            loaded.spells.len()
+        ));
+    }
+    // And every piece's crew-follow offset, from the same file — which is
+    // what gives a scout's dog a body of its own instead of the man's
+    // (`docs/MOVEMENT.md`, "The follower's destination").
+    sim.roster.art.tracks = loaded.piece_tracks.clone();
+    // And every piece's arrow-release frames, from the same file. This is
+    // when a unit's shot comes into existence (`docs/COMBAT.md` §9.0) —
+    // gameplay data the original's own simulation reads, resolved to
+    // integer frames at load.
+    sim.roster.art.releases = loaded.piece_releases.clone();
+    // And which types aim a pivot rather than turn to shoot
+    // (`docs/COMBAT.md` §52).
+    sim.roster.art.pivots = loaded.pivot_restrictions.clone();
+}
+
 pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     let mut notes = Vec::new();
     let get = |k: &str| -> Option<i64> {
@@ -649,61 +708,13 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     for &(p, a, e) in &init.anim_lengths {
         sim.roster.art.lengths.insert((p as i32, a as i8), e as u32);
     }
-    for t in 0x192..0x19e {
-        if let Some(k) = loaded.unit_of_type_index(t) {
-            sim.roster.art.gaia_types.insert(k);
-        }
-    }
     if !init.anim_lengths.is_empty() {
         notes.push(format!(
             "anim: {} (piece, slot) lengths from the dump",
             init.anim_lengths.len()
         ));
     }
-    // And the gaia types' whole slot lists, from the install rather than
-    // the dump — which is what gives a bird a length at all
-    // (`crate::artdata`, `docs/SYNC.md` §3.9).
-    sim.roster.art.gaia_lengths = loaded.gaia_lengths.clone();
-    if !loaded.gaia_lengths.is_empty() {
-        notes.push(format!(
-            "anim: {} (type, variant, slot) gaia lengths from the install",
-            loaded.gaia_lengths.len()
-        ));
-    }
-    // And every player unit piece's whole slot list, from the same three
-    // files — which is what stops an idle variant nothing has played from
-    // being handed the default's length (`docs/ANIM.md` §3.2).
-    sim.roster.art.piece_lengths = loaded.piece_lengths.clone();
-    sim.roster.art.piece_skeletons = loaded.piece_skeletons.clone();
-    if !loaded.piece_lengths.is_empty() {
-        notes.push(format!(
-            "anim: {} unit pieces' slot lists from the install",
-            loaded.piece_lengths.len()
-        ));
-    }
-    // The craft table — `craftrules.xml`'s own rows, which is what tells a
-    // cast how long it takes (`docs/ORDERS.md` §6.9). Without it every
-    // `JOB_TIME` reads 0 and the fishing boat's deploy would land on the
-    // frame it is queued instead of forty frames later.
-    sim.orders.spells = loaded.spells.clone();
-    if !loaded.spells.is_empty() {
-        notes.push(format!(
-            "crafts: {} rows from the install",
-            loaded.spells.len()
-        ));
-    }
-    // And every piece's crew-follow offset, from the same file — which is
-    // what gives a scout's dog a body of its own instead of the man's
-    // (`docs/MOVEMENT.md`, "The follower's destination").
-    sim.roster.art.tracks = loaded.piece_tracks.clone();
-    // And every piece's arrow-release frames, from the same file. This is
-    // when a unit's shot comes into existence (`docs/COMBAT.md` §9.0) —
-    // gameplay data the original's own simulation reads, resolved to
-    // integer frames at load.
-    sim.roster.art.releases = loaded.piece_releases.clone();
-    // And which types aim a pivot rather than turn to shoot
-    // (`docs/COMBAT.md` §52).
-    sim.roster.art.pivots = loaded.pivot_restrictions.clone();
+    install_art(&mut sim, loaded, &mut notes);
     // The generator's placed mountains, each laid out from its template
     // (`docs/AI.md` §60): what a mine's reach and its gather list are
     // measured on. A capture with neither a `DUMP_ALL` head nor such a

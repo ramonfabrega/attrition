@@ -292,6 +292,8 @@ mod spanish_modern_pair;
 mod spanish_word;
 mod start;
 #[cfg(test)]
+mod start_walk;
+#[cfg(test)]
 mod third;
 #[cfg(test)]
 mod third_pair;

@@ -521,6 +521,13 @@ fn goods_table(root: &Path) -> Option<Vec<(String, Footprint, bool, String)>> {
     Some(out)
 }
 
+/// Each good's footprint, by good index (`resourcerules.xml` record
+/// order): what `GoodTypeData::snap_center@0066fcb0` centres a placed
+/// good by (`crate::diff::lay_map_objects`).
+pub(crate) fn good_footprints(root: &Path) -> Option<Vec<Footprint>> {
+    Some(goods_table(root)?.into_iter().map(|g| g.1).collect())
+}
+
 /// The ages from Gunpowder on: a good whose `PREQ0` names one is a late
 /// good (`ObjectTypeData::get_age` ≥ 3, `ResourceDivvyPool::add_good`).
 const LATE_AGES: [&str; 5] = [
