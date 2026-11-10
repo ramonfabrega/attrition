@@ -1352,6 +1352,12 @@ pub struct BuildArt {
     /// `texture=` — the building's sprite. A texture is outside §5.4's
     /// condition 1, as a unit's is.
     pub texture: String,
+    /// `spritexoff=`, `spriteyoff=` (strings 3852 and 3853, each `-1` when
+    /// absent): the sprite's anchor in its own pixels, which
+    /// `init_build_data` writes into the sprite packet (`packets[0xf]`) and
+    /// `SpriteMethod::execute@0091ca30` subtracts, scaled, from the
+    /// building's screen point (item 4076).
+    pub sprite_offset: (i32, i32),
     /// `zbuffer=`, the depth model: `init_build_data` loads the piece only
     /// when it is empty or the file exists.
     pub zbuffer: Option<String>,
@@ -1448,6 +1454,11 @@ pub fn build_art(
             .collect();
         addons.sort();
         addons.dedup();
+        let num = |a: &str| {
+            named(b, a)
+                .and_then(|v| v.parse::<i32>().ok())
+                .unwrap_or(-1)
+        };
         out.insert(
             piece,
             Ok(BuildArt {
@@ -1455,6 +1466,7 @@ pub fn build_art(
                 type_index,
                 name,
                 texture: named(b, "texture").unwrap_or_default(),
+                sprite_offset: (num("spritexoff"), num("spriteyoff")),
                 zbuffer: named(b, "zbuffer"),
                 anim,
                 addons,
@@ -2251,6 +2263,8 @@ mod tests {
         let village = art[&57144].as_ref().unwrap();
         eprintln!("{village:?}");
         assert_eq!(village.zbuffer.as_deref(), Some(".\\art\\village_6tz.bh3"));
+        assert_eq!(village.texture, ".\\art\\village_6t.tga");
+        assert_eq!(village.sprite_offset, (290, 247), "spritexoff, spriteyoff");
         assert_eq!(village.addons.len(), 2);
         assert!(
             village

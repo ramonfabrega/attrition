@@ -954,6 +954,20 @@ and `build_art`).
   units on both axes for each unit of it (`docs/RENDERER.md` §3.5).
   Diff-backed: 4,564 dumped building records anchor within a pixel of the
   original's projection with it, 3,397 without.
+- `spritexoff`, `spriteyoff`, strings 3852 and 3853 (`int_str_array +
+  0x12cf0`, `+ 0x12d04`, default −1; `internal_strings_uwp.xml` holds them
+  between `zbuffer` and `halfoffset`), written into the sprite packet
+  (`packets[0xf]`, its third pair) after `RData::load`
+  (`artdata::BuildArt::sprite_offset`, item 4076).
+
+**What a building draws: its `texture=` sprite** (item 4076), a 32-bit
+`.tga` with near two-level alpha, at `build_x − (int)(spritexoff · s)`,
+`build_y − (int)(spriteyoff · s)` (`SpriteMethod::execute@0091ca30`),
+`build_x`/`y` the anchor's projection and `s = (int) fixed_zooms[6] ·
+game_sprite_scale / (int) zoom_distance` (`draw_build@008e7610`, listing
+`8e7a10`–`8e7a3a`). Packet-backed: run1559b's packet gives 13905 / 20858;
+the values and the check by eye are in item 4076's journal. The `zbuffer`
+model is the depth, not the picture.
 
 **Which piece a building plays** (item 4035). `Wall::update_gpiece@00643070`
 calls `get_build_gpiece@0090bce0` with the current type, the founder

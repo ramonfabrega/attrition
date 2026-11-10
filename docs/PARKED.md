@@ -15701,7 +15701,8 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
 
 ## Parked by item 4036, 2026-11-09 — first pixels
 
-- **4036a. A building draws its `zbuffer` model, not its sprite.** The client puts the `<BUILD>`'s `zbuffer` `.bh3`
+- ~~**4036a. A building draws its `zbuffer` model, not its sprite.**~~ Settled by item 4076: the original draws the
+  `texture=` sprite (`docs/FORMATS.md`, "What a building draws"), and so does the client. As parked: The client puts the `<BUILD>`'s `zbuffer` `.bh3`
   at the draw list's anchor, unscaled and unturned. In run1559b's photograph Napata stands at that place but is
   several times larger: the original draws the `texture=` sprite, and the depth model's own placement in
   `WallOut::draw@00641930` is unread (`docs/RENDERER.md` §3.6). Names no score: K counts the anchor, which is in
@@ -15919,13 +15920,26 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   pause, or under DXVK's present is not read. Names no score until a second photograph is booked. A photograph's
   frame should then be read off its movers before its row is pinned.
 
-## Parked by the next landing, slot EC — reserved
+## Parked by item 4076, 2026-11-10 — the buildings as the original draws them
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4076a. Candidate C's reader cannot score a building drawn right.** Drawn as their `texture=` sprites, placed
+  on the photograph within a pixel or two by eye, frame 3279 at run1559b's camera reads 14 of 23 by the mask and 11
+  of 23 by colour (`RUN1559B_3279_SPRITES`), against 16 of 24 and 13 of 24 on the `zbuffer` draw. The capital's
+  sprite reaches y 573, so its ring meets the city's label (`INTERFACE`) and it is not scored. The woodcutter's ring
+  is the forest's (0.351). Four figures beside the woodcutter fall, their rings on the sprite reading it as ground
+  (0/8 0.916 → 0.587). The instrument was not moved (the brief's rule): the row stays scored on the `zbuffer` draw.
+  It names candidate C's score: it books when the reader is given a building's footprint of its own, a mask traced
+  on the photograph as 4071's tanks were, or a reader that does not take a sprite's colours for the ground.
+- **4076b. The sprite's depth.** The client gives a sprite one depth, its anchor's, and blits it over the ground: a
+  figure further than the anchor is hidden wherever the sprite covers it. In the original the `zbuffer` model is the
+  building's depth, so a figure behind its walls is hidden by the model's own surface. How the model is placed and
+  drawn for depth (`draw_build`'s `packets[0x12]` transform, `build_scale`) is unread. It names no score while
+  candidate C's building rows are scored on the `zbuffer` draw (4076a).
+- **4076c. What a sprite is drawn with.** Not applied: the team colour `build_sprite_color` (`TeamColor::get_build`),
+  the snowy-tileset variant, the `<BUILD>`'s `EXISTEVENT` addons (the woodcutter's crane boom is one), the
+  `transparent` fade of an unfinished building, and the sprite scale under the client's `--zoom`, which changes
+  `parallel_distance` and not `zoom_distance`. Names no score: candidate C is a silhouette and these are a
+  building's colours or a camera the pinned rows do not take.
 
 ## Parked by the next landing, slot ED — reserved
 

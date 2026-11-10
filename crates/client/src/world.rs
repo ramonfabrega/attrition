@@ -4,7 +4,7 @@
 //! §3.6). Nothing here touches the GPU; `gpu` takes the triangles.
 
 use render::bh3;
-use render::draw::{Drawn, Placed, PlacedBuilding, Pose};
+use render::draw::{Drawn, MODELS_AT_THE_POINT, Placed, PlacedBuilding, Pose, SpriteAt, sprite_at};
 use render::figure::{apply, guy_placement, placement, posed, rest_pose};
 use render::terrain::{Heightfield, TerrainMesh};
 use rondata::artdata::{BuildLook, build_art, resolve_art, unit_art};
@@ -91,7 +91,38 @@ pub struct World {
     /// candidate C reads 6 of 23, at rest 2 (`docs/RENDERER.md` §5.3);
     /// `--rest` turns it off.
     pub pose: bool,
+    /// Draw each building as its `<BUILD>`'s `texture=` sprite (item 4076,
+    /// `render::draw::SpriteAt`) rather than its `zbuffer` model. On by
+    /// default; `--zbuffer` turns it off.
+    pub sprites: bool,
+    /// `Camera::fixed_zooms[6]` and `Game::game_sprite_scale`, the sprite
+    /// scale's numerator (`render::draw::sprite_at`).
+    pub sprite_zoom: (f32, f32),
+    /// Each building piece's sprite, `None` where its `texture=` does not
+    /// resolve or decode.
+    sprite_images: BTreeMap<i32, Option<std::sync::Arc<SpriteImage>>>,
     terrain: (u32, TerrainMesh),
+}
+
+/// A building's `texture=` decoded (`render::tga`), with its
+/// `(spritexoff, spriteyoff)`.
+pub struct SpriteImage {
+    pub image: render::tga::Image,
+    pub offset: (i32, i32),
+    /// Each pixel's alpha at half or more: the pixels the sprite covers.
+    /// The install's building sprites are nearly two-level (item 4076).
+    pub covered: Vec<bool>,
+}
+
+/// One building drawn as its sprite: the draw-list entry's owner, object
+/// and piece, where the image lands, and the depth the list orders it by.
+pub struct SpriteDrawing {
+    pub who: u8,
+    pub o: i16,
+    pub piece: i32,
+    pub at: SpriteAt,
+    pub depth: f32,
+    pub image: std::sync::Arc<SpriteImage>,
 }
 
 impl World {
@@ -144,6 +175,9 @@ impl World {
             root: install.root().to_path_buf(),
             install,
             pose: true,
+            sprites: true,
+            sprite_zoom: crate::PINNED_SPRITE_ZOOM,
+            sprite_images: BTreeMap::new(),
             runner,
             terrain: (u32::MAX, TerrainMesh::default()),
         })
@@ -231,6 +265,80 @@ impl World {
         decoded
     }
 
+    /// A building piece's sprite, decoded once.
+    pub fn sprite_image(&mut self, piece: i32) -> Option<std::sync::Arc<SpriteImage>> {
+        if let Some(s) = self.sprite_images.get(&piece) {
+            return s.clone();
+        }
+        let set = std::iter::once(piece).collect();
+        let art = build_art(&self.install, &set);
+        let decoded = art.get(&piece).and_then(|a| a.as_ref().ok()).and_then(|a| {
+            let bytes = std::fs::read(resolve_art(&self.root, &a.texture)?).ok()?;
+            let image = render::tga::decode(&bytes).ok()?;
+            let covered = image.rgba.chunks_exact(4).map(|p| p[3] >= 128).collect();
+            Some(std::sync::Arc::new(SpriteImage {
+                image,
+                offset: a.sprite_offset,
+                covered,
+            }))
+        });
+        self.sprite_images.insert(piece, decoded.clone());
+        decoded
+    }
+
+    /// Whether a building's entry is drawn as its sprite: sprites on, not a
+    /// type `WallOut::draw` draws as a model at the point, and a sprite
+    /// that decodes.
+    fn sprite_drawn(&mut self, piece: i32, type_index: i32) -> bool {
+        self.sprites
+            && !MODELS_AT_THE_POINT.contains(&type_index)
+            && self.sprite_image(piece).is_some()
+    }
+
+    /// Every building the list draws as its sprite, at `zoom_distance`
+    /// (item 4076): the image at `render::draw::sprite_at` of the entry's
+    /// anchor, at the entry's depth.
+    pub fn sprite_drawings(
+        &mut self,
+        buildings: &[PlacedBuilding],
+        list: &[Drawn],
+        zoom_distance: f32,
+    ) -> Vec<SpriteDrawing> {
+        let at_building: BTreeMap<(u8, i16), &PlacedBuilding> =
+            buildings.iter().map(|b| ((b.who, b.o), b)).collect();
+        let mut out = Vec::new();
+        for d in list {
+            let Pose::Building { .. } = d.pose else {
+                continue;
+            };
+            let Some(b) = at_building.get(&(d.who, d.o)) else {
+                continue;
+            };
+            if !self.sprite_drawn(d.piece, b.type_index) {
+                continue;
+            }
+            let Some(image) = self.sprite_image(d.piece) else {
+                continue;
+            };
+            let at = sprite_at(
+                d.anchor,
+                image.offset,
+                self.sprite_zoom.0,
+                self.sprite_zoom.1,
+                zoom_distance,
+            );
+            out.push(SpriteDrawing {
+                who: d.who,
+                o: d.o,
+                piece: d.piece,
+                at,
+                depth: d.depth,
+                image,
+            });
+        }
+        out
+    }
+
     /// Every drawn figure's and building's mesh, placed in world space: one
     /// entry a draw-list entry the client draws, its owner, whether it is a
     /// building, and its triangles.
@@ -259,6 +367,9 @@ impl World {
                     let Some(b) = at_building.get(&(d.who, d.o)) else {
                         continue;
                     };
+                    if self.sprite_drawn(d.piece, b.type_index) {
+                        continue;
+                    }
                     let (x, y, z) = b.anchor_point();
                     ([x, y, z], 0, true, None)
                 }

@@ -881,8 +881,12 @@ runner up and steps it to the frame, then draws:
   reached at `times[k − 1]` (`HierObj::set_to_time@00536e30`). Posed, a
   citizen's body turns with its `Bip01` key, and every figure then reads a
   quarter turn off the photograph (§5.3, parked 4067a);
-- *each building*: its `<BUILD>`'s `zbuffer` model at the draw list's
-  anchor point, unscaled and unturned;
+- *each building*: its `<BUILD>`'s `texture=` sprite (item 4076), a quad in
+  screen pixels at `render::draw::sprite_at` of the draw list's anchor,
+  alpha-tested at half. It is blitted over the ground and writes the
+  anchor's depth, so a nearer figure draws over it. `--zbuffer` draws the
+  `zbuffer` model at the anchor instead, unscaled and unturned, as do the
+  three types drawn as a model at the point;
 - *the overlay* (§7.2 item 8): the frame, the last frame's milliseconds and
   the camera, from a 5×7 font in the crate, with no font dependency.
 The view is the observer's (§7.2 item 7), and the tint is by owner, a
@@ -976,8 +980,12 @@ has not been read again.
   rather than in sim time, but nothing has been read to show it.
 - **A mid-game height table.** Only the start's `DUMP_ALL` blocks print
   one, so the condition is not checked past frame 37.
-- **What a building draws.** The sprite and its anchor are the original's.
-  The `zbuffer` model's own placement is unread.
+- ~~**What a building draws.** The sprite and its anchor are the original's.
+  The `zbuffer` model's own placement is unread.~~ The sprite and its place
+  are read and packet-backed (item 4076, `docs/FORMATS.md`, "What a
+  building draws"). The `zbuffer` model is the depth. Its own placement,
+  and whether a figure behind the sprite is hidden by it or by the
+  anchor's depth, are unread (parked 4076b).
 
 ## 4. The stack
 
@@ -1171,9 +1179,12 @@ The 3294 rows are kept as the packet's frame.
   the tanks pass: 1/40 0.790, 1/15 0.669, 1/16 0.781, and 1/35 passes at
   0.701. Why a photograph taken paused on 3294 shows 3279 is not
   established (parked 4073a).
-- *The misses* (on 3279). The capital is drawn as its `zbuffer` model
-  (4036a). The figures by the derrick stand among trees the client does not
+- *The misses* (on 3279). ~~The capital is drawn as its `zbuffer` model
+  (4036a).~~ The figures by the derrick stand among trees the client does not
   draw.
+- *The buildings drawn right* (item 4076), as their sprites: 14 of 23
+  masked, 11 by colour (`RUN1559B_3279_SPRITES`). The reader cannot score
+  them; the pinned rows stay on the `zbuffer` draw (parked 4076a).
 - *What it does not measure.* Colour: textures and team colours are not
   bound (4038a), and binding them would not move this row.
 - *Where the inputs are.* The photograph is converted once to `.tga`

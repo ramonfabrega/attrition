@@ -394,6 +394,46 @@ impl PlacedBuilding {
     }
 }
 
+/// **A building's sprite on the screen** (item 4076). `WallOut::draw@00641930`
+/// projects the [`PlacedBuilding::anchor_point`] to `loc2dx`, `loc2dy`;
+/// `GraphicPieces::draw_build@008e7610` copies them to `build_x`, `build_y`
+/// and sets the scale's numerator to `(int) Camera::fixed_zooms[6] ·
+/// Game::game_sprite_scale` (`+0x338`, `+0x928`) and its denominator to
+/// `(int) Camera::zoom_distance` (the listing at `8e7a10`–`8e7a3a`); and
+/// `SpriteMethod::execute@0091ca30` draws the `<BUILD>`'s `texture=` at
+/// `build_x − (int)(spritexoff · s)`, `build_y − (int)(spriteyoff · s)`,
+/// `s` the quotient, through `Sprite::draw@0053e260` at that scale. The
+/// sprite is authored at the nearest zoom, `fixed_zooms[6]`: at the
+/// default zoom of run1559b's packet `s` is 13905 / 20858.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct SpriteAt {
+    /// The image's top-left corner on the screen.
+    pub left: i32,
+    pub top: i32,
+    /// Screen pixels per image pixel.
+    pub scale: f32,
+}
+
+/// The sprite's place and scale for a building whose anchor projects to
+/// `anchor`, its `<BUILD>`'s `(spritexoff, spriteyoff)` `offset`, on a
+/// camera at `zoom_distance` whose nearest fixed zoom is `nearest_zoom`.
+pub fn sprite_at(
+    anchor: Projected,
+    offset: (i32, i32),
+    nearest_zoom: f32,
+    game_sprite_scale: f32,
+    zoom_distance: f32,
+) -> SpriteAt {
+    let num = (nearest_zoom as i32) as f32 * game_sprite_scale;
+    let den = (zoom_distance as i32) as f32;
+    let scale = num / den;
+    SpriteAt {
+        left: anchor.x - (offset.0 as f32 * scale) as i32,
+        top: anchor.y - (offset.1 as f32 * scale) as i32,
+        scale,
+    }
+}
+
 /// What a drawn entry is: a figure with its pose, or a building.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Pose {
@@ -582,6 +622,28 @@ pub fn draw_list(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// **The capital's sprite on run1559b's camera** (item 4076): the
+    /// anchor 0/2000 projects to (1127, 505), its `<BUILD>` says
+    /// `spritexoff="290" spriteyoff="247"`, and the packet holds
+    /// `fixed_zooms[6]` 13905.87, `game_sprite_scale` 1 and `zoom_distance`
+    /// 20858.805: `s` = 13905 / 20858 of the truncated zooms, and the
+    /// image's corner `(1127 − (int)(290·s), 505 − (int)(247·s))`. Made to
+    /// fail: the untruncated quotient moves no pixel here, but the offset
+    /// unscaled puts the corner at (837, 258).
+    #[test]
+    fn a_building_s_sprite_is_placed_back_from_its_anchor_at_the_nearest_zoom_s_scale() {
+        let anchor = Projected {
+            x: 1127,
+            y: 505,
+            off_screen: false,
+        };
+        let at = sprite_at(anchor, (290, 247), 13905.87, 1.0, 20858.805);
+        assert_eq!(at.scale, 13905.0 / 20858.0);
+        assert_eq!((at.left, at.top), (934, 341));
+        let unscaled = sprite_at(anchor, (290, 247), 1.0, 1.0, 1.0);
+        assert_eq!((unscaled.left, unscaled.top), (837, 258));
+    }
 
     const NONE: ScaffoldTiming = ScaffoldTiming { tables: Vec::new() };
 
