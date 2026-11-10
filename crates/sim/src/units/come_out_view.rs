@@ -17,7 +17,9 @@
 //!   point from its type's `block_radius` out `UNIT_DISEMBARK_DISTANCE`, under
 //!   `FILTER_NOT_ME`, then again with the collision flag; both failing, it
 //!   stays where it is. The crate's [`Sim::come_out`] returns early for a unit
-//!   that is inside nothing, so this arm has no caller in the port (not modelled).
+//!   that is inside nothing; this arm's one caller is
+//!   [`Sim::come_out_own_point`], a starting citizen's step off its building
+//!   (item 4063, `crate::units::starting`).
 //! - **the barge** (`617e5d`..`617f97`): a host that `is(0x1a6)` for a land
 //!   unit spawns a transport barge. Only its refusal (`init_unit < 0`,
 //!   `return 1`) is modelled; the success arm recurses into `come_out` and
@@ -422,6 +424,18 @@ impl<'a> SimComeOut<'a> {
             sim,
             unit,
             host: b as i32,
+            gather: None,
+        }
+    }
+
+    /// `unit` standing on the map inside nothing: the listing's no-host arm
+    /// (`617d27`), which `Setup::build_units@005aafc0` reaches with each
+    /// starting citizen born on its building's point (item 4063).
+    pub(crate) fn own_point(sim: &'a mut Sim, unit: usize) -> Self {
+        Self {
+            sim,
+            unit,
+            host: -1,
             gather: None,
         }
     }

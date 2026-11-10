@@ -12,6 +12,7 @@ pub mod process;
 pub mod remove_inside_view;
 pub(crate) mod set_type_adapter;
 pub mod stance;
+pub mod starting;
 pub mod store;
 pub mod think;
 pub mod unit;
