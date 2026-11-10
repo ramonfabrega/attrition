@@ -1182,23 +1182,9 @@ The 3294 rows are kept as the packet's frame.
 - *The misses* (on 3279). ~~The capital is drawn as its `zbuffer` model
   (4036a).~~ The figures by the derrick stand among trees the client does not
   draw.
-- *The buildings drawn right* (item 4076). The original draws a building as
-  its `<BUILD>`'s `texture=` sprite (`docs/FORMATS.md`, "What a building
-  draws"), and the client does by default since. In the photograph the
-  capital spans about (945, 320)..(1350, 570) with its city's pavement, and
-  its buildings (952..1275, 325..562). Our `zbuffer` window,
-  (1070, 444)..(1192, 528), lies inside them, so ring and window both held
-  the building. The sprite lands at (934, 341)..(1283, 573) and sits on
-  the photograph's buildings within a pixel or two by eye. The woodcutter
-  0/2001 spans (1585, 315)..(1680, 450) and the sprite's window is
-  (1579, 314)..(1706, 459). **The reader as it stands cannot score them**
-  (`RUN1559B_3279_SPRITES`): 14 of 23 by the mask, 11 of 23 by colour.
-  The capital's ring meets the city's label and leaves the row. 0/2001
-  rises 0.209 → 0.351, its ring the forest's. 0/6 rises 0.280 → 0.474.
-  Four figures by the woodcutter fall, their rings lying on the sprite and
-  reading it as ground: 0/9 0.753 → 0.410, 0/1 0.846 → 0.658, 0/10 0.531 →
-  0.354 and 0/8 0.916 → 0.587. The pinned rows above are scored on the
-  `zbuffer` draw (`World::sprites` off), unchanged (parked 4076a).
+- *The buildings drawn right* (item 4076), as their sprites: 14 of 23
+  masked, 11 by colour (`RUN1559B_3279_SPRITES`). The reader cannot score
+  them; the pinned rows stay on the `zbuffer` draw (parked 4076a).
 - *What it does not measure.* Colour: textures and team colours are not
   bound (4038a), and binding them would not move this row.
 - *Where the inputs are.* The photograph is converted once to `.tga`

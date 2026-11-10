@@ -960,30 +960,14 @@ and `build_art`).
   (`packets[0xf]`, its third pair) after `RData::load`
   (`artdata::BuildArt::sprite_offset`, item 4076).
 
-**What a building draws: its `texture=` sprite** (item 4076). The
-`texture` is a 32-bit `.tga` (the reader, `render::tga`, decodes the
-install's every one) with near two-level alpha: `village_6t.tga` is
-523×348, 89,011 pixels at alpha 0, 88,934 at 255 and 4,059 between.
-`WallOut::draw@00641930` projects the anchor to `loc2dx`, `loc2dy`;
-`GraphicPieces::draw_build@008e7610` copies them to `build_x`, `build_y`
-and sets `build_num = (int) Camera::fixed_zooms[6] · Game::game_sprite_scale`
-(`+0x338`, `+0x928`) and `build_denom = (int) Camera::zoom_distance`
-(`+0x2f0`; the listing at `8e7a10`–`8e7a3a`, globals `0xc06200` and
-`0xc061e8`); `SpriteMethod::execute@0091ca30` draws the image through
-`Sprite::draw@0053e260` at `build_x − (int)(spritexoff · s)`,
-`build_y − (int)(spriteyoff · s)`, `s = build_num / build_denom`, after
-setting that scale on `graphsys` (slot `0xf4`). `Sprite::draw` adds only
-the image's trimmed transparent margin, scaled the same way.
-`fixed_zooms[6]` is the nearest zoom (`Camera::set_auto_tilt@00844690`):
-the sprites are authored at it. **Packet-backed**: run1559b's packet at
-logger frame 3294 holds `fixed_zooms` (173823.4, 139058.7, 55623.5,
-41717.6, 27811.7, 20858.8, 13905.9), `zoom_distance` 20858.80 (level 5)
-and `game_sprite_scale` 1.0, so `s` = 13905 / 20858 = 0.6667. Drawn so, the
-capital's and the woodcutter's sprites sit on the photograph's buildings
-within a pixel or two by eye (`docs/RENDERER.md` §5.3). The `zbuffer` model
-is the building's depth, not its picture. Not read: the snowy variant, the
-team colour `build_sprite_color` the sprite is drawn with, and the
-`EXISTEVENT` addons drawn beside it.
+**What a building draws: its `texture=` sprite** (item 4076), a 32-bit
+`.tga` with near two-level alpha, at `build_x − (int)(spritexoff · s)`,
+`build_y − (int)(spriteyoff · s)` (`SpriteMethod::execute@0091ca30`),
+`build_x`/`y` the anchor's projection and `s = (int) fixed_zooms[6] ·
+game_sprite_scale / (int) zoom_distance` (`draw_build@008e7610`, listing
+`8e7a10`–`8e7a3a`). Packet-backed: run1559b's packet gives 13905 / 20858;
+the values and the check by eye are in item 4076's journal. The `zbuffer`
+model is the depth, not the picture.
 
 **Which piece a building plays** (item 4035). `Wall::update_gpiece@00643070`
 calls `get_build_gpiece@0090bce0` with the current type, the founder
