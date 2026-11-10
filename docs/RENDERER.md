@@ -987,6 +987,34 @@ has not been read again.
   and whether a figure behind the sprite is hidden by it or by the
   anchor's depth, are unread (parked 4076b).
 
+## 3.7 The map's trees, where the original stands them (item 4080)
+
+**How it was established.** The placement is ported from `ObjectsOut::sort_trees`' path and checked as a value
+diff against the original's own functions on run1559b's packet (`tools/render/tree_points.py`, which calls
+`make_tree_mask`, `place_tree` and `world_to_screen` under unicorn). A forest cell is `WData.flags & 0x20`, carried
+through the door as `TerrainScene::flags`. Each cell draws its own local `Random` seeded `(ulong)(cx·7 + cy)` at its
+centre, so a tree's place is a function of the map, not of the session. Slot 0 falls into slot 1 (the jump table
+sends it to code with no break between them). The model is `(y + x) % 24`. The transform is `(s, −s, s)` then the
+place, with no turn, and `s` = `treescale` × 3. z is `find_data_z` over the cell's corners. `rondata::artdata::
+tree_art` reads the tileset's `treescale` and `graphics.txt`'s `#<TILESET>_TREE_MODELS0` list.
+
+**Diff-backed:** on frame 3279 the runner's forest cells are the packet's 189, and all 60 trees on the 12 visible
+forest cells agree on cell, mask, slot, place, z, model and pixel
+(`client::world::tests::the_trees_stand_where_the_packet_stands_them`; shifted one cell, 0). 320 sweep rows (16
+masks × 5 slots at four cells) agree too (`render::trees::tests::every_place_the_packet_prints_is_ours`).
+
+**The draw.** Each tree is its model at rest. The window draws it flat green, and `--no-trees` leaves it out. In
+candidate C's key buffer a tree is rasterized after the sprites, so it hides what stands behind it, and it is
+scored by §5.3's tree rule. A tree is not a draw-list piece, so K's M (§5.4) is not widened and K holds at 59 of 59.
+
+**What is not established.**
+- The depth of a building's sprite against a tree. Ours puts the anchor's flat draw-list depth against the tree's
+  per-pixel depth. The original's sprite may carry its `zbuffer` model's depth (parked 4076b).
+- The tree's idle animation, which is not posed.
+- The section name `#<TILESET>_TREE_MODELS0`. It is a reading, checked only by the count of models (24, all of
+  which decode).
+- Whether cutting a tree moves `terrain_version`.
+
 ## 4. The stack
 
 The rule is `CLAUDE.md`'s **earn every dependency**: a crate enters when it
@@ -1184,6 +1212,13 @@ The 3294 rows are kept as the packet's frame.
   0/10, behind a pine the client does not draw (4079a). The `RUN1559B_3279_*`
   rows above are the `zbuffer` draw's, kept by name. A second photograph
   needs its own traces, made on it before a count (4071a).
+- *The trees* (item 4080; this rule was written before its count). A tree is
+  keyed in our buffer, so it hides what stands behind it, and then its
+  pixel is given to the ground. Its pixel belongs to no object, as the
+  terrain's does: it is drawn but not keyed. A tree is never scored, and
+  it is not a draw-list entry (§3.7). The rejected reading, reported beside
+  it, is `TreePixels::Scene`: a tree's pixel counts as ours in every window
+  it falls in.
 - *What it does not measure.* Colour: textures and team colours are not
   bound (4038a), and binding them would not move this row.
 - *Where the inputs are.* The photograph is converted once to `.tga`
