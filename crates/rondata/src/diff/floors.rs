@@ -1248,7 +1248,7 @@ mod tests {
     #[test]
     fn the_checksum_line_groups_its_bytes() {
         assert!(
-            checksum_line().ends_with(" of 501,543 bytes"),
+            checksum_line().ends_with(" of 425,499 bytes"),
             "{}",
             checksum_line()
         );

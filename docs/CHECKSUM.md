@@ -8,12 +8,15 @@ packet and prints every byte they hand over, and the ledger of those bytes.
 
 **Confidence.** The arithmetic, the fifteen lines and the pairing of a
 packet with its record are **diff-backed**: on run1100's packet the
-instrument reproduces all fifteen printed lines of record 3502. It
-also parts, as it should, from a record one tick later (§3). The
-ledger's field names come from the type records (`types.txt` in the
-decompile export, and the PDB's own field lists where the export's
-record is incomplete). Its byte counts are measured on that one frame.
-What rests on a reading alone is listed in §10.
+instrument reproduces all fifteen printed lines of record 3502, and on
+run 1562's — the minted game's playback, item 4088 — all fifteen of
+record 3201. On both it parts, as it should, from the record one tick
+later (§3). The ledger's field names come from the type records
+(`types.txt` in the decompile export, and the PDB's own field lists
+where the export's record is incomplete). Its byte counts are measured
+on those two frames (§4). The first state line ported, items, agrees
+byte for byte on run 1562's frame (§11). What rests on a reading alone
+is listed in §10.
 
 ## 1. What the checksum is
 
@@ -72,6 +75,18 @@ prints that record with no `BEGIN FULL DUMP` above it at all (run1100's
 order, so a `label value` line past a record's last line is not taken
 into it.
 
+**The hook is where the record printed, not which half of the tick it
+is.** An `@dumpall` window holds two records: the first is the
+packet's state, the second is one tick later (§3, on both pairs). Where
+the frame's block is already open when the window starts, the first
+prints beside it and reads `End(n)` (run1100's 3502). Where nothing
+else prints in the frame, the first opens the block and reads
+`Begin(n)` (run 1562's 3201, under `BEGIN FRAME 91`; its second, 3202,
+reads `Begin(92)`). A packet at logger frame `n` reproduces the first
+windowed record of frame `n` either way, and
+`checksum::tests::the_instrument_reproduces_the_printed_record` takes it
+so.
+
 `gamelog::Log::frame_seeds` reads the begin record's seed and calls it
 engine frame `n − 1`'s; the reader agrees with it on run1100 (its test,
 `run1100_s_records_are_read_whole`). The reader is not one of
@@ -102,7 +117,36 @@ function is the innermost live walker frame), site, address, length,
 bytes. The tool's own Adler over the stream is a second sum, held against
 the original's line by line. It takes 8–18 s.
 
-**Reproduced on run1100** (packet `~/ron-golden/run1100/map-14/frame-snapshot.bin`,
+**Reproduced on run 1562** (item 4088; the minted game's playback,
+packet `~/ron-golden/run1562/map-14/frame-snapshot.bin`, logger frame
+91; record 3201 of its `gamelog_p.txt`, archived as
+`gamelog-run1562-greatlakes-playback-of-minted-packet-91.txt`; 9.2 s):
+
+| line | printed (3201) | instrument | ranges | bytes |
+|---|---|---|---|---|
+| units | 27230589 | 27230589 | 1084 | 19,642 |
+| builds | 2869973639 | 2869973639 | 519 | 4,923 |
+| walls | 1 | 1 | 0 | 0 |
+| ammo | 1 | 1 | 0 | 0 |
+| deaths | 1 | 1 | 0 | 0 |
+| groups | 3941922214 | 3941922214 | 556 | 37,010 |
+| guys | 2502350161 | 2502350161 | 368 | 9,308 |
+| leaders | 2813959641 | 2813959641 | 267 | 58,343 |
+| cities | 1233128295 | 1233128295 | 6 | 228 |
+| items | 1548048405 | 1548048405 | 110 | 484 |
+| goods | 1939436390 | 1939436390 | 180 | 792 |
+| world | 3643872705 | 3643872705 | 7994 | 294,769 |
+| rules | 314192132 | 314192132 | 251160 | 997,846 |
+| scenario_data | 404497739 | 404497739 | 4082 | 8,453 |
+| script_run_time | 3867914385 | 3867914385 | 1307 | 31,530 |
+
+15 of 15, the stream's own sum equal to the original's on every line;
+`total` 3631689818. Against 3202, one tick later, 10 of 15: units
+1527086071, builds 978539139, guys 2918305641, leaders 1852546327 and
+world 2695435849 printed part from the packet's. The rules line is
+run1100's 314192132 again (§10).
+
+**Reproduced on run1100** (item 4060; packet `~/ron-golden/run1100/map-14/frame-snapshot.bin`,
 logger frame 5408; record 3502 of its `gamelog.txt`, archived as
 `gamelog-run1100-greatlakes-team-herd-packet-5408.txt`):
 
@@ -144,14 +188,39 @@ hooked now.
   says what that leaves open.
 
 The stream, the ledger and the values file stay outside git under
-`~/ron-data/lab-experiments/2026-11-10-item-4060/run1100/`, since they are
-the original's memory.
+`~/ron-data/lab-experiments/2026-11-10-item-4060/run1100/` and
+`…/run1562/`, since they are the original's memory.
 
-## 4. The ledger: the twelve state lines on run1100's frame 5408
+## 4. The ledger: the twelve state lines on run 1562's frame 91 and run1100's 5408
 
 Per line: elements walked, ranges, bytes, the walker, the layout's
 pointers and floats. The per-range detail is §6–§8, and the classes of
 byte (pointers, floats, padding, locals) are §9.
+
+**Run 1562, logger frame 91** (item 4088; the score's frame, §5), the
+minted game one frame after its last order:
+
+| line | elements | ranges | bytes | pointers | floats |
+|---|---|---|---|---|---|
+| walls | 0 walls | 0 | 0 | — | — |
+| ammo | 0 shots in flight | 0 | 0 | — | — |
+| deaths | 0 deaths | 0 | 0 | — | — |
+| cities | 2 cities, 0 caravan links | 6 | 228 | none | none |
+| items | 22 items | 110 | 484 | none | none |
+| goods | 36 goods | 180 | 792 | none | none |
+| builds | 15 buildings, 100 queue items, 143 mining tiles | 519 | 4,923 | none | none |
+| guys | 54 guys in 52 units | 368 | 9,308 | none | 5 per guy |
+| units | 52 units, 54 guys, 4 path nodes, 13 orders | 1084 | 19,642 | none | 5 per guy |
+| groups | 512 group slots, 6 in use | 556 | 37,010 | none | none |
+| leaders | 8 slots, 2 walked whole | 267 | 58,343 | none | 2 per leader |
+| world | 3,600 cells, 25 collision blocks, 692 terrain coords | 7994 | 294,769 | none | none |
+| **the twelve** | | 11,084 | **425,499** | **none** | **the same 7 fields** |
+
+The same seven floats and no pointer, by the same type records. Walls,
+ammo and deaths are empty here too, so they are not counted on this
+frame (`docs/DECISIONS.md` entry 120 §2).
+
+**Run1100, logger frame 5408** (item 4060):
 
 | line | walker | elements | ranges | bytes | pointers | floats |
 |---|---|---|---|---|---|---|
@@ -180,9 +249,22 @@ fields are walked raw**: `GuyData` `turret_inc`, `bank`, `last_bank`,
 that emits these lines must hold those seven as the original's exact
 IEEE-754 bit patterns. That is the residue's question, and §10 states it.
 
-**Cheapest first.** By the bytes the original hands over on this frame,
-with the three lines that are empty here first (they agree at 1 for as
-long as the game has none, and cost a record shape each when it does):
+**Cheapest first, on run 1562's frame 91** (item 4088), the order the
+items after 4088 follow. The three empty lines are not counted there
+and are named last; by bytes:
+
+1. cities (228) · 2. items (484; ported, §11) · 3. goods (792) ·
+4. builds (4,923) · 5. guys (9,308) · 6. units (19,642; it walks the
+guys again) · 7. groups (37,010) · 8. leaders (58,343) ·
+9. world (294,769) · then walls, ammo and deaths (0 each), counted on a
+frame that holds one.
+
+Cities and items swapped places against run1100's frame (630 and 352
+there). Goods is the record items is, over another array, and needs
+one field this crate does not hold (§11).
+
+*On run1100's frame 5408* (item 4060), by the bytes there, with the
+three empty lines first:
 
 1. walls (0) · 2. ammo (0) · 3. deaths (0) · 4. items (352) ·
 5. cities (630) · 6. goods (1,012) · 7. builds (14,355) ·
@@ -199,18 +281,25 @@ any other: run1420's packet walks 4 deaths, 300 bytes (§8).
 
 The queue's `Checksum:` line is `rondata::diff::floors::checksum_line`
 of `checksum::CHECKSUM_REPRODUCED` (the instrument's lines reproduced, of
-fifteen), `CHECKSUM_PACKET` (run1100, logger frame 5408, record 3502) and
-`CHECKSUM_STATE` (the state lines our simulation emits equal to the
-original's, of twelve, and the bytes of the twelve walks ours reproduces,
-of 501,543):
+fifteen), `CHECKSUM_PACKET` (run 1562, logger frame 91, record 3201;
+item 4060's was run1100, 5408, 3502) and `CHECKSUM_STATE` (the state
+lines our simulation emits equal to the original's, of twelve, and the
+bytes of the twelve walks ours reproduces, of 425,499 on that frame):
 
-    Checksum: instrument 15 of 15 lines (run1100 f5408) · state 0 of 12 lines, 0 of 501,543 bytes
+    Checksum: instrument 15 of 15 lines (run1562 f91) · state 1 of 12 lines, 484 of 425,499 bytes
+
+Item 4088 moved it from `instrument 15 of 15 lines (run1100 f5408) ·
+state 0 of 12 lines, 0 of 501,543 bytes`: the pair moved to the minted
+game, and items is ported (§11).
 
 `floors::tests::the_handoff_s_checksum_line_is_the_pinned_counter` holds
 the queue's line against it. `checksum::tests::the_instrument_reproduces_the_printed_record`
 holds the 15 against the instrument's values file and the archive's
-record (it skips, saying so, on a machine without them). An item that
-ports a line re-pins `CHECKSUM_STATE`. The driver writes the queue's line.
+record, the twelve state lines' bytes against `CHECKSUM_STATE`'s whole,
+and run1100's pair beside it (it skips, saying so, on a machine without
+them). `diff::checksum_lines` holds each ported line's bytes and its
+share of `CHECKSUM_STATE`. An item that ports a line re-pins
+`CHECKSUM_STATE`. The driver writes the queue's line.
 
 ## 6. Ledger: units and guys
 
@@ -332,9 +421,10 @@ also hand over:
 **Items** (`CheckSums::check_items@00937790`) and **goods**
 (`CheckSums::check_goods@00937710`): each live record (`flags & 1`, the
 matching vtable) hands over [+0x20, +0x21) `ever_seen`, then `SubObject`
-[+0x8, +0x9) `flags`, [+0x9, +0x18) `who`..`y_internal`, a 4-byte local
-and `SubObject::must_walk@006623a0`'s 1-byte local: 22 bytes a record,
-so 16 items make 352 bytes and 46 goods make 1,012.
+[+0x8, +0x9) `flags`, `SubObject::must_walk@006623a0`'s 1-byte local,
+[+0x9, +0x18) `who`..`y_internal` and a 4-byte local, in that order
+(the stream's; §11 names the locals): 22 bytes a record, so 16 items
+make 352 bytes and 46 goods make 1,012.
 
 **World** (`World::walk_data@006b5cf0` with part −1, so every section).
 The walker reads its world from the global at 0x00c06188, not from
@@ -416,17 +506,24 @@ on either frame read), and `say_checksum`'s labels beyond the fifteen.
 
 **Not established:**
 
-- Whether the minted file's playback prints the windowed record at all,
+- ~~Whether the minted file's playback prints the windowed record at all,
   and whether its record is the 67-line one. No `DUMP_ALL` playback was
   taken; this item's frame came from run1100, which was on disk.
-  Run 1562, reserved for that, was not taken.
-- Any frame but 5408 of run1100. The byte counts of §4, and so the order
-  of the twelve, are one frame's. Deaths, walls and ammo are empty there.
+  Run 1562, reserved for that, was not taken.~~ It does, and it is:
+  run 1562 (item 4088, `docs/RUNS.md`) prints records 3201 and 3202,
+  `CHECKSUM n`, `FILE`, `LINE` and 64 labelled lines each, and the
+  packet reproduces the first (§3).
+- ~~Any frame but 5408 of run1100.~~ Two frames now, run1100's 5408 and
+  run 1562's 91 (§4); the order of the twelve is re-measured on the
+  second. Deaths, walls and ammo are empty on both: their record shapes
+  stay a reading, and their lines are not counted until a frame holds
+  one.
 - Whether the seven floats' bits follow from integers the simulation
   holds.
 - Why the rules line differs between run1100 and run1420 (314192132
   against 1227894240). The recon read it as static, and it is static
-  across run1100's two records. Whether it varies with the lobby (tribes
+  across run1100's two records. Run 1562, another lobby (the harness
+  lobby's two seats, tribes 4 and 11), prints run1100's 314192132 again. Whether it varies with the lobby (tribes
   and their bonuses) is open.
 - Atomicity: the packet is not atomic across threads. It reproduces
   every line here, which argues that nothing the walks read moved during
@@ -435,3 +532,86 @@ on either frame read), and `say_checksum`'s labels beyond the fifteen.
   is each later item's finding: for example the world's fog bytes
   (`seen`, `seen2`, `seen3`, `wcoord_seen`, `was_seen`), the danger maps,
   and a unit's collision and path-finding state.
+
+## 11. The items line, ported (item 4088)
+
+`sim::checksum` (`crates/sim/src/checksum.rs`, traced as
+`ChecksumSync`) emits a line's byte image from this crate's state:
+ranges in the original's order and at its widths. `Sim::checksum_items`
+is the first. `rondata::diff::checksum_lines` walks the minted game's
+built start under the pump to frame 91 (`docs/RECGAME.md` §9) and holds
+the image against the instrument's stream of run 1562's packet, range by
+range, then reads the Adler against record 3201's `Items`.
+
+**The record, per live goody box** (`CheckSums::check_items@00937790`,
+the items array's order, `flags & 1` and the `Item` vtable), five ranges
+and 22 bytes, in walk order — the stream settles it: `must_walk`'s byte
+comes third, before the range (§8 listed it last until this item).
+
+| # | range | ours | on run 1562's frame |
+|---|---|---|---|
+| 1 | `ItemData::ever_seen` (+0x20), 1 | `GoodyItem::ever_seen` | 0 on all 22 |
+| 2 | `SubObjectData::flags` (+0x8), 1 | 1: only a live box is walked, and no other bit is held | 1 on all 22 |
+| 3 | `SubObject::must_walk@006623a0`'s byte, a local | 1 | 1 on all 22 |
+| 4 | `who`..`y_internal` (+0x9..+0x18), 15 | 255; the box's index as `o`; `z`, `x`, `y`, each `^ 0x63637` | `o` 0..21 in order |
+| 5 | `SubObject::walk_data@006621d0`'s 4-byte local (site 00662287) | `BASE_ITEMTYPES`, 0x21f | 543 on all 22 |
+
+**The two locals.** `must_walk`'s byte is 1 when the walk is not an
+input walk and the object has a `ptype` or `flags & 1`, so 1 for every
+walked box. The 4-byte local is `ptype +4` or 0 without a `ptype`: the
+type's `TypeIndex`. It reads 543 = `BASE_ITEMTYPES` on every item of
+both packets. On the goods line it reads the good's own type (5 for
+oil, 6 for fish, and 10, 15, 17 … for the rares on this frame), the
+same field.
+
+**`z` is `refresh_good_z`'s, not `SubObject::init`'s.** The first image
+took the ground as `SubObject::init@00662300` writes it,
+`find_tcoord_z` of the tile (`World::object_z`), and parted on 20 of 22
+boxes, `z` alone: 180 against 156 on box 0, 31 against 28 on box 16,
+96 against 116 on box 20; boxes 13 and 21 agreed.
+`Terrain::refresh_good_z@00850b60` runs at the map's close
+(`docs/MAPGEN.md`, the 894 → 933 span) and after a building's terraform
+(`cities/city.rs`, `Wall::init`'s arm). It rewrites every
+live good's and item's `z` to `TerrainOut::find_data_z@00866560` at the
+object's point with the fourth argument 1 (`pushl $0x1` at `00850bfa`):
+`World::data_z`, the cell's two-triangle interpolation, with 0 on an
+ocean tile and below zero.
+With that, all 22 agree. Every one of the 22 reads only corners known
+to be the original's own singles (the test pins it).
+
+**The value diff**: 110 of 110 ranges and 484 of 484 bytes equal,
+record by record and field by field. Ours sums to 1548048405, the
+printed `Items`. On box 0: `ever_seen` 0, `flags` 1, `must_walk` 1,
+`who` 255, `o` 0, `z` 156, `x` 36480, `y` 22656, type 543, both sides.
+The test prints all 22.
+
+**Made to fail**: an empty image parts on all 110 ranges (red first,
+before the port). One perturbed byte of ours, box 3's `x`, parts on
+that range alone (range 18, record 3, `who..y_internal`), and the Adler
+with it. The first image's `z` was the measured parting above.
+
+**Goods does not ride along.** It is the same record over the goods
+array, but its first byte is `GoodData::ever_seen` (+0x20), which
+`world::Good` does not hold: one good of 36 reads 2 on this frame
+(leader 1 has seen it), the rest 0. Holding it needs a reading of that
+field's writers, which items did not, so it is the next goods item's.
+The rest of the record — `flags` 1, `who` 255, `o`, `z` by the same
+`refresh_good_z`, `x`, `y` and the type local — is what items already
+emits.
+
+**How it was established, and how confident.** Diff-backed: every
+byte of the line on one frame, against the stream, and the Adler against
+the printed record. On a reading, held by that diff on this frame: that
+`refresh_good_z` is the last writer of an item's `z` (its callers were
+read, not traced), that a box's flags hold no bit but the live one
+(`SubObject::init` ORs in 0x20 when the type's vtable +100 answers
+nonzero; the dump and the stream print 1),
+and that a box's index is its `o` (the built start lays the boxes in
+the original's order, and the stream agrees here).
+
+**Not established**: any frame but 91; an `ever_seen` other than 0 on
+the items line (every box reads 0 here, so that byte agrees by default
+on this frame: a later frame, after the scout has seen a box, is the
+check); a box taken (`flags` 0, not walked) or one whose ground a later
+terraform moved, which `refresh_good_z` follows and this crate's boxes
+read live; a box on an ocean tile or below zero.

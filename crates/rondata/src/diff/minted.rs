@@ -126,7 +126,7 @@ pub(crate) fn built_start() -> Option<(Loaded, Built, usize)> {
 }
 
 /// Tick `built` to `frame`, the stream's packages applied before each tick.
-fn tick_to(built: &mut Built, stream: Option<&mut crate::input::Stream>, frame: i64) {
+pub(crate) fn tick_to(built: &mut Built, stream: Option<&mut crate::input::Stream>, frame: i64) {
     let mut stream = stream;
     while built.sim.frame < frame {
         if let Some(s) = stream.as_deref_mut() {
