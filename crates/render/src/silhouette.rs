@@ -200,6 +200,27 @@ pub const RUN1559B_3294_POSED: (usize, usize) = (6, 23);
 /// photograph was not taken at: the comparison made to fail (item 4038).
 pub const RUN1441_CAMERA_3294: (usize, usize) = (0, 25);
 
+/// **Candidate C's row with the tanks read by the hand-traced mask** (item
+/// 4071, [`Reader::Mask`], `client::silhouette::TRACED`): the default
+/// drawing, the three tanks' photograph footprints read off the trace and
+/// every other row by colour. 6 → 7 of 23: 1/40 theirs 1,013 → 2,720
+/// against ours 2,697, overlap 0.300 → 0.710; 1/15 theirs 98 → 1,988
+/// against 4,300, 0.019 → 0.237, and 1/16 474 → 2,100 against 3,849, 0.091
+/// → 0.357, stay under at the ~40 px place (4065c).
+pub const RUN1559B_3294_MASKED: (usize, usize) = (7, 23);
+
+/// The mask at run1441's camera: the made-to-fail, as for colour.
+pub const RUN1441_CAMERA_3294_MASKED: (usize, usize) = (0, 25);
+
+/// **The first try, refused** (item 4071): [`ROBUST`] reads the default
+/// frame 9 of 23 but loses 0/9 (colour 0.571, robust 0.023, its ring the
+/// derrick's trees), and reads bare grass as objects: 323 of 12,000 and
+/// 113 of 16,000 pixels of `client::silhouette::BARE`, each above
+/// [`READING`]'s 40. It is kept as the record of that kill, never as the
+/// instrument.
+pub const ROBUST_3294: (usize, usize) = (9, 23);
+pub const ROBUST_BARE: [u32; 2] = [323, 113];
+
 /// One object's two footprints in its window.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Footprint {
@@ -233,6 +254,18 @@ pub fn footprints(
     interface: &[Rect],
     reading: &Reading,
 ) -> Vec<Footprint> {
+    footprints_read(keys, photo, interface, reading, Reader::Colour)
+}
+
+/// [`footprints`], the photograph's side read by `reader`; the windows and
+/// which objects are scored do not depend on the reader.
+pub fn footprints_read(
+    keys: &Keys,
+    photo: &Photo<'_>,
+    interface: &[Rect],
+    reading: &Reading,
+    reader: Reader,
+) -> Vec<Footprint> {
     assert_eq!((keys.width, keys.height), (photo.width, photo.height));
     let (w, h) = (keys.width as i32, keys.height as i32);
     let mut boxes: std::collections::BTreeMap<u32, (Rect, u32)> = Default::default();
@@ -264,7 +297,7 @@ pub fn footprints(
         if !inside || interface.iter().any(|r| r.meets(&outer)) {
             continue;
         }
-        let ground = ground(keys, photo, window, outer, reading);
+        let theirs = read_window(keys, photo, window, reading, reader);
         let mut f = Footprint {
             key,
             window,
@@ -272,16 +305,190 @@ pub fn footprints(
             theirs: 0,
             both: 0,
         };
+        let ww = (window.x1 - window.x0) as usize;
         for y in window.y0..window.y1 {
             for x in window.x0..window.x1 {
                 let o = keys.at(x as usize, y as usize) != 0;
-                let t = !ground.holds(photo, x, y);
+                let t = theirs[(y - window.y0) as usize * ww + (x - window.x0) as usize];
                 f.ours += u32::from(o);
                 f.theirs += u32::from(t);
                 f.both += u32::from(o && t);
             }
         }
         out.push(f);
+    }
+    out
+}
+
+/// How the photograph's side of a window is read.
+#[derive(Clone, Copy, Debug)]
+pub enum Reader {
+    /// Item 4038's: a pixel is the original's when its colour is none the
+    /// ring holds where no object of ours is ([`ground`]).
+    Colour,
+    /// Item 4071's: a pixel is the original's when it stands out of the
+    /// ring's robust statistics ([`Robust`]). It reads the photograph and
+    /// the window's rectangle only, never our key buffer.
+    Robust(Robust),
+    /// Item 4071's second try: a pixel is the original's when its centre
+    /// lies inside one of these polygons, traced by hand off the photograph
+    /// in its own pixels ([`inside`]). It reads neither our key buffer nor
+    /// the photograph's colours.
+    Mask(&'static [&'static [(i32, i32)]]),
+}
+
+/// Whether pixel `(x, y)`'s centre lies inside `poly` (crossing number, in
+/// half-pixels so the arithmetic is exact).
+pub fn inside(poly: &[(i32, i32)], x: i32, y: i32) -> bool {
+    let (px, py) = (i64::from(2 * x + 1), i64::from(2 * y + 1));
+    let mut odd = false;
+    for i in 0..poly.len() {
+        let (ax, ay) = (i64::from(2 * poly[i].0), i64::from(2 * poly[i].1));
+        let j = (i + 1) % poly.len();
+        let (bx, by) = (i64::from(2 * poly[j].0), i64::from(2 * poly[j].1));
+        if (ay > py) != (by > py) {
+            // x of the edge at py, compared without dividing.
+            let lhs = (px - ax) * (by - ay);
+            let rhs = (bx - ax) * (py - ay);
+            if (by > ay && lhs < rhs) || (by < ay && lhs > rhs) {
+                odd = !odd;
+            }
+        }
+    }
+    odd
+}
+
+/// The photograph's footprint in `window`, row-major, the window's width a
+/// row: `true` where the reader sees something that is not the ground.
+pub fn read_window(
+    keys: &Keys,
+    photo: &Photo<'_>,
+    window: Rect,
+    reading: &Reading,
+    reader: Reader,
+) -> Vec<bool> {
+    let outer = window.grown(reading.ring);
+    match reader {
+        Reader::Colour => {
+            let g = ground(keys, photo, window, outer, reading);
+            let mut out = Vec::new();
+            for y in window.y0..window.y1 {
+                for x in window.x0..window.x1 {
+                    out.push(!g.holds(photo, x, y));
+                }
+            }
+            out
+        }
+        Reader::Robust(r) => robust(photo, window, outer, &r),
+        Reader::Mask(polys) => {
+            let mut out = Vec::new();
+            for y in window.y0..window.y1 {
+                for x in window.x0..window.x1 {
+                    out.push(polys.iter().any(|p| inside(p, x, y)));
+                }
+            }
+            out
+        }
+    }
+}
+
+/// **The second reader's constants** (item 4071; `docs/RENDERER.md` §5.3),
+/// written down before any count of it was read and not moved after.
+///
+/// The ground is the ring round the window, as for [`Reader::Colour`], but
+/// summarised by statistics a minority cannot move: each channel's median
+/// and median absolute deviation over the ring, every ring pixel taken,
+/// none excluded by our draw. The colour reader keeps the union of the
+/// ring's colours, so a handful of an object's own pixels in the ring —
+/// a tank of the photograph standing past a window placed by ours — make
+/// that object's colours the ground's.
+#[derive(Clone, Copy, Debug)]
+pub struct Robust {
+    /// Every pixel is first replaced by the mean of the box `2·smooth + 1`
+    /// a side round it: the grass's speckle is a texture, not an object.
+    pub smooth: i32,
+    /// A pixel is a candidate when one channel stands further from the
+    /// ring's median than `sigmas_x10 / 10` deviations, a deviation being
+    /// `1.4826 ×` the median absolute deviation (a normal's σ).
+    pub sigmas_x10: i64,
+    /// The median absolute deviation's floor, in channel levels, so a ring
+    /// of one flat colour does not read every shade as an object.
+    pub mad_floor: i32,
+    /// A candidate is kept when this many of the 3×3 round it, itself
+    /// among them, are candidates: a lone pixel is noise.
+    pub majority: u32,
+}
+
+/// The second reader as the pinned frame is read at: a 3×3 mean, 3σ, a
+/// floor of 4 levels, a majority of 5 of 9.
+pub const ROBUST: Robust = Robust {
+    smooth: 1,
+    sigmas_x10: 30,
+    mad_floor: 4,
+    majority: 5,
+};
+
+fn robust(photo: &Photo<'_>, window: Rect, outer: Rect, r: &Robust) -> Vec<bool> {
+    let (w, h) = (photo.width as i32, photo.height as i32);
+    let mean = |x: i32, y: i32| -> [i32; 3] {
+        let mut sum = [0i32; 3];
+        let mut n = 0;
+        for yy in (y - r.smooth).max(0)..=(y + r.smooth).min(h - 1) {
+            for xx in (x - r.smooth).max(0)..=(x + r.smooth).min(w - 1) {
+                let i = (yy as usize * photo.width + xx as usize) * 4;
+                for (c, s) in sum.iter_mut().enumerate() {
+                    *s += i32::from(photo.rgba[i + c]);
+                }
+                n += 1;
+            }
+        }
+        sum.map(|s| (s + n / 2) / n)
+    };
+    let mut ring: [Vec<i32>; 3] = Default::default();
+    for y in outer.y0..outer.y1 {
+        for x in outer.x0..outer.x1 {
+            if window.contains(x, y) {
+                continue;
+            }
+            let m = mean(x, y);
+            for c in 0..3 {
+                ring[c].push(m[c]);
+            }
+        }
+    }
+    let median = |v: &mut Vec<i32>| {
+        v.sort_unstable();
+        v[v.len() / 2]
+    };
+    let mut centre = [0; 3];
+    let mut mad = [0; 3];
+    for c in 0..3 {
+        centre[c] = median(&mut ring[c]);
+        let mut dev: Vec<i32> = ring[c].iter().map(|v| (v - centre[c]).abs()).collect();
+        mad[c] = median(&mut dev).max(r.mad_floor);
+    }
+    let (ww, wh) = (window.x1 - window.x0, window.y1 - window.y0);
+    let mut cand = vec![false; (ww * wh) as usize];
+    for y in 0..wh {
+        for x in 0..ww {
+            let m = mean(window.x0 + x, window.y0 + y);
+            cand[(y * ww + x) as usize] = (0..3).any(|c| {
+                i64::from((m[c] - centre[c]).abs()) * 100_000
+                    > r.sigmas_x10 * 14_826 * i64::from(mad[c])
+            });
+        }
+    }
+    let mut out = vec![false; cand.len()];
+    for y in 0..wh {
+        for x in 0..ww {
+            let mut n = 0;
+            for yy in (y - 1).max(0)..=(y + 1).min(wh - 1) {
+                for xx in (x - 1).max(0)..=(x + 1).min(ww - 1) {
+                    n += u32::from(cand[(yy * ww + xx) as usize]);
+                }
+            }
+            out[(y * ww + x) as usize] = n >= r.majority;
+        }
     }
     out
 }
@@ -442,6 +649,27 @@ mod tests {
         // An interface rectangle over the object takes it out of the score.
         let f = footprints(&keys, &photo, &[f[0].window], &READING);
         assert!(f.is_empty());
+    }
+
+    /// A traced polygon covers the pixels whose centres it holds, either
+    /// winding: a 4×4 square 16, a right triangle of legs 4 the 6 centres
+    /// strictly under its hypotenuse.
+    #[test]
+    fn a_traced_polygon_holds_the_pixel_centres_inside_it() {
+        let count = |poly: &[(i32, i32)]| {
+            let mut n = 0;
+            for y in 0..10 {
+                for x in 0..10 {
+                    n += u32::from(inside(poly, x, y));
+                }
+            }
+            n
+        };
+        assert_eq!(count(&[(2, 2), (6, 2), (6, 6), (2, 6)]), 16);
+        assert_eq!(count(&[(2, 6), (6, 6), (6, 2), (2, 2)]), 16);
+        assert_eq!(count(&[(0, 0), (4, 0), (0, 4)]), 6);
+        assert!(inside(&[(2, 2), (6, 2), (6, 6), (2, 6)], 2, 2));
+        assert!(!inside(&[(2, 2), (6, 2), (6, 6), (2, 6)], 6, 2));
     }
 
     /// The nearer of two overlapping objects takes the pixel.

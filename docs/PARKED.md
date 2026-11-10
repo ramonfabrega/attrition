@@ -15829,6 +15829,9 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   4038b was this reader going blind, not a size gap. A tank row cannot reach 0.5 by drawing alone; it needs a second
   way to read the photograph's footprint (a hand-traced mask of this frame's three tanks, pinned once, or a ground
   model by texture rather than colour). Candidate C +3 at most, with 4065c.
+  **Closed by item 4071**: the tanks read off a mask traced by hand on the photograph (`client::silhouette::TRACED`),
+  which reads neither our draw nor a colour: 1/40 theirs 1,013 → 2,720 (ours 2,697), 1/15 98 → 1,988 (4,300), 1/16
+  474 → 2,100 (3,849); candidate C 6 → 7 of 23 (`docs/RENDERER.md` §5.3). 1/15 and 1/16 wait on 4065c's place.
 - **4065c. The tanks' facing and place** (§5.3, §3.6). By eye on the scoring picture against the photograph: 1/40
   and 1/16 point up-screen in the photograph and are drawn sideways; 1/15's diagonal agrees; all three of ours sit
   ~40 px above the photograph's. The chad's `sy = −1` (the original's model y negated, as `sim::pivot`'s
@@ -15885,13 +15888,16 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   transform settle it from the listing; a node's world point on a packet settles it by value. Names no score:
   candidate C's posed frame reads 6 of 23 with the figure map pinned to the port.
 
-## Parked by the next landing, slot EA — reserved
+## Parked by item 4071, 2026-11-10 — the photograph's footprint, read a second way
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4071a. Candidate C reads a new frame only by colour, or by a new trace** (`docs/RENDERER.md` §5.3). The tanks
+  of frame 3294 are read off a hand-traced mask, which holds for that photograph alone. The reader that would need
+  no trace was tried first and refused (`render::silhouette::ROBUST`, its constants pinned before a count): the
+  ring's per-channel median and MAD on a 3×3 mean, 3σ, a 5-of-9 majority. It reads bare grass as objects (323 of
+  12,000 and 113 of 16,000 pixels, `ROBUST_BARE`), because the grass is mottled at a scale a 6-pixel ring under-
+  samples. It also loses 0/9 (colour 0.571, robust 0.023), whose ring is the derrick's trees. A reader that passes
+  the instrument's rule without a trace is open: a ground model of the whole scene rather than a ring, or the
+  terrain's own texture drawn under the camera. It names no score until a second photographed frame is booked.
 
 ## Parked by the next landing, slot EB — reserved
 
