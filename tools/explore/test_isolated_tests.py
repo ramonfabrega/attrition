@@ -14,6 +14,10 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import isolated_tests as runner
 import resource_budget as budget
+import importlib.util
+_spec = importlib.util.spec_from_file_location('release_gate', Path(__file__).resolve().parents[1] / 'release_gate.py')
+gate = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(gate)
 
 
 class Admission(unittest.TestCase):
@@ -392,6 +396,224 @@ class Width(unittest.TestCase):
         self.assertEqual(command[command.index('--cpu') + 1], '4')
         self.assertEqual(seen['env']['RON_TEST_CPU'], '4')
         self.assertEqual(row['cpu_slots'], 4)
+
+
+class Lanes(unittest.TestCase):
+    """Loop 4042's remainder: on `0e28830d6`'s whole gate the release step
+    was 1,711 s — the build 2 s, then the nine non-`rondata` binaries one
+    after another for 454 s (the four sweep targets 390 s, the `sim` library
+    64 s; Cargo's order puts them before the library, not after), then the
+    isolated library 1,250 s with its eight slots 99.3 % held, then 5 s of
+    small binaries and the doctests. The binaries run beside the library
+    instead: a second lane, one binary at a time as before, which starts
+    once the library's head test is running (so the head, the eight-wide
+    coverage walk, is admitted first), with its output kept to a log per
+    binary and printed whole after the library's own block. Red first: the
+    booked runner ran every binary in Cargo's order, one after another."""
+
+    SIDE = 0.2
+    LIBRARY = 1.2
+
+    def targets(self, d, exits=None, verdicts=None, sleeps=None):
+        """Real executables in Cargo's order: a fake libtest binary prints
+        one verdict and stamps its span; the library is a file only (the
+        isolated runner is the fake)."""
+        exits, verdicts, sleeps = exits or {}, verdicts or {}, sleeps or {}
+        rows = []
+        order = [('rondata', 'bin'), ('sweep_a_f', 'test'), ('sim', 'lib'), ('sweep_u_z', 'test'),
+                 ('rondata', 'lib'), ('client', 'bin')]
+        for k, (name, kind) in enumerate(order):
+            exe = Path(d) / f'{name}-{kind}{k}'
+            key = f'{name}-{kind}'
+            if key == 'rondata-lib':
+                exe.write_text('library\n')
+            else:
+                passed = 0 if key == 'rondata-bin' else 2
+                verdict = (f'test result: ok. {passed} passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; '
+                           'finished in 0.40s')
+                exe.write_text(
+                    f'#!{sys.executable}\nimport sys, time\n'
+                    f'open({str(Path(d) / "spans")!r}, "a").write("{key} start %r\\n" % time.time())\n'
+                    f'time.sleep({sleeps.get(key, self.SIDE)!r})\n'
+                    f'print("\\nrunning {passed} tests")\n'
+                    + ''.join(f'print({verdict!r})\n' for _ in range(verdicts.get(key, 1)))
+                    + f'open({str(Path(d) / "spans")!r}, "a").write("{key} end %r\\n" % time.time())\n'
+                    f'sys.exit({exits.get(key, 0)})\n')
+            exe.chmod(0o755)
+            rows.append((str(exe), {'src_path': f'/w/{name}/{kind}.rs', 'name': name, 'kind': [kind]}))
+        return rows
+
+    def release(self, d, targets, library_exit=0, beside=True):
+        """`beside`: the fake library runs until every other binary has
+        started (at most 15 s), so the claim does not rest on the host's
+        speed: the booked runner, which starts nothing during the library,
+        waits out the cap and is red."""
+        spans = Path(d) / 'spans'
+        others = len(targets) - 1
+        real_run = subprocess.run
+        doc = []
+
+        def run(command, *args, **kwargs):
+            if 'cargo' in command and '--no-run' in command:
+                return subprocess.CompletedProcess(command, 0, '', '')
+            if 'cargo' in command and '--doc' in command:
+                doc.append(time.time())
+                return subprocess.CompletedProcess(command, 0)
+            return real_run(command, *args, **kwargs)
+
+        def isolated(binary, output, directory, slots=8, skips=(), **kw):
+            with spans.open('a') as sink:
+                sink.write(f'rondata-lib start {time.time()!r}\n')
+            if 'started' in kw:
+                time.sleep(0.05)
+                kw['started'].set()
+            deadline = time.monotonic() + (15 if beside else self.LIBRARY)
+            while time.monotonic() < deadline:
+                if beside and spans.read_text().count(' start ') - 1 >= others:
+                    break
+                time.sleep(0.05)
+            time.sleep(0.2)
+            print('test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.20s')
+            with spans.open('a') as sink:
+                sink.write(f'rondata-lib end {time.time()!r}\n')
+            return library_exit
+
+        out = io.StringIO()
+        with patch.object(runner.subprocess, 'run', side_effect=run), \
+                patch.object(runner.subprocess, 'check_output', return_value='abc\n'), \
+                patch.object(runner, 'kept_targets', return_value=(targets, [])), \
+                patch.object(runner, 'isolated', side_effect=isolated), contextlib.redirect_stdout(out):
+            began = time.monotonic()
+            rc = runner.release(Path(d) / 'out', Path(d) / 'budget', 8, 8)
+            wall = time.monotonic() - began
+        seen = {}
+        for line in spans.read_text().splitlines():
+            key, edge, when = line.split()
+            seen.setdefault(key, {})[edge] = float(when)
+        return rc, seen, out.getvalue(), doc, wall
+
+    def summary(self, d, text):
+        log = Path(d) / 'release.log'
+        log.write_text(text)
+        return [(row['name'], row['result'], row['passed'])
+                for row in gate.summarize_tests(log, release_completed=True)['binaries']]
+
+    def test_the_binaries_run_beside_the_library_and_each_verdict_is_read(self):
+        with tempfile.TemporaryDirectory() as d:
+            rc, seen, text, doc, wall = self.release(d, self.targets(d))
+            self.assertEqual(rc, 0, text)
+            library = seen['rondata-lib']
+            side = {k: v for k, v in seen.items() if k != 'rondata-lib'}
+            self.assertEqual(sorted(side), ['client-bin', 'rondata-bin', 'sim-lib', 'sweep_a_f-test', 'sweep_u_z-test'])
+            # The library's head is admitted first; every other binary starts
+            # while the library is still running, one at a time.
+            for key, span in side.items():
+                self.assertGreater(span['start'], library['start'], (key, seen))
+                self.assertLess(span['start'], library['end'], (key, seen))
+            ordered = sorted(side.values(), key=lambda s: s['start'])
+            for before, after in zip(ordered, ordered[1:]):
+                self.assertLessEqual(before['end'], after['start'], seen)
+            # The doctests still come last, after both lanes.
+            self.assertEqual(len(doc), 1)
+            self.assertGreater(doc[0], max(s['end'] for s in seen.values()))
+            # The gate's reader keys every verdict to its own binary: the
+            # library's block is never split by another binary's lines.
+            self.assertEqual(sorted(self.summary(d, text)), sorted([
+                ('rondata', 'ok', 0), ('sweep_a_f', 'ok', 2), ('sim', 'ok', 2), ('sweep_u_z', 'ok', 2),
+                ('rondata', 'ok', 3), ('client', 'ok', 2)]))
+            # Every binary has its exit, in Cargo's order, and the lanes'
+            # spans are kept for the booking gate's measurement.
+            out = Path(d) / 'out'
+            self.assertEqual(json.loads((out / 'exit-codes.json').read_text()), [0] * 7)
+            lanes = json.loads((out / 'lanes.json').read_text())
+            self.assertEqual(len(lanes['side']), 5)
+            self.assertIn('Release lanes:', text)
+
+    def test_a_red_binary_beside_the_library_is_still_red_and_nothing_is_skipped(self):
+        with tempfile.TemporaryDirectory() as d:
+            rc, seen, text, _, _ = self.release(d, self.targets(d, exits={'sweep_a_f-test': 101}))
+            self.assertEqual(rc, 101)
+            self.assertEqual(len(seen), 6, seen)
+            self.assertEqual(json.loads((Path(d) / 'out' / 'exit-codes.json').read_text()), [0, 101, 0, 0, 0, 0, 0])
+        with tempfile.TemporaryDirectory() as d:
+            rc, seen, _, _, _ = self.release(d, self.targets(d), library_exit=101)
+            self.assertEqual(rc, 101)
+            self.assertEqual(len(seen), 6, seen)
+
+    def test_a_binary_that_exits_zero_with_no_verdict_is_not_a_pass(self):
+        with tempfile.TemporaryDirectory() as d:
+            rc, _, text, _, _ = self.release(d, self.targets(d, verdicts={'sim-lib': 0}))
+            self.assertEqual(rc, 125, text)
+            self.assertIn('printed 0 verdicts', text)
+
+    def test_a_cancelled_library_stops_the_binary_beside_it(self):
+        with tempfile.TemporaryDirectory() as d:
+            targets = self.targets(d, sleeps={'rondata-bin': 30})
+            rc, seen, _, doc, wall = self.release(d, targets, library_exit=130, beside=False)
+            self.assertEqual(rc, 130)
+            self.assertEqual(doc, [])
+            self.assertLess(wall, 10, seen)
+            self.assertNotIn('end', seen.get('rondata-bin', {}), seen)
+            self.assertNotIn('client-bin', seen)
+
+    def test_a_library_that_changed_after_discovery_raises_and_leaves_no_lane_waiting(self):
+        import signal
+        def late(_sig, _frame):
+            raise TimeoutError('the release step hung on its lane')
+        with tempfile.TemporaryDirectory() as d:
+            targets = self.targets(d)
+            library = next(exe for exe, t in targets if t['name'] == 'rondata' and 'lib' in t['kind'])
+            real, calls = runner.binary_stamp, []
+            def stamp(path):
+                if str(path) == library:
+                    calls.append(path)
+                    return (len(calls),)
+                return real(path)
+            previous = signal.signal(signal.SIGALRM, late)
+            signal.alarm(20)
+            try:
+                with patch.object(runner, 'binary_stamp', side_effect=stamp):
+                    with self.assertRaisesRegex(ValueError, 'changed after Cargo discovery'):
+                        self.release(d, targets)
+            finally:
+                signal.alarm(0)
+                signal.signal(signal.SIGALRM, previous)
+
+    def test_the_lane_beside_waits_for_the_library_s_head_to_run(self):
+        # `started` is set once the head test's log shows libtest's banner
+        # (the budget admitted it), before the head is done; a head that
+        # never prints one sets it when it completes.
+        import threading
+        for banner in (True, False):
+            with self.subTest(banner=banner), tempfile.TemporaryDirectory() as d:
+                times = {}
+                def run(binary, name, number, output, directory, memory, cancelled, known=True, cpu=1):
+                    if name == 'head':
+                        times['head_start'] = time.monotonic()
+                        if banner:
+                            (output / 'tests' / f'{number:04d}.log').write_text('\nrunning 1 test\n')
+                        time.sleep(0.8)
+                        times['head_end'] = time.monotonic()
+                    return dict(name=name, success=True, exit=0, user=0, system=0)
+                started = threading.Event()
+                def watch():
+                    started.wait()
+                    times['started'] = time.monotonic()
+                watcher = threading.Thread(target=watch)
+                watcher.start()
+                path = Path(d) / 'profile.json'
+                path.write_text(json.dumps({'tree': 'fixture', 'tests': {'head': {'elapsed': 9, 'rss_bytes': 1},
+                                                                         'tail': {'elapsed': 1, 'rss_bytes': 1}}}))
+                with patch.object(runner, 'PROFILE', path), patch.object(runner, 'binary_stamp', return_value=(0,)), \
+                        patch.object(runner, 'discover', side_effect=[['tail', 'head'], []]), \
+                        patch.object(runner, 'run_one', side_effect=run), contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(runner.isolated('fake', Path(d) / 'out', Path(d), 2, started=started), 0)
+                watcher.join(5)
+                self.assertGreaterEqual(times['started'], times['head_start'])
+                if banner:
+                    self.assertLess(times['started'], times['head_end'] - 0.3, times)
+                else:
+                    self.assertGreaterEqual(times['started'], times['head_end'], times)
 
 
 if __name__ == '__main__':

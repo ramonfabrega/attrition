@@ -13,10 +13,13 @@ import json
 import math
 import os
 from pathlib import Path
+import queue
 import re
+import shutil
 import signal
 import subprocess
 import sys
+import threading
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,6 +29,7 @@ from test_runtime import child_environment, allocator_policy, execution_timeout
 
 PROFILE = ROOT / 'docs/audit/2026-10-16-isolated-profile.json'
 ONE = re.compile(r'^test result: ok\. 1 passed; 0 failed; 0 ignored; 0 measured; \d+ filtered out;', re.M)
+VERDICT = re.compile(r'^test result: (?:ok|FAILED)\. \d+ passed; \d+ failed;', re.M)
 
 
 def discover(binary, ignored=False):
@@ -138,7 +142,21 @@ def run_one(binary, name, number, output, directory, memory, cancelled, known=Tr
                 log=str(log), allocator=allocator_policy(env), resource_timing=resource_timing(log), cpu_slots=cpu)
 
 
-def isolated(binary, output, directory, slots=8, skips=()):
+def head_running(log):
+    """Whether a test's log shows libtest's banner: the budget admitted it
+    and its binary is running."""
+    try:
+        with log.open() as stream:
+            return 'running ' in stream.read(65536)
+    except FileNotFoundError:
+        return False
+
+
+def isolated(binary, output, directory, slots=8, skips=(), stop=None, started=None):
+    """`stop` and `started` are the release step's lanes (Loop 4042): a
+    signal here stops the lane beside the library too, and `started` is set
+    once the head of the queue — the widest, longest test — is running, so
+    the lane beside it is admitted after the library's head, never before."""
     output.mkdir(parents=True, exist_ok=False)
     (output / 'tests').mkdir()
     stamp = binary_stamp(binary)
@@ -160,9 +178,14 @@ def isolated(binary, output, directory, slots=8, skips=()):
     def cancel(_sig, _frame):
         nonlocal cancelled
         cancelled = True
+        if stop is not None:
+            stop.set()
+    def halted():
+        return cancelled or (stop is not None and stop.is_set())
     previous = {s: signal.signal(s, cancel) for s in (signal.SIGINT, signal.SIGTERM)}
     rows = []
     start = time.monotonic()
+    head = None
     try:
         with ThreadPoolExecutor(max_workers=slots) as pool:
             # Slots are counted by width (item 4072): the head of the queue
@@ -170,15 +193,20 @@ def isolated(binary, output, directory, slots=8, skips=()):
             # first out, so a wide test is never starved by narrow ones.
             active = {}
             used = 0
-            while (pending and not cancelled) or active:
-                while pending and not cancelled and used + width(pending[0][1], profile, slots) <= slots:
+            while (pending and not halted()) or active:
+                while pending and not halted() and used + width(pending[0][1], profile, slots) <= slots:
                     i, name = pending.pop(0)
                     cpu = width(name, profile, slots)
                     future = pool.submit(run_one, binary, name, i, output, directory,
-                                         reservation(name, profile), lambda: cancelled, name in profile, cpu)
+                                         reservation(name, profile), halted, name in profile, cpu)
+                    if head is None:
+                        head = (future, output / 'tests' / f'{i:04d}.log')
                     active[future] = cpu
                     used += cpu
-                done, _ = wait(active, return_when=FIRST_COMPLETED, timeout=0.5)
+                waiting = started is not None and not started.is_set()
+                done, _ = wait(active, return_when=FIRST_COMPLETED, timeout=0.1 if waiting else 0.5)
+                if waiting and head is not None and (head[0].done() or head_running(head[1])):
+                    started.set()
                 for future in done:
                     used -= active.pop(future)
                     row = future.result()
@@ -187,8 +215,11 @@ def isolated(binary, output, directory, slots=8, skips=()):
                         sink.write(json.dumps(row)+'\n')
                     print(f"test {row['name']} ... {'ok' if row['success'] else 'FAILED'}", flush=True)
     finally:
+        if started is not None:
+            started.set()
         for sig, handler in previous.items():
             signal.signal(sig, handler)
+    cancelled = halted()
     complete = (len(rows) == len(names) and {r['name'] for r in rows} == set(names)
                 and binary_stamp(binary) == stamp)
     passed = sum(r['success'] for r in rows)
@@ -266,6 +297,47 @@ def kept_targets(rows, exclude=(), read=lambda path: Path(path).read_text()):
     return kept, left
 
 
+def verdicts(log):
+    """The libtest `test result:` lines a binary's log holds, read in bounded
+    chunks: one binary, one verdict."""
+    count = 0
+    with log.open(errors='replace') as stream:
+        while part := stream.readline(65536):
+            count += len(VERDICT.findall(part))
+    return count
+
+
+def run_beside(executable, target, number, output, directory, test_threads, selection, env, stop, origin):
+    """One binary of the lane beside the library, its output to its own log
+    (printed whole once the library's block is done, so the gate's reader
+    keys every line to its binary). A binary that exits zero without one
+    verdict is an infrastructure failure, never a pass."""
+    log = output / 'beside' / f'{number:02d}-{target["name"]}.log'
+    cpu, memory = target_budget(target, test_threads)
+    stamp = binary_stamp(executable)
+    begun = time.monotonic()
+    with log.open('x') as sink, subprocess.Popen(
+            wrapper(directory, memory, cpu) + [executable, f'--test-threads={test_threads}', *selection],
+            cwd=ROOT, env=env, stdout=sink, stderr=subprocess.STDOUT) as child:
+        while child.poll() is None:
+            if stop.is_set():
+                child.terminate()  # The supervisor terminates and reaps its process group.
+            try:
+                child.wait(timeout=0.2)
+            except subprocess.TimeoutExpired:
+                pass
+    rc = child.returncode
+    if binary_stamp(executable) != stamp:
+        rc = 125
+    seen = verdicts(log)
+    note = None
+    if rc == 0 and seen != 1:
+        rc = 125
+        note = f'{target["src_path"]} exited 0 but printed {seen} verdicts; one binary, one verdict (Loop 4042)'
+    return dict(executable=executable, name=target['name'], src_path=target['src_path'], log=str(log),
+                exit=rc, verdicts=seen, start=begun - origin, end=time.monotonic() - origin, note=note)
+
+
 def release(output, directory, slots, test_threads, skips=(), exclude_packages=()):
     selection = (['--exact'] + [arg for name in skips for arg in ('--skip', name)]) if skips else []
     output.mkdir(parents=True, exist_ok=False)
@@ -295,22 +367,106 @@ def release(output, directory, slots, test_threads, skips=(), exclude_packages=(
             digests[executable] = hashlib.file_digest(stream, 'sha256').hexdigest()
     (output / 'binary-sha256.json').write_text(json.dumps(digests, indent=2)+'\n')
     stamps = {executable: binary_stamp(executable) for executable, _ in targets}
-    exits = []
-    for executable, target in targets:
-        if binary_stamp(executable) != stamps[executable]:
-            raise ValueError('test executable changed after Cargo discovery')
-        print(f"     Running unittests {target['src_path']} ({executable})", flush=True)
-        if target['name'] == 'rondata' and 'lib' in target['kind']:
-            rc = isolated(Path(executable), output / 'rondata', directory, slots, skips=skips)
-        else:
-            cpu, memory = target_budget(target, test_threads)
-            rc = subprocess.run(wrapper(directory, memory, cpu) +
-                                [executable, f'--test-threads={test_threads}', *selection], cwd=ROOT, env=env).returncode
-        if binary_stamp(executable) != stamps[executable]:
-            rc = 125
-        exits.append(rc)
-        if rc in (130, -signal.SIGINT, -signal.SIGTERM):
-            return 130
+    # Two lanes (Loop 4042): the isolated rondata library on its own pool,
+    # and beside it every other binary, one at a time at the gate's width
+    # under the same per-binary reservations as before. On 0e28830d6's whole
+    # gate they ran one after another, the 454 s of binaries Cargo lists
+    # first and then the library's 1,250 s; beside it the step is the
+    # library's. The lane beside starts once the library's head test is
+    # running, so the eight-wide coverage walk is admitted first.
+    library = [(e, t) for e, t in targets if t['name'] == 'rondata' and 'lib' in t['kind']]
+    beside = [(e, t) for e, t in targets if (e, t) not in library]
+    (output / 'beside').mkdir()
+    stop, started = threading.Event(), threading.Event()
+    if not library:
+        started.set()
+    finished = queue.Queue()
+    origin = time.monotonic()
+
+    def lane():
+        try:
+            started.wait()
+            for number, (executable, target) in enumerate(beside):
+                if stop.is_set():
+                    break
+                if binary_stamp(executable) != stamps[executable]:
+                    raise ValueError('test executable changed after Cargo discovery')
+                finished.put(run_beside(executable, target, number, output, directory, test_threads,
+                                        selection, env, stop, origin))
+        except BaseException as error:  # Re-raised on the main thread.
+            finished.put(error)
+        finally:
+            finished.put(None)
+
+    def halt(_sig, _frame):
+        stop.set()
+    previous = {s: signal.signal(s, halt) for s in (signal.SIGINT, signal.SIGTERM)}
+    exits_by, rows, spans = {}, [], {}
+    worker = threading.Thread(target=lane, name='release-lane-beside', daemon=True)
+    worker.start()
+    try:
+        for executable, target in library:
+            if binary_stamp(executable) != stamps[executable]:
+                raise ValueError('test executable changed after Cargo discovery')
+            print(f"     Running unittests {target['src_path']} ({executable})", flush=True)
+            begun = time.monotonic() - origin
+            try:
+                rc = isolated(Path(executable), output / 'rondata', directory, slots, skips=skips,
+                              stop=stop, started=started)
+            finally:
+                started.set()
+            if binary_stamp(executable) != stamps[executable]:
+                rc = 125
+            exits_by[executable] = rc
+            spans['library'] = dict(start=begun, end=time.monotonic() - origin, exit=rc)
+            if rc in (130, -signal.SIGINT, -signal.SIGTERM):
+                stop.set()
+        # The library's block is whole; each binary beside it prints its own
+        # header and log in Cargo's order as it finishes.
+        while True:
+            try:
+                row = finished.get(timeout=0.5)
+            except queue.Empty:
+                continue
+            if row is None:
+                break
+            if isinstance(row, BaseException):
+                raise row
+            rows.append(row)
+            print(f"     Running unittests {row['src_path']} ({row['executable']})", flush=True)
+            with open(row['log'], errors='replace') as stream:
+                shutil.copyfileobj(stream, sys.stdout, 65536)
+            sys.stdout.flush()
+            if row['note']:
+                print(row['note'], flush=True)
+            exits_by[row['executable']] = row['exit']
+            if row['exit'] in (130, -signal.SIGINT, -signal.SIGTERM):
+                stop.set()
+    finally:
+        if worker.is_alive():
+            # A raise before the library ran must not leave the lane
+            # waiting on a head that will never run.
+            stop.set()
+            started.set()
+            worker.join()
+        for sig, handler in previous.items():
+            signal.signal(sig, handler)
+    spans['side'] = [{k: row[k] for k in ('name', 'executable', 'start', 'end', 'exit', 'verdicts')} for row in rows]
+    (output / 'lanes.json').write_text(json.dumps(spans, indent=2) + '\n')
+    side_seconds = sum(row['end'] - row['start'] for row in rows)
+    library_seconds = spans['library']['end'] - spans['library']['start'] if 'library' in spans else 0.0
+    last = max([row['end'] for row in rows] + [spans.get('library', {}).get('end', 0.0)])
+    first = f", the first {rows[0]['start'] - spans['library']['start']:.1f} s after it" if rows and library else ''
+    print(f"Release lanes: library {library_seconds:.1f} s; beside it {side_seconds:.1f} s over {len(rows)} "
+          f"binaries{first}; both done at {last:.1f} s", flush=True)
+    if stop.is_set() or any(rc in (130, -signal.SIGINT, -signal.SIGTERM) for rc in exits_by.values()):
+        return 130
+    # No binary is lost in silence: every executable Cargo built has its exit.
+    if set(exits_by) != set(stamps):
+        missing = sorted(set(stamps) - set(exits_by))
+        print(f"release lanes: {len(missing)} test executable(s) never ran: {missing}", flush=True)
+        return 125
+    exits = [exits_by[executable] for executable, _ in targets]
     # --no-run does not discover doctests. Keep Cargo responsible for them.
     exits.append(subprocess.run(wrapper(directory, 32768, 8) +
                  ['cargo', 'test', '--workspace', '--release', '--doc', '--no-fail-fast']
