@@ -147,18 +147,46 @@ it (**not built**).
    (`produce_building+0xc99`), jitter (`+0x1805`) and `Farms::add`; the
    library its jitter and `find_road`'s 189 for the city's roads. The
    computer's six sites and the stream after each are the original's.
-   **Not built**: `build_units` — `place_unit` (2 draws for the computer's
-   scout, 3 for the human's), the citizens born at their buildings
-   (`Guy::init_real`, 7 draws an empire), `Unit::come_out(u, 0)` off a
-   footprint (no port takes a unit that is not inside), and the `GATHER`;
-   the Large Town list; the Americans' farms and the Iroquois' Senate
-   (parked 4047b); the pasture (none on Great Lakes).
+   **`build_units` built** (item 4063, `diff::start::build_units`), inside
+   each empire after its buildings: `(n, ordered)` and the lobby's and the
+   Lakota's adjustments; the scout (`SCOUT` through the graft and
+   `current_upgrade`, `leader_unit_type`) through `Sim::place_unit` — the
+   anchor the city's own point, sixty tries of `rand % circle_radius[2]`,
+   the cell test (`place_unit_admits`: the anchor's region, `flags` 0x30,
+   0x100 and 0x8000 clear, `land` not 1 or 2, no object on the cell, the
+   centre tile's mask without bit 14 or low bits 3), `init_unit` at the
+   cell centre and no `come_out`; then each citizen at its building by
+   §9.3's four steps, born on the building's point, stepped off by
+   `Sim::come_out_own_point` (`Unit::come_out(u, 0)`'s no-host arm: the
+   sweep round its own point from `block_radius` out
+   `UNIT_DISEMBARK_DISTANCE`, `FILTER_NOT_ME`, then collision-off), and
+   given its `GATHER`. The draws, against run100: the computer's scout 2
+   tries, the human's 3, then `Guy::init_real` 7 an empire — every word
+   the trace's, through seat 0's last unit (1148's `0x1675cd7d`).
+   **Not built**: `place_unit`'s Nomad ring and its `Build::train` after
+   sixty refusals (each refused by name); the Spaniards' extra scouts,
+   the Dutch merchants, the Greek scholars and the Koreans' citizens
+   (constants not loaded, parked 4063b); the Large Town list; the
+   Americans' farms and the Iroquois' Senate (parked 4047b); the pasture
+   (none on Great Lakes).
 8. **`World::analyze_map@006b58b0`, `World::compute_all_territory@006b5700`,
    `Herd::create_units@007417f0`** (44 draws here), the scripts.
-   `compute_all_territory` and `analyze_map`'s region arm are ported for
-   the live game; the herds are not built from a lobby. **Not built**
-   (the territory agrees already: `build_cities`' own pass is the last
-   writer of every owner on this lobby).
+   **`compute_all_territory` built** (item 4063: `sync_territory`,
+   `settle_borders`; it changes no owner here — `build_cities`' own pass
+   is the last writer of every one); **`analyze_map` not walked** (no
+   field the block compares reads it). **The herds built** (item 4063):
+   `herds_from_goods` — one herd per herd good of the composed map
+   (`Objects::init_good@00653f30`'s `Herds::init_herd`: FISH →
+   `HERDFISH` 0x19b, WHALES → `HERDWHALE` 0x19c, 0x21 → `HERDSHEEP`
+   0x198, and the four others), numbered in the goods list's slot order;
+   then `Herds::start_herds@00741d10` founds each through
+   `Sim::found_herd`, the crate's view over item 3391's swept
+   `herd_create_view` (owner 8, `init_unit` at the cell centre, one
+   `Guy::init_real` draw, `find_nearby_spot(…, 0xc0, -1, 0, 0x55555555,
+   FILTER_NOT_ME, …)`, the angle draw for a type that is neither fish nor
+   whale). On this lobby 13 herds — one of sheep (4 animals, 4 angle
+   draws), twelve of fish (3 each) — 40 animals, 44 draws, landing on
+   1240's `0x3bd39ae9`.
 
 Then `Setup::reinit_game_units` re-reads every object's `z` from the
 terrain, and `begin_game` dumps.
@@ -196,10 +224,13 @@ builds run9's lobby (`gamelog-run9-world6.txt`, `WORLD=6`, with run11's
 setup trace and run3's heights borrowed) from its `GAMEINFO` block alone
 and compares it with `build_sim`'s install of the same capture;
 `RON_START_DIFF=1` prints the value diff (`=all`, every parted field).
-**18,039 of 18,264 fields agree** (9,087 at item 4033, 9,089 at 4046).
-Its sibling `the_harness_lobby_s_map_is_the_traced_setup_path` holds the
-composed map against run11's setup trace at every checkpoint, the stream
-at 955, 13457 and 1032, and the computer's `build_empire` against
+**All 18,264 fields agree** (item 4063; 9,087 at item 4033, 9,089 at
+4046, 18,039 at 4047), and the herd list equals the start dump's
+`HERDS` (13 herds, every cell, walk centre, type and alive bit, in
+order). Its sibling `the_harness_lobby_s_map_is_the_traced_setup_path`
+holds the composed map against run11's setup trace at every checkpoint,
+the stream at 955, 13457, 1032, 1148, 1169, 1240 and 1244, and both
+`build_empire`s — each building and each empire's units — against
 run100's draw sites.
 
 - **The war matrix agrees** (item 4046; 4033 had it first parted, ours
@@ -220,14 +251,12 @@ run100's draw sites.
   Then the personality (1), the villages' wear on the values and the
   territory (314 `val`, 527 `owner`, 8 flags, 6 `BUILD` fields), and the
   computer's six pre-placed buildings and the human's camp (32 fields).
-- **The first parted row is now `CELL 2 37 flags`**, ours 512 theirs 640:
-  0x80 round the human's farms. The human's farms, library and market
-  stand elsewhere (`BUILD 0/2002 pos` ours `2112 31104` theirs `2688
-  32064`) because the computer's `build_units` spends 2 + 7 draws ahead
-  of them in the original and none here.
-- After it: 11 footprint flags and 5 positions round the human's
-  buildings, all 52 units on every field (the players' 12, gaia's 40) and
-  the sync word — each downstream of `build_units` and `Herd::create_units`.
+- **No row parts** (item 4063). At item 4047 the first was `CELL 2 37
+  flags`, ours 512 theirs 640: the human's farms, library and market
+  stood elsewhere (`BUILD 0/2002 pos` ours `2112 31104` theirs `2688
+  32064`) because the computer's `build_units` spent 2 + 7 draws ahead
+  of them; after it 11 flags, 5 positions, all 52 units on every field
+  and the sync word. `build_units` and the herds closed all 225.
 
 ## 5. The counter
 
@@ -239,7 +268,8 @@ a capture counts when its `GAME` block carries start records ahead of its
 first frame (a `WORLD`, `UNITDATA`, `BUILDDATA` or `FULL DUMP`); its lobby
 is its `GAMEINFO` block's text, `same_lobby`'s key — 645 captures, 161
 lobbies. The harness lobby's test asserts `START_BUILT` against its own
-comparison, so the counter cannot read 1 while that lobby parts.
+comparison, so the counter cannot read 1 while that lobby parts. **1 of
+161** at item 4063: the harness lobby.
 
 ## 6. Confidence, and what is not established
 
@@ -248,8 +278,12 @@ comparison, so the counter cannot read 1 while that lobby parts.
   draw and the re-seed, the war matrix; the Great Lakes map composed from
   the lobby (19 checkpoints of run11's trace, and every cell of the start
   block), the start permutation and the personality (the trace's words
-  at 955 and 13457), the villages and the territory, the computer's
-  pre-placed buildings (the start block, and run100's draw sites). The diplomacy row's formula was
+  at 955 and 13457), the villages and the territory, both empires'
+  pre-placed buildings, `build_units` on a Small Town (the scout's
+  `place_unit`, the citizens' assignment, `Unit::come_out(u, 0)`'s
+  no-host arm, the `GATHER`s) and the herds (the start block, run100's
+  draw sites, run11's words at 1148, 1169, 1240 and 1244, and the start
+  dump's `HERDS`). The diplomacy row's formula was
   also scored against **every start dump on disk** (item 4046, a scratch
   scan of each log's `GAMEINFO` against its `LEADERDATA diplos[scan]`):
   633 logs, 1,334 ordered pairs, every one predicted — 1,322 at war under
@@ -267,11 +301,18 @@ comparison, so the counter cannot read 1 while that lobby parts.
 - **Not established**: the team assignment and the handicaps; a
   composed chain for any style but Great Lakes, and Great Lakes at any
   other lobby; the default tileset draw's unavailable-name arm (a second
-  draw, parked 3819b); a team game's consecutive teammates; `build_units`
-  and every draw of it; the Large Town list; `Herd::create_units`.
-  ORDERS §9.3 holds the reading of `place_unit`; it is not ported, and
-  no port steps a unit that is not inside off a footprint
-  (`Unit::come_out(u, 0)` at birth). ORDERS §9.2's placer prose puts the
-  draw on the wrong arm (parked 4047a); the port is right.
+  draw, parked 3819b); a team game's consecutive teammates; the Large
+  Town list; `build_units` on a Nomad or City-only start (`place_unit`'s
+  rings 8 and 24, its `Build::train` arm), with a Spaniard, Dutch, Greek,
+  Korean or American seat, or with `starting_resources` 7 or 8; a
+  `place_unit` cell refused by the object test alone (the crate threads
+  no building, so a building's own cell stands in for its chain);
+  `analyze_map`; a herd of horse, bear, bison or peacock, a whale (one
+  animal, the unset angle), and a map whose goods list reuses a slot
+  (the herds are numbered in slot order; the original numbers them in
+  `init_good` order — they agree unless a slot was reused). ORDERS §9.2's
+  placer prose puts the draw on the wrong arm (parked 4047a), and §9.3's
+  "steps off the footprint" is not what the no-host arm does (parked
+  4063a); the port is right in both.
 - **Coverage**: one lobby compared of 161. The others need their own
   installed side (`build_sim` on each start dump) and are item 4034's.

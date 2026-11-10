@@ -15814,13 +15814,21 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DX — reserved
+## Parked by item 4063, 2026-11-09 — the start's units
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4063a. `docs/ORDERS.md` §9.3's citizen prose says `Unit::come_out(u, 0)` "steps off the footprint to the
+  nearest free spot beside it".** The citizen is born inside nothing, so `come_out` takes its no-host arm
+  (`617d27`): a sweep round the unit's **own** point from its type's `block_radius` out
+  `UNIT_DISEMBARK_DISTANCE`, due south first. A farm's citizens stay on the farm's footprint, 48 south of their
+  snapped birth point — run9's `0/3` at `(2712, 32136)` on farm `0/2002` at `(2688, 32064)`. The port
+  (`Sim::come_out_own_point`) reproduces all ten starting citizens (`docs/START.md` §2 step 7). §9.2's last
+  sentence ("the harness … does not reimplement the placer") is stale the same way: `from_lobby` runs both
+  placers. Names no score: the code is right and only the reading of record is not; amend §9.2–§9.3 when they
+  are next read.
+- **4063b. `SPANISH_EXTRA_SCOUT`, `GREEK_START_SCHOLARS` and `KOREAN_CITIZENS` are not loaded**, and the Dutch
+  merchants' `MERCHANTDUTCH` is not walked. `rondata::diff::start::build_units` refuses a Spaniard, Greek,
+  Korean or Dutch seat by name (with 4047b's Americans) rather than guess the count. Names no score until a
+  lobby with one of them is compared (item 4034's lobbies).
 
 ## Parked by the next landing, slot DY — reserved
 
