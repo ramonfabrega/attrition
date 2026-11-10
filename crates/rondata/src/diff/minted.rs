@@ -562,14 +562,24 @@ fn effect_ours(b: &Built) -> Effect {
 /// compared, records parted)`, as [`super::start_walk::PLAYBACK_WALKED`]
 /// pins 4058's. run1561a prints every unit and building for 300 frames
 /// (`end:MISC,UNITS=3,BUILDS=7`); run1561b only the trace, for 2,400.
-pub(crate) const MINTED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
-    "gamelog-run1561a-greatlakes-playback-of-minted-300.txt",
-    "rontrace-run1561a.log",
-    300,
-    300,
-    299,
-    0,
-)];
+pub(crate) const MINTED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[
+    (
+        "gamelog-run1561a-greatlakes-playback-of-minted-300.txt",
+        "rontrace-run1561a.log",
+        300,
+        300,
+        299,
+        0,
+    ),
+    (
+        "gamelog-run1561b-greatlakes-playback-of-minted-2400.txt",
+        "rontrace-run1561b.log",
+        2400,
+        2400,
+        1,
+        0,
+    ),
+];
 
 /// The built start walked under the pump on `orders`' file against one
 /// take: the walk, and the walked `Built`.
@@ -701,3 +711,76 @@ fn minted_effects() -> Vec<Effect> {
         },
     ]
 }
+
+/// **Score 4: made to fail.** Our walk with one order withheld, against
+/// the original's playback of the full script (run1561a): it must part,
+/// and first on the frame after the withheld order's package. Per order,
+/// `(the order's frame, the first parted record's frame, its first
+/// parting's kind, the first frame whose draws part)` ([`WITHHELD`]).
+#[test]
+fn our_walk_with_one_order_withheld_parts_at_that_order_s_frame() {
+    let (take, take_trace, ..) = MINTED_WALKED[0];
+    let mut seen = Vec::new();
+    for k in 0..script().len() {
+        let mut orders = script();
+        let (f, ..) = orders.remove(k);
+        let Some((w, _)) = walk_minted(&orders, take, take_trace) else {
+            return;
+        };
+        let (frame, _, partings) = w.first_record.clone().expect("the walk parts");
+        eprintln!(
+            "WITHHELD {f}: first record {frame}: {partings:?}; draws part (count) {:?}, (sequence) {:?}; records {} parted {}",
+            w.first_count, w.first_sequence, w.records, w.records_parted
+        );
+        if let Some((o, t)) = &w.sites
+            && let Some((_, d)) = first_parting(o, t)
+        {
+            eprintln!("  the first parting draw, {:?}: {d}", w.first_sequence);
+        }
+        seen.push((
+            f,
+            frame,
+            partings[0].0,
+            partings[0].2.clone(),
+            w.first_sequence,
+        ));
+    }
+    let pinned: Vec<_> = WITHHELD
+        .iter()
+        .map(|&(f, n, kind, row, draws)| (f, n, kind, row.to_string(), draws))
+        .collect();
+    assert_eq!(seen, pinned, "WITHHELD");
+}
+
+/// Each order withheld from our walk against run1561a (item 4059): the
+/// order's frame, the first parted record's frame, its first parting's
+/// kind and row (both values), and the first frame whose draws part (in
+/// `Built::frame_sites`' numbering, the frame before the gamelog's — the
+/// original's own word parts from run53's no-order game at the same 40).
+/// The move withheld leaves the scout on its start point and its order
+/// list empty; the `queue_up` withheld leaves the capital's `queued` 0;
+/// the `build` withheld leaves the builder at its tree and the Market's
+/// `city_down` short of the Farm.
+const WITHHELD: &[(i32, i64, &str, &str, Option<i64>)] = &[
+    (
+        30,
+        31,
+        "diverged",
+        "Divergence { frame: 31, who: 0, o: 0, ours: Pos { x: 3480, y: 31896 }, theirs: Pos { x: 3514, y: 31896 } }",
+        Some(40),
+    ),
+    (
+        60,
+        61,
+        "queue_diverged",
+        "QueueDivergence { frame: 61, who: 0, o: 2000, field: \"queued\", ours: 0, theirs: 1 }",
+        Some(158),
+    ),
+    (
+        90,
+        91,
+        "diverged",
+        "Divergence { frame: 91, who: 0, o: 1, ours: Pos { x: 4008, y: 28296 }, theirs: Pos { x: 4023, y: 28316 } }",
+        Some(296),
+    ),
+];
