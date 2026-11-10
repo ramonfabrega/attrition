@@ -18,6 +18,12 @@ centre `(x·0x300 + 0x180, y·0x300 + 0x180)`, then
     forest <x> <y>                        every cell of the map with 0x20
     tree <cx> <cy> <mask> <slot> <x> <y> <z> <model> -> <sx> <sy>
     sweep <cx> <cy> <mask> <slot> <x> <y> <z>
+    cache <cx> <cy> <tick> <minx> <miny> <minz> <maxx> <maxy> <maxz>
+
+`cache` is each `RTreeData::tree_cache` entry the packet holds: the cell
+(`TreeCacheEntry::wx`/`wy`), its `last_graphic_tick`, and the extent of the
+world-space vertices it assembled over its seven sections (`cache_verts`,
+a `VoidArray` whose `struct_size` counts dwords, `xyz` first).
 
 `model` is `GraphicPieces::draw_tree@00905a10`'s `(int)(y + x) % count`.
 `--sweep` adds every mask 0..15 and slot 0..4 at each named cell. Nothing
@@ -95,6 +101,19 @@ def main(argv):
             m.call(WORLD_TO_SCREEN, (x, y, z, 0, 0), ecx=SCRATCH, edx=SCRATCH + 4)
             sx, sy = struct.unpack("<ii", m.uc.mem_read(SCRATCH, 8))
             print(f"tree {cx} {cy} {mask} {slot} {x} {y} {z} {(x + y) % models} -> {sx} {sy}")
+    i32 = lambda a: struct.unpack("<i", snap.read(a, 4))[0]
+    for k in range(i32(td + 0xE4 + 4)):
+        e = u32(u32(td + 0xE4 + 0x10) + 4 * k)
+        pts = []
+        for sec in range(7):
+            va = e + 0x20 * sec
+            base, n, stride = u32(va), i32(va + 4), 4 * u32(va + 0x14)
+            if base and n > 0:
+                raw = snap.read(base, n * stride)
+                pts += [struct.unpack_from("<3f", raw, i * stride) for i in range(n)]
+        lo = [min(p[j] for p in pts) for j in range(3)]
+        hi = [max(p[j] for p in pts) for j in range(3)]
+        print(f"cache {i32(e + 0x3F0)} {i32(e + 0x3F4)} {i32(e + 0x3F8)} " + " ".join(f"{v:.3f}" for v in lo + hi))
     for cx, cy in sweeps:
         for mask in range(16):
             for slot in range(5):

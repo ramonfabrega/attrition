@@ -118,8 +118,11 @@ pub struct World {
 /// rest vertices and faces, in `graphics.txt`'s order.
 pub struct TreeMeshes {
     pub scale: f32,
-    pub models: Vec<Option<(Vec<[f32; 3]>, Vec<[u16; 3]>)>>,
+    pub models: Vec<Option<TreeModel>>,
 }
+
+/// One tree model at rest: its vertices and its faces.
+pub type TreeModel = (Vec<[f32; 3]>, Vec<[u16; 3]>);
 
 /// **How a tree's pixel reads in candidate C's key buffer** (item 4080,
 /// `docs/RENDERER.md` §5.3, the rule written before its count).
@@ -628,7 +631,8 @@ mod tests {
     /// (logger frame 3294), outside the repository: its `forest` cells and
     /// its `tree` rows `(cell, mask, slot, x, y, z, model, sx, sy)`.
     type PacketTree = ((i32, i32), u8, i32, (i32, i32, i32), usize, (i32, i32));
-    fn packet_trees() -> Option<(std::collections::BTreeSet<(i32, i32)>, Vec<PacketTree>)> {
+    type PacketForest = (std::collections::BTreeSet<(i32, i32)>, Vec<PacketTree>);
+    fn packet_trees() -> Option<PacketForest> {
         let path = std::env::var_os("RON_TREE_ORACLE")
             .map(PathBuf::from)
             .unwrap_or_else(|| {
@@ -725,6 +729,88 @@ mod tests {
         assert_eq!(packet.len(), 60);
         assert_eq!(register(1), 0, "shifted one cell east");
     }
+    /// **The trees are the packet's own geometry** (item 4080,
+    /// `docs/RENDERER.md` §3.7): for each of the 12 cells whose trees
+    /// `RTreeData::tree_cache` holds assembled on run1559b's packet, the
+    /// extent of the world-space vertices the original built agrees with the
+    /// extent of our five models placed by `tree_placement`, to a unit, on
+    /// all six bounds. Made to fail: drawn at 1.05 times `tree_scale`, no
+    /// cell agrees.
+    #[test]
+    fn the_trees_are_the_packets_own_geometry() {
+        let Some(text) = packet_trees().and(
+            std::fs::read_to_string(
+                std::env::var_os("RON_TREE_ORACLE")
+                    .map(PathBuf::from)
+                    .unwrap_or_else(|| {
+                        PathBuf::from(std::env::var_os("HOME").unwrap_or_default()).join(
+                            "ron-data/lab-experiments/2026-11-10-item-4080/run1559b-trees.txt",
+                        )
+                    }),
+            )
+            .ok(),
+        ) else {
+            println!("skipping: no tree oracle on disk");
+            return;
+        };
+        let cache: Vec<((i32, i32), [f32; 6])> = text
+            .lines()
+            .filter_map(|l| l.strip_prefix("cache "))
+            .map(|l| {
+                let w: Vec<&str> = l.split(' ').collect();
+                let mut b = [0f32; 6];
+                for (j, v) in b.iter_mut().enumerate() {
+                    *v = w[3 + j].parse().unwrap();
+                }
+                ((w[0].parse().unwrap(), w[1].parse().unwrap()), b)
+            })
+            .collect();
+        assert_eq!(cache.len(), 12, "the packet's cache entries");
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let mut world = match World::open(&install, &gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        world.run_to(crate::silhouette::PHOTO_FRAME);
+        let art = world.tree_meshes().expect("the lobby's trees read");
+        let list = world.tree_list();
+        let extent = |cell: (i32, i32), scale: f32| {
+            let mut b = [f32::MAX, f32::MAX, f32::MAX, f32::MIN, f32::MIN, f32::MIN];
+            for t in list.iter().filter(|t| t.cell == cell) {
+                let (rest, _) = art.models[t.model].as_ref().expect("decodes");
+                let m = render::trees::tree_placement(t.at, scale);
+                for &v in rest {
+                    let p = super::apply(&m, v);
+                    for j in 0..3 {
+                        b[j] = b[j].min(p[j]);
+                        b[j + 3] = b[j + 3].max(p[j]);
+                    }
+                }
+            }
+            b
+        };
+        let agree = |scale: f32| {
+            cache
+                .iter()
+                .filter(|(cell, theirs)| {
+                    let ours = extent(*cell, scale);
+                    let ok = ours.iter().zip(theirs).all(|(a, b)| (a - b).abs() <= 1.0);
+                    if scale == art.scale {
+                        println!("cache {cell:?}: ours {ours:?} theirs {theirs:?}");
+                    }
+                    ok
+                })
+                .count()
+        };
+        assert_eq!(agree(art.scale), 12, "every cached cell's extent");
+        assert_eq!(agree(art.scale * 1.05), 0, "at 1.05 times tree_scale");
+    }
+
     use sim::data::pivot::{Release, release_offset_at, release_rotation};
     use sim::movement::Angle;
 

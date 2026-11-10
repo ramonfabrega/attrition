@@ -1003,16 +1003,29 @@ forest cells agree on cell, mask, slot, place, z, model and pixel
 (`client::world::tests::the_trees_stand_where_the_packet_stands_them`; shifted one cell, 0). 320 sweep rows (16
 masks × 5 slots at four cells) agree too (`render::trees::tests::every_place_the_packet_prints_is_ours`).
 
+**Diff-backed, the geometry:** the packet holds each visible forest cell's trees as the original assembled
+them, in world space (`RTreeData::tree_cache`, `TreeCacheEntry::cache_verts[7]`, printed by
+`tree_points.py`'s `cache` rows). On all 12 cached cells, our five models placed by `tree_placement` span the
+same extent to within 0.001 on all six bounds. At 1.05 × `tree_scale` no cell agrees
+(`client::world::tests::the_trees_are_the_packets_own_geometry`). The scale, the `(s, −s, s)` transform and the
+models are therefore the original's.
+
 **The draw.** Each tree is its model at rest. The window draws it flat green, and `--no-trees` leaves it out. In
 candidate C's key buffer a tree is rasterized after the sprites, so it hides what stands behind it, and it is
 scored by §5.3's tree rule. A tree is not a draw-list piece, so K's M (§5.4) is not widened and K holds at 59 of 59.
 
+**The count** (§5.3): **29 of 33 → 25 of 29**. The trees are drawn as solid cards, and they hide four figures
+by the woodcutter that the photograph shows in front of the pine (parked 4080a). The rejected reading, `Scene`,
+reads 26 of 29.
+
 **What is not established.**
+- The leaves' alpha: seven textured sections a tree (`RTreeData::tree_textures`), drawn here as solid
+  triangles (parked 4080a).
 - The depth of a building's sprite against a tree. Ours puts the anchor's flat draw-list depth against the tree's
   per-pixel depth. The original's sprite may carry its `zbuffer` model's depth (parked 4076b).
 - The tree's idle animation, which is not posed.
-- The section name `#<TILESET>_TREE_MODELS0`. It is a reading, checked only by the count of models (24, all of
-  which decode).
+- The section name `#<TILESET>_TREE_MODELS0`. It is a reading, checked by the count of models (24, all of
+  which decode), and since by the packet's geometry on 12 cells.
 - Whether cutting a tree moves `terrain_version`.
 
 ## 4. The stack
@@ -1208,7 +1221,10 @@ The 3294 rows are kept as the packet's frame.
   27 of 33, both buildings passing; with the last tank 1/27 traced (item
   4079, `ebcbcb0f7` before its count) **29 of 33** (`RUN1559B_3279_TRACED`);
   run1441's camera 0 of 32. The rejected readings and every row's values are
-  the journals of 4077 and 4079. Out: three riflemen by the tank (4079b) and
+  the journals of 4077 and 4079. **With the map's trees drawn** (item 4080,
+  §3.7, by the tree rule above): **25 of 29**. The trees hide four figures
+  by the woodcutter that the photograph shows (4080a). Treeless, 29 of 33
+  (`RUN1559B_3279_TRACED_TREELESS`); run1441's camera 0 of 28. Out: three riflemen by the tank (4079b) and
   0/10, behind a pine the client does not draw (4079a). The `RUN1559B_3279_*`
   rows above are the `zbuffer` draw's, kept by name. A second photograph
   needs its own traces, made on it before a count (4071a).
