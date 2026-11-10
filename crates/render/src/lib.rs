@@ -25,6 +25,10 @@
 //!
 //! The fifth is the image reader (`tga`; item 4037): the install's `.tga`
 //! files read whole and self-checking, first for the farm's wheat.
+//!
+//! The sixth is candidate C's measure (`silhouette`; item 4038): the drawn
+//! objects rasterized into a key buffer, and each one's footprint against
+//! the original's photograph of the frame (`docs/RENDERER.md` §5.3).
 
 pub mod bh3;
 pub mod bha;
@@ -32,6 +36,7 @@ pub mod camera;
 pub mod chunk;
 pub mod draw;
 pub mod figure;
+pub mod silhouette;
 pub mod terrain;
 pub mod tga;
 
