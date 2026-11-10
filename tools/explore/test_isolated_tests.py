@@ -313,6 +313,87 @@ class Manifest(unittest.TestCase):
             self.assertIn(f'({profile.name}, tree abc): raise its rss_bytes to the measured RSS or re-profile; alone it may pass', said)
 
 
+class Width(unittest.TestCase):
+    """Item 4072 (Loop 4042): on `dc1e1fd39`'s whole gate the coverage pin
+    walked 436 windows one at a time for 2,519 s while every other library
+    test was done by second 1,070, and seven of eight slots stood idle for
+    the last 1,449. A profile row's `cpu: k` makes a test k-wide: the pool
+    reserves k slots for it and tells it so (`RON_TEST_CPU`), and the test
+    walks k-wide. Red first: the runner passed every test one slot."""
+
+    WORK = {'wide': 0.8, 'a': 0.1, 'b': 0.1, 'c': 0.1, 'd': 0.1}
+
+    def schedule(self, profile, slots=4):
+        """The runner over a fake test whose wall is its work over the width
+        it was given, as the coverage walk's is; `(starts, wall, rows)`."""
+        spans, lock = [], __import__('threading').Lock()
+        def run(binary, name, number, output, directory, memory, cancelled, known=True, cpu=1):
+            began = time.monotonic()
+            time.sleep(self.WORK[name] / cpu)
+            with lock:
+                spans.append((name, cpu, began, time.monotonic()))
+            return dict(name=name, success=True, exit=0, user=0, system=0)
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / 'profile.json'
+            path.write_text(json.dumps({'tree': 'fixture', 'tests': profile}))
+            with patch.object(runner, 'PROFILE', path), patch.object(runner, 'binary_stamp', return_value=(0,)), \
+                    patch.object(runner, 'discover', side_effect=[list(self.WORK), []]), \
+                    patch.object(runner, 'run_one', side_effect=run), contextlib.redirect_stdout(io.StringIO()):
+                began = time.monotonic()
+                self.assertEqual(runner.isolated('fake', Path(d) / 'out', Path(d), slots), 0)
+                wall = time.monotonic() - began
+        return spans, wall
+
+    def test_a_wide_test_fills_the_slots_that_stood_idle(self):
+        profile = {name: {'elapsed': work * 100, 'rss_bytes': 1} for name, work in self.WORK.items()}
+        profile['wide']['cpu'] = 4
+        spans, wall = self.schedule(profile)
+        widths = {name: cpu for name, cpu, _, _ in spans}
+        self.assertEqual(widths, {'wide': 4, 'a': 1, 'b': 1, 'c': 1, 'd': 1})
+        # The pool never holds more slot-units than it has.
+        edges = sorted([(t0, cpu) for _, cpu, t0, _ in spans] + [(t1, -cpu) for _, cpu, _, t1 in spans])
+        held = peak = 0
+        for _, delta in edges:
+            held += delta
+            peak = max(peak, held)
+        self.assertLessEqual(peak, 4)
+        # The old policy's wall is the wide test's whole work on one slot
+        # (0.8 s, three slots idle for 0.7 of it); filled, it is its work
+        # over four and the narrow tests behind it (0.2 + 0.1).
+        occupied = sum(cpu * (t1 - t0) for _, cpu, t0, t1 in spans) / (4 * wall)
+        self.assertLess(wall, 0.6, spans)
+        self.assertGreater(occupied, 0.6, (occupied, spans))
+
+    def test_a_row_without_cpu_is_one_slot_and_a_width_is_capped_at_the_pool(self):
+        self.assertEqual(runner.width('x', {}, 8), 1)
+        self.assertEqual(runner.width('x', {'x': {'rss_bytes': 1}}, 8), 1)
+        self.assertEqual(runner.width('x', {'x': {'cpu': 4}}, 8), 4)
+        self.assertEqual(runner.width('x', {'x': {'cpu': 16}}, 8), 8)
+        self.assertEqual(runner.width('x', {'x': {'cpu': 0}}, 8), 1)
+
+    def test_the_test_is_told_its_width_and_the_budget_reserves_it(self):
+        seen = {}
+        class Child:
+            returncode = 0
+            def __init__(self, command, stdout, stderr, env):
+                seen.update(command=command, env=env)
+            def __enter__(self):
+                return self
+            def __exit__(self, *exc):
+                return False
+            def poll(self):
+                return 0
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d)
+            (out / 'tests').mkdir()
+            with patch.object(runner.subprocess, 'Popen', Child), patch.object(runner, 'binary_stamp', return_value=(0,)):
+                row = runner.run_one('fake', 'wide', 1, out, out, 2048, lambda: False, True, 4)
+        command = seen['command']
+        self.assertEqual(command[command.index('--cpu') + 1], '4')
+        self.assertEqual(seen['env']['RON_TEST_CPU'], '4')
+        self.assertEqual(row['cpu_slots'], 4)
+
+
 if __name__ == '__main__':
     unittest.main()
 
