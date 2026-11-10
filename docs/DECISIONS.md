@@ -124,12 +124,13 @@ is append-only and amended in place, as it always was.
 - 115 extended by 116 — the start track opens
 - 116 standing — one driver, the milestone
 - 117 standing — the gate in its own tree, an experiment
-- 118 standing — kill rule, arm's close
+- 118 extended by 121 — kill rule, arm's close
 - 119 standing — step 5: twelve lines, an instrument first
 - 120 standing — step 5's frame; the floats
+- 121 standing — step 5's rule is a line's price; no stop
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
-- 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types, the pass and the commander stop messaging each other
-- 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself, the fifty-first booked on what a capture can enter
+- 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types
+- 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself
 - 88 amended by 90 — The forty-ninth tranche: two Opus lanes, sixteen `cover=1` landings drained on a pit stop, the blind list 300 → 240 open, the click layer to the pool, two residue rows ratified, the oracle cache key reads the parser and codec only, sixteen Loop items ruled
 - 87 standing — The forty-eighth tranche: five readings and two sweeps at the loop's cheapest landing, forty-five residue rows ratified, the blind list 345 → 300, the forty-ninth booked as `cover=1` captures under a fifth brief kind, a pinned `Blind:` line, eleven Loop items ruled
 
@@ -11956,3 +11957,55 @@ minted game's frame re-measures it, and the order of the items after 4088
 follows that measurement. The window's rule reads 61 % and the window
 read 55 % when the instrument landed; one line a builder at about a point
 each does not fit, and entry 118 says what a trip does.
+
+## 121. Through step 5 the window's rule is the price of a line, a trip calls a design look and not a reroute, and nothing stops the chain under the wall but a clean bank (2026-11-10)
+
+**What happened.** The driver's eleventh session cut item 4094's builder
+at 60 % of the seven-day window with the rule of entry 118 reading 61 %,
+and the window crossed it inside the half hour, as entries 119 and 120
+had both said it would: step 5 is a chain of lines, not one builder.
+
+**Ramon, on the driver's row:** "its at 61% so dont kill not worth", and
+then: "we have some banked resets so may be fine running the limits
+hard... our goal is to be able to stop/resume as we're still not close to
+24/7 running as we spend too many tokens still."
+
+**What the driver measured and said** (lore and the clock, 17:28 −05:00):
+61 % used at 49.7 % of the week, 0.73 points an hour, which reaches the
+wall about Thursday 23:00 −05:00, some 31 hours before the reset; 57 to
+61 in two hours with a builder, the render lane, the driver and two gates
+out. The reroute entry 118 orders changes almost nothing here: all ten
+builders of the pilot were Opus 5.5 already, and the Fable spend is the
+driver's merges and bookings, which a ccc lane needs as well. The
+instrument and three lines cost ten points with the render lane's inside
+them; six lines stand, each larger than the last.
+
+**Decided.**
+
+1. **The trip at 61 % is waived, and entry 118 §1's number does not
+   govern step 5.** The chain stays with in-session builders, Opus 5.5
+   for a line's port.
+2. **Through step 5 the rule is a line's price.** Four points of the
+   window with no line booked — in, or held out with every parting field
+   named — is a trip. A trip calls a design look at that line by the
+   driver, the partings read and the item re-cut, and reaches Ramon in
+   the next message; it reroutes nothing and stops no lane. The handoff
+   writes the reading at the last line's booking and the reading the rule
+   trips at, as it wrote 61.
+3. **No number under the wall stops the chain.** Resets are banked and
+   spending one is Ramon's. What is kept is stop and resume: every step
+   ends banked, a builder commits as it goes, and from 95 % the driver
+   banks before it cuts anything new (the driver's number, an assumption:
+   one builder is about a point, and the wall kills every agent in flight
+   at once), so a wall costs one builder's uncommitted work and never a
+   booking half written.
+4. **The handoff reports what a line cost** — points of the window and
+   the builder's tokens, beside the bytes it brought in — because the
+   goal Ramon named is fewer tokens a step, not a line stayed under.
+
+Entry 116's first kill rule stands unchanged: a floor pushed down unnamed.
+
+**Not established:** how many resets are banked; whether a builder killed
+by the wall can be resumed rather than re-cut; what a line should cost —
+four points is the driver's proposal from three lines, and the first
+booking under it is its first measurement.
