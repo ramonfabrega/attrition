@@ -16965,9 +16965,10 @@ original's on every map it reaches; no closed word or open floor moved.
 against the original's positive counts from the start (`SITE[0].reg` ours 1 theirs 0; `leader:gatherers` ours 0 theirs 7; `city:land` ours 0 theirs 97).
 
 **What is not established.** ~~The two leader exits of the pass's condition (`leader_flags & 0x800`, `+0x59e4`) are `was_really_seen`'s seams (no run sets
-either)~~ — built by item 2780 (§233): the peace pair's who=1 sets `0x800` with the Space Program. The wholesale recompute at setup (`claim_oil_from_owners`) still makes the oil arm alone: the original's pass at setup would also meet a *seen*
+either)~~ — built by item 2780 (§233): the peace pair's who=1 sets `0x800` with the Space Program. ~~The wholesale recompute at setup (`claim_oil_from_owners`) still makes the oil arm alone: the original's pass at setup would also meet a *seen*
 rare, and the harness's fog replay (`seed_new_rares_from_fog`) stands in for it in a different order — no capture has a lobby whose list order depends
-on it. `good_seen_bits` is written by this arm alone; `reveal_fog`'s own write of the bit is still answered by the fog read, which differs from it
+on it.~~ The built start runs setup's rare arm since item 4093 (`Sim::claim_rares_from_owners`, `docs/ECONOMY.md`, "Setup's goods scan"); the
+installed start keeps the fog replay in its place. `good_seen_bits` is written by this arm alone; `reveal_fog`'s own write of the bit is still answered by the fog read, which differs from it
 exactly where this word did (the tile gate). How the original's list reached the Wool on **439** (a pass after the cell was seen) is this crate's
 timing; the capture agrees on the Merchants' picks, not on the frame the Wool was added.
 

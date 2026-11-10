@@ -521,8 +521,10 @@ reveal take is the one thing a snapshot cannot carry back, and it is that
 document's §7.
 
 `World::compute_reg_territory@006b0bb0` is `new_rare`'s **second** caller
-and nothing here models it, so a rare a leader learns of through territory
-rather than through sight is still missing.
+~~and nothing here models it, so a rare a leader learns of through territory
+rather than through sight is still missing~~ — carried in play by item 1555
+(`Sim::claim_cell_goods`, `docs/AI.md` §152) and at setup by item 4093
+("Setup's goods scan", below).
 
 `new_rare(this, g)` then walks every leader:
 
@@ -590,15 +592,18 @@ word had been parked on
 
 **What is not established.**
 
-- **The start fog is not replayed.** A rare already under a leader's fog at
+- ~~**The start fog is not replayed.** A rare already under a leader's fog at
   frame 0 was recorded by the original's `Setup` and is not recorded here,
   because this simulation begins from an installed fog grid rather than
   from the reveals that built it. On East Indies it costs nothing: the one
   good under the AI's start fog is an **oil patch**, which `find_good_at`
-  refuses on both sides. A map where it is not oil would part.
-- **`World::compute_reg_territory`'s call is not carried.** Territory
+  refuses on both sides. A map where it is not oil would part.~~ An
+  installed start replays it (`Sim::seed_new_rares_from_fog`, item 207);
+  the built start walks its own reveals and runs setup's goods scan
+  (item 4093, below).
+- ~~**`World::compute_reg_territory`'s call is not carried.** Territory
   changing hands is the second way a rare is learned, and nothing here
-  reaches it.
+  reaches it.~~ Carried in play (item 1555) and at setup (item 4093).
 - **`leader_flags & 8`**, the AI-driven human, is never set here, so the
   human's own reveals record nothing — which is what the original does for
   a human without computer assist and is a seam for one with it.
@@ -608,6 +613,86 @@ word had been parked on
   It is also the only thing that can check `Unit::think_merchant`'s
   rotation of this list (`docs/MERCHANT.md` §2.3), and it sits one frame
   past the word.
+
+### Setup's goods scan (item 4093)
+
+**The rule, read on the listing.** `World::compute_all_territory@006b5700`
+sets `GameDaemon::borders` to −1, then calls
+`World::compute_reg_territory@006b0bb0(r, 1)` for every land region slot
+`r` in 0..64 whose size is not zero, its resume index zeroed first. With
+the budget at −1 the `0xff < borders` test never ends a region's turn and
+the per-cell counter is not bumped (`:309`–`:310`), so one call writes every
+cell of its region, in the region's cell list (`Regions::rebuild_coords`,
+row-major). The per-cell goods scan is the in-play pass's own code
+(`:620`–`:660`); setup reaches it all at once. For a cell given to player
+`p` (`local_14 >= 0`) it walks the goods list from the front for the
+first good that is live and stands on the cell (`div_3_table` of each
+coordinate against the cell), and stops there:
+
+```
+if good.type == OIL (5):  oil_patches[p].add_once(g)
+elif p > 7 or reveal_map == 3 or leader_flags[p] & 0x800 or leader[p].w59e4
+     or seen2[2cy + 1][2cx + 1] & ally_mask[p]:
+    Leader::new_rare(p, g)          # its own gates: human, ally, once, type_avail, not FISH/WHALES
+    goods[g].ever_seen |= 1 << p    # after new_rare, whatever new_rare kept
+```
+
+The seen test is `WorldData::was_really_seen`'s read exactly
+(`Sim::was_really_seen`). There is no tile-mark gate, so a good whose
+footprint misses the revealed half-cell is met here (`docs/AI.md` §152).
+
+**When setup runs it.** It has sixteen callers in the export. Three call
+sites in two functions are on a lobby's setup path (the rest are the scenario editor, scenario import,
+the conquest game's `build_cities`, and three scenario-script functions,
+`create_building`, `gain_upgrade` and `lose_upgrade`, which no AI script
+under `game/ai/scripts/` calls):
+`Setup::build_cities@005ab910`, once per empire, after the starting city's
+`Build::activate` and `Object::update_seen_ally` and before the empire's
+other buildings and units; `Setup::build_game@005ac190:883`, after every
+empire and `World::analyze_map`; and `build_game:1071`, after a
+conquest game's setup script, which no lobby here takes. So on a two-seat
+lobby the scan runs three times before frame 0, each over the `seen2` the
+setup steps have written so far. `new_rare` and the oil list add once, and
+`seen2` only grows, so the lists are what each leader's first scan meets
+after its own city, then what the later ones add, each scan in region and
+cell order.
+
+**This crate.** `Sim::claim_rares_from_owners` (`economy/rares.rs`) is the
+rares' half over the owners as they stand, region by region and cell by
+cell. `Sim::settle_borders` runs it before the first frame, and the built
+start (`rondata::diff::start`) calls `sync_territory` then
+`settle_borders` at exactly `build_cities`' and `build_game:883`'s points
+(`docs/START.md` §2, steps 7 and 8). The oil half stays
+`Sim::claim_oil_from_owners`, which runs on every pre-play fix
+(`start_border_pass`) and orders land patches the same way. That is more
+often than the original's three calls. Whether the extra calls can ever
+change a list was not checked here; the oil half is not this item's. The installed start
+(`rondata::diff::setup::build_sim`) never calls `settle_borders`. It keeps
+the fog replay (`seed_new_rares_from_fog`) and is not touched.
+
+**Why it was the oil half alone until now.** `claim_oil_from_owners` was
+written by item 1505 for the oil patches, before any rare arm of the
+territory scan existed here: the rare branch was then thought to be reached
+through the fog alone. Item 1555 built the rare branch in play and left the
+setup recompute oil-only on purpose, because the installed start's fog
+replay stood in for setup's rares and no capture's list order depended on
+the difference (`docs/AI.md` §152). The built start (items 4047, 4063) came
+later, took the setup recompute as it stood, and has no fog replay, so a
+rare its leader owned and saw at setup was learned only at the first
+in-play pass that reached the cell. On the minted walk that was frame 387.
+
+**What a diff backs.** On the harness lobby: frame 0's 35 printed goods'
+`ever_seen` against run9's `[Start Game]` `GOOD` records
+(`diff::start_walk::the_built_start_s_goods_ever_seen_is_the_start_dump_s`:
+good 15, `AMBER`, 2 on both sides, every other 0). On frame 91 of the minted
+playback (run 1562) the goods line agrees range by range, and leader 1's
+`known_rares` is 1 on both sides (`docs/CHECKSUM.md` §13). **On a reading
+alone**: the three call sites and their order against `update_seen_ally`;
+the region-and-cell order of the list, since no lobby on disk has two
+rares met by one scan; the `p > 7` and leader-flag exits at setup. **Not
+established**: setup's own `new_rares` order on a lobby where a leader
+meets two rares (no dump prints the list); `build_game:1071`'s conquest
+call.
 
 ## What a city gives
 

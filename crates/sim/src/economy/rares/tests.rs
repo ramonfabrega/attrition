@@ -252,6 +252,91 @@ fn the_border_pass_meets_a_seen_rare_the_reveal_never_looked_for() {
     assert!(!s.good_seen_bit(g, 0), "and by nobody else");
 }
 
+/// **Setup's goods scan meets the seen rares on owned ground, in the
+/// pass's own order** (item 4093): `World::compute_all_territory` runs
+/// `compute_reg_territory(r, 1)` over every land region in slot order,
+/// each region's cells row-major, and the per-cell scan meets each owned
+/// cell's first live good. So before the first frame
+/// [`Sim::settle_borders`] lists the rares by region and cell, never by
+/// the goods list; an unseen cell, an unowned one and an oil patch are not
+/// met; a second scan adds nothing; and once the game runs, a call with
+/// no pass pending is no scan.
+#[test]
+fn setup_s_wholesale_pass_meets_seen_rares_in_region_and_cell_order() {
+    let (mut s, _) = sea_sim();
+    let north = s
+        .world
+        .fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 9));
+    let south = s
+        .world
+        .fill_region(Terrain::Land, Cell::new(0, 10), Cell::new(39, 19));
+    assert!(north < south, "the north region's slot is first");
+    let (w, h) = (s.world.width(), s.world.height());
+    assert!(s.world.set_fog(vec![0; (w * h * 4) as usize]));
+    let put = |s: &mut Sim, c: Cell, ty: usize| {
+        s.world.add_good(Good {
+            pos: Pos::new(c.x * 768 + 384, c.y * 768 + 384),
+            ty,
+            alive: true,
+        })
+    };
+    let (ca, cb, cc, cd, ce, cf) = (
+        Cell::new(5, 15),
+        Cell::new(30, 5),
+        Cell::new(3, 5),
+        Cell::new(8, 8),
+        Cell::new(9, 9),
+        Cell::new(12, 2),
+    );
+    // In the goods list: the south rare first, then a north one on a
+    // later cell, then a north one on an earlier cell.
+    let a = put(&mut s, ca, 26);
+    let b = put(&mut s, cb, 27);
+    let c = put(&mut s, cc, 28);
+    let d = put(&mut s, cd, 29); // owned, never seen
+    let e = put(&mut s, ce, 30); // seen, nobody's
+    let oil = put(&mut s, cf, crate::world::OIL_GOOD); // owned and seen
+    for at in [ca, cb, cc, ce, cf] {
+        s.world.set_seen(2 * at.x + 1, 2 * at.y + 1, 1 << 1);
+    }
+    for at in [ca, cb, cc, cd, cf] {
+        s.world.set_owner(
+            at,
+            crate::world::Owner::Player(1),
+            crate::world::Owner::None,
+        );
+    }
+    assert!(!s.in_play);
+    s.settle_borders();
+    assert_eq!(
+        s.ai.ai[1].new_rares,
+        vec![c, b, a],
+        "region by region, each row-major"
+    );
+    for g in [a, b, c] {
+        assert!(s.good_seen_bit(g, 1), "good {g} takes the owner's bit");
+        assert!(!s.good_seen_bit(g, 0));
+    }
+    for g in [d, e, oil] {
+        assert!(!s.good_seen_bit(g, 1), "good {g} is not met");
+    }
+    s.settle_borders();
+    assert_eq!(s.ai.ai[1].new_rares, vec![c, b, a], "met once");
+
+    // In play, with no pass pending, the call is no scan.
+    let cg = Cell::new(20, 3);
+    let g = put(&mut s, cg, 26);
+    s.world.set_seen(2 * cg.x + 1, 2 * cg.y + 1, 1 << 1);
+    s.world.set_owner(
+        cg,
+        crate::world::Owner::Player(1),
+        crate::world::Owner::None,
+    );
+    s.in_play = true;
+    s.settle_borders();
+    assert!(!s.ai.ai[1].new_rares.contains(&g));
+}
+
 /// **The two numbers run59's census measured.** A level-0 fisherman
 /// standing on a fish in nobody's territory pays exactly `10 × 16` food
 /// and `10 × 16` wealth — `FISHERMEN_BONUS` entry 0 is 0% and

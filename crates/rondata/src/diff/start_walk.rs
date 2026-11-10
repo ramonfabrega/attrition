@@ -439,6 +439,84 @@ pub(crate) const LOBBY_GAME: &[&str] = &[
     "gamelog-run80-greatlakes-latecensus.txt",
 ];
 
+/// **Frame zero's goods `ever_seen`, the built start against the
+/// original's `[Start Game]`** (item 4093, `docs/CHECKSUM.md` §13): the
+/// harness lobby built by [`from_lobby`] from run9's `GAMEINFO`, each
+/// good's byte ([`sim::Sim::good_ever_seen_byte`]) against the `GOOD`
+/// records run9 prints ahead of its first frame, keyed by the record's
+/// `o`. Run9's first `GOOD` lost its head lines in the print (its
+/// `SUBOBJECT`, `o 0`, stands alone), so 35 of the 36 are compared; good
+/// 0 is an oil patch, which no arm of the five marks. The one good seen
+/// at frame 0 is good 15 (`AMBER`), leader 1's bit: setup's goods scan
+/// ([`sim::Sim::claim_rares_from_owners`]) on the cell leader 1's city
+/// owns and has seen.
+#[test]
+fn the_built_start_s_goods_ever_seen_is_the_start_dump_s() {
+    let Some(inst) = install() else { return };
+    let Some(path) = dump("gamelog-run9-world6.txt") else {
+        eprintln!("skipping: no gamelog-run9-world6.txt (set RON_GAMELOG_DIR)");
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let log = Log::parse(&text);
+    let init = replay_initial(&log).unwrap();
+    let game = log.root("GAME").expect("run9 has a GAME block");
+    let theirs: Vec<(usize, u8)> = game
+        .children()
+        .take_while(|b| !b.name().starts_with("FRAME"))
+        .filter(|b| b.name() == "GOOD")
+        .map(|b| {
+            let o = b.kid("SUBOBJECT").and_then(|s| s.int("o")).expect("o");
+            (o as usize, b.int("ever_seen").expect("ever_seen") as u8)
+        })
+        .collect();
+    let ours = from_lobby(&loaded, &init.game_info, &init.players, Tuning::RON);
+    let (built, _) = built_from_lobby(&loaded, ours);
+    let sim = &built.sim;
+    assert_eq!(sim.world.goods().len(), 36, "the lobby's goods");
+    let ours: Vec<(usize, u8)> = theirs
+        .iter()
+        .map(|&(o, _)| (o, sim.good_ever_seen_byte(o)))
+        .collect();
+    let parted: Vec<(usize, u8, u8)> = ours
+        .iter()
+        .zip(&theirs)
+        .filter(|(a, b)| a != b)
+        .map(|(&(o, a), &(_, b))| (o, a, b))
+        .collect();
+    let seen: Vec<(usize, u8)> = theirs.iter().copied().filter(|&(_, b)| b != 0).collect();
+    eprintln!(
+        "frame 0 goods ever_seen: {} compared, parted (o, ours, theirs) {parted:?}, theirs not 0 {seen:?}; leader 1 new_rares {:?}",
+        theirs.len(),
+        sim.ai.ai[1].new_rares
+    );
+    assert_eq!(theirs.len(), 35, "run9's GOOD records with a head");
+    assert_eq!(seen, [(15, 2)], "the one good seen at frame 0");
+    assert_eq!(parted, [], "frame 0's goods ever_seen");
+    // **It can part**: good 15 at the unported 0 is the one row to part.
+    let unported: Vec<(usize, u8)> = ours
+        .iter()
+        .map(|&(o, b)| (o, if o == 15 { 0 } else { b }))
+        .collect();
+    assert_eq!(
+        unported.iter().zip(&theirs).filter(|(a, b)| a != b).count(),
+        1
+    );
+    // The list the bit stands beside, `new_rare` before the bit: ours, as
+    // the dump prints no `new_rares` (the frame-91 record's leader 1
+    // `known_rares 1` is its count, `diff::checksum_lines`).
+    assert_eq!(
+        sim.ai.ai[1].new_rares,
+        [15],
+        "leader 1's new_rares at frame 0"
+    );
+    assert!(
+        sim.ai.ai[0].new_rares.is_empty(),
+        "leader 0's new_rares at frame 0"
+    );
+}
+
 /// **The lobby's own walk from the built start** (item 4057,
 /// `docs/START.md` §7.4): run53's game (the harness lobby, 24,000 frames,
 /// no input) walked from [`from_lobby`]'s `Sim` with no start dump
