@@ -7,7 +7,7 @@
 //! (`sips -s format tga`): `$RON_PHOTO`, else
 //! `~/ron-data/lab-experiments/2026-11-09-item-4038/run1559b-3294.tga`.
 
-use crate::world::{Drawing, SpriteDrawing, World};
+use crate::world::{Drawing, SpriteDrawing, TREE_WHO, TreePixels, World};
 use render::silhouette::{
     Footprint, Object, Photo, READING, Reader, Rect, Stamp, footprints_read, rasterize_with,
 };
@@ -415,11 +415,25 @@ pub fn frame_keys(
     let drawings: Vec<Drawing> = world.objects(&figures, &buildings, &list);
     let sprites = world.sprite_drawings(&buildings, &list, camera.zoom_distance);
     let first = drawings.len() as u32 + 1;
-    let keys = rasterize_with(&objects(&drawings), &stamps(&sprites, first), camera, size);
+    // The map's trees (item 4080) after the sprites, keyed from `trees`.
+    let trees = world.tree_drawings();
+    let first_tree = first + sprites.len() as u32;
+    let mut meshes = objects(&drawings);
+    meshes.extend(trees.iter().enumerate().map(|(j, d)| Object {
+        key: first_tree + j as u32,
+        tris: d.tris.clone(),
+    }));
+    let mut keys = rasterize_with(&meshes, &stamps(&sprites, first), camera, size);
+    if world.tree_pixels == TreePixels::Ground {
+        for k in keys.keys.iter_mut().filter(|k| **k >= first_tree) {
+            *k = 0;
+        }
+    }
     let who = drawings
         .iter()
         .map(|d| (d.who, d.o, d.piece, d.building))
         .chain(sprites.iter().map(|s| (s.who, s.o, s.piece, true)))
+        .chain(trees.iter().map(|d| (d.who, d.o, d.piece, false)))
         .collect();
     (keys, who)
 }
@@ -445,6 +459,7 @@ pub fn score_frame(
             let d = drawings[f.key as usize - 1];
             (f, d)
         })
+        .filter(|(_, d)| d.0 != TREE_WHO)
         .collect()
 }
 
@@ -484,6 +499,7 @@ pub fn score_frame_traced(
     )
     .into_iter()
     .map(|f| (f, drawings[f.key as usize - 1]))
+    .filter(|(_, d)| d.0 != TREE_WHO)
     .collect()
 }
 

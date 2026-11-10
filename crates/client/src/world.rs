@@ -105,6 +105,8 @@ pub struct World {
     /// Draw the map's trees (item 4080, `render::trees`). On by default;
     /// `--no-trees` turns it off.
     pub trees: bool,
+    /// How candidate C reads a tree's pixel (`docs/RENDERER.md` §5.3).
+    pub tree_pixels: TreePixels,
     /// The lobby's tileset's trees: `tree_scale` and each model at rest,
     /// `None` where it does not decode; `None` whole where the tileset's
     /// trees do not read.
@@ -117,6 +119,20 @@ pub struct World {
 pub struct TreeMeshes {
     pub scale: f32,
     pub models: Vec<Option<(Vec<[f32; 3]>, Vec<[u16; 3]>)>>,
+}
+
+/// **How a tree's pixel reads in candidate C's key buffer** (item 4080,
+/// `docs/RENDERER.md` §5.3, the rule written before its count).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TreePixels {
+    /// The rule: a tree occludes what stands behind it, and its pixel is
+    /// no object's — the ground's, as the terrain's is. A tree is not a
+    /// draw-list entry and is never scored.
+    Ground,
+    /// The rejected reading: a tree's pixel is the scene's, an object of
+    /// ours in every window it falls in, though never scored itself.
+    #[cfg_attr(not(test), allow(dead_code))]
+    Scene,
 }
 
 /// **The `who` a tree's drawing carries** (item 4080): no owner's, so no
@@ -228,6 +244,7 @@ impl World {
             runner,
             terrain: (u32::MAX, TerrainMesh::default()),
             trees: true,
+            tree_pixels: TreePixels::Ground,
             tree_art,
         })
     }
@@ -257,6 +274,7 @@ impl World {
     }
 
     /// The tileset's tree models, where they read.
+    #[cfg(test)]
     pub fn tree_meshes(&self) -> Option<&TreeMeshes> {
         self.tree_art.as_ref()
     }
@@ -313,6 +331,20 @@ impl World {
                 })
             })
             .collect()
+    }
+
+    /// The trees into the window's soup, flat green (no texture is bound,
+    /// 4038a).
+    pub fn tree_soup(&self, soup: &mut Soup) {
+        for d in self.tree_drawings() {
+            for tri in d.tris {
+                let lit = shade(tri);
+                for p in tri {
+                    soup.positions.push(p);
+                    soup.colours.push([0.25 * lit, 0.45 * lit, 0.2 * lit]);
+                }
+            }
+        }
     }
 
     /// This frame's figures and buildings as the observer sees them: the
