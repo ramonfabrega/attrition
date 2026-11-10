@@ -3848,6 +3848,10 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 (4062) **The leader-seat guard has read the wrong files since it was written** (Loop 4041's builder, the seventy-sixth pass): `diff::oracle`'s guard that a leader compare walks the lobby's seats and never a literal reads a fixed list of included sources, and the bodies it means had already moved to the harness's and the golden's `cases_*.rs` files; pointed at them it is red on nine literal two-seat loops (`harness/tests/cases_02.rs:1628` is one). Candidate: rule whether those loops are wrong or exempt on a two-seat lobby, then point the guard at the files and pin what it finds, red first by construction. Names no score; the loop's.
 
+## Loop, filed 2026-11-09 — the driver's second session
+
+(4068) **The park pool ran dry inside a session, and two rows refilled it at once** (the driver's second session, 2026-11-09): the handoff left two reserved headings, DW with the render lane and DX for 4063's builder, and called the refill "owed at the pass" — but `the_park_pool_holds_two_unassigned_headings` asks for two *free*, so the first landing to rename its slot was red by construction. The driver appended DY–EB in `817151a57` while lane-4065's own lane gate was going red on the same guard; the lane appended a DY of its own (`82fdfed5f`), then merged the driver's and resolved the conflict at the file's tail by hand, keeping both. Nothing was lost, and it cost the lane a second gate (8.8 release minutes) and a conflicted merge. The rule that would have held: the refill lands at the booking that assigns the pool down to two free or fewer, never "at the pass"; and a worker's brief says the pool is the driver's, so a red on that guard is reported, not repaired. A guard could read the queue's `park <A>` assignments beside the live lanes and fail the booking, not the landing.
+
 ## Loop, filed 2026-11-09 — the driver's first session
 
 (4064) **The journal guard asks a builder's journal for a lane gate it never runs, and a lane's done line can precede its quote** (the driver's first session, 2026-11-09): `a_journal_quotes_its_lane_verdict_and_gate_minutes` reads every journal for two strings. A driver's builder runs no lane gate (`docs/LOOP.md`, "Who builds"), so 4047's journal carries a `Lane verdict: none` line written for the reader and proving nothing; and 4061's lane sent its done line with neither string, though its own gate's last verdict told it to quote them — the waiter had read the push as `PUSHED … progress, not a landing`, the done line overrode it, and the driver pasted the two lines from the lane's gate log at the booking. Candidate: a builder's journal carries `Booking gate:` and the guard reads either; the chain checks the journal's quote before the merge, as it checks origin.
@@ -15831,13 +15835,21 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   `draw_unit@008e7da0` consumes the chad's scale is unread (it does not decompile), so it was not landed. 3294 prints
   no `gpiece` or facing to diff the tank's heading against. Candidate C +3 at most, with 4065b.
 
-## Parked by the next landing, slot DX — reserved
+## Parked by item 4063, 2026-11-09 — the start's units
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4063a. `docs/ORDERS.md` §9.3's citizen prose says `Unit::come_out(u, 0)` "steps off the footprint to the
+  nearest free spot beside it".** The citizen is born inside nothing, so `come_out` takes its no-host arm
+  (`617d27`): a sweep round the unit's **own** point from its type's `block_radius` out
+  `UNIT_DISEMBARK_DISTANCE`, due south first. A farm's citizens stay on the farm's footprint, 48 south of their
+  snapped birth point — run9's `0/3` at `(2712, 32136)` on farm `0/2002` at `(2688, 32064)`. The port
+  (`Sim::come_out_own_point`) reproduces all ten starting citizens (`docs/START.md` §2 step 7). §9.2's last
+  sentence ("the harness … does not reimplement the placer") is stale the same way: `from_lobby` runs both
+  placers. Names no score: the code is right and only the reading of record is not; amend §9.2–§9.3 when they
+  are next read.
+- **4063b. `SPANISH_EXTRA_SCOUT`, `GREEK_START_SCHOLARS` and `KOREAN_CITIZENS` are not loaded**, and the Dutch
+  merchants' `MERCHANTDUTCH` is not walked. `rondata::diff::start::build_units` refuses a Spaniard, Greek,
+  Korean or Dutch seat by name (with 4047b's Americans) rather than guess the count. Names no score until a
+  lobby with one of them is compared (item 4034's lobbies).
 
 ## Parked by item 4067, 2026-11-09 — the figures' pose, killed as the miss
 

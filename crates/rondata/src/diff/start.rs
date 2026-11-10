@@ -15,8 +15,10 @@ use super::*;
 /// **The start track's counter** (`docs/START.md` §5): the lobbies whose
 /// whole start block [`from_lobby`] builds equal to the installed one, of
 /// the lobbies on disk with a `[Start Game]` dump. Pinned red first at 0
-/// (item 4033): the harness's own lobby parts at the map (§4).
-pub const START_BUILT: usize = 0;
+/// (item 4033): the harness's own lobby parted at the map (§4). 1 at item
+/// 4063: the harness lobby (run9: seed 12345, Great Lakes, Small, two
+/// players) agrees on every one of its 18,264 fields.
+pub const START_BUILT: usize = 1;
 
 /// The lobbies on disk with a `[Start Game]` dump: `tools/start_lobbies.py`
 /// on 2026-11-09 — 645 captures whose `GAME` carries start records ahead
@@ -302,6 +304,212 @@ pub fn pre_placed_buildings(
     Ok(())
 }
 
+/// The leader's own version of a unit `TypeIndex`: `LeaderData::
+/// tribe_can_type` or else the tribe's graft (`get_graft`), then
+/// `LeaderData::current_upgrade` — what `Setup::build_units` hands
+/// `place_unit` and `init_unit` for the scout (`SCOUT`, 0x45) and the
+/// citizen (0x32). The unit-type index, or none when the tables lack it.
+pub fn leader_unit_type(sim: &Sim, who: usize, type_index: i32) -> Option<usize> {
+    let types = &sim.tables.unit_types;
+    let tree = types.iter().find(|t| t.type_index == type_index)?.tree?;
+    let tt = &sim.tables.tech_tree;
+    let p = sim.tech.get(who)?;
+    let graft = tt.get_graft(&sim.tables.setup, p, Some(tree))?;
+    let cur = tt.current_upgrade(&sim.tables.setup, p, graft);
+    types.iter().position(|t| t.tree == Some(cur))
+}
+
+/// `SCOUT` and the citizen's `TypeIndex` (`types.list[0x45]`, `[0x32]`).
+const SCOUT: i32 = 0x45;
+const CITIZEN: i32 = 0x32;
+
+/// **`Setup::build_units@005aafc0(who, slot, city, starting_town)`**
+/// (`docs/START.md` §2 step 7, `docs/ORDERS.md` §9.3) for seat `who`
+/// whose start cell is `start` and whose village is building `city`:
+/// `get_starting_citizens`' `(n, ordered)` and the lobby's and the
+/// powers' adjustments; the scout through [`sim::Sim::place_unit`]; then
+/// each citizen at its building — the woodcutter for the first
+/// `ordered`, then the farm scan, the guard, the woodcutter again while
+/// it has room, else `place_unit` idle — born on the building's point by
+/// `Objects::init_unit`, stepped off it by `Unit::come_out(u, 0)`
+/// ([`sim::Sim::come_out_own_point`]) and given its `GATHER` unless
+/// `starting_resources == 8`. Refused, with the reason: a power whose
+/// constant this crate does not load (the Spaniards' extra scout, the
+/// Dutch merchants, the Greek scholars, the Koreans' citizens, the
+/// Americans' farms), and `place_unit`'s two unbuilt arms (a Nomad start,
+/// `Build::train` after sixty refusals).
+pub fn build_units(
+    sim: &mut Sim,
+    who: usize,
+    start: (i32, i32),
+    city: usize,
+    starting_town: i64,
+) -> Result<(), String> {
+    let bonus = |sim: &Sim, n: usize| {
+        sim.tables
+            .tech_tree
+            .has_tribe_bonus(&sim.tables.setup, &sim.tech[who], n)
+    };
+    let (mut n, ordered): (i64, i64) = match starting_town {
+        0 => (3, 0),
+        1 => (4, 0),
+        2 => (5, 2),
+        3 => (10, 5),
+        _ => (0, 0),
+    };
+    match sim.ai.lobby.starting_resources {
+        7 => n += 8,
+        8 => n += 12,
+        _ => {}
+    }
+    if bonus(sim, 0x14) && starting_town == 2 {
+        return Err("the Americans' starting farms are not loaded".into());
+    }
+    if bonus(sim, 0x13) {
+        match starting_town {
+            2 => n -= 3,
+            3 => n -= 5,
+            _ => {}
+        }
+    }
+    let at = Pos::new(start.0 * 0x300 + 0x180, start.1 * 0x300 + 0x180);
+    let place = |sim: &mut Sim, ty: usize| -> Result<usize, String> {
+        sim.setup()
+            .place_unit(who as sim::Player, Some(city), ty, at)
+            .map_err(|e| format!("place_unit: {e:?} is not built"))
+    };
+    if starting_town != 0 {
+        let scout = leader_unit_type(sim, who, SCOUT).ok_or("no SCOUT unit type")?;
+        place(sim, scout)?;
+        if bonus(sim, 9) {
+            return Err("the Spaniards' extra scout is not loaded".into());
+        }
+        if bonus(sim, 0x16) {
+            return Err("the Dutch merchants are not built".into());
+        }
+    }
+    if bonus(sim, 5) {
+        return Err("the Greek scholars are not loaded".into());
+    }
+    if bonus(sim, 0x10) {
+        return Err("the Koreans' citizens are not loaded".into());
+    }
+    let citizen = leader_unit_type(sim, who, CITIZEN).ok_or("no citizen unit type")?;
+    let owner = who as sim::Player;
+    let slot = |sim: &Sim, o: i64| {
+        sim.buildings
+            .iter()
+            .position(|b| b.alive && b.owner == owner && i64::from(b.index) == o)
+    };
+    // `Objects.build_mark[who]`: one past the last building `find_free`
+    // numbered for this player.
+    let build_mark = sim
+        .buildings
+        .iter()
+        .filter(|b| b.owner == owner && b.index >= sim::BUILD_BASE)
+        .map(|b| i64::from(b.index) + 1)
+        .max()
+        .unwrap_or(i64::from(sim::BUILD_BASE));
+    let workable = |sim: &Sim, b: usize| {
+        sim.buildings[b].active
+            && sim.is_gather_type(b)
+            && sim.building_ident(b) != sim::cities::build::Ident::University
+    };
+    let mut cursor = 0i64;
+    for i in 0..n {
+        let target = if starting_town < 2 {
+            None
+        } else if i < ordered {
+            // Step 1: `2001`, gated only on the mark and its alive bit.
+            (2001 < build_mark).then(|| slot(sim, 2001)).flatten()
+        } else {
+            // Step 2: the farm scan from `2002 + cursor`; step 3 the
+            // stopping object behind the guard; step 4 `2001` behind the
+            // guard and its room.
+            let mut t = 2002 + cursor;
+            let mut stop = None;
+            while t < build_mark {
+                let Some(h) = slot(sim, t) else { break };
+                stop = Some(h);
+                if sim.building_ident(h) == sim::cities::build::Ident::Farm {
+                    break;
+                }
+                t += 1;
+            }
+            cursor = t - 2002 + 1;
+            stop.filter(|&h| t < build_mark && workable(sim, h))
+                .or_else(|| {
+                    slot(sim, 2001).filter(|&h| {
+                        workable(sim, h)
+                            && sim.buildings[h]
+                                .gather_max
+                                .is_some_and(|m| sim.num_gatherers(h, false, false) < m)
+                    })
+                })
+        };
+        match target {
+            Some(b) => {
+                let pos = sim.buildings[b].pos;
+                let u = sim.setup().init_unit(owner, citizen, pos);
+                sim.setup().come_out_own_point(u);
+                if sim.ai.lobby.starting_resources != 8 {
+                    sim.command()
+                        .add_gather_order(u, b, sim::orders::QueuePos::New, false);
+                }
+            }
+            None => {
+                place(sim, citizen)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+/// The herd each herd good founds: `Objects::init_good@00653f30`'s
+/// `Herds::init_herd(cell, HERD<type>, slot)` for a good whose type is one
+/// of the seven herd goods (`GoodTypeData::is_herd_type`, then the switch
+/// on the type's own index): FISH 6 → `HERDFISH` 0x19b, 0xe → `HERDHORSE`
+/// 0x197, 0x15 → `HERDBEAR` 0x19a, 0x17 → `HERDBISON` 0x199, 0x19 →
+/// `HERDPEACOCK` 0x19d, WHALES 0x1f → `HERDWHALE` 0x19c, 0x21 →
+/// `HERDSHEEP` 0x198.
+pub const HERD_OF_GOOD: [(i32, i32); 7] = [
+    (6, 0x19b),
+    (0xe, 0x197),
+    (0x15, 0x19a),
+    (0x17, 0x199),
+    (0x19, 0x19d),
+    (0x1f, 0x19c),
+    (0x21, 0x198),
+];
+
+/// **The map's herds** (`docs/START.md` §2 step 8): one per live herd good
+/// of the composed map, in the goods list's slot order, each numbered by
+/// its place (`Herds::init_herd` takes the first dead herd, and none dies
+/// in map generation here). SEAM: the original numbers herds in the order
+/// `init_good` ran, which is the slot order unless a slot was reused —
+/// the test holds the list against the start dump's `HERDS`.
+pub fn herds_from_goods(
+    goods: &[Option<(i32, i32, i32)>],
+) -> Vec<sim::gaia::herd_create_view::HerdRec> {
+    goods
+        .iter()
+        .flatten()
+        .filter_map(|&(ty, x, y)| {
+            HERD_OF_GOOD
+                .iter()
+                .find(|(g, _)| *g == ty)
+                .map(|&(_, kind)| (kind, x, y))
+        })
+        .enumerate()
+        .map(|(i, (kind, cx, cy))| sim::gaia::herd_create_view::HerdRec {
+            cx,
+            cy,
+            kind,
+            tag: i as i16,
+        })
+        .collect()
+}
+
 /// **`Setup::build_game`'s start permutation** (`docs/START.md` §2 step
 /// 5): `Game::start_list[k]` for the eight seats, each a fresh index — a
 /// `Random::get(0, 0xffff) & 7`, re-drawn until it is one no earlier `k`
@@ -525,9 +733,11 @@ pub fn from_lobby(
         }
     })();
     let mut starts: Vec<(i32, i32)> = Vec::new();
+    let mut goods: Vec<Option<(i32, i32, i32)>> = Vec::new();
     let world = match map {
         Some((m, sea)) => {
             rng = m.draws.rng;
+            goods = m.grid.goods.clone();
             // `World.start_x/start_y` (+0x80, +0x9c): the map maker's
             // start cells, which `build_cities` reads by slot.
             starts = m.grid.starts[0]
@@ -654,6 +864,7 @@ pub fn from_lobby(
         let village = loaded.build_named("Small City");
         let town = int("STARTING_TOWN").unwrap_or(0);
         let mut buildings_built = true;
+        let mut units_built = true;
         for (slot, &who) in start_list.iter().filter(|&&w| w < players).enumerate() {
             let (Some(ty), Some(&(sx, sy))) = (village, starts.get(slot)) else {
                 notes.push(format!(
@@ -675,6 +886,15 @@ pub fn from_lobby(
                         notes.push(format!("build_cities, seat {who}: {e}"));
                         buildings_built = false;
                     }
+                    // `build_units(who, slot, city, starting_town)`, the
+                    // rest of this empire, before the next is begun.
+                    match build_units(&mut sim, who, (sx, sy), b, town) {
+                        Ok(()) => empire_words.push((who, "units", sim.rng.seed)),
+                        Err(e) => {
+                            notes.push(format!("build_units, seat {who}: {e}"));
+                            units_built = false;
+                        }
+                    }
                 }
                 None => {
                     notes.push(format!(
@@ -689,6 +909,40 @@ pub fn from_lobby(
             "build_empire: small_city_buildings, build_civ_specific",
             buildings_built,
         ));
+        steps.push(("build_empire: build_units, place_unit", units_built));
+        words.push(("setup.cpp", 1148, sim.rng.seed));
+        // 8. `World::analyze_map` (not walked: nothing at frame 0 that the
+        // block compares reads it) and `compute_all_territory`, whose
+        // owners `build_cities`' pass already left as the original's.
+        steps.push(("World::analyze_map", false));
+        sim.setup().sync_territory();
+        sim.setup().settle_borders();
+        steps.push(("World::compute_all_territory", true));
+        words.push(("setup.cpp", 1169, sim.rng.seed));
+        // `Setup::build_game`'s herd loop: each live herd's
+        // `Herd::create_units`, in the herd list's order.
+        let herds = herds_from_goods(&goods);
+        let mut herds_built = true;
+        for h in &herds {
+            sim.gaia.gaia.herds.push(sim::gaia::Herd {
+                cx: h.cx,
+                cy: h.cy,
+                wx: h.cx,
+                wy: h.cy,
+                kind: h.kind,
+                alive: true,
+            });
+        }
+        for h in &herds {
+            let (_, done) = sim.setup().found_herd(h);
+            if !done {
+                notes.push(format!("Herd::create_units refused herd {}", h.tag));
+                herds_built = false;
+            }
+        }
+        steps.push(("Herd::create_units", herds_built));
+        words.push(("setup.cpp", 1240, sim.rng.seed));
+        words.push(("setup.cpp", 1244, sim.rng.seed));
     } else {
         steps.push(("the start permutation", false));
         steps.push(("Leader::init (the personality roll)", false));
@@ -697,13 +951,14 @@ pub fn from_lobby(
             "build_empire: small_city_buildings, build_civ_specific",
             false,
         ));
-    }
-    for step in [
-        "build_empire: build_units, place_unit",
-        "World::analyze_map, compute_all_territory",
-        "Herd::create_units",
-    ] {
-        steps.push((step, false));
+        for step in [
+            "build_empire: build_units, place_unit",
+            "World::analyze_map",
+            "World::compute_all_territory",
+            "Herd::create_units",
+        ] {
+            steps.push((step, false));
+        }
     }
     if !map_built {
         notes.push("the walk stops at the map".into());
@@ -830,9 +1085,13 @@ mod tests {
             })
             .collect();
         assert_eq!(ours.words, theirs, "the stream past the map");
+        // And past `build_empire` (item 4063): 1148 after both empires'
+        // units, 1169 after `World::analyze_map` and
+        // `compute_all_territory` (no draw), 1240 after
+        // the herd loop's 44, 1244 the walk's last setup line.
         assert_eq!(
             ours.words.iter().map(|w| w.1).collect::<Vec<_>>(),
-            [955, 13457, 1032]
+            [955, 13457, 1032, 1148, 1169, 1240, 1244]
         );
         // Inside the first `build_empire` (seat 1, the computer): the
         // stream after the village and each pre-placed building, against
@@ -861,8 +1120,39 @@ mod tests {
                 ("farm", 0xc770_881b),
                 ("farm", 0xa4b0_725a),
                 ("library", 0x4a91_dcb1),
+                ("units", 0xddf9_d984),
             ],
             "seat 1's build_empire against run100's draw sites"
+        );
+        // `build_units` (item 4063): `Setup::place_unit`'s tries for the
+        // scout (2 here, 3 for seat 0), then `Guy::init_real` once a
+        // figure for the scout and the five citizens (7) — the word
+        // after them is the seed of seat 0's camp's first
+        // `find_gather_tiles` draw. Seat 0's own `build_empire` against
+        // the same trace: each word the seed of the next group's first
+        // draw — the camp's 244 then farm 1's candidates (`+0xc99`), farm
+        // 2's, farm 3's, the library's jitter (`small_city_buildings
+        // +0xc0`) and roads, the Market's jitter (`build_civ_specific
+        // +0x5c`) and roads, then the units, whose last word is 1148's.
+        let seat0: Vec<(&str, u32)> = ours
+            .empire_words
+            .iter()
+            .filter(|w| w.0 == 0)
+            .map(|w| (w.1, w.2))
+            .collect();
+        assert_eq!(
+            seat0,
+            [
+                ("village", 0xddf9_d984),
+                ("woodcutter", 0x161f_73ec),
+                ("farm", 0x21cf_0167),
+                ("farm", 0xaefd_187c),
+                ("farm", 0x3161_0a10),
+                ("library", 0xc73d_274a),
+                ("civ-specific", 0xf150_44cb),
+                ("units", 0x1675_cd7d),
+            ],
+            "seat 0's build_empire against run100's draw sites"
         );
     }
 
@@ -913,6 +1203,18 @@ mod tests {
                 }
                 eprintln!("agree {agree} of {}", b.len());
             }
+            // The herd list the walk founded its animals from, against the
+            // start dump's `HERDS` (run12's, borrowed): every herd's cell,
+            // walk centre, type and alive bit, in the list's order — the
+            // order `build_game`'s herd loop visits and the tag each animal
+            // carries (item 4063).
+            let herd = |h: &sim::gaia::Herd| (h.cx, h.cy, h.wx, h.wy, h.kind, h.alive);
+            let (mine, yours): (Vec<_>, Vec<_>) = (
+                ours.sim.gaia.gaia.herds.iter().map(herd).collect(),
+                theirs.sim.gaia.gaia.herds.iter().map(herd).collect(),
+            );
+            assert!(!yours.is_empty(), "the installed side carries no HERDS");
+            assert_eq!(mine, yours, "the herds, against the start dump's HERDS");
             let first = parted.first().map(ToString::to_string);
             assert_eq!(
                 (first.as_deref(), agree, b.len()),
@@ -924,22 +1226,17 @@ mod tests {
     }
 
     /// The harness lobby's first parted row, `record field: ours theirs`:
-    /// a footprint flag round the human's farms, which stand elsewhere
-    /// because the computer's `build_units` (not built) spends its draws
-    /// ahead of them (item 4047; `docs/START.md` §4). Item 4033 pinned
-    /// `LEADER 0 at_war`; item 4046 built the war row and the map's first
-    /// cell parted; item 4047 composed Great Lakes' chain (every cell's
-    /// `land`, region, value and flag as the map maker leaves them), the
-    /// villages (their wear on the values, the territory), and the
-    /// pre-placed buildings — the computer's six where the original puts
-    /// them, the human's camp too.
-    const START_FIRST_PARTING: Option<&str> = Some("CELL 2 37 flags: ours 512 theirs 640");
+    /// none (item 4063, `docs/START.md` §4). Item 4033 pinned `LEADER 0
+    /// at_war`; item 4046 built the war row and the map's first cell
+    /// parted; item 4047 composed Great Lakes' chain, the villages and the
+    /// pre-placed buildings, and `CELL 2 37 flags` (ours 512 theirs 640)
+    /// parted round the human's farms, nine draws short; item 4063 built
+    /// `build_units` (the scout's `place_unit`, the citizens born at their
+    /// buildings and stepped off by `Unit::come_out(u, 0)`) and the herds.
+    const START_FIRST_PARTING: Option<&str> = None;
     /// The harness lobby's agreeing fields, of the installed block's:
-    /// 18,039 of 18,264 (item 4047, +8,950 on 4046's 9,089: the map, the
-    /// computer's personality, the villages and the territory, the
-    /// pre-placed buildings' types and the seven that stand right) — the
-    /// parted are the human's five other buildings' positions and 11
-    /// footprint flags, 52 units (the players' 12 and gaia's 40, each of
-    /// four fields) and the sync word.
-    const START_AGREE: (usize, usize) = (18039, 18264);
+    /// 18,264 of 18,264 (item 4063, +225 on 4047's 18,039: the human's
+    /// five buildings' positions and 11 footprint flags, the 52 units'
+    /// four fields each — the players' 12, gaia's 40 — and the sync word).
+    const START_AGREE: (usize, usize) = (18264, 18264);
 }
