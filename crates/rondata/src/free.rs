@@ -160,7 +160,9 @@ pub fn placed(scene: &Scene) -> Vec<render::draw::Placed> {
 /// `halfoffset`. `sim` models no piece; the door carries what the walk
 /// reads, and `tribes` is the install's nations in the tree's order
 /// ([`crate::Install::tribe_defs`]). A bare object, with no type, is left
-/// out: it has no `<BUILD>`.
+/// out: it has no `<BUILD>`. Its foundation and scaffold (item 4061) are
+/// the look's for the type it is now and the piece it shows, which needs
+/// a look [`crate::artdata::BuildLook::with_types`] has seen the types of.
 pub fn placed_buildings(
     scene: &Scene,
     look: &crate::artdata::BuildLook,
@@ -175,6 +177,7 @@ pub fn placed_buildings(
             let (style, backup) = tribes
                 .get(b.tribe)
                 .map_or((0, 0), |t| (t.build_continent, t.backup_build_continent));
+            let piece = look.piece(type_index, style, backup, b.age);
             Some(render::draw::PlacedBuilding {
                 who: b.id.who,
                 o: b.id.o,
@@ -183,7 +186,7 @@ pub fn placed_buildings(
                 z: b.z,
                 type_index,
                 orig_type: b.orig_ty.map_or(type_index, |t| base + t as i32),
-                piece: look.piece(type_index, style, backup, b.age),
+                piece,
                 half_offset: look.half_offset(type_index),
                 active: b.active,
                 job_counter: b.job_counter,
@@ -194,6 +197,10 @@ pub fn placed_buildings(
                     farm_type: f.farm_type,
                     heights: f.heights,
                 }),
+                started: b.started,
+                foundation: look.foundation(type_index, piece),
+                scaffold: look.scaffold_table(type_index),
+                age: b.age,
             })
         })
         .collect()

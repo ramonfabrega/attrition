@@ -698,7 +698,15 @@ fn clock_the_draw_list() {
     let (mut drawn, mut worst) = (0, std::time::Duration::ZERO);
     free.run_to(AZTEC_MODERN.length + 1, None, |s| {
         let t = std::time::Instant::now();
-        let list = render::draw::draw_list(&placed(s), &[], &camera, &screen, Some(SIZE), None);
+        let list = render::draw::draw_list(
+            &placed(s),
+            &[],
+            &render::draw::ScaffoldTiming::default(),
+            &camera,
+            &screen,
+            Some(SIZE),
+            None,
+        );
         worst = worst.max(t.elapsed());
         drawn += list.len();
     });
@@ -957,7 +965,15 @@ fn the_draw_list_s_frames_are_in_register() {
             let id = ObjId { who: p.who, o: p.o };
             all_pieces.insert((s.frame, id, p.figure as usize), p.piece);
         }
-        let list = render::draw::draw_list(&placed, &[], &camera, &screen, Some(SIZE), None);
+        let list = render::draw::draw_list(
+            &placed,
+            &[],
+            &render::draw::ScaffoldTiming::default(),
+            &camera,
+            &screen,
+            Some(SIZE),
+            None,
+        );
         let at: BTreeMap<_, _> = placed
             .iter()
             .map(|p| ((p.who, p.o, p.figure), [p.x, p.y, p.z]))
@@ -1104,6 +1120,7 @@ fn fog_visible_is_render_s() -> bool {
 /// Item 4037: unchanged at 58; the farm decodes and is not yet drawn.
 /// Item 4048: **59** (+1), the farm's field in the draw list. Loop 4049,
 /// the seventy-sixth pass: **55** (−4), four building types no side draws.
+/// Item 4061: **59** (+4), the foundation and the scaffold in the draw list.
 pub(crate) const RENDER_K: usize = RENDER_K_PIECES.0 + RENDER_K_BUILDINGS.0;
 
 /// M's building types that count toward K, `(K, decoding, in register,
@@ -1131,8 +1148,13 @@ pub(crate) const RENDER_K: usize = RENDER_K_PIECES.0 + RENDER_K_BUILDINGS.0;
 /// (DECISIONS 116): re-pinned, K 55 of M 59, a named fall of the counter
 /// and not of the picture** — the rule that read 59 could not fail on a
 /// type nobody drew; the scaffold in the draw list (item 4061) is what
-/// brings the four back.
-pub(crate) const RENDER_K_BUILDINGS: (usize, usize, usize, usize) = (17, 21, 17, 21);
+/// brings the four back. Item 4061: in register **21 of 21** (+4): the
+/// draw list carries `WallOut::draw_underlays`' foundation and
+/// `GraphicPieces::draw_scaffold`'s pieces, and every record of the four is
+/// drawn by both sides within one pixel ([`FOUNDATIONS_IN_REGISTER`],
+/// [`SCAFFOLDS_IN_REGISTER`]) — Angkor Wat's 8, placed and never started,
+/// by its foundation alone. K **21**, and **K 59 of M 59**.
+pub(crate) const RENDER_K_BUILDINGS: (usize, usize, usize, usize) = (21, 21, 21, 21);
 
 /// The dumped frames that print a building — run1428's two, run1429's
 /// start block and its closing block 3390, and run1429b's 95 — on which
@@ -1161,6 +1183,25 @@ pub(crate) const BUILDING_PIECES_AGREEING: (usize, usize) = (4564, 4564);
 /// one (run1428), the start's on run1429's frame 0, and run1559b's packet
 /// ([`PACKET_3294_FARMS`]) past logger frame 3294.
 pub(crate) const FIELDS_IN_REGISTER: (usize, usize, usize, usize) = (402, 402, 402, 402);
+
+/// **The foundations in register** (item 4061: new), `(in register,
+/// records, drawn by the original, drawn by ours)`: of every building
+/// record the lobby's dumps print, those whose construction foundation —
+/// `WallOut::draw_underlays@006410a0`'s, every type but the farm until 0.88
+/// of the share, at the point moved back whole half tiles — is drawn by
+/// both sides with the same `<CONSTRUCTION>` slot and within one pixel of
+/// the original's projection, or by neither. New at 4061: **4,564 of
+/// 4,564**, 877 drawn by each side.
+pub(crate) const FOUNDATIONS_IN_REGISTER: (usize, usize, usize, usize) = (4564, 4564, 877, 877);
+
+/// **The scaffolds in register** (item 4061: new), `(records in register,
+/// records, pieces the original draws, pieces ours draws)`: of every
+/// building record printed, those on which the set of `<SCAFFOLD_TIMING>`
+/// slots `GraphicPieces::draw_scaffold@00907420` draws — a started,
+/// unfinished building's, the slots whose window holds the share — is the
+/// same on both sides and each within one pixel. New at 4061: **4,564 of
+/// 4,564**, 2,781 pieces drawn by each side.
+pub(crate) const SCAFFOLDS_IN_REGISTER: (usize, usize, usize, usize) = (4564, 4564, 2781, 2781);
 
 /// The farm records whose `farm_type` and all 25 corner heights are the
 /// original's, of the records printed (item 4048: new) — the record the
@@ -1276,6 +1317,12 @@ fn a_type_no_side_draws_is_not_in_register() {
     assert!(types_in_register(&tally).0.is_empty());
 }
 
+/// One building's drawn scaffold slots: index → pixel (item 4061).
+type ScaffoldPixels = BTreeMap<u8, (i32, i32)>;
+
+/// One building's drawn foundation: its slot and pixel (item 4061).
+type FoundationPixel = (u8, (i32, i32));
+
 /// One building record a dump prints, as the reference reads it.
 #[derive(Clone, Copy, Debug)]
 struct DumpedBuilding {
@@ -1283,6 +1330,8 @@ struct DumpedBuilding {
     orig_type: i64,
     gpiece: i32,
     active: bool,
+    /// `WallData::is_started`, `flags & 2` (item 4061).
+    started: bool,
     job_counter: i64,
     constr_time: i64,
 }
@@ -1309,7 +1358,7 @@ fn the_draw_list_s_buildings_are_in_register() {
         return;
     };
     let inst = install().unwrap();
-    let look = crate::artdata::BuildLook::new(&inst);
+    let look = crate::artdata::BuildLook::new(&inst).with_types(&c.loaded.build_types);
     let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
     let rules = inst.buildings().unwrap();
     let build_graphs: Vec<String> = rules
@@ -1347,6 +1396,7 @@ fn the_draw_list_s_buildings_are_in_register() {
                             orig_type: b.orig_type?,
                             gpiece: b.gpiece? as i32,
                             active: b.flags & 4 != 0,
+                            started: b.flags & 2 != 0,
                             job_counter: b.job_counter.unwrap_or(0),
                             constr_time: b.constr_time.unwrap_or(1),
                         },
@@ -1409,19 +1459,54 @@ fn the_draw_list_s_buildings_are_in_register() {
     let mut ours: BTreeMap<i64, Ours> = BTreeMap::new();
     // Ours on each wanted frame: id → the field's drawn pixel (item 4048).
     let mut our_fields: BTreeMap<i64, BTreeMap<ObjId, (i32, i32)>> = BTreeMap::new();
+    // Ours on each wanted frame (item 4061): id → the foundation's slot and
+    // pixel, and id → each drawn scaffold slot's index → pixel.
+    let mut our_foundations: BTreeMap<i64, BTreeMap<ObjId, FoundationPixel>> = BTreeMap::new();
+    let mut our_scaffolds: BTreeMap<i64, BTreeMap<ObjId, ScaffoldPixels>> = BTreeMap::new();
     let mut see = |s: &Scene| {
         if !wanted.contains(&s.frame) {
             return;
         }
         let blds = placed_buildings(s, &look, &tribes);
-        let list = render::draw::draw_list(&[], &blds, &camera, &screen, Some(SIZE), None);
+        let list = render::draw::draw_list(
+            &[],
+            &blds,
+            look.scaffold_timing(),
+            &camera,
+            &screen,
+            Some(SIZE),
+            None,
+        );
         let px = |field: bool| -> BTreeMap<ObjId, (i32, i32)> {
             list.iter()
-                .filter(|d| matches!(d.pose, render::draw::Pose::Field { .. }) == field)
+                .filter(|d| match d.pose {
+                    render::draw::Pose::Field { .. } => field,
+                    render::draw::Pose::Building { .. } => !field,
+                    _ => false,
+                })
                 .map(|d| (ObjId { who: d.who, o: d.o }, (d.anchor.x, d.anchor.y)))
                 .collect()
         };
         let (sprites, fields) = (px(false), px(true));
+        let mut founds = BTreeMap::new();
+        let mut scaffs: BTreeMap<ObjId, ScaffoldPixels> = BTreeMap::new();
+        for d in &list {
+            let id = ObjId { who: d.who, o: d.o };
+            match d.pose {
+                render::draw::Pose::Foundation { slot, .. } => {
+                    founds.insert(id, (slot, (d.anchor.x, d.anchor.y)));
+                }
+                render::draw::Pose::Scaffold { index, .. } => {
+                    scaffs
+                        .entry(id)
+                        .or_default()
+                        .insert(index, (d.anchor.x, d.anchor.y));
+                }
+                _ => {}
+            }
+        }
+        our_foundations.insert(s.frame, founds);
+        our_scaffolds.insert(s.frame, scaffs);
         ours.insert(
             s.frame,
             blds.iter()
@@ -1453,6 +1538,10 @@ fn the_draw_list_s_buildings_are_in_register() {
             job_counter: d.job_counter as i32,
             construct_time: d.constr_time as i32,
             field: None,
+            started: d.started,
+            foundation: None,
+            scaffold: None,
+            age: 0,
         }
     };
     let tag = |i: usize, n: i64, id: ObjId| format!("b{i}/{n}/{}/{}", id.who, id.o);
@@ -1498,6 +1587,98 @@ fn the_draw_list_s_buildings_are_in_register() {
             })
         }))
         .collect();
+    // The original's foundation and scaffold (item 4061), from the dumped
+    // record and the listing's arithmetic, written out here rather than
+    // through `render`'s helpers or the look's (item 4048's lesson): the
+    // type is the dumped piece's, its footprint, domain and lineage the
+    // loaded rows', and `constructsize`/`halfoffset` the dumped piece's
+    // `<BUILD>`'s. The share is `WallOut::draw_overlays`' `float` division.
+    let theirs_construction = |d: &DumpedBuilding| {
+        let type_index = crate::artdata::build_piece_name(d.gpiece, &build_graphs)
+            .map_or(d.orig_type as i32, |(t, _)| t);
+        let t = (type_index - crate::load::BASE_BUILDTYPES) as usize;
+        let types = &c.loaded.build_types;
+        let ty = &types[t];
+        let farm = sim::cities::build::is(types, t, sim::cities::build::Ident::Farm);
+        let senate = sim::cities::build::is(types, t, sim::cities::build::Ident::Senate);
+        let water = ty.domain() == sim::cities::build::BuildDomain::Water;
+        // `vtable +0x4c` (finished) reads 1.0; else the `float` division.
+        let share = if d.active {
+            1.0
+        } else {
+            (d.job_counter as u32) as f32 / (d.constr_time as u32) as f32
+        };
+        let half = look.half_offset(type_index);
+        let construct = look.construct_size(d.gpiece);
+        let (x, y, z) = (d.pos[0] as i32, d.pos[1] as i32, d.pos[2] as i32);
+        // `WallOut::draw_underlays@006410a0`: the alpha, then the point,
+        // for every type but `0x1a1` exactly (`00641546`).
+        let foundation = (type_index != 0x1a1).then(|| {
+            let slot = if water {
+                9
+            } else if senate {
+                10
+            } else if construct != 0 {
+                construct - 1
+            } else {
+                ty.y_size - 1
+            };
+            let back = if construct != 0 {
+                ty.x_size - construct
+            } else {
+                half
+            };
+            (slot as u8, (x - 0x60 * back, y - 0x60 * back, z))
+        });
+        let alpha = if share <= 0.84 {
+            255
+        } else if share < 0.88 {
+            (((0.88 - share) * 25.0).min(1.0) * 255.0) as u8
+        } else {
+            0
+        };
+        let alpha = if share < 1.0 && type_index == 0x1a6 {
+            255
+        } else {
+            alpha
+        };
+        let foundation = foundation.filter(|_| alpha != 0);
+        // `GraphicPieces::draw_scaffold@00907420`, started and not active:
+        // the table by `y`, the window both ends in, one raw unit back.
+        let table = if farm || water || !d.started || d.active {
+            None
+        } else if senate {
+            Some(9)
+        } else {
+            Some(ty.y_size as usize - 1)
+        };
+        let scaffold: Vec<(u8, (i32, i32, i32))> = table
+            .and_then(|t| look.scaffold_timing().tables.get(t))
+            .map(|slots| {
+                slots
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, sl)| sl.start <= share && share <= sl.end)
+                    .map(|(k, sl)| (k as u8, (x - half + sl.dx, y - half + sl.dy, z + sl.dz)))
+                    .collect()
+            })
+            .unwrap_or_default();
+        (foundation, scaffold)
+    };
+    let utag = |i: usize, n: i64, id: ObjId| format!("u{i}/{n}/{}/{}", id.who, id.o);
+    let stag = |i: usize, n: i64, id: ObjId, k: u8| format!("s{i}/{n}/{}/{}/{k}", id.who, id.o);
+    let mut points = points;
+    for (&(i, n), recs) in &printed {
+        for (&id, d) in recs {
+            let (f, sc) = theirs_construction(d);
+            if let Some((_, (x, y, z))) = f {
+                points.push((utag(i, n, id), [x as i64, y as i64, z as i64]));
+            }
+            for (k, (x, y, z)) in sc {
+                points.push((stag(i, n, id, k), [x as i64, y as i64, z as i64]));
+            }
+        }
+    }
     let Some(theirs) = original_pixels(
         &inst.root().join("riseofnations.exe"),
         &state_line(&camera, &screen),
@@ -1523,6 +1704,13 @@ fn the_draw_list_s_buildings_are_in_register() {
     let mut first_record: BTreeMap<i64, String> = BTreeMap::new();
     let mut type_pieces: BTreeMap<i64, BTreeSet<i32>> = BTreeMap::new();
     let mut parted_pieces: BTreeMap<(i64, i32, i32), usize> = BTreeMap::new();
+    // The construction halves (item 4061): foundations `(in register,
+    // records, drawn by the original, drawn by ours)`, scaffolds `(records
+    // in register, records, pieces the original draws, pieces ours draws)`,
+    // and the first partings.
+    let (mut founds, mut scaffs) = ((0, 0, 0, 0), (0, 0, 0, 0));
+    let mut construction_misses: Vec<String> = Vec::new();
+    let mut construction_samples: Vec<String> = Vec::new();
     for (&(i, n), recs) in &printed {
         let mine = ours.get(&n).cloned().unwrap_or_default();
         let mut frame_ok = true;
@@ -1614,6 +1802,74 @@ fn the_draw_list_s_buildings_are_in_register() {
                 None => false,
             };
             let sprite_drawn = them.is_some() || mine.get(&id).is_some_and(|(_, px)| px.is_some());
+            // The foundation and the scaffold (item 4061): drawn by both
+            // with the same slot and each anchor within one pixel, or by
+            // neither.
+            let near =
+                |p: (i32, i32), t: (i32, i32)| (p.0 - t.0).abs() <= 1 && (p.1 - t.1).abs() <= 1;
+            let (their_f, their_s) = theirs_construction(d);
+            let them_f =
+                their_f.and_then(|(slot, _)| Some((slot, theirs.get(&utag(i, n, id)).copied()?)));
+            let ours_f = our_foundations.get(&n).and_then(|m| m.get(&id)).copied();
+            let f_ok = match (ours_f, them_f) {
+                (Some((a, p)), Some((b, t))) => a == b && near(p, t),
+                (None, None) => their_f.is_none(),
+                _ => false,
+            };
+            founds.1 += 1;
+            founds.0 += usize::from(f_ok);
+            founds.2 += usize::from(their_f.is_some());
+            founds.3 += usize::from(ours_f.is_some());
+            let them_s: BTreeMap<u8, Option<(i32, i32)>> = their_s
+                .iter()
+                .map(|&(k, _)| (k, theirs.get(&stag(i, n, id, k)).copied()))
+                .collect();
+            let ours_s = our_scaffolds
+                .get(&n)
+                .and_then(|m| m.get(&id))
+                .cloned()
+                .unwrap_or_default();
+            let s_ok = them_s.keys().eq(ours_s.keys())
+                && them_s
+                    .iter()
+                    .all(|(k, t)| t.is_some_and(|t| near(ours_s[k], t)));
+            scaffs.1 += 1;
+            scaffs.0 += usize::from(s_ok);
+            scaffs.2 += them_s.len();
+            scaffs.3 += ours_s.len();
+            let construction = (
+                their_f.is_some() || ours_f.is_some() || !them_s.is_empty() || !ours_s.is_empty(),
+                f_ok && s_ok,
+            );
+            if !(f_ok && s_ok) {
+                frame_ok = false;
+                bad_types.insert(d.orig_type);
+                construction_misses.push(format!(
+                    "{} frame {n} {}/{} type {}: dump {:?} piece {} job {} of {} started {}; \
+                     foundation theirs {their_f:?} at {them_f:?}, ours {ours_f:?}; \
+                     scaffold theirs {their_s:?} at {them_s:?}, ours {ours_s:?}",
+                    names[i],
+                    id.who,
+                    id.o,
+                    d.orig_type,
+                    d.pos,
+                    d.gpiece,
+                    d.job_counter,
+                    d.constr_time,
+                    d.started
+                ));
+            } else if !them_s.is_empty()
+                && construction_samples.len() < 4
+                && !construction_samples
+                    .iter()
+                    .any(|l| l.contains(&format!("type {} ", d.orig_type)))
+            {
+                construction_samples.push(format!(
+                    "{} frame {n} {}/{} type {}: dump {:?} piece {} job {} of {}; \
+                     foundation {their_f:?} → {them_f:?}, ours {ours_f:?}; scaffold {their_s:?} → {them_s:?}, ours {ours_s:?}",
+                    names[i], id.who, id.o, d.orig_type, d.pos, d.gpiece, d.job_counter, d.constr_time
+                ));
+            }
             first_record.entry(d.orig_type).or_insert_with(|| {
                 let p = theirs_placed(id, d);
                 format!(
@@ -1632,10 +1888,10 @@ fn the_draw_list_s_buildings_are_in_register() {
                 .entry(d.orig_type)
                 .or_default()
                 .add(sprite_drawn, ok);
-            tally
-                .entry(d.orig_type)
-                .or_default()
-                .add(sprite_drawn || field_half.0, ok && field_half.1);
+            tally.entry(d.orig_type).or_default().add(
+                sprite_drawn || field_half.0 || construction.0,
+                ok && field_half.1 && construction.1,
+            );
             if ok {
                 recs_ok += 1;
             } else {
@@ -1716,12 +1972,12 @@ fn the_draw_list_s_buildings_are_in_register() {
             tally[t].records, type_pieces[t], first_record[t]
         );
     }
-    // The seventy-sixth pass's pin (Loop 4049): the four types under
+    // The seventy-sixth pass's pin (Loop 4049) was the four types under
     // construction on every dumped frame, whose scaffold neither draw list
-    // carries. Item 4061 empties this set.
+    // carried: 446, 528, 529, 535. Item 4061 emptied it.
     pin_eq!(
         undrawn,
-        BTreeSet::from([446i64, 528, 529, 535]),
+        BTreeSet::<i64>::new(),
         "building types drawn by neither side on every record (not in register)"
     );
     let k = decoding.intersection(&registered).count();
@@ -1753,6 +2009,20 @@ fn the_draw_list_s_buildings_are_in_register() {
         "farm fields in register"
     );
     pin_eq!((whole, fields.0), FIELD_RECORDS_WHOLE, "farm records whole");
+    eprintln!(
+        "FOUNDATIONS {founds:?}; SCAFFOLDS {scaffs:?}\n  {}",
+        construction_misses
+            .iter()
+            .take(20)
+            .cloned()
+            .collect::<Vec<_>>()
+            .join("\n  ")
+    );
+    for line in &construction_samples {
+        eprintln!("CONSTRUCTION {line}");
+    }
+    pin_eq!(founds, FOUNDATIONS_IN_REGISTER, "foundations in register");
+    pin_eq!(scaffs, SCAFFOLDS_IN_REGISTER, "scaffolds in register");
     eprintln!(
         "BUILDINGS {}: frames in register {frames_ok} of {}, first out {first_out:?}; records {recs_ok} of {recs_all} \
          ({} drawn by the original's predicate); \

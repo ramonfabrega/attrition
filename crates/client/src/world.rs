@@ -103,7 +103,7 @@ impl World {
             }
         }
         Ok(World {
-            look: BuildLook::new(&install),
+            look: BuildLook::new(&install).with_types(&loaded.build_types),
             tribes,
             meshes: BTreeMap::new(),
             unit_models,
@@ -149,7 +149,15 @@ impl World {
         let scene = self.runner.scene(None);
         let figures = placed(&scene);
         let buildings = placed_buildings(&scene, &self.look, &self.tribes);
-        let list = render::draw::draw_list(&figures, &buildings, camera, screen, Some(size), None);
+        let list = render::draw::draw_list(
+            &figures,
+            &buildings,
+            self.look.scaffold_timing(),
+            camera,
+            screen,
+            Some(size),
+            None,
+        );
         (figures, buildings, list)
     }
 
@@ -213,6 +221,10 @@ impl World {
                 // The wheat field is a mesh `FarmsOut::draw` builds, not a
                 // piece; the client does not build it yet (item 4048).
                 Pose::Field { .. } => continue,
+                // The foundation is a `<CONSTRUCTION>` sprite and the
+                // scaffold a `<SCAFFOLD>` mesh by element, neither a
+                // building piece; the client draws neither yet (item 4061).
+                Pose::Foundation { .. } | Pose::Scaffold { .. } => continue,
             };
             let Some(mesh) = self.mesh(d.piece, building) else {
                 continue;

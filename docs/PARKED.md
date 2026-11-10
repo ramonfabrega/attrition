@@ -15758,13 +15758,16 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   resampled by `Farms::recalc_heights` before any logged frame. A `DUMP_ALL` frame that holds a farm placed with no
   later building of its owner within eight tiles would separate it.
 
-## Parked by the next landing, slot DT — reserved
+## Parked by item 4061, 2026-11-09 — the foundation and the scaffold
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4061a. The client draws neither the foundation nor the scaffold** (`docs/RENDERER.md` §3.5). The draw list
+  carries `Pose::Foundation` (a `<CONSTRUCTION>` slot: a TGA sprite, the dock's with a `.bh3`) and `Pose::Scaffold`
+  (a `<SCAFFOLD>` element: `.bh3` meshes, the crane with an animation), and `client::world` skips both. Names no K: K
+  is 59 of 59. The textured scene's, beside 4048a.
+- **4061b. The scaffold's element, its age bracket and its angle are not checked** (`docs/RENDERER.md` §3.5, not
+  established). No dump prints a scaffold piece, and the anchor does not read them. A `GraphicChad` capture at
+  `GraphicPieces::draw` under the trace instrument would print `gpiece` and `angle` per drawn piece. Names no score
+  until the client draws the meshes.
 
 ## Parked by the next landing, slot DU — reserved
 

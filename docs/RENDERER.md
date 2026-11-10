@@ -783,6 +783,46 @@ height holds, so in register stays 402.
 stay whole, because every farm placed in this game is resampled by a later
 recalc before a logged frame. The field's mesh is not built: the client
 skips `Pose::Field` (parked 4048a).
+
+**The foundation and the scaffold** (item 4061). Two passes over a
+building beside its sprite, each leaving the list as its own pose:
+
+- *The foundation*, `WallOut::draw_underlays@006410a0` (`Pose::Foundation`):
+  every type but `0x1a1` exactly, at alpha 0xff fading over 0.84..0.88 of
+  the share (1.0 once finished), 0xff for `0x1a6` while unfinished — the
+  sprite's complement. Point `(x − 0x60·b, y − 0x60·b, z)`: `b` the piece's
+  `halfoffset`, or the footprint's `x` less its `constructsize` (per piece,
+  `BuildRData +0x28`) where that is not 0. Slot
+  (`get_construct_gpiece@00907840`): 9 for the water domain, 10 for the
+  Senate's lineage, else `constructsize`, or the footprint's `y`, less 1 —
+  the eleven `<CONSTRUCTION>` entries in order.
+- *The scaffold*, `GraphicPieces::draw_scaffold@00907420` from
+  `WallOut::draw_overlays@00641600` (`Pose::Scaffold`): started (`flags & 2`)
+  and not finished; not the farm, not the water domain. Table
+  `scaffold_timing[y − 1]`, `[9]` for the Senate's lineage
+  (`init_scaffold_timing@008ed6c0`, `effects_graphics.xml`; `x y z` ×3; a
+  slot whose name `ammo_names` lacks is dropped, matched without case). Each
+  slot with `start ≤ share ≤ end`, at `(x − h + dx, y − h + dy, z + dz)`,
+  `h` the **raw** `halfoffset` (one unit). Piece: the name's first
+  `<SCAFFOLD>` plus 4 × the owner's age bracket (0–2, 3–4, 5+; `ages`).
+
+**The score.** On the 99 building frames, **4,564 of 4,564 records** in
+register on both halves: 877 foundations drawn by each side, 2,781 scaffold
+pieces, each within one pixel (`FOUNDATIONS_IN_REGISTER`,
+`SCAFFOLDS_IN_REGISTER`). The reference is the dumped record through the
+listing's arithmetic, written in the test. The four types Loop 4049 named
+are drawn — Angkor Wat's 8 placed, never started, by the foundation
+alone — so building K **21 of 21**, **K 59 of M 59**.
+
+**Made to fail once.** The scaffold moved back `0x60·h` for one unit:
+4,301 of 4,564 scaffolds, building K 17. No `constructsize`: 4,071 of
+4,564 foundations (the cities, 435–437), K 15. The `started` gate dropped
+survives here — every placed record has share 0, below every window (the
+least `start_percent` is 0.05) — and is held by `render`'s unit test.
+
+**Not established.** The scaffold's element and age bracket (no dump prints
+a scaffold piece), the slot's angle, and the sprite and meshes themselves:
+the client skips both poses (parked 4061a, 4061b).
 - ~~**A figure's own point apart from its unit's.**~~ Settled by item
   4027: guy 0's is `Movement::body`, and the door reads it now.
 
@@ -1146,6 +1186,10 @@ corners.*
     pass re-pinned it: K 55 of M 59** (`docs/DECISIONS.md` entry 116), a
     named fall of the counter and not of the picture, and the scaffold in
     the draw list is item 4061.
+  - Since item 4061, **21 of 21 in register** again: the draw list carries
+    the foundation and the scaffold (§3.5), every record of the four is
+    drawn by both sides, and `RENDER_K_BUILDINGS` reads (21, 21, 21, 21),
+    **K 59 of M 59**, under the rule that can fail.
 - **The dumps check every figure they print a `gpiece` for.** Only the
   `DUMP_ALL` states print one: run1428's two, and run1429's start block.
   That is 306 figures on the map, all 306 agreeing, and on each dump's
