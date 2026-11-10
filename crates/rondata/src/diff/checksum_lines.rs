@@ -363,6 +363,13 @@ fn the_cities_line_is_the_original_s_range_by_range() {
         "the cities line: cities, the stream's ranges and bytes, ranges parted"
     );
     assert_eq!(o.len(), t.len(), "both sides walk the same cities");
+    // The two flag words (`docs/CHECKSUM.md` §12): the human's city holds
+    // a Market (`0x800`), the British does not.
+    assert_eq!(
+        t.iter().map(|c| c.0).collect::<Vec<_>>(),
+        [0x4811, 0x4011],
+        "the original's city_flags"
+    );
     assert_eq!(fields_parted, 0, "a city's field parts");
     assert_eq!(ours.bytes(), CITIES.2);
     // The Adler, last: ours against the line the original printed.
