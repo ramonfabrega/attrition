@@ -11,14 +11,14 @@ it by items (18 at 8 lines, the handoff 32). **A finding that names no
 score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
-*2026-11-09, **the seventy-sixth pass, with Ramon on the row: one driver** (`docs/audit/2026-11-09-fable-pass-76.md`, DECISIONS 116). The commander's row is retired; the `steer` row on Fable 5.2 owns this tree, banks and clears itself, and is where Ramon steers (`docs/LOOP.md`, "The driver"). The seventy-sixth tranche drained at 8 on the pit stop: `8 landings · two DEEP (4035 at 314 k, 4036 at 357 k) · 39.1 minutes waiting a landing · 7.76 USD a landing (62.05 over 10 sessions)`; `7 gates: 3 whole, 4 scoped (4 widened), 0 red; 235.7 minutes in all`. The seven-day window read 37 % at 18:01 −05:00 (reset 2026-11-14 06:00).*
-- **The headline is the milestone: one lobby, all the way through** (`docs/TRACKS.md`) — a game played here, on a start built here, replayed by the original. Step 1 is 4047 and the steps after are 4057–4060, each designed by the driver as the one before lands. Breadth — the other 160 lobbies (4034), M on a second lobby, the census filler (4039) — is filler behind it.
-- **The pilot** (LOOP, the roster): the chain is the driver's own, built by in-session builders in worktrees and gated once at the merge, whole when the branch touches `crates/sim`. Two kill rules: a floor pushed down unnamed, and no milestone inside ten points of the window from the 37 % above. A step's price is the window's delta until lore indexes the builders (Loop 4056).
+*2026-11-09, **the driver's first session: the start built to the units, K whole again** (base `8b8d9be23`; DECISIONS 116). Two landings on one whole gate (`~/.claude/jobs/d388900a/tmp/d77/gate-d77.log`): the builder's 4047 and the render lane's 4061. The seven-day window read 37 % at 18:59 −05:00 and 39 % at 19:49 with both merged, other rows on the account beside these (lore; reset 2026-11-14 06:00); the kill rule reads 47 %.*
+- **The headline is the milestone: one lobby, all the way through** (`docs/TRACKS.md`). Step 1 moved and did not close: the harness lobby's start agrees on **18,039 of 18,264** fields (9,089), built from its `GAMEINFO` alone — the Great Lakes chain composed on one stream (`rondata::mapgen::lakes`, all 19 of run11's checkpoints), the start permutation, the personality, both villages with their territory, the computer's pre-placed buildings. The first parting is `CELL 2 37 flags` ours 512 theirs 640, round the human's farms: the computer's empire ends on nine draws nothing spends yet (4063). Then 4057, designed below, and 4058–4060.
+- **The pilot** (LOOP, the roster): the chain is the driver's own, built by in-session builders in worktrees and gated once at the merge, whole when the branch touches `crates/sim`. 4047's builder was a `lean` agent on Opus 5.5: 363 k tokens, 39 minutes, five commits, each a move of the first parting. Two kill rules: a floor pushed down unnamed, and no milestone inside ten points of the window from 37 %. A step's price is the window's delta until lore indexes the builders (Loop 4056).
 - **The rules track: whole, 130 closed, no item stands.** The territory 550 · 318 · 1285. **The blind list: open 0** (never 331 · residue 331); lower map first — closed.
-- **The start track: `Start: 0 of 161 lobbies`.** The harness's lobby agrees on 9,089 of 18,264 start-block fields and parts at `CELL 0 0 region` on frame 0, since no path composes the map chain into a `World` (4046): 4047.
-- **The renderer: K 55 of M 59, a named fall from 59** (Loop 4049, built at the pass): a type counts in register only on records some side draws, and four building types under construction on every dumped frame (446, 528, 529, 535) are drawn by neither side — the original draws their scaffold, which no draw list carries. 4061, then 4038. Frames 35 of 35, pieces 1,465 of 1,478; first pixels on screen.
-- **Fable backlog: 11 Loop items** (4042, measured: the `rondata` library is 40.4 of a whole gate's 49.3 release minutes, eight slots doing the work of 2.1 — the chain's clock, and the driver's first Loop build; 4062, the leader-seat guard reads the wrong files; 4051, the waiter's clauses against the new harness; 4052, a `Re-pinned:` trailer; 4053; 4054; 4055; 4056; 4050; 3848, 3799).
-- **Workers: none live.** The render lane: `ccc spawn --name lane-4061 --worktree=att-4061 --model 'claude-opus-5-5[1m]' --effort medium`, the `render` kind, its waiter armed `--deep 230`. Next 4063; run 1560. Pools: AI §417–§419; GOLDEN §195–§198; MAPGEN §35–§37; START's stub pool not yet landed; park DT–DX free. Disk 106 GB free; the spawn floor is 10 GB. The first take after the harness update may refuse on a reset TCC grant — a permission-shaped failure is Ramon's, asked, never worked around.
+- **The start track: `Start: 0 of 161 lobbies`**, the one lobby 225 fields short: five `BUILD` positions and eleven cell flags round the human's buildings, every field of the 52 units, and the sync word — each downstream of `build_units` (4063).
+- **The renderer: K 59 of M 59** (4061; 55 was the named fall): an unfinished building is drawn as the original draws it, a foundation under every non-farm building below 0.88 of its hit points and a scaffold on a started one, and all 392 records of the four types are in register on the foundation's anchor. Frames 35 of 35, pieces 1,465 of 1,478. The client draws neither yet (parked 4061a). Next 4038.
+- **Fable backlog: 12 Loop items** (4042, measured: the `rondata` library is 40.4 of a whole gate's 49.3 release minutes — the chain's clock, and the driver's first Loop build; 4064, the journal guard against a builder and a lane's unquoted done line; 4062; 4051; 4052; 4053; 4054; 4055; 4056; 4050; 3848, 3799).
+- **Workers: one lane live, `lane-4038`** on item 4038 (Opus 5.5, `--effort medium`, the `render` kind, worktree `att-4038`, park slot DV), its waiter `python3 tools/lanewait.py lane-4038 --deep 230`, re-armed by the next session if `pgrep -f lanewait` is empty. lane-4061 booted at 144 k on a whole-document read and went DEEP at 247 k in twelve minutes: a render brief names sections, never `--read docs/RENDERER.md`. Next 4065; run 1560. Pools: AI §417–§419; GOLDEN §195–§198; MAPGEN §35–§37; START's stub pool not yet landed; park DW–DX free, the pool owed a refill at the pass. Disk 99 GB free; the spawn floor is 10 GB. The first take after the harness update may refuse on a reset TCC grant — a permission-shaped failure is Ramon's, asked, never worked around.
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
@@ -38,10 +38,10 @@ Blind: never 331 · residue 331 · open 0
 Rubric: ported 550 · replaced by design 318 · open 1285 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
 Held-out: 8 of 9 whole · shortest 6147
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 3721
-Renderer: K 55 of M 59 · frames 35 of 35 · pieces 1465 of 1478
+Renderer: K 59 of M 59 · frames 35 of 35 · pieces 1465 of 1478
 Start: 0 of 161 lobbies
 
-**Opener: the driver (steer, Fable 5.2) — read this file, `docs/LOOP.md`'s "The driver" and `docs/TRACKS.md`'s milestone; spawn the render lane on 4061 and arm its waiter; brief an in-session builder on 4047 with the goal and the score, merge it, gate whole, book, push and fast-forward main; design 4057 from what 4047 found; bank and clear at each step or at 230 k.**
+**Opener: the driver (steer, Fable 5.2) — read this file, `docs/LOOP.md`'s "The driver" and `docs/TRACKS.md`'s milestone; read `lore limits` (the kill rule is 47 %); the render lane is out on 4038 — re-arm its waiter if none runs; brief an in-session builder on 4063 with the goal and the score, merge it, gate whole, book, push and fast-forward main; then 4057 by its design here; bank and clear at each step or at 230 k.**
 
 ## The queue
 
@@ -51,12 +51,19 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116). The shapes are D
 start track: the frame-zero state built from the lobby's choices, the `[Start Game]` dump its oracle). A residue or chapter
 item books only when another track's frame needs one.
 
-4047. **The Great Lakes chain composed into a `World`** (the milestone's step 1; START.md, MAPGEN; the driver's builder): every start-block record from the map on parts because no path composes the map generator's phases into the `World` the start builder walks; `Mapgen:` closes 8 of 8 phases on Great Lakes, so the chain exists phase by phase. Compose it from the lobby's seed and choices and compare the map's records field by field with the installed start state, the value diff on frame 0; the first parting is `CELL 0 0 region` (4046). Score: the fields agreeing, 9,089 → 18,264 of
-18,264, and `Start: 1 of 161` when the lobby closes.
+4063. **The start's units** (the milestone's step 1, closing; START.md §2 steps 7–8, ORDERS §9.3; the driver's builder): the built start
+parts first at `CELL 2 37 flags`, ours 512 theirs 640, because the computer's empire ends on nine draws the builder does not spend — two
+`Setup::place_unit` and seven `Guy::init_real` by run100's draw-site trace — so the human's farms are scored on the wrong words. Build
+`build_units`: the scout's placer, the citizens stood at their buildings and brought out, their gather orders; then the herds' 44 draws,
+held against run100's draw groups and run11's words at 1148 and 1240. Score: 18,039 → 18,264 of 18,264, and `Start: 1 of 161`.
 
-4057. **The game run from the built start** (step 2; the driver's): the harness's lobby started from the start the builder made, with
-no dump of the original installed, held against the lobby's long trace on disk frame for frame. Score: the lobby's word standing at its
-length on a built start, pinned beside the word that stands on the installed one; the value diff on the first frame that parts.
+4057. **The game run from the built start** (step 2; the driver's builder, after 4063; designed from 4047): the start block reads 18,264
+fields and the installer writes more than the block reads — 4047's builder leaves the territory limits, the region flags, the fog and the
+items at their defaults, and its heights are the chain's own singles where the installer takes a dump's. So, first, frame 0 wider than the
+block: every take in `diff::setup::build_sim` listed in START.md as built, defaulted or dump-only, and the projection grown to each one
+the game reads. Then the lobby's own walks run from `from_lobby`'s `Sim` with no start dump installed, the walk's whole-record comparison
+the oracle. Score: the lobby's word standing at its length on a built start, pinned beside the word on the installed one; the value diff
+on the first frame that parts.
 
 4058. **A recorded game written, and the original playing it** (step 3; RECGAME.md, the playback preflight; the driver's): the
 container's writer in `rondata`, first as a round trip — every recording on disk parsed and written back byte for byte — then one file
@@ -70,11 +77,6 @@ Score: frames of a minted game in lockstep under the original's playback; the cl
 4060. **The checksum, ported** (step 5; the territory's group G; the driver's): the original's full-state hash, computed here per frame
 and held against what the original prints under its checksum logger on the playback of 4058's and 4059's games. Score: frames whose
 hash agrees of the frames printed. With it the milestone stands, and `docs/TRACKS.md` says what goes wide first.
-
-4061. **The scaffold in the draw list** (a `render` item; RENDERER §5.4, Loop 4049's finding): four building types are under
-construction on every dumped frame and drawn by neither side, because the original draws an unfinished building's scaffold in its
-overlay pass and no draw list carries one. Read that pass, carry the scaffold as a drawn piece, and compare its anchor on the 392
-records. Score: K 55 → 59 of M 59, the undrawn set empty. The render lane, first.
 
 4038. **Textures and team colours** (a `render` item; RENDERER §6, "After these"): the TGA each `<UNIT>` and `<BUILD>` entry names
 decoded and bound to the drawn mesh, the team-colour mask applied; the by-eye comparison becomes candidate C's silhouette metric
