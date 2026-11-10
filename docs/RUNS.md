@@ -36409,3 +36409,41 @@ commands `37 !ffwd 27` and `24000 !quit`.
 Archive `gamelog-run1560-greatlakes-playback-of-ours-24000.txt`, 2,453 bytes,
 SHA-256 `6ac5c455bc6e8fc00e4bfc213f0796dda3a50520c140d3681acc18ec6702ec8e`; `rontrace-run1560.log`, 104,790,656 bytes,
 SHA-256 `09ce37a18940ba9188482894a8233c843fc9833a1d937dfee7320299006ad4f0`.
+
+## run1561a — the original playing a file with a person's orders in it: the harness lobby, 0..300 (2026-11-10, item 4059)
+
+`docs/RECGAME.md` §9. **What the disk could not answer**: whether the original's playback of a `.rcx` written here
+reaches the same mechanics for a minted `group` + `move_to`, `queue_up` and `build` as our walk's order door. No
+recording on disk holds an order of this install's build. The file:
+`~/ron-golden/recordings/item4059-minted-greatlakes-24000.rcx`, 59,280 bytes, SHA-256
+`9de7f0ae3db4645b6a56443ef6d95717456bcef4717e2f6019f0e5c03b387c4d`, written by `RON_RCX_OUT=<it> … test --release
+-p rondata the_minted_packages_round_trip` (§8's file with slot 0's three orders on frames 30, 60 and 90). The take:
+`TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1561a --recording
+<the file> --end-frame 300 --cover cover=1 --log-window 0 300 --detail end:MISC,UNITS=3,BUILDS=7 --timeout 540
+--stall-seconds 120`, waited on with `waitrun.sh` in the foreground.
+- Pool lane 1, launched 12:22:38 −05:00; **33.1 s launch to exit**, exit 0, `success`, 301 frames, `last_frame` 300,
+  seed 12345, map 14, players tribe 4 (flags 7) and tribe 11 (flags 1), five settings restored, no page fault.
+  Minutes waited on another lane: none.
+- `rngcmp.py` against `rontrace-run53.log` (the same lobby, no orders): identical to frame 40, parting on 41.
+- The built walk under the pump (`MINTED_WALKED`): draws agree on all 300 frames, count and sequence; **299 records
+  compared whole, none parted**; each order's effect read on both sides on 31, 61, 91 and 299 and equal
+  (`minted_effects`). With one order withheld our walk parts on 31, 61 and 91 (`WITHHELD`).
+- Filed with `filerun.py run1561a greatlakes-playback-of-minted-300`.
+
+Archive `gamelog-run1561a-greatlakes-playback-of-minted-300.txt`, 37,134,703 bytes,
+SHA-256 `993490843c7ea2b73786cdfbc6a67bd1bc0a4adb1744942cd0ac35d368e91d21`; `rontrace-run1561a.log`, 9,552,192 bytes,
+SHA-256 `1a11564ea3e6069bce918a70d9c105a4ba6f95a71f1e90f14480e53ab5329ecb`.
+
+## run1561b — the same file at the trace-only recipe, 0..2400 (2026-11-10, item 4059)
+
+The same file and line as run1561a with `--end-frame 2400 --log-window 0 2401 --detail end:MISC`.
+- Pool lane 1, launched 12:28:36 −05:00; **177.0 s launch to exit**, exit 0, `success`, 2,401 frames, `last_frame`
+  2400, `ended_early` false, seed 12345, five settings restored, no page fault. The runner's pace line: 723 frames in
+  60 s (12.0/s). Minutes waited on another lane: none.
+- `rngcmp.py` against `rontrace-run53.log`: 46 of 2,401 identical, the first parting on 41. The built walk under the
+  pump (`MINTED_WALKED`): **draws agree on all 2,400 frames, count and sequence**; 1 record, none parted.
+- Filed with `filerun.py run1561b greatlakes-playback-of-minted-2400`.
+
+Archive `gamelog-run1561b-greatlakes-playback-of-minted-2400.txt`, 2,450 bytes,
+SHA-256 `10466477c59780677ab6aba3c3c84d9bdf5cb965ab9a9d89b7fdafd0c862be13`; `rontrace-run1561b.log`, 15,764,320 bytes,
+SHA-256 `42acfa60f7dddb77882572f74f4398f4a9906e16aca08e37945d7f82f0609552`.
