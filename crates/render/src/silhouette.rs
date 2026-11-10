@@ -432,13 +432,26 @@ pub const RUN1559B_3279_SPRITES_POSED: (usize, usize) = (11, 23);
 /// 0.683 → 0.670. No other row moves: the four figures 0/1, 0/2, 0/8 and
 /// 0/10 stay out, the pine nearer than each on every pixel it covers
 /// (parked 4082a). Solid, as before: [`RUN1559B_3279_TRACED_LEAVES_SOLID`].
-pub const RUN1559B_3279_TRACED: (usize, usize) = (26, 29);
+///
+/// **26 of 29 → 30 of 33** (item 4085): a land figure behind a tree or a
+/// sprite drawn as its silhouette, `render_states[1]`, under §5.3's
+/// silhouettes rule (`42930df49`, before its count). The four figures by
+/// the woodcutter come back into the row: 0/1 0.853, 0/2 0.692, 0/8 0.911,
+/// 0/10 0.541. 0/6 0.513 → 0.535; 0/2001 0.670 → 0.688 (ours 5695 → 5800,
+/// theirs 6808 → 6968, both 5018 → 5206). No row crosses down. Hidden, as
+/// before: [`RUN1559B_3279_TRACED_NO_SILHOUETTES`].
+pub const RUN1559B_3279_TRACED: (usize, usize) = (30, 33);
+/// The silhouettes' rejected reading, `Silhouettes::None` (item 4085): a
+/// figure hidden where a tree or a sprite is nearer, item 4082's draw.
+pub const RUN1559B_3279_TRACED_NO_SILHOUETTES: (usize, usize) = (26, 29);
 /// The trees' rejected reading, `TreePixels::Scene`: a tree's pixel is
-/// ours in every window it falls in. 26 of 29 under both leaf readings.
-pub const RUN1559B_3279_TRACED_TREES_SCENE: (usize, usize) = (26, 29);
+/// ours in every window it falls in. 26 of 29 under both leaf readings;
+/// 26 of 29 → 29 of 33 with the silhouettes (item 4085).
+pub const RUN1559B_3279_TRACED_TREES_SCENE: (usize, usize) = (29, 33);
 /// The leaves' rejected reading, `Leaves::Solid` (item 4082): every
-/// tree triangle whole, item 4080's draw.
-pub const RUN1559B_3279_TRACED_LEAVES_SOLID: (usize, usize) = (25, 29);
+/// tree triangle whole, item 4080's draw. 25 of 29 → 29 of 33 with the
+/// silhouettes (item 4085).
+pub const RUN1559B_3279_TRACED_LEAVES_SOLID: (usize, usize) = (29, 33);
 /// The row on the treeless draw (`--no-trees`): item 4079's 29 of 33.
 pub const RUN1559B_3279_TRACED_TREELESS: (usize, usize) = (29, 33);
 /// The rejected readings, reported beside the rule: a neighbour's trace as
@@ -449,14 +462,16 @@ pub const RUN1559B_3279_TRACED_TREELESS: (usize, usize) = (29, 33);
 /// three 27 → 31, 19 → 20 and 27 → 29. With the trees drawn (item 4080),
 /// treeless before: 31/33 → 28/29, 20/23 → 16/19, 29/33 → 25/29, 27/33 →
 /// 23/29. With the leaves alpha-tested (item 4082): 28/29 held, 16/19 →
-/// 17/19, 25/29 → 26/29, 23/29 → 24/29.
-pub const RUN1559B_3279_TRACED_SCENE: (usize, usize) = (28, 29);
-pub const RUN1559B_3279_TRACED_SKIP: (usize, usize) = (17, 19);
-pub const RUN1559B_3279_TRACED_PLAZA: (usize, usize) = (26, 29);
-pub const RUN1559B_3279_TRACED_WHOLE: (usize, usize) = (24, 29);
+/// 17/19, 25/29 → 26/29, 23/29 → 24/29. With the silhouettes (item
+/// 4085): 28/29 → 32/33, 17/19 → 21/23, 26/29 → 30/33, 24/29 → 28/33.
+pub const RUN1559B_3279_TRACED_SCENE: (usize, usize) = (32, 33);
+pub const RUN1559B_3279_TRACED_SKIP: (usize, usize) = (21, 23);
+pub const RUN1559B_3279_TRACED_PLAZA: (usize, usize) = (30, 33);
+pub const RUN1559B_3279_TRACED_WHOLE: (usize, usize) = (28, 33);
 /// The made-to-fail: the same frame and traces at run1441's camera; 0 of
-/// 32 → 0 of 28 with the trees drawn.
-pub const RUN1441_CAMERA_3279_TRACED: (usize, usize) = (0, 28);
+/// 32 → 0 of 28 with the trees drawn; → 0 of 32 with the silhouettes
+/// (item 4085).
+pub const RUN1441_CAMERA_3279_TRACED: (usize, usize) = (0, 32);
 
 /// The photograph's frame at run1441's camera, by colour and by the mask:
 /// the made-to-fail.

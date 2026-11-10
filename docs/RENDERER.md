@@ -1043,7 +1043,13 @@ above (`Leaves::Alpha`, the default), so it hides what stands behind it, and it 
 0/6 0.348 → 0.513. Before the count, on our buffers: of the five figures' pixels a tree's triangle covers, the
 leaves' texels cut 12, all 0/6's, and on every covered pixel the tree is the nearer, by 190–1,300 camera units.
 So four figures by the woodcutter, which the photograph shows in front of the pine, stay hidden (parked 4082a).
-The rejected readings, `TreePixels::Scene` and `Leaves::Solid`, read 26 and 25 of 29.
+The rejected readings, `TreePixels::Scene` and `Leaves::Solid`, read 26 and 25 of 29. **→ 30 of 33** with the
+figures' silhouettes (4085, §5.3 "The silhouettes"): on the pixels our pine covers, the photograph holds neither the
+figure's own colours nor the leaf's but `render_states[1]`'s `tfactor`, (255, 82, 34) at 128/255, over the leaf —
+red on 94–97 % of each of the four figures' covered pixels and 4–22 % ten pixels over, the colour's share by least
+squares at a mode of 0.5–0.6 — and the pine stands where ours does. The figure stands behind the tree in the
+original too; it is drawn over it. The rejected readings with the silhouettes: `Silhouettes::None` 26 of 29,
+`TreePixels::Scene` 29 of 33, `Leaves::Solid` 29 of 33.
 
 **What is not established.**
 - ~~The leaves' alpha~~: read and applied, above (item 4082).
@@ -1248,13 +1254,15 @@ The 3294 rows are kept as the packet's frame.
   tanks and figures included (`Reader::Traced`). The rejected readings,
   reported beside it: kind (3) as footprint, and the interface as before.
 - *The misses* (on 3279). ~~The capital is drawn as its `zbuffer` model
-  (4036a).~~ The figures by the derrick: 4082a.
+  (4036a).~~ ~~The figures by the derrick: 4082a.~~ Drawn as silhouettes
+  (4085, below).
 - **The row on the default draw**, the buildings as their sprites, by
   item 4077's reader (`RUN1559B_3279_TRACED`): 27 of 33 (4077), 29 of 33
   (4079, tank 1/27 traced), 25 of 29 with the trees (4080, §3.7) and
-  **26 of 29** with the leaves cut (4082); treeless 29 of 33; run1441's
-  camera 0 of 28. Each step's rows: its journal.
-  Out: three riflemen (4079b) and the figures the trees hide (4082a). The
+  26 of 29 with the leaves cut (4082) and **30 of 33** with the figures'
+  silhouettes (4085); treeless 29 of 33; run1441's camera 0 of 32. Each
+  step's rows: its journal.
+  Out: three riflemen (4079b). The
   `RUN1559B_3279_*` rows above are the `zbuffer` draw's, kept by name.
 - *The trees* (4080, before its count; §3.7). A tree hides what is
   behind it; its pixel is the ground's; it is never scored. Rejected:

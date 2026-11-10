@@ -431,6 +431,22 @@ pub fn frame_keys(
             .collect(),
     };
     let mut keys = rasterize_cut(&meshes, &cut, &stamps(&sprites, first), camera, size).keys;
+    if world.silhouettes == crate::world::Silhouettes::Drawn {
+        // The guys pass after `flush_trees` (item 4085): a figure's
+        // `render_states[1]` draw passes where it is behind, writing no
+        // depth, so over a tree or a sprite its pixel is its own. Among the
+        // meshes the scene's depth order already stands.
+        let figures: Vec<Object> = objects(&drawings)
+            .into_iter()
+            .filter(|o| !drawings[o.key as usize - 1].building)
+            .collect();
+        let alone = rasterize_cut(&figures, &[], &[], camera, size).keys;
+        for (k, f) in keys.keys.iter_mut().zip(&alone.keys) {
+            if *f != 0 && *k >= first {
+                *k = *f;
+            }
+        }
+    }
     if world.tree_pixels == TreePixels::Ground {
         for k in keys.keys.iter_mut().filter(|k| **k >= first_tree) {
             *k = 0;
@@ -1008,6 +1024,18 @@ mod tests {
             Interface::Neither,
         );
         let got = print("traced", &rule);
+        // The silhouettes' rejected reading, a figure hidden by what is
+        // nearer (item 4085).
+        world.silhouettes = crate::world::Silhouettes::None;
+        let hidden_rows = read(
+            &mut world,
+            &camera,
+            &TRACED,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let hidden = print("traced, no silhouettes", &hidden_rows);
+        world.silhouettes = crate::world::Silhouettes::Drawn;
         // The trees' rejected reading, and the treeless draw (item 4080).
         world.tree_pixels = crate::world::TreePixels::Scene;
         let tree_scene_rows = read(
@@ -1243,6 +1271,7 @@ mod tests {
         );
         use render::silhouette as s;
         assert_eq!(got, s::RUN1559B_3279_TRACED);
+        assert_eq!(hidden, s::RUN1559B_3279_TRACED_NO_SILHOUETTES);
         assert_eq!(tree_scene, s::RUN1559B_3279_TRACED_TREES_SCENE);
         assert_eq!(solid, s::RUN1559B_3279_TRACED_LEAVES_SOLID);
         assert_eq!(treeless, s::RUN1559B_3279_TRACED_TREELESS);
@@ -1484,7 +1513,10 @@ mod tests {
                 px.iter().map(|i| i / w).min().unwrap(),
                 px.iter().map(|i| i / w).max().unwrap(),
             );
-            println!("figure 0/{o}: {} px, x {x0}..={x1}, y {y0}..={y1}", px.len());
+            println!(
+                "figure 0/{o}: {} px, x {x0}..={x1}, y {y0}..={y1}",
+                px.len()
+            );
             boxes.push((o, x0, x1, y0, y1));
         }
         // Every figure's pixels, ours, dilated by two: the leaf's reference
@@ -1558,24 +1590,48 @@ mod tests {
             }
             ar.sort_by(f32::total_cmp);
             ag.sort_by(f32::total_cmp);
-            let q = |v: &[f32], f: f32| v.get(((v.len() as f32 - 1.0) * f) as usize).copied().unwrap_or(f32::NAN);
+            let q = |v: &[f32], f: f32| {
+                v.get(((v.len() as f32 - 1.0) * f) as usize)
+                    .copied()
+                    .unwrap_or(f32::NAN)
+            };
             println!(
                 "{name}: {} px, red {red_n}, no leaf {no_leaf}; a by tfactor, tenths 0..=10 {bins:?}; a_g q10/50/90 {:.2}/{:.2}/{:.2}; a_r q10/50/90 {:.2}/{:.2}/{:.2}",
                 px.len(),
-                q(&ag, 0.1), q(&ag, 0.5), q(&ag, 0.9),
-                q(&ar, 0.1), q(&ar, 0.5), q(&ar, 0.9),
+                q(&ag, 0.1),
+                q(&ag, 0.5),
+                q(&ag, 0.9),
+                q(&ar, 0.1),
+                q(&ar, 0.5),
+                q(&ar, 0.9),
             );
+            let mode = (0..11).max_by_key(|&b| bins[b]).unwrap();
+            (red_n, mode)
         };
         for &(o, ..) in &boxes {
             let keys = key_of(o);
             let px: Vec<usize> = (0..scene.keys.keys.len())
                 .filter(|&i| keys.contains(&scene.keys.keys[i]) && leaves.depth[i].is_finite())
                 .collect();
-            classify(&format!("0/{o} under the pine"), &px);
+            let (red_n, mode) = classify(&format!("0/{o} under the pine"), &px);
             let shifted: Vec<usize> = px.iter().map(|i| i + 10).collect();
-            classify(&format!("0/{o} shifted 10 px"), &shifted);
+            let (red_shifted, mode_shifted) = classify(&format!("0/{o} shifted 10 px"), &shifted);
+            if [1, 2, 8, 10].contains(&o) {
+                // The silhouette, `render_states[1]`'s tfactor at 128/255
+                // over the leaf (item 4085): red on nine in ten of the
+                // pixels the pine covers, its share's mode a half or more;
+                // ten pixels over, neither.
+                assert!(red_n * 10 >= px.len() * 9, "0/{o} is red");
+                assert!((5..=7).contains(&mode), "0/{o}'s share is the state's");
+                assert!(red_shifted * 4 <= px.len(), "0/{o} shifted is not red");
+                assert_eq!(mode_shifted, 0, "0/{o} shifted is the leaf");
+            }
             // Where the photograph's red stands against our figure.
-            let (x0, x1, y0, y1) = boxes.iter().find(|b| b.0 == o).map(|b| (b.1 - 6, b.2 + 6, b.3 - 6, b.4 + 6)).unwrap();
+            let (x0, x1, y0, y1) = boxes
+                .iter()
+                .find(|b| b.0 == o)
+                .map(|b| (b.1 - 6, b.2 + 6, b.3 - 6, b.4 + 6))
+                .unwrap();
             let (mut ours_red, mut ours_n, mut red_out) = (0, 0, 0);
             let (mut cr, mut co) = ((0f32, 0f32, 0f32), (0f32, 0f32, 0f32));
             for y in y0..=y1 {
@@ -1586,13 +1642,20 @@ mod tests {
                     ours_n += mine as usize;
                     ours_red += (mine && r) as usize;
                     red_out += (!mine && r && !fig_at(x as i64, y as i64)) as usize;
-                    if mine { co = (co.0 + x as f32, co.1 + y as f32, co.2 + 1.0); }
-                    if r { cr = (cr.0 + x as f32, cr.1 + y as f32, cr.2 + 1.0); }
+                    if mine {
+                        co = (co.0 + x as f32, co.1 + y as f32, co.2 + 1.0);
+                    }
+                    if r {
+                        cr = (cr.0 + x as f32, cr.1 + y as f32, cr.2 + 1.0);
+                    }
                 }
             }
             println!(
                 "0/{o} place: ours {ours_n}, of them red {ours_red}; red clear of every figure {red_out}; centroid ours ({:.1}, {:.1}) red ({:.1}, {:.1})",
-                co.0 / co.2, co.1 / co.2, cr.0 / cr.2, cr.1 / cr.2
+                co.0 / co.2,
+                co.1 / co.2,
+                cr.0 / cr.2,
+                cr.1 / cr.2
             );
         }
         // The woodcutter, which no tree covers: its own pixels.
@@ -1601,7 +1664,10 @@ mod tests {
                 if j < drawings.len() {
                     (drawings[j].who, drawings[j].o) == (0, 2001)
                 } else {
-                    (sprites[j - drawings.len()].who, sprites[j - drawings.len()].o) == (0, 2001)
+                    (
+                        sprites[j - drawings.len()].who,
+                        sprites[j - drawings.len()].o,
+                    ) == (0, 2001)
                 }
             })
             .map(|j| j as u32 + 1)
@@ -1609,31 +1675,55 @@ mod tests {
         let wpx: Vec<usize> = (0..scene.keys.keys.len())
             .filter(|&i| wood.contains(&scene.keys.keys[i]))
             .collect();
-        classify("0/2001, the woodcutter", &wpx);
+        assert_eq!(
+            classify("0/2001, the woodcutter", &wpx).1,
+            0,
+            "no silhouette on the woodcutter"
+        );
         // The pine by row: ours, the one tree over the figures alone, and
         // the photograph's foliage walked left from inside ours.
         let pine = (0..trees.len())
             .max_by_key(|&j| {
-                let one = [Object { key: 1, tris: trees[j].tris.clone() }];
+                let one = [Object {
+                    key: 1,
+                    tris: trees[j].tris.clone(),
+                }];
                 let r = rasterize_cut(&one, &[cut[j]], &[], &camera, size);
-                (0..r.keys.keys.len()).filter(|&i| r.depth[i].is_finite() && all_figs.contains(&scene.keys.keys[i])).count()
+                (0..r.keys.keys.len())
+                    .filter(|&i| r.depth[i].is_finite() && all_figs.contains(&scene.keys.keys[i]))
+                    .count()
             })
             .unwrap();
-        let lone = rasterize_cut(&[Object { key: 1, tris: trees[pine].tris.clone() }], &[cut[pine]], &[], &camera, size);
+        let lone = rasterize_cut(
+            &[Object {
+                key: 1,
+                tris: trees[pine].tris.clone(),
+            }],
+            &[cut[pine]],
+            &[],
+            &camera,
+            size,
+        );
         let foliage = |c: [f32; 3]| {
             let grass = c[1] > 135.0 && c[0] > 130.0;
             !grass && !red(c) && c[1] >= c[2] + 15.0
         };
         println!("the pine over the figures is tree {pine}");
         for y in (384..=480).step_by(4) {
-            let row: Vec<usize> = (1600..1800).filter(|&x| lone.depth[y * w + x].is_finite()).collect();
+            let row: Vec<usize> = (1600..1800)
+                .filter(|&x| lone.depth[y * w + x].is_finite())
+                .collect();
             let all = (1560..1800).find(|&x| leaves.depth[y * w + x].is_finite());
-            let (Some(&l), Some(&r)) = (row.first(), row.last()) else { continue };
+            let (Some(&l), Some(&r)) = (row.first(), row.last()) else {
+                continue;
+            };
             let mut t = l + 5;
             while t > 1560 && foliage(rgb(y * w + t - 1)) {
                 t -= 1;
             }
-            println!("row {y}: pine ours {l}..={r}; every tree ours from {all:?}; the photograph's foliage from {t}");
+            println!(
+                "row {y}: pine ours {l}..={r}; every tree ours from {all:?}; the photograph's foliage from {t}"
+            );
         }
         if let Some(dir) = std::env::var_os("PROBE_DIR") {
             let dir = PathBuf::from(dir);
@@ -1675,8 +1765,11 @@ mod tests {
             }
         };
         let camera = crate::pinned_camera();
-        // The sprite's own edge, read on the treeless draw (item 4080).
+        // The sprite's own edge, read on the treeless draw (item 4080), the
+        // figures hidden where it is nearer: with the silhouettes (item
+        // 4085) they take 61 of these pixels, (307, 99) → (246, 80).
         world.trees = false;
+        world.silhouettes = crate::world::Silhouettes::None;
         world.run_to(PHOTO_FRAME);
         let (_, buildings, list) = world.draw_list(&camera, &crate::pinned_screen(), (1920, 1080));
         let d = list
