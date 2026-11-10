@@ -86,17 +86,21 @@ FAILED_TEST = re.compile(r'^test (\S+) \.\.\. FAILED$')
 
 def phase_budget(command):
     """Small already-built checks can coexist; possible compilations drain slots."""
-    if any(str(a).endswith('offline_tests.py') for a in command) or 'fmt' in command:
+    if (any(str(a).endswith(('offline_tests.py', 'shape.py')) for a in command)
+            or 'fmt' in command):
         return 2, 1024
-    if any(str(a).endswith('guard.sh') for a in command):
+    if any(str(a).endswith('guard.sh') for a in command) and '--built' not in command:
         return 2, 4096  # the reflex's reservation (3 GiB measured); its rebuild ceiling is phase_limit's
+    # The gate's `guard.sh --built` runs before the release step since Loop
+    # 4070, so it is where the release test binaries are built: a build's
+    # reservation, as clippy's and the survey's.
     return 8, 32768
 
 
 def phase_limit(command):
     """The sampled RSS ceiling where it is not the reservation: the guard's
     debug rebuild after an edit (DECISIONS 75)."""
-    if any(str(a).endswith('guard.sh') for a in command):
+    if any(str(a).endswith('guard.sh') for a in command) and '--built' not in command:
         return 16384
     return None
 
@@ -751,6 +755,9 @@ def journal_of(item, root=ROOT):
 # four threads, and whether that is one test or four is the timing file's
 # memory column to say.
 WIDTHS = (2, 3, 4, 6, 8)
+# The gate's steps (Loop 4070): pins, offline, clippy, fmt, survey, guard,
+# release — the release command's index in `gate()`'s list.
+RELEASE_STEP = 6
 
 
 def memory_cap_gib(test_threads):
@@ -921,24 +928,34 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     # said everything it can about the code; and the steps line at the
     # end says which steps ran, so "red only on X" is read off the gate
     # and never inferred.
+    # **The pins that read the tree go first** (Loop 4070): 4063's inline
+    # test tail was red on the structure pin at minute 49.5 of a whole gate,
+    # a comparison that takes a second. `pins` is that comparison with
+    # nothing built (`tools/shape.py --check`, never forgiven, a worker's
+    # half), and the guard step — the blind list, the paperwork guards, the
+    # structure pin itself — runs before the release step, where it builds
+    # the release binaries the release step then runs. A pin that only the
+    # release step held was a pin only minute 49 held. The release step
+    # still runs every one of them.
     commands = [
+        [sys.executable, 'tools/shape.py', '--check'],
         [sys.executable, 'tools/offline_tests.py'],
         ['cargo', 'clippy', '--all-targets', '--', '-D', 'warnings'],
         ['cargo', 'fmt', '--check'],
         ['cargo', 'run', '-p', 'rondata', '--', str(install)],
+        # The reflex script on the release profile (the thirty-fifth steer: a
+        # debug build a gate was three minutes, forty-four gates a tranche);
+        # before the release step since Loop 4070, so its build is the
+        # release step's and its reds come before the suite's fifty minutes.
+        ['zsh', 'tools/guard.sh', '--built'],
         ['zsh', 'tools/memcap.sh', str(min(32, memory_cap_gib(test_threads))), 'cargo', 'test', '--release',
          '--no-fail-fast']
         + (['--workspace', '--exclude', 'sim'] if sim_left else [])
         + ['--', f'--test-threads={test_threads}']
         + (['--exact'] + [arg for name in skips for arg in ('--skip', name)] if (lane or scope is not None) else []),
-        # The guards ran in the release suite already; the reflex script
-        # re-runs them on the release binary in seconds (the thirty-fifth
-        # steer: a debug build a gate was three minutes, forty-four gates a
-        # tranche).
-        ['zsh', 'tools/guard.sh', '--built'],
     ]
     if isolated:
-        commands[4] = ([sys.executable, 'tools/isolated_tests.py', '--release',
+        commands[RELEASE_STEP] = ([sys.executable, 'tools/isolated_tests.py', '--release',
                         '--output', str(report_dir / 'isolated'), '--test-threads', str(test_threads)]
                        + (['--exclude-package', 'sim'] if sim_left else [])
                        + [arg for name in skips for arg in ('--skip', name)])
@@ -1044,6 +1061,8 @@ def admission_line(summary):
 
 def step_name(command):
     """The step a gate command is, in the words the handoff uses."""
+    if any(str(a).endswith('shape.py') for a in command):
+        return 'pins'
     if command[-1].endswith('offline_tests.py'):
         return 'offline'
     if 'clippy' in command:

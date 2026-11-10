@@ -28,11 +28,19 @@ if [ "$RON_GUARD_ADMITTED" != "1" ]; then
   exec python3 tools/resource_budget.py --cpu 2 --memory-mib 4096 --limit-mib 16384 -- \
     env RON_GUARD_ADMITTED=1 zsh tools/guard.sh "$@"
 fi
-# `--built` (the gate's step 6, the thirty-fifth steer): the guards on the
-# release binary the suite just built, in seconds, instead of a debug build.
+# `--built` (the gate's guard step, the thirty-fifth steer): the guards on the
+# release profile, the binary the release step then runs, instead of a debug
+# build. Since Loop 4070 the gate runs this step before the release step, so
+# it is where the release test binaries are built.
 PROFILE=()
 if [ "$1" = "--built" ]; then PROFILE=(--release); shift; fi
 (cd tools/explore && python3 -m unittest -q test_brief test_queueledger test_sweep_gen.FamilyRegistrations)
+# The structure pin, with nothing built (Loop 4070): 4063's builder ended a
+# production file in an inline test tail, this reflex reported nothing on
+# `diff::start`, and a whole gate went red on the pin at minute 49. Under a
+# second; `diff::floors::tests::the_pinned_shape_is_the_tree_s` stays the
+# authority and runs below and in the release suite.
+python3 tools/shape.py --check
 if [ -n "$RON_LANE" ]; then
   # The journal's gate quote cannot exist before the lane's gate has run (3277),
   # and its Loop line is the commander's to file at the merge (3328).
@@ -49,6 +57,12 @@ cargo test -q "${PROFILE[@]}" -p sim no_float
 # without the Ghidra export or the kept traces; with them it is ~2 s in
 # debug, so `RON_DIFF_DEBUG` lets it past the debug door (`testenv::dump`).
 RON_DIFF_DEBUG=1 cargo test -q "${PROFILE[@]}" -p rondata blind::tests::the_blind_list_is_the_pinned_residue
+# The rest of the pins that read the tree, not a game (Loop 4070): the
+# structure pin itself, the field-writer guards and the widening ledger
+# (`release_gate.py`'s `PAPERWORK_GUARDS`), ten tests in ~6 s debug on the
+# library the blind list just built. They read source, never a kept dump, so
+# no `RON_DIFF_DEBUG`: one that ever reaches a dump refuses here, loudly.
+cargo test -q "${PROFILE[@]}" -p rondata --lib -- writers:: ledger:: diff::floors::tests::the_pinned_shape_is_the_tree_s
 if [ -z "$RON_LANE" ]; then cargo test -q "${PROFILE[@]}" -p rondata the_handoff; fi
 python3 tools/queueledger.py
 # The nations census round-trips (Loop 3972): `docs/NATIONS.md`'s generated
