@@ -97,7 +97,7 @@ is append-only and amended in place, as it always was.
 - 84 standing — The forty-fifth tranche: three lanes at three times the price a landing, the lane gate reads how far its base moved, the Loop-line guard is forgiven on a lane, the click-free lane refuses a windowless launch, the held-out unit is the lobby
 - 85 standing — The forty-sixth tranche: four lanes at less a landing, the held-out battery six of eight whole, the sim lib's cap follows the thread count, a push under a clear is a draft, the oracle cache is a directory a gc removes
 - 82 standing — The forty-fourth tranche: four lanes at more and slower, the lane gate's first red was the guard asking for its own quote, a hung mutant and a compile failure get verdicts, cleanup is by ownership, an unread field the sim carries is owed by name
-- 86 standing — The forty-seventh tranche: four lanes at the loop's cheapest landing, the held-out battery eight of eight whole so the battery track stops, the forty-eighth booked on the blind list, the lane gate past the commander's paperwork, nineteen Loop items ruled
+- 86 standing — The forty-seventh tranche: four lanes at the loop's cheapest landing, the held-out battery eight of eight whole so the battery track stops, the forty-eighth booked on the blind list, nineteen Loop items ruled
 - 91 standing — The fifty-second tranche: two Opus lanes, twenty in 11 h 25 on six late-age pairs, four whole, ages 8 of 8, unit types 152 of 302, the drain's clear its last act, the lane rule's trip a recommendation
 - 93 standing — The fifty-fourth tranche: three Opus lanes, twenty in 9 h 55, five pairs stand, the Persian word closes, the third lane taken away, age 0 an Ancient start capped at Classical
 - 94 standing — The fifty-fifth tranche: two Opus lanes, twenty in 11 h 19, thirteen pairs stand and twelve run whole, the Mongol word closes, unit types 179 of 302, two lanes held on the gate, row-list edits stop widening the lane gate
@@ -126,6 +126,7 @@ is append-only and amended in place, as it always was.
 - 117 standing — the gate in its own tree, an experiment
 - 118 standing — kill rule, arm's close
 - 119 standing — step 5: twelve lines, an instrument first
+- 120 standing — step 5's frame; the floats
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
 - 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types, the pass and the commander stop messaging each other
 - 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself, the fifty-first booked on what a capture can enter
@@ -11912,3 +11913,46 @@ number or does not. Not established: whether any walked range of the
 twelve holds a pointer or a float (the original compares them across
 machines, which argues not; the ledger answers it), and the world line's
 size on this map.
+
+## 120. The lines are ported on the minted game's own frame, an empty line is not counted, and the seven floats are decided at the guys line (2026-11-10)
+
+**What item 4060 established** (`docs/CHECKSUM.md`; diff-backed where it
+says so): the instrument reproduces all fifteen printed lines of run1100's
+record 3502 from that run's packet at logger frame 5408, and parts on six
+from the record one tick later. No capture was needed: a packet's run with
+an `@dumpall` line at the packet's frame is the pair by construction. On
+that frame the twelve state lines hand over 501,543 bytes in 13,906
+ranges. No walked range holds a pointer. Seven float fields are walked
+raw: five of a guy's (`turret_inc`, `bank`, `last_bank`, `pitch`,
+`last_pitch`, in the guys line and again in the units line) and two of a
+leader's (`anti_att`, `plunder_scale`). Walls, ammo and deaths are empty
+there. Entry 119 left the pointer and float question open; this answers it.
+
+**Decided.**
+
+1. **The lines are ported on the minted game's frame, not run1100's.** Our
+   walk does not replay run1100 (a team lobby driven by a command file), so
+   its stream has no state of ours to stand beside. The next item takes
+   run 1562 as the minted file's playback with a packet and an `@dumpall`
+   on one frame, proves the instrument on it, and every line is diffed
+   there: the milestone's own game, and a frame our walk already holds in
+   lockstep. It also settles what entry 119 could not: whether a playback
+   prints the windowed record. If it does not, the packet alone still
+   yields the stream, the instrument standing on run1100's proof, and the
+   step's sentence in `docs/TRACKS.md` is amended to say so.
+2. **A line with no element on the scored frame is not counted.** Its
+   Adler is 1 on both sides whatever ours does, and a comparison that
+   cannot fail is not a score. Such a line is counted on a frame that
+   holds an element, or named as never walked in this game.
+3. **The seven floats are decided when the guys line is booked, not
+   before.** Six lines come first by the ledger and hold none. Entry 16
+   stands: no float enters the simulation. The assumption until then is
+   that each of the seven is either reproduced bit for bit from integers
+   the simulation holds, through the software float, or named with the
+   line it holds out; which, is that item's finding.
+
+**What it risks.** The ledger's order is one frame's of another game; the
+minted game's frame re-measures it, and the order of the items after 4088
+follows that measurement. The window's rule reads 61 % and the window
+read 55 % when the instrument landed; one line a builder at about a point
+each does not fit, and entry 118 says what a trip does.
