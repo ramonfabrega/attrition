@@ -6,9 +6,11 @@
 //! citizen's spine runs along its node's x from 0 to 9). Each node's
 //! transform is `Transform<float>::fill_matrix` of its loaded rotation and
 //! translation (`Node::loaded_rotation`, `loaded_translation`), and a node
-//! sits in its parent's: `vertex · node · parent · … · root`. No animation
-//! is applied — `.BHa` keys are §6's "After these", and an animation's tree
-//! need not match its model's (`docs/FORMATS.md` §3).
+//! sits in its parent's: `vertex · node · parent · … · root`.
+//!
+//! **The pose** ([`posed`], item 4067): an animation's key is each node's
+//! `local` transform *inside* that rest transform, the trees paired by
+//! place (`HierObj::set_to_time@00536e30`, `update_transforms@00536c60`).
 //!
 //! **The placement** is read from `GuyOut::draw@005dc490`: the angle drawn
 //! is the figure's facing in degrees plus 180 (`__real_43340000`), turned
@@ -42,6 +44,135 @@ pub fn rest_pose(model: &Model) -> Vec<[f32; 3]> {
         world.push(m);
     }
     out
+}
+
+/// **The model posed at `ms` into an animation** (item 4067), read from
+/// `HierObj::set_to_time@00536e30` and `HierObj::update_transforms
+/// @00536c60`.
+///
+/// - **The key sits inside the rest transform, it does not replace it.** A
+///   node's world transform is `parent.world · parent2local · local`:
+///   `parent2local` is the `.BH3`'s loaded rotation and translation (the
+///   rest pose, [`rest_pose`]), and `local` is what `set_to_time` writes
+///   from the keys. In this module's row-vector order a vertex goes
+///   `v · key · rest · parent`. A citizen's calf key carries no translation
+///   because its bone length is the rest's; the pelvis key's
+///   `(−22.3, −3.2, −0.48)` is `−restᵀ · t_rest`, which seats the pelvis
+///   on `Bip01` as the animation lifts `Bip01` to the hip.
+/// - **The pairing is by place in the tree, not by name.** `set_to_time`
+///   walks the model's hierarchy and the animation's in step — a node's
+///   child with the animation node's child, its sibling with its sibling —
+///   so the model's first root takes the played root, its `k`-th child the
+///   animation node's `k`-th child. A model node with no counterpart has
+///   its `local` reset to the identity (`Transform<float>::~Transform`), and
+///   so have all of its descendants: they stand at rest.
+/// - **The keys.** `ms` is first reduced modulo the node's own last key time
+///   (`AnimObj::anim_time`, the accumulated key durations). The two keys
+///   bracketing it are found on the cumulative times
+///   ([`crate::bha::AnimNode::times`]), and the transform between them is
+///   the rotation's component-wise blend, the second quaternion negated
+///   when the two point into opposite halves (`Transform<float>::set
+///   @00421dc0`, no normalisation), and the translation's linear blend.
+///   `load_hier`'s key flags (a key whose rotation or translation does not
+///   move to the next, within 0.01 and 0.1) only skip a blend that would
+///   change nothing at that tolerance, and are not reproduced.
+pub fn posed(model: &Model, anim: &crate::bha::Anim, ms: u32) -> Vec<[f32; 3]> {
+    let played = anim.played();
+    let mut partner: Vec<Option<usize>> = vec![None; model.nodes.len()];
+    let mut taken: Vec<usize> = vec![0; played.len()];
+    let mut first_root = true;
+    for (i, n) in model.nodes.iter().enumerate() {
+        partner[i] = match n.parent {
+            None => {
+                let r = first_root && !played.is_empty();
+                first_root = false;
+                r.then_some(0)
+            }
+            Some(p) => partner[p].and_then(|a| {
+                let k = taken[a];
+                taken[a] += 1;
+                played
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, c)| c.parent == Some(a))
+                    .nth(k)
+                    .map(|(j, _)| j)
+            }),
+        };
+    }
+    let mut world: Vec<Mat4> = Vec::with_capacity(model.nodes.len());
+    let mut out = model.verts.clone();
+    for (i, n) in model.nodes.iter().enumerate() {
+        let rest = fill(Some(n.loaded_rotation()), n.loaded_translation());
+        let local = match partner[i] {
+            Some(a) => {
+                let (q, t) = sample(&played[a], ms);
+                Mat4::then(&fill(Some(q), t), &rest)
+            }
+            None => rest,
+        };
+        let m = match n.parent {
+            Some(p) => Mat4::then(&local, &world[p]),
+            None => local,
+        };
+        let (s, e) = (n.start as usize, (n.start + n.num) as usize);
+        if let Some(run) = model.verts.get(s..e) {
+            for (o, v) in out[s..e].iter_mut().zip(run) {
+                *o = apply(&m, *v);
+            }
+        }
+        world.push(m);
+    }
+    out
+}
+
+/// One animation node's rotation and translation at `ms` ([`posed`]).
+pub fn sample(node: &crate::bha::AnimNode, ms: u32) -> ([f32; 4], [f32; 3]) {
+    let keys = &node.keys;
+    let rest = || ([0.0, 0.0, 0.0, 1.0], [0.0; 3]);
+    let Some(first) = keys.first() else {
+        return rest();
+    };
+    if keys.len() == 1 {
+        return (first.loaded_rotation(), first.loaded_translation());
+    }
+    let times = node.times();
+    let n = keys.len();
+    let span = u32::from(*times.last().unwrap_or(&0));
+    let t = if span == 0 { 0 } else { ms % span };
+    let at = |k: usize| u32::from(times[k]);
+    // The bracketing pair: the last key time below `t`, and the next.
+    let (mut lo, mut hi) = (0usize, n);
+    while hi - lo > 1 {
+        let mid = (lo + hi) / 2;
+        if at(mid) < t { lo = mid } else { hi = mid }
+    }
+    if hi == n {
+        (lo, hi) = (n - 2, n - 1);
+    }
+    let (a, b, k1, k2) = if at(lo) < t {
+        (at(lo), at(hi), lo + 1, hi + 1)
+    } else {
+        let a = if lo == 0 { 0 } else { at(lo - 1) };
+        (a, at(hi - 1), lo, hi)
+    };
+    let k1 = k1.min(n - 1);
+    let k2 = if k2 >= n { 0 } else { k2 };
+    let f = if b > a {
+        (t.saturating_sub(a)) as f32 / (b - a) as f32
+    } else {
+        0.0
+    };
+    let (q1, mut q2) = (keys[k1].loaded_rotation(), keys[k2].loaded_rotation());
+    if q1.iter().zip(&q2).map(|(x, y)| x * y).sum::<f32>() < 0.0 {
+        q2 = q2.map(|v| -v);
+    }
+    let g = 1.0 - f;
+    let (t1, t2) = (keys[k1].loaded_translation(), keys[k2].loaded_translation());
+    (
+        [0, 1, 2, 3].map(|i| q1[i] * g + q2[i] * f),
+        [0, 1, 2].map(|i| t1[i] * g + t2[i] * f),
+    )
 }
 
 /// `p · m` for a point.
@@ -112,6 +243,120 @@ mod tests {
             "{:?}",
             rest[1]
         );
+    }
+
+    fn key(seconds: f32, rotation: [f32; 4], translation: [f32; 3]) -> crate::bha::Key {
+        crate::bha::Key {
+            seconds,
+            rotation,
+            translation,
+            unread: 0,
+        }
+    }
+
+    fn track(parent: Option<usize>, keys: Vec<crate::bha::Key>) -> crate::bha::AnimNode {
+        crate::bha::AnimNode {
+            parent,
+            keys,
+            spare: 0,
+        }
+    }
+
+    fn close(a: [f32; 3], b: [f32; 3]) -> bool {
+        a.iter().zip(b).all(|(x, y)| (x - y).abs() < 0.02)
+    }
+
+    /// A root, and a child turned a half turn about (−1, 0, −1)/√2 and
+    /// carried 22.3 up — the citizen's pelvis at rest.
+    fn pelvis_model() -> Model {
+        let mut child = node("pelvis", Some(0), 1, 1, [0.0, 0.0, 22.3]);
+        child.rotation = [-0.707, 0.0, -0.707, 0.0];
+        Model {
+            verts: vec![[0.0; 3], [0.0; 3]],
+            normals: vec![[0.0; 4]; 2],
+            texcoords: vec![[0.0; 2]; 2],
+            faces: vec![],
+            nodes: vec![node("root", None, 0, 1, [0.0; 3]), child],
+        }
+    }
+
+    #[test]
+    fn an_identity_key_leaves_the_rest_pose() {
+        let model = pelvis_model();
+        let i = key(0.0, [0.0, 0.0, 0.0, 1.0], [0.0; 3]);
+        let anim = crate::bha::Anim {
+            nodes: vec![track(None, vec![i]), track(Some(0), vec![i])],
+            roots: 1,
+            tracks: vec![],
+        };
+        let (rest, posed) = (rest_pose(&model), posed(&model, &anim, 500));
+        assert!(
+            rest.iter().zip(&posed).all(|(a, b)| close(*a, *b)),
+            "{posed:?}"
+        );
+    }
+
+    /// **The key sits inside the rest transform** (`HierObj::update_transforms
+    /// @00536c60`: `parent.world · parent2local · local`). The pelvis key
+    /// `−restᵀ · t_rest` seats the pelvis on its parent's origin; applied
+    /// outside the rest instead, it would land the pelvis 22 units away.
+    #[test]
+    fn the_key_is_applied_inside_the_rest_transform() {
+        let model = pelvis_model();
+        let k = key(0.0, [0.0, 0.0, 0.0, 1.0], [-22.3, 0.0, 0.0]);
+        let anim = crate::bha::Anim {
+            nodes: vec![
+                track(None, vec![key(0.0, [0.0, 0.0, 0.0, 1.0], [0.0; 3])]),
+                track(Some(0), vec![k]),
+            ],
+            roots: 1,
+            tracks: vec![],
+        };
+        assert!(close(rest_pose(&model)[1], [0.0, 0.0, 22.3]));
+        let p = posed(&model, &anim, 0);
+        assert!(close(p[1], [0.0, 0.0, 0.0]), "{:?}", p[1]);
+    }
+
+    #[test]
+    fn a_node_the_animation_lacks_stands_at_rest() {
+        let model = pelvis_model();
+        let anim = crate::bha::Anim {
+            nodes: vec![track(
+                None,
+                vec![key(0.0, [0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 5.0])],
+            )],
+            roots: 1,
+            tracks: vec![],
+        };
+        let p = posed(&model, &anim, 0);
+        // The root is lifted 5; the pelvis keeps its rest place under it.
+        assert!(close(p[0], [0.0, 0.0, 5.0]), "{:?}", p[0]);
+        assert!(close(p[1], [0.0, 0.0, 27.3]), "{:?}", p[1]);
+    }
+
+    /// Between two keys the translation blends linearly, and a rotation in
+    /// the far hemisphere is negated before the blend. **A key's `seconds`
+    /// is the time after it**: `set_to_time` steps both indices on by one
+    /// once the clock passes the lower time, so key `k` is reached at
+    /// `times[k − 1]` and key 0 at zero, and past the last time the clip
+    /// blends back to key 0.
+    #[test]
+    fn a_clock_between_two_keys_blends_them() {
+        let n = track(
+            None,
+            vec![
+                key(0.5, [0.0, 0.0, 0.0, 1.0], [0.0; 3]),
+                key(0.5, [0.0, 0.0, 0.0, -1.0], [10.0, 0.0, 0.0]),
+                key(0.0, [0.0, 0.0, 0.0, 1.0], [20.0, 0.0, 0.0]),
+            ],
+        );
+        assert_eq!(n.times(), vec![500, 1000, 1000]);
+        let (q, t) = sample(&n, 250);
+        assert!(close(t, [5.0, 0.0, 0.0]), "{t:?}");
+        assert!((q[3].abs() - 1.0).abs() < 1e-3, "{q:?}");
+        let (q, t) = sample(&n, 750);
+        assert!(close(t, [15.0, 0.0, 0.0]), "{t:?}");
+        assert!((q[3].abs() - 1.0).abs() < 1e-3, "{q:?}");
     }
 
     #[test]

@@ -5,7 +5,7 @@
 
 use render::bh3;
 use render::draw::{Drawn, Placed, PlacedBuilding, Pose};
-use render::figure::{apply, placement, rest_pose};
+use render::figure::{apply, placement, posed, rest_pose};
 use render::terrain::{Heightfield, TerrainMesh};
 use rondata::artdata::{BuildLook, build_art, resolve_art, unit_art};
 use rondata::free::{FreeRunner, placed, placed_buildings};
@@ -39,13 +39,35 @@ pub fn gamelog_dir() -> PathBuf {
 /// (`docs/RENDERER.md` §3.6, item 4065).
 pub const GUY_SCALE: f32 = 4.8;
 
-/// A posed model at rest: its vertices in model space and its triangles.
+/// A model at rest: its vertices in model space and its triangles, and
+/// the decoded model and animations a figure is posed from.
 pub struct Mesh {
     pub rest: Vec<[f32; 3]>,
     pub faces: Vec<[u16; 3]>,
     /// The `<UNIT>`'s `scale=` times [`GUY_SCALE`]; 1 for a building.
     pub scale: f32,
+    pub model: bh3::Model,
+    /// Each `UnitAnim` slot's decoded `.BHa`, where the entry names one
+    /// that resolves and decodes; empty for a building.
+    pub anims: BTreeMap<i8, std::sync::Arc<render::bha::Anim>>,
 }
+
+/// **The milliseconds a figure is drawn at** (item 4067): `GuyOut::draw
+/// @005dc490` gives `cur_time · 200 / 3` — fifteen game frames a second —
+/// plus the frame's `graphic_dt`, clamped to the animation's own length
+/// (`AnimMgr::times`, the root's last key time). The client draws at the
+/// frame's start, `graphic_dt` 0.
+pub fn anim_ms(cur_time: u32, anim: &render::bha::Anim) -> u32 {
+    let len = anim
+        .played()
+        .first()
+        .and_then(|n| n.times().last().copied())
+        .map_or(0, u32::from);
+    (cur_time.saturating_mul(200) / 3).min(len)
+}
+
+/// A unit piece's `model=`, `scale=` and its slots' `.BHa` files.
+type UnitModel = (String, String, Vec<(i8, String)>);
 
 /// One coloured triangle soup, world space.
 #[derive(Default)]
@@ -61,9 +83,15 @@ pub struct World {
     tribes: Vec<TribeDef>,
     /// Each piece's mesh, `None` where it resolves to nothing that decodes.
     meshes: BTreeMap<i32, Option<std::sync::Arc<Mesh>>>,
-    unit_models: BTreeMap<i32, (String, String)>,
+    unit_models: BTreeMap<i32, UnitModel>,
     root: PathBuf,
     install: Install,
+    /// Pose each figure at its slot and clock (item 4067, `--pose`). Off by
+    /// default: posed at the drawn facing, candidate C's row falls from 3 to
+    /// 1 of 23, because the facing chain is a quarter turn off for every
+    /// figure (`docs/RENDERER.md` §5.3, parked 4067a); the rest pose hides
+    /// that for a figure whose silhouette is near symmetric.
+    pub pose: bool,
     terrain: (u32, TerrainMesh),
 }
 
@@ -99,9 +127,14 @@ impl World {
         let mut unit_models = BTreeMap::new();
         for e in unit_art(&install, &graphs) {
             for p in &e.pieces {
-                unit_models
-                    .entry(*p)
-                    .or_insert_with(|| (e.model.clone(), e.scale.clone()));
+                unit_models.entry(*p).or_insert_with(|| {
+                    let files = e
+                        .anims
+                        .iter()
+                        .filter_map(|(slot, _, f)| Some((*slot, f.clone()?)))
+                        .collect();
+                    (e.model.clone(), e.scale.clone(), files)
+                });
             }
         }
         Ok(World {
@@ -111,6 +144,7 @@ impl World {
             unit_models,
             root: install.root().to_path_buf(),
             install,
+            pose: false,
             runner,
             terrain: (u32::MAX, TerrainMesh::default()),
         })
@@ -167,25 +201,33 @@ impl World {
         if let Some(m) = self.meshes.get(&piece) {
             return m.clone();
         }
-        let (model, scale) = if building {
+        let (model, scale, files) = if building {
             let set = std::iter::once(piece).collect();
             let art = build_art(&self.install, &set);
             let z = art.get(&piece)?.as_ref().ok()?.zbuffer.clone();
-            (z.unwrap_or_default(), 1.0)
+            (z.unwrap_or_default(), 1.0, Vec::new())
         } else {
-            let (m, s) = self.unit_models.get(&piece)?.clone();
-            (m, s.parse::<f32>().unwrap_or(1.0) * GUY_SCALE)
+            let (m, s, f) = self.unit_models.get(&piece)?.clone();
+            (m, s.parse::<f32>().unwrap_or(1.0) * GUY_SCALE, f)
         };
-        let decoded = resolve_art(&self.root, &model)
-            .and_then(|p| std::fs::read(p).ok())
-            .and_then(|b| bh3::decode(&b).ok())
-            .map(|m| {
-                std::sync::Arc::new(Mesh {
-                    rest: rest_pose(&m),
-                    faces: m.faces,
-                    scale,
-                })
-            });
+        let root = self.root.clone();
+        let read = |rel: &str| resolve_art(&root, rel).and_then(|p| std::fs::read(p).ok());
+        let anims: BTreeMap<i8, std::sync::Arc<render::bha::Anim>> = files
+            .iter()
+            .filter_map(|(slot, f)| {
+                let a = render::bha::decode(&read(f)?).ok()?;
+                Some((*slot, std::sync::Arc::new(a)))
+            })
+            .collect();
+        let decoded = read(&model).and_then(|b| bh3::decode(&b).ok()).map(|m| {
+            std::sync::Arc::new(Mesh {
+                rest: rest_pose(&m),
+                faces: m.faces.clone(),
+                scale,
+                model: m,
+                anims,
+            })
+        });
         self.meshes.insert(piece, decoded.clone());
         decoded
     }
@@ -207,19 +249,19 @@ impl World {
             buildings.iter().map(|b| ((b.who, b.o), b)).collect();
         let mut out = Vec::new();
         for d in list {
-            let (point, facing, building) = match d.pose {
+            let (point, facing, building, clock) = match d.pose {
                 Pose::Figure { figure, facing, .. } => {
                     let Some(p) = at_figure.get(&(d.who, d.o, figure)) else {
                         continue;
                     };
-                    ([p.x, p.y, p.z], facing, false)
+                    ([p.x, p.y, p.z], facing, false, Some((p.slot, p.frame)))
                 }
                 Pose::Building { .. } => {
                     let Some(b) = at_building.get(&(d.who, d.o)) else {
                         continue;
                     };
                     let (x, y, z) = b.anchor_point();
-                    ([x, y, z], 0, true)
+                    ([x, y, z], 0, true, None)
                 }
                 // The wheat field is a mesh `FarmsOut::draw` builds, not a
                 // piece; the client does not build it yet (item 4048).
@@ -233,10 +275,15 @@ impl World {
                 continue;
             };
             let m = placement(point, facing, mesh.scale);
+            let pose = clock
+                .filter(|_| self.pose)
+                .and_then(|(slot, t)| mesh.anims.get(&slot).map(|a| (a, t)))
+                .map(|(a, t)| posed(&mesh.model, a, anim_ms(t, a)));
+            let verts = pose.as_ref().unwrap_or(&mesh.rest);
             let tris = mesh
                 .faces
                 .iter()
-                .map(|f| f.map(|i| apply(&m, mesh.rest[i as usize])))
+                .map(|f| f.map(|i| apply(&m, verts[i as usize])))
                 .collect();
             out.push(Drawing {
                 who: d.who,
