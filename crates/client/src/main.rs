@@ -8,13 +8,15 @@
 //! ```text
 //! client [--install DIR] [--logs DIR] [--frame N] [--size WxH]
 //!        [--still OUT.bmp] [--frames N] [--play] [--trace OUT.json]
-//!        [--look X,Y] [--zoom F]
+//!        [--look X,Y] [--zoom F] [--silhouette OUT.bmp]
 //! client --read-trace SESSION.json
 //! ```
 //!
 //! `--still` draws one frame off-screen and writes it; otherwise a window
 //! opens (arrows pan, `+`/`-` zoom, space plays, `Q` or Escape quits), and
-//! `--frames N` quits after N presented frames. Every session writes its
+//! `--frames N` quits after N presented frames. `--silhouette` scores the
+//! frame's silhouettes against run1559b's photograph (`silhouette`) and
+//! writes the picture of the scoring. Every session writes its
 //! trace (`trace`), and `--read-trace` prints the clock it holds.
 //!
 //! The simulation stays headless: this crate depends on `sim`, `rondata`
@@ -22,6 +24,7 @@
 
 mod gpu;
 mod overlay;
+mod silhouette;
 mod trace;
 mod world;
 
@@ -88,6 +91,9 @@ struct Args {
     /// `parallel_distance` divided by the zoom.
     look: Option<(f32, f32)>,
     zoom: f32,
+    /// Score the frame's silhouettes against the photograph and write the
+    /// picture of the scoring (`silhouette`, item 4038).
+    silhouette: Option<PathBuf>,
 }
 
 fn parse() -> Result<Args, String> {
@@ -103,6 +109,7 @@ fn parse() -> Result<Args, String> {
         play: false,
         look: None,
         zoom: 1.0,
+        silhouette: None,
         trace: std::env::temp_dir().join(format!("attrition-client-{}.json", std::process::id())),
     };
     let mut it = std::env::args().skip(1);
@@ -123,6 +130,7 @@ fn parse() -> Result<Args, String> {
             "--still" => a.still = Some(v()?.into()),
             "--frames" => a.frames = Some(v()?.parse().map_err(|e| format!("--frames: {e}"))?),
             "--play" => a.play = true,
+            "--silhouette" => a.silhouette = Some(v()?.into()),
             "--zoom" => a.zoom = v()?.parse().map_err(|e| format!("--zoom: {e}"))?,
             "--look" => {
                 let s = v()?;
@@ -390,6 +398,42 @@ fn main() {
         (camera.loc_x, camera.loc_y) = (x, y);
     }
     camera.parallel_distance /= args.zoom;
+    if let Some(out) = &args.silhouette {
+        let path = silhouette::photo_path();
+        let photo = std::fs::read(&path)
+            .map_err(|e| e.to_string())
+            .and_then(|b| render::tga::decode(&b).map_err(|e| e.to_string()))
+            .unwrap_or_else(|e| {
+                eprintln!("client: {}: {e}", path.display());
+                std::process::exit(1);
+            });
+        let rows = silhouette::score_frame(&mut world, &camera, &photo);
+        for (f, (who, o, piece, building)) in &rows {
+            println!(
+                "{who}/{o} piece {piece}{} window ({}, {})..({}, {}) ours {} theirs {} both {} \
+                 overlap {:.3}",
+                if *building { " building" } else { "" },
+                f.window.x0,
+                f.window.y0,
+                f.window.x1,
+                f.window.y1,
+                f.ours,
+                f.theirs,
+                f.both,
+                f.overlap()
+            );
+        }
+        let scored: Vec<_> = rows.iter().map(|(f, _)| *f).collect();
+        let (k, n) = render::silhouette::score(&scored, &render::silhouette::READING);
+        println!("silhouettes {k} of {n} (frame {})", world.runner.frame());
+        let rgba = silhouette::explain(&mut world, &camera, &photo, &scored);
+        let size = (photo.width as u32, photo.height as u32);
+        std::fs::write(out, gpu::bmp(&rgba, size)).unwrap_or_else(|e| {
+            eprintln!("client: {}: {e}", out.display());
+            std::process::exit(1);
+        });
+        return;
+    }
     if let Some(out) = &args.still {
         let gpu = session
             .phase("device", || {

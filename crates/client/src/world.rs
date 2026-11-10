@@ -188,21 +188,22 @@ impl World {
         decoded
     }
 
-    /// Every drawn figure's and building's mesh, placed, as a triangle soup
-    /// shaded flat by an owner's debug tint.
-    pub fn figures(
+    /// Every drawn figure's and building's mesh, placed in world space: one
+    /// entry a draw-list entry the client draws, its owner, whether it is a
+    /// building, and its triangles.
+    pub fn objects(
         &mut self,
         figures: &[Placed],
         buildings: &[PlacedBuilding],
         list: &[Drawn],
-    ) -> Soup {
+    ) -> Vec<Drawing> {
         let at_figure: BTreeMap<(u8, i16, u16), &Placed> = figures
             .iter()
             .map(|p| ((p.who, p.o, p.figure), p))
             .collect();
         let at_building: BTreeMap<(u8, i16), &PlacedBuilding> =
             buildings.iter().map(|b| ((b.who, b.o), b)).collect();
-        let mut soup = Soup::default();
+        let mut out = Vec::new();
         for d in list {
             let (point, facing, building) = match d.pose {
                 Pose::Figure { figure, facing, .. } => {
@@ -230,9 +231,34 @@ impl World {
                 continue;
             };
             let m = placement(point, facing, mesh.scale);
-            let tint = tint(d.who, building);
-            for f in &mesh.faces {
-                let tri = f.map(|i| apply(&m, mesh.rest[i as usize]));
+            let tris = mesh
+                .faces
+                .iter()
+                .map(|f| f.map(|i| apply(&m, mesh.rest[i as usize])))
+                .collect();
+            out.push(Drawing {
+                who: d.who,
+                o: d.o,
+                piece: d.piece,
+                building,
+                tris,
+            });
+        }
+        out
+    }
+
+    /// Every drawn figure's and building's mesh, placed, as a triangle soup
+    /// shaded flat by an owner's debug tint.
+    pub fn figures(
+        &mut self,
+        figures: &[Placed],
+        buildings: &[PlacedBuilding],
+        list: &[Drawn],
+    ) -> Soup {
+        let mut soup = Soup::default();
+        for d in self.objects(figures, buildings, list) {
+            let tint = tint(d.who, d.building);
+            for tri in d.tris {
                 let lit = shade(tri);
                 for p in tri {
                     soup.positions.push(p);
@@ -242,6 +268,16 @@ impl World {
         }
         soup
     }
+}
+
+/// One drawn object, placed: a draw-list entry's owner, object and piece,
+/// and its mesh's triangles in world space.
+pub struct Drawing {
+    pub who: u8,
+    pub o: i16,
+    pub piece: i32,
+    pub building: bool,
+    pub tris: Vec<[[f32; 3]; 3]>,
 }
 
 /// The debug tint an owner's meshes take: untextured, not a team colour

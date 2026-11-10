@@ -1065,6 +1065,43 @@ screenshot, above a threshold.
 for every data point, and it inherits the translation stack's noise (§3.3).
 It is the art phase's counter, not the first one.
 
+**The first row, pinned** (item 4038, 2026-11-09, Opus 5.5;
+`render::silhouette`, `client::silhouette`). **3 of 23 objects** on the
+Aztec Modern pair's frame 3294 at run1559b's camera, against that take's
+photograph (`RUN1559B_3294`).
+- *Ours.* Each drawn object's world-space triangles are rasterized on the
+  CPU with the client shader's arithmetic into a buffer of object keys,
+  the nearest winning by camera-space depth.
+- *The original's.* The photograph has no object ids, so its footprint is
+  read by colour. Each object we draw gets a window: its pixels plus 6.
+  A 6-pixel ring outside the window, where none of our objects lies, is
+  taken as the ground. Its colours are binned at 32 levels a channel and
+  dilated by one bin, and every pixel in the window whose colour is not
+  the ground's counts as the original's footprint. Both footprints are
+  the whole scene's inside the window, since the photograph cannot say
+  which figure of a crowd a pixel belongs to.
+- *The score.* An object counts when the intersection over union reaches
+  0.5. An object is not scored when its ring meets the frame's edge or
+  the photograph's interface (eleven rectangles placed by eye, among them
+  the city's label and the selected figure's portrait), or when it shows
+  fewer than 40 pixels.
+- *Made to fail.* The same frame at run1441's camera, which the
+  photograph was not taken at, scores 0 of 25 (`RUN1441_CAMERA_3294`).
+- *The misses.* The tanks are drawn about twice the photograph's size,
+  and above its tanks (parked 4038b). The capital is drawn as its
+  `zbuffer` model (4036a). One figure has no counterpart in the
+  photograph (4038c). The figures stand in the rest pose, while the
+  photograph's have limbs out. The figures by the derrick stand among
+  trees the client does not draw.
+- *What it does not measure.* Colour: textures and team colours are not
+  bound (4038a), and binding them would not move this row.
+- *Where the inputs are.* The photograph is converted once to `.tga`
+  (`sips -s format tga`), so `render::tga` reads it with no new
+  dependency. `client --silhouette OUT.bmp` prints every row and writes
+  the scoring over the photograph. The reading constants and the
+  interface rectangles are this frame's, chosen once and pinned, never
+  tuned to a count.
+
 ### 5.4 Recommended: pieces in register, K of M
 
 **Definition.**

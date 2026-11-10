@@ -15787,13 +15787,22 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   American or Iroquois seat by name rather than guess the farm count or the Senate. Names no score until a
   lobby with either nation is compared (item 4034's lobbies).
 
-## Parked by the next landing, slot DV — reserved
+## Parked by item 4038, 2026-11-09 — the silhouettes' misses
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4038a. Textures and team colours in the client** (`docs/RENDERER.md` §5.3, §6's "After these"). The `<UNIT>`'s
+  `texture=` (`.\art\assault_infantry.tga`: 128 × 128, type 10, 32-bit, eight alpha bits) and the `.BH3`'s texcoords
+  are both decoded, and nothing binds them. The team-colour mask is unread: `GraphicPieces::draw_unit@008e7da0`, the
+  figure's draw under `GraphicPieces::draw@0090b2d0`, does not decompile ("PTRSUB off of non-pointer type"), so its
+  listing is the next rung, then a blind second reading. That the alpha byte is the mask is a supposition. Names no
+  score: candidate C counts silhouettes, which a texture does not move.
+- **4038b. The tanks are drawn about twice the photograph's size, and above its tanks** (§5.3). Frame 3294 at
+  run1559b's camera, piece 196, owner 1: windows 1/40, 1/15 and 1/16 cover 4,810, 4,586 and 4,300 of our pixels against
+  701, 65 and 320 of the photograph's, overlaps 0.135, 0.011 and 0.052. The figures beside them agree on size. The
+  scale is `scale=` × `guy_scale` 4.8, and the piece's `+0x88` scale and the `+0x92` flag that skips `guy_scale` are
+  unread (§3.6). Candidate C +3 at most.
+- **4038c. A figure the photograph does not show** (§5.3). Frame 3294, 1/35, piece 60, window (1365, 678)..(1388,
+  734): ours 319 pixels, the photograph's 0. The draw list's anchors are in register on the dumped frames (§3.5),
+  but 3294 prints no `gpiece`, so whether the original draws 1/35 there, or at all, is open. Candidate C +1 at most.
 
 ## Parked by the next landing, slot DW — reserved
 
