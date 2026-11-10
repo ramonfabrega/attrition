@@ -1022,6 +1022,10 @@ pub(crate) fn find_free_steps(
 pub struct Marks {
     pub unit: i16,
     pub build: i16,
+    /// `Objects +0x1d4 + 2 who`: the uid the player's next object takes —
+    /// `Object::init@00647750` writes it to `ObjectData::uid` and adds one.
+    /// [`crate::Sim::next_uid`] is the one writer (item 4094).
+    pub uid: u16,
 }
 
 impl Default for Marks {
@@ -1029,6 +1033,7 @@ impl Default for Marks {
         Marks {
             unit: UNIT_BASE,
             build: BUILD_BASE,
+            uid: 0,
         }
     }
 }
