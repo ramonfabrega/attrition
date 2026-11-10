@@ -16167,6 +16167,25 @@ words and edits nothing here; a refill lands when two remain.
 - **4091d. `ai_census`'s seam table calls `GoodData::ever_seen` unwritten** where `good_seen_bits` holds it
   (writers 2 and 3). The census filler's (4039) to correct; names no score.
 
+## Parked by item 4093, 2026-11-10 — setup's goods scan in the built start, the goods line in
+
+- **4093a. Good 15 is `Amber`, not the `SILK`** (`TypeIndex` 17; run9's `GOOD` prints `Amber`). `docs/CHECKSUM.md`
+  §13 is corrected. The same label stands in the doc comment on `Sim::seed_new_rares_from_fog`
+  (`crates/sim/src/economy/rares.rs`) and in `docs/MERCHANT.md`'s table of the original's list, where it may be
+  the enum's name for the first rare rather than this good's. Names no score.
+- **4093b. Run9's `[Start Game]` dump has a torn first `GOOD` record**: its head lines are lost and only the
+  `SUBOBJECT` with `o 0` stands, so 35 of 36 goods' `ever_seen` are compared on frame 0, and the installed
+  start's goods may be read one short. Not probed. Names no score until an installed walk parts on good 0.
+- **4093c. What the scan's one lobby does not hold** (`docs/ECONOMY.md`, "Setup's goods scan"): the order of a
+  leader's list when one scan meets two rares (region then cell, on a reading; each leader meets at most one
+  here), which of setup's three scans meets good 15, and the oil half, which the crate runs on every pre-play
+  fix where the original runs the scan three times. Why the shorter list reached no draw in 24,000 frames
+  before this item is not probed. Names no score.
+- **4093d. 4093's "for the Loop"** (the journal's line, filed at its merge): CHECKSUM §13 named
+  `start_border_pass` beside `settle_borders` as the built start's setup pass; its pre-play arm also runs on the
+  installed start's activations, so the scan went into `settle_borders`. A place a document names to build in
+  is read against every caller of that place. Nothing left to build.
+
 ## Parked by item 4089, 2026-11-10 — the tank's tilt drawn; the draw clock and two riflemen left
 
 - **4089a. The draw clock the tilt's ease runs on** (`docs/RENDERER.md` §3.7, §5.3 "The tilt"; `Tilt::Eased`).
