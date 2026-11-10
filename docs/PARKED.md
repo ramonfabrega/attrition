@@ -15797,7 +15797,8 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   figure's draw under `GraphicPieces::draw@0090b2d0`, does not decompile ("PTRSUB off of non-pointer type"), so its
   listing is the next rung, then a blind second reading. That the alpha byte is the mask is a supposition. Names no
   score: candidate C counts silhouettes, which a texture does not move.
-- **4038b. The tanks are drawn about twice the photograph's size, and above its tanks** (§5.3). Frame 3294 at
+- ~~**4038b. The tanks are drawn about twice the photograph's size, and above its tanks**~~ — the scale half killed by
+  item 4065 (4065a: the piece's scale is the original's, read off run1559b's own packet); the rest is 4065b and 4065c. (§5.3). Frame 3294 at
   run1559b's camera, piece 196, owner 1: windows 1/40, 1/15 and 1/16 cover 4,810, 4,586 and 4,300 of our pixels against
   701, 65 and 320 of the photograph's, overlaps 0.135, 0.011 and 0.052. The figures beside them agree on size. The
   scale is `scale=` × `guy_scale` 4.8, and the piece's `+0x88` scale and the `+0x92` flag that skips `guy_scale` are
@@ -15806,13 +15807,29 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   734): ours 319 pixels, the photograph's 0. The draw list's anchors are in register on the dumped frames (§3.5),
   but 3294 prints no `gpiece`, so whether the original draws 1/35 there, or at all, is open. Candidate C +1 at most.
 
-## Parked by the next landing, slot DW — reserved
+## Parked by item 4065, 2026-11-09 — the tanks' scale, killed
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4065a. The tanks' scale is the original's: the booking's mechanism is killed** (`docs/RENDERER.md` §3.6, §5.3).
+  `GuyOut::draw@005dc490` multiplies the chad's `(sx, sy, sz)` = `(1, −1, 1)` (`GraphicChad::GraphicChad@008e22f0`)
+  by `RData.scale` (`+0x88`) × `guy_scale` unless `RData.flags` (`+0x92`) has bit 2. `init_unit_data@008f4290` sets
+  `scale` from the `<UNIT>`'s float attribute (below 0.1 → 1.0) and sets bit 2 only where it turns the piece into
+  building data. On run1559b's own packet (the scored frame, 3294; `tools/recomp/get_position.py … entries`) piece 196
+  (`SHERMAN-DEFAULT-AGE0`, the only entry that claims it, `scale="0.85"`) reads `RData+0x88` 0.85 and `+0x92` `0x1`;
+  pieces 60 and 10912 read 1.0 and `0x1`. So the original draws the Sherman at 0.85 × 4.8 = 4.08, which is what the
+  client draws today. Names no score: nothing to change.
+- **4065b. Candidate C cannot see an olive tank on grass** (§5.3). On frame 3294 the photograph's footprint for 1/15
+  reads 63–65 pixels and for 1/16 320–403, though both tanks stand whole in the photograph at about our length: the
+  ring's ground colours, binned at 32 levels and dilated a bin, take in the tanks' olive. The "twice the size" of
+  4038b was this reader going blind, not a size gap. A tank row cannot reach 0.5 by drawing alone; it needs a second
+  way to read the photograph's footprint (a hand-traced mask of this frame's three tanks, pinned once, or a ground
+  model by texture rather than colour). Candidate C +3 at most, with 4065c.
+- **4065c. The tanks' facing and place** (§5.3, §3.6). By eye on the scoring picture against the photograph: 1/40
+  and 1/16 point up-screen in the photograph and are drawn sideways; 1/15's diagonal agrees; all three of ours sit
+  ~40 px above the photograph's. The chad's `sy = −1` (the original's model y negated, as `sim::pivot`'s
+  `fwd = −s·y` already carries, packet-backed) is not applied by `render::figure::placement`. Applied, it moved
+  nothing on this frame (1/40 0.135 → 0.171, 1/15 0.011, 1/16 0.052 → 0.074; still 3 of 23), and how
+  `draw_unit@008e7da0` consumes the chad's scale is unread (it does not decompile), so it was not landed. 3294 prints
+  no `gpiece` or facing to diff the tank's heading against. Candidate C +3 at most, with 4065b.
 
 ## Parked by the next landing, slot DX — reserved
 

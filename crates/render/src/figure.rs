@@ -13,10 +13,11 @@
 //! **The placement** is read from `GuyOut::draw@005dc490`: the angle drawn
 //! is the figure's facing in degrees plus 180 (`__real_43340000`), turned
 //! with `Transform<float>::rotate_z`, and the piece's scale multiplies the
-//! model. What `GraphicPieces::draw` does past that — the scale's source
-//! (`+0x88` of the piece, times the global `guy_scale`), the bank, the
-//! pivots — is not read; the client takes the `<UNIT>`'s `scale=` and draws
-//! no bank (`docs/RENDERER.md` §3.6).
+//! model. The scale is `RData +0x88` (the `<UNIT>`'s `scale=`) times the
+//! global `guy_scale`, read off run1559b's packet (item 4065); the chad's
+//! `sy = −1` is not applied. What `GraphicPieces::draw` does past that —
+//! the bank, the pivots — is not read, and no bank is drawn
+//! (`docs/RENDERER.md` §3.6).
 
 use crate::bh3::Model;
 use crate::camera::{Mat4, fill, rotate};

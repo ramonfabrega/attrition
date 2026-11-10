@@ -920,10 +920,16 @@ read 450 MiB on the same runs. Beside it, the harness reads 540 ms to
 frame zero (`HARNESS_CLOCK`) and the runner 431 ms (`RUNNER_CLOCK`).
 
 **Diff-backed:** the terrain's corners and heights; the figures' anchors
-(§3.5, unchanged). **Listing- and packet-backed:** the 180° and
-`guy_scale`. **Reading only, and by eye:** the rest pose, the facing's
-sense, the scale's source (the piece's `+0x88` and the flag at `+0x92` that
-skips `guy_scale` are unread), the building's model.
+(§3.5, unchanged). **Listing- and packet-backed:** the 180°, `guy_scale`, and the scale's
+source (item 4065): the chad starts at `(1, −1, 1)`
+(`GraphicChad::GraphicChad@008e22f0`) and is multiplied by `RData.scale`
+(`+0x88`) × `guy_scale` unless `RData.flags` (`+0x92`) has bit 2, which
+`init_unit_data@008f4290` sets only on a piece it turns into building data;
+`scale` is the `<UNIT>`'s `scale=` (below 0.1 read as 1). On run1559b's own
+packet piece 196 reads 0.85 and `0x1`, pieces 60 and 10912 1.0 and `0x1`, so
+the client's `scale=` × 4.8 is the original's (parked 4065a). The chad's
+`sy = −1` is not applied (parked 4065c). **Reading only, and by eye:** the
+rest pose, the facing's sense, the building's model.
 
 **What is not established.**
 - **Why the camera moved between run1441 and run1559.** Both takes stage
@@ -1087,8 +1093,11 @@ photograph (`RUN1559B_3294`).
   fewer than 40 pixels.
 - *Made to fail.* The same frame at run1441's camera, which the
   photograph was not taken at, scores 0 of 25 (`RUN1441_CAMERA_3294`).
-- *The misses.* The tanks are drawn about twice the photograph's size,
-  and above its tanks (parked 4038b). The capital is drawn as its
+- *The misses.* The tanks sit about 40 px above the photograph's, two of
+  them turned a quarter, at the original's own scale (item 4065, §3.6); their
+  photograph footprints read small because the ring's ground colours take in
+  an olive tank on grass, so a tank row cannot pass by drawing alone (parked
+  4065b, 4065c). The capital is drawn as its
   `zbuffer` model (4036a). One figure has no counterpart in the
   photograph (4038c). The figures stand in the rest pose, while the
   photograph's have limbs out. The figures by the derrick stand among

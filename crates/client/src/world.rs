@@ -33,8 +33,10 @@ pub fn gamelog_dir() -> PathBuf {
 
 /// **`guy_scale`** (`?guy_scale@@3MA`, `0x00c06244` by the linker map),
 /// read off run1441's packet at logger frame 3294: 4.8. `GuyOut::draw`
-/// multiplies a figure's piece scale by it unless the piece's flag byte at
-/// `+0x92` has bit 1 set, which is not read (`docs/RENDERER.md` §3.6).
+/// multiplies a figure's piece scale (`RData +0x88`, the `<UNIT>`'s
+/// `scale=`) by it unless `RData +0x92` has bit 2, which only a building's
+/// piece carries; run1559b's packet reads both for the drawn pieces
+/// (`docs/RENDERER.md` §3.6, item 4065).
 pub const GUY_SCALE: f32 = 4.8;
 
 /// A posed model at rest: its vertices in model space and its triangles.
