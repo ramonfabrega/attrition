@@ -238,3 +238,40 @@ fn great_sahara_draws_four() {
         assert_eq!(g.starts[2].list.len(), 4 * players as usize);
     }
 }
+
+/// **`Terrain::mark_forest`'s canopy** (item 4047): a forest tile of a
+/// FOREST cell gives 0x8 to the twelve tiles up and to the left of it
+/// that are on the map, and to nothing else; a forest tile in a cell
+/// without the FOREST flag gives nothing. The setup trace's part 6 at
+/// `setup.cpp` 884 is the diff (`rondata::diff::start`'s map test).
+#[test]
+fn mark_forest_shades_twelve_tiles_up_and_left() {
+    let mut g = MapGrid::new(4, 4);
+    let (tw, _) = g.tile_dims();
+    // Cell (2, 2), its tile (9, 9): forest surface, FOREST cell.
+    g.cells[2 * 4 + 2].flags |= 0x20;
+    g.tiles[(9 * tw + 9) as usize] = 0x30;
+    // Cell (0, 0)'s tile (1, 1): forest surface, no FOREST flag.
+    g.tiles[(tw + 1) as usize] = 0x30;
+    g.mark_forest();
+    let marked: Vec<(i32, i32)> = (0..g.tiles.len() as i32)
+        .filter(|&i| g.tiles[i as usize] & 8 != 0)
+        .map(|i| (i % tw - 9, i / tw - 9))
+        .collect();
+    let mut want = vec![
+        (-1, 0),
+        (-2, -1),
+        (-1, -1),
+        (0, -1),
+        (-3, -2),
+        (-2, -2),
+        (-1, -2),
+        (-4, -3),
+        (-3, -3),
+        (-2, -3),
+        (-4, -4),
+        (-3, -4),
+    ];
+    want.sort_by_key(|&(x, y)| (y, x));
+    assert_eq!(marked, want);
+}

@@ -15,6 +15,7 @@ use sim::mapgen::{Adler32, WCell};
 use std::io::{self, BufRead, BufReader};
 use std::path::Path;
 
+pub mod lakes;
 pub mod mesa;
 
 /// `land_key[]`, the names a cell's level-2 line prints, in index order.
