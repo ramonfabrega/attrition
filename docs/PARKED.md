@@ -15766,13 +15766,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DU — reserved
+## Parked by item 4047, 2026-11-09 — the start built past the map
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4047a. `docs/ORDERS.md` §9.2's placer prose has the draw on the wrong arm.** It reads "`FARM`/`MINE` →
+  `find_friends` count `n` → `(n+2) × 1000`, else `4000/dist + rand % 500`". The port
+  (`sim::ai::ai_place`, `docs/AI.md` §22) draws `4000/dist + rand % 500` for a farm or mine with **no**
+  friends (distance in tiles) and scores every other type by distance alone; run100's draw-site trace agrees
+  with the port: each starting farm spends its candidates at `produce_building+0xc99`, the library none. The
+  builder reproduces the computer's six sites and the stream after each (`docs/START.md` §2 step 7). Names
+  no score: the code is right and only the reading of record is not; amend §9.2 when it is next read.
+- **4047b. `AMERICANS_STARTING_FARMS` and `IROQUOIS_SENATE` are not loaded** (`rondata::load`; `sim::tech`
+  carries the other four early-building constants). `rondata::diff::start::pre_placed_buildings` refuses an
+  American or Iroquois seat by name rather than guess the farm count or the Senate. Names no score until a
+  lobby with either nation is compared (item 4034's lobbies).
 
 ## Parked by the next landing, slot DV — reserved
 

@@ -77,21 +77,36 @@ it (**not built**).
 4. **The map — `Map::make@0068bc90`, `Terrain::init@00850f70`,
    `mark_forest`.** The start cells are the map maker's (`world->start_x/
    start_y`). Every phase of fifteen styles is ported and checked at its
-   own checkpoint (`docs/MAPGEN.md` §15, the `Mapgen:` line), but **no path
-   in this crate composes the chain into a `World`** — each phase is
-   driven from the trace's seed at its checkpoint and compared as an
-   Adler-32 of the cell bytes. **Not built**; the walk stops here.
+   own checkpoint (`docs/MAPGEN.md` §15, the `Mapgen:` line), each driven
+   from the trace's 7805 word and the start dump's `World.seed`.
+   **Built for Great Lakes** (item 4047, `rondata::mapgen::lakes`): the
+   chain on one stream from `setup.cpp` 716, `load_map_data`'s two
+   tileset draws and `base_edge` walked forward (`tileset_draw`), then
+   `Terrain::mark_forest` (`MapGrid::mark_forest`: a forest tile of a
+   FOREST cell gives 0x8 to twelve tiles up-left of it, the offsets read
+   off the PE). `world_from_grid` stands the `Sim` on the grid as
+   `world_from` stands it on a dump. *Diff-backed* on the harness lobby:
+   seed and parts 2, 5, 6 and 10–13 at all 19 checkpoints 7805 → 884
+   (part 5 at 7805 excepted: `World::init`'s cells, which
+   `make_continents` overwrites). Other styles: **not built**.
 5. **The start permutation**: `Game::start_list[k]`, a random permutation
    when the map randomises starts (`rand & 7`, 8 draws here), else
    identity; teammates placed consecutively in a team game unless `world
    +0x30 == 0x16` (ORDERS §9.2, S5). The installer recovers the visiting
-   order from the trace (`leader_visit_order`). **Not built.**
+   order from the trace (`leader_visit_order`). `randomize_starts` is
+   `Map::Map@006a06e0`'s 1, which only East Meets West's
+   `make_continents` writes again. **Built** (`start_permutation`, item
+   4047), randomised; *diff-backed*: the eight draws from 894's word are
+   4, 7, 6, 1, 0, 3, 2, 5, each fresh first time, landing on 955's
+   `0x9991b076`. Teammates: not built (no team game on disk).
 6. **`Leader::init@006e3930(who, tribe, who)`** for every active player:
    the leader's records, and for a computer leader the personality roll
    (`Personality::roll`, 20 draws here) and the script choice. The roll is
    ported and reproduces the trace's far word from its near one (ORACLE);
    what it needs is the stream's word at its bracket, which steps 4–5
-   produce. **Not built.**
+   produce. **Built** (item 4047): `init_leader_ai` for each computer
+   seat in the permutation's order, after `load_scripts`; *diff-backed*:
+   seat 1 lands on 13457's `0xf2299eda` and its `PERSONALITY` agrees.
    **The diplomacy row** is the same call's, and draws nothing: for each
    other leader `u`, `diplos[u]` (`LeaderData +0x74`, written as
    `puVar23[-0x18]` off a cursor at `good_deeds`, `+0xd4`, lines 199–227 of
@@ -120,12 +135,30 @@ it (**not built**).
    `Objects::find_free@0065ad60`'s: scout `0`, citizens `1..`, city
    `2000`, buildings `2001..` in production order. The installer carries
    the citizens' assignment rule (`start_of_game`) and takes every position
-   from the dump. **Not built**: the placer, `place_unit`, and the pasture's
-   animals spent inside this step (`docs/SYNC.md` §3.11).
+   from the dump. **Built through the pre-placed buildings** (item 4047):
+   the k-th empire built takes start cell k; `build_cities`' village
+   (`snap_center` of the cell's corner, `init_build`, `activate(b, false,
+   false)`) and its `compute_all_territory` (`sync_territory`,
+   `settle_borders`); `pre_placed_buildings` — the Small Town list and
+   `build_civ_specific` through `produce_building`'s frame-0 arm (a forward
+   on the setup door). The draws, against run100's draw-site trace of the
+   same lobby: the village none; the camp's `Objects::init_build` 244
+   (`Build::find_gather_tiles`); each farm its candidates
+   (`produce_building+0xc99`), jitter (`+0x1805`) and `Farms::add`; the
+   library its jitter and `find_road`'s 189 for the city's roads. The
+   computer's six sites and the stream after each are the original's.
+   **Not built**: `build_units` — `place_unit` (2 draws for the computer's
+   scout, 3 for the human's), the citizens born at their buildings
+   (`Guy::init_real`, 7 draws an empire), `Unit::come_out(u, 0)` off a
+   footprint (no port takes a unit that is not inside), and the `GATHER`;
+   the Large Town list; the Americans' farms and the Iroquois' Senate
+   (parked 4047b); the pasture (none on Great Lakes).
 8. **`World::analyze_map@006b58b0`, `World::compute_all_territory@006b5700`,
    `Herd::create_units@007417f0`** (44 draws here), the scripts.
    `compute_all_territory` and `analyze_map`'s region arm are ported for
-   the live game; the herds are not built from a lobby. **Not built.**
+   the live game; the herds are not built from a lobby. **Not built**
+   (the territory agrees already: `build_cities`' own pass is the last
+   writer of every owner on this lobby).
 
 Then `Setup::reinit_game_units` re-reads every object's `z` from the
 terrain, and `begin_game` dumps.
@@ -162,8 +195,12 @@ personality (from the trace's bracket) and the sync word.
 builds run9's lobby (`gamelog-run9-world6.txt`, `WORLD=6`, with run11's
 setup trace and run3's heights borrowed) from its `GAMEINFO` block alone
 and compares it with `build_sim`'s install of the same capture;
-`RON_START_DIFF=1` prints the value diff. **9,089 of 18,264 fields agree**
-(9,087 at item 4033).
+`RON_START_DIFF=1` prints the value diff (`=all`, every parted field).
+**18,039 of 18,264 fields agree** (9,087 at item 4033, 9,089 at 4046).
+Its sibling `the_harness_lobby_s_map_is_the_traced_setup_path` holds the
+composed map against run11's setup trace at every checkpoint, the stream
+at 955, 13457 and 1032, and the computer's `build_empire` against
+run100's draw sites.
 
 - **The war matrix agrees** (item 4046; 4033 had it first parted, ours
   `[false, false]`, theirs `[false, true]`). Its writer is `Leader::init`'s
@@ -178,14 +215,19 @@ and compares it with `build_sim`'s install of the same capture;
   `Game::do_frame`'s `set_diplo(…, 0)` (the end of a rush's peace) runs
   after the dump. On this lobby (`TEAM_STYLE 1`, `RUSH_RULES 0`, both seats
   on team 8) the row is 0 off the diagonal.
-- **The first parted row is now the map's first cell**, `CELL 0 0
-  region` ours `false` theirs `true`, and every row ahead of it agrees:
-  both nations, both human bits, the goods, the ages, the techs, the war
-  matrix, the extent and `world->seed`. **9,089 of 18,264 fields agree.**
-- After it: the map parts on every cell (3,600 `region`, 2,303 `val`,
-  1,706 `flags`, 790 `land`), the computer's personality, all 13 buildings
-  and 52 units on every field, 527 territory cells and the sync word —
-  each downstream of step 4.
+- **The map agrees** (item 4047): every cell's `land`, region, `val` and
+  `flags` as the map maker and `mark_forest` leave them, 8,056 fields.
+  Then the personality (1), the villages' wear on the values and the
+  territory (314 `val`, 527 `owner`, 8 flags, 6 `BUILD` fields), and the
+  computer's six pre-placed buildings and the human's camp (32 fields).
+- **The first parted row is now `CELL 2 37 flags`**, ours 512 theirs 640:
+  0x80 round the human's farms. The human's farms, library and market
+  stand elsewhere (`BUILD 0/2002 pos` ours `2112 31104` theirs `2688
+  32064`) because the computer's `build_units` spends 2 + 7 draws ahead
+  of them in the original and none here.
+- After it: 11 footprint flags and 5 positions round the human's
+  buildings, all 52 units on every field (the players' 12, gaia's 40) and
+  the sync word — each downstream of `build_units` and `Herd::create_units`.
 
 ## 5. The counter
 
@@ -203,7 +245,11 @@ comparison, so the counter cannot read 1 while that lobby parts.
 
 - **Diff-backed** (the comparison above): the extent on Small, the
   nations and human bits from `PLAYER`, `world->seed` after one nation
-  draw and the re-seed, the war matrix. The diplomacy row's formula was
+  draw and the re-seed, the war matrix; the Great Lakes map composed from
+  the lobby (19 checkpoints of run11's trace, and every cell of the start
+  block), the start permutation and the personality (the trace's words
+  at 955 and 13457), the villages and the territory, the computer's
+  pre-placed buildings (the start block, and run100's draw sites). The diplomacy row's formula was
   also scored against **every start dump on disk** (item 4046, a scratch
   scan of each log's `GAMEINFO` against its `LEADERDATA diplos[scan]`):
   633 logs, 1,334 ordered pairs, every one predicted — 1,322 at war under
@@ -218,10 +264,14 @@ comparison, so the counter cannot read 1 while that lobby parts.
   refusal — no capture on disk has a team game or an unlocked style.
   The style-7 refusal is equivalent at frame 0 (a seat on team 8 already
   fails the `0..4` test), so no lobby can tell it apart.
-- **Not established**: the team assignment
-  and the handicaps; the composition of the map chain into a `World` and
-  the start cells; the start permutation; every placement draw of
-  `build_empire`; `Herd::create_units`. ORDERS §9.2–9.3 hold the readings
-  of the placer and `place_unit`; neither is ported.
+- **Not established**: the team assignment and the handicaps; a
+  composed chain for any style but Great Lakes, and Great Lakes at any
+  other lobby; the default tileset draw's unavailable-name arm (a second
+  draw, parked 3819b); a team game's consecutive teammates; `build_units`
+  and every draw of it; the Large Town list; `Herd::create_units`.
+  ORDERS §9.3 holds the reading of `place_unit`; it is not ported, and
+  no port steps a unit that is not inside off a footprint
+  (`Unit::come_out(u, 0)` at birth). ORDERS §9.2's placer prose puts the
+  draw on the wrong arm (parked 4047a); the port is right.
 - **Coverage**: one lobby compared of 161. The others need their own
   installed side (`build_sim` on each start dump) and are item 4034's.
