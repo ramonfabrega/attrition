@@ -105,3 +105,127 @@ pub fn create_units<V: HerdView>(h: &HerdRec, v: &mut V) -> bool {
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// The crate's view
+// ---------------------------------------------------------------------------
+
+/// Gaia's animals: `Objects::init_unit(8, …)`.
+pub const HERD_OWNER: crate::Player = 8;
+/// `find_nearby_spot`'s inner radius in `create_units` (`0xc0`); its outer
+/// radius and step are the defaults (`-1`, `0`).
+pub const HERD_SPOT_MIN: i32 = 0xc0;
+/// The sweep's bearing, `0x55555555`.
+pub const HERD_SPOT_BEARING: i32 = 0x5555_5555;
+
+/// [`HerdView`] over a [`crate::Sim`] (item 4063): the founding a lobby's
+/// start walks after the players' units (`Herds::start_herds@00741d10`,
+/// `docs/START.md` §2 step 8). Each animal is born as
+/// [`crate::Sim::spawn_bird_at`] births a bird — `Unit::init`'s snap, the
+/// type's record, one `Guy::init_real` draw a figure — but of owner 8, and
+/// moved by `UnitType::find_nearby_spot(…, 0xc0, -1, 0, 0x55555555,
+/// FILTER_NOT_ME, o, who, …)` ([`crate::Sim::find_nearby_spot_type_for`]).
+/// Not modelled: what `Animal::init` adds to `Unit::init` (no field the
+/// start block compares), and a refused sweep's out-words, which the
+/// original leaves as its uninitialised locals (here the herd's centre).
+pub struct SimHerd<'a> {
+    pub sim: &'a mut crate::Sim,
+    /// The animals made, in birth order.
+    pub made: Vec<usize>,
+}
+
+impl SimHerd<'_> {
+    fn ty(&self, unit: i32) -> Option<usize> {
+        self.sim.units[unit as usize].ty
+    }
+}
+
+impl HerdView for SimHerd<'_> {
+    fn init_unit(&mut self, kind: i32, x: i32, y: i32) -> i32 {
+        let Some(ty) = self
+            .sim
+            .tables
+            .unit_types
+            .iter()
+            .position(|t| t.type_index == kind)
+        else {
+            return -1;
+        };
+        let at = crate::Pos::new(crate::gaia::init_snap(x), crate::gaia::init_snap(y));
+        let Some(index) = self
+            .sim
+            .find_free(HERD_OWNER, crate::UNIT_BASE, crate::BUILD_BASE)
+        else {
+            return -1;
+        };
+        let t = &self.sim.tables.unit_types[ty];
+        let mut unit = crate::Unit::new(HERD_OWNER, index, at, t.hits.max(1));
+        unit.kind = t.kind;
+        unit.ty = Some(ty);
+        unit.type_index = t.type_index;
+        unit.form = crate::init_form(unit.type_index);
+        unit.movement.speed = self.sim.type_speed(HERD_OWNER, ty);
+        unit.movement.turning = self.sim.turning_for(ty);
+        unit.stance = self.sim.init_stance(HERD_OWNER, ty);
+        let u = self.sim.add_unit(unit);
+        self.sim.init_guys(u, Some(ty));
+        self.made.push(u);
+        u as i32
+    }
+    fn unit_dims(&mut self, unit: i32) -> (u8, i16) {
+        let u = &self.sim.units[unit as usize];
+        (u.owner, u.index)
+    }
+    fn find_nearby_spot(&mut self, unit: i32, x: i32, y: i32, _dims: (u8, i16)) -> (i32, i32) {
+        let Some(ty) = self.ty(unit) else {
+            return (x, y);
+        };
+        self.sim
+            .find_nearby_spot_type_for(
+                ty,
+                unit as usize,
+                crate::Pos::new(x, y),
+                HERD_SPOT_MIN,
+                -1,
+                crate::movement::Angle(HERD_SPOT_BEARING),
+            )
+            .map_or((x, y), |p| (p.x, p.y))
+    }
+    fn is_inlined(&mut self, _unit: i32) -> bool {
+        true
+    }
+    fn unit_is(&mut self, unit: i32, t: i32) -> bool {
+        self.sim.units[unit as usize].type_index == t
+    }
+    fn random(&mut self) -> i32 {
+        self.sim.rng.get(0, 0xffff)
+    }
+    fn degrees_to_angle(&mut self, rem: i32) -> i32 {
+        crate::movement::degrees_to_angle(rem).0
+    }
+    fn set_angle(&mut self, unit: i32, angle: i32, _left: Left) {
+        self.sim.units[unit as usize]
+            .movement
+            .set_facing(crate::movement::Angle(angle));
+    }
+    fn set_new_location(&mut self, unit: i32, x: i32, y: i32) {
+        self.sim
+            .set_new_location(unit as usize, crate::Pos::new(x, y), true);
+    }
+    fn set_tag(&mut self, unit: i32, tag: i16) {
+        self.sim.units[unit as usize].herd = usize::try_from(tag).ok();
+    }
+}
+
+impl crate::Sim {
+    /// **`Herd::create_units@007417f0`** for herd `h`, over [`SimHerd`]:
+    /// the animals it founded, in birth order, and whether every one was.
+    pub fn found_herd(&mut self, h: &HerdRec) -> (Vec<usize>, bool) {
+        let mut view = SimHerd {
+            sim: self,
+            made: Vec::new(),
+        };
+        let done = create_units(h, &mut view);
+        (view.made, done)
+    }
+}

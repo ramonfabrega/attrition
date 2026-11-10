@@ -105,6 +105,30 @@ impl Setup<'_> {
         self.sim.produce_building(who, rec, near, city, escrow)
     }
 
+    /// [`Sim::place_unit`] (`units/starting.rs`): `Setup::place_unit`'s
+    /// arm for a start with a city (`docs/START.md` §2 step 7).
+    pub fn place_unit(
+        &mut self,
+        who: Player,
+        city: Option<usize>,
+        ty: usize,
+        at: Pos,
+    ) -> Result<usize, crate::units::starting::PlaceRefused> {
+        self.sim.place_unit(who, city, ty, at)
+    }
+
+    /// [`Sim::come_out_own_point`] (`units/starting.rs`): a starting
+    /// citizen's `Unit::come_out(u, 0)` off its building.
+    pub fn come_out_own_point(&mut self, u: usize) -> Pos {
+        self.sim.come_out_own_point(u)
+    }
+
+    /// [`Sim::found_herd`] (`gaia/herd_create_view.rs`):
+    /// `Herd::create_units` (`docs/START.md` §2 step 8).
+    pub fn found_herd(&mut self, h: &crate::gaia::herd_create_view::HerdRec) -> (Vec<usize>, bool) {
+        self.sim.found_herd(h)
+    }
+
     /// [`Sim::close_building`] (`cities/city.rs`).
     pub fn close_building(&mut self, b: usize, silent: bool) {
         self.sim.close_building(b, silent)
