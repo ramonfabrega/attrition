@@ -807,6 +807,12 @@ mod tests {
         b.started = false;
         assert!(b.foundation_drawn() && !b.drawn());
         assert!(b.scaffold(&timing()).is_empty(), "not started: no scaffold");
+        // At share 0 no window is open either, so the gate must be seen at
+        // a share inside one: the dumps' placed Redoubts never show it.
+        let mut placed = building(414, false, 300, 1);
+        assert_eq!(placed.scaffold(&timing()).len(), 2);
+        placed.started = false;
+        assert!(placed.scaffold(&timing()).is_empty(), "not started at 0.30");
         assert!(building(414, false, 840, 0).foundation_drawn());
         assert!(building(414, false, 879, 0).foundation_drawn());
         assert!(!building(414, false, 880, 0).foundation_drawn());

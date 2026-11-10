@@ -1472,12 +1472,41 @@ pub fn build_art(
 /// `internal_strings.xml`'s `halfoffset`, the attribute `init_build_data`
 /// reads into `BuildRDataStruct::build_half_tcoord`, default 0; every
 /// `<BUILD>` of one `GRAPH` carries the same value, so it is kept by type.
+///
+/// Item 4061 adds what the foundation and the scaffold read: each piece's
+/// `constructsize` (`BuildRDataStruct +0x28`, `build_construction`, which
+/// unlike `halfoffset` differs between one `GRAPH`'s ages — the Asian,
+/// Arab and East Indian cities), the install's `<SCAFFOLD_TIMING>` tables
+/// ([`scaffold_timing`]), and, once [`BuildLook::with_types`] has run,
+/// each type's footprint, domain and lineage.
 #[derive(Clone, Debug, Default)]
 pub struct BuildLook {
     /// The pieces that load, by piece number.
     loads: std::collections::BTreeSet<i32>,
     /// `halfoffset` by `TypeIndex`.
     half: BTreeMap<i32, i32>,
+    /// `constructsize` by piece number, where it is not 0.
+    construct: BTreeMap<i32, i32>,
+    /// What the two construction passes read of a type, by `TypeIndex`.
+    kinds: BTreeMap<i32, ConstructKind>,
+    /// The install's `<SCAFFOLD_TIMING>` tables.
+    timing: render::draw::ScaffoldTiming,
+}
+
+/// What `WallOut::draw_underlays@006410a0`, `GraphicPieces::
+/// get_construct_gpiece@00907840` and `GraphicPieces::draw_scaffold
+/// @00907420` read of a building type (item 4061).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+struct ConstructKind {
+    /// `BuildTypeData +0x234` and `+0x238`: the footprint.
+    x_size: i32,
+    y_size: i32,
+    /// `BuildTypeData +0x218 == 1`: the water domain.
+    water: bool,
+    /// `is(0x1b6)`: of the Senate's lineage.
+    senate: bool,
+    /// `is(0x1a1)`: the farm, which draws neither.
+    farm: bool,
 }
 
 impl BuildLook {
@@ -1511,13 +1540,99 @@ impl BuildLook {
             if zbuffer.is_empty() || resolve(install.root(), zbuffer).is_some() {
                 look.loads.insert(piece);
             }
-            let half = b
-                .attribute("halfoffset")
-                .and_then(|v| v.trim().parse().ok())
-                .unwrap_or(0);
-            look.half.entry(type_index).or_insert(half);
+            let int = |key: &str| -> i32 {
+                b.attribute(key)
+                    .and_then(|v| v.trim().parse().ok())
+                    .unwrap_or(0)
+            };
+            look.half.entry(type_index).or_insert(int("halfoffset"));
+            let construct = int("constructsize");
+            if construct != 0 {
+                look.construct.insert(piece, construct);
+            }
         }
+        look.timing = scaffold_timing(install).unwrap_or_default();
         look
+    }
+
+    /// The look with each type's footprint, domain and lineage, read from
+    /// `types` — the loaded `BUILDING` rows in the tree's order, the
+    /// `TypeIndex` [`crate::load::BASE_BUILDTYPES`] on. Without it, no
+    /// building has a foundation or a scaffold.
+    pub fn with_types(mut self, types: &[sim::cities::build::BuildType]) -> Self {
+        use sim::cities::build::{BuildDomain, Ident, is};
+        self.kinds = (0..types.len())
+            .map(|t| {
+                let ty = &types[t];
+                let kind = ConstructKind {
+                    x_size: ty.x_size,
+                    y_size: ty.y_size,
+                    water: ty.domain() == BuildDomain::Water,
+                    senate: is(types, t, Ident::Senate),
+                    farm: is(types, t, Ident::Farm),
+                };
+                (crate::load::BASE_BUILDTYPES + t as i32, kind)
+            })
+            .collect();
+        self
+    }
+
+    /// The install's `<SCAFFOLD_TIMING>` tables ([`scaffold_timing`]).
+    pub fn scaffold_timing(&self) -> &render::draw::ScaffoldTiming {
+        &self.timing
+    }
+
+    /// `constructsize` of the piece's `<BUILD>`; 0 where it has none.
+    pub fn construct_size(&self, piece: i32) -> i32 {
+        self.construct.get(&piece).copied().unwrap_or(0)
+    }
+
+    /// **The foundation `WallOut::draw_underlays@006410a0` draws under a
+    /// building of `type_index` showing `piece`**, or `None` for the farm
+    /// (`!= 0x1a1` at `0064154c`) and a type [`BuildLook::with_types`] did
+    /// not see. The slot is `GraphicPieces::get_construct_gpiece
+    /// @00907840`'s: 9 for the water domain, 10 for the Senate's lineage,
+    /// else the piece's `constructsize`, or the footprint's `y` where that
+    /// is 0, less one. The point is moved back the piece's `halfoffset`
+    /// half tiles, or, where its `constructsize` is not 0, the footprint's
+    /// `x` less it (`draw_underlays`' reads of the piece's `BuildRData
+    /// +0x28` and `+0x2c`).
+    pub fn foundation(&self, type_index: i32, piece: i32) -> Option<render::draw::Foundation> {
+        let k = self.kinds.get(&type_index)?;
+        if k.farm {
+            return None;
+        }
+        let construct = self.construct_size(piece);
+        let slot = if k.water {
+            9
+        } else if k.senate {
+            10
+        } else if construct != 0 {
+            construct - 1
+        } else {
+            k.y_size - 1
+        };
+        let back = if construct != 0 {
+            k.x_size - construct
+        } else {
+            self.half_offset(type_index)
+        };
+        Some(render::draw::Foundation {
+            slot: u8::try_from(slot).ok()?,
+            back,
+        })
+    }
+
+    /// **The `<SCAFFOLD_TIMING>` table `GraphicPieces::draw_scaffold
+    /// @00907420` reads for `type_index`**: the footprint's `y` less one,
+    /// or 9 for the Senate's lineage; `None` for the farm, the water
+    /// domain and a type [`BuildLook::with_types`] did not see.
+    pub fn scaffold_table(&self, type_index: i32) -> Option<u8> {
+        let k = self.kinds.get(&type_index)?;
+        if k.farm || k.water {
+            return None;
+        }
+        u8::try_from(if k.senate { 9 } else { k.y_size - 1 }).ok()
     }
 
     /// `halfoffset` of the type's `<BUILD>` entries; 0 where it has none.
@@ -1549,6 +1664,74 @@ impl BuildLook {
             .find(|p| self.loads.contains(p))
             .unwrap_or(FIRST_BUILD_PIECE + ty)
     }
+}
+
+/// **`GraphicPieces::init_scaffold_timing@008ed6c0`'s ten tables**
+/// (item 4061): `effects_graphics.xml`'s `<SCAFFOLD_TIMING>` elements in
+/// file order, each `<TIMING name start_percent end_percent x y z angle>`
+/// a slot, `x`, `y` and `z` times three (`0x40400000`). A slot is kept
+/// only where its `name` is one of `ammo_names` — the comparison is
+/// `String::operator==@00a1f140`'s, without case, so `Crane` finds
+/// `crane` — and its element is the name's first `<SCAFFOLD>`, in file
+/// order: the loader's `first_ammo_piece + index`, less the scaffold's
+/// first piece. That holds while no `<AMMO>` or `<ENTRENCH>` shares a
+/// scaffold's name, which this refuses; it also refuses an offset or an
+/// angle that is not whole.
+pub fn scaffold_timing(install: &Install) -> Result<render::draw::ScaffoldTiming, String> {
+    let path = install.data("effects_graphics.xml");
+    let text = crate::read(&path).map_err(|e| e.to_string())?;
+    let doc = crate::parse(&path, &text).map_err(|e| e.to_string())?;
+    let name = |n: &roxmltree::Node<'_, '_>| {
+        n.attribute("name")
+            .map(|v| v.trim().to_ascii_lowercase())
+            .unwrap_or_default()
+    };
+    let mut scaffolds: Vec<String> = Vec::new();
+    for n in doc.descendants().filter(|n| n.has_tag_name("SCAFFOLD")) {
+        scaffolds.push(name(&n));
+    }
+    for n in doc
+        .descendants()
+        .filter(|n| n.has_tag_name("AMMO") || n.has_tag_name("ENTRENCH"))
+    {
+        if scaffolds.contains(&name(&n)) {
+            return Err(format!("{} shares a scaffold's name", name(&n)));
+        }
+    }
+    let whole = |n: &roxmltree::Node<'_, '_>, key: &str, by: i32| -> Result<i32, String> {
+        let v = n.attribute(key).map(str::trim).unwrap_or("0");
+        v.parse::<i32>()
+            .map(|v| v * by)
+            .map_err(|_| format!("<TIMING {key}=\"{v}\"> is not whole"))
+    };
+    let share = |n: &roxmltree::Node<'_, '_>, key: &str| -> f32 {
+        n.attribute(key)
+            .and_then(|v| v.trim().parse::<f64>().ok())
+            .unwrap_or(0.0) as f32
+    };
+    let mut tables = Vec::new();
+    for t in doc
+        .descendants()
+        .filter(|n| n.has_tag_name("SCAFFOLD_TIMING"))
+    {
+        let mut slots = Vec::new();
+        for s in t.children().filter(|n| n.has_tag_name("TIMING")) {
+            let Some(element) = scaffolds.iter().position(|x| *x == name(&s)) else {
+                continue;
+            };
+            slots.push(render::draw::ScaffoldSlot {
+                element: u8::try_from(element).map_err(|e| e.to_string())?,
+                start: share(&s, "start_percent"),
+                end: share(&s, "end_percent"),
+                dx: whole(&s, "x", 3)?,
+                dy: whole(&s, "y", 3)?,
+                dz: whole(&s, "z", 3)?,
+                angle: whole(&s, "angle", 1)?,
+            });
+        }
+        tables.push(slots);
+    }
+    Ok(render::draw::ScaffoldTiming { tables })
 }
 
 /// **A building piece's condition 1** (item 4028, `docs/RENDERER.md`
