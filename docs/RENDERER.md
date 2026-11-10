@@ -1063,9 +1063,9 @@ original too; it is drawn over it. The rejected readings with the silhouettes: `
   run1559b's packet the riflemen (type 110) precede the tanks (246). Every list writes depth with `zbias` 0, so
   the order decides no opaque pixel; whether a silhouette (list 1, not written) lies over a nearer figure turns
   on the type ids.
-- A vehicle's tilt to the slope (item 4087; parked 4087a): `GuyOut::draw@005dc490` rotates a guy whose unit
-  type's `+0x14` is 2 or 3 (the tanks' 2; the riflemen's 0) to `GuyData::find_slope_normal@005de140`'s
-  normal, eased a quarter per draw in `last_norm` and applied below z 0.999. Our client draws no unit tilted.
+- ~~A vehicle's tilt to the slope (item 4087; parked 4087a)~~: read and drawn (item 4089, §5.3 "The tilt";
+  `render::slope`). Not established: the draw clock the ease runs on, which the packet puts at about one draw
+  per 11–16 sim frames (parked 4089a); the client draws the ease's fixed point.
 - The blend: the key buffer keeps a fragment whole where its alpha passes; the original blends it, which moves
   colour, not a footprint.
 - The depth of a building's sprite against a tree. Ours puts the anchor's flat draw-list depth against the tree's
@@ -1235,8 +1235,6 @@ rest (`RUN1559B_3279`); run1441's camera reads 0 of 24 under both readers.
   fewer than 40 pixels.
 - *Made to fail.* The same frame at run1441's camera scores 0 of 25
   (`RUN1441_CAMERA_3294`).
-- *The facing*: a sign flip in world y, not an offset (§3.6; item 4069's
-  journal).
 - *The second reader* (item 4071): a mask traced by hand on the photograph
   (`TRACED`, `Reader::Mask`), which reads neither our draw nor a colour,
   pinned before its first count. It reads both bare windows (`BARE`) empty
@@ -1261,10 +1259,10 @@ rest (`RUN1559B_3279`); run1441's camera reads 0 of 24 under both readers.
 - *The misses* (on 3279). ~~The capital as its `zbuffer` model (4036a);
   the figures by the derrick (4082a, 4085).~~
 - **The row on the default draw**, the buildings as their sprites, by
-  item 4077's reader (`RUN1559B_3279_TRACED`): **30 of 33** (4085); its
-  steps from 27 of 33 (4077–4085) are the pin's comment and each item's
-  journal; treeless 29 of 33; run1441's camera 0 of 32.
-  Out: three riflemen (4087a). The
+  item 4077's reader (`RUN1559B_3279_TRACED`): **31 of 33** (4089); its
+  steps from 27 of 33 (4077–4089) are the pin's comment and each item's
+  journal; treeless 30 of 33; run1441's camera 0 of 32.
+  Out: 1/20 and 1/32 (4089b). The
   `RUN1559B_3279_*` rows above are the `zbuffer` draw's, kept by name.
 - *The trees* (4080, before its count; §3.7). A tree hides what is
   behind it; its pixel is the ground's; it is never scored. Rejected:
@@ -1277,14 +1275,15 @@ rest (`RUN1559B_3279`); run1441's camera reads 0 of 24 under both readers.
   nearer depth stays; figures keep depth order among themselves
   (`Silhouettes::Drawn`; `render_states[1]`, 4085's journal).
   Rejected: `Silhouettes::None`.
+- *The tilt* (4089, before its count; §3.7). A figure of `CAT` Mech or
+  Artillery (`+0x14` 2, 3) turns by `misc_rot`, before its facing, to the
+  negated `WorldData::find_slope_normal` at its point, taken whole, when
+  that z is under 0.999 (`Tilt::Target`). Beside it: the ease at a draw a
+  frame from 3200 (`Tilt::Eased`); kept, `Tilt::Level`.
 - *What it does not measure.* Colour: textures and team colours are not
   bound (4038a).
-- *Where the inputs are.* The photograph is converted once to `.tga`
-  (`sips -s format tga`), so `render::tga` reads it with no new
-  dependency. `client --silhouette OUT.bmp` prints every row and writes
-  the scoring over the photograph. The reading constants and the
-  interface rectangles are this frame's, chosen once and pinned, never
-  tuned to a count.
+- *The constants* and interface are this frame's, pinned, never tuned
+  to a count (the inputs: 4089's journal).
 
 ### 5.4 Recommended: pieces in register, K of M
 

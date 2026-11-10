@@ -114,6 +114,14 @@ pub struct World {
     pub silhouettes: Silhouettes,
     /// The winding the trees' alpha-tested draw culls ([`TREE_CULL`]).
     pub tree_cull: render::silhouette::Cull,
+    /// How a tracked figure leans to the ground (item 4089).
+    pub tilt: Tilt,
+    /// Each unit type's `CAT` (`UnitTypeData +0x14`, an index into
+    /// `rules.xml`'s `unit_cats`), by type index.
+    cats: Vec<i32>,
+    /// [`Tilt::Eased`]'s `GuyData::last_norm` per figure, eased once a
+    /// frame from [`EASE_FROM`] on.
+    eased: BTreeMap<(u8, i16, u16), [f32; 3]>,
     /// The lobby's tileset's trees: `tree_scale` and each model at rest,
     /// `None` where it does not decode; `None` whole where the tileset's
     /// trees do not read.
@@ -155,6 +163,33 @@ pub enum Leaves {
     /// culled.
     Alpha,
 }
+
+/// **How a tracked figure leans to the ground** (item 4089,
+/// `docs/RENDERER.md` §3.7 and §5.3, "The tilt"). `GuyOut::draw@005dc490`
+/// tilts a guy whose type's `CAT` is Mechanized or Artillery to
+/// `GuyData::last_norm`, which eases a quarter of the way to the negated
+/// `WorldData::find_slope_normal` at every draw; the client replays no
+/// draw clock.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Tilt {
+    /// Every figure level: the draw before item 4089.
+    #[cfg_attr(not(test), allow(dead_code))]
+    Level,
+    /// The default: the target normal at the figure's point on the frame,
+    /// taken whole — the ease's fixed point.
+    Target,
+    /// The ease at one draw a frame, from [`EASE_FROM`] (the first frame
+    /// takes the target whole, as the unset `last_norm` does).
+    #[cfg_attr(not(test), allow(dead_code))]
+    Eased,
+}
+
+/// The first frame [`Tilt::Eased`] keeps its normals from.
+pub const EASE_FROM: i64 = 3200;
+
+/// `rules.xml`'s `unit_cats` indices `GuyOut::draw` tilts: `Mech` and
+/// `Artillery`.
+const TILTED_CATS: [i32; 2] = [2, 3];
 
 /// **Whether a land figure is drawn over what stands nearer** (item 4085,
 /// `docs/RENDERER.md` §5.3, "The silhouettes").
@@ -320,6 +355,7 @@ impl World {
                         .collect(),
                 }
             });
+        let cats = loaded.unit_types.iter().map(|t| t.cols.cat).collect();
         Ok(World {
             look: BuildLook::new(&install).with_types(&loaded.build_types),
             tribes,
@@ -338,6 +374,9 @@ impl World {
             leaves: Leaves::Alpha,
             silhouettes: Silhouettes::Drawn,
             tree_cull: TREE_CULL,
+            tilt: Tilt::Target,
+            cats,
+            eased: BTreeMap::new(),
             tree_art,
         })
     }
@@ -346,7 +385,48 @@ impl World {
     pub fn run_to(&mut self, frame: i64) {
         while self.runner.frame() < frame {
             self.runner.step();
+            if self.runner.frame() >= EASE_FROM {
+                self.ease();
+            }
         }
+    }
+
+    /// Whether a unit of type `ty` leans to the ground.
+    fn tilts(&self, ty: Option<usize>) -> bool {
+        ty.and_then(|t| self.cats.get(t))
+            .is_some_and(|c| TILTED_CATS.contains(c))
+    }
+
+    /// One draw of `GuyData::find_slope_normal` for every tracked figure.
+    fn ease(&mut self) {
+        let scene = self.runner.scene(None);
+        let mut eased = std::mem::take(&mut self.eased);
+        for u in scene.units.iter().filter(|u| self.tilts(u.ty)) {
+            for (k, f) in u.figures.iter().enumerate() {
+                let (_, n) = self.slope_normal(f.pos.x, f.pos.y);
+                let last = eased
+                    .entry((u.id.who, u.id.o, k as u16))
+                    .or_insert(render::slope::UNSET);
+                render::slope::ease(last, render::slope::target(n));
+            }
+        }
+        self.eased = eased;
+    }
+
+    /// The normal a figure is drawn tilted to under [`World::tilt`], or
+    /// `None` when it is drawn level.
+    fn tilt_normal(&self, key: (u8, i16, u16), at: [i32; 3]) -> Option<[f32; 3]> {
+        let n = match self.tilt {
+            Tilt::Level => return None,
+            Tilt::Target => {
+                let mut n = render::slope::UNSET;
+                let (_, w) = self.slope_normal(at[0], at[1]);
+                render::slope::ease(&mut n, render::slope::target(w));
+                n
+            }
+            Tilt::Eased => *self.eased.get(&key)?,
+        };
+        (n[2] < render::slope::LEVEL_Z).then_some(n)
     }
 
     /// The heightfield's triangles, rebuilt when the door's terrain version
@@ -364,6 +444,19 @@ impl World {
             self.terrain = (t.version, TerrainMesh::build(&field, &t.land, &mountains));
         }
         &self.terrain.1
+    }
+
+    /// `WorldData::find_slope_normal@006b5130` at `(x, y)` on our terrain
+    /// as it stands now: the three heights it reads and its normal
+    /// (`render::slope`, item 4089).
+    pub fn slope_normal(&self, x: i32, y: i32) -> ([i32; 3], [f32; 3]) {
+        let t = self.runner.terrain();
+        let field = Heightfield {
+            width: t.width,
+            height: t.height,
+            corners: &t.corners,
+        };
+        render::slope::world_normal(&field, x, y)
     }
 
     /// The tileset's tree models, where they read.
@@ -620,13 +713,26 @@ impl World {
             .collect();
         let at_building: BTreeMap<(u8, i16), &PlacedBuilding> =
             buildings.iter().map(|b| ((b.who, b.o), b)).collect();
+        let tilted: std::collections::BTreeSet<(u8, i16)> = if self.tilt == Tilt::Level {
+            Default::default()
+        } else {
+            self.runner
+                .scene(None)
+                .units
+                .iter()
+                .filter(|u| self.tilts(u.ty))
+                .map(|u| (u.id.who, u.id.o))
+                .collect()
+        };
         let mut out = Vec::new();
         for d in list {
+            let mut figure_key = None;
             let (point, facing, building, clock) = match d.pose {
                 Pose::Figure { figure, facing, .. } => {
                     let Some(p) = at_figure.get(&(d.who, d.o, figure)) else {
                         continue;
                     };
+                    figure_key = Some((d.who, d.o, figure));
                     ([p.x, p.y, p.z], facing, false, Some((p.slot, p.frame)))
                 }
                 Pose::Building { .. } => {
@@ -654,7 +760,20 @@ impl World {
                 placement(point, facing, mesh.scale)
             } else {
                 let drawn = sim::data::pivot::release_rotation(sim::movement::Angle(facing as i32));
-                guy_placement(point, drawn, mesh.scale)
+                let lean = figure_key
+                    .filter(|k| tilted.contains(&(k.0, k.1)))
+                    .and_then(|k| self.tilt_normal(k, point));
+                match lean {
+                    // `GuyOut::draw`'s `misc_rot`, composed before the
+                    // facing (`render::slope`).
+                    Some(n) => render::slope::tilted_placement(
+                        point,
+                        drawn,
+                        mesh.scale,
+                        Some(render::slope::misc_rot(n, drawn)),
+                    ),
+                    None => guy_placement(point, drawn, mesh.scale),
+                }
             };
             let pose = clock
                 .filter(|_| self.pose)

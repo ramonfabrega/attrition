@@ -37,6 +37,7 @@ pub mod chunk;
 pub mod draw;
 pub mod figure;
 pub mod silhouette;
+pub mod slope;
 pub mod terrain;
 pub mod tga;
 pub mod trees;

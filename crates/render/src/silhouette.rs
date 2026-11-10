@@ -348,7 +348,13 @@ pub const RUN1559B_3294: (usize, usize) = (2, 23);
 /// 0.498 → 0.647, 1/23 0.280 → 0.616 pass, 0/5 0.566 → 0.820 holds; the
 /// tanks 1/40 0.135 → 0.300 and 1/16 0.037 → 0.091 stay under, at the
 /// colour reader (4065b) and ~40 px above the photograph's (4065c).
-pub const RUN1559B_3294_POSED: (usize, usize) = (6, 23);
+///
+/// Item 4089, a figure of `CAT` Mech or Artillery tilted to its slope
+/// (§5.3, "The tilt"): 6 → 8 of 23. Two riflemen, neither tilted, each in
+/// a tilted tank's window, cross up: 1/24 0.492 → 0.535 and 1/22 0.480 →
+/// 0.500. The tanks stay under: 1/40 0.300 → 0.317, 1/15 0.019 → 0.037,
+/// 1/16 0.091 → 0.097. At rest, as before: [`RUN1559B_3294`].
+pub const RUN1559B_3294_POSED: (usize, usize) = (8, 23);
 
 /// The same frame, drawn posed, scored at run1441's camera of it, which the
 /// photograph was not taken at: the comparison made to fail (item 4038).
@@ -361,7 +367,11 @@ pub const RUN1441_CAMERA_3294: (usize, usize) = (0, 25);
 /// against ours 2,697, overlap 0.300 → 0.710; 1/15 theirs 98 → 1,988
 /// against 4,300, 0.019 → 0.237, and 1/16 474 → 2,100 against 3,849, 0.091
 /// → 0.357, stay under at the ~40 px place (4065c).
-pub const RUN1559B_3294_MASKED: (usize, usize) = (7, 23);
+///
+/// Item 4089, the tilt: 7 → 9 of 23, the same two riflemen by colour (1/24,
+/// 1/22, as [`RUN1559B_3294_POSED`]); by the mask 1/40 0.710 → 0.676, 1/15
+/// 0.237 → 0.260 and 1/16 0.357 → 0.364 hold their sides.
+pub const RUN1559B_3294_MASKED: (usize, usize) = (9, 23);
 
 /// The mask at run1441's camera: the made-to-fail, as for colour.
 pub const RUN1441_CAMERA_3294_MASKED: (usize, usize) = (0, 25);
@@ -374,13 +384,19 @@ pub const RUN1441_CAMERA_3294_MASKED: (usize, usize) = (0, 25);
 /// 0.357 → 0.781 pass; 1/35, the figure with no counterpart (4038c), is a
 /// mover and passes at 0.701 by colour. The tanks were placed right: the
 /// photograph is fifteen frames older than the packet.
-pub const RUN1559B_3279_MASKED: (usize, usize) = (16, 24);
+///
+/// Item 4089, the tilt: 16 → 18 of 24, and by colour alone 13 → 15. Two
+/// riflemen, neither tilted, each in a tilted tank's window, cross up: 1/20
+/// 0.497 → 0.507 and 1/36 0.340 → 0.622. The tanks by the mask: 1/40 0.790
+/// → 0.719, 1/15 0.669 → 0.766, 1/16 0.781 → 0.872. At rest 4 → 6: 1/36
+/// 0.366 → 0.661 and 1/22 0.437 → 0.501.
+pub const RUN1559B_3279_MASKED: (usize, usize) = (18, 24);
 
 /// The same frame by colour alone: 6 of 23 at 3294 → 13 of 24.
-pub const RUN1559B_3279_POSED: (usize, usize) = (13, 24);
+pub const RUN1559B_3279_POSED: (usize, usize) = (15, 24);
 
 /// The same frame drawn at rest, by colour: 2 of 23 at 3294 → 4 of 24.
-pub const RUN1559B_3279: (usize, usize) = (4, 24);
+pub const RUN1559B_3279: (usize, usize) = (6, 24);
 
 /// **The same frame with the buildings as the original draws them** (item
 /// 4076): each `<BUILD>`'s `texture=` sprite at `render::draw::sprite_at`
@@ -396,8 +412,12 @@ pub const RUN1559B_3279: (usize, usize) = (4, 24);
 /// 0.658, 0/10 0.531 → 0.354, 0/8 0.916 → 0.587, while 0/6 rises 0.280 →
 /// 0.474. The rows above are kept as the `zbuffer` draw's; candidate C's
 /// row on this draw is [`RUN1559B_3279_TRACED`] (item 4077).
-pub const RUN1559B_3279_SPRITES: (usize, usize) = (14, 23);
-pub const RUN1559B_3279_SPRITES_POSED: (usize, usize) = (11, 23);
+///
+/// Item 4089, the tilt: 14 → 16 by the mask, 11 → 13 by colour, the two
+/// riflemen of [`RUN1559B_3279_MASKED`] (1/20 0.497 → 0.507, 1/36 0.340 →
+/// 0.622).
+pub const RUN1559B_3279_SPRITES: (usize, usize) = (16, 23);
+pub const RUN1559B_3279_SPRITES_POSED: (usize, usize) = (13, 23);
 
 /// **Candidate C's row** (item 4077; `docs/RENDERER.md` §5.3, "A traced
 /// region"): frame 3279 at run1559b's camera on the client's default draw,
@@ -440,20 +460,42 @@ pub const RUN1559B_3279_SPRITES_POSED: (usize, usize) = (11, 23);
 /// 0/10 0.541. 0/6 0.513 → 0.535; 0/2001 0.670 → 0.688 (ours 5695 → 5800,
 /// theirs 6808 → 6968, both 5018 → 5206). No row crosses down. Hidden, as
 /// before: [`RUN1559B_3279_TRACED_NO_SILHOUETTES`].
-pub const RUN1559B_3279_TRACED: (usize, usize) = (30, 33);
+///
+/// **30 of 33 → 31 of 33** (item 4089): a figure of `CAT` Mech or
+/// Artillery tilted to the negated world slope normal at its point, taken
+/// whole, under §5.3's tilt rule (`207ec454b`, before its count). 1/31
+/// 0.469 → 0.537 (ours 669 → 674, theirs 318 → 362, both 315 → 362) crosses
+/// up; 1/20 0.482 → 0.489 and 1/32 0.283 → 0.287 stay out; the tank 1/27
+/// 0.662 → 0.713. 1/15 0.669 → 0.768, 1/16 0.772 → 0.855, 1/30 0.601 →
+/// 0.744, 1/36 0.503 → 0.724, 1/38 0.807 → 0.834, 1/33 0.549 → 0.546, 1/40
+/// 0.788 → 0.721. No row crosses down. Level, as before:
+/// [`RUN1559B_3279_TRACED_LEVEL`]; eased: [`RUN1559B_3279_TRACED_EASED`].
+pub const RUN1559B_3279_TRACED: (usize, usize) = (31, 33);
+
+/// [`RUN1559B_3279_TRACED`] with every figure level (`Tilt::Level`): the
+/// draw before item 4089.
+pub const RUN1559B_3279_TRACED_LEVEL: (usize, usize) = (30, 33);
+
+/// [`RUN1559B_3279_TRACED`] under the ease at one draw a frame from 3200
+/// (`Tilt::Eased`), the reading reported beside the rule (item 4089):
+/// 1/31 0.536, 1/20 0.488, 1/32 0.286.
+pub const RUN1559B_3279_TRACED_EASED: (usize, usize) = (31, 33);
 /// The silhouettes' rejected reading, `Silhouettes::None` (item 4085): a
 /// figure hidden where a tree or a sprite is nearer, item 4082's draw.
-pub const RUN1559B_3279_TRACED_NO_SILHOUETTES: (usize, usize) = (26, 29);
+/// Item 4089, the tilt: 26 → 27 of 29, 1/31 0.469 → 0.537 as in the rule.
+pub const RUN1559B_3279_TRACED_NO_SILHOUETTES: (usize, usize) = (27, 29);
 /// The trees' rejected reading, `TreePixels::Scene`: a tree's pixel is
 /// ours in every window it falls in. 26 of 29 under both leaf readings;
-/// 26 of 29 → 29 of 33 with the silhouettes (item 4085).
-pub const RUN1559B_3279_TRACED_TREES_SCENE: (usize, usize) = (29, 33);
+/// 26 of 29 → 29 of 33 with the silhouettes (item 4085). Item 4089, the
+/// tilt: → 30 of 33, 1/31 0.469 → 0.537, as are the leaves solid and the
+/// treeless draw below.
+pub const RUN1559B_3279_TRACED_TREES_SCENE: (usize, usize) = (30, 33);
 /// The leaves' rejected reading, `Leaves::Solid` (item 4082): every
 /// tree triangle whole, item 4080's draw. 25 of 29 → 29 of 33 with the
 /// silhouettes (item 4085).
-pub const RUN1559B_3279_TRACED_LEAVES_SOLID: (usize, usize) = (29, 33);
+pub const RUN1559B_3279_TRACED_LEAVES_SOLID: (usize, usize) = (30, 33);
 /// The row on the treeless draw (`--no-trees`): item 4079's 29 of 33.
-pub const RUN1559B_3279_TRACED_TREELESS: (usize, usize) = (29, 33);
+pub const RUN1559B_3279_TRACED_TREELESS: (usize, usize) = (30, 33);
 /// The rejected readings, reported beside the rule: a neighbour's trace as
 /// the scene; the interface skipped as before (the capital out); the paved
 /// plaza traced as the capital's (`client::silhouette::PLAZA`, 0/2000 0.818);
@@ -464,10 +506,14 @@ pub const RUN1559B_3279_TRACED_TREELESS: (usize, usize) = (29, 33);
 /// 23/29. With the leaves alpha-tested (item 4082): 28/29 held, 16/19 →
 /// 17/19, 25/29 → 26/29, 23/29 → 24/29. With the silhouettes (item
 /// 4085): 28/29 → 32/33, 17/19 → 21/23, 26/29 → 30/33, 24/29 → 28/33.
+/// With the tilt (item 4089): 32/33 and 21/23 held; the plaza 30/33 →
+/// 31/33 (1/31 0.469 → 0.537); un-notched 28/33 → 30/33, two riflemen in
+/// the tank's window crossing up, 1/36 0.436 → 0.739 and 1/38 0.464 →
+/// 0.750.
 pub const RUN1559B_3279_TRACED_SCENE: (usize, usize) = (32, 33);
 pub const RUN1559B_3279_TRACED_SKIP: (usize, usize) = (21, 23);
-pub const RUN1559B_3279_TRACED_PLAZA: (usize, usize) = (30, 33);
-pub const RUN1559B_3279_TRACED_WHOLE: (usize, usize) = (28, 33);
+pub const RUN1559B_3279_TRACED_PLAZA: (usize, usize) = (31, 33);
+pub const RUN1559B_3279_TRACED_WHOLE: (usize, usize) = (30, 33);
 /// The made-to-fail: the same frame and traces at run1441's camera; 0 of
 /// 32 → 0 of 28 with the trees drawn; → 0 of 32 with the silhouettes
 /// (item 4085).
@@ -483,8 +529,9 @@ pub const RUN1441_CAMERA_3279_MASKED: (usize, usize) = (0, 24);
 /// derrick's trees), and reads bare grass as objects: 323 of 12,000 and
 /// 113 of 16,000 pixels of `client::silhouette::BARE`, each above
 /// [`READING`]'s 40. It is kept as the record of that kill, never as the
-/// instrument.
-pub const ROBUST_3294: (usize, usize) = (9, 23);
+/// instrument. Item 4089, the tilt: 9 → 10, 1/24 robust 0.474 → 0.501;
+/// the bare grass held.
+pub const ROBUST_3294: (usize, usize) = (10, 23);
 pub const ROBUST_BARE: [u32; 2] = [323, 113];
 
 /// One object's two footprints in its window.
