@@ -102,6 +102,36 @@ pub struct World {
     /// resolve or decode.
     sprite_images: BTreeMap<i32, Option<std::sync::Arc<SpriteImage>>>,
     terrain: (u32, TerrainMesh),
+    /// Draw the map's trees (item 4080, `render::trees`). On by default;
+    /// `--no-trees` turns it off.
+    pub trees: bool,
+    /// The lobby's tileset's trees: `tree_scale` and each model at rest,
+    /// `None` where it does not decode; `None` whole where the tileset's
+    /// trees do not read.
+    tree_art: Option<TreeMeshes>,
+}
+
+/// The tileset's tree models, decoded once: `TileSetData::tree_scale` (the
+/// `treescale` times [`render::trees::TREESCALE_FACTOR`]) and each model's
+/// rest vertices and faces, in `graphics.txt`'s order.
+pub struct TreeMeshes {
+    pub scale: f32,
+    pub models: Vec<Option<(Vec<[f32; 3]>, Vec<[u16; 3]>)>>,
+}
+
+/// **The `who` a tree's drawing carries** (item 4080): no owner's, so no
+/// draw-list entry's; its `o` is the tree's index in [`World::tree_list`].
+pub const TREE_WHO: u8 = u8::MAX;
+
+/// **The lobby's tileset**, as `rondata`'s M test reads it (item 4037):
+/// the start dump's `map.cpp` 7805 seed, stepped back through the Great
+/// Lakes style's `TILECHANCE`s (`mapgen::tileset_before`). The style file
+/// is the pair's, named by [`START_DUMP`].
+pub fn lobby_tileset(root: &Path, start: &Path) -> Option<String> {
+    let head = rondata::mapgen::start_head(start).ok()??;
+    let seed = rondata::mapgen::start_grid(&head).at("map.cpp", 7805)?.2;
+    let chances = rondata::mapgen::tile_chances(root, "GREATLAKES.xml")?;
+    rondata::mapgen::tileset_before(&chances, seed)
 }
 
 /// A building's `texture=` decoded (`render::tga`), with its
@@ -167,6 +197,23 @@ impl World {
                 });
             }
         }
+        let tree_art = lobby_tileset(install_root, &start)
+            .and_then(|t| rondata::artdata::tree_art(&install, &t).ok())
+            .map(|art| {
+                let root = install.root().to_path_buf();
+                TreeMeshes {
+                    scale: art.treescale * render::trees::TREESCALE_FACTOR,
+                    models: art
+                        .models
+                        .iter()
+                        .map(|m| {
+                            let bytes = std::fs::read(resolve_art(&root, m)?).ok()?;
+                            let model = bh3::decode(&bytes).ok()?;
+                            Some((rest_pose(&model), model.faces.clone()))
+                        })
+                        .collect(),
+                }
+            });
         Ok(World {
             look: BuildLook::new(&install).with_types(&loaded.build_types),
             tribes,
@@ -180,6 +227,8 @@ impl World {
             sprite_images: BTreeMap::new(),
             runner,
             terrain: (u32::MAX, TerrainMesh::default()),
+            trees: true,
+            tree_art,
         })
     }
 
@@ -205,6 +254,65 @@ impl World {
             self.terrain = (t.version, TerrainMesh::build(&field, &t.land, &mountains));
         }
         &self.terrain.1
+    }
+
+    /// The tileset's tree models, where they read.
+    pub fn tree_meshes(&self) -> Option<&TreeMeshes> {
+        self.tree_art.as_ref()
+    }
+
+    /// **Every tree of the map as it stands now** (item 4080): each forest
+    /// cell of the door's `flags`, row-major, five trees a cell, placed and
+    /// chosen as `ObjectsOut::sort_trees@00656c70` does
+    /// (`render::trees::stand`). The original stands only the visible
+    /// cells; a tree off screen draws no pixel, so the client stands them
+    /// all.
+    pub fn tree_list(&self) -> Vec<render::trees::Tree> {
+        let Some(art) = &self.tree_art else {
+            return Vec::new();
+        };
+        let t = self.runner.terrain();
+        let field = Heightfield {
+            width: t.width,
+            height: t.height,
+            corners: &t.corners,
+        };
+        let forest = |x: i32, y: i32| {
+            x >= 0
+                && y >= 0
+                && x < t.width
+                && y < t.height
+                && t.flags[(y * t.width + x) as usize] & sim::world::cell::FOREST != 0
+        };
+        let cells = (0..t.height).flat_map(|y| (0..t.width).map(move |x| (x, y)));
+        render::trees::stand(&field, forest, cells, art.models.len())
+    }
+
+    /// The trees as drawings: each model at rest under
+    /// `render::trees::tree_placement`, [`TREE_WHO`] its owner. Empty with
+    /// [`World::trees`] off.
+    pub fn tree_drawings(&self) -> Vec<Drawing> {
+        let Some(art) = self.tree_art.as_ref().filter(|_| self.trees) else {
+            return Vec::new();
+        };
+        self.tree_list()
+            .iter()
+            .enumerate()
+            .filter_map(|(i, t)| {
+                let (rest, faces) = art.models.get(t.model)?.as_ref()?;
+                let m = render::trees::tree_placement(t.at, art.scale);
+                Some(Drawing {
+                    who: TREE_WHO,
+                    o: i as i16,
+                    piece: t.model as i32,
+                    building: false,
+                    tris: faces
+                        .iter()
+                        .map(|f| f.map(|k| apply(&m, rest[k as usize])))
+                        .collect(),
+                })
+            })
+            .collect()
     }
 
     /// This frame's figures and buildings as the observer sees them: the
@@ -480,7 +588,111 @@ fn shade(t: [[f32; 3]; 3]) -> f32 {
 
 #[cfg(test)]
 mod tests {
+    use super::{World, gamelog_dir};
     use render::figure::{apply, guy_placement, placement};
+    use std::path::PathBuf;
+
+    /// `tools/render/tree_points.py`'s output on run1559b's packet
+    /// (logger frame 3294), outside the repository: its `forest` cells and
+    /// its `tree` rows `(cell, mask, slot, x, y, z, model, sx, sy)`.
+    type PacketTree = ((i32, i32), u8, i32, (i32, i32, i32), usize, (i32, i32));
+    fn packet_trees() -> Option<(std::collections::BTreeSet<(i32, i32)>, Vec<PacketTree>)> {
+        let path = std::env::var_os("RON_TREE_ORACLE")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                PathBuf::from(std::env::var_os("HOME").unwrap_or_default())
+                    .join("ron-data/lab-experiments/2026-11-10-item-4080/run1559b-trees.txt")
+            });
+        let text = std::fs::read_to_string(path).ok()?;
+        let (mut forest, mut trees) = (std::collections::BTreeSet::new(), Vec::new());
+        for l in text.lines() {
+            let w: Vec<&str> = l.split(' ').filter(|t| *t != "->").collect();
+            let n = |i: usize| w[i].parse::<i32>().unwrap();
+            match w[0] {
+                "forest" => {
+                    forest.insert((n(1), n(2)));
+                }
+                "tree" => trees.push((
+                    (n(1), n(2)),
+                    n(3) as u8,
+                    n(4),
+                    (n(5), n(6), n(7)),
+                    n(8) as usize,
+                    (n(9), n(10)),
+                )),
+                _ => {}
+            }
+        }
+        Some((forest, trees))
+    }
+
+    /// **The trees in register with the packet's** (item 4080,
+    /// `docs/RENDERER.md` §3.7): on the photograph's frame, the runner's
+    /// forest cells are the packet's 189, and every one of the 60 trees the
+    /// original stands on its visible forest cells is one of ours — the
+    /// same cell, mask, slot, place, z and model — and projects, under the
+    /// pinned camera, to the packet's own `world_to_screen` pixel. Made to
+    /// fail: the trees shifted by one cell keep none in register.
+    #[test]
+    fn the_trees_stand_where_the_packet_stands_them() {
+        let Some((forest, packet)) = packet_trees() else {
+            println!("skipping: no tree oracle on disk");
+            return;
+        };
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let mut world = match World::open(&install, &gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        world.run_to(crate::silhouette::PHOTO_FRAME);
+        let art = world.tree_meshes().expect("the lobby's trees read");
+        assert_eq!(art.scale.to_bits(), 0x4079_9999, "tree_scale");
+        assert_eq!(art.models.iter().filter(|m| m.is_some()).count(), 24);
+        let t = world.runner.terrain();
+        let ours: std::collections::BTreeSet<(i32, i32)> = (0..t.height)
+            .flat_map(|y| (0..t.width).map(move |x| (x, y)))
+            .filter(|&(x, y)| t.flags[(y * t.width + x) as usize] & sim::world::cell::FOREST != 0)
+            .collect();
+        assert_eq!(ours, forest, "the forest cells");
+        let list = world.tree_list();
+        let at: std::collections::BTreeMap<((i32, i32), i32), &render::trees::Tree> =
+            list.iter().map(|t| ((t.cell, t.slot), t)).collect();
+        let m = crate::pinned_camera().to_screen_matrix();
+        let screen = crate::pinned_screen();
+        let project = |p: (i32, i32, i32)| {
+            let q = render::camera::world_to_screen(&m, &screen, p.0, p.1, p.2, None);
+            (q.x, q.y)
+        };
+        let register = |dx: i32| {
+            packet
+                .iter()
+                .filter(|&&(cell, mask, slot, place, model, pixel)| {
+                    at.get(&((cell.0 + dx, cell.1), slot)).is_some_and(|t| {
+                        let p = (t.at.0 - dx * render::trees::CELL, t.at.1, t.at.2);
+                        t.mask == mask && p == place && t.model == model && project(p) == pixel
+                    })
+                })
+                .count()
+        };
+        for &(cell, mask, slot, place, model, pixel) in &packet {
+            let t = at[&(cell, slot)];
+            println!(
+                "tree {cell:?} slot {slot}: mask {} / {mask}, at {:?} / {place:?}, model {} / {model}, pixel {:?} / {pixel:?}",
+                t.mask,
+                t.at,
+                t.model,
+                project(t.at)
+            );
+        }
+        assert_eq!(register(0), 60, "trees in register");
+        assert_eq!(packet.len(), 60);
+        assert_eq!(register(1), 0, "shifted one cell east");
+    }
     use sim::data::pivot::{Release, release_offset_at, release_rotation};
     use sim::movement::Angle;
 

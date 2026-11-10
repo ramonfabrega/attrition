@@ -1909,6 +1909,67 @@ pub fn farm_art(install: &Install, tileset: &str) -> Result<FarmArt, ArtFailure>
     })
 }
 
+/// **The map's trees, as the loaders hold them** (item 4080,
+/// `docs/RENDERER.md` §3.7): the tileset's `<TREES treescale=…>`, which
+/// `TileSet::init@0087b370` multiplies by 3 into `TileSetData::tree_scale`;
+/// its `<BASEDIR path=…>`; and the models `GraphicPieces::init_tree_data
+/// @008eeb30` reads from `graphics.txt`'s `#<TILESET>_TREE_MODELS0` section,
+/// one file a line under the base directory, `;` a line left out.
+#[derive(Clone, Debug, PartialEq)]
+pub struct TreeArt {
+    pub treescale: f32,
+    /// Each model as an install path: the base directory joined to the
+    /// section's line.
+    pub models: Vec<String>,
+}
+
+/// [`TreeArt`] for `tileset`. **The section's name is a reading**: the
+/// upper-cased tileset name and `_TREE_MODELS0`, its count checked against
+/// the packet's 24 on `early_autumn` (§3.7), not read off the string table.
+pub fn tree_art(install: &Install, tileset: &str) -> Result<TreeArt, ArtFailure> {
+    let unnamed = |what: &str| ArtFailure::Unnamed(what.to_string());
+    let tpath = install.data("tilesets.xml");
+    let ttext = crate::read(&tpath).map_err(|_| unnamed("tilesets.xml"))?;
+    let tdoc = crate::parse(&tpath, &ttext).map_err(|_| unnamed("tilesets.xml"))?;
+    let set = tdoc
+        .descendants()
+        .find(|n| {
+            n.has_tag_name("TILESET")
+                && n.attribute("name")
+                    .is_some_and(|v| v.trim().eq_ignore_ascii_case(tileset))
+        })
+        .ok_or_else(|| unnamed(tileset))?;
+    let child = |tag: &str| {
+        set.children()
+            .find(|c| c.is_element() && c.tag_name().name().eq_ignore_ascii_case(tag))
+    };
+    let treescale = child("TREES")
+        .and_then(|t| t.attribute("treescale"))
+        .and_then(|v| v.trim().parse::<f32>().ok())
+        .ok_or_else(|| unnamed(&format!("{tileset}/TREES/treescale")))?;
+    let base = child("BASEDIR")
+        .and_then(|b| b.attribute("path"))
+        .map(|p| p.trim().replace('\\', "/"))
+        .ok_or_else(|| unnamed(&format!("{tileset}/BASEDIR")))?;
+    let gpath = install.root().join("graphics.txt");
+    let gtext = std::fs::read(&gpath).map_err(|_| unnamed("graphics.txt"))?;
+    let gtext = String::from_utf8_lossy(&gtext);
+    let section = format!("#{}_TREE_MODELS0", tileset.to_ascii_uppercase());
+    let models: Vec<String> = gtext
+        .lines()
+        .skip_while(|l| !l.trim().eq_ignore_ascii_case(&section))
+        .skip(1)
+        .take_while(|l| !l.trim_start().starts_with('#'))
+        .map(str::trim)
+        .filter(|l| !l.is_empty() && !l.starts_with(';'))
+        .map(|l| format!("{}/{}", base.trim_end_matches('/'), l.replace('\\', "/")))
+        .collect();
+    if models.is_empty() {
+        return Err(unnamed(&section));
+    }
+    Ok(TreeArt { treescale, models })
+}
+
 /// **The farm's condition 1** (item 4037, `docs/RENDERER.md` §5.4): the
 /// `<FARM>` element reads whole ([`farm_art`]) and the tileset's wheat
 /// image decodes under `render::tga`. `Ok(1)`, the one file decoded.
@@ -2100,6 +2161,36 @@ mod tests {
             ],
             "(type, bits, footer) → files"
         );
+    }
+
+    /// **The lobby's trees are the packet's 24, and every one decodes**
+    /// (item 4080): `early_autumn`'s `treescale` 1.3, times 3, is run1559b's
+    /// `tree_scale` `0x40799999`, and its `#EARLY_AUTUMN_TREE_MODELS0` holds
+    /// the 24 models `RTreeData::tree_data` counts on that packet. Made to
+    /// fail once with the `DEFAULT` section's path: `./art/tree_t_00.bh3`
+    /// is not under `dirty/`.
+    #[test]
+    fn the_lobby_s_trees_are_the_packet_s_and_decode() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        let art = tree_art(&inst, "early_autumn").expect("early_autumn's trees");
+        assert_eq!((art.treescale * 3.0).to_bits(), 0x4079_9999);
+        assert_eq!(art.models.len(), 24);
+        assert_eq!(
+            art.models[0],
+            "./terrain art/tilesets/dirty/dtrees/tree_t_00.bh3"
+        );
+        assert_eq!(
+            art.models[23],
+            "./terrain art/tilesets/dirty/dtrees/tree_t_27.bh3"
+        );
+        for m in &art.models {
+            let bytes = std::fs::read(resolve(inst.root(), m).expect(m)).unwrap();
+            render::bh3::decode(&bytes).unwrap_or_else(|e| panic!("{m}: {e}"));
+        }
+        assert!(tree_art(&inst, "no such tileset").is_err());
     }
 
     /// **The farm's art reads whole on every tileset** (item 4037): the

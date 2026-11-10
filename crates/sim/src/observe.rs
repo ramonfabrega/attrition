@@ -213,6 +213,10 @@ pub struct TerrainScene {
     /// Each cell's `WData.land` and `land_sub`, row-major.
     pub land: Vec<i8>,
     pub land_sub: Vec<u8>,
+    /// Each cell's `WData.flags`, row-major — the bits [`crate::world::cell`]
+    /// names. A client reads [`crate::world::cell::FOREST`] off it: the
+    /// cells `ObjectsOut::sort_trees@00656c70` stands trees on (item 4080).
+    pub flags: Vec<u16>,
     /// The placed mountain ranges: each range's tiles.
     pub mountains: Vec<Vec<Pos>>,
     pub version: u32,
@@ -369,12 +373,14 @@ impl Sim {
         let w = &self.world;
         let (width, height) = (w.width(), w.height());
         let cells = (0..height).flat_map(|y| (0..width).map(move |x| crate::Cell::new(x, y)));
-        let (land, land_sub) = cells
+        let (land, land_sub): (Vec<i8>, Vec<u8>) = cells
+            .clone()
             .map(|c| {
                 let d = w.cell_data(c);
                 (d.land, d.land_sub)
             })
             .unzip();
+        let flags = cells.map(|c| w.cell_data(c).flags).collect();
         TerrainScene {
             width,
             height,
@@ -382,6 +388,7 @@ impl Sim {
             corners: w.corner_singles().iter().map(|c| c.bits()).collect(),
             land,
             land_sub,
+            flags,
             mountains: self
                 .terrain
                 .mountains
