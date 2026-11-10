@@ -1214,29 +1214,21 @@ The 3294 rows are kept as the packet's frame.
   tanks and figures included (`Reader::Traced`). The rejected readings,
   reported beside it: kind (3) as footprint, and the interface as before.
 - *The misses* (on 3279). ~~The capital is drawn as its `zbuffer` model
-  (4036a).~~ The figures by the derrick stand among trees the client does not
-  draw.
+  (4036a).~~ The figures by the derrick: 4080a.
 - **The row on the default draw**, the buildings as their sprites (item
   4076: 14 of 23 by the mask, `RUN1559B_3279_SPRITES`), by item 4077's reader:
   27 of 33, both buildings passing; with the last tank 1/27 traced (item
   4079, `ebcbcb0f7` before its count) **29 of 33** (`RUN1559B_3279_TRACED`);
   run1441's camera 0 of 32. The rejected readings and every row's values are
-  the journals of 4077 and 4079. **With the map's trees drawn** (item 4080,
-  §3.7, by the tree rule above): **25 of 29**. The trees hide four figures
-  by the woodcutter that the photograph shows (4080a). Treeless, 29 of 33
-  (`RUN1559B_3279_TRACED_TREELESS`); run1441's camera 0 of 28. Out: three riflemen by the tank (4079b) and
-  0/10, behind a pine the client does not draw (4079a). The `RUN1559B_3279_*`
-  rows above are the `zbuffer` draw's, kept by name. A second photograph
-  needs its own traces, made on it before a count (4071a).
-- *The trees* (item 4080; this rule was written before its count). A tree is
-  keyed in our buffer, so it hides what stands behind it, and then its
-  pixel is given to the ground. Its pixel belongs to no object, as the
-  terrain's does: it is drawn but not keyed. A tree is never scored, and
-  it is not a draw-list entry (§3.7). The rejected reading, reported beside
-  it, is `TreePixels::Scene`: a tree's pixel counts as ours in every window
-  it falls in.
+  the journals of 4077 and 4079. **With the trees drawn: 25 of 29** (4080,
+  §3.7); treeless, 29 of 33. Out: three riflemen (4079b) and the figures
+  the trees hide (4080a). The `RUN1559B_3279_*`
+  rows above are the `zbuffer` draw's, kept by name.
+- *The trees* (4080, before its count; §3.7). A tree hides what is
+  behind it; its pixel is the ground's; it is never scored. Rejected:
+  `TreePixels::Scene`.
 - *What it does not measure.* Colour: textures and team colours are not
-  bound (4038a), and binding them would not move this row.
+  bound (4038a); the trees' leaf alpha would move the row (4080a).
 - *Where the inputs are.* The photograph is converted once to `.tga`
   (`sips -s format tga`), so `render::tga` reads it with no new
   dependency. `client --silhouette OUT.bmp` prints every row and writes
