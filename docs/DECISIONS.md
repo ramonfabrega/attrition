@@ -123,6 +123,7 @@ is append-only and amended in place, as it always was.
 - 114 extended by 116 — finish line
 - 115 extended by 116 — the start track opens
 - 116 standing — one driver, the milestone
+- 117 standing — the gate in its own tree, an experiment
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
 - 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types, the pass and the commander stop messaging each other
 - 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself, the fifty-first booked on what a capture can enter
@@ -11743,3 +11744,50 @@ down unnamed; the driver's sessions clearing under 230 k; the render lane
 reading within a fifth of 7.25 USD a landing; and the next steer learning
 where the project stands from the tracks page and the queue, in one read.
 
+## 117. The gate tests a commit in a tree of its own, a builder is cut from the booked tip and a lane is refilled at its done line — an experiment, on Ramon's word (2026-11-10)
+
+**Ramon, on the driver's row:** "realistically we basically have 1 lane
+running all the time no? … 1 is working towards a solution, 1 is parked
+waiting on driver to merge/finalize? … feels it defeats the purpose of
+workers/lanes if we're still sequentially merging/working? im ok with
+experimenting as you think."
+
+**The measurement** (the driver's second session, 2026-11-09, by its own
+clock, 21:11 to 00:03 −05:00). The chain had a worker for 29 of 172
+minutes: 4063's builder handed back at 21:40 and no builder could follow
+until 4063 reached `origin/main` at 23:46, two whole gates later, because a
+harness worktree is cut from `origin/main` and main moves only on a green
+gate. The render lane stood empty about 95 of those minutes: 48 behind the
+red whole gate and 32 behind the second, since a landing merges only at a
+gate's exit and the lane is refilled only at its booking. Every wait was a
+rule of `docs/LOOP.md`, none the machine: the host's load read under 5 on
+16 cores through both whole gates.
+
+**The experiment**, for the driver's next sessions, judged at the pass:
+
+1. **The gate runs on a commit, in a worktree of its own** (`git worktree
+   add` at the tip to be gated, the gate started there, its log's `gate
+   exit 0` read as before). The integration tree is then free: a landing is
+   merged and booked while a gate runs, and "nothing under `docs/` is
+   edited while a gate runs" binds the gate's tree only.
+2. **`origin/main` moves to the gated commit, never to `HEAD`**: `git push
+   origin <gated sha>:main`, a fast-forward. Main stays a gated tip; it may
+   trail the branch by the landings booked since.
+3. **A builder is cut from the booked tip**, not from main: its first act
+   is `git merge --ff-only <the booking commit>`, as 4063's took
+   `817151a57`. The next chain step starts when the last is booked, beside
+   its gate. A red gate is a fix commit the builder in flight takes the
+   same way.
+4. **A lane is refilled at its done line** when its next item is already in
+   the queue; the merge follows when the tree allows.
+
+**What it risks, and the stop:** work stacked on a tip whose gate then goes
+red. One red is a fix commit and one line to each worker in flight. Two
+whole gates red in a row, or a red whose fix conflicts with stacked work,
+ends the experiment and the old order returns; either reaches Ramon at
+once. The kill rules of entry 116 stand unchanged: nothing ungated is ever
+pushed to main. If the harness refuses a gate started in a second
+worktree, that is reported and items 3 and 4 run alone.
+
+**Beside it**, and first: the gate itself made shorter (Loop 4042, 4070;
+the queue's handoff has the measurement).
