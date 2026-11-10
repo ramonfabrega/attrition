@@ -220,6 +220,8 @@ mod maya_information_pair;
 #[cfg(test)]
 mod maya_word;
 #[cfg(test)]
+mod minted;
+#[cfg(test)]
 mod mongol_classical_pair;
 #[cfg(test)]
 mod mongol_enlightenment_pair;

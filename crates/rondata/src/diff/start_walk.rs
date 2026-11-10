@@ -105,7 +105,7 @@ pub(crate) fn take_of(path: &str) -> String {
 /// starts make their objects in different orders (the installer in the
 /// dump's, the walk in the original's creation order), so a positional
 /// comparison would part on every object.
-fn keyed(sim: &Sim, leaves: Vec<(String, String)>) -> Vec<(String, String)> {
+pub(crate) fn keyed(sim: &Sim, leaves: Vec<(String, String)>) -> Vec<(String, String)> {
     let key = |p: &str, list: &str, k: &dyn Fn(usize) -> Option<String>| -> Option<String> {
         let rest = p.strip_prefix(list)?;
         let close = rest.find(']')?;
@@ -331,12 +331,33 @@ pub(crate) struct Walked {
 /// the same game — whole as it is reached, and every frame's draws
 /// against `trace`.
 pub(crate) fn walk(
-    mut built: Built,
+    built: Built,
     players: usize,
     captures: &[(&str, String)],
     trace: &crate::trace::Trace,
     limit: i64,
 ) -> Walked {
+    walk_with(built, players, captures, trace, limit, None).0
+}
+
+/// [`walk`] with a recording's packages applied on the way
+/// ([`crate::input::Stream::apply`] before each tick, at the module
+/// note's frame convention), returning the walked `Built` beside the
+/// result so a test can read what the orders did.
+pub(crate) fn walk_with(
+    mut built: Built,
+    players: usize,
+    captures: &[(&str, String)],
+    trace: &crate::trace::Trace,
+    limit: i64,
+    mut stream: Option<&mut crate::input::Stream>,
+) -> (Walked, Built) {
+    let mut step = |built: &mut Built| {
+        if let Some(s) = stream.as_deref_mut() {
+            s.apply(built.sim.frame as i32, built);
+        }
+        built.tick();
+    };
     let mut w = Walked::default();
     let mut sources: Vec<crate::capture::indexed::IndexedCapture> = captures
         .iter()
@@ -359,7 +380,7 @@ pub(crate) fn walk(
         }
         let frame = sources[k].frame_state(i).unwrap();
         while built.sim.frame < frame.n {
-            built.tick();
+            step(&mut built);
         }
         let r = compare(&built, &frame, players);
         w.records += 1;
@@ -379,7 +400,7 @@ pub(crate) fn walk(
     // On to the trace's own end: the draws are the oracle there.
     let end = trace.frames.last().map_or(0, |(n, _)| *n).min(limit);
     while built.sim.frame < end {
-        built.tick();
+        step(&mut built);
     }
     w.last = built.sim.frame;
     for (f, ours) in &built.frame_sites {
@@ -392,7 +413,7 @@ pub(crate) fn walk(
             w.sites = Some((ours.clone(), theirs));
         }
     }
-    w
+    (w, built)
 }
 
 /// The captures of the harness lobby's game (run53's: seed 12345, Great
@@ -606,20 +627,29 @@ fn the_original_s_playback_of_our_file_walks_in_lockstep() {
 /// The harness lobby's recording written here (item 4058, `docs/RECGAME.md`
 /// §8.2), beside the walk of its playback: these read run53's dump, so they
 /// live with the diff suite and run in release.
-mod recording {
+pub(crate) mod recording {
     use crate::recgame::tests::recordings_on_disk;
     use crate::recgame::*;
 
     /// The lobby's long capture, whose `GAMEINFO` block is the lobby's
     /// choices (`docs/START.md` §7.4).
-    const LOBBY_DUMP: &str = "gamelog-run53-greatlakes-24k-trace.txt";
+    pub(crate) const LOBBY_DUMP: &str = "gamelog-run53-greatlakes-24k-trace.txt";
     /// The frames our file plays: the long trace's length.
-    const LOBBY_FRAMES: i32 = 24_000;
+    pub(crate) const LOBBY_FRAMES: i32 = 24_000;
 
     /// The harness lobby's recording, written here: `(ours, donor, twin)` —
     /// the twin is the original's own recording of this lobby's 24,000-frame
     /// game, when the corpus has it.
     fn lobby_recording() -> Option<(RecGame, RecGame, Option<RecGame>)> {
+        lobby_recording_with(&[])
+    }
+
+    /// [`lobby_recording`] with a script's orders minted into it
+    /// ([`minted_packages`], item 4059): with none, the packages are
+    /// [`no_input_packages`]'s, which is 4058's file.
+    pub(crate) fn lobby_recording_with(
+        orders: &[Order],
+    ) -> Option<(RecGame, RecGame, Option<RecGame>)> {
         let path = crate::testenv::dump(LOBBY_DUMP)?;
         let text = crate::capture::read(&path);
         let log = crate::gamelog::Log::parse(&text);
@@ -655,7 +685,7 @@ mod recording {
             matches!(lo[..], [crate::commands::Command::LeaderOptions { .. }]),
             "the donor's frame 0 is not the leader_options push: {lo:?}"
         );
-        let packages = no_input_packages(lo[0].clone(), LOBBY_FRAMES);
+        let packages = minted_packages(lo[0].clone(), orders, LOBBY_FRAMES).unwrap();
         let ours = from_lobby(&init.game_info, &init.players, &donor, packages).unwrap();
         Some((ours, donor, twin))
     }

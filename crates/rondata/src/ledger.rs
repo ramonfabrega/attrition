@@ -135,6 +135,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the built start against the installed one, Sim with Sim, and the lobby's walk through the harness's own differs; no dump record is read here",
     ),
     (
+        "diff/minted.rs",
+        "a script's packages into our file and through the order door, walked by start_walk's walk; it reads named fields of the orders' objects on both sides and its whole-record comparison is harness.rs's",
+    ),
+    (
         "diff/cant_reach.rs",
         "the cant_reach tally and its pins; the row is compared in harness.rs's widen_block",
     ),

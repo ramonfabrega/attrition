@@ -504,3 +504,138 @@ The playback's pace at the trace-only recipe is **11.7 frames a second**
   needs a donor with the same options: one exists only for a lobby this
   install has recorded. Multiplayer, CtW and scenario recordings are out of
   scope.
+
+## 9. Minted orders: one list of packages, both sides (item 4059, 2026-11-10)
+
+§8's file holds no orders. This step puts three in it — a unit moved, a
+unit trained, a building placed — issued by a script, and holds our walk
+against the original's playback of it frame for frame. One list of
+packages is the single source of both: encoded into the file the original
+plays, and applied to our walk through the order door.
+
+### 9.1 The script and the packages
+
+`diff::minted::script()` is a list of `(frame, play, commands)` in the
+wire's typed vocabulary (`crate::commands`, `docs/COMMANDS.md` §1–§4).
+`recgame::minted_packages` turns it into packages as a single-player
+recording stores them (`docs/COMMANDS.md` §2): frame 0's `leader_options`
+(§8.2's, borrowed), then each order its own package on its own frame,
+then §8's closing empty package on 24,000. Stamps run 1..5, `valid` is 1
+on the first record only, the payloads plain. `no_input_packages` is now
+`minted_packages` with no orders, so §8's file is unchanged (its test
+still pins it against the twin). The file is
+`~/ron-golden/recordings/item4059-minted-greatlakes-24000.rcx`, 59,280
+bytes, SHA-256 `9de7f0ae…387c4d`, written by
+`the_minted_packages_round_trip_and_name_the_built_start_s_objects`
+under `RON_RCX_OUT`.
+
+All three are slot 0's (the person's seat, tribe 4, `flags` 7) in run53's
+lobby, read off our own built start:
+
+| package | frame | `group` | command | why this one |
+| --- | --- | --- | --- | --- |
+| 2 | 30 | `[0]` (the Scout) | `move_to` (5880, 31896), `set_angle` 0, `angle` 0, `orders` 1 (`MOVE_TO`), `queued` 2 (`QUEUE_NEW`), `form`/`width` −1, `disembark` 0 | 2,400 units due east over open grass; the field values are the 2017 sample's right-click but `queued`, which is a plain click's |
+| 3 | 60 | `[2000]` (the Village) | `queue_up` `type` 50 (Citizen), `num` 1 | the first thing a person trains; 25 food against 200 on hand |
+| 4 | 90 | `[1]` (a Citizen at the Woodcutter) | `build` (3552, 29856) ×2, `type` 417 (Farm), `queued` 2 | a person's usual first building: 52 timber against 200, available to slot 0, and the nearest site to the capital our placement check (`blocked_site`) calls clear on a 192-unit grid; the citizen nearest it builds |
+
+Each package is a `group` (3 + 2 bytes) and one command: 27, 14 and 30
+bytes. `the_minted_packages_round_trip…` writes the file, parses it back,
+re-writes it byte for byte, decodes each payload to the script's commands
+and checks every object, type, price and the site against the built start.
+Seen red: the stamps minted from 3 (`frame, play, valid, stamp` lists
+part at package 2).
+
+### 9.2 The pump
+
+`input::Stream::pump` is the turn pump's stream: a `group` sets the
+issuer's selection, and `move_to`, `queue_up` and `build` act on it
+through `group_move_to`, `group_queue_up` and `group_build`, the entries
+the golden chapters issue (`CommandPackage::process_all@0094c500` walking
+each package to `process_group`, `process_move_to`, `process_queue_up`,
+`process_build`). Every other command takes `Stream::new`'s arm, and
+`Stream::new` is unchanged, so no capture replay's pin moved. The two
+modes could be one only by moving run7's pins (its three `queue_up`s,
+which `new` skips); that is not done here. SEAM: each entry pushes its
+own group, so a package with two commands behind one `group` pushes two;
+the minted script never does.
+
+`the_pump_moves_our_walk_in_exactly_the_script_s_places` walks the built
+start under the first k orders and the first k + 1, and compares the two
+`Sim`s whole on the frame after order k + 1 (`PUMPED_PLACES`): on 31 they
+part on the Scout `0/0` and the move's scratch (group pool, path search);
+on 61 on the Village `0/2000`, the stock, slot 0's tech record and the
+roster's muster; on 91 on the builder `0/1`, the site `0/2007`, the Woodcutter
+`0/2001` the builder left, the city and farm lists, the footprint's tiles
+and the stock. Nothing else. Comparing against the order-free walk instead
+would not isolate them: the move moves the draws on 41, and every later
+frame differs everywhere. Seen red: `Stream::new` in place of the pump
+leaves 61 and 91 empty and moves the Scout without a group.
+
+### 9.3 The takes
+
+The click-free lane, §8.3's line with the minted file (`docs/RUNS.md`
+run1561a, run1561b):
+
+- **run1561a**, `end:MISC,UNITS=3,BUILDS=7`, 300 frames: 33.1 s, exit 0,
+  301 frames, seed 12345.
+- **run1561b**, `end:MISC`, 2,400 frames: 177.0 s, exit 0, 2,401 frames,
+  12.0 frames a second.
+
+Against run53's live game of the same lobby, the playback's word is
+identical to frame 40 and parts on 41 (`rngcmp.py`: 46 identical of
+2,401): the orders reach the original's draws.
+
+`the_original_s_playback_of_the_minted_file_walks_in_lockstep` walks the
+built start under the pump against each take, as §8.3's walk
+(`MINTED_WALKED`):
+
+- run1561a: draws agree on **300 of 300** frames, count and sequence;
+  **299 records compared whole, none parted.**
+- run1561b: draws agree on **2,400 of 2,400**; one record, none parted.
+
+**The value diff: nothing parted.** And because two sides that both
+ignored an order would agree, what each order did is read on both sides
+and pinned (`minted_effects`), on 31, 61, 91 and 299: the Scout at
+(3514, 31896) with its first order's target (5880, 31896), then at
+(4534, 31896), (5554, 31896), and on 299 on its point with no order; the
+Village's live queue `[50]` on 61 and 91 and empty by 299, a citizen
+trained; the site `0/2007`, type 417, at (3456, 29760) from 91 (the
+original snaps the drop point where `snap_center` does); the builder's
+list `gather`, then `move` and `build` on 91, then `gather` on 299, farming
+what it built. Seen red: the dump side's live queue read one slot long
+(`[-1]` on 31, `[50, 0]` on 61).
+
+**Made to fail** (`our_walk_with_one_order_withheld_parts_at_that_order_s_frame`,
+`WITHHELD`): our walk with one order withheld, against run1561a's playback
+of the whole script, parts first on that order's frame plus one:
+
+| withheld | first record | what parted, ours against theirs | draws part |
+| --- | --- | --- | --- |
+| the move (30) | 31 | `0/0` position (3480, 31896) against (3514, 31896); its order list 0 long against 1 | 40 |
+| the `queue_up` (60) | 61 | `0/2000` `queued` 0 against 1 | 158 |
+| the `build` (90) | 91 | `0/1` position (4008, 28296) against (4023, 28316); orders 1 long against 2; the Market `0/2006`'s `city_down` −1 against 2007 | 296 |
+
+The draws' frame is `Built::frame_sites`' (the frame before the
+gamelog's); the move's 40 is the same frame the original's own word
+parts from run53 on.
+
+### 9.4 Confidence, and what is not established
+
+- **Diff-backed**: the package layout a minted file uses (the original
+  opens it and plays every package); that a recording's `group` +
+  `move_to`, `queue_up` and `build` reach the same mechanics as the
+  golden chapters' console lines, with the same arguments, on the frame
+  `crate::input`'s convention names (each order's effect is on `f + 1` on
+  both sides, and its absence parts there); 300 frames of records and
+  2,400 of draws.
+- **Read, not diffed**: that `valid` 0 on a later package is what the
+  original's own single-player recordings hold (`docs/COMMANDS.md` §2,
+  confirmed on the 2017 sample's 21,883 records; the playback does not
+  read it as far as this take shows).
+- **Not established**: a package with two commands behind one `group` (the
+  pump's seam above); the `num = 0` reuse of a previous selection on
+  playback; `queued` other than 2, `orders` other than 1, any
+  `set_angle`; a `build` drag (`x2`/`y2` ≠ `x`/`y`); a site the original
+  refuses; orders from a second slot; any command beyond the three. The
+  full-length take (run1561, the driver's) is not yet run: past 2,400
+  frames only the draws of 4058's walk are known for this lobby.

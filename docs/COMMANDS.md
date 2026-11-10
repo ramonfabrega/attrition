@@ -71,6 +71,11 @@ alignment padding (`LeaderOptionsCommand`, 0x24 in memory) travels packed as
   `checksum_failure_threshold` popup.
 - **Playback** (`semaphore.ptr[0] & 0x10` set): `read_package` into the
   local package while records match the current frame, `process_all` each.
+  Diff-backed for `group` with `move_to`, `queue_up` and `build`: a file
+  written here, its orders minted as this arm's single-player sibling
+  writes them, plays to the same mechanics the console's `process_*` lines
+  reach, each order's effect on the frame after its package, and our walk
+  holds lockstep with it (`docs/RECGAME.md` §9, run1561a).
 
 A fourth writer to the recording, outside the pump: `DropControl::
 process_drops` synthesises a lone `ungraceful_player_drop` package locally
