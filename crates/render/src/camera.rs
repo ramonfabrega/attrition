@@ -11,7 +11,7 @@
 //! as the original keeps them.
 
 /// The degree, as the half-degree tables' builder keeps it (`0x3c8efa35`).
-const DEG: f32 = 0.017_453_292;
+pub(crate) const DEG: f32 = 0.017_453_292;
 
 /// A 4×4 matrix, row-major, row vectors (`p' = p · M`).
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -107,7 +107,7 @@ pub(crate) type Quat = Option<[f32; 4]>; // x, y, z, w
 /// (`00420c70`) reduces it: `a mod 360` for a non-negative angle, and
 /// `359 − (−a mod 360)` for a negative one — one degree further round than
 /// `360 − (−a mod 360)` would be.
-fn table_index(a: i32) -> i32 {
+pub(crate) fn table_index(a: i32) -> i32 {
     if a < 0 {
         359 - (a.unsigned_abs() % 360) as i32
     } else {
@@ -117,7 +117,7 @@ fn table_index(a: i32) -> i32 {
 
 /// `fast_half_degree_to_cosine` / `_sine`: `cosf(i · ½ · DEG)`, where the
 /// original's `cosf` is the double routine between two conversions.
-fn half_degree(i: i32, f: fn(f64) -> f64) -> f32 {
+pub(crate) fn half_degree(i: i32, f: fn(f64) -> f64) -> f32 {
     let arg = (i as f32 * 0.5) * DEG;
     f(arg as f64) as f32
 }
@@ -145,7 +145,7 @@ pub(crate) fn rotate(q: Quat, degrees: i32, axis: [f32; 3]) -> Quat {
 
 /// `Point<float>::rotate`: `p` by `q`, as the row-vector matrix `fill`
 /// builds from `q` would move it.
-fn rotate_point(p: [f32; 3], q: [f32; 4]) -> [f32; 3] {
+pub(crate) fn rotate_point(p: [f32; 3], q: [f32; 4]) -> [f32; 3] {
     let [x, y, z, w] = q;
     let [px, py, pz] = p;
     let a = z * z + y * y;

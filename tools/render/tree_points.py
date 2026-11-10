@@ -60,6 +60,15 @@ Nothing it prints enters the repository.
 
 `rbias` is `render_states[0..3]`'s `zbias` (0x54) and stencil fields
 (0x84..0x9c), which `rstate` leaves out.
+`--slope X,Y ...` (item 4089) prints instead, for each point, the original's
+own `WorldData::find_slope_normal@006b5130` on the packet's terrain and the
+three `TerrainOut::find_data_z@00866560(·, ·, 0)` heights it reads, at
+`(x, y)`, `(x + 20, y)` and `(x, y + 20)`:
+
+    slope <x> <y> z <z0> <z1> <z2> normal <nx> <ny> <nz> bits <hex hex hex>
+
+The normal is the world function's, before `GuyData::find_slope_normal`
+negates it.
 """
 import os
 import struct
@@ -112,6 +121,10 @@ def guys(snap, wants):
 
 
 GUY_TREE = 0x00C0ADF8
+# Item 4089: `MiscAccess::terrain` (the `ecx` `WorldData::find_slope_normal`
+# loads at `6b5139`), `TerrainOut::find_data_z` and the world's slope normal.
+MISC_TERRAIN, FIND_DATA_Z, WORLD_SLOPE_NORMAL = 0x00C06218, 0x00866560, 0x006B5130
+SQRT_IAT = 0x00AC5530
 
 
 def guytree(snap):
@@ -148,6 +161,29 @@ def main(argv):
         print(__doc__)
         return 2
     exe, packet = argv[1], argv[2]
+    if argv[3:4] == ["--slope"]:
+        snap = Snapshot(packet)
+        m = PacketMachine(Image(exe), snap)
+        m.uc.mem_map(0, 0x1000)
+        u32 = lambda a: struct.unpack("<I", snap.read(a, 4))[0]
+        terrain = u32(MISC_TERRAIN)
+        # `sqrt` (0x41e6f0's `call 0xa571b0`) is the CRT's import through the
+        # IAT slot 0xac5530, a double in `xmm0`: answered by `sqrtsd; ret`.
+        m.uc.mem_write(SCRATCH + 0x400, bytes.fromhex("f20f51c0c3"))
+        m.uc.mem_write(SQRT_IAT, struct.pack("<I", SCRATCH + 0x400))
+        for w in argv[4:]:
+            x, y = (int(v) for v in w.split(","))
+            zs = []
+            for px, py in ((x, y), (x + 20, y), (x, y + 20)):
+                m.call(FIND_DATA_Z, (SCRATCH + 0x200, px, py, 0), ecx=terrain, edx=0)
+                zs.append(struct.unpack("<i", m.uc.mem_read(SCRATCH + 0x200, 4))[0])
+            m.uc.mem_write(SCRATCH + 0x210, struct.pack("<ii", x, y))
+            m.call(WORLD_SLOPE_NORMAL, (SCRATCH + 0x210, SCRATCH + 0x214, SCRATCH + 0x220), ecx=SCRATCH + 0x300, edx=0)
+            raw = m.uc.mem_read(SCRATCH + 0x220, 12)
+            n = struct.unpack("<3f", raw)
+            bits = " ".join(f"{v:08x}" for v in struct.unpack("<3I", raw))
+            print(f"slope {x} {y} z {zs[0]} {zs[1]} {zs[2]} normal {n[0]!r} {n[1]!r} {n[2]!r} bits {bits}")
+        return 0
     if argv[3:4] == ["--guytree"]:
         guytree(Snapshot(packet))
         return 0

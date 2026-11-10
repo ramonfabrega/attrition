@@ -2540,4 +2540,178 @@ mod tests {
         );
         assert!(n >= 100 && cn >= 20);
     }
+
+    /// **Item 4089, step 1: the tanks' slope normals, ours against the
+    /// original's** on run1559b's packet (frame 3294). Per tank: our point
+    /// beside the packet's; the three heights `find_slope_normal` reads on
+    /// our terrain beside the packet's (`tree_points.py --slope`); our
+    /// world normal's bits beside the original's on the packet; and the
+    /// guy's eased `last_norm` replayed along our path from 3200 at `k`
+    /// draws a frame, against the packet's `last_norm`, the angle between.
+    #[test]
+    fn the_tanks_slope_normals_against_the_packet() {
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        // `tree_points.py --guys 196:1/o` and `--slope x,y` on the packet:
+        // o, point, the three heights, the world normal's bits, `last_norm`.
+        type Row = (i16, [i32; 3], [i32; 3], [u32; 3], [f32; 3]);
+        const PACKET: [Row; 4] = [
+            (
+                27,
+                [4551, 31679, 563],
+                [563, 559, 563],
+                [0xbe48_d2ab, 0, 0xbf7b_0756],
+                [0.183_931_93, 0.056_763_086, 0.980_415_2],
+            ),
+            (
+                15,
+                [5880, 30984, 423],
+                [423, 420, 420],
+                [0xbe16_41a6, 0xbe16_41a6, 0xbf7a_6d69],
+                [0.170_600_97, 0.108_512_71, 0.976_893_8],
+            ),
+            (
+                16,
+                [6358, 30770, 370],
+                [370, 366, 368],
+                [0xbe47_dd45, 0xbdc7_dd45, 0xbf79_d496],
+                [0.128_006_77, 0.062_975_99, 0.987_201_9],
+            ),
+            (
+                28,
+                [6170, 32078, 243],
+                [243, 239, 242],
+                [0xbe48_94fd, 0xbd48_94fd, 0xbf7a_ba3d],
+                [0.102_563_336, 0.014_875_433, 0.991_204_6],
+            ),
+        ];
+        let deg = |a: [f32; 3], b: [f32; 3]| {
+            let d = a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+            let l = |v: [f32; 3]| (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt();
+            (d / (l(a) * l(b))).clamp(-1.0, 1.0).acos().to_degrees()
+        };
+        let first = 3200;
+        let mut paths: Vec<Vec<[i32; 3]>> = vec![Vec::new(); PACKET.len()];
+        let mut targets: Vec<Vec<[f32; 3]>> = vec![Vec::new(); PACKET.len()];
+        let camera = crate::pinned_camera();
+        for f in first..=3294 {
+            world.run_to(f);
+            let (figs, _, _) = world.draw_list(&camera, &crate::pinned_screen(), (1024, 768));
+            for (i, row) in PACKET.iter().enumerate() {
+                let p = figs
+                    .iter()
+                    .find(|p| (p.who, p.o) == (1, row.0))
+                    .map(|p| [p.x, p.y, p.z])
+                    .unwrap_or([i32::MIN; 3]);
+                paths[i].push(p);
+                let (_, n) = world.slope_normal(p[0], p[1]);
+                targets[i].push(render::slope::target(n));
+            }
+        }
+        let mut agree = 0;
+        for (i, (o, pt, z, bits, last)) in PACKET.iter().enumerate() {
+            let ours = *paths[i].last().unwrap();
+            let (oz, on) = world.slope_normal(ours[0], ours[1]);
+            let packet_n = bits.map(f32::from_bits);
+            let moved: Vec<i64> = paths[i]
+                .windows(2)
+                .enumerate()
+                .filter(|(_, w)| w[0] != w[1])
+                .map(|(k, _)| first + 1 + k as i64)
+                .collect();
+            let last_move = moved.last().copied();
+            let target = render::slope::target(packet_n);
+            println!(
+                "1/{o}: point ours {ours:?} packet {pt:?}; heights ours {oz:?} packet {z:?}; \
+                 normal ours {:?} packet {:?} ({:.4}°); target {target:?} tilt {:.2}°; \
+                 last_norm {last:?} tilt {:.2}°, {:.2}° from the target; moved on {} frames of {}..=3294, last {last_move:?}",
+                on.map(f32::to_bits),
+                bits,
+                deg(on, packet_n),
+                deg(target, [0.0, 0.0, 1.0]),
+                deg(*last, [0.0, 0.0, 1.0]),
+                deg(*last, target),
+                moved.len(),
+                first + 1,
+            );
+            if on.map(f32::to_bits) == *bits && oz == *z && ours == *pt {
+                agree += 1;
+            }
+            // The ease replayed at k draws a frame, each on the frame's own
+            // point; 94 frames back the start's weight is 0.75^94k.
+            for k in 1..=8 {
+                let mut e = targets[i][0];
+                for t in &targets[i] {
+                    for _ in 0..k {
+                        render::slope::ease(&mut e, *t);
+                    }
+                }
+                println!(
+                    "  k {k}: eased {e:?}, {:.3}° from the packet's last_norm",
+                    deg(e, *last)
+                );
+            }
+            // One draw every m frames, at each phase: the nearest phase.
+            for m in 2..=16usize {
+                let best = (0..m)
+                    .map(|ph| {
+                        let mut e = targets[i][0];
+                        for (j, t) in targets[i].iter().enumerate() {
+                            if j % m == ph {
+                                render::slope::ease(&mut e, *t);
+                            }
+                        }
+                        (deg(e, *last), ph)
+                    })
+                    .min_by(|a, b| a.0.total_cmp(&b.0))
+                    .unwrap();
+                println!("  every {m}: nearest {:.3}° at phase {}", best.0, best.1);
+            }
+        }
+        // One draw clock for all four: every m frames at one phase, each
+        // tank's angle to its packet `last_norm`, the worst of the four.
+        for m in 1..=16usize {
+            let best = (0..m)
+                .map(|ph| {
+                    let worst = PACKET
+                        .iter()
+                        .enumerate()
+                        .map(|(i, row)| {
+                            let mut e = targets[i][0];
+                            for (j, t) in targets[i].iter().enumerate() {
+                                if j % m == ph {
+                                    render::slope::ease(&mut e, *t);
+                                }
+                            }
+                            deg(e, row.4)
+                        })
+                        .fold(0.0f32, f32::max);
+                    (worst, ph)
+                })
+                .min_by(|a, b| a.0.total_cmp(&b.0))
+                .unwrap();
+            println!(
+                "one clock, every {m}: worst of four {:.3}° at phase {} (frame {} mod {m})",
+                best.0,
+                best.1,
+                first + best.1 as i64
+            );
+        }
+        // A check that can fail: one height a unit off moves the normal.
+        let n = render::slope::normal_of(4551, 31679, [563, 560, 563]);
+        assert_ne!(n.map(f32::to_bits), PACKET[0].3, "a perturbed height parts");
+        println!("tanks whose point, heights and world normal are the packet's: {agree} of 4");
+        assert_eq!(
+            agree, 4,
+            "our slope normal is the original's at the four tanks"
+        );
+    }
 }

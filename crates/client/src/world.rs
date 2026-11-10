@@ -366,6 +366,19 @@ impl World {
         &self.terrain.1
     }
 
+    /// `WorldData::find_slope_normal@006b5130` at `(x, y)` on our terrain
+    /// as it stands now: the three heights it reads and its normal
+    /// (`render::slope`, item 4089).
+    pub fn slope_normal(&self, x: i32, y: i32) -> ([i32; 3], [f32; 3]) {
+        let t = self.runner.terrain();
+        let field = Heightfield {
+            width: t.width,
+            height: t.height,
+            corners: &t.corners,
+        };
+        render::slope::world_normal(&field, x, y)
+    }
+
     /// The tileset's tree models, where they read.
     #[cfg(test)]
     pub fn tree_meshes(&self) -> Option<&TreeMeshes> {
