@@ -70,6 +70,14 @@ pub fn pinned_camera() -> render::Camera {
     }
 }
 
+/// **The pinned camera's sprite scale** (item 4076): `Camera::fixed_zooms[6]`
+/// (`+0x338`), the nearest zoom, and `Game::game_sprite_scale` (`+0x928`),
+/// read off run1559b's packet at logger frame 3294 beside
+/// [`pinned_camera`]'s fields: 13905.87 and 1.0. A building's sprite is
+/// drawn at `(int) fixed_zooms[6] · game_sprite_scale / (int) zoom_distance`
+/// (`render::draw::sprite_at`), 13905 / 20858 at the default zoom.
+pub const PINNED_SPRITE_ZOOM: (f32, f32) = (13905.87, 1.0);
+
 /// The screen the camera's matrix is read at: `graphsys`'s on the packet.
 pub fn pinned_screen() -> render::Screen {
     render::Screen {
@@ -98,6 +106,9 @@ struct Args {
     silhouette: Option<PathBuf>,
     /// Pose the figures (`world::World::pose`, item 4067).
     pose: bool,
+    /// Draw the buildings as their sprites (`world::World::sprites`, item
+    /// 4076); `--zbuffer` draws the depth model instead.
+    sprites: bool,
 }
 
 fn parse() -> Result<Args, String> {
@@ -115,6 +126,7 @@ fn parse() -> Result<Args, String> {
         zoom: 1.0,
         silhouette: None,
         pose: true,
+        sprites: true,
         trace: std::env::temp_dir().join(format!("attrition-client-{}.json", std::process::id())),
     };
     let mut it = std::env::args().skip(1);
@@ -136,6 +148,7 @@ fn parse() -> Result<Args, String> {
             "--frames" => a.frames = Some(v()?.parse().map_err(|e| format!("--frames: {e}"))?),
             "--play" => a.play = true,
             "--rest" => a.pose = false,
+            "--zbuffer" => a.sprites = false,
             "--silhouette" => a.silhouette = Some(v()?.into()),
             "--zoom" => a.zoom = v()?.parse().map_err(|e| format!("--zoom: {e}"))?,
             "--look" => {
@@ -171,12 +184,14 @@ fn parse() -> Result<Args, String> {
 /// The scene's triangles at the client's state, the overlay with them.
 struct Built {
     figures: world::Soup,
+    sprites: Vec<world::SpriteDrawing>,
     overlay: (Vec<[f32; 3]>, Vec<[f32; 3]>),
 }
 
 fn build(world: &mut World, camera: &render::Camera, size: (u32, u32), frame_ms: f64) -> Built {
     let (figures, buildings, list) =
         world.draw_list(camera, &pinned_screen(), (size.0 as i32, size.1 as i32));
+    let sprites = world.sprite_drawings(&buildings, &list, camera.zoom_distance);
     let figures = world.figures(&figures, &buildings, &list);
     let lines = overlay::Lines {
         frame: world.runner.frame(),
@@ -185,7 +200,11 @@ fn build(world: &mut World, camera: &render::Camera, size: (u32, u32), frame_ms:
     }
     .text();
     let overlay = overlay::triangles(&lines, (size.0 as i32, size.1 as i32), 2);
-    Built { figures, overlay }
+    Built {
+        figures,
+        sprites,
+        overlay,
+    }
 }
 
 fn draw(
@@ -204,6 +223,7 @@ fn draw(
         terrain: (&t.positions, &t.colours),
         figures: (&b.figures.positions, &b.figures.colours),
         overlay: (&b.overlay.0, &b.overlay.1),
+        sprites: &b.sprites,
     };
     match target {
         Some(view) => {
@@ -397,6 +417,7 @@ fn main() {
         }
     };
     world.pose = args.pose;
+    world.sprites = args.sprites;
     session.mark("frame zero");
     session.phase("run to the frame", || world.run_to(args.frame));
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());

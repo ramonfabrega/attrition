@@ -75,6 +75,31 @@ impl Rect {
 /// A pixel is covered when its centre is inside the projected triangle,
 /// either winding.
 pub fn rasterize(objects: &[Object], camera: &Camera, size: (usize, usize)) -> Keys {
+    rasterize_with(objects, &[], camera, size)
+}
+
+/// One drawn sprite (item 4076): an image blitted on the screen at
+/// `at`, its pixels the object's where `covered`, at one camera-space
+/// `depth` — the building's anchor, the depth the draw list orders it by.
+pub struct Stamp<'a> {
+    pub key: u32,
+    pub at: crate::draw::SpriteAt,
+    pub width: usize,
+    pub height: usize,
+    /// `width · height`, the top row first.
+    pub covered: &'a [bool],
+    pub depth: f32,
+}
+
+/// [`rasterize`], with sprites beside the meshes: each screen pixel whose
+/// centre falls on a covered image pixel, sampled nearest, takes the
+/// sprite's key where its depth is the nearest.
+pub fn rasterize_with(
+    objects: &[Object],
+    stamps: &[Stamp<'_>],
+    camera: &Camera,
+    size: (usize, usize),
+) -> Keys {
     let (w, h) = size;
     let m = camera.to_screen_matrix().0;
     let r = camera.render_matrix().0;
@@ -127,6 +152,36 @@ pub fn rasterize(objects: &[Object], camera: &Camera, size: (usize, usize)) -> K
                         depth[i] = z;
                         keys[i] = o.key;
                     }
+                }
+            }
+        }
+    }
+    for st in stamps {
+        let s = st.at.scale;
+        if s <= 0.0 {
+            continue;
+        }
+        let x0 = st.at.left.max(0);
+        let y0 = st.at.top.max(0);
+        let x1 = (st.at.left + (st.width as f32 * s).ceil() as i32).min(w as i32);
+        let y1 = (st.at.top + (st.height as f32 * s).ceil() as i32).min(h as i32);
+        for y in y0..y1 {
+            let v = ((y - st.at.top) as f32 + 0.5) / s;
+            if v < 0.0 || v as usize >= st.height {
+                continue;
+            }
+            for x in x0..x1 {
+                let u = ((x - st.at.left) as f32 + 0.5) / s;
+                if u < 0.0 || u as usize >= st.width {
+                    continue;
+                }
+                if !st.covered[v as usize * st.width + u as usize] {
+                    continue;
+                }
+                let i = y as usize * w + x as usize;
+                if st.depth < depth[i] {
+                    depth[i] = st.depth;
+                    keys[i] = st.key;
                 }
             }
         }
@@ -227,6 +282,22 @@ pub const RUN1559B_3279_POSED: (usize, usize) = (13, 24);
 
 /// The same frame drawn at rest, by colour: 2 of 23 at 3294 → 4 of 24.
 pub const RUN1559B_3279: (usize, usize) = (4, 24);
+
+/// **The same frame with the buildings as the original draws them** (item
+/// 4076): each `<BUILD>`'s `texture=` sprite at `render::draw::sprite_at`
+/// rather than its `zbuffer` model, the client's default since. Placed on
+/// the photograph's buildings within a pixel or two by eye, the sprites
+/// read **14 of 23** by the mask (from 16 of 24) and **11 of 23** by colour
+/// (from 13 of 24): the reader as it stands cannot score a building drawn
+/// right. The capital 0/2000's sprite reaches y 573 and its ring meets the
+/// city's label, so it is no longer scored; 0/2001's window grows to the
+/// photograph's woodcutter, (1579, 314)..(1706, 459), 0.209 → 0.351, its
+/// ring the forest's; and the figures beside it, whose rings lie on the
+/// sprite and read it as ground, fall: 0/9 0.753 → 0.410, 0/1 0.846 →
+/// 0.658, 0/10 0.531 → 0.354, 0/8 0.916 → 0.587, while 0/6 rises 0.280 →
+/// 0.474. The pinned rows above stay scored on the `zbuffer` draw.
+pub const RUN1559B_3279_SPRITES: (usize, usize) = (14, 23);
+pub const RUN1559B_3279_SPRITES_POSED: (usize, usize) = (11, 23);
 
 /// The photograph's frame at run1441's camera, by colour and by the mask:
 /// the made-to-fail.
@@ -612,6 +683,54 @@ mod tests {
                 [p(0.0, 0.0), p(side, side), p(0.0, side)],
             ],
         }
+    }
+
+    /// **A sprite is stamped where it covers, at its scale** (item 4076): a
+    /// 2×2 image with one corner uncovered, at scale 3 from (10, 20), keys
+    /// 3×3 blocks and leaves the corner's empty; a mesh square nearer than
+    /// the stamp's depth takes its pixels, one further loses them.
+    #[test]
+    fn a_sprite_keys_its_covered_pixels_at_its_scale_and_depth() {
+        let cam = camera();
+        let covered = [true, true, true, false];
+        let stamp = |depth: f32| Stamp {
+            key: 7,
+            at: crate::draw::SpriteAt {
+                left: 10,
+                top: 20,
+                scale: 3.0,
+            },
+            width: 2,
+            height: 2,
+            covered: &covered,
+            depth,
+        };
+        let keys = rasterize_with(&[], &[stamp(0.0)], &cam, (40, 40));
+        let at = |x, y| keys.at(x, y);
+        assert_eq!(keys.keys.iter().filter(|k| **k == 7).count(), 27);
+        assert_eq!((at(10, 20), at(15, 22), at(12, 25)), (7, 7, 7));
+        assert_eq!((at(13, 23), at(15, 25)), (0, 0), "the uncovered corner");
+        assert_eq!((at(9, 20), at(16, 20), at(10, 26)), (0, 0, 0));
+        // Beside a mesh: the nearer wins.
+        let target = cam.target();
+        let big = square(1, [target[0] - 4000.0, target[1] - 4000.0], 8000.0);
+        let mesh = rasterize(std::slice::from_ref(&big), &cam, (40, 40));
+        assert_eq!(mesh.at(10, 20), 1, "the mesh covers the stamp's place");
+        let r = cam.render_matrix().0;
+        let depth = r[2] * target[0] + r[6] * target[1] + r[14];
+        let near = rasterize_with(
+            std::slice::from_ref(&big),
+            &[stamp(depth - 1000.0)],
+            &cam,
+            (40, 40),
+        );
+        let far = rasterize_with(
+            std::slice::from_ref(&big),
+            &[stamp(depth + 1000.0)],
+            &cam,
+            (40, 40),
+        );
+        assert_eq!((near.at(10, 20), far.at(10, 20)), (7, 1));
     }
 
     /// The photograph of the scene our buffer draws, with a textured ground

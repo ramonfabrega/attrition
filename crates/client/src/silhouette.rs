@@ -7,9 +7,9 @@
 //! (`sips -s format tga`): `$RON_PHOTO`, else
 //! `~/ron-data/lab-experiments/2026-11-09-item-4038/run1559b-3294.tga`.
 
-use crate::world::{Drawing, World};
+use crate::world::{Drawing, SpriteDrawing, World};
 use render::silhouette::{
-    Footprint, Object, Photo, READING, Reader, Rect, footprints_read, rasterize,
+    Footprint, Object, Photo, READING, Reader, Rect, Stamp, footprints_read, rasterize_with,
 };
 use std::path::PathBuf;
 
@@ -206,20 +206,47 @@ pub fn objects(drawings: &[Drawing]) -> Vec<Object> {
         .collect()
 }
 
-/// The frame's drawings at `camera`, and their key buffer at `size`.
+/// The sprites as the rasterizer takes them: key `first + j` for the `j`th.
+pub fn stamps(sprites: &[SpriteDrawing], first: u32) -> Vec<Stamp<'_>> {
+    sprites
+        .iter()
+        .enumerate()
+        .map(|(j, s)| Stamp {
+            key: first + j as u32,
+            at: s.at,
+            width: s.image.image.width,
+            height: s.image.image.height,
+            covered: &s.image.covered,
+            depth: s.depth,
+        })
+        .collect()
+}
+
+/// Who each key is: `(owner, object, piece, building)`, key `i + 1` at `i`.
+pub type Who = (u8, i16, i32, bool);
+
+/// The frame's drawings at `camera` — the meshes, then the buildings drawn
+/// as sprites (item 4076) — and their key buffer at `size`.
 pub fn frame_keys(
     world: &mut World,
     camera: &render::Camera,
     size: (usize, usize),
-) -> (render::silhouette::Keys, Vec<Drawing>) {
+) -> (render::silhouette::Keys, Vec<Who>) {
     let (figures, buildings, list) = world.draw_list(
         camera,
         &crate::pinned_screen(),
         (size.0 as i32, size.1 as i32),
     );
-    let drawings = world.objects(&figures, &buildings, &list);
-    let keys = rasterize(&objects(&drawings), camera, size);
-    (keys, drawings)
+    let drawings: Vec<Drawing> = world.objects(&figures, &buildings, &list);
+    let sprites = world.sprite_drawings(&buildings, &list, camera.zoom_distance);
+    let first = drawings.len() as u32 + 1;
+    let keys = rasterize_with(&objects(&drawings), &stamps(&sprites, first), camera, size);
+    let who = drawings
+        .iter()
+        .map(|d| (d.who, d.o, d.piece, d.building))
+        .chain(sprites.iter().map(|s| (s.who, s.o, s.piece, true)))
+        .collect();
+    (keys, who)
 }
 
 /// Every scored object's footprints on the frame at `camera`, beside its
@@ -240,8 +267,8 @@ pub fn score_frame(
     footprints_read(&keys, &photo, &INTERFACE, &READING, reader)
         .into_iter()
         .map(|f| {
-            let d = &drawings[f.key as usize - 1];
-            (f, (d.who, d.o, d.piece, d.building))
+            let d = drawings[f.key as usize - 1];
+            (f, d)
         })
         .collect()
 }
@@ -257,13 +284,7 @@ pub fn explain(
 ) -> Vec<u8> {
     use render::silhouette::ground;
     let size = (photo.width, photo.height);
-    let (figures, buildings, list) = world.draw_list(
-        camera,
-        &crate::pinned_screen(),
-        (size.0 as i32, size.1 as i32),
-    );
-    let drawings = world.objects(&figures, &buildings, &list);
-    let keys = rasterize(&objects(&drawings), camera, size);
+    let (keys, _) = frame_keys(world, camera, size);
     let p = Photo {
         width: photo.width,
         height: photo.height,
@@ -377,23 +398,6 @@ mod tests {
             if n != PHOTO_FRAME {
                 continue;
             }
-            let colour = score_frame(&mut world, &camera, &photo, Reader::Colour);
-            let masked = score_frame(&mut world, &camera, &photo, Reader::Mask(&TRACED_POLYGONS));
-            for ((c, (who, o, piece, building)), (k, _)) in colour.iter().zip(&masked) {
-                println!(
-                    "{PHOTO_FRAME}: {who}/{o} piece {piece}{} window ({}, {})..({}, {}) ours {} theirs colour {} mask {} overlap colour {:.3} mask {:.3}",
-                    if *building { " building" } else { "" },
-                    c.window.x0,
-                    c.window.y0,
-                    c.window.x1,
-                    c.window.y1,
-                    c.ours,
-                    c.theirs,
-                    k.theirs,
-                    c.overlap(),
-                    k.overlap()
-                );
-            }
             let mixed = |colour: &[Scored], masked: &[Scored]| {
                 let rows: Vec<Footprint> = colour
                     .iter()
@@ -402,6 +406,50 @@ mod tests {
                     .collect();
                 score(&rows, &READING)
             };
+            let print_rows = |draw: &str, colour: &[Scored], masked: &[Scored]| {
+                for ((c, (who, o, piece, building)), (k, _)) in colour.iter().zip(masked) {
+                    println!(
+                        "{PHOTO_FRAME} {draw}: {who}/{o} piece {piece}{} window ({}, {})..({}, {}) ours {} theirs colour {} mask {} overlap colour {:.3} mask {:.3}",
+                        if *building { " building" } else { "" },
+                        c.window.x0,
+                        c.window.y0,
+                        c.window.x1,
+                        c.window.y1,
+                        c.ours,
+                        c.theirs,
+                        k.theirs,
+                        c.overlap(),
+                        k.overlap()
+                    );
+                }
+            };
+            // The buildings as the original draws them, their sprites (item
+            // 4076): the reader as it stands cannot score them
+            // ([`render::silhouette::RUN1559B_3279_SPRITES`]).
+            assert!(world.sprites, "the client draws the sprites by default");
+            let colour = score_frame(&mut world, &camera, &photo, Reader::Colour);
+            let masked = score_frame(&mut world, &camera, &photo, Reader::Mask(&TRACED_POLYGONS));
+            print_rows("sprites", &colour, &masked);
+            let posed: Vec<Footprint> = colour.iter().map(|(f, _)| *f).collect();
+            let sprites = (score(&posed, &READING), mixed(&colour, &masked));
+            let off = score_frame(&mut world, &elsewhere, &photo, Reader::Colour);
+            let off_masked = score_frame(
+                &mut world,
+                &elsewhere,
+                &photo,
+                Reader::Mask(&TRACED_POLYGONS),
+            );
+            let off_colour: Vec<Footprint> = off.iter().map(|(f, _)| *f).collect();
+            let sprites_off = (score(&off_colour, &READING), mixed(&off, &off_masked));
+            println!(
+                "frame {PHOTO_FRAME}: the sprites, posed {:?}, the tanks by the mask {:?}; at run1441's camera {:?} and {:?}",
+                sprites.0, sprites.1, sprites_off.0, sprites_off.1
+            );
+            // The pinned rows: each building drawn as its `zbuffer` model.
+            world.sprites = false;
+            let colour = score_frame(&mut world, &camera, &photo, Reader::Colour);
+            let masked = score_frame(&mut world, &camera, &photo, Reader::Mask(&TRACED_POLYGONS));
+            print_rows("zbuffer", &colour, &masked);
             let posed: Vec<Footprint> = colour.iter().map(|(f, _)| *f).collect();
             let posed = score(&posed, &READING);
             let by_mask = mixed(&colour, &masked);
@@ -421,11 +469,12 @@ mod tests {
             );
             let off_colour: Vec<Footprint> = off.iter().map(|(f, _)| *f).collect();
             let off = (score(&off_colour, &READING), mixed(&off, &off_masked));
+            world.sprites = true;
             println!(
                 "frame {PHOTO_FRAME}: posed {posed:?}, the tanks by the mask {by_mask:?}, at rest {rest:?}; at run1441's camera {:?} and {:?}",
                 off.0, off.1
             );
-            at_photo = Some((posed, by_mask, rest, off));
+            at_photo = Some((posed, by_mask, rest, off, sprites, sprites_off));
         }
         let nearest = misses
             .iter()
@@ -435,7 +484,22 @@ mod tests {
             nearest.0, PHOTO_FRAME,
             "the movers sit on the photograph at its frame"
         );
-        let (posed, by_mask, rest, off) = at_photo.expect("the photograph's frame was walked");
+        let (posed, by_mask, rest, off, sprites, sprites_off) =
+            at_photo.expect("the photograph's frame was walked");
+        assert_eq!(
+            sprites,
+            (
+                render::silhouette::RUN1559B_3279_SPRITES_POSED,
+                render::silhouette::RUN1559B_3279_SPRITES
+            )
+        );
+        assert_eq!(
+            sprites_off,
+            (
+                render::silhouette::RUN1441_CAMERA_3279,
+                render::silhouette::RUN1441_CAMERA_3279_MASKED
+            )
+        );
         assert_eq!(posed, render::silhouette::RUN1559B_3279_POSED);
         assert_eq!(by_mask, render::silhouette::RUN1559B_3279_MASKED);
         assert_eq!(rest, render::silhouette::RUN1559B_3279);
@@ -455,7 +519,9 @@ mod tests {
             "the photograph's frame scores above the packet's"
         );
 
-        // The packet's frame, as items 4038 to 4071 scored it.
+        // The packet's frame, as items 4038 to 4071 scored it: the buildings
+        // as their `zbuffer` models.
+        world.sprites = false;
         world.run_to(3294);
         let rows = score_frame(&mut world, &camera, &photo, Reader::Colour);
         for (f, (who, o, piece, building)) in &rows {
