@@ -194,6 +194,80 @@ pub struct FromLobby {
     /// crate carried it.
     pub steps: Vec<(&'static str, bool)>,
     pub notes: Vec<String>,
+    /// The map chain's checkpoints, in the order the setup trace prints
+    /// them (`crate::mapgen::lakes`): what a trace bisects the composed
+    /// chain against. Empty when the map was not composed.
+    pub checkpoints: Vec<crate::mapgen::lakes::Checkpoint>,
+}
+
+/// **The map's grid as the sim's `World`** (`docs/START.md` §2 step 4):
+/// what [`super::world_from`] reads off a `WORLD` dump, read off the
+/// composed chain's [`sim::mapgen::MapGrid`] instead — each distinct region
+/// number a sim region (land below 0x40, sea from it) carrying the
+/// original's number, `region2`, the cell bytes, the owners, the tile
+/// masks and the corner heights. Returns the world and the region map.
+pub fn world_from_grid(
+    grid: &sim::mapgen::MapGrid,
+    z: Vec<sim::num::single::Single>,
+    sea_map: i32,
+) -> (World, Vec<(i64, u16)>) {
+    let mut world = World::new(grid.xs, grid.ys);
+    let mut region_map: Vec<(i64, u16)> = Vec::new();
+    let mut region_of = |n: i64, world: &mut World| -> Option<u16> {
+        if n < 0 {
+            return None;
+        }
+        if let Some((_, r)) = region_map.iter().find(|(d, _)| *d == n) {
+            return Some(*r);
+        }
+        let terrain = if n < 0x40 {
+            sim::world::Terrain::Land
+        } else {
+            sim::world::Terrain::Sea
+        };
+        let r = world.add_region(terrain);
+        world.set_region_number(r, n as u16);
+        region_map.push((n, r));
+        Some(r)
+    };
+    let owner = |w: i64| -> sim::world::Owner {
+        match w {
+            -2 => sim::world::Owner::Ambiguous,
+            w if (0..=255).contains(&w) => sim::world::Owner::Player(w as sim::Player),
+            _ => sim::world::Owner::None,
+        }
+    };
+    for (i, c) in grid.cells.iter().enumerate() {
+        let cell = sim::world::Cell::new(i as i32 % grid.xs, i as i32 / grid.xs);
+        if let Some(r) = region_of(i64::from(c.region), &mut world) {
+            world.set_region(cell, r);
+        }
+        let region2 = region_of(i64::from(c.region2), &mut world);
+        world.set_owner(cell, owner(i64::from(c.who)), owner(i64::from(c.who2)));
+        world.set_cell_data(
+            cell,
+            sim::world::CellData {
+                flags: c.flags,
+                land: c.land,
+                land_sub: c.land_sub,
+                region2,
+                val: c.val,
+                goods: c.goods,
+                blocked: c.blocked,
+                solid: c.solid,
+                bad: c.bad,
+                down: c.down,
+                down_who: c.down_who as i8,
+            },
+        );
+    }
+    let tw = (grid.xs * sim::world::TILES_PER_CELL) as usize;
+    for (i, m) in grid.tiles.iter().enumerate() {
+        world.set_tile_mask(Pos::new((i % tw) as i32, (i / tw) as i32), *m);
+    }
+    world.set_corner_singles(z);
+    world.set_sea_map(sea_map);
+    (world, region_map)
 }
 
 /// **`Game::init@0058c480`'s extent**: `World::init(n, n)` with `n` the
@@ -285,7 +359,57 @@ pub fn from_lobby(
         notes.push("no extent: no install root or no mapsizes row".into());
         1
     });
-    let mut sim = loaded.sim(tuning, World::new(n, n), players);
+    // 3 and 4 are computed here, ahead of the `Sim` that stands on their
+    // world (`Sim::new` seeds its mesh from the world it is handed); the
+    // draws are the walk's, in its order, and nothing in step 2 draws on
+    // the stream they spend. 3: `build_game`'s re-seed and `world->seed`.
+    let seed = int("(int)seed").unwrap_or(0) as u32;
+    let mut rng = sim::combat::Rng::new(seed);
+    let game_seed = rng.get(0, 0xffff) % 0xffff + 1;
+    // 4: the map, on the stream `world->seed` left (`setup.cpp` 716).
+    let mut checkpoints = Vec::new();
+    let map = (|| {
+        let root = loaded.install_root.as_deref()?;
+        if int("MAP_STYLE") != Some(14) {
+            notes.push(format!(
+                "the map: style {:?} has no composed chain (Great Lakes, 14, has)",
+                int("MAP_STYLE")
+            ));
+            return None;
+        }
+        let range = loaded
+            .unit_of_type_index(349)
+            .map(|i| loaded.unit_types[i].combat.max_range)?;
+        let lobby = crate::mapgen::lakes::LakesLobby {
+            at_716: rng.seed,
+            xs: n,
+            ys: n,
+            nations: player_rows.len() as i32,
+            map_size: int("MAP_SIZE").unwrap_or(-1),
+            seed: game_seed,
+        };
+        let sea = crate::mapgen::sea_map(root, "GREATLAKES.xml")?;
+        match crate::mapgen::lakes::great_lakes_map(root, &lobby, range, |c| checkpoints.push(*c)) {
+            Ok(m) => Some((m, sea)),
+            Err(e) => {
+                notes.push(format!("the map: the chain refused, {e:?}"));
+                None
+            }
+        }
+    })();
+    let world = match map {
+        Some((m, sea)) => {
+            rng = m.draws.rng;
+            let sea = sim::mapgen::terrain_init::sea_map_after_make(
+                sim::mapgen::terrain_init::WORLD_SEA_MAP_BEFORE,
+                sea,
+            );
+            world_from_grid(&m.grid, m.z, sea).0
+        }
+        None => World::new(n, n),
+    };
+    let map_built = !checkpoints.is_empty() && world.width() == n;
+    let mut sim = loaded.sim(tuning, world, players);
     // 2. `init_rules_and_teams`.
     sim.ai.lobby = lobby_of(
         game_info,
@@ -296,7 +420,6 @@ pub fn from_lobby(
         &loaded.rush_minutes,
     );
     sim.setup().sync_setup_from_lobby();
-    let seed = int("(int)seed").unwrap_or(0) as u32;
     let (lo, hi) = sim.ai.lobby.starting_resources_row;
     let spread = lo != 0 && hi > lo;
     if spread {
@@ -322,9 +445,8 @@ pub fn from_lobby(
     // it is not walked: `GAMEINFO` prints the rolled nation, which is what
     // `set_tribe` took above.
     steps.push(("init_rules_and_teams", !spread));
-    // 3. `build_game`'s re-seed and the world seed.
-    let mut rng = sim::combat::Rng::new(seed);
-    sim.game_seed = rng.get(0, 0xffff) % 0xffff + 1;
+    // 3. `build_game`'s re-seed and the world seed (computed above).
+    sim.game_seed = game_seed;
     sim.rng = rng;
     steps.push(("build_game: re-seed, world->seed", true));
     // 6, ahead of the map it does not read: `Leader::init`'s diplomacy row
@@ -345,9 +467,9 @@ pub fn from_lobby(
         sim.setup().init_diplos(who as sim::Player, &seats);
     }
     steps.push(("Leader::init: diplos", true));
-    // 4. The map, and everything after it.
+    // 4. The map (composed above), and everything after it.
+    steps.push(("Map::make and Terrain::init", map_built));
     for step in [
-        "Map::make and Terrain::init",
         "the start permutation",
         "Leader::init (the personality roll)",
         "build_empire: build_cities, produce_building, build_civ_specific",
@@ -357,8 +479,15 @@ pub fn from_lobby(
     ] {
         steps.push((step, false));
     }
-    notes.push("the walk stops at the map: no path composes Map::make into a World".into());
-    FromLobby { sim, steps, notes }
+    if !map_built {
+        notes.push("the walk stops at the map".into());
+    }
+    FromLobby {
+        sim,
+        steps,
+        notes,
+        checkpoints,
+    }
 }
 
 #[cfg(test)]
@@ -394,6 +523,75 @@ mod tests {
         assert_eq!(p[0].to_string(), "UNIT 0/0 pos: ours 1 3 theirs 1 2");
         let p = compare_start(&a[..1], &a);
         assert_eq!(p[0].ours, None);
+    }
+
+    /// **The harness lobby's map, composed from its choices, against the
+    /// setup trace** (item 4047; `docs/START.md` §2 step 4): [`from_lobby`]
+    /// on run11's `GAMEINFO` (the run9 lobby, whose trace run11 is) runs
+    /// Great Lakes' chain on one stream from the lobby's seed, and every
+    /// checkpoint it hands back — seed, parts 2, 5, 6 and 10–13 — is the
+    /// trace's record at that line, from 7805 to `Terrain.cpp` 894. The
+    /// phase tests drive each phase from the trace's own 7805 word and the
+    /// start dump's `World.seed`; here neither is read.
+    #[test]
+    fn the_harness_lobby_s_map_is_the_traced_setup_path() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run11-checksum.txt") else {
+            eprintln!("skipping: no gamelog-run11-checksum.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let head = crate::mapgen::start_head(std::path::Path::new(&path))
+            .unwrap()
+            .expect("run11's preamble carries the setup trace");
+        let g = crate::mapgen::start_grid(&head);
+        let log = Log::parse(&head);
+        let init = log.initial().expect("run11's GAMEINFO");
+        let ours = from_lobby(&loaded, &init.game_info, &init.players, Tuning::RON);
+        let mut parted = Vec::new();
+        for c in &ours.checkpoints {
+            let Some((_, _, seed, p)) = g.at(c.file, c.line) else {
+                parted.push(format!(
+                    "{} {}: no such record in the trace",
+                    c.file, c.line
+                ));
+                continue;
+            };
+            // At 7805 the cells are `World::init`'s, which `make_continents`
+            // writes whole (7807's part 5 is the check of that); the port's
+            // grid starts wiped, so part 5 is not compared there.
+            let cells = if c.line == 7805 { p[5] } else { c.part5 };
+            let mine = (c.seed, c.part2, cells, c.part6, c.lists);
+            let theirs = (*seed, p[2], p[5], p[6], [p[10], p[11], p[12], p[13]]);
+            if mine != theirs {
+                parted.push(format!(
+                    "{} {}: (seed, parts 2, 5, 6, 10–13) ours {mine:?} theirs {theirs:?}",
+                    c.file, c.line
+                ));
+            }
+        }
+        let lines: Vec<i64> = ours.checkpoints.iter().map(|c| c.line).collect();
+        eprintln!(
+            "the composed map: {} checkpoints {lines:?}, {} part; notes {:?}",
+            ours.checkpoints.len(),
+            parted.len(),
+            ours.notes
+        );
+        assert!(parted.is_empty(), "{}", parted.join("\n"));
+        assert_eq!(
+            lines,
+            [
+                7805, 7807, 7854, 7859, 7861, 7865, 7870, 7927, 7937, 7945, 720, 738, 5012, 5014,
+                5076, 5116, 5118, 894
+            ],
+            "the checkpoints the chain prints"
+        );
+        // The stream leaves the map on the trace's word at 894, which
+        // the start permutation draws from next.
+        assert_eq!(
+            ours.sim.rng.seed,
+            g.at("Terrain.cpp", 894).expect("894 in the trace").2
+        );
     }
 
     /// **The harness's own lobby, built from its choices and compared with
@@ -437,7 +635,8 @@ mod tests {
                 for ((k, f), n) in &by_field {
                     eprintln!("parted {k} {f}: {n}");
                 }
-                for p in parted.iter().take(40) {
+                let all = std::env::var("RON_START_DIFF").is_ok_and(|v| v == "all");
+                for p in parted.iter().take(if all { usize::MAX } else { 40 }) {
                     eprintln!("{p}");
                 }
                 eprintln!("agree {agree} of {}", b.len());
@@ -453,16 +652,18 @@ mod tests {
     }
 
     /// The harness lobby's first parted row, `record field: ours theirs`:
-    /// the map's first cell, which no path composes into a `World` yet
-    /// (item 4047; `docs/START.md` §4). Item 4033 pinned `LEADER 0 at_war`,
-    /// ours `[false, false]` theirs `[false, true]`; item 4046 built its
-    /// writer, `Leader::init`'s diplomacy row, and both war rows agree.
-    /// Every row ahead agrees: the leaders, the extent, the world seed.
-    const START_FIRST_PARTING: Option<&str> = Some("CELL 0 0 region: ours false theirs true");
+    /// the first cell `City::fix_world_vals` wears down round the AI's
+    /// starting city, which `build_empire` (not built) stands up (item
+    /// 4047; `docs/START.md` §4). Item 4033 pinned `LEADER 0 at_war`; item
+    /// 4046 built the war row and the map's first cell parted; item 4047
+    /// composed Great Lakes' chain and every cell's `land` and region
+    /// agree, and every value and flag the map maker leaves.
+    const START_FIRST_PARTING: Option<&str> = Some("CELL 52 13 val: ours 13 theirs 6");
     /// The harness lobby's agreeing fields, of the installed block's:
-    /// 9,089 of 18,264 (item 4046, +2 on 4033's 9,087: the two war rows) —
-    /// the parted are the map's cells (3,600 region, 2,303 val, 1,706
-    /// flags, 790 land, 527 owner), the personality, 13 buildings and 52
-    /// units (each of four fields) and the sync word.
-    const START_AGREE: (usize, usize) = (9089, 18264);
+    /// 17,145 of 18,264 (item 4047, +8,056 on 4046's 9,089: the map) — the
+    /// parted are `build_empire`'s and after: 314 values the cities wear
+    /// down, 29 flags their footprints set (0x80, 0x4000), 527 territory
+    /// cells, the personality, 13 buildings and 52 units (each of four
+    /// fields) and the sync word.
+    const START_AGREE: (usize, usize) = (17145, 18264);
 }
