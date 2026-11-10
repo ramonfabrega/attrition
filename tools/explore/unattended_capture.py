@@ -506,6 +506,25 @@ def refused_launch_context(manager):
             "and wait on its `log:` with `tools/gamelog/waitrun.sh` (Loop 3334)")
 
 
+def refused_playback_cmd_file(path):
+    """Why a `--cmd-file` beside `--recording` is refused, or None (item
+    4088): the recording owns the lobby and the orders, so the only lines a
+    playback takes are `@dumpall` ones — the logger's dump-all flag for one
+    frame (`tracer.c`'s `I_DUMPALL`), which issues nothing to the game. Run
+    1562's packet and its windowed record are a pair through it."""
+    if path is None:
+        return None
+    for raw in Path(path).read_text().splitlines():
+        line = raw.strip()
+        if not line or line.startswith('#'):
+            continue
+        frame, _, text = line.partition(' ')
+        if text.strip() != '@dumpall':
+            return (f'--recording owns the lobby and the orders; a --cmd-file beside it holds `<frame> @dumpall` '
+                    f'lines only, got {raw!r}')
+    return None
+
+
 def refused_tracer_defs(defs):
     """Why a `--tracer-def` set is refused before the lane is taken, or
     None: `RON_STATE_FRAME` names a packet frame and the tracer's
@@ -1383,8 +1402,11 @@ def main():
     if args.recording is not None:
         args.recording = args.recording.resolve(strict=True)
         args.recording_seed, recording_map = recording_identity(args.recording)
-        if args.maps or args.lobby or args.ai_tribe is not None or args.seat_tribes or args.cmd_file or args.cmd_without:
+        if args.maps or args.lobby or args.ai_tribe is not None or args.seat_tribes or args.cmd_without:
             ap.error('--recording owns the lobby; omit --map, --profile, --ai-tribe, --seat-tribe, --cmd-file and --cmd-without')
+        why = refused_playback_cmd_file(args.cmd_file)
+        if why:
+            ap.error(why)
         args.maps = [recording_map]
     args.maps=tuple(args.maps or (14,18))
     settle_timeout(args)
