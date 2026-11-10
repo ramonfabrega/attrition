@@ -198,6 +198,35 @@ pub struct FromLobby {
     /// them (`crate::mapgen::lakes`): what a trace bisects the composed
     /// chain against. Empty when the map was not composed.
     pub checkpoints: Vec<crate::mapgen::lakes::Checkpoint>,
+    /// The stream's word at each setup checkpoint the walk reaches past
+    /// the map, `(file, line, word)`: what a setup trace checks the draws
+    /// of the permutation, `Leader::init` and `build_empire` against.
+    pub words: Vec<(&'static str, i64, u32)>,
+}
+
+/// **`Setup::build_game`'s start permutation** (`docs/START.md` §2 step
+/// 5): `Game::start_list[k]` for the eight seats, each a fresh index — a
+/// `Random::get(0, 0xffff) & 7`, re-drawn until it is one no earlier `k`
+/// took, when the map randomises its starts (`Map::Map@006a06e0` sets
+/// `randomize_starts`, and of the styles only East Meets West's
+/// `make_continents` writes it again); `k` itself when it does not.
+pub fn start_permutation(rng: &mut sim::combat::Rng, randomize: bool) -> [usize; 8] {
+    let mut list = [0usize; 8];
+    let mut used = [false; 8];
+    let mut k = 0;
+    while k < 8 {
+        let i = if randomize {
+            (rng.get(0, 0xffff) & 7) as usize
+        } else {
+            k
+        };
+        if !used[i] {
+            used[i] = true;
+            list[k] = i;
+            k += 1;
+        }
+    }
+    list
 }
 
 /// **The map's grid as the sim's `World`** (`docs/START.md` §2 step 4):
@@ -467,11 +496,51 @@ pub fn from_lobby(
         sim.setup().init_diplos(who as sim::Player, &seats);
     }
     steps.push(("Leader::init: diplos", true));
-    // 4. The map (composed above), and everything after it.
+    // 4. The map (composed above).
     steps.push(("Map::make and Terrain::init", map_built));
+    let mut words = Vec::new();
+    if map_built {
+        // 5. The start permutation, off the map's stream (`setup.cpp` 884
+        // -> 955). Great Lakes randomises its starts.
+        let start_list = start_permutation(&mut sim.rng, true);
+        words.push(("setup.cpp", 955, sim.rng.seed));
+        steps.push(("the start permutation", true));
+        // 6. `Leader::init` for each active seat, in the permutation's
+        // order: a computer leader's AI tail rolls its personality and
+        // picks its script (`random_personality`, `leaders.cpp` 13383 ->
+        // 13457); a human's draws nothing.
+        if !loaded.scripts.is_empty() {
+            let sources: Vec<sim::ai::bhs::Source> = loaded
+                .scripts
+                .iter()
+                .map(|(name, text)| sim::ai::bhs::Source { name, text })
+                .collect();
+            if let Err(e) = sim
+                .setup()
+                .load_scripts(&["economic.bhs", "defensive.bhs"], &sources)
+            {
+                notes.push(format!("the opening scripts did not compile: {e}"));
+            }
+        }
+        for &who in start_list.iter().filter(|&&w| w < players) {
+            if sim.cities.nation[who].human {
+                continue;
+            }
+            let flags = player_rows
+                .iter()
+                .find(|p| row_int(p, "who") == Some(who as i64))
+                .and_then(|p| row_int(p, "flags"))
+                .unwrap_or(0) as u32;
+            sim.setup().init_leader_ai(who as sim::Player, flags);
+            words.push(("leaders.cpp", 13457, sim.rng.seed));
+        }
+        words.push(("setup.cpp", 1032, sim.rng.seed));
+        steps.push(("Leader::init (the personality roll)", true));
+    } else {
+        steps.push(("the start permutation", false));
+        steps.push(("Leader::init (the personality roll)", false));
+    }
     for step in [
-        "the start permutation",
-        "Leader::init (the personality roll)",
         "build_empire: build_cities, produce_building, build_civ_specific",
         "build_empire: build_units, place_unit",
         "World::analyze_map, compute_all_territory",
@@ -487,6 +556,7 @@ pub fn from_lobby(
         steps,
         notes,
         checkpoints,
+        words,
     }
 }
 
@@ -586,11 +656,25 @@ mod tests {
             ],
             "the checkpoints the chain prints"
         );
-        // The stream leaves the map on the trace's word at 894, which
-        // the start permutation draws from next.
+        // Past the map: the permutation's eight draws (955), the AI's
+        // `Leader::init` (13457, its first visit) and `build_empire`'s
+        // entry (1032), each the trace's word at that line.
+        let theirs: Vec<(&str, i64, u32)> = ours
+            .words
+            .iter()
+            .map(|&(f, l, _)| {
+                let (_, _, w, _) = g
+                    .checksums
+                    .iter()
+                    .find(|(ff, ll, _, _)| ff == f && *ll == l)
+                    .expect("the line in the trace");
+                (f, l, *w)
+            })
+            .collect();
+        assert_eq!(ours.words, theirs, "the stream past the map");
         assert_eq!(
-            ours.sim.rng.seed,
-            g.at("Terrain.cpp", 894).expect("894 in the trace").2
+            ours.words.iter().map(|w| w.1).collect::<Vec<_>>(),
+            [955, 13457, 1032]
         );
     }
 
@@ -660,10 +744,11 @@ mod tests {
     /// agree, and every value and flag the map maker leaves.
     const START_FIRST_PARTING: Option<&str> = Some("CELL 52 13 val: ours 13 theirs 6");
     /// The harness lobby's agreeing fields, of the installed block's:
-    /// 17,145 of 18,264 (item 4047, +8,056 on 4046's 9,089: the map) — the
-    /// parted are `build_empire`'s and after: 314 values the cities wear
-    /// down, 29 flags their footprints set (0x80, 0x4000), 527 territory
-    /// cells, the personality, 13 buildings and 52 units (each of four
-    /// fields) and the sync word.
-    const START_AGREE: (usize, usize) = (17145, 18264);
+    /// 17,146 of 18,264 (item 4047, +8,057 on 4046's 9,089: the map, then
+    /// the computer's personality, rolled after the start permutation) —
+    /// the parted are `build_empire`'s and after: 314 values the cities
+    /// wear down, 29 flags their footprints set (0x80, 0x4000), 527
+    /// territory cells, 13 buildings and 52 units (each of four fields)
+    /// and the sync word.
+    const START_AGREE: (usize, usize) = (17146, 18264);
 }
