@@ -34,9 +34,8 @@ pub(crate) fn debug_leaves(text: &str) -> Vec<(String, String)> {
         }
         // A map entry whose key printed over several lines closes the key
         // and carries the value: `): 3`, `}: Foo {`.
-        let closes_key = line.len() > 2
-            && matches!(&line[..1], "}" | "]" | ")")
-            && line[1..].starts_with(": ");
+        let closes_key =
+            line.len() > 2 && matches!(&line[..1], "}" | "]" | ")") && line[1..].starts_with(": ");
         let named = if closes_key {
             stack
                 .pop()
@@ -45,13 +44,15 @@ pub(crate) fn debug_leaves(text: &str) -> Vec<(String, String)> {
             None
         };
         // `name: rest` where the name is a field or a map key.
-        let named = named.or_else(|| line.find(": ").and_then(|i| {
-            let k = &line[..i];
-            let ok = k.chars().all(|c| c.is_alphanumeric() || c == '_')
-                || (k.starts_with('(') && k.ends_with(')'))
-                || k.chars().all(|c| c.is_ascii_digit() || c == '-');
-            ok.then(|| (k.to_string(), &line[i + 2..]))
-        }));
+        let named = named.or_else(|| {
+            line.find(": ").and_then(|i| {
+                let k = &line[..i];
+                let ok = k.chars().all(|c| c.is_alphanumeric() || c == '_')
+                    || (k.starts_with('(') && k.ends_with(')'))
+                    || k.chars().all(|c| c.is_ascii_digit() || c == '-');
+                ok.then(|| (k.to_string(), &line[i + 2..]))
+            })
+        });
         let (comp, rest) = match named {
             Some((k, r)) => (format!(".{k}"), r),
             None => {
@@ -109,9 +110,18 @@ fn keyed(sim: &Sim, leaves: Vec<(String, String)>) -> Vec<(String, String)> {
         let rest = p.strip_prefix(list)?;
         let close = rest.find(']')?;
         let i: usize = rest[..close].parse().ok()?;
-        Some(format!("{}{{{}}}{}", &list[..list.len() - 1], k(i)?, &rest[close + 1..]))
+        Some(format!(
+            "{}{{{}}}{}",
+            &list[..list.len() - 1],
+            k(i)?,
+            &rest[close + 1..]
+        ))
     };
-    let bk = |i: usize| sim.buildings.get(i).map(|b| format!("{}/{}", b.owner, b.index));
+    let bk = |i: usize| {
+        sim.buildings
+            .get(i)
+            .map(|b| format!("{}/{}", b.owner, b.index))
+    };
     let uk = |i: usize| sim.units.get(i).map(|u| format!("{}/{}", u.owner, u.index));
     leaves
         .into_iter()
@@ -136,11 +146,18 @@ pub(crate) fn whole_diff(
         a.iter().map(|(p, v)| (p.as_str(), v.as_str())).collect();
     let yours: std::collections::HashMap<&str, &str> =
         b.iter().map(|(p, v)| (p.as_str(), v.as_str())).collect();
-    let mut out: std::collections::BTreeMap<String, (usize, String, Option<String>, Option<String>)> =
-        Default::default();
+    let mut out: std::collections::BTreeMap<
+        String,
+        (usize, String, Option<String>, Option<String>),
+    > = Default::default();
     let mut note = |p: &str, o: Option<&str>, t: Option<&str>| {
         let e = out.entry(take_of(p)).or_insert_with(|| {
-            (0, p.to_string(), o.map(str::to_string), t.map(str::to_string))
+            (
+                0,
+                p.to_string(),
+                o.map(str::to_string),
+                t.map(str::to_string),
+            )
         });
         e.0 += 1;
     };
@@ -218,8 +235,15 @@ fn the_harness_lobby_s_start_is_the_installed_one_wide() {
             b.len(),
             parted.len()
         );
-        assert_eq!(b.len(), START_WIDE_FIELDS, "the wide projection's field count");
-        assert_eq!(got, want, "the wide takes that part (RON_START_DIFF=1 prints them)");
+        assert_eq!(
+            b.len(),
+            START_WIDE_FIELDS,
+            "the wide projection's field count"
+        );
+        assert_eq!(
+            got, want,
+            "the wide takes that part (RON_START_DIFF=1 prints them)"
+        );
     });
 }
 
@@ -446,7 +470,10 @@ fn the_lobby_walked_from_the_built_start() {
     if let Some((o, t)) = &ours.sites
         && let Some((_, d)) = first_parting(o, t)
     {
-        eprintln!("the built walk's first parting frame, {:?}: {d}", ours.first_sequence);
+        eprintln!(
+            "the built walk's first parting frame, {:?}: {d}",
+            ours.first_sequence
+        );
     }
     let word = ours.first_count.unwrap_or(ours.last);
     let (map, floor, length) = START_WALKED;
@@ -479,4 +506,3 @@ fn the_lobby_walked_from_the_built_start() {
 /// run226 one citizen a few units off), the same ten from the installed
 /// start.
 const START_WALK_RECORDS: (usize, usize) = (2770, 10);
-

@@ -318,3 +318,199 @@ comparison, so the counter cannot read 1 while that lobby parts. **1 of
   4063a); the port is right in both.
 - **Coverage**: one lobby compared of 161. The others need their own
   installed side (`build_sim` on each start dump) and are item 4034's.
+  Past the block — every take the installer makes, and the lobby's game
+  walked from the built start — is §7 (item 4057).
+
+## 7. Frame zero wider than the block, and the game run from it
+
+Item 4057. §3's block reads 18,264 fields; `diff::setup::build_sim`
+writes more than that, and a walk reads all of it. This section is every
+take the installer makes, whether the built start (`from_lobby`, wrapped
+as a walk's `Built` by `built_from_lobby`) carries it, and the lobby's
+long capture walked from the built start with no dump installed.
+
+**The instrument.** `diff::start_walk` (test-only) compares the two
+`Sim`s whole: each `{:#?}` print flattened to `(path, value)` leaves,
+buildings and units keyed by `(who, o)` rather than store position
+(`RON_START_WHOLE=1` prints it take by take). The first comparison, on
+item 4063's tip, parted on 25,984 leaf paths; most were the install's
+art tables (`roster.art.*`) that only the installer copied, then the
+fog, goods, goody boxes, mountains, territory limits and region flags.
+Two things it parts on are not starts: the object stores are in a
+different order (the installer makes them in the dump's order, the walk
+in the original's creation order — seat 1's empire first), so every
+index-valued field (`cities[*]`, `farm_order`, a citizen's `GATHER`
+building, `territory_won`'s city index) differs while the objects agree;
+and `trace.phase_marks`, the installer's setup bookkeeping.
+
+## 7.1 The takes
+
+Each row is one take of `build_sim`, in its order: what the installer
+reads, what the built start does, and how the row is known. **Built**:
+the built start computes it and a comparison holds it equal.
+**Defaulted**: the built start leaves a default where the installer
+takes a value. **Dump-only**: no build exists from the lobby's choices
+without a mechanic nobody has written, or the installer's own value is
+an assumption the dump cannot settle.
+
+| take | installer | built start | status, evidence |
+|---|---|---|---|
+| extent | `WORLD xs ys` | `world_extent` | built; block |
+| cells: land, region, region2, flags, val, goods, blocked, solid, bad, owners | `WORLD` cells | the map chain and the walk (§2 steps 4, 7, 8) | built; block (land, flags, val, region, owner), whole comparison (the rest) |
+| `land_sub` | `WORLD` cells | the chain's | built, 8 cells part: §7.3 |
+| tile masks | `WORLD` tiles | the chain's and the walk's | built, 131 tiles part on bit 0x4: §7.3 |
+| corner heights | run3's `DUMP_ALL` heights | the chain's singles | built; 1,422 of 58,081 corners differ from the dump's six-decimal print by one unit in the single's last place; not projected, since the print cannot settle it |
+| `seen2` | `WORLD` fog | `World::init`'s zeroed grid, every reveal of the walk, and `Object::update_seen_ally` (§7.2) | built; wide (14,400 agree) |
+| `seen` | a copy of `seen2` | the walk's own | dump-only: the copy is the installer's assumption; `update_seen_ally` writes `seen2` alone, so 273 fog cells differ; not projected |
+| `sea_map` | `WORLD` scalar | `sea_map_after_make` | built; whole comparison |
+| territory limits | `WORLD` scalars | the rules' triple, `Map::load_map_data`'s copy | built, red first (ours `None`); wide |
+| region flags | `REGIONS` | 0x4 on the land region only | defaulted: §7.3 |
+| site values | `WORLD` cells, written back | the villages' own wear | built; block |
+| lobby, `Setup` sync, `game_seed` | `GAMEINFO`, `WORLD seed` | the same | built; block |
+| animation lengths (`art.lengths`) | `DUMP_ALL` guys | none | dump-only, and not read where the install speaks: `art.piece_lengths` wins (`docs/ANIM.md` §3.2); the walk agrees without it |
+| the install's art, craft, release, track and pivot tables | the install | the same, `install_art` (shared) before the first unit | built; whole comparison |
+| placed mountains | `MOUNTAINS` | the grid's `mountains`, laid from their templates | built; wide |
+| cliffs | the Mesa generator | none (no composed Mesa chain) | not this lobby's |
+| nations, human bits, `diplos` | `LEADER` | `PLAYER` rows, `init_diplos` | built; block |
+| opening techs, scripts, personality | `start_techs`, the trace's brackets | the walk | built; block |
+| goods | `GOOD` | the grid's goods list, each at `GoodTypeData::snap_center` of its cell (oil at the centre) | built, red first (36 absent, then 19 off by half a tile); wide |
+| cities, buildings, units, orders | `CITY`, `BUILDDATA`, `UNIT` | the walk | built; block |
+| guy clocks | `DUMP_ALL` guys | `Guy::init_real` | built; the walk (frame 40 parted while the pieces were missing, below) |
+| a player unit's pieces | `GUY gpiece` | `Sim::unit_gpiece` off the install | built once `install_art` ran before the first unit; the walk |
+| gaia's pieces | `GUY gpiece` | none | dump-only: `first_bird_piece` is a runtime pointer no file states (`Sim::piece_of`); the walk agrees without it |
+| gaia's facing | a default, `0x55555555` | `Herd::create_units`' angle draw | built; the installer's is the default (40 differ) |
+| a gaia animal's herd | the first herd of its type | the herd that founded it | built; the installer's is an approximation (33 differ) |
+| the scout's `squad_size` | the dump's figure count, 2 | 1 | not established which the walk reads; the walk agrees |
+| farms: type, heights, list order | `FARMS` | `Farms::add`, creation order | built; whole comparison, keyed |
+| pasture animals | the trace | none here | not this lobby's (no pasture on Great Lakes) |
+| herds | `HERDS` | `herds_from_goods` | built; §4 |
+| goody boxes | `ITEM` | the cells' `down` −3, by `down_who` | built, red first (22 absent); wide |
+| building `ever_seen` | the dump's | `update_seen_ally`'s mask | built, red first (2 part); wide |
+| `new_rares` | a replay off the dump's fog | the walk's own reveals | dump-only: the installer's replay gives seat 1 rare 15 and the walk none; the original's frame-0 list is in no dump |
+| oil claims | a replay off the owners | the walk's territory | built; whole comparison |
+| the sync word | the trace's last word | the walk | built; block |
+| a building's `z` | the setup block | its own terraform | not read by the simulation (the renderer's) |
+| a cell's `down`, `down_who` | the dump's chain heads | the map's (−1, −2, −3) | dump-only as cell bytes: the simulation threads its chains in `terrain.chain_heads`; 28 cells differ; not established that anything reads the cell's copy |
+| corrections: frame words, clocks, re-seats | the siblings' `DUMP_ALL` | none | not taken by either walk of §7.4 |
+
+**The counts**: 37 takes. **Built 25** — 23 equal on every comparison,
+and two the map's residue that still part (`land_sub`, tile bit 0x4,
+§7.3). **Defaulted 1** — region flags. **Dump-only 7** — `seen`, the
+animation lengths, gaia's pieces, `new_rares`, the cells' chain heads,
+building `z`, the corrections. Two not established (the heights' last
+place, the scout's `squad_size`) and two not this lobby's (cliffs,
+pasture).
+
+## 7.2 What the walk needed that the block did not show
+
+- **The start's fog.** The walk parted on frame 0, draw 26 of 40
+  (`Unit::think_scout+0x64c` against `+0x436`): the built start had no
+  `seen2` at all, which `seen2` reads as "always seen". With
+  `World::init`'s zeroed grid every reveal the walk already makes landed,
+  and 273 fog cells were still dark — every one inside radius 10 of a
+  village. `Setup::build_cities` ends its village with
+  `Object::update_seen_ally`: radius the building's line of sight, or,
+  for a city's own building (`flags & 0x20`), `LeaderData::get_radius` of
+  its type capped at 64 and halved into fog cells (20 → 10 here); every
+  point of `circle_radius[r]` round the village's fog cell takes the
+  reached leaders' bits in `seen2` alone, and the building's `ever_seen`
+  takes them too. Reached: the owner, every leader allied with it both
+  ways, and every human when the owner is human (the `semaphore[0] & 4`
+  gate is no lobby field; the `game_rules == 8` arm is read and not
+  carried). Ported as `Sim::update_seen_ally_build`
+  (`crates/sim/src/vision/seen_ally.rs`); the per-cell `WData.was_seen`
+  byte it also sets is not kept. After it every fog cell agrees.
+- **The install's takes before the first unit.** The walk then parted on
+  frame 40, draw 0: theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+  ours a farm's. Every guy of the built start had `gpiece −1`:
+  `install_art` ran after `from_lobby`, so `Sim::piece_of` found no piece
+  table when each figure was born. Run inside `from_lobby` before the
+  map's objects, every player figure takes its piece and the walk runs
+  to the trace's end.
+- **The region map.** A walk's city comparison reads `reg` through
+  `Built::region_map`; `built_from_lobby` first left it empty and every
+  record of run12 and run13 parted on `CITY 0/2000 reg`, ours −1 theirs
+  1. It rides `FromLobby::region_map` now.
+
+## 7.3 The wide projection
+
+`diff::start::start_wide` projects the takes §3's block does not read:
+`FOG fx fy` (`seen2`), `GOOD i` (type, position, live bit), `ITEM i`
+(position, live bit, `ever_seen`), `MOUNTAIN i` (origin, solid cells,
+tiles), each building's `ever_seen`, `WORLD territory_limits`, `REGION n
+flags` (by the original's number), `TILE tx ty mask` and `CELL x y
+land_sub` — 75,835 fields on the harness lobby.
+`start_walk::the_harness_lobby_s_start_is_the_installed_one_wide` holds
+every one equal but three, each pinned by its count, and §3's block and
+`START_BUILT` are untouched:
+
+- **`REGION 0 flags`**: ours 0x4, theirs 0xa4. The land region's 0x20
+  and 0x80 have no writer found (East Indies shows 0xa0 on every land
+  region, `docs/TRANSPORT.md`); `Map::region_flags`, the style's word,
+  is 0 on every corpus style (`docs/MAPGEN.md`). Building it needs that
+  writer.
+- **`TILE mask`, 131 tiles**: bit 0x4 set in the dump and in neither
+  side's own writes, tiles 215–221 of rows 79 on, north of seat 1's
+  village. The bit is unnamed in `sim::world::tile`; its writer is not
+  identified.
+- **`CELL land_sub`, 8 cells**, four beside each village (ours 3 or 1,
+  theirs 2). Setup trace part 5 agrees at `Terrain.cpp` 884, so the
+  writer runs between the map and the dump; not identified.
+
+The walk reads all three and still runs to its end (§7.4), so none moves
+a draw on this game.
+
+## 7.4 The lobby's own walk from the built start
+
+`start_walk::the_lobby_walked_from_the_built_start` walks run53's game
+(the harness lobby, 24,000 frames, no input) from `built_from_lobby`'s
+`Built`: no start dump installed and no correction — no frame's word, no
+clock, no re-seat. Every frame's draws are compared with run53's trace
+(`rontrace-run53.log`, the word as `run53_s_24000_frames_…` counts it:
+the first frame whose draw count parts), and every record of the game's
+captures whole (`compare`, the harness's own): run53's two, run12's
+`DUMP_ALL` head, the windows run13, run125, run130, run135, run136,
+run163, run174, run226, run243, run294 and run80 — 2,770 records. The
+control is the same walk from `build_sim`'s install with its corrections
+off. (run3, the heights' sibling, is another game of this lobby: its
+frame 1 parts from both starts, and it is left out.)
+
+- **The word: 24,000 of 24,000 on the built start**, the installed
+  start's own (`LONG_WORD_GREAT_LAKES`, pinned `START_WALKED`). Both
+  sides' draws first part on frame 24,000, the trace's last and partial
+  frame, at the same draw.
+- **The records: 10 of 2,770 part, the same ten from both starts** —
+  each window's opening block (its three cities unlinked, and on run136,
+  run163 and run226 one citizen a few units off), the residue a window's
+  first block carries. The test holds the two walks' per-capture counts
+  and first parted record equal.
+- The installed start without its corrections also runs to 24,000 — so
+  on this game the corrections change nothing, as `audit.rs` holds for
+  the word and the clocks.
+
+**Red, and the perturbation.** The walk went red twice before it stood:
+frame 0 (the fog) and frame 40 (the pieces), each with its value diff in
+§7.2. With the village's `update_seen_ally` removed (one line, reverted)
+the wide test parts on 273 `FOG` and 2 `BUILD ever_seen` fields, and the
+walk's word is 0, first parting `Unit::think_scout+0x64c` against
+`+0x436` at draw 26.
+
+## 7.5 Confidence, and what is not established
+
+- **Diff-backed**: every built row of §7.1 by the wide projection or the
+  whole comparison; the fog, the goods' positions, the goody boxes, the
+  mountains, the territory limits and the buildings' `ever_seen` by
+  `start_wide`; the whole start by the walk — 24,000 frames of draws and
+  2,770 records alike from both starts.
+- **Read once, from the decompile**: `update_seen_ally`'s reach (the
+  allied and human arms; no capture has an ally or two humans), its
+  non-city radius (the building's line of sight unscaled; only villages
+  call it in a start), and the `semaphore[0] & 4` and `game_rules == 8`
+  arms; that a style XML's territory-limit override is read by
+  `Map::init_map_data` (Great Lakes names none, and the built start does
+  not read one).
+- **Not established**: §7.3's three; which of `squad_size`'s two values
+  the walk reads (it agrees either way); whether anything reads a cell's
+  own `down` copy; the original's frame-0 `new_rares`; the gaia pieces'
+  source; the heights below the dump's print. One lobby: any other needs
+  its own composed map (`docs/START.md` §6) and its own captures.
