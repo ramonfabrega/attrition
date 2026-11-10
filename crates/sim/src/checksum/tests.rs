@@ -87,3 +87,76 @@ fn the_city_table_tiles_the_walked_108_bytes() {
         0
     );
 }
+
+/// The builds line's four tables tile their walked ranges exactly
+/// (`docs/CHECKSUM.md` §14): `ObjectData` +0x20..+0x42, `WallData`
+/// +0x48..+0x66, `BuildData` +0x70..+0x86 and 18 of a `QueueItem`'s 20.
+#[test]
+fn the_build_tables_tile_their_walked_ranges() {
+    use builds::{BUILD_FIELDS, OBJECT_FIELDS, QUEUE_ITEM_FIELDS, WALL_FIELDS};
+    for (t, from, to) in [
+        (OBJECT_FIELDS, 0x20, 0x42),
+        (WALL_FIELDS, 0x48, 0x66),
+        (BUILD_FIELDS, 0x70, 0x86),
+        (QUEUE_ITEM_FIELDS, 0x0, 0x12),
+    ] {
+        let mut at = from;
+        for &(name, off, w) in t {
+            assert_eq!(off, at, "{name} starts where the last field ends");
+            at += w;
+        }
+        assert_eq!(at, to);
+    }
+}
+
+/// A bare building is eighteen ranges and one per queue slot, in
+/// `BuildData::walk_data`'s order; `uid` is `Object::init`'s per-player
+/// counter, so a player's second building takes 1 and another player's
+/// first takes 0; an idle queue's slot 0 carries `type` −1.
+#[test]
+fn a_bare_building_walks_eighteen_ranges_and_its_queue() {
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 2);
+    let a = sim.add_building(0, crate::world::Pos::new(1152, 1152), 2);
+    let b = sim.add_building(0, crate::world::Pos::new(2304, 1152), 2);
+    let c = sim.add_building(1, crate::world::Pos::new(3456, 1152), 2);
+    assert_eq!(
+        [a, b, c].map(|x| sim.buildings[x].uid),
+        [0, 1, 0],
+        "Object::init's per-player counter"
+    );
+    let line = sim.checksum_builds(&|_| 50697);
+    assert_eq!(line.ranges.len(), 3 * (18 + 2));
+    let f: Vec<_> = line.ranges[..20].iter().map(|r| r.field).collect();
+    assert_eq!(
+        f,
+        [
+            "founder",
+            "max_age",
+            "flags",
+            "must_walk",
+            "who..y_internal",
+            "type",
+            "must_walk",
+            "myhits..launch_frames",
+            "launching",
+            "must_walk",
+            "job_counter..demolition",
+            "must_walk",
+            "gather_down..infiltrate2",
+            "queue_size",
+            "queue[k]",
+            "queue[k]",
+            "mtn..cliff",
+            "gather_from.length",
+            "gather.length",
+            "orig_type",
+        ]
+    );
+    // The second building's uid (+0x30 of the object range).
+    assert_eq!(line.ranges[20 + 7].bytes[0x10..0x12], 1u16.to_le_bytes());
+    // The renderer's piece is folded where `WallData::gpiece` sits.
+    assert_eq!(line.ranges[10].bytes[0x10..0x14], 50697i32.to_le_bytes());
+    // Slot 0 of an idle queue: `type` −1, everything else zero.
+    assert_eq!(line.ranges[14].bytes[4..6], (-1i16).to_le_bytes());
+    assert!(line.ranges[15].bytes.iter().all(|&x| x == 0));
+}

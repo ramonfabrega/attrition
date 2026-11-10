@@ -79,6 +79,10 @@ impl Sim {
         // does not collide with one the original numbered higher.
         let mark = &mut self.roster.marks[owner].unit;
         *mark = (*mark).max(unit.index.saturating_add(1));
+        // `Unit::init` → `Object::init@00647750`: the unit takes the owner's
+        // next uid (not stored on the unit; the builds line reads a
+        // building's).
+        self.next_uid(unit.owner);
         self.units.push(unit);
         // `Unit::init`'s transport clause (`docs/TRANSPORT.md` §3.4).
         self.transport_init_unit(i);
@@ -236,6 +240,18 @@ impl Sim {
             .collect();
         v.sort_by_key(|&u| self.units[u].index);
         v
+    }
+
+    /// `Object::init@00647750`'s `uid`: the player's counter
+    /// (`Objects +0x1d4 + 2 who`, [`crate::units::unit::Marks::uid`]),
+    /// returned and then advanced, a `ushort` that wraps.
+    pub(crate) fn next_uid(&mut self, who: Player) -> u16 {
+        let Some(m) = self.roster.marks.get_mut(who as usize) else {
+            return 0;
+        };
+        let uid = m.uid;
+        m.uid = m.uid.wrapping_add(1);
+        uid
     }
 
     /// The live building of `who` numbered `o`, if any.

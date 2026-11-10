@@ -258,7 +258,8 @@ and are named last; by bytes:
 
 1. cities (228; ported, §12) · 2. items (484; ported, §11) · 3. goods
 (792; ported, §13) ·
-4. builds (4,923) · 5. guys (9,308) · 6. units (19,642; it walks the
+4. builds (4,923; held out on three fields, §14) · 5. guys (9,308) ·
+6. units (19,642; it walks the
 guys again) · 7. groups (37,010) · 8. leaders (58,343) ·
 9. world (294,769) · then walls, ammo and deaths (0 each), counted on a
 frame that holds one.
@@ -299,7 +300,10 @@ state 0 of 12 lines, 0 of 501,543 bytes`: the pair moved to the minted
 game, and items is ported (§11). Item 4091 moved it from `state 1 of 12
 lines, 484 of 425,499 bytes`: cities is ported (§12), and goods is held
 out on one byte (§13). Item 4093 moved it from `state 2 of 12 lines, 712
-of 425,499 bytes`: goods is ported (§13).
+of 425,499 bytes`: goods is ported (§13). Item 4094 left it at `state 3
+of 12 lines, 1,504 of 425,499 bytes`: builds is held out on three fields
+of the two camps, 516 of its 519 ranges and 4,845 of its 4,923 bytes
+agreeing, which `CHECKSUM_STATE` does not count (§14).
 
 `floors::tests::the_handoff_s_checksum_line_is_the_pinned_counter` holds
 the queue's line against it. `checksum::tests::the_instrument_reproduces_the_printed_record`
@@ -380,6 +384,16 @@ pair. Then `Object` [+0x20, +0x42) (34) with its 1-byte local, and
 record's last two bytes are not walked). Then the `gather_from`
 `Array<TCoordData>` (516 tiles × 8, 4,128, with its header) and the
 `GatherPointList` count local.
+
+*Corrected by the stream* (item 4094, run 1562's frame 91; §14 has the
+table): `founder` and `max_age` come **first**, before the sub-object;
+the "2-byte `must_walk` pair" is **four** one-byte `must_walk` locals, at
+`SubObject`'s and `Object`'s vcalls and inlined by `WallData` and
+`BuildData` at their own sites; `orig_type` comes **last**, after the
+gather points' count; the queue walks **`queue_size`** slots (the array's
+allocation, 2, 10 or 20), not the live entries; and the tile array hands
+over its `length` (4), and when it is not 0 its `size` (4, a local),
+`increment` (2) and `flags & 0xbf` (1, a local) before the tiles.
 
 **Groups** (`CheckSums::check_groups@00937530`): as many slots of the
 groups array as its count at +0x4 says (512 here), `Group::walk_data@00708400` [+0x4, +0x4c) — `GroupData`
@@ -548,7 +562,12 @@ on either frame read), and `say_checksum`'s labels beyond the fifteen.
 - Whether a field the simulation does not hold stands in any line. That
   is each later item's finding: for example the world's fog bytes
   (`seen`, `seen2`, `seen3`, `wcoord_seen`, `was_seen`), the danger maps,
-  and a unit's collision and path-finding state.
+  and a unit's collision and path-finding state. *For builds* (item 4094,
+  §14): three fields were not held and are carried now (`uid`,
+  `frame_started`, `build_masks & 0x400`); `WallData::gpiece` is art the
+  data layer hands in; and two stand unheld, holding the line out — a
+  camp's `recharging`, short of `Guy::move`'s bump, and one `up_who`, the
+  object chain's history of a building.
 
 ## 11. The items line, ported (item 4088)
 
@@ -874,3 +893,229 @@ an alliance. Probed on our walk: the frame ours sets the bit.
   on this lobby each leader meets one rare at most, so no diff has
   tested the order.
 - A dead good (`flags` 0, not walked), and a good a terraform moved.
+
+## 14. The builds line, ported (item 4094; held out on three fields)
+
+`Sim::checksum_builds` (`crates/sim/src/checksum/builds.rs`) emits
+`CheckSums::check_builds@00937290`'s image from this crate's state, and
+`rondata::diff::checksum_lines::the_builds_line_is_held_out_on_the_camps_recharging_and_up_who`
+holds it against the instrument's stream of run 1562's packet the way §11
+to §13 hold theirs: on the minted walk's frame 91, range by range, every
+range decoded field by field on both sides (ours by our range names,
+theirs by each row's call site), then the Adler against record 3201's
+`Builds`. **The line is held out on three fields of the two Woodcutter's
+Camps**; every other byte of it is the original's.
+
+**Which buildings, in which order.** Per leader whose `leaders.list & 1`
+is set, in slot order; per slot of that leader's object array from
+`obj_base[1]` (2000) to its count (`objects +0x1ec`), the object behind
+vtable `+0xac` whose `flags & 1` is set, walked through its vtable `+0x7c`
+(`BuildData::walk_data@0062f270`). So: per owner, every live building in
+`o` order. On frame 91 that is the human's eight (`0/2000..0/2007`) and
+the British seven (`1/2000..1/2006`).
+
+**One building's ranges, in walk order** — the stream settles it (the
+record names come from `types.txt`; what each local is, from the
+walkers):
+
+| # | site | range | bytes | what |
+|---|---|---|---|---|
+| 1 | `0062f28c` | `BuildData::founder` (+0x7f) | 1 | |
+| 2 | `0062f2a0` | `BuildData::max_age` (+0x83) | 1 | |
+| 3 | `006621fe` | `SubObjectData::flags` (+0x8) | 1 | `SubObject::walk_data@006621d0` |
+| 4 | `00647965` | a local | 1 | `Object::must_walk@00647930`'s byte, through `SubObject`'s vcall `+0x78` |
+| 5 | `0066221c` | `who`..`y_internal` (+0x9..+0x18) | 15 | `z`, `x`, `y` under the `Coord` mask |
+| 6 | `00662287` | a local | 4 | the type's `TypeIndex` (`ptype +4`), the type it is **now** |
+| 7 | `00647965` | a local | 1 | `must_walk` again, `Object::walk_data@00647830`'s vcall |
+| 8 | `00647885` | `ObjectData` `myhits`..`launch_frames` (+0x20..+0x42) | 34 | 19 fields (`OBJECT_FIELDS`) |
+| 9 | `00647910` | a local | 1 | `launching != 0`; a non-null `launching` walks its `SimpleArray<int>` after it |
+| 10 | `00642570` | a local | 1 | `WallData::walk_data@00642510`'s inlined `must_walk` |
+| 11 | `00642586` | `WallData` `job_counter`..`demolition` (+0x48..+0x66) | 30 | 11 fields (`WALL_FIELDS`) |
+| 12 | `0062f2fc` | a local | 1 | `BuildData::walk_data`'s inlined `must_walk` |
+| 13 | `0062f316` | `BuildData` `gather_down`..`infiltrate2` (+0x70..+0x86) | 22 | 15 fields (`BUILD_FIELDS`); +0x78 the union |
+| 14 | `0063061b` | `BuildQueueData::queue_size` (+0x88) | 4 | `BuildQueue::walk_data@006305f0` |
+| 15 | `00630653` | each of `queue_size` `QueueItem`s, 18 of 20 bytes | 18 each | `job_counter`, `type`, `good[3]`, `cost[3]` |
+| 16 | `0062f336` | `MiningList::mtn`, `cliff` (+0xb4) | 2 | |
+| 17 | `00471c66` | a local | 4 | the mining list's `length`, `Array<TCoordData>::walk_data@00471c30` |
+| 17a | `00471cc7` | a local | 4 | its `size`, when `length` is not 0 |
+| 17b | `00471cd5` | `ArrayBaseMaster::increment` (+0xc of the array) | 2 | when `length` is not 0 |
+| 17c | `00471ced` | a local | 1 | its `flags & 0xbf`, when `length` is not 0 |
+| 17d | `00471df3` | each `TCoordData` (`tx`, `ty`) | 8 each | when `length` is not 0 |
+| 18 | `004708c1` | a local | 4 | the gather points' count (`PtrLinkListAbstract<GatherPoint,unsigned_char>::walk_data`); with points, a 4-byte 0, the node's byte and 9 of each `GatherPoint` |
+| 19 | `0062f35a` | `BuildData::orig_type` (+0x6c) | 4 | |
+
+Eighteen ranges a building and one per queue slot, and four more and one
+per tile for a building with a mining list: 15 × 18 + 100 + (4 + 82) +
+(4 + 61) = 519 ranges, 4,923 bytes, the stream's count. The four
+`must_walk` bytes are each 1 on a live building (`flags & 1`). **The
+queue walks `queue_size` slots, not `queued`**: the array's allocation
+(2, 10 or 20, the only sizes `BuildQueue::init@006307d0` accepts). The two
+two-row sites of the tile array (17a, 17b, 17c) are the two camps', the
+only buildings with a list.
+
+**What ours emits for each field.** "Holds" is a field of this crate's;
+"derives" is computed from state it holds; "carried" is new at this item;
+"init's" is the value the original's initialiser writes and nothing here
+changes.
+
+- **Sub-object**: `flags` derives — `0x1` alive, `0x2` started
+  (`Wall::start`), `0x4` active, `0x20` a city's type (`SubObject::init`
+  ORs it in when vtable `+100`, `BuildTypeData::is_city`, answers),
+  `0x80` attacking. The human's city reads 39, a finished building 7, the
+  British farm under way 3, the human's just-placed farm 1. `who`, `o`,
+  `z`, `x`, `y` hold. The type local derives: `0x19e` plus the build
+  type's index.
+- **`ObjectData`**: `myhits`, `damage`, `hold_frames`, `healing`,
+  `infiltrated`, `damage_frac`, `mylos`, `targeted`, `visible`,
+  `launch_frames` hold; `near_o`/`near_who` derive from `near`;
+  `inside_down`/`inside_down_who` derive from the garrison (the last
+  captain to enter, and the owner when empty — `Object::init@00647750`
+  writes `who` there). **`uid` is carried** (below). `up`, `down`,
+  `down_who` and `up_who` are the world cell's object chain
+  (`Object::add_to_world@0064d8c0`), which this crate threads with units
+  only: `up` derives as the bottom unit of the building's cell, `down` −1,
+  `down_who` 0, `up_who` that unit's owner or −1. One of them parts
+  (below).
+- **`WallData`**: `job_counter`, `job_counter_2`, `constr_time`,
+  `construct_hits`, `ever_seen`, `ever_seen_completed`, `helpers` hold.
+  `gpiece` is the renderer's piece (`GraphicPieces::get_build_gpiece
+  @0090bce0`), which the simulation does not load: the data layer hands it
+  in (`rondata::free::placed_buildings`, the walk the renderer's K of M
+  already holds to every dumped `gpiece`). **`frame_started` is
+  carried**. `build_masks` derives from the bits this crate keeps (`0x10`,
+  `0x20`, `0x40`, `0x88`, `0x100`, `0x800`, `0x1000`, `0x4000`), and
+  **`0x400` is carried**. `demolition` is init's 0 (`Wall::init@0063e9b0`
+  zeroes `+0x64`'s two bytes; no writer is read).
+- **`BuildData`**: `gather_down` derives (the newest gatherer), `city` (the
+  city's place in its owner's list) and `city_down` (the next building of
+  the city's chain, `city_chain`) derive; `wonder` is init's −1
+  (`Build::init@00629740`); the union at +0x78 derives (a farm's place in
+  `Farms`' list, a dock's slot, else −1); `recharging` holds and **parts**;
+  `attack_ox`/`attack_whom` derive from `target`; `stance` derives
+  (`Sim::build_stance`, `BuildTypeData::get_stance_type@006396c0`'s
+  switch); `founder`, `gather_max` hold; `queued` is the live entries;
+  `max_age` derives (the owner's ages: `Build::init` writes the owner's
+  age, `Leader::gain_tech` every building's); `infiltrate`,
+  `infiltrate2` are init's 0.
+- **The queue**: each live entry from the queue (`type` the unit's
+  `TypeIndex`, a technology's `0x220` plus its distance from the first
+  age in the tree, `DISBAND` 0x29a); a slot past the live ones is
+  `BuildQueue::init`'s: zero, slot 0's `type` −1.
+  `BuildQueue::un_queue@00630ad0` shifts without clearing, so a slot a
+  finished or cancelled entry vacated keeps that entry's bytes; this crate
+  does not keep them (none had been vacated on frame 91: every slot past
+  the live ones reads init's zeros on both sides).
+- **The mining list**: the tiles hold (`gather_from`); `mtn`/`cliff` −1
+  (no mine stands on the frame); `size` derives as the least 5·2ᵏ not
+  below `length` — an empty list reports 5 on every record of the
+  frame-91 dump, and `ArrayBaseSimpleCopy<WCoordData>::increase_size
+  @004225c0` with `increment` −1 doubles; `MiningList::clear@00471160`
+  keeps the allocation, so this assumes the list never held more than it
+  does; `increment` −1, `flags` 0.
+
+**Three fields carried into the simulation** (one writer each, already
+ported, a few lines; nothing in the simulation reads them):
+
+| field | writer | ours |
+|---|---|---|
+| `ObjectData::uid` (+0x30) | `Object::init`: the owner's counter at `Objects +0x1d4 + 2 who`, post-incremented by every object the player inits, unit or building | `Building::uid`, `Marks::uid`, `Sim::next_uid` from `add_unit`, `add_building` and `init_build` |
+| `WallData::frame_started` (+0x5c) | `Wall::init` −1; `Wall::start@0063e810` the game frame, beside `flags \|= 2` | `Building::frame_started`, written in `Sim::wall_start` |
+| `build_masks & 0x400` | `Wall::process@00640450`: set when `helpers` is nonzero, cleared when zero, `helpers` zeroed | `Building::had_helpers`, beside this crate's `helpers = 0` |
+
+Before them the image parted on 18 ranges: `uid` on 13 buildings (ours 0;
+theirs 1..6 and 13 for the human, 1..5 and 12 for the British), the
+British farm's `frame_started` (−1 against 17) and `build_masks` (0
+against 1024), and two technology entries (below).
+
+**A technology's `TypeIndex` is not its tree id.** The British Library's
+two entries read 550 and 564 on our first image, 551 and 565 on theirs:
+the tree has no entry for the goody box's 0x21f, so a tech's id is one
+below its `TypeIndex`. `docs/` says the tree index *is* the `TypeIndex`
+(`ids.rs`); that holds for goods, units and buildings only.
+
+**The three fields the line is held out on**:
+
+| range | building | field | ours | theirs | what writes it |
+|---|---|---|---|---|---|
+| 50 | `0/2001`, the human's camp | `BuildData::recharging` (+0x7a) | 83 | 90 | `Guy::move@005d9240`'s carrying-walk arm |
+| 339 | `1/2001`, the British camp | `BuildData::recharging` | 67 | 89 | the same |
+| 334 | `1/2001` | `ObjectData::up_who` (+0x3f) | −1 | 1 | `Object::add_to_world`; left behind by `Object::remove_from_world@00647970` |
+
+*`recharging`.* On a gather building it counts the frames a gatherer
+worked it: each frame, the first of `Unit::do_gather@005ef2a0`,
+`Unit::do_non_flat_gather@005f0170` and `Guy::move`'s carrying walk to
+reach it adds one and sets `build_masks & 0x800`, which the frame's end
+clears. This crate ports the first two and not the third: a guy moving
+with a carry bit (`CHAR_WALK_TO_WOOD` and its three siblings), whose
+action is a gather (type 7) on a gather building and whose order's byte
+`+0x27` is set. **Probed on our walk**: the frames on which a camp's
+gatherer moved with a carry bit and nothing bumped the camp are 7 for the
+human's camp (4..10) and 22 for the British (4..15 and 17..26), exactly
+the 7 and 22 ours lacks. `recharging` has readers (`Wall::inc_time
+@0063fb60` compares it, and this crate's `units/think/work_gate.rs`), so
+porting the arm changes behaviour: it is a mechanic under its own
+document, not this line's to carry. **No dump compares it**:
+`gamelog::BuildDump` does not parse `recharging`, so the field has been a
+quiet one until this line.
+
+*`up_who`.* The British camp's cell has had a British unit above it on
+its object chain, which moved off: `remove_from_world` sets the
+building's `up` back to −1 and leaves `up_who`. This crate does not
+thread buildings on the chain (`Sim::cell_chain` is units only), so it
+holds no such history.
+
+**The value diff**: 516 of 519 ranges equal, and 4,845 of 4,923 bytes in
+the ranges that agree; every field of all 15 buildings, their 100 queue
+slots and 143 tiles agrees but the three above. Ours sums to 3593622376
+against the printed **2869973639**; with the three fields at the
+original's values (90, 89 and 1, a substitution made only in the test)
+the image is the stream's, range for range, and sums to 2869973639. Two
+values on both sides, for a reader: the human's city `myhits` 1200,
+`constr_time` 180000, `gpiece` 51339, `city_down` 2001, `queued` 1, its
+queue slot 0 `(3100, 50, [0, −1, −1], [25, 0, 0])`; the British farm
+`1/2006` `uid` 12, `job_counter` 7400, `construct_hits` 197,
+`frame_started` 17, `build_masks` 1024, `up` 1, the union 6.
+
+**Made to fail**: the image before the carried fields parted on 18 ranges
+(above), and the empty image on all 519. One perturbed byte more, the
+fourth building's `x`, parts on its range beside the three, and on no
+other.
+
+**How it was established, and how confident.** Diff-backed: every byte
+of the line on one frame but the three held out, against the stream, and
+the whole line's Adler with those three substituted. From the type
+records: every field name, offset and width; the union's members are the
+dump's names. From the walkers: the order and the locals; the stream
+agrees on all 519. On a reading, held by that diff on this frame: what
+`Object::init`, `Wall::init`, `Build::init`, `BuildQueue::init` and
+`Wall::start` write, the `0x400` latch, and the two held-out fields'
+writers. Probed: the frames ours misses `Guy::move`'s bump.
+
+**Not established**:
+
+- Any frame but 91, and any lobby but the minted game's.
+- **Agreeing by default on this frame** (the same value on every
+  building, or a field no writer here keeps): `damage`, `inside_down`
+  and `inside_down_who` (no garrison stands), `down`/`down_who`,
+  `hold_frames`, `near_o`/`near_who`, `healing`, `infiltrated`,
+  `damage_frac`, `targeted`, `visible`, `launch_frames`, the `launching`
+  local, `helpers`, `demolition`, `wonder`, `attack_ox`/`attack_whom`,
+  `stance`, `max_age`, `infiltrate`, `infiltrate2`, `mtn`/`cliff`, the
+  gather points (none set), and `build_masks` bits `0x10`, `0x20`,
+  `0x40`, `0x80`, `0x8`, `0x100`, `0x800`, `0x4000`.
+- `0x8` of `build_masks` is emitted with `0x80` (`Build::init` sets both
+  for a hangar); only the player's toggle clears `0x80`, and whether it
+  clears `0x8` is not read.
+- A building whose cell held a unit before it was placed (its `down`
+  would be that unit), a building on a good's or a box's cell, and a
+  garrisoned building (which end of the garrison `inside_down` names).
+- A queue slot vacated by a finished or cancelled entry (the original
+  keeps its bytes; ours writes zeros).
+- A mining list that shrank or a slot reused by a larger list (`size`),
+  a mine's `mtn`/`cliff`, a non-null `launching` (its array's ranges),
+  and a building with gather points (the `GatherPoint`'s `x`/`y` are
+  emitted plain; whether they are stored masked is not read).
+- That every `Object::init` of the original is one of `add_unit`,
+  `add_building` and `init_build` here: a wall, or a unit the original
+  re-inits where this crate does not, would advance the original's
+  counter alone.

@@ -503,6 +503,280 @@ fn the_goods_line_is_the_original_s_range_by_range() {
     assert_eq!(parting(&Line::default(), &theirs).len(), GOODS.1);
 }
 
+/// One fixed-width field of a builds record, decoded: `char`s and the
+/// named signed bytes signed, every other byte unsigned, `ulong`s and
+/// `ushort`s unsigned, every other word signed.
+fn build_field(name: &str, b: &[u8], at: usize, width: usize) -> i64 {
+    let signed_byte = matches!(
+        name,
+        "infiltrated"
+            | "damage_frac"
+            | "mylos"
+            | "targeted"
+            | "inside_down_who"
+            | "up_who"
+            | "visible"
+            | "launch_frames"
+            | "stance"
+            | "founder"
+            | "gather_max"
+            | "attack_whom"
+    );
+    match width {
+        1 if signed_byte => i64::from(b[at] as i8),
+        1 => i64::from(b[at]),
+        2 if matches!(name, "uid" | "hold_frames") => {
+            i64::from(u16::from_le_bytes([b[at], b[at + 1]]))
+        }
+        2 => i64::from(i16::from_le_bytes([b[at], b[at + 1]])),
+        _ if matches!(name, "job_counter" | "job_counter_2" | "constr_time") && at >= 0x48 => {
+            i64::from(u32::from_le_bytes(b[at..at + 4].try_into().unwrap()))
+        }
+        _ => i64::from(i32::from_le_bytes(b[at..at + 4].try_into().unwrap())),
+    }
+}
+
+/// A builds range decoded field by field: by the type record's table where
+/// the range is one, else as its local (`(name, value)` pairs).
+fn build_range_fields(field: &str, b: &[u8]) -> Vec<(String, i64)> {
+    use sim::checksum::builds::{BUILD_FIELDS, OBJECT_FIELDS, QUEUE_ITEM_FIELDS, WALL_FIELDS};
+    let table = |t: &[(&'static str, usize, usize)], base: usize| -> Vec<(String, i64)> {
+        t.iter()
+            .map(|&(n, at, w)| (n.to_string(), build_field(n, b, at - base, w)))
+            .collect()
+    };
+    match field {
+        "myhits..launch_frames" => table(OBJECT_FIELDS, 0x20),
+        "job_counter..demolition" => table(WALL_FIELDS, 0x48),
+        "gather_down..infiltrate2" => table(BUILD_FIELDS, 0x70),
+        "queue[k]" => table(QUEUE_ITEM_FIELDS, 0),
+        "who..y_internal" => {
+            let w = |at: usize| {
+                i64::from(i32::from_le_bytes(b[at..at + 4].try_into().unwrap()) ^ COORD_MASK)
+            };
+            vec![
+                ("who".into(), i64::from(b[0])),
+                ("o".into(), i64::from(i16::from_le_bytes([b[1], b[2]]))),
+                ("z".into(), w(3)),
+                ("x".into(), w(7)),
+                ("y".into(), w(11)),
+            ]
+        }
+        "mtn..cliff" => vec![
+            ("mtn".into(), i64::from(b[0] as i8)),
+            ("cliff".into(), i64::from(b[1] as i8)),
+        ],
+        "gather_from[k]" => vec![
+            (
+                "tx".into(),
+                i64::from(i32::from_le_bytes(b[0..4].try_into().unwrap())),
+            ),
+            (
+                "ty".into(),
+                i64::from(i32::from_le_bytes(b[4..8].try_into().unwrap())),
+            ),
+        ],
+        _ => {
+            let v = match b.len() {
+                1 => i64::from(b[0]),
+                2 => i64::from(i16::from_le_bytes([b[0], b[1]])),
+                _ => i64::from(i32::from_le_bytes(b[..4].try_into().unwrap())),
+            };
+            vec![(field.to_string(), v)]
+        }
+    }
+}
+
+/// The stream's builds rows, each named as ours names the range it is:
+/// the call site settles which walker's range a row is (`docs/CHECKSUM.md`
+/// §14), independently of our image.
+fn build_site_field(site: &str) -> &'static str {
+    match site {
+        "0062f28c" => "founder",
+        "0062f2a0" => "max_age",
+        "006621fe" => "flags",
+        "00647965" | "00642570" | "0062f2fc" => "must_walk",
+        "0066221c" => "who..y_internal",
+        "00662287" => "type",
+        "00647885" => "myhits..launch_frames",
+        "00647910" => "launching",
+        "00642586" => "job_counter..demolition",
+        "0062f316" => "gather_down..infiltrate2",
+        "0063061b" => "queue_size",
+        "00630653" => "queue[k]",
+        "0062f336" => "mtn..cliff",
+        "00471c66" => "gather_from.length",
+        "00471cc7" => "gather_from.size",
+        "00471cd5" => "gather_from.increment",
+        "00471ced" => "gather_from.flags",
+        "00471df3" => "gather_from[k]",
+        "004708c1" => "gather.length",
+        "0062f35a" => "orig_type",
+        _ => "?",
+    }
+}
+
+/// The renderer's piece of every building of `sim`, by handle: the data
+/// layer's `GraphicPieces::get_build_gpiece` walk
+/// ([`crate::free::placed_buildings`]), the `WallData::gpiece` the builds
+/// line folds.
+fn build_pieces(sim: &sim::Sim) -> std::collections::BTreeMap<usize, i32> {
+    let inst = crate::testenv::install().expect("the install");
+    let loaded = crate::load::load(&inst).unwrap();
+    let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+    let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+    let scene = sim.observe(None);
+    let placed = crate::free::placed_buildings(&scene, &look, &tribes);
+    let mut out = std::collections::BTreeMap::new();
+    for (i, b) in sim.buildings.iter().enumerate() {
+        if let Some(p) = placed
+            .iter()
+            .find(|p| p.who == b.owner && p.o == b.index && b.alive)
+        {
+            out.insert(i, p.piece);
+        }
+    }
+    out
+}
+
+/// The pinned outcome of the builds line on run 1562's packet:
+/// `(buildings, ranges, bytes, ranges parted, bytes in the ranges that
+/// agree)` (`docs/CHECKSUM.md` §14): 516 of 519 ranges and 4,845 of 4,923
+/// bytes, held out on three fields of the two Woodcutter's Camps.
+const BUILDS: (usize, usize, usize, usize, usize) = (15, 519, 4923, 3, 4845);
+
+/// The three fields the builds line is held out on (`docs/CHECKSUM.md`
+/// §14): `(range, building, field, ours, theirs)`. Both camps'
+/// `BuildData::recharging` (+0x7a), which `Guy::move@005d9240`'s carrying
+/// walk bumps and this crate's walk does not; and the British camp's
+/// `ObjectData::up_who` (+0x3f), left by a unit that stood above it on its
+/// cell's object chain and moved off, which this crate does not thread.
+const BUILDS_HELD_OUT: [(usize, i32, &str, i64, i64); 3] = [
+    (50, 1, "recharging", 83, 90),
+    (334, 9, "up_who", -1, 1),
+    (339, 9, "recharging", 67, 89),
+];
+
+/// **The builds line, ours against the original's, range by range, held
+/// out on the camps' `recharging` and one `up_who`** (`docs/CHECKSUM.md`
+/// §14, item 4094): our `Sim::checksum_builds` against the instrument's
+/// stream of the builds line, every range, each range decoded field by
+/// field on both sides — ours by our range names, theirs by each row's call
+/// site — then the Adler. Three fields part ([`BUILDS_HELD_OUT`]); with
+/// those three at the original's values, substituted here and nowhere else,
+/// ours sums to the printed `Builds`, so every other byte is the
+/// original's. And it can part: one more perturbed byte parts on its own
+/// range, and an empty image on every range.
+#[test]
+fn the_builds_line_is_held_out_on_the_camps_recharging_and_up_who() {
+    let Some((theirs, want, sim)) = line_inputs("builds", "Builds") else {
+        return;
+    };
+    let pieces = build_pieces(&sim);
+    let ours = sim.checksum_builds(&|b| pieces.get(&b).copied().unwrap_or(-1));
+    // Both sides' records, field by field: ours by our range names, theirs
+    // by the call site of each row.
+    let mut fields_parted: Vec<(usize, i32, String, i64, i64)> = Vec::new();
+    let mut building = -1i32;
+    for (i, t) in theirs.iter().enumerate() {
+        let tf = build_site_field(&t.1);
+        if tf == "founder" {
+            building += 1;
+        }
+        let tv = build_range_fields(tf, &t.2);
+        let Some(o) = ours.ranges.get(i) else {
+            fields_parted.push((i, building, format!("{tf}: ours -"), 0, 0));
+            continue;
+        };
+        if o.field != tf {
+            fields_parted.push((i, building, format!("{tf}: ours walks {}", o.field), 0, 0));
+            continue;
+        }
+        let ov = build_range_fields(o.field, &o.bytes);
+        for ((n, a), (_, b)) in ov.iter().zip(&tv) {
+            if a != b {
+                fields_parted.push((i, building, n.clone(), *a, *b));
+            }
+        }
+    }
+    for f in &fields_parted {
+        eprintln!("FIELD {f:?}");
+    }
+    let parted = parting(&ours, &theirs);
+    let bytes_equal: usize = ours
+        .ranges
+        .iter()
+        .zip(&theirs)
+        .filter(|(o, t)| o.bytes == t.2)
+        .map(|(o, _)| o.bytes.len())
+        .sum();
+    eprintln!(
+        "builds: ours {} ranges {} bytes adler {}; theirs {} ranges {} bytes; printed {want}; ranges parted {}, bytes in equal ranges {bytes_equal}, fields parted {}",
+        ours.ranges.len(),
+        ours.bytes(),
+        ours.adler(),
+        theirs.len(),
+        theirs.iter().map(|t| t.2.len()).sum::<usize>(),
+        parted.len(),
+        fields_parted.len(),
+    );
+    let buildings = ours.ranges.iter().filter(|r| r.field == "founder").count();
+    assert_eq!(
+        (
+            buildings,
+            theirs.len(),
+            theirs.iter().map(|t| t.2.len()).sum::<usize>(),
+            parted.len(),
+            bytes_equal
+        ),
+        BUILDS,
+        "the builds line: buildings, the stream's ranges and bytes, ranges parted, bytes agreeing"
+    );
+    assert_eq!(ours.bytes(), BUILDS.2);
+    let held: Vec<(usize, i32, &str, i64, i64)> = fields_parted
+        .iter()
+        .map(|(i, b, n, a, t)| (*i, *b, n.as_str(), *a, *t))
+        .collect();
+    assert_eq!(held, BUILDS_HELD_OUT, "the fields the line is held out on");
+    // The Adler, last. Held out, ours is not the printed sum ...
+    assert_ne!(ours.adler(), want, "the builds line is held out");
+    // ... and with the three fields at the original's values — the
+    // substitution made here only — it is: every other byte is theirs.
+    let mut mended = ours.clone();
+    for &(i, _, field, _, theirs_v) in &BUILDS_HELD_OUT {
+        let at = match field {
+            "recharging" => 0x7a - 0x70,
+            "up_who" => 0x3f - 0x20,
+            _ => unreachable!(),
+        };
+        let w = if field == "recharging" { 2 } else { 1 };
+        mended.ranges[i].bytes[at..at + w].copy_from_slice(&theirs_v.to_le_bytes()[..w]);
+    }
+    assert!(
+        parting(&mended, &theirs).is_empty(),
+        "the mended image is the stream's"
+    );
+    assert_eq!(mended.adler(), want, "the builds line's Adler, mended");
+
+    // **It can part.** One byte more, the fourth building's `x` (low
+    // byte), parts on that range alone beside the three.
+    let mut bent = ours.clone();
+    let sub = bent
+        .ranges
+        .iter()
+        .enumerate()
+        .filter(|(_, r)| r.field == "who..y_internal")
+        .nth(3)
+        .map(|(i, _)| i)
+        .unwrap();
+    bent.ranges[sub].bytes[7] ^= 1;
+    let p: Vec<usize> = parting(&bent, &theirs).iter().map(|p| p.0).collect();
+    let mut want_p = vec![50, 334, 339, sub];
+    want_p.sort_unstable();
+    assert_eq!(p, want_p, "one perturbed byte parts on its range");
+    assert_eq!(parting(&Line::default(), &theirs).len(), BUILDS.1);
+}
+
 /// **The score**: the state lines ported are the ones `CHECKSUM_STATE`
 /// counts, their bytes its bytes (`docs/CHECKSUM.md` §5). Each line's own
 /// test holds it against the stream; this holds the sum.

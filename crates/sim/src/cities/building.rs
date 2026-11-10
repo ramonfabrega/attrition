@@ -173,6 +173,22 @@ pub struct Building {
     /// `BuildData::is_seen`, so a Stockade nobody has seen is still a
     /// legal target for the unit it shot.
     pub visible: u8,
+    /// **`ObjectData::uid` (`+0x30`)** — `Object::init@00647750`'s
+    /// per-player counter (`Objects +0x1d4 + 2 who`, post-incremented by
+    /// every object the player inits, unit or building; [`Marks::uid`]).
+    /// Nothing in the simulation reads it; the builds line folds it
+    /// (`docs/CHECKSUM.md` §14, item 4094).
+    pub uid: u16,
+    /// **`WallData::frame_started` (`+0x5c`)** — the game frame
+    /// `Wall::start@0063e810` ran on; `Wall::init@0063e9b0` writes −1.
+    /// Folded by the builds line (`docs/CHECKSUM.md` §14).
+    pub frame_started: i32,
+    /// **`WallData::build_masks & 0x400`** — `Wall::process@00640450`'s
+    /// latch of `helpers`: set when the building had a builder or repairer
+    /// since the last process, cleared when it had none, and `helpers`
+    /// zeroed either way. Folded by the builds line (`docs/CHECKSUM.md`
+    /// §14).
+    pub had_helpers: bool,
     /// `SubObjectData::flags & 0x80` of a building: raised by a round
     /// fired, dropped at the head of the next `do_attack`; it holds
     /// [`Building::visible`] against the 32-frame clear.
@@ -249,6 +265,7 @@ impl Sim {
             .find_free(owner, BUILD_BASE, WALL_BASE)
             .expect("a player's building band is full");
         let z = self.world.object_z(pos.tile());
+        let uid = self.next_uid(owner);
         self.buildings.push(Building {
             owner,
             index,
@@ -290,6 +307,9 @@ impl Sim {
             launch_frames: 0,
             launching: Vec::new(),
             founder: owner,
+            uid,
+            frame_started: 0,
+            had_helpers: false,
             clock: crate::cities::build::ClockMods::default(),
             hit_frame: None,
             fort_source: None,
