@@ -65,8 +65,19 @@ pub const BARE: [Rect; 2] = [
 /// and notched round the figure standing on the logs at (1652..1662,
 /// 372..405). Each vertex is good to two or three pixels, the boom's to
 /// four.
+///
+/// **The last tank, 1/27** (item 4079), traced the same way on 4× and 6×
+/// crops of the photograph alone, by the same rule and before any count
+/// with it: the olive hull from its nose at (1193, 669) to its right flank
+/// at x 1296, the turret's top at y 649, the bottom edge where the
+/// portrait's frame cuts it at y 692; the barrel left out, and notched
+/// round the two figures the photograph shows in front of the hull, the
+/// rifleman at (1202..1221, 670..700) and the kneeling figure at
+/// (1269..1291, 658..690), as the woodcutter's is round the figure on its
+/// logs. Each vertex is good to two or three pixels. [`TANK_1_27_WHOLE`]
+/// is the other reading, the hull un-notched.
 #[cfg(test)]
-pub const TRACED: [(&str, &[(i32, i32)]); 9] = [
+pub const TRACED: [(&str, &[(i32, i32)]); 10] = [
     (
         "1/40",
         &[(1129, 641), (1168, 641), (1173, 709), (1132, 709)],
@@ -231,6 +242,72 @@ pub const TRACED: [(&str, &[(i32, i32)]); 9] = [
             (1632, 340),
         ],
     ),
+    (
+        "1/27",
+        &[
+            (1193, 669),
+            (1194, 665),
+            (1203, 662),
+            (1218, 659),
+            (1229, 657),
+            (1233, 654),
+            (1238, 651),
+            (1248, 649),
+            (1257, 649),
+            (1272, 652),
+            (1285, 657),
+            (1292, 662),
+            (1295, 668),
+            (1296, 678),
+            (1295, 687),
+            (1291, 689),
+            (1291, 672),
+            (1286, 664),
+            (1279, 658),
+            (1272, 658),
+            (1269, 664),
+            (1269, 691),
+            (1242, 692),
+            (1227, 690),
+            (1221, 690),
+            (1221, 676),
+            (1214, 670),
+            (1206, 670),
+            (1202, 676),
+            (1202, 685),
+            (1195, 678),
+        ],
+    ),
+];
+
+/// **Tank 1/27's hull, un-notched** (item 4079): [`TRACED`]'s 1/27 with
+/// the two figures in front of it counted as the tank's, traced with it
+/// and pinned beside it before either count; the count with it is
+/// reported beside the instrument's.
+#[cfg(test)]
+pub const TANK_1_27_WHOLE: &[(i32, i32)] = &[
+    (1193, 669),
+    (1194, 665),
+    (1203, 662),
+    (1218, 659),
+    (1229, 657),
+    (1233, 654),
+    (1238, 651),
+    (1248, 649),
+    (1257, 649),
+    (1272, 652),
+    (1285, 657),
+    (1292, 662),
+    (1295, 668),
+    (1296, 678),
+    (1295, 687),
+    (1288, 690),
+    (1278, 692),
+    (1242, 692),
+    (1227, 690),
+    (1212, 688),
+    (1202, 685),
+    (1195, 678),
 ];
 
 /// **The capital's paved plaza** (item 4077), the other reading of what
