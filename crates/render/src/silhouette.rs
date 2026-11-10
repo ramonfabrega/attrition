@@ -440,7 +440,26 @@ pub const RUN1559B_3279_SPRITES_POSED: (usize, usize) = (11, 23);
 /// 0/10 0.541. 0/6 0.513 → 0.535; 0/2001 0.670 → 0.688 (ours 5695 → 5800,
 /// theirs 6808 → 6968, both 5018 → 5206). No row crosses down. Hidden, as
 /// before: [`RUN1559B_3279_TRACED_NO_SILHOUETTES`].
-pub const RUN1559B_3279_TRACED: (usize, usize) = (30, 33);
+///
+/// **30 of 33 → 31 of 33** (item 4089): a figure of `CAT` Mech or
+/// Artillery tilted to the negated world slope normal at its point, taken
+/// whole, under §5.3's tilt rule (`207ec454b`, before its count). 1/31
+/// 0.469 → 0.537 (ours 669 → 674, theirs 318 → 362, both 315 → 362) crosses
+/// up; 1/20 0.482 → 0.489 and 1/32 0.283 → 0.287 stay out; the tank 1/27
+/// 0.662 → 0.713. 1/15 0.669 → 0.768, 1/16 0.772 → 0.855, 1/30 0.601 →
+/// 0.744, 1/36 0.503 → 0.724, 1/38 0.807 → 0.834, 1/33 0.549 → 0.546, 1/40
+/// 0.788 → 0.721. No row crosses down. Level, as before:
+/// [`RUN1559B_3279_TRACED_LEVEL`]; eased: [`RUN1559B_3279_TRACED_EASED`].
+pub const RUN1559B_3279_TRACED: (usize, usize) = (31, 33);
+
+/// [`RUN1559B_3279_TRACED`] with every figure level (`Tilt::Level`): the
+/// draw before item 4089.
+pub const RUN1559B_3279_TRACED_LEVEL: (usize, usize) = (30, 33);
+
+/// [`RUN1559B_3279_TRACED`] under the ease at one draw a frame from 3200
+/// (`Tilt::Eased`), the reading reported beside the rule (item 4089):
+/// 1/31 0.536, 1/20 0.488, 1/32 0.286.
+pub const RUN1559B_3279_TRACED_EASED: (usize, usize) = (31, 33);
 /// The silhouettes' rejected reading, `Silhouettes::None` (item 4085): a
 /// figure hidden where a tree or a sprite is nearer, item 4082's draw.
 pub const RUN1559B_3279_TRACED_NO_SILHOUETTES: (usize, usize) = (26, 29);

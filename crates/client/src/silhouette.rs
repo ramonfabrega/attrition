@@ -1024,6 +1024,28 @@ mod tests {
             Interface::Neither,
         );
         let got = print("traced", &rule);
+        // The tilt's other readings (item 4089): every figure level, the
+        // draw before it, and the ease at a draw a frame from 3200.
+        world.tilt = crate::world::Tilt::Level;
+        let level_rows = read(
+            &mut world,
+            &camera,
+            &TRACED,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let level = print("traced, level", &level_rows);
+        world.tilt = crate::world::Tilt::Eased;
+        let eased_rows = read(
+            &mut world,
+            &camera,
+            &TRACED,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let eased = print("traced, eased", &eased_rows);
+        world.tilt = crate::world::Tilt::Target;
+        println!("tilt: target {got:?} level {level:?} eased {eased:?}");
         // The silhouettes' rejected reading, a figure hidden by what is
         // nearer (item 4085).
         world.silhouettes = crate::world::Silhouettes::None;
@@ -1271,6 +1293,8 @@ mod tests {
         );
         use render::silhouette as s;
         assert_eq!(got, s::RUN1559B_3279_TRACED);
+        assert_eq!(level, s::RUN1559B_3279_TRACED_LEVEL);
+        assert_eq!(eased, s::RUN1559B_3279_TRACED_EASED);
         assert_eq!(hidden, s::RUN1559B_3279_TRACED_NO_SILHOUETTES);
         assert_eq!(tree_scene, s::RUN1559B_3279_TRACED_TREES_SCENE);
         assert_eq!(solid, s::RUN1559B_3279_TRACED_LEAVES_SOLID);
