@@ -156,28 +156,198 @@ class Types:
                     cur = None
                 continue
             if cur and row.startswith("  +0x"):
-                off = int(row[3:12].split()[0], 16)
-                rest = row[12:].rstrip("\n")
-                ty, name = rest[:41].strip(), rest[41:].strip()
+                off = int(row[3:11].split()[0], 16)
+                rest = row[11:].rstrip("\n")
+                if len(rest) <= 41 or rest[40] == " ":
+                    ty, name = rest[:41].strip(), rest[41:].strip()  # the type's column, then the name
+                else:
+                    parts = rest.rsplit(None, 1)  # a type wider than its column, a name or none
+                    ty, name = (parts[0], parts[1]) if len(parts) == 2 else (rest.strip(), "")
                 cur[1].append((off, ty, name))
 
+    PRIMITIVE = {"char": 1, "uchar": 1, "bool": 1, "byte": 1, "undefined1": 1, "short": 2, "ushort": 2,
+                 "wchar_t": 2, "int": 4, "uint": 4, "long": 4, "ulong": 4, "float": 4, "Coord": 4, "double": 8,
+                 "longlong": 8, "ulonglong": 8, "__int64": 8}
+
+    def size_of(self, ty):
+        t = ty.strip()
+        if "*" in t:
+            return 4
+        if t in self.PRIMITIVE:
+            return self.PRIMITIVE[t]
+        if t in self.structs:
+            return self.structs[t][0]
+        return None
+
     def fields(self, names, lo, hi):
-        """The named fields of the first of `names` that has any in [lo, hi)."""
+        """The named fields of the first of `names` that has any in [lo, hi),
+        each with its size (by its type, else to the next field), and the
+        bytes of [lo, hi) no field covers: padding, or a base class's
+        `_padding_` words."""
         for n in names:
             if n not in self.structs:
                 continue
             size, fs = self.structs[n]
-            hit = [(o, t, f) for o, t, f in fs if lo <= o < hi and f != "_padding_"]
-            if hit:
-                return n, hit
-        return None, []
+            named = [(o, t, f) for o, t, f in fs if f != "_padding_"]
+            if not any(lo <= o < hi for o, _, _ in named):
+                continue
+            out, covered = [], set()
+            for k, (o, t, f) in enumerate(named):
+                if not lo <= o < hi:
+                    continue
+                nxt = named[k + 1][0] if k + 1 < len(named) else size
+                w = self.size_of(t)
+                w = nxt - o if w is None or w > nxt - o else w
+                out.append((o, t, f, w))
+                covered.update(range(o, o + w))
+            runs = []
+            for g in sorted(set(range(lo, hi)) - covered):
+                if runs and runs[-1][1] == g:
+                    runs[-1][1] = g + 1
+                else:
+                    runs.append([g, g + 1])
+            return n, out, runs
+        return None, [], []
+
+
+# A walker whose ranges are elements of a buffer: the element's type record.
+ELEMENTS = {
+    "Stack<PathData>::walk_data": "PathData",
+    "BuildQueue::walk_data": "QueueItem",
+    "Array<TCoordData>::walk_data": "TCoordData",
+    "Array<MakeObject>::walk_data": "MakeObject",
+    "Array<Site>::walk_data": "Site",
+    "Array<CaravanLink>::walk_data": "CaravanLink",
+    "Array<WCoordData>::walk_data": "WCoordData",
+    "SimpleArray<int>::walk_data": "int",
+    "SimpleArray<WCoord>::walk_data": "WCoord",
+}
+# An order's walk is entered on its `UnitOrder` virtual base, which sits at
+# the end of the derived record (the PDB's field lists: `TargetOrder`'s
+# vbptr at +4 and the base at +0x2c of a 0x34 record; `MoveOrder`'s at +0
+# and +0x54 of 0x5c): the record starts this many bytes before `ecx`.
+VBASE = {"GatherOrder::walk_data": 0x2C, "TradeOrder::walk_data": 0x2C, "AttackToOrder::walk_data": 0x54}
+# `World::walk_data@006b5cf0` reads its world from this global, not `ecx`.
+WORLD_GLOBAL = 0x00C06188
+
+
+def array_of(ty):
+    """`T[a][b]` -> (T, a*b); anything else -> (ty, None)."""
+    t = ty.strip()
+    if "[" not in t:
+        return t, None
+    elem, _, dims = t.partition("[")
+    n = 1
+    for d in dims.rstrip("]").split("]["):
+        n *= int(d)
+    return elem.strip(), n
+
+
+def leaves(types, sname, lo, hi, base=0, path="", depth=0):
+    """The leaf fields of record `sname` (placed at `base`) that overlap
+    [lo, hi): (offset, width, type, path, kind). A struct member or an
+    array of structs is expanded; a record with two named fields at one
+    offset is a union and is one leaf whose kind lists its members'."""
+    if sname not in types.structs:
+        return
+    size, fs = types.structs[sname]
+    named = [(o, t, f) for o, t, f in fs if f != "_padding_"]
+    offsets = [o for o, _, _ in named]
+    if len(set(offsets)) < len(offsets):  # a union
+        kinds = sorted({kind(t) for _, t, _ in named} - {""})
+        yield (base, size, sname, path.rstrip(".") or sname, "union(" + ",".join(kinds) + ")" if kinds else "union")
+        return
+    for k, (o, t, f) in enumerate(named):
+        nxt = named[k + 1][0] if k + 1 < len(named) else size
+        at = base + o
+        if at >= hi or at + max(nxt - o, 1) <= lo:
+            continue
+        elem, n = array_of(t)
+        inner = types.structs.get(elem)
+        if inner and depth < 6 and any(x[2] != "_padding_" for x in inner[1]):
+            esz = inner[0]
+            for i in range(n or 1):
+                eo = at + i * esz
+                if eo < hi and eo + esz > lo:
+                    yield from leaves(types, elem, lo, hi, eo, f"{path}{f}" + (f"[{i}]." if n else "."), depth + 1)
+            continue
+        w = types.size_of(elem)
+        w = (w * (n or 1)) if w is not None else None
+        w = nxt - o if w is None or w > nxt - o else w
+        yield (at, w, t, path + f, kind(elem) if kind(t) == "" else kind(t))
+
+
+def describe(types, sname, lo, hi):
+    """A range's fields by the type record: the span's first and last leaf,
+    the pointer, float and union leaves named, and the bytes no leaf
+    covers (padding, or an unnamed base's words)."""
+    ls = list(leaves(types, sname, lo, hi))
+    covered = set()
+    for at, w, _, _, _ in ls:
+        covered.update(range(max(at, lo), min(at + w, hi)))
+    gaps, runs = sorted(set(range(lo, hi)) - covered), []
+    for g in gaps:
+        if runs and runs[-1][1] == g:
+            runs[-1][1] = g + 1
+        else:
+            runs.append([g, g + 1])
+    flagged = [f"+{at:#x} {path} ({ty}) [{kd}]" for at, w, ty, path, kd in ls if kd]
+    span = f"{ls[0][3]}..{ls[-1][3]} ({len(ls)} leaves)" if ls else ""
+    return span, flagged, runs
+
+
+def write_ledger(path, ranges, index, types, world):
+    """The ranges per line, grouped by (owner, call site, offset in the
+    owner's record, length): count, bytes, the record and its leaves."""
+    groups = {}
+    for line, seq, owner, this, site, start, n, data in ranges:
+        name = index.of(owner)[1]
+        local = FRAME_STACK <= start < FRAME_STACK + FRAME_STACK_SIZE
+        if name == "World::walk_data":
+            this = world
+        base = this - VBASE[name] if name in VBASE and this else this
+        off = (start - base) & 0xFFFFFFFF if base and start >= base and start - base < 0x10000 else None
+        if local:
+            where = "stack"
+        elif off is not None:
+            where = hex(off)
+        elif name in ELEMENTS:
+            where = "element"
+        else:
+            where = ""
+        key = (line, name, site, where, n if where in ("stack", "element") or off is not None else None)
+        g = groups.setdefault(key, [0, 0, start, off])
+        g[0] += 1
+        g[1] += n
+    with open(path, "w") as f:
+        f.write("line\towner\tsite\toffset\tlength\tcount\tbytes\tfirst_start\trecord\tspan\tflagged\tuncovered\n")
+        for (line, owner, site, where, n), (count, total_b, first, off) in sorted(
+                groups.items(), key=lambda kv: (kv[0][0], -kv[1][1])):
+            cls = owner.split("::")[0]
+            rec, span, flagged, gaps = "", "", [], []
+            if where == "element" and n:
+                rec = ELEMENTS[owner]
+                esz = types.size_of(rec) or n
+                span, flagged, gaps = describe(types, rec, 0, min(n, esz)) if rec in types.structs else (
+                    f"{rec} x{n // esz}", [], [])
+            elif off is not None and n:
+                for cand in (cls, cls + "Data", cls.replace("Data", "")):
+                    span, flagged, gaps = describe(types, cand, off, off + n)
+                    if span:
+                        rec = cand
+                        break
+            gap = "; ".join(f"+{lo:#x}..+{hi:#x}" for lo, hi in gaps)
+            f.write(f"{LINES[line][0] if line < len(LINES) else line}\t{owner}\t{site:08x}\t"
+                    f"{where}\t{'' if n is None else n}\t{count}\t{total_b}\t"
+                    f"{first:08x}\t{rec}\t{span}\t{'; '.join(flagged)}\t{gap}\n")
 
 
 def kind(ty):
     t = ty.replace(" ", "")
     if "*" in t:
         return "ptr"
-    if t in ("float", "double") or t.startswith("Vector<float") or t.startswith("Vector3<float"):
+    elem = t.split("[")[0]
+    if elem in ("float", "double") or elem.startswith("Vector<float") or elem.startswith("Vector3<float"):
         return "float"
     return ""
 
@@ -270,23 +440,34 @@ def main(argv):
     uc.hook_add(UC_HOOK_CODE, on_log, begin=LOG_NO_VALUE, end=LOG_NO_VALUE)
     uc.hook_add(UC_HOOK_CODE, on_log, begin=LOG_VALUE, end=LOG_VALUE)
 
+    # A frame is live while its entry slot still holds the return address
+    # it was entered with: a returned frame's slot is overwritten by the
+    # next call's arguments, and a sibling call with more arguments sits
+    # below it, so depth alone does not say a frame is dead.
+    def prune(esp):
+        while owners and (owners[-1][0] <= esp or u32(owners[-1][0]) != owners[-1][3]):
+            owners.pop()
+
     def on_walker(uc_, address, size, _):
         esp = uc_.reg_read(UC_X86_REG_ESP)
-        while owners and owners[-1][0] <= esp:
-            owners.pop()
-        owners.append((esp, address, uc_.reg_read(UC_X86_REG_ECX)))
+        prune(esp)
+        owners.append((esp, address, uc_.reg_read(UC_X86_REG_ECX), u32(esp)))
 
     walkers = [va for va, n in zip(index.va, index.names)
-               if (n.endswith("::walk_data") or n.endswith("::walk_rules_data")) and va != WALK_FUNCTION]
+               if (n.endswith("::walk_data") or n.endswith("::walk_rules_data") or n.startswith("CheckSums::check_"))
+               and va != WALK_FUNCTION]
     for va in walkers:
         uc.hook_add(UC_HOOK_CODE, on_walker, begin=va, end=va)
 
     def on_fold(uc_, address, size, _):
         esp = uc_.reg_read(UC_X86_REG_ESP)
         site, start, end = u32(esp), u32(esp + 4), u32(esp + 8)
-        while owners and owners[-1][0] <= esp:
-            owners.pop()
-        owner, this = (owners[-1][1], owners[-1][2]) if owners else (index.of(site)[0], 0)
+        prune(esp)
+        # the owner is the function the call site is in; its `this` is known
+        # when that function is the innermost live walker frame
+        owner, this = index.of(site)[0], 0
+        if owners and owners[-1][1] == owner:
+            this = owners[-1][2]
         n = (end - start) & 0xFFFFFFFF
         data = bytes(uc_.mem_read(start, n)) if 0 < n < 0x4000_0000 else b""
         ranges.append((state["line"], len(ranges), owner, this, site, start, n, data))
@@ -374,26 +555,7 @@ def main(argv):
                         f"{site:08x}\t{start:08x}\t{n}\t{data.hex()}\n")
         print(f"stream: {a.stream}")
     if a.ledger:
-        types = Types(a.types)
-        groups = {}
-        for line, seq, owner, this, site, start, n, data in ranges:
-            off = (start - this) & 0xFFFFFFFF if this and start >= this and start - this < 0x10000 else None
-            key = (line, index.of(owner)[1], site, off, n if off is not None else None)
-            g = groups.setdefault(key, [0, 0, start])
-            g[0] += 1
-            g[1] += n
-        with open(a.ledger, "w") as f:
-            f.write("line\towner\tsite\toffset\tlength\tcount\tbytes\tfirst_start\ttype\tfields\n")
-            for (line, owner, site, off, n), (count, total_b, first) in sorted(groups.items(), key=lambda kv: (kv[0][0], -kv[1][1])):
-                cls = owner.split("::")[0]
-                tname, fs = (None, [])
-                if off is not None and n:
-                    cands = [cls, cls + "Data", cls.replace("Data", "")]
-                    tname, fs = types.fields(cands, off, off + n)
-                desc = "; ".join(f"+{o:#x} {t} {nm}" + (f" [{kind(t)}]" if kind(t) else "") for o, t, nm in fs)
-                f.write(f"{LINES[line][0] if line < len(LINES) else line}\t{owner}\t{site:08x}\t"
-                        f"{'' if off is None else hex(off)}\t{'' if n is None else n}\t{count}\t{total_b}\t"
-                        f"{first:08x}\t{tname or ''}\t{desc}\n")
+        write_ledger(a.ledger, ranges, index, Types(a.types), world=u32(WORLD_GLOBAL))
         print(f"ledger: {a.ledger}")
     if state["stop"] is not None:
         return 2
