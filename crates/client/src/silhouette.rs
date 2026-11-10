@@ -1015,6 +1015,22 @@ mod tests {
                 Interface::Neither,
             ),
         );
+        let mut wholed: Vec<(&str, &[(i32, i32)])> = TRACED.to_vec();
+        for t in wholed.iter_mut() {
+            if t.0 == "1/27" {
+                t.1 = TANK_1_27_WHOLE;
+            }
+        }
+        let whole = print(
+            "traced, tank 1/27 un-notched",
+            &read(
+                &mut world,
+                &camera,
+                &wholed,
+                Neighbour::Neither,
+                Interface::Neither,
+            ),
+        );
         let off = print(
             "traced, run1441's camera",
             &read(
@@ -1027,7 +1043,10 @@ mod tests {
         );
         // The four figures by the woodcutter, before (the colour reader on
         // this draw) and after.
-        for name in ["0/9", "0/1", "0/10", "0/8", "0/6", "0/2000", "0/2001"] {
+        for name in [
+            "0/9", "0/1", "0/10", "0/8", "0/6", "0/2000", "0/2001", "1/27", "1/20", "1/32", "1/31",
+            "1/36",
+        ] {
             println!(
                 "{name}: colour {:?} traced {:?}",
                 row(name, &colour).map(|f| f.overlap()),
@@ -1114,11 +1133,39 @@ mod tests {
             "0/2001 shifted {width} px: {:?}",
             row("0/2001", &shifted_rows).map(|f| f.overlap())
         );
+        // The tank's trace shifted by its own width drops its row (item 4079).
+        let tank = TRACED.iter().find(|(n, _)| *n == "1/27").expect("traced").1;
+        let tank_width =
+            tank.iter().map(|p| p.0).max().unwrap() - tank.iter().map(|p| p.0).min().unwrap();
+        let tank_shifted: Vec<(i32, i32)> =
+            tank.iter().map(|&(x, y)| (x + tank_width, y)).collect();
+        let tank_moved: Vec<(&str, &[(i32, i32)])> = TRACED
+            .iter()
+            .map(|&(n, poly)| {
+                if n == "1/27" {
+                    (n, &tank_shifted[..])
+                } else {
+                    (n, poly)
+                }
+            })
+            .collect();
+        let tank_rows = read(
+            &mut world,
+            &camera,
+            &tank_moved,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        println!(
+            "1/27 shifted {tank_width} px: {:?}",
+            row("1/27", &tank_rows).map(|f| f.overlap())
+        );
         use render::silhouette as s;
         assert_eq!(got, s::RUN1559B_3279_TRACED);
         assert_eq!(scene, s::RUN1559B_3279_TRACED_SCENE);
         assert_eq!(skip, s::RUN1559B_3279_TRACED_SKIP);
         assert_eq!(plaza, s::RUN1559B_3279_TRACED_PLAZA);
+        assert_eq!(whole, s::RUN1559B_3279_TRACED_WHOLE);
         assert_eq!(off, s::RUN1441_CAMERA_3279_TRACED);
         assert!(got.0 > s::RUN1559B_3279_SPRITES.0, "the row is raised");
         for name in ["0/2000", "0/2001"] {
@@ -1129,6 +1176,15 @@ mod tests {
         assert!(
             f.overlap() < READING.threshold,
             "a trace shifted by its own width drops its row"
+        );
+        for name in ["1/27", "1/36"] {
+            let f = row(name, &rule).expect("scored");
+            assert!(f.overlap() >= READING.threshold, "{name} passes");
+        }
+        let f = row("1/27", &tank_rows).expect("still scored");
+        assert!(
+            f.overlap() < READING.threshold,
+            "the tank's trace shifted by its own width drops its row"
         );
     }
 }

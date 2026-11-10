@@ -309,13 +309,23 @@ pub const RUN1559B_3279_SPRITES_POSED: (usize, usize) = (11, 23);
 /// figures by it, their rings and windows clear of its trace, 0/9 0.410 →
 /// 0.711, 0/1 0.658 → 0.796, 0/10 0.354 → 0.383, 0/8 0.587 → 0.587; and
 /// 1/33 beside the tanks 0.360 → 0.549. No row crosses down.
-pub const RUN1559B_3279_TRACED: (usize, usize) = (27, 33);
+///
+/// **27 → 29 of 33** (item 4079): the last tank 1/27 traced on the
+/// photograph (`ebcbcb0f7`, before its count) reads 0.259 → 0.662, and the
+/// rifleman 1/36 in its window 0.340 → 0.503. 1/31 0.429 → 0.469 and 1/20
+/// 0.497 → 0.482 stay out; 1/32 0.352 → 0.283; 1/38 0.813 → 0.807 holds.
+/// No row crosses down.
+pub const RUN1559B_3279_TRACED: (usize, usize) = (29, 33);
 /// The rejected readings, reported beside the rule: a neighbour's trace as
 /// the scene; the interface skipped as before (the capital out); the paved
-/// plaza traced as the capital's (`client::silhouette::PLAZA`, 0/2000 0.818).
-pub const RUN1559B_3279_TRACED_SCENE: (usize, usize) = (27, 33);
-pub const RUN1559B_3279_TRACED_SKIP: (usize, usize) = (19, 23);
-pub const RUN1559B_3279_TRACED_PLAZA: (usize, usize) = (27, 33);
+/// plaza traced as the capital's (`client::silhouette::PLAZA`, 0/2000 0.818);
+/// and tank 1/27 un-notched (`client::silhouette::TANK_1_27_WHOLE`, item
+/// 4079: 1/27 0.797, 1/36 0.436, 1/31 0.293). Item 4079 moved the first
+/// three 27 → 31, 19 → 20 and 27 → 29.
+pub const RUN1559B_3279_TRACED_SCENE: (usize, usize) = (31, 33);
+pub const RUN1559B_3279_TRACED_SKIP: (usize, usize) = (20, 23);
+pub const RUN1559B_3279_TRACED_PLAZA: (usize, usize) = (29, 33);
+pub const RUN1559B_3279_TRACED_WHOLE: (usize, usize) = (27, 33);
 /// The made-to-fail: the same frame and traces at run1441's camera.
 pub const RUN1441_CAMERA_3279_TRACED: (usize, usize) = (0, 32);
 
