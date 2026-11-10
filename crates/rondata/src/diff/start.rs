@@ -753,7 +753,7 @@ pub fn lay_map_objects(
         for x in 0..sim.world.width() {
             let d = sim.world.cell_data(sim::world::Cell::new(x, y));
             if d.down == -3 {
-                boxes.push((d.down_who as i8, x, y));
+                boxes.push((d.down_who, x, y));
             }
         }
     }

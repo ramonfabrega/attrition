@@ -265,9 +265,12 @@ const START_WIDE_PARTED: &[(&str, &str, usize)] = &[
     ("TILE", "mask", 131),
 ];
 
+/// [`frame_partings`]' answer: `(kind, count, first row)` per kind.
+pub(crate) type Partings = Vec<(&'static str, usize, String)>;
+
 /// What one frame's whole-record comparison parted on: each kind of
 /// divergence the frame holds, its count and its first row.
-pub(crate) fn frame_partings(r: &FrameResult) -> Vec<(&'static str, usize, String)> {
+pub(crate) fn frame_partings(r: &FrameResult) -> Partings {
     let mut out = Vec::new();
     macro_rules! kinds {
         ($($f:ident),*) => {$(
@@ -314,7 +317,7 @@ pub(crate) struct Walked {
     pub first_count: Option<i64>,
     pub first_sequence: Option<i64>,
     /// `(frame, capture, what parted)`.
-    pub first_record: Option<(i64, String, Vec<(&'static str, usize, String)>)>,
+    pub first_record: Option<(i64, String, Partings)>,
     pub records: usize,
     pub records_parted: usize,
     /// The records compared and parted, per capture.
