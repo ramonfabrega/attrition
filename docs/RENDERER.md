@@ -1235,8 +1235,6 @@ rest (`RUN1559B_3279`); run1441's camera reads 0 of 24 under both readers.
   fewer than 40 pixels.
 - *Made to fail.* The same frame at run1441's camera scores 0 of 25
   (`RUN1441_CAMERA_3294`).
-- *The facing*: a sign flip in world y, not an offset (§3.6; item 4069's
-  journal).
 - *The second reader* (item 4071): a mask traced by hand on the photograph
   (`TRACED`, `Reader::Mask`), which reads neither our draw nor a colour,
   pinned before its first count. It reads both bare windows (`BARE`) empty
@@ -1277,14 +1275,15 @@ rest (`RUN1559B_3279`); run1441's camera reads 0 of 24 under both readers.
   nearer depth stays; figures keep depth order among themselves
   (`Silhouettes::Drawn`; `render_states[1]`, 4085's journal).
   Rejected: `Silhouettes::None`.
+- *The tilt* (4089, before its count; §3.7). A figure of `CAT` Mech or
+  Artillery (`+0x14` 2, 3) turns by `misc_rot`, before its facing, to the
+  negated `WorldData::find_slope_normal` at its point, taken whole, when
+  that z is under 0.999 (`Tilt::Target`). Beside it: the ease at a draw a
+  frame from 3200 (`Tilt::Eased`); kept, `Tilt::Level`.
 - *What it does not measure.* Colour: textures and team colours are not
   bound (4038a).
-- *Where the inputs are.* The photograph is converted once to `.tga`
-  (`sips -s format tga`), so `render::tga` reads it with no new
-  dependency. `client --silhouette OUT.bmp` prints every row and writes
-  the scoring over the photograph. The reading constants and the
-  interface rectangles are this frame's, chosen once and pinned, never
-  tuned to a count.
+- *The constants* and interface are this frame's, pinned, never tuned
+  to a count (the inputs: 4089's journal).
 
 ### 5.4 Recommended: pieces in register, K of M
 
