@@ -16016,6 +16016,8 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
     our per-pixel camera depth.
   - The rule was not moved to absorb it. Names candidate C's score: it books with the leaves' alpha read from
     their textures, or the figures' depth against the trees read, before a count.
+  - *Item 4082:* both causes read and killed for the four figures; the leaves cut bring 0/6 back, 25 → 26 of
+    29 (4082a).
 
 ## Parked by the next landing, slot EH — reserved
 
@@ -16025,13 +16027,21 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot EI — reserved
+## Parked by item 4082, 2026-11-10 — the pine stands nearer than the figures
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4082a. Four figures the photograph shows in front of the pine stand behind it in ours** (`docs/RENDERER.md`
+  §3.7, §5.3; `RUN1559B_3279_TRACED`, 26 of 29). On frame 3279 at run1559b's camera, our trees cover 134 of
+  0/1's 134 pixels, 328 of 0/2's 328, 318 of 0/8's 318 and 301 of 0/10's 301. The leaves' own texels, under
+  `render_states[9]`'s test at 0 and its counter-clockwise cull, pass every one of them: the layered cards close
+  the gaps. On every covered pixel the tree is the nearer, by a median 492–727 camera units (range 190–1,300;
+  `client::silhouette::tests::the_figures_the_trees_cover_by_triangle_and_by_texel`). The original draws the
+  figures first and the trees after, under the same LessEqual depth test, depth-writing, so under its own states
+  a tree that near hides them. Both of 4080a's causes are killed for these four: the alpha returns 12 pixels, all
+  0/6's, and the order is depth's.
+  - Candidates left, none read: a figure's depth or position against the tree (where our figures stand, and the
+    depth `GuyOut::draw` hands them, against the original's), or the photograph's reading of those figures.
+  - The rule was not moved to absorb it. Names candidate C's score: it books with a figure's depth against a
+    tree diffed, or its place read on the packet, before a count.
 
 ## Parked by the next landing, slot EJ — reserved
 
