@@ -573,6 +573,14 @@ pub(crate) const MINTED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[
         1,
         0,
     ),
+    (
+        "gamelog-run1561-greatlakes-playback-of-minted-24000.txt",
+        "rontrace-run1561.log",
+        24000,
+        24000,
+        1,
+        0,
+    ),
 ];
 
 /// The built start walked under the pump on `orders`' file against one

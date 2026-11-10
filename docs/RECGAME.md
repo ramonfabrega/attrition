@@ -580,6 +580,8 @@ run1561a, run1561b):
   301 frames, seed 12345.
 - **run1561b**, `end:MISC`, 2,400 frames: 177.0 s, exit 0, 2,401 frames,
   12.0 frames a second.
+- **run1561**, `end:MISC`, the game's whole length (the driver's take):
+  1,707.9 s, exit 0, 24,001 frames, 11.0 frames a second.
 
 Against run53's live game of the same lobby, the playback's word is
 identical to frame 40 and parts on 41 (`rngcmp.py`: 46 identical of
@@ -592,6 +594,9 @@ built start under the pump against each take, as §8.3's walk
 - run1561a: draws agree on **300 of 300** frames, count and sequence;
   **299 records compared whole, none parted.**
 - run1561b: draws agree on **2,400 of 2,400**; one record, none parted.
+- run1561: draws agree on **24,000 of 24,000**, count and sequence; one
+  record, none parted. Seen red first: the row pinned `(0, 0, 0, 0)` printed
+  `(24000, 24000, 1, 0)`.
 
 **The value diff: nothing parted.** And because two sides that both
 ignored an order would agree, what each order did is read on both sides
@@ -636,6 +641,8 @@ parts from run53 on.
   pump's seam above); the `num = 0` reuse of a previous selection on
   playback; `queued` other than 2, `orders` other than 1, any
   `set_angle`; a `build` drag (`x2`/`y2` ≠ `x`/`y`); a site the original
-  refuses; orders from a second slot; any command beyond the three. The
+  refuses; orders from a second slot; any command beyond the three. ~~The
   full-length take (run1561, the driver's) is not yet run: past 2,400
-  frames only the draws of 4058's walk are known for this lobby.
+  frames only the draws of 4058's walk are known for this lobby.~~ Run:
+  run1561 above, 24,000 of 24,000. Past frame 299 it compares draws and
+  the closing record, not every frame's records.

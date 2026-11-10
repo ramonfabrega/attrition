@@ -36447,3 +36447,19 @@ The same file and line as run1561a with `--end-frame 2400 --log-window 0 2401 --
 Archive `gamelog-run1561b-greatlakes-playback-of-minted-2400.txt`, 2,450 bytes,
 SHA-256 `10466477c59780677ab6aba3c3c84d9bdf5cb965ab9a9d89b7fdafd0c862be13`; `rontrace-run1561b.log`, 15,764,320 bytes,
 SHA-256 `42acfa60f7dddb77882572f74f4398f4a9906e16aca08e37945d7f82f0609552`.
+
+## run1561 — the same file for the game's whole length, 0..24000: step 4's take (2026-11-10, the driver's)
+
+The same file and line as run1561b with `--end-frame 24000 --log-window 0 24001 --detail end:MISC --timeout 3600`.
+- Pool lane 1, launched 12:57:02 −05:00; **1,707.9 s launch to exit**, exit 0, `success`, 24,001 frames, `last_frame`
+  24000, `ended_early` false, seed 12345, map 14, five settings restored, no page fault, no relaunch. The runner's
+  pace line: 659 frames in 60 s (11.0/s). A whole release gate ran on the host through the take. Minutes waited on
+  another lane: none.
+- The built walk under the pump (`MINTED_WALKED`): **draws agree on all 24,000 frames, count and sequence; 1 record,
+  none parted.** Seen red first: the row pinned `(0, 0, 0, 0)` failed and printed `(24000, 24000, 1, 0)`.
+- Not run: `rngcmp.py` against run53 (run1561b's parts on 41, as the orders make it).
+- Filed with `filerun.py run1561 greatlakes-playback-of-minted-24000`.
+
+Archive `gamelog-run1561-greatlakes-playback-of-minted-24000.txt`, 2,452 bytes,
+SHA-256 `fa7bf210e1ad84f6d1f7c15910a9441b868d642711bb6f7f2f240326aa939f81`; `rontrace-run1561.log`, 130,511,520 bytes,
+SHA-256 `693dfa0f17fc14fea850695cf9240e2fe91208761277e47859fffa655fd66328`.
