@@ -326,21 +326,41 @@ branch refs/heads/worktree-replan-pdb
     def test_a_tree_past_the_limit_is_named_and_a_young_one_is_not(self):
         ages = {'agent-a0651062ff871c606': 21.5, 'agent-a0bec46101a67bd2c': 1.2}
         stale = gate.stale_agent_worktrees(self.PORCELAIN, lambda p: ages[Path(p).name])
-        self.assertEqual([(Path(p).name, round(h, 1)) for p, h in stale],
-                         [('agent-a0651062ff871c606', 21.5)])
+        self.assertEqual([(Path(p).name, round(h, 1), head[:8]) for p, h, head in stale],
+                         [('agent-a0651062ff871c606', 21.5, 'b4e0ac06')])
 
     def test_a_tree_whose_age_is_unknown_is_not_named(self):
         stale = gate.stale_agent_worktrees(self.PORCELAIN, lambda p: None)
         self.assertEqual(stale, [])
 
     def test_the_booking_gate_refuses_and_the_lane_gate_does_not(self):
-        stale = [('/x/.claude/worktrees/agent-a0651062ff871c606', 21.5)]
+        stale = [('/x/.claude/worktrees/agent-a0651062ff871c606', 21.5, 'b4e0ac06')]
         with self.assertRaises(ValueError) as cm:
-            gate.refuse_stale_agent_worktrees(stale, lane=False)
+            gate.refuse_stale_agent_worktrees(stale, lane=False, merged=lambda head: False)
         self.assertIn('agent-a0651062ff871c606', str(cm.exception))
         self.assertIn('21.5 h', str(cm.exception))
-        gate.refuse_stale_agent_worktrees(stale, lane=True)
-        gate.refuse_stale_agent_worktrees([], lane=False)
+        gate.refuse_stale_agent_worktrees(stale, lane=True, merged=lambda head: False)
+        gate.refuse_stale_agent_worktrees([], lane=False, merged=lambda head: False)
+
+    def test_a_merged_tree_past_the_limit_is_named_and_does_not_refuse(self):
+        # Loop 4090: a builder's merged tree is clutter, not unnamed work.
+        # The driver cannot remove one (the classifier refuses the reap, the
+        # harness holds a lock), so a refusal on it stops every booking gate
+        # on something the gate was never written for. It is printed; only
+        # an unmerged tip past the limit refuses.
+        stale = [('/x/.claude/worktrees/agent-a0651062ff871c606', 21.5, 'b4e0ac06'),
+                 ('/x/.claude/worktrees/agent-a0bec46101a67bd2c', 9.0, 'e4d4aaa6')]
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            gate.refuse_stale_agent_worktrees(stale, lane=False, merged=lambda head: True)
+        self.assertIn('agent-a0651062ff871c606 (21.5 h)', out.getvalue())
+        self.assertIn('merged', out.getvalue())
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out), self.assertRaises(ValueError) as cm:
+            gate.refuse_stale_agent_worktrees(stale, lane=False, merged=lambda head: head == 'b4e0ac06')
+        self.assertIn('agent-a0bec46101a67bd2c (9.0 h)', str(cm.exception))
+        self.assertNotIn('agent-a0651062ff871c606', str(cm.exception))
+        self.assertIn('agent-a0651062ff871c606 (21.5 h)', out.getvalue())
 
 
 class GateTests(unittest.TestCase):

@@ -1180,34 +1180,51 @@ STALE_AGENT_HOURS = 6
 
 def stale_agent_worktrees(porcelain, age_hours, *, limit=STALE_AGENT_HOURS):
     """Loop 2724: the `agent-*` worktrees `git worktree list --porcelain`
-    names whose age (`age_hours(path)`, None when unknown) is past the limit.
+    names whose age (`age_hours(path)`, None when unknown) is past the limit,
+    each as `(path, age, head)`.
     The harness cuts a subagent's worktree under the main checkout's
     `.claude/worktrees/`, every lane's in one directory; a sweep's go with
     its landing (the frame's row), and three of the thirty-fifth tranche's
     stood a day, two with unmerged tips, named by nothing."""
     out = []
     for block in porcelain.strip().split('\n\n'):
-        head = block.strip().split('\n', 1)[0]
-        if not head.startswith('worktree '):
+        lines = block.strip().split('\n')
+        if not lines[0].startswith('worktree '):
             continue
-        path = head[len('worktree '):].strip()
+        path = lines[0][len('worktree '):].strip()
         if '/.claude/worktrees/agent-' not in path:
             continue
+        head = next((l[len('HEAD '):].strip() for l in lines[1:] if l.startswith('HEAD ')), '')
         age = age_hours(path)
         if age is not None and age > limit:
-            out.append((path, age))
+            out.append((path, age, head))
     return out
 
 
-def refuse_stale_agent_worktrees(stale, *, lane):
-    """The booking gate refuses; a lane gate never looks, because the
-    directory is every lane's and a red would land on the wrong lane."""
+def refuse_stale_agent_worktrees(stale, *, lane, merged):
+    """The booking gate refuses a stale tree whose tip is not in the gated
+    commit's history (`merged(head)` false): that is work nothing names,
+    which is what Loop 2724 was written for. A merged one is clutter and is
+    printed, never refused (Loop 4090): since the chain is built by the
+    driver's in-session builders every step leaves one, the driver's reap of
+    it is refused by the classifier and by the harness's own lock, and a
+    gate that stops on it stops on something no session can clear. A lane
+    gate never looks, because the directory is every lane's and a red would
+    land on the wrong lane."""
     if lane or not stale:
         return
-    names = ', '.join(f'{Path(p).name} ({h:.1f} h)' for p, h in stale)
-    raise ValueError(f'{len(stale)} stale agent-* worktree(s) under the main checkout, past '
-                     f'{STALE_AGENT_HOURS} h: {names} — a sweep\'s go with its landing (Loop 2724); '
-                     f'`git worktree remove` each once read, or `git worktree prune`')
+    def names(rows):
+        return ', '.join(f'{Path(p).name} ({h:.1f} h)' for p, h, _ in rows)
+    done = [row for row in stale if merged(row[2])]
+    open_ = [row for row in stale if not merged(row[2])]
+    if done:
+        print(f'Agent worktrees: {len(done)} merged agent-* tree(s) stand past {STALE_AGENT_HOURS} h: '
+              f'{names(done)} — clutter, reaped at a pass (`python3 tools/reap_agents.py --yes`)')
+    if open_:
+        raise ValueError(f'{len(open_)} stale agent-* worktree(s) under the main checkout, past '
+                         f'{STALE_AGENT_HOURS} h, with a tip this commit does not hold: {names(open_)} — '
+                         f'a sweep\'s go with its landing (Loop 2724); merge or read each, then '
+                         f'`git worktree remove` it')
 
 
 def stale_agent_worktrees_now():
@@ -1221,6 +1238,12 @@ def stale_agent_worktrees_now():
         except OSError:
             return None
     return stale_agent_worktrees(porcelain, age_hours)
+
+
+def agent_tip_is_merged(head):
+    """Whether `head` is in the history of the commit the gate runs on."""
+    return bool(head) and subprocess.run(['git', 'merge-base', '--is-ancestor', head, 'HEAD'], cwd=ROOT,
+                                         capture_output=True).returncode == 0
 
 
 def main():
@@ -1261,7 +1284,7 @@ def main():
     args = parser.parse_args()
     try:
         check_whole(lane=args.lane, tests=args.tests, whole=args.whole, no_widen=args.no_widen)
-        refuse_stale_agent_worktrees(stale_agent_worktrees_now(), lane=args.lane)
+        refuse_stale_agent_worktrees(stale_agent_worktrees_now(), lane=args.lane, merged=agent_tip_is_merged)
         gate(args.install, report_dir=args.report_dir, require_fixtures=args.require_fixtures,
              test_threads=args.test_threads, lane=args.lane, tests=args.tests, item=args.item,
              base=args.base, scope=args.scope, isolated=args.isolated, no_widen=args.no_widen,
