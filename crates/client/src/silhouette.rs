@@ -11,6 +11,8 @@ use crate::world::{Drawing, SpriteDrawing, World};
 use render::silhouette::{
     Footprint, Object, Photo, READING, Reader, Rect, Stamp, footprints_read, rasterize_with,
 };
+#[cfg(test)]
+use render::silhouette::{Interface, Neighbour, Trace, footprints_traced};
 use std::path::PathBuf;
 
 /// **The photograph's interface**, by eye on run1559b's 1920×1080 still:
@@ -367,6 +369,45 @@ pub fn score_frame(
             (f, d)
         })
         .collect()
+}
+
+/// Every scored object's footprints on the frame at `camera`, read by the
+/// traced reader (item 4077; `render::silhouette::footprints_traced`):
+/// each of `traced`'s regions is the object its name, `owner/object`,
+/// names, and a region whose object is not drawn is every object's
+/// neighbour.
+#[cfg(test)]
+pub fn score_frame_traced(
+    world: &mut World,
+    camera: &render::Camera,
+    photo: &render::tga::Image,
+    traced: &[(&str, &[(i32, i32)])],
+    neighbour: Neighbour,
+    iface: Interface,
+) -> Vec<(Footprint, Who)> {
+    let size = (photo.width, photo.height);
+    let (keys, drawings) = frame_keys(world, camera, size);
+    let photo = Photo {
+        width: photo.width,
+        height: photo.height,
+        rgba: &photo.rgba,
+    };
+    let traces: Vec<Trace<'_>> = traced
+        .iter()
+        .map(|&(name, poly)| Trace {
+            key: drawings
+                .iter()
+                .position(|&(who, o, _, _)| format!("{who}/{o}") == name)
+                .map_or(u32::MAX, |i| i as u32 + 1),
+            poly,
+        })
+        .collect();
+    footprints_traced(
+        &keys, &photo, &INTERFACE, &READING, &traces, neighbour, iface,
+    )
+    .into_iter()
+    .map(|f| (f, drawings[f.key as usize - 1]))
+    .collect()
 }
 
 /// The photograph with each scored window drawn over it: our footprint's
@@ -743,7 +784,10 @@ mod tests {
         let mut mixed = Vec::new();
         for ((c, (who, o, piece, _)), (m, _)) in colour_rows.iter().zip(&mask_rows) {
             let name = format!("{who}/{o}");
-            let traced = TRACED.iter().any(|(n, _)| *n == name);
+            // Item 4071's seven: the buildings' traces are item 4077's.
+            let traced = TRACED[..TRACED_POLYGONS.len()]
+                .iter()
+                .any(|(n, _)| *n == name);
             let tank = *piece == 196;
             mixed.push(if tank { *m } else { *c });
             if !traced {
@@ -796,5 +840,218 @@ mod tests {
             println!("bare ground {w:?}: mask {n}");
             assert_eq!(n, 0, "the mask reads bare ground empty");
         }
+    }
+
+    /// **The traced reader** (item 4077; `docs/RENDERER.md` §5.3, "A traced
+    /// region") on the photograph's frame, the client's default draw: the
+    /// buildings as their sprites, every figure posed.
+    #[test]
+    fn the_traced_reader_scores_frame_3279_on_the_default_draw() {
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        assert!(world.pose && world.sprites, "the client's default draw");
+        let camera = crate::pinned_camera();
+        let mut elsewhere = camera;
+        (elsewhere.loc_x, elsewhere.loc_y) = (3168.0, 29744.68);
+        world.run_to(PHOTO_FRAME);
+        let colour = score_frame(&mut world, &camera, &photo, Reader::Colour);
+        let row = |name: &str, rows: &[(Footprint, Who)]| {
+            rows.iter()
+                .find(|(_, (who, o, _, _))| format!("{who}/{o}") == name)
+                .map(|(f, _)| *f)
+        };
+        let print = |label: &str, rows: &[(Footprint, Who)]| {
+            for (f, (who, o, piece, building)) in rows {
+                println!(
+                    "{label}: {who}/{o} piece {piece}{} window ({}, {})..({}, {}) ours {} theirs {} both {} overlap {:.3}",
+                    if *building { " building" } else { "" },
+                    f.window.x0,
+                    f.window.y0,
+                    f.window.x1,
+                    f.window.y1,
+                    f.ours,
+                    f.theirs,
+                    f.both,
+                    f.overlap()
+                );
+            }
+            let fs: Vec<Footprint> = rows.iter().map(|(f, _)| *f).collect();
+            let s = score(&fs, &READING);
+            println!("{label}: {} of {}", s.0, s.1);
+            s
+        };
+        let read =
+            |world: &mut World, camera: &render::Camera, traced: &[(&str, &[(i32, i32)])], n, i| {
+                score_frame_traced(world, camera, &photo, traced, n, i)
+            };
+        let rule = read(
+            &mut world,
+            &camera,
+            &TRACED,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let got = print("traced", &rule);
+        let scene = print(
+            "traced, a neighbour's trace as scene",
+            &read(
+                &mut world,
+                &camera,
+                &TRACED,
+                Neighbour::Scene,
+                Interface::Neither,
+            ),
+        );
+        let skip = print(
+            "traced, the interface skipped",
+            &read(
+                &mut world,
+                &camera,
+                &TRACED,
+                Neighbour::Neither,
+                Interface::Skip,
+            ),
+        );
+        let mut plazad: Vec<(&str, &[(i32, i32)])> = TRACED.to_vec();
+        plazad.push(("0/2000", PLAZA));
+        let plaza = print(
+            "traced, the plaza the capital's",
+            &read(
+                &mut world,
+                &camera,
+                &plazad,
+                Neighbour::Neither,
+                Interface::Neither,
+            ),
+        );
+        let off = print(
+            "traced, run1441's camera",
+            &read(
+                &mut world,
+                &elsewhere,
+                &TRACED,
+                Neighbour::Neither,
+                Interface::Neither,
+            ),
+        );
+        // The four figures by the woodcutter, before (the colour reader on
+        // this draw) and after.
+        for name in ["0/9", "0/1", "0/10", "0/8", "0/6", "0/2000", "0/2001"] {
+            println!(
+                "{name}: colour {:?} traced {:?}",
+                row(name, &colour).map(|f| f.overlap()),
+                row(name, &rule).map(|f| f.overlap())
+            );
+        }
+        // Where colour and the trace both read a traced figure, their
+        // verdicts agree.
+        for (name, _) in TRACED {
+            if let (Some(c), Some(r)) = (row(name, &colour), row(name, &rule)) {
+                println!(
+                    "{name}: colour {:.3} traced {:.3}",
+                    c.overlap(),
+                    r.overlap()
+                );
+                if c.overlap() >= READING.threshold {
+                    assert!(
+                        r.overlap() >= READING.threshold,
+                        "{name}: the verdicts agree"
+                    );
+                }
+            }
+        }
+        // Bare ground reads empty.
+        let p = Photo {
+            width: photo.width,
+            height: photo.height,
+            rgba: &photo.rgba,
+        };
+        let empty = render::silhouette::Keys {
+            width: photo.width,
+            height: photo.height,
+            keys: vec![0; photo.width * photo.height],
+        };
+        let traces: Vec<Trace<'_>> = TRACED
+            .iter()
+            .map(|&(_, poly)| Trace {
+                key: u32::MAX,
+                poly,
+            })
+            .collect();
+        for w in BARE {
+            let f = render::silhouette::read_traced(
+                &empty,
+                &p,
+                &INTERFACE,
+                &READING,
+                &traces,
+                Neighbour::Neither,
+                Interface::Neither,
+                0,
+                w,
+            );
+            println!("bare ground {w:?}: traced {}", f.theirs);
+            assert!(f.theirs < READING.min_pixels, "bare ground reads empty");
+        }
+        // A building's trace shifted by its own width drops its row.
+        let wood = TRACED
+            .iter()
+            .find(|(n, _)| *n == "0/2001")
+            .expect("traced")
+            .1;
+        let width =
+            wood.iter().map(|p| p.0).max().unwrap() - wood.iter().map(|p| p.0).min().unwrap();
+        let shifted: Vec<(i32, i32)> = wood.iter().map(|&(x, y)| (x + width, y)).collect();
+        let moved: Vec<(&str, &[(i32, i32)])> = TRACED
+            .iter()
+            .map(|&(n, poly)| {
+                if n == "0/2001" {
+                    (n, &shifted[..])
+                } else {
+                    (n, poly)
+                }
+            })
+            .collect();
+        let shifted_rows = read(
+            &mut world,
+            &camera,
+            &moved,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        println!(
+            "0/2001 shifted {width} px: {:?}",
+            row("0/2001", &shifted_rows).map(|f| f.overlap())
+        );
+        use render::silhouette as s;
+        assert_eq!(got, s::RUN1559B_3279_TRACED);
+        assert_eq!(scene, s::RUN1559B_3279_TRACED_SCENE);
+        assert_eq!(skip, s::RUN1559B_3279_TRACED_SKIP);
+        assert_eq!(plaza, s::RUN1559B_3279_TRACED_PLAZA);
+        assert_eq!(off, s::RUN1441_CAMERA_3279_TRACED);
+        assert!(got.0 > s::RUN1559B_3279_SPRITES.0, "the row is raised");
+        for name in ["0/2000", "0/2001"] {
+            let f = row(name, &rule).expect("both buildings are scored");
+            assert!(f.overlap() >= READING.threshold, "{name} passes");
+        }
+        let f = row("0/2001", &shifted_rows).expect("still scored");
+        assert!(
+            f.overlap() < READING.threshold,
+            "a trace shifted by its own width drops its row"
+        );
     }
 }
