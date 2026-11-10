@@ -131,6 +131,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the lobby-built frame 0 against build_sim's install of the same start, Sim with Sim; no dump record is read",
     ),
     (
+        "diff/start_walk.rs",
+        "the built start against the installed one, Sim with Sim, and the lobby's walk through the harness's own differs; no dump record is read here",
+    ),
+    (
         "diff/cant_reach.rs",
         "the cant_reach tally and its pins; the row is compared in harness.rs's widen_block",
     ),
