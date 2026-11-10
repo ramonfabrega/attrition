@@ -1175,9 +1175,17 @@ The 3294 rows are kept as the packet's frame.
 - *The misses* (on 3279). ~~The capital is drawn as its `zbuffer` model
   (4036a).~~ The figures by the derrick stand among trees the client does not
   draw.
-- *The buildings drawn right* (item 4076), as their sprites: 14 of 23
-  masked, 11 by colour (`RUN1559B_3279_SPRITES`). The reader cannot score
-  them; the pinned rows stay on the `zbuffer` draw (parked 4076a).
+- **The row on the default draw**, the buildings as their sprites (item
+  4076: 14 of 23 by the mask, `RUN1559B_3279_SPRITES`), by item 4077's reader:
+  **27 of 33** (`RUN1559B_3279_TRACED`); run1441's camera 0 of 32. Both
+  buildings pass: 0/2000 0.872, 0/2001 0.351 → 0.652. Ten objects join
+  with the interface read as neither, the capital among them; 1/33 beside
+  the tanks passes (0.360 → 0.549). No row crosses down. The rejected
+  readings: a neighbour's trace as the scene 27 of 33, the interface
+  skipped 19 of 23, the plaza traced as the capital's 27 of 33 (0/2000
+  0.818). The `RUN1559B_3279_*` rows above are the `zbuffer` draw's, kept
+  by name. A second photograph needs its own traces, every object it
+  scores by trace, made on it before a count (4071a).
 - *What it does not measure.* Colour: textures and team colours are not
   bound (4038a), and binding them would not move this row.
 - *Where the inputs are.* The photograph is converted once to `.tga`
