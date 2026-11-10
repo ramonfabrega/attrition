@@ -122,16 +122,20 @@ pub const CHECKSUM_LINES: [(&str, &str, bool); 15] = [
 /// `Checksum:` line is the driver's.
 pub const CHECKSUM_REPRODUCED: (usize, usize) = (15, 15);
 
-/// The run and logger frame the instrument is proven on: run1100's packet
-/// (`GameLog::end_frame` entry of frame 5408) and its end record, 3502.
-pub const CHECKSUM_PACKET: (&str, i64, u64) = ("run1100", 5408, 3502);
+/// The run and logger frame the instrument is proven on, and the record it
+/// reproduces: run 1562's packet (`GameLog::end_frame` entry of logger
+/// frame 91, the minted game's playback) and record 3201, the first of its
+/// `@dumpall` window (`docs/CHECKSUM.md` §3). Item 4060 proved it first on
+/// run1100's 5408 and record 3502.
+pub const CHECKSUM_PACKET: (&str, i64, u64) = ("run1562", 91, 3201);
 
 /// **The port's score**: of the twelve state lines, how many our
 /// simulation emits equal to the original's on that frame, and of the
 /// bytes the original's twelve walks hand over there (the ledger,
-/// `docs/CHECKSUM.md` §4), how many ours reproduces. Nothing is ported
-/// yet.
-pub const CHECKSUM_STATE: (usize, usize, u64, u64) = (0, 12, 0, 501_543);
+/// `docs/CHECKSUM.md` §4), how many ours reproduces, on
+/// [`CHECKSUM_PACKET`]'s frame. Item 4088: items, 484 of run 1562's
+/// 425,499 (`diff::checksum_lines`).
+pub const CHECKSUM_STATE: (usize, usize, u64, u64) = (1, 12, 484, 425_499);
 
 /// Which logger hook printed a record.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

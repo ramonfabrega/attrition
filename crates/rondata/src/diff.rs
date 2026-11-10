@@ -77,6 +77,8 @@ mod british_medieval_pair;
 mod british_modern_pair;
 mod build;
 #[cfg(test)]
+mod checksum_lines;
+#[cfg(test)]
 mod chinese_enlightenment_pair;
 #[cfg(test)]
 mod chinese_gunpowder_pair;

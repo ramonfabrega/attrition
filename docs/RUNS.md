@@ -36463,3 +36463,37 @@ The same file and line as run1561b with `--end-frame 24000 --log-window 0 24001 
 Archive `gamelog-run1561-greatlakes-playback-of-minted-24000.txt`, 2,452 bytes,
 SHA-256 `fa7bf210e1ad84f6d1f7c15910a9441b868d642711bb6f7f2f240326aa939f81`; `rontrace-run1561.log`, 130,511,520 bytes,
 SHA-256 `693dfa0f17fc14fea850695cf9240e2fe91208761277e47859fffa655fd66328`.
+
+## run1562 — the minted file's playback with a packet and an `@dumpall` at 91: the checksum's pair (2026-11-10, item 4088)
+
+`docs/CHECKSUM.md` §3 and §11. **What the disk could not answer**: whether the original's playback of the minted file
+prints the windowed checksum record at all, and what the original's twelve state lines hand over on a frame of the
+minted game that our walk holds. No `DUMP_ALL` playback was on disk; run1561a's 300 frames print no `CHECKSUM` and no
+`ITEM` record. The take: run1561a's line with a packet and an `@dumpall` on one frame past the last minted order,
+`TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1562 --recording
+<the minted file> --end-frame 120 --cover cover=1 --log-window 90 93 --detail end:MISC --timeout 900 --stall-seconds
+120 --cmd-file <one line, "91 @dumpall"> --tracer-def RON_STATE_FRAME=91 --tracer-def
+'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`, waited on with
+`waitrun.sh` in the background lane. The runner took a `--cmd-file` beside `--recording` for the first time: one of
+`@dumpall` lines only (`refused_playback_cmd_file`, item 4088).
+- Pool lane 1, launched 15:18:45 −05:00, exited 15:20:26: **101.1 s launch to exit**, exit 0, `success`, 121 frames,
+  `last_frame` 120, seed 12345, map 14, players tribe 4 (flags 7) and tribe 11 (flags 1), five settings restored, no
+  page fault, no relaunch. `df -g ~` read 76 GB free before it. Minutes waited on another lane: none.
+- The packet is kept at `~/ron-golden/run1562/map-14/frame-snapshot.bin`, 778,910,456 bytes, logger frame 91, trace
+  frame 90, SHA-256 `e411eeb89327d3b8c249594fe05756298ec63ba9d909f4a93c155923bf98e9be`.
+- **A playback prints the windowed record**: two, 3201 and 3202, each the 67-line shape (`CHECKSUM n`, `FILE
+  gamelog.cpp`, `LINE 135`, 64 labelled lines), each beside a whole dump (1,237,000 lines a record). 3201 is the first
+  child of `BEGIN FRAME 91`'s `BEGIN FULL DUMP`, 3202 of `BEGIN FRAME 92`'s; nothing else prints in the window.
+- `tools/recomp/checksum.py` on the packet reproduces **3201, 15 of 15**, its stream summing to the original's value on
+  every line, in 9.2 s; against 3202 it gives 10 of 15 (units, builds, guys, leaders and world part). The stream, the
+  ledger and the values are under `~/ron-data/lab-experiments/2026-11-10-item-4060/run1562/`.
+- The full dump's 22 `ITEM` records (all `flags 1`, `ever_seen 0`, `who 255`) and the scout at x 5554 are the
+  minted walk's frame 91 (`docs/RECGAME.md` §9.3).
+- Filed with `filerun.py run1562 greatlakes-playback-of-minted-packet-91`.
+
+Archive `gamelog-run1562-greatlakes-playback-of-minted-packet-91.txt`, 62,498,535 bytes,
+SHA-256 `6c7e08b59c44aafe5bdb5e2d2fbb7d1523bef2d8868fb04bf0fba0aec45a0a2c`; `rontrace-run1562.log`, 9,172,160 bytes,
+SHA-256 `361b8d929ab342d8e4729ecd865de375fa69b46c2fa540eff3787497f24964ab`.
+
+**What it holds**: the checksum's pair on the milestone's own game — the packet and the record it reproduces — and
+the whole dump of that frame.
