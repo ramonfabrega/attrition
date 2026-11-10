@@ -1290,6 +1290,12 @@ rest (`RUN1559B_3279`); run1441's camera reads 0 of 24 under both readers.
   negated `WorldData::find_slope_normal` at its point, taken whole, when
   that z is under 0.999 (`Tilt::Target`). Beside it: the ease at a draw a
   frame from 3200 (`Tilt::Eased`); kept, `Tilt::Level`.
+- *The point* (4095, before its count). The photograph draws frame
+  3280's state with every point a frame behind: each guy's slot, clock
+  and facing are 3280's, and its point, and the tilt's, are the ones it
+  held on 3279, its `last_*` at `graphic_percent` 0 (`Blend::Last`, run
+  to 3280). Beside it: frame 3279 whole (`Blend::Current`). The movers'
+  3279 (`PHOTO_FRAME`) is read off their points, which this keeps.
 - *What it does not measure.* Colour: textures and team colours are not
   bound (4038a).
 - *The constants* and interface are this frame's, pinned, never tuned
