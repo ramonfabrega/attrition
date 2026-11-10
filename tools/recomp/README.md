@@ -37,6 +37,13 @@ nothing from the install is committed.
   exact functions it called (and whether they lift), `--watch VA+N` for who
   writes a range and `--watch VA+OFF:LEN` for who writes a field (Loop 3280), `--find` for the instruction that first produces a
   value. Step 4 of the charter, and how item 327 was read.
+- `checksum.py` — the original's sync checksum on a packet (item 4060,
+  `docs/CHECKSUM.md`): `CheckSums::check_all@00936560` entered under
+  unicorn with its sync-logger calls answered, the fold and both Adler-32s
+  hooked; prints the fifteen lines, holds them against a printed
+  `CHECKSUM` record (`--gamelog --record`), and writes every range with
+  its bytes (`--stream`), the ranges by owner and record leaf
+  (`--ledger`) and the fifteen values (`--values`), all outside git.
 - `get_position.py` — `GraphicPieces::get_position@0090b750` on a packet
   (packed SSE, so it does not lift): a piece's `AttachPos` entries and
   `RData +0x88` scale (`entries`), the non-pivot arm at every whole degree
