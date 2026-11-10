@@ -16064,7 +16064,8 @@ words and edits nothing here; a refill lands when two remain.
 - **4085b. Which land units take `init_land_unit_map`'s method list 1, and the guys pass's order** (§3.7, "What is
   not established"). Every figure on the photograph behind the pine or the woodcutter is a silhouette, so the rule
   draws every land figure so; the selector among lists 0–4 is not read, nor `Tree<Guy*,float>::ordered_insert`'s
-  key, which says whether a farther figure's silhouette lies over a nearer figure. Names no score.
+  key, which says whether a farther figure's silhouette lies over a nearer figure. Names no score. *The key is
+  read* (4087b): a batch by unit type, not depth.
 
 ## Parked by item 4086, 2026-11-10 — the riflemen by the tank, measured
 
@@ -16076,7 +16077,7 @@ words and edits nothing here; a refill lands when two remain.
   rectangular notch, where the photograph's hull reads as ground. 1/20 has 280, 103 of them another's; 1/32 has
   376, 193 of them another's (each other's and the tank's). Not read: how the original orders one guy against
   another (4085b names it). Here it would read as the guys' pass sorted by depth and drawn over, against our depth
-  test. Names candidate C's score.
+  test. Names candidate C's score. *Read* (4087): not an order (4087b); the hull's tilt (4087a).
 - **4086b. Drawn larger: killed by step 1's table.** Drawn alone, the three are 336, 347 and 293 px, in boxes of
   18×30 (cut by the interface at row 688), 22×43 and 13×31. The clear figure 1/35, in the row at 0.701, is 391 px
   in 19×43, and the photograph's 1/35 is 22×49. No rifleman is drawn larger than the figure that passes. Values:
@@ -16090,13 +16091,26 @@ words and edits nothing here; a refill lands when two remain.
   slot plays at that clock, and the photograph's own frame (4073a). Names no score until 4086a is read.
 
 
-## Parked by the next landing, slot EM — reserved
+## Parked by item 4087, 2026-11-10 — 1/31 over the tank's hull: a depth, not an order
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4087a. The tank's tilt to the slope, which our client does not draw** (`docs/RENDERER.md` §3.7, §5.3;
+  `RUN1559B_3279_TRACED`, 30 of 33). On frame 3279, 1/31 and our tank 1/27 interpenetrate. 1/31's point is 28.4
+  nearer than the tank's, by camera-space depth (18558.9 against 18587.3), inside the hull's 157.7 toward the
+  camera. On the 358 pixels both draw, figure − hull runs −130.9 to +40.0 (p50 −5.7, p90 19.6), and the figure is
+  nearer on 220. The tank is the packet's at 3294 (point, piece, facing; asserted), and its alone-draw sits on its
+  trace within 1.6 and 4.6 px of centroid on 3279. The original draws the tank after the figure (4087b), so the
+  photograph's figure over the hull is the nearer there. The transform our hull lacks: unit type 246's `+0x14`
+  is 2 on the packet, and `GuyOut::draw@005dc490` tilts its guys to `GuyData::find_slope_normal@005de140`.
+  1/27's `last_norm` on the packet is (0.184, 0.057, 0.980), 11.4°, falling toward +x, the side 1/31 stands on
+  (z 534 against the tank's 552). The riflemen hold the unset (0, 0, −1). It is a function and an eased render
+  state rather than one constant: `WorldData::find_slope_normal`, the quarter-per-draw ease and the rotation.
+  The draw was not made. Names candidate C's score. Values:
+  `~/ron-data/lab-experiments/2026-11-10-item-4087/`.
+- **4087b. The farther figure drawn over: killed by the packet's tree.** `UnitOut::draw@00615b80` keys
+  `Tree<Guy*,float>` (0x00C0ADF8) by `1e7·type + 1e4·cur_anim + 100·cur_time − 1e-5·(x·m8 + y·m9)`, and
+  `pop_all_zoomed_in@00655e70` walks it in order. On run1559b's packet (`tree_points.py --guytree`), 1/31's metric
+  is 1100110848 and 1/27's 2460072192, so the tank is drawn after the rifleman. `render_states[0..3]` hold `zbias`
+  0 and list 0 writes depth (`rbias` rows), so no order puts a farther opaque figure over a nearer hull.
 
 ## Parked by item 4060, 2026-11-10 — the checksum's instrument
 

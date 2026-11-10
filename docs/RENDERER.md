@@ -1057,8 +1057,15 @@ original too; it is drawn over it. The rejected readings with the silhouettes: `
   the original too, and are drawn over it as silhouettes, `render_states[1]` (item 4085, §5.3 "The silhouettes").
 - Which land units take method list 1 rather than 0, 2 or 4 of `init_land_unit_map`: every figure on frame 3279's
   photograph that stands behind a tree or the woodcutter is drawn so, and the selector is not read.
-- The order of figures among themselves in the guys pass (`Tree<Guy*,float>::ordered_insert`'s key), so whether a
-  farther figure's silhouette lies over a nearer figure.
+- ~~The order of figures among themselves in the guys pass~~: read (item 4087). `UnitOut::draw@00615b80` keys
+  `Tree<Guy*,float>` by `1e7·type + 1e4·cur_anim + 100·cur_time − 1e-5·(x·m8 + y·m9)` (a guy on a tile with
+  flags `0xc`: the last term alone), and the pass walks it in order: a batch by unit type, not a depth sort. On
+  run1559b's packet the riflemen (type 110) precede the tanks (246). Every list writes depth with `zbias` 0, so
+  the order decides no opaque pixel; whether a silhouette (list 1, not written) lies over a nearer figure turns
+  on the type ids.
+- A vehicle's tilt to the slope (item 4087; parked 4087a): `GuyOut::draw@005dc490` rotates a guy whose unit
+  type's `+0x14` is 2 or 3 (the tanks' 2; the riflemen's 0) to `GuyData::find_slope_normal@005de140`'s
+  normal, eased a quarter per draw in `last_norm` and applied below z 0.999. Our client draws no unit tilted.
 - The blend: the key buffer keeps a fragment whole where its alpha passes; the original blends it, which moves
   colour, not a footprint.
 - The depth of a building's sprite against a tree. Ours puts the anchor's flat draw-list depth against the tree's
@@ -1257,7 +1264,7 @@ rest (`RUN1559B_3279`); run1441's camera reads 0 of 24 under both readers.
   item 4077's reader (`RUN1559B_3279_TRACED`): **30 of 33** (4085); its
   steps from 27 of 33 (4077–4085) are the pin's comment and each item's
   journal; treeless 29 of 33; run1441's camera 0 of 32.
-  Out: three riflemen (4086a). The
+  Out: three riflemen (4087a). The
   `RUN1559B_3279_*` rows above are the `zbuffer` draw's, kept by name.
 - *The trees* (4080, before its count; §3.7). A tree hides what is
   behind it; its pixel is the ground's; it is never scored. Rejected:

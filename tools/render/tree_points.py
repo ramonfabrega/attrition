@@ -45,7 +45,21 @@ a `VoidArray` whose `struct_size` counts dwords, `xyz` first).
 `--guys GPIECE:WHO/O ...` (item 4086) prints instead, for each, every
 `GuyData` the packet holds with that `gpiece` (+0x88), `o` (+0x8c) and
 `who` (+0xa1): its point, `angle`, `cur_time`/`end_time`, `cur_anim`,
-`stopped` and `last_*`. Nothing it prints enters the repository.
+`stopped` and `last_*`; item 4087 adds `bank`/`last_bank` (+0x44),
+`pitch`/`last_pitch` (+0x4c) and `last_norm` (+0xa4), the slope normal
+`GuyData::find_slope_normal@005de140` eases by a quarter each draw.
+Nothing it prints enters the repository.
+`--guytree` (item 4087) prints instead `Tree<Guy_const_*,float>` at
+`objects + 0x288` (0x00C0ADF8, the `ecx` `UnitOut::draw@00615b80` passes
+`ordered_insert@0046e590`), the guys pass's list, in the order
+`pop_all_zoomed_in@00655e70` walks it (in order, leftmost first):
+
+    guytree <length> <head_node> <ordered>
+    gnode <i> <node> <who>/<o> type <guy +0x8> gpiece <+0x88> anim <+0x9c> time <+0x74> metric <float>
+    rbias <index> <enables> <zbias> <zfunc> <stencil_func> <stencil_ref> <fail> <zfail> <pass> <mask> <write_mask>
+
+`rbias` is `render_states[0..3]`'s `zbias` (0x54) and stencil fields
+(0x84..0x9c), which `rstate` leaves out.
 """
 import os
 import struct
@@ -90,9 +104,43 @@ def guys(snap, wants):
                         f"end_time {r(0x78, '<I')} last_time {r(0x7C, '<i')} gpiece {g} "
                         f"variation {r(0x90, '<h')} cur_anim {r(0x9C, '<b')} "
                         f"stopped {data[at + 0x9D]} guy_num {data[at + 0xA2]} "
-                        f"last {r(0x68, '<i')} {r(0x6C, '<i')} {r(0x70, '<i')}"
+                        f"last {r(0x68, '<i')} {r(0x6C, '<i')} {r(0x70, '<i')} "
+                        f"bank {r(0x44, '<f')!r} {r(0x48, '<f')!r} pitch {r(0x4C, '<f')!r} "
+                        f"{r(0x50, '<f')!r} last_norm {struct.unpack_from('<3f', data, at + 0xA4)}"
                     )
                 i = data.find(pat, i + 1)
+
+
+GUY_TREE = 0x00C0ADF8
+
+
+def guytree(snap):
+    """Item 4087: the guys pass's tree on the packet, in order."""
+    u32 = lambda a: struct.unpack("<I", snap.read(a, 4))[0]
+    length, head, ordered = u32(GUY_TREE + 8), u32(GUY_TREE + 0xC), u32(GUY_TREE + 0x18)
+    print(f"guytree {length} {head:08x} {ordered}")
+    out, stack, node = [], [], head
+    while (stack or node) and len(out) <= max(length, 0) + 8:
+        while node:
+            stack.append(node)
+            node = u32(node)
+        node = stack.pop()
+        out.append(node)
+        node = u32(node + 4)
+    for k in range(4):
+        rs = u32(u32(RENDER_STATES + 0x10) + 4 * k)
+        f = [u32(rs + 0x50)] + list(struct.unpack("<i", snap.read(rs + 0x54, 4)))
+        f += [u32(rs + o) for o in (0x58, 0x84, 0x88, 0x8C, 0x90, 0x94, 0x98, 0x9C)]
+        print(f"rbias {k} {f[0]:#x} " + " ".join(str(v) for v in f[1:]))
+    for i, n in enumerate(out):
+        g = u32(n + 0xC)
+        metric = struct.unpack("<f", snap.read(n + 0x10, 4))[0]
+        gd = snap.read(g, 0xBC)
+        r = lambda o_, f: struct.unpack_from(f, gd, o_)[0]
+        print(
+            f"gnode {i} {n:08x} {gd[0xA1]}/{r(0x8C, '<h')} type {r(0x8, '<i')} "
+            f"gpiece {r(0x88, '<i')} anim {r(0x9C, '<b')} time {r(0x74, '<I')} metric {metric!r}"
+        )
 
 
 def main(argv):
@@ -100,6 +148,9 @@ def main(argv):
         print(__doc__)
         return 2
     exe, packet = argv[1], argv[2]
+    if argv[3:4] == ["--guytree"]:
+        guytree(Snapshot(packet))
+        return 0
     if argv[3:4] == ["--guys"]:
         wants = []
         for w in argv[4:]:

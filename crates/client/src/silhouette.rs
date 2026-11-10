@@ -2244,4 +2244,300 @@ mod tests {
         );
         assert!(shifted * 2 < both, "shifted, it does not");
     }
+
+    /// Item 4087, step 1: a value before a cause. On the pixels where our
+    /// tank 1/27 hides the rifleman 1/31 on frame 3279, the camera-space
+    /// depth (`render_matrix`'s third column, less is nearer) each is drawn
+    /// with there, each drawn alone, as a distribution; each one's point
+    /// and its depth; and the hull's extent toward the camera. Then the same
+    /// table on the first pair of the row's passing figures that overlap
+    /// another object of ours, so the table is seen to read "nearer, and on
+    /// top" where the photograph agrees.
+    #[test]
+    fn the_rifleman_and_the_hull_by_depth() {
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        world.run_to(PHOTO_FRAME);
+        let size = (photo.width, photo.height);
+        let rows = score_frame_traced(
+            &mut world,
+            &camera,
+            &photo,
+            &TRACED,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let (keys, who) = frame_keys(&mut world, &camera, size);
+        let (figures, buildings, list) = world.draw_list(
+            &camera,
+            &crate::pinned_screen(),
+            (size.0 as i32, size.1 as i32),
+        );
+        let drawings = world.objects(&figures, &buildings, &list);
+        let r = camera.render_matrix().0;
+        let depth_of = |p: [f32; 3]| r[2] * p[0] + r[6] * p[1] + r[10] * p[2] + r[14];
+        // A unit's meshes drawn alone: keys and depth.
+        let alone = |id: (u8, i16, bool)| {
+            let objs: Vec<Object> = objects(&drawings)
+                .into_iter()
+                .filter(|b| {
+                    let d = &drawings[b.key as usize - 1];
+                    (d.who, d.o, d.building) == id
+                })
+                .collect();
+            rasterize_cut(&objs, &[], &[], &camera, size)
+        };
+        // Its vertices' depth extent.
+        let extent = |id: (u8, i16, bool)| {
+            let (mut lo, mut hi) = (f32::INFINITY, f32::NEG_INFINITY);
+            for d in drawings.iter().filter(|d| (d.who, d.o, d.building) == id) {
+                for t in &d.tris {
+                    for v in t {
+                        let z = depth_of(*v);
+                        (lo, hi) = (lo.min(z), hi.max(z));
+                    }
+                }
+            }
+            (lo, hi)
+        };
+        let point = |who_: u8, o: i16| {
+            figures
+                .iter()
+                .find(|p| (p.who, p.o) == (who_, o))
+                .map(|p| (p.x, p.y, p.z, p.piece))
+        };
+        let quantiles = |mut v: Vec<f32>| -> String {
+            if v.is_empty() {
+                return "none".into();
+            }
+            v.sort_by(|a, b| a.total_cmp(b));
+            let q = |f: f32| v[((v.len() - 1) as f32 * f) as usize];
+            format!(
+                "n {} min {:.1} p10 {:.1} p50 {:.1} p90 {:.1} max {:.1}",
+                v.len(),
+                q(0.0),
+                q(0.1),
+                q(0.5),
+                q(0.9),
+                q(1.0)
+            )
+        };
+        let key_of = |k: u32| -> Option<(u8, i16, bool)> {
+            (k != 0 && (k as usize) <= who.len()).then(|| {
+                let e = who[k as usize - 1];
+                (e.0, e.1, e.3)
+            })
+        };
+        // The table for a figure and the unit it overlaps. Returns (pixels
+        // both draw, of them the figure nearer, of them the frame's key the
+        // figure's).
+        let table = |fig: (u8, i16, bool), unit: (u8, i16, bool)| -> (u32, u32, u32) {
+            let a = alone(fig);
+            let b = alone(unit);
+            for (name, id) in [("figure", fig), ("unit", unit)] {
+                let (lo, hi) = extent(id);
+                let pt = point(id.0, id.1);
+                let pd = pt.map(|p| depth_of([p.0 as f32, p.1 as f32, p.2 as f32]));
+                println!(
+                    "  {name} {}/{}: point {pt:?} depth {pd:?}; vertices' depth {lo:.1}..{hi:.1} ({:.1} toward the camera from its point)",
+                    id.0,
+                    id.1,
+                    pd.map_or(0.0, |d| d - lo)
+                );
+            }
+            let (mut fd, mut ud, mut diff) = (Vec::new(), Vec::new(), Vec::new());
+            let (mut n, mut nearer, mut on_top) = (0u32, 0u32, 0u32);
+            let w = size.0;
+            for i in 0..a.depth.len() {
+                if a.keys.keys[i] == 0 || b.keys.keys[i] == 0 {
+                    continue;
+                }
+                let (x, y) = (i % w, i / w);
+                if INTERFACE.iter().any(|q| {
+                    (q.x0..q.x1).contains(&(x as i32)) && (q.y0..q.y1).contains(&(y as i32))
+                }) {
+                    continue;
+                }
+                n += 1;
+                fd.push(a.depth[i]);
+                ud.push(b.depth[i]);
+                diff.push(a.depth[i] - b.depth[i]);
+                nearer += u32::from(a.depth[i] < b.depth[i]);
+                on_top += u32::from(key_of(keys.at(x, y)) == Some(fig));
+            }
+            println!("  on the {n} pixels both draw (interface left out):");
+            println!("    figure's depth: {}", quantiles(fd));
+            println!("    unit's depth:   {}", quantiles(ud));
+            println!("    figure − unit:  {}", quantiles(diff));
+            println!("    figure nearer on {nearer}; the frame's key the figure's on {on_top}");
+            (n, nearer, on_top)
+        };
+        println!("1/31 against the tank 1/27 at {}:", world.runner.frame());
+        let (n, nearer, on_top) = table((1, 31, false), (1, 27, false));
+        // The control: the row's passing figures, each against the first
+        // other unit of ours its alone-draw shares 20 pixels with.
+        let mut control = None;
+        for (f, d) in rows
+            .iter()
+            .filter(|(f, d)| !d.3 && f.overlap() >= READING.threshold)
+        {
+            let fig = (d.0, d.1, false);
+            if point(d.0, d.1).is_none() || control.is_some() {
+                continue;
+            }
+            let a = alone(fig);
+            let mut shared: std::collections::BTreeMap<(u8, i16, bool), u32> = Default::default();
+            for i in 0..a.keys.keys.len() {
+                if a.keys.keys[i] == 0 {
+                    continue;
+                }
+                if let Some(k) = key_of(keys.keys[i]).filter(|k| *k != fig) {
+                    *shared.entry(k).or_default() += 1;
+                }
+            }
+            let pick = shared
+                .iter()
+                .find(|(id, c)| **c >= 20 && !id.2)
+                .map(|(id, _)| *id);
+            if let Some(u) = pick {
+                println!(
+                    "control: {}/{} (overlap {:.3}) against {}/{}:",
+                    fig.0,
+                    fig.1,
+                    f.overlap(),
+                    u.0,
+                    u.1
+                );
+                control = Some((fig, u, table(fig, u)));
+            }
+        }
+        let (cf, cu, (cn, cnear, ctop)) = control.expect("a passing figure overlaps another unit");
+        println!(
+            "control, the other way: {}/{} against {}/{}:",
+            cu.0, cu.1, cf.0, cf.1
+        );
+        let (rn, rnear, rtop) = table(cu, cf);
+        // The tank's place on the photograph: its alone-draw's box and
+        // centroid beside its hand trace's (item 4079), on the frame.
+        let tank = alone((1, 27, false));
+        let trace = TRACED
+            .iter()
+            .find(|(name, _)| *name == "1/27")
+            .map(|t| t.1)
+            .expect("1/27 is traced");
+        let measure = |m: &dyn Fn(usize, usize) -> bool| {
+            let (mut n, mut sx, mut sy) = (0u64, 0u64, 0u64);
+            let (mut x0, mut y0, mut x1, mut y1) = (usize::MAX, usize::MAX, 0, 0);
+            for y in 0..size.1 {
+                for x in 0..size.0 {
+                    if m(x, y) {
+                        n += 1;
+                        sx += x as u64;
+                        sy += y as u64;
+                        (x0, y0, x1, y1) = (x0.min(x), y0.min(y), x1.max(x), y1.max(y));
+                    }
+                }
+            }
+            let c = |v: u64| v as f64 / n.max(1) as f64;
+            (n, (x0, y0, x1, y1), (c(sx), c(sy)))
+        };
+        println!(
+            "the tank's place on 3279: ours drawn alone {:?}; its trace {:?}",
+            measure(&|x, y| tank.keys.at(x, y) != 0),
+            measure(&|x, y| render::silhouette::inside(trace, x as i32, y as i32))
+        );
+        // The frames about the photograph's: the tank's point and depth,
+        // and the table's three counts, as values (the photograph is 3279's).
+        let mut near = World::open(&install, &crate::world::gamelog_dir()).expect("opened once");
+        for f in PHOTO_FRAME - 2..=PHOTO_FRAME + 3 {
+            near.run_to(f);
+            let (figs, blds, lst) = near.draw_list(
+                &camera,
+                &crate::pinned_screen(),
+                (size.0 as i32, size.1 as i32),
+            );
+            let ds = near.objects(&figs, &blds, &lst);
+            let pick = |id: (u8, i16)| -> Vec<Object> {
+                objects(&ds)
+                    .into_iter()
+                    .filter(|b| {
+                        let d = &ds[b.key as usize - 1];
+                        (d.who, d.o, d.building) == (id.0, id.1, false)
+                    })
+                    .collect()
+            };
+            let a = rasterize_cut(&pick((1, 31)), &[], &[], &camera, size);
+            let b = rasterize_cut(&pick((1, 27)), &[], &[], &camera, size);
+            let (mut both, mut fnear) = (0, 0);
+            for i in 0..a.depth.len() {
+                if a.keys.keys[i] != 0 && b.keys.keys[i] != 0 {
+                    both += 1;
+                    fnear += u32::from(a.depth[i] < b.depth[i]);
+                }
+            }
+            let t = figs
+                .iter()
+                .find(|p| (p.who, p.o) == (1, 27))
+                .expect("the tank");
+            let g = figs.iter().find(|p| (p.who, p.o) == (1, 31)).expect("1/31");
+            println!(
+                "frame {f}: tank {} {} {} depth {:.1}, 1/31 depth {:.1}; both {both}, 1/31 nearer {fnear}, hidden {}",
+                t.x,
+                t.y,
+                t.z,
+                depth_of([t.x as f32, t.y as f32, t.z as f32]),
+                depth_of([g.x as f32, g.y as f32, g.z as f32]),
+                both - fnear
+            );
+        }
+        // At 3294 the tank's point and facing beside the packet's
+        // `GuyData` (`tree_points.py --guys 196:1/27`, item 4087).
+        world.run_to(3294);
+        let (figs, _, lst) = world.draw_list(
+            &camera,
+            &crate::pinned_screen(),
+            (size.0 as i32, size.1 as i32),
+        );
+        let t = figs
+            .iter()
+            .find(|p| (p.who, p.o) == (1, 27))
+            .expect("the tank");
+        let facing = lst.iter().find_map(|d| match d.pose {
+            render::draw::Pose::Figure { facing, .. } if (d.who, d.o) == (1, 27) => Some(facing),
+            _ => None,
+        });
+        println!(
+            "ours 1/27 at 3294: {} {} {} piece {} slot {} frame {} facing {facing:#x?}",
+            t.x, t.y, t.z, t.piece, t.slot, t.frame
+        );
+        assert_eq!(
+            (t.x, t.y, t.z, t.piece, facing),
+            (4551, 31679, 563, 196, Some(0x9605_0000)),
+            "our tank is the packet's at 3294"
+        );
+        // The draw is a depth test: on top never where farther, both sides.
+        assert!(on_top <= nearer, "1/31 is on top only where nearer");
+        assert_eq!((cnear, ctop), (0, 0), "the control is farther and below");
+        assert_eq!(
+            (rnear, rtop),
+            (rn, rn),
+            "the control's other is nearer and on top"
+        );
+        assert!(n >= 100 && cn >= 20);
+    }
 }
