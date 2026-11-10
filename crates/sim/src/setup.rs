@@ -175,6 +175,11 @@ impl Setup<'_> {
         self.sim.claim_oil_from_owners()
     }
 
+    /// [`Sim::update_seen_ally_build`] (`vision/seen_ally.rs`).
+    pub fn update_seen_ally_build(&mut self, b: usize) -> usize {
+        self.sim.update_seen_ally_build(b)
+    }
+
     /// [`Sim::seed_new_rares_from_fog`] (`economy/rares.rs`).
     pub fn seed_new_rares_from_fog(&mut self) {
         self.sim.seed_new_rares_from_fog()
