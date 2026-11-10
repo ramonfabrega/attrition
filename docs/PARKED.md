@@ -3850,6 +3850,8 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 ## Loop, filed 2026-11-10 — the driver's third session
 
+(4090) **The booking gate stopped on merged builder trees that no session can remove** (the driver's ninth session, 2026-11-10; Ramon: "why is it part of our core workflow when it always fails"): `tools/release_gate.py` refused a booking gate on any `agent-*` worktree past six hours (Loop 2724, written for a sweep's subagent trees standing a day with unmerged tips). Since DECISIONS 116 every chain step is an in-session builder and leaves such a tree in the driver's hands, and the driver's `python3 tools/reap_agents.py --yes` fails two ways: the auto-mode classifier denies the call unless Ramon has authorised it in the same conversation, which every clear forgets (denied at 13:37 −05:00, allowed once after his word), and the tool refuses a `locked` tree by design — 4059's merged tree stood locked under the driver's own process (pid 98510, a `claude bg-spare` alive 22 hours) after its builder had ended, where 4060's was not; why the one lock outlived its agent is not established. 4059's tree would have refused every booking gate from 18:52 −05:00. *Built the same turn, red first:* the gate refuses a stale tree only when its tip is not in the gated commit's history (`refuse_stale_agent_worktrees`, `agent_tip_is_merged`), and prints a merged one as `Agent worktrees:` clutter; `test_a_merged_tree_past_the_limit_is_named_and_does_not_refuse` holds both halves. The reap is a pass's housekeeping now, and Ramon's to run when he likes. Still open for the pass: a narrow `permissions.allow` rule for the one command (his to add; unverified that it resolves before the classifier), and whether a lane's frame row should say the same. Names no score; the loop's.
+
 (4084) **A commit chained after a red guard by `;` landed red** (the driver's sixth session, 2026-11-10): 4059's design was booked with `zsh tools/guard.sh …; echo …; git add … && git commit …` in one call, the guard exited 101 on the handoff's size bound (16,092 bytes against 16,000) and the commit ran all the same; `394646ce6` fixed it four minutes later and nothing had been cut from the red commit. The handoff sits within a hundred bytes of its bound, so every booking trims it by hand, three times in this session. Candidate: a `tools/book.sh` that runs the guard and commits only on its exit 0, and a handoff whose scoreboard block is counted apart from its prose. Names no score; the loop's.
 
 (4083) **A render lane's first session passed 230 k in fifteen minutes, twice in one session** (the driver's sixth session, 2026-11-10): `lane-4080` read 244 k at fifteen minutes with two commits and `lane-4082` 239 k at fifteen with none; each took the `DEEP` answer, pushed a draft and was continued by a fresh session, and 4080 landed in fifty minutes over two. 4076's lane had read 245 k in fifteen on images, and both briefs said so. Not measured: what the context was spent on — images, the decompile, the emulator's output, or the `[1m]` model's own reading habits; lore's trace of the two sessions would say. Candidate: read the two traces by tool before a third render item is briefed, and put the largest reader behind a tool that prints rows. Names no score; the loop's. *Measured, the driver's seventh session:* both first sessions read by tool call off their transcripts — `lane-4082`'s booted at 64.9 k and read 259.8 k at 124 requests and 17 minutes, `lane-4080`'s 67.3 k and 259.7 k at 115 and 17; 170 and 204 tool calls returned 214 k and 225 k characters in all, none over 11 k, and no image (4080's second session read one crop, 551 k characters of base64). So the context is the boot, the lane's own output and about 1.6 k a request: there is no reader to wrap, and the lever left is the item's size — 4085 is cut to one step. Open for the pass: whether a render item of one step lands in one session.
@@ -16117,13 +16119,31 @@ words and edits nothing here; a refill lands when two remain.
 
 - **4060a. The rules line is not one value across games** (`docs/CHECKSUM.md` §3, §10). It reads 314192132 on both of
   run1100's records and 1227894240 on run1420's packet; the recon read it as static. Whether it follows the lobby
-  (the tribes and their bonuses) is unread. Names no score until the rules line is booked (DECISIONS 119 §1).
+  (the tribes and their bonuses) is unread. Names no score until the rules line is booked (DECISIONS 119 §1). *Read* (4088): run 1562's record, the harness lobby, prints 314192132 as run1100's did; run1420 is
+  the one that parts.
 - **4060b. The decompile export's type records lack the fields of a class with a virtual base** (`docs/CHECKSUM.md`
   §6): `AttackToOrder` has none and the `TargetOrder` and `MoveOrder` bases are missing; the PDB's own field lists
   (`llvm-pdbutil dump --types`) name them. Candidate: the export's type pass walks virtual bases. Names no score.
 - **4060c. 4060's "for the Loop"** (the journal's line, filed at its merge): a packet's run with an `@dumpall` line
   at the packet's own frame (run1100's shape) is a packet and its windowed record by construction, the cheapest way
   to stand the instrument on a new frame. Taken at once: item 4088's run 1562 is that shape (DECISIONS 120 §1).
+
+## Parked by item 4088, 2026-11-10 — the pair on the minted game, and the items line
+
+- **4088a. The reader's `Begin`/`End` names where a checksum record printed, not which half of the tick it is**
+  (`docs/CHECKSUM.md` §2). Run1100's packet reproduces a record the reader places at `End(5408)`; run 1562's
+  reproduces one placed at `Begin(91)`. In both the packet's record is the window's first and the second is one
+  tick later, and the instrument's test takes "the first windowed record of the frame". Names no score unless a
+  later reader relies on the half.
+- **4088b. 4088's "for the Loop"** (the journal's line, filed at its merge): the brief's "an `@dumpall` line at
+  that frame, run1100's shape" assumed a playback takes a command file, and `tools/explore/unattended_capture.py`
+  refused any `--cmd-file` beside `--recording`. Built by the item: a command file of `@dumpall` lines alone is
+  let through (`refused_playback_cmd_file`, its test red with the refusal stubbed out). Nothing left to build.
+- **4088c. What the items line's one frame does not hold** (`docs/CHECKSUM.md` §11): an `ever_seen` other than 0
+  (all 22 boxes read 0 on frame 91, so that byte agrees by default), a box taken, a box whose ground a later
+  terraform moved, and a box on an ocean tile. A second packet on a later frame of the minted game, after the
+  scout has seen a box, is the check; it names the `Checksum:` line once the twelve are counted on more than
+  one frame.
 
 ## Parked by item 4089, 2026-11-10 — the tank's tilt drawn; the draw clock and two riflemen left
 

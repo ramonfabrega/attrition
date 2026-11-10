@@ -37,6 +37,7 @@
 
 pub mod ai;
 pub mod air;
+pub mod checksum;
 pub mod cities;
 pub mod groups;
 pub mod ids;

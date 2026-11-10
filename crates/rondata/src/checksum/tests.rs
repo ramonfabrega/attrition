@@ -157,47 +157,101 @@ fn run1100_s_records_are_read_whole() {
     );
 }
 
-/// The instrument's values on run1100's packet, if this machine has them
-/// (`tools/recomp/checksum.py --values`, outside git).
-fn instrument(tag: &str) -> Option<Vec<(String, u32)>> {
-    let dir = std::env::var("RON_CHECKSUM_DIR").unwrap_or_else(|_| {
-        let home = std::env::var("HOME").unwrap_or_default();
-        format!("{home}/ron-data/lab-experiments/2026-11-10-item-4060/run1100")
-    });
-    let text = std::fs::read_to_string(format!("{dir}/values-{tag}.tsv")).ok()?;
-    Some(instrument_values(&text))
+/// The minted game's playback with run 1562's packet and its `@dumpall`
+/// window (item 4088, `docs/RUNS.md` run1562).
+const RUN1562: &str = "gamelog-run1562-greatlakes-playback-of-minted-packet-91.txt";
+
+fn run1562() -> Option<Vec<Record>> {
+    let path = crate::testenv::dump(RUN1562)?;
+    let file = std::fs::File::open(&path).expect("a kept dump opens");
+    Some(records(std::io::BufReader::new(file)).expect("a kept dump reads"))
 }
 
-/// **The instrument reproduces the printed record, and a frame it is not
-/// of parts** (`docs/CHECKSUM.md` §3): the fifteen sums
-/// `tools/recomp/checksum.py` reads off run1100's packet (logger frame
-/// 5408, `GameLog::end_frame` entry) equal record 3502 on
-/// [`CHECKSUM_REPRODUCED`]'s count of lines, and part from 3503 — the
-/// begin record of 5409, one tick later — on the six lines that tick
-/// moves. That second half is the falsifier, red on purpose.
+/// The instrument's values on a run's packet, if this machine has them
+/// (`tools/recomp/checksum.py --values`, outside git):
+/// `<dir>/<run>/values-<tag>.tsv`, `<dir>` the item's lab directory or
+/// `RON_CHECKSUM_DIR`.
+fn instrument(run: &str, tag: &str) -> Option<Vec<(String, u32)>> {
+    Some(instrument_values(&instrument_text(run, tag)?))
+}
+
+fn instrument_text(run: &str, tag: &str) -> Option<String> {
+    let dir = std::env::var("RON_CHECKSUM_DIR").unwrap_or_else(|_| {
+        let home = std::env::var("HOME").unwrap_or_default();
+        format!("{home}/ron-data/lab-experiments/2026-11-10-item-4060")
+    });
+    std::fs::read_to_string(format!("{dir}/{run}/values-{tag}.tsv")).ok()
+}
+
+/// **The instrument reproduces the printed record, and a record a tick
+/// later parts** (`docs/CHECKSUM.md` §3): the fifteen sums
+/// `tools/recomp/checksum.py` reads off [`CHECKSUM_PACKET`]'s packet — run
+/// 1562, the minted game's playback, logger frame 91 at
+/// `GameLog::end_frame` entry — equal its record 3201, the first of the
+/// `@dumpall` window, on [`CHECKSUM_REPRODUCED`]'s count of lines. The
+/// window's second record, 3202, is one tick later and parts on the five
+/// lines that tick moves: the falsifier, red on purpose. The reader
+/// places 3201 at `Begin(91)` (it opens its frame's block), where
+/// run1100's first record, 3502, sits beside an open block at
+/// `End(5408)`; [`first_in_frame`] takes either. And run1100's pair, item
+/// 4060's proof, still holds.
 #[test]
 fn the_instrument_reproduces_the_printed_record() {
-    let (Some(recs), Some(values)) = (run1100(), instrument("3502")) else {
-        eprintln!("skipping: no {RUN1100} or no instrument values (RON_CHECKSUM_DIR)");
+    let (run, frame, number) = CHECKSUM_PACKET;
+    let (Some(recs), Some(values)) = (run1562(), instrument(run, &number.to_string())) else {
+        eprintln!("skipping: no {RUN1562} or no instrument values (RON_CHECKSUM_DIR)");
         return;
     };
     assert_eq!(values.len(), 15);
-    let (_, end) = frame(&recs, CHECKSUM_PACKET.1);
-    let end = end.unwrap();
-    assert_eq!(end.number, CHECKSUM_PACKET.2);
-    let parted = parting(end, &values);
+    let windowed: Vec<_> = recs
+        .iter()
+        .filter(|r| r.file == "gamelog.cpp")
+        .map(|r| (r.number, r.hook, r.values.len()))
+        .collect();
+    assert_eq!(
+        windowed,
+        [(3201, Hook::Begin(91), 64), (3202, Hook::Begin(92), 64)],
+        "a playback prints the windowed record, 64 labelled lines"
+    );
+    let first = first_in_frame(&recs, frame).unwrap();
+    assert_eq!(first.number, number);
+    let parted = parting(first, &values);
     assert_eq!(
         (15 - parted.len(), 15),
         CHECKSUM_REPRODUCED,
         "the instrument parts from the printed record: {parted:?}"
     );
-    let (next, _) = frame(&recs, CHECKSUM_PACKET.1 + 1);
-    let parted: Vec<_> = parting(next.unwrap(), &values)
+    let next = first_in_frame(&recs, frame + 1).unwrap();
+    assert_eq!(next.number, number + 1);
+    let parted: Vec<_> = parting(next, &values)
         .into_iter()
         .map(|(n, _, _)| n)
         .collect();
-    assert_eq!(
-        parted,
-        ["units", "builds", "guys", "leaders", "goods", "world"]
-    );
+    assert_eq!(parted, ["units", "builds", "guys", "leaders", "world"]);
+    // The twelve state lines' bytes on this frame are the score's whole
+    // (`CHECKSUM_STATE`, `docs/CHECKSUM.md` §4).
+    let text = instrument_text(run, &number.to_string()).unwrap();
+    let state: u64 = text
+        .lines()
+        .map(|l| l.split('\t').collect::<Vec<_>>())
+        .filter(|c| c.len() == 5 && CHECKSUM_LINES.iter().any(|(n, _, s)| *s && *n == c[0]))
+        .map(|c| c[4].parse::<u64>().unwrap())
+        .sum();
+    assert_eq!(state, CHECKSUM_STATE.3, "the twelve state lines' bytes");
+    // Item 4060's pair: run1100's packet 5408 and its record 3502.
+    if let (Some(recs), Some(values)) = (run1100(), instrument("run1100", "3502")) {
+        let first = first_in_frame(&recs, 5408).unwrap();
+        assert_eq!(first.number, 3502);
+        assert!(parting(first, &values).is_empty(), "run1100's pair");
+    }
+}
+
+/// The record a packet at logger frame `n` reproduces: the first windowed
+/// record of frame `n`, whichever hook the reader names it by —
+/// `Begin(n)` where it opens the block, `End(n)` where the block was
+/// already open.
+fn first_in_frame(records: &[Record], n: i64) -> Option<&Record> {
+    records
+        .iter()
+        .find(|r| matches!(r.hook, Hook::Begin(m) | Hook::End(m) if m == n))
 }
