@@ -1262,7 +1262,7 @@ rest (`RUN1559B_3279`); run1441's camera reads 0 of 24 under both readers.
   item 4077's reader (`RUN1559B_3279_TRACED`): **31 of 33** (4089); its
   steps from 27 of 33 (4077–4089) are the pin's comment and each item's
   journal; treeless 30 of 33; run1441's camera 0 of 32.
-  Out: two riflemen, 1/20 and 1/32 (4089b). The
+  Out: 1/20 and 1/32 (4089b). The
   `RUN1559B_3279_*` rows above are the `zbuffer` draw's, kept by name.
 - *The trees* (4080, before its count; §3.7). A tree hides what is
   behind it; its pixel is the ground's; it is never scored. Rejected:
