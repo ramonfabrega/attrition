@@ -107,6 +107,10 @@ pub struct World {
     pub trees: bool,
     /// How candidate C reads a tree's pixel (`docs/RENDERER.md` §5.3).
     pub tree_pixels: TreePixels,
+    /// How the trees' leaves are drawn in the key buffer (item 4082).
+    pub leaves: Leaves,
+    /// The winding the trees' alpha-tested draw culls ([`TREE_CULL`]).
+    pub tree_cull: render::silhouette::Cull,
     /// The lobby's tileset's trees: `tree_scale` and each model at rest,
     /// `None` where it does not decode; `None` whole where the tileset's
     /// trees do not read.
@@ -119,7 +123,44 @@ pub struct World {
 pub struct TreeMeshes {
     pub scale: f32,
     pub models: Vec<Option<TreeModel>>,
+    /// Each model's texcoords and the texture each face samples (item
+    /// 4082, `render::trees::face_textures`), beside [`TreeMeshes::models`].
+    pub leaves: Vec<Option<TreeLeaves>>,
+    /// Each model's six node slots (`render::trees::slots`), beside
+    /// [`TreeMeshes::models`].
+    #[cfg_attr(not(test), allow(dead_code))]
+    pub slots: Vec<Option<[Option<render::trees::Slot>; 6]>>,
+    /// The seven textures (`rondata::artdata::TreeArt::textures`), `None`
+    /// where one does not decode.
+    pub textures: Vec<Option<render::tga::Image>>,
 }
+
+/// One tree model's texcoords, one a vertex, and the texture (0–6) each
+/// face samples.
+pub type TreeLeaves = (Vec<[f32; 2]>, Vec<usize>);
+
+/// **How a tree's leaves are drawn** (item 4082, `docs/RENDERER.md` §3.7).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Leaves {
+    /// Every triangle whole, item 4080's draw: the rejected reading
+    /// (`docs/RENDERER.md` §5.3, "The leaves").
+    #[cfg_attr(not(test), allow(dead_code))]
+    Solid,
+    /// The original's alpha test, the default: a fragment is kept where its
+    /// texture's alpha is above `render_states[9]`'s `alpha_ref`, 0
+    /// ([`TREE_ALPHA_REF`]), and a triangle wound against [`TREE_CULL`] is
+    /// culled.
+    Alpha,
+}
+
+/// `render_states[9].alpha_ref` on run1559b's packet (item 4082,
+/// `tools/render/tree_points.py`'s `rstate` row): `Scene::init_render_states`
+/// leaves it at `RenderState::init`'s 0.
+pub const TREE_ALPHA_REF: u8 = 0;
+
+/// `render_states[9].cull_mode` on run1559b's packet, 2, `Counter
+/// Clockwise` (item 4082; `render::silhouette::Cull`).
+pub const TREE_CULL: render::silhouette::Cull = render::silhouette::Cull::CounterClockwise;
 
 /// One tree model at rest: its vertices and its faces.
 pub type TreeModel = (Vec<[f32; 3]>, Vec<[u16; 3]>);
@@ -231,6 +272,32 @@ impl World {
                             Some((rest_pose(&model), model.faces.clone()))
                         })
                         .collect(),
+                    leaves: art
+                        .models
+                        .iter()
+                        .map(|m| {
+                            let bytes = std::fs::read(resolve_art(&root, m)?).ok()?;
+                            let model = bh3::decode(&bytes).ok()?;
+                            let faces = render::trees::face_textures(&model);
+                            Some((model.texcoords, faces))
+                        })
+                        .collect(),
+                    slots: art
+                        .models
+                        .iter()
+                        .map(|m| {
+                            let bytes = std::fs::read(resolve_art(&root, m)?).ok()?;
+                            Some(render::trees::slots(&bh3::decode(&bytes).ok()?))
+                        })
+                        .collect(),
+                    textures: art
+                        .textures
+                        .iter()
+                        .map(|t| {
+                            let bytes = std::fs::read(resolve_art(&root, t)?).ok()?;
+                            render::tga::decode(&bytes).ok()
+                        })
+                        .collect(),
                 }
             });
         Ok(World {
@@ -248,6 +315,8 @@ impl World {
             terrain: (u32::MAX, TerrainMesh::default()),
             trees: true,
             tree_pixels: TreePixels::Ground,
+            leaves: Leaves::Alpha,
+            tree_cull: TREE_CULL,
             tree_art,
         })
     }
@@ -332,6 +401,39 @@ impl World {
                         .map(|f| f.map(|k| apply(&m, rest[k as usize])))
                         .collect(),
                 })
+            })
+            .collect()
+    }
+
+    /// **The trees' alpha tests**, one beside each of
+    /// [`World::tree_drawings`]: each face's texcoords and texture, and the
+    /// reference `render_states[9]` holds ([`TREE_ALPHA_REF`]). `None` for a
+    /// tree whose texcoords do not read, which is then drawn whole.
+    pub fn tree_cuts(&self) -> Vec<Option<render::silhouette::Cut<'_>>> {
+        let Some(art) = self.tree_art.as_ref().filter(|_| self.trees) else {
+            return Vec::new();
+        };
+        self.tree_list()
+            .iter()
+            .filter_map(|t| {
+                let (_, faces) = art.models.get(t.model)?.as_ref()?;
+                let leaves = art.leaves.get(t.model).and_then(|l| l.as_ref());
+                Some(leaves.and_then(|(uvs, textures)| {
+                    let uvs = faces
+                        .iter()
+                        .map(|f| {
+                            let at = |k: u16| uvs.get(k as usize).copied();
+                            Some([at(f[0])?, at(f[1])?, at(f[2])?])
+                        })
+                        .collect::<Option<Vec<_>>>()?;
+                    Some(render::silhouette::Cut {
+                        uvs,
+                        image: textures.clone(),
+                        images: &art.textures,
+                        alpha_ref: TREE_ALPHA_REF,
+                        cull: self.tree_cull,
+                    })
+                }))
             })
             .collect()
     }
@@ -809,6 +911,76 @@ mod tests {
         };
         assert_eq!(agree(art.scale), 12, "every cached cell's extent");
         assert_eq!(agree(art.scale * 1.05), 0, "at 1.05 times tree_scale");
+    }
+
+    /// **The leaves are the packet's own sections** (item 4082,
+    /// `docs/RENDERER.md` §3.7): for each of the 12 cells whose trees
+    /// `RTreeData::tree_cache` holds on run1559b's packet, each of the seven
+    /// sections' vertex and index counts (`tools/render/tree_points.py`'s
+    /// `section` rows) is the sum over the cell's five trees of the vertices
+    /// `render::trees::slots` gives that texture and three indices for each
+    /// face `face_textures` gives it. Made to fail: each texture shifted one
+    /// on, no cell agrees.
+    #[test]
+    fn the_leaves_are_the_packets_own_sections() {
+        let path = std::env::var_os("RON_TREE_SECTIONS")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                PathBuf::from(std::env::var_os("HOME").unwrap_or_default())
+                    .join("ron-data/lab-experiments/2026-11-10-item-4082/run1559b-trees.txt")
+            });
+        let Ok(text) = std::fs::read_to_string(path) else {
+            println!("skipping: no section oracle on disk");
+            return;
+        };
+        let mut packet: std::collections::BTreeMap<(i32, i32), [(u32, u32); 7]> =
+            std::collections::BTreeMap::new();
+        for l in text.lines().filter_map(|l| l.strip_prefix("section ")) {
+            let w: Vec<u32> = l.split(' ').map(|v| v.parse().unwrap()).collect();
+            packet.entry((w[0] as i32, w[1] as i32)).or_default()[w[2] as usize] = (w[3], w[5]);
+        }
+        assert_eq!(packet.len(), 12, "the packet's cached cells");
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let mut world = match World::open(&install, &gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        world.run_to(crate::silhouette::PHOTO_FRAME);
+        let art = world.tree_meshes().expect("the lobby's trees read");
+        let list = world.tree_list();
+        let ours = |cell: (i32, i32), shift: usize| {
+            let mut out = [(0u32, 0u32); 7];
+            for t in list.iter().filter(|t| t.cell == cell) {
+                let slots = art.slots[t.model].as_ref().expect("decodes");
+                for s in slots.iter().flatten() {
+                    out[(s.texture + shift) % 7].0 += s.num;
+                }
+                let (_, faces) = art.leaves[t.model].as_ref().expect("decodes");
+                for &f in faces {
+                    out[(f + shift) % 7].1 += 3;
+                }
+            }
+            out
+        };
+        let agree = |shift: usize| {
+            packet
+                .iter()
+                .filter(|(cell, theirs)| {
+                    let ours = ours(**cell, shift);
+                    if shift == 0 {
+                        println!("sections {cell:?}: ours {ours:?} theirs {theirs:?}");
+                    }
+                    ours == **theirs
+                })
+                .count()
+        };
+        assert_eq!(agree(0), 12, "every cached cell's sections");
+        assert_eq!(agree(1), 0, "each texture shifted one on");
     }
 
     use sim::data::pivot::{Release, release_offset_at, release_rotation};

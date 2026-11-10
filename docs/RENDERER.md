@@ -1010,17 +1010,47 @@ same extent to within 0.001 on all six bounds. At 1.05 × `tree_scale` no cell a
 (`client::world::tests::the_trees_are_the_packets_own_geometry`). The scale, the `(s, −s, s)` transform and the
 models are therefore the original's.
 
-**The draw.** Each tree is its model at rest. The window draws it flat green, and `--no-trees` leaves it out. In
-candidate C's key buffer a tree is rasterized after the sprites, so it hides what stands behind it, and it is
-scored by §5.3's tree rule. A tree is not a draw-list piece, so K's M (§5.4) is not widened and K holds at 59 of 59.
+**The leaves** (item 4082; each claim read on the listing, and the bold ones checked on run1559b's packet with
+`tree_points.py`'s `rstate` and `section` rows).
+- *The state.* `GraphicPieces::init_tree_map@008f7c20` gives the tree flush `render_states[9]`.
+  `Scene::init_render_states@008ba450` sets `enables |= 0x20084`, `alpha_func` Greater, src/inv-src alpha blend
+  and stage 0 `alphaop MODULATE`; it leaves `alpha_ref` at `RenderState::init@00535ba0`'s 0. **Packet: enables
+  0x20087, zfunc 3 (LessEqual), alpha_func 4 (Greater), alpha_ref 0, cull_mode 2.**
+- *The bits* (d3dgl's listing). `set_depth_stencil_state` (DLL `0x1002b5f0`): depth test `enables & 1`, depth
+  write `(enables & 3) == 3`. `set_shader_options` (`0x1002db30`): `enables & 0x80` is the alpha test at
+  `alpha_ref / 255`, `TEST_GREATER` being `clip(a > ref)`. So the trees depth-test, depth-write and alpha-test at
+  0. **Land units' `render_states[3]` reads 0x20287**: they depth-test and write too.
+- *The cull.* `set_rasterizer_state` (`0x1002b410`) sets `FrontCounterClockwise` and maps cull_mode 0/1/2
+  through `0x100dd094` to NONE/BACK/FRONT, so mode 2 culls a triangle wound counter-clockwise on the target
+  (`render::silhouette::Cull`).
+- *The textures.* `#<TILESET>_TREE_TEXTURES0`'s first seven lines are the bark and six leaf layers
+  (`TreeArt::textures`). **Each of `RTreeData::tree_textures[7]` holds one mip level.** `ImageIO::decode_tga`
+  writes a bottom-origin file from its last row up, so v = 0 is the image's top row.
+- *The sections.* `TreeTransformMethod::make_index_table@00920df0` names a model's nodes into six slots: `root`
+  and `Trunk` the bark, `Bottom_1_*` texture 1 or 2 by A/B, `Middle_1_*` and `Middle_2_*` 3, 4 or 5 by A/B/C,
+  `Top_1_*` 6 (`render::trees::slots`). **Diff-backed: compared without case, all 12 cached cells agree with the
+  packet's per-section vertex and index counts; with case, none; each texture shifted one on, none**
+  (`client::world::tests::the_leaves_are_the_packets_own_sections`).
+- *The order.* `Scene::render@008b3270` runs `pop_all_zoomed_in@00655e70`, which draws and flushes the figures
+  and then calls `flush_trees` (when `draw_flags[1] & 4`). The trees follow the figures under the same LessEqual
+  test, so a figure in front of a tree is one nearer than it.
 
-**The count** (§5.3): **29 of 33 → 25 of 29**. The trees are drawn as solid cards, and they hide four figures
-by the woodcutter that the photograph shows in front of the pine (parked 4080a). The rejected reading, `Scene`,
-reads 26 of 29.
+**The draw.** Each tree is its model at rest. The window draws it flat green, and `--no-trees` leaves it out. In
+candidate C's key buffer a tree is rasterized after the sprites, its fragments cut by the leaves' alpha and cull
+above (`Leaves::Alpha`, the default), so it hides what stands behind it, and it is scored by §5.3's tree rule. A tree is not a draw-list piece, so K's M (§5.4) is not widened and K holds at 59 of 59.
+
+**The count** (§5.3): **29 of 33 → 25 of 29** as solid cards (4080), **→ 26 of 29** with the leaves cut (4082):
+0/6 0.348 → 0.513. Before the count, on our buffers: of the five figures' pixels a tree's triangle covers, the
+leaves' texels cut 12, all 0/6's, and on every covered pixel the tree is the nearer, by 190–1,300 camera units.
+So four figures by the woodcutter, which the photograph shows in front of the pine, stay hidden (parked 4082a).
+The rejected readings, `TreePixels::Scene` and `Leaves::Solid`, read 26 and 25 of 29.
 
 **What is not established.**
-- The leaves' alpha: seven textured sections a tree (`RTreeData::tree_textures`), drawn here as solid
-  triangles (parked 4080a).
+- ~~The leaves' alpha~~: read and applied, above (item 4082).
+- Why four figures the photograph shows in front of the pine stand behind it in ours: a figure's depth or
+  position against the tree, or the photograph's reading (parked 4082a).
+- The blend: the key buffer keeps a fragment whole where its alpha passes; the original blends it, which moves
+  colour, not a footprint.
 - The depth of a building's sprite against a tree. Ours puts the anchor's flat draw-list depth against the tree's
   per-pixel depth. The original's sprite may carry its `zbuffer` model's depth (parked 4076b).
 - The tree's idle animation, which is not posed.
@@ -1214,21 +1244,22 @@ The 3294 rows are kept as the packet's frame.
   tanks and figures included (`Reader::Traced`). The rejected readings,
   reported beside it: kind (3) as footprint, and the interface as before.
 - *The misses* (on 3279). ~~The capital is drawn as its `zbuffer` model
-  (4036a).~~ The figures by the derrick: 4080a.
-- **The row on the default draw**, the buildings as their sprites (item
-  4076: 14 of 23 by the mask, `RUN1559B_3279_SPRITES`), by item 4077's reader:
-  27 of 33, both buildings passing; with the last tank 1/27 traced (item
-  4079, `ebcbcb0f7` before its count) **29 of 33** (`RUN1559B_3279_TRACED`);
-  run1441's camera 0 of 32. The rejected readings and every row's values are
-  the journals of 4077 and 4079. **With the trees drawn: 25 of 29** (4080,
-  §3.7); treeless, 29 of 33. Out: three riflemen (4079b) and the figures
-  the trees hide (4080a). The `RUN1559B_3279_*`
-  rows above are the `zbuffer` draw's, kept by name.
+  (4036a).~~ The figures by the derrick: 4082a.
+- **The row on the default draw**, the buildings as their sprites, by
+  item 4077's reader (`RUN1559B_3279_TRACED`): 27 of 33 (4077), 29 of 33
+  (4079, tank 1/27 traced), 25 of 29 with the trees (4080, §3.7) and
+  **26 of 29** with the leaves cut (4082); treeless 29 of 33; run1441's
+  camera 0 of 28. Each step's rows: its journal.
+  Out: three riflemen (4079b) and the figures the trees hide (4082a). The
+  `RUN1559B_3279_*` rows above are the `zbuffer` draw's, kept by name.
 - *The trees* (4080, before its count; §3.7). A tree hides what is
   behind it; its pixel is the ground's; it is never scored. Rejected:
   `TreePixels::Scene`.
+- *The leaves* (4082, before its count; §3.7). A tree's fragment is kept
+  where its bilinear texel alpha exceeds 0, culled counter-clockwise
+  (`Leaves::Alpha`). Rejected: `Leaves::Solid`. The window does not cut.
 - *What it does not measure.* Colour: textures and team colours are not
-  bound (4038a); the trees' leaf alpha would move the row (4080a).
+  bound (4038a).
 - *Where the inputs are.* The photograph is converted once to `.tga`
   (`sips -s format tga`), so `render::tga` reads it with no new
   dependency. `client --silhouette OUT.bmp` prints every row and writes

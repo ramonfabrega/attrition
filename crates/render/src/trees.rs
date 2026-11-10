@@ -195,6 +195,75 @@ pub fn stand(
     out
 }
 
+/// One of a tree model's six node slots, as
+/// `TreeTransformMethod::make_index_table@00920df0` fills `TreeIndexTable`:
+/// the node's run of vertices and the texture (0–6) its section samples.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Slot {
+    pub start: u32,
+    pub num: u32,
+    pub texture: usize,
+}
+
+/// **A tree model's node slots** (item 4082, `docs/RENDERER.md` §3.7).
+/// A node with vertices is named into a slot: `root` 0 and `Trunk` 1, both
+/// the bark (texture 0); the name less its last two characters `Bottom_1`
+/// 2, `Middle_1` 3, `Middle_2` 4 and `Top_1` 5. The last character picks
+/// the leaves: a bottom's `A`/`B` textures 1/2, a middle's `A`/`B`/`C`
+/// 3/4/5, the top 6; a letter that names none falls to 0, the bark, as the
+/// original's "Invalid Tree Node Name" path stores. A later node of the
+/// same slot replaces an earlier. **Names and letters compare without
+/// case**: so read, 12 of 12 cached cells agree with the packet's
+/// per-section vertex and index counts, and compared with case, none do
+/// (`client::world::tests::the_leaves_are_the_packets_own_sections`).
+pub fn slots(model: &crate::bh3::Model) -> [Option<Slot>; 6] {
+    let mut out = [None; 6];
+    for n in model.nodes.iter().filter(|n| n.num > 0) {
+        let name = n.name.to_ascii_lowercase();
+        let stem = name.get(..name.len().saturating_sub(2)).unwrap_or("");
+        let last = name.chars().last().unwrap_or(' ');
+        let pick = |letters: &[(char, usize)]| {
+            letters
+                .iter()
+                .find(|(c, _)| *c == last)
+                .map_or(0, |(_, t)| *t)
+        };
+        let (slot, texture) = match (name.as_str(), stem) {
+            ("root", _) => (0, 0),
+            ("trunk", _) => (1, 0),
+            (_, "bottom_1") => (2, pick(&[('a', 1), ('b', 2)])),
+            (_, "middle_1") => (3, pick(&[('a', 3), ('b', 4), ('c', 5)])),
+            (_, "middle_2") => (4, pick(&[('a', 3), ('b', 4), ('c', 5)])),
+            (_, "top_1") => (5, 6),
+            _ => continue,
+        };
+        out[slot] = Some(Slot {
+            start: n.start,
+            num: n.num,
+            texture,
+        });
+    }
+    out
+}
+
+/// The texture each of `model`'s faces samples: the slot ([`slots`]) whose
+/// run holds the face's first vertex; a face in no slot's run, the bark.
+pub fn face_textures(model: &crate::bh3::Model) -> Vec<usize> {
+    let slots = slots(model);
+    model
+        .faces
+        .iter()
+        .map(|f| {
+            let v = f[0] as u32;
+            slots
+                .iter()
+                .flatten()
+                .find(|s| (s.start..s.start + s.num).contains(&v))
+                .map_or(0, |s| s.texture)
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

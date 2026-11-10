@@ -1921,6 +1921,12 @@ pub struct TreeArt {
     /// Each model as an install path: the base directory joined to the
     /// section's line.
     pub models: Vec<String>,
+    /// **The seven textures a tree's sections sample** (item 4082,
+    /// `docs/RENDERER.md` §3.7), as install paths: the first seven lines of
+    /// `#<TILESET>_TREE_TEXTURES0`, each `name, path`, in the order
+    /// `init_tree_data` hands them to `RTreeData` — the trunk, then the
+    /// bottom, middle and top leaves. The eighth, the shadow, is left out.
+    pub textures: Vec<String>,
 }
 
 /// [`TreeArt`] for `tileset`. **The section's name is a reading**: the
@@ -1954,20 +1960,37 @@ pub fn tree_art(install: &Install, tileset: &str) -> Result<TreeArt, ArtFailure>
     let gpath = install.root().join("graphics.txt");
     let gtext = std::fs::read(&gpath).map_err(|_| unnamed("graphics.txt"))?;
     let gtext = String::from_utf8_lossy(&gtext);
+    let lines = |name: &str| -> Vec<String> {
+        gtext
+            .lines()
+            .skip_while(|l| !l.trim().eq_ignore_ascii_case(name))
+            .skip(1)
+            .take_while(|l| !l.trim_start().starts_with('#'))
+            .map(str::trim)
+            .filter(|l| !l.is_empty() && !l.starts_with(';'))
+            .map(str::to_string)
+            .collect()
+    };
+    let path = |l: &str| format!("{}/{}", base.trim_end_matches('/'), l.replace('\\', "/"));
     let section = format!("#{}_TREE_MODELS0", tileset.to_ascii_uppercase());
-    let models: Vec<String> = gtext
-        .lines()
-        .skip_while(|l| !l.trim().eq_ignore_ascii_case(&section))
-        .skip(1)
-        .take_while(|l| !l.trim_start().starts_with('#'))
-        .map(str::trim)
-        .filter(|l| !l.is_empty() && !l.starts_with(';'))
-        .map(|l| format!("{}/{}", base.trim_end_matches('/'), l.replace('\\', "/")))
-        .collect();
+    let models: Vec<String> = lines(&section).iter().map(|l| path(l)).collect();
     if models.is_empty() {
         return Err(unnamed(&section));
     }
-    Ok(TreeArt { treescale, models })
+    let tsection = format!("#{}_TREE_TEXTURES0", tileset.to_ascii_uppercase());
+    let textures: Vec<String> = lines(&tsection)
+        .iter()
+        .take(7)
+        .filter_map(|l| l.split_once(',').map(|(_, f)| path(f.trim())))
+        .collect();
+    if textures.len() != 7 {
+        return Err(unnamed(&tsection));
+    }
+    Ok(TreeArt {
+        treescale,
+        models,
+        textures,
+    })
 }
 
 /// **The farm's condition 1** (item 4037, `docs/RENDERER.md` §5.4): the
@@ -2189,6 +2212,22 @@ mod tests {
         for m in &art.models {
             let bytes = std::fs::read(resolve(inst.root(), m).expect(m)).unwrap();
             render::bh3::decode(&bytes).unwrap_or_else(|e| panic!("{m}: {e}"));
+        }
+        // The seven textures (item 4082), each a 32-bit image whose alpha
+        // the leaves' test reads.
+        assert_eq!(art.textures.len(), 7);
+        assert_eq!(
+            art.textures[0],
+            "./terrain art/tilesets/dirty/dtrees/tree_T_bark.tga"
+        );
+        assert_eq!(
+            art.textures[6],
+            "./terrain art/tilesets/dirty/dtrees/tree_Tea_top_a.tga"
+        );
+        for t in &art.textures {
+            let bytes = std::fs::read(resolve(inst.root(), t).expect(t)).unwrap();
+            let image = render::tga::decode(&bytes).unwrap_or_else(|e| panic!("{t}: {e}"));
+            assert_eq!(image.bits, 32, "{t}");
         }
         assert!(tree_art(&inst, "no such tileset").is_err());
     }

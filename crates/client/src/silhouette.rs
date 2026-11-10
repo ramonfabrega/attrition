@@ -9,7 +9,7 @@
 
 use crate::world::{Drawing, SpriteDrawing, TREE_WHO, TreePixels, World};
 use render::silhouette::{
-    Footprint, Object, Photo, READING, Reader, Rect, Stamp, footprints_read, rasterize_with,
+    Footprint, Object, Photo, READING, Reader, Rect, Stamp, footprints_read, rasterize_cut,
 };
 #[cfg(test)]
 use render::silhouette::{Interface, Neighbour, Trace, footprints_traced};
@@ -423,7 +423,14 @@ pub fn frame_keys(
         key: first_tree + j as u32,
         tris: d.tris.clone(),
     }));
-    let mut keys = rasterize_with(&meshes, &stamps(&sprites, first), camera, size);
+    let cuts = world.tree_cuts();
+    let cut: Vec<Option<&render::silhouette::Cut<'_>>> = match world.leaves {
+        crate::world::Leaves::Solid => Vec::new(),
+        crate::world::Leaves::Alpha => std::iter::repeat_n(None, drawings.len())
+            .chain(cuts.iter().map(Option::as_ref))
+            .collect(),
+    };
+    let mut keys = rasterize_cut(&meshes, &cut, &stamps(&sprites, first), camera, size).keys;
     if world.tree_pixels == TreePixels::Ground {
         for k in keys.keys.iter_mut().filter(|k| **k >= first_tree) {
             *k = 0;
@@ -1012,6 +1019,17 @@ mod tests {
         );
         let tree_scene = print("traced, a tree's pixel as scene", &tree_scene_rows);
         world.tree_pixels = crate::world::TreePixels::Ground;
+        // The leaves' rejected reading, every triangle whole (item 4082).
+        world.leaves = crate::world::Leaves::Solid;
+        let solid_rows = read(
+            &mut world,
+            &camera,
+            &TRACED,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let solid = print("traced, the leaves solid", &solid_rows);
+        world.leaves = crate::world::Leaves::Alpha;
         world.trees = false;
         let treeless_rows = read(
             &mut world,
@@ -1226,6 +1244,7 @@ mod tests {
         use render::silhouette as s;
         assert_eq!(got, s::RUN1559B_3279_TRACED);
         assert_eq!(tree_scene, s::RUN1559B_3279_TRACED_TREES_SCENE);
+        assert_eq!(solid, s::RUN1559B_3279_TRACED_LEAVES_SOLID);
         assert_eq!(treeless, s::RUN1559B_3279_TRACED_TREELESS);
         assert_eq!(scene, s::RUN1559B_3279_TRACED_SCENE);
         assert_eq!(skip, s::RUN1559B_3279_TRACED_SKIP);
@@ -1264,6 +1283,145 @@ mod tests {
     /// 0/10's window that lie outside the trace are the crate's lower right,
     /// which the photograph shows behind a pine the client does not draw
     /// (parked 4079a).
+    /// **A value before a cause** (item 4082, step 1): for each figure the
+    /// trees hide at the woodcutter, on our own buffers at run1559b's
+    /// camera on frame 3279 — its pixels drawn without trees; how many of
+    /// them a tree's triangle covers; of those, how many the leaf's own
+    /// texel passes (`render_states[9]`'s test, [`crate::world::TREE_ALPHA_REF`])
+    /// and how many it cuts; and where a tree covers it, which is nearer by
+    /// our depth and by how much (the tree's depth less the figure's,
+    /// camera units: positive, the figure nearer). Prints the table; it
+    /// asserts only that the five are drawn.
+    #[test]
+    fn the_figures_the_trees_cover_by_triangle_and_by_texel() {
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        let size = (photo.width, photo.height);
+        world.run_to(PHOTO_FRAME);
+        let (figures, buildings, list) = world.draw_list(
+            &camera,
+            &crate::pinned_screen(),
+            (size.0 as i32, size.1 as i32),
+        );
+        let drawings = world.objects(&figures, &buildings, &list);
+        let sprites = world.sprite_drawings(&buildings, &list, camera.zoom_distance);
+        let scene = rasterize_cut(
+            &objects(&drawings),
+            &[],
+            &stamps(&sprites, drawings.len() as u32 + 1),
+            &camera,
+            size,
+        );
+        let trees = world.tree_drawings();
+        for cull in [
+            render::silhouette::Cull::CounterClockwise,
+            render::silhouette::Cull::None,
+            render::silhouette::Cull::Clockwise,
+        ] {
+            world.tree_cull = cull;
+            println!("cull {cull:?}");
+            let cuts = world.tree_cuts();
+            assert!(!trees.is_empty() && cuts.iter().all(Option::is_some));
+            let tree_objects = objects(&trees);
+            let solid = rasterize_cut(&tree_objects, &[], &[], &camera, size);
+            let cut: Vec<_> = cuts.iter().map(Option::as_ref).collect();
+            let leaves = rasterize_cut(&tree_objects, &cut, &[], &camera, size);
+            let count =
+                |r: &render::silhouette::Raster| r.depth.iter().filter(|d| d.is_finite()).count();
+            let lone: (usize, usize) = (0..trees.len())
+                .map(|j| {
+                    let one = [Object {
+                        key: 1,
+                        tris: trees[j].tris.clone(),
+                    }];
+                    let c = [cut[j]];
+                    (
+                        count(&rasterize_cut(&one, &[], &[], &camera, size)),
+                        count(&rasterize_cut(&one, &c, &[], &camera, size)),
+                    )
+                })
+                .fold((0, 0), |a, b| (a.0 + b.0, a.1 + b.1));
+            println!(
+                "trees: solid {} pixels, by texel {}; each tree alone, summed: solid {} by texel {}",
+                count(&solid),
+                count(&leaves),
+                lone.0,
+                lone.1
+            );
+            let mut drawn = 0;
+            for o in [1i16, 2, 6, 8, 10] {
+                let keys: Vec<u32> = drawings
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, d)| (d.who, d.o, d.building) == (0, o, false))
+                    .map(|(i, _)| i as u32 + 1)
+                    .collect();
+                let pixels: Vec<usize> = (0..scene.keys.keys.len())
+                    .filter(|&i| keys.contains(&scene.keys.keys[i]))
+                    .collect();
+                drawn += !pixels.is_empty() as usize;
+                let covered: Vec<usize> = pixels
+                    .iter()
+                    .copied()
+                    .filter(|&i| solid.depth[i].is_finite())
+                    .collect();
+                let passed = covered
+                    .iter()
+                    .filter(|&&i| leaves.depth[i].is_finite())
+                    .count();
+                let mut gaps: Vec<f32> = covered
+                    .iter()
+                    .map(|&i| solid.depth[i] - scene.depth[i])
+                    .collect();
+                gaps.sort_by(f32::total_cmp);
+                let nearer = gaps.iter().filter(|g| **g > 0.0).count();
+                let mut leaf_gaps: Vec<f32> = covered
+                    .iter()
+                    .filter(|&&i| leaves.depth[i].is_finite())
+                    .map(|&i| leaves.depth[i] - scene.depth[i])
+                    .collect();
+                leaf_gaps.sort_by(f32::total_cmp);
+                let leaf_nearer = leaf_gaps.iter().filter(|g| **g > 0.0).count();
+                let median = |g: &[f32]| g.get(g.len() / 2).copied().unwrap_or(f32::NAN);
+                let kept_solid = pixels.len() - (covered.len() - nearer);
+                let kept_alpha = pixels.len() - (leaf_gaps.len() - leaf_nearer);
+                println!(
+                    "figure 0/{o}: pixels {} covered {} texel passes {} cuts {}; covered, figure nearer {} tree nearer {} (median tree-figure {:.1}, range {:.1}..{:.1}); passed, figure nearer {} tree nearer {} (median {:.1}); kept solid {} kept by texel {}",
+                    pixels.len(),
+                    covered.len(),
+                    passed,
+                    covered.len() - passed,
+                    nearer,
+                    covered.len() - nearer,
+                    median(&gaps),
+                    gaps.first().copied().unwrap_or(f32::NAN),
+                    gaps.last().copied().unwrap_or(f32::NAN),
+                    leaf_nearer,
+                    leaf_gaps.len() - leaf_nearer,
+                    median(&leaf_gaps),
+                    kept_solid,
+                    kept_alpha,
+                );
+            }
+            assert_eq!(drawn, 5, "the five figures are drawn");
+        }
+    }
+
     #[test]
     fn the_woodcutter_s_right_edge_is_the_sprite_s_own() {
         let install = std::env::var_os("RON_INSTALL")
