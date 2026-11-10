@@ -8,7 +8,8 @@
 //! stream our walk takes.
 
 use super::start_walk::recording::{LOBBY_DUMP, lobby_recording_with};
-use super::start_walk::{debug_leaves, keyed};
+use super::start_walk::{Walked, debug_leaves, keyed, walk_with};
+use super::testkit::*;
 
 use super::*;
 use crate::commands::Command;
@@ -458,3 +459,245 @@ const PUMPED_PLACES: &[(i64, &[&str])] = &[
         ],
     ),
 ];
+
+/// The frames the orders' effects are read on, both sides: the frame after
+/// each package, and the take's last.
+const READ_AT: [i64; 4] = [31, 61, 91, 299];
+
+/// What the three orders did, read off one frame: the scout's point and
+/// its first order's target; the capital's live queue, by `TypeIndex`; the
+/// Farm's site — `(type, x, y)` — if it stands; and the builder's order
+/// list, by class.
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct Effect {
+    pub frame: i64,
+    pub scout: (i64, i64),
+    pub scout_to: Option<(i64, i64)>,
+    pub queue: Vec<i64>,
+    pub site: Option<(i64, i64, i64)>,
+    pub builder: Vec<&'static str>,
+}
+
+/// The dump's order block names, the classes [`effect_ours`] maps to.
+fn class(name: &str) -> &'static str {
+    match name {
+        "MOVEORDER" => "move",
+        "BUILDORDER" => "build",
+        "GATHERORDER" => "gather",
+        _ => "other",
+    }
+}
+
+fn effect_theirs(f: &crate::gamelog::Frame) -> Effect {
+    let unit = |o: i16| f.units.iter().find(|u| u.who == 0 && u.o == i64::from(o));
+    let build = |o: i16| f.builds.iter().find(|b| b.who == 0 && b.o == i64::from(o));
+    let scout = unit(SCOUT);
+    Effect {
+        frame: f.n,
+        scout: scout.map_or((-1, -1), |u| (i64::from(u.pos.x), i64::from(u.pos.y))),
+        scout_to: scout
+            .and_then(|u| u.current_order())
+            .and_then(|o| Some((o.x?, o.y?))),
+        queue: build(CAPITAL).map_or_else(Vec::new, |b| {
+            let live = b.queued.unwrap_or(0).max(0) as usize;
+            b.queue.iter().take(live).map(|q| q.ty).collect()
+        }),
+        site: build(FARM_SITE).map(|b| {
+            (
+                b.orig_type.unwrap_or(-1),
+                i64::from(b.pos.x),
+                i64::from(b.pos.y),
+            )
+        }),
+        builder: unit(BUILDER).map_or_else(Vec::new, |u| {
+            u.orders_front_first().map(|o| class(&o.kind)).collect()
+        }),
+    }
+}
+
+fn effect_ours(b: &Built) -> Effect {
+    let s = &b.sim;
+    let unit = |o: i16| s.unit_by_o(0, o).map(|u| &s.units[u]);
+    let build = |o: i16| s.building_by_o(0, o).map(|i| &s.buildings[i]);
+    let scout = unit(SCOUT);
+    Effect {
+        frame: s.frame,
+        scout: scout.map_or((-1, -1), |u| (i64::from(u.pos.x), i64::from(u.pos.y))),
+        scout_to: scout
+            .and_then(|u| u.orders.front())
+            .and_then(|o| match &o.body {
+                sim::orders::Body::Move(m) => Some((i64::from(m.dest.x), i64::from(m.dest.y))),
+                _ => None,
+            }),
+        queue: build(CAPITAL).map_or_else(Vec::new, |c| {
+            c.queue
+                .items
+                .iter()
+                .map(|i| i64::from(built_type(b, i.ty)))
+                .collect()
+        }),
+        site: build(FARM_SITE).map(|c| {
+            (
+                i64::from(crate::load::BASE_BUILDTYPES) + c.orig_ty.map_or(-1, |t| t as i64),
+                i64::from(c.pos.x),
+                i64::from(c.pos.y),
+            )
+        }),
+        builder: unit(BUILDER).map_or_else(Vec::new, |u| {
+            u.orders
+                .iter()
+                .map(|o| match &o.body {
+                    sim::orders::Body::Move(_) => "move",
+                    sim::orders::Body::Build(_) => "build",
+                    sim::orders::Body::Gather(_) => "gather",
+                    _ => "other",
+                })
+                .collect()
+        }),
+    }
+}
+
+/// The original's playback of the minted file, per take: `(the take's
+/// dump, its trace, frames whose draws agree, frames walked, records
+/// compared, records parted)`, as [`super::start_walk::PLAYBACK_WALKED`]
+/// pins 4058's. run1561a prints every unit and building for 300 frames
+/// (`end:MISC,UNITS=3,BUILDS=7`); run1561b only the trace, for 2,400.
+pub(crate) const MINTED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1561a-greatlakes-playback-of-minted-300.txt",
+    "rontrace-run1561a.log",
+    300,
+    300,
+    299,
+    0,
+)];
+
+/// The built start walked under the pump on `orders`' file against one
+/// take: the walk, and the walked `Built`.
+fn walk_minted(orders: &[Order], take: &str, take_trace: &str) -> Option<(Walked, Built)> {
+    let (_, built, players) = built_start()?;
+    let rec = minted(orders)?;
+    let (Some(playback), Some(tr)) = (dump(take), trace(take_trace)) else {
+        eprintln!("skipping {take}: not filed (set RON_GAMELOG_DIR)");
+        return None;
+    };
+    let mut stream = crate::input::Stream::pump(&rec);
+    Some(walk_with(
+        built,
+        players,
+        &[(take, playback)],
+        &tr,
+        i64::MAX,
+        Some(&mut stream),
+    ))
+}
+
+/// **Scores 2 and 3: the original plays the minted file, and our walk
+/// under the pump keeps lockstep with it.** Per take, the built start
+/// walked under [`crate::input::Stream::pump`] on the same packages the
+/// file holds: every frame's draws against the playback's trace, every
+/// record of its dump compared whole ([`MINTED_WALKED`]). And on the take
+/// with records, what each order did is read on both sides on the frame
+/// after it and on the last ([`MINTED_EFFECTS`]): two sides that both
+/// ignored an order would agree, so the effects are pinned, not only their
+/// agreement.
+#[test]
+fn the_original_s_playback_of_the_minted_file_walks_in_lockstep() {
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in MINTED_WALKED {
+        let Some((w, _)) = walk_minted(&script(), take, take_trace) else {
+            return;
+        };
+        eprintln!(
+            "MINTED WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        if let Some((o, t)) = &w.sites
+            && let Some((_, d)) = first_parting(o, t)
+        {
+            eprintln!("the first parting frame, {:?}: {d}", w.first_sequence);
+        }
+        walked.push((
+            take,
+            take_trace,
+            w.first_sequence.unwrap_or(w.last),
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    // The effects, both sides, on the take that prints records.
+    let (take, ..) = MINTED_WALKED[0];
+    let mut source = crate::capture::indexed::IndexedCapture::open(&dump(take).unwrap()).unwrap();
+    let mut theirs = Vec::new();
+    for i in 0..source.frames().len() {
+        if READ_AT.contains(&source.frames()[i].number) {
+            theirs.push(effect_theirs(&source.frame_state(i).unwrap()));
+        }
+    }
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(&script()).unwrap());
+    let mut ours = Vec::new();
+    for n in READ_AT {
+        tick_to(&mut built, Some(&mut stream), n);
+        ours.push(effect_ours(&built));
+    }
+    for (o, t) in ours.iter().zip(&theirs) {
+        eprintln!("EFFECT ours {o:?}\n       theirs {t:?}");
+    }
+    assert_eq!(
+        walked, MINTED_WALKED,
+        "MINTED_WALKED: frames agreeing, frames walked, records, parted"
+    );
+    let pinned = minted_effects();
+    assert_eq!(theirs, pinned, "the original's effects (MINTED_EFFECTS)");
+    assert_eq!(ours, pinned, "our effects (MINTED_EFFECTS)");
+}
+
+/// **What the three orders did, on both sides** (run1561a): on 31 the
+/// scout walks to its point and on 299 stands on it; on 61 the capital's
+/// queue holds one Citizen, and by 299 it has trained it; on 91 the Farm's
+/// site stands at the snapped point and the builder holds a move and a
+/// build, and by 299 it farms what it built.
+fn minted_effects() -> Vec<Effect> {
+    let to = Some((i64::from(SCOUT_TO.x), i64::from(SCOUT_TO.y)));
+    let site = Some((
+        i64::from(FARM),
+        i64::from(FARM_SITE_AT.x),
+        i64::from(FARM_SITE_AT.y),
+    ));
+    let citizen = i64::from(CITIZEN);
+    vec![
+        Effect {
+            frame: 31,
+            scout: (3514, 31896),
+            scout_to: to,
+            queue: vec![],
+            site: None,
+            builder: vec!["gather"],
+        },
+        Effect {
+            frame: 61,
+            scout: (4534, 31896),
+            scout_to: to,
+            queue: vec![citizen],
+            site: None,
+            builder: vec!["gather"],
+        },
+        Effect {
+            frame: 91,
+            scout: (5554, 31896),
+            scout_to: to,
+            queue: vec![citizen],
+            site,
+            builder: vec!["move", "build"],
+        },
+        Effect {
+            frame: 299,
+            scout: (5880, 31896),
+            scout_to: None,
+            queue: vec![],
+            site,
+            builder: vec!["gather"],
+        },
+    ]
+}
