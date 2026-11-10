@@ -92,15 +92,21 @@ another model takes that model's own default effort, not the driver's.
   landing (lore, 2026-11-09).
 - Never Sonnet on a reading or an adjudication.
 
-**Two kill rules ride with the pilot**: a floor that falls with no named
-regression and is pushed; and no chain milestone inside ten points of the
-weekly window — **counted from the last closed milestone's reading, and
-written in the handoff as that number** (DECISIONS 118). On either the
-chain goes to an Opus lane under the frame, and Ramon is told at once; a
-trip stops no lane, and the render lane is not the rule's. No driver changes the roster or the worker
-count: it scores them and recommends under "For Ramon".
+**One kill rule rides with the pilot, and a soft stop with the week**
+(DECISIONS 121, which removed the window's kill rule). The rule: a floor
+that falls with no named regression and is pushed — on it the chain goes
+to an Opus lane under the frame, and Ramon is told at once. **The stop:
+85 % of the weekly window, Ramon's to move at will by a word on this
+row.** At or past it the driver cuts no builder and refills no lane; what
+is in flight finishes and is booked; the driver banks and ends its turn
+with a report. Inside three points of it nothing is cut that cannot be
+booked before it. The wall is never met mid-work: it kills every agent in
+flight, and the resume is the dear part. The handoff reports the window's
+reading, the stop, the pace against the reset and what each step cost. No
+driver changes the roster or the worker count: it scores them and
+recommends under "For Ramon".
 
-**Three things reach Ramon at once**: a kill rule tripped, a
+**Three things reach Ramon at once**: the kill rule tripped, a
 permission-shaped block, and a gate still red after its second commit.
 
 **`origin/main` is the trunk, and it is always a gated tip.** The driver's
@@ -477,7 +483,7 @@ reserves. Those it writes as recommendations at the top of its record,
 under "For Ramon", in twelve lines or fewer, with the tranche's landings
 a day, its list price and what the pass changed, and it sends one push
 notification saying the record is there. **Three things reach the user at
-once, from the commander or the pass**: a kill rule tripped, a
+once, from the commander or the pass**: the kill rule tripped, a
 permission-shaped block, and a booking gate still red after its second
 commit. The user's silence is consent to nothing on the fenced list.
 
