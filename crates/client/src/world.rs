@@ -107,6 +107,10 @@ pub struct World {
     pub trees: bool,
     /// How candidate C reads a tree's pixel (`docs/RENDERER.md` §5.3).
     pub tree_pixels: TreePixels,
+    /// How the trees' leaves are drawn in the key buffer (item 4082).
+    pub leaves: Leaves,
+    /// The winding the trees' alpha-tested draw culls ([`TREE_CULL`]).
+    pub tree_cull: render::silhouette::Cull,
     /// The lobby's tileset's trees: `tree_scale` and each model at rest,
     /// `None` where it does not decode; `None` whole where the tileset's
     /// trees do not read.
@@ -119,7 +123,38 @@ pub struct World {
 pub struct TreeMeshes {
     pub scale: f32,
     pub models: Vec<Option<TreeModel>>,
+    /// Each model's texcoords and the texture each face samples (item
+    /// 4082, `render::trees::face_textures`), beside [`TreeMeshes::models`].
+    pub leaves: Vec<Option<TreeLeaves>>,
+    /// The seven textures (`rondata::artdata::TreeArt::textures`), `None`
+    /// where one does not decode.
+    pub textures: Vec<Option<render::tga::Image>>,
 }
+
+/// One tree model's texcoords, one a vertex, and the texture (0–6) each
+/// face samples.
+pub type TreeLeaves = (Vec<[f32; 2]>, Vec<usize>);
+
+/// **How a tree's leaves are drawn** (item 4082, `docs/RENDERER.md` §3.7).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Leaves {
+    /// Every triangle whole, item 4080's draw.
+    Solid,
+    /// The original's alpha test: a fragment is kept where its texture's
+    /// alpha is above `render_states[9]`'s `alpha_ref`, 0
+    /// ([`TREE_ALPHA_REF`]).
+    #[cfg_attr(not(test), allow(dead_code))]
+    Alpha,
+}
+
+/// `render_states[9].alpha_ref` on run1559b's packet (item 4082,
+/// `tools/render/tree_points.py`'s `rstate` row): `Scene::init_render_states`
+/// leaves it at `RenderState::init`'s 0.
+pub const TREE_ALPHA_REF: u8 = 0;
+
+/// `render_states[9].cull_mode` on run1559b's packet, 2, `Counter
+/// Clockwise` (item 4082; `render::silhouette::Cull`).
+pub const TREE_CULL: render::silhouette::Cull = render::silhouette::Cull::CounterClockwise;
 
 /// One tree model at rest: its vertices and its faces.
 pub type TreeModel = (Vec<[f32; 3]>, Vec<[u16; 3]>);
@@ -231,6 +266,24 @@ impl World {
                             Some((rest_pose(&model), model.faces.clone()))
                         })
                         .collect(),
+                    leaves: art
+                        .models
+                        .iter()
+                        .map(|m| {
+                            let bytes = std::fs::read(resolve_art(&root, m)?).ok()?;
+                            let model = bh3::decode(&bytes).ok()?;
+                            let faces = render::trees::face_textures(&model);
+                            Some((model.texcoords, faces))
+                        })
+                        .collect(),
+                    textures: art
+                        .textures
+                        .iter()
+                        .map(|t| {
+                            let bytes = std::fs::read(resolve_art(&root, t)?).ok()?;
+                            render::tga::decode(&bytes).ok()
+                        })
+                        .collect(),
                 }
             });
         Ok(World {
@@ -248,6 +301,8 @@ impl World {
             terrain: (u32::MAX, TerrainMesh::default()),
             trees: true,
             tree_pixels: TreePixels::Ground,
+            leaves: Leaves::Solid,
+            tree_cull: TREE_CULL,
             tree_art,
         })
     }
@@ -332,6 +387,39 @@ impl World {
                         .map(|f| f.map(|k| apply(&m, rest[k as usize])))
                         .collect(),
                 })
+            })
+            .collect()
+    }
+
+    /// **The trees' alpha tests**, one beside each of
+    /// [`World::tree_drawings`]: each face's texcoords and texture, and the
+    /// reference `render_states[9]` holds ([`TREE_ALPHA_REF`]). `None` for a
+    /// tree whose texcoords do not read, which is then drawn whole.
+    pub fn tree_cuts(&self) -> Vec<Option<render::silhouette::Cut<'_>>> {
+        let Some(art) = self.tree_art.as_ref().filter(|_| self.trees) else {
+            return Vec::new();
+        };
+        self.tree_list()
+            .iter()
+            .filter_map(|t| {
+                let (_, faces) = art.models.get(t.model)?.as_ref()?;
+                let leaves = art.leaves.get(t.model).and_then(|l| l.as_ref());
+                Some(leaves.and_then(|(uvs, textures)| {
+                    let uvs = faces
+                        .iter()
+                        .map(|f| {
+                            let at = |k: u16| uvs.get(k as usize).copied();
+                            Some([at(f[0])?, at(f[1])?, at(f[2])?])
+                        })
+                        .collect::<Option<Vec<_>>>()?;
+                    Some(render::silhouette::Cut {
+                        uvs,
+                        image: textures.clone(),
+                        images: &art.textures,
+                        alpha_ref: TREE_ALPHA_REF,
+                        cull: self.tree_cull,
+                    })
+                }))
             })
             .collect()
     }

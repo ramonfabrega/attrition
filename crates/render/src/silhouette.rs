@@ -100,13 +100,94 @@ pub fn rasterize_with(
     camera: &Camera,
     size: (usize, usize),
 ) -> Keys {
+    rasterize_cut(objects, &[], stamps, camera, size).keys
+}
+
+/// **A texture's alpha test on an object's triangles** (item 4082,
+/// `docs/RENDERER.md` §3.7): each triangle's texcoords and the image it
+/// samples. A fragment is kept only where the image's alpha, filtered
+/// bilinearly on its one level with clamped addressing, is above
+/// `alpha_ref` — the original's `TEST_GREATER` on `alpha_ref / 255`.
+pub struct Cut<'a> {
+    /// One `{u, v}` triple a triangle, as the object's `tris`.
+    pub uvs: Vec<[[f32; 2]; 3]>,
+    /// The image each triangle samples, an index into `images`; a triangle
+    /// whose image is `None` is drawn whole.
+    pub image: Vec<usize>,
+    pub images: &'a [Option<crate::tga::Image>],
+    pub alpha_ref: u8,
+    /// The winding on the screen that is not drawn ([`Cull`]).
+    pub cull: Cull,
+}
+
+/// **Which triangles the card does not draw** (item 4082): the
+/// `RenderState::cull_mode` the engine names `None`, `Clockwise` and
+/// `Counter Clockwise` (0, 1, 2), which `D3D11GLGraphicCard::
+/// set_rasterizer_state` (DLL `0x1002b410`) maps through its table at
+/// `0x100dd094` to `D3D11_CULL_NONE`, `_BACK` and `_FRONT` with
+/// `FrontCounterClockwise` set: so the engine's mode names the winding,
+/// on the render target (x right, y down), that is culled.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Cull {
+    None,
+    Clockwise,
+    CounterClockwise,
+}
+
+impl Cull {
+    /// Whether a triangle of signed screen area `area` (`(b − a) × (c − a)`,
+    /// y down: positive is clockwise as the screen shows it) is culled.
+    pub fn culls(self, area: f32) -> bool {
+        match self {
+            Cull::None => false,
+            Cull::Clockwise => area > 0.0,
+            Cull::CounterClockwise => area < 0.0,
+        }
+    }
+}
+
+/// `image`'s alpha at `(u, v)`, filtered bilinearly with clamped
+/// addressing, on the 0–255 scale: `v = 0` is the top row, as
+/// `crate::tga` returns it and as `ImageIO::decode_tga@00546e10` fills the
+/// surface. Texel centres at `(i + ½) / width`.
+pub fn alpha_bilinear(image: &crate::tga::Image, u: f32, v: f32) -> f32 {
+    let (w, h) = (image.width, image.height);
+    let fx = (u.clamp(0.0, 1.0) * w as f32 - 0.5).max(0.0);
+    let fy = (v.clamp(0.0, 1.0) * h as f32 - 0.5).max(0.0);
+    let (x0, y0) = ((fx as usize).min(w - 1), (fy as usize).min(h - 1));
+    let (x1, y1) = ((x0 + 1).min(w - 1), (y0 + 1).min(h - 1));
+    let (tx, ty) = (fx - x0 as f32, fy - y0 as f32);
+    let a = |x: usize, y: usize| image.rgba[(y * w + x) * 4 + 3] as f32;
+    let top = a(x0, y0) * (1.0 - tx) + a(x1, y0) * tx;
+    let bottom = a(x0, y1) * (1.0 - tx) + a(x1, y1) * tx;
+    top * (1.0 - ty) + bottom * ty
+}
+
+/// A key buffer and the camera-space depth each key won at, `INFINITY`
+/// where no object is.
+pub struct Raster {
+    pub keys: Keys,
+    pub depth: Vec<f32>,
+}
+
+/// [`rasterize_with`], where `cuts[i]`, when present, is the alpha test on
+/// `objects[i]`'s triangles ([`Cut`]); texcoords are interpolated
+/// perspective-correct. A cut fragment neither takes the key nor writes the
+/// depth, as a `clip` in the pixel shader does.
+pub fn rasterize_cut(
+    objects: &[Object],
+    cuts: &[Option<&Cut<'_>>],
+    stamps: &[Stamp<'_>],
+    camera: &Camera,
+    size: (usize, usize),
+) -> Raster {
     let (w, h) = size;
     let m = camera.to_screen_matrix().0;
     let r = camera.render_matrix().0;
     let d = [r[2], r[6], r[10], r[14]];
     let mut keys = vec![0u32; w * h];
     let mut depth = vec![f32::INFINITY; w * h];
-    let project = |p: [f32; 3]| -> Option<[f32; 3]> {
+    let project = |p: [f32; 3]| -> Option<[f32; 4]> {
         let v = [p[0], p[1], p[2], 1.0];
         let col = |c: usize| (0..4).map(|i| v[i] * m[i * 4 + c]).sum::<f32>();
         let (cx, cy, cw) = (col(0), col(1), col(3));
@@ -118,15 +199,17 @@ pub fn rasterize_with(
             (cx / cw + 1.0) * w as f32 * 0.5,
             (1.0 - cy / cw) * h as f32 * 0.5,
             z,
+            cw,
         ])
     };
-    for o in objects {
-        for t in &o.tris {
+    for (n, o) in objects.iter().enumerate() {
+        let cut = cuts.get(n).copied().flatten();
+        for (ti, t) in o.tris.iter().enumerate() {
             let (Some(a), Some(b), Some(c)) = (project(t[0]), project(t[1]), project(t[2])) else {
                 continue;
             };
             let area = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
-            if area.abs() < 1e-9 {
+            if area.abs() < 1e-9 || cut.is_some_and(|c| c.cull.culls(area)) {
                 continue;
             }
             let lo = |i: usize| a[i].min(b[i]).min(c[i]);
@@ -135,11 +218,15 @@ pub fn rasterize_with(
             let y0 = (lo(1) - 0.5).ceil().max(0.0) as usize;
             let x1 = ((hi(0) - 0.5).floor() + 1.0).clamp(0.0, w as f32) as usize;
             let y1 = ((hi(1) - 0.5).floor() + 1.0).clamp(0.0, h as f32) as usize;
+            let test = cut.and_then(|c| {
+                let image = c.images.get(*c.image.get(ti)?)?.as_ref()?;
+                Some((image, c.uvs.get(ti)?, c.alpha_ref as f32))
+            });
             for y in y0..y1 {
                 let py = y as f32 + 0.5;
                 for x in x0..x1 {
                     let px = x as f32 + 0.5;
-                    let e = |p: [f32; 3], q: [f32; 3]| {
+                    let e = |p: [f32; 4], q: [f32; 4]| {
                         ((q[0] - p[0]) * (py - p[1]) - (q[1] - p[1]) * (px - p[0])) / area
                     };
                     let (wa, wb, wc) = (e(b, c), e(c, a), e(a, b));
@@ -149,6 +236,15 @@ pub fn rasterize_with(
                     let z = wa * a[2] + wb * b[2] + wc * c[2];
                     let i = y * w + x;
                     if z < depth[i] {
+                        if let Some((image, uv, reference)) = test {
+                            let (qa, qb, qc) = (wa / a[3], wb / b[3], wc / c[3]);
+                            let q = qa + qb + qc;
+                            let u = (qa * uv[0][0] + qb * uv[1][0] + qc * uv[2][0]) / q;
+                            let v = (qa * uv[0][1] + qb * uv[1][1] + qc * uv[2][1]) / q;
+                            if alpha_bilinear(image, u, v) <= reference {
+                                continue;
+                            }
+                        }
                         depth[i] = z;
                         keys[i] = o.key;
                     }
@@ -186,10 +282,13 @@ pub fn rasterize_with(
             }
         }
     }
-    Keys {
-        width: w,
-        height: h,
-        keys,
+    Raster {
+        keys: Keys {
+            width: w,
+            height: h,
+            keys,
+        },
+        depth,
     }
 }
 

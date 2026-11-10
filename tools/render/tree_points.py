@@ -19,6 +19,16 @@ centre `(x·0x300 + 0x180, y·0x300 + 0x180)`, then
     tree <cx> <cy> <mask> <slot> <x> <y> <z> <model> -> <sx> <sy>
     sweep <cx> <cy> <mask> <slot> <x> <y> <z>
     cache <cx> <cy> <tick> <minx> <miny> <minz> <maxx> <maxy> <maxz>
+    section <cx> <cy> <sec> <verts> <struct_size> <faces>
+    rstate <index> <enables> <zfunc> <alpha_func> <alpha_ref> <src_blend> <dst_blend> <cull_mode>
+
+`section` is each cache entry's seven sections: `cache_verts[sec].length`,
+its `struct_size` in dwords and `cache_faces[sec]`'s length (item 4082).
+`rstate` is `render_states[9]`, the `RenderState` `TreeFlushMethod::execute`
+sets (`GraphicPieces::init_tree_map@008f7c20` gives it the method), as the
+process holds it on the packet: the `RenderState` fields at their PDB
+offsets (`enables` 0x50, `zfunc` 0x58, `cull_mode` 0x70, `src_blend` 0x74,
+`dst_blend` 0x78, `alpha_func` 0x7c, `alpha_ref` 0x80).
 
 `cache` is each `RTreeData::tree_cache` entry the packet holds: the cell
 (`TreeCacheEntry::wx`/`wy`), its `last_graphic_tick`, and the extent of the
@@ -47,6 +57,8 @@ WORLDC, GRAPHSYS, GRAPHIC_PIECES = 0x00C061D0, 0x00E335A0, 0x00C06214
 TREE_SCALE, LOW_TREE_SCALE = 0x00C06340, 0x00C062CC
 # `tilesets` (S_GDATA32 0003:2631120), its `cur_tileset` at +0x20
 TILESETS = 0x00E885D0
+# `render_states` (`Array<RenderState *>`, rise_z.map 0003:0000bd2c), its `list` at +0x10
+RENDER_STATES = 0x00C11D2C
 
 
 def main(argv):
@@ -114,6 +126,12 @@ def main(argv):
         lo = [min(p[j] for p in pts) for j in range(3)]
         hi = [max(p[j] for p in pts) for j in range(3)]
         print(f"cache {i32(e + 0x3F0)} {i32(e + 0x3F4)} {i32(e + 0x3F8)} " + " ".join(f"{v:.3f}" for v in lo + hi))
+        for sec in range(7):
+            va, fa = e + 0x20 * sec, e + 0xE0 + 0x1C * sec
+            print(f"section {i32(e + 0x3F0)} {i32(e + 0x3F4)} {sec} {i32(va + 4)} {u32(va + 0x14)} {i32(fa + 4)}")
+    rs = u32(u32(RENDER_STATES + 0x10) + 4 * 9)
+    fields = [u32(rs + o) for o in (0x50, 0x58, 0x7C, 0x80, 0x74, 0x78, 0x70)]
+    print(f"rstate 9 {fields[0]:#x} " + " ".join(str(v) for v in fields[1:]))
     for cx, cy in sweeps:
         for mask in range(16):
             for slot in range(5):
