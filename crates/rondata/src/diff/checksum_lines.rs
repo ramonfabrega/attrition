@@ -641,34 +641,31 @@ fn build_pieces(sim: &sim::Sim) -> std::collections::BTreeMap<usize, i32> {
 
 /// The pinned outcome of the builds line on run 1562's packet:
 /// `(buildings, ranges, bytes, ranges parted, bytes in the ranges that
-/// agree)` (`docs/CHECKSUM.md` §14): 516 of 519 ranges and 4,845 of 4,923
-/// bytes, held out on three fields of the two Woodcutter's Camps.
-const BUILDS: (usize, usize, usize, usize, usize) = (15, 519, 4923, 3, 4845);
+/// agree)` (`docs/CHECKSUM.md` §14): 518 of 519 ranges and 4,889 of 4,923
+/// bytes, held out on the British Woodcutter's Camp's `up_who`. Until item
+/// 4097 it was 516 and 4,845, held out on both camps' `recharging` too
+/// (ours 83 and 67 against 90 and 89), which `Guy::move@005d9240`'s
+/// carrying walk bumps (`docs/ORDERS.md` §6.11).
+const BUILDS: (usize, usize, usize, usize, usize) = (15, 519, 4923, 1, 4889);
 
-/// The three fields the builds line is held out on (`docs/CHECKSUM.md`
-/// §14): `(range, building, field, ours, theirs)`. Both camps'
-/// `BuildData::recharging` (+0x7a), which `Guy::move@005d9240`'s carrying
-/// walk bumps and this crate's walk does not; and the British camp's
+/// The field the builds line is held out on (`docs/CHECKSUM.md` §14):
+/// `(range, building, field, ours, theirs)`. The British camp's
 /// `ObjectData::up_who` (+0x3f), left by a unit that stood above it on its
 /// cell's object chain and moved off, which this crate does not thread.
-const BUILDS_HELD_OUT: [(usize, i32, &str, i64, i64); 3] = [
-    (50, 1, "recharging", 83, 90),
-    (334, 9, "up_who", -1, 1),
-    (339, 9, "recharging", 67, 89),
-];
+const BUILDS_HELD_OUT: [(usize, i32, &str, i64, i64); 1] = [(334, 9, "up_who", -1, 1)];
 
 /// **The builds line, ours against the original's, range by range, held
-/// out on the camps' `recharging` and one `up_who`** (`docs/CHECKSUM.md`
-/// §14, item 4094): our `Sim::checksum_builds` against the instrument's
-/// stream of the builds line, every range, each range decoded field by
-/// field on both sides — ours by our range names, theirs by each row's call
-/// site — then the Adler. Three fields part ([`BUILDS_HELD_OUT`]); with
-/// those three at the original's values, substituted here and nowhere else,
-/// ours sums to the printed `Builds`, so every other byte is the
-/// original's. And it can part: one more perturbed byte parts on its own
-/// range, and an empty image on every range.
+/// out on one `up_who`** (`docs/CHECKSUM.md` §14, items 4094 and 4097): our
+/// `Sim::checksum_builds` against the instrument's stream of the builds
+/// line, every range, each range decoded field by field on both sides —
+/// ours by our range names, theirs by each row's call site — then the
+/// Adler. One field parts ([`BUILDS_HELD_OUT`]); with it at the original's
+/// value, substituted here and nowhere else, ours sums to the printed
+/// `Builds`, so every other byte is the original's. And it can part: one
+/// more perturbed byte parts on its own range, and an empty image on every
+/// range.
 #[test]
-fn the_builds_line_is_held_out_on_the_camps_recharging_and_up_who() {
+fn the_builds_line_is_held_out_on_one_up_who() {
     let Some((theirs, want, sim)) = line_inputs("builds", "Builds") else {
         return;
     };
@@ -740,7 +737,7 @@ fn the_builds_line_is_held_out_on_the_camps_recharging_and_up_who() {
     assert_eq!(held, BUILDS_HELD_OUT, "the fields the line is held out on");
     // The Adler, last. Held out, ours is not the printed sum ...
     assert_ne!(ours.adler(), want, "the builds line is held out");
-    // ... and with the three fields at the original's values — the
+    // ... and with the held field at the original's value — the
     // substitution made here only — it is: every other byte is theirs.
     let mut mended = ours.clone();
     for &(i, _, field, _, theirs_v) in &BUILDS_HELD_OUT {
@@ -759,7 +756,7 @@ fn the_builds_line_is_held_out_on_the_camps_recharging_and_up_who() {
     assert_eq!(mended.adler(), want, "the builds line's Adler, mended");
 
     // **It can part.** One byte more, the fourth building's `x` (low
-    // byte), parts on that range alone beside the three.
+    // byte), parts on that range alone beside the held one.
     let mut bent = ours.clone();
     let sub = bent
         .ranges
@@ -771,10 +768,122 @@ fn the_builds_line_is_held_out_on_the_camps_recharging_and_up_who() {
         .unwrap();
     bent.ranges[sub].bytes[7] ^= 1;
     let p: Vec<usize> = parting(&bent, &theirs).iter().map(|p| p.0).collect();
-    let mut want_p = vec![50, 334, 339, sub];
+    let mut want_p = vec![334, sub];
     want_p.sort_unstable();
     assert_eq!(p, want_p, "one perturbed byte parts on its range");
     assert_eq!(parting(&Line::default(), &theirs).len(), BUILDS.1);
+}
+
+/// The original's playback of the minted file with every building printed
+/// on each of its 300 frames (`docs/RUNS.md` run1561a).
+const RUN1561A: &str = "gamelog-run1561a-greatlakes-playback-of-minted-300.txt";
+
+/// The last frame of [`RUN1561A`] whose dump is whole, and the pinned count
+/// of `(frame, building)` pairs it prints a `recharging` for from frame 1.
+const RECHARGING_FRAMES: (i64, usize) = (299, 4394);
+
+/// Every `BUILDDATA` record's `recharging` in `text`, by `(frame, who, o)`.
+/// `gamelog::BuildDump` does not parse the key (`docs/ORDERS.md` §6.11), so
+/// this reads it here: a record's first `o` and `who` are its
+/// `SUBOBJECT`'s, and its one `recharging` line is `BuildData`'s.
+fn recharging_by_frame(text: &str) -> std::collections::BTreeMap<(i64, i64, i64), i64> {
+    let mut out = std::collections::BTreeMap::new();
+    let (mut f, mut inb, mut o, mut w) = (0i64, false, None, None);
+    for l in text.lines() {
+        let t = l.trim_start();
+        if let Some(r) = t.strip_prefix("BEGIN FRAME ") {
+            f = r.trim().parse().expect("a frame number");
+        } else if t == "BEGIN BUILDDATA" {
+            (inb, o, w) = (true, None, None);
+        } else if inb {
+            if let Some(r) = t.strip_prefix("o ") {
+                o = o.or(r.trim().parse().ok());
+            } else if let Some(r) = t.strip_prefix("who ") {
+                w = w.or(r.trim().parse().ok());
+            } else if let Some(r) = t.strip_prefix("recharging ") {
+                let k = (
+                    f,
+                    w.expect("who before recharging"),
+                    o.expect("o before recharging"),
+                );
+                out.insert(k, r.trim().parse().expect("a recharging value"));
+                inb = false;
+            }
+        }
+    }
+    out
+}
+
+/// **Every building's `recharging`, ours against the original's, on every
+/// frame of the minted game's playback** (item 4097, `docs/ORDERS.md`
+/// §6.11): run1561a prints `BuildData::recharging` on all fifteen buildings
+/// for 299 whole frames, and our walk of the minted file holds every one.
+/// It was the two Woodcutter's Camps that parted before the carrying walk's
+/// bump: the human's from frame 4 (theirs 3, ours 2) and the British from 4
+/// too, 83 and 67 against 90 and 89 on 91. It can part: one camp one count
+/// off on one frame parts on that pair alone, and the key is read on every
+/// frame of the dump, so a quiet field is not a blind one.
+#[test]
+fn every_building_s_recharging_is_the_original_s_on_every_frame_of_the_playback() {
+    let Some(path) = crate::testenv::dump(RUN1561A) else {
+        eprintln!("skipping: no {RUN1561A} (set RON_GAMELOG_DIR)");
+        return;
+    };
+    let theirs = recharging_by_frame(&std::fs::read_to_string(path).expect("a kept dump reads"));
+    let Some((_, mut built, _)) = built_start() else {
+        eprintln!("skipping: no install or lobby dump (RON_INSTALL, RON_GAMELOG_DIR)");
+        return;
+    };
+    let mut stream = crate::input::Stream::pump(&minted(&script()).expect("the minted file"));
+    let (last, pairs) = RECHARGING_FRAMES;
+    let mut ours = std::collections::BTreeMap::new();
+    for frame in 1..=last {
+        tick_to(&mut built, Some(&mut stream), frame);
+        for b in built.sim.buildings.iter().filter(|b| b.alive) {
+            let k = (frame, i64::from(b.owner), i64::from(b.index));
+            ours.insert(k, i64::from(b.recharging));
+        }
+    }
+    let theirs: std::collections::BTreeMap<_, _> =
+        theirs.into_iter().filter(|(k, _)| k.0 <= last).collect();
+    let parted = |ours: &std::collections::BTreeMap<(i64, i64, i64), i64>| {
+        let keys: std::collections::BTreeSet<_> = ours.keys().chain(theirs.keys()).collect();
+        keys.into_iter()
+            .filter(|k| ours.get(k) != theirs.get(k))
+            .map(|k| (*k, ours.get(k).copied(), theirs.get(k).copied()))
+            .collect::<Vec<_>>()
+    };
+    let p = parted(&ours);
+    for x in p.iter().take(20) {
+        eprintln!("PARTED {x:?}");
+    }
+    assert_eq!(
+        (
+            theirs.len(),
+            (1..=last)
+                .filter(|f| theirs.keys().any(|k| k.0 == *f))
+                .count()
+        ),
+        (pairs, last as usize),
+        "the dump prints a recharging on every frame"
+    );
+    assert_eq!(
+        theirs.get(&(91, 0, 2001)),
+        Some(&90),
+        "the human's camp on 91"
+    );
+    assert_eq!(
+        theirs.get(&(91, 1, 2001)),
+        Some(&89),
+        "the British camp on 91"
+    );
+    assert!(p.is_empty(), "every building's recharging on every frame");
+    // It can part.
+    let mut bent = ours.clone();
+    *bent
+        .get_mut(&(16, 1, 2001))
+        .expect("the British camp on 16") += 1;
+    assert_eq!(parted(&bent), vec![((16, 1, 2001), Some(15), Some(14))]);
 }
 
 /// **The score**: the state lines ported are the ones `CHECKSUM_STATE`
