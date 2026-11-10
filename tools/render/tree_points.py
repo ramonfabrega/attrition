@@ -41,8 +41,11 @@ world-space vertices it assembled over its seven sections (`cache_verts`,
 a `VoidArray` whose `struct_size` counts dwords, `xyz` first).
 
 `model` is `GraphicPieces::draw_tree@00905a10`'s `(int)(y + x) % count`.
-`--sweep` adds every mask 0..15 and slot 0..4 at each named cell. Nothing
-it prints enters the repository.
+`--sweep` adds every mask 0..15 and slot 0..4 at each named cell.
+`--guys GPIECE:WHO/O ...` (item 4086) prints instead, for each, every
+`GuyData` the packet holds with that `gpiece` (+0x88), `o` (+0x8c) and
+`who` (+0xa1): its point, `angle`, `cur_time`/`end_time`, `cur_anim`,
+`stopped` and `last_*`. Nothing it prints enters the repository.
 """
 import os
 import struct
@@ -66,11 +69,45 @@ TILESETS = 0x00E885D0
 RENDER_STATES = 0x00C11D2C
 
 
+def guys(snap, wants):
+    """Item 4086: every `GuyData` the packet holds for `wants`, a list of
+    `(gpiece, who, o)`, found by `gpiece` (+0x88) and `o` (+0x8c) side by
+    side and checked by `who` (+0xa1), at the PDB's offsets."""
+    pats = {struct.pack("<ih", g, o): (g, who, o) for g, who, o in wants}
+    for base, size, off in snap.ranges:
+        snap.f.seek(off)
+        data = snap.f.read(size)
+        for pat, (g, who, o) in pats.items():
+            i = data.find(pat)
+            while i >= 0:
+                at = i - 0x88
+                if at >= 0 and at + 0xBC <= size and data[at + 0xA1] == who:
+                    r = lambda o_, f: struct.unpack_from(f, data, at + o_)[0]
+                    print(
+                        f"guy {who}/{o} {base + at:08x} type {r(0x8, '<i')} x {r(0xC, '<i')} "
+                        f"{r(0x10, '<i')} {r(0x14, '<i')} angle {r(0x18, '<I'):#x} "
+                        f"last_angle {r(0x1C, '<I'):#x} cur_time {r(0x74, '<I')} "
+                        f"end_time {r(0x78, '<I')} last_time {r(0x7C, '<i')} gpiece {g} "
+                        f"variation {r(0x90, '<h')} cur_anim {r(0x9C, '<b')} "
+                        f"stopped {data[at + 0x9D]} guy_num {data[at + 0xA2]} "
+                        f"last {r(0x68, '<i')} {r(0x6C, '<i')} {r(0x70, '<i')}"
+                    )
+                i = data.find(pat, i + 1)
+
+
 def main(argv):
     if len(argv) < 3:
         print(__doc__)
         return 2
     exe, packet = argv[1], argv[2]
+    if argv[3:4] == ["--guys"]:
+        wants = []
+        for w in argv[4:]:
+            g, wo = w.split(":")
+            who, o = wo.split("/")
+            wants.append((int(g), int(who), int(o)))
+        guys(Snapshot(packet), wants)
+        return 0
     sweeps = []
     rest = argv[3:]
     while rest:

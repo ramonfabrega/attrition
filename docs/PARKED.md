@@ -16003,7 +16003,8 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   of the hull; un-notched (`TANK_1_27_WHOLE`) 1/31 reads 0.293 and 1/36 0.436, 27 of 33. Read with a neighbour's
   trace as the scene, 1/31 0.650 and 1/20 0.525 pass, 1/32 0.410 does not, and the row reads 31 of 33, the
   rejected reading. Not read: whether our riflemen's poses or facings stand where the photograph's do. Names candidate C's
-  score.
+  score. **Measured by item 4086**: neither larger nor in another state; the excess is neighbours and 1/31 hidden by
+  our tank (4086a–c).
 
 ## Parked by item 4080, 2026-11-10 — the map's trees, drawn as solid cards
 
@@ -16065,13 +16066,29 @@ words and edits nothing here; a refill lands when two remain.
   draws every land figure so; the selector among lists 0–4 is not read, nor `Tree<Guy*,float>::ordered_insert`'s
   key, which says whether a farther figure's silhouette lies over a nearer figure. Names no score.
 
-## Parked by the next landing, slot EK — reserved
+## Parked by item 4086, 2026-11-10 — the riflemen by the tank, measured
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4086a. 1/31 is behind our tank where the photograph shows it in front of the hull** (`docs/RENDERER.md` §5.3;
+  `RUN1559B_3279_TRACED`, 30 of 33). Drawn alone, 1/31 is 336 px. On the frame our tank 1/27 hides 142 of them,
+  and the photograph shows the figure shaded, not in the silhouette's flat colour (red 0), over the hull inside
+  4079's notch. The three windows' excess is what is not the figure: the reader counts every key of ours in a
+  window. 1/31 has 354 pixels that are ours and not theirs, and 258 of them are another's: the tank's hull inside the
+  rectangular notch, where the photograph's hull reads as ground. 1/20 has 280, 103 of them another's; 1/32 has
+  376, 193 of them another's (each other's and the tank's). Not read: how the original orders one guy against
+  another (4085b names it). Here it would read as the guys' pass sorted by depth and drawn over, against our depth
+  test. Names candidate C's score.
+- **4086b. Drawn larger: killed by step 1's table.** Drawn alone, the three are 336, 347 and 293 px, in boxes of
+  18×30 (cut by the interface at row 688), 22×43 and 13×31. The clear figure 1/35, in the row at 0.701, is 391 px
+  in 19×43, and the photograph's 1/35 is 22×49. No rifleman is drawn larger than the figure that passes. Values:
+  `~/ron-data/lab-experiments/2026-11-10-item-4086/the-riflemen-by-row.txt`.
+- **4086c. Another pose: the state is the original's; the pose drawn from it is not read**
+  (`client::silhouette::tests::the_riflemen_by_the_tank_by_row`). At 3294, our point, `anim` slot, `cur_time`
+  and facing equal run1559b's packet's `GuyData` for 1/31, 1/20, 1/32, 1/35 and 1/38 (`tree_points.py --guys`;
+  asserted, and red once with 1/31's `cur_time` set to 22). At 3279, the photograph's frame, ours rests on
+  lockstep: 1/20 is in slot 8 at clock 12, and slot 0 by 3294. On the photograph's luminance, 1/20's and 1/35's
+  legs stand together where ours stride 9 to 10 columns apart, and 1/35 passes anyway. Not read: the clip each
+  slot plays at that clock, and the photograph's own frame (4073a). Names no score until 4086a is read.
+
 
 ## Parked by the next landing, slot EM — reserved
 
