@@ -20,6 +20,13 @@ use super::*;
 /// players) agrees on every one of its 18,264 fields.
 pub const START_BUILT: usize = 1;
 
+/// **The lobby's word on the built start** (`docs/START.md` §7.4, item
+/// 4057): `(map, word, length)` — the harness lobby's long capture (run53,
+/// Great Lakes) walked from [`from_lobby`]'s `Sim` with no start dump and
+/// no correction, every frame's draws against its trace. 24,000 of 24,000,
+/// the installed start's own word (`LONG_WORD_GREAT_LAKES`).
+pub const START_WALKED: (&str, i64, i64) = ("GreatLakes", 24_000, 24_000);
+
 /// The lobbies on disk with a `[Start Game]` dump: `tools/start_lobbies.py`
 /// on 2026-11-09 — 645 captures whose `GAME` carries start records ahead
 /// of its first frame, 161 distinct `GAMEINFO` blocks (`same_lobby`'s
@@ -152,6 +159,92 @@ pub fn start_block(sim: &Sim, players: usize) -> Vec<Field> {
     out
 }
 
+/// **Frame zero wider than the block** (item 4057, `docs/START.md` §7.3):
+/// the takes the installer writes that [`start_block`] does not read, as
+/// records of their own — the fog (`FOG fx fy`, `seen2`), the goods
+/// (`GOOD i`: type, position, live bit, in `goods` order), the goody boxes
+/// (`ITEM i`: position, live bit, `ever_seen`), the placed mountains
+/// (`MOUNTAIN i`: origin cell, solid cells, tiles), each live building's
+/// `ever_seen`, the world's territory limits, each region's `flags` (by
+/// the original's region number), each tile's mask and each cell's
+/// `land_sub`. A walk reads every one of them.
+pub fn start_wide(sim: &Sim, players: usize) -> Vec<Field> {
+    let mut out: Vec<Field> = Vec::new();
+    let mut put = |rec: &str, field: &'static str, v: String| out.push((rec.to_string(), field, v));
+    let w = &sim.world;
+    for fy in 0..2 * w.height() {
+        for fx in 0..w.fog_xs() {
+            put(
+                &format!("FOG {fx} {fy}"),
+                "seen2",
+                format!("{:?}", w.seen2(fx, fy)),
+            );
+        }
+    }
+    for (i, g) in w.goods().iter().enumerate() {
+        let rec = format!("GOOD {i}");
+        put(&rec, "type", g.ty.to_string());
+        put(&rec, "pos", format!("{} {}", g.pos.x, g.pos.y));
+        put(&rec, "alive", g.alive.to_string());
+    }
+    for (i, it) in sim.gaia.goody_items.iter().enumerate() {
+        let rec = format!("ITEM {i}");
+        put(&rec, "pos", format!("{} {}", it.pos.x, it.pos.y));
+        put(&rec, "alive", it.alive.to_string());
+        put(&rec, "ever_seen", it.ever_seen.to_string());
+    }
+    for (i, m) in sim.terrain.mountains.iter().enumerate() {
+        let rec = format!("MOUNTAIN {i}");
+        put(&rec, "loc", format!("{} {}", m.loc.x, m.loc.y));
+        let solid: Vec<(i32, i32)> = m.solid.iter().map(|c| (c.x, c.y)).collect();
+        put(&rec, "solid", format!("{solid:?}"));
+        let tiles: Vec<(i32, i32)> = m.tiles.iter().map(|t| (t.x, t.y)).collect();
+        put(&rec, "tiles", format!("{tiles:?}"));
+    }
+    let mut builds: Vec<&sim::Building> = sim
+        .buildings
+        .iter()
+        .filter(|b| b.alive && (b.owner as usize) < players)
+        .collect();
+    builds.sort_by_key(|b| (b.owner, b.index));
+    for b in builds {
+        put(
+            &format!("BUILD {}/{}", b.owner, b.index),
+            "ever_seen",
+            b.ever_seen.to_string(),
+        );
+    }
+    put(
+        "WORLD",
+        "territory_limits",
+        format!("{:?}", w.territory_limits()),
+    );
+    let mut regions: Vec<(u16, i32)> = (0..w.region_count())
+        .map(|r| (w.region_number(r as u16), w.region_flags(r as u16)))
+        .collect();
+    regions.sort();
+    for (n, f) in regions {
+        put(&format!("REGION {n}"), "flags", f.to_string());
+    }
+    let tw = w.width() * sim::world::TILES_PER_CELL;
+    for ty in 0..w.height() * sim::world::TILES_PER_CELL {
+        for tx in 0..tw {
+            put(
+                &format!("TILE {tx} {ty}"),
+                "mask",
+                w.tile_mask(Pos::new(tx, ty)).to_string(),
+            );
+        }
+    }
+    for y in 0..w.height() {
+        for x in 0..w.width() {
+            let d = w.cell_data(sim::world::Cell::new(x, y));
+            put(&format!("CELL {x} {y}"), "land_sub", d.land_sub.to_string());
+        }
+    }
+    out
+}
+
 /// Every field the two blocks disagree on, in `theirs`' order (the walk's),
 /// then the records only `ours` holds.
 pub fn compare_start(ours: &[Field], theirs: &[Field]) -> Vec<Parting> {
@@ -210,6 +303,11 @@ pub struct FromLobby {
     /// `build_empire` (1032 to 1148); a draw-site trace of the same lobby
     /// does (`rontrace-run100.log`), and the test holds these against it.
     pub empire_words: Vec<(usize, &'static str, u32)>,
+    /// The composed map's region numbers → the sim's region ids
+    /// ([`world_from_grid`]'s map): what a walk's record comparison reads a
+    /// city's `reg` through, as [`Built::region_map`]. Empty when the map
+    /// was not composed.
+    pub region_map: Vec<(i64, u16)>,
 }
 
 /// **`Setup::small_city_buildings@005aae10` and
@@ -804,6 +902,7 @@ pub fn from_lobby(
     let mut starts: Vec<(i32, i32)> = Vec::new();
     let mut goods: Vec<Option<(i32, i32, i32)>> = Vec::new();
     let mut mountains: Vec<(i32, i32, usize)> = Vec::new();
+    let mut region_map: Vec<(i64, u16)> = Vec::new();
     let world = match map {
         Some((m, sea)) => {
             rng = m.draws.rng;
@@ -821,7 +920,8 @@ pub fn from_lobby(
                 sea,
             );
             mountains = m.grid.mountains.clone();
-            let mut w = world_from_grid(&m.grid, m.z, sea).0;
+            let (mut w, rm) = world_from_grid(&m.grid, m.z, sea);
+            region_map = rm;
             // `World::init`'s `seen2`, allocated and zeroed with the
             // world: every reveal the walk makes from here on lands in it
             // (`docs/START.md` §7.2).
@@ -838,6 +938,22 @@ pub fn from_lobby(
     install_art(&mut sim, loaded, &mut notes);
     if map_built {
         notes.extend(lay_map_objects(&mut sim, loaded, &goods, &mountains));
+        // `Map::make`'s copy of the style's six territory limits into
+        // `world+0x38..+0x4c`; `Map::load_map_data` seeds them from the
+        // rules' `TERRITORY_LIMIT_BASE/CIVIC/CITY` for both the player and
+        // the colonized triple, and a style XML that names its own
+        // overrides them (Great Lakes names none; the override is not
+        // read, §7.3).
+        let t = &sim.tables.tuning;
+        let triple = [
+            t.territory_limit_base,
+            t.territory_limit_civic,
+            t.territory_limit_city,
+        ];
+        sim.world.set_territory_limits(sim::world::TerritoryLimits {
+            player: triple,
+            colonized: triple,
+        });
     }
     // 2. `init_rules_and_teams`.
     sim.ai.lobby = lobby_of(
@@ -1056,6 +1172,7 @@ pub fn from_lobby(
         checkpoints,
         words,
         empire_words,
+        region_map,
     }
 }
 
@@ -1066,7 +1183,12 @@ pub fn from_lobby(
 /// dump is read. What the lobby's own walk runs from in place of
 /// [`build_sim`]'s install.
 pub fn built_from_lobby(loaded: &Loaded, built: FromLobby) -> (Built, Vec<String>) {
-    let FromLobby { mut sim, notes, .. } = built;
+    let FromLobby {
+        mut sim,
+        notes,
+        region_map,
+        ..
+    } = built;
     sim.trace.trace_phases = true;
     let units = sim
         .units
@@ -1091,7 +1213,7 @@ pub fn built_from_lobby(loaded: &Loaded, built: FromLobby) -> (Built, Vec<String
         correction_audit: None,
         units,
         builds,
-        region_map: Vec::new(),
+        region_map,
         notes: Vec::new(),
         frame_seeds: Vec::new(),
         rng_frames: Vec::new(),

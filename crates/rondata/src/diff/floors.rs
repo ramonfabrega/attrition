@@ -560,13 +560,17 @@ pub fn renderer_line() -> String {
 /// The queue's `Start:` line (item 4033, `docs/START.md` §5): the lobbies
 /// whose start block is built from their choices alone
 /// ([`crate::diff::START_BUILT`]) of those on disk with a `[Start Game]`
-/// dump ([`crate::diff::START_LOBBIES`]).
+/// dump ([`crate::diff::START_LOBBIES`]), and the lobby walked from its
+/// built start ([`crate::diff::START_WALKED`], item 4057): `<map> walked
+/// w<word> of <length>`.
 #[cfg(test)]
 pub fn start_line() -> String {
+    let (map, word, length) = crate::diff::START_WALKED;
+    let length = format!("{},{:03}", length / 1000, length % 1000);
     format!(
-        "Start: {} of {} lobbies",
+        "Start: {} of {} lobbies \u{b7} {map} walked w{word} of {length}",
         crate::diff::START_BUILT,
-        crate::diff::START_LOBBIES
+        crate::diff::START_LOBBIES,
     )
 }
 
