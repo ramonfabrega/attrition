@@ -372,6 +372,12 @@ pub enum Command {
         who: i32,
         o: i32,
         name: String,
+        /// The units after the terminator: the issuer copies its whole
+        /// 22-wchar buffer, so past the NUL ride whatever bytes the stack
+        /// held (two recordings on disk carry them). Never read by the
+        /// engine; carried so a payload re-encodes byte for byte, and empty
+        /// for a command built here, which pads with zeros.
+        after_nul: Vec<u16>,
     },
     Pause {
         state: u8,
@@ -957,11 +963,29 @@ fn one(c: &mut Cur) -> Result<Command, Error> {
             game_lag: c.u16("game_lag")?,
             forced_loads: c.u16("forced_loads")?,
         },
-        0x4b => Command::RenameCity {
-            who: c.i32("who")?,
-            o: c.i32("o")?,
-            name: c.wchars(22, "city name")?,
-        },
+        0x4b => {
+            let who = c.i32("who")?;
+            let o = c.i32("o")?;
+            let units: Vec<u16> = c
+                .raw(44, "city name")?
+                .chunks_exact(2)
+                .map(|b| u16::from_le_bytes([b[0], b[1]]))
+                .collect();
+            let len = units.iter().position(|&u| u == 0).unwrap_or(22);
+            let name =
+                String::from_utf16(&units[..len]).map_err(|_| c.bad("city name: not UTF-16"))?;
+            let mut after_nul = units.get(len + 1..).unwrap_or(&[]).to_vec();
+            // Trailing zeros are the padding a fresh command writes too.
+            while after_nul.last() == Some(&0) {
+                after_nul.pop();
+            }
+            Command::RenameCity {
+                who,
+                o,
+                name,
+                after_nul,
+            }
+        }
         0x4c => Command::Pause {
             state: c.u8("state")?,
         },
@@ -987,6 +1011,583 @@ fn one(c: &mut Cur) -> Result<Command, Error> {
         },
         _ => return Err(c.bad(format!("unknown command type {t:#04x}"))),
     })
+}
+
+/// Encodes commands into a plain (single-player) payload — the inverse of
+/// [`decode`], written from the same wire table (`docs/COMMANDS.md` §3–§4)
+/// rather than from `CommandPackage::add_command`, which copies a struct it
+/// was handed. `decode(&encode(c)) == c` for every command, and over every
+/// payload of every recording on disk `encode(&decode(d)) == d` byte for
+/// byte (`recgame`'s round trip, `docs/RECGAME.md` §8).
+///
+/// The fixed-width text fields (`RenameCity` 22 wchars, `ConsoleCmd` 256)
+/// are written NUL-padded (`RenameCity` with its carried `after_nul`
+/// units behind the terminator); `Chat` writes its count and then the text with
+/// the one terminator the wire carries.
+pub fn encode(cmds: &[Command]) -> Vec<u8> {
+    let mut out = Vec::new();
+    for c in cmds {
+        put(c, &mut out);
+    }
+    out
+}
+
+/// One command, appended to `o` in wire order.
+fn put(cmd: &Command, o: &mut Vec<u8>) {
+    fn i(o: &mut Vec<u8>, v: i32) {
+        o.extend(v.to_le_bytes());
+    }
+    fn u(o: &mut Vec<u8>, v: u32) {
+        o.extend(v.to_le_bytes());
+    }
+    fn b(o: &mut Vec<u8>, v: i8) {
+        o.push(v as u8);
+    }
+    fn wchars(o: &mut Vec<u8>, s: &str, n: usize) {
+        let units: Vec<u16> = s.encode_utf16().collect();
+        for k in 0..n {
+            o.extend(units.get(k).copied().unwrap_or(0).to_le_bytes());
+        }
+    }
+    use Command as C;
+    match cmd {
+        C::Group { who, objects } => {
+            o.extend([0x00, objects.len() as u8, *who as u8]);
+            for x in objects {
+                o.extend(x.to_le_bytes());
+            }
+        }
+        C::Begin => o.push(0x01),
+        C::Stance { stance } => {
+            o.push(0x02);
+            i(o, *stance);
+        }
+        C::Form {
+            form,
+            rotate,
+            queued,
+        } => {
+            o.push(0x03);
+            for v in [*form, *rotate, *queued] {
+                i(o, v);
+            }
+        }
+        C::Attack {
+            ox,
+            whom,
+            ignore,
+            queued,
+        } => {
+            o.push(0x04);
+            for v in [*ox, *whom, *ignore, *queued] {
+                i(o, v);
+            }
+        }
+        C::SiegeAttack { ox, whom, queued } => {
+            o.push(0x05);
+            for v in [*ox, *whom, *queued] {
+                i(o, v);
+            }
+        }
+        C::SwarmAround {
+            ox,
+            whom,
+            queued,
+            orders,
+        } => {
+            o.push(0x06);
+            for v in [*ox, *whom, *queued, *orders] {
+                i(o, v);
+            }
+        }
+        C::MoveTo {
+            to_x,
+            to_y,
+            set_angle,
+            angle,
+            orders,
+            queued,
+            form,
+            width,
+            disembark,
+        } => {
+            o.push(0x07);
+            for v in [*to_x, *to_y, *set_angle, *angle] {
+                i(o, v);
+            }
+            for v in [*orders, *queued, *form, *width, *disembark] {
+                b(o, v);
+            }
+        }
+        C::MoveNear {
+            to_x,
+            to_y,
+            tolerance,
+            set_angle,
+            angle,
+            orders,
+            queued,
+            form,
+            width,
+            disembark,
+        } => {
+            o.push(0x08);
+            for v in [*to_x, *to_y, *tolerance, *set_angle, *angle] {
+                i(o, v);
+            }
+            for v in [*orders, *queued, *form, *width, *disembark] {
+                b(o, v);
+            }
+        }
+        C::AttackGround { to_x, to_y, queued } => {
+            o.push(0x09);
+            i(o, *to_x);
+            i(o, *to_y);
+            b(o, *queued);
+        }
+        C::Patrol { to_x, to_y, queued } => {
+            o.push(0x0a);
+            i(o, *to_x);
+            i(o, *to_y);
+            b(o, *queued);
+        }
+        C::LaunchPatrol {
+            to_x,
+            to_y,
+            queued,
+            shift,
+            ctrl,
+            alt,
+        } => {
+            o.push(0x0b);
+            for v in [*to_x, *to_y, *queued, *shift, *ctrl, *alt] {
+                i(o, v);
+            }
+        }
+        C::Halt => o.push(0x0c),
+        C::Transport => o.push(0x0d),
+        C::SetTransport { flag } => {
+            o.push(0x0e);
+            i(o, *flag);
+        }
+        C::BoardShip { ox, queued } => {
+            o.push(0x0f);
+            i(o, *ox);
+            i(o, *queued);
+        }
+        C::Repair { ox, whom, queued } => {
+            o.push(0x10);
+            for v in [*ox, *whom, *queued] {
+                i(o, v);
+            }
+        }
+        C::Trade {
+            ox,
+            whom,
+            oxx,
+            whose,
+            queued,
+        } => {
+            o.push(0x11);
+            for v in [*ox, *whom, *oxx, *whose, *queued] {
+                i(o, v);
+            }
+        }
+        C::CityGather { t, queued } => {
+            o.push(0x12);
+            i(o, *t);
+            i(o, *queued);
+        }
+        C::Gather { ox, queued } => {
+            o.push(0x13);
+            i(o, *ox);
+            i(o, *queued);
+        }
+        C::Garrison { ox, whom, queued } => {
+            o.push(0x14);
+            for v in [*ox, *whom, *queued] {
+                i(o, v);
+            }
+        }
+        C::Disband { all } => {
+            o.push(0x15);
+            i(o, *all);
+        }
+        C::GatherPoint {
+            x,
+            y,
+            action,
+            add_to_end,
+        } => {
+            o.push(0x16);
+            for v in [*x, *y, *action, *add_to_end] {
+                i(o, v);
+            }
+        }
+        C::Spell {
+            ox,
+            whom,
+            spell,
+            x,
+            y,
+        } => {
+            o.push(0x17);
+            for v in [*ox, *whom, *spell, *x, *y] {
+                i(o, v);
+            }
+        }
+        C::QueueUp { unit, num } => {
+            o.push(0x18);
+            i(o, *unit);
+            i(o, *num);
+        }
+        C::Build {
+            x,
+            y,
+            x2,
+            y2,
+            build,
+            queued,
+        } => {
+            o.push(0x19);
+            for v in [*x, *y, *x2, *y2, *build, *queued] {
+                i(o, v);
+            }
+        }
+        C::EjectAll {
+            back_to_work,
+            who,
+            eject_o,
+            eject_who,
+        } => {
+            o.push(0x1a);
+            for v in [*back_to_work, *who, *eject_o, *eject_who] {
+                i(o, v);
+            }
+        }
+        C::Alarm => o.push(0x1b),
+        C::Flight {
+            ox,
+            whom,
+            shift,
+            ctrl,
+            alt,
+            orders,
+        } => {
+            o.push(0x1c);
+            for v in [*ox, *whom, *shift, *ctrl, *alt, *orders] {
+                i(o, v);
+            }
+        }
+        C::StopSpell => o.push(0x1d),
+        C::Follow { ox, whom, queued } => {
+            o.push(0x1e);
+            for v in [*ox, *whom, *queued] {
+                i(o, v);
+            }
+        }
+        C::Guard { ox, whom, queued } => {
+            o.push(0x1f);
+            for v in [*ox, *whom, *queued] {
+                i(o, v);
+            }
+        }
+        C::Unitmask { mask, set } => {
+            o.push(0x20);
+            i(o, *mask);
+            i(o, *set);
+        }
+        C::Buildmask { mask, set } => {
+            o.push(0x21);
+            i(o, *mask);
+            i(o, *set);
+        }
+        C::Hotkey {
+            group,
+            clear,
+            valid,
+            x,
+            y,
+            zoom,
+        } => {
+            o.push(0x22);
+            for v in [*group, *clear, *valid] {
+                i(o, v);
+            }
+            u(o, *x);
+            u(o, *y);
+            i(o, *zoom);
+        }
+        C::Recall => o.push(0x23),
+        C::Scramble => o.push(0x24),
+        C::Treaty { who, whom, treaty } => {
+            o.push(0x25);
+            for v in [*who, *whom, *treaty] {
+                i(o, v);
+            }
+        }
+        C::Declare { who, whom, treaty } => {
+            o.push(0x26);
+            for v in [*who, *whom, *treaty] {
+                i(o, v);
+            }
+        }
+        C::ClearTributes { who, whom } => {
+            o.push(0x27);
+            i(o, *who);
+            i(o, *whom);
+        }
+        C::ClearAll { who, whom } => {
+            o.push(0x28);
+            i(o, *who);
+            i(o, *whom);
+        }
+        C::Accept { who, whom } => {
+            o.push(0x29);
+            i(o, *who);
+            i(o, *whom);
+        }
+        C::Reject { who, whom } => {
+            o.push(0x2a);
+            i(o, *who);
+            i(o, *whom);
+        }
+        C::Tribute {
+            who,
+            whom,
+            good,
+            amount,
+        } => {
+            o.push(0x2b);
+            for v in [*who, *whom, *good, *amount] {
+                i(o, v);
+            }
+        }
+        C::DemandTribute {
+            who,
+            whom,
+            good,
+            amount,
+        } => {
+            o.push(0x2c);
+            for v in [*who, *whom, *good, *amount] {
+                i(o, v);
+            }
+        }
+        C::ProposeAttack {
+            who,
+            whom,
+            whose,
+            onoff,
+        } => {
+            o.push(0x2d);
+            for v in [*who, *whom, *whose, *onoff] {
+                i(o, v);
+            }
+        }
+        C::Buy { who, good, flags } => {
+            o.push(0x2e);
+            for v in [*who, *good, *flags] {
+                i(o, v);
+            }
+        }
+        C::Sell { who, good, flags } => {
+            o.push(0x2f);
+            for v in [*who, *good, *flags] {
+                i(o, v);
+            }
+        }
+        C::Unqueue {
+            who,
+            o: ob,
+            unit,
+            uid,
+        } => {
+            o.push(0x30);
+            for v in [*who, *ob, *unit] {
+                i(o, v);
+            }
+            o.extend(uid.to_le_bytes());
+        }
+        C::ComeOut { who, o: ob, uid } => {
+            o.push(0x31);
+            i(o, *who);
+            i(o, *ob);
+            o.extend(uid.to_le_bytes());
+        }
+        C::Ping { x, y } => {
+            o.push(0x32);
+            i(o, *x);
+            i(o, *y);
+        }
+        C::Spline {
+            kind,
+            flags,
+            cmd,
+            verts,
+        } => {
+            o.extend([0x33, *kind, *flags, *cmd]);
+            o.extend((verts.len() as u16).to_le_bytes());
+            for (x, y) in verts {
+                u(o, *x);
+                u(o, *y);
+            }
+        }
+        C::SpeedSet { speed } => {
+            o.push(0x34);
+            i(o, *speed);
+        }
+        C::SpeedUp => o.push(0x35),
+        C::SpeedDown => o.push(0x36),
+        C::MpLog => o.push(0x37),
+        C::CheckRandom { seed } => {
+            o.push(0x38);
+            u(o, *seed);
+        }
+        C::CheckSums { sums } => {
+            o.push(0x39);
+            for s in sums {
+                u(o, *s);
+            }
+        }
+        C::NextCheckSum { kind, checksum } => {
+            o.extend([0x3a, *kind]);
+            u(o, *checksum);
+        }
+        C::CheatViewAll { who } => {
+            o.push(0x3b);
+            i(o, *who);
+        }
+        C::CheatGiveTechs { who } => {
+            o.push(0x3c);
+            i(o, *who);
+        }
+        C::CheatZeroTechs { who } => {
+            o.push(0x3d);
+            i(o, *who);
+        }
+        C::CheatAiSpeedIncrease => o.push(0x3e),
+        C::CheatAiSpeedNormal => o.push(0x3f),
+        C::CheatAiToggle => o.push(0x40),
+        C::CheatIncreaseBuckets { who } => {
+            o.push(0x41);
+            i(o, *who);
+        }
+        C::CheatZeroBuckets { who } => {
+            o.push(0x42);
+            i(o, *who);
+        }
+        C::CheatInitUnit { who, t, x, y } => {
+            o.push(0x43);
+            for v in [*who, *t, *x, *y] {
+                i(o, v);
+            }
+        }
+        C::Chat {
+            bits,
+            taunt,
+            taunt_num,
+            text,
+        } => {
+            o.push(0x44);
+            for v in [*bits, *taunt, *taunt_num] {
+                i(o, v);
+            }
+            let n = text.encode_utf16().count();
+            u(o, n as u32);
+            wchars(o, text, n + 1);
+        }
+        C::ChatSet { status } => {
+            o.push(0x45);
+            o.extend(status);
+        }
+        C::Resign { play } => {
+            o.push(0x46);
+            i(o, *play);
+        }
+        C::Quit {
+            play,
+            replay,
+            system_quit,
+        } => {
+            o.push(0x47);
+            i(o, *play);
+            o.extend([*replay, *system_quit]);
+        }
+        C::Camera { zoom, x, y } => {
+            o.extend([0x48, *zoom]);
+            i(o, *x);
+            i(o, *y);
+        }
+        C::LeaderOptions {
+            who,
+            peasants,
+            peasants_wait,
+            buildings,
+            mask,
+        } => {
+            o.push(0x49);
+            for v in [*who, *peasants, *peasants_wait, *buildings] {
+                i(o, v);
+            }
+            o.extend(mask);
+        }
+        C::TurnData {
+            ping_time,
+            frame_average,
+            wait_time,
+            game_lag,
+            forced_loads,
+        } => {
+            o.push(0x4a);
+            for v in [
+                *ping_time,
+                *frame_average,
+                *wait_time,
+                *game_lag,
+                *forced_loads,
+            ] {
+                o.extend(v.to_le_bytes());
+            }
+        }
+        C::RenameCity {
+            who,
+            o: ob,
+            name,
+            after_nul,
+        } => {
+            o.push(0x4b);
+            i(o, *who);
+            i(o, *ob);
+            let mut units: Vec<u16> = name.encode_utf16().collect();
+            if !after_nul.is_empty() {
+                units.push(0);
+                units.extend(after_nul);
+            }
+            units.resize(22, 0);
+            for u in units {
+                o.extend(u.to_le_bytes());
+            }
+        }
+        C::Pause { state } => o.extend([0x4c, *state]),
+        C::CannonTime { state } => o.extend([0x4d, *state]),
+        C::ConsoleCmd {
+            mouse_x,
+            mouse_y,
+            cmd,
+        } => {
+            o.push(0x4e);
+            i(o, *mouse_x);
+            i(o, *mouse_y);
+            wchars(o, cmd, 256);
+        }
+        C::PlayerSpeed { accum } => {
+            o.push(0x4f);
+            o.extend(accum);
+        }
+        C::UngracefulPlayerDrop { play, state } => o.extend([0x50, *play, *state]),
+        C::Marwan { start } => o.extend([0x51, *start]),
+    }
 }
 
 #[cfg(test)]
