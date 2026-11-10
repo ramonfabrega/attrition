@@ -101,12 +101,14 @@ pub fn tileset_draw(chances: &[(String, i32)], rng: &mut Rng) -> Option<String> 
 
 const STYLE: &str = "GREATLAKES.xml";
 
-/// **Great Lakes' map, composed** — `Map::load_map_data`, `Map::make` and
-/// `Terrain::init` to 894, in `Setup::build_game`'s order, on one stream
+/// **Great Lakes' map, composed** — `Map::load_map_data`, `Map::make`,
+/// `Terrain::init` to 894 and `Terrain::mark_forest`, in
+/// `Setup::build_game`'s order, on one stream
 /// from `lobby.at_716`. `check` is handed every checkpoint the setup trace
 /// prints for these phases, in order: 7805, 7807, 7854, 7859, 7861, 7865,
 /// 7870, 7927, 7937, 7945, `Terrain.cpp` 720 and 738, `map.cpp` 5012,
-/// 5014, 5076, 5116 and 5118, and `Terrain.cpp` 894.
+/// 5014, 5076, 5116 and 5118, `Terrain.cpp` 894, and `setup.cpp` 884
+/// after `Terrain::mark_forest`.
 pub fn great_lakes_map(
     root: &Path,
     lobby: &LakesLobby,
@@ -257,6 +259,10 @@ pub fn great_lakes_map(
         ));
     }
     say("Terrain.cpp", 894, &grid, &d.rng, lists);
+    // `Setup::build_game`'s `Terrain::mark_forest`, after `Terrain::init`
+    // returns (setup.cpp 759, 766 move no world part), checked at 884.
+    grid.mark_forest();
+    say("setup.cpp", 884, &grid, &d.rng, lists);
     Ok(LakesMap {
         grid,
         z,

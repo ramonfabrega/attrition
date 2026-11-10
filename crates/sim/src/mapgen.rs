@@ -293,6 +293,43 @@ impl MapGrid {
         (4 * self.xs, 4 * self.ys)
     }
 
+    /// **`Terrain::mark_forest@00850d40`**, the last of the map's writes
+    /// before `Setup::build_game` places anyone (`setup.cpp` 884, part 6;
+    /// `docs/START.md` §2 step 4): every tile whose surface bits are
+    /// forest (`mask & 0x30 == 0x30`) in a FOREST cell (`flags & 0x20`)
+    /// gives 0x8 to the twelve tiles up and to the left of it that are on
+    /// the map — the canopy's reach. The twelve offsets are two
+    /// `int[12]` tables the function loads from `.rdata` (0x00b69890,
+    /// 0x00b69cd0, 0x00b69ce0 for x; 0x00b69d20, 0x00b69cf0, 0x00b69cc0 for
+    /// y), read off the PE: `(−1, 0)`, `(−2, −1)`, `(−1, −1)`, `(0, −1)`,
+    /// `(−3, −2)`, `(−2, −2)`, `(−1, −2)`, `(−4, −3)`, `(−3, −3)`, `(−2,
+    /// −3)`, `(−4, −4)`, `(−3, −4)`. Its particle-system lookup draws and
+    /// writes nothing.
+    pub fn mark_forest(&mut self) {
+        const DX: [i32; 12] = [-1, -2, -1, 0, -3, -2, -1, -4, -3, -2, -4, -3];
+        const DY: [i32; 12] = [0, -1, -1, -1, -2, -2, -2, -3, -3, -3, -4, -4];
+        let (tw, th) = self.tile_dims();
+        for cy in 0..self.ys {
+            for cx in 0..self.xs {
+                if self.cells[(cy * self.xs + cx) as usize].flags & 0x20 == 0 {
+                    continue;
+                }
+                for k in 0..16 {
+                    let (tx, ty) = (cx * 4 + (k & 3), cy * 4 + (k >> 2));
+                    if self.tiles[(ty * tw + tx) as usize] & 0x30 != 0x30 {
+                        continue;
+                    }
+                    for (dx, dy) in DX.iter().zip(&DY) {
+                        let (x, y) = (tx + dx, ty + dy);
+                        if (0..tw).contains(&x) && (0..th).contains(&y) {
+                            self.tiles[(y * tw + x) as usize] |= 8;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /// Part 6: the tile masks (two bytes a tile), then `seen`, `seen2` and
     /// `seen3`, `fog_size` bytes each. Map generation writes none of the
     /// three, so they walk as zeros; `fog_size` is `4·xs·ys` (`fog_xs` is

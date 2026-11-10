@@ -91,6 +91,20 @@ impl Setup<'_> {
         self.sim.activate(b, captured, counted)
     }
 
+    /// [`Sim::produce_building`] (`ai/ai_place.rs`): at frame 0, its
+    /// arm for `Setup::small_city_buildings` and `build_civ_specific`
+    /// (`docs/START.md` §2 step 7).
+    pub fn produce_building(
+        &mut self,
+        who: Player,
+        rec: usize,
+        near: usize,
+        city: Option<usize>,
+        escrow: bool,
+    ) -> bool {
+        self.sim.produce_building(who, rec, near, city, escrow)
+    }
+
     /// [`Sim::close_building`] (`cities/city.rs`).
     pub fn close_building(&mut self, b: usize, silent: bool) {
         self.sim.close_building(b, silent)

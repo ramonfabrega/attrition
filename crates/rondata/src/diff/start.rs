@@ -202,6 +202,104 @@ pub struct FromLobby {
     /// the map, `(file, line, word)`: what a setup trace checks the draws
     /// of the permutation, `Leader::init` and `build_empire` against.
     pub words: Vec<(&'static str, i64, u32)>,
+    /// The stream's word after each step of each `build_empire` this crate
+    /// carries, `(seat, step, word)`: the village, then each pre-placed
+    /// building in production order. No setup checkpoint falls inside
+    /// `build_empire` (1032 to 1148); a draw-site trace of the same lobby
+    /// does (`rontrace-run100.log`), and the test holds these against it.
+    pub empire_words: Vec<(usize, &'static str, u32)>,
+}
+
+/// **`Setup::small_city_buildings@005aae10` and
+/// `Setup::build_civ_specific@005ab760`** (`docs/START.md` §2 step 7;
+/// `docs/ORDERS.md` §9.2) for seat `who`, whose village is building `b`
+/// of city `c`: each building through `Leader::produce_building`'s frame-0
+/// arm, anchored on the village — the Woodcutter's Camp, three Farms
+/// (none for the Lakota, `has_tribe_bonus(0x13)`), the Library; then a
+/// Market for powers 4 and 0x16, a University for 5 when
+/// `GREEK_UNIVERSITY_EARLY > 1`, a Temple for 0x10 when
+/// `KOREAN_TEMPLE_UPGRADES > 1`, a Granary for 7 when
+/// `EGYPTIAN_GRANARY_EARLY > 1`, a Lumber Mill for 10 when
+/// `FRENCH_LUMBERMILL_EARLY > 1`. Refused, with the reason: a Large Town
+/// (`starting_town` 3, `large_city_buildings`), the Americans' farm count
+/// and the Iroquois' Senate (neither constant is loaded), and a refused
+/// placement.
+pub fn pre_placed_buildings(
+    sim: &mut Sim,
+    loaded: &Loaded,
+    who: usize,
+    b: usize,
+    c: usize,
+    starting_town: i64,
+    words: &mut Vec<(usize, &'static str, u32)>,
+) -> Result<(), String> {
+    let bonus = |sim: &Sim, n: usize| {
+        sim.tables
+            .tech_tree
+            .has_tribe_bonus(&sim.tables.setup, &sim.tech[who], n)
+    };
+    let mut produce = |sim: &mut Sim, t: i32| -> Result<(), String> {
+        let rec = loaded
+            .build_of_type_index(t)
+            .ok_or_else(|| format!("no build type {t:#x}"))?;
+        if sim
+            .setup()
+            .produce_building(who as sim::Player, rec, b, Some(c), false)
+        {
+            let name = match t {
+                0x1a2 => "woodcutter",
+                0x1a1 => "farm",
+                0x1b3 => "library",
+                _ => "civ-specific",
+            };
+            words.push((who, name, sim.rng.seed));
+            Ok(())
+        } else {
+            Err(format!("produce_building refused type {t:#x}"))
+        }
+    };
+    match starting_town {
+        2 => {
+            produce(sim, 0x1a2)?;
+            if bonus(sim, 0x14) {
+                return Err("the Americans' starting farms are not loaded".into());
+            }
+            if !bonus(sim, 0x13) {
+                for _ in 0..3 {
+                    produce(sim, 0x1a1)?;
+                }
+            }
+            produce(sim, 0x1b3)?;
+        }
+        3 => return Err("a Large Town's list is not built".into()),
+        _ => {}
+    }
+    let tt = &sim.tables.tech_tree;
+    let (greek, korean, egyptian, french) = (
+        tt.greek_university_early,
+        tt.korean_temple_upgrades,
+        tt.egyptian_granary_early,
+        tt.french_lumbermill_early,
+    );
+    if bonus(sim, 4) || bonus(sim, 0x16) {
+        produce(sim, 0x1b4)?;
+    }
+    if bonus(sim, 5) && greek > 1 {
+        produce(sim, 0x1a4)?;
+    }
+    if bonus(sim, 0x10) && korean > 1 {
+        produce(sim, 0x1b5)?;
+    }
+    if bonus(sim, 7) && egyptian > 1 {
+        produce(sim, 0x1a7)?;
+    }
+    if bonus(sim, 10) && french > 1 {
+        produce(sim, 0x1a8)?;
+    }
+    if bonus(sim, 0x12) {
+        return Err("the Iroquois' Senate constant is not loaded".into());
+    }
+    Ok(())
 }
 
 /// **`Setup::build_game`'s start permutation** (`docs/START.md` §2 step
@@ -508,6 +606,7 @@ pub fn from_lobby(
     // 4. The map (composed above).
     steps.push(("Map::make and Terrain::init", map_built));
     let mut words = Vec::new();
+    let mut empire_words = Vec::new();
     if map_built {
         // 5. The start permutation, off the map's stream (`setup.cpp` 884
         // -> 955). Great Lakes randomises its starts.
@@ -553,29 +652,53 @@ pub fn from_lobby(
         // 0)` — finished and active, its `City::init` wearing the site
         // values down round it — then `compute_all_territory`.
         let village = loaded.build_named("Small City");
-        let mut slot = 0;
-        for &who in start_list.iter().filter(|&&w| w < players) {
+        let town = int("STARTING_TOWN").unwrap_or(0);
+        let mut buildings_built = true;
+        for (slot, &who) in start_list.iter().filter(|&&w| w < players).enumerate() {
             let (Some(ty), Some(&(sx, sy))) = (village, starts.get(slot)) else {
                 notes.push(format!(
                     "build_cities: no village type or no start cell {slot}"
                 ));
                 break;
             };
-            slot += 1;
             let pos = sim.snap_center(ty, Pos::new(sx * 0x300, sy * 0x300));
             let b = sim.setup().init_build(who as sim::Player, ty, pos, false);
             sim.setup().activate(b, false, false);
             sim.setup().sync_territory();
             sim.setup().settle_borders();
+            empire_words.push((who, "village", sim.rng.seed));
+            match sim.buildings[b].city {
+                Some(c) => {
+                    if let Err(e) =
+                        pre_placed_buildings(&mut sim, loaded, who, b, c, town, &mut empire_words)
+                    {
+                        notes.push(format!("build_cities, seat {who}: {e}"));
+                        buildings_built = false;
+                    }
+                }
+                None => {
+                    notes.push(format!(
+                        "build_cities, seat {who}: the village founded no city"
+                    ));
+                    buildings_built = false;
+                }
+            }
         }
         steps.push(("build_empire: build_cities (the village)", true));
+        steps.push((
+            "build_empire: small_city_buildings, build_civ_specific",
+            buildings_built,
+        ));
     } else {
         steps.push(("the start permutation", false));
         steps.push(("Leader::init (the personality roll)", false));
         steps.push(("build_empire: build_cities (the village)", false));
+        steps.push((
+            "build_empire: small_city_buildings, build_civ_specific",
+            false,
+        ));
     }
     for step in [
-        "build_empire: small_city_buildings, produce_building, build_civ_specific",
         "build_empire: build_units, place_unit",
         "World::analyze_map, compute_all_territory",
         "Herd::create_units",
@@ -591,6 +714,7 @@ pub fn from_lobby(
         notes,
         checkpoints,
         words,
+        empire_words,
     }
 }
 
@@ -686,7 +810,7 @@ mod tests {
             lines,
             [
                 7805, 7807, 7854, 7859, 7861, 7865, 7870, 7927, 7937, 7945, 720, 738, 5012, 5014,
-                5076, 5116, 5118, 894
+                5076, 5116, 5118, 894, 884
             ],
             "the checkpoints the chain prints"
         );
@@ -709,6 +833,36 @@ mod tests {
         assert_eq!(
             ours.words.iter().map(|w| w.1).collect::<Vec<_>>(),
             [955, 13457, 1032]
+        );
+        // Inside the first `build_empire` (seat 1, the computer): the
+        // stream after the village and each pre-placed building, against
+        // the draw-site trace of the same lobby (`rontrace-run100.log`,
+        // `tools/trace/report.py … draws setup`): the seed before the first
+        // draw of each group from 1032's word on. The village draws
+        // nothing (`build_cities` calls `Build::init` itself); the camp's
+        // `Objects::init_build` spends 244 in `Build::find_gather_tiles`;
+        // each farm its `produce_building` candidates (+0xc99), its jitter
+        // (+0x1805) and its `Farms::add`; the library its jitter and then
+        // `find_road`'s 189 for the city's roads. The next group is
+        // `Setup::place_unit`'s, `build_units`', which this crate does not
+        // carry (`docs/START.md` §2 step 7).
+        let seat1: Vec<(&str, u32)> = ours
+            .empire_words
+            .iter()
+            .filter(|w| w.0 == 1)
+            .map(|w| (w.1, w.2))
+            .collect();
+        assert_eq!(
+            seat1,
+            [
+                ("village", 0xf229_9eda),
+                ("woodcutter", 0x726d_bbde),
+                ("farm", 0x82cb_af4f),
+                ("farm", 0xc770_881b),
+                ("farm", 0xa4b0_725a),
+                ("library", 0x4a91_dcb1),
+            ],
+            "seat 1's build_empire against run100's draw sites"
         );
     }
 
@@ -770,20 +924,22 @@ mod tests {
     }
 
     /// The harness lobby's first parted row, `record field: ours theirs`:
-    /// the first cell a pre-placed building's footprint marks (0x4000),
-    /// which `small_city_buildings` (not built) stands up (item 4047;
-    /// `docs/START.md` §4). Item 4033 pinned `LEADER 0 at_war`; item 4046
-    /// built the war row and the map's first cell parted; item 4047
-    /// composed Great Lakes' chain (every cell's `land`, region, value and
-    /// flag as the map maker leaves them), then the villages, whose
-    /// `City::init` wears the values down and whose territory is every
-    /// cell's owner.
-    const START_FIRST_PARTING: Option<&str> = Some("CELL 53 21 flags: ours 0 theirs 16384");
+    /// a footprint flag round the human's farms, which stand elsewhere
+    /// because the computer's `build_units` (not built) spends its draws
+    /// ahead of them (item 4047; `docs/START.md` §4). Item 4033 pinned
+    /// `LEADER 0 at_war`; item 4046 built the war row and the map's first
+    /// cell parted; item 4047 composed Great Lakes' chain (every cell's
+    /// `land`, region, value and flag as the map maker leaves them), the
+    /// villages (their wear on the values, the territory), and the
+    /// pre-placed buildings — the computer's six where the original puts
+    /// them, the human's camp too.
+    const START_FIRST_PARTING: Option<&str> = Some("CELL 2 37 flags: ours 512 theirs 640");
     /// The harness lobby's agreeing fields, of the installed block's:
-    /// 18,001 of 18,264 (item 4047, +8,912 on 4046's 9,089: the map, the
-    /// computer's personality, the two villages and the territory) — the
-    /// parted are the pre-placed buildings' and after: 21 flags their
-    /// footprints set (0x80, 0x4000), 11 buildings and 52 units (the
-    /// players' 12 and gaia's 40, each of four fields) and the sync word.
-    const START_AGREE: (usize, usize) = (18001, 18264);
+    /// 18,039 of 18,264 (item 4047, +8,950 on 4046's 9,089: the map, the
+    /// computer's personality, the villages and the territory, the
+    /// pre-placed buildings' types and the seven that stand right) — the
+    /// parted are the human's five other buildings' positions and 11
+    /// footprint flags, 52 units (the players' 12 and gaia's 40, each of
+    /// four fields) and the sync word.
+    const START_AGREE: (usize, usize) = (18039, 18264);
 }
