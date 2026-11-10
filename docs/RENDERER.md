@@ -1227,6 +1227,12 @@ The 3294 rows are kept as the packet's frame.
 - *The trees* (4080, before its count; §3.7). A tree hides what is
   behind it; its pixel is the ground's; it is never scored. Rejected:
   `TreePixels::Scene`.
+- *The leaves* (4082, before its count; §3.7). A tree's fragment is kept
+  where its texture's bilinear texel alpha exceeds 0, `render_states[9]`'s
+  `alpha_ref`, and a triangle wound counter-clockwise on the target is
+  culled, `cull_mode` 2 (`Leaves::Alpha`). Rejected: `Leaves::Solid`,
+  every triangle whole (4080's draw). The window draws its trees flat
+  green with no texture bound (4038a), so only the key buffer cuts.
 - *What it does not measure.* Colour: textures and team colours are not
   bound (4038a); the trees' leaf alpha would move the row (4080a).
 - *Where the inputs are.* The photograph is converted once to `.tga`
