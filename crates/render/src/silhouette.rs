@@ -174,27 +174,30 @@ pub const READING: Reading = Reading {
     threshold: 0.5,
 };
 
-/// **Candidate C's first row, pinned** (item 4038; `docs/RENDERER.md`
+/// **Candidate C's frame drawn at rest** (item 4038; `docs/RENDERER.md`
 /// §5.3): on the Aztec Modern pair's frame 3294 at run1559b's camera, the
 /// objects whose footprint overlaps run1559b's photograph by
-/// [`READING`]'s half or more, of the objects scored — new, from nothing
-/// (`client::silhouette`'s test holds it). The misses are the tanks, whose
-/// footprint the colour reader takes for grass and which sit above the
-/// photograph's (4065b, 4065c); the capital, drawn as its `zbuffer` model;
-/// the figures by the derrick, among trees the client does not draw; and
-/// every figure's facing, a quarter turn off (4067a). Drawn at rest.
-pub const RUN1559B_3294: (usize, usize) = (3, 23);
+/// [`READING`]'s half or more, of the objects scored (`client::silhouette`'s
+/// test holds it). Item 4069: 3 → 2, at the original's facing
+/// (`render::figure::guy_placement`): 1/24 0.528 → 0.394 falls, 0/0 0.521
+/// → 0.670 and 0/5 0.599 → 0.718 hold. The rest pose is no frame the
+/// original draws; the row is held beside [`RUN1559B_3294_POSED`], which
+/// is the client's default.
+pub const RUN1559B_3294: (usize, usize) = (2, 23);
 
-/// **The same frame with every figure posed** at its animation slot and
-/// clock (item 4067, `render::figure::posed`): 3 → 1 of 23. The pose is
-/// the original's, but it turns a rifleman side-on, and at the drawn
-/// facing he then aims a quarter turn off the photograph's; at rest the
-/// near-symmetric figure hid that (parked 4067a). Held so the facing item
-/// lands against it.
-pub const RUN1559B_3294_POSED: (usize, usize) = (1, 23);
+/// **Candidate C's row: the same frame with every figure posed** at its
+/// animation slot and clock (item 4067, `render::figure::posed`), the
+/// client's default. Item 4069: 1 → 6 of 23, drawn at the original's
+/// facing, the model's y negated and turned by `GuyOut::draw`'s angle with
+/// x towards y (`render::figure::guy_placement`) rather than reflected in
+/// world y: 0/0 0.160 → 0.938, 0/8 0.245 → 0.565, 0/9 0.313 → 0.571, 1/21
+/// 0.498 → 0.647, 1/23 0.280 → 0.616 pass, 0/5 0.566 → 0.820 holds; the
+/// tanks 1/40 0.135 → 0.300 and 1/16 0.037 → 0.091 stay under, at the
+/// colour reader (4065b) and ~40 px above the photograph's (4065c).
+pub const RUN1559B_3294_POSED: (usize, usize) = (6, 23);
 
-/// The same frame scored at run1441's camera of it, which the photograph
-/// was not taken at: the comparison made to fail (item 4038).
+/// The same frame, drawn posed, scored at run1441's camera of it, which the
+/// photograph was not taken at: the comparison made to fail (item 4038).
 pub const RUN1441_CAMERA_3294: (usize, usize) = (0, 25);
 
 /// One object's two footprints in its window.
