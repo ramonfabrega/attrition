@@ -426,9 +426,18 @@ pub fn from_lobby(
             }
         }
     })();
+    let mut starts: Vec<(i32, i32)> = Vec::new();
     let world = match map {
         Some((m, sea)) => {
             rng = m.draws.rng;
+            // `World.start_x/start_y` (+0x80, +0x9c): the map maker's
+            // start cells, which `build_cities` reads by slot.
+            starts = m.grid.starts[0]
+                .list
+                .iter()
+                .zip(&m.grid.starts[1].list)
+                .map(|(&x, &y)| (x, y))
+                .collect();
             let sea = sim::mapgen::terrain_init::sea_map_after_make(
                 sim::mapgen::terrain_init::WORLD_SEA_MAP_BEFORE,
                 sea,
@@ -536,12 +545,37 @@ pub fn from_lobby(
         }
         words.push(("setup.cpp", 1032, sim.rng.seed));
         steps.push(("Leader::init (the personality roll)", true));
+        // 7. `build_empire(who, slot)` for each active seat in the
+        // permutation's order, the k-th empire built taking start cell k
+        // (no team style 7 and no teammates on this lobby: every seat is
+        // on team 8). `build_cities`: the village at `snap_center` of the
+        // start cell's corner, `Build::init` and `Build::activate(0, 0,
+        // 0)` — finished and active, its `City::init` wearing the site
+        // values down round it — then `compute_all_territory`.
+        let village = loaded.build_named("Small City");
+        let mut slot = 0;
+        for &who in start_list.iter().filter(|&&w| w < players) {
+            let (Some(ty), Some(&(sx, sy))) = (village, starts.get(slot)) else {
+                notes.push(format!(
+                    "build_cities: no village type or no start cell {slot}"
+                ));
+                break;
+            };
+            slot += 1;
+            let pos = sim.snap_center(ty, Pos::new(sx * 0x300, sy * 0x300));
+            let b = sim.setup().init_build(who as sim::Player, ty, pos, false);
+            sim.setup().activate(b, false, false);
+            sim.setup().sync_territory();
+            sim.setup().settle_borders();
+        }
+        steps.push(("build_empire: build_cities (the village)", true));
     } else {
         steps.push(("the start permutation", false));
         steps.push(("Leader::init (the personality roll)", false));
+        steps.push(("build_empire: build_cities (the village)", false));
     }
     for step in [
-        "build_empire: build_cities, produce_building, build_civ_specific",
+        "build_empire: small_city_buildings, produce_building, build_civ_specific",
         "build_empire: build_units, place_unit",
         "World::analyze_map, compute_all_territory",
         "Herd::create_units",
@@ -736,19 +770,20 @@ mod tests {
     }
 
     /// The harness lobby's first parted row, `record field: ours theirs`:
-    /// the first cell `City::fix_world_vals` wears down round the AI's
-    /// starting city, which `build_empire` (not built) stands up (item
-    /// 4047; `docs/START.md` §4). Item 4033 pinned `LEADER 0 at_war`; item
-    /// 4046 built the war row and the map's first cell parted; item 4047
-    /// composed Great Lakes' chain and every cell's `land` and region
-    /// agree, and every value and flag the map maker leaves.
-    const START_FIRST_PARTING: Option<&str> = Some("CELL 52 13 val: ours 13 theirs 6");
+    /// the first cell a pre-placed building's footprint marks (0x4000),
+    /// which `small_city_buildings` (not built) stands up (item 4047;
+    /// `docs/START.md` §4). Item 4033 pinned `LEADER 0 at_war`; item 4046
+    /// built the war row and the map's first cell parted; item 4047
+    /// composed Great Lakes' chain (every cell's `land`, region, value and
+    /// flag as the map maker leaves them), then the villages, whose
+    /// `City::init` wears the values down and whose territory is every
+    /// cell's owner.
+    const START_FIRST_PARTING: Option<&str> = Some("CELL 53 21 flags: ours 0 theirs 16384");
     /// The harness lobby's agreeing fields, of the installed block's:
-    /// 17,146 of 18,264 (item 4047, +8,057 on 4046's 9,089: the map, then
-    /// the computer's personality, rolled after the start permutation) —
-    /// the parted are `build_empire`'s and after: 314 values the cities
-    /// wear down, 29 flags their footprints set (0x80, 0x4000), 527
-    /// territory cells, 13 buildings and 52 units (each of four fields)
-    /// and the sync word.
-    const START_AGREE: (usize, usize) = (17146, 18264);
+    /// 18,001 of 18,264 (item 4047, +8,912 on 4046's 9,089: the map, the
+    /// computer's personality, the two villages and the territory) — the
+    /// parted are the pre-placed buildings' and after: 21 flags their
+    /// footprints set (0x80, 0x4000), 11 buildings and 52 units (the
+    /// players' 12 and gaia's 40, each of four fields) and the sync word.
+    const START_AGREE: (usize, usize) = (18001, 18264);
 }
