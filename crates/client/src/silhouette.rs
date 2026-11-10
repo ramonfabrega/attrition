@@ -1423,6 +1423,246 @@ mod tests {
     }
 
     #[test]
+    fn the_photograph_on_the_pixels_the_pine_covers() {
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        let size = (photo.width, photo.height);
+        world.run_to(PHOTO_FRAME);
+        let (figures, buildings, list) = world.draw_list(
+            &camera,
+            &crate::pinned_screen(),
+            (size.0 as i32, size.1 as i32),
+        );
+        let drawings = world.objects(&figures, &buildings, &list);
+        let sprites = world.sprite_drawings(&buildings, &list, camera.zoom_distance);
+        let scene = rasterize_cut(
+            &objects(&drawings),
+            &[],
+            &stamps(&sprites, drawings.len() as u32 + 1),
+            &camera,
+            size,
+        );
+        let trees = world.tree_drawings();
+        let cuts = world.tree_cuts();
+        let cut: Vec<_> = cuts.iter().map(Option::as_ref).collect();
+        let leaves = rasterize_cut(&objects(&trees), &cut, &[], &camera, size);
+        let key_of = |o: i16| -> Vec<u32> {
+            drawings
+                .iter()
+                .enumerate()
+                .filter(|(_, d)| (d.who, d.o, d.building) == (0, o, false))
+                .map(|(i, _)| i as u32 + 1)
+                .collect()
+        };
+        let w = size.0;
+        let mut boxes = Vec::new();
+        for o in [1i16, 2, 8, 10, 6, 9] {
+            let keys = key_of(o);
+            let px: Vec<usize> = (0..scene.keys.keys.len())
+                .filter(|&i| keys.contains(&scene.keys.keys[i]))
+                .collect();
+            let (x0, x1) = (
+                px.iter().map(|i| i % w).min().unwrap(),
+                px.iter().map(|i| i % w).max().unwrap(),
+            );
+            let (y0, y1) = (
+                px.iter().map(|i| i / w).min().unwrap(),
+                px.iter().map(|i| i / w).max().unwrap(),
+            );
+            println!("figure 0/{o}: {} px, x {x0}..={x1}, y {y0}..={y1}", px.len());
+            boxes.push((o, x0, x1, y0, y1));
+        }
+        // Every figure's pixels, ours, dilated by two: the leaf's reference
+        // excludes them.
+        let all_figs: Vec<u32> = boxes.iter().flat_map(|b| key_of(b.0)).collect();
+        let fig_at = |x: i64, y: i64| -> bool {
+            (-2..=2).any(|dy| {
+                (-2..=2).any(|dx| {
+                    let (xx, yy) = (x + dx, y + dy);
+                    xx >= 0
+                        && yy >= 0
+                        && all_figs.contains(&scene.keys.keys[yy as usize * w + xx as usize])
+                })
+            })
+        };
+        let rgb = |i: usize| -> [f32; 3] {
+            [
+                photo.rgba[i * 4] as f32,
+                photo.rgba[i * 4 + 1] as f32,
+                photo.rgba[i * 4 + 2] as f32,
+            ]
+        };
+        // The photograph's flat red: red over both other channels by 60.
+        let red = |c: [f32; 3]| c[0] - c[1] > 60.0 && c[0] - c[2] > 60.0;
+        // The leaf under a pixel: the mean of the photograph within seven
+        // pixels, under our pine, clear of every figure, and not red.
+        let leaf = |x: usize, y: usize| -> Option<[f32; 3]> {
+            let (mut sum, mut n) = ([0f32; 3], 0f32);
+            for yy in y.saturating_sub(7)..=y + 7 {
+                for xx in x.saturating_sub(7)..=x + 7 {
+                    let i = yy * w + xx;
+                    let c = rgb(i);
+                    if leaves.depth[i].is_finite() && !fig_at(xx as i64, yy as i64) && !red(c) {
+                        for k in 0..3 {
+                            sum[k] += c[k];
+                        }
+                        n += 1.0;
+                    }
+                }
+            }
+            (n >= 8.0).then(|| sum.map(|v| v / n))
+        };
+        // The figure's share of a pixel, under `c = a * (255, 0, 0) + (1 - a) * leaf`,
+        // read on the red and on the green channel apart.
+        let classify = |name: &str, px: &[usize]| {
+            let (mut bins, mut red_n, mut no_leaf) = ([0usize; 11], 0, 0);
+            let mut ar = Vec::new();
+            let mut ag = Vec::new();
+            for &i in px {
+                let (x, y) = (i % w, i / w);
+                let c = rgb(i);
+                red_n += red(c) as usize;
+                let Some(l) = leaf(x, y) else {
+                    no_leaf += 1;
+                    continue;
+                };
+                let a_g = (1.0 - c[1] / l[1].max(1.0)).clamp(-0.5, 1.5);
+                let a_r = ((c[0] - l[0]) / (255.0 - l[0]).max(1.0)).clamp(-0.5, 1.5);
+                // The share of `render_states[1]`'s tfactor colour (255, 82, 34)
+                // over the leaf, least squares on all three channels.
+                let t = [255.0f32, 82.0, 34.0];
+                let (mut num, mut den) = (0f32, 0f32);
+                for k in 0..3 {
+                    num += (c[k] - l[k]) * (t[k] - l[k]);
+                    den += (t[k] - l[k]) * (t[k] - l[k]);
+                }
+                let a_t = (num / den.max(1.0)).clamp(0.0, 1.0);
+                bins[(a_t * 10.0).round() as usize] += 1;
+                ar.push(a_r);
+                ag.push(a_g);
+            }
+            ar.sort_by(f32::total_cmp);
+            ag.sort_by(f32::total_cmp);
+            let q = |v: &[f32], f: f32| v.get(((v.len() as f32 - 1.0) * f) as usize).copied().unwrap_or(f32::NAN);
+            println!(
+                "{name}: {} px, red {red_n}, no leaf {no_leaf}; a by tfactor, tenths 0..=10 {bins:?}; a_g q10/50/90 {:.2}/{:.2}/{:.2}; a_r q10/50/90 {:.2}/{:.2}/{:.2}",
+                px.len(),
+                q(&ag, 0.1), q(&ag, 0.5), q(&ag, 0.9),
+                q(&ar, 0.1), q(&ar, 0.5), q(&ar, 0.9),
+            );
+        };
+        for &(o, ..) in &boxes {
+            let keys = key_of(o);
+            let px: Vec<usize> = (0..scene.keys.keys.len())
+                .filter(|&i| keys.contains(&scene.keys.keys[i]) && leaves.depth[i].is_finite())
+                .collect();
+            classify(&format!("0/{o} under the pine"), &px);
+            let shifted: Vec<usize> = px.iter().map(|i| i + 10).collect();
+            classify(&format!("0/{o} shifted 10 px"), &shifted);
+            // Where the photograph's red stands against our figure.
+            let (x0, x1, y0, y1) = boxes.iter().find(|b| b.0 == o).map(|b| (b.1 - 6, b.2 + 6, b.3 - 6, b.4 + 6)).unwrap();
+            let (mut ours_red, mut ours_n, mut red_out) = (0, 0, 0);
+            let (mut cr, mut co) = ((0f32, 0f32, 0f32), (0f32, 0f32, 0f32));
+            for y in y0..=y1 {
+                for x in x0..=x1 {
+                    let i = y * w + x;
+                    let mine = keys.contains(&scene.keys.keys[i]);
+                    let r = red(rgb(i));
+                    ours_n += mine as usize;
+                    ours_red += (mine && r) as usize;
+                    red_out += (!mine && r && !fig_at(x as i64, y as i64)) as usize;
+                    if mine { co = (co.0 + x as f32, co.1 + y as f32, co.2 + 1.0); }
+                    if r { cr = (cr.0 + x as f32, cr.1 + y as f32, cr.2 + 1.0); }
+                }
+            }
+            println!(
+                "0/{o} place: ours {ours_n}, of them red {ours_red}; red clear of every figure {red_out}; centroid ours ({:.1}, {:.1}) red ({:.1}, {:.1})",
+                co.0 / co.2, co.1 / co.2, cr.0 / cr.2, cr.1 / cr.2
+            );
+        }
+        // The woodcutter, which no tree covers: its own pixels.
+        let wood: Vec<u32> = (0..drawings.len() + sprites.len())
+            .filter(|&j| {
+                if j < drawings.len() {
+                    (drawings[j].who, drawings[j].o) == (0, 2001)
+                } else {
+                    (sprites[j - drawings.len()].who, sprites[j - drawings.len()].o) == (0, 2001)
+                }
+            })
+            .map(|j| j as u32 + 1)
+            .collect();
+        let wpx: Vec<usize> = (0..scene.keys.keys.len())
+            .filter(|&i| wood.contains(&scene.keys.keys[i]))
+            .collect();
+        classify("0/2001, the woodcutter", &wpx);
+        // The pine by row: ours, the one tree over the figures alone, and
+        // the photograph's foliage walked left from inside ours.
+        let pine = (0..trees.len())
+            .max_by_key(|&j| {
+                let one = [Object { key: 1, tris: trees[j].tris.clone() }];
+                let r = rasterize_cut(&one, &[cut[j]], &[], &camera, size);
+                (0..r.keys.keys.len()).filter(|&i| r.depth[i].is_finite() && all_figs.contains(&scene.keys.keys[i])).count()
+            })
+            .unwrap();
+        let lone = rasterize_cut(&[Object { key: 1, tris: trees[pine].tris.clone() }], &[cut[pine]], &[], &camera, size);
+        let foliage = |c: [f32; 3]| {
+            let grass = c[1] > 135.0 && c[0] > 130.0;
+            !grass && !red(c) && c[1] >= c[2] + 15.0
+        };
+        println!("the pine over the figures is tree {pine}");
+        for y in (384..=480).step_by(4) {
+            let row: Vec<usize> = (1600..1800).filter(|&x| lone.depth[y * w + x].is_finite()).collect();
+            let all = (1560..1800).find(|&x| leaves.depth[y * w + x].is_finite());
+            let (Some(&l), Some(&r)) = (row.first(), row.last()) else { continue };
+            let mut t = l + 5;
+            while t > 1560 && foliage(rgb(y * w + t - 1)) {
+                t -= 1;
+            }
+            println!("row {y}: pine ours {l}..={r}; every tree ours from {all:?}; the photograph's foliage from {t}");
+        }
+        if let Some(dir) = std::env::var_os("PROBE_DIR") {
+            let dir = PathBuf::from(dir);
+            let (x0, x1, y0, y1) = (1540usize, 1760usize, 300usize, 500usize);
+            let mut a = format!("P6 {} {} 255\n", x1 - x0, y1 - y0).into_bytes();
+            let mut b = a.clone();
+            for y in y0..y1 {
+                for x in x0..x1 {
+                    let i = y * w + x;
+                    let c = &photo.rgba[i * 4..i * 4 + 3];
+                    a.extend_from_slice(c);
+                    let k = scene.keys.keys[i];
+                    let fig = boxes.iter().position(|b| key_of(b.0).contains(&k));
+                    let pine = leaves.depth[i].is_finite();
+                    let o = match (fig, pine) {
+                        (Some(f), true) => [255, (40 * f) as u8, 255],
+                        (Some(f), false) => [255, (40 * f) as u8, 0],
+                        (None, true) => [0, 160, 0],
+                        (None, false) => [c[0] / 3, c[1] / 3, c[2] / 3],
+                    };
+                    b.extend_from_slice(&o);
+                }
+            }
+            std::fs::write(dir.join("photo.ppm"), a).unwrap();
+            std::fs::write(dir.join("ours.ppm"), b).unwrap();
+        }
+    }
+
+    #[test]
     fn the_woodcutter_s_right_edge_is_the_sprite_s_own() {
         let install = std::env::var_os("RON_INSTALL")
             .map(PathBuf::from)

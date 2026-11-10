@@ -1047,8 +1047,12 @@ The rejected readings, `TreePixels::Scene` and `Leaves::Solid`, read 26 and 25 o
 
 **What is not established.**
 - ~~The leaves' alpha~~: read and applied, above (item 4082).
-- Why four figures the photograph shows in front of the pine stand behind it in ours: a figure's depth or
-  position against the tree, or the photograph's reading (parked 4082a).
+- ~~Why four figures the photograph shows in front of the pine stand behind it in ours~~: they stand behind it in
+  the original too, and are drawn over it as silhouettes, `render_states[1]` (item 4085, §5.3 "The silhouettes").
+- Which land units take method list 1 rather than 0, 2 or 4 of `init_land_unit_map`: every figure on frame 3279's
+  photograph that stands behind a tree or the woodcutter is drawn so, and the selector is not read.
+- The order of figures among themselves in the guys pass (`Tree<Guy*,float>::ordered_insert`'s key), so whether a
+  farther figure's silhouette lies over a nearer figure.
 - The blend: the key buffer keeps a fragment whole where its alpha passes; the original blends it, which moves
   colour, not a footprint.
 - The depth of a building's sprite against a tree. Ours puts the anchor's flat draw-list depth against the tree's
@@ -1258,6 +1262,16 @@ The 3294 rows are kept as the packet's frame.
 - *The leaves* (4082, before its count; §3.7). A tree's fragment is kept
   where its bilinear texel alpha exceeds 0, culled counter-clockwise
   (`Leaves::Alpha`). Rejected: `Leaves::Solid`. The window does not cut.
+- *The silhouettes* (4085, before its count; §3.7). A land figure is
+  drawn twice, `render_states[1]` and then `[0]`
+  (`GraphicPieces::init_land_unit_map@008fa4b0`, method list 1), in
+  `ObjectsOut::pop_all_zoomed_in@00655e70`'s guys pass after
+  `flush_trees`. `[1]` tests depth Greater and writes none (packet:
+  enables `0x20085`, zfunc 4) and draws `tfactor` `0x80ff5222`, the
+  colour (255, 82, 34) at 128/255. So where a tree or a building's sprite
+  stands nearer than a figure, the figure's pixel is the figure's, and
+  the nearer depth is kept (`Silhouettes::Drawn`). Figures among
+  themselves keep depth order. Rejected: `Silhouettes::None`.
 - *What it does not measure.* Colour: textures and team colours are not
   bound (4038a).
 - *Where the inputs are.* The photograph is converted once to `.tga`

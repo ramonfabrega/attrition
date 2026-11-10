@@ -21,6 +21,7 @@ centre `(x·0x300 + 0x180, y·0x300 + 0x180)`, then
     cache <cx> <cy> <tick> <minx> <miny> <minz> <maxx> <maxy> <maxz>
     section <cx> <cy> <sec> <verts> <struct_size> <faces>
     rstate <index> <enables> <zfunc> <alpha_func> <alpha_ref> <src_blend> <dst_blend> <cull_mode>
+    rstage <index> <tfactor> <colorop0> <colorarg1_0> <colorarg2_0> <alphaop0> <alphaarg1_0> <alphaarg2_0>
 
 `section` is each cache entry's seven sections: `cache_verts[sec].length`,
 its `struct_size` in dwords and `cache_faces[sec]`'s length (item 4082).
@@ -28,7 +29,11 @@ its `struct_size` in dwords and `cache_faces[sec]`'s length (item 4082).
 sets (`GraphicPieces::init_tree_map@008f7c20` gives it the method), as the
 process holds it on the packet: the `RenderState` fields at their PDB
 offsets (`enables` 0x50, `zfunc` 0x58, `cull_mode` 0x70, `src_blend` 0x74,
-`dst_blend` 0x78, `alpha_func` 0x7c, `alpha_ref` 0x80).
+`dst_blend` 0x78, `alpha_func` 0x7c, `alpha_ref` 0x80). Item 4085 adds
+`rstate` and `rstage` rows for `render_states[0..3]`, the land units'
+(`GraphicPieces::init_land_unit_map@008fa4b0`); `rstage` is `tfactor`
+(0x5c) and stage 0's `colorop`/`colorarg1`/`colorarg2`/`alphaop`/
+`alphaarg1`/`alphaarg2` (0xac, 0xb4, 0xbc, 0xc4, 0xcc, 0xd4).
 
 `cache` is each `RTreeData::tree_cache` entry the packet holds: the cell
 (`TreeCacheEntry::wx`/`wy`), its `last_graphic_tick`, and the extent of the
@@ -132,6 +137,14 @@ def main(argv):
     rs = u32(u32(RENDER_STATES + 0x10) + 4 * 9)
     fields = [u32(rs + o) for o in (0x50, 0x58, 0x7C, 0x80, 0x74, 0x78, 0x70)]
     print(f"rstate 9 {fields[0]:#x} " + " ".join(str(v) for v in fields[1:]))
+    # Item 4085: the land units' states, `init_land_unit_map@008fa4b0`'s
+    # method lists 0..4 over `render_states[0..3]`, with the stage-0 ops.
+    for k in range(4):
+        rs = u32(u32(RENDER_STATES + 0x10) + 4 * k)
+        f = [u32(rs + o) for o in (0x50, 0x58, 0x7C, 0x80, 0x74, 0x78, 0x70)]
+        print(f"rstate {k} {f[0]:#x} " + " ".join(str(v) for v in f[1:]))
+        g = [u32(rs + o) for o in (0x5C, 0xAC, 0xB4, 0xBC, 0xC4, 0xCC, 0xD4)]
+        print(f"rstage {k} {g[0]:#010x} " + " ".join(str(v) for v in g[1:]))
     for cx, cy in sweeps:
         for mask in range(16):
             for slot in range(5):
