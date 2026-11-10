@@ -15924,14 +15924,14 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
 
 ## Parked by item 4076, 2026-11-10 — the buildings as the original draws them
 
-- **4076a. Candidate C's reader cannot score a building drawn right.** Drawn as their `texture=` sprites, placed
+- **4076a. Candidate C's reader cannot score a building drawn right.** ~~Drawn as their `texture=` sprites, placed
   on the photograph within a pixel or two by eye, frame 3279 at run1559b's camera reads 14 of 23 by the mask and 11
   of 23 by colour (`RUN1559B_3279_SPRITES`), against 16 of 24 and 13 of 24 on the `zbuffer` draw. The capital's
   sprite reaches y 573, so its ring meets the city's label (`INTERFACE`) and it is not scored. The woodcutter's ring
   is the forest's (0.351). Four figures beside the woodcutter fall, their rings on the sprite reading it as ground
   (0/8 0.916 → 0.587). The instrument was not moved (the brief's rule): the row stays scored on the `zbuffer` draw.
   It names candidate C's score: it books when the reader is given a building's footprint of its own, a mask traced
-  on the photograph as 4071's tanks were, or a reader that does not take a sprite's colours for the ground.
+  on the photograph as 4071's tanks were, or a reader that does not take a sprite's colours for the ground.~~ **Closed by item 4077**: the buildings traced on the photograph and the traced reader (`RENDERER.md` §5.3, "A traced region"), 14 of 23 → 27 of 33 (`RUN1559B_3279_TRACED`).
 - **4076b. The sprite's depth.** The client gives a sprite one depth, its anchor's, and blits it over the ground: a
   figure further than the anchor is hidden wherever the sprite covers it. In the original the `zbuffer` model is the
   building's depth, so a figure behind its walls is hidden by the model's own surface. How the model is placed and
@@ -15959,13 +15959,18 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   random arm, needs one short take of a file with that byte changed. It names no score until a lobby's choices
   carry a random nation that the block does not resolve.
 
-## Parked by the next landing, slot EE — reserved
+## Parked by item 4077, 2026-11-10 — a reader that can score a building
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4077a. Six rows miss on the default draw, five of them round one untraced tank** (`docs/RENDERER.md` §5.3;
+  `RUN1559B_3279_TRACED`). The tank 1/27 (piece 196), out of every row before because its ring met the selected
+  figure's portrait, is scored now that the interface reads as neither, and reads 0.259 (ours 4,244, theirs
+  1,249). It is the one tank of four 4071 did not trace, and its olive reads as the ground, as 4071 found of the
+  others. The riflemen 1/20, 1/32, 1/31 and 1/36 (piece 60, 0.497, 0.352, 0.429, 0.340) stand inside its window,
+  and each window counts our tank with nothing of the photograph's against it. A trace of 1/27 is the next word,
+  made on the photograph and pinned before its count; it was not made here because this item's count was already
+  read. The sixth, 0/10 (piece 4576, 0.383, ours 763 against 309), stands at the woodcutter's right edge, where our
+  sprite reaches x 1700 and the photograph's building, as traced, ends at 1688: the boom's addon (4076c), the
+  trace's edge, or the sprite's, not read. Names candidate C's score.
 
 ## Parked by the next landing, slot EF — reserved
 

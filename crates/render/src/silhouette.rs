@@ -295,9 +295,29 @@ pub const RUN1559B_3279: (usize, usize) = (4, 24);
 /// ring the forest's; and the figures beside it, whose rings lie on the
 /// sprite and read it as ground, fall: 0/9 0.753 → 0.410, 0/1 0.846 →
 /// 0.658, 0/10 0.531 → 0.354, 0/8 0.916 → 0.587, while 0/6 rises 0.280 →
-/// 0.474. The pinned rows above stay scored on the `zbuffer` draw.
+/// 0.474. The rows above are kept as the `zbuffer` draw's; candidate C's
+/// row on this draw is [`RUN1559B_3279_TRACED`] (item 4077).
 pub const RUN1559B_3279_SPRITES: (usize, usize) = (14, 23);
 pub const RUN1559B_3279_SPRITES_POSED: (usize, usize) = (11, 23);
+
+/// **Candidate C's row** (item 4077; `docs/RENDERER.md` §5.3, "A traced
+/// region"): frame 3279 at run1559b's camera on the client's default draw,
+/// the buildings as their sprites, read by [`footprints_traced`] over
+/// `client::silhouette::TRACED`. 14 of 23 → **27 of 33**: the interface
+/// read as neither brings in ten objects the old skip left out, among them
+/// the capital 0/2000 (0.872); the woodcutter 0/2001 0.351 → 0.652; the
+/// figures by it, their rings and windows clear of its trace, 0/9 0.410 →
+/// 0.711, 0/1 0.658 → 0.796, 0/10 0.354 → 0.383, 0/8 0.587 → 0.587; and
+/// 1/33 beside the tanks 0.360 → 0.549. No row crosses down.
+pub const RUN1559B_3279_TRACED: (usize, usize) = (27, 33);
+/// The rejected readings, reported beside the rule: a neighbour's trace as
+/// the scene; the interface skipped as before (the capital out); the paved
+/// plaza traced as the capital's (`client::silhouette::PLAZA`, 0/2000 0.818).
+pub const RUN1559B_3279_TRACED_SCENE: (usize, usize) = (27, 33);
+pub const RUN1559B_3279_TRACED_SKIP: (usize, usize) = (19, 23);
+pub const RUN1559B_3279_TRACED_PLAZA: (usize, usize) = (27, 33);
+/// The made-to-fail: the same frame and traces at run1441's camera.
+pub const RUN1441_CAMERA_3279_TRACED: (usize, usize) = (0, 32);
 
 /// The photograph's frame at run1441's camera, by colour and by the mask:
 /// the made-to-fail.
@@ -410,6 +430,151 @@ pub fn footprints_read(
         out.push(f);
     }
     out
+}
+
+/// One traced region of the photograph, and the key of the object of ours
+/// it is traced as (item 4077). A key no object holds makes the region
+/// every object's neighbour.
+#[derive(Clone, Copy, Debug)]
+pub struct Trace<'a> {
+    pub key: u32,
+    pub poly: &'a [(i32, i32)],
+}
+
+/// What a neighbour's traced region is to an object (item 4077;
+/// `docs/RENDERER.md` §5.3, "A traced region").
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Neighbour {
+    /// The rule: neither ground nor footprint, left out of both sides.
+    Neither,
+    /// The rejected reading: the photograph's scene, as colour would have
+    /// it.
+    Scene,
+}
+
+/// What the photograph's interface is to an object.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Interface {
+    /// The rule: its pixels are neither ground nor footprint, and an object
+    /// is scored when 40 or more of its pixels lie outside it.
+    Neither,
+    /// Items 4038 to 4076: an object whose window or ring meets it is not
+    /// scored.
+    Skip,
+}
+
+/// **The traced reader** (item 4077; `docs/RENDERER.md` §5.3, "A traced
+/// region"): each object's footprints, in key order, the photograph's side
+/// read by kind. A pixel under the interface is neither (by `interface`);
+/// one inside a trace of the object's own is its footprint; one inside a
+/// neighbour's is neither (by `neighbour`); any other is read by colour
+/// against the ring's pixels of that last kind where none of ours lies.
+pub fn footprints_traced(
+    keys: &Keys,
+    photo: &Photo<'_>,
+    interface: &[Rect],
+    reading: &Reading,
+    traces: &[Trace<'_>],
+    neighbour: Neighbour,
+    iface: Interface,
+) -> Vec<Footprint> {
+    assert_eq!((keys.width, keys.height), (photo.width, photo.height));
+    let (w, h) = (keys.width as i32, keys.height as i32);
+    let mut boxes: std::collections::BTreeMap<u32, (Rect, u32)> = Default::default();
+    for y in 0..h {
+        for x in 0..w {
+            let k = keys.at(x as usize, y as usize);
+            if k == 0 {
+                continue;
+            }
+            let shown = iface == Interface::Skip || !interface.iter().any(|r| r.contains(x, y));
+            let e = boxes.entry(k).or_insert((Rect::new(x, y, x + 1, y + 1), 0));
+            e.0 = Rect::new(
+                e.0.x0.min(x),
+                e.0.y0.min(y),
+                e.0.x1.max(x + 1),
+                e.0.y1.max(y + 1),
+            );
+            e.1 += u32::from(shown);
+        }
+    }
+    let frame = Rect::new(0, 0, w, h);
+    let mut out = Vec::new();
+    for (&key, &(own, pixels)) in &boxes {
+        if pixels < reading.min_pixels {
+            continue;
+        }
+        let window = own.grown(reading.margin);
+        let outer = window.grown(reading.ring);
+        let inside_frame =
+            outer.x0 >= 0 && outer.y0 >= 0 && outer.x1 <= frame.x1 && outer.y1 <= frame.y1;
+        if !inside_frame {
+            continue;
+        }
+        if iface == Interface::Skip && interface.iter().any(|r| r.meets(&outer)) {
+            continue;
+        }
+        out.push(read_traced(
+            keys, photo, interface, reading, traces, neighbour, iface, key, window,
+        ));
+    }
+    out
+}
+
+/// One window read by [`footprints_traced`]'s rule, as the object `key`
+/// sees it: a key no object holds reads every trace as a neighbour's.
+#[allow(clippy::too_many_arguments)]
+pub fn read_traced(
+    keys: &Keys,
+    photo: &Photo<'_>,
+    interface: &[Rect],
+    reading: &Reading,
+    traces: &[Trace<'_>],
+    neighbour: Neighbour,
+    iface: Interface,
+    key: u32,
+    window: Rect,
+) -> Footprint {
+    let outer = window.grown(reading.ring);
+    // 0 elsewhere, 1 its own trace, 2 a neighbour's, 3 the interface; its
+    // own trace wins where two overlap.
+    let kind = |x: i32, y: i32| -> u8 {
+        if iface == Interface::Neither && interface.iter().any(|r| r.contains(x, y)) {
+            return 3;
+        }
+        let mut k = 0;
+        for t in traces {
+            if inside(t.poly, x, y) {
+                if t.key == key {
+                    return 1;
+                }
+                k = 2;
+            }
+        }
+        k
+    };
+    let g = ground_where(keys, photo, window, outer, reading, |x, y| kind(x, y) == 0);
+    let mut f = Footprint {
+        key,
+        window,
+        ours: 0,
+        theirs: 0,
+        both: 0,
+    };
+    for y in window.y0..window.y1 {
+        for x in window.x0..window.x1 {
+            let t = match (kind(x, y), neighbour) {
+                (3, _) | (2, Neighbour::Neither) => continue,
+                (1, _) | (2, Neighbour::Scene) => true,
+                _ => !g.holds(photo, x, y),
+            };
+            let o = keys.at(x as usize, y as usize) != 0;
+            f.ours += u32::from(o);
+            f.theirs += u32::from(t);
+            f.both += u32::from(o && t);
+        }
+    }
+    f
 }
 
 /// How the photograph's side of a window is read.
@@ -614,6 +779,18 @@ pub fn ground(
     outer: Rect,
     reading: &Reading,
 ) -> Ground {
+    ground_where(keys, photo, window, outer, reading, |_, _| true)
+}
+
+/// [`ground`], sampling only the ring's pixels `sampled` admits.
+pub fn ground_where(
+    keys: &Keys,
+    photo: &Photo<'_>,
+    window: Rect,
+    outer: Rect,
+    reading: &Reading,
+    sampled: impl Fn(i32, i32) -> bool,
+) -> Ground {
     let bins = 256 >> reading.bin_bits;
     let mut g = Ground {
         bits: reading.bin_bits,
@@ -623,7 +800,7 @@ pub fn ground(
     let t = reading.tolerance;
     for y in outer.y0..outer.y1 {
         for x in outer.x0..outer.x1 {
-            if window.contains(x, y) || keys.at(x as usize, y as usize) != 0 {
+            if window.contains(x, y) || keys.at(x as usize, y as usize) != 0 || !sampled(x, y) {
                 continue;
             }
             let c = g.bin(photo, x, y);
@@ -794,6 +971,85 @@ mod tests {
     /// A traced polygon covers the pixels whose centres it holds, either
     /// winding: a 4×4 square 16, a right triangle of legs 4 the 6 centres
     /// strictly under its hypotenuse.
+    /// The traced reader's four kinds (item 4077): a 40×40 green photograph
+    /// holding a red square, object 1 of ours drawn on it and traced; a
+    /// neighbour's trace over part of its window, and an interface band.
+    #[test]
+    fn the_traced_reader_reads_each_kind_of_pixel_by_its_rule() {
+        let (w, h) = (40usize, 40usize);
+        let mut rgba = vec![0u8; w * h * 4];
+        let mut keys = vec![0u32; w * h];
+        for y in 0..h {
+            for x in 0..w {
+                let red = (14..26).contains(&x) && (14..26).contains(&y);
+                let i = (y * w + x) * 4;
+                rgba[i..i + 4].copy_from_slice(&if red {
+                    [200, 0, 0, 255]
+                } else {
+                    [0, 160, 0, 255]
+                });
+                if red {
+                    keys[y * w + x] = 1;
+                }
+            }
+        }
+        let photo = Photo {
+            width: w,
+            height: h,
+            rgba: &rgba,
+        };
+        let keys = Keys {
+            width: w,
+            height: h,
+            keys,
+        };
+        let own: &[(i32, i32)] = &[(14, 14), (26, 14), (26, 26), (14, 26)];
+        let theirs: &[(i32, i32)] = &[(14, 22), (26, 22), (26, 26), (14, 26)];
+        let read = |traces: &[Trace<'_>], n, i, iface: &[Rect]| {
+            footprints_traced(&keys, &photo, iface, &READING, traces, n, i)[0]
+        };
+        // Its own trace: footprint, all 144 pixels on both sides.
+        let f = read(
+            &[Trace { key: 1, poly: own }],
+            Neighbour::Neither,
+            Interface::Neither,
+            &[],
+        );
+        assert_eq!((f.ours, f.theirs, f.both), (144, 144, 144));
+        // A neighbour's over its bottom four rows: neither, or the scene.
+        let both = [
+            Trace { key: 1, poly: own },
+            Trace {
+                key: 9,
+                poly: theirs,
+            },
+        ];
+        let f = read(&both[1..], Neighbour::Neither, Interface::Neither, &[]);
+        assert_eq!((f.ours, f.theirs, f.both), (96, 96, 96));
+        let f = read(&both[1..], Neighbour::Scene, Interface::Neither, &[]);
+        assert_eq!((f.ours, f.theirs, f.both), (144, 144, 144));
+        // Its own trace wins where the two overlap.
+        let f = read(&both, Neighbour::Neither, Interface::Neither, &[]);
+        assert_eq!((f.ours, f.theirs, f.both), (144, 144, 144));
+        // The interface over its top two rows: neither, or the object
+        // skipped.
+        let band = [Rect::new(0, 0, 40, 16)];
+        let f = read(&[], Neighbour::Neither, Interface::Neither, &band);
+        assert_eq!((f.ours, f.theirs, f.both), (120, 120, 120));
+        assert!(
+            footprints_traced(
+                &keys,
+                &photo,
+                &band,
+                &READING,
+                &[],
+                Neighbour::Neither,
+                Interface::Skip
+            )
+            .is_empty()
+        );
+    }
+
     #[test]
     fn a_traced_polygon_holds_the_pixel_centres_inside_it() {
         let count = |poly: &[(i32, i32)]| {
