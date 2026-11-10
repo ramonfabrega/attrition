@@ -15943,13 +15943,21 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   `parallel_distance` and not `zoom_distance`. Names no score: candidate C is a silhouette and these are a
   building's colours or a camera the pinned rows do not take.
 
-## Parked by the next landing, slot ED — reserved
+## Parked by item 4058, 2026-11-10 — the recordings the round trip could not see
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ED renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4058a. The profile's own `Recorded Games` is not in the round trip's denominator** (`docs/RECGAME.md` §8.1).
+  `recgame`'s round trip counts the 49 recordings kept in the bottle's `Logs\` and the 2017 sample: 50 of 50.
+  run1036's ledger counted 942 files in `~/Documents/My Games/Rise of Nations/Recorded Games/`, where the game
+  writes one per match. That directory is consent-gated (the first `open` under it blocks until a person at the
+  Mac clicks Allow), so no test reads it, and this item did not open it. Whether the reader and the writer hold on
+  those 942 is not measured. It names no score until someone copies them beside the dumps, as the 48 were on
+  2026-08-28; `RECORDINGS_ON_DISK` will then fail loudly and want re-pinning.
+- **4058b. A slot written as the original writes it, tribe 24, is not played** (`docs/RECGAME.md` §8.2, §8.4). Our
+  file takes the `GAMEINFO` block's resolved nation (11) for the AI slot. The original's own recording of the same
+  lobby writes 24, the lobby's "random", and rolls it after the header. Both takes used 11 and agree everywhere,
+  so 11 is enough for this lobby. Whether a 24 replays the same, and whether anything but the nation reads the
+  random arm, needs one short take of a file with that byte changed. It names no score until a lobby's choices
+  carry a random nation that the block does not resolve.
 
 ## Parked by item 4077, 2026-11-10 — a reader that can score a building
 

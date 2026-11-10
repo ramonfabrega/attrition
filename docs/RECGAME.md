@@ -51,6 +51,8 @@ is *not derived* — it is skipped by landmark (§4.2).
   `empty` never cleared. `read_header` opens mode **1** (zlib read).
   **Consequence:** a recording whose game crashed before finalize is the
   same record, raw — a reader should sniff `1f 8b` rather than assume gzip.
+  Two of this install's recordings are exactly that, and both stop
+  mid-record (§8.1).
   The sample is finalized: 199,968 bytes compressed, 1,676,994 decompressed.
 - Everything below describes the **decompressed** stream. All integers are
   little-endian. There is no framing beyond the walk itself: the format is
@@ -352,3 +354,150 @@ All 21,045 RNG states match the earlier long trace, whose lifecycle failed.
 Quit is explicitly scheduled at the final recorded frame; natural EOF shutdown
 is not established. The 2017 recording's original-match fidelity and the
 self-contained sim score remain unmeasured.
+
+## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
+
+### 8.1 The round trip: every recording on disk, byte for byte
+
+`recgame::write` is `parse`'s inverse, written from §2–§4 rather than from
+`write_header`/`write_package`. `every_recording_on_disk_round_trips_byte_for_byte`
+decompresses, parses, re-encodes every payload through `commands::encode`
+(the decoder's inverse), writes, and compares the decompressed streams:
+**50 of 50** (`RECORDINGS_ROUND_TRIPPED` of `RECORDINGS_ON_DISK`), 288,407
+packages and 325,904 commands. The denominator is the bottle's `Logs\` (49,
+this install's, 2026-08-20 to 2026-09-27, `00.2024.06.2000`) and the 2017
+sample. The profile's own `Recorded Games` under `~/Documents` is not in it:
+that directory is consent-gated, and run1036's ledger counted 942 files
+there (parked 4058a).
+
+**Which bytes are re-encoded and which are carried.** A span copied without
+being parsed proves nothing about itself, so per section:
+
+| section | re-encoded from parsed fields | carried as bytes |
+| --- | --- | --- |
+| §3.1 | the three markers, the version string, `GameInfo.version`, seed, the three checksum knobs, `flags`, the 30 option bytes | — |
+| §3.2 | every slot's marker and `flags`; an active slot's 0x39-byte record field by field (`synced_*` ×10, `caravan_frame`, `pop_cap_frame`, `flags` again, `tribe`, `who`, `team`, `handicap`, `play`, `pauses`, `diff`) and its name | — |
+| §3.3 | both u64 ids and the four strings | — |
+| §3.4 | `frame`, the semaphore's `bits` and `size` (the mask's length), `graphic_tick`, `save_name` | `Game` +0x554..+0x6e4 (0x190 bytes); the 32 mask bytes |
+| §4.1 | each `(team, nation)` pair and the closing `World` +0x30 word | — |
+| §4.2 | the rules marker; the 4-byte re-walk, **derived** from the block's +0x804..+0x808; all 243,049 combat cells; the tribe marker | the Types stretch (500,334 bytes in all 50); `Constants` +0x00..+0xd40; the 24 tribes' 0x598-byte bodies |
+| §4.3 | every package head, and every payload decoded and re-encoded | — |
+| a cut tail | — | the partial record (below) |
+
+Because the re-walk is derived, all 50 recordings confirm §4.2 step 3's
+claim that the four bytes after the block are +0x804's.
+
+**What the round trip found.**
+
+- **Two recordings end mid-record**: `Playback - 2026.08.20 01'34'39 (Thu)`
+  stops inside package 835's payload at byte 0x1002ed (frame 834, size 10,
+  three bytes present; a 21-byte tail), and `Playback - 2026.08.24 17'20'55
+  (Mon)` one byte into package 3,903's head at byte 0x115ff8. Both are
+  uncompressed: games killed before `finalize` (0x952b40), as §1 predicted.
+  Neither parsed before this item, because the tribe-train landmark wants
+  the packages to reach end of file exactly. The reader now accepts a cut
+  partial record, but **only when no candidate parses clean**, and keeps it
+  in `RecGame::truncated` (`a_recording_cut_before_finalize_keeps_its_partial_record`).
+- **`rename_city` carries stack bytes past its terminator.** Its 22-wchar
+  name is copied whole, so whatever followed the NUL rides the wire:
+  `17'27'47`'s frame 8516 "Norwich" and `20'17'33`'s frame 14401 "Napata"
+  carry them. The decoder dropped them. `Command::RenameCity` now keeps them
+  as `after_nul` (never read; a command built here pads with zeros).
+- **Constant across all 50**: `Game`'s run-state stretch, the semaphore
+  (`bits` 256, mask `08 00 …`), start frame 0, and the blob's closing word
+  equal to `MAP_STYLE`. `graphic_tick` is not constant (15,805 to 29,911,208).
+  The rules section takes **two values**: the three recordings with
+  `STARTING_TECHNOLOGY` 3 part from the other 47 in 274 single bytes, all
+  inside Types, each a type's value 2 lower (the age offsets). The 47 include
+  the 2017 sample, on another map, another difficulty and another build.
+  `what_our_file_borrows_is_constant_for_one_lobby_s_options` asserts this.
+
+**Seen red**, each a one-line perturbation, run and reverted: an active
+slot's `pauses` written +1 (0 of 50; the sample parts at byte 0xaa); the
+re-walk taken from +0x800 (0 of 50, byte 0x7b37b); a camera's `zoom`
+encoded +1 (0 of 50, byte 0xfa4ef); each combat cell byte-swapped (0 of
+50); `after_nul` dropped (48 of 50, `17'27'47` parts at 0x13710f). The
+constancy test with the rules split by difficulty instead of option 16
+fails.
+
+### 8.2 Our own file: the harness lobby
+
+`recgame::from_lobby` builds a recording from the `GAMEINFO` block's fields
+and `PLAYER` rows, the same input `diff::from_lobby` builds the start from
+(`docs/START.md` §7), and a package list. Our file is run53's lobby (Great
+Lakes, seed 12345, tribes 4 and 11) with `no_input_packages`, closing on
+frame 24,000: `~/ron-golden/recordings/item4058-ours-greatlakes-24000.rcx`,
+written by `the_lobby_s_recording_is_written_and_reads_back` under
+`RON_RCX_OUT`.
+
+| section | computed from the lobby | borrowed from a donor | chosen |
+| --- | --- | --- | --- |
+| §3.1 | version string, `GameInfo.version`, seed, checksum knobs, `flags`, the 30 options | the Game and GameInfo markers | — |
+| §3.2 | each slot's `flags` (both copies), `synced_*`, `pop_cap_frame`, `tribe`, `who`, `team`, `handicap`, `play`, `pauses`, `diff`; inactive slots' `flags` 0 | the player marker | `caravan_frame` 0 (not printed); names `Player <play + 1>` (the block prints the leader's name) |
+| §3.3 | ids 0, strings empty (`MODS 0`) | — | — |
+| §3.4 | `frame` 0, `save_name` empty | the 0x190-byte run-state stretch; the semaphore | `graphic_tick` 0 |
+| §4.1 | `(team, tribe)` per active slot, `MAP_STYLE` | — | — |
+| §4.2 | — | **the whole rules section**: Types, Constants, the combat table, the tribes | — |
+| §4.3 | stamps, frames, the closing package | the frame-0 `leader_options` payload (the profile's auto-manage settings; the same 33 bytes on all 49 of this install's recordings) | — |
+
+The donor is the first finished recording on disk with our version string
+and our 30 option bytes; `from_lobby` refuses any other, because §8.1 shows
+the rules move with the options. It is read from the user's install at run
+time and never kept.
+
+**Against the original's own recording of this lobby's game**
+(`Playback - 2026.08.25 00'39'07 (Tue)`, 24,001 packages over frames
+0..24000), our header parts on **two fields** and no others: the AI slot's
+`tribe`, 11 here against 24 there (the lobby's "random", rolled after the
+header is written; ours takes the block's resolved nation), and
+`graphic_tick`, 0 against 2,801,115. Markers, version, seed, knobs, flags,
+all 30 options, all eight slots, the tail, the run state, the semaphore, the
+blob and the rules are equal. The packages differ by design: theirs is a
+`camera` every frame, `player_speed` telemetry and frame 0's
+`leader_options`; ours is the `leader_options` and one empty package. Seen
+red: names written `Player <play + 2>` adds both slots to the list.
+
+### 8.3 The original playing it
+
+The click-free lane opens our file and plays it (`docs/RUNS.md`, run1560a
+and run1560b): 301 and 2,401 frames, exit 0, seed 12345, map 14, the two
+players. The original's playback agrees with run53's live game on every
+frame's RNG word (`rngcmp.py`: 301 and 2,401 in common, 0 differing).
+
+`the_original_s_playback_of_our_file_walks_in_lockstep` walks the built
+start (`docs/START.md` §7.4) against each take, the playback's trace for
+draws and its dump for records (`PLAYBACK_WALKED`):
+
+- run1560a, `end:MISC,UNITS=3`: draws agree on **300 of 300** frames,
+  count and sequence; **299 records compared whole, none parted**.
+- run1560b, `end:MISC`: draws agree on **2,400 of 2,400** frames; one record,
+  none parted.
+
+**The value diff: nothing parted.** No frame, no record, no field. Seen red:
+the lobby's seed given to the built start as 12346 parts the draws at frame
+0 and all 299 records (first: frame 1, `unlinked_units` 12).
+
+The playback's pace at the trace-only recipe is **11.7 frames a second**
+(run1560b's runner), so the full 24,000 frames need about 35 minutes: the
+full-length take, run1560, is the driver's.
+
+### 8.4 Confidence, and what is not established
+
+- **Diff-backed**: the wire layout of every field §8.1 re-encodes (50
+  recordings byte for byte, five perturbations red); the re-walk's
+  derivation; the constancy of what our file borrows; the original opening
+  our file and playing it in agreement with its own live game (2,401 frames
+  of RNG words) and with this crate's built walk (2,400 frames of draws, 300
+  records).
+- **Read once, from the decompile**: that a size-0 package is legal
+  (`read_package`'s `size != 0` guard, 0x952d90) and that end of file one
+  frame after the last package ends playback (the `feof` arm). Our closing
+  package sits on frame 24,000, which no take has reached.
+- **Not established**: whether a slot written with tribe 24, as the original
+  writes it, replays the same (both takes used 11); what reads
+  `graphic_tick`; whether a playback without `camera` and `player_speed`
+  differs in anything beyond units over 300 frames and draws over 2,400;
+  frames past 2,400. The Types stretch is still not derived, so our file
+  needs a donor with the same options: one exists only for a lobby this
+  install has recorded. Multiplayer, CtW and scenario recordings are out of
+  scope.

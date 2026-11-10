@@ -509,3 +509,252 @@ fn the_lobby_walked_from_the_built_start() {
 /// run226 one citizen a few units off), the same ten from the installed
 /// start.
 const START_WALK_RECORDS: (usize, usize) = (2770, 10);
+
+/// **The original playing a file we wrote** (item 4058, `docs/RECGAME.md`
+/// §8): `recgame::from_lobby`'s `.rcx` of this lobby — header from run53's
+/// `GAMEINFO`, no input — opened by the original on the click-free lane
+/// and its playback captured, per take: `(the take's dump, its trace,
+/// frames whose draws agree, frames walked, records compared, records
+/// parted)`. The built start's walk reads the playback's trace for its
+/// draws and the playback's dump for its records: run1560a prints every
+/// unit for 300 frames (`end:MISC,UNITS=3`), run1560b only the trace for
+/// 2,400 (`end:MISC`, whose playback dump holds two blocks).
+pub(crate) const PLAYBACK_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[
+    (
+        "gamelog-run1560a-greatlakes-playback-of-ours-300.txt",
+        "rontrace-run1560a.log",
+        300,
+        300,
+        299,
+        0,
+    ),
+    (
+        "gamelog-run1560b-greatlakes-playback-of-ours-2400.txt",
+        "rontrace-run1560b.log",
+        2400,
+        2400,
+        1,
+        0,
+    ),
+];
+
+/// **The playback of our file, walked from the built start** (item 4058):
+/// the same walk as [`the_lobby_walked_from_the_built_start`], from the
+/// same `Built`, against the original's playback of the `.rcx` this crate
+/// wrote of that lobby rather than against the live game — every frame's
+/// draws against the playback's trace, every record of its dump compared
+/// whole. The value diff when they part is printed: the first frame, the
+/// first parted record and what parted.
+#[test]
+fn the_original_s_playback_of_our_file_walks_in_lockstep() {
+    let Some(inst) = install() else { return };
+    let Some(lobby) = dump("gamelog-run53-greatlakes-24k-trace.txt") else {
+        eprintln!("skipping: no run53 capture (set RON_GAMELOG_DIR)");
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let mut walked = Vec::new();
+    for &(take, take_trace, ..) in PLAYBACK_WALKED {
+        let (Some(playback), Some(tr)) = (dump(take), trace(take_trace)) else {
+            eprintln!("skipping {take}: not filed (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut source = crate::capture::indexed::IndexedCapture::open(&lobby).unwrap();
+        let (built, players) = source
+            .with_replay_initial(|init| {
+                let players = player_count(&init);
+                let ours = from_lobby(&loaded, &init.game_info, &init.players, Tuning::RON);
+                (built_from_lobby(&loaded, ours).0, players)
+            })
+            .unwrap();
+        drop(source);
+        let w = walk(built, players, &[(take, playback)], &tr, i64::MAX);
+        eprintln!(
+            "PLAYBACK WALK {take}: to {}; draws part (count) {:?}, (sequence) {:?}; records {} of which {} part, first {:?}",
+            w.last, w.first_count, w.first_sequence, w.records, w.records_parted, w.first_record
+        );
+        if let Some((o, t)) = &w.sites
+            && let Some((_, d)) = first_parting(o, t)
+        {
+            eprintln!("the first parting frame, {:?}: {d}", w.first_sequence);
+        }
+        let agreeing = w.first_sequence.unwrap_or(w.last);
+        walked.push((
+            take,
+            take_trace,
+            agreeing,
+            w.last,
+            w.records,
+            w.records_parted,
+        ));
+    }
+    assert_eq!(
+        walked, PLAYBACK_WALKED,
+        "PLAYBACK_WALKED: frames agreeing, frames walked, records, parted"
+    );
+}
+
+/// The harness lobby's recording written here (item 4058, `docs/RECGAME.md`
+/// §8.2), beside the walk of its playback: these read run53's dump, so they
+/// live with the diff suite and run in release.
+mod recording {
+    use crate::recgame::tests::recordings_on_disk;
+    use crate::recgame::*;
+
+    /// The lobby's long capture, whose `GAMEINFO` block is the lobby's
+    /// choices (`docs/START.md` §7.4).
+    const LOBBY_DUMP: &str = "gamelog-run53-greatlakes-24k-trace.txt";
+    /// The frames our file plays: the long trace's length.
+    const LOBBY_FRAMES: i32 = 24_000;
+
+    /// The harness lobby's recording, written here: `(ours, donor, twin)` —
+    /// the twin is the original's own recording of this lobby's 24,000-frame
+    /// game, when the corpus has it.
+    fn lobby_recording() -> Option<(RecGame, RecGame, Option<RecGame>)> {
+        let path = crate::testenv::dump(LOBBY_DUMP)?;
+        let text = crate::capture::read(&path);
+        let log = crate::gamelog::Log::parse(&text);
+        let init = log.replay_initial()?;
+        let corpus: Vec<RecGame> = recordings_on_disk()
+            .iter()
+            .filter_map(|f| read(f).ok())
+            .filter(|r| r.truncated.is_empty())
+            .collect();
+        // The first finished recording of the same lobby, in file order.
+        let probe = from_lobby(
+            &init.game_info,
+            &init.players,
+            corpus.iter().find(|r| r.rules.is_some())?,
+            Vec::new(),
+        )
+        .err();
+        let donor = corpus
+            .iter()
+            .find(|r| from_lobby(&init.game_info, &init.players, r, Vec::new()).is_ok())
+            .unwrap_or_else(|| panic!("no recording of this lobby on disk: {probe:?}"))
+            .clone();
+        let twin = corpus
+            .iter()
+            .find(|r| {
+                r.options == donor.options
+                    && r.seed == donor.seed
+                    && r.packages.last().map(|p| p.frame) == Some(LOBBY_FRAMES)
+            })
+            .cloned();
+        let lo = crate::commands::decode(&donor.packages[0].data).unwrap();
+        assert!(
+            matches!(lo[..], [crate::commands::Command::LeaderOptions { .. }]),
+            "the donor's frame 0 is not the leader_options push: {lo:?}"
+        );
+        let packages = no_input_packages(lo[0].clone(), LOBBY_FRAMES);
+        let ours = from_lobby(&init.game_info, &init.players, &donor, packages).unwrap();
+        Some((ours, donor, twin))
+    }
+
+    /// The header fields where two recordings part, by name.
+    fn header_parts(a: &RecGame, b: &RecGame) -> Vec<String> {
+        let mut out = Vec::new();
+        let mut cmp = |name: &str, x: String, y: String| {
+            if x != y {
+                out.push(format!("{name}: {x} vs {y}"));
+            }
+        };
+        cmp(
+            "markers",
+            format!("{:?}", a.markers),
+            format!("{:?}", b.markers),
+        );
+        cmp("version", a.version.clone(), b.version.clone());
+        cmp(
+            "info_version",
+            a.info_version.to_string(),
+            b.info_version.to_string(),
+        );
+        cmp("seed", a.seed.to_string(), b.seed.to_string());
+        cmp(
+            "checksum",
+            format!("{:?}", a.checksum),
+            format!("{:?}", b.checksum),
+        );
+        cmp("flags", a.flags.to_string(), b.flags.to_string());
+        for (k, key) in OPTION_KEYS.iter().enumerate() {
+            cmp(key, a.options[k].to_string(), b.options[k].to_string());
+        }
+        for (n, (x, y)) in a.slots.iter().zip(&b.slots).enumerate() {
+            cmp(&format!("slot {n}"), format!("{x:?}"), format!("{y:?}"));
+        }
+        cmp("tail", format!("{:?}", a.tail), format!("{:?}", b.tail));
+        cmp(
+            "start_frame",
+            a.start_frame.to_string(),
+            b.start_frame.to_string(),
+        );
+        cmp(
+            "run_state",
+            format!("{:02x?}", a.run_state),
+            format!("{:02x?}", b.run_state),
+        );
+        cmp(
+            "semaphore",
+            format!("{} {:02x?}", a.semaphore_bits, a.semaphore),
+            format!("{} {:02x?}", b.semaphore_bits, b.semaphore),
+        );
+        cmp(
+            "graphic_tick",
+            a.graphic_tick.to_string(),
+            b.graphic_tick.to_string(),
+        );
+        cmp("save_name", a.save_name.clone(), b.save_name.clone());
+        cmp(
+            "random_info",
+            format!("{:?} {}", a.random_info, a.world_style),
+            format!("{:?} {}", b.random_info, b.world_style),
+        );
+        cmp(
+            "rules",
+            format!("{}", a.rules == b.rules),
+            "true".to_string(),
+        );
+        out
+    }
+
+    /// **The harness lobby's recording, written here and read back**
+    /// (item 4058, `docs/RECGAME.md` §8): the header from run53's `GAMEINFO`
+    /// block, the rest borrowed from a recording of the same lobby; it
+    /// parses back to itself, and against the original's own recording of
+    /// this lobby's game it parts only where §8 says it does. With
+    /// `RON_RCX_OUT=<file>` it also writes the `.rcx` the playback take
+    /// opens.
+    #[test]
+    fn the_lobby_s_recording_is_written_and_reads_back() {
+        let Some((ours, _donor, twin)) = lobby_recording() else {
+            eprintln!("skipping: no {LOBBY_DUMP} or no recording (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let bytes = write(&ours);
+        let back = parse(&bytes, "ours").expect("our file parses");
+        assert_eq!(write(&back), bytes);
+        assert_eq!(back.packages, ours.packages);
+        assert_eq!(back.slots, ours.slots);
+        assert_eq!(back.seed, 12345);
+        let twin = twin.expect("the original's own recording of the lobby's 24,000-frame game");
+        let parts = header_parts(&ours, &twin);
+        eprintln!("OURS vs THE TWIN: {parts:#?}");
+        assert_eq!(
+            parts,
+            vec![
+                "slot 1: Slot { flags: 1, synced: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], caravan_frame: 0, \
+                 pop_cap_frame: 0, record_flags: 1, tribe: 11, who: 1, team: 8, handicap: 0, play: 1, \
+                 pauses: 0, diff: 2, name: \"Player 2\" } vs Slot { flags: 1, synced: [0, 0, 0, 0, 0, \
+                 0, 0, 0, 0, 0], caravan_frame: 0, pop_cap_frame: 0, record_flags: 1, tribe: 24, who: \
+                 1, team: 8, handicap: 0, play: 1, pauses: 0, diff: 2, name: \"Player 2\" }"
+                    .to_string(),
+                format!("graphic_tick: 0 vs {}", twin.graphic_tick),
+            ]
+        );
+        if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+            std::fs::write(&out, write_gz(&ours)).unwrap();
+            eprintln!("wrote {}", out.to_string_lossy());
+        }
+    }
+}
