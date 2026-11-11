@@ -190,3 +190,142 @@ gaia/neutral owner can arrive as `v` and what slot it indexes; which object
 is `this` on an `Ammo::do_damage` call (shooter or projectile — matters for
 `a`); the walk's read direction on load.
 
+## `raid_stamp` (LeaderData +0x114, int[8])
+
+### 1. Writers
+
+All in `Object::do_damage (0064a480)`; four store instructions.
+
+| store | arm | its gate |
+|---|---|---|
+| `64acf8` | capital, heavy | `frame − capital_stamp[a] > 300` (same block as `attack_stamp` `64ace6`) |
+| `64b025` | plain city, heavy | `frame − city.attack_stamp > 300` |
+| `64b373` | city, light (and the worker arm) | `frame − city.raid_stamp > 300` |
+| `64b755` | ground arm, raid | `frame − leaders[v].raid_stamp[a] > 300` (`64b64a`) |
+
+Export lines: 510, 621, 681, 792.
+
+### 2. Event, step, predicate
+
+Same event as `attack_stamp`: a hit by slot `a` on slot `v ≠ a`; the leaf
+takes the sim frame; window 300 frames, strict `>`.
+
+- City arms: stamped together with `attack_stamp` on every opening of a
+  city arm's gate (heavy or light, capital or not). There is **no** city
+  arm that stamps `raid_stamp` without `attack_stamp`, or the reverse.
+- Ground arm, raid branch: tile under the target owned by `v`, and the
+  target is a building hit lightly (`is_build` and `heavy == 0`), a worker,
+  a caravan or a merchant. Stamp if `frame − raid_stamp[a] > 300`. The
+  notice (`S_RAID_ATTACKED`) goes to `v == console->who` with
+  `!is_ally(leaders[a], v)`; the store at `64b743..64b755` is outside it.
+- Note `heavy` on a non-building target is 0 but irrelevant there: a unit
+  target reaches the raid branch only by being a worker/caravan/merchant.
+  A building whose `heavy` was computed (active, `+8 & 1`) keeps it even if
+  it has no city (`city < 0` skips to the ground arm with `heavy` as
+  computed); an inactive building reaches the ground arm with `heavy = 0`
+  and so raids.
+- A wall: `+0x20` is 0 on a Wall (`docs/GROUPS.md`), so a wall hit skips
+  the city arms and, in its owner's ground, is not "a building hit
+  lightly"; with no worker/caravan/merchant answer it takes the **attack**
+  branch. (Read from the vslot values; not traced on a Wall object.)
+- Exempt: as `attack_stamp`.
+
+### 3. Reset
+
+`Leader::init (006e3930)`, `puVar23[0x10] = 0` per slot (base `+0xd4`,
+i.e. `+0x114`). Same callers and same load path as `attack_stamp`.
+
+### 4. Readers
+
+- `Object::do_damage (0064a480)` `64b64a`: its ground-arm window.
+- `ScenarioFuncSet::was_raided (009fd140)`: same shape as `was_attacked`
+  (1-based slots, `(frame − stamp)/15 ≤ n`).
+- `LeaderData::log_data (006e5110)`: `piVar3[0x28]`.
+- The checksum walk (`("raid_stamp", 0x114, 4, 8)` in the crate's list).
+
+### 5. Crate site
+
+As `attack_stamp`: the city-arm stores in `Sim::city_alarm`
+(`crates/sim/src/combat/fight/delivery.rs:280`), the ground arm new in
+`Sim::do_damage_round` (same file, after line 190), the field beside
+`capital_stamp` in `crates/sim/src/ai.rs:704`, the image arm in
+`crates/sim/src/checksum/leaders.rs` near line 998. The crate's
+`is_worker`, `building_is_city`, `owner_of` already exist; a tile-owner
+lookup and an is-caravan/is-merchant test on the target are needed for the
+ground arm (not checked whether the crate has a merchant predicate).
+
+### 6. Plain game?
+
+Yes, by the same writers as `attack_stamp`. `was_raided` is trigger-layer.
+
+### 7. Confidence
+
+High on stores, index, windows. The ground-arm predicate is read from the
+listing (`64b5cc..64b62b`) and agrees with the export's lines 743–763. Not
+read: the Wall case end to end; gaia as `v`; `this` on the Ammo path.
+
+## `ally_stamp` (LeaderData +0x154, int[8])
+
+### 1. Writers
+
+One store instruction, `Object::do_damage (0064a480)` `64ae8d`
+(`movl %eax, 0xe3a4e4(,%ecx,4)`), reached from two paths:
+- capital heavy: falls through at `64ae79` after the gate at `64ad1c`;
+- plain city heavy: `64b1e4..64b1eb` jumps back to `64ae82`, after the gate
+  at `64b076`.
+Export lines 735 (and the `goto LAB_0064ae82` from 717).
+
+### 2. Event, step, predicate
+
+A **heavy** hit by slot `a ≠ v` on an active building of one of `v`'s
+cities (capital or not). Not on a light hit, not on a worker, not in the
+ground arm. Step: `leaders[v].ally_stamp[a] = frame`, when
+`frame − ally_stamp[a] > 300` (strict). The test is independent of
+whether the city arm's own gate (capital `capital_stamp`, or city
+`attack_stamp`) opened on this hit — it runs after it either way
+(`64ab8a jle 64ad11`; `64aeba jle 64b043` → `64b06b`).
+
+The name is from the message it gates: the "ally under attack" notice and
+`S_ALLY_UNDER_ATTACK` go to the console player only when
+`v ≠ console->who` and `is_ally(leaders[v], console->who)`
+(`LeaderData::is_ally (006edb50)` on the victim, `64ad46`, `64b0a0`). The
+store is outside that test: every leader's row is stamped regardless of who
+is local, so the leaf is deterministic. The two arms' inner notice timing
+reads the leaf against 300 (capital, `64ae27`) and 400 (plain, `64b192`)
+frames — UI only.
+
+Exempt: light hits; non-city buildings (`BuildData.city < 0`); units;
+inactive buildings; walls (`is_build` 0); `v == a`; decoy strikers.
+
+### 3. Reset
+
+`Leader::init (006e3930)`, `puVar23[0x20] = 0` per slot (`+0xd4 + 0x80`).
+Same callers and load path as `attack_stamp`.
+
+### 4. Readers
+
+Only `Object::do_damage (0064a480)` itself (`64ad1c`, `64b076` gates;
+`64ae0f`, `64b17a` notice timing) and `LeaderData::log_data (006e5110)`
+(`piVar3[0x38]`), plus the checksum walk. No `ScenarioFuncSet` reader.
+
+### 5. Crate site
+
+`Sim::city_alarm`, `crates/sim/src/combat/fight/delivery.rs:280`: after the
+`heavy` test, in both the capital branch (whether or not
+`frame − capital_stamp > 300`) and the plain branch, add
+`if frame − ally_stamp[vic][att] > 300 { ally_stamp[vic][att] = frame }`.
+Note the capital branch there `return`s inside the capital_stamp test, so
+the ally store must precede those returns. Field beside `capital_stamp` in
+`crates/sim/src/ai.rs:704`; image arm in
+`crates/sim/src/checksum/leaders.rs` near 998.
+
+### 6. Plain game?
+
+Yes: any heavy hit on a city building in a skirmish.
+
+### 7. Confidence
+
+High: one store, two paths, both read in the listing. Not read: the
+`notify_flags` bits (UI). The heavy predicate shares the medium-confidence
+vslot names given under `attack_stamp`.
+

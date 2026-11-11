@@ -95,3 +95,56 @@ runs `Leaders::process_all` early and increments `game->frame` (`Game+0x550`)
 at its end. So a command applied while `game->frame == F` is seen by that
 same frame's `Leaders::process_all` with the same `F`.
 
+## 1. `last_taunt` (`+0x354`, `TauntRequest[8]`, indexed by sender slot)
+
+1. **Writers.**
+   - `Leader::process_taunt (006b8cc0)` — `6b8d46 movl %ecx,
+     0x354(%esi,%ebx,4)`: `last_taunt[sender] = request`. The only
+     field-level writer by both nets.
+   - Block: `Leader::init (006e3930)` (`param_2 < 0`), `Leader::close
+     (006b7f80)`, `Leaders::clear (006ed5d0)` — zero; `LeaderData::walk_data
+     (006d6750)` on load.
+2. **Event, step, predicate.** `process_taunt(request, sender)` is called
+   from the per-frame queue drain (§3 below) on the receiving leader. It
+   returns before the store unless all of:
+   - the receiver's slot (`leaders[this->who]`) is **not** `LEADER_HUMAN`
+     and **is** `LEADER_ACTIVE` (`6b8cef`, `6b8cf8`);
+   - if `sender != leaders[who].who`: `leaders[who].diplos[sender] == 2`
+     **and** `leadersc[sender].diplos[leaders[who].who] == 2` (mutual
+     `DIPLO_ALLY`, re-checked at drain time, so an alliance broken during
+     the delay drops the taunt) (`6b8d0e`, `6b8d29`);
+   - `this->who != sender` (`6b8d34`).
+   Then, **before** the `switch` on the request and for **any** request
+   value (the store precedes the `cmp $0xf; ja default` range test at
+   `6b8d5b`, so values above 16 are stored too), `last_taunt[sender] =
+   request`. Not a counter: an overwrite with the sender's latest taunt.
+   No units; the value is a `TauntRequest`.
+3. **Reset.** Zero at every game start (`Game::init_rules_and_teams` →
+   `Leaders::init` → `Leader::init(i, -1, i)` → `memset 0x6929`), at
+   `Game::close` and OOS recovery (`Leaders::clear`). Never cleared after
+   being consumed; it persists until the same sender's next processed taunt.
+4. **Readers.** `Leader::action_ping (006d18a0)` (`6d1977 cmpl $0x10,
+   0xe3a6e4(,%ecx,4)`, `ecx = k·0x1bbb + pinger`): when a `LEADER_HUMAN`
+   leader pings for itself (`param_3 == this->who`), for each other
+   `LEADER_VALID`, non-human leader `k` that `is_ally(pinger, k)`, it
+   requires `leaders[k].last_taunt[pinger] == TAUNT_HELP` and
+   `game->frame <= leaders[k].taunt_frame[pinger] + 225` (`0xe1` frames),
+   then `Armies::find_useful_army` and `Army::send_here(…, MOVE_TO)`, and
+   stamps the army's `+0x28` with `0xa8c`. Also walked by the checksum and
+   save (`LeaderData::walk_data`).
+5. **Crate.** No such event. `crates/sim/src/checksum/leaders.rs:87` names
+   the leaf, but `Sim::leader_long` (same file, ~line 949) has no arm for
+   it, so it is emitted unheld (zero bytes). The drain that would write it
+   belongs in the per-player loop at the head of `Sim::tick`
+   (`crates/sim/src/core/frame.rs`, which already ports `Leader::process`'s
+   head); the reader, `action_ping`, is not ported (`Armies::
+   find_useful_army` exists at `crates/sim/src/ai/army.rs:2207` with no
+   caller; `Command::Ping` is not mapped in `rondata::input`).
+6. **Plain game?** Only with a **human** who has a **computer ally** and
+   sends a taunt order in chat (§3's producer). No trigger, CtW or
+   multiplayer needed, but a skirmish with no human→allied-AI chat never
+   writes it; an AI never issues a chat command.
+7. **Confidence.** High on the writer, predicate and step (export + listing
+   agree). Not read: the inside of `Taunts::check_for_order` beyond its
+   shape, the `switch` arms' downstream effects (not this leaf's).
+
