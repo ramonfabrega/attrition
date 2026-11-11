@@ -184,3 +184,168 @@ already names a capture where it reads `17380`.
 High (both stores and the entry order read in the listing). Medium on how
 often the `Unit::close` re-stamp fires in practice (depends on whether a
 loser keeps units that later close; not measured).
+
+## Leaf 2: `wonderwin_stamp` (+0x448, int) and Leaf 3: `wonderwin_timer` (+0x44c, int)
+
+The two are one clock: a running flag and a frame stamp, stepped together.
+They are written up together; each has its own writer table.
+
+### Writers
+
+Export `field_0x448` / `field_0x44c` on a leader: `Leader::init
+(006e3930)` lines 379–380, `Leader::process (006b88b0)` lines 52–53,
+`Leaders::process_all (006ed2a0)` lines 58–60, `GameDaemon::process_victory
+(00730ef0)` lines 100–103 and 142–145. Every other hit (`ConquestInvadeWin`,
+`GameReportWin`, `TerrainOut`, `Group`, `CoordInfo`) is a different `this`.
+Listing, register-relative stores at `0x448(` / `0x44c(` (all functions,
+then each base register typed by hand):
+
+| store | function | base is a leader? |
+|---|---|---|
+| `6e4160` / `6e4166` `movl %eax, 0x448/0x44c(%ebx)` | `Leader::init (006e3930)` | yes (`this`) |
+| `731080` `addl %eax, 0x448(%ebx)`; `731070` `movl $1, 0x44c(%ebx)` | `GameDaemon::process_victory (00730ef0)` | yes (`ebx` walks `0xe3a390` by `0x6eec`) |
+| `731367` `subl %eax, 0x448(%ebx)`; `731357` `movl $0, 0x44c(%ebx)` | same | yes |
+| `6ed3c8` `movl %eax, 0x448(%esi)` | `Leaders::process_all (006ed2a0)` | yes |
+| `6b89c8` `movl %eax, 0x448(%esi)` | `Leader::process (006b88b0)` | yes, but **no reference to `0x6b88b0` exists in `.text`** (map: `?process@Leader@@QAEXXZ`, `leaders.obj`); LTCG inlined it into `Leaders::process_all`, so this body is dead |
+| `9ad0e7` / `9ad0ed` | `ScenarioRead::load_leaders_chunk (009acde0)` | no: `edx` is the game-info player table (stores at `0x28c..0x450` with the `0x8c` player stride) |
+| `6b87e1`, `6ed1cf` (`movw`) | `Leader::end_process (006b8690)`, `Leaders::end_process_all (006ed070)` | no: game-info `player[7].flags` |
+| `56c628`/`56c643`, `516e7a`, `58ba04`, `7144d2`, `923608`, `959725`, `95980e` | `Constants::init`, `GraphicWinXML::close`, `Game::init_teams`, `Group::add`, `RTreeData::clear`, `DropControl::process_drop` | no |
+
+No absolute `0xe3a7d8` (stamp) store; the four absolute `0xe3a7dc`
+(timer) references are all reads.
+
+### The event: `GameDaemon::process_victory (00730ef0)`, the wonder arm
+
+Called every frame from `GameDaemon::process_all (00732700)` (its only
+caller), which `Game::do_frame (00591ef0)` calls unconditionally. The arm
+runs only when the lobby's `victory` byte (`game + 0x38`) is 0, 1 or 6
+(`730f2d..730f3a`). It reads `w = Game::wonder_winning (005948a0)` once
+(slot index of the leader whose `get_wonder_net` is highest and at least
+the lobby `wonderwin` row's `DATA`, ties going to the higher
+`get_wonder_value` among allies and to nobody between non-allies; `-1` if
+none). Then it walks slots `i = 0..7` (`-0x14` runs `0x74..0x94` by 4 — the
+**eight** player slots, not ten), skipping a slot unless
+`leader_flags & 3 == 3`. A per-pass flag `handled` (`-0x1c`) starts 0.
+
+For each seated, undefeated slot `i`:
+
+1. **Not on the winning team** — `w < 0`, or (`i != w` and `who_i != w`
+   and not (`diplos_i[w] == 2` and `leaders[w].diplos[who_i] == 2`))
+   (`730f84..730fb4`; `diplos` is `+0x74 int[8]`, 2 is an alliance, checked
+   both ways): if `timer != 0`, then `timer = 0` and
+   `stamp -= game->frame` (`731348..731367`), achievement event 10
+   (`TIMER_STOP`), and the stop sound once per pass (`-0x28`).
+2. **On the winning team**: first `ggb` = 1 if any seated leader `j`
+   (`leader_flags & 1`) that is `i`, or has `who_j == i`, or is a mutual
+   ally of `i` (`diplos_j[i] == 2` and `diplos_i[who_j] == 2`), holds tech
+   preq `0x2b9` (`730fba..731023`). Then:
+   - if lobby `victory != 0`, or the game is neither multiplayer
+     (`semaphore[0] & 4`) nor has `num_nations (+0x6a0) > 1`, or `ggb`: if
+     `handled == 0`, `Leader::victory(i, 1, ggb)` (`731320..73132e`) — an
+     **immediate** wonder victory, no clock;
+   - else if `timer == 0`: `timer = 1`, `stamp += game->frame`
+     (`731070..731080`), event 9 (`TIMER_START`); the messages and start
+     sound only when `handled == 0`;
+   - else (`timer != 0`), only when `handled == 0`:
+     `remaining = Game::wonder_timer() − (frame − stamp)` (`7311cc..7311dd`).
+     If `remaining == 0` (an **exact** equality, `subl; jne`), then
+     `Leader::victory(i, 1, 0)`. Otherwise, for a viewer who is not `i`'s
+     ally, warnings at `remaining` = 4500, 1800 or 900 frames
+     (`0x1194`, `0x708`, `0x384`).
+   - `handled = 1` after any of these (`73133c`, `7311b6`). The walk does
+     **not** stop: later slots on the same team still start their own
+     clocks, but do not count down or win.
+
+`Game::wonder_timer (005944f0)`: 0 if `constants.wonder_timer < 1`, else
+`max(1, (M/2 + W·T) / M)` in integers, with `T = constants.wonder_timer`
+(`Constants::init` loads it with plain `get_item`, so it is the file's
+integer), `W` the world's first int (`*GameAccess::world`) and `M` the int at
+`map_sizes` entry `+0x144`. So `T` is frames on a reference map, scaled by
+the map's ratio and rounded half up.
+
+**So the stamp encodes accumulated time.** Start at frame `F`:
+`stamp += F`; elapsed while running is `frame − stamp`. Stop at `G`:
+`stamp −= G`, leaving `stamp = −(time run so far)` when it started at 0.
+A restart adds the new frame back, so elapsed resumes where it stopped.
+
+### The pay-back: `Leaders::process_all (006ed2a0)`
+
+Every frame `Game::do_frame` calls `Leaders::process_all`, which for each
+of the ten slots with `leader_flags & 2` (alive), after `gather`,
+`calc_wall_stats`/`calc_unit_stats` and `process_elimination`, runs: when
+`constants.timer_refresh_ratio != 0` and
+`game->frame % timer_refresh_ratio == 0`, if `wonderwin_stamp < 0` and
+`wonderwin_timer == 0`, `wonderwin_stamp += 1` (`6ed3c8`). It does the same
+for `lost_capital_stamp/timer (+0x414/+0x418)` and `popwin_stamp/timer
+(+0x440/+0x444)` just before. So a stopped clock's debt shrinks by one frame
+every `timer_refresh_ratio` frames (the crate's `tuning.rs` pins 5).
+
+### Step summary
+
+- `wonderwin_timer`: 0 → 1 at the start, 1 → 0 at a stop. Never another
+  value. Only `process_victory` writes it in play.
+- `wonderwin_stamp`: `+frame` at a start, `−frame` at a stop, `+1` per
+  `timer_refresh_ratio` frames while stopped and negative.
+
+### Reset
+
+`Leader::init (006e3930)` stores 0 to both on every init (and the
+`tribe < 0` memset). A victory does not reset them; a defeat does not
+either (but a defeated slot fails `leader_flags & 3 == 3` and is no longer
+walked, so its clock freezes in whatever state it was; and `leader_flags & 2`
+is cleared by `Leader::defeat`, so its pay-back stops too).
+
+### Readers
+
+- `wonderwin_timer`: `Game::is_victory_timer (00594950)` (any seated,
+  undefeated leader's timer or popwin timer running, under lobby
+  `victory == 0`), itself read by `Leader::diplomacy (006bc950)`,
+  `IFaceDiplo::update_visibility (008004f0)`, `Options::describe
+  (00724460)`; `Leader::diplomacy` also reads `0xe3a7dc(%eax)` directly
+  (`6be27f`); `Army::find_target (006f69b0)` (`6f6c38`, `6f72e0`, the
+  "about to win" gate and score); `Wall::process (00640450)` (an unallied
+  leader's running timer changes the wall walk); `LeaderData::log_data`.
+- `wonderwin_stamp`: `IFaceMainBase::draw_timers (0080b060)` (the
+  on-screen countdown), the countdown in `process_victory` itself,
+  `LeaderData::log_data`.
+
+### Crate site
+
+The crate has the twin arm for the territory clock:
+`Sim::process_victory_territory` in `crates/sim/src/territory/victory.rs`,
+called from `crates/sim/src/core/frame.rs:222` in `GameDaemon::process_all`
+order, with its stamp/timer on `crate::ai` (`popwin_stamp`/`popwin_timer`,
+`crates/sim/src/ai.rs:711`), and the pay-back `Sim::refresh_victory_timers`
+(same file, called from `core/frame.rs:194`). A builder adds
+`wonderwin_stamp`/`wonderwin_timer` beside the popwin pair in `ai.rs`, a
+`process_victory_wonder` arm run **before** the territory arm in
+`frame.rs` (the original runs the wonder arm first, `730f2d` before
+`7313b9`), and one more `stamp += 1` line in `refresh_victory_timers`.
+`Sim::wonder_winning` already exists (`crates/sim/src/ai/ai_build.rs:1439`,
+swept against the emulator in `sweep/game_wonder_winning.rs`), and
+`lobby.wonder_win_points` exists (`ai.rs:1097`). Missing: the
+`WONDER_TIMER` constant (not in `core/tuning.rs`), `Game::wonder_timer`, the
+`victory` event itself. Readers already stubbed: `ai/army/target_gate.rs:428`
+`fn w44c` returns 0, and `cities/site_recruit.rs:157` carries a SEAM for
+the running timer. Note the arm differs from the territory arm in two
+ways a copy would miss: the wonder walk does not return on the first
+holder (it sets `handled` and keeps walking), and its expiry is `== 0`
+where the crate's territory seam table says `< 1`.
+
+### Plain game?
+
+Yes for the clock: a skirmish under the default lobby (`VICTORY 0`) with
+a wonder-victory row reaches the start, stop, countdown and pay-back once a
+leader's wonder points reach the `wonderwins` `DATA`. The immediate arm
+(`VICTORY` 1 or 6, a single-nation game, or a `GLOBAL_GOVERNMENT_BONUS`
+holder on the team) is also a plain game, with a different lobby setting.
+No trigger, CtW or multiplayer path writes either field.
+
+### Confidence
+
+High on the writer set (both nets agree, every listing store typed), the
+step amounts, the predicate order and the pay-back. Medium on
+`Game::wonder_winning`'s tie rule (read in the decompile only; the crate's
+sweep covers it). Not read: `Wall::process`'s and `Army::find_target`'s use
+beyond "nonzero"; the meaning of `semaphore[0] & 4` beyond multiplayer;
+`map_sizes +0x144` and `*world`'s names.

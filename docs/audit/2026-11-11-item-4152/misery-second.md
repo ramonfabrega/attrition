@@ -148,3 +148,75 @@ leader's building can run `do_queue`; the checksum's call point within the frame
 `player.flags & 0x800` is read by any sim code; save/load (`LoadGame::verify_load` exists; no
 whole-struct copy of `LeaderData` was found).
 
+## Leaf 2: `misery` (LeaderData +0x7ec, int)
+
+### 1. Writers
+
+Every writer stores **zero**. There is no other value anywhere.
+
+| writer | site (listing) | store |
+|---|---|---|
+| `Leader::calc_misery (006cdff0)` | `6cdff0 movl $0, 0x7ec(%ecx)`; the whole body is that store and `ret` | 0 |
+| `Leader::calc_pop_cap (006dc490)` | `6dc49d movl $0, 0x7ec(%esi)`, its first act (decompile line 19) — `calc_misery` inlined | 0 |
+| `Leader::gain_tech (006dcb60)` | `6de005 xorl %ecx,%ecx; 6de007 movl %ecx, 0x7ec(%ebx)` (decompile line 939) — `calc_misery` inlined | 0 |
+| `Leader::init (006e3930)` | `6e497e movl %ecx, 0x7ec(%ebx)` (`ecx` zeroed at `6e4949`, decompile line 625) | 0 |
+| `Leaders::clear (006ed5d0)` | the per-slot `memset(+0, 0, 0x6929)` | 0 |
+
+`calc_misery` itself has no caller: no `call`/`jmp` to `0x6cdff0` in `.text` and no absolute
+`0x006cdff0` in the PE (`rise_z.map` line 12750 names it, `leaders.obj`). It survives only as the
+two inlined copies. The remaining listing hits on `0x7ec(` — `Cliffs::~Cliffs`,
+`Constants::init` (`56ddc8`), `Constants::log_data`, `ObjectData::train_time` (`650c19`, off
+`constantsc`), `Tribe::parse`, `GraphicPieces::close`/`~GraphicPieces`, the stack locals in
+`573d4f`/`573d7d` — are other records. `0xe3ab7c` (the absolute form) occurs nowhere.
+
+### 2. The event, the step, the predicate
+
+None in effect. The name and the stub say a misery score was once recomputed alongside the
+population cap and on tech gain; the shipped body is `misery = 0`. Events that run the inlined
+reset:
+- `calc_pop_cap` (18 call sites: `City::init`/`close`/`check_upgrade`, `Cities::capture_city`,
+  `Build::activate`/`close`/`finished`, `Leader::calc_gather`, `Leader::gain_tech` ×4, the
+  scenario editor's `add_build`/`toggle_ignore_popcap`, `ScenarioFuncSet::set_population_cap`);
+- `gain_tech`, when the gained type's vtable `+0x28` and `+0x38` predicates hold (store sits
+  before the `techtypes[t] +0x14 == 0` test that decides whether `calc_pop_cap` follows).
+Step: none (0 → 0). Units: none.
+
+### 3. What clears or resets it
+
+All of the above; it is never anything but 0 from `Leader::init` on.
+
+### 4. Who reads it
+
+Only `LeaderData::log_data (006e5110)` (the `LEADERDATA` dump, decompile line 1420,
+`pushl 0x7ec(%edi)` at `6e882b`) and the checksum walk over `[+0x8, +0x692a)`
+(`crates/sim/src/checksum/leaders.rs:149`). No game-logic reader: the export's field net and the
+listing's operand net both come back empty for leader-typed bases.
+
+### 5. Where `crates/sim` has the event
+
+Nothing to port: a builder holds a constant 0 for the leaf (`Sim::leader_image`'s `misery` leaf
+can be `Some(0)` rather than `None`). The closest site, if one wanted the store for form's sake,
+is the crate's `calc_pop_cap` (`crates/sim/src/economy/cost.rs`, `pop_cap`), but there is no
+state to keep. `crates/rondata/src/diff/leader.rs:44` lists it as unmodelled ("the misery
+counter is unread") — correct as to readers; it could be compared as 0.
+
+### 6. Reached by a plain game?
+
+Yes: `calc_pop_cap` runs on every city founding and building completion; `gain_tech` on every
+tech. Both only ever write 0.
+
+**Dump evidence (archive, not a diff):** across the 948 `gamelog.txt` files under `~/ron-golden/`
+that print `LEADERDATA`, `rg '^\s*misery [^0]'` finds **no** line — every printed `misery` is 0.
+
+### 7. Confidence and gaps
+
+High. Five writers, all zero, by both nets plus the biased-base sweep (`0x7d8..0x7e7` stores
+show only `site_mark`/`pop_cap` on leaders). Not read: save/load restoration of the leaders
+array (none found as a block copy).
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `pop_issues` +0x7e8 | `Build::do_queue (0061e410)` +1; `Unit::process (00610bc0)` +1; `Leaders::process_all (006ed2a0)` =0 (inlined `Leader::process (006b88b0)`, which has no caller); `Leader::init (006e3930)` =0; `Leaders::clear (006ed5d0)` memset 0 | +1 per population-cap refusal: in `do_queue` on every frame a researched unit entry is trained over the cap (`check_population`, `pop_cap < control_cost + control`, before progress, possibly several per building per frame); in `Unit::process` when a carrier's `FIGHTERBOMBER` clock is full and the cap refuses | every frame at the `Leader::process` head for `leader_flags & 2` slots (before AI, armies and objects); game init; `Game::close` / OOS recovery | clear: `core/frame.rs:96` beside `combat.retargets`; inc: `cities/queue.rs` `advance_slot_with`/`slot_plan` (not `finished`), `air/carrier_queue.rs:155`; reader: `ai/army/target_score.rs:453` (`f7e8` returns 0) | yes (queues at cap; carriers; AI armies) | high (writers, step, clear); medium (re-entry count per building) |
+| `misery` +0x7ec | `Leader::calc_misery (006cdff0)` (no caller; inlined into) `Leader::calc_pop_cap (006dc490)` and `Leader::gain_tech (006dcb60)`; `Leader::init (006e3930)`; `Leaders::clear (006ed5d0)` — all store 0 | none (always 0) | always 0 | none; hold constant 0 | yes, but only 0 is ever written | high; archive dumps show no nonzero `misery` |
