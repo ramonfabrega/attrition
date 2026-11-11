@@ -3165,6 +3165,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
          ret at 0x86195f, so no fall-through)",
     ),
     (
+        0x0087_a770,
+        "TileSet::get_supertile_texture: the ground's supertile getter, which \
+         nothing calls; no reference in the executable (item 4127's byte scan of \
+         `.text` and the whole file, re-scanned by the test below; the land pass \
+         binds through get_land_textures_by_index, docs/RENDERER.md §3.6)",
+    ),
+    (
         0x0089_0060,
         "RoadsOut::render_debug: RoadsOut::render's debug pass; the renderer \
          (docs/AI.md §393.2, item 3909)",

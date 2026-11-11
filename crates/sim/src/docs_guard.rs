@@ -1598,7 +1598,10 @@ fn a_function_a_booking_names_is_in_the_export() {
 /// (DECISIONS 107 §3).
 /// **153** with item 3909's `Army::find_waiting_unit@006fa090` (`docs/AI.md` §393.2;
 /// no call, no jump, no pointer to it).
-const UNREFERENCED: usize = 148 + 1 + 1 + 1 + 1 + 1;
+/// **154** with item 4127's `TileSet::get_supertile_texture@0087a770`, cited by
+/// that item's journal alone as the getter nothing calls (no document under
+/// `docs/*.md` cites it, so `DEAD_CITED` takes no row).
+const UNREFERENCED: usize = 148 + 1 + 1 + 1 + 1 + 1 + 1;
 
 /// What `docs/EMULATOR.md` §4 enumerates as dead and the residue table does
 /// not hold as unreferenced, each for a reason the table's own rows give.
