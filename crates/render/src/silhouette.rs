@@ -448,14 +448,46 @@ impl Mips {
     }
 }
 
+/// **The owners' unit colours** (item 4102; `docs/RENDERER.md` §5.3, "The
+/// team colour"): `TeamColor::unit` of `team_colors.list[0..8]` as
+/// run1559b's packet holds them, the figure draw's `tfactor`.
+pub const TEAM_UNIT: [[u8; 3]; 8] = [
+    [255, 0, 0],
+    [34, 82, 255],
+    [255, 0, 255],
+    [0, 208, 0],
+    [255, 255, 0],
+    [0, 255, 255],
+    [255, 255, 255],
+    [255, 105, 0],
+];
+
+/// The owner's unit colour; past the eight, white (`team_colors.list[8]`).
+pub fn team_unit(who: u8) -> [u8; 3] {
+    TEAM_UNIT
+        .get(usize::from(who))
+        .copied()
+        .unwrap_or([255, 255, 255])
+}
+
+/// **The team colour** (item 4102; §5.3): `TOP_BLENDTEXTUREALPHA` with
+/// the texture and the factor, `t·α + c·(1 − α)`, α the texel's alpha
+/// over 255 — the arithmetic `client::gpu`'s textured shader runs.
+pub fn team_blend(rgb: [f32; 3], alpha: f32, owner: [u8; 3]) -> [f32; 3] {
+    let a = alpha / 255.0;
+    [0, 1, 2].map(|k| rgb[k] * a + f32::from(owner[k]) * (1.0 - a))
+}
+
 /// How an object is coloured for [`paint`].
 pub enum Paint<'a> {
     /// One colour on every triangle: the debug tint.
     Flat([u8; 3]),
-    /// Each triangle's texcoords into one texture.
+    /// Each triangle's texcoords into one texture, the owner's colour
+    /// through its alpha ([`team_blend`]); `None` the texel alone (4099).
     Texture {
         uvs: &'a [[[f32; 2]; 3]],
         mips: &'a Mips,
+        owner: Option<[u8; 3]>,
     },
 }
 
@@ -486,7 +518,7 @@ pub fn paint(
     let mut depth = vec![f32::INFINITY; ww * wh];
     for (ti, t) in object.tris.iter().enumerate() {
         let level = match paint {
-            Paint::Texture { uvs, mips } => uvs.get(ti).map(|uv| {
+            Paint::Texture { uvs, mips, .. } => uvs.get(ti).map(|uv| {
                 let base = &mips.levels[0];
                 let du = [uv[1][0] - uv[0][0], uv[1][1] - uv[0][1]];
                 let dv = [uv[2][0] - uv[0][0], uv[2][1] - uv[0][1]];
@@ -520,14 +552,17 @@ pub fn paint(
                     alpha: 255.0,
                     tri: ti as u32,
                 },
-                Paint::Texture { uvs, mips } => {
+                Paint::Texture { uvs, mips, owner } => {
                     let Some(uv) = uvs.get(ti) else {
                         return;
                     };
                     let (u, v) = at_weights(uv, q);
                     let s = mips.sample(level.unwrap_or(0), u, v);
                     Texel {
-                        rgb: [s[0], s[1], s[2]],
+                        rgb: match owner {
+                            Some(c) => team_blend([s[0], s[1], s[2]], s[3], *c),
+                            None => [s[0], s[1], s[2]],
+                        },
                         alpha: s[3],
                         tri: ti as u32,
                     }
@@ -928,7 +963,15 @@ pub const RUN1441_CAMERA_3279_TRACED: (usize, usize) = (0, 32);
 /// The figures' lit pixels agree 7,379 of 17,817; what parts is the
 /// silhouette's pass (12 %), the texels under alpha 255 (22 %) and the
 /// rest (66 %); the client's `the_figures_colours_on_the_photograph`.
-pub const RUN1559B_3279_COLOUR: (usize, usize) = (11, 33);
+///
+/// **15 of 33 since item 4102** (from 11), the owner's unit colour through
+/// the texel's alpha ([`team_blend`], §5.3 "The team colour", committed
+/// before this count): 0/5, 1/21, 1/26 piece 26352 and 1/34 cross up, none
+/// down; the figures' lit pixels agree 8,165 of 17,889, and of the masked
+/// 2,733 part 61 % (88 % with the texel alone).
+pub const RUN1559B_3279_COLOUR: (usize, usize) = (15, 33);
+/// [`RUN1559B_3279_COLOUR`] with the texel alone, item 4099's draw.
+pub const RUN1559B_3279_COLOUR_TEXEL: (usize, usize) = (11, 33);
 /// [`RUN1559B_3279_COLOUR`] in the debug tint, the draw before: the two
 /// sprites alone, 0 of 31 figures (69 of 18,284 lit pixels agree).
 pub const RUN1559B_3279_COLOUR_TINT: (usize, usize) = (2, 33);
@@ -1476,6 +1519,19 @@ pub fn score(footprints: &[Footprint], reading: &Reading) -> (usize, usize) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Item 4102: the team colour's ends and its middle — alpha 255 the
+    /// texel, 0 the owner's colour, half between; past the eight, white.
+    #[test]
+    fn the_team_colour_through_the_texel_s_alpha() {
+        let t = [100.0, 120.0, 140.0];
+        assert_eq!(team_blend(t, 255.0, team_unit(1)), t);
+        assert_eq!(team_blend(t, 0.0, team_unit(1)), [34.0, 82.0, 255.0]);
+        let half = team_blend(t, 127.5, team_unit(0));
+        assert_eq!(half, [177.5, 60.0, 70.0]);
+        assert_eq!(team_unit(8), [255, 255, 255]);
+        assert_eq!(TEAM_UNIT[1], [34, 82, 255]);
+    }
 
     /// The draw list's test camera (`draw::tests`), closer in.
     fn camera() -> Camera {

@@ -97,8 +97,10 @@ fn fs_sprite(i: VOut) -> @location(0) vec4<f32> {
 /// bilinear within a level, the level nearest, wrapped, `v = 0` the image's
 /// top row — the arithmetic `render::silhouette::paint` runs on the CPU
 /// for the colour reader (`docs/RENDERER.md` §5.3). The card picks the
-/// level per pixel and the CPU per triangle; the team colour is not
-/// applied (4038a).
+/// level per pixel and the CPU per triangle. Each corner carries its
+/// owner's unit colour, laid through the texel's alpha as
+/// `render::silhouette::team_blend` lays it (item 4102, §5.3 "The team
+/// colour"): `t·α + c·(1 − α)`.
 const TEXTURED_SHADER: &str = r#"
 struct U {
     m: mat4x4<f32>,
@@ -112,10 +114,15 @@ struct U {
 struct VOut {
     @builtin(position) pos: vec4<f32>,
     @location(0) uv: vec2<f32>,
+    @location(1) owner: vec3<f32>,
 };
 
 @vertex
-fn vs_textured(@location(0) p: vec3<f32>, @location(1) uv: vec2<f32>) -> VOut {
+fn vs_textured(
+    @location(0) p: vec3<f32>,
+    @location(1) uv: vec2<f32>,
+    @location(2) owner: vec3<f32>,
+) -> VOut {
     let v = vec4<f32>(p, 1.0);
     let clip = u.m * v;
     let depth = dot(v, u.d);
@@ -123,12 +130,14 @@ fn vs_textured(@location(0) p: vec3<f32>, @location(1) uv: vec2<f32>) -> VOut {
     var o: VOut;
     o.pos = vec4<f32>(clip.xy, z * clip.w, clip.w);
     o.uv = uv;
+    o.owner = owner;
     return o;
 }
 
 @fragment
 fn fs_textured(i: VOut) -> @location(0) vec4<f32> {
-    return vec4<f32>(textureSample(tex, samp, i.uv).rgb, 1.0);
+    let t = textureSample(tex, samp, i.uv);
+    return vec4<f32>(mix(i.owner, t.rgb, t.a), 1.0);
 }
 "#;
 
@@ -378,6 +387,8 @@ impl Gpu {
             min_filter: wgpu::FilterMode::Nearest,
             ..Default::default()
         });
+        let textured_attributes =
+            wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32x3];
         let textured_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("textured"),
             source: wgpu::ShaderSource::Wgsl(TEXTURED_SHADER.into()),
@@ -390,9 +401,9 @@ impl Gpu {
                 entry_point: Some("vs_textured"),
                 compilation_options: Default::default(),
                 buffers: &[Some(wgpu::VertexBufferLayout {
-                    array_stride: 20,
+                    array_stride: 32,
                     step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &sprite_attributes,
+                    attributes: &textured_attributes,
                 })],
             },
             primitive: wgpu::PrimitiveState {
@@ -577,9 +588,10 @@ impl Gpu {
             .iter()
             .filter(|m| !m.positions.is_empty())
             .map(|m| {
-                let mut bytes = Vec::with_capacity(m.positions.len() * 20);
+                let mut bytes = Vec::with_capacity(m.positions.len() * 32);
+                let owner = render::silhouette::team_unit(m.who).map(|c| f32::from(c) / 255.0);
                 for (p, uv) in m.positions.iter().zip(&m.uvs) {
-                    for f in p.iter().chain(uv) {
+                    for f in p.iter().chain(uv).chain(&owner) {
                         bytes.extend_from_slice(&f.to_le_bytes());
                     }
                 }

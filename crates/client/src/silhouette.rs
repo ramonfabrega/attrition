@@ -499,6 +499,9 @@ pub enum Colouring {
     Tint,
     /// The `<UNIT>`'s `texture=` through the `.BH3`'s texcoords.
     Texture,
+    /// As `Texture`, the owner's unit colour through the texel's alpha
+    /// (item 4102, `render::silhouette::team_blend`): the client's draw.
+    Team,
 }
 
 /// One object's own colour over its window, as `colouring` paints it: a
@@ -522,13 +525,14 @@ pub fn painted(
             tris: d.tris.clone(),
         };
         let tint = crate::world::tint(d.who, d.building).map(|v| (v * 255.0).round() as u8);
-        let mips = (colouring == Colouring::Texture && !d.uvs.is_empty())
+        let mips = (colouring != Colouring::Tint && !d.uvs.is_empty())
             .then(|| world.figure_texture(d.piece))
             .flatten();
         let how = match &mips {
             Some(m) => Paint::Texture {
                 uvs: &d.uvs,
                 mips: m,
+                owner: (colouring == Colouring::Team).then(|| render::silhouette::team_unit(d.who)),
             },
             None => Paint::Flat(tint),
         };
@@ -1540,7 +1544,8 @@ mod tests {
         world.run_to(PHOTO_FRAME + 1);
         let tint = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Tint);
         let tex = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Texture);
-        let off = colour_rows(&mut world, &elsewhere, &photo, &TRACED, Colouring::Texture);
+        let team = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Team);
+        let off = colour_rows(&mut world, &elsewhere, &photo, &TRACED, Colouring::Team);
         let count = |rows: &[(Footprint, render::silhouette::Colours, Who)]| {
             (
                 rows.iter().filter(|(_, c, _)| c.passes(&HUE)).count(),
@@ -1607,11 +1612,54 @@ mod tests {
             offset.0[0] / n,
             offset.0[1] / n
         );
+        // Item 4102: the team colour through the texel's alpha, each
+        // object beside the texel alone, every crossing named.
+        let mut team_sums = (0u32, 0u32, 0u32, 0u32);
+        for ((_, x, (who, o, piece, building)), (_, m, _)) in tex.iter().zip(&team) {
+            let (a, b) = (x.passes(&HUE), m.passes(&HUE));
+            println!(
+                "team {who}/{o} piece {piece}: texel lit {} agree {} {} | team lit {} agree {} mean {:.3} {} masked {} part {}{}",
+                x.lit,
+                x.agree,
+                if a { "in" } else { "out" },
+                m.lit,
+                m.agree,
+                m.mean,
+                if b { "in" } else { "out" },
+                m.masked,
+                m.masked_part,
+                match (a, b) {
+                    (false, true) => " CROSSES UP",
+                    (true, false) => " CROSSES DOWN",
+                    _ => "",
+                }
+            );
+            if !*building {
+                team_sums.0 += m.lit;
+                team_sums.1 += m.agree;
+                team_sums.2 += m.masked;
+                team_sums.3 += m.masked_part;
+            }
+        }
+        println!(
+            "team, the figures: {} lit, {} agree; the mask's {}, {} part ({:.3})",
+            team_sums.0,
+            team_sums.1,
+            team_sums.2,
+            team_sums.3,
+            team_sums.3 as f32 / team_sums.2.max(1) as f32
+        );
+        let crossed_down = tex
+            .iter()
+            .zip(&team)
+            .filter(|((_, x, _), (_, m, _))| x.passes(&HUE) && !m.passes(&HUE))
+            .count();
         let fs: Vec<Footprint> = tex.iter().map(|(f, _, _)| *f).collect();
         let silhouettes = score(&fs, &READING);
         let (t, x, o) = (count(&tint), count(&tex), count(&off));
+        let m = count(&team);
         println!(
-            "silhouettes {silhouettes:?}; colour: tint {t:?} texture {x:?} run1441's camera {o:?}"
+            "silhouettes {silhouettes:?}; colour: tint {t:?} texture {x:?} team {m:?} run1441's camera {o:?}"
         );
         for (f, c, (who, o, _, _)) in &off {
             if c.lit > 0 {
@@ -1626,8 +1674,10 @@ mod tests {
         }
         use render::silhouette as s;
         assert_eq!(silhouettes, s::RUN1559B_3279_TRACED, "the row's draw");
-        assert_eq!(x, s::RUN1559B_3279_COLOUR);
+        assert_eq!(m, s::RUN1559B_3279_COLOUR);
+        assert_eq!(x, s::RUN1559B_3279_COLOUR_TEXEL);
         assert_eq!(t, s::RUN1559B_3279_COLOUR_TINT);
+        assert_eq!(crossed_down, 0, "no object crosses down");
         assert_eq!(o, s::RUN1441_CAMERA_3279_COLOUR);
         let figures_in = |rows: &[(Footprint, render::silhouette::Colours, Who)]| {
             rows.iter()
@@ -1771,7 +1821,11 @@ mod tests {
                 ("v flipped", &flipped),
                 ("u, v swapped", &swapped),
             ] {
-                let how = Paint::Texture { uvs, mips: &mips };
+                let how = Paint::Texture {
+                    uvs,
+                    mips: &mips,
+                    owner: None,
+                };
                 let ours = paint(&object, &how, &camera, size, f.window);
                 let c = read_colours(
                     &scene.keys,
@@ -4095,9 +4149,9 @@ mod tests {
                     for target in [&mut acc[usize::from(who.0 != 0)][band], &mut obj[0]] {
                         target.n += 1;
                         target.a += t.alpha;
-                        for k in 0..3 {
+                        for (k, v) in ph.iter().enumerate() {
                             target.t[k] += t.rgb[k];
-                            target.ph[k] += ph[k];
+                            target.ph[k] += v;
                         }
                         for (b, (_, blend)) in blends.iter().enumerate() {
                             let d = dist(blend(t.rgb, a, c), ph);

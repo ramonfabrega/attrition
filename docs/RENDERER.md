@@ -1285,8 +1285,10 @@ rows are their pins'.
   calls the original's (kinds 2, 4); dark ones (sum under 60) left out.
   Each side as (r, g) / (r + g + b), which a white light's strength does
   not move; ours the texel, unlit. A pixel agrees within 0.05; an object
-  passes on 40 lit pixels, half agreeing. **11 of 33**, the tint's 2
-  (`RUN1559B_3279_COLOUR`); run1441's camera 0. Texcoords as stored.
+  passes on 40 lit pixels, half agreeing. **11 of 33** with the texel
+  alone (`RUN1559B_3279_COLOUR_TEXEL`), the tint's 2; run1441's camera
+  0. Texcoords as stored. **15 of 33** with the team colour below
+  (`RUN1559B_3279_COLOUR`, item 4102).
 - *The team colour* (4102, before its count; `TEAM_UNIT`). A figure's
   texel is `t·α + c·(1 − α)`, α its texture's alpha over 255 and `c`
   its owner's unit colour, `team_colors.list[Leader +0x6928].unit`;
@@ -1302,6 +1304,9 @@ rows are their pins'.
   pixels it reads nearest of seven blends for red as for blue. **Rests
   on a reading and one photograph**; no blind second reading is booked,
   and the relationship-colour preference (`prefs & 0x100`) is not read.
+  Counted after the commit: **15 of 33**, from 11 — 0/5, 1/21, 1/26
+  piece 26352 and 1/34 cross up, none down; of the masked lit pixels
+  61 % still part (88 % before; parked 4102a).
 - *What it does not measure.* The silhouette pass's colour (4099a).
 - *The constants* and interface are this frame's, pinned, never tuned
   to a count (the inputs: 4089's journal).

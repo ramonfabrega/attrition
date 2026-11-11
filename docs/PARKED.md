@@ -15819,8 +15819,9 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
 ## Parked by item 4038, 2026-11-09 — the silhouettes' misses
 
 - **4038a. Textures and team colours in the client** — the textures bound by item 4099 (rifleman piece 60's is
-  `inf.tga`, not the file below; the texcoords as stored, `v = 0` the top row); the team colour stands, with
-  4099a's share. (`docs/RENDERER.md` §5.3, §6's "After these"). The `<UNIT>`'s
+  `inf.tga`, not the file below; the texcoords as stored, `v = 0` the top row); the team colour drawn by item 4102
+  (`t·α + c·(1 − α)`, read off the packet's `render_states[0]` and `draw_unit`'s listing; what still parts is
+  4102a); the blind second reading still stands. (`docs/RENDERER.md` §5.3, §6's "After these"). The `<UNIT>`'s
   `texture=` (`.\art\assault_infantry.tga`: 128 × 128, type 10, 32-bit, eight alpha bits) and the `.BH3`'s texcoords
   are both decoded, and nothing binds them. The team-colour mask is unread: `GraphicPieces::draw_unit@008e7da0`, the
   figure's draw under `GraphicPieces::draw@0090b2d0`, does not decompile ("PTRSUB off of non-pointer type"), so its
@@ -16265,13 +16266,19 @@ words and edits nothing here; a refill lands when two remain.
   peasants (pieces 4576, 10912) read 0 agreeing where the whole figure is behind or masked. Candidate C's colour
   row +22 at most (31 figures less the 9 in).
 
-## Parked by the next landing, slot ES — reserved
+## Parked by item 4102, 2026-11-10 — the team colour, where the texture's alpha is under 255
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ES renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4102a. The masked pixels that still part, and the figures the team colour moves down**
+  (`docs/RENDERER.md` §5.3, "The team colour"; `RUN1559B_3279_COLOUR` 15 of 33). With `t·α + c·(1 − α)` drawn, of
+  the figures' 2,733 masked lit pixels 1,664 still part (61 %, from 88 % with the texel alone). On the alpha-band
+  table player 1's lowest band (α near 30, a grey texel near 164) reads nearer the texel than any blend, and the
+  tanks 1/16, 1/27, 1/40 read their masked pixels nearest the texel too (1/16 1,066 → 1,026 agreeing, 1/27 1,418 →
+  1,412, 1/40 940 → 933), as do riflemen 1/30 (171 → 152) and 1/31 (84 → 65), each still in or still out. Not
+  separated: stage 1's `TOP_MODULATE(TA_CURRENT, TA_DIFFUSE)` (the light's colour, which our unlit side does not
+  apply), the level the card samples, registration, and whether `draw_unit` draws these figures under
+  `render_states[0]` at all. The relationship-colour preference (`TeamColor::get_unit`'s `prefs & 0x100`) is not
+  read. The rule rests on a reading and one photograph: its blind second reading is unbooked. Names no score until
+  a mechanism is chosen; at most the 18 figures still out.
 
 ## Parked by the next landing, slot ET — reserved
 
