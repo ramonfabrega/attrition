@@ -16072,7 +16072,7 @@ words and edits nothing here; a refill lands when two remain.
   0/1's 134, 313 of 0/2's 328, 305 of 0/8's 318, 292 of 0/10's 301; centroids within 2.1 px, but 0/1's 9.7 px in y,
   its box holding 0/10's red), and the photograph's foliage edge is ours within 5 px on 16 of 25 rows (on the other
   nine the walk runs further left, into logs or ground; on none does it stop short). *What a tree's fragment carries besides its texel*: a leaf seen through would show
-  the figure's shading; the photograph shows `tfactor`'s (255, 82, 34) at a share whose mode is 0.5–0.6 by least
+  the figure's shading; the photograph shows `tfactor`'s ~~(255, 82, 34)~~ (the owner's unit colour, item 4103) at a share whose mode is 0.5–0.6 by least
   squares, `render_states[1]`'s 128/255. Neither was read further.
 - **4085b. Which land units take `init_land_unit_map`'s method list 1, and the guys pass's order** (§3.7, "What is
   not established"). Every figure on the photograph behind the pine or the woodcutter is a silhouette, so the rule
@@ -16245,21 +16245,27 @@ words and edits nothing here; a refill lands when two remain.
   booked with the next reader change that pays that anyway, or with the sweep Loop 4096 names. Names every floor: one that
   parts on the field is a finding.
 
-## Parked by the next landing, slot EQ — reserved
+## Parked by item 4103, 2026-11-10 — the silhouette pass's colour
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4103a. The silhouette's pixels that still part** (`docs/RENDERER.md` §5.3, "The silhouette's colour";
+  `RUN1559B_3279_COLOUR` 18 of 33). With `c·a + n·(1 − a)` drawn, 697 of the figures' 1,257 behind pixels still
+  part (55 %), and 0/2, 0/8 and 0/10, wholly behind the pine, read 0.38–0.45 agreeing and stay out. The least-squares
+  share of the owner's colour reads 0.570 on the photograph against the packet's 128/255 = 0.502: the leaf under it
+  is our texel unlit, at the level the cut samples, where the original's tree flush lights it (stage 1) — not
+  separated. Not established: the alpha's source (`draw_unit` takes it from a byte at `+0xa18` of a local at
+  0x8e84a5, unnamed; the packet's 128 may move with it); `get_pulse_color`'s branch (0x8e84d2–0x8e8588, a
+  selected-and-flagged figure); the leader-relationship colour at 0x8e8447; and player 1, of whom no scored figure
+  stands behind a tree or a sprite on this frame. On the card the pass lands over anything nearer (depth Greater),
+  on the key buffer only over a tree or a sprite (4085). Rests on a reading and one photograph; its blind second
+  reading is unbooked. At most the 15 figures still out; names no score until a mechanism is chosen.
 
 ## Parked by item 4099, 2026-11-10 — the figures' textures, bound
 
 - **4099a. What parts on the colour row** (`docs/RENDERER.md` §5.3, "The colour reader"; `RUN1559B_3279_COLOUR`
   11 of 33). The figures' lit pixels agree 7,379 of 17,817 textured (69 of 18,284 in the tint). Of the 10,438 that
   part: **12 % are a figure behind a tree or a sprite**, which the original draws by the silhouette's pass
-  (`render_states[1]`, 4085) in a flat colour, red for player 0 on the photograph (the woodcutter's four) — the
-  pass's colour is unread; **22 % are texels under alpha 255**, of which 88 % part — the team colour, blue for
+  (`render_states[1]`, 4085) in a flat colour, red for player 0 on the photograph (the woodcutter's four) — ~~the
+  pass's colour is unread~~ (read and drawn, item 4103: the owner's unit colour at 128/255 over the nearer pixel); **22 % are texels under alpha 255**, of which 88 % part — the team colour, blue for
   player 1 on the tunics and the tanks' patches, by eye — the mask's listing and its blind second reading are
   4038a's; **66 % the rest**, whose mean chromaticity offset is (−0.002, +0.006), so not a uniform light tint:
   the light's per-pixel shade, the level the card samples, and registration are not separated. Player 0's

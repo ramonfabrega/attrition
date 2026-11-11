@@ -513,8 +513,87 @@ pub enum Colouring {
     /// The `<UNIT>`'s `texture=` through the `.BH3`'s texcoords.
     Texture,
     /// As `Texture`, the owner's unit colour through the texel's alpha
-    /// (item 4102, `render::silhouette::team_blend`): the client's draw.
+    /// (item 4102, `render::silhouette::team_blend`).
     Team,
+    /// As `Team`, and a pixel the silhouette's pass owns (`Scene::behind`)
+    /// the owner's unit colour at 128/255 over the nearer tree's or
+    /// sprite's own pixel (item 4103, `render::silhouette::
+    /// silhouette_blend`): the client's draw.
+    Silhouette,
+}
+
+/// The nearer object's own colour over `window` (item 4103): a tree's
+/// texel through its cut ([`render::silhouette::paint_cut`]), else
+/// [`painted`]'s, team-coloured.
+#[cfg(test)]
+pub fn paint_nearer(
+    world: &mut World,
+    scene: &Scene,
+    camera: &render::Camera,
+    size: (usize, usize),
+    key: u32,
+    window: Rect,
+) -> Vec<Option<render::silhouette::Texel>> {
+    let first_tree = (scene.drawings.len() + scene.sprites.len()) as u32 + 1;
+    if key < first_tree {
+        return painted(world, scene, camera, size, key, window, Colouring::Team);
+    }
+    let i = (key - first_tree) as usize;
+    let trees = world.tree_drawings();
+    let cuts = world.tree_cuts();
+    match (trees.get(i), cuts.get(i).and_then(Option::as_ref)) {
+        (Some(d), Some(cut)) => render::silhouette::paint_cut(
+            &Object {
+                key,
+                tris: d.tris.clone(),
+            },
+            cut,
+            camera,
+            size,
+            window,
+        ),
+        _ => vec![None; ((window.x1 - window.x0) * (window.y1 - window.y0)).max(0) as usize],
+    }
+}
+
+/// [`painted`], with the silhouette's pass laid over `key`'s pixels where
+/// it owns them (item 4103), when `colouring` is `Silhouette`.
+#[cfg(test)]
+pub fn painted_scene(
+    world: &mut World,
+    scene: &Scene,
+    camera: &render::Camera,
+    size: (usize, usize),
+    key: u32,
+    window: Rect,
+    colouring: Colouring,
+) -> Vec<Option<render::silhouette::Texel>> {
+    let mut ours = painted(world, scene, camera, size, key, window, colouring);
+    if colouring != Colouring::Silhouette {
+        return ours;
+    }
+    let owner = render::silhouette::team_unit(scene.who[key as usize - 1].0);
+    let ww = (window.x1 - window.x0) as usize;
+    let mut near: std::collections::BTreeMap<u32, Vec<Option<render::silhouette::Texel>>> =
+        Default::default();
+    for y in window.y0..window.y1 {
+        for x in window.x0..window.x1 {
+            let at = y as usize * size.0 + x as usize;
+            if !scene.behind[at] || scene.keys.at(x as usize, y as usize) != key {
+                continue;
+            }
+            let j = (y - window.y0) as usize * ww + (x - window.x0) as usize;
+            let k = scene.nearer[at];
+            let n = near
+                .entry(k)
+                .or_insert_with(|| paint_nearer(world, scene, camera, size, k, window));
+            if let (Some(t), Some(u)) = (ours[j].as_mut(), n[j]) {
+                t.rgb = render::silhouette::silhouette_blend(owner, u.rgb);
+                t.alpha = 255.0;
+            }
+        }
+    }
+    ours
 }
 
 /// One object's own colour over its window, as `colouring` paints it: a
@@ -538,6 +617,7 @@ pub fn painted(
             tris: d.tris.clone(),
         };
         let tint = crate::world::tint(d.who, d.building).map(|v| (v * 255.0).round() as u8);
+        let team = matches!(colouring, Colouring::Team | Colouring::Silhouette);
         let mips = (colouring != Colouring::Tint && !d.uvs.is_empty())
             .then(|| world.figure_texture(d.piece))
             .flatten();
@@ -545,7 +625,7 @@ pub fn painted(
             Some(m) => Paint::Texture {
                 uvs: &d.uvs,
                 mips: m,
-                owner: (colouring == Colouring::Team).then(|| render::silhouette::team_unit(d.who)),
+                owner: team.then(|| render::silhouette::team_unit(d.who)),
             },
             None => Paint::Flat(tint),
         };
@@ -616,7 +696,7 @@ pub fn colour_rows(
             f.key,
             f.window,
         );
-        let ours = painted(world, &scene, camera, size, f.key, f.window, colouring);
+        let ours = painted_scene(world, &scene, camera, size, f.key, f.window, colouring);
         let w = photo.width;
         let c = read_colours(
             &scene.keys,
@@ -1558,7 +1638,14 @@ mod tests {
         let tint = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Tint);
         let tex = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Texture);
         let team = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Team);
-        let off = colour_rows(&mut world, &elsewhere, &photo, &TRACED, Colouring::Team);
+        let sil = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Silhouette);
+        let off = colour_rows(
+            &mut world,
+            &elsewhere,
+            &photo,
+            &TRACED,
+            Colouring::Silhouette,
+        );
         let count = |rows: &[(Footprint, render::silhouette::Colours, Who)]| {
             (
                 rows.iter().filter(|(_, c, _)| c.passes(&HUE)).count(),
@@ -1667,12 +1754,56 @@ mod tests {
             .zip(&team)
             .filter(|((_, x, _), (_, m, _))| x.passes(&HUE) && !m.passes(&HUE))
             .count();
+        // Item 4103: the silhouette's colour over the nearer pixel, each
+        // object beside the team colour alone, every crossing named.
+        let mut sil_sums = (0u32, 0u32, 0u32, 0u32);
+        for ((_, m, (who, o, piece, building)), (_, q, _)) in team.iter().zip(&sil) {
+            let (a, b) = (m.passes(&HUE), q.passes(&HUE));
+            println!(
+                "silhouette {who}/{o} piece {piece}: team lit {} agree {} mean {:.3} {} | silhouette lit {} agree {} mean {:.3} {} behind {} part {}{}",
+                m.lit,
+                m.agree,
+                m.mean,
+                if a { "in" } else { "out" },
+                q.lit,
+                q.agree,
+                q.mean,
+                if b { "in" } else { "out" },
+                q.behind,
+                q.behind_part,
+                match (a, b) {
+                    (false, true) => " CROSSES UP",
+                    (true, false) => " CROSSES DOWN",
+                    _ => "",
+                }
+            );
+            if !*building {
+                sil_sums.0 += q.lit;
+                sil_sums.1 += q.agree;
+                sil_sums.2 += q.behind;
+                sil_sums.3 += q.behind_part;
+            }
+        }
+        println!(
+            "silhouette, the figures: {} lit, {} agree; behind {}, {} part ({:.3})",
+            sil_sums.0,
+            sil_sums.1,
+            sil_sums.2,
+            sil_sums.3,
+            sil_sums.3 as f32 / sil_sums.2.max(1) as f32
+        );
+        let sil_down = team
+            .iter()
+            .zip(&sil)
+            .filter(|((_, m, _), (_, q, _))| m.passes(&HUE) && !q.passes(&HUE))
+            .count();
         let fs: Vec<Footprint> = tex.iter().map(|(f, _, _)| *f).collect();
         let silhouettes = score(&fs, &READING);
         let (t, x, o) = (count(&tint), count(&tex), count(&off));
         let m = count(&team);
+        let q = count(&sil);
         println!(
-            "silhouettes {silhouettes:?}; colour: tint {t:?} texture {x:?} team {m:?} run1441's camera {o:?}"
+            "silhouettes {silhouettes:?}; colour: tint {t:?} texture {x:?} team {m:?} silhouette {q:?} run1441's camera {o:?}"
         );
         for (f, c, (who, o, _, _)) in &off {
             if c.lit > 0 {
@@ -1687,10 +1818,15 @@ mod tests {
         }
         use render::silhouette as s;
         assert_eq!(silhouettes, s::RUN1559B_3279_TRACED, "the row's draw");
-        assert_eq!(m, s::RUN1559B_3279_COLOUR);
+        assert_eq!(q, s::RUN1559B_3279_COLOUR);
+        assert_eq!(m, s::RUN1559B_3279_COLOUR_TEAM);
         assert_eq!(x, s::RUN1559B_3279_COLOUR_TEXEL);
         assert_eq!(t, s::RUN1559B_3279_COLOUR_TINT);
         assert_eq!(crossed_down, 0, "no object crosses down");
+        assert_eq!(
+            sil_down, 0,
+            "no object crosses down on the silhouette's colour"
+        );
         assert_eq!(o, s::RUN1441_CAMERA_3279_COLOUR);
         let figures_in = |rows: &[(Footprint, render::silhouette::Colours, Who)]| {
             rows.iter()
@@ -4228,7 +4364,7 @@ mod tests {
     /// pixel; with the least-squares share of `unit` over the nearer pixel.
     #[test]
     fn the_silhouette_s_pixels_against_the_owner_s_record() {
-        use render::silhouette::{HUE, Object, chromaticity, paint_cut, traced_theirs};
+        use render::silhouette::{HUE, chromaticity, traced_theirs};
         let install = std::env::var_os("RON_INSTALL")
             .map(PathBuf::from)
             .unwrap_or_else(|| PathBuf::from("../../game"));
@@ -4286,7 +4422,6 @@ mod tests {
         let size = (photo.width, photo.height);
         let scene = frame_scene(&mut world, &camera, size);
         let first_tree = (scene.drawings.len() + scene.sprites.len()) as u32 + 1;
-        let trees = world.tree_drawings();
         let p = Photo {
             width: photo.width,
             height: photo.height,
@@ -4405,33 +4540,7 @@ mod tests {
                     let Some(t) = ours[j] else { continue };
                     let k = scene.nearer[at];
                     let near = cache.entry(k).or_insert_with(|| {
-                        if k >= first_tree {
-                            let ti = (k - first_tree) as usize;
-                            let cuts = world.tree_cuts();
-                            match (trees.get(ti), cuts.get(ti).and_then(Option::as_ref)) {
-                                (Some(d), Some(cut)) => paint_cut(
-                                    &Object {
-                                        key: k,
-                                        tris: d.tris.clone(),
-                                    },
-                                    cut,
-                                    &camera,
-                                    size,
-                                    f.window,
-                                ),
-                                _ => vec![None; ww * (f.window.y1 - f.window.y0) as usize],
-                            }
-                        } else {
-                            painted(
-                                &mut world,
-                                &scene,
-                                &camera,
-                                size,
-                                k,
-                                f.window,
-                                Colouring::Team,
-                            )
-                        }
+                        paint_nearer(&mut world, &scene, &camera, size, k, f.window)
                     });
                     let Some(u) = near[j] else { continue };
                     let i = at * 4;

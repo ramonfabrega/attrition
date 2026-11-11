@@ -1055,7 +1055,7 @@ leaves' texels cut 12, all 0/6's, and on every covered pixel the tree is the nea
 So four figures by the woodcutter, which the photograph shows in front of the pine, stay hidden (parked 4082a).
 The rejected readings, `TreePixels::Scene` and `Leaves::Solid`, read 26 and 25 of 29. **→ 30 of 33** with the
 figures' silhouettes (4085, §5.3 "The silhouettes"): on the pixels our pine covers, the photograph holds neither the
-figure's own colours nor the leaf's but `render_states[1]`'s `tfactor`, (255, 82, 34) at 128/255, over the leaf —
+figure's own colours nor the leaf's but `render_states[1]`'s `tfactor`, the owner's unit colour at 128/255 (4103), over the leaf —
 red on 94–97 % of each of the four figures' covered pixels and 4–22 % ten pixels over, the colour's share by least
 squares at a mode of 0.5–0.6 — and the pine stands where ours does. The figure stands behind the tree in the
 original too; it is drawn over it. The rejected readings with the silhouettes: `Silhouettes::None` 26 of 29,
@@ -1289,7 +1289,7 @@ rows are their pins'.
 - *The silhouette's colour* (4103, before its count). A silhouette's
   pixel is `c·a + n·(1 − a)`, `c` the owner's `TEAM_UNIT`, `a` 128/255,
   `n` the nearer tree's texel or sprite's pixel (`render_states[1]`'s
-  `SELECTARG2(TFACTOR)`); a reading, one photograph.
+  `SELECTARG2(TFACTOR)`); a reading, one photograph: **18 of 33**.
 - *The constants* and interface are this frame's, pinned, never tuned
   to a count (the inputs: 4089's journal).
 

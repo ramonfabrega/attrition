@@ -546,6 +546,22 @@ pub fn team_blend(rgb: [f32; 3], alpha: f32, owner: [u8; 3]) -> [f32; 3] {
     [0, 1, 2].map(|k| rgb[k] * a + f32::from(owner[k]) * (1.0 - a))
 }
 
+/// **The silhouette's alpha** (item 4103; §5.3, "The silhouette's
+/// colour"): `render_states[1]`'s `tfactor` alpha on run1559b's packet,
+/// the byte `GraphicPieces::draw_unit@008e7da0` lays beside the owner's
+/// unit colour (0x8e84a5–0x8e84ab) before it stores both (0x8e8598).
+pub const SILHOUETTE_ALPHA: u8 = 128;
+
+/// **The silhouette's pixel** (item 4103; §5.3): `render_states[1]`'s
+/// `SELECTARG2(TFACTOR)` for colour and alpha, blended source-alpha over
+/// the nearer pixel `nearer`: `c·a + n·(1 − a)`, `c` the owner's unit
+/// colour, `a` [`SILHOUETTE_ALPHA`] over 255 — the arithmetic
+/// `client::gpu`'s silhouette pass runs.
+pub fn silhouette_blend(owner: [u8; 3], nearer: [f32; 3]) -> [f32; 3] {
+    let a = f32::from(SILHOUETTE_ALPHA) / 255.0;
+    [0, 1, 2].map(|k| f32::from(owner[k]) * a + nearer[k] * (1.0 - a))
+}
+
 /// How an object is coloured for [`paint`].
 pub enum Paint<'a> {
     /// One colour on every triangle: the debug tint.
@@ -1037,7 +1053,19 @@ pub const RUN1441_CAMERA_3279_TRACED: (usize, usize) = (0, 32);
 /// before this count): 0/5, 1/21, 1/26 piece 26352 and 1/34 cross up, none
 /// down; the figures' lit pixels agree 8,165 of 17,889, and of the masked
 /// 2,733 part 61 % (88 % with the texel alone).
-pub const RUN1559B_3279_COLOUR: (usize, usize) = (15, 33);
+///
+/// **18 of 33 since item 4103** (from 15), a pixel the silhouette's pass
+/// owns drawn as the owner's unit colour at 128/255 over the nearer tree's
+/// or sprite's pixel ([`silhouette_blend`], §5.3 "The silhouette's colour",
+/// committed before this count in `ccef32aac`): 0/9 (agree 32 → 101 of
+/// 199), 0/1 (7 → 81 of 159) and 0/6 (90 → 97 of 187) cross up, none down;
+/// 0/2, 0/8 and 0/10 rise (7 → 135, 10 → 118, 5 → 133) and stay out; of the
+/// figures' 1,257 behind pixels 697 part (from 1,235); the figures agree
+/// 8,679 of 17,889.
+pub const RUN1559B_3279_COLOUR: (usize, usize) = (18, 33);
+/// [`RUN1559B_3279_COLOUR`] with the team colour and no silhouette's
+/// colour, item 4102's draw.
+pub const RUN1559B_3279_COLOUR_TEAM: (usize, usize) = (15, 33);
 /// [`RUN1559B_3279_COLOUR`] with the texel alone, item 4099's draw.
 pub const RUN1559B_3279_COLOUR_TEXEL: (usize, usize) = (11, 33);
 /// [`RUN1559B_3279_COLOUR`] in the debug tint, the draw before: the two
@@ -1587,6 +1615,23 @@ pub fn score(footprints: &[Footprint], reading: &Reading) -> (usize, usize) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Item 4103: the silhouette's pixel — the owner's colour at 128/255
+    /// over the nearer pixel.
+    #[test]
+    fn the_silhouette_is_the_owner_s_colour_at_half_over_the_nearer_pixel() {
+        // Over black: the owner's colour at 128/255.
+        let red = silhouette_blend([255, 0, 0], [0.0; 3]);
+        assert!((red[0] - 128.0).abs() < 1e-3 && red[1] == 0.0 && red[2] == 0.0);
+        // Over the owner's own colour: unchanged.
+        let blue = silhouette_blend(TEAM_UNIT[1], [34.0, 82.0, 255.0]);
+        assert!((0..3).all(|k| (blue[k] - f32::from(TEAM_UNIT[1][k])).abs() < 1e-3));
+        // Over a leaf: between the two, a hair nearer the owner.
+        let leaf = [100.0, 120.0, 40.0];
+        let p = silhouette_blend([255, 0, 0], leaf);
+        assert!((p[0] - (255.0 * 128.0 + 100.0 * 127.0) / 255.0).abs() < 1e-3);
+        assert!((p[1] - 120.0 * 127.0 / 255.0).abs() < 1e-3);
+    }
 
     /// Item 4102: the team colour's ends and its middle — alpha 255 the
     /// texel, 0 the owner's colour, half between; past the eight, white.
