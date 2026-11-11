@@ -70,3 +70,4 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 
 | family | wave | tokens | minutes | leaves (of) | note |
 |---|---|---|---|---|---|
+| anti-att | 1 | 154 k | 10 | 1 of 1 written | 8 stores in `Leader::calc_anti_attrition (006cdcc0)`; argues class 2 (f32 chain replayable by `Single`), not class 3 |
