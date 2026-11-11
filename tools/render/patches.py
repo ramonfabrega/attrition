@@ -49,6 +49,9 @@ from snapshot import Snapshot  # noqa: E402
 
 WORLDC, MISC_TERRAIN = 0x00C061D0, 0x00C06218
 TEXTURE_FRACTAL = 0x00C8BF20
+# `compass.obj`'s `move_x`/`move_y` and `TerrainOut.obj`'s `bit_reversal`
+# (the linker map, `rise_z.map`).
+MOVE_X, MOVE_Y, BIT_REVERSAL = 0x00ADCAF0, 0x00ADC400, 0x00AF1D58
 NBR = [(-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)]
 
 
@@ -149,6 +152,19 @@ def main(argv):
             )
             count += 1
     print(f"patches {count}", file=sys.stderr)
+
+    # Item 4134: what `mark_trans_flags` leaves and the consumer reads.
+    print("move_x " + " ".join(str(i32(MOVE_X + 4 * k)) for k in range(10)))
+    print("move_y " + " ".join(str(i32(MOVE_Y + 4 * k)) for k in range(10)))
+    print("bit_reversal " + " ".join(str(u32(BIT_REVERSAL + 4 * k)) for k in range(8)))
+    ex, ey = u32(terrain + 0x499C), u32(terrain + 0x49A0)
+    for y in range(height + 1):
+        for x in range(width + 1):
+            print(f"edge {x} {y} x {u32(ex + 4 * ((height + 1) * y + x)):03x} y {u32(ey + 4 * ((width + 1) * x + y)):03x}")
+    for y in range(height):
+        for x in range(width):
+            land, sub = wdata(x, y)
+            print(f"cell {x} {y} land {land} sub {sub}")
     return 0
 
 
