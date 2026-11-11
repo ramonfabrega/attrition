@@ -127,7 +127,8 @@ is append-only and amended in place, as it always was.
 - 118 amended by 121 — kill rule, arm's close
 - 119 standing — step 5: twelve lines, an instrument first
 - 120 standing — step 5's frame; the floats
-- 121 standing — no window kill rule; a soft stop, 85 %
+- 121 standing — no kill rule; soft stop 95 %
+- 122 standing — Opus drives, Fable talks
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
 - 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types
 - 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself
@@ -12057,3 +12058,56 @@ set on the whole week; the driver is on Fable (Loop 4146).
 **Not established:** how many resets are banked; whether a builder killed
 by the wall can be resumed rather than re-cut; what a line of step 5
 should cost, which the next bookings measure.
+
+## 122. The driver is Opus 5.5; Fable 5.2 is the outside observer, a talk row that owns no tree (2026-11-11)
+
+**What happened.** At 12:29 −05:00 lore's first reading of a Fable-only week
+(`seven_day_fable`) was 96 %, beside 86 % for the whole week. The driver was
+on Fable 5.2 and had been cutting Opus workers under a stop set on the whole
+week (entry 121, amended; Loop 4146). The same hour Ramon asked whether the
+driver's row is the right place to talk: a message of his lands in the
+working context and re-reads all of it, where the steer and commander rows
+had kept a working context nobody talked into.
+
+**Ramon, on the driver's row:** "im thinking we go into opus main driver
+(e.g. like it was as a commander before)... and we simply open a new lane
+(can even be from master/non worktree) with fable and talk/steer there? ...
+opus on the integration, and fable is the outside observer (for now)... that
+way we squeeze out the last weekly lim numbers and then pull the full reset?
+and we keep the remaing last % of fable on reserve for talking/etc?" And:
+"i will use the banked reset for all not the fable only reset... so ideally
+we do squeeze out the last 14% we got left".
+
+**Decided**, on that word.
+
+1. **The driver is Opus 5.5** (`claude-opus-5-5[1m]`), on the `steer` row and
+   the integration worktree, from the moment the row's model is switched. It
+   is still one row and one owner of the tree: everything "The driver" in
+   `docs/LOOP.md` says of the driver stands, with the model changed. Entry
+   116's roster line for the driver is superseded here.
+2. **Fable 5.2 is the outside observer**: a session Ramon opens when he
+   wants to talk, from the root checkout or anywhere, which owns no worktree
+   and commits nothing. It reads `origin/main` (always a gated tip), the
+   queue, lore and the journals. What it decides with Ramon reaches the
+   driver as one message, and the driver writes it into this file. It may
+   design an item's text; the driver books it. It is never a blind reader or
+   an adjudicator (unchanged).
+3. **The whole week is run down, then Ramon pulls a full reset.** The stop
+   of entry 121 is read on the whole week, where the workers and now the
+   driver draw. *The driver's reading of "squeeze out the last 14 %", his to
+   correct:* new work is cut while a whole step fits under the wall — a
+   builder is one to three points with its gate and booking, so the last cut
+   is near 96 % — and the driver reports the reading so the reset is pulled
+   before anything in flight meets the wall.
+4. **The integration worktree and its branch stay.** Ramon raised retiring
+   the worktree and the old rows for a clean sheet. The driver's view,
+   adopted until he says otherwise: a clear already gives the driver a clean
+   context; the worktree holds the build cache, the gate's tree is cut from
+   it and its branch name is in the tools, so retiring it buys a cold rebuild
+   and a sweep of paths for no change in behaviour. The retired `commander`
+   row and the merged `agent-*` trees are his to remove.
+
+**Not established:** whether an Opus driver designs a chain step as well as
+the Fable one did (the pilot's twenty steps were designed on Fable); whether
+the observer's one-message hand-off is enough, or a decision needs a file;
+what the Fable week resets with.

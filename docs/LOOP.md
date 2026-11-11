@@ -10,8 +10,8 @@ clause below is the driver.**
 
 ## The driver
 
-**One session drives, and it is the session Ramon talks to.** The `steer`
-row, on Fable 5.2, is the only session that owns the integration worktree.
+**One session drives.** The `steer`
+row, on Opus 5.5 since 2026-11-11 (DECISIONS 122; Fable 5.2 before), is the only session that owns the integration worktree.
 It books, merges, gates and pushes; it holds the direction of the track it
 is driving; it spawns the workers; and at a boundary it is the pass. The
 `commander` row is retired. Two permanent rows alternating on one worktree
@@ -79,7 +79,9 @@ another model takes that model's own default effort, not the driver's.
 
 **The roster is Ramon's, set at a steer** (DECISIONS 116):
 
-- **The driver**: Fable 5.2.
+- **The driver**: Opus 5.5 (DECISIONS 122). **Fable 5.2 is the outside
+  observer**: a talk row Ramon opens at will, which owns no tree, commits
+  nothing and hands the driver a decision as one message.
 - **The chain** — start, checksum, orders and save on one lobby, to the
   milestone `docs/TRACKS.md` names — is the driver's own, built by
   in-session builders whose model is the driver's call for each step: Opus
