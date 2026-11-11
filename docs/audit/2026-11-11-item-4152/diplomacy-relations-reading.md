@@ -57,7 +57,7 @@ One writer steps both, so they share a section.
   `this` (a `Leader*`) and `edi` is `param_1`, the target slot.
 - **Zeroed by `Leader::init (006e3930)`.** `blacken` is cleared at line 170
   (`6e3be0`). `dow[u]` is `puVar23[0x67]` off `+0xd4`, inside the per-slot
-  loop at lines 178–244 (`0xd4 + 0x67·4 = 0x270`).
+  loop at lines 180–255, line 243 (`0xd4 + 0x67·4 = 0x270`).
 - **Zeroed by `Leaders::clear (006ed5d0)`**, which memsets the first
   `0x6929` bytes of each slot (`6ed5e0`–`6ed5ee`).
 - **Nothing else stores.** The listing scan found no other store in either
@@ -194,7 +194,7 @@ read leader is the **target `t`**, as in `list[t].dow[me]` or
   `Sim::set_diplo` (`crates/sim/src/leaders/relations.rs:116`), reached
   only by the golden replayer's console verbs (`crates/rondata/src/golden.rs:2147`
   → `Setup::set_diplo`, `crates/sim/src/setup.rs:253`), and
-  `Sim::declare_war` (`relations.rs`, near line 292).
+  `Sim::declare_war` (`relations.rs:294`).
 - **`take_damage_view.rs:195`'s `declare` is a view method with no live
   implementer.** It runs only in the sweep
   (`crates/sim/tests/sweep/object_take_damage_arms.rs`).
@@ -249,7 +249,7 @@ read leader is the **target `t`**, as in `list[t].dow[me]` or
   has no store anywhere; its four hits are reads at `5e161c`, `5e162c`,
   `5e164b` and `6dab9d`.
 - **Zeroed by `Leader::init`** (`puVar23[0x77]`, `0xd4 + 0x77·4 = 0x2b0`,
-  line 236) and by **`Leaders::clear`**'s memset.
+  line 248) and by **`Leaders::clear`**'s memset.
 - **Not leader stores:** the `0x2b4`–`0x2c8` hits in `Leaders::clear`,
   `plan_strategy` and `create_units`. Those are `Diplomacy`, `UnitType` and
   `BuildType` words: their bases come from pointer loads, not from a
@@ -330,7 +330,7 @@ All of them compare `frame − max(mine[t], theirs[me])` with
   where `me` = `this->who` and `p` = `param_1`. These are the only runtime
   stores. The absolute range `0xe3a660..0xe3a67f` has these two stores
   plus reads at `5e1697` and `5e16d0`.
-- **Zeroed by `Leader::init`** (`puVar23[0x7f]`, `0xd4 + 0x7f·4 = 0x2d0`)
+- **Zeroed by `Leader::init`** (`puVar23[0x7f]`, `0xd4 + 0x7f·4 = 0x2d0`, line 249)
   and by **`Leaders::clear`**.
 - The `0x2d8`–`0x2ec` hits off registers in `create_buildings` and the
   like are `BuildType` and `UnitType` fields.
@@ -414,7 +414,7 @@ Other stores:
 
 - **`Leader::init`**, inside the per-slot loop: `hire_stamp[u] = 0` at
   `puVar23[0x38]`, and **`hire_who[u] = −1`** at `puVar23[0x40]`
-  (`0xd4 + 0x40·4 = 0x1d4`, decompile line 189).
+  (`0xd4 + 0x40·4 = 0x1d4`, decompile line 190; `hire_stamp` line 189).
 - **`Leaders::clear`** memsets both to 0 *before* init sets `hire_who`
   to −1.
 - **Nothing else stores.** The absolute ranges `0xe3a544..0xe3a563` and
@@ -552,7 +552,7 @@ All are in `Leader::diplomacy`, for computer `me` against target `t`.
     `movl %eax,0xd4(%ecx)` at `6ba8c2`… where `ecx` is loaded from a
     pointer array and dereferenced at `+0xdc`, and `lose_tech`/`gain_tech`'s
     `0xdc`–`0xe8` off the encrypted data block.
-- **Zeroed by `Leader::init`** (`*puVar23 = 0`, line 180) and by
+- **Zeroed by `Leader::init`** (`*puVar23 = 0`, line 182) and by
   **`Leaders::clear`**.
 
 ### Event, step, predicate
@@ -569,7 +569,7 @@ it to a fixed answer, lines 1733–1747). The steps:
 2. `v = −balance` (`negl` at `6bfe17`).
 3. `v −= 99` if `counteroffer[t] != 0` (`lea -0x63(%ecx)` with `cmove` on
    `counteroffer[t] == 0`, `6bfe1c`–`6bfe2a`; the decompile's
-   pointer-typed rendering of this, line 2780, hides the 99).
+   pointer-typed rendering of this, line 2779, hides the 99).
 4. **Accept branch** (`6c0865`), when `local_54 == 0` and `v ≤ 0`
    (`6bfe30` → `6bffef`, `jle`):
    - `counteroffer[t] = 0`;
@@ -637,7 +637,7 @@ So:
 ### Writers
 
 - **`Leader::init (006e3930)`**: `puVar23[0x88] = 0` in the per-slot loop
-  (`0xd4 + 0x88·4 = 0x2f4`, decompile line 246).
+  (`0xd4 + 0x88·4 = 0x2f4`, decompile line 251).
 - **`Leaders::clear (006ed5d0)`**'s memset.
 - **No runtime writer and no reader was found:**
   - the absolute range `0xe3a684..0xe3a6a3` has **no access at all** in
@@ -657,7 +657,7 @@ So:
     `0x310`, all off non-leader bases;
   - `Options`, `Console` and `Scene` fields.
 - The neighbouring `got_diplo_message` (`+0x2f0`) is written at
-  `0xe3a680(t·0x6eec)` in nine places in `Leader::diplomacy`. None of
+  `0xe3a680(t·0x6eec)` in eight places in `Leader::diplomacy` (plus two reads). None of
   those is `+0x2f4`.
 
 ### Event, step, predicate
@@ -698,3 +698,37 @@ The writer is init only, so every game reaches it, trivially.
 - **`Leaders::walk_data (006e38e0)` and the scenario loader were not
   read.** They could copy a value in from a save or scenario file.
 
+## Against the README row
+
+The row names "the `Leader::action_*` family and `Leader::diplomacy`'s
+arms, which the crate stops at a SEAM". That holds in outline, with five
+corrections.
+
+1. **`dow` and `blacken` move only on a paid (`free == 0`) declaration,
+   which means a human's.** `Leader::diplomacy` passes `free = 1` at
+   every one of its declarations, so porting its arms would never move
+   them. Their event is the human's Declare command
+   (`CommandPackage::process_declare`) and the human partner's leg of a
+   joint-attack deal.
+2. **`broke_alliance` is stamped on every alliance break, free or not**,
+   by `action_declare`.
+3. **`made_peace`, `hire_stamp` and `hire_who` are written by
+   `action_respond`'s deal-execution tail**, not by `diplomacy` itself.
+4. **`last_spoke` has no runtime writer and no reader at all.** It is
+   zero from init.
+5. **One of the `hire_who` reader arms in `diplomacy` is dead as
+   compiled.** It compares with the loop index `l`. The crate's SEAM
+   comment says "two arms"; the live count is three.
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `dow[t]` | `Leader::action_declare (006dab50)` `6dad3e`, `6dad61` | +1 per paid declaration on `t`: war from peace when `invaders[t] < 5`, or alliance break (+2 for a forced war on an ally). Only when `free == 0`, i.e. a human declarer. | `Leader::init (006e3930)`, `Leaders::clear (006ed5d0)` | none; new `action_declare` beside `Sim::set_diplo` (`leaders/relations.rs:116`); readers SEAM `leaders/diplomacy.rs:304,398` | yes, human Declare under team style 0/8/11 or age rush rules (run1078) | high |
+| `blacken` | `Leader::action_declare (006dab50)` `6dad38`, `6dad5b` | +1 per counted `dow` event whose slot was already non-zero | same | none; same new function; readers SEAM `diplomacy.rs:398,444`; mislabelled in `rondata/src/diff/leader.rs:47` | yes, human only | high |
+| `broke_alliance[t]` | `Leader::action_declare (006dab50)` `6dad7f` | `= frame` when the call breaks an alliance (free or paid) | same | none; same new function | yes (alliance break) | high; readers inert (delay −1) |
+| `made_peace[p]` | `Leader::action_respond (006d03c0)` `6d108d`, `6d10a0` (both sides) | `= frame` when an executed deal's treaty term is exactly 1 | same | none; new `action_respond` (no `Diplomacy` records in the crate); SEAM `diplomacy.rs:480–495` | yes in principle (peace deal); reader inert (delay −1) | high store, medium gating |
+| `hire_stamp[i]` | `Leader::action_respond (006d03c0)` `6d121e`, `6d122e` | `= frame` for both parties, per attack term `i` of an executed deal, when war is allowed | init 0, clear 0 | none; new `action_respond`; readers SEAM `diplomacy.rs:453` | only with Diplomacy on (team style 0/8/11), 3+ players | high |
+| `hire_who[i]` | `Leader::action_respond (006d03c0)` `6d123a`, `6d1244` | `= partner slot`, same event | init **−1**, clear 0 | same | same | high; reader arm (a) dead |
+| `good_deeds[t]` | `Leader::diplomacy (006bc950)` `6c08ae` | `−= v` on accepting `t`'s deal (`v ≤ 0` is minus the surplus, −99 if a counteroffer is pending, +50 if `weak[t]` outside a tribute period), only if `any_proposals(t)` | init, clear | none; inside the offers-arm SEAM `diplomacy.rs:488–495` | yes in principle (computer accepts a deal) | high store, medium meaning |
+| `last_spoke[j]` | none at run time; `Leader::init (006e3930)` and `Leaders::clear (006ed5d0)` zero it | never steps | init, clear | constant 0 (checksum row `checksum/leaders.rs:84`) | n/a (always 0) | medium-high (save/scenario load unread) |

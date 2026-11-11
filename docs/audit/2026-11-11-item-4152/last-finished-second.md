@@ -128,9 +128,11 @@ reaches the type's requirement (vtable `+0x18c`) the site is activated with
 `(0, 1, 1)` (decompile 110–113). A Wall object reaches the same line, but
 its slot `+0x1a8` is `Wall::activate`, which does not write; only a `Build`
 records. The start city (`Setup::build_cities`, `(0,0,0)`), a captured or
-bribed building, a `produce_building` placement (frame-0 small-city and
-civ buildings, `counted` 0) and a scenario-loaded building do **not**
-record.
+bribed building, a building `Leader::produce_building` activates on the
+spot (`counted` 0; the crate uses that arm at frame 0 for
+`Setup::small_city_buildings`, `crates/sim/src/setup.rs` near
+`produce_building`; I did not read which other callers reach it) and a
+scenario-loaded building do **not** record.
 
 Arithmetic: none — a copy of a `short` into an `int`.
 
@@ -203,3 +205,110 @@ anchored mid-record with a *negative* displacement into these arrays (the
 sweep covered displacements in `[0x59f8,0x67f4)` and every absolute in the
 range; the decompile's leader-context sweep found none either).
 
+## Leaf 2: `last_unit_finished` (`LeaderData +0x6274`, `int[352]`)
+
+### 1. Writers
+
+| writer | site | what it stores |
+|---|---|---|
+| `Leader::init (006e3930)` | dec. 749–752; listing `6e4bfc` `rep stosd`, count `0x160` | −1 into all 352 (seated); 0 for an unseated slot (the same `memset`) |
+| `Build::train (0062f9b0)` | dec. 72–81; listing `62f9fe`–`62fa35` | the new unit's object number |
+| `ScenarioFuncSet::get_last_type_built (009e9910)` | dec. 67–71; listing `9e9a21`/`9e9a28` | −1 after reading (read-and-clear) |
+
+No other writer by either net.
+
+### 2. The event, the step, the predicate
+
+**Event: a building trains a unit.** `Build::train (0062f9b0)`, `thiscall`
+on the trainer, one argument, the unit `TypeIndex`:
+
+- it calls `Objects::init_unit (0065e0c0)` (listing `62f9fe`) for the
+  trainer's `who`, the type, the trainer's own position (`+0x10`/`+0x14`
+  de-obfuscated with `^ 0x63637`), and three −1s;
+- predicate: the return is not negative (`62fa08 test ecx,ecx; js
+  630431` — a refusal returns at once with no write); there is no type,
+  kind or player exemption inside `train`;
+- index: the `TypeIndex` argument minus `0x32` (folded into `0x61ac`);
+  slot: the trainer's `who` (`+0x9`);
+- value: `init_unit`'s return, the unit's number in its owner's object
+  array (the crate's `Unit::index`, `[0, 2000)`), as an `int`;
+- an **overwrite**; beside it the same number goes to
+  `ScenarioData::last_unit_built_o[who]` (`0xcc1930 + who*4`, `62fa16`).
+
+`Build::train` is non-virtual; every direct `call 0x62f9b0` in `.text`,
+mapped by `INDEX.tsv`:
+
+| caller | sites | what it is |
+|---|---|---|
+| `Build::finished (00628490)` | `628665`, `628887` | a production-queue entry that is a unit (dec. 69), and the government hero (dec. 167) |
+| `Build::process (0061edf0)` | `61f4cb`, `61f564`, `61f5c1`, `61f63d`, `61f72e` | the building's own periodic units (dec. 315 a `SPY`, 340/361/413 a type, 379 a `CARA`) |
+| `Build::activate (00623e20)` | 15 sites `6246ca`…`6258cb` | the free-unit arms on a building going active |
+| `Leader::gain_tech (006dcb60)` | `6dd93a` | the free bombers (`constants->americans_free_bomber`, dec. 629–640) |
+| `City::assimilate (00738e90)` | `739199` | the government hero (dec. 139) |
+| `Setup::place_unit (005abca0)` | `5abf3a` | the start's **fallback** only: after every placement try fails (`60` with a starting town, else `500`), a unit with a city trains out of it (dec. 43–53); the normal start placement calls `init_unit` directly and does not write |
+| `ConsoleWin::run_cmd (007d6a70)` | `7df14d` | the debug console |
+| `UnitBalance::next (009b8ac0)` | `9b9f2a` | the balance harness |
+
+A unit made by any path that calls `Objects::init_unit` directly (the start
+placement, a herd, a scenario's create-unit, a conversion) does not write.
+
+Arithmetic: none — a copy of an `int`. Not read: what `init_unit` returns
+for a squad type (the captain's number, presumably), so for a squad the
+cell holds whichever number that is.
+
+### 3. What clears or resets it
+
+- `Leader::init (006e3930)`: all −1 (seated).
+- `ScenarioFuncSet::get_last_type_built (009e9910)` sets the read cell to
+  −1.
+- Nothing else; a death does not clear it.
+
+### 4. Readers
+
+The same two as leaf 1: `ScenarioFuncSet::get_last_type_built (009e9910)`
+(its unit arm, `TypeIndex` in `0x32..=0x19d`, read-and-clear) and
+`LeaderData::walk_data (006d6750)`'s raw range for the checksum and the
+save round trip. (The sibling script function `get_last_unit_built
+(009e9a70)` reads the scalar `ScenarioData::last_unit_built_o`, not this
+leaf.) No sim rule reads it.
+
+### 5. Where `crates/sim` has the event
+
+`Sim::build_train` (`crates/sim/src/cities/queue.rs:1693`, whose doc
+comment names `Build::train (0062f9b0)`, "a unit born at a building") is the crate's single
+`Build::train`; its first two lines are `who = buildings[at].owner` and
+`unit = self.init_unit(who, ty, pos)`. A builder writes
+`table[who][ty] = units[unit].index` right there (the crate's unit record is
+`TypeIndex − 0x32`, `units/unit.rs:798`). Its non-test callers are the
+production queue (`queue.rs:1612`, `:1675`), the free units of
+`Build::activate` (`cities/activate.rs:391`, `cities/nations.rs:432, 524,
+583, 655, 686`) and `cities/city_views.rs:591` — the same set as the
+original's plain-game callers. `Sim::place_unit`
+(`crates/sim/src/units/starting.rs:40`) stops before the fallback: it
+returns `Err(PlaceRefused::Train)` where the original would train from the
+city, so the start's rare fallback write is a SEAM there. The leaf is in
+`crates/sim/src/checksum/leaders.rs:301`.
+
+### 6. Reached by a plain game?
+
+**Yes**, on the first unit any building trains, and on every free unit
+`Build::activate`/`Build::process` hand out. Off the plain path: the
+console (`ConsoleWin::run_cmd`), `UnitBalance::next`, and the reader's
+clear (trigger layer). `Leader::gain_tech`'s bombers need the Americans;
+`City::assimilate` needs a captured city — both reachable in a skirmish.
+
+### 7. Confidence and not read
+
+High for index, value, predicate and init: the decompile and the listing
+agree at the store, and the caller list is the listing's complete set of
+direct calls (no indirect call to `0x62f9b0` was looked for beyond the
+`jmp`/`call` grep). Not read: the free-unit arms of `Build::activate` and
+`Build::process` individually (they only choose the type; the write is in
+`train`); `init_unit`'s squad return.
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `last_building_finished` `+0x6070` `int[129]`, index `TypeIndex − 0x19e` | `Build::activate (00623e20)` (from `Wall::do_construct (006434d0)`'s completion; also `Console::hurry_action (007c3810)`, `ScenarioFuncSet::create_building (009f4d30)`); `Leader::init (006e3930)`; `ScenarioFuncSet::get_last_type_built (009e9910)` | overwrite with the building's `o` (`SubObjectData +0xa`, sign-extended `short`) when `captured == 0 && counted != 0` | −1 at `Leader::init` (0 for an unseated slot, never walked); −1 on a script read; never on death | `SimHead::record_last_built`, `crates/sim/src/cities/activate.rs:139` (empty SEAM), under the predicate already at `:74` | yes — every finished construction | high |
+| `last_unit_finished` `+0x6274` `int[352]`, index `TypeIndex − 0x32` | `Build::train (0062f9b0)` (from `Build::finished (00628490)`, `Build::process (0061edf0)`, `Build::activate (00623e20)`, `Leader::gain_tech (006dcb60)`, `City::assimilate (00738e90)`, `Setup::place_unit (005abca0)` fallback, `ConsoleWin::run_cmd (007d6a70)`, `UnitBalance::next (009b8ac0)`); `Leader::init (006e3930)`; `ScenarioFuncSet::get_last_type_built (009e9910)` | overwrite with the new unit's `o` (`Objects::init_unit`'s return) when that return is ≥ 0 | as above | `Sim::build_train`, `crates/sim/src/cities/queue.rs:1693`, after its `init_unit` | yes — every unit a building trains | high |

@@ -121,9 +121,14 @@ the live bits it bounds.
 The crate keeps no fort registry: forts are the buildings themselves
 (`crates/sim/src/ai/ai_sites.rs:311` `fort_at`, `crates/sim/src/cities/place.rs:326`
 `reg_forts`, both filter `alive && active && is_fort`). A builder adding
-`fort_mark` needs a slot registry like `territory::supply::SupplyList`
-(`crates/sim/src/territory/supply.rs:171`, which already reproduces the
-same first-free / trim-the-tail rule for supply) opened in
+`fort_mark` needs a slot registry; the exact template is the crate's
+**docks registry**, `Sim::dock_open` / `Sim::dock_close`
+(`crates/sim/src/ai/transport.rs:384`, `:489`, with `Docks::mark`), which
+reproduces all three cases of `Docks::init_dock` (reuse under the mark,
+take the allocated tail at the mark, append) and is the same code shape
+as `init_fort`. `territory::supply::SupplyList`
+(`crates/sim/src/territory/supply.rs:171`) is the simpler variant that
+pops freed tail records. Open it in
 `Sim::activate` (`crates/sim/src/cities/city.rs:2420`, the `is_fort` test at
 line 2533) and closed in `Sim::close_building` (`crates/sim/src/cities/city.rs:2782`;
 its fort arm at ~2906 already names `Forts::close_fort` and the `+0x78`
@@ -198,7 +203,8 @@ No oil-well registry. `Sim::gather_sites_outside_cities`
 (`crates/sim/src/economy/holdings.rs:535`) walks every building and takes
 the active oil wells and platforms, which is what the original's loop
 adds; the mark itself has nowhere to live. A builder would add a
-`SupplyList`-style registry opened in `Sim::activate`
+registry on the `Sim::dock_open` template (`crates/sim/src/ai/transport.rs:384`)
+opened in `Sim::activate`
 (`crates/sim/src/cities/city.rs:2420`) and closed in `Sim::close_building`
 (`crates/sim/src/cities/city.rs:2782`). Note the close gate also needs
 `is_gather_type`; `docs/CITIES.md` §1.5's `build_flags` table gives bit
@@ -611,3 +617,42 @@ High (one writer, both nets, listing read at the store). Not read:
 whether the Red Fort is in the FORTX lineage (taken from
 `docs/CITIES.md`).
 
+## Against the README row's writer list
+
+The row names "the registries' `init_*`/`close_*`; `Fort::init`;
+`Build::activate`; `Wonders::init_wonder`". Confirmed, with these
+additions and refinements:
+
+- **Missing: `Setup::build_game (005ac190)`** zeroes `supply_mark` in all
+  eight slots at every game start (`005ac373` … `005ac48b`).
+- **Missing as named writers: `Leader::init (006e3930)`** (the three marks;
+  tribe ≥ 0 only), **`Leader::reset_score (006e37f0)`** (the four
+  `*_built`/`wonders_held` counters) and **`Leaders::clear (006ed5d0)`**
+  (memset of all seven) — the resets.
+- `Build::activate` writes only `wonders_built` and `senates_built`
+  directly; `forts_built` is written by `Fort::init` and `wonders_held` by
+  `Wonders::init_wonder`, both reached only from `Build::activate`.
+- The registries' `init_*`/`close_*` write only the three marks
+  (`Forts`, `OilWells`, `Supplies`); `Wonders::close_wonder` writes none of
+  this family's leaves.
+- Not leaders despite matching displacements: `ScenarioRead::
+  load_leaders_chunk` (base is the `Game`), `ConquestLeader::*`,
+  `ConquestGame::advance_round`.
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `fort_mark` +0x428 | `Forts::init_fort (0073ed70)`, `Forts::close_fort (0073ec90)` | +1 or 0 on a fort's activation (max(mark, idx+1)); trimmed down past dead top entries on its close | `Leader::init (006e3930)` (tribe ≥ 0), `Leaders::clear (006ed5d0)` | none; template `Sim::dock_open` (`ai/transport.rs:384`), open in `Sim::activate` (`cities/city.rs:2533`), close in `Sim::close_building` (`cities/city.rs:2782`) | yes | high |
+| `oil_well_mark` +0x430 | `OilWells::init_oil_well (0073f6f0)`, `OilWells::close_oil_well (0073f670)` | same rule, on activation / close of OILWELL or OILPLATFORM (close also needs `is_gather_type` and `+0x78 ≥ 0`) | `Leader::init` (tribe ≥ 0), `Leaders::clear` | none; same template, beside `gather_sites_outside_cities` (`economy/holdings.rs:535`) | yes | high |
+| `supply_mark` +0x434 | `Supplies::init_supply (0073ad40)`, `Supplies::close_supply (0073acc0)`, `Setup::build_game (005ac190)` | same rule, on `Unit::init`/`set_type` of a supply type and `Unit::close`/`set_type` away | `Setup::build_game` (all slots), `Leader::init` (tribe ≥ 0), `Leaders::clear` | modelled: `SupplyList::len()` (`territory/supply.rs:207`); `set_type` adapter no-op (`units/set_type_adapter.rs:210`) | yes | high |
+| `wonders_built` +0x854 | `Build::activate (00623e20)` | +1 per activation of a type in `[0x20e, 0x21e]`, **no captured gate** | `Leader::reset_score (006e37f0)`, `Leaders::clear` | none; `Sim::activate` (`cities/city.rs:2420`); reader proxy `american_free_wonder` (`cities/city.rs:1827`); do not merge with `Cities::wonders_built` (`cities.rs:63`, a type bitmask) | yes (capture question open) | high (increment); capture reach not read |
+| `wonders_held` +0x858 | `Wonders::init_wonder (0073c860)` | max(held, live entries under `wonder_mark`) at each wonder activation; never lowered | `Leader::reset_score`, `Leaders::clear` | none; `Sim::note_wonders` (`ai/ai_census.rs:1276`) | yes | high |
+| `senates_built` +0x85c | `Build::activate (00623e20)` | +1 per non-city SENATE-lineage activation with city index ≥ 0 and captured == 0 | `Leader::reset_score`, `Leaders::clear` | hook `senates_built_inc` (`cities/activate.rs:172`/`:261`), `SimArms` no-op `:394`; predicate sweep-backed | yes | high |
+| `forts_built` +0x8f0 | `Fort::init (0073eac0)` | +1 per `init_fort`, i.e. per FORTX-lineage activation, no gate | `Leader::reset_score`, `Leaders::clear` | none; `Sim::activate`'s `is_fort` test (`cities/city.rs:2533`) | yes | high |
+
+All seven are inside the checksum's whole-slot walk (`[+0x8, +0x692a)`).
+Of the seven, only `fort_mark`, `oil_well_mark`, `supply_mark` (as loop
+bounds) and `wonders_built` (`BuildData::construct_time`) are read by the
+sim; `wonders_held`, `senates_built` and `forts_built` are read only by
+the achievements chart, `log_data` and the checksum.
