@@ -990,8 +990,221 @@ fn the_ported_lines_are_checksum_state() {
         sim.checksum_cities(),
         sim.checksum_goods(),
         sim.checksum_builds(&|b| pieces.get(&b).copied().unwrap_or(-1)),
+        sim.checksum_guys(),
     ];
     let bytes: usize = lines.iter().map(sim::checksum::Line::bytes).sum();
     let (n, _, b, _) = crate::checksum::CHECKSUM_STATE;
     assert_eq!((n, b), (lines.len(), bytes as u64), "CHECKSUM_STATE");
+}
+
+/// The guys line's range name for a stream row, by its call site
+/// (`PtrArray<Guy>::walk_data@0046df30`, `GuyData::walk_data@005e0210`).
+fn guy_site_field(site: &str) -> &'static str {
+    match site {
+        "0046df67" => "guys.length",
+        "0046dfc8" => "guys.size",
+        "0046dfd6" => "guys.increment",
+        "0046dfee" => "guys.flags",
+        "0046e199" => "guys[k].present",
+        "0046e220" => "guys.size..increment",
+        "005e0228" => "guy",
+        _ => "?",
+    }
+}
+
+/// One guys-line range decoded field by field: the figure record by
+/// [`sim::checksum::guys::GUY_FIELDS`] (each field little-endian and
+/// signed at its width, a turret array as its four words), any other
+/// range as its one value.
+fn guy_range_fields(field: &str, b: &[u8]) -> Vec<(String, i64)> {
+    let le = |s: &[u8]| -> i64 {
+        match s.len() {
+            1 => i64::from(s[0] as i8),
+            2 => i64::from(i16::from_le_bytes([s[0], s[1]])),
+            _ => i64::from(i32::from_le_bytes(s[..4].try_into().unwrap())),
+        }
+    };
+    if field == "guy" {
+        let mut out = Vec::new();
+        for &(n, at, w) in sim::checksum::guys::GUY_FIELDS {
+            let s = &b[at - 8..at - 8 + w];
+            if w == 16 {
+                for k in 0..4 {
+                    out.push((format!("{n}[{k}]"), le(&s[4 * k..4 * k + 4])));
+                }
+            } else {
+                out.push((n.to_string(), le(s)));
+            }
+        }
+        return out;
+    }
+    if field == "guys.size..increment" {
+        return vec![
+            ("size".into(), le(&b[0..4])),
+            ("increment".into(), le(&b[4..6])),
+        ];
+    }
+    vec![(field.to_string(), le(b))]
+}
+
+/// The pinned outcome of the guys line on run 1562's packet: `(units,
+/// figures, ranges, bytes, ranges parted, bytes in the ranges that agree)`
+/// (`docs/CHECKSUM.md` §16): 368 of 368 ranges and 9,308 of 9,308 bytes.
+/// The first image (item 4104) parted on 45 ranges: the forty gaia
+/// figures' `gpiece` (ours −1, theirs 60063..60074) and five moving
+/// figures' `last_x`/`last_y`/`last_z`, one of them its `last_angle`.
+const GUYS: (usize, usize, usize, usize, usize, usize) = (52, 54, 368, 9308, 0, 9308);
+
+/// The five `f32` fields of a figure (`GuyData +0x40..+0x54`), by name.
+const GUY_FLOATS: [&str; 5] = ["turret_inc", "bank", "last_bank", "pitch", "last_pitch"];
+
+/// **The guys line, ours against the original's, range by range**
+/// (`docs/CHECKSUM.md` §16, item 4104): our `Sim::checksum_guys` against
+/// the instrument's stream of the guys line, every range, each figure
+/// decoded field by field on both sides by `GUY_FIELDS`, then the Adler
+/// against the printed `Guys`, with no substitution. The five floats are
+/// held as bits, and are `+0.0` on every figure of both sides. And it can
+/// part: a herd's piece at the −1 this crate's figure keeps parts on its
+/// range alone, a figure's `last_x` at its own `x` parts on that range,
+/// a float bit flipped parts on its range, and an empty image on every
+/// range.
+#[test]
+fn the_guys_line_is_the_original_s_range_by_range() {
+    let Some((theirs, want, sim)) = line_inputs("guys", "Guys") else {
+        return;
+    };
+    let ours = sim.checksum_guys();
+    let mut parted_by_field: std::collections::BTreeMap<String, Vec<(usize, i64, i64)>> =
+        std::collections::BTreeMap::new();
+    let mut floats_theirs = std::collections::BTreeSet::new();
+    let mut figure = 0usize;
+    for (i, t) in theirs.iter().enumerate() {
+        let tf = guy_site_field(&t.1);
+        let Some(o) = ours.ranges.get(i) else {
+            parted_by_field.entry(format!("{tf}: ours -")).or_default();
+            continue;
+        };
+        if o.field != tf {
+            parted_by_field
+                .entry(format!("{tf}: ours walks {}", o.field))
+                .or_default()
+                .push((i, 0, 0));
+            continue;
+        }
+        let tv = guy_range_fields(tf, &t.2);
+        let ov = guy_range_fields(o.field, &o.bytes);
+        for ((n, a), (_, b)) in ov.iter().zip(&tv) {
+            if GUY_FLOATS.contains(&n.as_str()) {
+                floats_theirs.insert((n.clone(), *b as u32));
+            }
+            if a != b {
+                parted_by_field
+                    .entry(n.clone())
+                    .or_default()
+                    .push((figure, *a, *b));
+            }
+        }
+        if tf == "guy" {
+            figure += 1;
+        }
+    }
+    for (f, v) in &parted_by_field {
+        eprintln!("FIELD {f}: {} parted; {:?}", v.len(), &v[..v.len().min(8)]);
+    }
+    let parted = parting(&ours, &theirs);
+    let bytes_equal: usize = ours
+        .ranges
+        .iter()
+        .zip(&theirs)
+        .filter(|(o, t)| o.bytes == t.2)
+        .map(|(o, _)| o.bytes.len())
+        .sum();
+    eprintln!(
+        "guys: ours {} ranges {} bytes adler {}; theirs {} ranges {} bytes; printed {want}; ranges parted {}, bytes in equal ranges {bytes_equal}",
+        ours.ranges.len(),
+        ours.bytes(),
+        ours.adler(),
+        theirs.len(),
+        theirs.iter().map(|t| t.2.len()).sum::<usize>(),
+        parted.len(),
+    );
+    let units = ours
+        .ranges
+        .iter()
+        .filter(|r| r.field == "guys.length")
+        .count();
+    let figures = ours.ranges.iter().filter(|r| r.field == "guy").count();
+    assert_eq!(
+        (
+            units,
+            figures,
+            theirs.len(),
+            theirs.iter().map(|t| t.2.len()).sum::<usize>(),
+            parted.len(),
+            bytes_equal
+        ),
+        GUYS,
+        "the guys line: units, figures, the stream's ranges and bytes, ranges parted, bytes agreeing"
+    );
+    assert_eq!(ours.bytes(), GUYS.3);
+    assert!(parted_by_field.is_empty(), "every field of every figure");
+    // The five floats, the original's side: one bit pattern each, +0.0,
+    // on all 54 figures (`docs/CHECKSUM.md` §16).
+    assert_eq!(
+        floats_theirs,
+        GUY_FLOATS.iter().map(|n| (n.to_string(), 0u32)).collect(),
+        "every float of every figure is +0.0 on the original's side"
+    );
+    // The Adler, last: ours against the line the original printed.
+    assert_eq!(ours.adler(), want, "the guys line's Adler");
+
+    // **It can part.** Each perturbation parts on its own range alone.
+    let guy_range = |k: usize| {
+        ours.ranges
+            .iter()
+            .enumerate()
+            .filter(|(_, r)| r.field == "guy")
+            .nth(k)
+            .map(|(i, _)| i)
+            .unwrap()
+    };
+    let field_at = |n: &str| {
+        sim::checksum::guys::GUY_FIELDS
+            .iter()
+            .find(|f| f.0 == n)
+            .map(|f| f.1 - 8)
+            .unwrap()
+    };
+    let bend = |k: usize, at: usize, v: &[u8]| {
+        let mut bent = ours.clone();
+        let r = guy_range(k);
+        bent.ranges[r].bytes[at..at + v.len()].copy_from_slice(v);
+        let p: Vec<usize> = parting(&bent, &theirs).iter().map(|p| p.0).collect();
+        (p, r, bent.adler())
+    };
+    // The first herd figure's piece at the −1 this crate's figure keeps.
+    let herd = (0..figures)
+        .find(|&k| {
+            let r = &ours.ranges[guy_range(k)];
+            i32::from_le_bytes(r.bytes[0..4].try_into().unwrap()) >= 0x192
+        })
+        .expect("a herd figure");
+    let (p, r, a) = bend(herd, field_at("gpiece"), &(-1i32).to_le_bytes());
+    assert_eq!(p, vec![r], "a herd's piece at -1 parts on its range");
+    assert_ne!(a, want);
+    // The first moving figure's `last_x` at its own `x`.
+    let moving = (0..figures)
+        .find(|&k| {
+            let b = &ours.ranges[guy_range(k)].bytes;
+            b[field_at("x")..field_at("x") + 4] != b[field_at("last_x")..field_at("last_x") + 4]
+        })
+        .expect("a figure that moved this frame");
+    let x = field_at("x");
+    let xb: Vec<u8> = ours.ranges[guy_range(moving)].bytes[x..x + 4].to_vec();
+    let (p, r, _) = bend(moving, field_at("last_x"), &xb);
+    assert_eq!(p, vec![r], "last_x at x parts on the moving figure's range");
+    // A float's sign bit.
+    let (p, r, _) = bend(3, field_at("bank") + 3, &[0x80]);
+    assert_eq!(p, vec![r], "a -0.0 bank parts on its range");
+    assert_eq!(parting(&Line::default(), &theirs).len(), GUYS.2);
 }

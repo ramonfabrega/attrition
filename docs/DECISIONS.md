@@ -11958,6 +11958,31 @@ follows that measurement. The window's rule reads 61 % and the window
 read 55 % when the instrument landed; one line a builder at about a point
 each does not fit, and entry 118 says what a trip does.
 
+**§3, decided at item 4104 (2026-11-10), by value** (`docs/CHECKSUM.md`
+§16; the journal's table). The five figure floats — `turret_inc`, `bank`,
+`last_bank`, `pitch`, `last_pitch` — are one bit pattern, `0x00000000`,
+on all 54 figures of run 1562's frame 91 and all 111 of run1100's frame
+5408; their writers store 0 at a figure's birth and init, and a computed
+single only for an aircraft, a bird or a missile. So:
+
+1. **A float that is constant on the scored game's figures is emitted as
+   its bits**, a `u32` with the listing's store cited. The guys line
+   emits `+0.0` and is whole, 368 of 368 ranges.
+2. **Where it is not constant, the bits come from what the crate already
+   holds as a software float** (`num::single::Single`, an integer
+   mantissa): an aircraft's bank and pitch from `air::Airframe`. Nothing
+   was added to `no_float.rs`'s allowances, and entry 16 stands.
+3. **A float that does neither holds its line out, by name.** None does on
+   this frame. A missile's `turret_inc` (90.0's bits) and a bird's three
+   are named and unemitted (parked 4104a): the claim is "constant on this
+   game's figures", narrower than constant, and a scored frame that holds
+   one reopens it.
+4. **The leaders' two are read as values now, their writers at the
+   leaders line**: `anti_att` is `0x43800000` (256.0) and `plunder_scale`
+   `0xbf800000` (−1.0) on both walked leaders of frame 91 and all three
+   of run1100's (the driver's read of the stream at this booking). Class 1
+   by value on two frames; which writers move them is that item's.
+
 ## 121. The window's kill rule is removed: a soft stop Ramon moves at will takes its place, and the handoff reports the week's pace and what a step cost (2026-11-10)
 
 **What happened.** The driver's eleventh session cut item 4094's builder

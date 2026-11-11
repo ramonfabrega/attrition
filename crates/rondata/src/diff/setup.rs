@@ -146,6 +146,7 @@ pub(crate) fn guy_of(g: &crate::gamelog::Guy) -> Option<sim::units::anim::Guy> {
         // stands it up before its first attack, when all three are
         // `Guy::clear`'s zero.
         turret: sim::units::anim::Turret::ZERO,
+        last: None,
     })
 }
 

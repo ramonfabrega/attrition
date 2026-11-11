@@ -11,8 +11,9 @@
 //! is read last, and only says whether a whole line agrees.
 //!
 //! Ported so far: **items** (item 4088), **cities** and **goods** (item
-//! 4091), and **builds** ([`builds`], item 4094), held out on three fields
-//! (`docs/CHECKSUM.md` §14). Every other line is its own item, cheapest
+//! 4091), **builds** ([`builds`], items 4094 to 4098, `docs/CHECKSUM.md`
+//! §14, §15) and **guys** ([`guys`], item 4104, §16). Every other line is
+//! its own item, cheapest
 //! first by `docs/CHECKSUM.md` §4's ledger.
 
 use crate::Sim;
@@ -484,6 +485,7 @@ impl Sim {
 }
 
 pub mod builds;
+pub mod guys;
 
 #[cfg(test)]
 mod tests;

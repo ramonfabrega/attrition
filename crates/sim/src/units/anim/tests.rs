@@ -195,6 +195,7 @@ fn animal(s: &mut Sim, who: Player, o: i16, piece: i32, anim: i8, cur: u32, end:
         aim: None,
         follow: None,
         turret: Turret::ZERO,
+        last: None,
     }];
     s.add_unit(u)
 }
@@ -720,6 +721,7 @@ fn the_mirror() {
         aim: None,
         follow: None,
         turret: Turret::ZERO,
+        last: None,
     });
     s.frame = 101;
     s.guys_inc_time();
@@ -872,6 +874,7 @@ fn a_wander_onto_an_occupied_cell_is_not_ordered() {
             aim: None,
             follow: None,
             turret: Turret::ZERO,
+            last: None,
         }];
         let a = s.add_unit(u);
         if let Some(p) = blocker {
@@ -953,6 +956,7 @@ fn university(anims: &[i8]) -> (Sim, usize, Vec<usize>) {
             aim: None,
             follow: None,
             turret: Turret::ZERO,
+            last: None,
         }];
         let u = s.add_unit(u);
         s.buildings[uni].garrison.push(u);
