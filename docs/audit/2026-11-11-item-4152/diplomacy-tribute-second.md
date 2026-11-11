@@ -349,3 +349,142 @@ no human.
 and decompile agree); medium on the side conditions named by local
 (`-0x30`) and on the demand amounts, which are not this leaf's.
 
+## `tributes` (+0x498, int[6])
+
+Per good, what this leader has taken out of its stockpile and holds
+committed to deals not yet executed — an escrow ledger in resource
+units.
+
+**1. Writers.**
+- `Leader::action_respond` (006d03c0):
+  - `6d07b5 addl %esi, 0x498(%ebx,%edx,4)` and `6d0857 addl %edx,
+    0x498(%ebx,%esi,4)` (`ebx` = `this`, index = good) — the commit;
+  - `6d0e19 lea 0xe3a828(,%eax,4)` (pointer to `P.tributes[0]`, walked
+    by 4 per good), `6d0f17 subl %edi, (%eax)` through it, `6d0f7e subl
+    %ebx, 0xe3a828(,%eax,4)` (`me.tributes[g]`) — the trade;
+  - `6d0fd4`/`6d0fe2` — both clamped to 0 after the trade.
+- `Leader::clear_agree` (006d1af0), `6d1b10 lea 0x498(%edx), %esi` then
+  stores through `esi` — the refund.
+- Whole-record: memsets/walk.
+- Discarded: `IFaceDiplo*`/`IFaceDiploNeg*` `0x4a8`/`0x4ac(%esi)`
+  (window fields), `ScenarioRead::load_leaders_chunk`
+  (`GameInfo.player[]`), `IFaceAirGarrison::update_visibility`.
+
+**2. Event, step, predicate.**
+- *Commit* — `action_respond(me, P, 1)` when `me.dip[P].agree != 1`,
+  after an affordability pass: for each good `g` available to both
+  (`type_avail(g, 1)`), if `stock[g] < offer_g + price_g` the whole
+  response is abandoned (a message to the console player, no state
+  change). Then, per good available to both with `me.dip[P].offers[g] >
+  0`: `stock[g] = max(stock[g] - o, 0)`, `escrow[g] (+0x468) =
+  max(escrow[g] - o, 0)`, `tributes[g] += o` — the full `o`, not the
+  floored difference. Then per good with a non-zero `price_g`: the same
+  three steps with `price_g`, and `me.dip[P].dows[g] = price_g`.
+  `price_g` is the cost of the `attacks` I asked `P` to make: for each
+  seated `j` with `me.dip[P].attacks[j] != 0` that I am not at war with,
+  `UnitType vtable +0x78 (g, me, …)` times 2 if I am allied to `j`, and
+  times 0 unless I am human (`leader_flags & 4`) — so only a human pays
+  it. Then `me.dip[P].agree = 1` and `P.agendas[me] |= 4`.
+- *Trade* — the loop at `LAB_006d0df9` over `g = 0..5` (listing
+  `6d0df9`–`6d0ffa`). First, each side's `dip[other].dows[g]` is
+  credited back to its own stockpile (`bucket_add`) and zeroed — **with
+  no matching decrement of `tributes`**. (The zeroing of P's side uses
+  `0xe40ce0 + P*0x6f48`, i.e. `P.dip[P].dows[g]`, not `P.dip[me].dows[g]`
+  — a slot that looks wrong but is what the listing does, `6d0e23`.)
+  Then, if `g` is available to both: `a = max(me.dip[P].offers[g], 0)`,
+  `b = max(P.dip[me].offers[g], 0)`; `me` receives
+  `P.scale_tribute(b)`, `P.tributes[g] -= b`; `P` receives
+  `me.scale_tribute(a)`, `me.tributes[g] -= a`; then both
+  `tributes[g]` are floored at 0. (A refunded `dows` amount therefore
+  stays in `tributes` until that floor or a later `clear_agree` takes
+  it; I did not find what charges the war price after the refund —
+  plausibly `action_declare`, which the trade's tail calls for each
+  requested attack when `Game::war_allowed`.)
+- *Refund* — `clear_agree(me, P)`, only when `me.dip[P].agree == 1`:
+  per good, if `dows[g] != 0` move `r = min(tributes[g], dows[g])` from
+  `tributes[g]` back to the stockpile; then if `offers[g] > 0` move
+  `r = min(tributes[g], offers[g])` likewise; then `clear_dows`,
+  `agree = 0`, `any_offer = 0`. Callers: `action_offer`,
+  `action_clear_all`, `action_clear_tributes`, `action_attack`,
+  `action_treaty`, `action_respond` (decline and cancel paths),
+  `Leader::diplomacy` (the counter-offer, both sides),
+  `ScenarioFuncSet::make_counter_offer`.
+
+**3. Reset.** Memsets/load; otherwise only the trade's floor and the
+refund lower it.
+
+**4. Readers.** `clear_agree` (the `min`) and `action_respond` (the
+floor). No interface or dump reader found by the read scan; the
+`log_data` and `EndGameWin` hits at these offsets are other bases.
+
+**5. Crate.** None: the crate has no `Diplomacy` records (the SEAM at
+`crates/sim/src/leaders/diplomacy.rs:177`), no `action_offer`,
+`action_respond` or `clear_agree`, and no tribute order. Checksum leaf
+`crates/sim/src/checksum/leaders.rs:118`. A builder needs the
+`Diplomacy` record first; the counter belongs in a port of
+`action_respond` and `clear_agree`, beside the stockpile code in
+`crates/sim/src/economy.rs`.
+
+**6. Plain game?** As `tribute_stamp`: a human's tribute or deal, a
+human's taunt to a computer ally, or a computer's demand under team
+style 0/8/11. The human attack price needs a human. An all-computer
+game at team style 1: not reached that I found.
+
+**7. Confidence.** High on all store sites and arithmetic (listing).
+Medium on the `dows` refund reading and its consequence for this
+counter; not read: `UnitType` vtable `+0x78` (named only by slot), and
+`action_declare`'s own charge.
+
+## `tribute_sent` (+0x860, int) and `tribute_received` (+0x864, int)
+
+Lifetime score counters: gross resources given, and resources received
+after the giver's scaling.
+
+**1. Writers.**
+- `Leader::action_respond` (006d03c0), the trade loop:
+  `6d0f1c addl %edi, 0xe3abf0(%eax)` (`eax = P*0x6eec`: `P.tribute_sent
+  += b`), `6d0f31 addl %eax, 0xe3abf4(%esi)` (`esi = me*0x6eec`:
+  `me.tribute_received += P.scale_tribute(b)`), `6d0f8c addl %ebx,
+  0xe3abf0(%eax)` (`me.tribute_sent += a`), `6d0faf addl %eax,
+  0xe3abf4(%ecx)` (`P.tribute_received += me.scale_tribute(a)`).
+- `Leader::reset_score` (006e37f0), `6e3895`/`6e389b` — both to 0.
+- Whole-record: memsets/walk.
+- The only other `0x860`/`0x864` references in `.text` are other
+  records (`Constants::init`/`log_data`, `Build::activate`,
+  `Tribe::parse`, `TileSet::init`, `GraphicPieces::~GraphicPieces`, and
+  `LeaderData::get_support_count`/`Leader::gain_tech`, which read
+  `0x864` off the globals at `0xc061e4`/`0xc061f0`, not a leader).
+
+**2. Event, step, predicate.** Per good `g = 0..5` of an executed trade,
+when `g` is available to both: the giver's `tribute_sent` adds the gross
+`max(offer, 0)` and the receiver's `tribute_received` adds
+`giver.scale_tribute(amount)`. A good unavailable to either side adds
+nothing; an amount of 0 adds 0. `LeaderData::scale_tribute` (006d5240):
+`pct = (giver's encrypted epoch word [2] ^ 0x63187) * commerce_tribute +
+base_tribute` (two `Constants` fields; their load scale I did not read);
+`pct < 1` → 1; `pct > 100` → the amount unscaled; `pct == 100` →
+unscaled; otherwise `x*pct/100` for `x < 20`, `(x*pct + 50)/100` for
+`20 <= x < 100`, `(x*pct + 99)/100` for `x >= 100` (signed division,
+non-negative operands).
+
+**3. Reset.** `Leader::reset_score` — called by `Leader::init` (every
+path) and `Setup::build_game`; the memsets; save load.
+
+**4. Readers.** `AchieveChartPane::set_chart_data` (007f2c40), listing
+`7f2e84`/`7f2eb0`, off `GameAccessConst::leadersc` (`0xc061e0`): the
+end-of-game chart. Nothing in the sim reads either.
+
+**5. Crate.** No writer; the score counters beside it are ported one by
+one (`crates/sim/src/economy.rs:700–704`, `goody_box_resources`, cites
+`reset_score`). Checksum leaves `crates/sim/src/checksum/leaders.rs:178–179`.
+A builder adds both to the port of `action_respond`'s trade loop and to
+whatever stands for `reset_score` at leader setup.
+
+**6. Plain game?** As `tributes`' trade: a human's tribute or deal, a
+human's taunt grant from a computer ally, or a computer demand at team
+style 0/8/11. Not by an all-computer team-style-1 game that I found.
+
+**7. Confidence.** High (listing, four stores, one reset). Not read:
+`Constants::init`'s load of `commerce_tribute`/`base_tribute`, and which
+epoch index 2 is.
+
