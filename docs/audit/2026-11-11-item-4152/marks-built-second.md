@@ -168,7 +168,7 @@
    nearest-supply search attrition uses), `Supplies::init_supply`,
    `LeaderData::log_data`.
 5. **Crate.** Present in substance: `territory::supply::SupplyList`
-   (`crates/sim/src/territory/supply.rs:172`), `register` at unit birth
+   (`crates/sim/src/territory/supply.rs:171`), `register` at unit birth
    (`crates/sim/src/units/store.rs:145`, gated on
    `unit.kind.supply_unit`) and `close` on death
    (`Sim::close_supply_in`, `crates/sim/src/territory/upkeep.rs:62`).
@@ -221,8 +221,9 @@ call sites found in the export:
    `0x20e..=0x21e` (PYRAMIDS..SPACEPROGRAM; listing `625adf`–`625af2`);
    otherwise the virtual `BuildData::is_wonder` / `TypeData::is_wonder_type`.
    Then `UnbuiltWonders::remove_unbuilt_wonder`, **`+= 1`**, then
-   `Wonders::init_wonder`. **No test of `captured`** (`param_1` is first
-   read at `625b6d`, after the increment, for the achievement event) — so a
+   `Wonders::init_wonder`. **No test of `captured`** on the path from `LAB_00625a45` (`625a45`)
+   to the increment — the region is top-level in the function, and the
+   next `param_1` read is `625b6d`, after it, for the achievement event — so a
    wonder taken with a city (`capture_city`, `(1,1,0)`) or handed over by
    `defeat_by` counts again for its new owner. Never decremented.
 3. **Reset.** `Leader::reset_score`, called by `Leader::init (006e3930)`
@@ -352,7 +353,7 @@ call sites found in the export:
 |---|---|---|---|---|---|---|
 | `fort_mark` +0x428 | Forts::init_fort (0073ed70), Forts::close_fort (0073ec90), Leader::init (006e3930); whole-record | slot-list mark: take on fort `Build::activate` (any `captured`), trim on `Build::close` | Leader::init; Leaders::clear; walk_data load | none; add `SlotList` in `Sim::activate` (cities/city.rs:2420) + give-back beside `dock_close` (city.rs:2829); arm in checksum/leaders.rs | yes | high |
 | `oil_well_mark` +0x430 | OilWells::init_oil_well (0073f6f0), OilWells::close_oil_well (0073f670), Leader::init (006e3930); whole-record | slot-list mark on OILWELL/OILPLATFORM activate/close | Leader::init; Leaders::clear; walk_data load | none; same two sites as fort_mark | yes (Industrial+) | high |
-| `supply_mark` +0x434 | Supplies::init_supply (0073ad40), Supplies::close_supply (0073acc0), Leader::init (006e3930), Setup::build_game (005ac190) (`_1076_4_`, 10 slots); whole-record | slot-list mark on supply-unit birth/death/retype (`unit_flags2 & 0x40`) | Setup::build_game; Leader::init; Leaders::clear; walk_data load | `SupplyList::len()` (territory/supply.rs:172) already equals it; add arm; `set_type` pair stubbed (units/set_type_adapter.rs:207) | yes | high |
+| `supply_mark` +0x434 | Supplies::init_supply (0073ad40), Supplies::close_supply (0073acc0), Leader::init (006e3930), Setup::build_game (005ac190) (`_1076_4_`, 10 slots); whole-record | slot-list mark on supply-unit birth/death/retype (`unit_flags2 & 0x40`) | Setup::build_game; Leader::init; Leaders::clear; walk_data load | `SupplyList::len()` (territory/supply.rs:171) already equals it; add arm; `set_type` pair stubbed (units/set_type_adapter.rs:207) | yes | high |
 | `wonders_built` +0x854 | Build::activate (00623e20), Leader::reset_score (006e37f0); whole-record | +1 per wonder activation, captured included | reset_score (Leader::init, Setup::build_game) | none (`Cities::wonders_built` is `Game::wonders`, a different field); add in `Sim::activate` under `is_wonder_building` | yes | high |
 | `wonders_held` +0x858 | Wonders::init_wonder (0073c860), Leader::reset_score (006e37f0); whole-record | max(held, in-use wonders below `wonder_mark`) at each init_wonder | reset_score | none (`Sim::wonders_held` is a type bitmask); add in `Sim::note_wonders` (ai/ai_census.rs:1276) | yes | high |
 | `senates_built` +0x85c | Build::activate (00623e20), Leader::reset_score (006e37f0); whole-record | +1 per Senate activation with a city and `captured == 0` | reset_score | SEAM `SimArms::senates_built_inc` (cities/activate.rs:394) | yes | high |

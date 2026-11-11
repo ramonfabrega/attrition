@@ -148,3 +148,82 @@ building included), a worker (type 0x32..0x35), a caravan or a merchant
 `raid_stamp[att] = frame`. The site is the same as §1. A plain game
 reaches it. **Confidence: high.** **Open:** gaia's column 8 (§0).
 
+## 3. `ally_stamp` (`LeaderData +0x154`, int[8])
+
+| claim | R1 | R2 | status | verdict | deciding line |
+|---|---|---|---|---|---|
+| one store, `64ae8d`, reached from both heavy arms | yes | yes | agree | **confirmed** | `64ae8d`; the plain arm rejoins through `64b1e4`..`64b1eb jmp 64ae82` with `ecx = att + vic·0x1bbb` |
+| capital heavy: the ally test runs whatever the capital gate answered | yes | yes | agree | **confirmed** | `64ab8a jle 64ad11` (gate closed) and the fall-through after `64ad0a` both reach `64ad11` |
+| plain heavy: the ally test runs after the city stamps | yes | yes | agree | **confirmed** | `64b054`, `64b068`, then `64b06b`..`64b082` |
+| gate `frame - ally_stamp[att] > 300` | yes | yes | agree | **confirmed** | `64ad1c`/`64ad28 jle 64b56d`; `64b076`/`64b082 jle 64b56d` |
+| the console/ally test gates the notice, not the store | yes | yes | agree | **confirmed** | capital: `64ad3c je 64ae7c` (`vic == console->who`), `64ad53 je 64ae79` (not `is_ally(leaders[vic], console->who)`), and the notice path falls through `64ae72`..`64ae79` onto the store. Plain: `64b096 je 64b1e4`, `64b0ad je 64b1e4`. `edx` still holds `vic·0x1bbb` on the `64ad3c` path (from `64ab74`/`64acd0`) |
+| `is_ally` is called on the victim's record with the console's slot | yes | yes | agree | **confirmed** | `64ad42 pushl %eax` (console `who`), `64ad46 ecx = leaders[vic]`, `64ad4c call 6edb50` |
+| notice throttle: 300 (capital) and 400 (plain), interface only | yes (read from the export) | yes | agree | **confirmed** | `64ae27 cmpl $0x12c`, `64b192 cmpl $0x190`; both only skip the notice call |
+| never on a light hit, the worker arm, a unit, an inactive or city-less building, or in the territory step | yes | yes | agree | **confirmed** | the only path to `64ad11`/`64b06b` passes `64ab60`/`64ae9d` (heavy != 0) after `64ab3a` (city ≥ 0) |
+| writer: `Leader::init` `6e3c1b` (`0x80(%esi)`) | yes | yes | agree | **confirmed** | `6e3c1b` |
+| writer: `Leaders::clear`; `walk_data` | yes | load path | agree / one-sided | **confirmed** | as in §1 |
+| readers: only `do_damage` (`64ad1c`, `64ae0f`, `64b076`, `64b17a`), `log_data` `piVar3[0x38]`, the walk; no trigger reader | yes | yes | agree | **confirmed** | absolute scan (§0); export `log_data` line 324 (`0x74 + 0xe0 = 0x154`) |
+| crate: in both heavy arms of `city_alarm`; the capital arm's early `return` inside `if frame - *stamp > 300` must move so the ally store runs on both outcomes | yes | yes ("must precede those returns") | agree | **confirmed** | `delivery.rs`, the `if self.cities.cities[c].capital` block: `return true` inside the test and `return false` after it |
+| plain game: yes | yes | yes | agree | **confirmed** | no mode test |
+
+**The rule for a builder.** `leaders[vic].ally_stamp[att]`, sim frames,
+initial 0, zeroed by `Leader::init`. On a **heavy** blow (§1's `heavy`) by
+`att != vic` on an active building of `vic`'s that has a city: in the
+capital, after the `capital_stamp` test whichever way it went; elsewhere,
+after the city's two stamps are set. If `frame - ally_stamp[att] > 300`,
+then `ally_stamp[att] = frame`. It is written for every pair of players.
+The local-ally notice is interface only. The site is both heavy branches
+of `Sim::city_alarm`, ahead of the capital branch's returns. A plain game
+reaches it. **Confidence: high.** **Open:** gaia's column 8 aliases
+`tribute_stamp[0]` (§0).
+
+## 4. `ctw_hero_stamp` (`LeaderData +0x200`, int)
+
+| claim | R1 | R2 | status | verdict | deciding line |
+|---|---|---|---|---|---|
+| writer: `do_damage` `64b513`, `ecx = vic·0x6eec` from `-0x28` | yes | yes | agree | **confirmed** | `64a918`/`64a929` (`-0x28 = vic·0x6eec`), `64b4fd`, `64b513` |
+| the export's `local_2c[0xfb32].field_0x40` is this leaf | yes | yes | agree | **confirmed** | `0xfb32·0xe8 + 0x40 = 0xe3a590` |
+| writer: `Leader::init` `6e3dfc`, = 0, unconditional | yes | yes | agree | **confirmed** | `6e3dfc movl %eax, 0x200(%ebx)`. It comes after the loop's back edge `6e3d93`, and no branch from before `6e3d93` jumps past it |
+| writer: `Leaders::clear`; `walk_data` | yes | load path | agree / one-sided | **confirmed** | as in §1 |
+| a scalar, the victim's own, with no attacker index | yes | yes | agree | **confirmed** | `64b3d3` and `64b513` address it without an index register |
+| predicate 1: T `is_unit`, not `is_worker` | yes | yes | agree | **confirmed** | `64aa65`, `64aa80 je 64b3a0` |
+| predicate 2: `semaphore` byte `+0x822` bit 1 (bit 17), the CtW flag | yes; adds that `Game::is_scenario` tests it together with bit 12 | yes, from the documents | agree; R1's `is_scenario` note one-sided | **confirmed** | `64b3a6 testb $0x2, 0x822(%edx)`. Export `Game/is_scenario` reads `ptr[1] & 0x10 \|\| ptr[2] & 2` (bits 12 and 17). The CtW name holds: `ConquestGame::build_conquest_game (00797c40)` lines 187 and 219 test the same bit |
+| predicate 3: T's type id equals `conquest_game->hero_type` (`[0xc0617c]+0x118`) | yes | yes | agree | **confirmed** | `64b3b3`..`64b3c4` |
+| predicate 4: `frame - ctw_hero_stamp > 120` | yes | yes | agree | **confirmed** | `64b3d3`/`64b3d9 cmpl $0x78`/`64b3dc jle` |
+| predicate 5: `vic == console->who`, the local player only | yes | yes | agree | **confirmed** | `64b3ea`/`64b3f0 jne 64b56d` |
+| predicate 6: `(hits(0) - damage)·100 / hits(0) < 70`, signed `idiv`, damage before this blow | yes | yes | agree | **confirmed** | `64b401`..`64b411` (inlined `UnitData::hits (00610890)` = `+0x20`), `64b43e subl 0x24(%edi)`, `64b441 imul 0x64`, `64b444 cltd`, `64b445 idivl`, `64b448 cmpl $0x46`, `64b44b jge 64b56d`; no store to `T+0x24` before this point (§0) |
+| inner `frame - stamp > 75` always holds once predicate 4 has | yes | yes | agree | **confirmed** | `64b50e cmpl $0x4b`; the message call `64b4f3` writes no leader field (the absolute scan finds no other `0xe3a590` reference), so the stamp read at `64b508` is the one tested at `64b3d3` |
+| the sound plays either way; `0xe39964` gates only the notice | implied | yes | agree | **confirmed** | `64b511 jle 64b554` and `64b521 je 64b554` both reach `64b554 pushl $0x83` |
+| per-machine store into a checksummed field | yes | yes (whether multi-human CtW exists is open) | agree | **confirmed as a fact; the consequence is moot** | predicate 5. CtW is cut from v1 (`CLAUDE.md`), so whether it can part two machines does not bear on the port |
+| readers: `do_damage` (`64b3d3`, `64b508`), `log_data` line 582, the walk | yes | yes | agree | **confirmed** | absolute scan; export `log_data` line 582 |
+| crate: none; `leaders.rs:72` lists it; it falls to `_ => None` (`:1305`); add it to the cut-track zero arm (`:1246`..`:1273`) | "a constant-0 arm is exact" | yes, names the arm | agree | **confirmed** | `crates/sim/src/checksum/leaders.rs:72`, `:1246` (comment "Never reached without a cut track"), `:1273` (`Some(vec![0; count])`), `:1305` |
+| plain game: no | yes | yes | agree | **confirmed** | predicate 2 |
+
+**The rule for a builder.** In a plain game it is 0 for the whole game:
+`Leader::init` writes 0 and the one other store sits behind CtW. Port it
+as `"ctw_hero_stamp"` in `leader_image`'s cut-track zero arm. If CtW is
+ever built, the rule is: on a blow by `att != vic` on a non-worker unit
+whose type is the conquest hero type, with the CtW bit set, `vic` the
+local console, `frame - stamp > 120`, and
+`(hits(0) - damage)·100 / hits(0) < 70` (truncating division, damage
+before the blow), set `leaders[vic].ctw_hero_stamp = frame`. It goes in
+`do_damage_round` before the take. **Confidence: high.** **Open:** none
+that bears on v1.
+
+## Verdict table
+
+The counts are per claim row in each leaf's table. The shared-ground rows
+of §0 (22 rows, all confirmed) count once under §0.
+
+| leaf | confirmed / corrected / open | the rule in one line |
+|---|---|---|
+| §0 shared ground | 22 / 0 / 1 (gaia striker, column 8) | `Object::do_damage (0064a480)` alone writes all four in play, as `leaders[vic].X[att] = frame` with `att` the striker's raw owner byte, before the take, on every blow with `att != vic` past the head exits; the spill onto builders and the shooter of an arrow included |
+| `attack_stamp` +0xf4 [8] | 21 / 1 (`was_attacked`'s `n <= 0` and scan form, R1 incomplete) / 0 | `= frame` in the capital-heavy arm (gate `capital_stamp[att]`), the plain-heavy arm (gate city `attack_stamp`), the light or worker arm (gate city `raid_stamp`), and the territory attack branch (gate this row: T off `vic`'s land, or on it and not a light building, worker, caravan or merchant); 300 frames, strict |
+| `raid_stamp` +0x114 [8] | 17 / 0 / 0 | `= frame` alongside `attack_stamp` in the same three city arms, and in the territory raid branch (gate this row: T on `vic`'s land and a light or inactive building, worker, caravan or merchant) |
+| `ally_stamp` +0x154 [8] | 13 / 0 / 0 | `= frame` on a heavy blow on a city building of `vic`'s, capital or not, after that arm's own test, when `frame - ally_stamp[att] > 300`; every pair, notice is interface-only; the crate's capital-branch returns must move below it |
+| `ctw_hero_stamp` +0x200 | 17 / 0 / 0 | CtW only (`semaphore +0x822 & 2`), the local console's hero below 70 % before the blow, once per 121+ frames; 0 for a whole plain game, so a cut-track zero arm in `leader_image` |
+
+**Nothing here is diff-backed.** Every verdict rests on the listing and
+the export. The crate's own comment on `city_alarm` says the dump prints
+these three arrays only at `LEADERS=9`. A capture at that level, with any
+cross-owner hit after frame 300, would turn §1–§3 into a value diff.
