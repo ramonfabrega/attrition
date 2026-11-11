@@ -318,6 +318,9 @@ ported, every byte (§16). Item 4109 left it at `state 5 of 12 lines,
 1,078 of its 1,084 ranges and 18,976 of its 19,642 bytes agreeing, which
 `CHECKSUM_STATE` does not count (§17). Item 4113 moved it from `state 5
 of 12 lines, 15,735 of 425,499 bytes`: units is ported, every byte (§18).
+Item 4116 moved it from `state 6 of 12 lines, 35,377 of 425,499 bytes`:
+groups is ported (§19). Item 4150 moved it from `state 7 of 12 lines,
+72,387 of 425,499 bytes`: the world is ported, every byte (§21).
 
 `floors::tests::the_handoff_s_checksum_line_is_the_pinned_counter` holds
 the queue's line against it. `checksum::tests::the_instrument_reproduces_the_printed_record`
@@ -1835,24 +1838,28 @@ counter, a slot mark, a setup rule, a never-reached constant, a held leaf and
 
 ## 21. The world line, held out by section (items 4131, 4136)
 
-**4,344 of 7,994 ranges and 277,769 of 294,769 bytes agree** on run 1562's
-frame 91, in fourteen whole sections (item 4148; 743 and 198,569 in twelve
-at item 4147, 742 and 198,449 in eleven at item 4136, 741 and 83,249 in ten
-at item 4131). `Sim::world_image`
+**Whole since item 4150: all 7,994 ranges and 294,769 bytes agree** on run
+1562's frame 91, every section, and ours sums to the printed `World`
+3643872705 (4,344 and 277,769 in fourteen sections at item 4148; 743 and
+198,569 in twelve at item 4147, 742 and 198,449 in eleven at item 4136, 741
+and 83,249 in ten at item 4131). `Sim::world_image`
 (`crates/sim/src/checksum/world.rs`) emits the line as leaves, a `None` leaf
 being one the crate holds no value for; `Sim::checksum_world` is its bytes.
 `diff::checksum_lines::world::the_world_line_is_the_original_s_by_section`
 matches each range by section, field and record, tallies every leaf element,
 pins the sections in `WORLD` and the fields left in `WORLD_HELD_OUT`, and
 asserts a whole section's Adler against the record's printed line.
-`CHECKSUM_STATE` does not count it (§5). Ours sums to 1150679858 against the
-printed `World` 3643872705 (2046949705 at item 4147).
+`CHECKSUM_STATE` counts it since item 4150: 8 of 12 lines, 367,156 of
+425,499 bytes (§5). Ours summed to 1150679858 at item 4148.
 
 **The record prints a sum per section.** Record 3201's sixteen `World`
 lines are frame 91's sections 0 to 14 and the whole: cut by call site and
 walk order, each section's Adler over the stream is its printed line, all
 fifteen (item 4131's journal has the table). Record 3202, the next frame,
-differs in section 9 alone. So a section is a score of its own.
+differs in section 9 alone; ours, ticked one frame on, prints all fifteen
+and the whole, 2695435849 (item 4150,
+`the_collision_blocks_are_the_original_s_on_the_next_frame`). So a section
+is a score of its own.
 
 **By section** (the stream's ranges and bytes; ours agreeing):
 
@@ -1866,7 +1873,7 @@ differs in section 9 alone. So a section is a score of its own.
 | 6 masks and the fog planes | 4; 158,400 | **whole** | |
 | 7 `wcoord_seen` | 1; 3,600 | **whole** | |
 | 8 `danger[0..8]` | 8; 28,800 | **whole** | |
-| 9 the collision blocks | 3,650; 17,000 | 0 | the blocks' allocation |
+| 9 the collision blocks | 3,650; 17,000 | **whole** | |
 | 10–12 the half-land lists | 706; 11,105 | **whole** | |
 | 13 `nuke_hits` | 1; 4 | **whole** | |
 
@@ -1902,27 +1909,24 @@ journal.
 | `total_metal` | the same function's `MountainsData::total_gather_size`: each placed range's rung by its template's tile count. 79 over 13 ranges; run38's 67 over 18 |
 | `was_seen` | every `seen2` write's cell half (`docs/VISION.md` §12, item 4148): `set_seen`, `set_seen2`, `Wall::start`, `update_seen_ally` or the bit into the cell holding the fog cell; `WData::WData` and `World::wipe` zero it. 3,600 of 3,600; theirs the OR of `seen2` over the cell's fog cells on both frames |
 | `wcoord_seen` | every `seen` write's cell half: `set_seen` and `set_seen2`'s `param_4 == 0` arm; `World::clear_seen` zeroes it with `seen`. 3,600 of 3,600; theirs the OR of `seen` on both frames |
+| the collision blocks | `docs/COLLISION.md` §26 (item 4150): a set into a cell with no block allocates one (`new_coll_block` from `add_to_world`, `Guy::process`, `move_unit`'s set pass); `GameDaemon::process_coll_blocks` frees each empty block among the next `max(5, xs / 4)` cells once a frame. The head is the constructor's (768, 96), the body the grid's bits. 25 blocks on frame 91, 13 empty and all past the cursor's 1,365; 23 on frame 92 |
 
 **Made to fail.** One element of each of eleven kinds of carried field
 (a start array's element and its size, an oil count, `map`, `seed`, a cell's
 `light`, an unseated danger word, a half-land coordinate, a type, a list's
 size, `nuke_hits`' count), item 4136's cell `land_sub` and tile mask
 (with tile 19175's `0x4` cleared), item 4147's `goodies` and item 4148's
-two fog words, bent, returns that field to the list with a count of one. `analyze_map`'s input bent on
+two fog words, and item 4150's presence, head `size` and body bit, bent,
+returns that field to the list with a count of one; one more sweep on a
+copy frees 1,377 and 1,378 early, and a bit set and cleared in cell 0
+leaves a block the stream lacks. `analyze_map`'s input bent on
 a copy and the function run again: a forest bit returns `forest_size` (and
 the cell's `flags`), no seated leader `player_reg` and `resource_reg`, the
-last range dropped `total_metal` alone. A held-out section's Adler is asserted to part from
-its line.
+last range dropped `total_metal` alone.
 
-**What holds the line out**: 4 fields (`WORLD_HELD_OUT`, elements not
-agreeing on frame 91; 6 at item 4147, 16 at item 4136, 18 at item 4131).
-
-- **The collision blocks** (4 fields): the presence local (3,600),
-  `World::new_coll_block`'s lazy allocation, which the crate's flat
-  `CollGrid` does not keep; the 25 heads (`bits` 768, `size` 96, the
-  `BitMask<768>` constructor's) and bodies, whose 256 bits a cell are the
-  `CollGrid`'s at `(ux & 15)·16 + (uy & 15)` (`docs/COLLISION.md` §2), held
-  once presence is.
+**What holds the line out**: nothing (`WORLD_HELD_OUT` empty since item
+4150; 4 fields at item 4148, 6 at item 4147, 16 at item 4136, 18 at item
+4131).
 
 **How it was established, and how confident.** Diff-backed: the section
 sums against the record; the whole line's shape on frame 91 (7,994 ranges,
@@ -1944,7 +1948,7 @@ two region counts beyond Great Lakes rest on the reading.
 
 **Not established**:
 
-- Every frame but 91, and a game the crate builds from a dump (no
+- Every frame but 91 (and 92's sums), and a game the crate builds from a dump (no
   `World::record`, so sections 2, 4's `map`, `seed` and ten tallies, and
   10–12 unheld).
 - A dump-built game's mid-game ground: it holds no tileset, so
@@ -1953,8 +1957,8 @@ two region counts beyond Great Lakes rest on the reading.
   building.
 - The fog on a game with allies (`update_all_seen`'s frame-0 arm writes
   `seen2` without `was_seen`), and on a grid installed from a dump.
-- The blocks' allocation rule, and so whether a block, once allocated, ever
-  goes.
+- The blocks on a restored game, a dump-built one, and the one-block
+  form's null return (`docs/COLLISION.md` §26).
 - `nuke_hits` after a nuke: the appender was not found, and a nuke's
   terraform was not read.
 - A store to a `WorldData` field by a pointer the nets do not name.
