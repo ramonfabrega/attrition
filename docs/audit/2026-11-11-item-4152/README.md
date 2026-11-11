@@ -113,3 +113,4 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | odd-counters | 2 | 217 k | 15 | 4 of 4 written | agrees on every writer and predicate; a ground-targeted nuke is not counted |
 | lobby-words | 2 | 215 k | 16 | 3 of 3 written | agrees: `init_handicaps` the writer, `set_diff` dead; default skirmish 0, 0, and **0** for `multi_diff` (against the first's "the lobby difficulty"; the crate's default lobby is 0, so the two may agree) |
 | queued | 2 | 224 k | 15 | 7 of 7 written | agrees on the six inlined copies, routing and per-counter floors; `Unit::close`'s carrier −n; derive four leaves from `queued_by_group`, keep `combat_queued`/`air_queued` apart |
+| diplomacy-tribute | 2 | ~250 k | 17 | 7 of 7 written | agrees on every writer; says an all-computer skirmish at team style 1 reaches none; one §20 line (1706) and three `docs/PARKED.md` lines leaked by greps, none naming a leaf, recorded |

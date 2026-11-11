@@ -187,3 +187,173 @@
    `Leader::init` would keep its slot while the mark is zeroed, and the
    next take would reuse record 0).
 
+## Build::activate's callers (for the three `*_built` leaves)
+
+`Build::activate (00623e20)` is vtable `+0x1a8` (`vtables.txt`, `Build`),
+called only virtually. Its first argument is "captured" (`param_1`); the
+call sites found in the export:
+
+| caller | args | what |
+|---|---|---|
+| `Wall::do_construct (006434d0)` | `(0,1,1)` | construction finished |
+| `Leader::produce_building (006e1400)` | `(0,param_2,0)` | instant build |
+| `Setup::build_cities (005ab910)` | `(0,0,0)` | start cities |
+| `Cities::capture_city (00733380)` | `(1,1,0)` | every active building of a taken city, cloned to the captor through vtable `+0x94` then activated |
+| `Build::check_capture (006276a0)` | `(0,1,0)` | captured city's object, new owner |
+| `City::find_buildings (007384c0)` | `(0,1)` | buildings a city adopts, new owner |
+| `Leader::defeat_by (006d1c80)` | `(0)` | holdings handed to the victor |
+| `ConquestGame::build_cities`, `ScenarioRead::load_city_chunk`/`load_build_chunk`, `ScenarioEditor::*`, `ScenarioFuncSet::create_building`/`switch_teams`, `Console::hurry_action`, `ConsoleWin::run_cmd`, `UnitBalance::next`, `SpellType::cast_bribe` | various | CtW, scenario, editor, cheat, tool, bribe |
+
+## wonders_built (+0x854)
+
+1. **Writers.**
+   - Export: no `->wonders_built` store (`BuildData::construct_time
+     (0062d5c0)` reads it). `field_0x854` on a leader: `Build::activate
+     (00623e20)` line 1265 (`puVar2 = &…field_0x854; *puVar2 += 1`),
+     `Leader::reset_score (006e37f0)`.
+   - Listing: `incl 0xe3abe4(%eax)` at `625b4b` (Build::activate),
+     `movl %eax, 0x854(%ecx)` at `6e3883` (reset_score, `ecx` = `this`).
+     Whole-record writers.
+2. **Event.** In `Build::activate`, after the oil-well arm and the
+   `+0x1e8` counter, a building whose type is a wonder: when the object's
+   vtable is `Build::vftable` and the type's is
+   `BuildType::vftable_for_Type_` (`0xb42b94`), wonder iff the type id is in
+   `0x20e..=0x21e` (PYRAMIDS..SPACEPROGRAM; listing `625adf`–`625af2`);
+   otherwise the virtual `BuildData::is_wonder` / `TypeData::is_wonder_type`.
+   Then `UnbuiltWonders::remove_unbuilt_wonder`, **`+= 1`**, then
+   `Wonders::init_wonder`. **No test of `captured`** (`param_1` is first
+   read at `625b6d`, after the increment, for the achievement event) — so a
+   wonder taken with a city (`capture_city`, `(1,1,0)`) or handed over by
+   `defeat_by` counts again for its new owner. Never decremented.
+3. **Reset.** `Leader::reset_score`, called by `Leader::init (006e3930)`
+   line 140 and again by `Setup::build_game (005ac190)` line 731 for every
+   slot with `leader_flags & 1` (after all `Leader::init`s and the graphics
+   preload, before goods placement). Whole-record writers.
+4. **Readers.** `BuildData::construct_time (0062d5c0)`: the
+   `has_tribe_bonus(0x14)` first-wonder arm requires
+   `get_wonders() == 0 && wonders_built == 0` (and the type not 0x21d/0x21e).
+   No other `LeaderData` reader found by either net.
+5. **Crate.** No such counter. Name collision to avoid:
+   `Cities::wonders_built` (`crates/sim/src/cities.rs:63`) is
+   `Game::wonders` (`Game +0x618`), a per-type bitmask, not this leaf.
+   `Sim::american_free_wonder` (`crates/sim/src/cities/city.rs:1827`) stands
+   in the census `wonder_mark` for `wonders_built == 0`, which differs once
+   a leader has built a wonder and lost it (the mark trims, this never
+   falls). Builder: `+= 1` in `Sim::activate`
+   (`crates/sim/src/cities/city.rs:2420`) under the existing
+   `self.is_wonder_building(ty)` test (~line 2490), for `captured` true and
+   false alike, zeroed where `reset_score` is modelled; a `"wonders_built"`
+   arm in `checksum/leaders.rs`.
+6. **Plain game?** Yes.
+7. **Confidence.** High (decompile and listing agree; one store). Not read:
+   `UnbuiltWonders::remove_unbuilt_wonder`; whether `Leader::defeat_by`'s
+   handover reaches a wonder in a plain game; whether scenario-loaded
+   wonders activate before or after `build_game`'s second `reset_score`.
+
+## wonders_held (+0x858)
+
+1. **Writers.**
+   - Export: no `->wonders_held`. `field_0x858` on a leader:
+     `Wonders::init_wonder (0073c860)` lines 99–103, `Leader::reset_score`.
+   - Listing: `0xe3abe8(%ebx)` load/store at `73ca11`/`73ca1f`
+     (init_wonder); `0x858(%ecx)` at `6e3889` (reset_score). Whole-record
+     writers. (Other `0x858(%reg)` stores belong to `Game::loop`,
+     `ObjectsOut`, `GraphicPieces`, `Constants` — not leaders.)
+2. **Event.** `Wonders::init_wonder(who, o)` (called only from
+   `Build::activate` at `625b5b`, right after the `wonders_built`
+   increment, so the same predicate and no `captured` test): after taking
+   the wonder's slot (the slot-list rule on `wonder_mark`, `+0x424`) and
+   stamping the record (frame, `o`, timer, in-use bit `+0xc & 1`), it
+   counts the in-use records in `[0, wonder_mark)` — the wonders the leader
+   **stands in right now**, this one included — and sets
+   `wonders_held = max(wonders_held, count)`. A high-water mark of
+   simultaneous holdings, in wonders. `Wonders::close_wonder (0073c7e0)`
+   does not touch it.
+3. **Reset.** `Leader::reset_score` (same two call points as
+   wonders_built). Whole-record writers.
+4. **Readers.** `AchieveChartPane::set_chart_data (007f2c40)` (post-game
+   chart). `TerrainOut::render`'s `field_0x858` is on a different object.
+5. **Crate.** No such counter. `Sim::wonders_held`
+   (`crates/sim/src/economy/holdings.rs:572`) is a **bitmask of standing
+   wonder types**, not this count. The crate models `init_wonder` in
+   `Sim::note_wonders` (`crates/sim/src/ai/ai_census.rs:1276`), once per
+   frame after the building pass, closes first then opens. Builder: after
+   each insertion there, count the `Some` entries of `cs.wonder_slots[..
+   wonder_mark]` and raise a per-leader high-water. Caveat: the batch
+   order (all closes, then all opens) can under-count against the
+   original's event order when one wonder falls and another activates for
+   the same leader in one frame.
+6. **Plain game?** Yes.
+7. **Confidence.** High on the rule. Not read: `Wonder::get_timer`.
+
+## senates_built (+0x85c)
+
+1. **Writers.**
+   - Export: `->senates_built` only read (`LeaderData::log_data`).
+     `field_0x85c` on a leader: `Build::activate (00623e20)` line 227,
+     `Leader::reset_score`.
+   - Listing: `incl 0xe3abec(%eax)` at `6246ec`; `0x85c(%ecx)` at `6e388f`
+     (reset_score). Whole-record writers. (`GraphicPieces::_GraphicPieces`
+     `0x85c(%edi)` is not a leader.)
+2. **Event.** `Build::activate`, the non-city arm (`flags & 0x20` clear):
+   an `ObjectData::is` (vtable `+0xb8`) chain tests GRANARY 0x1a7,
+   LUMBERMILL 0x1a8, SMELTER 0x1a9, REFINERY 0x1aa, TEMPLE 0x1b5, MARKET
+   0x1b4, then **SENATE 0x1b6** (`is(t, 0)`: the type or its `is_list`).
+   In the Senate arm, after the government-hero training head, **`+= 1`**
+   iff the building has a city (`+0x72 ≥ 0`) **and** `captured == 0`
+   (listing `6246cf`–`6246dc`: `cmpw $0,0x72(%esi); jl …; testl %edi,%edi;
+   jne …`, `edi` = `param_1`). Callers with `param_1 = 0` that are
+   transfers — `check_capture`, `find_buildings`, `defeat_by` — would still
+   count.
+3. **Reset.** `Leader::reset_score`. Whole-record writers.
+4. **Readers.** `LeaderData::log_data`. (`Object::do_damage`'s
+   `0x85c(%eax)` and the `TerrainOut::render` field are other objects.)
+5. **Crate.** The event is there and the counter is a SEAM:
+   `senate_arm_steps` (`crates/sim/src/cities/activate.rs:251`) calls
+   `v.senates_built_inc()` under exactly `city_index ≥ 0 && captured == 0`;
+   `SimArms::senates_built_inc` (`crates/sim/src/cities/activate.rs:394`)
+   is an empty body, "SEAM: no reader here carries `senates_built`".
+   Builder: give it a per-leader counter and a `"senates_built"` arm.
+6. **Plain game?** Yes.
+7. **Confidence.** High.
+
+## forts_built (+0x8f0)
+
+1. **Writers.**
+   - Export: no `->forts_built`. `field_0x8f0` on a leader: `Fort::init
+     (0073eac0)` (`puVar1 = &leaders.list[who].field_0x8f0; += 1`),
+     `Leader::reset_score`.
+   - Listing: `incl 0xe3ac80(%eax)` at `73eaea` (Fort::init);
+     `0x8f0(%ecx)` at `6e38b9` (reset_score). Whole-record writers.
+     (`GameSpyGroup`, `Constants::init`, `ConquestGame::close` hits are other
+     objects.)
+2. **Event.** `Fort::init (0073eac0)`, whose one caller is
+   `Forts::init_fort (0073ed70)` (`73ee93`), whose one caller is
+   `Build::activate` (`6245a9`): **`+= 1` per fort activation**, the
+   `is_fort` predicate of fort_mark, **no `captured` test** — a fort taken
+   (e.g. in a captured city's radius) counts again for the captor. The same
+   `Fort::init` also counts the fort into the leader's per-region short
+   table at `+0x12de` (region < 64), which `Fort::close` undoes; that table
+   is not this leaf. Never decremented.
+3. **Reset.** `Leader::reset_score`. Whole-record writers.
+4. **Readers.** `AchieveChartPane::set_chart_data (007f2c40)`. Not printed
+   by `LeaderData::log_data` under its name.
+5. **Crate.** No counter. The crate's `reg_forts` (the `+0x12de` table) is
+   recomputed from buildings (`crates/sim/src/cities/place.rs:326`).
+   Builder: `+= 1` in `Sim::activate` (`crates/sim/src/cities/city.rs:2420`)
+   where the fort is taken (with fort_mark's slot), for captured and fresh
+   activations alike.
+6. **Plain game?** Yes.
+7. **Confidence.** High.
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `fort_mark` +0x428 | Forts::init_fort (0073ed70), Forts::close_fort (0073ec90), Leader::init (006e3930); whole-record | slot-list mark: take on fort `Build::activate` (any `captured`), trim on `Build::close` | Leader::init; Leaders::clear; walk_data load | none; add `SlotList` in `Sim::activate` (cities/city.rs:2420) + give-back beside `dock_close` (city.rs:2829); arm in checksum/leaders.rs | yes | high |
+| `oil_well_mark` +0x430 | OilWells::init_oil_well (0073f6f0), OilWells::close_oil_well (0073f670), Leader::init (006e3930); whole-record | slot-list mark on OILWELL/OILPLATFORM activate/close | Leader::init; Leaders::clear; walk_data load | none; same two sites as fort_mark | yes (Industrial+) | high |
+| `supply_mark` +0x434 | Supplies::init_supply (0073ad40), Supplies::close_supply (0073acc0), Leader::init (006e3930), Setup::build_game (005ac190) (`_1076_4_`, 10 slots); whole-record | slot-list mark on supply-unit birth/death/retype (`unit_flags2 & 0x40`) | Setup::build_game; Leader::init; Leaders::clear; walk_data load | `SupplyList::len()` (territory/supply.rs:172) already equals it; add arm; `set_type` pair stubbed (units/set_type_adapter.rs:207) | yes | high |
+| `wonders_built` +0x854 | Build::activate (00623e20), Leader::reset_score (006e37f0); whole-record | +1 per wonder activation, captured included | reset_score (Leader::init, Setup::build_game) | none (`Cities::wonders_built` is `Game::wonders`, a different field); add in `Sim::activate` under `is_wonder_building` | yes | high |
+| `wonders_held` +0x858 | Wonders::init_wonder (0073c860), Leader::reset_score (006e37f0); whole-record | max(held, in-use wonders below `wonder_mark`) at each init_wonder | reset_score | none (`Sim::wonders_held` is a type bitmask); add in `Sim::note_wonders` (ai/ai_census.rs:1276) | yes | high |
+| `senates_built` +0x85c | Build::activate (00623e20), Leader::reset_score (006e37f0); whole-record | +1 per Senate activation with a city and `captured == 0` | reset_score | SEAM `SimArms::senates_built_inc` (cities/activate.rs:394) | yes | high |
+| `forts_built` +0x8f0 | Fort::init (0073eac0), Leader::reset_score (006e37f0); whole-record | +1 per fort activation, captured included | reset_score | none; add with the fort slot in `Sim::activate` | yes | high |

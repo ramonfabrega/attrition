@@ -70,3 +70,81 @@ calls `do_damage` in a plain game. **To settle it:** grep a capture's
 any gaia type has an attack. Until then a port should take `att` in 0..7
 and assert it.
 
+## 1. `attack_stamp` (`LeaderData +0xf4`, int[8])
+
+| claim | R1 | R2 | status | verdict | deciding line |
+|---|---|---|---|---|---|
+| writer: `do_damage` capital heavy, `64ace6` | yes | yes | agree | **confirmed** | `64ab7e` gate on `capital_stamp[att]` (`0xe3a4c4`), `64ab8a jle 64ad11`; the store `64ace6` comes after the console message (`64ab9e jne 64acc7` lands at `64acc7`, before the store) |
+| writer: plain city heavy, `64b037` | yes | yes | agree | **confirmed** | `64aeb2` (`subl 0x14(%edx)`, the city's `attack_stamp`), `64aeba jle 64b043` skips both leader stores |
+| writer: light city arm (capital or not, and the worker arm), `64b383` | yes | yes | agree | **confirmed** | `64b201` (`subl 0x18(%ebx)`, the city's `raid_stamp`), `64b20c jle 64b38d` skips both leader stores; the message exit `64b220 jne 64b35b` lands before them |
+| writer: territory attack branch, `64b9d8` | yes | yes | agree | **confirmed** | `64b77c`/`64b788 jle 64b9df`; the message exits `64b799 jne 64b9c6`, `64b7b4 jne 64b9c6` land on the store |
+| writer: `Leader::init (006e3930)` zeroes all eight | yes (`6e3c12`) | yes | agree | **confirmed, unconditional** | `6e3b74` `esi = this+0xd4`; `6e3c12` `movl %eax, 0x20(%esi)` with `eax = 0`; back edge `6e3d90 cmpl $8, %edi` / `6e3d93 jl 6e3c0d`; the `param_2 < 0` test (`6e3c45`) comes after the stores |
+| writer: `Leaders::clear (006ed5d0)` | yes | — | one-sided (R1) | **confirmed** | export `Leaders/clear` line 13: `memset(slot+0, 0, 0x6929)` per record (the pointer starts at `+0x6c14`, less `0x1b05·4`) |
+| `LeaderData::walk_data (006d6750)` restores it on load | yes, as a writer | as the load path | agree | **confirmed** | walked range `[+0x8, +0x692a)` (`crates/sim/src/checksum/leaders.rs:6`, `docs/CHECKSUM.md` line 437) covers +0xf4 |
+| README lead: `Leader::plan_strategy` and `end_process` write it | denied | denied (all stores in `do_damage`) | agree | **confirmed: not writers** | no `0xf4/0x114/0x154/0x200` displacement and no `0xe3a4xx` address in `006b9620..006bc190` or `006b8690..006b88b0` (my scan of `exe.s`) |
+| no console or ally gate on the store | yes | yes | agree | **confirmed** | as the four rows above: every message exit jumps to the store |
+| several arms on one blow: the territory test then sees `frame - frame = 0` and writes nothing new | yes | yes | agree | **confirmed** | `64b77c` reads the value the arm just wrote |
+| no mid-game reset | yes | yes | agree | **confirmed** | absolute scan: only `do_damage` stores |
+| reader: `do_damage` `64b77c` | yes | yes | agree | **confirmed** | `64b77c` |
+| reader: `was_attacked (009fd290)` | "true when non-zero and `(frame-stamp)/15 <= seconds`; 0 seconds means ever" | "0 → false; `n > 0` → `/15 <= n`; a second form scans all live attackers" | partial | **corrected (R1 incomplete)** | export `ScenarioFuncSet/was_attacked` lines 15–50: slots are 1-based (`*param - 1`); a victim outside 0..7 or not live (`+0` word without bits 1 and 2) answers −1. If the attacker slot is in 0..7 and live: stamp 0 → 0; `n > 0` → `(frame - stamp)/15 <= n`; `n <= 0` → 1 (not only `n == 0`). Otherwise it scans attackers 0..7, live, not the victim, with a non-zero stamp, and answers 1 on the first that passes (`n == 0`, or within `n`); a negative `n` in that form matches nothing |
+| reader: `LeaderData::log_data (006e5110)` | line 288 | ~287 | agree | **confirmed** | export line 288, `piVar3[0x20]` off `diplos` (+0x74), so +0xf4 |
+| reader: the checksum walk | yes | yes | agree | **confirmed** | `crates/sim/src/checksum/leaders.rs:61` |
+| no AI or economy reader | yes | yes | agree | **confirmed** | absolute scan; an indexed `0xf4(%r,%r,4)` access in the whole `.text` occurs only in `BuildTypeOut::set_parse_data`, `Form::compute_dests`, `Wall::update_hits` and the two `process_turn_data`, none off a leader |
+| crate: no row; `checksum/leaders.rs:61` lists it; `leader_image` has no arm | yes | yes | agree | **confirmed** | `leaders.rs:61`; `"capital_stamp"` arm at `:998`; `_ => None` at `:1305` |
+| crate: arms 1–3 in `Sim::city_alarm` (`delivery.rs:280`), the territory step new in `Sim::do_damage_round` (`delivery.rs:70`) after the `city_alarm` call at `:190`, before the take at `:192` | yes | yes | agree | **confirmed** | `delivery.rs:190`, `:192`, `:280` |
+| crate: row beside `AiLeader::capital_stamp` (`ai.rs:704`) | yes | yes | agree | **confirmed** | `crates/sim/src/ai.rs:704` |
+| crate: `city_alarm` returns early on a non-city building, a city-less one and a unit, but the territory step must run for every cross-owner blow | yes | yes | agree | **confirmed** | `delivery.rs` `city_alarm` returns at the worker branch, `_ => return false` and `let Some(c) ... else { return false }`; the original reaches `64b56d` from all of them |
+| crate: the light arm has no `frame - c.raid_stamp > 300` gate today (it writes the city's stamp unconditionally, which is right), and the leader stores need that gate | — | yes | one-sided (R2) | **confirmed** | `64b20c jle 64b38d` skips only the leader stores; `64b398` writes the city's +0x18 on both paths |
+| plain game: yes | yes | yes | agree | **confirmed** | no semaphore or mode test on any of the four arms |
+
+**The rule for a builder.** `leaders[vic].attack_stamp[att]`, sim frames,
+initial 0, zeroed by `Leader::init`. For every blow with `att != vic` that
+passes the head returns, before the take, the four arms below in this
+order. `heavy` is computed for any target with `obj_flags & 1`, `is_build`
+and `is_active`: it is the attacker's type being siege, or
+`damage + whole >= (is_defense || flags & 0x20 ? hits(0)/10 : hits(0)/4)`,
+with signed truncating division. It is computed before the city test.
+
+1. A city building of `vic`, heavy, capital: if `frame - capital_stamp[att] > 300`, write `attack_stamp[att]`, `raid_stamp[att]` and `capital_stamp[att]` = `frame`.
+2. A city building of `vic`, heavy, not the capital: if `frame - city.attack_stamp > 300`, write `raid_stamp[att]` and `attack_stamp[att]` = `frame`. Then, always, set `city.attack_stamp` and `city.raid_stamp` to `frame`.
+3. A city building, light (capital or not), or a worker whose gather order names an active building of `vic`'s in a city: if `frame - city.raid_stamp > 300`, write `raid_stamp[att]` and `attack_stamp[att]` = `frame`. Then, always, set `city.raid_stamp` to `frame`.
+4. Every blow, after 1–3: take `land` = the `who` of T's cell. If `land != vic`, or T is not (a building with heavy 0, or a worker, caravan or merchant), and `frame - attack_stamp[att] > 300`, write `attack_stamp[att] = frame`.
+
+The crate site is `city_alarm` for 1–3, plus a new territory step in
+`do_damage_round` between `delivery.rs:190` and `:192`. The step also
+covers the spill. A plain game reaches it. **Confidence: high**: every
+store, gate and exit was read in the listing. **Open:** a gaia striker's
+column 8 (§0).
+
+## 2. `raid_stamp` (`LeaderData +0x114`, int[8])
+
+| claim | R1 | R2 | status | verdict | deciding line |
+|---|---|---|---|---|---|
+| writer: capital heavy `64acf8`, same gate as `attack_stamp` `64ace6` | yes | yes | agree | **confirmed** | `64ab7e`/`64ab8a`; `64acf8` |
+| writer: plain city heavy `64b025`, gate on the **city's** `attack_stamp` | yes | yes | agree | **confirmed** | `64aeb2`; `64b025` stores before `64b037` |
+| writer: light city / worker arm `64b373`, gate on the city's `raid_stamp` | yes | yes | agree | **confirmed** | `64b201`; `64b373` stores before `64b383` |
+| writer: territory raid branch `64b755`, gate on this row | yes | yes | agree | **confirmed** | `64b64a`/`64b656 jle 64b9df`; message exits `64b66a jne 64b743` and `64b684 jne 64b743` land on the store |
+| no city arm stamps one of `raid_stamp`/`attack_stamp` without the other | implied | stated | agree | **confirmed** | the three city-arm store pairs `64ace6`+`64acf8`, `64b025`+`64b037`, `64b373`+`64b383` share their gates |
+| the raid and attack branches are exclusive on one blow | yes | yes | agree | **confirmed** | `64b75c jmp 64b9df` after the raid store skips the attack test |
+| raid branch predicate (land == `vic` and a light or inactive building, a worker, a caravan or a merchant) | yes | yes | agree | **confirmed** | §0 territory row |
+| a city-less active building keeps its own heavy; an inactive building, or one with `obj_flags & 1` clear, is light here | yes | yes | agree | **confirmed** | heavy is set at `64aa2e`/`64aa43`, before the city test `64ab3a js 64b56d`; the inactive path `64a99b je 64aa56` never sets it |
+| a wall in its owner's land takes the attack branch | open (`+0xd0` on a wall) | yes | one-sided (R2) | **confirmed** | §0, `Wall::vftable` `+0x20` and `+0xd0` both `return 0` |
+| writer: `Leader::init` `6e3c15` (`0x40(%esi)`) | yes | yes (`puVar23[0x10]`) | agree | **confirmed** | `6e3c15`, inside the 8-pass loop |
+| writer: `Leaders::clear`; restored by `walk_data` | yes | load path only | agree / one-sided | **confirmed** | as in §1 |
+| reader: `was_raided (009fd140)`, the same shape as `was_attacked` | yes (body unread) | yes | agree | **confirmed** | export `ScenarioFuncSet/was_raided` lines 15–31: the same body, reading `+0x114`; the §1 correction (`n <= 0` → true when the stamp is non-zero) applies to both |
+| reader: `log_data` `piVar3[0x28]` | line 300 | yes | agree | **confirmed** | export line 300 (`0x74 + 0xa0 = 0x114`) |
+| crate: `city_alarm` already writes the city's `raid_stamp` | yes | yes | agree | **confirmed** | `delivery.rs`, the worker branch, the `!heavy` branch and the plain-heavy tail |
+| crate: `is_worker`, `is_merchant` (`calc_gather.rs:555`), caravan predicates exist | yes | `is_merchant` unchecked | one-sided (R1) | **confirmed** | `crates/sim/src/economy/calc_gather.rs:555` (`MERCHANTS` at `:40`); `is_caravan` on the unit adapter (`crates/sim/src/units/set_type_adapter.rs:94`); `Sim::is_worker` is the one `city_alarm` already calls |
+| crate: a tile-owner lookup is needed | `World::owner_at` (`world.rs:2013`) | "needed" | one-sided (R1) | **confirmed** | `crates/sim/src/world.rs:2013` → `owner()` returns `self.who[i]`, the cell's `who` (not `who2`), which is the field `64b5c4` reads (`+0xf`). `Owner::None`/`Ambiguous` never equal a player, which matches the signed compare against `vic` |
+| plain game: yes | yes | yes | agree | **confirmed** | no mode test |
+
+**The rule for a builder.** `leaders[vic].raid_stamp[att]`, sim frames,
+initial 0, zeroed by `Leader::init`. It is written in arms 1–3 of §1,
+always together with `attack_stamp[att]` under the same gate. In the
+territory step it is written instead of the attack test: when
+`land == vic` and T is (a building with heavy 0, an inactive or flag-less
+building included), a worker (type 0x32..0x35), a caravan or a merchant
+(0x3d, 0x3e, 0x190), and `frame - raid_stamp[att] > 300`, then
+`raid_stamp[att] = frame`. The site is the same as §1. A plain game
+reaches it. **Confidence: high.** **Open:** gaia's column 8 (§0).
+
