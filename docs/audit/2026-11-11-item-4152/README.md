@@ -77,7 +77,7 @@ clear cut: re-run that wave for that family.
 | 1 | `city-name` | done | done | done | done, §1 |
 | 2 | `kills` | done | done | in flight at the clear | owed |
 | 3 | `combat-rates` | done | done | in flight at the clear | owed |
-| 4 | `victim-stamps` | done | done | done | in flight at the clear |
+| 4 | `victim-stamps` | done | done | done | done, §4 |
 | 5 | `attrition-stamps` | done | done | in flight at the clear (also asked: `att`'s recompute timing, and run981's leaders) | owed |
 | 6 | `anti-att` | done | done | done | done, §6 |
 | 7 | `diplomacy-relations` | done | in flight at the clear | owed | owed |
@@ -96,7 +96,7 @@ clear cut: re-run that wave for that family.
 | 20 | `high-buildings` | done | done | in flight at the clear | owed |
 
 **Score at the clear:** read 20 of 20, second-read 19 of 20, adjudicated 8 of
-20, specified 6 of 20.
+20, specified 7 of 20.
 
 **How to resume.** The briefs are in `briefs/`, one per wave. A spawn is one
 `lean` agent on `opus`, prompted: "Read and follow `<brief>`. Slug `<slug>`

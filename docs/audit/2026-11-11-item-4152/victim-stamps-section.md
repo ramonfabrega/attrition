@@ -55,7 +55,8 @@ building, a unit and a wall all have heavy = 0.
    Then, always, `city.attack_stamp = city.raid_stamp = frame`. Then the
    ally test runs.
 3. **Light city, or a worker.** Either T is a city building of `vic`'s with
-   heavy 0 (capital or not), or T is a worker (type 0x32..0x35) whose gather
+   heavy 0 (an active building with `obj_flags & 1`, capital or not), or T
+   is a worker (type 0x32..0x35) whose gather
    order names an object owned by `vic`, at a non-negative index, that is an
    active building in a city. Then the city's light arm runs: if `frame −
    city.raid_stamp > 300`, `raid_stamp[att] = attack_stamp[att] = frame`.

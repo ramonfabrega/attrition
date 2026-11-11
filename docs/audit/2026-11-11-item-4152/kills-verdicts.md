@@ -271,5 +271,5 @@ is.
 The one correction against both readings: 1.9, the decoy self-credit is
 unreachable without a scenario. The one correction against one reading:
 3.7, the abandon arm's slot `+0x4c` is "finished", not "a city". One
-open question of the second reading closed in its favour of the crate:
-4.6, every `Build` reaches `Wall::process`.
+question the second reading left open is settled, and the crate already
+has it right: 4.6, every `Build` reaches `Wall::process`.
