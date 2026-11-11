@@ -341,7 +341,7 @@ mod tests {
     /// and height, its pixel under the opening camera)`.
     type Object = (i32, i16, (i32, i32, i32), (i32, i32));
     const OBJECTS: [Object; 3] = [
-        (30, script::SCOUT, (3480, 31896, 545), (1006, 629)),
+        (30, script::SCOUT_OBJECT, (3480, 31896, 545), (1006, 629)),
         (60, script::CAPITAL, (3168, 30816, 536), (1127, 521)),
         (90, script::BUILDER, (4008, 28296, 511), (1655, 394)),
     ];
@@ -465,7 +465,10 @@ mod tests {
 
     /// The events a person makes for the script, each at stage 0's pixel
     /// on the order's frame, the targets under `cam`'s camera.
-    fn events(closer: bool) -> Vec<(i32, Option<(Pos, i32)>, Event)> {
+    /// An event on a frame, under the opening camera or the closer one.
+    type Scripted = (i32, Option<(Pos, i32)>, Event);
+
+    fn events(closer: bool) -> Vec<Scripted> {
         let o = |k: usize| OBJECTS[k].3;
         let (t0, t1) = (TARGETS[0], TARGETS[1]);
         let tp = |t: Target| {
@@ -599,7 +602,7 @@ mod tests {
         assert_eq!((whole, parts), (INPUT_MINTED, vec![]), "{ours:?}");
         assert_eq!(ours, script::script());
         let scene = r.scene(None);
-        let scout = object(&scene, script::SCOUT).0;
+        let scout = object(&scene, script::SCOUT_OBJECT).0;
         assert_eq!((scout.x, scout.y), (script::SCOUT_TO.x, script::SCOUT_TO.y));
         let site = object(&scene, 2007).0;
         assert_eq!((site.x, site.y), (3456, 29760));

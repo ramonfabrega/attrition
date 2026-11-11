@@ -22,12 +22,13 @@ pub const SCOUT_TO: Pos = Pos { x: 5880, y: 31896 };
 /// puts the site at (3456, 29760).
 pub const FARM_AT: Pos = Pos { x: 3552, y: 29856 };
 /// The Farm's `TypeIndex`, record 3 past [`crate::load::BASE_BUILDTYPES`].
-pub const FARM: i32 = 417;
+/// (`crate::artdata::FARM_TYPE`, `0x1a1`.)
+pub use crate::artdata::FARM_TYPE;
 /// The Citizen's `TypeIndex`.
 pub const CITIZEN: i32 = 50;
 /// The objects the script names, all slot 0's: the scout, the capital and
 /// the citizen who builds (a woodcutter, the one nearest the site).
-pub const SCOUT: i16 = 0;
+pub const SCOUT_OBJECT: i16 = 0;
 pub const CAPITAL: i16 = 2000;
 pub const BUILDER: i16 = 1;
 /// The frames the three packages are consumed on, in recording frames:
@@ -50,7 +51,7 @@ pub fn script() -> Vec<Order> {
             vec![
                 Command::Group {
                     who: 0,
-                    objects: vec![SCOUT],
+                    objects: vec![SCOUT_OBJECT],
                 },
                 Command::MoveTo {
                     to_x: SCOUT_TO.x,
@@ -92,7 +93,7 @@ pub fn script() -> Vec<Order> {
                     y: FARM_AT.y,
                     x2: FARM_AT.x,
                     y2: FARM_AT.y,
-                    build: FARM,
+                    build: FARM_TYPE,
                     queued: 2,
                 },
             ],

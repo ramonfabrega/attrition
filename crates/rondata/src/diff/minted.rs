@@ -17,8 +17,8 @@ use crate::testenv::{dump, install};
 use std::collections::BTreeSet;
 
 pub(crate) use crate::script::{
-    BUILD_FRAME, BUILDER, CAPITAL, CITIZEN, FARM, FARM_AT, MOVE_FRAME, QUEUE_FRAME, SCOUT,
-    SCOUT_TO, script,
+    BUILD_FRAME, BUILDER, CAPITAL, CITIZEN, FARM_AT, FARM_TYPE as FARM, MOVE_FRAME, QUEUE_FRAME,
+    SCOUT_OBJECT as SCOUT, SCOUT_TO, script,
 };
 
 /// The minted recording: run53's lobby with [`script`]'s packages.
