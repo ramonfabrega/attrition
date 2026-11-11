@@ -201,6 +201,33 @@ pub struct ListImage {
     pub flags: i64,
 }
 
+impl ListImage {
+    /// An empty list: its count alone.
+    pub const EMPTY: ListImage = ListImage {
+        elements: Vec::new(),
+        size: 0,
+        increment: -1,
+        flags: 0,
+    };
+
+    /// A list `TerrainData::TerrainData@0049bdd0` built with grow −1 and
+    /// flags 0, holding `num` entries: `increase_size` at grow −1 takes 4,
+    /// then the current size again, so `size` is the first `4·2^k ≥ num`
+    /// (`crate::mapgen::terrain_init::HalfLand`).
+    pub fn grown(elements: Vec<i64>, num: usize) -> ListImage {
+        let mut size = 4;
+        while size < num {
+            size *= 2;
+        }
+        ListImage {
+            elements,
+            size: size as i64,
+            increment: -1,
+            flags: 0,
+        }
+    }
+}
+
 fn one(name: &'static str, width: usize, v: Option<i64>) -> Leaf {
     Leaf::new(name, width, 1, v.map(|v| vec![v]))
 }
@@ -308,12 +335,22 @@ impl Sim {
                 one("ys", 4, Some(i64::from(ys))),
             ],
         });
-        // 2, 3: the start and oil arrays.
-        for names in START_ARRAYS {
-            list(&mut out, 2, names, None, None);
+        // 2: the start arrays, as the generator left them.
+        let starts = w.record().starts.as_ref();
+        for (k, names) in START_ARRAYS.into_iter().enumerate() {
+            let image = starts.map(|a| ListImage {
+                elements: a[k].list.iter().map(|&v| i64::from(v)).collect(),
+                size: i64::from(a[k].size),
+                increment: i64::from(a[k].increment),
+                flags: i64::from(a[k].flags),
+            });
+            list(&mut out, 2, names, image, None);
         }
+        // 3: `oil_x`, `oil_y` — `World::init` and `World::close` empty
+        // them and nothing appends (the export and the listing both), so
+        // each is its zero count.
         for names in OIL_ARRAYS {
-            list(&mut out, 3, names, None, None);
+            list(&mut out, 3, names, Some(ListImage::EMPTY), None);
         }
         // 4: `size`..`seed`.
         let header = self.world_header();
@@ -382,7 +419,18 @@ impl Sim {
         let reg = ((xs / 2) * (ys / 2)) as usize;
         for who in 0..8u8 {
             let row = w.danger_row(who);
-            let v = (row.len() == reg).then(|| row.iter().map(|&d| i64::from(d)).collect());
+            // An unseated slot's row is `World::init`'s zeros:
+            // `GameDaemon::calc_danger` clears and fills a row only for a
+            // leader with `leader_flags & 2`, which an unseated slot never
+            // holds (`docs/CHECKSUM.md` §20, `Leader::init`).
+            let seated = usize::from(who) < self.territory.players.len();
+            let v = if row.len() == reg {
+                Some(row.iter().map(|&d| i64::from(d)).collect())
+            } else if !seated {
+                Some(vec![0; reg])
+            } else {
+                None
+            };
             out.push(WorldRange {
                 section: 8,
                 record: i16::from(who),
@@ -399,11 +447,43 @@ impl Sim {
                 leaves: vec![one("present", 4, None)],
             });
         }
-        // 10–13: the terrain's lists.
-        list(&mut out, 10, TERRAIN_ARRAYS[0], None, Some(["x", "y"]));
-        for (k, names) in TERRAIN_ARRAYS[1..].iter().enumerate() {
-            list(&mut out, 11 + k as u8, *names, None, None);
-        }
+        // 10–12: `Terrain::init`'s half-land lists. 13: `nuke_hits`, its
+        // zero count: `TerrainOut::close` empties it, `rebuild_nuke_craters`
+        // (a restore's) reads it, and neither the export nor the listing
+        // holds a store that appends to it.
+        let half = w.record().halfland.as_ref();
+        let locs = half.map(|h| {
+            ListImage::grown(
+                h.locs
+                    .iter()
+                    .flat_map(|&(x, y)| [i64::from(x), i64::from(y)])
+                    .collect(),
+                h.locs.len(),
+            )
+        });
+        list(&mut out, 10, TERRAIN_ARRAYS[0], locs, Some(["x", "y"]));
+        let ints = |v: &[i32]| ListImage::grown(v.iter().map(|&n| i64::from(n)).collect(), v.len());
+        list(
+            &mut out,
+            11,
+            TERRAIN_ARRAYS[1],
+            half.map(|h| ints(&h.types)),
+            None,
+        );
+        list(
+            &mut out,
+            12,
+            TERRAIN_ARRAYS[2],
+            half.map(|h| ints(&h.subtypes)),
+            None,
+        );
+        list(
+            &mut out,
+            13,
+            TERRAIN_ARRAYS[3],
+            Some(ListImage::EMPTY),
+            None,
+        );
         out
     }
 
@@ -424,6 +504,7 @@ impl Sim {
         h[7] = Some(xs / 2);
         h[8] = Some(ys / 2);
         h[9] = Some((xs / 2) * (ys / 2));
+        h[10] = w.record().map.map(i64::from);
         h[11] = Some(i64::from(w.sea_map()));
         if let Some(l) = lim {
             for k in 0..3 {
@@ -432,6 +513,7 @@ impl Sim {
             }
         }
         h[28] = Some(i64::from(self.land_size()));
+        h[29] = w.record().seed.map(i64::from);
         h
     }
 
@@ -451,7 +533,9 @@ impl Sim {
             Some(i64::from(down_who)),
             Some(i64::from(d.val)),
             Some(i64::from(d.goods)),
-            None,
+            // `light`: `WData::WData` and `World::wipe` write 0, and no
+            // other store reaches `+0xe` of a cell (`docs/CHECKSUM.md` §21).
+            Some(0),
             Some(owner_byte(w.owner(c))),
             Some(owner_byte(w.second(c))),
             Some(i64::from(d.blocked)),

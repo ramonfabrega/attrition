@@ -227,11 +227,93 @@ fn census(ours: &[WorldRange], theirs: &[Named]) -> Census {
     c
 }
 
-/// **The world line's census on run 1562's frame 91** (item 4131): per
-/// section the stream's ranges and bytes and ours agreeing, and per field
-/// the elements agreeing, parting and unheld.
+/// **The world line by section on run 1562's frame 91** (item 4131): the
+/// stream's ranges and bytes, and ours agreeing, `(ranges, bytes, ranges
+/// agreeing, bytes agreeing)` for sections 0 to 14. A section whose ranges
+/// all agree is whole, and its Adler is the record's printed line.
+const WORLD: [(usize, usize, usize, usize); WORLD_SECTIONS] = [
+    (0, 0, 0, 0),
+    (1, 8, 1, 8),
+    (20, 124, 20, 124),
+    (2, 8, 2, 8),
+    (1, 120, 0, 0),
+    (3600, 75600, 0, 0),
+    (4, 158_400, 3, 43200),
+    (1, 3600, 0, 0),
+    (8, 28800, 8, 28800),
+    (3650, 17000, 0, 0),
+    (696, 5547, 696, 5547),
+    (5, 2779, 5, 2779),
+    (5, 2779, 5, 2779),
+    (1, 4, 1, 4),
+    (0, 0, 0, 0),
+];
+
+/// **The fields the world line is held out on**, `section range.leaf` with
+/// the count of its elements not agreeing (parting or unheld) on frame 91
+/// (`docs/CHECKSUM.md` §21): `World::analyze_map`'s ten setup tallies; the
+/// cells' `land_sub` under the bases (`Terrain::spot_update_land`) and the
+/// fog's `was_seen`; the masks' bit `0x4` under the bases; the fog's
+/// `wcoord_seen`; the collision blocks (`World::new_coll_block`'s
+/// allocation, and the heads and bodies behind it).
+const WORLD_HELD_OUT: &[(&str, usize)] = &[
+    ("04 size..seed.forest_size", 1),
+    ("04 size..seed.goodies", 1),
+    ("04 size..seed.land_resources", 1),
+    ("04 size..seed.mountain_size", 1),
+    ("04 size..seed.player_reg", 1),
+    ("04 size..seed.resource_reg", 1),
+    ("04 size..seed.rock_size", 1),
+    ("04 size..seed.sea_resources", 1),
+    ("04 size..seed.total_metal", 1),
+    ("04 size..seed.total_oil", 1),
+    ("05 cell.land_sub", 8),
+    ("05 cell.was_seen", 3600),
+    ("06 mask.mask", 131),
+    ("07 wcoord_seen.wcoord_seen", 3600),
+    ("09 block.body.bits", 2400),
+    ("09 block.head.bits", 25),
+    ("09 block.head.size", 25),
+    ("09 block.present.present", 3600),
+];
+
+/// The fields of a census not agreeing, with their counts.
+fn held(c: &Census) -> Vec<(String, usize)> {
+    c.fields
+        .iter()
+        .filter(|(_, t)| t.part.0 + t.unheld.0 > 0)
+        .map(|(f, t)| (f.clone(), t.part.0 + t.unheld.0))
+        .collect()
+}
+
+/// Record 3201's sixteen `World` lines: sections 0 to 14, then the whole.
+fn printed_world_parts() -> Vec<u32> {
+    let path = crate::testenv::dump(super::RUN1562).expect("the kept dump");
+    let file = std::fs::File::open(path).expect("a kept dump opens");
+    let recs = crate::checksum::records(std::io::BufReader::new(file)).expect("a kept dump reads");
+    recs.iter()
+        .find(|r| r.number == crate::checksum::CHECKSUM_PACKET.2)
+        .expect("record 3201")
+        .world_parts()
+}
+
+/// One section's Adler over our image.
+fn section_adler(ours: &[WorldRange], s: u8) -> u32 {
+    ours.iter()
+        .filter(|r| r.section == s)
+        .fold(1, |a, r| sim::checksum::adler32(a, &r.bytes()))
+}
+
+/// **The world line, ours against the original's, section by section and
+/// field by field** (`docs/CHECKSUM.md` §21, item 4131): our
+/// `Sim::world_image` against the instrument's stream, every range matched
+/// by section, field and record and every leaf element tallied; the
+/// agreeing ranges and bytes pinned by section in [`WORLD`]; each field
+/// left out named in [`WORLD_HELD_OUT`]; a whole section's Adler the
+/// record's printed line. And it can part: one bent element of each kind of
+/// field item 4131 carried returns that field to the list.
 #[test]
-fn the_world_line_s_census_by_section() {
+fn the_world_line_is_the_original_s_by_section() {
     let Some((theirs, want, sim)) = line_inputs("world", "World") else {
         return;
     };
@@ -250,9 +332,6 @@ fn the_world_line_s_census_by_section() {
             t.agree, t.part, t.unheld, t.first
         );
     }
-    for (f, n) in &c.extra {
-        eprintln!("EXTRA {f}: {n}");
-    }
     let line = sim.checksum_world();
     eprintln!(
         "world: ours {} ranges {} bytes adler {}; theirs {} ranges {} bytes; printed {want}",
@@ -262,4 +341,87 @@ fn the_world_line_s_census_by_section() {
         theirs.len(),
         theirs.iter().map(|t| t.2.len()).sum::<usize>()
     );
+    assert_eq!(c.sections, WORLD, "the world line by section");
+    assert!(
+        c.extra.is_empty(),
+        "ours walks no range the stream lacks: {:?}",
+        c.extra
+    );
+    let h = held(&c);
+    let h: Vec<(&str, usize)> = h.iter().map(|(f, n)| (f.as_str(), *n)).collect();
+    assert_eq!(
+        h, WORLD_HELD_OUT,
+        "the fields the world line is held out on"
+    );
+    // The record prints each section's own sum: a whole section is its line.
+    let parts = printed_world_parts();
+    assert_eq!(parts.len(), 16, "sections 0 to 14 and the whole");
+    assert_eq!(parts[15], want);
+    let mut whole = Vec::new();
+    for (s, v) in WORLD.iter().enumerate() {
+        let a = section_adler(&ours, s as u8);
+        if v.0 == v.2 {
+            assert_eq!(
+                a, parts[s],
+                "section {s} is whole: its Adler is the printed line"
+            );
+            whole.push(s);
+        } else {
+            assert_ne!(a, parts[s], "a held-out section {s} cannot sum to its line");
+        }
+    }
+    eprintln!("world: sections whole {whole:?}");
+    assert_eq!(whole, [0, 1, 2, 3, 8, 10, 11, 12, 13, 14]);
+    if WORLD_HELD_OUT.is_empty() {
+        assert_eq!(line.adler(), want, "the world line's Adler");
+    } else {
+        assert_ne!(
+            line.adler(),
+            want,
+            "a held-out line cannot sum to the printed value"
+        );
+    }
+
+    // **It can part.** One element of each kind of field item 4131
+    // carried, bent, returns that field to the list with a count of one.
+    let bends: &[(u8, &str, i16, &str)] = &[
+        (2, "start_x", -1, "02 start_x.start_x"),
+        (2, "start_city_y.size", -1, "02 start_city_y.size.size"),
+        (3, "oil_y.num", -1, "03 oil_y.num.num"),
+        (4, "size..seed", -1, "04 size..seed.map"),
+        (4, "size..seed", -1, "04 size..seed.seed"),
+        (5, "cell", 1373, "05 cell.light"),
+        (8, "danger", 5, "08 danger.danger"),
+        (10, "halfland_locs", 7, "10 halfland_locs.y"),
+        (11, "halfland_types", -1, "11 halfland_types.halfland_types"),
+        (
+            12,
+            "halfland_subtypes.size",
+            -1,
+            "12 halfland_subtypes.size.size",
+        ),
+        (13, "nuke_hits.num", -1, "13 nuke_hits.num.num"),
+    ];
+    for &(s, field, record, key) in bends {
+        let leaf = key.rsplit('.').next().expect("a leaf");
+        let mut bent = ours.clone();
+        let r = bent
+            .iter_mut()
+            .find(|r| r.section == s && r.field == field && r.record == record)
+            .unwrap_or_else(|| panic!("a range to bend for {key}"));
+        let l = r
+            .leaves
+            .iter_mut()
+            .find(|l| l.name == leaf)
+            .unwrap_or_else(|| panic!("a leaf to bend for {key}"));
+        l.values.as_mut().expect("a held leaf")[0] ^= 1;
+        let mut want_h: Vec<(String, usize)> = WORLD_HELD_OUT
+            .iter()
+            .map(|(f, n)| (f.to_string(), *n))
+            .collect();
+        want_h.push((key.to_string(), 1));
+        want_h.sort();
+        assert_eq!(held(&census(&bent, &named)), want_h, "a bent {key}");
+    }
+    eprintln!("world: {} kinds of field bent", bends.len());
 }
