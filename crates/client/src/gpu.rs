@@ -100,7 +100,11 @@ fn fs_sprite(i: VOut) -> @location(0) vec4<f32> {
 /// level per pixel and the CPU per triangle. Each corner carries its
 /// owner's unit colour, laid through the texel's alpha as
 /// `render::silhouette::team_blend` lays it (item 4102, §5.3 "The team
-/// colour"): `t·α + c·(1 − α)`.
+/// colour"): `t·α + c·(1 − α)`. `fs_silhouette` is the silhouette's pass
+/// (item 4103, §5.3 "The silhouette's colour"): the owner's colour at
+/// `render::silhouette::SILHOUETTE_ALPHA`, blended source-alpha where the
+/// figure is behind what is drawn, as `render::silhouette::
+/// silhouette_blend` lays it.
 const TEXTURED_SHADER: &str = r#"
 struct U {
     m: mat4x4<f32>,
@@ -138,6 +142,11 @@ fn vs_textured(
 fn fs_textured(i: VOut) -> @location(0) vec4<f32> {
     let t = textureSample(tex, samp, i.uv);
     return vec4<f32>(mix(i.owner, t.rgb, t.a), 1.0);
+}
+
+@fragment
+fn fs_silhouette(i: VOut) -> @location(0) vec4<f32> {
+    return vec4<f32>(i.owner, 128.0 / 255.0);
 }
 "#;
 
@@ -180,6 +189,9 @@ pub struct Gpu {
     textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
     /// The figures' textured pipeline and its sampler (item 4099).
     textured: wgpu::RenderPipeline,
+    /// The figures' silhouette pass (item 4103): `render_states[1]`'s
+    /// depth Greater, no depth write, source-alpha blend.
+    silhouette: wgpu::RenderPipeline,
     figure_sampler: wgpu::Sampler,
     /// Each unit piece's texture and its levels on the GPU, uploaded once.
     figure_textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
@@ -393,44 +405,64 @@ impl Gpu {
             label: Some("textured"),
             source: wgpu::ShaderSource::Wgsl(TEXTURED_SHADER.into()),
         });
-        let textured = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("textured"),
-            layout: Some(&sprite_pipeline_layout),
-            vertex: wgpu::VertexState {
-                module: &textured_module,
-                entry_point: Some("vs_textured"),
-                compilation_options: Default::default(),
-                buffers: &[Some(wgpu::VertexBufferLayout {
-                    array_stride: 32,
-                    step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &textured_attributes,
-                })],
-            },
-            primitive: wgpu::PrimitiveState {
-                cull_mode: None,
-                ..Default::default()
-            },
-            depth_stencil: Some(wgpu::DepthStencilState {
-                format: DEPTH_FORMAT,
-                depth_write_enabled: Some(true),
-                depth_compare: Some(wgpu::CompareFunction::Less),
-                stencil: Default::default(),
-                bias: Default::default(),
-            }),
-            multisample: Default::default(),
-            fragment: Some(wgpu::FragmentState {
-                module: &textured_module,
-                entry_point: Some("fs_textured"),
-                compilation_options: Default::default(),
-                targets: &[Some(wgpu::ColorTargetState {
-                    format,
-                    blend: None,
-                    write_mask: wgpu::ColorWrites::ALL,
-                })],
-            }),
-            multiview_mask: None,
-            cache: None,
-        });
+        let figure_pass = |label: &str,
+                           entry: &str,
+                           write: bool,
+                           compare: wgpu::CompareFunction,
+                           blend: Option<wgpu::BlendState>| {
+            device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                label: Some(label),
+                layout: Some(&sprite_pipeline_layout),
+                vertex: wgpu::VertexState {
+                    module: &textured_module,
+                    entry_point: Some("vs_textured"),
+                    compilation_options: Default::default(),
+                    buffers: &[Some(wgpu::VertexBufferLayout {
+                        array_stride: 32,
+                        step_mode: wgpu::VertexStepMode::Vertex,
+                        attributes: &textured_attributes,
+                    })],
+                },
+                primitive: wgpu::PrimitiveState {
+                    cull_mode: None,
+                    ..Default::default()
+                },
+                depth_stencil: Some(wgpu::DepthStencilState {
+                    format: DEPTH_FORMAT,
+                    depth_write_enabled: Some(write),
+                    depth_compare: Some(compare),
+                    stencil: Default::default(),
+                    bias: Default::default(),
+                }),
+                multisample: Default::default(),
+                fragment: Some(wgpu::FragmentState {
+                    module: &textured_module,
+                    entry_point: Some(entry),
+                    compilation_options: Default::default(),
+                    targets: &[Some(wgpu::ColorTargetState {
+                        format,
+                        blend,
+                        write_mask: wgpu::ColorWrites::ALL,
+                    })],
+                }),
+                multiview_mask: None,
+                cache: None,
+            })
+        };
+        let textured = figure_pass(
+            "textured",
+            "fs_textured",
+            true,
+            wgpu::CompareFunction::Less,
+            None,
+        );
+        let silhouette = figure_pass(
+            "silhouette",
+            "fs_silhouette",
+            false,
+            wgpu::CompareFunction::Greater,
+            Some(wgpu::BlendState::ALPHA_BLENDING),
+        );
         let figure_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
             label: Some("figure"),
             address_mode_u: wgpu::AddressMode::Repeat,
@@ -442,6 +474,7 @@ impl Gpu {
         });
         Ok(Gpu {
             textured,
+            silhouette,
             figure_sampler,
             figure_textures: std::sync::Mutex::new(Default::default()),
             sprite,
@@ -774,6 +807,14 @@ impl Gpu {
                     pass.set_vertex_buffer(0, b.slice(..));
                     pass.draw(0..*n, 0..1);
                 }
+                // The guys pass after the trees (item 4085): each figure
+                // again where it is behind, in its owner's colour (4103).
+                pass.set_pipeline(&self.silhouette);
+                for (b, n, t) in &textured {
+                    pass.set_bind_group(1, t, &[]);
+                    pass.set_vertex_buffer(0, b.slice(..));
+                    pass.draw(0..*n, 0..1);
+                }
             }
             if let Some(b) = &overlay {
                 pass.set_pipeline(&self.overlay);
@@ -877,6 +918,17 @@ pub fn bmp(rgba: &[u8], size: (u32, u32)) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Item 4103: the silhouette's pass draws at the alpha the painter's
+    /// `render::silhouette::silhouette_blend` takes.
+    #[test]
+    fn the_silhouette_pass_draws_at_the_painter_s_alpha() {
+        let alpha = format!(
+            "vec4<f32>(i.owner, {}.0 / 255.0)",
+            render::silhouette::SILHOUETTE_ALPHA
+        );
+        assert!(TEXTURED_SHADER.contains(&alpha), "{alpha}");
+    }
 
     #[test]
     fn a_bmp_is_bottom_up_bgr_with_padded_rows() {
