@@ -91,6 +91,15 @@ impl Setup<'_> {
         self.sim.activate(b, captured, counted)
     }
 
+    /// `Setup::build_cities@005ab910:59`: the start city is activated with
+    /// `(0, 0, 0)`, so `Build::activate` does not count it, and
+    /// `build_cities` adds `cities_built`'s one itself.
+    pub fn count_start_city(&mut self, who: Player) {
+        if let Some(t) = self.sim.cities.city_tally.get_mut(who as usize) {
+            t.built += 1;
+        }
+    }
+
     /// [`Sim::produce_building`] (`ai/ai_place.rs`): at frame 0, its
     /// arm for `Setup::small_city_buildings` and `build_civ_specific`
     /// (`docs/START.md` §2 step 7).

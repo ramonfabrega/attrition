@@ -1074,6 +1074,8 @@ pub fn from_lobby(
             let pos = sim.snap_center(ty, Pos::new(sx * 0x300, sy * 0x300));
             let b = sim.setup().init_build(who as sim::Player, ty, pos, false);
             sim.setup().activate(b, false, false);
+            // `build_cities`' own `cities_built++` (`docs/CHECKSUM.md` §20).
+            sim.setup().count_start_city(who as sim::Player);
             // `build_cities`' `Object::update_seen_ally`: the city's
             // territory radius into its owner's `seen2` (§7.2).
             sim.setup().update_seen_ally_build(b);

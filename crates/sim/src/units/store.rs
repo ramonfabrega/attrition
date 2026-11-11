@@ -98,6 +98,14 @@ impl Sim {
             unit.pos.y.div_euclid(48) * 48 + 24,
         );
         self.units.push(unit);
+        // `Unit::init@00612100:76`: `units_built` counts a unit whose type
+        // has population (`+0x2f0`) — every unit record passes here once.
+        if let Some(t) = self.units[i].ty
+            && self.tables.unit_types[t].price.pop != 0
+            && let Some(m) = self.roster.muster.get_mut(owner)
+        {
+            m.units_built += 1;
+        }
         // `Unit::init`'s transport clause (`docs/TRANSPORT.md` §3.4).
         self.transport_init_unit(i);
         // `Unit::init@00612100:376` — a type that packs is **born packed**:
@@ -516,6 +524,17 @@ impl Sim {
                     self.track_unit_type(who, ty, 1);
                 }
                 (Some(h), Some(p)) => {
+                    // `Objects::init_unit@0065e0c0:92,174`: a follower's
+                    // `units_built` is taken back with its `control` and
+                    // `active` (which this crate never added). SEAM: the
+                    // arm a population-0 type takes under `is(0x134)` or a
+                    // governor-hero, which takes back a count never added,
+                    // is not read (no squad of those types is built here).
+                    if self.tables.unit_types[ty].price.pop != 0
+                        && let Some(m) = self.roster.muster.get_mut(who as usize)
+                    {
+                        m.units_built -= 1;
+                    }
                     let captain = self.units[h].index;
                     self.units[u].captain = false;
                     self.units[u].combat.captain = i32::from(captain);

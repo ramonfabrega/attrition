@@ -1657,7 +1657,7 @@ record's `who` 0, `disband` and `priority` constant by their writers, and
   record while the army has members.
 - A frame where `get_open_slot`'s fallbacks fire.
 
-## 20. The leaders line, held out on the long range (item 4121)
+## 20. The leaders line, held out on the long range (items 4121, 4124)
 
 **263 of 267 ranges and 4,313 of 58,343 bytes agree** on run 1562's frame
 91. That is all eight slots' flag words, and the two walked leaders'
@@ -1670,7 +1670,8 @@ to 4257695306 against the printed `Leaders` 2813959641.
 by leaf (`Sim::leader_image`, a `None` leaf being one the crate holds no value
 for). `diff::checksum_lines::the_leaders_line_is_the_original_s_range_by_range`
 holds it range by range and leaf by leaf, with `LEADERS_HELD_OUT` naming 140
-leaves. `CHECKSUM_STATE` does not count it (§5).
+leaves at item 4121 and **100** since item 4124 (the census of the 140 is item
+4124's journal). `CHECKSUM_STATE` does not count it (§5).
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
 is corrected in place): per slot, the flag words (8). A slot with
@@ -1710,62 +1711,84 @@ and held no value for 210 on each leader. The table is item 4121's journal.
 | `hero_mark`, `special_mark`, `caravan_mark` | the slot lists' marks (`UnitsState::heroes`, `specials`; `Caravans::mark`) |
 | `lost_city_stamp` | `City::close`'s frame, else `Leader::init`'s −90 |
 | `plunder_scale` | `Leader::init`'s `0xbf800000` (−1.0), its one writer; `Unit::plunder` and `Build::plunder` read it. Class 1 (`docs/DECISIONS.md` entry 120 §3), emitted as bits |
+| `city_mine` | `city_num`: the same three stores, `Build::activate`'s founding, `City::close`'s loss, `Leader::init`'s count of a scenario's cities (item 4124) |
+| `city_mark` | `Cities::init_city` raises it to the slot plus one, `close_city` and `capture_city` trim the dead top: the owner's last live record plus one |
+| `cities_built` | the tally's `built` (`Build::activate`'s counted founding) plus `Setup::build_cities`' own count of the start city, which it activates uncounted |
+| `units_built` | a counter: `Unit::init` adds one for a type with population, `Objects::init_unit` and `cast_create_decoy` take a squad follower's back |
+| `buildings_built` | a counter: `Build::init` adds one unless restoring (`Wall::swap_team`) |
+| `team_color` | the slot: `Setup::build_game`'s `Leader::init(i, tribe, i)` and `Game::init_rules_and_teams` |
+| `chat_status` | `Game::init_teams`' tail: 1, then 0 on a seated slot when the game is not cooperative or the pair is on a team |
+| `aggression` | `Leader::init`'s `(diplos[i] == 0)` over all eight slots, in `Sim::init_diplos`; `Leader::diplomacy` is the other writer |
+| the never-reached constants | every store but the setup's is in the trigger layer or Conquer the World, or there is none: the `best_*` words, `support_stamp`, `nukes_in_flight`, `village_mine`, `ctw_hero_retreat_stamp` (−1000; `Leader::init` alone), the order counters, the goody-box techs and units, `trade_profit` (`reset_score` alone), `supported` (none), `neutral_attrition`, `take_att_disabled`, `base_rate`, `disable_building_attrition` (`ScenarioFuncSet`), `num_bonus_cards`, `num_ctw_rate_bonuses` (`ConquestGame`) |
+| `cities_captured`, `cities_lost` | the tally; `Cities::capture_city`, their one store |
+| `nuke_stamp`, `nukes_used` | the nukes' record; `Ammo::do_damage`, their one store |
+| `dock_mark` | the docks registry's mark; `Docks::init_dock`, `close_dock` |
+| `reg_forts` | the active forts by region; `Fort::init`, `Fort::close` |
+| the six armed-unit counters | `num_units` summed by trainer, `Leader::track_unit_type`'s rule: `0x1ab` (and `combat_units`), `0x1ac` (and `combat_units`), `0x1ae`, `0x1b0`, else an air type |
 
-**What holds the line out**: three leaves part, and 137 are held by no value
-of ours. The test names each with its count (2 on every one: both
-leaders). Sorted:
+**What holds the line out** since item 4124: 100 leaves, all unheld, each on
+both leaders. A leaf is out until a rule of ours carries it; a constant for a
+leaf a plain game moves would hold on frame 91 and be a substitution.
 
-- **Parting.**
-  - `aggression`: theirs is 1 on every slot at war, unseated slots
-    included. That is `Leader::init`'s `aggression[i] = (diplos[i] == 0)`,
-    and the crate's setup does not run it. *A copy at a known point*; carrying
-    it changes state `Leader::diplomacy` reads, so it waits for a floor run.
-  - `explored`: `Leader::check_explore` counts the fog's `seen2`, and the
-    crate's seam answers the whole grid, 900 against 19 and 22. *A mechanic of
-    its own*: the fog.
-  - `tech.ptr`: theirs also sets the spell types `BRIBE`..`CANCEL_ALLIANCE7`
-    (`0x275..0x2ab`), the same 46 bits on all five walked leaders and none in
-    `tech_at_start`. The crate's tree stops at the governments. *A mechanic
-    of its own*: the spell types in the tree and their prerequisites.
-- **Held under another name, not carried.**
-  - `city_mine`, `city_mark`, `city_name`, `cities_built`: counters of the cities founded, kept by `Cities::init_city`
-    and `City::generate_name`.
-  - `units_built` and `buildings_built`: the objects made.
-  - `team_color`: `Leader::init`'s third argument, the seat's colour.
-  - `chat_status`: 1 on an unseated slot.
-- **A copy at a known point.** These are `Leader::init`'s values: −1,
-  −1000, 0, and for the stamps and counters the zeros. Their writers are
-  the score, combat, attrition, nuke, taunt, tribute, victory and defeat
-  paths, none of which a 91-frame game without contact reaches. They
-  are: `defeated_by`, `cannon_time`, `handicap`, `multi_diff`, the stamp
-  arrays, `hire_who`, the attrition and hero stamps, `repair_stamp`,
-  `blacken`, `dow`, `broke_alliance`, `made_peace`, the taunt arrays,
-  `incoming`, `village_mine`, the lost-capital words, the fort, dock, oil-well
-  and supply marks, the wonder-win words, `tributes`, `base_rate`,
-  `support_stamp`, `nuke_stamp`, `nukes_used`, `missiles_used`, the victory and
-  defeat types, `pop_issues`, `misery`, `att`, the two attrition switches,
-  `neutral_attrition`, `disable_building_attrition`, the kill, loss, raze and
-  capture counters, `wonders_held`, `senates_built`, the tribute counters,
-  `goody_box_techs` and `goody_box_units`, `supported`, `trade_profit`,
-  `forts_built`, `units_bribed`, the order counters, the `best_*` words,
-  `scholar_militia`, the six `*_units` and six `*_queued`, the nuke counters,
-  `frame_battle`, the combat averages and rates, `reg_forts`,
-  `num_bonus_cards`, `num_ctw_rate_bonuses` and `defeat_stamp`. Each would be
-  carried with its writers read whole, as §19's `disband` was.
-- **A mechanic of its own.**
-  - The score: `score` and its eleven parts.
-  - The finishing stamps, `last_building_finished` and `last_unit_finished`.
-  - The high-water marks `high_buildings` and `territory_high`.
-  - `reg_terr`, territory by region.
-  - `anti_att`: `Leader::calc_anti_attrition` writes 256.0 (`0x43800000`),
-    divided per Foraging tier, Liberty, the Mongol bonus and titanium. It is
-    computed from state a game moves, so it is class 3 (`docs/DECISIONS.md`
-    entry 120 §3): named and out. No term holds on either frame.
+- **Out by name, a mechanic of its own** (20): `explored` (the fog's
+  `seen2`, 19 and 22 against the seam's 900); `tech.ptr` (the spell types
+  `0x275..0x2ab`, 46 bits, absent from `tech_at_start`); `score` and its
+  eleven parts; `last_building_finished`, `last_unit_finished`;
+  `high_buildings`, `territory_high`, `reg_terr`; `anti_att` (class 3).
+- **Reached and unheld**, each with the writers a plain game reaches and so
+  what carrying it takes (80):
+  - `city_name`: `City::generate_name`'s counter, shared by leaders of one
+    tribe (the one holding the most takes the increment); a per-tribe count
+    kept at each naming.
+  - the kill, loss and raze counters (4): `Object::take_damage`,
+    `Object::do_damage`, `cast_sabotage`, `cast_counterintel`.
+  - the combat rates (13): the `*_current_frame` words from
+    `Leader::inc_*_event`, folded by `Leader::process_event_frame` into the
+    fifteen-second words, the averages and `frame_battle`.
+  - the victim stamps (4): `attack_stamp`, `raid_stamp`, `ally_stamp`,
+    `ctw_hero_stamp`, `Object::do_damage` (and `attack_stamp` in
+    `Leader::plan_strategy` and `end_process`).
+  - attrition (5): `attrition_stamp` (`Unit::process_attrition`,
+    `gain_tech`), `attrition_stamp2` (`Unit::suffer_attrition`),
+    `attrition_stamp3` (`Wall::process`), `att` (`Leader::calc_attrition`),
+    `give_att_disabled` (`Leader::plan_strategy`).
+  - the diplomacy actions (15): `dow`, `blacken`, `broke_alliance`,
+    `made_peace`, `tributes`, `tribute_sent`, `tribute_received`,
+    `tribute_stamp`, `gift_stamp`, `hire_stamp`, `hire_who`, `good_deeds`,
+    `last_spoke`, `counteroffer`, `tribute_demanded`: the `action_*` family,
+    `consider_tribute` and `Leader::diplomacy`'s arms the crate stops at a
+    SEAM.
+  - the taunts (6): `receive_taunt`, `process_taunt`, `end_process`.
+  - the end of a game (6): `victory_type`, `defeat_type`, `defeat_stamp`,
+    `defeated_by` (`Leader::victory`, `defeat`, `defeat_by`),
+    `wonderwin_stamp` (`Leader::process`), `wonderwin_timer`
+    (`GameDaemon::process_victory`).
+  - the lost capital (3): `Leader::lost_capital`, `recapture_capital`,
+    `Build::activate`, `Leader::process`; the tally's `lost_capital_frame`
+    is a partial copy of the stamp.
+  - `misery` (`calc_misery`, `calc_pop_cap`, `gain_tech`) and `pop_issues`
+    (`Leader::process`, `Build::do_queue`, `Unit::process`).
+  - the slot marks and build counters (7): `fort_mark`, `oil_well_mark`,
+    `supply_mark` (their registries' `init_*`/`close_*`), `forts_built`
+    (`Fort::init`), `wonders_built`, `senates_built` (`Build::activate`),
+    `wonders_held` (`Wonders::init_wonder`).
+  - the six `*_queued`: `Leader::track_queued`, each with its own zero floor,
+    and `Unit::process`; not a sum of `num_queued`.
+  - `scholar_militia`: `track_unit_type`'s arm for a militia whose unit
+    came from a Scholar (the unit's `+0x54`).
+  - `repair_stamp` (`Unit::do_repair`), `units_bribed` (`cast_bribe`),
+    `missiles_used` (`Ammo::do_damage`), `nukes_launched` (`Unit::come_out`).
+  - `cannon_time`, `handicap`, `multi_diff`: below `+0x200`, where a
+    register-relative store in a `Leader` method cannot be told from another
+    record's; unread. `cannon_time` is `Leader::init`'s lobby table row and
+    `TurnControl::start_cannon_time`'s; `multi_diff` is `Leader::set_diff`'s.
 
 **Made to fail.** With the cleared-site rule dropped, 22 ranges part (the 18
 empty sites). One bent byte of each of the 29 kinds of agreeing range parts on
 that range alone and moves the Adler. A bent `tribe` adds `tribe` to the
-held-out list. The empty image parts on all 267.
+held-out list, and so does one leaf of each kind item 4124 carried: a
+counter, a slot mark, a setup rule, a never-reached constant, a held leaf and
+`aggression` (`LEADERS_BENT`). The empty image parts on all 267.
 
 **How it was established, and how confident.**
 
@@ -1773,10 +1796,15 @@ held-out list. The empty image parts on all 267.
   length), and every leaf the crate holds, leaf by leaf. The 263 agreeing
   ranges are agreeing values, not structure only.
 - On a reading: the setup images, read whole in `Leader::init`,
-  `Leaders::init`, `Leaders::clear` and `Diplomacy::clear_all`. The writer
-  lists of the long range's constants come from a scripted grep of the
-  export by name and offset, and they name the families; they are not each
-  read whole.
+  `Leaders::init`, `Leaders::clear` and `Diplomacy::clear_all`. Since item
+  4124 every pile-2 leaf's stores are listed from the executable's listing
+  (`0xe3a390 + offset` by an index, and `0x<offset>(%reg)` in the `Leader`
+  classes) and from the export (`field_0x<offset>`, `->name`); the
+  never-reached verdicts also from every register-relative store at the
+  offset in any function. Read whole: the stores of pile 1's eight,
+  `aggression`'s, `track_unit_type`, `track_queued`, `Game::init_teams`'
+  tail and `Setup::build_cities`. The reached-and-unheld families rest on
+  the listing's store sites, not each function read whole.
 - Consistent with run1100's three leaders, not diffed there: the constant
   leaves, the tails' headers, and `resource_cap[6] = resource_cap[0]`.
 
@@ -1790,3 +1818,11 @@ held-out list. The empty image parts on all 267.
   `leader_flags2` bit but the two.
 - `bonus_cap[6]`, which is 0 here and not held.
 - `anti_att` and `plunder_scale` on a frame where a writer's term holds.
+- Item 4124's carried leaves on a frame where they move: every frame-91
+  value is a setup value or a count of the start, so a capture, a razed or
+  cancelled building, a squad, a decoy, a dead city's slot, a nuke, a fort,
+  a dock, an armed or air unit or a declaration has not been seen by the
+  diff. `chat_status` in a cooperative game or after a chat-set command,
+  and `aggression` after `Leader::diplomacy` has stored over it.
+- A store to a leaf by pointer arithmetic that names neither the field nor
+  the leaders array: the never-reached verdicts rest on its absence.

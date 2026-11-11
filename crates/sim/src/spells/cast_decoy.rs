@@ -295,7 +295,13 @@ impl DecoyView for SimDecoy<'_> {
         let ty = self.ty(src);
         self.sim.track_unit_type(self.who, ty, -1);
     }
-    fn leader_counts(&mut self, _pop: i32) {}
+    /// `control` and `active` moved with `track_unit_type`; the third is
+    /// `units_built`'s `−1` (`cast_create_decoy@00674370:176`).
+    fn leader_counts(&mut self, _pop: i32) {
+        if let Some(m) = self.sim.roster.muster.get_mut(self.who as usize) {
+            m.units_built -= 1;
+        }
+    }
     fn mark(&mut self, o: i32) {
         let unit = &mut self.sim.units[o as usize];
         unit.decoy = true;

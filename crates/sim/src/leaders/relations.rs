@@ -157,10 +157,15 @@ impl Sim {
     /// Only this leader's row is written; the other's own `Leader::init`
     /// writes the mirror. The diagonal is the crate's untouched `false`.
     /// SEAM: the arm after it, `semaphore[1] & 2` forcing war with every
-    /// other leader, is not a lobby field and is not carried; nor are the
-    /// loop's other writes (`treaties` = `reveal_map == 3` or'd with the
-    /// team bit, `aggression` = the war bit), which the start block does
-    /// not compare.
+    /// other leader, is not a lobby field and is not carried; nor is the
+    /// loop's `treaties` (`reveal_map == 3` or'd with the team bit), which
+    /// the start block does not compare.
+    ///
+    /// **`aggression[i] = (diplos[i] == 0)`** (`+0x210`, `puVar23[0x4f]`) is
+    /// the same loop's, over all eight slots: a slot no player takes has no
+    /// team, so it reads war under locked teams, as the original's does
+    /// (`docs/CHECKSUM.md` §20; item 4124). `Leader::diplomacy` is its one
+    /// other writer ([`crate::leaders::diplomacy`]'s `store_view`).
     pub fn init_diplos(&mut self, who: Player, seats: &[Seat]) {
         let lobby = &self.ai.lobby;
         if lobby.conquest {
@@ -189,7 +194,8 @@ impl Sim {
         if w >= n {
             return;
         }
-        for u in (0..n).filter(|&u| u != w) {
+        let mut aggression = [0i32; 8];
+        for (u, slot) in aggression.iter_mut().enumerate() {
             let d = if is_team(w, u) {
                 2
             } else if lobby.rush_rules != 0 && starting_age < lobby.rush_rules {
@@ -199,8 +205,14 @@ impl Sim {
             } else {
                 1
             };
-            self.leaders.at_war[w][u] = d == 0;
-            self.leaders.allied[w][u] = d == 2;
+            *slot = i32::from(d == 0);
+            if u != w && u < n {
+                self.leaders.at_war[w][u] = d == 0;
+                self.leaders.allied[w][u] = d == 2;
+            }
+        }
+        if let Some(l) = self.ai.ai.get_mut(w) {
+            l.aggression = aggression;
         }
     }
 

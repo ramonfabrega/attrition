@@ -2251,8 +2251,11 @@ heal, ejection), then the sites' `construct_hits` refresh.
    ~~**`city_flags & 2`** (the heal/repair veto — no setter found)~~
    (`Object::take_damage`'s `|= 0xe` and `Build::process`'s decay,
    `docs/COMBAT.md` §69, item 1034),
-   **`city_mine` vs `city_num`** (always moved together here; a third writer
-   must exist). All inferred from use.
+   ~~**`city_mine` vs `city_num`** (always moved together here; a third writer
+   must exist).~~ No third writer: the listing's stores of both are
+   `Build::activate`'s founding, `City::close` and `Leader::init`, and
+   `city_num`'s net-zero bracket round the Chinese large city
+   (`docs/CHECKSUM.md` §20, item 4124). All inferred from use.
 3. **The editor-only verdicts and `TData 0x200`**, **`WData 0x100`/`region2`**,
    **`WData.who == −2`**: read `World::set_territory` and the terrain writers.
 4. ~~**`COLONIZE_BONUS` (0x2af)** — which tech grants it (`docs/TECH.md`'s
