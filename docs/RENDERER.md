@@ -932,7 +932,7 @@ committed before its count.* What a `BASELAND` tile draws, read from:
   `_mtrl` stage are not drawn: the texel alone, as the colour reader's.
 - *Drawn:* every `BASELAND` tile not under a placed mountain, bilinear
   over the sub-tile's mips (`render::silhouette::Paint::Textures`). A
-  mountain's tiles keep the debug grey (`render_mountains` is unread),
+  mountain's tiles take their own draw (§3.10),
   the other kinds their debug colour; the debug draw stays behind a flag
   as the floor's.
 - *Not drawn, and named at the count:* the blends between bases and
@@ -1367,6 +1367,108 @@ on the packet's cells:
 - The client's blend runs in the sRGB target's linear space. The original's card blends the
   stored values. The GPU frame is not scored against the painter (parked 4139b).
 - The patch on land 1 and land 2 (319 and 120 on the packet), and every pass after it.
+
+## 3.10 A mountain's own draw (item 4141)
+
+**What it is.** A placed range drawn as `TerrainOut::render_mountains`
+draws it, over the ground §3.9 lays beneath it, by the CPU painter
+(`client::ground::MountainArt::over`) and the client (`gpu`'s
+`fs_mountain`). Before it, the painter and the client laid the debug grey
+on every tile under a mountain.
+
+**The art, as read.** `render_mountains` walks the sixteen template slots
+and draws each range's mesh in two passes:
+
+| pass | stage 0 | stage 1 |
+|---|---|---|
+| ring, first | `TileSetData::mountain_alpha`: the tileset's `<MOUNTAINS>` `ALPHATEX` | `MountainRangeOut::ring_alpha`: the template's `RING_ALPHA_TEX` |
+| main, second | `TileSetData::mountain_base`: `BASETEX` | `MountainRangeOut::mountain_alpha`: `MAIN_ALPHA_TEX` |
+
+The two `MountainRangeOut` fields are named by the type record (+0x1d0,
++0x22c, behind the virtual base's 4). `TileSet::init` names the files.
+`rondata::artdata::mountain_textures` and `rondata::mountains::alpha_files`
+read them. On early autumn, stage 0 is `t_mountain_plain.tga` and
+`t_mountain_blend.tga`, both 256 × 256. Stage 1 is 128 × 128 per template.
+
+**The texcoords.** `MountainRange::init` lays a vertex at every fourth
+pixel of the template's image where the alpha is lit. That is the tile
+corner `4 · (tile − 4 · loc) + 128`. It gives the vertex two texcoords:
+
+- stage 0: the pixel times 0.0625, so one repeat per cell, from the
+  template's origin;
+- stage 1: the pixel less the lit bounding box's near corner, over its
+  extent, so the alpha is stretched over the box.
+
+The listing settles both. The decompiler mangles the arguments here. The
+constant 0.0625 is read from the PE. `TerrainOut::fill_mountain_data`
+copies both sets into the mesh and gives every vertex the colour white.
+
+**The pass, as read.** The state is `MountainsOut::mountain_blend`,
+filled in `Mountains::init` over `RenderState::init`'s defaults. Its
+fields are named by the type record and its values by the PDB's enums.
+
+| field | stage 0 | stage 1 |
+|---|---|---|
+| colorop | MODULATE (TEXTURE, DIFFUSE) | ADDSIGNED (TEXTURE, CURRENT) |
+| alphaop | SELECTARG1 (TEXTURE) | MODULATE (TEXTURE, CURRENT) |
+| address u, v | WRAP | CLAMP |
+| mag, min, mip filter | POINT, POINT, POINT | LINEAR, LINEAR, POINT |
+
+The blend is SRCALPHA over INVSRCALPHA, and the alpha test is GREATER
+against 0. So each layer is `t0 + t1 − ½` per channel, at A = `t0.a ·
+t1.a`, laid over what is already drawn.
+
+**What the diffs back** (`client::ground::tests`, frame 3279's
+photograph, the 106 scored tiles under a mountain).
+
+- `RUN1559B_3279_MOUNTAIN_VALUES`, before any reading: all 106 are on
+  one range, template 14 at cell (4, 36). Under the row's bar the grey
+  agrees on 59 and the ground as if no mountain stood there on **76**.
+  `BASETEX`'s mean agrees on 60 and `ALPHATEX`'s on 0. Nearest by tile:
+  41, 59, 6 and 0, with no tie.
+- `RUN1559B_3279_MOUNTAIN_READS`, each read beside the ground, the best
+  control:
+
+  | read | agree of 106 | nearer than the ground |
+  |---|---|---|
+  | **the pass as read** | **105** | 85 |
+  | the main pass alone | 105 | 91 |
+  | 1 − A | 97 | 90 |
+  | stage 1's colour ignored (no ADDSIGNED) | 62 | 35 |
+  | the alpha unstretched (over 256) | 88 | 62 |
+  | over the grey, not the ground | 98 | 77 |
+
+  The read is kept: ADDSIGNED, the stretch, A as weight and the ground
+  drawn beneath. *The count does not tell the ring pass apart*: the main
+  pass alone ties it.
+- `RUN1559B_3279_GROUND`, re-pinned with the draw: **1,051 → 1,097 of
+  1,109**. The 106 go from 59 to 105, with 46 tiles gained and none lost.
+  (12, 141), on the range's edge, is the one left. The grey's row stays
+  pinned as `RUN1559B_3279_GROUND_GREY`.
+- `the_client_draws_every_tile_once`: the client lays the ground under
+  every mountain tile and each range's tiles twice, ring then main,
+  after the patch.
+
+**What rests on the reading alone, and what is not established.**
+
+- Stage 0's filter: the state reads POINT. The painter and the client
+  sample it bilinear and on level 0. This is unmeasured, as parked
+  4139a is for the patch.
+- The diffuse. The vertex is white and the state's `tfactor` is set to
+  `WHITE`. `TerrainOut::render` generates normals for the mesh, and
+  whether lighting reaches the diffuse is unread.
+- `Mountains::init` adds a pixel-shader situation. Stage 2 binds
+  `mountain_mtrl` (`BASETEX`'s `_mtrl` sibling) where the card answers.
+  Which path ran under DXVK is not established. Neither is drawn.
+- `TileSet::init` sets the tileset's tint on both stage 0 textures, and
+  the tint is not applied.
+- The range's own vertex heights, the mid-zoom mesh and level of
+  detail, and the snowcap underlay (`CoordInfo::add_geometry`). The draw
+  takes our terrain mesh's tiles.
+- How the original draws the ground under a mountain cell. The count
+  backs only that a ground is there (105 against 98 over the grey).
+- The client blends in the sRGB target's linear space (parked 4139b). The
+  GPU frame is not scored.
 
 ## 4. The stack
 
@@ -1865,8 +1967,8 @@ Each line names what would settle it.
 - **The `.BH3` encoding, every TGA variant past type 10, the terrain
   textures' mapping, and the 16 PNGs** (§3.2). ~~The terrain textures'
   mapping~~: a `BASELAND` cell's base layer is read (item 4127, §3.6,
-  "The ground's base layer"); the blends, the coast, the cliffs, the
-  water and the mountains' textures are not.
+  "The ground's base layer") and a mountain's (§3.10); the blends, the
+  coast, the cliffs and the water are not.
 - **Whether `sim` builds for `wasm32-unknown-unknown`.** It is untried, and
   matters only if option A's live variant is wanted.
 - **The licence of ptasev/Rise-of-Nations.** Reading it is fine under the

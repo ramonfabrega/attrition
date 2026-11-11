@@ -279,6 +279,23 @@ pub fn template_files(install: &Install) -> Vec<String> {
     })
 }
 
+/// Each `<MOUNTAIN>`'s `MAIN_ALPHA_TEX` and `RING_ALPHA_TEX` paths as the
+/// XML writes them (item 4141): `MountainRangeOut::mountain_alpha` and
+/// `ring_alpha`, the two stage 1 textures `TerrainOut::render_mountains`
+/// binds per range (`docs/RENDERER.md` §3.10).
+pub fn alpha_files(install: &Install) -> Vec<(String, String)> {
+    mountain_elements(install, |m| {
+        let file = |tag: &str| {
+            m.children()
+                .find(|n| n.is_element() && n.tag_name().name() == tag)
+                .and_then(|n| n.attribute("file"))
+                .unwrap_or_default()
+                .to_string()
+        };
+        (file("MAIN_ALPHA_TEX"), file("RING_ALPHA_TEX"))
+    })
+}
+
 /// The decoded template image at `rel`, for the survey's format checks.
 pub fn template_image(root: &Path, rel: &str) -> Option<(Tga, u8, u8)> {
     let bytes = std::fs::read(crate::artdata::resolve_art(root, rel)?).ok()?;

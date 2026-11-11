@@ -16579,9 +16579,10 @@ words and edits nothing here; a refill lands when two remain.
   against 154) and less green, which points at the light. Rests on one photograph.
   Item 4129: on sub 3 the photograph's best base is base 2 on 120 of 148 tiles, under the patch that lays `land_sub − 1`
   (parked 4129a). The losses sit on patched cells, not everywhere, so the light and the `_mtrl` stage are not named.
-- **4127c. A mountain's own draw** (§3.6; the same row and test). The 106 scored tiles under a placed mountain keep
+- ~~**4127c. A mountain's own draw** (§3.6; the same row and test). The 106 scored tiles under a placed mountain keep
   the debug grey and score 59; 47 part. `render_mountains` and the mountains' textures are unread (parked with the
-  §7.1 line on the terrain textures).
+  §7.1 line on the terrain textures).~~ Answered by item 4141 (`docs/RENDERER.md` §3.10): the pass read by its
+  `RenderState`, 105 of the 106; `RUN1559B_3279_GROUND` 1,051 → 1,097.
 
 ## Parked by item 4129, 2026-11-11 — which base a tile draws
 
@@ -16686,13 +16687,20 @@ words and edits nothing here; a refill lands when two remain.
   instrument, and the GPU's frame is not scored against them. No score moves until a GPU still
   is diffed against the painter.
 
-## Parked by the next landing, slot FM — reserved
+## Parked by item 4141, 2026-11-11 — a mountain's own draw
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4141a. The ring pass, undiscriminated** (`docs/RENDERER.md` §3.10;
+  `RUN1559B_3279_MOUNTAIN_READS`). The main pass alone agrees on 105 of the 106, as the pass as read does. The one
+  range the photograph scores is template 14, whose ring alpha sits on its edge, where few tiles are scored. A score
+  needs a frame whose scored tiles fall on a ring, or a per-pixel count.
+- **4141b. The mountain's diffuse, its tint and its third stage** (§3.10). The vertex is white, the state's
+  `tfactor` is `WHITE`, and `TerrainOut::render` generates the mesh's normals. Whether lighting reaches the diffuse is
+  unread. `TileSet::init`'s tint on `mountain_base` and `mountain_alpha` is not applied. `Mountains::init`'s
+  pixel-shader situation and the `mountain_mtrl` stage 2 are drawn on neither side. The tile left, (12, 141), reads
+  warmer in ours, 0.414 against 0.362 in r. No score names the cause until a second scored range is on a photograph.
+- **4141c. The range's own mesh** (§3.10). The draw takes our terrain mesh's tiles and not `MountainRange::init`'s
+  vertex heights, its mid-zoom mesh or the snowcap underlay (`CoordInfo::add_geometry`, `has_snowcaps`). The row
+  scores colour, not shape.
 
 ## Parked by the next landing, slot FN — reserved
 
