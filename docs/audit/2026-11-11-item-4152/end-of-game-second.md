@@ -349,3 +349,186 @@ step amounts, the predicate order and the pay-back. Medium on
 sweep covers it). Not read: `Wall::process`'s and `Army::find_target`'s use
 beyond "nonzero"; the meaning of `semaphore[0] & 4` beyond multiplayer;
 `map_sizes +0x144` and `*world`'s names.
+
+## Leaf 4: `victory_type` (+0x7d8, int)
+
+### Writers
+
+Export `field_0x7d8` on a leader: one store, `Leader::victory (006ec9b0)`
+line 23; the rest are reads (`EndGameWin::exec`,
+`Game::determine_end_of_game_stats_and_achievements`). `->victory_type`
+also matches `EndGameWin`'s own member (`end_game_win.victory_type`), a
+copy, not this field. Listing: the only leader store is `6ec9ec`
+(`movl %eax, 0x7d8(%esi)` in `Leader::victory`); the other `0x7d8(` stores
+(`Constants::init`, `GraphicPieces::close`, `ParamRegisterWindow::registration`)
+are other records; no absolute `0xe3ab68` store.
+
+### The event
+
+`Leader::victory(type, instant)`: if `leader_flags & 0x60 == 0` (neither
+won, `0x20`, nor defeated, `0x40`; `6ec9be`), it sets `0x20`, sets or clears
+`leader_flags2 & 0x100` from `instant`, stores `victory_type = type`, posts
+`ACHIEVEEVENT_WON`, cleans every building queue, calls `Player::win` for
+the leader's players, then for every other slot with `leader_flags & 3 == 3`
+sets `0x80` and calls `victory(type, instant)` on it if it counts this
+leader as an ally (`LeaderData::is_ally`, one direction) or `defeat(5, -1, 0)`
+otherwise. So the value is set once (the guard) and copied unchanged to the
+winner's allies.
+
+Values, by caller (listing pushes `instant, type`):
+
+| type | meaning | caller and predicate |
+|---|---|---|
+| 0 | last team standing | `Game::check_victory (005926b0)` `592984` (all remaining undefeated seated leaders mutually allied; called from `Leader::defeat`, `Leaders::strategy_all` under `semaphore[1] & 2`, `ScenarioFuncSet::victory`); `Leader::set_diplo (006ec6a0)` `6ec96e` (an alliance leaves no unallied rival); `TurnControl::toggle_pause (00957ab0)` `957bbf`; `ConsoleWin::run_cmd (007d6a70)` `7dd482`; `ScenarioFuncSet::victory (009f3fa0)` |
+| 1 | wonder | `GameDaemon::process_victory` `73132e` (see leaves 2–3) |
+| 2 | territory | `process_victory` `731942` (the POPWIN arm, lobby `victory` 0, 1 or 7) |
+| 3 | technology / ending age | `Leader::gain_tech (006dcb60)` `6de884`, `6de992` (lobby `victory == 9`) |
+| 4 | score | `process_victory` `7319b5` (lobby `victory == 3`, team score at the `scores` row) |
+| 5 | economic | `process_victory` `731f77` (lobby `victory == 8`, team economy at the `econwins` row) |
+| 6 | time limit | `process_victory` `731a69`, `731ac7` (lobby `victory == 4`) |
+
+### Reset
+
+None in play. `Leader::init (006e3930)` does **not** store it; only the
+`tribe < 0` memset zeroes it, and a load (`walk_data`) restores it. So
+after an `init` with `tribe >= 0` the field keeps whatever it held. 0 is
+also a real value (type 0, conquest), so a reader must pair it with
+`leader_flags & 0x20`.
+
+### Readers
+
+`EndGameWin::exec (0083bcc0)` (console leader's, or slot 0's, into the
+end-of-game window), `EndGameWin::get_type_string (0083a420)` through that
+copy, `Game::determine_end_of_game_stats_and_achievements (00583b30)`
+(`58403c`, achievements), `LeaderData::log_data`.
+
+### Crate site
+
+No victory event in the crate: `grep` finds no `victory(` function, no
+`check_victory`, no `0x20` won flag; `territory/victory.rs`'s `seams` table
+names the territory expiry as the missing `Leader::victory(2)`. A builder
+adds `victory_type` (and the won flag it pairs with) to
+`crates/sim/src/leaders.rs` beside `defeated`, and a `Sim::victory(who,
+type, instant)` in `crates/sim/src/leaders/` (beside `resign.rs`) with the
+ally sweep that calls `Sim::defeat` with type 5; the first caller would be
+the territory expiry seam in `territory/victory.rs`, then a
+`check_victory` port called from `Sim::defeat`.
+
+### Plain game?
+
+Yes: a skirmish against the computer ends by conquest (`check_victory`,
+type 0), or by wonders / territory under the default lobby. Types 3–6 need
+non-default lobby victory settings but no triggers, CtW or multiplayer.
+Only the console and scenario callers are outside a plain game.
+
+### Confidence
+
+High on the single writer, its guard and the propagation. High on the type
+values per caller (pushes read in the listing). The lobby-mode names (score,
+economic, time limit, ending age) are read from the arms' tables
+(`scores`, `econwins`, `time_limits`, `ending_technology`), not from the
+lobby UI.
+
+## Leaf 5: `defeat_type` (+0x7dc, int)
+
+### Writers
+
+Export `field_0x7dc` on a leader: one store, `Leader::defeat (006ecb00)`
+line 69; every other hit is a read. Listing: the only leader store is
+`6ecb7b` (`movl %esi, 0x7dc(%ebx)`); other `0x7dc(` stores
+(`IFaceRenderManager::clear_all`, `Constants::init`,
+`GraphicPieces::close`) are other records; no absolute `0xe3ab6c` store.
+
+### The event
+
+`Leader::defeat(type, by, instant)`: calls `defeat_by(by, type)` first
+(leaves 1 and 6), then returns without writing if `leader_flags & 0x40`
+(already defeated, `6ecb24`) or `semaphore[1] & 2` (`game + 0x821` bit 1, the
+unit-balance test mode, `6ecb32`). Otherwise it sets or clears
+`leader_flags2 & 0x200` from `instant`, clears `leader_flags & 2` and sets
+`0x40`, calls `Armies::leader_defeated`, sets `leader_flags2 & 2`, stores
+`game->musical_chairs = frame`, then `defeat_type = type` (`6ecb7b`), and
+posts `DISCONNECTED` (7), `RESIGNED` (6), nothing (5) or `ELIMINATED`
+(others). So `defeat_type` is written **once**, at the first effective
+defeat — unlike `defeat_stamp`, which `defeat_by` writes before this guard.
+
+Values: the `type` column of the `Leader::defeat` caller table under leaf 1.
+In words: 0 no cities and no units left (`lost_a_city` default mode,
+`Unit::close`), console, scenario attacker sweep; 1 capital elimination
+(`lost_a_city` with `GLOBAL_GOVERNMENT_BONUS`, `process_elimination`,
+`gain_tech`, `leave_game` under a capital timer); 2 and 3 the elimination
+modes 2 and 3 of `lost_a_city`; 4 musical chairs (`process_victory`, lobby
+`victory == 5`, the lowest score every `chairs`·900 frames); 5 someone else
+won (`Leader::victory`); 6 resigned; 7 dropped or disconnected
+(`Player::drop`, `CommandPackage::end_process`); 8 armageddon
+(`Game::defeat_all` from `process_victory` when
+`Game::get_armageddon() <= game->armageddon`); 9 scenario defeat. The
+readers also test **10** (`EndGameWin::get_type_string`,
+`ConquestGame::process_results (00798940)` `799194: cmpl $0xa, 0xe3ab6c`),
+but no caller of `Leader::defeat` pushes 10 and no other store exists, so
+10 reaches this field only through a load (`walk_data`) or not at all; it
+looks like an `EndGameWin`-side value (that class has its own
+`defeat_type`).
+
+### Reset
+
+None in play. `Leader::init` does not store it; only the `tribe < 0`
+memset and a load.
+
+### Readers
+
+`EndGameWin::exec (0083bcc0)`, `EndGameWin::get_type_string`,
+`Game::determine_end_of_game_stats_and_achievements (00583b30)`,
+`ConquestGame::process_results (00798940)` (CtW), and the UI:
+`StatWin::draw_normal_stats (007ebd20)`, `StatWin::on_redraw (007f0e70)`,
+`AchieveChartPane::on_redraw (007f6ff0)`, `AchieveChartPane::draw_game_info
+(007f3ce0)`, `AchieveGraphPane::on_spot_move (007f7e40)`,
+`GameReportWin::on_button_clicked (007b4f50)` (the `== 8` tests),
+`IFaceDiplo::draw_player_area (007ff420)`,
+`IFaceDiplo::update_visibility (008004f0)`; `LeaderData::log_data`. No sim
+reader found.
+
+### Crate site
+
+`Sim::defeat` (`crates/sim/src/cities/city.rs`, called only by
+`Sim::lost_a_city`, so always the default mode's type 0 with a captor)
+and `Sim::resign` (`crates/sim/src/leaders/resign.rs`, type 6). A builder
+adds a `type` argument to `Sim::defeat` and stores `defeat_type` in
+`crates/sim/src/leaders.rs` after the existing `defeated` early return
+(that return matches the `0x40` guard here, unlike leaf 6). `Unit::close`'s
+type 0, the type-5 sweep (no `Sim::victory`), musical chairs, armageddon
+and `process_elimination` are not ported events.
+
+### Plain game?
+
+Yes for 0, 1, 5 and 6 (city loss, capital elimination lobby, conquest
+victory sweep, a human quitting through the menu); 2, 3, 4, 8 with
+non-default lobby settings but still a plain skirmish; 7 is multiplayer;
+9 and the console 0 are triggers/cheats.
+
+### Confidence
+
+High on the single writer and its guard (listing), and on the per-caller
+values. Medium on the words for elimination modes 2 and 3 (read from
+`lost_a_city`'s branches only) and on armageddon's predicate (not read
+past `get_armageddon`'s call).
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `defeated_by` +0x10 | `Leader::defeat_by (006d1c80)` (sole caller `Leader::defeat (006ecb00)`); `Leader::init (006e3930)`; bulk: `LeaderData::walk_data (006d6750)` on load | `= by` once, when still `< 0` and `by >= 0`; captor-less defeats leave `-1` | `-1` in `Leader::init` | `Sim::defeat`, `crates/sim/src/cities/city.rs`; field beside `defeated` in `leaders.rs` | yes (last city captured; capital elimination) | high (writer/guard), medium (elimination-mode words) |
+| `wonderwin_stamp` +0x448 | `GameDaemon::process_victory (00730ef0)` (`+frame` start, `−frame` stop); `Leaders::process_all (006ed2a0)` (`+1` pay-back); `Leader::init (006e3930)`; dead copy `Leader::process (006b88b0)` | start `+frame`, stop `−frame`, `+1` every `timer_refresh_ratio` frames while `< 0` and stopped | 0 in `Leader::init` | twin of popwin in `crates/sim/src/territory/victory.rs` (`process_victory_territory`, `refresh_victory_timers`); field beside `popwin_stamp` in `ai.rs` | yes (default lobby, wonder points at the `wonderwins` row) | high |
+| `wonderwin_timer` +0x44c | `GameDaemon::process_victory (00730ef0)`; `Leader::init (006e3930)` | 0→1 at start, 1→0 at stop | 0 in `Leader::init` | same; reader stub `ai/army/target_gate.rs:428` `w44c` returns 0 | yes | high |
+| `victory_type` +0x7d8 | `Leader::victory (006ec9b0)` only | `= type` once (guard `leader_flags & 0x60 == 0`), copied to allies | none in play (only the `tribe < 0` memset, and a load) | none: no victory event in the crate; add `Sim::victory` in `crates/sim/src/leaders/` | yes (conquest type 0; wonder/territory 1/2; 3–6 by lobby) | high |
+| `defeat_type` +0x7dc | `Leader::defeat (006ecb00)` only | `= type` once (after `defeat_by`; guard `leader_flags & 0x40 == 0` and not `semaphore[1] & 2`) | none in play (memset, load) | `Sim::defeat` (`cities/city.rs`), `Sim::resign` (`leaders/resign.rs`); add a type argument | yes for 0, 1, 5, 6; 2–4, 8 by lobby; 7 MP; 9 scenario | high (writer/guard), medium (mode words) |
+| `defeat_stamp` +0x6924 | `Leader::defeat_by (006d1c80)`; `Leader::init (006e3930)` | `= frame` on **every** `Leader::defeat` call while `defeated_by < 0` (before the defeated-flag guard), so captor-less losers are re-stamped by later calls, e.g. `Unit::close (0060ee50)` | 0 in `Leader::init` | `Sim::defeat` / `Sim::resign` entry, before their `defeated` early return; `Unit::close`'s defeat call is not ported | yes | high (stores, order), medium (how often the re-stamp fires) |
+
+### What this reading did not read
+
+`Leader::lost_a_city`'s callers (so `param_1`/`param_2` are named by what
+they gate, not by what passes them); `Game::retake_capital`;
+`Game::get_armageddon`; the wonder clock's consumers in `Wall::process` and
+`Army::find_target` beyond "nonzero"; `map_sizes +0x144` and `*world`; the
+`walk_data` callers' conditions. No capture or emulator run was made; every
+claim here rests on the export and the listing.

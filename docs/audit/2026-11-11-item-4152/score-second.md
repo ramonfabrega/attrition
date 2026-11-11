@@ -108,3 +108,88 @@ Vtable slot `+0x7c` of every `Type` vtable. PE bytes: `UnitType`'s `Type` vtable
 - `unit_cost_factor`, `build_cost_factor`, `tech_cost_factor`, `spell_cost_factor` are plain
   `get_item` integers (`Constants::init`:1121-1128).
 
+### 0.5 Writers common to every leaf
+
+- `Leader::reset_score (006e37f0)` zeroes all twelve (and the `units_built`.. counters at
+  `+0x808`..). Callers: `Leader::init (006e3930)`:140 and `Setup::build_game (005ac190)`:731 (every
+  slot with `leader_flags & 1`, after the `setup.cpp` checksum line). Both setup-time.
+- `LeaderData::walk_data (006d6750)` copies `[who, +0x692a)` as one range, so on a load
+  (`DataWalk::input != 0`) every leaf is restored from the save. Not on a plain game's frame path;
+  the same walk feeds the per-frame leaders checksum (crate `checksum/leaders.rs` lists all twelve
+  as leaves at `LEADER_FIELDS` lines 41-52), so **every leaf is checksum-visible**.
+- Export net: `grep -- '->score…'` finds only readers (§ readers below); `field_0x18`..`field_0x44`
+  on a `Leader`/`LeaderData`/`LeaderOut`-typed pointer (a script over every function that
+  declares one) finds only `compute_*`, `reset_score` and the unrelated `LeaderOption` class.
+  Listing net for the absolute form (`0xe3a3a8`..`0xe3a3d7`): stores only to `0xe3a3d4`
+  (`score_combat`, § 12); every `0xe3a3a8` hit is a read of `score`.
+
+---
+
+## 1. `score` (+0x18)
+
+1. **Writers.** `Leader::compute_score (006ec560)`: store `0x18(%esi)` at 006ec68a (the sum) and at
+   006ec660 (armageddon zero). `reset_score`, `walk_data` load (§0.5). Base `esi` = `Leader*`
+   `this` (§0). No other store found by either net.
+2. **Event / step.** Recomputed (not stepped) on a gated frame (§0.1): `score = score_explored +
+   score_territory + score_units + score_buildings + score_economy + score_pop +
+   score_unit_upgrades + score_research + score_wonders + score_combat`, i32 adds. Not
+   `score_units_2`. Where armageddon is reached (`game->armageddon >= get_armageddon()`), 0.
+   On a non-gated frame the value stands even if a part (e.g. `score_combat`) moved since.
+3. **Reset.** `reset_score` at setup; the armageddon branch.
+4. **Readers.** `LeaderData::get_team_score (006d6520)` (own score, or Σ over team when
+   `semaphore` bit 7 is set (`(char)ptr[0] < 0`)); `LeaderData::get_mvp_score (006d5de0)`
+   (`score == 0 → …`, else `3·combat − economy/2 − buildings/2 + territory + score`);
+   `Leader::diplomacy (006bc950)` (counts leaders with a higher score, finds the top scorer,
+   compares to `get_team_score` — an AI decision input); `Army::find_target (006f69b0)`:372
+   (`target_owner.score·4/3 < my score` gates a siege-army arm — AI decision input);
+   `GameDaemon::process_victory (00730ef0)`:636 (lowest/tied score among live leaders);
+   `ScenarioFuncSet::score (009e8fa0)`, `at_least_points (009ed450)`, `less_than_points (009edc20)`
+   (triggers); `StatWin::setup_normal_entries (007ecc40)`, `AchieveChartPane::on_redraw
+   (007f6ff0)`, `LeaderData::log_data (006e5110)` (the `LEADERDATA` logger), `Options::describe`.
+5. **Crate.** No `compute_score`: `crates/sim/src/ai/ai_drive.rs` `Sim::strategy_all` (line 73)
+   has the comment "`compute_score(0)` — not modelled" between `plan_strategy` and `diplomacy`
+   (line 87); that is where the call goes, with the `(who + frame) % 10` gate. Readers already
+   carry seams: `leaders/diplomacy.rs` `Sim::diplomacy` line 155 (the score count / top scorer),
+   `ai/army/target_score.rs` line 457 (the `score × 4/3` clause). Note the crate's
+   `strategy_all` skips humans via `continue` before the `compute_score` slot — the original
+   calls `compute_score` for every `leader_flags & 3 == 3` slot, human included, so the call must
+   sit before that `continue`. The end-of-game `defeat_all` forced call has no crate site.
+6. **Plain game?** Yes: `strategy_all` runs every frame of a skirmish (semaphore bit 11 clear).
+   `defeat_all` at game end is also plain-game. The `ScenarioFuncSet` readers are the trigger
+   layer.
+7. **Confidence.** High: listing read whole for `compute_score`; both callers read. Not read:
+   what sets `semaphore` bit 6 (the "always recompute" bit) and bit 7; whether a parts change
+   between gated frames is observable to a reader that matters (the readers above read only
+   `score`, which is stale by design between gated frames).
+
+## 2. `score_explored` (+0x1c)
+
+1. **Writers.** `compute_score`: `movl $0,0x1c(%esi)` at 006ec5a0 (every gated frame) and 006ec636
+   (armageddon). `Leader::compute_explore_score (006bc5e0)` also stores 0 but is dead: no call in
+   the listing, no pointer to it in the PE bytes. `reset_score`, `walk_data` load.
+2. **Step.** None. It is 0 on every gated frame; the part is stubbed out in this build.
+3. **Reset.** As above.
+4. **Readers.** Only as a term of `score`.
+5. **Crate.** Nothing to add beyond writing 0; `checksum/leaders.rs` line 42 holds the leaf.
+6. **Plain game?** Yes (constant 0).
+7. **Confidence.** High.
+
+## 3. `score_territory` (+0x20)
+
+1. **Writers.** `compute_score`: `movl %edi,0x20(%esi)` at 006ec604, and 0 at 006ec628
+   (armageddon). `reset_score`, `walk_data` load.
+2. **Step.** On each gated frame, `territory · 1000 / land_size`, i32 signed, truncating
+   (`imul $0x3e8`; `cltd; idivl`). `territory` = `LeaderData+0x9d8` of slot `who` (read through the
+   global array, `0xe3ad68 + who·0x6eec`); `land_size` = `World+0x78`. Units: territory in the
+   map's own tiles over the land tile count, ×1000 — permille of the land. Computed every gated
+   frame regardless of dirty bits; this part has **no** armageddon test of its own, only the
+   zeroing in step 8.
+3. **Reset.** As above.
+4. **Readers.** `score` (term); `get_mvp_score`, `AchieveChartPane::on_redraw` (UI).
+5. **Crate.** Inputs exist: `economy.rs` `Holdings::territory` and `Holdings::land_size`
+   (line 555; `economy.rs:1142` already divides `territory · rate · RATE_SCALE / land_size`). Add in
+   the new `compute_score` beside `ai_drive.rs:87`.
+6. **Plain game?** Yes.
+7. **Confidence.** High on the formula. Not read: when `land_size` is set, and whether it can be 0
+   (an `idiv` by 0 would fault in the original; the crate guards `<= 0` elsewhere).
+

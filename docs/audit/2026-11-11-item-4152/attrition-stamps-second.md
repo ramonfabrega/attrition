@@ -118,3 +118,126 @@ game restores `LeaderData` wholesale (I found no bulk copy of 0x6ee4 bytes
 in `.text`; the save track was not read), and the `team_style 7`
 neutral-skip arm of the clear loops.
 
+## 2. `attrition_stamp2` (+0x1f8) — first-attrition-damage latch
+
+### Writers (both nets)
+
+Export: `field_0x1f8` on a leader in `Unit::suffer_attrition (005e1a10)`
+(test line 19, store line 53) and `Leader::init (006e3930)` 265;
+`->attrition_stamp2` only in `LeaderData::log_data (006e5110)`.
+Listing: `0xe3a588` twice, both in `suffer_attrition` — `5e1a25` `cmpl
+$0x0` and `5e1b8a` `movl %eax` with `eax = [0xc061ec]+0x550` (`game.frame`).
+Register form: `Leader::init` `6e3de6` (`0x1f8(%ebx)`, 0). No other leader
+store found.
+
+### Event, step, predicate
+
+`Unit::suffer_attrition` runs once per attrition damage tick on a unit (its
+two callers are both in `Unit::process (00610bc0)`, `610d35` and `6117fe`).
+If the unit's leader's stamp2 is 0, it is set to `game.frame`
+**unconditionally** — the message pair and `S_ATTRITION_WARNING` inside are
+gated on `who == console->who`, the cell having an owner (`who ≥ 0`), and
+`!is_ally(leaders[who], who)` (the unit's leader against **itself**, as the
+crate's `suffer_view.rs` header also records), but the store sits outside
+that gate. Once nonzero it is never re-armed: there is no window test, so
+it is a once-per-game latch holding the frame of that leader's first
+attrition damage. Step: a frame number. Exempt: nothing — every unit of
+every slot that takes an attrition tick reaches it.
+
+Edge: a first tick on frame 0 would store 0 and leave the latch open; no
+attrition tick can occur on frame 0 in practice (no strength yet).
+
+### Reset
+
+`Leader::init` only. Not cleared at the rush-rules end, unlike stamp1.
+
+### Readers
+
+`suffer_attrition`'s own test and `log_data`.
+
+### Crate site
+
+`crates/sim/src/territory/suffer_view.rs`: the walk
+`suffer_attrition_steps` already calls `v.warned_at(who)` and
+`v.stamp_warned(who)` in the original's place, but `SimSuffer`'s
+implementations are `warned_at → 0` (line 152) and `stamp_warned → {}`
+(line 155). A builder stores `frame` into a per-leader word there and makes
+`warned_at` read it. Nothing else changes, since the console arm is closed
+in the headless sim.
+
+### Plain game?
+
+Yes: any unit that takes one attrition tick in a skirmish.
+
+### Confidence
+
+High (two absolute sites, one init, store read in the listing). Not read:
+save/load restoration.
+
+## 3. `attrition_stamp3` (+0x1fc) — first-building-attrition latch
+
+### Writers (both nets)
+
+Export: `field_0x1fc` on a leader in `Wall::process (00640450)` (test 288,
+store 300) and `Leader::init (006e3930)` 266; `->attrition_stamp3` only in
+`LeaderData::log_data`. Listing: `0xe3a58c` twice, both in `Wall::process`
+— `640b3a` `cmpl $0x0` and `640bb7` `movl %eax` with `eax = game.frame`.
+Register form: `Leader::init` `6e3df1`. Rejected: `Leader::init` `6e3d63`
+`0x1fc(%esi)` — `esi` there walks a per-opponent `[8]` array inside the
+leader (stride 4, neighbours at `0x13c`/`0x15c`/`0x19c(%esi)`), not this
+word; `Leader::init` `6e4b06` is a 16-bit store to another record; the
+`ScenarioEditor::delete_leader` store is the editor's.
+
+### Event, step, predicate
+
+`Wall::process` (every building, walls included) runs its territory block
+when `(frame + o) % 16 == 0` (`o` = the object's index `+0xa`), the owner's
+`disable_building_attrition` (+0x804) is 0, and then either war is allowed
+(`rush_rules == 0` or `Game::war_allowed`) **and** `(frame + o) % 32 == 0`,
+or war is not allowed (the 16-frame cadence alone). The cell's owner (or,
+for a type whose vslot `0x108` answers true, `BuildTypeData::check_enemy_adjacent`
+over the footprint) must be `≥ 0`, not the building's own leader, and not
+allied (`is_ally`). Then:
+
+- **unstarted** building (`is_started`, `flags & 2` when not overridden):
+  `Object::disband(this, 0)`, then **unconditionally** the console message
+  (string `0x123cc`, `S_ATTRITION_WARNING`, console only) and
+  `stamp3 = frame` — the stamp test is skipped on this path (listing
+  `6409d9 call disband; jmp 640b43`, past the `640b3a` test);
+- **started**: 8 hit points through vslot `0x16c` (`take_damage`, args
+  `8,0,1,-1,1,0x55555555,-1,-1`); if it died, return; if stamp3 is nonzero,
+  return; otherwise the console message and `stamp3 = frame`.
+
+So it latches the frame of the leader's first building to erode or be
+removed by hostile ground, and an unstarted site's removal **re-stamps**
+every time (it is not a pure latch on that arm).
+
+### Reset
+
+`Leader::init` only.
+
+### Readers
+
+`Wall::process`'s own test and `log_data`.
+
+### Crate site
+
+`Sim::process_building` in `crates/sim/src/cities/city.rs`, the block under
+"A building in enemy territory bleeds" (around lines 2997–3011): the
+`disband_building` arm (store unconditionally) and the survivor after
+`building_attrition` (store if zero). The crate's cadence is
+`build::ENEMY_TERRITORY_PERIOD = 32`, documenting the 16-frame peace arm as
+unmodelled (`crates/sim/src/cities/build.rs:1083`). No stamp exists today.
+
+### Plain game?
+
+Yes: a wall or building left on ground that becomes a non-allied neighbour's
+(borders move with cities, forts, civic techs), or a foundation laid there.
+
+### Confidence
+
+High for the stores and the disband-path quirk (listing). Medium on the
+16/32 cadence split (read in the decompile, matches the crate's own note;
+the listing's `0x8000000f` / `0x8000001f` masks were seen, not traced in
+full).
+
