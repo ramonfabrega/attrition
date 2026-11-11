@@ -1235,6 +1235,29 @@ pub fn commerce_cap(t: &Tuning, h: &Holdings, r: Resource) -> i32 {
     cap.clamp(0, CAP_CEILING) * RATE_SCALE
 }
 
+/// **The seventh cap** (`resource_cap[6]`, `LeaderDataEncrypt +0x48`):
+/// `calc_resource_caps@006ce900`'s last pass of its seven, the slot no good
+/// takes. It reaches no nation term and no wonder arm (each names a slot
+/// below six), so it is the base cap with the British term, the republic
+/// term and `bonus_cap[6]`, clamped and scaled as the six are
+/// (`docs/ECONOMY.md`, "The commerce cap"). Diamonds is not built, as in
+/// [`commerce_cap`]; `bonus_cap[6]` is not held and reads 0.
+pub fn commerce_cap_seventh(t: &Tuning, h: &Holdings) -> i32 {
+    let level = h.commerce.min(t.commerce_cap.len() - 1);
+    let mut cap = t.commerce_cap[level];
+    if h.british {
+        cap = cap * (100 + t.british_commerce) / 100;
+    }
+    if let Some(&bonus) = h
+        .republic
+        .checked_sub(1)
+        .and_then(|i| t.republic_commerce_bonus.get(i))
+    {
+        cap += bonus;
+    }
+    cap.clamp(0, CAP_CEILING) * RATE_SCALE
+}
+
 /// What the wonders add to one good's commerce cap, in whole units —
 /// `calc_resource_caps@006ce900` between Diamonds and the republic term.
 ///

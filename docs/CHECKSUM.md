@@ -263,7 +263,8 @@ and are named last; by bytes:
 (792; ported, §13) ·
 4. builds (4,923; ported, §14, §15) · 5. guys (9,308; ported, §16) ·
 6. units (19,642; it walks the
-guys again; ~~held out on three fields, §17~~ ported, §17, §18) · 7. groups (37,010; ported, §19) · 8. leaders (58,343) ·
+guys again; ~~held out on three fields, §17~~ ported, §17, §18) · 7. groups (37,010; ported, §19) · 8. leaders (58,343;
+held out on its long range and the spell bits, 4,313 bytes agreeing, §20) ·
 9. world (294,769) · then walls, ammo and deaths (0 each), counted on a
 frame that holds one.
 
@@ -439,21 +440,25 @@ also hand over:
 - `dip[0..8]`, eight `Diplomacy` records of 92 bytes; `pers`, the
   `Personality`, [+0x6dd4, +0x6e34), 24 ints.
 - Nine `BitMask`s: each one's `bits` and `size` (8 bytes), then its
-  `size` bytes of the inline `ptr` array. `tech`, `tech_at_start` and
+  `size` bytes of the inline `ptr` array (the rare three come after the
+  string, not with the rest: the stream, item 4121, §20). `tech`,
+  `tech_at_start` and
   `obs_flags` take 101 bytes each; `conquest_wonders`,
   `conquest_wonders_in_game` and `conquest_racial_powers` take 3; `rare`,
   `rare_owned` and `rare_conquest` take 6. Despite its name, `ptr` is a
   `uchar[]` inside the record, not a pointer.
 - `sites` (`Array<Site>`, 30 × 24), `make_list` (`Array<MakeObject>`,
   33 × 40), `mil_trainers`, `new_rares`, `oil_patches`
-  (`SimpleArray<int>`), each with its header.
+  (`SimpleArray<int>`), each with its header (a `SimpleArray<int>`'s
+  elements are one range, the stream, §20).
 - `prod_script`, a `String` (`String::walk_data@00a1b2d0`): its length as
   a 4-byte local, then its characters (two leaders, 16 bytes each).
 - `data_encrypted` through `LeaderDataEncrypt::walk_data@006d9900`: the
-  decrypted values as 4-byte locals, 62 words a leader. That is six at
+  decrypted values as 4-byte locals, 62 words a leader. ~~That is six at
   each of nine sites (the six-resource arrays), four at one, and one at
-  each of four more. The encrypted words are not walked; their plain
-  values are.
+  each of four more.~~ The encrypted words are not walked; their plain
+  values are. They go good by good, nine words a good, then `resource_cap[6]`, the four `epoch` words, `ages`,
+  `epochs` and `discovered` (§20).
 
 ## 8. Ledger: cities, items, goods, the world, and the three empty lines
 
@@ -527,8 +532,11 @@ walls and ammo record shapes rest on the recon's reading alone (§10).
   the simulation, so a line that walks one is exact only if those bits
   can be derived from integers the port does hold. ~~That is open
   (§10).~~ For the five of a figure it is answered (§16): `+0.0` on every
-  figure of both frames, emitted as bits; the leaders' two stay open
-  (§10).
+  figure of both frames, emitted as bits; ~~the leaders' two stay open
+  (§10)~~ of the leaders' two (§20), `plunder_scale` has one writer,
+  `Leader::init`'s −1.0, and is emitted as its bits; `anti_att` is
+  computed by `Leader::calc_anti_attrition` from state a game moves, and
+  stays out by name.
 - **Unions: four**, `UnitData` +0x54 and +0x86 and `BuildData` +0x78, all
   int or short members, and `String`'s +0x0 (skipped).
 - **Padding inside a walked range: 4 bytes a leader**, the two runs in
@@ -577,8 +585,10 @@ on either frame read), and `say_checksum`'s labels beyond the fifteen.
 - ~~Whether the seven floats' bits follow from integers the simulation
   holds.~~ The five of a figure: one bit pattern, `+0.0`, on every
   figure of both frames, constant on this game's figures, and on an
-  aircraft's guy 0 the singles `air::Airframe` holds (§16). The leaders'
-  `anti_att` and `plunder_scale` are still open.
+  aircraft's guy 0 the singles `air::Airframe` holds (§16). ~~The leaders'
+  `anti_att` and `plunder_scale` are still open.~~ The leaders' two (item
+  4121, §20): `plunder_scale` is `Leader::init`'s constant, emitted as bits;
+  `anti_att` is class 3, out.
 - Why the rules line differs between run1100 and run1420 (314192132
   against 1227894240). The recon read it as static, and it is static
   across run1100's two records. Run 1562, another lobby (the harness
@@ -1646,3 +1656,137 @@ record's `who` 0, `disband` and `priority` constant by their writers, and
 - A slot an army and a pushed entry both hold. The emitter takes the army's
   record while the army has members.
 - A frame where `get_open_slot`'s fallbacks fire.
+
+## 20. The leaders line, held out on the long range (item 4121)
+
+**263 of 267 ranges and 4,313 of 58,343 bytes agree** on run 1562's frame
+91. That is all eight slots' flag words, and the two walked leaders'
+diplomacy records, personalities, masks but `tech`'s array, sites, make
+lists, the three `SimpleArray<int>`s, production scripts, rare masks and 62
+decrypted words. The four ranges that part are each walked leader's
+`[+0x8, +0x692a)` (26,914 bytes) and its `tech` array (101 bytes). Ours sums
+to 4257695306 against the printed `Leaders` 2813959641.
+`Sim::checksum_leaders` (`crates/sim/src/checksum/leaders.rs`) emits it, leaf
+by leaf (`Sim::leader_image`, a `None` leaf being one the crate holds no value
+for). `diff::checksum_lines::the_leaders_line_is_the_original_s_range_by_range`
+holds it range by range and leaf by leaf, with `LEADERS_HELD_OUT` naming 140
+leaves. `CHECKSUM_STATE` does not count it (§5).
+
+**The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
+is corrected in place): per slot, the flag words (8). A slot with
+`leader_flags & 1` adds `[+0x8, +0x692a)` (one range; 276 leaves, two 2-byte
+padding runs), eight `Diplomacy` records, `pers` (96), then the masks
+`tech`, `tech_at_start`, `obs_flags` and the three conquest masks (each
+`bits`/`size` as one 8-byte range, then `size` bytes). Then `sites` and
+`make_list` (`Array<T>`: length; with elements, size, `increment`, flags
+`& 0xbf`, one range an element), `mil_trainers`, `new_rares` and
+`oil_patches` (`SimpleArray<int>`: the same header, the elements as **one**
+range), `prod_script` (length; with characters, the UTF-16 characters), the
+three rare masks, and `LeaderDataEncrypt::walk_data@006d9900`'s 62 words. The
+words go **good by good**: `bucket`, `leftover`, `resource_cap`, `over_cap`,
+`resources`, `support`, `income`, `rate`, `bonus`; then `resource_cap[6]`,
+`epoch[0..4]`, `ages`, `epochs`, `discovered`.
+
+**What the crate held before this item.** The first probe of our image,
+before any writer was read, built the line's 267 ranges and 58,343 bytes on
+its first run. Leaf by leaf it agreed on 403 and 410, parted on 14 and 12,
+and held no value for 210 on each leader. The table is item 4121's journal.
+
+**Carried by a rule, each read from its writers:**
+
+| leaves | rule |
+|---|---|
+| `leader_flags` | `1` seated, `2` not defeated, `4` human, `0x2000000` the ledger's `dirty` (`docs/ECONOMY.md`) |
+| `leader_flags2` | `0x800` no governments, `0x1000` no patriots (`PlayerTech`); 0 on both frames |
+| the six unseated slots | `Leaders::init` runs `Leader::init(i, -1, i)` on all eight, whose `leader_flags \|= 0x2000000` is the only bit set; `leader_flags2` 0 |
+| `dip[0..8]` | `Diplomacy::clear_all`'s image, `Leader::init`'s: `treaty` −1, the rest 0. The other writers are the `Leader::action_*` family, reached by the diplomacy command and by `Leader::diplomacy`'s offers arm, which the crate stops at a SEAM (`crates/sim/src/leaders/diplomacy.rs`) |
+| the conquest arrays, `rare_conquest`'s array | `Leader::init`'s clear; the writers are `Leader::produce_building`'s wonder arm under `semaphore[2] & 2` and the scenario layer, Conquer the World's |
+| the mask headers | the `BitMask<N>` constructors' `N` and `⌈N/8⌉` |
+| `sites[k].reg` | a cleared site (`compute_sites`' `Site::default()`) holds the clear's 0, not our region 0 renumbered |
+| `support[g]`, `bonus[g]` | 0 by every writer: `Leader::init`, `Leader::gather` (`support`), `Leader::calc_gather` (`bonus`) |
+| `resource_cap[6]` | `calc_resource_caps`' seventh pass, `economy::commerce_cap_seventh` (`docs/ECONOMY.md`, "The commerce cap") |
+| `num_queued` | keyed by `TypeIndex`: units at `0x32 + record`, a building's placed sites (`Sim::num_sites_of`) at `0x19e + record`, a technology at its own |
+| `num_buildings`, `reg_buildings` | `Sim::num_buildings_of`; finished buildings by land region (its own number) and record, `[64][129]` |
+| `hero_mark`, `special_mark`, `caravan_mark` | the slot lists' marks (`UnitsState::heroes`, `specials`; `Caravans::mark`) |
+| `lost_city_stamp` | `City::close`'s frame, else `Leader::init`'s −90 |
+| `plunder_scale` | `Leader::init`'s `0xbf800000` (−1.0), its one writer; `Unit::plunder` and `Build::plunder` read it. Class 1 (`docs/DECISIONS.md` entry 120 §3), emitted as bits |
+
+**What holds the line out**: three leaves part, and 137 are held by no value
+of ours. The test names each with its count (2 on every one: both
+leaders). Sorted:
+
+- **Parting.**
+  - `aggression`: theirs is 1 on every slot at war, unseated slots
+    included. That is `Leader::init`'s `aggression[i] = (diplos[i] == 0)`,
+    and the crate's setup does not run it. *A copy at a known point*; carrying
+    it changes state `Leader::diplomacy` reads, so it waits for a floor run.
+  - `explored`: `Leader::check_explore` counts the fog's `seen2`, and the
+    crate's seam answers the whole grid, 900 against 19 and 22. *A mechanic of
+    its own*: the fog.
+  - `tech.ptr`: theirs also sets the spell types `BRIBE`..`CANCEL_ALLIANCE7`
+    (`0x275..0x2ab`), the same 46 bits on all five walked leaders and none in
+    `tech_at_start`. The crate's tree stops at the governments. *A mechanic
+    of its own*: the spell types in the tree and their prerequisites.
+- **Held under another name, not carried.**
+  - `city_mine`, `city_mark`, `city_name`, `cities_built`: counters of the cities founded, kept by `Cities::init_city`
+    and `City::generate_name`.
+  - `units_built` and `buildings_built`: the objects made.
+  - `team_color`: `Leader::init`'s third argument, the seat's colour.
+  - `chat_status`: 1 on an unseated slot.
+- **A copy at a known point.** These are `Leader::init`'s values: −1,
+  −1000, 0, and for the stamps and counters the zeros. Their writers are
+  the score, combat, attrition, nuke, taunt, tribute, victory and defeat
+  paths, none of which a 91-frame game without contact reaches. They
+  are: `defeated_by`, `cannon_time`, `handicap`, `multi_diff`, the stamp
+  arrays, `hire_who`, the attrition and hero stamps, `repair_stamp`,
+  `blacken`, `dow`, `broke_alliance`, `made_peace`, the taunt arrays,
+  `incoming`, `village_mine`, the lost-capital words, the fort, dock, oil-well
+  and supply marks, the wonder-win words, `tributes`, `base_rate`,
+  `support_stamp`, `nuke_stamp`, `nukes_used`, `missiles_used`, the victory and
+  defeat types, `pop_issues`, `misery`, `att`, the two attrition switches,
+  `neutral_attrition`, `disable_building_attrition`, the kill, loss, raze and
+  capture counters, `wonders_held`, `senates_built`, the tribute counters,
+  `goody_box_techs` and `goody_box_units`, `supported`, `trade_profit`,
+  `forts_built`, `units_bribed`, the order counters, the `best_*` words,
+  `scholar_militia`, the six `*_units` and six `*_queued`, the nuke counters,
+  `frame_battle`, the combat averages and rates, `reg_forts`,
+  `num_bonus_cards`, `num_ctw_rate_bonuses` and `defeat_stamp`. Each would be
+  carried with its writers read whole, as §19's `disband` was.
+- **A mechanic of its own.**
+  - The score: `score` and its eleven parts.
+  - The finishing stamps, `last_building_finished` and `last_unit_finished`.
+  - The high-water marks `high_buildings` and `territory_high`.
+  - `reg_terr`, territory by region.
+  - `anti_att`: `Leader::calc_anti_attrition` writes 256.0 (`0x43800000`),
+    divided per Foraging tier, Liberty, the Mongol bonus and titanium. It is
+    computed from state a game moves, so it is class 3 (`docs/DECISIONS.md`
+    entry 120 §3): named and out. No term holds on either frame.
+
+**Made to fail.** With the cleared-site rule dropped, 22 ranges part (the 18
+empty sites). One bent byte of each of the 29 kinds of agreeing range parts on
+that range alone and moves the Adler. A bent `tribe` adds `tribe` to the
+held-out list. The empty image parts on all 267.
+
+**How it was established, and how confident.**
+
+- Diff-backed: the whole line's shape on one frame (267 ranges, every
+  length), and every leaf the crate holds, leaf by leaf. The 263 agreeing
+  ranges are agreeing values, not structure only.
+- On a reading: the setup images, read whole in `Leader::init`,
+  `Leaders::init`, `Leaders::clear` and `Diplomacy::clear_all`. The writer
+  lists of the long range's constants come from a scripted grep of the
+  export by name and offset, and they name the families; they are not each
+  read whole.
+- Consistent with run1100's three leaders, not diffed there: the constant
+  leaves, the tails' headers, and `resource_cap[6] = resource_cap[0]`.
+
+**Not established**:
+
+- Every frame but 91.
+- A leader the crate seats from a dump.
+- `mil_trainers`' elements and a `SimpleArray<int>`'s `size` past ten.
+- `sites[k].reg` for a kept site at cell `(0, 0)`.
+- `leader_flags` bits `0x10` and `0x80000` (run1100's computers), and every
+  `leader_flags2` bit but the two.
+- `bonus_cap[6]`, which is 0 here and not held.
+- `anti_att` and `plunder_scale` on a frame where a writer's term holds.
