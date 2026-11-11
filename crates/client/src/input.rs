@@ -646,6 +646,67 @@ mod tests {
         assert_eq!((site.x, site.y), (3456, 29760));
     }
 
+    /// **`INPUT_CLICKED`** (`docs/CLIENT_INPUT.md` §5, item 4149): the same
+    /// seven events, every target clicked under the opening camera at the
+    /// pixel the script's own target projects to, mint
+    /// [`script::clicked`] field for field, of 3. Was 0 (no clicked script).
+    const INPUT_CLICKED: usize = 3;
+    /// The clicked file (`docs/CLIENT_INPUT.md` §5): the minted file's
+    /// lobby, `leader_options` and closing frame with the clicked orders,
+    /// written by rondata's `the_clicked_minted_packages_round_trip` under
+    /// `RON_RCX_OUT`; the file the original's playback takes open (run
+    /// 1563).
+    const CLICKED_RCX: &str = "ron-golden/recordings/item4149-clicked-greatlakes-24000.rcx";
+    const CLICKED_RCX_BYTES: usize = 59_280;
+
+    /// **The clicked count**: the events at the opening camera mint the
+    /// clicked script, every field; the walk that took them stands on frame
+    /// 299 with the Scout on its clicked point and the Farm's site `0/2007`
+    /// where the first script's stands; and the file written from them is
+    /// the clicked file, byte for byte, not the first script's.
+    #[test]
+    fn minted_clicked_at_the_opening_camera() {
+        let Some((ours, r)) = mint(false) else { return };
+        let clicked = script::clicked();
+        let whole = ours.iter().zip(&clicked).filter(|(a, b)| a == b).count();
+        assert_eq!(
+            (ours.len(), whole),
+            (clicked.len(), INPUT_CLICKED),
+            "{ours:?}"
+        );
+        assert_eq!(ours, clicked);
+        let scene = r.scene(None);
+        let scout = object(&scene, script::SCOUT_OBJECT).0;
+        assert_eq!(
+            (scout.x, scout.y),
+            (script::CLICKED_SCOUT_TO.x, script::CLICKED_SCOUT_TO.y)
+        );
+        let site = object(&scene, 2007).0;
+        assert_eq!((site.x, site.y), (3456, 29760));
+
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(first), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(MINTED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(CLICKED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {MINTED_RCX} or {CLICKED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), CLICKED_RCX_BYTES);
+        let path = std::path::Path::new(&home).join(MINTED_RCX);
+        let rec = rondata::recgame::read(&path.to_string_lossy()).unwrap();
+        let lo = rondata::commands::decode(&rec.packages[0].data).unwrap();
+        let last = rec.packages.last().unwrap().frame;
+        let mut written = rec.clone();
+        written.packages = rondata::recgame::minted_packages(lo[0].clone(), &ours, last).unwrap();
+        let written = rondata::recgame::write_gz(&written);
+        assert!(written == file, "the file from the clicked orders");
+        assert!(
+            written != first,
+            "the clicked file is not the first script's"
+        );
+    }
+
     /// At the closer camera a pixel is finer than the integer grid: a
     /// neighbour of a target's pixel with no integer point of its own still
     /// names the ground, one unit or less from the target.
