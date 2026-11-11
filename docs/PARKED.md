@@ -16616,10 +16616,10 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 4131, 2026-11-11 — what the world line leaves
 
-- **4131a. The tile mask's bit `0x4` under the cities** (`docs/CHECKSUM.md` §21; `WORLD_HELD_OUT`, `06 mask.mask` 131;
+- ~~**4131a. The tile mask's bit `0x4` under the cities** (`docs/CHECKSUM.md` §21; `WORLD_HELD_OUT`, `06 mask.mask` 131;
   `diff::checksum_lines::world`). On run 1562's frame 91 the masks agree on 57,469 of 57,600 tiles; the 131 that part
   are ours without `0x4`, all on tiles of cells (53..58, 19..25) and (2..7, 36..41), the two start cities. The writer is
-  unread. Booked with `land_sub`'s 8 cells as item 4136; this row stands until that lands.
+  unread. Booked with `land_sub`'s 8 cells as item 4136; this row stands until that lands.~~ Carried by item 4136: `docs/MAPGEN.md` §35, the tiles a started building hides.
 - **4131b. `World::analyze_map`'s ten tallies** (§21; `04 size..seed`, ten fields of one element each: `forest_size`,
   `goodies`, `land_resources`, `mountain_size`, `player_reg`, `resource_reg`, `rock_size`, `sea_resources`,
   `total_metal`, `total_oil`). Counts over cell flags, a tile's `mask & 3 == 2`, `MountainsData::total_gather_size` and
@@ -16675,13 +16675,18 @@ words and edits nothing here; a refill lands when two remain.
   the packet's (`TileSetData +0x62c`, `+0x208` on `tilesets.cur_tileset`). Read them through
   `rondata::mapgen::tileset_groups` for the lobby's tileset, and assert them equal.
 
-## Parked by the next landing, slot FK — reserved
+## Parked by item 4136, 2026-11-11 — what a placed city writes into the terrain
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4136a. Run1559b's 31 cells, still out** (`docs/MAPGEN.md` §35; `RUN1559B_3279_PACKET_LIST` 2,779 of 2,810). The
+  client's world is built from dumps, which name no tileset, so the running world holds no land set there and a
+  building started in play writes no `land_sub`; the 31 stay. Carrying them takes the lobby's tileset on the
+  dump-built path. This is what is left of parked 4129b.
+- **4136b. The close's clear and the refresh, by no capture of their own** (`docs/MAPGEN.md` §35). A started
+  building's close clears the bit, and for reasons other than 0 and 5 re-marks every active building in a band of
+  cells. Five late frames of dump-built games agree with the `0x4` residue at 0; no frame was chosen for a close.
+- **4136c. Read, not run** (`docs/MAPGEN.md` §35). Whether the crate's reason-5 transfers reach the bribe's re-mark;
+  `verify_land`'s static depth taken as 0 on each call; the listing's net was not run for either field, the
+  export's having found both writers.
 
 ## Parked by item 4139, 2026-11-11 — the transition patch, drawn
 
