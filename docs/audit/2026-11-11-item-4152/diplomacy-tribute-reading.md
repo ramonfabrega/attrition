@@ -371,3 +371,164 @@ the entry clear; medium on the demand composition (the 1000/49 thresholds
 and `local_40` read from the decompile, not re-listed); the war tests'
 `local_54`/`local_34`/counter meanings not followed.
 
+## Leaf 5 — `tributes` (+0x498, int[6], one per resource)
+
+**Writers.**
+- Export: `field_0x498` in `action_respond` `:171`–`:172`, `:201`–`:202`
+  (escrow adds), `:374`, `:421`, `:433`–`:435` (exchange subtract and clamp),
+  and `Leader::clear_agree (006d1af0)` `:21` (pointer walk). The `OptionsWin*`,
+  `PaneModManager`, `Terrain*`, `ScenarioWrite`, `WorkshopWin` hits are
+  other classes.
+- Listing: stores `action_respond` `6d07b5`, `6d0857` (`addl ..,0x498(%ebx,..,4)`,
+  `ebx` = `this`), `6d0f7e` (`subl` on T's slot, abs `0xe3a828`), `6d0f17`
+  (`subl %edi,(%eax)` through the pointer `-0x24(%ebp)` = `&P.tributes[r]`,
+  made by the `lea 0xe3a828` at `6d0e19`), `6d0fd4` and `6d0fe2` (clamps);
+  `clear_agree` `6d1b2b`, `6d1b51` (`movl %ecx,(%esi)` with `esi =
+  this+0x498+4r`, from `lea 0x498(%edx)` at `6d1b10`); **`Leader::init`
+  `6e3e8b`** (`0x18(%edx)`, `edx = this+0x480+4k`, k 0..5, zero).
+  `Game::init_teams` `58bd0e`/`58bd31` (+0x4a8/+0x4ac off `esi`) is not a
+  `Leader` by its neighbouring byte stores; not followed further.
+  **The store net alone misses `clear_agree` and the `6d0f17` subtract** —
+  both write through a pointer; the `lea` net finds them.
+
+**Event and predicate.** The escrow of goods a leader has agreed to give
+(machinery): `+offer` per resource on T's accept when T had not agreed yet
+(both leaders have the good, T can afford it), `+attack_price` (human T
+only); `−g` for each side at the exchange, clamped at 0; `−min(·)` refunds in
+`clear_agree` when an agreement is withdrawn (`dows[r]` first, then a
+positive `offers[r]`). Units: the bucket's own (whole resource units, the
+same integers `bucket_add` moves). A one-way gift goes `+x`, `−x` inside one
+`action_respond`, so an end-of-frame dump reads 0 — what run1086 saw.
+
+**Reset.** `Leader::init` (all six, unconditional loop `6e3e62`–`6e3f44`);
+`Leaders::clear` memset. Not in `reset_score`. No per-frame fold.
+
+**Readers.** `clear_agree` (the refund cap), `action_respond`'s clamps, and
+`LeaderData::log_data` (`6e78ed`, the `LEADERS` dump). No decision reads it
+otherwise (export and listing nets).
+
+**Crate.** Nothing: no `Diplomacy` record, no agreement, no escrow of
+offers. `crate::economy`'s `escrow` (`crates/sim/src/economy.rs:687`, the
++0x468 reservation fed at `escrow_rate`) is the field the accept also
+debits; it is the only neighbouring field the crate holds. Checksum walk at
+`crates/sim/src/checksum/leaders.rs:118`. A builder adds the counter with an
+`action_respond` + `clear_agree` port; the escrow debit then touches
+`Ledger::escrow`.
+
+**Plain game?** Yes — any accepted deal in which a leader gives goods. Its
+only lasting nonzero value is an agreement waiting on the other side
+(`agree == 1`, P not yet agreed), e.g. a human offering goods for peace to a
+computer that has not answered, or a computer's counter-proposal accepted
+by itself and not yet by the human.
+
+**Confidence.** High on the arithmetic (all store sites listing-read).
+Medium on the attack-price residue (above). Diff-adjacent: run1086's zeros
+are consistent with the in-call net zero, which resolves 3470a's first
+question on a reading.
+
+## Leaf 6 — `tribute_sent` (+0x860, int)
+
+**Writers.** Export: `action_respond` `:410`, `:424`; `Leader::reset_score
+(006e37f0)` `:41`. Listing: `6d0f1c` (`addl %edi,0xe3abf0(%eax)`, `eax =
+P·0x6eec`), `6d0f8c` (`addl %ebx,0xe3abf0(%eax)`, `eax = T·0x6eec`),
+`reset_score` `6e3895`. No pointer-walk store (`lea` net empty for +0x860).
+`Constants::init`, `Build::activate`, `GraphicPieces` hits are other
+records.
+
+**Event.** At the exchange, the giver's `tribute_sent` gains the **unscaled**
+amount it gave, per resource, summed over all six goods (`g_P` for P,
+`g_T` for T). Only when both leaders have the good (`type_avail` gates at
+`6d0e9e`/`6d0eb1`) — a give of a good the receiver lacks moves nothing and
+counts nothing. Escrow refunds and `dows` refunds do not count.
+
+**Reset.** `Leader::reset_score` (called from `Leader::init` `:140`,
+unconditionally, and from `Setup::build_game (005ac190)` `:731` for every
+active slot); `Leaders::clear` memset.
+
+**Readers.** `AchieveChartPane::set_chart_data (007f2c40)` `:100` (the
+post-game chart) only. No sim decision.
+
+**Crate.** None; no exchange. Checksum walk at
+`crates/sim/src/checksum/leaders.rs:178`. A builder adds it in the
+exchange of an `action_respond` port.
+
+**Plain game?** Yes, as leaf 5. Run1086: the reading predicts who 1's
+`tribute_sent` = 33336 after 661 and 66670 after 681 (the dumped stock
+drops); the field is not in `crates/rondata/src/diff/coverage.rs:295`'s leaf list,
+so the dump may not carry it (not checked against a dump).
+
+**Confidence.** High (four instructions, listing-read).
+
+## Leaf 7 — `tribute_received` (+0x864, int)
+
+**Writers.** Export: `action_respond` `:415`, `:430`; `reset_score` `:42`.
+Listing: `6d0f31` (`addl %eax,0xe3abf4(%esi)`, `esi = T·0x6eec`, `eax =
+scale_tribute(P, g_P)` from the call at `6d0f2c` with `ecx = P`), `6d0faf`
+(`addl %eax,0xe3abf4(%ecx)`, `ecx = P·0x6eec`, `eax = scale_tribute(T,
+g_T)`), `reset_score` `6e389b`. `LeaderData::get_support_count`/`Leader::gain_tech`'s
+`0x864(%eax)` loads are off the `0xc061e4`/`0xc061f0` globals.
+
+**Event.** The receiver's `tribute_received` gains the **scaled** amount
+that landed in its bucket: `scale_tribute` of the *giver* (Commerce epoch ×
+`commerce_tribute` + `base_tribute`, percent, floored at 1, >100 or =100
+pass-through, rounding add 0/50/99 by size). Same `type_avail` gate as leaf
+6. In run1086 the human's food rose by 17002 against 33336 sent: the
+reading predicts `tribute_received` of leader 0 += 17002 on 661, and the
+ratio is the ally's `scale_tribute` percent (about 51).
+
+**Reset.** As leaf 6.
+
+**Readers.** `AchieveChartPane::set_chart_data` `:107` only.
+
+**Crate.** None. `crates/sim/src/checksum/leaders.rs:179`. Same builder site
+as leaf 6; it needs `scale_tribute` and the two `Constants`
+(`commerce_tribute`, `base_tribute`). `Constants::init` reads both with
+`get_item` (plain integers, decompile `:1097`–`:1100`); `grep -rn
+commerce_tribute crates/` finds nothing, so the crate loads neither.
+
+**Plain game?** Yes, as leaf 5.
+
+**Confidence.** High on the store sites and which leader's scale applies
+(listing: `ecx` at both calls is the giver). `scale_tribute`'s rounding read
+from the decompile only.
+
+## Against the README row's writer list
+
+The row reads "the `action_*` family, `consider_tribute` and
+`Leader::diplomacy`'s arms". Checked function by function:
+
+- **Of the `action_*` family only `Leader::action_respond` writes these
+  leaves.** `action_offer`, `action_tribute` (a `jmp` to `action_offer`),
+  `action_demand_tribute`, `action_clear_all`, `action_clear_tributes`
+  write the `Diplomacy` record and call `clear_agree`; none stores a leaf
+  here directly.
+- **Missing from the row:** `Leader::clear_agree (006d1af0)` (refunds out of
+  `tributes`, through a pointer — invisible to a displacement-only store
+  scan), `Leader::process_taunt (006b8cc0)` (`gift_stamp`), `Leader::init
+  (006e3930)` (zeroes the four `int[8]` and `tributes`), `Leader::reset_score
+  (006e37f0)` (zeroes `tribute_sent`/`tribute_received`; callers
+  `Leader::init` and `Setup::build_game (005ac190)`), and `Leaders::clear
+  (006ed5d0)` (memset of the slot).
+- `Leader::diplomacy` writes only `counteroffer` (4 stores) and
+  `tribute_demanded` (1 store) of this family; `consider_tribute` writes
+  `tribute_stamp` and `gift_stamp`.
+
+Not read: `Leader::Leader (006d2bf0)` and `LeaderData::LeaderData
+(006d7540)` (construction, before `Leaders::clear`); `LoadGame` and
+`SaveGame` (a saved game's restore of the record); `Game::init_teams`'s
++0x4a8/+0x4ac stores (attributed to another record by their neighbours, not
+by the base register's type); `Leader::diplomacy`'s alliance-execution arm
+of `action_respond` (`treaty == 2`, `6d0d1e`) beyond its branch to the
+exchange; the `local_48`/`local_54`/counter locals of `Leader::diplomacy`.
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `tribute_stamp` +0x174 [8] | `Leader::consider_tribute (006d1360)`; `Leader::init (006e3930)` | `R.tribute_stamp[G] = frame` at an accepted exchange when R human, or amount ≥ G.blacken·100 and R's bucket < 3000 and (WEALTH or `econ & 4`) | `Leader::init`, `Leaders::clear` | none; reader seam `ai/army.rs:3262` (`tribute` → false); would sit in an `action_respond`/`consider_tribute` port | yes (any accepted gift; human receiver unconditional) | high |
+| `gift_stamp` +0x194 [8] | `Leader::consider_tribute (006d1360)`; `Leader::process_taunt (006b8cc0)`; `Leader::init` | `G.gift_stamp[R] = frame` at every positive give; `process_taunt` also, only when `teams_locked == 0` or neutral | `Leader::init`, `Leaders::clear` | none (no taunts, no exchange) | yes (taunt to an allied computer; any gift) | high; run1086's 661/681 match |
+| `counteroffer` +0x314 [8] | `Leader::diplomacy (006bc950)` ×4; `Leader::action_respond (006d03c0)`; `Leader::init` | 1 when the computer counters a priced proposal; 0 on accept/reject arms; −99 on the next price | every `action_respond(this,k,*)` entry; `Leader::init`; `Leaders::clear` | named never-set at `leaders/diplomacy.rs:177`; proposal arm a SEAM | yes, diplomacy-on lobby | medium-high |
+| `tribute_demanded` +0x334 [8] | `Leader::diplomacy (006bc950)` ×1; `Leader::action_respond (006d03c0)`; `Leader::init` | 1 after the computer's demand (`action_offer` negatives, then its own accept) | `this`'s own `action_respond(this,k,*)` entry; `Leader::init`; `Leaders::clear` | named never-set at `leaders/diplomacy.rs:177`; demand arm past the team-style gate | yes, team style 0/8/11 only | high (store); medium (demand composition) |
+| `tributes` +0x498 [6] | `Leader::action_respond (006d03c0)`; `Leader::clear_agree (006d1af0)`; `Leader::init` | +offer (and human attack price) on agreeing; −give at exchange, clamp 0; −min refund on withdrawal | `Leader::init`, `Leaders::clear` | none (no `Diplomacy` record; neighbour `economy.rs:687` `escrow`) | yes | high; residue question open |
+| `tribute_sent` +0x860 | `Leader::action_respond (006d03c0)`; `Leader::reset_score (006e37f0)` | += unscaled give per good at exchange (both have the good) | `reset_score` (from `Leader::init`, `Setup::build_game`), `Leaders::clear` | none | yes | high |
+| `tribute_received` +0x864 | `Leader::action_respond (006d03c0)`; `Leader::reset_score (006e37f0)` | += `scale_tribute(giver, give)` per good at exchange | as `tribute_sent` | none; needs `scale_tribute` and the two unloaded constants | yes | high |

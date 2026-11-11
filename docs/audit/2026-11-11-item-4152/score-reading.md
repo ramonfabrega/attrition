@@ -496,3 +496,120 @@ is needed for a fresh game.
 6. **Plain game?** Yes.
 7. **Confidence.** High.
 
+## 12. `score_combat` (+0x44)
+
+The one leaf stepped by events, not by `compute_score`, which only reads it
+(sum) and zeroes it (Armageddon). **Not recomputed: it accumulates.**
+
+1. **Writers.** Listing, every `0xe3a3d4(%reg)` in `.text` (no other form
+   found; the export's `field_0x44` on `leaders.list[...]` and
+   `local_8[0x20d].field_0x29d8` — `0x20d·0x6eec + 0x29d8 = 0xe3a3d4` —
+   name the same five functions):
+   - `Object::do_damage (0064a480):917`–`929` — `64bb02` sub, `64bb12`/`64bb1b`
+     floor, `64bb50` add.
+   - `Object::take_damage (00652020):531`–`543` — `65313e` sub, `653146`
+     floor, `65316d` add.
+   - `SpellType::cast_sabotage (006720e0):105` (`672252`) and `:286`
+     (`6727a0`).
+   - `SpellType::cast_counterintel (00673740):69` (`67388e`).
+   - `compute_score`'s Armageddon zero (`0x44(%esi)`), `reset_score`.
+   Register-relative `0x44(%reg)` stores in `Leader` methods: only
+   `compute_score`, `reset_score`, and `gain_tech`'s `0x44(%ebp)` (a local).
+   Not netted: a `0x44(%reg)` store off a `Leader*` held in a register in a
+   non-`Leader` function (e.g. `lea 0xe3a390(%eax),%ecx; add …,0x44(%ecx)`);
+   the export grep for `field_0x44` on a leaders base found none beyond the
+   five.
+2. **Events, amounts, predicates.** `kill(t, o)` is §0.6, divided by 5
+   truncating. `is_ally(a, b)` is `LeaderData::is_ally (006edb50)`; a
+   leader is its own ally (`crates/sim/src/leaders/diplomacy.rs:151`).
+   - **A building razed by a blow** (`do_damage`): the attacker `this`'s
+     leader `A` (`this+0x9`); the target's type `t` read **before** the
+     target's `take_damage` (vslot `+0x16c`) is called; the step runs only
+     if `take_damage` returned non-zero (it died) **and** the target is a
+     building/wall (vslot `+0x1c`, `is_wallbuild`), else `do_damage` returns
+     there for a unit. `A.buildings_razed (+0x818) += 1`; then if
+     `is_ally(A, target owner)`: `score_combat[A] −= kill(t, owner)/5`,
+     floored at 0; else `score_combat[A] += kill(t, owner)/5`. No splash or
+     attacker-kind test on this arm.
+   - **A unit killed** (`take_damage`, the kill arm; `this` is the victim;
+     `docs/AI.md` §259 places this arm on the kill, before `die`): only when
+     the victim is not a building (vslot `+0x1c` 0; a building's kill takes
+     `+0x81c += 1` and leaves), is its squad's captain (vslot `+0xe8`,
+     inlined `+0x8e` sign bit), is the last figure (`curr_uber_size(0) ==
+     1`) and is no decoy (`unit_masks & 1 == 0`). Then the victim owner's
+     `units_lost (+0x810) += 1`; **and only if there is a killer object
+     (`param_7 >= 0`)**: victim owner `+0xa58 += 1`, killer owner `K =
+     param_8`'s `+0xa5a += 1` and `units_killed (+0x80c) += 1`. Then the
+     victim is redirected when it is a unit whose type has `unit_flags &
+     0x10`: `(owner, id) := (victim+0x3e, victim+0x28)` (not read what that
+     names; the crate SEAMs the same redirect at `delivery.rs:661`); if the
+     id is negative or the object is not a unit (vslot `+0x18`), no score.
+     Else with `t` its type and `o` its owner: if `is_ally(K, o)`:
+     `score_combat[K] −= kill(t, o)/5`, floored at 0; else `+= kill(t,
+     o)/5`. **No test of the killer's kind** (a tower or building killer
+     scores) **and no splash test** — unlike the plunder beside it, which
+     wants a unit killer and no splash.
+   - **Sabotage, unit arm** (`cast_sabotage`, the Sniper; caster `param_2`,
+     victim owner `param_4`): victim a captain, last figure, no decoy →
+     `+0xa58[param_4] += 1`, `+0xa5a[param_2] += 1`, `+0x80c[param_2] += 1`,
+     `score_combat[param_2] += kill(t, param_4)/5`. No ally test.
+   - **Sabotage, building arm**: the building's `take_damage(dmg, 0, 3, −1,
+     1, …)` returned non-zero → `+0x818[param_2] += 1`,
+     `score_combat[param_2] += kill(t, param_4)/5`. No ally test. (The
+     `take_damage` call has `param_7 = −1`, so no double count.)
+   - **Counterintelligence** (`cast_counterintel`; caster `local_18`,
+     target owner `param_2`): when the target's owner is neither the caster
+     nor allied both ways (`diplos[…] == 2` from each side, `+0x74`), and
+     the target is a captain, last figure, no decoy: `+0x80c[caster] += 1`,
+     `score_combat[caster] += kill(t, param_2)/5`; then the target dies
+     (vslot `+0x158`).
+   Order inside the unit kill: the score uses `kill(t, o)`, whose
+   `num_units_o[t]` is read before the victim's `die`/`close` decrements it
+   (the arm precedes `die`, per `docs/AI.md` §259); in `do_damage`'s
+   building arm `kill` is evaluated **after** `take_damage` returned, so
+   whether `num_buildings_o[t]` already excludes the razed building depends
+   on whether the building closes inside `take_damage` — not read.
+3. **Reset.** §0.8; Armageddon. Never reset per frame.
+4. **Readers.** The `score` sum; `get_mvp_score` (`3 × combat`),
+   `AchieveChartPane` (same formula).
+5. **Crate.** Sites exist for every event:
+   - the unit kill arm in `Sim::take_damage_typed`
+     (`crates/sim/src/combat/fight/delivery.rs:537`–`543`), beside the
+     `unit_plunder` call — but the score's predicate is wider (any killer
+     object, splash included);
+   - the building raze in `Sim::damage_building` (`delivery.rs:957`) as
+     reached from `do_damage_round` with an attacker;
+   - the sabotage SEAMs at `delivery.rs:803` (`cast_sniper_unit`) and `:882`
+     (`cast_sabotage_building`), which already name `+0x44 += cost / 5`;
+   - counterintelligence: no crate cast found (`ids.rs:106` names the
+     spell only).
+6. **Plain game?** Yes for the two combat arms. Sabotage and
+   counterintelligence are spy/commando spells a skirmish reaches when a
+   player casts them; whether the AI casts them was not checked.
+7. **Confidence.** High for the arithmetic and the take_damage/do_damage
+   predicates (listing `64ba10`–`64bb56`, `652f46`–`653173`). Medium for
+   the spell arms (decompile only). Not read: the redirect's meaning;
+   `is_ally`'s exact rule; the building arm's count timing.
+
+---
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `score` | `Leader::compute_score (006ec560)` | sum of combat, wonders, research, upgrades, economy, buildings, units, territory, pop, explored (not units_2) on a recompute frame: frame 0, forced, game-over bit, or `(who+frame)%10==0`; 0 after Armageddon | `Leader::reset_score (006e37f0)` from `Leader::init (006e3930)` and `Setup::build_game (005ac190)`; Armageddon arm | `Sim::strategy_all` (`ai/ai_drive.rs:73`, comment `:87`), and must run for humans too | yes | high |
+| `score_explored` | `compute_score` (0); `Leader::compute_explore_score (006bc5e0)` (0, no caller) | **always 0**; does not read `explored` | as above | none needed | yes | high |
+| `score_territory` | `compute_score` | `territory × 1000 / land_size` each recompute | as above | `Holdings::territory`/`land_size` (`economy.rs:554`) | yes | high |
+| `score_units` | `Leader::compute_unit_score (006bc500)` | Σ over unit types of `(value(t,0)·n + (n−1)(sc0+sc1)n/2)/5`, `n = num_units + num_queued`; only when dirty bit 23 or 24 | as above; head of its compute | `Muster::by_type`/`queued_by_type` (`units/unit.rs:838`) | yes | high |
+| `score_units_2` | `compute_unit_score` | the `attack != 0` subset of `score_units`; **not summed**, not in the Armageddon zero list | `reset_score`; head of its compute | as above | yes | high |
+| `score_buildings` | `Leader::compute_build_score (006bc3f0)` | Σ non-wonder build types of `(value(t,0)·n + (n−1)(sc0+sc1)·BSF·n/2)/5`, `n = num_buildings + num_queued`; every recompute | as above | `num_buildings_of`/`num_sites_of` (`ai/ai_types.rs:51`) | yes | high |
+| `score_economy` | `Leader::compute_economy_score (006bc270)` | Σ available goods of `clamp((bucket−starting)/20,0,100) + min(income/80,200)`, `+ 25 × rares held`; every recompute | as above | `Ledger::bucket`/`income`, `Holdings::starting`, `rare` (`economy.rs`) | yes | high |
+| `score_pop` | `compute_score` (0); `Leader::compute_pop_score (006bc190)` (0, no caller) | **always 0** | as above | none needed | yes | high |
+| `score_unit_upgrades` | `Leader::compute_unit_upgrades_score (006bc1a0)` | Σ unit types held or queued, not at start, not flag `h`, of `value(t,1)/5`; only when dirty bit 24 | as above | `tech_at_start` (`tech.rs:722`), `tech/gain.rs` for the bit | yes | high |
+| `score_research` | `Leader::compute_research_score (006bc360)` | Σ techs `0x220..0x274` held or queued, not at start, of `value(t,0)/5`; only when dirty bit 24 | as above | as above | yes | high |
+| `score_wonders` | `compute_build_score` | Σ wonder types `0x20e..0x21e` of the building formula `/3` (not `/5`); every recompute | as above | as `score_buildings` | yes | high |
+| `score_combat` | `Object::do_damage (0064a480)`, `Object::take_damage (00652020)`, `SpellType::cast_sabotage (006720e0)`, `SpellType::cast_counterintel (00673740)` | accumulates `±kill(t, owner)/5` per razed building or killed squad (minus, floored at 0, for an allied victim; spells add only) | `reset_score`; Armageddon arm | `take_damage_typed` kill arm (`combat/fight/delivery.rs:537`), `damage_building` (`:957`), sabotage SEAMs (`:803`, `:882`) | yes (spells when cast) | high (combat), medium (spells) |
+
+Dirty bits: 23 (`0x800000`) set by `Unit::init (00612100)` and `Unit::close
+(0060ee50)`; 24 (`0x1000000`) by `Leader::gain_tech (006dcb60)`; both
+cleared by `compute_score` after their parts.

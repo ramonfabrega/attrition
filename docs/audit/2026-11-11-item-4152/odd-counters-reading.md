@@ -235,3 +235,218 @@ exact order were read from the decompile only, not the listing; which types
 carry `obj_masks` bit 27 was not read (data). `LAB_0067845d` (decompile
 `:379`) is `close(this); return 0` — the round dies with no damage.
 
+## `units_bribed` (+0x8f4)
+
+### Writers
+
+| function | site | store | value |
+|---|---|---|---|
+| `SpellType::cast_bribe (00672d00)` | `67306e` (`incl 0xe3ac84(%eax)`, `eax = -0x18(%ebp) = caster_player·0x6eec`, set at `672d81`..`672d8d`) | decompile `:385`–`:386` (`LAB_0067306a`) | `+1` |
+| `Leader::reset_score (006e37f0)` | `6e38bf` (`movl %eax, 0x8f4(%ecx)`) | decompile `:48` | 0 |
+
+Export net: `->units_bribed` has no hit at all (not even `log_data`);
+`field_0x8f4` hits the two above and one reader,
+`AchieveChartPane::set_chart_data (007f2c40)`. Listing net: absolute
+`0xe3ac84` once (`67306e`); register-relative `0x8f4(` stores: 8, of which
+only `reset_score`'s base is a `Leader*` (`GameSpyGroup`, `Constants`,
+`ConquestGame`, `IFaceMainBase` and a stack slot are the rest).
+`Leader::init` has no direct store; it zeroes the leaf by calling
+`reset_score` (`6e3b1a`), and by its `memset` when `tribe < 0`.
+
+### Event, step, predicate
+
+**A Spy's Bribe takes a unit.** `cast_bribe(caster_id, caster_player,
+target_id, target_player)`:
+
+1. `caster_player == target_player`: a different arm (the spell's vslot
+   `0xd8`, and the caster's `+0x96` reduced by the spell's `+0x1d0`); no
+   count.
+2. Refused (`unpay_cast_costs`, no count) when the target's player is the
+   caster's ally — the inlined `is_ally`: `target_player ==
+   leaders[caster].who`, or `diplos[target] == 2` both ways (`+0x74`) —
+   **and** either `game->info.team_style` (`game +0x24`) is 0, 8 or 11, or
+   the target leader's `leader_flags & 2` (`672d81`..`672dd9`).
+3. Refused when the target object is a unit (vslot `0x18`, a folded
+   predicate) and `ObjectData::has_general(target, 0, 0x165 /* THECEO */)`
+   is `≥ 0` — the unit is a CEO itself, or stands within its owner's
+   CEO's radius (`has_general (00646b00)` → `HeroesData::find_hero`).
+4. A non-unit target (building) goes to the building arm (city
+   assimilation via `Cities::capture_city`, or a building's
+   `swap_team`): **no count** on any building path, whether it succeeds or
+   is refused.
+5. A unit target that passed 2–3 meets **no further test** (no enemy test,
+   no territory test — those are the building arm's): the console messages
+   and sounds (`S_SPY_OURS_DONE_BRIBE` / `S_SPY_THEIRS_DONE_BRIBE`) are
+   chosen by who the console is, every branch falls to `LAB_0067306a`,
+   **`units_bribed[caster_player] += 1`**, then the target's
+   `Unit::swap_team` (vslot `0x94`, named from `vtables.txt` for
+   `Unit::vftable`).
+
+Index: the caster's player (`param_2`). Step: +1, counted **before**
+`swap_team`, so a swap that builds nothing still counts. Exempt: building
+targets; own targets; allied targets under the team styles named;
+CEO-shielded units. Whether the order-time validity test
+(`is_valid_target`) has already refused other kinds is that function's
+business, not this counter's; `cast_bribe` itself does not re-test them.
+
+### Reset
+
+`Leader::reset_score` (decompile `:48`), called from `Leader::init`
+(`6e3b1a`) and from `Setup::build_game (005ac190)` (`5ad1e7`, decompile
+`:731`) once for every leader whose `leader_flags & 1` is set, after the
+build. So: zero at game start, never zeroed mid-game.
+
+### Readers
+
+`AchieveChartPane::set_chart_data` (the end-of-game/achievements chart,
+decompile `:236`–`:237`), and the checksum walk. No sim decision reads it.
+`LeaderData::log_data` does **not** print it (no `->units_bribed`, no
+`+0x8f4` in its body), so the per-frame dump cannot show it; the checksum
+is the only oracle.
+
+### Crate site
+
+Already carried: `crates/sim/src/spells/bribe.rs:42`,
+`Sim::cast_bribe_unit` does `self.tech[a].bribes += 1` before
+`unit_swap_team`, with `pub bribes: i32` at `crates/sim/src/tech.rs:768`–`771`
+documented as `LeaderData +0x8f4`; a test asserts it
+(`spells/cast/tests.rs:544`). **What is missing is the wire to the checksum
+leaf**: `crates/sim/src/checksum/leaders.rs:190` lists `units_bribed` but
+the value match (`leaders.rs:~1270`–`1305`) has no `"units_bribed"` arm,
+so it falls to `_ => None`. A builder adds `"units_bribed" =>
+one(i64::from(self.tech[w].bribes))`. Second gap, for the builder to
+weigh: `Sim::cast_on` (`spells/cast.rs:965`–`976`) re-tests only "same
+owner" and the CEO at cast time; step 2's allied refusal is not re-tested
+there (the order-time `bribe_arm`, `spells/spell_valid_target_view.rs:179`,
+carries an ally arm, with `teams_locked`).
+
+### Plain game?
+
+Yes: Spies (and the bribe) are in a plain skirmish, and the crate already
+reaches it (`docs/GOLDEN.md` §178, item 3985, cited at `cast.rs:970`).
+Whether the computer casts Bribe in a given capture is the capture's
+question, not the code's.
+
+### Confidence and not read
+
+High for writer list, step and index. Medium for step 2's exact team-style
+semantics (which lobby settings are 8 and 11 was not read). Not read: the
+`caster == target` arm's purpose; the building arm beyond confirming it
+never reaches `LAB_0067306a` (it returns at `LAB_006733c8`'s end or through
+`capture_city`/`unpay_cast_costs`).
+
+## `nukes_launched` (+0xa38)
+
+### Writers
+
+| function | site | store | value |
+|---|---|---|---|
+| `Unit::come_out (00617c10)` | `6188fa` (`incl 0xe3adc8(%eax)`, `eax = (byte)unit+0x9 · 0x6eec`) | decompile `:604`–`:605` | `+1` |
+| `Leader::init (006e3930)` | `6e4a9c` (`movl %edx, 0xa38(%ebx)`) | decompile `:673` | 0 |
+
+Export net: `->nukes_launched` only in `LeaderData::log_data` (a read,
+`:2204`); `field_0xa38` in exactly the two above. Listing net: absolute
+`0xe3adc8` once (`6188fa`); register-relative `0xa38(` stores: 12, of which
+only `Leader::init`'s base is a `Leader*` (`come_out`'s own `0xa38(%esp)`
+at `617c53` is a stack slot; the rest are `Constants`, `GraphicPieces`,
+`TerrainMap`, stack frames).
+
+### Event, step, predicate
+
+In `Unit::come_out` (a unit leaving the building or transport it is
+inside), after the exit placement and the computer-captain wipe and before
+the `is_captain` test (`618844`..`6188fa`):
+
+1. the unit's type answers `is(0x13b /* NUCLEARMISSILE */, 0)`
+   (`ObjectData::is` → type vslot `0x60`; the Nuclear Missile **line**,
+   so an upgrade of it answers too);
+2. the unit has a current order — the order list's head node
+   (`UnitData +0xdc`) non-null and its order pointer (`+0xcc`) non-null;
+3. that order's vslot `0x100` returns non-null. The PDB names slot `0x100`
+   `UnitOrder::get_strafe_order` (`LF_ONEMETHOD`, `vftable offset = 256`,
+   field list `0x1A0D7`). Every order class's vtable in `vtables.txt`
+   holds the folded `0x41bff0` (`xor eax,eax; ret`) there — read from the
+   PE bytes, not the folded name — **except** `StrafeOrder`'s `UnitOrder`
+   sub-vtable at `0xb47b08` (RTTI `.?AVStrafeOrder@@`, offset 76), whose
+   slot is the thunk `0047ff54` → `lea -0x4c(%ecx), %eax`: the
+   `StrafeOrder` itself. So: **the current order is a `StrafeOrder`**;
+4. its `+0x8` and `+0xc` are both `≠ −1`. `StrafeOrder`'s first base is
+   `AttackOrder`, whose first base is `TargetOrder` (PDB field lists
+   `0x11D82`, `0x81BA`): these are `TargetOrder::ox` and `whom`. So:
+   **the strafe has a target object**.
+
+Then `nukes_launched[(byte)unit+0x9] += 1` (the unit's own player). Step
++1. Index: the coming-out unit's owner.
+
+**What that predicate admits, by reading (not established):**
+`Unit::add_strafe_order (005e48c0)` is the only maker of a `StrafeOrder`
+(`OrdersMemManager::get_obj(.., STRAFE)` appears nowhere else in the
+export), and its head turns a strafe by a unit with the missile bit
+(`type +0x1e4 & 0x8000000`) on a target `Object::valid_target` accepts
+into `add_air_attack_ground_order` at the target's point.
+`AirAttackGroundOrder`'s slot `0x100` is the folded zero. And
+`Build::do_missile_launch (00622670)`, the silo's launch, announces a nuke
+only for `AIR_ATTACK_GROUND` (its `STRAFE && !is_ally(self, self)` arm is
+dead: `LeaderData::is_ally (006edb50)` answers 1 for one's own `who`).
+So a nuke launched the ordinary way, at a valid target, comes out with an
+`AirAttackGroundOrder` and **does not count**. The counter steps only for a
+nuke carrying a `StrafeOrder` with a target — one whose target
+`valid_target` refused when the order was made, or a strafe restored by a
+load. **This leaf may stay 0 in every plain game**; that is a reading of
+four functions, not a diff, and a capture with a nuke launch would settle
+it (`log_data` prints it under `nukes_launched`).
+
+Callers of `come_out` (listing): `Build::do_missile_launch`,
+`Build::process_ejection`, `Build::train` (×4), `Object::eject_contents`,
+`Object::kill_contents`, `Object::do_damage`, `Object::do_launch`,
+`Leader::blow_up_units`, `Leader::eject_my_shit_from_his_ass`,
+`Group::action_eject_all`, `Unit::action_come_out`, `Unit::do_cast`,
+`Unit::process`, `Setup::build_units`, `Setup::place_unit`,
+`GraphicEvents::execute_game_events`, and itself (×3, the squad
+recursion). The counter is in `come_out` itself, so any of these that
+ejects a nuke holding a targeted strafe would count it — a silo destroyed
+or captured during the launch countdown (`Build +0x7a`) is the case that
+comes to mind; not followed.
+
+### Reset
+
+`Leader::init` (`:673`, top level, unconditional). Not in `reset_score`.
+
+### Readers
+
+`LeaderData::log_data` only (export and listing agree: the one absolute
+reference is the increment; the register-relative `0xa38(` reads are
+`ConquestLeader`, `ConquestSetupWin`, `TerrainMap`). No sim decision reads
+it; it matters only to the checksum walk and the dump.
+
+### Crate site
+
+`crates/sim/src/units/garrison.rs:376`, `Sim::come_out` — the counter
+goes after the placement (`come_out_place`), on the captain, gated on
+`self.air_line_is(u, crate::air::airbase::NUCLEARMISSILE)` and
+`matches!(self.current_order(u).map(|o| o.body),
+Some(Body::Strafe(StrafeOrder { target: Some(_), .. })))` — the crate's
+`StrafeOrder::target` is exactly `TargetOrder::ox/whom`
+(`crates/sim/src/orders/order.rs:498`–`501`). Storage beside
+`combat.nukes` (`crates/sim/src/combat/nuke.rs`). The crate's missile
+launch (`crates/sim/src/air.rs:1799`, `do_missile_launch`) issues
+`AirAttackGround`, matching the reading above, so a port would leave the
+leaf at 0 in every game the crate plays today. `checksum/leaders.rs:259`
+lists the leaf.
+
+### Plain game?
+
+The writer is reached in a plain game (every `come_out`), but by the
+reading above its predicate is probably never true there: a nuke would
+have to carry a targeted `StrafeOrder`. No trigger, CtW or multiplayer
+gate is involved either way.
+
+### Confidence and not read
+
+High for the writer list and for the predicate as code (listing, PDB slot
+name, PE vtable bytes, RTTI all agree). Low-to-medium for "never in a plain
+game": not read are `Object::valid_target (00648ba0)`'s refusals for a
+nuke's target, `Group::action_flight`'s `NUCLEARMISSILE` arm (`can_nuke`;
+a SEAM in the crate), every ejection caller of `come_out`, and whether a
+loaded save restores a `StrafeOrder` on a missile.
+

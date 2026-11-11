@@ -215,3 +215,83 @@ High for the rule (both nets agree). Not read: whether `is_gather_type`
 can be false for an oil well type (it would leave a stale entry and a
 mark that never trims); the `OilWell` struct's other fields.
 
+## Leaf `supply_mark` (+0x434)
+
+**What it is.** The high-water mark of `supplies.lists[who]` (entry live
+bit at `Supply +4` bit 0), same discipline as `fort_mark`. It bounds the
+supply search that decides whether a unit in hostile territory is supplied.
+
+### 1. Writers
+
+| writer | site (listing) | store |
+|---|---|---|
+| `Supplies::init_supply (0073ad40)` | `0073adbe` `mov %eax,0xe3a7c4(%ecx)` | mark + 1 (reuse an allocated tail entry) |
+| `Supplies::init_supply (0073ad40)` | `0073ae51` `mov %ecx,0xe3a7c4(%edx)` | mark = max(mark, idx + 1) |
+| `Supplies::close_supply (0073acc0)` | `0073ad21` `mov %ecx,0xe3a7c4(%esi)` | mark-- while the top entry is dead |
+| `Leader::init (006e3930)` | `006e4148` `mov %eax,0x434(%ebx)` | `= 0` (tribe ≥ 0 only) |
+| **`Setup::build_game (005ac190)`** | `005ac373`, `005ac39b`, `005ac3c3`, `005ac3eb`, `005ac413`, `005ac43b`, `005ac463`, `005ac48b` (`movl $0x0, 0xe3a7c4 + k·0x6eec`, k = 0..7) | `= 0`, all eight slots, unconditionally |
+| `Leaders::clear (006ed5d0)` | memset | `= 0` |
+
+`Setup::build_game`'s eight stores are **not in the README row's writer
+list**. They sit in a block (decompile lines 193–224, printed as
+`leaders.list[k]._1076_4_ = 0`) that zeroes `city_mark` (+0x408),
+`hero_mark` (+0x420), `supply_mark` (+0x434) and `special_mark` (+0x43c)
+of every slot, before `Leader::init` runs per live slot (line 618).
+`fort_mark`, `oil_well_mark`, `wonder_mark`, `dock_mark` and
+`caravan_mark` are not in that block.
+
+### 2. Event, step, predicate
+
+- **`init_supply(who, o)`**: first-free-under-the-mark / tail / append,
+  then mark = max(mark, idx + 1); the entry takes `idx`, `o`, `who`,
+  live = 1. Step 0 or +1.
+- **Callers** (listing: `00612943`, `00613796`):
+  - `Unit::init (00612100)`: when the unit `is_supply` (vslot `+0xcc`; on
+    `UnitData::is_supply` itself, type `unit_flags2 +0x2b8 & 0x40`), with
+    no other gate; `Unit +0x84 = idx`.
+  - `Unit::set_type (00612fa0)`: past its version gate (the
+    `xpack_rtm_version` compare at lines ~320–333 that returns early), if
+    the new type is a supply type and `+0x84 < 0`.
+- **`close_supply(who, idx)`**: clear the live bit, entry `who = 0xff`,
+  `o = 0xffff`, then trim the mark. Callers (listing `0060f7cd`,
+  `00613750`): `Unit::close (0060ee50)` when the unit `is_supply` and
+  `+0x84 ≥ 0`; `Unit::set_type` when the new type is **not** supply and
+  `+0x84 ≥ 0` (then `+0x84 = −1`).
+
+### 3. Reset
+
+`Setup::build_game` (all slots, every game start), `Leader::init` (tribe
+≥ 0), `Leaders::clear`. Not `reset_score`.
+
+### 4. Readers
+
+`Supplies::find_supply (0073aba0)` (loop bound, `0073abb7`, `0073ac94`),
+called from `UnitData::in_supply (00609ef0)` — **decision-changing**: it is
+the supply test that cancels attrition. `LeaderData::log_data`.
+
+### 5. Crate site
+
+Already modelled: `territory::supply::SupplyList`
+(`crates/sim/src/territory/supply.rs:171`) reproduces first-free reuse and
+tail trimming; since it pops trailing free slots, `SupplyList::len()`
+(`:207`) **is** `supply_mark` (the original's search only inside
+`[0, mark)` and the crate's search over all slots coincide because the
+crate never holds free slots above its last live one). Opened in
+`Sim::add_unit` (`crates/sim/src/units/store.rs:145`), closed in
+`Sim::close_supply_in` (`crates/sim/src/territory/upkeep.rs:62`); the
+`set_type` pair is a trait (`crates/sim/src/units/unit_set_type_view.rs:156`)
+whose `SimSetType` adapter is a no-op
+(`crates/sim/src/units/set_type_adapter.rs:210–211`). A builder exposing the
+leaf reads `territory.supply[who].list.len()`.
+
+### 6. Plain game?
+
+Yes: every supply wagon trained, upgraded (if the version gate passes) and
+killed.
+
+### 7. Confidence, not read
+
+High for the rule. Not read: whether `Unit::set_type` ever changes a
+unit between supply and non-supply types in a plain game (it would need a
+lineage that crosses the `0x40` flag); the version gate's exact semantics.
+
