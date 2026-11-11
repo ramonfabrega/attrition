@@ -2429,6 +2429,106 @@ mod tests {
         eprintln!("{read} of 3 styles' start dumps read");
     }
 
+    /// **`World::analyze_map`'s tallies on eighteen maps** (item 4147,
+    /// `docs/MAPGEN.md` §36): every start dump's `WORLD` record prints eight
+    /// of the ten (`WorldData::log_data`: `forest_size` to `sea_resources`;
+    /// the two region counts are not printed), and a world built from the
+    /// dump's own cells, tiles and placed mountains, counted by the port,
+    /// gives each of them. Fourteen styles' cover dumps, two East Indies
+    /// maps, the fuzz game and Great Lakes: the sea arm (a non-`HALFLAND`
+    /// `SANDY` or `OCEAN` cell) and the land arm are both exercised, and
+    /// Southwest Mesa's 0 mountain cells and Himalayas' 523 bracket the tile
+    /// arm. `total_metal` where the dump lays its ranges: run38's 18 (67)
+    /// and run12's 13 (79).
+    #[test]
+    fn the_map_s_tallies_are_every_start_dump_s() {
+        let Some(inst) = install() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+        let standard =
+            crate::mapgen::standard_map_size(inst.root()).expect("rules.xml's Standard map size");
+        const KEYS: [&str; 8] = [
+            "forest_size",
+            "mountain_size",
+            "rock_size",
+            "total_metal",
+            "total_oil",
+            "goodies",
+            "land_resources",
+            "sea_resources",
+        ];
+        let (mut read, mut metal) = (0, 0);
+        for name in [
+            "gamelog-run1098-niledelta-cover1-clickfree-diagonal.txt",
+            "gamelog-run1099-amazon-cover1-clickfree-diagonal.txt",
+            "gamelog-run1117-oldworld-cover1-clickfree-diagonal.txt",
+            "gamelog-run1118-southwestmesa-cover1-clickfree-diagonal.txt",
+            "gamelog-run1119-africanwateringhole-cover1-clickfree-diagonal.txt",
+            "gamelog-run1120-mediterranean-cover1-clickfree-diagonal.txt",
+            "gamelog-run1121-australianoutback-cover1-clickfree-diagonal.txt",
+            "gamelog-run1122-warringstates-cover1-clickfree-diagonal.txt",
+            "gamelog-run1123-newworld-cover1-clickfree-diagonal.txt",
+            "gamelog-run1124-colonialpowers-cover1-clickfree-diagonal.txt",
+            "gamelog-run1125-eastmeetswest-cover1-clickfree-diagonal.txt",
+            "gamelog-run1126-atlanticseapower-cover1-clickfree-diagonal.txt",
+            "gamelog-run1127-britishisles-cover1-clickfree-diagonal.txt",
+            "gamelog-run1128-himalayas-cover1-clickfree-diagonal.txt",
+            "gamelog-run1483-eastindies-information-melee-trace.txt",
+            "gamelog-fuzz-424242-early.txt",
+            "gamelog-run38-islands-start.txt",
+            "gamelog-run12-dumpall-seeds.txt",
+        ] {
+            let Some(path) = dump(name) else {
+                eprintln!("skipped: {name} is not on this machine");
+                continue;
+            };
+            let text = crate::capture::read(std::path::Path::new(&path));
+            let log = Log::parse(&text);
+            let init = replay_initial(&log).expect("a start dump");
+            let printed: Vec<i32> = KEYS
+                .iter()
+                .map(|k| {
+                    init.world
+                        .iter()
+                        .find(|(n, _)| n == k)
+                        .and_then(|(_, v)| v.trim().parse().ok())
+                        .unwrap_or_else(|| panic!("{name}: the dump prints {k}"))
+                })
+                .collect();
+            let built = build_sim(&loaded, &init, sim::core::tuning::Tuning::RON);
+            let t = built.sim.map_analysis(standard).tallies;
+            let ours = vec![
+                t.forest_size,
+                t.mountain_size,
+                t.rock_size,
+                t.total_metal,
+                t.total_oil,
+                t.goodies,
+                t.land_resources,
+                t.sea_resources,
+            ];
+            eprintln!(
+                "{name}: printed {printed:?}, ours {ours:?}, {} mountains, player_reg {} resource_reg {}",
+                built.sim.terrain.mountains.len(),
+                t.player_reg,
+                t.resource_reg
+            );
+            // `total_metal` counts the placed mountains, which a dump
+            // carries only at its `MOUNTAINS` detail; without them the
+            // world holds no range and the tally is not compared.
+            let held = !built.sim.terrain.mountains.is_empty();
+            for (k, key) in KEYS.iter().enumerate() {
+                if *key == "total_metal" && !held {
+                    continue;
+                }
+                assert_eq!(ours[k], printed[k], "{name}: {key}");
+            }
+            read += 1;
+            metal += usize::from(held);
+        }
+        eprintln!("{read} of 18 start dumps' tallies read, {metal} with their mountains");
+        assert!(metal > 0, "some dump's mountains check total_metal");
+    }
+
     /// **The style's limits move the setup's borders to the original's**
     /// (item 3963, `docs/AI.md` §407): the start dump prints every cell's
     /// `who`/`who2` as the setup's `compute_all_territory` left them, and

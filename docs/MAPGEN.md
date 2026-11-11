@@ -4254,12 +4254,70 @@ mid-game buildings write no ground — run1559b's packet's 31 cells
 never marks again, which the crate's silent close follows; whether a
 `weatherbase` flood ever passes `verify_land`'s 500.
 
-## 36. Reserved for the next item on the map track
+## 36. The setup's census of the map: `World::analyze_map` (item 4147)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+`Setup::build_game` calls `World::analyze_map@006b58b0` once, after every
+empire is built and just before `compute_all_territory` (`docs/START.md`
+step 8); neither the export nor the listing names another caller. It
+writes ten tallies of `WorldData` (`+0x50..+0x74`), two region bits and
+the sea class. `crates/sim/src/world/analyze.rs` holds it
+(`Sim::analyze_map`, the counts alone as `Sim::map_analysis`), run by the
+composed chain's setup (`diff::start`) and kept on `World::record`.
+
+**The regions**, numbers 1 to 63 (the loop's bound is 63 `reg_cities`
+shorts, `0xe424dc` to `0xe4255a`; no terrain test). The first active
+leader (`leaders[p] & 1`) holding a city in the region makes it a player
+region: `flags |= 4`, `player_reg` one more. A region no leader holds a
+city in and of at least `max(1, (size·60 + std²/2) / std²)` cells — the
+same expression as `Map::scale_by_area(60)`, `std` the Standard map size
+(`map_sizes` record 3, `+0x144` off `0xe7fca8`; 70, so 44 on a 60×60
+map) — is a resource region: `flags |= 8`, `resource_reg` one more. The
+players' and the resource regions' cells are summed for the sea class.
+
+**The cells**, every one. A cell without `HALFLAND` whose `land` is
+`SANDY` or `OCEAN` (1 or 2) is the sea's: its bit `0x1` counts in
+`sea_resources`, and nothing else of it is read. Every other cell counts
+its `0x1` in `land_resources`, `GOODY` (`0x8000`) in `goodies`, `FOREST`
+(`0x20`) in `forest_size`, `OIL` (`0x800`) in `total_oil`, `ROCK` (`0x8`)
+in `rock_size`, and its centre tile `(4x + 2, 4y + 2)` in `mountain_size`
+when that tile's `mask & 3` is 2.
+
+**`total_metal`** is `MountainsData::total_gather_size`: each placed
+mountain's `MountainRangeData::gather_size(loc, −1, NULL)`. With no
+leader and no list every counted cell is usable, so the range's rung by
+its template's tile count comes back unscaled (`MOUNTAIN_GATHER`: under
+100 tiles 3, 210 5, 275 6, 400 8, else 10).
+
+**The sea class** (`world+0x34`): a value outside 0..4 becomes 3 with more
+than one player region (4 when the resource regions hold at least twice
+the players' cells), else 2 with a resource region, else 1 when the
+regions' sum is under `4·size/5`, else 0; a 3 is promoted to 4 by the same
+test (the crate's `World::sea_map` already read this).
+
+**Frozen after it.** Its other writers, by the export's `field_0x50..0x74`
+and the listing's register stores in the class: `World::init` (the two
+region counts to 0), `World::wipe` and `World::close` (all ten to 0). No
+store in a running game reaches them, so a frame's value is the setup's;
+run9's four `WORLD` blocks, the last late in its game, print the same eight.
+
+**How it was established.** The values first: run 1562's frame 91
+(`player_reg` 1, `resource_reg` 0, 189, 213, 16, 79, 8, 22, 9, 12) were
+the counts over our frame-91 state before the port ran at setup.
+**Diff-backed**: all ten on run 1562's frame 91 against the instrument's
+section 4 (`docs/CHECKSUM.md` §21); the seven cell tallies on eighteen
+maps' start dumps, built from the dump's own cells and tiles, and
+`total_metal` on the two that lay their ranges (run38's 18 for 67, run12's
+13 for 79) (`diff::setup`'s `the_map_s_tallies_are_every_start_dump_s`;
+without `SANDY` in the sea arm Warring States' `total_oil` parts, 3
+against 2); the ten kept by the harness lobby's walk against the function
+over the installed start's frame-0 state (`diff::start_walk`). **On the
+reading alone**: the two region counts beyond Great Lakes (no dump prints
+them), the bit 8, the sea class's computed arm, and the writers' verdict.
+
+**Not established**: a region numbered 1 to 63 that is not land (no map
+read holds one; the crate's `Sim::land_size` filters land as well); a
+game the crate builds from a dump keeps no tallies (no `World::record`);
+a saved game's restore, which walks the record back whole, was not read.
 
 ## 37. Reserved for the next item on the map track
 

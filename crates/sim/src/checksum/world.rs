@@ -512,6 +512,12 @@ impl Sim {
                 h[15 + k] = Some(i64::from(l.colonized[k]));
             }
         }
+        // `World::analyze_map`'s ten, where the setup ran it (§21).
+        if let Some(t) = w.record().tallies {
+            for (k, v) in t.words().into_iter().enumerate() {
+                h[18 + k] = Some(i64::from(v));
+            }
+        }
         h[28] = Some(i64::from(self.land_size()));
         h[29] = w.record().seed.map(i64::from);
         h

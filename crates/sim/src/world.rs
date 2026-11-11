@@ -396,6 +396,9 @@ pub struct WorldRecord {
     pub map: Option<i32>,
     /// `seed` (`+0x7c`): `world->seed`, `Setup::build_game`'s re-seed.
     pub seed: Option<i32>,
+    /// `player_reg`..`sea_resources` (`+0x50..+0x74`): `World::analyze_map`'s
+    /// ten tallies ([`analyze::MapTallies`]), written once by the setup.
+    pub tallies: Option<analyze::MapTallies>,
 }
 
 /// `WData::flags`, defined in [`crate::ids::cell`].
@@ -859,6 +862,11 @@ impl World {
     /// Keeps what the setup wrote of `WorldData` ([`WorldRecord`]).
     pub fn set_record(&mut self, record: WorldRecord) {
         self.record = record;
+    }
+
+    /// Keeps `World::analyze_map`'s ten tallies on the record.
+    pub fn set_tallies(&mut self, tallies: analyze::MapTallies) {
+        self.record.tallies = Some(tallies);
     }
 
     /// The current tileset's ground numbers ([`terrain::TileSetLand`]).
@@ -2155,6 +2163,7 @@ impl World {
 mod tests;
 
 // The files of `world/` (item 4011, `docs/STRUCTURE.md` §3).
+pub mod analyze;
 pub mod danger;
 pub mod terrain;
 
