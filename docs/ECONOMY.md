@@ -104,7 +104,15 @@ never mentioned again.
 
 `resource_cap` and `bonus_cap` are seven long where six would do, and the loop
 in `Leader::calc_resource_caps` really does run seven times. The seventh slot is
-written and never read.
+written and ~~never read~~ read only by the walks: `LeaderDataEncrypt::walk_data`
+hands it to the save and to the sync checksum's leaders line (item 4121,
+`docs/CHECKSUM.md` §20). Its pass reaches no nation term and no wonder arm, each
+of which names a slot below six, so it is the base cap with the British term, the
+republic term and `bonus_cap[6]` (the scenario layer's alone, 0 in a skirmish),
+clamped and scaled as the six are: `sim::economy::commerce_cap_seventh`. On run
+1562's frame 91 that is 1120 for the human and 1392 for the British computer,
+the stream's own values, and it equals `resource_cap[0]` on all five walked
+leaders of that frame and run1100's 5408.
 
 **`base_rate` and `bonus_cap` have exactly one writer each, and it is the
 scenario scripting layer:** `ScenarioFuncSet::set_base_rate` and

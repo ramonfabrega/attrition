@@ -480,6 +480,9 @@ fn array_head(
     });
 }
 
+/// `Leader::init`'s `plunder_scale`, −1.0 as its IEEE-754 single's bits.
+const PLUNDER_SCALE_BITS: i32 = 0xbf80_0000_u32 as i32;
+
 /// `LeaderData`'s `0x2000000`, the economy's dirty bit ([`crate::economy::Ledger::dirty`]).
 const DIRTY: i64 = 0x200_0000;
 
@@ -972,13 +975,15 @@ impl Sim {
                 .filter(|x| x.alive && usize::from(x.owner) == w)
                 .count() as i64),
             "village_num" => one(i64::from(c.village_num)),
-            "lost_city_stamp" => self
+            // `lost_city_stamp` (`+0x410`): `City::close` stamps the frame a
+            // city is lost; before any, `Leader::init`'s −90 (`0xffffffa6`).
+            "lost_city_stamp" => one(self
                 .cities
                 .lost_city_stamp
                 .get(w)
                 .copied()
                 .flatten()
-                .map(|v| vec![v]),
+                .unwrap_or(-90)),
             "wonder_mark" => one(i64::from(c.wonder_mark)),
             "popwin_stamp" => one(a.popwin_stamp),
             "popwin_timer" => one(i64::from(a.popwin_timer)),
@@ -1154,6 +1159,11 @@ impl Sim {
             "hero_mark" => one(self.roster.heroes.get(w).map_or(0, |x| x.mark as i64)),
             "special_mark" => one(self.roster.specials.get(w).map_or(0, |x| x.mark as i64)),
             "caravan_mark" => one(self.economy.caravans.get(w).map_or(0, |x| x.mark as i64)),
+            // `plunder_scale` (`+0x914`), a float: `Leader::init` stores
+            // `0xbf800000` (−1.0) and is its one writer (`Unit::plunder` and
+            // `Build::plunder` read it), so it is emitted as those bits
+            // (`docs/DECISIONS.md` entry 120 §3, class 1; §20).
+            "plunder_scale" => one(i64::from(PLUNDER_SCALE_BITS)),
             "ages_queued" => one(i64::from(t.ages_queued)),
             "epochs_queued" => one(i64::from(t.epochs_queued)),
             "reg_attacked" => reg(&c.reg_attacked),
