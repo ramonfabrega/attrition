@@ -16331,9 +16331,10 @@ words and edits nothing here; a refill lands when two remain.
   holds a mask on the alpha-255 pixels that raises the blend; 4107a), (2) the pine's own leaf
   agrees on 1,946 of 3,136 as the texel to the lit branch's power 1.45 against 514 as the texel, a tone curve not a
   light, which under the silhouette's blend agrees less (102 of 646 against 268) and so is not 4103a's share; (3)
-  the level the card samples, not separated (the painter takes `Mips::level` by area). Not established: the
+  the level the card samples, not separated (the painter takes `Mips::level` by area). ~~Not established: the
   Extended Edition's tone mapper's exposure, white point, saturation and tint and the scene ambient, held by
-  `d3dgl.dll` and not in the packet; why the figures' texel reads nearer unpowered than the leaf. Rests on a reading
+  `d3dgl.dll` and not in the packet~~ (read, item 4114: the tone mapper's constructor defaults and `unit_graphics.xml`'s
+  ambient; the pipeline they fix is killed by its count, 4114a). Not established: why the figures' texel reads nearer unpowered than the leaf. Rests on a reading
   and one photograph. Names no score until a mechanism is chosen.
 
 ## Parked by item 4107, 2026-11-10 — the peasants' red, killed by its alpha
@@ -16412,13 +16413,31 @@ words and edits nothing here; a refill lands when two remain.
   level 3 and 4 — so no one sampling rule closes the 1,617. Rests on one photograph. Names no score until a mechanism
   is chosen.
 
-## Parked by the next landing, slot EY — reserved
+## Parked by item 4114, 2026-11-10 — the lit pixel, killed by its count
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4114a. The photograph over our texel once the install's whole pixel pipeline is read** (`docs/RENDERER.md` §5.3, "The
+  colour reader"; `RUN1559B_3279_COLOUR` 18 of 33; `client::silhouette::tests::the_lit_pixel`;
+  `render::silhouette::lit_pipeline`). Every constant is read, none measured: the stage colour (team blend first) to the
+  power 1.45, times 5/π × 2.5 × N·L plus 5 × the material ambient (`unit_graphics.xml`'s (0.6, 0.716, 0.745) × its
+  `ambienti` 0.558, as `D3D11Context::set_material@1001ab00` folds r, g, b by alpha) × the scene ambient
+  `Game::init_light@00590ef0` hands the card's `set_ambient` (the same three, raw); then Hable's curve over the curve at
+  white point 3.5 × the frame's mean luminance floored at 1.4 — `D3D11ToneMapper`'s constructor defaults
+  (`@10042c40`: exposure 1, white point 3.5, minimum luminance 1.4, saturation 1, tint alpha 0), which no caller in the
+  executable sets. **Killed twice.** (a) *No one curve*: at N·L > .25 a grey texel through each piece's channel medians
+  parts past 0.05 between the medium tank 196 and the general 1008 on 6 of 6 shared bins (worst 0.165), 60/196 on 5 of
+  7, 377/1008 on 3 of 3; at texel red 120 the photograph's median red is 137 on 196, 175 on 1008, 112 on 60. (b) *Not
+  the install's either*: the candidate agrees on 6,452 of 13,899 alpha-255 pixels against 7,050 for the texel, and on
+  7,353 of 16,632 every-lit pixels against the painter's 8,119; the row goes to 17, six objects down (0/5, 0/6, 1/27,
+  1/30, 1/31, 1/36) and five up (0/0, 1/15, 1/22, 1/23, 1/32). It raises 377 (122 → 233), 26352 (339 → 533), the
+  riflemen 60 (1,655 → 1,851) and loses the tank 196 (4,486 → 3,346), photograph minus candidate (+0.015, −0.044) there:
+  the ambient's blue is too much on the tank and too little on the infantry. The one frame scalar is not the clamp: the
+  photograph's 1,435,055 keyless, uncovered pixels invert under it to a mean of 1.595, between 1.4 and 2 (2 inverts to
+  1.971), and a white scale multiplies every channel alike, so it moves no chromaticity. **What is left, by frame 3279
+  and its delta**: the pieces' transfers differ by piece at one texel value and one band — 196 flat (red 106 to 151
+  over texel 40 to 200), 1008 steep (51 to 224) — which no function of the texel and the face gives; read next, what
+  differs per piece at the card: the vertex normals against our face normals, and whether the tank's draw is the lit
+  branch at all. Rests on one photograph and the reading of the install's shaders. Names no score until a mechanism is
+  chosen.
 
 ## Parked by the next landing, slot EZ — reserved
 
