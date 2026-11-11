@@ -124,3 +124,66 @@ the original played in lockstep. The stage 0 projections are the original's own 
 - **The window size.** The window draws with its own size, where these tests use `graphsys`'s.
 - **The zoom.** The closer camera's ×8 is beyond the original's nearest fixed zoom: `fixed_zooms[6]` is about 1.5×
   closer than the default.
+
+## 5. The clicked script and its playback (item 4149)
+
+§2's table cannot reach the script at the opening camera. So this turns the oracle round: the orders a person can
+click there become a second script, and the original's own playback of their file is the oracle.
+
+**The clicks** are §3's seven events, each target clicked under the opening camera:
+
+| frame | event | pixel | the ground the layer mints | why this pixel |
+| --- | --- | --- | --- | --- |
+| 30 | press, then right press | (1006, 629), then (1384, 862) | `move_to` (5883, 31896) | the script's target's own pixel; its footprint holds the script's point |
+| 60 | press, then `c` | (1127, 521) | — (`queue_up` 50) | the Village's anchor |
+| 90 | press, `f`, then press | (1655, 394), then (1338, 478) | `build` (3554, 29860) ×2, 417 | the script's drop point's own pixel |
+
+Our walk accepts each order there. The Scout's destination is on open grass, and our walk's Scout stands on it by
+frame 299. The Farm's drop point is `Clear` on `blocked_site`, and `snap_center` puts its site `0/2007` at
+(3456, 29760), where the first script's stands.
+
+**The second script** is `rondata::script::clicked()`, the first script with `CLICKED_SCOUT_TO` (5883, 31896) and
+`CLICKED_FARM_AT` (3554, 29860). It stands beside `script()` and does not replace it. Its constants are typed in
+`rondata`, which cannot call the client; the client's `minted_clicked_at_the_opening_camera` mints the orders from the
+clicks and holds them equal to `clicked()` field for field.
+
+`INPUT_CLICKED`: **3 of 3**. It was 0, when there was no clicked script. Seen red: `CLICKED_FARM_AT` set to the first
+script's (3552, 29856) gave 2 of 3.
+
+**The file** is `~/ron-golden/recordings/item4149-clicked-greatlakes-24000.rcx`, 59,280 bytes, SHA-256
+`9636d81e…ca14`. It is the first script's file with the move's and the build's packages changed and nothing else
+(`the_clicked_minted_packages_round_trip_and_stand_on_our_placement_check`, `CLICKED_RCX_BYTES`). The client writes
+the same bytes from the orders it minted.
+
+**The playback** (`docs/RUNS.md` run1563a, run1563): the click-free lane, `docs/RECGAME.md` §9.3's line with this file.
+`the_original_s_playback_of_the_clicked_minted_file_walks_in_lockstep` walks the built start under the pump against
+each take (`CLICKED_WALKED`):
+
+- run1563a, `end:MISC,UNITS=3,BUILDS=7`, 300 frames: draws agree on **300 of 300**, count and sequence; **299 records
+  compared whole, none parted**. Seen red first: the row pinned `(0, 0, 0, 0)` printed `(300, 300, 299, 0)`.
+- RUN1563_LINE
+
+**`INPUT_PLAYED`**: RUN1563_COUNT.
+
+**Each order's effect, both sides** (`clicked_effects`, on 31, 61, 91 and 299), equal:
+
+- the Scout at (3514, 31896), (4534, 31896) and (5554, 31896), and on 299 on the clicked (5883, 31896);
+- the Village's live queue `[50]` on 61 and 91, and empty by 299;
+- the site `0/2007`, type 417, at (3456, 29760) from 91;
+- the builder's `move`, `build` on 91, and `gather` on 299.
+
+**The value diff** against the first script's playback (run1561a), on the original's two dumps of 300 frames: only
+the Scout's `x` fields part. Its move order holds `x` 5880 on both, but `orig_x`, its path's `to_x`, and from there
+its `dest_x`, `orders_x` and `x_internal` hold the clicked 5883 in run1563a where run1561a holds 5880. On 299 it
+stands on (5883, 31896) against (5880, 31896). Our walk carries the same split: its move order's target reads
+(5880, 31896) on 31, 61 and 91 for the click at 5883 as for the script's 5880, and it stands the Scout on the clicked
+point (parked 4149a).
+
+**The build's (+2, +4) is printed nowhere.** Neither the script's drop point nor the clicked one appears in either
+dump. The site both snap to, (3456, 29760), is the same for both scripts. So the build's clicked coordinate is equal on
+both sides only through the file's bytes and the snapped site; no field compares it.
+
+**Made to fail** (`the_first_minted_script_against_the_clicked_playback_parts`, `FIRST_AGAINST_CLICKED`): our walk
+under the first script's file, against run1563a, parts first on frame 31. The parting is the Scout's path target,
+ours (5880, 31896) against the original's (5883, 31896), and 269 of 299 records part. The draws do not part inside
+300 frames. So the comparison sees three units of a click. Seen red first: pinned `(0, "", "", None)`.

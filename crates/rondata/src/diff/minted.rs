@@ -817,7 +817,14 @@ fn the_clicked_minted_script_s_effects_on_our_walk() {
 /// The original's playback of the clicked file, per take (run 1563), as
 /// [`MINTED_WALKED`]: run1563a prints every unit and building for 300
 /// frames, run1563b only the trace for 2,400, run1563 the game's length.
-pub(crate) const CLICKED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[];
+pub(crate) const CLICKED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1563a-greatlakes-playback-of-clicked-300.txt",
+    "rontrace-run1563a.log",
+    300,
+    300,
+    299,
+    0,
+)];
 
 /// **The original plays the clicked file, and our walk keeps lockstep**
 /// (item 4149): [`CLICKED_WALKED`] and [`clicked_effects`], both sides.
@@ -841,3 +848,46 @@ fn clicked_effects() -> Vec<Effect> {
     e[3].scout = (i64::from(to.x), i64::from(to.y));
     e
 }
+
+/// **Made to fail: the first script against the clicked playback**
+/// (item 4149). Our walk under [`script`]'s file, whose move goes to
+/// (5880, 31896) and whose Farm drops at (3552, 29856), against run1563a,
+/// the original's playback of the clicked file: three units of the move's
+/// destination must part, and the first record that parts is pinned
+/// ([`FIRST_AGAINST_CLICKED`]): `(frame, kind, row, the first frame whose
+/// draws part)`.
+#[test]
+fn the_first_minted_script_against_the_clicked_playback_parts() {
+    let (take, take_trace, ..) = CLICKED_WALKED[0];
+    let Some((w, _)) = walk_minted(&script(), take, take_trace) else {
+        return;
+    };
+    let (frame, _, partings) = w.first_record.clone().expect("the walk parts");
+    eprintln!(
+        "FIRST AGAINST CLICKED: record {frame}: {partings:?}; draws part {:?}; records {} parted {}",
+        w.first_sequence, w.records, w.records_parted
+    );
+    let seen = (
+        frame,
+        partings[0].0,
+        partings[0].2.clone(),
+        w.first_sequence,
+    );
+    let (f, kind, row, draws) = FIRST_AGAINST_CLICKED;
+    assert_eq!(
+        seen,
+        (f, kind, row.to_string(), draws),
+        "FIRST_AGAINST_CLICKED"
+    );
+}
+
+/// The first script's walk against run1563a: the first parted record is
+/// the scout's path target on 31, ours (5880, 31896) against the original's
+/// clicked (5883, 31896); 269 of 299 records part; the draws do not part
+/// inside the take's 300 frames. Seen red first: pinned `(0, "", "", None)`.
+const FIRST_AGAINST_CLICKED: (i64, &str, &str, Option<i64>) = (
+    31,
+    "order_diverged",
+    "OrderDivergence { frame: 31, who: 0, o: 0, slot: 0, what: PathTo { slot: 0, ours: (5880, 31896), theirs: (5883, 31896) } }",
+    None,
+);

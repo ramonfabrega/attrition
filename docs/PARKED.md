@@ -16755,13 +16755,16 @@ words and edits nothing here; a refill lands when two remain.
   on any map but Great Lakes; bit 8 and the sea class's computed arm, which no walked lobby reaches; a non-land region
   numbered 1 to 63; a dump-built game keeps no tallies; the restore (`World::walk_data`) is unread.
 
-## Parked by the next landing, slot FQ — reserved
+## Parked by item 4149, 2026-11-11 — the original plays a file minted by clicks at the opening camera
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4149a. A move order keeps two destinations** (`docs/CLIENT_INPUT.md` §5). For a click at (5883, 31896), the
+  original's `MOVEORDER` holds (`x`, `y`) at (5880, 31896), while its `orig_x`/`orig_y`, its path's `to_x`/`to_y` and
+  the Scout's end point are the clicked (5883, 31896). Our walk gives the same order target and the same end point, and
+  run1563a's 299 records agree. Which rule moves the order's `x` three units west (a 24-unit grid fits) was not read on
+  either side. Names no score: both sides agree.
+- **4149b. The build's drop point is printed nowhere** (`docs/CLIENT_INPUT.md` §5). Neither the script's (3552, 29856) nor
+  the clicked (3554, 29860) appears in a playback's dump; only the snapped site (3456, 29760) does. A drop point that
+  snaps to a different site would be the first test of the click's `build` on the original's side.
 
 ## Parked by the next landing, slot FR — reserved
 
