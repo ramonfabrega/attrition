@@ -16383,19 +16383,34 @@ words and edits nothing here; a refill lands when two remain.
   colour is grey near the texel's gain, (105, 108, 103), and at alpha under 32 it is olive, (130, 134, 66), over a
   white texel. The gain itself runs from 0.64 (377) to 1.20 (1008) by piece. The tank's `_desert` variant has the
   plain texture's masked texels byte for byte, so no variant explains it. **What is left, by frame 3279 and its
-  delta**: the 1,617, as the level the card samples on the masked pixels (4107 read the chain only on alpha-255
-  pixels) and the texcoord's registration on small masked regions (the tank's 1,713 masked texels of 65,536), both
-  per piece. Not read: `GraphicPieces::draw_unit@008e7da0` (its decompile fails; the listing is unread past 4103's
+  delta**: the 1,617, ~~as the level the card samples on the masked pixels and the texcoord's registration on
+  small masked regions~~ (both killed by their values on every lit pixel, 4112a). Not read: `GraphicPieces::draw_unit@008e7da0` (its decompile fails; the listing is unread past 4103's
   bytes), and the relationship-colour preference. Rests on one photograph. Names no score until a mechanism is
   chosen.
 
-## Parked by the next landing, slot EX — reserved
+## Parked by item 4112, 2026-11-10 — the level the card samples, killed by its values
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4112a. The level and the texcoord the card samples on a figure's lit pixels** (`docs/RENDERER.md` §5.3, "The
+  team colour"; `RUN1559B_3279_COLOUR` 18 of 33; `client::silhouette::tests::the_level_the_card_samples`). The
+  population is every lit pixel of each figure, whatever the painter's alpha: both footprints, not behind, neither
+  the painter's blend nor the photograph dark — 1,150 for player 0 (586 masked by the painter) and 15,482 for
+  player 1 (2,147). 4110's masked subset re-counted on this tree: 563 and 2,102, 1,617 parting, unmoved. **Killed.**
+  Agreeing pixels, every piece summed: the painter's level bilinear **8,119**, its nearest 7,777; level 0 nearest
+  7,439, bilinear 7,865; level 1 7,741 and 8,088; level 2 7,906 and 7,969; levels 3 and 4 lower. No column beats the
+  painter's on every piece: level 0 bilinear wins on 377 (140 against 131), 4576 (95, 90), 10912 (288, 272), 26352
+  (754, 734) and loses on the tank 196 (4,342 against 4,641). **The tank goes the other way:** a finer level lowers
+  its masked pixels (1,042 to 812 at level 0 nearest) and its agreement with them (4,641 to 4,091); a coarser one
+  raises both (level 4 nearest 4,835 agreeing, 1,332 masked). The colour row per column: 18 at the painter's and at
+  level 0 bilinear, 17 at level 1 bilinear, 8 to 16 elsewhere; none above 18. A half-texel shift each way (3×3) at
+  the painter's and at level 1 bilinear: the unshifted sample is best in total (8,119 against 7,826 to 7,996); the
+  dragoon 13680 alone likes +v (6 to 12 of 139), noise. Nothing is drawn. **Not read**, since no column won:
+  how many levels the loader gives a unit's texture (`Texture::miplevels` +0x50, `split_from_mips@00524290`) and the
+  figure draw's `RenderState` `mag_filter`, `min_filter`, `mip_filter` (+0xec, +0xf4, +0xfc) and `mipmap_bias`
+  (+0x104) on the packet — a scan of run1559b's packet for 4103's `tfactor` pair at the 0x168 stride found none, so
+  the array's address is unsettled here. **What is left, by frame 3279 and its delta:** the masked pixels part per
+  piece in opposite directions under one level — the peasants and the dragoon 26352 nearer level 0, the tank nearer
+  level 3 and 4 — so no one sampling rule closes the 1,617. Rests on one photograph. Names no score until a mechanism
+  is chosen.
 
 ## Parked by the next landing, slot EY — reserved
 
