@@ -123,7 +123,15 @@ impl Sim {
             &mut crate::units::think::work_gate::SimWorkGate::new(self, u, frame),
             has_head,
         );
-        let action = self.update_action(u);
+        // **An animal never runs it**: `Animal::work@005d7330` is
+        // `Unit::do_job` on the front order and nothing of `Unit::work`
+        // around it, so a gaia animal's `orders_x/y` and `dest_angle` keep
+        // what `Unit::init` wrote (`docs/CHECKSUM.md` §17, item 4109).
+        let action = if self.units[u].is_gaia() {
+            None
+        } else {
+            self.update_action(u)
+        };
         if action.is_some_and(|a| self.units[u].orders[a].index() == index::ATTACK)
             && let Some(t) = self.units[u].combat.target
         {

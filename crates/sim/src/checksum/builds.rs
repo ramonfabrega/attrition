@@ -113,7 +113,15 @@ fn put(b: &mut [u8], base: usize, at: usize, width: usize, v: i64) {
 impl Sim {
     /// `(o, who)` of a combat object, as the original's `_o`/`_who` pairs
     /// hold it.
-    fn obj_o_who(&self, o: crate::combat::Obj) -> (i64, i64) {
+    /// A building's `TypeIndex` (`ptype +4`): `BASE_BUILDTYPES` plus its
+    /// type's place, 0 for none.
+    pub(super) fn building_type_index(&self, b: usize) -> i64 {
+        self.buildings[b]
+            .ty
+            .map_or(0, |t| i64::from(BASE_BUILDTYPES) + t as i64)
+    }
+
+    pub(super) fn obj_o_who(&self, o: crate::combat::Obj) -> (i64, i64) {
         match o {
             crate::combat::Obj::Unit(u) => self
                 .units

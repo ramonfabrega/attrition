@@ -239,6 +239,17 @@ pub struct Unit {
     pub airframe: air::Airframe,
     /// `unit_masks & 0x400`: has been given a build or repair order.
     pub was_builder: bool,
+    /// **`ObjectData::uid` (`+0x30`)** — `Object::init@00647750`'s per-player
+    /// counter ([`Marks::uid`]), taken at [`crate::Sim::add_unit`]. Nothing
+    /// in the simulation reads it; the units line folds it, and a target
+    /// order's `uid` is its target's (`docs/CHECKSUM.md` §17, item 4109).
+    pub uid: u16,
+    /// **`UnitData::los_x`/`los_y` (`+0x78`/`+0x7c`)** — the centre of the
+    /// 48-unit cell `Unit::init@00612100:103` was handed, `div_3(v >> 4) ·
+    /// 0x30 + 0x18`, its only writer: the unit's birth cell, taken at
+    /// [`crate::Sim::add_unit`]. Read by nothing but the units line
+    /// (`docs/CHECKSUM.md` §17, item 4109).
+    pub birth_cell: Pos,
     /// `unit_masks & 0x78000000`: the carrying walk a gatherer plays.
     ///
     /// Four bits, and `Guy::set_anim`'s walk arm reads them in its own
@@ -929,6 +940,11 @@ impl Unit {
             infiltrated: 0,
             airframe: air::Airframe::default(),
             was_builder: false,
+            uid: 0,
+            birth_cell: Pos::new(
+                pos.x.div_euclid(48) * 48 + 24,
+                pos.y.div_euclid(48) * 48 + 24,
+            ),
             carry: 0,
             cant_reach: false,
             decoy: false,

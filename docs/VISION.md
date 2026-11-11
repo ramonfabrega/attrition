@@ -144,6 +144,12 @@ arm, and the **wonder** arms of `Build::activate@00623e20:1970` (`TypeIndex
 leader pass: run529's 29 rows of `mylos` part on 9783 with the term
 computed live and agree with the cache.
 
+**An animal's is 0.** `Animal::update_los` overrides the slot — `mylos = 0`,
+return 0 — so every gaia animal holds 0 whatever its type's sight; the
+crate's `update_los` answers so for a gaia unit (item 4109,
+`docs/CHECKSUM.md` §17: the forty animals of run 1562's frame 91 read 0, ours
+4 before).
+
 `epoch[Science]` is `LeaderDataEncrypt::epoch[3]` — the type record makes
 `+0xe8 int[4] epoch` and `+0xf4` its fourth entry, and the `^ 0x87` in the
 decompile is the low byte of the `^ 0x63187` the sibling `int` reads use.

@@ -72,7 +72,7 @@ const GUY_END: usize = 0xa3;
 
 /// The gaia `TypeIndex`es whose pieces come three to a type
 /// (`GraphicPieces::get_type@00902540`'s `0x192 + (piece − first) / 3`).
-const GAIA_TYPES: std::ops::Range<i32> = 0x192..0x19e;
+pub(crate) const GAIA_TYPES: std::ops::Range<i32> = 0x192..0x19e;
 
 /// `first_bird_piece`, as `GraphicPieces::init_piece_ranges@008f70e0`
 /// writes it: `0xea8d` (`rondata::artdata::FIRST_BIRD_PIECE`).
@@ -115,7 +115,7 @@ impl Sim {
     /// `increment` (`+0xc`, 2), `flags & 0xbf` (a 1-byte local), one byte a
     /// figure (its pointer is not null), `size`..`increment` again
     /// (`+0x8..+0xe`, 6), then each figure's 155 bytes.
-    fn checksum_guy_array(&self, ranges: &mut Vec<Range>, u: usize) {
+    pub(super) fn checksum_guy_array(&self, ranges: &mut Vec<Range>, u: usize) {
         let unit = &self.units[u];
         let record = unit.index;
         let n = unit.guys.len() as i32;

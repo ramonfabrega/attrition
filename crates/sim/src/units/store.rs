@@ -90,9 +90,13 @@ impl Sim {
         let mark = &mut self.roster.marks[owner].unit;
         *mark = (*mark).max(unit.index.saturating_add(1));
         // `Unit::init` → `Object::init@00647750`: the unit takes the owner's
-        // next uid (not stored on the unit; the builds line reads a
-        // building's).
-        self.next_uid(unit.owner);
+        // next uid, and `Unit::init:103` writes its birth cell's centre into
+        // `los_x`/`los_y` (`docs/CHECKSUM.md` §17).
+        unit.uid = self.next_uid(unit.owner);
+        unit.birth_cell = Pos::new(
+            unit.pos.x.div_euclid(48) * 48 + 24,
+            unit.pos.y.div_euclid(48) * 48 + 24,
+        );
         self.units.push(unit);
         // `Unit::init`'s transport clause (`docs/TRANSPORT.md` §3.4).
         self.transport_init_unit(i);

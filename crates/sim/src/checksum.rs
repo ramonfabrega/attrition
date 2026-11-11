@@ -486,6 +486,7 @@ impl Sim {
 
 pub mod builds;
 pub mod guys;
+pub mod units;
 
 #[cfg(test)]
 mod tests;

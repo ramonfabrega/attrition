@@ -233,6 +233,15 @@ impl Sim {
     /// +0x238) × 96` adds `THESENATOR_BUILD_ARMOR` — before the halving,
     /// so an unfinished building under a Senator holds half the sum
     /// ([`Sim::hero_near_building`]).
+    /// **`ObjectData::armor@00647db0`** alone — the profile's armour, the
+    /// Dutch term and the owner's modifiers, without a unit's rally or a
+    /// building's Senator and halving: what `Unit::update_armor@006054c0`
+    /// caches into `UnitData::myarmor` (`+0x9c`). Read by the units line
+    /// (`docs/CHECKSUM.md` §17); the cattle citizens' term is not added.
+    pub(crate) fn object_armor(&self, o: Obj) -> i32 {
+        self.profile(o).armor + self.dutch_term(o) + self.mods_of(self.owner_of(o) as usize).armor
+    }
+
     pub fn armor_of(&self, o: Obj) -> i32 {
         // `ObjectData::armor@00647db0`'s Dutch term (item 3329): `ages ×
         // DUTCH_ATTACK_BONUS` on a Dutch kind.

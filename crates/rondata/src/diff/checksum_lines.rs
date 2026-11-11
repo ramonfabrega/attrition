@@ -1208,3 +1208,235 @@ fn the_guys_line_is_the_original_s_range_by_range() {
     assert_eq!(p, vec![r], "a -0.0 bank parts on its range");
     assert_eq!(parting(&Line::default(), &theirs).len(), GUYS.2);
 }
+
+/// The units line's range name for a stream row, by its call site
+/// (`docs/CHECKSUM.md` §17): the unit's own walkers, then the figure
+/// array's ([`guy_site_field`]).
+fn unit_site_field(site: &str) -> &'static str {
+    match site {
+        "006621fe" => "flags",
+        "0060d07f" | "0060cfae" | "005d7f0a" => "must_walk",
+        "0066221c" => "who..y_internal",
+        "00662287" => "type",
+        "00647885" => "myhits..launch_frames",
+        "00647910" => "launching",
+        "0060cfcd" => "collide_frame..play",
+        "0046d8df" => "path.size..increment",
+        "0046d980" => "path[k]",
+        "00730291" => "orders.count",
+        "007303ac" => "order.type",
+        "007303be" => "order.node",
+        "0047f243" | "00482e93" | "00486e83" => "order.flags",
+        "0047f251" | "00486e91" => "order.target",
+        "00482ea1" => "order.move",
+        "00486e9f" => "order.gather",
+        "005d7f26" => "ox..aid",
+        s => guy_site_field(s),
+    }
+}
+
+/// One units-line range decoded field by field: a record by its table
+/// (each field little-endian and signed at its width), the sub-object's
+/// `Coord`s unmasked, a figure by [`guy_range_fields`], anything else as
+/// its one value.
+fn unit_range_fields(field: &str, b: &[u8]) -> Vec<(String, i64)> {
+    use sim::checksum::units::{GATHER_FIELDS, MOVE_FIELDS, TARGET_FIELDS, UNIT_FIELDS};
+    let le = |s: &[u8]| -> i64 {
+        match s.len() {
+            1 => i64::from(s[0] as i8),
+            2 => i64::from(i16::from_le_bytes([s[0], s[1]])),
+            _ => i64::from(i32::from_le_bytes(s[..4].try_into().unwrap())),
+        }
+    };
+    let table = |t: &[(&str, usize, usize)], base: usize| -> Vec<(String, i64)> {
+        t.iter()
+            .map(|&(n, at, w)| (n.to_string(), le(&b[at - base..at - base + w])))
+            .collect()
+    };
+    match field {
+        "myhits..launch_frames" => table(sim::checksum::builds::OBJECT_FIELDS, 0x20),
+        "collide_frame..play" => table(UNIT_FIELDS, 0x48),
+        "order.move" => table(MOVE_FIELDS, 0x4),
+        "order.target" => table(TARGET_FIELDS, 0x8),
+        "order.gather" => table(GATHER_FIELDS, 0x14),
+        "who..y_internal" => {
+            let c = |at: usize| le(&b[at..at + 4]) ^ i64::from(COORD_MASK);
+            vec![
+                ("who".into(), i64::from(b[0])),
+                ("o".into(), le(&b[1..3])),
+                ("z".into(), c(3)),
+                ("x".into(), c(7)),
+                ("y".into(), c(11)),
+            ]
+        }
+        "path.size..increment" => vec![
+            ("path.size".into(), le(&b[0..4])),
+            ("path.length".into(), le(&b[4..8])),
+            ("path.increment".into(), le(&b[8..9])),
+        ],
+        "path[k]" => vec![
+            ("to_x".into(), le(&b[0..4])),
+            ("to_y".into(), le(&b[4..8])),
+            ("path.tolerance".into(), le(&b[8..12])),
+            ("path.flags".into(), le(&b[12..16])),
+        ],
+        "ox..aid" => vec![
+            ("animal.ox".into(), le(&b[0..2])),
+            ("animal.whom".into(), le(&b[2..4])),
+            ("animal.aid".into(), le(&b[4..5])),
+        ],
+        "guy" | "guys.size..increment" => guy_range_fields(field, b),
+        _ => vec![(field.to_string(), le(b))],
+    }
+}
+
+/// The pinned outcome of the units line on run 1562's packet (`docs/CHECKSUM.md`
+/// §17): `(units, ranges, bytes, ranges parted, bytes in the ranges that
+/// agree)` — the stream's 52 units, 1,084 ranges and 19,642 bytes; 1,078
+/// ranges and 18,976 bytes agree. The six that part are the `UnitData`
+/// records of `0/0`, `0/1`, `0/2`, `1/0`, `1/1` and `1/2`. The first image
+/// (item 4109) parted on 88: the forty animals' `mylos`, `orders_x/y` and
+/// `dest_angle`, and the two scouts' `flags`.
+const UNITS: (usize, usize, usize, usize, usize) = (52, 1084, 19642, 6, 18976);
+
+/// **The fields the units line is held out on**, each with its count of
+/// parting units on run 1562's frame 91 (`docs/CHECKSUM.md` §17): every
+/// other field of every range agrees.
+///
+/// - `play` (`+0xb6`): ours `Unit::init`'s −1, theirs 0 on `0/0` and `0/1`
+///   — the interface's selection (`SelectGroup::add`), which the
+///   simulation does not keep;
+/// - `u86` (`+0x86`, the union): ours −1, theirs 0 on the scouts `0/0` and
+///   `1/0` (`Specials::init_special`) and on the woodcutters `0/2` (0) and
+///   `1/2` (2) (`Unit::do_non_flat_gather`, `Unit::do_move`): not held;
+/// - `unit_masks` (`+0x68`): bit `0x8` alone, on those six — the movement
+///   step's (`Unit::do_move`, `Unit::find_path`, `Unit::move_step`,
+///   `Unit::go_around_building`): not held.
+const UNITS_HELD_OUT: &[(&str, usize)] = &[("play", 2), ("u86", 4), ("unit_masks", 6)];
+
+/// **The units line, ours against the original's, range by range**
+/// (`docs/CHECKSUM.md` §17, item 4109): our `Sim::checksum_units` against
+/// the instrument's stream of the units line, every range in order, each
+/// decoded field by field on both sides by the same tables, then the
+/// Adler against the printed `Units`. Held out on [`UNITS_HELD_OUT`], each
+/// field named with its count of parting units; the agreeing ranges and
+/// bytes pinned in [`UNITS`]. And it can part: one perturbed byte of each
+/// kind of range parts on that range alone, and the empty image on all.
+#[test]
+fn the_units_line_is_the_original_s_range_by_range() {
+    let Some((theirs, want, sim)) = line_inputs("units", "Units") else {
+        return;
+    };
+    let ours = sim.checksum_units();
+    let mut parted_by_field: std::collections::BTreeMap<String, Vec<(String, i64, i64)>> =
+        std::collections::BTreeMap::new();
+    let mut unit = (0u8, 0i16);
+    for (i, t) in theirs.iter().enumerate() {
+        let tf = unit_site_field(&t.1);
+        let Some(o) = ours.ranges.get(i) else {
+            parted_by_field
+                .entry(format!("{tf}: ours -"))
+                .or_default()
+                .push((format!("range {i}"), 0, 0));
+            continue;
+        };
+        if o.field != tf {
+            parted_by_field
+                .entry(format!("{tf}: ours walks {}", o.field))
+                .or_default()
+                .push((format!("range {i}"), 0, 0));
+            continue;
+        }
+        // A unit's first range is its `flags`; its `who` and `o` two rows on.
+        if tf == "flags"
+            && let Some(w) = theirs.get(i + 2).filter(|w| w.2.len() == 15)
+        {
+            unit = (w.2[0], i16::from_le_bytes([w.2[1], w.2[2]]));
+        }
+        let tv = unit_range_fields(tf, &t.2);
+        let ov = unit_range_fields(o.field, &o.bytes);
+        for ((n, a), (_, b)) in ov.iter().zip(&tv) {
+            if a != b {
+                parted_by_field.entry(n.clone()).or_default().push((
+                    format!("{}/{}", unit.0, unit.1),
+                    *a,
+                    *b,
+                ));
+            }
+        }
+    }
+    for (f, v) in &parted_by_field {
+        eprintln!("FIELD {f}: {} parted; {:?}", v.len(), &v[..v.len().min(8)]);
+    }
+    let parted = parting(&ours, &theirs);
+    let bytes_equal: usize = ours
+        .ranges
+        .iter()
+        .zip(&theirs)
+        .filter(|(o, t)| o.bytes == t.2)
+        .map(|(o, _)| o.bytes.len())
+        .sum();
+    eprintln!(
+        "units: ours {} ranges {} bytes adler {}; theirs {} ranges {} bytes; printed {want}; ranges parted {}, bytes in equal ranges {bytes_equal}",
+        ours.ranges.len(),
+        ours.bytes(),
+        ours.adler(),
+        theirs.len(),
+        theirs.iter().map(|t| t.2.len()).sum::<usize>(),
+        parted.len(),
+    );
+    let units = ours.ranges.iter().filter(|r| r.field == "flags").count();
+    assert_eq!(
+        (
+            units,
+            theirs.len(),
+            theirs.iter().map(|t| t.2.len()).sum::<usize>(),
+            parted.len(),
+            bytes_equal
+        ),
+        UNITS,
+        "the units line: units, the stream's ranges and bytes, ranges parted, bytes agreeing"
+    );
+    assert_eq!(ours.ranges.len(), UNITS.1, "our walk's ranges");
+    assert_eq!(ours.bytes(), UNITS.2, "our walk's bytes");
+    let held: Vec<(&str, usize)> = parted_by_field
+        .iter()
+        .map(|(f, v)| (f.as_str(), v.len()))
+        .collect();
+    assert_eq!(held, UNITS_HELD_OUT, "the fields the line is held out on");
+    if UNITS_HELD_OUT.is_empty() {
+        assert_eq!(ours.adler(), want, "the units line's Adler");
+    } else {
+        assert_ne!(
+            ours.adler(),
+            want,
+            "a held-out line cannot sum to the printed value"
+        );
+    }
+
+    // **It can part.** One byte of each kind of range, perturbed, parts on
+    // that range alone.
+    let agreeing: Vec<usize> = (0..ours.ranges.len())
+        .filter(|&i| ours.ranges[i].bytes == theirs[i].2)
+        .collect();
+    let mut kinds = std::collections::BTreeSet::new();
+    for &i in &agreeing {
+        if !kinds.insert(ours.ranges[i].field) {
+            continue;
+        }
+        let mut bent = ours.clone();
+        bent.ranges[i].bytes[0] ^= 0x01;
+        let p: Vec<usize> = parting(&bent, &theirs).iter().map(|p| p.0).collect();
+        let base: Vec<usize> = parted.iter().map(|p| p.0).collect();
+        let mut want_p = base.clone();
+        want_p.push(i);
+        want_p.sort_unstable();
+        assert_eq!(
+            p, want_p,
+            "a bent {} parts on range {i} alone",
+            ours.ranges[i].field
+        );
+    }
+    eprintln!("units: {} kinds of range bent", kinds.len());
+    assert_eq!(parting(&Line::default(), &theirs).len(), UNITS.1);
+}
