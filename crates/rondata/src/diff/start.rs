@@ -922,6 +922,16 @@ pub fn from_lobby(
             mountains = m.grid.mountains.clone();
             let (mut w, rm) = world_from_grid(&m.grid, m.z, sea);
             region_map = rm;
+            // The parts of `WorldData` the generator and `build_game` write
+            // once (`docs/CHECKSUM.md` §21): the start arrays as the chain
+            // left them, `Terrain::init`'s half-land lists, the style and
+            // `world->seed`.
+            w.set_record(sim::world::WorldRecord {
+                starts: Some(m.grid.starts.clone()),
+                halfland: Some(m.halfland.clone()),
+                map: int("MAP_STYLE").map(|v| v as i32),
+                seed: Some(game_seed),
+            });
             // `World::init`'s `seen2`, allocated and zeroed with the
             // world: every reveal the walk makes from here on lands in it
             // (`docs/START.md` §7.2).

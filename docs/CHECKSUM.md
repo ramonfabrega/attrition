@@ -265,7 +265,8 @@ and are named last; by bytes:
 6. units (19,642; it walks the
 guys again; ~~held out on three fields, §17~~ ported, §17, §18) · 7. groups (37,010; ported, §19) · 8. leaders (58,343;
 held out on its long range and the spell bits, 4,313 bytes agreeing, §20) ·
-9. world (294,769) · then walls, ammo and deaths (0 each), counted on a
+9. world (294,769; held out by section, 83,249 bytes agreeing in ten whole
+sections, §21) · then walls, ammo and deaths (0 each), counted on a
 frame that holds one.
 
 Cities and items swapped places against run1100's frame (630 and 352
@@ -496,7 +497,7 @@ Section by section:
 | 2 | `start_x`, `start_y`, `start_city_x`, `start_city_y` (`SimpleArray<WCoord>`): each one's count and size locals, `increment`, flags local, then its elements; two arrays of 12 and two of 3 | 120 + 44 |
 | 3 | `oil_x`, `oil_y`: both empty here, so each is its zero count alone (the record's 524289, the Adler-32 of 8 zero bytes) | 8 |
 | 4 | [+0x8, +0x80) `size`..`seed`, 30 ints | 120 |
-| 5 | each `WData` cell, [+0x0, +0x15) of its 0x1c: `flags`..`was_seen`, 17 fields (stops before `block`) | 3,600 × 21 = 75,600 |
+| 5 | each `WData` cell, [+0x0, +0x15) of its 0x1c: `flags`..`was_seen`, ~~17~~ 16 fields (stops before `block`; item 4131) | 3,600 × 21 = 75,600 |
 | 6 | `tdata`: `tile_size` × 2 (`TData` `mask`); `seen`, `seen2`, `seen3`: `fog_size` bytes each | 115,200 + 43,200 |
 | 7 | `wcoord_seen`: `size` bytes | 3,600 |
 | 8 | `danger[0..8]`: `reg_size` × 4 each | 28,800 |
@@ -505,7 +506,12 @@ Section by section:
 | 11–13 | the terrain's `SimpleArray<int>`s at +0x4b9c, +0x4bb8, +0x4bd4 | two of 693 ints, one empty: 5,544, headers 26 |
 
 Those total 300,441. The record's sixteen `World` lines are sections 0
-to 14 alone, then all of them. The walker has no block for section 0
+to 14 alone, then all of them — on run 1562's frame 91 too, where each
+section's Adler over the stream is its printed line (item 4131, §21). There
+the start arrays are two of 2 and two of 8, the terrain's lists
+(`TerrainData`'s `halfland_locs`, `halfland_types`, `halfland_subtypes`,
+`nuke_hits`) 692 entries of size 1,024, and 25 blocks; a block's head is its
+`BitMask<768>`'s `bits` 768 and `size` 96. The walker has no block for section 0
 or 14, so both print 1. Section 13, an empty `SimpleArray<int>`, prints
 262145, the Adler-32 of its 4-byte zero count.
 
@@ -1826,3 +1832,120 @@ counter, a slot mark, a setup rule, a never-reached constant, a held leaf and
   and `aggression` after `Leader::diplomacy` has stored over it.
 - A store to a leaf by pointer arithmetic that names neither the field nor
   the leaders array: the never-reached verdicts rest on its absence.
+
+## 21. The world line, held out by section (item 4131)
+
+**741 of 7,994 ranges and 83,249 of 294,769 bytes agree** on run 1562's
+frame 91, in ten whole sections. `Sim::world_image`
+(`crates/sim/src/checksum/world.rs`) emits the line as leaves, a `None` leaf
+being one the crate holds no value for; `Sim::checksum_world` is its bytes.
+`diff::checksum_lines::world::the_world_line_is_the_original_s_by_section`
+matches each range by section, field and record, tallies every leaf element,
+pins the sections in `WORLD` and the fields left in `WORLD_HELD_OUT`, and
+asserts a whole section's Adler against the record's printed line.
+`CHECKSUM_STATE` does not count it (§5). Ours sums to 3652711706 against the
+printed `World` 3643872705.
+
+**The record prints a sum per section.** Record 3201's sixteen `World`
+lines are frame 91's sections 0 to 14 and the whole: cut by call site and
+walk order, each section's Adler over the stream is its printed line, all
+fifteen (item 4131's journal has the table). Record 3202, the next frame,
+differs in section 9 alone. So a section is a score of its own.
+
+**By section** (the stream's ranges and bytes; ours agreeing):
+
+| section | stream | agreeing | what holds it out |
+|---|---|---|---|
+| 1 `xs`, `ys` | 1; 8 | **whole** | |
+| 2 the start arrays | 20; 124 | **whole** | |
+| 3 `oil_x`, `oil_y` | 2; 8 | **whole** | |
+| 4 `size`..`seed` | 1; 120 | 20 of 30 fields | `World::analyze_map`'s ten tallies |
+| 5 the cells | 3,600; 75,600 | 14 of 16 fields on every cell | `land_sub` (8 cells), `was_seen` |
+| 6 masks and the fog planes | 4; 158,400 | 3; 43,200 | the masks' bit `0x4` (131 tiles) |
+| 7 `wcoord_seen` | 1; 3,600 | 0 | the fog |
+| 8 `danger[0..8]` | 8; 28,800 | **whole** | |
+| 9 the collision blocks | 3,650; 17,000 | 0 | the blocks' allocation |
+| 10–12 the half-land lists | 706; 11,105 | **whole** | |
+| 13 `nuke_hits` | 1; 4 | **whole** | |
+
+Sections 0 and 14 walk nothing and print 1. **The fog's three planes agree
+on all 43,200 bytes** (`seen` 459 non-zero, `seen2` 702, `seen3` 89) by the
+vision the crate already runs (`docs/VISION.md`); the item did not port the
+fog.
+
+**What the crate held before this item.** The first image, before any
+writer was read, agreed on section 1, the cells' 13 fields `flags`, `land`,
+`region`, `region2`, `down`, `down_who`, `val`, `goods`, `who`, `who2`,
+`blocked`, `bad`, `solid` on all 3,600 cells, `land_sub` on 3,592, the masks
+on 57,469 of 57,600, the three fog planes, the two seated danger rows, and
+the header's 18 fields the crate derives (the extents from `xs`, `ys`;
+`sea_map`; the six territory limits; `land_size`). The table is item 4131's
+journal.
+
+**Carried by a rule, each read from its writers:**
+
+| field | rule |
+|---|---|
+| `light` | `WData::WData` and `World::wipe` write 0. The export's `->light` names no other store; of the image's 29 byte stores at `+0xe` none other is to a cell, and no wider store covers `+0xe` in the `idx·0x1c` form. 0 on every cell of both frames; it agreed by default before it was read |
+| `danger` rows 2–7 | `World::init`'s zeroed allocation: `GameDaemon::calc_danger` clears and fills a row only for a leader with `leader_flags & 2`, and an unseated slot holds `0x2000000` alone (§20). Run1100's rows 3–7 are zero too |
+| `oil_x`, `oil_y` | their zero count: `World::init` and `World::close` empty them, and neither the export nor the listing holds a store that appends |
+| `nuke_hits` | its zero count: `TerrainOut::close` empties it, `TerrainOut::rebuild_nuke_craters` (a restore's, `WalkDataGame::walk_data`) reads it, and nothing appends |
+| the start arrays | `World::record` (`crates/sim/src/world.rs`): the composed chain's `MapGrid::starts` as it leaves them. The writers are map generation's (`World::add_starting_location`, `Map::place_start_in_region`) and `World::init`, `close` and `wipe`'s empties |
+| the half-land lists | `World::record`: `Terrain::init`'s lists at `Terrain.cpp` 720, unchanged to 894 by the setup trace's parts 10–12. `Terrain::mark_halfwater`, the one appender, is reached only from `check_and_set_halfland` (and the scenario editor); `TerrainOut::close` empties. Diff-backed through frame 91 |
+| `map`, `seed` | `World::record`: the lobby's style (14) and `world->seed`, `Setup::build_game`'s re-seed (7,236 on both frames) |
+
+**Made to fail.** One element of each of eleven kinds of carried field
+(a start array's element and its size, an oil count, `map`, `seed`, a cell's
+`light`, an unseated danger word, a half-land coordinate, a type, a list's
+size, `nuke_hits`' count), bent, returns that field to the list with a count
+of one. A held-out section's Adler is asserted to part from its line.
+
+**What holds the line out**: 18 fields (`WORLD_HELD_OUT`, elements not
+agreeing on frame 91).
+
+- **A setup function not carried** (10 fields): `World::analyze_map`'s
+  `player_reg`, `resource_reg`, `forest_size`, `mountain_size`, `rock_size`,
+  `total_metal` (`MountainsData::total_gather_size`), `total_oil`,
+  `goodies`, `land_resources` and `sea_resources`: counts over the cells'
+  flags (`0x20`, `0x8`, `0x800`, `0x8000`, `0x1` by land), a tile's
+  `mask & 3 == 2` at each cell's `(4x + 2, 4y + 2)`, and the land regions
+  holding a seated leader's city or as large as the map's share. Carrying it
+  takes the function ported and run where `Setup::build_game` runs it, the
+  values kept on `World::record` (the crate's `analyze_player_regions`,
+  `crates/sim/src/cities/city.rs`, carries its region-flag arm alone).
+- **A mechanic of its own** (2 fields): `land_sub` on 8 cells under the two
+  bases (ours 3 or 1, theirs 2), `Terrain::spot_update_land`'s rewrite
+  after a placed object (item 4129's pointer, parked 4129b); the masks' bit
+  `0x4` on 131 tiles under the bases (ours without it), unread.
+- **The fog** (2 fields, out by name): `was_seen` (3,600) and `wcoord_seen`
+  (3,600), beside the three planes that agree.
+- **The collision blocks** (4 fields): the presence local (3,600),
+  `World::new_coll_block`'s lazy allocation, which the crate's flat
+  `CollGrid` does not keep; the 25 heads (`bits` 768, `size` 96, the
+  `BitMask<768>` constructor's) and bodies, whose 256 bits a cell are the
+  `CollGrid`'s at `(ux & 15)·16 + (uy & 15)` (`docs/COLLISION.md` §2), held
+  once presence is.
+
+**How it was established, and how confident.** Diff-backed: the section
+sums against the record; the whole line's shape on frame 91 (7,994 ranges,
+every length); every leaf the crate holds, element by element. On a reading:
+the writers named in the carried table, found by the export's `->name` and
+`field_0x134 + k + idx·0x1c`, and by the listing's register-relative stores
+at the offset (and every store covering it), attributed by the decompile
+index; `light`, the oil arrays, `nuke_hits` and the unseated danger rows
+take their verdicts from those nets. Consistent with run1100's frame
+(`light` 0, rows 3–7 zero, `seed` 7,236, oil empty), not diffed there.
+
+**Not established**:
+
+- Every frame but 91, and a game the crate builds from a dump (no
+  `World::record`, so sections 2, 4's `map` and `seed`, and 10–12 unheld).
+- `land_sub` and the masks' `0x4` (above); a cell's `land_sub` that
+  `spot_update_land` moves is a terrain mechanic.
+- The fog's `was_seen` and `wcoord_seen`; the three planes on a frame past
+  a `update_all_seen` resync.
+- The blocks' allocation rule, and so whether a block, once allocated, ever
+  goes.
+- `nuke_hits` after a nuke: the appender was not found, and a nuke's
+  terraform was not read.
+- A store to a `WorldData` field by a pointer the nets do not name.

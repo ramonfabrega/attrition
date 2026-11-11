@@ -10,6 +10,8 @@
 //! [`CHECKSUM_PACKET`]'s `.2`.
 
 use super::minted::{built_start, minted, script, tick_to};
+
+mod world;
 use crate::checksum::CHECKSUM_PACKET;
 use sim::checksum::{COORD_MASK, Line};
 
