@@ -1289,7 +1289,7 @@ image's references):
 | `Unit::pitch_aircraft@005e8de0` | `pitch` ← a computed single or 0, `last_pitch` ← `pitch` | the same |
 | `Unit::come_out@00617c10` | guy 0's `turret_inc` ← `0x42b40000` (90.0, at `618003`, the image's one store of it to `+0x40`) | a missile (`type +0x1e4 & 0x8000000`) leaving its silo |
 | `Unit::swap_team@006118d0` | `turret_inc` copied from the old figure | a conversion |
-| `Guy::set_bank@005d86b0`, `Guy::set_pitch@005d86a0`, `Guy::set_elev_angle@005d8fb0`, `Guy::copy_data@005d84b0` | a single | **nothing**: no call and no pointer in the image (`docs/audit/2026-11-06-territory-object-1.md`) |
+| `Guy::set_bank`, `Guy::set_pitch`, `Guy::set_elev_angle`, `Guy::copy_data` | a single | **nothing**: no call and no pointer in the image (a PE scan for each address, item 4104; `docs/audit/2026-11-06-territory-object-1.md`, `rondata::blind::RESIDUE`) |
 
 Their readers are the renderer's (`GuyData::get_render_bank@005de530`,
 `GuyData::get_render_pitch@005de4f0`) and the dump. So, by DECISIONS
