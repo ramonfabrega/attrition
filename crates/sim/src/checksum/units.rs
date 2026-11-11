@@ -271,7 +271,7 @@ impl Sim {
             .iter()
             .filter(|x| x.alive() && x.inside_unit == Some(u))
             .map(|x| (i64::from(x.index), i64::from(x.owner)))
-            .last();
+            .next_back();
         p(0x28, 2, inside.map_or(-1, |x| x.0));
         let (up, down, down_who, up_who) = self.unit_chain_words(u);
         p(0x2a, 2, i64::from(up));
