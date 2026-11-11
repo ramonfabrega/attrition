@@ -3850,6 +3850,8 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 ## Loop, filed 2026-11-10 — the driver's fourteenth session
 
+(4130) **A record's writer census takes two nets, and a third before a leaf is called never reached** (4124's "for the Loop", the journal's line, filed at its merge; the driver's eighteenth session, 2026-11-11): the decompile names a `Leader` field `field_0x<off>` on a `Leader *` but not on a `Leaders *` another class walks, and it prints an aliased store as another slot's field. The listing, `0xe3a390 + off` by an index register, found stores the export's grep missed (`Object::take_damage`'s `units_killed`), and the export found one the listing missed (`GameDaemon::process_victory`'s `wonderwin_timer`). Candidate: a brief that asks for a field's writers names both nets (the export's `->name` and `field_0x<off>`, the listing's displacement off the record's base and off a register inside the class), and a never-reached verdict takes a third pass over every register-relative store at the offset; the scratch finders of `b4124/` graduate into `tools/` at their third use.
+
 (4128) **A row borrowed its tolerance from another reader, and the tolerance is wider than the spread of what the row must tell apart** (the driver's eighteenth session, 2026-11-11): 4127's ground row, the driver's design, counts a tile whose mean share is within the colour reader's 0.05 of the photograph's. The four base textures' own mean shares are (0.42, 0.41), (0.445, 0.375), (0.43, 0.394) and (0.438, 0.355): three lie within 0.05 of one another. The row landed at 949 of 1,109 against a floor of the debug colour, a control nobody expected to pass, so the count backs the tileset and the mapping (r 0.499 against 0.083) and not the rule's claim, which base a tile draws; where it could tell, sub 3, it read 45 of 148. The note asked for the packet's value of the choice and the landing carried none; the driver booked it and saw both at the next design. Candidate: a render row's note names the alternatives the row must reject and the brief's first probe counts the row under each before the rule's count (the control is the floor, not a colour chosen to fail); a tolerance taken from another reader is checked against the candidates' spread at design; and a booking reads the journal for each value the note asked for by name.
 
 (4126) **A layout table's offsets banked two constants no mechanism carries, and the builder booked it to the base** (the driver's seventeenth session, 2026-11-11): 4121's leaders emitter lists `LeaderData`'s leaves by offset, `attacked` at `+0x9cc` and `my_team_terr` at `+0x9ec` among them. `docs/GROUPS.md` names 0x9cc (a group record's size) and `docs/COMBAT.md` 0x9ec as constants no crate carries; the constant guard reads a hex anywhere in code as built, so both pins fell (GROUPS 3 → 2, COMBAT 2 → 1) on a coincidence, the class parked 802, 820 and 975 name. The builder's hand-back and its commit said the base had left them bankable and that none of its constants was spelled in either document; the base's guard had passed twice on the driver's tree that hour, and a `git grep` of the two values named the table in a minute. The pins are merged as the guard demands and are wrong by one each. Candidate: the guard does not read a `(name, offset, width)` leaf table as building anything (the checksum emitters' tables listed, as the sweep's files are), the two pins restored; and a hand-back that moves a pin it says it did not cause names the value that moved it.
@@ -16532,13 +16534,23 @@ words and edits nothing here; a refill lands when two remain.
   scripted grep and not each read whole (4124). Names no score until a scored frame holds one: a second frame of the minted game is the place
   (with parked 4104a, 4113a, 4116a).
 
-## Parked by the next landing, slot FE — reserved
+## Parked by item 4124, 2026-11-11 — the leaders line's long range, 100 leaves left
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4124a. The 80 leaves a plain game moves and the crate holds no value for** (`docs/CHECKSUM.md` §20; `LEADERS_HELD_OUT`; the builder's
+  hand-back). By what carrying each takes: `city_name` (a per-tribe naming counter, bumped on whichever same-tribe leader holds the highest);
+  the kill, loss and raze counters (4; `take_damage`, `do_damage`, the sabotage and counterintel spells); the combat rates (13; the
+  `*_current_frame` and `*_fifteen_seconds` words, the averages, `frame_battle`); the victim stamps (4); attrition's three stamps, `att` and
+  `give_att_disabled` (`territory::upkeep::calc_attrition` may hold `att`'s terms, unchecked); diplomacy's actions (15, behind the crate's
+  SEAMs); the taunts (6); the end of game (6); the lost capital (3; the tally's `lost_capital_frame` is a partial copy of
+  `lost_capital_stamp`); `misery`, `pop_issues`; the slot marks and build counters (7); the six `*_queued` (each with its own zero floor in
+  `track_queued`, so not a sum of `num_queued`); `scholar_militia`; `repair_stamp`, `units_bribed`, `missiles_used`, `nukes_launched`;
+  `cannon_time`, `handicap`, `multi_diff` (below `+0x200`, unread). Each family is a counter stepped where the crate already has the event,
+  with every floor run; the store sites rest on the listing, the functions not all read. The line comes whole only with the 20 mechanics of
+  their own beside them (the fog, the spells, the score), so a family names no score alone: it books when a scored frame holds a value of it.
+- **4124b. What 4124's carried leaves rest on that frame 91 does not hold** (§20, "Not established"). Every carried value there is a setup
+  value or a count of the start: a capture, a razed or cancelled building, a squad, a decoy, a dead city's slot, a nuke, a fort, a dock, an
+  armed or air unit, `aggression` after `Leader::diplomacy` stores over it, `chat_status` in a cooperative game, `units_built` for a
+  population-0 hero or follower (a SEAM). A second scored frame of the minted game is the place (with parked 4121a, 4104a, 4113a, 4116a).
 
 ## Parked by item 4127, 2026-11-11 — what the ground's base layer leaves
 
