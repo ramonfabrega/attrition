@@ -95,7 +95,7 @@ before the store.
   category gives the five rows `0, 1, 2, 4, 8` (None, 1, 2, 4, 8 Cannon
   Times). **Units: a count of uses.**
 - **Step: −1 per use.** `start_cannon_time(who)` (from
-  `CommandPackage::process_cannon_time (009454f0)`, from
+  `CommandPackage::process_cannon_time (009464f0)`, from
   `CommandPackage::process`, i.e. command 0x4d off the order stream) steps
   it when **all** of: `who ≥ 0`; `turn_control.cannon_time_who < 0` (no
   cannon time already running; `cmpl $0,0x24(%esi)`); `cannon_time != 0`.
@@ -288,3 +288,130 @@ compares), what sets `Player.flags` bit 2 in the lobby (I took it from the
 `load_leader_chunk` mirror and the dump's `flags 7`/`flags 1`), whether
 the solo lobby offers a per-player handicap.
 
+## Leaf 3: `multi_diff` (+0x50, int)
+
+### 1. Writers
+
+Export, `->multi_diff`: reads only (`get_diff (006ec000)`,
+`get_gather_handicap (006d66a0)`, `get_handicap (006da740)`, `log_data
+(006e5110)`, `Army::find_target (006f69b0)`). `field_0x50` on a leaders
+base: `Leader::Leader (006d2bf0)`, `Leader::set_diff (006d2470)`,
+`DropControl::process_drop (00959500)`, `IFaceEditorNations::on_combobox_select
+(009897d0)`, `ScenarioRead::load_leader_chunk (009ac080)`,
+`ScenarioEditor::change_difficulty (0099bc00)`; and `init_handicaps`'s
+`piVar10[1]`. (`Leader::diplomacy`'s `local_28[-1].list[9].field_0x50` is a
+pointer-arithmetic artefact on another array, and `ConsoleWin::run_cmd`'s
+is `roads->field_0x50`.)
+
+Listing, absolute `0xe3a3e0` stores: 0x95967a (`movl $3`, `process_drop`),
+0x9898bc (`on_combobox_select`, `ecx = console_who·0x6eec`), 0x99bc0d
+(`change_difficulty`), 0x9ac5aa (`load_leader_chunk`, from the record's
+`+0xe8`, after `Leader::init`), 0x9e5386 (`ScenarioFuncSet::set_leader_difficulty
+(009e5350)`). Register-relative: 0x6d2c24 `movl $2,0x50(%esi)` in
+`Leader::Leader` (`esi = this`), 0x6d2474 `mov %eax,0x50(%ecx)` in
+`set_diff` (`ecx = this`), **0x58ae49 `mov %eax,0x4(%esi)`** in
+`init_handicaps` (`esi` = the `+0x4c` walking pointer, so `+0x50`).
+
+| writer | store | value | reached from |
+|---|---|---|---|
+| `Leader::Leader (006d2bf0)` | 0x6d2c24 | 2 | `Leaders::Leaders (006ed900)` (the array's static construction; `push $0x6d2bf0` at 0x6ed91e) |
+| `Leaders::init` → `Leader::init`, `tribe < 0` | memset | 0 | every game build |
+| `Game::init_handicaps (0058abf0)` | 0x58ae49 | lobby `difficulty`, or the slot's max AI `Player.diff` (default 2) | every game build, see predicate |
+| `DropControl::process_drop (00959500)` | 0x95967a | 3 | `CommandPackage::process_ungraceful_player_drop`, `DropControl::process_drops` |
+| `ScenarioRead::load_leader_chunk (009ac080)` | 0x9ac5aa | scenario record `+0xe8` | scenario load |
+| `ScenarioFuncSet::set_leader_difficulty (009e5350)` | 0x9e5386 | the script's argument, 1..6, stored unchanged | the trigger VM (`init_funcs` registers it) |
+| `IFaceEditorNations::on_combobox_select (009897d0)` | 0x9898bc | combo index | scenario editor |
+| `ScenarioEditor::change_difficulty (0099bc00)` | 0x99bc0d | argument | **no caller** in the listing |
+| `Leader::set_diff (006d2470)` | 0x6d2474 | argument | **no caller, no pointer**: no `call`/`push` of 0x6d2470 and its VA bytes `70 24 6d 00` occur nowhere in the PE; `rise_z.map` gives the address one name (not folded) |
+| `LeaderData::walk_data (006d6750)` | bulk | saved value | saved-game load |
+
+### 2. Event, step, predicate
+
+Set once per game build by `init_handicaps`, after `Leaders::init` zeroed
+it (the static ctor's 2 never survives to a game). Per seated slot
+(`leader_flags & 1`, slots 0..7), the tail of the store loop
+(0x58ae09..0x58ae49):
+
+- **Skipped** (left 0) when `Game::is_scenario (0043ec70)` — `semaphore`
+  bit 12 (`+0x821 & 0x10`) or bit 17 (`+0x822 & 2`) — **and** `semaphore`
+  bit 26 (`+0x823 & 4`) is clear.
+- Otherwise, if `semaphore` bit 2 **or** bit 26 is set:
+  `multi_diff = aidiff_i` (the max `Player.diff` over non-human lobby
+  records with `who == i`, from leaf 2's step 1), or **2** when there is
+  none (`cmovns`: −1 → 2).
+- Otherwise (the solo random-map case): `multi_diff = game.info.difficulty`
+  (`movzbl 0x2b(%eax)`), the lobby byte, for **every seated slot, human or
+  computer**.
+
+Units: a difficulty level, 0 Easiest … 5 Toughest (`data/rules.xml`
+`difficulties`, six rows, no `<DATA>`; the index is the value). Exempt:
+slots 8, 9 and unseated slots. Later steps, none per frame:
+`process_drop` sets 3 (Tough) on the leader of a dropped network player
+when no other connected player controls it, while clearing the human bit
+(`leader_flags & ~4`, `Player.flags & 0xffeb`); the trigger function
+stores its 1..6 argument as given (so a script's "1" lands as Easy, and 6
+is out of the 0..5 range — no clamp; I did not read whether the trigger
+layer documents 1-based input); the scenario/editor writers store what the
+file or combo carries.
+
+### 3. Reset
+
+`Leaders::init`'s memset at every game build, then `init_handicaps` (or a
+scenario's `load_leader_chunk`). Nothing in the frame loop.
+
+### 4. Readers
+
+`LeaderData::get_diff (006ec000)` — 56 direct `call`s (AI production,
+diplomacy, armies, `Object::take_damage`, `Unit::do_gather`, …) plus
+inlined copies read through `0xe3a3e0(%reg)` (`Game::determine_end_of_game_stats_and_achievements`,
+`Unit::think_spellcaster`, `Unit::find_repair_spot`, `Army::find_target`)
+and `0x50(this)` (`Leader::create_units`, `production_ai_setup`,
+`research_techs`), and the copies inside `get_handicap` and
+`get_gather_handicap`. The selector, in every copy: **`semaphore` bit 2 →
+`multi_diff`; else `multi_diff` only if bit 12 is set, bit 17 clear and
+`multi_diff ≥ 0`; else the lobby `difficulty`.** So in a solo random-map
+game (bits 2, 12, 17 clear) no AI decision reads this leaf. Also
+`log_data` (`multi_diff`), `save_leaders_chunk`,
+`ScenarioFuncSet::get_leader_difficulty`.
+
+### 5. Crate
+
+The value exists: `ai::Lobby::difficulty` (`crates/sim/src/ai.rs`),
+read by `Sim::ai_difficulty` (`crates/sim/src/ai/ai_types.rs`), which is
+the crate's `get_diff` for the solo arm. The leaf itself is only listed in
+`crates/sim/src/checksum/leaders.rs` `LEADER_FIELDS`; `Sim::leader_long`
+returns `None`. A builder adds `"multi_diff" => one(i64::from(lobby.difficulty))`
+to `leader_long`'s match (the walk already skips unseated slots via
+`leader_seats()`, matching `walk_data`'s `leader_flags & 1` gate). No
+scenario, drop, editor or trigger path exists in the crate; the
+`semaphore` bit-2/26 arm (per-slot AI `diff`) would need the lobby
+`Player.diff` bytes, which the crate does not carry.
+
+### 6. Plain game
+
+Reached: `init_handicaps`'s solo arm runs in every random-map skirmish.
+**Value in a plain default skirmish: the lobby `DIFFICULTY` byte for every
+seated slot — 0 (Easiest) by `default_setting`, and 0 in every kept dump
+`docs/AI.md` §80.1 surveyed (`DIFFICULTY 0`).** It is never read for a
+decision in that game. The drop writer is multiplayer; the scenario,
+editor and trigger writers sit behind the scenario/trigger layer;
+`set_diff` and `change_difficulty` are dead.
+
+### 7. Confidence
+
+High: every store confirmed in the listing with its base register typed;
+the predicate read from both `init_handicaps`'s listing and `get_diff`.
+Not diff-backed on the leader side (no kept dump I opened prints
+`log_data`'s `multi_diff`; the inputs are dump-confirmed). Not read: what
+sets `semaphore` bits 12, 17 and 26 (I know only that `is_scenario` is
+12-or-17 and that `load_leaders_chunk` tests 26 beside bit 11); whether a
+lobby choice other than Easiest changes `GameInfo::load_from_config`'s byte
+for a plain launch.
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `cannon_time` +0x48 | `Leader::init (006e3930)` seed; `TurnControl::start_cannon_time (00956500)` −1; `LeaderData::walk_data (006d6750)` load | seed = `cannontimes` row `[0,1,2,4,8][lobby CANNON_TIMES]`; −1 per command 0x4d when no cannon time is running and the count ≠ 0 | every `Leader::init` (game build, scenario, editor, CtW) | none; would be a `cannon_times` byte on `ai::Lobby` and a `leader_long` arm in `checksum/leaders.rs` | seed yes, value **0** at default; the step is multiplayer-only (`issue_cannon_time (00941260)` gated on `semaphore` bit 2), never in solo | high |
+| `handicap` +0x4c | `Game::init_handicaps (0058abf0)`; `ScenarioRead::load_leader_chunk (009ac080)`; memset in `Leader::init`; `walk_data` load | once per build: catch-up index `clamp(M − sum_i, 0, 20)` (or the ally-split form) `/ max(num_teams−1, 1)` over human lobby handicaps | `Leaders::init` memset each build | none; `leader_long` arm; consumers ported without it (`economy/holdings.rs`, `territory.rs`) | yes, value **0** at default; consumers (`get_handicap`) only under `semaphore` bit 2 | high (derived, not diffed) |
+| `multi_diff` +0x50 | `Leader::Leader (006d2bf0)` =2 (static, overwritten); `init_handicaps` (lobby difficulty / AI `diff`); `DropControl::process_drop (00959500)` =3; `load_leader_chunk`; `ScenarioFuncSet::set_leader_difficulty (009e5350)`; `IFaceEditorNations::on_combobox_select (009897d0)`; dead: `Leader::set_diff (006d2470)`, `ScenarioEditor::change_difficulty (0099bc00)` | once per build = lobby `DIFFICULTY` (solo); later only by drop/scenario/trigger/editor | `Leaders::init` memset each build | `ai::Lobby::difficulty` exists; add `leader_long` arm in `checksum/leaders.rs` | yes, value **lobby DIFFICULTY = 0** at default for seated slots; unread by `get_diff` in solo | high (derived, not diffed) |

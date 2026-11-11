@@ -206,3 +206,89 @@ craft records (`flags` by `craft_flags`, `load.rs:2171`). The first's claim
 Home of the event: `TechTree::start`, between the unit loop and
 `reset_obs_flags` — the original's order (`6e461d` then `6e4621`).
 
+### 10. Claim 19, the second's bit-for-bit packet check: is it sound?
+
+**Sound. Reproduced independently, and cross-checked against the logger.**
+
+How I re-read it, without the second's probe: a fresh reader of
+`~/ron-golden/run1562/map-14/frame-snapshot.bin` written from
+`tools/explore/frame_snapshot.py`'s `decode` layout (128-byte header,
+`h[15]` 28-byte inventory rows, `h[18]` 12-byte anchors and `h[19]` anchor
+bytes, then `h[16]` selected ranges each as a 12-byte `(index, base, size)`
+record plus its bytes, then a 28-byte footer). Header: magic `0x31534652`,
+`h[3]` = 91 (the plan's `RON_STATE_FRAME=91`, `receipt.json`), 167 ranges;
+footer magic `0x45465352`, frame 91, and end of file exactly after it, so
+the walk is aligned.
+
+- **Addressing is right.** Slot `i` at `0xe3a390 + i*0x6eec`; the packet's
+  `who`/`tribe` there are `0/4`, `1/11`, `2/-1`, `3/-1` — the receipt's
+  players (`tribe 4`, `tribe 11`). So the trace build's data layout matches
+  the shipped exe's at the leaders array. `tech` head at `+0x6c0c` reads
+  `(806, 101, 0)` for slots 0 and 1, the `BitMask<806>` shape.
+- **The bytes are the second's.** `tech.ptr[0x4c..0x57]` is `00 00 a0 bc 4b
+  ff ff fd ff 0f 00 00` in slots 0 and 1; `tech_at_start` there is all zero.
+  Spell bits set: 46 in each; clear: `0x276, 0x278, 0x279, 0x27e, 0x282,
+  0x284, 0x285, 0x287, 0x299`. Slots 2 and 3 (`tribe -1`, never inited)
+  carry none. No age bit `0x220..0x226` is held, so `INDUSTRIAL_AGE` is
+  absent and `RADARSPELL`'s refusal is the predicted one.
+- **The packet agrees with the dump, which the second did not show.** The
+  second set the dump aside because `bit_values` is unpadded decimals and
+  does not parse uniquely. The reverse direction is unique: printing the
+  packet's 101 bytes as unpadded decimals reproduces the frame-91
+  `bit_values` string **exactly**, for `tech` and for `tech_at_start`, in
+  all four `LEADERDATA` blocks (`gamelog_p.txt` lines 816919, 829176,
+  841435, 853480). So the packet is the logger's state at that frame, not a
+  mis-addressed read; the snapshot's non-atomicity is moot for bits frozen
+  since setup.
+- **The rule's inputs are the original's own.** The 55 `SPELLTYPE` records
+  (§2) are the loaded values the predicate meets.
+
+What it makes the rule: the predicate, evaluated on the loaded
+`preq`/`tribe_mask`/`spell_flags` and the leaders' held ages, predicts all
+55 bits in both live slots, and the oracle's dump says the same bytes. That
+is a diff in substance: **diff-backed for a plain Ancient start**, on one
+run, two tribes. It is not pinned by any test, and it does not exercise the
+`RADARSPELL`-set branch (an Industrial-or-later start or `all_techs`), the
+`tribe -1` branch on a live slot, `ending_technology`, or letter `a`. A
+port that adds the pass would turn this into the leaders line's own
+`tech.ptr` diff on every gate, which is the conversion to make.
+
+### 11. The rule as a builder should port it
+
+- **Writer**: one pass at the end of `Leader::init`'s tech block, after the
+  unit pass and before `reset_obs_flags`; in the crate,
+  `TechTree::start` (`crates/sim/src/tech.rs:2235`), before `:2321`.
+- **Predicate**, for each spell type `t` in `0x275..=0x2ab`, on the
+  player's `tech` as it stands after the age/tech, building and unit passes:
+  - `has_preq`: every preq slot `q` of `t` is `-1`, or `q >= 0` and held
+    (`has_tech(q)`); a `-2` slot refuses;
+  - `type_eligible`: the player's tribe bit `(1 << (tribe & 31))` is in
+    `tribe_mask`; no preq slot `< -1`; a preq that is a non-epoch tech
+    whose age exceeds `ending_technology` refuses;
+  - and (`preq[0] != -1` or `spell_flags & 1 == 0`).
+  With the shipped rows: 46 set (every `preq[0] == -1`), 8 never
+  (`preq[0] == -2`), `RADARSPELL` 0x299 set only when `INDUSTRIAL_AGE`
+  0x224 is held at init (and the game's `ending_technology` admits it).
+- **Step**: bit `t` of `tech` 0 → 1, once; **never** `tech_at_start`.
+- **Reset**: only `Leader::init` itself (its zeroing precedes the pass) and
+  construction/close. Nothing in a plain game clears or re-runs it:
+  reaching Industrial Age by research does not set `RADARSPELL`'s bit.
+- **Inputs to load**: `preq[0..3]` and `tribe_mask` for the 55 craft rows
+  (the crate's `orders::SpellType` has neither), `spell_flags` (has it).
+- **Storage and emission**: spell entries in the tree, or a 55-bit side
+  mask on `PlayerTech` that `bits_of` (`checksum/leaders.rs:704`) appends
+  as `0x275 + i`.
+- **Coupled reader to keep**: `Build::do_queue`'s silo test reads the
+  queued type's `tech` bit and exempts `DISBAND` by name (§8).
+- **Plain game**: yes, every live leader, before the first frame.
+- **Confidence**: high. Listing-read predicate, the loaded records, and run
+  1562's packet and dump agree on all 55 bits in both live slots.
+- **Open**: the `RADARSPELL`-set branch and `ending_technology` are
+  unobserved; `queue_here` for the silo unread; a malformed queue order
+  bypassing `can_make` untraced.
+
+## Verdict table
+
+| leaf | claims confirmed / corrected / open | the rule in one line |
+|---|---|---|
+| `tech.ptr`, bits `0x275..0x2ab` | 16 / 3 / 0 of 19 (corrected: the `tribe_can_type` overload is `006d9410`; `Build::finished`'s fall-through is dead in a plain game; `Setup::build_leader` has no caller and `load_leader_chunk` calls `init` six times. Added: `Build::do_queue (0061e410)` reads the bit at `61e501`, `DISBAND` exempt. Packet check reproduced and tied to the dump. Small opens: silo `queue_here`, malformed queue orders) | at `Leader::init`, after the unit pass and before `reset_obs_flags`, set `tech` (never `tech_at_start`) bit `t` for each spell with `type_avail(t,1)` (preqs `-1` or held, none `< -1`, tribe in `tribe_mask`) and (`preq[0] != -1` or no letter `a`): 46 at an Ancient start, `RADARSPELL` only if Industrial is held at init; never re-run, never cleared in play |

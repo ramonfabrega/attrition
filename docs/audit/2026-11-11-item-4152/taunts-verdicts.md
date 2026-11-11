@@ -24,11 +24,11 @@ settled once here and cited by the leaves.
 |---|---|---|---|---|---|---|
 | 0.1 | `LeaderData` at offset 0 of `Leader`; no offset shift | yes | yes | agree | **confirmed** | `Leader::receive_taunt (006b8bf0)` 0x6b8c44 `cmpl %edi, 0x8(%esi)` reads `who` at +0x8 off `this`; `process_taunt` 0x6b8ce0 likewise |
 | 0.2 | `TauntRequest` 0..17, `HELP` = 16 | yes | yes | agree | **confirmed** | 0x6b8c68 `cmpl $0x10, %ebx` (the HELP arm); 0x6d1977 `cmpl $0x10` (the ping test) |
-| 0.3 | `receive_taunt`'s only callers are `CommandPackage::process_chat (009454f0)`, one per arm, when `taunt >= 0` | yes | yes | agree | **confirmed** | `calll 0x6b8bf0` occurs at 0x94573a and 0x945870 only; `funcs/CommandPackage/process_chat@009454f0.c` `if (-1 < *local_28)` before each call |
-| 0.4 | `process_chat`'s delivery gate | broadcast: sender's `chat_status[recv]` = 0 and receiver's `chat_status[sender]` != 2, each forgiven by `semaphore & 0x40`; masked: receiver's bit set | `chat_status` not 2; masked: not a cheat line in a non-network game | disagree in detail | **corrected** (both partial). For each valid slot k: **broadcast** (`bits == -1`): (`leaders[S].chat_status[k] == 0` or `sem & 0x40`) and (`leaders[k].chat_status[S] != 2` or `sem & 0x40`). **Masked**: (`bits` bit k or `sem & 0x40`); then, outside multiplayer (`sem & 4` clear), a line starting with the cheat string goes to `ConsoleWin::parse_cmd` and nothing is delivered; else (`leaders[k].chat_status[S] != 2` or `sem & 0x40`). The masked arm has **no** sender-side test. A further gate neither reader named: when the sending player has a `net_player` that `Crossplay::Service()` reports blocked, nothing is delivered to anyone. | `funcs/CommandPackage/process_chat@009454f0.c` lines read by `grep -n 'local_2c == 0xffffffff'` and the `LAB_00945817` arm; the crossplay `goto LAB_0094563c` with `bVar2 = true` |
+| 0.3 | `receive_taunt`'s only callers are `CommandPackage::process_chat (009454f0)`, one per arm, when `taunt >= 0` | yes | yes | agree | **confirmed** | `calll 0x6b8bf0` occurs at 0x94573a and 0x945870 only; the export's `funcs/CommandPackage/process_chat` file (009454f0) `if (-1 < *local_28)` before each call |
+| 0.4 | `process_chat`'s delivery gate | broadcast: sender's `chat_status[recv]` = 0 and receiver's `chat_status[sender]` != 2, each forgiven by `semaphore & 0x40`; masked: receiver's bit set | `chat_status` not 2; masked: not a cheat line in a non-network game | disagree in detail | **corrected** (both partial). For each valid slot k: **broadcast** (`bits == -1`): (`leaders[S].chat_status[k] == 0` or `sem & 0x40`) and (`leaders[k].chat_status[S] != 2` or `sem & 0x40`). **Masked**: (`bits` bit k or `sem & 0x40`); then, outside multiplayer (`sem & 4` clear), a line starting with the cheat string goes to `ConsoleWin::parse_cmd` and nothing is delivered; else (`leaders[k].chat_status[S] != 2` or `sem & 0x40`). The masked arm has **no** sender-side test. A further gate neither reader named: when the sending player has a `net_player` that `Crossplay::Service()` reports blocked, nothing is delivered to anyone. | the export's `funcs/CommandPackage/process_chat` file (009454f0) lines read by `grep -n 'local_2c == 0xffffffff'` and the `LAB_00945817` arm; the crossplay `goto LAB_0094563c` with `bVar2 = true` |
 | 0.5 | No computer issues a chat command; every producer is a window of the local human | yes | yes | agree | **confirmed**. `CommandManager::issue_chat (00942b10)` has two direct callers, 0x6d3205 (`LeaderOut::issue_chat`) and 0x93d666 (`ChatBox::on_modal_end`'s cheat path); `LeaderOut::issue_chat` three, 0x801722, 0x80197c, 0x93d6f6; `CommandPackage::add_chat` one, 0x942c10; none of the four addresses occurs as a 32-bit word anywhere in the PE (no vtable or pointer). The second's "`CommandManager::issue_chat` has only the two interface callers" is right in count; the two are `LeaderOut::issue_chat` and `ChatBox`. | the `calll` census above |
-| 0.6 | The cheat path pushes `taunt = 0` | yes | (silent) | one-sided | **confirmed**: `add_chat`'s `param_2` is the `taunt` word (+5), and `issue_chat`'s third argument feeds it; 0x93d65f `pushl $0x0` is that argument. `receive_taunt` is then called (0 >= 0) and rejects it at 0x6b8c0f. | 0x93d65d..0x93d666; `funcs/CommandPackage/add_chat@0094c080.c` `*(int *)(this->data + iVar4 + 5) = param_2` |
-| 0.7 | `Taunts::check_for_order (009809d0)`: −1 when no taunt has the id or its order string is empty, 0 when the order string matches no name, else 1..16 | yes | "−1 otherwise" | disagree (minor) | **corrected toward the first**: −1 for no id / empty order string, **0** for an unmatched string, else the request. Neither reader noted that **two** names map to `HELP` (the compares at string offsets `+0x2620` and `+0x1f1f8`). Harmless to the leaves: 0 and −1 are both refused or never delivered. | `funcs/Taunts/check_for_order@009809d0.c`, the `return -1` and the `iVar2 = 0x10` after the two-name test |
+| 0.6 | The cheat path pushes `taunt = 0` | yes | (silent) | one-sided | **confirmed**: `add_chat`'s `param_2` is the `taunt` word (+5), and `issue_chat`'s third argument feeds it; 0x93d65f `pushl $0x0` is that argument. `receive_taunt` is then called (0 >= 0) and rejects it at 0x6b8c0f. | 0x93d65d..0x93d666; the export's `funcs/CommandPackage/add_chat` file (0094c080) `*(int *)(this->data + iVar4 + 5) = param_2` |
+| 0.7 | `Taunts::check_for_order (009809d0)`: −1 when no taunt has the id or its order string is empty, 0 when the order string matches no name, else 1..16 | yes | "−1 otherwise" | disagree (minor) | **corrected toward the first**: −1 for no id / empty order string, **0** for an unmatched string, else the request. Neither reader noted that **two** names map to `HELP` (the compares at string offsets `+0x2620` and `+0x1f1f8`). Harmless to the leaves: 0 and −1 are both refused or never delivered. | the export's `funcs/Taunts/check_for_order` file (009809d0), the `return -1` and the `iVar2 = 0x10` after the two-name test |
 | 0.8 | The drain: `Leaders::process_all (006ed2a0)`, for every slot with `flags & 2`, when `game->frame != 0`, for k = 0..7 in order, if `incoming_taunt_frame[k] == frame` call `process_taunt(incoming_taunt[k], incoming_taunt_who[k])`; slot not cleared | yes | yes | agree | **confirmed** | 0x6ed2b0 `testb $0x2, (%esi)`; 0x6ed3ce `cmpl $0x0, 0x550(%ecx)`; 0x6ed3e2..0x6ed3f4 |
 | 0.9 | `Leader::process (006b88b0)`, `Leader::process_taunts (006b8ba0)`, `Leader::close (006b7f80)` are dead (no caller) | yes (close: "no direct caller found") | yes (and no PE word) | agree | **confirmed**: no `call`/`jmp` to any of the three in `.text`, and none occurs as a 32-bit word in the PE | listing grep; PE byte count 0 for each |
 | 0.10 | Frame order: commands are applied in `TurnControl::do_frame` before `Game::do_frame`'s `Leaders::process_all`, on the same `game->frame` | yes (medium) | yes (medium) | agree | **confirmed, by a dump, not only a reading**: run1077's help taunt fired at all, and `taunt_frame[0]` reads 5411 on its 5412 dump (`docs/RUNS.md`, run1077 entry); a `HELP` received after that frame's drain could never fire, since the due test is equality. run1086's food taunt: `taunt_frame[0]` 661 with `receive_taunt` entered one block earlier, so receipt frame + 60 = 661. Both are dump readings in `docs/RUNS.md`, **not yet assertions**. | `docs/RUNS.md` run1077 ("On 5412 leader 1 has `last_taunt[0]` 16 and `taunt_frame[0]` 5411") and run1086 ("On 661 who 1 holds `last_taunt[0]` 1, `taunt_frame[0]` 661") |
@@ -200,3 +200,75 @@ The drain passes it to `process_taunt` as S, which indexes `last_taunt`,
 cleared on dispatch. Crate site and plain game as §3. **Confidence: high.**
 Open: whether a `who` byte above 7 can reach it (§0.11).
 
+## 5. `incoming_taunt_frame` (+0x3d4, `int[8]`, the ring's due frame)
+
+| claim | first | second | mark | verdict | deciding line |
+|---|---|---|---|---|---|
+| writers | `receive_taunt` 0x6b8c79 (HELP) and 0x6b8c91 (else) | same | agree | **confirmed** | 0x6b8c68 `cmpl $0x10, %ebx; jne 0x6b8c82` |
+| value, HELP | `game->frame` | same | agree | **confirmed** | 0x6b8c73 `movl 0x550(%eax), %eax`, 0x6b8c79 |
+| value, other | `game->frame + 60` | same | agree | **confirmed**, and dump-backed (run1086: due 661 for a request received on the block before) | 0x6b8c8e `addl $0x3c, %ecx`, 0x6b8c91 |
+| HELP fires on its receiving frame | medium | medium | agree | **confirmed by dump** (§0.10) | `docs/RUNS.md` run1077 |
+| drain skips frame 0, so a HELP received on frame 0 never fires and the zeroed ring never fires | yes (both halves) | the zeroed-ring half | agree / one-sided | **confirmed** | 0x6ed3ce `cmpl $0x0, 0x550(%ecx); je 0x6ed407` |
+| a ninth request inside one delay overwrites an unfired slot; no occupancy check | yes | yes | agree | **confirmed**: `receive_taunt` reads no slot state before writing | 0x6b8c49..0x6b8cab |
+| several slots due on one frame | (implicit) | k = 0..7 in order | one-sided | **confirmed**: the drain walks k = 0..7 and calls once per match, in slot order, not arrival order (after the ring wraps the two differ) | 0x6ed3dd `movl $0x8, %ebx`, 0x6ed3ff `addl $0x4, %edi` |
+| reset | init loop 0x6e3a18, memsets | same | agree | **confirmed** | 0x6e3a18 `movl %edx, 0x1c(%eax)` after `leal 0x4(%eax)`, so +0x3d4 + 4k |
+| reader | the drain's due test 0x6ed3e2 | same | agree | **confirmed** | 0x6ed3e2 `movl 0x20(%edi), %eax`, 0x6ed3e5 `cmpl 0x550(%ecx), %eax` |
+| crate | as §3, compare with the sim's `frame` (`checksum/leaders.rs:91`) | same | agree | **confirmed** | `crates/sim/src/checksum/leaders.rs:91` |
+| plain game | as §1 | same | agree | **confirmed** | §1 |
+
+**The rule as a builder should port it.** In `receive_taunt`, after the §3
+gate: `incoming_taunt_frame[incoming] = frame` if `req == 16`, else
+`frame + 60`, where `frame` is the sim frame at which the command is
+applied (before that frame's leader pass). The drain, at the tail of each
+active leader's per-frame step and only when `frame != 0`, calls
+`process_taunt(incoming_taunt[k], incoming_taunt_who[k])` for each k in
+0..7 whose due frame equals `frame`. Nothing is cleared. Reset at game start
+only. Crate site and plain game as §3. **Confidence: high** (both constants
+in the listing; the zero delay and the 60 both read back from dumps).
+Open: nothing material.
+
+## 6. `incoming` (+0x3f4, `int`, the ring's write cursor)
+
+| claim | first | second | mark | verdict | deciding line |
+|---|---|---|---|---|---|
+| writer | `receive_taunt` 0x6b8cab | same | agree | **confirmed** | 0x6b8cab `movl %eax, 0x3f4(%esi)` |
+| step | `(x + 1)` signed `% 8`; `& 7` for x in 0..7 | same | agree | **confirmed**: `incl; andl $0x80000007; jns; decl; orl $-8; incl` is C's signed remainder; the cursor is only ever 0 or the result, so it stays in 0..7 | 0x6b8c9e..0x6b8cab |
+| predicate | advances on every accepted request, HELP included | same | agree | **confirmed**: both arms join at 0x6b8c98 | 0x6b8c80 `jmp 0x6b8c98` |
+| reset | `Leader::init` 0x6e3a09 store and memset; `Leaders::clear`; (`Leader::close`) | same | agree | **confirmed** | 0x6e3a09 `movl %edx, 0x3f4(%ebx)`, `edx = 0` (0x6e39ff) |
+| readers | `receive_taunt` only; the drain ignores it | same | agree | **confirmed**: no read of +0x3f4 off a leader outside `receive_taunt` in the register net | §0.N |
+| non-leader `0x3f4` stores | `Constants::init`, `ConquestLeader`, `RoadsOut`, `RTreeData`, … | (`field_0x3f4` other classes) | agree | **confirmed not leaders**; `RTreeData::try_wcoord_entry` 0x9234ca and `Constants::init` 0x56c1eb are their own records | §0.N |
+| crate | as §3 (`checksum/leaders.rs:92`) | same | agree | **confirmed** | `crates/sim/src/checksum/leaders.rs:92` |
+| plain game | as §1 | same | agree | **confirmed** | §1 |
+
+**The rule as a builder should port it.** `incoming: i32`, zero at game
+start; after the three slot stores of an accepted request (§3's gate),
+`incoming = (incoming + 1) & 7`. Read only by `receive_taunt` as the slot
+index. Never reset in a match. Crate site and plain game as §3.
+**Confidence: high.** Open: nothing.
+
+## 7. Against the README row
+
+The row names `receive_taunt`, `process_taunt`, `end_process`. Both
+readings drop `end_process`, and **that is confirmed**: `Leader::end_process
+(006b8690)` and `Leaders::end_process_all (006ed070)` store at `0x3bc` off
+the `0x8c`-stride `GameInfo` player record (0x6b87b4, 0x6ed1a3; the same
+base takes 0x330 and 0x448), never off a leader. The row's missing reset
+writers are §0.R.
+
+## Verdict table
+
+| leaf | confirmed / corrected / open | the rule in one line |
+|---|---|---|
+| `last_taunt` +0x354 | 11 / 0 / 0 | `process_taunt`: if R active, not human, S ≠ R, mutual ally now, `last_taunt[S] = req` (before the switch, any value); read by `action_ping`'s `== 16` test |
+| `taunt_frame` +0x374 | 7 / 0 / 0 | same store, `taunt_frame[S] = frame`; `action_ping` answers while `frame <= taunt_frame[P] + 225` |
+| `incoming_taunt` +0x394 | 12 / 1 / 0 | `receive_taunt`: if `req > 0`, S active, R active non-human, `is_ally(R,S)`, R ≠ S, `incoming_taunt[incoming] = req`; delivery gate corrected (§0.4) |
+| `incoming_taunt_who` +0x3b4 | 8 / 0 / 1 | same gate, `incoming_taunt_who[incoming] = S` (leader `who`); range of S open, immaterial |
+| `incoming_taunt_frame` +0x3d4 | 11 / 0 / 0 | same gate, `= frame` for HELP, `frame + 60` otherwise; drained by equality, slot order, never on frame 0 |
+| `incoming` +0x3f4 | 8 / 0 / 0 | `(incoming + 1) & 7` per accepted request |
+| shared (§0) | 8 / 2 / 2 | delivery gate (0.4) and `check_for_order`'s 0 return (0.7) corrected; sender range (0.11) and `Setup::build_leader` mid-match (0.R) open |
+
+Counts are per claim row above. The corrections are upstream of the leaves
+(the delivery gate and the return code) and change no leaf's store; the one
+that changes what a builder writes is §0.4: the masked chat arm has no
+sender-side `chat_status` test, a masked cheat line outside multiplayer
+delivers nothing, and a crossplay-blocked sender delivers nothing.

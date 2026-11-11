@@ -366,7 +366,162 @@ floor. Either add two counters moved at the `track_tree_queued` /
 six in the leaders checksum (`Sim::leader_long` in
 `crates/sim/src/checksum/leaders.rs`, beside `leader_trained`, which does
 the same for the `*_units` leaves from `by_type`) from `queued_by_type`
-with the same type filters. The derivation is exact only while no floor
-fires and no `d < -1` overshoot happens; both need a desync or the
-missing carrier-loss path, so the counter form is the safer port.
+with the same type filters. **Deriving from `queued_by_type` is not
+exact in a plain game.** On `gain_tech`'s graft-chain arm the `-1` lands on
+the new type: if `num_queued[new]` is 0 it is skipped there, while the
+group counter beside it (which already holds the entry) does fall; the `+1`
+then raises both. Net: `num_queued[old]` stays one high for good,
+`num_queued[new]` is right, and the six leaves are right. A sum over
+`queued_by_type` would then read one high. `queued_by_group` follows the
+original (the crate's `untrack_queued` floors the type and the group
+separately), so derive the four single-building leaves from it, and keep
+`combat_queued` and `air_queued` as counters moved at the same sites with
+their own per-counter floor. The `d < -1` overshoot needs the missing
+carrier-loss path.
 
+## barracks_queued (+0xa10)
+
+1. **Writers**: the shared set above. Stores: `track_queued` `6e0fa7`;
+   `Build::queue_up` `621a2f`; `Build::unqueue` `6209dc`;
+   `Build::clean_queue` `620d92`; `Group::action_spell` `6fe80c`;
+   `Unit::process` `611362` (absolute `0xe3ada0`); `Unit::action_unqueue`
+   `5e1ff3`; `Wall::*` (`6433cc`, `642f22`, `63e668`, `63f93a`, dead);
+   `Leader::init` `6e4c3e`.
+2. **Predicate**: armed unit type (`attack != 0`) with `where == 0x1ab`
+   (Barracks). `+1` per queued entry, `-1` per entry finished, cancelled or
+   cleaned, skipped at 0. Always moved together with `combat_queued`.
+3. **Reset**: `Leader::init` only.
+4. **Readers**: `LeaderData::get_support_count` (Barracks arm, with
+   `barracks_units`) feeding `TypeData::get_cost`; `LeaderData::log_data`.
+5. **Crate**: `Muster::queued_by_group[Barracks]`, moved by
+   `Sim::track_tree_queued` / `Sim::untrack_queued`
+   (`crates/sim/src/cities/queue.rs`); expose to `Sim::leader_long`.
+6. **Plain game**: yes (player and computer queues, completion, cancel,
+   building loss, defeat).
+7. **Confidence**: high; listing read for the out-of-line rule and every
+   inline copy's store run.
+
+## stable_queued (+0xa14)
+
+1. **Writers**: `track_queued` `6e0fc6`; `Build::queue_up` `621a44`;
+   `Build::unqueue` `6209f6`; `Build::clean_queue` `620dac`;
+   `Group::action_spell` `6fe821`; `Unit::process` `61137c`
+   (`0xe3ada4`); `Unit::action_unqueue` `5e200d`; `Wall::*` (dead);
+   `Leader::init` `6e4c44`.
+2. **Predicate**: armed, `where == 0x1ac` (Stable). Same step and floor;
+   always moved with `combat_queued`.
+3. **Reset**: `Leader::init` only.
+4. **Readers**: `get_support_count` (Stable arm, with `stable_units`);
+   `log_data`.
+5. **Crate**: `queued_by_group[Stable]`, same sites.
+6. **Plain game**: yes.
+7. **Confidence**: high.
+
+## factory_queued (+0xa18)
+
+1. **Writers**: `track_queued` `6e0ffb`; `Build::queue_up` `621a59`;
+   `Build::unqueue` `620a21`; `Build::clean_queue` `620dd7`;
+   `Group::action_spell` `6fe836`; `Unit::process` `6113a7`
+   (`0xe3ada8`); `Unit::action_unqueue` `5e2038`; `Wall::*` (dead);
+   `Leader::init` `6e4c4a`.
+2. **Predicate**: armed, `where == 0x1ae` (`SIEGEFACTORY`; `FACTORY 0x1af`
+   does not match). Not part of `combat_queued`.
+3. **Reset**: `Leader::init` only.
+4. **Readers**: `get_support_count` (with `factory_units`); `log_data`.
+5. **Crate**: `queued_by_group[Siege Factory]`, same sites.
+6. **Plain game**: yes.
+7. **Confidence**: high on the predicate; the building a given unit's
+   `where` names is data and was not read.
+
+## combat_queued (+0xa1c)
+
+1. **Writers**: `track_queued` `6e0fdc` (one store reached from both the
+   Barracks and Stable arms); `Build::queue_up` `621a35` and `621a4a`;
+   `Build::unqueue` `620a07`; `Build::clean_queue` `620dbd`;
+   `Group::action_spell` `6fe812`, `6fe827`; `Unit::process` `61138d`
+   (`0xe3adac`); `Unit::action_unqueue` `5e201e`; `Wall::*` (dead);
+   `Leader::init` `6e4c50`.
+2. **Predicate**: armed and `where` is `0x1ab` or `0x1ac`. Step `+1`/`-1`;
+   the skip at 0 tests `combat_queued` itself, independently of the
+   Barracks and Stable counters.
+3. **Reset**: `Leader::init` only.
+4. **Readers**: `LeaderData::log_data` only. `get_support_count` has no
+   combat arm; no other leader read in `.text` (every `0xa1c(%r)` read was
+   mapped; the rest are CtW records, spell tables and graphics).
+5. **Crate**: no single group holds it. Either a counter moved at the
+   `track_tree_queued` / `untrack_queued` sites with its own floor, or
+   `queued_by_group[Barracks] + queued_by_group[Stable]` (equal so long as
+   both start at 0 and only paired `+1`/`-1` reach them, which holds without
+   the `d < -1` carrier-loss path).
+6. **Plain game**: yes.
+7. **Confidence**: high.
+
+## dock_queued (+0xa20)
+
+1. **Writers**: `track_queued` `6e101a`; `Build::queue_up` `621a68`;
+   `Build::unqueue` `620a3b`; `Build::clean_queue` `620df1`;
+   `Group::action_spell` `6fe845`; `Unit::process` `6113c1`
+   (`0xe3adb0`); `Unit::action_unqueue` `5e2052`; `Wall::*` (dead);
+   `Leader::init` `6e4c56`.
+2. **Predicate**: armed, `where == 0x1b0` (Dock). Ships trained at a Dock;
+   not part of `combat_queued`.
+3. **Reset**: `Leader::init` only.
+4. **Readers**: `get_support_count` (with `dock_units`); `log_data`.
+5. **Crate**: `queued_by_group[Dock]`, same sites.
+6. **Plain game**: yes, on a map with water.
+7. **Confidence**: high.
+
+## air_queued (+0xa24)
+
+1. **Writers**: `track_queued` `6e103b`; `Build::queue_up` `621a79`;
+   `Build::unqueue` `620a57`; `Build::clean_queue` `620e0d`;
+   `Group::action_spell` `6fe856`; `Unit::process` `6113dd`
+   (`0xe3adb4`); `Unit::action_unqueue` `5e206e`; `Wall::*` (dead);
+   `Leader::init` `6e4c5c`. Also through `track_queued` from
+   `Unit::close` (`-num_queued`) and `gain_tech`'s carrier pair.
+2. **Predicate**: armed, `where` not one of `0x1ab`/`0x1ac`/`0x1ae`/`0x1b0`,
+   and `domain == 2`. Airport queues and the Aircraft Carrier's own plane
+   queue (always `current_upgrade(FIGHTERBOMBER)`). The only leaf of the
+   six with a `d < -1` writer: a carrier removed with `n` planes queued
+   subtracts `n` at once, guarded only by `air_queued != 0`.
+3. **Reset**: `Leader::init` only.
+4. **Readers**: `get_support_count` (air arm, with `air_units`);
+   `log_data`.
+5. **Crate**: the airport queue is `queued_by_group[<airport where_>]` via
+   the same sites, and the carrier's queue moves the same group through
+   `Sim::carrier_action_spell`, `Sim::carrier_queue_tick`,
+   `Sim::unit_action_unqueue` (`crates/sim/src/air/carrier_queue.rs`).
+   Missing: the carrier-loss `-num_queued` (`Unit::close (0060ee50)`
+   `60efed`), and the `gain_tech` carrier pair (a named SEAM in
+   `Sim::upgrade_units_to`). If more than one `where_` trains an armed
+   air type, `air_queued` is the sum of their groups with one floor, so a
+   separate counter is the safer port.
+6. **Plain game**: yes (Airport from the Industrial age; carriers later).
+   No capture has a carrier.
+7. **Confidence**: high on the rule; medium on which buildings train
+   `domain 2` types (data, not read).
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `scholar_militia` +0x9f0 | `Leader::track_unit_type (006e0dd0)` (callers `Unit::set_type (00612fa0)`, `Unit::close (0060ee50)`, `Objects::init_unit (0065e0c0)`, `SpellType::cast_create_decoy (00674370)`); `Leader::init (006e3930)` | `+d` when the tracked type `is(MILITIA)` and the unit's `+0x54` former type `is(SCHOLARS)`: +1 on a Scholar's To Arms, -1 on its return to civilian or its death; no floor | `Leader::init` | `Sim::track_unit_type` (`units/store.rs`, needs the unit) or the existing derivation in `Sim::worker_support` (`economy/pricing.rs`) | yes | high (writers, arithmetic); medium (who can hold a Scholar in `+0x54`) |
+| `barracks_queued` +0xa10 | `Leader::track_queued (006e0f30)`, inline in `Build::queue_up (00620f40)`, `Build::unqueue (006207c0)`, `Build::clean_queue (00620b60)`, `Group::action_spell (006fe1a0)`, `Unit::process (00610bc0)`, `Unit::action_unqueue (005e1f20)`, `Wall::increment_stats (00643270)`/`decrement_stats (00642da0)`/`activate (0063e4b0)`/`close (0063f6e0)` (dead); `Leader::init (006e3930)` | armed, `where 0x1ab`: +1 queued, -1 finished/cancelled/cleaned, skipped at 0 | `Leader::init` | `queued_by_group` via `track_tree_queued`/`untrack_queued` (`cities/queue.rs`) | yes | high |
+| `stable_queued` +0xa14 | same set | armed, `where 0x1ac`; same | `Leader::init` | `queued_by_group[Stable]` | yes | high |
+| `factory_queued` +0xa18 | same set | armed, `where 0x1ae` (Siege Factory); same | `Leader::init` | `queued_by_group[Siege Factory]` | yes | high |
+| `combat_queued` +0xa1c | same set | armed, `where 0x1ab` or `0x1ac`; same, own floor | `Leader::init` | none yet: new counter at the same sites, or Barracks + Stable groups | yes | high |
+| `dock_queued` +0xa20 | same set | armed, `where 0x1b0`; same | `Leader::init` | `queued_by_group[Dock]` | yes (water maps) | high |
+| `air_queued` +0xa24 | same set, plus `track_queued` from `Unit::close (0060ee50)` (`-num_queued`) and `Leader::gain_tech (006dcb60)` | armed, none of the four `where`s, `domain 2`; same, and `-n` on a carrier lost with `n` queued | `Leader::init` | `queued_by_group[airport]` + `air/carrier_queue.rs`; carrier loss and the `gain_tech` carrier pair missing | yes | high (rule); medium (which buildings train air) |
+
+### What this reading did not read
+
+- The `is_list` data for the Militia and Scholar lines (which types
+  `is(MILITIA)` / `is(SCHOLARS)` accept), and which building each unit's
+  `where` names.
+- `SpellType::cast_immortal_hinf (00670600)` / `cast_immortal_arch
+  (00670740)` target predicates (could they strand `scholar_militia`).
+- `Build::activate (00623e20)`'s cross-queue cancel predicate, and whether
+  the computer player casts To Arms with Scholars.
+- `Leader::Leader (006d2bf0)`'s clear, and any save/load path (none found by
+  the `0x6ee4`-size grep beyond the constructor).
+- No diff was run; everything here rests on the decompile and listing.

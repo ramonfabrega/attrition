@@ -209,3 +209,143 @@ game at team style 1.
 (006b8ba0), `Leaders::process_all` (006ed2a0)) and how a chat taunt
 reaches them.
 
+## `counteroffer` (+0x314, int[8])
+
+A 0/1 flag on a computer leader, per other leader `k`: "I answered `k`'s
+proposal with a counter-offer and am waiting".
+
+**1. Writers.** All register-relative off `this` (`edi`/`ebx` = the
+`Leader*`, index = `k`):
+- `Leader::diplomacy` (006bc950): `6c005e` `= 1`; `6bf3ea`, `6c0840`,
+  `6c086b` `= 0`.
+- `Leader::action_respond` (006d03c0): `6d03e0 andl $0x0,
+  0x314(%ebx,%edi,4)` — `this.counteroffer[P] = 0` on entry, for every
+  response code.
+- Whole-record: memsets/walk.
+- Discarded: `Leader::end_process`/`Leaders::end_process_all` `movw
+  0x330(…)` (16-bit, other record); `ScenarioRead::load_leaders_chunk`
+  (`GameInfo.player[]`); `Game::close`/`run_oos_recovery` `0x328(%eax)`
+  (`0xc06214` object); `IFaceDiplo::*` (`this` is the window);
+  `PlayerProfile::*`.
+
+**2. Event, step, predicate.** All inside `Leader::diplomacy`'s
+evaluation of a proposal `k` has made to me (a computer: the function
+returns at once for `leader_flags & 4`, `semaphore[1] & 2` or `ai_off`).
+The evaluation builds a shortfall `s` (what the deal is worth to me
+minus what I get, in the function's value units); with
+`counteroffer[k] != 0` it forgives 99: `s' = s - 99` (`6bfe1c lea
+-0x63(%ecx)`, `cmovel`).
+- `= 1` (`6c005e`): `s' > 0` and the "already asked" local (`-0x44`) is
+  0. I pick the good with the highest `LeaderData::resource_value` (at
+  least 0x40; default wealth; knowledge never), set `counteroffer[k] = 1`,
+  then `clear_agree(k, me)` and `clear_agree(me, k)` (which refund any
+  committed `tributes`, below), and go on to build the counter-offer of
+  `ceil(s' * 256 / value)` rounded up to a multiple of 100 (`6c004a`–
+  `6c0080`).
+- `= 0` (`6c086b`): `s' <= 0` — I accept: clear, then if
+  `LeaderData::any_proposals(k)` call `action_respond(me, k, 1)` (which
+  clears it again) and charge the worth to `+0xd4[k]`.
+- `= 0` (`6c0840`): reject — stamp `k.got_diplo_message = frame`, clear,
+  then `action_respond(me, k, 0)` if `dip[k].agree == 1` else
+  `action_respond(me, k, 2)`.
+- `= 0` (`6bf3ea`): neither side human and the local at `-0x28` is 0 —
+  `action_respond(me, k, 1)` then clear.
+- `action_respond` (006d03c0) clears `this.counteroffer[P]` before
+  anything else, on accept, reject and cancel alike.
+
+**3. Reset.** The clears above, and the whole-record memsets/load.
+
+**4. Readers.** `Leader::diplomacy` only: the per-pair cadence
+(`6bcadf`, below under `tribute_demanded`: doubles the period while
+`dip[k].agree != 1`) and the 99 forgiveness (`6bfe1f`).
+
+**5. Crate.** `crates/sim/src/leaders/diplomacy.rs:177–179` names it in
+a SEAM: "`tribute_demanded`/`counteroffer` … are never set", and the
+cadence in `diplomacy_with` (same file, from line 182) leaves out both
+terms; the proposal evaluation is not ported (`SEAM: the offers arm`,
+`LAB_006bf0e0`). No `action_respond`. Checksum leaf
+`crates/sim/src/checksum/leaders.rs:85`. A builder adds the writers to a
+port of `diplomacy_with`'s offers arm and of `action_respond`.
+
+**6. Plain game?** Needs a proposal to a computer. A human can make one
+from the diplomacy window in any skirmish where the window allows it; a
+computer's proposals come from its own diplomacy arms, which at the
+default team style 1 do not reach the demand (see `tribute_demanded`).
+Not reached by an all-computer team-style-1 game that I found.
+
+**7. Confidence.** High that these are all the writers and on each
+store's predicate as stated; medium on the meaning of the locals
+(`-0x44`, `-0x28`, `-0x50`) I name loosely — the 3,282-line evaluation
+was read around each site, not end to end.
+
+## `tribute_demanded` (+0x334, int[8])
+
+A 0/1 flag on a computer leader: "I have demanded tribute of `k`".
+
+**1. Writers.**
+- `Leader::diplomacy` (006bc950), `6be85d movl $0x1,
+  0x334(%edi,%esi,4)` (`edi` = me, `esi` = k).
+- `Leader::action_respond` (006d03c0), `6d03d8 andl $0x0,
+  0x334(%ebx,%edi,4)` — `this.tribute_demanded[P] = 0` on entry.
+- Whole-record: memsets/walk.
+- Discarded: `ScenarioRead::load_leaders_chunk` (`GameInfo.player[]`);
+  `Game::close`/`run_oos_recovery` `0x344(%eax)`; `PlayerProfile::*`.
+
+**2. Event, step, predicate.** The demand is the computer's alternative
+to declaring war. In `Leader::diplomacy`, for a target `k` that has
+passed the per-pair cadence, that I want war with and am not at war
+with (`diplos` non-zero both ways, or `k == me`), past the rush-rules
+gate, and **only when the team style is 0, 8 or 11** (or team style 7's
+special case; style 1 goes to `LAB_006bed3f`), the arm at `6be639`:
+- skip if `is_tribute_period(me, k)` (above) or `frame` is below my
+  start threshold `(3*d + ((seed + who) & 7)) * 300` frames, where
+  `d = 4 + seed%3` for a rusher, `8 + seed%6` for a boomer,
+  `6 + seed%5` otherwise (`6bcb93`–`6bcbcc`; `seed` is `GameInfo.seed`);
+- go to the declare-war branch instead if a pending agreement with `k`
+  was just cleared (local `-0x50`, set at `6be4a8` when my
+  `dip[k].agree == 1` or `k.dip[me].agree == 2`, after
+  `action_clear_all`), `k.blacken >= 4`, the local at `-0x30` is
+  set, `hire_stamp[k]` is younger than 13501 frames (`0x34bc`), or `k`'s
+  wealth is below `D = (my epoch word +0xe8 ^ 0x63187, plus 1) *
+  (k.blacken + 1) * 100`;
+- otherwise demand: `action_clear_all(me, k)`; from a random start
+  (`game_random % 6`) offer `-min(k's stock, D)` of each good that is
+  not wealth or knowledge, available to both, flagged `econ[g] & 0xc ==
+  4` for me, below 1000 in my stock and above 49 in `k`'s (one at a
+  time, by reservoir draw), else grow the wealth ask; then offer
+  `-min(ask, k's wealth)` of wealth; `action_respond(me, k, 1)` (which
+  clears `tribute_demanded[k]` and commits nothing of mine, my offers
+  all being negative); `agendas[k] |= 8`; then `tribute_demanded[k] =
+  1` (`6be85d`, after the call, so the net is 1).
+`action_respond(this, P, ·)` clears `this.tribute_demanded[P]`. `k`'s
+own answer runs `action_respond(k, me, ·)` and so clears `k`'s word, not
+mine: mine stays 1 until I call `action_respond(me, k, ·)` myself
+(another arm of my `Leader::diplomacy`, a trigger) or a memset.
+
+**3. Reset.** As above.
+
+**4. Readers.** `Leader::diplomacy`:
+- the per-pair cadence (`6bcacb`): period `P = 0x800` frames; when
+  `dip[k].agree != 1`, `P = 0x2000` (`local_a8`) if `tribute_demanded[k]`,
+  then `P *= 2` if `counteroffer[k]`; `P /= 4` unless `agendas[k] & 8`;
+  the pair runs when `(P - 1) & ((k + 8*me) * (P >> 6) + frame) == 0`, or
+  at once when `agendas[k] & 4`;
+- the war message (`6be9f5`): with `tribute_demanded[k]` set, the chat
+  line comes from a different table of seven.
+
+**5. Crate.** As `counteroffer`: the SEAM at
+`crates/sim/src/leaders/diplomacy.rs:177–179`, and the cadence in
+`diplomacy_with` omits the `0x2000` term. A builder adds the store to
+`diplomacy_with` past its `SEAM: the elimination and capital arms of
+team styles 0, 8 and 11` (the crate returns there for those styles).
+Checksum leaf `crates/sim/src/checksum/leaders.rs:86`.
+
+**6. Plain game?** No at the default team style 1: the arm needs team
+style 0, 8 or 11 (`docs/ORACLE.md:2911`, `--profile TEAM_STYLE=0`, is the
+lobby key that reaches it). A skirmish with diplomacy on reaches it with
+no human.
+
+**7. Confidence.** High on both writers and the team-style gate (listing
+and decompile agree); medium on the side conditions named by local
+(`-0x30`) and on the demand amounts, which are not this leaf's.
+
