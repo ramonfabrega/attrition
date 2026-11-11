@@ -239,7 +239,7 @@ const WORLD: [(usize, usize, usize, usize); WORLD_SECTIONS] = [
     (1, 120, 1, 120),
     (3600, 75600, 3600, 75600),
     (4, 158_400, 4, 158_400),
-    (1, 3600, 0, 0),
+    (1, 3600, 1, 3600),
     (8, 28800, 8, 28800),
     (3650, 17000, 0, 0),
     (696, 5547, 696, 5547),
@@ -251,14 +251,13 @@ const WORLD: [(usize, usize, usize, usize); WORLD_SECTIONS] = [
 
 /// **The fields the world line is held out on**, `section range.leaf` with
 /// the count of its elements not agreeing (parting or unheld) on frame 91
-/// (`docs/CHECKSUM.md` §21): the fog's `wcoord_seen`; the collision blocks (`World::new_coll_block`'s allocation, and the heads
+/// (`docs/CHECKSUM.md` §21): the collision blocks (`World::new_coll_block`'s allocation, and the heads
 /// and bodies behind it). The cells' `land_sub` and the masks' bit `0x4`
 /// are carried since item 4136 (`Terrain::object_placed`,
 /// `Wall::mark_behind_tiles`), `World::analyze_map`'s ten setup tallies
-/// since item 4147 (`docs/MAPGEN.md` §36), the cells' `was_seen` since item
-/// 4148 (`docs/VISION.md` §12).
+/// since item 4147 (`docs/MAPGEN.md` §36), the fog's two cell words
+/// `was_seen` and `wcoord_seen` since item 4148 (`docs/VISION.md` §12).
 const WORLD_HELD_OUT: &[(&str, usize)] = &[
-    ("07 wcoord_seen.wcoord_seen", 3600),
     ("09 block.body.bits", 2400),
     ("09 block.head.bits", 25),
     ("09 block.head.size", 25),
@@ -359,7 +358,7 @@ fn the_world_line_is_the_original_s_by_section() {
         }
     }
     eprintln!("world: sections whole {whole:?}");
-    assert_eq!(whole, [0, 1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 13, 14]);
+    assert_eq!(whole, [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14]);
     if WORLD_HELD_OUT.is_empty() {
         assert_eq!(line.adler(), want, "the world line's Adler");
     } else {
@@ -387,6 +386,7 @@ fn the_world_line_is_the_original_s_by_section() {
         (5, "cell", 1373, "05 cell.land_sub"),
         // Item 4148: a cell seat 1 has seen, `(52, 16)`, its `was_seen` 2.
         (5, "cell", 1012, "05 cell.was_seen"),
+        (7, "wcoord_seen", -1, "07 wcoord_seen.wcoord_seen"),
         (6, "mask", -1, "06 mask.mask"),
         (8, "danger", 5, "08 danger.danger"),
         (10, "halfland_locs", 7, "10 halfland_locs.y"),

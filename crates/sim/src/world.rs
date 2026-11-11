@@ -362,6 +362,14 @@ pub struct World {
     /// `World::wipe` zero it, and the fog grid's allocation is where this
     /// world does ([`World::set_fog`]). `docs/VISION.md` §12.
     was_seen: Vec<u8>,
+    /// `WorldData::wcoord_seen` (`World +0x168`), one byte a cell, one bit
+    /// per player: the cell's own record of `seen`. Every write that ors a
+    /// bit into `seen` at fog cell `(fx, fy)` ors it here at cell
+    /// `(fx >> 1, fy >> 1)` (`World::set_seen`, and `World::set_seen2` on
+    /// its arm that writes `seen`), and `World::clear_seen` zeroes it with
+    /// `seen`: the resync forgets both. Allocated with the fog grid.
+    /// `docs/VISION.md` §12.
+    wcoord_seen: Vec<u8>,
     /// `Region::coast` per region: for a land region, the sea regions any
     /// of its cells touches in the eight-neighbourhood — `Regions::
     /// set_coastals`' first mask (`docs/TRANSPORT.md` §9.1). Sorted,
@@ -856,6 +864,7 @@ impl World {
             fog_now: Vec::new(),
             fog_detect: Vec::new(),
             was_seen: Vec::new(),
+            wcoord_seen: Vec::new(),
             coast: Vec::new(),
             terrain_version: 0,
             territory_version: 0,
@@ -983,10 +992,10 @@ impl World {
     /// start-of-game state is — every cell an object has ever seen it is
     /// currently seeing, because nothing has moved yet.
     ///
-    /// The cell record's `was_seen` byte is allocated beside it, zeroed, as
-    /// `World::init`'s `WData` array is: on the minted game that is the
-    /// original's own start, and a grid installed from a dump carries no
-    /// cell words (`docs/VISION.md` §12).
+    /// The two cell words, the records' `was_seen` and `World +0x168`, are
+    /// allocated beside it, zeroed, as `World::init` allocates them: on the
+    /// minted game that is the original's own start, and a grid installed
+    /// from a dump carries no cell words (`docs/VISION.md` §12).
     pub fn set_fog(&mut self, seen2: Vec<u8>) -> bool {
         let n = (self.width as usize) * (self.height as usize) * 4;
         if seen2.len() != n {
@@ -995,6 +1004,7 @@ impl World {
         self.fog_now.clone_from(&seen2);
         self.fog = seen2;
         self.was_seen = vec![0; n / 4];
+        self.wcoord_seen = vec![0; n / 4];
         true
     }
 
@@ -1008,14 +1018,16 @@ impl World {
         true
     }
 
-    /// `World::clear_seen@006b2250` on the plane this world keeps: `seen`
-    /// (`World +0x15c`) zeroed whole. The original also zeroes its cell
-    /// twin `+0x168`, which this world does not keep, and queues each lit
-    /// cell for the fog's redraw. `seen2` is untouched. `docs/VISION.md`
-    /// §10.
+    /// `World::clear_seen@006b2250` on the planes this world keeps: `seen`
+    /// (`World +0x15c`) and its cell twin `wcoord_seen` (`+0x168`) zeroed
+    /// whole, and `seen3`, which `update_all_seen` zeroes beside the call.
+    /// The original also queues each lit cell for the fog's redraw.
+    /// `seen2` and the cells' `was_seen` are untouched. `docs/VISION.md`
+    /// §10, §12.
     pub fn clear_seen(&mut self) {
         self.fog_now.fill(0);
         self.fog_detect.fill(0);
+        self.wcoord_seen.fill(0);
     }
 
     /// `World::set_seen`'s `param_4` write: `mask` into `seen3`
@@ -1048,10 +1060,10 @@ impl World {
     /// gates `reveal_fog`. Off the grid it writes nothing and answers
     /// false. `docs/VISION.md` §5.
     ///
-    /// The cell's `WData +0x14` takes `mask` too ([`World::cell_was_seen`],
-    /// `docs/VISION.md` §12). The two writes the original also makes and
-    /// this does not — `seen3` (the caller's [`World::set_seen3`]) and
-    /// `World +0x168` — are §7's.
+    /// The two cell words take `mask` too, at the cell holding the fog cell:
+    /// `WData +0x14` ([`World::cell_was_seen`]) and `World +0x168`
+    /// ([`World::wcoord_seen`]), `docs/VISION.md` §12. `seen3`, gated on
+    /// the original's `param_4`, is the caller's [`World::set_seen3`].
     pub fn set_seen(&mut self, fx: i32, fy: i32, mask: u8) -> bool {
         let Some(i) = self.fog_index(fx, fy) else {
             return false;
@@ -1060,6 +1072,10 @@ impl World {
         self.fog_now[i] = seen;
         self.fog[i] = seen2;
         self.or_was_seen(fx, fy, mask);
+        let c = ((fy >> 1) * self.width + (fx >> 1)) as usize;
+        if let Some(b) = self.wcoord_seen.get_mut(c) {
+            *b |= mask;
+        }
         changed
     }
 
@@ -1102,6 +1118,19 @@ impl World {
             return None;
         }
         self.was_seen
+            .get((c.y * self.width + c.x) as usize)
+            .copied()
+    }
+
+    /// `WorldData::wcoord_seen` of cell `c` (`World +0x168`), one bit per
+    /// player: the leaders with a bit of `seen` in any of its four fog
+    /// cells since the last `clear_seen`. `None` when no fog grid has been
+    /// installed, or off the map. `docs/VISION.md` §12.
+    pub fn wcoord_seen(&self, c: Cell) -> Option<u8> {
+        if !self.contains(c) {
+            return None;
+        }
+        self.wcoord_seen
             .get((c.y * self.width + c.x) as usize)
             .copied()
     }

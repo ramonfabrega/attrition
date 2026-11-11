@@ -408,12 +408,16 @@ impl Sim {
                 leaves: vec![Leaf::new(name, 1, (fw * fh) as usize, v)],
             });
         }
-        // 7: `wcoord_seen`.
+        // 7: `wcoord_seen`, every `seen` write's cell half
+        // (`docs/VISION.md` §12).
+        let wcoord: Option<Vec<i64>> = (0..xs * ys)
+            .map(|i| w.wcoord_seen(Cell::new(i % xs, i / xs)).map(i64::from))
+            .collect();
         out.push(WorldRange {
             section: 7,
             record: -1,
             field: "wcoord_seen",
-            leaves: vec![Leaf::new("wcoord_seen", 1, (xs * ys) as usize, None)],
+            leaves: vec![Leaf::new("wcoord_seen", 1, (xs * ys) as usize, wcoord)],
         });
         // 8: the danger maps.
         let reg = ((xs / 2) * (ys / 2)) as usize;
