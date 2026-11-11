@@ -3691,7 +3691,7 @@ pub fn entered(bytes: &[u8]) -> Option<std::collections::BTreeSet<u32>> {
     let base = word(8);
     let mut out = std::collections::BTreeSet::new();
     let mut kinds = [false; 16];
-    for rec in bytes[32..].chunks_exact(32) {
+    for rec in bytes[32..].as_chunks::<32>().0 {
         let kind = u32::from_le_bytes([rec[0], rec[1], rec[2], rec[3]]);
         if kind == 0 {
             let va = u32::from_le_bytes([rec[4], rec[5], rec[6], rec[7]]);

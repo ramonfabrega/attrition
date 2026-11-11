@@ -1052,7 +1052,7 @@ impl Trace {
             return Err(invalid("unsupported trace version"));
         }
         let mut previous_frame = None;
-        for record in bytes[32..].chunks_exact(32) {
+        for record in bytes[32..].as_chunks::<32>().0 {
             // Writer protocol: INFO (5), I_DROPPED (14), count in slot 2.
             if word(record, 0) == 5 && word(record, 1) == 14 && word(record, 2) != 0 {
                 return Err(invalid("trace reports dropped records"));

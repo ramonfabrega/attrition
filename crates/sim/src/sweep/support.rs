@@ -720,11 +720,11 @@ pub(crate) fn sha256(data: &[u8]) -> [u8; 32] {
         .unwrap_or(u64::MAX)
         .wrapping_mul(8);
     tail.extend_from_slice(&bits.to_be_bytes());
-    for block in data[..full].chunks_exact(64).chain(tail.chunks_exact(64)) {
+    for block in data[..full].as_chunks().0.iter().chain(tail.as_chunks().0) {
         compress(&mut h, block);
     }
     let mut out = [0; 32];
-    for (o, w) in out.chunks_exact_mut(4).zip(h) {
+    for (o, w) in out.as_chunks_mut::<4>().0.iter_mut().zip(h) {
         o.copy_from_slice(&w.to_be_bytes());
     }
     out
@@ -744,10 +744,10 @@ const K: [u32; 64] = [
 ];
 
 /// One 64-byte block into the running state.
-fn compress(h: &mut [u32; 8], block: &[u8]) {
+fn compress(h: &mut [u32; 8], block: &[u8; 64]) {
     let mut w = [0u32; 64];
-    for (word, bytes) in w.iter_mut().zip(block.chunks_exact(4)) {
-        *word = u32::from_be_bytes(bytes.try_into().expect("four bytes"));
+    for (word, bytes) in w.iter_mut().zip(block.as_chunks::<4>().0) {
+        *word = u32::from_be_bytes(*bytes);
     }
     for i in 16..64 {
         let s0 = w[i - 15].rotate_right(7) ^ w[i - 15].rotate_right(18) ^ (w[i - 15] >> 3);

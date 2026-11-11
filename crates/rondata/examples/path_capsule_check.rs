@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         assert!(count <= 64 && remaining <= count, "outside capsule domain");
         assert_eq!(fields.len(), 2 + count * 4, "incomplete waypoint record");
         let mut unit = Unit::new(0, 0, Pos { x: 0, y: 0 }, 1);
-        for row in fields[2..].chunks_exact(4) {
+        for row in fields[2..].as_chunks::<4>().0 {
             assert!(row[3] <= u8::MAX as u32);
             unit.path.push(PathData {
                 to: Pos {

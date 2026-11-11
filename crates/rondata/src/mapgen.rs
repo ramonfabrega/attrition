@@ -2961,7 +2961,7 @@ mod tests {
             let best = opens
                 .iter()
                 .map(|(run, log)| (run, log, first_parting(log, seg)))
-                .max_by_key(|(_, _, p)| p.map_or(usize::MAX, |p| p));
+                .max_by_key(|(_, _, p)| p.unwrap_or(usize::MAX));
             if let Some((run, log, Some(at))) = best {
                 let site = |v: &[SetupDraw]| v.get(at).map(|&(s, w)| format!("{s:#x} word {w:#x}"));
                 parted.push(format!(
@@ -3374,7 +3374,7 @@ mod tests {
             let best = opens
                 .iter()
                 .map(|(run, log, _)| (run, log, first_parting(log, seg)))
-                .max_by_key(|(_, _, p)| p.map_or(usize::MAX, |p| p));
+                .max_by_key(|(_, _, p)| p.unwrap_or(usize::MAX));
             if let Some((run, log, Some(at))) = best {
                 let site = |v: &[SetupDraw]| v.get(at).map(|&(s, w)| format!("{s:#x} word {w:#x}"));
                 parted.push(format!(

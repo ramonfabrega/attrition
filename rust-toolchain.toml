@@ -4,5 +4,5 @@
 # code no branch had touched (Loop 4101). An update is a commit to this file,
 # with the lints it raises fixed beside it, gated whole.
 [toolchain]
-channel = "1.97.1"
+channel = "1.99.1"
 components = ["rustfmt", "clippy"]

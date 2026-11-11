@@ -242,9 +242,7 @@ impl MakeList {
     /// apart in a dump by whether a `t −1` slot still carries its old
     /// `val`.
     pub fn clear(&mut self) {
-        for m in &mut self.list {
-            *m = MakeObject::EMPTY;
-        }
+        self.list.fill(MakeObject::EMPTY);
     }
 
     pub const fn head(&self) -> &MakeObject {

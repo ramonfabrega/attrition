@@ -293,7 +293,9 @@ impl<'a> Cur<'a> {
         }
         let b = self.raw(2 * n, what)?;
         let units: Vec<u16> = b
-            .chunks_exact(2)
+            .as_chunks::<2>()
+            .0
+            .iter()
             .map(|c| u16::from_le_bytes([c[0], c[1]]))
             .collect();
         String::from_utf16(&units).map_err(|_| self.bad(format!("{what}: not UTF-16")))
@@ -477,7 +479,9 @@ pub fn parse(data: &[u8], path: &str) -> Result<RecGame, Error> {
             types: data[rules_start..constants].to_vec(),
             constants: data[constants..constants + 0xd40].to_vec(),
             balance: data[balance..tribes]
-                .chunks_exact(2)
+                .as_chunks::<2>()
+                .0
+                .iter()
                 .map(|b| u16::from_le_bytes([b[0], b[1]]))
                 .collect(),
             tribe_marker: data[tribes],

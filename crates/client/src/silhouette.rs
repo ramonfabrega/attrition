@@ -1906,7 +1906,13 @@ mod tests {
                 continue;
             };
             let img = &m.levels[0];
-            let under = img.rgba.chunks_exact(4).filter(|c| c[3] < 255).count();
+            let under = img
+                .rgba
+                .as_chunks::<4>()
+                .0
+                .iter()
+                .filter(|c| c[3] < 255)
+                .count();
             let d = scene
                 .drawings
                 .iter()
@@ -5169,7 +5175,7 @@ mod tests {
             println!("piece {piece} texture {name}");
             for (l, im) in m.levels.iter().enumerate() {
                 let mut h = [0u32; 5];
-                for px in im.rgba.chunks_exact(4) {
+                for px in im.rgba.as_chunks::<4>().0 {
                     let a = px[3];
                     h[match a {
                         255 => 0,

@@ -993,7 +993,13 @@ impl World {
         let decoded = art.get(&piece).and_then(|a| a.as_ref().ok()).and_then(|a| {
             let bytes = std::fs::read(resolve_art(&self.root, &a.texture)?).ok()?;
             let image = render::tga::decode(&bytes).ok()?;
-            let covered = image.rgba.chunks_exact(4).map(|p| p[3] >= 128).collect();
+            let covered = image
+                .rgba
+                .as_chunks::<4>()
+                .0
+                .iter()
+                .map(|p| p[3] >= 128)
+                .collect();
             Some(std::sync::Arc::new(SpriteImage {
                 image,
                 offset: a.sprite_offset,

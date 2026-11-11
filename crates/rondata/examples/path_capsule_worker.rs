@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             return Err("invalid waypoint count".into());
         }
         let mut unit = Unit::new(0, 0, Pos { x: 0, y: 0 }, 1);
-        for row in words[1..].chunks_exact(4) {
+        for row in words[1..].as_chunks::<4>().0 {
             if row[3] > 255 {
                 return Err("invalid flags".into());
             }

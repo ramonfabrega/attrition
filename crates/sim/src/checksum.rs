@@ -389,7 +389,7 @@ impl Sim {
             0x5e,
             &[
                 city.owner,
-                city.race.map_or(0xff, |r| r),
+                city.race.unwrap_or(0xff),
                 city.founder,
                 // `plundered` (+0x61): `City::init` zeroes it; no writer here.
                 0,

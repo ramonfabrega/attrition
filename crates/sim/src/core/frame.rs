@@ -77,6 +77,9 @@ impl Sim {
         // The staged input's marks, taken before the clear and put back at
         // the head of the frame's own — `do_frame`'s entry, which is where
         // the cheat channel spends them (`docs/INPUT.md` §11.1).
+        // `drain` over `mem::take`: `rondata::writers`' no-reader guard reads a
+        // `&mut` borrow as a write, and this line is the field's one read.
+        #[allow(clippy::drain_collect)]
         let staged: Vec<(String, u32)> = self.trace.staged_marks.drain(..).collect();
         if self.trace.trace_phases {
             self.trace.phase_marks.clear();

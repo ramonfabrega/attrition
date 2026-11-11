@@ -552,7 +552,9 @@ impl<'a> Cur<'a> {
     fn wchars(&mut self, n: usize, what: &str) -> Result<String, Error> {
         let b = self.raw(2 * n, what)?;
         let units: Vec<u16> = b
-            .chunks_exact(2)
+            .as_chunks::<2>()
+            .0
+            .iter()
             .map(|c| u16::from_le_bytes([c[0], c[1]]))
             .take_while(|&u| u != 0)
             .collect();
@@ -582,7 +584,7 @@ pub fn decode(data: &[u8]) -> Result<Vec<Command>, Error> {
 pub fn decode_mp(data: &[u8], seed: u32) -> Result<Vec<Command>, Error> {
     let key = (seed >> 8) as u16;
     let mut plain = data.to_vec();
-    for ch in plain.chunks_exact_mut(2) {
+    for ch in plain.as_chunks_mut::<2>().0 {
         let v = u16::from_le_bytes([ch[0], ch[1]]) ^ key;
         ch.copy_from_slice(&v.to_le_bytes());
     }
@@ -968,7 +970,9 @@ fn one(c: &mut Cur) -> Result<Command, Error> {
             let o = c.i32("o")?;
             let units: Vec<u16> = c
                 .raw(44, "city name")?
-                .chunks_exact(2)
+                .as_chunks::<2>()
+                .0
+                .iter()
                 .map(|b| u16::from_le_bytes([b[0], b[1]]))
                 .collect();
             let len = units.iter().position(|&u| u == 0).unwrap_or(22);
@@ -1731,7 +1735,7 @@ mod tests {
         // The network XOR, odd tail byte plain.
         let key = (seed >> 8) as u16;
         let mut wire = plain.clone();
-        for ch in wire.chunks_exact_mut(2) {
+        for ch in wire.as_chunks_mut::<2>().0 {
             let v = u16::from_le_bytes([ch[0], ch[1]]) ^ key;
             ch.copy_from_slice(&v.to_le_bytes());
         }
