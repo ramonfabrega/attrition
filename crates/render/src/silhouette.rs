@@ -276,6 +276,8 @@ pub fn paint_stamp(
                 rgb: [p[0], p[1], p[2]].map(f32::from),
                 alpha: f32::from(p[3]),
                 tri: u32::MAX,
+                uv: [0.0; 2],
+                level: 0,
             });
         }
     });
@@ -328,6 +330,8 @@ pub fn paint_cut(
                 rgb,
                 alpha,
                 tri: ti as u32,
+                uv: [0.0; 2],
+                level: 0,
             });
         });
     }
@@ -582,6 +586,10 @@ pub struct Texel {
     pub alpha: f32,
     /// The triangle it is drawn from, `u32::MAX` for a sprite.
     pub tri: u32,
+    /// The texcoord sampled and the level taken (item 4107); zero where
+    /// [`paint`] did not sample a figure's texture.
+    pub uv: [f32; 2],
+    pub level: u8,
 }
 
 /// **An object's own colour over a window** (item 4099): `object` alone,
@@ -635,6 +643,8 @@ pub fn paint(
                     rgb: c.map(f32::from),
                     alpha: 255.0,
                     tri: ti as u32,
+                    uv: [0.0; 2],
+                    level: 0,
                 },
                 Paint::Texture { uvs, mips, owner } => {
                     let Some(uv) = uvs.get(ti) else {
@@ -649,6 +659,8 @@ pub fn paint(
                         },
                         alpha: s[3],
                         tri: ti as u32,
+                        uv: [u, v],
+                        level: level.unwrap_or(0) as u8,
                     }
                 }
             };

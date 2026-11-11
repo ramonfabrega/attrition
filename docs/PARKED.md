@@ -16317,9 +16317,11 @@ words and edits nothing here; a refill lands when two remain.
   its ambient alone is coloured, (0.600, 0.716, 0.745). On player 1's 15,412 unmasked, unoccluded pixels the
   photograph over our texel is grey, (−0.010, +0.002), in every `N·L` band, and the texel times that ambient agrees
   on 4,660 against 7,080 for the texel; the unshifted photograph agrees most for both players (no one-pixel
-  registration). **What is left, by frame 3279 and its delta**: (1) **player 0's peasants (pieces 10912, 4576)
-  read red on texels whose alpha is 255** (1,127 pixels, (+0.164, −0.048); 0/0, piece 377, is grey): a mask our
-  texture level does not hold, at most 0/2, 0/7, 0/8, 0/10 and the peasants still out; (2) the pine's own leaf
+  registration). **What is left, by frame 3279 and its delta**: (1) ~~**player 0's peasants (pieces 10912, 4576)
+  read red on texels whose alpha is 255**~~ (killed, item 4107: the selection was alpha ≥ 1 of 255, not 255; of the
+  1,127 pixels 564 are alpha 255 and grey, 4576 (+0.031, +0.022) and 10912 (−0.011, +0.030), and the red is on the
+  563 masked ones, (+0.36, −0.15), where 4102's blend agrees on 221 against 27 for the texel; no level or filter
+  holds a mask on the alpha-255 pixels that raises the blend; 4107a), (2) the pine's own leaf
   agrees on 1,946 of 3,136 as the texel to the lit branch's power 1.45 against 514 as the texel, a tone curve not a
   light, which under the silhouette's blend agrees less (102 of 646 against 268) and so is not 4103a's share; (3)
   the level the card samples, not separated (the painter takes `Mips::level` by area). Not established: the
@@ -16327,13 +16329,20 @@ words and edits nothing here; a refill lands when two remain.
   `d3dgl.dll` and not in the packet; why the figures' texel reads nearer unpowered than the leaf. Rests on a reading
   and one photograph. Names no score until a mechanism is chosen.
 
-## Parked by the next landing, slot EU — reserved
+## Parked by item 4107, 2026-11-10 — the peasants' red, killed by its alpha
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4107a. The peasants' masked pixels, and 4106's selection** (`docs/RENDERER.md` §5.3, "The team colour";
+  `RUN1559B_3279_COLOUR` 18 of 33; `client::silhouette::tests::the_peasants_alpha`). 4106's table kept pixels whose
+  painted alpha was at least 1 of 255 (`t.alpha < 1.0`), not 255, and compared them with the unblended texel. Split
+  by the painter's alpha, player 0's 1,127 are 350, 76 and 138 at alpha 255 on pieces 377, 4576 and 10912, grey
+  within 0.05 (texel agreeing 122, 48, 92), and 77, 86 and 400 masked, red, (+0.212, −0.035), (+0.374, −0.166),
+  (+0.355, −0.152), where `t·α + c·(1 − α)` agrees on 9, 42 and 179 against 3, 5 and 22 for the texel. Player 1's
+  15,412 are 13,335 at alpha 255 and 2,077 masked. On the alpha-255 pixels no level of the chain (box-filtered, 0 to
+  the 1×1), nearest or bilinear, at the painter's level or one either side, holds an alpha that raises the blend over
+  that level's texel. **What is left, by frame 3279 and its delta**: the peasants' masked pixels where the blend still
+  parts, 265 of 486 on 4576 and 10912, which is 4102a's 61 %, not a mask of the opaque texel; and 4106's own
+  numbers, which mix the two (its kill of the light stands: player 1 at alpha 255 is grey on every piece but the
+  dragoon 13680, 97 pixels). Rests on one photograph. Names no score until a mechanism is chosen.
 
 ## Parked by item 4104, 2026-11-10 — the guys line, and its five floats
 
