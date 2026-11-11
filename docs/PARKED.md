@@ -3850,6 +3850,10 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 ## Loop, filed 2026-11-10 — the driver's fourteenth session
 
+(4120) **A field a builder gave the sim's unit stood unowed through its guard, its tests and its booking, and a whole gate found it** (the driver's sixteenth session, 2026-11-11): 4113 put `hero`, `play` and `special` on the unit for the checksum's units line; the dumps' unit record prints keys of those names, and `diff::coverage`'s guard holds that such a key is compared or owed to an item. The builder's whole `tools/guard.sh` and its floor tests do not run that guard, the brief named no such test, and the booking gated beside the next builder: the red came 28 minutes into the whole gate, and again as the one red of lane 4117's own gate on a branch that touched no simulation code. One fix commit (`401ef9061`), the keys owed to 4118. Candidate: a builder's brief names `diff::coverage` among the tests it runs in release before its hand-back whenever it adds a field to a record a dump prints, and the driver runs it with the census pin at the merge (the sixteenth's opener says so) — or `tools/guard.sh` takes the source-only half of that guard, which read no dump and failed in 0.01 s.
+
+(4119) **A line's port probed our own image before any writer was read, and 37,010 bytes came down to one field** (4116's "for the Loop", the driver's sixteenth session, 2026-11-11): the brief ordered the values, then the writers' reach, then the port; the builder emitted what the crate's pool already held beside the stream first, and twenty of the record's 21 fields agreed on the first run, because some thirty earlier items had diffed the pool against the dumps' group record. Only `role` parted, on two ranges. The step took 296 k tokens and 58 minutes against 4113's 367 k and 76. Candidate: a line's brief puts our image beside the stream as step 1, before the table of every field's values and before any writer is read, and sorts only the leaves that part (4121's item says so) — with Loop 4096's sweep kept for the fields no dump compares, since a leaf that agrees on one frame by default is not a rule.
+
 (4115) **A journal's "ships none" stood through two items against a document on disk that said it ships** (4114's "for the Loop", the driver's fifteenth session, 2026-11-10): 4106's journal wrote that the card's library ships no PDB and that the tone mapper's exposure, white point, saturation and tint were "held by the DLL", and parked 4106a carried that as not established; `docs/RENDERER.md` §3.4 had said since item 4018 that the install ships `sbl/d3dgl.pdb` and `sbl/d3dgl.map`. Three briefs (4107, 4110, 4112) then ruled the tone mapper out by name on the journal's word, and the driver's fifteenth session found the contradiction only by grepping the documents for the library's name while designing 4114, whose lane read every constant in minutes (the constructor's immediates, one listing range a setter). Candidate: an absence a journal or a parked row states of the install — a file it does not ship, a symbol it does not carry — names the listing or the find that showed it, as a queue item's absence already must (Loop 2704), and a brief that rules a mechanism out on such an absence re-runs that find first. Names no score; the loop's.
 
 (4111) **A selection was named by a label its predicate did not hold, and an item was designed on the label** (4107's "for the Loop", the driver's fourteenth session, 2026-11-10): 4106's table kept the pixels passing `t.alpha < 1.0` on a 0–255 channel and called them "alpha 255"; they were alpha 1 and over, 564 opaque and 563 masked of player 0's 1,127, and the red its journal put on opaque texels was the masked half's, where 4102's blend already agrees. The driver designed 4107 on the journal's sentence, and the lane spent a session (2.03 USD and 18 minutes, lore) killing a label. Candidate: a table that selects by a channel prints the predicate and the kept population's minimum, maximum and count on that channel beside its label, and an item designed on a prior table's selection re-runs that selection as its brief's first probe — METHOD's "a quiet field is checked against the reader", for a filter. **A second case the same session, found by that probe** (4110's "for the Loop"): 4102a's count, 2,733 masked lit pixels with 1,664 parting, stood in the queue through 4106, 4107 and 4110's design; 4110's brief asked for the selection first, and on the day's tree 4102's own test counts 2,665 with 1,617 parting — the 2,733 was measured on 4102's own tree, and which landing moved the 68 is not separated. So the candidate widens: a count a parked row or a queue item carries is re-measured on the tree a design rests on, by the test that printed it, before the design is written; a parked row's count names the commit it was measured at. Names no score; the loop's.
@@ -16473,18 +16477,28 @@ words and edits nothing here; a refill lands when two remain.
   lean toward (+2, +1) is inside the bar and unread (with parked 4089a). Rests on one photograph and the dump's `gpiece`;
   names no score until a mechanism is chosen.
 
-## Parked by the next landing, slot FB — reserved
+## Parked by item 4116, 2026-11-11 — the groups line, whole
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4116a. What the groups line rests on that no scored frame holds** (`docs/CHECKSUM.md` §19, "Not established"; `docs/GROUPS.md` §3.4; the
+  builder's hand-back). `Army::add_group` ORs a group's `role` into its army's role word, which the crate does not carry: its army normalize
+  stores 0 there. Beside it, unseen on frame 91 and on run1100's 5408: a group of more than one member (every member array has been read at 0
+  offsets); `role` stored at a normalize site the crate does not mirror (the hot-key groups' find, a nearby-target search, a build, the `is_*`
+  queries); a building group emptied by the groups' process, where the original keeps `buildings` 1 and ours would emit 0; `army` on a pushed
+  slot an army held before, and a slot an army and a pushed entry both hold; the open-slot search's fallbacks. Names no score until a scored
+  frame holds one: a second frame of the minted game is the place (with parked 4104a, 4113a).
 
 ## Parked by the next landing, slot FC — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot FC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FD — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FD renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
