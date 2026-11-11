@@ -1219,7 +1219,7 @@ fractal, and draws nothing. The oracle is run1559b's packet, printed whole by
 **What the packet's diff backs** (`client::patch::tests`):
 
 - *Stage 0, the fractal.* `Fractal::init(61, 61, 0, 2, World.seed)` gives the packet's `frac` on all
-  2,064 patched cells. Seed `0x1c44`.
+  2,064 patched cells, on the start dump's `World.seed`.
 - *The orientations.* From the 14 file names, the eight codes are the packet's on every alpha.
 - *Stages 2 and 3, on the packet's own masks* (`RUN1559B_3279_PATCH_ON_ITS_MASKS`). Of the 2,810
   land-0 cells:
