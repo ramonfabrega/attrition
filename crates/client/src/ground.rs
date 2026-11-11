@@ -328,6 +328,23 @@ pub const RUN1559B_3279_MOUNTAIN_VALUES: (u32, [u32; 4], [u32; 4], u32) =
 pub const RUN1559B_3279_MOUNTAIN_READS: ([u32; 6], [u32; 6], u32) =
     ([105, 105, 97, 62, 88, 98], [85, 91, 90, 35, 62, 77], 106);
 
+/// **`RUN1559B_3279_UNSCORED`** (item 4143, stage 0; `docs/RENDERER.md`
+/// §7.1): what [`RUN1559B_3279_GROUND`]'s selection leaves out on frame
+/// 3279. Every tile in the photograph's view is a `BASELAND` cell's: by
+/// kind — plain, under a placed mountain, `ROCK` — `[in view, scored, short
+/// of the bar, no ground pixel]`; then the tiles in view that are `SANDY`,
+/// `OCEAN` or flagged `COAST` or `HALFLAND`, none; then the pixels off the
+/// heightfield, the corner past the map's edge (the photograph's mean there
+/// (64, 59, 33), no water). The water, the coast and the cliffs hold no
+/// scoreable tile here, so the item's kill holds before a reading (parked
+/// 4143a).
+#[cfg(test)]
+pub const RUN1559B_3279_UNSCORED: ([[u32; 4]; 3], u32, u32) = (
+    [[1690, 986, 42, 662], [143, 106, 9, 28], [18, 17, 0, 1]],
+    0,
+    213_931,
+);
+
 /// [`RUN1559B_3279_GROUND`] on the base layer alone, as item 4127 pinned it.
 #[cfg(test)]
 pub const RUN1559B_3279_GROUND_BARE: (usize, usize) = (949, 1109);
@@ -626,7 +643,7 @@ mod tests {
     use crate::silhouette::{INTERFACE, PHOTO_FRAME, TRACED, frame_scene, photo_path};
     use crate::world::{TreePixels, World};
     use render::silhouette::{HUE, Object, chromaticity, inside, rasterize_cut};
-    use render::terrain::{TILES_PER_CELL, land_colour};
+    use render::terrain::{BASELAND, TILES_PER_CELL, land_colour};
     use std::collections::BTreeMap;
     use std::path::PathBuf;
 
@@ -780,11 +797,38 @@ mod tests {
     }
 
     pub(crate) fn ground(p: &mut Probe) -> Ground {
+        ground_why(p).0
+    }
+
+    /// Why a pixel of the photograph is not a ground pixel, the order
+    /// [`ground_why`] tests them (item 4143, stage 0); `0` is ground.
+    pub(crate) const WHY: [&str; 6] = [
+        "ground",
+        "an object's pixel",
+        "an object's window",
+        "the interface",
+        "a trace",
+        "off the terrain",
+    ];
+
+    /// Each pixel's tile, `None` off the heightfield.
+    pub(crate) type PixelTiles = Vec<Option<(i32, i32)>>;
+
+    /// [`ground`], with each pixel's tile before the masks and the first
+    /// mask that drops it, an index of [`WHY`] (item 4143).
+    pub(crate) fn ground_why(p: &mut Probe) -> (Ground, PixelTiles, Vec<u8>) {
         let size = (p.photo.width, p.photo.height);
         let (w, h) = size;
         p.world.tree_pixels = TreePixels::Scene;
         let scene = frame_scene(&mut p.world, &p.camera, size);
-        let mut out = vec![true; w * h];
+        let mut why = vec![0u8; w * h];
+        for y in 0..h {
+            for x in 0..w {
+                if scene.keys.at(x, y) != 0 {
+                    why[y * w + x] = 1;
+                }
+            }
+        }
         let mut boxes: BTreeMap<u32, (i32, i32, i32, i32)> = BTreeMap::new();
         for y in 0..h {
             for x in 0..w {
@@ -801,19 +845,27 @@ mod tests {
         for &(x0, y0, x1, y1) in boxes.values() {
             for y in (y0 - m).max(0)..=(y1 + m).min(h as i32 - 1) {
                 for x in (x0 - m).max(0)..=(x1 + m).min(w as i32 - 1) {
-                    out[y as usize * w + x as usize] = false;
+                    let q = &mut why[y as usize * w + x as usize];
+                    if *q == 0 {
+                        *q = 2;
+                    }
                 }
             }
         }
         for y in 0..h {
             for x in 0..w {
                 let (xi, yi) = (x as i32, y as i32);
+                let q = &mut why[y * w + x];
+                if *q != 0 {
+                    continue;
+                }
                 if INTERFACE
                     .iter()
                     .any(|r| (r.x0..r.x1).contains(&xi) && (r.y0..r.y1).contains(&yi))
-                    || TRACED.iter().any(|(_, poly)| inside(poly, xi, yi))
                 {
-                    out[y * w + x] = false;
+                    *q = 3;
+                } else if TRACED.iter().any(|(_, poly)| inside(poly, xi, yi)) {
+                    *q = 4;
                 }
             }
         }
@@ -832,16 +884,120 @@ mod tests {
             })
             .collect();
         let tiles = rasterize_cut(&objects, &[], &[], &p.camera, size).keys;
-        let tile = (0..w * h)
+        let any: Vec<Option<(i32, i32)>> = (0..w * h)
             .map(|i| {
                 let k = tiles.keys[i];
-                (out[i] && k != 0).then(|| {
+                (k != 0).then(|| {
                     let n = k as i32 - 1;
                     (n % tw, n / tw)
                 })
             })
             .collect();
-        Ground { tile, tw, th }
+        for (q, a) in why.iter_mut().zip(&any) {
+            if *q == 0 && a.is_none() {
+                *q = 5;
+            }
+        }
+        let tile = (0..w * h).map(|i| any[i].filter(|_| why[i] == 0)).collect();
+        (Ground { tile, tw, th }, any, why)
+    }
+
+    /// **Item 4143, stage 0: what the ground's row leaves out.** Every
+    /// tile in the photograph's view, by its cell's kind — `WData.land`,
+    /// the shore and rock bits of `WData.flags`, a placed mountain — and
+    /// by the first mask that drops each of its pixels ([`WHY`]); a tile
+    /// scores at [`HUE`]'s `min_pixels` ground pixels.
+    #[test]
+    fn what_the_ground_s_row_leaves_out() {
+        use sim::ids::cell;
+        let Some(mut p) = probe() else { return };
+        let (g, any, why) = ground_why(&mut p);
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let kind = |(tx, ty): (i32, i32)| {
+            let i = ((ty / TILES_PER_CELL) * t.width + tx / TILES_PER_CELL) as usize;
+            let f = t.flags[i] & (cell::COAST | cell::HALFLAND | cell::ROCK);
+            (t.land[i], f, mountains.contains(&(tx, ty)))
+        };
+        // Per tile: its pixels by reason.
+        let mut per: BTreeMap<(i32, i32), [u32; 6]> = BTreeMap::new();
+        for (a, q) in any.iter().zip(&why) {
+            if let Some(tt) = a {
+                per.entry(*tt).or_default()[*q as usize] += 1;
+            }
+        }
+        // Off the terrain: what the photograph shows there, and where.
+        let w = p.photo.width;
+        let (mut off, mut sum, mut bbox) = (0u32, [0f32; 3], (usize::MAX, usize::MAX, 0, 0));
+        for (i, q) in why.iter().enumerate() {
+            if *q == 5 {
+                off += 1;
+                for (c, v) in sum.iter_mut().enumerate() {
+                    *v += f32::from(p.photo.rgba[i * 4 + c]);
+                }
+                let (x, y) = (i % w, i / w);
+                bbox = (bbox.0.min(x), bbox.1.min(y), bbox.2.max(x), bbox.3.max(y));
+            }
+        }
+        let m = sum.map(|v| v / off.max(1) as f32);
+        println!(
+            "off the terrain: {off} pixels in {bbox:?}, the photograph's mean ({:.0}, {:.0}, {:.0})",
+            m[0], m[1], m[2]
+        );
+        // By kind: (tiles in view, scored, short of the bar, no ground
+        // pixel), and the pixels by reason.
+        type Row = ([u32; 4], [u32; 6]);
+        let mut by: BTreeMap<(i8, u16, bool), Row> = BTreeMap::new();
+        for (tt, n) in &per {
+            let e = by.entry(kind(*tt)).or_default();
+            e.0[0] += 1;
+            match n[0] {
+                0 => e.0[3] += 1,
+                k if k >= HUE.min_pixels => e.0[1] += 1,
+                _ => e.0[2] += 1,
+            }
+            for (a, b) in e.1.iter_mut().zip(n) {
+                *a += b;
+            }
+        }
+        for ((l, f, m), (tiles, px)) in &by {
+            println!(
+                "kind land {l} flags {f:#x} mountain {m}: tiles [in view, scored, short, none] {tiles:?}; pixels by {WHY:?} {px:?}"
+            );
+        }
+        // The whole map's cells by kind, for the denominators.
+        let mut cells: BTreeMap<(i8, u16), u32> = BTreeMap::new();
+        for (l, f) in t.land.iter().zip(&t.flags) {
+            *cells
+                .entry((*l, f & (cell::COAST | cell::HALFLAND | cell::ROCK)))
+                .or_default() += 1;
+        }
+        println!("the map's cells by (land, flags): {cells:?}");
+        let scored = per.values().filter(|n| n[0] >= HUE.min_pixels).count();
+        assert_eq!(scored, RUN1559B_3279_GROUND.1, "the row's selection");
+        assert_eq!(
+            scored,
+            g.tile
+                .iter()
+                .flatten()
+                .fold(BTreeMap::<_, u32>::new(), |mut m, tt| {
+                    *m.entry(*tt).or_default() += 1;
+                    m
+                })
+                .values()
+                .filter(|n| **n >= HUE.min_pixels)
+                .count(),
+            "ground_why's tiles are ground's"
+        );
+        let land = [(0, false), (0, true), (cell::ROCK, false)]
+            .map(|(f, m)| by.get(&(BASELAND, f, m)).map_or([0; 4], |r| r.0));
+        let other: u32 = by
+            .iter()
+            .filter(|((l, f, _), _)| *l != BASELAND || f & !cell::ROCK != 0)
+            .map(|(_, r)| r.0[0])
+            .sum();
+        assert_eq!((land, other, off), RUN1559B_3279_UNSCORED);
     }
 
     fn mean(px: &[[f32; 3]]) -> [f32; 3] {

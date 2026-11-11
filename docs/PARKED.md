@@ -16704,13 +16704,20 @@ words and edits nothing here; a refill lands when two remain.
   vertex heights, its mid-zoom mesh or the snowcap underlay (`CoordInfo::add_geometry`, `has_snowcaps`). The row
   scores colour, not shape.
 
-## Parked by the next landing, slot FN — reserved
+## Parked by item 4143, 2026-11-11 — what the ground's row leaves unscored
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4143a. The water, the coast and the cliffs: no tile on frame 3279** (`docs/RENDERER.md` §7.1;
+  `RUN1559B_3279_UNSCORED`). Every tile in the photograph's view sits on a `BASELAND` cell: 1,690 plain, 143 under a
+  mountain, 18 `ROCK`. No tile in view is `SANDY` or `OCEAN`, or flagged `COAST` or `HALFLAND`; the map has 790 such
+  cells, all of them out of frame. The item's kill held before any reading, so `TerrainOut::generate_water` stays
+  unread and the painter is unchanged. A score needs a photograph with the shore in view, which this item ruled out.
+- **4143b. The ground the masks take** (`RUN1559B_3279_UNSCORED`). Of the 1,851 tiles in view, 742 are left out of
+  the row: 51 have fewer than `HUE.min_pixels` ground pixels, and 691 have none. All are `BASELAND`. Their pixels go
+  to an object (242,085), an object's 6-pixel window (169,387) or the interface (406,843); the traces take none
+  that the windows had not already taken. They become scoreable only per pixel or on another frame.
+- **4143c. Off the heightfield** (`RUN1559B_3279_UNSCORED`). There are 213,931 pixels in the upper-left corner, past
+  the map's edge, within (0, 0)–(1222, 596). The photograph's mean there is (64, 59, 33), with no blue. What the
+  original draws past the edge is unread.
 
 ## Parked by the next landing, slot FO — reserved
 
