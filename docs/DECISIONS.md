@@ -129,11 +129,12 @@ is append-only and amended in place, as it always was.
 - 120 standing — step 5's frame; the floats
 - 121 standing — no kill rule; soft stop 95 %
 - 122 standing — Opus drives, Fable talks
+- 123 standing — two workers out
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
 - 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types
 - 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself
 - 88 amended by 90 — The forty-ninth tranche: two Opus lanes, sixteen `cover=1` landings drained on a pit stop, the blind list 300 → 240 open, the click layer to the pool, two residue rows ratified, the oracle cache key reads the parser and codec only, sixteen Loop items ruled
-- 87 standing — The forty-eighth tranche: five readings and two sweeps at the loop's cheapest landing, forty-five residue rows ratified, the blind list 345 → 300, the forty-ninth booked as `cover=1` captures under a fifth brief kind, a pinned `Blind:` line, eleven Loop items ruled
+- 87 standing — The forty-eighth tranche: five readings and two sweeps, forty-five residue rows ratified, the blind list 345 → 300, the forty-ninth booked as `cover=1` captures under a fifth brief kind, a pinned `Blind:` line, eleven Loop items ruled
 
 ## 1. Fidelity before divergence
 
@@ -12111,3 +12112,37 @@ we do squeeze out the last 14% we got left".
 the Fable one did (the pilot's twenty steps were designed on Fable); whether
 the observer's one-message hand-off is enough, or a decision needs a file;
 what the Fable week resets with.
+
+## 123. Two workers out at all times while the week is run down, and the lane after 4145 is the client's input (2026-11-11)
+
+**What happened.** The driver's twenty-fourth session (Opus 5.5) merged and
+booked 4147 with nothing else out: no ccc lane since 4145's landing, and the
+chain's next builder waiting on the booking's gate. The whole week read 87 %
+with the stop at 95 % (entry 121) and a full reset to be pulled after it
+(entry 122 §3).
+
+**Ramon, on the driver's row, 16:40 −05:00:** "client input is fine, how many
+lanes are we running? we should always have 2 out there no? right now we're
+trying to spend our tokens so we run the reset so happy to potentially
+increase tok throughpout?"
+
+**Decided**, on that word.
+
+1. **Two workers are out at all times under the stop**: the chain's
+   in-session builder and one ccc lane. The driver cuts the chain's next
+   builder from the booked commit while that booking's gate runs, rather
+   than after it; a red gate is sent to the builder as a fix. A lane is
+   refilled at its done line. Entry 121's stop still governs: from 92 %
+   nothing is cut that cannot be booked under 95 %.
+2. **The lane after 4145 is the client's input** (the handoff's For Ramon
+   (1), the driver's pick): item 4149, the original's playback of a file
+   minted by clicks at the opening camera (parked 4145a).
+3. **Throughput over thrift until the reset**: lanes run at `--effort high`.
+   A third worker is the driver's call when the window's pace leaves the
+   wall more than a day past the reset.
+
+**Not established:** whether two workers and the driver's merges fit the
+host (the gate, a lane gate and a builder's floors share sixteen cores and
+the memory cap; `tools/resource_budget.py` admits them); what a lane on
+`--effort high` costs against the medium 4145 ran on.
+
