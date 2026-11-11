@@ -550,6 +550,82 @@ pub fn team_blend(rgb: [f32; 3], alpha: f32, owner: [u8; 3]) -> [f32; 3] {
     [0, 1, 2].map(|k| rgb[k] * a + f32::from(owner[k]) * (1.0 - a))
 }
 
+/// **Item 4114's candidate: the Extended Edition's lit pixel, as the
+/// install fixes it** (`docs/RENDERER.md` §5.3, "The lit pixel"). Not
+/// drawn until its count says so; committed before the count. Every
+/// constant is read, none measured on the photograph:
+///
+/// - the stage colour (the team blend, which the card's texture stage
+///   runs before the lit branch) raised to [`LIT_POWER`], then times the
+///   diffuse term plus the ambient term, both × [`HDR_SCALE`] — the lit
+///   branch of the install's `shaders/ps_global.hlsl`, read, not copied;
+/// - the diffuse term: the material diffuse × the light's diffuse × N·L
+///   (clamped at 0) / π; the material reaches the card with its r, g, b
+///   times its own alpha (`D3D11Context::set_material@1001ab00` in
+///   `d3dgl.dll`), so `unit_graphics.xml`'s `diffuse*` (1, 1, 1) × 2.5;
+///   the light's diffuse is (1, 1, 1, 1) (`prep_unit_lighting@00905c10`);
+/// - the ambient term: the material ambient, `ambient*` (0.6, 0.716,
+///   0.745) × 0.558, times the scene ambient, which `Game::init_light@
+///   00590ef0` hands the card's `set_ambient` (slot 0x14c, stored raw at
+///   `+0x620` by `D3D11GLSys::set_ambient@1001d860`) from the same four
+///   attributes, (0.6, 0.716, 0.745);
+/// - the tone map: Hable's filmic curve (its published parameters A 0.15,
+///   B 0.50, C 0.10, D 0.20, E 0.02, F 0.30, as the install's
+///   `ps_tonemap.hlsl` uses them) on the exposure × the colour, divided by
+///   the curve at the white point × the frame's mean luminance, that mean
+///   clamped from below at the minimum luminance; the tone mapper's
+///   defaults are `D3D11ToneMapper::D3D11ToneMapper@10042c40`'s (exposure
+///   1.0 + adjustment 0, white point 3.5, minimum luminance 1.4,
+///   saturation 1.0, tint's alpha 0), and no caller in the executable
+///   sets them (`Scene::render@008b3270` only runs it). Saturation 1 and
+///   a tint of alpha 0 are the identity.
+///
+/// **The one frame scalar**, the mean luminance, is taken at its clamp,
+/// 1.4: a premise the test checks on pixels no figure holds, never fitted.
+/// `rgb` is 0–255 after the team blend; the result is 0–255.
+pub fn lit_pipeline(rgb: [f32; 3], n_dot_l: f32) -> [f32; 3] {
+    let white = 1.0 / filmic(MIN_LUMINANCE * WHITE_POINT);
+    let diffuse = HDR_SCALE / std::f32::consts::PI * UNIT_DIFFUSE * n_dot_l.max(0.0);
+    [0, 1, 2].map(|k| {
+        let c = (rgb[k] / 255.0).clamp(0.0, 1.0).powf(LIT_POWER);
+        let ambient = HDR_SCALE * UNIT_AMBIENT[k] * UNIT_AMBIENT_I * SCENE_AMBIENT[k];
+        let lin = c * (diffuse + ambient);
+        255.0 * (filmic(EXPOSURE * lin) * white).clamp(0.0, 1.0)
+    })
+}
+
+/// Hable's filmic curve with its published parameters, offset so 0 maps
+/// to 0 (item 4114).
+pub fn filmic(x: f32) -> f32 {
+    const A: f32 = 0.15;
+    const B: f32 = 0.50;
+    const C: f32 = 0.10;
+    const D: f32 = 0.20;
+    const E: f32 = 0.02;
+    const F: f32 = 0.30;
+    (x * (A * x + C * B) + D * E) / (x * (A * x + B) + D * F) - E / F
+}
+
+/// The lit branch's power on the stage colour (item 4114).
+pub const LIT_POWER: f32 = 1.45;
+/// The lit branch's HDR multiplier on both light terms (item 4114).
+pub const HDR_SCALE: f32 = 5.0;
+/// `unit_graphics.xml`'s `diffusei`, folded into the white diffuse.
+pub const UNIT_DIFFUSE: f32 = 2.5;
+/// `unit_graphics.xml`'s `ambientr`, `ambientg`, `ambientb`.
+pub const UNIT_AMBIENT: [f32; 3] = [0.6, 0.716, 0.745];
+/// `unit_graphics.xml`'s `ambienti`, folded into the material ambient.
+pub const UNIT_AMBIENT_I: f32 = 0.558;
+/// The scene ambient `Game::init_light` hands the card: the same
+/// attributes, raw.
+pub const SCENE_AMBIENT: [f32; 3] = [0.6, 0.716, 0.745];
+/// The tone mapper's exposure plus its adjustment, defaults.
+pub const EXPOSURE: f32 = 1.0;
+/// The tone mapper's white point, default.
+pub const WHITE_POINT: f32 = 3.5;
+/// The tone mapper's minimum luminance, default: the mean's floor.
+pub const MIN_LUMINANCE: f32 = 1.4;
+
 /// **The silhouette's alpha** (item 4103; §5.3, "The silhouette's
 /// colour"): `render_states[1]`'s `tfactor` alpha on run1559b's packet,
 /// the byte `GraphicPieces::draw_unit@008e7da0` lays beside the owner's
