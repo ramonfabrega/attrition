@@ -206,3 +206,177 @@ the Forbidden City itself (the order of `Build::close` against line 1137 in
 `capture_city` was not traced). Not read: `Leader::defeat`, which does not
 name the field in the export; the `semaphore` bits' meanings.
 
+## Leaf 2: `lost_capital_timer` (+0x418, int)
+
+### 1. Writers, both nets
+
+Export: `->lost_capital_timer` only in `LeaderData::log_data (006e5110)` 736
+(read). `field_0x418`: writes in `Leader::lost_capital (006dc870)` 20,
+`Leader::recapture_capital (006d1ba0)` 16, `Build::activate (00623e20)` 1418,
+`Leader::init (006e3930)` 311; reads in `Leader::process (006b88b0)` 46,
+`Leaders::process_all (006ed2a0)` 51, `Leader::process_elimination
+(006b8a20)` 15, `Player::leave_game (006ee010)` 38, `Build::activate` 1417,
+`lost_capital` 19, `recapture_capital` 15.
+
+Listing: absolute `0xe3a7a8` — `0x625f64` (cmp) and `0x625f71` (store 0) in
+`Build::activate`; `0x6ee0a8` (cmp, `Player::leave_game`). Register-relative
+stores: `0x6d1bb8` (`recapture_capital`, stores `%edi` = 0), `0x6dc88a`
+(`lost_capital`, stores 1), `0x6e3f8f` (`Leader::init`, stores `%eax` = 0, the
+same register as the stamp's store one line above). Rejected by base type:
+`0x48ff26` (`ConquestMapLoader` ctor), `0x77e9a5` (`ConquestMapLoader::load_map`),
+`0x88c28f` (`RiverSectionOut`), `0x8afadf` (`TerrainBorder`), `0x922dd1`
+(`RTreeData::try_wcoord_entry`), `0x9235c2` (`RTreeData::clear`), `0x9ad118`
+(`ScenarioRead::load_leaders_chunk`, base `GameAccess::game`). Bulk: the
+`Leader::init` memset and `LeaderData::walk_data (006d6750)` as for leaf 1.
+
+### 2. Event, step, predicate
+
+A 0/1 running flag.
+- **E1/E2 `lost_capital`**: `0 → 1`, only if it was 0; when it was already
+  1 the whole recomputation (modifier and stamp) is skipped, so a second
+  capital loss while the clock runs neither restarts nor rescales it.
+- **E3 `recapture_capital`**, **E4 `Build::activate` FC arm**: `1 → 0`, only
+  if it was nonzero (the stamp conversion rides the same branch).
+- Not gated on `info.elimination`; only the messages are.
+
+### 3. Clear / reset
+
+`Leader::init` stores 0 every call (`0x6e3f8f`); the memset; a load restores
+it raw. No defeat-time clear was found (no writer in `Leader::defeat` by
+either net).
+
+### 4. Readers
+
+The gate of R (`process_elimination`: countdown runs only while set), of E5
+(pay-back only while clear), of E1 (re-entry), E3/E4 (stop only if running),
+and `Player::leave_game (006ee010)`: a leaving player whose slot has
+`leader_flags & 3 == 3` and a running timer is defeated with `by` = the
+holder of its capital (`find_capital(-1,-1)`) in elimination 1, else
+`by = who`; otherwise `defeat(param_1, -1)`. And `log_data` 736.
+
+### 5. Crate site
+
+No field; same sites as leaf 1. `Tally::lost_capital_frame.is_some()`
+(`crates/sim/src/cities/city.rs:122`, written in `Sim::capture_city`
+3211-3224) is the nearest analogue of "timer running", with E1's re-entry
+guard (`is_none()`) but none of E2/E4. `Player::leave_game` has no crate
+counterpart that reads it (multiplayer departure).
+
+### 6. Plain game
+
+Yes for E1/E3 (and E2/E4 with the Forbidden City). `Player::leave_game` is
+the multiplayer/departure path, not reached by a skirmish against the
+computer unless the human quits mid-game.
+
+### 7. Confidence and what was not read
+
+High: three stores, each a constant, each behind its own test of the leaf;
+listing and decompile agree. Not read: `Leader::defeat`'s body.
+
+Net check (all leaves): no indexed-form store `, 0x41[48c](%reg,%reg)` and no
+one-operand `inc/dec/neg/not` on these displacements or on `0xe3a7a4..ac`
+exists in `.text`. The indexed reads are `0x80c3ab` (`draw_timers` gates on
+the timer) and `0x80c407` (its stamp read); `0x58a451` is a word compare on
+another record.
+
+## Leaf 3: `lost_capital_modifier` (+0x41c, int)
+
+### 1. Writers, both nets
+
+Export: `->lost_capital_modifier` only in `LeaderData::log_data (006e5110)`
+749 (read). `field_0x41c`: writes only in `Leader::lost_capital (006dc870)`
+30, 40, 52; reads in `lost_capital` 45/54, `Leader::recapture_capital
+(006d1ba0)` 17, `Build::activate (00623e20)` 1422, `Game::retake_capital
+(00594530)` 24. `GameReportWin::close (007b91b0)` and
+`ConquestInvadeWin::close (0074f3d0)` are windows.
+
+Listing: absolute `0xe3a7ac` — `0x594587` (`retake_capital`, read),
+`0x625fa5` (`Build::activate`, read). Register-relative stores: `0x6dc8fb`
+(clamped ratio), `0x6dc903` (`0x100`), `0x6dc952` (city rescale), all
+`lost_capital`. Rejected by base type: `0x48ff2f` (`ConquestMapLoader` ctor),
+`0x517343` (`GraphicWinXML::close`), `0x519a9c`
+(`GraphicWinXML::on_child_id_changed`), `0x7a3afe` (`ConquestLeader` ctor),
+`0x88c198`/`0x88c299` (`RiverSectionOut`, float `0x3f800000`),
+`0x8afb04`/`0x8afbef` (`TerrainBorder`), `0x9ad11e`
+(`ScenarioRead::load_leaders_chunk`, base `GameAccess::game`); the
+`0x41c(%edi)` read at `0x6da324` in `LeaderData::get_team_wonders` is off
+`Leader+8` (it tests `-0x8(%edi)` for the flags), so it is `wonder_mark`
+(+0x424). Bulk: the `Leader::init` memset (`param_2 < 0` only) and
+`LeaderData::walk_data (006d6750)`.
+
+### 2. Event, step, predicate
+
+Set only on E1/E2, inside `lost_capital`'s `timer == 0` branch, from the
+owner (`this`) and the `param_1` leader (E1: the captor; E2: the holder of
+the capital), before the stamp uses it. 8.8 fixed point, `0x100` = 1.
+
+1. `T_own = get_team_terr(owner)`, `T_oth = get_team_terr(param_1)`, where
+   `LeaderData::get_team_terr (006d62e0)` sums `territory` (`+0x9d8`) over
+   the leader and every active slot it counts as team: at frame 0 the
+   lobby team (0..3) of the two players, after that `is_ally(leader, slot)`;
+   `team_style == 7` adds a team-8 special case.
+2. `share = land_size / num_nations` (`World+0x78`, `Game+0x6a0`; 0 when
+   `num_nations == 0`), C truncation.
+3. If `T_own + share == 0` or `T_oth + share == 0`: `modifier = 0x100`.
+   Else `modifier = clamp(trunc((T_own + share)·256 / (T_oth + share)),
+   0x80, 0x200)`.
+4. Then, when `city_num` (`+0x3f8`) of both is nonzero and the owner's is
+   strictly greater: `modifier = clamp(trunc(modifier·(own + 2) / (oth +
+   2)), 0x80, 0x300)`. This step applies after either branch of 3.
+
+Range `[0x80, 0x300]` = ×0.5 to ×3. Effect through R: `limit =
+trunc(base·modifier / 256)` frames, so a loser bigger than its captor (team
+territory, then cities) gets a longer clock, a smaller one a shorter.
+The same modifier scales the stamp debt both ways (leaf 1).
+
+### 3. Clear / reset
+
+Only the `Leader::init` memset (`param_2 < 0`: `Leaders::init (006ed850)`,
+`WalkDataGame::walk_data (005a2360)` for slot 9, other `-1` callers) zeroes
+it; a `param_2 >= 0` `Leader::init` (the per-game `Setup::build_game` path)
+leaves it, and nothing else resets it. So between losses it keeps its last
+value, but every reader is behind `timer != 0` (R's `process_elimination`,
+`draw_timers` at `0x80c3ab`, E3/E4), and `lost_capital` writes it before
+reading it. A stale value is therefore visible only to a whole-record dump
+or checksum, not to the rules.
+
+### 4. Readers
+
+`Game::retake_capital (00594530)` (the clock length, for R and for
+`IFaceMainBase::draw_timers (0080b060)`), `recapture_capital` and
+`Build::activate` (debt scaling), `lost_capital` (stamp division),
+`log_data` 749.
+
+### 5. Crate site
+
+None: no modifier, no `get_team_terr`, no `retake_capital`. The inputs
+exist — per-leader territory (`Sim::sync_territory`,
+`crates/sim/src/cities/city.rs:880`; checksum row `territory` 0x9d8) and
+`Sim::land_size` (`crates/sim/src/territory/victory.rs:110`) — and the computation belongs in the `lost_capital` step a
+builder adds to `Sim::capture_city` (`crates/sim/src/cities/city.rs:3169`)
+and `Sim::close_building` (`city.rs:2782`). Checksum row
+`crates/sim/src/checksum/leaders.rs:102`; diff key unheld
+(`crates/rondata/src/diff/checksum_lines.rs:1809`).
+
+### 6. Plain game
+
+Yes, on every E1 in a skirmish (any elimination mode); E2 with the Forbidden
+City.
+
+### 7. Confidence and what was not read
+
+High for the formula: decompile and listing (`0x6dc894`-`0x6dc952`) agree,
+including that the city rescale follows the `0x100` fallback too and that the
+first clamp's ceiling is `0x200` and the second's `0x300`. Not established:
+whether `city_num` and `territory` at the E1 call already exclude the city
+being captured (`lost_capital` runs at `capture_city` line 1142, before
+`City::close` at 1157; the writers of `+0x3f8` and `+0x9d8` in between were
+not traced); `num_nations`' exact writer; `get_team_terr`'s team-style-7 arm.
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `lost_capital_stamp` +0x414 | Leader::lost_capital (006dc870); Leader::recapture_capital (006d1ba0); Build::activate (00623e20) FC arm; Leaders::process_all (006ed2a0) (dead twin Leader::process (006b88b0)); Leader::init (006e3930); LeaderData::walk_data (006d6750) on load | loss (timer 0→1): `trunc(stamp·256/mod) + frame`; recapture / FC activate (timer 1→0): `trunc((stamp − frame)·mod/256)`; while `stamp<0 && timer==0`: `+1` every `TIMER_REFRESH_RATIO` (5) frames | 0 in every `Leader::init`; memset when `param_2<0`; load | none; `Tally::lost_capital_frame` approximates it in `Sim::capture_city` (`cities/city.rs:3169`); pay-back belongs in `Sim::refresh_victory_timers` (`territory/victory.rs:88`); field beside `popwin_stamp` (`ai.rs:705`) | yes (capital capture, any elimination mode); FC arms rare | high (E2 entry predicate medium) |
+| `lost_capital_timer` +0x418 | Leader::lost_capital (006dc870) =1; Leader::recapture_capital (006d1ba0) =0; Build::activate (00623e20) =0; Leader::init (006e3930) =0; walk_data load | 0/1 flag: set on loss if clear (re-entry skips all), cleared on recapture or FC activation if set | 0 in every `Leader::init`; memset; load | none; `lost_capital_frame.is_some()` is the analogue; same sites as stamp | yes; `Player::leave_game (006ee010)` reader is departure-only | high |
+| `lost_capital_modifier` +0x41c | Leader::lost_capital (006dc870) only; memset in Leader::init (006e3930) `param_2<0`; walk_data load | on loss: 8.8 `clamp((T_own+share)·256/(T_oth+share), 0x80, 0x200)` (0x100 if a sum is 0), then if both city_num ≠0 and own > other: `clamp(mod·(own+2)/(oth+2), 0x80, 0x300)`; `share = land_size/num_nations` | memset only (`Leaders::init`); not by per-game `Leader::init`; stale between losses but read only while the timer runs | none; computed in the `lost_capital` step to add to `Sim::capture_city` / `Sim::close_building` (`cities/city.rs:2782`) | yes, on every capital loss | high (inputs' timing vs the capture not established) |
