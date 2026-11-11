@@ -148,8 +148,9 @@ Each writer adds **1** (`incl`), once per event.
   A non-captain figure, a figure with live squadmates, or a decoy never steps
   it: the counter is per squad, at the last figure.
 - **`cast_sabotage`, the unit arm** (Sniper/Commando kill). Gate: the target
-  object's flags `+0x8 & 1` set (else the spell's other arm runs and nothing
-  is counted); the target not a building (`+0x1c` = 0) and a unit (`+0x18`);
+  object's flags `+0x8 & 1` set — the bit `take_damage` itself demands
+  first (decompile line 55) — else the spell's other arm runs and nothing is
+  counted; the target not a building (`+0x1c` = 0) and a unit (`+0x18`);
   captain, `curr_uber_size(0) == 1`, decoy bit clear. Then
   `deaths_current_frame[target owner] += 1`, `kills_current_frame[caster] +=
   1`, `units_killed[caster] += 1`, `score_combat[caster] += cost/5` (cost of
@@ -220,7 +221,151 @@ read.
 
 High on the three stores and their indices (listing). High on take_damage's
 gate (decompile and listing 0x652f4d-0x653046 agree). Medium on the sabotage
-gate's first test (`+0x8 & 1`), whose meaning was not read. Not read:
+gate's first test (`+0x8 & 1`), named here only by `take_damage`'s use of it. Not read:
 `SpellTypeData::is_castable`'s predicate (`0x675bc0`), the `+0x80` type-cost
 vslot, whether `curr_uber_size(0)` counts the dying figure.
+
+## 2. `units_lost` (+0x810, int)
+
+### Writers
+
+**`Object::take_damage (00652020)` only**, store 0x653007 (decompile line
+504). Index `edx = this->field_0x9` (the struck object's owner) `·0x6eec`.
+Plus the clears. No other store in either net.
+
+### Event, step, predicate
+
++1 on the death path of `take_damage` (damage at or above the share
+threshold), when the struck object is **not a building** (`+0x1c` = 0), is
+its squad's **captain** (`+0xe8`; inlined as `unit_masks +0x8e` bit 15 when
+the slot is `UnitData::is_captain (0046ceb0)`, else the virtual call at
+0x653464), has `curr_uber_size(0) == 1`, and its decoy bit (`+0x68 & 1`) is
+clear. Credited to the **victim's owner**. Stepped before, and independent
+of, the `param_7 >= 0` test that gates `units_killed`: an attrition death
+(`Unit::suffer_attrition (005e1a10)`, `param_7 = -1`) of a last-figure
+captain counts a loss with no killer, and so do deaths by
+`ScenarioFuncSet::set_object_health`/`damage_object` and the editor.
+
+**Deaths that do not step it**, because they reach `die` without
+`take_damage`: a Sniper/Sabotage kill (`cast_sabotage` unit arm calls vslot
+`+0x158` directly), a counter-intelligence kill (`cast_counterintel`, same),
+`Object::disband`, and any other direct `die`/`close`. Not enumerated here:
+the full set of direct `die` callers (conversion, cheats, CtW).
+
+### Clears
+
+As leaf 1: `reset_score`, `Leaders::clear`, `Leader::init`'s empty-slot
+memset.
+
+### Readers
+
+The checksum walk (`LeaderData::walk_data (006d6750)`), `log_data`,
+`determine_end_of_game_stats_and_achievements` (Steam stat `gStatID[7]`),
+`AchieveChartPane::set_chart_data`, `ScenarioFuncSet::num_units_lost
+(009e98b0)` (CtW and custom-scenario scripts only). None changes a decision
+in a plain skirmish.
+
+### Crate site
+
+Two crate functions carry the original's one site:
+
+- combat: `Sim::take_damage_typed`, `crates/sim/src/combat/fight/
+  delivery.rs:469`, `Obj::Unit` `Taken::Died` branch (~line 537), the same
+  captain/last-figure/no-decoy gate as `unit_plunder`.
+- attrition: `Sim::die_by_attrition`, delivery.rs:844, called from
+  `crates/sim/src/territory/upkeep.rs:307` — in the original this death runs
+  through `take_damage` (`suffer_attrition`'s vslot `+0x16c`), so the counter
+  must be added here too, with the same gate (the crate's attrition picks the
+  dying figure itself; whether it is the captain and last figure must be
+  asked there).
+
+The crate holds the leaf only as a checksum name (`checksum/leaders.rs:158`;
+`checksum_lines.rs:1848` "unheld").
+
+### Plain game?
+
+Yes: every combat death of a squad, and every attrition death of one.
+
+### Confidence and not read
+
+High on the store, index and gate (listing 0x652f75-0x653007). Not read:
+`curr_uber_size`'s body (whether it counts the dying figure; the threshold
+`== 1` reads as "this is the last"), and whether `Unit::suffer_attrition`
+can strike a non-captain figure (it calls slot `+0x16c` on `this`).
+
+## 3. `buildings_razed` (+0x818, int)
+
+### Writers
+
+1. **`Object::do_damage (0064a480)`, store 0x64ba49** (decompile line 903).
+   Index `eax = this->field_0x9 · 0x6eec`, `this` = the shooter
+   (`do_damage`'s object; callers `Unit::fight` ×3, `Ammo::do_damage` ×3,
+   `Nuke::do_damage` ×2, and itself once).
+2. **`SpellType::cast_sabotage (006720e0)`, store 0x67277d** (decompile line
+   283). Index `esi = param_2 · 0x6eec`, the caster's player.
+
+`Object::take_damage` does **not** write it: the razer is credited by the
+caller, after `take_damage` returns.
+
+### Event, step, predicate
+
+- **`do_damage`**: +1 to the shooter's owner when the `take_damage` call at
+  0x64ba18 returns non-zero **and** the target answers vslot `+0x1c`
+  (building). No alliance or ownership test: razing an ally's or one's own
+  building counts. Then, for the console player when `Game::is_game_ready`, a
+  Steam stat (`STAT_BUILDINGS_DESTROYED`) — not sim state.
+  **Non-zero includes the half-health disband** (`take_damage` decompile
+  352-360): a building, not a city (`+0x4c` = 0), owner's `leader_flags & 4`
+  clear, `max_hits(0) <= 2·damage`, and its record's `+0x60 & 0x2000` (the
+  "AI gave up on this site" bit, `docs/CITIES.md` §1.3's table, set by
+  `Leader::check_orphaned_buildings`) → `Object::disband(this, 0)`, return 1.
+  So a shooter that knocks an abandoned AI site past half health is credited
+  a raze, while the owner's `buildings_lost` is **not** stepped (that store
+  sits only on the death path).
+- **`cast_sabotage`, building arm**: the damage is the target's (via vslot
+  `+0xac`) max hits (vslot `+0x114`) halved, floored at `ELITE_MIN_DAMAGE`
+  when the spell's type index (`+0x4`) is `0x4d`, at `SPECIAL_MIN_DAMAGE`
+  when `0x4b`, else `COMMANDO_MIN_DAMAGE`; passed to `take_damage(dmg, 0, 3,
+  -1, 1, 0x55555555, -1, -1, 0)` on that object. Non-zero return →
+  `buildings_razed[caster] += 1`, `score_combat[caster] += cost/5` (the
+  target type's cost, `/5` signed), and the Steam stat for the console. Same
+  half-health-disband inclusion as above. No alliance test in this function.
+
+### Clears
+
+`reset_score`, `Leaders::clear`, `Leader::init`'s empty-slot memset.
+
+### Readers
+
+Checksum walk, `log_data`, `AchieveChartPane::set_chart_data`. Not read by
+`determine_end_of_game_stats_and_achievements` (it reads +0x80c and +0x810
+only) and no script function. No sim decision.
+
+### Crate site
+
+- `Sim::do_damage_round`, `crates/sim/src/combat/fight/delivery.rs:70`, the
+  `if let Obj::Building(b) = target { … if killed {` block at ~line 212: the
+  counter goes before the plunder test, unconditionally (the plunder's
+  non-air / non-splash / non-ally gates do not apply to it). The crate's
+  `killed` is `Taken::Died` only; the orphan-site disband is not carried by
+  `damage_building` (delivery.rs:957), so that arm of the predicate has no
+  crate event yet.
+- `Sim::cast_sabotage_building`, delivery.rs:884, whose doc already says
+  `SEAM: the caster's leader counters and score`.
+- `Nuke::do_damage` callers: not checked in the crate.
+
+### Plain game?
+
+Yes: any building destroyed by a unit, ammo or nuke; Sabotage on a building.
+The orphan-site arm needs a computer opponent that abandons a site, which a
+plain skirmish against the computer can produce.
+
+### Confidence and not read
+
+High on both stores and their indices; high on the non-zero test (listing
+0x64ba1e-0x64ba49). High that the disband path returns 1 (listing: `call
+0x6455c0` `Object::disband` at 0x652aa2, then `movl $0x1,%eax` and the
+epilogue); its predicate is read from the decompile only. Not read: vslot
+`+0xac` on a building (which object the sabotage strikes), `Nuke::do_damage`'s
+`this`.
 

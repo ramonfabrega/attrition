@@ -55,3 +55,135 @@
     (0094c800)`); 8 armageddon (`Game::defeat_all (00592aa0)`); 9 scenario
     (`ScenarioFuncSet::defeat (009f3f50)`).
 
+## `defeated_by` (+0x10)
+
+**1. Writers.**
+- Export: `->defeated_by` appears only in readers
+  (`LeaderData::log_data (006e5110)`, `Options::describe (00724460)`);
+  `field_0x10 =` in a `Leader`/`LeaderData` context only in
+  `Leader::defeat_by (006d1c80)` and `Leader::init (006e3930)` (the other
+  `field_0x10` hits in `LeaderData::LeaderData`/`~LeaderData` are
+  `sites.field_0x10` and `make_list.field_0x10`, sub-objects).
+- Listing: below +0x200, so register stores were scanned in every function
+  that also names `0x6eec`, `0xe3a390` or `0xe71af0` (169 functions). The
+  `Leader`/`LeaderData`/`Game`/`Player` hits were each read at the store:
+  only `6d1da6` (`defeat_by`, `mov %esi,0x10(%edi)`, `edi` = `this`) and
+  `6e3b6b` (`init`, `mov %edi,0x10(%ebx)`, `edi` = −1 from `or $-1,%edi` at
+  `6e3aca`) are this leaf. The others are `data_encrypted` (`+0x6eb8`)
+  records (`Leader::production_ai_setup`, `Game::action_cheat_increase_
+  buckets`), `String`s (`say_pay`, `say_full_name`), site records
+  (`compute_sites`), the `Game` object (`Game::run_editor`) and local
+  arrays (`calc_rare`, `calc_city_resources`).
+- Callers of `defeat_by`: only `Leader::defeat (006ecb00)` (listing, one
+  `call 0x6d1c80`), which passes its own `(by, type)` through.
+
+**2. Event and predicate.** `Leader::defeat(type, by, instant)` calls
+`defeat_by(by, type)` *first*, before its own already-defeated guard.
+`defeat_by`:
+- returns at once if `defeated_by >= 0` (`6d1c8e`): **the leaf is
+  write-once per game** once a defeater has been recorded;
+- (for `type != 5`, the blow-up arm — see `defeat_stamp`);
+- stamps `defeat_stamp`;
+- returns if `by < 0` (`6d1da0`), leaving `defeated_by` at −1;
+- else `defeated_by = by` (`6d1da6`), whatever `elimination` is; then, if
+  `elimination != 3`, the captor arm (cities to `by` or its allied founder,
+  buildings handed over or killed).
+So the leaf is the slot index of the first leader passed as `by` to a
+`defeat` of this leader. Which callers pass `by >= 0`: `lost_a_city` (its
+`param_3`, the city's captor, which may itself be −1), the
+`GLOBAL_GOVERNMENT_BONUS` arms (`lost_a_city`, `gain_tech` → the bonus
+holder), `process_elimination` (the holder of the capital's tile, or
+self under elimination ≠ 1 — note that arm is entered only under
+elimination 1, so the "self" branch is dead unless the option changes
+mid-call), and `leave_game` with a capital timer running (capital holder
+under elimination 1, else **self**). Every other caller passes −1:
+`Unit::close`, the victory cascade (5), musical chairs (4), `defeat_all`
+(8), resign/drop without a capital timer (6/7), `CommandPackage` (7),
+scenario and console. A `by` equal to the loser's own slot is possible
+(`leave_game`) and is stored as such; the captor arm then skips the
+`capture_city` for `who == by`.
+
+**3. Reset.** `Leader::init` common path → −1 (`6e3b6b`), after the
+memset branch's 0. Nothing else; no per-frame fold.
+
+**4. Readers.** `LeaderData::log_data` (the gamelog dump), `Options::
+describe` (UI text), `LeaderData::walk_data` (checksum/save). No sim
+decision read was found in the export: no `field_0x10` read in a
+`Leader` context outside `defeat_by`'s own guard. The guard itself is the
+one decision it changes — a second `defeat` with a `by` never re-runs the
+captor arm.
+
+**5. Crate.** `crates/sim/src/cities/city.rs:623` `Sim::defeat(who, by:
+Option<Player>)` carries `by` but stores no `defeated_by`; its guard is
+`leaders.defeated[who]`, not `defeated_by >= 0`. `crates/sim/src/leaders/
+resign.rs` `Sim::resign` is `defeat(6, −1, 0)` and also stores nothing.
+`checksum/leaders.rs:39` lists the leaf but no arm fills it (falls through
+`_ => None`). A builder adds `defeated_by: [i32; N]` (init −1) to the
+leaders state and writes it in `Sim::defeat` when `by.is_some()` and the
+slot is still −1; `resign` writes nothing. Note the crate's `resign` does
+not model `leave_game`'s capital-timer branch (defeat type 1 with `by` =
+capital holder / self).
+
+**6. Plain game?** Yes: a skirmish against the computer reaches
+`lost_a_city` (a captured or razed last city) and, under capital
+elimination, `process_elimination`. `leave_game`'s branch is reached by a
+human resign. The `GLOBAL_GOVERNMENT_BONUS` arms need that bonus's tech.
+
+**7. Confidence.** High on the store, the guard and the `by < 0` skip
+(listing). Medium on "no other writer": the register-relative net below
++0x200 was filtered to functions that name the leaders array, so a writer
+reaching a `Leader*` through a pointer it was handed (no `0x6eec` in the
+body) would be missed; the export net covers that case only as far as the
+decompiler typed the base. `lost_a_city`'s callers (`City::close
+(00737550)`, `Build::close (00628980)`) were not read for how they
+compute the captor.
+
+## `defeat_stamp` (+0x6924)
+
+**1. Writers.** Export: `field_0x6924` stored only in `Leader::defeat_by
+(006d1c80)` and `Leader::init (006e3930)`; read in
+`AchieveChartPane::set_chart_data (007f2c40)`. Listing: `0x6924(%reg)`
+stores at `6d1d98` (`defeat_by`) and `6e3e0f` (`init`, `eax` = 0); global
+form `0xe40cb4`: none.
+
+**2. Event and predicate.** In `defeat_by`, under `defeated_by < 0` only,
+`defeat_stamp = game.frame` (`6d1d92..6d1d98`, `Game+0x550`), **before**
+the `by < 0` test. So:
+- the first `defeat` of a leader stamps the frame, in frames;
+- **every later `defeat` call while `defeated_by` is still −1 re-stamps
+  it**, because `defeat` calls `defeat_by` before its own
+  `leader_flags & 0x40` (already defeated) return. A leader defeated with
+  `by = −1` (resign, `Unit::close`, cascade, armageddon) and later handed
+  to `defeat` again (e.g. `Unit::close` when another of its units closes
+  with `num_units == 0` and no city; `lost_a_city` for a city still on its
+  books) moves its stamp forward. Once a `by >= 0` has landed the stamp is
+  frozen.
+- The `type != 5` blow-up arm runs before the stamp: under
+  `semaphore[0] & 4` (multiplayer), when among the other seated leaders
+  none has already won (`& 0x20` stops the walk) and two undefeated ones
+  are not allied, and (some other seated human is alive or no slot has a
+  human), it blows up towers/units (or buildings and units
+  under VICTORY 5). It does not touch either leaf.
+
+**3. Reset.** `Leader::init` → 0 in both branches (memset, then
+`6e3e0f`).
+
+**4. Readers.** `AchieveChartPane::set_chart_data` (post-game chart: a
+zero stamp is read as "still alive", replaced by the current frame),
+`log_data`, `walk_data`. No sim decision.
+
+**5. Crate.** No such field. `Sim::defeat` (`cities/city.rs:623`) and
+`Sim::resign` (`leaders/resign.rs`) are the sites; the builder needs a
+`defeated_by` alongside to reproduce the re-stamp rule, and must route the
+stamp **ahead of** `Sim::defeat`'s `defeated[who]` early return (the crate
+returns before anything for an already-defeated leader; the original
+re-stamps first). `checksum/leaders.rs:310` lists the leaf, unfilled.
+
+**6. Plain game?** Yes, the same paths as `defeated_by`.
+
+**7. Confidence.** High (listing for both stores and the order against
+`defeat`'s guard). Not read: whether a plain game ever calls `defeat`
+twice on a leader with `defeated_by == −1` (needs `Unit::close`'s and
+`City::close`'s sequencing after a defeat), so whether the re-stamp is
+ever observed in a skirmish is not established.
+

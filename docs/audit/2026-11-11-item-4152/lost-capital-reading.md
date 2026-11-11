@@ -46,7 +46,7 @@
   is a generic serialiser and not reached by a plain game without a load.
 - `Leader::process (006b88b0)` has **no caller**: no `call 0x6b88b0` in `.text`, and
   its address appears nowhere in the file as a 32-bit word (no vtable). The map names
-  it (`?process@Leader@@QAEXXZ`, leaders.obj). Its body is inlined, word for word,
+  it (the decorated name of `Leader::process`, `QAEXXZ`, from leaders.obj). Its body is inlined, word for word,
   into `Leaders::process_all`, which `Game::do_frame (00591ef0)` calls once a frame
   (59224f). So the live per-frame writer is `Leaders::process_all`; `Leader::process`
   is a dead copy. **This contradicts the README row only in emphasis**: the row names
@@ -257,7 +257,7 @@ High: every store is a constant, each site read in the listing. Not read:
   `0xe7fca8` names (listing 594548–59454d; the decompile prints it `map_sizes.list`;
   the field is unnamed here), `S/2` signed toward zero, and `world.xs` (`*(int*)world`,
   `WorldData+0`, taking `WorldData` at offset 0 of `World` as `docs/ECONOMY.md`'s
-  `land_size @ +0x78` row does — the same assumption names `w` above);
+  `land_size` at +0x78 row does — the same assumption names `w` above);
   then, for `who ≥ 0`, `r = trunc(base · m / 256)` (toward zero, 594587–59459f). Under
   `Game` semaphore byte 2 bit 1 (`& 2`; not read what it is), the Forbidden City
   doubles it (`has_wonder(who, 0x213) == 2` → `2r`; 2 is the CtW conquest-wonder bit
@@ -290,3 +290,28 @@ High for the formula and clamps (listing read end to end, 6dc870–6dc976). Medi
 `Game+0x6a0` beyond its name `num_nations` (whether it counts gaia or the dead), and
 the `city_num` timing above.
 
+## Against the README row
+
+The row's writers — `Leader::lost_capital`, `recapture_capital`, `Build::activate`,
+`Leader::process` — are all confirmed, with three amendments:
+
+- `Leader::process (006b88b0)` has no caller; the store that runs each frame is its
+  inlined copy in `Leaders::process_all (006ed2a0)` (6ed394), called from
+  `Game::do_frame`.
+- Missing from the row: `Leader::init (006e3930)` (stamp and timer to 0, every init;
+  **not** the modifier), and the `memset(…, 0x6929)` of `Leaders::clear (006ed5d0)` and
+  of `Leader::init`'s `param_2 < 0` arm (via `Leaders::init (006ed850)`), which are the
+  modifier's only resets.
+- `Leader::lost_capital` has two callers, `Cities::capture_city (00733380)` and
+  `Build::close (00628980)` (an active Forbidden City closing while another leader
+  holds the owner's old capital); `recapture_capital` has one, `capture_city`.
+- The row's "the tally's `lost_capital_frame` is a partial copy of the stamp": true in
+  shape, and in the crate it has no reader at all.
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `lost_capital_stamp` +0x414 | Leader::lost_capital (006dc870) ← Cities::capture_city (00733380), Build::close (00628980); Leader::recapture_capital (006d1ba0) ← capture_city; Build::activate (00623e20) (Forbidden City); Leaders::process_all (006ed2a0) (live copy of Leader::process (006b88b0), no caller); Leader::init (006e3930) | loss: `frame + trunc(stamp·256/m)`; recapture / FC built: `trunc((stamp − frame)·m/256)`; `+1` per `TIMER_REFRESH_RATIO` (5) frames while `< 0` and timer 0 | `Leader::init` → 0; memset in `Leaders::clear`, `Leaders::init` | refresh: `refresh_victory_timers` (`territory/victory.rs:88`, from `core/frame.rs:194`); loss/recapture: capture in `cities/city.rs` ~3213 (`lost_capital_frame`, write-only); FC arms: `Sim::activate` (city.rs:2420), `Sim::close_building` (city.rs:2782) | yes (any captured capital) | high (arith), medium (capture predicates) |
+| `lost_capital_timer` +0x418 | Leader::lost_capital (006dc870) → 1; Leader::recapture_capital (006d1ba0) → 0; Build::activate (00623e20) → 0; Leader::init (006e3930) → 0 | 0/1 flag, set at loss, cleared at recapture or FC activation | `Leader::init`; memsets | approximated by `lost_capital_frame.is_some()` (`cities/city.rs:122`); no field | yes | high |
+| `lost_capital_modifier` +0x41c | Leader::lost_capital (006dc870) only | at each new loss: `(To+w)·256/(Ta+w)` clamped [0x80,0x200], then × `(O.cities+2)/(A.cities+2)` if `0 < A.cities < O.cities`, clamped [0x80,0x300]; 0x100 if a sum is 0 | memset only (`Leaders::clear`, `Leaders::init`); **not** `Leader::init`'s setup arm | none; inputs `team_terr` (`ai/ai_census.rs:155`), `land_size` (`territory/victory.rs:110`); belongs in the capture path, read by a `retake_capital` port | yes | high (formula), medium (`city_num` timing) |

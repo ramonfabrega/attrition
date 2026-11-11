@@ -55,9 +55,9 @@ all `.text`) give the same set. Each, with whether it can touch a spell bit:
   `1 << (letter - 'a')`, a digit `1`..`9` as `1 << (digit - 0x17)`). Then
   `set(tech, t, 1)` (`6e460b`, `lea 0x6c0c(%ebx)`). **`tech_at_start` is not
   written in this pass** — that is why the bits are in one mask and not the
-  other (the age/tech pass at `6e41e7`..`6e43e2` and the unit pass at
-  `6e4480`/`6e45b3` write both; the building pass at `6e4365` writes `tech`
-  only, like this one).
+  other (the age/tech pass, `6e4365`/`6e4373`, and the unit pass,
+  `6e45b3`/`6e45c1`, write both; the building pass, `6e4480`, bound
+  `0x21f`, writes `tech` only, like this one).
 - **`Leader::gain_tech (006dcb60)`**, `set(tech, param_1, 1)` at `6dcfa0`
   (decompile line 303), unconditional on the type. It sets a spell bit only
   when called with a spell type. Its 70 call sites (direct, and through the
@@ -86,8 +86,8 @@ all `.text`) give the same set. Each, with whether it can touch a spell bit:
   (memset of each slot's array); `Leader::close (006b7f80)` (memset,
   `6b7fc0`); `Leader::init`'s `param_2 < 0` arm (`BitMask<17>::clear` at
   `6e39bd`, the same folded clear) and its unconditional
-  `BitMask<806>::init` of `tech` and `tech_at_start` (decompile lines
-  393–394, `6e41e7` region) before any pass.
+  `BitMask<806>::init` (`0x47d860`) of `tech` and `tech_at_start`
+  (`6e41e7`, `6e41f3`; decompile lines 393–394) before any pass.
 - **Not spell writers, checked**: `Leader::lose_tech (006d2850)` clears only
   for a unit type (vslot `0xc`) or a tech type (vslot `0x28`); a spell is
   neither and falls through to `reset_obs_flags` untouched.

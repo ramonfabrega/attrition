@@ -200,3 +200,205 @@ Not read: `Taunts::init (00980df0)` (where the order strings come from),
 `IFaceDiploBase::on_key_click` body, `LeaderData::walk_data` in load mode,
 `Leader::close`'s callers through pointers.
 
+## 2. `taunt_frame` (+0x374, `int[8]`, indexed by the sender's `who`)
+
+**Writers.**
+- Export, `field_0x374`: `Leader::process_taunt (006b8cc0)` (store),
+  `Leader::action_ping (006d18a0)` (read). Other hits (`GameReportWin::close`,
+  `ConquestInvadeWin::close`, `RiverSection::init`) are other classes.
+- Listing, absolute `0xe3a704`: one site, 0x6d198a `movl
+  0xe3a704(,%ecx,4), %ecx` in `action_ping` — a read.
+- Listing, `0x374(%reg…)`: 12 stores; the leader one is **0x6b8d54**
+  `movl %eax, 0x374(%esi,%ebx,4)` in `process_taunt`, `eax` =
+  `[0xc061ec]+0x550` = `game->frame`. The rest: `ConquestMapLoader`,
+  `GraphicWinXML`, `PlayerProfile`, `ConquestLeader` (a `movw`), `TileSet`,
+  `ChatSpace`, `JukeBox` (a code pointer), `IFaceDiplo` (`movups`, a window).
+- Bulk: the same three `memset(…, 0x6929)` as §1; the savegame walker.
+
+**Event, step, predicate.** The same store as §1, one instruction later,
+same gates: `taunt_frame[S] = game->frame` (sim frames, absolute) at the
+moment of dispatch. For `HELP` that is the frame the chat command was
+processed; for every other request it is that frame + 60 (§5). Overwrite,
+not increment.
+
+**Reset.** As §1: `Leader::init(…, -1, …)`, `Leaders::clear`,
+`Leader::close`; never during a match.
+
+**Readers.** `action_ping` only (§1): the window `frame ≤ taunt_frame[P] +
+225` for an AI ally's army to answer a human's ping after `HELP`. 225
+frames, sim frames. The checksum walker.
+
+**Crate.** None; as §1. A builder stores it beside `last_taunt` in the same
+new `process_taunt`.
+
+**Plain game?** As §1.
+
+**Confidence.** High; one store, attributed by both nets. Not read: as §1.
+
+## 3. `incoming_taunt` (+0x394, `int[8]`, the ring's request word)
+
+**Writers.**
+- Export, `field_0x394`: `Leader::receive_taunt (006b8bf0)` (store).
+  `Leader::init` clears it as `puVar23[-8]` off a pointer to +0x3b4, which
+  the export prints without the field name. Other hits are other classes.
+- Listing, absolute `0xe3a724`: no site.
+- Listing, `0x394(%reg…)`: 16 stores; the leader one is **0x6b8c4f** `movl
+  %ebx, 0x394(%esi,%eax,4)` in `receive_taunt` (`esi` = `this`, `eax` =
+  `incoming`, `ebx` = arg 1). The rest: `ConquestMapLoader`,
+  `GraphicWinXML`, `RadioButton` (a pointer constant 0xed88d0), `EditGroup`,
+  `Constants::init`, `PlayerProfile` (a `movb`), `ConquestLeader`,
+  `ScenarioRead::load_leaders_chunk` (0x9ad0b7, base `edx` is a 0x8c-stride
+  per-player record, not a leader).
+- Pointer-based, invisible to the displacement net: `Leader::init`'s loop at
+  0x6e3a10 `movl %edx, -0x20(%eax)` with `eax` = `this + 0x3b4` (+4 per
+  pass, 8 passes) — zero.
+- Bulk: the three `memset`s, the savegame walker.
+
+**Event, step, predicate.** `receive_taunt(this = R, req, play)` from
+`CommandPackage::process_chat` when the chat command's `taunt ≥ 0`. S =
+`game->info.player[play].who` (a byte at player record +0x77, stride 0x8c,
+listing 0x6b8bf3–0x6b8c08). Stored only when all hold (listing
+0x6b8c0d–0x6b8c47):
+1. `req ≠ 0` and `req ≥ 0` (`TAUNT_NONE` and negatives rejected; no upper
+   bound);
+2. `leaders[S].leader_flags & 2` (sender active);
+3. `R.leader_flags & 4` clear (receiver **not human**) and `& 2` set
+   (receiver active);
+4. `LeaderData::is_ally (006edb50)(R, S)` — true when S = R or both
+   `diplos` entries are 2;
+5. `R.who ≠ S`.
+
+Then `incoming_taunt[incoming] = req`. Overwrite of one ring slot; units
+an enum.
+
+**Reset.** `Leader::init(…, -1, …)` twice over (the `memset`, then the
+explicit loop), `Leaders::clear`, `Leader::close`. **Not cleared on
+dispatch**: after `process_taunt` fires the slot keeps its old `req` until
+the ring comes round to it again, so it is part of the checksummed state for
+the rest of the match.
+
+**Readers.** `Leaders::process_all (006ed2a0)`: `pushl -0x20(%edi)` at
+0x6ed3f1 with `edi` = `this + 0x3b4 + 4i` — passes it as `process_taunt`'s
+`req`. (The dead `Leader::process` and `Leader::process_taunts` read it the
+same way.) The checksum walker.
+
+**Crate.** None. A builder adds the ring (`incoming_taunt`,
+`incoming_taunt_who`, `incoming_taunt_frame`, `incoming`) to the per-leader
+state and a `receive_taunt` reached from a chat arm replacing the skip at
+`crates/rondata/src/input.rs:1611`; the dispatch scan goes in `Sim::tick`'s
+per-player loop (`crates/sim/src/core/frame.rs:94`), after the
+timer-refresh work, matching its place at the tail of `Leaders::process_all`.
+
+**Plain game?** As §1 (human sender, computer receiver, mutual alliance).
+
+**Confidence.** High for the store and gates. Not read: whether a command
+stream can carry a `taunt` above 16 in practice (only a crafted or foreign
+packet could).
+
+## 4. `incoming_taunt_who` (+0x3b4, `int[8]`, the ring's sender word)
+
+**Writers.**
+- Export, `field_0x3b4`: `Leader::receive_taunt` (store), `Leader::init`
+  (the loop's `*puVar23 = 0`), and the readers `Leaders::process_all`,
+  `Leader::process`, `Leader::process_taunts`. `RoadsOut::one_time_init` is
+  another class.
+- Listing, absolute `0xe3a744`: no site.
+- Listing, `0x3b4(%reg…)`: 14 stores; the leader one is **0x6b8c5c** `movl
+  %edi, 0x3b4(%esi,%eax,4)` in `receive_taunt` (`edi` = S). The rest:
+  `ConquestMapLoader`, `IFaceRenderManager`, `EditGroup`, `Constants::init`,
+  `Game::run_oos_recovery` and `Game::close` (0x586be3, 0x594d34 — base
+  `eax` in a 0xc4-stride clear of another array, not a leader),
+  `ConquestLeader`, `IFaceButton`, `RoadsOut`,
+  `ScenarioRead::load_leaders_chunk` (0x9ad092, the 0x8c-stride record).
+- Pointer-based: `Leader::init` 0x6e3a13 `movl %edx, (%eax)` — zero.
+- Bulk: the three `memset`s, the savegame walker.
+
+**Event, step, predicate.** Same call and gates as §3; stores S, the
+sender's `who` (0–7), into the same slot. Overwrite.
+
+**Reset.** As §3; not cleared on dispatch.
+
+**Readers.** `Leaders::process_all`: `pushl (%edi)` at 0x6ed3ed, passed as
+`process_taunt`'s S — which then indexes `last_taunt` and `taunt_frame` and
+picks the ally the action is aimed at. The checksum walker.
+
+**Crate.** None; as §3.
+
+**Plain game?** As §1.
+
+**Confidence.** High. Not read: as §3.
+
+## 5. `incoming_taunt_frame` (+0x3d4, `int[8]`, the ring's due frame)
+
+**Writers.**
+- Export, `field_0x3d4`: `Leader::receive_taunt` (two stores, one per
+  branch); `Leader::init` clears it as `puVar23[8]`. Other hits are other
+  classes.
+- Listing, absolute `0xe3a764`: no site.
+- Listing, `0x3d4(%reg…)`: 6 stores; the leader ones are **0x6b8c79** and
+  **0x6b8c91** in `receive_taunt`. The rest: `GraphicWinXML`, `SetupWin`
+  (a `movb`), `RiverSectionOut`, `RoadsOut`.
+- Pointer-based: `Leader::init` 0x6e3a18 `movl %edx, 0x1c(%eax)` after the
+  `+4` (so `+0x3b4 + 4 + 0x1c` = `+0x3d4 + 4i`) — zero.
+- Bulk: the three `memset`s, the savegame walker.
+
+**Event, step, predicate.** Same call and gates as §3. The value:
+- `req == 16` (`TAUNT_HELP`, listing 0x6b8c68 `cmpl $0x10, %ebx`):
+  `game->frame` — due the same frame;
+- any other `req`: `game->frame + 60` (`addl $0x3c`, 0x6b8c8e) — due 60 sim
+  frames later.
+
+Because dispatch tests `incoming_taunt_frame == game->frame` and skips
+**frame 0** entirely (`cmpl $0x0, 0x550(%ecx)` at 0x6ed3ce), a `HELP`
+received on frame 0 is never dispatched. A slot overwritten by a ninth
+request before its due frame is lost: the ring has 8 entries and no
+occupancy check. Overwrite.
+
+**Reset.** As §3; not cleared on dispatch (the equality makes a second
+firing impossible, the value stays).
+
+**Readers.** `Leaders::process_all`: `movl 0x20(%edi), %eax; cmpl
+0x550(%ecx), %eax` at 0x6ed3e2 — the due test. The checksum walker.
+
+**Crate.** None; as §3. The sim's `frame` counter (`Sim::tick`'s `let
+frame = self.frame`) is the value to compare.
+
+**Plain game?** As §1.
+
+**Confidence.** High for both constants and the branch (listing and export
+agree). Medium for the same-frame claim for `HELP` (the frame order in §0,
+read from `Game::loop` and `Game::do_frame`, not traced in a run).
+
+## 6. `incoming` (+0x3f4, `int`, the ring's write cursor)
+
+**Writers.**
+- Export, `field_0x3f4`: `Leader::receive_taunt` (read ×5, store ×1),
+  `Leader::init` (store 0). The other 14 hits (`TerrainOut`, `RoadsOut`,
+  `TerrainVis`, `CoordInfo`, `GameReportWin`, `ConquestInvadeWin`) are other
+  classes.
+- Listing, absolute `0xe3a784`: no site.
+- Listing, `0x3f4(%reg…)`: 8 stores; the leader ones are **0x6b8cab** `movl
+  %eax, 0x3f4(%esi)` in `receive_taunt` and **0x6e3a09** `movl %edx,
+  0x3f4(%ebx)` (`edx` = 0) in `Leader::init`. The rest: `GraphicWinXML`
+  (a `movb`), `Constants::init`, `ConquestLeader`, `RiverSectionOut`,
+  `RoadsOut` (float bits 0xbf800000 = −1.0f), `RTreeData`.
+- Bulk: the three `memset`s, the savegame walker.
+
+**Event, step, predicate.** Same call and gates as §3; after the three
+slot stores, `incoming = (incoming + 1) mod 8` (`incl; andl $0x80000007;
+jns …; decl; orl $-8; incl` — C's signed `% 8`; with the cursor always in
+0–7 it is `+1 & 7`). Step +1, wrapping at 8. Advances on every accepted
+request, `HELP` included.
+
+**Reset.** `Leader::init(…, -1, …)` (the `memset` and the explicit store at
+0x6e3a09), `Leaders::clear`, `Leader::close`. Not reset by dispatch.
+
+**Readers.** `receive_taunt` only (the slot index). Dispatch scans all 8
+slots and does not read the cursor. The checksum walker.
+
+**Crate.** None; as §3.
+
+**Plain game?** As §1.
+
+**Confidence.** High.
+
