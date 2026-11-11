@@ -84,6 +84,15 @@ pub struct World {
     /// Each piece's mesh, `None` where it resolves to nothing that decodes.
     meshes: BTreeMap<i32, Option<std::sync::Arc<Mesh>>>,
     unit_models: BTreeMap<i32, UnitModel>,
+    /// Each unit piece's `<UNIT>` `texture=` (item 4099), where it names one.
+    unit_textures: BTreeMap<i32, String>,
+    /// Each unit piece's texture, decoded once with its levels; `None`
+    /// where it does not resolve or decode.
+    figure_textures: BTreeMap<i32, Option<std::sync::Arc<render::silhouette::Mips>>>,
+    /// Draw the figures textured through their texcoords (item 4099); off,
+    /// each owner's debug tint ([`tint`]). On by default; `--tint` turns
+    /// it off.
+    pub textured: bool,
     root: PathBuf,
     install: Install,
     /// Pose each figure at its slot and clock (item 4067). On by default
@@ -318,8 +327,12 @@ impl World {
             .map(|r| r.text("GRAPH").unwrap_or_default().trim().to_string())
             .collect();
         let mut unit_models = BTreeMap::new();
+        let mut unit_textures = BTreeMap::new();
         for e in unit_art(&install, &graphs) {
             for p in &e.pieces {
+                if !e.texture.is_empty() {
+                    unit_textures.entry(*p).or_insert_with(|| e.texture.clone());
+                }
                 unit_models.entry(*p).or_insert_with(|| {
                     let files = e
                         .anims
@@ -379,6 +392,9 @@ impl World {
             tribes,
             meshes: BTreeMap::new(),
             unit_models,
+            unit_textures,
+            figure_textures: BTreeMap::new(),
+            textured: true,
             root: install.root().to_path_buf(),
             install,
             pose: true,
@@ -537,6 +553,7 @@ impl World {
                         .iter()
                         .map(|f| f.map(|k| apply(&m, rest[k as usize])))
                         .collect(),
+                    uvs: Vec::new(),
                 })
             })
             .collect()
@@ -663,6 +680,31 @@ impl World {
         });
         self.meshes.insert(piece, decoded.clone());
         decoded
+    }
+
+    /// A unit piece's `texture=`, decoded once with its levels (item 4099).
+    pub fn figure_texture(
+        &mut self,
+        piece: i32,
+    ) -> Option<std::sync::Arc<render::silhouette::Mips>> {
+        if let Some(t) = self.figure_textures.get(&piece) {
+            return t.clone();
+        }
+        let decoded = self
+            .unit_textures
+            .get(&piece)
+            .and_then(|t| resolve_art(&self.root, t))
+            .and_then(|p| std::fs::read(p).ok())
+            .and_then(|b| render::tga::decode(&b).ok())
+            .map(|i| std::sync::Arc::new(render::silhouette::Mips::new(i)));
+        self.figure_textures.insert(piece, decoded.clone());
+        decoded
+    }
+
+    /// A unit piece's `texture=` as the XML writes it.
+    #[cfg(test)]
+    pub fn figure_texture_name(&self, piece: i32) -> Option<&str> {
+        self.unit_textures.get(&piece).map(String::as_str)
     }
 
     /// A building piece's sprite, decoded once.
@@ -826,27 +868,52 @@ impl World {
                 .iter()
                 .map(|f| f.map(|i| apply(&m, verts[i as usize])))
                 .collect();
+            // Each corner's `id 4` texcoord, one a vertex (item 4099).
+            let uvs = if building || mesh.model.texcoords.len() != mesh.model.verts.len() {
+                Vec::new()
+            } else {
+                mesh.faces
+                    .iter()
+                    .map(|f| f.map(|i| mesh.model.texcoords[i as usize]))
+                    .collect()
+            };
             out.push(Drawing {
                 who: d.who,
                 o: d.o,
                 piece: d.piece,
                 building,
                 tris,
+                uvs,
             });
         }
         out
     }
 
-    /// Every drawn figure's and building's mesh, placed, as a triangle soup
-    /// shaded flat by an owner's debug tint.
-    pub fn figures(
+    /// Every drawn figure's and building's mesh, placed: the figures
+    /// textured through their texcoords where [`World::textured`] is on and
+    /// the piece's `texture=` decodes (item 4099), one mesh a drawing; the
+    /// rest a soup flat-shaded in the owner's debug tint.
+    pub fn figure_meshes(
         &mut self,
         figures: &[Placed],
         buildings: &[PlacedBuilding],
         list: &[Drawn],
-    ) -> Soup {
+    ) -> (Soup, Vec<TexturedMesh>) {
         let mut soup = Soup::default();
+        let mut textured = Vec::new();
         for d in self.objects(figures, buildings, list) {
+            let mips = (self.textured && !d.uvs.is_empty())
+                .then(|| self.figure_texture(d.piece))
+                .flatten();
+            if let Some(mips) = mips {
+                textured.push(TexturedMesh {
+                    piece: d.piece,
+                    positions: d.tris.iter().flatten().copied().collect(),
+                    uvs: d.uvs.iter().flatten().copied().collect(),
+                    mips,
+                });
+                continue;
+            }
             let tint = tint(d.who, d.building);
             for tri in d.tris {
                 let lit = shade(tri);
@@ -856,8 +923,19 @@ impl World {
                 }
             }
         }
-        soup
+        (soup, textured)
     }
+}
+
+/// One figure drawn textured (item 4099): its triangles' corners in world
+/// space, three a triangle, each corner's texcoord, and the piece's texture
+/// with its levels — what `client::gpu`'s textured pipeline draws, unlit,
+/// and `render::silhouette::paint` samples.
+pub struct TexturedMesh {
+    pub piece: i32,
+    pub positions: Vec<[f32; 3]>,
+    pub uvs: Vec<[f32; 2]>,
+    pub mips: std::sync::Arc<render::silhouette::Mips>,
 }
 
 /// One drawn object, placed: a draw-list entry's owner, object and piece,
@@ -868,6 +946,9 @@ pub struct Drawing {
     pub piece: i32,
     pub building: bool,
     pub tris: Vec<[[f32; 3]; 3]>,
+    /// Each triangle's texcoords, as `tris` (item 4099); empty for a
+    /// building's model.
+    pub uvs: Vec<[[f32; 2]; 3]>,
 }
 
 /// The debug tint an owner's meshes take: untextured, not a team colour

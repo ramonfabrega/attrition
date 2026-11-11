@@ -1212,21 +1212,14 @@ screenshot, above a threshold.
 
 **It measures:** what a player would see.
 
-**It does not measure** anything until art is drawn. It also needs a capture
-for every data point, and it inherits the translation stack's noise (§3.3).
-It is the art phase's counter, not the first one.
+**It does not measure** anything until art is drawn; each point is a
+capture, with §3.3's noise.
 
-**The first row, pinned** (item 4038, 2026-11-09, Opus 5.5;
-`render::silhouette`, `client::silhouette`). **7 of 23 objects** on the
-Aztec Modern pair's frame 3294 at run1559b's camera, against that take's
-photograph, drawn as the client draws by default: posed, at the
-original's facing, with the tanks read by the hand-traced mask
-(`RUN1559B_3294_MASKED`, item 4071: 6 → 7); colour and rest are their
-pins'.
-**The photograph shows frame 3279** (item 4073): on frame 3279, at the same
-camera, readers and constants, the row reads **16 of 24**
-(`RUN1559B_3279_MASKED`), 13 by colour (`RUN1559B_3279_POSED`) and 4 at
-rest (`RUN1559B_3279`); run1441's camera reads 0 of 24 under both readers.
+**The first row** (4038, `render::silhouette`, `client::silhouette`): 7 of
+23 on the Aztec Modern pair's frame 3294 at run1559b's camera
+(`RUN1559B_3294_MASKED`). **The photograph shows frame 3279** (4073): 16 of
+24 there (`RUN1559B_3279_MASKED`); run1441's camera 0 of 24. The other
+rows are their pins'.
 - *Ours.* Each drawn object's world-space triangles are rasterized on the
   CPU with the client shader's arithmetic into a buffer of object keys,
   the nearest winning by camera-space depth.
@@ -1240,11 +1233,8 @@ rest (`RUN1559B_3279`); run1441's camera reads 0 of 24 under both readers.
   which figure of a crowd a pixel belongs to.
 - *The score.* An object counts when the intersection over union reaches
   0.5. An object is not scored when its ring meets the frame's edge or
-  the photograph's interface (eleven rectangles placed by eye, among them
-  the city's label and the selected figure's portrait), or when it shows
-  fewer than 40 pixels.
-- *Made to fail.* The same frame at run1441's camera scores 0 of 25
-  (`RUN1441_CAMERA_3294`).
+  the interface (eleven rectangles by eye), or it shows under 40 pixels.
+- *Made to fail.* run1441's camera, 0 of 25 (`RUN1441_CAMERA_3294`).
 - *The second reader* (item 4071): a mask traced by hand on the photograph
   (`TRACED`, `Reader::Mask`), which reads neither our draw nor a colour,
   pinned before its first count. It reads both bare windows (`BARE`) empty
@@ -1290,8 +1280,14 @@ rest (`RUN1559B_3279`); run1441's camera reads 0 of 24 under both readers.
   frame from 3200 (`Tilt::Eased`); kept, `Tilt::Level`.
 - *The point* (4095, before its count). 3280's slots, clocks and
   facings at the 3279 points (`Blend::Last`).
-- *What it does not measure.* Colour: textures and team colours are not
-  bound (4038a).
+- *The colour reader* (4099, before its count; `Hue`). On the row's
+  draw, each object's pixels its own key holds that the traced reader
+  calls the original's (kinds 2, 4); dark ones (sum under 60) left out.
+  Each side as (r, g) / (r + g + b), which a white light's strength does
+  not move; ours the texel, unlit. A pixel agrees within 0.05; an object
+  passes on 40 lit pixels, half agreeing. **11 of 33**, the tint's 2
+  (`RUN1559B_3279_COLOUR`); run1441's camera 0. Texcoords as stored.
+- *What it does not measure.* Team colours (4038a, 4099a).
 - *The constants* and interface are this frame's, pinned, never tuned
   to a count (the inputs: 4089's journal).
 

@@ -407,6 +407,28 @@ pub fn frame_keys(
     camera: &render::Camera,
     size: (usize, usize),
 ) -> (render::silhouette::Keys, Vec<Who>) {
+    let scene = frame_scene(world, camera, size);
+    (scene.keys, scene.who)
+}
+
+/// [`frame_keys`]'s key buffer and who each key is, with the meshes and
+/// sprites it was drawn from (item 4099): key `k` is `drawings[k − 1]`
+/// while `k ≤ drawings.len()`, then `sprites[k − 1 − drawings.len()]`.
+pub struct Scene {
+    pub keys: render::silhouette::Keys,
+    pub who: Vec<Who>,
+    /// The pixels a figure took over a nearer tree or sprite by the
+    /// silhouette's pass (item 4085), row-major.
+    #[cfg_attr(not(test), allow(dead_code))]
+    pub behind: Vec<bool>,
+    #[cfg_attr(not(test), allow(dead_code))]
+    pub drawings: Vec<Drawing>,
+    #[cfg_attr(not(test), allow(dead_code))]
+    pub sprites: Vec<SpriteDrawing>,
+}
+
+/// The frame as [`frame_keys`] draws it, its parts kept.
+pub fn frame_scene(world: &mut World, camera: &render::Camera, size: (usize, usize)) -> Scene {
     let (figures, buildings, list) = world.draw_list(
         camera,
         &crate::pinned_screen(),
@@ -431,6 +453,7 @@ pub fn frame_keys(
             .collect(),
     };
     let mut keys = rasterize_cut(&meshes, &cut, &stamps(&sprites, first), camera, size).keys;
+    let mut behind = vec![false; keys.keys.len()];
     if world.silhouettes == crate::world::Silhouettes::Drawn {
         // The guys pass after `flush_trees` (item 4085): a figure's
         // `render_states[1]` draw passes where it is behind, writing no
@@ -441,9 +464,10 @@ pub fn frame_keys(
             .filter(|o| !drawings[o.key as usize - 1].building)
             .collect();
         let alone = rasterize_cut(&figures, &[], &[], camera, size).keys;
-        for (k, f) in keys.keys.iter_mut().zip(&alone.keys) {
+        for ((k, f), b) in keys.keys.iter_mut().zip(&alone.keys).zip(&mut behind) {
             if *f != 0 && *k >= first {
                 *k = *f;
+                *b = true;
             }
         }
     }
@@ -458,7 +482,138 @@ pub fn frame_keys(
         .chain(sprites.iter().map(|s| (s.who, s.o, s.piece, true)))
         .chain(trees.iter().map(|d| (d.who, d.o, d.piece, false)))
         .collect();
-    (keys, who)
+    Scene {
+        keys,
+        who,
+        behind,
+        drawings,
+        sprites,
+    }
+}
+
+/// How the colour reader's figures are painted (item 4099).
+#[cfg(test)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Colouring {
+    /// Each owner's debug tint ([`crate::world::tint`]), the draw before.
+    Tint,
+    /// The `<UNIT>`'s `texture=` through the `.BH3`'s texcoords.
+    Texture,
+}
+
+/// One object's own colour over its window, as `colouring` paints it: a
+/// mesh by its tint or its texture (a mesh with neither texcoords nor a
+/// texture keeps its tint), a sprite by its image.
+#[cfg(test)]
+pub fn painted(
+    world: &mut World,
+    scene: &Scene,
+    camera: &render::Camera,
+    size: (usize, usize),
+    key: u32,
+    window: Rect,
+    colouring: Colouring,
+) -> Vec<Option<render::silhouette::Texel>> {
+    use render::silhouette::{Paint, paint, paint_stamp};
+    let k = key as usize - 1;
+    if let Some(d) = scene.drawings.get(k) {
+        let object = Object {
+            key,
+            tris: d.tris.clone(),
+        };
+        let tint = crate::world::tint(d.who, d.building).map(|v| (v * 255.0).round() as u8);
+        let mips = (colouring == Colouring::Texture && !d.uvs.is_empty())
+            .then(|| world.figure_texture(d.piece))
+            .flatten();
+        let how = match &mips {
+            Some(m) => Paint::Texture {
+                uvs: &d.uvs,
+                mips: m,
+            },
+            None => Paint::Flat(tint),
+        };
+        return paint(&object, &how, camera, size, window);
+    }
+    let first = scene.drawings.len() as u32 + 1;
+    let j = k - scene.drawings.len();
+    let Some(sp) = scene.sprites.get(j) else {
+        return vec![None; ((window.x1 - window.x0) * (window.y1 - window.y0)) as usize];
+    };
+    let st = &stamps(&scene.sprites, first)[j];
+    paint_stamp(st, &sp.image.image.rgba, size, window)
+}
+
+/// **The colour row** (item 4099; `docs/RENDERER.md` §5.3, "The colour
+/// reader"): every object the traced reader scores on the frame, its
+/// footprints and its colours under `colouring`.
+#[cfg(test)]
+pub fn colour_rows(
+    world: &mut World,
+    camera: &render::Camera,
+    photo: &render::tga::Image,
+    traced: &[(&str, &[(i32, i32)])],
+    colouring: Colouring,
+) -> Vec<(Footprint, render::silhouette::Colours, Who)> {
+    use render::silhouette::{HUE, read_colours, traced_theirs};
+    let size = (photo.width, photo.height);
+    let scene = frame_scene(world, camera, size);
+    let p = Photo {
+        width: photo.width,
+        height: photo.height,
+        rgba: &photo.rgba,
+    };
+    let traces: Vec<Trace<'_>> = traced
+        .iter()
+        .map(|&(name, poly)| Trace {
+            key: scene
+                .who
+                .iter()
+                .position(|&(who, o, _, _)| format!("{who}/{o}") == name)
+                .map_or(u32::MAX, |i| i as u32 + 1),
+            poly,
+        })
+        .collect();
+    let rows = footprints_traced(
+        &scene.keys,
+        &p,
+        &INTERFACE,
+        &READING,
+        &traces,
+        Neighbour::Neither,
+        Interface::Neither,
+    );
+    let mut out = Vec::new();
+    for f in rows {
+        let who = scene.who[f.key as usize - 1];
+        if who.0 == TREE_WHO {
+            continue;
+        }
+        let theirs = traced_theirs(
+            &scene.keys,
+            &p,
+            &INTERFACE,
+            &READING,
+            &traces,
+            Neighbour::Neither,
+            Interface::Neither,
+            f.key,
+            f.window,
+        );
+        let ours = painted(world, &scene, camera, size, f.key, f.window, colouring);
+        let w = photo.width;
+        let c = read_colours(
+            &scene.keys,
+            &p,
+            f.key,
+            f.window,
+            &theirs,
+            &ours,
+            &HUE,
+            |x, y| scene.behind[y as usize * w + x as usize],
+        );
+        out.push((f, c, who));
+    }
+    out
 }
 
 /// Every scored object's footprints on the frame at `camera`, beside its
@@ -1348,6 +1503,372 @@ mod tests {
         for name in ["1/20", "1/32"] {
             let f = row(name, &point_rows).expect("scored");
             assert!(f.overlap() >= READING.threshold, "{name} passes");
+        }
+        world.blend = crate::world::Blend::Current;
+    }
+
+    /// **The colour row** (item 4099; `docs/RENDERER.md` §5.3, "The colour
+    /// reader", committed before this count): on the row's draw
+    /// (`Blend::Last`), each object the traced reader scores, its colours
+    /// on the pixels both footprints hold, painted by the debug tint and
+    /// by the figure's texture through its texcoords. Made to fail: the
+    /// tint reads most figures out, and run1441's camera reads 0.
+    #[test]
+    fn the_figures_colours_on_the_photograph() {
+        use render::silhouette::{HUE, score};
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        let mut elsewhere = camera;
+        (elsewhere.loc_x, elsewhere.loc_y) = (3168.0, 29744.68);
+        world.run_to(PHOTO_FRAME);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let tint = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Tint);
+        let tex = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Texture);
+        let off = colour_rows(&mut world, &elsewhere, &photo, &TRACED, Colouring::Texture);
+        let count = |rows: &[(Footprint, render::silhouette::Colours, Who)]| {
+            (
+                rows.iter().filter(|(_, c, _)| c.passes(&HUE)).count(),
+                rows.len(),
+            )
+        };
+        let mut sums = [(0u32, 0u32, 0u32, 0u32, 0u32, 0u32); 2];
+        let mut offset = ([0f32; 2], 0u32);
+        for ((f, t, (who, o, piece, building)), (_, x, _)) in tint.iter().zip(&tex) {
+            println!(
+                "{who}/{o} piece {piece}{} window ({}, {})..({}, {}) overlap {:.3}: held {} dark {} | tint lit {} agree {} mean {:.3} {} | texture lit {} agree {} mean {:.3} {} behind {} part {} masked {} part {} rest {}",
+                if *building { " building" } else { "" },
+                f.window.x0,
+                f.window.y0,
+                f.window.x1,
+                f.window.y1,
+                f.overlap(),
+                x.held,
+                x.dark,
+                t.lit,
+                t.agree,
+                t.mean,
+                if t.passes(&HUE) { "in" } else { "out" },
+                x.lit,
+                x.agree,
+                x.mean,
+                if x.passes(&HUE) { "in" } else { "out" },
+                x.behind,
+                x.behind_part,
+                x.masked,
+                x.masked_part,
+                x.rest,
+            );
+            if !*building {
+                for (k, c) in [t, x].iter().enumerate() {
+                    sums[k].0 += c.lit;
+                    sums[k].1 += c.part();
+                    sums[k].2 += c.behind;
+                    sums[k].3 += c.behind_part;
+                    sums[k].4 += c.masked;
+                    sums[k].5 += c.masked_part;
+                }
+                offset.0[0] += x.offset[0];
+                offset.0[1] += x.offset[1];
+                offset.1 += x.rest;
+            }
+        }
+        for (k, label) in ["tint", "texture"].iter().enumerate() {
+            let (lit, part, behind, behind_part, masked, masked_part) = sums[k];
+            let rest_part = part - behind_part - masked_part;
+            println!(
+                "{label}, the figures: {lit} lit pixels, {part} part ({:.3}); behind {behind}, {behind_part} part ({:.3} of what parts); the mask's {masked}, {masked_part} part ({:.3}); the rest {}, {rest_part} part ({:.3})",
+                part as f32 / lit.max(1) as f32,
+                behind_part as f32 / part.max(1) as f32,
+                masked_part as f32 / part.max(1) as f32,
+                lit - behind - masked,
+                rest_part as f32 / part.max(1) as f32,
+            );
+        }
+        let n = offset.1.max(1) as f32;
+        println!(
+            "the light: the photograph's chromaticity less ours over the rest's {} pixels, ({:+.4}, {:+.4})",
+            offset.1,
+            offset.0[0] / n,
+            offset.0[1] / n
+        );
+        let fs: Vec<Footprint> = tex.iter().map(|(f, _, _)| *f).collect();
+        let silhouettes = score(&fs, &READING);
+        let (t, x, o) = (count(&tint), count(&tex), count(&off));
+        println!(
+            "silhouettes {silhouettes:?}; colour: tint {t:?} texture {x:?} run1441's camera {o:?}"
+        );
+        for (f, c, (who, o, _, _)) in &off {
+            if c.lit > 0 {
+                println!(
+                    "run1441's camera {who}/{o}: overlap {:.3} lit {} agree {} mean {:.3}",
+                    f.overlap(),
+                    c.lit,
+                    c.agree,
+                    c.mean
+                );
+            }
+        }
+        use render::silhouette as s;
+        assert_eq!(silhouettes, s::RUN1559B_3279_TRACED, "the row's draw");
+        assert_eq!(x, s::RUN1559B_3279_COLOUR);
+        assert_eq!(t, s::RUN1559B_3279_COLOUR_TINT);
+        assert_eq!(o, s::RUN1441_CAMERA_3279_COLOUR);
+        let figures_in = |rows: &[(Footprint, render::silhouette::Colours, Who)]| {
+            rows.iter()
+                .filter(|(_, c, w)| !w.3 && c.passes(&HUE))
+                .count()
+        };
+        assert_eq!(figures_in(&tint), 0, "the tint reads every figure out");
+        assert!(figures_in(&tex) > figures_in(&tint), "the texture is read");
+        world.blend = crate::world::Blend::Current;
+    }
+
+    /// **Item 4099, step 2: a texel at a triangle's corner, by value,
+    /// before the draw.** One rifleman (piece 60, 1/35, the figure whose
+    /// point sits on the photograph's, 4095): the triangle that covers most
+    /// of its held, lit pixels; its corners' texcoords and the texel each
+    /// lands on in the `<UNIT>`'s `texture=`; and over the pixels it covers,
+    /// our colour against the photograph's. Beside the binding, the other
+    /// readings: `v` flipped, and `u`, `v` swapped. Every figure's player
+    /// texture is named, with the share of its texels under alpha 255.
+    #[test]
+    fn the_rifleman_s_texel_at_a_triangle_s_corner() {
+        use render::silhouette::{HUE, Paint, chromaticity, paint, read_colours, traced_theirs};
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        world.run_to(PHOTO_FRAME);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let size = (photo.width, photo.height);
+        let scene = frame_scene(&mut world, &camera, size);
+        let p = Photo {
+            width: photo.width,
+            height: photo.height,
+            rgba: &photo.rgba,
+        };
+        let traces: Vec<Trace<'_>> = TRACED
+            .iter()
+            .map(|&(name, poly)| Trace {
+                key: scene
+                    .who
+                    .iter()
+                    .position(|&(who, o, _, _)| format!("{who}/{o}") == name)
+                    .map_or(u32::MAX, |i| i as u32 + 1),
+                poly,
+            })
+            .collect();
+        let rows = footprints_traced(
+            &scene.keys,
+            &p,
+            &INTERFACE,
+            &READING,
+            &traces,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let mut pieces: Vec<i32> = scene.drawings.iter().map(|d| d.piece).collect();
+        pieces.sort();
+        pieces.dedup();
+        for piece in pieces {
+            let name = world.figure_texture_name(piece).map(str::to_string);
+            let Some(m) = world.figure_texture(piece) else {
+                println!("piece {piece}: texture {name:?} does not decode");
+                continue;
+            };
+            let img = &m.levels[0];
+            let under = img.rgba.chunks_exact(4).filter(|c| c[3] < 255).count();
+            let d = scene
+                .drawings
+                .iter()
+                .find(|d| d.piece == piece)
+                .expect("drawn");
+            let (mut lo, mut hi) = ([f32::MAX; 2], [f32::MIN; 2]);
+            for t in &d.uvs {
+                for c in t {
+                    for k in 0..2 {
+                        lo[k] = lo[k].min(c[k]);
+                        hi[k] = hi[k].max(c[k]);
+                    }
+                }
+            }
+            println!(
+                "piece {piece}: texture {name:?} {}x{}, {under} of {} texels under alpha 255; texcoords u {:.3}..{:.3} v {:.3}..{:.3}",
+                img.width,
+                img.height,
+                img.width * img.height,
+                lo[0],
+                hi[0],
+                lo[1],
+                hi[1]
+            );
+        }
+        for name in ["1/35", "1/20", "1/27"] {
+            let k = scene
+                .who
+                .iter()
+                .position(|&(who, o, _, _)| format!("{who}/{o}") == name)
+                .expect("drawn");
+            let key = k as u32 + 1;
+            let d = &scene.drawings[k];
+            let f = rows.iter().find(|f| f.key == key).expect("scored");
+            let theirs = traced_theirs(
+                &scene.keys,
+                &p,
+                &INTERFACE,
+                &READING,
+                &traces,
+                Neighbour::Neither,
+                Interface::Neither,
+                key,
+                f.window,
+            );
+            let mips = world.figure_texture(d.piece).expect("the texture decodes");
+            let object = Object {
+                key,
+                tris: d.tris.clone(),
+            };
+            let flipped: Vec<[[f32; 2]; 3]> = d
+                .uvs
+                .iter()
+                .map(|t| t.map(|c| [c[0], 1.0 - c[1]]))
+                .collect();
+            let swapped: Vec<[[f32; 2]; 3]> =
+                d.uvs.iter().map(|t| t.map(|c| [c[1], c[0]])).collect();
+            let mut readings = Vec::new();
+            for (label, uvs) in [
+                ("bound", &d.uvs),
+                ("v flipped", &flipped),
+                ("u, v swapped", &swapped),
+            ] {
+                let how = Paint::Texture { uvs, mips: &mips };
+                let ours = paint(&object, &how, &camera, size, f.window);
+                let c = read_colours(
+                    &scene.keys,
+                    &p,
+                    key,
+                    f.window,
+                    &theirs,
+                    &ours,
+                    &HUE,
+                    |_, _| false,
+                );
+                println!(
+                    "{name} piece {} {label}: lit {} agree {} mean {:.3}",
+                    d.piece, c.lit, c.agree, c.mean
+                );
+                readings.push((label, ours, c));
+            }
+            // The binding is the reading the figure agrees with most.
+            let agree: Vec<u32> = readings.iter().map(|r| r.2.agree).collect();
+            assert!(
+                agree[0] > agree[1] && agree[0] > agree[2],
+                "{name}: the texcoords bound as stored read nearest {agree:?}"
+            );
+            // The named triangle: the one covering most held, lit pixels.
+            let ours = &readings[0].1;
+            let ww = (f.window.x1 - f.window.x0) as usize;
+            let mut by_tri: std::collections::BTreeMap<u32, Vec<(i32, i32)>> = Default::default();
+            for y in f.window.y0..f.window.y1 {
+                for x in f.window.x0..f.window.x1 {
+                    let j = (y - f.window.y0) as usize * ww + (x - f.window.x0) as usize;
+                    if scene.keys.at(x as usize, y as usize) != key || theirs[j] != Some(true) {
+                        continue;
+                    }
+                    if let Some(t) = ours[j] {
+                        by_tri.entry(t.tri).or_default().push((x, y));
+                    }
+                }
+            }
+            let (&tri, pixels) = by_tri
+                .iter()
+                .max_by_key(|(t, v)| (v.len(), std::cmp::Reverse(**t)))
+                .expect("a triangle");
+            let mesh = world.mesh(d.piece, false).expect("the mesh");
+            let face = mesh.faces[tri as usize];
+            let img = &mips.levels[0];
+            println!(
+                "{name} triangle {tri}, vertices {face:?}, covers {} held pixels",
+                pixels.len()
+            );
+            for (c, v) in d.uvs[tri as usize].iter().zip(face) {
+                let (tx, ty) = (
+                    ((c[0] * img.width as f32).floor() as i64).rem_euclid(img.width as i64)
+                        as usize,
+                    ((c[1] * img.height as f32).floor() as i64).rem_euclid(img.height as i64)
+                        as usize,
+                );
+                let t = &img.rgba[(ty * img.width + tx) * 4..][..4];
+                let fy = img.height - 1 - ty;
+                let tf = &img.rgba[(fy * img.width + tx) * 4..][..4];
+                println!(
+                    "  vertex {v}: uv ({:.4}, {:.4}) texel ({tx}, {ty}) rgba {t:?}; v flipped ({tx}, {fy}) rgba {tf:?}",
+                    c[0], c[1]
+                );
+            }
+            for (label, painted, _) in &readings {
+                let mut sum_o = [0f32; 3];
+                let mut sum_t = [0f32; 3];
+                for &(x, y) in pixels {
+                    let j = (y - f.window.y0) as usize * ww + (x - f.window.x0) as usize;
+                    let o = painted[j].map_or([0.0; 3], |t| t.rgb);
+                    let i = (y as usize * p.width + x as usize) * 4;
+                    for c in 0..3 {
+                        sum_o[c] += o[c];
+                        sum_t[c] += f32::from(p.rgba[i + c]);
+                    }
+                }
+                let n = pixels.len() as f32;
+                let (mo, mt) = (sum_o.map(|v| v / n), sum_t.map(|v| v / n));
+                let (a, b) = (chromaticity(mo), chromaticity(mt));
+                println!(
+                    "  {label}: ours {:?} photograph {:?}, chromaticity ({:.3}, {:.3}) against ({:.3}, {:.3}), distance {:.3}",
+                    mo.map(|v| v.round() as i32),
+                    mt.map(|v| v.round() as i32),
+                    a[0],
+                    a[1],
+                    b[0],
+                    b[1],
+                    ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2)).sqrt()
+                );
+                if *label == "bound" && name != "1/27" {
+                    let d = ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2)).sqrt();
+                    assert!(
+                        d <= HUE.distance,
+                        "{name}: the named triangle agrees by value"
+                    );
+                }
+            }
         }
         world.blend = crate::world::Blend::Current;
     }

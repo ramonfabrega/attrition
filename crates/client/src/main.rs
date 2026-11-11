@@ -112,6 +112,9 @@ struct Args {
     /// Draw the map's trees (`world::World::trees`, item 4080);
     /// `--no-trees` leaves them out.
     trees: bool,
+    /// Texture the figures (`world::World::textured`, item 4099); `--tint`
+    /// draws the owners' debug tint instead.
+    textured: bool,
 }
 
 fn parse() -> Result<Args, String> {
@@ -131,6 +134,7 @@ fn parse() -> Result<Args, String> {
         pose: true,
         sprites: true,
         trees: true,
+        textured: true,
         trace: std::env::temp_dir().join(format!("attrition-client-{}.json", std::process::id())),
     };
     let mut it = std::env::args().skip(1);
@@ -154,6 +158,7 @@ fn parse() -> Result<Args, String> {
             "--rest" => a.pose = false,
             "--zbuffer" => a.sprites = false,
             "--no-trees" => a.trees = false,
+            "--tint" => a.textured = false,
             "--silhouette" => a.silhouette = Some(v()?.into()),
             "--zoom" => a.zoom = v()?.parse().map_err(|e| format!("--zoom: {e}"))?,
             "--look" => {
@@ -189,6 +194,7 @@ fn parse() -> Result<Args, String> {
 /// The scene's triangles at the client's state, the overlay with them.
 struct Built {
     figures: world::Soup,
+    textured: Vec<world::TexturedMesh>,
     sprites: Vec<world::SpriteDrawing>,
     overlay: (Vec<[f32; 3]>, Vec<[f32; 3]>),
 }
@@ -197,7 +203,7 @@ fn build(world: &mut World, camera: &render::Camera, size: (u32, u32), frame_ms:
     let (figures, buildings, list) =
         world.draw_list(camera, &pinned_screen(), (size.0 as i32, size.1 as i32));
     let sprites = world.sprite_drawings(&buildings, &list, camera.zoom_distance);
-    let mut figures = world.figures(&figures, &buildings, &list);
+    let (mut figures, textured) = world.figure_meshes(&figures, &buildings, &list);
     world.tree_soup(&mut figures);
     let lines = overlay::Lines {
         frame: world.runner.frame(),
@@ -208,6 +214,7 @@ fn build(world: &mut World, camera: &render::Camera, size: (u32, u32), frame_ms:
     let overlay = overlay::triangles(&lines, (size.0 as i32, size.1 as i32), 2);
     Built {
         figures,
+        textured,
         sprites,
         overlay,
     }
@@ -228,6 +235,7 @@ fn draw(
         terrain_version: version,
         terrain: (&t.positions, &t.colours),
         figures: (&b.figures.positions, &b.figures.colours),
+        textured: &b.textured,
         overlay: (&b.overlay.0, &b.overlay.1),
         sprites: &b.sprites,
     };
@@ -425,6 +433,7 @@ fn main() {
     world.pose = args.pose;
     world.sprites = args.sprites;
     world.trees = args.trees;
+    world.textured = args.textured;
     session.mark("frame zero");
     session.phase("run to the frame", || world.run_to(args.frame));
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
