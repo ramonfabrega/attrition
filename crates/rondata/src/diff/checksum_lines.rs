@@ -1644,3 +1644,132 @@ fn the_groups_line_is_the_original_s_range_by_range() {
     );
     assert_eq!(parting(&Line::default(), &theirs).len(), GROUPS.2);
 }
+
+/// One leaf's verdict on the leaders line: `(slot, range field, leaf, ours,
+/// theirs)`, the values as the leaf's elements, and whether the crate holds
+/// it.
+type LeafRow = (i16, &'static str, String, Option<Vec<i64>>, Vec<i64>, usize);
+
+/// The leaders line, ours as leaves beside the stream's bytes decoded by the
+/// same leaves' widths (signed at 4 bytes, unsigned below): every leaf of
+/// every range, in walk order. A range whose length differs is one row
+/// named `<field>: length` with both lengths.
+fn leader_leaf_rows(sim: &sim::Sim, theirs: &StreamRows) -> Vec<LeafRow> {
+    let ours: Vec<sim::checksum::leaders::LeaderRange> = (0..sim::checksum::leaders::LEADER_SLOTS)
+        .flat_map(|s| sim.leader_image(s as sim::Player))
+        .collect();
+    let mut out = Vec::new();
+    for (i, r) in ours.iter().enumerate() {
+        let Some(t) = theirs.get(i) else {
+            out.push((
+                r.record,
+                r.field,
+                format!("{}: theirs -", r.field),
+                None,
+                vec![],
+                0,
+            ));
+            continue;
+        };
+        let len: usize = r.leaves.iter().map(|l| l.width * l.count).sum();
+        if len != t.2.len() {
+            out.push((
+                r.record,
+                r.field,
+                format!("{}: length", r.field),
+                Some(vec![len as i64]),
+                vec![t.2.len() as i64],
+                0,
+            ));
+            continue;
+        }
+        let mut at = 0;
+        for l in &r.leaves {
+            let tv: Vec<i64> = (0..l.count)
+                .map(|k| {
+                    let b = &t.2[at + k * l.width..at + (k + 1) * l.width];
+                    match l.width {
+                        1 => i64::from(b[0]),
+                        2 => i64::from(u16::from_le_bytes([b[0], b[1]])),
+                        _ => i64::from(i32::from_le_bytes(b[..4].try_into().unwrap())),
+                    }
+                })
+                .collect();
+            let ov = l.values.as_ref().map(|v| {
+                v.iter()
+                    .map(|&x| match l.width {
+                        1 => x & 0xff,
+                        2 => x & 0xffff,
+                        _ => i64::from(x as i32),
+                    })
+                    .collect()
+            });
+            out.push((r.record, r.field, l.name.clone(), ov, tv, l.width * l.count));
+            at += l.width * l.count;
+        }
+    }
+    if theirs.len() > ours.len() {
+        for t in &theirs[ours.len()..] {
+            out.push((-1, "-", format!("{}: ours -", t.1), None, vec![], 0));
+        }
+    }
+    out
+}
+
+/// A leaf's values in short: one value, or its non-zero entries.
+fn leaf_text(v: &[i64]) -> String {
+    if v.len() == 1 {
+        return v[0].to_string();
+    }
+    let nz: Vec<String> = v
+        .iter()
+        .enumerate()
+        .filter(|(_, x)| **x != 0)
+        .map(|(i, x)| format!("{i}:{x}"))
+        .collect();
+    if nz.is_empty() {
+        format!("0x{}", v.len())
+    } else {
+        format!("{}/{}", nz.join(","), v.len())
+    }
+}
+
+/// **The leaders line, ours against the original's, leaf by leaf**
+/// (`docs/CHECKSUM.md` §20, item 4121): the census.
+#[test]
+fn the_leaders_line_is_the_original_s_leaf_by_leaf() {
+    let Some((theirs, want, sim)) = line_inputs("leaders", "Leaders") else {
+        return;
+    };
+    let rows = leader_leaf_rows(&sim, &theirs);
+    let mut counts: std::collections::BTreeMap<(i16, String, &str), (usize, usize)> =
+        std::collections::BTreeMap::new();
+    for (slot, field, leaf, ours, t, bytes) in &rows {
+        let verdict = match ours {
+            None => "unheld",
+            Some(o) if o == t => "agree",
+            Some(_) => "part",
+        };
+        let tail = field.split(['.', '[']).next().unwrap_or(field).to_string();
+        let e = counts.entry((*slot, tail, verdict)).or_default();
+        e.0 += 1;
+        e.1 += bytes;
+        eprintln!(
+            "LEAF\t{slot}\t{field}\t{leaf}\t{verdict}\t{}\t{}",
+            leaf_text(t),
+            ours.as_deref().map_or("-".into(), leaf_text)
+        );
+    }
+    for ((slot, tail, verdict), (n, e)) in &counts {
+        eprintln!("COUNT\t{slot}\t{tail}\t{verdict}\t{n}\t{e}");
+    }
+    let ours = sim.checksum_leaders();
+    eprintln!(
+        "leaders: ours {} ranges {} bytes adler {}; theirs {} ranges {} bytes; printed {want}",
+        ours.ranges.len(),
+        ours.bytes(),
+        ours.adler(),
+        theirs.len(),
+        theirs.iter().map(|t| t.2.len()).sum::<usize>(),
+    );
+}
