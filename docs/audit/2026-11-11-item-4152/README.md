@@ -71,3 +71,4 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | family | wave | tokens | minutes | leaves (of) | note |
 |---|---|---|---|---|---|
 | anti-att | 1 | 154 k | 10 | 1 of 1 written | 8 stores in `Leader::calc_anti_attrition (006cdcc0)`; argues class 2 (f32 chain replayable by `Single`), not class 3 |
+| last-finished | 1 | 138 k | 10 | 2 of 2 written | the object number `o` of the last finished of a type, −1 at init; `Build::activate (00623e20)` and `Build::train (0062f9b0)`; the crate's `record_last_built` hook is empty |
