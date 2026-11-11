@@ -3850,6 +3850,8 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 ## Loop, filed 2026-11-10 — the driver's fourteenth session
 
+(4140) **A landing bar counted 120 ties as wins for two bookings** (the driver's twenty-first session, 2026-11-11; item 4139's stage 3): 4132's `RUN1559B_3279_GROUND_BLEND_PACKET` scored the packet's patch at "395 of 503 patched tiles, the best control 204", the queue booked it twice and 4139's note made 395 the bar. 127 of the 503 carry an emptied patch, where every candidate draws the base alone, and the count's `max_by` hands an equal score to the later candidate: 120 of the 395 were ties. On the 376 tiles that draw a patch the row is 275 for the packet's own choice and 282 for ours, against a best control of 147 (`RUN1559B_3279_GROUND_BLEND_DRAWN`); the conclusion stood, the margin did not. Candidate: a count of wins among candidates is strict, its ties are pinned beside it, and a `render` item's brief says so; a control that draws nothing different on a tile takes that tile out of the pool.
+
 (4138) **A lane sat 84 minutes behind `cat >> /dev/null;` on a socket, and the waiter's first tell was QUIET at 100** (the driver's twentieth session, 2026-11-11): lane-4134's second session prefixed a backgrounded patch-and-test command with a bare `cat`; a lane's shell has a unix socket for stdin, so the `cat` never returned, at 0 % CPU, and the lane waited on a notification that could not come, with no ninety-minute status line. `lanewait.py` exited QUIET at its default 100 minutes; `--stalled-child-after` is 90 and the child was 84 minutes old. The driver read the child's command, ended the `cat` by pid, and the lane's own command ran on and landed: 140 minutes for 56 of work. Candidate: the Bash hook refuses a `cat`, `read` or `tee` with no operand at a command's head in a lane, since it reads a stdin that never closes; and the waiter's stalled-child tell names a child of a working row at 0 % CPU whose stdin is a socket after ten minutes, not ninety. The same journal quotes 31 `Gate minutes:` lines, the gate log's whole history, where the guard wants the last.
 
 (4137) **A booking quoted a count the journal's own table did not sum to** (4134's "for the Loop", the journal's line, filed at its merge; the driver's twentieth session, 2026-11-11): 4132's journal and the queue's booking of 4134 said the packet holds "1,399 drawn and 113 not" land-0 patches; it holds 1,512 drawn and 113 emptied, 1,625 records, and 4132's own alpha table sums to 1,512: the 113 were taken off twice. The item's landing bar was written on the wrong count and the lane corrected it in its first probe. Candidate: a booking that quotes a count from a journal quotes the table it sums, and `tools/queueledger.py` flags a count in a queue item that the cited journal does not hold verbatim.
@@ -16696,6 +16698,22 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot FN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FP renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
