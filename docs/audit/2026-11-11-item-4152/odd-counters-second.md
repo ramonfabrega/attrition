@@ -107,3 +107,85 @@ float bucket that decides the due was not re-derived (it is the repair
 mechanic, not this leaf). Not read: whether any savegame path restores it
 (none found by the bulk-writer scan; the scenario chunks do not carry it).
 
+## `missiles_used` (`LeaderData +0x7c0`, int)
+
+**1. Writers.**
+- `Ammo::do_damage (00678060)`, `67860e` `incl 0xe3ab50(%eax)` with
+  `eax = round.who·0x6eec` (`imull $0x6eec, 0x3c(%ebx)` at `678607`; `ebx` is
+  the round, `AmmoData +0x3c who`). Decompile line 297.
+- `Leader::init (006e3930)`: memset, and explicit `field_0x7c0 = 0`
+  (`6e3bbc`, decompile line 164).
+- `Leader::close (006b7f80)`, `Leaders::clear (006ed5d0)`: memset.
+- Register-relative `0x7c0(%r)` stores elsewhere are other records
+  (`IFaceRenderManager::clear_all`, `AchieveChartPane::on_redraw`,
+  `IFaceResources::IFaceResources`, `GraphicPieces::~GraphicPieces`,
+  `ChatSpace::clear`).
+
+**2. Event, step, predicate.** `+1` to the **firing round's player**
+(`AmmoData +0x3c who`), once per call of `Ammo::do_damage` that takes this
+path:
+1. the round has a shooter (`who >= 0`, `o >= 0`, `+0x3c`/`+0x40`) and its
+   graphic piece type is not 9 (`GraphicPieces::get_gpiece_type != 9`);
+2. the round's `splash_area` (`+0x30`) is **nonzero** (the zero-splash arm
+   never reaches it);
+3. the shooter object `objects[who][o]`'s type has `obj_masks` (`ObjectTypeData
+   +0x1e4`) bit `0x8000000` — the missile flag (`678200`; otherwise straight
+   to `hit_target` at `678614`, no count);
+4. **not shot down**: the landing cell's territory owner `L` (from
+   `world+0x134` per tile, `+0xf` byte; on ocean, the first owned land cell
+   of a 120-entry offset ring at `0xadcaf4`/`0xadc404`) is not `>= 0` with
+   `LeaderData::has_preq(L, MISSILE_DEFENSE_BONUS)` and `L != who` — that
+   case messages and closes the round at `67845d`, no count;
+5. **not of the nuke line**: `shooter.is(NUCLEARMISSILE = 0x13b, 0)`
+   (`ObjectData::is`, vslot `0xb8`, args pushed at `678212`/`678214`;
+   non-strict lineage: the type itself, its graft and its `from` chain, so
+   `ICBM 0x13c` is in it) is zero (`cmpl $0, -0x1c(%ebp); je 6785f0` at
+   `67846d`). The nonzero case is the nuke arm (`nuke_stamp`, `nukes_used`,
+   `Nuke::add_nuke`) and returns without touching this leaf.
+
+On that path: `SoundGlobal::play(S_NUKE_HIT (0x50))` at the landing, then
+`missiles_used[who] += 1` (`67860e`), then the ordinary `hit_target` /
+`check_hit` / splash walk from `678614`. Step 1 per detonating round; the
+count includes rounds whose shooter is the player's own missile regardless
+of whether the splash hurts anything. Which types carry the `0x8000000` bit
+and are outside the nuke line was not enumerated from data; the reader below
+names V2 Rocket `0x139` and Cruise Missile `0x13a`.
+
+**3. Reset.** `Leader::init` (memset + explicit 0), `Leader::close`,
+`Leaders::clear`. Not `reset_score`. Never decremented: a spent missile
+counts forever.
+
+**4. Readers.** `LeaderData::get_support_count (006da110)` adds it to the
+count of a type **index** `0x139` or `0x13a` (exact equality, not lineage),
+after `num_queued[t] + high_buildings[t+0x4f]` — but only on the fall-through
+path: a type with `progression & 1` and `attack != 0` returns its
+group count first (barracks/stable/factory/dock by `where`, or air by
+`domain == 2`) and never adds this term. `get_support_count` is called only
+from `TypeData::get_cost (00664090)` (four sites, `66529b`..`6652fe`), so the
+leaf makes the next V2/Cruise Missile dearer. Unlike `nukes_used`, `get_cost`
+adds no second lineage term for missiles (`get_cost` line 559 is `is(0x13b)`
+→ `nukes_used` only). Also `LeaderData::log_data (006e5110)` line 1306.
+
+**5. Crate.** The event's site is
+`crates/sim/src/combat/fight/projectiles.rs` `land` (~line 600): the shield
+test (`profile(shooter).has(mask::MISSILE)` … `missile_defense_held`) and then
+`if self.is_nuke(p.shooter) { self.nuke_land(..); return; }`; the counter
+goes right after that `return`, under the same `mask::MISSILE` test, keyed by
+`p.owner`, beside `Nukes::used` in `crates/sim/src/combat/nuke.rs`. The
+reader's site is `nuke_ramp_extra` in `crates/sim/src/economy/pricing.rs:286`,
+whose doc says "The matching `missiles_used` term (`0x139`, `0x13a`) is not
+modelled". Aside, not this leaf's: the original runs `hit_target`/`check_hit`
+for a missile round **after** the shield and nuke tests (`678614`), while
+`land` calls them before (`projectiles.rs:576`); I did not check whether that
+order is observable.
+
+**6. Plain game.** Yes. V2 Rockets and Cruise Missiles are trained at a
+Missile Silo in an ordinary skirmish (Industrial/Modern ages) and the AI uses
+them; no trigger, CtW or multiplayer gate on this path.
+
+**7. Confidence.** High for the writer set and the branch structure (listing
+read from `678200` to `67861b`). Medium on which types satisfy step 3 and
+not step 5 (not enumerated from the tables). Not read: `hit_target` /
+`check_hit` themselves, and whether one missile can produce more than one
+round (I assumed one, as the crate's `missile_dies` after `fire_ammo` implies).
+

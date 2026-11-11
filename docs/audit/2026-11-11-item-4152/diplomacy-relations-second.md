@@ -42,3 +42,27 @@ The body, in my words (listing 6dab50–6dadb0):
 6. **Whatever `quiet`**: if `is_ally(target)` still holds (before the relation changes) → `broke_alliance[target] = frame`.
 7. `Leader::set_diplo (006ec6a0)(target, level)`, then the team walk (`ally_diplo` for teammates of either side), then the messages.
 
+## `dow` (+0x270, int[8])
+
+**1. Writers.**
+- `Leader::action_declare (006dab50)`: `incl 0x270(%esi,%edi,4)` at 6dad3e and again at 6dad61 (`esi` = declarer, `edi` = target). The only game-state writer.
+- `Leader::init (006e3930)`: `movl %eax, 0x19c(%esi)` at 6e3d44 in the per-other loop (`esi = &good_deeds[j]`, so `0xd4 + 0x19c = 0x270`), `eax = 0`, for j in 0..8.
+- Block writers: `Leaders::clear (006ed5d0)` (0), `LeaderData::walk_data (006d6750)` (restore).
+- False positives checked: `Leaders::clear` 6ed7cf–6ed7ed (BitMask clears off `esi` deep in the record, not `LeaderData+0x270`), `ConsoleWin::run_cmd` 7d7983 and `ScenarioRead::import` 9b2c2d (base `[0xe335a8]`, not a leader), `ScenarioRead::load_leaders_chunk` 9acf5b.. (base tests `0x821(%edx)`, the game info record; String-shaped `movl/movl/movw` runs), `IFaceEditorDiplo`, `OptionsWinGame::do_load`, `ScriptEditBox` (interface records).
+
+**2. Event, step, predicate.** The declarer's `dow[target] += 1` per declaration, a count. Only when `quiet == 0` (the human paths of the table above). Two blocks, both before `set_diplo`:
+- Block A (6dad14): only `level == 0`; skipped when the target is not allied **and** `invaders[target]` (`+0x290`) `>= 5`. Then: if `dow[target] != 0` → `blacken += 1`; `dow[target] += 1`.
+- Block B (6dad45): when `is_ally(target)` (current relation, both ways allied): the same pair of steps.
+
+Reachable combinations with `quiet == 0` (every such caller passes `force == 0`, so a level-0 war on an ally is first turned into level 1): a war on a non-ally (`level 0`) counts once unless `invaders[target] >= 5`; a break of an alliance (`level 1`, from allied) counts once through block B; a `level 1` on a leader merely at peace counts nothing. The double count (A and B for one call) needs `level 0` on an ally with `force != 0`, which only `DropControl` passes, and it passes `quiet = 1`: unreachable.
+
+**3. Reset.** `Leader::init` zeroes all 8 slots; `Leaders::clear` zeroes the record. Nothing decrements it. Never written by the computer's own declarations.
+
+**4. Readers.** `Leader::diplomacy (006bc950)`: its own slot `dow[who]` floored at 1 as a divisor (decompile line 346, listing 6bcf0a `0xe3a600(%eax)`); `leaders[target].dow[me] < 2` gates arms of the peace/war choice (lines 775, 2134, 2702, listing 6bd871, 6c0966); `!= 0` picks a taunt (line 2828, 6c00cd). `LeaderData::log_data`.
+
+**5. Crate.** No `action_declare` exists. The crate's declare is `Sim::declare_war` (`crates/sim/src/leaders/relations.rs:294`, reached by `Command::declare_war`, `crates/sim/src/command.rs:370`) and `Sim::set_diplo` (`relations.rs:116`), both at `set_diplo` depth. `crates/sim/src/leaders/diplomacy.rs:304` and `:398` carry `dow` as `SEAM: dow is not carried`. A builder adds the counter in a new `action_declare` around `declare_war`, keyed on `quiet == 0` (a human declarer), with `invaders` (also not carried) for block A's exemption.
+
+**6. Plain game?** Yes, but only a **human** declarer steps it: the diplomacy window's Declare (run1078 in `crates/rondata/src/blind.rs:333–343` records `dow[1]` 0 → 1 on block 912 after `CM process_declare`, which is this path), a human unit damaging a non-enemy (`Object::take_damage`), a human nuke, and a human accepting a hire. A computer-only game never moves it. `DropControl` is multiplayer; `ScenarioFuncSet::declare_war` is the trigger layer (quiet 1 anyway).
+
+**7. Confidence.** High on the step and predicate (listing read instruction by instruction, every call site's arguments read from the listing). Not read: `pay_dow`'s body beyond confirming it writes none of the leaves (the scan saw no hit in it); `Game::run_oos_recovery`/`Game::close` bodies.
+

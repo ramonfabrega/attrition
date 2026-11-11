@@ -168,3 +168,67 @@ corrections to the same paragraph, each by the deciding line:
 - **Plain game**: yes. **Confidence**: high, nothing open beyond the leaf 1
   items.
 
+## Leaf 3 — `lost_capital_modifier` (+0x41c, int, 8.8: 0x100 = ×1)
+
+| claim | first | second | mark | verdict, deciding line |
+|---|---|---|---|---|
+| sole value writer `Leader::lost_capital`, timer-0 arm, stores 6dc8fb / 6dc903 / 6dc952 | yes | yes | agree | **confirmed** (nets above) |
+| `To = get_team_terr(O)`, `Ta = get_team_terr(A)` (`A` = the call's `param_1`: E1 the captor, E2 the holder, possibly re-picked) | yes | yes | agree | **confirmed**: 6dc894 (`ecx` = `this`), 6dc8a7-6dc8ad (`0xe3a390 + A·0x6eec`) |
+| `w = land_size / num_nations` signed, 0 when `num_nations == 0` | yes | yes | agree | **confirmed**: 6dc8b2-6dc8cf (`Game+0x6a0`, `World+0x78`, `cltd; idivl`) |
+| either sum 0 → `m = 0x100` | yes | yes | agree | **confirmed**: 6dc8d1-6dc8d9 `je 6dc903` on each sum |
+| else `m = trunc((To+w)·256 / (Ta+w))` clamped `[0x80, 0x200]`, signed | yes | yes | agree | **confirmed**: 6dc8db-6dc8fb (`shl 8; cltd; idivl`; `jl` → 0x80; `cmovg` 0x200) |
+| the city rescale follows **either** branch: both `city_num` ≠ 0 and `A.city_num < O.city_num` (strict, signed) → `m = trunc(m·(O+2)/(A+2))` clamped `[0x80, 0x300]` | yes | yes ("after either branch") | agree | **confirmed**: 6dc901 `jmp 6dc90d` and 6dc903 falls through to 6dc90d; 6dc925 `cmp; jle` skip; 6dc93d `idivl`; 6dc940-6dc94b. Note: since `(O+2)/(A+2) > 1` here, the result is `≥ m ≥ 0x80`, so the second floor is unreachable; only the 0x300 ceiling binds |
+| `m ∈ [0x80, 0x300]`, so the stamp's `idivl` cannot fault | yes | yes | agree | **confirmed** |
+| no reset but the memsets (and a load); `Leader::init`'s setup arm leaves it | yes | yes | agree | **confirmed**: `Leader::init` 310-311 store only +0x414/+0x418; 6e3f89/6e3f8f |
+| stale between losses, visible only to a whole-record dump: every rule reader is behind `timer != 0` | implied | yes | one-sided | **confirmed**: `retake_capital` is called only from `process_elimination` (behind 6b8a36) and `draw_timers` (behind 80c3ab); `recapture_capital` and the FC arm read it behind their timer tests; `lost_capital` writes it before its own read. A checksum/diff of the field **does** see the stale value, so a port must keep it, not zero it at the stop |
+| reader `Game::retake_capital`: `base = 0` if `RETAKE_CAPITAL < 1`, else `max(1, (xs·RC + S/2)/S)`; `limit = trunc(base·m/256)` for `who ≥ 0`; `semaphore` byte 2 bit 2 arms (FC doubles at `has_wonder == 2`, halves via the other of slots 0/1) | yes | yes | agree | **confirmed**: 59453a-594572 (`S/2` by `cltd; sub; sar`, toward zero), 594587-59459f, 5945a2 `testb $2, 0x822(game)`; decompile 24-45 for the arms. Both arms are behind a `semaphore` bit whose meaning neither reader nor this pass read; the FC `== 2` value is `has_wonder`'s CtW bit alone |
+| `S` = `+0x144` of `*(0xe7fca8)` | "unnamed" | "the Standard map size's width" | disagree (one named it) | **confirmed** (second): the same record and field `crates/sim/src/world/analyze.rs:17` and `docs/MAPGEN.md` line 4273 name as `map_sizes` record 3, the Standard size, value 70; `retake_capital`'s base is the scale-by-axis expression |
+| `city_num` at E1 (both: not established) | open | open | agree (open) | **settled**: both counts **include the captured city**. `capture_city`'s step 3 calls `Build::activate(1,1,0)` on the swapped city building (decompile ~205, vtable `Build::vftable +0x1a8 Build::activate` in `vtables.txt` line 28415), whose city arm (`(flags & 0x20) != 0`, the `else` at decompile 446) increments `A.city_num` at line 503 regardless of `captured`; `O.city_num` falls only in `City::close` (00737550) line 36, which `capture_city` calls at decompile 1157, after both capital calls (1142, 1152). So the rescale is `(O_left + 3)/(A_before + 3)` in terms of the cities each held outside the one changing hands. Confidence medium-high (the decompile's order; `Build::swap_team` not read for a `city_num` store of its own) |
+| `territory` at E1 (second: not established) | — | open | one-sided | **settled, medium**: in play the only writer of `+0x9d8` is `GameDaemon::check_borders (00732060)` (decompile 51-60; the other writers are setup and editor paths: `World::compute_all_territory (006b5700)`'s callers are `Setup::*`, `ConquestGame::*`, `ScenarioEditor::*`, `ScenarioRead::import`, `ScenarioFuncSet::*`), called only from `GameDaemon::process_all (00732700)` line 86. So `To`/`Ta` are the last daemon pass's sums, **before** the capture's border change: the loser's still counts the captured city's land |
+| `num_nations`' writer | open | open | agree (open) | **open**: read the writers of `Game+0x6a0` (whether it counts gaia or the dead) |
+| `get_team_terr`'s ally rule and team-style-7 arm | head only | frame-0 lobby team, then `is_ally`; style 7 not read | agree (partial) | **open** here; not this family's leaf (the crate's `team_terr` is `ai/ai_census.rs:155`) |
+| crate: no field, no `retake_capital`; inputs exist (`team_terr` `ai_census.rs:155`, `land_size` `victory.rs:110`); checksum row `checksum/leaders.rs:102`; diff key unheld `rondata/src/diff/checksum_lines.rs:1809` | yes | yes | agree | **confirmed** for the sim crate (`grep -rn retake crates/sim/src` empty; `land_size` at `victory.rs:110`); no `scale_by_axis` exists in `crates/sim/src` (only `mapgen/map_lakes.rs:314 scale_by_area`), so the port adds the axis expression |
+| plain game | yes | yes | agree | **confirmed** |
+
+### The rule, as a builder should port it (modifier)
+
+- **Written** only at a loss (timer 0 → 1), before the stamp uses it, with
+  `O` the loser and `A` the captor (E1) or holder (E2):
+  `w = land_size / num_nations` (0 if none);
+  if `To + w == 0` or `Ta + w == 0` then `m = 256`, else
+  `m = clamp((To + w)·256 / (Ta + w), 128, 512)`; then if `O.city_num != 0`,
+  `A.city_num != 0` and `A.city_num < O.city_num`,
+  `m = min((m·(O.city_num + 2)) / (A.city_num + 2), 768)`. All divisions C
+  truncating; `To`/`Ta` the team territory sums as of the last
+  `check_borders`; both `city_num`s counting the city being captured.
+- **Read** by the countdown `limit = trunc(max(1, (xs·3600 + 35) / 70) · m /
+  256)` frames (at `S = 70`), by the loss's stamp division and by the stop's
+  multiplication.
+- **Reset** only by the whole-record zero at game init/close (and a load);
+  kept stale after a stop.
+- **Crate**: a field beside the stamp; computed in the loss step added to
+  `Sim::capture_city` (`cities/city.rs:3169`) and `Sim::close_building`
+  (`city.rs:2782`); `retake_capital` beside the `process_elimination` port.
+- **Plain game**: yes, every capital loss.
+- **Confidence**: high for the formula (listing end to end, two readers
+  agree); medium-high for the two input timings above. **Open**:
+  `num_nations`' writer; `get_team_terr`'s team-style-7 arm; the
+  `semaphore` bits.
+
+## Against the README row 11
+
+The row's writers (`Leader::lost_capital`, `recapture_capital`,
+`Build::activate`, `Leader::process`) hold with the amendments both readers
+made: the per-frame store that runs is `Leaders::process_all (006ed2a0)`'s
+inlined copy, `Leader::process (006b88b0)` is dead; `Leader::init` resets the
+stamp and timer (not the modifier); `Build::close (00628980)` is a second
+caller of `lost_capital`. The row's "`lost_capital_frame` is a partial copy of
+the stamp" is right in shape and the copy has no reader.
+
+## Verdict table
+
+| leaf | claims confirmed / corrected / open | the rule in one line |
+|---|---|---|
+| `lost_capital_stamp` +0x414 | 24 / 1 / 1 (corrected: `Build::close`'s Forbidden City arm gates on `is_active`, flags bit `0x4`, not bit `0x1`; open: whether that arm can run inside a capture) — plus `docs/CITIES.md` §8.5 **corrected** (one frame per **five**, truncation toward zero, seeding settled) | loss (timer 0): `frame + stamp·256/m`; stop (timer 1, recapture or Forbidden City activation): `(stamp − frame)·m/256` toward zero; `+1` when `frame % 5 == 0`, `stamp < 0`, timer 0; 0 at `Leader::init` |
+| `lost_capital_timer` +0x418 | 14 / 0 / 0 | 0/1: set at a loss if clear, cleared at a stop if set, 0 at `Leader::init`; gates the countdown, the refresh and the resign/drop's `by` |
+| `lost_capital_modifier` +0x41c | 14 / 0 / 3 (two "not established" input timings settled: both `city_num`s include the captured city; territory is the last `check_borders` sum; open: `num_nations`, `get_team_terr` style 7, the `semaphore` bits) | at a loss: `clamp((To+w)·256/(Ta+w), 128, 512)` (256 if a sum is 0), then `×(O.cities+2)/(A.cities+2)` capped 768 when `0 < A.cities < O.cities`; never reset but by the whole-record zero |
