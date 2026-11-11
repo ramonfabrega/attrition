@@ -152,13 +152,38 @@ pub fn ground_base(
 /// **`RUN1559B_3279_GROUND`** (item 4127; `docs/RENDERER.md` §3.6, "The
 /// ground's base layer"): of the scored tiles on run1559b's frame 3279 at
 /// its pinned camera, those whose drawn mean colour is the photograph's
-/// within the colour reader's 0.05 in (r, g)/(r + g + b).
+/// within the colour reader's 0.05 in (r, g)/(r + g + b). Item 4129: it
+/// backs the tileset and the mapping, not the choice of base — every tile
+/// drawn in base 2 scores 1,053 and in base 0 1,052; the choice's row is
+/// [`RUN1559B_3279_GROUND_BASE`].
 #[cfg(test)]
 pub const RUN1559B_3279_GROUND: (usize, usize) = (949, 1109);
 
 /// The same row on the debug colour, the floor (item 4127).
 #[cfg(test)]
 pub const RUN1559B_3279_GROUND_FLOOR: (usize, usize) = (92, 1109);
+
+/// **`RUN1559B_3279_GROUND_BASE`** (item 4129; `docs/RENDERER.md` §3.6,
+/// "Which base a tile draws"): of the 1,003 scored plain tiles, those where
+/// the base our draw lays is the best of the four by the per-tile Pearson r
+/// of the photograph's luminance with each base's own sub-tile at the read
+/// mapping, and stands above its own control, the same base with the
+/// sub-tile's cell index one on. New, 758 of 1,003; its controls, every
+/// tile one base, are [`RUN1559B_3279_GROUND_BASE_ONE`].
+#[cfg(test)]
+pub const RUN1559B_3279_GROUND_BASE: (usize, usize) = (758, 1003);
+
+/// The same row with every plain tile drawn in base 0, 1, 2, 3 (item 4129).
+#[cfg(test)]
+pub const RUN1559B_3279_GROUND_BASE_ONE: [usize; 4] = [2, 274, 697, 26];
+
+/// Run1559b's packet against our bucket on its 2,810 land-0 cells (item
+/// 4129; `tools/render/land_buckets.py`): the `pCoords` list a cell sits
+/// in equals our bucket on the first, and the rule on the packet's own
+/// `land_sub` on the second; the 31 between are cells whose `land_sub` the
+/// original's `spot_update_land` moved and our terrain has not.
+#[cfg(test)]
+pub const RUN1559B_3279_PACKET_LIST: (u32, u32, u32) = (2779, 2810, 2810);
 
 #[cfg(test)]
 mod tests {
@@ -678,5 +703,407 @@ mod tests {
             lum.len()
         );
         assert_eq!((row, scored.len()), RUN1559B_3279_GROUND);
+    }
+
+    /// The land pass's own bucket per cell on run1559b's packet,
+    /// `tools/render/land_buckets.py`'s `cell` rows: `(cx, cy)` →
+    /// `(land, WData land_sub, the pCoords list it sits in, its patch's
+    /// landindex)` (item 4129).
+    #[allow(clippy::type_complexity)]
+    fn packet_buckets() -> Option<BTreeMap<(i32, i32), (i8, u8, i32, Option<i32>)>> {
+        let path = std::env::var_os("RON_LAND_BUCKETS")
+            .map(PathBuf::from)
+            .or_else(|| {
+                std::env::var_os("HOME").map(|h| {
+                    PathBuf::from(h)
+                        .join("ron-data/lab-experiments/2026-11-11-item-4129/run1559b-buckets.txt")
+                })
+            })?;
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            println!("skipping: no packet buckets at {}", path.display());
+            return None;
+        };
+        let mut out = BTreeMap::new();
+        for line in text.lines() {
+            let f: Vec<&str> = line.split_whitespace().collect();
+            if f.first() != Some(&"cell") || f.len() < 17 {
+                continue;
+            }
+            let n = |i: usize| f[i].parse::<i32>().expect("a number");
+            let patch = f[14]
+                .split_once('/')
+                .map(|(_, li)| li.parse::<i32>().expect("a landindex"));
+            out.insert((n(1), n(2)), (n(4) as i8, n(6) as u8, n(16), patch));
+        }
+        Some(out)
+    }
+
+    /// **Which base a tile draws, told apart** (item 4129; `docs/RENDERER.md`
+    /// §3.6): the row under controls, a per-tile measure that can tell the
+    /// bases apart, and the packet's own bucket against ours.
+    #[test]
+    fn which_base_a_tile_draws() {
+        use render::silhouette::{Paint, Rect, paint};
+        let Some(mut p) = probe() else { return };
+        let Some(packet) = packet_buckets() else {
+            return;
+        };
+        let g = ground(&mut p);
+        let size = (p.photo.width, p.photo.height);
+        let (w, _) = size;
+        let tileset = crate::world::lobby_tileset(
+            &p.root,
+            &crate::world::gamelog_dir().join(crate::world::START_DUMP),
+        )
+        .expect("the lobby's tileset");
+        let tex = GroundTextures::load(&p.root, &tileset).expect("the ground's textures load");
+        assert!(tex.bases.iter().all(|b| b.len() == 9), "four supertiles");
+        let nb = tex.bases.len();
+        let mesh = p.world.terrain().clone();
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let base = ground_base(&t, &mountains, &tex, &mesh);
+        let flat = tex.flat();
+        let cell = |(tx, ty): (i32, i32)| (tx / TILES_PER_CELL, ty / TILES_PER_CELL);
+        let sub = |(cx, cy): (i32, i32)| t.land_sub[(cy * t.width + cx) as usize];
+
+        // Our land_sub and our bucket against the packet's, every cell.
+        let mut cells: BTreeMap<(bool, bool, bool), u32> = BTreeMap::new();
+        let mut parts: BTreeMap<(u8, u8, i32), u32> = BTreeMap::new();
+        for cy in 0..t.height {
+            for cx in 0..t.width {
+                let c = (cy * t.width + cx) as usize;
+                let Some(&(land, psub, bucket, _)) = packet.get(&(cx, cy)) else {
+                    continue;
+                };
+                if land != 0 || t.land[c] != 0 {
+                    continue;
+                }
+                let ours = 9 * i32::from(t.land_sub[c]) + subtile(cx, cy) as i32;
+                *cells
+                    .entry((
+                        t.land_sub[c] == psub,
+                        ours == bucket,
+                        9 * psub as i32 + subtile(cx, cy) as i32 == bucket,
+                    ))
+                    .or_default() += 1;
+                if ours != bucket {
+                    *parts.entry((t.land_sub[c], psub, bucket / 9)).or_default() += 1;
+                }
+            }
+        }
+        println!(
+            "cells on land 0 by (our sub = packet's WData sub, our bucket = the packet's list, the packet's list = the rule on its own sub): {cells:?}"
+        );
+        println!("parting cells by (our sub, packet's WData sub, packet list's base): {parts:?}");
+        let agree = cells
+            .iter()
+            .filter(|(k, _)| k.1)
+            .map(|(_, n)| n)
+            .sum::<u32>();
+        let on_own = cells
+            .iter()
+            .filter(|(k, _)| k.2)
+            .map(|(_, n)| n)
+            .sum::<u32>();
+        let all = cells.values().sum::<u32>();
+
+        let mut window = Rect::new(i32::MAX, i32::MAX, 0, 0);
+        for (i, tt) in g.tile.iter().enumerate() {
+            if tt.is_some() {
+                let (x, y) = ((i % w) as i32, (i / w) as i32);
+                window = Rect::new(
+                    window.x0.min(x),
+                    window.y0.min(y),
+                    window.x1.max(x + 1),
+                    window.y1.max(y + 1),
+                );
+            }
+        }
+        let object = Object {
+            key: 1,
+            tris: base.tris.clone(),
+        };
+        let draw = |of: &[usize]| {
+            paint(
+                &object,
+                &Paint::Textures {
+                    uvs: &base.uvs,
+                    mips: &flat,
+                    of,
+                },
+                &p.camera,
+                size,
+                window,
+            )
+        };
+        // `of` under a choice of base and sub-tile per cell.
+        let choose = |f: &dyn Fn((i32, i32)) -> (usize, usize)| -> Vec<usize> {
+            base.tile
+                .iter()
+                .map(|&tt| {
+                    let (b, k) = f(cell(tt));
+                    9 * b + k
+                })
+                .collect()
+        };
+        let rule = |c: (i32, i32)| (usize::from(sub(c)), subtile(c.0, c.1));
+        let pk = |c: (i32, i32)| {
+            let b = packet[&c].2;
+            ((b / 9) as usize, (b % 9) as usize)
+        };
+        assert_eq!(choose(&rule), base.of, "the rule is the draw");
+        let ww = (window.x1 - window.x0) as usize;
+        let photo_at = |i: usize| [0, 1, 2].map(|c| f32::from(p.photo.rgba[i * 4 + c]));
+        let l = |c: [f32; 3]| 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2];
+        // Per scored tile, its photograph pixels and, per paint, the pairs.
+        let mut photo: BTreeMap<(i32, i32), Vec<[f32; 3]>> = BTreeMap::new();
+        for (i, tt) in g.tile.iter().enumerate() {
+            if let Some(tt) = *tt {
+                photo.entry(tt).or_default().push(photo_at(i));
+            }
+        }
+        let scored: Vec<(i32, i32)> = photo
+            .iter()
+            .filter(|(_, v)| v.len() as u32 >= HUE.min_pixels)
+            .map(|(&k, _)| k)
+            .collect();
+        let plain: Vec<(i32, i32)> = scored
+            .iter()
+            .copied()
+            .filter(|tt| !mountains.contains(tt))
+            .collect();
+        type Pairs = BTreeMap<(i32, i32), Vec<([f32; 3], [f32; 3])>>;
+        let pairs = |of: &[usize]| -> Pairs {
+            let ours = draw(of);
+            let mut out: Pairs = BTreeMap::new();
+            for (i, tt) in g.tile.iter().enumerate() {
+                let Some(tt) = *tt else { continue };
+                let (x, y) = ((i % w) as i32, (i / w) as i32);
+                let j = (y - window.y0) as usize * ww + (x - window.x0) as usize;
+                if let Some(q) = ours[j].filter(|q| base.tile[q.tri as usize] == tt) {
+                    out.entry(tt).or_default().push((photo_at(i), q.rgb));
+                }
+            }
+            out
+        };
+        // The row as 4127 pinned it, under a paint: mountains keep the grey.
+        let row = |pr: &Pairs| {
+            let mut n = 0;
+            let mut by: BTreeMap<(u8, bool), (u32, u32)> = BTreeMap::new();
+            for tt in &scored {
+                let m = mountains.contains(tt);
+                let e = by.entry((sub(cell(*tt)), m)).or_default();
+                e.1 += 1;
+                let us: Vec<[f32; 3]> = if m {
+                    vec![render::terrain::MOUNTAIN.map(|v| v * 255.0)]
+                } else {
+                    pr.get(tt)
+                        .map(|v| v.iter().map(|q| q.1).collect())
+                        .unwrap_or_default()
+                };
+                if !us.is_empty()
+                    && dist(chromaticity(mean(&us)), chromaticity(mean(&photo[tt]))) <= HUE.distance
+                {
+                    n += 1;
+                    e.0 += 1;
+                }
+            }
+            (n, by)
+        };
+        let pearson = |v: &[(f32, f32)]| {
+            let n = v.len() as f32;
+            let (ma, mb) = v
+                .iter()
+                .fold((0.0, 0.0), |a, q| (a.0 + q.0 / n, a.1 + q.1 / n));
+            let (mut sab, mut saa, mut sbb) = (0.0, 0.0, 0.0);
+            for &(x, y) in v {
+                sab += (x - ma) * (y - mb);
+                saa += (x - ma).powi(2);
+                sbb += (y - mb).powi(2);
+            }
+            if saa * sbb > 0.0 {
+                sab / (saa * sbb).sqrt()
+            } else {
+                0.0
+            }
+        };
+        let r_all = |pr: &Pairs| {
+            let v: Vec<(f32, f32)> = pr.values().flatten().map(|q| (l(q.0), l(q.1))).collect();
+            pearson(&v)
+        };
+        let r_tile = |pr: &Pairs, tt: &(i32, i32)| {
+            pr.get(tt)
+                .map(|v| pearson(&v.iter().map(|q| (l(q.0), l(q.1))).collect::<Vec<_>>()))
+                .unwrap_or(f32::NAN)
+        };
+
+        // Step 1: the controls.
+        let ruled = pairs(&base.of);
+        let (rn, rby) = row(&ruled);
+        println!("control rule: row {rn} by {rby:?} r {:.3}", r_all(&ruled));
+        let mut one: Vec<Pairs> = Vec::new();
+        let mut wrong: Vec<Pairs> = Vec::new();
+        for b in 0..nb {
+            let pr = pairs(&choose(&|c| (b, subtile(c.0, c.1))));
+            let (n, by) = row(&pr);
+            println!(
+                "control one base {b}: row {n} by {by:?} r {:.3}",
+                r_all(&pr)
+            );
+            one.push(pr);
+            wrong.push(pairs(&choose(&|c| (b, (subtile(c.0, c.1) + 1) % 9))));
+        }
+        let mut perms: Vec<[usize; 4]> = Vec::new();
+        for a in 0..4 {
+            for b in 0..4 {
+                for c in 0..4 {
+                    for d in 0..4 {
+                        let q = [a, b, c, d];
+                        if (0..4).all(|i| q.contains(&i)) && q != [0, 1, 2, 3] {
+                            perms.push(q);
+                        }
+                    }
+                }
+            }
+        }
+        let mut best_perm = (0, [0; 4]);
+        for q in &perms {
+            let pr = pairs(&choose(&|c| (q[usize::from(sub(c))], subtile(c.0, c.1))));
+            let (n, by) = row(&pr);
+            println!("control land_sub -> base {q:?}: row {n} by {by:?}");
+            if n > best_perm.0 {
+                best_perm = (n, *q);
+            }
+        }
+        println!("best permutation {:?} row {}", best_perm.1, best_perm.0);
+        let zero = pairs(&choose(&|c| (usize::from(sub(c)), 0)));
+        let (n, by) = row(&zero);
+        println!(
+            "control cell index 0: row {n} by {by:?} r {:.3}",
+            r_all(&zero)
+        );
+        let packeted = pairs(&choose(&pk));
+        let (n, by) = row(&packeted);
+        println!(
+            "the packet's bucket: row {n} by {by:?} r {:.3}",
+            r_all(&packeted)
+        );
+
+        // Step 2: per plain tile, r against each base and its wrong cell.
+        let mean_share: Vec<[f32; 2]> = tex
+            .bases
+            .iter()
+            .map(|b| {
+                let px: Vec<[f32; 3]> = b
+                    .iter()
+                    .flat_map(|m| {
+                        m.levels[0]
+                            .rgba
+                            .chunks(4)
+                            .map(|q| [f32::from(q[0]), f32::from(q[1]), f32::from(q[2])])
+                    })
+                    .collect();
+                chromaticity(mean(&px))
+            })
+            .collect();
+        let mut confusion: BTreeMap<(u8, usize, usize), u32> = BTreeMap::new();
+        let mut packet_conf: BTreeMap<(usize, usize), u32> = BTreeMap::new();
+        let mut nearest: BTreeMap<(u8, usize), u32> = BTreeMap::new();
+        let (mut above, mut decisive, mut none_above) = (0, 0, 0);
+        let mut by_edge: BTreeMap<(bool, i32), u32> = BTreeMap::new();
+        let mut gb_rule = 0;
+        let mut gb_packet = 0;
+        let mut gb_one = vec![0; nb];
+        let mut patched: BTreeMap<(bool, Option<i32>, bool), u32> = BTreeMap::new();
+        for tt in &plain {
+            let c = cell(*tt);
+            let r: Vec<f32> = (0..nb).map(|b| r_tile(&one[b], tt)).collect();
+            let rw: Vec<f32> = (0..nb).map(|b| r_tile(&wrong[b], tt)).collect();
+            let best = (0..nb)
+                .max_by(|&a, &b| r[a].total_cmp(&r[b]))
+                .expect("a base");
+            let second = (0..nb)
+                .filter(|&b| b != best)
+                .map(|b| r[b])
+                .fold(f32::MIN, f32::max);
+            let spread = rw.iter().copied().fold(f32::MIN, f32::max)
+                - rw.iter().copied().fold(f32::MAX, f32::min);
+            let stands = |b: usize| r[b] > rw[b];
+            if stands(best) {
+                above += 1;
+            }
+            if r[best] - second > spread {
+                decisive += 1;
+            }
+            if !(0..nb).any(stands) {
+                none_above += 1;
+            }
+            let rb = usize::from(sub(c));
+            let pb = pk(c).0;
+            *confusion.entry((sub(c), rb, best)).or_default() += 1;
+            *packet_conf.entry((pb, best)).or_default() += 1;
+            let share = chromaticity(mean(&photo[tt]));
+            let near = (0..nb)
+                .min_by(|&a, &b| dist(share, mean_share[a]).total_cmp(&dist(share, mean_share[b])))
+                .expect("a base");
+            *nearest.entry((sub(c), near)).or_default() += 1;
+            // Cells to the nearest cell of another land_sub, by Chebyshev distance.
+            let mut d = 99;
+            for dy in -4..=4i32 {
+                for dx in -4..=4i32 {
+                    let (nx, ny) = (c.0 + dx, c.1 + dy);
+                    if (0..t.width).contains(&nx)
+                        && (0..t.height).contains(&ny)
+                        && sub((nx, ny)) != sub(c)
+                    {
+                        d = d.min(dx.abs().max(dy.abs()));
+                    }
+                }
+            }
+            *by_edge.entry((best == rb, d.min(5))).or_default() += 1;
+            let lower = packet[&c].3.map(|li| li / 9 - rb as i32);
+            *patched
+                .entry((best == rb, lower, best + 1 == rb))
+                .or_default() += 1;
+            let wins = |b: usize| b == best && stands(b);
+            if wins(rb) {
+                gb_rule += 1;
+            }
+            if wins(pb) {
+                gb_packet += 1;
+            }
+            for (b, n) in gb_one.iter_mut().enumerate() {
+                if wins(b) {
+                    *n += 1;
+                }
+            }
+        }
+        println!("mean shares by base: {mean_share:?}");
+        println!(
+            "plain tiles {}: best base above its own wrong-cell control {above}; best ahead of the second by more than the controls' spread {decisive}; no base above its control {none_above}",
+            plain.len()
+        );
+        println!("confusion (land_sub, rule's base, best base): {confusion:?}");
+        println!("confusion (packet's base, best base): {packet_conf:?}");
+        println!("nearest base by mean share (land_sub, base): {nearest:?}");
+        println!("(best = rule's, cells to another land_sub) : {by_edge:?}");
+        println!(
+            "(best = rule's, the patch's base less the rule's, best = the next base down): {patched:?}"
+        );
+        println!(
+            "RUN1559B_3279_GROUND_BASE under the rule {gb_rule}, under the packet's list {gb_packet}, one base {gb_one:?}, of {}",
+            plain.len()
+        );
+        assert_eq!((agree, on_own, all), RUN1559B_3279_PACKET_LIST);
+        assert!(
+            2 * above >= plain.len(),
+            "the measure tells the bases apart"
+        );
+        assert_eq!((gb_rule, plain.len()), RUN1559B_3279_GROUND_BASE);
+        assert_eq!(gb_one, RUN1559B_3279_GROUND_BASE_ONE);
+        assert!(gb_one.iter().all(|&n| n < gb_rule));
+        assert_eq!(rn, RUN1559B_3279_GROUND.0, "the row as 4127 pinned it");
     }
 }

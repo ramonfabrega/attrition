@@ -957,6 +957,24 @@ tiles (`TerrainMesh::build_except`), and the tiles one mesh per sub-tile;
 `--debug-ground` draws the floor. `World::terrain`, which the readers
 take, stays whole.
 
+**Which base a tile draws (item 4129).** *The packet backs the choice;
+the old row did not.* That row cannot tell the bases apart: every tile
+drawn in base 2 scores 1,053 and in base 0 1,052. On run1559b's packet
+(`tools/render/land_buckets.py`) the `pCoords` list each land-0 cell sits in
+is the rule on the packet's own `land_sub` on 2,810 of 2,810 cells, and is
+our bucket on 2,779. The 31 between are cells the original's
+`spot_update_land` re-listed and our terrain has not (parked 4129b).
+`trans_bucket` keeps the first bucket, so it is stale on 157. The row
+for the choice, `RUN1559B_3279_GROUND_BASE`: a plain tile counts when its
+drawn base has the best per-tile luminance r of the four bases (each laid
+by the read mapping) and beats its own control, the cell index one on.
+**758 of 1,003**, against 2, 274, 697 and 26 for every tile drawn in
+one base. On 999 tiles the best base beats its own control. **The
+losses are the blend:** 236 of 244 sit on a cell whose
+`create_transition_renderables` patch lays `landindex`, the bucket of
+`land_sub − 1`, over the base, and on 230 of them the photograph reads
+that base. The alpha and its bitcode are unread (parked 4129a).
+
 **The projection is the camera's own.** The shader multiplies by
 `to_screen_matrix` uploaded row-major (WGSL reads it transposed, so `M · v`
 is the original's `v · M`). The divide by `w` and the viewport are
