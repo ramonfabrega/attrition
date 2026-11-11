@@ -137,3 +137,109 @@ Settled once here, cited per leaf.
   for the leaf; the float `due` is the repair mechanic's, ported under item
   3346 and not re-derived here.
 
+## Leaf `missiles_used` (+0x7c0)
+
+### 1. Claim by claim
+
+| # | claim | first | second | mark |
+|---|---|---|---|---|
+| 1 | event writer `Ammo::do_damage (00678060)`, `67860e incl 0xe3ab50(%eax)`, `eax = AmmoData::who (+0x3c) · 0x6eec` | yes | yes | agree |
+| 2 | `Leader::init` explicit `= 0` at `6e3bbc`; memset (and `close`/`clear` memsets, second) | yes (init) | yes (+ close, clear) | agree / one-sided as for `repair_stamp` |
+| 3 | outer guards: `o ≥ 0`, `who ≥ 0`, graphic-piece type `≠ 9` | yes | yes | agree |
+| 4 | arm: `splash_area (+0x30) ≠ 0` | yes | yes | agree |
+| 5 | shooter type `obj_masks (+0x1e4) & 0x8000000`, else straight to `hit_target` at `678614` | yes | yes | agree |
+| 6 | `is(0x13b, 0)` evaluated and kept at `-0x1c(%ebp)` before the shield | yes | yes | agree |
+| 7 | shield: landing owner `L ≥ 0`, `has_preq(L, MISSILE_DEFENSE_BONUS)`, `L ≠ who` → close, no count; `≠`, not "enemy" | yes | yes | agree |
+| 8 | ocean landing: owner from a 120-entry ring at `0xadcaf4`/`0xadc404` | yes (decompile only) | yes | agree |
+| 9 | nuke line (`-0x1c ≠ 0`) → nuke arm, returns, no count | yes | yes | agree |
+| 10 | otherwise `S_NUKE_HIT (0x50)` then `+1`, then `hit_target`/splash | yes | yes | agree |
+| 11 | reset: `Leader::init` only; never decremented | yes | yes | agree |
+| 12 | reader: `get_support_count (006da110)` adds it for type index `0x139` or `0x13a` (exact), feeding `TypeData::get_cost (00664090)` | yes | yes | agree |
+| 13 | the term is on `get_support_count`'s fall-through only: a type with `progression & 1` and `+0x1e8 ≠ 0` returns its group count first | — | yes | one-sided |
+| 14 | crate: counter in `Sim::land` (`combat/fight/projectiles.rs`) after the nuke arm's `return`, under `mask::MISSILE`, keyed `p.owner`; storage beside `Nukes::used` (`combat/nuke.rs`); reader `nuke_ramp_extra` (`economy/pricing.rs:287`) | yes | yes | agree |
+| 15 | aside: the crate runs `hit_target`/`check_hit` before the shield and nuke tests | yes | yes | agree |
+| 16 | a plain game reaches it (Industrial/Modern, V2 Rocket / Cruise Missile) | yes | yes | agree |
+
+### 2. Settlements and spot-checks
+
+- **#3–#6 confirmed against the listing.** `678186`..`67819f`: `o
+  (+0x40) js 67845d`, `who (+0x3c) js 67845d`, `cmpl $0x9 ... je 67845d`;
+  `6781a5 cmpl $0x0, 0x30(%ebx); je 678ba9` (the zero-splash arm leaves);
+  `678200 testl $0x8000000, 0x1e4(%eax); je 678614` (no count); `678212
+  pushl $0; 678214 pushl $0x13b`, result stored `67823e -0x1c(%ebp)`.
+  The shooter object is `objects[who][o]` (`6781e7`..`6781fd`), i.e. the
+  missile unit itself.
+- **#7 confirmed.** `678335 js 67846d` (owner < 0 skips the shield),
+  `678343 pushl $0x2b5` (693 = `MISSILE_DEFENSE_BONUS`) → `has_preq
+  (006db810)`, `678355 je 67846d`, `67835b`..`678363 cmpl %eax,%edx; je
+  67846d` (owner equal to `who` skips). Otherwise messages and
+  `Ammo::close (006791a0)` at `67845f`, no count. The test is `L ≠ who`:
+  an ally's shield stops it too.
+- **#8 confirmed from the listing**, which the first reading had not
+  done: `678267 calll WorldData::is_ocean (006b4830)`; zero goes to the
+  direct tile at `678311`; nonzero walks the ring `678281`..`678303`
+  (`0xadcaf4(%ecx)` dx, `0xadc404(%ecx)` dy, `ecx += 4` to `cmpl $0x1e0`:
+  120 entries), skipping off-map and ocean cells, taking the first cell's
+  owner (`movsbl 0xf(tile)`, **signed byte**) that is `≥ 0`
+  (`6782e8 jns 67833d`). No owner found leaves `−1` and skips the shield.
+- **#9, #10 confirmed.** `67846d cmpl $0x0, -0x1c(%ebp); je 6785f0`; the
+  nuke arm ends `6785e7`..`6785ef` (`Ammo::close`, `xorl %eax,%eax`,
+  `ret`). `6785fe pushl $0x50; 678602 calll` (the sound), `678607 imull
+  $0x6eec, 0x3c(%ebx)`, `67860e incl 0xe3ab50(%eax)`, then `678614`.
+- **#12 confirmed.** `get_support_count` decompile lines 36–41: the
+  `nukes_used` term for `0x13b`/`0x13c`, then `missiles_used` for `0x139`
+  (`V2ROCKET`, `enums/TypeIndex.txt:336`) or `0x13a` (`CRUISEMISSILE`),
+  exact equality.
+- **#13 confirmed, and settled for the shipped data.** Decompile lines
+  15–33: `(type+0x2f4 & 1) && type+0x1e8 ≠ 0` returns a group count
+  (barracks `0x1ab`, stable `0x1ac`, factory `0x1ae`, dock `0x1b0`, or
+  domain `+0x218 == 2` air) before line 36. `+0x2f4` is `progression`
+  (`types.txt`). In the install's `data/unitrules.xml`, V2 Rocket and
+  Cruise Missile both have `<PROGRESSION>0</PROGRESSION>` (and `DOMAIN
+  Air`, `ATTACK` 150 / 300), so they skip the group arm and **do** read the
+  term; were the progression bit set, the `DOMAIN Air` arm would return
+  `air_queued + air_units` and the term would be dead. A builder keeps the
+  term on the by-type count only, which is where `nuke_ramp_extra` already
+  feeds (`of_type`, `pricing.rs:851`–`855`). Also after the term: the
+  Americans' bomber discount (`has_tribe_bonus(0x14)` and `is(0x130)`,
+  lines 42–55) does not touch the missiles.
+- **#14 confirmed.** `projectiles.rs:560` `land`; shield
+  `:608`–`614`, nuke arm `:617`–`620`; `combat/nuke.rs:76` `pub used`,
+  `:89` `used_of`, `:134` `nuke_land`; `pricing.rs:281`–`300`
+  `nuke_ramp_extra`, whose doc says the term is not modelled.
+- **#15 (aside, not this leaf).** Confirmed as stated by both: the
+  original reaches `hit_target` at `678614` only after the missile tests,
+  the crate calls it at `projectiles.rs:577`. Observable only if
+  `hit_target`/`check_hit` have side effects on a round that then dies;
+  not adjudicated here.
+- **Side finding (crate, not this leaf's evidence).** `crates/sim/src/ids.rs`
+  names `0x139` `CRUISE`; the enum names `0x139` `V2ROCKET` and `0x13a`
+  `CRUISEMISSILE` (`crates/sim/src/air/airbase.rs:42`/`48` have them
+  right). A builder wiring this term should key on the numbers, not on
+  `ids::CRUISE`.
+- **Writer completeness.** Ground nets: no other writer. The export's
+  `field_0x7c0` on a leader base appears only in `Ammo::do_damage` and
+  `Leader::init`.
+
+### 3. The rule as a builder should port it
+
+- Storage: per player `missiles_used: i32`, initial 0.
+- Writer: in `Sim::land`, on the splash arm (`splash_area ≠ 0`), when the
+  shooter's profile has `mask::MISSILE`, the shield did not close the round,
+  and the shooter is not of the Nuclear Missile line: `missiles_used
+  [p.owner] += 1` (the round's `who` at launch). Put it right after the
+  `is_nuke` return and before the splash walk.
+- Reset: 0 at `Leader::init`; never decremented. Restored by a load.
+- Reader: `get_support_count`'s by-type fall-through adds it for exact type
+  `0x139` or `0x13a`; port as a third term in `nuke_ramp_extra` (`if t ==
+  0x139 || t == 0x13a { extra += missiles_used[who] }`), so every V2 or
+  Cruise Missile that lands makes that player's next one dearer.
+- Checksum: `checksum/leaders.rs:141` row.
+- Plain game: yes, from the Industrial age with missiles built.
+- Confidence: high for writer, predicate and reader (listing read across
+  `678186`..`67861b`). Open: which types carry `obj_masks` bit 27 outside
+  the nuke line is data (the crate's `mask::MISSILE`), and whether a
+  missile ever produces more than one round per detonation (both readers
+  assume one); a capture with a V2 landing and a later V2 priced settles
+  both.
+

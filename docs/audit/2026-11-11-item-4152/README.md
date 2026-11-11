@@ -76,7 +76,7 @@ clear cut: re-run that wave for that family.
 |---|---|---|---|---|---|
 | 1 | `city-name` | done | done | done | done, §1 |
 | 2 | `kills` | done | done | done | owed |
-| 3 | `combat-rates` | done | done | in flight at the clear | owed |
+| 3 | `combat-rates` | done | done | done | owed |
 | 4 | `victim-stamps` | done | done | done | done, §4 |
 | 5 | `attrition-stamps` | done | done | in flight at the clear (also asked: `att`'s recompute timing, and run981's leaders) | owed |
 | 6 | `anti-att` | done | done | done | done, §6 |
@@ -95,7 +95,7 @@ clear cut: re-run that wave for that family.
 | 19 | `last-finished` | done | done | done | done, §19 |
 | 20 | `high-buildings` | done | done | done | owed |
 
-**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 10 of
+**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 11 of
 20, specified 7 of 20.
 
 **How to resume.** The briefs are in `briefs/`, one per wave. A spawn is one
@@ -176,3 +176,4 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | diplomacy-relations | 2 | 242 k | 18 | 8 of 8 written | agrees: only humans move `dow`/`blacken` (quiet argument read at all 16 sites), `made_peace` and the hire pair in `action_respond`, `last_spoke` no writer; raises `good_deeds`' old balance entering twice |
 | kills | 3 | 196 k | 13 | 62 confirmed, 2 corrected, 0 open | the self-kill credit cannot happen in a plain game (every figure of a decoy squad is a decoy); the site-abandon arm is an unfinished site (`is_active` = flags & 4) |
 | high-buildings | 3 | ~150 k | ~13 | 33 confirmed, 3 corrected, 3 open | the reset dispute settled for the first reading (`Leader::init`'s tribe<0 memset and `Leaders::clear`); `reg_terr` zeroes live slots only (gate `zero_region_rares`); `check_capture`'s swap branch unported |
+| combat-rates | 3 | ~150 k | ~13 | ~98 confirmed, 9 corrected, 4 open | every writer and step backed; the overflow re-call runs only for a decoy; the sniper's unit arm kills by `Unit::die`; the `cast_sabotage_building` SEAM names the wrong offsets (a sabotaged building counts no kill, no death) |
