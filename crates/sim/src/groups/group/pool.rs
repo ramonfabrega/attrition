@@ -690,16 +690,17 @@ impl Sim {
                 Self::seat_remove_at(l, st, i);
             }
         }
-        self.seat_find_role(seat);
-        self.seat_set_speed(seat);
+        self.seat_normalize_tail(seat);
     }
 
-    /// `Group::find_role@007081f0` on a seated group, as `normalize` runs it
-    /// after its prune ([`GroupState::role`]).
-    pub(crate) fn seat_find_role(&mut self, seat: Seat) {
+    /// `Group::normalize@00711540`'s tail on a seated group, after its
+    /// prune: `Group::find_role@007081f0` ([`GroupState::role`]), then the
+    /// speed pair ([`Sim::seat_set_speed`]).
+    pub(crate) fn seat_normalize_tail(&mut self, seat: Seat) {
         let role = self.group_find_role(self.seat_list(seat));
         let (_, st) = self.seat_parts(seat);
         st.role = role;
+        self.seat_set_speed(seat);
     }
 
     /// `Group::get_num` (vslot `+0x4`): with **fewer than four** members

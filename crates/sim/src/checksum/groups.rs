@@ -1,7 +1,7 @@
 //! **The groups line** (`CheckSums::check_groups@00937530`,
 //! `docs/CHECKSUM.md` §7 and §19): every slot of the groups array, 512 —
 //! 64 a player, the slot `who·64 + s` — through `Group::walk_data@00708400`:
-//! the record's `[+0x4, +0x4c)`, `id`..`march` ([`GROUP_FIELDS`]), and for a
+//! the record's `[+0x4, +0x4c)`, `id`..`march` ([`GROUP_RECORD_FIELDS`]), and for a
 //! slot whose `num` is not 0, `num` entries each of `list`, `off_x`,
 //! `off_y`, `curr_x`, `curr_y` and `angles`, one range an array. Then the
 //! eight words of `GroupsData::last_group` (`const_last_group` points at
@@ -19,7 +19,7 @@ use crate::groups::group::GroupState;
 
 /// **`GroupData`'s walked 72 bytes** (`+0x4..+0x4c`, `id`..`march`):
 /// `(name, offset, width)`, 21 fields (`types.txt`, `GroupData`, size 0x9cc).
-pub const GROUP_FIELDS: &[(&str, usize, usize)] = &[
+pub const GROUP_RECORD_FIELDS: &[(&str, usize, usize)] = &[
     ("id", 0x4, 4),
     ("army", 0x8, 4),
     ("num", 0xc, 4),
@@ -45,13 +45,13 @@ pub const GROUP_FIELDS: &[(&str, usize, usize)] = &[
 
 /// The groups array's length, `Groups::clear`'s `0x200`: 64 slots for
 /// each of the eight leaders.
-pub const GROUP_SLOTS: usize = 512;
+const GROUP_SLOTS: usize = 512;
 
 /// A player's slots in the array (`get_open_slot` walks `who·64 + 0..45`).
-pub const SLOTS_PER_PLAYER: usize = 64;
+const SLOTS_PER_PLAYER: usize = 64;
 
 /// One slot as the walk reads it: the 21 fields' values in
-/// [`GROUP_FIELDS`] order, then per member `(list, off_x, off_y, curr_x,
+/// [`GROUP_RECORD_FIELDS`] order, then per member `(list, off_x, off_y, curr_x,
 /// curr_y, angles)`.
 type SlotImage = ([i64; 21], Vec<(i16, i32, i32, i32, i32, i8)>);
 
@@ -63,7 +63,7 @@ impl Sim {
             let (f, members) = self.group_slot_image(id);
             let record = id as i16;
             let mut b = Vec::with_capacity(0x48);
-            for (&(_, _, w), &v) in GROUP_FIELDS.iter().zip(&f) {
+            for (&(_, _, w), &v) in GROUP_RECORD_FIELDS.iter().zip(&f) {
                 b.extend_from_slice(&(v as i32).to_le_bytes()[..w]);
             }
             ranges.push(Range {

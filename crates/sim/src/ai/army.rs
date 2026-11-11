@@ -428,8 +428,7 @@ impl Sim {
         // army `1/0` takes its periodic normalize on 1434, `1434 − 30 + 4 ≡
         // 0 (mod 128)`, and its leader `1/28` lifts the cap from the slow
         // squad's 25 to its own 47 (`docs/AI.md` §161).
-        self.seat_find_role(crate::groups::group::Seat::Army(who, slot));
-        self.seat_set_speed(crate::groups::group::Seat::Army(who, slot));
+        self.seat_normalize_tail(crate::groups::group::Seat::Army(who, slot));
         let a = &mut self.ai.armies[w].list[slot];
         a.role = 0;
         a.num_units = a.units.len() as i32;

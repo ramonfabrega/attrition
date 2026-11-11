@@ -1554,7 +1554,7 @@ holds it range by range and field by field with `GROUPS_HELD_OUT` empty.
 
 | site | range | bytes | what |
 |---|---|---|---|
-| `00708419` | `GroupData` `+0x4..+0x4c` | 72 | `id`..`march`, 21 fields (`GROUP_FIELDS`), every slot `0..512` |
+| `00708419` | `GroupData` `+0x4..+0x4c` | 72 | `id`..`march`, 21 fields (`GROUP_RECORD_FIELDS`), every slot `0..512` |
 | `0070843a` | `list` | 2·`num` | the members' `o`; a building group's are its buildings' (`2000`+) |
 | `0070844b`, `00708464` | `off_x`, `off_y` | 4·`num` each | the formation offsets |
 | `0070847d`, `00708496` | `curr_x`, `curr_y` | 4·`num` each | their rotation, plain `Coord`s |

@@ -1459,7 +1459,7 @@ fn group_site_field(site: &str) -> &'static str {
 }
 
 /// One groups-line range decoded field by field: a record by
-/// [`sim::checksum::groups::GROUP_FIELDS`] (each little-endian and signed
+/// [`sim::checksum::groups::GROUP_RECORD_FIELDS`] (each little-endian and signed
 /// at its width), a member array entry by entry, `last_group` as its word.
 fn group_range_fields(field: &str, b: &[u8]) -> Vec<(String, i64)> {
     let le = |s: &[u8]| -> i64 {
@@ -1471,7 +1471,7 @@ fn group_range_fields(field: &str, b: &[u8]) -> Vec<(String, i64)> {
     };
     let width = match field {
         "id..march" => {
-            return sim::checksum::groups::GROUP_FIELDS
+            return sim::checksum::groups::GROUP_RECORD_FIELDS
                 .iter()
                 .map(|&(n, at, w)| (n.to_string(), le(&b[at - 4..at - 4 + w])))
                 .collect();
