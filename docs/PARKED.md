@@ -16559,23 +16559,38 @@ words and edits nothing here; a refill lands when two remain.
   160 tiles that part, 105 have a cell of another `land_sub` within one cell: `TerrainOut::generate_transitions` and
   `create_transition_renderables` lay a blend over the base there and are unread. Names the row's 105 as its ceiling;
   a mechanism, read before it is counted.
+  Item 4129: `generate_transitions` is the dead path, and the live one, `create_transition_renderables`'s patch, lays
+  the base below; 236 of the 244 tiles the per-tile row loses sit on one (parked 4129a).
 - **4127b. Sub 3's dirt, and what multiplies the texel** (§3.6; the same row and test). Sub 3 scores 45 of 148: its
   base, `dirt_early_autumn` (share (0.438, 0.355)), reads brown where the photograph's sub-3 tiles read (0.415, 0.405),
   as green as sub 2's. Per lit ground pixel, sub 3 agrees on 39,177 of 117,347, against sub 2's 508,677 of 540,185.
   Unexplained: the blend (4127a), the tileset's `<LIGHTING>` and the normals, and the `_mtrl` twin's stage
   (`+0x448`, same coordinates) are the candidates, none read. The steepest quartile of slope reads darker (lum 148
   against 154) and less green, which points at the light. Rests on one photograph.
+  Item 4129: on sub 3 the photograph's best base is base 2 on 120 of 148 tiles, under the patch that lays `land_sub − 1`
+  (parked 4129a). The losses sit on patched cells, not everywhere, so the light and the `_mtrl` stage are not named.
 - **4127c. A mountain's own draw** (§3.6; the same row and test). The 106 scored tiles under a placed mountain keep
   the debug grey and score 59; 47 part. `render_mountains` and the mountains' textures are unread (parked with the
   §7.1 line on the terrain textures).
 
-## Parked by the next landing, slot FG — reserved
+## Parked by item 4129, 2026-11-11 — which base a tile draws
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4129a. The transition patch's alpha** (`docs/RENDERER.md` §3.6, "Which base a tile draws";
+  `RUN1559B_3279_GROUND_BASE` 758 of 1,003; `client::ground::tests::which_base_a_tile_draws`). Of the 244 plain tiles
+  where the rule's base is not the photograph's best, 236 sit on a cell whose `PatchInfo` (`CoordInfo +0x2c`, filled by
+  `TerrainOut::create_transition_renderables`, live from `Terrain::init` and `spot_update_land`) lays `landindex`, the
+  bucket of `land_sub − 1`, over the base, and on 230 of them the photograph reads that base. The weight is the
+  `AlphaInfo` `Transitions::find_map` picks from the neighbours' `build_trans_flags` codes (`check_blocks`,
+  `check_connects`, `check_fills`, `check_for_diagonal`), its texcoords set by `selected_bitcode` and the texture
+  fractal. All unread, and the alpha files unread too. Names the 244 as the row's ceiling. `generate_transitions` is the
+  dead path (`rondata::blind::RESIDUE`). 260 of the 759 tiles that win also carry a patch: the alpha leaves the base there.
+- **4129b. The 31 cells the original re-listed** (§3.6; `RUN1559B_3279_PACKET_LIST` 2,779 of 2,810). On run1559b's
+  packet the `pCoords` list is the rule on the packet's own `land_sub` on every land-0 cell. On 31 that `land_sub` is not
+  ours: 19 are ours 1 and theirs 2, and 12 are ours 3 and theirs 2. Their `trans_bucket` is the generation-time one,
+  which is stale on 157 cells in all. `Terrain::spot_update_land` (from `object_placed` with the tileset's
+  `weatherbase`, `check_and_set_halfland_wcoord`, `convert_beach_to_sandy`) rewrites a cell's `land_sub` after the
+  generator. The crate's terrain does not, which is kill (b) of 4127: a port into `crates/sim`, for the driver.
+  `RUN1559B_3279_GROUND_BASE` under the packet's list is the rule's 758.
 
 
 ## Parked by the next landing, slot FH — reserved
