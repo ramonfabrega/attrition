@@ -92,3 +92,4 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | anti-att | 2 | 149 k | 10 | 1 of 1 written | agrees: three writers, 256.0 start, the same four sources in order, the same one-ulp states; class 1 / class 2, never 3 |
 | marks-built | 1 | 224 k | 21 | 7 of 7 written | the three registries' `init_*`/`close_*`; `wonders_built` +1 with no captured gate; `wonders_held` a high-water mark in `init_wonder`; `Setup::build_game` zeroes `supply_mark` (a store no field grep sees); `supply_mark` is the crate's `SupplyList::len()` |
 | diplomacy-relations | 1 | 252 k | 21 | 8 of 8 written | only humans move `dow`, `blacken` (`action_declare`'s `free` is 1 from `Leader::diplomacy`); `made_peace` and the hire pair from `action_respond`'s execution; `last_spoke` has no writer (constant 0) |
+| city-name | 2 | 163 k | 10 | 1 of 1 written | agrees on both stores, the same-tribe rule, the exemptions; adds `Leaders::clear` and `walk_data` |

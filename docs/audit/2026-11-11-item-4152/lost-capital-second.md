@@ -95,3 +95,114 @@ slot has the FC (CtW-shaped; not read further). `RETAKE_CAPITAL` and
 `TIMER_REFRESH_RATIO` load by plain `get_item` (`Constants::init (00569a90)`
 lines 2402-2405); rules.xml gives `3600` and `5`.
 
+## Leaf 1: `lost_capital_stamp` (+0x414, int)
+
+### 1. Writers, both nets
+
+Export: `->lost_capital_stamp` appears only in `LeaderData::log_data
+(006e5110)` line 724 (a read). `field_0x414` on a `Leader`/`leaders.list[i]`:
+`Leader::lost_capital (006dc870)` 54-57, `Leader::recapture_capital
+(006d1ba0)` 17-18, `Leaders::process_all (006ed2a0)` 50-52, `Leader::process
+(006b88b0)` 46-47, `Build::activate (00623e20)` 1419-1424, `Leader::init
+(006e3930)` 310; reads in `Leader::process_elimination (006b8a20)` 17. The
+other two hits (`GameReportWin::close (007b91b0)`, `ConquestInvadeWin::close
+(0074f3d0)`) are window objects, not leaders.
+
+Listing: absolute `0xe3a7a4` — `0x625f90` (`subl` frame) and `0x625fc8`
+(store), both `Build::activate`; `0x6b8a4f` a read (`process_elimination`).
+Register-relative stores `, 0x414(%reg)`: `0x6b8994` (`Leader::process`),
+`0x6d1bd7` (`recapture_capital`), `0x6dc968`/`0x6dc976` (`lost_capital`),
+`0x6e3f89` (`Leader::init`), `0x6ed394` (`process_all`). Rejected by base type:
+`0x48ff1c`/`0x48ffcd` (`ConquestMapLoader`), `0x7a3b14` (`ConquestLeader`
+ctor), `0x88c285` (`RiverSectionOut`), `0x8afaf0`/`0x8afb0e`/`0x8afbf9`
+(`TerrainBorder`), `0x92e20b` (a stack slot), `0x9ad0a4`
+(`ScenarioRead::load_leaders_chunk (009acde0)`, base `%edx = *(0xc061ec)` =
+`GameAccess::game`, clearing `game->info`). The `0x414(%ecx,%eax)` load at
+`0x80c407` is `IFaceMainBase::draw_timers (0080b060)` (a read). Not caught by
+either net: a biased base (`0x40c(%reg)` off `Leader+8`, say); none was
+seen, but that class cannot be excluded by grep.
+
+Bulk writers: `Leader::init` with `param_2 < 0` runs `memset(this, 0,
+0x6929)` (listing `0x6e398c`-`0x6e3995`) — `Leaders::init (006ed850)` calls
+it with `-1` for every slot. `LeaderData::walk_data (006d6750)` walks the raw
+bytes `[&who, +0x692a)` through the `DataWalk`, so a load (`input != 0`)
+overwrites all three leaves (gated on `leader_flags & 1`).
+
+### 2. Event, step, predicate
+
+- **E1/E2 `lost_capital`**, only when `timer == 0` (it sets `timer = 1`
+  first): after the modifier is computed (leaf 3),
+  `stamp = trunc(stamp·256 / modifier) + frame` (`shl 8; cltd; idiv`, then
+  `add game+0x550`). At rest `stamp <= 0` (see 3), so this is the loss frame
+  moved back by the carried debt rescaled by the new modifier.
+  `modifier >= 0x80` here, so no division by zero.
+- **E3 `recapture_capital`** and **E4 `Build::activate` FC arm**, only when
+  `timer != 0`: `stamp = trunc((stamp - frame)·modifier / 256)`, the
+  `(x + ((x>>31)&0xff)) >> 8` idiom, i.e. truncation toward zero. Since
+  `stamp <= frame` while running, the result is `<= 0`: the time run, in
+  frames ×`modifier/256`, kept as a negative debt.
+- **E5 pay-back**: `stamp += 1` every `TIMER_REFRESH_RATIO` (5) frames while
+  `stamp < 0 && timer == 0` — the debt decays one frame per five.
+- Units: frames, offset by a signed debt; the modifier is 8.8 (`0x100` = 1).
+- Predicates are E1-E4's above: which leader is the old owner/captor; the
+  Forbidden City (`0x213`) exempts E1 and drives E2/E4. The writes in
+  `lost_capital`/`recapture_capital` are **not** gated on
+  `info.elimination`; only their sound and message are (`== 1`).
+
+### 3. Clear / reset
+
+`Leader::init (006e3930)` stores 0 unconditionally (`0x6e3f89`, decompile
+310, top-level, every call: `Setup::build_leader (005abc70)`,
+`Setup::build_game (005ac190)` 618, `Leaders::init (006ed850)`, scenario and
+CtW setups); the `param_2 < 0` memset also zeroes it. No other writer sets 0.
+A save load restores it raw.
+
+### 4. Readers
+
+`Leader::process_elimination (006b8a20)` (`frame - stamp` against
+`Game::retake_capital`), `IFaceMainBase::draw_timers (0080b060)` (UI:
+remaining `= retake_capital(who) - (frame - stamp)`, floored at 0),
+`LeaderData::log_data (006e5110)` 724 (the log/checksum), and its own
+writers E1/E3/E4/E5.
+
+### 5. Crate site
+
+No field. `Sim::capture_city` (`crates/sim/src/cities/city.rs:3169`) keeps
+`Tally::lost_capital_frame` (`city.rs:122`): set to `Some(frame)` at
+3211-3219 when the city `was_capital` and it is `None`, cleared at 3220-3224
+when the captor's new city is a capital. That is the shape of E1/E3 without
+the Forbidden City exemption, without `find_capital`, without the debt and
+without the modifier; nothing else reads it. A builder adds
+`lost_capital_stamp`/`_timer`/`_modifier` beside `popwin_stamp`/`popwin_timer`
+(`crates/sim/src/ai.rs:705-713`, the same stamp-debt shape), E1/E3 in
+`Sim::capture_city`, E2 in `Sim::close_building` (`city.rs:2782`; no
+Forbidden City arm there today), E4 beside `kremlin_activate`
+(`crates/sim/src/cities/nations.rs:467`, called from `Sim::activate`,
+`city.rs:2475`), and E5's arm in `Sim::refresh_victory_timers`
+(`crates/sim/src/territory/victory.rs:88`, called from
+`crates/sim/src/core/frame.rs:194`; it pays back only `popwin_stamp` now).
+The checksum row exists (`crates/sim/src/checksum/leaders.rs:100`) and the
+diff lists the key as unheld (`crates/rondata/src/diff/checksum_lines.rs:1810`).
+R (`process_elimination`) is unported: `lost_a_city` (`city.rs:613`) is the
+only elimination rule, and `ai.lobby.elimination` (`crates/sim/src/ai.rs:1088`,
+default 1) is read only by the AI.
+
+### 6. Plain game
+
+Yes. E1 fires on any skirmish capture of a capital whose owner lacks a live
+Forbidden City, in every elimination mode; E3 on retaking one's own former
+capital; E5 every fifth frame for any leader carrying a debt. E2/E4 need the
+Forbidden City, a buildable wonder, so they are plain-game but rare. A
+corroborating data point, not a diff: `crates/rondata/src/diff/korean_ancient_pair.rs:326`
+records the original's `lost_capital_stamp 5639` on the defeat block of frame
+5639 — E1 from a zero stamp gives exactly `frame`.
+
+### 7. Confidence and what was not read
+
+High for the arithmetic and the E1/E3/E5 predicates (decompile and listing
+agree). Medium for E2's entry predicate (the decompiler's `unaff_ESI`, the
+`semaphore[1] & 8` bit, unnamed) and for whether E2 runs during a capture of
+the Forbidden City itself (the order of `Build::close` against line 1137 in
+`capture_city` was not traced). Not read: `Leader::defeat`, which does not
+name the field in the export; the `semaphore` bits' meanings.
+
