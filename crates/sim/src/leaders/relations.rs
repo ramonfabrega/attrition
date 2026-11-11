@@ -195,7 +195,7 @@ impl Sim {
             return;
         }
         let mut aggression = [0i32; 8];
-        for u in 0..aggression.len() {
+        for (u, slot) in aggression.iter_mut().enumerate() {
             let d = if is_team(w, u) {
                 2
             } else if lobby.rush_rules != 0 && starting_age < lobby.rush_rules {
@@ -205,7 +205,7 @@ impl Sim {
             } else {
                 1
             };
-            aggression[u] = i32::from(d == 0);
+            *slot = i32::from(d == 0);
             if u != w && u < n {
                 self.leaders.at_war[w][u] = d == 0;
                 self.leaders.allied[w][u] = d == 2;
