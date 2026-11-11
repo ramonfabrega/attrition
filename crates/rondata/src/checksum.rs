@@ -145,7 +145,9 @@ pub const CHECKSUM_PACKET: (&str, i64, u64) = ("run1562", 91, 3201);
 /// `unit_masks & 0x8` are carried (`docs/CHECKSUM.md` §18).
 /// Item 4116: groups, 37,010 more, once a group's `role` is carried
 /// (`Group::find_role`, `docs/CHECKSUM.md` §19).
-pub const CHECKSUM_STATE: (usize, usize, u64, u64) = (7, 12, 72_387, 425_499);
+/// Item 4150: the world, 294,769 more, once the collision blocks' presence
+/// is held beside the grid (`docs/CHECKSUM.md` §21, `docs/COLLISION.md` §26).
+pub const CHECKSUM_STATE: (usize, usize, u64, u64) = (8, 12, 367_156, 425_499);
 
 /// Which logger hook printed a record.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

@@ -296,8 +296,11 @@ sixty-fourth-frame repaint: the second melee's Catapult `1/26`, dead on
 747, holes two Barbarians' discs that run1459's and run1460's packets print.
 
 **Not established**: the original's "no block allocated" return (a cell no
-unit has marked yet) — this crate's flat grid has no allocation to ask, so
-the form is taken as if the block existed.
+unit has marked, or whose empty block the sweep has freed, §26). The grid
+holds each cell's presence since item 4150, but the form does not ask it:
+it is taken as if the block existed, so a unit whose own bits a neighbour's
+move cleared, and whose cell's block was then freed, repaints here where
+the original does nothing.
 
 ## 3. The object chain
 
@@ -4127,3 +4130,59 @@ paints the spot fresh, and no capture has been read for the difference.
 Nor has a passenger landed in the same unit cell it boarded from, where
 `move_unit` is not called at all and `add_to_world`'s paint is the whole
 of it — `coll_come_out` reaches the same end there.
+
+## 26. A block is allocated by a set and freed by the daemon's sweep (2026-11-11, item 4150)
+
+**The rule.** `WData.block` (`+0x18` of a cell) is a lazily allocated
+`CollBlock`. Its head is the `BitMask<768>` constructor's, `bits` 768 and
+`size` 96 (`CollBlock::CollBlock`, inlined in
+`World::new_coll_block@0046d250`); its state word `+0x8` is 1; its 96-byte
+body is zero, and only its first 32 bytes are ever written (§2's
+`(x & 15)·16 + (y & 15)`).
+
+- **A set allocates; a clear never does.** The three in-play allocators,
+  `Object::add_to_world`, `Guy::process`'s repaint and
+  `CollCheck::move_unit`'s set pass, call `new_coll_block` when the block is
+  null and then set the bit and store state 0. Every clear (`move_unit`'s
+  clear pass, `Objects::kill_guy` through `CollBlock::set@00682070`) skips a
+  null block and, on a state 0 block, stores 2. The one-block form's lookup
+  (§2.4) returns on a null block without either pass.
+- **The sweep frees.** `GameDaemon::process_coll_blocks@00731f90`, once a
+  frame from `GameDaemon::process_all` after `check_borders`, visits
+  `max(5, xs / 4)` cells (15 on a 60-wide map) from the cursor
+  `GameDaemon.empty_colls` on, wrapping at `xs·ys`. It frees a block whose
+  state is odd, keeps a state 0, and for a state 2 ORs the body: some bit
+  set, state 0 and kept; none, freed (the listing's dead `movl $1` at
+  `732019`, then the delete). A state 0 block always holds a bit and a
+  state 1 block never does, so the verdict is the body's: **the sweep frees
+  a visited block that holds no bit.** `GameDaemon::init` and `close` and
+  `World::close` zero the cursor; `World::close` frees every block.
+
+**Writers, by both nets.** The export's `->block` and `0x18 +
+… field_0x134`: `WData::WData` and `~WData` (0), `World::close`,
+`process_coll_blocks`, `new_coll_block`, `World::walk_data`'s restore arm,
+and `UnitBalance::next` (a balance tool, not play). The listing's
+`0x18(%r,%r,4)` stores in functions that load `0x134(`: `new_coll_block`
+alone among the world's; and every call of `new_coll_block` is one of the
+three allocators. No writer stores the `-1` the allocators test for.
+
+**Ported** (`crates/sim/src/movement/collide.rs`): `CollGrid` keeps
+`blocks`, one presence flag per world cell, set by `CollGrid::set(·, ·,
+true)`, through which every set of this crate passes, and
+`CollGrid::process_coll_blocks`, called from the frame between
+`check_borders` and `groups_process`. Presence answers no query: the grid's
+bits are what they were.
+
+**Diff-backed.** Run 1562's frame 91: 25 blocks, 3,575 cells without one,
+every head and body, the world line's section 9 whole (`docs/CHECKSUM.md`
+§21). After 91 sweeps the cursor stands at 1,365, so every block allocated
+in cells past it is still held: 13 of the 25 are empty, all past 1,377.
+Frame 92 (record 3202): the sweep visits 1,365 to 1,379 and frees 1,377 and
+1,378; ours, ticked one frame on, prints section 9's 451877641 and the
+world's 2695435849.
+
+**Not established.** A restored game (`walk_data`'s restore arm allocates
+by the saved presence and stores state 2); a game built from a dump, whose
+grid has no history (presence is what its setup's sets leave); the
+one-block form's null return (§2.4); a frame where the sweep meets a state
+1 block (allocated with no set, which none of the three allocators leaves).

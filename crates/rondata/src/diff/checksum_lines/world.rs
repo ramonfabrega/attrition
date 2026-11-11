@@ -241,7 +241,7 @@ const WORLD: [(usize, usize, usize, usize); WORLD_SECTIONS] = [
     (4, 158_400, 4, 158_400),
     (1, 3600, 1, 3600),
     (8, 28800, 8, 28800),
-    (3650, 17000, 0, 0),
+    (3650, 17000, 3650, 17000),
     (696, 5547, 696, 5547),
     (5, 2779, 5, 2779),
     (5, 2779, 5, 2779),
@@ -251,18 +251,15 @@ const WORLD: [(usize, usize, usize, usize); WORLD_SECTIONS] = [
 
 /// **The fields the world line is held out on**, `section range.leaf` with
 /// the count of its elements not agreeing (parting or unheld) on frame 91
-/// (`docs/CHECKSUM.md` §21): the collision blocks (`World::new_coll_block`'s allocation, and the heads
-/// and bodies behind it). The cells' `land_sub` and the masks' bit `0x4`
-/// are carried since item 4136 (`Terrain::object_placed`,
-/// `Wall::mark_behind_tiles`), `World::analyze_map`'s ten setup tallies
-/// since item 4147 (`docs/MAPGEN.md` §36), the fog's two cell words
-/// `was_seen` and `wcoord_seen` since item 4148 (`docs/VISION.md` §12).
-const WORLD_HELD_OUT: &[(&str, usize)] = &[
-    ("09 block.body.bits", 2400),
-    ("09 block.head.bits", 25),
-    ("09 block.head.size", 25),
-    ("09 block.present.present", 3600),
-];
+/// (`docs/CHECKSUM.md` §21): none since item 4150. The cells' `land_sub`
+/// and the masks' bit `0x4` are carried since item 4136
+/// (`Terrain::object_placed`, `Wall::mark_behind_tiles`),
+/// `World::analyze_map`'s ten setup tallies since item 4147
+/// (`docs/MAPGEN.md` §36), the fog's two cell words `was_seen` and
+/// `wcoord_seen` since item 4148 (`docs/VISION.md` §12), and the collision
+/// blocks' presence, heads and bodies since item 4150 (`docs/COLLISION.md`
+/// §26: a set allocates, the daemon's sweep frees an empty block).
+const WORLD_HELD_OUT: &[(&str, usize)] = &[];
 
 /// The fields of a census not agreeing, with their counts.
 fn held(c: &Census) -> Vec<(String, usize)> {
@@ -275,12 +272,17 @@ fn held(c: &Census) -> Vec<(String, usize)> {
 
 /// Record 3201's sixteen `World` lines: sections 0 to 14, then the whole.
 fn printed_world_parts() -> Vec<u32> {
+    printed_world_parts_of(crate::checksum::CHECKSUM_PACKET.2)
+}
+
+/// Record `number`'s sixteen `World` lines.
+fn printed_world_parts_of(number: u64) -> Vec<u32> {
     let path = crate::testenv::dump(super::RUN1562).expect("the kept dump");
     let file = std::fs::File::open(path).expect("a kept dump opens");
     let recs = crate::checksum::records(std::io::BufReader::new(file)).expect("a kept dump reads");
     recs.iter()
-        .find(|r| r.number == crate::checksum::CHECKSUM_PACKET.2)
-        .expect("record 3201")
+        .find(|r| r.number == number)
+        .unwrap_or_else(|| panic!("record {number}"))
         .world_parts()
 }
 
@@ -358,16 +360,10 @@ fn the_world_line_is_the_original_s_by_section() {
         }
     }
     eprintln!("world: sections whole {whole:?}");
-    assert_eq!(whole, [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14]);
-    if WORLD_HELD_OUT.is_empty() {
-        assert_eq!(line.adler(), want, "the world line's Adler");
-    } else {
-        assert_ne!(
-            line.adler(),
-            want,
-            "a held-out line cannot sum to the printed value"
-        );
-    }
+    assert_eq!(whole, (0..WORLD_SECTIONS).collect::<Vec<_>>());
+    // Whole since item 4150: every section, and so the line.
+    assert!(h.is_empty(), "no field holds the line out");
+    assert_eq!(line.adler(), want, "the world line's Adler");
 
     // **It can part.** One element of each kind of field items 4131 and
     // 4136 carried, bent, returns that field to the list with a count of
@@ -398,6 +394,11 @@ fn the_world_line_is_the_original_s_by_section() {
             "12 halfland_subtypes.size.size",
         ),
         (13, "nuke_hits.num", -1, "13 nuke_hits.num.num"),
+        // Item 4150: an empty cell's presence, a block's head, and one bit
+        // of a body (cell 1313, `(53, 21)`, nine bits under a unit).
+        (9, "block.present", 0, "09 block.present.present"),
+        (9, "block.head", 1313, "09 block.head.size"),
+        (9, "block.body", 1313, "09 block.body.bits"),
     ];
     for &(s, field, record, key) in bends {
         let leaf = key.rsplit('.').next().expect("a leaf");
@@ -482,6 +483,39 @@ fn the_world_line_is_the_original_s_by_section() {
         &["04 size..seed.total_metal"],
     );
 
+    // **The sweep's place** (item 4150): one more visit of
+    // `process_coll_blocks` on a copy walks cells 1,365 to 1,379 a frame
+    // early and frees the empty blocks of 1,377 and 1,378, so their
+    // presence parts and their heads and bodies go unheld.
+    let mut early = sim.clone();
+    early.movement.coll.process_coll_blocks();
+    assert_eq!(
+        held(&census(&early.world_image(), &named)),
+        vec![
+            ("09 block.body.bits".to_string(), 192),
+            ("09 block.head.bits".to_string(), 2),
+            ("09 block.head.size".to_string(), 2),
+            ("09 block.present.present".to_string(), 2),
+        ],
+        "the sweep a frame early"
+    );
+    // And a block the sweep never frees: a bit set and cleared in cell
+    // 0, `(0, 0)`, leaves an empty block the original does not hold.
+    let mut stale = sim.clone();
+    stale.movement.coll.set(0, 0, true);
+    stale.movement.coll.set(0, 0, false);
+    let c = census(&stale.world_image(), &named);
+    assert_eq!(
+        held(&c),
+        vec![("09 block.present.present".to_string(), 1)],
+        "a stale block in cell 0"
+    );
+    assert_eq!(
+        c.extra.keys().collect::<Vec<_>>(),
+        ["09 block.body", "09 block.head"],
+        "its head and body are ranges the stream lacks"
+    );
+
     // **The behind bit itself** (item 4136): tile 19175, `(215, 79)`, which
     // seat 1's Small City hides, loses its `0x4` and the mask parts there.
     let mut bent = ours.clone();
@@ -503,5 +537,59 @@ fn the_world_line_is_the_original_s_by_section() {
         held(&census(&bent, &named)),
         want_h,
         "tile 19175 not behind"
+    );
+}
+
+/// **The collision blocks on the next frame** (item 4150,
+/// `docs/COLLISION.md` §26): record 3202, frame 92, differs from 3201 in
+/// the world's section 9 alone, by the units' moves and the daemon's sweep
+/// of cells 1,365 to 1,379, which frees the empty blocks of 1,377 and
+/// 1,378. Our walk ticked one frame on prints that section's line, and the
+/// fourteen others stand as on frame 91.
+#[test]
+fn the_collision_blocks_are_the_original_s_on_the_next_frame() {
+    let Some((_, _, at91)) = line_inputs("world", "World") else {
+        return;
+    };
+    let Some((_, mut built, _)) = super::built_start() else {
+        return;
+    };
+    let Some(script) = super::minted(&super::script()) else {
+        return;
+    };
+    let mut stream = crate::input::Stream::pump(&script);
+    let next = crate::checksum::CHECKSUM_PACKET.1 + 1;
+    super::tick_to(&mut built, Some(&mut stream), next);
+    let sim = built.sim.clone();
+    assert_eq!(sim.frame, next, "our walk stands on the next frame");
+    let parts = printed_world_parts_of(crate::checksum::CHECKSUM_PACKET.2 + 1);
+    let was = printed_world_parts();
+    assert_eq!(parts.len(), 16, "sections 0 to 14 and the whole");
+    let ours = sim.world_image();
+    let then = at91.world_image();
+    let blocks = |img: &[WorldRange]| -> Vec<i16> {
+        img.iter()
+            .filter(|r| r.section == 9 && r.field == "block.head")
+            .map(|r| r.record)
+            .collect()
+    };
+    eprintln!(
+        "next frame: blocks on 91 {:?}; on 92 {:?}",
+        blocks(&then),
+        blocks(&ours)
+    );
+    for s in 0..WORLD_SECTIONS {
+        let a = section_adler(&ours, s as u8);
+        eprintln!(
+            "next frame: section {s} ours {a} printed {} (frame 91's {})",
+            parts[s], was[s]
+        );
+        assert_eq!(a, parts[s], "section {s} on the next frame");
+    }
+    assert_ne!(parts[9], was[9], "section 9 moved between the frames");
+    assert_eq!(
+        sim.checksum_world().adler(),
+        parts[15],
+        "the world line on the next frame"
     );
 }
