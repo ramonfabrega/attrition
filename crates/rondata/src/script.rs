@@ -44,6 +44,31 @@ pub const BUILD_FRAME: i32 = 90;
 /// right-click's `orders` 1, `MOVE_TO`, and `form`/`width` −1, as every
 /// `move_to` of the 2017 sample has them).
 pub fn script() -> Vec<Order> {
+    script_to(SCOUT_TO, FARM_AT)
+}
+
+/// **The clicked script** (item 4149, `docs/CLIENT_INPUT.md` §5): the same
+/// three orders as a person clicks them at the camera the client opens
+/// with. The move's and the Farm's pixels are the ones [`script`]'s targets
+/// project to there; the input layer's inverse names the ground under each,
+/// one pixel's rounding off the script's point. The client's
+/// `minted_clicked_at_the_opening_camera` mints these orders from the
+/// clicks and asserts them equal to this, field for field.
+pub fn clicked() -> Vec<Order> {
+    script_to(CLICKED_SCOUT_TO, CLICKED_FARM_AT)
+}
+
+/// The scout's destination as clicked: [`SCOUT_TO`]'s pixel at the opening
+/// camera, (1384, 862), under the layer's inverse.
+pub const CLICKED_SCOUT_TO: Pos = Pos { x: 5883, y: 31896 };
+/// The Farm's drop point as clicked: [`FARM_AT`]'s pixel at the opening
+/// camera, (1338, 478), under the layer's inverse; `snap_center` puts the
+/// site where it puts [`FARM_AT`]'s, (3456, 29760).
+pub const CLICKED_FARM_AT: Pos = Pos { x: 3554, y: 29860 };
+
+/// The script's three orders, the move sent to `scout_to` and the Farm
+/// dropped at `farm_at`.
+fn script_to(scout_to: Pos, farm_at: Pos) -> Vec<Order> {
     vec![
         (
             MOVE_FRAME,
@@ -54,8 +79,8 @@ pub fn script() -> Vec<Order> {
                     objects: vec![SCOUT_OBJECT],
                 },
                 Command::MoveTo {
-                    to_x: SCOUT_TO.x,
-                    to_y: SCOUT_TO.y,
+                    to_x: scout_to.x,
+                    to_y: scout_to.y,
                     set_angle: 0,
                     angle: 0,
                     orders: 1,
@@ -89,10 +114,10 @@ pub fn script() -> Vec<Order> {
                     objects: vec![BUILDER],
                 },
                 Command::Build {
-                    x: FARM_AT.x,
-                    y: FARM_AT.y,
-                    x2: FARM_AT.x,
-                    y2: FARM_AT.y,
+                    x: farm_at.x,
+                    y: farm_at.y,
+                    x2: farm_at.x,
+                    y2: farm_at.y,
                     build: FARM_TYPE,
                     queued: 2,
                 },

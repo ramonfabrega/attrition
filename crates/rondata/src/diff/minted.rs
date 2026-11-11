@@ -18,7 +18,7 @@ use std::collections::BTreeSet;
 
 pub(crate) use crate::script::{
     BUILD_FRAME, BUILDER, CAPITAL, CITIZEN, FARM_AT, FARM_TYPE as FARM, MOVE_FRAME, QUEUE_FRAME,
-    SCOUT_OBJECT as SCOUT, SCOUT_TO, script,
+    SCOUT_OBJECT as SCOUT, SCOUT_TO, clicked, script,
 };
 
 /// The minted recording: run53's lobby with [`script`]'s packages.
@@ -541,9 +541,21 @@ fn walk_minted(orders: &[Order], take: &str, take_trace: &str) -> Option<(Walked
 /// agreement.
 #[test]
 fn the_original_s_playback_of_the_minted_file_walks_in_lockstep() {
+    playback_walks_in_lockstep(&script(), MINTED_WALKED, &minted_effects());
+}
+
+/// Per take of `table`, the built start walked under the pump on
+/// `orders`' file against the take's dump and trace, pinned to the table;
+/// and on the first take, which prints records, each order's effect read
+/// on both sides on [`READ_AT`] and pinned to `pinned`.
+fn playback_walks_in_lockstep(
+    orders: &[Order],
+    table: &[(&str, &str, i64, i64, usize, usize)],
+    pinned: &[Effect],
+) {
     let mut walked = Vec::new();
-    for &(take, take_trace, ..) in MINTED_WALKED {
-        let Some((w, _)) = walk_minted(&script(), take, take_trace) else {
+    for &(take, take_trace, ..) in table {
+        let Some((w, _)) = walk_minted(orders, take, take_trace) else {
             return;
         };
         eprintln!(
@@ -565,7 +577,7 @@ fn the_original_s_playback_of_the_minted_file_walks_in_lockstep() {
         ));
     }
     // The effects, both sides, on the take that prints records.
-    let (take, ..) = MINTED_WALKED[0];
+    let (take, ..) = table[0];
     let mut source = crate::capture::indexed::IndexedCapture::open(dump(take).unwrap()).unwrap();
     let mut theirs = Vec::new();
     for i in 0..source.frames().len() {
@@ -573,23 +585,28 @@ fn the_original_s_playback_of_the_minted_file_walks_in_lockstep() {
             theirs.push(effect_theirs(&source.frame_state(i).unwrap()));
         }
     }
+    let ours = effects_ours(orders);
+    for (o, t) in ours.iter().zip(&theirs) {
+        eprintln!("EFFECT ours {o:?}\n       theirs {t:?}");
+    }
+    assert_eq!(
+        walked, table,
+        "the walked table: frames agreeing, frames walked, records, parted"
+    );
+    assert_eq!(theirs, pinned, "the original's effects");
+    assert_eq!(ours, pinned, "our effects");
+}
+
+/// Our walk's effects under the pump on `orders`' file, on [`READ_AT`].
+fn effects_ours(orders: &[Order]) -> Vec<Effect> {
     let (_, mut built, _) = built_start().unwrap();
-    let mut stream = crate::input::Stream::pump(&minted(&script()).unwrap());
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
     let mut ours = Vec::new();
     for n in READ_AT {
         tick_to(&mut built, Some(&mut stream), n);
         ours.push(effect_ours(&built));
     }
-    for (o, t) in ours.iter().zip(&theirs) {
-        eprintln!("EFFECT ours {o:?}\n       theirs {t:?}");
-    }
-    assert_eq!(
-        walked, MINTED_WALKED,
-        "MINTED_WALKED: frames agreeing, frames walked, records, parted"
-    );
-    let pinned = minted_effects();
-    assert_eq!(theirs, pinned, "the original's effects (MINTED_EFFECTS)");
-    assert_eq!(ours, pinned, "our effects (MINTED_EFFECTS)");
+    ours
 }
 
 /// **What the three orders did, on both sides** (run1561a): on 31 the
@@ -713,3 +730,193 @@ const WITHHELD: &[(i32, i64, &str, &str, Option<i64>)] = &[
         Some(296),
     ),
 ];
+
+/// **The clicked file's size** (item 4149, `docs/CLIENT_INPUT.md` §5): the
+/// lobby's file with [`crate::script::clicked`]'s packages, gzipped as the
+/// original reads it.
+const CLICKED_RCX_BYTES: usize = 59_280;
+
+/// **The clicked script, minted** (item 4149): the three orders a person
+/// clicks at the opening camera, as the client's input layer mints them
+/// (`minted_clicked_at_the_opening_camera` holds them equal to
+/// [`crate::script::clicked`]), round-trip through the file like the first
+/// script's; they differ from it in the move's and the build's
+/// coordinates alone; the clicked Farm's site is clear on our placement
+/// check and snaps where the first script's does. With
+/// `RON_RCX_OUT=<file>` it writes the `.rcx` the playback takes open.
+#[test]
+fn the_clicked_minted_packages_round_trip_and_stand_on_our_placement_check() {
+    let Some((_, built, _)) = built_start() else {
+        eprintln!("skipping: no install or no {LOBBY_DUMP} (set RON_GAMELOG_DIR)");
+        return;
+    };
+    let (Some(rec), Some(first)) = (minted(&clicked()), minted(&script())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "clicked").expect("the clicked file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in clicked().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let parted: Vec<i32> = back
+        .packages
+        .iter()
+        .zip(&first.packages)
+        .filter(|(a, b)| a != b)
+        .map(|(a, _)| a.frame)
+        .collect();
+    assert_eq!(
+        parted,
+        vec![MOVE_FRAME, BUILD_FRAME],
+        "the packages that part"
+    );
+    let s = &built.sim;
+    let farm = (FARM - crate::load::BASE_BUILDTYPES) as usize;
+    assert_eq!(
+        s.blocked_site(Some(0), farm, crate::script::CLICKED_FARM_AT, None),
+        sim::cities::place::Blocked::Clear,
+        "the clicked Farm's site, on our placement check"
+    );
+    let gz = crate::recgame::write_gz(&rec);
+    assert_eq!(gz.len(), CLICKED_RCX_BYTES, "CLICKED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// **What the clicked orders do on our walk** (item 4149), on [`READ_AT`]:
+/// the scout sent to its clicked point and standing on it by 299, the
+/// Citizen queued and trained, the Farm's site where the first script's
+/// stands and its builder farming it. Pinned before the original's
+/// playback of the file is read ([`CLICKED_WALKED`]).
+#[test]
+fn the_clicked_minted_script_s_effects_on_our_walk() {
+    if built_start().is_none() || minted(&clicked()).is_none() {
+        eprintln!("skipping: no install, lobby or recording");
+        return;
+    }
+    let ours = effects_ours(&clicked());
+    for o in &ours {
+        eprintln!("CLICKED EFFECT ours {o:?}");
+    }
+    assert_eq!(ours, clicked_effects(), "clicked_effects");
+}
+
+/// The original's playback of the clicked file, per take (run 1563), as
+/// [`MINTED_WALKED`]: run1563a prints every unit and building for 300
+/// frames, run1563b only the trace for 2,400, run1563 the game's length.
+pub(crate) const CLICKED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[
+    (
+        "gamelog-run1563a-greatlakes-playback-of-clicked-300.txt",
+        "rontrace-run1563a.log",
+        300,
+        300,
+        299,
+        0,
+    ),
+    (
+        "gamelog-run1563-greatlakes-playback-of-clicked-24000.txt",
+        "rontrace-run1563.log",
+        24000,
+        24000,
+        1,
+        0,
+    ),
+];
+
+/// **The original plays the clicked file, and our walk keeps lockstep**
+/// (item 4149): [`CLICKED_WALKED`] and [`clicked_effects`], both sides.
+#[test]
+fn the_original_s_playback_of_the_clicked_minted_file_walks_in_lockstep() {
+    if CLICKED_WALKED.is_empty() {
+        eprintln!("skipping: the clicked file's playback is not captured");
+        return;
+    }
+    playback_walks_in_lockstep(&clicked(), CLICKED_WALKED, &clicked_effects());
+}
+
+/// What the clicked orders did, on [`READ_AT`]: as [`minted_effects`] but
+/// for the scout's point on 299, its clicked (5883, 31896). Its order's
+/// target reads (5880, 31896) on 31, 61 and 91 on our walk, as the first
+/// script's does: the clicked destination is not what the move order
+/// holds, and the scout still ends on the clicked point.
+fn clicked_effects() -> Vec<Effect> {
+    let to = crate::script::CLICKED_SCOUT_TO;
+    let mut e = minted_effects();
+    e[3].scout = (i64::from(to.x), i64::from(to.y));
+    e
+}
+
+/// **Made to fail: the first script against the clicked playback**
+/// (item 4149). Our walk under [`script`]'s file, whose move goes to
+/// (5880, 31896) and whose Farm drops at (3552, 29856), against run1563a,
+/// the original's playback of the clicked file: three units of the move's
+/// destination must part, and the first record that parts is pinned
+/// ([`FIRST_AGAINST_CLICKED`]): `(frame, kind, row, the first frame whose
+/// draws part)`.
+#[test]
+fn the_first_minted_script_against_the_clicked_playback_parts() {
+    let (take, take_trace, ..) = CLICKED_WALKED[0];
+    let Some((w, _)) = walk_minted(&script(), take, take_trace) else {
+        return;
+    };
+    let (frame, _, partings) = w.first_record.clone().expect("the walk parts");
+    eprintln!(
+        "FIRST AGAINST CLICKED: record {frame}: {partings:?}; draws part {:?}; records {} parted {}",
+        w.first_sequence, w.records, w.records_parted
+    );
+    let seen = (
+        frame,
+        partings[0].0,
+        partings[0].2.clone(),
+        w.first_sequence,
+    );
+    let (f, kind, row, draws) = FIRST_AGAINST_CLICKED;
+    assert_eq!(
+        seen,
+        (f, kind, row.to_string(), draws),
+        "FIRST_AGAINST_CLICKED"
+    );
+    // The long take: the same walk against run1563. It does not part: the
+    // draws of 24,000 frames and the closing record agree with the first
+    // script's orders too (the two playbacks' words are identical on all
+    // 24,001 frames, `rngcmp.py`), so the click's three units are seen by
+    // run1563a's records alone. Seen red first: pinned `(None, Some(-1))`.
+    let (take, take_trace, ..) = CLICKED_WALKED[1];
+    let Some((w, _)) = walk_minted(&script(), take, take_trace) else {
+        return;
+    };
+    eprintln!(
+        "FIRST AGAINST CLICKED (long): first {:?}; draws part {:?}; records {} parted {}",
+        w.first_record, w.first_sequence, w.records, w.records_parted
+    );
+    let long = w.first_record.map(|(n, _, p)| (n, p[0].2.clone()));
+    assert_eq!(
+        (long, w.first_sequence),
+        (None, None),
+        "FIRST_AGAINST_CLICKED, the long take"
+    );
+}
+
+/// The first script's walk against run1563a: the first parted record is
+/// the scout's path target on 31, ours (5880, 31896) against the original's
+/// clicked (5883, 31896); 269 of 299 records part; the draws do not part
+/// inside the take's 300 frames. Seen red first: pinned `(0, "", "", None)`.
+const FIRST_AGAINST_CLICKED: (i64, &str, &str, Option<i64>) = (
+    31,
+    "order_diverged",
+    "OrderDivergence { frame: 31, who: 0, o: 0, slot: 0, what: PathTo { slot: 0, ours: (5880, 31896), theirs: (5883, 31896) } }",
+    None,
+);
