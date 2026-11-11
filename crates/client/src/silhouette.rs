@@ -6450,4 +6450,412 @@ mod tests {
             "the clamp is self-consistent"
         );
     }
+
+    /// **Item 4117: the medium tank's texel — which file, and where it
+    /// lands.** On the alpha-255 population (4107's selection), per piece:
+    /// n, the Pearson correlation of the photograph's luminance with our
+    /// texel's (the luminance pass's weights 0.3, 0.59, 0.11), and the
+    /// reader's agreeing count. Then the same under every texture the
+    /// install holds on the piece's stem, sampled through the same
+    /// texcoords, and under the draw moved by −4..4 pixels each way (and,
+    /// for the tank, node by node). The kill (a), written before the count:
+    /// no file and no move raises the tank's correlation by 0.10 and its
+    /// count by a tenth. Nothing is drawn.
+    #[test]
+    fn the_tanks_texel() {
+        use render::silhouette::{HUE, chromaticity, traced_theirs};
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        world.run_to(PHOTO_FRAME);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let size = (photo.width, photo.height);
+        let (w, h) = (photo.width as i32, photo.height as i32);
+        let base = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Silhouette);
+        let scene = frame_scene(&mut world, &camera, size);
+        let p = Photo {
+            width: photo.width,
+            height: photo.height,
+            rgba: &photo.rgba,
+        };
+        let traces: Vec<Trace<'_>> = TRACED
+            .iter()
+            .map(|&(name, poly)| Trace {
+                key: scene
+                    .who
+                    .iter()
+                    .position(|&(who, o, _, _)| format!("{who}/{o}") == name)
+                    .map_or(u32::MAX, |i| i as u32 + 1),
+                poly,
+            })
+            .collect();
+        let rows = footprints_traced(
+            &scene.keys,
+            &p,
+            &INTERFACE,
+            &READING,
+            &traces,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let agrees = |a: [f32; 3], b: [f32; 3]| {
+            let (x, y) = (chromaticity(a), chromaticity(b));
+            ((x[0] - y[0]).powi(2) + (x[1] - y[1]).powi(2)).sqrt() <= HUE.distance
+        };
+        let sum = |q: [f32; 3]| q[0] + q[1] + q[2];
+        let lum = |q: [f32; 3]| 0.3 * q[0] + 0.59 * q[1] + 0.11 * q[2];
+        const TANK: i32 = 196;
+        const CONTROLS: [i32; 2] = [60, 1008];
+        const R: i32 = 4;
+
+        // --- The selection, re-measured: the colour row object by object. ---
+        let piece_of = |key: u32| scene.drawings.get(key as usize - 1).map_or(-1, |d| d.piece);
+        let mut row = 0;
+        for (f, c, who) in &base {
+            row += usize::from(c.passes(&HUE));
+            println!(
+                "row {}/{}: piece {}, lit {}, agreeing {} ({:.3}), {}",
+                who.0,
+                who.1,
+                piece_of(f.key),
+                c.lit,
+                c.agree,
+                c.agree as f32 / c.lit.max(1) as f32,
+                if c.passes(&HUE) { "passes" } else { "fails" }
+            );
+        }
+        println!("colour row: {row} of {}", base.len());
+
+        // --- Each figure row, painted once over its window grown by R. ---
+        struct Fig {
+            owner: u8,
+            piece: i32,
+            key: u32,
+            win: Rect,
+            grown: Rect,
+            theirs: Vec<Option<bool>>,
+            ours: Vec<Option<render::silhouette::Texel>>,
+        }
+        let mut figs: Vec<Fig> = Vec::new();
+        for f in rows {
+            let who = scene.who[f.key as usize - 1];
+            if who.0 == TREE_WHO || who.3 {
+                continue;
+            }
+            let Some(d) = scene.drawings.get(f.key as usize - 1) else {
+                continue;
+            };
+            if world.figure_texture(d.piece).is_none() {
+                continue;
+            }
+            let theirs = traced_theirs(
+                &scene.keys,
+                &p,
+                &INTERFACE,
+                &READING,
+                &traces,
+                Neighbour::Neither,
+                Interface::Neither,
+                f.key,
+                f.window,
+            );
+            let grown = Rect {
+                x0: (f.window.x0 - R).max(0),
+                y0: (f.window.y0 - R).max(0),
+                x1: (f.window.x1 + R).min(w),
+                y1: (f.window.y1 + R).min(h),
+            };
+            let ours = painted(
+                &mut world,
+                &scene,
+                &camera,
+                size,
+                f.key,
+                grown,
+                Colouring::Texture,
+            );
+            figs.push(Fig {
+                owner: who.0,
+                piece: d.piece,
+                key: f.key,
+                win: f.window,
+                grown,
+                theirs,
+                ours,
+            });
+        }
+        // One pixel: (owner, piece, texel, photograph, triangle).
+        type Pix = (u8, i32, [f32; 3], [f32; 3], u32);
+        // The alpha-255 population with the draw moved by (dx, dy): the
+        // photograph at (x, y) against our pixel at (x − dx, y − dy).
+        let sample = |fig: &Fig, ours: &[Option<render::silhouette::Texel>], dx: i32, dy: i32| {
+            let mut out: Vec<Pix> = Vec::new();
+            let ww = (fig.win.x1 - fig.win.x0) as usize;
+            let gw = (fig.grown.x1 - fig.grown.x0) as usize;
+            for y in fig.win.y0..fig.win.y1 {
+                for x in fig.win.x0..fig.win.x1 {
+                    let j = (y - fig.win.y0) as usize * ww + (x - fig.win.x0) as usize;
+                    if fig.theirs[j] != Some(true) {
+                        continue;
+                    }
+                    let (ox, oy) = (x - dx, y - dy);
+                    if ox < fig.grown.x0
+                        || ox >= fig.grown.x1
+                        || oy < fig.grown.y0
+                        || oy >= fig.grown.y1
+                    {
+                        continue;
+                    }
+                    let at = oy as usize * photo.width + ox as usize;
+                    if scene.keys.at(ox as usize, oy as usize) != fig.key || scene.behind[at] {
+                        continue;
+                    }
+                    let g = (oy - fig.grown.y0) as usize * gw + (ox - fig.grown.x0) as usize;
+                    let Some(t) = ours[g] else { continue };
+                    let pa = (y as usize * photo.width + x as usize) * 4;
+                    let ph = [0, 1, 2].map(|c| f32::from(photo.rgba[pa + c]));
+                    if t.alpha < 255.0 || sum(t.rgb) < HUE.dark || sum(ph) < HUE.dark {
+                        continue;
+                    }
+                    out.push((fig.owner, fig.piece, t.rgb, ph, t.tri));
+                }
+            }
+            out
+        };
+        // (n, Pearson, agreeing) over a set of pixels.
+        let stats = |v: &[&Pix]| -> (usize, f64, usize) {
+            let n = v.len();
+            if n < 2 {
+                return (n, 0.0, v.iter().filter(|q| agrees(q.2, q.3)).count());
+            }
+            let (mut sx, mut sy, mut sxx, mut syy, mut sxy) = (0f64, 0f64, 0f64, 0f64, 0f64);
+            for q in v {
+                let (a, b) = (f64::from(lum(q.3)), f64::from(lum(q.2)));
+                sx += a;
+                sy += b;
+                sxx += a * a;
+                syy += b * b;
+                sxy += a * b;
+            }
+            let nf = n as f64;
+            let cov = sxy - sx * sy / nf;
+            let den = ((sxx - sx * sx / nf) * (syy - sy * sy / nf)).sqrt();
+            let r = if den > 0.0 { cov / den } else { 0.0 };
+            (n, r, v.iter().filter(|q| agrees(q.2, q.3)).count())
+        };
+        let all_at = |figs: &[Fig], dx: i32, dy: i32| -> Vec<Pix> {
+            figs.iter()
+                .flat_map(|f| sample(f, &f.ours, dx, dy))
+                .collect()
+        };
+
+        // --- Step 1a: the values, per piece, as drawn. ---
+        let zero = all_at(&figs, 0, 0);
+        let owner_n = |o: u8| zero.iter().filter(|q| q.0 == o).count();
+        let owner_a = |o: u8| zero.iter().filter(|q| q.0 == o && agrees(q.2, q.3)).count();
+        println!(
+            "alpha 255: owner 0 {} (texel agreeing {}), owner 1 {} ({})",
+            owner_n(0),
+            owner_a(0),
+            owner_n(1),
+            owner_a(1)
+        );
+        let pieces: std::collections::BTreeSet<i32> = zero.iter().map(|q| q.1).collect();
+        let mut by_piece: std::collections::BTreeMap<i32, (usize, f64, usize)> = Default::default();
+        for &pc in &pieces {
+            let v: Vec<&Pix> = zero.iter().filter(|q| q.1 == pc).collect();
+            let s = stats(&v);
+            by_piece.insert(pc, s);
+            println!(
+                "piece {pc} ({}): n {}, r {:.3}, agreeing {}",
+                world.figure_texture_name(pc).unwrap_or("?"),
+                s.0,
+                s.1,
+                s.2
+            );
+        }
+        let objects: Vec<String> = figs
+            .iter()
+            .filter(|f| f.piece == TANK)
+            .map(|f| {
+                let who = scene.who[f.key as usize - 1];
+                format!("{}/{}", who.0, who.1)
+            })
+            .collect();
+        println!("the tank's objects: {objects:?}");
+
+        // --- Step 1b: the file. Every texture on the piece's stem. ---
+        let art = install.join("art");
+        let names: Vec<String> = std::fs::read_dir(&art)
+            .map(|d| {
+                d.filter_map(|e| e.ok())
+                    .map(|e| e.file_name().to_string_lossy().into_owned())
+                    .collect()
+            })
+            .unwrap_or_default();
+        let mut file_table: Vec<(i32, String, usize, f64, usize)> = Vec::new();
+        for pc in std::iter::once(TANK).chain(CONTROLS) {
+            let own = world.figure_texture_name(pc).unwrap_or("").to_string();
+            let file = own
+                .rsplit(['\\', '/'])
+                .next()
+                .unwrap_or("")
+                .to_ascii_lowercase();
+            let stem = file.trim_end_matches(".tga").to_string();
+            let mut alts: Vec<String> = names
+                .iter()
+                .filter(|n| {
+                    let l = n.to_ascii_lowercase();
+                    l.ends_with(".tga") && l.starts_with(&stem)
+                })
+                .cloned()
+                .collect();
+            alts.sort();
+            println!("piece {pc}: own {own}; on its stem {alts:?}");
+            for alt in &alts {
+                let xml = format!(".\\art\\{alt}");
+                if !world.swap_figure_texture(pc, Some(&xml)) {
+                    println!("  {alt}: does not decode");
+                    continue;
+                }
+                let mut v: Vec<Pix> = Vec::new();
+                for f in figs.iter().filter(|f| f.piece == pc) {
+                    let o = painted(
+                        &mut world,
+                        &scene,
+                        &camera,
+                        size,
+                        f.key,
+                        f.grown,
+                        Colouring::Texture,
+                    );
+                    v.extend(sample(f, &o, 0, 0));
+                }
+                let s = stats(&v.iter().collect::<Vec<_>>());
+                println!("  {alt}: n {}, r {:.3}, agreeing {}", s.0, s.1, s.2);
+                file_table.push((pc, alt.to_ascii_lowercase(), s.0, s.1, s.2));
+            }
+            world.swap_figure_texture(pc, None);
+        }
+
+        // --- Step 1c: the place. 81 cells, the zero, the best, its ring. ---
+        let mut best_cells: std::collections::BTreeMap<String, (i32, i32, usize, f64, usize)> =
+            Default::default();
+        let grid = |label: &str,
+                    pick: &dyn Fn(&Pix) -> bool,
+                    best_cells: &mut std::collections::BTreeMap<
+            String,
+            (i32, i32, usize, f64, usize),
+        >| {
+            let mut cells = std::collections::BTreeMap::new();
+            for dy in -R..=R {
+                for dx in -R..=R {
+                    let v = all_at(&figs, dx, dy);
+                    let sel: Vec<&Pix> = v.iter().filter(|q| pick(q)).collect();
+                    cells.insert((dx, dy), stats(&sel));
+                }
+            }
+            let z = cells[&(0, 0)];
+            let (&(bx, by), &b) = cells
+                .iter()
+                .max_by(|a, b| a.1.1.total_cmp(&b.1.1))
+                .expect("cells");
+            let (&(cx, cy), &c) = cells.iter().max_by_key(|a| a.1.2).expect("cells");
+            let ring: Vec<f64> = (-1..=1)
+                .flat_map(|j| (-1..=1).map(move |i| (bx + i, by + j)))
+                .filter(|&k| k != (bx, by))
+                .filter_map(|k| cells.get(&k).map(|s| s.1))
+                .collect();
+            let ring_mean = ring.iter().sum::<f64>() / ring.len().max(1) as f64;
+            println!(
+                "{label}: zero n {} r {:.3} agreeing {} | best r at ({bx:+},{by:+}) n {} r {:.3} agreeing {}, ring mean r {ring_mean:.3} | best count at ({cx:+},{cy:+}) n {} r {:.3} agreeing {}",
+                z.0, z.1, z.2, b.0, b.1, b.2, c.0, c.1, c.2
+            );
+            best_cells.insert(label.to_string(), (bx, by, b.0, b.1, b.2));
+            best_cells.insert(format!("{label} count"), (cx, cy, c.0, c.1, c.2));
+        };
+        for pc in std::iter::once(TANK).chain(CONTROLS) {
+            grid(
+                &format!("piece {pc}"),
+                &|q: &Pix| q.1 == pc,
+                &mut best_cells,
+            );
+        }
+        // The tank node by node: a face's node is the one whose vertex run
+        // holds its first corner.
+        if let Some(mesh) = world.mesh(TANK, false) {
+            let node_of = |tri: u32| -> Option<usize> {
+                let f = mesh.faces.get(tri as usize)?;
+                let v = u32::from(f[0]);
+                mesh.model
+                    .nodes
+                    .iter()
+                    .position(|n| v >= n.start && v < n.start + n.num)
+            };
+            let mut count: std::collections::BTreeMap<usize, usize> = Default::default();
+            for q in zero.iter().filter(|q| q.1 == TANK) {
+                if let Some(k) = node_of(q.4) {
+                    *count.entry(k).or_default() += 1;
+                }
+            }
+            for (k, n) in &mesh.model.nodes.iter().enumerate().collect::<Vec<_>>() {
+                println!(
+                    "  node {k} {:?} parent {:?} verts {}..{}: {} pixels",
+                    n.name,
+                    n.parent,
+                    n.start,
+                    n.start + n.num,
+                    count.get(k).copied().unwrap_or(0)
+                );
+            }
+            for (&k, &n) in &count {
+                if n >= 200 {
+                    let name = mesh.model.nodes[k].name.clone();
+                    grid(
+                        &format!("piece {TANK} node {name}"),
+                        &|q: &Pix| q.1 == TANK && node_of(q.4) == Some(k),
+                        &mut best_cells,
+                    );
+                }
+            }
+        }
+
+        // --- The kill (a), as it falls. ---
+        let (tn, tr, ta) = by_piece[&TANK];
+        let bar = |r: f64, a: usize| r >= tr + 0.10 && a as f64 >= ta as f64 * 1.1;
+        let file_clears: Vec<_> = file_table
+            .iter()
+            .filter(|e| e.0 == TANK && bar(e.3, e.4))
+            .collect();
+        let place_clears: Vec<_> = best_cells
+            .iter()
+            .filter(|(k, v)| k.starts_with("piece 196") && !k.contains("node") && bar(v.3, v.4))
+            .collect();
+        println!(
+            "kill (a): the tank n {tn}, r {tr:.3}, agreeing {ta}; the bar r ≥ {:.3} and ≥ {:.0}; files clearing {file_clears:?}; moves clearing {place_clears:?}",
+            tr + 0.10,
+            ta as f64 * 1.1
+        );
+        assert_eq!(row, render::silhouette::RUN1559B_3279_COLOUR.0);
+        assert_eq!((owner_n(0), owner_n(1)), (564, 13_335));
+        assert_eq!((owner_a(0), owner_a(1)), (262, 6_788));
+        assert_eq!(ta, 4_486, "the tank's texel count, 4114's");
+        assert!(file_clears.is_empty(), "a file clears the bar");
+        assert!(place_clears.is_empty(), "a move clears the bar");
+    }
 }

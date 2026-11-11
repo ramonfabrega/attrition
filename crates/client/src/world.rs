@@ -707,6 +707,22 @@ impl World {
         self.unit_textures.get(&piece).map(String::as_str)
     }
 
+    /// Item 4117's alternative: `piece` drawn with the install's file
+    /// `name` (an XML path, `.\art\x.tga`) in place of its own, or its own
+    /// again with `None`. `false` when the file does not resolve or decode.
+    #[cfg(test)]
+    pub fn swap_figure_texture(&mut self, piece: i32, name: Option<&str>) -> bool {
+        self.figure_textures.remove(&piece);
+        let Some(name) = name else { return true };
+        let decoded = resolve_art(&self.root, name)
+            .and_then(|p| std::fs::read(p).ok())
+            .and_then(|b| render::tga::decode(&b).ok())
+            .map(|i| std::sync::Arc::new(render::silhouette::Mips::new(i)));
+        let ok = decoded.is_some();
+        self.figure_textures.insert(piece, decoded);
+        ok
+    }
+
     /// A building piece's sprite, decoded once.
     pub fn sprite_image(&mut self, piece: i32) -> Option<std::sync::Arc<SpriteImage>> {
         if let Some(s) = self.sprite_images.get(&piece) {

@@ -16436,7 +16436,9 @@ words and edits nothing here; a refill lands when two remain.
   photograph's 1,435,055 keyless, uncovered pixels invert under it to a mean of 1.595, between 1.4 and 2 (2 inverts to
   1.971), and a white scale multiplies every channel alike, so it moves no chromaticity. **What is left, by frame 3279
   and its delta**: the pieces' transfers differ by piece at one texel value and one band — 196 flat (red 106 to 151
-  over texel 40 to 200), 1008 steep (51 to 224) — which no function of the texel and the face gives; read next, what
+  over texel 40 to 200), 1008 steep (51 to 224) — which no function of the texel and the face gives; ~~the tank's flat
+  transfer as a texel from another file or out of register~~ (killed by item 4117's table, 4117a: the dump's `gpiece` 196
+  is `SHERMAN`, the plain file; no file on the stem and no move of ±4 pixels lifts the tank's correlation by 0.10); read next, what
   differs per piece at the card: the vertex normals against our face normals, and whether the tank's draw is the lit
   branch at all. Rests on one photograph and the reading of the install's shaders. Names no score until a mechanism is
   chosen.
@@ -16451,13 +16453,25 @@ words and edits nothing here; a refill lands when two remain.
   a miner's doober; a `group` command's repeat; a package whose player and leader differ. Names no score until a scored frame
   holds one: a second frame of the minted game is the place (with parked 4104a).
 
-## Parked by the next landing, slot FA — reserved
+## Parked by item 4117, 2026-11-11 — the medium tank's texel, its file and its place
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4117a. The medium tank's texel is its own file in its own place; what parts it from the photograph is not**
+  (`docs/RENDERER.md` §5.3, "The colour reader"; `RUN1559B_3279_COLOUR` 18 of 33; `client::silhouette::tests::the_tanks_texel`;
+  4114a). **Killed (a), neither**: on the alpha-255 population (564 and 13,335, the texel agreeing on 262 and 6,788, unmoved),
+  the tank 196's photograph-to-texel luminance correlation is 0.304 (n 8,918, 4,486 agreeing) against the riflemen 60's 0.650
+  and the general 1008's 0.703. The file: the install holds four on the stem — `mediumtank.tga` (ours), `_desert` 0.308 and
+  4,251, `_russian` 0.101 and 2,840, `_asian` 0.044 and 3,740 (the last two are other models' layouts, `T34` and `CHIHA`) —
+  and the riflemen's four alternatives all fall from 0.650 (0.546 at best). The dump's own `gpiece` for 1/15, 1/16, 1/27 and
+  1/40 is 196, record 196 of `unitrules.xml`, GRAPH `SHERMAN`, whose `<UNIT>` writes `mediumTank.tga`; the desert's is
+  `SHERMANDES`, a TypeIndex of its own, piece 197. The place: 81 cells of −4..4 pixels; 60 and 1008 peak at (0, 0) on both
+  correlation and count, so the photograph's registration is not off by a vector; the tank's best correlation is (+2, 0) at
+  0.358 (ring mean 0.329) and its best count (+1, +1) at 4,734, both under the bar (0.404 and 4,935). Node by node: `body1`
+  5,754 pixels, 0.304 → 0.343 at (+1, +1); the turret (`pivot node 0`) 2,007, 0.310 → 0.392 at (+2, +1); `root` (the
+  running gear, 892 pixels) −0.060 at zero and 0.089 at best. **What is left, by frame 3279 and its delta**: the tank's
+  luminance is half-correlated with its own texel in its own place, and its root node's not at all — the shading over the
+  piece, not the texel, is what the photograph adds there (with 4114a's vertex normals and lit branch); a turret's small
+  lean toward (+2, +1) is inside the bar and unread (with parked 4089a). Rests on one photograph and the dump's `gpiece`;
+  names no score until a mechanism is chosen.
 
 ## Parked by the next landing, slot FB — reserved
 
