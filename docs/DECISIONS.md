@@ -12050,6 +12050,9 @@ proceed further... and cap at 95%... we got some resets stacked up we can
 use, so lets get rolling?" The number in §2 is 95 % from that word, until
 his next; §3's three points are measured from it, so at 92 % nothing is
 cut that cannot be booked before 95. The reset is 2026-11-14 06:00 −05:00.
+**Measured the same day, 12:29 −05:00:** a Fable-only week (lore's
+`seven_day_fable`) read 96 % beside the whole week's 86 %. The stop was
+set on the whole week; the driver is on Fable (Loop 4146).
 
 **Not established:** how many resets are banked; whether a builder killed
 by the wall can be resumed rather than re-cut; what a line of step 5
