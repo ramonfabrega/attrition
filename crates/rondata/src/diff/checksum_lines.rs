@@ -992,6 +992,7 @@ fn the_ported_lines_are_checksum_state() {
         sim.checksum_builds(&|b| pieces.get(&b).copied().unwrap_or(-1)),
         sim.checksum_guys(),
         sim.checksum_units(),
+        sim.checksum_groups(),
     ];
     let bytes: usize = lines.iter().map(sim::checksum::Line::bytes).sum();
     let (n, _, b, _) = crate::checksum::CHECKSUM_STATE;
@@ -1439,4 +1440,207 @@ fn the_units_line_is_the_original_s_range_by_range() {
     }
     eprintln!("units: {} kinds of range bent", kinds.len());
     assert_eq!(parting(&Line::default(), &theirs).len(), UNITS.1);
+}
+
+/// The groups line's range name for a stream row, by its call site
+/// (`Group::walk_data@00708400`, `CheckSums::check_groups@00937530`).
+fn group_site_field(site: &str) -> &'static str {
+    match site {
+        "00708419" => "id..march",
+        "0070843a" => "list",
+        "0070844b" => "off_x",
+        "00708464" => "off_y",
+        "0070847d" => "curr_x",
+        "00708496" => "curr_y",
+        "007084ae" => "angles",
+        "00937587" => "last_group",
+        _ => "?",
+    }
+}
+
+/// One groups-line range decoded field by field: a record by
+/// [`sim::checksum::groups::GROUP_FIELDS`] (each little-endian and signed
+/// at its width), a member array entry by entry, `last_group` as its word.
+fn group_range_fields(field: &str, b: &[u8]) -> Vec<(String, i64)> {
+    let le = |s: &[u8]| -> i64 {
+        match s.len() {
+            1 => i64::from(s[0] as i8),
+            2 => i64::from(i16::from_le_bytes([s[0], s[1]])),
+            _ => i64::from(i32::from_le_bytes(s[..4].try_into().unwrap())),
+        }
+    };
+    let width = match field {
+        "id..march" => {
+            return sim::checksum::groups::GROUP_FIELDS
+                .iter()
+                .map(|&(n, at, w)| (n.to_string(), le(&b[at - 4..at - 4 + w])))
+                .collect();
+        }
+        "list" => 2,
+        "angles" => 1,
+        _ => 4,
+    };
+    b.chunks(width)
+        .enumerate()
+        .map(|(k, c)| (format!("{field}[{k}]"), le(c)))
+        .collect()
+}
+
+/// The pinned outcome of the groups line on run 1562's packet
+/// (`docs/CHECKSUM.md` §19): `(slots, slots in use, ranges, bytes, ranges
+/// parted, bytes in the ranges that agree)` — 512 slots, six in use (each
+/// one member), 556 ranges and 37,010 bytes, every one agreeing. The first
+/// image of item 4116 parted on the two scout groups' `role` (slots 1 and
+/// 65, 0 against `0x40110`).
+const GROUPS: (usize, usize, usize, usize, usize, usize) = (512, 6, 556, 37010, 0, 37010);
+
+/// **The fields the groups line is held out on**, each with its count of
+/// parting slots on run 1562's frame 91: none since item 4116 carried
+/// `role` (`Group::find_role`, `docs/GROUPS.md` §3.4).
+const GROUPS_HELD_OUT: &[(&str, usize)] = &[];
+
+/// **The groups line, ours against the original's, range by range**
+/// (`docs/CHECKSUM.md` §19, item 4116): our `Sim::checksum_groups` against
+/// the instrument's stream, every range in order, each decoded field by
+/// field on both sides by the same table, then the Adler against the
+/// printed `Groups`. Held out on [`GROUPS_HELD_OUT`]; the agreeing ranges
+/// and bytes pinned in [`GROUPS`]. And it can part: one perturbed byte of
+/// each kind of range parts on that range alone, and the empty image on
+/// all.
+#[test]
+fn the_groups_line_is_the_original_s_range_by_range() {
+    let Some((theirs, want, sim)) = line_inputs("groups", "Groups") else {
+        return;
+    };
+    let ours = sim.checksum_groups();
+    let mut parted_by_field: std::collections::BTreeMap<String, Vec<(i16, i64, i64)>> =
+        std::collections::BTreeMap::new();
+    for (i, t) in theirs.iter().enumerate() {
+        let tf = group_site_field(&t.1);
+        let Some(o) = ours.ranges.get(i) else {
+            parted_by_field
+                .entry(format!("{tf}: ours -"))
+                .or_default()
+                .push((-1, i as i64, 0));
+            continue;
+        };
+        if o.field != tf {
+            parted_by_field
+                .entry(format!("{tf}: ours walks {}", o.field))
+                .or_default()
+                .push((o.record, i as i64, 0));
+            continue;
+        }
+        let tv = group_range_fields(tf, &t.2);
+        let ov = group_range_fields(o.field, &o.bytes);
+        for ((n, a), (_, b)) in ov.iter().zip(&tv) {
+            if a != b {
+                parted_by_field
+                    .entry(n.clone())
+                    .or_default()
+                    .push((o.record, *a, *b));
+            }
+        }
+    }
+    for (f, v) in &parted_by_field {
+        eprintln!("FIELD {f}: {} parted; {:?}", v.len(), &v[..v.len().min(8)]);
+    }
+    let parted = parting(&ours, &theirs);
+    let bytes_equal: usize = ours
+        .ranges
+        .iter()
+        .zip(&theirs)
+        .filter(|(o, t)| o.bytes == t.2)
+        .map(|(o, _)| o.bytes.len())
+        .sum();
+    eprintln!(
+        "groups: ours {} ranges {} bytes adler {}; theirs {} ranges {} bytes; printed {want}; ranges parted {}, bytes in equal ranges {bytes_equal}",
+        ours.ranges.len(),
+        ours.bytes(),
+        ours.adler(),
+        theirs.len(),
+        theirs.iter().map(|t| t.2.len()).sum::<usize>(),
+        parted.len(),
+    );
+    let slots = ours
+        .ranges
+        .iter()
+        .filter(|r| r.field == "id..march")
+        .count();
+    let in_use = ours.ranges.iter().filter(|r| r.field == "list").count();
+    assert_eq!(
+        (
+            slots,
+            in_use,
+            theirs.len(),
+            theirs.iter().map(|t| t.2.len()).sum::<usize>(),
+            parted.len(),
+            bytes_equal
+        ),
+        GROUPS,
+        "the groups line: slots, slots in use, the stream's ranges and bytes, ranges parted, bytes agreeing"
+    );
+    assert_eq!(ours.ranges.len(), GROUPS.2, "our walk's ranges");
+    assert_eq!(ours.bytes(), GROUPS.3, "our walk's bytes");
+    let held: Vec<(&str, usize)> = parted_by_field
+        .iter()
+        .map(|(f, v)| (f.as_str(), v.len()))
+        .collect();
+    assert_eq!(held, GROUPS_HELD_OUT, "the fields the line is held out on");
+    if GROUPS_HELD_OUT.is_empty() {
+        assert_eq!(ours.adler(), want, "the groups line's Adler");
+    } else {
+        assert_ne!(
+            ours.adler(),
+            want,
+            "a held-out line cannot sum to the printed value"
+        );
+    }
+
+    // **It can part.** One byte of each kind of range — a slot's record, a
+    // member's entry, a `last_group` word — perturbed, parts on that range
+    // alone.
+    let mut kinds = std::collections::BTreeSet::new();
+    for i in 0..ours.ranges.len() {
+        if ours.ranges[i].bytes != theirs[i].2 || !kinds.insert(ours.ranges[i].field) {
+            continue;
+        }
+        let mut bent = ours.clone();
+        bent.ranges[i].bytes[0] ^= 0x01;
+        let p: Vec<usize> = parting(&bent, &theirs).iter().map(|p| p.0).collect();
+        let mut want_p: Vec<usize> = parted.iter().map(|p| p.0).collect();
+        want_p.push(i);
+        want_p.sort_unstable();
+        assert_eq!(
+            p, want_p,
+            "a bent {} parts on range {i} alone",
+            ours.ranges[i].field
+        );
+        assert_ne!(
+            bent.adler(),
+            want,
+            "a bent {} moves the Adler",
+            ours.ranges[i].field
+        );
+    }
+    eprintln!("groups: {} kinds of range bent", kinds.len());
+    assert_eq!(kinds.len(), 8, "every kind of range was bent");
+    // The first image: slot 1's `role` back at 0 parts on that slot's
+    // record alone.
+    let scout = ours
+        .ranges
+        .iter()
+        .position(|r| r.field == "id..march" && r.record == 1)
+        .expect("slot 1");
+    let mut bent = ours.clone();
+    bent.ranges[scout].bytes[0x34 - 4..0x38 - 4].copy_from_slice(&[0; 4]);
+    assert_eq!(
+        parting(&bent, &theirs)
+            .iter()
+            .map(|p| p.0)
+            .collect::<Vec<_>>(),
+        vec![scout],
+        "slot 1 without its role"
+    );
+    assert_eq!(parting(&Line::default(), &theirs).len(), GROUPS.2);
 }

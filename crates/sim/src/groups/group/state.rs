@@ -315,6 +315,19 @@ pub struct GroupState {
     /// fresh one ([`Sim::army_add_unit`], item 4000). `add_group` writes
     /// the link on every push, so a pushed or copied record starts linked.
     pub unlinked: bool,
+    /// `+0x34 role`: **`Group::find_role@007081f0`'s word** — zeroed, then,
+    /// for a group of units (`buildings` clear), the OR of every member's
+    /// type `role` (`UnitType +0x2c8`, [`crate::ai::ai_load::UnitCols::role`])
+    /// that is still in use (`docs/GROUPS.md` §3.4). Its only writers are
+    /// `find_role` — run by `Group::normalize@00711540` and by
+    /// `Groups::process@006fa210` on the cursor's slot — and
+    /// `Group::clear@00713e80`'s zero; `copy_group` leaves it, so a pushed
+    /// group keeps its slot's last word until the slot's next normalize
+    /// (item 4116: run 1562's slot 2, pushed on 90, still reads 0 on 91
+    /// beside a Citizen's `0x40300`). Read by the checksum's groups line
+    /// (`docs/CHECKSUM.md` §19) and by `Army::add_group`'s OR into the
+    /// army's role, which this crate does not carry.
+    pub role: u32,
 }
 
 impl GroupState {
@@ -322,7 +335,7 @@ impl GroupState {
     /// `pool`, whose record was `prev`: the stack group's own `(ox, oy)`,
     /// `o_dist`, `o_angle`, `speed` and offset arrays, `stamp = frame`, and
     /// everything else — `form`, `order_num`, `facing`, `form_num`,
-    /// `new_speed`, `march` — the previous occupant's (§28, §30). The
+    /// `new_speed`, `march`, `role` — the previous occupant's (§28, §30). The
     /// arrays are the stack group's `n` entries, each zeroed by its
     /// `Group::add` (`00714350:71–75`) and copied whole (`copy_group`'s
     /// `memcpy`s): run1555's pushes 66 and 67 on 642 print three zero
@@ -390,6 +403,7 @@ impl GroupState {
         self.march = false;
         self.facing = false;
         self.unlinked = true;
+        self.role = 0;
         self.stamp = frame;
     }
 
@@ -442,6 +456,7 @@ impl Default for GroupState {
             pool: None,
             opportunity: 0,
             unlinked: false,
+            role: 0,
         }
     }
 }

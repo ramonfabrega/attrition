@@ -842,6 +842,9 @@ mod tests {
                 // `+0x8 army` names this army, or the record would have
                 // been skipped above (item 4000).
                 unlinked: false,
+                // `+0x34 role` is not one of `log_data`'s fields either;
+                // the group's next normalize writes it (`find_role`).
+                role: 0,
             };
         }
 
