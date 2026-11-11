@@ -418,7 +418,9 @@ pub(crate) const TRAINED: i16 = 6;
 /// order before it and not it — the objects it names (the scout; the
 /// capital; the builder, the Farm's site and the Woodcutter the builder
 /// left) and the bookkeeping its entry writes (the group pool, the path
-/// scratch, the stock the price moves, the footprint's tiles).
+/// scratch, the stock the price moves, the footprint's tiles). Since item
+/// 4098 the Farm's site also heads its cell's chain of objects
+/// (`.terrain.object_heads`, `docs/COLLISION.md` §3.2).
 const PUMPED_PLACES: &[(i64, &[&str])] = &[
     (
         31,
@@ -454,6 +456,7 @@ const PUMPED_PLACES: &[(i64, &[&str])] = &[
             ".orders.last_group",
             ".orders.pushed",
             ".roster.marks",
+            ".terrain.object_heads",
             ".units{0/1}",
             ".world.tiles",
         ],

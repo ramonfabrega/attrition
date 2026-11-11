@@ -258,7 +258,7 @@ and are named last; by bytes:
 
 1. cities (228; ported, §12) · 2. items (484; ported, §11) · 3. goods
 (792; ported, §13) ·
-4. builds (4,923; held out on one field, §14) · 5. guys (9,308) ·
+4. builds (4,923; ported, §14, §15) · 5. guys (9,308) ·
 6. units (19,642; it walks the
 guys again) · 7. groups (37,010) · 8. leaders (58,343) ·
 9. world (294,769) · then walls, ammo and deaths (0 each), counted on a
@@ -293,7 +293,7 @@ item 4060's was run1100, 5408, 3502) and `CHECKSUM_STATE` (the state
 lines our simulation emits equal to the original's, of twelve, and the
 bytes of the twelve walks ours reproduces, of 425,499 on that frame):
 
-    Checksum: instrument 15 of 15 lines (run1562 f91) · state 3 of 12 lines, 1,504 of 425,499 bytes
+    Checksum: instrument 15 of 15 lines (run1562 f91) · state 4 of 12 lines, 6,427 of 425,499 bytes
 
 Item 4088 moved it from `instrument 15 of 15 lines (run1100 f5408) ·
 state 0 of 12 lines, 0 of 501,543 bytes`: the pair moved to the minted
@@ -305,7 +305,8 @@ of 12 lines, 1,504 of 425,499 bytes`: builds is held out on three fields
 of the two camps, 516 of its 519 ranges and 4,845 of its 4,923 bytes
 agreeing, which `CHECKSUM_STATE` does not count (§14). Item 4097 left it
 there too: builds is held out on one `up_who`, 518 of 519 ranges and
-4,889 bytes agreeing.
+4,889 bytes agreeing. Item 4098 moved it from `state 3 of 12 lines,
+1,504 of 425,499 bytes`: builds is ported, every byte (§15).
 
 `floors::tests::the_handoff_s_checksum_line_is_the_pinned_counter` holds
 the queue's line against it. `checksum::tests::the_instrument_reproduces_the_printed_record`
@@ -567,10 +568,11 @@ on either frame read), and `say_checksum`'s labels beyond the fifteen.
   and a unit's collision and path-finding state. *For builds* (item 4094,
   §14): three fields were not held and are carried now (`uid`,
   `frame_started`, `build_masks & 0x400`); `WallData::gpiece` is art the
-  data layer hands in; and two stand unheld, holding the line out — ~~a
+  data layer hands in; and two stood unheld, holding the line out — ~~a
   camp's `recharging`, short of `Guy::move`'s bump~~ (held since item
-  4097, `docs/ORDERS.md` §6.11), and one `up_who`, the object chain's
-  history of a building.
+  4097, `docs/ORDERS.md` §6.11), and ~~one `up_who`, the object chain's
+  history of a building~~ (held since item 4098 with the chain's other
+  three words, `docs/COLLISION.md` §3.2; §15).
 
 ## 11. The items line, ported (item 4088)
 
@@ -897,19 +899,20 @@ an alliance. Probed on our walk: the frame ours sets the bit.
   tested the order.
 - A dead good (`flags` 0, not walked), and a good a terraform moved.
 
-## 14. The builds line, ported (items 4094, 4097; held out on one field)
+## 14. The builds line, ported (items 4094, 4097; whole since item 4098, §15)
 
 `Sim::checksum_builds` (`crates/sim/src/checksum/builds.rs`) emits
 `CheckSums::check_builds@00937290`'s image from this crate's state, and
-`rondata::diff::checksum_lines::the_builds_line_is_held_out_on_one_up_who`
-holds it against the instrument's stream of run 1562's packet the way §11
+`rondata::diff::checksum_lines::the_builds_line_is_the_original_s_range_by_range`
+(until item 4098 `the_builds_line_is_held_out_on_one_up_who`) holds it against the instrument's stream of run 1562's packet the way §11
 to §13 hold theirs: on the minted walk's frame 91, range by range, every
 range decoded field by field on both sides (ours by our range names,
 theirs by each row's call site), then the Adler against record 3201's
-`Builds`. **The line is held out on ~~three fields of the two
-Woodcutter's Camps~~ one field, the British camp's `up_who`** (the camps'
-`recharging` agree since item 4097, below); every other byte of it is
-the original's.
+`Builds`. ~~**The line is held out on three fields of the two
+Woodcutter's Camps, then on one field, the British camp's `up_who`**~~ **The
+line is whole since item 4098** (§15): the camps' `recharging` agree
+since item 4097 (below), and the camp's `up_who` since the chain of
+objects is held (`docs/COLLISION.md` §3.2).
 
 **Which buildings, in which order.** Per leader whose `leaders.list & 1`
 is set, in slot order; per slot of that leader's object array from
@@ -977,10 +980,11 @@ changes.
   captain to enter, and the owner when empty — `Object::init@00647750`
   writes `who` there). **`uid` is carried** (below). `up`, `down`,
   `down_who` and `up_who` are the world cell's object chain
-  (`Object::add_to_world@0064d8c0`), which this crate threads with units
+  (`Object::add_to_world@0064d8c0`), ~~which this crate threads with units
   only: `up` derives as the bottom unit of the building's cell, `down` −1,
   `down_who` 0, `up_who` that unit's owner or −1. One of them parts
-  (below).
+  (below)~~ **held** since item 4098, buildings threaded and the stale
+  words kept (`docs/COLLISION.md` §3.2; §15).
 - **`WallData`**: `job_counter`, `job_counter_2`, `constr_time`,
   `construct_hits`, `ever_seen`, `ever_seen_completed`, `helpers` hold.
   `gpiece` is the renderer's piece (`GraphicPieces::get_build_gpiece
@@ -1062,11 +1066,15 @@ reader is the renderer's work-animation clock (§6.11). ~~No dump
 compares it~~: the dump **prints** it on every `BUILDDATA`, and
 `gamelog::BuildDump` does not parse it (§6.11 has the hand-back).
 
-*`up_who`.* The British camp's cell has had a British unit above it on
+*`up_who`.* ~~The British camp's cell has had a British unit above it on
 its object chain, which moved off: `remove_from_world` sets the
 building's `up` back to −1 and leaves `up_who`. This crate does not
 thread buildings on the chain (`Sim::cell_chain` is units only), so it
-holds no such history.
+holds no such history.~~ **Answered by item 4098** (§15,
+`docs/COLLISION.md` §3.2): the reading held — a British unit stood above
+the camp and stepped off, the head arm of `remove_from_world` wrote `up`
+−1 and left `up_who` — and with buildings threaded at their init and the
+four words held, ours reads 1.
 
 **The value diff**: ~~516 of 519 ranges equal, and 4,845~~ **518 of
 519 ranges equal, and 4,889** of 4,923 bytes in the ranges that agree
@@ -1112,9 +1120,10 @@ writer.
 - `0x8` of `build_masks` is emitted with `0x80` (`Build::init` sets both
   for a hangar); only the player's toggle clears `0x80`, and whether it
   clears `0x8` is not read.
-- A building whose cell held a unit before it was placed (its `down`
-  would be that unit), a building on a good's or a box's cell, and a
-  garrisoned building (which end of the garrison `inside_down` names).
+- ~~A building whose cell held a unit before it was placed (its `down`
+  would be that unit), a building on a good's or a box's cell, and~~ (the
+  chain is held, §15; still no capture) a garrisoned building (which end
+  of the garrison `inside_down` names).
 - A queue slot vacated by a finished or cancelled entry (the original
   keeps its bytes; ours writes zeros).
 - A mining list that shrank or a slot reused by a larger list (`size`),
@@ -1125,3 +1134,41 @@ writer.
   `add_building` and `init_build` here: a wall, or a unit the original
   re-inits where this crate does not, would advance the original's
   counter alone.
+
+## 15. The builds line, whole (item 4098)
+
+**The line is the original's on run 1562's frame 91**: 519 of 519
+ranges, 4,923 of 4,923 bytes, every field of the fifteen buildings, their
+100 queue slots and 143 tiles, and the Adler **2869973639**, the printed
+`Builds`, with no substitution.
+`diff::checksum_lines::the_builds_line_is_the_original_s_range_by_range`
+holds it, and `CHECKSUM_STATE` counts it: 4 of 12 lines, 6,427 of
+425,499 bytes (§5).
+
+**What moved it.** The last parting field (§14's range 334) was the
+British Woodcutter's Camp `1/2001`'s `ObjectData::up_who`, ours −1 and the
+original's 1. It is one of the four words of the world cell's chain of
+objects, which this crate now threads with buildings and holds as the
+original writes them — `up_who` and `down_who` left stale by both
+`Object::add_to_world@0064d8c0` and `Object::remove_from_world
+@00647970`, a building threaded at its `Object::init@00647750` on its own
+point's cell, a number's two `who`s kept across a re-init
+(`docs/COLLISION.md` §3.2). The camp's four words on both sides: `up` −1,
+`down` −1, `down_who` 0, `up_who` 1. The emitter reads `Building::chain`;
+it derived the words from the units on the building's cell before.
+
+**The units' four words**, which stand in every unit's walked range of
+the units line (§6, `ObjectData` `myhits`..`launch_frames`): all 52 units
+agree on `up`, `down`, `down_who` and `up_who`
+(`the_units_four_chain_words_are_the_original_s`, reported; the units line
+is not ported). The chain alone of units gave 52, 31, 28 and 50.
+
+**Made to fail**: the camp's `up_who` back at the derived −1 parts on
+range 334 alone and moves the Adler; one perturbed byte (the fourth
+building's `x`) parts on its own range alone; the empty image on all
+519. Mutating `remove_from_world`'s head arm to clear the `up_who` of the
+object below turns both tests red.
+
+**Not established**: the frames after 91 (a building's close, a wreck, a
+reused number: `docs/COLLISION.md` §3.2), and everything §14 lists but
+the chain.

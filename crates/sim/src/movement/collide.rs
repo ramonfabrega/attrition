@@ -1856,9 +1856,11 @@ impl Sim {
     /// [`Self::chain_add`] pushes on the head, so the chain is newest
     /// first: chapter one's cell reads `1/8, 1/7, 1/6, 0/8, 0/7, 0/6`
     /// there and here alike. **Units only** — a building is an object on
-    /// the original's chain too, and this crate has never threaded one,
-    /// so a caller that wants both appends the buildings itself. That
-    /// seam is stated where it is taken.
+    /// the original's chain too, and this walk drops it, so a caller that
+    /// wants both appends the buildings itself. That seam is stated where
+    /// it is taken. The whole chain, buildings in their place, is held
+    /// beside it since item 4098 (`object_heads`, `docs/COLLISION.md`
+    /// §3.2); no reader takes it yet.
     pub(crate) fn cell_chain(&self, c: crate::Cell) -> Vec<usize> {
         if c.x < 0 || c.y < 0 || c.x >= self.world.width() || c.y >= self.world.height() {
             return Vec::new();
