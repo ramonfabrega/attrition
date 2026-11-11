@@ -414,8 +414,8 @@ wonder's loss. Not the current count.
 | `Leader::reset_score (006e37f0)` | `006e3889` `mov %eax,0x858(%ecx)` | `= 0` |
 | `Leaders::clear (006ed5d0)` | memset | `= 0` |
 
-`Wonders::close_wonder (0073c7e0)` does not write it (its only `+0x8xx`
-access is none; it writes `wonder_mark` +0x424 only).
+`Wonders::close_wonder (0073c7e0)` does not write it: its only leader
+accesses are to `wonder_mark` (+0x424, decompile lines 13–21, the trim).
 
 ### 2. Event, step, predicate
 
@@ -465,7 +465,7 @@ under `wonders_built`, takes) a wonder.
 ### 7. Confidence, not read
 
 High (decompile and listing agree; one writer besides the resets). Not
-read: `Wonder::get_timer`; whether any path sets a `Wonder` entry live
-other than `init_wonder` (none found by the `+0xc` store grep, which was
-not run — only the leaf's own nets were).
+read: `Wonder::get_timer`; whether any path other than `init_wonder` sets a
+`Wonder` entry's live bit (`+0xc`); only the leaf's own nets were run, not
+a grep of that byte's writers.
 

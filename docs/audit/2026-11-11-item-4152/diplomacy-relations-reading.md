@@ -393,3 +393,145 @@ All of them compare `frame − max(mine[t], theirs[me])` with
 - **Not followed:** `Diplomacy::clear_all`'s callers, and
   `Leader::process_taunt (006b8cc0)`'s call to `action_respond`.
 
+## `hire_stamp` (+0x1b4, int[8]) and `hire_who` (+0x1d4, int[8])
+
+One writer loop steps both, so they share a section.
+
+### Writers
+
+**`Leader::action_respond (006d03c0)`**, the hire loop at `6d11bc`–`6d12a9`.
+For each slot `i`:
+
+- `6d121e`: `list[me].hire_stamp[i] = frame` (absolute
+  `0xe3a544(,me·0x1bbb+i,4)`).
+- `6d122e`: `list[p].hire_stamp[i] = frame`. This is `-0x20(%ecx)`, where
+  `ecx` walks `&list[p].hire_who[i]`, set up at `6d11d4` as
+  `lea 0xe3a564(p·0x6eec)`.
+- `6d123a`: `list[me].hire_who[i] = p`.
+- `6d1244`: `list[p].hire_who[i] = me`.
+
+Other stores:
+
+- **`Leader::init`**, inside the per-slot loop: `hire_stamp[u] = 0` at
+  `puVar23[0x38]`, and **`hire_who[u] = −1`** at `puVar23[0x40]`
+  (`0xd4 + 0x40·4 = 0x1d4`, decompile line 189).
+- **`Leaders::clear`** memsets both to 0 *before* init sets `hire_who`
+  to −1.
+- **Nothing else stores.** The absolute ranges `0xe3a544..0xe3a563` and
+  `0xe3a564..0xe3a583` have just these stores plus reads at `6bdd57`,
+  `6bdd6b` and `6d11d4` (a `lea`).
+- **`BuildOut::make_options (00629ed0)`'s `pLVar16->hire_who[4]`** (lines
+  241, 457 and 592) is the export mistyping a `UnitType*` as
+  `LeaderData*`. It reads `+0x1e4` of a unit type (the `0x4000000` flag),
+  is not a leader access, and is a read anyway.
+- **The `0x1bc`/`0x1dc` stores in `Leader::init`** at `6e3d57`/`6e3d5d`
+  are the same loop's `hire_stamp[2]`/`hire_who[2]` slots after unrolling.
+  They are already covered.
+
+### Event, step, predicate
+
+Two leaders `me` (the responder, `this`) and `p` (`param_1`) execute an
+accepted deal in `action_respond`'s execution tail (see `made_peace` for
+the gating). Then, **only if `Game::war_allowed`** (`6d11c2`), for every
+slot `i` in 0..8 with `i ≠ me`, `i ≠ p`, and the deal's attack term for
+`i` non-zero (`list[me].dip[p] + 0x3c + 4i`, absolute
+`0xe40cf8 = 0xe3a390 + 0x6968`; set by `Leader::action_attack (006d14e0)`
+in both parties' records):
+
+- both parties stamp `hire_stamp[i]` with the frame;
+- each records the other as `hire_who[i]`;
+- each party that is not yet at war with `i` calls
+  `action_declare(i, 0, free = !human, 0)`.
+
+So `X.hire_who[i] = Y` means "X and Y agreed to attack `i` together", and
+`X.hire_stamp[i]` is the frame of that agreement. There is no liveness
+test on `i`. Units are frames and a slot index.
+
+`Leader::action_propose_attack (006d14d0)` is a single
+`jmp 0x6d14e0`, so it is `action_attack`. `action_attack` has three
+callers:
+
+- `Leader::diplomacy` at `6c0f2b`, decompile lines 2309–2314: the
+  computer proposes alliance plus attack, then calls
+  `action_respond(t, 1)` on its own offer;
+- `CommandPackage` at `946c32`, the human;
+- `ScenarioFuncSet` at `9fc373`.
+
+The computer's proposal arm is skipped for any team style other than 0,
+8 or 11 (decompile lines 2178–2193, `goto LAB_006c0f50`).
+
+### Readers
+
+All are in `Leader::diplomacy`, for computer `me` against target `t`.
+
+- **`6bdc8x`–`6bdca9`**, decompile lines 925–928: if
+  `me.hire_stamp[t] ≠ 0` and `frame − me.hire_stamp[t] < 13500`
+  (`0x34bc`), then `aggression[t] = 1`. I agreed to attack `t`, so I stay
+  armed against `t`.
+- **`6bdcdf`–`6bdd04`**, lines 929–937: the "my cities that were theirs"
+  coin (one in three, one in two for a boomer) clears aggression only if,
+  besides the coin, `me.hire_stamp[t] == 0` or
+  `frame − me.hire_stamp[t] > 4500` (`0x1194`). The coin is drawn whether
+  or not the stamp blocks the clear (`6bdcd3` comes before `6bdce2`).
+- **`6bdd30`–`6bde0f`**, lines 940–970, a loop over live `l ∉ {me, t}`:
+  - **(a) Dead as compiled.** "If `list[l].hire_who[me] == l` and
+    `frame − list[l].hire_stamp[me] < 9000`, set `aggression[t] = 1` and
+    stop". The compare is `cmpl %edi, 0xe3a564(,l·0x1bbb+me,4)` at
+    `6bdd57`, and `edi` is the loop counter `l` (`xorl %edi,%edi` at
+    `6bdd12`, `incl %edi` at `6bddf8`). The writer only ever stores the
+    *partner*, so `X.hire_who[i] ≠ X` always, and init is −1. The arm
+    can never fire. (The intended operand was presumably `t`, "`l` and
+    `t` agreed to attack me", but the binary says `l`.)
+  - **(b) Live.** If my ally `t` (`is_ally(me, t)`, `6bdddb`) agreed with
+    me to attack `l` (`me.hire_who[l] == t`, `6bddbe`) at most 9000
+    frames ago (`frame − me.hire_stamp[l] ≤ 9000`, `6bddcd`, `jg` skips);
+    and I am at war with `l` (either side's `diplos` 0, `6bdda6`–`6bddb9`);
+    and `t` is **not** at war with `l` (both `list[t].diplos[l]` and
+    `list[l].diplos[t]` non-zero, `6bdd87`–`6bdda4`; the `l == t` escape
+    at `6bdd83` is dead because the loop skips `l == t`); then
+    `aggression[t] = 1`.
+  - In words, (b) says: an ally who promised to join my war and has not
+    done so becomes a target.
+- **Offers arm, line 1345**: `hire_stamp[t]` less than 13501
+  (`0x34bd`) frames old is one of the conditions that sends the
+  tribute-demand branch elsewhere. Not decoded further.
+
+### Reset
+
+`Leader::init` (`hire_stamp` 0, `hire_who` −1) and `Leaders::clear` (both
+0). No fold.
+
+### Crate
+
+- No event.
+- **Reader SEAM** at `crates/sim/src/leaders/diplomacy.rs:453–455`
+  ("hiring is not modelled, so neither of their two arms fires").
+- **There are three live reader arms, not two:**
+  1. the 13500-frame rearm;
+  2. the 4500-frame guard on the mine coin;
+  3. the loop's arm (b).
+
+  Arm (a) is dead.
+- A builder would add the writer to a new `Sim::action_respond`, the deal
+  execution, in `crates/sim/src/leaders/`. It needs `Diplomacy` records,
+  which the crate does not carry.
+
+### Reached by a plain game?
+
+- **Only with Diplomacy on** (team style 0, 8 or 11). There, a computer's
+  alliance-plus-attack offer, or the human's joint-attack proposal through
+  the diplomacy window, can execute. It needs three or more players,
+  because `i ∉ {me, p}`.
+- **Not under locked team style 1**, as far as the computer's offer goes.
+  Whether the human's window offers attack terms under style 1 was not
+  read.
+- Scenario: `ScenarioFuncSet`.
+
+### Confidence and what is not read
+
+- **High** for the four stores, the init value −1 and the dead arm (a).
+  All were read in the listing.
+- **Medium** for the gating into the execution tail.
+- **Not followed:** `CommandPackage` at `946c32`'s argument mapping;
+  `Diplomacy::num_attacks`.
+

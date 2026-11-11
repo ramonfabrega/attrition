@@ -384,3 +384,42 @@ from their placement after `train_time`); `Build::train`'s
 `Leader::produce_unit`'s path into `queue_up`; the unit data's `where`,
 `attack` and `domain` columns.
 
+---
+
+## Against the README row
+
+The row lists `Leader::track_queued` and `Unit::process` for the six queued
+counters, and `track_unit_type`'s militia-from-a-Scholar arm for
+`scholar_militia`. All three are confirmed. The row leaves out writers:
+
+- six further **inlined** copies of the queued rule: `Build::queue_up
+  (00620f40)` (+1), `Build::unqueue (006207c0)` (−1, cancel and completion),
+  `Build::clean_queue (00620b60)` (−1 per entry), `Unit::action_unqueue
+  (005e1f20)` (−1), `Group::action_spell (006fe1a0)` (+1, BUILDAIR), and
+  four `Wall::*` copies that exist but cannot step the family;
+- `track_queued`'s own callers, `Unit::close (0060ee50)` (−n) and
+  `Leader::gain_tech (006dcb60)` (four sites);
+- `Leader::init (006e3930)` (zero) and `LeaderData::walk_data (006d6750)`
+  (load) for all seven.
+
+"Each its own zero floor" is not quite right: the guard skips a negative
+step only when the counter is **exactly** 0, so `track_queued`'s −n can take
+a counter below zero; only the −1 copies behave as a floor.
+
+---
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `scholar_militia` +0x9f0 | `Leader::track_unit_type (006e0dd0)`, from `Unit::set_type (00612fa0)` ×2, `Unit::close (0060ee50)`, `Objects::init_unit (0065e0c0)` ×2, `SpellType::cast_create_decoy (00674370)` | ±1 when the tracked type `is(MILITIA)` and the unit's `former_type` (`+0x54`) `is(SCHOLARS)`: +1 at To Arms, −1 at Back to Work and at death | `Leader::init (006e3930)` (tribe ≥ 0); load | derived, not kept: `Sim::worker_support`, `economy/pricing.rs`; a kept one beside `Sim::track_unit_type`, `units/store.rs` | yes (To Arms / Back to Work) | high on writers and arm; medium on which types answer the two kind tests; a stale-slot +1 hazard is a reading only |
+| `barracks_queued` +0xa10 | `Leader::track_queued (006e0f30)` (callers `Unit::close`, `Leader::gain_tech`); inlined in `Build::queue_up (00620f40)`, `Build::unqueue (006207c0)`, `Build::clean_queue (00620b60)`, `Unit::action_unqueue (005e1f20)`, `Unit::process (00610bc0)`, `Group::action_spell (006fe1a0)` | ±1 per queued attacking unit with `where == BARRACKS (0x1ab)`; with `combat_queued` | `Leader::init`; load | `Muster::queued_by_group` via `track_tree_queued` / `untrack_queued`, `cities/queue.rs` (bin keyed by `where`) | yes | high |
+| `stable_queued` +0xa14 | same set | `where == STABLE (0x1ac)`; with `combat_queued` | same | same | yes | high |
+| `factory_queued` +0xa18 | same set | `where == SIEGEFACTORY (0x1ae)` (not `FACTORY 0x1af`); no combat | same | same | yes | high |
+| `combat_queued` +0xa1c | same set | Barracks + Stable arms only, own zero test | same | **none**: no counterpart in the crate | yes | high |
+| `dock_queued` +0xa20 | same set | `where == DOCK (0x1b0)` | same | same as barracks | yes | high |
+| `air_queued` +0xa24 | same set (carrier writers dominate) | `where` none of the four and `domain == 2` | same | same; `air/carrier_queue.rs` has BUILDAIR, completion and cancel, but not `Unit::close`'s −n nor `gain_tech`'s carrier move | yes (Modern carriers) | high |
+
+All seven: read by `LeaderData::log_data (006e5110)`; the six (not
+`combat_queued`) by `LeaderData::get_support_count (006da110)` for the price
+ramp in `TypeData::get_cost (00664090)`, which also reads `scholar_militia`.
