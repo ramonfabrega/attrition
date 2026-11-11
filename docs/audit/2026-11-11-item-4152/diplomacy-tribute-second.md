@@ -488,3 +488,21 @@ style 0/8/11. Not by an all-computer team-style-1 game that I found.
 `Constants::init`'s load of `commerce_tribute`/`base_tribute`, and which
 epoch index 2 is.
 
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `tribute_stamp` [8] | `Leader::consider_tribute` (006d1360) | `R.tribute_stamp[G] = frame` on a trade with amount > 0, when R human, or amount ≥ 100·`G.blacken` and R's post-credit stock of g < 3000 and (g wealth or `R.econ[g] & 4`) | `Leaders::clear` (006ed5d0) / `Leader::init` (006e3930, arg2 < 0) memset; save load | none; readers stubbed false at `ai/army.rs:3262`, `ai/army/target_gate.rs:523` | only via a human's tribute/deal or taunt, or a computer demand at team style 0/8/11 | high |
+| `gift_stamp` [8] | `Leader::consider_tribute` (006d1360); `Leader::process_taunt` (006b8cc0) | `G.gift_stamp[R] = frame` on every positive trade amount; and on a computer's grant of an ally's resource taunt (teams unlocked or neutral) | memsets; load | none | taunt: a human with a computer ally, any team style; trade: as above | high |
+| `counteroffer` [8] | `Leader::diplomacy` (006bc950) ×4; `Leader::action_respond` (006d03c0) | 1 when a computer counters k's proposal (shortfall − 99 > 0); 0 on its accept/reject and on any `action_respond(this, k, ·)` | the clears; memsets; load | SEAM `leaders/diplomacy.rs:177–179`; cadence omits it | needs a proposal to a computer; not an all-computer style-1 game | high (writers), medium (locals) |
+| `tribute_demanded` [8] | `Leader::diplomacy` (006bc950); `Leader::action_respond` (006d03c0) | 1 when a computer demands tribute instead of war (team style 0/8/11); 0 on `action_respond(this, k, ·)` | the clear; memsets; load | SEAM `leaders/diplomacy.rs:177–179`; cadence omits the `0x2000` term | no at team style 1; yes, with no human, at style 0 | high |
+| `tributes` [6] | `Leader::action_respond` (006d03c0) (+ commit ×2, − trade ×2, floor ×2); `Leader::clear_agree` (006d1af0) (refund) | + committed offer (and a human's attack price) at agree; − the offer at trade, floor 0; − `min(tributes, dows/offer)` refunded on cancel | memsets; load | none (no `Diplomacy` record) | as `tribute_stamp` | high (sites), medium (`dows` refund effect) |
+| `tribute_sent` | `Leader::action_respond` (006d03c0) ×2; `Leader::reset_score` (006e37f0) | + gross amount given per good per trade | `reset_score` (every `Leader::init`, `Setup::build_game`); memsets | none | as `tributes` | high |
+| `tribute_received` | `Leader::action_respond` (006d03c0) ×2; `Leader::reset_score` (006e37f0) | + `giver.scale_tribute(amount)` per good per trade | as `tribute_sent` | none | as `tributes` | high |
+
+**Disclosure.** Two greps for unrelated vocabulary (`leader_flags` bit 4,
+`TEAM_STYLE`) printed one line each of `docs/CHECKSUM.md` §20
+(`:1706`, the `leader_flags` bit table) and three lines of
+`docs/PARKED.md` (`:5911`, `:9755`, `:9758`, about team style 0's
+lobby). None named a leaf of this family or any writer above; nothing
+here rests on them.
