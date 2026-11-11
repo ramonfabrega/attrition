@@ -600,8 +600,14 @@ fn drive(text: &str, out: &mut Paths) {
 /// field the sim gains leaves the unread row or lands here with its item.
 ///
 /// Item 3306 read the first three — `good_obj`, `mana_burn` and `rare` —
-/// beside `widen_block`'s `spell_time` row, and the list is empty.
-const UNREAD_UNIT_FIELDS_OWED: &[(&str, u32)] = &[];
+/// beside `widen_block`'s `spell_time` row, and the list was empty.
+///
+/// Item 4113 gave the unit `hero`, `special` and `play` for the checksum's
+/// units line, on rules held against one frame of one game; the whole gate
+/// on its booking named them here. Item 4118 owes their readers: the
+/// values every capture prints beside ours, then the compare.
+const UNREAD_UNIT_FIELDS_OWED: &[(&str, u32)] =
+    &[("hero", 4118), ("play", 4118), ("special", 4118)];
 
 /// The field names of `pub struct Unit` in `crates/sim/src/units/unit.rs`
 /// (item 4014 moved it out of `lib.rs`).
