@@ -975,6 +975,45 @@ impl Sim {
                 .filter(|x| x.alive && usize::from(x.owner) == w)
                 .count() as i64),
             "village_num" => one(i64::from(c.village_num)),
+            // `city_mine` (`+0x400`) moves with `city_num` at every store:
+            // `Build::activate`'s founding, `City::close`'s loss and
+            // `Leader::init`'s count of a scenario's cities (§20).
+            "city_mine" => one(self
+                .cities
+                .cities
+                .iter()
+                .filter(|x| x.alive && usize::from(x.owner) == w)
+                .count() as i64),
+            // `city_mark` (`+0x408`): `Cities::init_city` raises it to the
+            // slot taken plus one, and `close_city` and `capture_city` trim
+            // it past the dead slots at the top, so it is the last live slot
+            // of the leader's list plus one. This crate's records of one
+            // owner are that list in order (`Sim::init_city` reuses the
+            // owner's first dead record, as `init_city` does).
+            "city_mark" => one(self
+                .cities
+                .cities
+                .iter()
+                .filter(|x| usize::from(x.owner) == w)
+                .enumerate()
+                .filter(|(_, x)| x.alive)
+                .last()
+                .map_or(0, |(k, _)| k as i64 + 1)),
+            // `cities_built` (`+0x820`): `Build::activate`'s counted
+            // founding and `Setup::build_cities`' start city.
+            "cities_built" => one(i64::from(self.cities.city_tally[w].built)),
+            "units_built" => one(i64::from(m.units_built)),
+            "buildings_built" => one(i64::from(self.cities.city_tally[w].buildings_built)),
+            // `team_color` (`+0x6928`): `Setup::build_game` runs
+            // `Leader::init(who, tribe, who)`, and
+            // `Game::init_rules_and_teams` writes the slot's own number.
+            "team_color" => one(w as i64),
+            // `chat_status` (`+0x54`): `Game::init_teams`' tail writes 1 on
+            // every slot, then 0 on a seated slot when the game is not
+            // cooperative or the pair is on a team. SEAM: the cooperative
+            // styles, `semaphore[0] & 0x80` and the interface's chat-set
+            // command are not carried; the crate seats a plain game.
+            "chat_status" => Some((0..count).map(|i| i64::from(i >= players)).collect()),
             // `lost_city_stamp` (`+0x410`): `City::close` stamps the frame a
             // city is lost; before any, `Leader::init`'s −90 (`0xffffffa6`).
             "lost_city_stamp" => one(self

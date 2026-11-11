@@ -1772,16 +1772,11 @@ const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("best_pop (unheld)", 2),
     ("blacken (unheld)", 2),
     ("broke_alliance (unheld)", 2),
-    ("buildings_built (unheld)", 2),
     ("buildings_lost (unheld)", 2),
     ("buildings_razed (unheld)", 2),
     ("cannon_time (unheld)", 2),
-    ("chat_status (unheld)", 2),
-    ("cities_built (unheld)", 2),
     ("cities_captured (unheld)", 2),
     ("cities_lost (unheld)", 2),
-    ("city_mark (unheld)", 2),
-    ("city_mine (unheld)", 2),
     ("city_name (unheld)", 2),
     ("column_orders_issued (unheld)", 2),
     ("combat_queued (unheld)", 2),
@@ -1870,7 +1865,6 @@ const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("supported (unheld)", 2),
     ("take_att_disabled (unheld)", 2),
     ("taunt_frame (unheld)", 2),
-    ("team_color (unheld)", 2),
     ("tech.ptr", 2),
     ("territory_high (unheld)", 2),
     ("trade_profit (unheld)", 2),
@@ -1880,7 +1874,6 @@ const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("tribute_stamp (unheld)", 2),
     ("tributes (unheld)", 2),
     ("units_bribed (unheld)", 2),
-    ("units_built (unheld)", 2),
     ("units_killed (unheld)", 2),
     ("units_lost (unheld)", 2),
     ("victory_type (unheld)", 2),
@@ -1889,6 +1882,18 @@ const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("wonders_held (unheld)", 2),
     ("wonderwin_stamp (unheld)", 2),
     ("wonderwin_timer (unheld)", 2),
+];
+
+/// The long range's leaves the test bends, one of each kind carried
+/// (`docs/CHECKSUM.md` §20).
+const LEADERS_BENT: &[&str] = &[
+    "tribe",
+    "units_built",
+    "buildings_built",
+    "cities_built",
+    "city_mark",
+    "chat_status",
+    "team_color",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its
@@ -2048,20 +2053,27 @@ fn the_leaders_line_is_the_original_s_range_by_range() {
     ] {
         assert!(kinds.contains(k), "a {k} range was bent");
     }
-    // A leaf of the long range: `tribe` bent on leader 0 joins the list.
-    let mut bent_rows = rows.clone();
-    let tribe = bent_rows
-        .iter_mut()
-        .find(|r| r.0 == 0 && r.2 == "tribe")
-        .expect("leader 0's tribe");
-    if let Some(v) = tribe.3.as_mut() {
-        v[0] += 1;
+    // A leaf of the long range bent on leader 0 joins the list: `tribe`
+    // (item 4121), and one of each kind item 4124 carried — a counter
+    // (`units_built`), a city slot mark (`city_mark`), a setup rule
+    // (`chat_status`, `team_color`).
+    for leaf in LEADERS_BENT {
+        let mut bent_rows = rows.clone();
+        let row = bent_rows
+            .iter_mut()
+            .find(|r| r.0 == 0 && r.2 == *leaf)
+            .unwrap_or_else(|| panic!("leader 0's {leaf}"));
+        let v = row
+            .3
+            .as_mut()
+            .unwrap_or_else(|| panic!("{leaf} is carried"));
+        v[0] ^= 1;
+        let bent_held = leader_held(&bent_rows);
+        assert!(
+            bent_held.iter().any(|(f, n)| f == leaf && *n == 1),
+            "a bent {leaf} joins the held-out leaves"
+        );
+        assert_eq!(bent_held.len(), LEADERS_HELD_OUT.len() + 1, "{leaf}");
     }
-    let bent_held = leader_held(&bent_rows);
-    assert!(
-        bent_held.iter().any(|(f, n)| f == "tribe" && *n == 1),
-        "a bent tribe joins the held-out leaves"
-    );
-    assert_eq!(bent_held.len(), LEADERS_HELD_OUT.len() + 1);
     assert_eq!(parting(&Line::default(), &theirs).len(), LEADERS.1);
 }

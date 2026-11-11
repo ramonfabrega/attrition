@@ -122,6 +122,12 @@ pub struct Tally {
     pub lost_capital_frame: Option<i64>,
     /// `leader_flags & 0x400000`: the first capital loss has been plundered.
     pub capital_plundered: bool,
+    /// `LeaderData::buildings_built` (`+0x814`): `Build::init@00629740:62`
+    /// adds one for a building placed and not restored (`Wall::swap_team`'s
+    /// re-creation is not counted), so a cancelled site stays counted.
+    /// Nothing else stores it but `Leader::reset_score`'s 0. Read only by
+    /// the leaders line (`docs/CHECKSUM.md` §20).
+    pub buildings_built: i32,
 }
 
 /// A city record — `CityData`, as far as this mechanic reads it.
@@ -1538,6 +1544,9 @@ impl Sim {
         let z = self.world.object_z(pos.tile());
         let uid = self.next_uid(who);
         let chain = self.building_slot_chain(who, index);
+        if !restore && let Some(t) = self.cities.city_tally.get_mut(who as usize) {
+            t.buildings_built += 1;
+        }
         self.buildings.push(Building {
             owner: who,
             index,

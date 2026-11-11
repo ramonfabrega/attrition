@@ -865,6 +865,13 @@ pub struct Muster {
     pub queued_by_group: Vec<i32>,
     /// Population occupied — `LeaderData::control`.
     pub control: i32,
+    /// `LeaderData::units_built` (`+0x808`): `Unit::init@00612100` adds one
+    /// for a unit whose type has population (`+0x2f0`); `Objects::init_unit`
+    /// and `SpellType::cast_create_decoy` take it back for a squad follower,
+    /// as they take back `control` and `active`. Nothing else stores it but
+    /// `Leader::reset_score`'s 0 (`docs/CHECKSUM.md` §20). Read only by the
+    /// leaders line.
+    pub units_built: i32,
     /// The cap it is measured against. Recomputed from scratch by
     /// [`Sim::recompute_pop_caps`] rather than maintained incrementally,
     /// because `Leader::calc_pop_cap` recomputes it from scratch too.
