@@ -459,6 +459,17 @@ pub struct Guy {
     /// A pivot figure's turret (`docs/COMBAT.md` §55): zero on every
     /// figure whose piece has no `<RESTRICTION>` row.
     pub turret: Turret,
+    /// **Where the figure stood, and which way it faced, when its last
+    /// `Guy::move` began** — `last_x`/`last_y` (`+0x68`/`+0x6c`) and
+    /// `last_angle` (`+0x1c`), which `Guy::move@005d9240:44–50` copies
+    /// from `x`/`y` and `angle` at its head, before anything in it moves
+    /// or turns the figure (`docs/CHECKSUM.md` §16). Written at the head of
+    /// [`Sim::process_movement_on`] for every figure the frame walks; read
+    /// only by the guys line. `None` until the first walk, which the line
+    /// takes as the figure's own point and facing — `Unit::init`'s seating
+    /// (`Guy::set_new_location(…, 1)`, `005d86f0:66`) writes `last` equal
+    /// to the point.
+    pub last: Option<(Pos, Angle)>,
 }
 
 /// **A pivot figure's turret** — `GuyData +0x20 turret_angles[4]`, `+0x30
@@ -574,6 +585,7 @@ impl Guy {
             aim: None,
             follow: None,
             turret: Turret::ZERO,
+            last: None,
         }
     }
 }
@@ -1021,7 +1033,7 @@ impl Sim {
     /// The gaia variant of a unit — `(seed + o) % 3`, the index into the
     /// three `<UNIT name="X-TYPE<v>">` entries the install names for a
     /// gaia type and the `sub` [`Sim::piece_of`] keys by.
-    fn gaia_variant(&self, u: usize) -> u8 {
+    pub(crate) fn gaia_variant(&self, u: usize) -> u8 {
         let o = self.units[u].index;
         (self.game_seed.wrapping_add(i32::from(o))).rem_euclid(3) as u8
     }
