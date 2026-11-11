@@ -137,7 +137,9 @@ pub const CHECKSUM_PACKET: (&str, i64, u64) = ("run1562", 91, 3201);
 /// 425,499 (`diff::checksum_lines`). Item 4091: cities, 228 more; goods
 /// held out on good 15's `ever_seen`. Item 4093: goods, 792 more, once
 /// the built start runs setup's goods scan (`docs/CHECKSUM.md` §13).
-pub const CHECKSUM_STATE: (usize, usize, u64, u64) = (3, 12, 1_504, 425_499);
+/// Item 4098: builds, 4,923 more, once buildings stand on the cell's chain
+/// of objects with its stale words held (`docs/CHECKSUM.md` §15).
+pub const CHECKSUM_STATE: (usize, usize, u64, u64) = (4, 12, 6_427, 425_499);
 
 /// Which logger hook printed a record.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

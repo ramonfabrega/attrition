@@ -2117,6 +2117,12 @@ pub struct WorldState {
     /// against, by queue index ([`cliff_mine::CliffMining`]). Empty when
     /// nothing laid them ([`Sim::place_cliffs`]); no dump prints them.
     pub cliffs: Vec<crate::economy::cliff_mine::CliffMining>,
-    /// `WData::down` per world cell: the head of the object chain (§3).
+    /// `WData::down` per world cell: the head of the object chain (§3) —
+    /// of its units, the walk every reader takes.
     pub chain_heads: Vec<Option<usize>>,
+    /// The same head of the whole chain, buildings with the units
+    /// (`docs/COLLISION.md` §3.2, item 4098): what `WData::down`/`down_who`
+    /// name in the original. Nothing reads it but the chain's own two
+    /// functions and the checksum's walks.
+    pub object_heads: Vec<Option<crate::combat::Obj>>,
 }
