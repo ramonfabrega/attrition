@@ -5567,4 +5567,320 @@ mod tests {
             assert!(out[&(1, 196, b)].1 > 0.8, "the tanks' band {b}");
         }
     }
+
+    /// **Item 4112: the level the card samples, as values.** Every lit
+    /// pixel of each figure: its key holds it, the photograph's footprint
+    /// holds it, it is not behind anything, neither the painter's blend
+    /// (`Colouring::Team`, the colour row's own) nor the photograph sums
+    /// under `HUE.dark` — whatever the painter's alpha. Per (owner, piece)
+    /// and per column — the painter's level bilinear (the drawn rule) and
+    /// nearest, then each fixed level 0 to 4 nearest and bilinear — the
+    /// pixels whose blend `t·α + c·(1 − α)` agrees with the photograph and
+    /// the pixels that column calls masked (alpha under 255). Then, at the
+    /// painter's column and the best one, a texcoord shift of half a texel
+    /// each way in u and v at that column's level. Then each colour-row
+    /// object re-counted under each column, the pixels behind left as the
+    /// silhouette paints them. Nothing is fitted; nothing is drawn.
+    #[test]
+    #[allow(clippy::needless_range_loop)]
+    fn the_level_the_card_samples() {
+        use render::silhouette::{HUE, chromaticity, team_blend, team_unit, traced_theirs};
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        world.run_to(PHOTO_FRAME);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let size = (photo.width, photo.height);
+        // The colour row as it stands: the baseline each object is
+        // re-counted from.
+        let base = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Silhouette);
+        let scene = frame_scene(&mut world, &camera, size);
+        let p = Photo {
+            width: photo.width,
+            height: photo.height,
+            rgba: &photo.rgba,
+        };
+        let traces: Vec<Trace<'_>> = TRACED
+            .iter()
+            .map(|&(name, poly)| Trace {
+                key: scene
+                    .who
+                    .iter()
+                    .position(|&(who, o, _, _)| format!("{who}/{o}") == name)
+                    .map_or(u32::MAX, |i| i as u32 + 1),
+                poly,
+            })
+            .collect();
+        let rows = footprints_traced(
+            &scene.keys,
+            &p,
+            &INTERFACE,
+            &READING,
+            &traces,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let agrees = |a: [f32; 3], b: [f32; 3]| {
+            let (x, y) = (chromaticity(a), chromaticity(b));
+            ((x[0] - y[0]).powi(2) + (x[1] - y[1]).powi(2)).sqrt() <= HUE.distance
+        };
+        let sum = |q: [f32; 3]| q[0] + q[1] + q[2];
+        let nearest = |m: &render::silhouette::Mips, level: usize, u: f32, v: f32| {
+            let im = &m.levels[level];
+            let (w, h) = (im.width as i64, im.height as i64);
+            let x = ((u * w as f32).floor() as i64).rem_euclid(w) as usize;
+            let y = ((v * h as f32).floor() as i64).rem_euclid(h) as usize;
+            let o = (y * im.width + x) * 4;
+            [0, 1, 2, 3].map(|c| f32::from(im.rgba[o + c]))
+        };
+        // Columns: 0 the painter's level bilinear, 1 nearest; 2..=6 levels
+        // 0..4 nearest; 7..=11 levels 0..4 bilinear.
+        const COLS: usize = 12;
+        let col_name = |c: usize| match c {
+            0 => "P bil".to_string(),
+            1 => "P near".to_string(),
+            2..=6 => format!("L{} near", c - 2),
+            _ => format!("L{} bil", c - 7),
+        };
+        let col = |c: usize, pv: usize| -> (usize, bool) {
+            match c {
+                0 => (pv, true),
+                1 => (pv, false),
+                2..=6 => (c - 2, false),
+                _ => (c - 7, true),
+            }
+        };
+        const SHIFTS: [(f32, f32); 9] = [
+            (0.0, 0.0),
+            (-0.5, 0.0),
+            (0.5, 0.0),
+            (0.0, -0.5),
+            (0.0, 0.5),
+            (-0.5, -0.5),
+            (0.5, -0.5),
+            (-0.5, 0.5),
+            (0.5, 0.5),
+        ];
+        #[derive(Clone, Copy, Default)]
+        struct Cell {
+            agree: u32,
+            masked: u32,
+        }
+        #[derive(Default)]
+        struct Group {
+            n: u32,
+            painter_masked: u32,
+            levels: [u32; 8],
+            cells: [[Cell; 9]; COLS],
+            names: String,
+        }
+        let mut groups: std::collections::BTreeMap<(u8, i32), Group> = Default::default();
+        // Per object key: the non-behind lit pixels and, per column, agreeing.
+        let mut per_key: std::collections::BTreeMap<u32, (u32, [u32; COLS])> = Default::default();
+        let mut sel: std::collections::BTreeMap<u8, (u32, u32)> = Default::default();
+        for f in rows {
+            let who = scene.who[f.key as usize - 1];
+            if who.0 == TREE_WHO || who.3 {
+                continue;
+            }
+            let Some(d) = scene.drawings.get(f.key as usize - 1) else {
+                continue;
+            };
+            let Some(mips) = world.figure_texture(d.piece) else {
+                continue;
+            };
+            let theirs = traced_theirs(
+                &scene.keys,
+                &p,
+                &INTERFACE,
+                &READING,
+                &traces,
+                Neighbour::Neither,
+                Interface::Neither,
+                f.key,
+                f.window,
+            );
+            let ours = painted(
+                &mut world,
+                &scene,
+                &camera,
+                size,
+                f.key,
+                f.window,
+                Colouring::Texture,
+            );
+            let owner = team_unit(who.0);
+            let g = groups.entry((who.0, d.piece)).or_default();
+            g.names.push_str(&format!(" {}/{}", who.0, who.1));
+            let pk = per_key.entry(f.key).or_default();
+            let ww = (f.window.x1 - f.window.x0) as usize;
+            let last = mips.levels.len() - 1;
+            for y in f.window.y0..f.window.y1 {
+                for x in f.window.x0..f.window.x1 {
+                    let j = (y - f.window.y0) as usize * ww + (x - f.window.x0) as usize;
+                    let at = y as usize * photo.width + x as usize;
+                    if scene.keys.at(x as usize, y as usize) != f.key
+                        || theirs[j] != Some(true)
+                        || scene.behind[at]
+                    {
+                        continue;
+                    }
+                    let Some(t) = ours[j] else { continue };
+                    let ph = [0, 1, 2].map(|c| f32::from(photo.rgba[at * 4 + c]));
+                    if sum(team_blend(t.rgb, t.alpha, owner)) < HUE.dark || sum(ph) < HUE.dark {
+                        continue;
+                    }
+                    g.n += 1;
+                    pk.0 += 1;
+                    let s = sel.entry(who.0).or_default();
+                    s.0 += 1;
+                    s.1 += u32::from(t.alpha < 255.0);
+                    g.painter_masked += u32::from(t.alpha < 255.0);
+                    let pv = usize::from(t.level);
+                    g.levels[pv.min(7)] += 1;
+                    for c in 0..COLS {
+                        let (level, bil) = col(c, pv);
+                        let level = level.min(last);
+                        let im = &mips.levels[level];
+                        for (si, &(du, dv)) in SHIFTS.iter().enumerate() {
+                            let u = t.uv[0] + du / im.width as f32;
+                            let v = t.uv[1] + dv / im.height as f32;
+                            let q = if bil {
+                                mips.sample(level, u, v)
+                            } else {
+                                nearest(&mips, level, u, v)
+                            };
+                            let ok = agrees(team_blend([q[0], q[1], q[2]], q[3], owner), ph);
+                            let cell = &mut g.cells[c][si];
+                            cell.agree += u32::from(ok);
+                            cell.masked += u32::from(q[3] < 255.0);
+                            if si == 0 {
+                                pk.1[c] += u32::from(ok);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        println!(
+            "selection: key holds it, the photograph's footprint holds it, not behind, \
+             neither the painter's blend nor the photograph sums under {}; every alpha",
+            HUE.dark
+        );
+        for (o, (n, m)) in &sel {
+            println!("  owner {o}: lit {n}, of them the painter's alpha < 255: {m}");
+        }
+        let mut totals = [0u32; COLS];
+        for ((o, piece), g) in &groups {
+            println!(
+                "owner {o} piece {piece} ({}){}: lit {}, painter masked {}, painter's levels {:?}",
+                world.figure_texture_name(*piece).unwrap_or("?"),
+                g.names,
+                g.n,
+                g.painter_masked,
+                g.levels
+            );
+            let mut l = String::from("   ");
+            for c in 0..COLS {
+                totals[c] += g.cells[c][0].agree;
+                l.push_str(&format!(
+                    " {} {}/{}m |",
+                    col_name(c),
+                    g.cells[c][0].agree,
+                    g.cells[c][0].masked
+                ));
+            }
+            println!("{l}");
+        }
+        let best = (1..COLS).max_by_key(|&c| totals[c]).expect("a column");
+        println!("totals: {:?}; best column {}", totals, col_name(best));
+        for c in [0, best] {
+            println!("shift at {} (du, dv in texels):", col_name(c));
+            for ((o, piece), g) in &groups {
+                let mut l = format!("  {o}/{piece}:");
+                for (si, sh) in SHIFTS.iter().enumerate() {
+                    l.push_str(&format!(" {:?} {} |", sh, g.cells[c][si].agree));
+                }
+                println!("{l}");
+            }
+            let tot: Vec<u32> = (0..9)
+                .map(|si| groups.values().map(|g| g.cells[c][si].agree).sum())
+                .collect();
+            println!("  total {tot:?}");
+        }
+        // Each colour-row object re-counted under each column: its
+        // non-behind lit pixels' agreement replaced, the behind kept.
+        let mut passing = [0usize; COLS];
+        let mut down = [0usize; COLS];
+        for (f, c, w) in &base {
+            let Some((n, ag)) = per_key.get(&f.key) else {
+                passing
+                    .iter_mut()
+                    .for_each(|v| *v += usize::from(c.passes(&HUE)));
+                continue;
+            };
+            let rest = c.agree - ag[0];
+            let mut l = format!("  {}/{} lit {} ({n} not behind):", w.0, w.1, c.lit);
+            for k in 0..COLS {
+                let q = render::silhouette::Colours {
+                    agree: rest + ag[k],
+                    ..*c
+                };
+                passing[k] += usize::from(q.passes(&HUE));
+                down[k] += usize::from(c.passes(&HUE) && !q.passes(&HUE));
+                l.push_str(&format!(" {}", q.agree));
+            }
+            println!("{l}");
+        }
+        println!("colour row per column: {passing:?}; down {down:?}");
+        // The kill, as assertions (item 4112). The painter's column is the
+        // row; no column raises it; no column beats the painter's on every
+        // piece; no half-texel shift beats the unshifted sample in total;
+        // and on the medium tank 196 a finer level (0, either filter) lowers
+        // the agreement rather than turning its masked pixels to paint.
+        assert_eq!(
+            passing[0],
+            render::silhouette::RUN1559B_3279_COLOUR.0,
+            "the painter's column is the row"
+        );
+        for k in 1..COLS {
+            assert!(passing[k] <= passing[0], "{} raises the row", col_name(k));
+            assert!(
+                groups
+                    .values()
+                    .any(|g| g.cells[k][0].agree < g.cells[0][0].agree),
+                "{} beats the painter's on every piece",
+                col_name(k)
+            );
+        }
+        for c in [0, best] {
+            let at = |si: usize| -> u32 { groups.values().map(|g| g.cells[c][si].agree).sum() };
+            for si in 1..9 {
+                assert!(at(si) < at(0), "{}: shift {:?}", col_name(c), SHIFTS[si]);
+            }
+        }
+        let tank = &groups[&(1, 196)];
+        for k in [2, 7] {
+            assert!(
+                tank.cells[k][0].agree < tank.cells[0][0].agree,
+                "the tank at {}",
+                col_name(k)
+            );
+        }
+    }
 }
