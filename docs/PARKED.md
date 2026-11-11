@@ -3852,7 +3852,7 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 (4130) **A record's writer census takes two nets, and a third before a leaf is called never reached** (4124's "for the Loop", the journal's line, filed at its merge; the driver's eighteenth session, 2026-11-11): the decompile names a `Leader` field `field_0x<off>` on a `Leader *` but not on a `Leaders *` another class walks, and it prints an aliased store as another slot's field. The listing, `0xe3a390 + off` by an index register, found stores the export's grep missed (`Object::take_damage`'s `units_killed`), and the export found one the listing missed (`GameDaemon::process_victory`'s `wonderwin_timer`). Candidate: a brief that asks for a field's writers names both nets (the export's `->name` and `field_0x<off>`, the listing's displacement off the record's base and off a register inside the class), and a never-reached verdict takes a third pass over every register-relative store at the offset; the scratch finders of `b4124/` graduate into `tools/` at their third use.
 
-(4128) **A row borrowed its tolerance from another reader, and the tolerance is wider than the spread of what the row must tell apart** (the driver's eighteenth session, 2026-11-11): 4127's ground row, the driver's design, counts a tile whose mean share is within the colour reader's 0.05 of the photograph's. The four base textures' own mean shares are (0.42, 0.41), (0.445, 0.375), (0.43, 0.394) and (0.438, 0.355): three lie within 0.05 of one another. The row landed at 949 of 1,109 against a floor of the debug colour, a control nobody expected to pass, so the count backs the tileset and the mapping (r 0.499 against 0.083) and not the rule's claim, which base a tile draws; where it could tell, sub 3, it read 45 of 148. The note asked for the packet's value of the choice and the landing carried none; the driver booked it and saw both at the next design. Candidate: a render row's note names the alternatives the row must reject and the brief's first probe counts the row under each before the rule's count (the control is the floor, not a colour chosen to fail); a tolerance taken from another reader is checked against the candidates' spread at design; and a booking reads the journal for each value the note asked for by name.
+(4128) **A row borrowed its tolerance from another reader, and the tolerance is wider than the spread of what the row must tell apart** (the driver's eighteenth session, 2026-11-11): 4127's ground row, the driver's design, counts a tile whose mean share is within the colour reader's 0.05 of the photograph's. The four base textures' own mean shares are (0.42, 0.41), (0.445, 0.375), (0.43, 0.394) and (0.438, 0.355): three lie within 0.05 of one another. The row landed at 949 of 1,109 against a floor of the debug colour, a control nobody expected to pass, so the count backs the tileset and the mapping (r 0.499 against 0.083) and not the rule's claim, which base a tile draws; where it could tell, sub 3, it read 45 of 148. The note asked for the packet's value of the choice and the landing carried none; the driver booked it and saw both at the next design. Candidate: a render row's note names the alternatives the row must reject and the brief's first probe counts the row under each before the rule's count (the control is the floor, not a colour chosen to fail); a tolerance taken from another reader is checked against the candidates' spread at design; and a booking reads the journal for each value the note asked for by name. 4129's "for the Loop" is this item's family, folded in at its merge (the driver's nineteenth session, 2026-11-11): a row's own every-candidate-one-way controls belong in its first landing — 4127's row was pinned with only a floor, and the one-base controls showed at once that 1,053 and 1,052 beat the rule's 949. 4132's note counts its controls before its rule.
 
 (4126) **A layout table's offsets banked two constants no mechanism carries, and the builder booked it to the base** (the driver's seventeenth session, 2026-11-11): 4121's leaders emitter lists `LeaderData`'s leaves by offset, `attacked` at `+0x9cc` and `my_team_terr` at `+0x9ec` among them. `docs/GROUPS.md` names 0x9cc (a group record's size) and `docs/COMBAT.md` 0x9ec as constants no crate carries; the constant guard reads a hex anywhere in code as built, so both pins fell (GROUPS 3 → 2, COMBAT 2 → 1) on a coincidence, the class parked 802, 820 and 975 name. The builder's hand-back and its commit said the base had left them bankable and that none of its constants was spelled in either document; the base's guard had passed twice on the driver's tree that hour, and a `git grep` of the two values named the table in a minute. The pins are merged as the guard demands and are wrong by one each. Candidate: the guard does not read a `(name, offset, width)` leaf table as building anything (the checksum emitters' tables listed, as the sweep's files are), the two pins restored; and a hand-back that moves a pin it says it did not cause names the value that moved it.
 
@@ -16605,6 +16605,22 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot FI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FJ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FK — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FK renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
