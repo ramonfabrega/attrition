@@ -3848,9 +3848,11 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 (4062) **The leader-seat guard has read the wrong files since it was written** (Loop 4041's builder, the seventy-sixth pass): `diff::oracle`'s guard that a leader compare walks the lobby's seats and never a literal reads a fixed list of included sources, and the bodies it means had already moved to the harness's and the golden's `cases_*.rs` files; pointed at them it is red on nine literal two-seat loops (`harness/tests/cases_02.rs:1628` is one). Candidate: rule whether those loops are wrong or exempt on a two-seat lobby, then point the guard at the files and pin what it finds, red first by construction. Names no score; the loop's.
 
-## Loop, filed 2026-11-10 — the driver's third session
+## Loop, filed 2026-11-10 — the driver's fourteenth session
 
-(4111) **A selection was named by a label its predicate did not hold, and an item was designed on the label** (4107's "for the Loop", the driver's fourteenth session, 2026-11-10): 4106's table kept the pixels passing `t.alpha < 1.0` on a 0–255 channel and called them "alpha 255"; they were alpha 1 and over, 564 opaque and 563 masked of player 0's 1,127, and the red its journal put on opaque texels was the masked half's, where 4102's blend already agrees. The driver designed 4107 on the journal's sentence, and the lane spent a session (2.03 USD and 18 minutes, lore) killing a label. Candidate: a table that selects by a channel prints the predicate and the kept population's minimum, maximum and count on that channel beside its label, and an item designed on a prior table's selection re-runs that selection as its brief's first probe — METHOD's "a quiet field is checked against the reader", for a filter. Names no score; the loop's.
+(4111) **A selection was named by a label its predicate did not hold, and an item was designed on the label** (4107's "for the Loop", the driver's fourteenth session, 2026-11-10): 4106's table kept the pixels passing `t.alpha < 1.0` on a 0–255 channel and called them "alpha 255"; they were alpha 1 and over, 564 opaque and 563 masked of player 0's 1,127, and the red its journal put on opaque texels was the masked half's, where 4102's blend already agrees. The driver designed 4107 on the journal's sentence, and the lane spent a session (2.03 USD and 18 minutes, lore) killing a label. Candidate: a table that selects by a channel prints the predicate and the kept population's minimum, maximum and count on that channel beside its label, and an item designed on a prior table's selection re-runs that selection as its brief's first probe — METHOD's "a quiet field is checked against the reader", for a filter. **A second case the same session, found by that probe** (4110's "for the Loop"): 4102a's count, 2,733 masked lit pixels with 1,664 parting, stood in the queue through 4106, 4107 and 4110's design; 4110's brief asked for the selection first, and on the day's tree 4102's own test counts 2,665 with 1,617 parting — the 2,733 was measured on 4102's own tree, and which landing moved the 68 is not separated. So the candidate widens: a count a parked row or a queue item carries is re-measured on the tree a design rests on, by the test that printed it, before the design is written; a parked row's count names the commit it was measured at. Names no score; the loop's.
+
+## Loop, filed 2026-11-10 — the driver's third session
 
 (4108) **A question the ledger named was carried four items when the stream on disk held its answer** (4104's "for the Loop", the driver's thirteenth session, 2026-11-10): `docs/CHECKSUM.md` §10 and DECISIONS 120 §3 carried "whether the seven floats' bits follow from integers the simulation holds" from item 4060 to the guys line, as a residue's question to be read at the writers. The instrument's stream already held the bits: the five figure floats are `0x00000000` on all 165 figures of the two frames, and the leaders' two are `0x43800000` and `0xbf800000` (256.0, −1.0) on all five walked leaders — the second read by the driver in one script at 4104's booking, a minute's work that 4060's ledger could have printed. The ledger counted which leaves are floats and pointers and never their values. Candidate: `tools/recomp/checksum.py --ledger` prints, for every flagged leaf, its distinct values and their counts beside the flag, and a question a document carries as "not established" is first grepped as a value on what is on disk before it is booked as a reading (METHOD's "look at what is on disk first", which no guard holds for a document's open list). Names no score; the loop's.
 
@@ -16399,6 +16401,14 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot EY renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EZ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EZ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
