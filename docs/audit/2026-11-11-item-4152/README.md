@@ -80,7 +80,7 @@ clear cut: re-run that wave for that family.
 | 4 | `victim-stamps` | done | done | done | done, §4 |
 | 5 | `attrition-stamps` | done | done | in flight at the clear (also asked: `att`'s recompute timing, and run981's leaders) | owed |
 | 6 | `anti-att` | done | done | done | done, §6 |
-| 7 | `diplomacy-relations` | done | in flight at the clear | owed | owed |
+| 7 | `diplomacy-relations` | done | done | owed (launch it) | owed |
 | 8 | `diplomacy-tribute` | done | done | in flight at the clear | owed |
 | 9 | `taunts` | done | done | done | done, §9 |
 | 10 | `end-of-game` | done | done | in flight at the clear | owed |
@@ -95,7 +95,7 @@ clear cut: re-run that wave for that family.
 | 19 | `last-finished` | done | done | done | done, §19 |
 | 20 | `high-buildings` | done | done | in flight at the clear | owed |
 
-**Score at the clear:** read 20 of 20, second-read 19 of 20, adjudicated 8 of
+**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 8 of
 20, specified 7 of 20.
 
 **How to resume.** The briefs are in `briefs/`, one per wave. A spawn is one
@@ -173,3 +173,4 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | marks-built | 2 | 220 k | 15 | 7 of 7 written | agrees on every writer, the registries' high-water rule, `Setup::build_game`'s unrolled zeroing; `wonders_built` counts a captured wonder again; `american_free_wonder` reads the census mark where `wonders_built == 0` belongs |
 | victim-stamps | 3 | ~150 k | ~13 | 90 confirmed, 1 corrected, 1 open | every predicate holds; writer list complete; `was_attacked`/`was_raided`'s `n <= 0` corrected; **new open**: a gaia attacker (slot 8) would write column 8, which spills into the next array; a port asserts `att` in 0..7 |
 | misery | 3 | 142 k | 10 | 38 confirmed, 5 corrected, 1 open | **at most +1 per building per frame** (the slot+1 recursion is a library's only); `misery` constant 0 (emit 0); `diff/leader.rs:49` "unread" is wrong |
+| diplomacy-relations | 2 | 242 k | 18 | 8 of 8 written | agrees: only humans move `dow`/`blacken` (quiet argument read at all 16 sites), `made_peace` and the hire pair in `action_respond`, `last_spoke` no writer; raises `good_deeds`' old balance entering twice |
