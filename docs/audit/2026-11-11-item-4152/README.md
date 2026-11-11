@@ -64,6 +64,62 @@ Leaves: 1 + 4 + 13 + 4 + 5 + 1 + 8 + 7 + 6 + 6 + 3 + 2 + 7 + 7 + 4 + 3 + 1
 - **`explored` is out**: lane 4153 is porting it. `score_explored` (18) reads
   it; its reader states the formula in terms of `explored` and stops there.
 
+## Pending: where the row stands, and how to resume
+
+Written at the driver's clear (context past the loop's depth). **A stage is
+done when its file ends with its closing table** (a reading's or second's
+summary table, an adjudication's `## Verdict table`, a section's last
+subsection, "Not established"). A file without one is a stage the wall or the
+clear cut: re-run that wave for that family.
+
+| # | slug | 1 reading | 2 second | 3 verdicts | 4 section (`docs/LEADERS.md`) |
+|---|---|---|---|---|---|
+| 1 | `city-name` | done | done | done | done, §1 |
+| 2 | `kills` | done | done | in flight at the clear | owed |
+| 3 | `combat-rates` | done | done | in flight at the clear | owed |
+| 4 | `victim-stamps` | done | done | done | in flight at the clear |
+| 5 | `attrition-stamps` | done | done | in flight at the clear (also asked: `att`'s recompute timing, and run981's leaders) | owed |
+| 6 | `anti-att` | done | done | done | done, §6 |
+| 7 | `diplomacy-relations` | done | in flight at the clear | owed | owed |
+| 8 | `diplomacy-tribute` | done | done | in flight at the clear | owed |
+| 9 | `taunts` | done | done | done | done, §9 |
+| 10 | `end-of-game` | done | done | in flight at the clear | owed |
+| 11 | `lost-capital` | done | done | done | done, §11 |
+| 12 | `misery` | done | done | done | owed |
+| 13 | `marks-built` | done | done | in flight at the clear | owed |
+| 14 | `queued` | done | done | in flight at the clear | owed |
+| 15 | `odd-counters` | done | done | in flight at the clear | owed |
+| 16 | `lobby-words` | done | done | in flight at the clear | owed |
+| 17 | `spells` | done | done | done | done, §17 |
+| 18 | `score` | done | done | in flight at the clear | owed |
+| 19 | `last-finished` | done | done | done | done, §19 |
+| 20 | `high-buildings` | done | done | in flight at the clear | owed |
+
+**Score at the clear:** read 20 of 20, second-read 19 of 20, adjudicated 8 of
+20, specified 6 of 20.
+
+**How to resume.** The briefs are in `briefs/`, one per wave. A spawn is one
+`lean` agent on `opus`, prompted: "Read and follow `<brief>`. Slug `<slug>`
+… Output: `docs/audit/2026-11-11-item-4152/<slug>-<stage>.md` in the
+worktree." A second reader also gets the family's leaf names and offsets
+(the table above); an adjudicator gets the slug alone; a section writer gets
+the slug, the section number (the family number) and a title. All three
+also point at `/Users/rf-studio/.claude/jobs/c88e6820/tmp/r4152/aa/exe.s`, a
+whole-`.text` listing (regenerate it with `llvm-objdump -d --no-show-raw-insn`
+on the PE if the job tmp dir is gone). `docs/LEADERS.md` is rebuilt by
+`python3 -I briefs/assemble.py` from `briefs/leaders-header.md` and every
+`<slug>-section.md`, in family order. It refuses a wrong heading number, an
+`@`-citation and a section over 16,000 characters, so re-run it after each
+section lands, then commit. The concurrency cap is 20 agents. Log each
+hand-back in the log below, commit, and push.
+
+**Owed at the end** (the brief's "Landing"):
+- the journal (`docs/journal/2026-11-11-item-4152.md`), whose last line is
+  `For the Loop: …`;
+- `zsh tools/guard.sh`, green except the queue's lines;
+- one line to the driver with the tip SHA, the commit count since
+  `934081376`, the score, and the guard's reds.
+
 ## The log
 
 Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
@@ -116,3 +172,4 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | diplomacy-tribute | 2 | 246 k | 17 | 7 of 7 written | agrees on every writer; says an all-computer skirmish at team style 1 reaches none; one §20 line (1706) and three `docs/PARKED.md` lines leaked by greps, none naming a leaf, recorded |
 | marks-built | 2 | 220 k | 15 | 7 of 7 written | agrees on every writer, the registries' high-water rule, `Setup::build_game`'s unrolled zeroing; `wonders_built` counts a captured wonder again; `american_free_wonder` reads the census mark where `wonders_built == 0` belongs |
 | victim-stamps | 3 | ~150 k | ~13 | 90 confirmed, 1 corrected, 1 open | every predicate holds; writer list complete; `was_attacked`/`was_raided`'s `n <= 0` corrected; **new open**: a gaia attacker (slot 8) would write column 8, which spills into the next array; a port asserts `att` in 0..7 |
+| misery | 3 | 142 k | 10 | 38 confirmed, 5 corrected, 1 open | **at most +1 per building per frame** (the slot+1 recursion is a library's only); `misery` constant 0 (emit 0); `diff/leader.rs:49` "unread" is wrong |

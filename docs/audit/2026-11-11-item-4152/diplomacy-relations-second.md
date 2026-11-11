@@ -156,3 +156,66 @@ The stamps are written before the declare and whether or not it succeeds. No per
 
 **7. Confidence.** High on the four stores, their bases and the predicate (all from the listing). Not read: who builds a proposal with `attacks[]` set (the offer builders), and the team-size arm.
 
+## `good_deeds` (+0xd4, int[8])
+
+**1. Writers.**
+- `Leader::diplomacy (006bc950)`: `subl %ebx, 0xd4(%edi,%esi,4)` at 6c08ae (`edi` = the computer leader, `esi` = target). The only game-state writer.
+- `Leader::init (006e3930)`: `movl %eax, (%esi)` at 6e3c10 with `esi = &good_deeds[j]` (`leal 0xd4(%ebx)` at 6e3b74, stepped by 4), 0, j in 0..8. (The scan's displacement net misses this one because its displacement is 0; found by reading the loop.)
+- Block writers: `Leaders::clear`, `LeaderData::walk_data`.
+- False positives checked: `Leader::gain_tech`/`Leader::lose_tech`/`Leader::init` stores at `0xdc/0xe0/0xe4/0xe8` with `0x62766`, `0x69587`, `0x13985`, `0x63187` are the XOR-encrypted record behind `+0x6eb8` (`LeaderDataEncrypt`), not this field; `Leader::plan_strategy` 6ba8c2.. (`ecx` loaded from the table at `0xc0aec0`); `ConquestGame::process_results` 798b02 (conquest record); `ConsoleWin::run_cmd` 7dd49a (`[0xc0617c]`); `Leaders::clear` 6ed678 (a BitMask); `ScenarioRead::load_leaders_chunk` (game-info base); the many `Unit::*`, `Group::*`, `ScenarioFuncSet::find_idle_*` hits are on other records.
+
+**2. Event, step, predicate.** A computer leader's acceptance of a proposal from `target`, inside its per-target pass in `Leader::diplomacy`. The evaluation (listing 6bf143–6bfe2d; decompile `local_30`, lines 1750–2724): the score `S` is **seeded with `good_deeds[target]`** (6bf14a/6bf151 store it in `-0x2c(%ebp)`), then lowered by the value of each good asked (`resource_value × amount`, an 8.8 product shifted `>> 8`, amounts ×4 before frame 4500 and ×3/2 before frame 9000 when `*local_44 == 0`), raised by what is offered, and adjusted by peace and alliance terms (steps of 25/50/100 scaled by an `epoch[0]` — `LeaderDataEncrypt +0xe8`, behind `data_encrypted` at `+0x6eb8`, XOR `0x63187` — `leaders[target].dow[me] < 2/3` bonuses, `blacken`). Then `need`:
+- for a treaty-2 (alliance) proposal, `need = (my epoch[0] + leaders[target].blacken + 1) × (100, or 50 when `game[0x820] & 4`, the `semaphore[0] & 4` multiplayer bit) × ((*[-0x48(%ebp)] != 0) + 1) − S'` (6bfcd5–6bfd18; `S'` is `S` plus `leaders[target].epoch[0] × (0/50/100)` and the 6bfc4c–6bfcd5 adjustments, so it too starts from `good_deeds[target]`);
+- otherwise `need = −S`;
+- and `need −= 99` when `counteroffer[target]` (`+0x314`) is non-zero (6bfe1c–6bfe2a).
+
+The write is reached at 6bfff4 → 6c0865 when `need <= 0` and the "asks more than I hold" flag (`-0x50(%ebp)`) is clear: `counteroffer[target] = 0`; if `LeaderData::any_proposals (006d5ad0)(target)`: `action_respond(target, 1)` (accept), then `need += 50` when `weak[target]` (`+0x250`) is non-zero and `!LeaderData::is_tribute_period (006d5b90)` (target, me), and **`good_deeds[target] -= need`**. Without a pending proposal the field is not touched.
+
+So the step is the deal's surplus (minus 50 for a weak partner outside a tribute period), in the score's own units (resource-value units; the 25/50/100 steps share them). Because `S` already contains `good_deeds[target]`, the result is `good_deeds' = good_deeds + S` (− the 50), i.e. the old balance enters twice. That is what the listing says; it is surprising, and it is the claim in this section I would most want a second pair of eyes on.
+
+**3. Reset.** `Leader::init` → 0; `Leaders::clear`. Nothing else subtracts or clears it; it is not decayed.
+
+**4. Readers.** `Leader::diplomacy` only, as the seed of the next evaluation (6bf14a). Interface hits (`IFaceDiplo*`, `OptionsWinGame::on_redraw`) are on other bases; not read further.
+
+**5. Crate.** Not carried. `crates/sim/src/leaders/diplomacy.rs` stops before the offers arm: `:177` (`SEAM: dip[t].agree … never 1`) and the `SEAM: the offers arm (006bc950:1225–1294, LAB_006bf0e0)` after `:490`. A builder adds it to `Sim::diplomacy_with` (`crates/sim/src/leaders/diplomacy.rs:174`) once the proposal records exist.
+
+**6. Plain game?** Yes, in a skirmish where some leader (human or computer) sends a computer leader a proposal it accepts. Not in a game without proposals. Whether the locked-team captures contain one I did not establish.
+
+**7. Confidence.** High on the store, its base and the accept predicate. **Medium** on the composition of `S` (many arms; I read the seed, the asked-goods term, the counteroffer and weak terms instruction by instruction, and the offered-goods, peace and alliance terms only from the decompile). Not read: `-0x50`/`-0x44`'s full definitions (I named them from their use), the offered-goods loop.
+
+## `last_spoke` (+0x2f4, int[8])
+
+**1. Writers.**
+- `Leader::init (006e3930)`: `movl %eax, 0x220(%esi)` at 6e3d6f (`0xd4 + 0x220 = 0x2f4`), 0, j in 0..8.
+- Block writers: `Leaders::clear` (0), `LeaderData::walk_data` (restore).
+- **No other writer found.** Nets: the whole-`.text` write scan (displacement `0x2f4..0x310`, absolute in the leaders range reducing to it, `lea`/`push`/`mov $imm` forming its address, `addl $0x2f4`) and a read-or-write scan of every `Leader*`/`Leaders*` function for those displacements. The scan's hits are `Leader::plan_strategy` 6b9bdc (`movw` off `ebx+0xbe6`, a short array), `ScenarioRead::load_leaders_chunk` (game-info base), `Game::init_type_backup`, `Options::*`, `Console::*` and other unrelated bases. The near-miss checked: `Leader::diplomacy`'s eight `movl %eax, 0xe3a680(%ecx)` (6becc8, 6bef3a, 6bf0d2, 6c0838, 6c0d5a, 6c0f0c, 6c128e, 6c15e2) are `got_diplo_message` (`+0x2f0`) of `leaders[target]`: `ecx = -0x18(%ebp) = target*0x6eec` (6bca50/6bca5d), no index register, so not `last_spoke[k-1]` through a folded bias.
+- Export: no `->last_spoke`, no `field_0x2f4` on a leader base.
+
+**2. Event, step, predicate.** None in the shipped executable: the field is written only to 0.
+
+**3. Reset.** `Leader::init`, `Leaders::clear`.
+
+**4. Readers.** None found in `Leader*`/`LeaderData*` code (the read scan returned nothing at `0x2f4..0x310` on a leader base). `LeaderData::log_data` prints the record; `LeaderData::walk_data` carries it.
+
+**5. Crate.** Nothing to add: a builder carries it as a constant 0 (it is in `crates/sim/src/checksum/leaders.rs:84`).
+
+**6. Plain game?** No writer to reach.
+
+**7. Confidence.** High that nothing in `.text` stores to it at a static displacement or absolute. Not excluded: a store through a pointer formed far from its use (no `lea` of it was found, which makes that unlikely).
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `good_deeds` | `Leader::diplomacy (006bc950)` 6c08ae; `Leader::init (006e3930)` 6e3c10 | on a computer leader's accept of target's proposal: `-= need` (need ≤ 0; +50 if `weak[target]` and not a tribute period); need is built from a score seeded with `good_deeds[target]` itself | `Leader::init` 0; `Leaders::clear` | none; `crates/sim/src/leaders/diplomacy.rs:174` `diplomacy_with`, after the offers-arm SEAM | yes, when a proposal to a computer is accepted | high on site and predicate, medium on the score's composition |
+| `hire_stamp` | `Leader::action_respond (006d03c0)` 6d121e, 6d122e; `Leader::init` 6e3c2d | both sides' `[X] = frame`, per attack clause X on an accepted proposal, if `war_allowed`, X ≠ either party | `Leader::init` 0; `Leaders::clear` | none; `diplomacy.rs:453` SEAM; a new `action_respond` | yes, 3+ leaders and a deal with an attack clause | high |
+| `hire_who` | `Leader::action_respond (006d03c0)` 6d123a, 6d1244; `Leader::init` 6e3c36 | same event: each side's `[X] =` the other party's slot | `Leader::init` -1; `Leaders::clear` 0 | as `hire_stamp` | as `hire_stamp` | high |
+| `blacken` | `Leader::action_declare (006dab50)` 6dad38, 6dad5b; `Leader::init` 6e3be0 | `+= 1` when a counted declaration finds `dow[target]` already non-zero; counted only with quiet = 0 (human) | `Leader::init` 0; `Leaders::clear` | none; `diplomacy.rs:398`, `:444` SEAMs; a new `action_declare` around `Sim::declare_war` (`leaders/relations.rs:294`) | only a human repeat declaration | high |
+| `dow` | `Leader::action_declare (006dab50)` 6dad3e, 6dad61; `Leader::init` 6e3d44 | `[target] += 1` per counted declaration (quiet = 0): war on a non-ally unless `invaders[target] >= 5`, or a break of an alliance | `Leader::init` 0; `Leaders::clear` | none; `diplomacy.rs:304`, `:398` SEAMs; new `action_declare` | only a human declarer (run1078 shows `dow[1]` 0 → 1) | high |
+| `broke_alliance` | `Leader::action_declare (006dab50)` 6dad7f; `Leader::init` 6e3d57 | declarer's `[target] = frame` on any `action_declare` that proceeds while the two are allied both ways; no quiet gate | `Leader::init` 0; `Leaders::clear` | none; rides `Sim::set_diplo` level 1 (`relations.rs:116`); reader `attrition.rs` `in_war_grace` | yes, any alliance break (computer or human) | high |
+| `made_peace` | `Leader::action_respond (006d03c0)` 6d108d, 6d10a0; `Leader::init` 6e3d63 | both sides' `[other] = frame` when an accepted proposal's `treaty` word is exactly 1 | `Leader::init` 0; `Leaders::clear` | none; `diplomacy.rs:177` SEAM; a new `action_respond` | yes, an accepted peace proposal | high |
+| `last_spoke` | `Leader::init (006e3930)` 6e3d6f only | none: never written but to 0 | `Leader::init` 0; `Leaders::clear` | constant 0 | no writer | high |
+
+All eight leaves are also copied whole by `LeaderData::walk_data (006d6750)` (save/load and sync), zeroed by `Leaders::clear (006ed5d0)`, and readable through `LeaderData::log_data (006e5110)`.
+
+**What this reading did not do.** It did not open `Game::run_oos_recovery` or `Game::close` beyond confirming their scan hits sit on other bases; it did not read the proposal builders (`Leader::action_treaty`, `action_offer`, `action_demand_tribute`), so which proposals carry `treaty == 1` or `attacks[]` is open; it did not establish which `Leader::diplomacy` predicates reach its level-1 `action_declare` calls (6beceb, 6bed1c) or its accepts; and it ran no capture and no emulator call.

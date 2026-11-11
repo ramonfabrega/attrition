@@ -138,3 +138,138 @@ lacks.
   castability checks upstream of both spells (`SpellType::cast`'s
   `0x6763c0` call for counterintel, `is_valid_target`), which decide when
   a cast happens but not what it counts.
+
+## 2. `units_lost` (+0x810, int)
+
+### Claims lined up
+
+| # | claim | first | second | mark | verdict | deciding line |
+|---|---|---|---|---|---|---|
+| 2.1 | one writer, `take_damage`, `incl 0xe3aba0(%eax)`, index the struck object's own player (`movzbl 0x9(%edi)`) | yes | yes | agree | confirmed | 0x652fdc, 0x653001, 0x653007 |
+| 2.2 | predicate: death branch, not a building, captain, `curr_uber_size(0) == 1`, decoy clear | yes | yes | agree | confirmed (the same four tests as 1.6, before the store) | 0x652f4a..0x652ffb |
+| 2.3 | stepped before and independent of `param_7 >= 0`: attrition, wall decay and trigger deaths count, with no killer | yes | yes | agree | confirmed: the `param_7` test at 0x65300d comes after the store; `Unit::suffer_attrition (005e1a10)` calls slot `+0x16c` at 0x5e1bd1 | 0x653007 then 0x65300d |
+| 2.4 | `param_5` and `param_3` do not enter | — | yes | one-sided (second) | confirmed: neither is read between 0x652f46 and 0x653007 | listing 0x652f46..0x653007 |
+| 2.5 | not stepped by sniper/sabotage unit kills, counterintel kills, `Object::disband`, direct `die` | yes | yes | agree | confirmed by the nets (no other store to +0x810 of a leader) | §0 nets |
+| 2.6 | resets as leaf 1 (incl. `Leader::close`, load) | partly | yes | as 1.16-1.18 | confirmed | `reset_score` 0x6e3823 |
+| 2.7 | readers: `log_data`, `num_units_lost`, Steam `gStatID[7]`, chart pane; no sim decision | yes | yes | agree | confirmed | `determine_end_of_game…` line 330; 0x9e98cf |
+| 2.8 | crate: `take_damage_typed` Died arm (`delivery.rs:537`), for the struck unit's owner, gated on `alone && !decoy`, no attacker test | yes | yes | agree | confirmed | `delivery.rs:515`, `:530`, `:537` |
+| 2.9 | crate: also `Sim::die_by_attrition` (`delivery.rs:844`, from `territory/upkeep.rs:307`), since the crate's attrition kill bypasses `take_damage_typed` | yes | yes | agree | confirmed: `die_by_attrition` runs `close_count`, `relink_squad`, … with no counter; the captain/alone/decoy test must be read **before** its `relink_squad` | `delivery.rs:844`-`:856` |
+| 2.10 | not at `cast_sniper_unit` or `cast_counterintel` | implied | yes | agree | confirmed | 1.12, 1.14 |
+| 2.11 | summed over players `units_lost ≠ units_killed` | implied | yes | agree | confirmed, with 1.9's correction: the decoy self-credit is not one of the reasons in a plain game | — |
+| 2.12 | plain game: yes (combat and attrition) | yes | yes | agree | confirmed | — |
+
+Open in both readings, settled here: "can `suffer_attrition` strike a
+non-captain figure" (first). It does not matter for the counter: a
+non-captain struck figure fails the `+0xe8` test and counts nothing, as
+in combat; the squad counts once, at its last figure. A non-`take_damage`
+death path (boat contents, nuke) counts only if it goes through slot
+`+0x16c`, and the full sweep in §0 says the eight callers are all there
+is.
+
+### The rule as a builder should port it
+
+- **Writer.** `Object::take_damage (00652020)` alone: on the death branch
+  of a non-building whose struck figure is a lone (no live follower),
+  non-decoy squad captain, `units_lost[victim's player] += 1`, whatever
+  the attacker (none included).
+- **Step.** +1, int. **Reset.** As leaf 1.
+- **Crate sites.** `Sim::take_damage_typed`'s `Taken::Died` arm
+  (`crates/sim/src/combat/fight/delivery.rs:537`), and
+  `Sim::die_by_attrition` (`delivery.rs:844`) before its `relink_squad`.
+  Not the two spell sites.
+- **Plain game.** Yes.
+- **Confidence.** High. Nothing open.
+
+## 3. `buildings_razed` (+0x818, int)
+
+### Claims lined up
+
+| # | claim | first | second | mark | verdict | deciding line |
+|---|---|---|---|---|---|---|
+| 3.1 | writer `Object::do_damage (0064a480)`, `incl 0xe3aba8(%eax)`, index the shooter's (`this`'s) player | yes | yes | agree | confirmed | 0x64ba3f..0x64ba49 |
+| 3.2 | gate: the `take_damage` call at 0x64ba18 returned non-zero, and the target answers `+0x1c` (building); a unit kill returns from `do_damage` there | yes | yes | agree | confirmed | 0x64ba20 `je`, 0x64ba39 `je`; decompile lines 896-902 |
+| 3.3 | no owner or ally test before the step; the later `is_ally` picks the sign of `score_combat` (floored at 0 on the minus side) | yes | yes | agree | confirmed | decompile lines 903-924 |
+| 3.4 | writer `cast_sabotage` building arm, `incl 0xe3aba8(%esi)`, index caster's player | yes | yes | agree | confirmed | 0x67277d |
+| 3.5 | sabotage strikes `take_damage(dmg, 0, 3, -1, 1, 0x55555555, -1, -1, 0)` on the object vslot `+0xac` returns; dmg = max(`+0x114`/2, the type-indexed floor) | yes | yes | agree | confirmed; first's open "which object `+0xac` returns" settled: `Build`'s `+0xac` is `GraphicWinXML::get_graphicwinxml (0041c000)`, `return this`, so the building itself | 0x67275d; `vtables.txt` `Build::vftable +0xac` |
+| 3.6 | non-zero includes the site-abandon disband, which credits a raze with no `buildings_lost` | yes | yes | agree | confirmed | 0x652aa2..0x652aa9 |
+| 3.7 | the abandon arm's second test, vslot `+0x4c` = 0 | "not a city" | "not active: a construction site" | **disagree** | **corrected for the first reading**: on `Build` and `Wall` slot `+0x4c` is `WallData::is_active (00472350)`, `flags(+8) & 4`, the crate's "finished" (`take_damage_view.rs:228`). The arm strikes an **unfinished** building. The city test is a different slot pair (`+0x20` and `flags & 0x20`, decompile lines 176, 291-293). | `take_damage` decompile line 352; `WallData::is_active` body |
+| 3.8 | the rest of the abandon arm: owner's `leader_flags & 4` clear (a computer player), `hits(0) <= 2·damage`, the building's `+0x60 & 0x2000` | yes | yes | agree | confirmed. The bit's only writer is `Leader::check_orphaned_buildings (006c9f20)` (decompile line 279); the crate keeps no such bit (`crates/sim/src/ai/ai_make.rs:936`, SEAM) | `take_damage` decompile lines 352-360 |
+| 3.9 | exempt: a city building (clamped, returns 0) | yes | yes | agree | confirmed: the clamp is not under the `param_5 == 0` block (the block closes at decompile line 134; the clamp sits in the `else` of line 176's slot `+0x20` test), so it holds for every caller | decompile lines 216-302 |
+| 3.10 | `do_damage`'s `this` from `Ammo::do_damage` and `Nuke::do_damage` | unread | unread | open in both | settled: `Ammo::do_damage (00678060)` passes `objects[ammo+0x3c][ammo+0x40]`, the ammo's shooter (decompile line 130); `Nuke::do_damage (0092bc80)` passes `objects[nuke_effect+164][nuke_effect+192]`, the object the effect records (lines 135-138, 286). Either way the credit goes to that object's owner | as cited |
+| 3.11 | resets as leaf 1 | yes | yes | agree | confirmed | `reset_score` 0x6e383b |
+| 3.12 | readers: `log_data`, chart pane; not the end-of-game stats, no script | yes | yes | agree | confirmed (`set_chart_data` line 63) | — |
+| 3.13 | crate: `do_damage_round` (`delivery.rs:70`), the `if let Obj::Building(b) = target { if killed {` block (`:211`-`:221`), before and outside the plunder's unit/non-splash/non-air/non-ally gate, for `owner_of(attacker)` | yes | yes | agree | confirmed | `delivery.rs:192`, `:211` |
+| 3.14 | crate: `cast_sabotage_building` (`delivery.rs:884`), needs the caster's player | yes | yes | agree | confirmed | `delivery.rs:884` |
+| 3.15 | crate: the abandon arm is absent (`damage_building` has no `0x2000` disband) | yes | yes | agree | confirmed | `delivery.rs:957`-`:1050` |
+| 3.16 | plain game: yes; the abandon arm needs a computer's abandoned site struck to half its hits | yes | yes | agree | confirmed (computer players run `check_orphaned_buildings`) | — |
+
+### The rule as a builder should port it
+
+- **Writers.** (a) `Object::do_damage (0064a480)`: when its `take_damage`
+  call on the target returns non-zero and the target is a building,
+  `buildings_razed[shooter's player] += 1` — whoever owns the building,
+  ally or self included. (b) `SpellType::cast_sabotage (006720e0)`,
+  building arm: `take_damage` non-zero → `buildings_razed[caster] += 1`.
+- **What "non-zero" is on a building.** Death (damage ≥ hits, not a
+  finished city building) **or** the site-abandon disband: unfinished
+  (`flags & 4` clear), owned by a computer player (`leader_flags & 4`
+  clear), `hits ≤ 2·damage`, and `build_masks & 0x2000` set by
+  `Leader::check_orphaned_buildings`. The second credits a raze while the
+  owner's `buildings_lost` does not step.
+- **Step.** +1, int. **Reset.** As leaf 1.
+- **Crate sites.** `Sim::do_damage_round`'s building `killed` block
+  (`crates/sim/src/combat/fight/delivery.rs:211`), outside the plunder
+  gate; `Sim::cast_sabotage_building` (`delivery.rs:884`). The abandon arm
+  needs `build_masks & 0x2000` and its disband in `damage_building` first.
+- **Plain game.** Yes.
+- **Confidence.** High on writers, indices and both arms (listing). Open:
+  nothing that changes the count.
+
+## 4. `buildings_lost` (+0x81c, int)
+
+### Claims lined up
+
+| # | claim | first | second | mark | verdict | deciding line |
+|---|---|---|---|---|---|---|
+| 4.1 | one writer, `take_damage`, `incl 0xe3abac(%eax)`, index the dead building's own player | yes | yes | agree | confirmed | 0x652f4f, 0x652f55, 0x652f5b |
+| 4.2 | predicate: death branch and vslot `+0x1c` non-zero (building or wall segment); then `ScenarioData::last_razed[who] = o` and straight to `die` | yes | yes | agree | confirmed | 0x652f4a..0x652f70 (`movl %ecx, 0xcc2190(,%eax,4)` at 0x652f69) |
+| 4.3 | no attacker test, no `param_5` test | yes | yes | agree | confirmed (neither is read in 0x652f46..0x652f70) | as 4.2 |
+| 4.4 | counts combat, sabotage, wall/building decay in hostile land, trigger and editor deaths | yes | yes | agree | confirmed (the eight callers, §0) | 0x640b22, 0x64ba18, 0x67275d |
+| 4.5 | `Wall::process (00640450)`'s hit: `take_damage(8, 0, 1, -1, 1, 0x55555555, -1, -1, …)` on a started building on a tile of another, non-allied player; an unstarted one there is disbanded instead | yes | yes | agree | confirmed | `Wall::process` decompile lines 220-284 |
+| 4.6 | does a `Build` (not only a `Wall`) reach `Wall::process`'s territory arm? | asserted (wall) | open | one-sided / open in second | **settled, yes**: `Build`'s slot `+0x9c` is `Build::process`, which calls `Wall::process` directly (`call 0x640450` at 0x61ee11, `Build::process` decompile line 60). The crate's `building_attrition` (`cities/city.rs:3123`) is right to serve every building | 0x61ee11 |
+| 4.7 | not counted: a finished city building (clamped), the site-abandon disband, `Wall::process`'s disband of an unstarted site, `Object::disband`, direct `die` | yes | yes | agree | confirmed | 0x652aa2; `Wall::process` line 280 |
+| 4.8 | summed over players `buildings_lost ≠ buildings_razed` | yes | yes | agree | confirmed | — |
+| 4.9 | resets as leaf 1 | yes | yes | agree | confirmed | `reset_score` 0x6e3835 |
+| 4.10 | readers: `log_data`, chart pane; no script, no Steam stat, no sim decision | yes | yes | agree | confirmed (`set_chart_data` line 65) | — |
+| 4.11 | crate: `Sim::damage_building`'s `Taken::Died` arm (`delivery.rs:1041`), before `die_building(b)`, for the building's owner; not in `die_building`, which other paths also reach; the city clamp at `:1025` returns before it | yes | yes | agree | confirmed: one function serves combat (`take_damage_typed` → `:599`), sabotage (`cast_sabotage_building`) and attrition (`city.rs:3128`, `damage_building(b, hit, None, frame, true)`) | `delivery.rs:1041` |
+| 4.12 | the crate does not carry `last_razed` on this path | yes | — | one-sided (first) | confirmed; outside this family | — |
+| 4.13 | plain game: yes | yes | yes | agree | confirmed | — |
+
+### The rule as a builder should port it
+
+- **Writer.** `Object::take_damage (00652020)` alone: when a building or
+  wall segment (vslot `+0x1c`) reaches the death branch — accumulated
+  damage at or above its hits, and not a finished city building —
+  `buildings_lost[owner] += 1`, whatever struck it, attacker or none.
+- **Step.** +1, int. **Reset.** As leaf 1.
+- **Crate site.** `Sim::damage_building`'s `Taken::Died` arm
+  (`crates/sim/src/combat/fight/delivery.rs:1041`), before
+  `die_building`.
+- **Plain game.** Yes: combat razing, and border decay of any started
+  building (not only walls) standing in a non-allied player's territory.
+- **Confidence.** High. Nothing open.
+
+## Verdict table
+
+| leaf | claims confirmed / corrected / open | the rule in one line |
+|---|---|---|
+| `units_killed` +0x80c | 22 / 1 / 0 (+1 noted open upstream: spell castability) | +1 to the attacker's player when a lone non-decoy squad captain dies in `take_damage` with an attacker object (no ally/self exemption); +1 to the caster on a Sniper/Sabotage unit kill or a counterintel kill of such a captain; the decoy-overflow self-credit cannot fire in a plain game (decoy squads are all-decoy) |
+| `units_lost` +0x810 | 12 / 0 / 0 | +1 to the victim's player when a lone non-decoy squad captain dies through `take_damage`, attacker or none (attrition counts; spell kills do not); crate sites `take_damage_typed` and `die_by_attrition` |
+| `buildings_razed` +0x818 | 15 / 1 / 0 | +1 to the shooter's (or sabotaging caster's) player when `take_damage` returns non-zero on a building: its death, or the computer's unfinished abandoned site (`flags & 4` clear, `hits ≤ 2·damage`, `build_masks & 0x2000`) disbanded; no ally exemption |
+| `buildings_lost` +0x81c | 13 / 0 / 0 | +1 to the owner when a building or wall segment dies through `take_damage` (combat, sabotage, border decay of any started building, triggers); not a city, not an abandon-disband |
+
+The one correction against both readings: 1.9, the decoy self-credit is
+unreachable without a scenario. The one correction against one reading:
+3.7, the abandon arm's slot `+0x4c` is "finished", not "a city". One
+open question of the second reading closed in its favour of the crate:
+4.6, every `Build` reaches `Wall::process`.
