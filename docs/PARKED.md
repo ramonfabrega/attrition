@@ -16627,10 +16627,10 @@ words and edits nothing here; a refill lands when two remain.
   `total_metal`, `total_oil`). Counts over cell flags, a tile's `mask & 3 == 2`, `MountainsData::total_gather_size` and
   the land regions that hold a seated leader's city or are large enough; run where `Setup::build_game` runs it. Names
   section 4 whole (120 bytes, printed 1914505471) and the start track's unestablished `analyze_map`.~~ Carried by item 4147: `docs/MAPGEN.md` §36, section 4 whole.
-- **4131c. The collision blocks' allocation** (§21; section 9, 17,000 bytes: `present` 3,600, 25 heads, 25 bodies).
+- ~~**4131c. The collision blocks' allocation** (§21; section 9, 17,000 bytes: `present` 3,600, 25 heads, 25 bodies).
   `World::new_coll_block` is unread and the crate's `CollGrid` is flat and keeps no allocation. The heads are the
   `BitMask<768>` constructor's (768, 96) and the bodies the grid's bits, so both follow once presence is held. Record
-  3202 differs from 3201 in this section alone: it moves with the units. Names section 9 whole.
+  3202 differs from 3201 in this section alone: it moves with the units. Names section 9 whole.~~ Carried by item 4150: `docs/COLLISION.md` §26, the world line whole.
 - ~~**4131d. The fog's two cell words, beside three planes that agree** (§21; `05 cell.was_seen` and `07 wcoord_seen`,
   3,600 each). `seen`, `seen2` and `seen3` agree on 14,400 of 14,400 each from the vision the crate already runs
   (459, 702 and 89 non-zero bytes), and nothing of the fog was ported. So the leaders line's `explored` (19 and 22
@@ -16788,13 +16788,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FT — reserved
+## Parked by item 4150, 2026-11-11 — the collision blocks
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4150a. `move_unit`'s one-block form returns early on a null block** (`docs/COLLISION.md` §26). The original's form does
+  nothing when the unit's block has been freed; ours still repaints there, in the case where a neighbour cleared a unit's bits
+  and `GameDaemon::process_coll_blocks` then freed the block. Changing it changes what the grid answers, so it was not tried.
+  Names no score while every floor holds.
+- **4150b. What the blocks rest on that frames 91 and 92 do not hold** (`docs/COLLISION.md` §26, "Not established"). A
+  restored game (`walk_data`'s restore arm allocates by the saved presence and stores state 2); a dump-built game, whose
+  presence is what its setup's sets leave; run1100's 79 blocks (28 empty, a cursor near 1,920) are consistent and not diffed.
 
 ## Parked by the next landing, slot FU — reserved
 
