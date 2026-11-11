@@ -1285,9 +1285,11 @@ rows are their pins'.
   calls the original's (kinds 2, 4); dark ones (sum under 60) left out.
   Each side as (r, g) / (r + g + b), which a white light's strength does
   not move; ours the texel, unlit. A pixel agrees within 0.05; an object
-  passes on 40 lit pixels, half agreeing. **11 of 33**, the tint's 2
-  (`RUN1559B_3279_COLOUR`); run1441's camera 0. Texcoords as stored.
-- *What it does not measure.* Team colours (4038a, 4099a).
+  passes on 40 lit pixels, half agreeing. **11 of 33** (`_TEXEL`), the
+  tint's 2; run1441's camera 0. Texcoords as stored.
+- *The team colour* (4102, before its count). The texel is
+  `t·α + c·(1 − α)`, `c` the owner's `TEAM_UNIT` (`render_states[0]`'s
+  `TOP_BLENDTEXTUREALPHA`); a reading, one photograph: **15 of 33**.
 - *The constants* and interface are this frame's, pinned, never tuned
   to a count (the inputs: 4089's journal).
 

@@ -908,6 +908,7 @@ impl World {
             if let Some(mips) = mips {
                 textured.push(TexturedMesh {
                     piece: d.piece,
+                    who: d.who,
                     positions: d.tris.iter().flatten().copied().collect(),
                     uvs: d.uvs.iter().flatten().copied().collect(),
                     mips,
@@ -930,9 +931,12 @@ impl World {
 /// One figure drawn textured (item 4099): its triangles' corners in world
 /// space, three a triangle, each corner's texcoord, and the piece's texture
 /// with its levels — what `client::gpu`'s textured pipeline draws, unlit,
-/// and `render::silhouette::paint` samples.
+/// the owner's colour through the texel's alpha, and
+/// `render::silhouette::paint` samples.
 pub struct TexturedMesh {
     pub piece: i32,
+    /// The owner, whose unit colour the texel's alpha lets through (4102).
+    pub who: u8,
     pub positions: Vec<[f32; 3]>,
     pub uvs: Vec<[f32; 2]>,
     pub mips: std::sync::Arc<render::silhouette::Mips>,

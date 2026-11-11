@@ -499,6 +499,9 @@ pub enum Colouring {
     Tint,
     /// The `<UNIT>`'s `texture=` through the `.BH3`'s texcoords.
     Texture,
+    /// As `Texture`, the owner's unit colour through the texel's alpha
+    /// (item 4102, `render::silhouette::team_blend`): the client's draw.
+    Team,
 }
 
 /// One object's own colour over its window, as `colouring` paints it: a
@@ -522,13 +525,14 @@ pub fn painted(
             tris: d.tris.clone(),
         };
         let tint = crate::world::tint(d.who, d.building).map(|v| (v * 255.0).round() as u8);
-        let mips = (colouring == Colouring::Texture && !d.uvs.is_empty())
+        let mips = (colouring != Colouring::Tint && !d.uvs.is_empty())
             .then(|| world.figure_texture(d.piece))
             .flatten();
         let how = match &mips {
             Some(m) => Paint::Texture {
                 uvs: &d.uvs,
                 mips: m,
+                owner: (colouring == Colouring::Team).then(|| render::silhouette::team_unit(d.who)),
             },
             None => Paint::Flat(tint),
         };
@@ -1540,7 +1544,8 @@ mod tests {
         world.run_to(PHOTO_FRAME + 1);
         let tint = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Tint);
         let tex = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Texture);
-        let off = colour_rows(&mut world, &elsewhere, &photo, &TRACED, Colouring::Texture);
+        let team = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Team);
+        let off = colour_rows(&mut world, &elsewhere, &photo, &TRACED, Colouring::Team);
         let count = |rows: &[(Footprint, render::silhouette::Colours, Who)]| {
             (
                 rows.iter().filter(|(_, c, _)| c.passes(&HUE)).count(),
@@ -1607,11 +1612,54 @@ mod tests {
             offset.0[0] / n,
             offset.0[1] / n
         );
+        // Item 4102: the team colour through the texel's alpha, each
+        // object beside the texel alone, every crossing named.
+        let mut team_sums = (0u32, 0u32, 0u32, 0u32);
+        for ((_, x, (who, o, piece, building)), (_, m, _)) in tex.iter().zip(&team) {
+            let (a, b) = (x.passes(&HUE), m.passes(&HUE));
+            println!(
+                "team {who}/{o} piece {piece}: texel lit {} agree {} {} | team lit {} agree {} mean {:.3} {} masked {} part {}{}",
+                x.lit,
+                x.agree,
+                if a { "in" } else { "out" },
+                m.lit,
+                m.agree,
+                m.mean,
+                if b { "in" } else { "out" },
+                m.masked,
+                m.masked_part,
+                match (a, b) {
+                    (false, true) => " CROSSES UP",
+                    (true, false) => " CROSSES DOWN",
+                    _ => "",
+                }
+            );
+            if !*building {
+                team_sums.0 += m.lit;
+                team_sums.1 += m.agree;
+                team_sums.2 += m.masked;
+                team_sums.3 += m.masked_part;
+            }
+        }
+        println!(
+            "team, the figures: {} lit, {} agree; the mask's {}, {} part ({:.3})",
+            team_sums.0,
+            team_sums.1,
+            team_sums.2,
+            team_sums.3,
+            team_sums.3 as f32 / team_sums.2.max(1) as f32
+        );
+        let crossed_down = tex
+            .iter()
+            .zip(&team)
+            .filter(|((_, x, _), (_, m, _))| x.passes(&HUE) && !m.passes(&HUE))
+            .count();
         let fs: Vec<Footprint> = tex.iter().map(|(f, _, _)| *f).collect();
         let silhouettes = score(&fs, &READING);
         let (t, x, o) = (count(&tint), count(&tex), count(&off));
+        let m = count(&team);
         println!(
-            "silhouettes {silhouettes:?}; colour: tint {t:?} texture {x:?} run1441's camera {o:?}"
+            "silhouettes {silhouettes:?}; colour: tint {t:?} texture {x:?} team {m:?} run1441's camera {o:?}"
         );
         for (f, c, (who, o, _, _)) in &off {
             if c.lit > 0 {
@@ -1626,8 +1674,10 @@ mod tests {
         }
         use render::silhouette as s;
         assert_eq!(silhouettes, s::RUN1559B_3279_TRACED, "the row's draw");
-        assert_eq!(x, s::RUN1559B_3279_COLOUR);
+        assert_eq!(m, s::RUN1559B_3279_COLOUR);
+        assert_eq!(x, s::RUN1559B_3279_COLOUR_TEXEL);
         assert_eq!(t, s::RUN1559B_3279_COLOUR_TINT);
+        assert_eq!(crossed_down, 0, "no object crosses down");
         assert_eq!(o, s::RUN1441_CAMERA_3279_COLOUR);
         let figures_in = |rows: &[(Footprint, render::silhouette::Colours, Who)]| {
             rows.iter()
@@ -1771,7 +1821,11 @@ mod tests {
                 ("v flipped", &flipped),
                 ("u, v swapped", &swapped),
             ] {
-                let how = Paint::Texture { uvs, mips: &mips };
+                let how = Paint::Texture {
+                    uvs,
+                    mips: &mips,
+                    owner: None,
+                };
                 let ours = paint(&object, &how, &camera, size, f.window);
                 let c = read_colours(
                     &scene.keys,
@@ -3942,5 +3996,211 @@ mod tests {
             agree, 4,
             "our slope normal is the original's at the four tanks"
         );
+    }
+
+    /// **Item 4102, step 1: the masked texels by value, before a rule.**
+    /// On the colour row's draw, for each figure's lit pixels both
+    /// footprints hold whose texel's alpha is under 255: the texel, its
+    /// alpha, the owner's unit colour as run1559b's packet holds it
+    /// (`team_colors.list[leader +0x6928].unit`, `TeamColor@0xe39ce0`,
+    /// stride 0x64; 0 red, 1 blue), and the photograph's pixel; by alpha
+    /// band, beside what each candidate blend predicts and its mean
+    /// chromaticity distance to the photograph.
+    #[test]
+    fn the_masked_texels_against_the_owner_s_colour() {
+        use render::silhouette::{HUE, chromaticity, traced_theirs};
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        // run1559b's packet, frame 3294: `TeamColor::unit` of list 0, 1.
+        let owner = |who: u8| -> [f32; 3] {
+            match who {
+                0 => [255.0, 0.0, 0.0],
+                1 => [34.0, 82.0, 255.0],
+                _ => [255.0, 0.0, 255.0],
+            }
+        };
+        let camera = crate::pinned_camera();
+        world.run_to(PHOTO_FRAME);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let size = (photo.width, photo.height);
+        let scene = frame_scene(&mut world, &camera, size);
+        let p = Photo {
+            width: photo.width,
+            height: photo.height,
+            rgba: &photo.rgba,
+        };
+        let traces: Vec<Trace<'_>> = TRACED
+            .iter()
+            .map(|&(name, poly)| Trace {
+                key: scene
+                    .who
+                    .iter()
+                    .position(|&(who, o, _, _)| format!("{who}/{o}") == name)
+                    .map_or(u32::MAX, |i| i as u32 + 1),
+                poly,
+            })
+            .collect();
+        let rows = footprints_traced(
+            &scene.keys,
+            &p,
+            &INTERFACE,
+            &READING,
+            &traces,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        type Blend = fn([f32; 3], f32, [f32; 3]) -> [f32; 3];
+        let blends: [(&str, Blend); 7] = [
+            ("texel", |t, _, _| t),
+            ("owner", |_, _, c| c),
+            ("t*c", |t, _, c| [0, 1, 2].map(|k| t[k] * c[k] / 255.0)),
+            ("lerp(c,t,a)", |t, a, c| {
+                [0, 1, 2].map(|k| t[k] * a + c[k] * (1.0 - a))
+            }),
+            ("lerp(t,c,a)", |t, a, c| {
+                [0, 1, 2].map(|k| c[k] * a + t[k] * (1.0 - a))
+            }),
+            ("lerp(t*c,t,a)", |t, a, c| {
+                [0, 1, 2].map(|k| t[k] * a + t[k] * c[k] / 255.0 * (1.0 - a))
+            }),
+            ("lerp(t,t*c,a)", |t, a, c| {
+                [0, 1, 2].map(|k| t[k] * c[k] / 255.0 * a + t[k] * (1.0 - a))
+            }),
+        ];
+        let dist = |a: [f32; 3], b: [f32; 3]| {
+            let (x, y) = (chromaticity(a), chromaticity(b));
+            ((x[0] - y[0]).powi(2) + (x[1] - y[1]).powi(2)).sqrt()
+        };
+        // [owner][band] -> (n, sum texel, sum alpha, sum photo, per-blend (sum d, agree))
+        #[derive(Clone, Copy, Default)]
+        struct Acc {
+            n: u32,
+            t: [f32; 3],
+            a: f32,
+            ph: [f32; 3],
+            d: [f32; 7],
+            agree: [u32; 7],
+        }
+        let mut acc = [[Acc::default(); 4]; 2];
+        for f in rows {
+            let who = scene.who[f.key as usize - 1];
+            if who.0 == TREE_WHO || who.3 {
+                continue;
+            }
+            let theirs = traced_theirs(
+                &scene.keys,
+                &p,
+                &INTERFACE,
+                &READING,
+                &traces,
+                Neighbour::Neither,
+                Interface::Neither,
+                f.key,
+                f.window,
+            );
+            let ours = painted(
+                &mut world,
+                &scene,
+                &camera,
+                size,
+                f.key,
+                f.window,
+                Colouring::Texture,
+            );
+            let ww = (f.window.x1 - f.window.x0) as usize;
+            let mut obj = [Acc::default(); 1];
+            for y in f.window.y0..f.window.y1 {
+                for x in f.window.x0..f.window.x1 {
+                    let j = (y - f.window.y0) as usize * ww + (x - f.window.x0) as usize;
+                    if scene.keys.at(x as usize, y as usize) != f.key || theirs[j] != Some(true) {
+                        continue;
+                    }
+                    if scene.behind[y as usize * photo.width + x as usize] {
+                        continue;
+                    }
+                    let Some(t) = ours[j] else { continue };
+                    if t.alpha >= HUE.mask_alpha {
+                        continue;
+                    }
+                    let i = (y as usize * photo.width + x as usize) * 4;
+                    let ph = [0, 1, 2].map(|k| f32::from(photo.rgba[i + k]));
+                    let sum = |q: [f32; 3]| q[0] + q[1] + q[2];
+                    if sum(t.rgb) < HUE.dark || sum(ph) < HUE.dark {
+                        continue;
+                    }
+                    let a = t.alpha / 255.0;
+                    let band = ((t.alpha as usize) / 64).min(3);
+                    let c = owner(who.0);
+                    for target in [&mut acc[usize::from(who.0 != 0)][band], &mut obj[0]] {
+                        target.n += 1;
+                        target.a += t.alpha;
+                        for (k, v) in ph.iter().enumerate() {
+                            target.t[k] += t.rgb[k];
+                            target.ph[k] += v;
+                        }
+                        for (b, (_, blend)) in blends.iter().enumerate() {
+                            let d = dist(blend(t.rgb, a, c), ph);
+                            target.d[b] += d;
+                            target.agree[b] += u32::from(d <= HUE.distance);
+                        }
+                    }
+                }
+            }
+            let o = obj[0];
+            if o.n > 0 {
+                let n = o.n as f32;
+                print!(
+                    "{}/{} piece {} masked {} alpha {:.0} texel {:.0?} photo {:.0?} |",
+                    who.0,
+                    who.1,
+                    who.2,
+                    o.n,
+                    o.a / n,
+                    o.t.map(|v| v / n),
+                    o.ph.map(|v| v / n)
+                );
+                for (b, (name, _)) in blends.iter().enumerate() {
+                    print!(" {name} {:.3} {}", o.d[b] / n, o.agree[b]);
+                }
+                println!();
+            }
+        }
+        for (owner_i, bands) in acc.iter().enumerate() {
+            for (band, b) in bands.iter().enumerate() {
+                if b.n == 0 {
+                    continue;
+                }
+                let n = b.n as f32;
+                print!(
+                    "player {} alpha {}..{} n {} alpha {:.0} texel {:.0?} photo {:.0?} |",
+                    owner_i,
+                    band * 64,
+                    band * 64 + 63,
+                    b.n,
+                    b.a / n,
+                    b.t.map(|v| v / n),
+                    b.ph.map(|v| v / n)
+                );
+                for (k, (name, _)) in blends.iter().enumerate() {
+                    print!(" {name} {:.3} {}", b.d[k] / n, b.agree[k]);
+                }
+                println!();
+            }
+        }
     }
 }
