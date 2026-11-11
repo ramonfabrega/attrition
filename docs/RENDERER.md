@@ -978,7 +978,7 @@ that base. The alpha and its bitcode are unread (parked 4129a).
 **The transition patch (item 4132).** Drawn from the packet's own patch
 under the read alpha (`docs/FORMATS.md`), it wins 395 of 503 patched
 tiles (`RUN1559B_3279_GROUND_BLEND_PACKET`) against controls at most 204.
-The rule that picks it is unbuilt (parked 4132a; the journal).
+The rule that picks it is §3.8 (item 4134).
 
 **The projection is the camera's own.** The shader multiplies by
 `to_screen_matrix` uploaded row-major (WGSL reads it transposed, so `M · v`
@@ -1162,6 +1162,109 @@ original too; it is drawn over it. The rejected readings with the silhouettes: `
 - The section name `#<TILESET>_TREE_MODELS0`. It is a reading, checked by the count of models (24, all of
   which decode), and since by the packet's geometry on 12 cells.
 - Whether cutting a tree moves `terrain_version`.
+
+## 3.8 The transition patch (item 4134)
+
+**What it is.** A land-0 cell next to a cell one `land_sub` below it lays a second
+texture over its base: the base of `land_sub − 1`, through one of 14 alphas, at texcoords that
+pick a quadrant of the alpha and turn it. The port is `client::patch`. It takes the cells'
+`(land, land_sub)`, the edge masks, the tileset's `COAST_BASE` and `BASELAND` count, and the texture
+fractal, and draws nothing. The oracle is run1559b's packet, printed whole by
+`tools/render/patches.py`: every patch, every cell, both mask arrays, and the tables.
+
+**The rule, as ported.**
+
+1. *The queue.* `mark_nodes` runs `mark_trans_flags` on every cell, row-major, on masks that start
+   at zero. A cell is queued when one of its eight neighbours lies one step below it under
+   `TileSet::is_combo_acceptable`. Within a land that means the same land, sub one less.
+   `create_transition_renderables` visits only the queued cells.
+2. *The masks.* Each cell edge holds a 9-bit word with three 3-bit fields: block (shift 6), connect
+   (shift 3) and fill (shift 0). `edge_mask_x` holds the vertical edges and `edge_mask_y` the
+   horizontal ones (type record `+0x495c` and `+0x4960`; shipped at `+0x40` more, like
+   `transitions`).
+3. *The codes.* `build_trans_flags` reads one 12-bit code per field. The top edge goes in bits 9–11,
+   the right in 6–8, the bottom in 3–5 and the left in 0–2. The bottom and left groups are
+   bit-reversed through `bit_reversal`.
+4. *The checks.*
+   - `check_blocks` opens a full group whose neighbour lies one step below. It closes an open
+     group whose neighbour lies one step above. Then each corner bit drags its neighbour across the
+     corner.
+   - `check_connects` gives an empty group facing a lower neighbour the *complement* of the block
+     code's group, `connect |= ~(block & g)`. The listing's `and; not; or` confirms the whole-word
+     complement. It clears a set group that faces any other cell.
+   - `check_fills` clears a group facing another cell, and clears whatever the block code holds of
+     it.
+   - When nothing blocks, `check_for_diagonal` runs. Two orthogonal neighbours equal to each other
+     and not to the cell set a corner shape. Off the map counts as land 0, sub 0. With no such pair,
+     a lower diagonal neighbour sets one.
+   - Finally an empty side takes its middle fill bit, and two empty sides that meet take their
+     corner.
+5. *The pick.* `Transitions::init` names each alpha's eight orientations from its file name, a
+   12-digit binary code: the code, its three rotations by group, and the four bit-reversed mirrors.
+   `Transitions::find_map` admits an orientation when all of these hold:
+   - it shares no bit with the block code;
+   - it holds every fill bit;
+   - it has a bit in each group the connect code touches;
+   - it is zero when all three codes are zero.
+
+   The admitting alphas are the candidates, in table order. The fractal picks one at
+   `⌊frac · (n / 100)⌋`, held below `n`, and the same rule then picks an orientation among the
+   admitted ones. All of this is single-precision arithmetic, done here in `sim::num::Single`.
+6. *The texcoords.* Orientation 0–3 turns the cell's own `trans_texcoords0` point as
+   `(1 − u, 1 − v)`; orientation 4–7 turns it as `(u, 1 − v)`. The switch's jump table shows which
+   case gets which input; the decompiled bodies hide it. The quarter turns per orientation are
+   2, 3, 0, 1, 2, 1, 0, 3, turning `(u, v) → (v, 1 − u)` about the centre. The result is halved and
+   moved into quadrant `⌊frac · 0.04⌋`. Quadrants 1 and 2 add ½ to u; quadrants 2 and 3 add ½ to v.
+
+**What the packet's diff backs** (`client::patch::tests`):
+
+- *Stage 0, the fractal.* `Fractal::init(61, 61, 0, 2, World.seed)` gives the packet's `frac` on all
+  2,064 patched cells. Seed `0x1c44`.
+- *The orientations.* From the 14 file names, the eight codes are the packet's on every alpha.
+- *Stages 2 and 3, on the packet's own masks* (`RUN1559B_3279_PATCH_ON_ITS_MASKS`). Of the 2,810
+  land-0 cells:
+  - 1,509 of the 1,512 drawn patches take our alpha, and all 1,509 take our texcoords at all 25
+    vertices;
+  - all 113 emptied patches are "none" under our rule;
+  - all 1,185 unpatched cells are "none" too.
+
+  Each stage was perturbed once:
+
+  | perturbation | drawn alphas | texcoords |
+  |---|---|---|
+  | the seed one on | 1,506 | 584 |
+  | one patched cell's sub set to 0 | 1,508 | 1,508 |
+  | the orientation mirrored | 1,509 | 0 |
+
+  The texcoord rule was found against the packet: the flip first (799), then the turn's sign
+  (1,509).
+- *The counts.* The packet holds **1,512** drawn land-0 patches and 113 without geometry, 1,625 patch
+  records in all. Item 4132's "1,399 drawn" took the 113 off twice.
+
+**Where the 113 come from.** `Terrain::spot_update_land` handles a land change mid-game. It resets the
+four edge masks of each cell in its list to `0x38`, empties that cell's patch (counts, bucket and
+texture zeroed), re-marks the cell, and reruns the pass. A cell it empties that is not re-queued
+keeps an empty patch. Our rule draws nothing there, and neither does the original.
+
+**What parts.** Three cells part: (41, 15), (56, 25) and (45, 28). Each carries alpha 13 on the
+packet. On the packet's masks the candidates are alphas 1, 7 and 13, and the fractal (51, 21 and 37)
+picks index 1, 0 and 0. Alpha 13 is out of reach on these masks. **The hypothesis, unconfirmed:**
+they are patches laid under earlier masks. A neighbour's re-marking later changed a shared edge,
+and the cell itself was never re-queued. Whether a cell 4129b moved sits near each is not checked.
+
+**What rests on the reading alone, and what is not established.**
+
+- **Stage 1 is unported** (parked 4134a): the masks from the cells, meaning `mark_trans_flags`,
+  `check_for_tendrils` and `neighbor_count`. The port diffs stages 2 and 3 against the packet's own
+  masks, so it is not yet a rule from `land_sub` alone, and `RUN1559B_3279_PACKET_PATCH` is
+  unpinned.
+- The history: `spot_update_land`'s cell list, and whether the three cells above are stale.
+- Two inputs come from the packet rather than our data: `COAST_BASE` 3 and `BASELAND`'s four bases
+  (`TileSetData +0x62c`, `+0x208`). They are not yet read from our tileset (`rondata::mapgen::
+  tileset_groups`). The cross-land branches that use them are reached on the land-1 and land-2
+  borders and held only in aggregate by the count above.
+- `Transform::rotate_z`'s direction; the packet fixes it.
+- Land 1 and land 2 patches (319 and 120) and the draw (parked 4132a, 4132b).
 
 ## 4. The stack
 
