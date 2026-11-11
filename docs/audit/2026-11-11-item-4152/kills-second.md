@@ -173,13 +173,13 @@ lists the offset for the checksum. Builders would add it at:
   steps before `die`), crediting `self.owner_of(_by)` when `_by` is an
   object (the original's `param_7 >= 0`). The squad test needs the
   pre-death `takes_remainder_share(i)` (`units/store.rs:667`, already
-  computed as `alone` at `:515`) and `!decoy` (read at `:528`). The
+  computed as `alone` at `:515`) and `!decoy` (read at `:530`). The
   decoy-overflow recursion at `:586` passes `Obj::Unit(k)` as its own
   attacker, so the self-credit case falls out if the credit reads `_by`.
 - `Sim::cast_counterintel`, `crates/sim/src/spells/cast.rs:1031`; its doc
   comment at `:1028` already names the `units_killed` SEAM.
 - `Sim::cast_sniper_unit`, `crates/sim/src/combat/fight/delivery.rs:806`,
-  for the `0x280`/`0x281` unit arm (called from `spells/cast.rs:983`,
+  for the `0x280`/`0x281` unit arm (called from `spells/cast.rs:982`,
   `:999`); it would need the caster's player, which its signature does
   not carry today.
 
@@ -276,7 +276,7 @@ Builders would add it at:
 - `Sim::take_damage_typed`, `crates/sim/src/combat/fight/delivery.rs:469`,
   `Taken::Died` arm (`:537`), before `close_count`, for the struck unit's
   owner, gated on the pre-take `alone` (`takes_remainder_share`, `:515`)
-  and `!decoy` (`:528`). No attacker test.
+  and `!decoy` (`:530`). No attacker test.
 - `Sim::die_by_attrition`, `delivery.rs:844`, called from
   `crates/sim/src/territory/upkeep.rs:307`. The crate's attrition kill
   does not go through `take_damage_typed`; the original's
@@ -448,7 +448,7 @@ the `Taken::Died` arm at `:1041`, before `self.die_building(b)`, for
 plain-game callers: combat (`take_damage_typed`, `:599`), sabotage
 (`cast_sabotage_building`, `:887`), and building attrition
 (`Sim::building_attrition`, `crates/sim/src/cities/city.rs:3123`, `:3128`).
-The city clamp at `:1027` returns before it, as in the original.
+The city clamp at `:1025` returns before it, as in the original.
 
 ### 4.6 Plain game?
 
