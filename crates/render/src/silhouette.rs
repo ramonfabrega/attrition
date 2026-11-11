@@ -617,6 +617,7 @@ impl Colours {
 /// **The colour reader** (item 4099; §5.3): over `window`, the pixels whose
 /// key is `key` and where `theirs` (window-sized, [`traced_theirs`]) holds,
 /// `painted`'s colour against the photograph's.
+#[allow(clippy::too_many_arguments)]
 pub fn read_colours(
     keys: &Keys,
     photo: &Photo<'_>,
