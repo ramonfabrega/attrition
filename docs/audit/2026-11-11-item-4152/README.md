@@ -93,9 +93,9 @@ clear cut: re-run that wave for that family.
 | 17 | `spells` | done | done | done | done, §17 |
 | 18 | `score` | done | done | in flight at the clear | owed |
 | 19 | `last-finished` | done | done | done | done, §19 |
-| 20 | `high-buildings` | done | done | in flight at the clear | owed |
+| 20 | `high-buildings` | done | done | done | owed |
 
-**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 9 of
+**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 10 of
 20, specified 7 of 20.
 
 **How to resume.** The briefs are in `briefs/`, one per wave. A spawn is one
@@ -175,3 +175,4 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | misery | 3 | 142 k | 10 | 38 confirmed, 5 corrected, 1 open | **at most +1 per building per frame** (the slot+1 recursion is a library's only); `misery` constant 0 (emit 0); `diff/leader.rs:49` "unread" is wrong |
 | diplomacy-relations | 2 | 242 k | 18 | 8 of 8 written | agrees: only humans move `dow`/`blacken` (quiet argument read at all 16 sites), `made_peace` and the hire pair in `action_respond`, `last_spoke` no writer; raises `good_deeds`' old balance entering twice |
 | kills | 3 | 196 k | 13 | 62 confirmed, 2 corrected, 0 open | the self-kill credit cannot happen in a plain game (every figure of a decoy squad is a decoy); the site-abandon arm is an unfinished site (`is_active` = flags & 4) |
+| high-buildings | 3 | ~150 k | ~13 | 33 confirmed, 3 corrected, 3 open | the reset dispute settled for the first reading (`Leader::init`'s tribe<0 memset and `Leaders::clear`); `reg_terr` zeroes live slots only (gate `zero_region_rares`); `check_capture`'s swap branch unported |
