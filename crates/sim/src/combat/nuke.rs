@@ -166,9 +166,9 @@ impl Sim {
     /// ground is seen to the shooter now and to its neighbours' next
     /// `check_ever_seen` (`docs/VISION.md` §6).
     ///
-    /// SEAM: the original's other two writes (`World +0x168` and the cell
-    /// record's `+0x14`) have no reader here, as in
-    /// [`crate::world::World::set_seen`].
+    /// The original's other two writes, `World +0x168` and the cell
+    /// record's `+0x14`, are [`crate::world::World::set_seen`]'s own
+    /// (`docs/VISION.md` §12).
     fn nuke_reveal(&mut self, landing: Pos, splash: i32) {
         if !self.world.has_fog() {
             return;
