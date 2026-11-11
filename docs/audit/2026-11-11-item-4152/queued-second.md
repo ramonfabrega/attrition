@@ -179,3 +179,194 @@ graph agree) and on the arithmetic (listing read end to end for
 while their type is a Militia (the immortal spells and the `is_list` data
 are unread).
 
+## The six queued leaves: shared writer set
+
+The six leaves have one writer set. Every store to any of them sits in a
+copy of one rule, **track-queued(t, d)**, which is
+`Leader::track_queued (006e0f30)` out of line and inlined (with `d` fixed at
+`+1` or `-1`) in ten other functions. Every copy also moves
+`num_queued[t]` (`+0x5a22`) on the same statement, and the set of functions
+that store `num_queued` in the listing is exactly this set plus
+`Leader::init`. That is a check the nets agree: nothing stores the six
+without storing `num_queued`, and the reverse holds too.
+
+### The rule (listing `6e0f30`..`6e1044`)
+
+Given type `t` (a `TypeIndex`) and delta `d`:
+
+1. `t < 0`: nothing.
+2. `num_queued[t] += d`, **unless `num_queued[t] == 0 and d < 0`** (16-bit).
+3. `t` must be a unit type (`types[t]` vtable `+0xc`; devirtualized in the
+   inline copies as `0x32 <= t <= 0x19d`) and `unittypes[t].attack
+   (+0x1e8) != 0`; else stop.
+4. By `w = unittypes[t].where (+0x40)`, first match:
+   - `w == 0x1ab` (Barracks): `barracks_queued += d`, then `combat_queued += d`;
+   - `w == 0x1ac` (Stable): `stable_queued += d`, then `combat_queued += d`;
+   - `w == 0x1ae` (Siege Factory): `factory_queued += d`;
+   - `w == 0x1b0` (Dock): `dock_queued += d`;
+   - else if `unittypes[t].domain (+0x218) == 2`: `air_queued += d`;
+   - else nothing.
+
+   Each add is skipped **when that counter is 0 and `d < 0`**, tested per
+   counter: `combat_queued`'s skip looks at `combat_queued` itself, not at
+   the Barracks or Stable counter beside it. With `d = -1` this is a floor
+   at zero; with `d < -1` (only the carrier paths below) a counter at 1 can
+   go to `1 + d < 0`. The `+1` inline copies are bare `incl` with no test.
+
+Units: counts of queued items (one per queued unit). The step is per
+event, not per frame.
+
+### Writers (`Name (addr)`, the listing's store sites, `d`, the event)
+
+| writer | stores (listing) | d | event |
+|---|---|---|---|
+| `Leader::track_queued (006e0f30)` | `6e0fa7`, `6e0fc6`, `6e0fdc`, `6e0ffb`, `6e101a`, `6e103b` | arg | out of line; callers below |
+| `Build::queue_up (00620f40)` | `incl` at `621a2f`..`621a79` | +1 | an entry appended to a building's queue |
+| `Build::unqueue (006207c0)` | `6209dc`..`620a57` | -1 | an entry removed (vtable `Build +0x1c8`) |
+| `Build::clean_queue (00620b60)` | `620d92`..`620e0d` | -1 per entry | a building's whole queue emptied, last entry first |
+| `Group::action_spell (006fe1a0)` | `incl` at `6fe80c`..`6fe856` | +1 | a carrier's plane queued |
+| `Unit::process (00610bc0)` | absolute `0xe3ada0(%esi)`..`0xe3adb4(%esi)` at `611362`..`6113dd` (`esi = who*0x6eec`) | -1 | a carrier's plane finished |
+| `Unit::action_unqueue (005e1f20)` | `5e1ff3`..`5e206e` | -1 | a carrier's plane cancelled |
+| `Wall::increment_stats (00643270)` | `incl` at `6433cc`..`64341a` | +1 | dead for these leaves (below) |
+| `Wall::decrement_stats (00642da0)` | `642f22`..`642fa0` | -1 | dead for these leaves |
+| `Wall::activate (0063e4b0)` | `63e668`..`63e6e3` | -1 | dead for these leaves |
+| `Wall::close (0063f6e0)` | `63f93a`..`63f9b5` | -1 | dead for these leaves |
+| `Leader::init (006e3930)` | `6e4c3e`..`6e4c5c` | `= 0` | reset |
+
+Calls of `track_queued` (every `calll 0x6e0f30`; no vtable slot holds it):
+
+- `Unit::close (0060ee50)` `60efed`: a unit with `num_queued (+0xa0) != 0`
+  is removed: `track_queued(current_upgrade(FIGHTERBOMBER), -num_queued)`,
+  then the unit's `num_queued = 0`. So a carrier lost with `n` planes queued
+  takes `n` off at once (a `d < -1` site).
+- `Leader::gain_tech (006dcb60)` `6dda28`/`6dda47`: on gaining a unit
+  upgrade, a carrier's queued planes are moved from the old Fighter-Bomber
+  type to the new: `(old, -n)` then `(new, +n)`.
+- `Leader::gain_tech (006dcb60)` `6ddd04`/`6ddd4a`: every building queue
+  entry of the upgraded line is rewritten to the new type: `(x, -1)`, then
+  `BuildQueue::set_queue`, then `(new, +1)`. The listing settles `x`: on the
+  direct match (`6ddca6 cmpl %eax,%esi; je 6ddcf4`) `esi` is the queued type;
+  on the graft-chain match (`6ddcce`..`6ddceb`) the loop exits only with
+  `esi == param_1`, so `x` is the **new** type and the old type's counts are
+  not taken down. The decompile prints the same variable in both arms. On
+  these six leaves the two arms net 0 whenever old and new types share
+  `where` and `domain` (the `-1` cannot hit a floor, since the entry being
+  rewritten is already in that counter); they differ only if an upgrade
+  changes the training building.
+
+Callers of the inline copies, by role:
+
+- `Build::queue_up`: `Build::do_queue (0061e410)` (the repeat flag
+  re-queues the item just finished), `Leader::produce_unit`,
+  `produce_tech`, `produce_upgrade`, `produce_spell` (the computer's
+  orders), `Group::action_queue_up` (the player's queue command),
+  `Group::action_spell`, `Group::action_disband` (queues `DISBAND 0x29a`, not
+  a unit type, so no step here), and the scenario layer
+  (`ScenarioEditor::queue_unit`, `ScenarioRead::load_city_chunk`,
+  `load_build_chunk`).
+- `Build::unqueue` (only through `Build +0x1c8`, `calll *0x1c8(%r)`):
+  `Build::do_queue` `61ec35`/`61eda0` with `(slot, 0)`, after
+  `Build::finished` (`+0x1b0`) reports the head item done, i.e. **an
+  item completes**; `Build::action_unqueue (00620280)` with
+  `(last, 1)` (a cancel, refunded); `Build::activate (00623e20)` three
+  sites with `(find_in_queue(...), 1)` (a matching entry in another
+  building's queue cancelled when a building activates; predicate not
+  read); `ScenarioEditor::unqueue_unit`; and `Build::unqueue` itself, which
+  forwards from a non-first Library to the first Library's queue (the
+  decrement then happens in the first Library's call).
+- `Build::clean_queue`: `Build::close (00628980)` (two sites),
+  `Build::swap_team (00628210)` (before the capture changes owner, so the
+  old owner's counts fall; skipped for a Library), `City::close
+  (00737550)`, `Leader::defeat (006ecb00)`, `Leader::victory (006ec9b0)`,
+  `ScenarioEditor::delete_leader`, `ScenarioFuncSet::clear_build_queue`.
+  Inside, a plain `Build` takes the inline path; any other vtable calls
+  `+0x1c8`.
+- Carrier copies: `Group::action_spell` is reached from
+  `CommandPackage::process_spell (00948340)` and
+  `Group::finish_insert (0070e620)`; per member that is castable for the
+  carrier's craft, with `num_queued < 10` and room aboard, it pays, then
+  `num_queued += 1` and the inline `+1` on `current_upgrade(FIGHTERBOMBER)`.
+  `Unit::process`, when `num_queued != 0` and `leader_flags & 2`, adds the
+  train acceleration to `queue_time`; once it reaches `train_time` and the
+  population has room, `num_queued -= 1`, `queue_time = 0`, and the inline
+  `-1` on `current_upgrade(FIGHTERBOMBER)` at that frame.
+  `Unit::action_unqueue` (from `CommandPackage::process_unqueue`,
+  `Build::train`, `ScenarioEditor::unqueue_unit`,
+  `ScenarioFuncSet::add_unit`): returns at `num_queued == 0`, else
+  `num_queued -= 1` and the inline `-1`. `Build::train`'s call is on a
+  freshly trained Aircraft Carrier (`is(0x15f, 1)`), whose `num_queued` is 0,
+  so it changes nothing.
+- The `Wall` copies apply the rule to the wall's own type
+  (`ptype->type`) while the wall is not active (`flags & 4` clear): a
+  wall foundation counts in `num_queued` of its building type. A wall's type
+  is a building type (`>= 0x19e`), so step 3 fails and **none of the six
+  moves**. Not checked: that no wall type's vtable `+0xc` overrides
+  `TypeData::is_unit_type`; the inline devirtualization takes the range
+  test whenever the slot is the base one.
+
+The Fighter-Bomber line (`FIGHTERBOMBER 0x134`) is built at the Airport,
+not one of the four buildings; with `domain 2` it lands in `air_queued`.
+That `where` was not read from the data.
+
+### Reset
+
+`Leader::init (006e3930)` zeroes all six (`6e4c3e`..`6e4c5c`, `eax` = 0),
+at game setup, scenario load and CtW setup (callers listed under
+`scholar_militia`). Nothing else zeroes them; in particular no frame-level
+recount exists, so any floor-skipped decrement or `d < -1` overshoot
+persists to the end of the game.
+
+### Readers
+
+- `LeaderData::get_support_count (006da110)`: for an armed unit type
+  (`attack != 0`) whose progression flag `unittypes[t] +0x2f4 & 1` is set,
+  returns `<building>_queued + <building>_units` by the same `where` /
+  `domain` chain (Barracks, Stable, Siege Factory, Dock, air), else
+  `num_queued[t] + high_buildings[...]` and its extras. `combat_queued` has
+  no arm here. Its caller is `TypeData::get_cost (00664090)`, the unit
+  price ramp.
+- `LeaderData::log_data (006e5110)` prints all six (lines
+  `2134`..`2159`).
+- `ConquestLeader::*`, `ConquestSetupWin::*` and `ConquestGame::build_units`
+  read `0xa10..0xa24` off their own records (CtW), not a leader.
+
+### Crate
+
+The crate already keeps the type half and a per-building half:
+
+- `Muster::queued_by_type` (`num_queued`) and `Muster::queued_by_group`
+  (`crates/sim/src/units/unit.rs`), where a type's `group` is its
+  `where_` when `attack != 0` and `None` otherwise
+  (`crates/rondata/src/load.rs`, `let group = if c.attack != 0 { c.where_ }`).
+- `+1`: `Sim::queue_up_with` via `Sim::track_tree_queued`
+  (`crates/sim/src/cities/queue.rs`); `Sim::carrier_action_spell`
+  (`crates/sim/src/air/carrier_queue.rs`); the re-target
+  `Sim::retarget_queued_to` (`cities/queue.rs`, which models the chain-arm
+  register quirk above).
+- `-1` floored: `Sim::untrack_queued` (`cities/queue.rs`), called from the
+  completion and cancel paths, `Sim::untrack_item`/`clean_queue`
+  (`crates/sim/src/cities/city.rs`), `Sim::carrier_queue_tick` and
+  `Sim::unit_action_unqueue` (`air/carrier_queue.rs`).
+- SEAM: `Sim::upgrade_units_to` (`cities/queue.rs`) names the carrier arm of
+  `gain_tech` (`6dd9ec`, the `(old, -n)`, `(new, +n)` pair) as not built.
+- Not found in the crate: `Unit::close`'s `track_queued(FB, -num_queued)`
+  for a carrier lost with planes queued. Grepping `num_queued` and
+  `untrack_queued` finds no close path; no capture has a carrier
+  (`carrier_queue.rs` module doc), so no diff has asked for it.
+
+What a builder adds: four of the six are one `queued_by_group` entry each,
+provided the group index is the `where_` building (Barracks `0x1ab`,
+Stable `0x1ac`, Siege Factory `0x1ae`, Dock `0x1b0`), and the crate's
+per-group floor is the original's per-counter floor for those four.
+`combat_queued` and `air_queued` are not a single group: `combat` is
+Barracks + Stable with **its own** floor, `air` is every armed `domain 2`
+type outside those four buildings (possibly several `where_`s) with its own
+floor. Either add two counters moved at the `track_tree_queued` /
+`untrack_queued` sites with the original's per-counter skip, or derive all
+six in the leaders checksum (`Sim::leader_long` in
+`crates/sim/src/checksum/leaders.rs`, beside `leader_trained`, which does
+the same for the `*_units` leaves from `by_type`) from `queued_by_type`
+with the same type filters. The derivation is exact only while no floor
+fires and no `d < -1` overshoot happens; both need a desync or the
+missing carrier-loss path, so the counter form is the safer port.
+

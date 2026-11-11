@@ -142,3 +142,79 @@ Not in a plain game: `take_att_disabled` (triggers), `rare_conquest`,
 `ScenarioFuncSet` callers, `Leaders::clear` (between games), and the load
 walk (save track).
 
+### G. The rule, as a builder should port it
+
+- **Held as** a `u32` of single-precision bits per player (beside, or in
+  place of, the rational `Resistance`), emitted raw at `+0x7f4`.
+- **Recompute** (pure; no step, no decay), for leader `w`:
+  1. `x = 0x43800000` (256.0).
+  2. If `take_att_disabled`: `x = 0`, stop.
+  3. Tier = 3 if `has_tech(Logistics)`, else 2 if `has_tech(Supply)`, else
+     1 if `has_tech(Forage)`, else none. These are `has_preq(FORAGING_3..1)`,
+     i.e. `bonus_at(84..82)`'s `preq0` through `Sim::bonus_level`. With a
+     tier, `p = attrition_upgrade[tier − 1]`.
+  4. Then, in this order, each held source applies its `p`: the tier;
+     Liberty (`has_wonder(0x219)`, `liberty_attrition`); Mongol
+     (`has_tribe_bonus(17)`, `mongol_attrition`); titanium (`has_rare(36)`
+     over `rare | rare_conquest`, `titanium_attrition`). For each: if
+     `p ≥ 100` (signed), `x = 0` and stop; else
+     `x = Single(x).mulss(Single::from_bits(0x42c80000)).divss(Single::from_i32(100 − p))`.
+- **Where it runs**:
+  - `Leader::init`'s analogue, after the tribe and the start techs are set
+    and with `take_att_disabled` already 0.
+  - The head of `Sim::calc_unit_stats` (`crates/sim/src/economy/rares.rs:679`),
+    after `calc_attrition`. It is reached through the `unit_stats_dirty`
+    fold at the gainer's next `Leader::process` (`core/frame.rs:186-189`),
+    which tech gain or loss, a rare-mask change and a **wonder's**
+    activate or close raise.
+  - Eagerly in `apply_gained` **only** when the gained type is an epoch
+    whose techtype `+0x14` is 1 and the Civic level now equals
+    `ctw_wonder_min_civics` (4).
+  - The editor's and the triggers' direct calls are out of v1.
+- **Reset**: `Leaders::clear` and `Leader::init` zero it; a load restores
+  its saved bits; nothing else.
+- **Reader** (already ported as the rational): `get_attrition`'s
+  non-militia arm is `trunc(bits_as_f32 · k / 256)`, k = 256 or
+  `25600 / (100 − siege_attrition)`. On the shipped data it equals the
+  rational's floor in all 32 states, so the reader can stay on the
+  rational. `foraging_1` for the idle exemption is `has_tech(Forage)`.
+- **Plain game**: yes: every leader at init (256.0, or 512.0 for the
+  Mongols), then Forage / Supply / Logistics, the Statue, titanium, and
+  the Civic-4 arm.
+- **Confidence**: high on the writer set, the exits, the order and the
+  arithmetic (listing read whole, both constants read from `.rdata`, the
+  bits replayed two independent ways); high on B3's bonus-type reading
+  (decompile plus the shipped rows); high on C5's timing (the complete
+  caller list). Medium on the Mongol init value (F).
+- **Open**:
+  - Whether a nomad's first city raises `0x4000000` (C7).
+  - Whether the crate's `PlayerTech.wonders` carries `has_wonder`'s
+    `+0x72 ≥ 0` predicate for a captured Statue (E6).
+  - Whether a lobby's later starting age reaches `set_age` and so
+    `calc_unit_stats` (C6).
+  - What sets `leader_flags2 & 0x40` (B6).
+
+  None changes the bits of a plain game's first frames. A diff against
+  a capture in which a walked leader researches Forage and then Supply or
+  Logistics, or plays the Mongols, would back every row of §D at once;
+  until then only the class 1 row is diff-backed (entry 120 §3.4).
+
+## Verdict table
+
+| leaf | claims confirmed / corrected / open | the rule in one line |
+|---|---|---|
+| `anti_att` (+0x7f4, f32) | 33 / 6 / 3 | recompute from `0x43800000` on init and on the next `Leader::process` after a dirty tech / rare / wonder event (plus the Civic-4 epoch arm): highest of Logistics/Supply/Forage, then Liberty, Mongol, titanium, each `p ≥ 100` → 0 else `x = divss(mulss(x, 100.0), 100 − p)` in `Single`; `take_att_disabled` → 0; class 1 (`0x43800000`) where no source is held, class 2 otherwise, never class 3 |
+
+Corrections, for the ledger:
+
+1. **B3**: `has_preq(FORAGING_n)` is "holds Forage / Supply / Logistics"
+   (bonus-type prerequisites), not "holds a tech named FORAGING_n".
+2. **C3**: `Build::activate` raises the dirty bit for wonders only.
+3. **C5 / E3**: no eager recompute in `apply_gained` except the Civic-4
+   arm; the leaf lags a tech finished after the leaders' fold by one
+   frame. The same holds for `calc_attrition`, flagged to the
+   attrition-stamps family.
+4. **D**: nine distinct patterns over the shipped data, not eleven.
+5. **D**: the family table's "class 3" is wrong; the leaf is class 1 or 2.
+6. **E6**: the crate does hold a player's wonders (`has_wonder`,
+   `wonders_held`); the stale doc is `calc_attrition`'s.

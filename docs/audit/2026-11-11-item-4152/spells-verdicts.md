@@ -87,3 +87,122 @@ refused twice: `has_preq` first (it runs first in `type_avail`), then
 `type_eligible` line 43 would refuse it too. Immaterial to the result;
 material only to a port that skips one of the two checks.
 
+### 5. Claims 9 and 10, `Build::finished`'s fall-through
+
+- Claim 9 **confirmed.** `628687: call 0x6e0bc0` (`has_spell`), `62868e: je
+  0x6284f3`; from there the building range test (`62850e`/`628515`) fails
+  for a spell and `628548: call 0x6dcb60` (`gain_tech`) runs with the queued
+  type in `%esi`.
+- Claim 10 **corrected, for the second; the first's "cannot fire in a plain
+  game with the shipped data" stands.** With no letter-`a` row, `has_spell`
+  is `type_avail(t, 1)` (`has_spell (006e0bc0)` lines 21–33). For the
+  fall-through, a spell must be queued while available and be unavailable at
+  the finish. `BuildData::can_make (0062db10)` lines 27–37 refuse any queue
+  whose `type_avail` is 0, so the spell was available at queueing. Nothing in
+  a plain game takes availability away afterwards: the tribe is fixed;
+  `ending_technology` is fixed; a `-1` preq is always held; `RADARSPELL`'s
+  preq is an age, and ages are lost only through `Leader::set_age
+  (006d25a0)` (lines 26–70 call `lose_tech`), whose callers are
+  `ConsoleWin::run_cmd`, `ScenarioFuncSet::gain_next_age`/`lose_current_age`
+  and `UnitBalance::next` — none plain-game. So the path is dead in a plain
+  game with this ruleset; the second's "needs a queued spell that lost
+  availability" is a true condition that nothing in a plain game meets.
+  Deciding lines: `can_make (0062db10)` line 35, and `set_age`'s caller set.
+  **Open, small:** a malformed lockstep queue order that bypasses
+  `can_make` was not traced.
+
+### 6. Claims 11–13, the writer list, re-netted
+
+**Confirmed complete.** My own nets:
+
+- Export: `grep -rln 'field_0x6c0c|field_0x6c18|field_0x6c1[0-9a-f]|->tech|.tech'`
+  over `funcs/` gives 42 files; the writing lines are exactly
+  `LeaderData::LeaderData` (lines 23–26), `Leader::close` (17–19),
+  `Leader::lose_tech` (19, 107), `Leader::gain_tech` (303, 857),
+  `ConsoleWin::run_cmd` (6504), the two cheats, `MapScenario::make` (320),
+  `Leaders::clear` (11), `disable_type_by_tribe` (65–108), plus
+  `Leader::init`, `walk_data` and `log_data`.
+- Listing: every instruction in `exe.s` with a displacement in
+  `0x6c0c..0x6c7f` off a register, or an absolute/indexed address inside
+  any of the eight slots' `tech` struct (`0xe40f9c + k*0x6eec`, 0x74 bytes),
+  attributed to its function by the export's address index: 57 functions;
+  all are `testb`/`movzbl`/`movb`-to-register loads except the stores and
+  `lea`/`add`s in the functions just listed. The only non-load `movb` into
+  the array is `MapScenario::make` at `68cff4` (unit range, scenario). Also
+  every immediate `$0x6c0c..$0x6c7f` and `$0xe40f9c..` in `.text`: the
+  extras (`SetupWin::setup_buttons`, `ConquestSetupWin::*`,
+  `GameSpy::join_staging_room`, `ScriptGameInterface::init`) add those
+  constants to string-table bases (`0xc06378`, `0xc8cd00`), not to a leader.
+- No writer neither reader named. The second omitted
+  `action_cheat_zero_techs (00593120)`; the first had it.
+
+### 7. Claim 14, `Leader::init`'s callers
+
+**Corrected (minor), for the second.** The direct `call 0x6e3930` sites in
+`.text`: `WalkDataGame::walk_data` (`5a30e6`), `Setup::build_leader`
+(`5abc8d`), `Setup::build_game` (`5acef7`), `MapScenario::make` (`68cf18`),
+`Leaders::init` (`6ed8cb`), `ConquestGame::build_conquest_game` (`797e52`),
+`ScenarioEditor::new_leader` (`9a1575`) and `ScenarioRead::load_leader_chunk`
+at **six** sites (`9ac1a9`..`9ac69f`), not three. `Setup::build_leader
+(005abc70)` has **no caller**: no `call`/`jmp` to `0x5abc70` in `.text`, and
+its address does not occur as data in the PE (`70bc5a00` absent). So the
+plain-game caller is `Setup::build_game (005ac190)` alone, as the first had
+it. Deciding line: the `exe.s` grep for `0x6e3930` and `5abc70`.
+
+### 8. Claim 15, the readers: one neither reader found
+
+**Confirmed, with an addition.** `has_spell (006e0bc0)` reads the bit only
+under `spell_flags & 1` (lines 21–27), else returns `type_avail`;
+`has_tech (006e0c80)` line 37 reads it raw for a non-unit, non-building
+type. Of the listing net's variable-index `testb` readers in simulation
+code, each was checked for its type gate: `Build::do_queue` `61e5aa` and
+`61ec02`, `Build::queue_up` `62165f`/`62182e`, `Group::action_queue_up`
+`6fdde5`, `ObjectData::train_time` `650a90`/`650ade` (units) and `65167e`
+(buildings), `TypeData::get_cost` lines 159/425 (units) and 705
+(buildings), `BuildData::count_queue` (units), `has_tech_queued` (techs),
+`reset_obs_flags` (units `< 0x192`): none can index a spell.
+
+**One can: `Build::do_queue (0061e410)` at `61e501`** (decompile lines
+93–98). When the building `is(MISSILESILO 0x208, 1)` (`61e4b6..61e4d6`) and
+its `inside_down` (`+0x28`) is not negative (a missile already inside), and
+the head-of-queue type's bit in `tech` is set, and that type is not
+`DISBAND` (0x29a), `do_queue` returns without progressing the queue. This
+reads `tech` for whatever type is queued, spell or not. `DISBAND`'s bit is
+one of the 46 set at init, and the explicit `!= DISBAND` is what keeps a
+loaded silo able to disband. By run 1562's loaded `SPELLTYPE` records no
+other spell names the silo (`from`, `from2`, `where` are `-1` only for
+`DISBAND`; the rest name other lineages), so in a plain game this reader
+meets a spell bit only for the one spell it exempts. Effect today: none.
+For a builder: if the spell bits are ported, `do_queue`'s silo test must
+keep the `DISBAND` exemption, or a loaded silo stalls a queued disband.
+**Open:** `BuildTypeData::queue_here` for the silo was not read, so "no
+other spell can be queued at a silo" rests on the loaded `from/where`
+columns. Deciding line: `61e501`, `61e4a8` (the earlier `DISBAND` test),
+`61e508`.
+
+The other spell-bit readers are interface (`BuildOut::make_options` eight
+sites, `IFace*`, `WallOut::draw`, `ConsoleWin::tell_tech`), the scenario
+writer (`ScenarioWrite::save_leaders_chunk`), CtW
+(`ConquestGame::setup_scenario_bonuses`), `log_data`, and the windowed
+checksum. So the readers' "no simulation decision in a plain game reads
+these bits" holds in effect, through one exempted reader.
+
+### 9. Claims 16–17, the crate site
+
+**Confirmed.** `TechTree::start` is `crates/sim/src/tech.rs:2235`; its last
+pass (the building/unit loop, `:2290–:2320`) is followed by
+`self.reset_obs_flags(setup, p)` at `:2321`; `Kind` (`:100`) ends at
+`Gov { tier, column }` (`:117`), so `PlayerTech::tech` (`:720`,
+`Vec<bool>` over tree entries) has no spell slot. `bits_of` at
+`crates/sim/src/checksum/leaders.rs:704–710` maps through
+`tree_type_index` (`:524`). The SEAM is `crates/sim/src/cities/
+queue_disband.rs:172–174`. `orders::SpellType`
+(`crates/sim/src/orders/order.rs:95`) carries `job_time`, `flags`, `range`,
+`mana`, `from`, `duration`, `duration_upgrade` — no `preq`, no
+`tribe_mask` — filled at `crates/rondata/src/load.rs:725–740` from the
+craft records (`flags` by `craft_flags`, `load.rs:2171`). The first's claim
+17 is confirmed; the second left it unchecked. The diff side lists
+`("tech.ptr", 2)` at `crates/rondata/src/diff/checksum_lines.rs:1839`.
+Home of the event: `TechTree::start`, between the unit loop and
+`reset_obs_flags` — the original's order (`6e461d` then `6e4621`).
+

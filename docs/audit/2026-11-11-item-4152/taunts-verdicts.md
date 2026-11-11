@@ -140,3 +140,63 @@ game start; set `taunt_frame[S] = frame` (sim frames, absolute) in the same
 `action_ping`'s window `frame <= taunt_frame[P] + 225`. Crate site as §1.
 Plain game as §1. **Confidence: high.** Open: nothing beyond §1's.
 
+## 3. `incoming_taunt` (+0x394, `int[8]`, the ring's request word)
+
+| claim | first | second | mark | verdict | deciding line |
+|---|---|---|---|---|---|
+| writer | `receive_taunt` 0x6b8c4f, slot `incoming` | same | agree | **confirmed** | 0x6b8c49 `movl 0x3f4(%esi), %eax`, 0x6b8c4f `movl %ebx, 0x394(%esi,%eax,4)` |
+| sender S | `player[play].who`, byte +0x77 of the 0x8c record | same | agree | **confirmed** | 0x6b8bf3 `imull $0x8c, 0xc(%ebp)`, 0x6b8c08 `movzbl 0x77(%eax,%ecx), %edi` |
+| predicate: `req != 0`, `req >= 0`, no upper bound | yes | yes | agree | **confirmed** (signed: `js` rejects negatives) | 0x6b8c0d `testl %ebx,%ebx; je`, 0x6b8c15 `js` |
+| predicate: sender active | `leaders[S].flags & 2` | same | agree | **confirmed** (active, not merely valid) | 0x6b8c21 `testb $0x2, 0xe3a390(%eax)` |
+| predicate: receiver not human, active | yes | yes | agree | **confirmed** | 0x6b8c30 `testb $0x4, %al; jne`, 0x6b8c34 `testb $0x2, %al; je` (`this`'s own flags here, where `process_taunt` reads `leaders[this->who]`'s: the same word for a seated leader) |
+| predicate: `is_ally(R, S)` | S = R or both `diplos` 2 | same | agree | **confirmed** | `LeaderData::is_ally (006edb50)` 0x6edb59 (self → 1), 0x6edb66 and 0x6edb7a (both `== 2`) |
+| predicate: R ≠ S | yes | yes | agree | **confirmed** | 0x6b8c44 `cmpl %edi, 0x8(%esi); je` |
+| step | overwrite of one ring slot | same | agree | **confirmed** | 0x6b8c4f |
+| reset | init memset + explicit loop (0x6e3a10), `Leaders::clear`, (`Leader::close`); not cleared on dispatch | same | agree | **confirmed** | 0x6e3a10 `movl %edx, -0x20(%eax)`, `eax = this+0x3b4+4k`; the drain 0x6ed3e2..0x6ed405 stores nothing |
+| reader | the drain, `pushl -0x20(%edi)` 0x6ed3f1 | same | agree | **confirmed** | 0x6ed3f1 |
+| delivery gate upstream | §0.4 (first's version) | §0.4 (second's version) | disagree | **corrected**, see §0.4 | §0.4 |
+| crate | none; `receive_taunt` from a chat arm replacing `input.rs:1611`; ring on the leaders record; drain in `core/frame.rs:94` | same, ring in `crates/sim/src/leaders.rs`, `checksum/leaders.rs:89` | agree | **confirmed**: `Command::Chat` is decoded with `taunt` and `taunt_num` (`crates/rondata/src/commands.rs:921`) and dropped at `input.rs:1611`; `crates/sim/src/leaders.rs` exists | cited lines |
+| plain game | human → computer ally | same | agree | **confirmed** | §0.5 |
+
+**The rule as a builder should port it.**
+
+- State, per leader: `incoming_taunt: [i32; 8]`, `incoming_taunt_who:
+  [i32; 8]`, `incoming_taunt_frame: [i32; 8]`, `incoming: i32`, all zero at
+  game start.
+- Producer: a `Chat` command from player `play` with `taunt >= 0`. For each
+  valid slot k (0..7), apply §0.4's delivery gate, then call
+  `receive_taunt(k, taunt, play)`.
+- `receive_taunt(R, req, play)`: `S = player[play].who`. Accept only if
+  `req > 0` (signed), S is active, R is active and not human,
+  `is_ally(R, S)`, and R ≠ S. Then `incoming_taunt[incoming] = req`.
+- Reset: game start only; dispatch leaves the slot as it was.
+- Crate site: a chat arm in `Stream::one` (`crates/rondata/src/input.rs`,
+  replacing the skip at :1611) calling a new `receive_taunt` on the sim;
+  the ring on the leaders record (`crates/sim/src/leaders.rs`); a
+  `leader_long` arm for each leaf.
+- Plain game: as §1.
+- **Confidence: high** on the store and gates (listing, three readers);
+  **medium** on the delivery gate's `semaphore & 0x40` and crossplay arms
+  (decompile only, and neither bit's meaning is established here).
+
+## 4. `incoming_taunt_who` (+0x3b4, `int[8]`, the ring's sender word)
+
+| claim | first | second | mark | verdict | deciding line |
+|---|---|---|---|---|---|
+| writer | `receive_taunt` 0x6b8c5c, `edi` = S | same | agree | **confirmed**; `incoming` re-read (0x6b8c56) but unchanged, so the same slot as §3 | 0x6b8c5c `movl %edi, 0x3b4(%esi,%eax,4)` |
+| value | S, the leader `who`, not the play index | same | agree | **confirmed** | 0x6b8c08 |
+| value range | 0–7 | 0..9 | disagree | **open, immaterial** (§0.11) | 0x6b8c08 |
+| predicate, step | as §3 | same | agree | **confirmed** | §3 |
+| reset | init loop 0x6e3a13, memsets | same | agree | **confirmed** | 0x6e3a13 `movl %edx, (%eax)` |
+| non-leader `0x3b4` stores | `Game::close`/`run_oos_recovery` 0xc4-stride; `ScenarioRead::load_leaders_chunk` 0x8c record | 0x1c-stride table; `load_leaders_chunk` game-info records | disagree (immaterial) | **confirmed not leaders**: base `[0xc06214]`, a 2-D clear of strides 0xc4 and 0x1c (§0.N); `load_leaders_chunk`'s `edx` is a non-leader record | 0x586af8 `movl 0xc06214, %eax` |
+| reader | the drain, `pushl (%edi)` 0x6ed3ed, as `process_taunt`'s S | same | agree | **confirmed** | 0x6ed3ed |
+| crate | as §3 (`checksum/leaders.rs:90`) | same | agree | **confirmed** | `crates/sim/src/checksum/leaders.rs:90` |
+| plain game | as §1 | same | agree | **confirmed** | §1 |
+
+**The rule as a builder should port it.** In `receive_taunt`, after the
+§3 gate, `incoming_taunt_who[incoming] = S` (the sender's leader `who`).
+The drain passes it to `process_taunt` as S, which indexes `last_taunt`,
+`taunt_frame` and the alliance test by it. Reset at game start only; not
+cleared on dispatch. Crate site and plain game as §3. **Confidence: high.**
+Open: whether a `who` byte above 7 can reach it (§0.11).
+
