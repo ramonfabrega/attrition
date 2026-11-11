@@ -115,3 +115,50 @@ the second missed: the save loader (below).
   `pop_issues` against the dump, once the building arm is built, turns all
   of this into an assertion. It is the cheapest next step, since the dump
   key exists (`diff/leader.rs:49`).
+
+## Leaf 2: `misery` (+0x7ec, int)
+
+### Claims lined up
+
+| # | claim | first | second | mark | verdict |
+|---|---|---|---|---|---|
+| 1 | every store writes 0 | yes | yes | agree | **confirmed**: the seven leader-typed stores are immediates or a register zeroed by `xor`; `0xe3ab7c` absent; no biased-base store |
+| 2 | `Leader::calc_misery (006cdff0)` is `misery = 0; ret` and has no caller | yes | yes | agree | **confirmed**: `6cdff0`; no `call`/`jmp 0x6cdff0` |
+| 3 | `Leader::calc_pop_cap (006dc490)` zeroes it first, before every branch | yes | yes | agree | **confirmed**: `6dc49d`, `calc_pop_cap:19` |
+| 4 | `calc_pop_cap` call sites | 17 listed | "18 call sites" (same functions) | disagree on count | **corrected (17)**: `Build::activate` ×2, `Build::close` ×2, `Build::finished`, `Cities::capture_city`, `City::check_upgrade`, `City::close`, `City::init`, `Leader::calc_gather`, `Leader::gain_tech` ×4, `ScenarioEditor::add_build`, `ScenarioEditor::toggle_ignore_popcap`, `ScenarioFuncSet::set_population_cap`; an exhaustive `call`/`jmp 0x6dc490` count over `exe.s` gives 17 |
+| 5 | `Leader::gain_tech (006dcb60)` zeroes it in the epoch arm: `is_tech_type` (vtable +0x28, `0x220 ≤ t < 0x275`) and `is_epoch_type` (vtable +0x38, `0x227 ≤ t < 0x243`); then `calc_pop_cap` if the tech's `+0x14` is 0 | yes, with ranges | yes, as "+0x28 and +0x38 predicates" | agree (first fuller) | **confirmed**: `6ddfe4`..`6de01a`; `vtables.txt` gives both slots as `TypeData::is_tech_type`/`is_epoch_type` in `TypeData::vftable` and `TechTypeData::vftable`; the bodies give the two ranges |
+| 6 | the epoch arm is not gated on a first gain | yes | silent | one-sided | **confirmed**: `gain_tech:934`–`:941` sit at function scope, after the `has_tech` block that opens at `:220`; the only jumps into the region (`6de073`, `6de07e`, `6de085` → `6ddfda`) re-enter the same arm. Moot for a constant |
+| 7 | `Leader::init (006e3930)` `6e497e`, `ecx = 0` | yes | yes | agree | **confirmed** (`6e4949` xor, untouched through `6e497e`) |
+| 8 | `Leaders::clear (006ed5d0)` memset | yes | yes | agree | **confirmed** |
+| 9 | `LeaderData::walk_data (006d6750)` on load | yes | "not read" | one-sided | **confirmed (first)**: `walk_data:16`; it restores the saved 0 |
+| 10 | readers: only `LeaderData::log_data (006e5110)` (`6e882b`) and save/checksum | yes | yes | agree | **confirmed**: no other load of `0x7ec(` off a leader base |
+| 11 | crate: nothing to port; the leaf holds 0. `crates/rondata/src/diff/leader.rs:44` "unread" is right as to readers; a constant-0 diff is cheap | yes | yes | agree | **confirmed**: `diff/leader.rs:44`; `checksum/leaders.rs:149` |
+| 12 | crate site if wanted: the `calc_pop_cap` image | `economy.rs:305` | `economy/cost.rs` `pop_cap` | both loose | **confirmed as pointers only**: `crates/sim/src/economy.rs:305` cites `calc_pop_cap`'s tail; no store is needed |
+| 13 | archive: no nonzero `misery` in 948 dumps | no | yes | one-sided | **confirmed by re-run**: 948 `gamelog.txt` under `~/ron-golden` print `misery`; `rg '^\s*misery [^0\s]'` matches none |
+| 14 | plain game | yes | yes | agree | **confirmed**: the writers are reached, and they only ever write 0 |
+
+### The rule as a builder should port it
+
+- **State**: `misery = 0` for every leader in every frame. No writer
+  ever stores anything else, and no decision reads it.
+- **Writers** (all `= 0`): `calc_pop_cap`'s first store, `gain_tech`'s
+  epoch arm, `init`, `clear`, and the save loader (which restores the 0).
+  `calc_misery` is uncalled.
+- **Crate site**: none. Emit `Some(0)` for the leaf and turn
+  `diff/leader.rs:44` from an unmodelled key into a compared one; the 948
+  dumps say it would hold.
+- **Plain game**: yes, trivially.
+- **Confidence**: high, from the listing net, the export net and the
+  archive.
+- **Open**: nothing that affects the sim. That `misery` was a live mechanic
+  emptied before ship is a guess from its shape.
+
+## Verdict table
+
+| leaf | claims confirmed / corrected / open | the rule in one line |
+|---|---|---|
+| `pop_issues` +0x7e8 | 25 / 4 / 1 (corrected: #10 the second early return is the occupied silo; #11 the slot+1 recursion is library-only; #13 at most +1 per building per frame, not several; #28 `diff/leader.rs:49`'s "unread" is wrong. Open: #14, whether a leader without bit 2 runs `do_queue`) | zeroed at the head of each bit-2 leader's frame. +1 per building per frame whose visited unit slot fails `pop_cap < control_cost + control` before progress (head, or the limit fallback). +1 per frame per capped carrier. Read by `find_target`'s ×4, effective only mid-objects pass |
+| `misery` +0x7ec | 13 / 1 / 0 (corrected: #4 `calc_pop_cap` has 17 call sites, not 18) | constant 0: every writer stores 0 and nothing but the dump and the save reads it |
+
+Counts treat #4 of leaf 1 and #22 as confirmed (the readings differ in
+emphasis, not in fact).
