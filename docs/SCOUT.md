@@ -1301,3 +1301,49 @@ A spy with a target in range would be the capture that reads it.
     Easiest because its arm returns below difficulty 2, and at Toughest a
     special unit throws a coin there on frame 0 (run346, run347). Its
     target searches, the hero arm and the human arm stay seams.
+
+## 16. The special's slot: `UnitData +0x86` on a scout (item 4113, 2026-11-10)
+
+**What it is.** A unit whose type carries `unit_flags2 & 0x10`
+(`UnitData::is_special`, the scout line — §2's gate) is born into a slot
+of its leader's **specials list**, and the slot's index is the value of
+the union at `UnitData +0x86` for the rest of its life. The units line of
+the checksum folds it (`docs/CHECKSUM.md` §18); nothing in this crate
+reads it back. The list's record is a `Caster` (a special's spell state),
+which this section does not model: only the index is carried.
+
+**Its writers** (every store to `+0x86` in the export, grepped by offset,
+by `field_0x86` and through a `UnitData *`; each read whole):
+
+| writer | what it stores | reached here |
+|---|---|---|
+| `UnitData::UnitData` | 0, the constructor | overwritten by `Unit::init` before any read |
+| `Unit::init@00612100:275` | −1 | every birth |
+| `Unit::init:405`–`:460` | the union's arm: a **hero** (`unit_flags2 & 0x20`) `Heroes::init_hero`'s slot; else a **land caravan** `Caravans::init_caravan`'s (`docs/CARAVAN.md` §2); else, for a type whose `TypeIndex` is not `0x32..=0x35` (the citizens), a **special** `Specials::init_special`'s | the scouts' births |
+| `Specials::init_special@007401c0` | the first record below the leader's mark (`LeaderData +0x43c`) whose in-use bit (`+0x28 & 1`) is clear, else the mark itself, the array grown when the mark is its length; the mark becomes `max(mark, slot + 1)` | every scout |
+| `Specials::close_special` (from `Unit::close:396`–`:404`) | clears the bit and walks the mark down past every free record at the top | a scout's death |
+| `Heroes::init_hero@0073a330`, `Heroes::close_hero` (from `Unit::close:360`–`:369`) | the same shape on the heroes list, `LeaderData +0x420` | a general's birth and death |
+| the caravan's, the herd's, the hold doober's | `docs/CARAVAN.md` §2, `Herd::create_units`, `docs/ORDERS.md` §6.12 | their own units |
+| `Object::eject_contents`, `ScenarioEditor::add_unit` | a caravan's slot handed from a carrier; the editor's | no |
+
+`Specials::init_special` has one caller (`Unit::init`) and
+`close_special` one (`Unit::close`); the same holds for the heroes. So the
+rule is a slot table and nothing else: `crate::units::slots::SlotList`,
+taken at `Sim::add_unit` (`Sim::init_caster_slot`) and given back on the
+death path's tail (`Sim::close_caster_slot`).
+
+**Values.** Run 1562's frame 91: the two scouts `0/0` and `1/0` read 0,
+each its leader's first special. Run1100's frame 5408: the three scouts
+`0/0`, `1/0`, `2/0` read 0. No general stands on either frame.
+
+**How it was established.** The writers by grep and reading; the value
+**diff-backed** on both scouts of frame 91 by the units line
+(`diff::checksum_lines::the_units_line_is_the_original_s_range_by_range`),
+and consistent with run1100's three.
+
+**Not established.** A second special for one leader, a slot reused after
+a death, and every hero: no frame on disk holds one, so the list's reuse
+and the mark's walk rest on the reading. A unit both hero and special
+(`Unit::close` would close both lists at one index) is not modelled; no
+shipped type is known to be both. The `Caster` record's spell state is
+not this section's.

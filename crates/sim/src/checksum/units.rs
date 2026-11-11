@@ -125,11 +125,6 @@ pub const GATHER_FIELDS: &[(&str, usize, usize)] = &[
 /// (`docs/CHECKSUM.md` §17).
 const PATH_BLOCK: i32 = 10;
 
-/// `UnitData::play` (`+0xb6`) as `Unit::init@00612100:558` writes it. Its
-/// other writers are the interface's (`SelectGroup::add`, the tutorial,
-/// the console), state this crate does not keep (`docs/CHECKSUM.md` §17).
-const PLAY_NONE: i8 = -1;
-
 use crate::ids::order as kind;
 
 fn put(b: &mut [u8], base: usize, at: usize, width: usize, v: i64) {
@@ -298,15 +293,17 @@ impl Sim {
     }
 
     /// `UnitData::unit_masks` (`+0x68`) from the bits this crate keeps
-    /// (`docs/CHECKSUM.md` §17). `0x8` — the movement step's "a waypoint is
-    /// out", six writers in `Unit::do_move`, `find_path`, `move_step` and
-    /// `go_around_building` — is not held, nor `0x200000` (`Unit::init`'s
-    /// `can_carry(AIR)`).
+    /// (`docs/CHECKSUM.md` §17, §18). `0x8` is [`crate::Unit::line_ok`],
+    /// the verified line `do_move`, `find_path`, `move_step` and
+    /// `go_around_building` already keep (`docs/MOVEMENT.md`, "The verified
+    /// line's lifecycle"). `0x200` (`Unit::do_trade`'s) and `0x200000`
+    /// (`Unit::init`'s `can_carry(AIR)`) are not held.
     fn unit_masks_word(&self, u: usize) -> u32 {
         let un = &self.units[u];
         let bits = [
             (0x1, un.decoy),
             (0x2, un.movement.mirror),
+            (0x8, un.line_ok),
             (0x10, un.contact),
             (0x20, un.gather_here),
             (0x40, un.waiting_on),
@@ -328,14 +325,15 @@ impl Sim {
             .fold(un.carry, |w, (b, _)| w | b)
     }
 
-    /// `UnitData::+0x86`, the union: a caravan's slot, an animal's herd;
-    /// −1 (`Unit::init`'s) otherwise. A hero's, a special's (`Specials::
-    /// init_special`) and a doober's (`Unit::do_non_flat_gather`) are not
-    /// held (`docs/CHECKSUM.md` §17).
+    /// `UnitData::+0x86`, the union: a caravan's slot, an animal's herd, a
+    /// hero's or a special's slot (`docs/SCOUT.md` §16), a citizen's hold
+    /// doober (`docs/ORDERS.md` §6.12); −1 (`Unit::init`'s) otherwise
+    /// (`docs/CHECKSUM.md` §18).
     fn unit_union_86(&self, u: usize) -> i64 {
         let un = &self.units[u];
         un.caravan
             .or(un.herd)
+            .or(self.caster_or_doober_slot(u))
             .and_then(|s| i64::try_from(s).ok())
             .unwrap_or(-1)
     }
@@ -440,7 +438,8 @@ impl Sim {
             inside.map_or(i64::from(un.owner), |x| i64::from(x.1)),
         );
         p(0xb5, 1, crate::units::anim::SQUAD_SIZE as i64);
-        p(0xb6, 1, i64::from(PLAY_NONE));
+        // `play`: `process_group`'s write (`docs/ORDERS.md` §8.1).
+        p(0xb6, 1, i64::from(un.play));
         v
     }
 

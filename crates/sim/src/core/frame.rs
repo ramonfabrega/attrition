@@ -464,6 +464,9 @@ impl Sim {
         self.death_objs_inc_time();
         self.mark("farms");
         self.farms_inc_time();
+        // `Doober::inc_time`, `Objects::inc_time`'s last call but the
+        // surf's (`docs/ORDERS.md` §6.12).
+        self.hold_doobers_inc_time();
         self.mark("end");
         self.refresh_site_hits();
         self.frame += 1;

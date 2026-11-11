@@ -573,6 +573,17 @@ SEAM: `Group::action_unitmask@006fcb90`, reached from
 a group's members from the order stream. Nothing in the corpus sends bit 3
 through it, and this crate has no counterpart.
 
+**The checksum's units line folds it** (item 4113, `docs/CHECKSUM.md`
+§18): `unit_masks & 8` is emitted from `Unit::line_ok`, and on run 1562's
+frame 91 it agrees on all 52 units — set on the two scouts, the builder
+`0/1`, the British builder `1/1` and the two woodcutters `0/2`, `1/2`;
+clear on the other six citizens and on every animal. Two copies carry the bit besides the seven
+writers: `Unit::swap_team` (the new unit takes the old one's word but
+`0x40000`) and `Unit::repair_damage` (the regrown figure's whole word),
+both already kept (`crate::spells::bribe`, `crate::units::heal`).
+Run1100's 101 units hold it on 42, gaia's herd animals among them; that
+frame is not one of ours and was not diffed.
+
 Not modelled, and listed at the end: the flyer branch (`unit_flags & 0x20`,
 which turns by the body's rule instead), `detect_unit_collision` /
 `resolve_unit_collision`, the rest of the path stack's flags, and the

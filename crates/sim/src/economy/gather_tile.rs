@@ -24,8 +24,10 @@
 //! Not modelled, and not observable: the three `Error::report` asserts
 //! ("GET PANCAKE.", "FIND PANCAKE.", "FIND PANCAKE!") — each is a debug
 //! assert on an off-map tile that answers 0 and writes only the caller's own
-//! stack; and the hold [`Doober`]s (`+0x86`), cosmetic, which the unit record
-//! here does not carry ([`SimGatherTile::remove_doober`] is a no-op).
+//! stack. ~~The hold [`Doober`]s (`+0x86`), cosmetic, which the unit record
+//! here does not carry ([`SimGatherTile::remove_doober`] is a no-op).~~ The
+//! hold doober's slot is carried since item 4113 (`docs/ORDERS.md` §6.12):
+//! the choice's removal is [`SimGatherTile::remove_doober`].
 //!
 //! One thing the sweep forces: **a tile that is held but no longer gatherable
 //! stays held** when no replacement is found — `tx`/`ty` are written only by
@@ -226,13 +228,16 @@ impl GatherTileView for SimGatherTile<'_> {
     }
     fn site_enter(&mut self) {}
     fn unit_type_index(&mut self) -> i32 {
-        // The Doober types are cosmetic here; none is a type this crate asks.
-        -1
+        self.sim.units[self.u].type_index
     }
     fn doober(&mut self) -> i32 {
-        -1
+        self.sim.units[self.u]
+            .doober
+            .map_or(-1, |s| i32::try_from(s).unwrap_or(i32::MAX))
     }
-    fn remove_doober(&mut self, _id: i32) {}
+    fn remove_doober(&mut self, _id: i32) {
+        self.sim.remove_hold_doober(self.u);
+    }
     fn tiles_len(&mut self) -> i32 {
         self.sim.buildings[self.b].gather_from.len() as i32
     }
