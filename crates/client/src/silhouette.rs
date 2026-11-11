@@ -5249,4 +5249,322 @@ mod tests {
             }
         }
     }
+
+    /// **Item 4110: the colour and the share the photograph implies, as
+    /// values.** The figures' masked lit pixels: both footprints hold the
+    /// pixel, it is not behind anything, the painter's texel has alpha
+    /// under 255, neither side is dark. First the selection itself, per
+    /// owner: the predicate, and the selecting channel's minimum, maximum
+    /// and count. Then per (owner, piece) and per alpha band of 32: the mean
+    /// photograph `p` and texel `t`, the colour the photograph implies
+    /// under the drawn rule, `(p − t·α)/(1 − α)` per pixel (its mean and
+    /// spread) and pooled by least squares, beside the owner's `unit`
+    /// colour; and the least-squares share `s` in `p = t·s + c·(1 − s)`,
+    /// beside α. `k`, the photograph over the texel on the same piece's
+    /// alpha-255 pixels, is printed beside them and a `k`-corrected column
+    /// with it; nothing is fitted to the masked pixels' count.
+    #[test]
+    #[allow(clippy::needless_range_loop)]
+    fn the_implied_colour() {
+        use render::silhouette::{HUE, chromaticity, team_blend, team_unit, traced_theirs};
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        world.run_to(PHOTO_FRAME);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let size = (photo.width, photo.height);
+        let scene = frame_scene(&mut world, &camera, size);
+        let p = Photo {
+            width: photo.width,
+            height: photo.height,
+            rgba: &photo.rgba,
+        };
+        let traces: Vec<Trace<'_>> = TRACED
+            .iter()
+            .map(|&(name, poly)| Trace {
+                key: scene
+                    .who
+                    .iter()
+                    .position(|&(who, o, _, _)| format!("{who}/{o}") == name)
+                    .map_or(u32::MAX, |i| i as u32 + 1),
+                poly,
+            })
+            .collect();
+        let rows = footprints_traced(
+            &scene.keys,
+            &p,
+            &INTERFACE,
+            &READING,
+            &traces,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let dist = |a: [f64; 3], b: [f64; 3]| {
+            let f = |q: [f64; 3]| q.map(|v| v as f32);
+            let (x, y) = (chromaticity(f(a)), chromaticity(f(b)));
+            f64::from(((x[0] - y[0]).powi(2) + (x[1] - y[1]).powi(2)).sqrt())
+        };
+        let sum = |q: [f32; 3]| q[0] + q[1] + q[2];
+        // One masked pixel: (alpha 0–255, texel, photograph).
+        type Px = (f64, [f64; 3], [f64; 3]);
+        // Per (owner, piece): masked pixels; and the alpha-255 sums for k.
+        let mut masked: std::collections::BTreeMap<(u8, i32), Vec<Px>> = Default::default();
+        let mut opaque: std::collections::BTreeMap<(u8, i32), (f64, f64, u32)> = Default::default();
+        // The selection, per owner: (count, min α, max α); and what 4102's
+        // selection kept beside it (owners past 1, alpha under 1).
+        let mut sel: std::collections::BTreeMap<u8, (u32, f32, f32)> = Default::default();
+        let mut extra = (0u32, 0u32);
+        let mut parting = (0u32, 0u32);
+        for f in rows {
+            let who = scene.who[f.key as usize - 1];
+            if who.0 == TREE_WHO || who.3 {
+                continue;
+            }
+            let Some(d) = scene.drawings.get(f.key as usize - 1) else {
+                continue;
+            };
+            let piece = d.piece;
+            let theirs = traced_theirs(
+                &scene.keys,
+                &p,
+                &INTERFACE,
+                &READING,
+                &traces,
+                Neighbour::Neither,
+                Interface::Neither,
+                f.key,
+                f.window,
+            );
+            let ours = painted(
+                &mut world,
+                &scene,
+                &camera,
+                size,
+                f.key,
+                f.window,
+                Colouring::Texture,
+            );
+            let ww = (f.window.x1 - f.window.x0) as usize;
+            for y in f.window.y0..f.window.y1 {
+                for x in f.window.x0..f.window.x1 {
+                    let j = (y - f.window.y0) as usize * ww + (x - f.window.x0) as usize;
+                    let at = y as usize * photo.width + x as usize;
+                    if scene.keys.at(x as usize, y as usize) != f.key
+                        || theirs[j] != Some(true)
+                        || scene.behind[at]
+                    {
+                        continue;
+                    }
+                    let Some(t) = ours[j] else { continue };
+                    let ph = [0, 1, 2].map(|c| f32::from(photo.rgba[at * 4 + c]));
+                    if sum(t.rgb) < HUE.dark || sum(ph) < HUE.dark {
+                        continue;
+                    }
+                    let tt = t.rgb.map(f64::from);
+                    let pp = ph.map(f64::from);
+                    if t.alpha >= 255.0 {
+                        let o = opaque.entry((who.0, piece)).or_default();
+                        o.0 += (0..3).map(|k| pp[k] * tt[k]).sum::<f64>();
+                        o.1 += (0..3).map(|k| tt[k] * tt[k]).sum::<f64>();
+                        o.2 += 1;
+                        continue;
+                    }
+                    // 4102's selection: every owner, any alpha under 255.
+                    let blend = team_blend(t.rgb, t.alpha, team_unit(who.0)).map(f64::from);
+                    let parts = dist(blend, pp) > f64::from(HUE.distance);
+                    if who.0 > 1 || t.alpha < 1.0 {
+                        if who.0 > 1 {
+                            extra.0 += 1;
+                        } else {
+                            extra.1 += 1;
+                        }
+                        parting.1 += u32::from(parts);
+                        if who.0 > 1 {
+                            continue;
+                        }
+                    }
+                    parting.0 += u32::from(parts);
+                    let e = sel.entry(who.0).or_insert((0, f32::MAX, f32::MIN));
+                    e.0 += 1;
+                    e.1 = e.1.min(t.alpha);
+                    e.2 = e.2.max(t.alpha);
+                    masked
+                        .entry((who.0, piece))
+                        .or_default()
+                        .push((f64::from(t.alpha), tt, pp));
+                }
+            }
+        }
+        println!(
+            "selection: key holds it, the photograph's footprint holds it, not behind, \
+             neither side dark (sum < {}), the painter's texel alpha < 255.0 on 0–255; owners 0 and 1",
+            HUE.dark
+        );
+        for (o, (n, lo, hi)) in &sel {
+            println!("  owner {o}: n {n}, alpha min {lo}, max {hi}");
+        }
+        println!(
+            "  beside it, 4102's selection also kept: owners past 1 {}, alpha under 1 (owners 0, 1) {}; \
+             parting under the blend: ours {} , theirs' extra {}",
+            extra.0, extra.1, parting.0, parting.1
+        );
+        let f3 = |q: [f64; 3]| format!("({:.0},{:.0},{:.0})", q[0], q[1], q[2]);
+        // The rows: per (owner, piece, band) and per (owner, band) over all pieces.
+        type Row = ([f64; 3], f64, f64);
+        let report = |label: String, px: &[&Px], c: [f64; 3], k: f64| -> Option<Row> {
+            let n = px.len() as f64;
+            if px.is_empty() {
+                return None;
+            }
+            let mut ab = 0.0;
+            let mut pm = [0.0; 3];
+            let mut tm = [0.0; 3];
+            let mut im = [0.0; 3];
+            let mut im2 = [0.0; 3];
+            let mut ls = ([0.0; 3], 0.0);
+            let mut lsk = ([0.0; 3], 0.0);
+            let (mut sn, mut sd, mut skn, mut skd) = (0.0, 0.0, 0.0, 0.0);
+            let (mut ag_t, mut ag_b, mut ag_c, mut ag_bk) = (0, 0, 0, 0);
+            for &&(alpha, t, ph) in px {
+                let a = alpha / 255.0;
+                ab += alpha;
+                for q in 0..3 {
+                    pm[q] += ph[q];
+                    tm[q] += t[q];
+                    let v = (ph[q] - t[q] * a) / (1.0 - a);
+                    im[q] += v;
+                    im2[q] += v * v;
+                    ls.0[q] += (1.0 - a) * (ph[q] - t[q] * a);
+                    lsk.0[q] += (1.0 - a) * (ph[q] / k - t[q] * a);
+                    sn += (ph[q] - c[q]) * (t[q] - c[q]);
+                    sd += (t[q] - c[q]).powi(2);
+                    skn += (ph[q] / k - c[q]) * (t[q] - c[q]);
+                    skd += (t[q] - c[q]).powi(2);
+                }
+                ls.1 += (1.0 - a).powi(2);
+                lsk.1 += (1.0 - a).powi(2);
+                let b = [0, 1, 2].map(|q| t[q] * a + c[q] * (1.0 - a));
+                ag_t += u32::from(dist(t, ph) <= f64::from(HUE.distance));
+                ag_b += u32::from(dist(b, ph) <= f64::from(HUE.distance));
+                ag_c += u32::from(dist(c, ph) <= f64::from(HUE.distance));
+                let bk = b.map(|v| v * k);
+                ag_bk += u32::from(dist(bk, ph) <= f64::from(HUE.distance));
+            }
+            let mean = |q: [f64; 3]| q.map(|v| v / n);
+            let sdv = [0, 1, 2].map(|q| (im2[q] / n - (im[q] / n).powi(2)).max(0.0).sqrt());
+            let lsc = ls.0.map(|v| v / ls.1);
+            let lskc = lsk.0.map(|v| v / lsk.1);
+            println!(
+                "{label} n {:>4} α̅ {:>5.1} ({:.2}) p̅ {} t̅ {} | implied {} ±{} ls {} ls/k {} [c {}] | s {:.2} s/k {:.2} | agree texel {} blend {} owner {} k·blend {}",
+                px.len(),
+                ab / n,
+                ab / n / 255.0,
+                f3(mean(pm)),
+                f3(mean(tm)),
+                f3(mean(im)),
+                f3(sdv),
+                f3(lsc),
+                f3(lskc),
+                f3(c),
+                sn / sd,
+                skn / skd,
+                ag_t,
+                ag_b,
+                ag_c,
+                ag_bk
+            );
+            Some((lsc, sn / sd, skn / skd))
+        };
+        let band = |alpha: f64| ((alpha as usize) / 32).min(7);
+        // (owner, piece or −1 for every piece, band) -> (ls colour, s, s/k).
+        let mut out: std::collections::BTreeMap<(u8, i32, usize), Row> = Default::default();
+        for ((o, piece), px) in &masked {
+            let c = team_unit(*o).map(f64::from);
+            let (pt, tt, no) = opaque.get(&(*o, *piece)).copied().unwrap_or((1.0, 1.0, 0));
+            let k = pt / tt;
+            println!(
+                "owner {o} piece {piece} ({}): masked {}, k {:.3} on {no} alpha-255 pixels",
+                world.figure_texture_name(*piece).unwrap_or("?"),
+                px.len(),
+                k
+            );
+            let all: Vec<&Px> = px.iter().collect();
+            report("  all     ".into(), &all, c, k);
+            for b in 0..8 {
+                let in_b: Vec<&Px> = px.iter().filter(|q| band(q.0) == b).collect();
+                if let Some(r) = report(format!("  α{:>3}–{:<3}", b * 32, b * 32 + 31), &in_b, c, k)
+                {
+                    out.insert((*o, *piece, b), r);
+                }
+            }
+        }
+        for o in [0u8, 1] {
+            let c = team_unit(o).map(f64::from);
+            let (pt, tt): (f64, f64) = opaque
+                .iter()
+                .filter(|((w, _), _)| *w == o)
+                .fold((0.0, 0.0), |a, (_, v)| (a.0 + v.0, a.1 + v.1));
+            let k = pt / tt;
+            println!("owner {o}, every piece: k {k:.3}");
+            for b in 0..8 {
+                let in_b: Vec<&Px> = masked
+                    .iter()
+                    .filter(|((w, _), _)| *w == o)
+                    .flat_map(|(_, v)| v.iter())
+                    .filter(|q| band(q.0) == b)
+                    .collect();
+                if let Some(r) = report(format!("  α{:>3}–{:<3}", b * 32, b * 32 + 31), &in_b, c, k)
+                {
+                    out.insert((o, -1, b), r);
+                }
+            }
+        }
+        // The verdict, as assertions (item 4110). The selection is the
+        // masked population 4107 counted for player 0 and, with its 25
+        // pixels under alpha 1, for player 1.
+        assert_eq!(sel[&0].0, 563, "player 0's masked pixels");
+        assert_eq!(sel[&1].0, 2102, "player 1's masked pixels");
+        assert!(sel.values().all(|v| v.1 >= 0.0 && v.2 < 255.0));
+        // The colour is the owner's: where the implied colour is steady
+        // (player 0's bands 32–127, the dragoon 26352's 64–191), its
+        // chromaticity is nearer the owner's `unit` than its `unit_tint`
+        // (run1559b's packet, `TeamColor` +0x4c: (127, 47, 47), (47, 47, 159)).
+        let chroma_d = |a: [f64; 3], b: [f64; 3]| dist(a, b);
+        for (o, piece, bands, tint) in [
+            (0u8, -1, 1..=3, [127.0, 47.0, 47.0]),
+            (1, 26352, 2..=5, [47.0, 47.0, 159.0]),
+        ] {
+            let c = team_unit(o).map(f64::from);
+            for b in bands {
+                let (ls, _, _) = out[&(o, piece, b)];
+                assert!(
+                    chroma_d(ls, c) < chroma_d(ls, tint),
+                    "owner {o} piece {piece} band {b}: the implied colour is the tint's"
+                );
+            }
+        }
+        // The share is no one curve of α: at the same band (α 64–95) the
+        // riflemen 60 read over 0.45 of texel and the dragoon 26352 under
+        // 0.35, both under the photograph's own gain; the tanks 196 read
+        // the texel nearly alone (over 0.8) in every band from 64 to 191.
+        assert!(out[&(1, 60, 2)].2 > 0.45 && out[&(1, 26352, 2)].2 < 0.35);
+        for b in 2..=5 {
+            assert!(out[&(1, 196, b)].1 > 0.8, "the tanks' band {b}");
+        }
+    }
 }
