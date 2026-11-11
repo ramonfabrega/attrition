@@ -642,6 +642,14 @@ mod tests {
                         normalized.movement.frame_facing = a.movement.frame_facing;
                         normalized.movement.heading = a.movement.heading;
                         normalized.movement.des_angle = a.movement.des_angle;
+                        // And the facing's fifth copy, each figure's
+                        // `last_angle` (`Guy::last`, item 4104): the
+                        // facing its last `Guy::move` began from.
+                        for (g, h) in normalized.guys.iter_mut().zip(&a.guys) {
+                            if let (Some(l), Some(m)) = (&mut g.last, h.last) {
+                                l.1 = m.1;
+                            }
+                        }
                         assert_eq!(
                             &normalized, a,
                             "persistent difference beyond the four angles"
@@ -649,10 +657,20 @@ mod tests {
                     }
                 }
                 // Include membership in each projection, not just matched pairs.
-                fn clocks(sim: &sim::Sim) -> Vec<(sim::Player, i16, &Vec<sim::units::anim::Guy>)> {
+                // The clock projection leaves out `Guy::last` (item 4104):
+                // its angle is the facing's copy, which the four angles
+                // above already account for.
+                fn clocks(sim: &sim::Sim) -> Vec<(sim::Player, i16, Vec<sim::units::anim::Guy>)> {
                     sim.units
                         .iter()
-                        .map(|u| (u.owner, u.index, &u.guys))
+                        .map(|u| {
+                            let guys = u
+                                .guys
+                                .iter()
+                                .map(|g| sim::units::anim::Guy { last: None, ..*g })
+                                .collect();
+                            (u.owner, u.index, guys)
+                        })
                         .collect()
                 }
                 let positions = |sim: &sim::Sim| {

@@ -33,6 +33,19 @@ impl Sim {
         // the follow: a body away from its destination starts the walk, one
         // standing on it a frame after arriving goes idle (`anim.rs`).
         let was_at_des = m.body.pos == pos;
+        // `Guy::move@005d9240:44–50`'s head, on every figure `Guy::process`
+        // runs: `last_x`/`last_y` and `last_angle` from the figure's point
+        // and facing before this frame moves or turns it (the guys line's,
+        // `docs/CHECKSUM.md` §16; nothing in the simulation reads them).
+        for &g in walk {
+            let Some(guy) = self.units[i].guys.get_mut(g) else {
+                continue;
+            };
+            guy.last = Some(match guy.follow {
+                Some(f) => (f.body.pos, f.facing),
+                None => (m.body.pos, m.facing),
+            });
+        }
         // `Guy::move:55`'s `des_angle == angle` — the heading against the
         // facing, read before this frame's turn. It decides both the
         // arrival's animation arm and whether the crew's destination is

@@ -250,7 +250,9 @@ fields are walked raw**: `GuyData` `turret_inc`, `bank`, `last_bank`,
 `pitch`, `last_pitch` (+0x40..+0x54, in both guys and units), and
 `LeaderData` `anti_att` (+0x7f4) and `plunder_scale` (+0x914). So a port
 that emits these lines must hold those seven as the original's exact
-IEEE-754 bit patterns. That is the residue's question, and §10 states it.
+IEEE-754 bit patterns. That is the residue's question, and §10 states it;
+~~for the five figure floats~~ they are `+0.0` on every figure of both
+frames and constant on this game's figures, emitted as bits (§16).
 
 **Cheapest first, on run 1562's frame 91** (item 4088), the order the
 items after 4088 follow. The three empty lines are not counted there
@@ -258,7 +260,7 @@ and are named last; by bytes:
 
 1. cities (228; ported, §12) · 2. items (484; ported, §11) · 3. goods
 (792; ported, §13) ·
-4. builds (4,923; ported, §14, §15) · 5. guys (9,308) ·
+4. builds (4,923; ported, §14, §15) · 5. guys (9,308; ported, §16) ·
 6. units (19,642; it walks the
 guys again) · 7. groups (37,010) · 8. leaders (58,343) ·
 9. world (294,769) · then walls, ammo and deaths (0 each), counted on a
@@ -293,7 +295,7 @@ item 4060's was run1100, 5408, 3502) and `CHECKSUM_STATE` (the state
 lines our simulation emits equal to the original's, of twelve, and the
 bytes of the twelve walks ours reproduces, of 425,499 on that frame):
 
-    Checksum: instrument 15 of 15 lines (run1562 f91) · state 4 of 12 lines, 6,427 of 425,499 bytes
+    Checksum: instrument 15 of 15 lines (run1562 f91) · state 5 of 12 lines, 15,735 of 425,499 bytes
 
 Item 4088 moved it from `instrument 15 of 15 lines (run1100 f5408) ·
 state 0 of 12 lines, 0 of 501,543 bytes`: the pair moved to the minted
@@ -306,7 +308,9 @@ of the two camps, 516 of its 519 ranges and 4,845 of its 4,923 bytes
 agreeing, which `CHECKSUM_STATE` does not count (§14). Item 4097 left it
 there too: builds is held out on one `up_who`, 518 of 519 ranges and
 4,889 bytes agreeing. Item 4098 moved it from `state 3 of 12 lines,
-1,504 of 425,499 bytes`: builds is ported, every byte (§15).
+1,504 of 425,499 bytes`: builds is ported, every byte (§15). Item 4104
+moved it from `state 4 of 12 lines, 6,427 of 425,499 bytes`: guys is
+ported, every byte (§16).
 
 `floors::tests::the_handoff_s_checksum_line_is_the_pinned_counter` holds
 the queue's line against it. `checksum::tests::the_instrument_reproduces_the_printed_record`
@@ -349,7 +353,7 @@ in walk order:
 | | 1 byte | `UnitOrder` `flags` (+0x54) | 8, 8 |
 | `TradeOrder::walk_data@00483260` | [+0x8, +0x12), [+0x14, +0x26) | `TargetOrder` `ox`, `whom`, `uid`; `oxx`, `whose`, `started`, `loaded`, `uid2` | 2, 20 + 36 |
 | | 1 byte | `UnitOrder` `flags` (+0x2c) | 2, 2 |
-| `PtrArray<Guy>::walk_data@0046df30` (+0xe4) | locals and header | count (4), size (4), [+0x8, +0xe) and [+0xc, +0xe) of the array, flags masked `& 0xbf` (1) | 101, 1,717 |
+| `PtrArray<Guy>::walk_data@0046df30` (+0xe4) | locals and header | count (4), size (4), [+0xc, +0xe) of the array, flags masked `& 0xbf` (1), then after the per-guy locals [+0x8, +0xe) (the stream's order, §16) | 101, 1,717 |
 | | per guy: 1-byte local | (site 0046e199) | 111, 111 |
 | `GuyData::walk_data@005e0210` | [+0x8, +0xa3) | `GuyData` `type`..`guy_num`, 42 fields, **5 floats** (§4) | 111, 17,205 |
 | `AnimalData::walk_data@005d7ea0` | 1-byte local; [+0x150, +0x155) | `AnimalData` `ox`, `whom`, `aid` (55 of the 101 are animals) | 55, 55 + 275 |
@@ -506,7 +510,10 @@ walls and ammo record shapes rest on the recon's reading alone (§10).
 - **Floats: seven fields**, named in §4. The original holds them as `f32`
   and folds their bytes. `docs/DECISIONS.md` entry 16 keeps floats out of
   the simulation, so a line that walks one is exact only if those bits
-  can be derived from integers the port does hold. That is open (§10).
+  can be derived from integers the port does hold. ~~That is open
+  (§10).~~ For the five of a figure it is answered (§16): `+0.0` on every
+  figure of both frames, emitted as bits; the leaders' two stay open
+  (§10).
 - **Unions: four**, `UnitData` +0x54 and +0x86 and `BuildData` +0x78, all
   int or short members, and `String`'s +0x0 (skipped).
 - **Padding inside a walked range: 4 bytes a leader**, the two runs in
@@ -552,8 +559,11 @@ on either frame read), and `say_checksum`'s labels beyond the fifteen.
   second. Deaths, walls and ammo are empty on both: their record shapes
   stay a reading, and their lines are not counted until a frame holds
   one.
-- Whether the seven floats' bits follow from integers the simulation
-  holds.
+- ~~Whether the seven floats' bits follow from integers the simulation
+  holds.~~ The five of a figure: one bit pattern, `+0.0`, on every
+  figure of both frames, constant on this game's figures, and on an
+  aircraft's guy 0 the singles `air::Airframe` holds (§16). The leaders'
+  `anti_att` and `plunder_scale` are still open.
 - Why the rules line differs between run1100 and run1420 (314192132
   against 1227894240). The recon read it as static, and it is static
   across run1100's two records. Run 1562, another lobby (the harness
@@ -1172,3 +1182,156 @@ object below turns both tests red.
 **Not established**: the frames after 91 (a building's close, a wreck, a
 reused number: `docs/COLLISION.md` §3.2), and everything §14 lists but
 the chain.
+
+## 16. The guys line, ported (item 4104)
+
+**The line is the original's on run 1562's frame 91**: 368 of 368
+ranges, 9,308 of 9,308 bytes — 52 units, 54 figures, every one of the 42
+fields — and the Adler **2502350161**, the printed `Guys`, with no
+substitution. `Sim::checksum_guys` (`crates/sim/src/checksum/guys.rs`)
+emits it; `diff::checksum_lines::the_guys_line_is_the_original_s_range_by_range`
+holds it range by range and field by field; `CHECKSUM_STATE` counts it:
+5 of 12 lines, 15,735 of 425,499 bytes (§5).
+
+**Which units, in which order.** `CheckSums::check_guys@00937430` is the
+units line's loop: per leader whose `leaders.list & 1` is set, in slot
+order, per unit of that leader's band with `flags & 1`, in `o` order —
+the human's seven, the British seven, then gaia's 38 herd animals (owner
+8: four sheep, `TypeIndex` 0x198, and 36 fish, 0x19b) on frame 91.
+
+**One unit's ranges, in walk order** (`PtrArray<Guy>::walk_data@0046df30`;
+the stream settles it, and corrects §6's order):
+
+| # | site | range | bytes | what |
+|---|---|---|---|---|
+| 1 | `0046df67` | a local | 4 | `length` (`+0x4`), the figure count; an empty array stops here |
+| 2 | `0046dfc8` | a local | 4 | `size` (`+0x8`), the allocation |
+| 3 | `0046dfd6` | `increment` (`+0xc`) | 2 | 1 on every unit of both frames |
+| 4 | `0046dfee` | a local | 1 | `flags & 0xbf` (`+0x14`), 0 |
+| 5 | `0046e199` | a local, one a figure | 1 | the figure's pointer is not null: 1 |
+| 6 | `0046e220` | `size`, `increment` (`+0x8..+0xe`) | 6 | again, from the array |
+| 7 | `005e0228` | each figure's `GuyData` `+0x8..+0xa3` | 155 | `type`..`guy_num` (`GuyData::walk_data@005e0210`) |
+
+52 × 5 + 54 × 2 = 368 ranges; 52 × 17 + 54 × 156 = 9,308 bytes. Fifty
+units have one figure and two have two (the scouts and their dogs); on
+run1100's frame 93 have one, six two and two three, `size` equal to the
+count on all 101. **`size` is emitted as the count**: `Unit::init@00612100`
+grows the array to the crew it needs and never shrinks it, so a number
+re-inited with a smaller crew would keep the larger allocation — not
+read on any frame here. A `GuyData` `Coord` is stored **plain**:
+`Guy::set_new_location@005d86f0` writes the value it is handed, where a
+`SubObjectData`'s is masked.
+
+**The 42 fields** — values first (the stream decoded per figure, ours
+beside it from the minted walk on frame 91), then the port:
+
+| field | ours | first image | now |
+|---|---|---|---|
+| `type`, `o`, `who`, `guy_num` | the unit's `type_index`, `index`, owner; the figure's slot | 54 | 54 |
+| `x`, `y`, `angle`, `last_speed`, `avg_speed` | the body: guy 0's `Movement::body`/`facing`, a tracked crew's `Follow` | 54 | 54 |
+| `z` | derives, by domain (below) | 54 | 54 |
+| `des_x`, `des_y`, `des_angle`, `track_dx`, `track_dy` | guy 0: the unit's point and `heading`; a crew: `Follow` | 54 | 54 |
+| `turret_angles[4]`, `des_turret_angles[4]`, `node_flags`, `des_node_flags` | `Turret` (zero on every figure here) | 54 | 54 |
+| `cur_time`, `end_time`, `last_time`, `cur_anim`, `stopped`, `hold_attack`, `queued_attack` | the figure's clock (`Guy`) | 54 | 54 |
+| `ox`, `whom` | `Guy::aim` (−1, −1 on every figure here) | 54 | 54 |
+| `guy_flags` | derives: `init_real`'s `0x8`, `0x10`, `0x40`, `0x80`, `0x100` and `set_in_danger`'s `0x20` (16 on every figure here) | 54 | 54 |
+| `variation`, `off_x`, `off_y` | `Guy::clear@005db590`'s 0; no writer read | 54 | 54 |
+| the five floats | bits (below) | 54 | 54 |
+| `gpiece` | **derives** for a gaia type (below) | 14 | 54 |
+| `last_x`, `last_y`, `last_angle` | **carried**: `Guy::last` | 49, 51, 53 | 54 |
+| `last_z` | derives from `last` by domain | 49 | 54 |
+
+So 37 of the 42 agreed on all 54 figures from the first image; one was
+held with another value (`gpiece`, on the 40 herd figures); four were
+not held (`last_x`, `last_y`, `last_angle`, `last_z`). The first image
+parted on 45 ranges and summed to 2626631255.
+
+- **`gpiece`** — ours −1, theirs 60063, 60064, 60065, 60063 on the four
+  sheep and 60072..60074 on the fish: this crate's herd figure keeps no
+  piece. It is `GraphicPieces::get_unit_gpiece@0090c030`'s gaia arm,
+  `first_bird_piece + 3·(type − 0x192) + (seed + o) % 3` (`docs/ANIM.md`
+  §3; `first_bird_piece` 0xea8d), which the emitter derives; the
+  figure's own `gpiece` is left as it is, so no reader meets anything new.
+- **`last_x`, `last_y`, `last_angle`** — `Guy::move@005d9240:44–50`
+  copies `x`, `y` and `angle` at its head, before anything in it moves or
+  turns the figure; `Guy::set_angle@005d9010`'s snap and
+  `Guy::set_new_location`'s seat write them too, and `Guy::clear` zeroes
+  them. Carried as `Guy::last` (`docs/ANIM.md` §1), written at the head of
+  `Sim::process_movement_on` for every figure the frame walks, and read
+  only by this line. Before it, ours was the figure's own point: the five
+  moving figures parted — the scout `0/0` and its dog (5554 against
+  5520, 5506 against 5472), the citizen `0/1` (4023, 28316 against 4008,
+  28296), the British scout `1/0` and its dog (45082, 19586 against
+  45100, 19556; 45189, 19594 against 45206, 19565), the dog's
+  `last_angle` −1785069568 against −1750794240 (its tracked body turned
+  this frame).
+- **`z` and `last_z`** — `Guy::set_new_location` writes `z` by the type's
+  domain: an aircraft's climb, a ship's 0, and the ground under the point
+  otherwise (`TerrainOut::find_data_z(x, y, 0)`, `World::data_z`). The 36
+  fish read 0 for that reason. `last_z` is the `z` `Guy::move`'s head
+  copies, the ground under `last` (373 against 379 on `0/0` before).
+
+**The five floats** (`turret_inc`, `bank`, `last_bank`, `pitch`,
+`last_pitch`, `+0x40..+0x54`) — **one bit pattern, `0x00000000`, on every
+figure of both frames**: 54 of 54 on run 1562's frame 91 (citizens,
+scouts, the sheep, the fish), 111 of 111 on run1100's frame 5408 (a team
+game fighting: citizens 38, `TypeIndex` 61 six, caravans six, scouts six,
+`0x197` four, fish 51). Their writers, every one in the export and the
+listing (the names, each `+0x40..+0x50` store through a figure, and the
+image's references):
+
+| writer | stores | reached by |
+|---|---|---|
+| `Guy::clear@005db590` | all five 0 | every figure's birth |
+| `Guy::init_real@005db6b0` | `bank`..`last_pitch` 0 (`param_1 == 0`) | every figure's init |
+| `Unit::do_spec_anim@005e5880` | `pitch`, `bank` 0, the old value to `last_*` | a special animation |
+| `Unit::bank_aircraft@005e9520` | `bank` ← a computed single, `last_bank` ← `bank` | an aircraft or a bird's flight |
+| `Unit::pitch_aircraft@005e8de0` | `pitch` ← a computed single or 0, `last_pitch` ← `pitch` | the same |
+| `Unit::come_out@00617c10` | guy 0's `turret_inc` ← `0x42b40000` (90.0, at `618003`, the image's one store of it to `+0x40`) | a missile (`type +0x1e4 & 0x8000000`) leaving its silo |
+| `Unit::swap_team@006118d0` | `turret_inc` copied from the old figure | a conversion |
+| `Guy::set_bank`, `Guy::set_pitch`, `Guy::set_elev_angle`, `Guy::copy_data` | a single | **nothing**: no call and no pointer in the image (a PE scan for each address, item 4104; `docs/audit/2026-11-06-territory-object-1.md`, `rondata::blind::RESIDUE`) |
+
+Their readers are the renderer's (`GuyData::get_render_bank@005de530`,
+`GuyData::get_render_pitch@005de4f0`) and the dump. So, by DECISIONS
+entry 120 §3, **all five are constant on this game's figures** and are
+emitted as their bits: `+0.0`, the store of `Guy::clear` and
+`init_real`. That is narrower than constant: on an **aircraft** or a
+**bird** (`bank`, `last_bank`, `pitch`, `last_pitch`) the bits follow
+from integers and singles this crate already holds — `air::Airframe`,
+software floats by their bits (`num::single::Single`) — and the emitter
+writes guy 0's from there; on a **missile** `turret_inc` is 90.0's bits
+(`come_out_view::MISSILE_FIGURE_90`), which the emitter does not yet
+write. No float enters the simulation.
+
+**Made to fail**: a herd's `gpiece` back at −1 parts on its range
+alone and moves the Adler; the first moving figure's `last_x` at its
+own `x` parts on its range alone; a `-0.0` bank (the sign bit) parts on
+its range alone; the empty image on all 368.
+
+**How it was established, and how confident.** Diff-backed: every byte
+of the line on one frame, and the five floats' one value on two frames
+of the original's (run1100's is not a frame of ours). From the type
+records: every field name, offset and width. From the walkers and the
+stream: the order and the locals. On a reading, held by that diff on
+this frame: the writers above, the gaia piece arm, the domain arms of
+`z`.
+
+**Not established**:
+
+- Any frame but 91, and any lobby but the minted game's.
+- **Agreeing by default on this frame** (one value on every figure, or a
+  field no writer here keeps): `variation`, `off_x`, `off_y` (no writer
+  read past `Guy::clear` and `Unit::init`'s `variation = 0`), the
+  turrets and node flags (no pivot figure), `ox`/`whom` (no strike),
+  `hold_attack`/`queued_attack`, `guy_flags` (16 everywhere: `0x8`,
+  `0x40`, `0x80`, `0x100`, `0x20` unexercised; `0x2` — `Guy::do_turn`'s,
+  cleared after each `Guy::move` — and `0x4` are not emitted), the
+  floats.
+- A bird's figure: its `bank` is `air::Flight::roll`, and its
+  `last_bank`, `pitch` and `last_pitch` are not held; an aircraft's crew
+  past guy 0; a missile's `turret_inc`; a converted figure's copied one.
+- `size` past a re-init with a smaller crew; `last` past a teleport
+  (`Unit::set_new_location(…, 1)`'s seat, which writes it equal to the
+  point) or on a unit whose `Unit::process` this crate skips while the
+  original runs it, and the converse.
+- Owner 9's figures (none on either frame).
