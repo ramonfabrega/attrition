@@ -3850,6 +3850,8 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 ## Loop, filed 2026-11-10 — the driver's fourteenth session
 
+(4133) **A lane's note sent a rule to a section 333 bytes under its ceiling, and asked for one step that was two items** (the driver's nineteenth session, 2026-11-11): 4132's note, the driver's, named RENDERER §3.6 for the transition patch's rule; the section stood at 15,667 of 16,000 bytes, the lane's first gate went red on the ceiling at 18,420, and the paragraph was cut to a four-line pointer with the story left in the journal and a park. The same note asked for the controls, the packet's table, the reading of a choice whose edge-mask function alone is 655 decompiled lines, its port, the draw and two rows as one step; the lane landed the first half as a partial in 33 minutes and parked the rest. Candidate: `tools/brief.py` prints the room left in each section a note names and refuses a rule sent to one under a kilobyte unless the note names the new section; and a render note that asks for a port and a draw is split at design, the port scored on the packet and the draw on the photograph, as 4134 is.
+
 (4130) **A record's writer census takes two nets, and a third before a leaf is called never reached** (4124's "for the Loop", the journal's line, filed at its merge; the driver's eighteenth session, 2026-11-11): the decompile names a `Leader` field `field_0x<off>` on a `Leader *` but not on a `Leaders *` another class walks, and it prints an aliased store as another slot's field. The listing, `0xe3a390 + off` by an index register, found stores the export's grep missed (`Object::take_damage`'s `units_killed`), and the export found one the listing missed (`GameDaemon::process_victory`'s `wonderwin_timer`). Candidate: a brief that asks for a field's writers names both nets (the export's `->name` and `field_0x<off>`, the listing's displacement off the record's base and off a register inside the class), and a never-reached verdict takes a third pass over every register-relative store at the offset; the scratch finders of `b4124/` graduate into `tools/` at their third use.
 
 (4128) **A row borrowed its tolerance from another reader, and the tolerance is wider than the spread of what the row must tell apart** (the driver's eighteenth session, 2026-11-11): 4127's ground row, the driver's design, counts a tile whose mean share is within the colour reader's 0.05 of the photograph's. The four base textures' own mean shares are (0.42, 0.41), (0.445, 0.375), (0.43, 0.394) and (0.438, 0.355): three lie within 0.05 of one another. The row landed at 949 of 1,109 against a floor of the debug colour, a control nobody expected to pass, so the count backs the tileset and the mapping (r 0.499 against 0.083) and not the rule's claim, which base a tile draws; where it could tell, sub 3, it read 45 of 148. The note asked for the packet's value of the choice and the landing carried none; the driver booked it and saw both at the next design. Candidate: a render row's note names the alternatives the row must reject and the brief's first probe counts the row under each before the rule's count (the control is the floor, not a colour chosen to fail); a tolerance taken from another reader is checked against the candidates' spread at design; and a booking reads the journal for each value the note asked for by name. 4129's "for the Loop" is this item's family, folded in at its merge (the driver's nineteenth session, 2026-11-11): a row's own every-candidate-one-way controls belong in its first landing — 4127's row was pinned with only a floor, and the one-base controls showed at once that 1,053 and 1,052 beat the rule's 949. 4132's note counts its controls before its rule.
@@ -16632,6 +16634,14 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot FK renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FL — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FL renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
