@@ -16725,15 +16725,15 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 4145, 2026-11-11 — a click in the client mints the script's orders
 
-- **4145a. The opening camera's clicks** (`docs/INPUT.md` §2, §4; `INPUT_MINTED_OPENING` 1 of 3). At the camera the
+- **4145a. The opening camera's clicks** (`docs/CLIENT_INPUT.md` §2, §4; `INPUT_MINTED_OPENING` 1 of 3). At the camera the
   client opens with, one pixel covers 39 to 46 integer points of ground. The move comes out (+3, 0) from the script
   and the build (+2, +4). No rule can make every script coordinate reachable at that zoom. How the original turns a
   click into a coordinate (its inverse and its rounding) is unread. A score here needs either that reading, scored
   on clicks the original itself made, or a script whose coordinates came from clicks.
-- **4145b. The original's hit test and hotkeys** (`docs/INPUT.md` §4). The pick (the nearest anchor within 24 px) and
+- **4145b. The original's hit test and hotkeys** (`docs/CLIENT_INPUT.md` §4). The pick (the nearest anchor within 24 px) and
   the keys `c` and `f` are ours. The original's piece-pixel hit test, its hotkeys and its build menu are unread. No
   score moves until a capture holds a person's selection.
-- **4145c. The window under a real mouse** (`docs/INPUT.md` §1, §4). `main.rs` feeds the same layer under the
+- **4145c. The window under a real mouse** (`docs/CLIENT_INPUT.md` §1, §4). `main.rs` feeds the same layer under the
   window's own size, where the tests use `graphsys`'s. It is checked by eye only.
 
 ## Parked by the next landing, slot FP — reserved

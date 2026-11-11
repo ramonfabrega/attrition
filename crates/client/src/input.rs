@@ -1,4 +1,4 @@
-//! **A person's input, as orders** (item 4145, `docs/INPUT.md`): a press,
+//! **A person's input, as orders** (item 4145, `docs/CLIENT_INPUT.md`): a press,
 //! a right press and a key, under the camera the client draws with, turned
 //! into packages in the minted script's own vocabulary
 //! (`rondata::recgame::Order`: a frame, the issuing slot, a `group` and one
@@ -39,7 +39,7 @@ const TILES_PER_CELL: i32 = 4;
 
 /// How near a press must fall to an object's anchor to select it, in
 /// pixels. Ours: the original's own hit test (a piece's drawn pixels) is
-/// not read (`docs/INPUT.md` §4).
+/// not read (`docs/CLIENT_INPUT.md` §4).
 pub const PICK_RADIUS: i32 = 24;
 
 /// The keys that train, and what: the script's one, the Citizen
@@ -77,7 +77,7 @@ impl View<'_> {
 
     /// The height an object stands at on the ground at `(x, y)`: its
     /// tile's height, never below zero (`sim::World::object_z`, whose
-    /// ocean arm is not carried by the scene: `docs/INPUT.md` §4).
+    /// ocean arm is not carried by the scene: `docs/CLIENT_INPUT.md` §4).
     pub fn ground_z(&self, x: i32, y: i32) -> i32 {
         let t = self.terrain;
         let (w, h) = (t.width * TILES_PER_CELL, t.height * TILES_PER_CELL);
@@ -336,7 +336,7 @@ mod tests {
         }
     }
 
-    /// **Stage 0's table** (`docs/INPUT.md` §2), on each order's frame of
+    /// **Stage 0's table** (`docs/CLIENT_INPUT.md` §2), on each order's frame of
     /// the built start walked under the script: `(frame, object, its point
     /// and height, its pixel under the opening camera)`.
     type Object = (i32, i16, (i32, i32, i32), (i32, i32));
@@ -576,7 +576,7 @@ mod tests {
         (whole, parts)
     }
 
-    /// **`INPUT_MINTED`** (`docs/INPUT.md` §3): the script's three orders
+    /// **`INPUT_MINTED`** (`docs/CLIENT_INPUT.md` §3): the script's three orders
     /// minted from events at stage 0's pixels, the targets clicked under
     /// the closer camera, of 3. Was 0 (no input layer), now 3.
     const INPUT_MINTED: usize = 3;

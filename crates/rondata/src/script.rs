@@ -3,7 +3,7 @@
 //! Citizen trained, a Farm placed — on the harness lobby's built start.
 //! The diff suite mints them into the file the original played
 //! (`diff::minted`); the client's input layer is counted against them
-//! (item 4145, `docs/INPUT.md`). Out of the test tree so both can name it.
+//! (item 4145, `docs/CLIENT_INPUT.md`). Out of the test tree so both can name it.
 
 use crate::commands::Command;
 use crate::recgame::Order;
