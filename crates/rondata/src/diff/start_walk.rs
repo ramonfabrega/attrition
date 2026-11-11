@@ -247,6 +247,37 @@ fn the_harness_lobby_s_start_is_the_installed_one_wide() {
     });
 }
 
+/// **Step 8, `World::analyze_map`, walked** (item 4147, `docs/START.md`
+/// §8): the ten tallies our setup kept, against the same function counted
+/// over the installed start's own frame-0 state — its cells, tiles, regions,
+/// placed mountains and seated cities. All ten agree, the two region counts
+/// among them, which no dump prints; the eight the start dump does print
+/// are checked against their state on eighteen maps by
+/// `the_map_s_tallies_are_every_start_dump_s` (Great Lakes on run12).
+#[test]
+fn the_harness_lobby_s_map_tallies_are_the_installed_start_s() {
+    let Some(inst) = install() else { return };
+    let standard =
+        crate::mapgen::standard_map_size(inst.root()).expect("rules.xml's Standard map size");
+    harness_starts(|_, ours, theirs, _| {
+        let walked = ours
+            .steps
+            .iter()
+            .find(|(s, _)| *s == "World::analyze_map")
+            .is_some_and(|(_, b)| *b);
+        assert!(walked, "the walk runs analyze_map at step 8");
+        let kept = ours
+            .sim
+            .world
+            .record()
+            .tallies
+            .expect("the setup's tallies");
+        let counted = theirs.sim.map_analysis(standard).tallies;
+        eprintln!("analyze_map: ours {kept:?}, the installed start counted {counted:?}");
+        assert_eq!(kept, counted, "the ten tallies");
+    });
+}
+
 /// The wide projection's fields on the harness lobby: 14,400 fog cells,
 /// 36 goods and 22 goody boxes at three fields each, 13 mountains at
 /// three, 13 buildings' `ever_seen`, the limits, 8 regions, 57,600 tiles
