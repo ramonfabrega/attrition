@@ -4597,4 +4597,362 @@ mod tests {
             }
         }
     }
+
+    /// **Item 4106, step 2: the light on a figure's texel, as a value.** Per
+    /// figure of the colour row, over its lit pixels that both footprints
+    /// hold, not behind anything (`Scene::behind`), the texel's alpha 255
+    /// and neither side dark: the photograph's channel means over our
+    /// texel's, each per-pixel ratio's spread, the same split by the face's
+    /// `N·L` against run1559b's packet light (`lights[0].cur_dir`
+    /// (−0.707, 0, −0.707), `L = −cur_dir`), and each candidate's
+    /// chromaticity distance and agreeing pixels. The candidates' constants
+    /// are the packet's (`unit_material`'s ambient (0.600, 0.716, 0.745)) and
+    /// the lit branch's power 1.45 (the Extended Edition's `ps_global.hlsl`,
+    /// read in the install); none is fitted. Then, for the three peasants
+    /// under the pine, the pine's own pixels in their windows: the
+    /// photograph over our leaf texel.
+    #[test]
+    #[allow(clippy::needless_range_loop)]
+    fn the_light_on_the_figures_texel() {
+        use render::silhouette::{HUE, chromaticity, traced_theirs};
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        const AMBIENT: [f32; 3] = [0.600, 0.716, 0.745];
+        const LIT_POWER: f32 = 1.45;
+        let l = {
+            let v = [0.707_f32, 0.0, 0.707];
+            let n = (v[0] * v[0] + v[2] * v[2]).sqrt();
+            [v[0] / n, 0.0, v[2] / n]
+        };
+        let camera = crate::pinned_camera();
+        world.run_to(PHOTO_FRAME);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let size = (photo.width, photo.height);
+        let scene = frame_scene(&mut world, &camera, size);
+        let first_tree = (scene.drawings.len() + scene.sprites.len()) as u32 + 1;
+        let p = Photo {
+            width: photo.width,
+            height: photo.height,
+            rgba: &photo.rgba,
+        };
+        let traces: Vec<Trace<'_>> = TRACED
+            .iter()
+            .map(|&(name, poly)| Trace {
+                key: scene
+                    .who
+                    .iter()
+                    .position(|&(who, o, _, _)| format!("{who}/{o}") == name)
+                    .map_or(u32::MAX, |i| i as u32 + 1),
+                poly,
+            })
+            .collect();
+        let rows = footprints_traced(
+            &scene.keys,
+            &p,
+            &INTERFACE,
+            &READING,
+            &traces,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let dist = |a: [f32; 3], b: [f32; 3]| {
+            let (x, y) = (chromaticity(a), chromaticity(b));
+            ((x[0] - y[0]).powi(2) + (x[1] - y[1]).powi(2)).sqrt()
+        };
+        let sum = |q: [f32; 3]| q[0] + q[1] + q[2];
+        let names = ["texel", "texel*A", "texel^1.45", "texel^1.45*A"];
+        let preds = |t: [f32; 3]| {
+            let pw = t.map(|v| 255.0 * (v / 255.0).powf(LIT_POWER));
+            [
+                t,
+                [0, 1, 2].map(|q| t[q] * AMBIENT[q]),
+                pw,
+                [0, 1, 2].map(|q| pw[q] * AMBIENT[q]),
+            ]
+        };
+        #[derive(Clone, Default)]
+        struct Acc {
+            n: u32,
+            ph: [f64; 3],
+            t: [f64; 3],
+            r: [f64; 3],
+            r2: [f64; 3],
+            dc: [f64; 2],
+            d: [f64; 4],
+            agree: [u32; 4],
+        }
+        fn add(a: &mut Acc, ph: [f32; 3], t: [f32; 3], ds: [f32; 4], agree: f32, dc: [f32; 2]) {
+            a.n += 1;
+            for q in 0..3 {
+                a.ph[q] += f64::from(ph[q]);
+                a.t[q] += f64::from(t[q]);
+                let r = f64::from(ph[q]) / f64::from(t[q].max(1.0));
+                a.r[q] += r;
+                a.r2[q] += r * r;
+            }
+            for b in 0..4 {
+                a.d[b] += f64::from(ds[b]);
+                a.agree[b] += u32::from(ds[b] <= agree);
+            }
+            a.dc[0] += f64::from(dc[0]);
+            a.dc[1] += f64::from(dc[1]);
+        }
+        let line = |label: &str, a: &Acc| {
+            if a.n == 0 {
+                return;
+            }
+            let n = a.n as f64;
+            let ph = a.ph.map(|v| v / n);
+            let t = a.t.map(|v| v / n);
+            let ratio = [0, 1, 2].map(|q| ph[q] / t[q].max(1.0));
+            let spread: Vec<f64> = (0..3)
+                .map(|q| (a.r2[q] / n - (a.r[q] / n).powi(2)).max(0.0).sqrt())
+                .collect();
+            print!(
+                "{label} n {} photo {:.0?} texel {:.0?} ratio {:.3?} ratio/g {:.3?} spread {:.3?} dchroma ({:+.3}, {:+.3}) |",
+                a.n,
+                ph,
+                t,
+                ratio,
+                [ratio[0] / ratio[1], 1.0, ratio[2] / ratio[1]],
+                spread,
+                a.dc[0] / n,
+                a.dc[1] / n
+            );
+            for b in 0..4 {
+                print!(" {} {:.3} {}", names[b], a.d[b] / n, a.agree[b]);
+            }
+            println!();
+        };
+        let bin = |nl: f32| -> usize {
+            if nl < -0.25 {
+                0
+            } else if nl < 0.25 {
+                1
+            } else {
+                2
+            }
+        };
+        const BINS: [&str; 3] = ["N·L<-.25", "|N·L|<.25", "N·L>.25"];
+        let mut owners = [Acc::default(), Acc::default()];
+        let mut owners_bin: [[Acc; 3]; 2] = Default::default();
+        let mut leaves = Acc::default();
+        let pine_figures = ["0/2", "0/8", "0/10"];
+        const SHIFTS: [(i64, i64); 9] = [
+            (0, 0),
+            (-1, 0),
+            (1, 0),
+            (0, -1),
+            (0, 1),
+            (-1, -1),
+            (1, -1),
+            (-1, 1),
+            (1, 1),
+        ];
+        let mut shift_agree = [[0u32; 9]; 2];
+        let mut behind_n = 0u32;
+        let mut behind_agree = (0u32, 0u32);
+        for f in rows {
+            let who = scene.who[f.key as usize - 1];
+            if who.0 == TREE_WHO || who.3 || who.0 > 1 {
+                continue;
+            }
+            let Some(d) = scene.drawings.get(f.key as usize - 1) else {
+                continue;
+            };
+            let theirs = traced_theirs(
+                &scene.keys,
+                &p,
+                &INTERFACE,
+                &READING,
+                &traces,
+                Neighbour::Neither,
+                Interface::Neither,
+                f.key,
+                f.window,
+            );
+            let ours = painted(
+                &mut world,
+                &scene,
+                &camera,
+                size,
+                f.key,
+                f.window,
+                Colouring::Texture,
+            );
+            let ww = (f.window.x1 - f.window.x0) as usize;
+            let mut obj = Acc::default();
+            let mut by_bin: [Acc; 3] = Default::default();
+            let name = format!("{}/{}", who.0, who.1);
+            let mut tree_cache: std::collections::HashMap<
+                u32,
+                Vec<Option<render::silhouette::Texel>>,
+            > = std::collections::HashMap::new();
+            let pine = pine_figures
+                .contains(&name.as_str())
+                .then(|| {
+                    (f.window.y0..f.window.y1)
+                        .flat_map(|y| (f.window.x0..f.window.x1).map(move |x| (x, y)))
+                        .map(|(x, y)| scene.nearer[y as usize * photo.width + x as usize])
+                        .find(|&k| k >= first_tree)
+                })
+                .flatten();
+            for y in f.window.y0..f.window.y1 {
+                for x in f.window.x0..f.window.x1 {
+                    let j = (y - f.window.y0) as usize * ww + (x - f.window.x0) as usize;
+                    let at = y as usize * photo.width + x as usize;
+                    let i = at * 4;
+                    let ph = [0, 1, 2].map(|c| f32::from(photo.rgba[i + c]));
+                    let key_here = scene.keys.at(x as usize, y as usize);
+                    // The pine's own pixels by the three peasants: where it
+                    // paints and no object holds the key.
+                    if let Some(pine) = pine
+                        && key_here == 0
+                    {
+                        let leaf = tree_cache.entry(pine).or_insert_with(|| {
+                            paint_nearer(&mut world, &scene, &camera, size, pine, f.window)
+                        });
+                        if let Some(t) = leaf[j]
+                            && sum(t.rgb) >= HUE.dark
+                            && sum(ph) >= HUE.dark
+                        {
+                            let (a, b) = (chromaticity(ph), chromaticity(t.rgb));
+                            let ds = preds(t.rgb).map(|q| dist(q, ph));
+                            add(
+                                &mut leaves,
+                                ph,
+                                t.rgb,
+                                ds,
+                                HUE.distance,
+                                [a[0] - b[0], a[1] - b[1]],
+                            );
+                        }
+                    }
+                    // The peasants' behind pixels under 4103's blend, over
+                    // the leaf texel and over its lit-branch power.
+                    if let Some(pine) = pine
+                        && key_here == f.key
+                        && theirs[j] == Some(true)
+                        && scene.behind[at]
+                        && scene.nearer[at] == pine
+                        && sum(ph) >= HUE.dark
+                    {
+                        let leaf = tree_cache.entry(pine).or_insert_with(|| {
+                            paint_nearer(&mut world, &scene, &camera, size, pine, f.window)
+                        });
+                        if let Some(u) = leaf[j] {
+                            let c = render::silhouette::team_unit(who.0).map(f32::from);
+                            let a = f32::from(render::silhouette::SILHOUETTE_ALPHA) / 255.0;
+                            let pw = u.rgb.map(|v| 255.0 * (v / 255.0).powf(LIT_POWER));
+                            let over = |n: [f32; 3]| [0, 1, 2].map(|q| c[q] * a + n[q] * (1.0 - a));
+                            behind_n += 1;
+                            behind_agree.0 += u32::from(dist(over(u.rgb), ph) <= HUE.distance);
+                            behind_agree.1 += u32::from(dist(over(pw), ph) <= HUE.distance);
+                        }
+                    }
+                    if key_here != f.key || theirs[j] != Some(true) || scene.behind[at] {
+                        continue;
+                    }
+                    let Some(t) = ours[j] else { continue };
+                    if t.alpha < 1.0 || sum(t.rgb) < HUE.dark || sum(ph) < HUE.dark {
+                        continue;
+                    }
+                    let nl = d.tris.get(t.tri as usize).map_or(0.0, |tri| {
+                        let (a, b, c) = (tri[0], tri[1], tri[2]);
+                        let u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+                        let v = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+                        let nrm = [
+                            u[1] * v[2] - u[2] * v[1],
+                            u[2] * v[0] - u[0] * v[2],
+                            u[0] * v[1] - u[1] * v[0],
+                        ];
+                        let len = (nrm[0] * nrm[0] + nrm[1] * nrm[1] + nrm[2] * nrm[2]).sqrt();
+                        if len == 0.0 {
+                            0.0
+                        } else {
+                            (nrm[0] * l[0] + nrm[1] * l[1] + nrm[2] * l[2]) / len
+                        }
+                    });
+                    let (a, b) = (chromaticity(ph), chromaticity(t.rgb));
+                    let dc = [a[0] - b[0], a[1] - b[1]];
+                    let ds = preds(t.rgb).map(|q| dist(q, ph));
+                    for (si, (dx, dy)) in SHIFTS.iter().enumerate() {
+                        let (sx, sy) = (x as i64 + dx, y as i64 + dy);
+                        if sx < 0 || sy < 0 || sx >= photo.width as i64 || sy >= photo.height as i64
+                        {
+                            continue;
+                        }
+                        let si_at = (sy as usize * photo.width + sx as usize) * 4;
+                        let q = [0, 1, 2].map(|c| f32::from(photo.rgba[si_at + c]));
+                        shift_agree[usize::from(who.0)][si] +=
+                            u32::from(dist(t.rgb, q) <= HUE.distance);
+                    }
+                    let k = bin(nl);
+                    for target in [
+                        &mut obj,
+                        &mut by_bin[k],
+                        &mut owners[usize::from(who.0)],
+                        &mut owners_bin[usize::from(who.0)][k],
+                    ] {
+                        add(target, ph, t.rgb, ds, HUE.distance, dc);
+                    }
+                }
+            }
+            line(&format!("{name} piece {}", who.2), &obj);
+            for (k, a) in by_bin.iter().enumerate() {
+                line(&format!("  {name} {}", BINS[k]), a);
+            }
+        }
+        for o in 0..2 {
+            line(&format!("player {o}"), &owners[o]);
+            for (k, a) in owners_bin[o].iter().enumerate() {
+                line(&format!("  player {o} {}", BINS[k]), a);
+            }
+        }
+        line("the pine's leaf by 0/2, 0/8, 0/10", &leaves);
+        println!(
+            "0/2, 0/8, 0/10 behind the pine: n {behind_n}, c·a + n·(1 − a) agreeing over the leaf texel {}, over the leaf^1.45 {}",
+            behind_agree.0, behind_agree.1
+        );
+        for o in 0..2 {
+            println!(
+                "player {o} texel agreeing by photograph shift (dx, dy): {:?}",
+                SHIFTS.iter().zip(shift_agree[o]).collect::<Vec<_>>()
+            );
+        }
+        // The kill, as assertions (item 4106): player 1's net multiplier is
+        // grey within 0.02 of chromaticity, the packet's coloured ambient
+        // loses to the texel alone, the unshifted photograph agrees most for
+        // both players, and the leaf's power under 4103's blend agrees less.
+        let p1 = &owners[1];
+        let n1 = f64::from(p1.n);
+        assert!((p1.dc[0] / n1).abs() < 0.02 && (p1.dc[1] / n1).abs() < 0.02);
+        assert!(
+            p1.agree[0] > p1.agree[1],
+            "the ambient's colour does not raise player 1"
+        );
+        for o in 0..2 {
+            let best = shift_agree[o].iter().max().copied();
+            assert_eq!(best, Some(shift_agree[o][0]), "player {o}: registration");
+        }
+        assert!(
+            behind_agree.1 < behind_agree.0,
+            "the leaf's power under the silhouette"
+        );
+    }
 }

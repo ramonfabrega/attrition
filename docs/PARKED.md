@@ -16268,8 +16268,9 @@ words and edits nothing here; a refill lands when two remain.
   `RUN1559B_3279_COLOUR` 18 of 33). With `c·a + n·(1 − a)` drawn, 697 of the figures' 1,257 behind pixels still
   part (55 %), and 0/2, 0/8 and 0/10, wholly behind the pine, read 0.38–0.45 agreeing and stay out. The least-squares
   share of the owner's colour reads 0.570 on the photograph against the packet's 128/255 = 0.502: the leaf under it
-  is our texel unlit, at the level the cut samples, where the original's tree flush lights it (stage 1) — not
-  separated. Not established: the alpha's source (`draw_unit` takes it from a byte at `+0xa18` of a local at
+  is our texel unlit, at the level the cut samples, ~~where the original's tree flush lights it (stage 1) — not
+  separated~~ (item 4106: the light is white; the leaf's lit-branch power 1.45 under the blend agrees on 102 of the
+  646 behind pixels against 268 for the texel, so it is not the share; 4106a). Not established: the alpha's source (`draw_unit` takes it from a byte at `+0xa18` of a local at
   0x8e84a5, unnamed; the packet's 128 may move with it); `get_pulse_color`'s branch (0x8e84d2–0x8e8588, a
   selected-and-flagged figure); the leader-relationship colour at 0x8e8447; and player 1, of whom no scored figure
   stands behind a tree or a sprite on this frame. On the card the pass lands over anything nearer (depth Greater),
@@ -16285,7 +16286,9 @@ words and edits nothing here; a refill lands when two remain.
   pass's colour is unread~~ (read and drawn, item 4103: the owner's unit colour at 128/255 over the nearer pixel); **22 % are texels under alpha 255**, of which 88 % part — the team colour, blue for
   player 1 on the tunics and the tanks' patches, by eye — the mask's listing and its blind second reading are
   4038a's; **66 % the rest**, whose mean chromaticity offset is (−0.002, +0.006), so not a uniform light tint:
-  the light's per-pixel shade, the level the card samples, and registration are not separated. Player 0's
+  ~~the light's per-pixel shade~~ (killed, item 4106: the light is white and the net multiplier grey on player 1's
+  15,412 unmasked pixels, (−0.010, +0.002); see 4106a), the level the card samples ~~, and registration~~ (one pixel
+  ruled out, 4106) are not separated. Player 0's
   peasants (pieces 4576, 10912) read 0 agreeing where the whole figure is behind or masked. Candidate C's colour
   row +22 at most (31 figures less the 9 in).
 
@@ -16297,19 +16300,30 @@ words and edits nothing here; a refill lands when two remain.
   table player 1's lowest band (α near 30, a grey texel near 164) reads nearer the texel than any blend, and the
   tanks 1/16, 1/27, 1/40 read their masked pixels nearest the texel too (1/16 1,066 → 1,026 agreeing, 1/27 1,418 →
   1,412, 1/40 940 → 933), as do riflemen 1/30 (171 → 152) and 1/31 (84 → 65), each still in or still out. Not
-  separated: stage 1's `TOP_MODULATE(TA_CURRENT, TA_DIFFUSE)` (the light's colour, which our unlit side does not
-  apply), the level the card samples, registration, and whether `draw_unit` draws these figures under
+  separated: ~~stage 1's `TOP_MODULATE(TA_CURRENT, TA_DIFFUSE)` (the light's colour, which our unlit side does not
+  apply)~~ (killed, item 4106: white light, grey net multiplier; 4106a), the level the card samples, registration, and whether `draw_unit` draws these figures under
   `render_states[0]` at all. The relationship-colour preference (`TeamColor::get_unit`'s `prefs & 0x100`) is not
   read. The rule rests on a reading and one photograph: its blind second reading is unbooked. Names no score until
   a mechanism is chosen; at most the 18 figures still out.
 
-## Parked by the next landing, slot ET — reserved
+## Parked by item 4106, 2026-11-10 — the light on a figure's texel, killed
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ET renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4106a. What parts on the colour row once the light is ruled out** (`docs/RENDERER.md` §5.3, "The colour
+  reader"; `RUN1559B_3279_COLOUR` 18 of 33; `client::silhouette::tests::the_light_on_the_figures_texel`). The light is
+  killed by value: `prep_unit_lighting@00905c10` sets `lights[0].cur_ambient` and `cur_diffuse` to (1, 1, 1, 1),
+  the packet holds one directional light, `cur_dir` (−0.707, 0, −0.707), and `unit_material`'s diffuse is white;
+  its ambient alone is coloured, (0.600, 0.716, 0.745). On player 1's 15,412 unmasked, unoccluded pixels the
+  photograph over our texel is grey, (−0.010, +0.002), in every `N·L` band, and the texel times that ambient agrees
+  on 4,660 against 7,080 for the texel; the unshifted photograph agrees most for both players (no one-pixel
+  registration). **What is left, by frame 3279 and its delta**: (1) **player 0's peasants (pieces 10912, 4576)
+  read red on texels whose alpha is 255** (1,127 pixels, (+0.164, −0.048); 0/0, piece 377, is grey): a mask our
+  texture level does not hold, at most 0/2, 0/7, 0/8, 0/10 and the peasants still out; (2) the pine's own leaf
+  agrees on 1,946 of 3,136 as the texel to the lit branch's power 1.45 against 514 as the texel, a tone curve not a
+  light, which under the silhouette's blend agrees less (102 of 646 against 268) and so is not 4103a's share; (3)
+  the level the card samples, not separated (the painter takes `Mips::level` by area). Not established: the
+  Extended Edition's tone mapper's exposure, white point, saturation and tint and the scene ambient, held by
+  `d3dgl.dll` and not in the packet; why the figures' texel reads nearer unpowered than the leaf. Rests on a reading
+  and one photograph. Names no score until a mechanism is chosen.
 
 ## Parked by the next landing, slot EU — reserved
 
