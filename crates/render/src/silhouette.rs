@@ -551,8 +551,9 @@ pub fn team_blend(rgb: [f32; 3], alpha: f32, owner: [u8; 3]) -> [f32; 3] {
 }
 
 /// **Item 4114's candidate: the Extended Edition's lit pixel, as the
-/// install fixes it** (`docs/RENDERER.md` §5.3, "The lit pixel"). Not
-/// drawn until its count says so; committed before the count. Every
+/// install fixes it** (`docs/RENDERER.md` §5.3; parked 4114a). Committed
+/// before its count and **killed by it**: never drawn, kept as the
+/// candidate `client::silhouette::tests::the_lit_pixel` counts. Every
 /// constant is read, none measured on the photograph:
 ///
 /// - the stage colour (the team blend, which the card's texture stage

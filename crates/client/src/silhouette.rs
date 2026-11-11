@@ -5883,4 +5883,571 @@ mod tests {
             );
         }
     }
+
+    /// **Item 4114: the photograph over our texel, as the original's pixel
+    /// pipeline.** Step 1, the values: on 4106's population at the
+    /// painter's alpha exactly 255 (key, both footprints, not behind,
+    /// neither the texel nor the photograph dark) and on the pine's leaf
+    /// as 4106 selects it, per channel the photograph's median against the
+    /// texel's value in 16 bins, by the face's band (N·L against
+    /// `L = −cur_dir`, 4106's three) and by piece; whether the pieces sit
+    /// on one curve (a grey texel's median image through each piece's
+    /// three curves, in chromaticity, the reader's 0.05). Then the
+    /// premise of the candidate (`render::silhouette::lit_pipeline`,
+    /// committed before this count): the frame's mean luminance, inverted
+    /// from the photograph on the pixels no object's key holds and no
+    /// interface covers, under the clamp. Then the count: the candidate
+    /// against the texel on the alpha-255 population and against the
+    /// painter's blend on 4112's every-lit population, the team blend
+    /// first (the card's stage runs before the lit branch), and the colour
+    /// row re-counted under it, the pixels behind left as painted.
+    #[test]
+    #[allow(clippy::needless_range_loop, clippy::type_complexity)]
+    fn the_lit_pixel() {
+        use render::silhouette::{
+            HUE, MIN_LUMINANCE, WHITE_POINT, chromaticity, filmic, lit_pipeline, team_blend,
+            team_unit, traced_theirs,
+        };
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        world.run_to(PHOTO_FRAME);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let size = (photo.width, photo.height);
+        let base = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Silhouette);
+        let scene = frame_scene(&mut world, &camera, size);
+        let first_tree = (scene.drawings.len() + scene.sprites.len()) as u32 + 1;
+        let p = Photo {
+            width: photo.width,
+            height: photo.height,
+            rgba: &photo.rgba,
+        };
+        let traces: Vec<Trace<'_>> = TRACED
+            .iter()
+            .map(|&(name, poly)| Trace {
+                key: scene
+                    .who
+                    .iter()
+                    .position(|&(who, o, _, _)| format!("{who}/{o}") == name)
+                    .map_or(u32::MAX, |i| i as u32 + 1),
+                poly,
+            })
+            .collect();
+        let rows = footprints_traced(
+            &scene.keys,
+            &p,
+            &INTERFACE,
+            &READING,
+            &traces,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let dist = |a: [f32; 3], b: [f32; 3]| {
+            let (x, y) = (chromaticity(a), chromaticity(b));
+            ((x[0] - y[0]).powi(2) + (x[1] - y[1]).powi(2)).sqrt()
+        };
+        let agrees = |a: [f32; 3], b: [f32; 3]| dist(a, b) <= HUE.distance;
+        let sum = |q: [f32; 3]| q[0] + q[1] + q[2];
+        let l = [
+            std::f32::consts::FRAC_1_SQRT_2,
+            0.0,
+            std::f32::consts::FRAC_1_SQRT_2,
+        ];
+        let band = |nl: f32| -> u8 {
+            if nl < -0.25 {
+                0
+            } else if nl < 0.25 {
+                1
+            } else {
+                2
+            }
+        };
+        const BANDS: [&str; 4] = ["N·L<-.25", "|N·L|<.25", "N·L>.25", "leaf"];
+        let median = |v: &mut Vec<f32>| -> f32 {
+            v.sort_by(|a, b| a.total_cmp(b));
+            v[v.len() / 2]
+        };
+
+        // --- The premise: the frame's mean luminance under the clamp. ---
+        let white = 1.0 / filmic(MIN_LUMINANCE * WHITE_POINT);
+        let ceiling = 1.0 - 0.02 / 0.30;
+        let invert = |y: f32| -> f32 {
+            // filmic(x) = y, solved for x ≥ 0 (a quadratic); capped at 64
+            // where the curve saturates.
+            let y = y.clamp(0.0, ceiling - 1e-4) + 0.02 / 0.30;
+            let (a, b, c) = (0.15 * (1.0 - y), 0.05 - 0.5 * y, 0.004 - 0.06 * y);
+            let disc = (b * b - 4.0 * a * c).max(0.0);
+            ((-b + disc.sqrt()) / (2.0 * a)).clamp(0.0, 64.0)
+        };
+        let in_interface = |x: i32, y: i32| {
+            INTERFACE
+                .iter()
+                .any(|r| x >= r.x0 && x < r.x1 && y >= r.y0 && y < r.y1)
+        };
+        let mut frame_px = Vec::new();
+        for y in 0..photo.height {
+            for x in 0..photo.width {
+                if in_interface(x as i32, y as i32) || scene.keys.at(x, y) != 0 {
+                    continue;
+                }
+                let i = (y * photo.width + x) * 4;
+                frame_px.push([0, 1, 2].map(|c| f32::from(photo.rgba[i + c]) / 255.0));
+            }
+        }
+        let mean_lum = |avg: f32| -> f64 {
+            let w = 1.0 / filmic(avg.max(MIN_LUMINANCE) * WHITE_POINT);
+            let s: f64 = frame_px
+                .iter()
+                .map(|d| {
+                    let x = d.map(|v| invert(v / w));
+                    f64::from(0.3 * x[0] + 0.59 * x[1] + 0.11 * x[2])
+                })
+                .sum();
+            s / frame_px.len() as f64
+        };
+        println!(
+            "premise: {} pixels no object's key holds and no interface covers; white scale at the clamp {white:.4}",
+            frame_px.len()
+        );
+        let at_clamp = mean_lum(MIN_LUMINANCE);
+        for avg in [1.4_f32, 2.0, 3.0, 4.0] {
+            println!(
+                "  assumed mean {avg}: the photograph inverts to a mean luminance of {:.3}",
+                mean_lum(avg)
+            );
+        }
+
+        // --- The populations. ---
+        #[derive(Clone, Copy)]
+        struct Px {
+            owner: u8,
+            piece: i32,
+            key: u32,
+            t: [f32; 3],
+            alpha: f32,
+            nl: f32,
+            ph: [f32; 3],
+        }
+        let mut px: Vec<Px> = Vec::new();
+        let mut leaf: Vec<([f32; 3], [f32; 3])> = Vec::new();
+        let pine_figures = ["0/2", "0/8", "0/10"];
+        let mut names: std::collections::BTreeMap<(u8, i32), String> = Default::default();
+        for f in rows {
+            let who = scene.who[f.key as usize - 1];
+            if who.0 == TREE_WHO || who.3 {
+                continue;
+            }
+            let Some(d) = scene.drawings.get(f.key as usize - 1) else {
+                continue;
+            };
+            if world.figure_texture(d.piece).is_none() {
+                continue;
+            }
+            let theirs = traced_theirs(
+                &scene.keys,
+                &p,
+                &INTERFACE,
+                &READING,
+                &traces,
+                Neighbour::Neither,
+                Interface::Neither,
+                f.key,
+                f.window,
+            );
+            let ours = painted(
+                &mut world,
+                &scene,
+                &camera,
+                size,
+                f.key,
+                f.window,
+                Colouring::Texture,
+            );
+            let name = format!("{}/{}", who.0, who.1);
+            names
+                .entry((who.0, d.piece))
+                .or_default()
+                .push_str(&format!(" {name}"));
+            let pine = pine_figures
+                .contains(&name.as_str())
+                .then(|| {
+                    (f.window.y0..f.window.y1)
+                        .flat_map(|y| (f.window.x0..f.window.x1).map(move |x| (x, y)))
+                        .map(|(x, y)| scene.nearer[y as usize * photo.width + x as usize])
+                        .find(|&k| k >= first_tree)
+                })
+                .flatten();
+            let leaf_tex =
+                pine.map(|k| paint_nearer(&mut world, &scene, &camera, size, k, f.window));
+            let ww = (f.window.x1 - f.window.x0) as usize;
+            for y in f.window.y0..f.window.y1 {
+                for x in f.window.x0..f.window.x1 {
+                    let j = (y - f.window.y0) as usize * ww + (x - f.window.x0) as usize;
+                    let at = y as usize * photo.width + x as usize;
+                    let ph = [0, 1, 2].map(|c| f32::from(photo.rgba[at * 4 + c]));
+                    let key_here = scene.keys.at(x as usize, y as usize);
+                    if let Some(lt) = &leaf_tex
+                        && key_here == 0
+                        && let Some(t) = lt[j]
+                        && sum(t.rgb) >= HUE.dark
+                        && sum(ph) >= HUE.dark
+                    {
+                        leaf.push((t.rgb, ph));
+                    }
+                    if key_here != f.key || theirs[j] != Some(true) || scene.behind[at] {
+                        continue;
+                    }
+                    let Some(t) = ours[j] else { continue };
+                    let nl = d.tris.get(t.tri as usize).map_or(0.0, |tri| {
+                        let (a, b, c) = (tri[0], tri[1], tri[2]);
+                        let u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+                        let v = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+                        let n = [
+                            u[1] * v[2] - u[2] * v[1],
+                            u[2] * v[0] - u[0] * v[2],
+                            u[0] * v[1] - u[1] * v[0],
+                        ];
+                        let len = (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).sqrt();
+                        if len == 0.0 {
+                            0.0
+                        } else {
+                            (n[0] * l[0] + n[1] * l[1] + n[2] * l[2]) / len
+                        }
+                    });
+                    px.push(Px {
+                        owner: who.0,
+                        piece: d.piece,
+                        key: f.key,
+                        t: t.rgb,
+                        alpha: t.alpha,
+                        nl,
+                        ph,
+                    });
+                }
+            }
+        }
+        let full = |q: &Px| q.alpha >= 255.0 && sum(q.t) >= HUE.dark && sum(q.ph) >= HUE.dark;
+        let every = |q: &Px| {
+            sum(team_blend(q.t, q.alpha, team_unit(q.owner))) >= HUE.dark && sum(q.ph) >= HUE.dark
+        };
+
+        // --- The selection, re-measured. ---
+        println!(
+            "colour row as it stands: {} of {}",
+            base.iter().filter(|(_, c, _)| c.passes(&HUE)).count(),
+            base.len()
+        );
+        for o in 0..=1u8 {
+            let a: Vec<&Px> = px.iter().filter(|q| q.owner == o && full(q)).collect();
+            let e: Vec<&Px> = px.iter().filter(|q| q.owner == o && every(q)).collect();
+            println!(
+                "owner {o}: alpha 255 {} (texel agreeing {}); every lit {} (masked {}, the painter's blend agreeing {})",
+                a.len(),
+                a.iter().filter(|q| agrees(q.t, q.ph)).count(),
+                e.len(),
+                e.iter().filter(|q| q.alpha < 255.0).count(),
+                e.iter()
+                    .filter(|q| agrees(team_blend(q.t, q.alpha, team_unit(q.owner)), q.ph))
+                    .count(),
+            );
+        }
+        let pw = |t: [f32; 3]| t.map(|v| 255.0 * (v / 255.0).powf(1.45));
+        let leaf_texel = leaf.iter().filter(|(t, ph)| agrees(*t, *ph)).count();
+        let leaf_power = leaf.iter().filter(|(t, ph)| agrees(pw(*t), *ph)).count();
+        println!(
+            "the pine's leaf by 0/2, 0/8, 0/10: {} pixels, texel agreeing {leaf_texel}, texel^1.45 {leaf_power}",
+            leaf.len()
+        );
+
+        // --- Step 1: the transfer, as values. ---
+        // (group, band, channel, bin) -> photograph values; group -1 the leaf.
+        let mut cells: std::collections::BTreeMap<(i32, u8, usize, usize), Vec<f32>> =
+            Default::default();
+        for q in px.iter().filter(|q| full(q)) {
+            for c in 0..3 {
+                let bin = ((q.t[c] / 16.0) as usize).min(15);
+                cells
+                    .entry((q.piece, band(q.nl), c, bin))
+                    .or_default()
+                    .push(q.ph[c]);
+            }
+        }
+        for (t, ph) in &leaf {
+            for c in 0..3 {
+                let bin = ((t[c] / 16.0) as usize).min(15);
+                cells.entry((-1, 3, c, bin)).or_default().push(ph[c]);
+            }
+        }
+        let mut med: std::collections::BTreeMap<(i32, u8, usize, usize), (f32, usize)> =
+            Default::default();
+        for (k, v) in cells.iter_mut() {
+            let n = v.len();
+            med.insert(*k, (median(v), n));
+        }
+        println!(
+            "the transfer: per group, band and channel, `bin centre: median photograph (n)` where n ≥ 5"
+        );
+        let groups: Vec<i32> = {
+            let mut g: Vec<i32> = med.keys().map(|k| k.0).collect();
+            g.dedup();
+            g
+        };
+        for &g in &groups {
+            for b in 0..4u8 {
+                for c in 0..3 {
+                    let mut l = String::new();
+                    for bin in 0..16 {
+                        if let Some(&(m, n)) = med.get(&(g, b, c, bin))
+                            && n >= 5
+                        {
+                            l.push_str(&format!(" {}:{m:.0}({n})", bin * 16 + 8));
+                        }
+                    }
+                    if !l.is_empty() {
+                        println!("  {g} {} {}:{l}", BANDS[usize::from(b)], ["r", "g", "b"][c]);
+                    }
+                }
+            }
+        }
+        // One curve? A grey texel of each bin's centre, through each
+        // piece's three channel medians, in chromaticity: two pieces at
+        // one band part when that image differs by more than 0.05.
+        let grey = |g: i32, b: u8, bin: usize| -> Option<[f32; 3]> {
+            let r = med.get(&(g, b, 0, bin))?;
+            let gg = med.get(&(g, b, 1, bin))?;
+            let bb = med.get(&(g, b, 2, bin))?;
+            (r.1 >= 20 && gg.1 >= 20 && bb.1 >= 20).then_some([r.0, gg.0, bb.0])
+        };
+        let pieces: Vec<i32> = groups.iter().copied().filter(|&g| g >= 0).collect();
+        let mut apart_pairs = Vec::new();
+        println!(
+            "one curve: per band, piece pair, bins shared with 20 a channel, of them parting past 0.05"
+        );
+        for b in 0..3u8 {
+            for (i, &pa) in pieces.iter().enumerate() {
+                for &pb in &pieces[i + 1..] {
+                    let mut shared = 0;
+                    let mut apart = 0;
+                    let mut worst = 0.0_f32;
+                    for bin in 0..16 {
+                        if let (Some(x), Some(y)) = (grey(pa, b, bin), grey(pb, b, bin)) {
+                            shared += 1;
+                            let d = dist(x, y);
+                            worst = worst.max(d);
+                            apart += usize::from(d > HUE.distance);
+                        }
+                    }
+                    if shared > 0 {
+                        println!(
+                            "  {} {pa} / {pb}: shared {shared}, apart {apart}, worst {worst:.3}",
+                            BANDS[usize::from(b)]
+                        );
+                        if apart * 3 > shared {
+                            apart_pairs.push((b, pa, pb, shared, apart));
+                        }
+                    }
+                }
+            }
+        }
+        // The leaf beside the figures: at each bin both hold, the leaf's
+        // channel median against the figures' pooled median at band 2.
+        let mut pooled: std::collections::BTreeMap<(usize, usize), Vec<f32>> = Default::default();
+        for q in px.iter().filter(|q| full(q) && band(q.nl) == 2) {
+            for c in 0..3 {
+                let bin = ((q.t[c] / 16.0) as usize).min(15);
+                pooled.entry((c, bin)).or_default().push(q.ph[c]);
+            }
+        }
+        let mut l = String::from(
+            "the leaf against the figures (band N·L>.25), channel bin: leaf / figures —",
+        );
+        for c in 0..3 {
+            for bin in 0..16 {
+                if let (Some(&(m, n)), Some(v)) =
+                    (med.get(&(-1, 3, c, bin)), pooled.get_mut(&(c, bin)))
+                    && n >= 20
+                    && v.len() >= 20
+                {
+                    l.push_str(&format!(
+                        " {}{}: {m:.0}/{:.0}",
+                        ["r", "g", "b"][c],
+                        bin * 16 + 8,
+                        median(v)
+                    ));
+                }
+            }
+        }
+        println!("{l}");
+
+        // --- The count: the candidate. ---
+        #[derive(Default)]
+        struct Tally {
+            n: u32,
+            base: u32,
+            cand: u32,
+            gain_pt: f64,
+            gain_tt: f64,
+            cand_pt: f64,
+            dc: [f64; 2],
+            dc_cand: [f64; 2],
+        }
+        let mut full_t: std::collections::BTreeMap<(u8, i32), Tally> = Default::default();
+        let mut every_t: std::collections::BTreeMap<(u8, i32), Tally> = Default::default();
+        let mut per_key: std::collections::BTreeMap<u32, (u32, u32, u32)> = Default::default();
+        for q in &px {
+            if full(q) {
+                let c = lit_pipeline(q.t, q.nl);
+                let s = full_t.entry((q.owner, q.piece)).or_default();
+                s.n += 1;
+                s.base += u32::from(agrees(q.t, q.ph));
+                s.cand += u32::from(agrees(c, q.ph));
+                for k in 0..3 {
+                    s.gain_pt += f64::from(q.ph[k] * q.t[k]);
+                    s.gain_tt += f64::from(q.t[k] * q.t[k]);
+                    s.cand_pt += f64::from(c[k] * q.t[k]);
+                }
+                let (a, b, cc) = (chromaticity(q.ph), chromaticity(q.t), chromaticity(c));
+                s.dc[0] += f64::from(a[0] - b[0]);
+                s.dc[1] += f64::from(a[1] - b[1]);
+                s.dc_cand[0] += f64::from(a[0] - cc[0]);
+                s.dc_cand[1] += f64::from(a[1] - cc[1]);
+            }
+            if every(q) {
+                let tb = team_blend(q.t, q.alpha, team_unit(q.owner));
+                let c = lit_pipeline(tb, q.nl);
+                let s = every_t.entry((q.owner, q.piece)).or_default();
+                s.n += 1;
+                let (ob, oc) = (agrees(tb, q.ph), agrees(c, q.ph));
+                s.base += u32::from(ob);
+                s.cand += u32::from(oc);
+                let k = per_key.entry(q.key).or_default();
+                k.0 += 1;
+                k.1 += u32::from(ob);
+                k.2 += u32::from(oc);
+            }
+        }
+        let mut tot = [(0u32, 0u32, 0u32); 2];
+        for (label, table, ti) in [
+            ("alpha 255, the texel", &full_t, 0),
+            ("every lit, the painter's blend", &every_t, 1),
+        ] {
+            println!("the count on {label} against the candidate:");
+            for ((o, piece), s) in table.iter() {
+                tot[ti].0 += s.n;
+                tot[ti].1 += s.base;
+                tot[ti].2 += s.cand;
+                let n = f64::from(s.n.max(1));
+                let gain = if s.gain_tt > 0.0 {
+                    s.gain_pt / s.gain_tt
+                } else {
+                    0.0
+                };
+                let cgain = if s.gain_tt > 0.0 {
+                    s.cand_pt / s.gain_tt
+                } else {
+                    0.0
+                };
+                println!(
+                    "  {o}/{piece} ({}){}: n {}, base {}, candidate {} | gain photo {gain:.3} candidate {cgain:.3} | dchroma photo−base ({:+.3}, {:+.3}) photo−candidate ({:+.3}, {:+.3})",
+                    world.figure_texture_name(*piece).unwrap_or("?"),
+                    names.get(&(*o, *piece)).map_or("", String::as_str),
+                    s.n,
+                    s.base,
+                    s.cand,
+                    s.dc[0] / n,
+                    s.dc[1] / n,
+                    s.dc_cand[0] / n,
+                    s.dc_cand[1] / n,
+                );
+            }
+            println!(
+                "  total n {}, base {}, candidate {}",
+                tot[ti].0, tot[ti].1, tot[ti].2
+            );
+        }
+        let mut passing = (0usize, 0usize);
+        let mut crossed = Vec::new();
+        for (f, c, w) in &base {
+            let Some(&(n, ab, ac)) = per_key.get(&f.key) else {
+                passing.0 += usize::from(c.passes(&HUE));
+                passing.1 += usize::from(c.passes(&HUE));
+                continue;
+            };
+            let q = render::silhouette::Colours {
+                agree: c.agree - ab + ac,
+                ..*c
+            };
+            let (a, b) = (c.passes(&HUE), q.passes(&HUE));
+            passing.0 += usize::from(a);
+            passing.1 += usize::from(b);
+            println!(
+                "  {}/{}: lit {} ({n} not behind), agreeing {} → {} {}",
+                w.0,
+                w.1,
+                c.lit,
+                c.agree,
+                q.agree,
+                match (a, b) {
+                    (true, false) => "DOWN",
+                    (false, true) => "UP",
+                    (true, true) => "in",
+                    _ => "out",
+                }
+            );
+            if a != b {
+                crossed.push((w.0, w.1, a));
+            }
+        }
+        println!(
+            "colour row: {} as painted, {} under the candidate; crossings {crossed:?}",
+            passing.0, passing.1
+        );
+        println!("kill (a) pairs: {apart_pairs:?}; premise mean at the clamp {at_clamp:.3}");
+        // The kill, as assertions (item 4114). The selection re-measured:
+        // the row, 4107's alpha-255 counts, 4112's every-lit counts and its
+        // painter's 8,119, 4106's leaf. Then (a): the medium tank 196 and
+        // the general 1008 part on every bin they share at N·L > .25.
+        // Then (b): the candidate agrees on fewer pixels than the texel and
+        // than the painter's blend, and takes the row down. And the
+        // premise: under the clamp the photograph inverts to a mean over it,
+        // so the one frame scalar is not the clamp (chromatically inert:
+        // a white scale multiplies every channel alike).
+        assert_eq!(passing.0, render::silhouette::RUN1559B_3279_COLOUR.0);
+        let count =
+            |o: u8, f: &dyn Fn(&Px) -> bool| px.iter().filter(|q| q.owner == o && f(q)).count();
+        assert_eq!((count(0, &full), count(1, &full)), (564, 13_335));
+        assert_eq!((count(0, &every), count(1, &every)), (1_150, 15_482));
+        assert_eq!(tot[1].1, 8_119, "the painter's blend on every lit pixel");
+        assert_eq!((leaf.len(), leaf_texel, leaf_power), (3_136, 514, 1_946));
+        assert!(
+            apart_pairs
+                .iter()
+                .any(|&(b, x, y, n, a)| (b, x, y) == (2, 196, 1008) && n == a && n >= 5),
+            "the tank and the general on one curve"
+        );
+        assert!(
+            tot[0].2 < tot[0].1 && tot[1].2 < tot[1].1,
+            "the candidate beats the texel"
+        );
+        assert!(passing.1 < passing.0, "the candidate takes the row down");
+        assert!(
+            at_clamp > f64::from(MIN_LUMINANCE),
+            "the clamp is self-consistent"
+        );
+    }
 }
