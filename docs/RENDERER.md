@@ -1167,9 +1167,9 @@ original too; it is drawn over it. The rejected readings with the silhouettes: `
 
 **What it is.** A land-0 cell next to a cell one `land_sub` below it lays a second
 texture over its base: the base of `land_sub − 1`, through one of 14 alphas, at texcoords that
-pick a quadrant of the alpha and turn it. The port is `client::patch`. It takes the cells'
-`(land, land_sub)`, the edge masks, the tileset's `COAST_BASE` and `BASELAND` count, and the texture
-fractal, and draws nothing. The oracle is run1559b's packet, printed whole by
+pick a quadrant of the alpha and turn it. The port is `client::patch`. From the cells'
+`(land, land_sub)`, the tileset's `COAST_BASE` and `BASELAND` count and the texture fractal, it makes
+the edge masks and then the choice. It draws nothing. The oracle is run1559b's packet, printed whole by
 `tools/render/patches.py`: every patch, every cell, both mask arrays, and the tables.
 
 **The rule, as ported.**
@@ -1181,7 +1181,25 @@ fractal, and draws nothing. The oracle is run1559b's packet, printed whole by
 2. *The masks.* Each cell edge holds a 9-bit word with three 3-bit fields: block (shift 6), connect
    (shift 3) and fill (shift 0). `edge_mask_x` holds the vertical edges and `edge_mask_y` the
    horizontal ones (type record `+0x495c` and `+0x4960`; shipped at `+0x40` more, like
-   `transitions`).
+   `transitions`). `create_nodes` allocates `(w + 1)·h` of the one and `(h + 1)·w` of the other,
+   zeroed; a write lands only where its index is a cell, so the edges at `x = w` and `y = h` stay
+   zero. Setting a value in the block field also clears the same bits of the connect field
+   (`set_edge_x`, `set_edge_y`).
+   - *`mark_trans_flags`, per cell.* The first orthogonal neighbour (N, E, S, W order) one step
+     below queues the cell. `add_unique` refuses a cell already queued, so the later sides do
+     nothing. It connects all four edges (connect 7), runs `check_for_tendrils`, and if that
+     blocked nothing, blocks the edge facing that neighbour (block 7). A cell with no lower
+     orthogonal neighbour but a lower diagonal is queued too: it ORs connect 7 into four
+     `edge_mask_x` words (its two sides, the left side again and the left side of the cell below,
+     exactly as the decompile prints and as the packet agrees), then runs `check_for_tendrils`.
+   - *`check_for_tendrils`.* With the eight lower-neighbour flags it does three things.
+     - Each corner whose two sides are not lower takes a fill bit on its two edges, or the block
+       bit if its diagonal is lower.
+     - Two opposite lower sides with the other two not lower block both other edges with 5.
+     - Three lower sides block the fourth with 5 and its fill bit 2, and connect the two edges
+       beside it on the neighbour across it.
+
+     `neighbor_count` is called and its result dropped.
 3. *The codes.* `build_trans_flags` reads one 12-bit code per field. The top edge goes in bits 9–11,
    the right in 6–8, the bottom in 3–5 and the left in 0–2. The bottom and left groups are
    bit-reversed through `bit_reversal`.
@@ -1240,25 +1258,41 @@ fractal, and draws nothing. The oracle is run1559b's packet, printed whole by
   (1,509).
 - *The counts.* The packet holds **1,512** drawn land-0 patches and 113 without geometry, 1,625 patch
   records in all. Item 4132's "1,399 drawn" took the 113 off twice.
+- *Stage 1, the whole chain from the cells alone* (`RUN1559B_3279_PACKET_PATCH`). It marks the masks
+  from the packet's `(land, land_sub)`, then runs the checks, the pick and the texcoords. The result:
+  - **all 1,512** drawn patches take our alpha and our 25 texcoords, the three cells above
+    included;
+  - all 113 emptied patches are "none";
+  - all 1,185 unpatched cells are "none".
+
+  The queue is exactly the cells step 1 names. Clearing any one field of our masks (connect, block
+  or fill) drops the drawn count.
+- *Our masks against the packet's* (`RUN1559B_3279_PACKET_MASKS`): 3,402 and 3,375 of 3,660 edges.
+  This is not whole, and is not meant to be: the packet's masks carry the spot updates that came
+  after the patches were laid.
+- *On our own cells* (`RUN1559B_3279_PATCH_ON_OUR_CELLS`): our mapgen's `land_sub` lags the packet's
+  on 31 cells (4129b). Here 1,471 of 1,512 drawn patches take our alpha and texcoords, 79 of 113
+  emptied patches are "none", and 1,185 of 1,185 unpatched cells are "none". All 75 cells that part
+  are one of the 31 (27) or next to one (48).
 
 **Where the 113 come from.** `Terrain::spot_update_land` handles a land change mid-game. It resets the
 four edge masks of each cell in its list to `0x38`, empties that cell's patch (counts, bucket and
 texture zeroed), re-marks the cell, and reruns the pass. A cell it empties that is not re-queued
 keeps an empty patch. Our rule draws nothing there, and neither does the original.
 
-**What parts.** Three cells part: (41, 15), (56, 25) and (45, 28). Each carries alpha 13 on the
-packet. On the packet's masks the candidates are alphas 1, 7 and 13, and the fractal (51, 21 and 37)
-picks index 1, 0 and 0. Alpha 13 is out of reach on these masks. **The hypothesis, unconfirmed:**
-they are patches laid under earlier masks. A neighbour's re-marking later changed a shared edge,
-and the cell itself was never re-queued. Whether a cell 4129b moved sits near each is not checked.
+**What parts on the packet's own masks, and why.** Three cells part there: (41, 15), (56, 25) and
+(45, 28), each carrying alpha 13. On those masks the candidates are alphas 1, 7 and 13, and the
+fractal picks index 1, 0 and 0. On masks marked fresh from the same cells, all three take 13. So
+the masks went stale, not the patches. `spot_update_land` sets an updated cell's edges to `0x38`
+and re-marks it. Because the queue is never cleared, a cell already queued skips its sides, and an
+edge it shares with a neighbour changes after that neighbour's patch was laid. The parting edges
+cluster on the 31 cells 4129b found moved. Further out they are whole blocks of bare connect
+words, which are updated regions whose change left no net `land_sub`.
 
 **What rests on the reading alone, and what is not established.**
 
-- **Stage 1 is unported** (parked 4134a): the masks from the cells, meaning `mark_trans_flags`,
-  `check_for_tendrils` and `neighbor_count`. The port diffs stages 2 and 3 against the packet's own
-  masks, so it is not yet a rule from `land_sub` alone, and `RUN1559B_3279_PACKET_PATCH` is
-  unpinned.
-- The history: `spot_update_land`'s cell list, and whether the three cells above are stale.
+- The history: which cells `spot_update_land` updated, and in what order. It is not on the packet,
+  so `RUN1559B_3279_PACKET_MASKS` stays short. Nothing the pick reads depends on it.
 - Two inputs come from the packet rather than our data: `COAST_BASE` 3 and `BASELAND`'s four bases
   (`TileSetData +0x62c`, `+0x208`). They are not yet read from our tileset (`rondata::mapgen::
   tileset_groups`). The cross-land branches that use them are reached on the land-1 and land-2

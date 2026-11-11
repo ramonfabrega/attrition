@@ -137,6 +137,215 @@ pub fn queued(g: &Ground, x: i32, y: i32) -> bool {
     })
 }
 
+/// The eight neighbours in `compass`'s order, NW, N, NE, E, SE, S, SW, W
+/// (`move_x`, `move_y` from entry 1).
+const MOVES: [(i32, i32); 8] = [
+    (-1, -1),
+    (0, -1),
+    (1, -1),
+    (1, 0),
+    (1, 1),
+    (0, 1),
+    (-1, 1),
+    (-1, 0),
+];
+
+/// The masks as `mark_nodes` writes them (stage 1): from zero, every
+/// cell in row order through `mark_trans_flags`, with
+/// `check_for_tendrils` under it. A write lands only where its index is a
+/// cell of the map, so the edges at `x = w` and `y = h` stay zero.
+struct Marker<'g, 'a> {
+    g: &'g Ground<'a>,
+    e: Edges,
+    queue: Vec<i32>,
+}
+
+/// Which of the two arrays a write goes to.
+#[derive(Clone, Copy)]
+enum Axis {
+    /// `edge_mask_x`, the vertical edge on a cell's left.
+    X,
+    /// `edge_mask_y`, the horizontal edge on its top.
+    Y,
+}
+
+impl Marker<'_, '_> {
+    fn word(&mut self, a: Axis, x: i32, y: i32) -> Option<&mut u32> {
+        if !self.g.valid(x, y) {
+            return None;
+        }
+        let (w, h) = (self.g.width, self.g.height);
+        Some(match a {
+            Axis::X => &mut self.e.x[((h + 1) * y + x) as usize],
+            Axis::Y => &mut self.e.y[((w + 1) * x + y) as usize],
+        })
+    }
+
+    fn or(&mut self, a: Axis, x: i32, y: i32, bits: u32) {
+        if let Some(m) = self.word(a, x, y) {
+            *m |= bits;
+        }
+    }
+
+    /// `set_edge_x`/`set_edge_y`: the value at the field; at the block
+    /// field it also clears the same bits of the connect field.
+    fn set(&mut self, a: Axis, x: i32, y: i32, v: u32, shift: u32) {
+        if let Some(m) = self.word(a, x, y) {
+            *m |= v << shift;
+            if shift == 6 {
+                *m &= !(v << 3);
+            }
+        }
+    }
+
+    /// Which neighbours lie one step below `own`, in [`MOVES`]' order.
+    fn lower(&self, x: i32, y: i32, own: (i8, u8)) -> [bool; 8] {
+        MOVES.map(|(dx, dy)| {
+            let (nx, ny) = (x + dx, y + dy);
+            self.g.valid(nx, ny) && self.g.combo(self.g.at(nx, ny), own) == 1
+        })
+    }
+
+    /// `check_for_tendrils`: the corners a cell's lower neighbours leave
+    /// open, a corridor between two lower sides, and the one side three
+    /// lower sides leave. Returns whether it blocked a side itself.
+    fn tendrils(&mut self, x: i32, y: i32, own: (i8, u8)) -> bool {
+        use Axis::{X, Y};
+        let [nw, n, ne, e, se, s, sw, w] = self.lower(x, y, own);
+        // The four corners: open where both sides are not lower, then the
+        // fill bit if the diagonal is not lower either, else the block.
+        for (side_a, side_b, diag, ex, ey, bx, by) in [
+            (n, w, nw, x, y, 4, 4),
+            (n, e, ne, x + 1, y, 4, 1),
+            (s, w, sw, x, y + 1, 1, 4),
+            (s, e, se, x + 1, y + 1, 1, 1),
+        ] {
+            if side_a || side_b {
+                continue;
+            }
+            if diag {
+                self.set(X, ex, y, bx, 6);
+                self.set(Y, x, ey, by, 6);
+            } else {
+                self.or(X, ex, y, bx);
+                self.or(Y, x, ey, by);
+            }
+        }
+        let mut blocked = false;
+        // A corridor: two opposite sides lower, the other two not.
+        if n && s && !w && !e {
+            self.set(X, x, y, 5, 6);
+            self.set(X, x + 1, y, 5, 6);
+            blocked = true;
+        } else if w && e && !n && !s {
+            self.set(Y, x, y, 5, 6);
+            self.set(Y, x, y + 1, 5, 6);
+            blocked = true;
+        }
+        // Three sides lower: the fourth is blocked, and the two edges
+        // beside it on the neighbour across it connected.
+        if [n, e, s, w].iter().filter(|&&b| b).count() == 3 {
+            if !n {
+                self.set(Y, x, y, 5, 6);
+                self.or(Y, x, y, 2);
+                self.or(X, x, y - 1, 0x38);
+                self.or(X, x + 1, y - 1, 0x38);
+            }
+            if !e {
+                self.set(X, x + 1, y, 5, 6);
+                self.or(X, x + 1, y, 2);
+                self.or(Y, x + 1, y, 0x38);
+                self.or(Y, x + 1, y + 1, 0x38);
+            }
+            if !s {
+                self.set(Y, x, y + 1, 5, 6);
+                self.or(Y, x, y + 1, 2);
+                self.or(X, x, y + 1, 0x38);
+                self.or(X, x + 1, y + 1, 0x38);
+            }
+            if !w {
+                self.set(X, x, y, 5, 6);
+                self.or(X, x, y, 2);
+                self.or(Y, x - 1, y, 0x38);
+                self.or(Y, x - 1, y + 1, 0x38);
+            }
+            blocked = true;
+        }
+        blocked
+    }
+
+    /// `mark_trans_flags` on one cell.
+    fn mark(&mut self, x: i32, y: i32) {
+        use Axis::{X, Y};
+        let g = self.g;
+        let own = g.at(x, y);
+        let idx = g.width * y + x;
+        let (mut orth, mut orth_not_lower, mut diag_lower) = (0, 0, 0);
+        for &(dx, dy) in &MOVES {
+            let (nx, ny) = (x + dx, y + dy);
+            if !g.valid(nx, ny) {
+                continue;
+            }
+            let lower = g.combo(g.at(nx, ny), own) == 1;
+            if dx.abs() + dy.abs() == 2 {
+                diag_lower += i32::from(lower);
+                continue;
+            }
+            orth += 1;
+            orth_not_lower += i32::from(!lower);
+            // `add_unique` refuses a cell already queued: only the first
+            // lower side of the four marks.
+            if !lower || self.queue.contains(&idx) {
+                continue;
+            }
+            self.queue.push(idx);
+            for (a, ax, ay) in [(X, x, y), (X, x + 1, y), (Y, x, y), (Y, x, y + 1)] {
+                self.set(a, ax, ay, 7, 3);
+            }
+            if !self.tendrils(x, y, own) {
+                if dx != 0 {
+                    self.set(X, x + i32::from(dx == 1), y, 7, 6);
+                }
+                if dy != 0 {
+                    self.set(Y, x, y + i32::from(dy == 1), 7, 6);
+                }
+            }
+        }
+        if orth_not_lower == orth && diag_lower != 0 {
+            if !self.queue.contains(&idx) {
+                self.queue.push(idx);
+                // All four writes go to `edge_mask_x`, the cell's two
+                // sides and the left edge of the cell below (the packet's
+                // edges agree; the decompile prints the same).
+                for (ax, ay) in [(x, y), (x + 1, y), (x, y), (x, y + 1)] {
+                    self.or(X, ax, ay, 0x38);
+                }
+            }
+            self.tendrils(x, y, own);
+        }
+    }
+}
+
+/// **Stage 1: the edge masks from the cells** (`mark_nodes`), and the
+/// queue of cells `create_transition_renderables` visits, in its order.
+pub fn marks(g: &Ground) -> (Edges, Vec<i32>) {
+    let n = ((g.width + 1) * (g.height + 1)) as usize;
+    let mut m = Marker {
+        g,
+        e: Edges {
+            x: vec![0; n],
+            y: vec![0; n],
+        },
+        queue: Vec::new(),
+    };
+    for y in 0..g.height {
+        for x in 0..g.width {
+            m.mark(x, y);
+        }
+    }
+    (m.e, m.queue)
+}
+
 /// The three codes after the checks and the corner closing: `(block,
 /// connect, fill)`, the arguments of [`find_map`].
 pub fn checked_codes(g: &Ground, e: &Edges, x: i32, y: i32) -> (u32, u32, u32) {
@@ -418,13 +627,39 @@ pub fn texcoords(orientation: u8, frac: u8) -> [[i32; 2]; 25] {
 /// drawn patches whose alpha is ours, of those whose texcoords are ours
 /// at all 25 vertices, the emptied patches where ours is none, the
 /// unpatched cells where ours is none]`, beside `[drawn, emptied, land-0
-/// cells]`. New. The masks are the packet's (`mark_trans_flags` is
-/// unported); the three cells that part, (41, 15), (56, 25) and (45, 28),
-/// carry alpha 13, the last of three candidates the fractal does not
-/// reach on these masks.
+/// cells]`. New. The masks are the packet's own, which carry the spot
+/// updates the patches were not re-laid under: the three cells that part,
+/// (41, 15), (56, 25) and (45, 28), carry alpha 13, the last of three
+/// candidates the fractal does not reach on these masks, and take it on
+/// the masks marked fresh ([`RUN1559B_3279_PACKET_PATCH`]).
 #[cfg(test)]
 pub const RUN1559B_3279_PATCH_ON_ITS_MASKS: ([u32; 4], [u32; 3]) =
     ([1509, 1509, 113, 1185], [1512, 113, 2810]);
+
+/// **The patch's choice on run1559b's packet, from its cells alone**
+/// (item 4134; `docs/RENDERER.md` §3.8): stage 1 ([`marks`]) on the
+/// packet's `(land, land_sub)`, then the checks, the pick and the
+/// texcoords, counted as [`RUN1559B_3279_PATCH_ON_ITS_MASKS`] is. Whole.
+#[cfg(test)]
+pub const RUN1559B_3279_PACKET_PATCH: ([u32; 4], [u32; 3]) =
+    ([1512, 1512, 113, 1185], [1512, 113, 2810]);
+
+/// **Stage 1's masks against the packet's** (item 4134): `(x edges,
+/// y edges)` equal, of the `61 × 60` `create_nodes` allocates of each, ours marked fresh on the packet's
+/// cells. Not whole, and not meant to be: the packet's masks carry the
+/// game's spot updates (`spot_update_land` resets an updated cell's four
+/// edges to `0x38` and re-marks it, a queued cell skipping its sides), a
+/// history the packet does not hold; the patches were laid before it
+/// ([`RUN1559B_3279_PACKET_PATCH`] whole).
+#[cfg(test)]
+pub const RUN1559B_3279_PACKET_MASKS: (u32, u32, u32) = (3402, 3375, 3660);
+
+/// **The patch on our own cells** (item 4134): the four counts of
+/// [`RUN1559B_3279_PACKET_PATCH`] with the masks marked on our mapgen's
+/// `(land, land_sub)`, which lags the packet's on 31 cells (parked
+/// 4129b); every cell that parts is one of the 31 or beside one.
+#[cfg(test)]
+pub const RUN1559B_3279_PATCH_ON_OUR_CELLS: [u32; 4] = [1471, 1471, 79, 1185];
 
 #[cfg(test)]
 mod tests {
@@ -585,6 +820,211 @@ mod tests {
         assert!(parting.is_empty(), "the fractal parts");
     }
 
+    /// **Stage 1: the masks from the cells** ([`RUN1559B_3279_PACKET_PATCH`],
+    /// [`RUN1559B_3279_PACKET_MASKS`]): ours marked on the packet's cells,
+    /// every edge against the packet's, the queue against [`queued`], and
+    /// the pick and the texcoords scored on them; each perturbed once.
+    #[test]
+    fn stage_1_the_masks_from_the_cells() {
+        let (Some(p), Some(seed)) = (packet(), world_seed()) else {
+            return;
+        };
+        let g = Ground {
+            width: p.width,
+            height: p.height,
+            cells: &p.cells,
+            coast_base: 3,
+            base_subs: 4,
+        };
+        let (ours, queue) = marks(&g);
+        let (ax, ay, parting) = edge_diff(&p, &ours);
+        println!(
+            "stage 1: x {ax} and y {ay} of {} edges agree; queue {}; first parting (x, y, axis, ours, theirs): {:?}",
+            (p.width + 1) * p.height,
+            queue.len(),
+            &parting[..parting.len().min(12)]
+        );
+        // The queue is the cells `queued` names, each once, in row order.
+        let named: Vec<i32> = (0..p.height)
+            .flat_map(|y| (0..p.width).map(move |x| (x, y)))
+            .filter(|&(x, y)| queued(&g, x, y))
+            .map(|(x, y)| p.width * y + x)
+            .collect();
+        assert_eq!(
+            queue, named,
+            "the queue is the cells one step above a neighbour"
+        );
+
+        let frac = sim::mapgen::Fractal::init(p.width + 1, p.height + 1, 0, 2, seed);
+        let drawn = p
+            .patches
+            .values()
+            .filter(|r| r.land == 0 && !r.uv.is_empty())
+            .count() as u32;
+        let empty = p
+            .patches
+            .values()
+            .filter(|r| r.land == 0 && r.uv.is_empty())
+            .count() as u32;
+        let land0 = p.cells.iter().filter(|c| c.0 == 0).count() as u32;
+        let (n, part) = score(&p, &p.cells, &ours, &frac, 0);
+        println!(
+            "the pick on our masks: {n:?} of [{drawn}, {drawn}, {empty}, {}]; parting {part:?}",
+            land0 - drawn - empty
+        );
+        assert_eq!(
+            (n, [drawn, empty, land0]),
+            RUN1559B_3279_PACKET_PATCH,
+            "RUN1559B_3279_PACKET_PATCH"
+        );
+        let all = ((p.width + 1) * p.height) as u32;
+        assert_eq!(
+            (ax, ay, all),
+            RUN1559B_3279_PACKET_MASKS,
+            "RUN1559B_3279_PACKET_MASKS"
+        );
+
+        // Perturbed once each: the connect field cleared, the block field
+        // cleared, the fill field cleared.
+        for (name, keep) in [("connect", !0o070u32), ("block", !0o700), ("fill", !0o007)] {
+            let cut = Edges {
+                x: ours.x.iter().map(|m| m & keep).collect(),
+                y: ours.y.iter().map(|m| m & keep).collect(),
+            };
+            let (m, _) = score(&p, &p.cells, &cut, &frac, 0);
+            println!("the {name} field cleared: {m:?}");
+            assert!(m[0] < n[0], "the pick follows the {name} field");
+        }
+    }
+
+    /// A map's size and its cells, row-major.
+    type Cells = (i32, i32, Vec<(i8, u8)>);
+
+    /// An edge that parts: `(x, y, axis 0 for x and 1 for y, ours, theirs)`.
+    type EdgeParting = (i32, i32, usize, u32, u32);
+
+    /// Our own cells at the start, `(land, land_sub)` row-major, from the
+    /// world the client opens (our mapgen's, before any land change).
+    fn our_cells() -> Option<Cells> {
+        let root = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let world = match crate::world::World::open(&root, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return None;
+            }
+        };
+        let t = world.runner.terrain();
+        let cells = t
+            .land
+            .iter()
+            .zip(&t.land_sub)
+            .map(|(&l, &s)| (l, s))
+            .collect();
+        Some((t.width, t.height, cells))
+    }
+
+    /// Every edge of both arrays, ours against the packet's:
+    /// `(x agree, y agree, the parting (x, y, axis, ours, theirs))`.
+    fn edge_diff(p: &Packet, ours: &Edges) -> (u32, u32, Vec<EdgeParting>) {
+        let (w, h) = (p.width, p.height);
+        let (mut ax, mut ay, mut parting) = (0, 0, Vec::new());
+        // `create_nodes` allocates `(w + 1)·h` vertical and `(h + 1)·w`
+        // horizontal edges; the packet's rows past them read the heap.
+        for y in 0..=h {
+            for x in 0..=w {
+                let ix = ((h + 1) * y + x) as usize;
+                let iy = ((w + 1) * x + y) as usize;
+                if y < h && ours.x[ix] == p.edges.x[ix] {
+                    ax += 1;
+                } else if y < h {
+                    parting.push((x, y, 0, ours.x[ix], p.edges.x[ix]));
+                }
+                if x == w {
+                } else if ours.y[iy] == p.edges.y[iy] {
+                    ay += 1;
+                } else {
+                    parting.push((x, y, 1, ours.y[iy], p.edges.y[iy]));
+                }
+            }
+        }
+        (ax, ay, parting)
+    }
+
+    /// **Stage 1 from our cells**: the masks `Terrain::init` marks on the
+    /// map as generated, against the packet's, the parting edges counted
+    /// by their Chebyshev distance to the nearest cell whose `land_sub`
+    /// the packet holds otherwise.
+    #[test]
+    fn stage_1_from_our_cells() {
+        let (Some(p), Some((w, h, cells)), Some(seed)) = (packet(), our_cells(), world_seed())
+        else {
+            return;
+        };
+        assert_eq!((w, h), (p.width, p.height));
+        let moved: Vec<(i32, i32)> = (0..h)
+            .flat_map(|y| (0..w).map(move |x| (x, y)))
+            .filter(|&(x, y)| cells[(y * w + x) as usize] != p.cells[(y * w + x) as usize])
+            .collect();
+        let g = Ground {
+            width: w,
+            height: h,
+            cells: &cells,
+            coast_base: 3,
+            base_subs: 4,
+        };
+        let (ours, _) = marks(&g);
+        let (ax, ay, parting) = edge_diff(&p, &ours);
+        let mut by_d: BTreeMap<i32, u32> = BTreeMap::new();
+        let mut far = Vec::new();
+        for &(x, y, a, o, t) in &parting {
+            let d = moved
+                .iter()
+                .map(|&(mx, my)| (mx - x).abs().max((my - y).abs()))
+                .min()
+                .unwrap_or(99);
+            *by_d.entry(d.min(9)).or_default() += 1;
+            if d > 2 {
+                far.push((x, y, ["x", "y"][a], format!("{o:03x}"), format!("{t:03x}")));
+            }
+        }
+        println!("moved cells {}: {moved:?}", moved.len());
+        println!(
+            "stage 1 from our cells: x {ax} and y {ay} of {} agree; parting {} by distance to a moved cell {by_d:?}",
+            (w + 1) * h,
+            parting.len()
+        );
+        println!("parting beyond 2 (x, y, axis, ours, theirs): {far:?}");
+
+        // The patch on our cells, as the client would lay it, against the
+        // packet's; the cells that part, by their distance to a moved cell.
+        let frac = sim::mapgen::Fractal::init(w + 1, h + 1, 0, 2, seed);
+        let (n, part) = score(&p, &cells, &ours, &frac, 0);
+        let mut part_d: BTreeMap<i32, u32> = BTreeMap::new();
+        for (x, y, _, _) in &part {
+            let d = moved
+                .iter()
+                .map(|&(mx, my)| (mx - x).abs().max((my - y).abs()))
+                .min()
+                .unwrap_or(99);
+            *part_d.entry(d).or_default() += 1;
+        }
+        println!(
+            "the patch on our cells: {n:?}; {} parting, by distance to a moved cell {part_d:?}: {part:?}",
+            part.len()
+        );
+        assert_eq!(
+            n, RUN1559B_3279_PATCH_ON_OUR_CELLS,
+            "RUN1559B_3279_PATCH_ON_OUR_CELLS"
+        );
+        assert!(
+            part_d.keys().all(|&d| d <= 1),
+            "every cell that parts is a moved cell or beside one"
+        );
+    }
+
     /// The alphas' orientations from their names are the packet's table.
     #[test]
     fn the_orientations_from_the_names_are_the_packet_s() {
@@ -606,6 +1046,7 @@ mod tests {
     fn score(
         p: &Packet,
         cells: &[(i8, u8)],
+        edges: &Edges,
         frac: &sim::mapgen::Fractal,
         turn: u8,
     ) -> ([u32; 4], Vec<Parting>) {
@@ -630,7 +1071,7 @@ mod tests {
                 let h = frac.get_height(x, y);
                 let ours = queued(&g, x, y)
                     .then(|| {
-                        let (b, c, f) = checked_codes(&g, &p.edges, x, y);
+                        let (b, c, f) = checked_codes(&g, edges, x, y);
                         find_map(&alphas, h, b, c, f)
                     })
                     .flatten();
@@ -685,7 +1126,7 @@ mod tests {
             .filter(|(_, r)| r.land == 0 && r.uv.is_empty())
             .count() as u32;
         let land0 = p.cells.iter().filter(|c| c.0 == 0).count() as u32;
-        let (n, parting) = score(&p, &p.cells, &frac, 0);
+        let (n, parting) = score(&p, &p.cells, &p.edges, &frac, 0);
         println!(
             "stages 2 and 3 on the packet's masks: {n:?} of [{drawn}, {drawn}, {empty}, {}]",
             land0 - drawn - empty
@@ -701,7 +1142,7 @@ mod tests {
         // Perturbed once each: the fractal's seed, one neighbour's
         // land_sub, the orientation's mirror.
         let other = sim::mapgen::Fractal::init(p.width + 1, p.height + 1, 0, 2, seed + 1);
-        let (m, _) = score(&p, &p.cells, &other, 0);
+        let (m, _) = score(&p, &p.cells, &p.edges, &other, 0);
         println!("the seed one on: {m:?}");
         assert!(
             m[0] < n[0] && m[1] < n[1],
@@ -714,10 +1155,10 @@ mod tests {
             .find(|(_, r)| r.land == 0 && !r.uv.is_empty())
             .expect("a drawn patch");
         cells[(y * p.width + x) as usize].1 = 0;
-        let (m, _) = score(&p, &cells, &frac, 0);
+        let (m, _) = score(&p, &cells, &p.edges, &frac, 0);
         println!("one land_sub one down: {m:?}");
         assert!(m != n, "the pick follows the cells");
-        let (m, _) = score(&p, &p.cells, &frac, 4);
+        let (m, _) = score(&p, &p.cells, &p.edges, &frac, 4);
         println!("the orientation mirrored: {m:?}");
         assert!(m[1] < n[1], "the texcoords follow the orientation");
     }

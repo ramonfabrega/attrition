@@ -16622,21 +16622,16 @@ words and edits nothing here; a refill lands when two remain.
   level 0.
 
 
-## Parked by item 4134, 2026-11-11 — the transition patch's choice, ported on the packet's masks
+## Parked by item 4134, 2026-11-11 — the transition patch's choice, ported from the cells
 
-- **4134a. The masks from the cells** (`docs/RENDERER.md` §3.8; `RUN1559B_3279_PATCH_ON_ITS_MASKS`
-  [1509, 1509, 113, 1185] of [1512, 113, 2810]; `client::patch`). Stages 0, 2 and 3 stand. The fractal is
-  the packet's on 2,064 of 2,064 cells. On the packet's own `edge_mask_x`/`edge_mask_y` the pick and the
-  texcoords are the packet's on 1,509 of 1,512 drawn patches, and "none" on all 113 emptied and all 1,185
-  unpatched cells. What is not ported is stage 1, the masks themselves: `mark_nodes` row-major over
-  zeroed masks, `mark_trans_flags` (the queue, connect on the cell's four edges, block on the edge facing
-  the first lower orthogonal neighbour unless `check_for_tendrils` says otherwise, and the
-  diagonal-only `0x38` case), `check_for_tendrils` with `neighbor_count`, and `spot_update_land`'s re-marking
-  of the cells around a land change. `patches.py` prints both mask arrays, so stage 1 diffs against
-  3,721 edges. Then `RUN1559B_3279_PACKET_PATCH`, which the masks gate. The three cells that part,
-  (41, 15), (56, 25) and (45, 28), each carry alpha 13 where the fractal picks alpha 7, 1 and 7 among
-  {1, 7, 13}. The hypothesis is that they are stale under later masks. Test it once stage 1 is ported,
-  by replaying the start's marking and then the 31 cells 4129b moved.
+- ~~**4134a. The masks from the cells**~~ — **answered by item 4134** (`docs/RENDERER.md` §3.8;
+  `RUN1559B_3279_PACKET_PATCH` [1512, 1512, 113, 1185] of [1512, 113, 2810]). Stage 1 is ported as
+  `client::patch::marks`: `mark_nodes`, `mark_trans_flags` and `check_for_tendrils`. From the packet's
+  cells alone, the whole chain is the packet's on every land-0 cell. The parked hypothesis ran the wrong
+  way. The three cells were not stale under later masks. On fresh masks they take alpha 13, so it was
+  the packet's masks that went stale after the patches were laid. Our masks against the packet's are
+  3,402 and 3,375 of 3,660 (`RUN1559B_3279_PACKET_MASKS`). The difference is `spot_update_land`'s
+  history, which the packet does not hold and the pick does not need.
 - **4134b. The tileset's two numbers from our data** (§3.8). `COAST_BASE` 3 and `BASELAND`'s four bases are
   the packet's (`TileSetData +0x62c`, `+0x208` on `tilesets.cur_tileset`). Read them through
   `rondata::mapgen::tileset_groups` for the lobby's tileset, and assert them equal.
