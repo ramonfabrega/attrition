@@ -4184,12 +4184,75 @@ dropped. No condition here is a disjunction.
   `project`'s resolution on this take; breaking its modulus fails
   nothing.
 
-## 35. Reserved for the next item on the map track
+## 35. What a started building writes into the terrain (item 4136)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Two writes, both in `Wall::start@0063e810` and both outside the generator:
+they are why `land_sub` and the tile masks part under a game's buildings
+from the map this document builds. `crates/sim/src/world/terrain.rs` holds
+both, called from `Sim::wall_start` (`crates/sim/src/cities/city.rs`).
+
+**The ground under the footprint.** `Wall::start`'s statement after
+`kill_competing_buildings` is `Terrain::object_placed@00850c40(corner.x,
+corner.y, x_size, y_size, 1)`: for every cell from `corner >> 2` to
+`(corner + size) >> 2` inclusive on each axis — one past the footprint's
+last tile — y outer, on the map and `BASELAND` (`land == 0`), it calls
+`spot_update_land(x, y, 0, weatherbase)` (§16's world half). `weatherbase`
+is the current `TILESET`'s attribute (`TileSet+0x228`, a `uchar`; an absent
+attribute's −1 is 255); run 1562's drawn tileset gives 2. `verify_land`
+then runs as §19.6 measured it: a sub-0 ring steps to 1, and a cell beside
+a `COASTAL` or `OCEAN` neighbour goes back to `COAST_BASE`. The rest of
+the function (`invalidate_wcoord`) is the renderer's. The crate runs the
+generator's and the world's `verify_land` as one reading
+(`mapgen::halfland::Lands`), its static depth taken at 0 for each call.
+Nothing undoes it: a razed building leaves its ground.
+
+**What the building hides.** `Wall::start`'s last statement is
+`Wall::mark_behind_tiles@0063d230(1)`: for `k` from 1 to the type's
+`BEHIND_HEIGHT` (`buildingrules.xml`, `BuildType+0x2dc`, −1 when empty),
+the footprint slid `k` tiles up and `k` left lends its top row (`x_size`
+tiles at `y = corner.y − k` from `x = corner.x − k`) and its left column
+below that (`y_size − 1` tiles at `x = corner.x − k`), each on the tile
+grid ORed with `0x4` (`tile::BEHIND`). The footprint's own tiles never
+take it. `Wall::close@0063f6e0` clears the same tiles for a started
+building on every reason, and for a reason other than 0 and 5 ends with
+`Wall::refresh_nearby_tiles@0063d0a0`: every active Wall in the object
+chains of the cells `(cx + d + ox, cy + d + oy)`, `d` in −3..=3 and
+`(ox, oy)` in `(0, 0)`, `(1, 0)`, `(0, 1)`, `(2, 0)`, `(0, 2)` (the two
+`.rdata` tables at `0x00b698b0` and `0x00b69810`), marks its own again.
+`SpellType::cast_bribe` marks the bribed copy's. Bit `0x8`, set by
+`Terrain::mark_forest` (§19's neighbour) and `World::set_behind`'s other
+arm, is not this rule's.
+
+**How it was established.** The values first: on run 1562's frame 91 the
+stream's 131 tiles with `0x4` are exactly the rule's over the 14 started
+buildings (two Small Cities and two Woodcutter's Camps at 2, two Libraries
+at 3, a Market at 2, seven Farms at 0; the unstarted Farm marks nothing),
+none outside it; the eight parting `land_sub` cells lie in the
+`object_placed` rectangles, whose 36 cells hold 2 in the stream. On
+run1100's frame 5408, by the stream's own builds (type index 414 plus the
+`BUILDING`'s order): 332 of 332 tiles, and of 103 covered cells 99 hold 2
+and the 4 at 3 each stand beside a `COASTAL` cell. The writers by both
+nets: `->tdata` stores ORing 4 name `mark_behind_tiles` and
+`World::set_behind` (the mountains' `set_behind_flags`, not a building's);
+`land_sub`'s by `spot_update_land`'s callers, of which `object_placed` is
+the one a game reaches after `Terrain::init`.
+
+**Diff-backed**: both fields on run 1562's frame 91, every cell and every
+tile, by `diff::checksum_lines::world` (`docs/CHECKSUM.md` §21) and the
+start walk's wide projection (`diff::start_walk`); the behind bit on five
+more games' late frames, dump-built (`diff::world`: run189's 14529,
+run240's 17087, run248's 17146, run72's 4802 and 4803, run93's 7932),
+whose `0x4` residues fell from 203, 262, 264, 32, 45 and 142 to 0. **On
+the reading alone**: the close's clear and the refresh as such, the
+bribe's re-mark, the depth static.
+
+**Not established**: a dump-built game holds no tileset
+(`World::land_set` is `None` outside the composed chain), so its
+mid-game buildings write no ground — run1559b's packet's 31 cells
+(parked 4129b) stay; reason 0's close (`Leader::defeat_by`,
+`City::find_buildings`) clears and its copy, made by `Wall::swap_team`,
+never marks again, which the crate's silent close follows; whether a
+`weatherbase` flood ever passes `verify_land`'s 500.
 
 ## 36. Reserved for the next item on the map track
 

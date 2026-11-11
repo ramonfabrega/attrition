@@ -1833,18 +1833,19 @@ counter, a slot mark, a setup rule, a never-reached constant, a held leaf and
 - A store to a leaf by pointer arithmetic that names neither the field nor
   the leaders array: the never-reached verdicts rest on its absence.
 
-## 21. The world line, held out by section (item 4131)
+## 21. The world line, held out by section (items 4131, 4136)
 
-**741 of 7,994 ranges and 83,249 of 294,769 bytes agree** on run 1562's
-frame 91, in ten whole sections. `Sim::world_image`
+**742 of 7,994 ranges and 198,449 of 294,769 bytes agree** on run 1562's
+frame 91, in eleven whole sections (item 4136; 741 and 83,249 in ten at
+item 4131). `Sim::world_image`
 (`crates/sim/src/checksum/world.rs`) emits the line as leaves, a `None` leaf
 being one the crate holds no value for; `Sim::checksum_world` is its bytes.
 `diff::checksum_lines::world::the_world_line_is_the_original_s_by_section`
 matches each range by section, field and record, tallies every leaf element,
 pins the sections in `WORLD` and the fields left in `WORLD_HELD_OUT`, and
 asserts a whole section's Adler against the record's printed line.
-`CHECKSUM_STATE` does not count it (§5). Ours sums to 3652711706 against the
-printed `World` 3643872705.
+`CHECKSUM_STATE` does not count it (§5). Ours sums to 1221523236 against the
+printed `World` 3643872705 (3652711706 at item 4131).
 
 **The record prints a sum per section.** Record 3201's sixteen `World`
 lines are frame 91's sections 0 to 14 and the whole: cut by call site and
@@ -1860,8 +1861,8 @@ differs in section 9 alone. So a section is a score of its own.
 | 2 the start arrays | 20; 124 | **whole** | |
 | 3 `oil_x`, `oil_y` | 2; 8 | **whole** | |
 | 4 `size`..`seed` | 1; 120 | 20 of 30 fields | `World::analyze_map`'s ten tallies |
-| 5 the cells | 3,600; 75,600 | 14 of 16 fields on every cell | `land_sub` (8 cells), `was_seen` |
-| 6 masks and the fog planes | 4; 158,400 | 3; 43,200 | the masks' bit `0x4` (131 tiles) |
+| 5 the cells | 3,600; 75,600 | 15 of 16 fields on every cell | `was_seen` |
+| 6 masks and the fog planes | 4; 158,400 | **whole** | |
 | 7 `wcoord_seen` | 1; 3,600 | 0 | the fog |
 | 8 `danger[0..8]` | 8; 28,800 | **whole** | |
 | 9 the collision blocks | 3,650; 17,000 | 0 | the blocks' allocation |
@@ -1893,15 +1894,19 @@ journal.
 | the start arrays | `World::record` (`crates/sim/src/world.rs`): the composed chain's `MapGrid::starts` as it leaves them. The writers are map generation's (`World::add_starting_location`, `Map::place_start_in_region`) and `World::init`, `close` and `wipe`'s empties |
 | the half-land lists | `World::record`: `Terrain::init`'s lists at `Terrain.cpp` 720, unchanged to 894 by the setup trace's parts 10–12. `Terrain::mark_halfwater`, the one appender, is reached only from `check_and_set_halfland` (and the scenario editor); `TerrainOut::close` empties. Diff-backed through frame 91 |
 | `map`, `seed` | `World::record`: the lobby's style (14) and `world->seed`, `Setup::build_game`'s re-seed (7,236 on both frames) |
+| `land_sub` | `Terrain::object_placed` from `Wall::start` (`docs/MAPGEN.md` §35, item 4136): each `BASELAND` cell of the footprint's cells takes the tileset's `weatherbase` (2), `verify_land` after. 3,600 of 3,600; the 8 that parted were ours 3 or 1 under the bases |
+| the masks' `0x4` | `Wall::mark_behind_tiles` at `Wall::start`'s end, cleared by `Wall::close` and given back by `refresh_nearby_tiles` (`docs/MAPGEN.md` §35): the footprint slid back 1 to `BEHIND_HEIGHT` tiles lends its top row and left column. 57,600 of 57,600; the 131 that parted were ours without it. Run1100's 332 by its own builds |
 
 **Made to fail.** One element of each of eleven kinds of carried field
 (a start array's element and its size, an oil count, `map`, `seed`, a cell's
 `light`, an unseated danger word, a half-land coordinate, a type, a list's
-size, `nuke_hits`' count), bent, returns that field to the list with a count
-of one. A held-out section's Adler is asserted to part from its line.
+size, `nuke_hits`' count), and item 4136's cell `land_sub` and tile mask
+(with tile 19175's `0x4` cleared), bent, returns that field to the list
+with a count of one. A held-out section's Adler is asserted to part from
+its line.
 
-**What holds the line out**: 18 fields (`WORLD_HELD_OUT`, elements not
-agreeing on frame 91).
+**What holds the line out**: 16 fields (`WORLD_HELD_OUT`, elements not
+agreeing on frame 91; 18 at item 4131).
 
 - **A setup function not carried** (10 fields): `World::analyze_map`'s
   `player_reg`, `resource_reg`, `forest_size`, `mountain_size`, `rock_size`,
@@ -1913,10 +1918,6 @@ agreeing on frame 91).
   takes the function ported and run where `Setup::build_game` runs it, the
   values kept on `World::record` (the crate's `analyze_player_regions`,
   `crates/sim/src/cities/city.rs`, carries its region-flag arm alone).
-- **A mechanic of its own** (2 fields): `land_sub` on 8 cells under the two
-  bases (ours 3 or 1, theirs 2), `Terrain::spot_update_land`'s rewrite
-  after a placed object (item 4129's pointer, parked 4129b); the masks' bit
-  `0x4` on 131 tiles under the bases (ours without it), unread.
 - **The fog** (2 fields, out by name): `was_seen` (3,600) and `wcoord_seen`
   (3,600), beside the three planes that agree.
 - **The collision blocks** (4 fields): the presence local (3,600),
@@ -1933,15 +1934,19 @@ the writers named in the carried table, found by the export's `->name` and
 `field_0x134 + k + idx·0x1c`, and by the listing's register-relative stores
 at the offset (and every store covering it), attributed by the decompile
 index; `light`, the oil arrays, `nuke_hits` and the unseated danger rows
-take their verdicts from those nets. Consistent with run1100's frame
+take their verdicts from those nets. Item 4136's two rules are diff-backed
+on frame 91; the close's clear and refresh rest on the reading
+(`docs/MAPGEN.md` §35). Consistent with run1100's frame
 (`light` 0, rows 3–7 zero, `seed` 7,236, oil empty), not diffed there.
 
 **Not established**:
 
 - Every frame but 91, and a game the crate builds from a dump (no
   `World::record`, so sections 2, 4's `map` and `seed`, and 10–12 unheld).
-- `land_sub` and the masks' `0x4` (above); a cell's `land_sub` that
-  `spot_update_land` moves is a terrain mechanic.
+- A dump-built game's mid-game ground: it holds no tileset, so
+  `object_placed` writes nothing there (run1559b's 31 cells, parked
+  4129b); the behind bit's clear and refresh on a frame that razes a
+  building.
 - The fog's `was_seen` and `wcoord_seen`; the three planes on a frame past
   a `update_all_seen` resync.
 - The blocks' allocation rule, and so whether a block, once allocated, ever
