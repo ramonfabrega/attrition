@@ -98,6 +98,122 @@ pub fn is_combo_acceptable(c: &Combo, l1: i32, s1: i32, l2: i32, s2: i32) -> Res
     Ok(0)
 }
 
+/// **The cells `Terrain::verify_land` and `spot_update_land` read and
+/// write**: the generator's grid ([`Pass`]) and the running world's
+/// (`crate::world::terrain`, `Terrain::object_placed@00850c40`'s caller),
+/// so both run one reading of the two functions.
+pub trait Lands {
+    /// The cell is on the map.
+    fn in_bounds(&self, x: i32, y: i32) -> bool;
+    /// `WData.land` and `WData.land_sub`.
+    fn land_at(&self, x: i32, y: i32) -> (i32, i32);
+    /// Both, with the two functions' guard: a negative value is not written.
+    fn put_land(&mut self, x: i32, y: i32, land: i32, sub: i32);
+    /// [`is_combo_acceptable`] on the tileset's numbers.
+    fn acceptable(&mut self, l1: i32, s1: i32, l2: i32, s2: i32) -> i32;
+    /// The tileset's `COAST_BASE`.
+    fn coast_base(&self) -> i32;
+    /// `verify_land`'s static `depth`.
+    fn depth(&mut self) -> &mut i32;
+}
+
+/// **`Terrain::verify_land@0084d8a0`**: the eight neighbours against
+/// `is_combo_acceptable`, a cell rewritten toward its centre and visited
+/// again. Its depth counter is a static that a refusal past 500 never
+/// decrements ([`Lands::depth`]).
+pub fn verify_land(g: &mut impl Lands, x: i32, y: i32, land: &mut i32, sub: &mut i32) {
+    *g.depth() += 1;
+    if *g.depth() > 500 {
+        // The original returns here without the decrement.
+        return;
+    }
+    let mut marked = [false; 9];
+    for (k, mark) in marked.iter_mut().enumerate().skip(1) {
+        let (nx, ny) = (x + MOVE[k].0, y + MOVE[k].1);
+        if !g.in_bounds(nx, ny) {
+            continue;
+        }
+        let (nl, ns) = g.land_at(nx, ny);
+        let l1 = *land;
+        if g.acceptable(l1, *sub, nl, ns) != 0 {
+            continue;
+        }
+        if nl == 1 || nl == 2 {
+            let cb = g.coast_base();
+            g.put_land(x, y, 0, cb);
+            let (mut l, mut s) = (0, cb);
+            verify_land(g, x, y, &mut l, &mut s);
+            *land = l;
+            *sub = s;
+            continue;
+        }
+        let mut step = ns;
+        if (*sub - ns).abs() > 1 {
+            step = if *sub <= ns { ns - 1 } else { ns + 1 };
+        }
+        if l1 == 0 {
+            if ns != step && ns != *sub {
+                g.put_land(nx, ny, nl, step);
+                *mark = true;
+            }
+        } else if l1 == 1 || l1 == 2 {
+            let cb = g.coast_base();
+            g.put_land(nx, ny, 0, cb);
+            *mark = true;
+        }
+    }
+    for (k, &mark) in marked.iter().enumerate().skip(1) {
+        let (nx, ny) = (x + MOVE[k].0, y + MOVE[k].1);
+        if mark && g.in_bounds(nx, ny) {
+            let (mut l, mut s) = g.land_at(nx, ny);
+            verify_land(g, nx, ny, &mut l, &mut s);
+        }
+    }
+    *g.depth() -= 1;
+}
+
+/// **`Terrain::spot_update_land@0084fa50`**'s world half: a cell whose
+/// `land` or `land_sub` differs takes the pair and runs [`verify_land`].
+/// The rest of the function is the renderer's (the update list, the
+/// transition lists, `invalidate_wcoord`).
+pub fn spot_update_land(g: &mut impl Lands, x: i32, y: i32, mut land: i32, mut sub: i32) {
+    if !g.in_bounds(x, y) {
+        return;
+    }
+    if g.land_at(x, y) != (land, sub) {
+        g.put_land(x, y, land, sub);
+        verify_land(g, x, y, &mut land, &mut sub);
+    }
+}
+
+impl Lands for Pass<'_> {
+    fn in_bounds(&self, x: i32, y: i32) -> bool {
+        self.inb(x, y)
+    }
+
+    fn land_at(&self, x: i32, y: i32) -> (i32, i32) {
+        let c = &self.g.cells[self.at(x, y)];
+        (c.land as i32, c.land_sub as i32)
+    }
+
+    fn put_land(&mut self, x: i32, y: i32, land: i32, sub: i32) {
+        let i = self.at(x, y);
+        self.set_land(i, land, sub);
+    }
+
+    fn acceptable(&mut self, l1: i32, s1: i32, l2: i32, s2: i32) -> i32 {
+        self.combo(l1, s1, l2, s2)
+    }
+
+    fn coast_base(&self) -> i32 {
+        self.combo.coast_base
+    }
+
+    fn depth(&mut self) -> &mut i32 {
+        &mut self.depth
+    }
+}
+
 /// The half-land pass's state: the grid, the `CoordInfo` flags, the
 /// 706 heights, and what the pass builds.
 pub struct Pass<'a> {
@@ -190,72 +306,16 @@ impl<'a> Pass<'a> {
         }
     }
 
-    /// **`Terrain::verify_land@0084d8a0`**.
+    /// **`Terrain::verify_land@0084d8a0`** on the generator's grid
+    /// ([`verify_land`]).
     pub fn verify_land(&mut self, x: i32, y: i32, land: &mut i32, sub: &mut i32) {
-        self.depth += 1;
-        if self.depth > 500 {
-            // The original returns here without the decrement.
-            return;
-        }
-        let mut marked = [false; 9];
-        for (k, mark) in marked.iter_mut().enumerate().skip(1) {
-            let (nx, ny) = (x + MOVE[k].0, y + MOVE[k].1);
-            if !self.inb(nx, ny) {
-                continue;
-            }
-            let n = self.at(nx, ny);
-            let (nl, ns) = (self.g.cells[n].land as i32, self.g.cells[n].land_sub as i32);
-            let l1 = *land;
-            if self.combo(l1, *sub, nl, ns) != 0 {
-                continue;
-            }
-            if nl == 1 || nl == 2 {
-                let cb = self.combo.coast_base;
-                let i = self.at(x, y);
-                self.set_land(i, 0, cb);
-                let (mut l, mut s) = (0, cb);
-                self.verify_land(x, y, &mut l, &mut s);
-                *land = l;
-                *sub = s;
-                continue;
-            }
-            let mut step = ns;
-            if (*sub - ns).abs() > 1 {
-                step = if *sub <= ns { ns - 1 } else { ns + 1 };
-            }
-            if l1 == 0 {
-                if ns != step && ns != *sub {
-                    self.set_land(n, nl, step);
-                    *mark = true;
-                }
-            } else if l1 == 1 || l1 == 2 {
-                let cb = self.combo.coast_base;
-                self.set_land(n, 0, cb);
-                *mark = true;
-            }
-        }
-        for (k, &mark) in marked.iter().enumerate().skip(1) {
-            let (nx, ny) = (x + MOVE[k].0, y + MOVE[k].1);
-            if mark && self.inb(nx, ny) {
-                let n = self.at(nx, ny);
-                let (mut l, mut s) = (self.g.cells[n].land as i32, self.g.cells[n].land_sub as i32);
-                self.verify_land(nx, ny, &mut l, &mut s);
-            }
-        }
-        self.depth -= 1;
+        verify_land(self, x, y, land, sub);
     }
 
-    /// **`Terrain::spot_update_land@0084fa50`**'s world half.
-    fn spot_update_land(&mut self, x: i32, y: i32, mut land: i32, mut sub: i32) {
-        if !self.inb(x, y) {
-            return;
-        }
-        let i = self.at(x, y);
-        let c = self.g.cells[i];
-        if c.land as i32 != land || c.land_sub as i32 != sub {
-            self.set_land(i, land, sub);
-            self.verify_land(x, y, &mut land, &mut sub);
-        }
+    /// **`Terrain::spot_update_land@0084fa50`**'s world half
+    /// ([`spot_update_land`]).
+    fn spot_update_land(&mut self, x: i32, y: i32, land: i32, sub: i32) {
+        spot_update_land(self, x, y, land, sub);
     }
 
     /// `ObjectsData::find_good_at@0065bec0` with its last argument 0: the

@@ -365,8 +365,8 @@ an assumption the dump cannot settle.
 |---|---|---|---|
 | extent | `WORLD xs ys` | `world_extent` | built; block |
 | cells: land, region, region2, flags, val, goods, blocked, solid, bad, owners | `WORLD` cells | the map chain and the walk (§2 steps 4, 7, 8) | built; block (land, flags, val, region, owner), whole comparison (the rest) |
-| `land_sub` | `WORLD` cells | the chain's | built, 8 cells part: §7.3 |
-| tile masks | `WORLD` tiles | the chain's and the walk's | built, 131 tiles part on bit 0x4: §7.3 |
+| `land_sub` | `WORLD` cells | the chain's, and `Terrain::object_placed` under each started building (`docs/MAPGEN.md` §35) | built; wide (every cell agrees since item 4136) |
+| tile masks | `WORLD` tiles | the chain's and the walk's, with `Wall::mark_behind_tiles` (`docs/MAPGEN.md` §35) | built; wide (every tile agrees since item 4136) |
 | corner heights | run3's `DUMP_ALL` heights | the chain's singles | built; 1,422 of 58,081 corners differ from the dump's six-decimal print by one unit in the single's last place; not projected, since the print cannot settle it |
 | `seen2` | `WORLD` fog | `World::init`'s zeroed grid, every reveal of the walk, and `Object::update_seen_ally` (§7.2) | built; wide (14,400 agree) |
 | `seen` | a copy of `seen2` | the walk's own | dump-only: the copy is the installer's assumption; `update_seen_ally` writes `seen2` alone, so 273 fog cells differ; not projected |
@@ -401,9 +401,9 @@ an assumption the dump cannot settle.
 | a cell's `down`, `down_who` | the dump's chain heads | the map's (−1, −2, −3) | dump-only as cell bytes: the simulation threads its chains in `terrain.chain_heads`; 28 cells differ; not established that anything reads the cell's copy |
 | corrections: frame words, clocks, re-seats | the siblings' `DUMP_ALL` | none | not taken by either walk of §7.4 |
 
-**The counts**: 37 takes. **Built 25** — 23 equal on every comparison,
-and two the map's residue that still part (`land_sub`, tile bit 0x4,
-§7.3). **Defaulted 1** — region flags. **Dump-only 7** — `seen`, the
+**The counts**: 37 takes. **Built 25**, equal on every comparison since
+item 4136 (the two that parted, `land_sub` and tile bit 0x4, are the
+started buildings' writes, §7.3). **Defaulted 1** — region flags. **Dump-only 7** — `seen`, the
 animation lengths, gaia's pieces, `new_rares`, the cells' chain heads,
 building `z`, the corrections. Two not established (the heights' last
 place, the scout's `squad_size`) and two not this lobby's (cliffs,
@@ -449,24 +449,23 @@ tiles), each building's `ever_seen`, `WORLD territory_limits`, `REGION n
 flags` (by the original's number), `TILE tx ty mask` and `CELL x y
 land_sub` — 75,835 fields on the harness lobby.
 `start_walk::the_harness_lobby_s_start_is_the_installed_one_wide` holds
-every one equal but three, each pinned by its count, and §3's block and
-`START_BUILT` are untouched:
+every one equal but one, pinned by its count (three until item 4136), and
+§3's block and `START_BUILT` are untouched:
 
 - **`REGION 0 flags`**: ours 0x4, theirs 0xa4. The land region's 0x20
   and 0x80 have no writer found (East Indies shows 0xa0 on every land
   region, `docs/TRANSPORT.md`); `Map::region_flags`, the style's word,
   is 0 on every corpus style (`docs/MAPGEN.md`). Building it needs that
   writer.
-- **`TILE mask`, 131 tiles**: bit 0x4 set in the dump and in neither
-  side's own writes, tiles 215–221 of rows 79 on, north of seat 1's
-  village. The bit is unnamed in `sim::world::tile`; its writer is not
-  identified.
-- **`CELL land_sub`, 8 cells**, four beside each village (ours 3 or 1,
-  theirs 2). Setup trace part 5 agrees at `Terrain.cpp` 884, so the
-  writer runs between the map and the dump; not identified.
+- ~~**`TILE mask`, 131 tiles**: bit 0x4 set in the dump and in neither
+  side's own writes; its writer is not identified.~~ `Wall::start`'s
+  `mark_behind_tiles`, `tile::BEHIND` (item 4136, `docs/MAPGEN.md` §35).
+- ~~**`CELL land_sub`, 8 cells**, four beside each village (ours 3 or 1,
+  theirs 2); not identified.~~ `Wall::start`'s `Terrain::object_placed`
+  at the tileset's `weatherbase` (item 4136, `docs/MAPGEN.md` §35).
 
-The walk reads all three and still runs to its end (§7.4), so none moves
-a draw on this game.
+The walk reads the one left and still runs to its end (§7.4), so it moves
+no draw on this game.
 
 ## 7.4 The lobby's own walk from the built start
 

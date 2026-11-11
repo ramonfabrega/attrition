@@ -1748,10 +1748,11 @@ mod tests {
         // `0x4` alone; the mesh is three elements lighter for it, which is
         // the assertion above.
         //
-        // Pinned as a count that may only fall.
+        // Pinned as a count that may only fall: 0 since item 4136 ports
+        // `mark_behind_tiles` (`docs/MAPGEN.md` §35).
         assert_eq!(
             mask_off.len(),
-            32,
+            0,
             "the tile-mask residue is `Wall::mark_behind_tiles`' `0x4` and \
              only falls: {mask_off:?}"
         );
@@ -1925,9 +1926,10 @@ mod tests {
             not_behind.is_empty(),
             "a tile-mask difference that is not `set_behind`'s `0x4`: {not_behind:?}"
         );
+        // 0 since item 4136 ports `mark_behind_tiles`.
         assert_eq!(
             mask_off.len(),
-            45,
+            0,
             "the `set_behind` residue at 4803 — 32 of them are 4802's, and the \
              thirteen the road frame adds are the Market's own \
              `Wall::mark_behind_tiles`. It may only fall: {mask_off:?}"
@@ -2330,7 +2332,8 @@ mod tests {
         }
         assert_eq!(surface, Vec::<String>::new(), "a road parts on 14529");
         assert_eq!(other, Vec::<String>::new(), "a mask parts on 14529");
-        assert_eq!(behind, 203, "the `0x4` residue on 14529");
+        // 203 until item 4136 ported `Wall::mark_behind_tiles`.
+        assert_eq!(behind, 0, "the `0x4` residue on 14529");
         // The two ends the sweep stopped at, element for element.
         let n = |t| {
             built
@@ -2502,7 +2505,8 @@ mod tests {
                 .filter(|&&(_, _, o, t)| o ^ t != 0x4)
                 .collect::<Vec<_>>()
         );
-        assert_eq!(tile_bad.len(), 262, "the `0x4` residue at 17087");
+        // 262 until item 4136 ported `Wall::mark_behind_tiles`.
+        assert_eq!(tile_bad.len(), 0, "the `0x4` residue at 17087");
         // **Both danger maps are the original's whole** since item 1446.
         // The human's parted on nine half-cells of one corner, (27..29,
         // 9..11), by 3 to 5, and the fog on 44 half-cells round the
@@ -2715,7 +2719,8 @@ mod tests {
             tile_bad.iter().all(|&(_, _, o, t)| o ^ t == 0x4),
             "a tile parts on more than `0x4`"
         );
-        assert_eq!(tile_bad.len(), 264, "the `0x4` residue at 17146");
+        // 264 until item 4136 ported `Wall::mark_behind_tiles`.
+        assert_eq!(tile_bad.len(), 0, "the `0x4` residue at 17146");
         assert_eq!(danger_bad, Vec::<String>::new(), "the danger map");
         // Item 1111: the 16 half-cells agree — who=1's citizens see their
         // Militia line's two tiles more (`docs/GOLDEN.md` §48).
@@ -3817,10 +3822,11 @@ mod tests {
                 .all(|&(x, y, _, _)| !(x == 216 && (112..=115).contains(&y))),
             "the sweep's four tiles part again at 7932"
         );
+        // 0 since item 4136 ported `Wall::mark_behind_tiles`.
         assert_eq!(
             tile_bad.len(),
-            142,
-            "run93's block 7932 no longer parts on 142 tile masks — if the \
+            0,
+            "run93's block 7932 no longer parts on 0 tile masks — if the \
              cluster has been fixed this pin is the one to lower, and if it \
              has grown the landing that grew it is the bug"
         );

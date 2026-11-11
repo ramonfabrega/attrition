@@ -721,6 +721,10 @@ pub fn tileset_groups(root: &Path, tileset: &str) -> Option<TilesetGroups> {
             .attribute("riverbase")
             .and_then(|v| v.trim().parse().ok())
             .unwrap_or(0),
+        weatherbase: set
+            .attribute("weatherbase")
+            .and_then(|v| v.trim().parse().ok())
+            .unwrap_or(-1),
     })
 }
 

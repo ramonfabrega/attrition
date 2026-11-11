@@ -2055,10 +2055,17 @@ impl Sim {
         }
         // **The flattening is not here.** `Wall::start@0063e810`'s own
         // statement at this point is `Terrain::object_placed@00850c40`,
-        // which is the **renderer's** (`spot_update_land`,
-        // `invalidate_wcoord`) and moves no height; the terraform belongs
-        // to `Wall::init@0063e9b0:70`, which runs when the *site* is
-        // created ([`Sim::init_build`], `docs/ROADS.md` §7.4).
+        // which moves no height; the terraform belongs to
+        // `Wall::init@0063e9b0:70`, which runs when the *site* is created
+        // ([`Sim::init_build`], `docs/ROADS.md` §7.4). What it does move is
+        // the ground's `land_sub` under the footprint: every `BASELAND`
+        // cell takes the tileset's `weatherbase` (item 4136,
+        // `docs/MAPGEN.md` §35).
+        {
+            let t = &self.tables.build_types[ty];
+            let (w, h) = (t.x_size, t.y_size);
+            self.object_placed(corner, w, h);
+        }
         self.mask_building(b, true);
         // `Wall::start@0063e810` passes **`REGEN_FORCE`** to `mask_me`, and
         // `BuildType::mask_me@006312a0`'s tail is `place_roads` — so a
@@ -2096,6 +2103,8 @@ impl Sim {
         }
         // `Wall::start@0063e810`'s own last-but-one statement.
         self.check_ever_seen(b, false);
+        // And its last: the tiles the building hides (item 4136).
+        self.mark_behind_tiles(b, true);
         false
     }
 
@@ -2794,6 +2803,12 @@ impl Sim {
         if !self.buildings[b].is_library {
             self.clean_queue(b, !silent);
         }
+        // `Wall::close@0063f6e0:40`: a started building's hidden tiles
+        // clear on every reason; `refresh_nearby_tiles` below gives the
+        // neighbours theirs back (item 4136).
+        if self.buildings[b].started {
+            self.mark_behind_tiles(b, false);
+        }
         if self.buildings[b].started && !silent {
             self.mask_building(b, false);
         } else if let Some(ty) = self.buildings[b].ty {
@@ -2846,6 +2861,12 @@ impl Sim {
         // is `UnitTypeData`'s alone), so it leaves its cell's chain here
         // (`docs/COLLISION.md` §3.2).
         self.object_chain_remove(crate::combat::Obj::Building(b));
+        // `Wall::close@0063f6e0:157`, after `Object::close`, for a reason
+        // other than 0 and 5 (both `silent` here): the active neighbours
+        // mark what they hide again (item 4136).
+        if !silent {
+            self.refresh_nearby_tiles(b);
+        }
         // `Wall::close:155` → `Object::close@00647160`: an active object's
         // close ends with `hold_frames = 0x1e`, so the number is not
         // `find_free`'s for thirty frames (`docs/COMBAT.md` §59.3). The

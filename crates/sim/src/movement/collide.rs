@@ -2040,9 +2040,10 @@ impl Sim {
 
     /// The world cell's whole chain, head first, units and buildings —
     /// the order `Object::find_nearby_target` and every other walker of
-    /// `WData::down` meets them in. No reader of the simulation takes it
-    /// yet (§3.2): each walks [`Sim::cell_chain`], the units of it.
-    #[cfg(test)]
+    /// `WData::down` meets them in. Its one reader is
+    /// [`Sim::refresh_nearby_tiles`]'s walk for the buildings in it
+    /// (item 4136); every other walks [`Sim::cell_chain`], the units of it
+    /// (§3.2).
     pub(crate) fn object_chain(&self, c: crate::Cell) -> Vec<Obj> {
         if c.x < 0 || c.y < 0 || c.x >= self.world.width() || c.y >= self.world.height() {
             return Vec::new();

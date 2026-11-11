@@ -369,6 +369,10 @@ pub struct World {
     territory_version: u32,
     /// The parts of `WorldData` the setup writes once ([`WorldRecord`]).
     record: WorldRecord,
+    /// The current tileset's numbers a placed building's ground reads
+    /// ([`terrain::TileSetLand`]); `None` where no tileset was loaded, and
+    /// then `Terrain::object_placed` writes nothing.
+    land_set: Option<terrain::TileSetLand>,
 }
 
 /// **The parts of `WorldData` the map generator and the setup write once
@@ -570,6 +574,9 @@ pub mod tile {
     pub const OBJECT_BUILDING: u16 = 0x3;
     pub const OBJECT_MOUNTAIN: u16 = 0x2;
     pub const OBJECT_CLIFF: u16 = 0x1;
+    /// A tile some started building hides (`Wall::mark_behind_tiles`,
+    /// [`crate::Sim::mark_behind_tiles`]); `World::set_behind`'s first bit.
+    pub const BEHIND: u16 = 0x4;
     /// The two-bit surface field: `0` plain land, `0x10` road, `0x20` ocean,
     /// `0x30` forest.
     pub const SURFACE: u16 = 0x30;
@@ -840,6 +847,7 @@ impl World {
             terrain_version: 0,
             territory_version: 0,
             record: WorldRecord::default(),
+            land_set: None,
         }
     }
 
@@ -851,6 +859,17 @@ impl World {
     /// Keeps what the setup wrote of `WorldData` ([`WorldRecord`]).
     pub fn set_record(&mut self, record: WorldRecord) {
         self.record = record;
+    }
+
+    /// The current tileset's ground numbers ([`terrain::TileSetLand`]).
+    pub const fn land_set(&self) -> Option<terrain::TileSetLand> {
+        self.land_set
+    }
+
+    /// Keeps the current tileset's ground numbers, as `TileSet::init`
+    /// loads them (`tilesets.cur_tileset`).
+    pub fn set_land_set(&mut self, set: Option<terrain::TileSetLand>) {
+        self.land_set = set;
     }
 
     /// How many writes have changed the terrain grids — the tile heights,
