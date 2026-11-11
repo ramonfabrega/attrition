@@ -91,3 +91,112 @@ runs with the same F. That is what makes `TAUNT_HELP`'s zero delay (§5) fire
 on the receiving frame. *Reading only*; the solo path calls `process_turn`
 also on loop passes that do not step a frame, which does not change F.
 
+## 1. `last_taunt` (+0x354, `TauntRequest[8]`, indexed by the sender's `who`)
+
+**Writers.**
+- Export, `field_0x354`: `Leader::process_taunt (006b8cc0)` (store),
+  `Leader::action_ping (006d18a0)` (read, `leaders.list[0].field_0x354 +
+  (param_3 + who)·4`). The other hits — `GameReportWin::close`,
+  `RiverSection::init`, `ConquestInvadeWin::close` — have a `this` of
+  their own class, not a leader. `->last_taunt`: no hit (the export never
+  prints the name).
+- Listing, absolute `0xe3a6e4` (= 0xe3a390 + 0x354): one site, 0x6d1977,
+  `cmpl $0x10, 0xe3a6e4(,%ecx,4)` in `action_ping` — a read.
+- Listing, register-relative `0x354(%reg…)`: 18 stores in `.text`; the one
+  whose base is a `Leader*` is **0x6b8d46** `movl %ecx, 0x354(%esi,%ebx,4)`
+  in `process_taunt` (`esi` = `this`, from `ecx` at entry; `ebx` = arg 2).
+  The other 17 are in `ConquestMapLoader`, `ConquestLeader`, `PlayerProfile`,
+  `Constants::init`, `Camera`, `TileSetData`, `RiverSection`, `IFaceButton`,
+  `WorldMapBackground` (float 0x3f800000 = 1.0f) and
+  `GameSpyGroup::OnDownloadScores` (indexed, 0x96c1ee) — none a leader base.
+- Bulk zeroing: `memset(this, 0, 0x6929)` (listing `pushl $0x6929; xorl
+  %eax,%eax; pushl %eax; pushl %ebx; calll 0x55e0b2`) in `Leader::init
+  (006e3930)` at 0x6e3995, `Leaders::clear (006ed5d0)` at 0x6ed5ee and
+  `Leader::close (006b7f80)` at 0x6b7f8c; 0x6929 bytes from +0 cover
+  +0x354..+0x373.
+- Bulk restore: a savegame load walks `WalkDataGame::walk_data (005a2360)`
+  → `Leaders::walk_data` → `LeaderData::walk_data (006d6750)`, whose range
+  [+0x8, +0x692a) (`docs/CHECKSUM.md` §8) holds this leaf. Not read in load
+  mode here; stated from the checksum's use of the same walker.
+- `ScenarioRead::load_leader_chunk (009ac080)` and
+  `ScenarioWrite::save_leaders_chunk (009a77c0)`: no reference to +0x354.
+
+**Event, step, predicate.** `process_taunt(this = receiver R, req, S)` with
+S the sender's `who` (from the ring). It stores `last_taunt[S] = req` and
+`taunt_frame[S] = game->frame` (§2) **before** acting on `req`, after these
+gates, in this order (listing 0x6b8ce0–0x6b8d36):
+1. `leaders[R.who].leader_flags & 4` clear (R is not human) and `& 2` set
+   (R active) — else return, nothing stored.
+2. If S ≠ R.who: `leaders[R].diplos[S] == 2` **and**
+   `leaders[S].diplos[R] == 2` (mutual alliance, re-checked at dispatch, not
+   only at receipt) — else return.
+3. S ≠ R.who — else return (the self case skips gate 2 and dies here).
+
+No bound on `req` here: whatever the ring holds (1 and up; `receive_taunt`
+rejects 0 and negatives but has no upper bound) is stored, and values
+above 16 fall to the switch's `default` (no action). From the UI,
+`check_for_order` yields 1–16. The step is an overwrite, not an increment:
+the last dispatched request from S, values 1–16. Units: an enum.
+
+What `process_taunt` does after the store (not this family's leaves, named
+for the reader): `req` 1–5 (a good: food, timber, wealth, metal, oil) — if
+both R and S have the good available (`type_avail(...) == 4`), and, unless
+teams are locked and R is not neutral, R's `gift_stamp[S]` (+0x194) is 0 or
+`frame − gift_stamp[S] ≥ 0x1194` (4,500 frames), and R holds more than 0x95
+(149) of it (the `LeaderDataEncrypt` word `^ 0x8221`), R stamps
+`gift_stamp[S]`, clears its pending actions with S and offers S a third of
+the stock (`action_offer(S, good, stock/3)` then `action_respond(S, 1)`);
+otherwise R chats a refusal to the local player. `req` 6: picks R's
+scarcest good (available to both, not knowledge) and, if S is the local
+player, plays a taunt line — no state. `req` 7–15 rescale or set R's
+production-AI weights at +0x794..+0x7a8 and +0x6dec, clamped after (a
+separate family). `req` 16 (`HELP`): no action and no message.
+
+**Reset.** `Leader::init` (when its second argument is negative —
+`Leaders::init (006ed8cb site)` calls `Leader::init(i, -1, i)` for all eight
+from `Game::init_rules_and_teams (00589bb0)`; `Setup::build_game`'s call at
+0x5acef7 passes the slot's `tribe`, ≥ 0, and skips the clear),
+`Leaders::clear` (called from `Game::close` and `Game::run_oos_recovery`),
+`Leader::close` (no direct caller found). No per-frame fold; never reset
+during a match.
+
+**Readers.** `Leader::action_ping (006d18a0)` only: when a **human** leader
+P pings a point (the `param_3 == P.who` arm, reached from
+`CommandPackage::process_ping`, call 0x9454bb), every other valid,
+non-human leader A that is mutually allied with P (`is_ally`) and has
+`last_taunt[P] == 16` (`HELP`) **and** `game->frame ≤ taunt_frame[P] + 225`
+(listing 0x6d1991–0x6d199d: `jl` skips when `taunt_frame + 0xe1 < frame`)
+sends a useful army (`Armies::find_useful_army`) to the ping with
+`Army::send_here(..., MOVE_TO)` and stamps that army's +0x28 = 0xa8c
+(2,700). **This changes a decision**: it is the only consumer, and it moves
+an AI army. The checksum walker (`LeaderData::walk_data`) reads the leaf
+whole.
+
+**Crate.** No event. The sim has no chat command, no ring, no
+`process_taunt`: `crates/rondata/src/input.rs:1611` skips `Command::Chat`
+as "a cheat line, not an order", and `crates/sim/src/checksum/leaders.rs:87`
+lists the leaf, which `leader_long` answers `None`
+(`crates/sim/src/checksum/leaders.rs:1305`). A builder adds a per-leader
+`last_taunt: [i32; 8]` stored by a new `process_taunt` called from the
+per-player loop of `Sim::tick` (`crates/sim/src/core/frame.rs:94`, the
+`Leaders::process_all` analogue), and feeds it from a chat arm in
+`rondata::input`'s `one` (`crates/rondata/src/input.rs:1503`) that calls a
+new `receive_taunt`. There is no `action_ping` either (`Command::Ping` is
+decoded in `crates/rondata/src/commands.rs:857` and falls to `"not mapped"`).
+
+**Plain game?** Reachable without a scenario or CtW, but only when a human
+has a **computer ally** (mutual `diplos == 2`, so team play) and types a
+taunt number whose `taunts.xml` entry carries an order string, or uses the
+diplomacy window's chat box the same way. A 1-v-1 against the computer, or
+any game where no human sends such a line, never writes it: the value stays
+0 from `Leader::init`. No computer sends a request.
+
+**Confidence.** High for the store, its gates and the reset (export and
+listing agree; every register-relative store attributed). Medium for "only
+from the UI" — it rests on `CommandPackage::add_chat` having one caller and
+on the three `LeaderOut::issue_chat` callers all being windows; a replayed
+command stream (a recorded game) carries whatever its `taunt` word says.
+Not read: `Taunts::init (00980df0)` (where the order strings come from),
+`IFaceDiploBase::on_key_click` body, `LeaderData::walk_data` in load mode,
+`Leader::close`'s callers through pointers.
+

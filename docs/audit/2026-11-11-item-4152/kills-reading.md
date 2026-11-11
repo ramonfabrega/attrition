@@ -63,7 +63,8 @@ xor` with the operand as destination) to `0x80c|0x810|0x818|0x81c(%reg)` —
 - `Object::do_damage (0064a480)` at 0x64a558 `incl 0x80c(%edx,%eax,4)`: `edx`
   = `GameAccess::game`, an int array of `Game` indexed by the attacker's player
   (with `addl %ecx, 0x804(%edx,%eax,4)` beside it), gated on
-  `semaphore` bit `0x200` of byte +0x821. Not LeaderData.
+  `semaphore.ptr[1] & 2` (byte +0x821) and the shooter's player differing
+  from `param_2`. Not LeaderData.
 - `NetDaemon`, `Constants::init/log_data`, `TileSet::init`, `GraphicPieces`,
   `RTreeData`, `TerrainMap::on_redraw` (byte store), `hpPrintf*` (ebp-negative
   locals): other records.
@@ -101,4 +102,125 @@ are by the vtables' contents, not by `LF_ONEMETHOD`; not checked against the
 PDB here. `+0xe8` is `UnitData::is_captain (0046ceb0)` (inlined:
 `unit_masks` +0x8e bit 15), `+0xe4` `get_captain`, `0x60a760`
 `UnitData::curr_uber_size`.
+
+## 1. `units_killed` (+0x80c, int)
+
+### Writers
+
+1. **`Object::take_damage (00652020)`, store 0x653046** (decompile line ~509,
+   printed as `local_8[0x20d].field_0x31a0`). Index register `eax =
+   ebx·0x6eec`, `ebx = param_8` (loaded at 0x652d60, `movl 0x24(%ebp),%ebx`,
+   not changed before the store).
+2. **`SpellType::cast_sabotage (006720e0)`, store 0x67222f** (decompile line
+   102). Index `esi = param_2·0x6eec` (0x672210, `imull $0x6eec,0xc(%ebp)`):
+   the **caster's** player.
+3. **`SpellType::cast_counterintel (00673740)`, store 0x673867** (decompile
+   line 66). Index `edi = ecx·0x6eec` (0x6737d0), where `ecx` on entry is the
+   **caster's player**, not a `SpellType*`: `SpellType::cast (00676ce0)` calls
+   it at 0x676d8e with `ecx = edi = cast's param_2` and pushes only two words
+   (`cast`'s `param_3`, `param_4`: the target's index and player). The
+   decompile's `this`/`param_1`/`param_2` are therefore caster player, target
+   index, target player.
+
+### Event, step, predicate
+
+Each writer adds **1** (`incl`), once per event.
+
+- **`take_damage`, a squad killed by an attacker object.** Reached only when
+  the struck object's whole points taken (`+0x24`) are at or above its
+  threshold (`local_c`, the figure's share; decompile line 345 is the survive
+  branch) — i.e. on the death path, before `die` (vslot `+0x158`, line 620).
+  On that path, the object is not a building (vslot `+0x1c` = 0; a building
+  takes branch 4.1 instead), **and** it is its squad's captain (`+0xe8`), **and**
+  `curr_uber_size(0) == 1` (the last figure standing), **and** its
+  `unit_masks +0x68 & 1` (decoy) is clear — then `units_lost[owner] += 1`
+  (leaf 2), **and then only if `param_7 >= 0`** (an attacker object index):
+  `deaths_current_frame[owner] += 1` (+0xa58), `kills_current_frame[param_8]
+  += 1` (+0xa5a), `units_killed[param_8] += 1`, and then `score_combat
+  [param_8]` (+0x44) gains `cost/5`, or loses it floored at 0 when the attacker
+  is allied to the victim. **No alliance, ownership or `param_8 >= 0` test
+  guards `units_killed`**: an ally's kill counts, and so does a player's own
+  — the decoy-overflow recursion (decompile 624-630) strikes the captain with
+  `param_7 = captain`, `param_8 = owner`, so a captain that dies of its own
+  decoy's overflow credits its own owner one kill (and one
+  `kills_current_frame`). Callers passing `param_7 = -1` (attrition, wall decay,
+  sabotage's building arm, the scenario/editor health setters) never step it.
+  A non-captain figure, a figure with live squadmates, or a decoy never steps
+  it: the counter is per squad, at the last figure.
+- **`cast_sabotage`, the unit arm** (Sniper/Commando kill). Gate: the target
+  object's flags `+0x8 & 1` set (else the spell's other arm runs and nothing
+  is counted); the target not a building (`+0x1c` = 0) and a unit (`+0x18`);
+  captain, `curr_uber_size(0) == 1`, decoy bit clear. Then
+  `deaths_current_frame[target owner] += 1`, `kills_current_frame[caster] +=
+  1`, `units_killed[caster] += 1`, `score_combat[caster] += cost/5` (cost of
+  the target's type, vslot `+0x80` of its `Type` with the target's player).
+  No alliance test here (the castability check upstream, `cast`'s
+  `0x675bc0` call, was not read). The target then `die`s directly (vslot
+  `+0x158`, dtype 3 if it carries objmask `0x200000`, else 2) — **not through
+  `take_damage`, so `units_lost` of the victim is not stepped** on a sniped
+  squad.
+- **`cast_counterintel`** (a Spy's counter-intelligence on an enemy spy). The
+  target is first replaced by its captain if it is not one (`+0xe8`, `+0xe4`).
+  Gate: target player ≠ caster, target player ≠ `leaders[caster].who`, and
+  not allied both ways (`diplos[...] == 2` mutual — `LeaderData::is_ally
+  (006edb50)` inlined). Inside it: the target a unit, captain, `curr_uber_size
+  (0) == 1`, decoy clear → `units_killed[caster] += 1` and `score_combat
+  [caster] += cost/5` (the `0x66666667` multiply is a signed divide by 5).
+  Then `die(2, -1, 0)` on the target whatever the inner gate said. **No
+  `kills_current_frame`, no `deaths_current_frame`, no `units_lost`** here —
+  three asymmetries against `take_damage`.
+
+### Clears
+
+`Leader::reset_score (006e37f0)` (from `Leader::init (006e3930)` and from
+`Setup::build_game (005ac190)` on every live slot); `Leaders::clear
+(006ed5d0)` and `Leader::init`'s empty-slot memset, both covering
+[+0, +0x6929). No per-frame fold.
+
+### Readers
+
+`LeaderData::walk_data (006d6750)` (the checksum walk; `docs/CHECKSUM.md` §8
+puts [+0x8, +0x692a) in it for the walked slots — **this is the reader that
+matters for lockstep**), `LeaderData::log_data (006e5110)`,
+`Game::determine_end_of_game_stats_and_achievements (00583b30)` (a Steam stat
+at game end), `AchieveChartPane::set_chart_data (007f2c40)` (post-game
+chart), `ScenarioFuncSet::num_units_killed (009e98e0)` (script function,
+1-based player, -1 for a dead slot). The install's scripts that call it are
+CtW and one custom scenario; none under `ai/`. No reader changes a decision in
+a plain skirmish.
+
+### Crate site
+
+- take_damage's arm: `Sim::take_damage_typed`, `crates/sim/src/combat/fight/
+  delivery.rs:469`, its `Obj::Unit` `Taken::Died` branch (line ~537), beside
+  `unit_plunder`, whose gate (captain, last figure, no decoy) is the same
+  predicate (doc at delivery.rs:613-620). The attacker is `_by`; the crate has
+  no `param_7 < 0` notion there, so a builder must pass "attacker object
+  present" explicitly (attrition does not come through this function in the
+  crate: it is `die_by_attrition`, delivery.rs:844). The decoy-overflow
+  recursion is at delivery.rs:576 and passes `Obj::Unit(k)` as its own
+  attacker, matching the original's self-credit.
+- cast_sabotage's unit arm: `Sim::cast_sniper_unit`, delivery.rs:806, which
+  already carries `SEAM: the caster's leader counters (+0xa58, +0xa5a,
+  +0x80c) and the score` (note: `+0xa58` is the **target owner's**, not the
+  caster's).
+- cast_counterintel: `Sim::cast_counterintel`, `crates/sim/src/spells/
+  cast.rs:1030`, `SEAM: units_killed and score_combat`.
+- The leaf exists only as a checksum name: `crates/sim/src/checksum/
+  leaders.rs:157`; `rondata`'s `checksum_lines.rs:1847` marks it "unheld".
+
+### Plain game?
+
+Yes for all three. `take_damage` via `do_damage` is every combat kill.
+Sabotage (Commando/Special Forces, Sniper) and counter-intelligence (Spy) are
+units' spells in a standard skirmish; whether the computer casts them was not
+read.
+
+### Confidence and not read
+
+High on the three stores and their indices (listing). High on take_damage's
+gate (decompile and listing 0x652f4d-0x653046 agree). Medium on the sabotage
+gate's first test (`+0x8 & 1`), whose meaning was not read. Not read:
+`SpellTypeData::is_castable`'s predicate (`0x675bc0`), the `+0x80` type-cost
+vslot, whether `curr_uber_size(0)` counts the dying figure.
 

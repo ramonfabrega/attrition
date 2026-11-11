@@ -220,3 +220,73 @@ resign path and was not followed to its callers.
 High: every store is a constant, each site read in the listing. Not read:
 `Player::leave_game`'s callers (whether a single-player resign reaches it).
 
+## Leaf 3 — `lost_capital_modifier` (+0x41c, int, 8.8 ratio: 0x100 = 1)
+
+### Writers
+1. `Leader::lost_capital (006dc870)`, 6dc8fb / 6dc903 / 6dc952, on the timer-0 arm only
+   (so computed afresh at each new loss, never on a repeated one). `this` = the loser
+   O, `param_1` = the taker A (`capture_city`'s taker, or `Build::close`'s holder).
+   - `To = LeaderData::get_team_terr(O)`, `Ta = get_team_terr(A)` (`get_team_terr
+     (006d62e0)`: the leader's `territory` (+0x9d8) plus each live ally's, with a
+     team-style-7 special case not read here).
+   - `w = world.land_size (WorldData+0x78) / game.num_nations (Game+0x6a0)`, signed
+     truncating; `w = 0` when `num_nations == 0`.
+   - If `To + w == 0` or `Ta + w == 0`: `m = 0x100` (6dc903).
+   - Else `m = trunc((To + w)·256 / (Ta + w))`, then `m < 0x80 → 0x80`, `m > 0x200 → 0x200`
+     (6dc8db–6dc8fb).
+   - Then, if `O.city_num ≠ 0` and `A.city_num ≠ 0` and `A.city_num < O.city_num`
+     (strict; `city_num` +0x3f8): `m = trunc(m·(O.city_num + 2) / (A.city_num + 2))`,
+     clamped to `[0x80, 0x300]` (6dc90d–6dc952). Note the second clamp's ceiling is
+     0x300, not 0x200, and the floor 0x80 again.
+   - So `m ∈ [0x80, 0x300]` always, never zero: the later `idiv` by `m` cannot fault.
+   - When in `capture_city` the call runs, the captured city's `City::close(old, A)`
+     has not yet run (the close is after both capital calls, 7350e7 onward), so
+     whether `O.city_num` still counts the captured city at that moment was **not
+     established** (it depends on where `city_num` is decremented).
+2. No other store. `Leader::init`'s setup arm (`param_2 ≥ 0`) does **not** write it
+   (the 6e3f89/6e3f8f pair is the stamp and the timer only); only the `memset`s clear
+   it — `Leaders::init` (once, in `Game::init_rules_and_teams`), `Leaders::clear`
+   (`Game::close`, `Game::run_oos_recovery`), and `Leader::init(…, param_2 < 0, …)`.
+   `recapture_capital` and `Build::activate` read it and leave it, so after a
+   recapture it keeps the last loss's value until the next loss overwrites it.
+
+### Readers
+- `Game::retake_capital (00594530)`: the countdown length. `base = 0` if
+  `constants.retake_capital (+0xd04) < 1`, else `max(1, (S/2 + world.xs ·
+  retake_capital) / S)` with `S` the int at `+0x144` of the record the pointer at
+  `0xe7fca8` names (listing 594548–59454d; the decompile prints it `map_sizes.list`;
+  the field is unnamed here), `S/2` signed toward zero, and `world.xs` (`*(int*)world`,
+  `WorldData+0`, taking `WorldData` at offset 0 of `World` as `docs/ECONOMY.md`'s
+  `land_size @ +0x78` row does — the same assumption names `w` above);
+  then, for `who ≥ 0`, `r = trunc(base · m / 256)` (toward zero, 594587–59459f). Under
+  `Game` semaphore byte 2 bit 1 (`& 2`; not read what it is), the Forbidden City
+  doubles it (`has_wonder(who, 0x213) == 2` → `2r`; 2 is the CtW conquest-wonder bit
+  alone, so this is a Conquer the World arm, and the semaphore bit is likely CtW's —
+  not checked) or, when the owner has none and
+  leader slot (0 if `who ≠ 0`, else 1) is live, at peace (`get_diplo == 0`) with
+  `who` and owns one, halves it — this branch was read from the decompile only.
+  So a larger `m` gives the loser more time. Callers: `process_elimination` (6b8a55)
+  and `IFaceMainBase::draw_timers` (80c40e, the on-screen countdown, `max(0, r −
+  (frame − stamp))`).
+- `Leader::lost_capital` (the division of the stamp), `recapture_capital` and
+  `Build::activate` (the multiplication back).
+- `LeaderData::log_data`.
+
+### Crate
+No field and no `RETAKE_CAPITAL` constant (`grep -rn retake crates/sim/src` finds
+nothing of it; `docs/CITIES.md` table at its line ~2100 names the rule). The inputs
+exist: `team_terr` (`crates/sim/src/ai/ai_census.rs:155`), `land_size`
+(`crates/sim/src/territory/victory.rs`), `city_num`. The computation belongs beside the
+loss in the capture path of `crates/sim/src/cities/city.rs` (around 3213), and
+`retake_capital` with a port of `process_elimination` in the per-leader frame body
+(`crates/sim/src/core/frame.rs` near 194).
+
+### Plain game?
+Yes: the first capital loss of a skirmish writes it.
+
+### Confidence
+High for the formula and clamps (listing read end to end, 6dc870–6dc976). Medium for
+`get_team_terr`'s ally predicate (not my leaf; read only its head). Not read:
+`Game+0x6a0` beyond its name `num_nations` (whether it counts gaia or the dead), and
+the `city_num` timing above.
+
