@@ -57,6 +57,8 @@ pub fn tile_uvs(tx: i32, ty: i32) -> [[f32; 2]; 4] {
 
 /// The lobby tileset's `BASELAND` textures, each base's sub-tiles as mips.
 pub struct GroundTextures {
+    /// The tileset's bases as read, which the probe prints.
+    #[cfg_attr(not(test), allow(dead_code))]
     pub art: rondata::artdata::GroundArt,
     /// `bases[land_sub][subtile]`; a base that is not a supertile holds one.
     pub bases: Vec<Vec<Mips>>,
@@ -151,9 +153,11 @@ pub fn ground_base(
 /// ground's base layer"): of the scored tiles on run1559b's frame 3279 at
 /// its pinned camera, those whose drawn mean colour is the photograph's
 /// within the colour reader's 0.05 in (r, g)/(r + g + b).
+#[cfg(test)]
 pub const RUN1559B_3279_GROUND: (usize, usize) = (949, 1109);
 
 /// The same row on the debug colour, the floor (item 4127).
+#[cfg(test)]
 pub const RUN1559B_3279_GROUND_FLOOR: (usize, usize) = (92, 1109);
 
 #[cfg(test)]
@@ -162,7 +166,7 @@ mod tests {
     use crate::silhouette::{INTERFACE, PHOTO_FRAME, TRACED, frame_scene, photo_path};
     use crate::world::{TreePixels, World};
     use render::silhouette::{HUE, Object, chromaticity, inside, rasterize_cut};
-    use render::terrain::{BASELAND, TILES_PER_CELL, land_colour};
+    use render::terrain::{TILES_PER_CELL, land_colour};
     use std::collections::BTreeMap;
     use std::path::PathBuf;
 
@@ -229,6 +233,42 @@ mod tests {
             camera: crate::pinned_camera(),
             root,
         })
+    }
+
+    /// **The client's draw** (item 4127, step 4): every tile of the
+    /// heightfield is drawn once — the `BASELAND` tiles the base layer
+    /// textures, each in the mesh of its own texture, and the rest in the
+    /// debug colours — and `debug_ground` draws the whole heightfield as the
+    /// floor did. The readers' [`World::terrain`] stays whole either way.
+    #[test]
+    fn the_client_draws_every_tile_once() {
+        let Some(mut p) = probe() else { return };
+        let full = p.world.terrain().clone();
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let tileset = crate::world::lobby_tileset(
+            &p.root,
+            &crate::world::gamelog_dir().join(crate::world::START_DUMP),
+        )
+        .expect("the lobby's tileset");
+        let tex = GroundTextures::load(&p.root, &tileset).expect("the ground's textures load");
+        let base = ground_base(&t, &mountains, &tex, &full);
+        let (rest, ground) = p.world.drawn_terrain();
+        let drawn: usize = ground.iter().map(|m| m.positions.len()).sum();
+        assert!(drawn > 0, "the ground is textured");
+        assert_eq!(drawn, base.tris.len() * 3);
+        assert_eq!(rest.positions.len() + drawn, full.positions.len());
+        for m in ground {
+            assert_eq!(m.positions.len(), m.uvs.len());
+            let k = (-1 - m.piece) as usize;
+            let tris = base.of.iter().filter(|&&o| o == k).count();
+            assert_eq!(m.positions.len(), tris * 3, "texture {k}");
+        }
+        assert_eq!(p.world.terrain().positions, full.positions);
+        p.world.debug_ground = true;
+        let (all, none) = p.world.drawn_terrain();
+        assert_eq!((all.positions.len(), none.len()), (full.positions.len(), 0));
     }
 
     /// **The ground's population** (item 4127): per pixel, the tile whose
@@ -356,7 +396,8 @@ mod tests {
             "ground pixels {} by (land_key, mountain): {px_by_kind:?}",
             g.tile.iter().flatten().count()
         );
-        let scored: Vec<(&(i32, i32), &Vec<[f32; 3]>)> = by_tile
+        type Px = Vec<[f32; 3]>;
+        let scored: Vec<(&(i32, i32), &Px)> = by_tile
             .iter()
             .filter(|(_, v)| v.len() as u32 >= HUE.min_pixels)
             .collect();
@@ -459,7 +500,6 @@ mod tests {
                 );
             }
         }
-        assert!(BASELAND == 0);
     }
 
     /// **The count** (item 4127, the rule committed before it in
@@ -525,7 +565,8 @@ mod tests {
         let cell = |(tx, ty): (i32, i32)| (tx / TILES_PER_CELL, ty / TILES_PER_CELL);
         let sub = |(cx, cy): (i32, i32)| t.land_sub[(cy * t.width + cx) as usize];
         let photo_at = |i: usize| [0, 1, 2].map(|c| f32::from(p.photo.rgba[i * 4 + c]));
-        let mut tiles: BTreeMap<(i32, i32), (Vec<[f32; 3]>, Vec<[f32; 3]>)> = BTreeMap::new();
+        type Px = Vec<[f32; 3]>;
+        let mut tiles: BTreeMap<(i32, i32), (Px, Px)> = BTreeMap::new();
         let mut pixel: BTreeMap<u8, (u32, u32)> = BTreeMap::new();
         let mut lum: Vec<(f32, f32, f32)> = Vec::new();
         let l = |c: [f32; 3]| 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2];
@@ -606,7 +647,8 @@ mod tests {
                 chromaticity(mean(th)),
             );
         }
-        let pearson = |f: &dyn Fn(&(f32, f32, f32)) -> (f32, f32)| {
+        type Pair = dyn Fn(&(f32, f32, f32)) -> (f32, f32);
+        let pearson = |f: &Pair| {
             let n = lum.len() as f32;
             let (sa, sb) = lum
                 .iter()

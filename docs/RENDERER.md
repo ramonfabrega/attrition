@@ -947,6 +947,15 @@ outside every object's window (its pixels plus 6), every trace and every
 means over the tile's ground pixels lie within 0.05 in (r, g)/(r + g + b).
 On this tree before the rule: 898,590 ground pixels, 1,109 scored tiles,
 all `BASELAND` (106 under a mountain); **the debug colour's floor 92**.
+**The count, on the CPU painter: 949 of 1,109** (sub 1 157 of 158, sub 2
+688 of 697, under a mountain 59 of 106, sub 3 45 of 148); the mapping's
+check, luminance r 0.499 over 787,770 pixels against the half-period
+control's 0.083. Sub 3's dirt reads brown where the photograph does not:
+the residue, parked 4127a–c. **The client draws it** (`World::
+drawn_terrain`, `gpu`'s `fs_ground`): the heightfield less the textured
+tiles (`TerrainMesh::build_except`), and the tiles one mesh per sub-tile;
+`--debug-ground` draws the floor. `World::terrain`, which the readers
+take, stays whole.
 
 **The projection is the camera's own.** The shader multiplies by
 `to_screen_matrix` uploaded row-major (WGSL reads it transposed, so `M · v`

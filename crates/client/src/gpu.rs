@@ -104,7 +104,10 @@ fn fs_sprite(i: VOut) -> @location(0) vec4<f32> {
 /// (item 4103, §5.3 "The silhouette's colour"): the owner's colour at
 /// `render::silhouette::SILHOUETTE_ALPHA`, blended source-alpha where the
 /// figure is behind what is drawn, as `render::silhouette::
-/// silhouette_blend` lays it.
+/// silhouette_blend` lays it. `fs_ground` is the ground's base layer
+/// (item 4127, `docs/RENDERER.md` §3.6): the texel's colour alone, under
+/// `determine_land_height_color`'s white, the alpha (225 to 255 on the
+/// files) not laid over anything.
 const TEXTURED_SHADER: &str = r#"
 struct U {
     m: mat4x4<f32>,
@@ -145,6 +148,11 @@ fn fs_textured(i: VOut) -> @location(0) vec4<f32> {
 }
 
 @fragment
+fn fs_ground(i: VOut) -> @location(0) vec4<f32> {
+    return vec4<f32>(textureSample(tex, samp, i.uv).rgb, 1.0);
+}
+
+@fragment
 fn fs_silhouette(i: VOut) -> @location(0) vec4<f32> {
     return vec4<f32>(i.owner, 128.0 / 255.0);
 }
@@ -167,9 +175,15 @@ pub struct Frame<'a> {
     pub overlay: Tris<'a>,
     /// The figures drawn textured (item 4099).
     pub textured: &'a [crate::world::TexturedMesh],
+    /// The ground's base layer (item 4127), kept on the GPU with the
+    /// terrain at `terrain_version`.
+    pub ground: &'a [crate::world::TexturedMesh],
     /// The buildings drawn as their sprites (item 4076).
     pub sprites: &'a [crate::world::SpriteDrawing],
 }
+
+/// A mesh on the GPU: its vertices, their count and its texture.
+type Uploaded = (wgpu::Buffer, u32, wgpu::BindGroup);
 
 pub struct Gpu {
     pub device: wgpu::Device,
@@ -180,6 +194,10 @@ pub struct Gpu {
     bind: wgpu::BindGroup,
     format: wgpu::TextureFormat,
     terrain: std::sync::Mutex<Option<(u32, wgpu::Buffer, u32)>>,
+    /// The ground's base layer (item 4127) and the terrain version it was
+    /// uploaded at.
+    ground: wgpu::RenderPipeline,
+    ground_meshes: std::sync::Mutex<Option<(u32, Vec<Uploaded>)>>,
     sprite: wgpu::RenderPipeline,
     sprite_uniform: wgpu::Buffer,
     sprite_bind: wgpu::BindGroup,
@@ -463,6 +481,13 @@ impl Gpu {
             wgpu::CompareFunction::Greater,
             Some(wgpu::BlendState::ALPHA_BLENDING),
         );
+        let ground = figure_pass(
+            "ground",
+            "fs_ground",
+            true,
+            wgpu::CompareFunction::Less,
+            None,
+        );
         let figure_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
             label: Some("figure"),
             address_mode_u: wgpu::AddressMode::Repeat,
@@ -473,6 +498,8 @@ impl Gpu {
             ..Default::default()
         });
         Ok(Gpu {
+            ground,
+            ground_meshes: std::sync::Mutex::new(None),
             textured,
             silhouette,
             figure_sampler,
@@ -613,10 +640,7 @@ impl Gpu {
 
     /// Each textured figure's corners as position and texcoord, beside its
     /// texture's bind group.
-    fn textured_meshes(
-        &self,
-        meshes: &[crate::world::TexturedMesh],
-    ) -> Vec<(wgpu::Buffer, u32, wgpu::BindGroup)> {
+    fn textured_meshes(&self, meshes: &[crate::world::TexturedMesh]) -> Vec<Uploaded> {
         meshes
             .iter()
             .filter(|m| !m.positions.is_empty())
@@ -747,6 +771,13 @@ impl Gpu {
                 .vertices(frame.terrain)
                 .map(|b| (frame.terrain_version, b, frame.terrain.0.len() as u32));
         }
+        let mut ground = self.ground_meshes.lock().unwrap();
+        if ground
+            .as_ref()
+            .is_none_or(|(v, _)| *v != frame.terrain_version)
+        {
+            *ground = Some((frame.terrain_version, self.textured_meshes(frame.ground)));
+        }
         let figures = self.vertices(frame.figures);
         let overlay = self.vertices(frame.overlay);
         let mut enc = self.device.create_command_encoder(&Default::default());
@@ -784,6 +815,15 @@ impl Gpu {
             if let Some((_, b, n)) = cache.as_ref() {
                 pass.set_vertex_buffer(0, b.slice(..));
                 pass.draw(0..*n, 0..1);
+            }
+            if let Some((_, meshes)) = ground.as_ref().filter(|(_, m)| !m.is_empty()) {
+                pass.set_pipeline(&self.ground);
+                for (b, n, t) in meshes {
+                    pass.set_bind_group(1, t, &[]);
+                    pass.set_vertex_buffer(0, b.slice(..));
+                    pass.draw(0..*n, 0..1);
+                }
+                pass.set_pipeline(&self.world);
             }
             if !quads.is_empty() {
                 pass.set_pipeline(&self.sprite);
@@ -928,6 +968,16 @@ mod tests {
             render::silhouette::SILHOUETTE_ALPHA
         );
         assert!(TEXTURED_SHADER.contains(&alpha), "{alpha}");
+    }
+
+    /// Item 4127: the ground draws the texel's colour alone, its alpha
+    /// laid over nothing (`docs/RENDERER.md` §3.6).
+    #[test]
+    fn the_ground_draws_the_texel_s_colour_alone() {
+        assert!(TEXTURED_SHADER.contains(
+            "fn fs_ground(i: VOut) -> @location(0) vec4<f32> {\n    \
+             return vec4<f32>(textureSample(tex, samp, i.uv).rgb, 1.0);"
+        ));
     }
 
     #[test]

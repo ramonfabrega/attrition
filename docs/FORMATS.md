@@ -1044,20 +1044,6 @@ holds every file to this and decodes 2,901 of 2,901
 (`every_image_the_install_ships_decodes`). Which image a model binds
 is still unread beyond the attributes above.
 
-**The ground's base textures** (item 4127, `artdata::ground_art`,
-`client::ground`). A `<TILESET>` in `Data/tilesets.xml` names a
-`<BASEDIR path=…>` and, under `<BASELAND>`, its `<BASE>`s in file order,
-each with a `<TEXTURE name=…>` under that directory and `supertile="1"`.
-`TileSet::load_land_data@008767d0` hands a supertile base's file to
-`TextureEffect::load_as_supertile@00542640` (`supertile_format` 32-bit,
-`supertile_discrete_mip` 1), which cuts it 3 × 3 into `w/3`-square
-sub-textures, column-major within a row (sub-tile `k` at column `k mod 3`,
-row `k / 3`). `early_autumn`'s four (`tilesets/dirty/grass_early_autumn`,
-`dirt_grass_…`, `grass_dirt_…`, `dirt_…`) are type 2, 32-bit, 512 × 512,
-descriptor `0x08`; each has a `_mtrl` twin of the same size, unread.
-Which sub-tile a cell takes and how it lies on it: `docs/RENDERER.md`
-§3.6, "The ground's base layer".
-
 ### What is checked, and what is not established
 
 - **Checked by a run over the install**, on every gate that has
@@ -1084,6 +1070,21 @@ Which sub-tile a cell takes and how it lies on it: `docs/RENDERER.md`
   variant (string `0x12b9c`), which Great Lakes may take; and the
   building's sprite TGA, which is outside condition 1 as a unit's
   texture is.
+
+## The ground's base textures (item 4127, 2026-11-11)
+
+(`artdata::ground_art`, `client::ground`.) A `<TILESET>` in `Data/tilesets.xml` names a
+`<BASEDIR path=…>` and, under `<BASELAND>`, its `<BASE>`s in file order,
+each with a `<TEXTURE name=…>` under that directory and `supertile="1"`.
+`TileSet::load_land_data@008767d0` hands a supertile base's file to
+`TextureEffect::load_as_supertile@00542640` (`supertile_format` 32-bit,
+`supertile_discrete_mip` 1), which cuts it 3 × 3 into `w/3`-square
+sub-textures, column-major within a row (sub-tile `k` at column `k mod 3`,
+row `k / 3`). `early_autumn`'s four (`tilesets/dirty/grass_early_autumn`,
+`dirt_grass_…`, `grass_dirt_…`, `dirt_…`) are type 2, 32-bit, 512 × 512,
+descriptor `0x08`; each has a `_mtrl` twin of the same size, unread.
+Which sub-tile a cell takes and how it lies on it: `docs/RENDERER.md`
+§3.6, "The ground's base layer".
 
 ## Open questions
 
