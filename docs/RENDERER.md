@@ -975,6 +975,11 @@ losses are the blend:** 236 of 244 sit on a cell whose
 `land_sub − 1`, over the base, and on 230 of them the photograph reads
 that base. The alpha and its bitcode are unread (parked 4129a).
 
+**The transition patch (item 4132).** Drawn from the packet's own patch
+under the read alpha (`docs/FORMATS.md`), it wins 395 of 503 patched
+tiles (`RUN1559B_3279_GROUND_BLEND_PACKET`) against controls at most 204.
+The rule that picks it is unbuilt (parked 4132a; the journal).
+
 **The projection is the camera's own.** The shader multiplies by
 `to_screen_matrix` uploaded row-major (WGSL reads it transposed, so `M · v`
 is the original's `v · M`). The divide by `w` and the viewport are

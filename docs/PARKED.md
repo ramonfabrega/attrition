@@ -16601,13 +16601,24 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FI — reserved
+## Parked by item 4132, 2026-11-11 — the transition patch, measured from the packet
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4132a. The patch's choice, ported** (`docs/RENDERER.md` §3.6, "The transition patch";
+  `RUN1559B_3279_GROUND_BLEND_PACKET` 395 of 503; `client::ground::tests::the_transition_patch`). Drawn from
+  run1559b's own patch, the read alpha wins 395 of the 503 patched plain tiles. The controls win at most 204,
+  and the quarter turn 201. What is not built is the rule that picks the alpha and its texcoords: the edge masks
+  `mark_trans_flags` sets (with `check_for_tendrils` and `TileSet::is_combo_acceptable`), `build_trans_flags`,
+  `check_blocks`, `check_connects`, `check_fills`, `check_for_diagonal`, the corner closing, `Transitions::find_map`'s
+  fractal pick, and `rotate_tex_coords` by `selected_bitcode` with the fractal's quadrant. `texture_fractal` is
+  already `sim::mapgen::Fractal::init(xs + 1, ys + 1, 0, 2, seed)`. Its packet values are `patches.py`'s `frac`,
+  so diff it first. The port's test is `RUN1559B_3279_PACKET_PATCH`: the alpha bucket and the three corner
+  texcoords per patched cell against the packet's 1,399, on the packet's `land_sub`. Then
+  `RUN1559B_3279_GROUND_BLEND` from the rule, and the client's draw. The bar is 395.
+- **4132b. The pass that lays a patch** (§3.6; `docs/FORMATS.md`, "The transition alphas"). `TerrainOut::render`
+  fills the patch streams per (alpha, `landindex`) batch. The texture stage that samples the alpha, the blend
+  state, and the order against the base are unread. The count assumes A weights the patch's base and samples
+  level 0.
+
 
 ## Parked by the next landing, slot FJ — reserved
 
