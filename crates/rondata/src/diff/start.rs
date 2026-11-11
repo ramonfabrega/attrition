@@ -930,7 +930,7 @@ pub fn from_lobby(
                 starts: Some(m.grid.starts.clone()),
                 halfland: Some(m.halfland.clone()),
                 map: int("MAP_STYLE").map(|v| v as i32),
-                seed: Some(game_seed as i32),
+                seed: Some(game_seed),
             });
             // `World::init`'s `seen2`, allocated and zeroed with the
             // world: every reveal the walk makes from here on lands in it
