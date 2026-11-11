@@ -236,7 +236,7 @@ const WORLD: [(usize, usize, usize, usize); WORLD_SECTIONS] = [
     (1, 8, 1, 8),
     (20, 124, 20, 124),
     (2, 8, 2, 8),
-    (1, 120, 0, 0),
+    (1, 120, 1, 120),
     (3600, 75600, 0, 0),
     (4, 158_400, 4, 158_400),
     (1, 3600, 0, 0),
@@ -251,13 +251,13 @@ const WORLD: [(usize, usize, usize, usize); WORLD_SECTIONS] = [
 
 /// **The fields the world line is held out on**, `section range.leaf` with
 /// the count of its elements not agreeing (parting or unheld) on frame 91
-/// (`docs/CHECKSUM.md` §21): `World::analyze_map`'s ten setup tallies; the
-/// fog's `was_seen` and `wcoord_seen`; the collision blocks
-/// (`World::new_coll_block`'s allocation, and the heads and bodies behind
-/// it). The cells' `land_sub` and the masks' bit `0x4` are carried since
-/// item 4136 (`Terrain::object_placed`, `Wall::mark_behind_tiles`).
+/// (`docs/CHECKSUM.md` §21): the fog's `was_seen` and `wcoord_seen`; the
+/// collision blocks (`World::new_coll_block`'s allocation, and the heads
+/// and bodies behind it). The cells' `land_sub` and the masks' bit `0x4`
+/// are carried since item 4136 (`Terrain::object_placed`,
+/// `Wall::mark_behind_tiles`), `World::analyze_map`'s ten setup tallies
+/// since item 4147 (`docs/MAPGEN.md` §36).
 const WORLD_HELD_OUT: &[(&str, usize)] = &[
-    ("04 size..seed.total_metal", 1),
     ("05 cell.was_seen", 3600),
     ("07 wcoord_seen.wcoord_seen", 3600),
     ("09 block.body.bits", 2400),
@@ -360,7 +360,7 @@ fn the_world_line_is_the_original_s_by_section() {
         }
     }
     eprintln!("world: sections whole {whole:?}");
-    assert_eq!(whole, [0, 1, 2, 3, 6, 8, 10, 11, 12, 13, 14]);
+    assert_eq!(whole, [0, 1, 2, 3, 4, 6, 8, 10, 11, 12, 13, 14]);
     if WORLD_HELD_OUT.is_empty() {
         assert_eq!(line.adler(), want, "the world line's Adler");
     } else {
@@ -380,6 +380,8 @@ fn the_world_line_is_the_original_s_by_section() {
         (3, "oil_y.num", -1, "03 oil_y.num.num"),
         (4, "size..seed", -1, "04 size..seed.map"),
         (4, "size..seed", -1, "04 size..seed.seed"),
+        // Item 4147: one of `analyze_map`'s tallies, at its leaf.
+        (4, "size..seed", -1, "04 size..seed.goodies"),
         (5, "cell", 1373, "05 cell.light"),
         // Item 4136: a cell under seat 1's farms, `object_placed`'s, and
         // a tile's mask (the behind bit's own bend is below).
@@ -469,6 +471,14 @@ fn the_world_line_is_the_original_s_by_section() {
     retally(
         &|s| s.territory.players.clear(),
         &["04 size..seed.player_reg", "04 size..seed.resource_reg"],
+    );
+    // The last placed mountain (564 tiles, the top rung's 10) is gone:
+    // `total_metal` 79 -> 69, and nothing the image walks moves with it.
+    retally(
+        &|s| {
+            s.terrain.mountains.pop();
+        },
+        &["04 size..seed.total_metal"],
     );
 
     // **The behind bit itself** (item 4136): tile 19175, `(215, 79)`, which

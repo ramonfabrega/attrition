@@ -512,13 +512,10 @@ impl Sim {
                 h[15 + k] = Some(i64::from(l.colonized[k]));
             }
         }
-        // `World::analyze_map`'s ten, where the setup ran it (§21): the
-        // region and cell tallies so far.
+        // `World::analyze_map`'s ten, where the setup ran it (§21).
         if let Some(t) = w.record().tallies {
             for (k, v) in t.words().into_iter().enumerate() {
-                if k != 5 {
-                    h[18 + k] = Some(i64::from(v));
-                }
+                h[18 + k] = Some(i64::from(v));
             }
         }
         h[28] = Some(i64::from(self.land_size()));
