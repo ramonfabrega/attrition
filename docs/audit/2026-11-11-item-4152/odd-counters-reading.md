@@ -241,7 +241,7 @@ carry `obj_masks` bit 27 was not read (data). `LAB_0067845d` (decompile
 
 | function | site | store | value |
 |---|---|---|---|
-| `SpellType::cast_bribe (00672d00)` | `67306e` (`incl 0xe3ac84(%eax)`, `eax = -0x18(%ebp) = caster_player·0x6eec`, set at `672d81`..`672d8d`) | decompile `:385`–`:386` (`LAB_0067306a`) | `+1` |
+| `SpellType::cast_bribe (00672d00)` | `67306e` (`incl 0xe3ac84(%eax)`, `eax = -0x18(%ebp) = caster_player·0x6eec`, set at `672d81`..`672d8d`) | decompile `:387`–`:388` (`LAB_0067306a`, `:386`) | `+1` |
 | `Leader::reset_score (006e37f0)` | `6e38bf` (`movl %eax, 0x8f4(%ecx)`) | decompile `:48` | 0 |
 
 Export net: `->units_bribed` has no hit at all (not even `log_data`);
@@ -269,7 +269,7 @@ target_id, target_player)`:
 3. Refused when the target object is a unit (vslot `0x18`, a folded
    predicate) and `ObjectData::has_general(target, 0, 0x165 /* THECEO */)`
    is `≥ 0` — the unit is a CEO itself, or stands within its owner's
-   CEO's radius (`has_general (00646b00)` → `HeroesData::find_hero`).
+   CEO's radius (`ObjectData::has_general (00646b00)` → `HeroesData::find_hero`).
 4. A non-unit target (building) goes to the building arm (city
    assimilation via `Cities::capture_city`, or a building's
    `swap_team`): **no count** on any building path, whether it succeeds or
@@ -450,3 +450,19 @@ nuke's target, `Group::action_flight`'s `NUCLEARMISSILE` arm (`can_nuke`;
 a SEAM in the crate), every ejection caller of `come_out`, and whether a
 loaded save restores a `StrafeOrder` on a missile.
 
+## Summary
+
+| leaf | writers | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `repair_stamp` (+0x208) | `Unit::do_repair (005ee420)` `5eea98`; `Leader::init (006e3930)` `6e3e07` | `← frame` when the repairer's player is short of a good the step charges and `frame − stamp > 150`; stamped before the console test, for every player | `Leader::init` → 0 | `orders/jobs.rs` `do_repair_steps` already calls `feedback_stamp`/`set_feedback_stamp`; `SimDoRepair` stubs both (`jobs.rs:2105`–`2110`) | yes | high |
+| `missiles_used` (+0x7c0) | `Ammo::do_damage (00678060)` `67860e`; `Leader::init` `6e3bbc` | +1 for `ammo.who` when a splash round of a missile-bit shooter that is not `is(NUCLEARMISSILE)` lands unshielded | `Leader::init` → 0 | `combat/fight/projectiles.rs` `Sim::land`, after the nuke arm; reader `economy/pricing.rs` `nuke_ramp_extra` (term unmodelled) | yes (Industrial/Modern age) | high (writers), medium-high (ocean ring) |
+| `units_bribed` (+0x8f4) | `SpellType::cast_bribe (00672d00)` `67306e`; `Leader::reset_score (006e37f0)` `6e38bf` | +1 for the caster's player when Bribe takes a **unit** (not a building), before `swap_team` | `reset_score` (from `Leader::init` and `Setup::build_game`) → 0 | already counted (`spells/bribe.rs:42`, `tech.bribes`); not wired to `checksum/leaders.rs`'s value match | yes | high |
+| `nukes_launched` (+0xa38) | `Unit::come_out (00617c10)` `6188fa`; `Leader::init` `6e4a9c` | +1 for the unit's owner when a Nuclear-Missile-line unit comes out holding a `StrafeOrder` with a target (`ox`,`whom` ≠ −1) | `Leader::init` → 0 | `units/garrison.rs:376` `Sim::come_out`, after placement | writer reached; predicate probably never true (ordinary launch is `AIR_ATTACK_GROUND`) | high (code), low-medium (reach) |
+
+Against the README row's writer list (`Ammo::do_damage`, `Unit::do_repair`,
+`cast_bribe`, `Unit::come_out`): **no contradiction**; each is the one
+event writer of its leaf, and both nets find no other. What the row does
+not say: the init/reset writers (`Leader::init` for three,
+`Leader::reset_score` for `units_bribed`), and that `nukes_launched`'s
+writer counts only a targeted `StrafeOrder`, which an ordinary nuke launch
+does not carry.

@@ -204,7 +204,7 @@ register-relative stores and 6 absolute stores (`0xe3ada0`..`0xe3adb4` +
 non-leader bases (`TerrainMap`, `Constants`, `GraphicPieces`, `TileSet`,
 `ConquestSetupWin`, `HotKeyGroupOut`, `ScenarioEditor`, stack frames in
 `ConquestGame::build_units` and `ScenarioFuncSet::add_unit`, and
-`ConsoleWin::run_cmd`'s `0xa18(%ecx)`, whose base was not typed — see §7).
+`ConsoleWin::run_cmd`'s `0xa18(%ecx)`, off the global at `0xc06214` — see §7).
 
 The rule (`track_queued`'s body) is **inlined at seven sites** besides the
 function itself; each copy recomputes the same branch chain from the queued
@@ -345,10 +345,16 @@ meet:
   the shipped data was not checked.
 - **`combat_queued` has no counterpart**: it would be
   `barracks + stable` on the same statements, with its own zero test.
-- The carrier writers: `Unit::process`'s completion and
-  `Group::action_spell`'s BUILDAIR were not located in the crate during this
-  reading (`grep -rn 'num_queued\|BUILDAIR\|0x295' crates/sim/src` is the
-  place to start); `Unit::close`'s `−num_queued` likewise.
+- The carrier writers are in `crates/sim/src/air/carrier_queue.rs`:
+  `Sim::carrier_action_spell` (BUILDAIR, +1 through `track_tree_queued`),
+  `Sim::carrier_queue_tick` (`Unit::process`'s completion, −1 through
+  `untrack_queued`) and `Sim::unit_action_unqueue` (−1). **Not found in the
+  crate**: `Unit::close`'s `track_queued(current FIGHTERBOMBER, −num_queued)`
+  for a carrier that dies with fighters queued, and `gain_tech`'s carrier arm
+  (`−a0` old, `+a0` new); `grep -rn num_queued crates/sim/src` finds no
+  writer of `Unit::num_queued` outside `carrier_queue.rs` and tests. A
+  carrier sunk with queued fighters would leave `air_queued` high in the
+  crate and not in the original.
 
 ### 6. Plain game?
 
@@ -364,12 +370,13 @@ Modern ages. `gain_tech`'s two arms run on every unit-line upgrade. The
 
 ### 7. Confidence and not read
 
-High on the writer set (both nets agree; every store attributed except one)
+High on the writer set (both nets agree; every store attributed)
 and on the rule (listing read for `track_queued`, `queue_up`, `unqueue`; the
 decompile for the rest, whose branch chains are byte-identical in shape).
-Not attributed: `ConsoleWin::run_cmd (007d6a70)`'s
-`movl %eax, 0xa18(%ecx)` at `7da495` — its base was not typed; a console
-command is not a plain-game path either way. Not read: `Build::do_queue`'s
+`ConsoleWin::run_cmd (007d6a70)`'s `movl %eax, 0xa18(%ecx)` at `7da495`
+loads `ecx` from the global at `0xc06214` (the same base
+`ConsoleWin::tell_behind` reads `0xa18` from), not from the leaders array:
+not a writer. Every store in the net is therefore attributed. Not read: `Build::do_queue`'s
 two `+0x1c8` call sites line by line (I take them as the completion path
 from their placement after `train_time`); `Build::train`'s
 `Unit::action_unqueue(1)` on a newly trained carrier (if the new carrier's

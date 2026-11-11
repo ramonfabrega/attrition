@@ -201,8 +201,9 @@ adds; the mark itself has nowhere to live. A builder would add a
 `SupplyList`-style registry opened in `Sim::activate`
 (`crates/sim/src/cities/city.rs:2420`) and closed in `Sim::close_building`
 (`crates/sim/src/cities/city.rs:2782`). Note the close gate also needs
-`is_gather_type`, which both well types satisfy in the shipped tree (not
-checked here).
+`is_gather_type`; `docs/CITIES.md` §1.5's `build_flags` table gives bit
+`0x40` (`g`, type slot `+0x90`) to the oil well and platform, so both
+close (that table's claim, not re-derived here).
 
 ### 6. Plain game?
 
@@ -211,9 +212,10 @@ and when one is destroyed.
 
 ### 7. Confidence, not read
 
-High for the rule (both nets agree). Not read: whether `is_gather_type`
-can be false for an oil well type (it would leave a stale entry and a
-mark that never trims); the `OilWell` struct's other fields.
+High for the rule (both nets agree). Not read: `is_gather_type`'s body
+(taken from `docs/CITIES.md` §1.5; were it false for a well type, its
+entry would stay live and the mark would never trim); the `OilWell`
+struct's other fields.
 
 ## Leaf `supply_mark` (+0x434)
 
@@ -294,4 +296,176 @@ killed.
 High for the rule. Not read: whether `Unit::set_type` ever changes a
 unit between supply and non-supply types in a plain game (it would need a
 lineage that crosses the `0x40` flag); the version gate's exact semantics.
+
+## Leaf `wonders_built` (+0x854)
+
+**What it is.** A count of wonder activations credited to the player since
+the last score reset. Not a count of standing wonders, and not the crate's
+`Cities::wonders_built` (`crates/sim/src/cities.rs:63`), which is
+`Game::wonders` (`Game +0x618`), a per-wonder-type bitmask — **a name
+collision a builder must not merge**.
+
+### 1. Writers
+
+| writer | site (listing) | store |
+|---|---|---|
+| `Build::activate (00623e20)` | `00625b4b` `incl 0xe3abe4(%eax)`, `eax = owner·0x6eec` | +1 |
+| `Leader::reset_score (006e37f0)` | `006e3883` `mov %eax,0x854(%ecx)` | `= 0` |
+| `Leaders::clear (006ed5d0)` | memset | `= 0` |
+
+### 2. Event, step, predicate
+
+- **+1 per `Build::activate` of a building whose `is_wonder` answers**
+  (listing `00625ac4..00625aff`): on the Build's own vtable (`0xb42174`)
+  and the type's own `TypeData::is_wonder_type (00470780)` (type vtable
+  `0xb42b94`, slot `+0x1c`), the test is **type index in `[0x20e, 0x21e]`**
+  (PYRAMIDS .. SPACEPROGRAM; the listing compares `jl 0x20e` / `jl 0x21f`);
+  otherwise the Build's vslot `+0x2c` (`BuildData::is_wonder`) answers.
+  Indexed by the building's owner byte (`Build +0x9`).
+- Order in the arm: `JukeBox` mood (console player only),
+  `UnbuiltWonders::remove_unbuilt_wonder (0073c220)`, **then** the
+  increment, then `Wonders::init_wonder`.
+- **No `captured`, `announce` or `counted` gate**, and `Build::activate`
+  has no return before this arm (every path reaches `LAB_00625a45`). So it
+  counts every activation route of a wonder, read from the `+0x1a8`
+  call sites in the listing (16 direct `call *0x1a8(%reg)` sites; a
+  vslot load-then-call search adds only CtW, the cheat console and
+  `UnitBalance`):
+  - `Wall::do_construct` `(0,1,1)`: built.
+  - `Cities::capture_city (00733380)` `(1,1,0)`: an active member of a
+    captured city whose type lacks `build_flags & 0x2000` is
+    `swap_team`ed and activated (decompile line 259 the flag test, 305
+    the call). **If a wonder type lacks `0x2000`, capturing a city with a
+    standing wonder credits the captor `wonders_built += 1`.** The
+    wonders' `build_flags` were not read here.
+  - `City::find_buildings (007384c0)` `(0,1,0)`, `Leader::defeat_by
+    (006d1c80)` `(0,1,0)`, `Build::check_capture (006276a0)` `(0,1,0)`,
+    `SpellType::cast_bribe (00672d00)` `(0,1,0)` (args read from the
+    listing pushes at `007388a8`, `006d20ec`, `006734e2`): transfers.
+    Whether each can carry a wonder was not followed.
+  - `Leader::produce_building (006e1400)` `(0, arg, 0)`,
+    `Console::hurry_action` `(0,1,1)`, `Setup::build_cities` `(0,0,0)`,
+    scenario load and editor `(0,0,0)`.
+- Units: a count of events.
+
+### 3. Reset
+
+`Leader::reset_score` zeroes it. Its callers (listing): `Leader::init`
+(line 140, **before** the tribe < 0 early return, so on every init) and
+`Setup::build_game` (`005ad1e7`, a loop over every slot with
+`leader_flags & 1`, after the per-slot `Leader::init` at `005acef7` and
+**before** `Setup::build_empire`'s calls at `005ad40b`/`005ad4d2`, which
+place the starting cities and units — so starting objects activated by
+`build_empire` are counted). `Leaders::clear` memsets it.
+
+### 4. Readers
+
+- `BuildData::construct_time (0062d5c0)` (listing `0062d646` `cmpl
+  %eax,0x854(%esi)`, `esi = leadersc + owner·0x6eec`): **decision-
+  changing**. For a wonder, an owner with tribe bonus `0x14` that holds no
+  wonder (`LeaderData::get_wonders == 0`) and has `wonders_built == 0`,
+  and a type other than SUPERCOLLIDER (`0x21d`) and SPACEPROGRAM
+  (`0x21e`), takes the arm that the crate calls `american_free_wonder`.
+- The checksum (`LeaderData::walk_data`, `[+0x8, +0x692a)`, the slots
+  walked whole).
+- No other reader in either net. Register-relative `cmpl $0x0,0x854(%eax)`
+  in `Build::plunder`, `Object::disband` and `0x858` in `Leader::gain_tech`
+  read off `*(0xc061f0)` (constants), not a leader.
+
+### 5. Crate site
+
+The crate has no counter. The activation is `Sim::activate`
+(`crates/sim/src/cities/city.rs:2420`), but the crate's wonder-list writes
+are not done there: `Sim::note_wonders` (`crates/sim/src/ai/ai_census.rs:1276`,
+called from `crates/sim/src/core/frame.rs:443`) derives `init_wonder` from
+the buildings at the objects pass's end and states "a capture is not
+read". The one reader, `Sim::american_free_wonder`
+(`crates/sim/src/cities/city.rs:1827`), stands in for `wonders_built == 0`
+with the census's `wonder_mark` at zero, a proxy. A builder adds the
+counter in `Sim::activate`'s non-city tail beside the wonder test,
+incremented for **every** activation (captured included), and zeroes it
+where the crate's setup corresponds to `reset_score` (the crate has no
+`reset_score`; `crates/sim/src/setup.rs` has no such step).
+
+### 6. Plain game?
+
+Yes for construction. Capture of a city holding a wonder is a plain-game
+event; whether it reaches this arm depends on the wonder types'
+`build_flags & 0x2000` (not read).
+
+### 7. Confidence, not read
+
+High for the increment and its missing gate (listing read instruction by
+instruction from `00625a45` to `00625b5b`). Not read: wonder types'
+`build_flags`; whether `find_buildings`/`defeat_by`/`bribe` can hand over
+a wonder; `BuildData::is_wonder`'s body for a non-Build vtable.
+
+## Leaf `wonders_held` (+0x858)
+
+**What it is.** The most wonders the player has held **at once**, sampled
+only at a wonder's activation: a high-water mark, never lowered by a
+wonder's loss. Not the current count.
+
+### 1. Writers
+
+| writer | site (listing) | store |
+|---|---|---|
+| `Wonders::init_wonder (0073c860)` | `0073ca1f` `mov %ecx,0xe3abe8(%ebx)` (after the read at `0073ca11`) | `= max(wonders_held, live)` |
+| `Leader::reset_score (006e37f0)` | `006e3889` `mov %eax,0x858(%ecx)` | `= 0` |
+| `Leaders::clear (006ed5d0)` | memset | `= 0` |
+
+`Wonders::close_wonder (0073c7e0)` does not write it (its only `+0x8xx`
+access is none; it writes `wonder_mark` +0x424 only).
+
+### 2. Event, step, predicate
+
+- **`init_wonder(who, o)`**, called once per wonder activation (listing:
+  one `call 0x73c860`, `00625b5b`, in `Build::activate` right after the
+  `wonders_built` increment, same predicate: `is_wonder`, no captured
+  gate). It places the wonder in `wonders.lists[who]` by the same
+  first-free / tail / append rule as the other registries (raising
+  `wonder_mark`, +0x424), fills the entry (`who`, index, `o`, the frame,
+  live = 1, `Wonder::get_timer`), sets `Game::wonders[type] |= 1`, then
+  **counts the live entries in `[0, wonder_mark)`** (live bit at
+  `Wonder +0xc` bit 0) — the new one included — and stores
+  `wonders_held = max(wonders_held, that count)`.
+- Step: 0 or +1 per activation in practice (the live count can exceed
+  the old maximum by at most the one just added); it can stay put when an
+  earlier wonder was lost and this one only restores the count.
+- Indexed by `who` (`param_1`, the owner byte).
+
+### 3. Reset
+
+`Leader::reset_score` (from `Leader::init` on every init and from
+`Setup::build_game` per live slot before `build_empire`), `Leaders::clear`.
+
+### 4. Readers
+
+`AchieveChartPane::set_chart_data (007f2c40)` (line 233, listing
+`007f31d4` `pushl 0x858(%esi,%eax)`): the end-game achievements chart, UI
+only. The checksum walk. **No sim decision reads it.** (`TerrainOut::render`'s
+`field_0x858` is a `TerrainOut` field.)
+
+### 5. Crate site
+
+None. The crate's `Sim::wonders_held` (`crates/sim/src/economy/holdings.rs:572`)
+is a different thing: a bitmask of wonder types standing, which the crate
+reads for every wonder effect. The natural site is `Sim::note_wonders`
+(`crates/sim/src/ai/ai_census.rs:1276`), which already reproduces
+`init_wonder`'s slot choice per leader: after each insertion, count the
+`Some` entries under `wonder_mark` and keep the maximum. Its own caveats
+apply: it runs at the objects pass's end, in building order, and does not
+read a capture.
+
+### 6. Plain game?
+
+Yes, whenever a player finishes (or, subject to the capture question
+under `wonders_built`, takes) a wonder.
+
+### 7. Confidence, not read
+
+High (decompile and listing agree; one writer besides the resets). Not
+read: `Wonder::get_timer`; whether any path sets a `Wonder` entry live
+other than `init_wonder` (none found by the `+0xc` store grep, which was
+not run — only the leaf's own nets were).
 

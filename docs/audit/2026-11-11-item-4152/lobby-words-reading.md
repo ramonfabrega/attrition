@@ -391,9 +391,11 @@ seated slot 0..7.
 occupied slot 0..7, the person's included — `init_handicaps`' solo arm
 writes it without testing who is human; the crate's default `Lobby` has
 `difficulty: 0` (`crates/sim/src/ai.rs`, `impl Default for Lobby`), so 0.
-Slots 8 and 9 stay 0. The kept dumps agree: of 1,141 dumps that print a
-leader record, every one prints `multi_diff` as only 0 and its own
-`DIFFICULTY` (448 at 5, 135 at 4, 144 at 3, 35 at 2, 18 at 1, 344 at 0),
+Slots 8 and 9 stay 0. The kept dumps agree: of the 1,125 dumps whose
+first eight `multi_diff` lines were sampled, the 1,124 with a `DIFFICULTY`
+line print only 0 and that `DIFFICULTY` (448 at 5, 135 at 4, 144 at 3, 35
+at 2, 18 at 1, 344 at 0; the one without, run599's early probe, prints 0
+and 5),
 and run1313 (`DIFFICULTY 5`) prints 5 for `who 0` (the person) and `who 1`,
 0 for `who 8` and `who 9`. No solo reader consumes it: with
 `semaphore[0] & 4` and `semaphore[1] & 0x10` both clear, every `get_diff`
@@ -403,10 +405,28 @@ copy takes the lobby byte. Frozen after `init_handicaps`.
 
 High for the writer list (both nets, plus the `->name` net's
 `field_0x50` hits, agree; `set_diff` and `Leader::Leader` have no direct
-caller). High for the solo value (a dump-backed observation across 1,141
+caller). High for the solo value (a dump-backed observation across 1,124
 captures, though no diff in the crate pins it). Not read: what
 `semaphore[3] & 4` (bit 26) is — it lets a scenario take the
 per-player `diff` and lets `load_leader_chunk` and `load_leaders_chunk`
 skip their stores; the meaning of `Player.flags` bits 4, 6, 7, 8 in
 `process_drop`; and the 13 inlined `get_diff` copies not re-read.
 
+## Scan note: what the kept dumps say
+
+A one-off grep over the 2,566 `gamelog-*.txt` files in the oracle's `Logs`
+directory, the first eight `handicap` and `multi_diff` lines and the first
+`DIFFICULTY` and `CANNON_TIMES` lines of each (2026-11-11): 1,194 files
+print a leader record's `handicap`, and every one prints only 0; 1,193
+carry `CANNON_TIMES 0` (one has no such line); `multi_diff` as above.
+`cannon_time` is not printed by `LeaderData::log_data`, so no dump shows
+it; the 0 rests on `CANNON_TIMES 0` and row 0's `DATA` 0. This is an
+observation, not a diff: nothing in `rondata::diff` compares these leaves.
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `cannon_time` +0x48 | `Leader::init (006e3930)` (lobby row; memset when `tribe < 0`); `TurnControl::start_cannon_time (00956500)` (−1); `Leaders::clear (006ed5d0)` (memset); `LeaderData::walk_data (006d6750)` on load | = `cannon_times[CANNON_TIMES].DATA` (0, 1, 2, 4, 8) at every `Leader::init`; −1 per accepted command 0x4d when `cannon_time != 0` and nobody is in cannon time | `Leader::init` memset + lobby store; `Leaders::clear` at game end | none; add a `"cannon_time"` arm to `Sim::leader_long` (`crates/sim/src/checksum/leaders.rs:949`) and `CANNON_TIMES` to `ai::Lobby` | yes, frozen at **0**; the decrement's only issuer `CommandManager::issue_cannon_time (00941260)` needs `semaphore[0] & 4` (multiplayer) | high |
+| `handicap` +0x4c | `Game::init_handicaps (0058abf0)`; `ScenarioRead::load_leader_chunk (009ac080)` (×3); memsets; `walk_data` on load | once at start: the shortfall of a leader's summed human lobby handicap from the largest, halved with the enemy-over-own gap when it has human teammates, clamped 0..20, ÷ max(1, num_teams − 1) | memsets | none (`Holdings::handicap` is another field); start computation beside `Sim::sync_setup_from_lobby` (`crates/sim/src/setup.rs:209`), arm in `Sim::leader_long` | yes, **0** (every dump); every consumer (`get_handicap`'s three callers) is behind `semaphore[0] & 4` | high (writers), medium-high (team arm of pass 1) |
+| `multi_diff` +0x50 | `Game::init_handicaps (0058abf0)`; `Leader::Leader (006d2bf0)` (2); `DropControl::process_drop (00959500)` (3); `ScenarioRead::load_leader_chunk (009ac080)`; `ScenarioEditor::change_difficulty (0099bc00)`; `IFaceEditorNations::on_combobox_select (009897d0)`; `ScenarioFuncSet::set_leader_difficulty (009e5350)`; `Leader::set_diff (006d2470)` (no caller found); memsets; `walk_data` | once at start: lobby `difficulty` in solo; the slot's AI players' largest `Player.diff` (else 2) in multiplayer or under `semaphore[3] & 4`; untouched in a scenario. 3 when a lone human drops (MP) | memsets | `Sim::ai_difficulty` (`crates/sim/src/ai/ai_types.rs:137`) is `get_diff`'s solo arm; add a `"multi_diff"` arm to `Sim::leader_long` = `lobby.difficulty` per seated slot 0..7 | yes, frozen at the lobby **difficulty** (0 under the crate's default `Lobby`), slots 8–9 at 0; no solo `get_diff` copy reads it | high |

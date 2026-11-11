@@ -239,3 +239,157 @@ read leader is the **target `t`**, as in `list[t].dow[me]` or
     which I identified only by address and weight shape;
   - `Leader::pay_dow`'s internals, which are a cost and not this family.
 
+## `broke_alliance` (+0x2b0, int[8])
+
+### Writers
+
+- **`Leader::action_declare (006dab50)`** at `6dad7f`:
+  `movl frame, 0x2b0(%esi,%edi,4)`, with `esi` = `this` and `edi` = target.
+  This is the only runtime store. The absolute range `0xe3a640..0xe3a65f`
+  has no store anywhere; its four hits are reads at `5e161c`, `5e162c`,
+  `5e164b` and `6dab9d`.
+- **Zeroed by `Leader::init`** (`puVar23[0x77]`, `0xd4 + 0x77·4 = 0x2b0`,
+  line 236) and by **`Leaders::clear`**'s memset.
+- **Not leader stores:** the `0x2b4`–`0x2c8` hits in `Leaders::clear`,
+  `plan_strategy` and `create_units`. Those are `Diplomacy`, `UnitType` and
+  `BuildType` words: their bases come from pointer loads, not from a
+  leader slot.
+
+### Event, step, predicate
+
+- `broke_alliance[t] = game.frame` (in frames) when `action_declare` finds
+  the pair **still allied** just before its `set_diplo`, that is, when the
+  call breaks an alliance.
+- It is written **whether `free` is 0 or 1**. The store sits after the
+  counting block's skip target `6dad68`, so computers stamp it too.
+- **Callers that reach it:**
+  - `Leader::diplomacy`'s `action_declare(t, 1, 1, 0)` at lines 1501 and
+    1507, the computer breaking an alliance;
+  - any `state == 0` declaration on an ally, which is turned into
+    `state = 1` (see `dow`);
+  - the human's Declare button on an ally;
+  - `ScenarioFuncSet::declare_war`.
+- Only the declarer's own slot `[t]` is written; `list[t].broke_alliance[me]`
+  is not.
+
+### Readers
+
+All of them compare `frame − max(mine[t], theirs[me])` with
+`ALLY_TO_WAR_DELAY`.
+
+- **`action_declare` (`6dab8d`–`6dabc5`)** refuses a war while the window
+  is open.
+- **`Unit::process_attrition (005e11a0)`**, decompile lines 164–168: the
+  "recently broke the alliance" grace in which the border does not bite.
+- **`Options::do_declare_war (007216b0)`** lines 223–232: the console
+  refusal text.
+- **`IFaceMainBase::draw_timers (0080b060)`** lines 761–775: the on-screen
+  countdown.
+- **On shipped data the delay is −1, so no reader can change an outcome.**
+  The leaf is write-only in effect, as
+  `crates/sim/src/territory/attrition.rs:431–435` already states for the
+  attrition reader.
+
+### Reset
+
+`Leader::init` and `Leaders::clear` only. No per-frame fold.
+
+### Crate
+
+- No event. The alliance break would be the same new `action_declare`
+  beside `Sim::set_diplo` (`crates/sim/src/leaders/relations.rs:116`).
+- The crate's `set_diplo` level 1 (`relations.rs:131–134`) is the
+  console's peace verb, not a declaration, so the stamp belongs on the
+  declare path only.
+- The allied arm of `Leader::diplomacy` that calls the break is a SEAM at
+  `crates/sim/src/leaders/diplomacy.rs:389–392`.
+
+### Reached by a plain game?
+
+- **Yes**, whenever an alliance is broken in a skirmish. For a computer
+  that is the allied arm of `diplomacy`; for a human, the Declare button
+  on an ally.
+- Locked teams (style 1) start allies on the same team, and whether the
+  allied arm's break can fire under a locked style was not read; see
+  below. An unlocked style (0, 8 or 11), with alliances made in game,
+  reaches it.
+
+### Confidence and what is not read
+
+- **High** for the store and its predicate.
+- **Not read:** whether the allied arm (decompile lines 1495–1511) is
+  reachable under `TEAM_STYLE 1` between same-team computers. Its guards
+  were not followed.
+
+## `made_peace` (+0x2d0, int[8])
+
+### Writers
+
+- **`Leader::action_respond (006d03c0)`** at `6d108d` and `6d10a0`:
+  `list[me].made_peace[p] = frame` and `list[p].made_peace[me] = frame`,
+  where `me` = `this->who` and `p` = `param_1`. These are the only runtime
+  stores. The absolute range `0xe3a660..0xe3a67f` has these two stores
+  plus reads at `5e1697` and `5e16d0`.
+- **Zeroed by `Leader::init`** (`puVar23[0x7f]`, `0xd4 + 0x7f·4 = 0x2d0`)
+  and by **`Leaders::clear`**.
+- The `0x2d8`–`0x2ec` hits off registers in `create_buildings` and the
+  like are `BuildType` and `UnitType` fields.
+
+### Event, step, predicate
+
+- **The event is the deal-execution tail** of `action_respond` (from
+  `LAB_006d0df9`, decompile lines 369–470).
+- The deal's treaty term is `list[me].dip[p].treaty`, at
+  `0xe40cc4 + me·0x6eec + p·0x5c`, i.e. `+0x6934`. Both sides are moved
+  to `max(term, current)` by two `set_diplo` calls.
+- **Then, if the term equals 1 exactly** (`cmpl $1,-0x24(%ebp)` at
+  `6d1072`), both sides' `made_peace` are stamped with the frame.
+- **The stamp tests the proposed term, not the outcome.** Because of the
+  `max`, a peace term accepted between two allies leaves them allied and
+  still stamps `made_peace`. A term of −1 (no treaty) skips the whole
+  block (`6d1016`).
+- I read the entry gating into the execution tail only in outline. It
+  needs `param_2 == 1` (agree) and depends on the `Diplomacy` records'
+  `agree` words (lines 74–80, 247–250 and 362–368). Within that reading,
+  a pure gift executes at once, and a deal with a treaty or attack term
+  executes once the other side's agreement is present.
+
+### Readers
+
+- **`Unit::process_attrition`** lines 171–174 is the only one: the same
+  `ALLY_TO_WAR_DELAY` window, after peace.
+- Inert on shipped data (delay −1).
+
+### Reset
+
+`Leader::init` and `Leaders::clear`.
+
+### Crate
+
+- No event. The crate has no `Diplomacy` record, no proposals and no
+  `action_respond`.
+- `Leader::diplomacy`'s offers arm, which calls `action_respond`, stops at
+  the SEAMs at `crates/sim/src/leaders/diplomacy.rs:480–495`
+  (`dip[t].agree` never 1; the offers arm and the at-war arm unported).
+- A builder would add the stamp to a new `Sim::action_respond` in
+  `crates/sim/src/leaders/` once proposals exist.
+
+### Reached by a plain game?
+
+- **Yes in principle**: a peace treaty accepted in a skirmish, between a
+  human and a computer through the diplomacy window, or between computers
+  through `diplomacy`'s offers.
+- It needs a war between leaders that can make peace, which means an
+  unlocked team style. Whether locked style 1 lets a peace term through
+  was not read.
+- It also runs under the scenario layer
+  (`ScenarioFuncSet::offer_peace (009fc1f0)` and `accept_offer
+  (009fc410)`) and from `CommandPackage::process_accept (00946fb0)`.
+
+### Confidence and what is not read
+
+- **High** for the two stores and the `== 1` predicate (listing).
+- **Medium** for the entry gating into the execution tail.
+- **Not followed:** `Diplomacy::clear_all`'s callers, and
+  `Leader::process_taunt (006b8cc0)`'s call to `action_respond`.
+
