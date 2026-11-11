@@ -1168,6 +1168,9 @@ impl Sim {
                 self.units[u]
                     .movement
                     .set_heading(find_angle(centre.x - here.x, centre.y - here.y));
+                // The hold doober, between the facing and the animation
+                // (`do_non_flat_gather:212`–`:256`, `docs/ORDERS.md` §6.12).
+                self.add_hold_doober(u);
                 let work = if wood {
                     crate::units::anim::CHOP_WOOD
                 } else {
@@ -1208,6 +1211,11 @@ impl Sim {
                     g.wait = -1;
                     if g.dist_mod > 0 {
                         g.dist_mod -= 1;
+                    }
+                    // `:296`–`:301`, `:319`–`:324`, `:342`–`:347`: a
+                    // worker's hold doober goes with the tile.
+                    if self.is_worker(u) {
+                        self.remove_hold_doober(u);
                     }
                 }
             }

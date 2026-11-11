@@ -7,6 +7,76 @@ impl Sim {
     // Building a group (§3, §4)
     // ------------------------------------------------------------------
 
+    /// **`CommandPackage::process_group@0094a0c0`'s write of
+    /// `UnitData::play`** (`docs/ORDERS.md` §8.1, item 4113): for each
+    /// object a player's `group` command lists that is alive, the object is
+    /// recorded with its `uid` as the selection a later `num = 0` command
+    /// repeats; and when it is a unit, `play` is written on it and down its
+    /// `o_down` chain — every figure behind a captain. A unit number at or
+    /// past the band's mark is the original's error report, and is skipped.
+    /// Returns the recorded `(o, uid)` list (`last_objects_received`,
+    /// `last_uids_received`).
+    pub(crate) fn process_group_play(
+        &mut self,
+        who: Player,
+        play: i8,
+        objects: &[i16],
+    ) -> Vec<(i16, u16)> {
+        let mut received = Vec::new();
+        for &o in objects {
+            if o >= crate::units::unit::BUILD_BASE {
+                if let Some(b) = self
+                    .buildings
+                    .iter()
+                    .position(|b| b.owner == who && b.index == o && b.alive)
+                {
+                    received.push((o, self.buildings[b].uid));
+                }
+                continue;
+            }
+            if let Some(u) = self.unit_by_o(who, o) {
+                received.push((o, self.units[u].uid));
+                self.write_play_down(u, play);
+            }
+        }
+        received
+    }
+
+    /// `process_group`'s `num = 0` arm: the last list it recorded for this
+    /// player, each object still alive **with the uid it had** re-added,
+    /// and a unit's `play` written down its chain again.
+    pub(crate) fn process_group_play_repeat(
+        &mut self,
+        who: Player,
+        play: i8,
+        received: &[(i16, u16)],
+    ) {
+        for &(o, uid) in received {
+            if o >= crate::units::unit::BUILD_BASE {
+                continue;
+            }
+            if let Some(u) = self.unit_by_o(who, o)
+                && self.units[u].uid == uid
+            {
+                self.write_play_down(u, play);
+            }
+        }
+    }
+
+    /// `+0xb6 = play` on `u` and on each unit down its `o_down` chain.
+    fn write_play_down(&mut self, u: usize, play: i8) {
+        let mut at = Some(u);
+        let mut steps = 0;
+        while let Some(x) = at {
+            self.units[x].play = play;
+            at = self.units[x].o_down;
+            steps += 1;
+            if steps > self.units.len() {
+                break;
+            }
+        }
+    }
+
     /// The army's one group (`docs/ARMY.md` §3.2).
     pub fn army_group(&self, who: Player, slot: usize) -> Group {
         Group {

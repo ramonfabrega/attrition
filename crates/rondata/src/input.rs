@@ -1402,6 +1402,9 @@ pub struct Stream {
     input: Vec<Input>,
     next: usize,
     selection: Vec<Vec<i16>>,
+    /// Per player, the objects and uids the last non-empty `group` recorded
+    /// (`CommandPackage::last_objects_received`, `last_uids_received`).
+    received: Vec<Vec<(i16, u16)>>,
     pump: bool,
 }
 
@@ -1411,6 +1414,7 @@ impl Stream {
             input: input(rec),
             next: 0,
             selection: vec![Vec::new(); 8],
+            received: vec![Vec::new(); 8],
             pump: false,
         }
     }
@@ -1482,6 +1486,29 @@ impl Stream {
                 }
                 if !objects.is_empty() {
                     self.selection[slot] = objects.clone();
+                }
+                // `process_group@0094a0c0`'s `UnitData::play` write, for
+                // the issuing player's own units — a package whose `who` is
+                // not its player's does nothing (`docs/ORDERS.md` §8.1).
+                // This module's convention, a package's `play` as its
+                // leader, is the team test here as in
+                // [`Stream::selected_units`].
+                if i32::from(*who) == it.play
+                    && let Ok(play) = i8::try_from(it.play)
+                {
+                    let player = *who as sim::Player;
+                    if objects.is_empty() {
+                        let last = self.received[slot].clone();
+                        built
+                            .sim
+                            .command()
+                            .process_group_play_repeat(player, play, &last);
+                    } else {
+                        self.received[slot] = built
+                            .sim
+                            .command()
+                            .process_group_play(player, play, objects);
+                    }
                 }
             }
 

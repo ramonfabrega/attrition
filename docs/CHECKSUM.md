@@ -18,7 +18,8 @@ on those two frames (§4). The first state line ported, items, agrees
 byte for byte on run 1562's frame (§11), and so does the second, cities
 (§12), and so does the third, goods (§13, item 4093), once the built
 start runs setup's goods scan. ~~Goods is held out on one byte, good 15's
-`ever_seen` (§13).~~ What
+`ever_seen` (§13).~~ Builds (§15), guys (§16) and units (§18, item 4113)
+agree byte for byte too. What
 rests on a reading alone is listed in §10.
 
 ## 1. What the checksum is
@@ -262,7 +263,7 @@ and are named last; by bytes:
 (792; ported, §13) ·
 4. builds (4,923; ported, §14, §15) · 5. guys (9,308; ported, §16) ·
 6. units (19,642; it walks the
-guys again; held out on three fields, §17) · 7. groups (37,010) · 8. leaders (58,343) ·
+guys again; ~~held out on three fields, §17~~ ported, §17, §18) · 7. groups (37,010) · 8. leaders (58,343) ·
 9. world (294,769) · then walls, ammo and deaths (0 each), counted on a
 frame that holds one.
 
@@ -295,7 +296,7 @@ item 4060's was run1100, 5408, 3502) and `CHECKSUM_STATE` (the state
 lines our simulation emits equal to the original's, of twelve, and the
 bytes of the twelve walks ours reproduces, of 425,499 on that frame):
 
-    Checksum: instrument 15 of 15 lines (run1562 f91) · state 5 of 12 lines, 15,735 of 425,499 bytes
+    Checksum: instrument 15 of 15 lines (run1562 f91) · state 6 of 12 lines, 35,377 of 425,499 bytes
 
 Item 4088 moved it from `instrument 15 of 15 lines (run1100 f5408) ·
 state 0 of 12 lines, 0 of 501,543 bytes`: the pair moved to the minted
@@ -313,7 +314,8 @@ moved it from `state 4 of 12 lines, 6,427 of 425,499 bytes`: guys is
 ported, every byte (§16). Item 4109 left it at `state 5 of 12 lines,
 15,735 of 425,499 bytes`: units is held out on three fields of six units,
 1,078 of its 1,084 ranges and 18,976 of its 19,642 bytes agreeing, which
-`CHECKSUM_STATE` does not count (§17).
+`CHECKSUM_STATE` does not count (§17). Item 4113 moved it from `state 5
+of 12 lines, 15,735 of 425,499 bytes`: units is ported, every byte (§18).
 
 `floors::tests::the_handoff_s_checksum_line_is_the_pinned_counter` holds
 the queue's line against it. `checksum::tests::the_instrument_reproduces_the_printed_record`
@@ -588,8 +590,9 @@ on either frame read), and `say_checksum`'s labels beyond the fifteen.
   and a unit's collision and path-finding state (~~a unit's~~ *for units*,
   item 4109, §17: no walked range holds the path-finding trees, which
   start at `+0x100`; two fields were not held and are carried now, `uid`
-  and the birth cell `los_x`/`los_y`; and three stand unheld, holding the
-  line out — `play`, the `+0x86` union of a special or a woodcutter, and
+  and the birth cell `los_x`/`los_y`; and three ~~stand unheld, holding the
+  line out~~ stood unheld, holding the line out until item 4113 (§18) —
+  `play`, the `+0x86` union of a special or a woodcutter, and
   `unit_masks & 0x8`). *For builds* (item 4094,
   §14): three fields were not held and are carried now (`uid`,
   `frame_started`, `build_masks & 0x400`); `WallData::gpiece` is art the
@@ -1352,7 +1355,7 @@ this frame: the writers above, the gaia piece arm, the domain arms of
   original runs it, and the converse.
 - Owner 9's figures (none on either frame).
 
-## 17. The units line, held out on three fields (item 4109)
+## 17. The units line, held out on three fields (item 4109; whole since item 4113, §18)
 
 **1,078 of 1,084 ranges and 18,976 of 19,642 bytes agree** on run 1562's
 frame 91 — all 52 units, their 4 path nodes and 13 orders, the 54 figures
@@ -1431,13 +1434,14 @@ leaves `0x55555555` there. Ours had the animal's own point, its facing and
 4 — `8/0` (17448, 26616), 835132528, 4 against (17304, 26520),
 1431655765, 0.
 
-**What holds the line out** — each named in the test with its count:
+~~**What holds the line out** — each named in the test with its count:~~
+**What held the line out** until item 4113, each carried there (§18):
 
 | field | units | ours \| theirs | writers | what it would take |
 |---|---|---|---|---|
-| `play` (`+0xb6`) | 2 | −1 \| 0 on `0/0`, `0/1` | `Unit::init` (−1); `SelectGroup::add`, the tutorial, the console | the interface's selection groups, which the simulation does not keep |
-| `+0x86` (`hero`, `cara`, `doober`, `special`, `herd`) | 4 | −1 \| 0 on the scouts `0/0`, `1/0`; 0 on `0/2`, 2 on `1/2` | `Unit::init` (`Specials::init_special`, `Heroes::init_hero`, `Caravans::init_caravan`), `Unit::do_non_flat_gather`, `Unit::do_move`, `Unit::close` | the specials' table and the doobers' slots, neither read |
-| `unit_masks & 0x8` | 6 | clear \| set on all six | `Unit::do_move` (sets twice, clears twice), `Unit::find_path` (sets), `Unit::move_step`, `Unit::go_around_building` (clear) | the movement step's own "a waypoint is out" bit, at six sites |
+| `play` (`+0xb6`) | 2 | −1 \| 0 on `0/0`, `0/1` | `Unit::init` (−1); ~~`SelectGroup::add`, the tutorial, the console~~ `CommandPackage::process_group` (§18) | ~~the interface's selection groups, which the simulation does not keep~~ the `group` command's write, `docs/ORDERS.md` §8.1 |
+| `+0x86` (`hero`, `cara`, `doober`, `special`, `herd`) | 4 | −1 \| 0 on the scouts `0/0`, `1/0`; 0 on `0/2`, 2 on `1/2` | `Unit::init` (`Specials::init_special`, `Heroes::init_hero`, `Caravans::init_caravan`), `Unit::do_non_flat_gather`, `Unit::do_move`, `Unit::close` | ~~the specials' table and the doobers' slots, neither read~~ read and carried: `docs/SCOUT.md` §16, `docs/ORDERS.md` §6.12 |
+| `unit_masks & 0x8` | 6 | clear \| set on all six | `Unit::do_move` (sets twice, clears twice), `Unit::find_path` (sets), `Unit::move_step`, `Unit::go_around_building` (clear) | ~~the movement step's own "a waypoint is out" bit, at six sites~~ `Unit::line_ok`, which the crate already kept |
 
 **Made to fail**: the first image itself (88 ranges, the rules above
 absent); in the test, one byte of each of the 24 kinds of range that agree,
@@ -1467,5 +1471,64 @@ that diff on this frame: `los_x`'s one writer, the animal's overrides,
   `TRADE_ROUTE`'s walker and every order kind but a move, a `BUILD_AT` and a
   `GATHER` (their type and node byte alone are emitted); `flags & 0x8`
   (run1100's); `unit_masks & 0x200000` (`Unit::init`'s `can_carry(AIR)`)
-  and the bits not listed; `myarmor`'s cache timing and the cattle
+  and the bits not listed (§18 names which agree by rule); `myarmor`'s cache timing and the cattle
   citizens' term; `los_x` of a unit the harness seats from a dump.
+
+## 18. The units line, whole (item 4113)
+
+**The line is the original's on run 1562's frame 91**: 1,084 of 1,084
+ranges, 19,642 of 19,642 bytes, every field of the 52 units, their paths,
+orders and figures and the forty animals' records, and the Adler
+**27230589**, the printed `Units`, with no substitution.
+`diff::checksum_lines::the_units_line_is_the_original_s_range_by_range`
+holds it with `UNITS_HELD_OUT` empty, and `CHECKSUM_STATE` counts it: 6 of
+12 lines, 35,377 of 425,499 bytes (§5).
+
+**What moved it**: §17's three fields, each by a rule under its own
+mechanic's document, read from every writer in the export.
+
+| field | units | was \| now (theirs) | the rule | document |
+|---|---|---|---|---|
+| `unit_masks & 0x8` | 6 | clear \| set on `0/0`, `0/1`, `0/2`, `1/0`, `1/1`, `1/2` | the verified line, `Unit::line_ok`, which the crate already kept at all six of the original's write sites (`do_move` ×4, `find_path`, `move_step`, `go_around_building`) and through `Unit::init`'s 0, `swap_team`'s and `repair_damage`'s copies; the emitter had not mapped it | `docs/MOVEMENT.md`, "The verified line's lifecycle" |
+| `+0x86` | 4 | −1 \| 0 on the scouts `0/0`, `1/0` | the specials list's slot, taken at birth | `docs/SCOUT.md` §16 |
+| `+0x86` | (same) | −1 \| 0 on `0/2`, 2 on `1/2` | the hold doober's slot, the first free in one global table, taken at the tile and given back with a fade | `docs/ORDERS.md` §6.12 |
+| `play` | 2 | −1 \| 0 on `0/0`, `0/1` | `CommandPackage::process_group`'s write of the package's player on each listed unit and its `o_down` chain — the minted `move_to` names `0/0`, the `build` names `0/1`, the Village's `queue_up` names a building | `docs/ORDERS.md` §8.1 |
+
+**The values on both frames** (all units, the stream's, before any port;
+item 4113's journal has the table): run 1562's 52 — `play` 0 on two and −1
+on fifty; the union −1 on eight player units, the scouts' 0, the
+woodcutters' 0 and 2, the forty animals' herd; `unit_masks` bits `0x2` on
+39, `0x8` on 6, `0x400` on 2, `0x40000` on 6. Run1100's 101 — `play` −1 on
+all (its commands are console lines, no `group`); the union 0 on three
+scouts and two merchants (their caravan slots), slots 0 to 16 once each on
+seventeen citizens of three players, −1 on 24, herds on gaia; `unit_masks`
+`0x2` on 72, `0x8` on 42, `0x200` on 2 (the merchants: `Unit::do_trade`'s
+bit, not held), `0x40000` on 40.
+
+**Which `unit_masks` bits the emitter carries by a rule, and which agree
+by default.** By a rule that a frame on disk exercises: `0x2` (the
+figure's mirror, `Movement::mirror`), `0x8` (`line_ok`), `0x400`
+(`was_builder`), `0x40000` (the AI bit). Emitted from a field the crate
+keeps but clear on every unit of frame 91: `0x1`, `0x10`, `0x20`, `0x40`,
+`0x800`, `0x1000`, `0x2000`, `0x8000`, `0x10000`, `0x20000`, `0x80000`,
+`0x100000`, `0x800000`, `0x2000000` and the carrying nibble `0x78000000`
+— these agree by default here. Not emitted: `0x4` (`Unit::in_danger`,
+which the crate keeps), and `0x80`, `0x100`, `0x200`, `0x4000`,
+`0x200000`, `0x400000`, `0x1000000`, `0x4000000`, `0x80000000`, which it
+does not; every one clear on frame 91.
+
+**Made to fail**: the three fields back at item 4109's emission (the bit
+dropped, the union without the caster and doober slots, `play` at −1)
+part on exactly §17's six ranges, the test naming `play` on 2, `u86` on 4
+and `unit_masks` on 6; one perturbed byte of each of the line's kinds of
+range parts on that range alone; the empty image on all 1,084.
+
+**How it was established, and how confident.** Diff-backed: the whole
+line on one frame, every field. On a reading, consistent with run1100's
+101 units and not diffed there (it is not a frame of ours): the slot
+tables' reuse after a death, the hold doober's 26-frame fade, the hero
+list, the `num = 0` repeat of a `group`.
+
+**Not established**: every frame but 91, and §17's list but these three
+fields; §16 of `docs/SCOUT.md`, §6.12 and §8.1 of `docs/ORDERS.md` each
+list their own.

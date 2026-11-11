@@ -2909,6 +2909,70 @@ its gatherer on 16).
 - A carrier whose action is not its gather order (an order queued in
   front of it with the action bit): the arm writes nothing then, as read.
 
+## 6.12 The hold doober's slot: `UnitData +0x86` on a woodcutter (item 4113, 2026-11-10)
+
+**What it is.** A woodcutter or miner standing at its tile holds a prop —
+a *hold doober* — and the prop's index in the global `doobers` table is
+the value of the union at `UnitData +0x86` while it holds it. The prop is
+the renderer's; its **slot** is the simulation's, because the table
+decides which slot the next holder takes, and the units line of the
+checksum folds the index (`docs/CHECKSUM.md` §18). This crate called the
+doober cosmetic until item 4113 (`crate::economy::gather_tile`'s note,
+struck there).
+
+**The table** (`Doober::doober_hold_fade`, one `int` a slot; the type and
+the point beside it are drawing state): a slot is free exactly when its
+fade is 0.
+
+- `Doober::add_hold_doober` takes the **first slot whose fade is 0**, else
+  appends one, and writes fade 1. (The name it is handed picks the prop's
+  piece, wood or ore; it does not touch the choice of slot.)
+- `Doober::remove_hold_doobers@00846cd0` writes fade −255 (`0xffffff01`);
+  an index past the table is an error report and writes nothing.
+- `Doober::inc_time`, called by `Objects::inc_time@0065db70` after
+  `Farms::inc_time` and before `Surf::inc_time`, steps every slot in order:
+  a negative fade climbs by 10, and one that would reach 0 is 0 — and, when
+  it is the last slot, every free slot at the end is dropped; a positive
+  fade climbs by 10 to 255. So a removed slot is free on the 26th
+  `inc_time` after its removal.
+
+**Every writer of `+0x86` and every caller of the two table functions**
+(grepped by offset, by `field_0x86`, through a `UnitData *`, and by name;
+each read whole). Besides `Unit::init`'s −1, the caravan's, the herd's and
+the caster slots (`docs/SCOUT.md` §16):
+
+| site | when | what |
+|---|---|---|
+| `Unit::do_non_flat_gather@005f0170:212`–`:256` | the arrival frame: within `0x140` of the tile, not yet in the chop or mine loop, not ended by `all_gathering`, and `+0x86 < 0` | `add_hold_doober`, its index stored; between the facing and the work animation |
+| `do_non_flat_gather:296`–`:347` | the approach finds no spot (none, the unit's own point, or its `avoid` point), and `is_worker` | removed, −1 |
+| `do_non_flat_gather:512`–`:530` | the tile choice, for a citizen type (`0x32..=0x35`) | removed, −1 |
+| `Unit::do_move@005f7b30:130`–`:138` | the `GATHER` park (`docs/COLLISION.md` §15), for `is_worker` | removed, −1, before the move dies |
+| `Unit::kill_current_order@005e2cb0:110`–`:117` | a `GATHER` order dies, for a citizen type | removed, −1 (the passenger's, where the gatherer's type has `unit_flags & 0x10` and carries one: not modelled) |
+| `Unit::close@0060ee50:133`–`:139` | death, for a citizen type | removed, −1 |
+| `Doober::clear`, `close`, `walk_data` | the game's reset and load | the whole table |
+
+`is_worker` is `TypeIndex` in `0x32..=0x35`, the same four. So the rule is
+closed: `crate::units::slots::HoldDoobers` (`Sim::add_hold_doober`,
+`Sim::remove_hold_doober`, `Sim::hold_doobers_inc_time` at the end of the
+frame), and `crate::Unit::doober` for the index.
+
+**Values.** Run 1562's frame 91: the woodcutters `0/2` and `1/2` read 0 and
+2; every other citizen −1. Slot 1 was taken and given back before frame 91
+— by the builder `0/1`, a woodcutter until the minted `build` order of
+frame 90 killed its `GATHER` (its fade still climbing on 91). Run1100's
+frame 5408: seventeen citizens of three players hold slots 0 to 16, each
+index once; the rest −1.
+
+**How it was established.** The writers by grep and reading. The values
+**diff-backed** on all 52 units of frame 91 by the units line, the two
+holders' indices with them; run1100's spread is consistent with one global
+table (no two holders share an index) and not checked further.
+
+**Not established.** The fade's timing against a frame on disk: no frame
+holds a slot freed and taken again, so the 26-frame wait and the trim rest
+on the reading. A miner's doober (`MINE_ORE`'s arm takes the same site),
+and a gatherer whose type is not a citizen.
+
 ---
 
 ## 7. The attack order
@@ -3315,6 +3379,23 @@ order packets that follow apply to it:
 | `MoveNearCommand {…, tolerance}` | `process_move_near` → `action_move_near` | same |
 | `AttackCommand {ox, whom, ignore, queued}` | `process_attack@00949c30` → `Group::action_attack(g, ox, whom, mandatory = **1**, queued, ignore)` | `ox whom ignore queued frame` |
 | `SiegeAttackCommand`, `AttackGroundCommand`, `GuardCommand`, `FollowCommand`, `PatrolCommand`, `FormCommand`, `HaltCommand` | `action_siege_attack` (attack for the siege half, guard for the rest), `action_attack_ground`, `action_guard` → `add_guard_order(−1, −1)` per member, `action_follow`, `action_patrol`, `action_form`, `action_halt` → `close_orders(0)` per member | |
+
+**`process_group` also writes `UnitData::play` (`+0xb6`)** (item 4113): for
+each listed object that is alive and a unit of the package's leader, the
+package's player is stored in `play` on the unit and on every unit down its
+`o_down` chain; with `num = 0` it repeats the last list it recorded
+(`last_objects_received`), each object only while its `uid` is the one
+recorded. `Unit::init@00612100:558`'s −1 is the field's only other writer
+in the export, and nothing reads it — the interface's selection
+(`SelectGroup`, the console's `play`) is a different field. A package whose
+`who` is not its player's leader writes nothing. `crate::Unit::play`;
+`Sim::process_group_play`, called from `rondata::input::Stream` on every
+`group` command. **Diff-backed** on frame 91 of run 1562 (`0/0` and `0/1`,
+named by the minted file's `move_to` and `build`, read 0; the Village's
+`queue_up` names a building and writes nothing; every other unit −1) and
+consistent with run1100, whose commands are console lines and no `group`
+(all 101 units −1). Not established: the `num = 0` repeat (no capture on
+disk sends one), and a multiplayer package whose player and leader differ.
 
 **This is where an order stream enters**: a recorded game is a sequence of
 these packets, and the `GLOG_COMMANDMANAGER` lines of a gamelog (detail 1:

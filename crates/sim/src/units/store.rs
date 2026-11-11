@@ -140,16 +140,27 @@ impl Sim {
         // leader's `Caravans` list. `is_caravan` is `unit_flags2 & 8` and
         // the domain test is `UnitTypeData +0x218 == 0`, which is what
         // keeps the sea-domain Merchant Fleet out (`crate::economy::caravan` §2).
-        if self.units[i].ty.is_some_and(|ty| {
+        // The hero arm is tested first (`:404`) and a hero is no caravan.
+        let hero = self.units[i].ty.is_some_and(|ty| {
             self.tables.unit_types[ty]
                 .cols
-                .flag2(crate::ai::ai_load::uflags2::FLAG2_CARAVAN)
-                && self.tables.unit_types[ty].combat.domain
-                    == crate::territory::attrition::Domain::Land
-        }) {
+                .flag2(crate::ai::ai_load::uflags2::FLAG2_GENERAL)
+        });
+        let caravan_arm = !hero
+            && self.units[i].ty.is_some_and(|ty| {
+                self.tables.unit_types[ty]
+                    .cols
+                    .flag2(crate::ai::ai_load::uflags2::FLAG2_CARAVAN)
+                    && self.tables.unit_types[ty].combat.domain
+                        == crate::territory::attrition::Domain::Land
+            });
+        if caravan_arm {
             let who = self.units[i].owner;
             self.units[i].caravan = self.init_caravan(who, i);
         }
+        // The rest of the union's arm: a hero's or a special's slot
+        // (`docs/SCOUT.md` §16, item 4113).
+        self.init_caster_slot(i, caravan_arm);
         // `Unit::init@00612100`'s own `update_los` (vtable `+0x160`), on the
         // finished unit — packed bit and all — before `add_to_world` reads
         // it for the disc (`docs/VISION.md` §2).

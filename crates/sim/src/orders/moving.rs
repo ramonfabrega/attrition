@@ -801,8 +801,9 @@ impl Sim {
             // `goto_build` 1) and the move dies, so the next frame's
             // `do_non_flat_gather` picks a tile afresh. `collide` is not
             // counted: the arm returns above the increment. Run178's `1/43`
-            // on 14649, six frames after it met the standing `1/18`. The
-            // `hold_doobers` cleanup beside it is presentation.
+            // on 14649, six frames after it met the standing `1/18`. A
+            // worker's hold doober goes before the kill (`do_move:133`–
+            // `:138`, `docs/ORDERS.md` §6.12).
             let gathering = self
                 .action_of(u)
                 .is_some_and(|i| self.units[u].orders[i].index() == index::GATHER);
@@ -823,6 +824,9 @@ impl Sim {
                     g.wait = -1;
                     g.goto_build = true;
                     self.store_gather(u, g);
+                }
+                if self.is_worker(u) {
+                    self.remove_hold_doober(u);
                 }
                 self.kill_current_order(u);
                 return Did::Nothing;

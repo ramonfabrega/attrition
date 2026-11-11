@@ -42,6 +42,28 @@ impl Command<'_> {
         self.sim.push_group(g, force)
     }
 
+    /// [`Sim::process_group_play`] (`groups/group/pool.rs`): a `group`
+    /// command's write of `UnitData::play`.
+    pub fn process_group_play(
+        &mut self,
+        who: crate::world::Player,
+        play: i8,
+        objects: &[i16],
+    ) -> Vec<(i16, u16)> {
+        self.sim.process_group_play(who, play, objects)
+    }
+
+    /// [`Sim::process_group_play_repeat`] (`groups/group/pool.rs`): the
+    /// `num = 0` repeat's.
+    pub fn process_group_play_repeat(
+        &mut self,
+        who: crate::world::Player,
+        play: i8,
+        received: &[(i16, u16)],
+    ) {
+        self.sim.process_group_play_repeat(who, play, received)
+    }
+
     /// [`Sim::push_command_buildings`] (`units/garrison.rs`).
     pub fn push_command_buildings(&mut self, who: crate::world::Player, list: &[usize]) {
         self.sim.push_command_buildings(who, list)

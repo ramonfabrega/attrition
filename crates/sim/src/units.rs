@@ -11,6 +11,7 @@ pub mod heal;
 pub mod process;
 pub mod remove_inside_view;
 pub(crate) mod set_type_adapter;
+pub mod slots;
 pub mod stance;
 pub mod starting;
 pub mod store;
@@ -43,4 +44,11 @@ pub struct UnitsState {
     /// The animation art the clocks read — lengths and pieces, an input
     /// (`docs/ANIM.md` §3).
     pub art: crate::units::anim::Art,
+    /// One per player: the specials list's in-use bits and mark
+    /// (`Specials`, `LeaderData +0x43c`; `docs/SCOUT.md` §16).
+    pub specials: Vec<crate::units::slots::SlotList>,
+    /// One per player: the heroes list's (`Heroes`, `LeaderData +0x420`).
+    pub heroes: Vec<crate::units::slots::SlotList>,
+    /// The global hold-doober table's fades (`docs/ORDERS.md` §6.12).
+    pub hold_doobers: crate::units::slots::HoldDoobers,
 }

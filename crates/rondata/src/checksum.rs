@@ -141,7 +141,9 @@ pub const CHECKSUM_PACKET: (&str, i64, u64) = ("run1562", 91, 3201);
 /// of objects with its stale words held (`docs/CHECKSUM.md` §15).
 /// Item 4104: guys, 9,308 more, every figure's 42 fields with its five
 /// floats at the bits `Guy::clear` stores (`docs/CHECKSUM.md` §16).
-pub const CHECKSUM_STATE: (usize, usize, u64, u64) = (5, 12, 15_735, 425_499);
+/// Item 4113: units, 19,642 more, once `play`, the `+0x86` union and
+/// `unit_masks & 0x8` are carried (`docs/CHECKSUM.md` §18).
+pub const CHECKSUM_STATE: (usize, usize, u64, u64) = (6, 12, 35_377, 425_499);
 
 /// Which logger hook printed a record.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

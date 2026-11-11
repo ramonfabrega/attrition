@@ -318,6 +318,13 @@ impl Sim {
                 // `kill_current_order:107`, inside the same arm and after
                 // the chain: the carrying walk goes with the job.
                 self.units[u].carry &= !CARRY_ANY;
+                // `:110`–`:117`: and a citizen's hold doober
+                // (`docs/ORDERS.md` §6.12). Where the gatherer's type has
+                // `unit_flags & 0x10` and a passenger, the original takes
+                // the passenger's instead (`:92`–`:95`): not modelled.
+                if crate::units::slots::DOOBER_HOLDERS.contains(&self.units[u].type_index) {
+                    self.remove_hold_doober(u);
+                }
             }
             Body::Attack(_) => {
                 // The order is the target's home; dropping it drops the target.

@@ -64,9 +64,22 @@ pub struct Unit {
     /// unit and gives it back when the unit dies.
     pub supply_slot: Option<usize>,
     /// `UnitData +0x86` for a **caravan**: its slot in the owner's
-    /// [`caravan::Caravans`] list. The same field carries a hero's or a
-    /// special's slot in the original; this is the caravan half alone.
+    /// [`caravan::Caravans`] list. The same union carries a hero's, a
+    /// special's and a hold doober's slot, kept beside it as
+    /// [`Unit::hero`], [`Unit::special`] and [`Unit::doober`].
     pub caravan: Option<usize>,
+    /// `UnitData +0x86` for a **hero** (`unit_flags2 & 0x20`): its slot in
+    /// the owner's heroes list, `Heroes::init_hero@0073a330`'s, taken at
+    /// birth and given back at `Unit::close` (`docs/SCOUT.md` §16).
+    pub hero: Option<usize>,
+    /// `UnitData +0x86` for a **special** (`unit_flags2 & 0x10`, the scout
+    /// line): its slot in the owner's specials list,
+    /// `Specials::init_special@007401c0`'s (`docs/SCOUT.md` §16).
+    pub special: Option<usize>,
+    /// `UnitData +0x86` for a citizen holding a **hold doober** at its
+    /// wood or ore tile: its slot in [`crate::units::slots::HoldDoobers`]
+    /// (`docs/ORDERS.md` §6.12).
+    pub doober: Option<usize>,
     /// The period the last refresh wrote, in frames. Zero means not bleeding.
     /// Public because it is observable state, not a private counter — the
     /// original keeps it in `UnitData::attrition` and the interface shows it.
@@ -250,6 +263,12 @@ pub struct Unit {
     /// [`crate::Sim::add_unit`]. Read by nothing but the units line
     /// (`docs/CHECKSUM.md` §17, item 4109).
     pub birth_cell: Pos,
+    /// **`UnitData::play` (`+0xb6`)** — the player whose `group` command
+    /// last named the unit, or a captain above it: `Unit::init@00612100:558`
+    /// writes −1 and `CommandPackage::process_group@0094a0c0` writes the
+    /// package's player, its only other writer. Read by nothing but the
+    /// units line (`docs/ORDERS.md` §8.1, `docs/CHECKSUM.md` §18).
+    pub play: i8,
     /// `unit_masks & 0x78000000`: the carrying walk a gatherer plays.
     ///
     /// Four bits, and `Guy::set_anim`'s walk arm reads them in its own
@@ -903,6 +922,9 @@ impl Unit {
             on_map: true,
             supply_slot: None,
             caravan: None,
+            hero: None,
+            special: None,
+            doober: None,
             attrition: 0,
             num_queued: 0,
             queue_time: 0,
@@ -945,6 +967,7 @@ impl Unit {
                 pos.x.div_euclid(48) * 48 + 24,
                 pos.y.div_euclid(48) * 48 + 24,
             ),
+            play: -1,
             carry: 0,
             cant_reach: false,
             decoy: false,

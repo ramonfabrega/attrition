@@ -991,6 +991,7 @@ fn the_ported_lines_are_checksum_state() {
         sim.checksum_goods(),
         sim.checksum_builds(&|b| pieces.get(&b).copied().unwrap_or(-1)),
         sim.checksum_guys(),
+        sim.checksum_units(),
     ];
     let bytes: usize = lines.iter().map(sim::checksum::Line::bytes).sum();
     let (n, _, b, _) = crate::checksum::CHECKSUM_STATE;
@@ -1291,28 +1292,27 @@ fn unit_range_fields(field: &str, b: &[u8]) -> Vec<(String, i64)> {
 }
 
 /// The pinned outcome of the units line on run 1562's packet (`docs/CHECKSUM.md`
-/// §17): `(units, ranges, bytes, ranges parted, bytes in the ranges that
-/// agree)` — the stream's 52 units, 1,084 ranges and 19,642 bytes; 1,078
-/// ranges and 18,976 bytes agree. The six that part are the `UnitData`
-/// records of `0/0`, `0/1`, `0/2`, `1/0`, `1/1` and `1/2`. The first image
-/// (item 4109) parted on 88: the forty animals' `mylos`, `orders_x/y` and
-/// `dest_angle`, and the two scouts' `flags`.
-const UNITS: (usize, usize, usize, usize, usize) = (52, 1084, 19642, 6, 18976);
+/// §17, §18): `(units, ranges, bytes, ranges parted, bytes in the ranges
+/// that agree)` — the stream's 52 units, 1,084 ranges and 19,642 bytes,
+/// every one agreeing since item 4113. Item 4109 held it at 1,078 ranges
+/// and 18,976 bytes, the six `UnitData` records of `0/0`, `0/1`, `0/2`,
+/// `1/0`, `1/1` and `1/2` parting; its first image parted on 88 (the forty
+/// animals' `mylos`, `orders_x/y` and `dest_angle`, the two scouts'
+/// `flags`).
+const UNITS: (usize, usize, usize, usize, usize) = (52, 1084, 19642, 0, 19642);
 
 /// **The fields the units line is held out on**, each with its count of
-/// parting units on run 1562's frame 91 (`docs/CHECKSUM.md` §17): every
-/// other field of every range agrees.
+/// parting units on run 1562's frame 91 (`docs/CHECKSUM.md` §17): none
+/// since item 4113 (§18). Item 4109 held it out on three, each now carried:
 ///
-/// - `play` (`+0xb6`): ours `Unit::init`'s −1, theirs 0 on `0/0` and `0/1`
-///   — the interface's selection (`SelectGroup::add`), which the
-///   simulation does not keep;
-/// - `u86` (`+0x86`, the union): ours −1, theirs 0 on the scouts `0/0` and
-///   `1/0` (`Specials::init_special`) and on the woodcutters `0/2` (0) and
-///   `1/2` (2) (`Unit::do_non_flat_gather`, `Unit::do_move`): not held;
-/// - `unit_masks` (`+0x68`): bit `0x8` alone, on those six — the movement
-///   step's (`Unit::do_move`, `Unit::find_path`, `Unit::move_step`,
-///   `Unit::go_around_building`): not held.
-const UNITS_HELD_OUT: &[(&str, usize)] = &[("play", 2), ("u86", 4), ("unit_masks", 6)];
+/// - `play` (`+0xb6`) on 2, −1 against 0 on `0/0` and `0/1`:
+///   `CommandPackage::process_group`'s write (`docs/ORDERS.md` §8.1);
+/// - `u86` (`+0x86`) on 4, −1 against 0 on the scouts `0/0`, `1/0` and on
+///   `0/2`, 2 on `1/2`: the specials' slot (`docs/SCOUT.md` §16) and the
+///   hold doober's (`docs/ORDERS.md` §6.12);
+/// - `unit_masks` bit `0x8` on 6: [`sim::Unit::line_ok`], which the crate
+///   already kept (`docs/MOVEMENT.md`).
+const UNITS_HELD_OUT: &[(&str, usize)] = &[];
 
 /// **The units line, ours against the original's, range by range**
 /// (`docs/CHECKSUM.md` §17, item 4109): our `Sim::checksum_units` against

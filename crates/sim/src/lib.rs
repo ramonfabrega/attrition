@@ -214,6 +214,9 @@ impl Sim {
                     crate::units::stance::LeaderOptions::default();
                     players.max(10)
                 ],
+                specials: vec![crate::units::slots::SlotList::default(); players],
+                heroes: vec![crate::units::slots::SlotList::default(); players],
+                hold_doobers: crate::units::slots::HoldDoobers::default(),
             },
             ai: crate::ai::AiState {
                 transport: vec![crate::ai::transport::LeaderTransport::default(); players],
