@@ -27,6 +27,7 @@
 mod gpu;
 mod ground;
 mod overlay;
+mod patch;
 mod silhouette;
 mod trace;
 mod world;

@@ -1908,7 +1908,8 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// are `TerrainOut::check_for_diagonal@008595f0`'s block and fill words and
 /// the caller's 0x1c0 test (`docs/MAPGEN.md` §20, "The arm's body"), read
 /// off a reading item that builds no arm; `tools/gamelog/plant.py` models
-/// them, and a port of the transitions banks them.
+/// them, and a port of the transitions banks them — **banked by item
+/// 4134** (`crates/client/src/patch.rs`, the checks), the row deleted.
 const UNBUILT: &[(&str, usize)] = &[
     ("AI.md", 14),
     ("ANIM.md", 2),
@@ -1921,7 +1922,6 @@ const UNBUILT: &[(&str, usize)] = &[
     ("GOLDEN.md", 4),
     ("GOODY.md", 4),
     ("GROUPS.md", 2),
-    ("MAPGEN.md", 4),
     ("MERCHANT.md", 2),
     ("ORDERS.md", 5),
     ("PRODUCTION.md", 4),

@@ -16643,13 +16643,19 @@ words and edits nothing here; a refill lands when two remain.
   level 0.
 
 
-## Parked by the next landing, slot FJ — reserved
+## Parked by item 4134, 2026-11-11 — the transition patch's choice, ported from the cells
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- ~~**4134a. The masks from the cells**~~ — **answered by item 4134** (`docs/RENDERER.md` §3.8;
+  `RUN1559B_3279_PACKET_PATCH` [1512, 1512, 113, 1185] of [1512, 113, 2810]). Stage 1 is ported as
+  `client::patch::marks`: `mark_nodes`, `mark_trans_flags` and `check_for_tendrils`. From the packet's
+  cells alone, the whole chain is the packet's on every land-0 cell. The parked hypothesis ran the wrong
+  way. The three cells were not stale under later masks. On fresh masks they take alpha 13, so it was
+  the packet's masks that went stale after the patches were laid. Our masks against the packet's are
+  3,402 and 3,375 of 3,660 (`RUN1559B_3279_PACKET_MASKS`). The difference is `spot_update_land`'s
+  history, which the packet does not hold and the pick does not need.
+- **4134b. The tileset's two numbers from our data** (§3.8). `COAST_BASE` 3 and `BASELAND`'s four bases are
+  the packet's (`TileSetData +0x62c`, `+0x208` on `tilesets.cur_tileset`). Read them through
+  `rondata::mapgen::tileset_groups` for the lobby's tileset, and assert them equal.
 
 ## Parked by the next landing, slot FK — reserved
 
