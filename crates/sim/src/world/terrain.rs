@@ -83,6 +83,11 @@ impl Lands for WorldLands<'_> {
     }
 }
 
+/// `refresh_nearby_tiles`' two `int[5]` offset tables (`.rdata`
+/// `0x00b698b0` for x, `0x00b69810` for y, each completed by a stack
+/// word): `(0, 0)`, `(1, 0)`, `(0, 1)`, `(2, 0)`, `(0, 2)`, walked along
+/// the diagonal `d = −3..=3`.
+const NEARBY: [(i32, i32); 5] = [(0, 0), (1, 0), (0, 1), (2, 0), (0, 2)];
 impl Sim {
     /// `TerrainOut::terraform_for_building@00875210(corner.x, corner.y,
     /// x_size, y_size, …)` — reached from `Terrain::object_placed`, which
@@ -235,6 +240,71 @@ impl Sim {
             for cx in (corner.x >> 2)..=((corner.x + w) >> 2) {
                 if g.in_bounds(cx, cy) && g.land_at(cx, cy).0 == 0 {
                     spot_update_land(&mut g, cx, cy, 0, i32::from(set.weatherbase));
+                }
+            }
+        }
+    }
+
+    /// **`Wall::mark_behind_tiles@0063d230`** (item 4136): the tiles a
+    /// building hides, its [`tile::BEHIND`] bit set (`on`) or cleared.
+    /// For each `k` from 1 to the type's `BEHIND_HEIGHT` (`BuildType
+    /// +0x2dc`, `-1` when absent), the footprint moved `k` tiles up and
+    /// `k` left lends its top row — `x_size` tiles at `y = corner.y − k`
+    /// from `x = corner.x − k` — and its left column below that —
+    /// `y_size − 1` tiles at `x = corner.x − k`: the building's own
+    /// rectangle slid back along the diagonal, never its own tiles. A tile
+    /// off the tile grid is skipped. `Wall::start@0063e810` sets it as its
+    /// last statement; `Wall::close@0063f6e0` clears it for a started
+    /// building, and [`Sim::refresh_nearby_tiles`] sets it again for the
+    /// active neighbours.
+    pub(crate) fn mark_behind_tiles(&mut self, b: usize, on: bool) {
+        let Some(ty) = self.buildings[b].ty else {
+            return;
+        };
+        let t = &self.tables.build_types[ty];
+        let (n, xs, ys) = (t.behind_height, t.x_size, t.y_size);
+        let corner = self.tile_corner(ty, self.buildings[b].pos);
+        let put = |w: &mut World, x: i32, y: i32| {
+            let p = Pos::new(x, y);
+            if on {
+                w.set_tile_bits(p, tile::BEHIND);
+            } else {
+                w.clear_tile_bits(p, tile::BEHIND);
+            }
+        };
+        for k in 1..=n {
+            let y = corner.y - k;
+            for x in corner.x - k..corner.x - k + xs {
+                put(&mut self.world, x, y);
+            }
+            let x = corner.x - k;
+            for y in corner.y - k + 1..corner.y - k + ys {
+                put(&mut self.world, x, y);
+            }
+        }
+    }
+
+    /// **`Wall::refresh_nearby_tiles@0063d0a0`** (item 4136): after a
+    /// building's close cleared its [`tile::BEHIND`] tiles, every building
+    /// standing in a cell of the diagonal band beside its own — `(cx + d +
+    /// ox, cy + d + oy)` for `d` in −3..=3 and the five [`NEARBY`] offsets,
+    /// in the cell's object chain — that is **active** (`flags & 4`) marks
+    /// its own again. `Wall::close@0063f6e0` runs it last, after
+    /// `Object::close`, for every reason but 0 and 5.
+    pub(crate) fn refresh_nearby_tiles(&mut self, b: usize) {
+        let c = self.buildings[b].pos.cell();
+        for d in -3..=3 {
+            for (ox, oy) in NEARBY {
+                let n = Cell::new(c.x + d + ox, c.y + d + oy);
+                if !self.world.contains(n) {
+                    continue;
+                }
+                for o in self.object_chain(n) {
+                    if let crate::combat::Obj::Building(o) = o
+                        && self.buildings[o].active
+                    {
+                        self.mark_behind_tiles(o, true);
+                    }
                 }
             }
         }

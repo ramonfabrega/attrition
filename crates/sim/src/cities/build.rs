@@ -155,6 +155,10 @@ pub struct BuildType {
     /// The footprint, in tiles.
     pub x_size: i32,
     pub y_size: i32,
+    /// `BEHIND_HEIGHT` (`BuildType+0x2dc`, `BuildType::init@00632340`;
+    /// −1 when the record has none): how many tiles back along the
+    /// diagonal a started building hides ([`crate::Sim::mark_behind_tiles`]).
+    pub behind_height: i32,
     /// `LOS` and `SCIENCE_LOS`, in tiles — what `Wall::update_los@0063eeb0`
     /// (the slot `Build` shares) reads for a finished building, and the
     /// input to the fog disc `Build::activate` throws

@@ -238,7 +238,7 @@ const WORLD: [(usize, usize, usize, usize); WORLD_SECTIONS] = [
     (2, 8, 2, 8),
     (1, 120, 0, 0),
     (3600, 75600, 0, 0),
-    (4, 158_400, 3, 43200),
+    (4, 158_400, 4, 158_400),
     (1, 3600, 0, 0),
     (8, 28800, 8, 28800),
     (3650, 17000, 0, 0),
@@ -252,10 +252,10 @@ const WORLD: [(usize, usize, usize, usize); WORLD_SECTIONS] = [
 /// **The fields the world line is held out on**, `section range.leaf` with
 /// the count of its elements not agreeing (parting or unheld) on frame 91
 /// (`docs/CHECKSUM.md` §21): `World::analyze_map`'s ten setup tallies; the
-/// fog's `was_seen`; the masks' bit `0x4` under the bases; the fog's
-/// `wcoord_seen`; the collision blocks (`World::new_coll_block`'s
-/// allocation, and the heads and bodies behind it). The cells' `land_sub`
-/// is carried since item 4136 (`Terrain::object_placed`).
+/// fog's `was_seen` and `wcoord_seen`; the collision blocks
+/// (`World::new_coll_block`'s allocation, and the heads and bodies behind
+/// it). The cells' `land_sub` and the masks' bit `0x4` are carried since
+/// item 4136 (`Terrain::object_placed`, `Wall::mark_behind_tiles`).
 const WORLD_HELD_OUT: &[(&str, usize)] = &[
     ("04 size..seed.forest_size", 1),
     ("04 size..seed.goodies", 1),
@@ -268,7 +268,6 @@ const WORLD_HELD_OUT: &[(&str, usize)] = &[
     ("04 size..seed.total_metal", 1),
     ("04 size..seed.total_oil", 1),
     ("05 cell.was_seen", 3600),
-    ("06 mask.mask", 131),
     ("07 wcoord_seen.wcoord_seen", 3600),
     ("09 block.body.bits", 2400),
     ("09 block.head.bits", 25),
@@ -370,7 +369,7 @@ fn the_world_line_is_the_original_s_by_section() {
         }
     }
     eprintln!("world: sections whole {whole:?}");
-    assert_eq!(whole, [0, 1, 2, 3, 8, 10, 11, 12, 13, 14]);
+    assert_eq!(whole, [0, 1, 2, 3, 6, 8, 10, 11, 12, 13, 14]);
     if WORLD_HELD_OUT.is_empty() {
         assert_eq!(line.adler(), want, "the world line's Adler");
     } else {
@@ -391,8 +390,10 @@ fn the_world_line_is_the_original_s_by_section() {
         (4, "size..seed", -1, "04 size..seed.map"),
         (4, "size..seed", -1, "04 size..seed.seed"),
         (5, "cell", 1373, "05 cell.light"),
-        // Item 4136: a cell under seat 1's farms, `object_placed`'s.
+        // Item 4136: a cell under seat 1's farms, `object_placed`'s, and
+        // a tile's mask (the behind bit's own bend is below).
         (5, "cell", 1373, "05 cell.land_sub"),
+        (6, "mask", -1, "06 mask.mask"),
         (8, "danger", 5, "08 danger.danger"),
         (10, "halfland_locs", 7, "10 halfland_locs.y"),
         (11, "halfland_types", -1, "11 halfland_types.halfland_types"),
@@ -426,4 +427,27 @@ fn the_world_line_is_the_original_s_by_section() {
         assert_eq!(held(&census(&bent, &named)), want_h, "a bent {key}");
     }
     eprintln!("world: {} kinds of field bent", bends.len());
+
+    // **The behind bit itself** (item 4136): tile 19175, `(215, 79)`, which
+    // seat 1's Small City hides, loses its `0x4` and the mask parts there.
+    let mut bent = ours.clone();
+    let masks = bent
+        .iter_mut()
+        .find(|r| r.section == 6 && r.field == "mask")
+        .and_then(|r| r.leaves.iter_mut().find(|l| l.name == "mask"))
+        .and_then(|l| l.values.as_mut())
+        .expect("the masks' leaf");
+    assert_eq!(masks[19_175] & 4, 4, "tile 19175 is behind the Small City");
+    masks[19_175] &= !4;
+    let mut want_h: Vec<(String, usize)> = WORLD_HELD_OUT
+        .iter()
+        .map(|(f, n)| (f.to_string(), *n))
+        .collect();
+    want_h.push(("06 mask.mask".to_string(), 1));
+    want_h.sort();
+    assert_eq!(
+        held(&census(&bent, &named)),
+        want_h,
+        "tile 19175 not behind"
+    );
 }

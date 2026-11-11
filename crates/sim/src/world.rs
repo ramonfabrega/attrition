@@ -574,6 +574,9 @@ pub mod tile {
     pub const OBJECT_BUILDING: u16 = 0x3;
     pub const OBJECT_MOUNTAIN: u16 = 0x2;
     pub const OBJECT_CLIFF: u16 = 0x1;
+    /// A tile some started building hides (`Wall::mark_behind_tiles`,
+    /// [`crate::Sim::mark_behind_tiles`]); `World::set_behind`'s first bit.
+    pub const BEHIND: u16 = 0x4;
     /// The two-bit surface field: `0` plain land, `0x10` road, `0x20` ocean,
     /// `0x30` forest.
     pub const SURFACE: u16 = 0x30;

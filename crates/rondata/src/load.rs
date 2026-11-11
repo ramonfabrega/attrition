@@ -1679,6 +1679,7 @@ pub fn load_tables(
             to: None,
             x_size: c.x_size,
             y_size: c.y_size,
+            behind_height: c.behind_height,
             los: c.los,
             science_los: c.science_los,
             flags: c.flags,
@@ -2657,6 +2658,7 @@ struct BuildCols {
     plunder_good: Option<Resource>,
     x_size: i32,
     y_size: i32,
+    behind_height: i32,
     /// `LOS`/`SCIENCE_LOS` — a building's own fog radius (`docs/VISION.md`
     /// §2.1).
     los: i32,
@@ -2711,6 +2713,8 @@ impl BuildCols {
             plunder_good: r.text("PLUNDER_GOOD").and_then(resource_word),
             x_size: int(r, "X_SIZE").unwrap_or(1),
             y_size: int(r, "Y_SIZE").unwrap_or(1),
+            // `BuildType::init@00632340`: an empty `BEHIND_HEIGHT` is −1.
+            behind_height: int(r, "BEHIND_HEIGHT").unwrap_or(-1),
             los: int(r, "LOS").unwrap_or(0),
             science_los: int(r, "SCIENCE_LOS").unwrap_or(0),
             to_hit: int(r, "TO_HIT").unwrap_or(-1),

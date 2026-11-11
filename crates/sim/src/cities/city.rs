@@ -2103,6 +2103,8 @@ impl Sim {
         }
         // `Wall::start@0063e810`'s own last-but-one statement.
         self.check_ever_seen(b, false);
+        // And its last: the tiles the building hides (item 4136).
+        self.mark_behind_tiles(b, true);
         false
     }
 
@@ -2801,6 +2803,12 @@ impl Sim {
         if !self.buildings[b].is_library {
             self.clean_queue(b, !silent);
         }
+        // `Wall::close@0063f6e0:40`: a started building's hidden tiles
+        // clear on every reason; `refresh_nearby_tiles` below gives the
+        // neighbours theirs back (item 4136).
+        if self.buildings[b].started {
+            self.mark_behind_tiles(b, false);
+        }
         if self.buildings[b].started && !silent {
             self.mask_building(b, false);
         } else if let Some(ty) = self.buildings[b].ty {
@@ -2853,6 +2861,12 @@ impl Sim {
         // is `UnitTypeData`'s alone), so it leaves its cell's chain here
         // (`docs/COLLISION.md` §3.2).
         self.object_chain_remove(crate::combat::Obj::Building(b));
+        // `Wall::close@0063f6e0:157`, after `Object::close`, for a reason
+        // other than 0 and 5 (both `silent` here): the active neighbours
+        // mark what they hide again (item 4136).
+        if !silent {
+            self.refresh_nearby_tiles(b);
+        }
         // `Wall::close:155` → `Object::close@00647160`: an active object's
         // close ends with `hold_frames = 0x1e`, so the number is not
         // `find_free`'s for thirty frames (`docs/COMBAT.md` §59.3). The
