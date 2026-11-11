@@ -155,3 +155,138 @@ overrides `+0x7c` (`vtables.txt`: every `+0x7c` is `TypeData::get_score_value`).
   no `UnitType`/`BuildType` `Type` vtable (`tools/ghidra/README.md`'s
   `vftable_for_Type_` trap), so the assignment is by the class names.
 
+### 0.7 Where the crate stands (applies to every leaf)
+
+`compute_score` is not modelled. The step site is `Sim::strategy_all` in
+`crates/sim/src/ai/ai_drive.rs:73`, whose comment at `:87` reads
+"`compute_score(0)` — not modelled". **A builder must call it before the
+human branch's `continue` at `:82`–`:85`**: the original calls
+`compute_score` for every leader passing `leader_flags & 3 == 3`, humans
+included (§0.1), but the crate's human arm leaves the loop before the
+comment's position. The sweep order inside the original's loop is
+`check_explore`, `plan_strategy`, `compute_score`, `diplomacy`, so
+`diplomacy` on the same frame sees this frame's score. The crate also skips
+`self.leaders.defeated[w]` where the original tests `leader_flags & 3`;
+whether those agree for a defeated slot was not checked. The leaves already
+have checksum slots in `crates/sim/src/checksum/leaders.rs:41`–`52`
+(`LEADER_FIELDS`). The two dirty bits have no crate twin; a builder needs a
+per-player flag pair set at unit creation, unit close and tech gain
+(`Leader::gain_tech`'s crate port is `crates/sim/src/tech/gain.rs`).
+`Leader::reset_score` zeroes are the crate's default (0), so no reset code
+is needed for a fresh game.
+
+### 0.8 What clears them, for all twelve
+
+- **`Leader::reset_score (006e37f0)`** stores 0 to all twelve (and to
+  `+0x808`…`+0x938`, other families). Callers (listing): `Leader::init
+  (006e3930):140` (`6e3b1a`), right after `who` is written; and
+  `Setup::build_game (005ac190):731` (`5ad1e7`), once per slot with
+  `leader_flags & 1`, late in game setup (after the `setup.cpp` checksum
+  `0x408`). Neither clears the dirty bits, so frame 0 recomputes everything
+  with whatever bits creation and the starting techs set.
+- `compute_score`'s own Armageddon arm (§0.2 step 8).
+- A saved game's load (`Leaders::walk_data (006e38e0)`) presumably restores
+  the record; not read.
+
+---
+
+## 1. `score` (+0x18)
+
+1. **Writers.** Export: `->score` is never an lvalue (readers only:
+   `get_team_score`, `get_mvp_score`, `log_data`, `AchieveChartPane::on_redraw`,
+   `StatWin*`, `Options::describe`); `field_0x18` lvalues on a `Leader*`:
+   `compute_score` (`:44`, `:50`) and `reset_score`. Listing:
+   `0xe3a3a8(%reg)` appears only as loads (`Leader::diplomacy`,
+   `Army::find_target`, `GameDaemon::process_victory`, `ScenarioFuncSet::score`,
+   `at_least_points`, `less_than_points`); register-relative stores
+   `0x18(%reg)` in `Leader`/`LeaderData`/`Leaders` methods: only
+   `compute_score` (`6ec5..`) and `reset_score` (`6e37f3`); the rest are
+   `%esp`/`%ebp` locals, the `sites` block (`compute_sites`, base
+   `0x6e44(%ebx)`), the `data_encrypted` block (`Leader::init`'s `6e3e8b`,
+   base `0x6eb8`) and arrays inside `Leader::init` (`6e3a18`, base
+   `0x3b4(%ebx)`).
+2. **Step.** `score = score_combat + score_wonders + score_research +
+   score_unit_upgrades + score_economy + score_buildings + score_units +
+   score_territory + score_pop + score_explored` on a recompute frame
+   (§0.1) when Armageddon has not come; `0` (and return) when it has.
+   `score_units_2` is not a term. Since `score_pop` and `score_explored` are
+   always 0 at the add (§8, §2), in this build `score = combat + wonders +
+   research + upgrades + economy + buildings + units + territory`.
+3. **Reset.** §0.8; the Armageddon arm.
+4. **Readers that decide.**
+   - `Leader::diplomacy (006bc950):118`–`140`: over live leaders, counts
+     those whose `score` is above mine (`local_64`) and finds the top scorer
+     (`local_70`); `:2198` on is another walk. `get_team_score` (`006d6520`;
+     the plain `score` unless `semaphore[0] & 0x80`, then a team sum/average
+     — not read further) at `:566`, `:606`, `:608`, `:665`. The crate SEAMs
+     these at `crates/sim/src/leaders/diplomacy.rs:155`, `:385`.
+   - `Army::find_target (006f69b0):372`: with more than 19 members and more
+     than 2 siege, a target leader whose `score` exceeds `4·mine/3`
+     (`(score_mine << 2) / 3 < score_target`) changes the branch.
+   - `GameDaemon::process_victory (00730ef0)`: `:443`–`449` and `:554`–`562`
+     take the top `get_team_score`; `:625`–`660`, under `victory == 5` (the
+     musical-chairs victory, every `chairs[...]·900` frames), the live
+     leader with the strictly lowest `score` is defeated (a tie defeats
+     nobody).
+   - `Leader::process_event_frame (006ec180):90`, `:99` (`get_team_score`;
+     not read for what it decides).
+   - `LeaderData::log_data (006e5110):209` prints `score` in the `LEADERDATA`
+     dump — the per-frame oracle carries it.
+   - Display: `get_mvp_score (006d5de0)` (`score == 0 → ...`, else
+     `3·combat − economy/2 − buildings/2 + territory + score`),
+     `StatWin`, `AchieveChartPane`. Scenario triggers: `ScenarioFuncSet::score`,
+     `at_least_points`, `less_than_points`, `is_victory_score`.
+5. **Crate.** §0.7. No crate code computes it; its readers are SEAMed.
+6. **Plain game?** Yes: `strategy_all` every frame for every live leader.
+   The `defeat_all` caller needs Armageddon (nukes); `victory == 5` is a
+   skirmish setting.
+7. **Confidence.** High for the formula and the gate (decompile and listing
+   agree, `6ec560`–`6ec67x`). Not read: `get_team_score` past its head,
+   `process_event_frame`'s use, the three non-victory setters of
+   `semaphore[0] & 0x40`.
+
+## 2. `score_explored` (+0x1c)
+
+1. **Writers.** `compute_score` (`6ec5a0`, `movl $0x0,0x1c(%esi)`, step 1,
+   unconditional); `compute_explore_score (006bc5e0)` (stores 0, **no
+   caller**); `reset_score`; the Armageddon arm. No absolute `0xe3a3ac`
+   reference anywhere in `.text`. No other register-relative store in a
+   `Leader` method (§1's net).
+2. **Step.** **None: it is 0 on every recompute and never anything else.**
+   In terms of `explored` (`LeaderData+0x9d4`, written by
+   `Leader::check_explore (006bc860):20`, lane 4153's): `score_explored = 0`,
+   independent of `explored`. Nothing in this build reads `explored` into
+   the score. (The brief's premise that `score_explored` reads `explored` is
+   not borne out by this executable; an older build may have had
+   `compute_explore_score` do so, which is a guess.)
+3. **Reset.** §0.8.
+4. **Readers.** The `score` sum (a zero term). `StatWin` may show it; not
+   checked.
+5. **Crate.** Default 0 already matches; nothing to build beyond the checksum
+   slot.
+6. **Plain game?** Yes (the zero store runs every recompute).
+7. **Confidence.** High: two stores of a constant 0, no other writer by
+   either net.
+
+## 3. `score_territory` (+0x20)
+
+1. **Writers.** `compute_score` (`6ec604`, `movl %edi,0x20(%esi)`, and the
+   Armageddon zero at `6ec628`); `reset_score`.
+2. **Step.** On every recompute frame (§0.1): `territory × 1000 /
+   land_size`, signed 32-bit, truncating toward zero. `territory` is
+   `LeaderData+0x9d8` of `leaders[who]` (the same record); `land_size` is
+   `WorldData+0x78` (World has no prefix before `WorldData`: `check_explore`
+   reads `+0x24`/`+0x28` as `reg_xs`/`reg_ys`). Units: per-mille of the
+   map's land tiles. Not gated by a dirty bit. Computed before the
+   Armageddon test, then zeroed by it.
+3. **Reset.** §0.8; Armageddon.
+4. **Readers.** The `score` sum; `get_mvp_score`.
+5. **Crate.** Inputs exist: `Holdings::territory` and `Holdings::land_size`
+   (`crates/sim/src/economy.rs:554`–`555`), the same ratio the territory tax
+   uses (`economy/holdings/tests.rs:823`). Whether `Holdings::territory` is
+   refreshed with the same timing as `LeaderData::territory` was not
+   checked.
+6. **Plain game?** Yes.
+7. **Confidence.** High. `land_size == 0` would fault in the original; not
+   considered.
+

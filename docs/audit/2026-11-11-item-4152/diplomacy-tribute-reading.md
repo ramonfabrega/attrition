@@ -92,3 +92,84 @@ reading above accounts for all three: escrow and exchange run inside one
 `escrow` was 0 and is clamped at 0. That is a reading; 3470a's packet check
 would make it a diff.
 
+Two oddities of the exchange that touch `tributes` and are not settled here:
+the attack-price escrow (step 1's second pass) is added to `tributes[r]` but
+the exchange subtracts only `g_T`/`g_P`, and the trailing
+`Diplomacy::clear_all` on both records (decompile `:549`–`:550`) refunds
+nothing, so a human-paid attack request would leave its price standing in
+`tributes[r]` while the exchange's `dows` refund returns it to the bucket.
+And the exchange's second `dows` zeroing goes to `0xe40ce0 + p1·0x6f48` =
+`leaders[P].dip[P].dows[r]` (`6d0e23`–`6d0e8e`), not `leaders[P].dip[T]`; on
+the face of the listing a source slip. Both are readings only.
+
+## Leaf 1 — `tribute_stamp` (+0x174, int[8])
+
+**Writers.**
+- Export: `grep -rn 'field_0x174\b'` → `Leader::consider_tribute (006d1360)`
+  `:18` only (plus `ConquestStyle::walk_data`'s `lea 0x174`, another class).
+  By name, only the reader `LeaderData::is_tribute_period (006d5b90)`.
+- Listing (stores to +0x174..+0x190 and abs `0xe3a504`+): `consider_tribute`
+  `6d13d8` (`edx` = `this`, `esi` = `param_1`), and **`Leader::init
+  (006e3930)` `6e3c21`** (`movl %eax,0xa0(%esi)` with `esi = this+0xd4+4·j`,
+  `eax = 0`). Register-relative hits in `ScenarioRead::load_leaders_chunk`
+  (`9acf19`–`9acf2b`) are `GameInfo` player slots (byte/short stores beside
+  them; the decompile names them `info.player[n]`), `Game::run_oos_recovery`/
+  `Game::close` stores are off the pointer at `0xc06214`, not a `Leader`.
+
+**Event and predicate.** `consider_tribute(R = this, G = param_1, amount,
+res)` is called only from `action_respond`'s exchange (`6d0f4f`, `6d0fbb`),
+once per resource per direction, with R the receiver and G the giver of
+`amount` (pre-scale). It returns at once unless `amount > 0`. Then (after the
+`gift_stamp` store, leaf 2) it sets `R.tribute_stamp[G] = frame` when **R is
+human** (`R.leader_flags & 4`), **or** when all of: `amount >= G.blacken·100`
+(`blacken` +0x20c of the giver; integer, units of the bucket), R's
+`bucket[res]` (after this resource's `bucket_add`, which ran first, `6d0f0b`
+before `6d0f4f`) is **below 3000**, and `res == 2` (WEALTH) or
+`R.econ[res] & 4` (+0x450). Value stored: `Game::frame` (a sim frame).
+
+**Reset.** `Leader::init (006e3930)` zeroes all eight, unconditionally (the
+per-slot loop `6e3c0d`–`6e3d93` runs on both `param_2` paths).
+`Leaders::clear (006ed5d0)` memsets each slot's `[+0, +0x6929)`. No
+`reset_score`, no per-frame fold.
+
+**Readers.** `LeaderData::is_tribute_period (006d5b90)`, `(this, p)`: walks
+slots `i` 0..7, skipping `this.who` and inactive slots; a slot *qualifies*
+when `i == p`, or under team style 7 neither side is the team-8 neutral and
+(at frame 0) `i` and `p` share a team 0..3, or (after frame 0)
+`is_ally(leaders[i], p)`. **At the first qualifying slot it returns 0 if the
+stamp is 0** (`6d5c8e` → `6d5cd0`, no further scan), 1 if `frame − stamp <
+3000`, else it moves on. So "R received a qualifying tribute from p or p's
+ally within 3000 frames", but a lower-indexed qualifying slot with a zero
+stamp hides a later fresh one. Callers: `Leader::diplomacy (006bc950)` `:1340`
+(gates the computer's demand-or-war arm off), `:2683` and `:2790` (price
+evaluation of a proposal, asked of the other leader), `Army::do_marching
+(006f3df0)` `:85`, `Army::find_target (006f69b0)` `:904` (army target
+choice).
+
+**Crate.** No writer: the crate has no `action_respond`, no exchange, no
+`consider_tribute`. The reader is a seam: `crates/sim/src/ai/army.rs:3262`
+(`fn tribute` returns `false`, documented at `:3104`), and
+`crates/sim/src/leaders/diplomacy.rs` stops before the `:1340` gate (the
+demand arm is past the team-style gate it does not port). The leaf is walked
+for the checksum at `crates/sim/src/checksum/leaders.rs:65`. A builder adds
+the stamp in a new `consider_tribute` beside an `action_respond` port (e.g. a
+`leaders/tribute.rs`), and replaces `army.rs:3262`'s `false` with
+`is_tribute_period`.
+
+**Plain game?** Yes. Any accepted deal that moves goods reaches it: a human's
+tribute through the diplomacy window (`CommandPackage::process_tribute
+(00946d70)` → `action_offer`, then `process_accept` → `action_respond`), a
+computer's taunt gift (`process_taunt`, run1086 entered `consider_tribute` on
+661), or a computer's own offers in `Leader::diplomacy`. With a human
+receiver the stamp is unconditional. Not behind triggers or CtW (the
+`ScenarioFuncSet::offer_tribute`/`accept_offer` route is a second, scenario
+route to the same code).
+
+**Confidence.** High on the writer set and the predicate (listing-checked,
+`6d1360`–`6d13e1`). The run1086 dump has `tribute_stamp[scan]` in the
+coverage list (`crates/rondata/src/diff/coverage.rs:295`); the reading
+predicts the human's `tribute_stamp[1]` = 661 on that frame — not checked
+here. Not followed: `ConquestStyle::walk_data`, `LoadGame` (a saved game's
+restore), `ScenarioRead::load_leader_chunk (009ac080)` (no store to the
+leaf by either net).
+

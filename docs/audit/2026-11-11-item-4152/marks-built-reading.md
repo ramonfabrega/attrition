@@ -50,3 +50,96 @@
   (a read for the checksum; whether its load direction writes the record
   back on a saved-game load was not read).
 
+## Leaf `fort_mark` (+0x428)
+
+**What it is.** The per-player high-water mark of the fort registry
+`forts.lists[who]` (a `PtrArray<Fort>`, 0x1c bytes per player at
+`forts`): one past the highest index whose `Fort` is live (`Fort +6` bit
+0). Every scan of a player's forts runs `i < fort_mark`. It is not a count:
+free entries below the mark are counted in it.
+
+### 1. Writers
+
+| writer | site (listing) | store |
+|---|---|---|
+| `Forts::init_fort (0073ed70)` | `0073edee` `mov %eax,0xe3a7b8(%ecx)` | mark = old mark + 1 (append into an already-allocated tail entry) |
+| `Forts::init_fort (0073ed70)` | `0073ee84` `mov %ecx,0xe3a7b8(%edx)` | mark = max(mark, idx + 1) |
+| `Forts::close_fort (0073ec90)` | `0073ed51` `mov %eax,0xe3a7b8(%edx)` | mark-- per loop turn |
+| `Leader::init (006e3930)` | `006e4136` `mov %eax,0x428(%ebx)` | `= 0` |
+| `Leaders::clear (006ed5d0)` | memset | `= 0` |
+
+No other store at `0xe3a7b8+k·0x6eec` or `0x428(%leader)` in `.text`.
+
+### 2. Event, step, predicate
+
+- **`init_fort(who, o)`**: find the first entry `i < fort_mark` whose live
+  bit is clear; if found, reuse `i` (mark unchanged by the search). Else if
+  `fort_mark < list.count` (allocated records left over above the mark),
+  take index `fort_mark` and set `fort_mark += 1`. Else allocate a new
+  `Fort` record, append, take `count − 1`. Then, in all three cases,
+  `fort_mark = max(fort_mark, idx + 1)`, `Fort::init(idx, who, o)`. Step:
+  0 or +1 per call, never more. Index is `who` (`param_1`, the building's
+  owner byte `+0x9`).
+- **Its one caller** (listing: one `call 0x73ed70`, at `006245a9`) is
+  `Build::activate (00623e20)`, when the building's type answers
+  `BuildTypeData::is_fort (00472ba0)` = `is(FORTX 0x1bb, 0)` (type vslot
+  `+0xfc`, PE `0xb42b94+0xfc` = `00472ba0`). The arm is reached on **every**
+  activation — no `captured`/`announce`/`counted` gate (decompile lines
+  ~558–568, between `regen_roads` and the dock test). Then
+  `UnbuiltForts::remove_unbuilt_fort` and `Build +0x78 = idx`.
+- **`close_fort(who, idx)`**: `Region::fix_borders` if the fort's cell has a
+  region, `Fort::close` (clears the live bit), then while `fort_mark > 0`
+  and entry `fort_mark − 1` is not live, `fort_mark -= 1`. Step: 0 down to
+  −mark. Its one caller (listing `00628ce7`) is `Build::close (00628980)`,
+  when the type `is_fort` **and** `Build +0x78 ≥ 0` (decompile lines
+  211–216).
+- **Units**: an index count, dimensionless.
+
+### 3. Reset
+
+`Leader::init (006e3930)` line 372 zeroes it — **only when the tribe
+argument is ≥ 0**: `init` returns early at line 321–323 when `param_2 < 0`,
+before the mark clears at 370–376 (the score reset at line 140 is before
+that return). `Leaders::clear` memsets it. `Leader::reset_score` does
+**not** touch it. `Setup::build_game` does not zero it directly (it zeroes
+`+0x408`, `+0x420`, `+0x434`, `+0x43c` of all eight slots at
+`005ac35f..005ac495`, not `+0x428`).
+
+### 4. Readers
+
+All are loop bounds over `forts.lists[who]`: `Forts::find_fort (0073ebe0)`
+(a live fort on exactly a cell), `World::compute_reg_territory (006b0bb0)`
+(territory sources — **decision-changing**: forts project territory),
+`Army::find_target (006f69b0)`, `Object::do_launch (0064f3b0)`,
+`Leader::produce_unit (006cb9e0)` (`< 1` early-out at line 191),
+`BuildTypeData::blocked_location (006375b0)`, `LeaderData::log_data`. The
+mark itself changes no decision except as a loop bound; the decision is in
+the live bits it bounds.
+
+### 5. Crate site
+
+The crate keeps no fort registry: forts are the buildings themselves
+(`crates/sim/src/ai/ai_sites.rs:311` `fort_at`, `crates/sim/src/cities/place.rs:326`
+`reg_forts`, both filter `alive && active && is_fort`). A builder adding
+`fort_mark` needs a slot registry like `territory::supply::SupplyList`
+(`crates/sim/src/territory/supply.rs:171`, which already reproduces the
+same first-free / trim-the-tail rule for supply) opened in
+`Sim::activate` (`crates/sim/src/cities/city.rs:2420`, the `is_fort` test at
+line 2533) and closed in `Sim::close_building` (`crates/sim/src/cities/city.rs:2782`;
+its fort arm at ~2906 already names `Forts::close_fort` and the `+0x78`
+gate). Slot reuse makes the mark depend on close order, so a derived
+"highest live index + 1" over buildings is only exact if index assignment
+is reproduced.
+
+### 6. Plain game?
+
+Yes: any fort finished by construction (`Wall::do_construct` →
+`activate(0,1,1)`), and any fort destroyed. Also reached by scenario load
+and the editor, which a plain game does not use.
+
+### 7. Confidence, not read
+
+High for the rule (decompile and listing agree on all four store sites).
+Not read: `Fort::close`'s body beyond the live bit; `Build::close`'s other
+paths into the fort arm (only its one fort test was read).
+

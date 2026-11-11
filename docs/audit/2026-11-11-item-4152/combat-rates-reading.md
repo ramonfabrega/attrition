@@ -285,3 +285,109 @@ debug message; it writes no leader leaf.
 6. **Plain game.** Yes.
 7. **Confidence.** High; as §3.
 
+**Readers, swept once for all leaves.** Every load at `0xa4c..0xa67` off a
+register in the listing, after the base-register check: only
+`Leader::process_event_frame`, `LeaderData::log_data (006e5110)` (all 13, the
+gamelog), and `IFaceMainBase::draw_timers` (`a50`, `a52`, `a54`, `a56` raw;
+`a58`, `a5a` ×100; a debug overlay). The dword loads at `0xa4c`/`0xa50`/
+`0xa54`/`0xa58`/`0xa60` in `Leader::gain_tech`, `Leader::do_gather`,
+`Leader::init` (`006e4fcc`), the `Group::action_*` family, `GroupData::count`,
+`Object::eject_contents`, `UnitOut::make_options` and the `ConquestLeader`
+methods are off `0xc061f0` (constants) or other pointers, not a leader. No
+absolute load in `0xe3addc..0xe3adf7` exists at all. A reader through a
+`leader+8` pointer (as the jukebox loop uses) with a displacement below
+`0xa4c` would escape this net; the jukebox loop is the one such reader
+found.
+
+## 5. `deaths_fifteen_seconds` (+0xa60), `kills_fifteen_seconds` (+0xa62), `hits_fifteen_seconds` (+0xa64), `damage_fifteen_seconds` (+0xa66), ushort
+
+(Four leaves, one rule; each named where it differs.)
+
+1. **Writers.** Only the fold, step 1: `006ec1c2` (`a60 += a58`), `006ec1e5`
+   (`a62 += a5a`), `006ec1ec` (`a64 += a5c`), `006ec1d0` (`a66 += a5e`); and
+   `Leader::init` (`006e3b98` clears `a60`+`a62`, `006e3b9e` clears
+   `a64`+`a66`); `Leaders::clear`. Nothing else stores into them — both nets.
+2. **Event.** On each fold frame (`frame % 50 == 0`, folded slots only:
+   `leader_flags & 1`, slots 0..7), add the raw `_current_frame` count
+   accumulated since the last fold, before its ×100. 16-bit wrap.
+3. **Reset.** **None during a game.** No writer ever lowers or clears them
+   after `Leader::init`; despite the name they are a running total since the
+   leader's init, modulo 65,536 (grep of writers: the fold's four `addw` and
+   init's two dword clears are all of them). Units as §1–§4 (hits and
+   damage: blows, 1 or 5; kills and deaths: 1, 2 or 5).
+4. **Readers.** `LeaderData::log_data` only. No sim decision reads them.
+5. **Crate.** No such event; the fold would go in `core/frame.rs` just before
+   `self.frame += 1` (line ~475), where `Game::do_frame`'s
+   `process_event_frame` loop sits in the original; the crate has no
+   `Leaders::end_process_all`/`Achieve::capture_data` beside it.
+6. **Plain game.** Yes (needs combat; any blow makes the hit/damage pair
+   non-zero at the next fold).
+7. **Confidence.** High. That the name says fifteen seconds and nothing
+   windows them is a reading of every store; a dump from a long fight would
+   confirm it cheaply.
+
+## 6. `average_death_rate` (+0xa50), `average_kill_rate` (+0xa52), `average_hit_rate` (+0xa56), `average_damage_rate` (+0xa54), ushort
+
+1. **Writers.** Fold step 3: `006ec253` (`a50`), `006ec27b` (`a52`),
+   `006ec29f` (`a56`), `006ec2d3` (`a54`); fold step 5 `006ec4e9` (`movl
+   0xfc18fc18` over `a50`+`a52`, death and kill only, on a battle event);
+   `Leader::init` (`006e3b7a` `a50`+`a52`, `006e3b86` `a54`+`a56`);
+   `Leaders::clear`.
+2. **Event.** Each fold frame, from `c = (current * 100) mod 65536` of the
+   matching counter (deaths→`a50`, kills→`a52`, hits→`a56`, damage→`a54`):
+   `c == 0` → `avg = avg*7 >> 3`; else `avg = (c + avg) >> 1`. Units:
+   hundredths of an event per fold window (one fold window is 50 sim frames).
+   The `mod 65536` matters only at 656 or more events in one window.
+   **Battle lock-out**: on a battle event (§7) the death and kill averages are
+   set to 64,536 (`0xfc18`), which as an unsigned word is a huge value, not
+   −1000: on the next fold with no deaths it decays to 56,469, and in the
+   1,800-frame lock-out (36 folds) to about 523 if nothing happens. Hit and
+   damage averages are not touched by the event.
+3. **Reset.** `Leader::init`, `Leaders::clear`; the battle event's 0xfc18
+   (death, kill only). No other.
+4. **Readers.** `average_death_rate` and `average_kill_rate`: the battle test
+   (§7), a decision. `average_hit_rate` and `average_damage_rate`: the
+   jukebox mood, **console leader only** (`who == console->who`): `H + Dm <
+   300` → economic mood (and the "quiet" flag when both are 0); `>= 600` →
+   winning or losing by `H - Dm` ± 200 from comparing the own team score with
+   the best rival team score over leaders that have non-zero hit or damage
+   rate, are not this one, and are not excluded by `diplos` (`+0x74`, `int[8]`):
+   a rival is skipped when both `rival.diplos[this.who]` and
+   `leadersc[this.who].diplos[rival.who]` are non-zero; 300..599 keeps the
+   current mood. Music only; the `0xecba2c` stores
+   are `juke_box.next_mood`. Also `log_data`, and `draw_timers` (all four).
+5. **Crate.** None; same site as §5.
+6. **Plain game.** Yes.
+7. **Confidence.** High for the arithmetic (read in the listing: `movzwl`,
+   `lea (,eax,8)`/`sub`/`shr 3`, `add`/`shr 1`, word stores). The jukebox
+   branch is read loosely: what a non-zero `diplos` value means (the rival
+   filter's sense) was not read.
+
+## 7. `frame_battle` (+0xa4c, int)
+
+1. **Writers.** Fold step 5, `006ec4f9` (`frame_battle = game->frame`,
+   the pre-increment frame of this fold); `Leader::init` `006e3bda` (0);
+   `Leaders::clear`. Nothing else (both nets; `TerrainOut::one_time_init`'s
+   `0xa4c(%ebx)` is a `TerrainOut`).
+2. **Event.** A battle event for this leader, on a fold frame: `D + K >=
+   (age + 1) * 125` (age from `data_encrypted->ages ^ 0x62766`, 0-based),
+   the lock-out passed (`frame_battle == 0` or `frame - frame_battle >=
+   1800`), and one side ahead by `10*age + 20`: `D >= K + 10*age + 20` is a
+   defeat, else `K >= D + 10*age + 20` a victory. A close fight (neither
+   ahead) records nothing and leaves the averages alone. The same store
+   follows either `Achieve::add_event` call; no leader kind is exempt (every
+   folded slot, human or computer).
+3. **Reset.** `Leader::init`, `Leaders::clear`. Never lowered otherwise.
+4. **Readers.** The battle test itself (the lock-out); `log_data`. Nothing
+   else in either net.
+5. **Crate.** None; same site as §5 (and the age is
+   `leaders[who]`'s age the crate already carries).
+6. **Plain game.** Yes; needs averages of at least 125 (age 0; 250 at age 1
+   …) — at age 0, e.g., three unit deaths in one window (c = 300, so D = 150) and nothing else
+   starts it, then `D >= K + 20` decides. Reachable in a skirmish
+   fight.
+7. **Confidence.** High for the predicate and constants. `age` is read off
+   `leaders[this.who]`, which is this slot when `who` equals the slot index
+   (true for the eight play slots as far as known, not checked here).
+   `Achieve::add_event` was read whole and writes no leaf.
+
