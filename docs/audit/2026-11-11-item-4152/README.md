@@ -75,7 +75,7 @@ clear cut: re-run that wave for that family.
 | # | slug | 1 reading | 2 second | 3 verdicts | 4 section (`docs/LEADERS.md`) |
 |---|---|---|---|---|---|
 | 1 | `city-name` | done | done | done | done, §1 |
-| 2 | `kills` | done | done | in flight at the clear | owed |
+| 2 | `kills` | done | done | done | owed |
 | 3 | `combat-rates` | done | done | in flight at the clear | owed |
 | 4 | `victim-stamps` | done | done | done | done, §4 |
 | 5 | `attrition-stamps` | done | done | in flight at the clear (also asked: `att`'s recompute timing, and run981's leaders) | owed |
@@ -95,7 +95,7 @@ clear cut: re-run that wave for that family.
 | 19 | `last-finished` | done | done | done | done, §19 |
 | 20 | `high-buildings` | done | done | in flight at the clear | owed |
 
-**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 8 of
+**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 9 of
 20, specified 7 of 20.
 
 **How to resume.** The briefs are in `briefs/`, one per wave. A spawn is one
@@ -174,3 +174,4 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | victim-stamps | 3 | ~150 k | ~13 | 90 confirmed, 1 corrected, 1 open | every predicate holds; writer list complete; `was_attacked`/`was_raided`'s `n <= 0` corrected; **new open**: a gaia attacker (slot 8) would write column 8, which spills into the next array; a port asserts `att` in 0..7 |
 | misery | 3 | 142 k | 10 | 38 confirmed, 5 corrected, 1 open | **at most +1 per building per frame** (the slot+1 recursion is a library's only); `misery` constant 0 (emit 0); `diff/leader.rs:49` "unread" is wrong |
 | diplomacy-relations | 2 | 242 k | 18 | 8 of 8 written | agrees: only humans move `dow`/`blacken` (quiet argument read at all 16 sites), `made_peace` and the hire pair in `action_respond`, `last_spoke` no writer; raises `good_deeds`' old balance entering twice |
+| kills | 3 | 196 k | 13 | 62 confirmed, 2 corrected, 0 open | the self-kill credit cannot happen in a plain game (every figure of a decoy squad is a decoy); the site-abandon arm is an unfinished site (`is_active` = flags & 4) |
