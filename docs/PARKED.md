@@ -3850,6 +3850,8 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 ## Loop, filed 2026-11-10 — the driver's fourteenth session
 
+(4142) **A render lane's first session went deep inside twenty minutes twice running, the second under a warning written for it** (the driver's twenty-second session, 2026-11-11): lane-4139's first session reached 233 k after 17 minutes; 4141's note said so, told the lane to read `ground.rs` by line range and to draft at 170 k with stage 1 unpinned, and lane-4141 still read 222 k at twelve minutes and 233 k at fifteen (lore: 95 requests, 15.27 M cache-read tokens, 6.13 USD, a mean of 161 k a request, so the session was deep from its first minutes). It had stages 0 to 2 built at the `DEEP` answer, and its second session, 11 requests and 0.58 USD, ran the lane gate and landed: 6.71 USD against 4139's 9.96, so the depth was not dear here. Unmeasured: where the first 160 k comes from — the inherited rules and roster, the brief and note, or the opening reads — and whether stage 1 was pinned before 170 k. Candidate: `lore trace` on both first sessions for the context at requests 1, 5 and 20; if the boot is over 100 k the remedy is the brief's and the harness's, not a warning in a note, and a render lane's `--deep` is set from that measurement. Names no score; the loop's.
+
 (4140) **A landing bar counted 120 ties as wins for two bookings** (the driver's twenty-first session, 2026-11-11; item 4139's stage 3): 4132's `RUN1559B_3279_GROUND_BLEND_PACKET` scored the packet's patch at "395 of 503 patched tiles, the best control 204", the queue booked it twice and 4139's note made 395 the bar. 127 of the 503 carry an emptied patch, where every candidate draws the base alone, and the count's `max_by` hands an equal score to the later candidate: 120 of the 395 were ties. On the 376 tiles that draw a patch the row is 275 for the packet's own choice and 282 for ours, against a best control of 147 (`RUN1559B_3279_GROUND_BLEND_DRAWN`); the conclusion stood, the margin did not. Candidate: a count of wins among candidates is strict, its ties are pinned beside it, and a `render` item's brief says so; a control that draws nothing different on a tile takes that tile out of the pool.
 
 (4138) **A lane sat 84 minutes behind `cat >> /dev/null;` on a socket, and the waiter's first tell was QUIET at 100** (the driver's twentieth session, 2026-11-11): lane-4134's second session prefixed a backgrounded patch-and-test command with a bare `cat`; a lane's shell has a unix socket for stdin, so the `cat` never returned, at 0 % CPU, and the lane waited on a notification that could not come, with no ninety-minute status line. `lanewait.py` exited QUIET at its default 100 minutes; `--stalled-child-after` is 90 and the child was 84 minutes old. The driver read the child's command, ended the `cat` by pid, and the lane's own command ran on and landed: 140 minutes for 56 of work. Candidate: the Bash hook refuses a `cat`, `read` or `tee` with no operand at a command's head in a lane, since it reads a stdin that never closes; and the waiter's stalled-child tell names a child of a working row at 0 % CPU whose stdin is a socket after ten minutes, not ninety. The same journal quotes 31 `Gate minutes:` lines, the gate log's whole history, where the guard wants the last.
@@ -16722,6 +16724,22 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot FP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FR renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
