@@ -269,7 +269,12 @@ pub fn our_patches(
     codes: &[[u32; 8]],
 ) -> Option<Vec<Option<crate::patch::Patch>>> {
     let numbers = rondata::mapgen::tileset_groups(root, tileset)?;
-    let cells: Vec<(i8, u8)> = t.land.iter().zip(&t.land_sub).map(|(&l, &s)| (l, s)).collect();
+    let cells: Vec<(i8, u8)> = t
+        .land
+        .iter()
+        .zip(&t.land_sub)
+        .map(|(&l, &s)| (l, s))
+        .collect();
     let frac = sim::mapgen::Fractal::init(t.width + 1, t.height + 1, 0, 2, seed);
     Some(crate::patch::patches(
         &crate::patch::Ground {
@@ -290,9 +295,15 @@ pub fn our_patches(
 /// within the colour reader's 0.05 in (r, g)/(r + g + b). Item 4129: it
 /// backs the tileset and the mapping, not the choice of base — every tile
 /// drawn in base 2 scores 1,053 and in base 0 1,052; the choice's row is
-/// [`RUN1559B_3279_GROUND_BASE`].
+/// [`RUN1559B_3279_GROUND_BASE`]. Item 4139: re-pinned with the
+/// transition patch laid over the base, our own choice on our own cells
+/// (§3.9); the base alone is [`RUN1559B_3279_GROUND_BARE`].
 #[cfg(test)]
-pub const RUN1559B_3279_GROUND: (usize, usize) = (949, 1109);
+pub const RUN1559B_3279_GROUND: (usize, usize) = (1051, 1109);
+
+/// [`RUN1559B_3279_GROUND`] on the base layer alone, as item 4127 pinned it.
+#[cfg(test)]
+pub const RUN1559B_3279_GROUND_BARE: (usize, usize) = (949, 1109);
 
 /// The same row on the debug colour, the floor (item 4127).
 #[cfg(test)]
@@ -304,9 +315,17 @@ pub const RUN1559B_3279_GROUND_FLOOR: (usize, usize) = (92, 1109);
 /// of the photograph's luminance with each base's own sub-tile at the read
 /// mapping, and stands above its own control, the same base with the
 /// sub-tile's cell index one on. New, 758 of 1,003; its controls, every
-/// tile one base, are [`RUN1559B_3279_GROUND_BASE_ONE`].
+/// tile one base, are [`RUN1559B_3279_GROUND_BASE_ONE`]. Item 4139:
+/// re-pinned with the rule's draw carrying the transition patch laid
+/// (§3.9) in the rule's base's place; the rule alone is
+/// [`RUN1559B_3279_GROUND_BASE_BARE`].
 #[cfg(test)]
-pub const RUN1559B_3279_GROUND_BASE: (usize, usize) = (758, 1003);
+pub const RUN1559B_3279_GROUND_BASE: (usize, usize) = (951, 1003);
+
+/// [`RUN1559B_3279_GROUND_BASE`] on the rule's base alone, as item 4129
+/// pinned it.
+#[cfg(test)]
+pub const RUN1559B_3279_GROUND_BASE_BARE: (usize, usize) = (758, 1003);
 
 /// The same row with every plain tile drawn in base 0, 1, 2, 3 (item 4129).
 #[cfg(test)]
@@ -780,12 +799,36 @@ mod tests {
         };
         let ours = draw(&base.uvs);
         let control = draw(&shifted);
+        // Item 4139 (§3.9): the transition patch, our own choice on our own
+        // cells, laid over the base at the alpha's A.
+        let alphas = load_alphas(&p.root).expect("the alphas load");
+        let codes: Vec<[u32; 8]> = alphas.iter().map(|a| a.1).collect();
+        let Some(seed) = crate::patch::tests::world_seed() else {
+            return;
+        };
+        let choice = our_patches(&t, &p.root, &tileset, seed, &codes).expect("the tileset");
+        let patch = ground_patch(&t, &mountains, &tex, &mesh, &choice);
+        let laid = paint(
+            &Object {
+                key: 1,
+                tris: patch.tris.clone(),
+            },
+            &Paint::Textures {
+                uvs: &patch.uvs,
+                mips: &flat,
+                of: &patch.of,
+            },
+            &p.camera,
+            size,
+            window,
+        );
         let ww = (window.x1 - window.x0) as usize;
         let cell = |(tx, ty): (i32, i32)| (tx / TILES_PER_CELL, ty / TILES_PER_CELL);
         let sub = |(cx, cy): (i32, i32)| t.land_sub[(cy * t.width + cx) as usize];
         let photo_at = |i: usize| [0, 1, 2].map(|c| f32::from(p.photo.rgba[i * 4 + c]));
         type Px = Vec<[f32; 3]>;
         let mut tiles: BTreeMap<(i32, i32), (Px, Px)> = BTreeMap::new();
+        let mut bare: BTreeMap<(i32, i32), Px> = BTreeMap::new();
         let mut pixel: BTreeMap<u8, (u32, u32)> = BTreeMap::new();
         let mut lum: Vec<(f32, f32, f32)> = Vec::new();
         let l = |c: [f32; 3]| 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2];
@@ -803,11 +846,19 @@ mod tests {
                     .filter(|q| base.tile[q.tri as usize] == tt)
                     .map(|q| q.rgb)
             };
-            let Some(c) = drawn else { continue };
+            let Some(c0) = drawn else { continue };
+            bare.entry(tt).or_default().push(c0);
+            let c = laid[j]
+                .filter(|q| patch.tile[q.tri as usize] == tt)
+                .map_or(c0, |q| {
+                    let k = q.tri as usize;
+                    let a = patch_alpha(&alphas[patch.alpha[k]].0, &patch.patch[k], q.uv);
+                    [0, 1, 2].map(|i| c0[i] * (1.0 - a) + q.rgb[i] * a)
+                });
             e.1.push(c);
             if !mountains.contains(&tt) {
                 if let Some(k) = control[j].filter(|q| base.tile[q.tri as usize] == tt) {
-                    lum.push((l(them), l(c), l(k.rgb)));
+                    lum.push((l(them), l(c0), l(k.rgb)));
                 }
                 let s = sub(cell(tt));
                 let sum = |q: [f32; 3]| q[0] + q[1] + q[2];
@@ -825,6 +876,16 @@ mod tests {
             .filter(|(_, (th, _))| th.len() as u32 >= HUE.min_pixels)
             .collect();
         let mut row = 0;
+        // The row on the base alone, as 4127 pinned it, for the value diff.
+        let row_bare = scored
+            .iter()
+            .filter(|(tt, (th, _))| {
+                bare.get(tt).is_some_and(|us| {
+                    dist(chromaticity(mean(us)), chromaticity(mean(th))) <= HUE.distance
+                })
+            })
+            .count();
+        let mut moved: (Vec<(i32, i32)>, Vec<(i32, i32)>) = Default::default();
         let mut by: BTreeMap<(u8, bool), (u32, u32)> = BTreeMap::new();
         let mut parts: BTreeMap<&str, u32> = BTreeMap::new();
         for (tt, (th, us)) in &scored {
@@ -834,6 +895,12 @@ mod tests {
             e.1 += 1;
             let ok = !us.is_empty()
                 && dist(chromaticity(mean(us)), chromaticity(mean(th))) <= HUE.distance;
+            let was = bare.get(*tt).is_some_and(|b| {
+                dist(chromaticity(mean(b)), chromaticity(mean(th))) <= HUE.distance
+            });
+            if ok != was {
+                if ok { &mut moved.0 } else { &mut moved.1 }.push(**tt);
+            }
             if ok {
                 row += 1;
                 e.0 += 1;
@@ -890,12 +957,21 @@ mod tests {
             scored.len(),
             RUN1559B_3279_GROUND_FLOOR.0
         );
+        println!(
+            "the patch laid: {} triangles; the row on the base alone {row_bare}; gained {} {:?}; lost {} {:?}",
+            patch.tris.len(),
+            moved.0.len(),
+            moved.0,
+            moved.1.len(),
+            moved.1
+        );
         println!("parting by what it would take: {parts:?}");
         println!("per pixel, by land_sub (agree, lit): {pixel:?}");
         println!(
             "mapping's check over {} pixels: r {r:.3} against the half-period control's {rc:.3}",
             lum.len()
         );
+        assert_eq!((row_bare, scored.len()), RUN1559B_3279_GROUND_BARE);
         assert_eq!((row, scored.len()), RUN1559B_3279_GROUND);
     }
 
@@ -1199,6 +1275,54 @@ mod tests {
         // Step 1: the controls.
         let ruled = pairs(&base.of);
         let (rn, rby) = row(&ruled);
+        // Item 4139 (§3.9): the rule's draw with our patch laid over it.
+        let alphas = load_alphas(&p.root).expect("the alphas load");
+        let codes: Vec<[u32; 8]> = alphas.iter().map(|a| a.1).collect();
+        let Some(seed) = crate::patch::tests::world_seed() else {
+            return;
+        };
+        let choice = our_patches(&t, &p.root, &tileset, seed, &codes).expect("the tileset");
+        let patch = ground_patch(&t, &mountains, &tex, &mesh, &choice);
+        let laid_paint = paint(
+            &Object {
+                key: 1,
+                tris: patch.tris.clone(),
+            },
+            &Paint::Textures {
+                uvs: &patch.uvs,
+                mips: &flat,
+                of: &patch.of,
+            },
+            &p.camera,
+            size,
+            window,
+        );
+        let laid: Pairs = {
+            let ours = draw(&base.of);
+            let mut out: Pairs = BTreeMap::new();
+            for (i, tt) in g.tile.iter().enumerate() {
+                let Some(tt) = *tt else { continue };
+                let (x, y) = ((i % w) as i32, (i / w) as i32);
+                let j = (y - window.y0) as usize * ww + (x - window.x0) as usize;
+                let Some(b) = ours[j].filter(|q| base.tile[q.tri as usize] == tt) else {
+                    continue;
+                };
+                let c = laid_paint[j]
+                    .filter(|q| patch.tile[q.tri as usize] == tt)
+                    .map_or(b.rgb, |q| {
+                        let k = q.tri as usize;
+                        let a = patch_alpha(&alphas[patch.alpha[k]].0, &patch.patch[k], q.uv);
+                        [0, 1, 2].map(|i| b.rgb[i] * (1.0 - a) + q.rgb[i] * a)
+                    });
+                out.entry(tt).or_default().push((photo_at(i), c));
+            }
+            out
+        };
+        let (ln, lby) = row(&laid);
+        println!(
+            "the rule with the patch laid: row {ln} by {lby:?} r {:.3}",
+            r_all(&laid)
+        );
         println!("control rule: row {rn} by {rby:?} r {:.3}", r_all(&ruled));
         let mut one: Vec<Pairs> = Vec::new();
         let mut wrong: Vec<Pairs> = Vec::new();
@@ -1271,6 +1395,8 @@ mod tests {
         let (mut above, mut decisive, mut none_above) = (0, 0, 0);
         let mut by_edge: BTreeMap<(bool, i32), u32> = BTreeMap::new();
         let mut gb_rule = 0;
+        let mut gb_laid = 0;
+        let mut laid_moved: (Vec<(i32, i32)>, Vec<(i32, i32)>) = Default::default();
         let mut gb_packet = 0;
         let mut gb_one = vec![0; nb];
         let mut patched: BTreeMap<(bool, Option<i32>, bool), u32> = BTreeMap::new();
@@ -1328,6 +1454,21 @@ mod tests {
             if wins(rb) {
                 gb_rule += 1;
             }
+            // The laid draw stands in for the rule's base: best of the four
+            // with it in base `rb`'s place, and above `rb`'s control.
+            let rl = r_tile(&laid, tt);
+            let laid_wins = rl > rw[rb] && (0..nb).filter(|&b| b != rb).all(|b| rl >= r[b]);
+            if laid_wins {
+                gb_laid += 1;
+            }
+            if laid_wins != wins(rb) {
+                if laid_wins {
+                    &mut laid_moved.0
+                } else {
+                    &mut laid_moved.1
+                }
+                .push(*tt);
+            }
             if wins(pb) {
                 gb_packet += 1;
             }
@@ -1358,10 +1499,19 @@ mod tests {
             2 * above >= plain.len(),
             "the measure tells the bases apart"
         );
-        assert_eq!((gb_rule, plain.len()), RUN1559B_3279_GROUND_BASE);
+        println!(
+            "RUN1559B_3279_GROUND_BASE with the patch laid {gb_laid} (the rule alone {gb_rule}); gained {} {:?}; lost {} {:?}",
+            laid_moved.0.len(),
+            laid_moved.0,
+            laid_moved.1.len(),
+            laid_moved.1
+        );
+        assert_eq!((gb_rule, plain.len()), RUN1559B_3279_GROUND_BASE_BARE);
+        assert_eq!((gb_laid, plain.len()), RUN1559B_3279_GROUND_BASE);
+        assert_eq!(ln, RUN1559B_3279_GROUND.0, "the row with the patch laid");
         assert_eq!(gb_one, RUN1559B_3279_GROUND_BASE_ONE);
         assert!(gb_one.iter().all(|&n| n < gb_rule));
-        assert_eq!(rn, RUN1559B_3279_GROUND.0, "the row as 4127 pinned it");
+        assert_eq!(rn, RUN1559B_3279_GROUND_BARE.0, "the row as 4127 pinned it");
     }
 
     /// One patched plain tile's pixels for [`the_transition_patch`]: per
