@@ -45,6 +45,8 @@ mechanism behind those counts.
 
 | offset | field | what |
 |---|---|---|
+| `+0x14`, `+0x70` | `z`, `last_z` | by the type's domain: the ground under the point, a ship's 0, an aircraft's climb (`docs/CHECKSUM.md` §16) |
+| `+0x1c`, `+0x68`, `+0x6c` | `last_angle`, `last_x`, `last_y` | the facing and point `Guy::move@005d9240:44–50` copies at its head; carried as `Guy::last` since item 4104, read by the checksum's guys line alone (`docs/CHECKSUM.md` §16) |
 | `+0x74` | `cur_time` (ulong) | frames into the current animation |
 | `+0x78` | `end_time` (ulong) | the animation's length; **0** right after `init_real` |
 | `+0x7c` | `last_time` (int) | `cur_time` before this frame's step; **−1** right after any `set_anim` |

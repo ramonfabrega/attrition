@@ -2808,8 +2808,15 @@ impl Sim {
         while guys.len() <= g {
             guys.push(Guy::fresh(-1));
         }
-        let follow = guys[g].follow;
-        guys[g] = Guy { follow, ..guy };
+        // The body a crew figure walks and the point and facing its last
+        // `Guy::move` began from (`Guy::last`) are the walk's, not the
+        // clock's: a dumped clock carries neither.
+        let (follow, last) = (guys[g].follow, guys[g].last);
+        guys[g] = Guy {
+            follow,
+            last,
+            ..guy
+        };
     }
 
     /// Seats every crew guy on its offset — `Unit::set_new_location`'s
