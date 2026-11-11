@@ -458,6 +458,66 @@ pub(crate) fn threads(owner: crate::Player) -> bool {
     owner < 9
 }
 
+/// **`ObjectData`'s four chain words, held as the original holds them**
+/// (`docs/COLLISION.md` §3.2, item 4098): `up` (`+0x2a`), `down`
+/// (`+0x2c`), `down_who` (`+0x2e`) and `up_who` (`+0x3f`), on every unit
+/// and building, with the two links they name kept as handles beside them.
+///
+/// The words are not derivable from the chain: `Object::add_to_world
+/// @0064d8c0` writes `up` −1 and leaves `up_who`, and `Object::remove_from_world
+/// @00647970` writes `up` and `down` −1 and leaves `up_who` and `down_who`.
+/// So an object that once had something above it keeps that owner in
+/// `up_who` after it is gone, and an object off the world keeps the
+/// `down_who` it last had. Nothing in the simulation reads them; the
+/// checksum's builds and units lines walk them (`docs/CHECKSUM.md` §6, §14).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ObjectChain {
+    /// `up`: the object above, by its number; −1 at the head.
+    pub up: i16,
+    /// `down`: the object below, by its number; at the tail the cell's own
+    /// `WData::down` when the tail was threaded (−1 empty, −2 a good, −3 a
+    /// goody box).
+    pub down: i16,
+    /// `down_who`: the object below's owner, or the cell's `WData::down_who`
+    /// at the tail (0 on an empty cell, the good's index on a good's).
+    pub down_who: i16,
+    /// `up_who`: the object above's owner — and the last one's after it left.
+    pub up_who: i8,
+    above: Option<Obj>,
+    below: Option<Obj>,
+}
+
+impl Default for ObjectChain {
+    /// `Object::Object@00646e80`: all four words −1.
+    fn default() -> Self {
+        ObjectChain {
+            up: -1,
+            down: -1,
+            down_who: -1,
+            up_who: -1,
+            above: None,
+            below: None,
+        }
+    }
+}
+
+impl ObjectChain {
+    /// **`Object::init@00647750` on a slot** whose last occupant left
+    /// `prev`: `up` and `down` −1, and `down_who` and `up_who` the slot's.
+    /// The original's object of a number is one instance, re-inited in
+    /// place (`Objects::init_build@0065d190` and `init_unit` call `init`
+    /// through `objects[who][o]`), and `init` writes neither of the two.
+    pub(crate) fn reinit(prev: Option<&ObjectChain>) -> ObjectChain {
+        ObjectChain {
+            up: -1,
+            down: -1,
+            above: None,
+            below: None,
+            ..prev.copied().unwrap_or_default()
+        }
+    }
+}
+
 pub(crate) fn chain_hit_steps<O: Copy>(
     c: (i32, i32),
     mine: i32,
@@ -1785,6 +1845,7 @@ impl Sim {
             self.units[h].up = Some(u);
         }
         self.terrain.chain_heads[s] = Some(u);
+        self.object_chain_add(Obj::Unit(u));
     }
 
     /// The world cell's object chain, head first — the order
@@ -1813,8 +1874,19 @@ impl Sim {
     }
 
     /// `Object::remove_from_world`'s chain half, under the same owner gate
-    /// as [`Self::chain_add`].
+    /// as [`Self::chain_add`]: off the units' chain and off the whole one.
     pub(crate) fn chain_remove(&mut self, u: usize) {
+        self.unit_chain_remove(u);
+        self.object_chain_remove(Obj::Unit(u));
+    }
+
+    /// The units' half of [`Self::chain_remove`] alone — for a combat death
+    /// whose type blocks while dead, which `Object::close@00647160` leaves
+    /// on the original's chain until `DeathObj::clear_blocking` takes it
+    /// off (`docs/COLLISION.md` §3.2). Every reader here walks the units'
+    /// chain and meets the wreck through its own path
+    /// (`DetectNode::Wreck`), so the wreck stays on the whole chain only.
+    pub(crate) fn unit_chain_remove(&mut self, u: usize) {
         if !threads(self.units[u].owner) {
             return;
         }
@@ -1834,6 +1906,159 @@ impl Sim {
         }
         self.units[u].up = None;
         self.units[u].down = None;
+    }
+
+    // ------------------------------------------------------------------
+    // §3.2 — every object on the chain, and its four words
+    // ------------------------------------------------------------------
+
+    fn chain_words(&self, o: Obj) -> &ObjectChain {
+        match o {
+            Obj::Unit(u) => &self.units[u].chain,
+            Obj::Building(b) => &self.buildings[b].chain,
+        }
+    }
+
+    fn chain_words_mut(&mut self, o: Obj) -> &mut ObjectChain {
+        match o {
+            Obj::Unit(u) => &mut self.units[u].chain,
+            Obj::Building(b) => &mut self.buildings[b].chain,
+        }
+    }
+
+    /// An object's `(o, who, point)` as the chain's two functions read them.
+    fn chain_ident(&self, o: Obj) -> (i16, crate::Player, Pos) {
+        match o {
+            Obj::Unit(u) => (self.units[u].index, self.units[u].owner, self.units[u].pos),
+            Obj::Building(b) => (
+                self.buildings[b].index,
+                self.buildings[b].owner,
+                self.buildings[b].pos,
+            ),
+        }
+    }
+
+    /// **The cell's head as `WData::down`/`down_who` hold it**: the head
+    /// object's number and owner, or — on a cell with nothing threaded —
+    /// the cell's own pair, which the map writes (−1 and 0 empty; −2 and the
+    /// good's index, `Objects::init_good@00653f30`; −3 and the box's).
+    pub(crate) fn object_head_words(&self, c: crate::Cell) -> (i16, i16) {
+        let s = (c.y as usize) * (self.world.width() as usize) + (c.x as usize);
+        match self.terrain.object_heads[s] {
+            Some(h) => {
+                let (o, who, _) = self.chain_ident(h);
+                (o, i16::from(who))
+            }
+            None => {
+                let d = self.world.cell_data(c);
+                (d.down, i16::from(d.down_who))
+            }
+        }
+    }
+
+    /// **`Object::add_to_world@0064d8c0`'s chain half, for any object**
+    /// (`docs/COLLISION.md` §3.2): `up` −1 (`up_who` left as it is); the
+    /// cell's head becomes the object's `down`/`down_who`; a head object
+    /// takes `up` and `up_who` naming this one; the cell's head becomes this
+    /// object. Owner 9 is never threaded.
+    pub(crate) fn object_chain_add(&mut self, o: Obj) {
+        let (me, who, pos) = self.chain_ident(o);
+        if !threads(who) {
+            return;
+        }
+        let Some(s) = self.chain_slot(pos) else {
+            return;
+        };
+        let (down, down_who) = self.object_head_words(pos.cell());
+        let head = self.terrain.object_heads[s];
+        if let Some(h) = head {
+            let hw = self.chain_words_mut(h);
+            hw.up = me;
+            hw.up_who = who as i8;
+            hw.above = Some(o);
+        }
+        let w = self.chain_words_mut(o);
+        w.up = -1;
+        w.above = None;
+        w.down = down;
+        w.down_who = down_who;
+        w.below = head;
+        self.terrain.object_heads[s] = Some(o);
+    }
+
+    /// **`Object::remove_from_world@00647970`'s chain half, for any
+    /// object** (`docs/COLLISION.md` §3.2). At the head (`up < 0`) the cell
+    /// takes the object's `down`/`down_who` back and the object below gets
+    /// `up` −1, its `up_who` left; else the object above takes `down` and
+    /// `down_who`, and the object below `up` and `up_who`. The object's own
+    /// `up` and `down` go to −1, its `up_who` and `down_who` left.
+    ///
+    /// The cell is touched only when this object heads it — the guard
+    /// [`Sim::chain_remove`] has always had; the original keys on `up < 0`
+    /// alone, so a second removal would write the stale `down` over a live
+    /// head there.
+    pub(crate) fn object_chain_remove(&mut self, o: Obj) {
+        let (_, who, pos) = self.chain_ident(o);
+        if !threads(who) {
+            return;
+        }
+        let w = *self.chain_words(o);
+        match w.above {
+            None => {
+                if let Some(s) = self.chain_slot(pos)
+                    && self.terrain.object_heads[s] == Some(o)
+                {
+                    self.terrain.object_heads[s] = w.below;
+                }
+                if let Some(b) = w.below {
+                    let bw = self.chain_words_mut(b);
+                    bw.up = -1;
+                    bw.above = None;
+                }
+            }
+            Some(a) => {
+                let aw = self.chain_words_mut(a);
+                aw.down = w.down;
+                aw.down_who = w.down_who;
+                aw.below = w.below;
+                if let Some(b) = w.below {
+                    let bw = self.chain_words_mut(b);
+                    bw.up = w.up;
+                    bw.up_who = w.up_who;
+                    bw.above = Some(a);
+                }
+            }
+        }
+        let w = self.chain_words_mut(o);
+        w.up = -1;
+        w.down = -1;
+        w.above = None;
+        w.below = None;
+    }
+
+    /// The world cell's whole chain, head first, units and buildings —
+    /// the order `Object::find_nearby_target` and every other walker of
+    /// `WData::down` meets them in. No reader of the simulation takes it
+    /// yet (§3.2): each walks [`Sim::cell_chain`], the units of it.
+    #[cfg(test)]
+    pub(crate) fn object_chain(&self, c: crate::Cell) -> Vec<Obj> {
+        if c.x < 0 || c.y < 0 || c.x >= self.world.width() || c.y >= self.world.height() {
+            return Vec::new();
+        }
+        let s = (c.y as usize) * (self.world.width() as usize) + (c.x as usize);
+        let mut out = Vec::new();
+        let mut next = self.terrain.object_heads[s];
+        while let Some(o) = next {
+            out.push(o);
+            next = self.chain_words(o).below;
+        }
+        out
+    }
+
+    /// The four words of a unit, `(up, down, down_who, up_who)`.
+    pub fn unit_chain_words(&self, u: usize) -> (i16, i16, i16, i8) {
+        let w = &self.units[u].chain;
+        (w.up, w.down, w.down_who, w.up_who)
     }
 
     // ------------------------------------------------------------------

@@ -86,10 +86,13 @@ impl Sim {
         }
         if keep_disc {
             self.units[unit].coll_at = None;
+            // The wreck stays on the whole chain of objects until
+            // `DeathObj::clear_blocking` (`docs/COLLISION.md` §3.2).
+            self.unit_chain_remove(unit);
         } else {
             self.coll_remove(unit);
+            self.chain_remove(unit);
         }
-        self.chain_remove(unit);
     }
 
     /// Whether anything of `owner`'s supplies a unit standing at `at`.

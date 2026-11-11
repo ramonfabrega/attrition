@@ -2977,3 +2977,98 @@ fn run10_s_frame_122_pair_is_a_hard_collision() {
     assert_eq!(Sim::corner_of(1, Pos::new(870, 354), Pos::new(871, 355)), 5);
     assert_eq!(Sim::corner_of(1, Pos::new(872, 356), Pos::new(871, 355)), 1);
 }
+
+/// **Every object on the cell's chain, and the words it leaves behind**
+/// (item 4098, `docs/COLLISION.md` §3.2). A building is threaded on its
+/// own point's cell when it is placed; a unit that steps onto that cell
+/// goes on the head above it, and when it steps off the building's `up`
+/// goes back to −1 and its `up_who` keeps the unit's owner — the British
+/// Woodcutter's Camp's `up_who` 1 on run 1562's frame 91. A unit taken out
+/// of the middle hands its `down`/`down_who` up and its `up`/`up_who` down,
+/// and keeps its own `up_who` and `down_who`. The tail of a chain carries
+/// the cell's own `WData::down`/`down_who`.
+#[test]
+fn a_building_on_the_chain_keeps_the_owner_of_the_unit_that_left_it() {
+    let (mut sim, x, y) = pair(
+        Pos::new(10 * 0x300 + 0x180, 10 * 0x300 + 0x180),
+        Pos::new(20 * 0x300 + 0x180, 20 * 0x300 + 0x180),
+    );
+    let here = Cell::new(30, 30);
+    let there = Cell::new(32, 30);
+    for c in [here, there] {
+        let mut d = sim.world.cell_data(c);
+        d.down = -1;
+        d.down_who = 0;
+        sim.world.set_cell_data(c, d);
+    }
+    let centre = |c: Cell| Pos::new(c.x * 0x300 + 0x180, c.y * 0x300 + 0x180);
+    let b = sim.add_building(1, centre(here), 2);
+    let o = sim.buildings[b].index;
+    let words = |c: &ObjectChain| (c.up, c.down, c.down_who, c.up_who);
+    assert_eq!(words(&sim.buildings[b].chain), (-1, -1, 0, -1), "placed");
+    assert_eq!(
+        sim.object_head_words(here),
+        (o, 1),
+        "the building heads its cell"
+    );
+
+    // A unit of player 1 steps onto the cell: on the head, above it.
+    let mut u = sim.units[y].clone();
+    u.owner = 1;
+    u.index = 5;
+    u.pos = centre(there);
+    let v = sim.add_unit(u);
+    assert!(sim.set_new_location(v, centre(here), true));
+    assert_eq!(words(&sim.units[v].chain), (-1, o, 1, -1));
+    assert_eq!(words(&sim.buildings[b].chain), (5, -1, 0, 1));
+    assert_eq!(sim.object_chain(here), vec![Obj::Unit(v), Obj::Building(b)]);
+    assert_eq!(
+        sim.cell_chain(here),
+        vec![v],
+        "the readers' chain is its units"
+    );
+    // ... and steps off: `up` −1, `up_who` the owner that left.
+    assert!(sim.set_new_location(v, centre(there), true));
+    assert_eq!(
+        words(&sim.buildings[b].chain),
+        (-1, -1, 0, 1),
+        "the stale up_who"
+    );
+    assert_eq!(
+        words(&sim.units[v].chain),
+        (-1, -1, 0, -1),
+        "the tail takes the cell's own"
+    );
+
+    // Two of player 0's onto the cell, and the first taken out of the
+    // middle: the neighbours are relinked, its own two `who`s left.
+    assert!(sim.set_new_location(x, centre(here), true));
+    assert!(sim.set_new_location(y, centre(here), true));
+    assert_eq!(
+        sim.object_chain(here),
+        vec![Obj::Unit(y), Obj::Unit(x), Obj::Building(b)]
+    );
+    let yo = sim.units[y].index;
+    sim.chain_remove(x);
+    assert_eq!(words(&sim.units[y].chain), (-1, o, 1, -1));
+    assert_eq!(words(&sim.buildings[b].chain), (yo, -1, 0, 0));
+    assert_eq!(
+        words(&sim.units[x].chain),
+        (-1, -1, 1, 0),
+        "x keeps both whos"
+    );
+    assert_eq!(sim.object_chain(here), vec![Obj::Unit(y), Obj::Building(b)]);
+
+    // The building leaves the world from the tail: the unit above takes
+    // the cell's own pair; the building's `up_who` stays.
+    sim.object_chain_remove(Obj::Building(b));
+    assert_eq!(words(&sim.units[y].chain), (-1, -1, 0, -1));
+    assert_eq!(words(&sim.buildings[b].chain), (-1, -1, 0, 0));
+    assert_eq!(sim.object_chain(here), vec![Obj::Unit(y)]);
+    // A number re-inited keeps its last occupant's two `who`s.
+    assert_eq!(
+        words(&ObjectChain::reinit(Some(&sim.units[x].chain))),
+        (-1, -1, 1, 0)
+    );
+    assert_eq!(words(&ObjectChain::reinit(None)), (-1, -1, -1, -1));
+}

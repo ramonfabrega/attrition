@@ -189,6 +189,12 @@ pub struct Building {
     /// zeroed either way. Folded by the builds line (`docs/CHECKSUM.md`
     /// §14).
     pub had_helpers: bool,
+    /// **`ObjectData`'s four chain words** (`up`, `down`, `down_who`,
+    /// `up_who`): the building's place on its cell's chain of objects,
+    /// threaded where `Object::init@00647750` threads it — its own point's
+    /// cell — and held, stale words and all (`docs/COLLISION.md` §3.2,
+    /// item 4098). Folded by the builds line (`docs/CHECKSUM.md` §14).
+    pub chain: crate::movement::collide::ObjectChain,
     /// `SubObjectData::flags & 0x80` of a building: raised by a round
     /// fired, dropped at the head of the next `do_attack`; it holds
     /// [`Building::visible`] against the 32-frame clear.
@@ -266,6 +272,7 @@ impl Sim {
             .expect("a player's building band is full");
         let z = self.world.object_z(pos.tile());
         let uid = self.next_uid(owner);
+        let chain = self.building_slot_chain(owner, index);
         self.buildings.push(Building {
             owner,
             index,
@@ -310,6 +317,7 @@ impl Sim {
             uid,
             frame_started: 0,
             had_helpers: false,
+            chain,
             clock: crate::cities::build::ClockMods::default(),
             hit_frame: None,
             fort_source: None,
@@ -326,7 +334,27 @@ impl Sim {
             visible: 0,
             attacking: false,
         });
-        self.buildings.len() - 1
+        let b = self.buildings.len() - 1;
+        self.object_chain_add(crate::combat::Obj::Building(b));
+        b
+    }
+
+    /// **The chain words a building's `Object::init@00647750` starts
+    /// from**: its number's last occupant's `down_who` and `up_who`, or
+    /// `Object::Object@00646e80`'s −1s on a number never used
+    /// ([`crate::movement::collide::ObjectChain::reinit`]).
+    pub(crate) fn building_slot_chain(
+        &self,
+        owner: Player,
+        index: i16,
+    ) -> crate::movement::collide::ObjectChain {
+        crate::movement::collide::ObjectChain::reinit(
+            self.buildings
+                .iter()
+                .rev()
+                .find(|b| b.owner == owner && b.index == index)
+                .map(|b| &b.chain),
+        )
     }
 
     /// Adds a library and returns its index. See [`Building::is_library`].

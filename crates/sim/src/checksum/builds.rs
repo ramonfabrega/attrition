@@ -181,19 +181,12 @@ impl Sim {
             )
         });
         p(0x28, 2, inside.map_or(-1, |x| x.0));
-        // The world cell's object chain (`Object::add_to_world@0064d8c0`):
-        // this crate threads units only, so the building stands below
-        // every unit on its cell.
-        let chain = self.cell_chain(bd.pos.cell());
-        let up = chain.last().map(|&u| {
-            (
-                i64::from(self.units[u].index),
-                i64::from(self.units[u].owner),
-            )
-        });
-        p(0x2a, 2, up.map_or(-1, |x| x.0));
-        p(0x2c, 2, -1);
-        p(0x2e, 2, 0);
+        // The world cell's chain of objects, held as the original holds
+        // its four words (`docs/COLLISION.md` §3.2, item 4098).
+        let chain = bd.chain;
+        p(0x2a, 2, i64::from(chain.up));
+        p(0x2c, 2, i64::from(chain.down));
+        p(0x2e, 2, i64::from(chain.down_who));
         p(0x30, 2, i64::from(bd.uid));
         p(0x32, 2, i64::from(bd.hold_frames));
         let near = bd.near.map_or((-1, -1), |o| self.obj_o_who(o));
@@ -205,7 +198,7 @@ impl Sim {
         p(0x3c, 1, i64::from(bd.mylos));
         p(0x3d, 1, i64::from(bd.targeted));
         p(0x3e, 1, inside.map_or(i64::from(bd.owner), |x| x.1));
-        p(0x3f, 1, up.map_or(-1, |x| x.1));
+        p(0x3f, 1, i64::from(chain.up_who));
         p(0x40, 1, i64::from(bd.visible));
         p(0x41, 1, i64::from(bd.launch_frames));
         v

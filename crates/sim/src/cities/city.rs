@@ -1537,6 +1537,7 @@ impl Sim {
             .expect("a player's building band is full");
         let z = self.world.object_z(pos.tile());
         let uid = self.next_uid(who);
+        let chain = self.building_slot_chain(who, index);
         self.buildings.push(Building {
             owner: who,
             index,
@@ -1584,6 +1585,7 @@ impl Sim {
             uid,
             frame_started: -1,
             had_helpers: false,
+            chain,
             clock: build::ClockMods::default(),
             hit_frame: None,
             fort_source: None,
@@ -1600,6 +1602,10 @@ impl Sim {
             visible: 0,
             attacking: false,
         });
+        // `Wall::init@0063e9b0` → `Object::init@00647750` → `add_to_world`:
+        // the building is threaded on its own point's cell, on the head
+        // (`docs/COLLISION.md` §3.2).
+        self.object_chain_add(crate::combat::Obj::Building(b));
         // `Build::init@00629740` line 74: a type with arrows (`+0x1e8`)
         // counts in its owner's `defense` the moment it is placed, ungated;
         // the sweep's recount replaces the tally (`docs/AI.md` §2, step 11).
@@ -2826,6 +2832,11 @@ impl Sim {
             self.close_pasture_animals(b);
         }
         self.buildings[b].alive = false;
+        // `Object::close@00647160` → `remove_from_world`: a building's type
+        // never blocks while dead (`blocks_while_dead`, type slot `+0x120`,
+        // is `UnitTypeData`'s alone), so it leaves its cell's chain here
+        // (`docs/COLLISION.md` §3.2).
+        self.object_chain_remove(crate::combat::Obj::Building(b));
         // `Wall::close:155` → `Object::close@00647160`: an active object's
         // close ends with `hold_frames = 0x1e`, so the number is not
         // `find_free`'s for thirty frames (`docs/COMBAT.md` §59.3). The
