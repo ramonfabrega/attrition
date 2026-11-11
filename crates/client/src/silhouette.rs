@@ -421,6 +421,10 @@ pub struct Scene {
     /// silhouette's pass (item 4085), row-major.
     #[cfg_attr(not(test), allow(dead_code))]
     pub behind: Vec<bool>,
+    /// At a `behind` pixel, the key of the tree or sprite the figure is
+    /// behind (item 4103); 0 elsewhere.
+    #[cfg_attr(not(test), allow(dead_code))]
+    pub nearer: Vec<u32>,
     #[cfg_attr(not(test), allow(dead_code))]
     pub drawings: Vec<Drawing>,
     #[cfg_attr(not(test), allow(dead_code))]
@@ -454,6 +458,7 @@ pub fn frame_scene(world: &mut World, camera: &render::Camera, size: (usize, usi
     };
     let mut keys = rasterize_cut(&meshes, &cut, &stamps(&sprites, first), camera, size).keys;
     let mut behind = vec![false; keys.keys.len()];
+    let mut nearer = vec![0u32; keys.keys.len()];
     if world.silhouettes == crate::world::Silhouettes::Drawn {
         // The guys pass after `flush_trees` (item 4085): a figure's
         // `render_states[1]` draw passes where it is behind, writing no
@@ -464,8 +469,15 @@ pub fn frame_scene(world: &mut World, camera: &render::Camera, size: (usize, usi
             .filter(|o| !drawings[o.key as usize - 1].building)
             .collect();
         let alone = rasterize_cut(&figures, &[], &[], camera, size).keys;
-        for ((k, f), b) in keys.keys.iter_mut().zip(&alone.keys).zip(&mut behind) {
+        for (((k, f), b), n) in keys
+            .keys
+            .iter_mut()
+            .zip(&alone.keys)
+            .zip(&mut behind)
+            .zip(&mut nearer)
+        {
             if *f != 0 && *k >= first {
+                *n = *k;
                 *k = *f;
                 *b = true;
             }
@@ -486,6 +498,7 @@ pub fn frame_scene(world: &mut World, camera: &render::Camera, size: (usize, usi
         keys,
         who,
         behind,
+        nearer,
         drawings,
         sprites,
     }
@@ -4200,6 +4213,278 @@ mod tests {
                     print!(" {name} {:.3} {}", b.d[k] / n, b.agree[k]);
                 }
                 println!();
+            }
+        }
+    }
+
+    /// **Item 4103, step 1: the silhouette's pixels by value, before a
+    /// rule.** On the colour row's draw, for each figure's lit pixels both
+    /// footprints hold that the silhouette's pass owns (`Scene::behind`):
+    /// the photograph's colour (mean, spread), the nearer tree's or
+    /// sprite's own pixel there, our team-coloured texel, and every colour
+    /// of the owner's `TeamColor` record as run1559b's packet holds it
+    /// (`team_colors.list[leader +0x6928]`, `0xe39ce0`, stride 0x64), each
+    /// alone and each at `render_states[1]`'s alpha 128 over the nearer
+    /// pixel; with the least-squares share of `unit` over the nearer pixel.
+    #[test]
+    fn the_silhouette_s_pixels_against_the_owner_s_record() {
+        use render::silhouette::{HUE, Object, chromaticity, paint_cut, traced_theirs};
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        // run1559b's packet, frame 3294: `TeamColor` list 0 and 1, by field.
+        const FIELDS: [&str; 8] = [
+            "unit",
+            "build",
+            "text",
+            "neon",
+            "border",
+            "iface",
+            "unit_tint",
+            "build_tint",
+        ];
+        const RECORD: [[[f32; 3]; 8]; 2] = [
+            [
+                [255.0, 0.0, 0.0],
+                [102.0, 0.0, 0.0],
+                [255.0, 100.0, 100.0],
+                [255.0, 0.0, 0.0],
+                [255.0, 0.0, 0.0],
+                [255.0, 0.0, 0.0],
+                [127.0, 47.0, 47.0],
+                [127.0, 95.0, 95.0],
+            ],
+            [
+                [34.0, 82.0, 255.0],
+                [26.0, 57.0, 172.0],
+                [70.0, 100.0, 255.0],
+                [70.0, 100.0, 255.0],
+                [0.0, 0.0, 255.0],
+                [0.0, 0.0, 255.0],
+                [47.0, 47.0, 159.0],
+                [95.0, 95.0, 127.0],
+            ],
+        ];
+        let share = 128.0 / 255.0;
+        let camera = crate::pinned_camera();
+        world.run_to(PHOTO_FRAME);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let size = (photo.width, photo.height);
+        let scene = frame_scene(&mut world, &camera, size);
+        let first_tree = (scene.drawings.len() + scene.sprites.len()) as u32 + 1;
+        let trees = world.tree_drawings();
+        let p = Photo {
+            width: photo.width,
+            height: photo.height,
+            rgba: &photo.rgba,
+        };
+        let traces: Vec<Trace<'_>> = TRACED
+            .iter()
+            .map(|&(name, poly)| Trace {
+                key: scene
+                    .who
+                    .iter()
+                    .position(|&(who, o, _, _)| format!("{who}/{o}") == name)
+                    .map_or(u32::MAX, |i| i as u32 + 1),
+                poly,
+            })
+            .collect();
+        let rows = footprints_traced(
+            &scene.keys,
+            &p,
+            &INTERFACE,
+            &READING,
+            &traces,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let dist = |a: [f32; 3], b: [f32; 3]| {
+            let (x, y) = (chromaticity(a), chromaticity(b));
+            ((x[0] - y[0]).powi(2) + (x[1] - y[1]).powi(2)).sqrt()
+        };
+        let sum = |q: [f32; 3]| q[0] + q[1] + q[2];
+        // Candidates: the texel, the nearer pixel, each field alone, each
+        // field at the share over the nearer pixel.
+        let names: Vec<String> = ["texel".to_string(), "nearer".to_string()]
+            .into_iter()
+            .chain(FIELDS.iter().map(|f| f.to_string()))
+            .chain(FIELDS.iter().map(|f| format!("{f}@128")))
+            .collect();
+        #[derive(Clone, Default)]
+        struct Acc {
+            n: u32,
+            ph: [f32; 3],
+            ph2: [f32; 3],
+            u: [f32; 3],
+            t: [f32; 3],
+            s_num: f32,
+            s_den: f32,
+            d: Vec<f32>,
+            agree: Vec<u32>,
+        }
+        let fresh = || Acc {
+            d: vec![0.0; names.len()],
+            agree: vec![0; names.len()],
+            ..Acc::default()
+        };
+        let mut by_owner = [fresh(), fresh()];
+        let report = |label: &str, a: &Acc| {
+            let n = a.n as f32;
+            let mean = a.ph.map(|v| v / n);
+            let spread: Vec<f32> = (0..3)
+                .map(|k| (a.ph2[k] / n - mean[k] * mean[k]).max(0.0).sqrt())
+                .collect();
+            print!(
+                "{label} n {} photo {:.0?} spread {:.0?} nearer {:.0?} texel {:.0?} share {:.3} |",
+                a.n,
+                mean,
+                spread,
+                a.u.map(|v| v / n),
+                a.t.map(|v| v / n),
+                a.s_num / a.s_den.max(1e-6)
+            );
+            for (b, name) in names.iter().enumerate() {
+                print!(" {name} {:.3} {}", a.d[b] / n, a.agree[b]);
+            }
+            println!();
+        };
+        for f in rows {
+            let who = scene.who[f.key as usize - 1];
+            if who.0 == TREE_WHO || who.3 || who.0 > 1 {
+                continue;
+            }
+            let theirs = traced_theirs(
+                &scene.keys,
+                &p,
+                &INTERFACE,
+                &READING,
+                &traces,
+                Neighbour::Neither,
+                Interface::Neither,
+                f.key,
+                f.window,
+            );
+            let ours = painted(
+                &mut world,
+                &scene,
+                &camera,
+                size,
+                f.key,
+                f.window,
+                Colouring::Team,
+            );
+            let ww = (f.window.x1 - f.window.x0) as usize;
+            let mut cache: std::collections::HashMap<u32, Vec<Option<render::silhouette::Texel>>> =
+                std::collections::HashMap::new();
+            let mut obj = fresh();
+            let mut kinds = (0u32, 0u32);
+            for y in f.window.y0..f.window.y1 {
+                for x in f.window.x0..f.window.x1 {
+                    let j = (y - f.window.y0) as usize * ww + (x - f.window.x0) as usize;
+                    let at = y as usize * photo.width + x as usize;
+                    if scene.keys.at(x as usize, y as usize) != f.key
+                        || theirs[j] != Some(true)
+                        || !scene.behind[at]
+                    {
+                        continue;
+                    }
+                    let Some(t) = ours[j] else { continue };
+                    let k = scene.nearer[at];
+                    let near = cache.entry(k).or_insert_with(|| {
+                        if k >= first_tree {
+                            let ti = (k - first_tree) as usize;
+                            let cuts = world.tree_cuts();
+                            match (trees.get(ti), cuts.get(ti).and_then(Option::as_ref)) {
+                                (Some(d), Some(cut)) => paint_cut(
+                                    &Object {
+                                        key: k,
+                                        tris: d.tris.clone(),
+                                    },
+                                    cut,
+                                    &camera,
+                                    size,
+                                    f.window,
+                                ),
+                                _ => vec![None; ww * (f.window.y1 - f.window.y0) as usize],
+                            }
+                        } else {
+                            painted(
+                                &mut world,
+                                &scene,
+                                &camera,
+                                size,
+                                k,
+                                f.window,
+                                Colouring::Team,
+                            )
+                        }
+                    });
+                    let Some(u) = near[j] else { continue };
+                    let i = at * 4;
+                    let ph = [0, 1, 2].map(|c| f32::from(photo.rgba[i + c]));
+                    if sum(t.rgb) < HUE.dark || sum(ph) < HUE.dark {
+                        continue;
+                    }
+                    if k >= first_tree {
+                        kinds.0 += 1;
+                    } else {
+                        kinds.1 += 1;
+                    }
+                    let rec = RECORD[usize::from(who.0)];
+                    let mut preds = vec![t.rgb, u.rgb];
+                    preds.extend(rec);
+                    preds.extend(
+                        rec.iter()
+                            .map(|c| [0, 1, 2].map(|q| c[q] * share + u.rgb[q] * (1.0 - share))),
+                    );
+                    let c = rec[0];
+                    let cu = [0, 1, 2].map(|q| c[q] - u.rgb[q]);
+                    let pu = [0, 1, 2].map(|q| ph[q] - u.rgb[q]);
+                    for target in [&mut by_owner[usize::from(who.0)], &mut obj] {
+                        target.n += 1;
+                        for q in 0..3 {
+                            target.ph[q] += ph[q];
+                            target.ph2[q] += ph[q] * ph[q];
+                            target.u[q] += u.rgb[q];
+                            target.t[q] += t.rgb[q];
+                            target.s_num += pu[q] * cu[q];
+                            target.s_den += cu[q] * cu[q];
+                        }
+                        for (b, pred) in preds.iter().enumerate() {
+                            let d = dist(*pred, ph);
+                            target.d[b] += d;
+                            target.agree[b] += u32::from(d <= HUE.distance);
+                        }
+                    }
+                }
+            }
+            if obj.n > 0 {
+                report(
+                    &format!(
+                        "{}/{} piece {} (trees {}, sprites {})",
+                        who.0, who.1, who.2, kinds.0, kinds.1
+                    ),
+                    &obj,
+                );
+            }
+        }
+        for (o, a) in by_owner.iter().enumerate() {
+            if a.n > 0 {
+                report(&format!("player {o}"), a);
             }
         }
     }

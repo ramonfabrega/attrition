@@ -1227,10 +1227,9 @@ rows are their pins'.
   read by colour. Each object we draw gets a window: its pixels plus 6.
   A 6-pixel ring outside the window, where none of our objects lies, is
   taken as the ground. Its colours are binned at 32 levels a channel and
-  dilated by one bin, and every pixel in the window whose colour is not
-  the ground's counts as the original's footprint. Both footprints are
-  the whole scene's inside the window, since the photograph cannot say
-  which figure of a crowd a pixel belongs to.
+  dilated by one bin; a window pixel not of the ground's colours is the
+  original's footprint. Both footprints are the whole scene's in the
+  window: the photograph cannot say whose a crowd's pixel is.
 - *The score.* An object counts when the intersection over union reaches
   0.5. An object is not scored when its ring meets the frame's edge or
   the interface (eleven rectangles by eye), or it shows under 40 pixels.
@@ -1247,15 +1246,12 @@ rows are their pins'.
   object's window and ring hold four kinds of pixel: (1) under an
   `INTERFACE` rectangle, neither ground nor footprint: left out of ours,
   theirs and the ground, since the photograph cannot know what it covers;
-  (2) inside a trace of its own: its footprint; (3) inside a trace of
-  another object: neither, since the trace says whose the pixel is, and
-  counting it under a neighbour scores the traced object a second time
-  under the neighbour's name; (4) elsewhere: by colour, the ground being
-  the ring's kind-4 pixels where none of ours lies. An object is not
-  scored when its ring meets the frame's edge or fewer than 40 of its
-  pixels lie outside the interface. Every trace is named by its object,
-  tanks and figures included (`Reader::Traced`). The rejected readings,
-  reported beside it: kind (3) as footprint, and the interface as before.
+  (2) inside a trace of its own: its footprint; (3) inside another's
+  trace: neither, else the traced object scores twice; (4) elsewhere: by
+  colour, the ground the ring's kind-4 pixels where none of ours lies.
+  Not scored: a ring at the frame's edge, or under 40 pixels outside the
+  interface. Every trace is named by its object (`Reader::Traced`).
+  Rejected: kind (3) as footprint, and the interface as before.
 - **The row on the default draw**, the buildings as their sprites, by
   item 4077's reader (`RUN1559B_3279_TRACED`): **33 of 33** (4095;
   3279 whole 31, `_CURRENT`); its steps (4077–4095) are the
@@ -1290,6 +1286,10 @@ rows are their pins'.
 - *The team colour* (4102, before its count). The texel is
   `t·α + c·(1 − α)`, `c` the owner's `TEAM_UNIT` (`render_states[0]`'s
   `TOP_BLENDTEXTUREALPHA`); a reading, one photograph: **15 of 33**.
+- *The silhouette's colour* (4103, before its count). A silhouette's
+  pixel is `c·a + n·(1 − a)`, `c` the owner's `TEAM_UNIT`, `a` 128/255,
+  `n` the nearer tree's texel or sprite's pixel (`render_states[1]`'s
+  `SELECTARG2(TFACTOR)`); a reading, one photograph.
 - *The constants* and interface are this frame's, pinned, never tuned
   to a count (the inputs: 4089's journal).
 

@@ -282,6 +282,74 @@ pub fn paint_stamp(
     out
 }
 
+/// **A tree's own colour over a window** (item 4103): [`paint`]'s, for an
+/// object drawn under its [`Cut`] — the nearest fragment the alpha test
+/// keeps, its texel's RGBA filtered as [`alpha_bilinear`] filters the alpha.
+pub fn paint_cut(
+    object: &Object,
+    cut: &Cut<'_>,
+    camera: &Camera,
+    size: (usize, usize),
+    window: Rect,
+) -> Vec<Option<Texel>> {
+    let project = Projector::new(camera, size);
+    let (w, _) = size;
+    let ww = (window.x1 - window.x0).max(0) as usize;
+    let wh = (window.y1 - window.y0).max(0) as usize;
+    let mut out: Vec<Option<Texel>> = vec![None; ww * wh];
+    let mut depth = vec![f32::INFINITY; ww * wh];
+    for (ti, t) in object.tris.iter().enumerate() {
+        let test = (|| {
+            let image = cut.images.get(*cut.image.get(ti)?)?.as_ref()?;
+            Some((image, cut.uvs.get(ti)?))
+        })();
+        project.fragments(t, cut.cull, |i, z, q| {
+            let (x, y) = ((i % w) as i32, (i / w) as i32);
+            if !window.contains(x, y) {
+                return;
+            }
+            let j = (y - window.y0) as usize * ww + (x - window.x0) as usize;
+            if z >= depth[j] {
+                return;
+            }
+            let (rgb, alpha) = match test {
+                Some((image, uv)) => {
+                    let (u, v) = at_weights(uv, q);
+                    let a = alpha_bilinear(image, u, v);
+                    if a <= f32::from(cut.alpha_ref) {
+                        return;
+                    }
+                    (rgb_bilinear(image, u, v), a)
+                }
+                None => ([0.0; 3], 255.0),
+            };
+            depth[j] = z;
+            out[j] = Some(Texel {
+                rgb,
+                alpha,
+                tri: ti as u32,
+            });
+        });
+    }
+    out
+}
+
+/// [`alpha_bilinear`]'s filter on the colour channels.
+fn rgb_bilinear(image: &crate::tga::Image, u: f32, v: f32) -> [f32; 3] {
+    let (w, h) = (image.width, image.height);
+    let fx = (u.clamp(0.0, 1.0) * w as f32 - 0.5).max(0.0);
+    let fy = (v.clamp(0.0, 1.0) * h as f32 - 0.5).max(0.0);
+    let (x0, y0) = ((fx as usize).min(w - 1), (fy as usize).min(h - 1));
+    let (x1, y1) = ((x0 + 1).min(w - 1), (y0 + 1).min(h - 1));
+    let (tx, ty) = (fx - x0 as f32, fy - y0 as f32);
+    [0, 1, 2].map(|c| {
+        let a = |x: usize, y: usize| image.rgba[(y * w + x) * 4 + c] as f32;
+        let top = a(x0, y0) * (1.0 - tx) + a(x1, y0) * tx;
+        let bottom = a(x0, y1) * (1.0 - tx) + a(x1, y1) * tx;
+        top * (1.0 - ty) + bottom * ty
+    })
+}
+
 fn cut_at<'a>(cuts: &'a [Option<&'a Cut<'a>>], n: usize) -> Option<&'a Cut<'a>> {
     cuts.get(n).copied().flatten()
 }
