@@ -48,7 +48,11 @@ impl Sim {
         let team = self.tech[w].team;
         let team_style = self.ai.lobby.team_style;
         let leader = &mut self.ai.ai[w];
+        // `Leader::init`'s diplos loop stored `aggression` before
+        // `random_personality` (`Sim::init_diplos`); the fresh record keeps it.
+        let aggression = leader.aggression;
         *leader = ai::Leader::new();
+        leader.aggression = aggression;
         leader.pers = pers;
         leader.player_flags = player_flags;
         leader.choose_script(&mut self.rng, player_flags, team_style, team, lakota);

@@ -422,7 +422,9 @@ pub(crate) const TRAINED: i16 = 6;
 /// 4098 the Farm's site also heads its cell's chain of objects
 /// (`.terrain.object_heads`, `docs/COLLISION.md` §3.2). Since item 4113
 /// the builder's `GATHER`, killed by the `build`, gives back its hold
-/// doober (`.roster.hold_doobers`, `docs/ORDERS.md` §6.12).
+/// doober (`.roster.hold_doobers`, `docs/ORDERS.md` §6.12). Since item
+/// 4124 the Farm's `Build::init` counts `buildings_built`
+/// (`.cities.city_tally`, `docs/CHECKSUM.md` §20).
 const PUMPED_PLACES: &[(i64, &[&str])] = &[
     (
         31,
@@ -452,6 +454,7 @@ const PUMPED_PLACES: &[(i64, &[&str])] = &[
             ".buildings{0/2001}",
             ".buildings{0/2007}",
             ".cities.cities",
+            ".cities.city_tally",
             ".cities.farm_order",
             ".economy.ledgers",
             ".movement.pf_start",

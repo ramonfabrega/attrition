@@ -536,6 +536,34 @@ impl Sim {
         }
     }
 
+    /// `Leader::track_unit_type`'s six armed-unit counters as sums of
+    /// `num_units` by the type's trainer `TypeIndex` (`docs/CHECKSUM.md` §20).
+    fn leader_trained(&self, who: Player, name: &str) -> i64 {
+        let types = &self.tables.unit_types;
+        let tree = &self.tables.tech_tree.types;
+        let m = &self.roster.muster[who as usize];
+        (0..types.len().min(m.by_type.len()))
+            .filter(|&t| types[t].combat.attack != 0)
+            .filter(|&t| {
+                let trainer = types[t]
+                    .tree
+                    .and_then(|x| tree.get(x))
+                    .and_then(|d| d.where_)
+                    .map(|wh| self.tree_type_index(wh));
+                let air = types[t].combat.domain == crate::territory::attrition::Domain::Air;
+                match (name, trainer) {
+                    ("barracks_units", Some(0x1ab)) | ("stable_units", Some(0x1ac)) => true,
+                    ("combat_units", Some(0x1ab | 0x1ac)) => true,
+                    ("factory_units", Some(0x1ae)) | ("dock_units", Some(0x1b0)) => true,
+                    ("air_units", Some(0x1ab | 0x1ac | 0x1ae | 0x1b0)) => false,
+                    ("air_units", _) => air,
+                    _ => false,
+                }
+            })
+            .map(|t| i64::from(m.by_type[t]))
+            .sum()
+    }
+
     /// A per-region census array as the original indexes it: by its own
     /// region number less `base`, `width` wide.
     fn leader_region_array(&self, v: &[i32], width: usize, base: usize) -> Vec<i64> {
@@ -975,6 +1003,45 @@ impl Sim {
                 .filter(|x| x.alive && usize::from(x.owner) == w)
                 .count() as i64),
             "village_num" => one(i64::from(c.village_num)),
+            // `city_mine` (`+0x400`) moves with `city_num` at every store:
+            // `Build::activate`'s founding, `City::close`'s loss and
+            // `Leader::init`'s count of a scenario's cities (§20).
+            "city_mine" => one(self
+                .cities
+                .cities
+                .iter()
+                .filter(|x| x.alive && usize::from(x.owner) == w)
+                .count() as i64),
+            // `city_mark` (`+0x408`): `Cities::init_city` raises it to the
+            // slot taken plus one, and `close_city` and `capture_city` trim
+            // it past the dead slots at the top, so it is the last live slot
+            // of the leader's list plus one. This crate's records of one
+            // owner are that list in order (`Sim::init_city` reuses the
+            // owner's first dead record, as `init_city` does).
+            "city_mark" => one(self
+                .cities
+                .cities
+                .iter()
+                .filter(|x| usize::from(x.owner) == w)
+                .enumerate()
+                .filter(|(_, x)| x.alive)
+                .last()
+                .map_or(0, |(k, _)| k as i64 + 1)),
+            // `cities_built` (`+0x820`): `Build::activate`'s counted
+            // founding and `Setup::build_cities`' start city.
+            "cities_built" => one(i64::from(self.cities.city_tally[w].built)),
+            "units_built" => one(i64::from(m.units_built)),
+            "buildings_built" => one(i64::from(self.cities.city_tally[w].buildings_built)),
+            // `team_color` (`+0x6928`): `Setup::build_game` runs
+            // `Leader::init(who, tribe, who)`, and
+            // `Game::init_rules_and_teams` writes the slot's own number.
+            "team_color" => one(w as i64),
+            // `chat_status` (`+0x54`): `Game::init_teams`' tail writes 1 on
+            // every slot, then 0 on a seated slot when the game is not
+            // cooperative or the pair is on a team. SEAM: the cooperative
+            // styles, `semaphore[0] & 0x80` and the interface's chat-set
+            // command are not carried; the crate seats a plain game.
+            "chat_status" => Some((0..count).map(|i| i64::from(i >= players)).collect()),
             // `lost_city_stamp` (`+0x410`): `City::close` stamps the frame a
             // city is lost; before any, `Leader::init`'s −90 (`0xffffffa6`).
             "lost_city_stamp" => one(self
@@ -1171,6 +1238,65 @@ impl Sim {
             "reg_neutrals" => reg(&c.reg_neutrals),
             "reg_allies" => reg(&c.reg_allies),
             "ally_mask" => one(i64::from(c.ally_mask)),
+            // **Never reached without a cut track** (`docs/CHECKSUM.md` §20):
+            // every store but the setup's sits in the trigger layer
+            // (`ScenarioFuncSet`) or Conquer the World, or there is none.
+            // `Leader::init` alone: the `best_*` words, `support_stamp`,
+            // `nukes_in_flight`, `village_mine`; `Leader::reset_score`
+            // alone: the order counters, the goody-box techs and units,
+            // `trade_profit`; no store but the clear: `supported`;
+            // `ScenarioFuncSet`: `neutral_attrition`, `take_att_disabled`,
+            // `base_rate`; `ConquestGame::setup_scenario_bonuses`: the two
+            // bonus-card arrays.
+            "best_pop"
+            | "best_attack"
+            | "best_armor"
+            | "best_move"
+            | "support_stamp"
+            | "nukes_in_flight"
+            | "village_mine"
+            | "column_orders_issued"
+            | "move_orders_issued"
+            | "goody_box_techs"
+            | "goody_box_units"
+            | "trade_profit"
+            | "supported"
+            | "neutral_attrition"
+            | "take_att_disabled"
+            | "base_rate"
+            | "num_bonus_cards"
+            | "num_ctw_rate_bonuses" => Some(vec![0; count]),
+            // `Leader::init`'s `0xfffffc18`, its one store.
+            "ctw_hero_retreat_stamp" => one(-1000),
+            // `ScenarioFuncSet`'s two switches and `Leader::init`'s 0; the
+            // crate keeps the flag `Wall::process` reads.
+            "disable_building_attrition" => {
+                one(i64::from(self.cities.nation[w].disable_building_attrition))
+            }
+            // **Reached and held.** `Cities::capture_city` is the one store
+            // of each but `reset_score`'s 0.
+            "cities_captured" => one(i64::from(self.cities.city_tally[w].captured)),
+            "cities_lost" => one(i64::from(self.cities.city_tally[w].lost)),
+            // `Ammo::do_damage`'s nuke arm, the one store but `Leader::init`'s.
+            "nuke_stamp" => one(self.combat.nukes.stamp_of(who)),
+            "nukes_used" => one(i64::from(self.combat.nukes.used_of(who))),
+            // `Docks::init_dock` and `close_dock`: the docks registry's mark.
+            "dock_mark" => one(self.ai.docks.get(w).map_or(0, |d| d.mark as i64)),
+            // `Fort::init` and `Fort::close`, by region: the active forts.
+            "reg_forts" => {
+                let v: Vec<i32> = (0..self.world.region_count())
+                    .map(|r| self.reg_forts(who, r as u16))
+                    .collect();
+                Some(self.leader_region_array(&v, count, 0))
+            }
+            // `Leader::track_unit_type`, the counters' one writer but
+            // `Leader::init`, moves each with `num_units` for an armed type
+            // (`+0x1e8`) by its trainer (`+0x40`): the Barracks `0x1ab` and
+            // the Stable `0x1ac` (each also `combat_units`), `0x1ae`
+            // (`factory_units`), the Dock `0x1b0`, else an air type
+            // (`+0x218 == 2`). So each is a sum of `num_units`.
+            "barracks_units" | "stable_units" | "combat_units" | "factory_units" | "dock_units"
+            | "air_units" => one(self.leader_trained(who, name)),
             _ => None,
         }
     }
