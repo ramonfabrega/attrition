@@ -16538,13 +16538,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FF — reserved
+## Parked by item 4127, 2026-11-11 — what the ground's base layer leaves
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4127a. The blends between bases and kinds** (`docs/RENDERER.md` §3.6, "The ground's base layer";
+  `RUN1559B_3279_GROUND` 949 of 1,109; `client::ground::tests::the_ground_s_base_layer_against_the_photograph`). Of the
+  160 tiles that part, 105 have a cell of another `land_sub` within one cell: `TerrainOut::generate_transitions` and
+  `create_transition_renderables` lay a blend over the base there and are unread. Names the row's 105 as its ceiling;
+  a mechanism, read before it is counted.
+- **4127b. Sub 3's dirt, and what multiplies the texel** (§3.6; the same row and test). Sub 3 scores 45 of 148: its
+  base, `dirt_early_autumn` (share (0.438, 0.355)), reads brown where the photograph's sub-3 tiles read (0.415, 0.405),
+  as green as sub 2's. Per lit ground pixel, sub 3 agrees on 39,177 of 117,347, against sub 2's 508,677 of 540,185.
+  Unexplained: the blend (4127a), the tileset's `<LIGHTING>` and the normals, and the `_mtrl` twin's stage
+  (`+0x448`, same coordinates) are the candidates, none read. The steepest quartile of slope reads darker (lum 148
+  against 154) and less green, which points at the light. Rests on one photograph.
+- **4127c. A mountain's own draw** (§3.6; the same row and test). The 106 scored tiles under a placed mountain keep
+  the debug grey and score 59; 47 part. `render_mountains` and the mountains' textures are unread (parked with the
+  §7.1 line on the terrain textures).
 
 ## Parked by the next landing, slot FG — reserved
 

@@ -139,6 +139,23 @@ pub struct World {
     /// `None` where it does not decode; `None` whole where the tileset's
     /// trees do not read.
     tree_art: Option<TreeMeshes>,
+    /// The lobby's tileset's `BASELAND` textures (item 4127,
+    /// `crate::ground`); `None` where they do not read, and the ground is
+    /// drawn in its debug colour.
+    ground: Option<GroundDraw>,
+    /// Draw the ground in its land kind's debug colour, the row's floor
+    /// (item 4127); off by default, `--debug-ground` turns it on.
+    pub debug_ground: bool,
+    /// The drawn terrain without the textured tiles, and the textured
+    /// tiles, at the terrain version they were built at.
+    drawn: (u32, TerrainMesh, Vec<TexturedMesh>),
+}
+
+/// The ground's textures, as the draw takes them.
+struct GroundDraw {
+    textures: crate::ground::GroundTextures,
+    /// [`crate::ground::GroundTextures::flat`], shared with each mesh.
+    flat: Vec<std::sync::Arc<render::silhouette::Mips>>,
 }
 
 /// The tileset's tree models, decoded once: `TileSetData::tree_scale` (the
@@ -343,7 +360,17 @@ impl World {
                 });
             }
         }
-        let tree_art = lobby_tileset(install_root, &start)
+        let tileset = lobby_tileset(install_root, &start);
+        let ground = tileset.as_deref().and_then(|t| {
+            let textures = crate::ground::GroundTextures::load(install.root(), t).ok()?;
+            let flat = textures
+                .flat()
+                .into_iter()
+                .map(std::sync::Arc::new)
+                .collect();
+            Some(GroundDraw { textures, flat })
+        });
+        let tree_art = tileset
             .and_then(|t| rondata::artdata::tree_art(&install, &t).ok())
             .map(|art| {
                 let root = install.root().to_path_buf();
@@ -414,6 +441,9 @@ impl World {
             cats,
             eased: BTreeMap::new(),
             tree_art,
+            ground,
+            debug_ground: false,
+            drawn: (u32::MAX, TerrainMesh::default(), Vec::new()),
         })
     }
 
@@ -483,6 +513,59 @@ impl World {
             self.terrain = (t.version, TerrainMesh::build(&field, &t.land, &mountains));
         }
         &self.terrain.1
+    }
+
+    /// **What the client draws of the terrain** (item 4127): the
+    /// heightfield without the `BASELAND` tiles the ground's base layer
+    /// textures, and those tiles as one [`TexturedMesh`] per texture, keyed
+    /// by the negative piece `-1 - index` into
+    /// [`crate::ground::GroundTextures::flat`]. Under
+    /// [`World::debug_ground`], or where the textures do not read, the whole
+    /// heightfield in its debug colours and no textured tile.
+    /// [`World::terrain`] stays the whole heightfield the readers take.
+    pub fn drawn_terrain(&mut self) -> (&TerrainMesh, &[TexturedMesh]) {
+        let version = self.runner.terrain().version;
+        if self.debug_ground || self.ground.is_none() {
+            return (self.terrain(), &[]);
+        }
+        if self.drawn.0 != version || self.drawn.1.positions.is_empty() {
+            self.terrain();
+            let t = self.runner.terrain();
+            let g = self.ground.as_ref().expect("checked above");
+            let mountains: std::collections::BTreeSet<(i32, i32)> =
+                t.mountains.iter().flatten().map(|p| (p.x, p.y)).collect();
+            let base = crate::ground::ground_base(&t, &mountains, &g.textures, &self.terrain.1);
+            let textured: std::collections::BTreeSet<(i32, i32)> =
+                base.tile.iter().copied().collect();
+            let field = Heightfield {
+                width: t.width,
+                height: t.height,
+                corners: &t.corners,
+            };
+            let placed: Vec<(i32, i32)> = mountains.iter().copied().collect();
+            let rest = TerrainMesh::build_except(&field, &t.land, &placed, &|x, y| {
+                textured.contains(&(x, y))
+            });
+            let mut meshes: Vec<TexturedMesh> = g
+                .flat
+                .iter()
+                .enumerate()
+                .map(|(k, mips)| TexturedMesh {
+                    piece: -1 - k as i32,
+                    who: 0,
+                    positions: Vec::new(),
+                    uvs: Vec::new(),
+                    mips: mips.clone(),
+                })
+                .collect();
+            for ((tri, uv), &k) in base.tris.iter().zip(&base.uvs).zip(&base.of) {
+                meshes[k].positions.extend_from_slice(tri);
+                meshes[k].uvs.extend_from_slice(uv);
+            }
+            meshes.retain(|m| !m.positions.is_empty());
+            self.drawn = (version, rest, meshes);
+        }
+        (&self.drawn.1, &self.drawn.2)
     }
 
     /// `WorldData::find_slope_normal@006b5130` at `(x, y)` on our terrain

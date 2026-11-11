@@ -25,6 +25,7 @@
 //! and `render`, and none of them on it (`tests::the_sim_takes_no_graphics`).
 
 mod gpu;
+mod ground;
 mod overlay;
 mod silhouette;
 mod trace;
@@ -115,6 +116,9 @@ struct Args {
     /// Texture the figures (`world::World::textured`, item 4099); `--tint`
     /// draws the owners' debug tint instead.
     textured: bool,
+    /// Draw the ground in its land kind's debug colour
+    /// (`world::World::debug_ground`, item 4127), not its texture.
+    debug_ground: bool,
 }
 
 fn parse() -> Result<Args, String> {
@@ -135,6 +139,7 @@ fn parse() -> Result<Args, String> {
         sprites: true,
         trees: true,
         textured: true,
+        debug_ground: false,
         trace: std::env::temp_dir().join(format!("attrition-client-{}.json", std::process::id())),
     };
     let mut it = std::env::args().skip(1);
@@ -159,6 +164,7 @@ fn parse() -> Result<Args, String> {
             "--zbuffer" => a.sprites = false,
             "--no-trees" => a.trees = false,
             "--tint" => a.textured = false,
+            "--debug-ground" => a.debug_ground = true,
             "--silhouette" => a.silhouette = Some(v()?.into()),
             "--zoom" => a.zoom = v()?.parse().map_err(|e| format!("--zoom: {e}"))?,
             "--look" => {
@@ -230,10 +236,11 @@ fn draw(
 ) -> Option<Vec<u8>> {
     let b = build(world, camera, size, frame_ms);
     let version = world.runner.terrain().version;
-    let t = world.terrain();
+    let (t, ground) = world.drawn_terrain();
     let frame = gpu::Frame {
         terrain_version: version,
         terrain: (&t.positions, &t.colours),
+        ground,
         figures: (&b.figures.positions, &b.figures.colours),
         textured: &b.textured,
         overlay: (&b.overlay.0, &b.overlay.1),
@@ -434,6 +441,7 @@ fn main() {
     world.sprites = args.sprites;
     world.trees = args.trees;
     world.textured = args.textured;
+    world.debug_ground = args.debug_ground;
     session.mark("frame zero");
     session.phase("run to the frame", || world.run_to(args.frame));
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());

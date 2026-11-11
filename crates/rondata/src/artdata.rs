@@ -2002,6 +2002,80 @@ pub fn tree_art(install: &Install, tileset: &str) -> Result<TreeArt, ArtFailure>
     })
 }
 
+/// **The ground's base layer, as the loaders hold it** (item 4127,
+/// `docs/RENDERER.md` §3.6, "The ground's base layer"): the tileset's
+/// `<BASEDIR path=…>` and its `<BASELAND>`'s `<BASE>`s in file order —
+/// the order `TileSet::convert_land_tex_to_linear@0087ace0` counts them in,
+/// so a `BASELAND` cell's `land_sub` indexes this list — each its
+/// `<TEXTURE name=…>` as an install path under the base directory, and its
+/// `supertile=` (a supertile is cut 3 × 3 by
+/// `TextureEffect::load_as_supertile@00542640`).
+#[derive(Clone, Debug, PartialEq)]
+pub struct GroundArt {
+    pub baseland: Vec<GroundBase>,
+}
+
+/// One `<BASE>` under a tileset's `<BASELAND>`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct GroundBase {
+    pub name: String,
+    /// The `<TEXTURE name=…>` joined to the tileset's base directory.
+    pub texture: String,
+    pub supertile: bool,
+}
+
+/// [`GroundArt`] for `tileset` (a `<TILESET name>`, compared without case).
+pub fn ground_art(install: &Install, tileset: &str) -> Result<GroundArt, ArtFailure> {
+    let unnamed = |what: &str| ArtFailure::Unnamed(what.to_string());
+    let tpath = install.data("tilesets.xml");
+    let ttext = crate::read(&tpath).map_err(|_| unnamed("tilesets.xml"))?;
+    let tdoc = crate::parse(&tpath, &ttext).map_err(|_| unnamed("tilesets.xml"))?;
+    let set = tdoc
+        .descendants()
+        .find(|n| {
+            n.has_tag_name("TILESET")
+                && n.attribute("name")
+                    .is_some_and(|v| v.trim().eq_ignore_ascii_case(tileset))
+        })
+        .ok_or_else(|| unnamed(tileset))?;
+    fn child<'a, 'i>(n: roxmltree::Node<'a, 'i>, tag: &str) -> Option<roxmltree::Node<'a, 'i>> {
+        n.children()
+            .find(|c| c.is_element() && c.tag_name().name().eq_ignore_ascii_case(tag))
+    }
+    let base = child(set, "BASEDIR")
+        .and_then(|b| b.attribute("path"))
+        .map(|p| p.trim().replace('\\', "/"))
+        .ok_or_else(|| unnamed(&format!("{tileset}/BASEDIR")))?;
+    let land = child(set, "BASELAND").ok_or_else(|| unnamed(&format!("{tileset}/BASELAND")))?;
+    let baseland: Vec<GroundBase> = land
+        .children()
+        .filter(|c| c.is_element() && c.tag_name().name().eq_ignore_ascii_case("BASE"))
+        .map(|b| {
+            let name = b.attribute("name").unwrap_or_default().trim().to_string();
+            let texture = child(b, "TEXTURE")
+                .and_then(|t| t.attribute("name"))
+                .map(|f| {
+                    format!(
+                        "{}/{}",
+                        base.trim_end_matches('/'),
+                        f.trim().replace('\\', "/")
+                    )
+                })
+                .ok_or_else(|| unnamed(&format!("{tileset}/BASELAND/{name}/TEXTURE")))?;
+            let supertile = b.attribute("supertile").is_some_and(|v| v.trim() == "1");
+            Ok(GroundBase {
+                name,
+                texture,
+                supertile,
+            })
+        })
+        .collect::<Result<_, ArtFailure>>()?;
+    if baseland.is_empty() {
+        return Err(unnamed(&format!("{tileset}/BASELAND/BASE")));
+    }
+    Ok(GroundArt { baseland })
+}
+
 /// **The farm's condition 1** (item 4037, `docs/RENDERER.md` §5.4): the
 /// `<FARM>` element reads whole ([`farm_art`]) and the tileset's wheat
 /// image decodes under `render::tga`. `Ok(1)`, the one file decoded.
