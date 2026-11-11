@@ -1968,7 +1968,8 @@ Each line names what would settle it.
   textures' mapping, and the 16 PNGs** (§3.2). ~~The terrain textures'
   mapping~~: a `BASELAND` cell's base layer is read (item 4127, §3.6,
   "The ground's base layer") and a mountain's (§3.10); the blends, the
-  coast, the cliffs and the water are not.
+  coast, the cliffs and the water are not, and frame 3279 shows no tile of
+  the last three (item 4143, `RUN1559B_3279_UNSCORED`; parked 4143a).
 - **Whether `sim` builds for `wasm32-unknown-unknown`.** It is untried, and
   matters only if option A's live variant is wanted.
 - **The licence of ptasev/Rise-of-Nations.** Reading it is fine under the
