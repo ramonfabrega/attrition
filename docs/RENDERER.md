@@ -978,7 +978,7 @@ that base. The alpha and its bitcode are unread (parked 4129a).
 **The transition patch (item 4132).** Drawn from the packet's own patch
 under the read alpha (`docs/FORMATS.md`), it wins 395 of 503 patched
 tiles (`RUN1559B_3279_GROUND_BLEND_PACKET`) against controls at most 204.
-The rule that picks it is §3.8 (item 4134).
+The rule is §3.8 (item 4134), the draw §3.9.
 
 **The projection is the camera's own.** The shader multiplies by
 `to_screen_matrix` uploaded row-major (WGSL reads it transposed, so `M · v`
@@ -1293,12 +1293,80 @@ words, which are updated regions whose change left no net `land_sub`.
 
 - The history: which cells `spot_update_land` updated, and in what order. It is not on the packet,
   so `RUN1559B_3279_PACKET_MASKS` stays short. Nothing the pick reads depends on it.
-- Two inputs come from the packet rather than our data: `COAST_BASE` 3 and `BASELAND`'s four bases
-  (`TileSetData +0x62c`, `+0x208`). They are not yet read from our tileset (`rondata::mapgen::
-  tileset_groups`). The cross-land branches that use them are reached on the land-1 and land-2
-  borders and held only in aggregate by the count above.
+- ~~Two inputs come from the packet rather than our data~~ — **answered by item 4139** (§3.9):
+  `COAST_BASE` 3 and `BASELAND`'s four bases (`TileSetData +0x62c`, `+0x208`) are read through
+  `rondata::mapgen::tileset_groups` and asserted equal to the packet's. The cross-land branches
+  that use them are reached on the land-1 and land-2 borders and held only in aggregate by the
+  count above.
 - `Transform::rotate_z`'s direction; the packet fixes it.
-- Land 1 and land 2 patches (319 and 120) and the draw (parked 4132a, 4132b).
+- Land 1 and land 2 patches (319 and 120). ~~The draw (parked 4132a, 4132b)~~ — **answered by item 4139** (§3.9).
+
+## 3.9 The transition patch, drawn (item 4139)
+
+**What it is.** The patch §3.8 chooses, laid by the CPU painter and the client.
+`client::ground::ground_patch` gives each patched `BASELAND` tile not under a mountain its
+two triangles. Each corner carries a texcoord into the patch's base, which is the base of
+`land_sub − 1` at the cell's own sub-tile, and a texcoord into the alpha, which is the patch's
+grid point in eighths. `our_patches` runs the choice on our own cells. It takes the tileset's
+`COAST_BASE` and `BASELAND` count from `rondata::mapgen::tileset_groups`, which equal the
+packet's 3 and 4 (parked 4134b, answered), and the texture fractal on the start dump's
+`World.seed`. `World::drawn_terrain` groups the triangles into one `PatchMesh` per (patch's
+base, alpha). `gpu`'s `fs_patch` draws them after the base.
+
+**The pass, as read.** `TerrainOut::render`'s `showtrans` block draws per (alpha, `landindex`)
+batch. Its state is the `RenderState` at `TerrainOut +0x442c`, filled in `one_time_init`.
+The fields are named by the type record and the values by the PDB's enums.
+
+| field | stage 0 (the patch's base) | stage 1 (the alpha) |
+|---|---|---|
+| colorop | MODULATE (TEXTURE, DIFFUSE) | SELECTARG2 (CURRENT) |
+| alphaop | SELECTARG2 (DIFFUSE) | MODULATE (TEXTURE, CURRENT) |
+| address u, v | CLAMP | CLAMP |
+| mag, min, mip filter | POINT | POINT |
+| mipmap_bias | — | −1.5 |
+
+The blend is SRCALPHA over INVSRCALPHA, after the base. So the output is the patch's base × A
+plus the frame × (1 − A). 4132's two assumptions are kept: A weights the patch's base, and the
+level is 0. λ, from each scored tile's own footprint, runs from −1.27 to −0.47; less 1.5 and
+rounded, it gives level 0 on all 503. One thing is corrected: the alpha is read with point
+sampling, clamped, not bilinear. `RUN1559B_3279_PATCH_READS` counts each read with our choice
+on the packet's cells:
+
+| read | wins of 503 |
+|---|---|
+| A, bilinear wrapped (4132's) | 395 |
+| A, nearest texel, clamped (the pass) | **402** |
+| 1 − A, either | 120, 122 |
+
+**What the diffs back** (`client::ground::tests`).
+
+- `RUN1559B_3279_GROUND_BLEND`: our choice wins **402 of 503** on the packet's cells and 402 on
+  our own. The controls reach 15, 32, 5 and 44. Against 4132's 395 it gains 24 tiles and loses 17.
+  127 of the 503 carry an emptied patch, and every read draws the base alone there; all 127 are
+  asserted to be ties. On the 376 drawn tiles alone (`RUN1559B_3279_GROUND_BLEND_DRAWN`) it wins
+  **282**, against 275 for the packet's own patch and a best control of 147. The losses lean to
+  the cell's sides and corners, where A is mixed.
+- `RUN1559B_3279_GROUND` is re-pinned with the patch laid: **949 → 1,051 of 1,109**. 103 tiles
+  are gained and one is lost, (11, 189). Sub 3 goes from 45 of 148 to 148 of 148. Of the 58 left,
+  47 are a mountain's own draw, 8 sit inside one base and 3 on a blend. Drawing with 1 − A drops it
+  to 886. The fractal's seed one on leaves it at 1,051. *This row sees that the patch's base is
+  laid, not which alpha.* Every tile drawn in base 2 still scores 1,053. The base alone stays
+  pinned as `RUN1559B_3279_GROUND_BARE`.
+- `RUN1559B_3279_GROUND_BASE` is re-pinned with the rule's draw carrying the patch: **758 → 951
+  of 1,003**. 193 are gained and none lost, against the one-base controls' best of 697. The seed one
+  on drops it to 923, and the luminance r from 0.618 to 0.595. 4129's base-only 758 stays pinned
+  as `RUN1559B_3279_GROUND_BASE_BARE`.
+- On the card, frame 3280's still (`client --still`) differs on 323,043 of 2,073,600 pixels from
+  the same frame with the patch's uploads emptied. That shows the pass draws. It is not a score.
+
+**What rests on the reading alone, and what is not established.**
+
+- Stage 0's own filter and addressing: the state reads POINT and CLAMP. Both the painter and the
+  client sample the patch's base as they sample the base, bilinear and wrapped. This is unmeasured
+  (parked 4139a).
+- The client's blend runs in the sRGB target's linear space. The original's card blends the
+  stored values. The GPU frame is not scored against the painter (parked 4139b).
+- The patch on land 1 and land 2 (319 and 120 on the packet), and every pass after it.
 
 ## 4. The stack
 

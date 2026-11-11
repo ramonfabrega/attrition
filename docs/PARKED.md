@@ -16630,7 +16630,8 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 4132, 2026-11-11 — the transition patch, measured from the packet
 
-- **4132a. The patch's choice, ported** (`docs/RENDERER.md` §3.6, "The transition patch";
+- ~~**4132a. The patch's choice, ported**~~ — **answered by items 4134 and 4139** (`docs/RENDERER.md` §3.8, §3.9: the
+  choice ported, then drawn from our own cells; `RUN1559B_3279_GROUND_BLEND` 402 of 503). (`docs/RENDERER.md` §3.6, "The transition patch";
   `RUN1559B_3279_GROUND_BLEND_PACKET` 395 of 503; `client::ground::tests::the_transition_patch`). Drawn from
   run1559b's own patch, the read alpha wins 395 of the 503 patched plain tiles. The controls win at most 204,
   and the quarter turn 201. What is not built is the rule that picks the alpha and its texcoords: the edge masks
@@ -16641,7 +16642,8 @@ words and edits nothing here; a refill lands when two remain.
   so diff it first. The port's test is `RUN1559B_3279_PACKET_PATCH`: the alpha bucket and the three corner
   texcoords per patched cell against the packet's 1,399, on the packet's `land_sub`. Then
   `RUN1559B_3279_GROUND_BLEND` from the rule, and the client's draw. The bar is 395.
-- **4132b. The pass that lays a patch** (§3.6; `docs/FORMATS.md`, "The transition alphas"). `TerrainOut::render`
+- ~~**4132b. The pass that lays a patch**~~ — **answered by item 4139** (`docs/RENDERER.md` §3.9: the alpha's A
+  weights the patch's base on level 0, read nearest and clamped; `RUN1559B_3279_PATCH_READS`). (§3.6; `docs/FORMATS.md`, "The transition alphas"). `TerrainOut::render`
   fills the patch streams per (alpha, `landindex`) batch. The texture stage that samples the alpha, the blend
   state, and the order against the base are unread. The count assumes A weights the patch's base and samples
   level 0.
@@ -16657,7 +16659,8 @@ words and edits nothing here; a refill lands when two remain.
   the packet's masks that went stale after the patches were laid. Our masks against the packet's are
   3,402 and 3,375 of 3,660 (`RUN1559B_3279_PACKET_MASKS`). The difference is `spot_update_land`'s
   history, which the packet does not hold and the pick does not need.
-- **4134b. The tileset's two numbers from our data** (§3.8). `COAST_BASE` 3 and `BASELAND`'s four bases are
+- ~~**4134b. The tileset's two numbers from our data**~~ — **answered by item 4139** (§3.9: read through
+  `tileset_groups`, asserted equal to the packet's 3 and 4). (§3.8). `COAST_BASE` 3 and `BASELAND`'s four bases are
   the packet's (`TileSetData +0x62c`, `+0x208` on `tilesets.cur_tileset`). Read them through
   `rondata::mapgen::tileset_groups` for the lobby's tileset, and assert them equal.
 
@@ -16669,13 +16672,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FL — reserved
+## Parked by item 4139, 2026-11-11 — the transition patch, drawn
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4139a. Stage 0's sampling of the patch's base** (`docs/RENDERER.md` §3.9). The pass's
+  `RenderState` reads POINT filtering and CLAMP addressing on stage 0 as well as stage 1. The
+  painter and the client sample the patch's base as they sample the base: bilinear, wrapped.
+  No row has measured the difference. The ground pass's own state is a different `RenderState`
+  and is unread. A count names a score only once `Paint::Textures` can sample nearest.
+- **4139b. The client's blend space** (§3.9). The client blends in the sRGB target's linear
+  space, while the original's card blends the stored values. The painter's rows are the
+  instrument, and the GPU's frame is not scored against them. No score moves until a GPU still
+  is diffed against the painter.
 
 ## Parked by the next landing, slot FM — reserved
 

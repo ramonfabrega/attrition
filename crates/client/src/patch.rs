@@ -622,6 +622,37 @@ pub fn texcoords(orientation: u8, frac: u8) -> [[i32; 2]; 25] {
     out
 }
 
+/// One cell's patch: the alpha's index in the name-ordered table, and
+/// [`texcoords`]' 25 points in eighths of the alpha.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Patch {
+    pub alpha: usize,
+    pub uv: [[i32; 2]; 25],
+}
+
+/// **The whole chain** (§3.8, steps 1 to 6): the masks from the cells,
+/// then for each queued land-0 cell the checked codes, the pick and the
+/// texcoords; row-major, `None` where no patch is laid.
+pub fn patches(g: &Ground, frac: &sim::mapgen::Fractal, alphas: &[[u32; 8]]) -> Vec<Option<Patch>> {
+    let (edges, queue) = marks(g);
+    let mut out = vec![None; (g.width * g.height) as usize];
+    for i in queue {
+        let (x, y) = (i % g.width, i / g.width);
+        if g.at(x, y).0 != 0 {
+            continue;
+        }
+        let h = frac.get_height(x, y);
+        let (b, c, f) = checked_codes(g, &edges, x, y);
+        if let Some((alpha, o)) = find_map(alphas, h, b, c, f) {
+            out[i as usize] = Some(Patch {
+                alpha,
+                uv: texcoords(o, h),
+            });
+        }
+    }
+    out
+}
+
 /// **The patch's choice on run1559b's packet, from its own edge masks**
 /// (item 4134; `docs/RENDERER.md` §3.8): of the land-0 cells, `[the
 /// drawn patches whose alpha is ours, of those whose texcoords are ours
@@ -662,14 +693,14 @@ pub const RUN1559B_3279_PACKET_MASKS: (u32, u32, u32) = (3402, 3375, 3660);
 pub const RUN1559B_3279_PATCH_ON_OUR_CELLS: [u32; 4] = [1471, 1471, 79, 1185];
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
     use std::collections::BTreeMap;
     use std::path::PathBuf;
 
     /// One `patch` row of `tools/render/patches.py` (items 4132, 4134).
     #[derive(Clone, Debug)]
-    pub(super) struct Row {
+    pub(crate) struct Row {
         pub land: i8,
         pub alpha: u8,
         pub frac: u8,
@@ -678,7 +709,7 @@ mod tests {
 
     /// What the packet holds: the patches, the cells, the edge masks and
     /// the alphas' file names, in `patches.py`'s rows.
-    pub(super) struct Packet {
+    pub(crate) struct Packet {
         pub patches: BTreeMap<(i32, i32), Row>,
         pub width: i32,
         pub height: i32,
@@ -688,7 +719,7 @@ mod tests {
         pub alpha_codes: Vec<[u32; 8]>,
     }
 
-    pub(super) fn packet() -> Option<Packet> {
+    pub(crate) fn packet() -> Option<Packet> {
         let path = std::env::var_os("RON_PATCHES")
             .map(PathBuf::from)
             .or_else(|| {
@@ -786,7 +817,7 @@ mod tests {
 
     /// The start dump's `World.seed`, which `TerrainData::texture_fractal`
     /// is built from.
-    fn world_seed() -> Option<u32> {
+    pub(crate) fn world_seed() -> Option<u32> {
         let start = crate::world::gamelog_dir().join(crate::world::START_DUMP);
         let Ok(Some(head)) = rondata::mapgen::start_head(&start) else {
             println!("skipping: no start dump at {}", start.display());

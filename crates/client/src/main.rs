@@ -237,11 +237,12 @@ fn draw(
 ) -> Option<Vec<u8>> {
     let b = build(world, camera, size, frame_ms);
     let version = world.runner.terrain().version;
-    let (t, ground) = world.drawn_terrain();
+    let (t, ground, patch) = world.drawn_terrain();
     let frame = gpu::Frame {
         terrain_version: version,
         terrain: (&t.positions, &t.colours),
         ground,
+        patch,
         figures: (&b.figures.positions, &b.figures.colours),
         textured: &b.textured,
         overlay: (&b.overlay.0, &b.overlay.1),

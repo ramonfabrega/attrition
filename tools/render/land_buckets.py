@@ -13,7 +13,7 @@ carries the cell (`xw` +0x14, `yw` +0x18), its `flags` (+0x1c), its
 `patches` (+0x2c) and the bucket `TileSet::convert_land_tex_to_linear
 @0087ace0` gave it (`trans_bucket`, +0x30, a `char`). Rows:
 
-    tileset <name> buckets <TerrainList::num_buckets> bases <n>
+    tileset <name> buckets <TerrainList::num_buckets> bases <n> coast_base <n>
     base <i> <textures> <supertile_filename>
     cell <xw> <yw> land <WData +2> sub <WData +3> wflags <WData +0, hex> bucket <trans_bucket> cflags <hex> patch <bucket/landindex|-> list <b>
 
@@ -55,7 +55,9 @@ def main(argv):
     nb = i32(ts + 0x268)
     lt = ts + 0x14
     n = i32(lt + 4)
-    print(f"tileset {name} buckets {nb} bases {n}")
+    # `TileSetData +0x62c`, `COAST_BASE`, which `TileSet::is_combo_acceptable`
+    # reads beside `bases` (item 4139).
+    print(f"tileset {name} buckets {nb} bases {n} coast_base {i32(ts + 0x62C)}")
     for i in range(n):
         te = u32(u32(lt + 0x10) + 4 * i)
         fname = snap.read(u32(te), 128).decode("utf-16-le", "replace").split("\0")[0]

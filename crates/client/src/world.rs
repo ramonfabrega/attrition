@@ -146,9 +146,10 @@ pub struct World {
     /// Draw the ground in its land kind's debug colour, the row's floor
     /// (item 4127); off by default, `--debug-ground` turns it on.
     pub debug_ground: bool,
-    /// The drawn terrain without the textured tiles, and the textured
-    /// tiles, at the terrain version they were built at.
-    drawn: (u32, TerrainMesh, Vec<TexturedMesh>),
+    /// The drawn terrain without the textured tiles, the textured tiles
+    /// and the transition patch laid over them, at the terrain version
+    /// they were built at.
+    drawn: (u32, TerrainMesh, Vec<TexturedMesh>, Vec<PatchMesh>),
 }
 
 /// The ground's textures, as the draw takes them.
@@ -156,6 +157,39 @@ struct GroundDraw {
     textures: crate::ground::GroundTextures,
     /// [`crate::ground::GroundTextures::flat`], shared with each mesh.
     flat: Vec<std::sync::Arc<render::silhouette::Mips>>,
+    /// The transition patch's art (item 4139); `None` where the alphas,
+    /// the tileset's numbers or the start dump's seed do not read, and no
+    /// patch is laid.
+    patch: Option<PatchArt>,
+}
+
+/// What [`crate::ground::our_patches`] and the patch's draw take.
+struct PatchArt {
+    /// The 14 alphas in name order, each its own level 0.
+    alphas: Vec<std::sync::Arc<render::silhouette::Mips>>,
+    codes: Vec<[u32; 8]>,
+    tileset: String,
+    root: PathBuf,
+    /// `World.seed`, the texture fractal's (`TerrainData::texture_fractal`).
+    seed: u32,
+}
+
+/// **The transition patch's draw** (item 4139; `docs/RENDERER.md` §3.9):
+/// the patch's base's triangles over one alpha, laid after the base at the
+/// alpha's A (`SRCALPHA`, `INVSRCALPHA`); each corner's base texcoord and
+/// its texcoord into the alpha, read on level 0, the nearest texel,
+/// clamped.
+pub struct PatchMesh {
+    /// The patch's base, keyed as the base layer's: `-1 - index` into
+    /// [`crate::ground::GroundTextures::flat`].
+    pub piece: i32,
+    pub positions: Vec<[f32; 3]>,
+    pub uvs: Vec<[f32; 2]>,
+    pub alpha_uvs: Vec<[f32; 2]>,
+    pub mips: std::sync::Arc<render::silhouette::Mips>,
+    /// The alpha's index in name order, and its image.
+    pub alpha: usize,
+    pub alpha_mips: std::sync::Arc<render::silhouette::Mips>,
 }
 
 /// The tileset's tree models, decoded once: `TileSetData::tree_scale` (the
@@ -361,6 +395,10 @@ impl World {
             }
         }
         let tileset = lobby_tileset(install_root, &start);
+        let seed = rondata::mapgen::start_head(&start)
+            .ok()
+            .flatten()
+            .map(|h| rondata::mapgen::start_grid(&h).seed as u32);
         let ground = tileset.as_deref().and_then(|t| {
             let textures = crate::ground::GroundTextures::load(install.root(), t).ok()?;
             let flat = textures
@@ -368,7 +406,24 @@ impl World {
                 .into_iter()
                 .map(std::sync::Arc::new)
                 .collect();
-            Some(GroundDraw { textures, flat })
+            let patch = seed.and_then(|seed| {
+                let loaded = crate::ground::load_alphas(install.root()).ok()?;
+                Some(PatchArt {
+                    codes: loaded.iter().map(|a| a.1).collect(),
+                    alphas: loaded
+                        .into_iter()
+                        .map(|a| std::sync::Arc::new(a.0))
+                        .collect(),
+                    tileset: t.to_string(),
+                    root: install.root().to_path_buf(),
+                    seed,
+                })
+            });
+            Some(GroundDraw {
+                textures,
+                flat,
+                patch,
+            })
         });
         let tree_art = tileset
             .and_then(|t| rondata::artdata::tree_art(&install, &t).ok())
@@ -443,7 +498,7 @@ impl World {
             tree_art,
             ground,
             debug_ground: false,
-            drawn: (u32::MAX, TerrainMesh::default(), Vec::new()),
+            drawn: (u32::MAX, TerrainMesh::default(), Vec::new(), Vec::new()),
         })
     }
 
@@ -523,10 +578,13 @@ impl World {
     /// [`World::debug_ground`], or where the textures do not read, the whole
     /// heightfield in its debug colours and no textured tile.
     /// [`World::terrain`] stays the whole heightfield the readers take.
-    pub fn drawn_terrain(&mut self) -> (&TerrainMesh, &[TexturedMesh]) {
+    /// Item 4139: and the transition patch, our own choice on our own
+    /// cells, as one [`PatchMesh`] per (patch's base, alpha), drawn after
+    /// the base.
+    pub fn drawn_terrain(&mut self) -> (&TerrainMesh, &[TexturedMesh], &[PatchMesh]) {
         let version = self.runner.terrain().version;
         if self.debug_ground || self.ground.is_none() {
-            return (self.terrain(), &[]);
+            return (self.terrain(), &[], &[]);
         }
         if self.drawn.0 != version || self.drawn.1.positions.is_empty() {
             self.terrain();
@@ -563,9 +621,41 @@ impl World {
                 meshes[k].uvs.extend_from_slice(uv);
             }
             meshes.retain(|m| !m.positions.is_empty());
-            self.drawn = (version, rest, meshes);
+            let mut patches: BTreeMap<(usize, usize), PatchMesh> = BTreeMap::new();
+            let choice = g.patch.as_ref().and_then(|a| {
+                let c = crate::ground::our_patches(&t, &a.root, &a.tileset, a.seed, &a.codes)?;
+                Some((a, c))
+            });
+            if let Some((art, choice)) = choice {
+                let laid = crate::ground::ground_patch(
+                    &t,
+                    &mountains,
+                    &g.textures,
+                    &self.terrain.1,
+                    &choice,
+                );
+                for i in 0..laid.tris.len() {
+                    let (k, a) = (laid.of[i], laid.alpha[i]);
+                    let (Some(mips), Some(alpha_mips)) = (g.flat.get(k), art.alphas.get(a)) else {
+                        continue;
+                    };
+                    let m = patches.entry((k, a)).or_insert_with(|| PatchMesh {
+                        piece: -1 - k as i32,
+                        positions: Vec::new(),
+                        uvs: Vec::new(),
+                        alpha_uvs: Vec::new(),
+                        mips: mips.clone(),
+                        alpha: a,
+                        alpha_mips: alpha_mips.clone(),
+                    });
+                    m.positions.extend_from_slice(&laid.tris[i]);
+                    m.uvs.extend_from_slice(&laid.uvs[i]);
+                    m.alpha_uvs.extend_from_slice(&laid.alpha_uvs[i]);
+                }
+            }
+            self.drawn = (version, rest, meshes, patches.into_values().collect());
         }
-        (&self.drawn.1, &self.drawn.2)
+        (&self.drawn.1, &self.drawn.2, &self.drawn.3)
     }
 
     /// `WorldData::find_slope_normal@006b5130` at `(x, y)` on our terrain
