@@ -402,3 +402,36 @@ slots and does not read the cursor. The checksum walker.
 
 **Confidence.** High.
 
+## 7. Against the README row's lead
+
+The row names `receive_taunt`, `process_taunt`, `end_process`. The first two
+are confirmed. **`end_process` is not a writer of any of the six leaves**:
+`Leader::end_process (006b8690)` and `Leaders::end_process_all (006ed070)`
+store only `game->info.player[i].flags` (`& 0xf7ff`) and
+`player[…].pop_cap_frame`, and read `LeaderData +0x7e8` / `+0x7e4`; the
+listing of `end_process_all` touches `0x3bc(%eax)` / `0x3bf(%eax)` off a
+`GameInfo` player record, not a leader. `CommandPackage::end_process
+(0094c800)` names no taunt field either. The row also omits the zeroing
+writers: `Leader::init` (the `memset` of 0x6929 bytes plus an explicit
+loop over the three ring arrays and the cursor), `Leaders::clear`,
+`Leader::close`, and the savegame walker.
+
+The dispatch has three copies with one live: `Leaders::process_all` calls
+`process_taunt` (0x6ed3f4); `Leader::process (006b88b0)` and
+`Leader::process_taunts (006b8ba0)` have no caller.
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `last_taunt` +0x354 [8] | `Leader::process_taunt (006b8cc0)` store 0x6b8d46; zeroed by `Leader::init (006e3930)` memset, `Leaders::clear (006ed5d0)`, `Leader::close (006b7f80)`; savegame walk | overwrite `[S] = req` (1–16) at dispatch, if R active non-human and R,S mutually allied, S ≠ R | `Leader::init(…, −1, …)` at game setup; never in a match | none; chat skipped at `crates/rondata/src/input.rs:1611`, leaf `None` at `crates/sim/src/checksum/leaders.rs:1305`; add in a new `process_taunt` called from `Sim::tick` (`crates/sim/src/core/frame.rs:94`) | only with a human sending a taunt-order chat to a computer ally; no AI sender | high |
+| `taunt_frame` +0x374 [8] | `Leader::process_taunt (006b8cc0)` store 0x6b8d54; same zeroing | overwrite `[S] = frame` at dispatch, same gates | as above | as above | as above | high |
+| `incoming_taunt` +0x394 [8] | `Leader::receive_taunt (006b8bf0)` store 0x6b8c4f; `Leader::init` loop 0x6e3a10 and memset; `Leaders::clear`; `Leader::close`; savegame walk | ring slot `[incoming] = req` if req > 0, S active, R active non-human, `is_ally(R,S)`, R ≠ S | as above; not cleared on dispatch | none; new `receive_taunt` from a chat arm in `rondata::input` `one` (`crates/rondata/src/input.rs:1503`), dispatch in `Sim::tick` | as above | high |
+| `incoming_taunt_who` +0x3b4 [8] | `Leader::receive_taunt (006b8bf0)` store 0x6b8c5c; init loop 0x6e3a13; same zeroing | ring slot `= S` (0–7), same gates | as above | as above | as above | high |
+| `incoming_taunt_frame` +0x3d4 [8] | `Leader::receive_taunt (006b8bf0)` stores 0x6b8c79 (HELP) / 0x6b8c91; init loop 0x6e3a18; same zeroing | ring slot `= frame` if req = 16, else `frame + 60` | as above | as above | as above | high (same-frame HELP: medium) |
+| `incoming` +0x3f4 | `Leader::receive_taunt (006b8bf0)` store 0x6b8cab; `Leader::init` 0x6e3a09 and memset; `Leaders::clear`; `Leader::close`; savegame walk | `(incoming + 1) mod 8` per accepted request | as above | as above | as above | high |
+
+Reader that changes a decision: `Leader::action_ping (006d18a0)` — a human's
+ping draws an army from each computer ally whose `last_taunt[human] == 16`
+within 225 frames of `taunt_frame[human]`. Dispatch reader:
+`Leaders::process_all (006ed2a0)`.

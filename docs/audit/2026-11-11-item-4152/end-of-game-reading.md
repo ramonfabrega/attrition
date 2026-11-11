@@ -187,3 +187,166 @@ twice on a leader with `defeated_by == −1` (needs `Unit::close`'s and
 `City::close`'s sequencing after a defeat), so whether the re-stamp is
 ever observed in a skirmish is not established.
 
+## `victory_type` (+0x7d8)
+
+**1. Writers.** Export: `field_0x7d8` stored only in `Leader::victory
+(006ec9b0)`; read in `EndGameWin::exec (0083bcc0)` and
+`Game::determine_end_of_game_stats_and_achievements (00583b30)`
+(`EndGameWin::get_type_string (0083a420)` reads `EndGameWin`'s own copy).
+Listing: `0x7d8(%reg)` stores in `Constants::init`, `Constants::log_data`
+(negative `ebp` offset), `GraphicPieces::close`, `ParamRegisterWindow::
+registration` (other types) and `6ec9ec` in `Leader::victory` (`esi` =
+`this`, `eax` = first argument). Global form `0xe3ab68`: one read
+(`58403c`, `determine_end_of_game_stats_and_achievements`), no store.
+Listing callers of `0x6ec9b0`: `Game::check_victory`, `GameDaemon::
+process_victory` (6 sites), `Leader::gain_tech` (2), `Leader::set_diplo`,
+`Leader::victory` (its own cascade), `ConsoleWin::run_cmd`,
+`ScenarioFuncSet::victory`, `TurnControl::toggle_pause`.
+
+**2. Event and predicate.** `Leader::victory(type, instant)`:
+- does nothing if `leader_flags & 0x60` (already won, 0x20, or already
+  defeated, 0x40) (`6ec9be`); **so the leaf is write-once** and a defeated
+  leader never gets one;
+- sets `leader_flags |= 0x20`, `leader_flags2` bit 0x100 = `instant != 0`,
+  `victory_type = type` (`6ec9ec`); achievement event; cleans the queues
+  of its buildings from object 2000 up; `Player::win` for each seated
+  player of this `who`; `scene.recalc_borders = 1`;
+- **cascade**: for every other slot with `leader_flags & 3 == 3` (seated,
+  bit 1 still set), sets that slot's `0x80`, then calls `victory(type,
+  instant)` on it if `LeaderData::is_ally(that, who)` (one-way, the other
+  slot's view), else `defeat(5, −1, 0)`. Allies thus get the same code,
+  and an ally already won keeps its first.
+- No `semaphore[1] & 2` (balance-test) guard here, unlike `defeat`.
+The type codes are in "Common ground". The VICTORY options that reach
+each: wonder arm under VICTORY 0/1/6, territory 0/1/7, score 3, time 4,
+economic 8, ending tech 9; conquest (`check_victory`, `set_diplo`) under
+any.
+
+**3. Reset.** Only `Leader::init`'s memset branch (tribe < 0), i.e.
+`Leaders::init` at game setup. The tribe ≥ 0 path (`Setup::build_leader
+(005abc70)`, `Setup::build_game (005ac190)`, scenario loads) does not
+touch +0x7d8 (its `stosl` run from +0x7c8 stops at +0x7d4, `6e3bee..
+6e3bf8`).
+
+**4. Readers.** End-of-game UI and statistics/achievements only
+(`EndGameWin::exec`, `determine_end_of_game_stats_and_achievements`), plus
+`log_data`/`walk_data`. No sim decision reads the value; the sim reads the
+flag bit 0x20 instead.
+
+**5. Crate.** No victory event at all. `crates/sim/src/territory/
+victory.rs` is the territory clock only; its `seams` table names the
+expiry (`Leader::victory(2)`) as not built ("the game never ends by
+territory"). There is no `check_victory`, no wonder arm, no cascade.
+`checksum/leaders.rs:144` lists the leaf, unfilled. A builder would add a
+`Sim::victory(who, type, instant)` (beside `Sim::defeat` in
+`cities/city.rs`, or in `territory/victory.rs`) and call it from the
+expiry seam and from a `check_victory` after `Sim::defeat`.
+
+**6. Plain game?** Yes: a skirmish against the computer ends by conquest
+(`check_victory` from the last enemy's `defeat`, code 0) or, under the
+default VICTORY 0, by the wonder or territory timer (codes 1, 2).
+`toggle_pause`, console and scenario callers are outside it.
+
+**7. Confidence.** High on the guard, the store and the cascade's shape
+(listing `6ec9b0..6ec9ec`; cascade from the export). Not read in the
+listing: the cascade's argument order (export only). `check_victory`'s
+gating (the armageddon comparison before its `victory(0,0)`, and the
+"no living human" exit) was read from the export only and is muddled
+there; whether a skirmish's conquest always reaches `victory(0, 0)` is not
+established.
+
+## `defeat_type` (+0x7dc)
+
+**1. Writers.** Export: `field_0x7dc` stored only in `Leader::defeat
+(006ecb00)`; read in `EndGameWin::exec`, `StatWin::draw_normal_stats
+(007ebd20)`, `StatWin::on_redraw (007f0e70)`, `GameReportWin::
+on_button_clicked (007b4f50)`, `determine_end_of_game_stats_and_
+achievements`, `AchieveChartPane::on_redraw (007f6ff0)`, `::draw_game_info
+(007f3ce0)`, `::on_spot_move (007f7e40)`, `IFaceDiplo::draw_player_area
+(007ff420)`. Listing: `0x7dc(%reg)` stores in `IFaceRenderManager::
+clear_all`, `Constants::init`, `Constants::log_data`, `GraphicPieces::
+close` (other types) and `6ecb7b` in `Leader::defeat` (`ebx` = `this`,
+`esi` = first argument). Global form `0xe3ab6c`: a `mov $imm` in
+`determine_end_of_game_stats_and_achievements` (`584425`) and a read in
+`ConquestGame::process_results (00798940)` (`799194`, compares slot 0's
+code with 10 — CtW). Callers of `0x6ecb00` (listing): `Unit::close`, `Leader::
+lost_a_city` (2), `Leader::process_elimination` (2), `Leader::gain_tech`,
+`Leader::victory`, `Game::defeat_all`, `GameDaemon::process_victory` (2),
+`Player::leave_game` (3), `CommandPackage::end_process`, `ConsoleWin::
+run_cmd`, `ScenarioFuncSet::defeat`, `::defeat_attacker_and_allies` (2).
+
+**2. Event and predicate.** `Leader::defeat(type, by, instant)`:
+1. `defeat_by(by, type)` (always; see the two leaves above);
+2. returns if `leader_flags & 0x40` (already defeated) (`6ecb24`) or
+   `semaphore[1] & 2` (`6ecb32`, the unit-balance test mode);
+3. `leader_flags2` bit 0x200 = `instant != 0`; `leader_flags = (flags &
+   ~2) | 0x40`; `Armies::leader_defeated(who)`; `leader_flags2 |= 2`;
+   `game.musical_chairs = game.frame`; **`defeat_type = type`**
+   (`6ecb7b`);
+4. then the achievement event (none for type 5), building queues cleaned,
+   units' orders cleared (planes die), `Player::lose`, messages,
+   `Game::check_victory` unless `semaphore[0] & 0x40`, and in multiplayer
+   (`semaphore & 0x44 == 4`) the loser's treasury split among its seated
+   allies.
+So the leaf is **write-once per defeat**, written only on the first
+`defeat` that passes the 0x40 guard. A leader that has *won* (0x20) is not
+protected: `defeat` does not test 0x20, and the victory cascade's
+`flags & 3 == 3` admits a prior winner, so a winner can later receive a
+`defeat_type` while keeping its `victory_type`.
+Per-caller predicates for a plain game:
+- `Leader::lost_a_city(is_capital, p2, captor)` (args read off the
+  listing, `0x14/0x18/0x1c(%esp)`): returns under `semaphore[1] & 2`, or
+  `semaphore[1] & 8` with `turn_control` flag 1. Under elimination 1, a
+  lost capital with `captor >= 0`, and the loser lacking wonder 0x213
+  (`has_wonder`), defeats with type 1 and `instant = 1` if the captor or
+  any ally of the captor (seated, alive) has `GLOBAL_GOVERNMENT_BONUS`
+  (TypeIndex 697). Then by elimination mode: 2 → type 2 for a lost
+  capital, unless the loser has tribe bonus 0x17 and still holds a capital
+  of its own; 3 → type 3 when `p2 != 0`; otherwise (0, 1, others) →
+  type 0 when `leader_flags2 & 1` is clear and `+0x3f8` (city count) is 0.
+- `Leader::process_elimination`: elimination 1 and the capital timer
+  (`+0x418`) running, when `Game::retake_capital() − (frame − +0x414) <= 0`
+  → type 1, `by` = the capital tile's holder.
+- `Unit::close`: the owner (< 8) has `num_units` (+0x93c) 0 and city count
+  0, `semaphore[1] & 8` clear and `leader_flags2 & 1` clear → type 0,
+  `by = −1`.
+- `Leader::victory`'s cascade → type 5; `Game::defeat_all` (armageddon,
+  `flags & 0x42 == 2`) → 8; `process_victory`'s musical chairs (VICTORY 5,
+  every `chairs·900` frames, lowest `score`, no tie) → 4.
+- `Player::leave_game(t)`: if the leader is seated and alive and its
+  capital timer is running → type 1 (by capital holder under elimination
+  1, else self); else type `t` (6 from `resign`, 7 from `drop`), `by = −1`.
+
+**3. Reset.** Only `Leader::init`'s memset branch, as for
+`victory_type`.
+
+**4. Readers.** UI, statistics and CtW (`ConquestGame::process_results`
+tests 10, a code no non-CtW caller passes — `ConquestLeader::defeat` is
+the CtW path). No skirmish sim decision; the sim reads bit 0x40.
+
+**5. Crate.** `Sim::defeat` (`crates/sim/src/cities/city.rs:623`) has no
+type argument; its one caller is `lost_a_city` (`cities/city.rs:613`,
+default elimination only, i.e. type 0, and it ignores `_was_capital`).
+`Sim::resign` (`crates/sim/src/leaders/resign.rs`) is type 6. No
+`process_elimination`, no `Unit::close` last-unit defeat (grep finds no
+`num_units == 0` defeat), no cascade, no armageddon. A builder adds a
+`defeat_type` array and a `type` parameter to `Sim::defeat`, writes it
+after the `defeated[who]` guard (which matches the 0x40 guard), and
+passes 6 from `resign`. `checksum/leaders.rs:145` lists the leaf,
+unfilled.
+
+**6. Plain game?** Types 0, 5, 6 are reached by a skirmish against the
+computer with default options (last city lost; an enemy's win; a human's
+resign); type 1/2/3 need a non-default elimination option or the
+`GLOBAL_GOVERNMENT_BONUS` tech; 4 and 8 need VICTORY 5 or armageddon
+(armageddon is reachable in a plain game by nuclear use); 7 is
+multiplayer; 9 is the trigger layer.
+
+**7. Confidence.** High on the store, both guards and their order
+(listing `6ecb00..6ecb7b`), and on `lost_a_city`'s arguments and mode
+switch (listing `6dc6d0..6dc85e`). From the export only: the per-caller
+predicates of `Unit::close`, `process_elimination`, `leave_game`,
+`defeat_all` and the musical-chairs arm. Not followed: what wonder 0x213
+and tribe bonus 0x17 are by name; `City::close`/`Build::close`'s
+computation of `is_capital`, `p2` and `captor`.
+

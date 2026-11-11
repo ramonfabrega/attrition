@@ -155,7 +155,7 @@ frame; `0x32`, sim frames). On a fold frame, in this order:
    `add_event(0 = ACHIEVEEVENT_BATTLE_VICTORY, who, "")`; else nothing and
    **no** reset. When an event fires: `average_death_rate =
    average_kill_rate = 0xfc18` (64,536 as the unsigned word; one `movl
-   0xfc18fc18` over the pair at `0064ec4e9`) and `frame_battle = frame`.
+   0xfc18fc18` over the pair at `006ec4e9`) and `frame_battle = frame`.
    All compares are signed `jl` on non-negative ints, so effectively
    unsigned.
 6. Unconditionally on the fold frame: `movl 0` at `0xa58` and `0xa5c` —
@@ -167,4 +167,121 @@ So between folds a `_current_frame` word holds the raw events since the last
 fold (its ×100 form exists only inside the fold). `Achieve::add_event
 (007af660)` appends `(frame, type)` to `achieve.events[who]` and posts a
 debug message; it writes no leader leaf.
+
+## 1. `hits_current_frame` (+0xa5c, ushort)
+
+1. **Writers.** `Object::do_damage (0064a480)` at `0064a90e` (W1); fold
+   `Leader::process_event_frame (006ec180)` at `006ec21d` (×100) and
+   `006ec507` (zero, as the low half of a dword); `Leader::init (006e3930)` at
+   `006e3b92`; `Leaders::clear (006ed5d0)` memset. `Leader::inc_hit_event
+   (006daa30)` is the uncalled out-of-line copy.
+2. **Event.** Every `do_damage` call past its two head returns: `+= 5` on
+   the **attacker's** leader when a siege attacker (`is_siege`, type vslot
+   `+0x10c`) strikes a building or wall (target vslot `+0x1c`), else `+= 1`.
+   No owner, ally or kind exemption beyond the decoy return; friendly fire
+   counts. Not reached by attrition (`Unit::suffer_attrition` goes straight to
+   `take_damage`).
+3. **Reset.** Zeroed on every fold frame (`frame % 50 == 0`, step 6), by
+   `Leader::init` and `Leaders::clear`. Between folds it is the raw count.
+4. **Readers.** The fold (step 1 into `hits_fifteen_seconds`, step 3 into
+   `average_hit_rate`); `IFaceMainBase::draw_timers (0080b060)` (a debug
+   overlay under a scene flag, prints it ×100); `LeaderData::log_data`.
+5. **Crate.** `Sim::do_damage_round`, `crates/sim/src/combat/fight/delivery.rs:70`,
+   after the decoy return (line ~92). Note the crate also returns on
+   `!self.struck(target)` (`combat/fight/stats.rs:92`) before that; the
+   original has no target-liveness return ahead of the store, so a counter
+   placed there misses any blow the crate refuses on that test. Siege test:
+   the attacker profile's `siege` (`ap.siege`, already passed to
+   `city_alarm`); building-or-wall: `Obj::Building(_)` (walls' home in the
+   crate not checked).
+6. **Plain game.** Yes: any skirmish blow.
+7. **Confidence.** High: one store, read in the listing with its predicate;
+   the head returns read in the listing. Not read: whether any `do_damage`
+   caller can pass a building-or-wall target whose vslot `+0x1c` answers 0.
+
+## 2. `damage_current_frame` (+0xa5e, ushort)
+
+1. **Writers.** `Object::do_damage` at `0064a91e` (W1, absolute
+   `0xe3adee + param_2*0x6eec`); fold at `006ec20c` (×100) and `006ec507`
+   (zero, high half of the dword at `0xa5c`); `Leader::init` at `006e3b92`
+   (high half); `Leaders::clear`. `Leader::inc_damage_event (006daa50)`
+   uncalled.
+2. **Event.** Same call and same `s` (1 or 5) as `hits_current_frame`, on
+   the **target's owner** (`param_2`). It counts blows received, not hit
+   points. No exemption; a blow on one's own object adds to the same leader's
+   hits and damage.
+3. **Reset.** As §1.
+4. **Readers.** Fold steps 1 and 3 (into `damage_fifteen_seconds`,
+   `average_damage_rate`); `draw_timers` does **not** print it (it prints
+   `a50`..`a56` and `a58`, `a5a` ×100); `log_data`.
+5. **Crate.** Same site as §1: `do_damage_round`, `owner_of(target)` is
+   already computed there as `hit_who`.
+6. **Plain game.** Yes.
+7. **Confidence.** High.
+
+## 3. `kills_current_frame` (+0xa5a, ushort)
+
+1. **Writers.** `Object::do_damage` at `0064bbdc` (W2); `Object::take_damage
+   (00652020)` at `00653033` (W3); `SpellType::cast_sabotage (006720e0)` at
+   `00672228` (W4); fold at `006ec216` (×100) and `006ec501` (zero, high half
+   of the dword at `0xa58`); `Leader::init` at `006e3b8c`; `Leaders::clear`.
+   `Leader::inc_kill_event (006dab10)` uncalled.
+2. **Event, by writer, on the killer's leader.**
+   - W2: a building or wall destroyed by a `do_damage` blow: `+= 5` if it
+     was alive, a `Build` (vslot `+0x20`) and `is_active` (vslot `+0x4c`)
+     when the blow began, else `+= 2` (a wall, or an inactive building).
+   - W3: a unit's death on `take_damage`'s death path, when it was the
+     squad's captain (`o_up < 0`), the last figure (`curr_uber_size(0) ==
+     1`), not a decoy, and the caller named a killer (`param_7 >= 0`): `+= 1`
+     on `param_8`. Combat kills via `do_damage` qualify; attrition, `Wall::
+     process`, the sabotage's own `take_damage` and the scenario paths pass
+     `-1` and do not. The overflow-to-captain tail credits the victim's own
+     owner.
+   - W4: Spy/Sniper sabotage killing a single-figure captain that is not a
+     decoy: `+= 1` on the caster's owner.
+   No owner or ally exemption in any of the three.
+3. **Reset.** As §1.
+4. **Readers.** Fold steps 1 and 3 (`kills_fifteen_seconds`,
+   `average_kill_rate`); `draw_timers` (×100); `log_data`.
+5. **Crate.** W2: `do_damage_round` after `take_damage_typed`, inside `if
+   let Obj::Building(b) = target { if killed { … } }`
+   (`delivery.rs` ~line 211; the `s'` predicate needs the building's
+   `active` read **before** the take, beside `fresh`). W3:
+   `take_damage_typed` (`delivery.rs:469`), the `Obj::Unit` arm's
+   `Taken::Died` branch (~line 532), gated on a real killer (`_by`) and on
+   captain/last-figure/not-decoy — but the crate's `take_damage` wrapper is
+   also the attrition path's, which the original passes `-1`, so the gate
+   must tell those apart. W4: the SEAM already named at
+   `delivery.rs:803` (`cast_sniper_unit`); that SEAM says "the caster's
+   leader counters (`+0xa58`, `+0xa5a`, …)" — `+0xa58` goes to the
+   **target's** leader (`param_4`), only `+0xa5a`/`+0x80c`/`+0x44` to the
+   caster's.
+6. **Plain game.** Yes for all three (combat kills, razing, a Spy's or
+   Sniper's sabotage on a unit). W3's overflow-to-captain arm needs a squad
+   whose dead figure is not its own captain.
+7. **Confidence.** High for the stores and predicates as read in the
+   listing. Not read: which squads reach the overflow tail in practice; the
+   vslot `+0x4c` body for `Build` (the export's folded name is
+   `WallData::is_active`); whether `cast_sabotage`'s unit arm can reach a
+   target whose captain test fails yet still dies (then nothing counts).
+
+## 4. `deaths_current_frame` (+0xa58, ushort)
+
+1. **Writers.** `Object::do_damage` at `0064bbe3` (W2, absolute `0xe3ade8 +
+   param_2*0x6eec`); `Object::take_damage` at `00653026` (W3, `0xa58` off the
+   victim's `Leader*`); `SpellType::cast_sabotage` at `0067221c` (W4, target's
+   owner `param_4`); fold at `006ec1ff` (×100) and `006ec501` (zero); `Leader::
+   init` at `006e3b8c`; `Leaders::clear`. `Leader::inc_death_event (006dab30)`
+   uncalled.
+2. **Event.** The mirror of §3 on the **victim's** leader, the same step in
+   each writer (W2: 5 or 2; W3: 1; W4: 1) and the same predicates. In W3 the
+   `deaths` store is under the same `param_7 >= 0` test as the kill, so a
+   unit lost to attrition increments `units_lost` but **not**
+   `deaths_current_frame`.
+3. **Reset.** As §1.
+4. **Readers.** Fold steps 1 and 3 (`deaths_fifteen_seconds`,
+   `average_death_rate`); `draw_timers` (×100); `log_data`.
+5. **Crate.** As §3, the victim's side of each.
+6. **Plain game.** Yes.
+7. **Confidence.** High; as §3.
 

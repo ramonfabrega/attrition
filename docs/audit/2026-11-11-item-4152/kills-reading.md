@@ -400,9 +400,8 @@ full damage and returns 0 before the death path (decompile 292-302); the
 half-health disband of an abandoned AI site (decompile 352-360) returns 1
 without reaching this store (so `buildings_razed` can step with no matching
 `buildings_lost`); any building removed by `Object::disband` or a direct
-`die` (delete, captured-and-razed paths, building attrition if it does not
-use slot `+0x16c` — no `Build::` function is among the eight `+0x16c` call
-sites).
+`die`. No `Build::` function is among the eight `+0x16c` call sites; which
+other building removals exist was not enumerated.
 
 ### Clears
 
@@ -438,3 +437,26 @@ reader would expect to count (e.g. `City` destruction on capture, scenario
 `kill_object`), and the predicate of `Wall::process`'s territory test beyond
 "non-allied owner".
 
+## Against the README row
+
+The row's four writers are right and complete for stores (both nets agree;
+`Leader::reset_score` is the fifth, a clear). Two things the row does not
+say: `take_damage`'s `units_killed` store is hidden in the decompile behind
+`local_8[0x20d].field_0x31a0` (an export-only net misses it), and
+`cast_counterintel`'s `ecx` is the caster's player, not a `SpellType*`.
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `units_killed` +0x80c | `Object::take_damage (00652020)` at 0x653046 → `[param_8]`; `SpellType::cast_sabotage (006720e0)` at 0x67222f → `[caster]`; `SpellType::cast_counterintel (00673740)` at 0x673867 → `[caster]` | +1 per squad killed: victim not a building, captain, `curr_uber_size(0)==1`, decoy clear; take_damage also needs `param_7 >= 0`; no alliance test in take_damage or sabotage (self-credit on the decoy-overflow recursion); counterintel only if not allied | `Leader::reset_score (006e37f0)`, `Leaders::clear (006ed5d0)`, `Leader::init (006e3930)` | `take_damage_typed` Died arm (delivery.rs:537); `cast_sniper_unit` (delivery.rs:806, SEAM); `cast_counterintel` (spells/cast.rs:1030, SEAM) | yes | high (stores, indices, take_damage gate); medium (sabotage's `+0x8 & 1` gate) |
+| `units_lost` +0x810 | `Object::take_damage (00652020)` at 0x653007 → `[victim owner]` | +1, same captain / last-figure / no-decoy gate, **any** attacker or none (attrition counts); sniper and counterintel kills do **not** count | same | `take_damage_typed` Died arm, **and** `die_by_attrition` (delivery.rs:844, from territory/upkeep.rs:307) | yes | high |
+| `buildings_razed` +0x818 | `Object::do_damage (0064a480)` at 0x64ba49 → `[shooter owner]`; `SpellType::cast_sabotage (006720e0)` at 0x67277d → `[caster]` | +1 when `take_damage` returns non-zero on a building (vslot `+0x1c`); includes the half-health disband of an orphaned (`+0x2000`) AI site; no alliance test | same | `do_damage_round` building `killed` block (delivery.rs:~212); `cast_sabotage_building` (delivery.rs:884, SEAM) | yes | high (stores); high (disband returns 1); predicate of disband from decompile |
+| `buildings_lost` +0x81c | `Object::take_damage (00652020)` at 0x652f5b → `[victim owner]` | +1 on every building death through `take_damage` (combat, sabotage, wall decay in hostile land, scenario setters), any attacker or none; not on city clamp, not on the orphan-site disband | same | `damage_building`'s Died arm (delivery.rs:~1041), not `die_building` | yes | high |
+
+Callers followed: all eight `take_damage` vslot `+0x16c` sites (arguments
+only), `SpellType::cast (00676ce0)` for both spell functions, the nine
+`do_damage` call sites (named, not read). Not followed: `Unit::fight`,
+`Ammo::do_damage` and `Nuke::do_damage` bodies (they only choose the
+shooter), `SpellTypeData::is_castable`, `curr_uber_size`, the full set of
+direct `die` callers.

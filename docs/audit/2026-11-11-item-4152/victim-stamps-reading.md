@@ -257,7 +257,8 @@ writes the **city's** `raid_stamp`, `crates/sim/src/cities/city.rs`
 `raid_stamp`, at `delivery.rs:314`, `:337`, `:351`), and a territory step
 after `delivery.rs:190` for arm 4. The crate's `is_worker`, `is_merchant`
 (`crates/sim/src/economy/calc_gather.rs:555`) and caravan predicates
-exist; check that the crate's merchant test is the same three type ids.
+exist; `Sim::is_merchant` is already `UnitData::is_merchant (0046d370)`'s
+port (`MERCHANTS`).
 
 **6. Plain game.** Yes: hits on citizens, caravans and merchants in their
 owner's territory, and light hits on buildings there, are ordinary
@@ -265,4 +266,120 @@ skirmish events.
 
 **7. Confidence and not read.** High for the stores and gates.
 `was_raided`'s body was read only through its two listing loads.
+
+## 3. `ally_stamp` (`LeaderData +0x154`, int[8])
+
+**1. Writers, both nets.**
+
+| writer | site(s) | value |
+|---|---|---|
+| `Object::do_damage (0064a480)` | `64ae8d` (the one store, `LAB_0064ae82`, joined from both heavy arms); reads at `64ad1c`, `64ae0f`, `64b076`, `64b17a` | `frame` |
+| `Leader::init (006e3930)` | `6e3c1b` (`0x80(%esi)`), `j = 0..7` | 0 |
+| `Leaders::clear (006ed5d0)` | memset | 0 |
+| `LeaderData::walk_data (006d6750)` | load | saved |
+
+Agrees with the README row. No reference to `0xe3a4e4` outside
+`do_damage`, not even a trigger reader.
+
+**2. Event, step, predicate.** `leaders[vic].ally_stamp[att] = frame`, on
+a **heavy** hit on a city building only, capital or not:
+
+- Capital heavy (`64ad11`): after the capital test (whether or not it
+  stamped), `frame - ally_stamp[att] > 300` → store.
+- Non-capital heavy (`64b06b`): after the city stamps,
+  `frame - ally_stamp[att] > 300` → store.
+
+Inside the window, the "ally under attack" message and sound play when
+`vic != console->who` and `is_ally(leaders[vic], console->who)`
+(`LeaderData::is_ally (006edb50)`); both negative branches jump to the
+store (`64ad3c je 64ae7c`, `64ad53 je 64ae79`), so the store is
+unconditional once the window passes. Never on a light hit, the worker
+arm, a unit, or a city-less building. The row is named for the
+notification it throttles, but it is written for every player pair,
+human or not.
+
+**3. Reset.** `Leader::init`'s loop (`+0x154`), `Leaders::clear`.
+
+**4. Readers.** Only `do_damage`'s own windows (and the message's
+`do_notice` throttle: it reloads the stamp as the "last notice" time,
+`400 <` for the non-capital arm, `300 <` for the capital arm, before the
+store), `LeaderData::log_data` (`piVar3[0x38]`, line 324) and the
+checksum walk. Nothing decides with it.
+
+**5. Crate.** None; `checksum/leaders.rs:64` row, no value. The site is
+`Sim::city_alarm` (`delivery.rs:280`), in both heavy arms, after the
+capital test and after the city stamps respectively. Note that the
+crate's capital arm returns from inside its `if frame - *stamp > 300`
+block (`delivery.rs:341`..`:346`); the ally store must run on both
+outcomes of that test, so the early `return` has to move below it.
+
+**6. Plain game.** Yes: any heavy hit on a computer's or a human's city
+building by another player, after frame 300.
+
+**7. Confidence and not read.** High; one store, read in the listing with
+both message exits. The `do_notice` throttle values (400/300) are read
+from the decompile only; they affect the interface, not the stamp.
+
+## 4. `ctw_hero_stamp` (`LeaderData +0x200`, int)
+
+**1. Writers, both nets.**
+
+| writer | site(s) | value |
+|---|---|---|
+| `Object::do_damage (0064a480)` | `64b513` (`movl %edx, 0xe3a590(%ecx)`, `ecx = vic*0x6eec` from `-0x28(%ebp)`); reads at `64b3d3`, `64b508` | `frame` |
+| `Leader::init (006e3930)` | `6e3dfc` (`0x200(%ebx)`, `ebx = this`) | 0 |
+| `Leaders::clear (006ed5d0)` | memset | 0 |
+| `LeaderData::walk_data (006d6750)` | load | saved |
+
+Agrees with the README row. The export prints the `do_damage` site as
+`local_2c[0xfb32].field_0x40` (§0); by name it appears only in
+`LeaderData::log_data`. Beside it `Leader::init` sets
+`ctw_hero_retreat_stamp` (+0x204) to −1000 (`0xfffffc18`), not this leaf.
+
+**2. Event, step, predicate.** A single int per leader, not per attacker:
+`leaders[vic].ctw_hero_stamp = frame`, in the **unit arm** of a
+cross-owner blow (`64b3a0`..`64b513`), when all of:
+
+1. T `is_unit` and not `is_worker` (the worker arm is the other branch);
+2. `game->semaphore` bit 17 (`0x822 & 2`) — one of the two bits
+   `Game::is_scenario (0043ec70)` tests (the other is bit 12,
+   `0x821 & 0x10`); `docs/ECONOMY.md` names bit 17 Conquer the World;
+3. T's type id (`T.type(+0x18)->+4`) equals `conquest_game->hero_type`
+   (`ConquestGame +0x118`, global `0xc0617c`);
+4. `frame - leaders[vic].ctw_hero_stamp > 120` (`0x78`);
+5. `vic == console->who`, the **local** player only;
+6. `(hits - T.damage(+0x24)) * 100 / hits < 70` (`0x46`), signed `idiv`,
+   `hits` from `UnitData::hits` (vslot +0x11c, read direct as `T+0x20`
+   when the slot is `UnitData::hits (00610890)`), damage as it stood
+   **before** this blow;
+7. then (after the message is queued) `frame - stamp > 75` (`0x4b`),
+   which item 4 already implies, so it always holds: the store follows.
+
+The message ("your hero is under attack", `S_YOUR_CAPITAL_ATTACKED`
+sound) is posted before the store; the store is inside condition 7 with
+the `do_notice` call, not inside an interface-only test.
+
+**3. Reset.** `Leader::init` (0), `Leaders::clear`. No per-frame fold.
+
+**4. Readers.** `do_damage`'s two windows (120 and 75 frames);
+`LeaderData::log_data` (line 582). The checksum walk covers +0x200. No
+other reader in the export or by absolute address.
+
+**5. Crate.** None, and none wanted for v1: Conquer the World is cut
+(`CLAUDE.md` "Cut from v1"). `checksum/leaders.rs:72` row, no value; in a
+plain game it stays 0, so a constant-0 value arm is exact for every
+non-CtW capture. If ever built, it sits in `Sim::do_damage_round`'s unit
+path before `take_damage_typed` (`delivery.rs:190`'s neighbourhood).
+
+**6. Plain game.** **No.** Condition 2 is a CtW/scenario semaphore bit and
+condition 3 a `ConquestGame` field. A skirmish never sets bit 17, so the
+leaf is 0 for its whole length. Note also condition 5: the write depends
+on which player is the local console, so even under CtW it is not a
+lockstep-symmetric write (CtW is single-player).
+
+**7. Confidence and not read.** High for the store and conditions 1, 3–7
+(listing). Condition 2's naming as CtW leans on `docs/ECONOMY.md` and on
+the `hero_type` comparison; who sets bit 17 was not traced (no direct
+`or`/`mov` to `0x822` was found in the listing; it is likely set through
+a `BitMask` helper).
 

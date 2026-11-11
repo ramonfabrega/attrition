@@ -103,3 +103,45 @@ Yes: the first attrition tick of any unit of a slot, in any lobby where a unit b
 
 High for the writer and the once-only predicate (writers grepped in both nets; the two zeroing loops store at `+0x1f4`, not `+0x1f8`). The `is_ally(owner, owner)` argument is confirmed in the listing; what `is_ally` answers for its own slot was not read (message only).
 
+## Leaf 3 — `attrition_stamp3` (+0x1fc, int)
+
+### Writers
+
+| writer | site | store | base |
+|---|---|---|---|
+| `Wall::process (00640450)` | `640bb7` | `game->frame` | building owner (`movzbl 0x9(%ebx)`) `· 0x6eec`, absolute `0xe3a58c` |
+| `Leader::init (006e3930)` | `6e3df1` | `0` | `%ebx` = `this` |
+| `Leaders::clear (006ed5d0)` | memset | `0` | slot memset |
+| `LeaderData::walk_data (006d6750)` (load) | — | saved value | not read store by store |
+
+Rejected `0x1fc(%reg)` stores: `Leader::init 6e3d63` (`%esi = this + 0xd4 + 4i` in the 8-iteration diplomacy loop, so `+0x2d0 + 4i`), `Leader::init 6e4b06` (a `movw` off `this + 0xd64`), `Unit::{do_attack, think_attack, cavarch_fight}` (a target object), `ScenarioEditor::{init, delete_leader}` (the editor), `ScenarioFuncSet::set_object_type_max_range` (an `ObjectType`), `ScenarioRead::load_leaders_chunk` (local record), the `Objects::find*` family (`GameAccess::objects`). `Wall` is the base of every building: `Build::process (0061edf0)` is the one direct caller of `Wall::process`.
+
+### The event, the step, the predicate
+
+`Wall::process` per building per frame. The enemy-land arm (`docs/CITIES.md` §9.5, which this reading agrees with): `(frame + id) & 15 == 0`; owner's `disable_building_attrition (+0x804) == 0`; then if `rush_rules == 0 || Game::war_allowed`, additionally `(frame + id) & 31 == 0`; the tile owner `t` (or, when the type's vtable `+0x108` answers nonzero, `BuildTypeData::check_enemy_adjacent`'s ring owner); `t ≥ 0`, `t ≠ owner`, `!LeaderData::is_ally(owner, t)`. Then:
+
+- **not started** (`WallData::is_started`, `byte 8 & 2`, inlined at `640b01`) → `Object::disband(0)` (`6409d9`), then `jmp 640b43` — straight to the console message and **the stamp, with no `stamp3 == 0` test**. So every ghost site removed from rival land re-stamps.
+- **started** → `take_damage(8, 0, 1, −1, 1, 0x55555555, −1, −1, 0)` through vtable `+0x16c` (`640b22`); a nonzero answer (the building died) returns with no stamp (`640b2a`); otherwise, only when `stamp3 == 0` (`640b3a`), the console message (string `0x123cc`, `S_ATTRITION_WARNING`, console's leader only) and the stamp = `game->frame`, for every slot.
+
+So `attrition_stamp3` = the frame of the slot's first surviving building-attrition hit of the game, overwritten by the frame of any later ghost-site disband in rival land. Units: `frame` is `Game +0x550` (`movl 0x550(%eax)` off `0xc061ec`).
+
+### Reset
+
+`Leader::init`, `Leaders::clear`. No other store (both nets).
+
+### Readers
+
+`Wall::process` (the once-only gate on the started arm); `LeaderData::log_data`. No decision reads it.
+
+### Crate site
+
+`Sim::process_building` (`crates/sim/src/cities/city.rs:2997–3010`): the `!started → disband_building(b, false)` arm (stamp unconditionally) and the `building_attrition(b, frame)` arm followed by `if !alive return` (stamp when alive and `stamp3 == 0`). The crate gates on `phase % ENEMY_TERRITORY_PERIOD (32)` only; the 16-frame cadence under rush rules before war is not modelled (`crates/sim/src/cities/build.rs:1083–1088` says so), so a rush lobby would stamp on frames the crate does not visit.
+
+### Plain game?
+
+Yes. A started building on ground a rival's border took — run551 (`docs/CITIES.md` §9.5, `docs/GOLDEN.md` §57): a who=1 Tower site hit on 682 and every 32 frames after, `damage` 0 → 8 on block 683. By this reading who=1's `attrition_stamp3` reads 682 from block 683 on (a prediction, not looked up in the dump). A ghost site in rival land needs a border to move over a placed, unstarted foundation.
+
+### Confidence
+
+High: both arms' control flow read in the listing (`6409cd`–`6409de`, `640b0d`–`640bb7`). Not followed: what vtable `+0x108` on a build type is (dock ring vs plain tile, per CITIES.md); `take_damage`'s return convention beyond "nonzero returns".
+
