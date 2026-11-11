@@ -209,6 +209,16 @@ pub const RUN1559B_3279_PATCH_CONTROLS: ([u32; 4], u32) = ([204, 148, 31, 115], 
 pub const RUN1559B_3279_GROUND_BLEND_PACKET: (u32, [u32; 4], u32, u32) =
     (395, [15, 41, 5, 42], 201, 503);
 
+/// **`RUN1559B_3279_GROUND_BLEND`** (item 4139; `docs/RENDERER.md`
+/// §3.8): the patch from our own choice (`crate::patch::patches`) laid
+/// as [`RUN1559B_3279_GROUND_BLEND_PACKET`] lays the packet's, on the same
+/// 503 tiles in the pool of (a)-(d): `(wins on the packet's cells, the
+/// controls' wins beside it, wins on our own cells with our patch base,
+/// the controls' wins beside it, of)`. New.
+#[cfg(test)]
+pub const RUN1559B_3279_GROUND_BLEND: (u32, [u32; 4], u32, [u32; 4], u32) =
+    (395, [15, 41, 5, 42], 395, [15, 41, 5, 42], 503);
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -762,6 +772,25 @@ mod tests {
         Some(out)
     }
 
+    /// The packet's `COAST_BASE` and `BASELAND` count (item 4139;
+    /// `tools/render/land_buckets.py`'s `tileset` row).
+    fn packet_tileset() -> Option<(u8, u8)> {
+        let path = std::env::var_os("HOME").map(|h| {
+            PathBuf::from(h)
+                .join("ron-data/lab-experiments/2026-11-11-item-4139/run1559b-buckets.txt")
+        })?;
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            println!("skipping: no packet tileset at {}", path.display());
+            return None;
+        };
+        let f: Vec<&str> = text.lines().next()?.split_whitespace().collect();
+        let at = |k: &str| -> Option<u8> {
+            let i = f.iter().position(|x| *x == k)?;
+            f.get(i + 1)?.parse().ok()
+        };
+        Some((at("coast_base")?, at("bases")?))
+    }
+
     /// The packet's own patch per cell with alpha geometry,
     /// `tools/render/patches.py`'s `patch` rows: `(cx, cy)` → (the alpha's
     /// bucket, `trans_texcoords1` at vertices 0, 4 and 20) (item 4132).
@@ -1186,6 +1215,10 @@ mod tests {
         patch: [f32; 3],
         wbase: [f32; 3],
         wpatch: [f32; 3],
+        /// The patch's base from our own cells' `land_sub − 1`, and its
+        /// wrong-cell control (item 4139).
+        opatch: [f32; 3],
+        wopatch: [f32; 3],
         uv: [f32; 2],
     }
 
@@ -1286,7 +1319,96 @@ mod tests {
             .collect();
         let of_wbase: Vec<usize> = base.of.iter().map(|&k| on(k)).collect();
         let of_wpatch: Vec<usize> = of_patch.iter().map(|&k| on(k)).collect();
-        let [db, dp, dwb, dwp] = [&base.of, &of_patch, &of_wbase, &of_wpatch].map(|of| draw(of));
+        // Item 4139: our own choice (`crate::patch::patches`), on the
+        // packet's cells and on ours; the patch's base from our cells.
+        let (Some(pk), Some(seed)) = (
+            crate::patch::tests::packet(),
+            crate::patch::tests::world_seed(),
+        ) else {
+            return;
+        };
+        let codes: Vec<[u32; 8]> = pk
+            .alpha_names
+            .iter()
+            .map(|n| crate::patch::bitcodes(n).expect("an alpha's code"))
+            .collect();
+        let frac = sim::mapgen::Fractal::init(pk.width + 1, pk.height + 1, 0, 2, seed);
+        let numbers = rondata::mapgen::tileset_groups(&p.root, &tileset).expect("the tileset");
+        let (coast_base, base_subs) = (numbers.coast_base as u8, numbers.base_tiles as u8);
+        // Stage 1 (parked 4134b): the tileset's two numbers from our data,
+        // against the packet's `COAST_BASE` and `BASELAND` count.
+        if let Some(theirs) = packet_tileset() {
+            println!(
+                "the tileset's numbers: ours {:?}, the packet's {theirs:?}",
+                (coast_base, base_subs)
+            );
+            assert_eq!((coast_base, base_subs), theirs, "COAST_BASE and the bases");
+        }
+        let ground_of = |cells: &[(i8, u8)]| {
+            crate::patch::patches(
+                &crate::patch::Ground {
+                    width: pk.width,
+                    height: pk.height,
+                    cells,
+                    coast_base,
+                    base_subs,
+                },
+                &frac,
+                &codes,
+            )
+        };
+        let our_cells: Vec<(i8, u8)> = t
+            .land
+            .iter()
+            .zip(&t.land_sub)
+            .map(|(&l, &s)| (l, s))
+            .collect();
+        let choice_packet = ground_of(&pk.cells);
+        let choice_ours = ground_of(&our_cells);
+        // The perturbation: the fractal's seed one on, on the packet's cells.
+        let frac_off = sim::mapgen::Fractal::init(pk.width + 1, pk.height + 1, 0, 2, seed + 1);
+        let choice_off = crate::patch::patches(
+            &crate::patch::Ground {
+                width: pk.width,
+                height: pk.height,
+                cells: &pk.cells,
+                coast_base,
+                base_subs,
+            },
+            &frac_off,
+            &codes,
+        );
+        let parting_cells: std::collections::BTreeSet<(i32, i32)> = (0..pk.height)
+            .flat_map(|y| (0..pk.width).map(move |x| (x, y)))
+            .filter(|&(x, y)| {
+                let i = (y * pk.width + x) as usize;
+                choice_ours[i] != choice_packet[i] || our_cells[i] != pk.cells[i]
+            })
+            .collect();
+        let of_opatch: Vec<usize> = base
+            .tile
+            .iter()
+            .zip(&base.of)
+            .map(|(&tt, &k)| {
+                let (cx, cy) = cell(tt);
+                let s = sub((cx, cy));
+                if choice_ours[(cy * t.width + cx) as usize].is_some() && s > 0 {
+                    tex.index(s - 1, cx, cy).unwrap_or(k)
+                } else {
+                    k
+                }
+            })
+            .collect();
+        let of_wopatch: Vec<usize> = of_opatch.iter().map(|&k| on(k)).collect();
+        let [db, dp, dwb, dwp, dop, dwop] = [
+            &base.of,
+            &of_patch,
+            &of_wbase,
+            &of_wpatch,
+            &of_opatch,
+            &of_wopatch,
+        ]
+        .map(|of| draw(of));
         let ww = (window.x1 - window.x0) as usize;
         let photo_at = |i: usize| [0, 1, 2].map(|c| f32::from(p.photo.rgba[i * 4 + c]));
         let mut tiles: BTreeMap<(i32, i32), Vec<PatchPixel>> = BTreeMap::new();
@@ -1299,15 +1421,22 @@ mod tests {
             let mine = |d: &[Option<render::silhouette::Texel>]| {
                 d[j].filter(|q| base.tile[q.tri as usize] == tt)
             };
-            if let (Some(b), Some(pp), Some(wb), Some(wp)) =
-                (mine(&db), mine(&dp), mine(&dwb), mine(&dwp))
-            {
+            if let (Some(b), Some(pp), Some(wb), Some(wp), Some(op), Some(wop)) = (
+                mine(&db),
+                mine(&dp),
+                mine(&dwb),
+                mine(&dwp),
+                mine(&dop),
+                mine(&dwop),
+            ) {
                 tiles.entry(tt).or_default().push(PatchPixel {
                     photo: photo_at(i),
                     base: b.rgb,
                     patch: pp.rgb,
                     wbase: wb.rgb,
                     wpatch: wp.rgb,
+                    opatch: op.rgb,
+                    wopatch: wop.rgb,
                     uv: b.uv,
                 });
             }
@@ -1410,6 +1539,19 @@ mod tests {
             let av = t0[1] + u * (t4[1] - t0[1]) + v * (t20[1] - t0[1]);
             m.sample(0, au, av)[3] / 255.0
         };
+        let our_alpha =
+            |choice: &[Option<crate::patch::Patch>], c: (i32, i32), uv: [f32; 2]| -> f32 {
+                let Some(q) = choice[(c.1 * t.width + c.0) as usize] else {
+                    return 0.0;
+                };
+                let Some((_, m)) = alphas.get(q.alpha) else {
+                    return 0.0;
+                };
+                let e = |k: usize, c: usize| q.uv[k][c] as f32 / 8.0;
+                let au = e(0, 0) + uv[0] * (e(4, 0) - e(0, 0)) + uv[1] * (e(20, 0) - e(0, 0));
+                let av = e(0, 1) + uv[0] * (e(4, 1) - e(0, 1)) + uv[1] * (e(20, 1) - e(0, 1));
+                m.sample(0, au, av)[3] / 255.0
+            };
         println!(
             "packet patches with alpha geometry {}, alpha files {}",
             patches.len(),
@@ -1435,23 +1577,45 @@ mod tests {
                 "(f) the read alpha turned a quarter turn",
                 Box::new(|c, uv| read_alpha(c, uv, true)),
             ),
+            (
+                "(g) our choice on the packet's cells",
+                Box::new(|c, uv| our_alpha(&choice_packet, c, uv)),
+            ),
+            (
+                "(h) our choice on our cells, our patch base",
+                Box::new(|c, uv| our_alpha(&choice_ours, c, uv)),
+            ),
+            (
+                "(i) control: our choice, the fractal's seed one on",
+                Box::new(|c, uv| our_alpha(&choice_off, c, uv)),
+            ),
         ];
+        // The candidates whose patch layer is our cells' base (item 4139).
+        let ours_layer = |k: usize| k == 7;
         // Step 1's table is (a)-(d) alone; (e) is counted against (a)-(d),
         // and (f), its control, against (a)-(d) in (e)'s place.
-        let pools: [(&str, Vec<usize>); 3] = [
+        let pools: [(&str, Vec<usize>); 6] = [
             ("step 1, (a)-(d)", vec![0, 1, 2, 3]),
             ("(a)-(e)", vec![0, 1, 2, 3, 4]),
             ("(a)-(d), (f)", vec![0, 1, 2, 3, 5]),
+            ("(a)-(d), (g)", vec![0, 1, 2, 3, 6]),
+            ("(a)-(d), (h)", vec![0, 1, 2, 3, 7]),
+            ("(a)-(d), (i)", vec![0, 1, 2, 3, 8]),
         ];
-        let r_of = |px: &[PatchPixel], c: (i32, i32), wt: &Weight, wrong: bool| {
+        let r_of = |px: &[PatchPixel], c: (i32, i32), k: usize, wt: &Weight, wrong: bool| {
             let v: Vec<(f32, f32)> = px
                 .iter()
                 .map(|q| {
                     let a = wt(c, q.uv);
-                    let d = if wrong {
-                        mix(q.wbase, q.wpatch, a)
+                    let (pt, wpt) = if ours_layer(k) {
+                        (q.opatch, q.wopatch)
                     } else {
-                        mix(q.base, q.patch, a)
+                        (q.patch, q.wpatch)
+                    };
+                    let d = if wrong {
+                        mix(q.wbase, wpt, a)
+                    } else {
+                        mix(q.base, pt, a)
                     };
                     (lum(q.photo), lum(d))
                 })
@@ -1465,16 +1629,20 @@ mod tests {
             let px = &tiles[&tt];
             let r: Vec<f32> = candidates
                 .iter()
-                .map(|(_, wt)| r_of(px, c, wt, false))
+                .enumerate()
+                .map(|(k, (_, wt))| r_of(px, c, k, wt, false))
                 .collect();
             let rw: Vec<f32> = candidates
                 .iter()
-                .map(|(_, wt)| r_of(px, c, wt, true))
+                .enumerate()
+                .map(|(k, (_, wt))| r_of(px, c, k, wt, true))
                 .collect();
             rs.insert(tt, (r, rw));
         }
         let mut blend = (0, [0u32; 4], 0);
         let mut step1 = [0u32; 4];
+        let mut ours = [(0u32, [0u32; 4], Vec::new()), (0u32, [0u32; 4], Vec::new())];
+        let mut off = 0;
         for (pool_name, pool) in &pools {
             let mut wins = vec![0u32; nc];
             let mut wins_by: BTreeMap<(usize, u8, i32), u32> = BTreeMap::new();
@@ -1512,6 +1680,32 @@ mod tests {
             if pool.len() == 5 && pool[4] == 5 {
                 blend.2 = wins[5];
             }
+            if pool.len() == 5 && pool[4] == 8 {
+                off = wins[8];
+            }
+            if pool.len() == 5 && (6..8).contains(&pool[4]) {
+                let k = pool[4];
+                // The tiles (e) wins in its pool and this one does not, by
+                // cell (item 4139).
+                let lost: Vec<(i32, i32)> = patched
+                    .iter()
+                    .copied()
+                    .filter(|&tt| {
+                        let (r, rw) = &rs[&tt];
+                        let won = |cand: usize| {
+                            let mut pl = vec![0, 1, 2, 3, cand];
+                            pl.sort();
+                            let best = *pl
+                                .iter()
+                                .max_by(|&&a, &&b| r[a].total_cmp(&r[b]))
+                                .expect("one");
+                            best == cand && r[cand] > rw[cand]
+                        };
+                        won(4) && !won(k)
+                    })
+                    .collect();
+                ours[k - 6] = (wins[k], [wins[0], wins[1], wins[2], wins[3]], lost);
+            }
         }
         for (k, (name, _)) in candidates.iter().enumerate() {
             let m: f64 =
@@ -1521,6 +1715,38 @@ mod tests {
         println!(
             "RUN1559B_3279_GROUND_BLEND (packet's patch) {blend:?} of {}",
             patched.len()
+        );
+        for (k, (n, ctl, lost)) in ours.iter().enumerate() {
+            let cells: std::collections::BTreeSet<(i32, i32)> =
+                lost.iter().map(|&tt| cell(tt)).collect();
+            println!(
+                "RUN1559B_3279_GROUND_BLEND ({}) {n} with {ctl:?}; tiles (e) wins and this does not {}: by cell {cells:?}",
+                ["our choice, packet's cells", "our choice, our cells"][k],
+                lost.len()
+            );
+        }
+        let on_parting: Vec<(i32, i32)> = patched
+            .iter()
+            .copied()
+            .filter(|&tt| parting_cells.contains(&cell(tt)))
+            .collect();
+        println!(
+            "cells where our cells or our choice part from the packet's {}; scored patched tiles on them {}: {on_parting:?}",
+            parting_cells.len(),
+            on_parting.len()
+        );
+        println!("(i) the seed one on: {off} of {}", patched.len());
+        assert!(off < ours[0].0, "the draw follows our choice");
+        assert_eq!(
+            (
+                ours[0].0,
+                ours[0].1,
+                ours[1].0,
+                ours[1].1,
+                patched.len() as u32
+            ),
+            RUN1559B_3279_GROUND_BLEND,
+            "RUN1559B_3279_GROUND_BLEND"
         );
         assert_eq!((step1, patched.len() as u32), RUN1559B_3279_PATCH_CONTROLS);
         assert_eq!(
