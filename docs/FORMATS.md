@@ -813,7 +813,7 @@ ending inside its parent, so a file whose sizes do not sum is refused.
 id 0  file                     num_chunks 2
   id 1  vertex data            num_chunks 4   load_bh3 → load_vertex_data per child
     id 2  vertices   u32 n, n × {f32 x, y, z, w}      load_verts: Point<float>, w = 1
-    id 3  normals    u32 n, n × 16 bytes               read only by BH3LightMethod
+    id 3  normals    u32 n, n × {f32 x, y, z}, 4n unread  load_norms only
     id 4  texcoords  u32 n, n × {f32 u, v}             load_texs: n × 8 bytes
     id 5  faces      u32 n, n × u16                    load_faces: n × 2 bytes
   id 6  node                   num_chunks 1 + children   load_bh3 → load_hier
@@ -830,9 +830,8 @@ id 0  file                     num_chunks 2
   are vertices, in every file.
 - **A vertex's `w` is 1** in every file, which is what pins the 16-byte
   stride as `Point<float>`.
-- **The normals are unchecked.** `BH3Method::load_vertex_data` returns an
-  error for id 3, so the method that loads a model without lighting never
-  reads them. 749 models carry `0xffffffff` words there.
+- **The normals** are read only by `BH3LightMethod::load_norms@00914b40`:
+  `n · 12` packed bytes, the last `4n` filler (item 4122's journal).
 - **A node is a `HierObj`.** `start`/`num` land in `HierObj::start` and
   `num`. They are the node's run of vertices: in 1,844 of the 1,847 files
   every run lies inside the vertex array and the runs' lengths sum to the
@@ -1061,7 +1060,8 @@ is still unread beyond the attributes above.
   animation's tree equal in shape to the model's (`SAME_SHAPE`; 823 of
   1,465 since item 4028). The
   citizen's `peasant.bh3` has 29 nodes, and `man_walk.bha` has 27: the
-  same tree without its two `ammo node` leaves. The normals' fourth word.
+  same tree without its two `ammo node` leaves. ~~The normals' fourth word~~
+  (item 4122: none, above).
   The 24-byte `id 10` element. The key's ninth word. Which TGA a model
   binds, beyond the `texture=` attribute. Item 4028 left four things
   unread: ~~the farm's `<FARM>` reader~~ (item 4037: `Farms::init

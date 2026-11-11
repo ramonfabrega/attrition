@@ -554,6 +554,7 @@ impl World {
                         .map(|f| f.map(|k| apply(&m, rest[k as usize])))
                         .collect(),
                     uvs: Vec::new(),
+                    normals: Vec::new(),
                 })
             })
             .collect()
@@ -893,6 +894,43 @@ impl World {
                     .map(|f| f.map(|i| mesh.model.texcoords[i as usize]))
                     .collect()
             };
+            // The stored normals through the same map (item 4122): each
+            // vertex moved by its normal, posed and placed, less the vertex
+            // posed and placed — the linear part alone.
+            let normals =
+                if !cfg!(test) || building || mesh.model.normals.len() != mesh.model.verts.len() {
+                    Vec::new()
+                } else {
+                    let mut tipped = mesh.model.clone();
+                    for (v, n) in tipped.verts.iter_mut().zip(&mesh.model.normals) {
+                        *v = [v[0] + n[0], v[1] + n[1], v[2] + n[2]];
+                    }
+                    let tips = match clock
+                        .filter(|_| self.pose)
+                        .and_then(|(slot, t)| mesh.anims.get(&slot).map(|a| (a, t)))
+                    {
+                        Some((a, t)) => posed(&tipped, a, anim_ms(t, a)),
+                        None => rest_pose(&tipped),
+                    };
+                    let at: Vec<[f32; 3]> = verts
+                        .iter()
+                        .zip(&tips)
+                        .map(|(v, t)| {
+                            let (a, b) = (apply(&m, *v), apply(&m, *t));
+                            let d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+                            let l = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt();
+                            if l > 0.0 && l.is_finite() {
+                                d.map(|x| x / l)
+                            } else {
+                                [0.0; 3]
+                            }
+                        })
+                        .collect();
+                    mesh.faces
+                        .iter()
+                        .map(|f| f.map(|i| at[i as usize]))
+                        .collect()
+                };
             out.push(Drawing {
                 who: d.who,
                 o: d.o,
@@ -900,6 +938,7 @@ impl World {
                 building,
                 tris,
                 uvs,
+                normals,
             });
         }
         out
@@ -969,6 +1008,14 @@ pub struct Drawing {
     /// Each triangle's texcoords, as `tris` (item 4099); empty for a
     /// building's model.
     pub uvs: Vec<[[f32; 2]; 3]>,
+    /// Each corner's stored `id 3` normal (its first three words) carried
+    /// to world space by the corner's own node, pose and placement — the
+    /// linear part of the map `tris` takes, nothing else — and
+    /// renormalised (item 4122); empty for a building or a tree, where
+    /// the model's normals are not one a vertex, and outside the tests:
+    /// read by no draw, only by `silhouette::tests::the_stored_normals`.
+    #[cfg_attr(not(test), allow(dead_code))]
+    pub normals: Vec<[[f32; 3]; 3]>,
 }
 
 /// The debug tint an owner's meshes take: untextured, not a team colour

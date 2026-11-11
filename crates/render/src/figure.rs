@@ -323,7 +323,7 @@ mod tests {
         child.rotation = [0.0, 0.0, h, h];
         let model = Model {
             verts: vec![[1.0, 0.0, 0.0], [2.0, 0.0, 0.0]],
-            normals: vec![[0.0; 4]; 2],
+            normals: vec![[0.0; 3]; 2],
             texcoords: vec![[0.0; 2]; 2],
             faces: vec![],
             nodes: vec![node("root", None, 0, 1, [0.0, 0.0, 5.0]), child],
@@ -366,7 +366,7 @@ mod tests {
         child.rotation = [-0.707, 0.0, -0.707, 0.0];
         Model {
             verts: vec![[0.0; 3], [0.0; 3]],
-            normals: vec![[0.0; 4]; 2],
+            normals: vec![[0.0; 3]; 2],
             texcoords: vec![[0.0; 2]; 2],
             faces: vec![],
             nodes: vec![node("root", None, 0, 1, [0.0; 3]), child],

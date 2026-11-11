@@ -11,7 +11,7 @@
 //! id 0  file                       num_chunks = 2
 //!   id 1  vertex data              num_chunks = 4
 //!     id 2  vertices    u32 n, n × {f32 x, y, z, w}   (w = 1)
-//!     id 3  normals     u32 n, n × 16 bytes
+//!     id 3  normals     u32 n, n × {f32 x, y, z}, then 4n bytes unread
 //!     id 4  texcoords   u32 n, n × {f32 u, v}
 //!     id 5  faces       u32 n, n × u16               (n / 3 triangles)
 //!   id 6  node                     num_chunks = 1 + children
@@ -27,7 +27,10 @@
 //! node's data is exactly its name and transform, and its vertex range lies
 //! inside the vertex array; every vertex, texcoord and transform value is
 //! finite and every vertex's `w` is 1. The normals alone are kept as
-//! stored and unchecked, because nothing a unit loads with reads them. The original checks none of this — it `memcpy`s — so a file
+//! stored and unchecked, because nothing a unit loads with reads them;
+//! they are the chunk's first `12n` bytes, as `BH3LightMethod::load_norms`
+//! copies them (`n · 12` into an `Array<Vector<float>>`), and the last
+//! `4n` are the writer's filler (`0xcdcdcdcd` in 585 files; item 4122). The original checks none of this — it `memcpy`s — so a file
 //! that passes here is one whose every byte has a stated meaning.
 
 use crate::chunk::{self, Chunk, DecodeError, Reason, err, f32_at, u32_at};
@@ -38,11 +41,15 @@ pub struct Model {
     /// `id 2`: `Point<float>` each, `w` always 1. `load_verts` copies the
     /// first three components of each into the render packet.
     pub verts: Vec<[f32; 3]>,
-    /// `id 3`: one per vertex, sixteen bytes each, as stored and unchecked
-    /// — `BH3Method::load_vertex_data` never reads this chunk (only
-    /// `BH3LightMethod`'s does), and 749 of the install's models carry
-    /// `0xffffffff` words in it (`docs/FORMATS.md` §3).
-    pub normals: Vec<[f32; 4]>,
+    /// `id 3`: one `Vector<float>` per vertex, packed twelve bytes apart in
+    /// the chunk's first `12n` bytes, as `BH3LightMethod::load_norms@
+    /// 00914b40` copies them (`n · 12`), as stored and unchecked —
+    /// `BH3Method::load_vertex_data` never reads this chunk. Item 4122:
+    /// read at the array's own sixteen-byte stride (as until then), only
+    /// a third of a piece's normals were unit length and they sat at a
+    /// median 90° to the faces; read packed, all 401 of the medium
+    /// tank's are unit (`docs/FORMATS.md` §3).
+    pub normals: Vec<[f32; 3]>,
     /// `id 4`: one `{u, v}` per vertex.
     pub texcoords: Vec<[f32; 2]>,
     /// `id 5`: the index list, three to a triangle.
@@ -190,13 +197,14 @@ pub fn decode(bytes: &[u8]) -> Result<Model, DecodeError> {
                         }
                         3 => {
                             let (n, at) = array(bytes, &c, 16)?;
-                            // Raw: 749 of the install's models carry
-                            // `0xffffffff` words here, and the method a unit
-                            // loads with never reads this chunk.
+                            // Raw, packed: `load_norms` copies `n · 12`
+                            // bytes; the chunk's last `4n` are filler,
+                            // never read. The method a unit loads with
+                            // never reads this chunk.
                             normals = (0..n)
                                 .map(|i| {
-                                    let p = at + 16 * i;
-                                    Ok([0, 4, 8, 12].map(|k| {
+                                    let p = at + 12 * i;
+                                    Ok([0, 4, 8].map(|k| {
                                         let b = &bytes[p + k..p + k + 4];
                                         f32::from_bits(u32::from_le_bytes([b[0], b[1], b[2], b[3]]))
                                     }))

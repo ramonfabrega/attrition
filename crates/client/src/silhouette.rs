@@ -6858,4 +6858,468 @@ mod tests {
         assert!(file_clears.is_empty(), "a file clears the bar");
         assert!(place_clears.is_empty(), "a move clears the bar");
     }
+
+    /// **Item 4122: the model's own normals under the lit pixel.** Step 1,
+    /// the normals themselves: per piece on the colour row, the vertices
+    /// and stored `id 3` normals, their length and fourth word, and the
+    /// angle between each face's geometric normal and the mean of its
+    /// corners' stored normals, both in world space (the stored carried by
+    /// [`crate::world::Drawing::normals`], the corner's node, pose and
+    /// placement, nothing else) — the tank node by node. Step 2, against
+    /// the photograph on 4107's alpha-255 population: q, the photograph's
+    /// luminance over our stage colour's (0.3, 0.59, 0.11), correlated with
+    /// N·L by the face and by the stored normals interpolated by the
+    /// texel's perspective-correct weights and renormalised; then 4114's
+    /// candidate (`render::silhouette::lit_pipeline`, untouched) re-counted
+    /// with the stored N·L, and the colour row under it. The kill (a),
+    /// written before the count: the stored candidate agrees on no more
+    /// than the texel's 7,050 of 13,899. Nothing is drawn.
+    #[test]
+    #[allow(clippy::type_complexity)]
+    fn the_stored_normals() {
+        use render::silhouette::{
+            HUE, chromaticity, lit_pipeline, team_blend, team_unit, traced_theirs,
+        };
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        world.run_to(PHOTO_FRAME);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let size = (photo.width, photo.height);
+        let base = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Silhouette);
+        let scene = frame_scene(&mut world, &camera, size);
+        let p = Photo {
+            width: photo.width,
+            height: photo.height,
+            rgba: &photo.rgba,
+        };
+        let traces: Vec<Trace<'_>> = TRACED
+            .iter()
+            .map(|&(name, poly)| Trace {
+                key: scene
+                    .who
+                    .iter()
+                    .position(|&(who, o, _, _)| format!("{who}/{o}") == name)
+                    .map_or(u32::MAX, |i| i as u32 + 1),
+                poly,
+            })
+            .collect();
+        let rows = footprints_traced(
+            &scene.keys,
+            &p,
+            &INTERFACE,
+            &READING,
+            &traces,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let agrees = |a: [f32; 3], b: [f32; 3]| {
+            let (x, y) = (chromaticity(a), chromaticity(b));
+            ((x[0] - y[0]).powi(2) + (x[1] - y[1]).powi(2)).sqrt() <= HUE.distance
+        };
+        let sum = |q: [f32; 3]| q[0] + q[1] + q[2];
+        let lum = |q: [f32; 3]| 0.3 * q[0] + 0.59 * q[1] + 0.11 * q[2];
+        let dot = |a: [f32; 3], b: [f32; 3]| a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+        let unit = |a: [f32; 3]| {
+            let l = dot(a, a).sqrt();
+            if l > 0.0 { a.map(|x| x / l) } else { [0.0; 3] }
+        };
+        let face = |tri: &[[f32; 3]; 3]| {
+            let (a, b, c) = (tri[0], tri[1], tri[2]);
+            let u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+            let v = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+            unit([
+                u[1] * v[2] - u[2] * v[1],
+                u[2] * v[0] - u[0] * v[2],
+                u[0] * v[1] - u[1] * v[0],
+            ])
+        };
+        // 4114's light, `L = −cur_dir`.
+        let l = [
+            std::f32::consts::FRAC_1_SQRT_2,
+            0.0,
+            std::f32::consts::FRAC_1_SQRT_2,
+        ];
+        const TANK: i32 = 196;
+        let pearson = |v: &[(f32, f32)]| -> f32 {
+            let n = v.len() as f64;
+            if n < 2.0 {
+                return f32::NAN;
+            }
+            let (mx, my) = v.iter().fold((0.0, 0.0), |(a, b), &(x, y)| {
+                (a + f64::from(x), b + f64::from(y))
+            });
+            let (mx, my) = (mx / n, my / n);
+            let (mut sxy, mut sxx, mut syy) = (0.0, 0.0, 0.0);
+            for &(x, y) in v {
+                let (dx, dy) = (f64::from(x) - mx, f64::from(y) - my);
+                sxy += dx * dy;
+                sxx += dx * dx;
+                syy += dy * dy;
+            }
+            (sxy / (sxx * syy).sqrt()) as f32
+        };
+        let tank_mesh = world.mesh(TANK, false).expect("the tank's mesh");
+        let node_of = |tri: u32| -> String {
+            tank_mesh
+                .faces
+                .get(tri as usize)
+                .and_then(|f| {
+                    let v = u32::from(f[0]);
+                    tank_mesh
+                        .model
+                        .nodes
+                        .iter()
+                        .find(|n| v >= n.start && v < n.start + n.num)
+                })
+                .map_or_else(|| "?".to_string(), |n| n.name.clone())
+        };
+
+        // --- The population: 4107's alpha-255 pixels and 4112's every lit. ---
+        #[derive(Clone)]
+        struct Px {
+            owner: u8,
+            piece: i32,
+            key: u32,
+            tri: u32,
+            t: [f32; 3],
+            alpha: f32,
+            face: f32,
+            stored: f32,
+            ph: [f32; 3],
+        }
+        let mut px: Vec<Px> = Vec::new();
+        let mut on_row: std::collections::BTreeSet<i32> = Default::default();
+        for f in rows {
+            let who = scene.who[f.key as usize - 1];
+            if who.0 == TREE_WHO || who.3 {
+                continue;
+            }
+            let Some(d) = scene.drawings.get(f.key as usize - 1) else {
+                continue;
+            };
+            if world.figure_texture(d.piece).is_none() {
+                continue;
+            }
+            on_row.insert(d.piece);
+            let theirs = traced_theirs(
+                &scene.keys,
+                &p,
+                &INTERFACE,
+                &READING,
+                &traces,
+                Neighbour::Neither,
+                Interface::Neither,
+                f.key,
+                f.window,
+            );
+            let ours = painted(
+                &mut world,
+                &scene,
+                &camera,
+                size,
+                f.key,
+                f.window,
+                Colouring::Texture,
+            );
+            let ww = (f.window.x1 - f.window.x0) as usize;
+            for y in f.window.y0..f.window.y1 {
+                for x in f.window.x0..f.window.x1 {
+                    let j = (y - f.window.y0) as usize * ww + (x - f.window.x0) as usize;
+                    let at = y as usize * photo.width + x as usize;
+                    let key_here = scene.keys.at(x as usize, y as usize);
+                    if key_here != f.key || theirs[j] != Some(true) || scene.behind[at] {
+                        continue;
+                    }
+                    let Some(t) = ours[j] else { continue };
+                    let ph = [0, 1, 2].map(|c| f32::from(photo.rgba[at * 4 + c]));
+                    let fnl = d
+                        .tris
+                        .get(t.tri as usize)
+                        .map_or(0.0, |tri| dot(face(tri), l));
+                    let snl = d.normals.get(t.tri as usize).map_or(0.0, |n| {
+                        let w = t.weights;
+                        dot(
+                            unit(
+                                [0, 1, 2].map(|k| w[0] * n[0][k] + w[1] * n[1][k] + w[2] * n[2][k]),
+                            ),
+                            l,
+                        )
+                    });
+                    px.push(Px {
+                        owner: who.0,
+                        piece: d.piece,
+                        key: f.key,
+                        tri: t.tri,
+                        t: t.rgb,
+                        alpha: t.alpha,
+                        face: fnl,
+                        stored: snl,
+                        ph,
+                    });
+                }
+            }
+        }
+        let full = |q: &Px| q.alpha >= 255.0 && sum(q.t) >= HUE.dark && sum(q.ph) >= HUE.dark;
+        let stage = |q: &Px| team_blend(q.t, q.alpha, team_unit(q.owner));
+        let every = |q: &Px| sum(stage(q)) >= HUE.dark && sum(q.ph) >= HUE.dark;
+
+        // --- 0. The selection, re-measured. ---
+        let row_now = base.iter().filter(|(_, c, _)| c.passes(&HUE)).count();
+        println!("colour row as it stands: {row_now} of {}", base.len());
+        let mut sel = [(0usize, 0usize); 2];
+        for o in 0..=1u8 {
+            let a: Vec<&Px> = px.iter().filter(|q| q.owner == o && full(q)).collect();
+            sel[usize::from(o)] = (a.len(), a.iter().filter(|q| agrees(q.t, q.ph)).count());
+            println!(
+                "owner {o}: alpha 255 {} (texel agreeing {})",
+                sel[usize::from(o)].0,
+                sel[usize::from(o)].1
+            );
+        }
+        let texel_total = sel[0].1 + sel[1].1;
+        let full_total = sel[0].0 + sel[1].0;
+        let face_cand = px
+            .iter()
+            .filter(|q| full(q) && agrees(lit_pipeline(q.t, q.face), q.ph))
+            .count();
+        let every_n = px.iter().filter(|q| every(q)).count();
+        let every_base = px
+            .iter()
+            .filter(|q| every(q) && agrees(stage(q), q.ph))
+            .count();
+        let every_face = px
+            .iter()
+            .filter(|q| every(q) && agrees(lit_pipeline(stage(q), q.face), q.ph))
+            .count();
+        println!(
+            "4114's face candidate: alpha 255 {face_cand} of {full_total} (texel {texel_total}); every lit {every_face} of {every_n} (painter {every_base})"
+        );
+
+        // --- 1. The normals themselves. ---
+        println!("step 1: per piece, the stored normals and the angle to the faces' own");
+        let deg = |c: f32| c.clamp(-1.0, 1.0).acos().to_degrees();
+        let pct = |v: &mut Vec<f32>, p: usize| -> f32 {
+            if v.is_empty() {
+                return f32::NAN;
+            }
+            v.sort_by(|a, b| a.total_cmp(b));
+            v[(v.len() * p / 100).min(v.len() - 1)]
+        };
+        let mut angle_rows: Vec<(String, f32, f32, f32, f32)> = Vec::new();
+        let mut unit_counts: Vec<(i32, usize, usize)> = Vec::new();
+        for &piece in &on_row {
+            let Some(mesh) = world.mesh(piece, false) else {
+                continue;
+            };
+            let m = &mesh.model;
+            let lens: Vec<f32> = m
+                .normals
+                .iter()
+                .map(|n| (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).sqrt())
+                .collect();
+            let finite = lens.iter().filter(|x| x.is_finite()).count();
+            let near_unit = lens.iter().filter(|x| (**x - 1.0).abs() < 0.01).count();
+            println!(
+                "  piece {piece} ({}): vertices {}, normals {}, finite {finite}, unit within 0.01 {near_unit}",
+                world.figure_texture_name(piece).unwrap_or("?"),
+                m.verts.len(),
+                m.normals.len(),
+            );
+            unit_counts.push((piece, m.normals.len(), near_unit));
+            // The faces of the piece's first drawing on the row, in world space.
+            let Some(d) = scene.drawings.iter().find(|d| d.piece == piece) else {
+                continue;
+            };
+            let mut groups: std::collections::BTreeMap<String, Vec<f32>> = Default::default();
+            for (ti, (tri, ns)) in d.tris.iter().zip(&d.normals).enumerate() {
+                let fnorm = face(tri);
+                let mean = unit([0, 1, 2].map(|k| ns[0][k] + ns[1][k] + ns[2][k]));
+                if dot(fnorm, fnorm) == 0.0 || dot(mean, mean) == 0.0 {
+                    continue;
+                }
+                let a = deg(dot(fnorm, mean));
+                groups.entry(format!("{piece}")).or_default().push(a);
+                if piece == TANK {
+                    groups
+                        .entry(format!("{piece} {}", node_of(ti as u32)))
+                        .or_default()
+                        .push(a);
+                }
+            }
+            for (g, mut v) in groups {
+                let n = v.len();
+                let past30 = v.iter().filter(|a| **a > 30.0).count() as f32 / n as f32;
+                let past90 = v.iter().filter(|a| **a > 90.0).count() as f32 / n as f32;
+                let (med, p90) = (pct(&mut v, 50), pct(&mut v, 90));
+                println!(
+                    "    {g}: faces {n}, angle median {med:.1}°, 90th {p90:.1}°, past 30° {:.3}, past 90° {:.3}",
+                    past30, past90
+                );
+                angle_rows.push((g, med, p90, past30, past90));
+            }
+        }
+
+        // --- 2. Against the photograph. ---
+        println!("step 2: q (photograph luminance over the stage colour's) against N·L");
+        let mut groups: std::collections::BTreeMap<String, Vec<&Px>> = Default::default();
+        for q in px.iter().filter(|q| full(q)) {
+            groups.entry(format!("{}", q.piece)).or_default().push(q);
+            if q.piece == TANK {
+                groups
+                    .entry(format!("{TANK} {}", node_of(q.tri)))
+                    .or_default()
+                    .push(q);
+            }
+        }
+        let mut corr: std::collections::BTreeMap<String, (usize, f32, f32, f32)> =
+            Default::default();
+        for (g, v) in &groups {
+            let qs = |nl: &dyn Fn(&Px) -> f32| -> Vec<(f32, f32)> {
+                v.iter()
+                    .filter(|q| lum(stage(q)) > 0.0)
+                    .map(|q| (lum(q.ph) / lum(stage(q)), nl(q)))
+                    .collect()
+            };
+            let rf = pearson(&qs(&|q| q.face));
+            let rs = pearson(&qs(&|q| q.stored));
+            let rl = pearson(&v.iter().map(|q| (lum(q.ph), lum(q.t))).collect::<Vec<_>>());
+            println!(
+                "  {g}: n {}, r(q, face N·L) {rf:.3}, r(q, stored N·L) {rs:.3} | r(photo lum, texel lum) {rl:.3}",
+                v.len()
+            );
+            corr.insert(g.clone(), (v.len(), rf, rs, rl));
+        }
+
+        // The candidate with the stored normals.
+        #[derive(Default)]
+        struct Tally {
+            n: u32,
+            texel: u32,
+            face: u32,
+            stored: u32,
+        }
+        let mut by_piece: std::collections::BTreeMap<i32, Tally> = Default::default();
+        let mut per_key: std::collections::BTreeMap<u32, (u32, u32, u32)> = Default::default();
+        let mut every_stored = 0usize;
+        for q in &px {
+            if full(q) {
+                let s = by_piece.entry(q.piece).or_default();
+                s.n += 1;
+                s.texel += u32::from(agrees(q.t, q.ph));
+                s.face += u32::from(agrees(lit_pipeline(q.t, q.face), q.ph));
+                s.stored += u32::from(agrees(lit_pipeline(q.t, q.stored), q.ph));
+            }
+            if every(q) {
+                let tb = stage(q);
+                let (ob, os) = (agrees(tb, q.ph), agrees(lit_pipeline(tb, q.stored), q.ph));
+                every_stored += usize::from(os);
+                let k = per_key.entry(q.key).or_default();
+                k.0 += 1;
+                k.1 += u32::from(ob);
+                k.2 += u32::from(os);
+            }
+        }
+        let mut stored_total = 0u32;
+        println!("the count on alpha 255, by piece: texel, face candidate, stored candidate");
+        for (piece, s) in &by_piece {
+            stored_total += s.stored;
+            println!(
+                "  {piece}: n {}, texel {}, face {}, stored {}",
+                s.n, s.texel, s.face, s.stored
+            );
+        }
+        println!(
+            "  total: n {full_total}, texel {texel_total}, face {face_cand}, stored {stored_total}"
+        );
+        println!(
+            "every lit: n {every_n}, painter {every_base}, face {every_face}, stored {every_stored}"
+        );
+        let mut passing = (0usize, 0usize);
+        let mut crossed = Vec::new();
+        for (f, c, w) in &base {
+            let Some(&(n, ab, ac)) = per_key.get(&f.key) else {
+                passing.0 += usize::from(c.passes(&HUE));
+                passing.1 += usize::from(c.passes(&HUE));
+                continue;
+            };
+            let q = render::silhouette::Colours {
+                agree: c.agree - ab + ac,
+                ..*c
+            };
+            let (a, b) = (c.passes(&HUE), q.passes(&HUE));
+            passing.0 += usize::from(a);
+            passing.1 += usize::from(b);
+            println!(
+                "  {}/{}: lit {} ({n} not behind), agreeing {} → {} {}",
+                w.0,
+                w.1,
+                c.lit,
+                c.agree,
+                q.agree,
+                match (a, b) {
+                    (true, false) => "DOWN",
+                    (false, true) => "UP",
+                    (true, true) => "in",
+                    _ => "out",
+                }
+            );
+            if a != b {
+                crossed.push((w.0, w.1, a));
+            }
+        }
+        println!(
+            "colour row: {} as painted, {} under the stored candidate; crossings {crossed:?}",
+            passing.0, passing.1
+        );
+        let root = corr.get(&format!("{TANK} root")).copied();
+        println!("the tank's root: {root:?}");
+
+        // The selection, as asserted; then the kill (a).
+        assert_eq!(row_now, render::silhouette::RUN1559B_3279_COLOUR.0);
+        assert_eq!((sel[0], sel[1]), ((564, 262), (13_335, 6_788)));
+        assert_eq!((face_cand, every_base, every_face), (6_452, 8_119, 7_353));
+        assert_eq!(by_piece.get(&TANK).map(|s| s.texel), Some(4_486));
+        // Step 1: read packed, as `load_norms` copies them, every one of the
+        // tank's normals is unit and they sit near its faces; the riflemen's
+        // are smoothed past them.
+        assert!(unit_counts.contains(&(TANK, 401, 401)));
+        let median_of = |g: &str| angle_rows.iter().find(|r| r.0 == g).map(|r| r.1);
+        assert!(median_of("196").is_some_and(|m| m < 10.0), "the tank's");
+        assert!(median_of("60").is_some_and(|m| m > 15.0), "the riflemen's");
+        // Step 2: the controls' shading follows the stored normals better
+        // than the faces; the tank's follows neither.
+        let r = |g: &str| corr.get(g).copied().expect(g);
+        assert!(r("1008").2 > r("1008").1 && r("60").2 > r("60").1);
+        assert!(
+            r("196").2.abs() < 0.10,
+            "the tank's q against its stored N·L"
+        );
+        // The tank's root follows the light under the stored normals
+        // (r over 0.20): not a row of its own.
+        assert!(r("196 root").2 > 0.20);
+        // The count, and the kill (a): the stored candidate agrees on fewer
+        // pixels than the texel, and the row goes down.
+        assert_eq!((stored_total, every_stored), (6_565, 7_475));
+        assert_eq!(passing, (18, 16));
+        assert!(
+            (stored_total as usize) <= texel_total,
+            "the stored candidate beats the texel: kill (a) does not hold"
+        );
+    }
 }
