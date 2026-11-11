@@ -480,6 +480,9 @@ fn array_head(
     });
 }
 
+/// `LeaderData`'s `0x2000000`, the economy's dirty bit ([`crate::economy::Ledger::dirty`]).
+const DIRTY: i64 = 0x200_0000;
+
 /// The `size` a `SimpleArray<int>` with elements reports: 10 on every
 /// non-empty one of both frames (`docs/CHECKSUM.md` §20).
 const SIMPLE_ARRAY_SIZE: usize = 10;
@@ -548,8 +551,10 @@ impl Sim {
     pub fn leader_flag_words(&self, who: Player) -> (Option<i64>, Option<i64>) {
         let w = who as usize;
         if w >= self.leader_seats() {
-            // An unseated slot: `Leaders::Leaders`' image.
-            return (None, None);
+            // An unseated slot: `Leaders::init` runs `Leader::init(i, -1, i)`
+            // on all eight, whose `leader_flags |= 0x2000000` is the one bit
+            // a slot no player takes holds; `leader_flags2` stays 0.
+            return (Some(DIRTY), Some(0));
         }
         let mut f = 1i64;
         if !self.leaders.defeated.get(w).copied().unwrap_or(false) {
@@ -559,9 +564,13 @@ impl Sim {
             f |= 4;
         }
         if self.economy.ledgers[w].dirty {
-            f |= 0x200_0000;
+            f |= DIRTY;
         }
-        (Some(f), None)
+        // `leader_flags2`: the two bits this crate keeps, no governments
+        // (`0x800`) and no patriots (`0x1000`).
+        let t = &self.tech[w];
+        let f2 = if t.no_governments { 0x800 } else { 0 } | if t.no_patriots { 0x1000 } else { 0 };
+        (Some(f), Some(f2))
     }
 
     /// One slot's ranges as leaves, in walk order.
@@ -607,9 +616,13 @@ impl Sim {
             out.push(LeaderRange {
                 record,
                 field: "dip",
+                // `Diplomacy::clear_all`'s image, `Leader::init`'s: `treaty`
+                // −1, every other word 0 (§20).
                 leaves: DIPLOMACY_FIELDS
                     .iter()
-                    .map(|&(n, c)| Leaf::new(n, 4, c, None))
+                    .map(|&(n, c)| {
+                        Leaf::new(n, 4, c, Some(vec![if n == "treaty" { -1 } else { 0 }]))
+                    })
                     .collect(),
             });
         }
@@ -684,7 +697,7 @@ impl Sim {
             record,
             ["conquest_wonders.head", "conquest_wonders.ptr"],
             17,
-            None,
+            Some(Vec::new()),
         );
         mask(
             &mut out,
@@ -694,14 +707,14 @@ impl Sim {
                 "conquest_wonders_in_game.ptr",
             ],
             17,
-            None,
+            Some(Vec::new()),
         );
         mask(
             &mut out,
             record,
             ["conquest_racial_powers.head", "conquest_racial_powers.ptr"],
             24,
-            None,
+            Some(Vec::new()),
         );
         // `sites`: ten slots, an `Array<Site>`.
         array_head(
@@ -713,7 +726,12 @@ impl Sim {
             0x80,
         );
         for s in &a.sites {
-            let reg = if s.reg >= 0 && (s.reg as usize) < self.world.region_count() {
+            // A cleared site (`compute_sites`' `Site::default()`) holds the
+            // clear's 0, not a region; a kept one holds ours, renumbered.
+            let cleared = s.wx == 0 && s.wy == 0 && s.val == 0 && s.dist == 0 && s.reg == 0;
+            let reg = if cleared {
+                0
+            } else if s.reg >= 0 && (s.reg as usize) < self.world.region_count() {
                 i64::from(self.world.region_number(s.reg as u16))
             } else {
                 i64::from(s.reg)
@@ -842,7 +860,7 @@ impl Sim {
             record,
             ["rare_conquest.head", "rare_conquest.ptr"],
             44,
-            None,
+            Some(Vec::new()),
         );
         // The 62 decrypted words.
         let mut word = |name: String, v: Option<i64>| {
@@ -866,12 +884,22 @@ impl Sim {
                     "resources" => Some(l.rate[g]),
                     "income" => Some(l.income[g]),
                     "rate" => Some(a.rate[g]),
+                    // `support` and `bonus`: every writer stores 0
+                    // (`Leader::init`, `Leader::gather`'s `support`,
+                    // `Leader::calc_gather`'s `bonus`).
+                    "support" | "bonus" => Some(0),
                     _ => None,
                 };
                 word(format!("{f}[{g}]"), v.map(i64::from));
             }
         }
-        word("resource_cap[6]".into(), None);
+        word(
+            "resource_cap[6]".into(),
+            Some(i64::from(crate::economy::commerce_cap_seventh(
+                &self.tables.tuning,
+                h,
+            ))),
+        );
         for e in 0..4 {
             word(format!("epoch[{e}]"), Some(i64::from(t.epoch[e])));
         }
@@ -1072,18 +1100,60 @@ impl Sim {
             "reg_land" => reg(&c.reg_land),
             "num_units" => six(&m.by_type),
             "num_queued" => {
+                // Keyed by `TypeIndex`: a unit's queue count, a building's
+                // placed sites, a technology's queue count.
                 let mut v = vec![0i64; count];
-                for (r, n) in m.queued_by_type.iter().enumerate().take(count) {
-                    v[r] = i64::from(*n);
+                for (r, n) in m.queued_by_type.iter().enumerate() {
+                    if 0x32 + r < count {
+                        v[0x32 + r] = i64::from(*n);
+                    }
+                }
+                for rec in 0..self.tables.build_types.len() {
+                    if 0x19e + rec < count {
+                        v[0x19e + rec] = i64::from(self.num_sites_of(who, rec));
+                    }
                 }
                 for (id, n) in t.queued.iter().enumerate() {
                     let ti = self.tree_type_index(id);
-                    if ti >= 0x220 && ((ti - 0x32) as usize) < count {
-                        v[(ti - 0x32) as usize] = i64::from(*n);
+                    if ti >= 0x220 && (ti as usize) < count {
+                        v[ti as usize] = i64::from(*n);
                     }
                 }
                 Some(v)
             }
+            "num_buildings" => Some(
+                (0..count)
+                    .map(|rec| {
+                        if rec < self.tables.build_types.len() {
+                            i64::from(self.num_buildings_of(who, rec))
+                        } else {
+                            0
+                        }
+                    })
+                    .collect(),
+            ),
+            "reg_buildings" => {
+                // `[64][129]`, the land region by its own number, then the
+                // building record: finished buildings standing there.
+                let mut v = vec![0i64; count];
+                for b in self
+                    .buildings
+                    .iter()
+                    .filter(|b| b.alive && b.active && b.owner == who)
+                {
+                    let (Some(rec), Some(r)) = (b.ty, self.world.region_of(b.pos.cell())) else {
+                        continue;
+                    };
+                    let d = self.world.region_number(r) as usize;
+                    if d < 64 && rec < 129 {
+                        v[d * 129 + rec] += 1;
+                    }
+                }
+                Some(v)
+            }
+            "hero_mark" => one(self.roster.heroes.get(w).map_or(0, |x| x.mark as i64)),
+            "special_mark" => one(self.roster.specials.get(w).map_or(0, |x| x.mark as i64)),
+            "caravan_mark" => one(self.economy.caravans.get(w).map_or(0, |x| x.mark as i64)),
             "ages_queued" => one(i64::from(t.ages_queued)),
             "epochs_queued" => one(i64::from(t.epochs_queued)),
             "reg_attacked" => reg(&c.reg_attacked),

@@ -1734,10 +1734,208 @@ fn leaf_text(v: &[i64]) -> String {
     }
 }
 
-/// **The leaders line, ours against the original's, leaf by leaf**
-/// (`docs/CHECKSUM.md` §20, item 4121): the census.
+/// The pinned outcome of the leaders line on run 1562's packet
+/// (`docs/CHECKSUM.md` §20): `(slots walked whole, ranges, bytes, ranges
+/// parted, bytes in the ranges that agree)` — two leaders walked whole of
+/// eight slots, 267 ranges and 58,343 bytes. Four ranges part: each walked
+/// leader's long range `[+0x8, +0x692a)` (26,914 bytes, on the leaves
+/// [`LEADERS_HELD_OUT`] names) and its `tech` mask's array (101 bytes, the
+/// spell types' bits). Item 4121's first image agreed on 403 and 410 leaves.
+const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 4, 4313);
+
+/// **The leaves the leaders line is held out on**, each with its count of
+/// walked leaders on run 1562's frame 91 (`docs/CHECKSUM.md` §20): a leaf
+/// named bare parts, a leaf marked `(unheld)` is one this crate holds no
+/// value for (emitted as zeros, and counted whether or not the original's
+/// value is zero). `docs/CHECKSUM.md` §20 sorts each into its pile.
+const LEADERS_HELD_OUT: &[(&str, usize)] = &[
+    ("aggression", 2),
+    ("air_queued (unheld)", 2),
+    ("air_units (unheld)", 2),
+    ("ally_stamp (unheld)", 2),
+    ("anti_att (unheld)", 2),
+    ("att (unheld)", 2),
+    ("attack_stamp (unheld)", 2),
+    ("attrition_stamp (unheld)", 2),
+    ("attrition_stamp2 (unheld)", 2),
+    ("attrition_stamp3 (unheld)", 2),
+    ("average_damage_rate (unheld)", 2),
+    ("average_death_rate (unheld)", 2),
+    ("average_hit_rate (unheld)", 2),
+    ("average_kill_rate (unheld)", 2),
+    ("barracks_queued (unheld)", 2),
+    ("barracks_units (unheld)", 2),
+    ("base_rate (unheld)", 2),
+    ("best_armor (unheld)", 2),
+    ("best_attack (unheld)", 2),
+    ("best_move (unheld)", 2),
+    ("best_pop (unheld)", 2),
+    ("blacken (unheld)", 2),
+    ("broke_alliance (unheld)", 2),
+    ("buildings_built (unheld)", 2),
+    ("buildings_lost (unheld)", 2),
+    ("buildings_razed (unheld)", 2),
+    ("cannon_time (unheld)", 2),
+    ("chat_status (unheld)", 2),
+    ("cities_built (unheld)", 2),
+    ("cities_captured (unheld)", 2),
+    ("cities_lost (unheld)", 2),
+    ("city_mark (unheld)", 2),
+    ("city_mine (unheld)", 2),
+    ("city_name (unheld)", 2),
+    ("column_orders_issued (unheld)", 2),
+    ("combat_queued (unheld)", 2),
+    ("combat_units (unheld)", 2),
+    ("counteroffer (unheld)", 2),
+    ("ctw_hero_retreat_stamp (unheld)", 2),
+    ("ctw_hero_stamp (unheld)", 2),
+    ("damage_current_frame (unheld)", 2),
+    ("damage_fifteen_seconds (unheld)", 2),
+    ("deaths_current_frame (unheld)", 2),
+    ("deaths_fifteen_seconds (unheld)", 2),
+    ("defeat_stamp (unheld)", 2),
+    ("defeat_type (unheld)", 2),
+    ("defeated_by (unheld)", 2),
+    ("disable_building_attrition (unheld)", 2),
+    ("dock_mark (unheld)", 2),
+    ("dock_queued (unheld)", 2),
+    ("dock_units (unheld)", 2),
+    ("dow (unheld)", 2),
+    ("explored", 2),
+    ("factory_queued (unheld)", 2),
+    ("factory_units (unheld)", 2),
+    ("fort_mark (unheld)", 2),
+    ("forts_built (unheld)", 2),
+    ("frame_battle (unheld)", 2),
+    ("gift_stamp (unheld)", 2),
+    ("give_att_disabled (unheld)", 2),
+    ("good_deeds (unheld)", 2),
+    ("goody_box_techs (unheld)", 2),
+    ("goody_box_units (unheld)", 2),
+    ("handicap (unheld)", 2),
+    ("high_buildings (unheld)", 2),
+    ("hire_stamp (unheld)", 2),
+    ("hire_who (unheld)", 2),
+    ("hits_current_frame (unheld)", 2),
+    ("hits_fifteen_seconds (unheld)", 2),
+    ("incoming (unheld)", 2),
+    ("incoming_taunt (unheld)", 2),
+    ("incoming_taunt_frame (unheld)", 2),
+    ("incoming_taunt_who (unheld)", 2),
+    ("kills_current_frame (unheld)", 2),
+    ("kills_fifteen_seconds (unheld)", 2),
+    ("last_building_finished (unheld)", 2),
+    ("last_spoke (unheld)", 2),
+    ("last_taunt (unheld)", 2),
+    ("last_unit_finished (unheld)", 2),
+    ("lost_capital_modifier (unheld)", 2),
+    ("lost_capital_stamp (unheld)", 2),
+    ("lost_capital_timer (unheld)", 2),
+    ("lost_city_stamp (unheld)", 2),
+    ("made_peace (unheld)", 2),
+    ("misery (unheld)", 2),
+    ("missiles_used (unheld)", 2),
+    ("move_orders_issued (unheld)", 2),
+    ("multi_diff (unheld)", 2),
+    ("neutral_attrition (unheld)", 2),
+    ("nuke_stamp (unheld)", 2),
+    ("nukes_in_flight (unheld)", 2),
+    ("nukes_launched (unheld)", 2),
+    ("nukes_used (unheld)", 2),
+    ("num_bonus_cards (unheld)", 2),
+    ("num_ctw_rate_bonuses (unheld)", 2),
+    ("oil_well_mark (unheld)", 2),
+    ("plunder_scale (unheld)", 2),
+    ("pop_issues (unheld)", 2),
+    ("raid_stamp (unheld)", 2),
+    ("reg_forts (unheld)", 2),
+    ("reg_terr (unheld)", 2),
+    ("repair_stamp (unheld)", 2),
+    ("scholar_militia (unheld)", 2),
+    ("score (unheld)", 2),
+    ("score_buildings (unheld)", 2),
+    ("score_combat (unheld)", 2),
+    ("score_economy (unheld)", 2),
+    ("score_explored (unheld)", 2),
+    ("score_pop (unheld)", 2),
+    ("score_research (unheld)", 2),
+    ("score_territory (unheld)", 2),
+    ("score_unit_upgrades (unheld)", 2),
+    ("score_units (unheld)", 2),
+    ("score_units_2 (unheld)", 2),
+    ("score_wonders (unheld)", 2),
+    ("senates_built (unheld)", 2),
+    ("stable_queued (unheld)", 2),
+    ("stable_units (unheld)", 2),
+    ("supply_mark (unheld)", 2),
+    ("support_stamp (unheld)", 2),
+    ("supported (unheld)", 2),
+    ("take_att_disabled (unheld)", 2),
+    ("taunt_frame (unheld)", 2),
+    ("team_color (unheld)", 2),
+    ("tech.ptr", 2),
+    ("territory_high (unheld)", 2),
+    ("trade_profit (unheld)", 2),
+    ("tribute_demanded (unheld)", 2),
+    ("tribute_received (unheld)", 2),
+    ("tribute_sent (unheld)", 2),
+    ("tribute_stamp (unheld)", 2),
+    ("tributes (unheld)", 2),
+    ("units_bribed (unheld)", 2),
+    ("units_built (unheld)", 2),
+    ("units_killed (unheld)", 2),
+    ("units_lost (unheld)", 2),
+    ("victory_type (unheld)", 2),
+    ("village_mine (unheld)", 2),
+    ("wonders_built (unheld)", 2),
+    ("wonders_held (unheld)", 2),
+    ("wonderwin_stamp (unheld)", 2),
+    ("wonderwin_timer (unheld)", 2),
+];
+
+/// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its
+/// range, and `(unheld)` for one the crate holds no value for.
+fn leader_held_name(field: &str, leaf: &str, unheld: bool) -> String {
+    let name = if field == "who..ally_mask" {
+        leaf.to_string()
+    } else if field.ends_with(leaf) {
+        field.to_string()
+    } else {
+        format!("{field}.{leaf}")
+    };
+    if unheld {
+        format!("{name} (unheld)")
+    } else {
+        name
+    }
+}
+
+/// The held-out leaves of a set of leaf rows, sorted, with their counts.
+fn leader_held(rows: &[LeafRow]) -> Vec<(String, usize)> {
+    let mut held: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
+    for (_, field, leaf, ours, t, _) in rows {
+        if ours.as_ref() == Some(t) {
+            continue;
+        }
+        *held
+            .entry(leader_held_name(field, leaf, ours.is_none()))
+            .or_default() += 1;
+    }
+    held.into_iter().collect()
+}
+
+/// **The leaders line, ours against the original's, range by range and leaf
+/// by leaf** (`docs/CHECKSUM.md` §20, item 4121): our `Sim::checksum_leaders`
+/// against the instrument's stream of the leaders line on run 1562's packet,
+/// every range in order, each decoded leaf by leaf on both sides by the same
+/// leaves' widths, then the Adler against the printed `Leaders`. Held out on
+/// [`LEADERS_HELD_OUT`], each leaf named with its count; the agreeing ranges
+/// and bytes pinned in [`LEADERS`]. And it can part: one perturbed byte of
+/// each kind of agreeing range parts on that range alone, a perturbed leaf
+/// of the long range adds that leaf to the held-out list, and the empty
+/// image parts on all.
 #[test]
-fn the_leaders_line_is_the_original_s_leaf_by_leaf() {
+fn the_leaders_line_is_the_original_s_range_by_range() {
     let Some((theirs, want, sim)) = line_inputs("leaders", "Leaders") else {
         return;
     };
@@ -1760,16 +1958,112 @@ fn the_leaders_line_is_the_original_s_leaf_by_leaf() {
             ours.as_deref().map_or("-".into(), leaf_text)
         );
     }
-    for ((slot, tail, verdict), (n, e)) in &counts {
-        eprintln!("COUNT\t{slot}\t{tail}\t{verdict}\t{n}\t{e}");
+    for ((slot, tail, verdict), (n, b)) in &counts {
+        eprintln!("COUNT\t{slot}\t{tail}\t{verdict}\t{n}\t{b}");
     }
     let ours = sim.checksum_leaders();
+    let parted = parting(&ours, &theirs);
+    let bytes_equal: usize = ours
+        .ranges
+        .iter()
+        .zip(&theirs)
+        .filter(|(o, t)| o.bytes == t.2)
+        .map(|(o, _)| o.bytes.len())
+        .sum();
     eprintln!(
-        "leaders: ours {} ranges {} bytes adler {}; theirs {} ranges {} bytes; printed {want}",
+        "leaders: ours {} ranges {} bytes adler {}; theirs {} ranges {} bytes; printed {want}; ranges parted {}, bytes in equal ranges {bytes_equal}",
         ours.ranges.len(),
         ours.bytes(),
         ours.adler(),
         theirs.len(),
         theirs.iter().map(|t| t.2.len()).sum::<usize>(),
+        parted.len(),
     );
+    let walked = ours
+        .ranges
+        .iter()
+        .filter(|r| r.field == "who..ally_mask")
+        .count();
+    assert_eq!(
+        (
+            walked,
+            theirs.len(),
+            theirs.iter().map(|t| t.2.len()).sum::<usize>(),
+            parted.len(),
+            bytes_equal
+        ),
+        LEADERS,
+        "the leaders line: leaders walked, the stream's ranges and bytes, ranges parted, bytes agreeing"
+    );
+    assert_eq!(ours.ranges.len(), LEADERS.1, "our walk's ranges");
+    assert_eq!(ours.bytes(), LEADERS.2, "our walk's bytes");
+    let held = leader_held(&rows);
+    let held: Vec<(&str, usize)> = held.iter().map(|(f, n)| (f.as_str(), *n)).collect();
+    assert_eq!(held, LEADERS_HELD_OUT, "the leaves the line is held out on");
+    if LEADERS_HELD_OUT.is_empty() {
+        assert_eq!(ours.adler(), want, "the leaders line's Adler");
+    } else {
+        assert_ne!(
+            ours.adler(),
+            want,
+            "a held-out line cannot sum to the printed value"
+        );
+    }
+
+    // **It can part.** One byte of each kind of agreeing range — a flag
+    // word, a diplomacy record, the personality, a mask, an array's
+    // element, the string, a decrypted word — perturbed, parts on that range
+    // alone and moves the Adler.
+    let mut kinds = std::collections::BTreeSet::new();
+    for i in 0..ours.ranges.len() {
+        if ours.ranges[i].bytes != theirs[i].2 || !kinds.insert(ours.ranges[i].field) {
+            continue;
+        }
+        let mut bent = ours.clone();
+        bent.ranges[i].bytes[0] ^= 0x01;
+        let p: Vec<usize> = parting(&bent, &theirs).iter().map(|p| p.0).collect();
+        let mut want_p: Vec<usize> = parted.iter().map(|p| p.0).collect();
+        want_p.push(i);
+        want_p.sort_unstable();
+        assert_eq!(
+            p, want_p,
+            "a bent {} parts on range {i} alone",
+            ours.ranges[i].field
+        );
+        assert_ne!(
+            bent.adler(),
+            ours.adler(),
+            "a bent {} moves the Adler",
+            ours.ranges[i].field
+        );
+    }
+    eprintln!("leaders: {} kinds of range bent", kinds.len());
+    for k in [
+        "flags",
+        "dip",
+        "pers",
+        "rare.ptr",
+        "sites[k]",
+        "make_list[k]",
+        "encrypt",
+        "prod_script",
+    ] {
+        assert!(kinds.contains(k), "a {k} range was bent");
+    }
+    // A leaf of the long range: `tribe` bent on leader 0 joins the list.
+    let mut bent_rows = rows.clone();
+    let tribe = bent_rows
+        .iter_mut()
+        .find(|r| r.0 == 0 && r.2 == "tribe")
+        .expect("leader 0's tribe");
+    if let Some(v) = tribe.3.as_mut() {
+        v[0] += 1;
+    }
+    let bent_held = leader_held(&bent_rows);
+    assert!(
+        bent_held.iter().any(|(f, n)| f == "tribe" && *n == 1),
+        "a bent tribe joins the held-out leaves"
+    );
+    assert_eq!(bent_held.len(), LEADERS_HELD_OUT.len() + 1);
+    assert_eq!(parting(&Line::default(), &theirs).len(), LEADERS.1);
 }
