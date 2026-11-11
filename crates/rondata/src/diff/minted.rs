@@ -420,7 +420,9 @@ pub(crate) const TRAINED: i16 = 6;
 /// left) and the bookkeeping its entry writes (the group pool, the path
 /// scratch, the stock the price moves, the footprint's tiles). Since item
 /// 4098 the Farm's site also heads its cell's chain of objects
-/// (`.terrain.object_heads`, `docs/COLLISION.md` §3.2).
+/// (`.terrain.object_heads`, `docs/COLLISION.md` §3.2). Since item 4113
+/// the builder's `GATHER`, killed by the `build`, gives back its hold
+/// doober (`.roster.hold_doobers`, `docs/ORDERS.md` §6.12).
 const PUMPED_PLACES: &[(i64, &[&str])] = &[
     (
         31,
@@ -455,6 +457,7 @@ const PUMPED_PLACES: &[(i64, &[&str])] = &[
             ".movement.pf_start",
             ".orders.last_group",
             ".orders.pushed",
+            ".roster.hold_doobers",
             ".roster.marks",
             ".terrain.object_heads",
             ".units{0/1}",

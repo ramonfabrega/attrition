@@ -213,3 +213,6 @@ impl Sim {
         un.hero.or(un.special).or(un.doober)
     }
 }
+
+#[cfg(test)]
+mod tests;
