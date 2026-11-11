@@ -380,7 +380,12 @@ pub struct Leaf {
 }
 
 impl Leaf {
-    fn new(name: impl Into<String>, width: usize, count: usize, values: Option<Vec<i64>>) -> Leaf {
+    pub(crate) fn new(
+        name: impl Into<String>,
+        width: usize,
+        count: usize,
+        values: Option<Vec<i64>>,
+    ) -> Leaf {
         let values = values.map(|mut v| {
             v.resize(count, 0);
             v

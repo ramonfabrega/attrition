@@ -3850,6 +3850,8 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 ## Loop, filed 2026-11-10 — the driver's fourteenth session
 
+(4135) **The export's index is not sorted by address, and a bisect over it named the wrong function** (4131's "for the Loop", the journal's line, filed at its merge; the driver's nineteenth session, 2026-11-11): `INDEX.tsv` in the decompile export lists functions in the exporter's order, so the builder's first listing-to-function lookup, a bisect, put `TerrainData::TerrainData`'s store in an `atexit` destructor. Candidate: the listing's writer finders of `b4124/` and `b4131/` graduate into `tools/` (Loop 4130 asked for it at their third use, and this is it) with the index sorted at load and one known address asserted to resolve to its function.
+
 (4133) **A lane's note sent a rule to a section 333 bytes under its ceiling, and asked for one step that was two items** (the driver's nineteenth session, 2026-11-11): 4132's note, the driver's, named RENDERER §3.6 for the transition patch's rule; the section stood at 15,667 of 16,000 bytes, the lane's first gate went red on the ceiling at 18,420, and the paragraph was cut to a four-line pointer with the story left in the journal and a park. The same note asked for the controls, the packet's table, the reading of a choice whose edge-mask function alone is 655 decompiled lines, its port, the draw and two rows as one step; the lane landed the first half as a partial in 33 minutes and parked the rest. Candidate: `tools/brief.py` prints the room left in each section a note names and refuses a rule sent to one under a kilobyte unless the note names the new section; and a render note that asks for a port and a draw is split at design, the port scored on the packet and the draw on the photograph, as 4134 is.
 
 (4130) **A record's writer census takes two nets, and a third before a leaf is called never reached** (4124's "for the Loop", the journal's line, filed at its merge; the driver's eighteenth session, 2026-11-11): the decompile names a `Leader` field `field_0x<off>` on a `Leader *` but not on a `Leaders *` another class walks, and it prints an aliased store as another slot's field. The listing, `0xe3a390 + off` by an index register, found stores the export's grep missed (`Object::take_damage`'s `units_killed`), and the export found one the listing missed (`GameDaemon::process_victory`'s `wonderwin_timer`). Candidate: a brief that asks for a field's writers names both nets (the export's `->name` and `field_0x<off>`, the listing's displacement off the record's base and off a register inside the class), and a never-reached verdict takes a third pass over every register-relative store at the offset; the scratch finders of `b4124/` graduate into `tools/` at their third use.
@@ -16593,15 +16595,34 @@ words and edits nothing here; a refill lands when two remain.
   `weatherbase`, `check_and_set_halfland_wcoord`, `convert_beach_to_sandy`) rewrites a cell's `land_sub` after the
   generator. The crate's terrain does not, which is kill (b) of 4127: a port into `crates/sim`, for the driver.
   `RUN1559B_3279_GROUND_BASE` under the packet's list is the rule's 758.
+  Item 4131: on run 1562's frame 91 the same lag is 8 cells of `land_sub` under the two start cities, beside the tile
+  mask's bit `0x4` on 131 tiles (parked 4131a; item 4136).
 
 
-## Parked by the next landing, slot FH — reserved
+## Parked by item 4131, 2026-11-11 — what the world line leaves
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4131a. The tile mask's bit `0x4` under the cities** (`docs/CHECKSUM.md` §21; `WORLD_HELD_OUT`, `06 mask.mask` 131;
+  `diff::checksum_lines::world`). On run 1562's frame 91 the masks agree on 57,469 of 57,600 tiles; the 131 that part
+  are ours without `0x4`, all on tiles of cells (53..58, 19..25) and (2..7, 36..41), the two start cities. The writer is
+  unread. Booked with `land_sub`'s 8 cells as item 4136; this row stands until that lands.
+- **4131b. `World::analyze_map`'s ten tallies** (§21; `04 size..seed`, ten fields of one element each: `forest_size`,
+  `goodies`, `land_resources`, `mountain_size`, `player_reg`, `resource_reg`, `rock_size`, `sea_resources`,
+  `total_metal`, `total_oil`). Counts over cell flags, a tile's `mask & 3 == 2`, `MountainsData::total_gather_size` and
+  the land regions that hold a seated leader's city or are large enough; run where `Setup::build_game` runs it. Names
+  section 4 whole (120 bytes, printed 1914505471) and the start track's unestablished `analyze_map`.
+- **4131c. The collision blocks' allocation** (§21; section 9, 17,000 bytes: `present` 3,600, 25 heads, 25 bodies).
+  `World::new_coll_block` is unread and the crate's `CollGrid` is flat and keeps no allocation. The heads are the
+  `BitMask<768>` constructor's (768, 96) and the bodies the grid's bits, so both follow once presence is held. Record
+  3202 differs from 3201 in this section alone: it moves with the units. Names section 9 whole.
+- **4131d. The fog's two cell words, beside three planes that agree** (§21; `05 cell.was_seen` and `07 wcoord_seen`,
+  3,600 each). `seen`, `seen2` and `seen3` agree on 14,400 of 14,400 each from the vision the crate already runs
+  (459, 702 and 89 non-zero bytes), and nothing of the fog was ported. So the leaders line's `explored` (19 and 22
+  against our seam's 900, §20) may be a count over a plane we already hold: unread, and a leaf of
+  `LEADERS_HELD_OUT` if it is. Names sections 5 and 7 with `land_sub`.
+- **4131e. What the carried fields rest on that frame 91 does not hold** (§21, "Not established"). `light` and the
+  unseated `danger` rows agreed by default before their writers were read; `nuke_hits` has no appender by either net,
+  though a nuke leaves a crater; a game built from a dump holds no `World::record`; the half-land lists are compared
+  through 91 frames only. A second scored frame of the minted game is the place (with parked 4124b).
 
 ## Parked by item 4132, 2026-11-11 — the transition patch, measured from the packet
 

@@ -67,6 +67,9 @@ pub struct LakesMap {
     pub tileset: String,
     pub base_edge: i32,
     pub coord: Vec<u16>,
+    /// `Terrain::init`'s half-land lists, as `check_and_set_halfland` left
+    /// them at `Terrain.cpp` 720 (parts 10–13 of every later checkpoint).
+    pub halfland: HalfLand,
 }
 
 /// Why the chain stopped short.
@@ -212,7 +215,8 @@ pub fn great_lakes_map(
         &mut grid, &mut coord, &z, combo, &mut depth,
     )
     .map_err(|e| Refusal::Unported(format!("the half-land: {e:?}")))?;
-    let lists = lists
+    let halfland = lists;
+    let lists = halfland
         .parts()
         .ok_or(Refusal::Data("the half-land lists' walk"))?;
     say("Terrain.cpp", 720, &grid, &d.rng, lists);
@@ -270,5 +274,6 @@ pub fn great_lakes_map(
         tileset,
         base_edge,
         coord,
+        halfland,
     })
 }

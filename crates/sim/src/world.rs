@@ -367,6 +367,31 @@ pub struct World {
     /// `sim::observe`'s territory counter: moves on every write that
     /// changes a cell's `(who, who2)` ([`World::territory_version`]).
     territory_version: u32,
+    /// The parts of `WorldData` the setup writes once ([`WorldRecord`]).
+    record: WorldRecord,
+}
+
+/// **The parts of `WorldData` the map generator and the setup write once
+/// and nothing in a running game rewrites**, kept as copied at that point
+/// for the checksum's world line (`docs/CHECKSUM.md` §21). No mechanic
+/// reads them. `None` where the world was not built by the composed chain.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct WorldRecord {
+    /// `start_x`, `start_y`, `start_city_x`, `start_city_y` (`+0x80`..):
+    /// `World::add_starting_location` and `Map::place_start_in_region`
+    /// append in map generation; `World::init`, `close` and `wipe` empty.
+    pub starts: Option<[crate::mapgen::CoordArray; 4]>,
+    /// `TerrainData`'s `halfland_locs`, `halfland_types`,
+    /// `halfland_subtypes` and `nuke_hits`: `Terrain::mark_halfwater`, the
+    /// one appender, is reached from `Terrain::init`'s
+    /// `check_and_set_halfland` alone in a game (and the scenario editor);
+    /// `TerrainOut::close` empties. `nuke_hits` is always empty (the
+    /// emitter's).
+    pub halfland: Option<crate::mapgen::terrain_init::HalfLand>,
+    /// `map` (`+0x30`): the lobby's map style, `Setup::build_game`'s.
+    pub map: Option<i32>,
+    /// `seed` (`+0x7c`): `world->seed`, `Setup::build_game`'s re-seed.
+    pub seed: Option<i32>,
 }
 
 /// `WData::flags`, defined in [`crate::ids::cell`].
@@ -814,7 +839,18 @@ impl World {
             coast: Vec::new(),
             terrain_version: 0,
             territory_version: 0,
+            record: WorldRecord::default(),
         }
+    }
+
+    /// What the setup copied of `WorldData` ([`WorldRecord`]).
+    pub const fn record(&self) -> &WorldRecord {
+        &self.record
+    }
+
+    /// Keeps what the setup wrote of `WorldData` ([`WorldRecord`]).
+    pub fn set_record(&mut self, record: WorldRecord) {
+        self.record = record;
     }
 
     /// How many writes have changed the terrain grids — the tile heights,

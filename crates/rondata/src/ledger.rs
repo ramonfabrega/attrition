@@ -131,6 +131,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "a checksum line's byte image against the instrument's stream of a packet, range by range; of the dump it reads one printed checksum value, no record's fields",
     ),
     (
+        "diff/checksum_lines/world.rs",
+        "the world line's byte image against the instrument's stream of a packet, section by section; of the dump it reads the record's printed World sums, no record's fields",
+    ),
+    (
         "diff/start.rs",
         "the lobby-built frame 0 against build_sim's install of the same start, Sim with Sim; no dump record is read",
     ),
