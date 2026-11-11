@@ -2076,6 +2076,38 @@ pub fn ground_art(install: &Install, tileset: &str) -> Result<GroundArt, ArtFail
     Ok(GroundArt { baseland })
 }
 
+/// **The tileset's mountain textures** (item 4141; `docs/RENDERER.md`
+/// §3.10): `<MOUNTAINS>`'s `BASETEX` and `ALPHATEX` files under
+/// `tileset`, as written. `TileSet::init` loads them as
+/// `TileSetData::mountain_base` and `mountain_alpha`, the two stage 0
+/// textures `TerrainOut::render_mountains` binds.
+pub fn mountain_textures(install: &Install, tileset: &str) -> Result<(String, String), ArtFailure> {
+    let unnamed = |what: &str| ArtFailure::Unnamed(what.to_string());
+    let tpath = install.data("tilesets.xml");
+    let ttext = crate::read(&tpath).map_err(|_| unnamed("tilesets.xml"))?;
+    let tdoc = crate::parse(&tpath, &ttext).map_err(|_| unnamed("tilesets.xml"))?;
+    let set = tdoc
+        .descendants()
+        .find(|n| {
+            n.has_tag_name("TILESET")
+                && n.attribute("name")
+                    .is_some_and(|v| v.trim().eq_ignore_ascii_case(tileset))
+        })
+        .ok_or_else(|| unnamed(tileset))?;
+    let m = set
+        .children()
+        .find(|n| n.has_tag_name("MOUNTAINS"))
+        .ok_or_else(|| unnamed(&format!("{tileset}/MOUNTAINS")))?;
+    let file = |tag: &str| {
+        m.children()
+            .find(|n| n.has_tag_name(tag))
+            .and_then(|n| n.attribute("file"))
+            .map(|f| f.trim().to_string())
+            .ok_or_else(|| unnamed(&format!("{tileset}/MOUNTAINS/{tag}")))
+    };
+    Ok((file("BASETEX")?, file("ALPHATEX")?))
+}
+
 /// **The farm's condition 1** (item 4037, `docs/RENDERER.md` §5.4): the
 /// `<FARM>` element reads whole ([`farm_art`]) and the tileset's wheat
 /// image decodes under `render::tga`. `Ok(1)`, the one file decoded.

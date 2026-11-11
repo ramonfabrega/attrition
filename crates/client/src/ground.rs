@@ -298,15 +298,24 @@ pub fn our_patches(
 /// drawn in base 2 scores 1,053 and in base 0 1,052; the choice's row is
 /// [`RUN1559B_3279_GROUND_BASE`]. Item 4139: re-pinned with the
 /// transition patch laid over the base, our own choice on our own cells
-/// (§3.9); the base alone is [`RUN1559B_3279_GROUND_BARE`].
+/// (§3.9); the base alone is [`RUN1559B_3279_GROUND_BARE`]. Item 4141:
+/// 1,051 → 1,097 with a mountain's own draw over the ground beneath it
+/// (§3.10): the 106 under a mountain from 59 to 105, 46 gained and none
+/// lost, (12, 141) the one left; the grey is [`RUN1559B_3279_GROUND_GREY`].
 #[cfg(test)]
-pub const RUN1559B_3279_GROUND: (usize, usize) = (1051, 1109);
+pub const RUN1559B_3279_GROUND: (usize, usize) = (1097, 1109);
+
+/// [`RUN1559B_3279_GROUND`] with the patch laid and the mountains in the
+/// debug grey, as item 4139 pinned it (item 4141).
+#[cfg(test)]
+pub const RUN1559B_3279_GROUND_GREY: (usize, usize) = (1051, 1109);
 
 /// **`RUN1559B_3279_MOUNTAIN_VALUES`** (item 4141, stage 0; `docs/RENDERER.md`
 /// §3.10): the scored tiles under a placed mountain (all 106 on range 1,
 /// template 14, at cell (4, 36)); each candidate's agreement under the row's
 /// bar, `[grey, the ground as if no mountain stood, BASETEX's mean,
 /// ALPHATEX's mean]`; the nearest by tile, the same order; and the ties.
+#[cfg(test)]
 pub const RUN1559B_3279_MOUNTAIN_VALUES: (u32, [u32; 4], [u32; 4], u32) =
     (106, [59, 76, 60, 0], [41, 59, 6, 0], 0);
 
@@ -315,6 +324,7 @@ pub const RUN1559B_3279_MOUNTAIN_VALUES: (u32, [u32; 4], [u32; 4], u32) =
 /// each read's agreement on the 106 and the tiles where it is strictly
 /// nearer than the ground (none tie): as read, the main pass alone, 1 − A,
 /// stage 1's colour ignored, the alpha unstretched, and over the grey.
+#[cfg(test)]
 pub const RUN1559B_3279_MOUNTAIN_READS: ([u32; 6], [u32; 6], u32) =
     ([105, 105, 97, 62, 88, 98], [85, 91, 90, 35, 62, 77], 106);
 
@@ -415,6 +425,199 @@ pub const RUN1559B_3279_PATCH_READS: ([u32; 7], u32) = ([395, 120, 402, 122, 395
 pub const RUN1559B_3279_GROUND_BLEND_DRAWN: (u32, u32, [u32; 4], u32) =
     (275, 282, [84, 147, 31, 112], 376);
 
+/// **A mountain's own draw** (item 4141; `docs/RENDERER.md` §3.10): the
+/// art `TerrainOut::render_mountains` binds. Stage 0 is the tileset's
+/// `<MOUNTAINS>` `BASETEX` (`mountain_base`, the main pass) or `ALPHATEX`
+/// (`mountain_alpha`, the ring pass); stage 1 is the range's
+/// `MAIN_ALPHA_TEX` or `RING_ALPHA_TEX`, indexed by template.
+pub struct MountainArt {
+    pub plain: Mips,
+    pub blend: Mips,
+    pub templates: Vec<Option<MountainTemplateArt>>,
+}
+
+/// One template's tiles (to find a range's template by them), its two
+/// alphas and the lit bounding box of its `TEMPLATE_TEX`, `[x0, y0, x1,
+/// y1]` in its pixels: `MountainRange::init`'s rect, over which the alpha
+/// texcoord runs from 0 to 1.
+pub struct MountainTemplateArt {
+    pub tiles: Vec<(i32, i32)>,
+    pub main: Mips,
+    pub ring: Mips,
+    pub lit: [f32; 4],
+}
+
+impl MountainArt {
+    pub fn load(root: &Path, tileset: &str) -> Result<MountainArt, String> {
+        let install = rondata::Install::new(root);
+        let load = |rel: &str| -> Result<Mips, String> {
+            let path =
+                rondata::artdata::resolve_art(root, rel).ok_or_else(|| format!("no file {rel}"))?;
+            let bytes = std::fs::read(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+            Ok(Mips::new(
+                render::tga::decode(&bytes).map_err(|e| format!("{rel}: {e:?}"))?,
+            ))
+        };
+        let (base, alpha) =
+            rondata::artdata::mountain_textures(&install, tileset).map_err(|e| format!("{e:?}"))?;
+        let shapes = rondata::mountains::templates(&install);
+        let files = rondata::mountains::template_files(&install);
+        let alphas = rondata::mountains::alpha_files(&install);
+        let templates = (0..files.len())
+            .map(|k| {
+                let (main, ring) = alphas.get(k)?;
+                let img = rondata::mountains::template_image(root, &files[k])?.0;
+                let (mut x0, mut y0, mut x1, mut y1) = (img.width, img.height, 0, 0);
+                for y in 0..img.height {
+                    for x in 0..img.width {
+                        if img.alpha(x, y) != 0 {
+                            (x0, y0, x1, y1) = (x0.min(x), y0.min(y), x1.max(x), y1.max(y));
+                        }
+                    }
+                }
+                Some(MountainTemplateArt {
+                    tiles: shapes.get(k)?.tiles.clone(),
+                    main: load(main).ok()?,
+                    ring: load(ring).ok()?,
+                    lit: [x0 as f32, y0 as f32, x1 as f32, y1 as f32],
+                })
+            })
+            .collect();
+        Ok(MountainArt {
+            plain: load(&base)?,
+            blend: load(&alpha)?,
+            templates,
+        })
+    }
+
+    /// Each placed range's template and cell: the template whose tiles,
+    /// laid at `4 · loc`, are the range's in the template's own order.
+    pub fn ranges(&self, t: &sim::observe::TerrainScene) -> Vec<Option<(usize, (i32, i32))>> {
+        use render::terrain::TILES_PER_CELL;
+        t.mountains
+            .iter()
+            .map(|r| {
+                self.templates.iter().enumerate().find_map(|(k, tp)| {
+                    let tp = tp.as_ref()?;
+                    let (ox, oy) = *tp.tiles.first()?;
+                    let (lx, ly) = (r.first()?.x - ox, r.first()?.y - oy);
+                    (lx % TILES_PER_CELL == 0
+                        && ly % TILES_PER_CELL == 0
+                        && tp.tiles.len() == r.len()
+                        && tp
+                            .tiles
+                            .iter()
+                            .zip(r)
+                            .all(|(o, q)| (lx + o.0, ly + o.1) == (q.x, q.y)))
+                    .then_some((k, (lx / TILES_PER_CELL, ly / TILES_PER_CELL)))
+                })
+            })
+            .collect()
+    }
+
+    /// The pass's two layers for `template`, in `render_mountains`'s
+    /// order: the ring (`ALPHATEX` under `RING_ALPHA_TEX`), then the main
+    /// (`BASETEX` under `MAIN_ALPHA_TEX`).
+    #[cfg_attr(not(test), allow(dead_code))]
+    pub fn layers(&self, template: usize) -> Option<[(&Mips, &Mips); 2]> {
+        let tp = self.templates.get(template)?.as_ref()?;
+        Some([(&self.blend, &tp.ring), (&self.plain, &tp.main)])
+    }
+
+    /// The alpha's texcoord at template pixel `px`: the lit box mapped
+    /// onto [0, 1].
+    pub fn alpha_uv(&self, template: usize, px: [f32; 2]) -> [f32; 2] {
+        let Some(Some(tp)) = self.templates.get(template) else {
+            return [0.0, 0.0];
+        };
+        let b = tp.lit;
+        [
+            (px[0] - b[0]) / (b[2] - b[0]),
+            (px[1] - b[1]) / (b[3] - b[1]),
+        ]
+    }
+
+    /// **The pass on the CPU** at template pixel `px` over `under` (0 to
+    /// 255): per layer, stage 0's texel at `px / 16` (one repeat a cell,
+    /// wrapped) and stage 1's at [`MountainArt::alpha_uv`] (clamped,
+    /// linear); `TOP_ADDSIGNED`, so the colour is `t0 + t1 − ½`, and A is
+    /// `t0.a · t1.a`; a layer whose A is 0 fails the alpha test
+    /// (`CMP_GREATER`, ref 0), and one that passes is laid `SRCALPHA`
+    /// over `INVSRCALPHA`. The painter's; the client's is `gpu`'s
+    /// `fs_mountain`.
+    #[cfg_attr(not(test), allow(dead_code))]
+    pub fn over(&self, template: usize, px: [f32; 2], under: [f32; 3]) -> [f32; 3] {
+        let Some(layers) = self.layers(template) else {
+            return under;
+        };
+        let [au, av] = self.alpha_uv(template, px);
+        let mut f = under;
+        for (t0m, t1m) in layers {
+            let t0 = t0m.sample(0, px[0] / 16.0, px[1] / 16.0);
+            let im = &t1m.levels[0];
+            let (hu, hv) = (0.5 / im.width as f32, 0.5 / im.height as f32);
+            let t1 = t1m.sample(0, au.clamp(hu, 1.0 - hu), av.clamp(hv, 1.0 - hv));
+            let a = t0[3] * t1[3] / (255.0 * 255.0);
+            if a <= 0.0 {
+                continue;
+            }
+            f = [0, 1, 2].map(|c| (t0[c] + t1[c] - 127.5).clamp(0.0, 255.0) * a + f[c] * (1.0 - a));
+        }
+        f
+    }
+}
+
+/// **A mountain's triangles** (item 4141; §3.10): every tile of a placed
+/// range whose template reads, its two triangles as [`ground_base`]
+/// gives them, each corner in its range's template pixels (`4 · (tile −
+/// 4 · loc) + 128`, the vertex `MountainRange::init` lays there), and the
+/// template. A tile two ranges share is the first range's.
+#[derive(Clone, Debug, Default)]
+pub struct GroundMountain {
+    pub tris: Vec<[[f32; 3]; 3]>,
+    pub uvs: Vec<[[f32; 2]; 3]>,
+    pub template: Vec<usize>,
+    pub tile: Vec<(i32, i32)>,
+}
+
+pub fn ground_mountain(
+    t: &sim::observe::TerrainScene,
+    art: &MountainArt,
+    mesh: &render::terrain::TerrainMesh,
+) -> GroundMountain {
+    use render::terrain::TILES_PER_CELL;
+    let mut out = GroundMountain::default();
+    let (tw, th) = (t.width * TILES_PER_CELL, t.height * TILES_PER_CELL);
+    if mesh.positions.len() != (tw * th * 6) as usize {
+        return out;
+    }
+    let mut seen = std::collections::BTreeSet::new();
+    for (r, placed) in t.mountains.iter().zip(art.ranges(t)) {
+        let Some((k, (lx, ly))) = placed else {
+            continue;
+        };
+        for q in r {
+            if !(0..tw).contains(&q.x) || !(0..th).contains(&q.y) || !seen.insert((q.x, q.y)) {
+                continue;
+            }
+            let (x, y) = (
+                4.0 * (q.x - TILES_PER_CELL * lx) as f32 + 128.0,
+                4.0 * (q.y - TILES_PER_CELL * ly) as f32 + 128.0,
+            );
+            let (a, b, c, d) = ([x, y], [x + 4.0, y], [x + 4.0, y + 4.0], [x, y + 4.0]);
+            let i = ((q.y * tw + q.x) * 6) as usize;
+            for (j, uv) in [[a, b, d], [b, c, d]].into_iter().enumerate() {
+                let v = &mesh.positions[i + j * 3..i + j * 3 + 3];
+                out.tris.push([v[0], v[1], v[2]]);
+                out.uvs.push(uv);
+                out.template.push(k);
+                out.tile.push((q.x, q.y));
+            }
+        }
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     /// Tiles, as the tests list them gained and lost.
@@ -510,9 +713,41 @@ mod tests {
         )
         .expect("the lobby's tileset");
         let tex = GroundTextures::load(&p.root, &tileset).expect("the ground's textures load");
-        let base = ground_base(&t, &mountains, &tex, &full);
+        // Item 4141: with a mountain's own art the ground is laid beneath
+        // every mountain tile, and each range's tiles twice over it.
+        let art = MountainArt::load(&p.root, &tileset).expect("the mountains' art loads");
+        let range = ground_mountain(&t, &art, &full);
+        assert_eq!(
+            range.tile.len(),
+            2 * mountains.len(),
+            "every mountain tile, once"
+        );
+        let none = std::collections::BTreeSet::new();
+        let base = ground_base(&t, &none, &tex, &full);
         let (rest, ground, laid) = p.world.drawn_terrain();
-        let laid: usize = laid.iter().map(|m| m.positions.len()).sum();
+        let on_mountain: usize = laid
+            .iter()
+            .filter(|m| m.mountain)
+            .map(|m| m.positions.len())
+            .sum();
+        assert_eq!(
+            on_mountain,
+            2 * range.tris.len() * 3,
+            "the ring and the main"
+        );
+        let first = laid
+            .iter()
+            .position(|m| m.mountain)
+            .expect("a mountain is drawn");
+        assert!(
+            laid[first..].iter().all(|m| m.mountain),
+            "the mountains after the patch"
+        );
+        let laid: usize = laid
+            .iter()
+            .filter(|m| !m.mountain)
+            .map(|m| m.positions.len())
+            .sum();
         assert!(laid > 0, "the transition patch is laid");
         let drawn: usize = ground.iter().map(|m| m.positions.len()).sum();
         assert!(drawn > 0, "the ground is textured");
@@ -846,7 +1081,48 @@ mod tests {
             size,
             window,
         );
+        // Item 4141 (§3.10): a mountain's own draw, over the ground §3.9
+        // lays beneath it.
+        let none = std::collections::BTreeSet::new();
+        let under_base = ground_base(&t, &none, &tex, &mesh);
+        let under_patch = ground_patch(&t, &none, &tex, &mesh, &choice);
+        let art = MountainArt::load(&p.root, &tileset).expect("the mountains' art loads");
+        let range = ground_mountain(&t, &art, &mesh);
+        let painted = |tris: &[[[f32; 3]; 3]], uvs: &[[[f32; 2]; 3]], of: &[usize]| {
+            paint(
+                &Object {
+                    key: 1,
+                    tris: tris.to_vec(),
+                },
+                &Paint::Textures {
+                    uvs,
+                    mips: &flat,
+                    of,
+                },
+                &p.camera,
+                size,
+                window,
+            )
+        };
+        let laid_under = painted(&under_base.tris, &under_base.uvs, &under_base.of);
+        let laid_under_patch = painted(&under_patch.tris, &under_patch.uvs, &under_patch.of);
+        let laid_range = painted(&range.tris, &range.uvs, &vec![0; range.tris.len()]);
         let ww = (window.x1 - window.x0) as usize;
+        let mountain_at = |j: usize, tt: (i32, i32)| {
+            let q = laid_range[j].filter(|q| range.tile[q.tri as usize] == tt)?;
+            let c0 = laid_under[j]
+                .filter(|u| under_base.tile[u.tri as usize] == tt)?
+                .rgb;
+            let under = laid_under_patch[j]
+                .filter(|u| under_patch.tile[u.tri as usize] == tt)
+                .map_or(c0, |u| {
+                    let k = u.tri as usize;
+                    let a =
+                        patch_alpha(&alphas[under_patch.alpha[k]].0, &under_patch.patch[k], u.uv);
+                    [0, 1, 2].map(|i| c0[i] * (1.0 - a) + u.rgb[i] * a)
+                });
+            Some(art.over(range.template[q.tri as usize], q.uv, under))
+        };
         let cell = |(tx, ty): (i32, i32)| (tx / TILES_PER_CELL, ty / TILES_PER_CELL);
         let sub = |(cx, cy): (i32, i32)| t.land_sub[(cy * t.width + cx) as usize];
         let photo_at = |i: usize| [0, 1, 2].map(|c| f32::from(p.photo.rgba[i * 4 + c]));
@@ -879,6 +1155,14 @@ mod tests {
                     let a = patch_alpha(&alphas[patch.alpha[k]].0, &patch.patch[k], q.uv);
                     [0, 1, 2].map(|i| c0[i] * (1.0 - a) + q.rgb[i] * a)
                 });
+            let c = if mountains.contains(&tt) {
+                let Some(m) = mountain_at(j, tt) else {
+                    continue;
+                };
+                m
+            } else {
+                c
+            };
             e.1.push(c);
             if !mountains.contains(&tt) {
                 if let Some(k) = control[j].filter(|q| base.tile[q.tri as usize] == tt) {
@@ -1532,7 +1816,10 @@ mod tests {
         );
         assert_eq!((gb_rule, plain.len()), RUN1559B_3279_GROUND_BASE_BARE);
         assert_eq!((gb_laid, plain.len()), RUN1559B_3279_GROUND_BASE);
-        assert_eq!(ln, RUN1559B_3279_GROUND.0, "the row with the patch laid");
+        assert_eq!(
+            ln, RUN1559B_3279_GROUND_GREY.0,
+            "the row with the patch laid"
+        );
         assert_eq!(gb_one, RUN1559B_3279_GROUND_BASE_ONE);
         assert!(gb_one.iter().all(|&n| n < gb_rule));
         assert_eq!(rn, RUN1559B_3279_GROUND_BARE.0, "the row as 4127 pinned it");

@@ -207,6 +207,21 @@ fn fs_patch(i: VOut) -> @location(0) vec4<f32> {
     let a = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
     return vec4<f32>(textureSample(tex, samp, i.uv).rgb, a);
 }
+
+// Item 4141 (`docs/RENDERER.md` §3.10): one layer of a mountain's own draw,
+// `MountainsOut::mountain_blend` — stage 0 the tileset's texture (MODULATE
+// with the vertex white, A its own); stage 1 the range's alpha, ADDSIGNED
+// on the colour and MODULATE on A; the alpha test GREATER 0.
+@fragment
+fn fs_mountain(i: VOut) -> @location(0) vec4<f32> {
+    let t0 = textureSample(tex, samp, i.uv);
+    let t1 = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0);
+    let a = t0.a * t1.a;
+    if (a <= 0.0) {
+        discard;
+    }
+    return vec4<f32>(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0)), a);
+}
 "#;
 
 /// The camera-space depth range mapped onto [0, 1]: wider than any map.
@@ -238,8 +253,9 @@ pub struct Frame<'a> {
 /// A mesh on the GPU: its vertices, their count and its texture.
 type Uploaded = (wgpu::Buffer, u32, wgpu::BindGroup);
 
-/// A patch mesh on the GPU: [`Uploaded`] and its alpha's bind group.
-type UploadedPatch = (wgpu::Buffer, u32, wgpu::BindGroup, wgpu::BindGroup);
+/// A patch mesh on the GPU: [`Uploaded`], its alpha's bind group and
+/// whether it is a mountain's layer (item 4141).
+type UploadedPatch = (wgpu::Buffer, u32, wgpu::BindGroup, wgpu::BindGroup, bool);
 
 /// The ground's base layer and its patch on the GPU, at a terrain version.
 type GroundUploads = (u32, Vec<Uploaded>, Vec<UploadedPatch>);
@@ -261,6 +277,10 @@ pub struct Gpu {
     /// clamped sampler and each alpha on the GPU, uploaded once.
     patch: wgpu::RenderPipeline,
     alpha_sampler: wgpu::Sampler,
+    /// A mountain's layers (item 4141, §3.10): their pass, and the alphas'
+    /// linear, clamped sampler (`MIP_LINEAR`, `TEXADD_CLAMP`).
+    mountain: wgpu::RenderPipeline,
+    mountain_sampler: wgpu::Sampler,
     alpha_textures: std::sync::Mutex<std::collections::BTreeMap<usize, wgpu::BindGroup>>,
     sprite: wgpu::RenderPipeline,
     sprite_uniform: wgpu::Buffer,
@@ -561,50 +581,63 @@ impl Gpu {
             bind_group_layouts: &[Some(&bgl), Some(&sprite_layout), Some(&sprite_layout)],
             immediate_size: 0,
         });
-        let patch = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("patch"),
-            layout: Some(&patch_layout),
-            vertex: wgpu::VertexState {
-                module: &patch_module,
-                entry_point: Some("vs_patch"),
-                compilation_options: Default::default(),
-                buffers: &[Some(wgpu::VertexBufferLayout {
-                    array_stride: 32,
-                    step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &textured_attributes,
-                })],
-            },
-            primitive: wgpu::PrimitiveState {
-                cull_mode: None,
-                ..Default::default()
-            },
-            depth_stencil: Some(wgpu::DepthStencilState {
-                format: DEPTH_FORMAT,
-                depth_write_enabled: Some(false),
-                depth_compare: Some(wgpu::CompareFunction::LessEqual),
-                stencil: Default::default(),
-                bias: Default::default(),
-            }),
-            multisample: Default::default(),
-            fragment: Some(wgpu::FragmentState {
-                module: &patch_module,
-                entry_point: Some("fs_patch"),
-                compilation_options: Default::default(),
-                targets: &[Some(wgpu::ColorTargetState {
-                    format,
-                    blend: Some(wgpu::BlendState::ALPHA_BLENDING),
-                    write_mask: wgpu::ColorWrites::ALL,
-                })],
-            }),
-            multiview_mask: None,
-            cache: None,
-        });
+        let blended = |label: &str, entry: &str| {
+            device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                label: Some(label),
+                layout: Some(&patch_layout),
+                vertex: wgpu::VertexState {
+                    module: &patch_module,
+                    entry_point: Some("vs_patch"),
+                    compilation_options: Default::default(),
+                    buffers: &[Some(wgpu::VertexBufferLayout {
+                        array_stride: 32,
+                        step_mode: wgpu::VertexStepMode::Vertex,
+                        attributes: &textured_attributes,
+                    })],
+                },
+                primitive: wgpu::PrimitiveState {
+                    cull_mode: None,
+                    ..Default::default()
+                },
+                depth_stencil: Some(wgpu::DepthStencilState {
+                    format: DEPTH_FORMAT,
+                    depth_write_enabled: Some(false),
+                    depth_compare: Some(wgpu::CompareFunction::LessEqual),
+                    stencil: Default::default(),
+                    bias: Default::default(),
+                }),
+                multisample: Default::default(),
+                fragment: Some(wgpu::FragmentState {
+                    module: &patch_module,
+                    entry_point: Some(entry),
+                    compilation_options: Default::default(),
+                    targets: &[Some(wgpu::ColorTargetState {
+                        format,
+                        blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                        write_mask: wgpu::ColorWrites::ALL,
+                    })],
+                }),
+                multiview_mask: None,
+                cache: None,
+            })
+        };
+        let patch = blended("patch", "fs_patch");
+        let mountain = blended("mountain", "fs_mountain");
         let alpha_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
             label: Some("alpha"),
             address_mode_u: wgpu::AddressMode::ClampToEdge,
             address_mode_v: wgpu::AddressMode::ClampToEdge,
             mag_filter: wgpu::FilterMode::Nearest,
             min_filter: wgpu::FilterMode::Nearest,
+            mipmap_filter: wgpu::MipmapFilterMode::Nearest,
+            ..Default::default()
+        });
+        let mountain_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            label: Some("mountain"),
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Linear,
             mipmap_filter: wgpu::MipmapFilterMode::Nearest,
             ..Default::default()
         });
@@ -622,6 +655,8 @@ impl Gpu {
             ground_meshes: std::sync::Mutex::new(None),
             patch,
             alpha_sampler,
+            mountain,
+            mountain_sampler,
             alpha_textures: std::sync::Mutex::new(Default::default()),
             textured,
             silhouette,
@@ -713,12 +748,22 @@ impl Gpu {
     /// A transition alpha's level 0 as a bind group under the nearest,
     /// clamped sampler, uploaded on first use (item 4139): the pass reads
     /// level 0 alone (§3.9).
-    fn alpha_texture(&self, alpha: usize, mips: &render::silhouette::Mips) -> wgpu::BindGroup {
+    fn alpha_texture(
+        &self,
+        alpha: usize,
+        mips: &render::silhouette::Mips,
+        linear: bool,
+    ) -> wgpu::BindGroup {
         let mut cache = self.alpha_textures.lock().unwrap();
         if let Some(b) = cache.get(&alpha) {
             return b.clone();
         }
-        let b = self.upload_mips(&mips.levels[..1], &self.alpha_sampler);
+        let sampler = if linear {
+            &self.mountain_sampler
+        } else {
+            &self.alpha_sampler
+        };
+        let b = self.upload_mips(&mips.levels[..1], sampler);
         cache.insert(alpha, b.clone());
         b
     }
@@ -810,7 +855,8 @@ impl Gpu {
                     buf,
                     n,
                     self.figure_texture(m.piece, &m.mips),
-                    self.alpha_texture(m.alpha, &m.alpha_mips),
+                    self.alpha_texture(m.alpha, &m.alpha_mips, m.mountain),
+                    m.mountain,
                 )
             })
             .collect()
@@ -1007,8 +1053,13 @@ impl Gpu {
                 }
                 // The patch after the base (item 4139, §3.9).
                 if !patches.is_empty() {
-                    pass.set_pipeline(&self.patch);
-                    for (b, n, t, a) in patches {
+                    // Item 4141 (§3.10): a mountain's layers after it.
+                    for (b, n, t, a, mountain) in patches {
+                        pass.set_pipeline(if *mountain {
+                            &self.mountain
+                        } else {
+                            &self.patch
+                        });
                         pass.set_bind_group(1, t, &[]);
                         pass.set_bind_group(2, a, &[]);
                         pass.set_vertex_buffer(0, b.slice(..));

@@ -161,7 +161,28 @@ struct GroundDraw {
     /// the tileset's numbers or the start dump's seed do not read, and no
     /// patch is laid.
     patch: Option<PatchArt>,
+    /// A mountain's own art (item 4141); `None` where it does not read,
+    /// and the mountains keep the debug grey.
+    mountains: Option<MountainDraw>,
 }
+
+/// [`crate::ground::MountainArt`] and its textures, as the draw shares them.
+struct MountainDraw {
+    art: crate::ground::MountainArt,
+    plain: std::sync::Arc<render::silhouette::Mips>,
+    blend: std::sync::Arc<render::silhouette::Mips>,
+    /// Per template: its main and ring alphas.
+    alphas: Vec<Option<[std::sync::Arc<render::silhouette::Mips>; 2]>>,
+}
+
+/// The key a mountain's stage 0 texture takes beside the base layer's
+/// `-1 - index` (item 4141): `MOUNTAIN_PIECE` the main's, one less the
+/// ring's.
+pub const MOUNTAIN_PIECE: i32 = -100_000;
+
+/// The key a template's alpha takes beside the transition patch's 14
+/// (item 4141): `MOUNTAIN_ALPHA + 2 · template`, plus one for the ring.
+pub const MOUNTAIN_ALPHA: usize = 1_000;
 
 /// What [`crate::ground::our_patches`] and the patch's draw take.
 struct PatchArt {
@@ -178,7 +199,8 @@ struct PatchArt {
 /// the patch's base's triangles over one alpha, laid after the base at the
 /// alpha's A (`SRCALPHA`, `INVSRCALPHA`); each corner's base texcoord and
 /// its texcoord into the alpha, read on level 0, the nearest texel,
-/// clamped.
+/// clamped. Item 4141: or one layer of a mountain's own draw
+/// (`docs/RENDERER.md` §3.10), where `mountain` is set.
 pub struct PatchMesh {
     /// The patch's base, keyed as the base layer's: `-1 - index` into
     /// [`crate::ground::GroundTextures::flat`].
@@ -190,6 +212,9 @@ pub struct PatchMesh {
     /// The alpha's index in name order, and its image.
     pub alpha: usize,
     pub alpha_mips: std::sync::Arc<render::silhouette::Mips>,
+    /// A mountain's layer (item 4141): `TOP_ADDSIGNED` under the alpha,
+    /// A the two texels' product, the alpha linear and clamped.
+    pub mountain: bool,
 }
 
 /// The tileset's tree models, decoded once: `TileSetData::tree_scale` (the
@@ -419,10 +444,30 @@ impl World {
                     seed,
                 })
             });
+            let mountains = crate::ground::MountainArt::load(install.root(), t)
+                .ok()
+                .map(|art| MountainDraw {
+                    plain: std::sync::Arc::new(art.plain.clone()),
+                    blend: std::sync::Arc::new(art.blend.clone()),
+                    alphas: art
+                        .templates
+                        .iter()
+                        .map(|tp| {
+                            tp.as_ref().map(|tp| {
+                                [
+                                    std::sync::Arc::new(tp.main.clone()),
+                                    std::sync::Arc::new(tp.ring.clone()),
+                                ]
+                            })
+                        })
+                        .collect(),
+                    art,
+                });
             Some(GroundDraw {
                 textures,
                 flat,
                 patch,
+                mountains,
             })
         });
         let tree_art = tileset
@@ -592,7 +637,15 @@ impl World {
             let g = self.ground.as_ref().expect("checked above");
             let mountains: std::collections::BTreeSet<(i32, i32)> =
                 t.mountains.iter().flatten().map(|p| (p.x, p.y)).collect();
-            let base = crate::ground::ground_base(&t, &mountains, &g.textures, &self.terrain.1);
+            // Item 4141: with a mountain's own art, the ground is laid
+            // beneath it too.
+            let none = std::collections::BTreeSet::new();
+            let under = if g.mountains.is_some() {
+                &none
+            } else {
+                &mountains
+            };
+            let base = crate::ground::ground_base(&t, under, &g.textures, &self.terrain.1);
             let textured: std::collections::BTreeSet<(i32, i32)> =
                 base.tile.iter().copied().collect();
             let field = Heightfield {
@@ -627,13 +680,8 @@ impl World {
                 Some((a, c))
             });
             if let Some((art, choice)) = choice {
-                let laid = crate::ground::ground_patch(
-                    &t,
-                    &mountains,
-                    &g.textures,
-                    &self.terrain.1,
-                    &choice,
-                );
+                let laid =
+                    crate::ground::ground_patch(&t, under, &g.textures, &self.terrain.1, &choice);
                 for i in 0..laid.tris.len() {
                     let (k, a) = (laid.of[i], laid.alpha[i]);
                     let (Some(mips), Some(alpha_mips)) = (g.flat.get(k), art.alphas.get(a)) else {
@@ -647,13 +695,51 @@ impl World {
                         mips: mips.clone(),
                         alpha: a,
                         alpha_mips: alpha_mips.clone(),
+                        mountain: false,
                     });
                     m.positions.extend_from_slice(&laid.tris[i]);
                     m.uvs.extend_from_slice(&laid.uvs[i]);
                     m.alpha_uvs.extend_from_slice(&laid.alpha_uvs[i]);
                 }
             }
-            self.drawn = (version, rest, meshes, patches.into_values().collect());
+            let mut patches: Vec<PatchMesh> = patches.into_values().collect();
+            // Item 4141 (§3.10): each template's ring, then its main, after
+            // the patch, `render_mountains`'s order.
+            if let Some(md) = g.mountains.as_ref() {
+                let range = crate::ground::ground_mountain(&t, &md.art, &self.terrain.1);
+                let mut layers: BTreeMap<(usize, usize), PatchMesh> = BTreeMap::new();
+                for i in 0..range.tris.len() {
+                    let k = range.template[i];
+                    let Some(Some([main, ring])) = md.alphas.get(k) else {
+                        continue;
+                    };
+                    for (layer, (piece, mips, alpha_mips)) in [
+                        (MOUNTAIN_PIECE - 1, &md.blend, ring),
+                        (MOUNTAIN_PIECE, &md.plain, main),
+                    ]
+                    .into_iter()
+                    .enumerate()
+                    {
+                        let m = layers.entry((k, layer)).or_insert_with(|| PatchMesh {
+                            piece,
+                            positions: Vec::new(),
+                            uvs: Vec::new(),
+                            alpha_uvs: Vec::new(),
+                            mips: mips.clone(),
+                            alpha: MOUNTAIN_ALPHA + 2 * k + 1 - layer,
+                            alpha_mips: alpha_mips.clone(),
+                            mountain: true,
+                        });
+                        m.positions.extend_from_slice(&range.tris[i]);
+                        for px in range.uvs[i] {
+                            m.uvs.push([px[0] / 16.0, px[1] / 16.0]);
+                            m.alpha_uvs.push(md.art.alpha_uv(k, px));
+                        }
+                    }
+                }
+                patches.extend(layers.into_values());
+            }
+            self.drawn = (version, rest, meshes, patches);
         }
         (&self.drawn.1, &self.drawn.2, &self.drawn.3)
     }
