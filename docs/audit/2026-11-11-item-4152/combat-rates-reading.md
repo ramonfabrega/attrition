@@ -391,3 +391,42 @@ found.
    (true for the eight play slots as far as known, not checked here).
    `Achieve::add_event` was read whole and writes no leaf.
 
+## 8. Against the README row, and what this reading did not cover
+
+- **The row's writer list is incomplete in one way that matters**: the four
+  `Leader::inc_*_event` functions have **no caller** (none in the listing,
+  none in the export). The live writers are their inlined copies in
+  `Object::do_damage` (hits, damage; building kills and deaths),
+  `Object::take_damage` (unit kills and deaths) and
+  `SpellType::cast_sabotage` (unit kills and deaths). A builder hooking the
+  named functions would count nothing.
+- The fold is as the row says, plus two things the row does not say: the
+  `_fifteen_seconds` words are never reset (a game-long total), and the
+  battle event rewrites `average_death_rate`/`average_kill_rate` to `0xfc18`
+  as well as `frame_battle`.
+- Resets: `Leader::init (006e3930)` and `Leaders::clear (006ed5d0)` for all
+  13; no `reset_score` store was found in either net.
+- **Not read**: the save/load walker (`WalkDataGame::walk_data`) beyond its
+  slot-9 `Leader::init`, so whether a loaded game restores these words is
+  open; the `Build` body behind vslot `+0x4c`; whether gaia's animals (units
+  whose deaths go through W3 with a hunter as killer) belong to a slot with
+  `leader_flags & 1` — their owner's counters would then fold too; readers
+  through a `leader+8` pointer other than the jukebox loop.
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `frame_battle` +0xa4c | `Leader::process_event_frame (006ec180)` | `= frame` on a battle event (fold frame, `D+K >= (age+1)*125`, lock-out 1800 frames, one side ahead by `10*age+20`) | `Leader::init`, `Leaders::clear` | none; `core/frame.rs` before `frame += 1` | yes | high |
+| `average_death_rate` +0xa50 | `process_event_frame` | fold: `c==0 ? avg*7>>3 : (c+avg)>>1`, `c = deaths*100 mod 2^16`; `= 0xfc18` on a battle event | init, clear | none; as above | yes | high |
+| `average_kill_rate` +0xa52 | `process_event_frame` | same from kills; `= 0xfc18` on a battle event | init, clear | none | yes | high |
+| `average_damage_rate` +0xa54 | `process_event_frame` | same from damage | init, clear | none | yes | high |
+| `average_hit_rate` +0xa56 | `process_event_frame` | same from hits | init, clear | none | yes | high |
+| `deaths_current_frame` +0xa58 | `Object::do_damage (0064a480)`, `Object::take_damage (00652020)`, `SpellType::cast_sabotage (006720e0)`; fold | victim's leader: building/wall razed 5 (live active `Build`) or 2; unit captain last figure non-decoy with a killer 1; sabotage kill 1 | every fold frame (`frame%50==0`), init, clear | `do_damage_round` / `take_damage_typed` (`combat/fight/delivery.rs`), SEAM `delivery.rs:803` | yes | high |
+| `kills_current_frame` +0xa5a | same three; fold | killer's leader, mirror of deaths | as above | as above | yes | high |
+| `hits_current_frame` +0xa5c | `Object::do_damage (0064a480)`; fold | attacker's leader, every blow past the two head returns: 5 (siege on building/wall) or 1 | as above | `do_damage_round` (`delivery.rs:70`) | yes | high |
+| `damage_current_frame` +0xa5e | `Object::do_damage (0064a480)`; fold | target's leader, same blow and step | as above | `do_damage_round` | yes | high |
+| `deaths_fifteen_seconds` +0xa60 | `process_event_frame` | `+= deaths_current_frame` per fold | init, clear only (never in play) | none; `core/frame.rs` | yes | high |
+| `kills_fifteen_seconds` +0xa62 | `process_event_frame` | `+= kills_current_frame` | init, clear only | none | yes | high |
+| `hits_fifteen_seconds` +0xa64 | `process_event_frame` | `+= hits_current_frame` | init, clear only | none | yes | high |
+| `damage_fifteen_seconds` +0xa66 | `process_event_frame` | `+= damage_current_frame` | init, clear only | none | yes | high |

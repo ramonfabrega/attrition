@@ -418,10 +418,12 @@ memset). No per-frame fold besides the arm itself.
 `about_to_win` (`local_34`) when a leader's flag or `popwin_timer` is set
 (`find_target` export line ~911). `Leader::diplomacy (006bc950)` tests
 the flag (with `popwin_timer`) of another leader before a diplomacy
-branch (`6be27f`). The function the export files as `Wall::process
-(00640450)` skips a seated unallied leader's wonder count when its flag is
-set (crate note: `crates/sim/src/cities/site_recruit.rs:157`; the name may
-be a `-GL` fold and was not checked against the map).
+branch (`6be27f`). `Wall::process (00640450)` (the map's only name at that
+address, `rise_z.map` line 11915), in its under-construction arm over
+`unbuilt_wonders`, counts a seated unallied rival's competing wonders only
+while that rival's flag is clear, and one otherwise (crate note:
+`crates/sim/src/cities/site_recruit.rs:157`, where the crate reads the
+same count as `rival_wonders`).
 `Game::is_victory_timer` (flag of any seated slot under VICTORY 0, or a
 `popwin_timer`) is read by `Leader::diplomacy`, `Options::describe` and
 the diplomacy windows.

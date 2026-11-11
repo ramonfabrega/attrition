@@ -79,10 +79,12 @@ frames. Units: a count of uses.
 
 `Leader::init`'s `tribe < 0` memset (via `Leaders::init`, from
 `Game::init_rules_and_teams (00589bb0)`), then the same function's lobby
-store. No per-frame fold; `Leaders::clear (006ed5d0)` and
-`Leader::reset_score (006e37f0)` were not seen to write +0x48 (no store in
-either listing range; `reset_score` is called from `Leader::init` after
-the lobby store).
+store. `Leaders::clear (006ed5d0)` also memsets every slot's
+`[+0, +0x6929)` to 0 (006ed5e0..006ed5ee, base `0xe40fa4 - 0x6c14` =
+`0xe3a390`), from `Game::close` and `Game::run_oos_recovery` — the end of
+a game, not a start. `Leader::reset_score (006e37f0)` does not touch
++0x48 (its only bulk store is a 7-dword `-1` fill at `this+0x8f8`). No
+per-frame fold.
 
 ### Readers
 
