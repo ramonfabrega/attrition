@@ -16723,13 +16723,18 @@ words and edits nothing here; a refill lands when two remain.
   the map's edge, within (0, 0)–(1222, 596). The photograph's mean there is (64, 59, 33), with no blue. What the
   original draws past the edge is unread.
 
-## Parked by the next landing, slot FO — reserved
+## Parked by item 4145, 2026-11-11 — a click in the client mints the script's orders
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4145a. The opening camera's clicks** (`docs/INPUT.md` §2, §4; `INPUT_MINTED_OPENING` 1 of 3). At the camera the
+  client opens with, one pixel covers 39 to 46 integer points of ground. The move comes out (+3, 0) from the script
+  and the build (+2, +4). No rule can make every script coordinate reachable at that zoom. How the original turns a
+  click into a coordinate (its inverse and its rounding) is unread. A score here needs either that reading, scored
+  on clicks the original itself made, or a script whose coordinates came from clicks.
+- **4145b. The original's hit test and hotkeys** (`docs/INPUT.md` §4). The pick (the nearest anchor within 24 px) and
+  the keys `c` and `f` are ours. The original's piece-pixel hit test, its hotkeys and its build menu are unread. No
+  score moves until a capture holds a person's selection.
+- **4145c. The window under a real mouse** (`docs/INPUT.md` §1, §4). `main.rs` feeds the same layer under the
+  window's own size, where the tests use `graphsys`'s. It is checked by eye only.
 
 ## Parked by the next landing, slot FP — reserved
 

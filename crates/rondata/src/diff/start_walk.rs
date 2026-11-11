@@ -711,7 +711,7 @@ pub(crate) mod recording {
 
     /// The lobby's long capture, whose `GAMEINFO` block is the lobby's
     /// choices (`docs/START.md` §7.4).
-    pub(crate) const LOBBY_DUMP: &str = "gamelog-run53-greatlakes-24k-trace.txt";
+    pub(crate) const LOBBY_DUMP: &str = crate::script::LOBBY_DUMP;
     /// The frames our file plays: the long trace's length.
     pub(crate) const LOBBY_FRAMES: i32 = 24_000;
 

@@ -26,6 +26,7 @@
 
 mod gpu;
 mod ground;
+mod input;
 mod overlay;
 mod patch;
 mod silhouette;
@@ -37,7 +38,7 @@ use std::sync::Arc;
 use std::time::Instant;
 use trace::{Clock, Session};
 use winit::application::ApplicationHandler;
-use winit::event::{ElementState, KeyEvent, WindowEvent};
+use winit::event::{ElementState, KeyEvent, MouseButton, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, EventLoop};
 use winit::keyboard::{Key, NamedKey};
 use winit::window::{Window, WindowId};
@@ -120,6 +121,10 @@ struct Args {
     /// Draw the ground in its land kind's debug colour
     /// (`world::World::debug_ground`, item 4127), not its texture.
     debug_ground: bool,
+    /// Walk the minted script's lobby, built from its choices
+    /// (`rondata::free::FreeRunner::from_lobby`, item 4145), in place of
+    /// the pair's game: the lobby a person's orders are counted on.
+    lobby: bool,
 }
 
 fn parse() -> Result<Args, String> {
@@ -141,6 +146,7 @@ fn parse() -> Result<Args, String> {
         trees: true,
         textured: true,
         debug_ground: false,
+        lobby: false,
         trace: std::env::temp_dir().join(format!("attrition-client-{}.json", std::process::id())),
     };
     let mut it = std::env::args().skip(1);
@@ -166,6 +172,7 @@ fn parse() -> Result<Args, String> {
             "--no-trees" => a.trees = false,
             "--tint" => a.textured = false,
             "--debug-ground" => a.debug_ground = true,
+            "--lobby" => a.lobby = true,
             "--silhouette" => a.silhouette = Some(v()?.into()),
             "--zoom" => a.zoom = v()?.parse().map_err(|e| format!("--zoom: {e}"))?,
             "--look" => {
@@ -267,6 +274,10 @@ struct App {
     presented: u64,
     last_ms: f64,
     playing: bool,
+    /// The person's input (`input`, item 4145): slot 0's, and the cursor's
+    /// last pixel.
+    input: input::Input,
+    cursor: (i32, i32),
 }
 
 impl App {
@@ -303,7 +314,36 @@ impl App {
                 self.camera.parallel_distance /= 1.1
             }
             Key::Character(c) if c.as_str() == "-" => self.camera.parallel_distance *= 1.1,
+            Key::Character(c) => {
+                if let Some(k) = c.chars().next() {
+                    self.input(input::Event::Key(k));
+                }
+            }
             _ => {}
+        }
+    }
+
+    /// One event through the input layer, under the camera and size the
+    /// window draws with: the order it mints is issued to the walk for the
+    /// frame about to be stepped, and printed.
+    fn input(&mut self, ev: input::Event) {
+        let size = self
+            .window
+            .as_ref()
+            .map(|(w, ..)| w.inner_size())
+            .map(|s| (s.width as i32, s.height as i32));
+        let frame = self.world.runner.frame() as i32;
+        let (scene, terrain) = (self.world.runner.scene(None), self.world.runner.terrain());
+        let view = input::View {
+            matrix: self.camera.to_screen_matrix(),
+            screen: pinned_screen(),
+            size,
+            scene: &scene,
+            terrain: &terrain,
+        };
+        if let Some(order) = self.input.event(frame, ev, &view) {
+            println!("ORDER {order:?}");
+            self.world.runner.issue(&order);
         }
     }
 
@@ -377,6 +417,21 @@ impl ApplicationHandler for App {
                     },
                 ..
             } => self.key(el, &logical_key),
+            WindowEvent::CursorMoved { position, .. } => {
+                self.cursor = (position.x as i32, position.y as i32);
+            }
+            WindowEvent::MouseInput {
+                state: ElementState::Pressed,
+                button,
+                ..
+            } => {
+                let (x, y) = self.cursor;
+                match button {
+                    MouseButton::Left => self.input(input::Event::Press { x, y }),
+                    MouseButton::Right => self.input(input::Event::RightPress { x, y }),
+                    _ => {}
+                }
+            }
             WindowEvent::RedrawRequested => {
                 let t = Instant::now();
                 if self.playing {
@@ -444,6 +499,22 @@ fn main() {
     world.trees = args.trees;
     world.textured = args.textured;
     world.debug_ground = args.debug_ground;
+    if args.lobby {
+        let path = args.logs.join(rondata::script::LOBBY_DUMP);
+        let runner = rondata::load::load(&rondata::Install::new(&args.install))
+            .map_err(|e| e.to_string())
+            .and_then(|l| {
+                rondata::free::FreeRunner::from_lobby(&l, &path, sim::Tuning::RON)
+                    .map_err(|e| format!("{}: {e}", path.display()))
+            });
+        match runner {
+            Ok(r) => world.runner = r,
+            Err(e) => {
+                eprintln!("client: {e}");
+                std::process::exit(1);
+            }
+        }
+    }
     session.mark("frame zero");
     session.phase("run to the frame", || world.run_to(args.frame));
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
@@ -526,6 +597,8 @@ fn main() {
             window: None,
             presented: 0,
             last_ms: 0.0,
+            input: input::Input::new(0),
+            cursor: (0, 0),
         };
         if let Err(e) = el.run_app(&mut app) {
             eprintln!("client: {e}");
