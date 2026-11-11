@@ -140,6 +140,15 @@ fn le(b: &[u8]) -> i64 {
     }
 }
 
+/// How many parting elements a field's tally lists: three, or
+/// `WORLD_FIRST` when a probe asks for more.
+fn first_cap() -> usize {
+    std::env::var("WORLD_FIRST")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(3)
+}
+
 fn census(ours: &[WorldRange], theirs: &[Named]) -> Census {
     let key = |s: u8, f: &str, r: i16| format!("{s:02} {f} {r}");
     let by_key: BTreeMap<String, &WorldRange> = ours
@@ -201,7 +210,7 @@ fn census(ours: &[WorldRange], theirs: &[Named]) -> Census {
                 Some(v) => {
                     t.part.0 += 1;
                     t.part.1 += w;
-                    if t.first.len() < 3 {
+                    if t.first.len() < first_cap() {
                         t.first.push((*r, e, v, le(tb)));
                     }
                 }
