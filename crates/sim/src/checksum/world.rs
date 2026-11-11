@@ -547,7 +547,9 @@ impl Sim {
             Some(i64::from(d.blocked)),
             Some(i64::from(d.bad)),
             Some(i64::from(d.solid)),
-            None,
+            // `was_seen`: every `seen2` write's cell half (`docs/VISION.md`
+            // §12), `None` on a world with no fog grid.
+            w.cell_was_seen(c).map(i64::from),
         ]
     }
 }
