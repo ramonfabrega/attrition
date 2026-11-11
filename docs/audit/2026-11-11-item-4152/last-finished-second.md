@@ -62,3 +62,144 @@
     `LeaderData::walk_data (006d6750)`'s raw range `[&who, +0x692a)`, which
     contains both arrays.
 
+## Leaf 1: `last_building_finished` (`LeaderData +0x6070`, `int[129]`)
+
+### 1. Writers
+
+| writer | site | what it stores |
+|---|---|---|
+| `Leader::init (006e3930)` | dec. 744–747; listing `6e4bef` `rep stosd`, count `0x81` | −1 into all 129 (seated slot); 0 via `memset(…,0x6929)` for an unseated slot |
+| `Build::activate (00623e20)` | dec. 153–157; listing `623f26`–`623f47` | the building's own object number `o` |
+| `ScenarioFuncSet::get_last_type_built (009e9910)` | dec. 79–80; listing `9e99fb`/`9e9a02` | −1 after reading (read-and-clear) |
+
+No other writer by either net (see "Search nets run" above).
+
+### 2. The event, the step, the predicate
+
+**Event: a building goes active, uncaptured and counted.** In
+`Build::activate (00623e20)` (`thiscall`, three stack ints, here
+`captured`, `announce`, `counted` for readability; the PDB gives no
+parameter names), at its head before it calls `Wall::activate (0063e4b0)`:
+
+- predicate: `captured == 0 && counted != 0` (listing `623f29 test edi,edi;
+  jne` with `edi = [ebp+8]` loaded at `623e70`, then `623f2d test ebx,ebx;
+  je` with `ebx = [ebp+0x10]` at `623f26`);
+- index: the building's `ptype->type` (`SubObjectData +0x18`, then
+  `TypeData +0x4`, a `TypeIndex`), minus `0x19e` (folded into `0x59f8`);
+- slot: the building's `who` (`SubObjectData +0x9`, a `uchar`);
+- value: the building's `o` (`SubObjectData +0xa`, a `short`, sign-extended
+  by `movswl` at `623f34`) — its number in its owner's object array (the
+  crate's `Building::index`, `[2000, 3000)`).
+- It is an **overwrite**, not a step: the cell holds the most recent such
+  building of that type for that leader. Beside it the same `o` goes to the
+  scalar `ScenarioData::last_build_built_o[who]` (`0xcc1950 + who*4`,
+  listing `623f56`) — a global, not a `LeaderData` leaf.
+
+The call is virtual (slot `+0x1a8`; `vtables.txt:28415` `Build::activate`,
+the other classes' `+0x1a8` is `Wall::activate`). Every slot-`0x1a8` call in
+`.text` outside the UI classes, by both the `call *0x1a8(%r)` and the
+`mov 0x1a8(%r),%r2; call *%r2` forms, with its three pushes read from the
+listing (`arg3, arg2, arg1` in push order):
+
+| caller | site | (captured, announce, counted) | writes? |
+|---|---|---|---|
+| `Wall::do_construct (006434d0)` | `643663` | (0, 1, 1) | **yes** |
+| `Console::hurry_action (007c3810)` | `7c38bd` | (0, 1, 1) | **yes** |
+| `ScenarioFuncSet::create_building (009f4d30)` | `9f4e9f` | (0, 1, 1) | **yes** |
+| `Build::check_capture (006276a0)` | `627f82` | (0, 1, 0) | no |
+| `SpellType::cast_bribe (00672d00)` | `6734e2` | (0, 1, 0) | no |
+| `Leader::defeat_by (006d1c80)` | `6d20ec` | (0, 1, 0) | no |
+| `City::find_buildings (007384c0)` | `7388a8` | (0, 1, 0) | no |
+| `UnitBalance::next (009b8ac0)` | `9b9ece`, `9ba152` | (0, 1, 0) | no |
+| `Leader::produce_building (006e1400)` | `6e2e0a` | (0, `[ebp+0xc]`, 0) | no |
+| `Cities::capture_city (00733380)` | `733687`, `73390a` | (1, 1, 0) | no |
+| `ScenarioFuncSet::switch_teams (009f46b0)` | `9f4833` | (1, 1, 0) | no |
+| `Setup::build_cities (005ab910)` | `5ababf` | (0, 0, 0) | no |
+| `ScenarioEditor::add_build`, `::activate_selected`, `ScenarioRead::load_build_chunk` ×2, `::load_city_chunk` | `99d134`, `9a06a2`, `9aa8c4`, `9aa9c0`, `9aa411` | (0, 0, 0) | no |
+
+(The decompiler drops or truncates the argument list at several of these —
+`City::find_buildings` prints `(0,1)`, `Leader::defeat_by` `(0)`,
+`UnitBalance::next` and `cast_bribe` `()` — so the table is from the
+listing.)
+
+So in play the one writer is **`Wall::do_construct`'s completion**: each
+builder's contribution adds to the site's work (`+0x48`), and when it
+reaches the type's requirement (vtable `+0x18c`) the site is activated with
+`(0, 1, 1)` (decompile 110–113). A Wall object reaches the same line, but
+its slot `+0x1a8` is `Wall::activate`, which does not write; only a `Build`
+records. The start city (`Setup::build_cities`, `(0,0,0)`), a captured or
+bribed building, a `produce_building` placement (frame-0 small-city and
+civ buildings, `counted` 0) and a scenario-loaded building do **not**
+record.
+
+Arithmetic: none — a copy of a `short` into an `int`.
+
+### 3. What clears or resets it
+
+- `Leader::init (006e3930)`: all −1 (seated) at game setup.
+- `ScenarioFuncSet::get_last_type_built (009e9910)` sets the cell it reads
+  back to −1.
+- Nothing else. In particular, **nothing clears it when the building dies,
+  is captured, or is deleted** — no writer on any death path — so the cell
+  can hold the `o` of a dead building, or of an `o` since reused.
+
+### 4. Readers
+
+- `ScenarioFuncSet::get_last_type_built (009e9910)`, registered as the
+  scenario-script function `"get_last_type_built"` with two arguments by
+  `ScenarioFuncSet::init_funcs (009c7570)` line 2019. It takes a 1-based
+  player and a type *name*; it walks `types` `0..0x326` for a name match,
+  refuses a player outside `1..=8` or an unseated one (`leader_flags & 1`),
+  and refuses a type that is neither a unit `0x32..=0x19d` nor a building
+  `0x19e..=0x21e`. For a building it returns the cell and writes −1
+  (read-and-clear). No file under the install's `ai/` calls it (grep, 0
+  hits).
+- `LeaderData::walk_data (006d6750)`'s raw range `[&who, +0x692a)` for a
+  seated slot, reached from `CheckSums::check_one_leader (00937020)`,
+  `CheckSums::check_leaders (009375a0)`, `CheckSums::check_all
+  (00936560)`, `Leaders::walk_data (006e38e0)`, `SaveGame::verify_save
+  (005a76b0)` and `LoadGame::verify_load (005a39f0)`: the sync checksum and
+  the save/load round trip. That is why the leaf is on the leaders line.
+- No sim rule reads it.
+
+### 5. Where `crates/sim` has the event
+
+It already has the exact site, stubbed: `crates/sim/src/cities/activate.rs:53`
+`activate_head_steps` calls `v.record_last_built()` under `captured == 0 &&
+counted != 0` (line 74–75), and the `Sim` view's
+`SimHead::record_last_built` at `crates/sim/src/cities/activate.rs:139` is
+an empty body marked `SEAM: nothing here reads the tables.` (a second empty
+one at `:349` is a test view). It is reached from `Sim::activate`
+(`crates/sim/src/cities/city.rs:2420`, calling the head at `:2454`), which
+`do_construct_steps`' `SimConstruct::activate` calls as `activate(b, false,
+true)` (`crates/sim/src/cities/construct.rs:207–208`). A builder fills
+`SimHead::record_last_built` with `table[who][ty] = buildings[b].index`
+(the crate's building record number is `TypeIndex − 0x19e`, as
+`economy/cost.rs:1254` indexes `num_buildings`), adds the 129-entry `i32`
+table to the leader state initialised to −1, and exposes it to
+`crates/sim/src/checksum/leaders.rs:300`, where the leaf is already in the
+range table.
+
+### 6. Reached by a plain game?
+
+**Yes.** Every completed construction of a building in a skirmish against
+the computer — by a human's citizens or the AI's — runs
+`Wall::do_construct`'s completion. The other two writers are off the plain
+path: `Console::hurry_action` is the debug console's hurry (from
+`ConsoleWin::run_cmd` and `Console::exec_keymap`), and
+`ScenarioFuncSet::create_building` is the trigger layer. The reader
+`get_last_type_built` (the only thing that can reset a cell after init) is
+trigger layer too, so in a plain game the cell only ever moves from −1 to
+the latest finished `o` per type.
+
+### 7. Confidence and not read
+
+High for index, value, predicate and init: the decompile and the listing
+agree byte for byte at both stores, and the caller table is from the
+listing's pushes. Not read: the bodies of `Console::hurry_action`'s and
+`create_building`'s surrounding logic beyond the call; whether
+`UnitBalance::next` is reachable at all in a shipped build; a pointer
+anchored mid-record with a *negative* displacement into these arrays (the
+sweep covered displacements in `[0x59f8,0x67f4)` and every absolute in the
+range; the decompile's leader-context sweep found none either).
+

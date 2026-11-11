@@ -535,3 +535,166 @@ All are in `Leader::diplomacy`, for computer `me` against target `t`.
 - **Not followed:** `CommandPackage` at `946c32`'s argument mapping;
   `Diplomacy::num_attacks`.
 
+## `good_deeds` (+0xd4, int[8])
+
+### Writers
+
+- **`Leader::diplomacy (006bc950)`** at `6c08ae`:
+  `subl %ebx, 0xd4(%edi,%esi,4)`, with `edi` = `this` (me) and `esi` = `t`
+  (decompile lines 2796–2797). This is the only runtime store.
+- **Nothing else stores, by either net:**
+  - the absolute range `0xe3a464..0xe3a483` has no access at all;
+  - the export has `field_0xd4` in a `Leader`/`LeaderData` file only in
+    `Leader::diplomacy` (lines 1750 and 2796) and `Leader::init`
+    (line 153, the loop base);
+  - the register-relative `0xd4..0xf3` hits in leader-typed functions are
+    other records, e.g. `Leader::plan_strategy`'s seven
+    `movl %eax,0xd4(%ecx)` at `6ba8c2`… where `ecx` is loaded from a
+    pointer array and dereferenced at `+0xdc`, and `lose_tech`/`gain_tech`'s
+    `0xdc`–`0xe8` off the encrypted data block.
+- **Zeroed by `Leader::init`** (`*puVar23 = 0`, line 180) and by
+  **`Leaders::clear`**.
+
+### Event, step, predicate
+
+The **offers arm** of `Leader::diplomacy` (from `LAB_006bf0e0`) runs when
+`t` has a proposal pending to `me`, and only outside the CtW and scenario
+scripted-response path (`semaphore[1] & 0x10` or `semaphore[2] & 2` sends
+it to a fixed answer, lines 1733–1747). The steps:
+
+1. The computer values the deal. The balance **starts at
+   `good_deeds[t]`** (`6bf14a`, line 1750) and adds and subtracts the
+   deal's terms in resource units. The terms include `dow`-dependent +100s
+   at `6bfdf4`–`6bfe09`.
+2. `v = −balance` (`negl` at `6bfe17`).
+3. `v −= 99` if `counteroffer[t] != 0` (`lea -0x63(%ecx)` with `cmove` on
+   `counteroffer[t] == 0`, `6bfe1c`–`6bfe2a`; the decompile's
+   pointer-typed rendering of this, line 2780, hides the 99).
+4. **Accept branch** (`6c0865`), when `local_54 == 0` and `v ≤ 0`
+   (`6bfe30` → `6bffef`, `jle`):
+   - `counteroffer[t] = 0`;
+   - if `LeaderData::any_proposals (006d5ad0)(t)`, call
+     `action_respond(t, 1)`;
+   - then, if `!LeaderData::is_tribute_period (006d5b90)(list[t], me)`,
+     `v += 50` when `weak[t] != 0` (`6c089c`–`6c08ac`);
+   - **`good_deeds[t] −= v`**.
+
+So:
+
+- `good_deeds[t]` grows by the **surplus `−v ≥ 0`** of each deal from `t`
+  that this computer accepts, less 50 when it feels weak against `t`
+  outside a tribute period. It can therefore also shrink, by at most 50,
+  when the surplus is under 50.
+- It is written only when `any_proposals(t)` is true.
+- It is an integer in the same units as the deal valuation: resource
+  amounts and flat weights such as 25, 50 and 100. No scale.
+- It never decays.
+
+### Readers
+
+- **`Leader::diplomacy` at `6bf14a`** is the only reader: the opening
+  balance of the next valuation of a deal from the same `t`.
+- A larger `good_deeds[t]` makes `v` more negative, so later deals from a
+  leader whose earlier deals were generous are accepted more readily.
+- Not logged under that name by `LeaderData::log_data`; I found no read
+  there.
+
+### Reset
+
+`Leader::init` and `Leaders::clear`. No fold.
+
+### Crate
+
+- No event.
+- **The SEAM is the offers arm** at
+  `crates/sim/src/leaders/diplomacy.rs:488–495` ("SEAM: the offers arm
+  (`006bc950:1225–1294`, `LAB_006bf0e0`)" and the at-war arm).
+- **`crates/sim/src/leaders/relations.rs:146` names `good_deeds` only as
+  the base pointer** `Leader::init`'s loop writes `diplos` through. That is
+  correct, and it is not this leaf's writer.
+- A builder would add the accumulator inside a ported offers arm in
+  `diplomacy.rs`.
+
+### Reached by a plain game?
+
+- **Yes in principle**, whenever a computer accepts a proposal from `t` in
+  a skirmish: a human's offer through the diplomacy window, or another
+  computer's (the proposal arms call `action_respond(me, t, 1)` on their
+  own offers, so the receiver later evaluates them).
+- Under locked style 1 I did not establish whether any proposal can be
+  pending. Unlocked styles reach it.
+
+### Confidence and what is not read
+
+- **High** for the single store, its sign and the 50 and 99 adjustments,
+  all from the listing.
+- **Medium** for the meaning of the balance. I did not walk the valuation
+  term by term (decompile lines 1750–2780), and `local_54`'s meaning, the
+  "anything still to counter" flag, is unread.
+
+## `last_spoke` (+0x2f4, int[8])
+
+### Writers
+
+- **`Leader::init (006e3930)`**: `puVar23[0x88] = 0` in the per-slot loop
+  (`0xd4 + 0x88·4 = 0x2f4`, decompile line 246).
+- **`Leaders::clear (006ed5d0)`**'s memset.
+- **No runtime writer and no reader was found:**
+  - the absolute range `0xe3a684..0xe3a6a3` has **no access at all** in
+    the listing;
+  - no `Leader`, `LeaderData` or `Leaders` function in the export names
+    `field_0x2f4`;
+  - no displacement in `0x2f4..0x313` off a leader base appears in any of
+    the 937 leader-typed functions.
+- **The register-relative hits in that range are other records:**
+  - `Leader::init`'s `movw %cx,0x2fa(%edx)` at `6e4b3b`, a 16-bit store
+    into another object;
+  - `LeaderData::log_data`'s `movzwl 0x2fa(%edi)`, likewise 16-bit;
+  - `LeaderData::scale_tribute (006d5240)`'s `0x2fc`/`0x300`, which are
+    `Constants::commerce_tribute`/`base_tribute`;
+  - `Leader::plan_strategy`'s `movw` at `0x2fc`;
+  - `calc_gather`'s `0x2f8`, `gain_tech`'s `0x308` and `calc_rare`'s
+    `0x310`, all off non-leader bases;
+  - `Options`, `Console` and `Scene` fields.
+- The neighbouring `got_diplo_message` (`+0x2f0`) is written at
+  `0xe3a680(t·0x6eec)` in nine places in `Leader::diplomacy`. None of
+  those is `+0x2f4`.
+
+### Event, step, predicate
+
+None. The field is **constant 0** in the shipped executable, from
+`Leaders::clear` and `Leader::init` to the end of the game. It is a
+vestige: the name suggests a per-leader "last chat" stamp whose writer was
+removed or never written. `last_taunt`/`taunt_frame` at other offsets do
+that job (see `crates/rondata/src/blind.rs:326`).
+
+### Reset
+
+`Leader::init` and `Leaders::clear`.
+
+### Who reads it
+
+Nobody that I found. The dump's `last_spoke[scan]` row
+(`crates/rondata/src/diff/coverage.rs:295`) prints it.
+
+### Crate
+
+Nothing to add. A builder carries it as a constant 0 for the dump: the
+checksum row at `crates/sim/src/checksum/leaders.rs:84` and the "unheld"
+row in `crates/rondata/src/diff/checksum_lines.rs:1806`.
+
+### Reached by a plain game?
+
+The writer is init only, so every game reaches it, trivially.
+
+### Confidence and what is not read
+
+- **Medium-high.** The listing has no absolute access, which is decisive
+  for `leaders.list[i].last_spoke[j]`. The register-relative net covered
+  only functions whose decompile mentions a leader pointer type.
+- A store through a pointer computed elsewhere, e.g. `lea` of
+  `&list[x].last_spoke` passed to a helper, would escape both nets. A
+  `lea 0xe3a684` would have shown in the absolute scan, and none did.
+- **`Leaders::walk_data (006e38e0)` and the scenario loader were not
+  read.** They could copy a value in from a save or scenario file.
+

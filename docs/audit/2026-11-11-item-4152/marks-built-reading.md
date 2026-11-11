@@ -469,3 +469,145 @@ read: `Wonder::get_timer`; whether any path other than `init_wonder` sets a
 `Wonder` entry's live bit (`+0xc`); only the leaf's own nets were run, not
 a grep of that byte's writers.
 
+## Leaf `senates_built` (+0x85c)
+
+**What it is.** A count of Senate activations in a city, not by capture,
+since the last score reset.
+
+### 1. Writers
+
+| writer | site (listing) | store |
+|---|---|---|
+| `Build::activate (00623e20)` | `006246ec` `incl 0xe3abec(%eax)`, `eax = owner·0x6eec` | +1 |
+| `Leader::reset_score (006e37f0)` | `006e388f` `mov %eax,0x85c(%ecx)` | `= 0` |
+| `Leaders::clear (006ed5d0)` | memset | `= 0` |
+
+### 2. Event, step, predicate
+
++1 inside `Build::activate`'s type-lineage arm (decompile lines 160–227,
+listing `00624623..006246ec`), when **all** hold:
+
+1. the building is **not a city** (`SubObjectData::flags & 0x20` clear;
+   the arm is the `else` of the city-founding branch);
+2. the type is none of `GRANARY 0x1a7`, `LUMBERMILL 0x1a8`, `SMELTER
+   0x1a9`, `REFINERY 0x1aa`, `TEMPLE 0x1b5`, `MARKET 0x1b4` (the earlier
+   arms of one if/else chain, tested in that order) and **is
+   `SENATE 0x1b6`** (`is(0x1b6, 0)`, listing push at `00624627`; the
+   Senate lineage, whatever upgrades it has);
+3. after the government-hero block (which trains a patriot when
+   `gov_hero_frame ≥ 0`, not captured, none near and the frame has come —
+   it does not gate the increment), **`Build +0x72` (city index) ≥ 0**
+   (`006246cf` `cmpw $0x0,0x72(%esi); jl`) **and `captured == 0`**
+   (`006246da` `testl %edi,%edi; jne`; `edi` is `param_1`, loaded from
+   `0x8(%ebp)` at `006241fd`, and the path `006244e4 → 006245c6 →
+   00624623` does not rewrite it — the temple arm's `mov 0xc06188,%edi` at
+   `006244ff` is off this path).
+
+`announce` and `counted` do not gate it. So the transfer routes that call
+`activate(0, 1, 0)` — `City::find_buildings`, `Leader::defeat_by`,
+`Build::check_capture`, `SpellType::cast_bribe` — **do** count a Senate
+they hand over; only `Cities::capture_city`'s `(1, 1, 0)` does not.
+Whether a Senate ever travels those routes was not followed. Step +1;
+index `who` = owner byte.
+
+### 3. Reset
+
+`Leader::reset_score` (from `Leader::init` and `Setup::build_game`, as
+under `wonders_built`), `Leaders::clear`.
+
+### 4. Readers
+
+`LeaderData::log_data` (line 906) and the checksum walk. **No sim
+decision reads it** in either net.
+
+### 5. Crate site
+
+Already a hook: `ActivateArmsView::senates_built_inc`
+(`crates/sim/src/cities/activate.rs:172`), called by `senate_arm_steps`
+(`:261`) after exactly the `city_index() < 0 || captured != 0` return;
+the `SimArms` implementation (`:394`) is a no-op marked `SEAM: no reader
+here carries senates_built`. A builder fills that one method. The arm's
+predicate as ported is **emulator-backed**: the `build_activate_senate`
+and `build_activate_arms` sweeps (`crates/sim/tests/sweep/build_activate_senate.rs`,
+`build_activate_arms.rs`, port in `crates/sim/tests/sweep/activate_view.rs:181`)
+run the original's `Build::activate` under unicorn with `0x00e3abec`
+(slot 0's `senates_built`) in a window and hold every byte to the port.
+That is a sweep, not a dump diff of a live game.
+
+### 6. Plain game?
+
+Yes: any Senate a player finishes in a city.
+
+### 7. Confidence, not read
+
+High; the predicate is listing-read and sweep-backed. Not read: whether a
+Senate can stand outside a city (`+0x72 < 0`; it is `0x200` one-per-city
+in `docs/CITIES.md` §1.5's table, which suggests not); the transfer
+routes' reach.
+
+## Leaf `forts_built` (+0x8f0)
+
+**What it is.** A count of fort registrations (fort activations) since the
+last score reset.
+
+### 1. Writers
+
+| writer | site (listing) | store |
+|---|---|---|
+| `Fort::init (0073eac0)` | `0073eaea` `incl 0xe3ac80(%eax)`, `eax = movsbl(who)·0x6eec` | +1 |
+| `Leader::reset_score (006e37f0)` | `006e38b9` `mov %eax,0x8f0(%ecx)` | `= 0` |
+| `Leaders::clear (006ed5d0)` | memset | `= 0` |
+
+The README row lists `Fort::init`; there is no store in `Forts::init_fort`
+itself, and `Forts::close_fort` does not decrement.
+
+### 2. Event, step, predicate
+
+- `Fort::init(idx, who, o)` writes the entry (index, `o`, owner byte,
+  live = 1), **increments `forts_built[who]` unconditionally**, records
+  the region of the fort's cell (`Fort +4`) and, when that region id is
+  `< 0x40`, increments the leader's per-region short at `+0x12de +
+  region·2` (another family's leaf).
+- `Fort::init`'s only caller (listing: one `call 0x73eac0`, `0073ee93`) is
+  `Forts::init_fort`, whose only caller is `Build::activate`'s `is_fort`
+  arm (see `fort_mark`): **+1 on every activation of a FORTX-lineage
+  building** (Fort, Castle, Fortress, Redoubt, and the Red Fort per
+  `docs/CITIES.md` §1.5 — not re-derived here), with no `captured`,
+  `announce` or `counted` gate. A Red Fort therefore steps both
+  `forts_built` and `wonders_built`, if it is in the `is(FORTX)` lineage.
+- The owner index is sign-extended from a byte (`movsbl`); owners are
+  0..7, so this changes nothing in practice.
+- An in-place upgrade (Fort → Castle by tech) is not an activation unless
+  some path re-activates the building; none was found (`init_fort` has
+  one caller), so an upgrade does not count.
+
+### 3. Reset
+
+`Leader::reset_score` (from `Leader::init` and `Setup::build_game`),
+`Leaders::clear`. Not reset by the fort's loss.
+
+### 4. Readers
+
+`AchieveChartPane::set_chart_data (007f2c40)` (line 235, listing
+`007f31e7` `pushl 0x8f0(%esi,%eax)`), UI only; the checksum walk. **No sim
+decision reads it.**
+
+### 5. Crate site
+
+None yet. `Sim::activate` (`crates/sim/src/cities/city.rs:2420`) already
+tests `build::is_fort` at line 2533 (to call `sync_territory`); the
+counter belongs beside that test, but note the crate's test sits inside
+the non-city branch after `activate_arms_steps`, whereas the original's
+`init_fort` is reached for every activation (a city is never a fort, so
+the two agree on which buildings count).
+
+### 6. Plain game?
+
+Yes: any fort a player finishes.
+
+### 7. Confidence, not read
+
+High (one writer, both nets, listing read at the store). Not read:
+whether the Red Fort is in the FORTX lineage (taken from
+`docs/CITIES.md`).
+
