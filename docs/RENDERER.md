@@ -1287,7 +1287,22 @@ rows are their pins'.
   not move; ours the texel, unlit. A pixel agrees within 0.05; an object
   passes on 40 lit pixels, half agreeing. **11 of 33**, the tint's 2
   (`RUN1559B_3279_COLOUR`); run1441's camera 0. Texcoords as stored.
-- *What it does not measure.* Team colours (4038a, 4099a).
+- *The team colour* (4102, before its count; `TEAM_UNIT`). A figure's
+  texel is `t·α + c·(1 − α)`, α its texture's alpha over 255 and `c`
+  its owner's unit colour, `team_colors.list[Leader +0x6928].unit`;
+  the light after it, as before. Read: run1559b's packet holds
+  `render_states[0]`'s stage 0 as `TOP_BLENDTEXTUREALPHA(TA_TEXTURE,
+  TA_TFACTOR)`, its stage 1 `TOP_MODULATE(TA_CURRENT, TA_DIFFUSE)`;
+  `GraphicPieces::draw_unit@008e7da0` writes that state's `tfactor`
+  from `TeamColor::get_unit@008c2db0` on the listing (0x8e8397–0x8e85fc).
+  The unit colours are the packet's: 0 (255, 0, 0), 1 (34, 82, 255),
+  2 (255, 0, 255), 3 (0, 208, 0), 4 (255, 255, 0), 5 (0, 255, 255),
+  6 (255, 255, 255), 7 (255, 105, 0). Valued first (4102's table,
+  `the_masked_texels_against_the_owner_s_colour`): over the masked lit
+  pixels it reads nearest of seven blends for red as for blue. **Rests
+  on a reading and one photograph**; no blind second reading is booked,
+  and the relationship-colour preference (`prefs & 0x100`) is not read.
+- *What it does not measure.* The silhouette pass's colour (4099a).
 - *The constants* and interface are this frame's, pinned, never tuned
   to a count (the inputs: 4089's journal).
 
