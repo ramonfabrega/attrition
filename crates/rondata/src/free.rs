@@ -80,6 +80,35 @@ impl FreeRunner {
         })
     }
 
+    /// A runner over a lobby's **built start** (`docs/START.md` §7, item
+    /// 4145): the capture's `GAMEINFO` and player rows — the lobby's
+    /// choices — through [`crate::diff::from_lobby`] and
+    /// [`crate::diff::built_from_lobby`], as the minted script's walk
+    /// stands it up (`docs/RECGAME.md` §9). Nothing of the capture past its
+    /// setup block is read, and no correction is installed.
+    pub fn from_lobby(loaded: &Loaded, lobby: &Path, tuning: Tuning) -> std::io::Result<Self> {
+        let mut source = IndexedCapture::open(lobby)?;
+        let built = source.with_replay_initial(|init| {
+            let ours = crate::diff::from_lobby(loaded, &init.game_info, &init.players, tuning);
+            crate::diff::built_from_lobby(loaded, ours).0
+        })?;
+        Ok(Self {
+            built,
+            stream: None,
+            frame: 0,
+        })
+    }
+
+    /// A person's order, issued now: one package of the script's
+    /// vocabulary (`recgame::Order`) for the frame about to be stepped,
+    /// handed to the turn pump ([`Stream::pump`]) as a recording's package
+    /// would be — encoded and decoded through the wire, so what the walk
+    /// takes is what a file written from the same order carries.
+    pub fn issue(&mut self, order: &crate::recgame::Order) {
+        let stream = self.stream.get_or_insert_with(Stream::pump_empty);
+        stream.push(order);
+    }
+
     /// The order stream a recorded game carries, applied before each tick.
     pub fn with_stream(mut self, stream: Stream) -> Self {
         self.stream = Some(stream);

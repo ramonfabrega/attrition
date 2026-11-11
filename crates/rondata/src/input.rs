@@ -1436,6 +1436,34 @@ impl Stream {
         }
     }
 
+    /// A turn pump's stream with nothing in it yet: the client's, which
+    /// [`Stream::push`] feeds as a person issues orders (item 4145).
+    pub fn pump_empty() -> Stream {
+        Stream {
+            input: Vec::new(),
+            next: 0,
+            selection: vec![Vec::new(); 8],
+            received: vec![Vec::new(); 8],
+            pump: true,
+        }
+    }
+
+    /// One package appended: `order`'s commands encoded as a recording
+    /// stores them and decoded back, each an [`Input`] on the order's
+    /// frame. The stream is consumed in order, so a package for a frame
+    /// already applied is never taken.
+    pub fn push(&mut self, order: &crate::recgame::Order) {
+        let (frame, play, cmds) = order;
+        let bytes = crate::commands::encode(cmds);
+        let cmds = crate::commands::decode(&bytes).expect("a package this crate encoded decodes");
+        self.input
+            .extend(cmds.into_iter().filter(is_input).map(|cmd| Input {
+                frame: *frame,
+                play: *play,
+                cmd,
+            }));
+    }
+
     /// How many input commands the stream holds.
     pub fn len(&self) -> usize {
         self.input.len()
