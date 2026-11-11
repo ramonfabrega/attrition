@@ -1749,7 +1749,6 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 4, 4313);
 /// value for (emitted as zeros, and counted whether or not the original's
 /// value is zero). `docs/CHECKSUM.md` §20 sorts each into its pile.
 const LEADERS_HELD_OUT: &[(&str, usize)] = &[
-    ("aggression", 2),
     ("air_queued (unheld)", 2),
     ("ally_stamp (unheld)", 2),
     ("anti_att (unheld)", 2),
@@ -1871,6 +1870,7 @@ const LEADERS_BENT: &[&str] = &[
     "reg_forts",
     "combat_units",
     "air_units",
+    "aggression",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its
