@@ -284,9 +284,8 @@ and the stores go to the same record.
      `ldmxcsr`, and its one `_controlfp_s` call sets only the x87
      precision control.
 
-The order is observable in the bits, though not in the rational. Applying
-Mongol before Forage 1 gives `0x442aaaab`; the writer's order gives
-`0x442aaaac`.
+The order shows in the bits, not the rational: Mongol before Forage 1
+gives `0x442aaaab`, the writer's order `0x442aaaac`.
 
 **What the predicates read:**
 
@@ -473,9 +472,9 @@ Confidence:
 - **The Mongol init value of 512.0** (medium). Check it against a capture
   whose walked leader plays the Mongols.
 
-None of these changes the bits of a plain game's first frames. A capture in
-which a walked leader researches Forage and then Supply or Logistics, or
-plays the Mongols, would back every row of the pattern table at once.
+None changes a plain game's first frames. A capture whose walked leader
+researches Forage then Supply or Logistics, or plays the Mongols, would
+back every row of the pattern table at once.
 
 ## 9. The taunts
 
@@ -1003,10 +1002,9 @@ no other writer.
 - **SEAM.** `queue_disband` (`crates/sim/src/cities/queue_disband.rs:172–174`)
   stands in for `queue_here`, `type_avail` and `has_spell` of `DISBAND`, and
   answers yes. That stays correct, because `DISBAND` is among the 46.
-- **Trap: keep both `-2` refusals**, or keep one deliberately. `has_preq`
-  and `type_eligible` each refuse a `-2` slot, so a port that drops one
-  still refuses the eight rows. The two checks are not interchangeable for
-  other types.
+- **Trap: the `-2` refusal lives in two checks.** `has_preq` (which runs
+  first) and `type_eligible` each refuse a `-2` slot alone. A port may skip
+  one only knowing the other still refuses the eight rows.
 - **Checksum.** The port removes `("tech.ptr", 2)` from `LEADERS_HELD_OUT`
   (`crates/rondata/src/diff/checksum_lines.rs:1839`). It should also turn
   agreeing the two 101-byte `tech` array ranges (one per walked leader)

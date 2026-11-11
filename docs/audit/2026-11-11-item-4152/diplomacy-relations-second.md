@@ -106,3 +106,53 @@ Reachable combinations with `quiet == 0` (every such caller passes `force == 0`,
 
 **7. Confidence.** High on the write and its predicate. Not read: which `Leader::diplomacy` predicates lead to 6beceb/6bed1c (the decompile shows 6beceb behind `who == target`, which reads oddly; I did not resolve it).
 
+## `made_peace` (+0x2d0, int[8])
+
+**1. Writers.**
+- `Leader::action_respond (006d03c0)`: `movl %eax, 0xe3a660(,%ecx,4)` at 6d108d (`ecx = responder*0x1bbb + proposer`) and at 6d10a0 (`ecx = proposer*0x1bbb + responder`, `-0x20(%ebp) = proposer*0x1bbb`), `eax = [game+0x550]` each time.
+- `Leader::init (006e3930)`: `movl %eax, 0x1fc(%esi)` at 6e3d63 (`0xd4 + 0x1fc = 0x2d0`), 0.
+- Block writers: `Leaders::clear`, `LeaderData::walk_data`.
+- False positives checked: `LeaderOut::warn_resources` 6d36ad (console object), `MapEastMeetsWest`/`MapWarringStates::make_continents`, `IFaceDiploBase::setup_chat`, `ScenarioFuncSet::set_unit_type_max_craft`, `Game::restore_type_backup` (other records).
+
+**2. Event, step, predicate.** Both sides' slots are stamped with the sim frame: `responder.made_peace[proposer] = proposer.made_peace[responder] = frame`. `action_respond(this = responder, proposer, response)`. Only `response == 1` (accept) reaches it, through the apply arm (`LAB_006d0df9`; for a proposed alliance only when the team-size test passes). The proposal's treaty word is `responder.dip[proposer].treaty` (`LeaderData + 0x692c + proposer*0x5c + 8`, `Diplomacy::treaty`). If it is not -1, both directions are `set_diplo`'d to `max(treaty, current diplos)` (an accepted deal never lowers a relation), and **if the treaty word is exactly 1** the two stamps are written — even when the `max` leaves the pair allied, so a level-1 clause accepted between allies still stamps.
+
+**3. Reset.** `Leader::init` → 0; `Leaders::clear`. Overwritten by the next accepted peace.
+
+**4. Readers.** `Unit::process_attrition (005e11a0)` (decompile lines 171–173, listing 5e1697/5e16d0): within `ally_to_war_delay` of either side's stamp, the peace grace. With the shipped -1 (see `broke_alliance`) the test never fires.
+
+**5. Crate.** No proposal/accept path: `crates/sim/src/leaders/diplomacy.rs:177` (`SEAM: dip[t].agree … the Diplomacy records are not carried`). A builder adds the stamp to a new `action_respond` beside its `set_diplo` calls (`Sim::set_diplo`, `crates/sim/src/leaders/relations.rs:116`).
+
+**6. Plain game?** Yes where peace treaties are offered and accepted: callers of `action_respond(.., 1)` are `Leader::diplomacy` (6be848, 6bf3e5, 6c0888, 6c08ea, 6c0d81, 6c0f40, 6c1299), `Leader::process_taunt` (6b8f16), `Leader::action_agree`, `CommandPackage::process_accept` (the human), and `ScenarioFuncSet::accept_offer` (triggers). It needs a lobby where leaders start or fall out of war and negotiate (diplomacy team styles); whether the locked-team captures ever reach an accepted treaty-1 proposal I did not establish.
+
+**7. Confidence.** High on the stamp and the treaty-1 predicate. Not read: which proposals carry `treaty == 1` (the offer builders `Leader::action_treaty`, `action_offer`), and the team-size arm for `treaty == 2` beyond its branch target.
+
+## `hire_stamp` (+0x1b4, int[8]) and `hire_who` (+0x1d4, int[8])
+
+One writer steps both, so one section.
+
+**1. Writers.**
+- `Leader::action_respond (006d03c0)`, the hire loop (listing 6d11bc–6d12a9):
+  - `movl %eax, 0xe3a544(,%ecx,4)` at 6d121e — `responder.hire_stamp[X] = frame`;
+  - `movl %eax, -0x20(%ecx)` at 6d122e, `ecx = [0x8(%ebp)] = &proposer.hire_who[X]` (6d11d4 `leal 0xe3a564(%eax)` with `eax = -0x14(%ebp) = proposer*0x6eec`, set at 6d0903; stepped by 4 per X at 6d12a0) — `proposer.hire_stamp[X] = frame`;
+  - `movl %edi, 0xe3a564(,%eax,4)` at 6d123a — `responder.hire_who[X] = proposer` (`edi` = proposer);
+  - `movl %eax, (%ecx)` at 6d1244 — `proposer.hire_who[X] = responder`.
+- `Leader::init (006e3930)`: `movl %eax, 0xe0(%esi)` at 6e3c2d → `hire_stamp[j] = 0`; `orl $-1, %eax; movl %eax, 0x100(%esi)` at 6e3c33/6e3c36 → `hire_who[j] = -1`.
+- Block writers: `Leaders::clear` (both to 0, so `hire_who` reads 0 until `Leader::init` runs), `LeaderData::walk_data`.
+- False positives checked: every `ScenarioEditor::*`, `IFaceEditorNations::*`, `IFaceDiploBase::*`, `ConquestGame::*`, `ConquestLeader::demand_tribute`, `Objects::init`, `ScenarioRead::load_leaders_chunk`, `ScenarioFuncSet::set_object_type_attack` hits are on interface, editor, conquest, object or game-info bases; `Leader::plan_strategy`'s `leal 0x1e8(,%ecx,4)` (6b9ab5) is an index scale, not the field. The export's `pLVar16->hire_who[4] & 0x4000000` in `BuildOut::make_options` is a read through a mistyped pointer (offset `0x1e4`), not a writer.
+
+**2. Event, step, predicate.** On an accepted proposal (`response == 1`, the apply arm as for `made_peace`), after the treaty and goods are applied, **if `Game::war_allowed (00594670)`**: for each slot X in 0..8 with X ≠ responder, X ≠ proposer, and `responder.dip[proposer].attacks[X] != 0` (`Diplomacy::attacks`, `+0x3c`; listing `0xe40cf8(,%eax,4)` with `eax = responder*0x1bbb + proposer*0x17 + X`):
+- both sides' `hire_stamp[X] = frame` (sim frame number);
+- `responder.hire_who[X] = proposer`, `proposer.hire_who[X] = responder` (a slot index);
+- then each of the two, if not already its enemy, `action_declare`s war on X (level 0, quiet = `!(HUMAN)`, force 0 — read at 6d1264–6d1273 and 6d1288–6d1297).
+The stamps are written before the declare and whether or not it succeeds. No per-X exemption beyond the three listed.
+
+**3. Reset.** `Leader::init` (`hire_stamp` 0, `hire_who` -1); `Leaders::clear` (0, 0). Overwritten by the next hire against the same X.
+
+**4. Readers.** `Leader::diplomacy (006bc950)`: `hire_stamp[target]` non-zero and within 13500 frames (`0x34bc`) forces `aggression = 1` (decompile lines 925–928; listing 6bdc8a); within 4500 frames (`0x1194`) it vetoes a coin that would clear aggression (lines 933–934; 6bdce2); a third leader's `hire_who[target] == candidate` with its `hire_stamp` within 9000 frames forces aggression (lines 949–950; 6bdd57/6bdd6b); `hire_who` is also read through `puVar29` off `&field_0x1d4` (line 943) and `-0x1dc` (line 1845; 6bf7a5) in the ally-help arm; and 13501 frames (`0x34bd`) at line 1346 (6be680). Frames are sim frames.
+
+**5. Crate.** Not carried: `crates/sim/src/leaders/diplomacy.rs:453–454` (`SEAM: hire_stamp/hire_who … hiring is not modelled`). No `action_respond`; a builder writes both in a new `action_respond`'s apply arm.
+
+**6. Plain game?** Reachable in a skirmish whenever an accepted proposal carries an attack clause and war is allowed: computer–computer and human–computer deals through `Leader::diplomacy`'s accepts and `CommandPackage::process_accept`. It needs a diplomacy lobby with three or more leaders where proposals are exchanged; not reachable in a two-player game (X must be a third slot). Whether any capture reached it I did not check.
+
+**7. Confidence.** High on the four stores, their bases and the predicate (all from the listing). Not read: who builds a proposal with `attacks[]` set (the offer builders), and the team-size arm.
+

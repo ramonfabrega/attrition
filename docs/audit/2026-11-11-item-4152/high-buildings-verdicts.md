@@ -53,3 +53,45 @@ Verdict: **corrected (second), confirmed and extended (first)**. Deciding lines:
 - Plain game: yes.
 - Confidence: high on all of it, all listing-confirmed. Open: nothing on the rule. Whether `territory`'s crate units equal the original's tiles decides whether the checksum value agrees. That is a property of `territory`, not of this leaf.
 
+## Leaf 2: `reg_terr` (+0x145e, ushort[64])
+
+### Claims lined up
+
+| claim | first | second | status |
+|---|---|---|---|
+| index: region slot r in 0..63 (records `0x88` apart, land half), no bias | yes | yes | agree, **confirmed** (every access is `0xe3b7ee + 2·(slot·0x3776 + r)`) |
+| writer: `World::compute_reg_territory (006b0bb0)` zeros at `006b0c2c` (`movw %cx,(%eax)`, `eax = 0xe3b7ee + 2r` from `006b0c17`) | yes | yes | agree, **confirmed** |
+| writer: same function, `incw 0xe3b7ee(,%eax,2)` at `006b185b`, `eax = owner·0x3776 + r` | yes | yes | agree, **confirmed** (`006b184d`..`006b185b`) |
+| predicate for `+= 1`: winner `local_14 >= 0` (−1 and −2 count for nobody) | yes | yes (only names −1) | agree, **confirmed**: `movl -0x4(%ebp),%edx` at `006b1755`, then `js 0x6b19e2` at `006b175a` skips the whole tail for a negative owner. `-0x4(%ebp)` is unchanged up to `006b1834`, where it feeds the `imull` |
+| −2 = the winning city's +0x5f byte differs from the slot whose city list held it | one-sided (first): "the city's own owner byte" | — | **corrected (name)**: `types.txt` line 44374 ff. names `CityData +0x5f` **`race`** (a `char`), not an owner byte. The arm is decompile `funcs/World/compute_reg_territory@006b0bb0.c` lines 467–484: `local_14 = -2`, and it becomes the slot only if `city->race == slot`. The rule (−2 counts for nobody) stands. What `race` holds for a captured city is not established here. The crate's `Owner::Ambiguous` doc (`crates/sim/src/world.rs:171`) says "the winning city's own record of its owner", which is the same naming gap |
+| zero predicate: on a call where region r's cursor `+0x2c` is 0 (after `reset` zeroes it), for slots 0..7 (bound `0xc09a50`) with `leader_flags & 1`; also zeroes `reg_known_rares[r]` (+0x4d4) and live cities' `bordering` (+0x65); **before** the budget test | yes | yes | agree, **confirmed**: `cmpl $0x0,0x2c(%ecx,%eax)` / `jne` at `006b0bfc`; `testb $0x1,-0x408(%edx)` at `006b0c21` with `edx = 0xe3a798 = 0xe3a390 + 0x408`; budget `cmpl $0x100,0x24(%eax)` at `006b0ca2`, after the block. `types.txt` names `+0x65` `bordering` |
+| one-sided, neither reader: the zero block's city loop runs over `leaders.list[s] +0x408` entries (`cmpl %ecx,(%edx)` at `006b0c31`) and tests `city +0x4 & 1` (`city_flags`); then the region's `+0x8` bit `0x80` is cleared (`006b0c76`). The `incw` tail sets it again (`orl $0x80,0x8(%eax,%ecx)` at `006b186b`) | — | — | finding, outside this leaf |
+| early return: cursor >= size, or `GameDaemon::borders (+0x24) > 0xff` | yes | yes | agree, **confirmed** (`006b0c88`..`006b0c8e`; `006b0ca2`, signed `jl`, so −1 = unlimited) |
+| writer: `World::compute_all_territory (006b5700)` whole-array clear per slot | "32-dword clear per slot" | "32 dword zero stores" | agree on the effect, **confirmed with a correction to the shape**: eight `movups %xmm0` 16-byte stores (`006b5721`..`006b573c`) = 128 bytes = 64 ushorts, **only for slots with `leader_flags & 1`** (`testb $0x1,-0x145e(%eax)` at `006b5715`), slots 0..7 (bound `0xe72f4e = 0xe3b7ee + 8·0x6eec`, `006b5745`). Then `borders = -1` (`006b575b`), and `compute_reg_territory(r, 1)` for every r with size != 0 |
+| writer: `Leader::init (006e3930)` ordinary path, loop based at `this + 0xd64`, `+0x6fa`, i < 0x40 | yes | yes | agree, **confirmed**: `leal 0xd64(%ebx),%edx` at `006e4ae1`; `cmpl $0x40,%esi` / `jge` at `006e4b0d`; `movw %cx,0x6fa(%edx)` at `006e4b1f`; edx steps 2 per i (`006e4b9a`) |
+| reset: tribe<0 memset | first yes, second no | — | **confirmed** (Leaf 1: `006e398c`); the same memset covers `+0x145e`. **Extended**: `Leaders::clear (006ed5d0)` also zeroes it (Leaf 1) |
+| reader: `BuildTypeData::blocked_location (006375b0)` at `00637911`: `CITY_SPACING − RELAX_CITY_SPACING` when `Region.size·9/10 <= reg_terr[who][r]` | yes | yes | agree; crate reads the same rule at `crates/sim/src/cities/location.rs:305` (`v.region_size(reg) * 9 / 10 <= v.reg_terr(who, reg)`) |
+| readers: the `territory` sums in both folds (`006b5860`, `00732140`) | yes | yes | agree, **confirmed** (Leaf 1 listing) |
+| mid-pass partial count; the crate's on-demand `Sim::reg_terr` (`cities/place.rs:344`) diverges mid-pass | yes | yes | agree; checked the crate: `zero_region_rares` (`territory/border_pass.rs:125`) says the `+0x145e` write "has no field in this crate", and `advance_border_pass` (`:184`) has the `*at == 0` arm (`:205`) and the per-cell `who.player()` (`:222`) |
+| crate sites for a stored field: `advance_border_pass`'s cursor-0 arm and cell loop; `wholesale_bordering` (`:136`) / `settle_borders` (`:166`) / `start_border_pass` (`:48`) for the wholesale recount | yes | yes | agree, **confirmed** that every named function exists |
+
+### Writer completeness (own nets)
+
+Both readers' listing nets (the `0x145e(` displacement, the absolute `0xe3b7ee`, scaled displacements around it) are reproduced by the hits above. The memsets (`Leader::init`'s tribe<0 arm and `Leaders::clear`) are the only writers neither net could see, because they are a size, not a displacement. The second reader lists `Wall::*_stats`, `Fort::*` and `Dock::*` as landing on neighbouring per-region arrays. I did not re-run that sweep. No new writer.
+
+### Port note on the zero's predicate
+
+The original zeroes `reg_terr[s][r]` only for slots with `leader_flags & 1`, both at the cursor-0 block (`006b0c21`) and in `compute_all_territory` (`006b5715`). A slot that has lost bit 0 keeps its last counts, and the checksum walks them. The crate's `zero_region_rares` zeroes for every `ai` leader without a liveness test. If the builder puts `reg_terr`'s zero there, it must gate it on the live bit, or a dead slot's row will part. The same question applies to `reg_known_rares` (not this leaf).
+
+### Rule as a builder should port it
+
+- Field: `reg_terr: [u16; 64]` per player, indexed by the original's region number, in tiles.
+- Writers, all inside the border pass:
+  - `compute_reg_territory(r, reset)`. If `reset`, set the cursor to 0. If the cursor is 0, then for every slot 0..7 with live bit 0 zero `reg_terr[s][r]` (with `reg_known_rares[s][r]` and the slot's live cities' `bordering`); this runs before the 256-tile budget test, so a region the budget denies is re-zeroed every frame until its first tile. Then, for each tile the pass assigns, `reg_terr[winner][r] += 1` (wrapping u16) when the winner is >= 0. −1 (no claim) and −2 (the winning city's `race` is not the slot whose list held it) count for nobody.
+  - `compute_all_territory`: zero all 64 for every live slot 0..7, then run every sized land region with an unlimited budget.
+- Reset: the above, plus `Leader::init` (ordinary path loop, and the tribe<0 memset) and `Leaders::clear`.
+- Reader that decides: city placement's spacing relaxation (`cities/location.rs:305`).
+- Crate site: store it in `territory/border_pass.rs` (cursor-0 arm, gated on live; per-cell loop; wholesale recount), and have `Sim::reg_terr` read the store instead of recounting.
+- Plain game: yes.
+- Confidence: high on the writers, the predicates and the step, all listing-confirmed. Open: what `CityData::race` holds after a capture, which decides when a tile is −2; and whether the crate's recount already parts in a capture (neither reader checked; `docs/PARKED.md` 568 is the existing booking).
+

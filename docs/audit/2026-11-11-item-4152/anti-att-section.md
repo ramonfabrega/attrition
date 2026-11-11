@@ -60,9 +60,8 @@ and the stores go to the same record.
      `ldmxcsr`, and its one `_controlfp_s` call sets only the x87
      precision control.
 
-The order is observable in the bits, though not in the rational. Applying
-Mongol before Forage 1 gives `0x442aaaab`; the writer's order gives
-`0x442aaaac`.
+The order shows in the bits, not the rational: Mongol before Forage 1
+gives `0x442aaaab`, the writer's order `0x442aaaac`.
 
 **What the predicates read:**
 
@@ -249,6 +248,6 @@ Confidence:
 - **The Mongol init value of 512.0** (medium). Check it against a capture
   whose walked leader plays the Mongols.
 
-None of these changes the bits of a plain game's first frames. A capture in
-which a walked leader researches Forage and then Supply or Logistics, or
-plays the Mongols, would back every row of the pattern table at once.
+None changes a plain game's first frames. A capture whose walked leader
+researches Forage then Supply or Logistics, or plays the Mongols, would
+back every row of the pattern table at once.

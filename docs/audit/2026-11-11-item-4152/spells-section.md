@@ -114,10 +114,9 @@ no other writer.
 - **SEAM.** `queue_disband` (`crates/sim/src/cities/queue_disband.rs:172–174`)
   stands in for `queue_here`, `type_avail` and `has_spell` of `DISBAND`, and
   answers yes. That stays correct, because `DISBAND` is among the 46.
-- **Trap: keep both `-2` refusals**, or keep one deliberately. `has_preq`
-  and `type_eligible` each refuse a `-2` slot, so a port that drops one
-  still refuses the eight rows. The two checks are not interchangeable for
-  other types.
+- **Trap: the `-2` refusal lives in two checks.** `has_preq` (which runs
+  first) and `type_eligible` each refuse a `-2` slot alone. A port may skip
+  one only knowing the other still refuses the eight rows.
 - **Checksum.** The port removes `("tech.ptr", 2)` from `LEADERS_HELD_OUT`
   (`crates/rondata/src/diff/checksum_lines.rs:1839`). It should also turn
   agreeing the two 101-byte `tech` array ranges (one per walked leader)
