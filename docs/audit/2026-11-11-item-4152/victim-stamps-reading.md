@@ -383,3 +383,26 @@ the `hero_type` comparison; who sets bit 17 was not traced (no direct
 `or`/`mov` to `0x822` was found in the listing; it is likely set through
 a `BitMask` helper).
 
+## Summary
+
+All three arrays are indexed `leaders[victim].X[attacker]` (row = struck
+owner, column = striker's owner byte `A+0x9`), written with `game->frame`
+inside `Object::do_damage (0064a480)`'s cross-owner block, before
+`take_damage`, so a killing blow stamps too. Window: 300 frames,
+`frame - stamp > 300`.
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `attack_stamp` +0xf4 [8] | `Object::do_damage (0064a480)` ×4 stores (`64ace6`, `64b037`, `64b383`, `64b9d8`); `Leader::init (006e3930)`; `Leaders::clear (006ed5d0)`; `LeaderData::walk_data (006d6750)` on load | `= frame`: capital heavy (gate `capital_stamp[att]`), city heavy (gate city `attack_stamp`), any city light or worker arm (gate city `raid_stamp`), territory attack test (gate this row; T off the victim's land, or on it and not a light building/worker/caravan/merchant) | `Leader::init` 0, `Leaders::clear` 0 | none; `Sim::city_alarm` (`combat/fight/delivery.rs:280`) for arms 1–3, a new territory step after `delivery.rs:190` for arm 4; row beside `AiLeader::capital_stamp` (`ai.rs:704`) | yes | high |
+| `raid_stamp` +0x114 [8] | `Object::do_damage` ×4 (`64acf8`, `64b025`, `64b373`, `64b755`); `Leader::init`; `Leaders::clear`; `walk_data` | `= frame`: same arms 1–3 as `attack_stamp`; territory raid test (gate this row; T on the victim's land and a light/inactive building, worker, caravan or merchant) | as above | as above | yes | high |
+| `ally_stamp` +0x154 [8] | `Object::do_damage` ×1 (`64ae8d`); `Leader::init`; `Leaders::clear`; `walk_data` | `= frame` on a heavy hit on a city building (capital or not) when `frame - ally_stamp[att] > 300`, every player pair; the console/ally test gates only the message | as above | none; both heavy arms of `Sim::city_alarm` (the capital arm's early return must move) | yes | high |
+| `ctw_hero_stamp` +0x200 | `Object::do_damage` ×1 (`64b513`); `Leader::init` (0); `Leaders::clear`; `walk_data` | `= frame` when CtW (semaphore bit 17), T is the conquest hero type, not a worker, victim is the local console, `> 120` frames since, hero below 70 % hits before the blow | `Leader::init` 0, `Leaders::clear` 0 | none; CtW is cut; 0 is exact in skirmish | **no** (CtW only) | high (bit 17's name medium) |
+
+**Against the README row:** `attack_stamp`'s extra writers
+`Leader::plan_strategy (006b9620)` and `Leader::end_process (006b8690)`
+are **not** writers: no store to +0xf4 of a leader record in either, by
+both nets. The row also omits `Leader::init` and `Leaders::clear` (resets)
+and `LeaderData::walk_data` (load). One shape the row does not show: a
+**light** hit on a city building writes the victim's `attack_stamp` too
+(arm 3), and every cross-owner blow, city or not, reaches the territory
+test.
