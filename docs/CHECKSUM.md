@@ -1835,17 +1835,17 @@ counter, a slot mark, a setup rule, a never-reached constant, a held leaf and
 
 ## 21. The world line, held out by section (items 4131, 4136)
 
-**742 of 7,994 ranges and 198,449 of 294,769 bytes agree** on run 1562's
-frame 91, in eleven whole sections (item 4136; 741 and 83,249 in ten at
-item 4131). `Sim::world_image`
+**743 of 7,994 ranges and 198,569 of 294,769 bytes agree** on run 1562's
+frame 91, in twelve whole sections (item 4147; 742 and 198,449 in eleven
+at item 4136, 741 and 83,249 in ten at item 4131). `Sim::world_image`
 (`crates/sim/src/checksum/world.rs`) emits the line as leaves, a `None` leaf
 being one the crate holds no value for; `Sim::checksum_world` is its bytes.
 `diff::checksum_lines::world::the_world_line_is_the_original_s_by_section`
 matches each range by section, field and record, tallies every leaf element,
 pins the sections in `WORLD` and the fields left in `WORLD_HELD_OUT`, and
 asserts a whole section's Adler against the record's printed line.
-`CHECKSUM_STATE` does not count it (§5). Ours sums to 1221523236 against the
-printed `World` 3643872705 (3652711706 at item 4131).
+`CHECKSUM_STATE` does not count it (§5). Ours sums to 2046949705 against the
+printed `World` 3643872705 (1221523236 at item 4136).
 
 **The record prints a sum per section.** Record 3201's sixteen `World`
 lines are frame 91's sections 0 to 14 and the whole: cut by call site and
@@ -1860,7 +1860,7 @@ differs in section 9 alone. So a section is a score of its own.
 | 1 `xs`, `ys` | 1; 8 | **whole** | |
 | 2 the start arrays | 20; 124 | **whole** | |
 | 3 `oil_x`, `oil_y` | 2; 8 | **whole** | |
-| 4 `size`..`seed` | 1; 120 | 20 of 30 fields | `World::analyze_map`'s ten tallies |
+| 4 `size`..`seed` | 1; 120 | **whole** | |
 | 5 the cells | 3,600; 75,600 | 15 of 16 fields on every cell | `was_seen` |
 | 6 masks and the fog planes | 4; 158,400 | **whole** | |
 | 7 `wcoord_seen` | 1; 3,600 | 0 | the fog |
@@ -1896,28 +1896,24 @@ journal.
 | `map`, `seed` | `World::record`: the lobby's style (14) and `world->seed`, `Setup::build_game`'s re-seed (7,236 on both frames) |
 | `land_sub` | `Terrain::object_placed` from `Wall::start` (`docs/MAPGEN.md` §35, item 4136): each `BASELAND` cell of the footprint's cells takes the tileset's `weatherbase` (2), `verify_land` after. 3,600 of 3,600; the 8 that parted were ours 3 or 1 under the bases |
 | the masks' `0x4` | `Wall::mark_behind_tiles` at `Wall::start`'s end, cleared by `Wall::close` and given back by `refresh_nearby_tiles` (`docs/MAPGEN.md` §35): the footprint slid back 1 to `BEHIND_HEIGHT` tiles lends its top row and left column. 57,600 of 57,600; the 131 that parted were ours without it. Run1100's 332 by its own builds |
+| `forest_size`, `mountain_size`, `rock_size`, `total_oil`, `goodies`, `land_resources`, `sea_resources` | `World::analyze_map` at the setup's step 8 (`docs/MAPGEN.md` §36, item 4147): every cell's flags, a non-`HALFLAND` `SANDY` or `OCEAN` cell the sea's, and the centre tile's `mask & 3 == 2`. 189, 213, 16, 8, 22, 9, 12; the same counts on eighteen maps' start dumps |
+| `player_reg`, `resource_reg` | the same function's regions 1 to 63: a leader's city, else at least `scale_by_area(60)` cells (44). 1 and 0 |
+| `total_metal` | the same function's `MountainsData::total_gather_size`: each placed range's rung by its template's tile count. 79 over 13 ranges; run38's 67 over 18 |
 
 **Made to fail.** One element of each of eleven kinds of carried field
 (a start array's element and its size, an oil count, `map`, `seed`, a cell's
 `light`, an unseated danger word, a half-land coordinate, a type, a list's
-size, `nuke_hits`' count), and item 4136's cell `land_sub` and tile mask
-(with tile 19175's `0x4` cleared), bent, returns that field to the list
-with a count of one. A held-out section's Adler is asserted to part from
+size, `nuke_hits`' count), item 4136's cell `land_sub` and tile mask
+(with tile 19175's `0x4` cleared) and item 4147's `goodies`, bent, returns
+that field to the list with a count of one. `analyze_map`'s input bent on
+a copy and the function run again: a forest bit returns `forest_size` (and
+the cell's `flags`), no seated leader `player_reg` and `resource_reg`, the
+last range dropped `total_metal` alone. A held-out section's Adler is asserted to part from
 its line.
 
-**What holds the line out**: 16 fields (`WORLD_HELD_OUT`, elements not
-agreeing on frame 91; 18 at item 4131).
+**What holds the line out**: 6 fields (`WORLD_HELD_OUT`, elements not
+agreeing on frame 91; 16 at item 4136, 18 at item 4131).
 
-- **A setup function not carried** (10 fields): `World::analyze_map`'s
-  `player_reg`, `resource_reg`, `forest_size`, `mountain_size`, `rock_size`,
-  `total_metal` (`MountainsData::total_gather_size`), `total_oil`,
-  `goodies`, `land_resources` and `sea_resources`: counts over the cells'
-  flags (`0x20`, `0x8`, `0x800`, `0x8000`, `0x1` by land), a tile's
-  `mask & 3 == 2` at each cell's `(4x + 2, 4y + 2)`, and the land regions
-  holding a seated leader's city or as large as the map's share. Carrying it
-  takes the function ported and run where `Setup::build_game` runs it, the
-  values kept on `World::record` (the crate's `analyze_player_regions`,
-  `crates/sim/src/cities/city.rs`, carries its region-flag arm alone).
 - **The fog** (2 fields, out by name): `was_seen` (3,600) and `wcoord_seen`
   (3,600), beside the three planes that agree.
 - **The collision blocks** (4 fields): the presence local (3,600),
@@ -1937,12 +1933,18 @@ index; `light`, the oil arrays, `nuke_hits` and the unseated danger rows
 take their verdicts from those nets. Item 4136's two rules are diff-backed
 on frame 91; the close's clear and refresh rest on the reading
 (`docs/MAPGEN.md` §35). Consistent with run1100's frame
-(`light` 0, rows 3–7 zero, `seed` 7,236, oil empty), not diffed there.
+(`light` 0, rows 3–7 zero, `seed` 7,236, oil empty), not diffed there;
+its section 4 is another map's (`player_reg` 1, `resource_reg` 0, 229, 195,
+33, 77, 12, 29, 12, 17), whose cells the frame's packet was not read for.
+Item 4147's tallies are diff-backed on frame 91 and their seven cell
+counts and `total_metal` on the start dumps (`docs/MAPGEN.md` §36); the
+two region counts beyond Great Lakes rest on the reading.
 
 **Not established**:
 
 - Every frame but 91, and a game the crate builds from a dump (no
-  `World::record`, so sections 2, 4's `map` and `seed`, and 10–12 unheld).
+  `World::record`, so sections 2, 4's `map`, `seed` and ten tallies, and
+  10–12 unheld).
 - A dump-built game's mid-game ground: it holds no tileset, so
   `object_placed` writes nothing there (run1559b's 31 cells, parked
   4129b); the behind bit's clear and refresh on a frame that razes a

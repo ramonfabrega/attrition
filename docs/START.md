@@ -181,8 +181,11 @@ it (**not built**).
    region and cell (`docs/ECONOMY.md`, "Setup's goods scan"). On this
    lobby the setup scan meets good 15 for seat 1 (`AMBER`, cell
    (52, 18)), and frame 0's `GOOD` `ever_seen` is run9's on all 35 printed
-   goods. **`analyze_map` not walked** (no
-   field the block compares reads it). **The herds built** (item 4063):
+   goods. **`analyze_map` built** (item 4147, `docs/MAPGEN.md` §36): its
+   ten tallies kept on `World::record`, the region bits 4 and 8 and the
+   sea class; the ten equal the function counted over the installed
+   start's frame-0 state (`diff::start_walk`), and the start dump prints
+   eight of them. **The herds built** (item 4063):
    `herds_from_goods` — one herd per herd good of the composed map
    (`Objects::init_good@00653f30`'s `Herds::init_herd`: FISH →
    `HERDFISH` 0x19b, WHALES → `HERDWHALE` 0x19c, 0x21 → `HERDSHEEP`
@@ -317,7 +320,7 @@ comparison, so the counter cannot read 1 while that lobby parts. **1 of
   Korean or American seat, or with `starting_resources` 7 or 8; a
   `place_unit` cell refused by the object test alone (the crate threads
   no building, so a building's own cell stands in for its chain);
-  `analyze_map`; a herd of horse, bear, bison or peacock, a whale (one
+  a herd of horse, bear, bison or peacock, a whale (one
   animal, the unset angle), and a map whose goods list reuses a slot
   (the herds are numbered in slot order; the original numbers them in
   `init_good` order — they agree unless a slot was reused). ORDERS §9.2's

@@ -976,9 +976,11 @@ impl Sim {
     /// setup's `compute_all_territory`; here every setup fix runs it, and
     /// the bit only grows, so the last fix before the first frame — which
     /// sees every starting city — leaves exactly the original's flags.
-    /// The arm's other writes (`player_reg`, `resource_reg`, the sea class
-    /// it computes, the cell tallies) are not carried: the harness takes
-    /// the sea class from the dump ([`crate::world::World::sea_map`]).
+    /// The whole function, tallies, bit `8` and sea class with it, is
+    /// [`Sim::analyze_map`] (item 4147), which the composed chain's setup
+    /// runs once at its step; this arm alone serves a world built from a
+    /// dump, whose sea class the harness takes from the dump
+    /// ([`crate::world::World::sea_map`]).
     fn analyze_player_regions(&mut self) {
         let players = self.territory.players.len();
         let lands: Vec<u16> = self
