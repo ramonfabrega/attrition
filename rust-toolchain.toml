@@ -1,3 +1,8 @@
+# An exact version, never a channel: `stable` is shared by every project on
+# this machine, and on 2026-11-10 another project's `rustup update` moved it
+# from 1.97.1 to 1.99.1 under a running lane gate, whose clippy then failed on
+# code no branch had touched (Loop 4101). An update is a commit to this file,
+# with the lints it raises fixed beside it, gated whole.
 [toolchain]
-channel = "stable"
+channel = "1.97.1"
 components = ["rustfmt", "clippy"]
