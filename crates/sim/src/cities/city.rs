@@ -2083,7 +2083,7 @@ impl Sim {
         // the `x_size × y_size` rectangle — not grown, as
         // `update_local_seen`'s is — on the map ors `1 << who` into
         // `seen2` at its half-cell, `tile >> 1`, and into the cell's `WData
-        // +0x14`, which this world does not keep. A raw byte write, so no
+        // +0x14` at `tile >> 2` (`docs/VISION.md` §12). A raw byte write, so no
         // `set_seen` side effect follows. It matters where the owner's line
         // of sight does not reach: the AI places a city out of its own
         // sight, and its scout's search then prices that footprint as seen

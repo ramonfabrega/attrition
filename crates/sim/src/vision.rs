@@ -715,8 +715,8 @@ impl Sim {
     ///
     /// Each unit's whole disc relights its `visible` cells first
     /// ([`Sim::update_seen`]). The original's unit arm relights only what
-    /// passes vslots `+0x8` and `+0xbc`. `seen3` and the cell twin `+0x168`
-    /// are not kept.
+    /// passes vslots `+0x8` and `+0xbc`. The clear takes `seen3` and the
+    /// cell twin `+0x168` with `seen` ([`World::clear_seen`](crate::world::World::clear_seen)).
     ///
     /// **The buildings' arm has two branches** (item 1446, `docs/VISION.md`
     /// §6.4): a live, finished building lights its disc (vslot `+0x174`);
@@ -904,9 +904,9 @@ impl Sim {
     /// anyone writes nothing. Returns how many half-cells changed, which
     /// nothing but the tests reads.
     ///
-    /// SEAM: the original's third and fourth writes — `World +0x168` and
-    /// the cell's `WData +0x14` — have no reader here, the same two
-    /// [`World::set_seen`](crate::world::World::set_seen) already skips.
+    /// The original's third and fourth writes, `World +0x168` and the
+    /// cell's `WData +0x14`, are [`World::set_seen`](crate::world::World::set_seen)'s
+    /// own (`docs/VISION.md` §12).
     pub(crate) fn update_local_seen_unit(&mut self, u: usize) -> usize {
         if !self.world.has_fog() {
             return 0;

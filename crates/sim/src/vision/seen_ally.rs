@@ -40,8 +40,8 @@ impl Sim {
     /// The building's `ever_seen` takes every reached leader's bit; then
     /// each of the first `circle_radius[r]` points round its fog cell, on
     /// the grid, takes them in `seen2` alone (`World +0x160`; the current
-    /// plane is not written). The per-cell `WData.was_seen` byte it also
-    /// sets is not kept. Answers the fog cells it changed.
+    /// plane is not written), and the cell's `WData.was_seen` with it
+    /// (`docs/VISION.md` §12). Answers the fog cells it changed.
     pub fn update_seen_ally_build(&mut self, b: usize) -> usize {
         if !self.world.has_fog() || !self.buildings[b].alive {
             return 0;
