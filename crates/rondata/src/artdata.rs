@@ -2054,7 +2054,13 @@ pub fn ground_art(install: &Install, tileset: &str) -> Result<GroundArt, ArtFail
             let name = b.attribute("name").unwrap_or_default().trim().to_string();
             let texture = child(b, "TEXTURE")
                 .and_then(|t| t.attribute("name"))
-                .map(|f| format!("{}/{}", base.trim_end_matches('/'), f.trim().replace('\\', "/")))
+                .map(|f| {
+                    format!(
+                        "{}/{}",
+                        base.trim_end_matches('/'),
+                        f.trim().replace('\\', "/")
+                    )
+                })
                 .ok_or_else(|| unnamed(&format!("{tileset}/BASELAND/{name}/TEXTURE")))?;
             let supertile = b.attribute("supertile").is_some_and(|v| v.trim() == "1");
             Ok(GroundBase {

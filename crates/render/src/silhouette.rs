@@ -711,23 +711,27 @@ pub fn paint(
     let mut depth = vec![f32::INFINITY; ww * wh];
     for (ti, t) in object.tris.iter().enumerate() {
         let level = match paint {
-            Paint::Texture { .. } | Paint::Textures { .. } => paint_mips(paint, ti).map(|(uv, mips)| {
-                let base = &mips.levels[0];
-                let du = [uv[1][0] - uv[0][0], uv[1][1] - uv[0][1]];
-                let dv = [uv[2][0] - uv[0][0], uv[2][1] - uv[0][1]];
-                let texels =
-                    0.5 * (du[0] * dv[1] - du[1] * dv[0]).abs() * (base.width * base.height) as f32;
-                let pa = project.project(t[0]);
-                let pb = project.project(t[1]);
-                let pc = project.project(t[2]);
-                let pixels = match (pa, pb, pc) {
-                    (Some(a), Some(b), Some(c)) => {
-                        0.5 * ((b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])).abs()
-                    }
-                    _ => 0.0,
-                };
-                mips.level(texels, pixels)
-            }),
+            Paint::Texture { .. } | Paint::Textures { .. } => {
+                paint_mips(paint, ti).map(|(uv, mips)| {
+                    let base = &mips.levels[0];
+                    let du = [uv[1][0] - uv[0][0], uv[1][1] - uv[0][1]];
+                    let dv = [uv[2][0] - uv[0][0], uv[2][1] - uv[0][1]];
+                    let texels = 0.5
+                        * (du[0] * dv[1] - du[1] * dv[0]).abs()
+                        * (base.width * base.height) as f32;
+                    let pa = project.project(t[0]);
+                    let pb = project.project(t[1]);
+                    let pc = project.project(t[2]);
+                    let pixels = match (pa, pb, pc) {
+                        (Some(a), Some(b), Some(c)) => {
+                            0.5 * ((b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]))
+                                .abs()
+                        }
+                        _ => 0.0,
+                    };
+                    mips.level(texels, pixels)
+                })
+            }
             Paint::Flat(_) => None,
         };
         project.fragments(t, Cull::None, |i, z, q| {

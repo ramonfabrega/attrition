@@ -96,6 +96,66 @@ impl GroundTextures {
     }
 }
 
+/// **The base layer's triangles** (item 4127): every `BASELAND` tile not
+/// under a placed mountain, its two triangles as [`TerrainMesh`] holds
+/// them, each with its corners' texcoords, its texture's index into
+/// [`GroundTextures::flat`] and its tile.
+///
+/// [`TerrainMesh`]: render::terrain::TerrainMesh
+#[derive(Clone, Debug, Default)]
+pub struct GroundBase {
+    pub tris: Vec<[[f32; 3]; 3]>,
+    pub uvs: Vec<[[f32; 2]; 3]>,
+    pub of: Vec<usize>,
+    pub tile: Vec<(i32, i32)>,
+}
+
+pub fn ground_base(
+    t: &sim::observe::TerrainScene,
+    mountains: &std::collections::BTreeSet<(i32, i32)>,
+    tex: &GroundTextures,
+    mesh: &render::terrain::TerrainMesh,
+) -> GroundBase {
+    use render::terrain::{BASELAND, TILES_PER_CELL};
+    let mut out = GroundBase::default();
+    let (tw, th) = (t.width * TILES_PER_CELL, t.height * TILES_PER_CELL);
+    if mesh.positions.len() != (tw * th * 6) as usize {
+        return out;
+    }
+    for ty in 0..th {
+        for tx in 0..tw {
+            let (cx, cy) = (tx / TILES_PER_CELL, ty / TILES_PER_CELL);
+            let c = (cy * t.width + cx) as usize;
+            if t.land.get(c) != Some(&BASELAND) || mountains.contains(&(tx, ty)) {
+                continue;
+            }
+            let Some(k) = tex.index(t.land_sub[c], cx, cy) else {
+                continue;
+            };
+            let i = ((ty * tw + tx) * 6) as usize;
+            let [a, b, cc, d] = tile_uvs(tx, ty);
+            // `TerrainMesh::build`'s order: [a, b, d], then [b, c, d].
+            for (j, uv) in [[a, b, d], [b, cc, d]].into_iter().enumerate() {
+                let v = &mesh.positions[i + j * 3..i + j * 3 + 3];
+                out.tris.push([v[0], v[1], v[2]]);
+                out.uvs.push(uv);
+                out.of.push(k);
+                out.tile.push((tx, ty));
+            }
+        }
+    }
+    out
+}
+
+/// **`RUN1559B_3279_GROUND`** (item 4127; `docs/RENDERER.md` §3.6, "The
+/// ground's base layer"): of the scored tiles on run1559b's frame 3279 at
+/// its pinned camera, those whose drawn mean colour is the photograph's
+/// within the colour reader's 0.05 in (r, g)/(r + g + b).
+pub const RUN1559B_3279_GROUND: (usize, usize) = (949, 1109);
+
+/// The same row on the debug colour, the floor (item 4127).
+pub const RUN1559B_3279_GROUND_FLOOR: (usize, usize) = (92, 1109);
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -112,7 +172,10 @@ mod tests {
         assert_eq!(subtile(4, 0), 1);
         assert_eq!(subtile(2, 5), 8);
         assert_eq!(subtile(-1, 0), 2);
-        assert_eq!(tile_uvs(5, 7), [[0.25, 0.75], [0.5, 0.75], [0.5, 1.0], [0.25, 1.0]]);
+        assert_eq!(
+            tile_uvs(5, 7),
+            [[0.25, 0.75], [0.5, 0.75], [0.5, 1.0], [0.25, 1.0]]
+        );
     }
 
     #[test]
@@ -281,10 +344,14 @@ mod tests {
             (t.land[i], t.land_sub[i])
         };
         let px_by_kind = g.tile.iter().flatten().fold(BTreeMap::new(), |mut m, &tt| {
-            *m.entry((land(tt).0, mountains.contains(&tt))).or_insert(0u32) += 1;
+            *m.entry((land(tt).0, mountains.contains(&tt)))
+                .or_insert(0u32) += 1;
             m
         });
-        println!("map {}×{} cells, {}×{} tiles", t.width, t.height, g.tw, g.th);
+        println!(
+            "map {}×{} cells, {}×{} tiles",
+            t.width, t.height, g.tw, g.th
+        );
         println!(
             "ground pixels {} by (land_key, mountain): {px_by_kind:?}",
             g.tile.iter().flatten().count()
@@ -295,9 +362,16 @@ mod tests {
             .collect();
         let mut kinds: BTreeMap<(i8, bool), u32> = BTreeMap::new();
         for (tt, _) in &scored {
-            *kinds.entry((land(**tt).0, mountains.contains(tt))).or_default() += 1;
+            *kinds
+                .entry((land(**tt).0, mountains.contains(tt)))
+                .or_default() += 1;
         }
-        println!("tiles with any ground pixel {}; scored (≥ {}) {}", by_tile.len(), HUE.min_pixels, scored.len());
+        println!(
+            "tiles with any ground pixel {}; scored (≥ {}) {}",
+            by_tile.len(),
+            HUE.min_pixels,
+            scored.len()
+        );
         println!("scored by (land_key, mountain): {kinds:?}");
         // The floor: the debug colour (its share is the land kind's alone;
         // the slope's shade multiplies every channel alike).
@@ -318,7 +392,10 @@ mod tests {
                 e.0 += 1;
             }
         }
-        println!("FLOOR (debug colour): {floor} of {} by land: {floor_by:?}", scored.len());
+        println!(
+            "FLOOR (debug colour): {floor} of {} by land: {floor_by:?}",
+            scored.len()
+        );
         // Step 1: per scored tile.
         let (sx, _) = (g.tw + 1, g.th + 1);
         let z = |cx: i32, cy: i32| f32::from_bits(t.corners[(cy * sx + cx) as usize]);
@@ -354,24 +431,27 @@ mod tests {
         for ((l, s, mtn), cs) in &by_sub {
             let mr = cs.iter().map(|c| c[0]).sum::<f32>() / cs.len() as f32;
             let mg = cs.iter().map(|c| c[1]).sum::<f32>() / cs.len() as f32;
-            let sd = (cs.iter().map(|c| dist(*c, [mr, mg]).powi(2)).sum::<f32>() / cs.len() as f32).sqrt();
-            println!("by (land {l}, sub {s}, mountain {mtn}): {} tiles, share ({mr:.3}, {mg:.3}) sd {sd:.3}", cs.len());
+            let sd = (cs.iter().map(|c| dist(*c, [mr, mg]).powi(2)).sum::<f32>() / cs.len() as f32)
+                .sqrt();
+            println!(
+                "by (land {l}, sub {s}, mountain {mtn}): {} tiles, share ({mr:.3}, {mg:.3}) sd {sd:.3}",
+                cs.len()
+            );
         }
         // Step 2: the install's files.
         let tileset = crate::world::lobby_tileset(
             &p.root,
             &crate::world::gamelog_dir().join(crate::world::START_DUMP),
         )
-            .unwrap_or_else(|| "early_autumn".to_string());
+        .unwrap_or_else(|| "early_autumn".to_string());
         let tex = GroundTextures::load(&p.root, &tileset).expect("the ground's textures load");
         println!("tileset {tileset}: {:?}", tex.art);
         for (b, subs) in tex.bases.iter().enumerate() {
             for (k, m) in subs.iter().enumerate() {
                 let img = &m.levels[0];
                 let n = (img.width * img.height) as f32;
-                let sum = [0, 1, 2].map(|c| {
-                    img.rgba.chunks(4).map(|q| f32::from(q[c])).sum::<f32>() / n
-                });
+                let sum =
+                    [0, 1, 2].map(|c| img.rgba.chunks(4).map(|q| f32::from(q[c])).sum::<f32>() / n);
                 let c = chromaticity(sum);
                 println!(
                     "base {b} sub {k} {}×{}: mean ({:.0}, {:.0}, {:.0}) share ({:.3}, {:.3})",
@@ -380,5 +460,181 @@ mod tests {
             }
         }
         assert!(BASELAND == 0);
+    }
+
+    /// **The count** (item 4127, the rule committed before it in
+    /// `docs/RENDERER.md` §3.6): [`RUN1559B_3279_GROUND`] on the base
+    /// layer as read, beside the floor, the per-pixel share and the
+    /// mapping's check against its half-period control.
+    #[test]
+    fn the_ground_s_base_layer_against_the_photograph() {
+        use render::silhouette::{Paint, Rect, paint};
+        let Some(mut p) = probe() else { return };
+        let g = ground(&mut p);
+        let size = (p.photo.width, p.photo.height);
+        let (w, _) = size;
+        let tileset = crate::world::lobby_tileset(
+            &p.root,
+            &crate::world::gamelog_dir().join(crate::world::START_DUMP),
+        )
+        .expect("the lobby's tileset");
+        let tex = GroundTextures::load(&p.root, &tileset).expect("the ground's textures load");
+        let mesh = p.world.terrain().clone();
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let base = ground_base(&t, &mountains, &tex, &mesh);
+        let flat = tex.flat();
+        let mut window = Rect::new(i32::MAX, i32::MAX, 0, 0);
+        for (i, tt) in g.tile.iter().enumerate() {
+            if tt.is_some() {
+                let (x, y) = ((i % w) as i32, (i / w) as i32);
+                window = Rect::new(
+                    window.x0.min(x),
+                    window.y0.min(y),
+                    window.x1.max(x + 1),
+                    window.y1.max(y + 1),
+                );
+            }
+        }
+        let object = Object {
+            key: 1,
+            tris: base.tris.clone(),
+        };
+        let shifted: Vec<[[f32; 2]; 3]> = base
+            .uvs
+            .iter()
+            .map(|t| t.map(|[u, v]| [u + 0.5, v + 0.5]))
+            .collect();
+        let draw = |uvs: &[[[f32; 2]; 3]]| {
+            paint(
+                &object,
+                &Paint::Textures {
+                    uvs,
+                    mips: &flat,
+                    of: &base.of,
+                },
+                &p.camera,
+                size,
+                window,
+            )
+        };
+        let ours = draw(&base.uvs);
+        let control = draw(&shifted);
+        let ww = (window.x1 - window.x0) as usize;
+        let cell = |(tx, ty): (i32, i32)| (tx / TILES_PER_CELL, ty / TILES_PER_CELL);
+        let sub = |(cx, cy): (i32, i32)| t.land_sub[(cy * t.width + cx) as usize];
+        let photo_at = |i: usize| [0, 1, 2].map(|c| f32::from(p.photo.rgba[i * 4 + c]));
+        let mut tiles: BTreeMap<(i32, i32), (Vec<[f32; 3]>, Vec<[f32; 3]>)> = BTreeMap::new();
+        let mut pixel: BTreeMap<u8, (u32, u32)> = BTreeMap::new();
+        let mut lum: Vec<(f32, f32, f32)> = Vec::new();
+        let l = |c: [f32; 3]| 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2];
+        for (i, tt) in g.tile.iter().enumerate() {
+            let Some(tt) = *tt else { continue };
+            let (x, y) = ((i % w) as i32, (i / w) as i32);
+            let j = (y - window.y0) as usize * ww + (x - window.x0) as usize;
+            let them = photo_at(i);
+            let e = tiles.entry(tt).or_default();
+            e.0.push(them);
+            let drawn = if mountains.contains(&tt) {
+                Some(render::terrain::MOUNTAIN.map(|v| v * 255.0))
+            } else {
+                ours[j]
+                    .filter(|q| base.tile[q.tri as usize] == tt)
+                    .map(|q| q.rgb)
+            };
+            let Some(c) = drawn else { continue };
+            e.1.push(c);
+            if !mountains.contains(&tt) {
+                if let Some(k) = control[j].filter(|q| base.tile[q.tri as usize] == tt) {
+                    lum.push((l(them), l(c), l(k.rgb)));
+                }
+                let s = sub(cell(tt));
+                let sum = |q: [f32; 3]| q[0] + q[1] + q[2];
+                if sum(c) >= HUE.dark && sum(them) >= HUE.dark {
+                    let pe = pixel.entry(s).or_default();
+                    pe.1 += 1;
+                    if dist(chromaticity(c), chromaticity(them)) <= HUE.distance {
+                        pe.0 += 1;
+                    }
+                }
+            }
+        }
+        let scored: Vec<_> = tiles
+            .iter()
+            .filter(|(_, (th, _))| th.len() as u32 >= HUE.min_pixels)
+            .collect();
+        let mut row = 0;
+        let mut by: BTreeMap<(u8, bool), (u32, u32)> = BTreeMap::new();
+        let mut parts: BTreeMap<&str, u32> = BTreeMap::new();
+        for (tt, (th, us)) in &scored {
+            let m = mountains.contains(tt);
+            let c = cell(**tt);
+            let e = by.entry((sub(c), m)).or_default();
+            e.1 += 1;
+            let ok = !us.is_empty()
+                && dist(chromaticity(mean(us)), chromaticity(mean(th))) <= HUE.distance;
+            if ok {
+                row += 1;
+                e.0 += 1;
+                continue;
+            }
+            let (tx, ty) = **tt;
+            let blend = (-1..=1).any(|dy| {
+                (-1..=1).any(|dx| {
+                    let (nx, ny) = (c.0 + dx, c.1 + dy);
+                    (0..t.width).contains(&nx)
+                        && (0..t.height).contains(&ny)
+                        && sub((nx, ny)) != sub(c)
+                })
+            });
+            let why = if m {
+                "a mountain's own draw"
+            } else if tx.min(ty).min(g.tw - 1 - tx).min(g.th - 1 - ty) < 4 {
+                "the edge's darkening"
+            } else if blend {
+                "a blend between bases"
+            } else {
+                "inside one base"
+            };
+            *parts.entry(why).or_default() += 1;
+            println!(
+                "parts {tx},{ty} sub {} k {} mountain {m}: ours {:?} theirs {:?} ({why})",
+                sub(c),
+                subtile(c.0, c.1),
+                chromaticity(mean(us)),
+                chromaticity(mean(th)),
+            );
+        }
+        let pearson = |f: &dyn Fn(&(f32, f32, f32)) -> (f32, f32)| {
+            let n = lum.len() as f32;
+            let (sa, sb) = lum
+                .iter()
+                .map(f)
+                .fold((0.0, 0.0), |a, (x, y)| (a.0 + x, a.1 + y));
+            let (ma, mb) = (sa / n, sb / n);
+            let (mut sab, mut saa, mut sbb) = (0.0, 0.0, 0.0);
+            for q in &lum {
+                let (x, y) = f(q);
+                sab += (x - ma) * (y - mb);
+                saa += (x - ma).powi(2);
+                sbb += (y - mb).powi(2);
+            }
+            sab / (saa * sbb).sqrt()
+        };
+        let r = pearson(&|q| (q.0, q.1));
+        let rc = pearson(&|q| (q.0, q.2));
+        println!(
+            "RUN1559B_3279_GROUND: {row} of {} (floor {}), by (land_sub, mountain): {by:?}",
+            scored.len(),
+            RUN1559B_3279_GROUND_FLOOR.0
+        );
+        println!("parting by what it would take: {parts:?}");
+        println!("per pixel, by land_sub (agree, lit): {pixel:?}");
+        println!(
+            "mapping's check over {} pixels: r {r:.3} against the half-period control's {rc:.3}",
+            lum.len()
+        );
+        assert_eq!((row, scored.len()), RUN1559B_3279_GROUND);
     }
 }

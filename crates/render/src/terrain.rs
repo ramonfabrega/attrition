@@ -120,6 +120,17 @@ impl TerrainMesh {
     /// The heightfield's triangles. `land` is one kind a cell, row-major;
     /// `mountain_tiles` the tiles a placed range covers.
     pub fn build(field: &Heightfield<'_>, land: &[i8], mountain_tiles: &[(i32, i32)]) -> Self {
+        Self::build_except(field, land, mountain_tiles, &|_, _| false)
+    }
+
+    /// [`TerrainMesh::build`] without the tiles `except` names: those the
+    /// client draws textured (item 4127, the ground's base layer).
+    pub fn build_except(
+        field: &Heightfield<'_>,
+        land: &[i8],
+        mountain_tiles: &[(i32, i32)],
+        except: &dyn Fn(i32, i32) -> bool,
+    ) -> Self {
         let mut out = TerrainMesh::default();
         if !field.is_whole() {
             return out;
@@ -141,6 +152,9 @@ impl TerrainMesh {
         let light = normalise([-0.4, -0.4, 0.82]);
         for ty in 0..th {
             for tx in 0..tw {
+                if except(tx, ty) {
+                    continue;
+                }
                 let base = if mountain[(ty * tw + tx) as usize] {
                     MOUNTAIN
                 } else {
@@ -248,5 +262,12 @@ mod tests {
         assert_eq!(tile(0, 0), MOUNTAIN.map(|v| v * flat));
         assert_eq!(tile(1, 0), land_colour(BASELAND).map(|v| v * flat));
         assert_eq!(tile(4, 3), land_colour(OCEAN).map(|v| v * flat));
+        let e = TerrainMesh::build_except(&f, &[BASELAND, OCEAN], &[(0, 0)], &|tx, _| tx < 4);
+        assert_eq!(
+            e.positions.len(),
+            4 * 4 * 6,
+            "the excepted tiles are not drawn"
+        );
+        assert_eq!(e.colours[0], land_colour(OCEAN).map(|v| v * flat));
     }
 }
