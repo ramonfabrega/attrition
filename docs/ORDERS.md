@@ -2787,6 +2787,122 @@ which is what a grep of every dumped record says.
   `TData` and nothing in this simulation sets it when a good is placed by
   hand; a fixture must mark the tile itself.
 
+## 6.11 A gather building's `recharging`: four bumps, and the carrying walk's (item 4097)
+
+`BuildData::recharging` (`+0x7a`, a `short`) on a gather building counts
+the frames it was worked. **Four writers bump it, each by one and each
+under the frame's latch `build_masks & 0x800`** — the writer tests the
+bit, adds one, sets the bit, and `Build::process@0061edf0` clears it at
+the building's own turn, after every unit has run (this crate's
+`gather_bumped`, cleared in `Sim::tick`'s building pass). So a building
+gains at most one a frame, whoever reaches it first:
+
+1. `Unit::do_gather@005ef2a0`, the arrived non-farm arm (§6.3);
+2. `Unit::do_non_flat_gather@005f0170`'s head, for a `been_there` order
+   (§6.4);
+3. `Wall::do_construct@006434d0`, on a site (`docs/CITIES.md` §3.3);
+4. **`Guy::move@005d9240`'s carrying-walk arm**, below — not ported
+   until this item.
+
+It is zeroed by the constructor, `Build::init@00629740` and
+`Build::activate@00623e20`, and copied by `Build::swap_team@00628210`.
+Its other writers are other types' (the towers' `do_attack`, the
+anti-air arm of `Wall::inc_time@0063fb60`, the Kremlin and the
+Terracotta Army in `Build::process`, the launches; `docs/COMBAT.md`
+§84.1). Nothing decays it on a gather building and nothing caps it but
+the `short`.
+
+**The arm** (`Guy::move:113–172`, the moving arm: the figure's body is
+not on its `des`), ahead of the moving arm's walk request and of its
+plane and pack test:
+
+```
+if unit_masks & 0x78000000:                  # the four carry bits (the walk slot's own test)
+    a = UnitData::get_action()                # past transit moves and type 0x12
+    if a and a.get_type() == GATHER (7):
+        g = Unit::update_action().vslot+0x6c  # update_gather_order: the GatherOrder
+        if g and g.ox >= 0 and g.whom >= 0:
+            b = objects[g.whom][g.ox]
+            if b.vslot+0x10                   # SubObjectData::is_active@0046cda0: flags & 1, alive
+               and b.ptype.vslot+0x90         # is_gather_type
+               and g.been_there (+0x27):
+                if !(b.build_masks & 0x800): b.recharging += 1; b.build_masks |= 0x800
+```
+
+- **Which guy**: every figure `Guy::process` runs `Guy::move` for whose
+  body moves this frame; per figure, but the latch makes every figure
+  after the first write nothing.
+- **Which unit**: one carrying a gather bit — `do_non_flat_gather` sets
+  `TO_WOOD`/`TO_ORE` on the walk out to the tile and `WITH_WOOD`/
+  `WITH_ORE` on the walk back (§6.4), so woodcutters and miners, on both
+  legs, while the order is the action under the inserted move.
+- **Which building**: the gather order's own — the camp it works, not a
+  drop-off chosen apart from it.
+- **How often**: every frame the figure moves; never on a frame its body
+  stands on its `des` (the standing arms return above it).
+- **What else it writes**: `Unit::update_action@0060a870` rewrites
+  `orders_x/y` and `dest_angle` from the order list, as every caller's
+  does; on an unchanged list it writes what is already there.
+
+**Its readers**, on a gather building: none in the simulation.
+`Wall::inc_time`'s comparisons are the anti-air types' (`has_objmask
+(0x80000000)`), and `units/think/work_gate.rs` reads the *unit's*
+`recharging` (`UnitData +0xae`). The renderer reads it:
+`WallOut::draw@00641930` and `GraphicPieces::draw_scaffold@00907420`
+draw a gather type other than `UNIVERSITY` and `OILPLATFORM` with
+`cur_time = recharging × 200 / 3` (plus `graphic_dt` under `build_masks
+& 0x400`) — a camp's work animation runs on the frames it was worked.
+And the checksum's builds line folds it (`docs/CHECKSUM.md` §14).
+
+**Why this crate did not run it.** `docs/COMBAT.md` §84.1 listed the
+field's writers by offset and put `Guy::move`'s `+0x7a` on `UnitData`,
+"a different field"; the write is through the building's vslot `+0xac`
+(the `BuildData`), not the unit (amended there). And no comparison could
+see the drift: every `BUILDDATA` record prints `recharging`, and
+`gamelog::BuildDump` does not parse the key.
+
+**Ported** in `Sim::carrying_walk_bump` (`crates/sim/src/units/anim.rs`),
+called from `Sim::guy_follow_anim`'s moving arm where the listing has it.
+
+**The value diff** (run1561a, the original's playback of the minted file,
+which prints `recharging` on every building of 299 frames;
+`rondata::diff::checksum_lines::every_building_s_recharging_is_the_original_s_on_every_frame_of_the_playback`):
+before the arm ours parted on the two Woodcutter's Camps alone — the
+human's `0/2001` held at 2 on frames 4..10 (theirs 3..9), the British
+`1/2001` held at 2 on 4..26 where theirs climbs every frame but 16 (14
+on 15 and 16); 7 and 22 frames short, carried to frame 91 as 83 and 67
+against 90 and 89. With the arm, all 4,394 pairs (frame, building) are
+the original's, the British camp's held frame 16 among them: nothing
+bumps it there on either side (4094's probe counted no carrying move of
+its gatherer on 16).
+
+| frame | `0/2001` ours before | after | theirs | `1/2001` ours before | after | theirs |
+|---|---|---|---|---|---|---|
+| 4 | 2 | 3 | 3 | 2 | 3 | 3 |
+| 16 | 8 | 15 | 15 | 2 | 14 | 14 |
+| 91 | 83 | 90 | 90 | 67 | 89 | 89 |
+| 299 | 291 | 298 | 298 | 275 | 297 | 297 |
+
+### 6.11.1 Coverage
+
+| claim | backed by |
+| --- | --- |
+| the arm's count, per frame, on both camps of the minted game | **diff** — run1561a, 299 frames, every building |
+| the latch: one a frame whoever reaches it | **diff** — the same frames, with `do_non_flat_gather`'s head bumping beside the arm |
+| the carry-bit, `GATHER` and `been_there` predicates | **diff** on the frames the arm writes and the one it is silent (the British camp's 16); reading for which predicate silences it |
+| the alive and gather-type tests, `ox`/`whom ≥ 0`, `get_action`'s type-0x12 skip | reading (`Guy::move:121–169`, `get_action@00608450`) |
+| `update_action`'s rewrite is idempotent here | **diff** — every floor held with the call in place (item 4097's journal) |
+| the renderer's clock, the `short` | reading |
+
+**What is not established.**
+
+- A miner's camp, a carrying walk on any lobby but the minted game's, and
+  a carrier with more than one figure.
+- The `short`: the original's count wraps past 32,767 frames worked; this
+  crate's `recharging` is an `i32`.
+- A carrier whose action is not its gather order (an order queued in
+  front of it with the action bit): the arm writes nothing then, as read.
+
 ---
 
 ## 7. The attack order

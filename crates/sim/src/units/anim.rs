@@ -2629,6 +2629,9 @@ impl Sim {
         // in place, and they keep their slot for `Sim::guy_inc_time`'s
         // mirror to copy figure 0's turn into. Golden chapter three's
         // restage, 781–782 (`docs/COMBAT.md` §58).
+        // The carrying walk's bump comes first in the moving arm, ahead of
+        // the plane and pack test below (`Guy::move:113–172`).
+        self.carrying_walk_bump(u);
         if self.is_plane(u) || (self.packs(u) && !self.units[u].combat.packed) {
             return;
         }
@@ -2644,6 +2647,54 @@ impl Sim {
         if anim != ATTACKWALK {
             let walk = self.walk_for(u);
             self.guy_set_anim(u, g, walk, false, true);
+        }
+    }
+
+    /// **`Guy::move@005d9240`'s carrying-walk arm** (item 4097,
+    /// `docs/ORDERS.md` §6.11): a figure that moves this frame, of a unit
+    /// carrying one of the four gather bits (`unit_masks & 0x78000000`, the
+    /// same test that picks the carrying walk), whose action
+    /// (`UnitData::get_action@00608450`) is a `GATHER` (`get_type` 7),
+    /// takes `Unit::update_action@0060a870`'s gather order (vslot `+0x6c`)
+    /// and, when its building (`ox`, `whom` both set) is alive (the
+    /// building's vslot `+0x10`, `SubObjectData::is_active@0046cda0`,
+    /// `flags & 1`), of a gather type (type vslot `+0x90`) and the order
+    /// has `been_there` (`GatherOrder +0x27`), bumps the building's
+    /// `recharging` (`BuildData +0x7a`) by one under the frame's
+    /// `build_masks & 0x800`: the same once-a-frame latch
+    /// `Unit::do_gather@005ef2a0`, `Unit::do_non_flat_gather@005f0170` and
+    /// `Wall::do_construct@006434d0` take, which `Build::process` clears.
+    ///
+    /// It is per figure, as `Guy::move` is; the latch makes every figure
+    /// after the first write nothing. `update_action` rewrites `orders_pos`
+    /// and `des_angle` from the order list, as the original's call does.
+    pub(crate) fn carrying_walk_bump(&mut self, u: usize) {
+        if self.gather_walk(u).is_none() {
+            return;
+        }
+        let Some(a) = self.action_of(u) else {
+            return;
+        };
+        if self.units[u].orders[a].index() != crate::ids::order::GATHER {
+            return;
+        }
+        let Some(a) = self.update_action(u) else {
+            return;
+        };
+        let crate::orders::Body::Gather(g) = self.units[u].orders[a].body else {
+            return;
+        };
+        let b = g.building;
+        let Some(bd) = self.buildings.get(b) else {
+            return;
+        };
+        if !bd.alive || !self.is_gather_type(b) || !g.been_there {
+            return;
+        }
+        let bd = &mut self.buildings[b];
+        if !bd.gather_bumped {
+            bd.recharging += 1;
+            bd.gather_bumped = true;
         }
     }
 
