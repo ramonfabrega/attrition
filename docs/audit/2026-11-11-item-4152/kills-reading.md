@@ -369,3 +369,72 @@ epilogue); its predicate is read from the decompile only. Not read: vslot
 `+0xac` on a building (which object the sabotage strikes), `Nuke::do_damage`'s
 `this`.
 
+## 4. `buildings_lost` (+0x81c, int)
+
+### Writers
+
+**`Object::take_damage (00652020)` only**, store 0x652f5b (decompile line
+483-484). Index `eax = this->field_0x9 · 0x6eec`, the struck building's
+owner. Plus `reset_score` (0x6e3835) and the memsets. The ~50 other
+`0x81c(%reg)` stores are `Game::semaphore.flags` (§0).
+
+### Event, step, predicate
+
++1 on `take_damage`'s death path (damage at or above the threshold, line
+345 not taken) when the struck object answers vslot `+0x1c` (building).
+Beside it, `ScenarioData::last_razed[owner] = this's index` (0x652f69,
+`0xcc2190`), then straight to `die` (`LAB_006533b2`). **No attacker test**:
+it counts whether or not `param_7 >= 0`, so it counts:
+
+- a building destroyed in combat (`do_damage`);
+- a **wall segment decaying in hostile territory**: `Wall::process
+  (00640450)` calls `take_damage(8, 0, 1, -1, 1, 0x55555555, -1, -1, …)` on a
+  started wall standing in a non-allied player's territory, and `Wall`'s
+  vslot `+0x1c` is the same `return 1` (vtable 0x00b42cf8), so each segment
+  that decays to death is a lost building for its owner;
+- the building `cast_sabotage` strikes;
+- the scenario/editor health setters.
+
+**Not counted**: a city (vslot `+0x4c` with `+0x8 & 0x20`) is clamped at
+full damage and returns 0 before the death path (decompile 292-302); the
+half-health disband of an abandoned AI site (decompile 352-360) returns 1
+without reaching this store (so `buildings_razed` can step with no matching
+`buildings_lost`); any building removed by `Object::disband` or a direct
+`die` (delete, captured-and-razed paths, building attrition if it does not
+use slot `+0x16c` — no `Build::` function is among the eight `+0x16c` call
+sites).
+
+### Clears
+
+`reset_score`, `Leaders::clear`, `Leader::init`'s empty-slot memset.
+
+### Readers
+
+Checksum walk, `log_data`, `AchieveChartPane::set_chart_data`. No script
+function and no Steam stat read it. No sim decision.
+
+### Crate site
+
+`Sim::damage_building`, `crates/sim/src/combat/fight/delivery.rs:957`, its
+`Taken::Died` branch (~line 1041, just before `self.die_building(b)`). That
+branch serves all three plain-game callers: combat (`take_damage_typed` →
+delivery.rs:599), Sabotage (`cast_sabotage_building` → delivery.rs:887) and
+`Wall::process`'s enemy-territory hit (`crates/sim/src/cities/city.rs:3128`,
+`damage_building(b, hit, None, frame, true)`). The counter must sit there and
+not in `die_building` itself, which `disband.rs:360`, `city_views.rs:267`,
+`city.rs:660/687` and `setup.rs:148` also reach. The crate does not carry
+`last_razed` on this path (`units/disband.rs:97` carries it for disband's).
+
+### Plain game?
+
+Yes: combat razing, and wall decay in enemy territory whenever a player walls
+into another's borders.
+
+### Confidence and not read
+
+High on the store, index and gate (listing 0x652f4a-0x652f70). Not read:
+whether any building death outside the eight `+0x16c` callers exists that a
+reader would expect to count (e.g. `City` destruction on capture, scenario
+`kill_object`), and the predicate of `Wall::process`'s territory test beyond
+"non-allied owner".
+

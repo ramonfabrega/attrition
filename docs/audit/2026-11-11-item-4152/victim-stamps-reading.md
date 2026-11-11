@@ -164,8 +164,8 @@ and writes nothing more, so the value is the same either way.
 `+0x154`, `+0x174`, `+0x194`, `+0x1b4` and sets `+0x1d4 hire_who` to −1,
 for each `j`). `Leaders::clear` zeroes the record. No per-frame fold, no
 `reset_score` path. Since 0 is the initial value, the first cross-owner
-hit after frame 300 always passes the window; a hit before frame 301
-does not (`frame - 0 > 300` fails), so in the first 300 frames this row
+hit after frame 300 always passes the window; a hit at frame 300 or
+earlier does not (if the counter starts a game at 0, not checked here) (`frame - 0 > 300` fails), so in the first 300 frames this row
 is never written by arms 1–4. `Leader::init`'s callers: `Leaders::init`,
 `Setup::build_game`, `Setup::build_leader`, `WalkDataGame::walk_data`,
 `MapScenario::make`, `ConquestGame::build_conquest_game`,
@@ -207,4 +207,62 @@ a wall's was not checked). `is_merchant`'s three type ids are from its
 listing; which units they are was not looked up. Callers of
 `do_damage` (`Ammo::do_damage` ×3, `Nuke::do_damage` ×2, `Unit::fight` ×3,
 itself ×1) were not followed into their own predicates.
+
+## 2. `raid_stamp` (`LeaderData +0x114`, int[8])
+
+**1. Writers, both nets.**
+
+| writer | site(s) | value |
+|---|---|---|
+| `Object::do_damage (0064a480)` | `64acf8` (capital, heavy), `64b025` (city, heavy), `64b373` (building light / worker arm), `64b755` (territory raid test); read at `64b64a` | `frame` |
+| `Leader::init (006e3930)` | `6e3c15` (`0x40(%esi)`), `j = 0..7` | 0 |
+| `Leaders::clear (006ed5d0)` | memset | 0 |
+| `LeaderData::walk_data (006d6750)` | load | saved |
+
+Agrees with the README row's `Object::do_damage`. No other function
+references `0xe3a4a4` but `ScenarioFuncSet::was_raided (009fd140)`
+(reads).
+
+**2. Event, step, predicate.** `leaders[vic].raid_stamp[att] = frame`, same
+blow, same orientation, before the take.
+
+1. **Capital, heavy**: with `attack_stamp` and `capital_stamp`, when
+   `frame - capital_stamp[att] > 300` (§1 arm 1).
+2. **Non-capital city building, heavy**: with `attack_stamp`, when
+   `frame - c.attack_stamp > 300` (§1 arm 2). Note the gate is the
+   **city's** `attack_stamp`, not this row.
+3. **Light on a city building, and the worker arm**: with
+   `attack_stamp`, when `frame - c.raid_stamp > 300` (§1 arm 3); gate is
+   the city's `raid_stamp`.
+4. **Territory, raid test** (`64b630`..`64b755`): T on `vic`'s land
+   (`WData.who == vic`) and T a light-hit (or inactive) building, a
+   worker, a caravan or a merchant; when `frame - raid_stamp[att] > 300`,
+   write `raid_stamp[att] = frame`. The message (victim is the console
+   player and `!is_ally(leaders[att], vic)`) does not guard the store.
+
+The raid test and the attack test are exclusive per blow; arms 1–3 can
+precede either.
+
+**3. Reset.** As §1: `Leader::init`'s loop (`+0x114`), `Leaders::clear`.
+
+**4. Readers.** `do_damage`'s raid window (`64b64a`).
+`ScenarioFuncSet::was_raided (009fd140)` (trigger layer; same shape as
+`was_attacked` by its listing's two `0xe3a4a4` reads, body not read line
+by line). `LeaderData::log_data` (`piVar3[0x28]`, line 300). The
+checksum walk. No AI reader.
+
+**5. Crate.** None. `checksum/leaders.rs:62` row, no value. Same sites as
+§1: `Sim::city_alarm` (`delivery.rs:280`) for arms 1–3 (it already
+writes the **city's** `raid_stamp`, `crates/sim/src/cities/city.rs`
+`raid_stamp`, at `delivery.rs:314`, `:337`, `:351`), and a territory step
+after `delivery.rs:190` for arm 4. The crate's `is_worker`, `is_merchant`
+(`crates/sim/src/economy/calc_gather.rs:555`) and caravan predicates
+exist; check that the crate's merchant test is the same three type ids.
+
+**6. Plain game.** Yes: hits on citizens, caravans and merchants in their
+owner's territory, and light hits on buildings there, are ordinary
+skirmish events.
+
+**7. Confidence and not read.** High for the stores and gates.
+`was_raided`'s body was read only through its two listing loads.
 

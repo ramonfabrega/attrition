@@ -79,7 +79,7 @@ Rejected `0x1f8(%reg)` stores: `ConquestGame::close` (`this`), `ScenarioEditor::
 
 ### The event, the step, the predicate
 
-`suffer_attrition(unit, graphic)` tests `leaders[owner].attrition_stamp2 == 0` at entry (`5e1a25`). If 0: when the owner is the console's leader, the tile under the unit has an owner ≥ 0, and `LeaderData::is_ally(owner, owner)` is 0 (as decompiled: the slot against itself — the argument is the unit owner, not the tile owner; read at `:24`, not checked in the listing), it posts the "your units are suffering attrition" messages (string `0x120c0` when the tile owner's `tribe == 13`, else `0x120d4`; then `0x120fc`/`0x120e8` on `type_avail(FACTORY)`) and `S_ATTRITION_WARNING`. Then, **for every slot, console or not, message or not**, `attrition_stamp2 = game->frame`. Nothing re-arms it but a reset, so it is the frame of the slot's first attrition tick of the game. It is written before the damage call (`vtable +0x16c`), so a tick that kills still stamps.
+`suffer_attrition(unit, graphic)` tests `leaders[owner].attrition_stamp2 == 0` at entry (`5e1a25`). If 0: when the owner is the console's leader, the tile under the unit has an owner ≥ 0, and `LeaderData::is_ally(owner, owner)` is 0 (the slot against itself: the listing pushes `%ebx` = the unit owner with `%ecx = 0xe3a390 + owner·0x6eec` before `call 0x6edb50` at `5e1a8e`–`5e1a95`, so the argument is the owner, not the tile owner — whether `is_ally(self)` can be 0 was not read; it gates only the message), it posts the "your units are suffering attrition" messages (string `0x120c0` when the tile owner's `tribe == 13`, else `0x120d4`; then `0x120fc`/`0x120e8` on `type_avail(FACTORY)`) and `S_ATTRITION_WARNING`. Then, **for every slot, console or not, message or not**, `attrition_stamp2 = game->frame`. Nothing re-arms it but a reset, so it is the frame of the slot's first attrition tick of the game. It is written before the damage call (`vtable +0x16c`), so a tick that kills still stamps.
 
 Callers (listing, two `call 0x5e1a10`, both in `Unit::process (00610bc0)`): `:528` the period tick — `field_0x9e != 0`, `(frame + id) % field_0x9e == 0`, and `process_supply` refused shelter — with `graphic = 1`; and `:282` the decoy arm — a decoy on the map on a cell the owner's `field_0x6929` mask does not cover — with `graphic = (frame % 7 == 0)`.
 
@@ -101,5 +101,5 @@ Yes: the first attrition tick of any unit of a slot, in any lobby where a unit b
 
 ### Confidence
 
-High for the writer and the once-only predicate (writers grepped in both nets; the two zeroing loops store at `+0x1f4`, not `+0x1f8`). Not checked in the listing: the `is_ally` argument at `:24`, which affects only the message.
+High for the writer and the once-only predicate (writers grepped in both nets; the two zeroing loops store at `+0x1f4`, not `+0x1f8`). The `is_ally(owner, owner)` argument is confirmed in the listing; what `is_ally` answers for its own slot was not read (message only).
 
