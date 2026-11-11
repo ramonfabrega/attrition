@@ -1291,8 +1291,9 @@ image's references):
 | `Unit::swap_team@006118d0` | `turret_inc` copied from the old figure | a conversion |
 | `Guy::set_bank`, `Guy::set_pitch`, `Guy::set_elev_angle`, `Guy::copy_data` | a single | **nothing**: no call and no pointer in the image (a PE scan for each address, item 4104; `docs/audit/2026-11-06-territory-object-1.md`, `rondata::blind::RESIDUE`) |
 
-Their readers are the renderer's (`GuyData::get_render_bank@005de530`,
-`GuyData::get_render_pitch@005de4f0`) and the dump. So, by DECISIONS
+Their readers are the renderer's (`GuyData::get_render_bank` and
+`GuyData::get_render_pitch`, named and not entered by any trace) and the
+dump. So, by DECISIONS
 entry 120 §3, **all five are constant on this game's figures** and are
 emitted as their bits: `+0.0`, the store of `Guy::clear` and
 `init_real`. That is narrower than constant: on an **aircraft** or a

@@ -3850,6 +3850,8 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 ## Loop, filed 2026-11-10 — the driver's third session
 
+(4108) **A question the ledger named was carried four items when the stream on disk held its answer** (4104's "for the Loop", the driver's thirteenth session, 2026-11-10): `docs/CHECKSUM.md` §10 and DECISIONS 120 §3 carried "whether the seven floats' bits follow from integers the simulation holds" from item 4060 to the guys line, as a residue's question to be read at the writers. The instrument's stream already held the bits: the five figure floats are `0x00000000` on all 165 figures of the two frames, and the leaders' two are `0x43800000` and `0xbf800000` (256.0, −1.0) on all five walked leaders — the second read by the driver in one script at 4104's booking, a minute's work that 4060's ledger could have printed. The ledger counted which leaves are floats and pointers and never their values. Candidate: `tools/recomp/checksum.py --ledger` prints, for every flagged leaf, its distinct values and their counts beside the flag, and a question a document carries as "not established" is first grepped as a value on what is on disk before it is booked as a reading (METHOD's "look at what is on disk first", which no guard holds for a document's open list). Names no score; the loop's.
+
 (4105) **A packet word printed as a hex dword was read as a colour in the wrong byte order, and stood two items** (4103's "for the Loop" line, the driver's thirteenth session, 2026-11-10): 4085's journal and RENDERER §3.7 printed `render_states[1]`'s `tfactor` as the dword `0x80ff5222` and read it as (255, 82, 34), a red; by the `Color` record's own layout the low byte is red, so it is (34, 82, 255) at alpha 128, player 1's `unit` blue, and 4099a carried "red for player 0" on the photograph beside it without the two being held against each other. 4103 read it through the type record and amended §3.7 in place; no count had been built on the red. Candidate: the packet reader's print of a typed word goes through the record's fields (`tools/recomp/snapshot.py` knows them), never a raw dword, and a brief that asks for a colour off a packet names the record. Names no score; the loop's.
 
 (4101) **The toolchain pin was a channel, and another project's update moved it under a running lane gate** (the driver's twelfth session, 2026-11-10): `rust-toolchain.toml` said `channel = "stable"`, which every project on the machine shares. At 19:11 −05:00 another project's worktree ran a `rustup update`; `stable` went from 1.97.1 to 1.99.1 with `rustc` missing for about ninety seconds, and `lane-4099`'s lane gate, mid-run, went red at clippy on seven lints in `crates/sim` that no branch had touched (`manual_slice_fill`, `map_or_identity`, `drain_collect`, four `chunks_exact_to_as_chunks`; the lane's report), with fmt, survey, guard and release not reached. 4097's builder was running its floors through the swap. The pin is now exact, `1.97.1`, installed beside the moved `stable`, so the repo is where it was and no other project's update reaches it. Owed, at a quiet point with no builder, lane or gate out: the update as one commit — the pin to 1.99.1 or the newest, every lint and format change it raises fixed beside it (clippy stopped at `sim`, so the other crates' lints are not yet seen), gated whole, then the stale artifacts cleaned (60 GB free on 2026-11-10; this tree's `target/` 25 GB) and `tools/trace/build.sh` rebuilt once, since it links with the toolchain's `rust-lld`. *4099's "for the Loop"* is this finding, from the lane's side: its second lane gate ran 3 of 7 steps and was red on `crates/sim` alone; its merge was gated by the driver on the pinned toolchain. Names no score; the loop's.
@@ -16333,18 +16335,30 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot EV — reserved
+## Parked by item 4104, 2026-11-10 — the guys line, and its five floats
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4104a. What the guys line agrees on by default on frame 91** (`docs/CHECKSUM.md` §16, "Not established"; the builder's
+  hand-back). One value on every figure of the frame, so the port is unexercised: the array's `size`, emitted as the figure
+  count (the original grows it and never shrinks it: a number re-inited with a smaller crew keeps the larger); `guy_flags`, 16
+  everywhere, with bits 0x2 and 0x4 not emitted; the turrets and node flags (no pivot figure), `ox` and `whom` (no strike),
+  `hold_attack` and `queued_attack`; `variation`, `off_x`, `off_y` (no writer read past the clear). Not emitted at all: a
+  missile's `turret_inc` (90.0's bits, 0x42b40000), a bird's `last_bank`, `pitch` and `last_pitch`, an aircraft's crew past
+  guy 0, a converted figure's copied `turret_inc`; `Guy::last` past a teleport or on a unit whose process this crate skips.
+  The units line walks the same bytes. Names no score until a scored frame holds a fight, a pivot, an aircraft or a missile:
+  a second frame of the minted game is the place.
 
 ## Parked by the next landing, slot EW — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot EW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot EX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot EX renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

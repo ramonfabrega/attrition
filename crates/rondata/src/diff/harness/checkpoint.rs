@@ -645,6 +645,9 @@ mod tests {
                         // And the facing's fifth copy, each figure's
                         // `last_angle` (`Guy::last`, item 4104): the
                         // facing its last `Guy::move` began from.
+                        // both sides: a figure whose `last` is on one
+                        // side only keeps it, and the `assert_eq` below
+                        // parts on it — an absent side is never quiet.
                         for (g, h) in normalized.guys.iter_mut().zip(&a.guys) {
                             if let (Some(l), Some(m)) = (&mut g.last, h.last) {
                                 l.1 = m.1;
