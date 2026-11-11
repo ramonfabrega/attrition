@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -99,6 +99,10 @@ site still snaps to (3456, 29760). The test is `minted_from_events_under_the_ope
 
 ## 4. Confidence, and what is not established
 
+**Backed by the clicked file's playback** (§5). The clicks at the opening camera mint a file the original plays in
+lockstep for 24,000 frames. Over its first 300 frames the records agree whole, the clicked move's three units among
+them.
+
 **Backed by the script's count.** On these three orders, the press, right press and key arms mint the bytes of a file
 the original played in lockstep. The stage 0 projections are the original's own forward arithmetic
 (`docs/RENDERER.md` §3.4).
@@ -113,7 +117,12 @@ the original played in lockstep. The stage 0 projections are the original's own 
 **Not established:**
 
 - **How the original turns a click into a coordinate.** Its inverse and its rounding were not read. At the opening
-  camera, no rule could reach an arbitrary script coordinate, because one pixel covers 39 to 46 points.
+  camera, no rule could reach an arbitrary script coordinate, because one pixel covers 39 to 46 points. The clicked
+  file (§5) is the layer's coordinate played by the original, not the original's own click.
+- **The clicked build's coordinate on the original's side.** The dump prints the snapped site, not the drop point, so
+  the build's (+2, +4) is compared by no field (parked 4149b).
+- **The clicked file past frame 300.** The long take's draws and closing record cannot tell it from the first
+  script's file (§5).
 - **The original's hit test**, which uses a piece's drawn pixels.
 - **The interface**: hotkeys, the build menu and the cursor.
 - **Ground height**: the ocean arm of `object_z`, and any point off the map.
@@ -161,9 +170,18 @@ each take (`CLICKED_WALKED`):
 
 - run1563a, `end:MISC,UNITS=3,BUILDS=7`, 300 frames: draws agree on **300 of 300**, count and sequence; **299 records
   compared whole, none parted**. Seen red first: the row pinned `(0, 0, 0, 0)` printed `(300, 300, 299, 0)`.
-- RUN1563_LINE
+- run1563, `end:MISC`, the game's whole length: draws agree on **24,000 of 24,000**, count and sequence; one record,
+  none parted. Seen red first: the row pinned `(0, 0, 0, 0)` printed `(24000, 24000, 1, 0)`. run1563b, the 2,400-frame
+  trace-only take, was not run: the whole length covers its frames.
 
-**`INPUT_PLAYED`**: RUN1563_COUNT.
+**`INPUT_PLAYED`**: **24,000 of 24,000** frames in lockstep, 299 records whole, and each order's effect equal on
+both sides. It was 0, when no clicked file had been played.
+
+**What the long take cannot see.** The original's word is identical between the two playbacks, the first script's
+(run1561) and the clicked one (run1563), on all 24,001 frames (`rngcmp.py`). Our walk under the *first* script's file
+also agrees with run1563 on all 24,000 frames' draws and on its closing record. So the 24,000 frames are lockstep, but
+they do not tell the clicked file from the first one. The click is seen by run1563a's per-frame records, over 300
+frames, and nowhere past them.
 
 **Each order's effect, both sides** (`clicked_effects`, on 31, 61, 91 and 299), equal:
 
@@ -173,8 +191,9 @@ each take (`CLICKED_WALKED`):
 - the builder's `move`, `build` on 91, and `gather` on 299.
 
 **The value diff** against the first script's playback (run1561a), on the original's two dumps of 300 frames: only
-the Scout's `x` fields part. Its move order holds `x` 5880 on both, but `orig_x`, its path's `to_x`, and from there
-its `dest_x`, `orders_x` and `x_internal` hold the clicked 5883 in run1563a where run1561a holds 5880. On 299 it
+the Scout's `x` fields part. Its move order holds `x` 5880 on both. Its `orig_x` and its path's `to_x` hold the
+clicked 5883 in run1563a where run1561a holds 5880, and its `dest_x`, `orders_x` and `x_internal` part on the frames
+after. On 299 it
 stands on (5883, 31896) against (5880, 31896). Our walk carries the same split: its move order's target reads
 (5880, 31896) on 31, 61 and 91 for the click at 5883 as for the script's 5880, and it stands the Scout on the clicked
 point (parked 4149a).
@@ -186,4 +205,5 @@ both sides only through the file's bytes and the snapped site; no field compares
 **Made to fail** (`the_first_minted_script_against_the_clicked_playback_parts`, `FIRST_AGAINST_CLICKED`): our walk
 under the first script's file, against run1563a, parts first on frame 31. The parting is the Scout's path target,
 ours (5880, 31896) against the original's (5883, 31896), and 269 of 299 records part. The draws do not part inside
-300 frames. So the comparison sees three units of a click. Seen red first: pinned `(0, "", "", None)`.
+300 frames. So the comparison sees three units of a click. Against run1563 the same walk parts nowhere, as above. Seen
+red first: pinned `(0, "", "", None)`, and the long take pinned to part.

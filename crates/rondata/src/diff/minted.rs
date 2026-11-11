@@ -817,14 +817,24 @@ fn the_clicked_minted_script_s_effects_on_our_walk() {
 /// The original's playback of the clicked file, per take (run 1563), as
 /// [`MINTED_WALKED`]: run1563a prints every unit and building for 300
 /// frames, run1563b only the trace for 2,400, run1563 the game's length.
-pub(crate) const CLICKED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
-    "gamelog-run1563a-greatlakes-playback-of-clicked-300.txt",
-    "rontrace-run1563a.log",
-    300,
-    300,
-    299,
-    0,
-)];
+pub(crate) const CLICKED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[
+    (
+        "gamelog-run1563a-greatlakes-playback-of-clicked-300.txt",
+        "rontrace-run1563a.log",
+        300,
+        300,
+        299,
+        0,
+    ),
+    (
+        "gamelog-run1563-greatlakes-playback-of-clicked-24000.txt",
+        "rontrace-run1563.log",
+        24000,
+        24000,
+        1,
+        0,
+    ),
+];
 
 /// **The original plays the clicked file, and our walk keeps lockstep**
 /// (item 4149): [`CLICKED_WALKED`] and [`clicked_effects`], both sides.
@@ -878,6 +888,25 @@ fn the_first_minted_script_against_the_clicked_playback_parts() {
         seen,
         (f, kind, row.to_string(), draws),
         "FIRST_AGAINST_CLICKED"
+    );
+    // The long take: the same walk against run1563. It does not part: the
+    // draws of 24,000 frames and the closing record agree with the first
+    // script's orders too (the two playbacks' words are identical on all
+    // 24,001 frames, `rngcmp.py`), so the click's three units are seen by
+    // run1563a's records alone. Seen red first: pinned `(None, Some(-1))`.
+    let (take, take_trace, ..) = CLICKED_WALKED[1];
+    let Some((w, _)) = walk_minted(&script(), take, take_trace) else {
+        return;
+    };
+    eprintln!(
+        "FIRST AGAINST CLICKED (long): first {:?}; draws part {:?}; records {} parted {}",
+        w.first_record, w.first_sequence, w.records, w.records_parted
+    );
+    let long = w.first_record.map(|(n, _, p)| (n, p[0].2.clone()));
+    assert_eq!(
+        (long, w.first_sequence),
+        (None, None),
+        "FIRST_AGAINST_CLICKED, the long take"
     );
 }
 

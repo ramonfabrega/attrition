@@ -36497,3 +36497,45 @@ SHA-256 `361b8d929ab342d8e4729ecd865de375fa69b46c2fa540eff3787497f24964ab`.
 
 **What it holds**: the checksum's pair on the milestone's own game — the packet and the record it reproduces — and
 the whole dump of that frame.
+
+## run1563a — the original playing the file a person's clicks minted at the opening camera, 0..300 (2026-11-11, item 4149)
+
+`docs/CLIENT_INPUT.md` §5. **What the disk could not answer**: whether the original plays the orders the client's
+input layer mints from clicks at the camera the client opens with, where each target lands one pixel's rounding off
+the first script's. The file: `~/ron-golden/recordings/item4149-clicked-greatlakes-24000.rcx`, 59,280 bytes, SHA-256
+`9636d81e5b98c6f6132c60526d78d579188981f0c21f205d37745f3ebced19a9`, written by `RON_RCX_OUT=<it> … test --release -p
+rondata the_clicked_minted_packages_round_trip` (run1561a's file with the move at (5883, 31896) and the Farm dropped
+at (3554, 29860)). The take: run1561a's line with this file, `--end-frame 300 --cover cover=1 --log-window 0 300
+--detail end:MISC,UNITS=3,BUILDS=7 --timeout 540 --stall-seconds 120`, waited on with `waitrun.sh` in the background.
+- Pool lane 1, launched 16:46:11 −05:00; **57.5 s launch to exit**, exit 0, `success`, 301 frames, `last_frame` 300,
+  seed 12345, map 14, players tribe 4 (flags 7) and tribe 11 (flags 1), five settings restored, no page fault.
+  Minutes waited on another lane: none.
+- The built walk under the pump on the clicked file (`CLICKED_WALKED`): draws agree on all 300 frames, count and
+  sequence; **299 records compared whole, none parted**; each order's effect equal on both sides on 31, 61, 91 and 299
+  (`clicked_effects`). The first script's file walked against it parts on 31, the Scout's path target (5880, 31896)
+  against (5883, 31896), 269 of 299 records (`FIRST_AGAINST_CLICKED`).
+- Against run1561a's dump, only the Scout's `x` fields part (`orig_x`, the path's `to_x`, `dest_x`, `orders_x`,
+  `x_internal`); its `MOVEORDER` `x` is 5880 in both.
+- Filed with `filerun.py run1563a greatlakes-playback-of-clicked-300`.
+
+Archive `gamelog-run1563a-greatlakes-playback-of-clicked-300.txt`, 37,134,702 bytes,
+SHA-256 `3ecc58db754dc3d07fc99afdd8dfcd95d4635d0b800428533d08c5aebdcf3115`; `rontrace-run1563a.log`, 9,595,168 bytes,
+SHA-256 `343b2301948dac552b1bb934bef25123c871cb568514c2ee9a0feb7d9a430ca8`.
+
+## run1563 — the clicked file for the game's whole length, 0..24000 (2026-11-11, item 4149)
+
+The same file and line as run1563a with `--end-frame 24000 --log-window 0 24001 --detail end:MISC --timeout 3600`;
+the runner's commands `37 !ffwd 27` and `24000 !quit`. run1563b (2,400 frames, trace only) was not run.
+- Pool lane 1, launched 16:55:44 −05:00; **1,698.1 s launch to exit**, exit 0, `success`, 24,001 frames,
+  `last_frame` 24000, `ended_early` false, seed 12345, map 14, five settings restored, no page fault, no relaunch. The
+  runner's pace line: 647 frames in 60 s (10.8/s). Minutes waited on another lane: none.
+- The built walk under the pump (`CLICKED_WALKED`): **draws agree on all 24,000 frames, count and sequence; 1 record,
+  none parted.** Seen red first: the row pinned `(0, 0, 0, 0)` printed `(24000, 24000, 1, 0)`.
+- `rngcmp.py` against `rontrace-run1561.log` (the first script's playback): **24,001 in common, 0 differing.** The
+  first script's walk against this take parts nowhere either, so the take is lockstep but does not tell the two files
+  apart (`docs/CLIENT_INPUT.md` §5).
+- Filed with `filerun.py run1563 greatlakes-playback-of-clicked-24000`.
+
+Archive `gamelog-run1563-greatlakes-playback-of-clicked-24000.txt`, 2,452 bytes,
+SHA-256 `ad2d4a6fc3dcc8ee33f87fae5997f32a33e6f75c29ae63988fd4ef6cc66fe9d7`; `rontrace-run1563.log`, 132,471,584 bytes,
+SHA-256 `6e439afbf49360584c1691b89fab3b6604c26163804f1fcedc5e576b270c917e`.
