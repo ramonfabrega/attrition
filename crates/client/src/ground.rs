@@ -226,6 +226,7 @@ pub fn ground_patch(
 /// `[0, 1]`, on level 0, the nearest texel, clamped — stage 1's
 /// `MIP_POINT` filters and `TEXADD_CLAMP` — over 255. The patch's base is
 /// laid over the base at this weight (`SRCALPHA`, `INVSRCALPHA`).
+#[cfg_attr(not(test), allow(dead_code))]
 pub fn patch_alpha(alpha: &Mips, q: &crate::patch::Patch, uv: [f32; 2]) -> f32 {
     let e = |k: usize, c: usize| q.uv[k][c] as f32 / 8.0;
     let au = e(0, 0) + uv[0] * (e(4, 0) - e(0, 0)) + uv[1] * (e(20, 0) - e(0, 0));
@@ -400,6 +401,8 @@ pub const RUN1559B_3279_GROUND_BLEND_DRAWN: (u32, u32, [u32; 4], u32) =
 
 #[cfg(test)]
 mod tests {
+    /// Tiles, as the tests list them gained and lost.
+    type Tiles = Vec<(i32, i32)>;
     use super::*;
     use crate::silhouette::{INTERFACE, PHOTO_FRAME, TRACED, frame_scene, photo_path};
     use crate::world::{TreePixels, World};
@@ -492,7 +495,9 @@ mod tests {
         .expect("the lobby's tileset");
         let tex = GroundTextures::load(&p.root, &tileset).expect("the ground's textures load");
         let base = ground_base(&t, &mountains, &tex, &full);
-        let (rest, ground) = p.world.drawn_terrain();
+        let (rest, ground, laid) = p.world.drawn_terrain();
+        let laid: usize = laid.iter().map(|m| m.positions.len()).sum();
+        assert!(laid > 0, "the transition patch is laid");
         let drawn: usize = ground.iter().map(|m| m.positions.len()).sum();
         assert!(drawn > 0, "the ground is textured");
         assert_eq!(drawn, base.tris.len() * 3);
@@ -505,8 +510,11 @@ mod tests {
         }
         assert_eq!(p.world.terrain().positions, full.positions);
         p.world.debug_ground = true;
-        let (all, none) = p.world.drawn_terrain();
-        assert_eq!((all.positions.len(), none.len()), (full.positions.len(), 0));
+        let (all, none, unlaid) = p.world.drawn_terrain();
+        assert_eq!(
+            (all.positions.len(), none.len(), unlaid.len()),
+            (full.positions.len(), 0, 0)
+        );
     }
 
     /// **The ground's population** (item 4127): per pixel, the tile whose
@@ -885,7 +893,7 @@ mod tests {
                 })
             })
             .count();
-        let mut moved: (Vec<(i32, i32)>, Vec<(i32, i32)>) = Default::default();
+        let mut moved: (Tiles, Tiles) = Default::default();
         let mut by: BTreeMap<(u8, bool), (u32, u32)> = BTreeMap::new();
         let mut parts: BTreeMap<&str, u32> = BTreeMap::new();
         for (tt, (th, us)) in &scored {
@@ -1396,7 +1404,7 @@ mod tests {
         let mut by_edge: BTreeMap<(bool, i32), u32> = BTreeMap::new();
         let mut gb_rule = 0;
         let mut gb_laid = 0;
-        let mut laid_moved: (Vec<(i32, i32)>, Vec<(i32, i32)>) = Default::default();
+        let mut laid_moved: (Tiles, Tiles) = Default::default();
         let mut gb_packet = 0;
         let mut gb_one = vec![0; nb];
         let mut patched: BTreeMap<(bool, Option<i32>, bool), u32> = BTreeMap::new();
@@ -2158,7 +2166,7 @@ mod tests {
         }
         let mut blend = (0, [0u32; 4], 0);
         let mut step1 = [0u32; 4];
-        let mut ours: [(u32, [u32; 4], Vec<(i32, i32)>); 2] = Default::default();
+        let mut ours: [(u32, [u32; 4], Tiles); 2] = Default::default();
         let mut off = 0;
         let mut stage2_wins: Vec<(usize, u32, [u32; 4])> = Vec::new();
         for (pool_name, pool) in &pools {
@@ -2227,7 +2235,7 @@ mod tests {
                 .expect("one");
             best == cand && r[cand] > rw[cand]
         };
-        let moved = |from: usize, to: usize| -> (Vec<(i32, i32)>, Vec<(i32, i32)>) {
+        let moved = |from: usize, to: usize| -> (Tiles, Tiles) {
             (
                 patched
                     .iter()

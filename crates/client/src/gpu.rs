@@ -158,6 +158,57 @@ fn fs_silhouette(i: VOut) -> @location(0) vec4<f32> {
 }
 "#;
 
+/// **The transition patch's pass** (item 4139; `docs/RENDERER.md` §3.9),
+/// `TerrainOut::render`'s `showtrans` block as its `RenderState` reads:
+/// stage 0 the patch's base land texture, under the vertex white
+/// (MODULATE with DIFFUSE, the texel alone); stage 1 the alpha, its A
+/// taken (MODULATE with TEXTURE and CURRENT, the diffuse alpha 1), read on
+/// level 0, `MIP_POINT` and `TEXADD_CLAMP` — so a nearest, clamped sampler
+/// on the alpha's own level 0; blended `SRCALPHA`, `INVSRCALPHA` over the
+/// base already drawn. The vertex is the textured layout's: the alpha's
+/// texcoord rides in the third attribute's `xy`.
+const PATCH_SHADER: &str = r#"
+struct U {
+    m: mat4x4<f32>,
+    d: vec4<f32>,
+    range: vec4<f32>,
+};
+@group(0) @binding(0) var<uniform> u: U;
+@group(1) @binding(0) var tex: texture_2d<f32>;
+@group(1) @binding(1) var samp: sampler;
+@group(2) @binding(0) var alpha: texture_2d<f32>;
+@group(2) @binding(1) var alpha_samp: sampler;
+
+struct VOut {
+    @builtin(position) pos: vec4<f32>,
+    @location(0) uv: vec2<f32>,
+    @location(1) auv: vec2<f32>,
+};
+
+@vertex
+fn vs_patch(
+    @location(0) p: vec3<f32>,
+    @location(1) uv: vec2<f32>,
+    @location(2) auv: vec3<f32>,
+) -> VOut {
+    let v = vec4<f32>(p, 1.0);
+    let clip = u.m * v;
+    let depth = dot(v, u.d);
+    let z = clamp((depth - u.range.x) / (u.range.y - u.range.x), 0.0, 1.0);
+    var o: VOut;
+    o.pos = vec4<f32>(clip.xy, z * clip.w, clip.w);
+    o.uv = uv;
+    o.auv = auv.xy;
+    return o;
+}
+
+@fragment
+fn fs_patch(i: VOut) -> @location(0) vec4<f32> {
+    let a = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
+    return vec4<f32>(textureSample(tex, samp, i.uv).rgb, a);
+}
+"#;
+
 /// The camera-space depth range mapped onto [0, 1]: wider than any map.
 const DEPTH_RANGE: (f32, f32) = (-200_000.0, 200_000.0);
 
@@ -178,12 +229,20 @@ pub struct Frame<'a> {
     /// The ground's base layer (item 4127), kept on the GPU with the
     /// terrain at `terrain_version`.
     pub ground: &'a [crate::world::TexturedMesh],
+    /// The transition patch over the base (item 4139), kept with it.
+    pub patch: &'a [crate::world::PatchMesh],
     /// The buildings drawn as their sprites (item 4076).
     pub sprites: &'a [crate::world::SpriteDrawing],
 }
 
 /// A mesh on the GPU: its vertices, their count and its texture.
 type Uploaded = (wgpu::Buffer, u32, wgpu::BindGroup);
+
+/// A patch mesh on the GPU: [`Uploaded`] and its alpha's bind group.
+type UploadedPatch = (wgpu::Buffer, u32, wgpu::BindGroup, wgpu::BindGroup);
+
+/// The ground's base layer and its patch on the GPU, at a terrain version.
+type GroundUploads = (u32, Vec<Uploaded>, Vec<UploadedPatch>);
 
 pub struct Gpu {
     pub device: wgpu::Device,
@@ -197,7 +256,12 @@ pub struct Gpu {
     /// The ground's base layer (item 4127) and the terrain version it was
     /// uploaded at.
     ground: wgpu::RenderPipeline,
-    ground_meshes: std::sync::Mutex<Option<(u32, Vec<Uploaded>)>>,
+    ground_meshes: std::sync::Mutex<Option<GroundUploads>>,
+    /// The transition patch's pass (item 4139), its alphas' nearest,
+    /// clamped sampler and each alpha on the GPU, uploaded once.
+    patch: wgpu::RenderPipeline,
+    alpha_sampler: wgpu::Sampler,
+    alpha_textures: std::sync::Mutex<std::collections::BTreeMap<usize, wgpu::BindGroup>>,
     sprite: wgpu::RenderPipeline,
     sprite_uniform: wgpu::Buffer,
     sprite_bind: wgpu::BindGroup,
@@ -488,6 +552,62 @@ impl Gpu {
             wgpu::CompareFunction::Less,
             None,
         );
+        let patch_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("patch"),
+            source: wgpu::ShaderSource::Wgsl(PATCH_SHADER.into()),
+        });
+        let patch_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some("patch"),
+            bind_group_layouts: &[Some(&bgl), Some(&sprite_layout), Some(&sprite_layout)],
+            immediate_size: 0,
+        });
+        let patch = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("patch"),
+            layout: Some(&patch_layout),
+            vertex: wgpu::VertexState {
+                module: &patch_module,
+                entry_point: Some("vs_patch"),
+                compilation_options: Default::default(),
+                buffers: &[Some(wgpu::VertexBufferLayout {
+                    array_stride: 32,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &textured_attributes,
+                })],
+            },
+            primitive: wgpu::PrimitiveState {
+                cull_mode: None,
+                ..Default::default()
+            },
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: DEPTH_FORMAT,
+                depth_write_enabled: Some(false),
+                depth_compare: Some(wgpu::CompareFunction::LessEqual),
+                stencil: Default::default(),
+                bias: Default::default(),
+            }),
+            multisample: Default::default(),
+            fragment: Some(wgpu::FragmentState {
+                module: &patch_module,
+                entry_point: Some("fs_patch"),
+                compilation_options: Default::default(),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format,
+                    blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+            }),
+            multiview_mask: None,
+            cache: None,
+        });
+        let alpha_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            label: Some("alpha"),
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Nearest,
+            min_filter: wgpu::FilterMode::Nearest,
+            mipmap_filter: wgpu::MipmapFilterMode::Nearest,
+            ..Default::default()
+        });
         let figure_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
             label: Some("figure"),
             address_mode_u: wgpu::AddressMode::Repeat,
@@ -500,6 +620,9 @@ impl Gpu {
         Ok(Gpu {
             ground,
             ground_meshes: std::sync::Mutex::new(None),
+            patch,
+            alpha_sampler,
+            alpha_textures: std::sync::Mutex::new(Default::default()),
             textured,
             silhouette,
             figure_sampler,
@@ -582,7 +705,32 @@ impl Gpu {
         if let Some(b) = cache.get(&piece) {
             return b.clone();
         }
-        let base = &mips.levels[0];
+        let b = self.upload_mips(&mips.levels, &self.figure_sampler);
+        cache.insert(piece, b.clone());
+        b
+    }
+
+    /// A transition alpha's level 0 as a bind group under the nearest,
+    /// clamped sampler, uploaded on first use (item 4139): the pass reads
+    /// level 0 alone (§3.9).
+    fn alpha_texture(&self, alpha: usize, mips: &render::silhouette::Mips) -> wgpu::BindGroup {
+        let mut cache = self.alpha_textures.lock().unwrap();
+        if let Some(b) = cache.get(&alpha) {
+            return b.clone();
+        }
+        let b = self.upload_mips(&mips.levels[..1], &self.alpha_sampler);
+        cache.insert(alpha, b.clone());
+        b
+    }
+
+    /// Levels as one texture beside a sampler, a bind group of the
+    /// figures' layout.
+    fn upload_mips(
+        &self,
+        levels: &[render::tga::Image],
+        sampler: &wgpu::Sampler,
+    ) -> wgpu::BindGroup {
+        let base = &levels[0];
         let tex = self.device.create_texture(&wgpu::TextureDescriptor {
             label: Some("figure"),
             size: wgpu::Extent3d {
@@ -590,14 +738,14 @@ impl Gpu {
                 height: base.height as u32,
                 depth_or_array_layers: 1,
             },
-            mip_level_count: mips.levels.len() as u32,
+            mip_level_count: levels.len() as u32,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8UnormSrgb,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             view_formats: &[],
         });
-        for (level, image) in mips.levels.iter().enumerate() {
+        for (level, image) in levels.iter().enumerate() {
             let extent = wgpu::Extent3d {
                 width: image.width as u32,
                 height: image.height as u32,
@@ -620,7 +768,7 @@ impl Gpu {
             );
         }
         let view = tex.create_view(&Default::default());
-        let b = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+        self.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("figure"),
             layout: &self.sprite_layout,
             entries: &[
@@ -630,12 +778,42 @@ impl Gpu {
                 },
                 wgpu::BindGroupEntry {
                     binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&self.figure_sampler),
+                    resource: wgpu::BindingResource::Sampler(sampler),
                 },
             ],
-        });
-        cache.insert(piece, b.clone());
-        b
+        })
+    }
+
+    /// Each patch mesh's corners as position, base texcoord and alpha
+    /// texcoord (in the third attribute's `xy`), beside its base's and its
+    /// alpha's bind groups (item 4139).
+    fn patch_meshes(&self, meshes: &[crate::world::PatchMesh]) -> Vec<UploadedPatch> {
+        meshes
+            .iter()
+            .filter(|m| !m.positions.is_empty())
+            .map(|m| {
+                let mut bytes = Vec::with_capacity(m.positions.len() * 32);
+                for ((p, uv), a) in m.positions.iter().zip(&m.uvs).zip(&m.alpha_uvs) {
+                    for f in p.iter().chain(uv).chain(a).chain(&[0.0]) {
+                        bytes.extend_from_slice(&f.to_le_bytes());
+                    }
+                }
+                let buf = self.device.create_buffer(&wgpu::BufferDescriptor {
+                    label: Some("patch"),
+                    size: bytes.len() as u64,
+                    usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                });
+                self.queue.write_buffer(&buf, 0, &bytes);
+                let n = m.positions.len() as u32;
+                (
+                    buf,
+                    n,
+                    self.figure_texture(m.piece, &m.mips),
+                    self.alpha_texture(m.alpha, &m.alpha_mips),
+                )
+            })
+            .collect()
     }
 
     /// Each textured figure's corners as position and texcoord, beside its
@@ -774,9 +952,13 @@ impl Gpu {
         let mut ground = self.ground_meshes.lock().unwrap();
         if ground
             .as_ref()
-            .is_none_or(|(v, _)| *v != frame.terrain_version)
+            .is_none_or(|(v, _, _)| *v != frame.terrain_version)
         {
-            *ground = Some((frame.terrain_version, self.textured_meshes(frame.ground)));
+            *ground = Some((
+                frame.terrain_version,
+                self.textured_meshes(frame.ground),
+                self.patch_meshes(frame.patch),
+            ));
         }
         let figures = self.vertices(frame.figures);
         let overlay = self.vertices(frame.overlay);
@@ -816,12 +998,22 @@ impl Gpu {
                 pass.set_vertex_buffer(0, b.slice(..));
                 pass.draw(0..*n, 0..1);
             }
-            if let Some((_, meshes)) = ground.as_ref().filter(|(_, m)| !m.is_empty()) {
+            if let Some((_, meshes, patches)) = ground.as_ref().filter(|(_, m, _)| !m.is_empty()) {
                 pass.set_pipeline(&self.ground);
                 for (b, n, t) in meshes {
                     pass.set_bind_group(1, t, &[]);
                     pass.set_vertex_buffer(0, b.slice(..));
                     pass.draw(0..*n, 0..1);
+                }
+                // The patch after the base (item 4139, §3.9).
+                if !patches.is_empty() {
+                    pass.set_pipeline(&self.patch);
+                    for (b, n, t, a) in patches {
+                        pass.set_bind_group(1, t, &[]);
+                        pass.set_bind_group(2, a, &[]);
+                        pass.set_vertex_buffer(0, b.slice(..));
+                        pass.draw(0..*n, 0..1);
+                    }
                 }
                 pass.set_pipeline(&self.world);
             }
