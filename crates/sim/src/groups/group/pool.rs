@@ -677,8 +677,8 @@ impl Sim {
 
     /// `Group::normalize@00711540` on a seated group (§4.3): last to first,
     /// drop a member that is dead or whose `+0x80` does not name this slot
-    /// (`priority` is 0 and `id >= 0` for every seat here), then the speed
-    /// tail.
+    /// (`priority` is 0 and `id >= 0` for every seat here), then
+    /// `find_role` and the speed tail.
     pub(crate) fn seat_normalize(&mut self, seat: Seat) {
         let (list, st) = self.seat_parts(seat);
         let pool = st.pool;
@@ -690,6 +690,16 @@ impl Sim {
                 Self::seat_remove_at(l, st, i);
             }
         }
+        self.seat_normalize_tail(seat);
+    }
+
+    /// `Group::normalize@00711540`'s tail on a seated group, after its
+    /// prune: `Group::find_role@007081f0` ([`GroupState::role`]), then the
+    /// speed pair ([`Sim::seat_set_speed`]).
+    pub(crate) fn seat_normalize_tail(&mut self, seat: Seat) {
+        let role = self.group_find_role(self.seat_list(seat));
+        let (_, st) = self.seat_parts(seat);
+        st.role = role;
         self.seat_set_speed(seat);
     }
 

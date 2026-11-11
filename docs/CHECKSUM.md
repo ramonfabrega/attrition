@@ -263,7 +263,7 @@ and are named last; by bytes:
 (792; ported, §13) ·
 4. builds (4,923; ported, §14, §15) · 5. guys (9,308; ported, §16) ·
 6. units (19,642; it walks the
-guys again; ~~held out on three fields, §17~~ ported, §17, §18) · 7. groups (37,010) · 8. leaders (58,343) ·
+guys again; ~~held out on three fields, §17~~ ported, §17, §18) · 7. groups (37,010; ported, §19) · 8. leaders (58,343) ·
 9. world (294,769) · then walls, ammo and deaths (0 each), counted on a
 frame that holds one.
 
@@ -417,10 +417,13 @@ over its `length` (4), and when it is not 0 its `size` (4, a local),
 **Groups** (`CheckSums::check_groups@00937530`): as many slots of the
 groups array as its count at +0x4 says (512 here), `Group::walk_data@00708400` [+0x4, +0x4c) — `GroupData`
 `id`..`march`, 21 fields, 36,864 bytes. For each slot whose `num` is not
-0 (6 here, each `num` 1): `num` entries of `off_x`, `off_y`, `curr_x`,
-`curr_y` (4 bytes each), `list` (2) and `angles` (1). Then the eight
-ints of the array the groups object points to at +0x3c, folded by zlib's
-Adler from a stack copy (32 bytes; §1).
+0 (6 here, each `num` 1): `num` entries of ~~`off_x`, `off_y`, `curr_x`,
+`curr_y` (4 bytes each), `list` (2) and `angles` (1)~~ `list` (2), then
+`off_x`, `off_y`, `curr_x`, `curr_y` (4 bytes each) and `angles` (1), one
+range an array, in that order (the stream, item 4116; §19). Then the eight
+ints of the array the groups object points to at +0x3c — ~~unnamed~~
+`GroupsData::last_group`, the pointer being `&groups + 0x1c` (§19) —
+folded by zlib's Adler from a stack copy (32 bytes; §1).
 
 **Leaders** (`CheckSums::check_leaders@009375a0`, the same loop as
 `check_all`'s): every slot of the `leaders` array to 0xe71af0, through
@@ -600,7 +603,9 @@ on either frame read), and `say_checksum`'s labels beyond the fifteen.
   camp's `recharging`, short of `Guy::move`'s bump~~ (held since item
   4097, `docs/ORDERS.md` §6.11), and ~~one `up_who`, the object chain's
   history of a building~~ (held since item 4098 with the chain's other
-  three words, `docs/COLLISION.md` §3.2; §15).
+  three words, `docs/COLLISION.md` §3.2; §15). *For groups* (item 4116,
+  §19): one field was not held and is carried now, a group's `role`
+  (`docs/GROUPS.md` §3.4).
 
 ## 11. The items line, ported (item 4088)
 
@@ -1532,3 +1537,112 @@ list, the `num = 0` repeat of a `group`.
 **Not established**: every frame but 91, and §17's list but these three
 fields; §16 of `docs/SCOUT.md`, §6.12 and §8.1 of `docs/ORDERS.md` each
 list their own.
+
+## 19. The groups line, ported (item 4116)
+
+**The line is the original's on run 1562's frame 91**: 556 of 556 ranges,
+37,010 of 37,010 bytes, all 512 slots, the six in use with their one member
+each, and the eight `last_group` words, with the Adler **3941922214**, the
+printed `Groups`, and nothing substituted. `Sim::checksum_groups`
+(`crates/sim/src/checksum/groups.rs`) emits it, and
+`diff::checksum_lines::the_groups_line_is_the_original_s_range_by_range`
+holds it range by range and field by field with `GROUPS_HELD_OUT` empty.
+`CHECKSUM_STATE` counts it: 7 of 12 lines, 72,387 of 425,499 bytes (§5).
+
+**The walk, in the stream's order** (`CheckSums::check_groups@00937530`,
+`Group::walk_data@00708400`):
+
+| site | range | bytes | what |
+|---|---|---|---|
+| `00708419` | `GroupData` `+0x4..+0x4c` | 72 | `id`..`march`, 21 fields (`GROUP_RECORD_FIELDS`), every slot `0..512` |
+| `0070843a` | `list` | 2·`num` | the members' `o`; a building group's are its buildings' (`2000`+) |
+| `0070844b`, `00708464` | `off_x`, `off_y` | 4·`num` each | the formation offsets |
+| `0070847d`, `00708496` | `curr_x`, `curr_y` | 4·`num` each | their rotation, plain `Coord`s |
+| `007084ae` | `angles` | `num` | the slots' eighth-turns |
+| `00937587` | a local | 4 × 8 | `last_group[who]`, `who·64 + s` |
+
+The member arrays are walked only for a slot whose `num` is not 0, and
+`list` comes first (§7 is corrected in place).
+
+**The values, both frames** (the stream, decoded by the type record before
+any port; item 4116's journal has the tables):
+
+- **The unused slots**: 506 on each frame. Each one's `id` is its own index,
+  so the 506 raw images are all distinct. With `id` set aside, run 1562
+  holds **one** image: `Groups::clear@00713f20`'s, which is `army` −1, `num`
+  0, `form` −1, `stamp` 0 and every other field 0, `who` included. Run1100
+  holds **two**: that image ×505, and slot 67 (player 1's), whose `stamp` is
+  2559 and `who` 0. That is a group emptied by `Group::kill`, whose
+  `Group::clear(-1)` stamps the frame and writes `who` 0.
+- **The six in use** have the same shape on both frames. A player's first
+  push takes slot 1, because `last_group` starts at slot 0. A command's
+  building group takes slot 0 or 2. A scout's group has `form` 0, its
+  point, `order_num`, `role` `0x40110`, `speed`/`new_speed` 34 and
+  `form_num` 1.
+  - Run 1562: slots 0, 1 and 2 are the human's three minted commands. Slot 0
+    is the Village's `queue_up` (stamp 60), slot 1 the Scout's `move_to`
+    (30) and slot 2 Citizen 1's `build` (90, `facing` 1). Slots 64, 65 and
+    66 are the computer's: buildings 2005 and 2000 on frame 1 and its
+    scout's explore on frame 0.
+  - Run1100: slots 64–66 and 128–130 are two computer players, and slot 0
+    of player 0 is never pushed.
+- **`last_group`**: run 1562 holds 2, 66, 128, 192, …, 448. Run1100 holds
+  0, 66, 130, 192, ….
+
+**What the crate held before this item, and what it holds now.** The pool
+(`docs/GROUPS.md` §3, §19, §29, §31) already held all six records on the
+right slots, with every field the original walks. The exceptions were
+`role`, which it did not hold, and the three words in `docs/GROUPS.md` §3.4
+that are constant by their writers. Read from that state, the first image
+parted on **two ranges**: slots 1 and 65, `role` 0 against `0x40110`. Every
+other range already agreed.
+
+- **Carried**: `GroupState::role`. This is `Group::find_role@007081f0`, run
+  wherever the crate stands in for `Group::normalize`, in both arms of
+  `Groups::process` (`docs/GROUPS.md` §3.4), and zeroed by
+  `GroupState::emptied`. `copy_group` leaves it, so slot 2 still reads the
+  0 it held when it was pushed on frame 90.
+- **By a writer's constant**: `disband` 0 and `priority` 0. `who` is the
+  owner, except that an emptied record that was cleared reads 0.
+- **From the slot table**: `army`, which is the army's number while it
+  holds the slot and is linked, and −1 otherwise. `buildings` is a building
+  group's 1. `last_group` is `who·64 + s`.
+- **A slot the crate holds no record on** is emitted as `Groups::clear`'s
+  image.
+
+**Made to fail.** Slot 1's `role` set back to 0 parts on slot 1's record
+alone. That is the first image's parting, which slot 65 shares. Emitting
+`role` derived at walk time from the current members, instead of the
+carried word, parts on slot 2 alone (`0x40300`, the Citizen's role word, against 0). Of each of the
+eight kinds of range (a record, the five member arrays, `angles` and a
+`last_group` word), one bent byte parts on that range alone and moves the
+Adler. The empty image parts on all 556.
+
+**How it was established, and how confident.** Diff-backed: the whole
+line on one frame, every field of every slot. From the type record and
+the PDB's globals: the field names and widths, and `last_group` as the
+eight words (`const_last_group` is `0xe85f2c`, and the map puts `groups` at
+`0xe85f10`). The following rest on a reading, consistent with run1100's
+frame and not diffed there (it is not a frame of ours): the cleared
+record's `who` 0, `disband` and `priority` constant by their writers, and
+`find_role`'s callers.
+
+**Not established**:
+
+- Every frame but 91.
+- A group of more than one member, and so the member arrays' values other
+  than 0. Every in-use slot on both frames holds one member at offset
+  (0, 0).
+- `role` at a normalize site the crate does not mirror. The callers this
+  crate stands in for are listed in `docs/GROUPS.md` §3.4, and others
+  exist (`HotKeyGroups::find_group`, `Object::find_nearby_target`,
+  `Unit::do_build`, the `is_*` queries).
+- A building group emptied by `Groups::process`'s prune. The original
+  keeps `buildings` 1 at `num` 0, and this crate's emptied entry would emit
+  0.
+- `army` on a pushed slot whose previous occupant was an army.
+  `copy_group` leaves the number, and this emitter writes −1 unless a
+  linked army still holds the slot.
+- A slot an army and a pushed entry both hold. The emitter takes the army's
+  record while the army has members.
+- A frame where `get_open_slot`'s fallbacks fire.

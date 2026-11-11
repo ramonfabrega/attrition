@@ -20,8 +20,8 @@ impl Sim {
     ///
     /// The prune is the back-pointer's (§23): a member is kept while it is
     /// alive and its `+0x80` names this slot, on an army's list and a
-    /// pushed one alike. `find_role` is not modelled — no consumer of
-    /// `GroupData::role` is.
+    /// pushed one alike. Then `find_role` ([`Sim::group_find_role`], the
+    /// record's `role`, which the checksum's groups line reads).
     pub(crate) fn groups_process(&mut self, frame: i64) {
         let s = u8::try_from(frame.rem_euclid(64)).expect("under 64");
         for w in 0..self.ai.armies.len() {
@@ -43,7 +43,9 @@ impl Sim {
                 self.army_keep_units(w, a, keep);
                 let g = self.army_group(who, a);
                 let v = self.group_compute_speed(&g);
+                let role = self.group_find_role(&g.list);
                 let st = &mut self.ai.armies[w].list[a].group;
+                st.role = role;
                 st.speed = v;
                 st.new_speed = v;
             }
@@ -77,7 +79,9 @@ impl Sim {
                     list: self.orders.pushed[i].list.clone(),
                 };
                 let v = self.group_compute_speed(&g);
+                let role = self.group_find_role(&g.list);
                 let st = &mut self.orders.pushed[i].state;
+                st.role = role;
                 st.speed = v;
                 st.new_speed = v;
             }
@@ -173,11 +177,24 @@ impl Sim {
     /// membership is maintained elsewhere in this crate and dropping a
     /// dead member from a pool slot mid-frame is a different change.
     pub(crate) fn group_set_speed(&mut self, g: &Group) {
+        let role = self.group_find_role(&g.list);
         let s = self.group_compute_speed(g);
         if let Some(st) = self.gstate_mut(g) {
+            st.role = role;
             st.speed = s;
             st.new_speed = s;
         }
+    }
+
+    /// `Group::find_role@007081f0` over a group of units: the OR of every
+    /// in-use member's type `role` (`UnitType +0x2c8`), from zero
+    /// ([`GroupState::role`]). A building group answers 0 — `find_role`
+    /// tests `buildings` (`+0x49`) first — so its callers pass no list.
+    pub(crate) fn group_find_role(&self, list: &[usize]) -> u32 {
+        list.iter()
+            .filter(|&&u| u < self.units.len() && self.units[u].alive())
+            .filter_map(|&u| self.units[u].ty)
+            .fold(0, |r, t| r | self.tables.unit_types[t].cols.role)
     }
 
     // ------------------------------------------------------------------

@@ -221,6 +221,47 @@ cycling 0..63 — the same prune `Group::normalize` runs (§4.3) plus
 when there is no leader. That is the only thing that keeps a group's march
 speed from drifting; `docs/ORDERS.md` §8.3 reads the consumer.
 
+### 3.4 `role`, and the record's other unread words (item 4116)
+
+`Group::find_role@007081f0` writes `role` (`+0x34`): 0, then, when
+`buildings` (`+0x49`) is clear, the OR over the list of every member still
+in use (the object's vslot `+0x8`) of its type's `role` word (`UnitType
++0x2c8`, `determine_roles`' — `UnitCols::role`). Its callers are two:
+`Group::normalize@00711540`, after the prune, and `Groups::process` (§3.3)
+on the cursor's slot. `Group::clear` zeroes it; `Groups::copy_group` does
+not copy it, so **a pushed group keeps its slot's last `role` until the
+slot is next normalized**. That makes it state, not a value the walk can
+derive: on run 1562's frame 91 the Citizen group pushed on frame 90 (slot
+2) still reads 0, where its member's type answers `0x40300`, while the two
+scout groups, normalized since their pushes, read the Scout's `0x40110`.
+Its readers: `Army::add_group@006f8c00` ORs it into the army's role (not
+carried here), and the checksum's groups line (`docs/CHECKSUM.md` §19).
+
+The crate writes it wherever it stands in for `normalize` —
+`Sim::seat_normalize`, `Sim::group_set_speed` (the speed tail of the
+normalize-opening sites), `Army::normalize`'s seat tail — and in both arms
+of `Sim::groups_process`; `GroupState::emptied` zeroes it, and
+`GroupState::copied` leaves the previous occupant's.
+
+Three more words of the record have no state here because no writer
+stores anything but a constant (every writer in the export, grepped by
+offset across `Group`, `GroupData`, `Groups` and `Army` and through a
+`groups._16_4_ + id·0x9d4` pointer):
+
+- `disband` (`+0x28`): `Group::clear`, `action_begin`, `set_ordered`,
+  `add`, `kill` and `action_move_near` each store 0.
+- `priority` (`+0x30`): `Group::clear` and `Groups::clear` store 0; the
+  `+0x30` writes in `Army::charge`, `Army::find_target` and
+  `Form::categorize` are their own records'.
+- `who` (`+0x4a`) is the owner except after `Group::clear`, which stores
+  0; `copy_group` and `Group::add` on an empty record write the owner back.
+
+And `GroupsData::last_group[8]` (`+0x1c`, which `const_last_group` at
+`+0x3c` points at — `0xe85f2c` against the map's `groups` at `0xe85f10`)
+is written by `Groups::Groups` and `Groups::clear` (`who·64`) and by
+`push_group`'s copy arm alone; the crate's `last_group[who]` holds `s`,
+the array index being `who·64 + s`.
+
 ## 4. Membership
 
 ### 4.1 `Group::add(o, who, keep_captain, const)@00714350`

@@ -12,7 +12,9 @@
 //!
 //! Ported so far: **items** (item 4088), **cities** and **goods** (item
 //! 4091), **builds** ([`builds`], items 4094 to 4098, `docs/CHECKSUM.md`
-//! §14, §15) and **guys** ([`guys`], item 4104, §16). Every other line is
+//! §14, §15), **guys** ([`guys`], item 4104, §16), **units** ([`units`],
+//! items 4109, 4113, §17, §18) and **groups** ([`groups`], item 4116,
+//! §19). Every other line is
 //! its own item, cheapest
 //! first by `docs/CHECKSUM.md` §4's ledger.
 
@@ -485,6 +487,7 @@ impl Sim {
 }
 
 pub mod builds;
+pub mod groups;
 pub mod guys;
 pub mod units;
 
