@@ -69,8 +69,8 @@ flag (`Build+8 & 0x20`). In that branch every activation makes a City record. So
 `param_1 == 1` (a transfer) does not.** `Build::activate` is virtual, `Build::vftable +0x1a8`.
 Call sites with first argument 0:
 - `Setup::build_cities (005ab910)` `(0,0,0)`: each player's start city.
-- the construction-complete path (export name `Wall::do_construct (006434d0)`, a folded body)
-  `(0,1,1)`: a built city finishing.
+- the construction-complete path (the export files it as `Wall::do_construct (006434d0)`; I did
+  not check whether the body is folded) `(0,1,1)`: a built city finishing.
 - `Leader::produce_building (006e1400)` `(0,param_2,0)`: instant placement. Its callers are
   `Setup::build_civ_specific`, `Setup::small_city_buildings`, `Setup::large_city_buildings`,
   `Leader::make_this`, `ConquestGame::build_cities`, and `ScenarioFuncSet::place_orphan_*`.
@@ -200,3 +200,8 @@ Not read:
   `init_city` call;
 - `Leader::make_this`'s callers.
 
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `city_name` (+0x40c, int) | `City::generate_name (00735c90)` (`incl` at 73614a, `=1` at 7362d2); `Leader::init (006e3930)` (`=0` at 6e3b14, plus a `memset 0x6929` when `param_2<0`); `Leaders::clear (006ed5d0)` (memset); `LeaderData::walk_data (006d6750)` (save-game load, raw range) | +1 per city named from the tribe's XML list (`Build::activate` of a city building with `param_1==0` → `Cities::init_city` → `City::init` → `generate_name`), on the same-civ slot 0..7 holding the largest count (or on `own` if every count is 0). On the first naming, `own` goes 0→1 when it was not the target. No step for a FORBIDDENCITY-typed city, CtW non-barbarian names, transfers (`param_1==1`), or a missing or empty list | `Leader::init` (setup, scenario load), `Leaders::clear` (`Game::close`, OOS recovery); never decremented | none yet: add under `!transfer` in `Sim::init_city` (`crates/sim/src/cities/city.rs:451`, called from `Sim::activate` `:2509`); checksum leaf `checksum/leaders.rs:98`, now `unheld` (`rondata/src/diff/checksum_lines.rs:1772`) | yes: start cities (`Setup::build_cities`) and every completed city; gate (a) reachability not established | high (writers, steps 1–6, listing-checked); medium-high (step 7 LFSR termination and sign) |
