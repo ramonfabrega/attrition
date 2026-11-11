@@ -352,7 +352,7 @@ The file counts below come from listing the install, 2026-11-06.
 | BIG archives | — | **Absent**: the Extended Edition ships unpacked (FORMATS, "Verified: the shipped install") | nothing is needed |
 | `.BHa` animation (2,062 in `art/`) | `render::bha`, `rondata::artdata` | The chunk container (`{u32 size; u16 id; u16 num_chunks}`); the root node's durations, frames = `round(times·3/200)`, as in `AnimMgr::force_load@0053ade0` and `AnimObj::load_hier@0054b700`, diff-backed against `DUMP_ALL` `end_time`. **Since item 4019, the whole file**: the node tree, every node's 36-byte keys (duration, quaternion, translation, one unread word), the skipped roots and `id 10` tracks; 2,062 of 2,062 decode (FORMATS, "The model files"). | The key's ninth word, the `id 10` element, and how a tree binds to a model it does not match. |
 | `.BH3` model (1,524 in `art/`, 323 in `terrain art/`) | `render::bh3`, `rondata::artdata` | **Since item 4019, the encoding**: vertices, normals, texcoords, faces and the node tree, as `BH3Method::load_bh3@009156f0` reads them, self-checking; 1,845 of 1,847 decode, and the two that fail are named (FORMATS, "The model files"). Which file a piece plays: `<UNIT … model="…bh3">` (`artdata::unit_art`). | ~~The normals' fourth word~~ (item 4122: none; packed twelve bytes apart, FORMATS §3), and the transform fields compared against a loaded `HierObj`. |
-| `.tga` texture (2,171 in `art/`, 730 in `terrain art/`) | `rondata::mountains` | Type 10 (run-length), 32-bit, descriptor `0x08`, bottom row first: the mountain templates (FORMATS, "The mountain templates"). | Every other TGA variant the install uses, which textures a model binds, and how terrain textures map to land types. |
+| `.tga` texture (2,171 in `art/`, 730 in `terrain art/`) | `rondata::mountains`, `render::tga`, `client::ground` | Type 10 (run-length), 32-bit, descriptor `0x08`, bottom row first: the mountain templates (FORMATS, "The mountain templates"). Every kind the install ships (item 4037). **A `BASELAND` cell's base texture and its place**, by reading (item 4127, §3.6, "The ground's base layer"). | Which textures a model binds beyond those read; the blends, the coast, the cliffs, the water and the mountains' own textures. |
 | `.png` (16 in `terrain art/`) | — | The extension only. | Their role. |
 | `unit_graphics.xml`, `anim_graphics.xml` | `rondata::artdata` | Piece → animation slot → `.bha` file, looping or not. | Material, scale and attachment attributes beyond those read. |
 | `effects_graphics.xml` `<MOUNTAINS>` | `rondata::mountains` | The template order, and `TEMPLATE_TEX` read as solid cells. | `MAIN_ALPHA_TEX` and `RING_ALPHA_TEX`, which are loaded for the renderer. |
@@ -901,6 +901,52 @@ runner up and steps it to the frame, then draws:
   the camera, from a 5×7 font in the crate, with no font dependency.
 The view is the observer's (§7.2 item 7), and the tint is by owner, a
 debug colour, not a team colour (§6's "After these").
+
+**The ground's base layer (item 4127).** *A reading and one photograph;
+committed before its count.* What a `BASELAND` tile draws, read from:
+- *The choice.* `TerrainOut::generate_land_lists@0085f6a0` hands each
+  cell's `land` (`WData +2`) and `land_sub` (`+3`) to
+  `TerrainList::add_new_coord_info@0084ba10`, whose bucket is
+  `TileSet::convert_land_tex_to_linear@0087ace0`: on land 0 the textures
+  of the `<BASELAND>` bases before the `land_sub`th, plus
+  `(cx mod 3) + 3·(cy mod 3)` over the cell's own coordinates (the
+  `0x55555555` divide, checked numerically for every `x` below 300). The
+  land pass binds `TileSet::get_land_textures_by_index@0087a9a0` of the
+  bucket (`TerrainOut::render@008558b0`). So a cell takes the `land_sub`th
+  base's file — the tileset's `<BASE>`s in file order, `land_sub` the
+  crate's own (`sim::observe::TerrainScene::land_sub`, the generator's
+  `fill_fertile`) — and of it the sub-tile its coordinates name.
+- *The sub-tile.* `load_as_supertile@00542640` cuts a `supertile="1"`
+  file 3 × 3: sub-tile `k` is the `w/3` square at column `k mod 3`, row
+  `k / 3` of the loaded image, top row first as `render::tga` gives it
+  (the convention the figures' textures already sample by).
+- *How it lies.* `TerrainOut::generate_land@0085f8d0` gives corner
+  `(x, y)` the texcoord `((x & 3)/4 + (x >> 2), (y & 3)/4 + (y >> 2))`
+  (`85fb9a`–`85fc7e`, `TexArray::add` taking `u` in `xmm1`, `v` in
+  `xmm2`): one sub-tile a cell, `u` along world x, `v` along world y,
+  origin the cell's corner. The `_mtrl` set (`+0x448`) has the same
+  coordinates; the third (`+0x1a80`) is the map's, `x/xs`.
+- *What multiplies it.* The vertex colour
+  `determine_land_height_color@0086c1e0` writes is `0xffffffff` on every
+  path. The light (the tileset's `<LIGHTING>`, the normals) and the
+  `_mtrl` stage are not drawn: the texel alone, as the colour reader's.
+- *Drawn:* every `BASELAND` tile not under a placed mountain, bilinear
+  over the sub-tile's mips (`render::silhouette::Paint::Textures`). A
+  mountain's tiles keep the debug grey (`render_mountains` is unread),
+  the other kinds their debug colour; the debug draw stays behind a flag
+  as the floor's.
+- *Not drawn, and named at the count:* the blends between bases and
+  kinds (`generate_transitions`, `create_transition_renderables`), the
+  coast, the cliffs, the water, the decorations, the weathering, the
+  fog, the light.
+
+The row (`RUN1559B_3279_GROUND`): of the scored tiles — at least 40
+ground pixels, a ground pixel one where none of our objects draws,
+outside every object's window (its pixels plus 6), every trace and every
+`INTERFACE` rectangle, the terrain the nearest surface — those whose two
+means over the tile's ground pixels lie within 0.05 in (r, g)/(r + g + b).
+On this tree before the rule: 898,590 ground pixels, 1,109 scored tiles,
+all `BASELAND` (106 under a mountain); **the debug colour's floor 92**.
 
 **The projection is the camera's own.** The shader multiplies by
 `to_screen_matrix` uploaded row-major (WGSL reads it transposed, so `M · v`
@@ -1580,7 +1626,10 @@ Each line names what would settle it.
   `(x, y, z, w, h)`, the height the third integer, the outputs in `ecx`
   and `edx`.
 - **The `.BH3` encoding, every TGA variant past type 10, the terrain
-  textures' mapping, and the 16 PNGs** (§3.2).
+  textures' mapping, and the 16 PNGs** (§3.2). ~~The terrain textures'
+  mapping~~: a `BASELAND` cell's base layer is read (item 4127, §3.6,
+  "The ground's base layer"); the blends, the coast, the cliffs, the
+  water and the mountains' textures are not.
 - **Whether `sim` builds for `wasm32-unknown-unknown`.** It is untried, and
   matters only if option A's live variant is wanted.
 - **The licence of ptasev/Rise-of-Nations.** Reading it is fine under the

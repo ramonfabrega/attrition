@@ -25,6 +25,7 @@
 //! and `render`, and none of them on it (`tests::the_sim_takes_no_graphics`).
 
 mod gpu;
+mod ground;
 mod overlay;
 mod silhouette;
 mod trace;

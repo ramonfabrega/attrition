@@ -656,6 +656,24 @@ pub enum Paint<'a> {
         mips: &'a Mips,
         owner: Option<[u8; 3]>,
     },
+    /// Each triangle's texcoords into its own texture, `mips[of[t]]`, the
+    /// texel alone: the ground's base layer (item 4127), a cell's sub-tile
+    /// a texture of its own.
+    Textures {
+        uvs: &'a [[[f32; 2]; 3]],
+        mips: &'a [Mips],
+        of: &'a [usize],
+    },
+}
+
+/// Triangle `ti`'s texcoords and the texture it samples, when `paint`
+/// textures it.
+fn paint_mips<'a>(paint: &Paint<'a>, ti: usize) -> Option<(&'a [[f32; 2]; 3], &'a Mips)> {
+    match *paint {
+        Paint::Texture { uvs, mips, .. } => Some((uvs.get(ti)?, mips)),
+        Paint::Textures { uvs, mips, of } => Some((uvs.get(ti)?, mips.get(*of.get(ti)?)?)),
+        Paint::Flat(_) => None,
+    }
 }
 
 /// One painted pixel: its colour and, when textured, the texel's alpha.
@@ -693,7 +711,7 @@ pub fn paint(
     let mut depth = vec![f32::INFINITY; ww * wh];
     for (ti, t) in object.tris.iter().enumerate() {
         let level = match paint {
-            Paint::Texture { uvs, mips, .. } => uvs.get(ti).map(|uv| {
+            Paint::Texture { .. } | Paint::Textures { .. } => paint_mips(paint, ti).map(|(uv, mips)| {
                 let base = &mips.levels[0];
                 let du = [uv[1][0] - uv[0][0], uv[1][1] - uv[0][1]];
                 let dv = [uv[2][0] - uv[0][0], uv[2][1] - uv[0][1]];
@@ -730,15 +748,19 @@ pub fn paint(
                     level: 0,
                     weights: q,
                 },
-                Paint::Texture { uvs, mips, owner } => {
-                    let Some(uv) = uvs.get(ti) else {
+                Paint::Texture { .. } | Paint::Textures { .. } => {
+                    let Some((uv, mips)) = paint_mips(paint, ti) else {
                         return;
+                    };
+                    let owner = match paint {
+                        Paint::Texture { owner, .. } => *owner,
+                        _ => None,
                     };
                     let (u, v) = at_weights(uv, q);
                     let s = mips.sample(level.unwrap_or(0), u, v);
                     Texel {
                         rgb: match owner {
-                            Some(c) => team_blend([s[0], s[1], s[2]], s[3], *c),
+                            Some(c) => team_blend([s[0], s[1], s[2]], s[3], c),
                             None => [s[0], s[1], s[2]],
                         },
                         alpha: s[3],
