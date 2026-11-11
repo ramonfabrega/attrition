@@ -758,6 +758,12 @@ the second reading caught it (R1). `crates/sim/src/orders.rs` already does
 this.
 `UnitData::get_action@00608450` is the same walk without the writes.
 
+**An animal never runs it from `Unit::work`.** `Animal::work` is
+`Unit::do_job` on the front order and the herd's sighting bits, nothing of
+`Unit::work` around it, so a gaia animal keeps `Unit::init`'s `orders_x/y` —
+its birth cell's centre — and `dest_angle` (`0x55555555`). The crate's `work`
+skips the call for a gaia unit (item 4109, `docs/CHECKSUM.md` §17).
+
 So `orders_x/y` is the final destination of the leading run of transit moves
 (what the UI flags, what `check_target_path`'s range test uses), `dest_angle`
 the last such move's angle — the log shows `dest_angle` equal to the queued

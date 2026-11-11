@@ -130,11 +130,7 @@ const PATH_BLOCK: i32 = 10;
 /// the console), state this crate does not keep (`docs/CHECKSUM.md` §17).
 const PLAY_NONE: i8 = -1;
 
-/// The `BUILD_AT`, `GATHER` and four move kinds' `OrderIndex`.
-mod kind {
-    pub const BUILD_AT: u8 = 6;
-    pub const GATHER: u8 = 7;
-}
+use crate::ids::order as kind;
 
 fn put(b: &mut [u8], base: usize, at: usize, width: usize, v: i64) {
     let bytes = v.to_le_bytes();
@@ -544,17 +540,12 @@ impl Sim {
                 put("order.flags", vec![o.flags]);
                 put("order.target", target(g.building));
                 let tile = g.tile.unwrap_or(crate::Pos::new(-1, -1));
-                let bd = &self.buildings[g.building];
+                let ty = self.building_type_index(g.building);
                 let mut b = vec![0u8; 0x28 - 0x14];
                 let mut p = |at: usize, w, x: i64| put_raw(&mut b, at - 0x14, w, x);
                 p(0x14, 4, i64::from(tile.x));
                 p(0x18, 4, i64::from(tile.y));
-                p(
-                    0x1c,
-                    4,
-                    bd.ty
-                        .map_or(0, |t| i64::from(super::builds::BASE_BUILDTYPES) + t as i64),
-                );
+                p(0x1c, 4, ty);
                 p(0x20, 4, i64::from(g.wait));
                 p(0x24, 1, i64::from(g.goto_build));
                 // `non_flat_gather`: `Unit::add_gather_order@0061a5c0`'s

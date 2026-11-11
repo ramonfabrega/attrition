@@ -262,7 +262,7 @@ and are named last; by bytes:
 (792; ported, §13) ·
 4. builds (4,923; ported, §14, §15) · 5. guys (9,308; ported, §16) ·
 6. units (19,642; it walks the
-guys again) · 7. groups (37,010) · 8. leaders (58,343) ·
+guys again; held out on three fields, §17) · 7. groups (37,010) · 8. leaders (58,343) ·
 9. world (294,769) · then walls, ammo and deaths (0 each), counted on a
 frame that holds one.
 
@@ -310,7 +310,10 @@ there too: builds is held out on one `up_who`, 518 of 519 ranges and
 4,889 bytes agreeing. Item 4098 moved it from `state 3 of 12 lines,
 1,504 of 425,499 bytes`: builds is ported, every byte (§15). Item 4104
 moved it from `state 4 of 12 lines, 6,427 of 425,499 bytes`: guys is
-ported, every byte (§16).
+ported, every byte (§16). Item 4109 left it at `state 5 of 12 lines,
+15,735 of 425,499 bytes`: units is held out on three fields of six units,
+1,078 of its 1,084 ranges and 18,976 of its 19,642 bytes agreeing, which
+`CHECKSUM_STATE` does not count (§17).
 
 `floors::tests::the_handoff_s_checksum_line_is_the_pinned_counter` holds
 the queue's line against it. `checksum::tests::the_instrument_reproduces_the_printed_record`
@@ -338,7 +341,7 @@ in walk order:
 | | [+0x9, +0x18) | `who`, `o`, `z_internal`, `x_internal`, `y_internal` (stops before `ptype`) | 101, 1,515 |
 | | 4-byte local | (site 00662287) | 101, 404 |
 | `Object::walk_data@00647830` | [+0x20, +0x42) | `ObjectData` `myhits`..`launch_frames`, 19 fields (stops before `launching`) | 101, 3,434 |
-| | 1-byte local | `Object::must_walk@00647930` (site 00647910) | 101, 101 |
+| | 1-byte local | ~~`Object::must_walk@00647930`~~ `launching != 0` (site 00647910; corrected by item 4109, §17) | 101, 101 |
 | `Unit::walk_data@0060cf40` | 1-byte local | (site 0060cfae) | 101, 101 |
 | | [+0x48, +0xb7) | `UnitData` `collide_frame`..`play`, 49 fields, two int/short unions (+0x54 `rare`/`air_alt`/`former_type`, +0x86 `hero`/`cara`/`doober`/`special`/`herd`) | 101, 11,211 |
 | | 1-byte locals ×2 | `Unit::must_walk@0060d040` (site 0060d07f) | 202, 202 |
@@ -350,6 +353,7 @@ in walk order:
 | | [+0x14, +0x28) | `tx`, `ty`, `build_type`, `wait`, `goto_build`, `non_flat_gather`, `dist_mod`, `been_there` | 37, 740 |
 | | 1 byte | `UnitOrder` `flags` (the virtual base, +0x2c) | 37, 37 |
 | `AttackToOrder::walk_data@00482e70` | [+0x4, +0x50) | `MoveOrder` `x`..`off_y`, 19 fields (PDB) | 8, 608 |
+| `TargetOrder::walk_data` (a `BUILD_AT`; item 4109, §17) | 1 byte, [+0x8, +0x12) | `UnitOrder` `flags`; `TargetOrder` `ox`, `whom`, `uid` | 0 here; 2, 2 + 20 on run 1562 |
 | | 1 byte | `UnitOrder` `flags` (+0x54) | 8, 8 |
 | `TradeOrder::walk_data@00483260` | [+0x8, +0x12), [+0x14, +0x26) | `TargetOrder` `ox`, `whom`, `uid`; `oxx`, `whose`, `started`, `loaded`, `uid2` | 2, 20 + 36 |
 | | 1 byte | `UnitOrder` `flags` (+0x2c) | 2, 2 |
@@ -357,6 +361,12 @@ in walk order:
 | | per guy: 1-byte local | (site 0046e199) | 111, 111 |
 | `GuyData::walk_data@005e0210` | [+0x8, +0xa3) | `GuyData` `type`..`guy_num`, 42 fields, **5 floats** (§4) | 111, 17,205 |
 | `AnimalData::walk_data@005d7ea0` | 1-byte local; [+0x150, +0x155) | `AnimalData` `ox`, `whom`, `aid` (55 of the 101 are animals) | 55, 55 + 275 |
+
+*Corrected by the stream* (item 4109, run 1562's frame 91; §17 has the
+order): the two `Unit::must_walk` bytes are the vcalls of `SubObject`'s and
+`Object`'s walkers — the first after `flags`, the second before the
+`ObjectData` range — and an order's 1-byte `flags` comes **before** its
+fields, the type local and node byte before both.
 
 The `TargetOrder` and `MoveOrder` fields are absent from the export's
 records for these orders (multiple inheritance with a virtual base). The
@@ -575,7 +585,12 @@ on either frame read), and `say_checksum`'s labels beyond the fifteen.
 - Whether a field the simulation does not hold stands in any line. That
   is each later item's finding: for example the world's fog bytes
   (`seen`, `seen2`, `seen3`, `wcoord_seen`, `was_seen`), the danger maps,
-  and a unit's collision and path-finding state. *For builds* (item 4094,
+  and a unit's collision and path-finding state (~~a unit's~~ *for units*,
+  item 4109, §17: no walked range holds the path-finding trees, which
+  start at `+0x100`; two fields were not held and are carried now, `uid`
+  and the birth cell `los_x`/`los_y`; and three stand unheld, holding the
+  line out — `play`, the `+0x86` union of a special or a woodcutter, and
+  `unit_masks & 0x8`). *For builds* (item 4094,
   §14): three fields were not held and are carried now (`uid`,
   `frame_started`, `build_masks & 0x400`); `WallData::gpiece` is art the
   data layer hands in; and two stood unheld, holding the line out — ~~a
@@ -1336,3 +1351,121 @@ this frame: the writers above, the gaia piece arm, the domain arms of
   point) or on a unit whose `Unit::process` this crate skips while the
   original runs it, and the converse.
 - Owner 9's figures (none on either frame).
+
+## 17. The units line, held out on three fields (item 4109)
+
+**1,078 of 1,084 ranges and 18,976 of 19,642 bytes agree** on run 1562's
+frame 91 — all 52 units, their 4 path nodes and 13 orders, the 54 figures
+(the guys line's 9,308 bytes, emitted by its own emitter) and the 40
+animals' records. The six ranges that part are the `UnitData` records of
+the scouts `0/0` and `1/0` and the citizens `0/1`, `0/2`, `1/1`, `1/2`, on
+three fields between them. Ours sums to 280398657 against the printed
+`Units` 27230589. `Sim::checksum_units` (`crates/sim/src/checksum/units.rs`)
+emits it; `diff::checksum_lines::the_units_line_is_the_original_s_range_by_range`
+holds it range by range and field by field, the three fields named with
+their counts; `CHECKSUM_STATE` does not count it (§5).
+
+**One unit's ranges, in walk order** (the stream's; `Unit::walk_data@0060cf40`):
+
+| # | site | range | bytes | what |
+|---|---|---|---|---|
+| 1 | `006621fe` | `SubObjectData::flags` | 1 | `1`, `0x10` (`cant_reach`), `0x40` (below) |
+| 2 | `0060d07f` | a local | 1 | `Unit::must_walk@0060d040`, `SubObject::walk_data`'s vcall: 1 |
+| 3 | `0066221c` | `who`..`y_internal` | 15 | the owner, `o`, `z`/`x`/`y` masked; `z` is `World::object_z` |
+| 4 | `00662287` | a local | 4 | the type's `TypeIndex` |
+| 5 | `0060d07f` | a local | 1 | the same vcall, `Object::walk_data`'s: 1 |
+| 6 | `00647885` | `ObjectData` `+0x20..+0x42` | 34 | the builds line's `OBJECT_FIELDS` |
+| 7 | `00647910` | a local | 1 | `launching` (`+0x44`) is not null: 0 on all 153 units of both frames |
+| 8 | `0060cfae` | a local | 1 | the inlined `must_walk`: 1 |
+| 9 | `0060cfcd` | `UnitData` `+0x48..+0xb7` | 111 | `UNIT_FIELDS`, 49 fields; `Coord`s plain |
+| 10 | `0046d8df` | `size`, `length`, `increment` | 9 | 10, the node count, 10 (a `char`) |
+| 11 | `0046d980` | a node, `+0x0..+0x10` | 16 | `to_x`, `to_y` (plain), `tolerance`, `flags` |
+| 12 | `00730291` | a local | 4 | the order count |
+| 13 | `007303ac`, `007303be` | a local; the node's `+0xc` | 4 + 1 | per order, front first: its `OrderIndex` (vslot `+0x10`), the node's `metric` (0) |
+| 14 | the order's walker | 1 + its fields | | the virtual base's `UnitOrder::flags`, then a move's `MoveOrder` `x`..`off_y` (76), a `BUILD_AT`'s `TargetOrder` `ox`, `whom`, `uid` (10), a `GATHER`'s that and `tx`..`been_there` (20) |
+| 15 | the figures | §16's seven | | `PtrArray<Guy>::walk_data@0046df30`, the guys line's bytes |
+| 16 | `005d7f0a`, `005d7f26` | a local; `AnimalData` `+0x150..+0x155` | 1 + 5 | an animal's: the inlined `must_walk` (1), `ox`, `whom`, `aid` (−1, `Animal::init`'s) |
+
+**Values first** (item 4109's journal has the whole table): the first image
+of ours, each field from where this crate held it, parted on 88 ranges —
+the forty animals' `mylos`, `orders_x`, `orders_y` and `dest_angle`, and
+the two scouts' `flags` — beside the three fields that still part. Agreeing
+from the first image, every other field of the 19 `ObjectData`, the 49
+`UnitData`, the path, the orders and the figures, once the unheld ones below
+were carried or derived.
+
+**Carried** (new state, read by nothing but this line):
+
+- **`ObjectData::uid`** (`+0x30`) — `Object::init@00647750`'s per-player
+  counter, which `Sim::add_unit` already advanced and now keeps on the unit
+  (`Unit::uid`); a target order's `uid` is its building's.
+- **`UnitData::los_x`, `los_y`** (`+0x78`, `+0x7c`) — written by
+  `Unit::init@00612100:103` alone: the centre of the 48-unit cell it was
+  handed, `div_3(v >> 4) · 0x30 + 0x18`. `UnitData::log_data` prints it.
+  Kept as `Unit::birth_cell`, taken at `Sim::add_unit`. 52 of 52.
+
+**Derived** (from state this crate holds): `inside_down`/`inside_down_who`/
+`inside_up_who` (the owner while nothing is seated or the unit is not inside;
+the container's owner inside); `launch_frames` 0 (a launcher's clock);
+`gather_down` (the next unit down its building's gatherers, whose head is
+the builds line's); `myarmor` (`ObjectData::armor`, the term
+`Unit::update_armor` caches; `Sim::object_armor`); `cavarch_uid` (0, the
+target's `uid` with one); `guy_mark` (`anim::SQUAD_SIZE`); `collide_frame`
+and `damage_o` (−1, `Unit::init`'s, where the crate keeps 0 for "never");
+`unit_masks` from the 17 bits the crate keeps; the `+0x86` union for a
+caravan or a herd; a move's `off_x`/`off_y` (`x mod 0x300`) and `tolerance`
+(0: nothing in the crate writes it, and run29's field table pins it); a
+gather's `build_type` (the building's `TypeIndex`) and `non_flat_gather`
+(`Unit::add_gather_order`'s lay: a gather type, not flat, not a University);
+`flags & 0x40`, which `Object::init@00647750:39` sets for a type whose
+`objmask` carries `0x2000000` — `combat::mask::DETECT`, the type's
+`obj_masks` (the scouts).
+
+**Corrected in the simulation** (the forty animals, `docs/VISION.md` §2,
+`docs/ORDERS.md` §3.3): `Animal::update_los` writes `mylos` 0 for every
+animal; `Animal::work` is `Unit::do_job` alone, so an animal never runs
+`Unit::work`'s `update_action` and keeps `Unit::init`'s `orders_x/y` (the
+herd's cell centre) and `dest_angle`; and `Unit::set_angle@00605400` writes
+`angle` (`+0x50`) and never `dest_angle` (`+0x58`), so a herd's founding
+leaves `0x55555555` there. Ours had the animal's own point, its facing and
+4 — `8/0` (17448, 26616), 835132528, 4 against (17304, 26520),
+1431655765, 0.
+
+**What holds the line out** — each named in the test with its count:
+
+| field | units | ours \| theirs | writers | what it would take |
+|---|---|---|---|---|
+| `play` (`+0xb6`) | 2 | −1 \| 0 on `0/0`, `0/1` | `Unit::init` (−1); `SelectGroup::add`, the tutorial, the console | the interface's selection groups, which the simulation does not keep |
+| `+0x86` (`hero`, `cara`, `doober`, `special`, `herd`) | 4 | −1 \| 0 on the scouts `0/0`, `1/0`; 0 on `0/2`, 2 on `1/2` | `Unit::init` (`Specials::init_special`, `Heroes::init_hero`, `Caravans::init_caravan`), `Unit::do_non_flat_gather`, `Unit::do_move`, `Unit::close` | the specials' table and the doobers' slots, neither read |
+| `unit_masks & 0x8` | 6 | clear \| set on all six | `Unit::do_move` (sets twice, clears twice), `Unit::find_path` (sets), `Unit::move_step`, `Unit::go_around_building` (clear) | the movement step's own "a waypoint is out" bit, at six sites |
+
+**Made to fail**: the first image itself (88 ranges, the rules above
+absent); in the test, one byte of each of the 24 kinds of range that agree,
+bent, parts on that range alone; the empty image on all 1,084.
+
+**How it was established, and how confident.** Diff-backed: every range
+of 52 units on one frame, field by field, 1,078 of 1,084 whole. From the
+type records and the PDB's field lists: every name, offset and width. From
+the walkers and the stream: the order and the locals. On a reading, held by
+that diff on this frame: `los_x`'s one writer, the animal's overrides,
+`flags & 0x40`'s rule, the non-flat lay.
+
+**Not established**:
+
+- Any frame but 91. **Agreeing by default** (one value on every unit of
+  both frames, or no writer here moved it): `damage`, `inside_down`,
+  `hold_frames`, `near_o`, `near_who`, `healing`, `infiltrated`,
+  `damage_frac`, `targeted`, `visible`, `launch_frames`, `damage_frame`,
+  `trench_angle`, `queue_time`, `unit_masks2`, `inside_up`, `supply`,
+  `collide`, `o_up`, `o_down`, `mana_burn`, `spell_time`, `myarmor`,
+  `attrition`, `num_queued`, `cavarch_o`, `damage_o`, `cavarch_uid`,
+  `cavarch_who`, `damage_who`, `full`, `waiting`, `recharging`, `safe`,
+  `guy_mark`, the animal's three.
+- The path stack's `size` past 10 nodes (run1100 carries 20 and 110; the
+  emitter rounds the node count up to the next 10, the stack's growth not
+  read) and after a long path shrinks; `inside_down` of a carrier; a
+  `TRADE_ROUTE`'s walker and every order kind but a move, a `BUILD_AT` and a
+  `GATHER` (their type and node byte alone are emitted); `flags & 0x8`
+  (run1100's); `unit_masks & 0x200000` (`Unit::init`'s `can_carry(AIR)`)
+  and the bits not listed; `myarmor`'s cache timing and the cattle
+  citizens' term; `los_x` of a unit the harness seats from a dump.
