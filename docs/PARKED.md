@@ -16307,7 +16307,10 @@ words and edits nothing here; a refill lands when two remain.
   separated: ~~stage 1's `TOP_MODULATE(TA_CURRENT, TA_DIFFUSE)` (the light's colour, which our unlit side does not
   apply)~~ (killed, item 4106: white light, grey net multiplier; 4106a), the level the card samples, registration, and whether `draw_unit` draws these figures under
   `render_states[0]` at all. The relationship-colour preference (`TeamColor::get_unit`'s `prefs & 0x100`) is not
-  read. The rule rests on a reading and one photograph: its blind second reading is unbooked. Names no score until
+  read. **Item 4110 read the photograph's own answer** on today's tree (2,665 masked lit pixels, 1,617 parting; the
+  2,733 above was this item's tree): the colour the photograph implies, `(p − t·α)/(1 − α)`, is the owner's `unit`
+  in hue, not its `unit_tint`, at the piece's own gain; the share is no one curve of α and no state, but per piece
+  at one α (killed as a rule; 4110a). The rule rests on a reading and one photograph: its blind second reading is unbooked. Names no score until
   a mechanism is chosen; at most the 18 figures still out.
 
 ## Parked by item 4106, 2026-11-10 — the light on a figure's texel, killed
@@ -16344,7 +16347,9 @@ words and edits nothing here; a refill lands when two remain.
   that level's texel. **What is left, by frame 3279 and its delta**: the peasants' masked pixels where the blend still
   parts, 265 of 486 on 4576 and 10912, which is 4102a's 61 %, not a mask of the opaque texel; and 4106's own
   numbers, which mix the two (its kill of the light stands: player 1 at alpha 255 is grey on every piece but the
-  dragoon 13680, 97 pixels). Rests on one photograph. Names no score until a mechanism is chosen.
+  dragoon 13680, 97 pixels). **Item 4110 took the masked pixels whole** (563 for player 0, 2,102 for player 1, 25 of
+  them under alpha 1): the peasants imply the owner's red at the photograph's gain and a share flatter than α; no
+  other colour and no other state stands (killed; 4110a). Rests on one photograph. Names no score until a mechanism is chosen.
 
 ## Parked by item 4104, 2026-11-10 — the guys line, and its five floats
 
@@ -16358,13 +16363,29 @@ words and edits nothing here; a refill lands when two remain.
   The units line walks the same bytes. Names no score until a scored frame holds a fight, a pivot, an aircraft or a missile:
   a second frame of the minted game is the place.
 
-## Parked by the next landing, slot EW — reserved
+## Parked by item 4110, 2026-11-10 — the masked pixels' implied colour and share, killed
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot EW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4110a. The masked pixels that still part, once the colour and the share are read off the photograph**
+  (`docs/RENDERER.md` §5.3, "The team colour"; `RUN1559B_3279_COLOUR` 18 of 33;
+  `client::silhouette::tests::the_implied_colour`). The population is the figures' masked lit pixels: both
+  footprints, not behind, neither side dark, the painter's alpha under 255 of 255. On today's tree that is 563 for
+  player 0 (alpha 44.6 to 254.9) and 2,102 for player 1 (0 to 255.0, 25 under 1), 1,617 parting under
+  `t·α + c·(1 − α)`. 4102's own test now counts the same. The owners' colours read through `TeamColor`'s type record
+  on run1559b's packet (`list` at `0xe39ce0`, stride `0x64`, `unit` +0x4 as red, green, blue, alpha bytes) are
+  4102's. **The colour is the owner's.** Pooled by least squares, the implied colour is red for player 0 in α 32–127:
+  (140, 9, −7), (160, 19, −4), (167, 10, −10). Divided by the gain `k` its own alpha-255 pixels give (0.71), it is
+  (208, 23, 1), (237, 39, 7), (251, 30, 3). For the dragoon 26352 in α 64–191 it is blue: (23, 75, 204) to
+  (6, 68, 211). Each is nearer `unit` than `unit_tint` (+0x4c; (127, 47, 47), (47, 47, 159)). **The share is no
+  rule.** At one band, α 64–95, the least-squares `s/k` is 0.48 on the riflemen 60, 0.31 on the dragoon 26352 and
+  0.33 on the peasant 10912. On the medium tank 196 `s` is 0.81 to 0.91 in every band from 64 to 223: the implied
+  colour is grey near the texel's gain, (105, 108, 103), and at alpha under 32 it is olive, (130, 134, 66), over a
+  white texel. The gain itself runs from 0.64 (377) to 1.20 (1008) by piece. The tank's `_desert` variant has the
+  plain texture's masked texels byte for byte, so no variant explains it. **What is left, by frame 3279 and its
+  delta**: the 1,617, as the level the card samples on the masked pixels (4107 read the chain only on alpha-255
+  pixels) and the texcoord's registration on small masked regions (the tank's 1,713 masked texels of 65,536), both
+  per piece. Not read: `GraphicPieces::draw_unit@008e7da0` (its decompile fails; the listing is unread past 4103's
+  bytes), and the relationship-colour preference. Rests on one photograph. Names no score until a mechanism is
+  chosen.
 
 ## Parked by the next landing, slot EX — reserved
 
