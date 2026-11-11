@@ -145,3 +145,58 @@ Yes. A started building on ground a rival's border took — run551 (`docs/CITIES
 
 High: both arms' control flow read in the listing (`6409cd`–`6409de`, `640b0d`–`640bb7`). Not followed: what vtable `+0x108` on a build type is (dock ring vs plain tile, per CITIES.md); `take_damage`'s return convention beyond "nonzero returns".
 
+## Leaf 4 — `att` (+0x7f0, int)
+
+### Writers
+
+| writer | site | store | base |
+|---|---|---|---|
+| `Leader::calc_attrition (006cdea0)` | `0x7f0(%ebx)`, `%ebx` = `this` (`movl %ecx,%ebx` at `6cdea1`) | the strength, below | `this` |
+| `Leader::init (006e3930)` | `6e4984` (`:626`) | `0`, then `calc_attrition(this)` at `:635` | `%ebx` = `this` |
+| `Leaders::clear (006ed5d0)` | memset | `0` | slot memset |
+| `LeaderData::walk_data (006d6750)` (load) | — | saved value | not read store by store |
+
+No absolute store to `0xe3ab80` exists. Rejected `0x7f0(%reg)` stores: `Constants::init` (`Constants +0x7f0` is `mongol_attrition`, which `Leader::calc_anti_attrition`'s `0x7f0(%ebx)` load at `6cde17` also reads — `%ebx` = `GameAccess::constants`), `ChatSpace::ChatSpace`, `IFaceResources::IFaceResources`, `TileSetData::{close, flush_all}`; `ScenarioFuncSet::ctw_set_sub_goals`'s is a `leal`.
+
+### The event, the step, the predicate
+
+`calc_attrition`, from the listing (`6cdea0`–`6cdfdc`), integers throughout:
+
+1. If `give_att_disabled (+0x7f8) != 0` → `att = 0` (`jne 6cdfdc` past everything).
+2. `n` = the length of the leading run of `ATTRITION1..ATTRITION4` (`TypeIndex` 0x2dd..0x2e0 = 733..736) that `LeaderData::has_preq (006db810)` answers for. The `BUY_SELL` (0x2ad = 685) / tribe-bonus-4 test inside the loop can never match an index in 733..736 (dead, as `docs/ATTRITION.md` settled).
+3. `x = 0`; if `n > 0`, `x = constants[+0x1d4 + 4n]` — the decompile's `attrition_upgrade[n + 3]`, which runs past the 4-entry `ATTRITION_UPGRADE` into `ATTRITION_IMPROVED[n − 1]` = 1, 2, 4, 8 with shipped data (the crate's `Tuning` note at `crates/sim/src/core/tuning.rs:63`).
+4. Then, in this order, each arm `x = (100 + pct)·x / 100` (signed, truncating; `imul 0x51eb851f; sar 5` is ÷100) **and then `x = 1` if the result is 0** (`cmovel` on the zero flag of the quotient, `6cdf2b`):
+   - Colosseum (`has_wonder(0x212)`), `colosseum_attrition` (`constants +0x470`, shipped 50);
+   - tribe bonus 13 (`has_tribe_bonus(0xd)`, the Russians), `russian_attrition` (`+0x74c`, shipped 100);
+   - CtW (`semaphore[2] & 2`) and the leader byte `+0x6900` nonzero, `ctw_attrition`;
+   - Kremlin (`has_wonder(0x21a)`), `kremlin_attrition`.
+5. `att = x`.
+
+**The floor fires on a base of 0.** With `n = 0`, `x` enters step 4 as 0, and any arm that applies gives `(100 + pct)·0 / 100 = 0`, then 1. So a leader with no attrition tech but with the Colosseum, the Kremlin, the CtW byte, or the Russian bonus has `att = 1`, not 0. **Diff-backed by the dump on disk**: run981 (`~/ron-golden/run981/map-7/gamelog.txt`, the `DUMP_ALL` start, Great Sahara, players `(0, tribe 4)` and `(1, tribe 13)`) prints `att 0` for the Nubian leader (line 809939, record from `tribe 4` at 809536) and **`att 1` for the Russian leader** (line 822197, record from `tribe 13` at 821794), both with no attrition tech at frame 0–36. `docs/ATTRITION.md` §"Strength" step 1 says "No steps means no attrition at all, which is where everybody starts"; that is false for the Russians, and `crate::territory::attrition::strength` (`crates/sim/src/territory/attrition.rs:42–45`) returns 0 early on `tech_steps == 0`, so the crate holds 0 where the original holds 1 for every Russian leader from frame 0. The consequence is not cosmetic: `UnitData::get_attrition (00608fd0)` returns 0 when the territory owner's `att == 0` and otherwise `resistance / att` (aged-up scaled), so for a base victim (`anti_att` 256.0, non-siege) Russian land answers `256 / att'` (`att'` = 1 before the aged-up term) from the first frame, where the crate answers no attrition at all (a reading of the consumer; no capture has a foreign unit in Russian land that I looked up).
+
+Event: `calc_attrition` is called from `Leader::calc_unit_stats (006cf970):10` (first statement), `Leader::gain_tech (006dcb60):434` (only inside the arm where the gained tech is a civic (`vtable +0x38`), its tech-type word `+0x14 == 1`, and the civics level equals `ctw_wonder_min_civics` — beside `calc_pop_cap`, `calc_anti_attrition`, `Region::fix_borders`), and `Leader::init (006e3930):635` (listing: three `call 0x6cdea0`). `calc_unit_stats` is called from `Leader::process (006b88b0)` and `Leaders::process_all (006ed2a0)` (the `0x4000000` dirty flag, which `gain_tech` raises on every tech via `leader_flags |= 0xc000000`, and `Build::activate`/`Build::close` raise for a wonder), from `Leader::set_age`/`set_epoch`, and from the scenario editor and `ScenarioFuncSet` (`gain_upgrade`, `lose_upgrade`, `set_object_type_*`, `create_building`, …).
+
+### Reset
+
+`Leader::init` (0, then recomputed — so a Russian slot leaves `init` at 1), `Leaders::clear` (0). Recomputed, not folded, on every `calc_unit_stats`.
+
+### Readers
+
+`UnitData::get_attrition (00608fd0)` (`608fe6`, `0x7f0(%ecx,%eax)`, the territory owner's slot): `att == 0` or `constants.attrition == 0` → no attrition; otherwise the divisor, after `att = ((attrition_aged_up·age_diff + 100)·att + 99) / 100` when the owner is at or above the victim's age. `LeaderData::get_attrition (006e0b60)` returns it and has no direct caller in the listing (inlined). `LeaderData::log_data` prints it.
+
+### Crate site
+
+`Sim::calc_attrition` (`crates/sim/src/territory/upkeep.rs:24`) writes `territory.players[w].strength`, which is `att`. Three gaps against the original:
+
+1. `attrition::strength` returns 0 when `tech_steps == 0` before the arms (above) — wrong for the Russians from frame 0, and for any Colosseum/Kremlin holder without the tech.
+2. `StrengthMods` is built with `russian` only (`upkeep.rs:44–47`); `colosseum` and `kremlin` stay false, though the crate now has owned wonders (`crate::tech::wonder::COLOSSEUM`/`KREMLIN`, `wonders_held`). Its doc comment ("this crate holds no wonder a player owns") is stale.
+3. It runs only from `Sim::apply_gained` (`crates/sim/src/tech/gain.rs:608`), immediately; the original's main path is `calc_unit_stats` on the next `Leader::process`. `Sim::calc_unit_stats` (`crates/sim/src/economy/rares.rs:679`) does not call it, so a wonder built (which raises the crate's `unit_stats_dirty`, `crates/sim/src/cities/city.rs:2491`, `:2887`) never recomputes `att`; and a tech gained during `Objects::process_all` changes `att` for the rest of that frame's units in the crate, the next frame in the original. A builder moves the call into `calc_unit_stats` (and keeps the `Leader::init` one) and adds the `give_att_disabled` short-circuit.
+
+### Plain game?
+
+Yes: the tech arm in any game reaching Allegiance; the Russian floor in any lobby with a Russian player, from frame 0 (run981, run644/647, run976 are Russian lobbies on disk); Colosseum/Kremlin in any game that builds them. The CtW arm and the `give_att_disabled` short-circuit are not reached.
+
+### Confidence
+
+High: the arithmetic and the zero-base floor read in the listing, and the floor diff-backed by run981's start dump. Not followed: the `ctw_wonder_min_civics` arm's predicate in `gain_tech` beyond the three conditions named; `Leader::set_age`/`set_epoch`'s own conditions.
+

@@ -290,3 +290,209 @@ is needed for a fresh game.
 7. **Confidence.** High. `land_size == 0` would fault in the original; not
    considered.
 
+## 4. `score_units` (+0x24)
+
+1. **Writers.** `Leader::compute_unit_score (006bc500)` (`6bc50c` zero,
+   `6bc5b4` add; its one call `6ec5ab` in `compute_score`);
+   `compute_score`'s Armageddon zero; `reset_score`.
+2. **Step.** Recomputed from scratch only on a recompute frame (§0.1) **with
+   `leader_flags & 0x1800000` set** (§0.4); otherwise it keeps its last
+   value. For each unit type `t` in `[0x32, 0x192)` (all 352 unit types,
+   gaia animals included):
+   - `n = num_queued[t] + num_units[t − 0x32]` (`LeaderData+0x5a22 + 2t`,
+     `+0x56fe + 2t` = `+0x5762` indexed from 0x32; both `ushort`;
+     listing `0xe3fdb2`, `0xe3fa8e`).
+   - If `n != 0`: `u = ( ((n − 1) × (support_cost[0] + support_cost[1]) × n)
+     / 2 + value(t, 0) × n ) / 5`, each `/` signed and truncating toward
+     zero (`cltd; sub; sar` for `/2`, `0x66666667` for `/5`). `support_cost`
+     is `ObjectTypeData+0x270`/`+0x274` of `unittypes[t]`; `value` is §0.5.
+     No `BUILD_SUPPORT_FACTOR` here (the building part has it).
+   - `score_units += u`.
+   - Gate inside: if `game->armageddon >= get_armageddon()` the leaf is left
+     at 0.
+   In words: what the army would cost to rebuy at the current ramp —
+   base cost times count plus the triangular support ramp — fifthed.
+   Counts include units queued in production, though queueing does not set
+   the dirty bit.
+3. **Reset.** §0.8; zeroed at the head of each `compute_unit_score`.
+4. **Readers.** The `score` sum; `StatWin` (not read).
+5. **Crate.** Inputs: `Muster::by_type` and `Muster::queued_by_type`
+   (`crates/sim/src/units/unit.rs:838`–`840`, `num_units`/`num_queued`),
+   unit costs and support (`crates/sim/src/economy/cost.rs:144`), the cost
+   factors (`crates/sim/src/core/tuning.rs:580`–`608`). Dirty bit 23's sites:
+   the crate's unit creation (`Unit::init`'s twin) and `close_unit`
+   (`crates/sim/src/combat/fight/delivery.rs:825`, `die_with`, and every
+   other close path). The crate's `Muster` indexes by record, not by
+   TypeIndex; the `0x32` bias is the original's.
+6. **Plain game?** Yes.
+7. **Confidence.** High (listing `6bc500`–`6bc5dc` read instruction by
+   instruction). Not read: whether every unit-removal path goes through
+   `Unit::close` (e.g. conversion, upgrade-in-place); a removal that does not
+   would not set bit 23.
+
+## 5. `score_units_2` (+0x28)
+
+1. **Writers.** `compute_unit_score` (`6bc513` zero, `6bc5c6` add);
+   `reset_score`. **Not** in `compute_score`'s Armageddon zero list.
+2. **Step.** Same loop and same `u` as `score_units` (§4), added only when
+   the type's `attack` (`ObjectTypeData+0x1e8`) is non-zero: the
+   fighting-unit subset of `score_units`. Same dirty-bit gate. Armageddon:
+   `compute_unit_score` zeroes it at its head and then returns before the
+   loop, so once Armageddon has come it is 0 after the next recompute that
+   has a dirty bit; `compute_score`'s own zeroing arm leaves it alone. A
+   recompute after Armageddon with neither bit set leaves the old value.
+3. **Reset.** §0.8.
+4. **Readers.** **Not a term of `score`.** Display only (`StatWin`,
+   `AchieveChartPane` — not read for it); no decision reader found
+   (`->score_units_2` has no hit in the export).
+5. **Crate.** As §4; the `attack` column is `ObjectTypeData+0x1e8`
+   (`docs/AI.md:231` cites the same field).
+6. **Plain game?** Yes.
+7. **Confidence.** High for the formula; the claim "no decision reads it"
+   rests on the name grep and the absence of `0xe3a3b8` loads in `.text`.
+
+## 6. `score_buildings` (+0x2c)
+
+1. **Writers.** `Leader::compute_build_score (006bc3f0)` (`6bc3f7` zero,
+   `6bc4c7` add; one call `6ec5b8`); Armageddon zero (`6ec621`);
+   `reset_score`.
+2. **Step.** On **every** recompute frame (no dirty bit). For each build
+   type `t` in `[0x19e, 0x21f)` (cities, walls and wonders included):
+   - `n = num_queued[t] + num_buildings[t − 0x19e]` (`+0x5a22 + 2t`,
+     `+0x5222 + 2t` = `+0x555e` from 0x19e; listing `0xe3fdb2`,
+     `0xe3f5b2`).
+   - If `n != 0`: `b = value(t, 0) × n + ((n − 1) × ((support_cost[0] +
+     support_cost[1]) × BUILD_SUPPORT_FACTOR) × n) / 2` (the `/2` truncating;
+     `BUILD_SUPPORT_FACTOR` is `Constants+0x37c`, ships 1).
+   - If `t` is a wonder (inlined `is_wonder_type`, address compare
+     `0x470780`; `0x20e ≤ t < 0x21f`, PYRAMIDS … SPACEPROGRAM; an overridden
+     vslot is called instead): `score_wonders += b / 3` (§11). Else
+     `score_buildings += b / 5`.
+   - Armageddon gate as everywhere.
+3. **Reset.** §0.8; zeroed at the head of each call.
+4. **Readers.** The `score` sum; `get_mvp_score` (`− buildings/2`).
+5. **Crate.** Inputs: `num_buildings_of` / `num_sites_of`
+   (`crates/sim/src/ai/ai_types.rs:51`, `:59`; the crate's reading of
+   `num_queued` for a building is "placed sites not yet active"),
+   `build_support_factor` (`tuning.rs:590`).
+6. **Plain game?** Yes.
+7. **Confidence.** High (listing `6bc3f0`–`6bc4f7`).
+
+## 7. `score_economy` (+0x30)
+
+1. **Writers.** `Leader::compute_economy_score (006bc270)` (`6bc277` zero;
+   adds at `6bc2f0`, `6bc324`, `6bc34d`; one call `6ec5bf`); Armageddon zero
+   (`6ec61a`); `reset_score`. (`calc_resource_caps`'s `0x30(%edi)` and
+   `resource_cap_add`'s `0x30(%ecx)` are `data_encrypted->resource_cap`, base
+   `+0x6eb8`.)
+2. **Step.** On every recompute frame (no dirty bit). For each good
+   `g = 0..5` (TypeIndex 0..5: food, timber, metal, oil, wealth, knowledge)
+   with `LeaderData::type_avail(g, 1) != 0`:
+   - `a = (bucket[g] − game->starting[g]) / 20`, truncating; clamped to
+     `[0, 100]`. `bucket` is `data_encrypted->bucket[g] ^ 0x8221` (the
+     stockpile, whole units); `starting[g]` is `Game+0x600 + 4g` (the
+     starting grant; the decompile prints it as `info.player + 0x5bc + 4g`,
+     the listing `(%edi,%eax)` with `edi = 0x600 + 4g` on `game` settles it).
+   - `b = (data_encrypted->income[g] ^ 0x90236) / 80`, truncating; capped
+     at 200, **no floor** (a negative income would subtract). `income` is
+     the net rate in sixteenths (`docs/AI.md:375`), so `b` is income in
+     whole units per the ledger's time base, fifthed.
+   - `score_economy += a + b`.
+   Then `score_economy += 25 × popcount(rare)` (`BitMask<44>::count` of
+   `LeaderData+0x6d98`, the rares held).
+3. **Reset.** §0.8; zeroed at the head.
+4. **Readers.** The `score` sum; `get_mvp_score` (`− economy/2`).
+5. **Crate.** Inputs: `Ledger::bucket`, `Ledger::income`
+   (`crates/sim/src/economy.rs:681`, `:696`), `Holdings::starting`
+   (`:615`), `rare` (`:725`), `TechTree::type_avail`
+   (`crates/sim/src/tech.rs:1714`). Whether the crate's `income` is the
+   same quantity at the same moment as the original's `income` at
+   `strategy_all` time was not checked.
+6. **Plain game?** Yes.
+7. **Confidence.** High for the arithmetic (listing `6bc270`–`6bc354`).
+   Not read: `type_avail(g, 1)` for goods past `has_preq`/`type_eligible`
+   (which goods it refuses, e.g. oil before its tech).
+
+## 8. `score_pop` (+0x34)
+
+1. **Writers.** `compute_score` (`6ec5ca`, step 5, unconditional 0; and the
+   Armageddon zero); `compute_pop_score (006bc190)` (stores 0, **no
+   caller**); `reset_score`. (`calc_resource_caps`'s `0x34(%edi)` is
+   `data_encrypted`.)
+2. **Step.** **None: always 0.** Its term in `score` is a zero.
+3. **Reset.** §0.8.
+4. **Readers.** The `score` sum.
+5. **Crate.** Default 0 matches.
+6. **Plain game?** Yes (the zero store).
+7. **Confidence.** High.
+
+## 9. `score_unit_upgrades` (+0x38)
+
+1. **Writers.** `Leader::compute_unit_upgrades_score (006bc1a0)` (`6bc1a3`
+   zero, `6bc230` add; one call `6ec5d5`); Armageddon zero; `reset_score`.
+   (`calc_resource_caps`'s `0x38(%edi)` and `gain_tech`'s `0x38(%ebp)` are
+   `data_encrypted` and a frame local.)
+2. **Step.** Recomputed only on a recompute frame **with `leader_flags &
+   0x1000000`** (bit 24, a tech gained). For each unit type `t` in
+   `[0x32, 0x192)`, add `value(t, 1) / 5` (truncating; §0.5's premium arm)
+   when all of:
+   - `has_tech(t)` (`LeaderData::has_tech (006e0c80)`) **or**
+     `researching(t, −1, 0, 1)` (`LeaderData::researching (006db510)`: some
+     building of mine, object ids from 2000, active per its vslot `+0x4c`,
+     has `t` in a queue slot; with the last argument 1 only an exact match
+     counts);
+   - **not** `tech_at_start[t]` (`LeaderData+0x6c80` BitMask, bits at
+     `+0x6c8c`, byte `t >> 3`, bit `t & 7`; the listing's `rolb` walks it);
+   - **not** `unit_flags & 0x80` (`UnitTypeData+0x2b4`, flag `h`: free with
+     its prerequisite, `crates/sim/src/tech.rs:81`).
+   In words: the research price of every unit line researched (or queued)
+   since the start, excluding the free ones, fifthed.
+3. **Reset.** §0.8; zeroed at the head of each call.
+4. **Readers.** The `score` sum.
+5. **Crate.** Inputs: `PlayerTech::tech_at_start` (`crates/sim/src/tech.rs:722`),
+   the unit-research bit (`Muster::researched`, `units/unit.rs:841`, or the
+   tech bitmask), `research_premium_cost` (`economy/pricing.rs:733` reads
+   it), `uflags` 0x80. No crate `LeaderData::researching` over building
+   queues was found (only a trait method in `groups/group_queue_up.rs:76`).
+   Dirty bit 24's site: `crates/sim/src/tech/gain.rs`.
+6. **Plain game?** Yes.
+7. **Confidence.** High for the loop and its three predicates (listing
+   `6bc1a0`–`6bc241`). Not read: `has_tech` for a unit type past its head
+   (it consults `has_preq`; what it returns for an unresearched but
+   available-at-start type is not settled), `researching`'s vslot `+0x4c`
+   meaning.
+
+## 10. `score_research` (+0x3c)
+
+1. **Writers.** `Leader::compute_research_score (006bc360)` (`6bc363` zero,
+   `6bc3db` add; one call `6ec5dc`); Armageddon zero; `reset_score`.
+2. **Step.** Same gate as §9 (bit 24). For each type `t` in
+   `[0x220, 0x275)` (BASE_TECHTYPES = BASE_AGETYPES = 0x220, up to the
+   first spell; ages included), add `value(t, 0) / 5` (i.e.
+   `TECH_COST_FACTOR × Σcosts / 5`, truncating) when `has_tech(t)` or
+   `researching(t, −1, 0, 0)` (a tech is never a unit type, so the fourth
+   argument's upgrade arm never fires: exact queue match only), and not
+   `tech_at_start[t]`. No `unit_flags` test.
+3. **Reset.** §0.8.
+4. **Readers.** The `score` sum.
+5. **Crate.** As §9.
+6. **Plain game?** Yes.
+7. **Confidence.** High (listing `6bc360`–`6bc3e7`). The base value is the
+   type's written costs × factor, not the ramped price a player pays.
+
+## 11. `score_wonders` (+0x40)
+
+1. **Writers.** `compute_build_score` (`6bc3fe` zero, `6bc4ec` add);
+   Armageddon zero; `reset_score`. `compute_wonder_score (006bc260)` is an
+   empty `ret` with no caller. (`Leader::init`'s `6e3c15` `0x40(%esi)` is an
+   array walk off `%esi`, not the leaf; `gain_tech`'s `0x40(%ebp)` a local.)
+2. **Step.** §6's loop: for a wonder type (`0x20e ≤ t < 0x21f`) with `n =
+   num_queued[t] + num_buildings[t − 0x19e] != 0`, `score_wonders += b / 3`
+   with `b` as in §6 (truncating `0x55555556` multiply). Every recompute
+   frame. Wonders under construction count through `num_queued`.
+3. **Reset.** §0.8; zeroed at the head of `compute_build_score`.
+4. **Readers.** The `score` sum.
+5. **Crate.** As §6.
+6. **Plain game?** Yes.
+7. **Confidence.** High.
+

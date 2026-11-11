@@ -143,3 +143,75 @@ High for the rule (decompile and listing agree on all four store sites).
 Not read: `Fort::close`'s body beyond the live bit; `Build::close`'s other
 paths into the fort arm (only its one fort test was read).
 
+## Leaf `oil_well_mark` (+0x430)
+
+**What it is.** The high-water mark of `oil_wells.lists[who]` (0x1c bytes
+per player at `oil_wells`; entry live bit at `OilWell +6` bit 0), same
+discipline as `fort_mark`.
+
+### 1. Writers
+
+| writer | site (listing) | store |
+|---|---|---|
+| `OilWells::init_oil_well (0073f6f0)` | `0073f76e` `mov %eax,0xe3a7c0(%ecx)` | mark + 1 (reuse an allocated tail entry) |
+| `OilWells::init_oil_well (0073f6f0)` | `0073f7fa` `mov %ecx,0xe3a7c0(%edi)` | mark = max(mark, idx + 1) |
+| `OilWells::close_oil_well (0073f670)` | `0073f6d1` `mov %ecx,0xe3a7c0(%esi)` | mark-- while the top entry is dead |
+| `Leader::init (006e3930)` | `006e4142` `mov %eax,0x430(%ebx)` | `= 0` (tribe ≥ 0 only) |
+| `Leaders::clear (006ed5d0)` | memset | `= 0` |
+
+### 2. Event, step, predicate
+
+- **`init_oil_well(who, o)`**: the same first-free-under-the-mark / tail /
+  append rule as `init_fort`; then mark = max(mark, idx + 1); the entry
+  takes `o`, `who`, live = 1 and the region id of the building's cell
+  (`OilWell +4`). Step 0 or +1.
+- **Caller** (listing: one `call 0x73f6f0`, `00625a9f`): `Build::activate
+  (00623e20)`, when the building `is(OILWELL 0x1a5, 0)` **or**
+  `is(OILPLATFORM 0x1a6, 0)` (listing `00625a45..00625a93`: two pushes
+  `0x1a5` then `0x1a6`, each through the Build vslot `+0xb8` `ObjectData::is`
+  or, on the Build's own vtable, the type's `+0x60` `ObjectTypeData::is`).
+  No `captured`/`counted` gate: every activation of a well or platform.
+  The returned index goes to `Build +0x78`.
+- **`close_oil_well(who, idx)`**: clears the live bit, sets the entry's
+  `who` to `0xff` and `o` to `0xffff`, then trims the mark as `close_fort`
+  does. Caller (listing `00628daf`): `Build::close (00628980)` when the
+  type answers `BuildTypeData::is_gather_type (00472bb0)` (type vslot
+  `+0x90`, PE `0xb42b94+0x90`), **and** `is(OILWELL)` or `is(OILPLATFORM)`,
+  **and** `Build +0x78 ≥ 0` (decompile lines 244–272).
+
+### 3. Reset
+
+`Leader::init` (when tribe ≥ 0), `Leaders::clear`. Not `reset_score`, not
+`Setup::build_game`'s direct zeroing.
+
+### 4. Readers
+
+`Leader::calc_gather (006ceee0)` lines 166–190: the loop over the player's
+oil wells, adding each live well's `BuildData::calc_gather` into the
+player's gather totals — the oil income (**decision-relevant only as a
+bound**: the sum is order-independent). `LeaderData::log_data`. No other
+reader in either net.
+
+### 5. Crate site
+
+No oil-well registry. `Sim::gather_sites_outside_cities`
+(`crates/sim/src/economy/holdings.rs:535`) walks every building and takes
+the active oil wells and platforms, which is what the original's loop
+adds; the mark itself has nowhere to live. A builder would add a
+`SupplyList`-style registry opened in `Sim::activate`
+(`crates/sim/src/cities/city.rs:2420`) and closed in `Sim::close_building`
+(`crates/sim/src/cities/city.rs:2782`). Note the close gate also needs
+`is_gather_type`, which both well types satisfy in the shipped tree (not
+checked here).
+
+### 6. Plain game?
+
+Yes, once a player builds an oil well or platform (Industrial age onward)
+and when one is destroyed.
+
+### 7. Confidence, not read
+
+High for the rule (both nets agree). Not read: whether `is_gather_type`
+can be false for an oil well type (it would leave a stale entry and a
+mark that never trims); the `OilWell` struct's other fields.
+

@@ -128,3 +128,146 @@ and the save-load `DataWalk` callers; whether the CtW and scenario
 `Leader::init` callers pass a different `cannon_times` (they cannot: the
 store reads the game's lobby byte, not an argument).
 
+## `handicap` (+0x4c, int)
+
+**What it is.** A row index into rules.xml's `handicaps` category
+("Standard" 0, "Skill +1" 5, "Skill +2" 10, … as `DATA` at `+0x3c` of
+each 0x58-byte record), computed once at game start to even out the
+human players' lobby handicaps across sides. Units: a table row, 0..20.
+
+### Writers, both nets
+
+- Export, `->handicap` on a `LeaderData`: only the reader
+  `LeaderData::log_data`; every other `->handicap` hit is `Player`'s or
+  `PlayerConnectionData`'s byte (+0x35 / +0x38 of those records).
+  `leaders.list[i].field_0x4c`: `Game::init_handicaps (0058abf0)` (as a
+  walking pointer) and `ScenarioRead::load_leader_chunk (009ac080)` (three
+  stores).
+- Listing, `0xe3a3dc`: `movl $0xe3a3dc,%esi` at 0058ad86 in
+  `Game::init_handicaps`, then stores `movl %eax,(%esi)` at 0058ade8 and
+  0058ae07, stepping `%esi += 0x6eec` to `< 0xe71b3c` (slots 0..7);
+  `ScenarioRead::load_leader_chunk` at 009ac1fc, 009ac457, 009ac643
+  (`movl %eax,0xe3a3dc(%edi)`, `%edi = slot*0x6eec`); `ScenarioWrite::
+  save_leaders_chunk (009a77c0)` reads it at 009a7a80.
+- Register-relative `0x4c(%reg)` stores in the leader methods: none on a
+  `LeaderData` base. The candidates the scan raised are other records:
+  `Leader::compute_sites` 006cca1a (off `*(this+0x6e44)`),
+  `Leader::gain_tech` (EH-prolog locals off `%ebp`),
+  `ScenarioRead::load_leaders_chunk` 009ace3f (`%edx = game`, `0xc061ec`).
+- Bulk: `Leader::init (006e3930)`'s `tribe < 0` memset and `Leaders::clear
+  (006ed5d0)`'s memset, both `[+0, +0x6929)` to 0; the save-load
+  `LeaderData::walk_data (006d6750)` with `input != 0`.
+
+### Event, step, predicate — `Game::init_handicaps (0058abf0)`
+
+Called once, from `Game::init_rules_and_teams (00589bb0)` after
+`Leaders::init` and `init_teams` and before `init_tribes`. Read from the
+listing (the decompile prints "type propagation not settling"). `Player`
+records are the eight of `game.info.player`, 0x8c bytes each; offsets
+below are `Player`'s (`flags` +0x30, `who` +0x33, `team` +0x34 signed,
+`handicap` +0x35, `diff` +0x38). `flags` bit 0 is an occupied slot, bit 2
+a person (a recorded human slot holds 0x0007, an AI slot 0x2001 —
+`crates/rondata/src/recgame.rs:33`).
+
+Pass 1, for each leader slot `i` in 0..7 with `leader_flags & 1`:
+
+- `own[i]` = the largest `handicap` of the occupied players with `who ==
+  i` (any kind; floor 0). `aidiff[i]` = the largest `diff` of the
+  occupied players with `who == i` and **not** a person (floor −1).
+- `sum[i]` starts at `own[i]` if `Game::is_cooperative (00594810)` is
+  true, else 0. Then over the players with `flags & 5 == 5` (occupied
+  people):
+  - `who == i`: `own[i] = max(own[i], handicap)`, `sum[i] += handicap`;
+  - a different `who` whose `team` differs from `LeaderData::get_team
+    (006ec040)` of `i`: `enemy[i] = max(enemy[i], handicap)` (floor 0),
+    nothing added;
+  - a different `who` on the same team: `mates[i] += 1` unless that
+    player's `team == 8`, and `sum[i] += handicap` either way.
+
+Pass 2: `top = max over active i of sum[i]` (the other two maxima the
+listing computes, of `own` and `enemy`, are discarded — their registers
+are overwritten before use at 0058ad84).
+
+Pass 3, for each active slot `i` (0..7):
+
+- `mates[i] == 0`: `h = top − sum[i]`, then 0 if negative, at most 20.
+- else: `h = ((top − sum[i]) / (mates[i] + 1) + max(0, enemy[i] −
+  own[i])) / 2`, each division truncating toward zero, then 0 if
+  negative, at most 20.
+- `handicap = h / max(1, game.num_teams − 1)` (`Game +0x6a4`,
+  truncating).
+
+So the leader with the largest summed human handicap gets 0 and the rest
+get the shortfall, capped at row 20 and shared across the other teams.
+
+Slots 8 and 9 (the two extra slots `Leaders::init` walks to `0xe7f8c8`)
+are never written here; they keep the memset's 0 (run1313's record:
+`who 8` and `who 9` print `handicap 0`).
+
+### Other events
+
+- `ScenarioRead::load_leader_chunk (009ac080)`: a scenario's leader chunk
+  carries `handicap` at chunk `+0xe0`, stored after `Leader::init` in three
+  of the chunk-version arms, each behind `(game.semaphore[3] & 4) == 0`.
+  Scenario files only.
+- Save-game load through `walk_data`.
+
+### Reset
+
+`Leader::init`'s and `Leaders::clear`'s memsets. No per-frame fold;
+`Leader::reset_score` does not touch it.
+
+### Readers
+
+- `LeaderData::get_handicap (006da740)`: `handicaps[row].DATA` where
+  `row = handicap`, shifted by the difficulty for a solo game (difficulty
+  0 or 1 and a person: `+10` / `+5`; difficulty 4 or 5 and a computer:
+  `+10` / `+16`) — but that shift only runs when `semaphore[0] & 4` is
+  clear, and **every caller of `get_handicap` tests `semaphore[0] & 4`
+  set first**: `ObjectData::train_time (006508c0)` twice (`time × (200 −
+  h) / 200`), `World::compute_reg_territory (006b0bb0)` (a person only,
+  `+ (h + 15) / 25` to the territory allowance), and
+  `LeaderData::get_gather_handicap (006d66a0)` (a person only). The
+  handicaps table `0xe80138` is referenced only by `get_handicap` and
+  `GameInfo::load_from_config` in the whole `.text`, so there is no
+  inlined copy.
+- `LeaderData::get_handicap_level (006d6740)` returns it raw (callers not
+  followed).
+- `ScenarioWrite::save_leaders_chunk`, `LeaderData::log_data` (prints
+  `handicap`), `LeaderData::walk_data` (checksum, save).
+
+### Crate
+
+No `init_handicaps`. `Holdings::handicap` (`crates/sim/src/economy.rs:621`)
+is a different quantity — the income percentage `get_gather_handicap`
+returns — and `crates/rondata/src/diff/leader.rs:55` says so. The
+checksum leaf is listed at `crates/sim/src/checksum/leaders.rs:54`. A
+builder would put the start-of-game computation beside
+`Sim::sync_setup_from_lobby` (`crates/sim/src/setup.rs:209`), and the
+checksum arm in `Sim::leader_long`
+(`crates/sim/src/checksum/leaders.rs:949`); the lobby (`ai::Lobby`) holds
+no per-player `handicap`, `team` or `diff` today, so the inputs would come
+from the recorded-game slots (`rondata::recgame::Slot`).
+
+### Plain game?
+
+**Value in a default skirmish: 0** for every slot. With one person, `sum`
+is that person's lobby handicap on their own slot and 0 elsewhere; the
+person's slot gets `top − sum = 0`, and each computer slot gets
+`min(20, person's handicap) / max(1, num_teams − 1)` — 0 when the person's
+handicap byte is 0, which `Player::init (006ee180)` sets and every kept
+dump scanned shows (see the scan note at the end). Whatever the value, no
+solo reader consumes it: all three `get_handicap` callers are behind
+`semaphore[0] & 4`. Frozen after `init_handicaps`.
+
+### Confidence and not read
+
+High for the writer list (displacement net and the leader-method store
+scan agree; `->name` net only finds `log_data`). Medium-high for pass 1's
+team arm: `get_team`'s own `team == 8` branch (it may answer another
+slot's index when the player's team is 8 and `semaphore[0]` bit 7 is
+clear) was read but not traced into `is_team`, and `is_cooperative` was
+read only to its first tests (`team_style` 8, 9, 10). Not followed:
+`get_handicap_level`'s callers; whether a solo lobby lets a person set a
+non-zero handicap byte.
+

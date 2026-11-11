@@ -495,9 +495,12 @@ No slot is exempt beyond the arm's `flags & 3 == 3` (start/stop) and
 already exists for the POPWIN pair in `Sim::refresh_victory_timers`
 (`territory/victory.rs:88`, from `core/frame.rs:194`); the builder adds
 the wonder pair to that function. Note it checks `timer_refresh_ratio`
-and `frame % r` as the original does; whether it is gated on `flags & 2`
-like `Leaders::process_all` depends on its caller's loop
-(`core/frame.rs:~185`), not read. `checksum/leaders.rs:113` lists the
+and `frame % r` as the original does, but its caller's loop
+(`core/frame.rs:94`, `for who in 0..players`) has no `leader_flags & 2`
+gate, while `Leaders::process_all` skips a defeated slot (`6ed2b0`,
+`testb $0x2`). For a defeated leader with a negative stamp the crate would
+keep paying back where the original stops (a lead for whoever builds it;
+no dump checked). `checksum/leaders.rs:113` lists the
 leaf, unfilled.
 
 **6. Plain game?** Yes, with `wonderwin_timer`.
@@ -505,3 +508,31 @@ leaf, unfilled.
 **7. Confidence.** High (listing for all four stores and the pay-back
 predicate). Not read: `IFaceMainBase::draw_timers`' arithmetic.
 
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `defeated_by` +0x10 | `Leader::defeat_by (006d1c80)` `6d1da6`, only from `Leader::defeat (006ecb00)` | `= by` once, when still < 0 and `by >= 0` | `Leader::init (006e3930)` → −1 (memset 0 first if tribe < 0); `LeaderData::walk_data (006d6750)` on load | `Sim::defeat` `cities/city.rs:623` (has `by`, stores nothing); `Sim::resign` `leaders/resign.rs` passes −1 | yes (`lost_a_city`, capital elimination, resign with a capital timer) | high on store/guard; medium on completeness below +0x200 |
+| `defeat_stamp` +0x6924 | `Leader::defeat_by (006d1c80)` `6d1d98` | `= frame` on **every** `defeat` while `defeated_by < 0`, before `defeat`'s 0x40 guard | `Leader::init` → 0 | none; must sit ahead of `Sim::defeat`'s `defeated[who]` return | yes | high |
+| `victory_type` +0x7d8 | `Leader::victory (006ec9b0)` `6ec9ec`, from `Game::check_victory (005926b0)`, `GameDaemon::process_victory (00730ef0)`, `Leader::gain_tech (006dcb60)`, `Leader::set_diplo (006ec6a0)`, its own cascade (+ console, scenario, `TurnControl::toggle_pause (00957ab0)`) | `= type` once (guard `flags & 0x60`); allies inherit via cascade | only `Leader::init`'s memset branch (`Leaders::init (006ed850)`) | none (`territory/victory.rs` seams the expiry) | yes (conquest 0; wonder 1, territory 2 under VICTORY 0) | high on store/guard; `check_victory`'s gate export-only |
+| `defeat_type` +0x7dc | `Leader::defeat (006ecb00)` `6ecb7b` | `= type` once (guards `flags & 0x40`, `semaphore[1] & 2`) | only `Leader::init`'s memset branch | `Sim::defeat` (no type arg; caller `lost_a_city` = 0); `Sim::resign` = 6 | yes (0, 5, 6; 1–3 with elimination options; 4, 8, 7, 9 need VICTORY 5 / armageddon / MP / triggers) | high on store, guards and `lost_a_city`; other callers export-only |
+| `wonderwin_timer` +0x44c | `GameDaemon::process_victory (00730ef0)` `731070` (=1), `731357` (=0) | 0/1 flag: set for every on-side slot under VICTORY 0 with ≥2 nations and no `GLOBAL_GOVERNMENT_BONUS` teammate; cleared for off-side slots | `Leader::init` → 0 | none; stub `w44c` = 0 `ai/army/target_gate.rs:428`; add `process_victory_wonder` before `process_victory_territory` (`core/frame.rs:222`) | yes (default VICTORY 0) | high (listing) |
+| `wonderwin_stamp` +0x448 | `process_victory` `731080` (+= frame), `731367` (−= frame); `Leaders::process_all (006ed2a0)` `6ed3c8` (+1); `Leader::process (006b88b0)` `6b89c8` (uncalled copy) | banked clock; pay-back +1 per `TIMER_REFRESH_RATIO` frames while < 0 and stopped, alive slots only | `Leader::init` → 0 | none; pay-back goes in `Sim::refresh_victory_timers` `territory/victory.rs:88` | yes | high (listing) |
+
+**Against the README row.** Its writer list (`Leader::victory`, `defeat`,
+`defeat_by`; `Leader::process`; `GameDaemon::process_victory`) holds, with
+two corrections: `Leader::process (006b88b0)` has no caller (listing:
+no reference to `0x6b88b0`); the live pay-back store is `Leaders::
+process_all (006ed2a0)` `6ed3c8`, its inlined copy. And `Leader::init
+(006e3930)` is a writer of all six (memset branch) and of `defeated_by`
+(−1), `defeat_stamp`, `wonderwin_*` (0) on every init. Callers of
+`victory`/`defeat` the row does not name, found only in the listing:
+`Leader::gain_tech` (ending-tech victory 3; `GLOBAL_GOVERNMENT_BONUS`
+defeat 1) and `Leader::set_diplo` (alliance-completes-the-game victory 0).
+
+**Not followed, all leaves.** `City::close (00737550)`/`Build::close
+(00628980)` → `lost_a_city` argument derivation; `Game::check_victory`'s
+gating in the listing; `Game::wonder_timer`'s `map_sizes` row and
+`world[0]`; names of wonder 0x213 and tribe bonus 0x17; the reader
+predicates of `Leader::diplomacy` and `Army::find_target` beyond the
+lines cited. No dump was grepped for these leaves.

@@ -36,7 +36,7 @@ whose destination is `0xa4c`..`0xa67` off a register, or `0xe3addc`..`0xe3adf7`
 absolute (slot base `0xe3a390` + offset), every `lea` of those, and the
 `# imm` lines. After setting aside other classes by the base register
 (`TerrainMap`, `ConquestSetupWin`, `GraphicPieces`, `Constants`,
-`TerrainOut::one_time_init`, `SetupWin::do_scen_changes (005b8293)` whose
+`TerrainOut::one_time_init`, `SetupWin::do_scen_changes` at `005b8293` whose
 base is `MiscAccess::connection_data` at `0xc0622c`, and `-0xa4c(%ebp)`-style
 locals in `Group::action_alarm`, `Console::execute_at_cursor`,
 `Unit::think_scout`, `Options::exec`), the stores into a leader are:
@@ -109,10 +109,10 @@ victim's leader; then **only if `param_7 >= 0`** (a killer object):
 (and `units_killed[param_8]++`). No owner predicate. Callers of vslot
 `+0x16c` (all nine call sites in the listing): `do_damage` passes the
 attacker's index and owner (`0064ba18`), so every combat kill counts;
-`Unit::suffer_attrition (005e1bd1)`, `Wall::process (00640b22)`,
-`cast_sabotage (0067275d)`, `ScenarioEditor::dec_selected_health
-(009a0246)`, `ScenarioFuncSet::set_object_health (009f5bb0)` and
-`ScenarioFuncSet::damage_object (009f5c94)` all push `param_7 = -1`, so
+`Unit::suffer_attrition` at `005e1bd1`, `Wall::process` at `00640b22`,
+`cast_sabotage` at `0067275d`, `ScenarioEditor::dec_selected_health` at
+`009a0246`, `ScenarioFuncSet::set_object_health` at `009f5bb0` and
+`ScenarioFuncSet::damage_object` at `009f5c94` all push `param_7 = -1`, so
 **attrition and the scripted paths count nothing**. The ninth is
 `take_damage`'s own tail (`00653426`): the overflow past a dead figure's
 share goes to its captain (vslot `+0xe4`, when that is not itself) with
