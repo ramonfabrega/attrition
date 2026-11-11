@@ -16629,11 +16629,11 @@ words and edits nothing here; a refill lands when two remain.
   `World::new_coll_block` is unread and the crate's `CollGrid` is flat and keeps no allocation. The heads are the
   `BitMask<768>` constructor's (768, 96) and the bodies the grid's bits, so both follow once presence is held. Record
   3202 differs from 3201 in this section alone: it moves with the units. Names section 9 whole.
-- **4131d. The fog's two cell words, beside three planes that agree** (§21; `05 cell.was_seen` and `07 wcoord_seen`,
+- ~~**4131d. The fog's two cell words, beside three planes that agree** (§21; `05 cell.was_seen` and `07 wcoord_seen`,
   3,600 each). `seen`, `seen2` and `seen3` agree on 14,400 of 14,400 each from the vision the crate already runs
   (459, 702 and 89 non-zero bytes), and nothing of the fog was ported. So the leaders line's `explored` (19 and 22
   against our seam's 900, §20) may be a count over a plane we already hold: unread, and a leaf of
-  `LEADERS_HELD_OUT` if it is. Names sections 5 and 7 with `land_sub`.
+  `LEADERS_HELD_OUT` if it is. Names sections 5 and 7 with `land_sub`.~~ Carried by item 4148: `docs/VISION.md` §12, sections 5 and 7 whole; `explored` is parked 4148b.
 - **4131e. What the carried fields rest on that frame 91 does not hold** (§21, "Not established"). `light` and the
   unseated `danger` rows agreed by default before their writers were read; `nuke_hits` has no appender by either net,
   though a nuke leaves a crater; a game built from a dump holds no `World::record`; the half-land lists are compared
@@ -16763,13 +16763,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FR — reserved
+## Parked by item 4148, 2026-11-11 — the fog's two cell words
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4148a. The words' readers, and what the words rest on that frame 91 does not hold** (`docs/VISION.md` §12). The original
+  reads them through `WorldData::was_seen_wcoord` and `is_seen_wcoord`; the crate answers those questions from `seen2` or
+  not at all. Not established: a game with allies (`update_all_seen`'s frame-0 ally arm ORs `seen2` by a raw loop that does
+  not write `was_seen`, and the crate does not carry it), a dump-installed grid (`set_fog` zeroes both words; the dump's
+  `was_seen` is not read), a restore's walk. Names no score on frame 91.
+- **4148b. The leaders line's `explored` is a count over `seen2`** (`docs/CHECKSUM.md` §20; `LEADERS_HELD_OUT`, out by name).
+  `Leader::check_explore` counts `seen2` at fog cell (4i+3, 4j+3) for each region cell, 30 × 30: over frame 91's `seen2`
+  19 and 23 against theirs 19 and 22, leader 1's count taken on an earlier frame of its own phase. Names the leaders
+  line's `explored` leaves on run 1562's frame 91: the next design's candidate beside 4118.
 
 ## Parked by the next landing, slot FS — reserved
 
@@ -16783,6 +16787,22 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot FT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FV renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
