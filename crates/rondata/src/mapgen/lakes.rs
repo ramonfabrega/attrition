@@ -70,6 +70,10 @@ pub struct LakesMap {
     /// `Terrain::init`'s half-land lists, as `check_and_set_halfland` left
     /// them at `Terrain.cpp` 720 (parts 10–13 of every later checkpoint).
     pub halfland: HalfLand,
+    /// The drawn tileset's numbers a placed building's ground reads:
+    /// `weatherbase` and the `is_combo_acceptable` numbers the half-land
+    /// pass ran on (`Terrain::object_placed`, item 4136).
+    pub land: sim::world::terrain::TileSetLand,
 }
 
 /// Why the chain stopped short.
@@ -275,5 +279,9 @@ pub fn great_lakes_map(
         base_edge,
         coord,
         halfland,
+        land: sim::world::terrain::TileSetLand {
+            weatherbase: ts.weatherbase as u8,
+            combo,
+        },
     })
 }

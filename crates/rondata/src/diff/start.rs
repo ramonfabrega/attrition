@@ -932,6 +932,9 @@ pub fn from_lobby(
                 map: int("MAP_STYLE").map(|v| v as i32),
                 seed: Some(game_seed),
             });
+            // `tilesets.cur_tileset`'s ground numbers, which every
+            // building `Wall::start` places reads (item 4136).
+            w.set_land_set(Some(m.land));
             // `World::init`'s `seen2`, allocated and zeroed with the
             // world: every reveal the walk makes from here on lands in it
             // (`docs/START.md` §7.2).

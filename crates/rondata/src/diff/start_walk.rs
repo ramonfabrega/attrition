@@ -256,14 +256,10 @@ const START_WIDE_FIELDS: usize = 75_835;
 /// The wide takes still parted on the harness lobby, `(record, field,
 /// count)` (`docs/START.md` §7.3, each named with what it would need):
 /// the land region's `flags` (ours 0x4, theirs 0xa4: the writer of 0x20
-/// and 0x80 is not found), tile bit 0x4 on 131 tiles north of seat 1's
-/// city (the writer not identified), and `land_sub` on eight cells beside
-/// the two cities.
-const START_WIDE_PARTED: &[(&str, &str, usize)] = &[
-    ("CELL", "land_sub", 8),
-    ("REGION", "flags", 1),
-    ("TILE", "mask", 131),
-];
+/// and 0x80 is not found) and tile bit 0x4 on 131 tiles north of seat 1's
+/// city (the writer not identified). `land_sub` on eight cells beside the
+/// two cities is carried since item 4136 (`Terrain::object_placed`).
+const START_WIDE_PARTED: &[(&str, &str, usize)] = &[("REGION", "flags", 1), ("TILE", "mask", 131)];
 
 /// [`frame_partings`]' answer: `(kind, count, first row)` per kind.
 pub(crate) type Partings = Vec<(&'static str, usize, String)>;

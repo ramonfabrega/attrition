@@ -23,8 +23,65 @@
 //! short on 7984 (`docs/ROADS.md` §7.4).
 
 use crate::Sim;
+use crate::mapgen::halfland::{Combo, Lands, is_combo_acceptable, spot_update_land};
 use crate::num::single::Single;
-use crate::world::{Cell, MOVE_8, OIL_GOOD, Pos, TILES_PER_CELL, cell, tile};
+use crate::world::{Cell, MOVE_8, OIL_GOOD, Pos, TILES_PER_CELL, World, cell, tile};
+
+/// **The current tileset's numbers a placed building's ground reads**
+/// (`tilesets.cur_tileset`, `TileSet::init@0087b370`): the `TILESET`
+/// element's `weatherbase` attribute (`TileSet+0x228`, a `uchar` stored
+/// from `get_attrib_num`'s answer, so an absent attribute's −1 is 255),
+/// and the numbers `Terrain::verify_land`'s `is_combo_acceptable` reads.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct TileSetLand {
+    pub weatherbase: u8,
+    pub combo: Combo,
+}
+
+/// The running world's cells as `verify_land` reads and writes them
+/// ([`Lands`]), with its static depth.
+struct WorldLands<'a> {
+    w: &'a mut World,
+    combo: Combo,
+    depth: i32,
+}
+
+impl Lands for WorldLands<'_> {
+    fn in_bounds(&self, x: i32, y: i32) -> bool {
+        self.w.contains(Cell::new(x, y))
+    }
+
+    fn land_at(&self, x: i32, y: i32) -> (i32, i32) {
+        let d = self.w.cell_data(Cell::new(x, y));
+        (i32::from(d.land), i32::from(d.land_sub))
+    }
+
+    fn put_land(&mut self, x: i32, y: i32, land: i32, sub: i32) {
+        let c = Cell::new(x, y);
+        let mut d = self.w.cell_data(c);
+        if sub >= 0 {
+            d.land_sub = sub as u8;
+        }
+        if land >= 0 {
+            d.land = land as i8;
+        }
+        self.w.set_cell_data(c, d);
+    }
+
+    fn acceptable(&mut self, l1: i32, s1: i32, l2: i32, s2: i32) -> i32 {
+        // A running world holds lands 0 to 2, whose `num_tiles` the
+        // tileset loads; an unloaded entry answers "not acceptable".
+        is_combo_acceptable(&self.combo, l1, s1, l2, s2).unwrap_or(0)
+    }
+
+    fn coast_base(&self) -> i32 {
+        self.combo.coast_base
+    }
+
+    fn depth(&mut self) -> &mut i32 {
+        &mut self.depth
+    }
+}
 
 impl Sim {
     /// `TerrainOut::terraform_for_building@00875210(corner.x, corner.y,
@@ -147,6 +204,40 @@ impl Sim {
         self.world
             .good_at(c)
             .is_some_and(|(_, g)| g.alive && g.ty != OIL_GOOD)
+    }
+
+    /// **`Terrain::object_placed@00850c40`'s world half** (`docs/MAPGEN.md`
+    /// §35, item 4136): `Wall::start@0063e810`'s call, after the
+    /// competing buildings are killed and before `mask_me`, with the
+    /// footprint's tile corner, `x_size`, `y_size` and 1. Every cell from
+    /// `corner >> 2` to `(corner + size) >> 2` **inclusive** on each axis —
+    /// one past the footprint's last tile, so a footprint ending on a cell's
+    /// edge reaches the next cell — y outer, that is on the map and
+    /// `BASELAND` (`land == 0`) goes through `spot_update_land(x, y, 0,
+    /// weatherbase)`, whose `verify_land` then repairs the neighbours (a
+    /// cell beside a coast goes back to `COAST_BASE`). The rest of the
+    /// function, `invalidate_wcoord`, is the renderer's. Without a tileset
+    /// ([`World::land_set`]) it writes nothing.
+    ///
+    /// `verify_land`'s static depth is taken at 0: each top-level call
+    /// returns it there unless a flood passed 500, and the deepest
+    /// `weatherbase` flood measured is 7 (`docs/MAPGEN.md` §19.6).
+    pub(crate) fn object_placed(&mut self, corner: Pos, w: i32, h: i32) {
+        let Some(set) = self.world.land_set() else {
+            return;
+        };
+        let mut g = WorldLands {
+            w: &mut self.world,
+            combo: set.combo,
+            depth: 0,
+        };
+        for cy in (corner.y >> 2)..=((corner.y + h) >> 2) {
+            for cx in (corner.x >> 2)..=((corner.x + w) >> 2) {
+                if g.in_bounds(cx, cy) && g.land_at(cx, cy).0 == 0 {
+                    spot_update_land(&mut g, cx, cy, 0, i32::from(set.weatherbase));
+                }
+            }
+        }
     }
 }
 

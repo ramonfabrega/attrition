@@ -177,6 +177,12 @@ pub struct TilesetGroups {
     /// `BASELAND` sub-tile `spot_update_land_batch` gives a river trough's
     /// cells ([`crate::mapgen::map_troughs`]); 0 when absent.
     pub riverbase: i32,
+    /// The `TILESET` element's `weatherbase` (`TileSet+0x228`, the
+    /// attribute before `riverbase`): the `BASELAND` sub-tile a placed
+    /// building's footprint takes (`Terrain::object_placed`,
+    /// [`crate::world::terrain::TileSetLand`]); −1 when absent, which the
+    /// `uchar` keeps as 255.
+    pub weatherbase: i32,
 }
 
 /// One cliff template, as **`CliffsOut::init_templates@008a71a0`** builds

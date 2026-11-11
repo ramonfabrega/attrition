@@ -2055,10 +2055,17 @@ impl Sim {
         }
         // **The flattening is not here.** `Wall::start@0063e810`'s own
         // statement at this point is `Terrain::object_placed@00850c40`,
-        // which is the **renderer's** (`spot_update_land`,
-        // `invalidate_wcoord`) and moves no height; the terraform belongs
-        // to `Wall::init@0063e9b0:70`, which runs when the *site* is
-        // created ([`Sim::init_build`], `docs/ROADS.md` §7.4).
+        // which moves no height; the terraform belongs to
+        // `Wall::init@0063e9b0:70`, which runs when the *site* is created
+        // ([`Sim::init_build`], `docs/ROADS.md` §7.4). What it does move is
+        // the ground's `land_sub` under the footprint: every `BASELAND`
+        // cell takes the tileset's `weatherbase` (item 4136,
+        // `docs/MAPGEN.md` §35).
+        {
+            let t = &self.tables.build_types[ty];
+            let (w, h) = (t.x_size, t.y_size);
+            self.object_placed(corner, w, h);
+        }
         self.mask_building(b, true);
         // `Wall::start@0063e810` passes **`REGEN_FORCE`** to `mask_me`, and
         // `BuildType::mask_me@006312a0`'s tail is `place_roads` — so a

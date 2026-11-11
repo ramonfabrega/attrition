@@ -252,10 +252,10 @@ const WORLD: [(usize, usize, usize, usize); WORLD_SECTIONS] = [
 /// **The fields the world line is held out on**, `section range.leaf` with
 /// the count of its elements not agreeing (parting or unheld) on frame 91
 /// (`docs/CHECKSUM.md` §21): `World::analyze_map`'s ten setup tallies; the
-/// cells' `land_sub` under the bases (`Terrain::spot_update_land`) and the
 /// fog's `was_seen`; the masks' bit `0x4` under the bases; the fog's
 /// `wcoord_seen`; the collision blocks (`World::new_coll_block`'s
-/// allocation, and the heads and bodies behind it).
+/// allocation, and the heads and bodies behind it). The cells' `land_sub`
+/// is carried since item 4136 (`Terrain::object_placed`).
 const WORLD_HELD_OUT: &[(&str, usize)] = &[
     ("04 size..seed.forest_size", 1),
     ("04 size..seed.goodies", 1),
@@ -267,7 +267,6 @@ const WORLD_HELD_OUT: &[(&str, usize)] = &[
     ("04 size..seed.sea_resources", 1),
     ("04 size..seed.total_metal", 1),
     ("04 size..seed.total_oil", 1),
-    ("05 cell.land_sub", 8),
     ("05 cell.was_seen", 3600),
     ("06 mask.mask", 131),
     ("07 wcoord_seen.wcoord_seen", 3600),
@@ -382,8 +381,9 @@ fn the_world_line_is_the_original_s_by_section() {
         );
     }
 
-    // **It can part.** One element of each kind of field item 4131
-    // carried, bent, returns that field to the list with a count of one.
+    // **It can part.** One element of each kind of field items 4131 and
+    // 4136 carried, bent, returns that field to the list with a count of
+    // one.
     let bends: &[(u8, &str, i16, &str)] = &[
         (2, "start_x", -1, "02 start_x.start_x"),
         (2, "start_city_y.size", -1, "02 start_city_y.size.size"),
@@ -391,6 +391,8 @@ fn the_world_line_is_the_original_s_by_section() {
         (4, "size..seed", -1, "04 size..seed.map"),
         (4, "size..seed", -1, "04 size..seed.seed"),
         (5, "cell", 1373, "05 cell.light"),
+        // Item 4136: a cell under seat 1's farms, `object_placed`'s.
+        (5, "cell", 1373, "05 cell.land_sub"),
         (8, "danger", 5, "08 danger.danger"),
         (10, "halfland_locs", 7, "10 halfland_locs.y"),
         (11, "halfland_types", -1, "11 halfland_types.halfland_types"),
