@@ -641,31 +641,29 @@ fn build_pieces(sim: &sim::Sim) -> std::collections::BTreeMap<usize, i32> {
 
 /// The pinned outcome of the builds line on run 1562's packet:
 /// `(buildings, ranges, bytes, ranges parted, bytes in the ranges that
-/// agree)` (`docs/CHECKSUM.md` §14): 518 of 519 ranges and 4,889 of 4,923
-/// bytes, held out on the British Woodcutter's Camp's `up_who`. Until item
-/// 4097 it was 516 and 4,845, held out on both camps' `recharging` too
-/// (ours 83 and 67 against 90 and 89), which `Guy::move@005d9240`'s
-/// carrying walk bumps (`docs/ORDERS.md` §6.11).
-const BUILDS: (usize, usize, usize, usize, usize) = (15, 519, 4923, 1, 4889);
+/// agree)` (`docs/CHECKSUM.md` §14, §15): 519 of 519 ranges and 4,923 of
+/// 4,923 bytes. Item 4094 left it at 516 and 4,845, held out on both camps'
+/// `recharging` (item 4097, `docs/ORDERS.md` §6.11) and the British camp's
+/// `up_who`, ours −1 against 1: the chain of objects' stale word, held since
+/// item 4098 (`docs/COLLISION.md` §3.2).
+const BUILDS: (usize, usize, usize, usize, usize) = (15, 519, 4923, 0, 4923);
 
-/// The field the builds line is held out on (`docs/CHECKSUM.md` §14):
-/// `(range, building, field, ours, theirs)`. The British camp's
-/// `ObjectData::up_who` (+0x3f), left by a unit that stood above it on its
-/// cell's object chain and moved off, which this crate does not thread.
-const BUILDS_HELD_OUT: [(usize, i32, &str, i64, i64); 1] = [(334, 9, "up_who", -1, 1)];
+/// The range of the British Woodcutter's Camp `1/2001`'s `ObjectData`
+/// (`myhits..launch_frames`) in the builds line, building 9 of 15, and the
+/// offset of its `up_who` (+0x3f) in that range.
+const CAMP_OBJECT_RANGE: (usize, usize) = (334, 0x3f - 0x20);
 
-/// **The builds line, ours against the original's, range by range, held
-/// out on one `up_who`** (`docs/CHECKSUM.md` §14, items 4094 and 4097): our
+/// **The builds line, ours against the original's, range by range**
+/// (`docs/CHECKSUM.md` §14, §15; items 4094, 4097, 4098): our
 /// `Sim::checksum_builds` against the instrument's stream of the builds
 /// line, every range, each range decoded field by field on both sides —
 /// ours by our range names, theirs by each row's call site — then the
-/// Adler. One field parts ([`BUILDS_HELD_OUT`]); with it at the original's
-/// value, substituted here and nowhere else, ours sums to the printed
-/// `Builds`, so every other byte is the original's. And it can part: one
-/// more perturbed byte parts on its own range, and an empty image on every
-/// range.
+/// Adler against the printed `Builds`, with no substitution. And it can
+/// part: the British camp's `up_who` at the −1 a derived chain gave it
+/// parts on its range alone, one perturbed byte on its own, and an empty
+/// image on every range.
 #[test]
-fn the_builds_line_is_held_out_on_one_up_who() {
+fn the_builds_line_is_the_original_s_range_by_range() {
     let Some((theirs, want, sim)) = line_inputs("builds", "Builds") else {
         return;
     };
@@ -730,33 +728,29 @@ fn the_builds_line_is_held_out_on_one_up_who() {
         "the builds line: buildings, the stream's ranges and bytes, ranges parted, bytes agreeing"
     );
     assert_eq!(ours.bytes(), BUILDS.2);
-    let held: Vec<(usize, i32, &str, i64, i64)> = fields_parted
-        .iter()
-        .map(|(i, b, n, a, t)| (*i, *b, n.as_str(), *a, *t))
-        .collect();
-    assert_eq!(held, BUILDS_HELD_OUT, "the fields the line is held out on");
-    // The Adler, last. Held out, ours is not the printed sum ...
-    assert_ne!(ours.adler(), want, "the builds line is held out");
-    // ... and with the held field at the original's value — the
-    // substitution made here only — it is: every other byte is theirs.
-    let mut mended = ours.clone();
-    for &(i, _, field, _, theirs_v) in &BUILDS_HELD_OUT {
-        let at = match field {
-            "recharging" => 0x7a - 0x70,
-            "up_who" => 0x3f - 0x20,
-            _ => unreachable!(),
-        };
-        let w = if field == "recharging" { 2 } else { 1 };
-        mended.ranges[i].bytes[at..at + w].copy_from_slice(&theirs_v.to_le_bytes()[..w]);
-    }
-    assert!(
-        parting(&mended, &theirs).is_empty(),
-        "the mended image is the stream's"
+    assert!(fields_parted.is_empty(), "every field of every building");
+    // The camp's chain words on both sides, for a reader: `up` −1, `down`
+    // −1, `down_who` 0, `up_who` 1 — a British unit stood above it and left.
+    let (r, at) = CAMP_OBJECT_RANGE;
+    let camp = build_range_fields("myhits..launch_frames", &ours.ranges[r].bytes);
+    let word = |n: &str| camp.iter().find(|(k, _)| k == n).map(|(_, v)| *v);
+    assert_eq!(
+        (word("up"), word("down"), word("down_who"), word("up_who")),
+        (Some(-1), Some(-1), Some(0), Some(1)),
+        "the British camp's four chain words"
     );
-    assert_eq!(mended.adler(), want, "the builds line's Adler, mended");
+    // The Adler, last: ours against the line the original printed.
+    assert_eq!(ours.adler(), want, "the builds line's Adler");
 
-    // **It can part.** One byte more, the fourth building's `x` (low
-    // byte), parts on that range alone beside the held one.
+    // **It can part.** The camp's `up_who` at the −1 a chain of units
+    // alone derives parts on its range alone, and the Adler with it.
+    let mut derived = ours.clone();
+    derived.ranges[r].bytes[at] = 0xff;
+    let p: Vec<usize> = parting(&derived, &theirs).iter().map(|p| p.0).collect();
+    assert_eq!(p, vec![r], "the derived up_who parts on the camp's range");
+    assert_ne!(derived.adler(), want);
+    // One byte elsewhere, the fourth building's `x` (low byte), parts on
+    // that range alone.
     let mut bent = ours.clone();
     let sub = bent
         .ranges
@@ -768,10 +762,106 @@ fn the_builds_line_is_held_out_on_one_up_who() {
         .unwrap();
     bent.ranges[sub].bytes[7] ^= 1;
     let p: Vec<usize> = parting(&bent, &theirs).iter().map(|p| p.0).collect();
-    let mut want_p = vec![334, sub];
-    want_p.sort_unstable();
-    assert_eq!(p, want_p, "one perturbed byte parts on its range");
+    assert_eq!(p, vec![sub], "one perturbed byte parts on its range");
     assert_eq!(parting(&Line::default(), &theirs).len(), BUILDS.1);
+}
+
+/// The units' four chain words agreeing on run 1562's packet, of its 52
+/// units: `(units, up, down, down_who, up_who)` (`docs/COLLISION.md` §3.2,
+/// item 4098). Before the item a chain of units alone gave 52, 31, 28 and
+/// 50: no building below a unit, no good's −2 at a herd's tail, the cell's
+/// `down_who` nowhere, and two stale `up_who`s (`0/1` 0, `1/1` 1) lost.
+/// Reported for the units line, which is not ported; not a score.
+const UNIT_CHAIN_WORDS: (usize, usize, usize, usize, usize) = (52, 52, 52, 52, 52);
+
+/// The four chain words of every unit of the stream's units line, by
+/// `(who, o)`: `(up, down, down_who, up_who)`. The unit's `who` and `o`
+/// are its `SubObject` range (`0066221c`); its words, the `ObjectData`
+/// range after it (`00647885`).
+fn stream_unit_chain_words(
+    theirs: &[(String, String, Vec<u8>)],
+) -> std::collections::BTreeMap<(u8, i16), (i16, i16, i16, i8)> {
+    let mut out = std::collections::BTreeMap::new();
+    let mut who_o = None;
+    for (_, site, b) in theirs {
+        match site.as_str() {
+            "0066221c" => who_o = Some((b[0], i16::from_le_bytes([b[1], b[2]]))),
+            "00647885" => {
+                let w = |at: usize| i16::from_le_bytes([b[at], b[at + 1]]);
+                if let Some(k) = who_o.take() {
+                    out.insert(
+                        k,
+                        (
+                            w(0x2a - 0x20),
+                            w(0x2c - 0x20),
+                            w(0x2e - 0x20),
+                            b[0x3f - 0x20] as i8,
+                        ),
+                    );
+                }
+            }
+            _ => {}
+        }
+    }
+    out
+}
+
+/// **The units' four chain words, reported** (`docs/COLLISION.md` §3.2,
+/// item 4098): every unit's `up`, `down`, `down_who` and `up_who` on the
+/// packet's frame, ours (`Sim::unit_chain_words`, the whole chain of
+/// objects with its stale words) against the stream's units line. The
+/// units line is not ported; this is the count it starts from. It can
+/// part: a unit's chain read from the units alone parts where a building
+/// stands below it.
+#[test]
+fn the_units_four_chain_words_are_the_original_s() {
+    let Some((theirs, _, sim)) = line_inputs("units", "Units") else {
+        return;
+    };
+    let words = stream_unit_chain_words(&theirs);
+    let ours: std::collections::BTreeMap<(u8, i16), (i16, i16, i16, i8)> = sim
+        .units
+        .iter()
+        .enumerate()
+        .filter(|(_, u)| u.alive())
+        .map(|(i, u)| ((u.owner, u.index), sim.unit_chain_words(i)))
+        .collect();
+    let mut agree = [0usize; 4];
+    for (k, t) in &words {
+        let o = ours.get(k).copied();
+        let pairs = [
+            (o.map(|o| i64::from(o.0)), i64::from(t.0)),
+            (o.map(|o| i64::from(o.1)), i64::from(t.1)),
+            (o.map(|o| i64::from(o.2)), i64::from(t.2)),
+            (o.map(|o| i64::from(o.3)), i64::from(t.3)),
+        ];
+        for (n, (a, b)) in pairs.iter().enumerate() {
+            if *a == Some(*b) {
+                agree[n] += 1;
+            } else {
+                let name = ["up", "down", "down_who", "up_who"][n];
+                eprintln!("UNIT {}/{} {name}: ours {a:?} theirs {b}", k.0, k.1);
+            }
+        }
+    }
+    eprintln!(
+        "units' chain words of {}: up, down, down_who, up_who agreeing {agree:?}",
+        words.len()
+    );
+    assert_eq!(
+        (words.len(), agree[0], agree[1], agree[2], agree[3]),
+        UNIT_CHAIN_WORDS,
+        "the units' four chain words agreeing"
+    );
+    // It can part: `0/2`'s `down` from the units' chain alone is −1, where
+    // the human's Woodcutter's Camp `0/2001` stands below it.
+    let u = sim
+        .units
+        .iter()
+        .position(|u| u.owner == 0 && u.index == 2 && u.alive())
+        .expect("0/2");
+    let units_only = sim.units[u].down.map_or(-1, |d| sim.units[d].index);
+    assert_eq!((units_only, words[&(0, 2)].1), (-1, 2001));
 }
 
 /// The original's playback of the minted file with every building printed
@@ -894,10 +984,12 @@ fn the_ported_lines_are_checksum_state() {
     let Some((_, _, sim)) = line_inputs("items", "Items") else {
         return;
     };
+    let pieces = build_pieces(&sim);
     let lines = [
         sim.checksum_items(),
         sim.checksum_cities(),
         sim.checksum_goods(),
+        sim.checksum_builds(&|b| pieces.get(&b).copied().unwrap_or(-1)),
     ];
     let bytes: usize = lines.iter().map(sim::checksum::Line::bytes).sum();
     let (n, _, b, _) = crate::checksum::CHECKSUM_STATE;

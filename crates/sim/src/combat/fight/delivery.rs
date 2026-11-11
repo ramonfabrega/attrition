@@ -1635,6 +1635,12 @@ impl Sim {
                 if blocks && self.units[u].coll_at.is_none() {
                     self.coll_remove(u);
                 }
+                // `DeathObj::clear_blocking@008d4ac0` ends in
+                // `Object::remove_from_world`: the wreck leaves the whole
+                // chain of objects (`docs/COLLISION.md` §3.2).
+                if blocks {
+                    self.object_chain_remove(combat::Obj::Unit(u));
+                }
             }
         }
     }

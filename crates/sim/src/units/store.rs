@@ -71,6 +71,16 @@ impl Sim {
         {
             unit.path_recursion = old.path_recursion;
         }
+        // **The chain words survive the slot too** (`docs/COLLISION.md`
+        // §3.2): `Object::init@00647750` writes `up` and `down` −1 and
+        // neither `down_who` nor `up_who`, on the number's one instance.
+        unit.chain = crate::movement::collide::ObjectChain::reinit(
+            self.units
+                .iter()
+                .rev()
+                .find(|old| old.owner == unit.owner && old.index == unit.index)
+                .map(|old| &old.chain),
+        );
         let i = self.units.len();
         let owner = unit.owner as usize;
         let source = unit.kind.supply_unit;

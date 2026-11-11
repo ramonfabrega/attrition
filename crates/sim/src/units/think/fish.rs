@@ -228,7 +228,8 @@ impl Sim {
     /// `Object::add_to_world` pushes every object onto the head of its
     /// cell's list, so once a boat has deployed onto its fish it *is* that
     /// cell's `down` — and the next boat's search must refuse the cell.
-    /// This crate chains units and nothing else (`docs/COLLISION.md` §3,
+    /// The chain read here is the units' (`docs/COLLISION.md` §3; the whole
+    /// chain is held beside it since item 4098, §3.2, and not read here;
     /// item 48), so the buildings and goodies the original threads through
     /// the same list can only come from the snapshot a start dump loaded,
     /// which is what the fallback is for. run54's frame **5285** is the

@@ -335,6 +335,139 @@ floor moved on two games with no other lobby's `first_parting` moving.
 **Not established**: the rest of the body this skips for owner 9 — the
 collision index and the vision half — is not checked here (parked 3709b).
 
+### 3.2 Every object on the chain, and the four words it keeps (2026-11-10, item 4098)
+
+**The rule, on the listing.** Every object is threaded, units and
+buildings alike, and its four words are held as the original writes them —
+which is not what the chain implies, because two of them are left stale.
+
+- **Born**: `Object::Object@00646e80` writes `up`, `down`, `down_who` −1
+  and the short at `+0x3e` 0xffff (`inside_down_who` and `up_who`, −1).
+  The object of a number is **one instance**, re-inited in place:
+  `Objects::init_build@0065d190` (and `init_unit`) find the free number and
+  call the type's init through `objects[who][o]`. So a number's words
+  outlive its occupant.
+- **Inited**: `Object::init@00647750` writes `inside_down`, `up` and
+  `down` −1 — not `down_who`, not `up_who` — and ends in `add_to_world`.
+  So **every object is threaded at its init**: a unit, and a building (its
+  `Wall::init@0063e9b0` calls `Object::init`) on the cell of its own point,
+  one cell, not its footprint.
+- **`Object::add_to_world@0064d8c0`** (owner < 9, §3.1): `up` −1, `up_who`
+  untouched; the cell's `WData::down`/`down_who` (`+8`/`+0xa`) is read; when
+  `down >= 0` that head object's `up` becomes this `o` and its `up_who` this
+  `who`; this object's `down`/`down_who` become the cell's pair — whatever
+  it is, so the tail of a chain carries the map's own (−1 and 0 on an empty
+  cell, −2 and the good's index, `Objects::init_good@00653f30`, −3 and the
+  box's); the cell's pair becomes this object. **On the head, whatever the
+  kind**: a unit stepping onto a building's cell stands above it.
+- **`Object::remove_from_world@00647970`** (owner < 9): at the head (`up <
+  0`) the cell takes this object's `down`/`down_who` back, and when `down >=
+  0` the object below gets `up` −1 and keeps its `up_who`. Else the object
+  above takes `down` and `down_who`, and when `down >= 0` the object below
+  takes `up` and `up_who`. Then this object's `up` and `down` go to −1, its
+  `up_who` and `down_who` untouched.
+- **What is left stale**, then: an object's `up_who` names the owner of
+  the last object that stood directly above it, after it has gone; its
+  `down_who` is fresh while it is in the world (the next object's owner or
+  the cell's pair) and stale only off it.
+- **Who calls the two**: `add_to_world` from `Object::init`,
+  `Unit::set_new_location@005f8d20` (a world-cell change) and
+  `Object::remove_from_inside@006480f0`; `remove_from_world` from
+  `Unit::set_new_location`, `Object::close@00647160`,
+  `Object::insert_inside@00647e90`, `Unit::swap_team@006118d0` and
+  `DeathObj::clear_blocking@008d4ac0`. Nothing else writes an object's
+  `+0x3f`: the export's raw writes of it through the objects or units
+  arrays are these two functions' alone.
+- **Who leaves**: `Object::close` of an object in the world skips
+  `remove_from_world` when the close is a combat death (`param_1`) and the
+  type's slot `+0x120` answers — `blocks_while_dead` by the PDB's
+  `LF_ONEMETHOD` (`vftable offset = 288`), overridden by
+  `UnitTypeData::blocks_while_dead@00470440` alone (`unit_flags &
+  0x800000`). That wreck stays on the chain until `clear_blocking`. A
+  building's type has no override, so a building always leaves at its
+  close.
+
+**What this crate holds.** [`ObjectChain`] on every `Unit` and `Building`
+(`Unit::chain`, `Building::chain`): the four words, written where the
+listing writes them, with the two links they name kept as handles beside
+them; and `WorldState::object_heads`, the head of each cell's whole chain
+(`movement/collide.rs`, "§3.2"). `Sim::object_chain_add` and
+`Sim::object_chain_remove` are the two functions for any object;
+`chain_add`/`chain_remove` call them for a unit, `init_build` and
+`add_building` thread a building, `close_building` takes it off, a number
+re-inited starts from its last occupant's two `who`s
+(`ObjectChain::reinit`), and a blocking wreck leaves the units' chain at
+its death but the whole chain only at the cull's `clear_blocking`. The
+cell's pair at the tail is `World::cell_data`'s `down`/`down_who`, which
+the map writes and threading does not.
+
+**The readers are not moved.** Every walker in this crate still takes the
+units' chain (`Sim::cell_chain`, `chain_heads`, `Unit::up`/`down`), which
+is the whole chain with its buildings dropped — dropping members of a
+linked list does not reorder the rest, and both chains change in the same
+calls. The one unit on the whole chain and off the units' is a blocking
+wreck, which the collision probe already meets through its own path
+(`DetectNode::Wreck`). So no reader meets a building it did not meet
+before, and none loses one. The seams each reader already states stand
+where they were: `find_nearby_target`'s port appends the cell's buildings
+after its units (`docs/COMBAT.md` §32.1), where the original meets a
+building in chain order; the alarm walk's `get_down`/`cell_first`
+(`groups/alarm_view.rs`) answer the units' head, where the original's head
+can be a building; `place_unit_admits` stands a building in by its point;
+`claim_of` takes the units' head and the loaded snapshot. Each can now read
+the whole chain (`object_chain`, `object_head_words`); none is changed
+here, because no floor names one.
+
+**The values** (run 1562's frame 91, the stream's units and builds lines
+against ours, `diff::checksum_lines`):
+
+| | `up` | `down` | `down_who` | `up_who` |
+|---|---|---|---|---|
+| 15 buildings, before (derived from the units) | 15 | 15 | 15 | 14 |
+| 15 buildings, held | 15 | 15 | 15 | **15** |
+| 52 units, before (the units' chain alone) | 52 | 31 | 28 | 50 |
+| 52 units, held | 52 | **52** | **52** | **52** |
+
+Before, a unit's `down` missed the building below it on eight units
+(`0/2`..`0/5` over `0/2001`..`0/2004`, `1/1` over `1/2006`, `1/3`..`1/5`
+over `1/2002`..`1/2004`) and the good's −2 at the tail of all thirteen
+herds (`8/0` over good 19 .. `8/37` over good 35); `down_who` missed those
+and the cell's 0 under `0/0`, `0/1` and `1/0`; `up_who` missed two stale
+words, `0/1`'s 0 and `1/1`'s 1, and the British camp `1/2001`'s 1. Held,
+every one is the original's. On the packet every chain with more than one
+object is a unit or two over a building (eight cells), or a herd of three or
+four over its good (thirteen).
+
+**Confidence.** Diff-backed on one frame: all four words of all 15
+buildings and 52 units, and the builds line's every byte with them
+(`the_builds_line_is_the_original_s_range_by_range`,
+`the_units_four_chain_words_are_the_original_s`). On the listing: the two
+functions, `Object::Object`, `Object::init` and `Object::close`'s arm, and
+the claim that no other function writes `+0x3f`.
+`collide::tests::a_building_on_the_chain_keeps_the_owner_of_the_unit_that_left_it`
+holds the rule's arms on a hand-built map.
+
+**Not established**:
+
+- Any frame but run 1562's 91, and a building's close, a wreck and a
+  reused number in a capture (none happens before frame 91): those arms
+  are the listing's, not a diff's.
+- A unit born inside (`Sim::add_unit` threads only a unit `on_map`): the
+  original's `Object::init` threads it at its init point and
+  `insert_inside` takes it off, which leaves `up_who` on the object below
+  it there.
+- A cell whose own pair changes under a chain — a good or a box taken
+  while something stands on it. The original restores the pair its tail
+  carried; ours reads the cell's live pair.
+- `World::cell_data`'s `down_who` is an `i8` where `WData`'s is a short:
+  a good's index past 127 would wrap at the tail.
+- The original keys `remove_from_world`'s head arm on `up < 0` alone; a
+  second removal there would write a stale `down` over a live head. Ours
+  touches the cell only when the object heads it, the guard
+  `chain_remove` has always had.
+- The world line's `WData::down`/`down_who` bytes: the cells still hold
+  the map's pair, not the head (`docs/START.md`'s 28 cells).
+
 ## 4. `Unit::detect_unit_collision`
 
 `detect_unit_collision(x, y, quick, boats, _, nocoll, top_only)`. The three
@@ -1110,12 +1243,15 @@ it; squads, since only figure 0
 marks the index; the `WData::block == −1` sentinel; and `CollBlock`'s lazy
 allocation, replaced here by one flat bitset over the whole unit grid.
 
-The object chain holds **units only**. The original threads buildings and
-goodies through the same list, but the walk skips everything that is not a
-unit, and dropping non-units from a linked list does not reorder the rest —
-so the order in which units are found is the same. What it costs is a
-diff: the dump's `down`/`down_who` cannot be compared field for field until
-buildings join the chain, which is why §8 does not claim it.
+~~The object chain holds **units only**.~~ The readers' object chain holds
+units only. The original threads buildings through the same list, but the
+walk skips everything that is not a unit, and dropping non-units from a
+linked list does not reorder the rest — so the order in which units are
+found is the same. ~~What it costs is a diff: the dump's `down`/`down_who`
+cannot be compared field for field until buildings join the chain, which
+is why §8 does not claim it.~~ The whole chain, buildings with its stale
+words, is held beside it since item 4098, and its four words are the
+original's on run 1562's frame 91 (§3.2).
 
 ## 8. Coverage
 

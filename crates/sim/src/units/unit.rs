@@ -425,6 +425,11 @@ pub struct Unit {
     /// object chain, newest first (`docs/COLLISION.md` §3).
     pub down: Option<usize>,
     pub up: Option<usize>,
+    /// **`ObjectData`'s four chain words**, held on the whole chain of
+    /// objects — buildings and a blocking wreck on it too — where
+    /// [`Unit::down`]/[`Unit::up`] are the units of it every reader walks
+    /// (`docs/COLLISION.md` §3.2, item 4098).
+    pub chain: crate::movement::collide::ObjectChain,
     /// `UnitData::rare` (`+0x54`, the union with `air_alt` and
     /// `former_type`): the `TypeIndex` of the good `UnitData::calc_gather`
     /// last found for this unit, `-1` when it looked and found none.
@@ -957,6 +962,7 @@ impl Unit {
             contact: false,
             down: None,
             up: None,
+            chain: crate::movement::collide::ObjectChain::default(),
             // `Unit::init@00612100` lines 90 and 281: `rare` is **0** and
             // `good_obj` is `-1`, and the two starts are not the same
             // sentinel.

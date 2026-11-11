@@ -232,6 +232,7 @@ impl Sim {
                 mountains: Vec::new(),
                 cliffs: Vec::new(),
                 chain_heads: vec![None; (world.width() * world.height()) as usize],
+                object_heads: vec![None; (world.width() * world.height()) as usize],
             },
             movement: crate::movement::MovementState {
                 mesh,

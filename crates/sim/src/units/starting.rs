@@ -75,8 +75,9 @@ impl Sim {
     /// does not), the centre tile's mask with bit 14 clear and its low two
     /// bits not 3, and `flags` bit 15 clear.
     ///
-    /// The object half: this crate threads units on
-    /// [`crate::world::WorldState::chain_heads`] and never a building, so a
+    /// The object half: [`crate::world::WorldState::chain_heads`] is the
+    /// units' chain, which drops a building (the whole chain is held
+    /// beside it, `docs/COLLISION.md` §3.2, and not read here), so a
     /// live building whose point is on the cell stands in for the building
     /// on the original's chain (`Object::add_to_world@0064d8c0` threads
     /// every object on its own point's cell).
