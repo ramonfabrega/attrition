@@ -193,3 +193,274 @@ Vtable slot `+0x7c` of every `Type` vtable. PE bytes: `UnitType`'s `Type` vtable
 7. **Confidence.** High on the formula. Not read: when `land_size` is set, and whether it can be 0
    (an `idiv` by 0 would fault in the original; the crate guards `<= 0` elsewhere).
 
+## 4. `score_units` (+0x24) and 5. `score_units_2` (+0x28)
+
+One function writes both, so one section.
+
+1. **Writers.** `Leader::compute_unit_score (006bc500)`, `this` in `edi` (`mov %ecx,%edi`):
+   `movl $0,0x24(%edi)` 006bc50c, `movl $0,0x28(%edi)` 006bc513, `addl %ecx,0x24(%edi)` 006bc5b4,
+   `addl %ecx,0x28(%edi)` 006bc5c6. Its one caller is `compute_score` (call 006ec5ab), so the base
+   is the `Leader*`. `compute_score` also zeroes `score_units` (not `score_units_2`) at 006ec62f
+   under armageddon. `reset_score`, `walk_data` load.
+2. **Step.** Runs on a gated frame (§0.1) **only if** `leader_flags & 0x1800000` (§0.3: a unit
+   created or closed by this leader, or a tech gained, since the last run). Both start at 0; if
+   armageddon is reached they stay 0. Else for every unit type `t` in `[0x32, 0x192)`:
+   - `n = num_units[t − 0x32] + num_queued[t]` (u16 each; LeaderData+0x5762 and +0x5a22, read
+     absolute `0xe3fa8e`/`0xe3fdb2 + 2·(who·0x3776 + t)`), skip if 0;
+   - `sv = get_score_value(t, 0)` (§0.4, `unit_cost_factor · Σcosts`, militia family priced as
+     type 0x32);
+   - `sup = support_cost[0] + support_cost[1]` (ObjectTypeData+0x270/+0x274 of
+     `unittypes[t]`, `GameAccess::unittypes` at 0x00c061fc);
+   - `v = trunc( (sv·n + trunc((n−1)·sup·n / 2)) / 5 )` — the price of `n` units under the
+     per-unit support ramp, a fifth of it;
+   - `score_units += v`; and if `attack` (ObjectTypeData+0x1e8 of `unittypes[t]`) `!= 0`,
+     `score_units_2 += v`. So `score_units_2` is the armed subset.
+3. **Reset.** `reset_score`; `score_units` also by the armageddon branch; `score_units_2` keeps its
+   last value through armageddon (the part function would zero it on its next dirty run, since
+   it stores 0 before the armageddon test).
+4. **Readers.** `score_units` is a term of `score`. `score_units_2`: no reader found in the export
+   by name (`grep -- '->score_units_2'` hits nothing) and it is not a term of `score`; a
+   register-relative `0x28(%reg)` read cannot be excluded by grep.
+5. **Crate.** Inputs exist: per-type unit counts (`checksum/leaders.rs:1178`, `m.by_type`) and
+   queued counts (`m.queued_by_type`, :1183); `tables.unit_types` carries `attack` and the support
+   costs; `core/tuning.rs:580` `unit_cost_factor`. The dirty bit needs a hook at unit creation
+   (`units/store.rs:48` `add_unit`, `setup.rs:59`) and removal (`combat/fight/delivery.rs:1245`
+   `close_unit`), and at tech gain (`tech/gain.rs:189` `gain_tech`). No crate code computes this
+   part today.
+6. **Plain game?** Yes.
+7. **Confidence.** High on the arithmetic (listing read whole). Not read: whether `Unit::init`'s
+   leader pointer (`-0x14(%ebp)` at 00612d83) is always `leaders[owner]` (assumed from the `< 8`
+   test beside it); whether `num_queued` for a unit type counts only queue entries.
+
+## 6. `score_buildings` (+0x2c) and 11. `score_wonders` (+0x40)
+
+One function writes both.
+
+1. **Writers.** `Leader::compute_build_score (006bc3f0)`, `this` in `esi`: `movl $0,0x2c(%esi)`
+   006bc3f7, `movl $0,0x40(%esi)` 006bc3fe, `addl %eax,0x2c(%esi)` 006bc4c7, `addl %eax,0x40(%esi)`
+   006bc4ec. One caller, `compute_score` (006ec5b8). Armageddon zero in `compute_score` at
+   006ec621 (+0x2c) and 006ec644 (+0x40). `reset_score`, `walk_data` load.
+2. **Step.** Every gated frame (no dirty bit). Both start at 0; 0 under armageddon. Else for every
+   building type `t` in `[0x19e, 0x21f)`:
+   - `n = num_buildings[t − 0x19e] + num_queued[t]` (LeaderData+0x555e, +0x5a22), skip if 0;
+   - `sv = get_score_value(t, 0)` = `build_cost_factor · Σcosts`;
+   - `sup = support_cost[0] + support_cost[1]` of `buildtypes[t]` (`GameAccess::buildtypes`
+     0x00c061f4);
+   - `v = sv·n + trunc((n−1)·(sup·build_support_factor)·n / 2)` (`build_support_factor` =
+     Constants+0x37c, plain `get_item`);
+   - wonder test: vtable slot `+0x1c` compared with `TypeData::is_wonder_type` (0x00470780; the
+     PE shows every `Type` vtable holds that address, so the inline arm always applies):
+     `0x20e ≤ type < 0x21f` → `score_wonders += trunc(v / 3)`; else `score_buildings +=
+     trunc(v / 5)`.
+3. **Reset.** `reset_score`; armageddon branch.
+4. **Readers.** Terms of `score`; `score_buildings` also in `get_mvp_score` and
+   `AchieveChartPane` (`− buildings/2`). `score_wonders`: `score` only.
+5. **Crate.** `num_buildings_of` / `num_sites_of` (the crate fills `num_queued[0x19e+rec]` with
+   placed sites, `checksum/leaders.rs:1188`); `core/tuning.rs:590` `build_support_factor`. No
+   crate code computes it.
+6. **Plain game?** Yes (wonders are buildable in a skirmish).
+7. **Confidence.** High (listing read whole).
+
+## 7. `score_economy` (+0x30)
+
+1. **Writers.** `Leader::compute_economy_score (006bc270)`, `this` in `ebx`: `movl $0,0x30(%ebx)`
+   006bc277, `addl %eax,0x30(%ebx)` 006bc2f0, 006bc324, 006bc34d. One caller, `compute_score`
+   (006ec5bf). Armageddon zero 006ec61a. `reset_score`, `walk_data` load.
+2. **Step.** Every gated frame. 0, then (unless armageddon) for each good `r` in 0..6 with
+   `LeaderData::type_avail(r, 1) != 0` (006e33a0; the good's prerequisites and eligibility):
+   - `a = trunc( ((bucket[r] ^ 0x8221) − game->starting[r]) / 20 )`, clamped to `[0, 100]`.
+     `bucket` is `LeaderDataEncrypt+0x0` through `data_encrypted` (LeaderData+0x6eb8), XOR-masked
+     with 0x8221; `starting` is `Game+0x600` (int[6]). So: stock above the starting grant, a point
+     per 20, at most 100.
+   - `b = min( trunc((income[r] ^ 0x90236) / 80), 200 )` — `income` at `LeaderDataEncrypt+0x94`,
+     masked with 0x90236. **No lower clamp**: a negative income gives a negative `b`.
+   - `score_economy += a + b`.
+   Then `score_economy += 25 · BitMask<44>::count(rare)` (`rare` LeaderData+0x6d98; `count` at
+   0x0047cd40, the number of rare resources held).
+   Divisions are `imul 0x66666667; sar 3|5; add sign` = truncation toward zero.
+3. **Reset.** `reset_score`; armageddon branch.
+4. **Readers.** `score` term; `get_mvp_score`/`AchieveChartPane` (`− economy/2`).
+5. **Crate.** All inputs exist unmasked: `economy.rs` `Ledger::bucket` (681), `Ledger::income`
+   (696), `Holdings::starting` (616), `Holdings::rare` (725, a `u64` popcount). Note the crate's
+   `income` is documented as "the net rate the interface shows"; whether its units match the
+   original's `income` word is for the builder to check against a dump (the leaders checksum walks
+   `income` in `LeaderDataEncrypt::walk_data`). `type_avail` for a good is in the crate's AI
+   (`type_avail` is used by `queued_units`, `docs/AI.md` §2.16).
+6. **Plain game?** Yes.
+7. **Confidence.** High on arithmetic. Not read: `type_eligible` for goods in full.
+
+## 8. `score_pop` (+0x34)
+
+1. **Writers.** `compute_score`: `movl $0,0x34(%esi)` at 006ec5ca (every gated frame) and
+   006ec659 (armageddon). `Leader::compute_pop_score (006bc190)` stores 0 too but is dead (no call,
+   no PE pointer). `reset_score`, `walk_data` load.
+2. **Step.** None; always 0 in this build.
+3–7. As `score_explored`: term of `score` only; nothing to build but the 0; plain game; high.
+
+## 9. `score_unit_upgrades` (+0x38)
+
+1. **Writers.** `Leader::compute_unit_upgrades_score (006bc1a0)`, `this` in `edi`:
+   `movl $0,0x38(%edi)` 006bc1a3, `addl %eax,0x38(%edi)` 006bc230. One caller (`compute_score`,
+   006ec5d5). Armageddon zero 006ec652. `reset_score`, `walk_data` load.
+2. **Step.** On a gated frame **only if** `leader_flags & 0x1000000` (a tech gained since the
+   last run, §0.3). 0, then unless armageddon, for each unit type `t` in `[0x32, 0x192)`:
+   counted if (`LeaderData::has_tech(t)` (006e0c80) or `LeaderData::researching(t, −1, 0, 1)`
+   (006db510: `t` sits in a queue of one of my buildings, exact match)) and `tech_at_start` bit
+   `t` is clear (bits at LeaderData+0x6c8c = `tech_at_start`+0xc past the BitMask header; the
+   listing's `testb %bl,0x6c8c(%eax,%edi)` with `bl` rotating from `1 rol (t&7)`) and
+   `unit_flags & 0x80` (UnitTypeData+0x2b4) clear. Each adds `trunc(get_score_value(t, 1) / 5)`;
+   `get_score_value(t,1)` = `trunc(trunc(research_premium·unit_cost_factor·Σcosts / 256) ·
+   research_premium_cost / 256)` (§0.4; no militia substitution with `param_1 = 1`).
+3. **Reset.** `reset_score`; armageddon branch.
+4. **Readers.** `score` term only.
+5. **Crate.** `tech.rs:722` `tech_at_start: Vec<bool>`; researched unit lines in the crate's
+   tech state; queued techs `t.queued` (`checksum/leaders.rs:1193`); `core/tuning.rs:608`
+   `research_premium`; `research_premium_cost` from the unit tables. Hook the dirty bit in
+   `tech/gain.rs:189` `gain_tech` (also `setup.rs:238`, `tech.rs:1896`).
+6. **Plain game?** Yes.
+7. **Confidence.** High on arithmetic; medium on `researching`'s full predicate (read once, the
+   `param_4 = 1` arm is an exact-type match). Not read: `has_tech` body.
+
+## 10. `score_research` (+0x3c)
+
+1. **Writers.** `Leader::compute_research_score (006bc360)`, `this` in `edi`: `movl $0,0x3c(%edi)`
+   006bc363 and the `addl` into `0x3c(%edi)` after 006bc3d6. One caller (`compute_score`,
+   006ec5dc). Armageddon zero 006ec64b. `reset_score`, `walk_data` load.
+2. **Step.** Same gate as § 9 (bit 24). 0, then unless armageddon, for each `t` in
+   `[0x220, 0x275)` (`BASE_AGETYPES` = `BASE_TECHTYPES` = 0x220 up to `BASE_SPELLTYPES`; ages are
+   in the range): counted if (`has_tech(t)` or `researching(t, −1, 0, 0)`) and `tech_at_start`
+   bit `t` clear. Each adds `trunc(get_score_value(t, 0) / 5)` = `trunc(tech_cost_factor ·
+   Σcosts / 5)`. No `unit_flags` test here.
+3–4. As § 9; term of `score` only.
+5. **Crate.** As § 9; the tech tree and `tuning.tech_cost_factor`.
+6. **Plain game?** Yes.
+7. **Confidence.** High on arithmetic. `researching(…, 0)` adds an upgrade-line equivalence arm
+   that needs both types to be unit types, so it is inert for techs (read, not tested).
+
+## 12. `score_combat` (+0x44)
+
+Not computed by `compute_score` (`Leader::compute_combat_score (006bc250)` is an empty `ret`,
+never called, no PE pointer to it). Stepped at kills, in the killer's slot, always through the
+absolute form `0xe3a3d4(%reg)` where `%reg = slot·0x6eec` — the base is unambiguous.
+
+### 12.1 The value: `get_kill_value` (vtable slot `+0x80`)
+
+PE bytes of the `Type` vtables: `UnitType` (0x00b41fd4+0x80) → `UnitTypeData::get_kill_value
+(0061d3d0)`; `BuildType` (0x00b42b94+0x80) → `BuildTypeData::get_kill_value (00639790)`;
+`ObjectType`/`TypeData` → `TypeData::get_kill_value (00663a00)`. With `p` the victim's player
+(the argument):
+
+- unit: `get_score_value(t, 0) + (support_cost[0] + support_cost[1]) · (num_units[t−0x32] +
+  num_queued[t])` of player `p` (listing 0061d3d0..: the export's body for this one is garbled;
+  read from the listing — `imul $0x3776,p; add t; movzwl 0x56fe/0x5a22(leaders,idx,2)`); if
+  `p < 0`, `get_score_value(t, 0)` alone. That is the victim's *current marginal* unit price.
+- building: `get_score_value(t, 0) + (support_cost[0]+support_cost[1]) · build_support_factor ·
+  (num_buildings[t−0x19e] + num_queued[t])` of player `p`; `p < 0` → the score value alone.
+- anything else: `get_score_value(t, 0)`.
+
+Every site adds or subtracts `trunc(value / 5)` (`imul 0x66666667; sar 1; add sign`).
+
+### 12.2 Writers
+
+1. **`Object::take_damage (00652020)`** — a unit killed by a known killer. Stores
+   `subl %eax,0xe3a3d4(%ecx)` 0065313e, `movl $0,0xe3a3d4(%ecx)` 00653146,
+   `addl %eax,0xe3a3d4(%ecx)` 0065316d; `%ecx = killer_slot·0x6eec` (`-0x4(%ebp)` set at 00653043
+   from `ebx`, the killer's player argument). Predicate, in order (listing 00652f46..00653173):
+   - the victim is not a building (vslot `+0x1c` false; a building takes `buildings_lost`
+     `+0x81c += 1` and leaves);
+   - victim `is_captain` (vslot `+0xe8`; inline arm `UnitData::is_captain (0046ceb0)`:
+     `o_up` (UnitData+0x8e) bit 15 set, i.e. no `o_up` link — the head of its squad);
+   - `UnitData::curr_uber_size (0060a760)(0) == 1` (the last figure);
+   - `unit_masks & 1` (UnitData+0x68) clear (the crate calls this bit `decoy`);
+   - then `units_lost` (`+0x810`) `+= 1` on the victim; then the killer's object id argument
+     (`0x20(%ebp)`) must be `>= 0`, else leave;
+   - victim `+0xa58 += 1` (u16), killer `+0xa5a += 1` (u16) and killer `units_killed`
+     (`+0x80c`) `+= 1` (00653026..00653046);
+   - the victim object passes vslot `+0x18`; if its unit type has `unit_flags & 0x10`, the victim
+     is redirected to the object named by its `+0x3e` (player) / `+0x28` (id), which must also
+     pass vslot `+0x18`;
+   - `value = get_kill_value(type of victim, victim player)`; if
+     `LeaderData::is_ally (006edb50)(killer, victim player)`: `score_combat −= trunc(value/5)`,
+     floored at 0 (`jns` after the `sub`, else store 0); else `score_combat += trunc(value/5)`.
+     (`is_ally` of oneself is true, so killing one's own unit costs points.)
+2. **`Object::do_damage (0064a480)`** — a building destroyed by an attacking object. Stores
+   `subl` 0064bb02, `movl $0` 0064bb1b (after `cmpl $0` / `jge`), `addl` 0064bb50, base
+   `attacker_owner·0x6eec`. Predicate: the target's `take_damage` (vslot `+0x16c`, which is
+   `Object::take_damage` in every object vtable) returned non-zero (destroyed) and the target's
+   vslot `+0x1c` is true (a building); then attacker `buildings_razed` (`+0x818`) `+= 1`; then
+   `value = get_kill_value(target type, param_2 = target player)`, and the same ally rule:
+   ally → `−= trunc(value/5)` floored at 0, else `+= trunc(value/5)`. The value is computed after
+   `take_damage` returned.
+3. **`SpellType::cast_sabotage (006720e0)`**, two arms, caster `param_2`, victim `param_4`, no
+   ally test and no floor:
+   - unit arm, `addl %eax,0xe3a3d4(%esi)` 00672252: target not a building (vslot `+0x1c`), a unit
+     (vslot `+0x18`), `is_captain`, `curr_uber_size(0) == 1`, `unit_masks & 1` clear → victim
+     `+0xa58 += 1`, caster `+0xa5a += 1`, caster `units_killed += 1`, `score_combat +=
+     trunc(get_kill_value(t, victim)/5)`.
+   - building arm, `addl %eax,0xe3a3d4(%esi)` 006727a0: the building's `take_damage(max(hits/2,
+     floor), …, attacker −1, …)` returned non-zero → caster `buildings_razed += 1`, `score_combat
+     += trunc(get_kill_value(t, victim)/5)`. (The `take_damage` there passes no attacker, so §1's
+     arm does not also credit.)
+4. **`SpellType::cast_counterintel (00673740)`**, `addl %eax,0xe3a3d4(%edi)` 0067388e, caster
+   slot in `edi`: target (climbed to its captain via vslot `+0xe4` if not a captain) owned by a
+   player other than the caster and not mutually allied (`diplos[...] == 2` both ways skips),
+   a unit (vslot `+0x18`), `is_captain`, `curr_uber_size(0) == 1`, `unit_masks & 1` clear →
+   caster `units_killed += 1`, `score_combat += trunc(get_kill_value(t, target player)/5)`, then
+   the target dies (vslot `+0x158`).
+5. `compute_score`'s armageddon zero (006ec63d); `reset_score`; `walk_data` load.
+
+### 12.3 The rest
+
+3. **Reset.** Only `reset_score` (setup) and the armageddon zeroing; it otherwise accumulates for
+   the whole game (it is the only part that is a running total rather than a recount).
+4. **Readers.** `score` (term, picked up on the next gated frame); `get_mvp_score` and
+   `AchieveChartPane::on_redraw` (`3 · score_combat`).
+5. **Crate.** The kill arms exist: `combat/fight/delivery.rs` — `take_damage_typed` (line 469;
+   the unit death arm at ~537-550 calls `unit_plunder` and `inca_refund`, whose gates are the same
+   captain / `curr_uber_size == 1` / not-decoy tests; the credit goes there, *before*
+   `close_count`, since in the original the credit precedes the death); `do_damage` (line 49; the
+   building-killed arm at ~213, beside `plunder_kill`); `cast_sniper_unit` (line ~807) and
+   `cast_sabotage_building` (line 884) carry `SEAM: … score +0x44 += cost / 5`;
+   `spells/cast.rs:1022-1028` `cast_counterintel` carries the same SEAM. `get_kill_value` itself
+   has no crate function (grep finds none); `get_score_value` has a likely relative in
+   `economy/pricing.rs` but not the score form.
+6. **Plain game?** Yes for all four writers: combat kills of units and buildings, and the spy
+   abilities (sabotage, sniper, counter-intelligence) are skirmish features.
+7. **Confidence.** High on the stores, the base, the `/5`, the ally sign and the floor (listing).
+   Medium on the take_damage predicate's meaning (the `+0x3e`/`+0x28` redirect for
+   `unit_flags & 0x10` was read in the listing, not interpreted). Not established: whether the
+   victim's own count is still included in `num_units`/`num_buildings` when `get_kill_value` runs
+   (take_damage's credit precedes `die`, so likely yes for units; do_damage's runs after the
+   target's `take_damage`, so likely no for buildings — not verified); the exact meaning of
+   `+0xa58`/`+0xa5a`.
+
+---
+
+## What I did not read, overall
+
+- What sets `semaphore` bits 6 (force recompute every frame) and 7 (team scores); both are
+  probably lobby/scenario settings.
+- `LeaderData::has_tech`, `type_eligible`, and `BitMask<44>::count` bodies (names taken as
+  given; `count` is a popcount by its name and use).
+- Whether `leader_flags` bit 24 is set before frame 0 (if setup grants techs through
+  `gain_tech`, it is; frame 0 always passes the cadence gate).
+- No diff backs any of this: the crate holds no score leaf value, and I did not look for a dump.
+  A `LEADERDATA` logger line carries `score` (`LeaderData::log_data (006e5110)`:209), and the
+  leaders checksum walks all twelve, so a value diff is available once built.
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `score` +0x18 | `Leader::compute_score (006ec560)` | recount every 10th frame by slot (`(who+frame)%10==0`, frame 0, forced, sem bit 6): Σ of the ten parts except `score_units_2`; 0 at armageddon | `Leader::reset_score (006e37f0)`, armageddon; `walk_data` load | none; `ai/ai_drive.rs` `strategy_all` :87 "not modelled" (call must precede the human `continue`) | yes | high |
+| `score_explored` +0x1c | `compute_score` (store 0); `compute_explore_score (006bc5e0)` dead | always 0 | as above | write 0 | yes | high |
+| `score_territory` +0x20 | `compute_score` | `territory·1000/land_size`, trunc, every gated frame | as above | inputs in `economy.rs` `Holdings` | yes | high |
+| `score_units` +0x24 | `Leader::compute_unit_score (006bc500)`; `compute_score` (armageddon 0) | gated + dirty (bit 23/24): Σ_t trunc((sv·n + trunc((n−1)·sup·n/2))/5), n = units + queued | as above | none; hooks `units/store.rs:48`, `delivery.rs:1245`, `tech/gain.rs:189` | yes | high |
+| `score_units_2` +0x28 | `compute_unit_score` only | same terms, only types with `attack != 0`; **not in `score`, not zeroed at armageddon** | `reset_score`, part's own 0 | none | yes | high |
+| `score_buildings` +0x2c | `Leader::compute_build_score (006bc3f0)`; `compute_score` | gated: Σ non-wonder trunc((sv·n + trunc((n−1)·sup·bsf·n/2))/5), n = buildings + sites | as above | none; `num_buildings_of`/`num_sites_of` | yes | high |
+| `score_economy` +0x30 | `Leader::compute_economy_score (006bc270)`; `compute_score` | gated: Σ_avail goods clamp((bucket−starting)/20,0,100) + min(income/80,200); + 25·#rares | as above | none; `economy.rs` `Ledger`/`Holdings` | yes | high |
+| `score_pop` +0x34 | `compute_score` (store 0); `compute_pop_score (006bc190)` dead | always 0 | as above | write 0 | yes | high |
+| `score_unit_upgrades` +0x38 | `Leader::compute_unit_upgrades_score (006bc1a0)`; `compute_score` | gated + bit 24: Σ unit types held or queued, not at start, not `unit_flags&0x80`: trunc(get_score_value(t,1)/5) | as above | none; `tech.rs` `tech_at_start`, `gain_tech` hook | yes | high (medium on `researching`) |
+| `score_research` +0x3c | `Leader::compute_research_score (006bc360)`; `compute_score` | gated + bit 24: Σ t∈[0x220,0x275) held or queued, not at start: trunc(tech_cost_factor·Σcosts/5) | as above | none | yes | high |
+| `score_wonders` +0x40 | `compute_build_score`; `compute_score` | gated: Σ wonders (0x20e..0x21e) trunc(v/3) | as above | none | yes | high |
+| `score_combat` +0x44 | `Object::take_damage (00652020)`, `Object::do_damage (0064a480)`, `SpellType::cast_sabotage (006720e0)` ×2, `SpellType::cast_counterintel (00673740)`; `compute_score` (armageddon 0) | per kill: ±trunc(get_kill_value(victim type, victim)/5), minus and floored at 0 when the victim is an ally (combat arms only; spells always +) | `reset_score`, armageddon | SEAMs in `combat/fight/delivery.rs` (sniper, sabotage building) and `spells/cast.rs` counterintel; unit/building kill arms in `delivery.rs` `take_damage_typed`/`do_damage` | yes | high on stores; medium on predicate meanings |

@@ -85,3 +85,55 @@ Yes: `Setup::build_cities`/`build_game` (via `compute_all_territory`) and `check
 
 High on writers, index, step and clear (export and listing agree; the biased `Leader::init` pointer checked by arithmetic). Medium on the owner competition itself (I read only its shape: rotation start `x & 7`, 8 slots, winner >= 0); its scoring is the territory mechanic the crate already ports and is outside this leaf. Not read: whether `fix_all_borders` is inlined elsewhere.
 
+## Leaf 3: `high_buildings` (`+0x5660`, ushort[129])
+
+**Index**: a building `TypeIndex` minus `0x19e`, so slots 0..0x80 are building types `0x19e..0x21e`. The bias is explicit in `Wall::decrement_stats (00642da0)` (`sub $0x19e,%esi` at `00642e0c` before indexing the sibling `num_buildings` at `0xe3f8ee` = `0xe3a390 + 0x555e`), and it is why every access to this array is spelled at the **biased base `0x5324` = `0x5660 - 2*0x19e`** (absolute `0xe3f6b4`), never at `0x5660`. **The slot written is the lineage root**: `basic_type(t)`, i.e. follow `TypeData.from` (`+0x3c`) until it is negative and take that record's `type` (`+0x4`). **Value**: the most buildings of the root's line (root and every type above it, counted from `t` upward) the player has held at once, as sampled at each activation. Units: buildings. Monotone within a game.
+
+### 1. Writers, both nets
+
+- Export by name: `->high_buildings` hits `LeaderData::log_data` (reader, `high_buildings[scan]` beside `num_buildings[scan]`, `puVar5[-0x81]`), and four `high_buildings[x + 0x4f]` in `LeaderData::get_support_count (006da110)`, `LeaderData::get_units (006e07d0)`, `LeaderData::has_general (006e1050)`, `IFaceOptions::setup_selected (008165b0)`. **Those four are not this field**: `0x5660 + 2(x + 0x4f) = 0x56fe + 2x` = `num_units[x - 0x32]` (unit type ids start at `0x32`), the README's own example. Likewise every absolute `0xe3fa8e`/`0xe3faf2` in the listing (`ScenarioFuncSet::num_type*`, `Leader::compute_unit_score`, `Leader::unit_prod_value`) is `num_units`, not `high_buildings`, though the address falls inside `[0xe3f9f0, 0xe3faf2)`.
+- Export, `field_0x5660`: `Leader::init` (the clear) and `TerrainOut::one_time_init` (another class). `field_0x5324`: `Build::activate (00623e20)` lines 614/616 (the writer), `BuildData::construct_time (0062d5c0)` line 126, `TypeData::get_cost (00664090)` line 700.
+- Listing (`0x5660(`, `0xe3f9f0`, `0x5324(`, `0xe3f6b4`, every scaled `0x52xx..0x57xx` displacement, every `0x102(` relative to `num_buildings`): **one store**, `Build::activate (00623e20)` at `00624c16`, `movw %bx,0xe3f6b4(,%ecx,2)` with `ecx = slot*0x3776 + basic_type`. Plus `Leader::init`'s clear (`lea 0x5660(%ebx)` at `006e4bad`, zeroing `[i]` and `[i-0x81]`, i.e. `num_buildings`, for 0x81 entries).
+
+### 2. Event, step, predicate
+
+`Build::activate(this, p1, p2, p3)` (vtable slot `0x1a8`, PDB `LF_ONEMETHOD activate`, vftable offset 424, on the building base class), listing `00624ba4`..`00624c16`:
+
+1. `t` = the building's own type (`this->type->type`), slot `s = this+0x9`.
+2. `n = num_buildings[t] + get_buildings(to(t))`, where `to` is `BuildTypeData +0x2e0` (`to`) and `LeaderData::get_buildings (006e0680)` adds `num_buildings` of `to(t)`, `to(to(t))`, ... recursively until `to < 0`. So `n` counts `t` and every type it upgrades into.
+3. `r = basic_type(t)` (vtable `+0xe4`: PDB names vftable offset 228 on `ObjectTypeData` `basic_type`; `BuildTypeData::basic_type (00639970)` overrides it: `from < 0` ? `type` : `buildtypes[from]->basic_type()`).
+4. **If `high_buildings[r - 0x19e] < n` (signed int compare of the zero-extended ushort) and `p1 == 0`, store `high_buildings[r - 0x19e] := n` (truncated to 16 bits).** On a raise, `t == 0x21a` also sets `leader_flags |= 0x10000000`, and `p3 != 0` (with the game/scenario gates) pays the type-specific free units (not this leaf).
+
+`num_buildings[t]` already includes this building when the counting predicate holds: `Build::activate` calls the base activate `Wall::activate (0063e4b0)` at `00623f65`, early, which calls the stat increment `Wall::increment_stats (00643270)` (`incw 0xe3f5b2(,slot*0x3776+t,2)` at `006432e2` = `num_buildings[t-0x19e]++`) when `build_flags (+0x2c0) & 0x10` or the building has a city. (`Wall::*` names are LTCG-folded bodies shared with `Build`; I read only the call order.)
+
+Call sites of slot `0x1a8` and their `(p1, p2, p3)` (pushes read in the listing where the export dropped arguments): `Wall::do_construct (006434d0)` (0,1,1) = construction finished; `Setup::build_cities (005ab910)` (0,0,0) = starting buildings; `Leader::produce_building (006e1400)` (0,p2,0); `City::find_buildings (007384c0)` (0,1,0), `Build::check_capture (006276a0)` (0,1,0), `Leader::defeat_by (006d1c80)` (0,1,0) = buildings changing hands, **which can raise the mark (p1 = 0) but pay nothing (p3 = 0)**; `Cities::capture_city (00733380)` (1,1,0) and `ScenarioFuncSet::switch_teams` (1,1,0) cannot raise it; `ScenarioEditor::*`, `ScenarioRead::load_*_chunk`, `ConquestGame::build_cities` (0,0,0), `ScenarioFuncSet::create_building` (0,1,1).
+
+### 3. Reset
+
+Only `Leader::init (006e3930)` (zero, all 0x81). Never decreased: `Wall::decrement_stats (00642da0)`, the only decrementer of the sibling counts, touches `num_buildings` and `reg_buildings` (saturating at 0) and not this array. Restored by `LeaderData::walk_data` on a load.
+
+### 4. Readers
+
+`Build::activate` itself (the compare); `BuildData::construct_time (0062d5c0)` and `TypeData::get_cost (00664090)`: with tribe bonus `0x12`, type `0x1b6` and `iroquois_quick_senate != 0`, `high_buildings[t - 0x19e] == 0` (indexed by the type itself, not its root) makes the construct time 0 (clamped to 1 after) and the cost 0; `LeaderData::log_data`. In the checksum's walked range.
+
+### 5. Crate site
+
+Already ported: `crates/sim/src/cities/nations.rs` `Sim::claim_building_high`, called from `crates/sim/src/cities/city.rs:2578` in `Sim::activate`; the field is `cities.building_high` (`crates/sim/src/cities.rs:45`), indexed by the crate's build-record index of the root (`base_build_type` follows `from`; `ai/ai_types.rs` `buildings_of_line` follows `to`), not by `TypeIndex - 0x19e`. A checksum builder needs only the map from crate record to `TypeIndex - 0x19e`; `crates/sim/src/checksum/leaders.rs:297` lists the leaf with no value fed. Two things for whoever audits it: the crate's `captured` flag must mean `p1 != 0` (only `capture_city` and `switch_teams`), because the `check_capture`/`find_buildings`/`defeat_by` paths pass `p1 = 0` and do raise the mark; and the crate's `counted` (p3 / the increment predicate) is a separate gate on the free units only.
+
+### 6. Plain game?
+
+Yes: every finished construction (`Wall::do_construct`), the starting buildings (`Setup::build_cities`), and captures. CtW, editor and trigger callers exist but are not needed to reach it.
+
+### 7. Confidence
+
+High on the single writer, the biased index, the root slot and the predicate `n > mark && p1 == 0` (export and listing agree; the `0x19e` bias is an explicit `sub` in the listing; `basic_type` is named by the PDB's vftable offset and its body read). Medium on the call-site argument table (read from pushes; I did not read each caller's branch conditions), and on the increment predicate inside `increment_stats` (read from the export of a folded body). Not read: what `Leader::produce_building` is for, and whether the `0x1a8` slot has callers through other spellings (`+ 0x1a8))` in the export, `*0x1a8(` in the listing were the nets).
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `territory_high` +0x9dc | `World::compute_all_territory (006b5700)` store `006b5880`; `GameDaemon::check_borders (00732060)` store `00732160`; both at `0x4(&territory)` | `max(territory_high, territory)` after `territory` is re-summed: setup, and the frame a border pass's last region finishes; slots 0..7 with `flags & 1` | none (not in `Leader::init`); carries across games in one process; walk_data on load | add to `territory/upkeep.rs` `update_territory_holdings` | yes | high (writers, step); medium (no reset) |
+| `reg_terr` +0x145e [region 0..63] | `World::compute_reg_territory (006b0bb0)` zero `006b0c2c`, `incw` `006b185b`; `World::compute_all_territory (006b5700)` whole-array zero from `006b570a`; `Leader::init (006e3930)` via `field_0xd64` pointer | `+1` per cell the pass assigns to the slot (winner >= 0, slots 0..7); 256 cells/frame across regions | per region at cursor 0 for active slots, before the budget test (re-zeroed each frame until the first cell); whole array in `compute_all_territory`; `Leader::init` | no field; `cities/place.rs:344` recounts the owner map (diverges mid-pass); store it in `territory/border_pass.rs` (`zero_region_rares`, `advance_border_pass`, `wholesale_bordering`) | yes | high |
+| `high_buildings` +0x5660 [TypeIndex - 0x19e, at the lineage root] | `Build::activate (00623e20)` store `00624c16` (biased base `0xe3f6b4`); `Leader::init (006e3930)` clear | `:= n` when `n = sum num_buildings over t, to(t), ... > mark` and `p1 == 0` | `Leader::init` only; never decreases | ported: `cities/nations.rs` `claim_building_high`, `cities.building_high`; checksum leaf unfed | yes | high (writer, index, predicate); medium (call-site args) |
+
+Time and cost: about 75 tool calls, roughly 70 minutes; the expensive parts were the biased bases (`0x5324`, `0xd64`, `0x4(&territory)`) that neither name grep nor offset grep finds, and naming vtable `+0xe4` from the PDB.
