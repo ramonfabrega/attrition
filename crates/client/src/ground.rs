@@ -210,14 +210,39 @@ pub const RUN1559B_3279_GROUND_BLEND_PACKET: (u32, [u32; 4], u32, u32) =
     (395, [15, 41, 5, 42], 201, 503);
 
 /// **`RUN1559B_3279_GROUND_BLEND`** (item 4139; `docs/RENDERER.md`
-/// §3.8): the patch from our own choice (`crate::patch::patches`) laid
-/// as [`RUN1559B_3279_GROUND_BLEND_PACKET`] lays the packet's, on the same
-/// 503 tiles in the pool of (a)-(d): `(wins on the packet's cells, the
-/// controls' wins beside it, wins on our own cells with our patch base,
-/// the controls' wins beside it, of)`. New.
+/// §3.9): the patch from our own choice (`crate::patch::patches`) under
+/// the pass as read — the patch's base over ours at A, the alpha's level
+/// 0, nearest texel, clamped — on the same 503 tiles as
+/// [`RUN1559B_3279_GROUND_BLEND_PACKET`], in the pool of (a)-(d): `(wins
+/// on the packet's cells, the controls' wins beside it, wins on our own
+/// cells with our own patch base, the controls' wins beside it, of)`.
+/// New. Stage 0 (the wiring, 4132's bilinear read) gave 395 and 395,
+/// equal to the packet's own; the pass's nearest texel moves 24 tiles in
+/// and 17 out. No scored tile sits on the 79 cells where our cells or our
+/// choice part from the packet's, so the two counts agree.
 #[cfg(test)]
 pub const RUN1559B_3279_GROUND_BLEND: (u32, [u32; 4], u32, [u32; 4], u32) =
-    (395, [15, 41, 5, 42], 395, [15, 41, 5, 42], 503);
+    (402, [15, 32, 5, 44], 402, [15, 32, 5, 44], 503);
+
+/// **Stage 2's reads of the alpha** (item 4139; §3.9), our choice on the
+/// packet's cells, each against (a)-(d) on the 503: `([A level 0
+/// bilinear, 1 − A level 0 bilinear, A level 0 point, 1 − A level 0
+/// point, A the pass's level bilinear, A the pass's level point, 1 − A
+/// the pass's level point], the tiles whose pass's level is 0)`. New: A
+/// is kept and 1 − A falls; the pass's level (stage 1's `MIP_POINT`, bias
+/// −1.5, λ −1.27 to −0.47) is 0 on all 503.
+#[cfg(test)]
+pub const RUN1559B_3279_PATCH_READS: ([u32; 7], u32) = ([395, 120, 402, 122, 395, 402, 122], 503);
+
+/// **The drawn patches alone** (item 4139; §3.9): of the 503, the 376
+/// tiles whose cell our choice patches; `((e) the packet's patch under
+/// 4132's read, (g) ours under the pass as read, the controls (a)-(d)'s
+/// wins in their own pool, of)`. New. The other 127 are emptied patches
+/// where every read draws the base alone, a tie with (a) that `max_by`
+/// gives the later candidate: 120 of 4132's 395 and of the 402 are those.
+#[cfg(test)]
+pub const RUN1559B_3279_GROUND_BLEND_DRAWN: (u32, u32, [u32; 4], u32) =
+    (275, 282, [84, 147, 31, 112], 376);
 
 #[cfg(test)]
 mod tests {
@@ -1220,6 +1245,9 @@ mod tests {
         opatch: [f32; 3],
         wopatch: [f32; 3],
         uv: [f32; 2],
+        /// The pixel (item 4139: the footprint the pass's level is read
+        /// from).
+        xy: (i32, i32),
     }
 
     fn lum(c: [f32; 3]) -> f32 {
@@ -1438,6 +1466,7 @@ mod tests {
                     opatch: op.rgb,
                     wopatch: wop.rgb,
                     uv: b.uv,
+                    xy: (x, y),
                 });
             }
         }
@@ -1539,62 +1568,217 @@ mod tests {
             let av = t0[1] + u * (t4[1] - t0[1]) + v * (t20[1] - t0[1]);
             m.sample(0, au, av)[3] / 255.0
         };
+        // How the alpha is read (item 4139, stage 2): `level` the mip level,
+        // `point` nearest texel with clamped addressing (the pass's
+        // `TEXADD_CLAMP` and `MIP_POINT`), else bilinear wrapped as 4132
+        // read it; `invert` weights the patch's base by 1 − A.
+        #[derive(Clone, Copy)]
+        struct Read {
+            point: bool,
+            invert: bool,
+            named: bool,
+        }
+        let alpha_at = |choice: &[Option<crate::patch::Patch>],
+                        c: (i32, i32),
+                        uv: [f32; 2],
+                        level: usize,
+                        how: Read|
+         -> f32 {
+            let Some(q) = choice[(c.1 * t.width + c.0) as usize] else {
+                return 0.0;
+            };
+            let Some((_, m)) = alphas.get(q.alpha) else {
+                return 0.0;
+            };
+            let e = |k: usize, c: usize| q.uv[k][c] as f32 / 8.0;
+            let au = e(0, 0) + uv[0] * (e(4, 0) - e(0, 0)) + uv[1] * (e(20, 0) - e(0, 0));
+            let av = e(0, 1) + uv[0] * (e(4, 1) - e(0, 1)) + uv[1] * (e(20, 1) - e(0, 1));
+            let level = if how.named {
+                level.min(m.levels.len() - 1)
+            } else {
+                0
+            };
+            let a = if how.point {
+                let im = &m.levels[level];
+                let x = ((au * im.width as f32).floor() as i64).clamp(0, im.width as i64 - 1);
+                let y = ((av * im.height as f32).floor() as i64).clamp(0, im.height as i64 - 1);
+                f32::from(im.rgba[(y as usize * im.width + x as usize) * 4 + 3]) / 255.0
+            } else {
+                m.sample(level, au, av)[3] / 255.0
+            };
+            if how.invert { 1.0 - a } else { a }
+        };
+        // Our choice under the pass as stage 2 reads it: A at the pass's
+        // level, nearest texel, clamped.
         let our_alpha =
-            |choice: &[Option<crate::patch::Patch>], c: (i32, i32), uv: [f32; 2]| -> f32 {
-                let Some(q) = choice[(c.1 * t.width + c.0) as usize] else {
-                    return 0.0;
-                };
-                let Some((_, m)) = alphas.get(q.alpha) else {
-                    return 0.0;
-                };
-                let e = |k: usize, c: usize| q.uv[k][c] as f32 / 8.0;
-                let au = e(0, 0) + uv[0] * (e(4, 0) - e(0, 0)) + uv[1] * (e(20, 0) - e(0, 0));
-                let av = e(0, 1) + uv[0] * (e(4, 1) - e(0, 1)) + uv[1] * (e(20, 1) - e(0, 1));
-                m.sample(0, au, av)[3] / 255.0
+            |choice: &[Option<crate::patch::Patch>], c: (i32, i32), uv: [f32; 2], lv: usize| {
+                alpha_at(
+                    choice,
+                    c,
+                    uv,
+                    lv,
+                    Read {
+                        point: true,
+                        invert: false,
+                        named: true,
+                    },
+                )
             };
         println!(
             "packet patches with alpha geometry {}, alpha files {}",
             patches.len(),
             alphas.len()
         );
-        type Weight<'a> = Box<dyn Fn((i32, i32), [f32; 2]) -> f32 + 'a>;
+        type Weight<'a> = Box<dyn Fn((i32, i32), [f32; 2], usize) -> f32 + 'a>;
         let candidates: Vec<(&str, Weight)> = vec![
-            ("(a) the base alone", Box::new(|_, _| 0.0)),
-            ("(b) the patch's base alone", Box::new(|_, _| 1.0)),
-            ("(c) a uniform half", Box::new(|_, _| 0.5)),
+            ("(a) the base alone", Box::new(|_, _, _| 0.0)),
+            ("(b) the patch's base alone", Box::new(|_, _, _| 1.0)),
+            ("(c) a uniform half", Box::new(|_, _, _| 0.5)),
             (
                 "(d) a linear ramp toward the patch's base",
-                Box::new(|c, uv| {
+                Box::new(|c, uv, _| {
                     let d = toward(c);
                     (0.5 + (uv[0] - 0.5) * d[0] + (uv[1] - 0.5) * d[1]).clamp(0.0, 1.0)
                 }),
             ),
             (
                 "(e) the packet's patch under the read alpha",
-                Box::new(|c, uv| read_alpha(c, uv, false)),
+                Box::new(|c, uv, _| read_alpha(c, uv, false)),
             ),
             (
                 "(f) the read alpha turned a quarter turn",
-                Box::new(|c, uv| read_alpha(c, uv, true)),
+                Box::new(|c, uv, _| read_alpha(c, uv, true)),
             ),
             (
-                "(g) our choice on the packet's cells",
-                Box::new(|c, uv| our_alpha(&choice_packet, c, uv)),
+                "(g) our choice on the packet's cells, the pass as read",
+                Box::new(|c, uv, lv| our_alpha(&choice_packet, c, uv, lv)),
             ),
             (
-                "(h) our choice on our cells, our patch base",
-                Box::new(|c, uv| our_alpha(&choice_ours, c, uv)),
+                "(h) our choice on our cells, our patch base, the pass as read",
+                Box::new(|c, uv, lv| our_alpha(&choice_ours, c, uv, lv)),
             ),
             (
                 "(i) control: our choice, the fractal's seed one on",
-                Box::new(|c, uv| our_alpha(&choice_off, c, uv)),
+                Box::new(|c, uv, lv| our_alpha(&choice_off, c, uv, lv)),
+            ),
+            (
+                "(j) A, level 0, bilinear wrapped (4132's read; (g))",
+                Box::new(|c, uv, lv| {
+                    alpha_at(
+                        &choice_packet,
+                        c,
+                        uv,
+                        lv,
+                        Read {
+                            point: false,
+                            invert: false,
+                            named: false,
+                        },
+                    )
+                }),
+            ),
+            (
+                "(k) 1 − A, level 0, bilinear",
+                Box::new(|c, uv, lv| {
+                    alpha_at(
+                        &choice_packet,
+                        c,
+                        uv,
+                        lv,
+                        Read {
+                            point: false,
+                            invert: true,
+                            named: false,
+                        },
+                    )
+                }),
+            ),
+            (
+                "(l) A, level 0, point clamped",
+                Box::new(|c, uv, lv| {
+                    alpha_at(
+                        &choice_packet,
+                        c,
+                        uv,
+                        lv,
+                        Read {
+                            point: true,
+                            invert: false,
+                            named: false,
+                        },
+                    )
+                }),
+            ),
+            (
+                "(m) 1 − A, level 0, point clamped",
+                Box::new(|c, uv, lv| {
+                    alpha_at(
+                        &choice_packet,
+                        c,
+                        uv,
+                        lv,
+                        Read {
+                            point: true,
+                            invert: true,
+                            named: false,
+                        },
+                    )
+                }),
+            ),
+            (
+                "(n) A, the pass's level, bilinear",
+                Box::new(|c, uv, lv| {
+                    alpha_at(
+                        &choice_packet,
+                        c,
+                        uv,
+                        lv,
+                        Read {
+                            point: false,
+                            invert: false,
+                            named: true,
+                        },
+                    )
+                }),
+            ),
+            (
+                "(o) A, the pass's level, point clamped (the pass as read)",
+                Box::new(|c, uv, lv| {
+                    alpha_at(
+                        &choice_packet,
+                        c,
+                        uv,
+                        lv,
+                        Read {
+                            point: true,
+                            invert: false,
+                            named: true,
+                        },
+                    )
+                }),
+            ),
+            (
+                "(p) 1 − A, the pass's level, point clamped",
+                Box::new(|c, uv, lv| {
+                    alpha_at(
+                        &choice_packet,
+                        c,
+                        uv,
+                        lv,
+                        Read {
+                            point: true,
+                            invert: true,
+                            named: true,
+                        },
+                    )
+                }),
             ),
         ];
         // The candidates whose patch layer is our cells' base (item 4139).
         let ours_layer = |k: usize| k == 7;
         // Step 1's table is (a)-(d) alone; (e) is counted against (a)-(d),
         // and (f), its control, against (a)-(d) in (e)'s place.
-        let pools: [(&str, Vec<usize>); 6] = [
+        let mut pools: Vec<(&str, Vec<usize>)> = vec![
             ("step 1, (a)-(d)", vec![0, 1, 2, 3]),
             ("(a)-(e)", vec![0, 1, 2, 3, 4]),
             ("(a)-(d), (f)", vec![0, 1, 2, 3, 5]),
@@ -1602,26 +1786,74 @@ mod tests {
             ("(a)-(d), (h)", vec![0, 1, 2, 3, 7]),
             ("(a)-(d), (i)", vec![0, 1, 2, 3, 8]),
         ];
-        let r_of = |px: &[PatchPixel], c: (i32, i32), k: usize, wt: &Weight, wrong: bool| {
-            let v: Vec<(f32, f32)> = px
+        // Stage 2's table (item 4139): each read of the alpha, on our choice
+        // on the packet's cells, against (a)-(d).
+        let stage2: Vec<usize> = (9..candidates.len()).collect();
+        // The level the pass names (item 4139): stage 1's `MIP_POINT` with
+        // `mipmap_bias` −1.5, the nearest level to λ − 1.5, λ the log2 of
+        // the alpha's texels per pixel side: the cell's uv per pixel (the
+        // base's texcoord across neighbouring pixels of the tile) times the
+        // 64 alpha texels a cell spans (a quadrant of 128).
+        let mut levels: BTreeMap<(i32, i32), (f32, usize)> = BTreeMap::new();
+        for &tt in &patched {
+            let px = &tiles[&tt];
+            let at: BTreeMap<(i32, i32), [f32; 2]> = px.iter().map(|q| (q.xy, q.uv)).collect();
+            let mut dets: Vec<f32> = px
                 .iter()
-                .map(|q| {
-                    let a = wt(c, q.uv);
-                    let (pt, wpt) = if ours_layer(k) {
-                        (q.opatch, q.wopatch)
-                    } else {
-                        (q.patch, q.wpatch)
-                    };
-                    let d = if wrong {
-                        mix(q.wbase, wpt, a)
-                    } else {
-                        mix(q.base, pt, a)
-                    };
-                    (lum(q.photo), lum(d))
+                .filter_map(|q| {
+                    let (x, y) = q.xy;
+                    let (r, d) = (at.get(&(x + 1, y))?, at.get(&(x, y + 1))?);
+                    let (du, dv) = (
+                        [r[0] - q.uv[0], r[1] - q.uv[1]],
+                        [d[0] - q.uv[0], d[1] - q.uv[1]],
+                    );
+                    Some((du[0] * dv[1] - du[1] * dv[0]).abs())
                 })
                 .collect();
-            pearson(&v)
-        };
+            dets.sort_by(f32::total_cmp);
+            let det = dets.get(dets.len() / 2).copied().unwrap_or(0.0);
+            let lambda = if det > 0.0 {
+                0.5 * (det * 64.0 * 64.0).log2()
+            } else {
+                0.0
+            };
+            let level = (lambda - 1.5).round().clamp(0.0, 3.0) as usize;
+            levels.insert(tt, (lambda, level));
+        }
+        let mut by_level: BTreeMap<usize, u32> = BTreeMap::new();
+        for (_, lv) in levels.values() {
+            *by_level.entry(*lv).or_default() += 1;
+        }
+        let lambdas: Vec<f32> = levels.values().map(|q| q.0).collect();
+        println!(
+            "the pass's level by tile {by_level:?}; λ min {:.2} max {:.2}",
+            lambdas.iter().copied().fold(f32::MAX, f32::min),
+            lambdas.iter().copied().fold(f32::MIN, f32::max)
+        );
+        for &k in &stage2 {
+            pools.push((candidates[k].0, vec![0, 1, 2, 3, k]));
+        }
+        let r_of =
+            |px: &[PatchPixel], c: (i32, i32), lv: usize, k: usize, wt: &Weight, wrong: bool| {
+                let v: Vec<(f32, f32)> = px
+                    .iter()
+                    .map(|q| {
+                        let a = wt(c, q.uv, lv);
+                        let (pt, wpt) = if ours_layer(k) {
+                            (q.opatch, q.wopatch)
+                        } else {
+                            (q.patch, q.wpatch)
+                        };
+                        let d = if wrong {
+                            mix(q.wbase, wpt, a)
+                        } else {
+                            mix(q.base, pt, a)
+                        };
+                        (lum(q.photo), lum(d))
+                    })
+                    .collect();
+                pearson(&v)
+            };
         let nc = candidates.len();
         let mut rs: BTreeMap<(i32, i32), (Vec<f32>, Vec<f32>)> = BTreeMap::new();
         for &tt in &patched {
@@ -1630,19 +1862,20 @@ mod tests {
             let r: Vec<f32> = candidates
                 .iter()
                 .enumerate()
-                .map(|(k, (_, wt))| r_of(px, c, k, wt, false))
+                .map(|(k, (_, wt))| r_of(px, c, levels[&tt].1, k, wt, false))
                 .collect();
             let rw: Vec<f32> = candidates
                 .iter()
                 .enumerate()
-                .map(|(k, (_, wt))| r_of(px, c, k, wt, true))
+                .map(|(k, (_, wt))| r_of(px, c, levels[&tt].1, k, wt, true))
                 .collect();
             rs.insert(tt, (r, rw));
         }
         let mut blend = (0, [0u32; 4], 0);
         let mut step1 = [0u32; 4];
-        let mut ours = [(0u32, [0u32; 4], Vec::new()), (0u32, [0u32; 4], Vec::new())];
+        let mut ours: [(u32, [u32; 4], Vec<(i32, i32)>); 2] = Default::default();
         let mut off = 0;
+        let mut stage2_wins: Vec<(usize, u32, [u32; 4])> = Vec::new();
         for (pool_name, pool) in &pools {
             let mut wins = vec![0u32; nc];
             let mut wins_by: BTreeMap<(usize, u8, i32), u32> = BTreeMap::new();
@@ -1683,28 +1916,12 @@ mod tests {
             if pool.len() == 5 && pool[4] == 8 {
                 off = wins[8];
             }
+            if pool.len() == 5 && pool[4] >= 9 {
+                stage2_wins.push((pool[4], wins[pool[4]], [wins[0], wins[1], wins[2], wins[3]]));
+            }
             if pool.len() == 5 && (6..8).contains(&pool[4]) {
                 let k = pool[4];
-                // The tiles (e) wins in its pool and this one does not, by
-                // cell (item 4139).
-                let lost: Vec<(i32, i32)> = patched
-                    .iter()
-                    .copied()
-                    .filter(|&tt| {
-                        let (r, rw) = &rs[&tt];
-                        let won = |cand: usize| {
-                            let mut pl = vec![0, 1, 2, 3, cand];
-                            pl.sort();
-                            let best = *pl
-                                .iter()
-                                .max_by(|&&a, &&b| r[a].total_cmp(&r[b]))
-                                .expect("one");
-                            best == cand && r[cand] > rw[cand]
-                        };
-                        won(4) && !won(k)
-                    })
-                    .collect();
-                ours[k - 6] = (wins[k], [wins[0], wins[1], wins[2], wins[3]], lost);
+                ours[k - 6] = (wins[k], [wins[0], wins[1], wins[2], wins[3]], Vec::new());
             }
         }
         for (k, (name, _)) in candidates.iter().enumerate() {
@@ -1716,15 +1933,180 @@ mod tests {
             "RUN1559B_3279_GROUND_BLEND (packet's patch) {blend:?} of {}",
             patched.len()
         );
-        for (k, (n, ctl, lost)) in ours.iter().enumerate() {
-            let cells: std::collections::BTreeSet<(i32, i32)> =
-                lost.iter().map(|&tt| cell(tt)).collect();
+        // Whether candidate `cand` wins tile `tt` against (a)-(d).
+        let won = |tt: (i32, i32), cand: usize| {
+            let (r, rw) = &rs[&tt];
+            let best = *[0, 1, 2, 3, cand]
+                .iter()
+                .max_by(|&&a, &&b| r[a].total_cmp(&r[b]))
+                .expect("one");
+            best == cand && r[cand] > rw[cand]
+        };
+        let moved = |from: usize, to: usize| -> (Vec<(i32, i32)>, Vec<(i32, i32)>) {
+            (
+                patched
+                    .iter()
+                    .copied()
+                    .filter(|&tt| won(tt, to) && !won(tt, from))
+                    .collect(),
+                patched
+                    .iter()
+                    .copied()
+                    .filter(|&tt| won(tt, from) && !won(tt, to))
+                    .collect(),
+            )
+        };
+        for (k, from, (n, ctl, _)) in [(0, 4, &ours[0]), (1, 6, &ours[1])] {
+            let (gained, lost) = moved(from, 6 + k);
             println!(
-                "RUN1559B_3279_GROUND_BLEND ({}) {n} with {ctl:?}; tiles (e) wins and this does not {}: by cell {cells:?}",
+                "RUN1559B_3279_GROUND_BLEND ({}) {n} with {ctl:?}; against {}: gained {} {gained:?}, lost {} {lost:?}",
                 ["our choice, packet's cells", "our choice, our cells"][k],
+                &candidates[from].0[..3],
+                gained.len(),
                 lost.len()
             );
         }
+        // Stage 3 (item 4139): the tiles the packet's own patch loses, under
+        // 4132's read (e) and under the pass as read (g), by alpha, by
+        // land_sub, by the patch's base less ours, by which control wins, by
+        // the tile's place in its cell and by its scored pixels.
+        for (k, name) in [(4, "(e), 4132's read"), (6, "(g), the pass as read")] {
+            let lost: Vec<(i32, i32)> = patched.iter().copied().filter(|&tt| !won(tt, k)).collect();
+            let mut by: [BTreeMap<String, u32>; 6] = Default::default();
+            for &tt in &lost {
+                let c = cell(tt);
+                let alpha =
+                    choice_packet[(c.1 * t.width + c.0) as usize].map_or(-1, |q| q.alpha as i32);
+                let (r, rw) = &rs[&tt];
+                let best = *[0, 1, 2, 3, k]
+                    .iter()
+                    .max_by(|&&a, &&b| r[a].total_cmp(&r[b]))
+                    .expect("one");
+                let winner = if best != k && r[best] > rw[best] {
+                    candidates[best].0[..3].to_string()
+                } else {
+                    "none above its control".to_string()
+                };
+                let edge = |q: i32| q == 0 || q == 3;
+                let (ex, ey) = (edge(tt.0.rem_euclid(4)), edge(tt.1.rem_euclid(4)));
+                let place = match (ex, ey) {
+                    (true, true) => "corner",
+                    (false, false) => "interior",
+                    _ => "side",
+                };
+                let n = tiles[&tt].len();
+                let size = if n < 40 {
+                    "<40"
+                } else if n < 80 {
+                    "40-79"
+                } else {
+                    ">=80"
+                };
+                let column = patch_of(c).map_or(0, |li| li / 9 - i32::from(sub(c)));
+                for (m, key) in [
+                    format!("{alpha:02}"),
+                    format!("{}", sub(c)),
+                    format!("{column}"),
+                    winner,
+                    place.to_string(),
+                    size.to_string(),
+                ]
+                .into_iter()
+                .enumerate()
+                {
+                    *by[m].entry(key).or_default() += 1;
+                }
+            }
+            println!(
+                "stage 3, the tiles {name} loses: {} of {}",
+                lost.len(),
+                patched.len()
+            );
+            for (m, label) in [
+                "alpha",
+                "land_sub",
+                "patch base less ours",
+                "won by",
+                "place in cell",
+                "scored pixels",
+            ]
+            .iter()
+            .enumerate()
+            {
+                println!("  by {label}: {:?}", by[m]);
+            }
+        }
+        // The drawn patches alone (item 4139): the tiles whose cell our
+        // choice patches on the packet's cells. On the rest (the emptied
+        // patches, `landindex` 0 in 4129's list) every alpha read draws the
+        // base alone, equal to (a), and `max_by` gives the tie to the later
+        // candidate, so a read "wins" there by its index.
+        let drawn: Vec<(i32, i32)> = patched
+            .iter()
+            .copied()
+            .filter(|&tt| {
+                let c = cell(tt);
+                choice_packet[(c.1 * t.width + c.0) as usize].is_some()
+            })
+            .collect();
+        let ties = patched
+            .iter()
+            .filter(|tt| !drawn.contains(tt))
+            .filter(|&&tt| {
+                let r = &rs[&tt].0;
+                r[4] == r[0] && r[6] == r[0]
+            })
+            .count();
+        let control_wins = |k: usize| {
+            drawn
+                .iter()
+                .filter(|&&tt| {
+                    let (r, rw) = &rs[&tt];
+                    let best = *[0, 1, 2, 3]
+                        .iter()
+                        .max_by(|&&a, &&b| r[a].total_cmp(&r[b]))
+                        .expect("one");
+                    best == k && r[k] > rw[k]
+                })
+                .count() as u32
+        };
+        let on_drawn = |k: usize| drawn.iter().filter(|&&tt| won(tt, k)).count() as u32;
+        let drawn_row = (
+            on_drawn(4),
+            on_drawn(6),
+            [0, 1, 2, 3].map(control_wins),
+            drawn.len() as u32,
+        );
+        println!(
+            "the drawn patches alone: (e) {}, (g) {}, the controls (a)-(d) in their own pool {:?}, of {}; the undrawn {}, ties with (a) under (e) and (g) {ties}",
+            drawn_row.0,
+            drawn_row.1,
+            drawn_row.2,
+            drawn_row.3,
+            patched.len() - drawn.len()
+        );
+        assert_eq!(
+            ties,
+            patched.len() - drawn.len(),
+            "every undrawn tile is a tie"
+        );
+        assert_eq!(
+            drawn_row, RUN1559B_3279_GROUND_BLEND_DRAWN,
+            "RUN1559B_3279_GROUND_BLEND_DRAWN"
+        );
+        // The same tables over all 503, for the rates.
+        let mut all_by: [BTreeMap<String, u32>; 2] = Default::default();
+        for &tt in &patched {
+            let c = cell(tt);
+            let alpha =
+                choice_packet[(c.1 * t.width + c.0) as usize].map_or(-1, |q| q.alpha as i32);
+            *all_by[0].entry(format!("{alpha:02}")).or_default() += 1;
+            *all_by[1].entry(format!("{}", sub(c))).or_default() += 1;
+        }
+        println!(
+            "  all 503 by alpha: {:?}; by land_sub: {:?}",
+            all_by[0], all_by[1]
+        );
         let on_parting: Vec<(i32, i32)> = patched
             .iter()
             .copied()
@@ -1736,6 +2118,19 @@ mod tests {
             on_parting.len()
         );
         println!("(i) the seed one on: {off} of {}", patched.len());
+        println!("stage 2, our choice on the packet's cells, each read against (a)-(d):");
+        for (k, n, ctl) in &stage2_wins {
+            println!("  {}: {n} with {ctl:?}", candidates[*k].0);
+        }
+        let reads: Vec<u32> = stage2_wins.iter().map(|q| q.1).collect();
+        assert_eq!(
+            (reads.as_slice(), by_level.get(&0).copied()),
+            (
+                RUN1559B_3279_PATCH_READS.0.as_slice(),
+                Some(RUN1559B_3279_PATCH_READS.1)
+            ),
+            "RUN1559B_3279_PATCH_READS"
+        );
         assert!(off < ours[0].0, "the draw follows our choice");
         assert_eq!(
             (
