@@ -491,6 +491,7 @@ pub mod groups;
 pub mod guys;
 pub mod leaders;
 pub mod units;
+pub mod world;
 
 #[cfg(test)]
 mod tests;
