@@ -1835,17 +1835,18 @@ counter, a slot mark, a setup rule, a never-reached constant, a held leaf and
 
 ## 21. The world line, held out by section (items 4131, 4136)
 
-**743 of 7,994 ranges and 198,569 of 294,769 bytes agree** on run 1562's
-frame 91, in twelve whole sections (item 4147; 742 and 198,449 in eleven
-at item 4136, 741 and 83,249 in ten at item 4131). `Sim::world_image`
+**4,344 of 7,994 ranges and 277,769 of 294,769 bytes agree** on run 1562's
+frame 91, in fourteen whole sections (item 4148; 743 and 198,569 in twelve
+at item 4147, 742 and 198,449 in eleven at item 4136, 741 and 83,249 in ten
+at item 4131). `Sim::world_image`
 (`crates/sim/src/checksum/world.rs`) emits the line as leaves, a `None` leaf
 being one the crate holds no value for; `Sim::checksum_world` is its bytes.
 `diff::checksum_lines::world::the_world_line_is_the_original_s_by_section`
 matches each range by section, field and record, tallies every leaf element,
 pins the sections in `WORLD` and the fields left in `WORLD_HELD_OUT`, and
 asserts a whole section's Adler against the record's printed line.
-`CHECKSUM_STATE` does not count it (§5). Ours sums to 2046949705 against the
-printed `World` 3643872705 (1221523236 at item 4136).
+`CHECKSUM_STATE` does not count it (§5). Ours sums to 1150679858 against the
+printed `World` 3643872705 (2046949705 at item 4147).
 
 **The record prints a sum per section.** Record 3201's sixteen `World`
 lines are frame 91's sections 0 to 14 and the whole: cut by call site and
@@ -1861,9 +1862,9 @@ differs in section 9 alone. So a section is a score of its own.
 | 2 the start arrays | 20; 124 | **whole** | |
 | 3 `oil_x`, `oil_y` | 2; 8 | **whole** | |
 | 4 `size`..`seed` | 1; 120 | **whole** | |
-| 5 the cells | 3,600; 75,600 | 15 of 16 fields on every cell | `was_seen` |
+| 5 the cells | 3,600; 75,600 | **whole** | |
 | 6 masks and the fog planes | 4; 158,400 | **whole** | |
-| 7 `wcoord_seen` | 1; 3,600 | 0 | the fog |
+| 7 `wcoord_seen` | 1; 3,600 | **whole** | |
 | 8 `danger[0..8]` | 8; 28,800 | **whole** | |
 | 9 the collision blocks | 3,650; 17,000 | 0 | the blocks' allocation |
 | 10–12 the half-land lists | 706; 11,105 | **whole** | |
@@ -1871,8 +1872,8 @@ differs in section 9 alone. So a section is a score of its own.
 
 Sections 0 and 14 walk nothing and print 1. **The fog's three planes agree
 on all 43,200 bytes** (`seen` 459 non-zero, `seen2` 702, `seen3` 89) by the
-vision the crate already runs (`docs/VISION.md`); the item did not port the
-fog.
+vision the crate already runs (`docs/VISION.md`), and since item 4148 the
+two cell words written beside them (`docs/VISION.md` §12).
 
 **What the crate held before this item.** The first image, before any
 writer was read, agreed on section 1, the cells' 13 fields `flags`, `land`,
@@ -1899,23 +1900,23 @@ journal.
 | `forest_size`, `mountain_size`, `rock_size`, `total_oil`, `goodies`, `land_resources`, `sea_resources` | `World::analyze_map` at the setup's step 8 (`docs/MAPGEN.md` §36, item 4147): every cell's flags, a non-`HALFLAND` `SANDY` or `OCEAN` cell the sea's, and the centre tile's `mask & 3 == 2`. 189, 213, 16, 8, 22, 9, 12; the same counts on eighteen maps' start dumps |
 | `player_reg`, `resource_reg` | the same function's regions 1 to 63: a leader's city, else at least `scale_by_area(60)` cells (44). 1 and 0 |
 | `total_metal` | the same function's `MountainsData::total_gather_size`: each placed range's rung by its template's tile count. 79 over 13 ranges; run38's 67 over 18 |
+| `was_seen` | every `seen2` write's cell half (`docs/VISION.md` §12, item 4148): `set_seen`, `set_seen2`, `Wall::start`, `update_seen_ally` or the bit into the cell holding the fog cell; `WData::WData` and `World::wipe` zero it. 3,600 of 3,600; theirs the OR of `seen2` over the cell's fog cells on both frames |
+| `wcoord_seen` | every `seen` write's cell half: `set_seen` and `set_seen2`'s `param_4 == 0` arm; `World::clear_seen` zeroes it with `seen`. 3,600 of 3,600; theirs the OR of `seen` on both frames |
 
 **Made to fail.** One element of each of eleven kinds of carried field
 (a start array's element and its size, an oil count, `map`, `seed`, a cell's
 `light`, an unseated danger word, a half-land coordinate, a type, a list's
 size, `nuke_hits`' count), item 4136's cell `land_sub` and tile mask
-(with tile 19175's `0x4` cleared) and item 4147's `goodies`, bent, returns
-that field to the list with a count of one. `analyze_map`'s input bent on
+(with tile 19175's `0x4` cleared), item 4147's `goodies` and item 4148's
+two fog words, bent, returns that field to the list with a count of one. `analyze_map`'s input bent on
 a copy and the function run again: a forest bit returns `forest_size` (and
 the cell's `flags`), no seated leader `player_reg` and `resource_reg`, the
 last range dropped `total_metal` alone. A held-out section's Adler is asserted to part from
 its line.
 
-**What holds the line out**: 6 fields (`WORLD_HELD_OUT`, elements not
-agreeing on frame 91; 16 at item 4136, 18 at item 4131).
+**What holds the line out**: 4 fields (`WORLD_HELD_OUT`, elements not
+agreeing on frame 91; 6 at item 4147, 16 at item 4136, 18 at item 4131).
 
-- **The fog** (2 fields, out by name): `was_seen` (3,600) and `wcoord_seen`
-  (3,600), beside the three planes that agree.
 - **The collision blocks** (4 fields): the presence local (3,600),
   `World::new_coll_block`'s lazy allocation, which the crate's flat
   `CollGrid` does not keep; the 25 heads (`bits` 768, `size` 96, the
@@ -1933,7 +1934,8 @@ index; `light`, the oil arrays, `nuke_hits` and the unseated danger rows
 take their verdicts from those nets. Item 4136's two rules are diff-backed
 on frame 91; the close's clear and refresh rest on the reading
 (`docs/MAPGEN.md` §35). Consistent with run1100's frame
-(`light` 0, rows 3–7 zero, `seed` 7,236, oil empty), not diffed there;
+(`light` 0, rows 3–7 zero, `seed` 7,236, oil empty, the fog words the
+planes' ORs), not diffed there;
 its section 4 is another map's (`player_reg` 1, `resource_reg` 0, 229, 195,
 33, 77, 12, 29, 12, 17), whose cells the frame's packet was not read for.
 Item 4147's tallies are diff-backed on frame 91 and their seven cell
@@ -1949,8 +1951,8 @@ two region counts beyond Great Lakes rest on the reading.
   `object_placed` writes nothing there (run1559b's 31 cells, parked
   4129b); the behind bit's clear and refresh on a frame that razes a
   building.
-- The fog's `was_seen` and `wcoord_seen`; the three planes on a frame past
-  a `update_all_seen` resync.
+- The fog on a game with allies (`update_all_seen`'s frame-0 arm writes
+  `seen2` without `was_seen`), and on a grid installed from a dump.
 - The blocks' allocation rule, and so whether a block, once allocated, ever
   goes.
 - `nuke_hits` after a nuke: the appender was not found, and a nuke's

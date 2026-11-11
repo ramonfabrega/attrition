@@ -43,10 +43,10 @@ simulation could get as far as it did on a frame-0 snapshot, and why
 closing the gap is a matter of adding writes rather than of modelling
 decay.
 
-Two more planes are written by the same call and are **not** modelled
-here, because nothing in this simulation reads them: `World +0x168`, the
-cell-resolution twin of `seen` (cleared with it), and `WData +0x14`, the
-per-cell byte the `WORLD` dump prints as `was_seen`.
+Two cell words are written by the same calls, one byte a world cell:
+`World +0x168` (`wcoord_seen`), the cell twin of `seen` (cleared with it),
+and `WData +0x14` (`was_seen`), the cell twin of `seen2`. Kept since item
+4148 (§12); nothing in this simulation reads them yet.
 
 ## 2. The line of sight — `Unit::update_los@0060e4d0`
 
@@ -796,9 +796,8 @@ run240's world pin.
   `type->x_size` as a radius. Not modelled.~~ **Answered 2026-09-21 by item
   457, §9** — all three, with the radius settled as the XML's
   `CIRCLE_RADIUS` (`UnitType::init@0061ab50:655`-`662`).
-- **The two per-cell planes** `World +0x168` and `WData +0x14`. Written by
-  `set_seen`, read by nothing here. `WData +0x14` is the `WORLD` dump's
-  `was_seen`, so a future widening of that record would need it.
+- ~~**The two per-cell planes** `World +0x168` and `WData +0x14`.~~
+  **Kept since item 4148, §12**; read by nothing here yet.
 - ~~**`Unit::explore_goody@005f9780`'s one draw.**~~ Answered
   2026-08-31 in `docs/GOODY.md`, and it is not one draw but **one per good
   the finder can gather** — three in the Ancient age. It shares this
@@ -1408,7 +1407,9 @@ buildings' arm, which this crate carried before and does not change.
 - `seen` at 1133 is inferred, not read: run190's `[End Frame]` set has no
   `WORLD`. A packet at logger frame 1134 would print who=1's bit on
   (9, 31); the build moving the word is the falsifier that ran instead.
-- `seen3` and the cell twin `+0x168` are still not kept. The scenario
+- ~~`seen3` and the cell twin `+0x168` are still not kept.~~ Both are
+  kept (`seen3` since `docs/GOLDEN.md` §101, the twin since item 4148,
+  §12). The scenario
   reveal points and the frame-0 arm of `update_all_seen` are not carried;
   no capture here has either.
 - A building's `visible` byte is still never set here (§9.1), so a
@@ -1517,3 +1518,75 @@ fails without the line.
 
 **Coverage.** Packet-backed: the two fog grids. Diff-backed: the word's
 move and run414's block. Listing-backed: the pushes at `671027`..`67102f`.
+
+## 12. The two cell words: `was_seen` and `wcoord_seen` (item 4148, 2026-11-11)
+
+**The rule.** Each fog plane write has a cell half. A world cell holds four
+fog cells, and the cell holding fog cell `(fx, fy)` is `(fx >> 1, fy >> 1)`.
+
+- **`WData.was_seen`** (`+0x14` of the cell record) takes `mask` whenever
+  `seen2` does. The writers that do this are `World::set_seen@006b3c60`,
+  `World::set_seen2@006b4bb0` (both arms of `param_4`), the outlined
+  `World::set_was_seen` (no caller in the listing),
+  `Wall::start`'s footprint walk (which writes `tile >> 2` beside `seen2`
+  at `tile >> 1`) and `Object::update_seen_ally`'s inlined pair.
+  `WData::WData` and `World::wipe` (a 16-bit store at `+0x13`) zero it.
+  Nothing in a running game clears it, because `World::clear_seen2` is
+  `wipe`'s alone and does not touch it.
+- **`WorldData::wcoord_seen`** (`World +0x168`, one byte a cell) takes
+  `mask` whenever `seen` does. Its writers are `World::set_seen` and
+  `set_seen2`'s `param_4 == 0` arm (the arm that writes `seen`).
+  `World::clear_seen@006b2250` zeroes it together with `seen`.
+  `World::init` allocates it with the planes, and `World::close` frees it.
+  So `update_all_seen`'s resync forgets both.
+
+**What the original leaves out of the rule.** `update_all_seen`'s frame-0
+ally arm ors an ally's bits into `seen2` with a raw byte loop that skips
+`was_seen`. This crate does not carry that arm, and on a game without
+allies it changes nothing. The scenario reveal points go through
+`set_seen`, but this crate does not carry them either.
+
+**The port** (`crates/sim/src/world.rs`). `World::set_seen` ors `mask`
+into both cell words, and `World::set_seen2_only` ors it into `was_seen`.
+`World::clear_seen` zeroes `wcoord_seen`. `World::set_fog` allocates both
+words zeroed. Every caller already goes through these functions: the
+unit's disc (`write_sweep`), both arms of `update_local_seen_build`, `update_local_seen_unit`,
+the nuke's reveal, `Wall::start`'s footprint and `update_seen_ally_build`.
+`World::cell_was_seen` and `World::wcoord_seen` read the words back, and
+`Sim::world_image` emits them in sections 5 and 7 of the checksum's world
+line (`docs/CHECKSUM.md` §21). Under the emulator, `sweep::world_set_seen`
+runs the original's `World::set_seen` and holds both bytes (`p[5]`,
+`p[6]`) to a model of the step: on every row, the mask is ored into both.
+The model is written beside the port, not called through it.
+
+**The values first** (run 1562's frame 91, theirs). `was_seen` is the OR
+of `seen2` over the cell's four fog cells on all 3,600 cells, and
+`wcoord_seen` is the OR of `seen` on all 3,600. Neither one is the OR of
+the other plane: `was_seen` matches the OR of `seen` on only 3,540 cells,
+and `wcoord_seen` matches the OR of `seen2` on only 3,540. Run1100's
+frame 5408, past 54 resyncs, gives the same result: 3,600 of 3,600 each,
+against 2,296 cells for the crossed pairing. On both frames each word is
+a function of the planes, which is what the rule predicts, given that
+every plane write in a game without allies has its cell half.
+
+**What the diff backs.** On run 1562's frame 91, both words agree on
+3,600 of 3,600 cells (`diff::checksum_lines::world`), and sections 5
+and 7 sum to their printed lines.
+
+The clear is diff-backed too. The resync runs when
+`frame % 100 == 0x21`, so it ran at frame 33, and 60 cells that `seen2`
+holds and `seen` no longer holds have a `wcoord_seen` of 0 on both sides.
+
+**What rests on the reading.** Which writers there are, and which ones
+are inlined. Run1100's frame agrees with the rule, but this crate did
+not build that frame.
+
+**Not established.**
+
+- A game with allies, where the frame-0 ally arm parts `was_seen` from
+  `seen2`.
+- A grid installed from a dump: `set_fog` zeroes both words, because the
+  `WORLD` dump's `was_seen` is not read into the crate.
+- The words' readers: `WorldData::was_seen_wcoord` reads `was_seen`
+  and `WorldData::is_seen_wcoord` reads `wcoord_seen`, and this crate
+  reads neither word.
