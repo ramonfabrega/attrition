@@ -4600,8 +4600,9 @@ mod tests {
 
     /// **Item 4106, step 2: the light on a figure's texel, as a value.** Per
     /// figure of the colour row, over its lit pixels that both footprints
-    /// hold, not behind anything (`Scene::behind`), the texel's alpha 255
-    /// and neither side dark: the photograph's channel means over our
+    /// hold, not behind anything (`Scene::behind`), the texel's alpha at
+    /// least 1 of 255 (not 255: item 4107 split it, see
+    /// [`the_peasants_alpha`]) and neither side dark: the photograph's channel means over our
     /// texel's, each per-pixel ratio's spread, the same split by the face's
     /// `N·L` against run1559b's packet light (`lights[0].cur_dir`
     /// (−0.707, 0, −0.707), `L = −cur_dir`), and each candidate's
@@ -4954,5 +4955,298 @@ mod tests {
             behind_agree.1 < behind_agree.0,
             "the leaf's power under the silhouette"
         );
+    }
+
+    /// **Item 4107, step 1: the peasants' alpha, as a value.** On 4106's
+    /// pixels (both footprints hold them, not behind anything, the painter's
+    /// texel at alpha 255, neither side dark), per (owner, piece): the
+    /// texture's alpha at every level of its chain and at the painter's
+    /// level and one either side, nearest-texel and bilinear, and the team
+    /// blend `t·α + c·(1 − α)` at that level and filter against the
+    /// photograph, agreeing as 4106's candidates were counted. Beside it,
+    /// each texture's alpha histogram per level. No constant is fitted.
+    #[test]
+    #[allow(clippy::needless_range_loop)]
+    fn the_peasants_alpha() {
+        use render::silhouette::{HUE, chromaticity, team_blend, team_unit, traced_theirs};
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        world.run_to(PHOTO_FRAME);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let size = (photo.width, photo.height);
+        let scene = frame_scene(&mut world, &camera, size);
+        let p = Photo {
+            width: photo.width,
+            height: photo.height,
+            rgba: &photo.rgba,
+        };
+        let traces: Vec<Trace<'_>> = TRACED
+            .iter()
+            .map(|&(name, poly)| Trace {
+                key: scene
+                    .who
+                    .iter()
+                    .position(|&(who, o, _, _)| format!("{who}/{o}") == name)
+                    .map_or(u32::MAX, |i| i as u32 + 1),
+                poly,
+            })
+            .collect();
+        let rows = footprints_traced(
+            &scene.keys,
+            &p,
+            &INTERFACE,
+            &READING,
+            &traces,
+            Neighbour::Neither,
+            Interface::Neither,
+        );
+        let dist = |a: [f32; 3], b: [f32; 3]| {
+            let (x, y) = (chromaticity(a), chromaticity(b));
+            ((x[0] - y[0]).powi(2) + (x[1] - y[1]).powi(2)).sqrt()
+        };
+        let sum = |q: [f32; 3]| q[0] + q[1] + q[2];
+        // Nearest texel at (u, v) on a level, wrapped.
+        let nearest = |m: &render::silhouette::Mips, level: usize, u: f32, v: f32| {
+            let im = &m.levels[level];
+            let (w, h) = (im.width as i64, im.height as i64);
+            let x = ((u * w as f32).floor() as i64).rem_euclid(w) as usize;
+            let y = ((v * h as f32).floor() as i64).rem_euclid(h) as usize;
+            let o = (y * im.width + x) * 4;
+            [0, 1, 2, 3].map(|c| f32::from(im.rgba[o + c]))
+        };
+        // Columns: absolute levels 0..8, then the painter's −1, 0, +1.
+        const COLS: usize = 12;
+        let col_name = |c: usize| match c {
+            0..=8 => format!("L{c}"),
+            9 => "P-1".into(),
+            10 => "P".into(),
+            _ => "P+1".into(),
+        };
+        #[derive(Clone, Default)]
+        struct Cell {
+            n: u32,
+            masked: u32,
+            alpha: f64,
+            agree_blend: u32,
+            agree_texel: u32,
+        }
+        type Group = (u8, i32);
+        let mut groups: std::collections::BTreeMap<Group, ([[Cell; COLS]; 2], u32, String)> =
+            Default::default();
+        let mut textures: std::collections::BTreeMap<i32, String> = Default::default();
+        let mut painter_levels: std::collections::BTreeMap<Group, [u32; 10]> = Default::default();
+        // 4106's own selection (alpha ≥ 1 on the 0–255 scale) split by the
+        // painter's alpha: [255, 1–254] × (n, Δr, Δg, texel agreeing, blend
+        // agreeing), per group.
+        let mut split: std::collections::BTreeMap<Group, [[f64; 5]; 2]> = Default::default();
+        for f in rows {
+            let who = scene.who[f.key as usize - 1];
+            if who.0 == TREE_WHO || who.3 || who.0 > 1 {
+                continue;
+            }
+            let Some(d) = scene.drawings.get(f.key as usize - 1) else {
+                continue;
+            };
+            let Some(mips) = world.figure_texture(d.piece) else {
+                continue;
+            };
+            textures.insert(
+                d.piece,
+                world
+                    .figure_texture_name(d.piece)
+                    .unwrap_or("?")
+                    .to_string(),
+            );
+            let theirs = traced_theirs(
+                &scene.keys,
+                &p,
+                &INTERFACE,
+                &READING,
+                &traces,
+                Neighbour::Neither,
+                Interface::Neither,
+                f.key,
+                f.window,
+            );
+            let ours = painted(
+                &mut world,
+                &scene,
+                &camera,
+                size,
+                f.key,
+                f.window,
+                Colouring::Texture,
+            );
+            let owner = team_unit(who.0);
+            let g = groups
+                .entry((who.0, d.piece))
+                .or_insert_with(|| (Default::default(), 0, String::new()));
+            g.2.push_str(&format!(" {}/{}", who.0, who.1));
+            let pl = painter_levels.entry((who.0, d.piece)).or_default();
+            let ww = (f.window.x1 - f.window.x0) as usize;
+            let last = mips.levels.len() - 1;
+            for y in f.window.y0..f.window.y1 {
+                for x in f.window.x0..f.window.x1 {
+                    let j = (y - f.window.y0) as usize * ww + (x - f.window.x0) as usize;
+                    let at = y as usize * photo.width + x as usize;
+                    let ph = [0, 1, 2].map(|c| f32::from(photo.rgba[at * 4 + c]));
+                    if scene.keys.at(x as usize, y as usize) != f.key
+                        || theirs[j] != Some(true)
+                        || scene.behind[at]
+                    {
+                        continue;
+                    }
+                    let Some(t) = ours[j] else { continue };
+                    if t.alpha < 1.0 || sum(t.rgb) < HUE.dark || sum(ph) < HUE.dark {
+                        continue;
+                    }
+                    let (a, b) = (chromaticity(ph), chromaticity(t.rgb));
+                    let row = &mut split.entry((who.0, d.piece)).or_default()
+                        [usize::from(t.alpha < 255.0)];
+                    row[0] += 1.0;
+                    row[1] += f64::from(a[0] - b[0]);
+                    row[2] += f64::from(a[1] - b[1]);
+                    row[3] += f64::from(u8::from(dist(t.rgb, ph) <= HUE.distance));
+                    row[4] += f64::from(u8::from(
+                        dist(team_blend(t.rgb, t.alpha, owner), ph) <= HUE.distance,
+                    ));
+                    if t.alpha < 255.0 {
+                        continue;
+                    }
+                    g.1 += 1;
+                    pl[usize::from(t.level).min(9)] += 1;
+                    let pv = usize::from(t.level);
+                    for c in 0..COLS {
+                        let level = match c {
+                            0..=8 => c,
+                            9 => pv.saturating_sub(1),
+                            10 => pv,
+                            _ => pv + 1,
+                        };
+                        if level > last {
+                            continue;
+                        }
+                        for (fi, s) in [
+                            nearest(&mips, level, t.uv[0], t.uv[1]),
+                            mips.sample(level, t.uv[0], t.uv[1]),
+                        ]
+                        .into_iter()
+                        .enumerate()
+                        {
+                            let rgb = [s[0], s[1], s[2]];
+                            let cell = &mut g.0[fi][c];
+                            cell.n += 1;
+                            cell.masked += u32::from(s[3] < 254.5);
+                            cell.alpha += f64::from(s[3]);
+                            cell.agree_blend +=
+                                u32::from(dist(team_blend(rgb, s[3], owner), ph) <= HUE.distance);
+                            cell.agree_texel += u32::from(dist(rgb, ph) <= HUE.distance);
+                        }
+                    }
+                }
+            }
+        }
+        for (piece, name) in &textures {
+            let Some(m) = world.figure_texture(*piece) else {
+                continue;
+            };
+            println!("piece {piece} texture {name}");
+            for (l, im) in m.levels.iter().enumerate() {
+                let mut h = [0u32; 5];
+                for px in im.rgba.chunks_exact(4) {
+                    let a = px[3];
+                    h[match a {
+                        255 => 0,
+                        192..=254 => 1,
+                        128..=191 => 2,
+                        1..=127 => 3,
+                        _ => 4,
+                    }] += 1;
+                }
+                println!(
+                    "  L{l} {}x{} alpha 255 {} | 192-254 {} | 128-191 {} | 1-127 {} | 0 {}",
+                    im.width, im.height, h[0], h[1], h[2], h[3], h[4]
+                );
+            }
+        }
+        for ((o, piece), (cells, n, names)) in &groups {
+            println!(
+                "owner {o} piece {piece}{names}: n {n}, painter's levels {:?}",
+                painter_levels[&(*o, *piece)]
+            );
+            for (k, label) in ["α 255", "α 1–254"].iter().enumerate() {
+                let r = split[&(*o, *piece)][k];
+                if r[0] > 0.0 {
+                    println!(
+                        "  4106's selection, {label}: n {}, Δchroma ({:+.3}, {:+.3}), texel agreeing {}, blend agreeing {}",
+                        r[0],
+                        r[1] / r[0],
+                        r[2] / r[0],
+                        r[3],
+                        r[4]
+                    );
+                }
+            }
+            for (fi, fname) in ["nearest", "bilinear"].iter().enumerate() {
+                let mut l = format!("  {fname}:");
+                for c in 0..COLS {
+                    let cell = &cells[fi][c];
+                    if cell.n == 0 {
+                        continue;
+                    }
+                    l.push_str(&format!(
+                        " {} α̅{:.1} <255 {} blend {} texel {} |",
+                        col_name(c),
+                        cell.alpha / f64::from(cell.n),
+                        cell.masked,
+                        cell.agree_blend,
+                        cell.agree_texel
+                    ));
+                }
+                println!("{l}");
+            }
+        }
+        // The kill, as assertions (item 4107): on the peasants' (pieces
+        // 4576, 10912) alpha-255 pixels the photograph is grey over our
+        // texel, within 0.05 of chromaticity, and the team blend at no
+        // level's or filter's alpha agrees on more of them than that
+        // level's texel alone; their red is on the masked pixels, where the
+        // blend 4102 draws beats the texel.
+        for piece in [4576, 10912] {
+            let r = split[&(0, piece)];
+            let (n, m) = (r[0], r[1]);
+            assert!(
+                (n[1] / n[0]).abs() < 0.05 && (n[2] / n[0]).abs() < 0.05,
+                "piece {piece}: grey at alpha 255"
+            );
+            assert!(m[4] > m[3], "piece {piece}: the blend on the masked pixels");
+            let cells = &groups[&(0, piece)].0;
+            for fi in 0..2 {
+                for c in 0..COLS {
+                    let cell = &cells[fi][c];
+                    assert!(
+                        cell.agree_blend <= cell.agree_texel,
+                        "piece {piece}: {} raises the blend",
+                        col_name(c)
+                    );
+                }
+            }
+        }
     }
 }
