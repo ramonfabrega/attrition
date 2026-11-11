@@ -257,8 +257,6 @@ const WORLD: [(usize, usize, usize, usize); WORLD_SECTIONS] = [
 /// it). The cells' `land_sub` and the masks' bit `0x4` are carried since
 /// item 4136 (`Terrain::object_placed`, `Wall::mark_behind_tiles`).
 const WORLD_HELD_OUT: &[(&str, usize)] = &[
-    ("04 size..seed.player_reg", 1),
-    ("04 size..seed.resource_reg", 1),
     ("04 size..seed.total_metal", 1),
     ("05 cell.was_seen", 3600),
     ("07 wcoord_seen.wcoord_seen", 3600),
@@ -464,6 +462,13 @@ fn the_world_line_is_the_original_s_by_section() {
             s.world.set_cell_data(c, d);
         },
         &["04 size..seed.forest_size", "05 cell.flags"],
+    );
+    // No leader is seated: the land region (3,053 cells, past the 44 of
+    // `scale_by_area(60)`) holds no leader's city, so it is no player
+    // region and becomes a resource region.
+    retally(
+        &|s| s.territory.players.clear(),
+        &["04 size..seed.player_reg", "04 size..seed.resource_reg"],
     );
 
     // **The behind bit itself** (item 4136): tile 19175, `(215, 79)`, which

@@ -513,10 +513,10 @@ impl Sim {
             }
         }
         // `World::analyze_map`'s ten, where the setup ran it (§21): the
-        // cell tallies so far.
+        // region and cell tallies so far.
         if let Some(t) = w.record().tallies {
             for (k, v) in t.words().into_iter().enumerate() {
-                if [2, 3, 4, 6, 7, 8, 9].contains(&k) {
+                if k != 5 {
                     h[18 + k] = Some(i64::from(v));
                 }
             }
