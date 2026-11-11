@@ -130,11 +130,12 @@ is append-only and amended in place, as it always was.
 - 121 standing — no kill rule; soft stop 95 %
 - 122 standing — Opus drives, Fable talks
 - 123 standing — two workers out
+- 124 standing — the stop at 98
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
 - 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types
 - 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself
-- 88 amended by 90 — The forty-ninth tranche: two Opus lanes, sixteen `cover=1` landings drained on a pit stop, the blind list 300 → 240 open, the click layer to the pool, two residue rows ratified, the oracle cache key reads the parser and codec only, sixteen Loop items ruled
-- 87 standing — The forty-eighth tranche: five readings and two sweeps, forty-five residue rows ratified, the blind list 345 → 300, the forty-ninth booked as `cover=1` captures under a fifth brief kind, a pinned `Blind:` line, eleven Loop items ruled
+- 88 amended by 90 — The forty-ninth tranche: two Opus lanes, sixteen `cover=1` landings drained on a pit stop, the blind list 300 → 240 open, the click layer to the pool, the oracle cache key reads the parser and codec only, sixteen Loop items ruled
+- 87 standing — The forty-eighth tranche: five readings and two sweeps, forty-five residue rows ratified, the blind list 345 → 300, the forty-ninth booked as `cover=1` captures under a fifth brief kind, a pinned `Blind:` line
 
 ## 1. Fidelity before divergence
 
@@ -12024,7 +12025,7 @@ have a costly resume after lims clear."
    in-session builders, Opus 5.5 for a line's port. Entry 116's first
    rule stands: a floor pushed down unnamed.
 2. **A soft stop takes its place, and its number is Ramon's to move at
-   will: 85 % today (95 % since 2026-11-11, below).** At or past it the driver cuts no builder and
+   will: 85 % today (95 % since 2026-11-11, below; 98 % since that evening, entry 124).** At or past it the driver cuts no builder and
    refills no lane; what is in flight finishes, is merged, gated and
    booked; the driver banks and ends its turn with a report that names
    the reading. It governs every worker, the render lane included. Ramon
@@ -12145,4 +12146,44 @@ increase tok throughpout?"
 host (the gate, a lane gate and a builder's floors share sixteen cores and
 the memory cap; `tools/resource_budget.py` admits them); what a lane on
 `--effort high` costs against the medium 4145 ran on.
+
+## 124. The stop moves to 98 %, and a reader row runs the week to 100 % (2026-11-11)
+
+**What happened.** The whole week read 87 % at 17:34 −05:00 with the stop
+at 95 % (entry 121) and two workers out (entry 123). The talk row (Fable,
+read-only, entry 122 §2) carried Ramon's decision of about 18:00 to the
+driver as one message, and Ramon confirmed it on the driver's row.
+
+**Ramon, in the talk row:** "wed remove the 95% cap and basically move it to
+98-99... just so it doesnt die mid run. but our intention <is> to spend the
+budget", and "we do want to run it thru so we can use our banked reset and
+get back to 0/0". **On the driver's row, 18:10:** "im here confirming
+ack'ing anything from the fable sesh".
+
+**Decided**, on that word.
+
+1. **The stop is 98 % of the whole week** (`seven_day`); entry 121 §2's
+   number is superseded. **From 96 %** nothing is cut that cannot be booked
+   before 98 (entry 121 §3's three points become two). 98 is the talk
+   row's pick inside his 97 to 99: the Fable week's last points are about
+   one whole-week point, and the tail above 98 is the talk row's and the
+   reader row's.
+2. **A reader row, exempt from the stop, runs to 100 %**: one ccc row on
+   Opus 5.5 in its own worktree (item 4152), which fans out Opus readers in
+   waves of up to twenty, one per leaf family the leaders line holds out
+   (parked 4124a's 80 leaves and §20's mechanics of their own), each
+   writing its family's specification from the decompile export and
+   appending per finding, so the wall costs nothing when it hits. A second
+   wave is the blind second reading CLAUDE.md requires of a reading-only
+   claim, and a third adjudicates under `docs/audit/`. No edit under
+   `crates/`; the branch is docs-only and merges under the paperwork
+   guards at the driver's convenience. Readers never edit the queue,
+   DECISIONS, PARKED or the journal.
+3. The chain and its lane are unchanged (entry 123): two workers out under
+   the stop, the reader row beside them.
+
+**Not established:** the fleet's size and price (the talk row's guess, 30
+to 60 reader sessions in two waves, 12 points about 200 USD list at
+17:47); whether twenty readers' tool calls slow the host's gates (they
+read; they build nothing).
 
