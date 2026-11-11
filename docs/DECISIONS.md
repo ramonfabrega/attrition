@@ -12022,7 +12022,7 @@ have a costly resume after lims clear."
    in-session builders, Opus 5.5 for a line's port. Entry 116's first
    rule stands: a floor pushed down unnamed.
 2. **A soft stop takes its place, and its number is Ramon's to move at
-   will: 85 % today.** At or past it the driver cuts no builder and
+   will: 85 % today (95 % since 2026-11-11, below).** At or past it the driver cuts no builder and
    refills no lane; what is in flight finishes, is merged, gated and
    booked; the driver banks and ends its turn with a report that names
    the reading. It governs every worker, the render lane included. Ramon
@@ -12041,6 +12041,15 @@ have a costly resume after lims clear."
    the window and each builder's tokens beside the score it moved. A
    number to watch, not a rule: the goal Ramon named is fewer tokens a
    step.
+
+**Amended 2026-11-11: the stop is 95 %.** The window read 84 % at 09:05
+−05:00 against the 85 % stop; the driver's twenty-second session cut
+nothing and banked. **Ramon, on the driver's row, at 11:40 −05:00:** "we
+stopped earlier this morning because we hit our 85% cap... i think we'll
+proceed further... and cap at 95%... we got some resets stacked up we can
+use, so lets get rolling?" The number in §2 is 95 % from that word, until
+his next; §3's three points are measured from it, so at 92 % nothing is
+cut that cannot be booked before 95. The reset is 2026-11-14 06:00 −05:00.
 
 **Not established:** how many resets are banked; whether a builder killed
 by the wall can be resumed rather than re-cut; what a line of step 5

@@ -96,8 +96,8 @@ another model takes that model's own default effort, not the driver's.
 (DECISIONS 121, which removed the window's kill rule). The rule: a floor
 that falls with no named regression and is pushed — on it the chain goes
 to an Opus lane under the frame, and Ramon is told at once. **The stop:
-85 % of the weekly window, Ramon's to move at will by a word on this
-row.** At or past it the driver cuts no builder and refills no lane; what
+95 % of the weekly window since 2026-11-11 (85 % before), Ramon's to move
+at will by a word on this row.** At or past it the driver cuts no builder and refills no lane; what
 is in flight finishes and is booked; the driver banks and ends its turn
 with a report. Inside three points of it nothing is cut that cannot be
 booked before it. The wall is never met mid-work: it kills every agent in
