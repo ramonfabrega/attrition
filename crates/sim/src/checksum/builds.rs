@@ -90,7 +90,7 @@ pub const QUEUE_ITEM_FIELDS: &[(&str, usize, usize)] = &[
 
 /// `BASE_BUILDTYPES`: a building type's `TypeIndex` is this plus its index
 /// in the build-type table (`docs/TECH.md`, "The type space").
-const BASE_BUILDTYPES: i32 = 0x19e;
+pub(crate) const BASE_BUILDTYPES: i32 = 0x19e;
 
 /// `BASE_TECHTYPES`: the first age's `TypeIndex`, where the techs begin.
 const BASE_TECHTYPES: i32 = 0x220;
@@ -113,7 +113,7 @@ fn put(b: &mut [u8], base: usize, at: usize, width: usize, v: i64) {
 impl Sim {
     /// `(o, who)` of a combat object, as the original's `_o`/`_who` pairs
     /// hold it.
-    fn obj_o_who(&self, o: crate::combat::Obj) -> (i64, i64) {
+    pub(super) fn obj_o_who(&self, o: crate::combat::Obj) -> (i64, i64) {
         match o {
             crate::combat::Obj::Unit(u) => self
                 .units

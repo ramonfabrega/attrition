@@ -249,7 +249,14 @@ impl Sim {
     /// nowhere else, so a change to its inputs reaches the fog only at the
     /// next of those (`docs/VISION.md` §2).
     pub(crate) fn update_los(&mut self, u: usize) {
-        self.units[u].mylos = self.unit_los(u);
+        // `Animal::update_los@005d7d50` overrides the slot: `mylos = 0`,
+        // return 0 — for every gaia animal, whatever its type's sight
+        // (`docs/CHECKSUM.md` §17, item 4109).
+        self.units[u].mylos = if self.units[u].is_gaia() {
+            0
+        } else {
+            self.unit_los(u)
+        };
     }
 
     /// `LeaderData::get_troops_los_upgrade@006e1110`: how many of

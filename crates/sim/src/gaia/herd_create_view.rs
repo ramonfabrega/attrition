@@ -204,9 +204,13 @@ impl HerdView for SimHerd<'_> {
         crate::movement::degrees_to_angle(rem).0
     }
     fn set_angle(&mut self, unit: i32, angle: i32, _left: Left) {
-        self.sim.units[unit as usize]
-            .movement
-            .set_facing(crate::movement::Angle(angle));
+        // `Unit::set_angle@00605400` writes `UnitData::angle` (`+0x50`) and
+        // the figures, never `dest_angle` (`+0x58`): the animal keeps
+        // `Unit::init`'s `0x55555555` (`docs/CHECKSUM.md` §17, item 4109).
+        let m = &mut self.sim.units[unit as usize].movement;
+        let dest = m.des_angle;
+        m.set_facing(crate::movement::Angle(angle));
+        m.des_angle = dest;
     }
     fn set_new_location(&mut self, unit: i32, x: i32, y: i32) {
         self.sim
