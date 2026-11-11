@@ -278,6 +278,7 @@ pub fn paint_stamp(
                 tri: u32::MAX,
                 uv: [0.0; 2],
                 level: 0,
+                weights: [0.0; 3],
             });
         }
     });
@@ -332,6 +333,7 @@ pub fn paint_cut(
                 tri: ti as u32,
                 uv: [0.0; 2],
                 level: 0,
+                weights: q,
             });
         });
     }
@@ -667,6 +669,10 @@ pub struct Texel {
     /// [`paint`] did not sample a figure's texture.
     pub uv: [f32; 2],
     pub level: u8,
+    /// The triangle's perspective-correct weights at the pixel's centre,
+    /// corner by corner (item 4122: the stored normals interpolated as a
+    /// card interpolates a vertex attribute); zero for a sprite.
+    pub weights: [f32; 3],
 }
 
 /// **An object's own colour over a window** (item 4099): `object` alone,
@@ -722,6 +728,7 @@ pub fn paint(
                     tri: ti as u32,
                     uv: [0.0; 2],
                     level: 0,
+                    weights: q,
                 },
                 Paint::Texture { uvs, mips, owner } => {
                     let Some(uv) = uvs.get(ti) else {
@@ -738,6 +745,7 @@ pub fn paint(
                         tri: ti as u32,
                         uv: [u, v],
                         level: level.unwrap_or(0) as u8,
+                        weights: q,
                     }
                 }
             };

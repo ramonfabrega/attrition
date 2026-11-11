@@ -16443,8 +16443,9 @@ words and edits nothing here; a refill lands when two remain.
   over texel 40 to 200), 1008 steep (51 to 224) — which no function of the texel and the face gives; ~~the tank's flat
   transfer as a texel from another file or out of register~~ (killed by item 4117's table, 4117a: the dump's `gpiece` 196
   is `SHERMAN`, the plain file; no file on the stem and no move of ±4 pixels lifts the tank's correlation by 0.10); read next, what
-  differs per piece at the card: the vertex normals against our face normals, and whether the tank's draw is the lit
-  branch at all. Rests on one photograph and the reading of the install's shaders. Names no score until a mechanism is
+  differs per piece at the card: ~~the vertex normals against our face normals~~ (killed by item 4122's table, 4122a: the
+  stored normals, read packed, lift the controls' shading correlation and leave the tank's at 0.05; the candidate under them
+  agrees on 6,565 against the texel's 7,050), and whether the tank's draw is the lit branch at all. Rests on one photograph and the reading of the install's shaders. Names no score until a mechanism is
   chosen.
 
 ## Parked by item 4113, 2026-11-11 — the units line, whole
@@ -16473,7 +16474,8 @@ words and edits nothing here; a refill lands when two remain.
   5,754 pixels, 0.304 → 0.343 at (+1, +1); the turret (`pivot node 0`) 2,007, 0.310 → 0.392 at (+2, +1); `root` (the
   running gear, 892 pixels) −0.060 at zero and 0.089 at best. **What is left, by frame 3279 and its delta**: the tank's
   luminance is half-correlated with its own texel in its own place, and its root node's not at all — the shading over the
-  piece, not the texel, is what the photograph adds there (with 4114a's vertex normals and lit branch); a turret's small
+  piece, not the texel, is what the photograph adds there (~~with 4114a's vertex normals~~, killed by item 4122, 4122a: the
+  tank's q against its stored N·L 0.049, its root's 0.259; and 4114a's lit branch); a turret's small
   lean toward (+2, +1) is inside the bar and unread (with parked 4089a). Rests on one photograph and the dump's `gpiece`;
   names no score until a mechanism is chosen.
 
@@ -16487,13 +16489,30 @@ words and edits nothing here; a refill lands when two remain.
   slot an army held before, and a slot an army and a pushed entry both hold; the open-slot search's fallbacks. Names no score until a scored
   frame holds one: a second frame of the minted game is the place (with parked 4104a, 4113a).
 
-## Parked by the next landing, slot FC — reserved
+## Parked by item 4122, 2026-11-11 — the model's own normals under the lit pixel, killed (a)
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4122a. The stored normals under the lit pixel; the colour row rests at 18** (`docs/RENDERER.md` §5.3, "The colour
+  reader"; `RUN1559B_3279_COLOUR` 18 of 33; `client::silhouette::tests::the_stored_normals`; `render::bh3`; 4114a,
+  4117a). **Killed (a), not the normals**, and with it **the colour row rests at 18 of 33** — the render lane's next item is
+  off it. First, a decoder finding the table turned up: `render::bh3` read the `id 3` chunk at its sixteen-byte stride,
+  where `BH3LightMethod::load_norms@00914b40` copies `n · 12` — the normals are packed in the chunk's first `12n` bytes and
+  the last `4n` are filler (FORMATS §3); read so, every normal of the row's pieces is unit (the dragoon 313 of 338) and they
+  carry the vertices' own node, pose and placement. Step 1, the angle between each face's normal and the mean of its three
+  stored, in world space: the medium tank 196 a median 6.2° (90th 19.3°; `body1` 7.2°, the turret 6.5°, `root` 5.6°),
+  nearly flat-shaded; the riflemen 60 24.2°, the general 1008 22.2°, 377 45.7° — the figures smoothed past their faces; no
+  face past 90° on the tank. Step 2, on the alpha-255 population (564 and 13,335, the texel agreeing on 262 and 6,788,
+  unmoved), Pearson's r of q (the photograph's luminance over the stage colour's) with N·L by the face and by the stored
+  normals interpolated by the texel's perspective-correct weights: 1008 0.309 → 0.549, 26352 0.279 → 0.522, 10912 0.228 →
+  0.526, 60 0.201 → 0.293, 377 0.355 → 0.368; the tank −0.006 → 0.049 (n 8,918), its `root` 0.232 → 0.259 (n 892, over
+  0.20: not a row of its own). 4114's candidate with the stored N·L, `lit_pipeline` untouched: **6,565 of 13,899** against
+  the texel's 7,050 and the face candidate's 6,452; every lit 7,475 of 16,632 against the painter's 8,119; by piece the
+  tank 4,486 → 3,367 (face 3,346), 60 1,655 → 1,840, 26352 339 → 590, 377 122 → 271, 1008 304 → 323. The row under it 16:
+  down 0/5 (164 → 117), 0/6, 0/9, 1/27 (1,412 → 818), 1/30, 1/31, 1/36; up 0/0 (131 → 279), 1/15 (1,270 → 1,884), 1/22,
+  1/23, 1/32. **What is left, by frame 3279 and its delta**: the infantry's shading follows the stored normals and the
+  light (r to 0.55), so the lit branch with the file's normals is the likelier draw for a figure, and still the install's
+  constants take the count down; the tank's luminance follows neither its texel (0.304) nor any N·L (0.05) — what the
+  photograph adds over the tank is neither texel nor diffuse shading, and which branch draws it stays unread (4114a).
+  Rests on one photograph and the reading of `load_norms`; names no score until a mechanism is chosen.
 
 ## Parked by the next landing, slot FD — reserved
 
