@@ -824,7 +824,8 @@ fn the_circle_walk_starts_at_entry_one() {
 }
 
 /// `check_explore` answers the whole **region** grid — two world cells
-/// across each way — because there is no fog here.
+/// across each way — on a world with no fog grid installed, which is seen
+/// everywhere.
 #[test]
 fn check_explore_counts_the_whole_region_grid() {
     let mut f = fix();
@@ -835,6 +836,32 @@ fn check_explore_counts_the_whole_region_grid() {
         "a 16x16 cell world is 8x8 region cells"
     );
     assert_eq!(TILES_PER_CELL, 4);
+}
+
+/// With a fog grid, `check_explore` counts one `seen2` byte per region
+/// cell — fog cell `(4·rx + 3, 4·ry + 3)` — that carries the leader's own
+/// bit (`docs/VISION.md` §13). A seen fog cell beside the sample counts
+/// nothing, another leader's bit counts nothing, and the count is rebuilt
+/// from zero each call.
+#[test]
+fn check_explore_samples_one_fog_cell_per_region_cell() {
+    let mut f = fix();
+    let (fw, fh) = (f.sim.world.fog_xs(), f.sim.world.fog_ys());
+    assert_eq!((fw, fh), (32, 32));
+    let mut fog = vec![0u8; (fw * fh) as usize];
+    let at = |x: i32, y: i32| (y * fw + x) as usize;
+    fog[at(3, 3)] = 1 << 1; // region (0, 0): counts for leader 1
+    fog[at(4 * 7 + 3, 4 * 5 + 3)] = 0xff; // region (7, 5): counts for all
+    fog[at(4 * 2 + 2, 4 * 2 + 3)] = 1 << 1; // beside region (2, 2)'s sample
+    fog[at(4 * 2 + 3, 4 * 2 + 2)] = 1 << 1; // above it
+    fog[at(4 * 6 + 3, 4 * 6 + 3)] = 1; // region (6, 6): leader 0's bit
+    assert!(f.sim.world.set_fog(fog));
+    f.sim.check_explore(1);
+    assert_eq!(f.sim.ai.ai[1].census.explored, 2, "regions (0,0) and (7,5)");
+    f.sim.check_explore(0);
+    assert_eq!(f.sim.ai.ai[0].census.explored, 2, "regions (7,5) and (6,6)");
+    f.sim.check_explore(1);
+    assert_eq!(f.sim.ai.ai[1].census.explored, 2, "recounted, not added");
 }
 
 /// **The sweep reads `UnitTypeData::role`, over captains** — item
