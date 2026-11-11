@@ -1281,15 +1281,13 @@ rows are their pins'.
 - *The point* (4095, before its count). 3280's slots, clocks and
   facings at the 3279 points (`Blend::Last`).
 - *The colour reader* (4099, before its count; `Hue`). On the row's
-  draw, each scored object's pixels its own key holds and the traced
-  reader calls the original's (kinds 2 and 4). Dark on either side (a
-  channel sum under 60) is left out. Each side is read as chromaticity,
-  (r, g) / (r + g + b), which a white light's strength does not move;
-  ours is the texel, unlit. A pixel agrees within 0.05; an object passes
-  when 40 lit pixels hold and half agree. What parts is split by the
-  texel's alpha, under 255 (the mask, a supposition), or not. Made to
-  fail: the debug tint reads most out, run1441's camera 0.
-- *What it does not measure.* Team colours (4038a).
+  draw, each object's pixels its own key holds that the traced reader
+  calls the original's (kinds 2, 4); dark ones (sum under 60) left out.
+  Each side as (r, g) / (r + g + b), which a white light's strength does
+  not move; ours the texel, unlit. A pixel agrees within 0.05; an object
+  passes on 40 lit pixels, half agreeing. **11 of 33**, the tint's 2
+  (`RUN1559B_3279_COLOUR`); run1441's camera 0. Texcoords as stored.
+- *What it does not measure.* Team colours (4038a, 4099a).
 - *The constants* and interface are this frame's, pinned, never tuned
   to a count (the inputs: 4089's journal).
 

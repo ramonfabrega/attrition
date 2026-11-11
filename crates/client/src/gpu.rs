@@ -91,6 +91,47 @@ fn fs_sprite(i: VOut) -> @location(0) vec4<f32> {
 }
 "#;
 
+/// **The figures' textured shader** (item 4099): the world pipeline's
+/// projection and depth, line for line, with each corner's `id 4` texcoord
+/// in place of a colour, and the `<UNIT>`'s `texture=` sampled unlit —
+/// bilinear within a level, the level nearest, wrapped, `v = 0` the image's
+/// top row — the arithmetic `render::silhouette::paint` runs on the CPU
+/// for the colour reader (`docs/RENDERER.md` §5.3). The card picks the
+/// level per pixel and the CPU per triangle; the team colour is not
+/// applied (4038a).
+const TEXTURED_SHADER: &str = r#"
+struct U {
+    m: mat4x4<f32>,
+    d: vec4<f32>,
+    range: vec4<f32>,
+};
+@group(0) @binding(0) var<uniform> u: U;
+@group(1) @binding(0) var tex: texture_2d<f32>;
+@group(1) @binding(1) var samp: sampler;
+
+struct VOut {
+    @builtin(position) pos: vec4<f32>,
+    @location(0) uv: vec2<f32>,
+};
+
+@vertex
+fn vs_textured(@location(0) p: vec3<f32>, @location(1) uv: vec2<f32>) -> VOut {
+    let v = vec4<f32>(p, 1.0);
+    let clip = u.m * v;
+    let depth = dot(v, u.d);
+    let z = clamp((depth - u.range.x) / (u.range.y - u.range.x), 0.0, 1.0);
+    var o: VOut;
+    o.pos = vec4<f32>(clip.xy, z * clip.w, clip.w);
+    o.uv = uv;
+    return o;
+}
+
+@fragment
+fn fs_textured(i: VOut) -> @location(0) vec4<f32> {
+    return vec4<f32>(textureSample(tex, samp, i.uv).rgb, 1.0);
+}
+"#;
+
 /// The camera-space depth range mapped onto [0, 1]: wider than any map.
 const DEPTH_RANGE: (f32, f32) = (-200_000.0, 200_000.0);
 
@@ -106,6 +147,8 @@ pub struct Frame<'a> {
     pub terrain: Tris<'a>,
     pub figures: Tris<'a>,
     pub overlay: Tris<'a>,
+    /// The figures drawn textured (item 4099).
+    pub textured: &'a [crate::world::TexturedMesh],
     /// The buildings drawn as their sprites (item 4076).
     pub sprites: &'a [crate::world::SpriteDrawing],
 }
@@ -126,6 +169,11 @@ pub struct Gpu {
     sampler: wgpu::Sampler,
     /// Each building piece's sprite on the GPU, uploaded once.
     textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
+    /// The figures' textured pipeline and its sampler (item 4099).
+    textured: wgpu::RenderPipeline,
+    figure_sampler: wgpu::Sampler,
+    /// Each unit piece's texture and its levels on the GPU, uploaded once.
+    figure_textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
 }
 
 /// Block on a future wgpu answers at once on a native backend.
@@ -330,7 +378,61 @@ impl Gpu {
             min_filter: wgpu::FilterMode::Nearest,
             ..Default::default()
         });
+        let textured_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("textured"),
+            source: wgpu::ShaderSource::Wgsl(TEXTURED_SHADER.into()),
+        });
+        let textured = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("textured"),
+            layout: Some(&sprite_pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: &textured_module,
+                entry_point: Some("vs_textured"),
+                compilation_options: Default::default(),
+                buffers: &[Some(wgpu::VertexBufferLayout {
+                    array_stride: 20,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &sprite_attributes,
+                })],
+            },
+            primitive: wgpu::PrimitiveState {
+                cull_mode: None,
+                ..Default::default()
+            },
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: DEPTH_FORMAT,
+                depth_write_enabled: Some(true),
+                depth_compare: Some(wgpu::CompareFunction::Less),
+                stencil: Default::default(),
+                bias: Default::default(),
+            }),
+            multisample: Default::default(),
+            fragment: Some(wgpu::FragmentState {
+                module: &textured_module,
+                entry_point: Some("fs_textured"),
+                compilation_options: Default::default(),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format,
+                    blend: None,
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+            }),
+            multiview_mask: None,
+            cache: None,
+        });
+        let figure_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            label: Some("figure"),
+            address_mode_u: wgpu::AddressMode::Repeat,
+            address_mode_v: wgpu::AddressMode::Repeat,
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Linear,
+            mipmap_filter: wgpu::MipmapFilterMode::Nearest,
+            ..Default::default()
+        });
         Ok(Gpu {
+            textured,
+            figure_sampler,
+            figure_textures: std::sync::Mutex::new(Default::default()),
             sprite,
             sprite_uniform,
             sprite_bind,
@@ -400,6 +502,98 @@ impl Gpu {
         });
         cache.insert(piece, b.clone());
         b
+    }
+
+    /// A unit piece's texture with its levels as a bind group, uploaded on
+    /// first use (item 4099).
+    fn figure_texture(&self, piece: i32, mips: &render::silhouette::Mips) -> wgpu::BindGroup {
+        let mut cache = self.figure_textures.lock().unwrap();
+        if let Some(b) = cache.get(&piece) {
+            return b.clone();
+        }
+        let base = &mips.levels[0];
+        let tex = self.device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("figure"),
+            size: wgpu::Extent3d {
+                width: base.width as u32,
+                height: base.height as u32,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: mips.levels.len() as u32,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[],
+        });
+        for (level, image) in mips.levels.iter().enumerate() {
+            let extent = wgpu::Extent3d {
+                width: image.width as u32,
+                height: image.height as u32,
+                depth_or_array_layers: 1,
+            };
+            self.queue.write_texture(
+                wgpu::TexelCopyTextureInfo {
+                    texture: &tex,
+                    mip_level: level as u32,
+                    origin: wgpu::Origin3d::ZERO,
+                    aspect: wgpu::TextureAspect::All,
+                },
+                &image.rgba,
+                wgpu::TexelCopyBufferLayout {
+                    offset: 0,
+                    bytes_per_row: Some(image.width as u32 * 4),
+                    rows_per_image: Some(image.height as u32),
+                },
+                extent,
+            );
+        }
+        let view = tex.create_view(&Default::default());
+        let b = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("figure"),
+            layout: &self.sprite_layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&self.figure_sampler),
+                },
+            ],
+        });
+        cache.insert(piece, b.clone());
+        b
+    }
+
+    /// Each textured figure's corners as position and texcoord, beside its
+    /// texture's bind group.
+    fn textured_meshes(
+        &self,
+        meshes: &[crate::world::TexturedMesh],
+    ) -> Vec<(wgpu::Buffer, u32, wgpu::BindGroup)> {
+        meshes
+            .iter()
+            .filter(|m| !m.positions.is_empty())
+            .map(|m| {
+                let mut bytes = Vec::with_capacity(m.positions.len() * 20);
+                for (p, uv) in m.positions.iter().zip(&m.uvs) {
+                    for f in p.iter().chain(uv) {
+                        bytes.extend_from_slice(&f.to_le_bytes());
+                    }
+                }
+                let buf = self.device.create_buffer(&wgpu::BufferDescriptor {
+                    label: Some("textured figure"),
+                    size: bytes.len() as u64,
+                    usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                });
+                self.queue.write_buffer(&buf, 0, &bytes);
+                let n = m.positions.len().min(m.uvs.len()) as u32;
+                (buf, n, self.figure_texture(m.piece, &m.mips))
+            })
+            .collect()
     }
 
     /// The sprites' quads, two triangles each in screen pixels at the
@@ -483,6 +677,7 @@ impl Gpu {
             .collect();
         self.queue.write_buffer(&self.sprite_uniform, 0, &screen);
         let quads = self.sprite_quads(frame.sprites);
+        let textured = self.textured_meshes(frame.textured);
         let depth = self.device.create_texture(&wgpu::TextureDescriptor {
             label: Some("depth"),
             size: wgpu::Extent3d {
@@ -559,6 +754,14 @@ impl Gpu {
             if let Some(b) = &figures {
                 pass.set_vertex_buffer(0, b.slice(..));
                 pass.draw(0..frame.figures.0.len() as u32, 0..1);
+            }
+            if !textured.is_empty() {
+                pass.set_pipeline(&self.textured);
+                for (b, n, t) in &textured {
+                    pass.set_bind_group(1, t, &[]);
+                    pass.set_vertex_buffer(0, b.slice(..));
+                    pass.draw(0..*n, 0..1);
+                }
             }
             if let Some(b) = &overlay {
                 pass.set_pipeline(&self.overlay);

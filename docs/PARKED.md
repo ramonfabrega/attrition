@@ -15814,7 +15814,9 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
 
 ## Parked by item 4038, 2026-11-09 — the silhouettes' misses
 
-- **4038a. Textures and team colours in the client** (`docs/RENDERER.md` §5.3, §6's "After these"). The `<UNIT>`'s
+- **4038a. Textures and team colours in the client** — the textures bound by item 4099 (rifleman piece 60's is
+  `inf.tga`, not the file below; the texcoords as stored, `v = 0` the top row); the team colour stands, with
+  4099a's share. (`docs/RENDERER.md` §5.3, §6's "After these"). The `<UNIT>`'s
   `texture=` (`.\art\assault_infantry.tga`: 128 × 128, type 10, 32-bit, eight alpha bits) and the `.BH3`'s texcoords
   are both decoded, and nothing binds them. The team-colour mask is unread: `GraphicPieces::draw_unit@008e7da0`, the
   figure's draw under `GraphicPieces::draw@0090b2d0`, does not decompile ("PTRSUB off of non-pointer type"), so its
@@ -16232,13 +16234,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot ER — reserved
+## Parked by item 4099, 2026-11-10 — the figures' textures, bound
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ER renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4099a. What parts on the colour row** (`docs/RENDERER.md` §5.3, "The colour reader"; `RUN1559B_3279_COLOUR`
+  11 of 33). The figures' lit pixels agree 7,379 of 17,817 textured (69 of 18,284 in the tint). Of the 10,438 that
+  part: **12 % are a figure behind a tree or a sprite**, which the original draws by the silhouette's pass
+  (`render_states[1]`, 4085) in a flat colour, red for player 0 on the photograph (the woodcutter's four) — the
+  pass's colour is unread; **22 % are texels under alpha 255**, of which 88 % part — the team colour, blue for
+  player 1 on the tunics and the tanks' patches, by eye — the mask's listing and its blind second reading are
+  4038a's; **66 % the rest**, whose mean chromaticity offset is (−0.002, +0.006), so not a uniform light tint:
+  the light's per-pixel shade, the level the card samples, and registration are not separated. Player 0's
+  peasants (pieces 4576, 10912) read 0 agreeing where the whole figure is behind or masked. Candidate C's colour
+  row +22 at most (31 figures less the 9 in).
 
 ## Parked by the next landing, slot ES — reserved
 

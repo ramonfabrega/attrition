@@ -209,34 +209,12 @@ pub fn rasterize_cut(
         }
     }
     for st in stamps {
-        let s = st.at.scale;
-        if s <= 0.0 {
-            continue;
-        }
-        let x0 = st.at.left.max(0);
-        let y0 = st.at.top.max(0);
-        let x1 = (st.at.left + (st.width as f32 * s).ceil() as i32).min(w as i32);
-        let y1 = (st.at.top + (st.height as f32 * s).ceil() as i32).min(h as i32);
-        for y in y0..y1 {
-            let v = ((y - st.at.top) as f32 + 0.5) / s;
-            if v < 0.0 || v as usize >= st.height {
-                continue;
+        stamp_pixels(st, size, |i, _| {
+            if st.depth < depth[i] {
+                depth[i] = st.depth;
+                keys[i] = st.key;
             }
-            for x in x0..x1 {
-                let u = ((x - st.at.left) as f32 + 0.5) / s;
-                if u < 0.0 || u as usize >= st.width {
-                    continue;
-                }
-                if !st.covered[v as usize * st.width + u as usize] {
-                    continue;
-                }
-                let i = y as usize * w + x as usize;
-                if st.depth < depth[i] {
-                    depth[i] = st.depth;
-                    keys[i] = st.key;
-                }
-            }
-        }
+        });
     }
     Raster {
         keys: Keys {
@@ -246,6 +224,62 @@ pub fn rasterize_cut(
         },
         depth,
     }
+}
+
+/// Every screen pixel whose centre falls on a covered pixel of `st`'s
+/// image, sampled nearest: its index, and the image pixel's.
+fn stamp_pixels(st: &Stamp<'_>, size: (usize, usize), mut f: impl FnMut(usize, usize)) {
+    let (w, h) = size;
+    let s = st.at.scale;
+    if s <= 0.0 {
+        return;
+    }
+    let x0 = st.at.left.max(0);
+    let y0 = st.at.top.max(0);
+    let x1 = (st.at.left + (st.width as f32 * s).ceil() as i32).min(w as i32);
+    let y1 = (st.at.top + (st.height as f32 * s).ceil() as i32).min(h as i32);
+    for y in y0..y1 {
+        let v = ((y - st.at.top) as f32 + 0.5) / s;
+        if v < 0.0 || v as usize >= st.height {
+            continue;
+        }
+        for x in x0..x1 {
+            let u = ((x - st.at.left) as f32 + 0.5) / s;
+            if u < 0.0 || u as usize >= st.width {
+                continue;
+            }
+            let j = v as usize * st.width + u as usize;
+            if !st.covered[j] {
+                continue;
+            }
+            f(y as usize * w + x as usize, j);
+        }
+    }
+}
+
+/// **A sprite's own colour over a window** (item 4099): [`paint`]'s, for a
+/// [`Stamp`] blitted as [`rasterize_cut`] blits it; `rgba` its image.
+pub fn paint_stamp(
+    st: &Stamp<'_>,
+    rgba: &[u8],
+    size: (usize, usize),
+    window: Rect,
+) -> Vec<Option<Texel>> {
+    let ww = (window.x1 - window.x0).max(0) as usize;
+    let wh = (window.y1 - window.y0).max(0) as usize;
+    let mut out = vec![None; ww * wh];
+    stamp_pixels(st, size, |i, j| {
+        let (x, y) = ((i % size.0) as i32, (i / size.0) as i32);
+        if window.contains(x, y) {
+            let p = &rgba[j * 4..j * 4 + 4];
+            out[(y - window.y0) as usize * ww + (x - window.x0) as usize] = Some(Texel {
+                rgb: [p[0], p[1], p[2]].map(f32::from),
+                alpha: f32::from(p[3]),
+                tri: u32::MAX,
+            });
+        }
+    });
+    out
 }
 
 fn cut_at<'a>(cuts: &'a [Option<&'a Cut<'a>>], n: usize) -> Option<&'a Cut<'a>> {
@@ -430,6 +464,8 @@ pub enum Paint<'a> {
 pub struct Texel {
     pub rgb: [f32; 3],
     pub alpha: f32,
+    /// The triangle it is drawn from, `u32::MAX` for a sprite.
+    pub tri: u32,
 }
 
 /// **An object's own colour over a window** (item 4099): `object` alone,
@@ -482,6 +518,7 @@ pub fn paint(
                 Paint::Flat(c) => Texel {
                     rgb: c.map(f32::from),
                     alpha: 255.0,
+                    tri: ti as u32,
                 },
                 Paint::Texture { uvs, mips } => {
                     let Some(uv) = uvs.get(ti) else {
@@ -492,6 +529,7 @@ pub fn paint(
                     Texel {
                         rgb: [s[0], s[1], s[2]],
                         alpha: s[3],
+                        tri: ti as u32,
                     }
                 }
             };
@@ -553,8 +591,16 @@ pub struct Colours {
     /// many of those part.
     pub masked: u32,
     pub masked_part: u32,
+    /// Lit pixels `behind` names (the silhouette's pass, item 4085), and
+    /// how many of those part; counted before the mask.
+    pub behind: u32,
+    pub behind_part: u32,
     /// The mean distance over the lit pixels.
     pub mean: f32,
+    /// Over the lit pixels neither behind nor the mask's, the sum of the
+    /// photograph's chromaticity less ours, and how many: the light's tint.
+    pub offset: [f32; 2],
+    pub rest: u32,
 }
 
 impl Colours {
@@ -579,6 +625,7 @@ pub fn read_colours(
     theirs: &[Option<bool>],
     painted: &[Option<Texel>],
     hue: &Hue,
+    behind: impl Fn(i32, i32) -> bool,
 ) -> Colours {
     let ww = (window.x1 - window.x0) as usize;
     let mut c = Colours {
@@ -609,9 +656,16 @@ pub fn read_colours(
             total += d;
             let agrees = d <= hue.distance;
             c.agree += u32::from(agrees);
-            if ours.alpha < hue.mask_alpha {
+            if behind(x, y) {
+                c.behind += 1;
+                c.behind_part += u32::from(!agrees);
+            } else if ours.alpha < hue.mask_alpha {
                 c.masked += 1;
                 c.masked_part += u32::from(!agrees);
+            } else {
+                c.rest += 1;
+                c.offset[0] += b[0] - a[0];
+                c.offset[1] += b[1] - a[1];
             }
         }
     }
@@ -863,6 +917,22 @@ pub const RUN1559B_3279_TRACED_WHOLE: (usize, usize) = (30, 33);
 /// 32 → 0 of 28 with the trees drawn; → 0 of 32 with the silhouettes
 /// (item 4085).
 pub const RUN1441_CAMERA_3279_TRACED: (usize, usize) = (0, 32);
+
+/// **The colour row** (item 4099; `docs/RENDERER.md` §5.3, "The colour
+/// reader", committed before its count in `744093625`): on
+/// [`RUN1559B_3279_TRACED`]'s draw, the objects whose colours [`HUE`]
+/// passes, of the 33 it scores, the figures textured through their
+/// texcoords: **11 of 33** — nine figures (1/19, 1/20, 1/24, 1/26 piece
+/// 1008, 1/27, 1/30, 1/31, 1/35, 1/36) and the two buildings' sprites.
+/// The figures' lit pixels agree 7,379 of 17,817; what parts is the
+/// silhouette's pass (12 %), the texels under alpha 255 (22 %) and the
+/// rest (66 %); the client's `the_figures_colours_on_the_photograph`.
+pub const RUN1559B_3279_COLOUR: (usize, usize) = (11, 33);
+/// [`RUN1559B_3279_COLOUR`] in the debug tint, the draw before: the two
+/// sprites alone, 0 of 31 figures (69 of 18,284 lit pixels agree).
+pub const RUN1559B_3279_COLOUR_TINT: (usize, usize) = (2, 33);
+/// [`RUN1559B_3279_COLOUR`] at run1441's camera: 0 of 32.
+pub const RUN1441_CAMERA_3279_COLOUR: (usize, usize) = (0, 32);
 
 /// The photograph's frame at run1441's camera, by colour and by the mask:
 /// the made-to-fail.
