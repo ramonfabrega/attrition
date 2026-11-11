@@ -59,3 +59,86 @@ Spot-checked against the listing, predicate by predicate:
 | C9 | the Foraging-1 idle immunity after the read | — | yes ("Foraging 1 plus `is_idle` → 0") | one-sided | **confirmed, and sharpened**: the test is `has_preq(0x2fe)` on the same leader (609133, 609152), i.e. "holds **Forage**" (B3), and Forage is under Supply and Logistics, so it holds at tiers 2 and 3 too, not at "tier exactly 1". The crate's `PlayerState.foraging_1` (`crates/sim/src/territory/attrition.rs:261`) must be set from `has_preq(FORAGING_1)`, not from the tier | 609133–60916e |
 | C10 | `LeaderData::get_anti_attrition (006e0b70)` is `movss 0x7f4(%ecx)` with no direct caller; `log_data` prints it at 6e8947 | yes | yes | agree | **confirmed** (no `0x6e0b70` operand in `exe.s`) | `exe.s` grep |
 
+### D. The bits, and the float class
+
+**Replay.** I replayed the writer's chain for all 32 combinations of
+(no tier / tier 1 / 2 / 3) × Liberty × Mongol × titanium under the shipped
+constants (`attrition_upgrade = 25, 50, 75`, Liberty 100, Mongol 50, titanium
+50; `crates/sim/src/core/tuning.rs:1432, 1440-1442`). I did it twice,
+independently. Once in Python, as an f64 product or quotient of two singles
+rounded to single: the product is exact in f64, and f64's 53 bits are at least
+2·24 + 2, so the quotient's double rounding is harmless. And once with exact
+rationals, rounding each `mulss` and `divss` to the nearest single, ties to
+even. The two agree on every state:
+
+| tier | Liberty | Mongol, titanium | writer's bits | nearest single to the exact rational | reader's integer (k = 256 / 512) |
+|---|---|---|---|---|---|
+| — | no | neither / one / both | `0x43800000` / `0x44000000` / `0x44800000` | same | 256/512, 512/1024, 1024/2048 |
+| 1 | no | neither | `0x43aaaaab` | same | 341 / 682 |
+| 1 | no | one | **`0x442aaaac`** | `0x442aaaab` | 682 / 1365 |
+| 1 | no | both | **`0x44aaaaac`** | `0x44aaaaab` | 1365 / 2730 |
+| 2 | no | neither / one / both | `0x44000000` / `0x44800000` / `0x45000000` | same | exact |
+| 3 | no | neither / one / both | `0x44800000` / `0x45000000` / `0x45800000` | same | exact |
+| any | yes | any | `0x00000000` | — | 0 |
+| any (disabled) | — | — | `0x00000000` | — | 0 |
+
+The intermediates on the bold rows: `0x43800000 ×100 → 0x46c80000, /75 →
+0x43aaaaab; ×100 → 0x47055556 (34133.3359375), /50 → 0x442aaaac; ×100 →
+0x47855556, /50 → 0x44aaaaac`. **Both readers' one-ulp claims are
+confirmed**, and so is their claim that every reader integer equals the
+floor of the exact rational (all 32 states, both k). Distinct patterns
+over the shipped data: **nine** (`0`, `0x43800000`, `0x43aaaaab`,
+`0x44000000`, `0x442aaaac`, `0x44800000`, `0x44aaaaac`, `0x45000000`,
+`0x45800000`). The second's "eleven distinct patterns" counts table rows;
+**corrected** to nine.
+
+**Class (entry 120 §3).** The family table's "class 3" (`README.md` row 6)
+is **corrected**. Both readers' class 1 / class 2 is **confirmed**:
+
+- **Class 1** on a frame where no walked leader holds Forage (or above),
+  the Statue, the Mongol bonus or titanium: the constant `0x43800000`, the
+  store at 6cdcce. That is entry 120 §3.4's reading on run 1562 frame 91
+  and run1100 frame 5408.
+- **Class 2** in general. Every input is an integer the simulation holds
+  (four predicates, four `Tuning` percentages), and the arithmetic is
+  `cvtdq2ps`, `mulss`, `divss` with one `.rdata` constant, all of which
+  `num::single::Single` already has: `from_bits` (`single.rs:54`),
+  `from_i32` (`:155`), `mulss` (`:232`) and `divss` (`:254`), each
+  correctly rounded to nearest even. B9 settles MXCSR. Nothing joins
+  `no_float.rs`'s allowances.
+- A pinned table of the nine patterns would serve the shipped data only.
+  The chain serves a modded `rules.xml` too, so it is the port, and the
+  table above is its test.
+
+### E. The crate site
+
+| # | claim | first | second | mark | verdict | deciding line |
+|---|---|---|---|---|---|---|
+| E1 | the rule exists unwired as an exact rational, `territory::attrition::resistance` with `ResistanceMods` | `:102, :132` | `:102, :132` | agree | **confirmed**: its only callers are in `territory/attrition/tests.rs`; `PlayerState.resistance` defaults to `Resistance::BASE` (`:268`) | `crates/sim/src/territory/attrition.rs:102, 132, 248, 268` |
+| E2 | the home is `Sim::calc_unit_stats` (`economy/rares.rs:679`), run by the fold at `core/frame.rs:188` on `roster.unit_stats_dirty`; its module doc names `calc_attrition` / `calc_anti_attrition` as calls it does not make | yes | yes | agree | **confirmed** (`rares.rs:47-48`, `:679`; `frame.rs:186-189`) | — |
+| E3 | also add it in `Sim::apply_gained` (`tech/gain.rs:601/608`) | yes | yes | agree | **corrected** (C5): only C4's Civic-4 arm, not every gain | — |
+| E4 | the checksum leaf is `("anti_att", 0x7f4, 4, 1)` at `checksum/leaders.rs:151` with no value arm; held out as `anti_att (unheld)` | yes | yes (+ `checksum_lines.rs:1756`) | agree | **confirmed**; and the second's "emitted as zeros" holds: `Leaf::bytes` writes 0 for an unheld leaf (`checksum/leaders.rs:401-409`). That is wrong for every walked leader not under Liberty or the disabled flag | `crates/rondata/src/diff/checksum_lines.rs:1756` |
+| E5 | the crate's doc "the product … is never an integer" is false (256, 512, … are integers); the conclusion that the integer matches still holds | — | yes | one-sided | **confirmed** | `crates/sim/src/territory/attrition.rs:76-79` |
+| E6 | Liberty needs a "wonder a player owns" the crate says it does not hold | — | yes (citing the `upkeep.rs` doc) | one-sided | **partly corrected**: the crate has `PlayerTech::has_wonder` (`tech.rs:814`, a membership test over `wonders`) and `Sim::wonders_held` (`economy/holdings.rs:572`), and `player_borders` already reads Tikal, the Colosseum and the Eiffel Tower through `has_wonder` (item 2106, `territory/upkeep.rs` doc). The `calc_attrition` doc saying the crate "holds no wonder a player owns" is stale on its face. Whether `wonders` carries `has_wonder`'s `+0x72 ≥ 0` (captured-city) predicate is **open** for the builder | `crates/sim/src/territory/upkeep.rs` (`player_borders` doc) |
+
+### F. Reached by a plain game?
+
+Both readers say yes, with the same exclusions. **Confirmed**, with two
+additions:
+
+- **A Mongol leader starts at `0x44000000`, not `0x43800000`.**
+  `Leader::init`'s recompute (6e49c3) runs after the tribe is known: the
+  body calls `has_tribe_bonus` at `Leader/init@006e3930.c:539-574`, before
+  `:636`. A skirmish with starting towns passes `has_tribe_bonus`'s nomad
+  arm while `city_num` is 0. The plain-game init value is therefore 256.0,
+  or 512.0 for the Mongols unless "No Nation Powers" is set or the start
+  is nomadic. Medium: the caller's store of `tribe` was not traced. A
+  builder can check it against run 1562's nations; entry 120 §3.4's 256.0
+  on every walked leader needs none of them to be Mongol.
+- C4's arm is plain-game too (Civic 4).
+
+Not in a plain game: `take_att_disabled` (triggers), `rare_conquest`,
+`conquest_wonders`, `conquest_racial_powers` (CtW), the editor and
+`ScenarioFuncSet` callers, `Leaders::clear` (between games), and the load
+walk (save track).
+

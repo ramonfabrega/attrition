@@ -143,3 +143,69 @@ early-return (all from the listing). Not read: what `econ[g] & 4` means
 (the writers of `econ`), `blacken`'s writers, and the exact
 team-style-7 arm of `is_tribute_period`.
 
+## `gift_stamp` (+0x194, int[8])
+
+**1. Writers.**
+- `Leader::consider_tribute` (006d1360), `6d1384 movl %eax,
+  0xe3a524(,%ecx,4)` with `ecx = G*0x1bbb + R.who` — the **giver's**
+  record, indexed by the **receiver**: `G.gift_stamp[R] = frame`.
+- `Leader::process_taunt` (006b8cc0), `6b8ecd movl %eax,
+  0x194(%esi,%ebx,4)` (`esi` = `this`, `ebx` = the taunter's slot).
+- Whole-record: the memsets/walk above.
+- Discarded: `Leader::init` `0x19c(%esi)` (base `this+0xd4`, so `dow`
+  `+0x270`); `ScenarioRead::load_leaders_chunk` `movb 0x194(%edx)`
+  (`GameInfo.player[]`); `Game::close`/`run_oos_recovery` `0x1a0(%eax)`
+  (the `0xc06214` object); `PlayerProfile::load`/`default_profile`,
+  `Player::leave_game` (`Player`, 0x8c bytes), `Objects::remove`,
+  `GraphicPieces::*` — other types.
+
+**2. Event, step, predicate.**
+- *Trade:* in `consider_tribute`, whenever `amount > 0`, before and
+  independent of the `tribute_stamp` test: `G.gift_stamp[R] = frame`. So
+  every executed trade stamps each side that gave a positive amount of
+  any good, gifts and two-sided deals alike.
+- *Taunt grant:* `process_taunt(this, taunt, k)` runs only for a
+  computer (`!(leader_flags & 4)`), active (`leader_flags & 2`) leader,
+  `k != me`, and (for `k != who`) `diplos` 2 both ways (mutual allies,
+  `+0x74`). Taunts 1–5 ask for food, timber, wealth, metal, oil; both
+  sides must have `type_avail(g, 1) == 4`. If (teams unlocked
+  (`Game::teams_locked` (00594880) 0) **or** I am neutral) and
+  `gift_stamp[k]` is non-zero and `frame - gift_stamp[k] < 4500`
+  (`0x1194`), I refuse with a chat line. Otherwise, if my stock of `g` is
+  at least 150 (`> 0x95`): when (teams unlocked or neutral)
+  `gift_stamp[k] = frame` (`6b8eb1`–`6b8ecd`); then `action_clear_all`,
+  `action_offer(k, g, stock/3)` and `action_respond(me, k, 1)` — a pure
+  gift, so the trade executes at once and `consider_tribute` stamps the
+  same word again on the same frame. With teams locked and not neutral,
+  the grant still happens and `consider_tribute` still stamps; only the
+  refusal test is skipped.
+
+**3. Reset.** Whole-record memsets and save load only.
+
+**4. Readers.**
+- `process_taunt` (above): the 4500-frame refusal.
+- `Leader::diplomacy` (006bc950), listing `6bf61e`: pricing k's proposal
+  good by good, an amount I am asked for that is positive, at most a
+  third of my stock, and asked by an ally is free — unless (team style
+  not 0, 8 or 11) `gift_stamp[k]` is non-zero and younger than 4500
+  frames, in which case it is charged at `resource_value(g) * amount /
+  256` (`6bf63d`–`6bf657`) like any other ask.
+
+**5. Crate.** None: no `consider_tribute`, no `process_taunt`, no
+proposal pricing (`crates/sim/src/leaders/diplomacy.rs` stops at
+`SEAM: the offers arm`). Checksum leaf
+`crates/sim/src/checksum/leaders.rs:66`. A builder adds it to a port of
+`consider_tribute` and of `Leader::process_taunt`.
+
+**6. Plain game?** The taunt grant needs a human who sends a resource
+taunt to a computer ally — reachable in a default team-style-1 skirmish
+with a human allied to a computer, but only by a human's chat taunt. The
+trade writer: as for `tribute_stamp`. Not reached by an all-computer
+game at team style 1.
+
+**7. Confidence.** High on writers and both predicates. Not read: what
+`type_avail(…) == 4` means beyond "available", the callers of
+`process_taunt` (`Leader::process` (006b88b0), `Leader::process_taunts`
+(006b8ba0), `Leaders::process_all` (006ed2a0)) and how a chat taunt
+reaches them.
+

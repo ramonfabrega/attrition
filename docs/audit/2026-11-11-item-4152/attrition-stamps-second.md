@@ -241,3 +241,212 @@ High for the stores and the disband-path quirk (listing). Medium on the
 the listing's `0x8000000f` / `0x8000001f` masks were seen, not traced in
 full).
 
+## 4. `att` (+0x7f0) — the attrition strength a leader inflicts
+
+### Writers (both nets)
+
+Export: `->att` only in reads (`LeaderData::get_attrition (006e0b60)`,
+`LeaderData::log_data (006e5110)`). `field_0x7f0` on a leader:
+`Leader::calc_attrition (006cdea0)` line 50 (store) and `Leader::init
+(006e3930)` line 626 (0). Listing: no `0xe3ab80` anywhere. Register stores
+to `0x7f0(%reg)`: `Leader::calc_attrition` `6cdfdc` (`ebx = this`) and
+`Leader::init` `6e4984` (`ebx = this`, 0). The rest are other classes:
+`Constants::init` `56dde3` (`mongol_attrition`), `IFaceResources`,
+`TileSetData`, `ChatSpace`. No inlined copy of the formula: its signature
+load `0x1d4(%eax,%edi,4)` off `[0xc061f0]` occurs once in `.text`.
+
+`Leader::init` zeroes `att` and `give_att_disabled` together (`6e4984`,
+`6e498a`) and then calls `calc_attrition` (`6e49bc`), so init's 0 is
+immediately overwritten.
+
+### The formula (`Leader::calc_attrition (006cdea0)`, from the listing)
+
+All `int`; `C` = `GameAccess::constants` (`0xc061f0`).
+
+1. **Disabled.** If `give_att_disabled != 0`: `att = 0`, done — no
+   multipliers, no floor (`6cdea6 jne 6cdfdc` with `edi = 0`).
+2. **Steps.** `n` = the length of the leading run of held techs
+   `ATTRITION1..ATTRITION4` (`TypeIndex` 0x2dd..0x2e0), tested in order by
+   `LeaderData::has_preq` and stopping at the first one missing; `0 ≤ n ≤
+   4`. The loop body also carries a `BUY_SELL` (0x2ad) arm that would count
+   a step as held on `has_tribe_bonus(4)`; it compares the loop index to
+   0x2ad and can never match in 0x2dd..0x2e0 — dead. (The decompile prints
+   the step as `+ NUM_ITEMTYPES`; the listing is `incl %esi`, step 1.)
+3. **Base.** `x = 0` if `n == 0`, else `x = C.attrition_improved[n − 1]`
+   (`C+0x1d4 + 4n` = `C+0x1d8 + 4(n−1)`). The decompile prints this as
+   `attrition_upgrade[n + 3]` — same address, wrong name: `attrition_upgrade`
+   is `int[4]` at `C+0x1c8`, `attrition_improved` `int[4]` at `C+0x1d8`.
+   Loaded by `Constants::init (00569a90)` with `String::convert_int` per
+   entry, plain integers (shipped 1, 2, 4, 8).
+4. **Four multipliers, in this order**, each only if its predicate holds,
+   each `x = (C.pct + 100) · x / 100` (signed, truncating toward zero —
+   magic `0x51eb851f`, `sar 5`, add the sign bit) and then **`if x == 0 then
+   x = 1`** (`cmove` on the zero flag of the quotient):
+   - `has_wonder(0x212)` (COLOSSEUM): `C.colosseum_attrition` (`C+0x470`);
+   - `has_tribe_bonus(0xd)` (Russians, `Tribe::parse` case 0xd):
+     `C.russian_attrition` (`C+0x74c`);
+   - `game.semaphore.ptr[2] & 2` (the conquest flag) **and** the leader's
+     byte `+0x6900` nonzero (that is `num_bonus_cards[10]`, `uchar[38]` at
+     +0x68f6): `C.ctw_attrition` (`C+0xa0c`);
+   - `has_wonder(0x21a)` (KREMLIN): `C.kremlin_attrition` (`C+0x510`).
+5. `att = x`.
+
+**The floor fires on zero, whatever produced the zero.** With `n == 0`
+(`x = 0`) any one applying multiplier gives `(pct+100)·0/100 = 0 → 1`. So
+a leader with **no attrition step** but a Colosseum, a Kremlin, the Russian
+bonus, or the CtW card has `att = 1`, not 0. The only way to `att = 0` with
+any multiplier applying is `give_att_disabled`.
+
+Shipped constants: `colosseum_attrition` 50, `russian_attrition` 100,
+`ctw_attrition` 50, `kremlin_attrition` 100 (`rules.xml`, read via
+`get_item`, plain integers). All four at 4 steps: 8 → 12 → 24 → 36 → 72.
+
+`has_tribe_bonus(0xd)` (`LeaderData::has_tribe_bonus (006e1370)`) is 0 when
+`game.info.flags & 4`, or when the game has no starting town and the leader
+has `city_num == 0`, or `tribe < 0`; otherwise it is the CtW racial-power
+bit, else (unless `leader_flags2 & 0x40`) `tribes[tribe].bonus == 0xd`.
+
+### When it is recomputed (callers of `calc_attrition`)
+
+Three direct calls (listing `calll 0x6cdea0`): `Leader::calc_unit_stats
+(006cf970)` at its first instruction (`6cf974`); `Leader::gain_tech
+(006dcb60)` `6dd3d6`, only when the gained type's vslot `0x38` is true,
+its techtype record's `+0x14 == 1`, and the leader's encrypted civic level
+(`data_encrypted+0xec ^ 0x63187`) equals `C+0xad4` (named
+`ctw_wonder_min_civics` in `types.txt`), together with `calc_pop_cap`,
+`calc_anti_attrition` and `Region::fix_borders`; and `Leader::init`.
+`calc_unit_stats` runs from `Leader::process (006b88b0)` /
+`Leaders::process_all (006ed2a0)` when `leader_flags & 0x4000000` (cleared
+as it runs), and from `Leader::set_age`, `Leader::set_epoch`, and many
+`ScenarioFuncSet` / `ScenarioEditor` functions. The flag `0x4000000` is set
+by `Leader::gain_tech` (twice, `6dd993`, `6e0315`), `Leader::lose_tech`
+(`6d2afd`), `Build::activate` (`626f0b`), `Build::close` (`628f3f`),
+`Leader::gather` (`6ce3d0`) and `Leader::calc_gather` (`6cf5ea`). So in a
+plain game `att` is refreshed on the leader's next `process` after any
+tech gained or lost, any building activated or closed (the two wonders),
+and on the gather paths.
+
+### Readers
+
+`UnitData::get_attrition (00608fd0)` (`0x7f0(%ecx,%eax)` at `608fe6`): if
+the owner's `att == 0` or `C.attrition == 0`, the period input is 0;
+otherwise `att` is the divisor, first scaled by
+`((attrition_aged_up · agediff + 100) · att + 99) / 100` when the owner is
+not behind the victim in age. `LeaderData::get_attrition (006e0b60)` returns
+it but has no direct caller or pushed address in `.text` (probably a folded
+or dead accessor; not chased). `LeaderData::log_data`.
+
+### Comparison with `docs/ATTRITION.md` §"1. Strength" and the crate
+
+| claim | `docs/ATTRITION.md` | `attrition.rs` `strength` (l.42) / `upkeep.rs` `Sim::calc_attrition` (l.24) | listing |
+|---|---|---|---|
+| step count indexes `ATTRITION_IMPROVED` [1,2,4,8] | yes | `attrition_improved[steps−1]` | **agrees** (`C+0x1d8 + 4(n−1)`) |
+| leading run, stop at first missing | implied | `take_while` | **agrees** |
+| order Colosseum → Russian → CtW → Kremlin, truncating | yes | yes | **agrees** |
+| floor of 1 | "a floor of 1" | `.max(1)` after each multiplier | the original's is **`== 0 → 1`**, not `max(1, ·)`; they differ only for a negative quotient (`pct < −100`), unreachable with shipped values |
+| zero steps | "No steps means no attrition at all" | `if tech_steps == 0 { return 0 }` **before** the multipliers | **disagrees**: the original applies the multipliers to `x = 0` and floors each to 1, so zero steps plus any applying multiplier is `att = 1` |
+| `give_att_disabled` | table lists it as "suppresses the above" | not modelled (no field) | `att = 0`, multipliers skipped |
+| Colosseum / Kremlin arms | applied | `StrengthMods` false always (no owned wonder in the crate) | applied |
+| when recomputed | — | `Sim::apply_gained` (`crates/sim/src/tech/gain.rs:601`, line 608) on tech gain | on the next `Leader::process` after flag `0x4000000` (tech gain/loss, `Build::activate`/`close`, gather), plus `set_age`/`set_epoch`, init |
+
+**The zero-step divergence is reachable in a plain game**: every Russian
+player with at least one city (or in a starting-town game) has `att = 1`
+from its first `calc_unit_stats`, before it holds `ATTRITION1`; the crate
+gives 0, so its territory inflicts nothing where the original inflicts
+level-1 attrition (doubled to 2 only once a step is held: `1 · 200/100 =
+2`). The same holds for a Colosseum or Kremlin owner with no step. Whether
+a captured game shows it depends on a Russian (or Colosseum/Kremlin) player
+whose ground a hostile unit enters before Allegiance; I did not search the
+capture ledger. `gain_tech`'s `russian_attrition_upgrades` arm (`gain_tech`
+decompile ~1763) gives the Russians the attrition steps free, which would
+shorten but not close that window — not read in full.
+
+A second, smaller divergence: the crate recomputes only on tech gain;
+`lose_tech` and wonder completion/loss (`Build::activate` / `Build::close`)
+also refresh `att` in the original.
+
+### Crate site
+
+`Sim::calc_attrition` in `crates/sim/src/territory/upkeep.rs` (line 24),
+writing `territory.players[w].strength`, and the pure
+`territory::attrition::strength` in `crates/sim/src/territory/attrition.rs`
+(line 42). The fix for the zero-step case is in `strength`: drop the early
+return, start `x` at 0, and floor with `if x == 0 { 1 }`. A `give_att_disabled`
+check belongs at the top of the same function.
+
+### Plain game?
+
+Yes: tech gain, Russians, Colosseum, Kremlin are all skirmish content. The
+CtW arm and `give_att_disabled` are not.
+
+### Confidence
+
+High for the formula (every instruction of `006cdea0` read in the listing).
+Medium on the recompute triggers (flag setters found by grepping `orl
+$0x4000000`/`$0xc000000`; a `bts`, byte-wise or register-built set would
+escape that net, and I did not read each setter's predicate). Not read:
+the `gain_tech` ordering against `Leader::process` within a frame (one-frame
+timing of the refresh).
+
+## 5. `give_att_disabled` (+0x7f8) — scenario switch: this leader inflicts no attrition
+
+### Writers (both nets)
+
+Export: `field_0x7f8` on a leader in `Leader::init (006e3930)` 627 (0); the
+`->give_att_disabled` name matches nothing. Listing: `0xe3ab88` three
+times — `ScenarioFuncSet::enable_give_attrition (00a02900)` `a02926`
+(store 0), `ScenarioFuncSet::disable_give_attrition (00a02940)` `a02966`
+(store 1), and the read in `Unit::process_attrition` `5e132c`. Register
+form: `Leader::init` `6e498a` (0). Rejected `0x7f8(%reg)` stores:
+`Constants::init` `56de19` (`mongol_free_forage`), `IFaceRenderManager`,
+`Cliffs`, `GraphicPieces` (byte stores), `Leader::plan_strategy` `6b9bff`
+(a 16-bit store into another record); `Leader::gain_tech` `6df4fe` reads
+`C+0x7f8`, not the leader.
+
+### Event, step, predicate
+
+Both script functions take one argument, a player number `p` in 1..8;
+slot `p − 1` must have `leader_flags & 1` and `& 2`, else they return −1.
+`disable_give_attrition` sets 1, `enable_give_attrition` sets 0; each
+returns 1. They are registered as script callables (their addresses are
+pushed at `9d3fd7` / `9d4005`). Neither calls `calc_attrition` nor sets
+flag `0x4000000`, so `att` keeps its old value until the next refresh:
+after `disable`, `att` stays nonzero until then, but
+`Unit::process_attrition` reads this flag directly on the **territory
+owner** (`leaders[owner].give_att_disabled != 0 → return 0`, before the
+unit-kind exemptions), so the damage stops at once; after `enable`, `att`
+stays 0 until the next refresh, so attrition resumes only then.
+
+### Reset
+
+`Leader::init` (0).
+
+### Readers
+
+`Leader::calc_attrition` (forces `att = 0`) and `Unit::process_attrition`
+(the owner's flag exempts every unit on that owner's ground).
+
+### Crate site
+
+None. `territory::attrition::process` has no such exemption and
+`PlayerState` no such field; `checksum/leaders.rs:152` lists the offset but
+emits nothing for it. It sits behind the trigger layer, which is cut.
+
+### Plain game?
+
+No — only the scenario trigger layer writes it. In a skirmish it is 0 from
+`Leader::init` to the end.
+
+### Confidence
+
+High (two absolute stores, both functions read whole in the listing).
+
+## Summary
+
+| leaf | writers | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `attrition_stamp` +0x1f4 | `Unit::process_attrition (005e11a0)` ×3; `Game::do_frame (00591ef0)`; `Leader::gain_tech (006dcb60)`; `Leader::init (006e3930)` | `= frame` when the 900-frame throttle is open (unit on a not-at-war owner's ground, or a non-target's in Assassin); `= max(1, frame + ally_to_war_grace − 900)` in the broken-alliance grace | 0 at init and at the rush-rules end (timed: `do_frame`; age: `gain_tech`) for every leader in play | none; would go in `Sim::process_attrition` (`territory/upkeep.rs:239`), clear in `Sim::end_the_peace` (`leaders/diplomacy.rs:73`, whose comment misnames this store as `ScenarioEditor`'s `update_leader_list`) | yes (peace / rush rules) | high; grace truth table medium |
+| `attrition_stamp2` +0x1f8 | `Unit::suffer_attrition (005e1a10)`; `Leader::init` | `= frame` once, on the leader's first attrition damage tick; never re-armed | init only | `SimSuffer::warned_at` / `stamp_warned` stubs, `territory/suffer_view.rs:152–155` | yes | high |
+| `attrition_stamp3` +0x1fc | `Wall::process (00640450)`; `Leader::init` | `= frame` on the first hostile-ground erosion of a started building (if 0), and **every time** an unstarted site there is disbanded | init only | `Sim::process_building`, `cities/city.rs` ~2997–3011 | yes | high; cadence medium |
+| `att` +0x7f0 | `Leader::calc_attrition (006cdea0)`; `Leader::init` (0, then calc) | recomputed: 0 if `give_att_disabled`; else `attrition_improved[n−1]` (0 if n=0), then ×(100+pct)/100 for Colosseum, Russian, CtW, Kremlin, each floored `0 → 1` | init; every `calc_unit_stats` | `Sim::calc_attrition` (`territory/upkeep.rs:24`) → `attrition::strength` (`territory/attrition.rs:42`) — **diverges at zero steps** (returns 0 before the multipliers; original gives 1 to a Russian / Colosseum / Kremlin leader) | yes | high (formula); medium (triggers) |
+| `give_att_disabled` +0x7f8 | `ScenarioFuncSet::enable_give_attrition (00a02900)` (0), `ScenarioFuncSet::disable_give_attrition (00a02940)` (1); `Leader::init` (0) | set/clear by script, slot = arg − 1, live leaders only | init | none (trigger layer cut) | no | high |

@@ -159,3 +159,132 @@ might write `+0x48` through a `Leader*` held in a register I did not trace
 `Leader`/`LeaderData` method and every `leaders.list[...]`
 `field_0x48` in the export, not every `0x48(%reg)` in `.text`).
 
+## Leaf 2: `handicap` (+0x4c, int)
+
+### 1. Writers
+
+Export, `->handicap`: the `LeaderData` hits are all reads
+(`get_handicap (006da740)`, `get_handicap_level (006d6740)`, `log_data
+(006e5110)`); the `'\0'` stores in `Player`, `PlayerConnectionData`,
+`ScenarioEditor::new_leader` are the **`Player`/`PlayerConnectionData`
+`uchar handicap`** (a different struct, +0x35 / +0x38), not this leaf.
+`field_0x4c` on a leaders base: `Game::init_handicaps (0058abf0)`
+(`piVar10 = &leaders.list[0].field_0x4c`) and `ScenarioRead::load_leader_chunk
+(009ac080)` (three sites).
+
+Listing, absolute `0xe3a3dc`: `0x58ad86 mov $0xe3a3dc,%esi` (the walking
+pointer of `init_handicaps`), stores `0x9ac1fc`, `0x9ac457`, `0x9ac643`
+(`load_leader_chunk`, `mov %eax,0xe3a3dc(%edi)`, `edi = slot·0x6eec`), and
+one read `0x9a7a80` (`ScenarioWrite::save_leaders_chunk`). The walk's
+stores are **`0x58ade8 mov %eax,(%esi)`** and **`0x58ae07 mov
+%eax,(%esi)`**, `esi` stepping 0x6eec from `0xe3a3dc` while `< 0xe71b3c`
+(slots 0..7), guarded by `testb $1,-0x4c(%esi)` (`leader_flags & 1`).
+A sweep of every function that loads a `$0xe3a3xx` immediate for a store to
+`0x48/0x4c/0x50(%reg)`: the hits in `Leader::gain_tech` are `ebp`-based
+locals (`ebx` is `this`), in `ScenarioRead::load_leaders_chunk` the base is
+`Game` (`testb $4,0x823(%edx)` just above), in `UnitBalance::next` and the
+`Unit`/`Wall`/`City`/`Army`/`Ammo`/`Object` methods another record. None is
+this leaf.
+
+| writer | store | value |
+|---|---|---|
+| `Game::init_handicaps (0058abf0)` | 0x58ade8, 0x58ae07 | the catch-up index below, then `/ max(num_teams − 1, 1)` |
+| `ScenarioRead::load_leader_chunk (009ac080)` | 0x9ac1fc, 0x9ac457, 0x9ac643 | the scenario file's leader record `+0xe0` (after a `Leader::init`) |
+| `Leader::init (006e3930)`, `tribe < 0` | memset | 0 |
+| `LeaderData::walk_data (006d6750)` | bulk | saved value (load) |
+
+### 2. Event, step, predicate
+
+Set once, in `Game::init_handicaps`, called once per game build from
+`Game::init_rules_and_teams` after `Game::init_teams`. Per seated slot `i`
+(`leader_flags & 1`; slots 0..7), over the eight lobby `Player` records `p`:
+
+1. **Own and AI pass**, every `p` with `flags & 1` and `p.who == i`:
+   `own_i = max(own_i, p.handicap)` (start 0); and if `p` is not human
+   (`flags & 4` clear) `aidiff_i = max(aidiff_i, p.diff)` (start −1; used
+   by `multi_diff`, leaf 3).
+2. **Sum start:** `sum_i = own_i` if `Game::is_cooperative (00594810)`,
+   else 0.
+3. **Human pass**, every `p` with `(flags & 5) == 5` (seated **and**
+   human): if `p.who == i`: `own_i = max(own_i, p.handicap)`, `sum_i +=
+   p.handicap`. Else if `p.team != LeaderData::get_team(i)` (the signed
+   byte against `get_team (006ec040)`, which for a team-8 "no team" leader
+   returns the lowest seated slot it is teamed with, normally itself):
+   `enemy_i = max(enemy_i, p.handicap)` (start 0). Else (a teammate on
+   another slot): `allies_i += 1` unless `p.team == 8`, and `sum_i +=
+   p.handicap`.
+4. `M = max over seated slots of sum_i` (the maxima of `own` and `enemy`
+   are computed and discarded: `edi`/`esi` are reused at 0x58ad84/0x58ad86).
+5. **Store**, per seated slot:
+   - `allies_i == 0`: `h = clamp(M − sum_i, 0, 20)`;
+   - else: `t = (M − sum_i) / (allies_i + 1)` (C division, numerator ≥ 0),
+     `d = max(enemy_i − own_i, 0)`, `h = (t + d) / 2` (truncating; the
+     `cltd; sub; sar` idiom), then `clamp(h, 0, 20)`.
+   - `handicap = h / max(num_teams − 1, 1)` (`Game+0x6a4`, C division).
+
+Units: an **index into the `handicaps` category**, 0..20. `Game::init_rules_data`
+loads it with count 0x15 = 21; `data/rules.xml` rows are `0, 5, 10, …,
+100`, i.e. row `k` holds `5k` (a percent). Exempt: unseated slots (left at
+`Leaders::init`'s 0) and computer players' own `Player.handicap` bytes (only
+human records enter step 3; step 1's `own` does take a computer record's
+byte, but its `who == i` branch in step 3 is the only place `own` is
+compared, so an AI byte matters only through `d`). Slots 8 and 9 are never
+touched.
+
+The effect is a catch-up: the slot (team) whose humans carry the largest
+total handicap gets 0, everyone else gets the shortfall, capped at 20.
+
+### 3. Reset
+
+`Leaders::init` (memset to 0) at every game build, then `init_handicaps`
+recomputes it. Never touched in the frame loop.
+
+### 4. Readers
+
+`LeaderData::get_handicap (006da740)`: `handicaps.rows[handicap]`, with a
+difficulty-dependent index shift (+5/+10/+16) **only when `semaphore` bit 2
+is clear**; but all three of its callers (`ObjectData::train_time
+(006508c0)` twice, `World::compute_reg_territory (006b0bb0)`,
+`LeaderData::get_gather_handicap (006d66a0)`) call it **only with bit 2
+set**, so the shift arm is unreachable from them and the read is the plain
+`5 × handicap` percent. (Were the `+16` arm reached, index up to 36 would
+run past the 21 rows.) `compute_reg_territory` also requires the leader
+human (`leader_flags & 4`). `get_handicap_level (006d6740)` has no caller
+(`docs/CENSUS.md` §385 says the same). `log_data` prints it as `handicap`;
+`save_leaders_chunk` writes it to a scenario.
+
+### 5. Crate
+
+No event. The crate has no lobby `Player` table with per-player handicap
+bytes, no `num_teams`/cooperative flag feeding it, and no `init_handicaps`;
+`crates/sim/src/economy/holdings.rs` (the `get_gather_handicap` port)
+states that `semaphore[0] & 4` is not modelled and zeroes a human, and
+`crates/sim/src/territory.rs` takes a `handicap_bonus` argument. The leaf
+is listed only in `crates/sim/src/checksum/leaders.rs` `LEADER_FIELDS`
+(`leader_long` → `None`). A builder would add the value at the game-setup
+site that builds leaders (the same place `ai::Lobby` is filled), and return
+it from `Sim::leader_long` in `checksum/leaders.rs`.
+
+### 6. Plain game
+
+`init_handicaps` runs in every random-map game, so the writer is reached.
+**Value in a plain default skirmish: 0 for every slot.** The only human's
+`Player.handicap` is 0 (`Player::init` zeroes it; the dump prints
+`handicap 0` for both players), so every `sum_i` is 0, `M = 0`, every `h =
+0`. Even a nonzero human handicap in solo would only seat a value here (the
+computers would get `min(H, 20) / max(num_teams − 1, 1)`, the human 0) —
+no consumer reads it without `semaphore` bit 2, so a solo game never feels
+it. The scenario writer sits behind the scenario loader.
+
+### 7. Confidence
+
+High for the formula (read from the listing, every branch), the writers
+(both nets plus the immediate sweep) and the plain-game value (arithmetic
+on dump-confirmed inputs). Not diff-backed: no kept dump I checked prints
+`LeaderData::log_data`'s `handicap` line (`gamelog-run1-fulldump.txt` has
+only the `Player` block's), so the leader-side 0 is derived. Not read:
+`Game::is_cooperative`'s full predicate (only its opening `team_style`
+compares), what sets `Player.flags` bit 2 in the lobby (I took it from the
+`load_leader_chunk` mirror and the dump's `flags 7`/`flags 1`), whether
+the solo lobby offers a per-player handicap.
+

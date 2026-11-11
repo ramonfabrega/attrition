@@ -84,3 +84,59 @@ settled once here and cited by the leaves.
   0x1c-stride, both are strides of the same 2-D clear), not a leader.
 - **No writer beyond the two functions and the reset writers above.**
 
+## 1. `last_taunt` (+0x354, `TauntRequest[8]`, indexed by sender `who`)
+
+| claim | first | second | mark | verdict | deciding line |
+|---|---|---|---|---|---|
+| writer | `process_taunt` 0x6b8d46 | same | agree | **confirmed** | 0x6b8d46 `movl %ecx, 0x354(%esi,%ebx,4)`, `ecx` = arg 1 (req), `ebx` = arg 2 (S) |
+| predicate, receiver | `leaders[R.who]` not human (bit 4) and active (bit 2) | same | agree | **confirmed** | 0x6b8cef `testb $0x4, %cl`, 0x6b8cf8 `testb $0x2, %cl` on `0xe3a390 + who·0x6eec` |
+| predicate, alliance | if S ≠ R: `leaders[R].diplos[S] == 2` and `leaders[S].diplos[R] == 2`, re-tested at drain | same | agree | **confirmed** | 0x6b8d0e `cmpl $0x2, 0xe3a404(%eax,%ebx,4)`; 0x6b8d29 `cmpl $0x2, 0x74(%eax,%ecx,4)` with `ecx = S·0x1bbb + R` |
+| predicate, self | S ≠ R | same | agree | **confirmed** | 0x6b8d34 `cmpl %ebx, %edx; je` |
+| predicate, request bound | none at store; > 16 stored and falls to default | same | agree | **confirmed**: the store precedes the range test | 0x6b8d4d `decl %ecx`, 0x6b8d5b `cmpl $0xf, %ecx; ja 0x6b9264` |
+| step | overwrite `[S] = req` | same | agree | **confirmed** | 0x6b8d46 |
+| reset | `Leader::init(…, <0, …)`, `Leaders::clear`, (`Leader::close`); never in a match | same | agree | **confirmed**, with §0.R's added callers | §0.R |
+| reader | `action_ping`: human pinger P pinging for itself; each other valid non-human `is_ally` k with `last_taunt[P] == 16` and `frame <= taunt_frame[P] + 225` sends `find_useful_army` via `send_here(MOVE_TO)`, army +0x28 = 0xa8c | same | agree | **confirmed**; loop runs 8 slots (0xc09710 to 0xc097f0, stride 0x1c); a failed `is_ally` continues the loop (0x6d196f → 0x6d1adf → 0x6d1aaf) | 0x6d190e `testb $0x4, (%edi)`, 0x6d1917, 0x6d1938, 0x6d194d, 0x6d1964, 0x6d1977, 0x6d1991..0x6d199d, 0x6d19ae, 0x6d19d0, 0x6d19de |
+| crate | none; leaf listed `checksum/leaders.rs:87`, `leader_long` (949) falls to `_ => None` (1305); chat skipped `rondata/src/input.rs:1611`; drain home `core/frame.rs:94` | same (cites ~949, `Stream::one`) | agree | **confirmed**: `leader_long` at `crates/sim/src/checksum/leaders.rs:949`, its catch-all at :1305; `Command::Chat` skipped at `crates/rondata/src/input.rs:1611` inside `Stream::one` (:1503); the per-player loop at `crates/sim/src/core/frame.rs:94` is `Leaders::process_all`'s analogue; `Armies::find_useful_army` exists (`crates/sim/src/ai/army.rs:2207`) with no caller; `Command::Ping` is not mapped | the cited lines |
+| plain game | only a human's taunt-order chat to a mutually allied computer | same | agree | **confirmed**; run1077 and run1086 are such games | §0.5; `docs/RUNS.md` run1077, run1086 |
+| dump corroboration | (none) | `blind.rs` comments, run1077 | one-sided | **confirmed** and stronger than the second said: `docs/RUNS.md` run1077 reads leader 1's `last_taunt[0]` 16 on 5412; run1086 reads `last_taunt[0]` 1 on 661 and 2 on 681. Dump readings, not assertions. | `docs/RUNS.md` run1077, run1086 entries |
+
+**The rule as a builder should port it.**
+
+- State: per leader, `last_taunt: [i32; 8]`, zero at game start.
+- Writer: `process_taunt(R, req, S)`, reached only from the drain (§5). If
+  R is active and not human, and S ≠ R, and R and S are mutually allied
+  (`diplos == 2` both ways, tested now), set `last_taunt[S] = req` (any
+  value the ring holds, 1 and up), then act on `req` (1..16; above 16 does
+  nothing).
+- Reset: game start only.
+- Reader: `action_ping` when a human P pings for itself: for each other
+  valid, non-human leader k with `is_ally(P, k)`, `last_taunt[P] == 16` and
+  `frame <= taunt_frame[P] + 225`, send `find_useful_army(k, …)` to the spot
+  and set that army's +0x28 to 2,700.
+- Crate site: a new `process_taunt` called from the drain in `Sim::tick`'s
+  per-player loop (`crates/sim/src/core/frame.rs:94`); a `leader_long` arm
+  (`crates/sim/src/checksum/leaders.rs`) to hold the leaf.
+- Plain game: only with a human who has a computer ally and sends a
+  taunt-order chat; otherwise constant 0.
+- **Confidence: high**; the store and gates are read in the listing by two
+  readers and the adjudicator, and two dumps carry values the rule predicts.
+  Open: `LeaderData::walk_data` in load mode (not re-read).
+
+## 2. `taunt_frame` (+0x374, `int[8]`, indexed by sender `who`)
+
+| claim | first | second | mark | verdict | deciding line |
+|---|---|---|---|---|---|
+| writer | `process_taunt` 0x6b8d54, `eax = game->frame` | same | agree | **confirmed** | 0x6b8d41 `movl 0xc061ec, %eax`, 0x6b8d4e `movl 0x550(%eax), %eax`, 0x6b8d54 `movl %eax, 0x374(%esi,%ebx,4)` |
+| predicate | §1's gates, same breath | same | agree | **confirmed** | §1 |
+| step | overwrite `[S] = frame` at dispatch; = receipt for HELP, receipt + 60 otherwise | same | agree | **confirmed**, by dump (§0.10): 5411 for run1077's HELP, 661 and 681 for run1086's food and timber | 0x6b8d54; `docs/RUNS.md` run1077, run1086 |
+| reset | as §1 | same | agree | **confirmed** | §0.R |
+| reader | `action_ping`, `frame <= taunt_frame[P] + 225` | same | agree | **confirmed**: `jl` skips when `taunt_frame + 0xe1 < frame`, so frame = tf + 225 still answers | 0x6d198a, 0x6d1991 `addl $0xe1, %ecx`, 0x6d1997 `cmpl 0x550(%eax), %ecx`, 0x6d199d `jl` |
+| crate | none; `checksum/leaders.rs:88` | same | agree | **confirmed** | `crates/sim/src/checksum/leaders.rs:88` |
+| plain game | as §1 | same | agree | **confirmed** | §1 |
+
+**The rule as a builder should port it.** `taunt_frame: [i32; 8]`, zero at
+game start; set `taunt_frame[S] = frame` (sim frames, absolute) in the same
+`process_taunt` store as `last_taunt[S]`, under the same gates. Read only by
+`action_ping`'s window `frame <= taunt_frame[P] + 225`. Crate site as §1.
+Plain game as §1. **Confidence: high.** Open: nothing beyond §1's.
+

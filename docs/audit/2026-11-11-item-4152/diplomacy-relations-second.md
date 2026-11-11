@@ -66,3 +66,43 @@ Reachable combinations with `quiet == 0` (every such caller passes `force == 0`,
 
 **7. Confidence.** High on the step and predicate (listing read instruction by instruction, every call site's arguments read from the listing). Not read: `pay_dow`'s body beyond confirming it writes none of the leaves (the scan saw no hit in it); `Game::run_oos_recovery`/`Game::close` bodies.
 
+## `blacken` (+0x20c, int)
+
+**1. Writers.**
+- `Leader::action_declare (006dab50)`: `incl 0x20c(%esi)` at 6dad38 (block A) and 6dad5b (block B).
+- `Leader::init (006e3930)`: `movl %ecx, 0x20c(%ebx)` at 6e3be0, `ecx = 0`.
+- Block writers: `Leaders::clear`, `LeaderData::walk_data`.
+- False positives checked: `Objects::init` 65f2db/65f329 (`edi` an `Objects`/type record; the decompile's own fields), `ScenarioRead::load_leaders_chunk` 9acf98 (game-info base), `ConquestGame::close` (Conquest record).
+
+**2. Event, step, predicate.** `blacken += 1` on a declaration that steps `dow[target]` while `dow[target]` is already non-zero — a repeat declaration on the same target, counted once per repeat, across all targets. The test reads `dow[target]` before its own increment. Same `quiet == 0` gate and block A / block B predicates as `dow` (above). A plain count, no scale.
+
+**3. Reset.** `Leader::init` → 0; `Leaders::clear`. Never decremented.
+
+**4. Readers.** `Leader::diplomacy`: `cmpl $4 / $2 / $0, 0xe3a59c(..)` (6bd87e, 6bdc3b, 6c017e, 6c0b1a: `leaders[target].blacken` thresholds 4, 2, 0), and `(blacken != 0) + 1` doubles a cost term (decompile lines 1934, 1958; listing 6bf8d5, 6bf940 compare `0x20c(%edx|%edi)`). `Leader::consider_tribute (006d1360)`: a tribute from leader p at least `leaders[p].blacken * 100` (6d1396 `imull $0x64`) can stamp `tribute_stamp` — the 100 is in the tribute's own resource units. `LeaderData::log_data` prints it.
+
+**5. Crate.** Not carried: `crates/sim/src/leaders/diplomacy.rs:398` and `:444–446` (`let blacken = 0;  // SEAM`). Same builder site as `dow`: a new `action_declare` wrapping `Sim::declare_war` (`crates/sim/src/leaders/relations.rs:294`).
+
+**6. Plain game?** Only through a human declaring on the same leader a second time (or breaking an alliance with a leader already declared on). Not reachable in a computer-only game.
+
+**7. Confidence.** High. Same unread list as `dow`.
+
+## `broke_alliance` (+0x2b0, int[8])
+
+**1. Writers.**
+- `Leader::action_declare (006dab50)`: `movl %eax, 0x2b0(%esi,%edi,4)` at 6dad7f, `eax = [game+0x550]`.
+- `Leader::init (006e3930)`: `movl %eax, 0x1dc(%esi)` at 6e3d57 (`0xd4 + 0x1dc = 0x2b0`), 0, j in 0..8.
+- Block writers: `Leaders::clear`, `LeaderData::walk_data`.
+- False positives checked: `LeaderOut::warn_resources` 6d36a3 (`andl $0, 0x2cc(%eax)` with `eax = [0xc06210]`, the console object, not a leader), `Unit::fight` 5ff29d/5ff2b8 (a `Unit`), `Leaders::clear` 6ed809–6ed827 (BitMask clears), `Options::*`, `Game::restore_type_backup` (other records).
+
+**2. Event, step, predicate.** `broke_alliance[target] = frame` (a sim frame number, `game->frame`), on the declarer only, whenever `action_declare` gets past its refusals while the two are still allied both ways — i.e. every break of an alliance, by anyone: the computer's level-1 declarations in `Leader::diplomacy` (6beceb, 6bed1c), a computer's level-0 war on an ally (turned into level 1), the refuse-2 arm of `action_respond` (6d04ed), a human's interface declare, `DropControl` (war on an ally with force). **No `quiet` gate** (`quiet != 0` jumps from 6dacf0 straight to 6dad68, the stamp's test). The target's mirror slot is not written.
+
+**3. Reset.** `Leader::init` → 0; `Leaders::clear`. Otherwise only overwritten by a later break.
+
+**4. Readers.** `Leader::action_declare` itself (`max` of both directions against `ally_to_war_delay`, step 2 above); `Unit::process_attrition (005e11a0)` (decompile lines 164–167: both directions against `ally_to_war_delay`, and `ally_to_war_grace` for the grace window). `docs/` already states (`crates/sim/src/territory/attrition.rs:431–437`) that both constants are absent from `rules.xml` and load as -1; with a delay of -1, `frame - t < -1` is never true, so with shipped data both readers are dead and the field is behaviourally inert, but it is written and it is in the checksum list (`crates/sim/src/checksum/leaders.rs:81`).
+
+**5. Crate.** Not carried. The relation change it rides on is `Sim::set_diplo` level 1 from allied (`crates/sim/src/leaders/relations.rs:116`, the `_` arm) — but the stamp belongs to `action_declare`, which the crate does not have; `attrition.rs`'s `in_war_grace` input is where a reader would consume it.
+
+**6. Plain game?** Yes when an alliance breaks: a computer leader breaking with an ally in `Leader::diplomacy` (needs a game where alliances form and can break — diplomacy team styles), or a human breaking one. Under locked teams (`TEAM_STYLE 1`, the captures' style per `diplomacy.rs:10`) I did not establish whether the level-1 arms are reachable; not read.
+
+**7. Confidence.** High on the write and its predicate. Not read: which `Leader::diplomacy` predicates lead to 6beceb/6bed1c (the decompile shows 6beceb behind `who == target`, which reads oddly; I did not resolve it).
+

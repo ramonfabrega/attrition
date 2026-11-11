@@ -45,7 +45,15 @@ Sources: the decompile export at `~/ghidra-projects/decomp`, the listing of `ris
     (006ed5d0)` — `0x6929` covers all four leaves. The scenario loaders
     (`ScenarioRead::load_leader_chunk (009ac080)`, `load_leaders_chunk`) write
     none of them; a scan for `$0x6929`, `$0x1bbb`, `$0x6eec`, `$0x4554c`
-    found no other bulk writer.
+    found no other memset/copy.
+  - **The save walk is a bulk writer the offset nets cannot see.**
+    `Leaders::walk_data (006e38e0)` calls `LeaderData::walk_data (006d6750)`
+    on each slot, which walks the byte range `[+0x8 who, +0x692a)` as one
+    block when `leader_flags & 1` (`walk(&this->who, &this->field_0x692a)`).
+    All four leaves lie inside it, so a `DataWalk` in input mode (a saved
+    game loaded through `WalkDataGame::walk_data (005a2360)`) overwrites
+    them with the saved values, and output mode writes them out. It restores,
+    it does not step; I list it under each leaf as "restore".
 
 ## `repair_stamp` (`LeaderData +0x208`, int)
 
@@ -56,6 +64,7 @@ Sources: the decompile export at `~/ghidra-projects/decomp`, the listing of `ris
 - `Leader::init (006e3930)`: the opening `memset(this,0,0x6929)` and an
   explicit `field_0x208 = 0` at `6e3e07` (decompile line 260).
 - `Leader::close (006b7f80)`, `Leaders::clear (006ed5d0)`: the `0x6929` memset.
+- Restore: `LeaderData::walk_data (006d6750)` (the save walk's block).
 
 **2. Event, step, predicate.** It is a frame stamp, not a counter: the
 throttle on the "cannot afford the repair" complaint. In `do_repair`, after
@@ -116,6 +125,7 @@ mechanic, not this leaf). Not read: whether any savegame path restores it
 - `Leader::init (006e3930)`: memset, and explicit `field_0x7c0 = 0`
   (`6e3bbc`, decompile line 164).
 - `Leader::close (006b7f80)`, `Leaders::clear (006ed5d0)`: memset.
+- Restore: `LeaderData::walk_data (006d6750)` (the save walk's block).
 - Register-relative `0x7c0(%r)` stores elsewhere are other records
   (`IFaceRenderManager::clear_all`, `AchieveChartPane::on_redraw`,
   `IFaceResources::IFaceResources`, `GraphicPieces::~GraphicPieces`,
