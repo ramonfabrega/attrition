@@ -154,18 +154,18 @@ impl Sim {
     /// - else **0**, war, when `Game::teams_locked@00594880` (team style
     ///   neither 0, 8 nor 11), and 1 otherwise.
     ///
+    /// **`aggression[i] = (diplos[i] == 0)`** (`+0x210`, `puVar23[0x4f]`) is
+    /// the same loop's, over all eight slots: a slot no player takes has no
+    /// team, so it reads war under locked teams, as the original's does
+    /// (`docs/CHECKSUM.md` §20; item 4124). `Leader::diplomacy` is its one
+    /// other writer ([`crate::leaders::diplomacy`]'s `store_view`).
+    ///
     /// Only this leader's row is written; the other's own `Leader::init`
     /// writes the mirror. The diagonal is the crate's untouched `false`.
     /// SEAM: the arm after it, `semaphore[1] & 2` forcing war with every
     /// other leader, is not a lobby field and is not carried; nor is the
     /// loop's `treaties` (`reveal_map == 3` or'd with the team bit), which
     /// the start block does not compare.
-    ///
-    /// **`aggression[i] = (diplos[i] == 0)`** (`+0x210`, `puVar23[0x4f]`) is
-    /// the same loop's, over all eight slots: a slot no player takes has no
-    /// team, so it reads war under locked teams, as the original's does
-    /// (`docs/CHECKSUM.md` §20; item 4124). `Leader::diplomacy` is its one
-    /// other writer ([`crate::leaders::diplomacy`]'s `store_view`).
     pub fn init_diplos(&mut self, who: Player, seats: &[Seat]) {
         let lobby = &self.ai.lobby;
         if lobby.conquest {
