@@ -97,7 +97,7 @@ All in `Object::do_damage (0064a480)`; four store instructions.
 | `64b383` | city, light (capital or not; also the worker arm) | `frame − city.raid_stamp(+0x18) > 300` (`64b201`); stores `raid_stamp` (`64b373`) then `attack_stamp`; the city's `+0x18` takes `frame` after, unconditionally (`64b398`) |
 | `64b9d8` | ground arm, attack | `frame − leaders[v].attack_stamp[a] > 300` (`64b77c`) |
 
-Export lines: 512, 623, 679, 883 of `do_damage@0064a480.c`.
+Export lines: 512, 623, 679, 883 of the export file of `Object::do_damage (0064a480)`.
 
 ### 2. Event, step, predicate
 
@@ -329,3 +329,84 @@ High: one store, two paths, both read in the listing. Not read: the
 `notify_flags` bits (UI). The heavy predicate shares the medium-confidence
 vslot names given under `attack_stamp`.
 
+## `ctw_hero_stamp` (LeaderData +0x200, int)
+
+### 1. Writers
+
+- `Object::do_damage (0064a480)` `64b513` (`movl %edx, 0xe3a590(%ecx)`,
+  `ecx = v·0x6eec` from `-0x28(%ebp)`, `edx = frame`). Export line 382
+  (`local_2c[0xfb32].field_0x40`, where `local_2c` is `v·0x6eec` typed as
+  `Armies*`, size 0xe8: `0xfb32·0xe8 + 0x40 = 0xe3a590`).
+- `Leader::init (006e3930)` `6e3dfc`, the clear to 0 (export line 267).
+No other store in either net.
+
+### 2. Event, step, predicate
+
+Scalar, the victim's own (no attacker index). On a hit by `a ≠ v` on a
+**unit** of `v` that is not a worker (`64aa80 je 64b3a0`), all of:
+- `game->semaphore[2] & 2` (byte `+0x822` bit 1; the Conquer the World flag,
+  per `docs/NATIONS.md`, `docs/ECONOMY.md`, `docs/RECGAME.md`) (`64b3a6`);
+- the target's type index (`[obj+0x18]+4`) equals
+  `GameAccess::conquest_game->hero_type` (`[0xc0617c]+0x118`) (`64b3be`);
+- `frame − ctw_hero_stamp > 120` (`0x78`, strict) (`64b3d3`);
+- `v == MiscAccess::console->who` (`[0xc06210]+0x298`), the **local**
+  player only (`64b3ea`);
+- `(hits(0) − damage) · 100 / hits(0) < 70` (`0x46`), integer `idiv`
+  toward zero, `hits` through vslot `+0x11c` (inlined `UnitData::hits` reads
+  `+0x20`), `damage` at `+0x24`, both before this hit is taken
+  (`64b43e..64b44b`).
+Then a message is posted, and if `frame − ctw_hero_stamp > 75` (`0x4b`)
+the leaf takes `frame` (`64b508..64b513`) before the notice is drawn; the
+sound (`0x83`) plays either way. Since the outer gate already demands
+`> 120`, the inner `> 75` always holds: in effect the leaf is stamped every
+time all five conditions hold, at most once per 121 frames.
+
+Note: the `v == console->who` test makes this a per-machine store into a
+field the checksum walk covers (`[+0x8, +0x692a)`). Whether CtW can be
+multi-human, so that this could part two machines, was not read.
+
+### 3. Reset
+
+`Leader::init (006e3930)` only (`= 0`). Callers as under `attack_stamp`.
+
+### 4. Readers
+
+`Object::do_damage (0064a480)` itself (`64b3d3`, `64b508`) and
+`LeaderData::log_data (006e5110)` (export line 582, `pushl 0x200(%edi)` at
+`6e661c`); the checksum walk. No AI reader.
+
+### 5. Crate site
+
+None: the crate has no Conquer the World (cut from v1) and no hero-type of
+the conquest game. In `crates/sim/src/checksum/leaders.rs` the leaf is
+listed (`("ctw_hero_stamp", 0x200, 4, 1)`, line 72) and today falls to
+`Sim::leader_image`'s `_ => None` (line 1305). A builder's whole change is
+to add `"ctw_hero_stamp"` to the "never reached without a cut track" zero
+arm (`Some(vec![0; count])`, lines ~1246–1275), with
+`Object::do_damage (0064a480)` `64b513` and `Leader::init`'s clear as its
+two stores.
+
+### 6. Plain game?
+
+No. The store sits behind `semaphore[2] & 2`, Conquer the World. In a
+skirmish the field is `Leader::init`'s 0 for the whole game.
+
+### 7. Confidence
+
+High: one sim store, every condition read in the listing. The CtW meaning
+of `semaphore[2] & 2` is taken from the other documents, not re-derived
+here. Not read: who sets `conquest_game->hero_type`; the multi-human CtW
+question.
+
+## Summary
+
+| leaf | writers (Name (addr)) | step | reset | crate site | plain game? | confidence |
+|---|---|---|---|---|---|---|
+| `attack_stamp[a]` (+0xf4) | `Object::do_damage (0064a480)` at `64ace6` (capital heavy), `64b037` (city heavy), `64b383` (city light), `64b9d8` (ground arm, attack) | `= frame` on victim `v`'s row, attacker `a`'s column; city arms when their own 300-frame gate opens; ground arm when `frame − stamp > 300` and (tile not `v`'s, or target not light-building/worker/caravan/merchant) | `Leader::init (006e3930)` | `Sim::city_alarm` + new ground arm in `Sim::do_damage_round` (`crates/sim/src/combat/fight/delivery.rs`); field beside `capital_stamp` (`crates/sim/src/ai.rs`); `leader_image` arm | yes | high (vslot names medium) |
+| `raid_stamp[a]` (+0x114) | `Object::do_damage (0064a480)` at `64acf8`, `64b025`, `64b373` (same three city arms), `64b755` (ground arm, raid) | `= frame`; city arms always together with `attack_stamp`; ground arm when `frame − stamp > 300`, tile `v`'s, and target a lightly hit building, worker, caravan or merchant | `Leader::init (006e3930)` | as `attack_stamp` | yes | high |
+| `ally_stamp[a]` (+0x154) | `Object::do_damage (0064a480)` at `64ae8d` (one store, capital-heavy and city-heavy paths) | `= frame` on a heavy hit on a city building when `frame − stamp > 300`, regardless of the city arm's own gate; store not tied to the local-ally notice | `Leader::init (006e3930)` | `Sim::city_alarm`, before its capital-branch returns | yes | high |
+| `ctw_hero_stamp` (+0x200) | `Object::do_damage (0064a480)` at `64b513`; `Leader::init (006e3930)` at `6e3dfc` (clear) | `= frame` when CtW, target is the conquest hero type, `v` is the local player, hp below 70 %, and `frame − stamp > 120` | `Leader::init (006e3930)` | none (CtW cut); add to `leader_image`'s cut-track zero arm in `crates/sim/src/checksum/leaders.rs` | no (CtW only) | high |
+
+Incidental: a `grep` over `docs/*.md` for `semaphore` printed one line
+from `docs/CHECKSUM.md` §20 (line 1710, the conquest arrays, not these
+leaves). Nothing else from the barred files was opened.

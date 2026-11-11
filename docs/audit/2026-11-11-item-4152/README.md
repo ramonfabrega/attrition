@@ -94,4 +94,5 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | diplomacy-relations | 1 | 252 k | 21 | 8 of 8 written | only humans move `dow`, `blacken` (`action_declare`'s `free` is 1 from `Leader::diplomacy`); `made_peace` and the hire pair from `action_respond`'s execution; `last_spoke` has no writer (constant 0) |
 | city-name | 2 | 163 k | 10 | 1 of 1 written | agrees on both stores, the same-tribe rule, the exemptions; adds `Leaders::clear` and `walk_data` |
 | lost-capital | 2 | 173 k | 11 | 3 of 3 written | agrees on the five events and the 5-frame pay-back; states the modifier as own/other, not the loser/taker order the first gave: the adjudicator settles it |
-| spells | 2 | — | ~20 | 1 of 1 written | agrees on the rule; checks it bit for bit against run 1562's frame-91 packet: the 9 clear bits are the 8 preq −2 spells and RADARSPELL |
+| spells | 2 | 209 k | 12 | 1 of 1 written | agrees on the rule; checks it bit for bit against run 1562's frame-91 packet: the 9 clear bits are the 8 preq −2 spells and RADARSPELL |
+| victim-stamps | 2 | ~150 k | 13 | 4 of 4 written | agrees: `do_damage` alone, the same ten stores, city arms and ground arm, `ctw_hero_stamp` CtW only; one line of §20 (1710, the conquest arrays) leaked to it by a grep, recorded in its file |
