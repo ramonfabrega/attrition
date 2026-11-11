@@ -4612,6 +4612,7 @@ mod tests {
     /// under the pine, the pine's own pixels in their windows: the
     /// photograph over our leaf texel.
     #[test]
+    #[allow(clippy::needless_range_loop)]
     fn the_light_on_the_figures_texel() {
         use render::silhouette::{HUE, chromaticity, traced_theirs};
         let install = std::env::var_os("RON_INSTALL")
