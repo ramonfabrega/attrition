@@ -975,6 +975,50 @@ losses are the blend:** 236 of 244 sit on a cell whose
 `land_sub − 1`, over the base, and on 230 of them the photograph reads
 that base. The alpha and its bitcode are unread (parked 4129a).
 
+**The transition patch (item 4132).** *The packet's own patch, drawn
+under the read alpha, beats every control; the rule that picks it is not
+built yet.* Counted first, before anything was read, on the 503 scored
+plain tiles whose cell carries a patch on the packet: per tile, the
+draw with the best luminance r of four that also beats its own wrong-cell
+control (`RUN1559B_3279_PATCH_CONTROLS`). (a) The base alone wins 204,
+(b) the patch's base alone 148, (c) the two at a uniform half 31, (d) a
+linear ramp toward the neighbours of the patch's base 115. Their mean r
+is 0.519, 0.484, 0.609 and 0.618. Neither (c) nor (d) wins most.
+*What the packet holds* (`tools/render/patches.py`, run1559b): 14
+`AlphaInfo`s, one per alpha file (`docs/FORMATS.md`, "The transition
+alphas"). Of 1,512 land-0 cells with a patch, 113 have no alpha geometry,
+so `add_patch` skips them. The other 1,399 all lay the base of
+`land_sub − 1` on the packet's own `land_sub`. Each carries
+`trans_texcoords1`, a 5 × 5 grid with vertex `j·5 + i` and `i` along
+world x (its `trans_texcoords0` and verts show the order). Every grid
+spans one quadrant of the alpha, half a texture a side, turned or
+mirrored. Keyed by its eight neighbours' `land_sub` against its own
+(lower, equal, higher, off), a cell's alpha is a function on 470 of 471
+codes. The other code is split 1 and 1, which is `find_map`'s pick by
+`texture_fractal` among candidates.
+*The reading, as far as it goes.* `create_transition_renderables`
+builds three codes from the edge masks `mark_trans_flags` sets
+(`build_trans_flags` at 6, 3 and 0). It runs `check_blocks`,
+`check_connects` and `check_fills` (and `check_for_diagonal` on an empty
+first code), and closes the corners. `Transitions::find_map` then keeps
+each `AlphaInfo` with a `bitcode` the three codes admit, and picks a
+candidate and one of its admitted codes by `texture_fractal`'s height.
+The texcoords are `rotate_tex_coords` by `selected_bitcode`, halved and
+offset into the quadrant the fractal's height picks. `add_patch` batches
+patches by (alpha, `landindex`). The base's texcoords are the cell's own
+sub-tile. The alpha's are `trans_texcoords1`.
+*The draw, from the packet's patch* (`RUN1559B_3279_GROUND_BLEND_PACKET`):
+the patch's base laid over ours at the weight A/255, A the alpha file's
+channel at `trans_texcoords1`, bilinear on level 0. It wins **395 of
+503**, against (a) 15, (b) 41, (c) 5 and (d) 42 in the same pool, with
+mean r 0.716. The same alpha turned a quarter turn wins 201 in its place.
+Two things are assumptions: that A weights the patch's base rather than
+ours, and the level. Nothing is drawn in the client yet. The choice is
+the packet's, so `RUN1559B_3279_GROUND_BLEND` and
+`RUN1559B_3279_PACKET_PATCH` wait on the rule's port: `mark_trans_flags`,
+`check_for_tendrils`, the four checks, `find_map` and the texcoords
+(parked 4132a).
+
 **The projection is the camera's own.** The shader multiplies by
 `to_screen_matrix` uploaded row-major (WGSL reads it transposed, so `M · v`
 is the original's `v · M`). The divide by `w` and the viewport are

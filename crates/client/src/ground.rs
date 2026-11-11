@@ -185,6 +185,30 @@ pub const RUN1559B_3279_GROUND_BASE_ONE: [usize; 4] = [2, 274, 697, 26];
 #[cfg(test)]
 pub const RUN1559B_3279_PACKET_LIST: (u32, u32, u32) = (2779, 2810, 2810);
 
+/// **The transition patch's controls** (item 4132; `docs/RENDERER.md`
+/// §3.6, "The transition patch"): of the 503 scored plain tiles whose cell
+/// carries a patch on run1559b's packet, those each draw wins — the highest
+/// per-tile luminance r of the four and above its own wrong-cell control —
+/// for (a) the base alone, (b) the patch's base alone, (c) the two at a
+/// uniform half, (d) a linear ramp toward the neighbours of the patch's
+/// base. New; counted before the alpha was read. The bar the patch must
+/// beat is (a)'s 204.
+#[cfg(test)]
+pub const RUN1559B_3279_PATCH_CONTROLS: ([u32; 4], u32) = ([204, 148, 31, 115], 503);
+
+/// **The packet's own patch under the read alpha** (item 4132): the same
+/// tiles where the patch `create_transition_renderables` left on the packet
+/// (its alpha's bucket and `trans_texcoords1`, `tools/render/patches.py`),
+/// sampled from the alpha file's A channel and laying the base of
+/// `land_sub − 1` by that weight, wins against (a)-(d) — 395 of 503,
+/// against (a) 15, (b) 41, (c) 5, (d) 42 in the same pool — and the same
+/// alpha turned a quarter turn wins 201 in its place. New. The choice is
+/// the packet's, not a rule of ours: this is the draw's ceiling under the
+/// read alpha, not `RUN1559B_3279_GROUND_BLEND` (parked 4132a).
+#[cfg(test)]
+pub const RUN1559B_3279_GROUND_BLEND_PACKET: (u32, [u32; 4], u32, u32) =
+    (395, [15, 41, 5, 42], 201, 503);
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -738,6 +762,50 @@ mod tests {
         Some(out)
     }
 
+    /// The packet's own patch per cell with alpha geometry,
+    /// `tools/render/patches.py`'s `patch` rows: `(cx, cy)` → (the alpha's
+    /// bucket, `trans_texcoords1` at vertices 0, 4 and 20) (item 4132).
+    #[allow(clippy::type_complexity)]
+    fn packet_patches() -> Option<BTreeMap<(i32, i32), (usize, [f32; 2], [f32; 2], [f32; 2])>> {
+        let path = std::env::var_os("RON_PATCHES")
+            .map(PathBuf::from)
+            .or_else(|| {
+                std::env::var_os("HOME").map(|h| {
+                    PathBuf::from(h)
+                        .join("ron-data/lab-experiments/2026-11-11-item-4132/run1559b-patches.txt")
+                })
+            })?;
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            println!("skipping: no packet patches at {}", path.display());
+            return None;
+        };
+        let mut out = BTreeMap::new();
+        for line in text.lines() {
+            let f: Vec<&str> = line.split_whitespace().collect();
+            if f.first() != Some(&"patch") {
+                continue;
+            }
+            let at = |k: &str| f.iter().position(|x| *x == k).map(|i| f[i + 1]);
+            let Some(uv) = f.iter().position(|x| *x == "uv") else {
+                continue;
+            };
+            let uv: Vec<[f32; 2]> = f[uv + 1..]
+                .iter()
+                .filter_map(|q| {
+                    let (u, v) = q.split_once(',')?;
+                    Some([u.parse().ok()?, v.parse().ok()?])
+                })
+                .collect();
+            if uv.len() != 25 || at("land") != Some("0") {
+                continue;
+            }
+            let n = |i: usize| f[i].parse::<i32>().expect("a number");
+            let bucket = at("alpha").and_then(|a| a.parse().ok()).expect("an alpha");
+            out.insert((n(1), n(2)), (bucket, uv[0], uv[4], uv[20]));
+        }
+        Some(out)
+    }
+
     /// **Which base a tile draws, told apart** (item 4129; `docs/RENDERER.md`
     /// §3.6): the row under controls, a per-tile measure that can tell the
     /// bases apart, and the packet's own bucket against ours.
@@ -1105,5 +1173,363 @@ mod tests {
         assert_eq!(gb_one, RUN1559B_3279_GROUND_BASE_ONE);
         assert!(gb_one.iter().all(|&n| n < gb_rule));
         assert_eq!(rn, RUN1559B_3279_GROUND.0, "the row as 4127 pinned it");
+    }
+
+    /// One patched plain tile's pixels for [`the_transition_patch`]: per
+    /// ground pixel, the photograph, the base's texel, the patch's base's
+    /// texel, each one cell index on (the wrong-cell control), and the
+    /// texcoord across the cell.
+    #[derive(Clone, Copy)]
+    struct PatchPixel {
+        photo: [f32; 3],
+        base: [f32; 3],
+        patch: [f32; 3],
+        wbase: [f32; 3],
+        wpatch: [f32; 3],
+        uv: [f32; 2],
+    }
+
+    fn lum(c: [f32; 3]) -> f32 {
+        0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2]
+    }
+
+    fn pearson(v: &[(f32, f32)]) -> f32 {
+        let n = v.len() as f32;
+        let (ma, mb) = v
+            .iter()
+            .fold((0.0, 0.0), |a, q| (a.0 + q.0 / n, a.1 + q.1 / n));
+        let (mut sab, mut saa, mut sbb) = (0.0, 0.0, 0.0);
+        for &(x, y) in v {
+            sab += (x - ma) * (y - mb);
+            saa += (x - ma).powi(2);
+            sbb += (y - mb).powi(2);
+        }
+        if saa * sbb > 0.0 {
+            sab / (saa * sbb).sqrt()
+        } else {
+            0.0
+        }
+    }
+
+    fn mix(a: [f32; 3], b: [f32; 3], w: f32) -> [f32; 3] {
+        [0, 1, 2].map(|k| a[k] * (1.0 - w) + b[k] * w)
+    }
+
+    /// **The transition patch, against its controls** (item 4132;
+    /// `docs/RENDERER.md` §3.6, "The transition patch"): on the plain tiles
+    /// whose cell carries a patch on run1559b's packet, Pearson's r of the
+    /// photograph's luminance with each candidate draw's, each beside its
+    /// wrong-cell control; a candidate wins a tile when its r is the
+    /// highest of the candidates and above its own control.
+    #[test]
+    fn the_transition_patch() {
+        use render::silhouette::{Paint, Rect, paint};
+        let Some(mut p) = probe() else { return };
+        let Some(packet) = packet_buckets() else {
+            return;
+        };
+        let g = ground(&mut p);
+        let size = (p.photo.width, p.photo.height);
+        let (w, _) = size;
+        let tileset = crate::world::lobby_tileset(
+            &p.root,
+            &crate::world::gamelog_dir().join(crate::world::START_DUMP),
+        )
+        .expect("the lobby's tileset");
+        let tex = GroundTextures::load(&p.root, &tileset).expect("the ground's textures load");
+        assert!(tex.bases.iter().all(|b| b.len() == 9), "four supertiles");
+        let mesh = p.world.terrain().clone();
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let base = ground_base(&t, &mountains, &tex, &mesh);
+        let flat = tex.flat();
+        let cell = |(tx, ty): (i32, i32)| (tx / TILES_PER_CELL, ty / TILES_PER_CELL);
+        let sub = |(cx, cy): (i32, i32)| t.land_sub[(cy * t.width + cx) as usize];
+        let patch_of = |c: (i32, i32)| packet.get(&c).and_then(|q| q.3);
+        let on = |k: usize| 9 * (k / 9) + (k % 9 + 1) % 9;
+
+        let mut window = Rect::new(i32::MAX, i32::MAX, 0, 0);
+        for (i, tt) in g.tile.iter().enumerate() {
+            if tt.is_some() {
+                let (x, y) = ((i % w) as i32, (i / w) as i32);
+                window = Rect::new(
+                    window.x0.min(x),
+                    window.y0.min(y),
+                    window.x1.max(x + 1),
+                    window.y1.max(y + 1),
+                );
+            }
+        }
+        let object = Object {
+            key: 1,
+            tris: base.tris.clone(),
+        };
+        let draw = |of: &[usize]| {
+            paint(
+                &object,
+                &Paint::Textures {
+                    uvs: &base.uvs,
+                    mips: &flat,
+                    of,
+                },
+                &p.camera,
+                size,
+                window,
+            )
+        };
+        let of_patch: Vec<usize> = base
+            .tile
+            .iter()
+            .zip(&base.of)
+            .map(|(&tt, &k)| patch_of(cell(tt)).map_or(k, |li| li as usize))
+            .collect();
+        let of_wbase: Vec<usize> = base.of.iter().map(|&k| on(k)).collect();
+        let of_wpatch: Vec<usize> = of_patch.iter().map(|&k| on(k)).collect();
+        let [db, dp, dwb, dwp] = [&base.of, &of_patch, &of_wbase, &of_wpatch].map(|of| draw(of));
+        let ww = (window.x1 - window.x0) as usize;
+        let photo_at = |i: usize| [0, 1, 2].map(|c| f32::from(p.photo.rgba[i * 4 + c]));
+        let mut tiles: BTreeMap<(i32, i32), Vec<PatchPixel>> = BTreeMap::new();
+        let mut count: BTreeMap<(i32, i32), u32> = BTreeMap::new();
+        for (i, tt) in g.tile.iter().enumerate() {
+            let Some(tt) = *tt else { continue };
+            *count.entry(tt).or_default() += 1;
+            let (x, y) = ((i % w) as i32, (i / w) as i32);
+            let j = (y - window.y0) as usize * ww + (x - window.x0) as usize;
+            let mine = |d: &[Option<render::silhouette::Texel>]| {
+                d[j].filter(|q| base.tile[q.tri as usize] == tt)
+            };
+            if let (Some(b), Some(pp), Some(wb), Some(wp)) =
+                (mine(&db), mine(&dp), mine(&dwb), mine(&dwp))
+            {
+                tiles.entry(tt).or_default().push(PatchPixel {
+                    photo: photo_at(i),
+                    base: b.rgb,
+                    patch: pp.rgb,
+                    wbase: wb.rgb,
+                    wpatch: wp.rgb,
+                    uv: b.uv,
+                });
+            }
+        }
+        let plain: Vec<(i32, i32)> = count
+            .iter()
+            .filter(|(tt, n)| **n >= HUE.min_pixels && !mountains.contains(tt))
+            .map(|(&tt, _)| tt)
+            .filter(|tt| base.tile.contains(tt))
+            .collect();
+        let patched: Vec<(i32, i32)> = plain
+            .iter()
+            .copied()
+            .filter(|&tt| patch_of(cell(tt)).is_some())
+            .collect();
+        println!(
+            "plain tiles {}, of them patched on the packet {}",
+            plain.len(),
+            patched.len()
+        );
+
+        // The ramp's direction: the sum of the offsets to the neighbours
+        // (eight-connected) whose land_sub is the patch's base.
+        let toward = |c: (i32, i32)| -> [f32; 2] {
+            let Some(li) = patch_of(c) else {
+                return [0.0, 0.0];
+            };
+            let pb = (li / 9) as u8;
+            let mut d = [0.0f32, 0.0];
+            for dy in -1..=1i32 {
+                for dx in -1..=1i32 {
+                    let (nx, ny) = (c.0 + dx, c.1 + dy);
+                    if (dx, dy) != (0, 0)
+                        && (0..t.width).contains(&nx)
+                        && (0..t.height).contains(&ny)
+                        && sub((nx, ny)) == pb
+                    {
+                        d[0] += dx as f32;
+                        d[1] += dy as f32;
+                    }
+                }
+            }
+            let n = (d[0] * d[0] + d[1] * d[1]).sqrt();
+            if n > 0.0 { [d[0] / n, d[1] / n] } else { d }
+        };
+        // The packet's own patch (`tools/render/patches.py`): per cell, the
+        // alpha's bucket and `trans_texcoords1` at the cell's corners
+        // (vertex `j·5 + i`, `i` along world x, as its `trans_texcoords0`
+        // and verts show), an affine map over the cell.
+        let patches = packet_patches().unwrap_or_default();
+        let alphas: Vec<(String, Mips)> = {
+            let dir = p.root.join("terrain art").join("transitions");
+            let mut names: Vec<String> = std::fs::read_dir(&dir)
+                .map(|d| {
+                    d.filter_map(|e| e.ok()?.file_name().into_string().ok())
+                        .filter(|n| n.ends_with(".tga"))
+                        .collect()
+                })
+                .unwrap_or_default();
+            names.sort();
+            names
+                .into_iter()
+                .map(|n| {
+                    let bytes = std::fs::read(dir.join(&n)).expect("an alpha file");
+                    let image = render::tga::decode(&bytes).expect("the alpha decodes");
+                    (n, Mips::new(image))
+                })
+                .collect()
+        };
+        for (n, m) in &alphas {
+            let im = &m.levels[0];
+            let range = |c: usize| {
+                im.rgba
+                    .chunks(4)
+                    .fold((255u8, 0u8), |a, q| (a.0.min(q[c]), a.1.max(q[c])))
+            };
+            println!(
+                "alpha file {n}: {} x {}, r {:?} g {:?} b {:?} a {:?}",
+                im.width,
+                im.height,
+                range(0),
+                range(1),
+                range(2),
+                range(3)
+            );
+        }
+        let read_alpha = |c: (i32, i32), uv: [f32; 2], turn: bool| -> f32 {
+            let Some(&(bucket, t0, t4, t20)) = patches.get(&c) else {
+                return 0.0;
+            };
+            let Some((_, m)) = alphas.get(bucket) else {
+                return 0.0;
+            };
+            let (u, v) = if turn {
+                (uv[1], 1.0 - uv[0])
+            } else {
+                (uv[0], uv[1])
+            };
+            let au = t0[0] + u * (t4[0] - t0[0]) + v * (t20[0] - t0[0]);
+            let av = t0[1] + u * (t4[1] - t0[1]) + v * (t20[1] - t0[1]);
+            m.sample(0, au, av)[3] / 255.0
+        };
+        println!(
+            "packet patches with alpha geometry {}, alpha files {}",
+            patches.len(),
+            alphas.len()
+        );
+        type Weight<'a> = Box<dyn Fn((i32, i32), [f32; 2]) -> f32 + 'a>;
+        let candidates: Vec<(&str, Weight)> = vec![
+            ("(a) the base alone", Box::new(|_, _| 0.0)),
+            ("(b) the patch's base alone", Box::new(|_, _| 1.0)),
+            ("(c) a uniform half", Box::new(|_, _| 0.5)),
+            (
+                "(d) a linear ramp toward the patch's base",
+                Box::new(|c, uv| {
+                    let d = toward(c);
+                    (0.5 + (uv[0] - 0.5) * d[0] + (uv[1] - 0.5) * d[1]).clamp(0.0, 1.0)
+                }),
+            ),
+            (
+                "(e) the packet's patch under the read alpha",
+                Box::new(|c, uv| read_alpha(c, uv, false)),
+            ),
+            (
+                "(f) the read alpha turned a quarter turn",
+                Box::new(|c, uv| read_alpha(c, uv, true)),
+            ),
+        ];
+        // Step 1's table is (a)-(d) alone; (e) is counted against (a)-(d),
+        // and (f), its control, against (a)-(d) in (e)'s place.
+        let pools: [(&str, Vec<usize>); 3] = [
+            ("step 1, (a)-(d)", vec![0, 1, 2, 3]),
+            ("(a)-(e)", vec![0, 1, 2, 3, 4]),
+            ("(a)-(d), (f)", vec![0, 1, 2, 3, 5]),
+        ];
+        let r_of = |px: &[PatchPixel], c: (i32, i32), wt: &Weight, wrong: bool| {
+            let v: Vec<(f32, f32)> = px
+                .iter()
+                .map(|q| {
+                    let a = wt(c, q.uv);
+                    let d = if wrong {
+                        mix(q.wbase, q.wpatch, a)
+                    } else {
+                        mix(q.base, q.patch, a)
+                    };
+                    (lum(q.photo), lum(d))
+                })
+                .collect();
+            pearson(&v)
+        };
+        let nc = candidates.len();
+        let mut rs: BTreeMap<(i32, i32), (Vec<f32>, Vec<f32>)> = BTreeMap::new();
+        for &tt in &patched {
+            let c = cell(tt);
+            let px = &tiles[&tt];
+            let r: Vec<f32> = candidates
+                .iter()
+                .map(|(_, wt)| r_of(px, c, wt, false))
+                .collect();
+            let rw: Vec<f32> = candidates
+                .iter()
+                .map(|(_, wt)| r_of(px, c, wt, true))
+                .collect();
+            rs.insert(tt, (r, rw));
+        }
+        let mut blend = (0, [0u32; 4], 0);
+        let mut step1 = [0u32; 4];
+        for (pool_name, pool) in &pools {
+            let mut wins = vec![0u32; nc];
+            let mut wins_by: BTreeMap<(usize, u8, i32), u32> = BTreeMap::new();
+            let mut none = 0;
+            for &tt in &patched {
+                let c = cell(tt);
+                let (r, rw) = &rs[&tt];
+                let best = *pool
+                    .iter()
+                    .max_by(|&&a, &&b| r[a].total_cmp(&r[b]))
+                    .expect("one");
+                let column = patch_of(c).map_or(0, |li| li / 9 - i32::from(sub(c)));
+                if r[best] > rw[best] {
+                    wins[best] += 1;
+                    *wins_by.entry((best, sub(c), column)).or_default() += 1;
+                } else {
+                    none += 1;
+                }
+            }
+            let names: Vec<String> = pool
+                .iter()
+                .map(|&k| format!("{} {}", &candidates[k].0[..3], wins[k]))
+                .collect();
+            println!(
+                "{pool_name}: wins {names:?}, none above its control {none}, of {}",
+                patched.len()
+            );
+            println!("  by (candidate, land_sub, the patch's base less ours): {wins_by:?}");
+            if pool.len() == 4 {
+                step1 = [wins[0], wins[1], wins[2], wins[3]];
+            }
+            if pool.len() == 5 && pool[4] == 4 {
+                blend = (wins[4], [wins[0], wins[1], wins[2], wins[3]], blend.2);
+            }
+            if pool.len() == 5 && pool[4] == 5 {
+                blend.2 = wins[5];
+            }
+        }
+        for (k, (name, _)) in candidates.iter().enumerate() {
+            let m: f64 =
+                rs.values().map(|q| f64::from(q.0[k])).sum::<f64>() / rs.len().max(1) as f64;
+            println!("{name}: mean r {m:.3}");
+        }
+        println!(
+            "RUN1559B_3279_GROUND_BLEND (packet's patch) {blend:?} of {}",
+            patched.len()
+        );
+        assert_eq!((step1, patched.len() as u32), RUN1559B_3279_PATCH_CONTROLS);
+        assert_eq!(
+            (blend.0, blend.1, blend.2, patched.len() as u32),
+            RUN1559B_3279_GROUND_BLEND_PACKET
+        );
+        assert!(
+            blend.1.iter().all(|&n| n < blend.0) && blend.2 < blend.0,
+            "the read alpha beats every control and its quarter turn"
+        );
     }
 }

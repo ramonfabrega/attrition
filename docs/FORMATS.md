@@ -1086,6 +1086,25 @@ descriptor `0x08`; each has a `_mtrl` twin of the same size, unread.
 Which sub-tile a cell takes and how it lies on it: `docs/RENDERER.md`
 §3.6, "The ground's base layer".
 
+**The transition alphas (item 4132).** `Transitions::init` walks a
+directory of the content (a string-table path and pattern, unread) and
+makes one `AlphaInfo` a file, in the order the search returns them, its
+`bucket` that index: a `Texture` loaded with `PF_DXT3`, `MEM_HARDWARE`, 4
+mip levels. The file's name, up to its `.`, is read as binary digits into
+a 12-bit code, `bitcode[0]`; `bitcode[1..8]` are that code's four 3-bit
+groups reordered (and, from 4, each group passed through the table
+`0 4 2 6 1 5 3 7`, a 3-bit reversal), its rotations and mirrors; a name
+reading `0xeff` is skipped. The shipped set is 14 files under
+`terrain art/transitions/`, each a `.tga` beside a `.png`; run1559b's
+packet (`tools/render/patches.py`) holds 14 `AlphaInfo`s, buckets 0..13,
+their textures the `.tga`s in name order, and their `bitcode` rows as the
+rule above makes them. Each `.tga` is type 10 (run-length true colour),
+32-bit, 128 × 128, descriptor `0x08`: R, G and B are 255 on every texel
+of all 14, A runs 0 to 255. So A, which DXT3 keeps whole, is the only
+channel that carries anything. Which stage samples it and the blend
+state are unread (parked 4132b). How a patch lays it: `docs/RENDERER.md`
+§3.6, "The transition patch".
+
 ## Open questions
 
 - Where is a nation's *bonus* loaded from? The per-nation files themselves are
