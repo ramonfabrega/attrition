@@ -3850,6 +3850,10 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 ## Loop, filed 2026-11-10 — the driver's fourteenth session
 
+(4138) **A lane sat 84 minutes behind `cat >> /dev/null;` on a socket, and the waiter's first tell was QUIET at 100** (the driver's twentieth session, 2026-11-11): lane-4134's second session prefixed a backgrounded patch-and-test command with a bare `cat`; a lane's shell has a unix socket for stdin, so the `cat` never returned, at 0 % CPU, and the lane waited on a notification that could not come, with no ninety-minute status line. `lanewait.py` exited QUIET at its default 100 minutes; `--stalled-child-after` is 90 and the child was 84 minutes old. The driver read the child's command, ended the `cat` by pid, and the lane's own command ran on and landed: 140 minutes for 56 of work. Candidate: the Bash hook refuses a `cat`, `read` or `tee` with no operand at a command's head in a lane, since it reads a stdin that never closes; and the waiter's stalled-child tell names a child of a working row at 0 % CPU whose stdin is a socket after ten minutes, not ninety. The same journal quotes 31 `Gate minutes:` lines, the gate log's whole history, where the guard wants the last.
+
+(4137) **A booking quoted a count the journal's own table did not sum to** (4134's "for the Loop", the journal's line, filed at its merge; the driver's twentieth session, 2026-11-11): 4132's journal and the queue's booking of 4134 said the packet holds "1,399 drawn and 113 not" land-0 patches; it holds 1,512 drawn and 113 emptied, 1,625 records, and 4132's own alpha table sums to 1,512: the 113 were taken off twice. The item's landing bar was written on the wrong count and the lane corrected it in its first probe. Candidate: a booking that quotes a count from a journal quotes the table it sums, and `tools/queueledger.py` flags a count in a queue item that the cited journal does not hold verbatim.
+
 (4135) **The export's index is not sorted by address, and a bisect over it named the wrong function** (4131's "for the Loop", the journal's line, filed at its merge; the driver's nineteenth session, 2026-11-11): `INDEX.tsv` in the decompile export lists functions in the exporter's order, so the builder's first listing-to-function lookup, a bisect, put `TerrainData::TerrainData`'s store in an `atexit` destructor. Candidate: the listing's writer finders of `b4124/` and `b4131/` graduate into `tools/` (Loop 4130 asked for it at their third use, and this is it) with the index sorted at load and one known address asserted to resolve to its function.
 
 (4133) **A lane's note sent a rule to a section 333 bytes under its ceiling, and asked for one step that was two items** (the driver's nineteenth session, 2026-11-11): 4132's note, the driver's, named RENDERER §3.6 for the transition patch's rule; the section stood at 15,667 of 16,000 bytes, the lane's first gate went red on the ceiling at 18,420, and the paragraph was cut to a four-line pointer with the story left in the journal and a park. The same note asked for the controls, the packet's table, the reading of a choice whose edge-mask function alone is 655 decompiled lines, its port, the draw and two rows as one step; the lane landed the first half as a partial in 33 minutes and parked the rest. Candidate: `tools/brief.py` prints the room left in each section a note names and refuses a rule sent to one under a kilobyte unless the note names the new section; and a render note that asks for a port and a draw is split at design, the port scored on the packet and the draw on the photograph, as 4134 is.
@@ -16669,6 +16673,22 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot FL renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FN renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
