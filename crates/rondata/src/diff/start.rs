@@ -931,6 +931,7 @@ pub fn from_lobby(
                 halfland: Some(m.halfland.clone()),
                 map: int("MAP_STYLE").map(|v| v as i32),
                 seed: Some(game_seed),
+                tallies: None,
             });
             // `tilesets.cur_tileset`'s ground numbers, which every
             // building `Wall::start` places reads (item 4136).
@@ -1128,10 +1129,24 @@ pub fn from_lobby(
         ));
         steps.push(("build_empire: build_units, place_unit", units_built));
         words.push(("setup.cpp", 1148, sim.rng.seed));
-        // 8. `World::analyze_map` (not walked: nothing at frame 0 that the
-        // block compares reads it) and `compute_all_territory`, whose
-        // owners `build_cities`' pass already left as the original's.
-        steps.push(("World::analyze_map", false));
+        // 8. `World::analyze_map` (`docs/MAPGEN.md` §36, item 4147): the
+        // ten tallies kept on the world's record, the region bits, the sea
+        // class; then `compute_all_territory`, whose owners `build_cities`'
+        // pass already left as the original's.
+        let standard = loaded
+            .install_root
+            .as_deref()
+            .and_then(crate::mapgen::standard_map_size);
+        match standard {
+            Some(s) => {
+                sim.analyze_map(s);
+                steps.push(("World::analyze_map", true));
+            }
+            None => {
+                notes.push("World::analyze_map: no Standard map size in rules.xml".into());
+                steps.push(("World::analyze_map", false));
+            }
+        }
         sim.setup().sync_territory();
         sim.setup().settle_borders();
         steps.push(("World::compute_all_territory", true));

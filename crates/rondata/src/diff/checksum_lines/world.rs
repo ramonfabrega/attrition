@@ -257,16 +257,9 @@ const WORLD: [(usize, usize, usize, usize); WORLD_SECTIONS] = [
 /// it). The cells' `land_sub` and the masks' bit `0x4` are carried since
 /// item 4136 (`Terrain::object_placed`, `Wall::mark_behind_tiles`).
 const WORLD_HELD_OUT: &[(&str, usize)] = &[
-    ("04 size..seed.forest_size", 1),
-    ("04 size..seed.goodies", 1),
-    ("04 size..seed.land_resources", 1),
-    ("04 size..seed.mountain_size", 1),
     ("04 size..seed.player_reg", 1),
     ("04 size..seed.resource_reg", 1),
-    ("04 size..seed.rock_size", 1),
-    ("04 size..seed.sea_resources", 1),
     ("04 size..seed.total_metal", 1),
-    ("04 size..seed.total_oil", 1),
     ("05 cell.was_seen", 3600),
     ("07 wcoord_seen.wcoord_seen", 3600),
     ("09 block.body.bits", 2400),
@@ -427,6 +420,51 @@ fn the_world_line_is_the_original_s_by_section() {
         assert_eq!(held(&census(&bent, &named)), want_h, "a bent {key}");
     }
     eprintln!("world: {} kinds of field bent", bends.len());
+
+    // **The setup's tallies, bent at their input** (item 4147): the state
+    // `World::analyze_map` counts, perturbed on a copy and the function
+    // run again, returns the tally it feeds and nothing else.
+    let standard = crate::testenv::install()
+        .and_then(|i| crate::mapgen::standard_map_size(i.root()))
+        .expect("rules.xml's Standard map size");
+    let retally = |bend: &dyn Fn(&mut sim::Sim), keys: &[&str]| {
+        let mut s = sim.clone();
+        assert_eq!(
+            s.map_analysis(standard).tallies,
+            sim.world.record().tallies.expect("the setup's tallies"),
+            "frame 91's state recounts to the setup's tallies"
+        );
+        bend(&mut s);
+        s.analyze_map(standard);
+        let mut want_h: Vec<(String, usize)> = WORLD_HELD_OUT
+            .iter()
+            .map(|(f, n)| (f.to_string(), *n))
+            .collect();
+        want_h.extend(keys.iter().map(|k| (k.to_string(), 1)));
+        want_h.sort();
+        assert_eq!(
+            held(&census(&s.world_image(), &named)),
+            want_h,
+            "a bent {keys:?}"
+        );
+    };
+    // A land cell that is no forest becomes one: `forest_size` one more,
+    // beside the cell's own `flags`.
+    retally(
+        &|s| {
+            let c = (0..s.world.width() * s.world.height())
+                .map(|i| sim::world::Cell::new(i % s.world.width(), i / s.world.width()))
+                .find(|&c| {
+                    let d = s.world.cell_data(c);
+                    d.land == 0 && d.flags & sim::world::cell::FOREST == 0
+                })
+                .expect("a bare land cell");
+            let mut d = s.world.cell_data(c);
+            d.flags |= sim::world::cell::FOREST;
+            s.world.set_cell_data(c, d);
+        },
+        &["04 size..seed.forest_size", "05 cell.flags"],
+    );
 
     // **The behind bit itself** (item 4136): tile 19175, `(215, 79)`, which
     // seat 1's Small City hides, loses its `0x4` and the mask parts there.
