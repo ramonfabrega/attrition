@@ -149,6 +149,141 @@ pub fn ground_base(
     out
 }
 
+/// **The transition patch laid** (item 4139; `docs/RENDERER.md` §3.9):
+/// every `BASELAND` tile not under a placed mountain whose cell
+/// [`crate::patch::patches`] patches, its two triangles as [`ground_base`]
+/// gives them, each corner's texcoord into the patch's base (the base of
+/// `land_sub − 1`, the cell's own sub-tile) and into the alpha (the
+/// patch's grid point, in eighths of the alpha), the patch's base's index
+/// into [`GroundTextures::flat`] and the alpha's index.
+#[derive(Clone, Debug, Default)]
+pub struct GroundPatch {
+    pub tris: Vec<[[f32; 3]; 3]>,
+    pub uvs: Vec<[[f32; 2]; 3]>,
+    pub alpha_uvs: Vec<[[f32; 2]; 3]>,
+    pub of: Vec<usize>,
+    pub alpha: Vec<usize>,
+    pub tile: Vec<(i32, i32)>,
+    /// Each triangle's cell's patch, for [`patch_alpha`].
+    pub patch: Vec<crate::patch::Patch>,
+}
+
+pub fn ground_patch(
+    t: &sim::observe::TerrainScene,
+    mountains: &std::collections::BTreeSet<(i32, i32)>,
+    tex: &GroundTextures,
+    mesh: &render::terrain::TerrainMesh,
+    choice: &[Option<crate::patch::Patch>],
+) -> GroundPatch {
+    use render::terrain::{BASELAND, TILES_PER_CELL};
+    let mut out = GroundPatch::default();
+    let (tw, th) = (t.width * TILES_PER_CELL, t.height * TILES_PER_CELL);
+    if mesh.positions.len() != (tw * th * 6) as usize || choice.len() != t.land.len() {
+        return out;
+    }
+    for ty in 0..th {
+        for tx in 0..tw {
+            let (cx, cy) = (tx / TILES_PER_CELL, ty / TILES_PER_CELL);
+            let c = (cy * t.width + cx) as usize;
+            if t.land.get(c) != Some(&BASELAND) || mountains.contains(&(tx, ty)) {
+                continue;
+            }
+            let (Some(q), Some(sub)) = (choice[c], t.land_sub[c].checked_sub(1)) else {
+                continue;
+            };
+            let Some(k) = tex.index(sub, cx, cy) else {
+                continue;
+            };
+            let i = ((ty * tw + tx) * 6) as usize;
+            let [a, b, cc, d] = tile_uvs(tx, ty);
+            // The tile's corners on the patch's 5 × 5 grid, vertex `j·5 + i`.
+            let (gi, gj) = (tx.rem_euclid(4) as usize, ty.rem_euclid(4) as usize);
+            let g = |di: usize, dj: usize| {
+                let v = q.uv[(gj + dj) * 5 + gi + di];
+                [v[0] as f32 / 8.0, v[1] as f32 / 8.0]
+            };
+            let [ga, gb, gc, gd] = [g(0, 0), g(1, 0), g(1, 1), g(0, 1)];
+            for (j, (uv, auv)) in [([a, b, d], [ga, gb, gd]), ([b, cc, d], [gb, gc, gd])]
+                .into_iter()
+                .enumerate()
+            {
+                let v = &mesh.positions[i + j * 3..i + j * 3 + 3];
+                out.tris.push([v[0], v[1], v[2]]);
+                out.uvs.push(uv);
+                out.alpha_uvs.push(auv);
+                out.of.push(k);
+                out.alpha.push(q.alpha);
+                out.tile.push((tx, ty));
+                out.patch.push(q);
+            }
+        }
+    }
+    out
+}
+
+/// **The patch's weight at a point of its cell** (§3.9, the pass as
+/// read): the alpha's A at the patch's texcoord for the cell's `(u, v)` in
+/// `[0, 1]`, on level 0, the nearest texel, clamped — stage 1's
+/// `MIP_POINT` filters and `TEXADD_CLAMP` — over 255. The patch's base is
+/// laid over the base at this weight (`SRCALPHA`, `INVSRCALPHA`).
+pub fn patch_alpha(alpha: &Mips, q: &crate::patch::Patch, uv: [f32; 2]) -> f32 {
+    let e = |k: usize, c: usize| q.uv[k][c] as f32 / 8.0;
+    let au = e(0, 0) + uv[0] * (e(4, 0) - e(0, 0)) + uv[1] * (e(20, 0) - e(0, 0));
+    let av = e(0, 1) + uv[0] * (e(4, 1) - e(0, 1)) + uv[1] * (e(20, 1) - e(0, 1));
+    let im = &alpha.levels[0];
+    let x = ((au * im.width as f32).floor() as i64).clamp(0, im.width as i64 - 1) as usize;
+    let y = ((av * im.height as f32).floor() as i64).clamp(0, im.height as i64 - 1) as usize;
+    f32::from(im.rgba[(y * im.width + x) * 4 + 3]) / 255.0
+}
+
+/// The 14 transition alphas, in name order (`Transitions::init`'s table),
+/// each with its eight orientations' codes.
+pub fn load_alphas(root: &Path) -> Result<Vec<(Mips, [u32; 8])>, String> {
+    let dir = root.join("terrain art").join("transitions");
+    let mut names: Vec<String> = std::fs::read_dir(&dir)
+        .map_err(|e| format!("{}: {e}", dir.display()))?
+        .filter_map(|e| e.ok()?.file_name().into_string().ok())
+        .filter(|n| n.ends_with(".tga"))
+        .collect();
+    names.sort();
+    names
+        .into_iter()
+        .map(|n| {
+            let codes = crate::patch::bitcodes(&n).ok_or_else(|| format!("{n}: not a code"))?;
+            let bytes = std::fs::read(dir.join(&n)).map_err(|e| format!("{n}: {e}"))?;
+            let image = render::tga::decode(&bytes).map_err(|e| format!("{n}: {e:?}"))?;
+            Ok((Mips::new(image), codes))
+        })
+        .collect()
+}
+
+/// **The patch's choice on the world the client opens** (§3.8, §3.9): our
+/// cells, the tileset's `COAST_BASE` and `BASELAND` count read through
+/// `rondata::mapgen::tileset_groups`, and the texture fractal on
+/// `World.seed`.
+pub fn our_patches(
+    t: &sim::observe::TerrainScene,
+    root: &Path,
+    tileset: &str,
+    seed: u32,
+    codes: &[[u32; 8]],
+) -> Option<Vec<Option<crate::patch::Patch>>> {
+    let numbers = rondata::mapgen::tileset_groups(root, tileset)?;
+    let cells: Vec<(i8, u8)> = t.land.iter().zip(&t.land_sub).map(|(&l, &s)| (l, s)).collect();
+    let frac = sim::mapgen::Fractal::init(t.width + 1, t.height + 1, 0, 2, seed);
+    Some(crate::patch::patches(
+        &crate::patch::Ground {
+            width: t.width,
+            height: t.height,
+            cells: &cells,
+            coast_base: u8::try_from(numbers.coast_base).ok()?,
+            base_subs: u8::try_from(numbers.base_tiles).ok()?,
+        },
+        &frac,
+        codes,
+    ))
+}
+
 /// **`RUN1559B_3279_GROUND`** (item 4127; `docs/RENDERER.md` §3.6, "The
 /// ground's base layer"): of the scored tiles on run1559b's frame 3279 at
 /// its pinned camera, those whose drawn mean colour is the photograph's
