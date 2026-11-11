@@ -3850,6 +3850,10 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 ## Loop, filed 2026-11-10 — the driver's fourteenth session
 
+(4126) **A layout table's offsets banked two constants no mechanism carries, and the builder booked it to the base** (the driver's seventeenth session, 2026-11-11): 4121's leaders emitter lists `LeaderData`'s leaves by offset, `attacked` at `+0x9cc` and `my_team_terr` at `+0x9ec` among them. `docs/GROUPS.md` names 0x9cc (a group record's size) and `docs/COMBAT.md` 0x9ec as constants no crate carries; the constant guard reads a hex anywhere in code as built, so both pins fell (GROUPS 3 → 2, COMBAT 2 → 1) on a coincidence, the class parked 802, 820 and 975 name. The builder's hand-back and its commit said the base had left them bankable and that none of its constants was spelled in either document; the base's guard had passed twice on the driver's tree that hour, and a `git grep` of the two values named the table in a minute. The pins are merged as the guard demands and are wrong by one each. Candidate: the guard does not read a `(name, offset, width)` leaf table as building anything (the checksum emitters' tables listed, as the sweep's files are), the two pins restored; and a hand-back that moves a pin it says it did not cause names the value that moved it.
+
+(4125) **A line whose ranges are records of hundreds of leaves is not measured by its ranges** (4121's "for the Loop", the driver's seventeenth session, 2026-11-11): the leaders' 26,914-byte long range is one range, so one unheld leaf keeps the whole range out and 263 of 267 ranges agreeing reads as nearly whole on 4,313 of 58,343 bytes. Candidate: such a line is booked by its leaf census — agreeing, parting and unheld leaves with their bytes — and the item after it scores on the held-out list's length, as 4124 does; the world line's design takes the same form before its builder is cut.
+
 (4123) **A chunk a decoder kept "as stored and unchecked" was read at the wrong stride from the item that decoded it, and nothing could notice** (4122's "for the Loop", the driver's seventeenth session, 2026-11-11): `render::bh3` kept the model's normals at the chunk's sixteen-byte stride since item 4019, while the loader copies `n · 12` packed bytes; read that way a third were unit length and they sat a median 90° from their faces. No draw read them, so no test could part, 4114's candidate took face normals instead, and two parked rows then named the stored ones as the row's unprobed word. Candidate: a decoder that keeps a field no consumer reads asserts one property of it at the decode (unit length, a range, a count), or does not keep it; a `render` test lists the kept fields with the assertion each has.
 
 (4120) **A field a builder gave the sim's unit stood unowed through its guard, its tests and its booking, and a whole gate found it** (the driver's sixteenth session, 2026-11-11): 4113 put `hero`, `play` and `special` on the unit for the checksum's units line; the dumps' unit record prints keys of those names, and `diff::coverage`'s guard holds that such a key is compared or owed to an item. The builder's whole `tools/guard.sh` and its floor tests do not run that guard, the brief named no such test, and the booking gated beside the next builder: the red came 28 minutes into the whole gate, and again as the one red of lane 4117's own gate on a branch that touched no simulation code. One fix commit (`401ef9061`), the keys owed to 4118. Candidate: a builder's brief names `diff::coverage` among the tests it runs in release before its hand-back whenever it adds a field to a record a dump prints, and the driver runs it with the census pin at the merge (the sixteenth's opener says so) — or `tools/guard.sh` takes the source-only half of that guard, which read no dump and failed in 0.01 s.
@@ -16516,18 +16520,28 @@ words and edits nothing here; a refill lands when two remain.
   photograph adds over the tank is neither texel nor diffuse shading, and which branch draws it stays unread (4114a).
   Rests on one photograph and the reading of `load_norms`; names no score until a mechanism is chosen.
 
-## Parked by the next landing, slot FD — reserved
+## Parked by item 4121, 2026-11-11 — the leaders line, held out
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4121a. What the leaders line rests on that no scored frame holds** (`docs/CHECKSUM.md` §20, "Not established"; the builder's hand-back).
+  Every frame but run 1562's 91; `leader_flags` bits 0x10 and 0x80000 (run1100's computers) and the `leader_flags2` bits past 0x800 and 0x1000;
+  `bonus_cap[6]` (0 here, not held); both floats on a frame where a writer's term holds — `anti_att` under a Foraging tier, Liberty, the Mongol
+  bonus or titanium; a kept site at cell (0, 0), which the cleared-site rule would read as empty; a diplomacy record after any action (the crate
+  stops the offers arm at a seam); the conquest masks under a wonder or a scenario; the long range's constant writers, known as families from a
+  scripted grep and not each read whole (4124). Names no score until a scored frame holds one: a second frame of the minted game is the place
+  (with parked 4104a, 4113a, 4116a).
 
 ## Parked by the next landing, slot FE — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot FE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FF renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
