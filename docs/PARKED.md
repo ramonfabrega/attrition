@@ -16620,11 +16620,11 @@ words and edits nothing here; a refill lands when two remain.
   `diff::checksum_lines::world`). On run 1562's frame 91 the masks agree on 57,469 of 57,600 tiles; the 131 that part
   are ours without `0x4`, all on tiles of cells (53..58, 19..25) and (2..7, 36..41), the two start cities. The writer is
   unread. Booked with `land_sub`'s 8 cells as item 4136; this row stands until that lands.~~ Carried by item 4136: `docs/MAPGEN.md` §35, the tiles a started building hides.
-- **4131b. `World::analyze_map`'s ten tallies** (§21; `04 size..seed`, ten fields of one element each: `forest_size`,
+- ~~**4131b. `World::analyze_map`'s ten tallies** (§21; `04 size..seed`, ten fields of one element each: `forest_size`,
   `goodies`, `land_resources`, `mountain_size`, `player_reg`, `resource_reg`, `rock_size`, `sea_resources`,
   `total_metal`, `total_oil`). Counts over cell flags, a tile's `mask & 3 == 2`, `MountainsData::total_gather_size` and
   the land regions that hold a seated leader's city or are large enough; run where `Setup::build_game` runs it. Names
-  section 4 whole (120 bytes, printed 1914505471) and the start track's unestablished `analyze_map`.
+  section 4 whole (120 bytes, printed 1914505471) and the start track's unestablished `analyze_map`.~~ Carried by item 4147: `docs/MAPGEN.md` §36, section 4 whole.
 - **4131c. The collision blocks' allocation** (§21; section 9, 17,000 bytes: `present` 3,600, 25 heads, 25 bodies).
   `World::new_coll_block` is unread and the crate's `CollGrid` is flat and keeps no allocation. The heads are the
   `BitMask<768>` constructor's (768, 96) and the bodies the grid's bits, so both follow once presence is held. Record
@@ -16743,13 +16743,17 @@ words and edits nothing here; a refill lands when two remain.
 - **4145c. The window under a real mouse** (`docs/CLIENT_INPUT.md` §1, §4). `main.rs` feeds the same layer under the
   window's own size, where the tests use `graphsys`'s. It is checked by eye only.
 
-## Parked by the next landing, slot FP — reserved
+## Parked by item 4147, 2026-11-11 — `World::analyze_map`'s ten tallies
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4147a. The `WORLD` census is parsed, and two documents say it is not** (`docs/AI.md` §54.4; parked 455). `Initial::world`
+  parses the start dump's `WORLD` record, and since item 4147 eight of its fields are compared at frame 0 on 18 start dumps
+  (`diff::setup::the_map_s_tallies_are_every_start_dump_s`). The two texts are stale; amend them in place. Names no score.
+- **4147b. The eight tallies against every block, not only frame 0** (`docs/MAPGEN.md` §36). They are frozen after
+  setup by both nets (`analyze_map`, `wipe`, `close`, `init` the only writers; `Setup::build_game` the one caller), so a
+  per-frame compare is cheap and would catch a later writer the nets missed. Names no score while they hold at frame 0.
+- **4147c. What the tallies rest on that no dump prints** (`docs/MAPGEN.md` §36, "Not established"). The two region counts
+  on any map but Great Lakes; bit 8 and the sea class's computed arm, which no walked lobby reaches; a non-land region
+  numbered 1 to 63; a dump-built game keeps no tallies; the restore (`World::walk_data`) is unread.
 
 ## Parked by the next landing, slot FQ — reserved
 
@@ -16763,6 +16767,22 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot FR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FT renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
