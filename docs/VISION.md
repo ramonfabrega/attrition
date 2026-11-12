@@ -1590,3 +1590,79 @@ not build that frame.
 - The words' readers: `WorldData::was_seen_wcoord` reads `was_seen`
   and `WorldData::is_seen_wcoord` reads `wcoord_seen`, and this crate
   reads neither word.
+
+## 13. The leader's `explored`: one `seen2` byte per region cell (item 4153, 2026-11-11)
+
+**The rule.** `Leader::check_explore` rebuilds `LeaderData::explored`
+(`+0x9d4`) from zero. A leader holding `EXPLORE_MAP_BONUS`
+(`LeaderData::has_preq`'s plain prerequisite walk, Electronics in the
+shipped file, and no tribe arm, so the Spanish do not take it here) gets
+`reg_size` (`world+0x2c`) outright. Every other leader walks the region
+grid, `reg_ys` rows (`world+0x28`) of `reg_xs` cells (`world+0x24`), and
+counts the region cells whose sample byte in `seen2` (`world+0x160`, row
+stride `fog_xs`, `world+0xc`) carries `(byte)(1 << (who & 0x1f))`. The
+sample for region cell `(rx, ry)` is fog cell `(4·rx + 3, 4·ry + 3)`. A
+region cell is two world cells, and a world cell is two fog cells, so the
+sample is the last fog cell of the sixteen, one byte in sixteen. The listing
+agrees: the row pointer starts at 3 and steps by 4 per region row, and the
+column term is `iVar2 * 4 + 3`.
+
+**The schedule** is the one `crate::ai::cadence::explore_due` already kept:
+`Leaders::strategy_all` calls it first for each leader with
+`leader_flags & 3 == 3`, every frame, and the function runs its body on
+frame 0 and whenever `(who·25 + frame + 12) % (200 / ai_speed) == 0`. With
+`ai_speed` 1 the period is 200 frames. On run 1562 the only counting frame
+up to 91 is frame 0 for both leaders (leader 1 counts next on 163, leader 0
+on 188), so frame 91's `explored` is frame 0's count. Over frame 91's own
+`seen2` the sample gives 19 and 23. Leader 1 lit one more sampled cell
+between frame 0 and frame 91, and the original had not counted it yet.
+
+**The writers**, by both nets. In the export, `->explored` and
+`field_0x9d4` on a leader are `check_explore`'s two stores (`reg_size`, then
+0 and the increment) and `Leader::init`'s 0. In the listing, every
+`+ 0x9d4]` displacement store sits either on another class (`Group`,
+`HotKeyGroup`, `Game`, `Constants`, `TerrainMap`, the windows) or in those
+two functions. `ScenarioFuncSet::set_explored` writes the fog, not this word,
+and is on a cut track. The word's one reader in the original is
+`LeaderData::log_data`. In this crate the readers are the checksum's leaders
+line and the leader record's diff.
+
+**The port** (`crates/sim/src/ai/ai_census.rs`, `Sim::check_explore`):
+integers only, called where it was before. A world with no fog grid
+installed is seen everywhere (`World::seen2` answers `None`) and counts
+`reg_size`, the bonus's answer. The seam's `(w / 2) × (h / 2)`, 900 on a
+60 × 60 map, is gone.
+
+**What the diff backs.** On run 1562's frame 91, `explored` agrees on both
+walked leaders: leader 0's 19 against 19, and leader 1's 22 against 22
+(`diff::checksum_lines::the_leaders_line_is_the_original_s_range_by_range`).
+`LEADERS_HELD_OUT` goes from 100 names to 99. The leaders line's ranges
+and bytes do not move (263 of 267, 4,313), because each leader's long range
+is still out on the other 99 leaves.
+
+**Measured once, every frame, and not kept.** One commit put `explored`
+into the leader record's diff (`diff::leader::rows`, off `UNMODELLED`), and
+`diff::` ran whole on it: 1,802 passed, 54 failed. Thirty of the failures
+were row-count pins that had grown by one key per leader per block. The
+other 24 parted on `explored`, all on leader 0 in twelve late-age pairs
+(American, Bantu, British, Chinese, Egyptian, German, Roman and Russian
+Modern; French, Russian, Spanish and Turkish Information), with
+ours always one or two below theirs. Examples: French Information run1448b
+on f2989 (ours 29, theirs 30), Turkish Information run1446b on f2789 (27,
+28), and Bantu Modern run1405b standing at 3395 (32, 34). Every other
+widening that prints the leader record raised no parting on it, among them
+the golden chapters, the harness runs, the leader windows, the third map
+and the melee seats. The commit was reverted, and the count is parked
+4153a. No fog parting is printed beside the 24.
+
+**What rests on the reading.** The bonus arm: no capture on disk is known
+to hold Electronics while it counts. The Spanish exclusion. Gaia's bit.
+
+**Not established.**
+
+- An `ai_speed` other than 1 (the `ai speed increase` cheat).
+- A leader holding `EXPLORE_MAP_BONUS` when it counts.
+- Why leader 0 counts one or two fewer region cells in the twelve late-age
+  pairs (parked 4153a). Two candidates: a sampled fog cell our walk leaves
+  dark there, or the window's fog installed from the dump against a count
+  taken before it.

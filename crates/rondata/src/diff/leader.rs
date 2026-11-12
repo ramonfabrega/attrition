@@ -45,7 +45,10 @@ pub(crate) const UNMODELLED: &[(&str, &str)] = &[
     ("att", "the attrition score counters are unread"),
     ("anti_att", "the attrition score counters are unread"),
     ("blacken", "fog bookkeeping"),
-    ("explored", "check_explore's visibility recount is a seam"),
+    (
+        "explored",
+        "ported (VISION §13); leader 0 one or two under in twelve late-age pairs (parked 4153a)",
+    ),
     ("pop_issues", "the population-pressure counter is unread"),
     (
         "misc_stamps",

@@ -71,7 +71,6 @@ const OBJ_MASK_MISSILE: u32 = 0x800_0000;
 /// `unit_flags2 & 4` come from the type's columns.
 /// | region flags `& 8` | clear | step 15's two-landmass expand probe never fires. |
 /// | `Armies::init_navy` | seeded by `create_units`' sea branch | step 16 is `Sim::census_seed_army` (`docs/ARMY.md`); the sea branch seeds the navy since item 579 (`docs/ORDERS.md` §25.3). |
-/// | `check_explore`'s visibility | every region cell counts | no fog: the leader has seen the map. |
 ///
 /// `home_reg`, `pop`, `control` and `scouts` are *not* seams: the sweep
 /// reads them and never writes them, so they stay whatever the rest of the
@@ -1233,24 +1232,49 @@ impl Sim {
     }
 
     /// `Leader::check_explore@006bc860`: the explored recount
-    /// (`docs/AI.md` §2.1). Its cadence lives in the driver
-    /// ([`crate::ai::cadence::explore_due`]), so this is the body only.
+    /// (`docs/AI.md` §2.1, `docs/VISION.md` §13). Its cadence lives in the
+    /// driver ([`crate::ai::cadence::explore_due`]), so this is the body
+    /// only.
     ///
-    /// With `EXPLORE_MAP_BONUS` the original answers `reg_size`
-    /// (`world+0x2c`) outright; otherwise it walks the **region grid**
-    /// (`reg_xs × reg_ys`, `world+0x24`/`+0x28`) and counts the cells whose
-    /// sample byte in `seen2` (`world+0x160`, stride `fog_xs`) carries the
-    /// leader's bit. That grid is two world cells across each way: `seen2`
-    /// is indexed `div_3_table[pos >> 7]`, half a world cell, so `fog_xs`
-    /// is twice `xs`, and check_explore's `fog_xs * (4·ry + 3) + 4·rx + 3`
-    /// steps four fog cells per region cell.
+    /// Holding `EXPLORE_MAP_BONUS` (`LeaderData::has_preq`'s plain
+    /// prerequisite walk — no tribe arm, so not the Spanish) it answers
+    /// `reg_size` (`world+0x2c`) outright. Otherwise it zeroes the count and
+    /// walks the **region grid** (`reg_xs × reg_ys`, `world+0x24`/`+0x28`),
+    /// counting the region cells whose sample byte in `seen2` (`world+0x160`,
+    /// stride `fog_xs`, `world+0xc`) carries the leader's bit
+    /// `1 << who`. The sample for region cell `(rx, ry)` is fog cell
+    /// `(4·rx + 3, 4·ry + 3)`: a region cell is two world cells, a world
+    /// cell two fog cells, and the `+ 3` is the last fog cell of the four
+    /// each way. One fog byte in sixteen is read.
     ///
-    /// There is no visibility here, so the seam answers what
-    /// `EXPLORE_MAP_BONUS` would: the whole region grid. The rounding when
-    /// the world has an odd extent is not established.
+    /// The only writers of `LeaderData::explored` (`+0x9d4`) are these two
+    /// stores and `Leader::init`'s zero, by name in the export and by the
+    /// displacement in the listing; its only reader there is
+    /// `LeaderData::log_data`, and here the checksum's leaders line.
+    ///
+    /// A world with no fog grid installed is seen everywhere
+    /// ([`crate::world::World::seen2`]'s `None`), so it counts every region
+    /// cell — what the bonus answers.
     pub fn check_explore(&mut self, who: Player) {
         let w = who as usize;
-        self.ai.ai[w].census.explored = (self.world.width() / 2) * (self.world.height() / 2);
+        let reg_size = self.world.reg_size();
+        if !self.world.has_fog()
+            || self.holds_bonus(who, self.tables.tech_tree.roles.explore_map_preq)
+        {
+            self.ai.ai[w].census.explored = reg_size;
+            return;
+        }
+        // `(byte)(1 << (who & 0x1f))`: Gaia's 8 and above test no bit.
+        let bit = (1u32 << (u32::from(who) & 0x1f)) as u8;
+        let mut n = 0;
+        for ry in 0..self.world.reg_ys() {
+            for rx in 0..self.world.reg_xs() {
+                if self.world.seen2(4 * rx + 3, 4 * ry + 3).unwrap_or(0) & bit != 0 {
+                    n += 1;
+                }
+            }
+        }
+        self.ai.ai[w].census.explored = n;
     }
 }
 

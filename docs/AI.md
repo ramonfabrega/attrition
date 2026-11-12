@@ -90,10 +90,9 @@ enters `plan_strategy`; the "human gate" inside `production_ai` is for the
 
 `Leader::check_explore@006bc860` (read, 47 lines): at frame 0 and whenever
 `(who·25 + frame + 12) % (200 / ai_speed) == 0`, recount `explored`
-(`+0x9d4`): the whole map's cell count (`world+0x2c`) with
-`EXPLORE_MAP_BONUS`, else the number of cells whose visibility byte
-(`world+0x160` row stride `world+0xc`, byte 3 of each 4-byte cell) has bit
-`who` set. Pure recount, no decision.
+(`+0x9d4`): `reg_size` with `EXPLORE_MAP_BONUS`, else the region cells
+whose `seen2` sample has bit `who` (`docs/VISION.md` §13, item 4153). Pure
+recount, no decision.
 
 ### 2.2 `plan_strategy`'s cadence
 
@@ -1918,8 +1917,7 @@ folded back into §2's prose.
 - **Meeting** (§2.3 step 6) is skipped whole; every other active leader
   counts as met, else steps 14–15 would be dead. A second opinion wanted.
 - **Step 16, the army seeding**, is skipped (`docs/ARMY.md`).
-- **`check_explore`'s extent** — the region grid at `(w/2)·(h/2)`, from the
-  two index expressions; never checked against a dump.
+- ~~**`check_explore`'s extent**~~ — `reg_xs × reg_ys`, diffed: `docs/VISION.md` §13.
 - ~~Two census verdicts sit on aliased decompiler locals and want the
   listing: step 13's inner cutoff (`i + 1 < circle_radius[..]`) and step
   15's operand order in the weaker test (§2.3).~~ **Closed by the second

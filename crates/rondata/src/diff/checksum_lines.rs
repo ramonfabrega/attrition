@@ -1751,6 +1751,11 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 4, 4313);
 /// named bare parts, a leaf marked `(unheld)` is one this crate holds no
 /// value for (emitted as zeros, and counted whether or not the original's
 /// value is zero). `docs/CHECKSUM.md` §20 sorts each into its pile.
+///
+/// Item 4153: 100 → 99 names. `explored` agrees on both leaders —
+/// leader 0 19 = 19, leader 1 22 = 22 — since `Leader::check_explore`
+/// counts `seen2` on its own phase frames (`docs/VISION.md` §13); the
+/// long range stays out on the other 99, so [`LEADERS`] does not move.
 const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("air_queued (unheld)", 2),
     ("ally_stamp (unheld)", 2),
@@ -1783,7 +1788,6 @@ const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("defeated_by (unheld)", 2),
     ("dock_queued (unheld)", 2),
     ("dow (unheld)", 2),
-    ("explored", 2),
     ("factory_queued (unheld)", 2),
     ("fort_mark (unheld)", 2),
     ("forts_built (unheld)", 2),
