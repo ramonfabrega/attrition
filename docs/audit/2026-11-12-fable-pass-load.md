@@ -29,12 +29,17 @@ on the row. Decisions in entry 129. The pass before it is
 - **The week closes near 60 % at this pace.** 17 % at 21:20Z, 37 hours
   left, 1.2 points an hour. The host binds, not the window; I would not add
   a fifth worker before the receipts say what loads it.
-- **The leaders line has an oracle nobody had used**: three mid-raid
-  packets of a game we replay in lockstep. It is the chain's next step.
-- **Yours to strike: a plain HUD** (item 4197). The interface is the
-  largest difference between our picture and theirs, and two orders hide
-  behind keys.
-- **Yours to run: 65 merged branches on origin.** `git branch -r --merged
+- **The milestone's checksum has an oracle nobody had used: 108 packets
+  on disk**, taken for other questions, on three maps at frames 91 to
+  17,146. The pair stood on frame 91 alone. Comparing every state line on
+  each is the chain's next step.
+- **No fifth worker yet, on your word**: the passes go deeper first, and
+  the next one reads the load receipts and takes it up again.
+- **A plain HUD is booked** (item 4197), first on the input lane, with
+  its specification written by the pass (`docs/HUD.md`). The interface is
+  the largest difference between our picture and theirs, and two orders
+  hide behind keys.
+- **Run by you during the pass: 65 merged branches deleted from origin.** `git branch -r --merged
   origin/main | grep -E 'origin/worktree-(att|agent)-' | sed 's#origin/##'
   | xargs -n 20 git push origin --delete`
 - **The wgpu note: nothing to adopt**, one gap fixed (the shader test
@@ -110,7 +115,7 @@ repository. By eye, no boxes taken:
 
 | item | kind, gate | the score | how it fails today |
 |---|---|---|---|
-| 4188 step P, the leaders line on the packets | chain, whole | a `Checksum:` clause, leaders ranges on each packet frame; `LEADERS_HELD_OUT` by each unprinted leaf | only frame 91 is compared |
+| 4188 step P, the checksum's lines on every packet | chain, whole | a `Checksum:` clause, lines agreeing of 12 a packet over the packets our walk holds; `LEADERS_HELD_OUT` by each unprinted leaf | only frame 91 is compared |
 | 4187 step VI | chain, whole | `LEADERS_HELD_OUT` 61 by up to 18 | the leaves are held |
 | 4189 the quit on a closing block | chain, whole | `LEADERS_HELD_OUT` by `defeat_type`, `victory_type` | 0 or 5 against 6; 2 against 0 |
 | 4190 the paved base | render, whole | a row over the plaza's tiles on two stills | bare grass |
@@ -120,11 +125,27 @@ repository. By eye, no boxes taken:
 | 4194 one unit's press | input, scoped | the re-minted clicked file played in lockstep | the layer mints the minimap's fields |
 | 4195 the attack, played | input, scoped | `INPUT_ATTACKED` n of n; the target's hits equal | no file carries one |
 | 4196 Southwest Mesa, British Isles | start, whole | `Start: 143 of 161` | 18 lobbies part |
-| 4197 a plain HUD | render's brief, scoped | `Hud:` k of k values; the clicked file from button presses | nothing drawn |
+| 4197 the HUD's menu and panel | render's brief, scoped | `Hud:` the clicked file from button presses, k of k; the panel's numbers the dump's | no button |
+| 4198 the HUD's bar | render's brief, whole | `Hud:` each number the `LEADERDATA` record's | the door carries no leader state |
 
 Order: the builder on 4188, 4187, 4189, then VII. The whole slot: 4190,
-4191, 4196. The scoped render lane: 4192, 4193. The input lane: 4194, 4195,
-then 4197.
+4198, 4191, 4196. The scoped render lane: 4192, 4193. The input lane: 4197, 4195,
+then 4194.
+
+## What the pass ran, to check an item before booking it
+
+`uv run --locked --project tools/emu python tools/recomp/checksum.py
+<exe> ~/ron-golden/run1570/map-14/frame-snapshot.bin`: logger frame 3331,
+`check_all` returned in 10.4 s, 273,201 ranges and 1,572,230 bytes, the
+stream's sums equal to the original's on every line. Units 4,240 ranges
+and 75,779 bytes, builds 1,890, deaths 4 ranges and 150 bytes, groups 556,
+guys 1,112, leaders 271 and 58,446, cities 30, items 75, goods 180, world
+8,294 and 310,369; walls and ammo empty. `find ~/ron-golden ~/ron-data
+-maxdepth 4 -name frame-snapshot.bin` lists 108: 14 on map 14 beside the
+four of this week, the rest on maps 18 and 7; `docs/RUNS.md` names 158
+`RON_STATE_FRAME` lines. run1564's packet is frame 3294, run1559b's own
+frame with the camera moved, so those two must give one leaders line.
+Not run: any packet but run1570's, and our side of any.
 
 ## Built
 
@@ -192,6 +213,9 @@ and removed its tree.
   off-map colour** are on the photographs and under no row.
 - **The leaders line's end is not designed past step P**: what is left
   when VI and VII land depends on what the packets release.
+- **The fifth worker.** A reader row on second readings and the census
+  filler would spend Opus without loading the gate; Ramon's word is that
+  the passes go deeper first.
 - **`afsctool`** was skipped, as said above.
 
 ## The gate

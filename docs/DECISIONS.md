@@ -12520,9 +12520,12 @@ move.
    builds. Under it, `release_gate.py --lane --whole` takes a host-wide
    lock (`~/Library/Caches/attrition/whole-lane.lock`): a second whole lane
    gate names the holder and waits. A booking gate takes none. A fifth
-   worker is not recommended: the week closes near 60 % at this pace, so
-   the window does not bind, but nobody has measured what the load is made
-   of (§4).
+   worker is not added: the week closes near 60 % at this pace, so the
+   window does not bind, but nobody has measured what the load is made of
+   (§4). Ramon, asked: "i think we can go deeper in passes before 5th
+   lane … maybe we go deeper and next steer or in a few we consider 5th".
+   So the passes go deeper first — Fable's own week read 10 % — and the
+   next pass reads the receipts and takes the fifth up again.
 2. **The disk step keeps a generation in use.** A reader marks its
    generation once a process; the sweep keeps a foreign generation used
    within twelve hours and removes the rest; one failed removal is
@@ -12543,14 +12546,20 @@ move.
    the measurement.
 5. **An unprinted leaf is released on the packets.** Entry 128 §3 releases
    a leaf that a dump prints. 25 leaves of the leaders line are printed by
-   none, and fourteen held ones need a per-blow record no dump has. Three
-   packets of a game our walk replays in lockstep are on disk, mid-raid
-   (run1559b at 3294, run1564, run1570 at 3331): **an unprinted leaf
-   leaves `LEADERS_HELD_OUT` when it agrees on every packet on disk, at
-   least one of them a packet on which it is not zero**, the packet read by
-   the original's own leaders walk as frame 91's was. Step P (item 4188)
-   builds it, ahead of step VI, for the reason T went ahead of V: it is
-   the oracle every later step's leaves are released by.
+   none, and fourteen held ones need a per-blow record no dump has. **108
+   packets are on disk**, taken over two months for other questions, on
+   three maps at frames 91 to 17,146, each the original's memory at a
+   frame boundary of a captured game; the milestone's pair used one, frame
+   91's. The pass ran the original's own walk on run1570's (frame 3331, a
+   raid on): fifteen lines in 10.4 s, the deaths line 4 ranges where frame
+   91's is empty, the leaders line 271 ranges and 58,446 bytes. **An
+   unprinted leaf leaves `LEADERS_HELD_OUT` when it agrees on every packet
+   whose game our walk holds, at least one of them a packet on which it is
+   not zero.** Step P (item 4188) wires each packet to its game and frame
+   and compares all twelve state lines there, not the leaders line alone,
+   ahead of step VI, for the reason T went ahead of V: it is the oracle
+   every later step's leaves are released by, and it takes the milestone's
+   step 5 from one frame to as many as the disk holds.
 6. **The lanes take what the eye finds** (the pass looked at three stills
    beside their photographs): the paved base (4190) and the corpse and
    round (4191) on the whole slot; the lake's shore and floor (4192) and
@@ -12563,7 +12572,12 @@ move.
    two of the orders the mouse mints hide behind keys. Porting the
    original's windows stays cut (entry 128 §6); this is a bar, a panel and
    a menu in the lobby page's manner, scored on values the dump prints and
-   on the clicked file minted from button presses.
+   on the clicked file minted from button presses. Ramon, asked what to
+   choose, was told to keep it and did not strike it. The pass wrote its
+   specification first (`docs/HUD.md`) and split it at the gate: the menu
+   and the panel read what the scene carries (4197, scoped, first on the
+   input lane); the bar needs a leader's record through the door (4198,
+   whole).
 8. **The wgpu examples change nothing but one list.** `include_wgsl!` in
    the pinned wgpu 30.0.1 is a descriptor over `include_str!` and
    validates nothing; three of our seven sources are assembled at run
@@ -12573,13 +12587,14 @@ move.
    reading found `Gpu::new` building seven modules and the naga test
    validating five; one list now serves both.
 9. **The merged branches on origin are Ramon's to delete**, or his to
-   allow: 65 stand, and the classifier refuses a session the delete. The
-   line is in the pass's record.
+   allow: 65 stood, and the classifier refuses a session the delete. The
+   line is in the pass's record; he ran it during the pass and the 65 are
+   gone.
 
 **Not established:** what the host's load was made of; whether twelve
-hours is the right age (it over-keeps a few GiB at most); whether each
-packet's boundary is a frame our walk holds and the original's leaders
-walk runs on a 3,300-frame heap as it did on frame 91's; whether the paved
+hours is the right age (it over-keeps a few GiB at most); how many of
+the 108 packets are frames of a game our walk holds, and whether the
+older ones read under today's plan (one was walked, run1570's); whether the paved
 base is `Roads`' state or the city's footprint; whether the week's pace
 holds with one whole lane at a time; the finer gate rule (which paths can
 move a timed test), unbuilt for a third pass.

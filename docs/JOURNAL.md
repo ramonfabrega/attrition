@@ -22067,14 +22067,17 @@ gate; the sweep keeps a generation used within twelve hours; the clock
 waits for the host before a second session and the memcap fixture's bound
 runs from the moment its child holds its memory; the receipt prints `Host
 top:`, since nobody yet knows what the load is made of; an unprinted leaf
-of the leaders line is released on the three mid-raid packets already on
-disk, and step P (4188) goes ahead of VI. The client's still beside three
+of the leaders line is released on the packets already on disk — 108 of
+them, frames 91 to 17,146, where the checksum's pair stood on one; the
+original's walk ran on frame 3331's in 10 s — and step P (4188) compares
+all twelve lines there, ahead of VI. No fifth worker yet, on Ramon's
+word: the passes go deeper first. The client's still beside three
 photographs: the interface is the largest difference and had no item; then
 the paved base, smoke and fire, and on the lake a hard-edged deep polygon
-and a sawtooth shore. Booked: 4188, 4187, 4189 on the chain; 4190 to 4197
+and a sawtooth shore. Booked: 4188, 4187, 4189 on the chain; 4190 to 4198
 on the lanes — the base, the corpse and round, the lake's shore and floor,
 the figures' shadows, one unit's press, the attack played, Southwest Mesa,
-a plain HUD that is Ramon's to strike. Ramon's wgpu note: nothing to
+a plain HUD in two items, specified first in `docs/HUD.md`. Ramon's wgpu note: nothing to
 adopt; the reading found the naga test validating five of seven modules,
 fixed by one list. Built by three Opus builders, red first. The rubric:
 the territory 733 · 332 · 574 from item 4186. **DECISIONS 129.**
