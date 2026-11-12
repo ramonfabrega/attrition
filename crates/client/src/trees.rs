@@ -9,40 +9,40 @@
 //! `ALPHA_TEST VERTEX_COLOR_DIFFUSE TL_FAKE_LIGHT` and no `LIGHTING`; the
 //! vertices' diffuse is `render::silhouette::TREE_DIFFUSE`.
 
+#[cfg(test)]
 use render::silhouette::Texel;
 
 /// **How a tree's pixel is coloured** (item 4173; the candidates the row
 /// counts, the rule committed before the count).
+#[cfg(test)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TreeColour {
     /// The flat green `World::tree_soup` drew before item 4173, shaded by
     /// its face and stored by the sRGB target: the client's still.
-    #[cfg_attr(not(test), allow(dead_code))]
     Flat,
     /// The stage colour alone: the leaf's texel under `ADDSIGNED` with the
     /// vertex diffuse (`CURRENT` on stage 0 the diffuse, as Direct3D
     /// defines it), `t + 0x80 − 127.5`.
-    #[cfg_attr(not(test), allow(dead_code))]
     Texel,
     /// [`TreeColour::Texel`] through `TL_FAKE_LIGHT` and the tone map
     /// (`render::silhouette::fake_light`).
-    #[cfg_attr(not(test), allow(dead_code))]
     FakeLight,
     /// The shader read literally: `CURRENT` on stage 0 the initial
     /// `outColor` of 1, so `t + 127.5` clamped, through `TL_FAKE_LIGHT`
     /// and the tone map.
-    #[cfg_attr(not(test), allow(dead_code))]
     Literal,
 }
 
 /// **The colour a tree's pixel is drawn in** (item 4173): the candidate
 /// the rule picks, most trees agreeing by colour — `RUN1559B_3279_TREES`.
+#[cfg(test)]
 pub const DRAWN: TreeColour = TreeColour::FakeLight;
 
 /// The flat green `World::tree_soup` lays, before its face's shade.
 pub const FLAT_GREEN: [f32; 3] = [0.25, 0.45, 0.2];
 
 /// A linear 0–1 channel as an sRGB target stores it, 0–255.
+#[cfg(test)]
 pub fn srgb_byte(c: f32) -> f32 {
     let c = c.clamp(0.0, 1.0);
     let e = if c <= 0.003_130_8 {
@@ -53,6 +53,7 @@ pub fn srgb_byte(c: f32) -> f32 {
     e * 255.0
 }
 
+#[cfg(test)]
 impl TreeColour {
     /// The pixel's colour, 0–255, from the leaf's texel and the face it is
     /// drawn on (for [`TreeColour::Flat`]'s shade).
@@ -72,6 +73,7 @@ impl TreeColour {
 
 /// [`TreeColour::colour`] over a painted window (`render::silhouette::
 /// paint_cut`'s texels, `tris` the tree's triangles).
+#[cfg(test)]
 pub fn recolour(
     texels: &[Option<Texel>],
     tris: &[[[f32; 3]; 3]],

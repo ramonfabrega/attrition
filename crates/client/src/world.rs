@@ -285,6 +285,9 @@ pub struct TreeMeshes {
     /// The seven textures (`rondata::artdata::TreeArt::textures`), `None`
     /// where one does not decode.
     pub textures: Vec<Option<render::tga::Image>>,
+    /// [`TreeMeshes::textures`] on their one level, shared with the GPU's
+    /// tree pass (item 4173).
+    pub leaf_mips: Vec<Option<std::sync::Arc<render::silhouette::Mips>>>,
 }
 
 /// One tree model's texcoords, one a vertex, and the texture (0–6) each
@@ -547,7 +550,28 @@ impl World {
             .and_then(|t| rondata::artdata::tree_art(&install, &t).ok())
             .map(|art| {
                 let root = install.root().to_path_buf();
+                let textures: Vec<Option<render::tga::Image>> = art
+                    .textures
+                    .iter()
+                    .map(|t| {
+                        let bytes = std::fs::read(resolve_art(&root, t)?).ok()?;
+                        render::tga::decode(&bytes).ok()
+                    })
+                    .collect();
+                // Item 4173: each texture on its one level, as
+                // `RTreeData::tree_textures` holds it (§3.7), for the GPU.
+                let leaf_mips = textures
+                    .iter()
+                    .map(|t| {
+                        t.as_ref().map(|i| {
+                            std::sync::Arc::new(render::silhouette::Mips {
+                                levels: vec![i.clone()],
+                            })
+                        })
+                    })
+                    .collect();
                 TreeMeshes {
+                    leaf_mips,
                     scale: art.treescale * render::trees::TREESCALE_FACTOR,
                     models: art
                         .models
@@ -576,14 +600,7 @@ impl World {
                             Some(render::trees::slots(&bh3::decode(&bytes).ok()?))
                         })
                         .collect(),
-                    textures: art
-                        .textures
-                        .iter()
-                        .map(|t| {
-                            let bytes = std::fs::read(resolve_art(&root, t)?).ok()?;
-                            render::tga::decode(&bytes).ok()
-                        })
-                        .collect(),
+                    textures,
                 }
             });
         let cats = loaded.unit_types.iter().map(|t| t.cols.cat).collect();
@@ -968,18 +985,52 @@ impl World {
             .collect()
     }
 
-    /// The trees into the window's soup, flat green (no texture is bound,
-    /// 4038a).
-    pub fn tree_soup(&self, soup: &mut Soup) {
-        for d in self.tree_drawings() {
-            for tri in d.tris {
-                let lit = shade(tri);
-                for p in tri {
-                    soup.positions.push(p);
-                    soup.colours.push([0.25 * lit, 0.45 * lit, 0.2 * lit]);
+    /// **The trees as the client draws them** (item 4173; §3.7, "The trees'
+    /// own colour"): each face that samples a texture into that texture's
+    /// mesh — `piece` the texture's index, `who` [`TREE_WHO`] — for
+    /// `client::gpu`'s tree pass, which binds the leaf's texel as
+    /// `client::trees::DRAWN` colours it; a face with no texcoords or no
+    /// decoded texture into the window's soup, flat green as before.
+    pub fn tree_meshes(&self, soup: &mut Soup) -> Vec<TexturedMesh> {
+        let Some(art) = self.tree_art.as_ref() else {
+            return Vec::new();
+        };
+        let mut by: BTreeMap<usize, (Vec<[f32; 3]>, Vec<[f32; 2]>)> = BTreeMap::new();
+        let cuts = self.tree_cuts();
+        for (d, cut) in self.tree_drawings().iter().zip(&cuts) {
+            for (ti, tri) in d.tris.iter().enumerate() {
+                let textured = cut.as_ref().and_then(|c| {
+                    let k = *c.image.get(ti)?;
+                    art.leaf_mips.get(k)?.as_ref()?;
+                    Some((k, *c.uvs.get(ti)?))
+                });
+                match textured {
+                    Some((k, uv)) => {
+                        let e = by.entry(k).or_default();
+                        e.0.extend(tri);
+                        e.1.extend(uv);
+                    }
+                    None => {
+                        let lit = shade(*tri);
+                        for p in tri {
+                            soup.positions.push(*p);
+                            soup.colours.push(crate::trees::FLAT_GREEN.map(|v| v * lit));
+                        }
+                    }
                 }
             }
         }
+        by.into_iter()
+            .filter_map(|(k, (positions, uvs))| {
+                Some(TexturedMesh {
+                    piece: k as i32,
+                    who: TREE_WHO,
+                    positions,
+                    uvs,
+                    mips: art.leaf_mips.get(k)?.clone()?,
+                })
+            })
+            .collect()
     }
 
     /// This frame's figures and buildings as the observer sees them: the
