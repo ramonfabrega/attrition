@@ -1720,9 +1720,17 @@ diff (4177a, 4177b, and beside 4176a's parents), and **68** since item
 4159's step T, which released five on transfer (`docs/DECISIONS.md` entry
 128 §3; `rondata::diff::transfer`; `docs/LEADERS.md`'s head):
 `stable_queued`, `factory_queued`, `air_queued`, `supply_mark` and
-`average_kill_rate`, each 0 = 0 on frame 91 on both leaders. The ranges
-and bytes do not move: the long range still parts on the other 68, so
-263 of 267 ranges and 4,313 of 58,343 bytes agree as before.
+`average_kill_rate`, each 0 = 0 on frame 91 on both leaders, ~~**68**~~
+68 since step T, and **61** since item 4185 (step V), which carried seven
+of the end of the game's and the lost capital's nine (`docs/LEADERS.md`
+§10, §11): `defeated_by` (−1 = −1), `defeat_stamp`, `wonderwin_stamp`,
+`wonderwin_timer`, `lost_capital_stamp`, `lost_capital_timer` and
+`lost_capital_modifier` (0 = 0), each agreeing on every dump the record
+diff reads and moving there; `victory_type` and `defeat_type` are held by
+the crate and stay held out, each parting on a closing block whose quit
+the window harness does not replay (4185a). The ranges and bytes do not
+move: the long range still parts on the other 61, so 263 of 267 ranges
+and 4,313 of 58,343 bytes agree as before.
 `CHECKSUM_STATE` does not count it (§5).
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
@@ -1816,13 +1824,15 @@ leaf a plain game moves would hold on frame 91 and be a substitution.
     `consider_tribute` and `Leader::diplomacy`'s arms the crate stops at a
     SEAM.
   - the taunts (6): `receive_taunt`, `process_taunt`, `end_process`.
-  - the end of a game (6): `victory_type`, `defeat_type`, `defeat_stamp`,
-    `defeated_by` (`Leader::victory`, `defeat`, `defeat_by`),
-    `wonderwin_stamp` (`Leader::process`), `wonderwin_timer`
-    (`GameDaemon::process_victory`).
-  - the lost capital (3): `Leader::lost_capital`, `recapture_capital`,
+  - the end of a game (6): `victory_type`, `defeat_type`, ~~`defeat_stamp`,
+    `defeated_by`~~ (`Leader::victory`, `defeat`, `defeat_by`),
+    ~~`wonderwin_stamp` (`Leader::process`), `wonderwin_timer`
+    (`GameDaemon::process_victory`)~~ — four carried by item 4185
+    (`sim::leaders::endgame`).
+  - ~~the lost capital (3): `Leader::lost_capital`, `recapture_capital`,
     `Build::activate`, `Leader::process`; the tally's `lost_capital_frame`
-    is a partial copy of the stamp.
+    is a partial copy of the stamp~~ — carried by item 4185
+    (`sim::leaders::capital`); the tally's copy is gone.
   - `misery` (`calc_misery`, `calc_pop_cap`, `gain_tech`) and `pop_issues`
     (`Leader::process`, `Build::do_queue`, `Unit::process`).
   - the slot marks and build counters (7): `fort_mark`, `oil_well_mark`,

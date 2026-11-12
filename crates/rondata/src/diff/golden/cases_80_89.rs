@@ -84,7 +84,7 @@ pub(super) fn chapter_eighty_s_window_is_widened_whole() {
         0,
         (1199, 1204),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -114,7 +114,7 @@ pub(super) fn chapter_eighty_w_window_is_widened_whole() {
         0,
         (999, 1002),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -152,7 +152,7 @@ pub(super) fn chapter_eighty_five_s_window_is_widened_whole() {
         0,
         (1101, 1219),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -190,7 +190,7 @@ pub(super) fn chapter_eighty_six_s_window_is_widened_whole() {
         0,
         (1101, 1300),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -228,7 +228,7 @@ pub(super) fn chapter_eighty_eight_s_window_is_widened_whole() {
         0,
         (1101, 1500),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -266,7 +266,7 @@ pub(super) fn chapter_eighty_nine_s_window_is_widened_whole() {
         0,
         (1101, 1500),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -304,7 +304,7 @@ pub(super) fn chapter_ninety_s_window_is_widened_whole() {
         0,
         (606, 1200),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -342,7 +342,7 @@ pub(super) fn chapter_ninety_one_s_window_is_widened_whole() {
         0,
         (606, 1200),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -380,7 +380,7 @@ pub(super) fn chapter_ninety_two_s_window_is_widened_whole() {
         0,
         (606, 1200),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -418,7 +418,7 @@ pub(super) fn chapter_ninety_three_s_window_is_widened_whole() {
         0,
         (606, 1200),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -456,7 +456,7 @@ pub(super) fn chapter_ninety_four_s_window_is_widened_whole() {
         0,
         (606, 1200),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -494,7 +494,7 @@ pub(super) fn chapter_ninety_five_s_window_is_widened_whole() {
         0,
         (606, 1200),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -532,7 +532,7 @@ pub(super) fn chapter_ninety_six_s_window_is_widened_whole() {
         0,
         (606, 1500),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -570,7 +570,7 @@ pub(super) fn chapter_ninety_seven_s_window_is_widened_whole() {
         0,
         (606, 1500),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -608,7 +608,7 @@ pub(super) fn chapter_ninety_eight_s_window_is_widened_whole() {
         0,
         (606, 1500),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -646,7 +646,7 @@ pub(super) fn chapter_ninety_nine_s_window_is_widened_whole() {
         0,
         (606, 1500),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -684,7 +684,7 @@ pub(super) fn chapter_one_hundred_s_window_is_widened_whole() {
         0,
         (606, 2600),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -732,7 +732,7 @@ pub(super) fn chapter_one_hundred_and_three_s_window_is_widened_whole() {
         0,
         (606, 1500),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -770,7 +770,7 @@ pub(super) fn chapter_one_hundred_and_four_s_window_is_widened_whole() {
         0,
         (606, 1500),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -808,7 +808,7 @@ pub(super) fn chapter_one_hundred_and_five_s_window_is_widened_whole() {
         0,
         (606, 1500),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -846,7 +846,7 @@ pub(super) fn chapter_one_hundred_and_six_s_window_is_widened_whole() {
         0,
         (606, 1500),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -884,7 +884,7 @@ pub(super) fn chapter_one_hundred_and_seven_s_window_is_widened_whole() {
         0,
         (606, 760),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -1023,7 +1023,7 @@ pub(super) fn chapter_one_hundred_and_one_s_window_is_widened_whole() {
         0,
         (606, 1500),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -1051,7 +1051,7 @@ pub(super) fn chapter_one_hundred_and_two_s_window_is_widened_whole() {
         0,
         (606, 1500),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -1089,7 +1089,7 @@ pub(super) fn chapter_eighty_seven_s_window_is_widened_whole() {
         0,
         (1101, 1500),
         false,
-        92,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };

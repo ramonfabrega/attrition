@@ -7265,12 +7265,16 @@ pub(crate) const WIDENING_CHAPTER_EIGHT: (i64, i64) = (605, 901);
 /// each), the three attrition stamps, `ctw_hero_stamp` and `repair_stamp`,
 /// the twenty-nine of its thirty-five this level prints (+29 a leader; the
 /// four counters, `missiles_used` and `nukes_launched` print at
-/// `LEADERS=9` alone).
-pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 144;
+/// `LEADERS=9` alone); 150 since item 4185 compares the end of the game's
+/// and the lost capital's nine, the six of them this level prints
+/// (`defeated_by`, the lost capital's three and the wonder clock's two;
+/// +6 a leader).
+pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 150;
 /// The leader keys `LEADERS=2` prints and the leader diff reads, a
 /// player: the goods block's 88, `gov` since item 706, and the three tech
-/// counters since item 883 (`docs/GOLDEN.md` §35).
-pub(crate) const LEADERS_TWO_KEYS: usize = 92;
+/// counters since item 883 (`docs/GOLDEN.md` §35); 93 since item 4185
+/// compares `defeated_by`, the one of its nine this level prints.
+pub(crate) const LEADERS_TWO_KEYS: usize = 93;
 /// The leader keys `LEADERS=9` prints and the leader diff reads, a player
 /// (item 3969, chapter one hundred and twenty-five's take, the first golden
 /// window at that level); 1211 since item 3982 reads `ages_queued` and
@@ -7282,8 +7286,9 @@ pub(crate) const LEADERS_TWO_KEYS: usize = 92;
 /// printed leaves, the three stamp rows as eight cells each (+35 a leader);
 /// 1276 since item 4177 compares the thirteen combat rates (+13 a leader),
 /// which print at this level alone: `CHAPTER_EIGHT_LEADER_KEYS` did not
-/// move.
-pub(crate) const LEADERS_NINE_KEYS: usize = 1276;
+/// move; 1285 since item 4185 compares the end of the game's six and the
+/// lost capital's three (+9 a leader).
+pub(crate) const LEADERS_NINE_KEYS: usize = 1285;
 
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,

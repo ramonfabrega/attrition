@@ -1948,12 +1948,16 @@ clamped `[0x80, 0x200]`; if both have cities and `A` has fewer, `m = m × (O.
 city_num + 2) / (A.city_num + 2)` clamped `[0x80, 0x300]`; `lost_capital_
 modifier = m`; `lost_capital_stamp = frame + (lost_capital_stamp << 8) / m`.
 `recapture_capital(A)`: `timer = 0`, `stamp = ((stamp − frame) × m) >> 8` —
-the time spent capital-less carried as a debt that decays one frame per frame
-while the capital is held. `Leader::process_elimination`: under `elimination
+the time spent capital-less carried as a debt that ~~decays one frame per frame
+while the capital is held~~ decays one frame per `TIMER_REFRESH_RATIO` (5)
+while no clock runs, and both `× m >> 8` truncate toward zero
+(`docs/LEADERS.md` §11, "Where this corrects"). `Leader::process_elimination`: under `elimination
 == 1`, a player whose `lost_capital_timer` is set and `frame − stamp ≥ Game::
 retake_capital(p)` (`RETAKE_CAPITAL`, map-size scaled, `× modifier >> 8`) is
-`defeat(1, holder)`. How the base countdown is first seeded is not
-established.
+`defeat(1, holder)`. ~~How the base countdown is first seeded is not
+established.~~ Settled: `Leader::init` zeroes the stamp, so a first loss
+stores `frame` — diff-backed since item 4185 (run1200's 5639, run609's 5638;
+`docs/LEADERS.md` §11), ported as `sim::leaders::capital`.
 
 `Leader::defeat(type, by)` → **`defeat_by`**: unless `elimination == 3`,
 **every live city of the loser is `capture_city`'d** — to its founder or race

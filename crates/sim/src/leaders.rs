@@ -1,6 +1,8 @@
 //! `leaders/` — the files `docs/STRUCTURE.md` §3 maps here (item 4012).
 
+pub mod capital;
 pub mod diplomacy;
+pub mod endgame;
 pub mod marks;
 pub mod rates;
 pub mod relations;
@@ -62,4 +64,9 @@ pub struct LeadersState {
     /// window counts and the four totals (`docs/LEADERS.md` §3; [`rates`],
     /// item 4177), one per slot.
     pub rates: Vec<rates::Rates>,
+    /// The end of the game and the lost capital: `defeated_by`, the defeat
+    /// and victory words, the wonder clock and the capital clock
+    /// (`docs/LEADERS.md` §10, §11; [`endgame`], [`capital`], item 4185),
+    /// one per slot.
+    pub endgame: Vec<endgame::EndGame>,
 }

@@ -112,14 +112,13 @@ impl Default for Nation {
     }
 }
 
-/// `LeaderData::cities_built`, `cities_captured`, `cities_lost`, and the
-/// frame the capital was last lost.
+/// `LeaderData::cities_built`, `cities_captured` and `cities_lost`. The
+/// lost capital's stamp and timer are `crate::leaders::capital`'s.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Tally {
     pub built: i32,
     pub captured: i32,
     pub lost: i32,
-    pub lost_capital_frame: Option<i64>,
     /// `leader_flags & 0x400000`: the first capital loss has been plundered.
     pub capital_plundered: bool,
     /// `LeaderData::buildings_built` (`+0x814`): `Build::init@00629740:62`
@@ -609,23 +608,28 @@ impl Sim {
     }
 
     /// `Leader::lost_a_city` in the default elimination mode: a player with no
-    /// city left is defeated.
-    fn lost_a_city(&mut self, who: Player, _was_capital: bool, captor: Option<Player>) {
+    /// city left is defeated, type 0 (`docs/LEADERS.md` §10.2; its GG arm
+    /// and the elimination 2 and 3 arms are SEAMs, §10.4).
+    pub(crate) fn lost_a_city(&mut self, who: Player, _was_capital: bool, captor: Option<Player>) {
         if self.city_num(who) == 0 {
-            self.defeat(who, captor);
+            self.defeat(who, crate::leaders::endgame::DEFEAT_CONQUEST, captor);
         }
     }
 
-    /// `Leader::defeat` → `defeat_by`: the loser's cities go to the captor
-    /// (or to their living allied founder), their military trainers inside
-    /// the captor's cities too, everything else dies; queues and orders are
-    /// cleared.
-    pub fn defeat(&mut self, who: Player, by: Option<Player>) {
+    /// `Leader::defeat(type, by, 0)@006ecb00` → `defeat_by`: the captor stamp
+    /// ([`Sim::defeat_by_stamp`], §10.2), then for a live leader the type and
+    /// the captor arm (cities to the captor or a live allied founder, its
+    /// trainers in the captor's cities too, the rest die). SEAM: the arm waits
+    /// behind the guard, and a captor that is the loser takes none.
+    pub fn defeat(&mut self, who: Player, ty: i32, by: Option<Player>) {
+        let fresh = self.defeat_by_stamp(who, by);
         if self.leaders.defeated[who as usize] {
             return;
         }
         self.leaders.defeated[who as usize] = true;
+        self.note_defeat_type(who, ty);
         self.armies_leader_defeated(who);
+        let by = by.filter(|&b| fresh && b != who);
         if let Some(by) = by {
             for c in 0..self.cities.cities.len() {
                 if !self.cities.cities[c].alive || self.cities.cities[c].owner != who {
@@ -655,6 +659,10 @@ impl Sim {
         for b in 0..self.buildings.len() {
             if !self.buildings[b].alive || self.buildings[b].owner != who {
                 continue;
+            }
+            // `defeat_by@006d1c80`'s walk is its captor arm's: none, none.
+            if by.is_none() {
+                break;
             }
             if !self.buildings[b].active {
                 self.die_building(b);
@@ -2376,6 +2384,7 @@ impl Sim {
     fn finish_arm(&mut self, b: usize, all: bool) {
         if !self.buildings[b].active {
             self.activate(b, false, true);
+            self.note_wonders(); // `Wonders::init_wonder`, inside the command (§10.2)
         }
         let home = self.queue_home(b);
         if !self.buildings[home].queue.items.is_empty() {
@@ -2480,6 +2489,7 @@ impl Sim {
         }
         self.terra_cotta_activate(b);
         self.kremlin_activate(b, captured);
+        self.forbidden_city_activate(b);
         // `Wall::activate@0063e4b0` line 62, immediately after the active
         // flag: an active military trainer joins the leader's own list
         // (`docs/AI.md` §29). The guard the original spells at the call site
@@ -2911,6 +2921,7 @@ impl Sim {
         {
             self.roster.unit_stats_dirty[who as usize] = true;
         }
+        self.forbidden_city_close(b);
         // `Build::close@00628980:326`–`328`: so does a Colossus closed.
         if self.buildings[b].ty.is_some_and(|t| self.is_colossus(t)) {
             self.recompute_pop_caps();
@@ -2922,7 +2933,7 @@ impl Sim {
                 && self.cities.cities[c].alive
                 && self.cities.cities[c].building == b
             {
-                self.close_city(c, None);
+                self.close_city(c, self.cities.capturing);
             }
         } else {
             self.remove_from_city(b);
@@ -3231,6 +3242,10 @@ impl Sim {
             }
         }
         self.plunder_on_capture(a, o, c, base, was_capital);
+        // The two capital calls (`docs/LEADERS.md` §11), before the old record closes.
+        self.capture_capital_calls(o, a, c, was_capital, newcity);
+        // The closes carry the captor to `Leader::lost_a_city` (§10.2).
+        self.cities.capturing = Some(a);
         for b in to_close {
             if self.buildings[b].alive {
                 if !self.buildings[b].active {
@@ -3240,18 +3255,7 @@ impl Sim {
                 }
             }
         }
-        if was_capital
-            && self.cities.city_tally[o as usize]
-                .lost_capital_frame
-                .is_none()
-        {
-            self.cities.city_tally[o as usize].lost_capital_frame = Some(self.frame);
-        }
-        if let Some(nc) = newcity
-            && self.cities.cities[nc].capital
-        {
-            self.cities.city_tally[a as usize].lost_capital_frame = None;
-        }
+        self.cities.capturing = None;
         // The old record.
         if self.cities.cities[c].alive {
             self.cities.cities[c].members.clear();

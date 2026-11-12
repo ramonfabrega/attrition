@@ -168,8 +168,8 @@ pub(crate) const PINNED: &[(&str, usize)] = &[
         "diff::third_pair::run609_s_closing_frame_is_widened_whole",
         2,
     ),
-    (
-        "diff::third_pair::run667_s_closing_frame_is_widened_whole",
-        5,
-    ),
+    // Item 4185: run667's closing walk 5 -> 0 (the row leaves): ours wins the
+    // territory on 17379 and the cascade's `defeat(5)` clears the human's
+    // orders, as the original's quit on that frame does (`docs/LEADERS.md`
+    // §10.5).
 ];

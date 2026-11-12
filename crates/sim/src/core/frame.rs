@@ -196,9 +196,18 @@ impl Sim {
                 self.roster.unit_stats_dirty[who] = false;
                 self.calc_unit_stats(player);
             }
-            // `Leader::process`'s victory clocks, after the stats: a
-            // stopped timer's debt paid back (`crate::territory::victory`).
-            self.refresh_victory_timers(who);
+            // `Leaders::process_all@006ed2a0`'s tail of the live slot's
+            // step (`docs/LEADERS.md` §10.2, §11): the capital countdown
+            // (`Leader::process_elimination`), then each stopped clock's
+            // debt paid back — the lost capital's, the territory's
+            // (`crate::territory::victory`) and the wonder's. All four sit
+            // inside the slot's `leader_flags & 2` gate.
+            if !self.leaders.defeated.get(who).copied().unwrap_or(true) {
+                self.process_elimination(who);
+                self.refresh_capital_clock(who);
+                self.refresh_victory_timers(who);
+                self.refresh_wonder_timer(who);
+            }
         }
 
         // The peace's end, between the two (`Game::do_frame:202`).
@@ -225,7 +234,9 @@ impl Sim {
         }
 
         // `GameDaemon::process_all` → `process_victory`, its second act:
-        // the territory timers (`crate::territory::victory`). It draws nothing.
+        // the wonder clock (`crate::leaders::endgame`), then the territory
+        // timers (`crate::territory::victory`). It draws nothing.
+        self.process_victory_wonder();
         self.process_victory_territory();
 
         // `GameDaemon::process_all` → `calc_danger`, the third thing that

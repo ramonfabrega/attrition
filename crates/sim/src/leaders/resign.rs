@@ -40,17 +40,37 @@ use crate::{Player, Sim};
 impl Sim {
     /// `Leader::defeat(6, −1, 0)` for `who`, the human who quits: the leader
     /// is defeated, its armies let go and its planes die.
+    ///
+    /// `Player::leave_game@006ee010` first: a leader whose capital clock runs
+    /// is `defeat(1, holder)` instead under elimination 1 (the holder
+    /// `find_capital(−1, −1)` names, itself when none), and `defeat(1, self)`
+    /// under any other; else `defeat(6, −1)` (`docs/LEADERS.md` §10.2). The
+    /// captor stamp runs ahead of the defeated guard either way.
+    ///
+    /// SEAM: under a running clock the captor arm of `defeat_by` (the
+    /// cities handed to the holder) is not carried here. SEAM scan:
+    /// `grep -h '^ *defeat_type 1$' gamelog-*.txt | wc -l` — 0 over the
+    /// 1,196 kept dumps: no capture resigns under a running clock.
     pub fn resign(&mut self, who: Player) {
-        if self
-            .leaders
-            .defeated
-            .get(who as usize)
-            .copied()
-            .unwrap_or(true)
-        {
+        if (who as usize) >= self.leaders.defeated.len() {
+            return;
+        }
+        let (ty, by) = if self.leader_endgame(who).lost_capital_timer != 0 {
+            let by = if self.ai.lobby.elimination == 1 {
+                self.capital_holder(who)
+            } else {
+                who
+            };
+            (crate::leaders::endgame::DEFEAT_ELIMINATION, Some(by))
+        } else {
+            (crate::leaders::endgame::DEFEAT_RESIGN, None)
+        };
+        self.defeat_by_stamp(who, by);
+        if self.leaders.defeated[who as usize] {
             return;
         }
         self.leaders.defeated[who as usize] = true;
+        self.note_defeat_type(who, ty);
         self.armies_leader_defeated(who);
         for u in 0..self.units.len() {
             if self.units[u].owner != who || !self.units[u].alive() {

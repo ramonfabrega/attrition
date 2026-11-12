@@ -439,7 +439,14 @@ fn run667_s_closing_frame_is_widened_whole() {
     // Item 3969: +1, who=1's technology `num_queued[526]` on the closing block 17380, ours 1 theirs 0: the defeat's emptied queue.
     // Item 3982: +1, who=1's `epochs_queued` on the closing block 17380, ours >0 theirs 0, beside the technology `num_queued` rows: the same emptied queue.
     // Item 4167: 166 -> 168, +2, who=1's `barracks_queued` and `combat_queued` on the closing block 17380, ours 1 theirs 0: the defeat's emptied queue, beside the `num_queued` rows.
-    pin_eq!(w.firsts.len(), 168, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
+    // Item 4185: 168 -> 119, −49 net. Ours wins the territory on 17379
+    // (`popwin_stamp` 14293 + `popwin_timer()` 3086) and the cascade's
+    // `defeat(5)` clears the human's orders, as the original's quit on that
+    // frame does; +2, who=0's `defeat_type` ours 5 theirs 6 and who=1's
+    // `victory_type` ours 2 theirs 0 (the original, its human gone, does not
+    // win; parked 4185a). `defeat_stamp` 17379 agrees, the cascade's against
+    // the quit's.
+    pin_eq!(w.firsts.len(), 119, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
 }
 
 #[test]
@@ -1543,7 +1550,12 @@ fn run609_s_closing_frame_is_widened_whole() {
     // Item 2761: 47 → 45 with `Unit::close`'s count (`docs/AI.md` §232).
     pin_eq!(
         w.firsts.len(),
-        42, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        // Item 4185: 42 -> 43, +1, who=0's `defeat_type` on the closing
+        // block 5639, ours 0 (the conquest's) theirs 6: the human quit on
+        // 5638's head, which the harness does not replay (parked 4185a);
+        // `defeated_by` 1, `defeat_stamp` 5638 and the lost capital's 5638,
+        // 1, 226 agree.
+        43, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         "run609 closing residue, not whole-record parity"
     );
 }
