@@ -1586,6 +1586,8 @@ impl Sim {
             under_attack: 0,
             eject_pending: false,
             hold_frames: 0,
+            fort_slot: None,
+            oil_slot: None,
             city: None,
             garrison: Vec::new(),
             launch_frames: 0,
@@ -2496,6 +2498,10 @@ impl Sim {
         if self.is_colossus(ty) {
             self.recompute_pop_caps();
         }
+        // `Build::activate`'s wonder count and record, its fort record and
+        // `Fort::init`'s count, and the oil-well record — ahead of the city
+        // split, captured or not (`crate::leaders::marks`, item 4167).
+        self.note_activation_marks(b, ty);
         // `Build::activate` line 560: a dock (not a fort) joins the docks
         // registry — `reg_docks`, the gull's two draws (`docs/TRANSPORT.md`
         // §5.1–§5.2).
@@ -2830,6 +2836,9 @@ impl Sim {
         if !self.buildings[b].garrison.is_empty() {
             self.buildings[b].eject_pending = true;
         }
+        // `Build::close`'s `close_fort` and `close_oil_well`: the records
+        // the activation took, given back (`crate::leaders::marks`).
+        self.give_back_marks(b);
         // `Build::close` line 227: a dock leaves the registry while the
         // object is still flagged in use (`docs/TRANSPORT.md` §5.3).
         self.dock_close(b);

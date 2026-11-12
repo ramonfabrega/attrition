@@ -528,6 +528,24 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         "anti_att".to_string(),
         millionths(built.sim.leader_anti_att(p)),
     ));
+    // **Item 4167, the leaders line's step II** (`docs/LEADERS.md` §13,
+    // §14): the fort and oil-well records' marks and the supply list's,
+    // `senates_built`, `scholar_militia` and `Leader::track_queued`'s six
+    // bins. The same values the leaders line emits.
+    let s = &built.sim;
+    for (k, v) in [
+        ("fort_mark", s.leader_fort_mark(p)),
+        ("oil_well_mark", s.leader_oil_well_mark(p)),
+        ("supply_mark", s.leader_supply_mark(p)),
+        ("senates_built", s.leader_senates_built(p)),
+        ("scholar_militia", s.leader_scholar_militia(p)),
+    ] {
+        out.push((k.to_string(), i64::from(v)));
+    }
+    for k in sim::leaders::marks::ARMED_QUEUED {
+        let v = s.leader_armed_queued(p, k).unwrap_or(0);
+        out.push((k.to_string(), i64::from(v)));
+    }
     out.push(("rare".to_string(), mask_text(l.rare)));
     out.push(("rare_owned".to_string(), mask_text(h.rare_owned)));
     out.push(("rare_conquest".to_string(), mask_text(0)));
@@ -863,6 +881,20 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
         "city_name",
         "handicap",
         "multi_diff",
+        // Item 4167, step II (`docs/LEADERS.md` §13, §14): the three marks
+        // `log_data` prints, `senates_built`, `scholar_militia` and the six
+        // queued bins.
+        "fort_mark",
+        "oil_well_mark",
+        "supply_mark",
+        "senates_built",
+        "scholar_militia",
+        "barracks_queued",
+        "stable_queued",
+        "factory_queued",
+        "combat_queued",
+        "dock_queued",
+        "air_queued",
     ] {
         if let Some(x) = block.int(key) {
             out.insert(key.to_string(), x);
@@ -3396,12 +3428,23 @@ mod tests {
         assert_eq!(
             names.into_iter().collect::<Vec<_>>(),
             [
+                "air_queued",
                 "anti_att",
                 "att",
+                "barracks_queued",
                 "city_name",
+                "combat_queued",
+                "dock_queued",
+                "factory_queued",
+                "fort_mark",
                 "handicap",
                 "misery",
-                "multi_diff"
+                "multi_diff",
+                "oil_well_mark",
+                "scholar_militia",
+                "senates_built",
+                "stable_queued",
+                "supply_mark"
             ],
             "the census leaves rows compares"
         );
