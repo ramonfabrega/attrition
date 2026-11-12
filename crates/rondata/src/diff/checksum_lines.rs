@@ -1791,20 +1791,30 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 4, 4313);
 /// 13, 5, theirs 0; parked 4167b). The long range stays out on the other
 /// 84.
 ///
-/// Item 4176: 84 → 68 names. Held (`sim::leaders::tallies`) and agreeing on
+/// Item 4176: 84 → 74 names. Held (`sim::leaders::tallies`) and agreeing on
 /// both leaders, every one 0 = 0 on frame 91 (no blow has landed past
-/// frame 300, no unit or building has died, no unit stands in a rival's
-/// land): the kill, loss and raze counters `units_killed`, `units_lost`,
-/// `buildings_razed`, `buildings_lost` (`docs/LEADERS.md` §2); the victim
-/// stamps `attack_stamp`, `raid_stamp`, `ally_stamp` (eight cells each)
-/// and `ctw_hero_stamp` (§4); `attrition_stamp`, `attrition_stamp2`,
-/// `attrition_stamp3` and `give_att_disabled` (§5); `repair_stamp`,
-/// `missiles_used`, `units_bribed` and `nukes_launched` (§15). For
-/// `units_bribed` and `give_att_disabled`, which `log_data` does not
-/// print, this line is the only oracle, and a weak one: nothing has
-/// bribed and no trigger runs. The long range stays out on the other 68.
+/// frame 300, no building has died, no unit stands in a rival's land), and
+/// agreeing on every dump the record diff reads: `buildings_razed`,
+/// `buildings_lost` (`docs/LEADERS.md` §2), `ctw_hero_stamp` (§4),
+/// `attrition_stamp`, `attrition_stamp3` and `give_att_disabled` (§5),
+/// `repair_stamp`, `missiles_used`, `units_bribed` and `nukes_launched`
+/// (§15). For `units_bribed` and `give_att_disabled`, which `log_data`
+/// does not print, this line is the only oracle, and a weak one: nothing
+/// has bribed and no trigger runs. Six more are held and agreed here too,
+/// 0 = 0, but the line emits them unheld: the record diff parts each —
+/// `units_killed` and `units_lost` on run1075's 2247 (who 1 killed, ours
+/// 15 theirs 16) beside the units' own hits, the three victim stamp rows
+/// on run1075's 2060 (`attack_stamp[0]` of who 1, ours 2059 theirs 0,
+/// beside `1/59`'s damage 10 against 0) and on four closing frames whose
+/// rounds already part, and `attrition_stamp2` on the Lakota pair (ours
+/// 3774 theirs 3770, every window from run855's 4538) and run844's 4940
+/// (ours 4871 theirs 0) with no parting beside it (parked 4176a, 4176b).
+/// The long range stays out on the other 74.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("air_queued (unheld)", 2),
+    ("ally_stamp (unheld)", 2),
+    ("attack_stamp (unheld)", 2),
+    ("attrition_stamp2 (unheld)", 2),
     ("average_damage_rate (unheld)", 2),
     ("average_death_rate (unheld)", 2),
     ("average_hit_rate (unheld)", 2),
@@ -1846,6 +1856,7 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("lost_capital_timer (unheld)", 2),
     ("made_peace (unheld)", 2),
     ("pop_issues (unheld)", 2),
+    ("raid_stamp (unheld)", 2),
     ("reg_terr (unheld)", 2),
     ("score (unheld)", 2),
     ("score_buildings (unheld)", 2),
@@ -1869,6 +1880,8 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("tribute_sent (unheld)", 2),
     ("tribute_stamp (unheld)", 2),
     ("tributes (unheld)", 2),
+    ("units_killed (unheld)", 2),
+    ("units_lost (unheld)", 2),
     ("victory_type (unheld)", 2),
     ("wonderwin_stamp (unheld)", 2),
     ("wonderwin_timer (unheld)", 2),
@@ -1912,20 +1925,14 @@ const LEADERS_BENT: &[&str] = &[
     "forts_built",
     "scholar_militia",
     "dock_queued",
-    // Item 4176's sixteen (`sim::leaders::tallies`), each agreeing on run
-    // 1562's frame 91.
-    "attack_stamp",
-    "raid_stamp",
-    "ally_stamp",
+    // Item 4176's ten it holds on the line (`sim::leaders::tallies`), each
+    // agreeing on run 1562's frame 91.
     "attrition_stamp",
-    "attrition_stamp2",
     "attrition_stamp3",
     "ctw_hero_stamp",
     "repair_stamp",
     "missiles_used",
     "give_att_disabled",
-    "units_killed",
-    "units_lost",
     "buildings_razed",
     "buildings_lost",
     "units_bribed",

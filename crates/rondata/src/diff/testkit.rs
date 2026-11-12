@@ -7260,8 +7260,13 @@ pub(crate) const WIDENING_CHAPTER_EIGHT: (i64, i64) = (605, 901);
 /// `misery`, `city_name`) this level prints (+1 a leader); 115 since item
 /// 4167 compares `fort_mark`, `oil_well_mark`, `supply_mark` and
 /// `senates_built`, the four of its eleven this level prints (+4 a leader;
-/// `scholar_militia` and the six `*_queued` print at `LEADERS=9` alone).
-pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 115;
+/// `scholar_militia` and the six `*_queued` print at `LEADERS=9` alone);
+/// 144 since item 4176 compares the three victim stamp rows (eight cells
+/// each), the three attrition stamps, `ctw_hero_stamp` and `repair_stamp`,
+/// the twenty-nine of its thirty-five this level prints (+29 a leader; the
+/// four counters, `missiles_used` and `nukes_launched` print at
+/// `LEADERS=9` alone).
+pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 144;
 /// The leader keys `LEADERS=2` prints and the leader diff reads, a
 /// player: the goods block's 88, `gov` since item 706, and the three tech
 /// counters since item 883 (`docs/GOLDEN.md` §35).
@@ -7273,8 +7278,9 @@ pub(crate) const LEADERS_TWO_KEYS: usize = 92;
 /// compares `att`, `anti_att`, `multi_diff`, `handicap`, `misery` and
 /// `city_name` (+6 a leader); 1228 since item 4167 compares the three
 /// marks, `senates_built`, `scholar_militia` and the six `*_queued` (+11 a
-/// leader).
-pub(crate) const LEADERS_NINE_KEYS: usize = 1228;
+/// leader); 1263 since item 4176 compares the damage path's fourteen
+/// printed leaves, the three stamp rows as eight cells each (+35 a leader).
+pub(crate) const LEADERS_NINE_KEYS: usize = 1263;
 
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,

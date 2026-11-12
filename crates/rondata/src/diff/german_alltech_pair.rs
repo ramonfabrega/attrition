@@ -204,5 +204,6 @@ fn run1145c_s_closing_frame_is_widened_whole() {
     // Item 3710: 2 keys fewer — who=1's leader `free_peasants` and
     // `gatherers` agree now that `produce_city` walks its citizens by
     // object number (`docs/AI.md` §358.4).
-    pin_eq!(w.firsts.len(), 181, "run1145c baseline");
+    // Item 4176: 181 -> 182, +1 firsts: who=1's `attrition_stamp2` standing at 4169, ours 3814 theirs 3844 (parked 4176b).
+    pin_eq!(w.firsts.len(), 182, "run1145c baseline");
 }

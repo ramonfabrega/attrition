@@ -256,7 +256,8 @@ fn chinese_modern_pair_run1431b_s_closing_frame_is_widened_whole() {
     // No draw parts to 4130.
     // Item 3782, 164 → 125: `1/139`'s rows go — its block-0 re-place asks
     // the disc's cells (`docs/AI.md` §378.2).
-    pin_eq!(w.firsts.len(), 125, "run1431b baseline");
+    // Item 4176: 125 -> 128, +3 firsts: who=0's `attack_stamp[1]`, `raid_stamp[1]` and `ally_stamp[1]` on 4063, ours 3761 theirs 4062, beside the rounds' own partings (71 against 73).
+    pin_eq!(w.firsts.len(), 128, "run1431b baseline");
     pin_eq!(w.rounds_read, (71, 73), "the rounds read");
     // Every round, both directions: 71 in ours against 73, 52 parting —
     // all three who=1's Manchu Infantry (TI 118, TY 68,
