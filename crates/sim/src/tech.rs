@@ -479,6 +479,10 @@ pub struct Roles {
     /// it breaks at the first `has_preq` that fails — and that count
     /// indexes `ATTRITION_IMPROVED` (`docs/ATTRITION.md`, "Strength").
     pub attrition_preq: [Option<TypeId>; 4],
+    /// `FORAGING_1..3`, bonuses 82–84 (`0x2fe..0x300`): Forage, Supply and
+    /// Logistics in the shipped file. `Leader::calc_anti_attrition@006cdcc0`
+    /// takes the **highest** held as its tier (`docs/LEADERS.md` §6.2).
+    pub foraging_preq: [Option<TypeId>; 3],
     /// `TROOPS_LOS_1..3`, bonuses 61–63 (`0x2e9..0x2eb`): Herbal Lore,
     /// Medicine and Pharmaceuticals in the shipped file.
     /// `LeaderData::get_troops_los_upgrade@006e1110` counts **every** one

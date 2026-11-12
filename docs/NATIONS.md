@@ -472,7 +472,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `LeaderData::get_troops_los_upgrade@006e1110` | 4 | carried at tech.rs | `006e1110` |
 | `LeaderData::get_heal_level@006e12e0` | 4 | carried at heal.rs | `006e12e0` |
 | `LeaderData::has_tribe_bonus@006e1370` |  +var | carried at animal_data_is_seen.rs | `006e1370` |
-| `Leader::init@006e3930` | 0 5 6 13 19 20 22 23 | carried at gain.rs | `006e3930` |
+| `Leader::init@006e3930` | 0 5 6 13 19 20 22 23 | carried at ai.rs | `006e3930` |
 | `Options::describe@00724460` | 4 22 | not sim | `interface or render side` |
 | `Cities::capture_city@00733380` | 13 23 | carried at cities_capture_city.rs | `00733380` |
 | `City::capture@00736c40` | 23 | carried at city.rs | `00736c40` |

@@ -41,24 +41,19 @@ pub(crate) type Row = (String, i64);
 pub(crate) const UNMODELLED: &[(&str, &str)] = &[
     ("score", "no score is kept"),
     ("defeated_by", "no defeat path"),
-    ("misery", "the misery counter is unread"),
-    ("att", "the attrition score counters are unread"),
-    ("anti_att", "the attrition score counters are unread"),
     ("blacken", "fog bookkeeping"),
+    (
+        "pop_issues",
+        "held (docs/LEADERS.md §12.2, item 4162); parts once: run667's closing frame 17380, who 1 ours 2 theirs 0 (parked 4162a)",
+    ),
     (
         "explored",
         "ported (VISION §13); leader 0 one or two under in twelve late-age pairs (parked 4153a)",
     ),
-    ("pop_issues", "the population-pressure counter is unread"),
     (
         "misc_stamps",
         "the twenty-odd *_stamp counters have no writers here",
     ),
-    (
-        "handicap",
-        "`Holdings::handicap` is the income percentage, a different field",
-    ),
-    ("multi_diff", "the lobby difficulty is an input, not state"),
     ("DIPLOMACY", "the diplomacy block is not modelled"),
     ("num_bonus_cards", "bonus cards are Conquer-the-World's"),
     ("average_*_rate", "the combat averages are score counters"),
@@ -504,6 +499,35 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // (`+0x6dc0`, Conquer-the-World's, empty here), the three
     // `BitMask<44>`s `LeaderData::log_data@006e5110` prints after the goods
     // block, and `rares_collected`, the `int[44]` the same walk fills.
+    // **Item 4162, the leaders line's step I** (`docs/LEADERS.md`, the
+    // census): `att`, `Leader::calc_attrition`'s one store (§5, item
+    // 4154); the lobby's `multi_diff` and `handicap` (§16); `misery`'s
+    // constant 0 (§12.3); and `city_name`, `City::generate_name`'s count
+    // (§1). The same values the leaders line emits.
+    let p = who as sim::Player;
+    for (k, v) in [
+        (
+            "att",
+            built
+                .sim
+                .territory
+                .players
+                .get(who)
+                .map_or(0, |s| s.strength),
+        ),
+        ("multi_diff", built.sim.leader_multi_diff(p)),
+        ("handicap", built.sim.leader_handicap(p)),
+        ("misery", built.sim.leader_misery(p)),
+        ("city_name", built.sim.leader_city_name(p)),
+    ] {
+        out.push((k.to_string(), i64::from(v)));
+    }
+    // `anti_att`, the single `Leader::calc_anti_attrition` recomputes (§6),
+    // as the millionths its `%f` print shows.
+    out.push((
+        "anti_att".to_string(),
+        millionths(built.sim.leader_anti_att(p)),
+    ));
     out.push(("rare".to_string(), mask_text(l.rare)));
     out.push(("rare_owned".to_string(), mask_text(h.rare_owned)));
     out.push(("rare_conquest".to_string(), mask_text(0)));
@@ -526,6 +550,52 @@ fn mask_text(m: u64) -> i64 {
         text.push_str(&b.to_string());
     }
     text.parse().unwrap_or(i64::MIN)
+}
+
+/// A `%f` print — digits, a point, exactly six decimals — as its
+/// millionths, the dump's side of [`millionths`]. Anything else is not a
+/// print this reads.
+fn print_millionths(text: &str) -> Option<i64> {
+    let (neg, body) = match text.strip_prefix('-') {
+        Some(b) => (true, b),
+        None => (false, text),
+    };
+    let (whole, frac) = body.split_once('.')?;
+    if frac.len() != 6
+        || !whole
+            .bytes()
+            .chain(frac.bytes())
+            .all(|c| c.is_ascii_digit())
+    {
+        return None;
+    }
+    let v = format!("{whole}{frac}").parse::<i64>().ok()?;
+    Some(if neg { -v } else { v })
+}
+
+/// A single's `%f` print as millionths: `m × 2^e × 10^6` rounded to the
+/// nearest integer, a half away from zero (no single this record holds
+/// lands on a half, `docs/LEADERS.md` §6.2's table). The crate's side of
+/// [`print_millionths`], in integers.
+pub(crate) fn millionths(bits: u32) -> i64 {
+    let exp = ((bits >> 23) & 0xff) as i32;
+    let frac = u128::from(bits & 0x7f_ffff);
+    let (m, e) = if exp == 0 {
+        (frac, -149)
+    } else {
+        (frac | 0x80_0000, exp - 150)
+    };
+    let scaled = m * 1_000_000;
+    let mag = if e >= 0 {
+        scaled << e.min(40)
+    } else if -e >= 127 {
+        0
+    } else {
+        let s = -e as u32;
+        (scaled + (1u128 << (s - 1))) >> s
+    };
+    let v = i64::try_from(mag).unwrap_or(i64::MAX);
+    if bits >> 31 == 1 { -v } else { v }
 }
 
 /// The dump's side of [`mask_text`]: the printed bytes behind the same `1`.
@@ -784,10 +854,28 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
         "known_rares",
         "ages_queued",
         "epochs_queued",
+        // Item 4162, the leaders line's step I (`docs/LEADERS.md`'s census):
+        // `att` (§5), `pop_issues` and `misery` (§12), `city_name` (§1),
+        // and the lobby's `handicap` and `multi_diff` (§16).
+        "att",
+        "pop_issues",
+        "misery",
+        "city_name",
+        "handicap",
+        "multi_diff",
     ] {
         if let Some(x) = block.int(key) {
             out.insert(key.to_string(), x);
         }
+    }
+    // `anti_att` is the record's one float: `log_data` prints it `%f`, six
+    // decimals, and it is read as those millionths ([`millionths`] is this
+    // crate's side of the same print).
+    if let Some(x) = block
+        .get("anti_att")
+        .and_then(|v| print_millionths(v.trim()))
+    {
+        out.insert("anti_att".to_string(), x);
     }
     // **The per-type muster, whole — and the two arrays are keyed
     // differently.** `num_units` is 352 wide and its index 0 is
@@ -1325,7 +1413,8 @@ mod tests {
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
-            193_760, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4162: 193_760 -> 194_720, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
+            194_720, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1433,7 +1522,8 @@ mod tests {
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
-            208_292, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4162: 208_292 -> 209_324, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
+            209_324, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1632,7 +1722,8 @@ mod tests {
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
-            43_596, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4162: 43_596 -> 43_812, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
+            43_812, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -1775,7 +1866,8 @@ mod tests {
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
-            314_860, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4162: 314_860 -> 316_420, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
+            316_420, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -1918,7 +2010,8 @@ mod tests {
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
-            72_660, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4162: 72_660 -> 73_020, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
+            73_020, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -3020,7 +3113,8 @@ mod tests {
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
-            593_390, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4162: 593_390 -> 596_330, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
+            596_330, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump
@@ -3067,5 +3161,272 @@ mod tests {
             "run117's leader residue moved: {} fields",
             parting.len()
         );
+    }
+
+    /// How a held-out leaf shows in the kept dumps (item 4162's census,
+    /// `docs/LEADERS.md`'s head): moving (nonzero or changing in at least
+    /// one scored dump), constant (one nonzero value, never changing),
+    /// quiet (the clear's value everywhere), or not printed at all.
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum Seen {
+        Moves,
+        Constant,
+        Quiet,
+        Unprinted,
+    }
+    use Seen::*;
+
+    /// **The census of the leaders line's held-out leaves against the
+    /// level-9 `LEADERDATA` record** (item 4162): each leaf of
+    /// `LEADERS_HELD_OUT` as it stood at 98 names, plus `att` (4154's, moved
+    /// to [`rows`] here), with the key `LeaderData::log_data@006e5110`
+    /// prints it under — `None` for a leaf the record does not print, so
+    /// only the checksum line can back it — and how it shows across the
+    /// 1,128 scored kept dumps that print the record (the 20 held-out
+    /// battery dumps are not counted, DECISIONS 61 §6). `tech.ptr` is the
+    /// 806-bit mask the record prints as `bits 806`; [`theirs`] reads the
+    /// three 44-bit masks and not this one.
+    const CENSUS: &[(&str, Option<&str>, Seen)] = &[
+        ("air_queued", Some("air_queued"), Moves),
+        ("ally_stamp", Some("ally_stamp[scan]"), Moves),
+        ("anti_att", Some("anti_att"), Moves),
+        ("att", Some("att"), Moves),
+        ("attack_stamp", Some("attack_stamp[scan]"), Moves),
+        ("attrition_stamp", Some("attrition_stamp"), Moves),
+        ("attrition_stamp2", Some("attrition_stamp2"), Moves),
+        ("attrition_stamp3", Some("attrition_stamp3"), Moves),
+        ("average_damage_rate", Some("average_damage_rate"), Moves),
+        ("average_death_rate", Some("average_death_rate"), Moves),
+        ("average_hit_rate", Some("average_hit_rate"), Moves),
+        ("average_kill_rate", Some("average_kill_rate"), Moves),
+        ("barracks_queued", Some("barracks_queued"), Moves),
+        ("blacken", Some("blacken"), Quiet),
+        ("broke_alliance", Some("broke_alliance[scan]"), Quiet),
+        ("buildings_lost", Some("buildings_lost"), Moves),
+        ("buildings_razed", Some("buildings_razed"), Moves),
+        ("cannon_time", None, Unprinted),
+        ("city_name", Some("city_name"), Moves),
+        ("combat_queued", Some("combat_queued"), Moves),
+        ("counteroffer", Some("counteroffer[scan]"), Quiet),
+        ("ctw_hero_stamp", Some("ctw_hero_stamp"), Quiet),
+        ("damage_current_frame", Some("damage_current_frame"), Moves),
+        (
+            "damage_fifteen_seconds",
+            Some("damage_fifteen_seconds"),
+            Moves,
+        ),
+        ("deaths_current_frame", Some("deaths_current_frame"), Moves),
+        (
+            "deaths_fifteen_seconds",
+            Some("deaths_fifteen_seconds"),
+            Moves,
+        ),
+        ("defeat_stamp", Some("defeat_stamp"), Moves),
+        ("defeat_type", Some("defeat_type"), Moves),
+        ("defeated_by", Some("defeated_by"), Moves),
+        ("dock_queued", Some("dock_queued"), Moves),
+        ("dow", Some("dow[scan]"), Moves),
+        ("factory_queued", Some("factory_queued"), Moves),
+        ("fort_mark", Some("fort_mark"), Moves),
+        ("forts_built", None, Unprinted),
+        ("frame_battle", Some("frame_battle"), Moves),
+        ("gift_stamp", Some("gift_stamp[scan]"), Moves),
+        ("give_att_disabled", None, Unprinted),
+        ("good_deeds", Some("good_deeds[scan]"), Quiet),
+        ("handicap", Some("handicap"), Quiet),
+        ("high_buildings", Some("high_buildings[scan]"), Moves),
+        ("hire_stamp", Some("hire_stamp[scan]"), Quiet),
+        ("hire_who", Some("hire_who[scan]"), Quiet),
+        ("hits_current_frame", Some("hits_current_frame"), Moves),
+        ("hits_fifteen_seconds", Some("hits_fifteen_seconds"), Moves),
+        ("incoming", None, Unprinted),
+        ("incoming_taunt", None, Unprinted),
+        ("incoming_taunt_frame", None, Unprinted),
+        ("incoming_taunt_who", None, Unprinted),
+        ("kills_current_frame", Some("kills_current_frame"), Moves),
+        (
+            "kills_fifteen_seconds",
+            Some("kills_fifteen_seconds"),
+            Moves,
+        ),
+        ("last_building_finished", None, Unprinted),
+        ("last_spoke", Some("last_spoke[scan]"), Quiet),
+        ("last_taunt", Some("last_taunt[scan]"), Moves),
+        ("last_unit_finished", None, Unprinted),
+        (
+            "lost_capital_modifier",
+            Some("lost_capital_modifier"),
+            Moves,
+        ),
+        ("lost_capital_stamp", Some("lost_capital_stamp"), Moves),
+        ("lost_capital_timer", Some("lost_capital_timer"), Moves),
+        ("made_peace", Some("made_peace[scan]"), Quiet),
+        ("misery", Some("misery"), Quiet),
+        ("missiles_used", Some("missiles_used"), Moves),
+        ("multi_diff", Some("multi_diff"), Constant),
+        ("nukes_launched", Some("nukes_launched"), Quiet),
+        ("oil_well_mark", Some("oil_well_mark"), Moves),
+        ("pop_issues", Some("pop_issues"), Moves),
+        ("raid_stamp", Some("raid_stamp[scan]"), Moves),
+        ("reg_terr", Some("reg_terr[scan]"), Moves),
+        ("repair_stamp", Some("repair_stamp"), Quiet),
+        ("scholar_militia", Some("scholar_militia"), Quiet),
+        ("score", Some("score"), Moves),
+        ("score_buildings", None, Unprinted),
+        ("score_combat", None, Unprinted),
+        ("score_economy", None, Unprinted),
+        ("score_explored", None, Unprinted),
+        ("score_pop", None, Unprinted),
+        ("score_research", None, Unprinted),
+        ("score_territory", None, Unprinted),
+        ("score_unit_upgrades", None, Unprinted),
+        ("score_units", None, Unprinted),
+        ("score_units_2", None, Unprinted),
+        ("score_wonders", None, Unprinted),
+        ("senates_built", Some("senates_built"), Moves),
+        ("stable_queued", Some("stable_queued"), Moves),
+        ("supply_mark", Some("supply_mark"), Moves),
+        ("taunt_frame", Some("taunt_frame[scan]"), Moves),
+        ("tech.ptr", Some("bits 806"), Moves),
+        ("territory_high", Some("territory_high"), Moves),
+        ("tribute_demanded", Some("tribute_demanded[scan]"), Quiet),
+        ("tribute_received", None, Unprinted),
+        ("tribute_sent", None, Unprinted),
+        ("tribute_stamp", Some("tribute_stamp[scan]"), Moves),
+        ("tributes", Some("tributes[scan]"), Quiet),
+        ("units_bribed", None, Unprinted),
+        ("units_killed", Some("units_killed"), Moves),
+        ("units_lost", Some("units_lost"), Moves),
+        ("victory_type", Some("victory_type"), Moves),
+        ("wonders_built", None, Unprinted),
+        ("wonders_held", None, Unprinted),
+        ("wonderwin_stamp", Some("wonderwin_stamp"), Moves),
+        ("wonderwin_timer", Some("wonderwin_timer"), Moves),
+    ];
+
+    /// The census holds every leaf the leaders line is still held out on.
+    #[test]
+    fn the_census_covers_every_held_out_leaf() {
+        let held: Vec<&str> = crate::diff::checksum_lines::LEADERS_HELD_OUT
+            .iter()
+            .map(|(n, _)| n.trim_end_matches(" (unheld)"))
+            .collect();
+        let missing: Vec<&&str> = held
+            .iter()
+            .filter(|n| !CENSUS.iter().any(|(c, _, _)| c == *n))
+            .collect();
+        assert!(
+            missing.is_empty(),
+            "held out and not in the census: {missing:?}"
+        );
+        let counts = |s: Seen| CENSUS.iter().filter(|(_, _, x)| *x == s).count();
+        assert_eq!(
+            (
+                counts(Moves),
+                counts(Constant),
+                counts(Quiet),
+                counts(Unprinted)
+            ),
+            (57, 1, 16, 25),
+            "the census's piles"
+        );
+        // A printed leaf names its key, an unprinted one none.
+        for (leaf, key, seen) in CENSUS {
+            assert_eq!(key.is_none(), *seen == Unprinted, "{leaf}");
+        }
+    }
+
+    /// **The census is the dump's, and the reader sees what it says**
+    /// (item 4162): on run647's start `FULL DUMP` (a scored lobby,
+    /// `diff::russian_word`), every leaf the census calls printed is printed
+    /// under its key on both leaders' records, and every leaf it calls
+    /// unprinted is printed under neither its name nor `name[scan]`. And a
+    /// census leaf that [`rows`] compares is one [`theirs`] parses off the
+    /// record: a key nothing parses cannot part.
+    #[test]
+    fn the_census_split_is_the_record_s_own() {
+        use crate::diff::russian_word::RUSSIAN;
+        let Some(inst) = install() else { return };
+        let Some(path) = dump(RUSSIAN.start) else {
+            eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", RUSSIAN.start);
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
+        let game = log.game().expect("a GAME block");
+        let start = game
+            .children()
+            .take_while(|b| !b.name().starts_with("FRAME"))
+            .find(|b| b.name() == "FULL DUMP")
+            .expect("the start's FULL DUMP");
+        let mut compared = Vec::new();
+        for who in 0..2usize {
+            let block = start
+                .kids("LEADERDATA")
+                .find(|l| l.int("who") == Some(who as i64))
+                .expect("the start's leader record");
+            let t = theirs(&block);
+            let ours: std::collections::BTreeMap<String, i64> =
+                rows(&loaded, &built, who).into_iter().collect();
+            for (leaf, key, _) in CENSUS {
+                match key {
+                    Some("bits 806") => assert!(
+                        block.all("bits").iter().any(|b| b.trim() == "806"),
+                        "who {who}: the 806-bit tech mask"
+                    ),
+                    Some(k) => assert!(!block.all(k).is_empty(), "who {who}: {leaf} under {k}"),
+                    None => assert!(
+                        block.all(leaf).is_empty()
+                            && block.all(&format!("{leaf}[scan]")).is_empty(),
+                        "who {who}: {leaf} is printed after all"
+                    ),
+                }
+                if let Some(v) = ours.get(*leaf) {
+                    let y = t
+                        .get(*leaf)
+                        .unwrap_or_else(|| panic!("{leaf} is compared and not parsed"));
+                    compared.push((who, *leaf, *v, *y));
+                }
+            }
+        }
+        eprintln!("census leaves compared at run647's start: {compared:?}");
+        let names: std::collections::BTreeSet<&str> = compared.iter().map(|c| c.1).collect();
+        assert_eq!(
+            names.into_iter().collect::<Vec<_>>(),
+            [
+                "anti_att",
+                "att",
+                "city_name",
+                "handicap",
+                "misery",
+                "multi_diff"
+            ],
+            "the census leaves rows compares"
+        );
+    }
+
+    /// The two sides of `anti_att`'s print: a single's bits and the dump's
+    /// `%f` text land on the same millionths for the table's patterns
+    /// (`docs/LEADERS.md` §6.2), and a near miss parts.
+    #[test]
+    fn a_single_and_its_print_are_the_same_millionths() {
+        use super::{millionths, print_millionths};
+        for (bits, text) in [
+            (0x4380_0000, "256.000000"),
+            (0x43aa_aaab, "341.333344"),
+            (0x442a_aaac, "682.666748"),
+            (0x4500_0000, "2048.000000"),
+            (0, "0.000000"),
+        ] {
+            assert_eq!(Some(millionths(bits)), print_millionths(text), "{bits:#x}");
+        }
+        assert_ne!(
+            Some(millionths(0x442a_aaab)),
+            print_millionths("682.666748")
+        );
+        assert_eq!(print_millionths("256"), None);
+        assert_eq!(print_millionths("256.00"), None);
     }
 }

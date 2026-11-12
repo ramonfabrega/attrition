@@ -1085,6 +1085,17 @@ impl Sim {
             "att" => one(i64::from(
                 self.territory.players.get(w).map_or(0, |p| p.strength),
             )),
+            // Item 4162 (`crate::leaders::words`): the lobby's three words
+            // (`docs/LEADERS.md` §16), `misery`'s constant 0 (§12.3) and
+            // the city-name count (§1).
+            "multi_diff" => one(i64::from(self.leader_multi_diff(who))),
+            "handicap" => one(i64::from(self.leader_handicap(who))),
+            "cannon_time" => one(i64::from(self.leader_cannon_time(who))),
+            "misery" => one(i64::from(self.leader_misery(who))),
+            "city_name" => one(i64::from(self.leader_city_name(who))),
+            // The single's bits (`docs/LEADERS.md` §6.2; entry 120 §3, class
+            // 1 at 256.0, class 2 under a source).
+            "anti_att" => one(i64::from(self.leader_anti_att(who))),
             "tech_cat_frame" => Some(a.tech_cat_frame.to_vec()),
             "site_mark" => one(i64::from(a.site_mark)),
             "pop_cap" => one(i64::from(m.cap)),

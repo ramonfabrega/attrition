@@ -977,6 +977,7 @@ pub fn from_lobby(
         &loaded.starting_resources,
         &loaded.pop_wins,
         &loaded.rush_minutes,
+        &loaded.cannon_times,
     );
     sim.setup().sync_setup_from_lobby();
     let (lo, hi) = sim.ai.lobby.starting_resources_row;

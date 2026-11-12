@@ -7255,8 +7255,10 @@ pub(crate) const WIDENING_CHAPTER_EIGHT: (i64, i64) = (605, 901);
 /// since item 1209 compares `agendas[·]`, one a player; 103 since item
 /// 1487 compares `popwin_stamp` and `popwin_timer`; 110 since item 2384
 /// compares `aggression[·]`, `strong[·]` and `weak[·]`, one each a player,
-/// and `got_diplo_message`.
-pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 110;
+/// and `got_diplo_message`; 111 since item 4162 compares `city_name`, the
+/// one of its six new keys (`att`, `anti_att`, `multi_diff`, `handicap`,
+/// `misery`, `city_name`) this level prints (+1 a leader).
+pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 111;
 /// The leader keys `LEADERS=2` prints and the leader diff reads, a
 /// player: the goods block's 88, `gov` since item 706, and the three tech
 /// counters since item 883 (`docs/GOLDEN.md` §35).
@@ -7264,8 +7266,10 @@ pub(crate) const LEADERS_TWO_KEYS: usize = 92;
 /// The leader keys `LEADERS=9` prints and the leader diff reads, a player
 /// (item 3969, chapter one hundred and twenty-five's take, the first golden
 /// window at that level); 1211 since item 3982 reads `ages_queued` and
-/// `epochs_queued`, which print at that level alone.
-pub(crate) const LEADERS_NINE_KEYS: usize = 1211;
+/// `epochs_queued`, which print at that level alone; 1217 since item 4162
+/// compares `att`, `anti_att`, `multi_diff`, `handicap`, `misery` and
+/// `city_name` (+6 a leader).
+pub(crate) const LEADERS_NINE_KEYS: usize = 1217;
 
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,

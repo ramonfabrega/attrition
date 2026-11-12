@@ -27,9 +27,40 @@ export and the executable's listing:
    back to the decompiled function or the listing, with the deciding line.
 
 The files are under `docs/audit/2026-11-11-item-4152/`, and each section is
-written from its family's verdicts alone. **No diff backs any rule here
-yet.** Where a kept dump was consulted, the section says so, and treats that
-value as a witness, not a pinned diff.
+written from its family's verdicts alone. ~~**No diff backs any rule here
+yet.**~~ Since items 4154 and 4162 a diff backs the leaves the census below
+names as compared; each section's coverage says which. Where a kept dump
+was consulted otherwise, the section says so, and treats that value as a
+witness, not a pinned diff.
+
+**The census: which leaves a diff can back** (item 4162, step I of 4159).
+Every leaf of `LEADERS_HELD_OUT` as it stood at 98 names, plus `att`, was
+looked up in the level-9 `LEADERDATA` record of the 1,128 scored kept
+dumps that print it (`~/ron-data/…/Logs`; the 20 held-out battery dumps
+are not counted, DECISIONS 61 §6). The table is `diff::leader`'s
+`CENSUS`, and `the_census_split_is_the_record_s_own` asserts the split on
+run647's start record. Of the 98:
+
+- **25 are not printed** by `LeaderData::log_data`, so only the checksum
+  line can back them: `cannon_time`, `forts_built`, `give_att_disabled`,
+  the four `incoming*`, `last_building_finished`, `last_unit_finished`,
+  the eleven `score_*` parts, `tribute_received`, `tribute_sent`,
+  `units_bribed`, `wonders_built`, `wonders_held`. No other printed key
+  carries them.
+- **73 are printed** (72 under their own name or `name[scan]`; `tech.ptr`
+  as the `bits 806` mask). Before this item `diff::leader::theirs` parsed
+  **none** of them: a key nothing parses cannot part. Of the 73, 56 move
+  (nonzero or changing between blocks in at least one scored dump),
+  `multi_diff` holds one nonzero value per dump and never changes, and 16
+  are quiet everywhere — `blacken`, `broke_alliance`, `counteroffer`,
+  `ctw_hero_stamp`, `good_deeds`, `handicap`, `hire_stamp`, `hire_who`,
+  `last_spoke`, `made_peace`, `misery`, `nukes_launched`, `repair_stamp`,
+  `scholar_militia`, `tribute_demanded`, `tributes`. A quiet leaf's
+  agreement is a reading's claim the dump cannot falsify.
+
+Item 4162 made `theirs` read `att`, `pop_issues`, `misery`, `city_name`,
+`handicap`, `multi_diff` and `anti_att` (the record's one float, as `%f`
+millionths), and `rows` compare them.
 
 **Conventions.** A function is cited as `Name (00xxxxxx)`. An offset is a
 `LeaderData` offset. `Leader` holds `LeaderData` at offset 0 and adds 8 bytes
@@ -181,7 +212,12 @@ and in multiplayer out-of-sync recovery.
 ### 1.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/city-name-*.md`); no diff backs it yet.
+(`docs/audit/2026-11-11-item-4152/city-name-*.md`); ~~no diff backs it
+yet.~~ Since item 4162 a diff backs `city_name`: the record diff
+(`diff::leader::rows` against `theirs`) compares it on every scored dump
+that prints the record, and the leaders checksum line holds it on run
+1562's frame 91 (1 against 1 on both leaders). The tribe-shared winner is
+backed only where a kept dump seats two slots of one tribe.
 
 Verdicts: 41 confirmed, 3 corrected, 1 open, plus one new finding (the
 crate's FORBIDDENCITY exemption is load-bearing). None of the corrections
@@ -1075,7 +1111,12 @@ arm and its zero with no arm. `diff::russian_word::
 the_russian_start_holds_att_one_with_no_attrition_tech` checks run647's
 start, `FRAME 1` and the closing dump on both leaders. The leaders checksum
 line checks `att` on run 1562's frame 91, 0 against 0. The other four leaves
-and `att`'s other arms still rest on the readings alone. Both writer nets were re-run for all five leaves and found no writer
+and `att`'s other arms still rest on the readings alone. Since item 4162
+the record diff compares `att` on every scored dump that prints the record
+(the census at this file's head), which backs its Colosseum and Kremlin
+arms and its fold timing (§5.3 faults 2 and 3, closed on run1314b, run762
+and run1370b); the four stamps and `give_att_disabled` are not printed or
+not compared, and still rest on the readings. Both writer nets were re-run for all five leaves and found no writer
 either reading missed.
 
 | leaf | confirmed | corrected | open |
@@ -1341,8 +1382,12 @@ Out of reach: `take_att_disabled` (triggers only:
 Two readings and an adjudication
 (`docs/audit/2026-11-11-item-4152/anti-att-*.md`). **No diff backs the
 class 2 rows yet.** The class 1 value `0x43800000` was read off run 1562
-frame 91 and run1100 frame 5408 (entry 120 §3.4). That reading is a
-witness, not a pinned diff.
+frame 91 and run1100 frame 5408 (entry 120 §3.4). ~~That reading is a
+witness, not a pinned diff.~~ Since item 4162 the record diff compares
+`anti_att` on every scored dump that prints the record, and the leaders
+checksum line holds it on run 1562's frame 91 (`0x43800000` both sides);
+a class 2 row is backed wherever a scored dump reaches one. Its reader
+(`get_attrition`'s divisor) is not wired, parked 4162b.
 
 Verdicts: 33 confirmed, 6 corrected, 3 open (§6.6 lists four). The
 corrections that changed a rule: the tier is "holds Logistics / Supply /
@@ -2594,7 +2639,12 @@ the attacker's leader is capped). `hurry_action` is debug only.
 ### 12.6 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/misery-*.md`); no diff backs it yet.
+(`docs/audit/2026-11-11-item-4152/misery-*.md`); ~~no diff backs it
+yet.~~ Since item 4162 the record diff compares `misery` on every scored
+dump that prints the record, and the checksum line holds it on run 1562's
+frame 91 (0 against 0); it is quiet everywhere, so only the zero is backed.
+`pop_issues` is held but not compared: it parts once, on run667's closing
+frame 17380, who 1, ours 2 theirs 0 (parked 4162a), and stays unmodelled.
 
 - `pop_issues`: 25 confirmed, 4 corrected, 1 open. High confidence on the
   writers, predicates, reset and the one-per-building bound; every one is
@@ -3483,7 +3533,12 @@ editor stores. `Leaders::clear` runs at game end.
 ### 16.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/lobby-words-*.md`); no diff backs it yet.
+(`docs/audit/2026-11-11-item-4152/lobby-words-*.md`); ~~no diff backs it
+yet.~~ Since item 4162 the record diff compares `multi_diff` and `handicap`
+on every scored dump that prints the record, and the leaders checksum line
+holds all three on run 1562's frame 91. `cannon_time` is not printed in
+the record, so the checksum line (0 against 0) is its only backing;
+`handicap` is quiet everywhere, so only its zero is backed.
 
 Verdicts (confirmed / corrected / open): `multi_diff` 12 / 2 / 0,
 `cannon_time` 12 / 0 / 0, `handicap` 14 / 1 / 0. The corrections that

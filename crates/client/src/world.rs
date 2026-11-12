@@ -233,6 +233,9 @@ pub const MOUNTAIN_PIECE: i32 = -100_000;
 /// (item 4141): `MOUNTAIN_ALPHA + 2 · template`, plus one for the ring.
 pub const MOUNTAIN_ALPHA: usize = 1_000;
 
+/// The water's alpha ramp's key among the alphas (item 4164).
+pub const WATER_ALPHA: usize = 900;
+
 /// What [`crate::ground::our_patches`] and the patch's draw take.
 struct PatchArt {
     /// The 14 alphas in name order, each its own level 0.
@@ -703,7 +706,12 @@ impl World {
         if self.debug_ground || self.ground.is_none() {
             return (self.terrain(), &[], &[]);
         }
-        if self.drawn.0 != version || self.drawn.1.positions.is_empty() {
+        // Nothing built yet: no debug tile, no textured mesh and no layer.
+        // From item 4164 a map can leave no tile in the debug colours, so
+        // the debug mesh alone is not the mark (it rebuilt every frame).
+        let unbuilt =
+            self.drawn.1.positions.is_empty() && self.drawn.2.is_empty() && self.drawn.3.is_empty();
+        if self.drawn.0 != version || unbuilt {
             self.terrain();
             let t = self.runner.terrain();
             let g = self.ground.as_ref().expect("checked above");
@@ -775,6 +783,42 @@ impl World {
                 }
             }
             let mut patches: Vec<PatchMesh> = patches.into_values().collect();
+            // Item 4164: the water over every cell that holds it, the
+            // ocean's base at `get_water_fade`'s alpha, drawn on the tile's
+            // own triangles (the seabed, parked 4160a); the alpha rides a
+            // linear ramp so the patch's shader takes it unchanged.
+            if let Some(k) = g
+                .textures
+                .index_land(render::terrain::OCEAN, 0, 0, 0)
+                .filter(|&k| k < g.flat.len())
+            {
+                let mut m = PatchMesh {
+                    piece: -1 - k as i32,
+                    positions: Vec::new(),
+                    uvs: Vec::new(),
+                    alpha_uvs: Vec::new(),
+                    mips: g.flat[k].clone(),
+                    alpha: WATER_ALPHA,
+                    alpha_mips: std::sync::Arc::new(crate::ground::water_ramp()),
+                    mountain: false,
+                };
+                for ((tri, uv), tile) in base.tris.iter().zip(&base.uvs).zip(&base.tile) {
+                    let per = render::terrain::TILES_PER_CELL;
+                    let c = (tile.0 / per, tile.1 / per);
+                    if !crate::ground::holds_water(&t, c.0, c.1) {
+                        continue;
+                    }
+                    m.positions.extend_from_slice(tri);
+                    m.uvs.extend_from_slice(uv);
+                    for q in uv {
+                        let a = crate::ground::water_alpha(&t, c, *q).unwrap_or(0.0);
+                        m.alpha_uvs.push([(a + 0.5) / 256.0, 0.5]);
+                    }
+                }
+                if !m.positions.is_empty() {
+                    patches.push(m);
+                }
+            }
             // Item 4141 (§3.10): each template's ring, then its main, after
             // the patch, `render_mountains`'s order.
             if let Some(md) = g.mountains.as_ref() {

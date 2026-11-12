@@ -185,6 +185,7 @@ pub fn lobby_of(
     starting_resources: &[(i32, i32)],
     pop_wins: &[i32],
     rush_minutes: &[i32],
+    cannon_times: &[i32],
 ) -> sim::ai::Lobby {
     let mut l = sim::ai::Lobby::default();
     let int = |key: &str| -> Option<i32> {
@@ -266,6 +267,15 @@ pub fn lobby_of(
     }
     if let Some(v) = int("flags") {
         l.no_nation_powers = v & 4 != 0;
+    }
+    // `CANNON_TIMES` indexes the `cannontimes` rows; `Leader::init` seeds
+    // each leader's `cannon_time` with the row's `DATA` (`docs/LEADERS.md`
+    // §16.2). A setting past the table keeps the default 0.
+    if let Some(&v) = int("CANNON_TIMES")
+        .and_then(|v| usize::try_from(v).ok())
+        .and_then(|i| cannon_times.get(i))
+    {
+        l.cannon_time = v;
     }
     l
 }
@@ -697,6 +707,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         &loaded.starting_resources,
         &loaded.pop_wins,
         &loaded.rush_minutes,
+        &loaded.cannon_times,
     );
     // `info.flags & 4` is asked of two layers — the AI's host function
     // `get_is_no_nation_powers` reads the lobby, `has_tribe_bonus` reads the
