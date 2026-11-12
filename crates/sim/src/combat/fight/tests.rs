@@ -6195,3 +6195,82 @@ fn a_human_guard_does_not_answer_a_hit() {
         "idle"
     );
 }
+
+/// **The kill and loss counters count a squad once, at its last figure**
+/// (`docs/LEADERS.md` §2.2, item 4176): a figure that is not its squad's
+/// captain fails the countable test and steps nothing; the captain, alone
+/// now, steps the victim's `units_lost` and the attacker's
+/// `units_killed`, with no ally or self test. Attrition's death steps the
+/// loss alone.
+#[test]
+fn a_squad_counts_one_loss_and_one_kill_at_its_last_figure() {
+    let (mut sim, ty) = at_war();
+    let cap = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+    let sub = put(&mut sim, 0, ty, Pos::new(0x1030, 0x1000));
+    let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+    sim.units[sub].captain = false;
+    sim.units[sub].o_up = Some(cap);
+    sim.units[cap].o_down = Some(sub);
+    let kill = combat::Sixteenths {
+        whole: 500,
+        frac: 0,
+    };
+    let counts = |sim: &Sim| {
+        let (v, k) = (sim.leader_tallies(0), sim.leader_tallies(1));
+        (v.units_lost, k.units_killed, v.units_killed, k.units_lost)
+    };
+    assert!(matches!(
+        sim.take_damage(Obj::Unit(sub), kill, Obj::Unit(foe), 10),
+        Taken::Died { .. }
+    ));
+    assert_eq!(
+        counts(&sim),
+        (0, 0, 0, 0),
+        "a member's death counts nothing"
+    );
+    assert!(matches!(
+        sim.take_damage(Obj::Unit(cap), kill, Obj::Unit(foe), 11),
+        Taken::Died { .. }
+    ));
+    assert_eq!(counts(&sim), (1, 1, 0, 0), "the last figure counts once");
+    let lone = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1100));
+    sim.die_by_attrition(lone, 12);
+    assert_eq!(
+        counts(&sim),
+        (2, 1, 0, 0),
+        "attrition: a loss with no killer"
+    );
+}
+
+/// **The territory step's attack branch on unowned ground** (§4.2 step
+/// 4): the victim's `attack_stamp[att]` takes the frame only past a
+/// strict 300-frame window, so a blow on frame 300 against the clear's 0
+/// stamps nothing, one on 301 stamps, and the next 300 frames are quiet.
+/// No other row moves for a unit target, and the attacker's own row
+/// never does.
+#[test]
+fn a_blow_stamps_the_victim_s_attack_row_once_in_three_hundred_frames() {
+    let (mut sim, ty) = at_war();
+    let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+    let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+    let blow = |sim: &mut Sim, frame: i64| {
+        sim.do_damage(
+            Obj::Unit(foe),
+            Obj::Unit(me),
+            crate::movement::Angle(0),
+            false,
+            1,
+            false,
+            true,
+            frame,
+        );
+        sim.leader_tallies(0).attack_stamp[1]
+    };
+    assert_eq!(blow(&mut sim, 300), 0, "exactly 300 does not open it");
+    assert_eq!(blow(&mut sim, 301), 301);
+    assert_eq!(blow(&mut sim, 601), 301, "601 − 301 is not past 300");
+    assert_eq!(blow(&mut sim, 602), 602);
+    let v = sim.leader_tallies(0);
+    assert_eq!((v.raid_stamp, v.ally_stamp), ([0; 8], [0; 8]));
+    assert_eq!(sim.leader_tallies(1).attack_stamp, [0; 8]);
+}

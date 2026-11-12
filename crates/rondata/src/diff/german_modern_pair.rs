@@ -447,7 +447,8 @@ fn german_modern_pair_run1422_s_closing_frame_is_widened_whole() {
     // on 5157, `city_flags[0x4]` 0 against 1 and `reduce_stamp` 4806
     // against 5156 (parked 3742d). No unit position or order parts, no
     // draw parts to 5304, and the closing block 5305 agrees.
-    pin_eq!(w.firsts.len(), 55, "run1422 baseline");
+    // Item 4176: 55 -> 58, +3 firsts: who=0's `attack_stamp[1]`, `raid_stamp[1]` and `ally_stamp[1]` on 5157, ours 4772 theirs 5156, on a closing frame whose state already parts.
+    pin_eq!(w.firsts.len(), 58, "run1422 baseline");
     // Every round, both directions: 228 each side, 13 rows parting. The
     // Bomber `1/36`'s `ammo[0]` on 5048, `sx`/`sy` one unit apart and
     // `angle` (3742b's family), and the Volksgrenadiers `1/48` (5291) and

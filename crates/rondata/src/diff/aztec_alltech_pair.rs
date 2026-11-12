@@ -212,5 +212,6 @@ fn aztec_alltech_pair_run1147b_s_word_frame_is_widened_whole() {
     // 4454, `1/94` on 4455, …) sit on units already apart by their
     // `attrition` period (ours 6 against theirs' 24), whose ticks fall on
     // other frames.
-    pin_eq!(w.firsts.len(), 277, "run1147b baseline");
+    // Item 4176: 277 -> 278, +1 firsts: who=1's `attrition_stamp2` standing at 4376, ours 4227 theirs 4239, beside who=1's `hits_left` standing apart (parked 4176b).
+    pin_eq!(w.firsts.len(), 278, "run1147b baseline");
 }

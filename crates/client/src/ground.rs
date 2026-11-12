@@ -305,6 +305,121 @@ pub fn water_ramp() -> Mips {
     })
 }
 
+/// **The ocean floor's plane** (item 4174; `docs/RENDERER.md` §3.12):
+/// `TerrainOut::build_ocean_floor@0086c7f0` lays one flat vertex per cell
+/// corner at `coast_depth + land_height − 10`; every one of run1564's 624
+/// drawn floor vertices (`scene_ocean_floor`) stands at −283.
+#[cfg(test)]
+pub const FLOOR_Z: f32 = -283.0;
+
+/// **The floor's texture repeat** (item 4174), in world units: run1564's
+/// floor texcoords are `xy / 6144` plus an offset on the first layer and
+/// `−xy / 6144` plus another on the second, exactly — one repeat every
+/// eight cells, the second layer mirrored. The offsets drift with
+/// `modify_ocean_floor_texture@0086e320`'s clock and are not drawn.
+#[cfg(test)]
+pub const FLOOR_REPEAT: f32 = 6144.0;
+
+/// The floor's two texcoords at world `(x, y)` (item 4174).
+#[cfg(test)]
+pub fn floor_uvs(x: f32, y: f32) -> ([f32; 2], [f32; 2]) {
+    (
+        [x / FLOOR_REPEAT, y / FLOOR_REPEAT],
+        [-x / FLOOR_REPEAT, -y / FLOOR_REPEAT],
+    )
+}
+
+/// **`OceanVars`' floor bytes** (item 4174; `TerrainData +0x5524`, read on
+/// run1564's packet): `floor*_top` (255, 255, 255) and `floor*_bot`
+/// (64, 64, 64), alphas 1.
+#[cfg(test)]
+pub const FLOOR_TOP: u8 = 255;
+#[cfg(test)]
+pub const FLOOR_BOT: u8 = 64;
+
+/// **`OceanVars`' water bytes** (item 4174): `top*_top` and `top*_bot`,
+/// read on run1564's packet as (0, 159, 255) at the screen's top and
+/// (0, 111, 218) at its foot. `oceanred` … (255, 255, 255) is the white
+/// `create_water_verts` lays; `TerrainOut::modify_water@0086e700` replaces
+/// it with these each frame.
+#[cfg(test)]
+pub const WATER_TOP: [u8; 3] = [0, 159, 255];
+#[cfg(test)]
+pub const WATER_BOT: [u8; 3] = [0, 111, 218];
+
+/// **The screen's ramp** (item 4174): `TerrainOut::determine_frustum_
+/// intersect@00854770`'s two ground points — under the screen's top-left
+/// pixel and its bottom-left — and the fraction a world point lies along
+/// the view's depth between them: `((P − TL)·(1, 1)/√2) / |BL − TL|`,
+/// clamped to [0, 1]. `modify_ocean_floor@00873960` tints the floor and
+/// `modify_water` the water by it; the lateral axis does not enter.
+#[cfg(test)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ScreenRamp {
+    /// `TL · (1, 1)/√2`.
+    pub d0: f32,
+    /// `|BL − TL|`.
+    pub len: f32,
+}
+
+#[cfg(test)]
+impl ScreenRamp {
+    /// The ramp of `camera` on a `(w, h)` screen: each corner unprojected
+    /// onto the plane z = 0 through `to_screen_matrix`, as
+    /// `RenderWindow::mouse_to_xy_plane` takes it.
+    pub fn of(camera: &render::Camera, (w, h): (u32, u32)) -> ScreenRamp {
+        let m = camera.to_screen_matrix().0;
+        let ground = |px: f32, py: f32| {
+            let sx = 2.0 * px / w as f32 - 1.0;
+            let sy = 1.0 - 2.0 * py / h as f32;
+            let (a, b, e) = (m[0] - sx * m[3], m[4] - sx * m[7], sx * m[15] - m[12]);
+            let (c, d, f) = (m[1] - sy * m[3], m[5] - sy * m[7], sy * m[15] - m[13]);
+            let det = a * d - b * c;
+            [(e * d - b * f) / det, (a * f - e * c) / det]
+        };
+        let tl = ground(0.0, 0.0);
+        let bl = ground(0.0, h as f32);
+        ScreenRamp {
+            d0: (tl[0] + tl[1]) * std::f32::consts::FRAC_1_SQRT_2,
+            len: (bl[0] - tl[0]).hypot(bl[1] - tl[1]),
+        }
+    }
+
+    /// The fraction at world `(x, y)`.
+    pub fn at(&self, x: f32, y: f32) -> f32 {
+        (((x + y) * std::f32::consts::FRAC_1_SQRT_2 - self.d0) / self.len).clamp(0.0, 1.0)
+    }
+}
+
+/// **The floor's vertex grey** at ramp fraction `f` (item 4174):
+/// `modify_ocean_floor`'s lerp of [`FLOOR_TOP`] to [`FLOOR_BOT`], times
+/// 0.6 (`__real_3f19999a`), truncated — 153 at the top, 38 at the foot.
+#[cfg(test)]
+pub fn floor_grey(f: f32) -> u8 {
+    let v = f32::from(FLOOR_TOP) * (1.0 - f) + f32::from(FLOOR_BOT) * f;
+    (v / 255.0 * 0.6 * 255.0) as u8
+}
+
+/// **The water's vertex colour** at ramp fraction `f` (item 4174):
+/// `modify_water`'s lerp of [`WATER_TOP`] to [`WATER_BOT`], truncated.
+#[cfg(test)]
+pub fn water_rgb(f: f32) -> [u8; 3] {
+    [0, 1, 2].map(|k| {
+        let v = f32::from(WATER_TOP[k]) * (1.0 - f) + f32::from(WATER_BOT[k]) * f;
+        (v / 255.0 * 255.0) as u8
+    })
+}
+
+/// **The floor's stage colour** (item 4174): the card's draw 36 on run1567,
+/// `MODULATE2X(TEXTURE, DIFFUSE)` then `MODULATE(TEXTURE, CURRENT)` — the
+/// first layer's texel doubled under the vertex grey, clamped, times the
+/// second's — on 0–255 channels.
+#[cfg(test)]
+pub fn floor_stage(t0: [f32; 3], t1: [f32; 3], grey: u8) -> [f32; 3] {
+    let g = f32::from(grey) / 255.0;
+    [0, 1, 2].map(|k| (2.0 * t0[k] * g).min(255.0) * t1[k] / 255.0)
+}
+
 /// **The transition patch laid** (item 4139; `docs/RENDERER.md` §3.9):
 /// every `BASELAND` tile not under a placed mountain whose cell
 /// [`crate::patch::patches`] patches, its two triangles as [`ground_base`]
@@ -661,6 +776,19 @@ pub const RUN1564_3279_GROUND: ((usize, usize), [[u32; 2]; 7], usize) = (
 #[cfg(test)]
 pub const RUN1564_3279_WATER: [[u32; 2]; 3] = [[55, 233], [294, 233], [112, 0]];
 
+/// **`RUN1564_3279_CARD`** (item 4174; `docs/RENDERER.md` §3.12): the
+/// second photograph's ground under [`RUN1564_3279_GROUND`]'s rule and
+/// 4172's luminance reader, `(ground, luma)`, with the floor and the water
+/// (1) as drawn, (2) as the card's stages leave them, unlit, and (3)
+/// through the lit branch and the tone map — every input the packet's
+/// (`the_floor_and_the_water_off_the_packet`). Both card models lift the
+/// luminance row (791 → 1,426, 1,072) and drop the scored row (1,236 →
+/// 793, 814): `OCEAN` agrees on 0 of 437 under either, its red channel 1
+/// to 20 against the photograph's ~40 (lake tile (182, 191): theirs (38,
+/// 97, 146), lit (1, 91, 180)). Neither is drawn (parked 4174a).
+#[cfg(test)]
+pub const RUN1564_3279_CARD: [(usize, usize); 3] = [(1236, 791), (793, 1426), (814, 1072)];
+
 /// [`RUN1559B_3279_GROUND`] on the base layer alone, as item 4127 pinned it.
 #[cfg(test)]
 pub const RUN1559B_3279_GROUND_BARE: (usize, usize) = (949, 1109);
@@ -1006,6 +1134,116 @@ mod tests {
     /// `gSpecular`, `gEmissive`, `gTexFactor`, then `gPower`
     /// (`sbl/d3dgl.pdb`), the light's `Ambient` and `Diffuse` its second
     /// and third rows (`ShaderLight`). `RON_CARD_TRACE_1567` moves it.
+    /// **The floor and the water off run1564's packet** (item 4174;
+    /// `docs/RENDERER.md` §3.12): `tools/render/water_packet.py`'s dump of
+    /// the meshes the original drew on frame 3294 — `scene_ocean_floor`
+    /// (the card's draw 36) and `modify_water`'s statics (draw 162). Every
+    /// floor vertex at [`FLOOR_Z`], its texcoords [`floor_uvs`] plus one
+    /// offset a layer, its grey [`floor_grey`] of our [`ScreenRamp`] at
+    /// run1564's camera; every water vertex's normal (0, 0, 1) and its rgb
+    /// [`water_rgb`] of the same ramp; each within a byte.
+    #[test]
+    fn the_floor_and_the_water_off_the_packet() {
+        let path = std::env::var_os("RON_WATER_PACKET_1564")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                let home = std::env::var_os("HOME").unwrap_or_default();
+                PathBuf::from(home)
+                    .join("ron-data/lab-experiments/2026-11-12-item-4174/run1564-water.txt")
+            });
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            println!("skipping: no water packet dump at {}", path.display());
+            return;
+        };
+        let ramp = ScreenRamp::of(&run1564().camera, (1920, 1080));
+        let num = |s: &str| s.parse::<f32>().expect("a float");
+        let hex = |s: &str| u32::from_str_radix(s, 16).expect("a colour");
+        let (mut floors, mut waters, mut grey_off, mut rgb_off) = (0, 0, 0u32, 0u32);
+        let mut offsets: Vec<[f32; 4]> = Vec::new();
+        let mut worst = (0i32, String::new());
+        for line in text.lines() {
+            let f: Vec<&str> = line.split_whitespace().collect();
+            match f.first() {
+                Some(&"ocean") => {
+                    assert!(line.contains("floor_top 255,255,255 floor_bot 64,64,64"));
+                    assert!(line.contains("top 0,0,159,111,255,218"), "{line}");
+                }
+                Some(&"floor") => {
+                    floors += 1;
+                    let (x, y, z) = (num(f[1]), num(f[2]), num(f[3]));
+                    assert_eq!(z, FLOOR_Z, "a floor vertex at {x}, {y}");
+                    let c = hex(f[4]);
+                    let (a, b) = floor_uvs(x, y);
+                    offsets.push([
+                        num(f[5]) - a[0],
+                        num(f[6]) - a[1],
+                        num(f[7]) - b[0],
+                        num(f[8]) - b[1],
+                    ]);
+                    let ours = i32::from(floor_grey(ramp.at(x, y)));
+                    let theirs = (c & 0xff) as i32;
+                    assert!(c >> 24 == 0x99 && (c >> 8) & 0xff == c & 0xff, "{c:08x}");
+                    let d = (ours - theirs).abs();
+                    if d > 1 {
+                        grey_off += 1;
+                    }
+                    if d > worst.0 {
+                        worst = (d, format!("floor ({x}, {y}): ours {ours}, theirs {theirs}"));
+                    }
+                }
+                Some(&"water") => {
+                    waters += 1;
+                    let (x, y) = (num(f[1]), num(f[2]));
+                    let c = hex(f[4]);
+                    let n = [num(f[5]), num(f[6]), num(f[7])];
+                    assert_eq!(n, [0.0, 0.0, 1.0], "the water's normal at {x}, {y}");
+                    let ours = water_rgb(ramp.at(x, y));
+                    let theirs = [c & 0xff, (c >> 8) & 0xff, (c >> 16) & 0xff];
+                    let d = (0..3)
+                        .map(|k| (i32::from(ours[k]) - theirs[k] as i32).abs())
+                        .max()
+                        .unwrap();
+                    if d > 1 {
+                        rgb_off += 1;
+                    }
+                    if d > worst.0 {
+                        worst = (
+                            d,
+                            format!("water ({x}, {y}): ours {ours:?}, theirs {theirs:?}"),
+                        );
+                    }
+                }
+                _ => {}
+            }
+        }
+        let spread = |k: usize| {
+            let v: Vec<f32> = offsets.iter().map(|o| o[k]).collect();
+            let (lo, hi) = v
+                .iter()
+                .fold((f32::MAX, f32::MIN), |(l, h), &x| (l.min(x), h.max(x)));
+            hi - lo
+        };
+        println!(
+            "run1564 packet: {floors} floor and {waters} water vertices; our ramp d0 {:.1} len \
+             {:.1}; greys off by more than 1: {grey_off}, water rgb: {rgb_off}; worst {} ({}); \
+             texcoord offsets spread {:.2e} {:.2e} {:.2e} {:.2e}",
+            ramp.d0,
+            ramp.len,
+            worst.0,
+            worst.1,
+            spread(0),
+            spread(1),
+            spread(2),
+            spread(3)
+        );
+        assert_eq!((floors, waters), (624, 1755));
+        assert!(
+            (0..4).all(|k| spread(k) < 1e-3),
+            "one texcoord offset a layer"
+        );
+        assert_eq!((grey_off, rgb_off), (0, 0), "{}", worst.1);
+    }
+
     #[test]
     fn the_water_and_the_floor_at_the_card() {
         use render::silhouette::SCENE_AMBIENT;
@@ -1752,6 +1990,66 @@ mod tests {
         assert_eq!((l.0, l.1), RUN1564_3279_GROUND_LUMA);
     }
 
+    /// **Item 4174: the floor and the water as the card draws them**, on
+    /// the second photograph: [`RUN1564_3279_GROUND`]'s rule and 4172's
+    /// luminance reader on the draw as it stood, then under [`Card`]'s two
+    /// models, by kind.
+    #[test]
+    fn the_card_s_water_on_the_second_photograph() {
+        let Some(mut p) = probe_at(run1564()) else {
+            return;
+        };
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let floor = ocean_floor(&p.root);
+        let mut rows = Vec::new();
+        for (name, card) in [
+            ("as drawn", None),
+            ("unlit", Some(Card::Unlit)),
+            ("lit", Some(Card::Lit)),
+        ] {
+            let Some(r) = ground_row_card(&mut p, Some(&floor), card) else {
+                return;
+            };
+            let mut by = [[0u32; 2]; 7];
+            for (tt, ok) in &r.scored {
+                let e = &mut by[kind_of(&t, &mountains, *tt)];
+                e[1] += 1;
+                if *ok {
+                    e[0] += 1;
+                }
+            }
+            let l = luma_row(&p, &r);
+            for tt in [(182, 191), (161, 191), (159, 193)] {
+                if let Some((th, us, at)) = r.means.get(&tt) {
+                    println!(
+                        "4174 {name} tile {tt:?} at {at:?}: theirs ({:.0}, {:.0}, {:.0}) {:?}, ours {:?} {:?}",
+                        th[0],
+                        th[1],
+                        th[2],
+                        chromaticity(*th),
+                        us,
+                        us.map(chromaticity)
+                    );
+                }
+            }
+            println!(
+                "4174 {name}: ground {} of {} (SANDY {:?}, OCEAN {:?}), luma {} (SANDY {:?}, OCEAN {:?})",
+                r.row,
+                r.scored.len(),
+                by[5],
+                by[6],
+                l.0.0,
+                l.1[5],
+                l.1[6]
+            );
+            rows.push((r.row, l.0.0));
+        }
+        println!("4174 rows: {rows:?}");
+        assert_eq!(rows, RUN1564_3279_CARD);
+    }
+
     /// **Item 4164: the water on the second photograph**, the read draw
     /// against its controls, by kind.
     #[test]
@@ -2278,9 +2576,67 @@ mod tests {
     /// [`ground_row`] with `surface` the water's texture, laid over every
     /// cell that holds water at [`water_alpha`]; `None` lays no water.
     pub(crate) fn ground_row_with(p: &mut Probe, surface: Option<&Mips>) -> Option<GroundRow> {
+        ground_row_card(p, surface, None)
+    }
+
+    /// **How the card's floor and water are counted** (item 4174): `Unlit`
+    /// composites the stages' colours as they leave the texture stages;
+    /// `Lit` runs each through the Extended Edition's lit branch (the
+    /// install's `ps_global.hlsl`, read: the stage colour to the 1.45,
+    /// times 5 × (the material diffuse × the light × N·L / π + the material
+    /// ambient × the scene's ambient); no specular, no screen reflection),
+    /// blends the water over the floor in HDR, and tone-maps at the clamp.
+    /// A land pixel under the water enters at the HDR value the tone map
+    /// takes to its drawn colour.
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    pub(crate) enum Card {
+        Unlit,
+        Lit,
+    }
+
+    /// The tone map at the clamp, 0–255 in and out (item 4174).
+    pub(crate) fn tone(lin: f32) -> f32 {
+        use render::silhouette::{EXPOSURE, MIN_LUMINANCE, WHITE_POINT, filmic};
+        let white = 1.0 / filmic(MIN_LUMINANCE * WHITE_POINT);
+        255.0 * (filmic(EXPOSURE * lin) * white).clamp(0.0, 1.0)
+    }
+
+    /// [`tone`]'s inverse on a drawn byte, by bisection (item 4174).
+    pub(crate) fn untone(c: f32) -> f32 {
+        let (mut lo, mut hi) = (0.0f32, 64.0f32);
+        for _ in 0..40 {
+            let mid = 0.5 * (lo + hi);
+            if tone(mid) < c { lo = mid } else { hi = mid }
+        }
+        0.5 * (lo + hi)
+    }
+
+    /// The lit branch's HDR value of a stage colour (item 4174): `diffuse`
+    /// the material diffuse × the light's, `ambient` the material ambient.
+    pub(crate) fn lit(stage: [f32; 3], diffuse: [f32; 3], ambient: f32) -> [f32; 3] {
+        use render::silhouette::SCENE_AMBIENT;
+        let n_dot_l = std::f32::consts::FRAC_1_SQRT_2;
+        [0, 1, 2].map(|k| {
+            let c = (stage[k] / 255.0).clamp(0.0, 1.0).powf(1.45);
+            c * 5.0 * (diffuse[k] * n_dot_l / std::f32::consts::PI + ambient * SCENE_AMBIENT[k])
+        })
+    }
+
+    /// [`ground_row_with`], and with `card` the floor and the water as the
+    /// card draws them (item 4174): an `OCEAN` tile, which the land pass
+    /// does not draw, shows the floor ([`floor_stage`] of the base sampled at
+    /// [`floor_uvs`], under [`floor_grey`] of the [`ScreenRamp`]); every
+    /// wet tile takes the water, [`water_rgb`] of the ramp at its alpha.
+    pub(crate) fn ground_row_card(
+        p: &mut Probe,
+        surface: Option<&Mips>,
+        card: Option<Card>,
+    ) -> Option<GroundRow> {
         use render::silhouette::{Paint, Rect, paint};
         let g = ground(p);
         let size = (p.photo.width, p.photo.height);
+        let ramp = ScreenRamp::of(&p.camera, (size.0 as u32, size.1 as u32));
+        let ocean = ocean_floor(&p.root);
         let (w, _) = size;
         let tileset = crate::world::lobby_tileset(
             &p.root,
@@ -2448,6 +2804,46 @@ mod tests {
             } else {
                 c
             };
+            // Item 4174: the floor and the water as the card draws them.
+            if let (Some(model), Some(q)) = (card, ours[j])
+                && !mountains.contains(&tt)
+            {
+                let (cx, cy) = cell(tt);
+                let (wx, wy) = ((cx as f32 + q.uv[0]) * 768.0, (cy as f32 + q.uv[1]) * 768.0);
+                let f = ramp.at(wx, wy);
+                let land = t.land[(cy * t.width + cx) as usize];
+                let lin = |c: [f32; 3]| c.map(untone);
+                let under = if land == render::terrain::OCEAN {
+                    let (a, b) = floor_uvs(wx, wy);
+                    let t0 = ocean.sample(0, a[0], a[1]);
+                    let t1 = ocean.sample(0, b[0], b[1]);
+                    let st =
+                        floor_stage([t0[0], t0[1], t0[2]], [t1[0], t1[1], t1[2]], floor_grey(f));
+                    match model {
+                        Card::Unlit => st,
+                        Card::Lit => lit(st, [1.36; 3], 1.0),
+                    }
+                } else {
+                    match model {
+                        Card::Unlit => c,
+                        Card::Lit => lin(c),
+                    }
+                };
+                let w = water_rgb(f).map(f32::from);
+                let over = match model {
+                    Card::Unlit => w,
+                    Card::Lit => lit(w, [1.0, 1.0, 1.5], 0.2),
+                };
+                let a = water_alpha(&t, cell(tt), q.uv).unwrap_or(0.0) / 255.0;
+                let mixed = [0, 1, 2].map(|i| under[i] * (1.0 - a) + over[i] * a);
+                let c = match model {
+                    Card::Unlit => mixed,
+                    Card::Lit if land == render::terrain::OCEAN || a > 0.0 => mixed.map(tone),
+                    Card::Lit => c,
+                };
+                e.1.push(c);
+                continue;
+            }
             // Item 4164: the water over the cell, at its alpha.
             let c = match (&water, ours[j]) {
                 (Some(wp), Some(q)) if !mountains.contains(&tt) => {

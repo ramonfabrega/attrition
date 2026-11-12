@@ -1704,9 +1704,16 @@ at item 4154, which carried `att`, ~~**92**~~ 92 at item 4162, which
 carried `cannon_time`, `handicap`, `multi_diff`, `misery`,
 `city_name` and `anti_att` (`docs/LEADERS.md` §1, §6, §12, §16; the census
 of which held-out leaves the record prints is `docs/LEADERS.md`'s head),
-and **84** since item 4167, which carried `fort_mark`, `oil_well_mark`,
+~~**84**~~ 84 at item 4167, which carried `fort_mark`, `oil_well_mark`,
 `wonders_built`, `wonders_held`, `senates_built`, `forts_built`,
-`scholar_militia` and `dock_queued` (`docs/LEADERS.md` §13, §14).
+`scholar_militia` and `dock_queued` (`docs/LEADERS.md` §13, §14), and
+**74** since item 4176, which carried ten of the damage path's sixteen:
+`buildings_razed`, `buildings_lost`, `ctw_hero_stamp`, `attrition_stamp`,
+`attrition_stamp3`, `give_att_disabled`, `repair_stamp`, `missiles_used`,
+`units_bribed` and `nukes_launched` (`docs/LEADERS.md` §2, §4, §5, §15);
+`units_killed`, `units_lost`, the three victim stamps and
+`attrition_stamp2` are held by the crate and stay held out, each parting
+where its parent parts (4176a, 4176b).
 `CHECKSUM_STATE` does not count it (§5).
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7

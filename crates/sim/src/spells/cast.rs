@@ -979,7 +979,8 @@ impl Sim {
             && let Obj::Unit(v) = t
             && self.spell_castable(s, u)
         {
-            self.cast_sniper_unit(v, 2);
+            let caster = self.units[u].owner;
+            self.cast_sniper_unit(v, 2, caster);
             return;
         }
         if s == spell::COUNTERINTEL
@@ -995,9 +996,10 @@ impl Sim {
             return;
         }
         if s == 0x280 && self.spell_castable(s, u) {
+            let caster = self.units[u].owner;
             match t {
-                Obj::Unit(v) => self.cast_sniper_unit(v, 3),
-                Obj::Building(b) => self.cast_sabotage_building(b),
+                Obj::Unit(v) => self.cast_sniper_unit(v, 3, caster),
+                Obj::Building(b) => self.cast_sabotage_building(b, caster),
             }
             return;
         }
@@ -1025,15 +1027,21 @@ impl Sim {
     ///     infiltrated (+0x3a) = 0
     /// ```
     ///
-    /// SEAM: `units_killed` and `score_combat` (this crate carries neither,
-    /// and `LEADERS=2` prints neither); the sounds and the message; a
-    /// building target (`febchm`'s `c`), which no staging has cast on.
+    /// `units_killed` steps inside the gate for a countable target (the
+    /// captain, alone, no decoy; `docs/LEADERS.md` §2.2), and nothing else
+    /// of that family does.
+    ///
+    /// SEAM: `score_combat`; the sounds and the message; a building target
+    /// (`febchm`'s `c`), which no staging has cast on.
     pub(crate) fn cast_counterintel(&mut self, who: Player, v: usize) {
         let mut v = v;
         while let Some(up) = self.units[v].o_up {
             v = up;
         }
         if !self.is_ally(who, self.units[v].owner) {
+            if self.countable_death(v) {
+                self.note_unit_kill(who);
+            }
             self.die_with(v, 2);
         } else {
             self.units[v].infiltrated = 0;

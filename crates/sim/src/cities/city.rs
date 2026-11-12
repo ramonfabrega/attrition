@@ -3020,14 +3020,19 @@ impl Sim {
             && !self.cities.nation[who as usize].disable_building_attrition
             && self.bleeds_in_enemy_land(b)
         {
+            // `attrition_stamp3` (`Wall::process@00640450`, `docs/LEADERS.md`
+            // §5.2): an unstarted site's disband re-stamps every time; a
+            // started building stamps a zero word only when it survives.
             if !self.buildings[b].started {
                 self.disband_building(b, false);
+                self.note_building_bleed(who, frame, true);
                 return false;
             }
             self.building_attrition(b, frame);
             if !self.buildings[b].alive {
                 return false;
             }
+            self.note_building_bleed(who, frame, false);
         }
         if !self.buildings[b].active {
             return false;

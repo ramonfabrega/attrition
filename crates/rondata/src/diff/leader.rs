@@ -52,12 +52,36 @@ pub(crate) const UNMODELLED: &[(&str, &str)] = &[
     ),
     (
         "misc_stamps",
-        "the twenty-odd *_stamp counters have no writers here",
+        "capital_stamp is held and not compared; tribute_stamp, gift_stamp, hire_stamp and the rest of the *_stamp counters have no writers here (item 4176 compares attack_stamp, raid_stamp, ally_stamp, the three attrition stamps, ctw_hero_stamp and repair_stamp)",
     ),
     ("DIPLOMACY", "the diplomacy block is not modelled"),
     ("num_bonus_cards", "bonus cards are Conquer-the-World's"),
     ("average_*_rate", "the combat averages are score counters"),
 ];
+
+/// The damage path's leaves `LeaderData::log_data@006e5110` prints (item
+/// 4176): every [`sim::leaders::tallies::LEAVES`] but `units_bribed` and
+/// `give_att_disabled`.
+pub(crate) const DAMAGE_PRINTED: [&str; 14] = [
+    "attack_stamp",
+    "raid_stamp",
+    "ally_stamp",
+    "attrition_stamp",
+    "attrition_stamp2",
+    "attrition_stamp3",
+    "ctw_hero_stamp",
+    "repair_stamp",
+    "missiles_used",
+    "units_killed",
+    "units_lost",
+    "buildings_razed",
+    "buildings_lost",
+    "nukes_launched",
+];
+
+/// Of [`DAMAGE_PRINTED`], the three `int[8]` rows the record prints as
+/// eight `name[scan]` lines, keyed `name[i]` by attacker.
+const DAMAGE_ROWS: [&str; 3] = ["attack_stamp", "raid_stamp", "ally_stamp"];
 
 /// Whether a good's index is one the record prints in its per-good block.
 /// The six goods, **in the type record's own order** — `rise.pdb`'s
@@ -546,6 +570,21 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         let v = s.leader_armed_queued(p, k).unwrap_or(0);
         out.push((k.to_string(), i64::from(v)));
     }
+    // **Item 4176, step III** (`docs/LEADERS.md` §2, §4, §5, §15): the
+    // damage path's leaves `log_data` prints — the three victim stamp rows
+    // by attacker, the four counters, the three attrition stamps,
+    // `ctw_hero_stamp`, `repair_stamp`, `missiles_used` and
+    // `nukes_launched`. The same values the leaders line emits.
+    for k in DAMAGE_PRINTED {
+        let v = s.leader_tally_leaf(p, k).unwrap_or_default();
+        if DAMAGE_ROWS.contains(&k) {
+            for (i, x) in v.iter().enumerate() {
+                out.push((format!("{k}[{i}]"), *x));
+            }
+        } else {
+            out.push((k.to_string(), v.first().copied().unwrap_or(0)));
+        }
+    }
     out.push(("rare".to_string(), mask_text(l.rare)));
     out.push(("rare_owned".to_string(), mask_text(h.rare_owned)));
     out.push(("rare_conquest".to_string(), mask_text(0)));
@@ -895,9 +934,29 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
         "combat_queued",
         "dock_queued",
         "air_queued",
+        // Item 4176, step III (`docs/LEADERS.md` §2, §4, §5, §15): the
+        // damage path's scalars `log_data` prints.
+        "attrition_stamp",
+        "attrition_stamp2",
+        "attrition_stamp3",
+        "ctw_hero_stamp",
+        "repair_stamp",
+        "missiles_used",
+        "units_killed",
+        "units_lost",
+        "buildings_razed",
+        "buildings_lost",
+        "nukes_launched",
     ] {
         if let Some(x) = block.int(key) {
             out.insert(key.to_string(), x);
+        }
+    }
+    // The three victim stamp rows (§4), eight `[scan]` lines each, by
+    // attacker.
+    for key in DAMAGE_ROWS {
+        for (i, x) in all(&format!("{key}[scan]")).iter().enumerate().take(8) {
+            out.insert(format!("{key}[{i}]"), *x);
         }
     }
     // `anti_att` is the record's one float: `log_data` prints it `%f`, six
@@ -1447,7 +1506,8 @@ mod tests {
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
             // item 4162: 193_760 -> 194_720, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // item 4167: 194_720 -> 196_480, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
-            196_480, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4176: 196_480 -> 202_080, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
+            202_080, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1557,7 +1617,8 @@ mod tests {
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
             // item 4162: 208_292 -> 209_324, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // item 4167: 209_324 -> 211_216, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
-            211_216, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4176: 211_216 -> 217_236, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
+            217_236, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1758,7 +1819,8 @@ mod tests {
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
             // item 4162: 43_596 -> 43_812, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // item 4167: 43_812 -> 44_208, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
-            44_208, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4176: 44_208 -> 45_468, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
+            45_468, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -1903,7 +1965,8 @@ mod tests {
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
             // item 4162: 314_860 -> 316_420, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // item 4167: 316_420 -> 319_280, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
-            319_280, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4176: 319_280 -> 328_380, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
+            328_380, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -2048,7 +2111,8 @@ mod tests {
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
             // item 4162: 72_660 -> 73_020, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // item 4167: 73_020 -> 73_680, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
-            73_680, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4176: 73_680 -> 75_780, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
+            75_780, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -3152,7 +3216,8 @@ mod tests {
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
             // item 4162: 593_390 -> 596_330, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // item 4167: 596_330 -> 601_720, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
-            601_720, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4176: 601_720 -> 618_870, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
+            618_870, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump
@@ -3421,11 +3486,19 @@ mod tests {
                         "who {who}: {leaf} is printed after all"
                     ),
                 }
-                if let Some(v) = ours.get(*leaf) {
+                // A row the record prints `[scan]` is compared under
+                // `name[i]` (item 4176's three victim stamp rows).
+                let row = format!("{leaf}[0]");
+                let key = if ours.contains_key(*leaf) {
+                    Some(leaf.to_string())
+                } else {
+                    ours.contains_key(&row).then_some(row)
+                };
+                if let Some(k) = key {
                     let y = t
-                        .get(*leaf)
+                        .get(&k)
                         .unwrap_or_else(|| panic!("{leaf} is compared and not parsed"));
-                    compared.push((who, *leaf, *v, *y));
+                    compared.push((who, *leaf, ours[&k], *y));
                 }
             }
         }
@@ -3435,22 +3508,36 @@ mod tests {
             names.into_iter().collect::<Vec<_>>(),
             [
                 "air_queued",
+                "ally_stamp",
                 "anti_att",
                 "att",
+                "attack_stamp",
+                "attrition_stamp",
+                "attrition_stamp2",
+                "attrition_stamp3",
                 "barracks_queued",
+                "buildings_lost",
+                "buildings_razed",
                 "city_name",
                 "combat_queued",
+                "ctw_hero_stamp",
                 "dock_queued",
                 "factory_queued",
                 "fort_mark",
                 "handicap",
                 "misery",
+                "missiles_used",
                 "multi_diff",
+                "nukes_launched",
                 "oil_well_mark",
+                "raid_stamp",
+                "repair_stamp",
                 "scholar_militia",
                 "senates_built",
                 "stable_queued",
-                "supply_mark"
+                "supply_mark",
+                "units_killed",
+                "units_lost"
             ],
             "the census leaves rows compares"
         );
