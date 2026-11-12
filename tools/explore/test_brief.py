@@ -502,7 +502,7 @@ class AStructureOrRenderItemHasItsKind(unittest.TestCase):
         # structure or render lane is not. And the row a lane reports to is
         # `commander`, the driver since DECISIONS 126; `steer` is the pass.
         for kind in sorted(brief.KINDS):
-            text = self.compose(4008, kind) if kind in ('structure', 'render') else \
+            text = self.compose(4008, kind) if kind in brief.NO_WORD else \
                 self.compose(4008, kind, tests=['coverage::'])
             named = '`docs/METHOD.md`' in text.split('## Read first')[1].split('\n## ')[0]
             self.assertEqual(named, kind in brief.METHOD_KINDS, kind)
@@ -546,6 +546,101 @@ class AStructureOrRenderItemHasItsKind(unittest.TestCase):
             self.assertIn(kind, brief.KINDS)
             self.assertIn(kind, body)
             self.assertLessEqual(len(body[kind]), 2400, kind)
+
+
+# The steering pass of 2026-11-12: item 4034 in the queue's own words, and
+# 4149's booking as eb7ca871e wrote it, an input item briefed as a render lane.
+QUEUE_START_INPUT = QUEUE.replace('## How to maintain this file', """4034. **The start block, every lobby on disk** (filler behind the milestone; START.md): the nations' civ-specific buildings, the Large Town
+list, the Americans' farms, the Lakota and Korean citizen arms, the Spanish scouts (ORDERS §9.3) — each lobby a row of the
+counter, cheapest first, the value diff per lobby; `Start: N of N` closes the track's first number; rules N (parked 4033a).
+
+4149. **The original plays a file minted by clicks at the opening camera** (the milestone's step 4, the person's half; a render lane's, its
+capture the next run; `docs/CLIENT_INPUT.md` §2, §4; `docs/RECGAME.md` §9; parked 4145a): at the camera the client opens with one pixel covers 39 to 46
+points and two script targets part by a few, so the script cannot be clicked there. Score: `INPUT_PLAYED`.
+
+## How to maintain this file""")
+
+
+class AStartOrInputItemHasItsKind(unittest.TestCase):
+    """The steering pass of 2026-11-12: `KINDS` had no `start` and no `input`,
+    so item 4034 (the start block on every lobby) could not be handed to a
+    lane, and the client's input items (the orders track) were briefed as
+    render lanes (4149). Red first: both composed `no such kind of brief`."""
+
+    def compose(self, item, kind, **kw):
+        args = dict(queue=QUEUE_START_INPUT, frame=brief.FRAME.read_text(), base='abc1234',
+                    model='Opus 5.5', runs=[], sections=[], read=[], note='', tests=[])
+        args.update(kw)
+        return brief.compose(item, kind, **args)
+
+    def test_a_start_brief_carries_the_counter_the_oracle_and_a_whole_gate(self):
+        text = self.compose(4034, 'start', sections=['docs/START.md §5'])
+        self.assertIn('the start track', text)
+        self.assertIn('4034. **The start block, every lobby on disk**', text)
+        section = text.split('## A start item')[1].split('\n## ')[0]
+        for word in ('`Start: <built> of <N> lobbies`', 'docs/START.md', '§5', 'START_BUILT', 'START_LOBBIES',
+                     'GAMEINFO', 'rondata::diff::start', 'delta in the comment', '`Start:` line is mine',
+                     '[Start Game]', 'build_sim', 'RON_START_DIFF=1', '=all', 'tools/start_lobbies.py',
+                     'No capture is booked', '§3', '`bucket`', '`ages`', '`techs`', 'quiet',
+                     'dump-backed', 'census', 'first parting', 'value diff', '§1',
+                     'check_all_level=14', 'grep the archive', 'whole'):
+            self.assertIn(word, section)
+        landing = text.split('## Landing')[1]
+        self.assertIn('--lane --item 4034 --whole`', landing)
+        self.assertNotIn('--tests', landing)
+        for gone in ('## Before any reading', '## A capture or a packet', '## Build', '## The sweep',
+                     '## Seams, read for you', '`docs/METHOD.md`'):
+            self.assertNotIn(gone, text)
+        self.assertLess(text.index('## A start item'), text.index('## Landing'))
+        self.assertEqual(re.findall(r'\{[a-z]+\}', text), [])
+        # Gated whole: a filter named for it is refused, never silently dropped.
+        with self.assertRaisesRegex(ValueError, '--whole'):
+            self.compose(4034, 'start', tests=['coverage::'])
+        self.assertEqual(brief.filters('start', []), [])
+
+    def test_an_input_brief_carries_the_method_in_order_and_a_scoped_gate(self):
+        text = self.compose(4149, 'input', sections=['docs/CLIENT_INPUT.md §6'])
+        self.assertIn('the orders track', text)
+        self.assertIn('4149. **The original plays a file minted by clicks', text)
+        section = text.split('## An input item')[1].split('\n## ')[0]
+        for word in ('docs/CLIENT_INPUT.md', 'field for field', 'world_to_screen', 'rondata::script',
+                     '`script()`', '`clicked()`', 'INPUT_CLICKED', 'red once', 'recgame::minted_packages',
+                     'round-tripped', 'docs/RECGAME.md', '§9.3', 'click-free', 'per-frame', '§5',
+                     'value diff', 'Ours, not the original', 'never called a reading', 'No float', '§1',
+                     '`INPUT_*`', '`*_WALKED`', '`Recording:` line is mine', '--whole', '`command`'):
+            self.assertIn(word, section)
+        # The method's six steps, in its order.
+        steps = [section.index(w) for w in ('stage 0', 'rondata::script', 'INPUT_CLICKED',
+                                            'recgame::minted_packages', '§9.3', 'effect')]
+        self.assertEqual(steps, sorted(steps))
+        landing = text.split('## Landing')[1]
+        self.assertIn('--lane --item 4149 --tests input:: minted:: recgame:: coverage:: blind:: --no-widen`',
+                      landing)
+        self.assertLess(text.index('## An input item'), text.index('## A capture or a packet'))
+        self.assertLess(text.index('## A capture or a packet'), text.index('## Landing'))
+        for gone in ('## Before any reading', '## Build', '## The sweep', '## Seams, read for you',
+                     '`docs/METHOD.md`'):
+            self.assertNotIn(gone, text)
+        self.assertEqual(re.findall(r'\{[a-z]+\}', text), [])
+        self.assertNotIn('first_parting', brief.filters('input', []))
+
+    def test_an_item_the_queue_does_not_book_is_refused_for_either_kind(self):
+        for kind in ('start', 'input'):
+            with self.assertRaisesRegex(ValueError, 'books no item 9999'):
+                self.compose(9999, kind)
+
+    def test_the_two_kinds_are_kinds_and_each_section_is_a_page(self):
+        body = brief.sections(brief.FRAME.read_text())
+        for kind in ('start', 'input'):
+            self.assertIn(kind, brief.KINDS)
+            self.assertIn(kind, body)
+            self.assertLessEqual(len(body[kind]), 2400, kind)
+            self.assertIn(kind, brief.NO_WORD)
+            self.assertNotIn(kind, brief.METHOD_KINDS)
+        self.assertIn('start', brief.WHOLE)
+        self.assertNotIn('input', brief.WHOLE)
+        self.assertEqual(brief.TRACKS['start'], 'the start track')
+        self.assertEqual(brief.TRACKS['input'], 'the orders track')
 
 
 class TheFrameNamesRowsTheWayCccDoes(unittest.TestCase):
