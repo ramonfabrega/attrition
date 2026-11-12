@@ -267,13 +267,13 @@
 /// `Unit::think_carry_idle`, `AnimalData::is_seen`, `Unit::do_await_board`); item 3731: 1696 -> 1446, the
 /// 254 layout-only sweeps of the five `census.REPLACED_BY_DESIGN` groups deleted (port-backed unmoved at 568; the
 /// territory's `replaced` unmoved at 318, four `vtordisp` destructor sweeps kept for it, parked 3731a, and
-/// `process_sell`'s, docs/NATIONS.md's witness of the Nubian market gate); item 3809: 1446 -> 1447, a `Terrain::init` function `sim::mapgen::terrain_init` now spells; item 3820: 1447 -> 1448, East Indies' mask (`sim::mapgen::map_east_indies`).
+/// `process_sell`'s, docs/NATIONS.md's witness of the Nubian market gate); item 3809: 1446 -> 1447, a `Terrain::init` function `sim::mapgen::terrain_init` now spells; item 3820: 1447 -> 1448, East Indies' mask (`sim::mapgen::map_east_indies`); item 4170: 1448 -> 1456, CHECKSUM §22's whole-line walkers and the twins' spellings, measured at its booking.
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1448;
+pub const SIMULATION_BACKED: usize = 1456;
 /// Of those, the **port-backed**: a document's coverage section diffs the
 /// function, or `crates/sim` spells its own `Class::method` outside
 /// `sweep/` — a consumer this crate runs. The rest are **layout-backed**: a
@@ -284,7 +284,8 @@ pub const SIMULATION_BACKED: usize = 1448;
 /// booking. Item 3182: 303 -> 305 (both of its bodies have a port consumer); item
 /// 3200: 305 -> 311 (all six); item 3219: 311 -> 317 (all six); item 3234: 317 -> 323 (all six); item 3229: 323 -> 328 (five of six); item 3238: 328 -> 334 (all six); item 3239: 334 -> 340 (all six); item 3250: 340 -> 347 (all six, and one backed function the crate now spells); item 3259: 347 -> 353 (all six); item 3268: 353 -> 359 (all six); item 3272: 359 -> 365 (all six); item 3261: 365 -> 371 (all six); item 3281: 371 -> 376 (three of six, and two backed functions the crate now spells); item 3289: 376 -> 382 (all six); item 3282: 382 -> 385 (three of six); item 3295: 385 -> 393 (all six, and two backed functions the crate now spells); item 3304: 393 -> 402 (all six, and three backed functions the crate now spells); item 3320: 402 -> 411 (five of six, and four backed functions the crate now spells); item 3330: 411 -> 423 (all six, and six backed functions the crate now spells); item 3336: 423 -> 424 (a backed function the Egyptian word's fixes spell); item 3337: 424 -> 430 (four of six, and two backed functions the crate now spells); item 3339: 430 -> 436 (four of six, and two backed functions the crate now spells); item 3346: 436 -> 443 (all six, and one backed function the crate now spells); item 3348: 443 -> 446 (three of six); item 3358: 446 -> 447 (one of six); item 3356: 447 -> 459 (all six, and six backed functions the crate now spells); item 3362: 459 -> 471 (five of six, and seven backed functions the crate now spells); item 3369: 471 -> 473 (two backed functions the Dutch word's fixes spell); item 3364: 473 -> 486 (all six, and seven backed functions the crate now spells); item 3372: 486 -> 492 (all six); item 3376: 492 -> 501 (all six, and three backed functions the crate now spells); item 3381: 501 -> 507 (five of six, and one backed function the crate now spells); item 3379: 507 -> 516 (all six, and three backed functions the crate now spells); item 3387: 516 -> 520; item 3386: 520 -> 547; item 3391: 547 -> 551; item 3395: 551 -> 557; item 3396: 557 -> 559; item 3399: 559 -> 562; item 3403: 562 -> 563; item 3402: 563 -> 568; item 3776: 568 -> 569 (map generation's first port step, `MapGreatSahara::make_continents`); item 3798: 569 -> 570 (the zero-draw passes); item 3807: 570 -> 573 (the values, `World::compute_all_vals` and `adjust_for_blocking`); item 3809: 573 -> 575 (`Terrain::init`'s height-free writes, `sim::mapgen::terrain_init`); item 3812: 575 -> 576 (the heights, `sim::mapgen::map_heights`); item 3815: 576 -> 580 (Great Lakes' mask, `sim::mapgen::map_lakes`); item 3820: 580 -> 581 (East Indies' mask, `sim::mapgen::map_east_indies`); items 3835, 3841 and 3843: 581 -> 583 (Great Lakes' heights' shore blend, `Leader::defeat`'s plane arm in `sim::leaders::resign`, and `_wcoord`'s body in `sim::mapgen::halfland`, measured together at 3843's booking); item 3862: 583 -> 584 (`Object::kill_contents`, a sunk transport's rider, in `sim::combat::fight`); item 3941: 584 -> 585 (East Meets West's mask, the held-out style's port); item 3993: 585 -> 586 (a backed function the regrown figure's port spells, `Unit::repair_damage` in `sim::units::heal`); item 3988: 586 -> 587 (`UnitData::is_busy`, `Sim::is_busy`); item 3992: 587 -> 588 (a backed function the dock's border ring spells, `check_enemy_adjacent`); item 3995: 588 -> 589 (`Unit::think_carry_idle`, wired for the idle boat; re-pinned at its booking gate's red); item 4113: 589 -> 590 (a backed function the units line's slot rules spell in `sim::units::slots`, measured at its booking).
 /// 591 → 669 at item 4039's booking: the territory's port test is the census's `is_port_backed`, and the twins' spellings landed.
-pub const SIMULATION_PORT_BACKED: usize = 669;
+/// 669 → 731 at item 4170's booking: CHECKSUM §22 credits the eight whole lines' walkers, and 44 twin rows were spelled by hand.
+pub const SIMULATION_PORT_BACKED: usize = 731;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
@@ -336,10 +337,14 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// (+114), replaced 336 (+18), open 1066 (−214)** on its tip: defect A's
 /// ordering 82 rows out of open, the port test aligned with the census's
 /// own `is_port_backed` 36, the readers' groups 28, and 77 twin spellings
-/// on their twins' closing braces 78 rows.
-pub const RUBRIC_TERRITORY_PORTED: usize = 669;
-pub const RUBRIC_TERRITORY_REPLACED: usize = 336;
-pub const RUBRIC_TERRITORY_OPEN: usize = 1066;
+/// on their twins' closing braces 78 rows. Item 4170, the census filler's
+/// next rows: **ported 731 (+62), replaced 332 (−4), open 576 (−490)** on its
+/// merged tip: the readers' classes 181 rows, the reference scan and RESIDUE
+/// as `dead` 252, CHECKSUM §22's walkers 13 (the four order-class walks
+/// ported out of replaced), and 44 twin rows by hand.
+pub const RUBRIC_TERRITORY_PORTED: usize = 731;
+pub const RUBRIC_TERRITORY_REPLACED: usize = 332;
+pub const RUBRIC_TERRITORY_OPEN: usize = 576;
 /// **Lockstep since the fifty-first pass** (Ramon, 2026-10-22: the rubric
 /// answers how close the port is to a 1:1 sim). The ages and the unit types
 /// below are read from the dumps of **lockstep games** only — a game whose

@@ -537,7 +537,7 @@ impl Sim {
             a.group.pool.expect("a live group has a slot")
         };
         self.set_group(u, Some(pool));
-    }
+    } // absorbs Army::member
 
     /// `ArmyData::get_unit(k)@006f9df0`: the `k`-th member of the army's
     /// groups, walked in `list` order and skipping building groups. The
@@ -565,7 +565,7 @@ impl Sim {
             .valid()
             .find(|(_, a)| a.group.pool == Some(s) && a.units.contains(&u))
             .map(|(s, _)| s)
-    }
+    } // absorbs Army::member
 
     fn army_count(&self, who: Player, slot: usize, f: impl Fn(&Sim, usize) -> bool) -> i32 {
         self.ai.armies[who as usize].list[slot]

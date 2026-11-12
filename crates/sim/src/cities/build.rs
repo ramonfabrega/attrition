@@ -49,7 +49,7 @@ pub mod flags {
     /// (`docs/DATALAYER.md`, "The derived words no column carries").
     pub const RESEARCH_HERE: u32 = 0x800_0000;
     /// `3`: a flat gatherer (farm, oil) — derived, see [`init_final_flags`].
-    pub const FLAT: u32 = 0x1000_0000;
+    pub const FLAT: u32 = 0x1000_0000; // absorbs BuildTypeData::is_flat
     /// `4` — **derived**: `SpellType::init` marks a craft's `FROM`/`FROM2`
     /// when it is a building. Only the Small City carries it.
     pub const CRAFT_HERE: u32 = 0x2000_0000;

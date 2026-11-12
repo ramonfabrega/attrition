@@ -432,7 +432,7 @@ pub fn calc_gather_steps<C>(
     out[3] = 0;
     calc_city_resources(cx, out);
     out
-}
+} // twin of City::calc_gather
 
 /// The enhancer table for `r` at the one-based `level`, clamped to the
 /// table — `GRANARY_BONUS`, `LUMBERMILL_BONUS`, `SMELTER_BONUS`; 0 for a

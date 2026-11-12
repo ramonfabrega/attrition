@@ -231,7 +231,7 @@ fn census(ours: &[WorldRange], theirs: &[Named]) -> Census {
 /// stream's ranges and bytes, and ours agreeing, `(ranges, bytes, ranges
 /// agreeing, bytes agreeing)` for sections 0 to 14. A section whose ranges
 /// all agree is whole, and its Adler is the record's printed line.
-const WORLD: [(usize, usize, usize, usize); WORLD_SECTIONS] = [
+pub(super) const WORLD: [(usize, usize, usize, usize); WORLD_SECTIONS] = [
     (0, 0, 0, 0),
     (1, 8, 1, 8),
     (20, 124, 20, 124),
@@ -259,7 +259,7 @@ const WORLD: [(usize, usize, usize, usize); WORLD_SECTIONS] = [
 /// `wcoord_seen` since item 4148 (`docs/VISION.md` §12), and the collision
 /// blocks' presence, heads and bodies since item 4150 (`docs/COLLISION.md`
 /// §26: a set allocates, the daemon's sweep frees an empty block).
-const WORLD_HELD_OUT: &[(&str, usize)] = &[];
+pub(super) const WORLD_HELD_OUT: &[(&str, usize)] = &[];
 
 /// The fields of a census not agreeing, with their counts.
 fn held(c: &Census) -> Vec<(String, usize)> {

@@ -1061,7 +1061,7 @@ pub fn pay(
             ledger.escrow[i] = (ledger.escrow[i] - due).max(0);
         }
     }
-}
+} // twin of Type::pay_cost
 
 /// What Science takes off a technology's price —
 /// `LeaderData::calc_science_discount@006da630`, whole.

@@ -86,7 +86,11 @@ class TheMarks(unittest.TestCase):
         self.assertEqual(census.named_group('SubObject::must_walk'), 'the checksum track')
         self.assertEqual(census.named_group('Map::make'), "the rules' 1:1 finish")
         self.assertIsNone(census.named_group('Setup::init_wild_life'))
-        self.assertIsNone(census.named_group('Unit::walk_data'))
+        # item 4170: every walk of state is the checksum track's, the
+        # readers' `walk` class; a walk that is not a data walk is not
+        self.assertEqual(census.named_group('Unit::walk_data'), 'the checksum track')
+        self.assertEqual(census.named_group('Balance::walk_rules_data'), 'the checksum track')
+        self.assertIsNone(census.named_group('StripBuilder::walk_strip'))
         self.assertEqual(len(census.UNMODELLED), 66)
 
     def test_the_line_names_them_inside_open(self):
@@ -96,6 +100,90 @@ class TheMarks(unittest.TestCase):
         self.assertTrue(line.startswith("Territory: simulation ported 3 · replaced by design 2 · open 6 of 16 (in it: "),
                         line)
         self.assertIn("the start track 2 · the checksum track 0 · the rules' 1:1 finish 0", line)
+
+
+class TheReadersClasses(unittest.TestCase):
+    """Item 4170: the readers' classes, each landed only where no open row
+    it reaches was ruled a twin, absorbed, a differing twin or unmodelled."""
+
+    def test_the_renderers_bodies_are_ui(self):
+        for name in ('Border::build_border', 'Borders::process_all', 'StripBuilder::walk_strip',
+                     'TerrainVis::squeeze_cache', 'WorldMapFog::fill_colors', 'Surf::add_wave',
+                     'GuyData::get_render_x', 'Nuke::on_field_change', 'Tribe::get_name',
+                     'Game::learn_as_you_play_popup', 'Game::action_screen_shot', 'Game::get_render_mode'):
+            self.assertTrue(census.is_ui_body(name), name)
+
+    def test_the_editor_ctw_the_shell_and_multiplayer_are_cut(self):
+        for name in ('Signposts::add', 'Group::dbg_pack_or_unpack', 'Mountains::verify_template',
+                     'MapConquest::make_continents', 'ReinforcementArmy::place_army', 'UnitBalance::write_header',
+                     'Game::run_campaign', 'SyncPoint::sync', 'Game::OnFindLeaderboard',
+                     'Player::is_connection', 'std::pair<a,b>::pair'):
+            self.assertTrue(census.is_cut(name), name)
+
+    def test_the_conflicts_that_narrowed_them_stay_unmarked(self):
+        # ported: a `Doober::` and a `gpiece` class would have taken them
+        for name in ('Doober::inc_time', 'Doober::has_doobers', 'Unit::update_gpiece', 'UnitData::get_gpiece'):
+            self.assertFalse(census.is_ui_body(name), name)
+        # a differing twin: `dbg_` is two names, never a prefix
+        self.assertFalse(census.is_cut('Unit::dbg_jump_to_action'))
+        # the rules beside the renderers
+        for name in ('Unit::think', 'Map::make', 'Game::is_nomad', 'Player::is_alive'):
+            self.assertFalse(census.is_ui_body(name) or census.is_cut(name), name)
+
+
+def pe(sections):
+    """A PE32 image, base 0x400000, of `(name, rva, bytes)` sections."""
+    import struct
+    head = bytearray(0x400)
+    struct.pack_into('<I', head, 0x3C, 0x80)
+    head[0x80:0x84] = b'PE\0\0'
+    struct.pack_into('<HH', head, 0x84, 0x14C, len(sections))
+    struct.pack_into('<H', head, 0x80 + 20, 0xE0)
+    struct.pack_into('<I', head, 0x80 + 24 + 28, 0x400000)
+    raw, out = 0x400, bytearray()
+    for i, (name, rva, data) in enumerate(sections):
+        o = 0x80 + 24 + 0xE0 + 40 * i
+        head[o:o + 8] = name.encode().ljust(8, b'\0')
+        struct.pack_into('<IIII', head, o + 8, len(data), rva, len(data), raw + len(out))
+        out += data
+    return bytes(head) + bytes(out)
+
+
+class TheDeadScan(unittest.TestCase):
+    """Item 4170: a function nothing in the image reaches is dead; a call, a
+    jump, a vtable's pointer or an RVA anywhere is a reference."""
+
+    def scan(self, image, targets, starts):
+        import os
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, 'image.exe')
+            with open(path, 'wb') as f:
+                f.write(image)
+            return census.unreferenced(path, targets, starts)
+
+    def test_only_the_unreached_is_dead(self):
+        import struct
+        # .text at 0x401000: A (0x401000) calls B (0x401010); C (0x401020)
+        # is only a vtable's slot; D (0x401030) only an RVA in .data; E
+        # (0x401040) nothing; F (0x401050) only `.reloc` bytes; G (0x401060)
+        # calls itself.
+        text = bytearray(0x80)
+        text[0:5] = b'\xe8' + struct.pack('<i', 0x401010 - 0x401005)
+        text[0x60:0x65] = b'\xe8' + struct.pack('<i', 0x401060 - 0x401065)
+        rdata = struct.pack('<II', 0x401020, 0)
+        data = struct.pack('<I', 0x401030 - 0x400000)
+        reloc = struct.pack('<I', 0x401050)
+        image = pe([('.text', 0x1000, bytes(text)), ('.rdata', 0x2000, rdata), ('.data', 0x3000, data),
+                    ('.reloc', 0x4000, reloc)])
+        starts = [0x401000, 0x401010, 0x401020, 0x401030, 0x401040, 0x401050, 0x401060]
+        dead = self.scan(image, set(starts[1:]), starts)
+        self.assertEqual(dead, {0x401040, 0x401050, 0x401060})
+
+    def test_a_dead_function_is_dead_but_a_port_stays_a_port(self):
+        self.assertEqual(census.territory_kind(1, 'Unit::think', set(), {1}, set(), set(), unref={1}), 'dead')
+        self.assertEqual(census.territory_kind(1, 'Unit::think', set(), {1}, set(), {'Unit::think'}, unref={1}),
+                         'port')
 
 
 if __name__ == '__main__':

@@ -789,14 +789,14 @@ impl LocationView for SimLocation<'_> {
             .into_iter()
             .filter(|t| self.sim.world.tile_mask(*t) & tile::OBJECT == tile::OBJECT_MOUNTAIN)
             .count() as i32
-    }
+    } // twin of BuildTypeData::count_mountains_adjacent
     fn count_trees(&mut self, ring: i32) -> i32 {
         self.sim
             .ring(self.ty, self.corner, ring)
             .into_iter()
             .filter(|t| self.sim.world.tile_mask(*t) & tile::SURFACE == tile::SURFACE_FOREST)
             .count() as i32
-    }
+    } // twin of BuildTypeData::count_trees_adjacent
     fn was_seen(&mut self, hx: i32, hy: i32, who: i32) -> bool {
         self.sim.was_seen_fog(hx, hy, who as crate::Player)
     }

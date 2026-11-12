@@ -103,4 +103,4 @@ pub fn unit_speed<V: UnitSpeedView>(v: &mut V) -> i32 {
         v.forced_march_speed().wrapping_mul(v.unit_move_speed())
     };
     march.max(base)
-}
+} // twin of UnitData::speed

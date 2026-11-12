@@ -688,7 +688,7 @@ impl Sim {
             corner.x * UNITS_PER_TILE + t.x_size * half,
             corner.y * UNITS_PER_TILE + t.y_size * half,
         )
-    }
+    } // twin of BuildTypeData::corner_tile
 
     /// `corner_tile@006364c0`: the footprint's centre in world units, as the
     /// tile the distance test measures from and the cell the walk anchors on.

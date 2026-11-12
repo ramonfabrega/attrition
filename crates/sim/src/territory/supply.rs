@@ -60,7 +60,7 @@ pub const fn supply_radius(t: &Tuning, upgrades: i32, terra_cotta: bool) -> i32 
         r += t.terra_cotta_range;
     }
     r
-}
+} // twin of SupplyData::get_radius
 
 /// Which half of the patriot roster a general belongs to. The two carry
 /// different radius bonuses and nothing else here.
@@ -132,7 +132,7 @@ pub const fn general_radius(t: &Tuning, g: &General) -> i32 {
         None => {}
     }
     r
-}
+} // twin of HeroData::get_radius
 
 // ---------------------------------------------------------------------------
 // The registry

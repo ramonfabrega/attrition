@@ -282,7 +282,7 @@ impl Sim {
             }
         }
         r
-    }
+    } // twin of BuildTypeData::basic_type
 
     /// `ObjectTypeData::is(bt, ident)` for a building record — the lineage,
     /// not equality.
