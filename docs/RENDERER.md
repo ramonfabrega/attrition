@@ -1621,9 +1621,10 @@ draw with `SCREEN_REFLECTIONS`, after 3279
   (−0.707, 0, −0.707); the scene's ambient the units'.
 
 `create_water_verts` writes positions, two texcoords and the colour, and
-`render_water` adds nothing: **the water's vertices carry no normal**, so
+`render_water` adds nothing: ~~**the water's vertices carry no normal**, so
 its N·L, specular and reflection ray are whatever the vertex shader reads
-for a missing one (parked 4168a).
+for a missing one (parked 4168a)~~. The mesh drawn is `modify_water`'s,
+which carries the normal (0, 0, 1) at every vertex (item 4174, below).
 
 **The floor is lit too.** The `ocean_floor_5.tga` draw is opaque,
 `LIGHTING`, stage 0 `MODULATE2X(TEXTURE, DIFFUSE)` and stage 1
@@ -1675,23 +1676,88 @@ rest rests on a reading and one photograph: the bucket, the predicate and
 the fade's shape. `water_fade` is pinned by
 `the_water_fades_as_get_water_fade_fades`.
 
+**The meshes the original drew, off the packet (item 4174).** run1564's
+packet holds both meshes the card draws: the floor in `scene_ocean_floor`
+(`TerrainData +0x35a0`; the decompile's `TerrainOut` offsets are the type
+record's plus 0x40), and the water in `TerrainOut::modify_water@0086e700`'s
+function statics (`verts` `0x00ee179c`, `norms` `0x00ee17bc`, `colors`
+`0x00ee183c`, `sbl/rise_z.map`). `tools/render/water_packet.py` dumps them.
+The counts are the card's: 624 floor vertices on draw 36 and 1,755 water
+vertices on draw 162, and `args[1]` is the vertex count.
+
+- **The land pass draws no `OCEAN` tile.** Draws 0–34 bind grass and dirt
+  only. `ocean_floor_5.tga` is drawn once, by `render_ocean_floor` (the
+  call at `0x857e6b` is the return both draw 35 and 36 carry).
+- **The floor** is `build_ocean_floor@0086c7f0`'s plane: one vertex a cell
+  corner, every one at **z −283**. Its texcoords are exactly `xy / 6144`
+  plus one offset on the first layer and `−xy / 6144` plus another on the
+  second: **one repeat every eight cells, the second layer mirrored**. The
+  offsets drift with `modify_ocean_floor_texture`'s clock.
+- **The floor's grey** is `modify_ocean_floor@00873960`'s: `OceanVars`'
+  `floor*_top` (255) to `floor*_bot` (64) along the screen's ramp, times
+  0.6, alpha `0x99`. The ramp is `determine_frustum_intersect@00854770`'s:
+  the ground points under the screen's top-left and bottom-left pixels,
+  and a point's fraction along `(1, 1)/√2` between them over their
+  distance. The lateral axis does not enter.
+- **The water's colour** is `modify_water`'s: the white `create_water_verts`
+  lays is replaced each frame by `OceanVars`' `top*_top` (0, 159, 255) to
+  `top*_bot` (0, 111, 218) on the same ramp. Its alpha peaks at 189, not
+  245 (`generate_water`'s smoothing, parked 4174b).
+- **The water's normal is (0, 0, 1)** on all 1,755 vertices, its tangent
+  (1, 0, 0). 4168a is settled: the lit branch sees N·L 0.707.
+
+`client::ground::ScreenRamp` unprojects our own camera. At run1564's it
+gives d0 48,490.9 and length 9,729.0, against a fit to the packet's water
+of 48,408 and 9,683. Through `floor_grey` and `water_rgb` it reproduces
+**every one of the 624 floor greys and 1,755 water colours within a byte**
+(`the_floor_and_the_water_off_the_packet`; with `FLOOR_BOT` set to 70, 85
+greys part and the test fails).
+
+**The card's model, counted, and its kill** (`RUN1564_3279_CARD`). The
+floor goes on `OCEAN` tiles as the card's stages leave it: the first
+layer doubled under the grey, clamped, times the second. Every wet tile
+takes the water at our alpha. Counted unlit, and through the lit branch
+of the install's pixel shader, read: the stage colour to the 1.45, times
+the HDR multiplier on the material diffuse × the light × N·L / π plus the
+material ambient × the scene's ambient. That is blended in HDR and toned
+at the clamp, with no specular and no screen reflection:
+
+| model | `RUN1564_3279_GROUND` | `OCEAN` | `_LUMA` | `OCEAN`, luma |
+|---|---|---|---|---|
+| as drawn | **1,236** | 233 | 791 | 2 |
+| unlit | 793 | 0 | **1,426** | 261 |
+| lit | 814 | 0 | 1,072 | 75 |
+
+Both card models put the lake's brightness in register and lose its hue.
+On lake tile (182, 191) the photograph reads (38, 97, 146), the lit model
+(1, 91, 180) and the drawn (53, 223, 220). The photograph's lake holds
+red, 41 to 46 in four boxes, correlated with blue (0.5 to 0.9). No input
+on the packet carries any: the water's red byte is 0, and the floor's red
+survives the product of two cyan texels only as 1 to 20. **The scored row
+falls under either model, so neither is drawn** (parked 4174a).
+
 **What is not established.**
 
-- **The water's colour.** The card's state, through the lit branch and
-  the tone map with the floor's N·L (0.707), does not reach the
-  photograph. The white surface alone tones to (147, 154, 182). Over the
-  lit floor (share 0.130, 0.434) at the fade's alpha 0.75, the share is
-  (0.250, 0.356), against the photograph's (0.139, 0.362) on `OCEAN`
-  (item 4168's journal). Its normal is unsettled (4168a).
+- **The water's red** (4174a). The photograph's lake reads r ≈ 40, and
+  every packet input to the floor and the water gives 0 to 20. The
+  specular, by the reading's terms at roughness 0.3 and the light
+  (0.707, 0, 0.707), is about 0.05 in HDR, a few bytes. The screen
+  reflection's ten 10-unit steps are not modelled. The coral layer
+  (draws 130–131, `coralblend.tga`), the surf (163–169) and the frame's
+  mean luminance are not drawn.
 - **Where the water lies.** `CoordInfo`'s flags are not held here, and
   every `SANDY` cell with a corner below zero is taken as wet. The water
-  is drawn on the seabed's triangles, not at its plane (4160a). The beach
-  the photograph shows dry is the evidence (4164b).
-- **The floor's own mesh** (`build_ocean_floor`, a flat plane under every
-  `SANDY` and `OCEAN` cell), the depth tint (`OceanFloor…Top`/`Bot`), the
-  surf (`<COASTAL>`'s `COASTALPHA*`, `SANDDRY`, `SANDWET`), and the
-  water's scales (`WaterLevel1Scale`, `OceanFloorScale`). None is drawn,
-  and the client lays both textures one repeat a cell.
+  is drawn on the seabed's triangles. The original lays it at z =
+  max(0, ground), one vertex every 384 units (4160a). The beach the
+  photograph shows dry is the evidence (4164b).
+- **The water's alpha** (4174b): `generate_water`'s pass over each
+  vertex's 3 × 3, the minimum of their mean and its own, squared, run in
+  place. On the packet's own heights this reproduces 2,911 of 4,550
+  vertices within one, with the solid alpha at 245. The quarter on a
+  tile's `0x800` flag and the grid's edges are not read.
+- **The floor's texcoord offsets** (they drift), the surf (`<COASTAL>`'s
+  `COASTALPHA*`, `SANDDRY`, `SANDWET`), and the coral. None is drawn, and
+  the client still lays both textures one repeat a cell.
 
 ## 3.13 The draw list across the ages (item 4166)
 
@@ -2418,8 +2484,11 @@ lines and fog shading, projectiles and corpses, then candidate C.
   FXAA. Bloom is bounded out. And stage 1's `MODULATE4X` alpha, blended over what is behind, which no draw of
   ours makes (4165b). Settled by the luminance target's mip 10 read off the card on that pass, FXAA drawn, and
   the blend drawn and counted (4168b).
-- The water's normal, which its vertices do not carry (§3.12, 4168a). Settled by the water VB's input layout
-  in `d3dgl.dll` and the vertex shader's default for a missing normal.
+- ~~The water's normal, which its vertices do not carry (§3.12, 4168a). Settled by the water VB's input layout
+  in `d3dgl.dll` and the vertex shader's default for a missing normal.~~ Settled by item 4174: `modify_water`'s
+  mesh, the one drawn, carries (0, 0, 1) at all 1,755 vertices on run1564's packet (§3.12).
+- The water's red: the photograph's lake reads r ≈ 40, and no packet input to the floor or the water carries
+  any (§3.12, 4174a). Its alpha past `create_water_verts` (4174b).
 
 - ~~**What the client's own pixels show**~~ (the pass of 2026-11-12, DECISIONS 127): counted on the still by
   item 4171 (§3.15); the wash was the silhouette's place and the sRGB target. The trees
