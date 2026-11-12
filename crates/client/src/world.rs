@@ -936,7 +936,7 @@ impl World {
                     shade.uvs.extend_from_slice(&[[0.5, 0.5]; 3]);
                     continue;
                 }
-                // Item 4192 (§3.12, "The shore's sand"): every land-pass
+                // Item 4192 (§3.16): every land-pass
                 // draw blends at its corners' `light_land_vert` alpha, 255
                 // down to −52 and 0 from −271, over the clear colour; a
                 // triangle with a corner below −52 leaves the opaque pass

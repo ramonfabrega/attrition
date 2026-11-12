@@ -3,7 +3,7 @@
 
     python3 tools/render/sand_packet.py <frame-snapshot.bin> > <run>-sand.txt
 
-`docs/RENDERER.md` §3.12, "The shore's sand (item 4192)". No function is
+`docs/RENDERER.md` §3.16, "The shore's sand (item 4192)". No function is
 called: this reads what the executable left in its own memory at the
 packet's frame boundary. Offsets are the decompile's `TerrainOut` ones,
 which sit 0x40 past `TerrainData`'s type record.
