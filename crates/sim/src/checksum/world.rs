@@ -442,13 +442,44 @@ impl Sim {
                 leaves: vec![Leaf::new("danger", 4, reg, v)],
             });
         }
-        // 9: the collision blocks.
+        // 9: the collision blocks (`docs/COLLISION.md` §26): each cell's
+        // presence local, `WData.block != 0`, and for a cell with a block
+        // its head (`BitMask<768>`'s `bits`, `size`) and its 96-byte body,
+        // the grid's bits for the cell.
+        let coll = &self.movement.coll;
         for i in 0..xs * ys {
+            let (cx, cy) = (i % xs, i / xs);
+            let present = coll.block_present(cx, cy);
             out.push(WorldRange {
                 section: 9,
                 record: i as i16,
                 field: "block.present",
-                leaves: vec![one("present", 4, None)],
+                leaves: vec![one("present", 4, Some(i64::from(present)))],
+            });
+            if !present {
+                continue;
+            }
+            let (bits, size) = crate::movement::collide::BLOCK_HEAD;
+            out.push(WorldRange {
+                section: 9,
+                record: i as i16,
+                field: "block.head",
+                leaves: vec![
+                    one("bits", 4, Some(i64::from(bits))),
+                    one("size", 4, Some(i64::from(size))),
+                ],
+            });
+            let body = coll.block_body(cx, cy);
+            out.push(WorldRange {
+                section: 9,
+                record: i as i16,
+                field: "block.body",
+                leaves: vec![Leaf::new(
+                    "bits",
+                    1,
+                    body.len(),
+                    Some(body.iter().map(|&b| i64::from(b)).collect()),
+                )],
             });
         }
         // 10–12: `Terrain::init`'s half-land lists. 13: `nuke_hits`, its

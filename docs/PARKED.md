@@ -3850,6 +3850,10 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 ## Loop, filed 2026-11-11 — the driver's twenty-third session
 
+(4156) **The gate leaks a temp directory per run** (the driver's twenty-fourth session, 2026-11-11; lore's disk sweep at Ramon's word): `tools/release_gate.py`'s `gate()` makes `tempfile.mkdtemp(prefix='attrition-gate-')` when no report dir is passed, and nothing removes it; 2,373 had built up in `$TMPDIR` since 2026-10-19, 1,655 minted on 2026-11-05 alone, mostly empty shells from fixture tests calling the gate entry (lore deleted 2,318 dated before today, about 20 GiB; 56 stand). Owed: remove it on exit or keep the last N, and the fixtures pass a directory they clean up. Names no score; the loop's.
+
+(4155) **A reader row's brief owes its journal's gate lines and its new specification's constants pin** (the driver's twenty-fourth session, 2026-11-11; *4152's "for the Loop"*): a reader row's brief should say how its journal meets the lane-verdict guard (name a lane gate, or exempt a documents-only row), and how its new specification meets the constants guard, whose pin lives under the `crates/` its brief rules out; this row took the CLAUDE.md reading for the pin and left the journal red. The driver added the builders' `Lane verdict: none` form at the merge. Names no score; the loop's.
+
 (4151) **A minted file's whole-length take is blind to a small change in its orders** (the driver's twenty-fourth session, 2026-11-11; *4149's "for the Loop"*): the first script's file and item 4149's clicked file differ in two targets by a few points, and the original's playbacks of the two (run1561, run1563) have identical words on all 24,000 frames (`rngcmp` 0 differing); our walk of the first script agrees with run1563 on every frame and the closing record too. Only run1563a's 299 records see the click (`FIRST_AGAINST_CLICKED`, parting on frame 31, 269 of 299). So a whole-length lockstep row can stand for a file it did not see. Owed: a minted take's discriminating power is pinned by walking a sibling file's orders against it, as `FIRST_AGAINST_CLICKED` does, before its row is booked as backing an order. Names no score; the loop's.
 
 (4146) **The stop was set on the whole week while a Fable-only week bound first** (the driver's twenty-third session, 2026-11-11): at 12:29 −05:00 lore's limits mod wrote its first `seven_day_fable` reading, 96 %, beside the whole week's 86 %; Ramon had moved the stop to 95 % of the whole week forty minutes before, and the driver, on Fable 5.2, cut a builder and two lane items under it. The workers are Opus 5.5 and draw on the whole week; the driver's merges, briefs and bookings draw on the Fable week, at 210 k a turn in this session. Candidate: the stop names both weeks and the driver reads the Fable one first (the opener now says so); the driver's model for the rest of a week whose Fable allowance is spent is Ramon's; and the driver's own context a turn, not the workers', is the number to bring down. Names no score; the loop's.
@@ -16627,10 +16631,10 @@ words and edits nothing here; a refill lands when two remain.
   `total_metal`, `total_oil`). Counts over cell flags, a tile's `mask & 3 == 2`, `MountainsData::total_gather_size` and
   the land regions that hold a seated leader's city or are large enough; run where `Setup::build_game` runs it. Names
   section 4 whole (120 bytes, printed 1914505471) and the start track's unestablished `analyze_map`.~~ Carried by item 4147: `docs/MAPGEN.md` §36, section 4 whole.
-- **4131c. The collision blocks' allocation** (§21; section 9, 17,000 bytes: `present` 3,600, 25 heads, 25 bodies).
+- ~~**4131c. The collision blocks' allocation** (§21; section 9, 17,000 bytes: `present` 3,600, 25 heads, 25 bodies).
   `World::new_coll_block` is unread and the crate's `CollGrid` is flat and keeps no allocation. The heads are the
   `BitMask<768>` constructor's (768, 96) and the bodies the grid's bits, so both follow once presence is held. Record
-  3202 differs from 3201 in this section alone: it moves with the units. Names section 9 whole.
+  3202 differs from 3201 in this section alone: it moves with the units. Names section 9 whole.~~ Carried by item 4150: `docs/COLLISION.md` §26, the world line whole.
 - ~~**4131d. The fog's two cell words, beside three planes that agree** (§21; `05 cell.was_seen` and `07 wcoord_seen`,
   3,600 each). `seen`, `seen2` and `seen3` agree on 14,400 of 14,400 each from the vision the crate already runs
   (459, 702 and 89 non-zero bytes), and nothing of the fog was ported. So the leaders line's `explored` (19 and 22
@@ -16793,13 +16797,15 @@ words and edits nothing here; a refill lands when two remain.
   was reverted. Taking `explored` off `UNMODELLED` moves 30 row-count pins by one key per leader per block, which
   `repin.py` rewrites.
 
-## Parked by the next landing, slot FT — reserved
+## Parked by item 4150, 2026-11-11 — the collision blocks
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4150a. `move_unit`'s one-block form returns early on a null block** (`docs/COLLISION.md` §26). The original's form does
+  nothing when the unit's block has been freed; ours still repaints there, in the case where a neighbour cleared a unit's bits
+  and `GameDaemon::process_coll_blocks` then freed the block. Changing it changes what the grid answers, so it was not tried.
+  Names no score while every floor holds.
+- **4150b. What the blocks rest on that frames 91 and 92 do not hold** (`docs/COLLISION.md` §26, "Not established"). A
+  restored game (`walk_data`'s restore arm allocates by the saved presence and stores state 2); a dump-built game, whose
+  presence is what its setup's sets leave; run1100's 79 blocks (28 empty, a cursor near 1,920) are consistent and not diffed.
 
 ## Parked by the next landing, slot FU — reserved
 
@@ -16809,10 +16815,28 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FV — reserved
+## Parked by item 4152, 2026-11-11 — the leaders line's leaves, read (findings for the driver's folding)
+
+- **4152a. `docs/CITIES.md` §8.5's repayment rate is wrong, one frame in five** (readers-4152's hand-off line, 2026-11-11; the
+  verdict file is on `worktree-att-4152` under `docs/audit/2026-11-11-item-4152/`). Unread by the driver: fold it with that
+  branch's merge, and book it if a dump prints the rate. The other, `att`'s floor at a base of 0, is item 4154.
+- **4152b. Three more corrections the readers name, unread by the driver** (readers-4152's done line; the verdicts under
+  `docs/audit/2026-11-11-item-4152/`): `crates/sim/src/territory/victory.rs:21` (the archive holds five territory victories);
+  `docs/AI.md` §80.1 is stale; `docs/CHECKSUM.md` §20 names `plan_strategy` as a `give_att_disabled` writer, wrongly. Each is
+  read against its verdict and amended in place, or booked where a dump prints the value.
+
+## Parked by the next landing, slot FW — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FV renames this heading `## Parked by item N, <date> — <title>`
+names slot FW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FX renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

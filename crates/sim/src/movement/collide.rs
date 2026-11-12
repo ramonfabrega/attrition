@@ -604,12 +604,29 @@ impl PaintView for SimPaint<'_> {
     }
 }
 
-/// `CollBlock`, flattened: one bit per unit cell over the whole map.
+/// `CollBlock::CollBlock@0046d1f0`'s head: `BitMask<768>`'s `bits`
+/// (`0x300`) and `size` (`0x60`, the body's bytes). Every block has it.
+pub const BLOCK_HEAD: (i32, i32) = (768, 96);
+
+/// `CollBlock`, flattened: one bit per unit cell over the whole map, and
+/// beside the bits each world cell's block **presence** — `WData.block`,
+/// which the original allocates lazily and frees by the daemon's sweep
+/// (`docs/COLLISION.md` §26). Presence answers nothing a unit asks; it is
+/// the world line's section 9 (`docs/CHECKSUM.md` §21).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct CollGrid {
     w: i32,
     h: i32,
     bits: Vec<u64>,
+    /// Per world cell, `x + y·cw`: whether `WData.block` is allocated.
+    /// Set by a bit's set into the cell (`World::new_coll_block@0046d250`
+    /// from `Object::add_to_world`, `Guy::process` and
+    /// `CollCheck::move_unit`'s set pass, each when the block is null),
+    /// cleared by [`CollGrid::process_coll_blocks`].
+    blocks: Vec<bool>,
+    /// `GameDaemon.empty_colls`: the next world cell the sweep visits.
+    /// `GameDaemon::init` and `close` and `World::close` zero it.
+    empty_colls: usize,
 }
 
 impl CollGrid {
@@ -621,6 +638,75 @@ impl CollGrid {
             w,
             h,
             bits: vec![0; n.div_ceil(64)],
+            blocks: vec![false; (cw.max(0) as usize) * (ch.max(0) as usize)],
+            empty_colls: 0,
+        }
+    }
+
+    /// The map's width in world cells.
+    const fn cells_wide(&self) -> i32 {
+        self.w / UCELLS_PER_CELL
+    }
+
+    /// The world cell `(cx, cy)`'s index into `blocks`, if on the map.
+    fn cell_index(&self, cx: i32, cy: i32) -> Option<usize> {
+        let cw = self.cells_wide();
+        let ch = self.h / UCELLS_PER_CELL;
+        if cx < 0 || cy < 0 || cx >= cw || cy >= ch {
+            return None;
+        }
+        Some((cy as usize) * (cw as usize) + (cx as usize))
+    }
+
+    /// Whether the world cell `(cx, cy)` holds a collision block
+    /// (`WData.block != 0`, `World::walk_data@006b5cf0`'s presence local).
+    pub fn block_present(&self, cx: i32, cy: i32) -> bool {
+        self.cell_index(cx, cy)
+            .is_some_and(|i| self.blocks.get(i).copied().unwrap_or(false))
+    }
+
+    /// The world cell `(cx, cy)`'s block body, `[+0xc, +0x6c)`: its 96
+    /// bytes, unit cell `(x, y)` at bit `(x & 15)·16 + (y & 15)`
+    /// (`CollBlock::set@00682070`), of which only the first 32 bytes are
+    /// ever written.
+    pub fn block_body(&self, cx: i32, cy: i32) -> [u8; BLOCK_HEAD.1 as usize] {
+        let mut body = [0u8; BLOCK_HEAD.1 as usize];
+        let n = UCELLS_PER_CELL;
+        for i in 0..n * n {
+            if self.get(cx * n + i / n, cy * n + i % n) {
+                body[(i / 8) as usize] |= 1 << (i % 8);
+            }
+        }
+        body
+    }
+
+    /// **`GameDaemon::process_coll_blocks@00731f90`**, once a frame from
+    /// `GameDaemon::process_all` after `check_borders`: the sweep visits
+    /// `max(5, xs / 4)` world cells from `empty_colls` on, wrapping at the
+    /// map's end, and frees each visited block whose body holds no bit.
+    /// The original decides by the block's state word (`+0x8`: 1 when
+    /// allocated, 0 on a set, 2 on a clear of a 0); a state 0 block always
+    /// holds a bit and a state 1 block never does, so the word's verdict is
+    /// the body's (`docs/COLLISION.md` §26).
+    pub fn process_coll_blocks(&mut self) {
+        let cw = self.cells_wide();
+        let total = self.blocks.len();
+        if total == 0 {
+            return;
+        }
+        let visits = (cw / 4).max(5);
+        for _ in 0..visits {
+            let i = self.empty_colls;
+            if self.blocks[i] {
+                let (cx, cy) = ((i % cw as usize) as i32, (i / cw as usize) as i32);
+                if !self.any_in_cell(cx, cy) {
+                    self.blocks[i] = false;
+                }
+            }
+            self.empty_colls += 1;
+            if self.empty_colls >= total {
+                self.empty_colls = 0;
+            }
         }
     }
 
@@ -646,10 +732,19 @@ impl CollGrid {
             .is_some_and(|i| self.bits[i / 64] & (1u64 << (i % 64)) != 0)
     }
 
+    /// Set (`on`) or clear the unit cell `(x, y)`'s bit. A set allocates
+    /// its world cell's block where none is (`World::new_coll_block`); a
+    /// clear never does.
     pub fn set(&mut self, x: i32, y: i32, on: bool) {
         if let Some(i) = self.index(x, y) {
             if on {
                 self.bits[i / 64] |= 1u64 << (i % 64);
+                let n = UCELLS_PER_CELL;
+                if let Some(c) = self.cell_index(x.div_euclid(n), y.div_euclid(n))
+                    && let Some(b) = self.blocks.get_mut(c)
+                {
+                    *b = true;
+                }
             } else {
                 self.bits[i / 64] &= !(1u64 << (i % 64));
             }

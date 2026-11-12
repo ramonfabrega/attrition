@@ -255,6 +255,12 @@ impl Sim {
         // pass writes its 256 cells (`border_pass`, item 1106).
         self.check_borders();
 
+        // `GameDaemon::process_all` → `process_coll_blocks`, after the
+        // borders: the sweep frees the empty collision blocks of the next
+        // `max(5, xs / 4)` world cells (`docs/COLLISION.md` §26). It
+        // changes no bit a unit asks, and draws nothing.
+        self.movement.coll.process_coll_blocks();
+
         // `GameDaemon::process_all` → `Groups::process`, its last act: one
         // pool slot per player has its prune and its speed reset
         // (`docs/GROUPS.md` §19). It draws nothing, so it takes no mark.
