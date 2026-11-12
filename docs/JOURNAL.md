@@ -22022,3 +22022,30 @@ with the two facts that make them leaves asserted. The rubric: the
 territory 669 · 336 · 1066 from 4039, nothing else moved. **DECISIONS
 127.** `docs/audit/2026-11-12-fable-pass-render.md`.
 
+**2026-11-12, the pass by supply (steer, Fable 5.2, armed by `commander`;
+Ramon on the row).** The tranche since the morning's pass: six lane landings
+at 64.21 USD list, 10.70 a landing, 28.6 minutes waiting a landing, five of
+six sessions deep; two builders' steps of the leaders line, 88 and 107
+minutes; eight booking gates, every one whole, one red on `clock` under a
+lane's draws and re-run green. The disk came first: 20 GB free, 0 inside
+item 4177's run. About 94 decoded-cache generations stood in each of 133
+oracle caches, one stranded by every parser edit, and seven merged builder
+trees held 40.4 GiB of build output. On Ramon's word the collector ran
+(10,725 generations), the 23 merged trees were reaped, 243 GB free, and the
+gate runner does both after every green gate from here. Ruled: a leaf of
+the leaders line that parts only beside a parent leaves the held-out list
+on transfer — the crate's step on the original's printed inputs against its
+next printed leaf — never on the story; 24 of 73 ride on it and the harness
+is the chain's next step, ahead of V. The client's still, set beside the
+photographs again: run1559b's close, wanting the city's base, shadows and
+effects; run1564's lake still the floor tiling in cyan. Booked: 4178 to
+4184 — the water, two steps of the mouse scored by the original playing the
+file, the shaders out of `gpu.rs`, what stands under things, the rounds and
+corpses, the lobby as a plain page — and 4034 under a new `start` brief
+kind. Four workers on trial, the third lane on scoped items only. Built by
+three Opus builders, red first: `brief.py`'s `start` and `input` kinds,
+`tools/disk.py` under `gate_run.sh`, and a host-wide GPU lock that its own
+measurement killed: the clock's p99 read 5 ms beside our stills with the
+lock and without, against the red gate's 75, so the lock is unmerged, the
+cause is open, and the test measures a break twice. The rubric: the territory 731 · 332 · 576 from item
+4170. **DECISIONS 128.** `docs/audit/2026-11-12-fable-pass-supply.md`.

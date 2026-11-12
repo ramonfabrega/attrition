@@ -93,8 +93,10 @@ another model takes that model's own default effort, not the driver's.
   the pilot. It is not a controlled trial: it is judged by the chain's
   milestones landing with every floor held, and by points of the weekly
   window a milestone.
-- **The render track**: two ccc lanes, Opus 5.5 at `--effort high`, under
-  the frame (DECISIONS 126 §2). One lane at medium was the control: 27
+- **The lanes**: three ccc lanes, Opus 5.5 at `--effort high`, under the
+  frame — four workers with the chain's builder, on trial since the pass of
+  2026-11-12 (DECISIONS 128 §4). The third lane takes only items whose gate
+  is scoped; a `start` item gates whole and is never the fourth worker. One lane at medium was the control: 27
   tranches of that roster read 7.25 USD a landing (lore, 2026-11-09); the
   nine lane landings after the reset read 8.36.
 - Never Sonnet on a reading or an adjudication.
@@ -123,6 +125,16 @@ worktree-replan-pdb:main`, a fast-forward only — because a harness-made
 worktree branches from `origin/main`, and a main left behind starts a
 builder on a stale base. The root checkout is Ramon's to pull. Renaming the
 branch is his: a remote branch delete is refused from every row.
+
+**The gate clears the disk** (DECISIONS 128 §1). After a gate that exits 0,
+`tools/gate_run.sh` runs `tools/disk.py`: every oracle cache generation but
+the gated build's leaves both archives, and a builder's tree whose tip is
+merged and whose tree is clean is removed with its branch. The log's
+`Disk:` lines say what went and what is free, `LOW` under 30 GB; the driver
+reads them beside `gate exit 0`. The disk read 0 GB inside a builder's run
+on 2026-11-12: about 94 generations stood in each of 133 caches and seven
+merged trees held 40 GiB of build output, and nothing removed either. A
+capture is never removed this way (entry 84 (iv)).
 
 **The harness moved under this file** (Claude Code 2.1.300 to 2.1.321, read
 on 2026-11-09). What changed, and what it makes of a clause below:
@@ -162,7 +174,10 @@ line since 3437), checks the
 trace against its `cover=0` twin — `samegame.py --from` the first
 unshared input, where the take sends one — and pins it into
 `blind::TRACES`, so the functions a reading's captures-owed table names
-leave `NEVER`; it gates on the same line. **A need for the queue lane
+leave `NEVER`; it gates on the same line. **`structure` and `render`** (Loop 4022) **and `start` and
+`input`** (DECISIONS 128 §7) **are the sixth to ninth**: a start lane gates
+`--lane --whole`, an input lane scoped with the capture section. **A need
+for the queue lane
 again is a steer, never a lane's redirect** (item 3485, DECISIONS 89).
 **A late-age pair is a `residue` item that stands a word up** (DECISIONS
 90): the Mongol pair's shape — its own start and long at `cover=0`,

@@ -132,8 +132,9 @@ is append-only and amended in place, as it always was.
 - 123 standing — two workers out
 - 124 amended by 126 — the stop at 98
 - 125 standing — no parked file
-- 126 standing — two rows, three workers, the leaders tranche
+- 126 amended by 128 — two rows, three workers, the leaders tranche
 - 127 standing — a render row is the client's pixels and reads brightness
+- 128 standing — the gate clears the disk, release on transfer, four workers on trial
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
 - 90 amended in place — the fifty-first tranche, two Opus lanes
 - 89 amended in place — the fiftieth tranche, two Opus lanes
@@ -12376,3 +12377,102 @@ whether a count on a card's output holds across an OS or driver update
 above, which are by eye and not by tile; whether the lit figure wins on
 brightness; whether the trees' leaf texel alone reaches the photograph's
 orange or the tileset tints it.
+
+## 128. The gate clears the disk, a held leaf is released on transfer, four workers stand on trial, and the lanes take the water, the input and the lobby (2026-11-12)
+
+**What happened.** `commander` armed the pass by supply (entry 126 §4): the
+render items 4171 to 4175 had landed, item 4034 had no brief kind, two
+builders' journals asked for a ruling on leaves that part only beside a
+parent, and a booking gate had gone red on the `clock` test while a lane
+drew on the same card. The pass found a fifth thing first. `df -g ~` read 20
+GB free; the disk had read 0 during item 4177's run and one of its checks
+had failed for want of space. Measured: 133 oracle caches held about 94
+generations each, 1.5 GiB a generation over the archive (one per parser edit,
+`docs/TEST_PERFORMANCE.md`), and seven merged builder trees held 40.4 GiB of
+build output. The checkout itself is under 1 GB.
+
+**Ramon, on this row:** "ok we definitely need to gc oracle / decide to clear
+up some space here before sending commander/workers out imo"; "should we just
+remove this worktree (e.g. go back to master), and then have commander and
+steer be reaped instead of sharing a wt?"; then, on the measurement, "its fine
+to keep worktree then if under 1gb. but yep we got stale caches / build output
+piling up we need to clear before next commander"; "fourth worker assuming it
+doesnt run the full suite is fine … seems ok to me to consider it for a bit /
+revisit later on next steer to confirm/pull back?"; "lobby and input as you
+say are fine... plain page works to start, then ideally we probably port over
+ui etc? will see"; "can still please reap the 22 merged builder trees, might
+as well, ideally we just dont let em pile up forever"; "did we ever port the
+direct gpu shaders to proper shader extension files or still in gpu.rs as
+strings?"
+
+**Decided**, §1, §2, §4 and §6 on his word, the rest the pass's and his to
+move.
+
+1. **The gate clears what a read regenerates.** After every gate that exits
+   0, `tools/gate_run.sh` runs `tools/disk.py`: every oracle generation but
+   the gated build's is removed from both archives, and a builder's tree
+   whose tip is merged and whose tree is clean is removed with its branch (a
+   dirty one loses its `target/` alone). Entry 84 (iv) stands for what it was
+   written about, the captures: a capture leaves the archive on Ramon's word
+   and by a list. A decoded cache and a build are not the archive. The pass
+   ran both by hand first: 10,725 stale generations removed, 23 merged trees
+   reaped, 20 → 243 GB free.
+2. **The worktree and the two rows stay** (entry 126 §1). The space was never
+   in the tree. Build output outside the tree, shared by the driver and the
+   gate, is what would make a tree per session free; it is a note for after
+   the milestone, not a step.
+3. **A held leaf is released on transfer, never on a story.** Three builders
+   in a row (4167, 4176, 4177) built leaves of the leaders line that part
+   only on frames where a value they are computed from already parts under a
+   standing pin, and held them: 24 of the 73 leaves still out. An inherited
+   parting is not agreement, and holding a right formula hostage to another
+   leaf's residue is the parity gate the thesis names. The rule: **a leaf
+   leaves `LEADERS_HELD_OUT` when it agrees on every dump that prints the
+   record (entry 126 §3), or when it transfers** — every parting of it sits
+   on a frame where a named input of it parts under a pin, and the crate's
+   own step, run on the original's printed values of its inputs on one
+   record, gives the original's printed leaf on the next, on every
+   consecutive pair the dumps hold, at least one of them a pair on which the
+   leaf moves; the pairs and the moving pairs are pinned, and the check is
+   seen red once on a bent step. A leaf whose inputs no dump prints cannot
+   transfer and stays held. A leaf that parts on a frame of its own (4176b,
+   4177a, 4177b) is a finding, not a transfer. The chain's next step is this
+   harness over the 24, ahead of step V, which stands as designed and takes
+   the same rule.
+4. **Four workers, on trial**: the chain's builder and three lanes. The
+   third lane takes only items whose gate is scoped; a lane on a start item
+   gates whole and is never the fourth. The next pass reads the gate queue's
+   admission waits, the host load and the `clock` test and confirms the
+   fourth or pulls it back.
+5. **The lanes' items are 4178 to 4184** (`docs/QUEUE.md`): the water and
+   the shore drawn; a right press on an object and a dragged box, each
+   scored by the original playing the minted file; the shaders out of
+   `gpu.rs` into files; what stands under a city and a tree; the rounds and
+   the corpses drawn; the lobby as a plain page. The order of play is entry
+   116's: the renderer beside the chain, then the input and the lobby, then
+   breadth, so 4034 is taken when no scoped item stands.
+6. **The lobby is a plain page first.** Porting the original's interface is
+   on the cut list (`CLAUDE.md`, "Cut from v1") and is Ramon's to reopen
+   once the page exists.
+7. **`brief.py` composes a `start` and an `input` kind**, the first gated
+   whole, the second scoped with the capture section.
+8. **The `clock` red was not our draws, and a break is measured twice.**
+   The handoff's cause — a lane's stills on the same card — was built
+   against as a host-wide lock on an off-screen device and then measured:
+   beside one still loop, the client's test binary on four threads, or four
+   still loops, the session's p99 read 4.75 to 5.89 ms with the lock and
+   without it, against the gate's 75.10. The lock is not merged (branch
+   `worktree-agent-a321dca8c2323aa9d`, tip `117bc85b4`). The test now runs
+   a second session when the first breaks a ceiling and fails only if both
+   do, printing both: a stall of a shared host breaks one, a slower client
+   breaks two.
+
+**Not established:** whether any of the 24 transfers (the kill counters'
+inputs are deaths, which a record may not print); whether three lanes'
+scoped gates and two capture users fit the host without the waits the last
+tranche read (admission 6,704 s over eight gates); what did break
+the clock in gate-4171 (the gate's own tests on the processor, memory with
+the disk nearly full, the original drawing under Wine, another
+application); what a
+person needs on screen to play past the plain page — the build menu, the
+resources, a selection's panel — which no item here designs.

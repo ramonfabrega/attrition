@@ -40,36 +40,53 @@ fn the_great_lakes_lobby_plays_under_the_clock_s_ceilings() {
             return;
         }
     }
-    let dir = std::env::temp_dir().join(format!("att-client-clock-{}", std::process::id()));
-    std::fs::create_dir_all(&dir).unwrap();
-    let trace = dir.join("session.json");
-    let out = Command::new(env!("CARGO_BIN_EXE_client"))
-        .arg("--install")
-        .arg(&install)
-        .arg("--logs")
-        .arg(&logs)
-        .args(["--lobby", "--headless", "--play"])
-        .args(["--frame", &CLOCK.from_frame.to_string()])
-        .args(["--frames", &CLOCK.frames.to_string()])
-        .arg("--trace")
-        .arg(&trace)
-        .output()
-        .expect("the client runs");
-    let text = std::fs::read_to_string(&trace).unwrap_or_default();
-    let _ = std::fs::remove_dir_all(&dir);
-    assert!(
-        out.status.success(),
-        "client exited {:?}: {}",
-        out.status,
-        String::from_utf8_lossy(&out.stderr)
-    );
-    let clock = Clock::read(&text).expect("the trace holds a `frame zero` mark");
-    eprintln!("CLOCK {}: {clock:?}", CLOCK.game);
+    // One session of the client, and what of the ceilings its clock breaks.
+    let session = || {
+        let dir = std::env::temp_dir().join(format!("att-client-clock-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let trace = dir.join("session.json");
+        let out = Command::new(env!("CARGO_BIN_EXE_client"))
+            .arg("--install")
+            .arg(&install)
+            .arg("--logs")
+            .arg(&logs)
+            .args(["--lobby", "--headless", "--play"])
+            .args(["--frame", &CLOCK.from_frame.to_string()])
+            .args(["--frames", &CLOCK.frames.to_string()])
+            .arg("--trace")
+            .arg(&trace)
+            .output()
+            .expect("the client runs");
+        let text = std::fs::read_to_string(&trace).unwrap_or_default();
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(
+            out.status.success(),
+            "client exited {:?}: {}",
+            out.status,
+            String::from_utf8_lossy(&out.stderr)
+        );
+        let clock = Clock::read(&text).expect("the trace holds a `frame zero` mark");
+        eprintln!("CLOCK {}: {clock:?}", CLOCK.game);
+        CLOCK.broken_by(&clock)
+    };
     eprintln!("CLOCK pinned: {CLOCK:?}");
-    let broken = CLOCK.broken_by(&clock);
+    // **A break is measured twice before it is believed** (the pass of
+    // 2026-11-12, `docs/RENDERER.md` §3.11): the host is shared, and one
+    // gate read p99 75 ms where the session alone reads under 6. A stall of
+    // the host breaks one session; a slower client breaks both.
+    let first = session();
+    if first.is_empty() {
+        return;
+    }
+    eprintln!(
+        "clock: the first session broke its ceilings ({}); measuring once more",
+        first.join("; ")
+    );
+    let second = session();
     assert!(
-        broken.is_empty(),
-        "the clock breaks its ceilings (render::clock::CLOCK): {}",
-        broken.join("; ")
+        second.is_empty(),
+        "the clock breaks its ceilings twice running (render::clock::CLOCK): first {}; then {}",
+        first.join("; "),
+        second.join("; ")
     );
 }

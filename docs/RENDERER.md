@@ -1601,6 +1601,13 @@ load, not a diff: nothing of the original is compared. The resident set is
 - **The ground's art on the lobby** is the pair's start's: run1428's
   tileset and seed, run53's `game_random seed 12345`. That the two maps'
   tilesets agree is read off the picture, not checked.
+- **What broke the ceilings in a gate on 2026-11-12** (gate-4171: p99
+  75.10 ms, frame 420's `gpu` phase 129 ms). Not this repository's own
+  draws: beside one `--still` loop, the client's test binary on four
+  threads, or four still loops, the session's p99 read 4.75 to 5.89 ms
+  with a host-wide lock on off-screen devices and without it (the pass by
+  supply; the lock is unmerged). The test runs a second session when the
+  first breaks and fails only if both do.
 - **Whether first sight belongs before frame zero.** Decoding every piece
   the lobby could show before the first frame would trade frame 1's ~100 ms
   for a longer frame zero. Nothing has measured that trade.
