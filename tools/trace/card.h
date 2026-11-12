@@ -3,7 +3,7 @@
  * Built only under `RON_CARD_PROBE`. The executable never calls Direct3D. It
  * calls `graphsys`, which is `d3dgl.dll`'s `D3D11GLSys`, and that DLL turns the
  * fixed-function state into a pixel shader permutation and four constant
- * buffers (`docs/RENDERER.md` §5.3, "The device's state"). So the whole state of
+ * buffers (`docs/RENDERER.md` §3.14). So the whole state of
  * a draw is in three places at `D3D11GLSys::render`'s entry, and this probe
  * copies all three, per draw, over a window of sim-frames:
  *

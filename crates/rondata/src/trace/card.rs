@@ -7,8 +7,8 @@
 //! buffers. At its `render` entry the probe copies `GraphSys::current_state`
 //! (the `RenderState`), the context's shadows of `PerScene`, `PerObject`,
 //! `PerMaterial` and `LightData`, the card's `mShaderOptions`, and each
-//! stage's texture by its cache entry's name. `docs/RENDERER.md` §5.3, "The
-//! device's state", is what the records establish.
+//! stage's texture by its cache entry's name. `docs/RENDERER.md` §3.14 is
+//! what the records establish.
 //!
 //! The words are kept as the log holds them; a float is its bits until a
 //! caller asks for it.

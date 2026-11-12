@@ -1186,8 +1186,7 @@ pub const RUN1441_CAMERA_3279_TRACED: (usize, usize) = (0, 32);
 /// figures' 1,257 behind pixels 697 part (from 1,235); the figures agree
 /// 8,679 of 17,889.
 pub const RUN1559B_3279_COLOUR: (usize, usize) = (18, 33);
-/// **The device's state at each scored object** (item 4165; §5.3, "The
-/// device's state"): of [`RUN1559B_3279_TRACED`]'s 33 objects, those whose
+/// **The device's state at each scored object** (item 4165; §3.14): of [`RUN1559B_3279_TRACED`]'s 33 objects, those whose
 /// figures each match a lit draw of run1566b's card trace (the pass drawn
 /// after frame 3279) within [`CARD_MATCH`] world units, or whose sprite
 /// matches its own art's `_NONQUAD` draw, with a whole state there

@@ -36572,7 +36572,7 @@ is cropped (PIL) to `run1564-3294-view.png`, which is converted by `sips -s form
 
 ## run1566 — run1559's take with the card probe: the device's state at each draw, frames 3260–3300 (2026-11-12, item 4165, `att-4165`)
 
-`docs/RENDERER.md` §5.3, "The device's state". **What the disk could not answer**: what the original hands the card
+`docs/RENDERER.md` §3.14. **What the disk could not answer**: what the original hands the card
 for a figure. run1559b's packet holds `render_states[]` and the team colours, but no draw's stages, options or
 constant buffers, and Wine's `+d3d` is blind here (wined3d gets no GL context on macOS, `docs/ORACLE.md`). The line is
 run1559's, with `--tracer-def RON_CARD_PROBE` (`tools/trace/card.h` at `cfb48d8da`) and no packet:

@@ -7341,7 +7341,7 @@ mod tests {
     }
 
     /// **The device's state at each scored object** (item 4165;
-    /// `docs/RENDERER.md` §5.3, "The device's state"): run1566b's card trace
+    /// `docs/RENDERER.md` §3.14): run1566b's card trace
     /// (`tools/trace/card.h`, `rondata::trace::card`) — run1559b's take with
     /// the probe on `D3D11GLSys::render` — holds the pass drawn after frame
     /// 3279, the photograph's. Each of [`RUN1559B_3279_TRACED`]'s 33 objects

@@ -1560,6 +1560,30 @@ load, not a diff: nothing of the original is compared. The resident set is
   the lobby could show before the first frame would trade frame 1's ~100 ms
   for a longer frame zero. Nothing has measured that trade.
 
+## 3.14 The device's state at a figure's draw (item 4165)
+
+**The trace.** run1566b's card trace (`tools/trace/card.h`, read by `rondata::trace::card`) copies, at each
+`D3D11GLSys::render` (DLL `0x10023ac0`, `0x10023d30`), the `RenderState`, the four constant buffers, `mShaderOptions`
+and both stages' texture names. The pass after 3279 is the photograph's: under the take's fast-forward the original
+draws one frame in sixteen, after 3263 and 3279 (4073a).
+
+**The match** (the rule before its count). A figure of §5.3's 33 matches the lit draw at its own point, `gWorld`'s
+translation, within `CARD_MATCH`; a building its `_NONQUAD` sprite draw. **33 of 33, every figure at 0.0 units**
+(`RUN1559B_3279_DEVICE_STATE`); on the 3263 pass, 22 of 33.
+
+**Diff-backed there, on every lit figure draw:**
+- stage 0 `BLENDTEXTUREALPHA(TEXTURE, TFACTOR)`, the tfactor the owner's `TEAM_UNIT` (4102);
+- stage 1 `MODULATE(CURRENT, DIFFUSE)`, the diffuse 1 with no vertex colour;
+- options `ALPHA_TEST LIGHTING`: no vertex colour, normal map, fake light or `NO_HDR`;
+- the material, the white light and the scene's ambient `lit_pipeline` reads (4114).
+
+On every silhouette draw: `SELECTARG2(TFACTOR)` at 128, source alpha over the rest (4103). The tanks' streamed
+normals are ours within 2.4–3.5° (median).
+
+**So** the colour with no fitted term is 4114's candidate, 17 of 33. The figure that parts, 1/27, parts past the
+draw (4165a). Stage 1's alpha, `MODULATE4X(TEXTURE, TFACTOR)` with blending on, makes a texel under alpha 64
+translucent over what is behind it: 319 of the figures' 23,316 own pixels, drawn by no draw of ours (4165b).
+
 ## 4. The stack
 
 The rule is `CLAUDE.md`'s **earn every dependency**: a crate enters when it
@@ -1767,23 +1791,6 @@ rows are their pins'.
   `SELECTARG2(TFACTOR)`); a reading, one photograph: **18 of 33**.
 - *The constants* and interface are this frame's, pinned, never tuned
   to a count (the inputs: 4089's journal).
-- *The device's state* (4165, the rule before its count). run1566b's
-  card trace (`tools/trace/card.h`) copies, at each `D3D11GLSys::render`
-  (DLL `0x10023ac0`, `0x10023d30`), the `RenderState`, the four constant
-  buffers, `mShaderOptions` and both stages' texture names. The pass after
-  3279 is the photograph's: under the take's fast-forward the original
-  draws one frame in sixteen, after 3263 and 3279 (4073a). A figure matches
-  the lit draw at its own point, `gWorld`'s translation, within
-  `CARD_MATCH`; a building its `_NONQUAD` sprite draw. **33 of 33, every
-  figure at 0.0 units** (`RUN1559B_3279_DEVICE_STATE`). Diff-backed there,
-  on every lit draw: stage 0 `BLENDTEXTUREALPHA(TEXTURE, TFACTOR)`, tfactor
-  the owner's `TEAM_UNIT` (4102); stage 1 `MODULATE(CURRENT, DIFFUSE)`;
-  options `ALPHA_TEST LIGHTING` (no vertex colour, normal map, fake light or
-  `NO_HDR`); the material, the white light and the scene's ambient that
-  `lit_pipeline` reads (4114). On every silhouette draw: `SELECTARG2(TFACTOR)`
-  at 128, source alpha over the rest (4103). The tanks' streamed normals are
-  ours within 2.4–3.5° (median). So the colour with no fitted term is 4114's
-  candidate, 17; the figure that parts, 1/27, parts past the draw (4165a).
 
 ### 5.4 Recommended: pieces in register, K of M
 
