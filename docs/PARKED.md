@@ -3850,6 +3850,10 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 ## Loop, filed 2026-11-11 — the driver's twenty-third session
 
+(4156) **The gate leaks a temp directory per run** (the driver's twenty-fourth session, 2026-11-11; lore's disk sweep at Ramon's word): `tools/release_gate.py`'s `gate()` makes `tempfile.mkdtemp(prefix='attrition-gate-')` when no report dir is passed, and nothing removes it; 2,373 had built up in `$TMPDIR` since 2026-10-19, 1,655 minted on 2026-11-05 alone, mostly empty shells from fixture tests calling the gate entry (lore deleted 2,318 dated before today, about 20 GiB; 56 stand). Owed: remove it on exit or keep the last N, and the fixtures pass a directory they clean up. Names no score; the loop's.
+
+(4155) **A reader row's brief owes its journal's gate lines and its new specification's constants pin** (the driver's twenty-fourth session, 2026-11-11; *4152's "for the Loop"*): a reader row's brief should say how its journal meets the lane-verdict guard (name a lane gate, or exempt a documents-only row), and how its new specification meets the constants guard, whose pin lives under the `crates/` its brief rules out; this row took the CLAUDE.md reading for the pin and left the journal red. The driver added the builders' `Lane verdict: none` form at the merge. Names no score; the loop's.
+
 (4151) **A minted file's whole-length take is blind to a small change in its orders** (the driver's twenty-fourth session, 2026-11-11; *4149's "for the Loop"*): the first script's file and item 4149's clicked file differ in two targets by a few points, and the original's playbacks of the two (run1561, run1563) have identical words on all 24,000 frames (`rngcmp` 0 differing); our walk of the first script agrees with run1563 on every frame and the closing record too. Only run1563a's 299 records see the click (`FIRST_AGAINST_CLICKED`, parting on frame 31, 269 of 299). So a whole-length lockstep row can stand for a file it did not see. Owed: a minted take's discriminating power is pinned by walking a sibling file's orders against it, as `FIRST_AGAINST_CLICKED` does, before its row is booked as backing an order. Names no score; the loop's.
 
 (4146) **The stop was set on the whole week while a Fable-only week bound first** (the driver's twenty-third session, 2026-11-11): at 12:29 −05:00 lore's limits mod wrote its first `seven_day_fable` reading, 96 %, beside the whole week's 86 %; Ramon had moved the stop to 95 % of the whole week forty minutes before, and the driver, on Fable 5.2, cut a builder and two lane items under it. The workers are Opus 5.5 and draw on the whole week; the driver's merges, briefs and bookings draw on the Fable week, at 210 k a turn in this session. Candidate: the stop names both weeks and the driver reads the Fable one first (the opener now says so); the driver's model for the rest of a week whose Fable allowance is spent is Ramon's; and the driver's own context a turn, not the workers', is the number to bring down. Names no score; the loop's.
@@ -16811,6 +16815,10 @@ words and edits nothing here; a refill lands when two remain.
 - **4152a. `docs/CITIES.md` §8.5's repayment rate is wrong, one frame in five** (readers-4152's hand-off line, 2026-11-11; the
   verdict file is on `worktree-att-4152` under `docs/audit/2026-11-11-item-4152/`). Unread by the driver: fold it with that
   branch's merge, and book it if a dump prints the rate. The other, `att`'s floor at a base of 0, is item 4154.
+- **4152b. Three more corrections the readers name, unread by the driver** (readers-4152's done line; the verdicts under
+  `docs/audit/2026-11-11-item-4152/`): `crates/sim/src/territory/victory.rs:21` (the archive holds five territory victories);
+  `docs/AI.md` §80.1 is stale; `docs/CHECKSUM.md` §20 names `plan_strategy` as a `give_att_disabled` writer, wrongly. Each is
+  read against its verdict and amended in place, or booked where a dump prints the value.
 
 ## Parked by the next landing, slot FW — reserved
 
