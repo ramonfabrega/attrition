@@ -60,7 +60,10 @@ run647's start record. Of the 98:
 
 Item 4162 made `theirs` read `att`, `pop_issues`, `misery`, `city_name`,
 `handicap`, `multi_diff` and `anti_att` (the record's one float, as `%f`
-millionths), and `rows` compare them.
+millionths), and `rows` compare them. Item 4167 (step II) made `theirs`
+read `fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`,
+`scholar_militia` and the six `*_queued`, and `rows` compare them (§13.5,
+§14.5).
 
 **Conventions.** A function is cited as `Name (00xxxxxx)`. An offset is a
 `LeaderData` offset. `Leader` holds `LeaderData` at offset 0 and adds 8 bytes
@@ -2867,7 +2870,16 @@ overwrites all seven on a save load, outside a plain game. Whether the
 ### 13.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/marks-built-*.md`); no diff backs it yet.
+(`docs/audit/2026-11-11-item-4152/marks-built-*.md`). ~~no diff backs it
+yet.~~ **Coverage since item 4167:** the record diff backs `fort_mark`,
+`oil_well_mark` and `senates_built` on every dump that prints the record
+(no parting), and `supply_mark` everywhere but one window, where it parts
+beside its array: run1075's 2805, who 1, ours 4 theirs 3, beside
+`num_units[13]` 4/3 (parked 4167b). `wonders_built`, `wonders_held` and
+`forts_built` are unprinted: the leaders line on run 1562's frame 91 is
+their only oracle, and it reads 0 = 0 on both leaders — a weak one, no
+wonder or fort stands yet. `the_marks_follow_activation_and_close`
+drives the take, give-back and counter rules end to end.
 
 Verdicts: 63 confirmed, 7 corrected, 5 open. The corrections that changed a
 rule:
@@ -2897,9 +2909,10 @@ hits outside a leader are named in the verdicts.
 - **A capture route to a Red Fort**, or to any fort, for `wonders_built` and
   `forts_built`. None was found; a sweep of every caller of the `activate`
   slot (`0x1a8`), its predicate against `is_fort`, would settle it.
-- **`is_wonder_building`'s equivalence to `0x20e..=0x21e`.** The crate asks
+- ~~**`is_wonder_building`'s equivalence to `0x20e..=0x21e`.** The crate asks
   the tech tree's `wonder` kind; a test that the tree files exactly those 17
-  types settles it.
+  types settles it.~~ Settled by item 4167: the tree files exactly the 17
+  `wonder_line` holds (`the_marks_follow_activation_and_close`).
 - **Whether a plain game retypes a unit across `unit_flags2 & 0x40`**, which
   is what reaches `supply_mark`'s `set_type` pair. A capture with a supply
   unit retyped, or a reading of every `set_type` caller, settles it.
@@ -3111,7 +3124,16 @@ unreached in a plain game.
 ### 14.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/queued-*.md`); no diff backs it yet.
+(`docs/audit/2026-11-11-item-4152/queued-*.md`). ~~no diff backs it
+yet.~~ **Coverage since item 4167:** the record diff backs `dock_queued`
+and `scholar_militia` (0 on every scored dump, so a reading's claim the
+dump cannot falsify) with no parting. The other five bins part only beside
+`num_queued`'s own partings: `air_queued` and `factory_queued` on
+run1075's 2583 (who 1, ours 10 / 1, theirs 13 / 8, beside `num_queued[261]`
+0/3 and `[223]` 0/7), and `barracks_queued`, `combat_queued` and
+`stable_queued` on five closing frames whose queues the original has
+emptied (first: run1262's 6107, who 1, ours 8 / 8 theirs 0; run1250's
+8778 adds `stable_queued` 5/0). The bins' rule is not what parts.
 
 Verdicts: `scholar_militia` 13 confirmed, 1 corrected, 1 open; each queued
 leaf 16 confirmed, 1 corrected, 1 open. The writer nets over the listing

@@ -30,5 +30,5 @@ fn the_bins_are_the_trainer_s_by_equality() {
         assert_eq!(b(t, false), [false; 6], "{t:#x}");
         assert_eq!(b(t, true), [false, false, false, false, false, true]);
     }
-    assert_eq!(bins_of(None, true)[5], true);
+    assert!(bins_of(None, true)[5]);
 }
