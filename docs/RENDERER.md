@@ -2097,6 +2097,23 @@ rows are their pins'.
   `SELECTARG2(TFACTOR)`); a reading, one photograph: **18 of 33**.
 - *The constants* and interface are this frame's, pinned, never tuned
   to a count (the inputs: 4089's journal).
+- *The still* (4171, before its count; DECISIONS 127 §1). The rows
+  counted on the client's own pixels: `Gpu::still` at the photograph's
+  size, the frame the client draws (`build`, `drawn_terrain`) from the
+  world and camera each row's painter takes, without the debug overlay.
+  Each row keeps its rule, its constants and its selection; only *ours*
+  is read off the still. `_TRACED`: our side of a window is the
+  photograph's colour reader run on the still, its ring the still's
+  pixels where no key lies, outside the interface; a pixel the
+  photograph's side leaves out is out of both. `_COLOUR`: [`HUE`] on the
+  same pixels, ours the still's pixel for the painter's texel. Both
+  `_GROUND`s: ours the mean of the still over every ground pixel of the
+  tile. **The tolerance is the rows' own** (0.5 overlap, 0.05 in
+  chromaticity): the still is *equal* to the painter on a row when the
+  count and the members agree; otherwise each crossing is named with
+  both sides' values. Per pixel, still against painter, a channel
+  within 8 of 255 agrees: a diagnostic, never a row. Expected: `_COLOUR`
+  red first, the figures washed.
 
 ### 5.4 Recommended: pieces in register, K of M
 
