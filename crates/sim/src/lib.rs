@@ -184,6 +184,7 @@ impl Sim {
                 rates: vec![crate::leaders::rates::Rates::default(); players],
             },
             cities: crate::cities::CitiesState {
+                walks_setup: false,
                 farm_order: Vec::new(),
                 cities: Vec::new(),
                 nation: vec![crate::cities::city::Nation::default(); players],
