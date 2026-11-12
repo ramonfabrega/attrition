@@ -47,6 +47,11 @@ pub struct CitiesState {
     pub nation: Vec<crate::cities::city::Nation>,
     /// `LeaderData::lost_city_stamp`: the frame each player last lost a city.
     pub lost_city_stamp: Vec<Option<i64>>,
+    /// The taker while `Sim::capture_city` closes the old city's buildings:
+    /// the captor `Leader::lost_a_city` hands to `Leader::defeat` when the
+    /// old city building's close is the loser's last city
+    /// (`docs/LEADERS.md` §10.2). `None` outside a capture.
+    pub capturing: Option<crate::Player>,
     /// `LeaderData::cities_built`, `cities_captured`, `cities_lost`.
     pub city_tally: Vec<crate::cities::city::Tally>,
     /// `LeaderData::high_buildings` (`+0x5660`): per player, the most

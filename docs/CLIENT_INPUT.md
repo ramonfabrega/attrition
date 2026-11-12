@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12; §7 item 4180, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -11,7 +11,7 @@ already played. That is the whole method here: the script is the oracle, and the
 The layer takes events, the session's state and a view, and mints orders in the script's own vocabulary,
 `recgame::Order`: a recording frame, the issuing slot, then a `group` and the one command behind it.
 
-- **The events** are a press at a pixel, a right press at a pixel, and a key.
+- **The events** are a press at a pixel, a drag from one pixel to another, a right press at a pixel, and a key.
 - **The session's state** (`input::Input`) is the issuing slot, the selection, whether the selection is a building,
   and the building chosen to place.
 - **The view** (`input::View`) is the camera's matrix and screen, the size the draw takes, the frame's `Scene` and the
@@ -23,9 +23,12 @@ Each event does one thing:
   The anchor is the object's point at its own `z`, through `render::camera::world_to_screen`. A press on nothing clears
   the selection. If a building has been chosen, the press places it instead: a `build` at the ground under the pixel,
   with `x2`/`y2` equal to `x`/`y`, and `queued` 2.
+- **A drag** selects the slot's units in the box, in the order the original lists them, filtered by its civilian
+  rule (§7).
 - **A right press**, with units selected, on an object gives the command the original's dispatch issues for it
   (§6). On nothing it moves them: a `move_to` at the ground under the pixel. Its fields are the
   script's right-click fields: `set_angle` 0, `angle` 0, `orders` 1, `queued` 2, `form`/`width` −1, `disembark` 0.
+  For more than one unit, `form` and `width` are the formation the original reads off the selection (§7.1).
 - **A key** trains or chooses:
   - With a building selected, a key in `TRAIN_KEYS` trains: `c` gives a `queue_up` of the Citizen (50), `num` 1.
   - With units selected, a key in `BUILD_KEYS` chooses the building the next press places: `f` chooses the Farm (417).
@@ -47,7 +50,8 @@ goes through `Stream::push`, which encodes and decodes the commands as a recordi
 So no float reaches an order's bytes except through that rounding.
 
 **The window** feeds the same layer. `main.rs` turns the cursor's pixel and a left or right mouse press into a press or
-a right press, and an unbound character key into a key. Each event runs under the camera and window size the frame is
+a right press, and an unbound character key into a key. A left press becomes a press or a drag when it is released
+(§7.1). Each event runs under the camera and window size the frame is
 drawn with. A minted order is issued for the frame about to be stepped, and printed. `--lobby` opens the script's
 lobby, built from its choices by `FreeRunner::from_lobby` (`docs/START.md` §7), in place of the pair's game.
 
@@ -116,7 +120,8 @@ the original played in lockstep. The stage 0 projections are the original's own 
 - ~~that a right press always moves~~ a right press on an object mints what `Console::execute_at_cursor` issues
   (§6); on the ground it moves, and the move's fields are the script's;
 - the right press's look (§6): the nearest anchor within 24 px, where the original searches a ±5 px box by bounding
-  volume.
+  volume;
+- the box's anchor test and its drag threshold, and one unit's (−1, −1) (§7.1).
 
 **Not established:**
 
@@ -131,9 +136,9 @@ the original played in lockstep. The stage 0 projections are the original's own 
 - **The interface**: hotkeys, the build menu and the cursor.
 - **Ground height**: the ocean arm of `object_z`, and any point off the map.
 - **Everything the item ruled out**: ~~a right press on an object (gather, attack, garrison)~~ the gather and the help
-  to build are played (§6), and the attack, repair and garrison are §6's "not established"; drag and box selection,
-  control groups, queued (shift) orders, more than one object selected, a second slot, and every command beyond the
-  ~~script's three~~ five §6 plays.
+  to build are played (§6), and the attack, repair and garrison are §6's "not established"; ~~drag and box selection~~ a box of three Citizens is played (§7),
+  control groups, queued (shift) orders, ~~more than one object selected~~ a box of more than one type (§7.4), a
+  second slot, and every command beyond the ~~script's three~~ five §6 plays and §7's group move.
 - **The window under a real mouse.** It is checked by eye only; no capture ran.
 - **The window size.** The window draws with its own size, where these tests use `graphsys`'s.
 - **The zoom.** The closer camera's ×8 is beyond the original's nearest fixed zoom: `fixed_zooms[6]` is about 1.5×
@@ -332,3 +337,159 @@ made. Those rows are the repair, the nothing, the attack and the predicates' ord
 - **Allies.** The scene names an owner, not an alliance. The layer treats every other slot as an enemy.
 - **A right press on one of the slot's own units**: in the original, follow or guard. The layer moves to the ground
   under it.
+
+## 7. A dragged box, and a group that moves (item 4180)
+
+A press, a drag and a release select a box of the slot's units, and a right press on the ground moves them as one
+`group`. The ids and the move's formation fields are the ones the original mints for that selection, read off
+`Console::on_left_up@007cde90`, `Console::down@007cd8f0` and the functions they call, and checked against the
+recordings on disk where the recordings can say.
+
+### 7.1 The box, and the move's fields
+
+**The box** is `Console::on_left_up`'s arm for a release that is no longer `clicking`:
+
+1. The rectangle is `select_x`..`select_x2` and `select_y`..`select_y2`, sorted (`RectTemplateBase<short>::sort`).
+   Without shift the selection is cleared first.
+2. The units are walked before the buildings. The buildings are walked only when no unit was taken. The slots are
+   walked from the console's own, and the first slot with a unit in the box fixes the selection's owner. Within a
+   slot the objects are walked in index order, from `obj_base[kind]`.
+3. A unit is in the box when it is alive, on the map, and seen by the console's player, and when
+   `UnitOut::around_bounding_volume@00608a30` holds: one of its figures' bounding boxes has its centre, projected,
+   within 30 px of the rectangle on every side (`BoundingBox::around_bounding_volume@00544860`, `0x41f00000` and
+   `0xc1f00000`).
+4. Each unit is added by `SelectGroup::add@00716c10`. It refuses past `0x80` members, and it inserts the unit before
+   the first member whose `TypeIndex` (`ptype +4`) is greater. So the list is sorted by type, and within one type it
+   is in index order.
+5. **The civilian rule.** The default profile sets pref `0x200000` (`PlayerProfile::default_mouse@005d01f0` and
+   `default_profile@005ceca0`), so a box with no modifier is filtered after the adds:
+   - When every member but the Merchants (61), fishermen (317) and trade units is a worker
+     (`ObjectData::is_worker@0046fa10`: TI 50 to 53), and there is a worker, only the workers stay (mode 5).
+   - Otherwise the civilians go (mode 1): caravans, workers, merchants (`UnitData::is_merchant@0046d370`: 61, 62,
+     400), and anything that `is` the merchant fleet (318) or the fishermen (317).
+   - So a box of Citizens and a Scout takes the Scout alone.
+
+**The move's fields.** A right button going down with a selection writes `drag_form = max(GroupData::get_form, 0)`
+and `drag_form_mod = GroupData::get_form_mod_option` (`Console::down`, its `param_3 == 1` arm). A plain right press on
+the ground then reaches `Console::execute_at_cursor@007c6630`, which calls `GroupOut::issue_move_to(drag_x2,
+drag_y2, queue, 0, 0, MOVE_TO, drag_form, drag_form_mod, 0)`. `CommandManager::issue_move_to@00941720` writes the
+arguments into the command's bytes in that order: `set_angle` 0, `angle` 0, `orders` 1, `queued`, `form`, `width`,
+`disembark` 0.
+
+- `get_form@0070b9f0` is the `UnitData +0xaa` that every active member on the map shares, and −1 as soon as two
+  differ.
+- `get_form_mod_option@0070bd00` is, for more than one member, the mean of their `+0xab` bytes that are not −1, and 50
+  when none is. For one member it is the leader's own byte, or 50.
+
+The minimap's right press is another arm: `WorldMap::on_right_up@008c7050` issues `MOVE_TO` with `-1, -1`.
+
+**The recordings agree.** In the heavengames sample (Seifer008's 2017 match), the `move_to` commands with
+`orders` 1 and `set_angle` 0 carry `form`/`width` (0, 50) or (9, 50), at every group size from one to nine and up.
+They also carry (−1, −1) 114 times for one unit, which is the minimap's arm. Its 2-to-9-unit groups are ascending in
+object number 66 times and not 81 times, as a list sorted by type first would be. The 49 recordings this machine's
+captures wrote hold `move_to`s with (0, 50) and (9, 50) only. This was a one-off probe over
+`recgame::tests::recordings_on_disk`, not kept as a test.
+
+**The bytes on the box's frame.** run1568's `UNITDATA` prints `form 9` and `form_mod -1` for `0/3`, `0/4` and `0/5`
+on frames 230 and 239. So the minted move carries `form` 9 and `width` 50.
+
+**Ours.**
+
+- The box tests each unit's anchor (§1) within `BOX_MARGIN`, 30 px, of the rectangle. The original projects each
+  figure's bounding box centre instead.
+- Only the issuing slot's units are taken. A box with none clears the selection, where the original walks the
+  buildings next.
+- The window sends a drag when the release is `DRAG_SLOP` (4 px) or more from the press. The original's `clicking`
+  threshold is not read.
+- The window now selects on the left button's release, as `on_left_up` does.
+- **One unit keeps the scripts' (−1, −1).** The original's main view mints `max(form, 0)` and the leader's width for
+  one unit too: (0, 50) for the Scout on frame 30, whose bytes read `form 0` and `form_mod -1` on 29. The scripts'
+  move carries the minimap's fields, and every file played so far holds them. This is parked as 4180a.
+
+The scene carries what the box and the formation read (`observe::UnitScene`): `type_index`, `form` and
+`form_width`. In the layer they are `input::View::boxed` and `View::formation`, with `Event::Drag`.
+
+### 7.2 The fourth script
+
+`rondata::script::boxed()` is the right-pressed script (§6) with one more package:
+
+| frame | events | pixels at the opening camera | what the layer reads | the order |
+| --- | --- | --- | --- | --- |
+| 240 | a drag from (740, 450) to (910, 610), then a right press | the three anchors at (886, 587), (765, 522), (795, 473); the right press at (700, 600) | `0/3`, `0/4`, `0/5` (TI 50, land, farming at `0/2002`..`0/2004`), `form` 9 and `form_width` −1 each; the ground (2344, 32710) | `group` [3, 4, 5]; `move_to` (2344, 32710), `set_angle` 0, `angle` 0, `orders` 1, `queued` 2, `form` 9, `width` 50, `disembark` 0 |
+
+The nearest other unit of slot 0 on 240 is `0/6`, at (1185, 616), outside the grown rectangle. The box's three are
+one type, so the type sort leaves them in index order. They are all workers, so the civilian rule keeps all three.
+
+`INPUT_BOXED`: **6 of 6** (`minted_boxed_at_the_opening_camera`). The right-pressed events, the drag and the right
+press mint the boxed script field for field. Before this item it was 0: no box and no group of more than one unit.
+`INPUT_RIGHT_PRESSED` stays 5 of 5 and `INPUT_CLICKED` 3 of 3. The rule without a walk is
+`minted_a_box_lists_filters_and_forms_as_the_original`: the type sort, the civilian rule both ways, another slot
+left out, and the formation's clamp and mean.
+
+**The file** is `~/ron-golden/recordings/item4180-boxed-greatlakes-24000.rcx`, 59,338 bytes, SHA-256
+`5d797ddd…3c838` (`BOXED_RCX_BYTES`). It is the right-pressed file with one package added, 31 bytes of payload. The
+closing `stamp` goes from 7 to 8 (`the_boxed_minted_packages_round_trip`). The client writes the same bytes.
+
+### 7.3 The playback, and each unit's path target
+
+**run1569**: the click-free lane, `end:MISC,UNITS=3,BUILDS=7`, 300 frames (`docs/RUNS.md`).
+`the_original_s_playback_of_the_boxed_file_walks_in_lockstep` gives `BOXED_WALKED`: draws agree on **300 of 300**
+frames, count and sequence; **299 records compared whole, none parted**. Seen red first: pinned `(0, 0, 0, 0)`, it
+printed `(300, 300, 299, 0)`. §5's and §6's effects hold on it unchanged.
+
+**Each unit's path target, both sides** (`boxed_effects`, on 241, 270 and 299), equal:
+
+| unit | 241 and 270: the move's target | the path's goal | `form`, `form_mod` | 299 |
+| --- | --- | --- | --- | --- |
+| `0/3` | (2328, 32712) | (2344, 32710), the click | 9, 50 | stands on its goal, no order |
+| `0/4` | (2232, 32760) | (2214, 32775) | 9, 50 | stands on its goal, no order |
+| `0/5` | (2424, 32568) | (2408, 32580) | 9, 50 | stands on its goal, no order |
+
+Each Citizen goes to its own slot of the mob formation round the click. The move's target is the slot's 48-unit cell
+centre, and the path's goal is the slot.
+
+**The value diff** against the right-pressed file's playback, run1568, on the same frames:
+
+| record | field | run1568 | run1569 |
+| --- | --- | --- | --- |
+| `0/3` on 241 | position | (2808, 31992) | (2794, 32014) |
+| `0/3` on 241 | orders | `gather` behind a move to (2424, 32376) | one move to (2328, 32712) |
+| `0/3`, `0/4`, `0/5` on 241 | `form_mod` | −1 | 50 |
+| `0/4` on 241 | `orders_x`, `orders_y` | (2040, 31992) | (2232, 32760) |
+| `0/5` on 241 | `orders_x`, `orders_y` | (1848, 31608) | (2424, 32568) |
+| `0/3`, `0/4`, `0/5` on 299 | position | (2424, 32376), (2040, 31992), (1848, 31608), farming | (2344, 32710), (2214, 32775), (2408, 32580) |
+
+Our right-pressed walk is the control (`right_box_effects`): it reads run1568's column.
+
+**Made to fail** (`the_right_pressed_script_against_the_boxed_playback_parts`, `RIGHT_PRESSED_AGAINST_BOXED`): our walk
+under the right-pressed file, against run1569, parts first on 241, on `0/3`'s position, (2808, 31992) against
+(2794, 32014). 59 of 299 records part, all of them from 241, and the draws part from 240. Seen red first: pinned
+`(0, "", "", None, 0)`.
+
+### 7.4 Confidence, and what is not established
+
+**Backed by the playback.** A box of three Citizens moved with `form` 9 and `width` 50 is played by run1569, with
+each unit's slot, path goal and formation bytes equal on both sides.
+
+**Backed by the recordings.** The main view's formation fields, and the minimap's (−1, −1), as §7.1's histogram.
+
+**Reading only**, one reader, with the call sites checked; no blind second reading:
+
+- the box's predicates: the 30 px margin, units before buildings, the slot order, the seen test;
+- the type sort, and the cap;
+- the civilian rule and its pref;
+- `get_form_mod_option`'s mean.
+
+**Not established:**
+
+- **A box of more than one type.** The type sort is read, and the recordings' order fits it. No playback carries it.
+- **The civilian rule in a playback.** No box with a Scout, a Merchant or a soldier among the workers has been played.
+- **A formation other than the mob's.** `form` 0 with soldiers, a width other than 50, and the right drag that
+  sets an angle (`Console::on_right_up`'s `set_angle` 1 arm, and the wheel's `drag_form_mod` ±5).
+- **The pump drops `form` and `width`.** `rondata::input::group_move_to` passes neither, and `Sim::group_action_move_to`
+  takes `max(get_form, 0)` and `get_form_mod_option` as the original does for (−1, −1). These are the values the right
+  press mints, so the effect is the same here. A drag-set formation would part (§7.1; parked 4180b).
+- **The figure's bounding box.** The anchor stands in for its centre. A unit near the margin can fall either way.
+- **Another slot's units in a box, buildings in a box, shift, ctrl and alt,** and the planes' arm of the width's
+  mean.
+- **The single unit's main-view fields** (parked 4180a).

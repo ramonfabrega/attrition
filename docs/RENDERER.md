@@ -2114,7 +2114,42 @@ the closing block, and the Aztec pair's starts.
   anim, and what the crews' figure draws from a null action.
 - **What a round or a corpse draws**: a round resolves on its files, not
   on a pixel; what slot `AmmoOut::draw@0067ac10` plays on a falling
-  plane's unit piece is unread. The client draws neither (parked 4175a).
+  plane's unit piece is unread. The client draws neither (parked 4175a,
+  4183a): the door lacks the corpse's place and the round's height, below.
+
+**The photograph of a corpse and a round** (item 4183, run1570; the rule
+before any count, so no count yet). run1570 is run1559b's paused, traced
+take with the pause on 3331, 19 frames past the record `who 0 o 7
+first_frame 3312 cur_anim 17 gpiece 10912`. Its packet's camera is not
+the client's pinned one: `loc` is (3168, 30816), the capital's centre,
+against run1559b's (2104.28, 30816). Through the packet's own camera the
+dying unit's last place (4006, 28612) projects to (1438, 337), among the
+oil derrick's logs at the tree line. A second corpse, `0/11` from 2703,
+stands on the same frame. The rounds aimed at `0/7` and at the city all
+land on screen: pieces 60164 and 60174 on 3309–3318, and the
+`Tankshell` 60185 on 3309–3310 only. The dump prints no position for a
+`DEATH_OBJS` record, so the packet's pool is the only oracle for the
+corpse's place.
+
+**The rule, `RUN1570_DEAD`.** It is drawn on the photographed frame F,
+which is settled first by the movers, as `client::silhouette::PHOTO_FRAME`
+settled run1559b's 3279 (4073a). Every corpse record standing on F, and
+every round in flight on F, is one window. It is placed by the original's
+geometry at the original's points:
+- a corpse at its `DeathObj`'s x, y, `center_z` and angle, read off the
+  packet's pool, posed on `cur_anim` at `DeathObjOut::draw@008d4090`'s
+  time (`age × 200 / 3` ms, held at the action's end);
+- a round at `AmmoOut::draw`'s point, read off the dump's `AMMO` on F:
+  x and y from `sx`, `sy` to `ex`, `ey` at `cur_time / total_time`, and z
+  by `traj` (linear; `sz + v1z·t + GRAV_Z·t²/2`; the path table).
+
+Each window is projected through the packet's camera. Ours is the client's
+still (§3.15). The window's colour is read by `_TRACED`'s reader, and its
+ring is the still's pixels where no key lies. A window counts in register
+when the overlap is 0.5 or more and the chromaticity is within 0.05: the
+rows' own tolerances. An occluded window (`0/7`'s, if the trees cover it)
+stays in the selection and is named, never dropped. The count as drawn
+(none) is pinned first.
 - **A building's round piece and the Merchant arm** of `fire_ammo` are
   read, not diffed; no walked frame or `AMMO=5` walk holds one.
 - **The doobers' 16** before `first_ammo_piece`: the constant is the

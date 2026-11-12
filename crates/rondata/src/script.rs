@@ -75,8 +75,8 @@ pub const CLICKED_FARM_AT: Pos = Pos { x: 3554, y: 29860 };
 /// the Citizen the capital trained, [`TRAINED`], idle beside it, is sent to
 /// the Woodcutter's camp [`WOODCUTTER`], which has room: `gather`. The
 /// client's `minted_right_pressed_at_the_opening_camera` mints these from
-/// presses and right presses and holds them equal field for field. Later
-/// scripts extend this one (item 4180).
+/// presses and right presses and holds them equal field for field.
+/// [`boxed`] extends it (item 4180).
 pub fn right_pressed() -> Vec<Order> {
     let mut orders = clicked();
     orders.extend([
@@ -127,6 +127,57 @@ pub const TRAINED: i16 = 6;
 /// The frames the two right presses' packages are consumed on.
 pub const RIGHT_BUILD_FRAME: i32 = 120;
 pub const RIGHT_GATHER_FRAME: i32 = 200;
+
+/// **The boxed script** (item 4180, `docs/CLIENT_INPUT.md` §7): the
+/// right-pressed script and one more package, a box dragged round the three
+/// Citizens at the capital's west farms and a right press on the ground
+/// south of them. The box takes [`BOXED`] in object order
+/// (`Console::on_left_up@007cde90`; one type, so `SelectGroup::add`'s
+/// `TypeIndex` order is the same), and the default profile's civilian rule
+/// keeps every one, all workers. The right press mints the move with the
+/// formation `Console::down@007cd8f0` reads off them: `form`
+/// [`BOX_FORM`], the members' shared `UnitData +0xaa`, and `width`
+/// [`BOX_WIDTH`], `get_form_mod_option`'s 50 for members whose `+0xab` is
+/// all −1 — the bytes run1568's `UNITDATA` prints for `0/3`..`0/5` on 239.
+/// The client's `minted_boxed_at_the_opening_camera` mints it from a drag
+/// and a right press and holds it equal field for field.
+pub fn boxed() -> Vec<Order> {
+    let mut orders = right_pressed();
+    orders.push((
+        BOX_FRAME,
+        0,
+        vec![
+            Command::Group {
+                who: 0,
+                objects: BOXED.to_vec(),
+            },
+            Command::MoveTo {
+                to_x: BOX_TO.x,
+                to_y: BOX_TO.y,
+                set_angle: 0,
+                angle: 0,
+                orders: 1,
+                queued: 2,
+                form: BOX_FORM,
+                width: BOX_WIDTH,
+                disembark: 0,
+            },
+        ],
+    ));
+    orders
+}
+
+/// The three Citizens the box takes, `0/3`, `0/4` and `0/5` (TI 50, land),
+/// farming at `0/2002`..`0/2004` west of the capital.
+pub const BOXED: [i16; 3] = [3, 4, 5];
+/// The frame the box's move is consumed on.
+pub const BOX_FRAME: i32 = 240;
+/// The ground the right press names: the pixel (700, 600) at the opening
+/// camera, under the layer's inverse.
+pub const BOX_TO: Pos = Pos { x: 2344, y: 32710 };
+/// The move's formation, as the right press reads it off the members.
+pub const BOX_FORM: i8 = 9;
+pub const BOX_WIDTH: i8 = 50;
 
 /// The script's three orders, the move sent to `scout_to` and the Farm
 /// dropped at `farm_at`.

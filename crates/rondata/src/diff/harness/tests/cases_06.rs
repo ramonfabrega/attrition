@@ -41,7 +41,8 @@ mod bodies {
             // Item 4167: 1412472 -> 1418126, 257 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
             // Item 4176: 1418126 -> 1436116, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
-            1442798,
+            // Item 4185: 1442798 -> 1447424, +4626 (257 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
+            1447424,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -167,7 +168,8 @@ mod bodies {
             // Item 4167: 1412472 -> 1418126, 257 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
             // Item 4176: 1418126 -> 1436116, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
-            1442798,
+            // Item 4185: 1442798 -> 1447424, +4626 (257 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
+            1447424,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -680,7 +682,8 @@ mod bodies {
             // Item 4167: 1412472 -> 1418126, 257 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
             // Item 4176: 1418126 -> 1436116, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
-            1442798,
+            // Item 4185: 1442798 -> 1447424, +4626 (257 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
+            1447424,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -793,7 +796,8 @@ mod bodies {
             // Item 4167: 934320 -> 938060, 170 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
             // Item 4176: 938060 -> 949960, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // Item 4177: 949960 -> 954380, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
-            954380,
+            // Item 4185: 954380 -> 957440, +3060 (170 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
+            957440,
             "170 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(
@@ -936,7 +940,8 @@ mod bodies {
             // Item 4167: 824400 -> 827700, 150 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
             // Item 4176: 827700 -> 838200, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // Item 4177: 838200 -> 842100, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
-            842100,
+            // Item 4185: 842100 -> 844800, +2700 (150 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
+            844800,
             "150 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(
@@ -1091,7 +1096,8 @@ mod bodies {
             // Item 4167: 1978560 -> 1986480, 360 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
             // Item 4176: 1986480 -> 2011680, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // Item 4177: 2011680 -> 2021040, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
-            2021040,
+            // Item 4185: 2021040 -> 2027520, +6480 (360 blocks × 2 × 9): the end of the game's six and the lost capital's three (docs/LEADERS.md §10, §11).
+            2027520,
             "360 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(missing, BTreeSet::new(), "no key unprinted");

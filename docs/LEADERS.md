@@ -68,7 +68,10 @@ fourteen printed leaves — the four counters, the three victim stamp rows
 (eight cells each), `ctw_hero_stamp`, the three attrition stamps,
 `repair_stamp`, `missiles_used` and `nukes_launched` — and `rows` compare
 them (§2.5, §4.5, §5.5, §15.5). Item 4177 (step IV) made `theirs` read
-the thirteen combat rates, and `rows` compare them (§3.5).
+the thirteen combat rates, and `rows` compare them (§3.5). Item 4185
+(step V) made `theirs` read the end of the game's six and the lost
+capital's three, and `rows` compare them (§10.5, §11): seven agree on every
+dump and move there, and leave `LEADERS_HELD_OUT` (68 → 61).
 
 **The transfer harness** (item 4159's step T; `docs/DECISIONS.md` entry
 128 §3; `rondata::diff::transfer`). A held leaf that parts only beside a
@@ -2295,36 +2298,56 @@ and the save.
 
 ### 10.3 In the crate
 
-- `Sim::defeat(who, by)` (`crates/sim/src/cities/city.rs:623`) carries no
-  type or instant, and returns at once on `leaders.defeated[who]` (:624).
-  The port puts step 1 ahead of that return; `defeat_type` goes after it.
-- `Sim::resign` (`crates/sim/src/leaders/resign.rs:43`) is type 6. Under
-  a running `lost_capital_timer` the original passes 1 with `by` = holder
-  or self: a plain-game divergence. It kills only planes, and the crate
-  has no `Unit::close` last-unit `defeat(0, −1, 0)`, so a resigned
-  leader's re-stamp is missing.
-- No `Sim::victory`. The SEAM at `crates/sim/src/territory/victory.rs:21`
-  says the game never ends by territory; five captures contradict it.
-  `victory(2, ·)` from `process_victory_territory` (:31) is the first port.
-- The wonder arm is a new `process_victory_wonder` in `core/frame.rs`
-  before `process_victory_territory` (`crates/sim/src/core/frame.rs:222`),
-  using `Sim::wonder_winning` (`crates/sim/src/ai/ai_build.rs:1439`); the
-  pair sits beside `popwin_*` in `crates/sim/src/ai.rs`, with
-  `WONDER_TIMER`.
-- **Trap:** `refresh_victory_timers` (`territory/victory.rs:88`) is called
-  for every player (`core/frame.rs:94`, :194) with no alive gate, so a
-  defeated leader's banked `popwin_stamp` is paid back where the original
-  skips it. Add the gate for both pairs.
-- **Trap:** the `w44c` stub returns 0 (`crates/sim/src/ai/army/target_gate.rs:428`);
-  30 captures hold a live 1. `Wall::process`'s SEAM is
-  `crates/sim/src/cities/site_recruit.rs:157`.
-- `crates/rondata/src/diff/third_pair.rs:432` calls run600's 17380 a quit;
-  the dump shows `defeat_type` 5, the cascade.
-- Checksum: the six leaves are listed in `crates/sim/src/checksum/leaders.rs`
-  (:39, :113, :114, :144, :145, :310) and `leader_long` (:949) answers them
-  through its catch-all (:1305); `popwin_*` (:1060) is the model. Each is
-  an `(unheld)` entry, count 2, of `LEADERS_HELD_OUT`
-  (`crates/rondata/src/diff/checksum_lines.rs:1753`; read from the code).
+Item 4185 (step V of 4159) built it: `crates/sim/src/leaders/endgame.rs`
+(tests in `endgame/tests.rs`), one `EndGame` a slot in `LeadersState`, which
+also holds §11's three. ~~The plan this section held~~ is struck by what
+landed:
+
+- **Step 1, the captor stamp**, is `Sim::defeat_by_stamp`, called by
+  `Sim::defeat(who, type, by)` (`cities/city.rs`) and `Sim::resign` ahead
+  of their defeated guard; `defeat_type` is written past the guard
+  (`note_defeat_type`). `lost_a_city` passes type 0. The captor arm (the
+  cities and the building walk) runs only with a captor, as `defeat_by`'s
+  does: with none the loser's buildings stand. SEAM: the arm still waits
+  behind the guard, where the original's runs before it, and a captor that
+  is the loser itself takes none.
+- **The captor reaches the defeat.** `Sim::capture_city` closes the old
+  city building through `close_building`, whose `close_city` carried no
+  captor, so a conquest's `defeat_by` saw −1. `CitiesState::capturing`
+  carries the taker through the capture's closes (red first: before it,
+  `defeated_by` parted ours −1 theirs 1 on run1200's 5640, run1250's 8778,
+  run1262's 6107, run594's 18141 and run958f's 22701).
+- **`Sim::resign`** is `leave_game`'s choice: type 1 with the
+  `find_capital` holder (itself under another elimination) while the
+  capital clock runs, else type 6. SEAM: the captor arm under a running
+  clock is not carried; the `Unit::close` last-unit `defeat(0, −1, 0)` is
+  not carried.
+- **`Sim::victory`** is `Leader::victory` and its cascade. The territory
+  arm's expiry is ported (`territory/victory.rs`): `Game::popwin_timer() −
+  (frame − stamp)` below one wins, `victory(2)`; under `VICTORY` 1 or 7 the
+  holder wins at once. `Game::popwin_timer`, `wonder_timer` and
+  `retake_capital` share `endgame::scaled_timer`, `max(1, (S/2 + xs·T)/S)`
+  with `S` the Standard map size, 70 (`STANDARD_MAP_SIZE`, checked against
+  the install by `rondata`), and `xs` `World+0x0`, the map's width.
+- **The wonder arm** is `Sim::process_victory_wonder`, ahead of the
+  territory arm in `Sim::tick`. `gg` is read as false (the crate keeps no
+  preq `0x2b9`) and multiplayer as clear.
+- **The pay-backs** sit in `Sim::tick`'s leader loop behind the live-slot
+  gate, after `process_elimination`: the capital's, the territory's and
+  the wonder's. The trap is closed: a defeated leader's banked stamps are
+  no longer paid back.
+- **A wonder finished by a command** is registered at once
+  (`Sim::finish_arm` calls `note_wonders`): `Wonders::init_wonder` runs
+  inside the command, before `process_victory`. Before it, chapter
+  seventy-three's clock started a frame late (ours 702, theirs 701, from
+  block 702).
+- **Not built:** the `w44c` reader (`ai/army/target_gate.rs`) still
+  answers 0 where 30 captures hold a live 1 (parked 4185b);
+  `Game::check_victory` (it moves no printed leaf of a two-leader game but
+  the won flag); `Wall::process`'s reader.
+- Checksum: `leader_long` answers the nine through `ENDGAME_LEAVES`, and
+  `ENDGAME_OFF_THE_LINE` keeps `victory_type` and `defeat_type` off the
+  line (§10.5).
 
 ### 10.4 Reached by a plain game
 
@@ -2341,8 +2364,8 @@ and the shared-`who` arm. Type 10: a load only.
 ### 10.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/end-of-game-*.md`); no diff backs it
-yet. Counts (confirmed / corrected / open): `defeated_by` 13/3/1,
+(`docs/audit/2026-11-11-item-4152/end-of-game-*.md`); ~~no diff backs it
+yet~~ since item 4185 the record diff backs four of the six. Counts (confirmed / corrected / open): `defeated_by` 13/3/1,
 `defeat_stamp` 10/0/1, `victory_type` 10/1/1, `defeat_type` 9/2/1,
 `wonderwin_timer` 14/2/1, `wonderwin_stamp` 8/0/1. Every store, guard and
 push was read in the listing; confidence is high throughout.
@@ -2352,6 +2375,34 @@ to self; the `gain_tech` arm exists only under elimination 1, with the
 gainer's view of alliance; elimination 1 is the plain game, so the type-1
 arms are plain-game; `check_victory` can end with no winner; `defeat_type`
 10 has no writer; `gg` tests bit 0, counting defeated teammates.
+
+**Diff-backed** (item 4185; `diff::leader`'s `rows` against `theirs` on
+every dump the suite reads): `defeated_by` and `defeat_stamp` agree
+everywhere and move on the conquests' closing blocks (run1200's 5640:
+1 and 5639; run609's 5639: 1 and 5638, the conquest's re-stamp after the
+quit) and on the quits' (the melees' closing 2601: −1 and 2600, replayed
+by `Sim::resign`; their start dumps' 37: 36, read off a copy that resigns,
+`gunpowder_melee::seat_walk`). `wonderwin_stamp` and `wonderwin_timer`
+agree everywhere and move on chapter seventy-three (701 and 1 from block
+702 to 760). One agreement is a coincidence of frames: on run667's
+closing block 17380, ours `defeat_stamp` 17379 is the cascade's and
+theirs the quit's.
+
+**Not agreeing**, both on a closing block whose human quit, a quit the
+window harness (`widen_on_siblings`) does not replay: `defeat_type` on
+run609's 5639 (ours 0, the conquest's; theirs 6, the quit's) and on
+run667's 17380 (ours 5, the cascade's; theirs 6), and `victory_type` on
+run667's 17380 (who 1, ours 2, theirs 0). Ours wins the territory on
+frame 17379 there, where the original, its human gone at 17379's head,
+does not. Both stay held (parked 4185a).
+
+**The expiry's frame, a witness**: on all five captures that end on it,
+the closing record's `defeat_stamp` is `popwin_stamp + 3087`, one past
+`popwin_timer()`'s 3086 on a 60-wide map (run600 14293 → 17380, run972b
+20541 → 23628, run981b 15797 → 18884, run1256 6172 → 9259, run1316 5894 →
+8981). The port wins on `popwin_stamp + 3086`, and the one frame is the
+quit's re-stamp on the next (a closing record is written by a quit); this
+is read, not diffed: no test replays those closings.
 
 Witnesses from an archive sweep of 3,805 dumps, **not pinned diffs**:
 run600's closing frame 17380, slot 1 `victory_type` 2 and slot 0
@@ -2366,19 +2417,26 @@ run1113/1114. `wonderwin_timer` 1 in 30 captures (run652 … run1423c).
 
 - **The stop, the banked stamp, the pay-back** (and the crate's missing
   alive gate): no capture holds a negative `wonderwin_stamp`.
-- **A wonder win.** No `victory_type` 1 in the archive; nor `M`'s row
-  (`0xe7fca8`) and `world[0]` (`*0xc06188`) in `wonder_timer`. A reading
-  of both, or a capture that runs the clock out.
+- **A wonder win.** No `victory_type` 1 in the archive. ~~Nor `M`'s row
+  (`0xe7fca8`) and `world[0]` (`*0xc06188`) in `wonder_timer`~~ — read by
+  item 4185: `M` is `map_sizes` record 3's `+0x144` (70) and `world[0]`
+  `WorldData::xs`, as in `retake_capital` and `popwin_timer`; a capture
+  that runs the clock out would back it.
 - **A re-stamp.** No file shows two `defeat_stamp` values.
 - **Resign under a capital timer.** No `defeat_type` 1 in the archive; it
   would show `defeated_by` = the quitter's own slot.
-- **The territory expiry's frame** for run600 (from `popwin_stamp` 14293)
+- ~~**The territory expiry's frame** for run600 (from `popwin_stamp` 14293)
   is the territory family's arithmetic; `Game::popwin_timer` for its map
-  is unread.
+  is unread.~~ Read and ported by item 4185 (§10.3, §10.5's witness); no
+  test replays a capture to its expiry.
+- **Why the original does not win after a quit** (run667's 17379):
+  read as the quit closing the game before `process_victory`; the
+  semaphore it sets is unread (4185a).
 - **`lost_a_city`'s `param_1`, `param_2` and captor** are derived by its
   callers (`Build::close`), owned by §11.
-- **The pins:** run600's closing block and run1200's loss, as
-  `rondata::diff` assertions once the leaves are held.
+- **The pins:** ~~run600's closing block and~~ run1200's loss is held by
+  `korean_ancient_pair`'s closing walk since item 4185; run600's closing
+  block is not walked.
 
 ## 11. The lost capital
 
@@ -2528,27 +2586,28 @@ only while the timer is 0. Three further corrections to the same paragraph:
 
 ### In the crate
 
-- **Stamp and timer.** There is no field for either. `Tally::lost_capital_frame`
-  (`cities/city.rs:122`), an `Option`, is set and cleared at
-  `city.rs:3213-3224` and **never read**: it is a partial copy of the stamp
-  plus timer. E1 and E3 replace those stores in `Sim::capture_city`
-  (`city.rs:3169`). The new fields sit beside `popwin_stamp` (`ai.rs:705`).
-- **E2** goes in `Sim::close_building` (`city.rs:2782`). **E4** goes in
-  `Sim::activate` (`city.rs:2420`), beside `kremlin_activate`
-  (`cities/nations.rs:467`, called at `city.rs:2475`).
-- **Refresh** becomes a second clause of `refresh_victory_timers`
-  (`territory/victory.rs:88`, called at `core/frame.rs:194`), which today
-  pays only `popwin_stamp`. **Countdown**: a port of `process_elimination`
-  goes immediately before `frame.rs:194`, with `retake_capital` beside it.
-  There is no `retake_capital` and no scale-by-axis helper today (only
-  `mapgen/map_lakes.rs:314 scale_by_area`). The inputs exist: `team_terr`
-  (`ai/ai_census.rs:155`) and `land_size` (`victory.rs:110`).
-- The AI's `capital_lost` (`ai/ai_build.rs:296`) recomputes from the cities.
-  The verdicts treat this only as a pointer.
-- **Checksum.** The rows are `checksum/leaders.rs:100-102`. Today
-  `LEADERS_HELD_OUT` lists `lost_capital_modifier`, `_stamp` and `_timer`,
-  each `(unheld)` with count 2 (`rondata/src/diff/checksum_lines.rs`
-  1809-1811). Holding all three removes those three entries.
+Item 4185 built it: `crates/sim/src/leaders/capital.rs` (tests in
+`capital/tests.rs`), the three words in `leaders::endgame::EndGame`.
+~~The plan this section held~~ is struck by what landed:
+
+- `Tally::lost_capital_frame`, the never-read partial copy, is gone. E1 and
+  E3 are `Sim::capture_capital_calls`, called by `Sim::capture_city` after
+  the plunder and **before** the old city's buildings close, so both
+  `city_num`s count the city changing hands and the loss precedes the
+  conquest's defeat. E1's gate is "the loser holds no active Forbidden
+  City (`tree == 0x213`) and no other live capital"; E3's "the new city is
+  flagged capital and the taker holds no other".
+- E4 is `Sim::forbidden_city_activate` in `Sim::activate`, beside
+  `kremlin_activate`; E2 is `Sim::forbidden_city_close` in
+  `Sim::close_building`, then `lost_a_city(O, 1, 1, holder)`.
+- `find_capital(−1, −1)`'s holder is `Sim::capital_holder`; the loss's team
+  sums are `holdings[i].territory` over the live allies, as `ai_census`'s
+  `team_terr`.
+- The refresh is `Sim::refresh_capital_clock` and the countdown
+  `Sim::process_elimination` with `Sim::retake_capital`, both in
+  `Sim::tick`'s leader loop behind the live-slot gate, ahead of the other
+  pay-backs. SEAM: `retake_capital`'s two `semaphore[2] & 2` arms.
+- Checksum: `leader_long` answers the three through `ENDGAME_LEAVES`.
 
 ### Reached by a plain game
 
@@ -2564,7 +2623,17 @@ byte 1 bit `0x8` (meaning unread).
 ### How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/lost-capital-*.md`); no diff backs it yet.
+(`docs/audit/2026-11-11-item-4152/lost-capital-*.md`); ~~no diff backs it
+yet~~ since item 4185 the record diff backs all three.
+
+**Diff-backed** (item 4185; `diff::leader` on every dump the suite reads):
+the three agree everywhere, and move on the two conquests a window
+replays: run1200's closing block 5640, who 0 `lost_capital_stamp` 5639,
+`lost_capital_timer` 1, `lost_capital_modifier` 146 on both sides, and
+run609's 5639, 5638, 1, 226. A first loss stores `frame`, and the
+modifier's territory ratio and city rescale give the original's number
+on both. A stop, the refresh and the countdown are not reached by any
+compared record.
 
 The verdicts: stamp 24 confirmed, 1 corrected, 1 open; timer 14 confirmed,
 0 corrected, 0 open; modifier 14 confirmed, 0 corrected, 3 open. Every
@@ -2581,9 +2650,10 @@ Corrections that changed a rule:
   the captured city, and `To`/`Ta` come from the last `check_borders`.
 - `leave_game` is reached by a resign command, not only by a departure.
 
-Witness, not a pinned diff: `crates/rondata/src/diff/korean_ancient_pair.rs:326`
+~~Witness, not a pinned diff: `crates/rondata/src/diff/korean_ancient_pair.rs:326`
 records `lost_capital_stamp 5639` on the human's defeat on frame 5639,
-consistent with a first loss storing `frame`.
+consistent with a first loss storing `frame`.~~ Diffed since item 4185
+(above).
 
 ### Not established
 
@@ -2596,6 +2666,11 @@ consistent with a first loss storing `frame`.
   dead. Read its writers.
 - **`get_team_terr`'s team-style-7 arm and its ally rule** (not this
   family's leaf). Read `LeaderData::get_team_terr (006d62e0)` whole.
+- **A stop, the refresh and the countdown** against a dump: no compared
+  record holds a recapture, a Forbidden City or a clock run out. run27's
+  and run29's seven records hold a running clock (13125, 279) the suite
+  does not walk.
+- **E2 and E4** have no capture behind them.
 
 ## 12. `pop_issues` and `misery`
 

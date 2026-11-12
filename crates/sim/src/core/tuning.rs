@@ -1414,6 +1414,14 @@ pub struct Tuning {
     /// `POPWIN_TIMER`: the territory victory's clock, in frames before the
     /// map-size scaling of `Game::popwin_timer@005944b0`. `3600 frames`.
     pub popwin_timer: i32,
+    /// `RETAKE_CAPITAL`: the lost capital's countdown, in frames before the
+    /// map-size scaling of `Game::retake_capital@00594530` and the loss's
+    /// 8.8 modifier (`docs/LEADERS.md` §11). `3600 frames`.
+    pub retake_capital: i32,
+    /// `WONDER_TIMER`: the wonder victory's clock, in frames before the
+    /// map-size scaling of `Game::wonder_timer@005944f0`
+    /// (`docs/LEADERS.md` §10.2). `4500 frames`.
+    pub wonder_timer: i32,
 }
 
 impl Tuning {
@@ -1933,6 +1941,8 @@ impl Tuning {
         lakota_raze_speed: 100,
         timer_refresh_ratio: 5,
         popwin_timer: 3600,
+        retake_capital: 3600,
+        wonder_timer: 4500,
     };
 
     /// Every value in [`Tuning::RON`] that comes from a named constant in
@@ -2936,6 +2946,8 @@ impl Tuning {
             ("LAKOTA_RAZE_SPEED", Slot::Value(T.lakota_raze_speed)),
             ("TIMER_REFRESH_RATIO", Slot::Value(T.timer_refresh_ratio)),
             ("POPWIN_TIMER", Slot::Value(T.popwin_timer)),
+            ("RETAKE_CAPITAL", Slot::Value(T.retake_capital)),
+            ("WONDER_TIMER", Slot::Value(T.wonder_timer)),
         ]
     }
 }

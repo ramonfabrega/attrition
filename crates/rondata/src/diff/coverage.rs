@@ -300,9 +300,11 @@ const UNREAD: &[(&str, &str)] = &[
     // rows, the four counters, the three attrition stamps,
     // `ctw_hero_stamp`, `repair_stamp`, `missiles_used` and
     // `nukes_launched`. Item 4177 read the thirteen combat rates (§3).
+    // Item 4185 read the end of the game's six and the lost capital's
+    // three (§10, §11).
     (
         "GAME/FRAME/LEADERDATA",
-        "(int) air_units barracks_units base_rate[scan] best_armor best_attack best_move best_pop blacken bonus bonus_cap[NUM_COMMON] broke_alliance[scan] capital_stamp[scan] chat_status[scan] cities_captured cities_lost city_mark city_mine combat_units counteroffer[scan] ctw_hero_retreat_stamp defeat_stamp defeat_type defensive dock_mark dock_units dow[scan] economic explored factory_units flags gift_stamp[scan] good_deeds[scan] hero_mark high_buildings[scan] hire_stamp[scan] hire_who[scan] increment invaders[scan] last_spoke[scan] last_taunt[scan] length list[scan] lost_capital_modifier lost_capital_stamp lost_capital_timer lost_city_stamp made_peace[scan] nuke_stamp nukes_in_flight nukes_used num_bonus_cards[scan] num_buildings[scan] num_ctw_rate_bonuses[scan] reg_buildings[scan][scan2] reg_terr[scan] size special_mark stable_units support support_stamp taunt_frame[scan] team_color territory_high tribute_demanded[scan] tribute_stamp[scan] tributes[scan] victory_type village_mine wonderwin_stamp wonderwin_timer",
+        "(int) air_units barracks_units base_rate[scan] best_armor best_attack best_move best_pop blacken bonus bonus_cap[NUM_COMMON] broke_alliance[scan] capital_stamp[scan] chat_status[scan] cities_captured cities_lost city_mark city_mine combat_units counteroffer[scan] ctw_hero_retreat_stamp defensive dock_mark dock_units dow[scan] economic explored factory_units flags gift_stamp[scan] good_deeds[scan] hero_mark high_buildings[scan] hire_stamp[scan] hire_who[scan] increment invaders[scan] last_spoke[scan] last_taunt[scan] length list[scan] lost_city_stamp made_peace[scan] nuke_stamp nukes_in_flight nukes_used num_bonus_cards[scan] num_buildings[scan] num_ctw_rate_bonuses[scan] reg_buildings[scan][scan2] reg_terr[scan] size special_mark stable_units support support_stamp taunt_frame[scan] team_color territory_high tribute_demanded[scan] tribute_stamp[scan] tributes[scan] village_mine",
     ),
     (
         "GAME/FRAME/LEADERDATA/DIPLOMACY",
