@@ -2102,12 +2102,16 @@ impl DoRepairView for SimDoRepair<'_> {
     fn bucket(&mut self, good: usize) -> i32 {
         self.s.economy.ledgers[self.s.units[self.u].owner as usize].bucket[good]
     }
+    /// `repair_stamp` (`+0x208`) on the repairer's owner's slot
+    /// (`docs/LEADERS.md` §15.2, item 4176): 0 at init, written for every
+    /// player before the console test.
     fn feedback_stamp(&mut self) -> i32 {
-        // SEAM: the complaint's throttle stamp is not carried; a complaint
-        // is always due, and nothing reads the answer.
-        i32::MIN
+        self.s.repair_stamp(self.s.units[self.u].owner) as i32
     }
-    fn set_feedback_stamp(&mut self, _frame: i32) {}
+    fn set_feedback_stamp(&mut self, frame: i32) {
+        let who = self.s.units[self.u].owner;
+        self.s.set_repair_stamp(who, i64::from(frame));
+    }
     fn is_console_player(&mut self) -> bool {
         false
     }

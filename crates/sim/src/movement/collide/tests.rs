@@ -1693,7 +1693,7 @@ fn a_dead_group_mate_is_a_nudge_and_a_dead_stranger_a_wall() {
             sim.army_add_unit(0, slot, x);
             sim.army_add_unit(0, slot, y);
         }
-        sim.cast_sniper_unit(y, 2);
+        sim.cast_sniper_unit(y, 2, 0);
         assert!(!sim.units[y].alive(), "a wreck");
         assert!(sim.units[y].orders.is_empty(), "its orders closed");
         (sim, x, y)

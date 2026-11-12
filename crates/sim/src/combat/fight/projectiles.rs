@@ -618,6 +618,13 @@ impl Sim {
             self.nuke_land(p, frame);
             return;
         }
+        // **`missiles_used[who] += 1`** (`678186`..`67861b`,
+        // `docs/LEADERS.md` §15.2): a missile's round past its shield and
+        // the nuke arm, on the round's `who` (the shooter's player at
+        // launch), before the splash.
+        if self.profile(p.shooter).has(mask::MISSILE) {
+            self.note_missile_landed(p.owner);
+        }
         // Splash: everything on the square of cells the spiral table walks,
         // and the one cell past it the inclusive walk reads
         // ([`combat::splash_extra_cell`]), the intended target at full count

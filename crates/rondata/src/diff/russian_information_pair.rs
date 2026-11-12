@@ -481,7 +481,8 @@ fn russian_information_pair_run1423c_s_closing_frame_is_widened_whole() {
     // city `0/2000` on 6636 (`damage` 1191 against 1200, `city_flags`
     // `0x2`/`0x4`, `reduce_stamp` 6310 against 6635; 3744d) and `1/49`'s
     // `dest_angle` on 6703 (3744e).
-    pin_eq!(w.firsts.len(), 152, "run1423c baseline");
+    // Item 4176: 152 -> 155, +3 firsts: who=0's `attack_stamp[1]`, `raid_stamp[1]` and `ally_stamp[1]` on 6636, ours 6310 theirs 6635, on a closing frame whose state already parts.
+    pin_eq!(w.firsts.len(), 155, "run1423c baseline");
     pin_eq!(w.rounds_read, (29, 30), "the rounds read");
     // 29 against 30, 12 parting, every one the T80 `1/59`'s (TI 260)
     // launch point from 6605 (3744d).

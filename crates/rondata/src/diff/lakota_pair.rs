@@ -436,7 +436,8 @@ fn run855_s_word_frame_is_widened_whole() {
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
     // Item 3961: +1, `healing` on `1/6` (4630, ours 45 theirs 0): our civilian heal on a unit
     // whose hits stand apart from the window's first block (4538, 78 against 83).
-    pin_eq!(w.firsts.len(), 104, "initial run855 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 4176: 104 -> 105, +1 firsts: who=1's `attrition_stamp2` standing, ours 3774 theirs 3770 (parked 4176b).
+    pin_eq!(w.firsts.len(), 105, "initial run855 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
     // Item 3333: who=1's `bucket` timber 8265/8000 and metal 9997/9732,
     // standing from 4538, close with an Oil Platform priced by the Oil Wells
     // (`docs/AI.md` §270).
@@ -497,7 +498,8 @@ fn run861_s_word_frame_is_widened_whole() {
     // Item 3335: −1, the group change (every attacking type in its trainer's group).
     // Item 3961: +1, `healing` on `1/6` standing on 4853 (ours 2 theirs 0), run855's heal
     // counting down.
-    pin_eq!(w.firsts.len(), 98, "initial run861 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 4176: 98 -> 99, +1 firsts: who=1's `attrition_stamp2` standing, ours 3774 theirs 3770 (parked 4176b).
+    pin_eq!(w.firsts.len(), 99, "initial run861 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
     // Item 3333: who=1's `bucket` timber 7707/7282 and metal 6422/5997,
     // standing from 4853, close with an Oil Platform priced by the Oil Wells
     // (`docs/AI.md` §270).
@@ -564,7 +566,8 @@ fn run866_s_word_frame_is_widened_whole() {
     // Item 3514: 137 → 121, `get_cost`'s domain arm: the Space Program halves
     // who=1's aircraft, so the Airbase queues' `cost` rows and the wealth/oil
     // buckets agree (run866's 5383: `1/2032` 97 against 52; `docs/AI.md` §301).
-    pin_eq!(w.firsts.len(), 121, "initial run866 baseline");
+    // Item 4176: 121 -> 122, +1 firsts: who=1's `attrition_stamp2` standing, ours 3774 theirs 3770 (parked 4176b).
+    pin_eq!(w.firsts.len(), 122, "initial run866 baseline");
     // Item 3333: who=1's `bucket` metal 5716/5231, standing from 5129, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row, ours above theirs till now, parts on 5183 with ours below
@@ -653,7 +656,8 @@ fn run867_s_word_frame_is_widened_whole() {
     // Item 3514: 161 → 137, `get_cost`'s domain arm: the Space Program halves
     // who=1's aircraft, so the Airbase queues' `cost` rows and the wealth/oil
     // buckets agree (run866's 5383: `1/2032` 97 against 52; `docs/AI.md` §301).
-    pin_eq!(w.firsts.len(), 137, "initial run867 baseline");
+    // Item 4176: 137 -> 138, +1 firsts: who=1's `attrition_stamp2` standing, ours 3774 theirs 3770 (parked 4176b).
+    pin_eq!(w.firsts.len(), 138, "initial run867 baseline");
     // Item 3333: who=1's `bucket` metal 5815/5330, standing from 5401, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -775,7 +779,8 @@ fn run879_s_word_frame_is_widened_whole() {
     // Item 3514: 174 → 160, `get_cost`'s domain arm: the Space Program halves
     // who=1's aircraft, so the Airbase queues' `cost` rows and the wealth/oil
     // buckets agree (run866's 5383: `1/2032` 97 against 52; `docs/AI.md` §301).
-    pin_eq!(w.firsts.len(), 160, "initial run879 baseline");
+    // Item 4176: 160 -> 161, +1 firsts: who=1's `attrition_stamp2` standing, ours 3774 theirs 3770 (parked 4176b).
+    pin_eq!(w.firsts.len(), 161, "initial run879 baseline");
     // Item 3333: who=1's `bucket` metal 4998/4453, standing from 5976, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -838,7 +843,8 @@ fn run881_s_word_frame_is_widened_whole() {
     // so its units on hostile ground are sheltered where theirs are and
     // their wounds agree. New `sheltered` rows sit on units
     // already apart by their `attrition` period.
-    pin_eq!(w.firsts.len(), 201, "initial run881 baseline");
+    // Item 4176: 201 -> 202, +1 firsts: who=1's `attrition_stamp2` standing, ours 3774 theirs 3770 (parked 4176b).
+    pin_eq!(w.firsts.len(), 202, "initial run881 baseline");
     // Item 3333: who=1's `bucket` metal 5193/4648, standing from 6446, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -906,7 +912,8 @@ fn run882_s_word_frame_is_widened_whole() {
     // already apart by their `attrition` period.
     // Item 3756: 181 → 178, piece 170's pivot rows (the Armored Cavalry's
     // turret, `docs/AI.md` §372.2).
-    pin_eq!(w.firsts.len(), 178, "initial run882 baseline");
+    // Item 4176: 178 -> 179, +1 firsts: who=1's `attrition_stamp2` standing, ours 3774 theirs 3770 (parked 4176b).
+    pin_eq!(w.firsts.len(), 179, "initial run882 baseline");
     // Item 3333: who=1's `bucket` metal 5378/4833, standing from 6802, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -976,7 +983,8 @@ fn run883_s_closing_frame_is_widened_whole() {
     // so its units on hostile ground are sheltered where theirs are and
     // their wounds agree. No key opens.
     // Item 3756: 179 → 176, piece 170's pivot rows (`docs/AI.md` §372.2).
-    pin_eq!(w.firsts.len(), 176, "run883 baseline");
+    // Item 4176: 176 -> 177, +1 firsts: who=1's `attrition_stamp2` standing, ours 3774 theirs 3770 (parked 4176b).
+    pin_eq!(w.firsts.len(), 177, "run883 baseline");
     // Item 3333: who=1's `bucket` metal 5389/4844, standing from 6815, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.

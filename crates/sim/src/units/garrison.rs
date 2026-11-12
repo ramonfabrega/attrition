@@ -465,6 +465,20 @@ impl Sim {
                 }
             }
         }
+        // **`nukes_launched[owner] += 1`** (`61883d`..`6188fa`,
+        // `docs/LEADERS.md` §15.2): after placement, a Nuclear Missile line
+        // unit whose current order is a `StrafeOrder` holding a target
+        // (`ox`/`whom` both set). `add_strafe_order` turns a strafe at a
+        // valid target into an air attack on the ground, so only a strafe
+        // at a refused one keeps the order and counts.
+        if self.air_line_is(captain, crate::air::airbase::NUCLEARMISSILE)
+            && self.units[captain]
+                .orders
+                .front()
+                .is_some_and(|o| matches!(o.body, Body::Strafe(s) if s.target.is_some()))
+        {
+            self.note_nuke_launched(self.units[captain].owner);
+        }
         // **The squad's push** (`618900`..`6189aa`, `docs/GOLDEN.md` §33):
         // a captain whose host is a building (vslot `0x20`) and whose type's
         // `uber_size` (`+0x308`) is over 1 is `Group::add`ed — the captain
