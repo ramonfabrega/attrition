@@ -78,7 +78,7 @@ clear cut: re-run that wave for that family.
 | 2 | `kills` | done | done | done | owed |
 | 3 | `combat-rates` | done | done | done | owed |
 | 4 | `victim-stamps` | done | done | done | done, §4 |
-| 5 | `attrition-stamps` | done | done | in flight at the clear (also asked: `att`'s recompute timing, and run981's leaders) | owed |
+| 5 | `attrition-stamps` | done | done | done | owed |
 | 6 | `anti-att` | done | done | done | done, §6 |
 | 7 | `diplomacy-relations` | done | done | owed (launch it) | owed |
 | 8 | `diplomacy-tribute` | done | done | done | owed |
@@ -95,7 +95,7 @@ clear cut: re-run that wave for that family.
 | 19 | `last-finished` | done | done | done | done, §19 |
 | 20 | `high-buildings` | done | done | done | owed |
 
-**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 18 of
+**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 19 of
 20, specified 7 of 20.
 
 **How to resume.** The briefs are in `briefs/`, one per wave. A spawn is one
@@ -184,3 +184,4 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | marks-built | 3 | ~130 k | ~13 | 63 confirmed, 7 corrected, 5 open | a captured wonder credits the captor `wonders_built += 1` for 15 of 17 wonders (no gate at `625b4b`); a captured fort does **not** count again (forts carry 0x2000); `Leaders` has 10 slots; the crate site is `city.rs:2490`, before the city split |
 | lobby-words | 3 | 137 k | 15 | 38 confirmed, 3 corrected, 0 open | `multi_diff` is `lobby.difficulty` for every seated slot (store at 0058ae49), never a constant 0; a fresh count of 1,194 dumps outdates `docs/AI.md` §80.1; `cannon_time` and `handicap` 0 in a plain game; point `target_gate`'s `lmulti` at the same value |
 | diplomacy-tribute | 3 | 170 k | 17 | 55 confirmed, 4 corrected, 5 open | **an all-computer skirmish at team style 1 writes nothing** (every leaf 0 all game; the crate's two `is_tribute_period` stubs are exact there); `tributes` keeps a human's attack price; `tributes` is in the dump (`6e7515`) |
+| attrition-stamps | 3 | 189 k+ | 15+ | 44 confirmed, 5 corrected, 1 open | **the `att` floor on a base of 0 is confirmed by the listing and diff-backed by run981: `docs/ATTRITION.md` §1 step 1 and `attrition.rs:43` are wrong**; the crate recomputes `att` a frame early in `apply_gained` (the original folds at the next `process_all`); file complete with its table, the agent still on background work at the clear |
