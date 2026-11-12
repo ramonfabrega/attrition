@@ -120,6 +120,7 @@ fn the_ring_strikes_each_on_the_frame_it_reaches_it() {
         spent: false,
         crash: None,
         spline: None,
+        gpiece: -1,
     };
     // Through the round's own landing (`Sim::land`'s nuke arm): the
     // round's last frame lays the blast, and strikes nothing where it
@@ -282,6 +283,7 @@ fn a_landing_lights_its_circle_and_a_hit_marks_the_treaties() {
         spent: false,
         crash: None,
         spline: None,
+        gpiece: -1,
     });
     s.process_projectiles(3200);
     // Tile (120, 180) is fog cell (60, 90).

@@ -1010,6 +1010,7 @@ fn a_strafers_round_at_a_land_unit_does_not_roll() {
             0,
             false,
             false,
+            -1,
         );
         let p = s.combat.projectiles.last().unwrap();
         assert_eq!(p.rolling, !strafes, "strafes {strafes}");
@@ -1040,6 +1041,7 @@ fn a_strafers_round_spends_no_draw() {
         0,
         false,
         false,
+        -1,
     );
     assert_eq!(s.combat.projectiles.len(), n + 1, "a round");
     assert_eq!(s.rng, before, "and no draw");
@@ -1067,6 +1069,7 @@ fn a_strafers_landing_walks_with_its_gun() {
             node,
             false,
             false,
+            -1,
         );
         s.combat.projectiles.last().unwrap().landing
     };

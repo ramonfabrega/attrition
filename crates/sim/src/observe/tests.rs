@@ -205,3 +205,77 @@ fn the_grids_and_their_counters() {
     assert_eq!(sim.world.terrain_version(), tv + 1);
     assert_eq!(sim.observe(None).terrain_version, tv + 1);
 }
+
+/// **The door carries a round's piece and a corpse's** (item 4175,
+/// `docs/RENDERER.md` §3.13): `ProjectileScene::gpiece` is the round's
+/// own, and `DeathScene::pieces` lists one piece per figure record whose
+/// life still stands on the frame — the record whose life has run out is
+/// gone, as `DeathObj::inc_time` zeroes its `valid`.
+#[test]
+fn the_door_carries_the_round_s_piece_and_the_corpse_s() {
+    let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(8, 8), 2);
+    let mut round = crate::combat::Projectile {
+        shooter: crate::combat::Obj::Unit(0),
+        owner: 1,
+        target: None,
+        launch: Pos::new(0, 0),
+        landing: Pos::new(768, 0),
+        cur_time: 0,
+        total_time: 10,
+        accuracy: 0,
+        angle: crate::movement::Angle(0),
+        splash_area: 0,
+        num_guys: 1,
+        air: false,
+        rolling: false,
+        missed: false,
+        harmless: false,
+        sz: 0,
+        ez: 0,
+        v1z: crate::num::single::Single::ZERO,
+        slot: 0,
+        flame: false,
+        punctures: false,
+        spent: false,
+        crash: None,
+        spline: None,
+        gpiece: crate::combat::FIRST_AMMO_PIECE + 8,
+    };
+    sim.combat.projectiles.push(round);
+    round.gpiece = -1;
+    sim.combat.projectiles.push(round);
+    let mut figures = crate::combat::Figures::one(Some(40));
+    figures.n = 3;
+    figures.life[1] = 20;
+    figures.life[2] = i64::MAX;
+    figures.gpiece[..3].copy_from_slice(&[219, 12891, 25563]);
+    sim.combat.deaths.push(crate::combat::Death {
+        who: 1,
+        o: 4,
+        first_frame: 0,
+        cur_anim: 17,
+        life: Some(40),
+        figures,
+    });
+    let scene = sim.observe(None);
+    let pieces: Vec<i32> = scene.projectiles.iter().map(|p| p.gpiece).collect();
+    assert_eq!(pieces, [60157, -1], "each round's own piece");
+    assert_eq!(
+        scene.deaths[0].pieces,
+        [219, 12891, 25563],
+        "every record stands on frame 0"
+    );
+    assert_eq!(scene.deaths[0].cur_anim, 17);
+    sim.frame = 20;
+    assert_eq!(
+        sim.observe(None).deaths[0].pieces,
+        [219, 25563],
+        "the second record's life ran out on 20"
+    );
+    sim.frame = 40;
+    assert_eq!(
+        sim.observe(None).deaths[0].pieces,
+        [25563],
+        "and the first's on 40"
+    );
+}

@@ -609,9 +609,11 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
     // not the other is a row of its own (`missing`/`extra`) rather than a
     // silent skip, which is the same rule `extra_units` above follows.
     //
-    // `gpiece` is parsed and **not** compared: it is the dead unit's own
-    // death piece, `DeathObj::init`'s `vtable[0x178](param_7, packed)`,
-    // and this crate loads no art for it (§42.5).
+    // `gpiece` is compared since item 4175: it is `DeathObj::init`'s
+    // vslot `+0x178`, `UnitData::get_gpiece(k)` — the dead guy's own
+    // piece — and a record agrees when its piece is one of the figures'
+    // the corpse was made with (`combat::Figures::gpiece`); the dump does
+    // not print which figure a record is.
     {
         let ours: Vec<&sim::combat::Death> = built.sim.combat.deaths.iter().collect();
         for d in &frame.deaths {
@@ -637,10 +639,17 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 });
                 continue;
             };
+            let n = usize::from(mine.figures.n).min(sim::combat::Figures::MAX);
+            let pieces = &mine.figures.gpiece[..n];
+            let piece = d
+                .gpiece
+                .filter(|g| pieces.iter().any(|&p| i64::from(p) == *g))
+                .unwrap_or_else(|| i64::from(pieces.first().copied().unwrap_or(-1)));
             for (field, m, logged) in [
                 ("valid", 1, d.valid),
                 ("first_frame", mine.first_frame, d.first_frame),
                 ("cur_anim", i64::from(mine.cur_anim), d.cur_anim),
+                ("gpiece", piece, d.gpiece),
             ] {
                 let Some(theirs) = logged else { continue };
                 r.death_compared += 1;

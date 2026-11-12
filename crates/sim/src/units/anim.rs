@@ -596,8 +596,11 @@ impl Guy {
 /// (`missile="1"`, item 1625, `docs/AI.md` §174), and whether it burns
 /// (`flame="1"`, `ammo_flags & 0x10`, item 3580, `docs/AI.md` §313), and
 /// whether it punctures (`puncture="1"`, `ammo_flags & 1`, item 3679,
-/// [`crate::combat::Projectile::punctures`]).
-pub type Release = (u32, i8, bool, bool, bool, bool);
+/// [`crate::combat::Projectile::punctures`]), and the round's graphic piece
+/// (`init_unit_events@008e2520:284`: [`crate::combat::FIRST_AMMO_PIECE`]
+/// plus the `<AMMO>`'s index; [`crate::combat::Projectile::gpiece`], item
+/// 4175).
+pub type Release = (u32, i8, bool, bool, bool, bool, i32);
 
 /// The art the clock reads — an input, like the map.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -688,6 +691,14 @@ pub struct Art {
     /// Empty when the install was not read, which leaves every type
     /// turning to face its target, as it did before the table existed.
     pub pivots: BTreeMap<i32, BTreeMap<i32, (i32, i32)>>,
+    /// `TypeIndex → fire_proj` for the types whose graphic carries an
+    /// `<INSTANTHIT ammo>` — the cruise missile, the two nuclear missiles
+    /// and the V2 — as `GraphicEvents::init_unit_events@008e2520:447`
+    /// writes `UnitType +0x2cc`: [`crate::combat::FIRST_AMMO_PIECE`] plus
+    /// the `<AMMO>`'s index (`rondata::artdata::instant_hits`, item 4175).
+    /// A type absent here keeps `:188`'s `FIRST_AMMO_PIECE`
+    /// ([`Sim::fire_proj`]).
+    pub fire_proj: BTreeMap<i32, i32>,
 }
 
 impl Art {
@@ -2093,7 +2104,7 @@ impl Sim {
             // is the guy's, forced to `-1` while the clock reads zero.
             let last = if guy.cur_time == 0 { -1 } else { guy.last_time };
             let cur = i64::from(guy.cur_time);
-            for (t, node, harmless, missile, flame, punctures) in times {
+            for (t, node, harmless, missile, flame, punctures, piece) in times {
                 let start = t;
                 let t = i64::from(t);
                 if i64::from(last) < t && t <= cur {
@@ -2202,11 +2213,11 @@ impl Sim {
                     match (target, ground) {
                         (Some(t), _) => self.fire_ammo_release(
                             me, t, angle, frame, from, sz, node, harmless, missile, flame,
-                            punctures,
+                            punctures, piece,
                         ),
                         (None, Some(g)) => self.fire_ammo_ground(
                             me, g, angle, frame, from, sz, node, harmless, missile, flame,
-                            punctures,
+                            punctures, piece,
                         ),
                         (None, None) => unreachable!(),
                     }

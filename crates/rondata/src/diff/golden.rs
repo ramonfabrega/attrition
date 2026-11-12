@@ -4070,7 +4070,8 @@ pub(super) fn obj_ident(sim: &sim::Sim, o: sim::combat::Obj) -> (i64, i64) {
 /// the bearing, the arc and the flag bits (`total_time` as the dump
 /// prints it, unsigned: a NaN fall's `0x80000000` reads 2147483648, item
 /// 3836). `traj`, `dx`, the roll and
-/// bank angles, `gpiece` and `graph_index` are not carried.
+/// bank angles and `graph_index` are not carried; `gpiece` is, since item
+/// 4175.
 pub(super) fn ammo_value_rows(
     sim: &sim::Sim,
     p: &sim::combat::Projectile,
@@ -4093,6 +4094,8 @@ pub(super) fn ammo_value_rows(
         ("ez", i64::from(p.ez), a.ez),
         ("angle", i64::from(p.angle.0), a.angle),
         ("v1z", super::ammo::tests::printed(p.v1z), a.v1z),
+        // The round's piece (item 4175, `docs/RENDERER.md` §3.13).
+        ("gpiece", i64::from(p.gpiece), a.gpiece),
     ]
     .into_iter()
     .chain(ammo_flag_rows(p, a))
@@ -4124,6 +4127,8 @@ pub(crate) fn round_rows(
         ("ez", i64::from(p.ez), a.ez),
         ("angle", i64::from(p.angle.0), a.angle),
         ("v1z", super::ammo::tests::printed(p.v1z), a.v1z),
+        // The round's piece (item 4175, `docs/RENDERER.md` §3.13).
+        ("gpiece", i64::from(p.gpiece), a.gpiece),
     ]
     .into_iter()
     .chain(ammo_flag_rows(p, a))

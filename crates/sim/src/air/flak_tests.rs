@@ -101,7 +101,7 @@ fn radar(s: &mut Sim, with_cycle: bool) -> usize {
         d.wall_cycle = Some(crate::air::WallCycle {
             wind: 20,
             swing: 10,
-            releases: vec![(2, 0, false)],
+            releases: vec![(2, 0, false, -1)],
             launch: Some((136, -136, 227)),
         });
         let id = s.tables.tech_tree.add(d);
@@ -581,6 +581,7 @@ fn a_round_fired_at_a_plane_is_harmless_when_its_roll_misses() {
             0,
             false,
             false,
+            -1,
         );
         assert_eq!(s.combat.projectiles.len(), 1);
         assert_eq!(s.combat.projectiles[0].harmless, missed, "seed {seed}");

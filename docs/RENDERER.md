@@ -1806,15 +1806,16 @@ falls under either model, so neither is drawn** (parked 4174a).
 
 *2026-11-12, Opus 5.5. Built in `crates/rondata/src/free/ages.rs`, over
 the games `rondata::diff::drawn_games` lists. Checked by
-`free::ages::the_draw_list_across_the_ages_resolves`. Amended by item
-4169, the same day.*
+`free::ages::the_draw_list_across_the_ages_resolves`. Amended by items
+4169 and 4175, the same day.*
 
 **The score.** Over the 82 late-age pairs and the 28 battery words, on the
-4,608 frames their long captures dump: **resolved 1,167,081 of 1,171,799
-objects over 110 lobbies** (`AGES_RESOLVED`; 1,166,600 at item 4166). The
-closing blocks' pieces are ours on **34,394 of 34,399** records
-(`AGES_CLOSING`). K is M on **98 of 110** lobbies (`AGES_LOBBIES_WHOLE`;
-83 at item 4166). The run takes about 100 s on four walkers.
+4,608 frames their long captures dump: **resolved 1,171,784 of 1,171,799
+objects over 110 lobbies** (`AGES_RESOLVED`; 1,166,600 at item 4166,
+1,167,081 at 4169). The closing blocks' pieces are ours on **34,394 of
+34,399** records (`AGES_CLOSING`), and their corpses' on **196 of 196**
+(`AGES_CORPSES`, item 4175). K is M on **98 of 110** lobbies
+(`AGES_LOBBIES_WHOLE`; 83 at item 4166; item 4175 left it there). The run takes about 100 s on four walkers.
 
 **What is walked.** Each game is the free runner stood up from its start
 sibling, its long capture's setup block and its trace's pasture
@@ -1838,10 +1839,11 @@ entry resolves when its piece names install files that decode under
   (`artdata::building_decoding`), on the tileset its map draws;
 - a field: the farm's `<FARM>` and wheat image on that tileset;
 - a foundation: its `<CONSTRUCTION>` sprite (and the dock's model);
-- a scaffold piece: its `<SCAFFOLD>` model, texture and animation.
-
-Projectiles and corpses do not resolve. The scene carries no piece for
-either (`ProjectileScene`, `DeathScene`), so the list cannot draw them.
+- a scaffold piece: its `<SCAFFOLD>` model, texture and animation;
+- a round: its `<AMMO>`'s model and texture, or a falling aircraft's
+  `<UNIT>` model (`ProjectileScene::gpiece`, `AGES_ROUNDS` by piece);
+- a corpse: each standing record's piece on the slot it plays
+  (`DeathScene::pieces` on `cur_anim`), which joins §5.4's played slots.
 
 **The unresolved, cheapest first** (`AGES_UNRESOLVED`, objects summed):
 
@@ -1851,8 +1853,8 @@ either (`ProjectileScene`, `DeathScene`), so the list cannot draw them.
 | ~~Smelter (425), pieces 50963, 51092~~ | ~~180~~ | ~~the same~~ | resolved by item 4169 |
 | ~~Observation Post line, 522–525 (pieces 50803–50805)~~ | ~~279~~ | ~~the `<BUILD>` names no file~~ | resolved by item 4169 |
 | Citizen and CEO crews (38322, 38323, 39378, 39379) | 15 | slot 2's `ceo_crew3_idle3.bha` is not in the install | what the figure's draw makes of a null action |
-| projectiles | 2,133 | the scene carries no piece | the door widened by the round's ammo piece |
-| corpses | 2,570 | the scene carries no piece | the door widened by the dead guy's piece; `DeathObjOut::draw@008d4090` sends a piece through `GraphicPieces::draw` |
+| ~~projectiles~~ | ~~2,133~~ | ~~the scene carries no piece~~ | resolved by item 4175, below |
+| ~~corpses~~ | ~~2,570~~ | ~~the scene carries no piece~~ | resolved by item 4175 |
 
 The 522 rows are Observation Posts already upgraded: the building keeps
 `orig_type` 522 and shows the Air Defense Gun's piece. No type is bent to a
@@ -1884,6 +1886,38 @@ the install, except the crews' one `.bha`.
   (`sim::units::anim::MISSING`). `AnimationPacket::get_animobj@00917170`
   hands the draw that null. The crews stay unresolved: what the hierarchy's
   pose call makes of null is unread.
+
+**The round's piece and the corpse's** (item 4175). The door widened in
+`sim::observe` alone; the simulation now carries both.
+
+- **A round's piece is the package's** (`Ammo::init@0067bbf0:264` copies
+  it to `AmmoData +0x8`). `GraphicEvents::execute_game_events@008e48e0`
+  puts the release event's own piece there; `init_unit_events@008e2520:284`
+  made it `first_ammo_piece` plus the first `ammo_names` entry
+  `String::operator==` matches (without case), and `ammo_names` opens with
+  the `<AMMO>` names in file order (`init_ammo_piece_ranges@008f6140`).
+  `Object::fire_ammo@0064c8b0` puts a building's `first_ammo_piece +
+  get_shot` (0 to 5) and a unit's `fire_proj` (`UnitType +0x2cc`):
+  `first_ammo_piece`, or an `<INSTANTHIT ammo>`'s (`:447`; the four
+  missiles). `Ammo::init_crash@0067b800:44` puts the falling plane's own
+  piece. All 35 release types the install names are `<AMMO>` names.
+- **`first_ammo_piece` is `0xeaf5`, from the dumps**
+  (`sim::combat::FIRST_AMMO_PIECE`): run109's arrows print 60157
+  (`ArcherArrowWOtip`, 8), run1403b's Infantry 60173 and 60174 (24, 25),
+  its Chi-Ha 60185 (`Tankshell`, 36), run1405b's nuke 60249 (`Nuke`, 100).
+- **A corpse's piece is each guy's own.** `DeathObj::init@008d4c60` takes
+  vslot `+0x178`, `UnitData::get_gpiece@0060dd80`: `guys[k] +0x88`. Its
+  `cur_anim < 0xf` swap to `RData::unit_data +0x24` is never taken, since
+  `dtype >= 1`. `DeathScene::pieces` lists the records whose life stands.
+
+**The value diff, the rounds and the corpses.** run109's 183 `AMMO`
+blocks now compare `gpiece`, all 60157 both sides
+(`run109_says_every_ammo_field_this_crate_models_is_the_original_s`), and
+every `AMMO=5` walk compares it (`golden::round_rows`). The 110 closing
+blocks' `DEATH_OBJS`: 196 records, each `gpiece` one of its corpse's
+standing pieces (`AGES_CORPSES`); the harness compares `DEATH_OBJS`
+`gpiece` the same way on every capture. No building's round is on a walked
+frame, and no packet was read: the dumps print both pieces.
 
 **The value diff for these: the original printed the pieces.**
 `get_build_gpiece@0090bce0` takes the first piece whose `data_pieces` entry
@@ -1934,7 +1968,8 @@ with a battery lobby added to the list.
 
 **Diff-backed:** the closing block's pieces, on 110 lobbies. Item 4169's
 three loader readings are backed by the same block: the original printed
-every piece they resolve. **Reading only:** every resolution beyond "the
+every piece they resolve. Item 4175's corpse piece, on the same blocks, and
+its round piece on run109 and the `AMMO=5` walks. **Reading only:** every resolution beyond "the
 file decodes", and what an unnamed anim's `-1` draws. A piece whose file
 decodes but is the wrong file is caught only where a dump prints the piece:
 the closing block, and the Aztec pair's starts.
@@ -1952,7 +1987,13 @@ the closing block, and the Aztec pair's starts.
   sites, and ours is derived from the object number every frame.
 - **What the addon draws under `BUILD_BUILD`** with the smelter's `-1`
   anim, and what the crews' figure draws from a null action.
-- **The rounds and the corpses**, behind a door widening in `crates/sim`.
+- **What a round or a corpse draws**: a round resolves on its files, not
+  on a pixel; what slot `AmmoOut::draw@0067ac10` plays on a falling
+  plane's unit piece is unread. The client draws neither (parked 4175a).
+- **A building's round piece and the Merchant arm** of `fire_ammo` are
+  read, not diffed; no walked frame or `AMMO=5` walk holds one.
+- **The doobers' 16** before `first_ammo_piece`: the constant is the
+  dumps', not the loader's sum.
 
 ## 3.14 The device's state at a figure's draw (item 4165)
 

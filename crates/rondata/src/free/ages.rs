@@ -5,14 +5,15 @@
 //! `<UNIT>` model and the animation of the slot it plays, a building's
 //! `<BUILD>` models and animations, a farm's wheat field, a foundation's
 //! `<CONSTRUCTION>` sprite, a scaffold's `<SCAFFOLD>` model — decoded under
-//! `render`'s readers. Projectiles and corpses are counted beside them:
-//! the scene carries no piece for either, so the list cannot draw them,
-//! and they stand unresolved under their own names.
+//! `render`'s readers. Projectiles and corpses are counted beside them,
+//! through the door item 4175 widened: a round's `<AMMO>` model and
+//! texture, a corpse's piece on the slot its record plays.
 //!
 //! The value check beside the count is the closing block: every long
 //! capture prints its units' guys and its buildings with `gpiece` there
-//! (frame `length + 1`), and the free runner's figure and building pieces
-//! on that frame are compared record by record with the dump's.
+//! (frame `length + 1`), and its `DEATH_OBJS` with theirs, and the free
+//! runner's figure, building and corpse pieces on that frame are compared
+//! record by record with the dump's.
 
 use super::tests::{SIZE, pinned_camera};
 use super::*;
@@ -58,6 +59,13 @@ pub(crate) struct GameCensus {
     pub closing_partings: Vec<String>,
     /// The closing records by the dump's printed `gpiece`: `(ours, all)`.
     pub closing_by_piece: BTreeMap<i32, (usize, usize)>,
+    /// The closing block's `DEATH_OBJS` (item 4175): records whose `(who,
+    /// o, first_frame)` the scene holds a corpse for, and of them those
+    /// whose `gpiece` is one of its standing pieces; and the partings.
+    pub corpses: (usize, usize),
+    pub corpse_partings: Vec<String>,
+    /// The rounds seen, by piece: `(resolved, all)`.
+    pub rounds_by_piece: BTreeMap<i32, (usize, usize)>,
     /// The lobby's M (§5.4, on its dumped frames): figure pieces played
     /// and building types drawn; and the K of it — decoding on the slots
     /// played, and the closing block's piece ours on every record of it.
@@ -79,6 +87,9 @@ struct Art {
     entries: Vec<UnitArt>,
     construction: Vec<bool>,
     scaffold: Vec<bool>,
+    /// Each `<AMMO>`, in piece order, and whether its model and texture
+    /// decode (item 4175).
+    ammo: Vec<(String, bool)>,
     buildings: std::sync::Mutex<BuildingCache>,
 }
 
@@ -111,7 +122,16 @@ impl Art {
                         .is_none_or(|(_, f)| f.as_deref().is_some_and(bha))
             })
             .collect();
+        let ammo = crate::artdata::ammo_elements(inst)
+            .into_iter()
+            .map(|a| {
+                let ok =
+                    a.model.as_deref().is_some_and(bh3) && a.texture.as_deref().is_some_and(tga);
+                (a.name, ok)
+            })
+            .collect();
         Self {
+            ammo,
             pieces: crate::artdata::piece_decoding(inst, &graphs),
             entries: crate::artdata::unit_art(inst, &graphs),
             construction,
@@ -142,6 +162,22 @@ impl Art {
             }
         };
         Some(format!("piece {piece} {name}: {why}"))
+    }
+
+    /// A round's piece (item 4175): an `<AMMO>`'s, resolving when its
+    /// model and texture decode; a unit piece (a falling aircraft's,
+    /// `Ammo::init_crash`) when its `<UNIT>` model does; `None` when it
+    /// resolves, else what fails.
+    fn round(&self, piece: i32) -> Option<String> {
+        let i = piece - sim::combat::FIRST_AMMO_PIECE;
+        if let Some((name, ok)) = usize::try_from(i).ok().and_then(|i| self.ammo.get(i)) {
+            return (!ok).then(|| format!("ammo {piece} {name}: a file does not decode"));
+        }
+        match self.pieces.by_piece.get(&piece) {
+            Some(f) if f.model => None,
+            Some(_) => Some(format!("piece {piece}: model")),
+            None => Some(format!("piece {piece}: no <AMMO> or <UNIT>")),
+        }
     }
 
     /// A building piece (§5.4's building condition 1): `None` when every
@@ -252,6 +288,7 @@ fn walk(
             ))
         })
         .collect();
+    let corpses = closing.deaths.clone();
     drop(closing);
     let mut free = FreeRunner::from_captures(
         loaded,
@@ -335,15 +372,61 @@ fn walk(
             };
             tally(c, kind, why);
         }
-        for _ in &s.projectiles {
-            tally(
-                c,
-                Kind::Projectile,
-                Some("the scene carries no piece".into()),
-            );
+        for p in &s.projectiles {
+            let why = art.round(p.gpiece);
+            let e = c.rounds_by_piece.entry(p.gpiece).or_default();
+            e.1 += 1;
+            e.0 += usize::from(why.is_none());
+            tally(c, Kind::Projectile, why);
         }
-        for _ in &s.deaths {
-            tally(c, Kind::Wreck, Some("the scene carries no piece".into()));
+        for d in &s.deaths {
+            // Each standing record's piece on the slot it plays
+            // (`DeathObjOut::draw@008d4090`).
+            // A corpse plays its piece on the death slot, so §5.4's M takes
+            // the slot beside the figure's own.
+            let why = match i8::try_from(d.cur_anim) {
+                _ if d.pieces.is_empty() => Some("no record stands".to_string()),
+                Ok(slot) => {
+                    for &p in &d.pieces {
+                        played.entry(p).or_default().insert(slot);
+                    }
+                    d.pieces.iter().find_map(|&p| art.figure(p, slot))
+                }
+                Err(_) => Some(format!("cur_anim {}", d.cur_anim)),
+            };
+            tally(c, Kind::Wreck, why);
+        }
+        if s.frame == last {
+            // The closing block's `DEATH_OBJS`, record for record: one per
+            // figure, linked to the scene's corpse on `(who, o,
+            // first_frame)`, each record's `gpiece` taken out of the
+            // corpse's standing pieces once.
+            let mut left: BTreeMap<(i32, i32, i64), Vec<i32>> = s
+                .deaths
+                .iter()
+                .map(|d| ((d.who, d.o, d.first_frame), d.pieces.clone()))
+                .collect();
+            for d in &corpses {
+                let (Some(who), Some(o), Some(ff), Some(gp)) =
+                    (d.who, d.o, d.first_frame, d.gpiece)
+                else {
+                    continue;
+                };
+                let Some(ours) = left.get_mut(&(who as i32, o as i32, ff)) else {
+                    continue;
+                };
+                c.corpses.1 += 1;
+                match ours.iter().position(|&p| i64::from(p) == gp) {
+                    Some(k) => {
+                        ours.remove(k);
+                        c.corpses.0 += 1;
+                    }
+                    None => c.corpse_partings.push(format!(
+                        "frame {last} corpse {who}/{o} first_frame {ff} cur_anim {:?}: dump {gp}, ours {ours:?}",
+                        d.cur_anim
+                    )),
+                }
+            }
         }
         if s.frame == last {
             let ours: BTreeMap<ObjId, &sim::observe::UnitScene> =
@@ -528,7 +611,8 @@ fn census() -> Option<Vec<GameCensus>> {
                             drop(tr);
                             eprintln!(
                                 "AGES {}: resolved {} of {} on {} frames; closing {} of {}; \
-                             K {}+{} of M {}+{}; inexact {:?}; {} ms; {:?}; closing partings {:?}",
+                             K {}+{} of M {}+{}; inexact {:?}; {} ms; {:?}; closing partings {:?}; \
+                             corpses {:?} partings {:?}",
                                 c.name,
                                 c.resolved,
                                 c.objects,
@@ -542,7 +626,9 @@ fn census() -> Option<Vec<GameCensus>> {
                                 c.ground_inexact,
                                 t.elapsed().as_millis(),
                                 c.by_kind,
-                                c.closing_partings
+                                c.closing_partings,
+                                c.corpses,
+                                c.corpse_partings
                             );
                             mine.push((i, c));
                         }
@@ -568,8 +654,11 @@ fn census() -> Option<Vec<GameCensus>> {
 /// +481 from 1,166,600 — the sawmill's 22 and the smelter's 180, whose
 /// unnamed animations name no file (`artdata::building_decoding`), and the
 /// Air Defense line's 279, which loads as its `<UNIT>`
-/// (`artdata::loads_as_unit`).
-pub(crate) const AGES_RESOLVED: (usize, usize, usize) = (1_167_081, 1_171_799, 110);
+/// (`artdata::loads_as_unit`). Item 4175: +4,703 from 1,167,081 — the
+/// 2,133 rounds, each its `<AMMO>`'s model and texture (or a falling
+/// aircraft's own model), and the 2,570 corpses, each standing record's
+/// piece on its death slot, through the door `sim::observe` widened.
+pub(crate) const AGES_RESOLVED: (usize, usize, usize) = (1_171_784, 1_171_799, 110);
 
 /// The dumped frames walked: frame 0 and every `FRAME` each long prints.
 pub(crate) const AGES_FRAMES: usize = 4_608;
@@ -601,9 +690,42 @@ pub(crate) const AGES_UNRESOLVED: &[(Kind, &str, usize)] = &[
         "piece 39379 THECEO-ASIAN-AGE0-CREW3: slot 2 .\\art\\ceo_crew3_idle3.bha",
         1,
     ),
-    (Kind::Projectile, "the scene carries no piece", 2133),
-    (Kind::Wreck, "the scene carries no piece", 2570),
 ];
+
+/// **The rounds by piece** (item 4175, new): `(gpiece, resolved, seen)`
+/// over the 4,608 frames. Every piece is an `<AMMO>` at
+/// `sim::combat::FIRST_AMMO_PIECE + i` but 245, a falling aircraft's own
+/// (`Ammo::init_crash`): 60157 `ArcherArrowWOtip` (8), 60175 `Spear`
+/// (26), 60185 `Tankshell` (36), 60249 `Nuke` (100), 60250 `NukeICBM`
+/// (101), 60348 `RockAmmo` (199). No building's shot (`+ 0..5`) is on a
+/// walked frame.
+pub(crate) const AGES_ROUNDS: &[(i32, usize, usize)] = &[
+    (245, 2, 2),
+    (60157, 823, 823),
+    (60162, 112, 112),
+    (60164, 34, 34),
+    (60166, 146, 146),
+    (60168, 2, 2),
+    (60170, 99, 99),
+    (60173, 26, 26),
+    (60174, 60, 60),
+    (60175, 470, 470),
+    (60178, 65, 65),
+    (60183, 2, 2),
+    (60184, 4, 4),
+    (60185, 15, 15),
+    (60186, 6, 6),
+    (60194, 113, 113),
+    (60249, 23, 23),
+    (60250, 13, 13),
+    (60348, 118, 118),
+];
+
+/// **The closing blocks' corpses, record for record** (item 4175, new):
+/// of the `DEATH_OBJS` records whose `(who, o, first_frame)` the scene
+/// holds a corpse for, those whose `gpiece` is one of its standing pieces
+/// — the dump's own `DeathObj +0x20` against `Figures::gpiece`.
+pub(crate) const AGES_CORPSES: (usize, usize) = (196, 196);
 
 /// **The closing block, record by record** (item 4166, new): of the
 /// figures and buildings the 110 closing blocks print a `gpiece` for, whose
@@ -654,7 +776,18 @@ fn the_draw_list_across_the_ages_resolves() {
     let (mut x, mut y, mut frames, mut closing, mut whole) = (0, 0, 0, (0, 0), 0);
     let mut over: Vec<String> = Vec::new();
     let mut by_piece: BTreeMap<i32, (usize, usize)> = BTreeMap::new();
+    let mut rounds: BTreeMap<i32, (usize, usize)> = BTreeMap::new();
+    let mut corpses = (0, 0);
+    let mut corpse_partings: Vec<String> = Vec::new();
     for c in &all {
+        for (p, (a, n)) in &c.rounds_by_piece {
+            let e = rounds.entry(*p).or_default();
+            e.0 += a;
+            e.1 += n;
+        }
+        corpses.0 += c.corpses.0;
+        corpses.1 += c.corpses.1;
+        corpse_partings.extend(c.corpse_partings.iter().map(|w| format!("{}: {w}", c.name)));
         for (p, (a, n)) in &c.closing_by_piece {
             let e = by_piece.entry(*p).or_default();
             e.0 += a;
@@ -683,6 +816,8 @@ fn the_draw_list_across_the_ages_resolves() {
     for ((k, w), n) in &unresolved {
         eprintln!("AGES unresolved {k:?} {w}: {n}");
     }
+    eprintln!("AGES rounds by piece (resolved, all): {rounds:?}");
+    eprintln!("AGES corpses on the closing blocks: {corpses:?}; partings {corpse_partings:#?}");
     // Each game reads no more inexact corners than its own tests' pin
     // (`Built`'s guard, which the runner hands its count to).
     pin_eq!(
@@ -706,6 +841,14 @@ fn the_draw_list_across_the_ages_resolves() {
         "resolved of objects over lobbies"
     );
     pin_eq!(frames, AGES_FRAMES, "dumped frames walked");
+    let rounds: Vec<(i32, usize, usize)> =
+        rounds.into_iter().map(|(p, (a, n))| (p, a, n)).collect();
+    pin_eq!(rounds, AGES_ROUNDS.to_vec(), "the rounds by piece");
+    pin_eq!(
+        (corpses, corpse_partings),
+        (AGES_CORPSES, Vec::<String>::new()),
+        "the closing blocks' corpses, ours of printed"
+    );
     pin_eq!(closing, AGES_CLOSING, "the closing block's pieces ours");
     pin_eq!(
         (whole, all.len()),

@@ -178,6 +178,10 @@ pub struct Loaded {
     /// Gameplay data for the same reason the releases are: it decides
     /// whether `Unit::fight` turns the unit.
     pub pivot_restrictions: crate::artdata::PivotRestrictions,
+    /// `TypeIndex → fire_proj` for the types naming an `<INSTANTHIT ammo>`
+    /// (`crate::artdata::instant_hits`, item 4175): the piece a missile's
+    /// round carries.
+    pub instant_hits: std::collections::BTreeMap<i32, i32>,
     /// `effects_graphics.xml`'s sixteen `<MOUNTAIN>` templates, each one's
     /// tiles and solid cells as `MountainRange::init` derives them from its
     /// `TEMPLATE_TEX` (`crate::mountains`). Indexed as the dump's
@@ -492,6 +496,7 @@ pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
     loaded.piece_tracks = crate::artdata::piece_tracks(install, &graphs);
     loaded.piece_releases = crate::artdata::piece_releases(install, &graphs);
     loaded.pivot_restrictions = crate::artdata::pivot_restrictions(install, &graphs);
+    loaded.instant_hits = crate::artdata::instant_hits(install, &graphs);
     // An anti-air building's packet: the three `verify_load` draws as a
     // unit take their `<UNIT>`'s slots and releases (`crate::artdata::
     // wall_packets`, `docs/COMBAT.md` §84.2).
@@ -2173,6 +2178,7 @@ pub fn load_tables(
         piece_tracks: Default::default(),
         piece_releases: Default::default(),
         pivot_restrictions: Default::default(),
+        instant_hits: Default::default(),
         mountain_templates: Vec::new(),
         install_root: None,
         spells,
@@ -2946,6 +2952,7 @@ mod tests {
             piece_tracks: Default::default(),
             piece_releases: Default::default(),
             pivot_restrictions: Default::default(),
+            instant_hits: Default::default(),
             mountain_templates: Vec::new(),
             install_root: None,
             spells: vec![],
@@ -3051,7 +3058,7 @@ mod tests {
             Some(sim::air::WallCycle {
                 wind: 20,
                 swing: 10,
-                releases: vec![(2, 0, false)],
+                releases: vec![(2, 0, false, -1)],
                 launch: Some((136, -136, 227)),
             })
         );

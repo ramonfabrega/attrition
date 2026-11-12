@@ -190,13 +190,15 @@ impl Sim {
                 v1z: combat::arc_v1z(sz, ez, total_time),
                 slot: 0,
                 flame: false,
-                // SEAM: the building's ammo piece is not read, so its
-                // `BuildingArrow` (`puncture="1"`) never sticks here
+                // SEAM: the building's ammo piece's flags are not read, so
+                // its `BuildingArrow` (`puncture="1"`) never sticks here
                 // (item 3679, `docs/COMBAT.md` §46.7).
                 punctures: false,
                 spent: false,
                 crash: None,
                 spline: None,
+                // `Object::fire_ammo`'s building arm (item 4175).
+                gpiece: self.fire_proj(me),
             });
         }
         // `do_attack`'s tail after `fire_ammo` (`622b5b`..`622bd0`): the

@@ -184,15 +184,29 @@ pub struct ProjectileScene {
     pub cur_time: i32,
     pub total_time: i32,
     pub air: bool,
+    /// The round's graphic piece, `AmmoData::gpiece`, which
+    /// `AmmoOut::draw@0067ac10` draws (`docs/RENDERER.md` §3.13, item
+    /// 4175): an `<AMMO>` of `effects_graphics.xml` at
+    /// [`crate::combat::FIRST_AMMO_PIECE`] plus its index, or a falling
+    /// aircraft's own piece; `-1` where the shot's piece is not read.
+    pub gpiece: i32,
 }
 
 /// One dead unit's fading record.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct DeathScene {
     pub who: i32,
     pub o: i32,
     pub first_frame: i64,
+    /// The `UnitAnim` slot each record plays, `DeathObj +0x8`.
     pub cur_anim: i32,
+    /// **One piece per figure whose record still stands this frame**
+    /// (`docs/RENDERER.md` §3.13, item 4175): `DeathObj +0x20`, each guy's
+    /// own `gpiece` at the death (`DeathObj::init@008d4c60`'s vslot
+    /// `+0x178`), which `DeathObjOut::draw@008d4090` sends through
+    /// `GraphicPieces::draw` on slot [`Self::cur_anim`]. A record whose
+    /// life has run out, or that the pool evicted, is gone from the list.
+    pub pieces: Vec<i32>,
 }
 
 /// The terrain grids, fetched when [`Scene::terrain_version`] moves.
@@ -343,17 +357,26 @@ impl Sim {
                 cur_time: p.cur_time,
                 total_time: p.total_time,
                 air: p.air,
+                gpiece: p.gpiece,
             })
             .collect();
         let deaths = self
             .combat
             .deaths
             .iter()
-            .map(|d| DeathScene {
-                who: d.who,
-                o: d.o,
-                first_frame: d.first_frame,
-                cur_anim: d.cur_anim,
+            .map(|d| {
+                let age = self.frame - d.first_frame;
+                let n = usize::from(d.figures.n).min(crate::combat::Figures::MAX);
+                DeathScene {
+                    who: d.who,
+                    o: d.o,
+                    first_frame: d.first_frame,
+                    cur_anim: d.cur_anim,
+                    pieces: (0..n)
+                        .filter(|&k| age < d.figures.life[k])
+                        .map(|k| d.figures.gpiece[k])
+                        .collect(),
+                }
             })
             .collect();
         Scene {
