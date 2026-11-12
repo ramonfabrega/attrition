@@ -259,22 +259,11 @@ fn fs_patch(i: VOut) -> @location(0) vec4<f32> {
 // Item 4141 (`docs/RENDERER.md` §3.10): one layer of a mountain's own draw,
 // `MountainsOut::mountain_blend` — stage 0 the tileset's texture (MODULATE
 // with the vertex white, A its own); stage 1 the range's alpha, ADDSIGNED
-// on the colour and MODULATE on A; the alpha test GREATER 0. Item 4172: the
-// textures are sRGB views, so a sample arrives linear; ADDSIGNED is run on
-// the stored bytes, as the card's stage and `MountainArt::over` run it, and
-// the sum handed back linear for the sRGB target to store.
-fn encoded(c: vec3<f32>) -> vec3<f32> {
-    let lo = c * 12.92;
-    let hi = 1.055 * pow(c, vec3<f32>(1.0 / 2.4)) - vec3<f32>(0.055);
-    return select(hi, lo, c <= vec3<f32>(0.0031308));
-}
-
-fn decoded(c: vec3<f32>) -> vec3<f32> {
-    let lo = c / 12.92;
-    let hi = pow((c + vec3<f32>(0.055)) / 1.055, vec3<f32>(2.4));
-    return select(hi, lo, c <= vec3<f32>(0.04045));
-}
-
+// on the colour and MODULATE on A; the alpha test GREATER 0. Items 4172,
+// 4171: ADDSIGNED is run on the stored bytes, as the card's stage and
+// `MountainArt::over` run it — on the plain `Unorm` textures and targets
+// (`Gpu::texel_format`) a sample is its byte over 255, and the sum is stored
+// as it stands.
 @fragment
 fn fs_mountain(i: VOut) -> @location(0) vec4<f32> {
     let t0 = textureSample(tex, samp, i.uv);
@@ -283,15 +272,28 @@ fn fs_mountain(i: VOut) -> @location(0) vec4<f32> {
     if (a <= 0.0) {
         discard;
     }
-    let sum = encoded(t0.rgb) + encoded(t1.rgb) - vec3<f32>(0.5);
-    return vec4<f32>(decoded(clamp(sum, vec3<f32>(0.0), vec3<f32>(1.0))), a);
+    return vec4<f32>(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0)), a);
 }
 "#;
 
 /// The camera-space depth range mapped onto [0, 1]: wider than any map.
 const DEPTH_RANGE: (f32, f32) = (-200_000.0, 200_000.0);
 
-const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
+/// Depth, and a stencil the silhouette pass marks its pixels in (item 4171).
+const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth24PlusStencil8;
+
+/// **The silhouette's pixel is blended once** (item 4171; `docs/RENDERER.md`
+/// §5.3, "The silhouette's colour"; §3.15): `c·a + n·(1 − a)` over
+/// the nearer pixel, as `render::silhouette::silhouette_blend` lays it. A
+/// closed mesh behind a tree has a near and a far side, and both pass
+/// depth Greater; the stencil keeps the first and refuses the rest, where
+/// two blends would lay `0.75·c + 0.25·n`.
+const ONCE: wgpu::StencilFaceState = wgpu::StencilFaceState {
+    compare: wgpu::CompareFunction::Equal,
+    fail_op: wgpu::StencilOperation::Keep,
+    depth_fail_op: wgpu::StencilOperation::Keep,
+    pass_op: wgpu::StencilOperation::IncrementClamp,
+};
 
 /// Triangles as positions and colours, three vertices each.
 pub type Tris<'a> = (&'a [[f32; 3]], &'a [[f32; 3]]);
@@ -314,6 +316,22 @@ pub struct Frame<'a> {
     pub patch: &'a [crate::world::PatchMesh],
     /// The buildings drawn as their sprites (item 4076).
     pub sprites: &'a [crate::world::SpriteDrawing],
+}
+
+/// **Where the figures' silhouette pass falls** (item 4171; `docs/RENDERER.md`
+/// §5.3, "The silhouettes"; §3.15).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SilhouetteOrder {
+    /// Every figure's silhouette (`render_states[1]`, depth Greater, no
+    /// depth write) before any figure's lit draw: the depth it tests is the
+    /// ground's, the sprites' and the trees', as the original's list 1
+    /// draws `[1]` and then `[0]` (4085).
+    Before,
+    /// The draw before item 4171, kept as the rows' made-to-fail: after the lit figures, whose own depth
+    /// is then written, so a closed mesh's far side passes on its own near
+    /// side and the figure is washed in its owner's colour.
+    #[cfg_attr(not(test), allow(dead_code))]
+    After,
 }
 
 /// A mesh on the GPU: its vertices, their count and its texture.
@@ -369,6 +387,8 @@ pub struct Gpu {
     tree: wgpu::RenderPipeline,
     tree_sampler: wgpu::Sampler,
     tree_textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
+    /// Where the silhouette pass falls (item 4171).
+    pub silhouette_order: SilhouetteOrder,
 }
 
 /// Block on a future wgpu answers at once on a native backend.
@@ -588,7 +608,8 @@ impl Gpu {
                        entry: &str,
                        write: bool,
                        compare: wgpu::CompareFunction,
-                       blend: Option<wgpu::BlendState>| {
+                       blend: Option<wgpu::BlendState>,
+                       stencil: wgpu::StencilState| {
             device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
                 label: Some(label),
                 layout: Some(&sprite_pipeline_layout),
@@ -610,7 +631,7 @@ impl Gpu {
                     format: DEPTH_FORMAT,
                     depth_write_enabled: Some(write),
                     depth_compare: Some(compare),
-                    stencil: Default::default(),
+                    stencil: stencil.clone(),
                     bias: Default::default(),
                 }),
                 multisample: Default::default(),
@@ -632,8 +653,17 @@ impl Gpu {
                            entry: &str,
                            write: bool,
                            compare: wgpu::CompareFunction,
-                           blend: Option<wgpu::BlendState>| {
-            pass_of(&textured_module, label, entry, write, compare, blend)
+                           blend: Option<wgpu::BlendState>,
+                           stencil: wgpu::StencilState| {
+            pass_of(
+                &textured_module,
+                label,
+                entry,
+                write,
+                compare,
+                blend,
+                stencil,
+            )
         };
         let tree = pass_of(
             &tree_module,
@@ -642,6 +672,7 @@ impl Gpu {
             true,
             wgpu::CompareFunction::LessEqual,
             None,
+            Default::default(),
         );
         let textured = figure_pass(
             "textured",
@@ -649,6 +680,7 @@ impl Gpu {
             true,
             wgpu::CompareFunction::Less,
             None,
+            Default::default(),
         );
         let silhouette = figure_pass(
             "silhouette",
@@ -656,6 +688,12 @@ impl Gpu {
             false,
             wgpu::CompareFunction::Greater,
             Some(wgpu::BlendState::ALPHA_BLENDING),
+            wgpu::StencilState {
+                front: ONCE,
+                back: ONCE,
+                read_mask: 0xff,
+                write_mask: 0xff,
+            },
         );
         let ground = figure_pass(
             "ground",
@@ -663,6 +701,7 @@ impl Gpu {
             true,
             wgpu::CompareFunction::Less,
             None,
+            Default::default(),
         );
         let patch_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("patch"),
@@ -766,6 +805,7 @@ impl Gpu {
             silhouette,
             figure_sampler,
             figure_textures: std::sync::Mutex::new(Default::default()),
+            silhouette_order: SilhouetteOrder::Before,
             sprite,
             sprite_uniform,
             sprite_bind,
@@ -787,6 +827,21 @@ impl Gpu {
         self.format
     }
 
+    /// **The textures' format follows the target's** (item 4171;
+    /// `docs/RENDERER.md` §3.15). On a plain `Unorm` target a
+    /// texel is sampled, filtered, blended and written as its bytes over
+    /// 255, the arithmetic of the original's fixed-function stages and of
+    /// `render::silhouette`'s painter; an `…Srgb` target, the draw before
+    /// 4171, decodes each texel to linear and encodes the result, so every
+    /// blend, `ADDSIGNED` and vertex colour is taken in linear light.
+    fn texel_format(&self) -> wgpu::TextureFormat {
+        if self.format.is_srgb() {
+            wgpu::TextureFormat::Rgba8UnormSrgb
+        } else {
+            wgpu::TextureFormat::Rgba8Unorm
+        }
+    }
+
     /// A building piece's sprite as a bind group, uploaded on first use.
     fn texture(&self, piece: i32, image: &render::tga::Image) -> wgpu::BindGroup {
         let mut cache = self.textures.lock().unwrap();
@@ -804,7 +859,7 @@ impl Gpu {
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            format: self.texel_format(),
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             view_formats: &[],
         });
@@ -890,7 +945,7 @@ impl Gpu {
             mip_level_count: levels.len() as u32,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            format: self.texel_format(),
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             view_formats: &[],
         });
@@ -1168,7 +1223,10 @@ impl Gpu {
                         load: wgpu::LoadOp::Clear(1.0),
                         store: wgpu::StoreOp::Discard,
                     }),
-                    stencil_ops: None,
+                    stencil_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(0),
+                        store: wgpu::StoreOp::Discard,
+                    }),
                 }),
                 timestamp_writes: None,
                 occlusion_query_set: None,
@@ -1219,16 +1277,8 @@ impl Gpu {
                 pass.set_vertex_buffer(0, b.slice(..));
                 pass.draw(0..frame.figures.0.len() as u32, 0..1);
             }
-            if !textured.is_empty() {
-                pass.set_pipeline(&self.textured);
-                for (b, n, t) in &textured {
-                    pass.set_bind_group(1, t, &[]);
-                    pass.set_vertex_buffer(0, b.slice(..));
-                    pass.draw(0..*n, 0..1);
-                }
-            }
-            // `flush_trees` after the figures (§3.7, "The order"), textured
-            // (item 4173).
+            // `flush_trees` (§3.7, "The order"), textured (item 4173), before
+            // the guys pass that tests their depth.
             if !trees.is_empty() {
                 pass.set_pipeline(&self.tree);
                 for (b, n, t) in &trees {
@@ -1239,12 +1289,19 @@ impl Gpu {
             }
             if !textured.is_empty() {
                 // The guys pass after the trees (item 4085): each figure
-                // again where it is behind, in its owner's colour (4103).
-                pass.set_pipeline(&self.silhouette);
-                for (b, n, t) in &textured {
-                    pass.set_bind_group(1, t, &[]);
-                    pass.set_vertex_buffer(0, b.slice(..));
-                    pass.draw(0..*n, 0..1);
+                // where it is behind, in its owner's colour (4103), and
+                // lit; the silhouette's place is `silhouette_order`'s.
+                let passes = match self.silhouette_order {
+                    SilhouetteOrder::Before => [&self.silhouette, &self.textured],
+                    SilhouetteOrder::After => [&self.textured, &self.silhouette],
+                };
+                for pipeline in passes {
+                    pass.set_pipeline(pipeline);
+                    for (b, n, t) in &textured {
+                        pass.set_bind_group(1, t, &[]);
+                        pass.set_vertex_buffer(0, b.slice(..));
+                        pass.draw(0..*n, 0..1);
+                    }
                 }
             }
             if let Some(b) = &overlay {
@@ -1397,13 +1454,15 @@ mod tests {
 
     /// Item 4172: the mountain's ADDSIGNED runs on the stored bytes, not
     /// on the sRGB view's linear samples (the still's body read a third of
-    /// the photograph's brightness with it in linear space).
+    /// the photograph's brightness with it in linear space). Item 4171: the
+    /// textures and targets are plain `Unorm`, so the sample is the byte and
+    /// the sum is taken as it stands, with no encode or decode around it.
     #[test]
     fn the_mountain_adds_on_the_stored_bytes() {
         assert!(PATCH_SHADER.contains(
-            "let sum = encoded(t0.rgb) + encoded(t1.rgb) - vec3<f32>(0.5);\n    \
-             return vec4<f32>(decoded(clamp(sum, vec3<f32>(0.0), vec3<f32>(1.0))), a);"
+            "return vec4<f32>(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0)), a);"
         ));
+        assert!(!PATCH_SHADER.contains("encoded("));
     }
 
     #[test]

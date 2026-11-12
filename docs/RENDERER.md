@@ -1926,6 +1926,44 @@ not behind. The one more agree with is drawn, if its colour row is not under 18;
 mountain's body, eight tiles at 0.83–0.92, in) and run1564's **791 of 1,920** (`OCEAN` 2 of 437, `SANDY` 83 of
 772); run1441's camera 1 of 32. A light 1.5 times as strong takes them to 4 and 1.
 
+## 3.15 The client's still under the photograph's readers (item 4171)
+
+**The rule** (4171, before its count, `0c4d44851`; DECISIONS 127 §1). The rows
+counted on the client's own pixels: `Gpu::still` at the photograph's
+size, the frame the client draws (`build`, `drawn_terrain`) from the
+world and camera each row's painter takes, without the debug overlay.
+Each row keeps its rule, its constants and its selection; only *ours*
+is read off the still. `_TRACED`: our side of a window is the
+photograph's colour reader run on the still, its ring the still's
+pixels where no key lies, outside the interface; a pixel the
+photograph's side leaves out is out of both. `_COLOUR`: [`HUE`] on the
+same pixels, ours the still's pixel for the painter's texel (§5.3). Both
+`_GROUND`s: ours the mean of the still over every ground pixel of the
+tile. **The tolerance is the rows' own** (0.5 overlap, 0.05 in
+chromaticity): the still is *equal* to the painter on a row when the
+count and the members agree; otherwise each crossing is named with
+both sides' values. Per pixel, still against painter, a channel
+within 8 of 255 agrees: a diagnostic, never a row. Expected: `_COLOUR`
+red first, the figures washed.
+
+**The count.** On the draw as it stood: `_TRACED` 32,
+`_COLOUR` **2**, `_GROUND` 1,003 (94 mountain tiles down, the body
+(22, 18, 6)), run1564 1,286. Two causes, each a diff: the silhouette
+after the lit pass, where a figure's far side passes Greater on its own
+near side; and an sRGB target, so every blend, `ADDSIGNED` and vertex
+colour is taken in linear light where the original's stages and the
+painter take bytes. **The client now draws the silhouette first, once a
+pixel (a stencil), on plain `Unorm` targets**: `_TRACED_STILL` 31 of
+33, `_COLOUR_STILL` 14 of 33, `_GROUND_STILL` 1,097 of 1,109 tile for
+tile, run1564 1,237 of 1,920 (one tile at the bar). The partings, named
+in the pins: 0/1 behind the pine on our flat green (4173's), three by
+the card's mip level per pixel against the painter's per triangle
+(4171b), and two footprints the still's colour reader cannot separate:
+0/1, its ring holding a silhouette the painter keys nothing at (4171a),
+and 1/40, a tank the photograph's side reads by hand. Not established:
+the original's cull mode 2 on both states, which this draw does not
+take (4171c).
+
 ## 4. The stack
 
 The rule is `CLAUDE.md`'s **earn every dependency**: a crate enters when it
@@ -2405,10 +2443,9 @@ lines and fog shading, projectiles and corpses, then candidate C.
 - The water's normal, which its vertices do not carry (§3.12, 4168a). Settled by the water VB's input layout
   in `d3dgl.dll` and the vertex shader's default for a missing normal.
 
-- **What the client's own pixels show** (the pass of 2026-11-12, DECISIONS 127). Every photograph row of §5.3,
-  §3.6 and §3.12 is counted on the CPU painter, and no test reads the client's still. On the stills of frame 3279
-  at both pinned cameras each figure is washed in its owner's colour and the trees are flat green (no texture
-  bound, parked 4038a). Settled by item 4171: the rows counted on the still.
+- ~~**What the client's own pixels show**~~ (the pass of 2026-11-12, DECISIONS 127): counted on the still by
+  item 4171 (§3.15); the wash was the silhouette's place and the sRGB target. The trees
+  stay flat green (no texture bound, parked 4038a): item 4173.
 - ~~**How bright anything is.**~~ The readers compare (r, g) / (r + g + b). By box on those stills the mountain's
   body sums 130 against the photograph's 392, and the lake 506 against 316; a mountain's body and a tree are in
   no row. ~~Settled by item 4172's luminance reader~~: on the painter (§5.3, "The luminance reader") the figures

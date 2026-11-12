@@ -284,6 +284,45 @@ fn draw(
     })
 }
 
+/// **The client's still under a row** (item 4171; `docs/RENDERER.md`
+/// §3.15): the frame [`draw`] draws, on its own device, from
+/// `world` at `camera` — the scene [`build`] makes and the terrain
+/// `drawn_terrain` gives — read back as `size`'s RGBA rows, top first, with
+/// no debug overlay. A GPU is required, as the `clock` test's is.
+#[cfg(test)]
+pub(crate) fn still_of(
+    world: &mut World,
+    camera: &render::Camera,
+    size: (u32, u32),
+    order: gpu::SilhouetteOrder,
+    format: wgpu::TextureFormat,
+) -> Vec<u8> {
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
+    let mut gpu = gpu::Gpu::new(&instance, None, format)
+        .unwrap_or_else(|e| panic!("the still needs a GPU: {e}"));
+    gpu.silhouette_order = order;
+    let b = build(world, camera, size, 0.0);
+    let version = world.runner.terrain().version;
+    let (t, ground, patch) = world.drawn_terrain();
+    let frame = gpu::Frame {
+        terrain_version: version,
+        terrain: (&t.positions, &t.colours),
+        ground,
+        patch,
+        figures: (&b.figures.positions, &b.figures.colours),
+        textured: &b.textured,
+        overlay: (&[], &[]),
+        sprites: &b.sprites,
+    };
+    let rgba = gpu.still(size, camera, &frame);
+    assert_eq!(
+        rgba.len(),
+        (size.0 * size.1 * 4) as usize,
+        "the still reads back"
+    );
+    rgba
+}
+
 struct App {
     session: Session,
     world: World,
@@ -402,7 +441,7 @@ impl ApplicationHandler for App {
             let gpu = gpu::Gpu::new(
                 &self.instance,
                 Some(&surface),
-                wgpu::TextureFormat::Bgra8UnormSrgb,
+                wgpu::TextureFormat::Bgra8Unorm,
             )?;
             Ok::<_, String>((surface, gpu))
         });
@@ -577,7 +616,7 @@ fn main() {
     if let Some(out) = &args.still {
         let gpu = session
             .phase("device", || {
-                gpu::Gpu::new(&instance, None, wgpu::TextureFormat::Rgba8UnormSrgb)
+                gpu::Gpu::new(&instance, None, wgpu::TextureFormat::Rgba8Unorm)
             })
             .unwrap_or_else(|e| {
                 eprintln!("client: {e}");
@@ -640,7 +679,7 @@ fn headless(
 ) {
     let gpu = session
         .phase("device", || {
-            gpu::Gpu::new(instance, None, wgpu::TextureFormat::Bgra8UnormSrgb)
+            gpu::Gpu::new(instance, None, wgpu::TextureFormat::Bgra8Unorm)
         })
         .unwrap_or_else(|e| {
             eprintln!("client: {e}");
