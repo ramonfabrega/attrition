@@ -16802,13 +16802,25 @@ words and edits nothing here; a refill lands when two remain.
   restored game (`walk_data`'s restore arm allocates by the saved presence and stores state 2); a dump-built game, whose
   presence is what its setup's sets leave; run1100's 79 blocks (28 empty, a cursor near 1,920) are consistent and not diffed.
 
-## Parked by the next landing, slot FU — reserved
+## Parked by item 4118, 2026-11-11 — the unit record's three keys, measured and owed
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4118a. The `+0x86` union: our idle citizens hold a hold doober's slot that the original has given back**
+  (`docs/ORDERS.md` §6.12, `docs/CHECKSUM.md` §18). Item 4118 compared the dumps' `hero` and `special` (the same short, printed
+  twice) against the checksum's union, and red widenings named 24 units on 7 tests. Six melee windows part on their first block:
+  run1450's 2601, `0/1` ours 11 theirs −1, along with `0/2`, `0/6` and `0/7`, all type 50 at `idle 1`; and run1492, run1413,
+  run1468, chapter twenty-two, run1483 (17380). The earliest parting is run1066's 2333: `1/99` ours 3 theirs −1, with the
+  original giving slot 3 to `1/100` on 2337 (ours −1). So the release on going idle or walking off, and the table's order of
+  issue, are what the rule lacks. This is a `crates/sim` rule and was out of 4118's scope. Moves: the two keys off the owed list
+  (`diff::coverage`), every floor held.
+- **4118b. `play`: the golden harness's lines never make `process_group`'s write** (`docs/ORDERS.md` §8.1). The rule lives
+  only in `rondata::input::Stream`'s `group` arm. `golden::Script::pump`'s `issue` selects units without
+  `Command::process_group_play`, so every golden chapter whose seat commands units parts: 741 rows, 526 units, 93 tests (91
+  golden chapters, corpse melee run1542's 614 `0/14`, and run1075's 1114 `0/6`). Ours is always −1 against the original's 0
+  (seat 0) or 1 (seat 1); the earliest is chapter fifty-three's 608, `1/8` ours −1 theirs 1. Which golden line sends a `group`
+  package, and with which list, is not read. A rondata wiring item, behind the milestone. Moves: `play` off the owed list.
+- **4118c. run667's closing block takes four more firsts with the union compared** (`diff::third_pair`, the 166 pin → 170). The
+  pin prints no keys. That is consistent with 4118a's run1483 parting on the same 17380, where the original has cleared the
+  human's units and the harness replays no quit. Not established.
 
 ## Parked by item 4152, 2026-11-11 — the leaders line's leaves, read (findings for the driver's folding)
 
