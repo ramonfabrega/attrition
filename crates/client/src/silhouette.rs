@@ -1886,8 +1886,8 @@ mod tests {
         world.blend = crate::world::Blend::Current;
     }
 
-    /// **The figures' brightness** (item 4172; `docs/RENDERER.md` §5.3,
-    /// "The luminance reader", committed before this count): the colour
+    /// **The figures' brightness** (item 4172; `docs/RENDERER.md` §3.14,
+    /// "On brightness", committed before this count): the colour
     /// row's objects on the luminance reader, as drawn (`Silhouette`) and
     /// under item 4114's candidate (`Lit`), each beside its colour row;
     /// run1441's camera made to fail. Each object's value diff: both means

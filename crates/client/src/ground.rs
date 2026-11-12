@@ -461,8 +461,8 @@ pub fn our_patches(
 #[cfg(test)]
 pub const RUN1559B_3279_GROUND: (usize, usize) = (1097, 1109);
 
-/// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §5.3,
-/// "The luminance reader", its rule committed before this count): of
+/// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
+/// "On brightness", its rule committed before this count): of
 /// [`RUN1559B_3279_GROUND`]'s 1,109 scored tiles, those whose drawn mean
 /// luminance is the photograph's within `LUMA_READER`: **1,075**; by kind
 /// `[agree, scored]` plain, under a mountain, `ROCK`. The painter's
@@ -1999,8 +1999,8 @@ mod tests {
     /// tile's luminance, ours then the photograph's.
     pub(crate) type LumaRow = ((usize, usize), [[u32; 2]; 7], Vec<((i32, i32), f32, f32)>);
 
-    /// **The ground's brightness** (item 4172; `docs/RENDERER.md` §5.3,
-    /// "The luminance reader", committed before its count): of the ground
+    /// **The ground's brightness** (item 4172; `docs/RENDERER.md` §3.14,
+    /// "On brightness", committed before its count): of the ground
     /// row's scored tiles, those whose drawn mean luminance agrees with the
     /// photograph's under [`render::silhouette::LUMA_READER`]; a tile we
     /// draw no pixel of parts. By kind, [`KINDS`]' order, `[agree, scored]`.

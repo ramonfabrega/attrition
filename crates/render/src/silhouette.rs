@@ -863,7 +863,7 @@ pub fn chromaticity(rgb: [f32; 3]) -> [f32; 2] {
 }
 
 /// **The luminance reader's constants** (item 4172; `docs/RENDERER.md`
-/// §5.3, "The luminance reader"), pinned before its first count. The
+/// §3.14, "On brightness"), pinned before its first count. The
 /// colour reader divides by r + g + b, so it cannot see a white light's
 /// strength; this reader reads only that.
 #[derive(Clone, Copy, Debug)]
@@ -1306,8 +1306,8 @@ pub const RUN1559B_3279_COLOUR_TINT: (usize, usize) = (2, 33);
 /// [`RUN1559B_3279_COLOUR`] at run1441's camera: 0 of 32.
 pub const RUN1441_CAMERA_3279_COLOUR: (usize, usize) = (0, 32);
 
-/// **`RUN1559B_3279_LUMA`** (item 4172; `docs/RENDERER.md` §5.3, "The
-/// luminance reader", its rule committed before this count): of
+/// **`RUN1559B_3279_LUMA`** (item 4172; `docs/RENDERER.md` §3.14, "On
+/// brightness", its rule committed before this count): of
 /// [`RUN1559B_3279_COLOUR`]'s 33 objects, those whose mean luminance on
 /// the held pixels is the photograph's within [`LUMA_READER`], as drawn:
 /// **20 of 33**. Out: 0/5, 0/7, 0/0, 1/23, 1/32, 1/34, 1/35 too bright
