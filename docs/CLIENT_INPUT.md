@@ -1,6 +1,6 @@
 # Client input: a person's events, as the script's orders
 
-*Item 4145, 2026-11-11; §5 item 4149, the same day. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
+*Item 4145, 2026-11-11; §5 item 4149, the same day; §6 item 4179, 2026-11-12. Not `docs/INPUT.md`, which is the recorded order stream into the harness. The client's `input` module (`crates/client/src/input.rs`); the oracle is the minted script
 (`docs/RECGAME.md` §9), whose file the original played for 24,000 frames (run1561).*
 
 An order minted from input events that equals the script's order, field for field, is an order the original has
@@ -23,7 +23,8 @@ Each event does one thing:
   The anchor is the object's point at its own `z`, through `render::camera::world_to_screen`. A press on nothing clears
   the selection. If a building has been chosen, the press places it instead: a `build` at the ground under the pixel,
   with `x2`/`y2` equal to `x`/`y`, and `queued` 2.
-- **A right press**, with units selected, moves them: a `move_to` at the ground under the pixel. Its fields are the
+- **A right press**, with units selected, on an object gives the command the original's dispatch issues for it
+  (§6). On nothing it moves them: a `move_to` at the ground under the pixel. Its fields are the
   script's right-click fields: `set_angle` 0, `angle` 0, `orders` 1, `queued` 2, `form`/`width` −1, `disembark` 0.
 - **A key** trains or chooses:
   - With a building selected, a key in `TRAIN_KEYS` trains: `c` gives a `queue_up` of the Citizen (50), `num` 1.
@@ -112,7 +113,10 @@ the original played in lockstep. The stage 0 projections are the original's own 
 - the pick: the nearest anchor within 24 px;
 - the keys `c` and `f`;
 - the inverse's rounding;
-- that a right press always moves.
+- ~~that a right press always moves~~ a right press on an object mints what `Console::execute_at_cursor` issues
+  (§6); on the ground it moves, and the move's fields are the script's;
+- the right press's look (§6): the nearest anchor within 24 px, where the original searches a ±5 px box by bounding
+  volume.
 
 **Not established:**
 
@@ -126,9 +130,10 @@ the original played in lockstep. The stage 0 projections are the original's own 
 - **The original's hit test**, which uses a piece's drawn pixels.
 - **The interface**: hotkeys, the build menu and the cursor.
 - **Ground height**: the ocean arm of `object_z`, and any point off the map.
-- **Everything the item ruled out**: a right press on an object (gather, attack, garrison), drag and box selection,
+- **Everything the item ruled out**: ~~a right press on an object (gather, attack, garrison)~~ the gather and the help
+  to build are played (§6), and the attack, repair and garrison are §6's "not established"; drag and box selection,
   control groups, queued (shift) orders, more than one object selected, a second slot, and every command beyond the
-  script's three.
+  ~~script's three~~ five §6 plays.
 - **The window under a real mouse.** It is checked by eye only; no capture ran.
 - **The window size.** The window draws with its own size, where these tests use `graphsys`'s.
 - **The zoom.** The closer camera's ×8 is beyond the original's nearest fixed zoom: `fixed_zooms[6]` is about 1.5×
@@ -207,3 +212,123 @@ under the first script's file, against run1563a, parts first on frame 31. The pa
 ours (5880, 31896) against the original's (5883, 31896), and 269 of 299 records part. The draws do not part inside
 300 frames. So the comparison sees three units of a click. Against run1563 the same walk parts nowhere, as above. Seen
 red first: pinned `(0, "", "", None)`, and the long take pinned to part.
+
+## 6. A right press on an object (item 4179)
+
+A right press on a thing mints the command the original's own dispatch issues for it. The dispatch is
+`Console::execute_at_cursor@007c6630`. `Console::on_right_up@007cd3c0` calls `Console::right_click@007c4e70`, which
+calls it with `(0, 0)`: execute, no pick mode. `Console::on_mouse_move@007cef20` calls it with `(1, 0)`, which only
+sets the cursor. The arms were read off the decompile and the listing by one reader and checked against the
+decompile's call sites (lines 885–897, 931–945 and 1225–1240).
+
+### 6.1 What the dispatch issues
+
+The case read is one selected Citizen of the human's, no modifier held, and the default profile's prefs
+(`PlayerProfile::default_mouse@005d01f0` clears `0x20`, `0x200`, `0x400` and `0x800`). Every arm's queue is `QUEUE_NEW`
+(2). With shift it is `QUEUE_LAST`, and with shift and alt `QUEUE_FIRST`.
+
+| under the cursor | the command | its fields |
+| --- | --- | --- |
+| one's own unfinished building | `swarm_around` (`GroupOut::issue_swarm_around@0070afc0`) | `ox`, `whom`, `QUEUE_NEW`, `BUILD_AT` (6) |
+| one's own finished gather building with room | `gather` (`GroupOut::issue_gather@0070aa20`) | `ox`, `QUEUE_NEW` |
+| one's own finished building, damaged, and full or not a gather type | `swarm_around` | `ox`, `whom`, `QUEUE_NEW`, `REPAIR` (13) |
+| one's own finished building, undamaged, not a gather building with room (the city, a full camp) | nothing | |
+| an enemy unit, seen | `attack` (`GroupOut::issue_attack@0070b060`) | `ox`, `whom`, `ignore` 0, `QUEUE_NEW` |
+| the ground | `move_to` | §1's fields |
+
+The predicates, in the dispatch's order:
+
+1. **An enemy unit under the cursor is looked for first**, then a friendly building.
+2. **Built** is the object's `is_active` slot (`flags & 4`).
+3. **A gather type** is `build_flags & 0x40`, the letter `g` of `BUILD_FLAGS`: the Woodcutter's camp, the Farm and the
+   Mine.
+4. **Room** is `BuildData::num_gatherers@00630450` below `gather_max`.
+5. **Damaged** is `ObjectData +0x24` nonzero. A repair also asks that the cell's owner be nobody, the player or an
+   ally.
+
+**Ours.** The client mints these arms from the scene (`input::View::target`, `Input::on_object`). `BuildingScene::gather`
+carries the gather test's inputs: the length of the building's `gather_down` chain, and `gather_max`. The look takes
+the nearest anchor within 24 px. It looks for another slot's unit, then the slot's own building, then another slot's
+building. Another slot's building draws the attack, as the dispatch's attack search does, with units and buildings in
+its mask.
+
+### 6.2 The third script
+
+`rondata::script::right_pressed()` is the clicked script (§5) with two right presses on the opening frames' own
+objects, and nothing else:
+
+| frame | press, then right press | pixels at the opening camera | what the layer reads | the order |
+| --- | --- | --- | --- | --- |
+| 120 | the woodcutter `0/2` (TI 50, Citizen, land), then the Farm's site `0/2007` (TI 417) | (1678, 468), (1338, 463) | own, not built | `swarm_around` 2007, 0, 2, `BUILD_AT` |
+| 200 | the trained Citizen `0/6` (TI 50, land), idle by the Village, then the Woodcutter's camp `0/2001` (TI 418) | (976, 602), (1640, 438) | own, built, room | `gather` 2001, 2 |
+
+`INPUT_RIGHT_PRESSED`: **5 of 5**. The seven clicked events and these four mint the script field for field
+(`minted_right_pressed_at_the_opening_camera`, `RIGHT`). Before this item it was 0: no right press on an object.
+Seen red: the script's `BUILD_AT` set to `REPAIR` gave 4 of 5. `INPUT_CLICKED` stays 3 of 3.
+
+The turn pump takes `swarm_around`, `gather`, `garrison` and `attack` through their `group_*` entries, through
+`Sim::command` (`rondata::input::Stream`).
+
+**The file** is `~/ron-golden/recordings/item4179-right-pressed-greatlakes-24000.rcx`, 59,312 bytes, SHA-256
+`020ed105…a334c` (`RIGHT_PRESSED_RCX_BYTES`). It is the clicked file with two packages added; the closing package's
+`stamp` goes from 5 to 7 with them (`the_right_pressed_minted_packages_round_trip`). The client writes the same bytes
+from the orders it minted.
+
+### 6.3 The playback, and each order's effect
+
+**run1568**: the click-free lane, `end:MISC,UNITS=3,BUILDS=7`, 300 frames (`docs/RUNS.md`).
+`the_original_s_playback_of_the_right_pressed_file_walks_in_lockstep` gives `RIGHT_PRESSED_WALKED`: draws agree on
+**300 of 300** frames, count and sequence; **299 records compared whole, none parted**. Seen red first: pinned
+`(0, 0, 0, 0)`, it printed `(300, 300, 299, 0)`.
+
+**The effects, both sides** (`right_pressed_effects`, on 121, 201 and 299), equal:
+
+- the helper `0/2`: `move`, `build` on 121; `build` on 201; `gather` on 299;
+- the trained `0/6`: no order on 121; `move`, `gather` on 201 and 299;
+- the site `0/2007` finished first on **254**.
+
+The clicked orders' own effects hold, but for one: on 299 the first builder `0/1` holds `move`, `gather`
+(`right_pressed_base_effects`).
+
+**The value diff** against the clicked file's playback, run1563a. Our clicked walk agrees with run1563a on all 299
+records, and the control walk (`clicked_right_effects`) reads it:
+
+| record | field | run1563a | run1568 |
+| --- | --- | --- | --- |
+| `0/2` on 121 | position | (4536, 28680) | (4519, 28700) |
+| `0/2` on 121 | orders | 1 | 2 |
+| `0/2001` on 121 | `gather_down` | 2 | −1 |
+| `0/2007` | `flags & 4` set from | 297 | 254 |
+| `0/6` on 201 | orders | 0 | 2 |
+
+**Made to fail** (`the_clicked_script_against_the_right_pressed_playback_parts`, `CLICKED_AGAINST_RIGHT_PRESSED`):
+our walk under the clicked file, against run1568, parts first on 121, on the helper's position. 179 of 299 records
+part, and the draws part from 244. Seen red first: pinned `(0, "", "", None, 0)`.
+
+### 6.4 Confidence, and what is not established
+
+**Backed by the playback.** The arms for one's own unfinished building and for a gather building with room are played
+by run1568, with their effects equal on both sides.
+
+**Reading only.** The table's other rows rest on one reading with its call sites checked. No blind second reading was
+made. Those rows are the repair, the nothing, the attack and the predicates' order.
+
+**Not established:**
+
+- **The attack.** It is minted, but no enemy stands in view on the opening frames, so no file carries it. It waits for
+  a lobby with one (parked 4179a).
+- **A selection that cannot attack.** A Scout's `ATTACK` is 0. On an enemy unit it reads as `follow`
+  (`GroupOut::issue_follow@00708980`), and on an enemy Spy as a counter-intelligence spell. The layer mints neither:
+  it would mint an attack. The scene does not carry a unit's attack (parked 4179b).
+- **The garrison.** It is issued only with the profile's `0x200` set, the advanced option. Then it is issued ahead of
+  the build, gather and repair arms, for any building with a garrison limit. The default profile clears it, so the
+  layer has no garrison arm (parked 4179c).
+- **Trees, mountains and oil.** The dispatch sends a Citizen to the nearest own Woodcutter's camp or Mine within
+  `0x600` units, and gathers there. The scene does not carry the terrain object, so the layer does not mint this (parked 4179d).
+- **Is seen.** The attack asks `is_seen`; an unseen enemy is moved to instead. The layer does not test the fog.
+- **The repair's territory test**, and **the University's** Citizen arm.
+- **The room test's count.** `num_gatherers` counts the chain's units that `is_gathering_at` the building, plus a few
+  types' insiders. The layer takes the chain's length.
+- **Allies.** The scene names an owner, not an alliance. The layer treats every other slot as an enemy.
+- **A right press on one of the slot's own units**: in the original, follow or guard. The layer moves to the ground
+  under it.
