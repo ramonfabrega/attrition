@@ -529,6 +529,43 @@ pub fn floor_uvs(x: f32, y: f32) -> ([f32; 2], [f32; 2]) {
 pub const FLOOR_TOP: u8 = 255;
 pub const FLOOR_BOT: u8 = 64;
 
+/// **The land's depth fade begins** (item 4192; `docs/RENDERER.md` §3.16): `__real_c2500000`, −52, in
+/// `TerrainOut::light_land_vert@00866e50`.
+pub const LAND_FADE_TOP: f32 = -52.0;
+
+/// **`coast_depth`** (item 4192): terrain `+0x5630`, −303 on run1564's
+/// packet. `build_ocean_floor`'s plane is `coast_depth + land_height − 10`,
+/// [`FLOOR_Z`]'s −283.
+pub const COAST_DEPTH: f32 = -303.0;
+
+/// **`land_height`** (item 4192): the global at `0x00cbe54c`
+/// (`sbl/rise_z.map`), 30.0 on run1564's packet.
+pub const LAND_HEIGHT: f32 = 30.0;
+
+/// **A land corner's alpha** (item 4192; `docs/RENDERER.md` §3.16): `TerrainOut::light_land_vert@00866e50` on the corner
+/// height `h`. At or above 0 the corner keeps `generate_land`'s white,
+/// 255. Below 0 the alpha is `(1 − m · (1 / span)) · 255`, truncated, with
+/// `m = min(|−52 − min(h, −52)|, span)` and `span = |coast_depth +
+/// land_height + 2 + 52|`, 219. So it is 255 down to −52 and 0 from −271.
+/// Every land-pass draw blends at it (`base_terrain_rs`, source alpha over,
+/// depth written): on run1564's packet it is `master_land`'s alpha on
+/// 58,081 of 58,081 corners, and the sand layer's on 4,928 of 4,928
+/// vertices ([`RUN1564_LAND_FADE`]).
+pub fn land_alpha(h: f32) -> u8 {
+    land_alpha_of(h, LAND_HEIGHT)
+}
+
+/// [`land_alpha`] at another `land_height`: the made-to-fail side of
+/// [`RUN1564_LAND_FADE`].
+pub fn land_alpha_of(h: f32, land_height: f32) -> u8 {
+    if h >= 0.0 {
+        return 255;
+    }
+    let span = (COAST_DEPTH + land_height + 2.0 - LAND_FADE_TOP).abs();
+    let m = (LAND_FADE_TOP - h.min(LAND_FADE_TOP)).abs().min(span);
+    ((1.0 - m * (1.0 / span)) * 255.0) as u8
+}
+
 /// **`OceanVars`' water bytes** (item 4174): `top*_top` and `top*_bot`,
 /// read on run1564's packet as (0, 159, 255) at the screen's top and
 /// (0, 111, 218) at its foot. `oceanred` … (255, 255, 255) is the white
@@ -860,16 +897,24 @@ pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1097, 1109);
 /// 4174a), the land unchanged. Tile (159, 194) at pixel (158, 6), theirs
 /// (46, 113, 162), was (114, 195, 207) on the still and parts; tile
 /// (163, 189), theirs (62, 124, 161), the still's (55, 186, 230) before.
+/// Item 4192: **1,373 → 1,024**, the land pass at `light_land_vert`'s
+/// depth alpha over the clear colour ([`land_alpha`], 4,928 of 4,928 of
+/// the sand layer's vertices, [`RUN1564_LAND_FADE`]): `SANDY` 664 → 315.
+/// The deep sand had agreed only because it lay opaque under the water;
+/// at −273 its alpha is 0, and what is left there is the water over black,
+/// short of the photograph's red as `OCEAN` is (4174a). Tile (159, 194) at
+/// pixel (158, 6), theirs (46, 113, 162), the still's (65, 168, 217) →
+/// (1, 117, 188), parts. Its luminance gains 317 ([`GROUND_LUMA_STILL`]).
 #[cfg(test)]
 pub const RUN1564_3279_GROUND_STILL: ((usize, usize), [[u32; 2]; 7]) = (
-    (1373, 1920),
+    (1024, 1920),
     [
         [677, 679],
         [0, 0],
         [32, 32],
         [0, 0],
         [0, 0],
-        [664, 772],
+        [315, 772],
         [0, 437],
     ],
 );
@@ -883,7 +928,10 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// then run1564, `(agree, scored)` and by kind. run1564 **791 → 1,001**:
 /// at the base the still read the painter's 791 (`OCEAN` 2, `SANDY` 83);
 /// with the floor and the water drawn, `OCEAN` 2 → 215 of 437 and `SANDY`
-/// 83 → 80 of 772. run1559b 1,076, unchanged.
+/// 83 → 80 of 772. run1559b 1,076, unchanged. Item 4192: run1564 **1,001
+/// → 1,318**, the land's depth fade ([`land_alpha`]): `SANDY` 80 → 397 of
+/// 772, the deep sand now the water over the clear colour; run1559b
+/// unchanged.
 #[cfg(test)]
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
@@ -899,14 +947,14 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
         ],
     ),
     (
-        (1001, 1920),
+        (1318, 1920),
         [
             [679, 679],
             [0, 0],
             [27, 32],
             [0, 0],
             [0, 0],
-            [80, 772],
+            [397, 772],
             [215, 437],
         ],
     ),
@@ -915,8 +963,9 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// Both ground rows on the draw before item 4171 (the silhouette after,
 /// an sRGB target): the rows' made-to-fail, run1559b then run1564. Item
 /// 4178: run1564's 1,286 → 834, the water's colour taken to linear light.
+/// Item 4192: run1564's 834 → 927, the land's depth fade.
 #[cfg(test)]
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1003, 1109), (834, 1920)];
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1003, 1109), (927, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -1094,6 +1143,20 @@ pub const RUN1564_3279_WATER: [[u32; 2]; 3] = [[55, 233], [294, 233], [112, 0]];
 /// The drawn lattice's counts, then each reading's (item 4178).
 #[cfg(test)]
 pub type WaterLattice = ((usize, usize, usize), [(u32, u32, u32); 5]);
+
+/// **`RUN1564_LAND_FADE`** (item 4192; `docs/RENDERER.md` §3.16): run1564's land off its packet
+/// (`tools/render/sand_packet.py`, logger frame 3294) against our terrain.
+/// `[corners, heights ours within 0.01, alphas land_alpha of their height,
+/// alphas land_alpha of ours, sand vertices, on a SANDY cell of ours, their
+/// alpha land_alpha of our corner]`. At `land_height` 0 (span 249) the
+/// formula agrees on 47,874 corners.
+#[cfg(test)]
+pub const RUN1564_LAND_FADE: [usize; 7] = [58081, 58081, 58081, 58081, 4928, 4928, 4928];
+
+/// [`RUN1564_LAND_FADE`]'s sand vertices whose alpha [`land_alpha_of`] gives at
+/// `land_height` 0: the made-to-fail side of the sand layer's count.
+#[cfg(test)]
+const ZERO_SAND: usize = 1077;
 
 /// **`RUN1564_WATER_LATTICE`** (item 4178; `docs/RENDERER.md` §3.12): run1564's
 /// drawn water off its packet (`modify_water`'s statics at logger frame
@@ -1845,6 +1908,89 @@ pub(crate) mod tests {
         );
     }
 
+    /// **The land's depth fade off the packet** (item 4192; §3.16): run1564's `master_land` corners and its land pass's
+    /// one filled helper, the sand layer (`tools/render/sand_packet.py`),
+    /// against [`land_alpha`] on our terrain ([`RUN1564_LAND_FADE`]).
+    #[test]
+    fn the_land_fade_off_the_packet() {
+        let path = std::env::var_os("RON_SAND_PACKET_1564")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                let home = std::env::var_os("HOME").unwrap_or_default();
+                PathBuf::from(home)
+                    .join("ron-data/lab-experiments/2026-11-12-item-4192/run1564-sand.txt")
+            });
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            println!("skipping: no sand packet dump at {}", path.display());
+            return;
+        };
+        let Some(p) = probe_at(run1564()) else { return };
+        let t = p.world.runner.terrain();
+        let num = |s: &str| s.parse::<f32>().expect("a float");
+        let sx = t.width * render::terrain::TILES_PER_CELL + 1;
+        let ours = |ix: i32, iy: i32| f32::from_bits(t.corners[(iy * sx + ix) as usize]);
+        let mut got = [0usize; 7];
+        let (mut zero, mut zero_sand) = (0, 0);
+        let mut worst: Option<(i32, i32, f32, f32)> = None;
+        for line in text.lines() {
+            let f: Vec<&str> = line.split_whitespace().collect();
+            match f.first().copied() {
+                Some("land") => {
+                    assert_eq!(
+                        f[f.iter().position(|w| *w == "side").unwrap() + 1],
+                        format!("{sx}")
+                    );
+                    let at = |k: &str| num(f[f.iter().position(|w| *w == k).unwrap() + 1]);
+                    assert_eq!(
+                        (at("coast_depth"), at("land_height")),
+                        (COAST_DEPTH, LAND_HEIGHT)
+                    );
+                }
+                Some("corner") => {
+                    let (ix, iy): (i32, i32) = (f[1].parse().unwrap(), f[2].parse().unwrap());
+                    let (h, a) = (num(f[3]), f[4].parse::<u8>().unwrap());
+                    let us = ours(ix, iy);
+                    got[0] += 1;
+                    if (us - h).abs() <= 0.01 {
+                        got[1] += 1;
+                    } else if worst.is_none_or(|w| (w.3 - w.2).abs() < (us - h).abs()) {
+                        worst = Some((ix, iy, h, us));
+                    }
+                    got[2] += usize::from(land_alpha(h) == a);
+                    got[3] += usize::from(land_alpha(us) == a);
+                    zero += usize::from(land_alpha_of(h, 0.0) == a);
+                }
+                Some("sand") => {
+                    let (x, y) = (num(f[2]), num(f[3]));
+                    let a = (u32::from_str_radix(f[5], 16).unwrap() >> 24) as u8;
+                    let (ix, iy) = ((x / 192.0) as i32, (y / 192.0) as i32);
+                    got[4] += 1;
+                    // A vertex on a cell's edge touches the cells either
+                    // side of it: one of them is the cell it was laid for.
+                    let cells = |v: f32| [((v - 1.0) / 768.0) as i32, (v / 768.0) as i32];
+                    let near = cells(x).iter().any(|&cx| {
+                        cells(y).iter().any(|&cy| {
+                            t.land[(cy * t.width + cx) as usize] == render::terrain::SANDY
+                        })
+                    });
+                    got[5] += usize::from(near);
+                    got[6] += usize::from(land_alpha(ours(ix, iy)) == a);
+                    zero_sand += usize::from(land_alpha_of(ours(ix, iy), 0.0) == a);
+                }
+                _ => {}
+            }
+        }
+        println!(
+            "RUN1564_LAND_FADE: {got:?}; at land_height 0, {zero} corners and {zero_sand} sand vertices; the worst height {worst:?}"
+        );
+        assert_eq!(got, RUN1564_LAND_FADE);
+        assert_eq!(
+            (zero, zero_sand),
+            (47874, ZERO_SAND),
+            "made to fail: land_height 0"
+        );
+    }
+
     #[test]
     fn the_water_fades_as_get_water_fade_fades() {
         assert_eq!(water_fade(-200.0), WATER_SOLID);
@@ -2031,13 +2177,44 @@ pub(crate) mod tests {
             .collect();
         assert_eq!(shade.len(), 1, "one floor shade");
         assert_eq!(shade[0].positions.len(), sea * 3, "every OCEAN tile, once");
+        // Item 4192: and the land's faded layers, one per texture whose
+        // triangles reach below the fade's top, each before the shade.
+        let faded: Vec<_> = laid
+            .iter()
+            .filter(|m| {
+                m.alpha == crate::world::WATER_ALPHA
+                    && m.piece != crate::world::WATER_PIECE
+                    && m.piece != crate::world::FLOOR_PIECE - 1
+            })
+            .collect();
+        assert!(!faded.is_empty(), "the lake's floor fades");
         assert_eq!(
             laid.iter()
                 .filter(|m| m.alpha == crate::world::WATER_ALPHA)
                 .count(),
-            2,
-            "the water and the shade ride the alpha ramp"
+            2 + faded.len(),
+            "the water, the shade and the faded land ride the alpha ramp"
         );
+        assert!(
+            laid.iter()
+                .position(|m| m.piece == crate::world::FLOOR_PIECE - 1)
+                == Some(faded.len()),
+            "the faded land before the shade"
+        );
+        let mut faded_of = std::collections::BTreeMap::<usize, usize>::new();
+        for m in &faded {
+            assert!(m.piece < 0 && m.piece > crate::world::FLOOR_PIECE);
+            assert_eq!(m.positions.len(), m.alpha_uvs.len());
+            assert_eq!(m.positions.len(), m.uvs.len());
+            assert!(
+                m.positions
+                    .chunks(3)
+                    .all(|tri| tri.iter().any(|q| land_alpha(q[2]) < 255)),
+                "a faded triangle reaches below the top"
+            );
+            *faded_of.entry((-1 - m.piece) as usize).or_default() += m.positions.len();
+        }
+        let fade_drawn: usize = faded_of.values().sum();
         assert!(
             laid.iter()
                 .position(|m| m.alpha == crate::world::WATER_ALPHA)
@@ -2051,8 +2228,11 @@ pub(crate) mod tests {
         assert!(laid > 0, "the transition patch is laid");
         let drawn: usize = ground.iter().map(|m| m.positions.len()).sum();
         assert!(drawn > 0, "the ground is textured");
-        assert_eq!(drawn, base.tris.len() * 3);
-        assert_eq!(rest.positions.len() + drawn, full.positions.len());
+        assert_eq!(drawn + fade_drawn, base.tris.len() * 3);
+        assert_eq!(
+            rest.positions.len() + drawn + fade_drawn,
+            full.positions.len()
+        );
         for m in ground {
             assert_eq!(m.positions.len(), m.uvs.len());
             // Item 4178: the `OCEAN` tiles draw the floor, not their base.
@@ -2062,7 +2242,12 @@ pub(crate) mod tests {
                 (-1 - m.piece) as usize
             };
             let tris = base.of.iter().filter(|&&o| o == k).count();
-            assert_eq!(m.positions.len(), tris * 3, "texture {k}");
+            let fade = if m.piece == crate::world::FLOOR_PIECE {
+                0
+            } else {
+                faded_of.get(&k).copied().unwrap_or(0)
+            };
+            assert_eq!(m.positions.len() + fade, tris * 3, "texture {k}");
         }
         assert!(
             ground
