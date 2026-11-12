@@ -9,9 +9,16 @@
 //! `base_edge` draw (§4) are walked forward rather than stepped back from
 //! 7805, and every later phase takes the word the one before it left.
 //!
-//! [`great_lakes_map`] hands each checkpoint to a callback with the state
+//! [`composed_map`] hands each checkpoint to a callback with the state
 //! the trace prints there (the seed, parts 2, 5, 6 and 10–13), so a caller
 //! holding a setup trace bisects the composed chain phase by phase.
+//!
+//! **East Indies and Great Sahara on the same walk** (item 4186): East
+//! Indies' phases are Great Lakes' calls with its own mask, file and style
+//! id; Great Sahara's whole-land mask runs `Terrain::init` without
+//! heights, then the rivers, then the heights, the order `mapgen`'s Great
+//! Sahara tests checked. Every start dump of the two styles with a setup
+//! trace is the falsifier: the sync word after `Herd::create_units`.
 
 use super::{fertility_of, mesa::regions_of};
 use super::{
@@ -91,11 +98,14 @@ pub enum Refusal {
 /// when the file's `TILECHANCE` chances sum to at least 2, one
 /// `Random::get(0, 0xffff)`, and the first entry whose running total is at
 /// least `r % T` (the test is `≤`). `None` when the file draws nothing.
+/// The gate is the sum alone (`init_map_data`'s `T − 1 < 1`), so a style
+/// with one entry of chance 100 — SAHARA.xml's `GS_Desert` — still draws
+/// (item 4186).
 /// The chosen name is taken to be an available tileset: the second draw an
 /// unavailable one makes is not walked (parked 3819b).
 pub fn tileset_draw(chances: &[(String, i32)], rng: &mut Rng) -> Option<String> {
     let total: i32 = chances.iter().map(|c| c.1).sum();
-    if chances.len() < 2 || total < 2 {
+    if total < 2 {
         return None;
     }
     let r = rng.get(0, 0xffff) % total;
@@ -106,22 +116,82 @@ pub fn tileset_draw(chances: &[(String, i32)], rng: &mut Rng) -> Option<String> 
     })
 }
 
-const STYLE: &str = "GREATLAKES.xml";
+/// The map styles whose chain is composed from the lobby: the two whose
+/// masks are grown as `Regions` by the same growers
+/// (`sim::mapgen::map_lakes`), and whose later phases are the same calls
+/// in the same order (`docs/MAPGEN.md` §15: every East Indies phase was
+/// checked on the passes Great Lakes' had built, with no `sim` change
+/// past the mask).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Style {
+    /// `MAP_STYLE` 14, `MapGreatLakes::make_continents@00699e40`.
+    GreatLakes,
+    /// `MAP_STYLE` 18, `MapEastIndies::make_continents@00697540` (item 4186).
+    EastIndies,
+    /// `MAP_STYLE` 7, `MapGreatSahara::make_continents@0069bf70` (item
+    /// 4186): the whole map land, so `Terrain::init`'s half-land gate opens
+    /// on no cell and the heights follow the rivers
+    /// (`sim::mapgen::map_heights::heights`), as `mapgen`'s Great Sahara
+    /// tests walk them from 7805.
+    GreatSahara,
+}
 
-/// **Great Lakes' map, composed** — `Map::load_map_data`, `Map::make`,
+impl Style {
+    /// The style a lobby's `MAP_STYLE` names, when its chain is composed.
+    pub fn of(map_style: i64) -> Option<Style> {
+        match map_style {
+            7 => Some(Style::GreatSahara),
+            14 => Some(Style::GreatLakes),
+            18 => Some(Style::EastIndies),
+            _ => None,
+        }
+    }
+
+    /// The style's file under `mapstyles/`.
+    pub fn file(self) -> &'static str {
+        match self {
+            Style::GreatLakes => "GREATLAKES.xml",
+            Style::EastIndies => "EASTINDIES.xml",
+            Style::GreatSahara => "SAHARA.xml",
+        }
+    }
+
+    /// `MAP_STYLE`, which `place_all`'s inputs read.
+    pub fn id(self) -> i32 {
+        match self {
+            Style::GreatLakes => 14,
+            Style::EastIndies => 18,
+            Style::GreatSahara => 7,
+        }
+    }
+}
+
+/// **Great Lakes' map, composed** ([`composed_map`] on [`Style::GreatLakes`]).
+pub fn great_lakes_map(
+    root: &Path,
+    lobby: &LakesLobby,
+    max_range_349: i32,
+    check: impl FnMut(&Checkpoint),
+) -> Result<LakesMap, Refusal> {
+    composed_map(root, Style::GreatLakes, lobby, max_range_349, check)
+}
+
+/// **A style's map, composed** — `Map::load_map_data`, `Map::make`,
 /// `Terrain::init` to 894 and `Terrain::mark_forest`, in
 /// `Setup::build_game`'s order, on one stream
 /// from `lobby.at_716`. `check` is handed every checkpoint the setup trace
 /// prints for these phases, in order: 7805, 7807, 7854, 7859, 7861, 7865,
 /// 7870, 7927, 7937, 7945, `Terrain.cpp` 720 and 738, `map.cpp` 5012,
-/// 5014, 5076, 5116 and 5118, `Terrain.cpp` 894, and `setup.cpp` 884
-/// after `Terrain::mark_forest`.
-pub fn great_lakes_map(
+/// 5014, 5076, 5116 and 5118 (those `make_rivers` prints), `Terrain.cpp`
+/// 894, and `setup.cpp` 884 after `Terrain::mark_forest`.
+pub fn composed_map(
     root: &Path,
+    which: Style,
     lobby: &LakesLobby,
     max_range_349: i32,
     mut check: impl FnMut(&Checkpoint),
 ) -> Result<LakesMap, Refusal> {
+    let style_file = which.file();
     let (xs, ys) = (lobby.xs, lobby.ys);
     let seed = lobby.seed as u32;
     let empty = HalfLand::default()
@@ -142,7 +212,7 @@ pub fn great_lakes_map(
     // `base_edge = r % 4` (default.xml's −1; the style leaves it).
     let mut rng = Rng::new(lobby.at_716);
     let default = tile_chances(root, "default.xml").ok_or(Refusal::Data("default.xml"))?;
-    let chances = tile_chances(root, STYLE).ok_or(Refusal::Data(STYLE))?;
+    let chances = tile_chances(root, style_file).ok_or(Refusal::Data("the style's tilesets"))?;
     let first = tileset_draw(&default, &mut rng);
     let tileset = tileset_draw(&chances, &mut rng)
         .or(first)
@@ -151,20 +221,41 @@ pub fn great_lakes_map(
     let mut grid = MapGrid::new(xs, ys);
     say("map.cpp", 7805, &grid, &rng, empty);
     // §5: the mask.
-    let style = lake_style(
-        root,
-        STYLE,
-        (xs, ys, lobby.nations, lobby.map_size),
-        base_edge,
-        max_range_349,
-    )
-    .ok_or(Refusal::Data("Great Lakes' style"))?;
     let mut d = Draws::new(rng.seed);
-    sim::mapgen::map_lakes::great_lakes_make_continents(&mut grid, lobby.nations, style, &mut d)
-        .ok_or(Refusal::Continents)?;
+    let style = || {
+        lake_style(
+            root,
+            style_file,
+            (xs, ys, lobby.nations, lobby.map_size),
+            base_edge,
+            max_range_349,
+        )
+        .ok_or(Refusal::Data("the style's mask fields"))
+    };
+    let made = match which {
+        Style::GreatLakes => sim::mapgen::map_lakes::great_lakes_make_continents(
+            &mut grid,
+            lobby.nations,
+            style()?,
+            &mut d,
+        )
+        .map(|_| ()),
+        Style::EastIndies => sim::mapgen::map_east_indies::east_indies_make_continents(
+            &mut grid,
+            lobby.nations,
+            style()?,
+            &mut d,
+        )
+        .map(|_| ()),
+        Style::GreatSahara => {
+            sim::mapgen::great_sahara_make_continents(&mut grid, lobby.nations, &mut d.rng);
+            Some(())
+        }
+    };
+    made.ok_or(Refusal::Continents)?;
     say("map.cpp", 7807, &grid, &d.rng, empty);
     // §6: the zero-draw passes and `fill_fertile`.
-    let fert = fertility_of(root, STYLE, &tileset).ok_or(Refusal::Data("its fertility"))?;
+    let fert = fertility_of(root, style_file, &tileset).ok_or(Refusal::Data("its fertility"))?;
     let mut regions = Regions::default();
     regions.clear_all(&mut grid);
     regions.find_all(&mut grid);
@@ -176,8 +267,8 @@ pub fn great_lakes_map(
     grid.fill_fertile(&fractal, &fertile_partitions(&fert.baseland));
     say("map.cpp", 7854, &grid, &d.rng, empty);
     // §7: the groups and their tail.
-    let groups = place_all_inputs_of(root, STYLE, &tileset, xs, ys, 14)
-        .ok_or(Refusal::Data("Great Lakes' place_all inputs"))?;
+    let groups = place_all_inputs_of(root, style_file, &tileset, xs, ys, which.id())
+        .ok_or(Refusal::Data("the style's place_all inputs"))?;
     place_all(&mut grid, &mut d, &groups);
     say("map.cpp", 7859, &grid, &d.rng, empty);
     let ts = tileset_groups(root, &tileset).ok_or(Refusal::Data("the tileset's groups"))?;
@@ -188,8 +279,8 @@ pub fn great_lakes_map(
     change_bases(&mut grid, &mut d, &ts);
     say("map.cpp", 7870, &grid, &d.rng, empty);
     // §8: resources.
-    let rows = resource_inputs(root, STYLE, xs, ys, lobby.nations)
-        .ok_or(Refusal::Data("Great Lakes' rows"))?;
+    let rows = resource_inputs(root, style_file, xs, ys, lobby.nations)
+        .ok_or(Refusal::Data("the style's resource rows"))?;
     place_resources(&mut grid, &mut d, &rows, lobby.nations);
     say("map.cpp", 7927, &grid, &d.rng, empty);
     // §9: blocking, the regions again, the values.
@@ -199,12 +290,6 @@ pub fn great_lakes_map(
     say("map.cpp", 7937, &grid, &d.rng, empty);
     compute_all_vals(&mut grid, &mut d, &makes);
     say("map.cpp", 7945, &grid, &d.rng, empty);
-    // §10, §16: `Terrain::init` — the heights to 706, the half-land (720),
-    // the doobers (738), the beach (5012).
-    let mut coord = coord_flags(&grid);
-    let f = sim::mapgen::map_heights::fractals(xs, ys, seed);
-    let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &f);
-    sim::mapgen::map_heights::build_coastal_data(&grid, &mut coord, &mut z, seed);
     let combo = sim::mapgen::halfland::Combo {
         coast_base: ts.coast_base,
         num_tiles: [
@@ -214,6 +299,65 @@ pub fn great_lakes_map(
             None,
         ],
     };
+    let thresh = river_thresh(root, style_file).ok_or(Refusal::Data("RIVER_THRESHOLD"))?;
+    let rivers = river_list(root, style_file).ok_or(Refusal::Data("a RIVERLIST"))?;
+    let standard = standard_map_size(root).ok_or(Refusal::Data("the Standard map size"))?;
+    let phase = Phase {
+        thresh,
+        city_radius: sim::core::tuning::Tuning::RON.city_center_radius,
+        rivers: &rivers,
+        standard,
+        seed,
+        nations: lobby.nations,
+    };
+    let install = crate::Install::new(root);
+    let meshes = crate::mountains::meshes(&install);
+    if which == Style::GreatSahara {
+        // §10, §15 steps 6 to 8 on an all-land mask, in the order
+        // `mapgen`'s Great Sahara tests walk them (items 3809, 3811,
+        // 3812): `Terrain::init` without heights (734 → 5012, no cell
+        // gated, so the lists stay empty and nothing moves), the rivers
+        // (5012..5118; `SAHARA.xml`'s `RIVERLIST` is empty), then the
+        // heights on the grid the rivers left, with no trough to carve.
+        let sea = super::sea_map(root, style_file).ok_or(Refusal::Data("SEA_MAP"))?;
+        let (_, mut coord, halfland) =
+            sim::mapgen::terrain_init::terrain_init_without_heights(&mut grid, sea)
+                .map_err(|e| Refusal::Unported(format!("Terrain::init: {e:?}")))?;
+        let lists = halfland
+            .parts()
+            .ok_or(Refusal::Data("the half-land lists' walk"))?;
+        say("Terrain.cpp", 720, &grid, &d.rng, lists);
+        say("Terrain.cpp", 738, &grid, &d.rng, lists);
+        let mut regions = regions_of(&grid);
+        make_rivers(&mut grid, &mut regions, &phase, &mut d, |line, g, d| {
+            say("map.cpp", line, g, &d.rng, lists)
+        });
+        let z =
+            sim::mapgen::map_heights::heights(&grid, &mut coord, seed, &groups.templates, &meshes)
+                .map_err(|e| Refusal::Unported(format!("the heights: {e:?}")))?;
+        say("Terrain.cpp", 894, &grid, &d.rng, lists);
+        grid.mark_forest();
+        say("setup.cpp", 884, &grid, &d.rng, lists);
+        return Ok(LakesMap {
+            grid,
+            z,
+            draws: d,
+            tileset,
+            base_edge,
+            coord,
+            halfland,
+            land: sim::world::terrain::TileSetLand {
+                weatherbase: ts.weatherbase as u8,
+                combo,
+            },
+        });
+    }
+    // §10, §16: `Terrain::init` — the heights to 706, the half-land (720),
+    // the doobers (738), the beach (5012).
+    let mut coord = coord_flags(&grid);
+    let f = sim::mapgen::map_heights::fractals(xs, ys, seed);
+    let mut z = sim::mapgen::map_heights::generate_land(&grid, &coord, &f);
+    sim::mapgen::map_heights::build_coastal_data(&grid, &mut coord, &mut z, seed);
     let mut depth = 0;
     let lists = sim::mapgen::terrain_init::check_and_set_halfland_heights(
         &mut grid, &mut coord, &z, combo, &mut depth,
@@ -232,24 +376,11 @@ pub fn great_lakes_map(
         .convert_beach_to_sandy()
         .map_err(|e| Refusal::Unported(format!("the beach: {e:?}")))?;
     // §15 step 8: the rivers, 5012..5118 (`make_rivers` prints each).
-    let thresh = river_thresh(root, STYLE).ok_or(Refusal::Data("RIVER_THRESHOLD"))?;
-    let rivers = river_list(root, STYLE).ok_or(Refusal::Data("a RIVERLIST"))?;
-    let standard = standard_map_size(root).ok_or(Refusal::Data("the Standard map size"))?;
     let mut regions = regions_of(&grid);
-    let phase = Phase {
-        thresh,
-        city_radius: sim::core::tuning::Tuning::RON.city_center_radius,
-        rivers: &rivers,
-        standard,
-        seed,
-        nations: lobby.nations,
-    };
     make_rivers(&mut grid, &mut regions, &phase, &mut d, |line, g, d| {
         say("map.cpp", line, g, &d.rng, lists)
     });
     // §17: the troughs, then `adjust_for_mountains` (894).
-    let install = crate::Install::new(root);
-    let meshes = crate::mountains::meshes(&install);
     sim::mapgen::map_troughs::calculate_all(
         &mut grid,
         &mut coord,

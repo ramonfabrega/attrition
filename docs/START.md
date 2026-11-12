@@ -315,6 +315,13 @@ are the fifteen styles with no composed chain (East Indies 53, Great
 Sahara 47), parting at their first cell; 8 are the Great Lakes lobbies
 with a Spanish (3), American (2), Dutch, Korean or Greek seat; one is
 4033a's scratch capture, whose dump prints neither cells nor `diplos`.
+**114 of 161** at item 4186: the chain composed for East Indies (42 of
+its 53 lobbies) and Great Sahara (37 of 47) by the same walk
+(`rondata::mapgen::lakes::composed_map`). Of the 47 left, 29 are the
+nation arms at a `CELL flags` (Great Lakes 8, East Indies 11, Great
+Sahara 10: a Spanish, American, Dutch, Korean or Greek seat, or a lobby
+with one among several), 17 the thirteen styles still without a chain at
+their first cell, and one 4033a's.
 
 ## 6. Confidence, and what is not established
 
@@ -349,8 +356,16 @@ with a Spanish (3), American (2), Dutch, Korean or Greek seat; one is
   of seventeen nations; the starting pasture on 16 (its `FARMS`
   `farm_type` and the trace's sync word; the five animals' species and
   places are in no dump, 4034b).
+- **Diff-backed on 79 more** (item 4186): East Indies and Great Sahara
+  composed from `setup.cpp` 716 on one stream, each lobby's every cell,
+  building, unit and the setup trace's sync word. Great Sahara's
+  `init_map_data` draws on its one `TILECHANCE` (`GS_Desert` 100): the
+  gate is the chances' sum, `T − 1 < 1`, not the entry count; with the
+  count's gate restored, lobby 3 (run1000) parts at `CELL 35 0 flags`,
+  ours 512 theirs 0, 12,045 of 18,136 agreeing.
 - **Not established**: the team assignment and the handicaps; a
-  composed chain for any style but Great Lakes; the default tileset
+  composed chain for any style but Great Lakes, East Indies and Great
+  Sahara; the default tileset
   draw's unavailable-name arm (a second
   draw, parked 3819b); a team game's consecutive teammates; the Large
   Town list; `build_units` on a Nomad or City-only start (`place_unit`'s
@@ -365,7 +380,8 @@ with a Spanish (3), American (2), Dutch, Korean or Greek seat; one is
   placer prose puts the draw on the wrong arm (parked 4047a), and §9.3's
   "steps off the footprint" is not what the no-host arm does (parked
   4063a); the port is right in both.
-- **Coverage**: every lobby compared, 161 of 161 (item 4034); 35 whole.
+- **Coverage**: every lobby compared, 161 of 161 (item 4034); 35 whole,
+  114 at item 4186.
   Two of the 35 have no setup trace on disk (run1515b's and run1541b's
   lobbies), so their sync word is not backed; four have neither a
   bracket nor a `PERSONALITY` block for the computer leader (run3's,

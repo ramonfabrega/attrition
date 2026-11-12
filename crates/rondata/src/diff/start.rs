@@ -22,8 +22,10 @@ use super::*;
 /// (`every_lobby_s_start_built_from_its_choices`): 14 Great Lakes lobbies
 /// already whole and never compared, 16 a starting pasture's twenty draws
 /// released (`CitiesState::walks_setup`), and 4 whose only parting was a
-/// personality no dump prints.
-pub const START_BUILT: usize = 35;
+/// personality no dump prints. 114 at item 4186 (+79): the chain composed
+/// for East Indies (42 of its 53 lobbies) and Great Sahara (37 of 47), the
+/// same calls Great Lakes' runs ([`crate::mapgen::lakes::composed_map`]).
+pub const START_BUILT: usize = 114;
 
 /// **The lobby's word on the built start** (`docs/START.md` §7.4, item
 /// 4057): `(map, word, length)` — the harness lobby's long capture (run53,
@@ -821,11 +823,13 @@ pub fn world_extent(root: &std::path::Path, map_size: i32, map_style: i32) -> Op
 ///    `build_game`'s re-seed discards it, so nothing at frame 0 observes it;
 /// 3. `Setup::build_game`'s re-seed from `info.seed` and `world->seed =
 ///    rand % 0xffff + 1`;
-/// 4. **the map** — `Map::make`, `Terrain::init` — which no path in this
-///    crate composes into a `World` yet: the walk stops here, and every
-///    step after it (the start permutation, `Leader::init`'s personality,
-///    each `build_empire`, `Herd::create_units`, `compute_all_territory`)
-///    is listed as not built.
+/// 4. **the map** — `Map::make`, `Terrain::init` — composed for Great
+///    Lakes, East Indies and Great Sahara
+///    ([`crate::mapgen::lakes::composed_map`], items 4047, 4186); on any
+///    other style the walk stops here, and every step after it (the start
+///    permutation, `Leader::init`'s personality, each `build_empire`,
+///    `Herd::create_units`, `compute_all_territory`) is listed as not
+///    built.
 pub fn from_lobby(
     loaded: &Loaded,
     game_info: &[(&str, &str)],
@@ -877,13 +881,13 @@ pub fn from_lobby(
     let mut checkpoints = Vec::new();
     let map = (|| {
         let root = loaded.install_root.as_deref()?;
-        if int("MAP_STYLE") != Some(14) {
+        let Some(which) = int("MAP_STYLE").and_then(crate::mapgen::lakes::Style::of) else {
             notes.push(format!(
-                "the map: style {:?} has no composed chain (Great Lakes, 14, has)",
+                "the map: style {:?} has no composed chain (Great Lakes, 14, and East Indies, 18, have)",
                 int("MAP_STYLE")
             ));
             return None;
-        }
+        };
         let range = loaded
             .unit_of_type_index(349)
             .map(|i| loaded.unit_types[i].combat.max_range)?;
@@ -895,8 +899,10 @@ pub fn from_lobby(
             map_size: int("MAP_SIZE").unwrap_or(-1),
             seed: game_seed,
         };
-        let sea = crate::mapgen::sea_map(root, "GREATLAKES.xml")?;
-        match crate::mapgen::lakes::great_lakes_map(root, &lobby, range, |c| checkpoints.push(*c)) {
+        let sea = crate::mapgen::sea_map(root, which.file())?;
+        match crate::mapgen::lakes::composed_map(root, which, &lobby, range, |c| {
+            checkpoints.push(*c)
+        }) {
             Ok(m) => Some((m, sea)),
             Err(e) => {
                 notes.push(format!("the map: the chain refused, {e:?}"));
@@ -1038,7 +1044,8 @@ pub fn from_lobby(
     let mut empire_words = Vec::new();
     if map_built {
         // 5. The start permutation, off the map's stream (`setup.cpp` 884
-        // -> 955). Great Lakes randomises its starts.
+        // -> 955). Every composed style randomises its starts (only East
+        // Meets West's `make_continents` writes the flag again).
         let start_list = start_permutation(&mut sim.rng, true);
         words.push(("setup.cpp", 955, sim.rng.seed));
         steps.push(("the start permutation", true));
@@ -1714,21 +1721,24 @@ mod tests {
     }
 
     /// **The census**: every lobby's first parting by record and field,
-    /// counted (item 4034; the value diff per lobby is its journal's). The
-    /// map is the 117 lobbies of the fifteen styles with no composed chain
-    /// (East Indies 53, Great Sahara 47, fourteen others 17), each at its
-    /// first cell — `CELL land`, `CELL region`, and two of the ten `CELL
-    /// flags`; the other eight are the Great Lakes lobbies with a Spanish,
-    /// American, Dutch, Korean or Greek seat (`docs/START.md` §2 step 7,
-    /// not built). `LEADER at_war` is item 4033a's scratch lobby, a Great
-    /// Sahara dump that prints neither cells nor `diplos`, so the
-    /// installer's side there is its own default, not the original's.
+    /// counted (items 4034, 4186; the value diff per lobby is each item's
+    /// journal's). The map is the 17 lobbies of the thirteen styles with no
+    /// composed chain, each at its first cell — the seven `CELL land`, the
+    /// eight `CELL region` and two of the 31 `CELL flags` (item 4186
+    /// composed East Indies and Great Sahara: 60 → 7 and 55 → 8). The other
+    /// 29 `CELL flags` are the nation arms (`docs/START.md` §2 step 7, not
+    /// built): a Spanish, American, Dutch, Korean or Greek seat on Great
+    /// Lakes (8), East Indies (11, one the fuzz lobby) and Great Sahara
+    /// (10, one a classical melee). `LEADER at_war` is item 4033a's
+    /// scratch lobby, a Great Sahara dump that prints neither cells nor
+    /// `diplos`, so the installer's side there is its own default, not the
+    /// original's.
     const START_CENSUS: &[(&str, usize)] = &[
-        ("CELL flags", 10),
-        ("CELL land", 60),
-        ("CELL region", 55),
+        ("CELL flags", 31),
+        ("CELL land", 7),
+        ("CELL region", 8),
         ("LEADER at_war", 1),
-        ("built", 35),
+        ("built", 114),
     ];
 
     /// A computer leader's `PERSONALITY` block under the start dump's
