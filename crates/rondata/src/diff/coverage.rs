@@ -604,8 +604,9 @@ fn drive(text: &str, out: &mut Paths) {
 ///
 /// Item 4113 gave the unit `hero`, `special` and `play` for the checksum's
 /// units line, on rules held against one frame of one game; the whole gate
-/// on its booking named them here. Item 4118 owes their readers: the
-/// values every capture prints beside ours, then the compare.
+/// on its booking named them here. Item 4118 measured them on every
+/// widening: the union parts on 7 tests and `play` on 93, so all three
+/// stay owed (`docs/CHECKSUM.md` §18; parked 4118a, 4118b).
 const UNREAD_UNIT_FIELDS_OWED: &[(&str, u32)] =
     &[("hero", 4118), ("play", 4118), ("special", 4118)];
 
