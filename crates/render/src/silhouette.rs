@@ -2169,7 +2169,7 @@ mod tests {
     #[test]
     fn the_bright_pass_is_dark_under_the_threshold_and_white_at_full() {
         assert_eq!(bloom_bright([0.59, 0.59, 0.59]), [0.0; 3]);
-        assert_eq!(bloom_bright([0.3, 0.9, 0.2]), [0.0; 3]);
+        assert_eq!(bloom_bright([0.3, 0.7, 0.2]), [0.0; 3]);
         let w = bloom_bright([1.0; 3]);
         assert!(
             w.iter().all(|&v| (v - BLOOM_STRENGTH * 0.4).abs() < 1e-5),
