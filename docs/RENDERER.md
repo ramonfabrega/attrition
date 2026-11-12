@@ -1470,6 +1470,78 @@ photograph, the 106 scored tiles under a mountain).
 - The client blends in the sRGB target's linear space (parked 4139b). The
   GPU frame is not scored.
 
+## 3.11 The clock, under its ceilings (item 4161)
+
+**The session.** `client --lobby --headless --frame 0 --play --frames
+600`: Great Lakes from our own start (`World::open_game(.., Game::Lobby)`,
+which builds `FreeRunner::from_lobby` from run53's lobby choices), drawn
+off-screen at 1920×1080 at the pinned camera. Each frame steps one tick,
+draws, and waits for the GPU (`Gpu::wait`). The wait stands in for the
+window's present, so the frame times count work and no vsync. The pinned
+camera sees the human's capital, its citizens and the trees at frame 0.
+A frame's phases are spans nested inside its `frame` span: `step`, `scene`
+(the draw list, sprites, figure meshes and trees), `ground` (the heightfield
+and its textured meshes), `gpu` (uploads, passes, submit) and `wait`.
+`render::clock::Clock::read` names the slowest frame and the longest phase
+inside it.
+
+**The readings** (eight sessions on 2026-11-12, release, with three other
+lanes gating beside them, load average 14 to 20):
+
+| reading | range | median | ceiling |
+|---|---|---|---|
+| launch to frame zero | 635 to 1,220 ms | 705 ms | 1.5 s |
+| p99 frame | 4.4 to 11.8 ms | 5.2 ms | 20 ms |
+| slowest frame | 87 to 219 ms, frame 1 in all eight | 100 ms | 400 ms |
+| peak resident set (sampled) | 239 to 256 MiB | 242 MiB | 320 MiB |
+
+**The worst is the first frame, and its cause is first sight.** Frame 1
+decodes the model, textures and sprite of every piece it shows. That is
+`scene`, 36 to 57 ms, the longest phase in six of the eight sessions. It
+also builds the ground's meshes (`ground`, 14 to 27 ms) and uploads both
+(`gpu` and `wait`, 36 to 144 ms). Frame 2 still decodes some (`scene` 11
+ms), and from frame 3 a frame takes about 4 ms. The phase that leads frame 1
+swings between `scene` and `wait` under load. So the pin holds the frame
+(`Ceilings::slowest_at`) and names the cause in words, never by a phase
+name.
+
+**What this item changed.** Before it, `--lobby` loaded the install's tables
+twice and built the pair's runner from run1429's dumps, only to drop it. The
+still read 1,474 ms to frame zero, 792 ms of it opening the pair, and 427
+MiB. `World::open_game` loads once and builds only the game it names: 705
+ms and 242 MiB. The pair's runner, holding its dumps, was most of the
+memory.
+
+**The pins.** `render::clock::CLOCK` holds the four ceilings and the
+slowest frame. `crates/client/tests/clock.rs` runs the client binary as a
+process of its own, so the clock is the client's and not the test
+harness's. It reads the session's trace and fails on any ceiling the
+session breaks (`Ceilings::broken_by`). The queue's `Clock:` line is
+`rondata::diff::floors::clock_line` of the same constant. **Made to fail
+once:** p99 at 1 ms and the peak at 200 MiB read "p99 frame 5.41 ms over its
+ceiling 1; peak RSS 238.78 MiB over its ceiling 200". `render::clock::tests::
+a_ceiling_under_the_reading_breaks` holds each ceiling one unit under a
+fixed trace's reading. A ceiling falls when the client gets faster and rises
+only on a named regression.
+
+**Confidence.** These are measured times on one machine under a shared
+load, not a diff: nothing of the original is compared. The resident set is
+`ps` sampled every 100 ms, a floor on the true peak (§3.6).
+
+**What is not established.**
+- **Seconds to lobby.** DECISIONS 114 §4 names it, and the client has no
+  lobby screen to time. The lobby's choices are read from run53's dump.
+- **The windowed session.** Its frames wait on vsync (§3.6's 21.3 ms
+  p99), so it is not the ceilings' session. A window over the lobby is
+  unmeasured here because a window opened in a gate could take a capture
+  lane's clicks.
+- **The ground's art on the lobby** is the pair's start's: run1428's
+  tileset and seed, run53's `game_random seed 12345`. That the two maps'
+  tilesets agree is read off the picture, not checked.
+- **Whether first sight belongs before frame zero.** Decoding every piece
+  the lobby could show before the first frame would trade frame 1's ~100 ms
+  for a longer frame zero. Nothing has measured that trade.
+
 ## 4. The stack
 
 The rule is `CLAUDE.md`'s **earn every dependency**: a crate enters when it

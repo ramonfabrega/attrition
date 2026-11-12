@@ -557,6 +557,38 @@ pub fn renderer_line() -> String {
     )
 }
 
+/// The queue's `Clock:` line (item 4161, `docs/RENDERER.md` §3.11): the
+/// ceilings of [`render::clock::CLOCK`] — the session they bound, then
+/// seconds to frame zero, the 99th-percentile and the slowest frame in
+/// milliseconds with the slowest named and its cause, and the sampled
+/// peak resident set — parted by a middle dot. A time prints in tenths,
+/// with no `.0`.
+#[cfg(test)]
+pub fn clock_line() -> String {
+    let c = render::clock::CLOCK;
+    let tenths = |thousandths: u32| {
+        let t = (thousandths + 50) / 100;
+        if t.is_multiple_of(10) {
+            format!("{}", t / 10)
+        } else {
+            format!("{}.{}", t / 10, t % 10)
+        }
+    };
+    format!(
+        "Clock: ceilings on {}, {} frames off-screen from frame {} \u{b7} frame zero {} s \u{b7} \
+         p99 {} ms \u{b7} slowest {} ms (frame {}, {}) \u{b7} peak {} MiB",
+        c.game,
+        c.frames,
+        c.from_frame,
+        tenths(c.frame_zero_ms),
+        tenths(c.p99_frame_us),
+        tenths(c.slowest_frame_us),
+        c.slowest_at,
+        c.slowest_cause,
+        c.peak_rss_mib,
+    )
+}
+
 /// The queue's `Start:` line (item 4033, `docs/START.md` §5): the lobbies
 /// whose start block is built from their choices alone
 /// ([`crate::diff::START_BUILT`]) of those on disk with a `[Start Game]`
@@ -1195,6 +1227,40 @@ mod tests {
             "docs/QUEUE.md's handoff carries\n{want}\n(`rondata::diff::floors::renderer_line`: \
              `free::tests::RENDER_K`'s K, `RENDER_M`, `FRAMES_IN_REGISTER`, \
              `artdata::PIECES_DECODING`); it says {line:?}"
+        );
+    }
+
+    /// **The handoff's clock line is the pinned ceilings** (item 4161,
+    /// `docs/RENDERER.md` §3.11): the queue's `Clock:` line is
+    /// [`clock_line`] of `render::clock::CLOCK`, which
+    /// `crates/client/tests/clock.rs` plays a session under. A driver's
+    /// line (`release_gate.py`'s `COMMANDERS_LINES`): the worker re-pins
+    /// the ceilings and the driver writes the line at the merge. Made to
+    /// fail first on the handoff before 4161's merge, which had none.
+    #[test]
+    fn the_handoff_s_clock_line_is_the_pinned_ceilings() {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../..");
+        let q = std::fs::read_to_string(format!("{root}/docs/QUEUE.md")).expect("docs/QUEUE.md");
+        let want = clock_line();
+        let line = q
+            .lines()
+            .find(|l| l.starts_with("Clock:"))
+            .map(str::trim_end);
+        assert_eq!(
+            line,
+            Some(want.as_str()),
+            "docs/QUEUE.md's handoff carries\n{want}\n(`rondata::diff::floors::clock_line`: \
+             `render::clock::CLOCK`); it says {line:?}"
+        );
+    }
+
+    #[test]
+    fn the_clock_line_prints_its_times_in_tenths() {
+        assert_eq!(
+            clock_line(),
+            "Clock: ceilings on GreatLakes lobby, 600 frames off-screen from frame 0 \u{b7} \
+             frame zero 1.5 s \u{b7} p99 20 ms \u{b7} slowest 400 ms (frame 1, first sight) \
+             \u{b7} peak 320 MiB"
         );
     }
 

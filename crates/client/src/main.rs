@@ -9,12 +9,15 @@
 //! client [--install DIR] [--logs DIR] [--frame N] [--size WxH]
 //!        [--still OUT.bmp] [--frames N] [--play] [--trace OUT.json]
 //!        [--look X,Y] [--zoom F] [--silhouette OUT.bmp] [--rest]
+//!        [--lobby] [--headless]
 //! client --read-trace SESSION.json
 //! ```
 //!
 //! `--still` draws one frame off-screen and writes it; otherwise a window
 //! opens (arrows pan, `+`/`-` zoom, space plays, `Q` or Escape quits), and
-//! `--frames N` quits after N presented frames. `--silhouette` scores the
+//! `--frames N` quits after N presented frames. `--headless` draws the
+//! `--frames N` frames off-screen with no window, each waited on, and is
+//! the session the clock's ceilings bound (`render::clock`, item 4161). `--silhouette` scores the
 //! frame's silhouettes against run1559b's photograph (`silhouette`) and
 //! writes the picture of the scoring. Each figure is drawn posed at its
 //! animation slot and clock (item 4067, the default since item 4069);
@@ -125,6 +128,8 @@ struct Args {
     /// (`rondata::free::FreeRunner::from_lobby`, item 4145), in place of
     /// the pair's game: the lobby a person's orders are counted on.
     lobby: bool,
+    /// Draw `--frames N` frames off-screen, with no window (item 4161).
+    headless: bool,
 }
 
 fn parse() -> Result<Args, String> {
@@ -147,6 +152,7 @@ fn parse() -> Result<Args, String> {
         textured: true,
         debug_ground: false,
         lobby: false,
+        headless: false,
         trace: std::env::temp_dir().join(format!("attrition-client-{}.json", std::process::id())),
     };
     let mut it = std::env::args().skip(1);
@@ -173,6 +179,7 @@ fn parse() -> Result<Args, String> {
             "--tint" => a.textured = false,
             "--debug-ground" => a.debug_ground = true,
             "--lobby" => a.lobby = true,
+            "--headless" => a.headless = true,
             "--silhouette" => a.silhouette = Some(v()?.into()),
             "--zoom" => a.zoom = v()?.parse().map_err(|e| format!("--zoom: {e}"))?,
             "--look" => {
@@ -187,14 +194,17 @@ fn parse() -> Result<Args, String> {
             "--read-trace" => {
                 let text = std::fs::read_to_string(v()?).map_err(|e| e.to_string())?;
                 let c = Clock::read(&text).ok_or("no `frame zero` mark in the trace")?;
+                let (cause, cause_ms) = c.slowest_cause.clone().unwrap_or_default();
                 println!(
                     "CLOCK client: {:.0} ms to frame zero, {:.0} ms to first pixels; {} frames, \
-                     p99 {:.2} ms, slowest {:.2} ms; peak RSS {} MiB (sampled)",
+                     p99 {:.2} ms, slowest {:.2} ms (frame {}, {cause} {cause_ms:.2} ms); \
+                     peak RSS {} MiB (sampled)",
                     c.to_frame_zero_ms,
                     c.to_first_pixels_ms,
                     c.frames,
                     c.p99_frame_ms,
                     c.max_frame_ms,
+                    c.slowest_frame,
                     c.peak_rss_kib / 1024
                 );
                 std::process::exit(0);
@@ -234,7 +244,12 @@ fn build(world: &mut World, camera: &render::Camera, size: (u32, u32), frame_ms:
     }
 }
 
+/// One frame drawn, its phases spans of `session`: `scene` (the draw
+/// list, the sprites, the figures' meshes and the trees), `ground` (the
+/// heightfield and its textured meshes, rebuilt when the terrain moves)
+/// and `gpu` (the uploads, the passes and the submit).
 fn draw(
+    session: &Session,
     gpu: &gpu::Gpu,
     world: &mut World,
     target: Option<&wgpu::TextureView>,
@@ -242,9 +257,9 @@ fn draw(
     size: (u32, u32),
     frame_ms: f64,
 ) -> Option<Vec<u8>> {
-    let b = build(world, camera, size, frame_ms);
+    let b = session.phase("scene", || build(world, camera, size, frame_ms));
     let version = world.runner.terrain().version;
-    let (t, ground, patch) = world.drawn_terrain();
+    let (t, ground, patch) = session.phase("ground", || world.drawn_terrain());
     let frame = gpu::Frame {
         terrain_version: version,
         terrain: (&t.positions, &t.colours),
@@ -255,13 +270,13 @@ fn draw(
         overlay: (&b.overlay.0, &b.overlay.1),
         sprites: &b.sprites,
     };
-    match target {
+    session.phase("gpu", || match target {
         Some(view) => {
             gpu.draw(view, size, camera, &frame);
             None
         }
         None => Some(gpu.still(size, camera, &frame)),
-    }
+    })
 }
 
 struct App {
@@ -435,7 +450,7 @@ impl ApplicationHandler for App {
             WindowEvent::RedrawRequested => {
                 let t = Instant::now();
                 if self.playing {
-                    self.world.runner.step();
+                    self.session.phase("step", || self.world.runner.step());
                 }
                 let Some((window, surface, gpu)) = self.window.take() else {
                     return;
@@ -449,6 +464,7 @@ impl ApplicationHandler for App {
                 if let Some(texture) = texture {
                     let view = texture.texture.create_view(&Default::default());
                     draw(
+                        &self.session,
                         &gpu,
                         &mut self.world,
                         Some(&view),
@@ -484,8 +500,13 @@ fn main() {
             std::process::exit(64);
         }
     };
+    let game = if args.lobby {
+        world::Game::Lobby
+    } else {
+        world::Game::Pair
+    };
     let opened = session.phase("open the install and the captures", || {
-        World::open(&args.install, &args.logs)
+        World::open_game(&args.install, &args.logs, game)
     });
     let mut world = match opened {
         Ok(w) => w,
@@ -499,22 +520,6 @@ fn main() {
     world.trees = args.trees;
     world.textured = args.textured;
     world.debug_ground = args.debug_ground;
-    if args.lobby {
-        let path = args.logs.join(rondata::script::LOBBY_DUMP);
-        let runner = rondata::load::load(&rondata::Install::new(&args.install))
-            .map_err(|e| e.to_string())
-            .and_then(|l| {
-                rondata::free::FreeRunner::from_lobby(&l, &path, sim::Tuning::RON)
-                    .map_err(|e| format!("{}: {e}", path.display()))
-            });
-        match runner {
-            Ok(r) => world.runner = r,
-            Err(e) => {
-                eprintln!("client: {e}");
-                std::process::exit(1);
-            }
-        }
-    }
     session.mark("frame zero");
     session.phase("run to the frame", || world.run_to(args.frame));
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
@@ -574,7 +579,8 @@ fn main() {
                 std::process::exit(1);
             });
         let t = Instant::now();
-        let rgba = draw(&gpu, &mut world, None, &camera, args.size, 0.0).unwrap_or_default();
+        let rgba =
+            draw(&session, &gpu, &mut world, None, &camera, args.size, 0.0).unwrap_or_default();
         session.span("frame", t);
         session.mark("first pixels");
         std::fs::write(out, gpu::bmp(&rgba, args.size)).unwrap_or_else(|e| {
@@ -582,6 +588,8 @@ fn main() {
             std::process::exit(1);
         });
         println!("still: {} (frame {})", out.display(), world.runner.frame());
+    } else if args.headless {
+        headless(&session, &instance, &mut world, &camera, &args);
     } else {
         let el = EventLoop::new().unwrap_or_else(|e| {
             eprintln!("client: no event loop: {e}");
@@ -612,6 +620,56 @@ fn main() {
         return finish(&session, &trace);
     }
     finish(&session, &args.trace);
+}
+
+/// **The headless session** (item 4161): `--frames N` frames drawn
+/// off-screen at `--size`, each stepped first when `--play` is on, as the
+/// window's are, and each waited on before the next — a window's present
+/// is the wait there. The session the clock's ceilings bound.
+fn headless(
+    session: &Session,
+    instance: &wgpu::Instance,
+    world: &mut World,
+    camera: &render::Camera,
+    args: &Args,
+) {
+    let gpu = session
+        .phase("device", || {
+            gpu::Gpu::new(instance, None, wgpu::TextureFormat::Bgra8UnormSrgb)
+        })
+        .unwrap_or_else(|e| {
+            eprintln!("client: {e}");
+            std::process::exit(1);
+        });
+    let target = gpu.target(args.size);
+    let view = target.create_view(&Default::default());
+    let mut last_ms = 0.0;
+    let n = args.frames.unwrap_or(1);
+    for i in 0..n {
+        let t = Instant::now();
+        if args.play {
+            session.phase("step", || world.runner.step());
+        }
+        draw(
+            session,
+            &gpu,
+            world,
+            Some(&view),
+            camera,
+            args.size,
+            last_ms,
+        );
+        session.phase("wait", || gpu.wait());
+        if i == 0 {
+            session.mark("first pixels");
+        }
+        session.span("frame", t);
+        last_ms = t.elapsed().as_secs_f64() * 1000.0;
+    }
+    println!(
+        "drew {n} frames off-screen, at frame {}",
+        world.runner.frame()
+    );
 }
 
 fn finish(session: &Session, path: &std::path::Path) {
