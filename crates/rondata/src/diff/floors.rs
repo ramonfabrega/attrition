@@ -623,6 +623,20 @@ pub fn start_line() -> String {
     )
 }
 
+/// The queue's `Lobby:` line (item 4184, `docs/LOBBY.md` §5): the lobbies
+/// on disk whose `GAMEINFO` block the lobby page's events reproduce field
+/// for field ([`crate::lobby::LOBBY_PAGE`]) of those with a `[Start Game]`
+/// dump ([`crate::diff::START_LOBBIES`]), and the harness lobby's start
+/// built from the page.
+#[cfg(test)]
+pub fn lobby_line() -> String {
+    format!(
+        "Lobby: the page sets {} of {} lobbies \u{b7} the harness lobby's start built from it",
+        crate::lobby::LOBBY_PAGE,
+        crate::diff::START_LOBBIES,
+    )
+}
+
 /// The queue's `Checksum:` line (item 4060, `docs/CHECKSUM.md` §5): the
 /// lines of the original's fifteen that the instrument reproduces from
 /// its packet ([`crate::checksum::CHECKSUM_REPRODUCED`], on
@@ -1301,6 +1315,29 @@ mod tests {
             Some(want.as_str()),
             "docs/QUEUE.md's handoff carries\n{want}\n(`rondata::diff::floors::start_line`: \
              `diff::START_BUILT`, `diff::START_LOBBIES`); it says {line:?}"
+        );
+    }
+
+    /// **The handoff's lobby line is the pinned counter** (item 4184,
+    /// `docs/LOBBY.md` §5): the queue's `Lobby:` line is [`lobby_line`] of
+    /// `lobby::LOBBY_PAGE` and `diff::START_LOBBIES`. A driver's line
+    /// (`release_gate.py`'s `COMMANDERS_LINES`): the worker re-pins the
+    /// counter and the driver writes the line at the merge. Made to fail
+    /// first on the handoff before 4184's merge, which had none.
+    #[test]
+    fn the_handoff_s_lobby_line_is_the_pinned_counter() {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../..");
+        let q = std::fs::read_to_string(format!("{root}/docs/QUEUE.md")).expect("docs/QUEUE.md");
+        let want = lobby_line();
+        let line = q
+            .lines()
+            .find(|l| l.starts_with("Lobby:"))
+            .map(str::trim_end);
+        assert_eq!(
+            line,
+            Some(want.as_str()),
+            "docs/QUEUE.md's handoff carries\n{want}\n(`rondata::diff::floors::lobby_line`: \
+             `lobby::LOBBY_PAGE`, `diff::START_LOBBIES`); it says {line:?}"
         );
     }
 

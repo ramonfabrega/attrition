@@ -9,9 +9,16 @@
 //! client [--install DIR] [--logs DIR] [--frame N] [--size WxH]
 //!        [--still OUT.bmp] [--frames N] [--play] [--trace OUT.json]
 //!        [--look X,Y] [--zoom F] [--silhouette OUT.bmp] [--rest]
-//!        [--lobby] [--headless]
+//!        [--lobby] [--headless] [--page-still OUT.bmp]
 //! client --read-trace SESSION.json
 //! ```
+//!
+//! `--lobby` in a window opens on **the lobby page** (`lobby`, item 4184):
+//! the start's choices, set with the arrows and the keyboard, and Enter on
+//! its last row starts the game from them through `FreeRunner::from_choices`
+//! and runs it to `--frame`. With `--still`, `--headless` or `--silhouette`
+//! there is no page and no person, and `--lobby` builds the minted script's
+//! lobby as before. `--page-still OUT.bmp` writes the page itself.
 //!
 //! `--still` draws one frame off-screen and writes it; otherwise a window
 //! opens (arrows pan, `+`/`-` zoom, space plays, `Q` or Escape quits), and
@@ -30,6 +37,7 @@
 mod gpu;
 mod ground;
 mod input;
+mod lobby;
 mod overlay;
 mod patch;
 mod silhouette;
@@ -131,6 +139,8 @@ struct Args {
     lobby: bool,
     /// Draw `--frames N` frames off-screen, with no window (item 4161).
     headless: bool,
+    /// Write the lobby page, as the window opens on it, and quit (item 4184).
+    page_still: Option<PathBuf>,
 }
 
 fn parse() -> Result<Args, String> {
@@ -154,6 +164,7 @@ fn parse() -> Result<Args, String> {
         debug_ground: false,
         lobby: false,
         headless: false,
+        page_still: None,
         trace: std::env::temp_dir().join(format!("attrition-client-{}.json", std::process::id())),
     };
     let mut it = std::env::args().skip(1);
@@ -181,6 +192,7 @@ fn parse() -> Result<Args, String> {
             "--debug-ground" => a.debug_ground = true,
             "--lobby" => a.lobby = true,
             "--headless" => a.headless = true,
+            "--page-still" => a.page_still = Some(v()?.into()),
             "--silhouette" => a.silhouette = Some(v()?.into()),
             "--zoom" => a.zoom = v()?.parse().map_err(|e| format!("--zoom: {e}"))?,
             "--look" => {
@@ -334,6 +346,41 @@ pub(crate) fn still_of(
     rgba
 }
 
+/// **The lobby page drawn** (item 4184): its lines in the overlay's font
+/// on an empty frame — no terrain, no figure — into `target`, or read back
+/// when there is none.
+fn draw_page(
+    gpu: &gpu::Gpu,
+    target: Option<&wgpu::TextureView>,
+    page: &lobby::Page,
+    size: (u32, u32),
+) -> Option<Vec<u8>> {
+    let scale = 2;
+    let room = (size.1 as usize / (9 * scale)).saturating_sub(10);
+    let lines = page.lines(room);
+    let overlay = overlay::triangles(&lines, (size.0 as i32, size.1 as i32), scale as i32);
+    let frame = gpu::Frame {
+        terrain_version: u32::MAX,
+        patch_version: u32::MAX,
+        terrain: (&[], &[]),
+        ground: &[],
+        patch: &[],
+        figures: (&[], &[]),
+        textured: &[],
+        trees: &[],
+        overlay: (&overlay.0, &overlay.1),
+        sprites: &[],
+    };
+    let camera = pinned_camera();
+    match target {
+        Some(view) => {
+            gpu.draw(view, size, &camera, &frame);
+            None
+        }
+        None => Some(gpu.still(size, &camera, &frame)),
+    }
+}
+
 struct App {
     session: Session,
     world: World,
@@ -351,6 +398,10 @@ struct App {
     /// Where the left button went down, until it comes up: a release
     /// [`input::DRAG_SLOP`] or more away is a box (item 4180), else a press.
     left_down: Option<(i32, i32)>,
+    /// The lobby page while it is up (item 4184), and the choices the
+    /// world was opened from.
+    page: Option<lobby::Page>,
+    opened: Option<rondata::lobby::Choices>,
 }
 
 impl App {
@@ -371,7 +422,64 @@ impl App {
         );
     }
 
+    /// A key on the lobby page: Escape quits, Enter on its last row starts
+    /// the game from its choices; every other key is the page's.
+    fn page_key(&mut self, el: &ActiveEventLoop, key: &Key) {
+        let k = match key {
+            Key::Named(NamedKey::Escape) => return el.exit(),
+            Key::Named(NamedKey::ArrowUp) => lobby::Key::Up,
+            Key::Named(NamedKey::ArrowDown) => lobby::Key::Down,
+            Key::Named(NamedKey::ArrowLeft) => lobby::Key::Left,
+            Key::Named(NamedKey::ArrowRight) => lobby::Key::Right,
+            Key::Named(NamedKey::Enter) => lobby::Key::Enter,
+            Key::Named(NamedKey::Backspace) => lobby::Key::Backspace,
+            Key::Named(NamedKey::Space) => lobby::Key::Char(' '),
+            Key::Character(c) => match c.chars().next() {
+                Some(ch) => lobby::Key::Char(ch),
+                None => return,
+            },
+            _ => return,
+        };
+        let Some(page) = self.page.as_mut() else {
+            return;
+        };
+        match page.key(k) {
+            lobby::Outcome::Event(e) => println!("LOBBY {e:?}"),
+            lobby::Outcome::Refused(e, why) => println!("LOBBY refused {e:?}: {why}"),
+            lobby::Outcome::Nothing => {}
+            lobby::Outcome::Start => {
+                let choices = page.choices.clone();
+                if self.opened.as_ref() != Some(&choices) {
+                    let game = world::Game::Page(Box::new(choices.clone()));
+                    match World::open_game(&self.args.install, &self.args.logs, game) {
+                        Ok(mut w) => {
+                            w.pose = self.world.pose;
+                            w.sprites = self.world.sprites;
+                            w.trees = self.world.trees;
+                            w.textured = self.world.textured;
+                            w.debug_ground = self.world.debug_ground;
+                            self.world = w;
+                            self.opened = Some(choices);
+                        }
+                        Err(e) => {
+                            page.note = Some(e);
+                            return;
+                        }
+                    }
+                }
+                let frame = self.args.frame;
+                self.session
+                    .phase("run to the frame", || self.world.run_to(frame));
+                println!("LOBBY start, at frame {}", self.world.runner.frame());
+                self.page = None;
+            }
+        }
+    }
+
     fn key(&mut self, el: &ActiveEventLoop, key: &Key) {
+        if self.page.is_some() {
+            return self.page_key(el, key);
+        }
         let step = 256.0 * self.camera.parallel_distance / 10429.4;
         match key {
             Key::Named(NamedKey::Escape) => el.exit(),
@@ -434,7 +542,11 @@ impl ApplicationHandler for App {
             return;
         }
         let attrs = Window::default_attributes()
-            .with_title("attrition — first pixels")
+            .with_title(if self.page.is_some() {
+                "attrition — the lobby"
+            } else {
+                "attrition — first pixels"
+            })
             .with_inner_size(winit::dpi::PhysicalSize::new(
                 self.args.size.0,
                 self.args.size.1,
@@ -493,7 +605,7 @@ impl ApplicationHandler for App {
             WindowEvent::CursorMoved { position, .. } => {
                 self.cursor = (position.x as i32, position.y as i32);
             }
-            WindowEvent::MouseInput { state, button, .. } => {
+            WindowEvent::MouseInput { state, button, .. } if self.page.is_none() => {
                 let (x, y) = self.cursor;
                 match (button, state) {
                     // The original selects on the release
@@ -521,7 +633,7 @@ impl ApplicationHandler for App {
             }
             WindowEvent::RedrawRequested => {
                 let t = Instant::now();
-                if self.playing {
+                if self.playing && self.page.is_none() {
                     self.session.phase("step", || self.world.runner.step());
                 }
                 let Some((window, surface, gpu)) = self.window.take() else {
@@ -535,15 +647,19 @@ impl ApplicationHandler for App {
                 };
                 if let Some(texture) = texture {
                     let view = texture.texture.create_view(&Default::default());
-                    draw(
-                        &self.session,
-                        &gpu,
-                        &mut self.world,
-                        Some(&view),
-                        &self.camera,
-                        (s.width, s.height),
-                        self.last_ms,
-                    );
+                    if let Some(page) = &self.page {
+                        draw_page(&gpu, Some(&view), page, (s.width, s.height));
+                    } else {
+                        draw(
+                            &self.session,
+                            &gpu,
+                            &mut self.world,
+                            Some(&view),
+                            &self.camera,
+                            (s.width, s.height),
+                            self.last_ms,
+                        );
+                    }
                     gpu.queue.present(texture);
                     self.presented += 1;
                     if self.presented == 1 {
@@ -572,10 +688,40 @@ fn main() {
             std::process::exit(64);
         }
     };
-    let game = if args.lobby {
-        world::Game::Lobby
+    // The lobby page (item 4184): a window under `--lobby` opens on it.
+    let windowed = args.still.is_none() && !args.headless && args.silhouette.is_none();
+    let page = if args.lobby && (windowed || args.page_still.is_some()) {
+        let made = rondata::lobby::Roster::read(&args.install).and_then(lobby::Page::new);
+        match made {
+            Ok(p) => Some(p),
+            Err(e) => {
+                eprintln!("client: the lobby page: {e}");
+                std::process::exit(1);
+            }
+        }
     } else {
-        world::Game::Pair
+        None
+    };
+    if let (Some(out), Some(page)) = (&args.page_still, &page) {
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
+        let gpu =
+            gpu::Gpu::new(&instance, None, wgpu::TextureFormat::Rgba8Unorm).unwrap_or_else(|e| {
+                eprintln!("client: {e}");
+                std::process::exit(1);
+            });
+        let rgba = draw_page(&gpu, None, page, args.size).unwrap_or_default();
+        std::fs::write(out, gpu::bmp(&rgba, args.size)).unwrap_or_else(|e| {
+            eprintln!("client: {}: {e}", out.display());
+            std::process::exit(1);
+        });
+        println!("page: {}", out.display());
+        return;
+    }
+    let from_page = page.as_ref().map(|p| p.choices.clone());
+    let game = match &from_page {
+        Some(c) => world::Game::Page(Box::new(c.clone())),
+        None if args.lobby => world::Game::Lobby,
+        None => world::Game::Pair,
     };
     let opened = session.phase("open the install and the captures", || {
         World::open_game(&args.install, &args.logs, game)
@@ -593,7 +739,9 @@ fn main() {
     world.textured = args.textured;
     world.debug_ground = args.debug_ground;
     session.mark("frame zero");
-    session.phase("run to the frame", || world.run_to(args.frame));
+    if page.is_none() {
+        session.phase("run to the frame", || world.run_to(args.frame));
+    }
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
     let mut camera = pinned_camera();
     if let Some((x, y)) = args.look {
@@ -680,6 +828,8 @@ fn main() {
             input: input::Input::new(0),
             cursor: (0, 0),
             left_down: None,
+            page,
+            opened: from_page,
         };
         if let Err(e) = el.run_app(&mut app) {
             eprintln!("client: {e}");
