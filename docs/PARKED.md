@@ -3850,6 +3850,8 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 ## Loop, filed 2026-11-11 — the driver's twenty-third session
 
+(4158) **A booking's leaf count should name its unit** (the driver's twenty-fourth session, 2026-11-11; *4153's "for the Loop"*): a booking's leaf count should name its unit. `LEADERS_HELD_OUT` counts leaf names, each on both leaders, so "100 → 98 leaves" was the per-leader reading of a 100 → 99 move. One item's arithmetic then disagreed with its own pin. Names no score; the loop's.
+
 (4157) **A rule diffed on one frame failed on a hundred widenings** (the driver's twenty-fourth session, 2026-11-11; *4118's "for the Loop"*): the unit record's `hero`, `special` and `play`, carried since 4113 on one frame of one game, part on 100 of 1,857 `diff::` tests once compared in `widen_block` (the union's release, 7 tests on 24 units; the golden harness's missing `group` write, 93 on 526). Owed: a key a builder carries from one frame is compared on the floors before its booking calls it carried. Names no score; the loop's.
 
 (4156) **The gate leaks a temp directory per run** (the driver's twenty-fourth session, 2026-11-11; lore's disk sweep at Ramon's word): `tools/release_gate.py`'s `gate()` makes `tempfile.mkdtemp(prefix='attrition-gate-')` when no report dir is passed, and nothing removes it; 2,373 had built up in `$TMPDIR` since 2026-10-19, 1,655 minted on 2026-11-05 alone, mostly empty shells from fixture tests calling the gate entry (lore deleted 2,318 dated before today, about 20 GiB; 56 stand). Owed: remove it on exit or keep the last N, and the fixtures pass a directory they clean up. Names no score; the loop's.
