@@ -1081,6 +1081,10 @@ impl Sim {
             "gather_stamp" => one(l.gather_stamp),
             "flock_stamp" => one(self.gaia.flock_stamp.get(w).copied().unwrap_or(0)),
             "tech_frame" => one(a.tech_frame),
+            // `Leader::calc_attrition`'s one store (`docs/LEADERS.md` §5.2).
+            "att" => one(i64::from(
+                self.territory.players.get(w).map_or(0, |p| p.strength),
+            )),
             "tech_cat_frame" => Some(a.tech_cat_frame.to_vec()),
             "site_mark" => one(i64::from(a.site_mark)),
             "pop_cap" => one(i64::from(m.cap)),

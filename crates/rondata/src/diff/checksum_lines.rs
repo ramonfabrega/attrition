@@ -1756,11 +1756,16 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 4, 4313);
 /// leader 0 19 = 19, leader 1 22 = 22 — since `Leader::check_explore`
 /// counts `seen2` on its own phase frames (`docs/VISION.md` §13); the
 /// long range stays out on the other 99, so [`LEADERS`] does not move.
+///
+/// Item 4154: 99 → 98 names. `att` is held (`territory.players[w]
+/// .strength`) and agrees on both leaders — leader 0 0 = 0, leader 1 0 = 0:
+/// the Nubians and the British, no attrition step and no multiplier on
+/// frame 91 (`docs/LEADERS.md` §5.2). The long range stays out on the
+/// other 98.
 const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("air_queued (unheld)", 2),
     ("ally_stamp (unheld)", 2),
     ("anti_att (unheld)", 2),
-    ("att (unheld)", 2),
     ("attack_stamp (unheld)", 2),
     ("attrition_stamp (unheld)", 2),
     ("attrition_stamp2 (unheld)", 2),
