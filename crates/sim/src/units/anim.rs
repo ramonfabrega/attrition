@@ -2213,7 +2213,7 @@ impl Sim {
                 }
             }
         }
-    }
+    } // twin of Unit::execute_events
 
     /// `Guy::inc_time`: the step, and the restart when the animation runs
     /// out — a looping one restarts itself, any other falls back to the

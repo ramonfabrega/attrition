@@ -330,10 +330,15 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// pass: ported 549, open 1286 — the seventy-third tranche's three ports,
 /// measured by `rubric.py --record` on `c8053180f`. The seventy-fifth pass:
 /// ported 550, open 1285 — item 3995's `think_carry_idle`, measured on
-/// `ce78c2179`.
-pub const RUBRIC_TERRITORY_PORTED: usize = 550;
-pub const RUBRIC_TERRITORY_REPLACED: usize = 318;
-pub const RUBRIC_TERRITORY_OPEN: usize = 1285;
+/// `ce78c2179`. Item 4039, the census filler (`docs/RUBRIC.md` §0),
+/// measured 555 · 318 · 1280 on its base `56df6369` and **ported 669
+/// (+114), replaced 336 (+18), open 1066 (−214)** on its tip: defect A's
+/// ordering 82 rows out of open, the port test aligned with the census's
+/// own `is_port_backed` 36, the readers' groups 28, and 77 twin spellings
+/// on their twins' closing braces 78 rows.
+pub const RUBRIC_TERRITORY_PORTED: usize = 669;
+pub const RUBRIC_TERRITORY_REPLACED: usize = 336;
+pub const RUBRIC_TERRITORY_OPEN: usize = 1066;
 /// **Lockstep since the fifty-first pass** (Ramon, 2026-10-22: the rubric
 /// answers how close the port is to a 1:1 sim). The ages and the unit types
 /// below are read from the dumps of **lockstep games** only — a game whose

@@ -141,4 +141,4 @@ pub fn land_plane_steps<V: LandPlaneView>(v: &mut V) {
         v.play_landing_sound(home);
     }
     v.go_inside(home);
-}
+} // twin of Unit::land_plane

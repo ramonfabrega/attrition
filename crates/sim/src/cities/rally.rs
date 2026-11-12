@@ -477,7 +477,7 @@ impl Sim {
     /// iterator reset it writes on the way).
     pub fn first_gather(&self, b: usize) -> Option<GatherPoint> {
         self.buildings[b].gather.first().copied()
-    }
+    } // twin of BuildData::get_first_gather
 
     /// `come_out`'s two **re-seats**: the captain swept again round its
     /// trainer's **land** exit ring (`(x_size + y_size) × 0x30 +

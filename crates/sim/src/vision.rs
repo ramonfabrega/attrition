@@ -323,7 +323,7 @@ impl Sim {
             los += self.tables.tuning.theceo_unit_los;
         }
         los
-    }
+    } // twin of UnitData::los
 
     /// The centre, radius and index range `Object::update_seen` would walk
     /// for this unit, or `None` when it reveals nothing.
@@ -931,7 +931,7 @@ impl Sim {
             }
         }
         lit
-    }
+    } // twin of Unit::update_local_seen
 
     /// `Wall::update_local_seen@0063ed50` — the building writes itself into
     /// the fog of everyone who has seen it.

@@ -21,7 +21,7 @@
 /// `SubObjectData::is_active@0046cda0`: flags byte `& 1`.
 pub const fn sub_object_is_active(flags: u8) -> bool {
     flags & 1 != 0
-}
+} // twin of SubObjectData::is_active
 /// `WallData::is_active@00472350`: flags byte `& 4`.
 pub const fn wall_is_active(flags: u8) -> bool {
     flags & 4 != 0
@@ -53,7 +53,7 @@ pub const fn player_is_over(flags: u16) -> bool {
 /// `+0x2b0 + i*2`, sign-extended.
 pub const fn relative_value(slot: i16) -> i32 {
     slot as i32
-}
+} // absorbs UnitTypeData::get_relative_value
 /// `WallData::hits@00642bb0`: the int at `+0x20` for a non-zero argument,
 /// the one at `+0x54` (the construction hits) for zero.
 pub const fn wall_data_hits(arg: i32, at_0x20: i32, at_0x54: i32) -> i32 {
@@ -80,7 +80,7 @@ pub const PATROL_ORDER_BASE: i32 = 0x44;
 /// `fight`'s attacker side reads.
 pub const fn object_get_captain(o: i16) -> i32 {
     o as i32
-}
+} // twin of ObjectData::get_captain
 /// `TCoord::operator<@00472b30`: a signed compare of the two words.
 pub const fn tcoord_less(a: i32, b: i32) -> bool {
     a < b
@@ -123,7 +123,7 @@ pub fn console_leader(rec: &[i32]) -> i32 {
 /// `Game::is_solo@0043ec40`: bit 2 of the game's flag byte at `+0x820` clear.
 pub const fn game_is_solo(flags: u8) -> bool {
     flags & 4 == 0
-}
+} // absorbs Game::is_solo
 /// `Game::is_team_game@00593f70`: bit 7 of the same byte.
 pub const fn game_is_team_game(flags: u8) -> bool {
     flags >> 7 != 0
@@ -144,7 +144,7 @@ pub const AIR_ATTACK_GROUND_ORDER_BASE: i32 = 0x2c;
 /// `GraphicWinXML::get_graphicwinxml@0041c000`: `this`, unchanged.
 pub const fn graphic_win_xml(this: i32) -> i32 {
     this
-}
+} // twin of GraphicWinXML::get_graphicwinxml
 /// `get_unique_types@00669120` and `get_unique_types2@00669100`: the byte
 /// held in a global cell (`0x00ed88cb`, `0x00ed88cc`), in `al`.
 pub const fn global_byte(b: u8) -> u8 {

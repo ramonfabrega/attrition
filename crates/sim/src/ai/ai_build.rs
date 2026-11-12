@@ -1369,7 +1369,7 @@ impl Sim {
             .filter_map(|&b| self.buildings.get(b)?.ty)
             .map(|t| self.tables.build_types[t].wonder_points())
             .sum()
-    }
+    } // absorbs ObjectData::get_wonder_value
 
     /// `LeaderData::get_unbuilt_wonder_value@006d5ee0`: the points of
     /// `who`'s unbuilt wonder sites — the list `add_unbuilt_wonder` keeps,

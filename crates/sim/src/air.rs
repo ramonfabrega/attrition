@@ -1389,7 +1389,7 @@ impl Sim {
             written += 1;
         }
         written
-    }
+    } // twin of WallData::valid_buildmask
 
     /// **`Object::do_launch@0064f3b0` for a building** — called from
     /// `Build::process@0061edf0` for a type with `build_masks & 8`, a

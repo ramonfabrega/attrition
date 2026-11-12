@@ -62,7 +62,7 @@ pub mod craft {
 pub(crate) const fn decoy_time_left(general_upgrade: i32, decoy_time: i32, mana_burn: i16) -> i32 {
     let left = (general_upgrade + 2) * decoy_time / 2 - mana_burn as i32;
     if left < 0 { 0 } else { left }
-}
+} // twin of UnitData::decoy_time
 
 impl Sim {
     /// `UnitData::mana@00609a50` — the type's `MANA`, and a French
@@ -721,7 +721,7 @@ impl Sim {
     /// SPECIALANIMORDER`, none of 2362 files, links followed, 2026-11-08).
     pub(crate) fn is_busy(&self, u: usize) -> bool {
         self.is_packing_or_unpacking(u)
-    }
+    } // absorbs UnitData::is_entering_or_exiting
 
     /// `UnitData::is_casting(spell)`: the unit's head order is a cast of
     /// that craft.

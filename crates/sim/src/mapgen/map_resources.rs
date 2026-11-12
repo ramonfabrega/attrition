@@ -735,7 +735,7 @@ fn footprint_corner(fp: Footprint, x: i32, y: i32) -> (i32, i32) {
     let off = if fp.x_size & 1 != 0 { 0x120 } else { 0x180 };
     let (gx, gy) = (x * 0x300 + off, y * 0x300 + off);
     (gx / 0xc0 - fp.x_size / 2, gy / 0xc0 - fp.y_size / 2)
-}
+} // twin of GoodTypeData::snap_center
 
 /// **`Objects::init_good@00653f30`** of a good other than oil at cell
 /// `(x, y)`: the footprint's tile mask 0x200, then `set_blocked_at` where

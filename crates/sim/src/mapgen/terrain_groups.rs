@@ -2191,7 +2191,7 @@ fn edge_of_region(g: &MapGrid, x: i32, y: i32) -> bool {
         let (u, v) = (x + MOVE_X[k], y + MOVE_Y[k]);
         u >= 0 && v >= 0 && u < g.xs && v < g.ys && g.cells[(v * g.xs + u) as usize].region != r
     })
-}
+} // twin of World::is_edge_of_region
 
 /// Which cells a `change_*_base` pass grows from.
 #[derive(Clone, Copy)]

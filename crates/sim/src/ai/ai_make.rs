@@ -77,7 +77,7 @@ impl Sim {
     fn is_peasant_type(&self, t: TypeId) -> bool {
         self.unit_record(t)
             .is_some_and(|r| self.tables.unit_types[r].worker == Worker::Citizen)
-    }
+    } // twin of TypeData::is_peasant
 
     fn is_wonder_type(&self, t: TypeId) -> bool {
         matches!(

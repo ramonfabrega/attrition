@@ -361,7 +361,7 @@ impl GroupState {
             unlinked: false,
             ..prev
         }
-    }
+    } // twin of Groups::copy_group
 
     /// `Group::clear(-1)@00713e80` on a pool record, for the fields this
     /// record carries: `form −1`, `order_num`, `facing`, `form_num`,

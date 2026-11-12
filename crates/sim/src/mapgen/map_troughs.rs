@@ -462,7 +462,7 @@ impl River<'_> {
             }
             self.g.cells[ci].flags |= 0x1000;
         }
-    }
+    } // twin of World::set_river_at
 
     /// **`Terrain::move_goody@0084a3d0`** on cell `(x, y)`
     /// ([`Pass::move_goody`]); oil that moves takes its rocky patch's

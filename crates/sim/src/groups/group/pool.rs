@@ -744,7 +744,7 @@ impl Sim {
             .iter()
             .filter(|&&u| self.units[u].alive() && self.is_captain(u))
             .count()
-    }
+    } // twin of Group::get_num_cap
 
     /// `Group::add(o, who, keep_captain, const)@00714350` on a seated group,
     /// whole (§4.1, §23). Unlike [`Sim::group_add_keeping`], which builds a
@@ -922,7 +922,7 @@ impl Sim {
             }
         }
         f
-    }
+    } // twin of UnitData::get_captain
 
     /// `Unit::set_group(unit, g, 0)@00605220`: up the squad chain to its
     /// captain, then `+0x80 = g` on the captain and every **active**

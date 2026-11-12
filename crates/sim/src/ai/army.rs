@@ -1117,7 +1117,7 @@ impl Sim {
                 self.army_process(who, s, bypass);
             }
         }
-    }
+    } // twin of Armies::process_all
 
     /// `Army::process@006f93d0` (§5–§6): the walk of
     /// [`crate::ai::army::army_process_view::army_process`] over this army's slot.
@@ -1126,7 +1126,7 @@ impl Sim {
             &mut SimProcess { s: self, who, slot },
             bypass,
         );
-    }
+    } // twin of Army::process
 
     /// `Army::use_generals@006f4c30`: every member of the army's groups,
     /// in list order, that is active and a hero (`unit_flags2 & 0x20`) is
@@ -1609,7 +1609,7 @@ impl Sim {
             who,
             slot,
         })
-    }
+    } // twin of Army::is_moving
 
     /// `Army::engagement`'s seed (§11): which member's attack the army
     /// adopts as its target of the moment.
@@ -2296,7 +2296,7 @@ impl Sim {
                 self.army_process(who, s, true);
             }
         }
-    }
+    } // twin of Armies::diplo_change
 
     /// `Armies::leader_defeated(who)`: `Army::stop` on every army — which
     /// is `Group::action_halt(g, 0)` on each of its groups (§14,
@@ -2310,7 +2310,7 @@ impl Sim {
             let g = self.army_group(who, s);
             self.group_action_halt(&g, 0);
         }
-    }
+    } // twin of Armies::leader_defeated
 
     /// `City::close`'s army pass: armies mustering at the city close,
     /// armies targeting its building drop the target.

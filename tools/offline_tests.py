@@ -39,6 +39,7 @@ SUITES = (
     'test_refill',  # the sixty-second pass, Loop 3769
     'test_census_marks',  # the forty-seventh pass, Loop 3405
     'test_census_cites',  # the forty-eighth pass, Loop 3415
+    'test_census_territory',  # item 4039: the territory's kinds and marks
     'test_samegame',  # the forty-ninth pass, Loop 3435
     'test_poolshot',  # the fiftieth pass, Loop 3469/3451
     'test_retire',  # the fifty-first pass, Loop 3486 (tools/, the script's own directory)

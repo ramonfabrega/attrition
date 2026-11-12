@@ -177,7 +177,7 @@ pub fn lumber_level_by(city_flags: i32, has_preq: impl FnMut(usize) -> bool) -> 
         return 0;
     }
     1 + crate::economy::rares::top_held(3, has_preq) as i32
-}
+} // twin of CityData::lumber_level
 
 /// `CityData::smelter_level@007367a0`: the enhancer of the fifth good type's kind (`goodtypes.list[4] + 4`, the
 /// metal good, kind 4) — 0 `GRANARY`, 1 `LUMBERMILL`, 4 `SMELTER`, 5 `REFINERY` (`0x1a7..=0x1aa`), any other kind 0
@@ -199,7 +199,7 @@ pub fn smelter_level_by(
         return 0;
     }
     get_smelter()
-}
+} // twin of CityData::smelter_level
 
 /// `GoodTypeData::get_enhancer@0066fcf0`: the building type that enhances a
 /// good of `kind` — 0 `GRANARY`, 1 `LUMBERMILL`, 4 `SMELTER`, 5 `REFINERY`
@@ -213,7 +213,7 @@ pub fn good_enhancer(kind: i32) -> i32 {
         5 => 0x1aa,
         _ => -1,
     }
-}
+} // twin of GoodTypeData::get_enhancer
 
 /// The metal good's kind, which `smelter_level` reads off the good-type list (`GoodTypeData`'s `+0x4`).
 const METAL_KIND: i32 = 4;
@@ -265,7 +265,7 @@ pub(crate) fn build_calc_gather_steps(
         scholars,
     });
     count.max(0)
-}
+} // twin of BuildData::calc_gather
 
 impl Sim {
     /// The resource a building gathers — `BuildTypeData::get_good`, as far as
@@ -296,7 +296,7 @@ impl Sim {
         } else {
             None
         }
-    }
+    } // twin of BuildTypeData::get_good
 
     /// Whether a building is standing and finished — the pair
     /// `count_buildings` and `num_buildings` both insist on (`flags & 1`

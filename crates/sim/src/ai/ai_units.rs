@@ -423,7 +423,7 @@ impl Sim {
                 && !self.building_unassimilated(b)
                 && self.building_of_type(b, wt)
         })
-    }
+    } // twin of City::could_queue
 
     /// `BuildData::count_queue(1, t)`: queued entries of `t`'s lineage;
     /// `count_queue(0, _)` counts queued citizens instead.

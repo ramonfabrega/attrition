@@ -52,9 +52,15 @@ of a game are its start, its closing block and whatever its twin printed.
 source stem, in `tools/census.py --territory` (`census.territory`;
 `--json` for the same as data):
 
-- **ported**: backed, and `crates/sim` consumes it (`is_port_backed`: a
-  coverage section diffs it, or the crate spells the `Class::method`
-  outside `sweep/`);
+- **ported**: backed, and `crates/sim` consumes it (`is_port_backed`, the
+  census's own `port` column: a coverage section diffs it, or the crate
+  spells the `Class::method` on a code line outside `sweep/`, or in the
+  doc comment of the `fn` named after the method — Loop 2286/2420's rule,
+  unwidened). Until item 4039 the map also asked for a `fn` of the
+  method's own snake-case name, so it counted 36 fewer than the census's
+  column and no twin by another name; the readers' twins (below) now land
+  as a spelling on the closing brace of the twin itself, `} // twin of
+  Class::method` (`absorbs` for an `absorbed` row), where rustfmt keeps it;
 - **replaced by design**: not ported, in one of the five layers the project
   replaced on purpose — **the command packaging and manager**
   (`commandpackage`, `commandmanager`), **the turn pump** (`turncontrol`,
@@ -67,12 +73,36 @@ source stem, in `tools/census.py --territory` (`census.territory`;
   `unit.cpp` and `groups.cpp`, untouched). **Every group took the mark on
   Ramon's word at the talk**, reversible per group if a port is wanted
   after all; `census.REPLACED_BY_DESIGN` is the list. The mark never
-  touches a ported or an excluded function;
+  touches a ported or an excluded function. **DECISIONS 114 §6** (the
+  seventy-fourth pass, from lore's scoring of the 26 territory readings,
+  `docs/audit/2026-11-06-territory-*.md`) extended three groups by the
+  readers' rows — the XML loaders by 21 names, each with its twin in
+  `crates/rondata` (`Map::scale_number` among them, the one loader with a
+  rule inside it, which MAPGEN §11 says no stock map reaches); the
+  scripting VM by the trigger VM's accessors and `ObjectData::in_a_ship`;
+  the turn pump by `Game::loop` — and added a sixth, **the recorded-game
+  playback** (`Game::run_playback`, `RecordGame::read_*`). Each group now
+  carries its reversal trigger (`--territory` prints them): the turn pump
+  is reopened at networking, the scripting VM with the trigger system, the
+  playback if the port must play a `.rcx` itself. The 25 `GroupOut`/`UnitOut`
+  issuers are owned by the port's issuer, `client::input`
+  (`docs/CLIENT_INPUT.md`), their specification; the census's `*Out` mark
+  excludes them as `ui` first, so they count there;
 - **open**: neither ported, replaced nor excluded — a sweep-backed
   **layout** (the offset identity asserted by a test, no consumer), a
   **name** the crate defines without backing, or **unmarked**. This is the
-  work left;
-- **excluded**: dead weight, UI, operator, cut — the census's own marks.
+  work left. The `Territory:` line names three sets inside it, never moving
+  a row out (`census.TERRITORY_NAMED`): **the start track's** nine
+  `Setup::*` builders (lore's group E; the harness installs the start from
+  the dump), **the checksum track's** nine data and rules walks (group G,
+  the original's full-state checksum, `docs/CHECKSUM.md`), and **the
+  rules' 1:1 finish**, the fourth mark: the 66 rows the readers ruled
+  `unmodelled`, a playing game's rule the crate does not have (three of
+  them the adjudication ruled Great Sahara's continents with no route);
+- **excluded**: dead weight, UI, operator, cut — the census's own marks,
+  asked **before** a sweep's backing reads `layout` (item 4039, defect A
+  of DECISIONS 112 §3: the map had asked `backed` first, and 82 swept
+  bodies the census excludes counted open), and after a port.
 
 On this tree: **ported 529 · replaced by design 318 · open 1305 of 3611**
 (layout 903, name 4, unmarked 398; excluded 1459: dead 1160, UI 235,
@@ -83,6 +113,20 @@ the turn pump 35 (23, 12), the XML loaders 15 (6, 9), the scripting VM 3
 `census::RUBRIC_TERRITORY_*`; the stems with the most open functions
 (`unit` 106, `groups` 99, `map` 79, `world` 73, `game` 59) are the table's
 head.
+
+**Item 4039** (the census filler, on `56df6369`'s tree, measured
+555 · 318 · 1280 before it): **ported 669 · replaced by design 336 · open
+1066 of 3611** (in it: the start track 9, the checksum track 9, the rules'
+1:1 finish 61). Defect A moved 82 (layout → `ui` 73, `dead` 7, `op` 2);
+the port test aligned with `is_port_backed` 36 (a coverage section's diff
+or a code-line spelling); the groups 28 (open 16, layout 12 → replaced);
+the readers' twin spellings 78 rows of 305 `layout` twins and absorbed:
+the 77 whose twin the crate's own doc comment already cites and the
+reader's evidence names first — or names by its file, picked by hand —
+each on its twin's closing brace. The other 228 name a crate function
+the census cannot place mechanically (a third of a sample resolved to a
+caller or a neighbour), and the 579 rows the readers excluded wait on the
+census classes they propose; both are the filler's next rows.
 
 **What it does not measure.** Ported is the census's `port` test: a
 consumer exists, not that its every predicate was checked (a ported

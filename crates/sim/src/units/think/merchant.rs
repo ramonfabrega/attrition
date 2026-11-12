@@ -154,7 +154,7 @@ impl Sim {
         // the **unsnapped** good (`docs/ORDERS.md` §4.3).
         self.add_move_order(u, g.pos, MoveKind::MoveTo, QueuePos::New, false);
         true
-    }
+    } // twin of Unit::think_merchant
 
     /// The three object searches, in the original's order and each one
     /// only asked when the one before it found nothing (`005f493d`,

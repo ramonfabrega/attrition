@@ -257,7 +257,7 @@ impl Sim {
             return;
         }
         self.find_goody_box(u);
-    }
+    } // twin of Unit::do_explore_to
 
     /// `Unit::do_attack_to@005f2320`'s tail — the attack-move's look
     /// around, after `do_move` (`docs/ORDERS.md` §7.4,
@@ -324,7 +324,7 @@ impl Sim {
             return;
         }
         self.attack_move_look(u, false);
-    }
+    } // twin of Unit::do_group_attack_to
 
     /// The body `do_attack_to` and `do_group_attack_to` share once the
     /// phase and the head have passed: an unarmed unit or a supply wagon
