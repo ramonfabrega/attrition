@@ -1485,7 +1485,10 @@ photograph, the 106 scored tiles under a mountain).
 - How the original draws the ground under a mountain cell. The count
   backs only that a ground is there (105 against 98 over the grey).
 - The client blends in the sRGB target's linear space (parked 4139b). The
-  GPU frame is not scored.
+  GPU frame is not scored. Item 4172 moved `fs_mountain`'s ADDSIGNED onto
+  the stored bytes: run in linear space it drew the body at Y 52 on the
+  still against the photograph's 142, where the painter reads 0.83–0.92;
+  after, 127. The layers' blend over the ground is still linear.
 
 ## 3.11 The clock, under its ceilings (item 4161)
 
@@ -2106,6 +2109,11 @@ rows are their pins'.
   every mesh pixel not behind. The one more agree with is drawn, if
   its colour row is not under 18; a tie keeps the drawn. Pins:
   `RUN1559B_3279_LUMA`, `_GROUND_LUMA`, `RUN1564_3279_GROUND_LUMA`.
+  **Counted** on the painter: the figures **20 of 33** as drawn, **23**
+  lit, whose colour row is 17, so the drawn stays; the ground **1,075 of
+  1,109** (the mountain's body, eight tiles at 0.83–0.92, in) and run1564's
+  **791 of 1,920** (`OCEAN` 2 of 437, `SANDY` 83 of 772); run1441's camera
+  1 of 32. A light 1.5 times as strong takes them to 4 and 1.
 - *The constants* and interface are this frame's, pinned, never tuned
   to a count (the inputs: 4089's journal).
 
@@ -2384,9 +2392,17 @@ lines and fog shading, projectiles and corpses, then candidate C.
   §3.6 and §3.12 is counted on the CPU painter, and no test reads the client's still. On the stills of frame 3279
   at both pinned cameras each figure is washed in its owner's colour and the trees are flat green (no texture
   bound, parked 4038a). Settled by item 4171: the rows counted on the still.
-- **How bright anything is.** The readers compare (r, g) / (r + g + b). By box on those stills the mountain's
+- ~~**How bright anything is.**~~ The readers compare (r, g) / (r + g + b). By box on those stills the mountain's
   body sums 130 against the photograph's 392, and the lake 506 against 316; a mountain's body and a tree are in
-  no row. Settled by item 4172's luminance reader, and by item 4173 for the trees.
+  no row. ~~Settled by item 4172's luminance reader~~: on the painter (§5.3, "The luminance reader") the figures
+  read 20 of 33, the ground 1,075 of 1,109 with the body in, run1564's 791 of 1,920; the body's 130 was the
+  client's ADDSIGNED in linear space (§3.10), 357 after. The trees are item 4173's.
+- **Whether the client's other blends part from the painter's on brightness** (4172a): the textured pass's
+  team mix and the hardware blends of the silhouette, the patch and the mountain's layer run in the sRGB
+  target's linear space, the painter's on the stored bytes. Settled by item 4171's rows on the still.
+- **Why the medium tanks read 0.70–0.73 of the photograph's brightness** as drawn and darker lit (4172b), where
+  the riflemen read 1.1–1.5 drawn and agree lit. The texture as sampled is 4168b's; the lit candidate's diffuse
+  by the stored normals (4122) is uncounted on brightness.
 
 Each line names what would settle it.
 

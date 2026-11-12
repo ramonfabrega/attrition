@@ -461,6 +461,39 @@ pub fn our_patches(
 #[cfg(test)]
 pub const RUN1559B_3279_GROUND: (usize, usize) = (1097, 1109);
 
+/// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §5.3,
+/// "The luminance reader", its rule committed before this count): of
+/// [`RUN1559B_3279_GROUND`]'s 1,109 scored tiles, those whose drawn mean
+/// luminance is the photograph's within `LUMA_READER`: **1,075**; by kind
+/// `[agree, scored]` plain, under a mountain, `ROCK`. The painter's
+/// ground sits under the photograph's (median 0.90 plain, 0.89 under a
+/// mountain); the mountain's body, the pass's box, is eight scored tiles
+/// at 0.83 to 0.92, agreeing on the painter where the client's still read
+/// it at 0.37 before item 4172's `fs_mountain`.
+#[cfg(test)]
+pub const RUN1559B_3279_GROUND_LUMA: ((usize, usize), [[u32; 2]; 3]) =
+    ((1075, 1109), [[980, 986], [79, 106], [16, 17]]);
+
+/// **`RUN1564_3279_GROUND_LUMA`** (item 4172): [`RUN1564_3279_GROUND`]'s
+/// tiles on the same reader, `(agree, scored)` and by kind, `KINDS`'
+/// order: **791 of 1,920**. The land agrees (plain 679 of 679, `ROCK` 27
+/// of 32); the water and the shore are too bright, `OCEAN` 2 of 437
+/// (median 1.69, the lake's tiles 1.8 to 2.0) and `SANDY` 83 of 772
+/// (median 1.55): the row item 4174 carries beside its own.
+#[cfg(test)]
+pub const RUN1564_3279_GROUND_LUMA: ((usize, usize), [[u32; 2]; 7]) = (
+    (791, 1920),
+    [
+        [679, 679],
+        [0, 0],
+        [27, 32],
+        [0, 0],
+        [0, 0],
+        [83, 772],
+        [2, 437],
+    ],
+);
+
 /// [`RUN1559B_3279_GROUND`] with the patch laid and the mountains in the
 /// debug grey, as item 4139 pinned it (item 4141).
 #[cfg(test)]
@@ -1669,6 +1702,20 @@ mod tests {
             r.bare
         );
         assert_eq!(((r.row, r.scored.len()), by, r.bare), RUN1564_3279_GROUND);
+        // Item 4172: the same tiles on brightness; the lake and the beach
+        // are the pass's boxes.
+        let l = luma_row(&p, &r);
+        print_luma(
+            "RUN1564_3279_GROUND_LUMA",
+            &p,
+            &r,
+            &l,
+            &[
+                ("the lake", (900, 282, 1020, 362)),
+                ("the beach", (700, 672, 760, 692)),
+            ],
+        );
+        assert_eq!((l.0, l.1), RUN1564_3279_GROUND_LUMA);
     }
 
     /// **Item 4164: the water on the second photograph**, the read draw
@@ -1913,6 +1960,126 @@ mod tests {
         let Some(r) = ground_row(&mut p) else { return };
         assert_eq!((r.bare, r.scored.len()), RUN1559B_3279_GROUND_BARE);
         assert_eq!((r.row, r.scored.len()), RUN1559B_3279_GROUND);
+        // Item 4172: the same tiles on brightness; the mountain's body is
+        // the pass's box (1480, 150) 80 × 60, its eight tiles.
+        let l = luma_row(&p, &r);
+        print_luma(
+            "RUN1559B_3279_GROUND_LUMA",
+            &p,
+            &r,
+            &l,
+            &[
+                ("the mountain's body", (1480, 150, 1560, 210)),
+                ("grass", (660, 430, 720, 470)),
+            ],
+        );
+        assert_eq!((l.0, [l.1[0], l.1[1], l.1[2]]), RUN1559B_3279_GROUND_LUMA);
+        let body: Vec<f32> =
+            l.2.iter()
+                .filter(|(tt, _, _)| {
+                    let at = r.means[tt].2;
+                    (1480..1560).contains(&at.0) && (150..210).contains(&at.1)
+                })
+                .map(|&(_, yo, yt)| yo / yt)
+                .collect();
+        assert!(
+            !body.is_empty() && body.iter().all(|q| (0.8..1.0).contains(q)),
+            "the mountain's body is in the row and agrees on the painter: {body:?}"
+        );
+        // Made to fail: a white light half again as strong on our side.
+        let bright =
+            l.2.iter()
+                .filter(|&&(_, yo, yt)| render::silhouette::LUMA_READER.agrees(1.5 * yo, yt))
+                .count();
+        println!("RUN1559B_3279_GROUND_LUMA under a light 1.5 times as strong: {bright}");
+        assert!(bright * 2 < l.0.0, "a white light moves the row");
+    }
+
+    /// [`luma_row`]'s answer: `(agree, scored)`, by kind, and each scored
+    /// tile's luminance, ours then the photograph's.
+    pub(crate) type LumaRow = ((usize, usize), [[u32; 2]; 7], Vec<((i32, i32), f32, f32)>);
+
+    /// **The ground's brightness** (item 4172; `docs/RENDERER.md` §5.3,
+    /// "The luminance reader", committed before its count): of the ground
+    /// row's scored tiles, those whose drawn mean luminance agrees with the
+    /// photograph's under [`render::silhouette::LUMA_READER`]; a tile we
+    /// draw no pixel of parts. By kind, [`KINDS`]' order, `[agree, scored]`.
+    /// A named box on the photograph, `x0, y0, x1, y1`.
+    pub(crate) type Boxed<'a> = (&'a str, (i32, i32, i32, i32));
+
+    pub(crate) fn luma_row(p: &Probe, r: &GroundRow) -> LumaRow {
+        use render::silhouette::{LUMA_READER, luminance};
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let mut by = [[0u32; 2]; 7];
+        let mut row = 0;
+        let mut ys = Vec::new();
+        for (tt, _) in &r.scored {
+            let (th, us, _) = r.means[tt];
+            let yt = luminance(th);
+            let yo = us.map_or(0.0, luminance);
+            let ok = us.is_some() && LUMA_READER.agrees(yo, yt);
+            let e = &mut by[kind_of(&t, &mountains, *tt)];
+            e[1] += 1;
+            if ok {
+                e[0] += 1;
+                row += 1;
+            }
+            ys.push((*tt, yo, yt));
+        }
+        ((row, r.scored.len()), by, ys)
+    }
+
+    /// [`luma_row`]'s value diff: by kind, the mean of the ratio ours over
+    /// the photograph's and its spread, and the tiles whose centroid lies in
+    /// `boxes` (`x0, y0, x1, y1`, named).
+    pub(crate) fn print_luma(
+        label: &str,
+        p: &Probe,
+        r: &GroundRow,
+        row: &LumaRow,
+        boxes: &[Boxed<'_>],
+    ) {
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let mut ratios: [Vec<f32>; 7] = Default::default();
+        for &(tt, yo, yt) in &row.2 {
+            ratios[kind_of(&t, &mountains, tt)].push(yo / yt.max(1.0));
+        }
+        for (k, v) in ratios.iter_mut().enumerate() {
+            if v.is_empty() {
+                continue;
+            }
+            v.sort_by(|a, b| a.total_cmp(b));
+            println!(
+                "{label} {}: [agree, scored] {:?}; ours / theirs: min {:.2} p10 {:.2} median {:.2} p90 {:.2} max {:.2}",
+                KINDS[k],
+                row.1[k],
+                v[0],
+                v[v.len() / 10],
+                v[v.len() / 2],
+                v[v.len() * 9 / 10],
+                v[v.len() - 1]
+            );
+        }
+        for (name, (x0, y0, x1, y1)) in boxes {
+            for &(tt, yo, yt) in &row.2 {
+                let (th, us, at) = r.means[&tt];
+                if (*x0..*x1).contains(&at.0) && (*y0..*y1).contains(&at.1) {
+                    println!(
+                        "{label} {name}: tile {tt:?} at {at:?}, theirs ({:.0}, {:.0}, {:.0}) Y {yt:.1}, ours {:?} Y {yo:.1}, ratio {:.2}",
+                        th[0],
+                        th[1],
+                        th[2],
+                        us.map(|u| u.map(|v| v.round())),
+                        yo / yt.max(1.0)
+                    );
+                }
+            }
+        }
+        println!("{label}: {:?} of {:?}", row.0, row.1);
     }
 
     /// The ground row on one photograph (item 4160): on the base alone,

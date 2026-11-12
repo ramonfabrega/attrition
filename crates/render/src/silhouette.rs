@@ -1306,6 +1306,28 @@ pub const RUN1559B_3279_COLOUR_TINT: (usize, usize) = (2, 33);
 /// [`RUN1559B_3279_COLOUR`] at run1441's camera: 0 of 32.
 pub const RUN1441_CAMERA_3279_COLOUR: (usize, usize) = (0, 32);
 
+/// **`RUN1559B_3279_LUMA`** (item 4172; `docs/RENDERER.md` §5.3, "The
+/// luminance reader", its rule committed before this count): of
+/// [`RUN1559B_3279_COLOUR`]'s 33 objects, those whose mean luminance on
+/// the held pixels is the photograph's within [`LUMA_READER`], as drawn:
+/// **20 of 33**. Out: 0/5, 0/7, 0/0, 1/23, 1/32, 1/34, 1/35 too bright
+/// (1.20 to 1.46 of the photograph), the three tanks 1/27, 1/40, 1/16 and
+/// the general 1/26 too dark (0.70 to 0.80), 1/26's piece 13680 at 0.72,
+/// 1/38 under 40 held pixels. The figures pixel-weighted: the photograph
+/// 94.4, drawn 86.2.
+pub const RUN1559B_3279_LUMA: (usize, usize) = (20, 33);
+/// [`RUN1559B_3279_LUMA`] under item 4114's candidate (`Colouring::Lit`):
+/// **23 of 33**, beside its colour row [`RUN1559B_3279_COLOUR_LIT`]. It
+/// wins on brightness and its colour row is under 18, so by the rule it is
+/// not drawn (4172). Pixel-weighted 76.9: it darkens the bright riflemen
+/// into register and the dark tanks further out.
+pub const RUN1559B_3279_LUMA_LIT: (usize, usize) = (23, 33);
+/// [`RUN1559B_3279_COLOUR`] under item 4114's candidate: 17 of 33, the
+/// count 4114 and 4165 named, re-counted by the row's own reader.
+pub const RUN1559B_3279_COLOUR_LIT: (usize, usize) = (17, 33);
+/// [`RUN1559B_3279_LUMA`] at run1441's camera, made to fail: 1 of 32.
+pub const RUN1441_CAMERA_3279_LUMA: (usize, usize) = (1, 32);
+
 /// The photograph's frame at run1441's camera, by colour and by the mask:
 /// the made-to-fail.
 pub const RUN1441_CAMERA_3279: (usize, usize) = (0, 24);
