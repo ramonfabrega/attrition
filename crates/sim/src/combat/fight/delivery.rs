@@ -104,6 +104,13 @@ impl Sim {
         // "has struck" bit beside `meet`'s bit 0. Unconditional on what the
         // hit does, so a nuke's ring marks the struck leader's row.
         let (hit_by, hit_who) = (self.owner_of(attacker), self.owner_of(target));
+        // **W1, the blow** (`do_damage@0064a480`, `64a8b3..64a91e`, just
+        // ahead of the treaty test): `hits_current_frame[attacker] += s`,
+        // `damage_current_frame[victim] += s`, `s = 5` for an `is_siege`
+        // attacker type on a building, else 1 (`docs/LEADERS.md` §3.2).
+        let siege_on_building = matches!(attacker, Obj::Unit(u) if self.is_siege_unit(u))
+            && matches!(target, Obj::Building(_));
+        self.note_blow(hit_by, hit_who, siege_on_building);
         if hit_by != hit_who {
             self.treaty_on(hit_by, hit_who, 2);
         }
@@ -186,6 +193,11 @@ impl Sim {
             if self.building_is_city(b)
                 && self.buildings[b].active
                 && self.buildings[b].hits_now() > self.buildings[b].damage);
+        // `local_20` (`do_damage@0064a480`, `64a806..64a828`), read before
+        // the take: the target is alive, a Build proper and active — W2's
+        // 5 against 2 (`docs/LEADERS.md` §3.2).
+        let raze_active = matches!(target, Obj::Building(b)
+            if self.buildings[b].alive && self.buildings[b].active);
         // The city alarm, before the take (`0064a9f8`..`0064b2c4`).
         let alarm = self.city_alarm(attacker, target, ap.siege, dealt.whole, frame);
         // Step 7: take.
@@ -218,6 +230,10 @@ impl Sim {
                 // gate: an ally's or one's own building counts
                 // (`docs/LEADERS.md` §2.2).
                 self.note_raze(who);
+                // **W2, the structure kill** (`64bbb5..64bbe3`), with no
+                // unit, splash, air or ally gate: `k` 5 for a building
+                // active before the take, else 2 (`docs/LEADERS.md` §3.2).
+                self.note_rate_kill(who, hit_who, if raze_active { 5 } else { 2 });
                 if matches!(attacker, Obj::Unit(_))
                     && !splash
                     && !matches!(ap.domain, Domain::Air)
@@ -611,6 +627,13 @@ impl Sim {
                     if self.countable_death(i) {
                         let (victim, by) = (self.units[i].owner, self.owner_of(_by));
                         self.note_unit_death(victim, Some(by));
+                        // **W3** (`take_damage@00652020`, `653026`,
+                        // `653033`): the same death steps the victim's
+                        // `deaths_current_frame` and the attacker's
+                        // `kills_current_frame` by one (`docs/LEADERS.md`
+                        // §3.2). The decoy tail passes the victim's own
+                        // `who`, so its owner takes both.
+                        self.note_rate_kill(by, victim, 1);
                     }
                     // `take_damage@00652020:607`, before `die` (vslot
                     // `+0x158`): the kill's plunder (`docs/AI.md` §259).
@@ -879,11 +902,16 @@ impl Sim {
     /// (the captain, alone, no decoy), read before the death; the victim's
     /// `units_lost` does not step (`docs/LEADERS.md` §2.2).
     ///
-    /// SEAM: the caster's `+0xa58`/`+0xa5a` counters and the score `+0x44
-    /// += cost / 5`, and the message and sound.
+    /// **And W4** (`cast_sabotage@006720e0`, `67220a..672228`): on the same
+    /// predicate, `deaths_current_frame` of the **target's** owner and
+    /// `kills_current_frame` of the caster's step by one (`docs/LEADERS.md`
+    /// §3.2).
+    ///
+    /// SEAM: the score `+0x44 += cost / 5`, and the message and sound.
     pub(crate) fn cast_sniper_unit(&mut self, v: usize, dtype: i32, caster: Player) {
         if self.countable_death(v) {
             self.note_unit_kill(caster);
+            self.note_rate_kill(caster, self.units[v].owner, 1);
         }
         self.die_with(v, dtype);
     }
@@ -970,8 +998,12 @@ impl Sim {
     /// (`docs/LEADERS.md` §2.2); the owner's `buildings_lost` steps in
     /// [`Self::damage_building`].
     ///
-    /// SEAM: the caster's `+0xa58`/`+0xa5a` counters and the score `+0x44
-    /// += cost / 5`, the message and the sound; the dead-target refund arm.
+    /// The arm writes no combat rate: its only leader stores are `+0x818`
+    /// and `+0x44`, and its take passes no attacker (`docs/LEADERS.md`
+    /// §3.2, W4).
+    ///
+    /// SEAM: the score `+0x44 += cost / 5`, the message and the sound; the
+    /// dead-target refund arm.
     pub(crate) fn cast_sabotage_building(&mut self, b: usize, caster: Player) {
         let frame = self.frame;
         let dmg = (self.buildings[b].health / 2).max(self.tables.tuning.commando_min_damage);

@@ -56,7 +56,6 @@ pub(crate) const UNMODELLED: &[(&str, &str)] = &[
     ),
     ("DIPLOMACY", "the diplomacy block is not modelled"),
     ("num_bonus_cards", "bonus cards are Conquer-the-World's"),
-    ("average_*_rate", "the combat averages are score counters"),
 ];
 
 /// The damage path's leaves `LeaderData::log_data@006e5110` prints (item
@@ -585,6 +584,11 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
             out.push((k.to_string(), v.first().copied().unwrap_or(0)));
         }
     }
+    // **Item 4177, step IV** (`docs/LEADERS.md` §3): the thirteen combat
+    // rates, every one printed. The same values the leaders line emits.
+    for k in sim::leaders::rates::RATE_LEAVES {
+        out.push((k.to_string(), s.leader_rate_leaf(p, k).unwrap_or(0)));
+    }
     out.push(("rare".to_string(), mask_text(l.rare)));
     out.push(("rare_owned".to_string(), mask_text(h.rare_owned)));
     out.push(("rare_conquest".to_string(), mask_text(0)));
@@ -947,7 +951,11 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
         "buildings_razed",
         "buildings_lost",
         "nukes_launched",
-    ] {
+    ]
+    .into_iter()
+    // Item 4177, step IV (`docs/LEADERS.md` §3): the thirteen combat rates.
+    .chain(sim::leaders::rates::RATE_LEAVES)
+    {
         if let Some(x) = block.int(key) {
             out.insert(key.to_string(), x);
         }
@@ -3515,16 +3523,29 @@ mod tests {
                 "attrition_stamp",
                 "attrition_stamp2",
                 "attrition_stamp3",
+                "average_damage_rate",
+                "average_death_rate",
+                "average_hit_rate",
+                "average_kill_rate",
                 "barracks_queued",
                 "buildings_lost",
                 "buildings_razed",
                 "city_name",
                 "combat_queued",
                 "ctw_hero_stamp",
+                "damage_current_frame",
+                "damage_fifteen_seconds",
+                "deaths_current_frame",
+                "deaths_fifteen_seconds",
                 "dock_queued",
                 "factory_queued",
                 "fort_mark",
+                "frame_battle",
                 "handicap",
+                "hits_current_frame",
+                "hits_fifteen_seconds",
+                "kills_current_frame",
+                "kills_fifteen_seconds",
                 "misery",
                 "missiles_used",
                 "multi_diff",
