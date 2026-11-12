@@ -1706,14 +1706,17 @@ carried `cannon_time`, `handicap`, `multi_diff`, `misery`,
 of which held-out leaves the record prints is `docs/LEADERS.md`'s head),
 ~~**84**~~ 84 at item 4167, which carried `fort_mark`, `oil_well_mark`,
 `wonders_built`, `wonders_held`, `senates_built`, `forts_built`,
-`scholar_militia` and `dock_queued` (`docs/LEADERS.md` §13, §14), and
-**74** since item 4176, which carried ten of the damage path's sixteen:
+`scholar_militia` and `dock_queued` (`docs/LEADERS.md` §13, §14),
+~~**74**~~ 74 at item 4176, which carried ten of the damage path's sixteen:
 `buildings_razed`, `buildings_lost`, `ctw_hero_stamp`, `attrition_stamp`,
 `attrition_stamp3`, `give_att_disabled`, `repair_stamp`, `missiles_used`,
 `units_bribed` and `nukes_launched` (`docs/LEADERS.md` §2, §4, §5, §15);
 `units_killed`, `units_lost`, the three victim stamps and
 `attrition_stamp2` are held by the crate and stay held out, each parting
-where its parent parts (4176a, 4176b).
+where its parent parts (4176a, 4176b), and **73** since item 4177, which
+carried `frame_battle` (`docs/LEADERS.md` §3); the other twelve combat
+rates are held by the crate and stay held out, each parting in the record
+diff (4177a, 4177b, and beside 4176a's parents).
 `CHECKSUM_STATE` does not count it (§5).
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
