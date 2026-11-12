@@ -21,7 +21,9 @@ Kinds: `residue` — a word on the AI track, a pair's or the third map's;
 `reading` — the never-entered functions a document cites, read into claims
 that each name their falsifying capture (DECISIONS 84); `coverage` — a
 pinned lobby's `cover=1` trace; `structure` — a `docs/STRUCTURE.md` §5
-move, gated whole; `render` — a `docs/RENDERER.md` §6 item (Loop 4022). A refusal is a `ValueError` and exit 2: an
+move, gated whole; `render` — a `docs/RENDERER.md` §6 item (Loop 4022); `start` — a
+`docs/START.md` §5 lobby, gated whole; `input` — a `docs/CLIENT_INPUT.md` item, the orders
+track's (the steering pass of 2026-11-12). A refusal is a `ValueError` and exit 2: an
 item the queue does not book has no brief, and a `--tests` filter that matches no test in the
 workspace, or only `#[ignore]` ones, has no lane gate (Loop 3818, 3227); one whose every match is
 in `crates/sim` is noted on stderr, since a lane that touches no sim path drops it (Loop 3823).
@@ -75,10 +77,19 @@ KINDS = {
     # A render item (Loop 4022; `docs/RENDERER.md` §5.4, §6): K of M, the
     # oracle's rungs, and the render tests' preconditions (4018's Loop line).
     'render': ('opening', 'booked', 'lanes', 'render', 'landing'),
+    # A start item (the steering pass of 2026-11-12; `docs/START.md` §3, §5):
+    # lobbies whose start block the builder reproduces from `GAMEINFO`, the
+    # oracle each lobby's `[Start Game]` dump on disk; gated whole.
+    'start': ('opening', 'booked', 'lanes', 'start', 'landing'),
+    # An input item (the same pass; `docs/CLIENT_INPUT.md`): a person's events
+    # minted as the script's orders, the original's playback of their file
+    # the oracle, so it carries the capture rows.
+    'input': ('opening', 'booked', 'lanes', 'input', 'capture', 'landing'),
 }
 TRACKS = {'residue': 'the AI track', 'chapter': 'the rules track', 'sweep': 'the sweep track',
           'reading': 'the reading track', 'coverage': 'the coverage track',
-          'structure': 'the structure track', 'render': 'the render track'}
+          'structure': 'the structure track', 'render': 'the render track',
+          'start': 'the start track', 'input': 'the orders track'}
 # The lane gate's filters every word lane runs (parked 1623): a widening
 # puts its window in the coverage driver, so `coverage::` is a word's own.
 # And every lobby's `first_parting` (parked 1910, 2000, the thirty-first
@@ -120,12 +131,22 @@ ALWAYS_TESTS = {'residue': ('coverage::', 'first_parting', 'battery_floors', 'bl
                 # tests crate-less (`camera::tests::…`), so that filter matches
                 # nothing; the crate's modules are named instead.
                 'render': ('free::', 'artdata::', 'bh3::', 'bha::', 'camera', 'chunk::', 'draw::',
-                           'coverage::', 'census::', 'blind::')}
+                           'coverage::', 'census::', 'blind::'),
+                # A start lane gates whole (`WHOLE`): the lobby walked from the
+                # built start and the original's playback of our files stand on it.
+                'start': (),
+                # An input lane: the client's `input::tests`, `rondata`'s
+                # `diff::minted` (the script's and the clicked file's pins,
+                # `CLICKED_WALKED`) and `recgame::tests`. Never `script::`:
+                # `rondata::script` has no test of its own, and the filter
+                # matches nothing (Loop 3818).
+                'input': ('input::', 'minted::', 'recgame::', 'coverage::', 'blind::')}
 # The kinds whose lane gate names no filter of its own: no word moves.
-NO_WORD = ('sweep', 'reading', 'coverage', 'structure', 'render')
+NO_WORD = ('sweep', 'reading', 'coverage', 'structure', 'render', 'start', 'input')
 # The kinds whose lane gate is `--lane --whole` (Loop 4022, the seventy-fifth
-# pass): a structure move certifies no behaviour change by every test.
-WHOLE = ('structure',)
+# pass): a structure move certifies no behaviour change by every test; a
+# start change sits under the milestone's lockstep pins (the 2026-11-12 pass).
+WHOLE = ('structure', 'start')
 # Rows of the checklist that are the commander's to follow in composing, or
 # the pass's, and say nothing to a worker.
 NOT_A_BRIEF_S = frozenset()
@@ -451,6 +472,7 @@ def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read
               'capture': 'A capture or a packet', 'chapter': 'A chapter', 'sweep': 'The sweep',
               'reading-item': 'A reading item', 'coverage-item': 'A coverage capture',
               'structure': 'A structure item', 'render': 'A render item',
+              'start': 'A start item', 'input': 'An input item',
               'build': 'Build', 'landing': 'Landing'}
     for name in KINDS[kind]:
         if name in ('opening', 'booked', 'lanes'):

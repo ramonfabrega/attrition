@@ -443,6 +443,56 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   `sim::observe`) gates `--lane --whole`**; otherwise the lanes row's
   `first_parting` is moot.
 
+## start
+
+- **The counter is `Start: <built> of <N> lobbies`** (`docs/START.md`
+  §5): `START_BUILT` lobbies whose whole start block the builder
+  reproduces from the lobby's `GAMEINFO` alone, of `START_LOBBIES`. The
+  pins in `rondata::diff::start` are yours, delta in the comment; the
+  queue's `Start:` line is mine.
+- **The oracle is on disk**: each lobby's `[Start Game]` dump, installed
+  by `build_sim`, against the builder's start; `RON_START_DIFF=1` prints
+  the value diff (`=all` for every parted field); `tools/start_lobbies.py`
+  lists the lobbies. No capture is booked while a dump on disk answers.
+- **A field the installer does not take from the dump compares the crate
+  with itself** (§3: `bucket`, `ages`, `techs`): quiet is not proven. The
+  journal says which of the fields you closed are dump-backed.
+- **Cheapest first**: before the first build, a census of every lobby's
+  first parting by record and field; take the family that releases the
+  most lobbies; the journal carries the value diff per lobby — record,
+  field, ours, theirs.
+- **The draws are the spine** (§1): a row that parts on a draw is settled
+  by a sibling's setup trace (`check_all_level=14`); grep the archive for
+  one before booking a take.
+- **Your gate is whole**, the line under Landing, no `--tests`: the lobby
+  walked from the built start and the original's playback of our files
+  stand on the builder, so a start change is certified by every test.
+
+## input
+
+- **The method is `docs/CLIENT_INPUT.md`'s**: an order minted from a
+  person's events that equals a script's order field for field is an
+  order the original plays. In order: (1) **stage 0, the values** — each
+  order's object and target read on its own frame of the walk, each pixel
+  through `world_to_screen`, pinned; (2) **the script** — the orders typed
+  in `rondata::script` beside `script()` and `clicked()`, never replacing
+  either; (3) **the count**, `INPUT_CLICKED` N of N — the events mint
+  orders equal to the script's, seen red once; (4) **the file** —
+  `recgame::minted_packages`, round-tripped; (5) **the playback** on the
+  click-free lane (`docs/RECGAME.md` §9.3's line): a per-frame take sized
+  to the orders, because the whole-length take cannot tell a clicked file
+  from the script's (§5); (6) **each order's effect** equal on both
+  sides, with the value diff against the previous playback.
+- **What is ours and not the original's** (the pick, the keys, the
+  rounding) is listed under the document's "Ours, not the original's";
+  an interface choice is never called a reading.
+- **No float reaches an order's bytes** except through the documented
+  rounding (§1).
+- **The pins are yours** (`INPUT_*`, the script's constants,
+  `*_WALKED`); the queue's `Recording:` line is mine.
+- **Your gate is scoped**, the line under Landing; **a branch that
+  touches `crates/sim` (the `command` door) gates `--lane --whole`**.
+
 ## build
 
 - **Per reading, a killer that tests the claim's own unit, where the
