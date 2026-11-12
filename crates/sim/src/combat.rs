@@ -266,7 +266,7 @@ pub struct Profile {
     pub attack: i32,
     pub to_hit: i32,
     pub attenuate: i32,
-    pub min_range: i32,
+    pub min_range: i32, // absorbs UnitData::min_range
     pub max_range: i32,
     /// A cavalry archer's ranged mode; zero otherwise.
     pub second_max_range: i32,

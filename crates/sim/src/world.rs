@@ -1077,7 +1077,7 @@ impl World {
             *b |= mask;
         }
         changed
-    }
+    } // twin of World::set_seen2
 
     /// `World::set_seen2@006b4bb0` with its `param_4` **set** — the call
     /// `Wall::update_local_seen` makes for an ordinary building. It ors
@@ -1096,7 +1096,7 @@ impl World {
         self.fog[i] = before | mask;
         self.or_was_seen(fx, fy, mask);
         self.fog[i] != before
-    }
+    } // twin of World::set_seen2
 
     /// The cell half of every `seen2` write: `mask` into `WData.was_seen`
     /// of the cell holding fog cell `(fx, fy)`, which the caller has put
@@ -1186,7 +1186,7 @@ impl World {
             .and_then(|i| self.tile_z.get(i))
             .copied()
             .unwrap_or(0)
-    }
+    } // twin of GameAccessConst::find_tcoord_z
 
     /// **An object's own `z`** (`ObjectData +0xc`, printed `z_internal`):
     /// `TerrainOut::find_tcoord_z@008544a0` with its fourth argument **1**,
@@ -1457,7 +1457,7 @@ impl World {
         } else {
             i32::from(d.land)
         }
-    }
+    } // absorbs WorldData::is_rocks
 
     /// `WorldData::get_land@006b4c70` with its third argument 1 — the
     /// **tile** form of [`World::land_class`], which

@@ -1862,7 +1862,7 @@ fn add_doobers(p: &mut Pass<'_>, ts: &TilesetGroups) {
             }
         }
     }
-}
+} // absorbs Doober::has_doobers
 
 /// **`TerrainGroups::treeify_mountains@006a1cc0`**: forest on the cells
 /// mountain art spills into, and forest over mountain on a mountain cell

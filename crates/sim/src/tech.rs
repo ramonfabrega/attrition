@@ -134,7 +134,7 @@ impl Kind {
     /// `is_plain_tech_type`: a tech that is neither an age nor an epoch.
     pub const fn is_plain_tech(self) -> bool {
         matches!(self, Kind::Final | Kind::Plain | Kind::Gov { .. })
-    }
+    } // twin of TypeData::is_plain_tech_type
     pub const fn unit(self) -> Option<UnitTraits> {
         match self {
             Kind::Unit(u) => Some(u),
@@ -999,7 +999,7 @@ impl TechTree {
             Kind::Unit(_) | Kind::Good => crate::core::flag_reads::NUM_PREQ as usize,
             _ => crate::core::flag_reads::BUILD_NUM_PREQ as usize,
         }
-    }
+    } // twin of BuildTypeData::num_preq
 
     fn epoch_of(&self, t: TypeId) -> Option<(Line, u8)> {
         match self.kind(t) {
@@ -1171,7 +1171,7 @@ impl TechTree {
     /// `ObjectTypeData::is(x, strict)`: lineage, not equality.
     pub fn is(&self, t: TypeId, x: TypeId, strict: bool) -> bool {
         self.is_at(t, x, strict, 0)
-    }
+    } // twin of TypeData::is
 
     fn is_at(&self, t: TypeId, x: TypeId, strict: bool, depth: usize) -> bool {
         if t == x {

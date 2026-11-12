@@ -346,7 +346,7 @@ pub(crate) fn animal_process_steps<C>(
     let (guy_mark, squad_size, num_guys) = figures(cx);
     let walk: Vec<usize> = process_walk(guy_mark, squad_size, num_guys).collect();
     guys(cx, &walk);
-}
+} // twin of Animal::process
 
 /// Whether `Unit::set_anim@00616f40` drops a figure's pending attack
 /// (`GuyData +0x9e`) on this pass: unless **guy 0's** current slot

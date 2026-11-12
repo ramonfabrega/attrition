@@ -269,7 +269,7 @@ pub const fn pop_value(level: i32) -> i32 {
         3 => 5,
         _ => 1,
     }
-}
+} // twin of CityData::get_pop_value
 
 /// How close a builder must stand: its tile within one tile of the
 /// footprint (on it counts too, since movement here does not path around
@@ -333,7 +333,7 @@ impl Sim {
     /// Whether a building is a city — `flags & 0x20`.
     pub fn building_is_city(&self, b: usize) -> bool {
         self.building_is(b, Ident::Village)
-    }
+    } // twin of WallData::can_capture
 
     /// `LeaderData::get_radius(who, type)`: in tiles, capped at 64.
     pub fn city_radius(&self, who: Player, ty: Option<usize>) -> i32 {
@@ -350,13 +350,13 @@ impl Sim {
         self.buildings[self.cities.cities[c].building]
             .ty
             .map_or(1, |t| build::city_level(&self.tables.build_types, t).max(1))
-    }
+    } // twin of CityData::get_level
 
     /// The city's radius, `CityData::get_radius`.
     pub fn radius_of(&self, c: usize) -> i32 {
         let city = &self.cities.cities[c];
         self.city_radius(city.owner, self.buildings[city.building].ty)
-    }
+    } // twin of CityData::get_radius
 
     /// `CityData::count_buildings(t, exact = 0, active_only)`: members,
     /// including the city building, whose type `is(t, 0)`.
@@ -845,7 +845,7 @@ impl Sim {
             Some(needed) => self.enough_kinds(c, needed).then_some(next),
             None => Some(next),
         }
-    }
+    } // twin of CityData::can_upgrade
 
     /// `City::check_upgrade`: the automatic level-up, [`check_upgrade_steps`]
     /// over this simulation.
@@ -2241,7 +2241,7 @@ impl Sim {
         if !on {
             self.unplace_roads(b);
         }
-    }
+    } // twin of BuildType::mask_me
 
     /// **A dock marks the water around it bad** — `BuildType::mask_me@
     /// 006312a0`'s `is(DOCK)` arm, after the footprint walk: every
@@ -2733,7 +2733,7 @@ impl Sim {
         self.close_building(b, false);
         let bd = &mut self.buildings[b];
         bd.hold_frames = bd.hold_frames.max(1);
-    }
+    } // twin of Wall::die
 
     /// `Build::close@00628980:183-187`: for any reason but 5 the cell under
     /// the building's position takes [`cell::CLOSED`], which the AI's

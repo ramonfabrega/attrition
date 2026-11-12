@@ -730,7 +730,7 @@ impl CollGrid {
     pub fn get(&self, x: i32, y: i32) -> bool {
         self.index(x, y)
             .is_some_and(|i| self.bits[i / 64] & (1u64 << (i % 64)) != 0)
-    }
+    } // twin of CollBlock::get
 
     /// Set (`on`) or clear the unit cell `(x, y)`'s bit. A set allocates
     /// its world cell's block where none is (`World::new_coll_block`); a
@@ -749,7 +749,7 @@ impl CollGrid {
                 self.bits[i / 64] &= !(1u64 << (i % 64));
             }
         }
-    }
+    } // twin of CollBlock::set
 
     /// The map's width in unit cells.
     pub const fn width(&self) -> i32 {
@@ -1594,7 +1594,7 @@ impl Sim {
                 c.y.div_euclid(UCELLS_PER_CELL),
             ))
             .is_none_or(|cr| cr == r)
-    }
+    } // absorbs WorldData::get_coll_block
 
     /// `Object::add_to_world`'s marking half: set every cell of the unit's
     /// disc. Idempotent at one point — and **refused, in a debug build, at
