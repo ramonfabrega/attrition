@@ -1140,7 +1140,7 @@ models are therefore the original's.
   and then calls `flush_trees` (when `draw_flags[1] & 4`). The trees follow the figures under the same LessEqual
   test, so a figure in front of a tree is one nearer than it.
 
-**The draw.** Each tree is its model at rest. The window draws it flat green, and `--no-trees` leaves it out. In
+**The draw.** Each tree is its model at rest. The window draws it textured (item 4173, below; flat green before), and `--no-trees` leaves it out. In
 candidate C's key buffer a tree is rasterized after the sprites, its fragments cut by the leaves' alpha and cull
 above (`Leaves::Alpha`, the default), so it hides what stands behind it, and it is scored by §5.3's tree rule. A tree is not a draw-list piece, so K's M (§5.4) is not widened and K holds at 59 of 59.
 
@@ -1178,6 +1178,20 @@ candidate is the one most trees agree with by colour, a tie broken by the lumina
 Texel; `RUN1559B_3279_TREES_LUMA` is the luminance count beside it. Made to fail at run1441's camera. The painter
 and `client::gpu` bind the winner's texel alike.
 
+*The count* (`client::trees::tests`; **diff-backed**: the card's tree state, `the_trees_draw_on_the_card`). Of 56
+trees scored: Flat **0** (luminance 1), pinned first; Texel 21 (56); **FakeLight 37** (54); Literal **0** (0). So
+FakeLight is drawn, `RUN1559B_3279_TREES` **0 → 37 of 56**, `_LUMA` **1 → 54**; run1441's camera reads 0 of 57. The
+photograph kills `CURRENT` = 1 on stage 0: whatever d3dgl's table writes, the tree takes the vertex diffuse there. Of
+FakeLight's lit pixels 93,177 of 162,307 agree; the opaque texels' 37,408 of 50,170, the translucent ones' (alpha under
+255, 69 % of them) 55,769 of 112,137. **On the client's still** (§3.15's harness) the row is the painter's, 37 and 54,
+every tree within 5 % of its painted agreement (`RUN1559B_3279_TREES_STILL`). The client draws the trees after the
+figures' soup and before the guys pass, LessEqual with depth written, no cull (mode 2 culls nothing on this frame).
+
+*What it moved.* A silhouette over a tree now blends over the tree as drawn: `RUN1559B_3279_COLOUR` **18 → 17**, a
+named regression. 0/1's 159 behind pixels agree 81 → 66 (80 needed); composed before the tone map, 11. On the still
+`_COLOUR_STILL` holds 14 (0/1 30 → 64, the painter's 66), `_TRACED_STILL` **31 → 32**: 0/1's ring no longer holds a
+silhouette's red over flat green (4171a), 0.159 → 0.850.
+
 **What is not established.**
 - ~~The leaves' alpha~~: read and applied, above (item 4082).
 - ~~Why four figures the photograph shows in front of the pine stand behind it in ours~~: they stand behind it in
@@ -1194,7 +1208,14 @@ and `client::gpu` bind the winner's texel alike.
   `render::slope`). Not established: the draw clock the ease runs on, which the packet puts at about one draw
   per 11–16 sim frames (parked 4089a); the client draws the ease's fixed point.
 - The blend: the key buffer keeps a fragment whole where its alpha passes; the original blends it, which moves
-  colour, not a footprint.
+  colour, not a footprint. Item 4173 measures what it costs: the translucent texels part 50 %, the opaque 25 %
+  (parked 4173a).
+- The trees' shadows: draw 119 of the pass, `tree_t_shadows.tga`, `SELECTARG2(TEXTURE)` at enables 0x20084, the
+  dark patch under each tree on the photograph; not drawn (parked 4173c).
+- Why 0/1 behind the pine agrees with the raw texel under its silhouette (81 of 159) and not with the drawn leaf
+  (66), nor with the blend before the tone map (11) (parked 4173b).
+- Why tree models 9–15 agree at 0.71–0.81 and the rest at 0.34–0.63, the photograph greener on the latter's opaque
+  texels (parked 4173d).
 - The depth of a building's sprite against a tree. Ours puts the anchor's flat draw-list depth against the tree's
   per-pixel depth. The original's sprite may carry its `zbuffer` model's depth (parked 4076b).
 - The tree's idle animation, which is not posed.
@@ -1956,10 +1977,10 @@ painter take bytes. **The client now draws the silhouette first, once a
 pixel (a stencil), on plain `Unorm` targets**: `_TRACED_STILL` 31 of
 33, `_COLOUR_STILL` 14 of 33, `_GROUND_STILL` 1,097 of 1,109 tile for
 tile, run1564 1,237 of 1,920 (one tile at the bar). The partings, named
-in the pins: 0/1 behind the pine on our flat green (4173's), three by
+in the pins: 0/1 behind the pine on our flat green (~~4173's~~: 30 → 64 with the trees textured, the painter's 66; §3.7), three by
 the card's mip level per pixel against the painter's per triangle
 (4171b), and two footprints the still's colour reader cannot separate:
-0/1, its ring holding a silhouette the painter keys nothing at (4171a),
+0/1, its ring holding a silhouette the painter keys nothing at (4171a; ~~gone with the trees textured~~, `_TRACED_STILL` 32, §3.7),
 and 1/40, a tank the photograph's side reads by hand. Not established:
 the original's cull mode 2 on both states, which this draw does not
 take (4171c).
@@ -2444,13 +2465,13 @@ lines and fog shading, projectiles and corpses, then candidate C.
   in `d3dgl.dll` and the vertex shader's default for a missing normal.
 
 - ~~**What the client's own pixels show**~~ (the pass of 2026-11-12, DECISIONS 127): counted on the still by
-  item 4171 (§3.15); the wash was the silhouette's place and the sRGB target. The trees
-  stay flat green (no texture bound, parked 4038a): item 4173.
+  item 4171 (§3.15); the wash was the silhouette's place and the sRGB target. ~~The trees
+  stay flat green (no texture bound, parked 4038a)~~: textured by item 4173 (§3.7, "The trees' own colour").
 - ~~**How bright anything is.**~~ The readers compare (r, g) / (r + g + b). By box on those stills the mountain's
   body sums 130 against the photograph's 392, and the lake 506 against 316; a mountain's body and a tree are in
   no row. ~~Settled by item 4172's luminance reader~~: on the painter (§5.3, "The luminance reader") the figures
   read 20 of 33, the ground 1,075 of 1,109 with the body in, run1564's 791 of 1,920; the body's 130 was the
-  client's ADDSIGNED in linear space (§3.10), 357 after. The trees are item 4173's.
+  client's ADDSIGNED in linear space (§3.10), 357 after. ~~The trees are item 4173's~~: 54 of 56 (§3.7).
 - **Whether the client's other blends part from the painter's on brightness** (4172a): the textured pass's
   team mix and the hardware blends of the silhouette, the patch and the mountain's layer run in the sRGB
   target's linear space, the painter's on the stored bytes. Settled by item 4171's rows on the still.
