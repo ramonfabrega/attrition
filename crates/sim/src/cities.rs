@@ -27,6 +27,13 @@ pub mod unit_unqueue_view;
 /// §3, item 4016): moved whole, each with its doc, in `Sim`'s order.
 #[derive(Clone, Debug)]
 pub struct CitiesState {
+    /// Whether this frame 0 is the setup walk itself (`docs/START.md` §2
+    /// step 7, item 4034): set while a builder runs `Setup::build_empire`
+    /// on the stream, so what the original spends there — a starting
+    /// pasture's `Farms::add_animals` — is spent here too. An installed
+    /// start stands those up from the capture instead and leaves this
+    /// false.
+    pub walks_setup: bool,
     /// `Farms`' list: every farm in the order it was activated
     /// (`Farms::add` runs from `Build::activate`), which is the order
     /// `Farms::inc_time` walks and so the order the farm draws are spent in

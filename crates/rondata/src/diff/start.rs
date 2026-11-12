@@ -17,8 +17,13 @@ use super::*;
 /// the lobbies on disk with a `[Start Game]` dump. Pinned red first at 0
 /// (item 4033): the harness's own lobby parted at the map (§4). 1 at item
 /// 4063: the harness lobby (run9: seed 12345, Great Lakes, Small, two
-/// players) agrees on every one of its 18,264 fields.
-pub const START_BUILT: usize = 1;
+/// players) agrees on every one of its 18,264 fields. 35 at item 4034
+/// (+34), the first count over every lobby
+/// (`every_lobby_s_start_built_from_its_choices`): 14 Great Lakes lobbies
+/// already whole and never compared, 16 a starting pasture's twenty draws
+/// released (`CitiesState::walks_setup`), and 4 whose only parting was a
+/// personality no dump prints.
+pub const START_BUILT: usize = 35;
 
 /// **The lobby's word on the built start** (`docs/START.md` §7.4, item
 /// 4057): `(map, word, length)` — the harness lobby's long capture (run53,
@@ -1079,6 +1084,10 @@ pub fn from_lobby(
         let town = int("STARTING_TOWN").unwrap_or(0);
         let mut buildings_built = true;
         let mut units_built = true;
+        // The empires are the setup stream's own: a starting pasture's
+        // five are drawn inside `Build::activate` as the original draws
+        // them (item 4034), not borrowed as the installer borrows them.
+        sim.cities.walks_setup = true;
         for (slot, &who) in start_list.iter().filter(|&&w| w < players).enumerate() {
             let (Some(ty), Some(&(sx, sy))) = (village, starts.get(slot)) else {
                 notes.push(format!(
@@ -1123,6 +1132,7 @@ pub fn from_lobby(
                 }
             }
         }
+        sim.cities.walks_setup = false;
         steps.push(("build_empire: build_cities (the village)", true));
         steps.push((
             "build_empire: small_city_buildings, build_civ_specific",
@@ -1454,7 +1464,8 @@ mod tests {
     /// The installed `Sim` is [`build_sim`]'s; ours is [`from_lobby`] on
     /// the `GAMEINFO` block alone. Pins the first parted row and the
     /// count of rows that agree, so a later item that builds further
-    /// moves both. `START_BUILT` stays 0 while any row parts.
+    /// moves both. The counter, `START_BUILT`, is every lobby's (item
+    /// 4034).
     #[test]
     fn the_harness_lobby_s_start_built_from_its_choices() {
         let Some(inst) = install() else { return };
@@ -1512,8 +1523,276 @@ mod tests {
                 (START_FIRST_PARTING, START_AGREE.0, START_AGREE.1),
                 "the harness lobby's start (RON_START_DIFF=1 prints the value diff)"
             );
-            assert_eq!(START_BUILT, usize::from(parted.is_empty()));
+            // The counter is every lobby's
+            // (`every_lobby_s_start_built_from_its_choices`, item 4034);
+            // this lobby is one of them.
+            assert!(START_BUILT >= usize::from(parted.is_empty()));
         });
+    }
+
+    /// **The counter's harness: every lobby on disk** (item 4034,
+    /// `docs/START.md` §5): each lobby `lobby::lobbies_on_disk` finds, its
+    /// richest start dump installed by [`build_sim`] (the lobby's other
+    /// captures lent through `borrow_from_siblings`), against
+    /// [`from_lobby`] of its `GAMEINFO`. A lobby is built when no field
+    /// parts. `RON_START_DIFF=1` prints each lobby's first parting by
+    /// record and field and the census of them.
+    #[test]
+    fn every_lobby_s_start_built_from_its_choices() {
+        let Some(inst) = install() else { return };
+        let Some(dir) = crate::testenv::gamelog_dir() else {
+            eprintln!("skipping: no gamelog directory (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let lobbies = crate::lobby::lobbies_on_disk(&dir).expect("the logs");
+        assert_eq!(
+            lobbies.len(),
+            START_LOBBIES,
+            "tools/start_lobbies.py's count"
+        );
+        let print = std::env::var_os("RON_START_DIFF").is_some();
+        let mut census: std::collections::BTreeMap<String, usize> = Default::default();
+        let mut built = 0;
+        let only: Option<Vec<usize>> = std::env::var("RON_START_LOBBY")
+            .ok()
+            .map(|v| v.split(',').filter_map(|s| s.trim().parse().ok()).collect());
+        for (n, lobby) in lobbies.iter().enumerate() {
+            if only.as_ref().is_some_and(|o| !o.contains(&n)) {
+                continue;
+            }
+            let texts: Vec<(String, String)> = lobby
+                .captures
+                .iter()
+                .filter_map(|c| {
+                    let path = dir.join(c);
+                    let mut cap = crate::capture::indexed::IndexedCapture::open(&path).ok()?;
+                    Some((c.clone(), cap.read_replay_setup().ok()?))
+                })
+                .collect();
+            let logs: Vec<(&str, Log)> = texts
+                .iter()
+                .map(|(c, t)| (c.as_str(), Log::parse(t)))
+                .collect();
+            let inits: Vec<(&str, Initial, &Log)> = logs
+                .iter()
+                .filter_map(|(c, l)| Some((*c, l.replay_initial()?, l)))
+                .collect();
+            let rich = |i: &Initial| {
+                (
+                    !crate::gamelog::world_cells(&i.world).is_empty(),
+                    !i.checksums.is_empty(),
+                    i.units.len() + i.builds.len(),
+                )
+            };
+            let Some(best) = (0..inits.len()).max_by_key(|&k| (rich(&inits[k].1), usize::MAX - k))
+            else {
+                let line = "no capture reads".to_string();
+                *census.entry(line.clone()).or_default() += 1;
+                if print {
+                    eprintln!("lobby {n} {}: {line}", lobby.captures[0]);
+                }
+                continue;
+            };
+            let mut init = inits[best].1.clone();
+            let sibs: Vec<&Initial> = inits
+                .iter()
+                .enumerate()
+                .filter(|(k, _)| *k != best)
+                .map(|(_, (_, i, _))| i)
+                .collect();
+            borrow_from_siblings(&mut init, &sibs);
+            let players = player_count(&init);
+            let mut theirs = build_sim(&loaded, &init, Tuning::RON);
+            // The personality the installer rolls is the original's only
+            // from the setup trace's bracket; the start dump's own
+            // `PERSONALITY` block (`LEADERS=9`) is the original's outright,
+            // so where it prints one it is what the built side is held to.
+            let brackets = personality_brackets(&init.checksums).len();
+            let mut unbacked: Vec<usize> = Vec::new();
+            let computers: Vec<usize> = (0..players.min(theirs.sim.ai.ai.len()))
+                .filter(|&w| !theirs.sim.cities.nation[w].human)
+                .collect();
+            for &w in &computers {
+                match dump_personality(inits[best].2, w as i64) {
+                    Some(p) => theirs.sim.ai.ai[w].pers = p,
+                    None if brackets < computers.len() => unbacked.push(w),
+                    None => {}
+                }
+            }
+            let ours = from_lobby(&loaded, &init.game_info, &init.players, Tuning::RON);
+            let a = start_block(&ours.sim, players);
+            let b = start_block(&theirs.sim, players);
+            let (mut parted, mut stand_in) = dump_backed(
+                compare_start(&a, &b),
+                init.pasture.is_empty(),
+                init.checksums.is_empty(),
+            );
+            // Each farm's `farm_type` — the pasture is type 1 — against the
+            // start dump's own `FARMS` list where it prints one.
+            for f in &init.farms {
+                let ours_type = ours
+                    .sim
+                    .buildings
+                    .iter()
+                    .find(|bd| {
+                        bd.alive && i64::from(bd.owner) == f.who && i64::from(bd.index) == f.o
+                    })
+                    .map(|bd| i64::from(bd.farm.farm_type));
+                if ours_type != Some(f.farm_type) {
+                    parted.push(Parting {
+                        record: format!("FARM {}/{}", f.who, f.o),
+                        field: "farm_type",
+                        ours: ours_type.map(|t| t.to_string()),
+                        theirs: Some(f.farm_type.to_string()),
+                    });
+                }
+            }
+            let parted: Vec<Parting> = parted
+                .into_iter()
+                .filter(|p| {
+                    let drop = p.field == "personality"
+                        && unbacked.iter().any(|w| p.record == format!("LEADER {w}"));
+                    stand_in += usize::from(drop);
+                    !drop
+                })
+                .collect();
+            let agree = b.len() - parted.iter().filter(|p| p.theirs.is_some()).count();
+            let style = init
+                .game_info
+                .iter()
+                .find(|(k, _)| *k == "MAP_STYLE")
+                .map_or("?", |(_, v)| v.trim());
+            let key = match parted.first() {
+                None => {
+                    built += 1;
+                    "built".to_string()
+                }
+                Some(p) => format!("{} {}", p.record.split(' ').next().unwrap_or(""), p.field),
+            };
+            *census.entry(key.clone()).or_default() += 1;
+            if print {
+                let (cells, trace, objs) = rich(&init);
+                eprintln!(
+                    "lobby {n} {} style {style} cells {cells} trace {trace} objs {objs}: {} agree {agree} of {} (stand-in {stand_in})",
+                    inits[best].0,
+                    parted
+                        .first()
+                        .map_or("none".to_string(), ToString::to_string),
+                    b.len()
+                );
+                if only.is_some() {
+                    for (s, built) in &ours.steps {
+                        eprintln!("  step {s}: {}", if *built { "built" } else { "not built" });
+                    }
+                    for note in &ours.notes {
+                        eprintln!("  note {note}");
+                    }
+                    let all = std::env::var("RON_START_DIFF").is_ok_and(|v| v == "all");
+                    for p in parted.iter().take(if all { usize::MAX } else { 40 }) {
+                        eprintln!("  {p}");
+                    }
+                }
+            }
+        }
+        if only.is_some() {
+            return;
+        }
+        if print {
+            for (k, v) in &census {
+                eprintln!("census {k}: {v}");
+            }
+            eprintln!("built {built} of {}", lobbies.len());
+        }
+        let census: Vec<(&str, usize)> = census.iter().map(|(k, v)| (k.as_str(), *v)).collect();
+        assert_eq!(
+            (built, census.as_slice()),
+            (START_BUILT, START_CENSUS),
+            "Start: N of 161 and each lobby's first parting by record and field \
+             (RON_START_DIFF=1 prints the census)"
+        );
+    }
+
+    /// **The census**: every lobby's first parting by record and field,
+    /// counted (item 4034; the value diff per lobby is its journal's). The
+    /// map is the 117 lobbies of the fifteen styles with no composed chain
+    /// (East Indies 53, Great Sahara 47, fourteen others 17), each at its
+    /// first cell — `CELL land`, `CELL region`, and two of the ten `CELL
+    /// flags`; the other eight are the Great Lakes lobbies with a Spanish,
+    /// American, Dutch, Korean or Greek seat (`docs/START.md` §2 step 7,
+    /// not built). `LEADER at_war` is item 4033a's scratch lobby, a Great
+    /// Sahara dump that prints neither cells nor `diplos`, so the
+    /// installer's side there is its own default, not the original's.
+    const START_CENSUS: &[(&str, usize)] = &[
+        ("CELL flags", 10),
+        ("CELL land", 60),
+        ("CELL region", 55),
+        ("LEADER at_war", 1),
+        ("built", 35),
+    ];
+
+    /// A computer leader's `PERSONALITY` block under the start dump's
+    /// `LEADERDATA` (`LEADERS=9`), as the crate's record; none below that
+    /// detail.
+    fn dump_personality(log: &Log, who: i64) -> Option<sim::ai::Personality> {
+        let block = log
+            .game()?
+            .kids("LEADERDATA")
+            .find(|l| l.int("who") == Some(who))?
+            .kid("PERSONALITY")?;
+        let mut p = sim::ai::Personality::default();
+        let mut n = 0;
+        for (k, v) in block.fields().take(24) {
+            let Ok(v) = v.trim().parse::<i32>() else {
+                continue;
+            };
+            let slot = match k {
+                "rush" => &mut p.rush,
+                "cities" => &mut p.cities,
+                "upgrades" => &mut p.upgrades,
+                "arms" => &mut p.arms,
+                "army" => &mut p.army,
+                "army_size" => &mut p.army_size,
+                "raid" => &mut p.raid,
+                "invade" => &mut p.invade,
+                "target" => &mut p.target,
+                "strategy" => &mut p.strategy,
+                "raze" => &mut p.raze,
+                "spells" => &mut p.spells,
+                "forts" => &mut p.forts,
+                "nukes" => &mut p.nukes,
+                "air" => &mut p.air,
+                "naval" => &mut p.naval,
+                "market" => &mut p.market,
+                "scouts" => &mut p.scouts,
+                "civilians" => &mut p.civilians,
+                "early_army" => &mut p.early_army,
+                "friendly_human" => &mut p.friendly_human,
+                "alliance_human" => &mut p.alliance_human,
+                "friendly_ai" => &mut p.friendly_ai,
+                "alliance_ai" => &mut p.alliance_ai,
+                _ => continue,
+            };
+            *slot = v;
+            n += 1;
+        }
+        (n == 24).then_some(p)
+    }
+
+    /// **The partings a dump can back** (item 4034, `docs/START.md` §3): a
+    /// starting pasture's five (owner 9) are in no dump, and the installer
+    /// stands them on the farm's centre with one type unless a trace lends
+    /// their seeds (`borrow_pasture`). Without seeds their `type` and `pos`
+    /// are that stand-in, and with no farm list it stands none: every
+    /// owner-9 parting is dropped and counted. The sync word, the setup
+    /// trace's, is what holds the twenty draws — and with no trace on disk
+    /// for the lobby the installer's word is its own stream's, dropped and
+    /// counted the same way.
+    fn dump_backed(parted: Vec<Parting>, no_seeds: bool, no_trace: bool) -> (Vec<Parting>, usize) {
+        let (kept, dropped): (Vec<Parting>, Vec<Parting>) = parted.into_iter().partition(|p| {
+            !(no_seeds && p.record.starts_with("UNIT 9/") || no_trace && p.record == "GAME")
+        });
+        (kept, dropped.len())
     }
 
     /// The harness lobby's first parted row, `record field: ours theirs`:
