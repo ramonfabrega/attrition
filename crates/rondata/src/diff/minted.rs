@@ -18,7 +18,7 @@ use std::collections::BTreeSet;
 
 pub(crate) use crate::script::{
     BUILD_FRAME, BUILDER, CAPITAL, CITIZEN, FARM_AT, FARM_TYPE as FARM, MOVE_FRAME, QUEUE_FRAME,
-    SCOUT_OBJECT as SCOUT, SCOUT_TO, clicked, script,
+    SCOUT_OBJECT as SCOUT, SCOUT_TO, clicked, right_pressed, script,
 };
 
 /// The minted recording: run53's lobby with [`script`]'s packages.
@@ -327,9 +327,8 @@ fn built_type(b: &Built, ty: usize) -> i32 {
 
 /// The Farm's object number and the point [`sim::Sim::snap_center`] puts
 /// it on; the trained citizen's object number.
-pub(crate) const FARM_SITE: i16 = 2007;
+pub(crate) use crate::script::{FARM_SITE, TRAINED};
 pub(crate) const FARM_SITE_AT: Pos = Pos { x: 3456, y: 29760 };
-pub(crate) const TRAINED: i16 = 6;
 
 /// Each order's footprint on our walk (item 4059): on the frame after its
 /// package, the places the walk with it parts from the walk with every
@@ -919,4 +918,301 @@ const FIRST_AGAINST_CLICKED: (i64, &str, &str, Option<i64>) = (
     "order_diverged",
     "OrderDivergence { frame: 31, who: 0, o: 0, slot: 0, what: PathTo { slot: 0, ours: (5880, 31896), theirs: (5883, 31896) } }",
     None,
+);
+
+/// **The right-pressed file's size** (item 4179, `docs/CLIENT_INPUT.md` §6):
+/// the lobby's file with [`crate::script::right_pressed`]'s packages,
+/// gzipped as the original reads it.
+const RIGHT_PRESSED_RCX_BYTES: usize = 59_312;
+
+/// **The right-pressed script, minted** (item 4179): the clicked script's
+/// three orders and two right presses on objects, as the client's input
+/// layer mints them (`minted_right_pressed_at_the_opening_camera` holds
+/// them equal to [`crate::script::right_pressed`]), round-trip through the
+/// file; its packages are the clicked file's and the two right presses'
+/// behind them, nothing else. With `RON_RCX_OUT=<file>` it writes the
+/// `.rcx` the playback takes open.
+#[test]
+fn the_right_pressed_minted_packages_round_trip() {
+    let (Some(rec), Some(first)) = (minted(&right_pressed()), minted(&clicked())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "right-pressed").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in right_pressed().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let added: Vec<i32> = back
+        .packages
+        .iter()
+        .filter(|p| !first.packages.contains(p))
+        .map(|p| p.frame)
+        .collect();
+    // The closing package's `stamp` counts the packages before it, so it
+    // parts too: 5 in the clicked file, 7 here (`recgame::minted_packages`).
+    let last = back.packages.last().unwrap();
+    assert_eq!((last.stamp, first.packages.last().unwrap().stamp), (7, 5));
+    assert_eq!(
+        added,
+        vec![
+            crate::script::RIGHT_BUILD_FRAME,
+            crate::script::RIGHT_GATHER_FRAME,
+            last.frame
+        ],
+        "the packages the clicked file does not hold"
+    );
+    assert_eq!(back.packages.len(), first.packages.len() + 2);
+    let gz = crate::recgame::write_gz(&rec);
+    assert_eq!(gz.len(), RIGHT_PRESSED_RCX_BYTES, "RIGHT_PRESSED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The frames the right presses' effects are read on: the frame after each
+/// package, and the take's last.
+const RIGHT_READ_AT: [i64; 3] = [121, 201, 299];
+
+/// What the two right presses did, read off one frame: the helper's and
+/// the trained Citizen's order lists, by class, front first; and whether
+/// the Farm's site is finished (`WallData::is_active`, `flags & 4`).
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct RightEffect {
+    pub frame: i64,
+    pub helper: Vec<&'static str>,
+    pub trained: Vec<&'static str>,
+    pub site_finished: Option<bool>,
+}
+
+fn right_effect_theirs(f: &crate::gamelog::Frame) -> RightEffect {
+    let unit = |o: i16| f.units.iter().find(|u| u.who == 0 && u.o == i64::from(o));
+    let orders = |o: i16| {
+        unit(o).map_or_else(Vec::new, |u| {
+            u.orders_front_first().map(|o| class(&o.kind)).collect()
+        })
+    };
+    RightEffect {
+        frame: f.n,
+        helper: orders(crate::script::HELPER),
+        trained: orders(TRAINED),
+        site_finished: f
+            .builds
+            .iter()
+            .find(|b| b.who == 0 && b.o == i64::from(FARM_SITE))
+            .map(|b| b.flags & 4 != 0),
+    }
+}
+
+fn right_effect_ours(b: &Built) -> RightEffect {
+    let s = &b.sim;
+    let orders = |o: i16| {
+        s.unit_by_o(0, o).map_or_else(Vec::new, |u| {
+            s.units[u]
+                .orders
+                .iter()
+                .map(|o| match &o.body {
+                    sim::orders::Body::Move(_) => "move",
+                    sim::orders::Body::Build(_) => "build",
+                    sim::orders::Body::Gather(_) => "gather",
+                    _ => "other",
+                })
+                .collect()
+        })
+    };
+    RightEffect {
+        frame: s.frame,
+        helper: orders(crate::script::HELPER),
+        trained: orders(TRAINED),
+        site_finished: s.building_by_o(0, FARM_SITE).map(|i| s.buildings[i].active),
+    }
+}
+
+/// Our walk under the pump on `orders`' file: each right press's effect on
+/// [`RIGHT_READ_AT`], and the first frame the Farm's site is finished.
+fn right_effects_ours(orders: &[Order]) -> (Vec<RightEffect>, Option<i64>) {
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let (mut ours, mut done) = (Vec::new(), None);
+    for n in 91..=*RIGHT_READ_AT.last().unwrap() {
+        tick_to(&mut built, Some(&mut stream), n);
+        if done.is_none() && s_site_finished(&built) {
+            done = Some(n);
+        }
+        if RIGHT_READ_AT.contains(&n) {
+            ours.push(right_effect_ours(&built));
+        }
+    }
+    (ours, done)
+}
+
+fn s_site_finished(b: &Built) -> bool {
+    b.sim
+        .building_by_o(0, FARM_SITE)
+        .is_some_and(|i| b.sim.buildings[i].active)
+}
+
+/// **What the right presses do** (item 4179), pinned before the original's
+/// playback is read: `(the effects on [`RIGHT_READ_AT`], the frame the
+/// Farm's site is first finished)`.
+fn right_pressed_effects() -> (Vec<RightEffect>, Option<i64>) {
+    let e = |frame, helper: &[&'static str], trained: &[&'static str], site| RightEffect {
+        frame,
+        helper: helper.to_vec(),
+        trained: trained.to_vec(),
+        site_finished: Some(site),
+    };
+    (
+        vec![
+            e(121, &["move", "build"], &[], false),
+            e(201, &["build"], &["move", "gather"], false),
+            e(299, &["gather"], &["move", "gather"], true),
+        ],
+        Some(254),
+    )
+}
+
+/// The same read on the clicked script's walk, the control: no right
+/// press, the site finished on its one builder's frame.
+fn clicked_right_effects() -> (Vec<RightEffect>, Option<i64>) {
+    let e = |frame, site| RightEffect {
+        frame,
+        helper: vec!["gather"],
+        trained: vec![],
+        site_finished: Some(site),
+    };
+    (vec![e(121, false), e(201, false), e(299, true)], Some(297))
+}
+
+/// **What the right presses do on our walk** (item 4179): the helper sent to
+/// the site and building it, the site finished sooner than under one
+/// builder, the trained Citizen sent from idle to the Woodcutter's camp;
+/// against the clicked script's walk, where neither press is made.
+#[test]
+fn the_right_pressed_minted_script_s_effects_on_our_walk() {
+    if built_start().is_none() || minted(&right_pressed()).is_none() {
+        eprintln!("skipping: no install, lobby or recording");
+        return;
+    }
+    let ours = right_effects_ours(&right_pressed());
+    let control = right_effects_ours(&clicked());
+    eprintln!("RIGHT EFFECT ours {ours:?}\n      control {control:?}");
+    assert_eq!(control, clicked_right_effects(), "clicked_right_effects");
+    assert_eq!(ours, right_pressed_effects(), "right_pressed_effects");
+}
+
+/// The original's playback of the right-pressed file (run 1568), as
+/// [`CLICKED_WALKED`]: every unit and building printed for 300 frames,
+/// which holds both right presses and the site's finish. Draws agree on
+/// 300 of 300 frames, count and sequence, and 299 records compare whole.
+/// Seen red first: pinned `(0, 0, 0, 0)`, it printed `(300, 300, 299, 0)`.
+pub(crate) const RIGHT_PRESSED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1568-greatlakes-playback-of-right-pressed-300.txt",
+    "rontrace-run1568.log",
+    300,
+    300,
+    299,
+    0,
+)];
+
+/// **The original plays the right-pressed file, and our walk keeps
+/// lockstep** (item 4179): [`RIGHT_PRESSED_WALKED`], the clicked orders'
+/// effects ([`clicked_effects`]) and the right presses' own
+/// ([`right_pressed_effects`]), both sides.
+#[test]
+fn the_original_s_playback_of_the_right_pressed_file_walks_in_lockstep() {
+    let (take, ..) = RIGHT_PRESSED_WALKED[0];
+    let Some(d) = dump(take) else {
+        eprintln!("skipping {take}: not filed (set RON_GAMELOG_DIR)");
+        return;
+    };
+    playback_walks_in_lockstep(
+        &right_pressed(),
+        RIGHT_PRESSED_WALKED,
+        &right_pressed_base_effects(),
+    );
+    let mut source = crate::capture::indexed::IndexedCapture::open(d).unwrap();
+    let (mut theirs, mut done) = (Vec::new(), None);
+    for i in 0..source.frames().len() {
+        let n = source.frames()[i].number;
+        if n < 91 {
+            continue;
+        }
+        let f = source.frame_state(i).unwrap();
+        let e = right_effect_theirs(&f);
+        if done.is_none() && e.site_finished == Some(true) {
+            done = Some(n);
+        }
+        if RIGHT_READ_AT.contains(&n) {
+            theirs.push(e);
+        }
+    }
+    eprintln!("RIGHT EFFECT theirs {theirs:?} finished {done:?}");
+    assert_eq!((theirs, done), right_pressed_effects(), "the original's");
+}
+
+/// The clicked orders' effects on [`READ_AT`] under the right presses: as
+/// [`clicked_effects`], but on 299 the first builder `0/1` holds a move and
+/// a gather, the site having finished on 254 with two builders where one
+/// finishes it on 297.
+fn right_pressed_base_effects() -> Vec<Effect> {
+    let mut e = clicked_effects();
+    e[3].builder = vec!["move", "gather"];
+    e
+}
+
+/// **Made to fail: the clicked script against the right-pressed playback**
+/// (item 4179). Our walk under [`clicked`]'s file, which makes neither
+/// right press, against run1568: it must part, and the first record that
+/// parts is pinned ([`CLICKED_AGAINST_RIGHT_PRESSED`]).
+#[test]
+fn the_clicked_script_against_the_right_pressed_playback_parts() {
+    let (take, take_trace, ..) = RIGHT_PRESSED_WALKED[0];
+    let Some((w, _)) = walk_minted(&clicked(), take, take_trace) else {
+        return;
+    };
+    let (frame, _, partings) = w.first_record.clone().expect("the walk parts");
+    eprintln!(
+        "CLICKED AGAINST RIGHT PRESSED: record {frame}: {partings:?}; draws part {:?}; records {} parted {}",
+        w.first_sequence, w.records, w.records_parted
+    );
+    let seen = (
+        frame,
+        partings[0].0,
+        partings[0].2.clone(),
+        w.first_sequence,
+        w.records_parted,
+    );
+    let (f, kind, row, draws, parted) = CLICKED_AGAINST_RIGHT_PRESSED;
+    assert_eq!(
+        seen,
+        (f, kind, row.to_string(), draws, parted),
+        "CLICKED_AGAINST_RIGHT_PRESSED"
+    );
+}
+
+/// The clicked script's walk against run1568: `(the first parted record's
+/// frame, its kind, its row, the first frame whose draws part, records
+/// parted)`. The first parting is the helper `0/2` on 121, standing at its
+/// camp in ours and walking to the site in theirs; beside it its order
+/// list, 1 long against 2, and the camp's `gather_down`, which still names
+/// it in ours. 179 of 299 records part, the draws from 244. Seen red first:
+/// pinned `(0, "", "", None, 0)`.
+const CLICKED_AGAINST_RIGHT_PRESSED: (i64, &str, &str, Option<i64>, usize) = (
+    121,
+    "diverged",
+    "Divergence { frame: 121, who: 0, o: 2, ours: Pos { x: 4536, y: 28680 }, theirs: Pos { x: 4519, y: 28700 } }",
+    Some(244),
+    179,
 );

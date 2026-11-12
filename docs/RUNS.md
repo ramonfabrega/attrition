@@ -36625,3 +36625,28 @@ STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES
 
 Trace `~/ron-golden/run1567/map-14/rontrace.log`, 71,258,304 bytes, SHA-256
 `8b93076c43a57cd4ed2417a2df3c411550c328323a36cb7809b0d7c1eb5f9d24`.
+
+## run1568 — the original playing the file a person's right presses on objects minted, 0..300 (2026-11-12, item 4179, `att-4179`)
+
+`docs/CLIENT_INPUT.md` §6. **What the disk could not answer**: whether the original plays a `swarm_around` with
+`BUILD_AT` on one's own unfinished site and a `gather` on one's own camp, minted from right presses, as our walk's
+order door does. No recording on disk holds either command of this install's build. The file:
+`~/ron-golden/recordings/item4179-right-pressed-greatlakes-24000.rcx`, 59,312 bytes, SHA-256
+`020ed105caa1ca60a25595eac0b9722fb7345cb38365ea29fae19a98b40a334c`, written by `RON_RCX_OUT=<it> … test --release -p
+rondata the_right_pressed_minted_packages_round_trip`. It is run1563a's file plus `0/2` sent to `0/2007` on 120 and
+`0/6` sent to `0/2001` on 200. The take: run1561a's line with this file, `--end-frame 300 --cover cover=1
+--log-window 0 300 --detail end:MISC,UNITS=3,BUILDS=7 --timeout 540 --stall-seconds 120`, waited on with `waitrun.sh`
+in the background.
+- Pool lane 1, launched 12:16:20 −05:00; **37.8 s launch to exit**, exit 0, `success`, 301 frames, `last_frame` 300,
+  seed 12345, map 14, players tribe 4 (flags 7) and tribe 11 (flags 1), five settings restored, no page fault.
+  Minutes waited on another lane: none.
+- The built walk under the pump on the file (`RIGHT_PRESSED_WALKED`): draws agree on all 300 frames, count and
+  sequence; **299 records compared whole, none parted**. Each right press's effect is equal on both sides on 121, 201
+  and 299 (`right_pressed_effects`): the site `0/2007` is finished first on 254, against 297 in run1563a.
+- The clicked file walked against it parts on 121: `0/2`'s position, (4536, 28680) against (4519, 28700); 179 of 299
+  records (`CLICKED_AGAINST_RIGHT_PRESSED`).
+- Filed with `filerun.py run1568 greatlakes-playback-of-right-pressed-300`.
+
+Archive `gamelog-run1568-greatlakes-playback-of-right-pressed-300.txt`, 37,258,226 bytes,
+SHA-256 `d09ec774fce01f1d890e3a70e41e4b59c9dba508e2e7f52661f0caf2dccaccc0`; `rontrace-run1568.log`, 9,582,624 bytes,
+SHA-256 `feef04d752c67908037cce788e105f6326167d80447823d35fce4fbf538a0a0b`.
