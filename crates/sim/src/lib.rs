@@ -93,12 +93,6 @@ pub struct Sim {
     /// map at once — and one after it takes the daemon's pass
     /// ([`border_pass`], item 1106).
     pub in_play: bool,
-    /// Whether this frame 0 is the setup walk itself (`docs/START.md` §2,
-    /// item 4034): set while a builder runs `Setup::build_empire` on the
-    /// stream, so what the original spends there — a starting pasture's
-    /// `Farms::add_animals` — is spent here too. An installed start stands
-    /// those up from the capture instead and leaves this false.
-    pub walks_setup: bool,
     /// `GameInfo::seed`, the lobby's map seed, which picks a gaia guy's
     /// piece by `(seed + o) % 3`.
     pub game_seed: i32,
@@ -175,7 +169,6 @@ impl Sim {
                 market: crate::economy::market::Market::default(),
             },
             game_seed: 0,
-            walks_setup: false,
             leaders: crate::leaders::LeadersState {
                 at_war: vec![vec![false; players]; players],
                 allied: vec![vec![false; players]; players],
@@ -191,6 +184,7 @@ impl Sim {
                 rates: vec![crate::leaders::rates::Rates::default(); players],
             },
             cities: crate::cities::CitiesState {
+                walks_setup: false,
                 farm_order: Vec::new(),
                 cities: Vec::new(),
                 nation: vec![crate::cities::city::Nation::default(); players],

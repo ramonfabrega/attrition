@@ -171,7 +171,7 @@ it (**not built**).
    pasture built** (item 4034): a starting farm `Farms::add`'s coin makes
    type 1 is stocked inside its `Build::activate` — five owner-9 animals,
    four draws each — because the builder walks the setup stream
-   (`Sim::walks_setup`); the installer, which does not, still borrows
+   (`CitiesState::walks_setup`); the installer, which does not, still borrows
    them. *Diff-backed* on 16 Great Lakes lobbies: on 15 the dump's
    `FARMS` `farm_type` and the trace's sync word, on run1515b's (neither
    printed) every building and unit placed after it.

@@ -21,7 +21,7 @@ use super::*;
 /// (+34), the first count over every lobby
 /// (`every_lobby_s_start_built_from_its_choices`): 14 Great Lakes lobbies
 /// already whole and never compared, 16 a starting pasture's twenty draws
-/// released (`Sim::walks_setup`), and 4 whose only parting was a
+/// released (`CitiesState::walks_setup`), and 4 whose only parting was a
 /// personality no dump prints.
 pub const START_BUILT: usize = 35;
 
@@ -1087,7 +1087,7 @@ pub fn from_lobby(
         // The empires are the setup stream's own: a starting pasture's
         // five are drawn inside `Build::activate` as the original draws
         // them (item 4034), not borrowed as the installer borrows them.
-        sim.walks_setup = true;
+        sim.cities.walks_setup = true;
         for (slot, &who) in start_list.iter().filter(|&&w| w < players).enumerate() {
             let (Some(ty), Some(&(sx, sy))) = (village, starts.get(slot)) else {
                 notes.push(format!(
@@ -1132,7 +1132,7 @@ pub fn from_lobby(
                 }
             }
         }
-        sim.walks_setup = false;
+        sim.cities.walks_setup = false;
         steps.push(("build_empire: build_cities (the village)", true));
         steps.push((
             "build_empire: small_city_buildings, build_civ_specific",
