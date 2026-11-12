@@ -1840,6 +1840,22 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 4, 4313);
 /// pairs, 1,527 moving) through `Rates::fold` on the printed averages and
 /// the total's step. All five 0 = 0 on frame 91, both leaders. The long
 /// range stays out on the other 68.
+///
+/// Item 4185, step V: 68 → 61 names. Held (`sim::leaders::endgame`,
+/// `sim::leaders::capital`) and agreeing on both leaders on frame 91 —
+/// `defeated_by` −1 = −1, the other six 0 = 0 — and agreeing on every dump
+/// the record diff reads, each moving there: `defeated_by` and
+/// `defeat_stamp` on the conquests' closing blocks (run1200's 5640, 1 and
+/// 5639) and the quits' (the melees' 2601, −1 and 2600; their starts' 37,
+/// 36), `wonderwin_stamp` and `wonderwin_timer` on chapter seventy-three's
+/// clock (701 and 1 from block 702), and the lost capital's three on the
+/// conquests (run1200's 5639, 1, 146; run609's 5638, 1, 226;
+/// `docs/LEADERS.md` §10.5, §11). `victory_type` and `defeat_type` are held
+/// and emitted unheld: the record diff parts each on a closing block whose
+/// human quit, a quit the window harness does not replay — run609's 5639
+/// (`defeat_type` ours 0 theirs 6) and run667's 17380 (who 0 ours 5 theirs
+/// 6, who 1 `victory_type` ours 2 theirs 0; parked 4185a). The long range
+/// stays out on the other 61.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("ally_stamp (unheld)", 2),
     ("attack_stamp (unheld)", 2),
@@ -1856,9 +1872,7 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("damage_fifteen_seconds (unheld)", 2),
     ("deaths_current_frame (unheld)", 2),
     ("deaths_fifteen_seconds (unheld)", 2),
-    ("defeat_stamp (unheld)", 2),
     ("defeat_type (unheld)", 2),
-    ("defeated_by (unheld)", 2),
     ("dow (unheld)", 2),
     ("gift_stamp (unheld)", 2),
     ("good_deeds (unheld)", 2),
@@ -1877,9 +1891,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("last_spoke (unheld)", 2),
     ("last_taunt (unheld)", 2),
     ("last_unit_finished (unheld)", 2),
-    ("lost_capital_modifier (unheld)", 2),
-    ("lost_capital_stamp (unheld)", 2),
-    ("lost_capital_timer (unheld)", 2),
     ("made_peace (unheld)", 2),
     ("pop_issues (unheld)", 2),
     ("raid_stamp (unheld)", 2),
@@ -1907,8 +1918,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("units_killed (unheld)", 2),
     ("units_lost (unheld)", 2),
     ("victory_type (unheld)", 2),
-    ("wonderwin_stamp (unheld)", 2),
-    ("wonderwin_timer (unheld)", 2),
 ];
 
 /// The long range's leaves the test bends, one of each kind carried
@@ -1971,6 +1980,15 @@ const LEADERS_BENT: &[&str] = &[
     "air_queued",
     "supply_mark",
     "average_kill_rate",
+    // Item 4185's seven it holds on the line (`sim::leaders::endgame`,
+    // `sim::leaders::capital`), each agreeing on run 1562's frame 91.
+    "defeated_by",
+    "defeat_stamp",
+    "wonderwin_stamp",
+    "wonderwin_timer",
+    "lost_capital_stamp",
+    "lost_capital_timer",
+    "lost_capital_modifier",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its

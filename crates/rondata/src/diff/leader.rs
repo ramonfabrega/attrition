@@ -40,7 +40,6 @@ pub(crate) type Row = (String, i64);
 /// than an omission. Every other scalar the record prints is in [`rows`].
 pub(crate) const UNMODELLED: &[(&str, &str)] = &[
     ("score", "no score is kept"),
-    ("defeated_by", "no defeat path"),
     ("blacken", "fog bookkeeping"),
     (
         "pop_issues",
@@ -589,6 +588,12 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     for k in sim::leaders::rates::RATE_LEAVES {
         out.push((k.to_string(), s.leader_rate_leaf(p, k).unwrap_or(0)));
     }
+    // **Item 4185, step V** (`docs/LEADERS.md` §10, §11): the end of the
+    // game and the lost capital, every one printed. The same values the
+    // leaders line emits.
+    for k in sim::leaders::endgame::ENDGAME_LEAVES {
+        out.push((k.to_string(), s.leader_endgame_leaf(p, k).unwrap_or(0)));
+    }
     out.push(("rare".to_string(), mask_text(l.rare)));
     out.push(("rare_owned".to_string(), mask_text(h.rare_owned)));
     out.push(("rare_conquest".to_string(), mask_text(0)));
@@ -955,6 +960,9 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
     .into_iter()
     // Item 4177, step IV (`docs/LEADERS.md` §3): the thirteen combat rates.
     .chain(sim::leaders::rates::RATE_LEAVES)
+    // Item 4185, step V (`docs/LEADERS.md` §10, §11): the end of the game
+    // and the lost capital.
+    .chain(sim::leaders::endgame::ENDGAME_LEAVES)
     {
         if let Some(x) = block.int(key) {
             out.insert(key.to_string(), x);
@@ -1516,7 +1524,8 @@ mod tests {
             // item 4167: 194_720 -> 196_480, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
             // item 4176: 196_480 -> 202_080, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // item 4177: 202_080 -> 204_160, +13 keys a leader block (the thirteen combat rates).
-            204_160, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4185: 204_160 -> 205_600, +9 keys a leader block (the end of the game's six and the lost capital's three).
+            205_600, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1628,7 +1637,8 @@ mod tests {
             // item 4167: 209_324 -> 211_216, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
             // item 4176: 211_216 -> 217_236, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // item 4177: 217_236 -> 219_472, +13 keys a leader block (the thirteen combat rates).
-            219_472, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4185: 219_472 -> 221_020, +9 keys a leader block (the end of the game's six and the lost capital's three).
+            221_020, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1831,7 +1841,8 @@ mod tests {
             // item 4167: 43_812 -> 44_208, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
             // item 4176: 44_208 -> 45_468, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // item 4177: 45_468 -> 45_936, +13 keys a leader block (the thirteen combat rates).
-            45_936, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4185: 45_936 -> 46_260, +9 keys a leader block (the end of the game's six and the lost capital's three).
+            46_260, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -1978,7 +1989,8 @@ mod tests {
             // item 4167: 316_420 -> 319_280, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
             // item 4176: 319_280 -> 328_380, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // item 4177: 328_380 -> 331_760, +13 keys a leader block (the thirteen combat rates).
-            331_760, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4185: 331_760 -> 334_100, +9 keys a leader block (the end of the game's six and the lost capital's three).
+            334_100, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -2125,7 +2137,8 @@ mod tests {
             // item 4167: 73_020 -> 73_680, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
             // item 4176: 73_680 -> 75_780, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // item 4177: 75_780 -> 76_560, +13 keys a leader block (the thirteen combat rates).
-            76_560, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4185: 76_560 -> 77_100, +9 keys a leader block (the end of the game's six and the lost capital's three).
+            77_100, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -3231,7 +3244,8 @@ mod tests {
             // item 4167: 596_330 -> 601_720, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
             // item 4176: 601_720 -> 618_870, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
             // item 4177: 618_870 -> 625_240, +13 keys a leader block (the thirteen combat rates).
-            625_240, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4185: 625_240 -> 629_650, +9 keys a leader block (the end of the game's six and the lost capital's three).
+            629_650, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump
@@ -3543,6 +3557,9 @@ mod tests {
                 "damage_fifteen_seconds",
                 "deaths_current_frame",
                 "deaths_fifteen_seconds",
+                "defeat_stamp",
+                "defeat_type",
+                "defeated_by",
                 "dock_queued",
                 "factory_queued",
                 "fort_mark",
@@ -3552,6 +3569,9 @@ mod tests {
                 "hits_fifteen_seconds",
                 "kills_current_frame",
                 "kills_fifteen_seconds",
+                "lost_capital_modifier",
+                "lost_capital_stamp",
+                "lost_capital_timer",
                 "misery",
                 "missiles_used",
                 "multi_diff",
@@ -3564,9 +3584,25 @@ mod tests {
                 "stable_queued",
                 "supply_mark",
                 "units_killed",
-                "units_lost"
+                "units_lost",
+                "victory_type",
+                "wonderwin_stamp",
+                "wonderwin_timer"
             ],
             "the census leaves rows compares"
+        );
+    }
+
+    /// Item 4185's divisor: the Standard map size every `Game::*_timer` and
+    /// `Game::retake_capital` scales by
+    /// (`sim::leaders::endgame::STANDARD_MAP_SIZE`, `docs/LEADERS.md` §10.3)
+    /// is the install's `mapsizes` record 3.
+    #[test]
+    fn the_timers_divide_by_the_install_s_standard_map_size() {
+        let Some(inst) = install() else { return };
+        assert_eq!(
+            crate::mapgen::standard_map_size(inst.root()),
+            Some(sim::leaders::endgame::STANDARD_MAP_SIZE)
         );
     }
 

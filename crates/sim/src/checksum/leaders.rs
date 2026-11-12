@@ -1352,6 +1352,16 @@ impl Sim {
             {
                 self.leader_tally_leaf(who, name)
             }
+            // Item 4185 (`crate::leaders::endgame`, `crate::leaders::capital`):
+            // the end of the game and the lost capital (`docs/LEADERS.md`
+            // §10, §11). `victory_type` and `defeat_type` are held and not
+            // emitted: the record diff parts each on a closing block whose
+            // quit the window harness does not replay (parked 4185a).
+            _ if crate::leaders::endgame::ENDGAME_LEAVES.contains(&name)
+                && !crate::leaders::endgame::ENDGAME_OFF_THE_LINE.contains(&name) =>
+            {
+                self.leader_endgame_leaf(who, name).map(|v| vec![v])
+            }
             // Item 4177 (`crate::leaders::rates`): the combat rates
             // (`docs/LEADERS.md` §3).
             _ if crate::leaders::rates::RATE_LEAVES.contains(&name)

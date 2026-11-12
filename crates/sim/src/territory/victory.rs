@@ -8,7 +8,10 @@
 //! walked in slot order; one whose team holds less than the lobby's share of
 //! the world's land, or one some unallied rival also holds it against, has
 //! its timer stopped; the first that holds it alone starts its timer, or
-//! keeps it, and the walk ends there.
+//! keeps it, and the walk ends there. Once its clock has run out —
+//! `Game::popwin_timer() − (frame − stamp)` below one — it wins,
+//! `Leader::victory(2)` ([`Sim::victory`], `docs/LEADERS.md` §10.2); under
+//! `VICTORY` 1 or 7 it wins at once.
 //!
 //! The arm's other outcomes are seams: [`seams`].
 
@@ -18,12 +21,12 @@ use crate::Sim;
 ///
 /// | seam | stands in for | what it costs |
 /// | --- | --- | --- |
-/// | the expiry | `Leader::victory(2)` once `Game::popwin_timer() − (frame − stamp)` falls below one, and the immediate victory under `VICTORY` 1 or 7 or a teammate's `GLOBAL_GOVERNMENT_BONUS` | the game never ends by territory; the timer runs on |
+/// | a teammate's `GLOBAL_GOVERNMENT_BONUS` | the immediate victory it gives under `VICTORY` 0 | read as held by no one: the crate keeps no such preq |
 /// | `semaphore[0] & 4`, `semaphore[1] & 2`, `num_nations` | the arm's gate | read as a game of two or more nations, the arm always on |
 ///
 /// SEAM scan: `grep -h '^  VICTORY' gamelog*.txt | sort | uniq -c` — every
-/// capture on file is `VICTORY 0`, so the immediate arm is never reached;
-/// and none on file holds a `popwin_timer 1` long enough to expire it.
+/// capture on file is `VICTORY 0`, so the immediate arm is never reached.
+/// Five captures end on the expiry (`victory_type 2`; run600's 17380).
 pub mod seams {}
 
 impl Sim {
@@ -73,10 +76,20 @@ impl Sim {
                 }
                 continue;
             }
-            if self.ai.lobby.victory == 0 && self.ai.ai[i].popwin_timer == 0 {
+            if self.ai.lobby.victory != 0 {
+                self.victory(
+                    i as crate::Player,
+                    crate::leaders::endgame::VICTORY_TERRITORY,
+                );
+            } else if self.ai.ai[i].popwin_timer == 0 {
                 let l = &mut self.ai.ai[i];
                 l.popwin_timer = 1;
                 l.popwin_stamp += frame;
+            } else if self.popwin_timer() - (frame - self.ai.ai[i].popwin_stamp) < 1 {
+                self.victory(
+                    i as crate::Player,
+                    crate::leaders::endgame::VICTORY_TERRITORY,
+                );
             }
             return;
         }

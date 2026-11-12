@@ -182,12 +182,14 @@ impl Sim {
                 marks: vec![crate::leaders::marks::Marks::default(); players],
                 tallies: vec![crate::leaders::tallies::Tallies::default(); players],
                 rates: vec![crate::leaders::rates::Rates::default(); players],
+                endgame: vec![crate::leaders::endgame::EndGame::default(); players],
             },
             cities: crate::cities::CitiesState {
                 farm_order: Vec::new(),
                 cities: Vec::new(),
                 nation: vec![crate::cities::city::Nation::default(); players],
                 lost_city_stamp: vec![None; players],
+                capturing: None,
                 city_tally: vec![crate::cities::city::Tally::default(); players],
                 building_high: vec![Vec::new(); players],
                 wall_stats_dirty: vec![false; players],
@@ -317,6 +319,9 @@ impl Sim {
             .borders
             .push(territory::PlayerBorders::plain(&self.tables.tuning));
         self.leaders.defeated.push(false);
+        self.leaders
+            .endgame
+            .push(crate::leaders::endgame::EndGame::default());
         self.cities.lost_city_stamp.push(None);
         self.cities
             .city_tally
