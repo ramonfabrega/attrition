@@ -1156,6 +1156,28 @@ squares at a mode of 0.5–0.6 — and the pine stands where ours does. The figu
 original too; it is drawn over it. The rejected readings with the silhouettes: `Silhouettes::None` 26 of 29,
 `TreePixels::Scene` 29 of 33, `Leaves::Solid` 29 of 33.
 
+**The trees' own colour** (item 4173; `client::trees`). *The draw, read off run1566b's card trace* (the pass after
+3279, §3.14): the trees are one draw a texture, the bark and the six leaf layers of `#EARLY_AUTUMN_TREE_TEXTURES0`
+(`tree_Tea_*`), each stage 0 `ADDSIGNED(TEXTURE, CURRENT)`, stage 1 `MODULATE(CURRENT, TFACTOR)` at a white factor,
+alpha `MODULATE(TEXTURE, CURRENT)`, enables 0x20087, `alpha_func` Greater at 0, options `ALPHA_TEST VERTEX_COLOR_DIFFUSE
+TL_FAKE_LIGHT` and no `LIGHTING`. *The vertices, off run1559b's packet:* every `tree_cache` entry's vertex is eight
+dwords, xyz, the `D3DCOLOR` `0xff808080`, two texcoords (`TREE_DIFFUSE`). *The shader* (`ps_global.hlsl`, read):
+`TL_FAKE_LIGHT` without `LIGHTING` raises the stage colour to 1.9 and multiplies by the HDR 5; the tone map follows
+(§3.14). d3dgl's argument table (`0x100fe0c8`, built at `0x10002730`) writes `TA_CURRENT` as `COLOR_CURRENT` on
+either stage, and the shader starts `outColor` at 1; Direct3D's `CURRENT` on stage 0 is the diffuse.
+
+*The rule, committed before the count.* A tree is scored when its own pixels in the key buffer — `TreePixels::Scene`,
+the leaves' alpha test and cull, the silhouettes taking a figure's pixels — number 40 off the photograph's
+`INTERFACE`. No footprint is read off the photograph: the trees stand in register (4080, 4085), so each own pixel is
+read against the photograph's pixel under it, by the colour reader (`HUE`) and the luminance reader (`LUMA_READER`),
+on `paint_cut`'s texel coloured four ways (`TreeColour`): **Flat**, the client's green as its sRGB target stores it
+(the count as drawn, pinned first; expected 0); **Texel**, `ADDSIGNED` with the vertex diffuse, `t + 0x80 − 127.5`;
+**FakeLight**, Texel through `TL_FAKE_LIGHT` and the tone map at the clamp (`fake_light`); **Literal**, `CURRENT`
+the initial 1, `t + 127.5` clamped, through the same. `RUN1559B_3279_TREES` is the colour reader's count; the drawn
+candidate is the one most trees agree with by colour, a tie broken by the luminance count, a second tie keeping
+Texel; `RUN1559B_3279_TREES_LUMA` is the luminance count beside it. Made to fail at run1441's camera. The painter
+and `client::gpu` bind the winner's texel alike.
+
 **What is not established.**
 - ~~The leaves' alpha~~: read and applied, above (item 4082).
 - ~~Why four figures the photograph shows in front of the pine stand behind it in ours~~: they stand behind it in

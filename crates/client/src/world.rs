@@ -1485,7 +1485,7 @@ pub fn tint(who: u8, building: bool) -> [f32; 3] {
 
 /// A flat shade from the triangle's normal against a light from above and
 /// the north-west, either face lit.
-fn shade(t: [[f32; 3]; 3]) -> f32 {
+pub(crate) fn shade(t: [[f32; 3]; 3]) -> f32 {
     let u = [t[1][0] - t[0][0], t[1][1] - t[0][1], t[1][2] - t[0][2]];
     let v = [t[2][0] - t[0][0], t[2][1] - t[0][1], t[2][2] - t[0][2]];
     let n = [

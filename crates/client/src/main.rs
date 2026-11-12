@@ -34,6 +34,7 @@ mod overlay;
 mod patch;
 mod silhouette;
 mod trace;
+mod trees;
 mod world;
 
 use std::path::PathBuf;

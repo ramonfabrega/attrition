@@ -620,6 +620,36 @@ pub fn filmic(x: f32) -> f32 {
 
 /// The lit branch's power on the stage colour (item 4114).
 pub const LIT_POWER: f32 = 1.45;
+
+/// **The trees' vertex diffuse** (item 4173; `docs/RENDERER.md` §3.7,
+/// "The trees' own colour"): every vertex of every `RTreeData::tree_cache`
+/// entry on run1559b's packet carries the `D3DCOLOR` `0xff808080` in its
+/// fourth dword, the one stage 0's `ADDSIGNED(TEXTURE, CURRENT)` adds.
+pub const TREE_DIFFUSE: u8 = 0x80;
+
+/// `TL_FAKE_LIGHT`'s power on the stage colour (item 4173): the unlit
+/// branch of the install's `shaders/ps_global.hlsl`, read, not copied.
+pub const FAKE_LIGHT_POWER: f32 = 1.9;
+
+/// **A tree's stage colour** (item 4173, §3.7): `ADDSIGNED(TEXTURE,
+/// CURRENT)`, `t + c − 0.5` clamped, with `current` the stage's second
+/// argument (0–255): [`TREE_DIFFUSE`] where `CURRENT` on stage 0 is the
+/// vertex diffuse, 255 where it is the shader's initial `outColor` of 1.
+pub fn tree_stage(rgb: [f32; 3], current: f32) -> [f32; 3] {
+    rgb.map(|v| (v + current - 127.5).clamp(0.0, 255.0))
+}
+
+/// **`TL_FAKE_LIGHT` and the tone map** (item 4173, §3.7): the unlit
+/// branch, the stage colour raised to [`FAKE_LIGHT_POWER`] times
+/// [`HDR_SCALE`], then [`lit_pipeline`]'s tone map at the clamp. `rgb` is
+/// 0–255; the result is 0–255.
+pub fn fake_light(rgb: [f32; 3]) -> [f32; 3] {
+    let white = 1.0 / filmic(MIN_LUMINANCE * WHITE_POINT);
+    rgb.map(|v| {
+        let c = (v / 255.0).clamp(0.0, 1.0).powf(FAKE_LIGHT_POWER) * HDR_SCALE;
+        255.0 * (filmic(EXPOSURE * c) * white).clamp(0.0, 1.0)
+    })
+}
 /// The lit branch's HDR multiplier on both light terms (item 4114).
 pub const HDR_SCALE: f32 = 5.0;
 /// `unit_graphics.xml`'s `diffusei`, folded into the white diffuse.
