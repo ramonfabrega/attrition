@@ -7,7 +7,7 @@ number is its checklist row (`docs/audit/README.md`).
 ## opening
 
 You are a worker lane on the attrition repo, running on **{model}**. Your
-item is **{item}**, on {track}. I am `steer`, the driver, on `worktree-replan-pdb`; your base is `{base}`.
+item is **{item}**, on {track}. I am `commander`, the driver, on `worktree-replan-pdb`; your base is `{base}`.
 
 Read `docs/QUEUE.md`'s opener, then what the item cites.
 
@@ -501,7 +501,7 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   `repin.py --write` rewrites (1767, 2071).
 - **Constants and widenings are yours to pin; the queue's lines mine**: say what books and parks, the next word by frame and delta.
 - **Done and pushed: one line to me** (1412; 3503) —
-  `SendMessage` to `steer`: your origin tip SHA,
+  `SendMessage` to `commander`: your origin tip SHA,
   `git log <base>..<branch>`, `Lane verdict:` and `Gate
   steps:` (1406); **then end the turn done, needing no input**: a
   `blocked` row never takes the clear (1671); at ninety minutes
