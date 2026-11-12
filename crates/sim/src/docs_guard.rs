@@ -1731,7 +1731,9 @@ const UNBUILT: &[(&str, usize)] = &[
     ("GROUPS.md", 2),
     // Item 4152 (a reader row): the spec writes the type indices, offsets,
     // the 64536 battle sentinel and a decrypt key its builders will need.
-    ("LEADERS.md", 12),
+    // Item 4177 banked one (12 -> 11): the battle sentinel, built as
+    // `leaders::rates::BATTLE_SENTINEL` (`0xfc18`).
+    ("LEADERS.md", 11),
     ("MERCHANT.md", 2),
     ("ORDERS.md", 5),
     ("PRODUCTION.md", 4),

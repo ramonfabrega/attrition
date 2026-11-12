@@ -2,6 +2,7 @@
 
 pub mod diplomacy;
 pub mod marks;
+pub mod rates;
 pub mod relations;
 pub mod resign;
 pub mod tallies;
@@ -57,4 +58,8 @@ pub struct LeadersState {
     /// `nukes_launched` (`docs/LEADERS.md` §2, §4, §5, §15; [`tallies`],
     /// item 4176), one per slot.
     pub tallies: Vec<tallies::Tallies>,
+    /// The combat rates: `frame_battle`, the four averages, the four
+    /// window counts and the four totals (`docs/LEADERS.md` §3; [`rates`],
+    /// item 4177), one per slot.
+    pub rates: Vec<rates::Rates>,
 }

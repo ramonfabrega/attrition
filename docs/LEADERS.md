@@ -67,7 +67,8 @@ read `fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`,
 fourteen printed leaves — the four counters, the three victim stamp rows
 (eight cells each), `ctw_hero_stamp`, the three attrition stamps,
 `repair_stamp`, `missiles_used` and `nukes_launched` — and `rows` compare
-them (§2.5, §4.5, §5.5, §15.5).
+them (§2.5, §4.5, §5.5, §15.5). Item 4177 (step IV) made `theirs` read
+the thirteen combat rates, and `rows` compare them (§3.5).
 
 **Conventions.** A function is cited as `Name (00xxxxxx)`. An offset is a
 `LeaderData` offset. `Leader` holds `LeaderData` at offset 0 and adds 8 bytes
@@ -652,48 +653,34 @@ displays the averages and `deaths`/`kills_current_frame` (×100), never
 
 ### 3.3 In the crate
 
-No field or function of the family exists in `crates/sim` beyond the
-checksum table (`crates/sim/src/checksum/leaders.rs:264-276`). The fields
-belong in `crate::ai::Leader` (`crates/sim/src/ai.rs:637`), beside
-`frame_attacked`/`attacked_by` (`:697-698`).
+Item 4177 holds all thirteen in `crate::leaders::rates` (one `Rates` a slot
+in `LeadersState`; `Sim::leader_rate_leaf` answers each by its own name,
+since the averages' order is death, kill, **damage**, hit where the other
+rows are death, kill, hit, damage). The words are `u16` and every add a
+`wrapping_add`; `frame_battle` is the `int`.
 
-- **W1**: `Sim::do_damage_round` (`crates/sim/src/combat/fight/delivery.rs:70`),
-  between the decoy return (`:94-98`) and `treaty_on` (`:107-109`), where
-  the original's store also sits; `hit_who` is already `owner_of(target)`
-  (`:107`). **Trap**: the crate's `!self.struck(target)` return
-  (`:81-83`; `combat/fight/stats.rs:92-100`) precedes the decoy test and
-  refuses a non-active unit or a dead or combat-less building, which the
-  original's store does not see (open, 3.6).
-- **W2**: the `if let Obj::Building(b) = target { if killed` block
-  (`delivery.rs:212-222`, `killed` at `:193`), outside its unit/splash/
-  air/ally gate, with `active` read before the take. `Obj` has only `Unit`
-  and `Building` (`combat.rs:381-384`), so the wall's home is wherever the
-  crate keeps walls; unsettled. `killed` must be true on a disbanded
-  inactive structure; whether `damage_building` models the disband arm was
-  not checked.
-- **W3**: the unit `Taken::Died` arm of `Sim::take_damage_typed`
-  (`delivery.rs:469`, arm `:537`), gated on captain, squad size 1, not
-  decoy, real attacker. `Sim::take_damage` (`:452`) is `#[cfg(test)]`;
-  attrition is `Sim::suffer_attrition` (`territory/upkeep.rs:286`) and never
-  reaches this arm, so no attrition guard is needed. The decoy tail already
-  exists (`:560-596`) and passes the captain as its own attacker, so a
-  counter in the `Died` arm credits the owner's own kill there with no
-  extra code.
-- **W4**: `Sim::cast_sniper_unit` (`delivery.rs:806`), on the
-  captain/size/decoy predicate, before `die_with`. **Trap**: its SEAM
-  (`:803`) lists `+0xa58` among "the caster's leader counters";
-  `deaths_current_frame` goes to the target's owner. **Trap**:
-  `cast_sabotage_building`'s SEAM (`:881`) names `+0xa58`/`+0xa5a`/`+0x80c`;
-  the building arm writes none of them, and the SEAM should name `+0x818`.
-- **W5**: a new fold in `Sim::tick` (`crates/sim/src/core/frame.rs:73`),
-  before `self.frame += 1` (`:475`), for slots 0..7 with `leader_flags & 1`.
-  `Achieve` is unported.
-- **Checksum.** The held arms go beside `"frame_attacked"`
-  (`checksum/leaders.rs:1157`). Each of the thirteen is
-  `("<leaf> (unheld)", 2)` in `LEADERS_HELD_OUT`
-  (`crates/rondata/src/diff/checksum_lines.rs:1762-1765, 1776-1779, 1789,
-  1797-1798, 1803-1804`), counted on run 1562's frame 91; a port holding a
-  leaf moves its row. The verdicts give no figure for how many would agree.
+- **W1**: `Sim::note_blow`, in `Sim::do_damage_round`
+  (`crates/sim/src/combat/fight/delivery.rs`) after the decoy return and
+  ahead of `treaty_on`. `s = 5` when the attacker is a unit whose type
+  `is_siege_unit` (vslot `+0x10c`) and the target an `Obj::Building`.
+  **The `struck` trap stands**: the crate's `!self.struck(target)` return
+  still precedes it (3.6).
+- **W2**: `note_rate_kill(who, hit_who, 5 | 2)` beside `note_raze` in the
+  `killed` block, with `active` read before the take (`alive && active`).
+  The crate has no wall object (every `Obj::Building` is a Build proper),
+  and `damage_building` has no disband arm, so the `k = 2` disband is not
+  carried (3.6).
+- **W3**: beside `note_unit_death` in `take_damage_typed`'s countable death;
+  the decoy tail credits the owner itself, as the original does.
+- **W4**: in `cast_sniper_unit`, on the countable predicate, the caster's
+  kill and the **target's owner's** death. `cast_sabotage_building` writes
+  none of the family (its SEAM is corrected).
+- **W5**: `Sim::fold_rates` in `Sim::tick`, after `refresh_site_hits` and
+  before `self.frame += 1`, for slots `0..min(seated, 8)`, the age off
+  `tech[who].ages`. `Achieve::add_event` is unported and writes no leaf.
+- **Checksum**: `frame_battle` is emitted on the leaders line; the other
+  twelve are held and emitted unheld (`rates::RATES_OFF_THE_LINE`), each
+  parting in the record diff (3.5).
 
 ### 3.4 Reached by a plain game
 
@@ -709,7 +696,36 @@ never fold.
 ### 3.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/combat-rates-*.md`); no diff backs it yet.
+(`docs/audit/2026-11-11-item-4152/combat-rates-*.md`). ~~no diff backs it
+yet.~~ **Since item 4177 the record diff backs all thirteen** on every
+scored dump that prints the record (`LEADERS=9`; the level-8 record does
+not print them). `frame_battle` and the battle test agree everywhere,
+including two dumps that print a battle: run1075's 1750 (both leaders,
+the averages 33099 on 2034, five empty folds from the sentinel) and the
+Lakota peace pair's 4700 (56469 on 4751, one fold). The fold's period,
+the decay and the window's clearing agree on every dump that prints the
+record. The other twelve part, each named:
+
+- the **hits and damage** words, mostly ours one blow short, on the frame
+  the struck capital's own `damage` parts (run1185b's 5276, who 1's
+  `hits_current_frame` ours 15 theirs 16 beside `0/2000` damage 604
+  against 610; run585, run588, run1189b, run1211, run1344b, run1360,
+  run1364b, run1366b, run1422, run1431b, run1423c, run1170 alike), beside
+  run1075's staged Battleships (2060, ours 1 theirs 0, 4176a's parent), and
+  on two **nuke landings** with nothing beside them (run855's 4777 and
+  run1405b's 3494, ours 0 and 1 against theirs 1 and 2, the frame
+  `nuke_stamp` moves; parked 4177a); the averages and totals follow;
+- the **deaths and kills** words on run1075 alone, 2247 and 2386, by the
+  same amount and on the same frames as `units_killed` and `units_lost`
+  (4176a);
+- **every average on the four melees' closing record**, the human's
+  (who 0 at 2601), one empty fold short: ours 294 against theirs 257 on
+  airbase_melee's `average_damage_rate`, and `257 = 294·7 >> 3` (parked
+  4177b).
+
+A port with the decay perturbed (`·7 >> 3` to `·6 >> 3`) parts run855's
+window on 4751, `average_death_rate` ours 48402 theirs 56469 (the
+journal's).
 
 Verdicts, as the adjudication counts them: the shared writers 52 confirmed,
 5 corrected, 1 open; per leaf, `hits_current_frame` 6/1/1,
@@ -744,8 +760,19 @@ listing. The verdicts cite no kept-dump value for these leaves.
   so no ordinary blow reaches them. A `LeadersSync` line for slot 8 or 9
   with non-zero `deaths_current_frame` would settle it.
 - **The wall's home in the crate** for W2.
-- **No diff yet** of "`_fifteen_seconds` is never reset" (a long-fight
-  dump) or of the battle event (any capture that logs one).
+- ~~**No diff yet** of "`_fifteen_seconds` is never reset" (a long-fight
+  dump) or of the battle event (any capture that logs one).~~ The record
+  diff backs both since item 4177 (3.5): run1075's window opens at 2034
+  with who 0's `deaths_fifteen_seconds` 44 and who 1's
+  `kills_fifteen_seconds` 44, the totals of a fight 280 frames and six
+  folds old, both agreeing, and the battle event agrees on run1075 and
+  the Lakota pair.
+- **The nuke's invisible blow** (parked 4177a): on run855's 4777 and
+  run1405b's 3494 theirs counts one blow more than ours on the frame the
+  nuke lands, and no struck object's hit points move. A candidate is the
+  ring's building test: the crate asks `Sim::active`, which refuses a
+  building with no health left, so a capital at its ceiling is not struck
+  here.
 
 ## 4. The victim stamps
 

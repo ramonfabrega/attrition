@@ -1348,6 +1348,13 @@ impl Sim {
             {
                 self.leader_tally_leaf(who, name)
             }
+            // Item 4177 (`crate::leaders::rates`): the combat rates
+            // (`docs/LEADERS.md` §3).
+            _ if crate::leaders::rates::RATE_LEAVES.contains(&name)
+                && !crate::leaders::rates::RATES_OFF_THE_LINE.contains(&name) =>
+            {
+                self.leader_rate_leaf(who, name).map(|v| vec![v])
+            }
             _ => None,
         }
     }

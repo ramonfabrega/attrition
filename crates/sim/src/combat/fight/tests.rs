@@ -6282,3 +6282,57 @@ fn a_blow_stamps_the_victim_s_attack_row_once_in_three_hundred_frames() {
     assert_eq!((v.raid_stamp, v.ally_stamp), ([0; 8], [0; 8]));
     assert_eq!(sim.leader_tallies(1).attack_stamp, [0; 8]);
 }
+
+/// **The combat rates, end to end** (`docs/LEADERS.md` §3.2, item 4177):
+/// every blow steps the attacker's `hits_current_frame` and the victim's
+/// `damage_current_frame` by one, whatever it takes; the captain's death
+/// steps the attacker's `kills_current_frame` and the victim's
+/// `deaths_current_frame` by one; and the fiftieth frame's fold totals the
+/// window, folds it ×100 into the averages and clears it. A frame between
+/// folds leaves everything standing.
+#[test]
+fn the_blows_and_the_kill_fold_into_the_rates_on_the_fiftieth_frame() {
+    let (mut sim, ty) = at_war();
+    let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+    let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+    for frame in [40, 41] {
+        sim.do_damage(
+            Obj::Unit(foe),
+            Obj::Unit(me),
+            crate::movement::Angle(0),
+            false,
+            1,
+            false,
+            true,
+            frame,
+        );
+    }
+    let kill = combat::Sixteenths {
+        whole: 5000,
+        frac: 0,
+    };
+    assert!(matches!(
+        sim.take_damage(Obj::Unit(me), kill, Obj::Unit(foe), 42),
+        Taken::Died { .. }
+    ));
+    let (v, k) = (sim.leader_rates(0), sim.leader_rates(1));
+    assert_eq!(k.current, [0, 1, 2, 0], "the attacker: one kill, two hits");
+    assert_eq!(v.current, [1, 0, 0, 2], "the victim: one death, two blows");
+    sim.fold_rates(49);
+    assert_eq!(sim.leader_rates(1).current, [0, 1, 2, 0], "no fold off 50");
+    sim.fold_rates(50);
+    let (v, k) = (sim.leader_rates(0), sim.leader_rates(1));
+    assert_eq!((k.current, v.current), ([0; 4], [0; 4]));
+    assert_eq!(k.fifteen, [0, 1, 2, 0]);
+    assert_eq!(v.fifteen, [1, 0, 0, 2]);
+    // deaths, kills, hits, damage: `(c + 0) >> 1` of each count ×100.
+    assert_eq!(k.average, [0, 50, 100, 0]);
+    assert_eq!(v.average, [50, 0, 0, 100]);
+    assert_eq!(sim.leader_rate_leaf(0, "average_damage_rate"), Some(100));
+    assert_eq!(sim.leader_rate_leaf(1, "kills_fifteen_seconds"), Some(1));
+    assert_eq!(
+        (v.frame_battle, k.frame_battle),
+        (0, 0),
+        "50 + 0 is under 125"
+    );
+}

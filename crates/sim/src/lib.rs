@@ -181,6 +181,7 @@ impl Sim {
                 pop_issues: vec![0; players],
                 marks: vec![crate::leaders::marks::Marks::default(); players],
                 tallies: vec![crate::leaders::tallies::Tallies::default(); players],
+                rates: vec![crate::leaders::rates::Rates::default(); players],
             },
             cities: crate::cities::CitiesState {
                 farm_order: Vec::new(),

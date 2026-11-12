@@ -1810,6 +1810,23 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 4, 4313);
 /// 3774 theirs 3770, every window from run855's 4538) and run844's 4940
 /// (ours 4871 theirs 0) with no parting beside it (parked 4176a, 4176b).
 /// The long range stays out on the other 74.
+///
+/// Item 4177: 74 → 73 names. Held (`sim::leaders::rates`) and agreeing on
+/// both leaders on frame 91 (one empty fold at frame 50, no blow before
+/// 300): `frame_battle` (`docs/LEADERS.md` §3), 0 = 0, which the record
+/// diff agrees on everywhere it is printed (run1075's 1750 and the Lakota
+/// peace pair's 4700 among them). The other twelve combat rates are held
+/// and agree here too, 0 = 0, but the line emits them unheld: the record
+/// diff parts each (§3.5) — the hits and damage words beside the capital's
+/// own `damage` on the frame a blow lands in theirs alone (run1185b's
+/// 5276, `hits_current_frame` of who 1 ours 15 theirs 16 beside `0/2000`
+/// damage 604 against 610) and on two nuke landings with nothing beside
+/// them (run855's 4777, run1405b's 3494, ours one blow short; parked
+/// 4177a); the deaths and kills words on run1075's 2247 and 2386 beside
+/// `units_killed` and `units_lost` (4176a); and the averages on the four
+/// melees' closing record, the human's, one empty fold short (2601,
+/// `average_damage_rate` ours 294 theirs 257 on airbase_melee; parked
+/// 4177b). The long range stays out on the other 73.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("air_queued (unheld)", 2),
     ("ally_stamp (unheld)", 2),
@@ -1833,7 +1850,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("defeated_by (unheld)", 2),
     ("dow (unheld)", 2),
     ("factory_queued (unheld)", 2),
-    ("frame_battle (unheld)", 2),
     ("gift_stamp (unheld)", 2),
     ("good_deeds (unheld)", 2),
     ("high_buildings (unheld)", 2),
@@ -1937,6 +1953,9 @@ const LEADERS_BENT: &[&str] = &[
     "buildings_lost",
     "units_bribed",
     "nukes_launched",
+    // Item 4177's one it holds on the line (`sim::leaders::rates`),
+    // agreeing on run 1562's frame 91.
+    "frame_battle",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its

@@ -558,7 +558,10 @@ fn sea_melee_s_leaders_are_compared_on_every_seat() {
     // in that order ([`crate::diff::setup::leader_visit_order`]). The
     // standing family is 12, 10 and 7; the 203 are the closing dump's.
     pin_eq!(w.standing(), vec![12, 9, 6], "standing keys, by seat");
-    pin_eq!(w.rest().len(), 3, "the keys that part, by seat");
+    // Item 4177: 3 -> 6, +3, who=0's `average_damage_rate`, `average_death_rate` and
+    // `average_hit_rate` at the closing 2601, ours 329/27/20 theirs 287/23/17: the human's
+    // trailing record one empty fold short (`v·7 >> 3` of ours; docs/LEADERS.md §3.5, parked 4177b).
+    pin_eq!(w.rest().len(), 6, "the keys that part, by seat");
     pin_eq!(
         w.rest()
             .iter()

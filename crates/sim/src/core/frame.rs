@@ -485,6 +485,11 @@ impl Sim {
         self.hold_doobers_inc_time();
         self.mark("end");
         self.refresh_site_hits();
+        // `Game::do_frame`'s last step before the increment, after
+        // `Leaders::end_process_all` and `Achieve::capture_data`: every
+        // slot in use folds its combat rates on a fiftieth frame
+        // (`Leader::process_event_frame@006ec180`, `docs/LEADERS.md` §3.2).
+        self.fold_rates(frame);
         self.frame += 1;
         // `Game::do_frame`, after the increment: the stray-road sweep
         // (`crate::movement::mesh`, `docs/ROADS.md` §10).

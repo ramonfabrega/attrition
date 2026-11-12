@@ -46,7 +46,8 @@ mod bodies {
             // Item 4162: 658080 -> 659520, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // Item 4167: 659520 -> 662160, 120 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
             // Item 4176: 662160 -> 670560, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-            670560,
+            // Item 4177: 670560 -> 673680, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
+            673680,
             "120 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         // **Under the word and on it, both directions.** The leader rows
@@ -256,7 +257,8 @@ mod bodies {
             // Item 4162: 1881012 -> 1885128, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // Item 4167: 1885128 -> 1892674, 343 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
             // Item 4176: 1892674 -> 1916684, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-            1916684,
+            // Item 4177: 1916684 -> 1925602, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
+            1925602,
             "343 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -444,7 +446,8 @@ mod bodies {
             // Item 4162: 3866220 -> 3874680, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // Item 4167: 3874680 -> 3890190, 705 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
             // Item 4176: 3890190 -> 3939540, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-            3939540,
+            // Item 4177: 3939540 -> 3957870, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
+            3957870,
             "705 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -645,7 +648,8 @@ mod bodies {
             // Item 4162: 2807808 -> 2813952, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // Item 4167: 2813952 -> 2825216, 512 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
             // Item 4176: 2825216 -> 2861056, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-            2861056,
+            // Item 4177: 2861056 -> 2874368, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
+            2874368,
             "512 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -913,7 +917,8 @@ mod bodies {
             // Item 4162: 1409388 -> 1412472, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // Item 4167: 1412472 -> 1418126, 257 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
             // Item 4176: 1418126 -> 1436116, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-            1436116,
+            // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
+            1442798,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1045,7 +1050,8 @@ mod bodies {
             // Item 4162: 1409388 -> 1412472, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // Item 4167: 1412472 -> 1418126, 257 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
             // Item 4176: 1418126 -> 1436116, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-            1436116,
+            // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
+            1442798,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1199,7 +1205,8 @@ mod bodies {
             // Item 4162: 1409388 -> 1412472, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // Item 4167: 1412472 -> 1418126, 257 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
             // Item 4176: 1418126 -> 1436116, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-            1436116,
+            // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
+            1442798,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1443,7 +1450,8 @@ mod bodies {
             // Item 4162: 1409388 -> 1412472, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // Item 4167: 1412472 -> 1418126, 257 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
             // Item 4176: 1418126 -> 1436116, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-            1436116,
+            // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
+            1442798,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1593,7 +1601,8 @@ mod bodies {
             // Item 4162: 1409388 -> 1412472, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // Item 4167: 1412472 -> 1418126, 257 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
             // Item 4176: 1418126 -> 1436116, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-            1436116,
+            // Item 4177: 1436116 -> 1442798, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
+            1442798,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
