@@ -2706,8 +2706,11 @@ impl Sim {
         // stock there. The harness does not replay the setup stream, so a
         // pasture that already exists at frame 0 is stood up from the
         // capture's own trace instead (`Sim::farm_add_animals`, `docs/SYNC.md`
-        // §3.11) and this call would double it.
-        if matches!(r, crate::economy::Resource::Food) && self.frame != 0 {
+        // §3.11) and this call would double it. A start *built* from the
+        // lobby walks that stream (`Sim::walks_setup`, `docs/START.md` §2
+        // step 7), and there the five are drawn where the original draws
+        // them.
+        if matches!(r, crate::economy::Resource::Food) && (self.frame != 0 || self.walks_setup) {
             self.farm_stock_pasture(b);
         }
     }

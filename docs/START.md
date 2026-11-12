@@ -167,8 +167,14 @@ it (**not built**).
    sixty refusals (each refused by name); the Spaniards' extra scouts,
    the Dutch merchants, the Greek scholars and the Koreans' citizens
    (constants not loaded, parked 4063b); the Large Town list; the
-   Americans' farms and the Iroquois' Senate (parked 4047b); the pasture
-   (none on Great Lakes).
+   Americans' farms and the Iroquois' Senate (parked 4047b). **The
+   pasture built** (item 4034): a starting farm `Farms::add`'s coin makes
+   type 1 is stocked inside its `Build::activate` — five owner-9 animals,
+   four draws each — because the builder walks the setup stream
+   (`Sim::walks_setup`); the installer, which does not, still borrows
+   them. *Diff-backed* on 16 Great Lakes lobbies: on 15 the dump's
+   `FARMS` `farm_type` and the trace's sync word, on run1515b's (neither
+   printed) every building and unit placed after it.
 8. **`World::analyze_map@006b58b0`, `World::compute_all_territory@006b5700`,
    `Herd::create_units@007417f0`** (44 draws here), the scripts.
    **`compute_all_territory` built** (item 4063: `sync_territory`,
@@ -230,6 +236,17 @@ sides, so their agreement is quiet, not proven. The dump-backed fields are
 cells (`WORLD=6`), the cities, buildings and units with their orders, the
 personality (from the trace's bracket) and the sync word.
 
+**And the reverse: a field the installer cannot take from the dump is
+its own stand-in**, so a parting there is no parting. The every-lobby
+count (§5) drops and counts three, per lobby: a starting pasture's five
+(owner 9, which no dump prints) when no trace lends their seeds; the sync
+word when no setup trace for the lobby is on disk; and a computer
+leader's personality when neither a trace bracket nor the start dump's
+own `PERSONALITY` block (`LEADERS=9`) holds it — where the block is
+printed, the built side is held to it. It adds one record the block does
+not carry: `FARM who/o farm_type`, each farm against the dump's `FARMS`
+list, which is what backs a pasture's existence.
+
 ## 4. The harness lobby, compared
 
 `rondata::diff::start::tests::the_harness_lobby_s_start_built_from_its_choices`
@@ -280,9 +297,24 @@ at item 4033. N is `tools/start_lobbies.py`'s scan of the kept captures:
 a capture counts when its `GAME` block carries start records ahead of its
 first frame (a `WORLD`, `UNITDATA`, `BUILDDATA` or `FULL DUMP`); its lobby
 is its `GAMEINFO` block's text, `same_lobby`'s key — 645 captures, 161
-lobbies. The harness lobby's test asserts `START_BUILT` against its own
-comparison, so the counter cannot read 1 while that lobby parts. **1 of
-161** at item 4063: the harness lobby.
+lobbies. **1 of 161** at item 4063: the harness lobby.
+
+**The harness is every lobby** (item 4034,
+`diff::start::tests::every_lobby_s_start_built_from_its_choices`): for
+each lobby `lobby::lobbies_on_disk` finds, its richest capture (cells,
+then a setup trace, then objects) is installed by `build_sim`, the
+lobby's other captures lent by `borrow_from_siblings`, against
+`from_lobby` of its `GAMEINFO`, by §3's rules. `START_BUILT` is the count
+whose list parts nowhere, and `START_CENSUS` pins every other lobby's
+first parting by record and field; `RON_START_LOBBY=n,…` with
+`RON_START_DIFF=1` (or `=all`) prints one lobby's value diff. **35 of
+161** at item 4034: 14 Great Lakes lobbies already whole but never
+compared, 16 a starting pasture released, 4 whose one parting was a
+personality no dump holds, and the harness lobby. Of the other 126, 117
+are the fifteen styles with no composed chain (East Indies 53, Great
+Sahara 47), parting at their first cell; 8 are the Great Lakes lobbies
+with a Spanish (3), American (2), Dutch, Korean or Greek seat; one is
+4033a's scratch capture, whose dump prints neither cells nor `diplos`.
 
 ## 6. Confidence, and what is not established
 
@@ -311,13 +343,19 @@ comparison, so the counter cannot read 1 while that lobby parts. **1 of
   refusal — no capture on disk has a team game or an unlocked style.
   The style-7 refusal is equivalent at frame 0 (a seat on team 8 already
   fails the `0..4` test), so no lobby can tell it apart.
+- **Diff-backed on 35 lobbies** (item 4034, §5): Great Lakes at 34
+  lobbies besides the harness's, among them every starting age 0 to 7,
+  difficulties 0 to 5, `STARTING_RESOURCES` 7 (19 lobbies) and AI seats
+  of seventeen nations; the starting pasture on 16 (its `FARMS`
+  `farm_type` and the trace's sync word; the five animals' species and
+  places are in no dump, 4034b).
 - **Not established**: the team assignment and the handicaps; a
-  composed chain for any style but Great Lakes, and Great Lakes at any
-  other lobby; the default tileset draw's unavailable-name arm (a second
+  composed chain for any style but Great Lakes; the default tileset
+  draw's unavailable-name arm (a second
   draw, parked 3819b); a team game's consecutive teammates; the Large
   Town list; `build_units` on a Nomad or City-only start (`place_unit`'s
   rings 8 and 24, its `Build::train` arm), with a Spaniard, Dutch, Greek,
-  Korean or American seat, or with `starting_resources` 7 or 8; a
+  Korean or American seat, or with `starting_resources` 8; a
   `place_unit` cell refused by the object test alone (the crate threads
   no building, so a building's own cell stands in for its chain);
   a herd of horse, bear, bison or peacock, a whale (one
@@ -327,8 +365,12 @@ comparison, so the counter cannot read 1 while that lobby parts. **1 of
   placer prose puts the draw on the wrong arm (parked 4047a), and §9.3's
   "steps off the footprint" is not what the no-host arm does (parked
   4063a); the port is right in both.
-- **Coverage**: one lobby compared of 161. The others need their own
-  installed side (`build_sim` on each start dump) and are item 4034's.
+- **Coverage**: every lobby compared, 161 of 161 (item 4034); 35 whole.
+  Two of the 35 have no setup trace on disk (run1515b's and run1541b's
+  lobbies), so their sync word is not backed; four have neither a
+  bracket nor a `PERSONALITY` block for the computer leader (run3's,
+  run5's, run597's, run1541b's), so on three the trace's sync word holds
+  the roll's twenty draws and on run1541b's nothing does.
   Past the block — every take the installer makes, and the lobby's game
   walked from the built start — is §7 (item 4057).
 
@@ -393,7 +435,7 @@ an assumption the dump cannot settle.
 | a gaia animal's herd | the first herd of its type | the herd that founded it | built; the installer's is an approximation (33 differ) |
 | the scout's `squad_size` | the dump's figure count, 2 | 1 | not established which the walk reads; the walk agrees |
 | farms: type, heights, list order | `FARMS` | `Farms::add`, creation order | built; whole comparison, keyed |
-| pasture animals | the trace | none here | not this lobby's (no pasture on Great Lakes) |
+| pasture animals | the trace | none here | not this lobby's (no pasture on it; §2 step 7) |
 | herds | `HERDS` | `herds_from_goods` | built; §4 |
 | goody boxes | `ITEM` | the cells' `down` −3, by `down_who` | built, red first (22 absent); wide |
 | building `ever_seen` | the dump's | `update_seen_ally`'s mask | built, red first (2 part); wide |
