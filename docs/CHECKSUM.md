@@ -1699,7 +1699,8 @@ by leaf (`Sim::leader_image`, a `None` leaf being one the crate holds no value
 for). `diff::checksum_lines::the_leaders_line_is_the_original_s_range_by_range`
 holds it range by range and leaf by leaf, with `LEADERS_HELD_OUT` naming 140
 leaves at item 4121, 100 at item 4124 (the census of the 140 is item
-4124's journal) and **99** since item 4153, which carried `explored`.
+4124's journal), 99 at item 4153, which carried `explored`, and **98**
+since item 4154, which carried `att`.
 `CHECKSUM_STATE` does not count it (§5).
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
@@ -1755,7 +1756,7 @@ and held no value for 210 on each leader. The table is item 4121's journal.
 | `reg_forts` | the active forts by region; `Fort::init`, `Fort::close` |
 | the six armed-unit counters | `num_units` summed by trainer, `Leader::track_unit_type`'s rule: `0x1ab` (and `combat_units`), `0x1ac` (and `combat_units`), `0x1ae`, `0x1b0`, else an air type |
 
-**What holds the line out** since item 4153: 99 leaves, all unheld, each on
+**What holds the line out** since item 4154: 98 leaves, all unheld, each on
 both leaders. A leaf is out until a rule of ours carries it; a constant for a
 leaf a plain game moves would hold on frame 91 and be a substitution.
 
@@ -1779,10 +1780,13 @@ leaf a plain game moves would hold on frame 91 and be a substitution.
   - the victim stamps (4): `attack_stamp`, `raid_stamp`, `ally_stamp`,
     `ctw_hero_stamp`, `Object::do_damage` (and `attack_stamp` in
     `Leader::plan_strategy` and `end_process`).
-  - attrition (5): `attrition_stamp` (`Unit::process_attrition`,
+  - attrition (~~5~~ 4): `attrition_stamp` (`Unit::process_attrition`,
     `gain_tech`), `attrition_stamp2` (`Unit::suffer_attrition`),
-    `attrition_stamp3` (`Wall::process`), `att` (`Leader::calc_attrition`),
-    `give_att_disabled` (`Leader::plan_strategy`).
+    `attrition_stamp3` (`Wall::process`), ~~`att`
+    (`Leader::calc_attrition`)~~ — carried by item 4154,
+    `territory.players[w].strength`, 0 and 0 on both sides (`docs/LEADERS.md`
+    §5.2), `give_att_disabled` (~~`Leader::plan_strategy`~~ the scenario
+    triggers, `docs/LEADERS.md` §5.2).
   - the diplomacy actions (15): `dow`, `blacken`, `broke_alliance`,
     `made_peace`, `tributes`, `tribute_sent`, `tribute_received`,
     `tribute_stamp`, `gift_stamp`, `hire_stamp`, `hire_who`, `good_deeds`,

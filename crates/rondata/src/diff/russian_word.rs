@@ -210,3 +210,81 @@ fn run644_russian_closing_state() {
     // `find_collision`, the word at 7303): 35 units compared on block
     // 7304, none apart, no building or city field-row, no closing field.
 }
+
+/// **`att` at no attrition tech** (item 4154, `docs/LEADERS.md` §5.2,
+/// `docs/ATTRITION.md` §1): `Leader::calc_attrition` floors each
+/// multiplier step at 1, so a Russian with a city and no `ATTRITION` step
+/// holds `att 1`, and a leader with neither holds 0. run647's start is an
+/// Ancient start: the Nubians (who 0) print `att 0` and the Russians (who
+/// 1, tribe 13, `city_num 1`) `att 1` in the start's `FULL DUMP`, on
+/// `FRAME 1` and in the closing dump after `FRAME 37`. Both leaders, every
+/// leader record the dump prints. (run981, the held-out battery's Russian
+/// start, prints the same pair; it is not read here, DECISIONS 61 §6.)
+#[test]
+fn the_russian_start_holds_att_one_with_no_attrition_tech() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some(path) = dump(RUSSIAN.start) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", RUSSIAN.start);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let log = Log::parse(&text);
+    let mut built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
+    let game = log.game().expect("a GAME block");
+    let start = game
+        .children()
+        .take_while(|b| !b.name().starts_with("FRAME"))
+        .find(|b| b.name() == "FULL DUMP")
+        .expect("the start's FULL DUMP");
+    let ours = |b: &Built, who: usize| i64::from(b.sim.territory.players[who].strength);
+    let mut seen = Vec::new();
+    let mut parted = Vec::new();
+    for who in 0..2usize {
+        let theirs = start
+            .kids("LEADERDATA")
+            .find(|l| l.int("who") == Some(who as i64))
+            .and_then(|l| l.int("att"))
+            .expect("the start's att");
+        seen.push((who, ours(&built, who), theirs));
+        if ours(&built, who) != theirs {
+            parted.push(format!(
+                "start who {who}: ours {} theirs {theirs}",
+                ours(&built, who)
+            ));
+        }
+    }
+    // The dump's other two leader records: `FRAME 1`'s, and the closing
+    // `FULL DUMP` after `FRAME 37`.
+    let mut rows = 0;
+    for n in 1..=37 {
+        built.tick();
+        for who in 0..2usize {
+            let block = match n {
+                1 => log.leader_block(1, who as i64),
+                37 => log.closing_leader_block(who as i64),
+                _ => None,
+            };
+            let Some(theirs) = block.and_then(|l| l.int("att")) else {
+                continue;
+            };
+            rows += 1;
+            if ours(&built, who) != theirs {
+                parted.push(format!(
+                    "block {n} who {who}: ours {} theirs {theirs}",
+                    ours(&built, who)
+                ));
+            }
+        }
+    }
+    eprintln!("att at the start (who, ours, theirs): {seen:?}; {rows} later rows");
+    assert_eq!(
+        seen.iter().map(|&(_, _, t)| t).collect::<Vec<_>>(),
+        vec![0, 1],
+        "the dump's own: the Nubians 0, the Russians 1"
+    );
+    assert_eq!(rows, 4, "both leaders on FRAME 1 and the closing dump");
+    assert!(parted.is_empty(), "att parts: {parted:?}");
+}
