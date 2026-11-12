@@ -45,6 +45,7 @@ pub(crate) const UNMODELLED: &[(&str, &str)] = &[
     ("att", "the attrition score counters are unread"),
     ("anti_att", "the attrition score counters are unread"),
     ("blacken", "fog bookkeeping"),
+    ("explored", "check_explore's visibility recount is a seam"),
     ("pop_issues", "the population-pressure counter is unread"),
     (
         "misc_stamps",
@@ -266,7 +267,6 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         ("gatherers", c.gatherers),
         ("attacked", c.attacked),
         ("full_cities", c.full_cities),
-        ("explored", c.explored),
         ("my_team_terr", c.my_team_terr),
         ("other_team_terr", c.other_team_terr),
         ("min_other_team_terr", c.min_other_team_terr),
@@ -756,7 +756,6 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
         "gatherers",
         "attacked",
         "full_cities",
-        "explored",
         "home_reg",
         "my_team_terr",
         "other_team_terr",
