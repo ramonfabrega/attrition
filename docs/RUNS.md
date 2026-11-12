@@ -36606,3 +36606,22 @@ Trace `~/ron-golden/run1566b/map-14/rontrace.log`, 72,386,592 bytes, SHA-256
 `51007c86828f3077463b7602750946f44f29509f2818cc71fa76aef3926ad2a0`. Photograph
 `~/ron-data/lab-experiments/2026-11-12-item-4165/run1566b-3294.png`: window 16686, 1920×1080, the gamelog at 3295,
 SHA-256 `ebf718d54cb9a47db2f8615d1c38730bdce3d04eef044cdb6bc94fc571794552`.
+
+## run1567 — run1564's take with the card probe: the water's and the floor's draws (2026-11-12, item 4168, `att-4168`)
+
+`docs/RENDERER.md` §3.12, §3.14. **What the disk could not answer**: the lit water's state at the card. run1564's
+packet holds the tone mapper (§3.14, read off it with no capture) but no draw's stages, material or light, and
+run1566b's view holds no water. The line is run1564's with the probe (`tools/trace/card.h` at `a4bdd85c8`) in place
+of the packet and no photograph:
+`zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1567 --map 14 --end-frame 3296
+--timeout 420 --log-window 3292 3296 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 0 --cover cover=0 --profile
+STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cmd-file
+~/ron-data/lab-experiments/2026-11-12-item-4160/photo3294.cmd --tracer-def RON_CARD_PROBE`.
+- Pool lane, launched 03:05:37. The paused take ran to the timeout as run1564's did (`TimeoutExpired` after 420 s,
+  waitrun exit 2). 37 GB free before it, 28 GB after (other lanes' builds share the disk). Not filed.
+- Six sites hooked, none refused, d3dgl at `0x786f0000`. Two passes, after 3263 (211 draws) and 3279 (210).
+- **What it holds**: on the 3279 pass, the water is draw 162, the pass's one with `SCREEN_REFLECTIONS`, and the
+  ocean floor draw 36 (`the_water_and_the_floor_at_the_card`).
+
+Trace `~/ron-golden/run1567/map-14/rontrace.log`, 71,258,304 bytes, SHA-256
+`8b93076c43a57cd4ed2417a2df3c411550c328323a36cb7809b0d7c1eb5f9d24`.

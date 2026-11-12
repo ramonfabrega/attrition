@@ -57,6 +57,9 @@ pub const OPTIONS: [&str; 32] = [
 /// the two a figure's stage 0 takes.
 pub const TOP_SELECTARG2: i32 = 2;
 pub const TOP_MODULATE: i32 = 3;
+/// `TOP_MODULATE2X` (`sbl/d3dgl.pdb`'s enumerator): the ocean floor's
+/// stage 0 (item 4168).
+pub const TOP_MODULATE2X: i32 = 4;
 pub const TOP_BLENDTEXTUREALPHA: i32 = 12;
 /// `TextureArg`: `TA_CURRENT`, `TA_DIFFUSE`, `TA_TEXTURE`, `TA_TFACTOR`.
 pub const TA_CURRENT: i32 = 0;

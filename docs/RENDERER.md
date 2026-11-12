@@ -1599,15 +1599,37 @@ is the object `MiscAccess::terrain` points at. So the fade does not meet
 values: `+0x5614` −40 (`OceanFadeHeight`), `+0x5618` 3 (`OceanFloorScale`)
 and `+0x564c` `0xf5ffffff` (white at 245).
 
-**The surface, which the reading does not settle.** The technique is
-"Normal Water" (`TerrainOut::one_time_init`). Its stage 0 is
-`SELECTARG2(TA_TEXTURE, TA_DIFFUSE)`, the vertex's white, and its stage 1
-alpha is `MODULATE(TA_TEXTURE | TA_COMPLEMENT, TA_CURRENT)` over the fog
-fade. It enables the light, animated water normals, the Torrance specular
-and screen reflections, then the EE's tone map. The texture bound at
-stage 0 is the first of the 32 `newwater` frames, `water0000.tga`. **The
-photograph backs neither the white nor the frame. It backs the ocean's
-base as the water's colour.**
+**The surface, read off the card (item 4168).** The technique is
+"Normal Water" (`TerrainOut::one_time_init`). run1567's card trace
+(run1564's take, the probe of §3.14) holds the water as the pass's one
+draw with `SCREEN_REFLECTIONS`, after 3279
+(`the_water_and_the_floor_at_the_card`):
+
+- stage 0 `SELECTARG2(TEXTURE, DIFFUSE)` for colour and alpha: the
+  vertex's white and its fade; the bound `newwater` frame does not enter;
+- stage 1 `SELECTARG2(DIFFUSE, CURRENT)`, and its alpha
+  `SELECTARG2(TEXTURE | COMPLEMENT, CURRENT)`: the current. **The fog
+  fade the reading put there does not enter either**;
+- options `LIGHTING SPEC_MODEL_TORRANCE SCREEN_REFLECTIONS`, with **no**
+  `ANIMATE_WATER_NORMALS` and no normal map;
+- blended source alpha over, on the HDR target, before the tone map;
+- `PerMaterial`: ambient 0.2, diffuse (1, 1, 1.5), specular 40, emissive
+  0, `gPower` (the roughness) 0.3; the light white, its direction
+  (−0.707, 0, −0.707); the scene's ambient the units'.
+
+`create_water_verts` writes positions, two texcoords and the colour, and
+`render_water` adds nothing: **the water's vertices carry no normal**, so
+its N·L, specular and reflection ray are whatever the vertex shader reads
+for a missing one (parked 4168a).
+
+**The floor is lit too.** The `ocean_floor_5.tga` draw is opaque,
+`LIGHTING`, stage 0 `MODULATE2X(TEXTURE, DIFFUSE)` and stage 1
+`MODULATE(TEXTURE, CURRENT)` on the same file by the second texcoord.
+Its material is white. The ground's light is diffuse 1.36 with ambient
+(0.02, 0.06, 0.36), and the lit branch reads only the diffuse. The sand
+draws with normal, spec and gloss maps, blended at its vertex alpha.
+**The photograph backs neither the lit water nor the lit floor (below).
+It backs the ocean's base as the water's colour.**
 
 `RUN1564_3279_WATER` gives the `SANDY` and `OCEAN` tiles agreeing under
 `RUN1564_3279_GROUND`'s rule:
@@ -1652,8 +1674,12 @@ the fade's shape. `water_fade` is pinned by
 
 **What is not established.**
 
-- **The water's colour.** The EE's lit, tone-mapped surface over the
-  fog fade (4164a).
+- **The water's colour.** The card's state, through the lit branch and
+  the tone map with the floor's N·L (0.707), does not reach the
+  photograph. The white surface alone tones to (147, 154, 182). Over the
+  lit floor (share 0.130, 0.434) at the fade's alpha 0.75, the share is
+  (0.250, 0.356), against the photograph's (0.139, 0.362) on `OCEAN`
+  (item 4168's journal). Its normal is unsettled (4168a).
 - **Where the water lies.** `CoordInfo`'s flags are not held here, and
   every `SANDY` cell with a corner below zero is taken as wet. The water
   is drawn on the seabed's triangles, not at its plane (4160a). The beach
@@ -1798,6 +1824,30 @@ normals are ours within 2.4–3.5° (median).
 **So** the colour with no fitted term is 4114's candidate, 17 of 33. The figure that parts, 1/27, parts past the
 draw (4165a). Stage 1's alpha, `MODULATE4X(TEXTURE, TFACTOR)` with blending on, makes a texel under alpha 64
 translucent over what is behind it: 319 of the figures' 23,316 own pixels, drawn by no draw of ours (4165b).
+
+**Past the draw, read off the packets (item 4168).** The packet keeps the heap, so the executable's `graphsys`
+(`0x00e335a0`) reaches the `D3D11GLSys` and its `mToneMapper` (+4976) and `mAntiAlias` (+4980)
+(`tools/render/tonemap_packet.py`; `d3dgl.pdb`'s `GSToneMapper`, `D3D11ToneMapper`, `ToneMapData`, `D3D11AntiAlias`).
+Each object is typed by its vtable at its own `d3dgl.map` address, both under one relocation, `0x68550000`. On
+run1559b's and run1564's packets, the members and the constant buffer's shadow (`mData`) agree bit for bit
+(`the_tone_mapper_on_both_packets`):
+
+| field | live | `lit_pipeline` |
+|---|---|---|
+| exposure, adjustment | 1.0, 0 | `EXPOSURE` |
+| white point | 3.5 | `WHITE_POINT` |
+| minimum luminance | 1.4 | `MIN_LUMINANCE` |
+| saturation | 1.0 | `SATURATION`, the identity |
+| tint | (238, 193, 14, **0**) | `TINT_ALPHA`, the identity |
+| bloom threshold, tightness, strength | 0.6, 12.5, 6.0 | `bloom_bright` |
+| FXAA | on | not drawn |
+
+**So the tone map is the candidate's, every input live**: 4114's "no caller sets them" is now a diff, except the
+tint's rgb, which is set but unused at alpha 0. The colour row is 18, unmoved, since a chromaticity reader sees the
+white scale only through clipping. On tank 1/27, the photograph's own bright pass, blurred by the bloom's
+taps at either scale, bounds the bloom from above. Over its 60 × 40 window it averages 0.84/255, at most 10.2/255.
+**So bloom does not part 1/27.** It may part 0/0, whose bound averages 38.8/255. What is left past the draw for
+1/27 is the frame mean through clipping, and FXAA (4168b).
 
 ## 4. The stack
 
@@ -2270,10 +2320,13 @@ lines and fog shading, projectiles and corpses, then candidate C.
 
 ### 7.1 Not established
 
-- What parts tank 1/27 from the photograph once its draw's whole state and normals are the original's: the texture
-  as sampled or what follows the draw (the tone map's mean, bloom, the anti-aliasing); and stage 1's
-  `MODULATE4X` alpha, blended over what is behind, which no draw of ours makes (4165a, 4165b). Settled by the
-  tone mapper's own inputs at its entry on that pass, and by the blend drawn and counted.
+- What parts tank 1/27 from the photograph once its draw's whole state and normals are the original's, and the
+  tone mapper's every input is live (§3.14, 4168): the texture as sampled, the frame's mean through clipping, or
+  FXAA. Bloom is bounded out. And stage 1's `MODULATE4X` alpha, blended over what is behind, which no draw of
+  ours makes (4165b). Settled by the luminance target's mip 10 read off the card on that pass, FXAA drawn, and
+  the blend drawn and counted (4168b).
+- The water's normal, which its vertices do not carry (§3.12, 4168a). Settled by the water VB's input layout
+  in `d3dgl.dll` and the vertex shader's default for a missing normal.
 
 Each line names what would settle it.
 

@@ -928,6 +928,153 @@ mod tests {
     /// **Item 4164: `get_water_fade`, as read and as the packet sets it**:
     /// solid at and below −55, nothing above −25, a line between that does
     /// not meet 245 at −55; and the ramp hands an alpha back as itself.
+    /// **The water and the floor at the card** (item 4168;
+    /// `docs/RENDERER.md` §3.12): run1567's card trace (`tools/trace/
+    /// card.h`, run1564's take with the probe in place of the packet)
+    /// holds the pass drawn after frame 3279. Its one draw with
+    /// `SCREEN_REFLECTIONS` is the water, `TerrainOut::render_water`'s
+    /// "Normal Water"; its draw of `ocean_floor_5.tga` the floor. Each
+    /// field is asserted against what §3.12 reads and what the lit branch
+    /// takes: the `PerMaterial` rows are `gAmbient`, `gDiffuse`,
+    /// `gSpecular`, `gEmissive`, `gTexFactor`, then `gPower`
+    /// (`sbl/d3dgl.pdb`), the light's `Ambient` and `Diffuse` its second
+    /// and third rows (`ShaderLight`). `RON_CARD_TRACE_1567` moves it.
+    #[test]
+    fn the_water_and_the_floor_at_the_card() {
+        use render::silhouette::SCENE_AMBIENT;
+        use rondata::trace::card::{
+            self, TA_CURRENT, TA_DIFFUSE, TA_TEXTURE, TOP_MODULATE, TOP_MODULATE2X, TOP_SELECTARG2,
+        };
+        let path = std::env::var_os("RON_CARD_TRACE_1567")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                let home = std::env::var_os("HOME").unwrap_or_default();
+                PathBuf::from(home).join("ron-golden/run1567/map-14/rontrace.log")
+            });
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no card trace at {}", path.display());
+            return;
+        };
+        let pass: Vec<card::CardDraw> = card::draws(&bytes)
+            .into_iter()
+            .filter(|d| d.frame == 3279)
+            .collect();
+        let water: Vec<&card::CardDraw> = pass
+            .iter()
+            .filter(|d| d.has("SCREEN_REFLECTIONS"))
+            .collect();
+        assert_eq!(water.len(), 1, "one water draw on the pass");
+        let w = water[0];
+        let floor: Vec<&card::CardDraw> = pass
+            .iter()
+            .filter(|d| d.file(0) == "ocean_floor_5.tga")
+            .collect();
+        assert_eq!(floor.len(), 1, "one floor draw on the pass");
+        let f = floor[0];
+        let near = |a: [f32; 4], b: [f32; 4]| a.iter().zip(b).all(|(x, y)| (x - y).abs() < 1e-4);
+        let blends = |d: &card::CardDraw| d.enables() & 4 != 0;
+        const COMPLEMENT: i32 = i32::MIN; // TA_COMPLEMENT, 0x80000000
+        let ambient = [SCENE_AMBIENT[0], SCENE_AMBIENT[1], SCENE_AMBIENT[2], 0.558];
+
+        // The water: the vertex's white and its fade, nothing of the texture.
+        for o in [
+            "ENABLE_LIGHTING",
+            "SPEC_MODEL_TORRANCE",
+            "ENABLE_VERTEX_COLOR_DIFFUSE",
+        ] {
+            assert!(w.has(o), "the water draws with {o}");
+        }
+        for o in [
+            "ANIMATE_WATER_NORMALS",
+            "NORMAL_MAP",
+            "NO_HDR",
+            "ENABLE_FOG",
+        ] {
+            assert!(!w.has(o), "the water draws without {o}");
+        }
+        assert_eq!(w.colour_op(0), (TOP_SELECTARG2, TA_TEXTURE, TA_DIFFUSE));
+        assert_eq!(w.alpha_op(0), (TOP_SELECTARG2, TA_TEXTURE, TA_DIFFUSE));
+        assert_eq!(w.colour_op(1), (TOP_SELECTARG2, TA_DIFFUSE, TA_CURRENT));
+        assert_eq!(
+            w.alpha_op(1),
+            (TOP_SELECTARG2, TA_TEXTURE | COMPLEMENT, TA_CURRENT),
+            "stage 1's alpha selects the current, not the fog fade's complement"
+        );
+        assert_eq!(w.file(1), "fow_fade.tga");
+        assert!(
+            blends(w) && (w.src_blend(), w.dst_blend()) == (5, 6),
+            "source alpha over"
+        );
+        let m = w.material();
+        assert!(
+            near(m[0], [0.2, 0.2, 0.2, 1.0]),
+            "the water's ambient {:?}",
+            m[0]
+        );
+        assert!(
+            near(m[1], [1.0, 1.0, 1.5, 1.0]),
+            "the water's diffuse {:?}",
+            m[1]
+        );
+        assert!(
+            near(m[2], [40.0, 40.0, 40.0, 1.0]),
+            "the water's specular {:?}",
+            m[2]
+        );
+        assert!(near(m[3], [0.0, 0.0, 0.0, 1.0]), "no emissive");
+        let power = f32::from_le_bytes(w.cbuf[0x1b0..0x1b4].try_into().unwrap());
+        assert!((power - 0.3).abs() < 1e-6, "the roughness, gPower {power}");
+        let l = w.light();
+        assert!(near(
+            l[0],
+            [
+                -std::f32::consts::FRAC_1_SQRT_2,
+                0.0,
+                -std::f32::consts::FRAC_1_SQRT_2,
+                0.0
+            ]
+        ));
+        assert!(
+            near(l[2], [1.0; 4]),
+            "the water's light is white {:?}",
+            l[2]
+        );
+        assert!(near(w.scene_ambient(), ambient), "the scene's ambient");
+
+        // The floor: lit, opaque, its texture twice and doubled.
+        assert!(f.has("ENABLE_LIGHTING") && f.has("ENABLE_VERTEX_COLOR_DIFFUSE"));
+        assert!(!f.has("NORMAL_MAP"), "the floor has no normal map");
+        assert_eq!(f.colour_op(0), (TOP_MODULATE2X, TA_TEXTURE, TA_DIFFUSE));
+        assert_eq!(f.colour_op(1), (TOP_MODULATE, TA_TEXTURE, TA_CURRENT));
+        assert_eq!(f.file(1), "ocean_floor_5.tga");
+        assert!(!blends(f), "the floor is opaque");
+        let m = f.material();
+        assert!(
+            near(m[0], [1.0; 4]) && near(m[1], [1.0; 4]),
+            "the floor's material is white"
+        );
+        assert!(near(m[2], [0.0, 0.0, 0.0, 1.0]), "no specular");
+        let l = f.light();
+        assert!(near(l[0], w.light()[0]), "one light direction");
+        assert!(
+            near(l[1], [0.02, 0.06, 0.36, 2.0]),
+            "the light's ambient {:?}",
+            l[1]
+        );
+        assert!(
+            near(l[2], [1.36; 4]),
+            "the ground's light diffuse {:?}",
+            l[2]
+        );
+        assert!(near(f.scene_ambient(), ambient), "the scene's ambient");
+        println!(
+            "run1567, the pass after 3279: {} draws; the water draw {}, the floor draw {}",
+            pass.len(),
+            w.index,
+            f.index
+        );
+    }
+
     #[test]
     fn the_water_fades_as_get_water_fade_fades() {
         assert_eq!(water_fade(-200.0), WATER_SOLID);
