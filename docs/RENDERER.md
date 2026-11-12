@@ -1192,6 +1192,32 @@ named regression. 0/1's 159 behind pixels agree 81 → 66 (80 needed); composed 
 `_COLOUR_STILL` holds 14 (0/1 30 → 64, the painter's 66), `_TRACED_STILL` **31 → 32**: 0/1's ring no longer holds a
 silhouette's red over flat green (4171a), 0.159 → 0.850.
 
+**The shadows (item 4182; read on the listing, the rule committed before its count, `53f6cfdfd`).** A shadow is
+a decal. `DecalTransformMethod::execute@00923a70` lays a flat world-space quad from a `DecalRDataStruct`, and
+`DecalFlushMethod::execute@00923fd0` draws it under an identity transform. Both axes are turned by the angle
+(truncated, mod 360). Then `x = loc.x + (±hw·r1.x ± hh·r2.x − xoffset)·xstretch`, `y = loc.y ± hw·r1.y ±
+hh·r2.y`, `z = loc.z`. The texcoords cover the whole texture, or a quarter for corners 0–3 (`render::decal`).
+- `draw_tree_shadow@00905910` runs at every placed tree (`sort_trees`): 192 × 192, angle 0, stretch 1.5, offset
+  38.4, corner `(int)(x + y) % 4` of the tileset's eighth `TREE_TEXTURES0` line.
+- `draw_unit_shadow@008e8fa0` runs from `GuyOut::draw_shadows@005dc070`: `shadowwidth`/`shadowheight` × 3, the
+  `<SHADOW>` that `shadowtype` names, angle `180 − fast_angle_to_degrees`, stretch 1.25, offset 0.25, at the point
+  plus `shadow_offset`. On run1559b's packet 31 of 32 offsets lie within 11 units (`tree_points.py --guytree`).
+- On run1566b's pass after 3279 they are draws 116–118, 124 and 119. Each is `BLACK` (alpha 255), alpha
+  `MODULATE` texel and vertex, enables 0x20084 (no depth test). They come after the land, roads, borders and
+  tracks, and before the mountains (121).
+
+*The rule.* A photograph pixel is under a shadow when three things hold. It lies in a projected decal of the frame
+(every tree `tree_list` stands, every drawn guy whose piece names a `<SHADOW>`). The decals' `1 − Π(1 − α)` there
+(level 0, nearest) is at least `1 − 1/1.2`. And `ground_why` calls it ground or window. A tile scores on 40 such
+pixels. Both sides' means over those pixels are read by `HUE` and `LUMA_READER`, the still against the
+photograph. *Counted* (`client::shadows`), luma, hue at 92 throughout:
+- **The before draw, `World::shadows` off: 41 of 105.** Tree tiles 13 of 68, figure tiles 28 of 37.
+- **Blended after the tone map, as a plain alpha blend: 24.** Ours is 0.79 of theirs.
+- **Taken before it, `T(T⁻¹(g)·keep)` (`client::gpu`'s keep map and shade pass, §3.14's curve): 89.** Trees 61 of
+  68, 1.29 → 0.93. This is drawn.
+- **The guys' decals as read: 66.** Figure tiles 5 of 37: not drawn (4182c).
+- **Mirrored, the made-to-fail: 59 of 108.**
+
 **What is not established.**
 - ~~The leaves' alpha~~: read and applied, above (item 4082).
 - ~~Why four figures the photograph shows in front of the pine stand behind it in ours~~: they stand behind it in
@@ -1210,8 +1236,12 @@ silhouette's red over flat green (4171a), 0.159 → 0.850.
 - The blend: the key buffer keeps a fragment whole where its alpha passes; the original blends it, which moves
   colour, not a footprint. Item 4173 measures what it costs: the translucent texels part 50 %, the opaque 25 %
   (parked 4173a).
-- The trees' shadows: draw 119 of the pass, `tree_t_shadows.tga`, `SELECTARG2(TEXTURE)` at enables 0x20084, the
-  dark patch under each tree on the photograph; not drawn (parked 4173c).
+- ~~The trees' shadows: draw 119 of the pass, `tree_t_shadows.tga`, `SELECTARG2(TEXTURE)` at enables 0x20084, the
+  dark patch under each tree on the photograph; not drawn (parked 4173c)~~: read and drawn, the figures' with them
+  (item 4182, "The shadows" above).
+- What the guys' decals miss. As read they darken the row's figure tiles past the photograph (28 → 5 of 37,
+  0.99 → 0.82), and they are not drawn (parked 4182c). Also not established: the city's paved base, which is
+  `RoadsOut`'s (4182a), and the `shadow_offset` (4182d).
 - Why 0/1 behind the pine agrees with the raw texel under its silhouette (81 of 159) and not with the drawn leaf
   (66), nor with the blend before the tone map (11) (parked 4173b).
 - Why tree models 9–15 agree at 0.71–0.81 and the rest at 0.34–0.63, the photograph greener on the latter's opaque

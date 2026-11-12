@@ -57,7 +57,10 @@ Nothing it prints enters the repository.
 `pop_all_zoomed_in@00655e70` walks it (in order, leftmost first):
 
     guytree <length> <head_node> <ordered>
-    gnode <i> <node> <who>/<o> type <guy +0x8> gpiece <+0x88> anim <+0x9c> time <+0x74> metric <float>
+    gnode <i> <node> <who>/<o> type <guy +0x8> gpiece <+0x88> anim <+0x9c> time <+0x74> metric <float> shadow <+0xc4> <+0xc8>
+
+`shadow` (item 4182) is `GuyOut::shadow_offset_x`/`_y`, the offset
+`GuyOut::draw_shadows@005dc070` adds to the guy's point for its decal.
     rbias <index> <enables> <zbias> <zfunc> <stencil_func> <stencil_ref> <fail> <zfail> <pass> <mask> <write_mask>
 
 `rbias` is `render_states[0..3]`'s `zbias` (0x54) and stencil fields
@@ -168,11 +171,12 @@ def guytree(snap):
     for i, n in enumerate(out):
         g = u32(n + 0xC)
         metric = struct.unpack("<f", snap.read(n + 0x10, 4))[0]
-        gd = snap.read(g, 0xBC)
+        gd = snap.read(g, 0xCC)
         r = lambda o_, f: struct.unpack_from(f, gd, o_)[0]
         print(
             f"gnode {i} {n:08x} {gd[0xA1]}/{r(0x8C, '<h')} type {r(0x8, '<i')} "
-            f"gpiece {r(0x88, '<i')} anim {r(0x9C, '<b')} time {r(0x74, '<I')} metric {metric!r}"
+            f"gpiece {r(0x88, '<i')} anim {r(0x9C, '<b')} time {r(0x74, '<I')} metric {metric!r} "
+            f"shadow {r(0xC4, '<i')} {r(0xC8, '<i')}"
         )
 
 

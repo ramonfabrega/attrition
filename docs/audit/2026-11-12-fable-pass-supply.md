@@ -185,3 +185,12 @@ red first; the pass merged each `--no-ff`.
 
 Scoped to `d64f135cc`, on the pass's commit; its log is
 `~/Library/Caches/attrition/gates/gate-pass-1112b.log`.
+
+## After the pass: what the tranche measured for the next one
+
+Written by `commander` (Opus 5.5) in the turn each was noticed, for the pass that confirms or pulls back the fourth worker (DECISIONS 128 §4).
+
+- **The clock test went red on a gate with both sessions broken, and the client was not slower.** `gate-4179.log`, the whole gate on `31fa6327e` (4178 and 4179 merged): p99 frame 50.04 ms, then 73.75 ms, against a ceiling of 20; the host's load 12.3 at the gate's start and 10.8 at its end, on 16 cores; admission waited 3,286.9 s over 2,273 leases, 835.6 s of it for this test alone. Every other test passed. The A/B, three alternating runs of `client --test clock` built on `e52aa4102` (before 4178) and on `959fef728`, under one load of about 7.8: p99 5.43, 5.65, 5.21 ms before against 5.43, 5.55, 5.27 ms after. The two-session rule (entry 128 §8) tells a stall from a slower client, and does not tell a host that stays loaded through both sessions from one: with three lanes, a builder and a capture out, the two sessions sat 17 s apart inside the same load. The gate was rerun with nothing changed.
+- **`tools/disk.py`'s oracle step failed once**, on `gate-4159T.log` (exit 0): `gc-oracle ~/ron-golden: Directory not empty (os error 66)`, most likely a lane's gate writing the cache while the sweep removed it; the builders step reaped one tree (8.87 GiB), 243 GB free.
+- **The remote branch delete is refused** (`[Git Destructive]`, Loop 3848) for every merged lane this tranche: `worktree-att-4178`, `-4179`, `-4181`, `-4184` stand on origin.
+- **Ramon, 2026-11-12, for the pass, non-urgent and perhaps a no-op**: read the wgpu examples (`github.com/gfx-rs/wgpu/tree/trunk/examples`) against `crates/client`'s `gpu.rs` — `include_wgsl!` against `include_str!` (four of the five shaders could take it; the tree's is a template); whether the HDR example applies (4182 found the shadows blend before the frame's tone map; the photographs are an 8-bit display's, so HDR belongs after the art swap); and `hello_compute`: whether GPU compute could speed a test or a tool. Not the sim (no floats, no graphics dependency, serial lockstep); the candidate is the stills' scoring, and the measurement first is what that scoring costs of a gate's wall time.

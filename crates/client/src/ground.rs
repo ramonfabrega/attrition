@@ -1423,7 +1423,7 @@ pub fn ground_mountain(
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     /// Tiles, as the tests list them gained and lost.
     type Tiles = Vec<(i32, i32)>;
     use super::*;

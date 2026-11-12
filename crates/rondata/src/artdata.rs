@@ -1201,6 +1201,34 @@ pub struct UnitArt {
     pub anims: Vec<(i8, String, Option<String>)>,
     /// The graphic pieces the entry is; empty when it is none.
     pub pieces: Vec<i32>,
+    /// `shadowtype=`, `shadowwidth=` and `shadowheight=` as the XML
+    /// writes them, empty when absent (item 4182): the decal
+    /// `GraphicPieces::draw_unit_shadow@008e8fa0` lays under the guy, its
+    /// type a name of [`shadow_files`].
+    pub shadow: [String; 3],
+}
+
+/// `effects_graphics.xml`'s `<SHADOWS>`: each `<SHADOW>`'s `name` and
+/// `file`, in the file's order (item 4182) — the list `init_unit_data`
+/// matches a `shadowtype` against (`shadow_names`).
+pub fn shadow_files(install: &Install) -> Vec<(String, String)> {
+    let path = install.data("effects_graphics.xml");
+    let Ok(text) = crate::read(&path) else {
+        return Vec::new();
+    };
+    let Ok(doc) = crate::parse(&path, &text) else {
+        return Vec::new();
+    };
+    doc.descendants()
+        .filter(|n| n.has_tag_name("SHADOWS"))
+        .flat_map(|s| s.children().filter(|n| n.has_tag_name("SHADOW")))
+        .filter_map(|n| {
+            Some((
+                n.attribute("name")?.trim().to_string(),
+                n.attribute("file")?.trim().to_string(),
+            ))
+        })
+        .collect()
 }
 
 /// Every `<UNIT>` entry's [`UnitArt`], in name order. `graphs` is the
@@ -1247,6 +1275,8 @@ pub fn unit_art(install: &Install, graphs: &[String]) -> Vec<UnitArt> {
                 .to_string(),
             anims,
             pieces,
+            shadow: ["shadowtype", "shadowwidth", "shadowheight"]
+                .map(|k| u.attribute(k).unwrap_or_default().trim().to_string()),
         });
     }
     out.sort_by(|a, b| a.name.cmp(&b.name));
@@ -2186,6 +2216,11 @@ pub struct TreeArt {
     /// `init_tree_data` hands them to `RTreeData` — the trunk, then the
     /// bottom, middle and top leaves. The eighth, the shadow, is left out.
     pub textures: Vec<String>,
+    /// The section's eighth line, `Shadow Texture` (item 4182): the decal
+    /// `GraphicPieces::draw_tree_shadow@00905910` lays under each tree,
+    /// the card's draw 119 on run1566b's pass after 3279. `None` where the
+    /// section has no eighth line.
+    pub shadow: Option<String>,
 }
 
 /// [`TreeArt`] for `tileset`. **The section's name is a reading**: the
@@ -2237,11 +2272,12 @@ pub fn tree_art(install: &Install, tileset: &str) -> Result<TreeArt, ArtFailure>
         return Err(unnamed(&section));
     }
     let tsection = format!("#{}_TREE_TEXTURES0", tileset.to_ascii_uppercase());
-    let textures: Vec<String> = lines(&tsection)
+    let mut textures: Vec<String> = lines(&tsection)
         .iter()
-        .take(7)
+        .take(8)
         .filter_map(|l| l.split_once(',').map(|(_, f)| path(f.trim())))
         .collect();
+    let shadow = (textures.len() == 8).then(|| textures.remove(7));
     if textures.len() != 7 {
         return Err(unnamed(&tsection));
     }
@@ -2249,6 +2285,7 @@ pub fn tree_art(install: &Install, tileset: &str) -> Result<TreeArt, ArtFailure>
         treescale,
         models,
         textures,
+        shadow,
     })
 }
 
