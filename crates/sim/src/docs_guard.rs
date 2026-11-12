@@ -1922,6 +1922,9 @@ const UNBUILT: &[(&str, usize)] = &[
     ("GOLDEN.md", 4),
     ("GOODY.md", 4),
     ("GROUPS.md", 2),
+    // Item 4152 (a reader row): the spec writes the type indices, offsets,
+    // the 64536 battle sentinel and a decrypt key its builders will need.
+    ("LEADERS.md", 12),
     ("MERCHANT.md", 2),
     ("ORDERS.md", 5),
     ("PRODUCTION.md", 4),
