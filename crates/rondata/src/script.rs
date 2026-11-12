@@ -128,6 +128,24 @@ pub const TRAINED: i16 = 6;
 pub const RIGHT_BUILD_FRAME: i32 = 120;
 pub const RIGHT_GATHER_FRAME: i32 = 200;
 
+/// **The HUD's buttons** (item 4197, `docs/HUD.md` §5; the client's
+/// `hud::tests::the_buttons_mint_the_clicked_file`): of the clicked
+/// script's orders a key stands behind (the `c` `queue_up`, the `f`
+/// `build`), those minted whole with each key replaced by a press on its
+/// button's pixel, and the file written from them the clicked file byte
+/// for byte. 0 → 2 of 2 (item 4197): with no button the press landed on
+/// the world, and the test still mints that way to see it fail.
+pub const HUD_BUTTONS: (usize, usize) = (2, 2);
+/// **The HUD's panel** (item 4197, `docs/HUD.md` §5; the client's
+/// `hud::tests::the_panel_s_values_are_the_dump_s`): `(equal, compared)`,
+/// each number the panel prints for the right-pressed script's selections
+/// and the Farm's site against run1568's `UNITDATA` and `BUILDDATA` on the
+/// same frame. 0 → 628 of 628 (item 4197), 44 of them the site's
+/// `construct_hits` while it is unfinished; read as `myhits − damage`, a
+/// site's health parted on those 44 (584 of 628), the misreading
+/// `ObjectData::hits_left` settles (`docs/HUD.md` §3).
+pub const HUD_PANEL: (usize, usize) = (628, 628);
+
 /// **The boxed script** (item 4180, `docs/CLIENT_INPUT.md` §7): the
 /// right-pressed script and one more package, a box dragged round the three
 /// Citizens at the capital's west farms and a right press on the ground

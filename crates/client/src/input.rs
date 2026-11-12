@@ -584,13 +584,13 @@ impl Input {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
     use rondata::free::FreeRunner;
     use rondata::script;
 
     /// The script's lobby, built from its choices, or why not.
-    fn lobby() -> Result<FreeRunner, String> {
+    pub(crate) fn lobby() -> Result<FreeRunner, String> {
         let root = std::env::var_os("RON_INSTALL")
             .map(std::path::PathBuf::from)
             .unwrap_or_else(|| "../../game".into());
@@ -610,7 +610,7 @@ mod tests {
     /// `Some((target, z))` — the closer one: the same camera looked at the
     /// target at its ground height (`loc`, `loc_z_adjust`) and zoomed by
     /// [`CLOSER`] (`--zoom`).
-    fn camera(at: Option<(Pos, i32)>) -> render::Camera {
+    pub(crate) fn camera(at: Option<(Pos, i32)>) -> render::Camera {
         let mut c = crate::pinned_camera();
         if let Some((t, z)) = at {
             (c.loc_x, c.loc_y, c.loc_z_adjust) = (t.x as f32, t.y as f32, z as f32);
@@ -623,7 +623,11 @@ mod tests {
     /// at both targets is one integer point (stage 0's table).
     const CLOSER: f32 = 8.0;
 
-    fn view<'a>(c: &render::Camera, scene: &'a Scene, terrain: &'a TerrainScene) -> View<'a> {
+    pub(crate) fn view<'a>(
+        c: &render::Camera,
+        scene: &'a Scene,
+        terrain: &'a TerrainScene,
+    ) -> View<'a> {
         View {
             matrix: c.to_screen_matrix(),
             screen: crate::pinned_screen(),
@@ -682,7 +686,7 @@ mod tests {
         ),
     ];
 
-    fn object(scene: &Scene, o: i16) -> (Pos, i32) {
+    pub(crate) fn object(scene: &Scene, o: i16) -> (Pos, i32) {
         let u = scene.units.iter().find(|u| u.id.who == 0 && u.id.o == o);
         let b = scene
             .buildings
@@ -763,9 +767,9 @@ mod tests {
     /// The events a person makes for the script, each at stage 0's pixel
     /// on the order's frame, the targets under `cam`'s camera.
     /// An event on a frame, under the opening camera or the closer one.
-    type Scripted = (i32, Option<(Pos, i32)>, Event);
+    pub(crate) type Scripted = (i32, Option<(Pos, i32)>, Event);
 
-    fn events(closer: bool) -> Vec<Scripted> {
+    pub(crate) fn events(closer: bool) -> Vec<Scripted> {
         let o = |k: usize| OBJECTS[k].3;
         let (t0, t1) = (TARGETS[0], TARGETS[1]);
         let tp = |t: Target| {
@@ -826,6 +830,17 @@ mod tests {
 
     /// [`mint`] on any list of events.
     fn mint_events(events: Vec<Scripted>) -> Option<(Vec<Order>, FreeRunner)> {
+        mint_with(events, |input, frame, ev, view| {
+            input.event(frame, ev, view)
+        })
+    }
+
+    /// [`mint_events`] with each event handed to `through` (the layer
+    /// alone, or the HUD and then the layer: item 4197).
+    pub(crate) fn mint_with(
+        events: Vec<Scripted>,
+        mut through: impl FnMut(&mut Input, i32, Event, &View) -> Option<Order>,
+    ) -> Option<(Vec<Order>, FreeRunner)> {
         let mut r = match lobby() {
             Ok(r) => r,
             Err(e) => {
@@ -841,7 +856,7 @@ mod tests {
             }
             let (scene, terrain) = (r.scene(None), r.terrain());
             let c = camera(at);
-            if let Some(order) = input.event(frame, ev, &view(&c, &scene, &terrain)) {
+            if let Some(order) = through(&mut input, frame, ev, &view(&c, &scene, &terrain)) {
                 r.issue(&order);
                 out.push(order);
             }
@@ -887,7 +902,8 @@ mod tests {
     /// one pixel's rounding off the script — `(frame, dx, dy)`.
     const INPUT_MINTED_OPENING: (usize, [(i32, i32, i32); 2]) = (1, [(30, 3, 0), (90, 2, 4)]);
     /// The minted file the original played (`docs/RECGAME.md` §9.1).
-    const MINTED_RCX: &str = "ron-golden/recordings/item4059-minted-greatlakes-24000.rcx";
+    pub(crate) const MINTED_RCX: &str =
+        "ron-golden/recordings/item4059-minted-greatlakes-24000.rcx";
     const MINTED_RCX_BYTES: usize = 59_280;
 
     /// **The count**: synthetic events through the layer mint the script's
@@ -958,8 +974,9 @@ mod tests {
     /// written by rondata's `the_clicked_minted_packages_round_trip` under
     /// `RON_RCX_OUT`; the file the original's playback takes open (run
     /// 1563).
-    const CLICKED_RCX: &str = "ron-golden/recordings/item4149-clicked-greatlakes-24000.rcx";
-    const CLICKED_RCX_BYTES: usize = 59_280;
+    pub(crate) const CLICKED_RCX: &str =
+        "ron-golden/recordings/item4149-clicked-greatlakes-24000.rcx";
+    pub(crate) const CLICKED_RCX_BYTES: usize = 59_280;
 
     /// **The clicked count**: the events at the opening camera mint the
     /// clicked script, every field; the walk that took them stands on frame
@@ -1013,8 +1030,8 @@ mod tests {
     /// press's frame of the walk under the clicked script, under the opening
     /// camera: `(frame, the unit pressed, its anchor's pixel, the building
     /// right-pressed, its anchor's pixel, what the layer reads there)`.
-    type Right = (i32, i16, (i32, i32), i16, (i32, i32), Hit);
-    const RIGHT: [Right; 2] = [
+    pub(crate) type Right = (i32, i16, (i32, i32), i16, (i32, i32), Hit);
+    pub(crate) const RIGHT: [Right; 2] = [
         (
             script::RIGHT_BUILD_FRAME,
             script::HELPER,
@@ -1051,7 +1068,7 @@ mod tests {
 
     /// The clicked script's seven events, then each right press: a press on
     /// its unit and a right press on its building, at [`RIGHT`]'s pixels.
-    fn right_events() -> Vec<Scripted> {
+    pub(crate) fn right_events() -> Vec<Scripted> {
         let mut e = events(false);
         for (frame, _, unit, _, building, _) in RIGHT {
             e.push((

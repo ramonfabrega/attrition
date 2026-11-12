@@ -127,6 +127,8 @@ pub struct Soup {
 /// The game and the art, stepped and drawn from.
 pub struct World {
     pub runner: FreeRunner,
+    /// The install's names, for the HUD (item 4197).
+    pub names: crate::hud::Names,
     look: BuildLook,
     tribes: Vec<TribeDef>,
     /// Each piece's mesh, `None` where it resolves to nothing that decodes.
@@ -737,6 +739,7 @@ impl World {
                 Some(std::sync::Arc::new(render::silhouette::Mips::new(img)))
             });
         Ok(World {
+            names: crate::hud::Names::new(&loaded),
             look: BuildLook::new(&install).with_types(&loaded.build_types),
             tribes,
             meshes: BTreeMap::new(),

@@ -637,6 +637,50 @@ pub fn lobby_line() -> String {
     )
 }
 
+/// The queue's `Hud:` line's clauses (item 4197, `docs/HUD.md` §5), each
+/// `(its prefix, the clause)`: the clicked file minted from button presses
+/// ([`crate::script::HUD_BUTTONS`]) and the panel's numbers against
+/// run1568's dump ([`crate::script::HUD_PANEL`]). The line joins them on
+/// ` · `; the handoff test matches each clause by its prefix, so a later
+/// item's clause (4198, the bar) is one more row here and no new parser.
+#[cfg(test)]
+pub fn hud_clauses() -> Vec<(&'static str, String)> {
+    let (b, bn) = crate::script::HUD_BUTTONS;
+    let (p, pn) = crate::script::HUD_PANEL;
+    let n = |v: usize| {
+        let s = v.to_string();
+        let mut out = String::new();
+        for (k, c) in s.chars().enumerate() {
+            if k > 0 && (s.len() - k).is_multiple_of(3) {
+                out.push(',');
+            }
+            out.push(c);
+        }
+        out
+    };
+    vec![
+        (
+            "buttons mint the clicked file",
+            format!("buttons mint the clicked file byte for byte, {b} of {bn} keyed orders"),
+        ),
+        (
+            "the panel equals",
+            format!(
+                "the panel equals run1568's dump, {} of {} values",
+                n(p),
+                n(pn)
+            ),
+        ),
+    ]
+}
+
+/// The queue's `Hud:` line, its clauses joined (item 4197).
+#[cfg(test)]
+pub fn hud_line() -> String {
+    let clauses: Vec<String> = hud_clauses().into_iter().map(|(_, c)| c).collect();
+    format!("Hud: {}", clauses.join(" \u{b7} "))
+}
+
 /// The queue's `Checksum:` line (item 4060, `docs/CHECKSUM.md` §5): the
 /// lines of the original's fifteen that the instrument reproduces from
 /// its packet ([`crate::checksum::CHECKSUM_REPRODUCED`], on
@@ -1339,6 +1383,31 @@ mod tests {
             "docs/QUEUE.md's handoff carries\n{want}\n(`rondata::diff::floors::lobby_line`: \
              `lobby::LOBBY_PAGE`, `diff::START_LOBBIES`); it says {line:?}"
         );
+    }
+
+    /// **The handoff's HUD line is the pinned counter** (item 4197,
+    /// `docs/HUD.md` §5): the queue's `Hud:` line holds each of
+    /// [`hud_clauses`], found by its prefix among the line's ` · ` clauses,
+    /// so a clause another item adds is read by its own row. A driver's
+    /// line (`release_gate.py`'s `COMMANDERS_LINES`): the worker re-pins
+    /// the counters and the driver writes the line at the merge. Made to
+    /// fail first on the handoff before 4197's merge, which had none.
+    #[test]
+    fn the_handoff_s_hud_line_is_the_pinned_counter() {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../..");
+        let q = std::fs::read_to_string(format!("{root}/docs/QUEUE.md")).expect("docs/QUEUE.md");
+        let line = q.lines().find_map(|l| l.trim_end().strip_prefix("Hud: "));
+        let clauses: Vec<&str> = line.map_or_else(Vec::new, |l| l.split(" \u{b7} ").collect());
+        for (prefix, want) in hud_clauses() {
+            let found = clauses.iter().find(|c| c.starts_with(prefix)).copied();
+            assert_eq!(
+                found,
+                Some(want.as_str()),
+                "docs/QUEUE.md's handoff carries\n{}\n(`rondata::diff::floors::hud_clauses`: \
+                 `script::HUD_BUTTONS`, `script::HUD_PANEL`); its `Hud:` line says {line:?}",
+                hud_line()
+            );
+        }
     }
 
     /// **The handoff's checksum line is the pinned counter** (item 4060,
