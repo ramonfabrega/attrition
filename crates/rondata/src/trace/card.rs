@@ -210,8 +210,10 @@ fn name_of(raw: &[u8]) -> String {
     let utf16 = raw.len() > 1 && raw[1] == 0 && raw[0] != 0;
     let s: String = if utf16 {
         let w: Vec<u16> = raw
-            .chunks_exact(2)
-            .map(|c| u16::from_le_bytes([c[0], c[1]]))
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .map(|c| u16::from_le_bytes(*c))
             .collect();
         String::from_utf16_lossy(&w)
     } else {
@@ -228,12 +230,12 @@ pub fn draws(bytes: &[u8]) -> Vec<CardDraw> {
     let mut nopt = 0usize;
     let finish = |d: &mut CardDraw, names: &mut [Vec<u8>; 2], nopt: usize| {
         d.options.truncate(nopt);
-        for s in 0..2 {
-            d.names[s] = name_of(&names[s][..128]);
-            names[s].iter_mut().for_each(|b| *b = 0);
+        for (name, raw) in d.names.iter_mut().zip(names.iter_mut()) {
+            *name = name_of(&raw[..128]);
+            raw.iter_mut().for_each(|b| *b = 0);
         }
     };
-    for rec in bytes.chunks_exact(32) {
+    for rec in bytes.as_chunks::<32>().0 {
         let w: [u32; 8] =
             std::array::from_fn(|i| u32::from_le_bytes(rec[4 * i..4 * i + 4].try_into().unwrap()));
         if w[0] != K_CARD {
