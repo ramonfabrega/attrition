@@ -32,7 +32,14 @@
  *   5 opts:  b index, c..f four option values
  *   6 name:  b stage, c byte offset, d..f twelve bytes of the entry's name
  *   8 begin / 9 end of a pass: b pass, c draws in it
+ *   7 frames: b..e the return addresses up the `ebp` chain from d3dgl's wrapper
  *   10 installed: b d3dgl base, c sites hooked, d sites refused
+ *   11 stream: b lit, c vertices, d the ring's fill before, e stride, f the locked pointer
+ *   12 stream bytes: b byte offset, c..f four dwords (at `release_internal_stream`)
+ *   13 card arrays: b first index, c..f four of mV0 .. mCurrentType
+ * Item 4165's second take (run1566b) added 7, 11, 12, 13, the args from the
+ * observer's own frame (run1566's were read off a copy), and the names' second
+ * dereference.
  */
 #define K_CARD 40
 #ifndef RON_STATE_FRAME /* live_frame_snapshot.h declares it there */
@@ -77,15 +84,19 @@ static u32 card_rd(u32 addr) {
 }
 
 static void card_name(u32 stage, u32 tex) {
-    /* D3D11GLTexture +0x18 mEntry -> TextureCacheEntry +0x10 name -> String +0 data */
+    /* D3D11GLTexture +0x18 mEntry -> +0x10 a pointer to {chars, length, capacity}
+     * (run1566: the word there is a String object, length 62, not its chars) */
     u32 entry = card_rd(tex + 0x18);
-    u32 data = entry ? card_rd(entry + 0x10) : 0;
-    u8 buf[96];
+    u32 str = entry ? card_rd(entry + 0x10) : 0;
+    u32 data = str ? card_rd(str) : 0;
+    u8 buf[132];
     u32 got = 0;
     memset(buf, 0, sizeof buf);
-    if (data >= 0x10000u) ReadProcessMemory(g_proc, (void *)data, buf, sizeof buf, &got);
+    if (data >= 0x10000u) ReadProcessMemory(g_proc, (void *)data, buf, 128, &got);
+    *(u32 *)(buf + 128) = str ? card_rd(str + 4) : 0;
     for (u32 o = 0; o < sizeof buf; o += 12) {
-        const u32 *w = (const u32 *)(buf + o);
+        u32 w[3] = {0, 0, 0};
+        memcpy(w, buf + o, o + 12 <= sizeof buf ? 12 : sizeof buf - o);
         emit(K_CARD, 6, stage, o, w[0], w[1], w[2]);
     }
 }
@@ -94,8 +105,44 @@ static void card_name(u32 stage, u32 tex) {
  * above its five arguments, the packed flags, edx, ecx, eax and then the
  * original return address, so the call's own arguments start five dwords past
  * `arg0`'s slot; the word before them must be `caller`, which is checked. */
+static u32 g_card_lit, g_card_n, g_card_start; /* the open internal stream (get's args) */
+
+static void card_stream_dump(u32 card) {
+    /* release_internal_stream's entry: the stream is still locked, its bytes whole */
+    u32 vs = card_rd(card + 0x304);
+    u32 ptr = vs ? card_rd(vs + 0x18) : 0, stride = vs ? card_rd(vs + 0x20) : 0;
+    u32 n = g_card_n * stride;
+    if (n > 0x10000u) n = 0x10000u;
+    emit(K_CARD, 11, g_card_lit, g_card_n, g_card_start, stride, ptr);
+    u8 buf[48];
+    for (u32 o = 0; ptr && o < n; o += 48) {
+        u32 got = 0;
+        memset(buf, 0, sizeof buf);
+        ReadProcessMemory(g_proc, (void *)(ptr + o), buf, 48, &got);
+        const u32 *w = (const u32 *)buf;
+        for (u32 j = 0; j < 12 && o + 4 * j < n; j += 4)
+            emit(K_CARD, 12, o + 4 * j, w[j], w[j + 1], w[j + 2], w[j + 3]);
+    }
+}
+
 static void card_on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
-    (void)ebp;
+    (void)arg0;
+    /* The observer's own frame: fp[2..6] are its five arguments, fp[7..10] the
+     * stub's saved flags, edx, ecx and eax, fp[11] the call's return address
+     * (== caller) and fp[12..] the call's own stack arguments. */
+    u32 *fp = (u32 *)__builtin_frame_address(0);
+    u32 *orig = fp + 12;
+    if (kind == 5) { /* get_internal_stream(lit, n) */
+        if (g_card_pass >= 0) {
+            g_card_lit = orig[0], g_card_n = orig[1];
+            g_card_start = card_rd(ecx + (orig[0] ? 0x250 : 0x24c));
+        }
+        return;
+    }
+    if (kind == 6) {
+        if (g_card_pass >= 0) card_stream_dump(ecx);
+        return;
+    }
     if (kind == 1 || kind == 2) { /* begin / end */
         if (kind == 1) {
             if (g_card_pass < 0 && g_card_npass < RON_CARD_PASSES && g_frame >= RON_CARD_LO &&
@@ -113,10 +160,14 @@ static void card_on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
     }
     if (g_card_pass < 0) return;
     u32 site = kind == 3 ? 0 : 1;
-    u32 *orig = (u32 *)&arg0 + 5;
-    u32 ok = orig[-1] == caller;
+    u32 ok = fp[11] == caller;
     emit(K_CARD, 0, site | (ok << 31), g_card_draw, (u32)g_card_pass, caller, ecx);
     emit(K_CARD, 1, orig[0], orig[1], orig[2], orig[3], site == 0 ? orig[4] : 0);
+    { /* the executable's frames above d3dgl's wrapper: [ebp+4], then up the chain */
+        u32 e1 = card_rd(ebp), e2 = e1 ? card_rd(e1) : 0, e3 = e2 ? card_rd(e2) : 0;
+        emit(K_CARD, 7, card_rd(ebp + 4), e1 ? card_rd(e1 + 4) : 0, e2 ? card_rd(e2 + 4) : 0,
+             e3 ? card_rd(e3 + 4) : 0, 0);
+    }
     card_dump(2, (const u8 *)(ecx + 0x190), 0x168, 0);
     card_dump(3, (const u8 *)(ecx + 0x4f0 + 0x70), 0x250, 0);
     u32 card = *(u32 *)(g_card_base + CARD_D3D_CARD - CARD_PREF);
@@ -127,6 +178,15 @@ static void card_on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
         ps = *(u32 *)(card + 0x328);
         t0 = *(u32 *)(card + 0x26c);
         t1 = *(u32 *)(card + 0x270);
+        /* mV0, mV4, mV3, mCurrentVStream, mN, mDiffuseColors, mTexCoords0, mTexCoords1,
+         * mVB, mCurrentIB, mInternalVB, mCurrentType */
+        static const u16 at[12] = {0x2b8, 0x2bc, 0x2c0, 0x2c4, 0x2c8, 0x2d0,
+                                   0x2d8, 0x2dc, 0x2f0, 0x2f4, 0x304, 0x2f8};
+        u32 v[12];
+        for (u32 j = 0; j < 12; j++) v[j] = *(u32 *)(card + at[j]);
+        emit(K_CARD, 13, 0, v[0], v[1], v[2], v[3]);
+        emit(K_CARD, 13, 4, v[4], v[5], v[6], v[7]);
+        emit(K_CARD, 13, 8, v[8], v[9], v[10], v[11]);
     }
     emit(K_CARD, 4, nopt, ps, t0, t1, *(u8 *)(ecx + 0x4f0 + 0x340));
     if (opts && nopt <= 64)
@@ -155,6 +215,10 @@ static const CardSite CARD_SITES[] = {
     {CARD_RENDER_IB, 10, 3, {0x55, 0x8b, 0xec, 0x6a, 0xff, 0x68, 0x80, 0xcb, 0x0b, 0x10}, 6},
     /* render: push ebp; mov ebp,esp; sub esp,0x1c */
     {CARD_RENDER, 6, 4, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c}, 0},
+    /* D3D11GLGraphicCard::get_internal_stream(lit, n), `ret 8`: push ebp; mov ebp,esp; mov eax,[ebp+8] */
+    {0x1002c970u, 6, 5, {0x55, 0x8b, 0xec, 0x8b, 0x45, 0x08}, 0},
+    /* D3D11GLGraphicCard::release_internal_stream: push esi; mov esi,ecx; mov ecx,[esi+0x304] */
+    {0x1002caa0u, 9, 6, {0x56, 0x8b, 0xf1, 0x8b, 0x8e, 0x04, 0x03, 0x00, 0x00}, 0},
 };
 #define NCARD (sizeof(CARD_SITES) / sizeof(CARD_SITES[0]))
 
