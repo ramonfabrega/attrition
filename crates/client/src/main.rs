@@ -361,6 +361,7 @@ fn draw_page(
     let overlay = overlay::triangles(&lines, (size.0 as i32, size.1 as i32), scale as i32);
     let frame = gpu::Frame {
         terrain_version: u32::MAX,
+        patch_version: u32::MAX,
         terrain: (&[], &[]),
         ground: &[],
         patch: &[],
