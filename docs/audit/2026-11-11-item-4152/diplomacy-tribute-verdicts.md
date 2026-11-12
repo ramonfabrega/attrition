@@ -372,3 +372,166 @@ match the original.**
   reading; the epoch word at `data_encrypted+0xe8` is called `epoch[0]` by
   the first and left unindexed by the second (not settled here).
 
+## Leaf 5: `tributes` (+0x498, int[6])
+
+### Claims
+
+| # | claim | first | second | mark |
+|---|---|---|---|---|
+| 1 | `action_respond` commit: `6d07b5` (`+offer`, goods both have, after the affordability pass) and `6d0857` (`+price`, human T only, also `dows[r] = price`) | yes | yes | agree |
+| 2 | commit adds the full amount though the bucket and `escrow` debits clamp at 0 | implied | yes | agree |
+| 3 | exchange: `6d0f17` (`P.tributes[r] −= g_P` through the `6d0e19` pointer), `6d0f7e` (`T.tributes[r] −= g_T`), clamps `6d0fd4`, `6d0fe2` | yes | yes | agree |
+| 4 | `clear_agree (006d1af0)` refund: when `agree == 1`, per good `min(tributes, dows)` then (offer `> 0`) `min(tributes, offers)` back to the bucket | yes | yes | agree |
+| 5 | `Leader::init` loop `6e3e8b` | yes | no | one-sided |
+| 6 | the `dows` refund leaves the price in `tributes` | raised, open | raised | settled (B): confirmed |
+| 7 | the second `dows` zeroing hits `P.dip[P]` | raised, open | raised | settled (C): confirmed, inert |
+| 8 | readers: `clear_agree`, the clamps, and `log_data` (`6e78ed`) | yes | no dump reader ("`log_data` hits are other bases") | disagree |
+| 9 | a one-way gift goes `+x`, `−x` in one call; end-of-frame dumps read 0 (run1086) | yes | — | one-sided |
+| 10 | crate: none; neighbour `economy.rs:687` `escrow`; checksum `:118` | yes | yes | agree |
+| 11 | plain game: any accepted deal with goods; lasting value only while waiting on the other side | yes | yes (human or style 0/8/11) | agree |
+
+### Settled
+
+- **(8) corrected for both.** `LeaderData::log_data (006e5110)`'s per-good
+  loop sets `ebx = this + 0x480` (`6e73d4`), walks 6 goods (`6e7910 leal
+  0x4(%ebx)`, `6e7916 jne`), and pushes `-0x18(%ebx)` (`escrow`), `(%ebx)`
+  (`escrow_rate`), **`0x18(%ebx)` = `tributes[r]` at `6e7515`**, `-0x30`
+  (`econ`), `0x30` (`base_rate`), ... and `0x498(%ebx)` = +0x918
+  (`bonus_cap`) at `6e78ed`. So the dump does carry `tributes` (the second
+  reading's scan, keyed on displacement 0x498, could not see it), and the
+  first reading's address is the wrong field's.
+- **(1), (2), (4) spot-checked.** `6d076c`–`6d07b5`: bucket `max(b − o,
+  0)` (`cmovs`), `escrow` (`0xe3a7f8` = +0x468) `max(e − o, 0)`, then
+  `addl %esi, 0x498(%ebx,%edx,4)` with the unclamped `o`. `6d1af0`–`6d1b91`:
+  `agree != 1` skips the refunds; `cmpl $0, 0x18(%edi)` is `dows`
+  (+0x6950), `min` by `cmovl` (signed), `bucket_add`; then offers `> 0`
+  (`6d1b44 jle`) likewise; then `clear_dows`, and `agree` and `any_offer`
+  are zeroed on both paths (`6d1b84`, `6d1b87`). `escrow` is not refunded.
+  **Confirmed.**
+- **(5) confirmed (first)**, `6e3e8b`.
+- **(9)** is consistent with the listing (the pure-gift path escrows and
+  exchanges inside one call); the run1086 packet check named in the first
+  reading would make it a diff. Not re-checked here.
+
+### Rule to port
+
+- **Writers** (units: whole resource units, the bucket's own integers):
+  on `action_respond(T, P, 1)` with `T.dip[P].agree != 1`, after the
+  all-goods affordability check, for each good both can use with
+  `T.dip[P].offers[r] > 0`: `bucket −= o` (floor 0), `escrow −= o` (floor
+  0), `tributes[r] += o`; for each good with a nonzero human attack price:
+  the same with `price`, and `dows[r] = price`. At the exchange, per good
+  both can use: `P.tributes[r] −= max(P.dip[T].offers[r], 0)`,
+  `T.tributes[r] −= max(T.dip[P].offers[r], 0)`, then both floored at 0;
+  the `dows` refund does not touch `tributes` (B). In `clear_agree(me, p)`
+  with `agree == 1`: per good, `m = min(tributes, dows)` and then (offer
+  `> 0`) `m = min(tributes, offers)` move back to the bucket.
+- **Reset**: leader setup.
+- **Readers**: `clear_agree`'s cap, the exchange clamps, the `LEADERS` dump
+  (`log_data` `6e7515`).
+- **Crate site**: none; needs the `Diplomacy` record, then an
+  `action_respond` and `clear_agree` port beside `economy.rs`'s ledger
+  (`escrow`, `economy.rs:687`, is debited by the commit).
+- **Plain game**: needs a human or style 0/8/11; 0 throughout an
+  all-computer style-1 game.
+- **Confidence**: high, every store listing-read. Open: none on the rule;
+  the run1086 zeros remain a reading until the packet check.
+
+## Leaf 6: `tribute_sent` (+0x860, int)
+
+### Claims
+
+| # | claim | first | second | mark |
+|---|---|---|---|---|
+| 1 | writers `6d0f1c` (`P += g_P`), `6d0f8c` (`T += g_T`), unscaled, only for goods both can use | yes | yes | agree |
+| 2 | reset `Leader::reset_score (006e37f0)` `6e3895`, from `Leader::init` (`:140`) and `Setup::build_game (005ac190)` | yes | yes | agree |
+| 3 | escrow and `dows` refunds do not count | yes | implied | agree |
+| 4 | reader `AchieveChartPane::set_chart_data (007f2c40)` only | yes | yes | agree |
+| 5 | not in `rondata` coverage's leaf list | yes | — | one-sided; confirmed (`crates/rondata/src/diff/coverage.rs:295` lists `tributes[scan]`, not `tribute_sent`/`tribute_received`) |
+| 6 | plain game as leaf 5 | yes | yes | agree |
+
+### Settled
+
+- **(1) spot-checked.** `6d0f19 movl -0x14(%ebp),%eax` (`P·0x6eec`),
+  `6d0f1c addl %edi, 0xe3abf0(%eax)` (`edi = max(P.dip[T].offers[r],0)`,
+  `6d0ee7`–`6d0ef2`); `6d0f85`–`6d0f8c` the same for T with `ebx`
+  (`6d0ed0`–`6d0edb`). Both inside the two-`type_avail` gate (`6d0e9e`,
+  `6d0eb1` → `6d0fe6`). **Confirmed.** No net (store, `lea`, absolute with
+  base) finds another writer.
+
+### Rule to port
+
+`tribute_sent[giver] += max(giver.dip[receiver].offers[r], 0)` per good both
+can use, at every executed exchange; 0 at `reset_score` (every leader
+setup). Score-screen only. Crate: the exchange of an `action_respond` port;
+no sim reader. Plain game: needs a human or style 0/8/11. Confidence high.
+
+## Leaf 7: `tribute_received` (+0x864, int)
+
+### Claims
+
+| # | claim | first | second | mark |
+|---|---|---|---|---|
+| 1 | writers `6d0f31` (`T += scale_tribute(P, g_P)`), `6d0faf` (`P += scale_tribute(T, g_T)`), the giver's scale | yes | yes | agree |
+| 2 | `scale_tribute (006d5240)`: `pct = epoch[2]·commerce_tribute + base_tribute`, floor 1; `> 100` or `== 100` unscaled; else `x·pct/100` with `+0`/`+50`/`+99` below 20 / below 100 / from 100 | yes | yes | agree |
+| 3 | reset `reset_score` `6e389b` | yes | yes | agree |
+| 4 | reader `set_chart_data` only | yes | yes | agree |
+| 5 | the crate loads neither constant | yes | — | one-sided |
+
+### Settled
+
+- **(1) spot-checked.** `6d0ef5`–`6d0ef6`: `scale_tribute` called with
+  `ecx = &leaders[P]` (`-0x10`) on `g_P`; its result is the bucket credit
+  (`6d0f0b`) and, recomputed at `6d0f2c` on the same `ecx`, the add at
+  `6d0f31` into `esi = T·0x6eec`. `6d0f54`–`6d0f62` and `6d0f92`–`6d0faf`
+  the same with `ecx = &leaders[T]` into `-0x14` (`P·0x6eec`). The giver's
+  scale. **Confirmed.**
+- **(5) confirmed.** `grep -rn commerce_tribute crates/` finds nothing.
+- **(2)**: both readings agree from the decompile; the rounding branches
+  were not re-listed here. The load scale of the two `Constants` fields is
+  open in both.
+
+### Rule to port
+
+`tribute_received[receiver] += scale_tribute(giver, max(giver.dip[receiver]
+.offers[r], 0))` per good both can use, at every executed exchange; the same
+integer the receiver's bucket gains. 0 at `reset_score`. Score-screen only.
+Crate: the exchange of an `action_respond` port, plus `scale_tribute` and the
+two constants (not loaded today). Plain game: needs a human or style 0/8/11.
+Confidence high on the stores; medium on `scale_tribute`'s constants' scale.
+
+## Against the README row
+
+The row names "the `action_*` family, `consider_tribute` and
+`Leader::diplomacy`'s arms". Corrected: of the `action_*` family only
+`Leader::action_respond (006d03c0)` stores a leaf (both readings);
+`Leader::clear_agree (006d1af0)` (pointer store into `tributes`),
+`Leader::process_taunt (006b8cc0)` (`gift_stamp`), `Leader::init
+(006e3930)` (five leaves, unconditional loops) and `Leader::reset_score
+(006e37f0)` (two) are missing from it. `Leader::diplomacy` stores only
+`counteroffer` (4) and `tribute_demanded` (1). My own net (write-shaped
+instructions with a destination in any leaf's range, absolute or
+register-relative, over the whole listing, filtered to `Leader*` classes,
+plus the four absolute-with-base adds at `0xe3abf0`/`0xe3abf4`) finds no
+writer outside this list.
+
+## Verdict table
+
+| leaf | confirmed / corrected / open | the rule in one line |
+|---|---|---|
+| shared (A) all-computer style 1 | 1 / 0 / 0 | no event writer is reached (no deal is ever originated: `6be556`, `6c09c8`, `6c0a39`); only setup zeroing, so every leaf is 0 and the crate's stubs are exact |
+| shared (B) `dows` refund | 1 / 0 / 0 | an executed deal refunds a human's attack price to the bucket and leaves it in `tributes` until setup |
+| shared (C) `P.dip[P].dows` | 1 / 0 / 0 | the stray store writes 0 over 0; the tail `clear_all(P.dip[T])` (`6d12d5`) zeroes the real slot |
+| `tribute_stamp` | 10 / 0 / 0 (+1 settled by A) | `R.stamp[G] = frame` at an exchange give `> 0` when R human, or give `>= 100·G.blacken`, R's stock `< 3000`, and WEALTH or `econ & 4`; 0 at setup |
+| `gift_stamp` | 9 / 0 / 0 (+1 by A) | `G.gift[R] = frame` at every positive give; also on a taunt grant when unlocked or neutral; read by the taunt refusal and ally pricing (4500 frames) |
+| `counteroffer` | 10 / 1 / 1 | 1 when a computer's shortfall − 99·[set] `> 0` on a deal asking it nothing; 0 on its accept/reject and on any `action_respond(me,k,*)` entry |
+| `tribute_demanded` | 12 / 2 / 2 | 1 after a computer's demand (style 0/8/11; war instead if `k.blacken >= 4` or `k.WEALTH < (epoch+1)(k.blacken+1)·100`, ...); 0 on its own `action_respond(me,k,*)` |
+| `tributes` | 8 / 1 / 0 (+2 by B, C) | `+o`/`+price` on agreeing, `−max(offer,0)` at exchange floored 0, `−min` refunds on withdrawal; dumped by `log_data` `6e7515` |
+| `tribute_sent` | 6 / 0 / 0 | `+= max(offer,0)` per good both can use at the exchange; 0 at `reset_score` |
+| `tribute_received` | 5 / 0 / 1 | `+= scale_tribute(giver, give)` at the exchange; 0 at `reset_score`; constants' scale open |
+
+Counting the one-sided `Leader::init` reset claims as confirmations for the
+first reading: corrected claims are `counteroffer` (4), `tribute_demanded`
+(6, 9) and `tributes` (8). The opens are `counteroffer`'s `6c035d` arm,
+`tribute_demanded`'s `-0x30` and epoch index, and `scale_tribute`'s
+constants' load scale. None of them changes a store.

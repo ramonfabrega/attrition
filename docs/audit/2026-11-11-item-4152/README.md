@@ -81,7 +81,7 @@ clear cut: re-run that wave for that family.
 | 5 | `attrition-stamps` | done | done | in flight at the clear (also asked: `att`'s recompute timing, and run981's leaders) | owed |
 | 6 | `anti-att` | done | done | done | done, §6 |
 | 7 | `diplomacy-relations` | done | done | owed (launch it) | owed |
-| 8 | `diplomacy-tribute` | done | done | in flight at the clear | owed |
+| 8 | `diplomacy-tribute` | done | done | done | owed |
 | 9 | `taunts` | done | done | done | done, §9 |
 | 10 | `end-of-game` | done | done | done | owed |
 | 11 | `lost-capital` | done | done | done | done, §11 |
@@ -95,7 +95,7 @@ clear cut: re-run that wave for that family.
 | 19 | `last-finished` | done | done | done | done, §19 |
 | 20 | `high-buildings` | done | done | done | owed |
 
-**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 17 of
+**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 18 of
 20, specified 7 of 20.
 
 **How to resume.** The briefs are in `briefs/`, one per wave. A spawn is one
@@ -183,3 +183,4 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | score | 3 | ~250 k | ~15 | 64 confirmed, 5 corrected, 9 open | every formula holds term by term; `find_target`'s clause fires when my score exceeds 4/3 of the candidate's (the first reading had it reversed); `kill_value_by` (`economy/cost.rs:1258`) already ports the kill value; a gaia kill reads `diplos[8]` past its end (open) |
 | marks-built | 3 | ~130 k | ~13 | 63 confirmed, 7 corrected, 5 open | a captured wonder credits the captor `wonders_built += 1` for 15 of 17 wonders (no gate at `625b4b`); a captured fort does **not** count again (forts carry 0x2000); `Leaders` has 10 slots; the crate site is `city.rs:2490`, before the city split |
 | lobby-words | 3 | 137 k | 15 | 38 confirmed, 3 corrected, 0 open | `multi_diff` is `lobby.difficulty` for every seated slot (store at 0058ae49), never a constant 0; a fresh count of 1,194 dumps outdates `docs/AI.md` §80.1; `cannon_time` and `handicap` 0 in a plain game; point `target_gate`'s `lmulti` at the same value |
+| diplomacy-tribute | 3 | 170 k | 17 | 55 confirmed, 4 corrected, 5 open | **an all-computer skirmish at team style 1 writes nothing** (every leaf 0 all game; the crate's two `is_tribute_period` stubs are exact there); `tributes` keeps a human's attack price; `tributes` is in the dump (`6e7515`) |
