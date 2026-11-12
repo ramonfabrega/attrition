@@ -526,3 +526,6 @@ walk's word is 0, first parting `Unit::think_scout+0x64c` against
   holds; item 4093); the gaia pieces'
   source; the heights below the dump's print. One lobby: any other needs
   its own composed map (`docs/START.md` §6) and its own captures.
+- **The lobby page** (item 4184): the choices this walk reads are set by
+  a person on the client's page, and the harness lobby's start built from
+  the page is this one, whole (`docs/LOBBY.md` §5).

@@ -1396,7 +1396,9 @@ impl Applied {
 /// (item 4059, `docs/RECGAME.md` §9): `group` with `move_to`, `queue_up`
 /// and `build` go through the command's own entries, the ones the golden
 /// chapters issue — [`group_move_to`], [`group_queue_up`], [`group_build`]
-/// — and every other command takes `new`'s arm.
+/// — and, since item 4179 (a right press on an object), `swarm_around`,
+/// `gather`, `garrison` and `attack` through theirs; every other command
+/// takes `new`'s arm.
 #[derive(Clone)]
 pub struct Stream {
     input: Vec<Input>,
@@ -1653,6 +1655,24 @@ impl Stream {
                 queued,
                 ..
             } => group_build(built, it.play, &objects, Pos::new(*x, *y), *build, *queued),
+            // A right press on an object (item 4179, `docs/CLIENT_INPUT.md`
+            // §6): the commands `Console::execute_at_cursor` issues on one.
+            Command::SwarmAround {
+                ox,
+                whom,
+                queued,
+                orders,
+            } => group_swarm_around(built, it.play, &objects, *ox, *whom, *queued, *orders),
+            Command::Gather { ox, queued } => group_gather(built, it.play, &objects, *ox, *queued),
+            Command::Garrison { ox, whom, queued } => {
+                group_garrison(built, it.play, &objects, *ox, *whom, *queued)
+            }
+            Command::Attack {
+                ox,
+                whom,
+                ignore,
+                queued,
+            } => group_attack(built, it.play, &objects, *ox, *whom, *ignore, *queued),
             _ => return false,
         };
         if n == 0 {
