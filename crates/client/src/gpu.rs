@@ -101,12 +101,37 @@ fn tree_shader() -> String {
 /// base already drawn. The vertex is the textured layout's: the alpha's
 /// texcoord rides in the third attribute's `xy`.
 const PATCH_SHADER: &str = include_str!("../shaders/patch.wgsl");
+/// **The shadows' pass** (item 4182; `docs/RENDERER.md` §3.7, "The
+/// shadows"): the decal's black under its texel's alpha, after the textured
+/// shader's vertex stage.
+const DECAL_SHADER: &str = include_str!("../shaders/decal.wgsl");
+/// **The shadows' share taken through the tone map** (item 4182): the
+/// ground under the decals composed with the keep map, `T(T⁻¹(g)·keep)`.
+const SHADE_SHADER: &str = include_str!("../shaders/shade.wgsl");
+/// The keep map's format: the product of every decal's `1 − a`.
+const KEEP_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::R16Float;
+
+/// [`SHADE_SHADER`] with the tone mapper's live constants (§3.14).
+fn shade_shader() -> String {
+    use render::silhouette::{EXPOSURE, MIN_LUMINANCE, WHITE_POINT, filmic};
+    let white = 1.0 / filmic(MIN_LUMINANCE * WHITE_POINT);
+    SHADE_SHADER
+        .replace("{EXPOSURE}", &format!("{EXPOSURE:?}"))
+        .replace("{white}", &format!("{white:?}"))
+}
 
 /// The camera-space depth range mapped onto [0, 1]: wider than any map.
 const DEPTH_RANGE: (f32, f32) = (-200_000.0, 200_000.0);
 
 /// Depth, and a stencil the silhouette pass marks its pixels in (item 4171).
 const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth24PlusStencil8;
+/// The frame's clear colour, off the heightfield.
+const CLEAR: wgpu::Color = wgpu::Color {
+    r: 0.01,
+    g: 0.01,
+    b: 0.015,
+    a: 1.0,
+};
 
 /// **The silhouette's pixel is blended once** (item 4171; `docs/RENDERER.md`
 /// §5.3, "The silhouette's colour"; §3.15): `c·a + n·(1 − a)` over
@@ -145,6 +170,8 @@ pub struct Frame<'a> {
     pub patch_version: u32,
     /// The buildings drawn as their sprites (item 4076).
     pub sprites: &'a [crate::world::SpriteDrawing],
+    /// The shadows (item 4182), one mesh a decal texture.
+    pub shadows: &'a [crate::world::TexturedMesh],
 }
 
 /// **Where the figures' silhouette pass falls** (item 4171; `docs/RENDERER.md`
@@ -217,6 +244,13 @@ pub struct Gpu {
     tree: wgpu::RenderPipeline,
     tree_sampler: wgpu::Sampler,
     tree_textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
+    /// The shadows' pass (item 4182) and each decal texture on the GPU,
+    /// uploaded once under the trees' linear, clamped sampler.
+    decal: wgpu::RenderPipeline,
+    /// The shade pass (item 4182) and its two textures' layout.
+    shade: wgpu::RenderPipeline,
+    shade_layout: wgpu::BindGroupLayout,
+    decal_textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
     /// Where the silhouette pass falls (item 4171).
     pub silhouette_order: SilhouetteOrder,
 }
@@ -429,6 +463,10 @@ impl Gpu {
             label: Some("textured"),
             source: wgpu::ShaderSource::Wgsl(TEXTURED_SHADER.into()),
         });
+        let decal_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("decal"),
+            source: wgpu::ShaderSource::Wgsl(format!("{TEXTURED_SHADER}{DECAL_SHADER}").into()),
+        });
         let tree_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("tree"),
             source: wgpu::ShaderSource::Wgsl(format!("{TEXTURED_SHADER}{}", tree_shader()).into()),
@@ -495,6 +533,103 @@ impl Gpu {
                 stencil,
             )
         };
+        // Item 4182: `enables` 0x20084 on draws 116–119 — no depth test, no
+        // depth write, the alpha test and source alpha over the rest: each
+        // decal multiplies the keep map by `1 − a`.
+        let multiply = wgpu::BlendComponent {
+            src_factor: wgpu::BlendFactor::Zero,
+            dst_factor: wgpu::BlendFactor::Src,
+            operation: wgpu::BlendOperation::Add,
+        };
+        let decal = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("decal"),
+            layout: Some(&sprite_pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: &decal_module,
+                entry_point: Some("vs_textured"),
+                compilation_options: Default::default(),
+                buffers: &[Some(wgpu::VertexBufferLayout {
+                    array_stride: 32,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &textured_attributes,
+                })],
+            },
+            primitive: wgpu::PrimitiveState {
+                cull_mode: None,
+                ..Default::default()
+            },
+            depth_stencil: None,
+            multisample: Default::default(),
+            fragment: Some(wgpu::FragmentState {
+                module: &decal_module,
+                entry_point: Some("fs_decal"),
+                compilation_options: Default::default(),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: KEEP_FORMAT,
+                    blend: Some(wgpu::BlendState {
+                        color: multiply,
+                        alpha: multiply,
+                    }),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+            }),
+            multiview_mask: None,
+            cache: None,
+        });
+        let shade_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("shade"),
+            entries: &[0, 1].map(|binding| wgpu::BindGroupLayoutEntry {
+                binding,
+                visibility: wgpu::ShaderStages::FRAGMENT,
+                ty: wgpu::BindingType::Texture {
+                    sample_type: wgpu::TextureSampleType::Float { filterable: false },
+                    view_dimension: wgpu::TextureViewDimension::D2,
+                    multisampled: false,
+                },
+                count: None,
+            }),
+        });
+        let shade_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("shade"),
+            source: wgpu::ShaderSource::Wgsl(shade_shader().into()),
+        });
+        let shade_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("shade"),
+                bind_group_layouts: &[Some(&shade_layout)],
+                immediate_size: 0,
+            });
+        let shade = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("shade"),
+            layout: Some(&shade_pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: &shade_module,
+                entry_point: Some("vs_full"),
+                compilation_options: Default::default(),
+                buffers: &[],
+            },
+            primitive: Default::default(),
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: DEPTH_FORMAT,
+                depth_write_enabled: Some(false),
+                depth_compare: Some(wgpu::CompareFunction::Always),
+                stencil: Default::default(),
+                bias: Default::default(),
+            }),
+            multisample: Default::default(),
+            fragment: Some(wgpu::FragmentState {
+                module: &shade_module,
+                entry_point: Some("fs_shade"),
+                compilation_options: Default::default(),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format,
+                    blend: None,
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+            }),
+            multiview_mask: None,
+            cache: None,
+        });
         let tree = pass_of(
             &tree_module,
             "tree",
@@ -621,6 +756,10 @@ impl Gpu {
             ..Default::default()
         });
         Ok(Gpu {
+            decal,
+            shade,
+            shade_layout,
+            decal_textures: std::sync::Mutex::new(Default::default()),
             tree,
             tree_sampler,
             tree_textures: std::sync::Mutex::new(Default::default()),
@@ -881,13 +1020,31 @@ impl Gpu {
     /// The trees' meshes on the GPU (item 4173), each beside its
     /// texture's bind group under the clamped sampler, uploaded once.
     fn tree_meshes(&self, meshes: &[crate::world::TexturedMesh]) -> Vec<Uploaded> {
+        self.flat_meshes(meshes, &self.tree_textures, [0.0; 3])
+    }
+
+    /// Each shadow mesh (item 4182) as [`Gpu::tree_meshes`] uploads a
+    /// tree's, the vertex alpha 1 (`BLACK`'s 255) in the third attribute.
+    fn decal_meshes(&self, meshes: &[crate::world::TexturedMesh]) -> Vec<Uploaded> {
+        self.flat_meshes(meshes, &self.decal_textures, [1.0, 0.0, 0.0])
+    }
+
+    /// Meshes of corners and texcoords, `third` every corner's third
+    /// attribute, each texture on its level 0 under the clamped sampler,
+    /// uploaded once into `textures`.
+    fn flat_meshes(
+        &self,
+        meshes: &[crate::world::TexturedMesh],
+        textures: &std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
+        third: [f32; 3],
+    ) -> Vec<Uploaded> {
         meshes
             .iter()
             .filter(|m| !m.positions.is_empty())
             .map(|m| {
                 let mut bytes = Vec::with_capacity(m.positions.len() * 32);
                 for (p, uv) in m.positions.iter().zip(&m.uvs) {
-                    for f in p.iter().chain(uv).chain(&[0.0f32; 3]) {
+                    for f in p.iter().chain(uv).chain(&third) {
                         bytes.extend_from_slice(&f.to_le_bytes());
                     }
                 }
@@ -899,7 +1056,7 @@ impl Gpu {
                 });
                 self.queue.write_buffer(&buf, 0, &bytes);
                 let n = m.positions.len().min(m.uvs.len()) as u32;
-                let mut cache = self.tree_textures.lock().unwrap();
+                let mut cache = textures.lock().unwrap();
                 let t = cache
                     .entry(m.piece)
                     .or_insert_with(|| self.upload_mips(&m.mips.levels[..1], &self.tree_sampler))
@@ -992,6 +1149,7 @@ impl Gpu {
         let quads = self.sprite_quads(frame.sprites);
         let textured = self.textured_meshes(frame.textured);
         let trees = self.tree_meshes(frame.trees);
+        let shadows = self.decal_meshes(frame.shadows);
         let depth = self.device.create_texture(&wgpu::TextureDescriptor {
             label: Some("depth"),
             size: wgpu::Extent3d {
@@ -1034,20 +1192,51 @@ impl Gpu {
         let figures = self.vertices(frame.figures);
         let overlay = self.vertices(frame.overlay);
         let mut enc = self.device.create_command_encoder(&Default::default());
-        {
+        let empty = (Vec::new(), Vec::new());
+        let (meshes, patches) = ground
+            .as_ref()
+            .filter(|(_, m, _, _)| !m.is_empty())
+            .map_or((&empty.0, &empty.1), |(_, m, p, _)| (m, p));
+        // Item 4182: with shadows, the ground up to its first mountain layer
+        // is drawn off screen, the decals into the keep map, and the shade
+        // pass composes the two onto the target before everything else —
+        // the card's draws 116–119 between the land and the mountains (121).
+        let split = patches.iter().position(|p| p.4).unwrap_or(patches.len());
+        let shade = (!shadows.is_empty()).then(|| self.shade_targets(size));
+        if let Some((under, keep, _)) = &shade {
+            {
+                let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("keep"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &keep.create_view(&Default::default()),
+                        depth_slice: None,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
+                            store: wgpu::StoreOp::Store,
+                        },
+                    })],
+                    depth_stencil_attachment: None,
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
+                    multiview_mask: None,
+                });
+                pass.set_bind_group(0, &self.bind, &[]);
+                pass.set_pipeline(&self.decal);
+                for (b, n, t) in &shadows {
+                    pass.set_bind_group(1, t, &[]);
+                    pass.set_vertex_buffer(0, b.slice(..));
+                    pass.draw(0..*n, 0..1);
+                }
+            }
             let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("frame"),
+                label: Some("under"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: target,
+                    view: &under.create_view(&Default::default()),
                     depth_slice: None,
                     resolve_target: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 0.01,
-                            g: 0.01,
-                            b: 0.015,
-                            a: 1.0,
-                        }),
+                        load: wgpu::LoadOp::Clear(CLEAR),
                         store: wgpu::StoreOp::Store,
                     },
                 })],
@@ -1055,10 +1244,44 @@ impl Gpu {
                     view: &depth_view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.0),
-                        store: wgpu::StoreOp::Discard,
+                        store: wgpu::StoreOp::Store,
                     }),
                     stencil_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(0),
+                        store: wgpu::StoreOp::Store,
+                    }),
+                }),
+                timestamp_writes: None,
+                occlusion_query_set: None,
+                multiview_mask: None,
+            });
+            self.draw_ground(&mut pass, cache.as_ref(), Some(meshes), &patches[..split]);
+        }
+        {
+            let (depth_load, stencil_load) = if shade.is_some() {
+                (wgpu::LoadOp::Load, wgpu::LoadOp::Load)
+            } else {
+                (wgpu::LoadOp::Clear(1.0), wgpu::LoadOp::Clear(0))
+            };
+            let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("frame"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: target,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(CLEAR),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &depth_view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: depth_load,
+                        store: wgpu::StoreOp::Discard,
+                    }),
+                    stencil_ops: Some(wgpu::Operations {
+                        load: stencil_load,
                         store: wgpu::StoreOp::Discard,
                     }),
                 }),
@@ -1066,37 +1289,14 @@ impl Gpu {
                 occlusion_query_set: None,
                 multiview_mask: None,
             });
-            pass.set_bind_group(0, &self.bind, &[]);
-            pass.set_pipeline(&self.world);
-            if let Some((_, b, n)) = cache.as_ref() {
-                pass.set_vertex_buffer(0, b.slice(..));
-                pass.draw(0..*n, 0..1);
-            }
-            if let Some((_, meshes, patches, _)) =
-                ground.as_ref().filter(|(_, m, _, _)| !m.is_empty())
-            {
-                pass.set_pipeline(&self.ground);
-                for (b, n, t) in meshes {
-                    pass.set_bind_group(1, t, &[]);
-                    pass.set_vertex_buffer(0, b.slice(..));
-                    pass.draw(0..*n, 0..1);
+            match &shade {
+                Some((_, _, bind)) => {
+                    pass.set_pipeline(&self.shade);
+                    pass.set_bind_group(0, bind, &[]);
+                    pass.draw(0..3, 0..1);
+                    self.draw_ground(&mut pass, None, None, &patches[split..]);
                 }
-                // The patch after the base (item 4139, §3.9).
-                if !patches.is_empty() {
-                    // Item 4141 (§3.10): a mountain's layers after it.
-                    for (b, n, t, a, mountain) in patches {
-                        pass.set_pipeline(if *mountain {
-                            &self.mountain
-                        } else {
-                            &self.patch
-                        });
-                        pass.set_bind_group(1, t, &[]);
-                        pass.set_bind_group(2, a, &[]);
-                        pass.set_vertex_buffer(0, b.slice(..));
-                        pass.draw(0..*n, 0..1);
-                    }
-                }
-                pass.set_pipeline(&self.world);
+                None => self.draw_ground(&mut pass, cache.as_ref(), Some(meshes), patches),
             }
             if !quads.is_empty() {
                 pass.set_pipeline(&self.sprite);
@@ -1147,6 +1347,88 @@ impl Gpu {
             }
         }
         self.queue.submit([enc.finish()]);
+    }
+
+    /// The heightfield and the base layer (`meshes`, when given), then the
+    /// patches given — the transition patch after the base (item 4139,
+    /// §3.9) and a mountain's layers after it (item 4141, §3.10) — leaving
+    /// the world's pipeline and camera bound.
+    fn draw_ground(
+        &self,
+        pass: &mut wgpu::RenderPass<'_>,
+        terrain: Option<&(u32, wgpu::Buffer, u32)>,
+        meshes: Option<&[Uploaded]>,
+        patches: &[UploadedPatch],
+    ) {
+        pass.set_bind_group(0, &self.bind, &[]);
+        pass.set_pipeline(&self.world);
+        if let Some((_, b, n)) = terrain {
+            pass.set_vertex_buffer(0, b.slice(..));
+            pass.draw(0..*n, 0..1);
+        }
+        if let Some(meshes) = meshes.filter(|m| !m.is_empty()) {
+            pass.set_pipeline(&self.ground);
+            for (b, n, t) in meshes {
+                pass.set_bind_group(1, t, &[]);
+                pass.set_vertex_buffer(0, b.slice(..));
+                pass.draw(0..*n, 0..1);
+            }
+        }
+        for (b, n, t, a, mountain) in patches {
+            pass.set_pipeline(if *mountain {
+                &self.mountain
+            } else {
+                &self.patch
+            });
+            pass.set_bind_group(1, t, &[]);
+            pass.set_bind_group(2, a, &[]);
+            pass.set_vertex_buffer(0, b.slice(..));
+            pass.draw(0..*n, 0..1);
+        }
+        pass.set_pipeline(&self.world);
+    }
+
+    /// The shade pass's targets at `size` (item 4182): the ground under the
+    /// decals in the frame's format, the keep map, and their bind group.
+    fn shade_targets(&self, size: (u32, u32)) -> (wgpu::Texture, wgpu::Texture, wgpu::BindGroup) {
+        let texture = |label: &str, format: wgpu::TextureFormat| {
+            self.device.create_texture(&wgpu::TextureDescriptor {
+                label: Some(label),
+                size: wgpu::Extent3d {
+                    width: size.0,
+                    height: size.1,
+                    depth_or_array_layers: 1,
+                },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format,
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                    | wgpu::TextureUsages::TEXTURE_BINDING,
+                view_formats: &[],
+            })
+        };
+        let under = texture("under", self.format);
+        let keep = texture("keep", KEEP_FORMAT);
+        let (uv, kv) = (
+            under.create_view(&Default::default()),
+            keep.create_view(&Default::default()),
+        );
+        let bind = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("shade"),
+            layout: &self.shade_layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&uv),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::TextureView(&kv),
+                },
+            ],
+        });
+        (under, keep, bind)
     }
 
     /// An off-screen frame to draw into (`client --headless`, item 4161).
