@@ -15,15 +15,16 @@ impl Sim {
     /// `gain_tech` only in its Civic-4 epoch arm; here it runs from
     /// [`Sim::set_tribe`], [`Sim::start_techs`] and [`Sim::calc_unit_stats`]
     /// (item 4162; until then from [`Sim::apply_gained`], one frame early).
-    /// SEAM: the Civic-4 eager arm is not carried.
     ///
     /// **Unwired until item 552.** Phase 1 built [`attrition::strength`]
     /// and tested it against hand-set [`attrition::PlayerState`]s, and
     /// nothing ever wrote `strength` from the tech tree, so every war-zone
     /// refresh came out at the sentinel 0. Golden chapter four's Allegiance
     /// at 550 gave the original's squad a period of 48 on block 601 and
-    /// this crate's 0. The Colosseum and Kremlin arms stay false: this
-    /// crate holds no wonder a player owns.
+    /// this crate's 0. The Colosseum and Kremlin arms read the player's
+    /// wonders since item 4162 (`docs/LEADERS.md` §5.3).
+    ///
+    /// SEAM: the Civic-4 eager arm is not carried.
     pub(crate) fn calc_attrition(&mut self, who: Player) {
         let w = who as usize;
         if w >= self.territory.players.len() {
