@@ -16806,10 +16806,24 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot FV — reserved
+## Parked by item 4152, 2026-11-11 — the leaders line's leaves, read (findings for the driver's folding)
+
+- **4152a. `docs/CITIES.md` §8.5's repayment rate is wrong, one frame in five** (readers-4152's hand-off line, 2026-11-11; the
+  verdict file is on `worktree-att-4152` under `docs/audit/2026-11-11-item-4152/`). Unread by the driver: fold it with that
+  branch's merge, and book it if a dump prints the rate. The other, `att`'s floor at a base of 0, is item 4154.
+
+## Parked by the next landing, slot FW — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FV renames this heading `## Parked by item N, <date> — <title>`
+names slot FW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot FX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot FX renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
