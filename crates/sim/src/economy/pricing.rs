@@ -281,15 +281,19 @@ impl Sim {
     /// leader's **`nukes_used`**, once for the two types the support count
     /// names by index (`0x13b`, `0x13c`) and once more for any type of the
     /// Nuclear Missile's line — so a spent nuke makes the next missile
-    /// dearer forever, and an ICBM twice over (`docs/AI.md` §167). The
-    /// matching `missiles_used` term (`0x139`, `0x13a`) is not modelled: no
-    /// capture prices one after a launch.
+    /// dearer forever, and an ICBM twice over (`docs/AI.md` §167). And
+    /// **`missiles_used`** for the V2 (`0x139`) and the Cruise Missile
+    /// (`0x13a`), by exact type (`docs/LEADERS.md` §15.2, item 4176): a
+    /// landed round makes that player's next one dearer.
     pub(crate) fn nuke_ramp_extra(&self, who: Player, ty: usize) -> i32 {
         let Some(t) = self.tables.unit_types[ty].tree else {
             return 0;
         };
         let used = self.combat.nukes.used_of(who);
         let mut extra = 0;
+        if t == 0x139 || t == 0x13a {
+            extra += self.missiles_used(who);
+        }
         if t == 0x13b || t == 0x13c {
             extra += used;
         }

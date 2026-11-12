@@ -213,6 +213,11 @@ impl Sim {
             let who = self.owner_of(attacker);
             let bowner = self.buildings[b].owner;
             if killed {
+                // `buildings_razed[this's player] += 1` on any non-zero
+                // take of a building, before and outside the plunder's
+                // gate: an ally's or one's own building counts
+                // (`docs/LEADERS.md` §2.2).
+                self.note_raze(who);
                 if matches!(attacker, Obj::Unit(_))
                     && !splash
                     && !matches!(ap.domain, Domain::Air)
@@ -274,9 +279,26 @@ impl Sim {
     /// ```
     ///
     /// Answers the alarm, `local_30`, which gates `Armies::emergency`.
-    /// The victim leader's `attack_stamp`/`raid_stamp`/`ally_stamp` rows,
-    /// the notices and the sounds are not carried: the dump prints the
-    /// three arrays only at `LEADERS=9`, and nothing here reads them.
+    ///
+    /// **And the victim leader's stamps** (`docs/LEADERS.md` §4.2, item
+    /// 4176), in the same block. `heavy` is computed for any active
+    /// building, before the city test, so a city-less one keeps its own:
+    ///
+    /// ```text
+    /// 1 capital, heavy:  frame − capital_stamp[att] > 300 → attack, raid and
+    ///                    capital_stamp[att] = frame; then the ally step
+    /// 2 city, heavy:     frame − c.attack_stamp > 300 → raid, attack[att] =
+    ///                    frame; c.attack_stamp = c.raid_stamp = frame; then
+    ///                    the ally step
+    /// 3 city, light, or a worker gathering at one: frame − c.raid_stamp >
+    ///                    300 → raid, attack[att] = frame; c.raid_stamp = frame
+    /// 4 every blow:      the territory step ([`Self::territory_stamp`])
+    /// ally step:         frame − ally_stamp[att] > 300 → ally_stamp[att] = frame
+    /// ```
+    ///
+    /// Every leader row is the **victim's**, by the striker's owner byte;
+    /// no arm has a console or alliance gate on a store. The notices and
+    /// the sounds are not carried.
     pub(crate) fn city_alarm(
         &mut self,
         attacker: Obj,
@@ -289,8 +311,50 @@ impl Sim {
         if att == vic {
             return false;
         }
-        let b = match target {
-            Obj::Building(b) if self.buildings[b].active => b,
+        let heavy = match target {
+            Obj::Building(b) if self.buildings[b].active => {
+                (matches!(attacker, Obj::Unit(_)) && siege) || {
+                    let bd = &self.buildings[b];
+                    let defense = bd.ty.is_some_and(|t| {
+                        crate::cities::build::is_fort(&self.tables.build_types, t)
+                            || crate::cities::build::is_tower(&self.tables.build_types, t)
+                    });
+                    let ceiling = if defense || self.building_is_city(b) {
+                        bd.hits_now() / 10
+                    } else {
+                        bd.hits_now() / 4
+                    };
+                    bd.damage + whole >= ceiling
+                }
+            }
+            _ => false,
+        };
+        let mut alarm = false;
+        match target {
+            Obj::Building(b) if self.buildings[b].active => {
+                if let Some(c) = self.buildings[b].city {
+                    if !heavy {
+                        self.light_city_stamps(att, vic, c, frame);
+                    } else if self.cities.cities[c].capital {
+                        let stamp = &mut self.ai.ai[vic as usize].capital_stamp[att as usize];
+                        if frame - *stamp > 300 {
+                            *stamp = frame;
+                            self.stamp_raid_and_attack(vic, att, frame);
+                            alarm = true;
+                        }
+                        self.step_ally_stamp(vic, att, frame);
+                    } else {
+                        let city = &mut self.cities.cities[c];
+                        alarm = frame - city.attack_stamp > 300;
+                        city.attack_stamp = frame;
+                        city.raid_stamp = frame;
+                        if alarm {
+                            self.stamp_raid_and_attack(vic, att, frame);
+                        }
+                        self.step_ally_stamp(vic, att, frame);
+                    }
+                }
+            }
             // **The worker arm** (`0064a9xx`, the decompile's lines 400–
             // 424): a struck worker (`ObjectData::is_worker`) whose action
             // (`UnitData::get_action@00608450`) answers `get_gather_order`
@@ -311,45 +375,46 @@ impl Sim {
                     && bd.owner == vic
                     && let Some(c) = bd.city
                 {
-                    self.cities.cities[c].raid_stamp = frame;
+                    self.light_city_stamps(att, vic, c, frame);
                 }
-                return false;
             }
-            _ => return false,
-        };
-        let Some(c) = self.buildings[b].city else {
-            return false;
-        };
-        let heavy = (matches!(attacker, Obj::Unit(_)) && siege) || {
-            let bd = &self.buildings[b];
-            let defense = bd.ty.is_some_and(|t| {
-                crate::cities::build::is_fort(&self.tables.build_types, t)
-                    || crate::cities::build::is_tower(&self.tables.build_types, t)
-            });
-            let ceiling = if defense || self.building_is_city(b) {
-                bd.hits_now() / 10
-            } else {
-                bd.hits_now() / 4
-            };
-            bd.damage + whole >= ceiling
-        };
-        if !heavy {
-            self.cities.cities[c].raid_stamp = frame;
-            return false;
+            _ => {}
         }
-        if self.cities.cities[c].capital {
-            let stamp = &mut self.ai.ai[vic as usize].capital_stamp[att as usize];
-            if frame - *stamp > 300 {
-                *stamp = frame;
-                return true;
-            }
-            return false;
-        }
-        let city = &mut self.cities.cities[c];
-        let alarm = frame - city.attack_stamp > 300;
-        city.attack_stamp = frame;
-        city.raid_stamp = frame;
+        self.territory_stamp(att, vic, target, heavy, frame);
         alarm
+    }
+
+    /// §4.2 arm 3, the light arm on city `c`: the leader's two stamps on
+    /// the city's own raid window, then the city's `raid_stamp` always.
+    fn light_city_stamps(&mut self, att: Player, vic: Player, c: usize, frame: i64) {
+        if frame - self.cities.cities[c].raid_stamp > 300 {
+            self.stamp_raid_and_attack(vic, att, frame);
+        }
+        self.cities.cities[c].raid_stamp = frame;
+    }
+
+    /// **§4.2 step 4, the territory step**, after the city arms on every
+    /// blow: on the victim's own land (the signed `who` of the target's
+    /// cell, `World::owner_at`), a building with `heavy` 0 (an inactive one
+    /// included), a worker, a caravan (`UnitData::is_caravan`, slot `+0xd0`)
+    /// or a merchant takes the raid branch; anything else the attack
+    /// branch. An arm that just wrote the stamp leaves `frame − frame = 0`.
+    fn territory_stamp(&mut self, att: Player, vic: Player, target: Obj, heavy: bool, frame: i64) {
+        let land = self.world.owner_at(self.pos_of(target)).player();
+        let raid = land == Some(vic)
+            && match target {
+                Obj::Building(_) => !heavy,
+                Obj::Unit(t) => {
+                    self.is_worker(t)
+                        || self.units[t].ty.is_some_and(|r| {
+                            self.tables.unit_types[r]
+                                .cols
+                                .flag2(crate::ai::ai_load::uflags2::FLAG2_CARAVAN)
+                        })
+                        || self.is_merchant(t)
+                }
+            };
+        self.step_territory_stamp(vic, att, raid, frame);
     }
 
     /// **A hit on a building spills onto the hands at work on it**
@@ -537,6 +602,16 @@ impl Sim {
                 if matches!(taken, Taken::Died { .. }) {
                     let u = &mut self.units[i];
                     u.health = u.health.min(0);
+                    // **The kill and loss counters** (`docs/LEADERS.md`
+                    // §2.2): on a countable death — the captain, alone,
+                    // no decoy — `units_lost` for the victim, and
+                    // `units_killed` for the attacker's player, which
+                    // every call here carries (`param_7 >= 0`), with no
+                    // ally or self test.
+                    if self.countable_death(i) {
+                        let (victim, by) = (self.units[i].owner, self.owner_of(_by));
+                        self.note_unit_death(victim, Some(by));
+                    }
                     // `take_damage@00652020:607`, before `die` (vslot
                     // `+0x158`): the kill's plunder (`docs/AI.md` §259).
                     if !splash && let Obj::Unit(k) = _by {
@@ -800,10 +875,16 @@ impl Sim {
     /// `die`s with `dtype` 2 — `Unit::die@0060eda0` through vslot `+0x158`,
     /// the combat death's tail without a wound.
     ///
-    /// SEAM: the caster's leader counters (`+0xa58`, `+0xa5a`, `+0x80c`)
-    /// and the score `+0x44 += cost / 5` for a squad captain, and the
-    /// message and sound.
-    pub(crate) fn cast_sniper_unit(&mut self, v: usize, dtype: i32) {
+    /// **`units_killed[caster] += 1`** when the target is a countable unit
+    /// (the captain, alone, no decoy), read before the death; the victim's
+    /// `units_lost` does not step (`docs/LEADERS.md` §2.2).
+    ///
+    /// SEAM: the caster's `+0xa58`/`+0xa5a` counters and the score `+0x44
+    /// += cost / 5`, and the message and sound.
+    pub(crate) fn cast_sniper_unit(&mut self, v: usize, dtype: i32, caster: Player) {
+        if self.countable_death(v) {
+            self.note_unit_kill(caster);
+        }
         self.die_with(v, dtype);
     }
 
@@ -841,8 +922,15 @@ impl Sim {
     /// runs the whole combat tail: the death animation's draw
     /// (`Unit::close+0xcb6`), the sound, and a Tank's disc left standing
     /// (`docs/GOLDEN.md` §135, run936: the original draws on 1890).
+    ///
+    /// The death branch's `units_lost` (`docs/LEADERS.md` §2.2) is read
+    /// here, before the relink: attrition strikes through vslot `+0x16c`,
+    /// so a countable death counts with no killer.
     pub(crate) fn die_by_attrition(&mut self, i: usize, frame: i64) {
         const ATTRITION_DTYPE: i32 = 1;
+        if self.countable_death(i) {
+            self.note_unit_death(self.units[i].owner, None);
+        }
         self.close_count(i);
         self.relink_squad(i);
         self.close_unit(i, ATTRITION_DTYPE, frame);
@@ -878,13 +966,16 @@ impl Sim {
     /// draws. (The `this->field_4 == 0x4d / 0x4b` tests name a Type index
     /// no craft carries, so the Commando's floor stands.)
     ///
-    /// SEAM: the caster's leader counters and score (`+0xa58`, `+0xa5a`,
-    /// `+0x80c`; `+0x818` and `+0x44 += cost / 5` on the razed building),
-    /// the message and the sound; the dead-target refund arm.
-    pub(crate) fn cast_sabotage_building(&mut self, b: usize) {
+    /// A non-zero take credits `buildings_razed[caster]`
+    /// (`docs/LEADERS.md` §2.2); the owner's `buildings_lost` steps in
+    /// [`Self::damage_building`].
+    ///
+    /// SEAM: the caster's `+0xa58`/`+0xa5a` counters and the score `+0x44
+    /// += cost / 5`, the message and the sound; the dead-target refund arm.
+    pub(crate) fn cast_sabotage_building(&mut self, b: usize, caster: Player) {
         let frame = self.frame;
         let dmg = (self.buildings[b].health / 2).max(self.tables.tuning.commando_min_damage);
-        self.damage_building(
+        let taken = self.damage_building(
             b,
             Sixteenths {
                 whole: dmg,
@@ -894,6 +985,9 @@ impl Sim {
             frame,
             true,
         );
+        if matches!(taken, Taken::Died { .. }) {
+            self.note_raze(caster);
+        }
     }
 
     /// The **first wound**'s draws (§7.2 step 3), spent before the
@@ -1041,6 +1135,10 @@ impl Sim {
         if matches!(taken, Taken::Died { .. }) {
             bd.damage = hits;
             bd.sync_health();
+            // `buildings_lost[owner] += 1` before `die`, on every caller —
+            // combat, sabotage and the border's decay — with no attacker
+            // test (`docs/LEADERS.md` §2.2). The city clamp returned above.
+            self.note_building_lost(owner);
             self.die_building(b);
         } else if site && bd.construct_hits <= bd.damage && !bd.garrison.is_empty() {
             bd.eject_pending = true;

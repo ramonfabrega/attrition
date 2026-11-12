@@ -20,8 +20,8 @@
 //!
 //! Not modelled, each a leaf the port has no state for: the two lines of text,
 //! the sound and the graphic (a headless sim has no console, so the warning's
-//! arm is never entered: [`SimSuffer`] answers `console_who` -1); the stamp
-//! itself, which nothing but this function reads.
+//! arm is never entered: [`SimSuffer`] answers `console_who` -1). The stamp
+//! itself is `attrition_stamp2` (item 4176, `docs/LEADERS.md` §5).
 //!
 //! One finding the sweep holds and the port keeps: the warning asks
 //! `is_ally(leaders[who], who)` — the unit's own player against itself, not
@@ -140,6 +140,8 @@ pub fn suffer_attrition_steps<V: SufferView>(v: &mut V, graphic: bool) -> bool {
 /// console".
 pub(crate) struct SimSuffer<'a> {
     pub(crate) sim: &'a mut Sim,
+    /// `game.frame`, the warning's stamp.
+    pub(crate) frame: i64,
     pub(crate) unit: usize,
     /// What the hurt call did, for the caller's [`crate::Tick`].
     pub(crate) outcome: Option<(i32, i32, bool)>,
@@ -149,10 +151,13 @@ impl SufferView for SimSuffer<'_> {
     fn player(&self) -> usize {
         self.sim.units[self.unit].owner as usize
     }
-    fn warned_at(&self, _who: usize) -> i32 {
-        0
+    /// `attrition_stamp2` (`docs/LEADERS.md` §5.2, item 4176).
+    fn warned_at(&self, who: usize) -> i32 {
+        self.sim.attrition_stamp2(who) as i32
     }
-    fn stamp_warned(&mut self, _who: usize) {}
+    fn stamp_warned(&mut self, who: usize) {
+        self.sim.set_attrition_stamp2(who, self.frame);
+    }
     fn console_who(&self) -> i32 {
         -1
     }

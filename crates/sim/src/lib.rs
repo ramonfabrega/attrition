@@ -180,6 +180,7 @@ impl Sim {
                 anti_att: vec![crate::leaders::words::ANTI_ATT_BASE; players],
                 pop_issues: vec![0; players],
                 marks: vec![crate::leaders::marks::Marks::default(); players],
+                damage: vec![crate::leaders::damage::Damage::default(); players],
             },
             cities: crate::cities::CitiesState {
                 farm_order: Vec::new(),

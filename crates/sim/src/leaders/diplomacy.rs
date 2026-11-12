@@ -84,8 +84,10 @@ impl Sim {
         // crate carries no lobby team, and every capture is style 1.
         // SEAM: `Armies::diplo_change` for a computer declarer (a lobby
         // whose slot 0 is a computer) — `Army::process(army, 1)`.
-        // `update_leader_list` (`+0x1f4`), zeroed for each leader, is the
-        // interface's.
+        // The `+0x1f4` zeroed for each leader in play is **`attrition_stamp`**
+        // (the base is the leader slot, `docs/LEADERS.md` §5.2), not the
+        // editor's `update_leader_list`.
+        self.zero_attrition_stamps();
         let players = self.territory.players.len().min(8);
         for i in 0..players {
             if self.leaders.defeated[i] {

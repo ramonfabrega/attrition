@@ -30,6 +30,13 @@ impl Sim {
         if w >= self.territory.players.len() {
             return;
         }
+        // `if give_att_disabled != 0: att = 0` (`calc_attrition@006cdea0`'s
+        // first test, `docs/LEADERS.md` §5.2, fault 4). Only a trigger
+        // writes the flag.
+        if self.territory.players[w].give_disabled {
+            self.territory.players[w].strength = 0;
+            return;
+        }
         let steps = self
             .tables
             .tech_tree
@@ -255,6 +262,17 @@ impl Sim {
         // exempt unit comes out of it with nothing pending.
         if phase % ATTRITION_REFRESH_FRAMES == 0 {
             let outcome = self.attrition_for(i);
+            // **`attrition_stamp`'s peace and assassin arms**
+            // (`Unit::process_attrition@005e11a0`, `docs/LEADERS.md` §5.2):
+            // past every exemption, a bleed assigned by either arm is the
+            // one that ignores supply, and it stamps the unit owner's slot.
+            if let crate::territory::attrition::Outcome::Period {
+                ignores_supply: true,
+                ..
+            } = outcome
+            {
+                self.note_attrition_arm(self.units[i].owner, frame);
+            }
             let unit = &mut self.units[i];
             unit.sheltered = false;
             match outcome {
@@ -307,6 +325,7 @@ impl Sim {
         // (`docs/COMBAT.md` §7.2 step 8, `docs/GOLDEN.md` §135, run936).
         let mut view = crate::territory::suffer_view::SimSuffer {
             sim: self,
+            frame,
             unit: i,
             outcome: None,
         };
