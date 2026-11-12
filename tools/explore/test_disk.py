@@ -257,7 +257,9 @@ class Free(unittest.TestCase):
 
 FAKE_CARGO = """#!/bin/sh
 { pwd; for a in "$@"; do echo "$a"; done; } > "$FAKE_CARGO_LOG"
-echo "gc-oracle fake: 2 cache(s), 1 stale generation(s) removed; kept g1 and g2"
+n=0; [ -n "$FAKE_CARGO_FAILED" ] && n=1 && echo "gc-oracle fake: failed: $FAKE_CARGO_FAILED" >&2
+echo "gc-oracle fake: 2 cache(s), 1 stale generation(s) removed, 3 in use kept, $n failed; kept g1 and g2"
+[ -n "$FAKE_CARGO_FAILED" ] && echo "gc-oracle: 1 failure(s); every other generation was swept" >&2
 exit ${FAKE_CARGO_EXIT:-0}
 """
 
@@ -319,6 +321,15 @@ class Oracle(unittest.TestCase):
         _, argv = self.recorded()
         self.assertEqual(argv[argv.index('--'):], ['--', '/the/install', '--gc-oracle', str(one)])
         self.assertIn('missing: not a directory; skipped', p.stdout)
+
+    def test_a_failed_removal_is_named_and_fails_the_step_with_the_sweep_reported(self):
+        p = self.run_disk(FAKE_CARGO_EXIT='1', FAKE_CARGO_FAILED='/g/.ron-oracle-v1/ab: Directory not empty')
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn('gc-oracle fake: failed: /g/.ron-oracle-v1/ab: Directory not empty', p.stdout)
+        self.assertIn('gc-oracle fake: 2 cache(s), 1 stale generation(s) removed, 3 in use kept, 1 failed;',
+                      p.stdout)
+        self.assertIn('Disk: step failed: cargo exited 1: gc-oracle: 1 failure(s); every other generation '
+                      'was swept', p.stdout)
 
     def test_a_failing_cargo_is_a_failed_step(self):
         p = self.run_disk(FAKE_CARGO_EXIT='3')

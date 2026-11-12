@@ -54,15 +54,21 @@ figure is allocated blocks (`st_blocks * 512`), not apparent size.
 **The oracle step.** `cargo run -q -p rondata -- <install> --gc-oracle
 <dir> …` from this checkout (`rondata::diff::oracle::gc_tree`): every
 generation of every `.ron-oracle-v1` cache under each directory but the
-running build's own two. The debug profile is the binary the gate's survey
+running build's own two and any another process marked in use within
+`rondata::diff::oracle::IN_USE` (a lane on its own parser fingerprint is
+working in it). Each directory prints `gc-oracle <dir>: N cache(s), M stale
+generation(s) removed, K in use kept, F failed; kept <g> and <g>`; a
+removal that fails (a writer racing it) is a `gc-oracle <dir>: failed: …`
+line, the rest of the sweep stands, and cargo exits 1, so the step ends
+`Disk: step failed`. The debug profile is the binary the gate's survey
 step already built (`cargo run -p rondata`), so the step compiles nothing;
 a generation is a hash of the parser sources' text, the same in either
 profile. The directories default to the golden archive and the data root
 as `tools/archive_census.py` resolves them (`$RON_GOLDEN_DIR` or
 `~/ron-golden`, and `~/ron-data`), plus the queue lane's logs
-(`$RON_GAMELOG_DIR`) when they are under neither. A lane on another parser
-fingerprint loses nothing it cannot rebuild: its next read misses and
-re-decodes from the dump.
+(`$RON_GAMELOG_DIR`) when they are under neither. A generation removed
+loses nothing it cannot rebuild: its next read misses and re-decodes from
+the dump.
 
 Both steps end with `Disk: <N> GB free` for the volume holding `$HOME`, and
 a `Disk: LOW` line naming the remedy under 30 GB. A failure prints `Disk:
