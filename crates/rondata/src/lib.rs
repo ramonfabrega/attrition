@@ -42,6 +42,7 @@ pub mod golden;
 pub mod input;
 pub mod ledger;
 pub mod load;
+pub mod lobby;
 pub mod mapgen;
 pub mod mountains;
 pub mod pe;
@@ -439,6 +440,16 @@ pub(crate) mod testenv {
              To step through one test in this profile, set RON_DIFF_DEBUG=1."
         );
         Some(path)
+    }
+
+    /// The kept dumps' directory, if this machine has it (as [`dump`]).
+    pub(crate) fn gamelog_dir() -> Option<std::path::PathBuf> {
+        let dir = std::env::var("RON_GAMELOG_DIR").unwrap_or_else(|_| {
+            let home = std::env::var("HOME").unwrap_or_default();
+            format!("{home}/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs")
+        });
+        let dir = std::path::PathBuf::from(dir);
+        dir.is_dir().then_some(dir)
     }
 
     fn dump_path(name: &str) -> Option<String> {

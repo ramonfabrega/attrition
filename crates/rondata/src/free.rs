@@ -99,6 +99,37 @@ impl FreeRunner {
         })
     }
 
+    /// A runner over **the page's choices** (item 4184, `docs/LOBBY.md`):
+    /// the block they print ([`crate::lobby::Choices::block`]), parsed as a
+    /// dump's is, through the same [`crate::diff::from_lobby`] and
+    /// [`crate::diff::built_from_lobby`] as [`from_lobby`](Self::from_lobby)
+    /// — so a page that prints a capture's block builds that capture's
+    /// start. Also the walk's notes: what the built start could not build.
+    pub fn from_choices(
+        loaded: &Loaded,
+        choices: &crate::lobby::Choices,
+        tuning: Tuning,
+    ) -> (Self, Vec<String>) {
+        let lobby = choices.lobby();
+        let (info, players) = lobby.borrowed();
+        let ours = crate::diff::from_lobby(loaded, &info, &players, tuning);
+        let (built, notes) = crate::diff::built_from_lobby(loaded, ours);
+        (
+            Self {
+                built,
+                stream: None,
+                frame: 0,
+            },
+            notes,
+        )
+    }
+
+    /// The simulation, for a comparison of two runners' whole state.
+    #[cfg(test)]
+    pub(crate) fn sim(&self) -> &sim::Sim {
+        &self.built.sim
+    }
+
     /// A person's order, issued now: one package of the script's
     /// vocabulary (`recgame::Order`) for the frame about to be stepped,
     /// handed to the turn pump ([`Stream::pump`]) as a recording's package
