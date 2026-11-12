@@ -1713,10 +1713,16 @@ of which held-out leaves the record prints is `docs/LEADERS.md`'s head),
 `units_bribed` and `nukes_launched` (`docs/LEADERS.md` §2, §4, §5, §15);
 `units_killed`, `units_lost`, the three victim stamps and
 `attrition_stamp2` are held by the crate and stay held out, each parting
-where its parent parts (4176a, 4176b), and **73** since item 4177, which
+where its parent parts (4176a, 4176b), ~~**73**~~ 73 at item 4177, which
 carried `frame_battle` (`docs/LEADERS.md` §3); the other twelve combat
 rates are held by the crate and stay held out, each parting in the record
-diff (4177a, 4177b, and beside 4176a's parents).
+diff (4177a, 4177b, and beside 4176a's parents), and **68** since item
+4159's step T, which released five on transfer (`docs/DECISIONS.md` entry
+128 §3; `rondata::diff::transfer`; `docs/LEADERS.md`'s head):
+`stable_queued`, `factory_queued`, `air_queued`, `supply_mark` and
+`average_kill_rate`, each 0 = 0 on frame 91 on both leaders. The ranges
+and bytes do not move: the long range still parts on the other 68, so
+263 of 267 ranges and 4,313 of 58,343 bytes agree as before.
 `CHECKSUM_STATE` does not count it (§5).
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7

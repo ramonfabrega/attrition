@@ -213,12 +213,19 @@ pub const WATER_FADE_TOP: f32 = -25.0;
 /// [`WATER_FADE_TOP`], and between them `(h − top) / −55 · 245` truncated.
 /// It is not continuous at −55: at −54.9 it is 132. The `>> 2` on a cell
 /// `+0x138`'s `0x800` is not drawn.
+#[cfg(test)]
 pub fn water_fade(h: f32) -> u8 {
+    water_fade_of(h, WATER_SOLID)
+}
+
+/// [`water_fade`] with `solid` the alpha at depth, `get_water_fade`'s
+/// third argument (item 4178).
+pub fn water_fade_of(h: f32, solid: u8) -> u8 {
     const TOP: f32 = WATER_FADE_TOP;
     if h <= WATER_DEEP {
-        WATER_SOLID
+        solid
     } else if h <= TOP {
-        ((h - TOP) / WATER_DEEP * f32::from(WATER_SOLID)) as u8
+        ((h - TOP) / WATER_DEEP * f32::from(solid)) as u8
     } else {
         0
     }
@@ -227,10 +234,13 @@ pub fn water_fade(h: f32) -> u8 {
 /// **Whether a cell holds water** (item 4164),
 /// `TerrainOut::coord_contains_water@0086a080`: a cell on the map whose
 /// `WData` flags carry `COAST` or `HALFLAND`, or whose land is `OCEAN`, or
-/// — its `CoordInfo` flags not held here — a `SANDY` cell with any of its
-/// 5 × 5 corners below zero, the `& 4` arm taken as every shore cell's.
+/// — its `CoordInfo` flags not held here — a cell with any of its 5 × 5
+/// corners below zero, the `& 4` arm taken as every shore cell's. Item
+/// 4178: on every land, not only `SANDY`: run1564's drawn water lays 64
+/// corners on `BASELAND` cells (flag `0x400`) the `SANDY`-only arm left
+/// dry, and with the arm on every land none ([`RUN1564_WATER_LATTICE`]).
 pub fn holds_water(t: &sim::observe::TerrainScene, cx: i32, cy: i32) -> bool {
-    use render::terrain::{OCEAN, SANDY, TILES_PER_CELL};
+    use render::terrain::{OCEAN, TILES_PER_CELL};
     use sim::ids::cell;
     if !(0..t.width).contains(&cx) || !(0..t.height).contains(&cy) {
         return false;
@@ -238,9 +248,6 @@ pub fn holds_water(t: &sim::observe::TerrainScene, cx: i32, cy: i32) -> bool {
     let i = (cy * t.width + cx) as usize;
     if t.flags[i] & (cell::COAST | cell::HALFLAND) != 0 || t.land[i] == OCEAN {
         return true;
-    }
-    if t.land[i] != SANDY {
-        return false;
     }
     let sx = t.width * TILES_PER_CELL + 1;
     (0..=TILES_PER_CELL).any(|dy| {
@@ -257,7 +264,9 @@ pub fn holds_water(t: &sim::observe::TerrainScene, cx: i32, cy: i32) -> bool {
 /// every half cell, two tiles, each with [`water_fade`] of the corner
 /// height there; the point's is the bilinear blend of its half cell's four.
 /// `uv` is the cell-local `[0, 1]` the base layer's texcoord is
-/// ([`tile_uvs`]).
+/// ([`tile_uvs`]). Item 4178: the client draws [`water_mesh`]; the painter
+/// keeps this (parked 4178a).
+#[cfg(test)]
 pub fn water_alpha(
     t: &sim::observe::TerrainScene,
     (cx, cy): (i32, i32),
@@ -305,6 +314,192 @@ pub fn water_ramp() -> Mips {
     })
 }
 
+/// **The water's own lattice** (item 4178; `docs/RENDERER.md` §3.12):
+/// `TerrainOut::generate_water@00861980`'s mesh. One vertex every 384
+/// units, half a cell, on each of a wet cell's 3 × 3 lattice points
+/// (`create_water_verts@0086ceb0` lays them for every cell
+/// [`holds_water`] passes, a point shared between cells laid once). Each
+/// takes [`water_fade`] of a corner height, then one pass of the 3 × 3
+/// smoothing, row by row and in place.
+#[derive(Clone, Debug, PartialEq)]
+pub struct WaterGrid {
+    /// Lattice points across and down: `2 · width + 1`, `2 · height + 1`.
+    pub nx: i32,
+    pub ny: i32,
+    /// Each point's alpha out of 255, `None` where no wet cell lays one.
+    pub alpha: Vec<Option<u8>>,
+}
+
+/// How [`water_grid_with`] reads `generate_water` (item 4178): the
+/// readings the packet's diff chose between, kept so the made-to-fail can
+/// name each.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct WaterRead {
+    /// The alpha at depth, `watercolor_solid`'s top byte.
+    pub solid: u8,
+    /// An odd lattice row takes its fade from the even row's corner
+    /// height: `create_water_verts`' odd branch reads `get_water_fade` at
+    /// `4 · (row >> 1)` tiles, the row 384 units north of its vertex.
+    pub north: bool,
+    /// The smoothing writes the colour array it reads, so a point's left
+    /// and upper neighbours enter already smoothed.
+    pub in_place: bool,
+}
+
+/// The reading the packet backs (item 4178).
+pub const WATER_READ: WaterRead = WaterRead {
+    solid: WATER_SOLID,
+    north: true,
+    in_place: true,
+};
+
+impl WaterGrid {
+    /// The point `(gx, gy)`'s alpha, `None` off the lattice or where none
+    /// is laid.
+    pub fn at(&self, gx: i32, gy: i32) -> Option<u8> {
+        if !(0..self.nx).contains(&gx) || !(0..self.ny).contains(&gy) {
+            return None;
+        }
+        self.alpha[(gy * self.nx + gx) as usize]
+    }
+}
+
+/// [`water_grid_with`] under [`WATER_READ`].
+pub fn water_grid(t: &sim::observe::TerrainScene) -> WaterGrid {
+    water_grid_with(t, WATER_READ)
+}
+
+/// **The water's lattice and its alpha** (item 4178): every lattice point
+/// of a wet cell, [`water_fade`] (at `read.solid`) of the corner height at
+/// tile `(2 · gx, 2 · gy)` — or, on an odd row under `read.north`, the
+/// even row's — then `generate_water`'s pass: each point, in row order,
+/// takes the mean of its own and its laid 3 × 3 neighbours' alphas (out of
+/// 1), the smaller of that and its own, and stores its square, truncated.
+pub fn water_grid_with(t: &sim::observe::TerrainScene, read: WaterRead) -> WaterGrid {
+    use render::terrain::TILES_PER_CELL;
+    let (nx, ny) = (2 * t.width + 1, 2 * t.height + 1);
+    let mut laid = vec![false; (nx * ny) as usize];
+    for cy in 0..t.height {
+        for cx in 0..t.width {
+            if !holds_water(t, cx, cy) {
+                continue;
+            }
+            for j in 0..=2 {
+                for i in 0..=2 {
+                    laid[((2 * cy + j) * nx + 2 * cx + i) as usize] = true;
+                }
+            }
+        }
+    }
+    let sx = t.width * TILES_PER_CELL + 1;
+    let fade = |h: f32| water_fade_of(h, read.solid);
+    let mut alpha: Vec<Option<u8>> = (0..ny)
+        .flat_map(|gy| (0..nx).map(move |gx| (gx, gy)))
+        .map(|(gx, gy)| {
+            if !laid[(gy * nx + gx) as usize] {
+                return None;
+            }
+            let ty = if read.north {
+                2 * gy - 2 * (gy & 1)
+            } else {
+                2 * gy
+            };
+            let k = (ty * sx + 2 * gx) as usize;
+            Some(t.corners.get(k).map_or(0, |&z| fade(f32::from_bits(z))))
+        })
+        .collect();
+    let source = alpha.clone();
+    for gy in 0..ny {
+        for gx in 0..nx {
+            let i = (gy * nx + gx) as usize;
+            let Some(own) = alpha[i] else { continue };
+            let (mut sum, mut n) = (0.0f32, 0.0f32);
+            for dy in -1..=1 {
+                for dx in -1..=1 {
+                    let (x, y) = (gx + dx, gy + dy);
+                    if !(0..nx).contains(&x) || !(0..ny).contains(&y) {
+                        continue;
+                    }
+                    let j = (y * nx + x) as usize;
+                    let from = if read.in_place { &alpha } else { &source };
+                    if let Some(a) = from[j] {
+                        sum += f32::from(a) / 255.0;
+                        n += 1.0;
+                    }
+                }
+            }
+            let own = f32::from(own) / 255.0;
+            let m = (sum / n).min(own);
+            alpha[i] = Some(((m * m * 255.0) as i32 & 0xff) as u8);
+        }
+    }
+    WaterGrid { nx, ny, alpha }
+}
+
+/// **The water's own mesh** (item 4178; `docs/RENDERER.md` §3.12):
+/// `TerrainOut::modify_water@0086e700`'s draw. Each wet cell's four
+/// 384-unit quads, each four triangles about its centre, which takes the
+/// mean of the quad's four corners' alphas, truncated (540 of run1564's
+/// 540 drawn centres). Every vertex stands at z 0: all 1,755 of run1564's
+/// do, 111 of them over ground above it.
+#[derive(Clone, Debug, Default)]
+pub struct WaterMesh {
+    pub tris: Vec<[[f32; 3]; 3]>,
+    /// Each corner's texcoord inside its cell, `[0, 1]` across it, as
+    /// [`tile_uvs`] lays the base's.
+    pub uvs: Vec<[[f32; 2]; 3]>,
+    /// Each corner's alpha out of 255.
+    pub alpha: Vec<[f32; 3]>,
+    /// The cell each triangle lies on.
+    pub cell: Vec<(i32, i32)>,
+}
+
+/// The lattice's spacing in world units: half a cell.
+pub const WATER_STEP: f32 = 384.0;
+
+pub fn water_mesh(t: &sim::observe::TerrainScene, g: &WaterGrid) -> WaterMesh {
+    let mut out = WaterMesh::default();
+    let cell = 2.0 * WATER_STEP;
+    for cy in 0..t.height {
+        for cx in 0..t.width {
+            if !holds_water(t, cx, cy) {
+                continue;
+            }
+            for (i, j) in [(0, 0), (1, 0), (0, 1), (1, 1)] {
+                let (gx, gy) = (2 * cx + i, 2 * cy + j);
+                let corner = |dx: i32, dy: i32| {
+                    let a = g.at(gx + dx, gy + dy).unwrap_or(0);
+                    let (x, y) = ((gx + dx) as f32 * WATER_STEP, (gy + dy) as f32 * WATER_STEP);
+                    (
+                        [x, y, 0.0],
+                        [x / cell - cx as f32, y / cell - cy as f32],
+                        u32::from(a),
+                    )
+                };
+                let q = [corner(0, 0), corner(1, 0), corner(1, 1), corner(0, 1)];
+                let mean = (q.iter().map(|c| c.2).sum::<u32>() / 4) as f32;
+                let (x, y) = (
+                    (gx as f32 + 0.5) * WATER_STEP,
+                    (gy as f32 + 0.5) * WATER_STEP,
+                );
+                let centre = (
+                    [x, y, 0.0],
+                    [x / cell - cx as f32, y / cell - cy as f32],
+                    mean,
+                );
+                for k in 0..4 {
+                    let (a, b) = (&q[k], &q[(k + 1) % 4]);
+                    out.tris.push([centre.0, a.0, b.0]);
+                    out.uvs.push([centre.1, a.1, b.1]);
+                    out.alpha.push([centre.2, a.2 as f32, b.2 as f32]);
+                    out.cell.push((cx, cy));
+                }
+            }
+        }
+    }
+    out
+}
+
 /// **The ocean floor's plane** (item 4174; `docs/RENDERER.md` §3.12):
 /// `TerrainOut::build_ocean_floor@0086c7f0` lays one flat vertex per cell
 /// corner at `coast_depth + land_height − 10`; every one of run1564's 624
@@ -317,7 +512,6 @@ pub const FLOOR_Z: f32 = -283.0;
 /// `−xy / 6144` plus another on the second, exactly — one repeat every
 /// eight cells, the second layer mirrored. The offsets drift with
 /// `modify_ocean_floor_texture@0086e320`'s clock and are not drawn.
-#[cfg(test)]
 pub const FLOOR_REPEAT: f32 = 6144.0;
 
 /// The floor's two texcoords at world `(x, y)` (item 4174).
@@ -332,9 +526,7 @@ pub fn floor_uvs(x: f32, y: f32) -> ([f32; 2], [f32; 2]) {
 /// **`OceanVars`' floor bytes** (item 4174; `TerrainData +0x5524`, read on
 /// run1564's packet): `floor*_top` (255, 255, 255) and `floor*_bot`
 /// (64, 64, 64), alphas 1.
-#[cfg(test)]
 pub const FLOOR_TOP: u8 = 255;
-#[cfg(test)]
 pub const FLOOR_BOT: u8 = 64;
 
 /// **`OceanVars`' water bytes** (item 4174): `top*_top` and `top*_bot`,
@@ -342,9 +534,7 @@ pub const FLOOR_BOT: u8 = 64;
 /// (0, 111, 218) at its foot. `oceanred` … (255, 255, 255) is the white
 /// `create_water_verts` lays; `TerrainOut::modify_water@0086e700` replaces
 /// it with these each frame.
-#[cfg(test)]
 pub const WATER_TOP: [u8; 3] = [0, 159, 255];
-#[cfg(test)]
 pub const WATER_BOT: [u8; 3] = [0, 111, 218];
 
 /// **The screen's ramp** (item 4174): `TerrainOut::determine_frustum_
@@ -353,7 +543,6 @@ pub const WATER_BOT: [u8; 3] = [0, 111, 218];
 /// the view's depth between them: `((P − TL)·(1, 1)/√2) / |BL − TL|`,
 /// clamped to [0, 1]. `modify_ocean_floor@00873960` tints the floor and
 /// `modify_water` the water by it; the lateral axis does not enter.
-#[cfg(test)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ScreenRamp {
     /// `TL · (1, 1)/√2`.
@@ -362,7 +551,6 @@ pub struct ScreenRamp {
     pub len: f32,
 }
 
-#[cfg(test)]
 impl ScreenRamp {
     /// The ramp of `camera` on a `(w, h)` screen: each corner unprojected
     /// onto the plane z = 0 through `to_screen_matrix`, as
@@ -385,6 +573,13 @@ impl ScreenRamp {
         }
     }
 
+    /// A ramp that lays every point at its middle, 0.5: what the ground
+    /// is drawn at before a screen is set.
+    pub const MIDDLE: ScreenRamp = ScreenRamp {
+        d0: -1.0e12,
+        len: 2.0e12,
+    };
+
     /// The fraction at world `(x, y)`.
     pub fn at(&self, x: f32, y: f32) -> f32 {
         (((x + y) * std::f32::consts::FRAC_1_SQRT_2 - self.d0) / self.len).clamp(0.0, 1.0)
@@ -394,7 +589,6 @@ impl ScreenRamp {
 /// **The floor's vertex grey** at ramp fraction `f` (item 4174):
 /// `modify_ocean_floor`'s lerp of [`FLOOR_TOP`] to [`FLOOR_BOT`], times
 /// 0.6 (`__real_3f19999a`), truncated — 153 at the top, 38 at the foot.
-#[cfg(test)]
 pub fn floor_grey(f: f32) -> u8 {
     let v = f32::from(FLOOR_TOP) * (1.0 - f) + f32::from(FLOOR_BOT) * f;
     (v / 255.0 * 0.6 * 255.0) as u8
@@ -402,7 +596,6 @@ pub fn floor_grey(f: f32) -> u8 {
 
 /// **The water's vertex colour** at ramp fraction `f` (item 4174):
 /// `modify_water`'s lerp of [`WATER_TOP`] to [`WATER_BOT`], truncated.
-#[cfg(test)]
 pub fn water_rgb(f: f32) -> [u8; 3] {
     [0, 1, 2].map(|k| {
         let v = f32::from(WATER_TOP[k]) * (1.0 - f) + f32::from(WATER_BOT[k]) * f;
@@ -414,11 +607,85 @@ pub fn water_rgb(f: f32) -> [u8; 3] {
 /// `MODULATE2X(TEXTURE, DIFFUSE)` then `MODULATE(TEXTURE, CURRENT)` — the
 /// first layer's texel doubled under the vertex grey, clamped, times the
 /// second's — on 0–255 channels.
-#[cfg(test)]
 pub fn floor_stage(t0: [f32; 3], t1: [f32; 3], grey: u8) -> [f32; 3] {
     let g = f32::from(grey) / 255.0;
     [0, 1, 2].map(|k| (2.0 * t0[k] * g).min(255.0) * t1[k] / 255.0)
 }
+
+/// **The floor's two layers as one texture** (item 4178): `render_ocean_floor`
+/// binds `<OCEAN>`'s texture twice, the second layer at the first's
+/// texcoord mirrored about `c` (the two layers' offsets summed, per axis,
+/// in repeats), and [`floor_stage`] combines them under `grey`. Texel
+/// `(x, y)` is the stage's colour at the first layer's texel `(x, y)`;
+/// the first layer's texcoord samples it.
+pub fn floor_texture(tex: &render::tga::Image, c: [f32; 2], grey: u8) -> render::tga::Image {
+    let (w, h) = (tex.width as i64, tex.height as i64);
+    let at = |x: i64, y: i64| {
+        let i = (y.rem_euclid(h) * w + x.rem_euclid(w)) as usize * 4;
+        [0, 1, 2].map(|k| f32::from(tex.rgba[i + k]))
+    };
+    let (mx, my) = (
+        (c[0] * w as f32).round() as i64 - 1,
+        (c[1] * h as f32).round() as i64 - 1,
+    );
+    let mut rgba = Vec::with_capacity(tex.rgba.len());
+    for y in 0..h {
+        for x in 0..w {
+            let f = floor_stage(at(x, y), at(mx - x, my - y), grey);
+            rgba.extend(f.map(|v| v.round().clamp(0.0, 255.0) as u8));
+            rgba.push(255);
+        }
+    }
+    render::tga::Image {
+        width: tex.width,
+        height: tex.height,
+        kind: 2,
+        bits: 32,
+        footer: false,
+        rgba,
+    }
+}
+
+/// **The water's colour as a texture** (item 4178): 256 texels, texel `i`
+/// [`water_rgb`] at fraction `i / 255`, so a vertex at fraction `f` takes
+/// the texcoord `(255 f + 0.5) / 256` and the rasteriser's blend of two is
+/// the card's Gouraud blend of their colours.
+pub fn water_colour_ramp() -> Mips {
+    let rgba = (0..=255u32)
+        .flat_map(|i| {
+            let c = water_rgb(i as f32 / 255.0);
+            [c[0], c[1], c[2], 255]
+        })
+        .collect();
+    Mips::new(render::tga::Image {
+        width: 256,
+        height: 1,
+        kind: 2,
+        bits: 32,
+        footer: false,
+        rgba,
+    })
+}
+
+/// A ramp fraction as a texcoord into a 256-texel ramp (item 4178).
+pub fn ramp_uv(f: f32) -> [f32; 2] {
+    [(f.clamp(0.0, 1.0) * 255.0 + 0.5) / 256.0, 0.5]
+}
+
+/// **The floor's shade** (item 4178): the floor is baked at its brightest
+/// vertex grey ([`floor_grey`] at 0, 153) and drawn opaque; a black layer
+/// over it at alpha `1 − grey / 153` leaves `texel · grey / 153`, the
+/// stage's product wherever `MODULATE2X` does not clamp. Out of 255.
+pub fn floor_shade(f: f32) -> f32 {
+    let top = f32::from(floor_grey(0.0));
+    255.0 * (1.0 - f32::from(floor_grey(f)) / top)
+}
+
+/// **The floor's layers' offsets on run1564's packet** (item 4178), each
+/// layer's `uv − xy / 6144` (first) and `uv + xy / 6144` (second), summed:
+/// (1.178 + 8.750, 1.176 + 8.680) at logger frame 3294. They drift with
+/// `modify_ocean_floor_texture`'s clock, which is not read.
+pub const FLOOR_MIRROR: [f32; 2] = [9.928, 9.856];
 
 /// **The transition patch laid** (item 4139; `docs/RENDERER.md` §3.9):
 /// every `BASELAND` tile not under a placed mountain whose cell
@@ -587,28 +854,69 @@ pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1097, 1109);
 
 /// **`RUN1564_3279_GROUND` on the client's still** (item 4171):
 /// `(agree, scored)`, then by kind `[agree, scored]`, `KINDS`' order.
-/// 1,237 against the painter's 1,236: one `SANDY` tile crosses up at the
-/// bar, (194, 206), theirs (0.3955, 0.3778) in (r, g)/(r + g + b), the
-/// painter's (0.4393, 0.3532) at 0.0502, the still's (0.4387, 0.3530) at
-/// 0.0496. On the draw before, 1,286.
+/// Item 4178: **1,237 → 1,373**, the water on its own mesh at z 0 with
+/// `generate_water`'s alpha and `modify_water`'s colour, the floor under
+/// it: `SANDY` 295 → 664 of 772, `OCEAN` 233 → 0 of 437 (the water's red,
+/// 4174a), the land unchanged. Tile (159, 194) at pixel (158, 6), theirs
+/// (46, 113, 162), was (114, 195, 207) on the still and parts; tile
+/// (163, 189), theirs (62, 124, 161), the still's (55, 186, 230) before.
 #[cfg(test)]
 pub const RUN1564_3279_GROUND_STILL: ((usize, usize), [[u32; 2]; 7]) = (
-    (1237, 1920),
+    (1373, 1920),
     [
         [677, 679],
         [0, 0],
         [32, 32],
         [0, 0],
         [0, 0],
-        [295, 772],
-        [233, 437],
+        [664, 772],
+        [0, 437],
     ],
 );
 
-/// Both ground rows on the draw before item 4171 (the silhouette after,
-/// an sRGB target): the rows' made-to-fail, run1559b then run1564.
+/// A still's brightness row: `(agree, scored)` and by kind.
 #[cfg(test)]
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1003, 1109), (1286, 1920)];
+pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
+
+/// **The ground's brightness on the client's still** (item 4178):
+/// [`RUN1564_3279_GROUND_LUMA`]'s reader on the still's tiles, run1559b
+/// then run1564, `(agree, scored)` and by kind. run1564 **791 → 1,001**:
+/// at the base the still read the painter's 791 (`OCEAN` 2, `SANDY` 83);
+/// with the floor and the water drawn, `OCEAN` 2 → 215 of 437 and `SANDY`
+/// 83 → 80 of 772. run1559b 1,076, unchanged.
+#[cfg(test)]
+pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
+    (
+        (1076, 1109),
+        [
+            [980, 986],
+            [80, 106],
+            [16, 17],
+            [0, 0],
+            [0, 0],
+            [0, 0],
+            [0, 0],
+        ],
+    ),
+    (
+        (1001, 1920),
+        [
+            [679, 679],
+            [0, 0],
+            [27, 32],
+            [0, 0],
+            [0, 0],
+            [80, 772],
+            [215, 437],
+        ],
+    ),
+];
+
+/// Both ground rows on the draw before item 4171 (the silhouette after,
+/// an sRGB target): the rows' made-to-fail, run1559b then run1564. Item
+/// 4178: run1564's 1,286 → 834, the water's colour taken to linear light.
+#[cfg(test)]
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1003, 1109), (834, 1920)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of
@@ -752,11 +1060,18 @@ pub const RUN1564_3279_SHORE: [[u32; 2]; 13] = [
 /// cell that holds it, the ocean's base at `get_water_fade`'s alpha:
 /// `SANDY` 0 → 294 of 772, `OCEAN` 0 → 233 of 437, the land unchanged; on
 /// the base alone 584 → 872.
+///
+/// **Item 4178: 1,236 → 1,233 on the painter**, plain 677 → 674: the
+/// painter still lays item 4164's water on the seabed's triangles, and
+/// [`holds_water`]'s corner arm now takes every land (the packet's lattice,
+/// [`RUN1564_WATER_LATTICE`]), so three plain tiles of `BASELAND` shore
+/// cells take it; the client's still, which draws item 4178's water, holds
+/// plain at 677 ([`RUN1564_3279_GROUND_STILL`]; parked 4178a).
 #[cfg(test)]
 pub const RUN1564_3279_GROUND: ((usize, usize), [[u32; 2]; 7], usize) = (
-    (1236, 1920),
+    (1233, 1920),
     [
-        [677, 679],
+        [674, 679],
         [0, 0],
         [32, 32],
         [0, 0],
@@ -776,6 +1091,32 @@ pub const RUN1564_3279_GROUND: ((usize, usize), [[u32; 2]; 7], usize) = (
 #[cfg(test)]
 pub const RUN1564_3279_WATER: [[u32; 2]; 3] = [[55, 233], [294, 233], [112, 0]];
 
+/// The drawn lattice's counts, then each reading's (item 4178).
+#[cfg(test)]
+pub type WaterLattice = ((usize, usize, usize), [(u32, u32, u32); 5]);
+
+/// **`RUN1564_WATER_LATTICE`** (item 4178; `docs/RENDERER.md` §3.12): run1564's
+/// drawn water off its packet (`modify_water`'s statics at logger frame
+/// 3294) against [`water_grid_with`] on our terrain. The drawn lattice: 597
+/// distinct corners, 540 centres, and 80 corners whose ground stands above
+/// 0 yet whose vertex is at z 0 (so not `max(0, ground)`). Then for each
+/// reading — [`WATER_READ`]; odd rows at their own height; the smoothing
+/// from a copy; that at solid 220; in place at 220 — `[corners within
+/// one, corners we do not lay, centres their four corners' mean]`. Before
+/// [`holds_water`]'s corner arm took every land, read 0 left 64 corners
+/// unlaid and agreed on 526.
+#[cfg(test)]
+pub const RUN1564_WATER_LATTICE: WaterLattice = (
+    (597, 540, 80),
+    [
+        (597, 0, 540),
+        (404, 0, 540),
+        (142, 0, 540),
+        (346, 0, 540),
+        (141, 0, 540),
+    ],
+);
+
 /// **`RUN1564_3279_CARD`** (item 4174; `docs/RENDERER.md` §3.12): the
 /// second photograph's ground under [`RUN1564_3279_GROUND`]'s rule and
 /// 4172's luminance reader, `(ground, luma)`, with the floor and the water
@@ -785,9 +1126,11 @@ pub const RUN1564_3279_WATER: [[u32; 2]; 3] = [[55, 233], [294, 233], [112, 0]];
 /// luminance row (791 → 1,426, 1,072) and drop the scored row (1,236 →
 /// 793, 814): `OCEAN` agrees on 0 of 437 under either, its red channel 1
 /// to 20 against the photograph's ~40 (lake tile (182, 191): theirs (38,
-/// 97, 146), lit (1, 91, 180)). Neither is drawn (parked 4174a).
+/// 97, 146), lit (1, 91, 180)). Neither is drawn (parked 4174a). Item
+/// 4178: (1,236, 793, 814) → (1,233, 784, 813) on the wider corner arm of
+/// [`holds_water`], the luminance unchanged.
 #[cfg(test)]
-pub const RUN1564_3279_CARD: [(usize, usize); 3] = [(1236, 791), (793, 1426), (814, 1072)];
+pub const RUN1564_3279_CARD: [(usize, usize); 3] = [(1233, 791), (784, 1426), (813, 1072)];
 
 /// [`RUN1559B_3279_GROUND`] on the base layer alone, as item 4127 pinned it.
 #[cfg(test)]
@@ -1380,6 +1723,128 @@ mod tests {
         );
     }
 
+    /// **The water's lattice off the packet** (item 4178): run1564's
+    /// drawn water (`modify_water`'s statics, `tools/render/water_packet.py`)
+    /// against [`water_grid`] on our own terrain. Every drawn corner is a
+    /// lattice point we lay; its alpha is ours within one; every centre is
+    /// its quad's four corners' mean; every vertex stands at
+    /// `max(0, ground)`. Each other reading of `generate_water` is counted
+    /// beside it and must agree on fewer.
+    #[test]
+    fn the_water_s_lattice_off_the_packet() {
+        let path = std::env::var_os("RON_WATER_PACKET_1564")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                let home = std::env::var_os("HOME").unwrap_or_default();
+                PathBuf::from(home)
+                    .join("ron-data/lab-experiments/2026-11-12-item-4174/run1564-water.txt")
+            });
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            println!("skipping: no water packet dump at {}", path.display());
+            return;
+        };
+        let Some(p) = probe_at(run1564()) else { return };
+        let t = p.world.runner.terrain();
+        let num = |s: &str| s.parse::<f32>().expect("a float");
+        let mut corners: BTreeMap<(i32, i32), u8> = BTreeMap::new();
+        let mut centres: Vec<((i32, i32), u8)> = Vec::new();
+        let (mut lines, mut off_zero) = (0, 0);
+        let mut above: std::collections::BTreeSet<(i32, i32)> = Default::default();
+        let sx = t.width * render::terrain::TILES_PER_CELL + 1;
+        for line in text.lines() {
+            let f: Vec<&str> = line.split_whitespace().collect();
+            if f.first() != Some(&"water") {
+                continue;
+            }
+            lines += 1;
+            let (x, y, z) = (num(f[1]), num(f[2]), num(f[3]));
+            let a = (u32::from_str_radix(f[4], 16).expect("a colour") >> 24) as u8;
+            off_zero += usize::from(z != 0.0);
+            let (gx, gy) = ((x / WATER_STEP) as i32, (y / WATER_STEP) as i32);
+            if x % WATER_STEP == 0.0 && y % WATER_STEP == 0.0 {
+                corners.insert((gx, gy), a);
+                let k = (2 * gy * sx + 2 * gx) as usize;
+                if f32::from_bits(t.corners[k]) > 0.0 {
+                    above.insert((gx, gy));
+                }
+            } else {
+                centres.push(((gx, gy), a));
+            }
+        }
+        let reads = [
+            WATER_READ,
+            WaterRead {
+                north: false,
+                ..WATER_READ
+            },
+            WaterRead {
+                in_place: false,
+                ..WATER_READ
+            },
+            WaterRead {
+                solid: 220,
+                in_place: false,
+                ..WATER_READ
+            },
+            WaterRead {
+                solid: 220,
+                ..WATER_READ
+            },
+        ];
+        let mut counts = Vec::new();
+        for (r, read) in reads.iter().enumerate() {
+            let g = water_grid_with(&t, *read);
+            let (mut agree, mut unlaid, mut worst) = (0, 0, (0, (0, 0), 0, 0));
+            for (&(gx, gy), &theirs) in &corners {
+                let Some(ours) = g.at(gx, gy) else {
+                    unlaid += 1;
+                    continue;
+                };
+                let d = (i32::from(ours) - i32::from(theirs)).abs();
+                if d <= 1 {
+                    agree += 1;
+                }
+                if d > worst.0 {
+                    worst = (d, (gx, gy), theirs, ours);
+                }
+            }
+            let mut centre_ok = 0;
+            for &((gx, gy), theirs) in &centres {
+                let q = [(0, 0), (1, 0), (0, 1), (1, 1)]
+                    .map(|(dx, dy)| corners.get(&(gx + dx, gy + dy)).copied());
+                if q.iter().all(Option::is_some) {
+                    let mean = q.iter().map(|a| u32::from(a.unwrap())).sum::<u32>() / 4;
+                    centre_ok += u32::from((mean as i32 - i32::from(theirs)).abs() <= 1);
+                }
+            }
+            println!(
+                "run1564 water lattice, read {r} {read:?}: corners {agree} of {} within one, {unlaid} unlaid, worst {worst:?}; centres their corners' mean {centre_ok} of {}",
+                corners.len(),
+                centres.len()
+            );
+            counts.push((agree, unlaid, centre_ok));
+        }
+        println!(
+            "RUN1564_WATER_LATTICE: {counts:?}; {lines} drawn vertices, {off_zero} off z 0, {} corners over ground above 0",
+            above.len()
+        );
+        assert_eq!(
+            (lines, off_zero),
+            (1755, 0),
+            "every drawn water vertex at z 0"
+        );
+        assert_eq!(
+            (corners.len(), centres.len(), above.len()),
+            RUN1564_WATER_LATTICE.0,
+            "the drawn lattice"
+        );
+        assert_eq!(counts, RUN1564_WATER_LATTICE.1);
+        assert!(
+            counts[1..].iter().all(|c| c.0 < counts[0].0),
+            "every other reading agrees on fewer"
+        );
+    }
+
     #[test]
     fn the_water_fades_as_get_water_fade_fades() {
         assert_eq!(water_fade(-200.0), WATER_SOLID);
@@ -1536,20 +2001,43 @@ mod tests {
             laid[first..].iter().all(|m| m.mountain),
             "the mountains after the patch"
         );
-        // Item 4164: the water, once over every tile of a cell that holds
-        // it, before the mountains.
+        // Item 4164: the water before the mountains. Item 4178: on its own
+        // mesh, sixteen triangles over every cell that holds it, and the
+        // floor's shade over every `OCEAN` tile, once.
         let water: Vec<_> = laid
             .iter()
-            .filter(|m| m.alpha == crate::world::WATER_ALPHA)
+            .filter(|m| m.piece == crate::world::WATER_PIECE)
             .collect();
-        let wet = base
-            .tile
-            .iter()
-            .filter(|tt| holds_water(&t, tt.0 / TILES_PER_CELL, tt.1 / TILES_PER_CELL))
+        let wet = (0..t.height)
+            .flat_map(|cy| (0..t.width).map(move |cx| (cx, cy)))
+            .filter(|&(cx, cy)| holds_water(&t, cx, cy))
             .count();
         assert_eq!(water.len(), 1, "one water mesh");
         assert!(wet > 0, "the map holds water");
-        assert_eq!(water[0].positions.len(), wet * 3, "every wet tile, once");
+        assert_eq!(
+            water[0].positions.len(),
+            wet * 16 * 3,
+            "every wet cell, once"
+        );
+        assert!(
+            water[0].positions.iter().all(|p| p[2] == 0.0),
+            "the water at z 0"
+        );
+        let ocean = tex.index_land(render::terrain::OCEAN, 0, 0, 0);
+        let sea = base.of.iter().filter(|&&k| Some(k) == ocean).count();
+        let shade: Vec<_> = laid
+            .iter()
+            .filter(|m| m.piece == crate::world::FLOOR_PIECE - 1)
+            .collect();
+        assert_eq!(shade.len(), 1, "one floor shade");
+        assert_eq!(shade[0].positions.len(), sea * 3, "every OCEAN tile, once");
+        assert_eq!(
+            laid.iter()
+                .filter(|m| m.alpha == crate::world::WATER_ALPHA)
+                .count(),
+            2,
+            "the water and the shade ride the alpha ramp"
+        );
         assert!(
             laid.iter()
                 .position(|m| m.alpha == crate::world::WATER_ALPHA)
@@ -1567,10 +2055,21 @@ mod tests {
         assert_eq!(rest.positions.len() + drawn, full.positions.len());
         for m in ground {
             assert_eq!(m.positions.len(), m.uvs.len());
-            let k = (-1 - m.piece) as usize;
+            // Item 4178: the `OCEAN` tiles draw the floor, not their base.
+            let k = if m.piece == crate::world::FLOOR_PIECE {
+                ocean.expect("the floor is the ocean's")
+            } else {
+                (-1 - m.piece) as usize
+            };
             let tris = base.of.iter().filter(|&&o| o == k).count();
             assert_eq!(m.positions.len(), tris * 3, "texture {k}");
         }
+        assert!(
+            ground
+                .iter()
+                .all(|m| ocean != Some((-1 - m.piece) as usize)),
+            "no OCEAN tile in the land pass"
+        );
         assert_eq!(p.world.terrain().positions, full.positions);
         p.world.debug_ground = true;
         let (all, none, unlaid) = p.world.drawn_terrain();
@@ -2236,6 +2735,20 @@ mod tests {
                 }
             }
             let row = (by.iter().map(|k| k[0] as usize).sum::<usize>(), tiles.len());
+            // Item 4178: the same tiles on brightness, the painter's
+            // reader on the still's means.
+            let luma = {
+                use render::silhouette::{LUMA_READER, luminance};
+                let mut lby = [[0u32; 2]; 7];
+                for (tt, th, us, _) in &tiles {
+                    let k = kind_of(&t, &mountains, *tt);
+                    lby[k][1] += 1;
+                    lby[k][0] += u32::from(LUMA_READER.agrees(luminance(*us), luminance(*th)));
+                }
+                let n = lby.iter().map(|k| k[0]).sum::<u32>();
+                println!("{name} still luma {n} of {} by {lby:?}", tiles.len());
+                ((n, tiles.len()), lby)
+            };
             for (k, (b, c)) in KINDS.iter().zip(by.iter().zip(&crossed)) {
                 println!("{name} still {k}: [agree, scored] {b:?}, crossed [down, up] {c:?}");
             }
@@ -2244,11 +2757,12 @@ mod tests {
                 r.row,
                 r.scored.len()
             );
-            got.push((row, by, before));
+            got.push((row, by, before, luma));
         }
         assert_eq!(got[0].0, RUN1559B_3279_GROUND_STILL);
         assert_eq!((got[1].0, got[1].1), RUN1564_3279_GROUND_STILL);
         assert_eq!([got[0].2, got[1].2], GROUND_STILL_SRGB);
+        assert_eq!([got[0].3, got[1].3], GROUND_LUMA_STILL);
     }
 
     fn mean(px: &[[f32; 3]]) -> [f32; 3] {

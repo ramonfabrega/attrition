@@ -77,17 +77,18 @@ pub const RATE_LEAVES: [&str; 13] = [
     "damage_fifteen_seconds",
 ];
 
-/// Of [`RATE_LEAVES`], the twelve the leaders line emits unheld although
+/// Of [`RATE_LEAVES`], the eleven the leaders line emits unheld although
 /// the crate holds them: the record diff parts each (`docs/LEADERS.md`
 /// §3.5; parked 4177a–c). The hits and damage words part beside the
 /// struck object's own damage (a blow ours does not land on the capital)
 /// and on two nuke landings with nothing visible beside them; the deaths
 /// and kills words beside `units_killed` and `units_lost` on run1075; and
-/// every average on the melees' closing record, the human's, one empty
-/// fold short. `frame_battle` agrees everywhere and is emitted.
-pub const RATES_OFF_THE_LINE: [&str; 12] = [
+/// three averages on the melees' closing record, the human's, one empty
+/// fold short. `frame_battle` agrees everywhere and is emitted, and so is
+/// `average_kill_rate` since item 4159's step T: it parts only beside its
+/// input on run1075 and transfers (`rondata::diff::transfer`, §3.5).
+pub const RATES_OFF_THE_LINE: [&str; 11] = [
     "average_death_rate",
-    "average_kill_rate",
     "average_damage_rate",
     "average_hit_rate",
     "deaths_current_frame",
