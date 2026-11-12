@@ -32,15 +32,18 @@ fn a_multiplier_floors_no_tech_at_one() {
             kremlin: true,
             ..StrengthMods::default()
         },
-        StrengthMods {
-            colosseum: true,
-            russian: true,
-            conquest_bonus: true,
-            kremlin: true,
-        },
     ] {
         assert_eq!(strength(&T, 0, &m), 1, "{m:?}");
     }
+    // The floor is per step, so the arms after the first multiply the 1:
+    // 0 -> 1 (Colosseum, floored) -> 2 (Russian) -> 3 (CtW) -> 6 (Kremlin).
+    let all = StrengthMods {
+        colosseum: true,
+        russian: true,
+        conquest_bonus: true,
+        kremlin: true,
+    };
+    assert_eq!(strength(&T, 0, &all), 6);
 }
 
 #[test]

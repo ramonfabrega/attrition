@@ -1015,9 +1015,11 @@ and `calc_attrition` 6cdea6 (`att = 0`). `log_data` does not print it.
 - **`att`** is `territory.players[w].strength`, written by
   `Sim::calc_attrition` (`crates/sim/src/territory/upkeep.rs:24`) through
   `attrition::strength` (`territory/attrition.rs:42`). Four faults:
-  1. **Trap**: `if tech_steps == 0 { return 0; }` (`attrition.rs:43–45`) is
+  1. ~~**Trap**: `if tech_steps == 0 { return 0; }` (`attrition.rs:43–45`) is
      wrong, as is `docs/ATTRITION.md` §"1. Strength" step 1. Every Russian
-     with a city reads 0 here and 1 in the original.
+     with a city reads 0 here and 1 in the original.~~ Fixed by item 4154:
+     a base of 0 and `== 0 → 1` after each arm (`attrition::strength`), and
+     `docs/ATTRITION.md` §1 is amended in place.
   2. `StrengthMods` sets `russian` only (`upkeep.rs:43–46`). Colosseum and
      Kremlin can use `tech.rs:600`/`:611` and `Holdings::wonders_held`
      (`economy/holdings.rs:572`); the doc comment at `:20–22` is stale.
@@ -1067,8 +1069,13 @@ and `calc_attrition` 6cdea6 (`att = 0`). `log_data` does not print it.
 ### 5.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/attrition-stamps-*.md`); no diff backs it
-yet. Both writer nets were re-run for all five leaves and found no writer
+(`docs/audit/2026-11-11-item-4152/attrition-stamps-*.md`). ~~no diff backs it
+yet.~~ Since item 4154 a diff backs `att`'s zero-base floor under the Russian
+arm and its zero with no arm. `diff::russian_word::
+the_russian_start_holds_att_one_with_no_attrition_tech` checks run647's
+start, `FRAME 1` and the closing dump on both leaders. The leaders checksum
+line checks `att` on run 1562's frame 91, 0 against 0. The other four leaves
+and `att`'s other arms still rest on the readings alone. Both writer nets were re-run for all five leaves and found no writer
 either reading missed.
 
 | leaf | confirmed | corrected | open |
@@ -1111,8 +1118,11 @@ fit the formula. run1072's `attrition_stamp` 1392 on block 1393
   (frame 4500 is outside run1072's window). A peace-pair capture across
   4500 and a `TEAM_STYLE 2` capture settle them.
 - **`attrition_stamp3`'s 16-frame mask**: decompile only, and unmodelled.
-- **No value diff for any leaf**: a `LEADERS` capture diffed on the five
-  leaves (run981 for the floor) would make them one.
+- ~~**No value diff for any leaf**: a `LEADERS` capture diffed on the five
+  leaves (run981 for the floor) would make them one.~~ `att` has a value diff
+  since item 4154: run647, not run981. run981 is the held-out battery's
+  start, and DECISIONS 61 §6 says it is never debugged against. The other
+  four leaves still have none.
 
 ## 6. Anti-attrition (`anti_att`)
 

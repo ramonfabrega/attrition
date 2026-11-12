@@ -175,16 +175,48 @@ Three quantities combine.
 Recomputed per player by `Leader::calc_attrition`:
 
 1. Count how many steps of the attrition tech chain the player holds. That
-   count indexes `ATTRITION_IMPROVED` = `[1, 2, 4, 8]`. No steps means no
-   attrition at all, which is where everybody starts.
+   count indexes `ATTRITION_IMPROVED` = `[1, 2, 4, 8]`. ~~No steps means no
+   attrition at all, which is where everybody starts.~~ No steps is a base
+   of **0** — not an early exit (item 4154; see below).
 2. Then apply, in this order, each as `x = (100 + pct) * x / 100` with integer
-   truncation and a floor of 1:
+   truncation and then `if x == 0 { x = 1 }`:
    `COLOSSEUM_ATTRITION` (wonder, +50%) → `RUSSIAN_ATTRITION` (nation, +100%)
    → `CTW_ATTRITION` (campaign) → `KREMLIN_ATTRITION` (wonder, +100%).
 
 Order matters: each step truncates, so reordering changes the result. The
 floor matters too — at one tech step the value is 1, and +50% of 1 truncates
 back to 1 rather than to zero.
+
+**The floor fires on a base of 0** (item 4154). A leader with no attrition
+step and any applying multiplier holds 1, not 0: a Russian with a city
+inflicts attrition from frame 0 of an Ancient start, before any tech. With
+no step and no multiplier the value stays 0, and that is where everybody
+else starts. The floor is the original's `== 0 → 1`, which differs from
+`.max(1)` only for a negative quotient (`pct < −100`), and no shipped value
+reaches that.
+
+- *How established*: the listing of `Leader::calc_attrition (006cdea0)`.
+  With `n = 0` the base load is skipped and there is no early exit, and the
+  `cmovel` after each arm's division turns a quotient of 0 into 1. Two blind
+  readings and an adjudication back this
+  (`docs/audit/2026-11-11-item-4152/attrition-stamps-verdicts.md`,
+  `docs/LEADERS.md` §5.2). The dumps agree: run647's Ancient start (Great
+  Lakes, the Russians as who 1, `city_num 1`, `tech_frame 0`) prints `att 1`
+  for the Russians and `att 0` for the Nubians (who 0). run981's start prints
+  the same pair.
+- *Which claim a diff backs*: the floor at zero steps under the Russian arm,
+  and the zero with neither. `diff::russian_word::
+  the_russian_start_holds_att_one_with_no_attrition_tech` compares `att` on
+  both leaders on run647's start `FULL DUMP`, on `FRAME 1` and in the
+  closing dump: who 0 is 0 on both sides, and who 1 is 1 on both sides
+  (before the fix, ours was 0). The leaders checksum line holds `att` on run
+  1562's frame 91, where it is 0 and 0 for the Nubians and the British
+  (`docs/CHECKSUM.md` §20).
+- *Not established by a diff*: the floor under the Colosseum and Kremlin
+  arms. The crate does not set those arms (`docs/LEADERS.md` §5.3, fault 2).
+  The floor under the CtW arm is also not diff-backed. So is Russian land
+  bleeding a foreign unit before the first step: no capture on disk puts a
+  hostile unit in Russian land that early (`docs/LEADERS.md` §5.6).
 
 Everything at once tops out at 72: `8 → 12 → 24 → 36 → 72`. That number
 matters; see the note on the sentinel below.
