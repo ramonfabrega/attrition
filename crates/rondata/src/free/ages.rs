@@ -56,6 +56,8 @@ pub(crate) struct GameCensus {
     pub closing: (usize, usize),
     /// The closing records whose piece parts.
     pub closing_partings: Vec<String>,
+    /// The closing records by the dump's printed `gpiece`: `(ours, all)`.
+    pub closing_by_piece: BTreeMap<i32, (usize, usize)>,
     /// The lobby's M (§5.4, on its dumped frames): figure pieces played
     /// and building types drawn; and the K of it — decoding on the slots
     /// played, and the closing block's piece ours on every record of it.
@@ -351,6 +353,11 @@ fn walk(
                     continue;
                 };
                 c.closing.1 += 1;
+                let by = c.closing_by_piece.entry(piece).or_default();
+                by.1 += 1;
+                if u.figures.get(n).is_some_and(|f| f.gpiece == piece) {
+                    by.0 += 1;
+                }
                 match u.figures.get(n) {
                     Some(f) if f.gpiece == piece => c.closing.0 += 1,
                     other => {
@@ -378,6 +385,9 @@ fn walk(
                     continue;
                 };
                 c.closing.1 += 1;
+                let by = c.closing_by_piece.entry(piece).or_default();
+                by.1 += 1;
+                by.0 += usize::from(b.piece == piece);
                 if b.piece == piece {
                     c.closing.0 += 1;
                 } else {
@@ -553,9 +563,13 @@ fn census() -> Option<Vec<GameCensus>> {
 /// **Resolved X of Y objects over L lobbies** (item 4166, new):
 /// `(resolved, objects, lobbies)` on the 4,608 dumped frames of the 82
 /// late-age pairs and the 28 battery words. The objects are every entry of
-/// the client's draw list on those frames — 1,166,600 resolve — and the
-/// scene's projectiles and corpses, which the list cannot draw.
-pub(crate) const AGES_RESOLVED: (usize, usize, usize) = (1_166_600, 1_171_799, 110);
+/// the client's draw list on those frames — 1,167,081 resolve — and the
+/// scene's projectiles and corpses, which the list cannot draw. Item 4169:
+/// +481 from 1,166,600 — the sawmill's 22 and the smelter's 180, whose
+/// unnamed animations name no file (`artdata::building_decoding`), and the
+/// Air Defense line's 279, which loads as its `<UNIT>`
+/// (`artdata::loads_as_unit`).
+pub(crate) const AGES_RESOLVED: (usize, usize, usize) = (1_167_081, 1_171_799, 110);
 
 /// The dumped frames walked: frame 0 and every `FRAME` each long prints.
 pub(crate) const AGES_FRAMES: usize = 4_608;
@@ -563,27 +577,10 @@ pub(crate) const AGES_FRAMES: usize = 4_608;
 /// **The unresolved, by kind and the file that fails**, objects summed
 /// over the lobbies (item 4166, new), in the order RENDERER §3.13 ranks
 /// them cheapest first. A type bent to a missing file adds a row here, so
-/// the test turns red on it.
+/// the test turns red on it. Item 4169: seven building rows left, 481
+/// objects (the sawmill 22, the smelter 98 + 82, the Air Defense line
+/// 4 + 28 + 66 + 181); the crews, rounds and corpses stand.
 pub(crate) const AGES_UNRESOLVED: &[(Kind, &str, usize)] = &[
-    (
-        Kind::Building,
-        "type 424 piece 55219: [Unnamed(\"sawmill_3t Default\")]",
-        22,
-    ),
-    (
-        Kind::Building,
-        "type 425 piece 50963: [Unnamed(\"smelter_0a_addon\")]",
-        98,
-    ),
-    (
-        Kind::Building,
-        "type 425 piece 51092: [Unnamed(\"smelter_0a_addon\")]",
-        82,
-    ),
-    (Kind::Building, "type 522 piece 50803: names no file", 4),
-    (Kind::Building, "type 523 piece 50803: names no file", 28),
-    (Kind::Building, "type 524 piece 50804: names no file", 66),
-    (Kind::Building, "type 525 piece 50805: names no file", 181),
     (
         Kind::Figure,
         "piece 38322 THECITIZEN-DEFAULT-AGE0-CREW3: slot 2 .\\art\\ceo_crew3_idle3.bha",
@@ -615,11 +612,32 @@ pub(crate) const AGES_UNRESOLVED: &[(Kind, &str, usize)] = &[
 /// land) on frame 4321, RENDERER §3.13.
 pub(crate) const AGES_CLOSING: (usize, usize) = (34_394, 34_399);
 
+/// **The closing records that print the pieces item 4169 reads**:
+/// `(gpiece, ours, printed)` over the 110 closing blocks. A piece the
+/// original prints is one its loader loaded — `get_build_gpiece@0090bce0`
+/// takes the first piece whose `data_pieces` entry is set, and
+/// `get_unit_gpiece@0090c030` the first that exists — so a row here is the
+/// dump's own word that the piece loads with what it names.
+pub(crate) const AGES_CLOSING_WATCHED: &[(i32, usize, usize)] = &[
+    (38322, 10, 10),
+    (38323, 9, 9),
+    (39378, 1, 1),
+    (39379, 3, 3),
+    (50803, 10, 10),
+    (50804, 11, 11),
+    (50805, 19, 19),
+    (50963, 5, 5),
+    (51092, 5, 5),
+    (55219, 2, 2),
+];
+
 /// **K of M on each lobby** (§5.4 on the lobby's dumped frames: figure
 /// pieces by the slots played and building types by the pieces drawn;
 /// a member counts when every file decodes and the closing block's piece
 /// is ours on every record of it): the lobbies whose K is M, of all.
-pub(crate) const AGES_LOBBIES_WHOLE: (usize, usize) = (83, 110);
+/// Item 4169: 98, +15 from 83 — the lobbies short only through the
+/// sawmill, the smelter or the Air Defense line.
+pub(crate) const AGES_LOBBIES_WHOLE: (usize, usize) = (98, 110);
 
 /// **The draw list across the ages resolves, and the closing block's
 /// pieces are ours** (item 4166, `docs/RENDERER.md` §3.13): every
@@ -635,7 +653,13 @@ fn the_draw_list_across_the_ages_resolves() {
     let mut unresolved: BTreeMap<(Kind, String), usize> = BTreeMap::new();
     let (mut x, mut y, mut frames, mut closing, mut whole) = (0, 0, 0, (0, 0), 0);
     let mut over: Vec<String> = Vec::new();
+    let mut by_piece: BTreeMap<i32, (usize, usize)> = BTreeMap::new();
     for c in &all {
+        for (p, (a, n)) in &c.closing_by_piece {
+            let e = by_piece.entry(*p).or_default();
+            e.0 += a;
+            e.1 += n;
+        }
         x += c.resolved;
         y += c.objects;
         frames += c.frames;
@@ -687,5 +711,17 @@ fn the_draw_list_across_the_ages_resolves() {
         (whole, all.len()),
         AGES_LOBBIES_WHOLE,
         "lobbies whose K is M"
+    );
+    let watched: Vec<(i32, usize, usize)> = AGES_CLOSING_WATCHED
+        .iter()
+        .map(|&(p, _, _)| {
+            let (a, n) = by_piece.get(&p).copied().unwrap_or_default();
+            (p, a, n)
+        })
+        .collect();
+    pin_eq!(
+        watched,
+        AGES_CLOSING_WATCHED.to_vec(),
+        "the closing records printing the watched pieces, ours of all"
     );
 }

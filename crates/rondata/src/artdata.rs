@@ -1855,6 +1855,19 @@ pub fn scaffold_art(install: &Install) -> Vec<ScaffoldArt> {
         .collect()
 }
 
+/// **A building piece the loader reads as a `<UNIT>`** (item 4169,
+/// `docs/RENDERER.md` §3.13): `GraphicPieces::verify_load@00906550:162`–`173`
+/// sends a build piece of type `0x20b`, `0x20c` or `0x20d` (the Air Defense
+/// Gun, Radar Air Defense and SAM Installation) to `init_unit_data` rather
+/// than `init_build_data` when it is one of the first `0x81` build pieces —
+/// the default style's age 0. Its `<BUILD>` names no file; the `<UNIT>` of
+/// the same name ([`build_piece_name`], `GRAPH-DEFAULT-AGE0`) is its art,
+/// as [`wall_packets`] reads its slots.
+pub fn loads_as_unit(piece: i32, type_index: i32) -> bool {
+    (0x20b..=0x20d).contains(&type_index)
+        && (0..NUM_BUILD_PIECES).contains(&(piece - FIRST_BUILD_PIECE))
+}
+
 /// **A building piece's condition 1** (item 4028, `docs/RENDERER.md`
 /// §5.4): every model and animation its [`BuildArt`] names — the
 /// `zbuffer` `.bh3`, the building's own `anim`, each addon's `.bh3` and
@@ -1863,6 +1876,18 @@ pub fn scaffold_art(install: &Install) -> Vec<ScaffoldArt> {
 /// The farm's pieces ([`FARM_TYPE`]) are held, beside their `<BUILD>`, to
 /// the files `FarmsOut::draw@008d75f0` draws them from on `tileset`
 /// ([`farm_decoding`], item 4037).
+///
+/// **An animation name `anim_graphics.xml` does not carry names no file**
+/// (item 4169): `GraphicPieces::decipher_animation@008face0` answers `-1`,
+/// and neither building loader reports it. `init_build_data@008f2f20:295`
+/// reads the `<BUILD>`'s own `anim` only for `build_anim_time`, skipping a
+/// `-1` and leaving the time 0; `init_build_events@008ea3c0:252` stores the
+/// `-1` in the event and carries on. So the piece loads, and nothing is
+/// opened for that name. A name that is carried and whose file the install
+/// lacks still fails as `Missing`.
+///
+/// A piece that [`loads_as_unit`] is held to its `<UNIT>`'s model and
+/// every slot's file, as [`piece_decoding`] holds a figure's.
 pub fn building_decoding(
     install: &Install,
     pieces: &std::collections::BTreeSet<i32>,
@@ -1883,6 +1908,7 @@ pub fn building_decoding(
             .map_err(|e| ArtFailure::Undecodable(rel.into(), e.to_string()))
     };
     let mut out = BTreeMap::new();
+    let mut units: Option<Vec<UnitArt>> = None;
     for (piece, art) in build_art(install, pieces) {
         let art = match art {
             Ok(art) => art,
@@ -1899,21 +1925,35 @@ pub fn building_decoding(
         if let Some(z) = &art.zbuffer {
             check(model(z));
         }
-        if let Some((a, f)) = &art.anim {
-            check(
-                f.as_deref()
-                    .map_or(Err(ArtFailure::Unnamed(a.clone())), anim),
-            );
+        if let Some((_, Some(f))) = &art.anim {
+            check(anim(f));
         }
-        for (subject, m, a, f) in &art.addons {
+        for (subject, m, _, f) in &art.addons {
             check(
                 m.as_deref()
                     .map_or(Err(ArtFailure::Unnamed(subject.clone())), model),
             );
-            check(
-                f.as_deref()
-                    .map_or(Err(ArtFailure::Unnamed(a.clone())), anim),
-            );
+            if let Some(f) = f {
+                check(anim(f));
+            }
+        }
+        if loads_as_unit(piece, art.type_index) {
+            let units = units.get_or_insert_with(|| unit_art(install, &[]));
+            match units
+                .iter()
+                .find(|u| u.name.eq_ignore_ascii_case(&art.name))
+            {
+                None => check(Err(ArtFailure::Unnamed(art.name.clone()))),
+                Some(u) => {
+                    check(model(&u.model));
+                    for (_, a, f) in &u.anims {
+                        check(
+                            f.as_deref()
+                                .map_or(Err(ArtFailure::Unnamed(a.clone())), anim),
+                        );
+                    }
+                }
+            }
         }
         if art.type_index == FARM_TYPE {
             match farm_decoding(install, tileset) {
