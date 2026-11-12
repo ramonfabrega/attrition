@@ -16775,18 +16775,23 @@ words and edits nothing here; a refill lands when two remain.
   not at all. Not established: a game with allies (`update_all_seen`'s frame-0 ally arm ORs `seen2` by a raw loop that does
   not write `was_seen`, and the crate does not carry it), a dump-installed grid (`set_fog` zeroes both words; the dump's
   `was_seen` is not read), a restore's walk. Names no score on frame 91.
-- **4148b. The leaders line's `explored` is a count over `seen2`** (`docs/CHECKSUM.md` §20; `LEADERS_HELD_OUT`, out by name).
+- ~~**4148b. The leaders line's `explored` is a count over `seen2`** (`docs/CHECKSUM.md` §20; `LEADERS_HELD_OUT`, out by name).
   `Leader::check_explore` counts `seen2` at fog cell (4i+3, 4j+3) for each region cell, 30 × 30: over frame 91's `seen2`
   19 and 23 against theirs 19 and 22, leader 1's count taken on an earlier frame of its own phase. Names the leaders
-  line's `explored` leaves on run 1562's frame 91: the next design's candidate beside 4118.
+  line's `explored` leaves on run 1562's frame 91: the next design's candidate beside 4118.~~ Carried by item 4153
+  (`docs/VISION.md` §13): 19 and 22 on both sides, leader 1's count being frame 0's.
 
-## Parked by the next landing, slot FS — reserved
+## Parked by item 4153, 2026-11-11 — the leaders line's `explored`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot FS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4153a. Leader 0's `explored` is one or two under theirs in twelve late-age pairs** (`docs/VISION.md` §13;
+  `diff::leader::UNMODELLED`). With `explored` in the leader record's diff, `diff::` whole parted 24 windows, all
+  on leader 0 and ours always below: French Information run1448b on f2989 (ours 29, theirs 30), Turkish Information
+  run1446b on f2789 (27, 28), German Modern run1422 on f5189 (35, 36), Russian Modern run1161b on f3789 (41, 42),
+  and Bantu Modern run1405b standing at 3395 (32, 34). Every other widening that prints the record agreed. No fog
+  parting is printed beside them. The next probe: `seen2` at the 900 sample cells on the parting block, both sides
+  (the `WORLD` dump where it prints the plane), and the frame of the leader's last count. The comparison's commit
+  was reverted. Taking `explored` off `UNMODELLED` moves 30 row-count pins by one key per leader per block, which
+  `repin.py` rewrites.
 
 ## Parked by the next landing, slot FT — reserved
 

@@ -47,7 +47,7 @@ pub(crate) const UNMODELLED: &[(&str, &str)] = &[
     ("blacken", "fog bookkeeping"),
     (
         "explored",
-        "ported (VISION §13); leader 0 one or two under in eleven late-age pairs (parked 4153a)",
+        "ported (VISION §13); leader 0 one or two under in twelve late-age pairs (parked 4153a)",
     ),
     ("pop_issues", "the population-pressure counter is unread"),
     (

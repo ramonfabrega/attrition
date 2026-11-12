@@ -1640,7 +1640,20 @@ walked leaders: leader 0's 19 against 19, and leader 1's 22 against 22
 and bytes do not move (263 of 267, 4,313), because each leader's long range
 is still out on the other 99 leaves.
 
-PER-FRAME-PENDING
+**Measured once, every frame, and not kept.** One commit put `explored`
+into the leader record's diff (`diff::leader::rows`, off `UNMODELLED`), and
+`diff::` ran whole on it: 1,802 passed, 54 failed. Thirty of the failures
+were row-count pins that had grown by one key per leader per block. The
+other 24 parted on `explored`, all on leader 0 in twelve late-age pairs
+(American, Bantu, British, Chinese, Egyptian, German, Roman and Russian
+Modern; French, Russian, Spanish and Turkish Information), with
+ours always one or two below theirs. Examples: French Information run1448b
+on f2989 (ours 29, theirs 30), Turkish Information run1446b on f2789 (27,
+28), and Bantu Modern run1405b standing at 3395 (32, 34). Every other
+widening that prints the leader record raised no parting on it, among them
+the golden chapters, the harness runs, the leader windows, the third map
+and the melee seats. The commit was reverted, and the count is parked
+4153a. No fog parting is printed beside the 24.
 
 **What rests on the reading.** The bonus arm: no capture on disk is known
 to hold Electronics while it counts. The Spanish exclusion. Gaia's bit.
@@ -1649,3 +1662,7 @@ to hold Electronics while it counts. The Spanish exclusion. Gaia's bit.
 
 - An `ai_speed` other than 1 (the `ai speed increase` cheat).
 - A leader holding `EXPLORE_MAP_BONUS` when it counts.
+- Why leader 0 counts one or two fewer region cells in the twelve late-age
+  pairs (parked 4153a). Two candidates: a sampled fog cell our walk leaves
+  dark there, or the window's fog installed from the dump against a count
+  taken before it.
