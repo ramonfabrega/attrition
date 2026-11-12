@@ -1192,6 +1192,45 @@ named regression. 0/1's 159 behind pixels agree 81 → 66 (80 needed); composed 
 `_COLOUR_STILL` holds 14 (0/1 30 → 64, the painter's 66), `_TRACED_STILL` **31 → 32**: 0/1's ring no longer holds a
 silhouette's red over flat green (4171a), 0.159 → 0.850.
 
+**The shadows (item 4182; read on the listing, the rule committed before its count).** A shadow is a decal:
+`DecalTransformMethod::execute@00923a70` lays a flat quad in world space from a `DecalRDataStruct`, and
+`DecalFlushMethod::execute@00923fd0` hands it to the card under an identity transform. The angle is truncated and
+taken mod 360, and both axes are turned about z by it. The half extents are `width/2` and `height/2`. The x offset
+is subtracted and x alone is stretched: `x = loc.x + (±hw·r1.x ± hh·r2.x − xoffset)·xstretch`,
+`y = loc.y ± hw·r1.y ± hh·r2.y`, `z = loc.z`. The texcoords cover the whole texture, or one quarter for corners 0
+to 3 (`render::decal`). The writers:
+- `GraphicPieces::draw_tree_shadow@00905910` is called from `sort_trees` at every placed tree, before the tree.
+  The decal is 192 × 192 with the tree's angle (0), stretch 1.5, offset 38.4, corner `(int)(x + y) % 4` of the
+  tileset's eighth `TREE_TEXTURES0` line (`tree_t_shadows.tga`), in `BLACK`.
+- `GraphicPieces::draw_unit_shadow@008e8fa0` is called from `GuyOut::draw_shadows@005dc070`. The decal takes
+  `unit_graphics.xml`'s `shadowwidth` and `shadowheight` × 3 (`init_unit_data@008f4290`) and the `<SHADOW>`
+  texture `effects_graphics.xml` names for `shadowtype`. Its angle is `180 − fast_angle_to_degrees`, which is the
+  drawn degree negated. Stretch 1.25, offset 0.25, the whole texture, at the guy's point plus `GuyOut::
+  shadow_offset_x/y`.
+- On run1566b's pass after 3279 they are draws 116–118 and 124 (`shadow.tga`, `shadow_horse.tga`,
+  `shadow_medtank.tga`, `shadow_fighter.tga`) and 119 (the trees'). Each has enables 0x20084 (no depth test, the
+  alpha test, source alpha over the rest), colour `SELECTARG2` = the vertex's black, and alpha `MODULATE` of texel
+  and vertex. They follow the ground, the roads, the borders and the tracks, and precede the mountains (121) and
+  every object.
+- On run1559b's packet (`tree_points.py --guytree`, its `shadow` column), 31 of the 32 guys hold an offset within
+  11 units; 1/30 holds (−63, −27). The client draws at offset 0.
+
+*The rule* (`client::shadows`). A pixel of the photograph is *under a shadow* when:
+- it lies inside a projected decal of the frame — every tree `World::tree_list` stands and every drawn figure
+  whose piece names a `<SHADOW>` — through the photograph's camera;
+- the decals' combined darkening there, `1 − Π(1 − α)`, with `α` the texel's alpha (level 0, nearest) times the
+  vertex's, is at least `1 − 1/1.2`: the darkening past which an undarkened pixel would part `LUMA_READER`;
+- and it is the ground's by `ground_why`'s masks, the object's window apart: not an object's own pixel, not the
+  interface, not a trace, on the heightfield.
+
+A tile is scored on at least 40 such pixels (`HUE.min_pixels`). The photograph's mean over them is read against
+the still's mean over the same pixels by `HUE` (`RUN1559B_3279_SHADOW`) and by `LUMA_READER`
+(`RUN1559B_3279_SHADOW_LUMA`). The selection is the original's geometry at the original's points: the trees
+agree 60 of 60 and the figures stand in register. Our side is the client's still. Both counts are pinned first as
+drawn before (no shadow, `World::shadows` off), then with the decals drawn. The rule can fail: an undarkened tile
+under a darkening of a sixth parts the luminance reader by construction. Its made-to-fail is the decals mirrored
+in x, with the offset's sign turned.
+
 **What is not established.**
 - ~~The leaves' alpha~~: read and applied, above (item 4082).
 - ~~Why four figures the photograph shows in front of the pine stand behind it in ours~~: they stand behind it in
@@ -1210,8 +1249,9 @@ silhouette's red over flat green (4171a), 0.159 → 0.850.
 - The blend: the key buffer keeps a fragment whole where its alpha passes; the original blends it, which moves
   colour, not a footprint. Item 4173 measures what it costs: the translucent texels part 50 %, the opaque 25 %
   (parked 4173a).
-- The trees' shadows: draw 119 of the pass, `tree_t_shadows.tga`, `SELECTARG2(TEXTURE)` at enables 0x20084, the
-  dark patch under each tree on the photograph; not drawn (parked 4173c).
+- ~~The trees' shadows: draw 119 of the pass, `tree_t_shadows.tga`, `SELECTARG2(TEXTURE)` at enables 0x20084, the
+  dark patch under each tree on the photograph; not drawn (parked 4173c)~~: read and drawn, the figures' with them
+  (item 4182, "The shadows" above).
 - Why 0/1 behind the pine agrees with the raw texel under its silhouette (81 of 159) and not with the drawn leaf
   (66), nor with the blend before the tone map (11) (parked 4173b).
 - Why tree models 9–15 agree at 0.71–0.81 and the rest at 0.34–0.63, the photograph greener on the latter's opaque

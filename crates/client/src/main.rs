@@ -223,6 +223,8 @@ struct Built {
     /// The trees' textured faces (item 4173).
     trees: Vec<world::TexturedMesh>,
     sprites: Vec<world::SpriteDrawing>,
+    /// The shadows (item 4182), one mesh a decal texture.
+    shadows: Vec<world::TexturedMesh>,
     overlay: (Vec<[f32; 3]>, Vec<[f32; 3]>),
 }
 
@@ -230,6 +232,7 @@ fn build(world: &mut World, camera: &render::Camera, size: (u32, u32), frame_ms:
     let (figures, buildings, list) =
         world.draw_list(camera, &pinned_screen(), (size.0 as i32, size.1 as i32));
     let sprites = world.sprite_drawings(&buildings, &list, camera.zoom_distance);
+    let shadows = world.shadow_meshes(&world.shadows(&figures, &list));
     let (mut figures, textured) = world.figure_meshes(&figures, &buildings, &list);
     let trees = world.tree_textured(&mut figures);
     let lines = overlay::Lines {
@@ -244,6 +247,7 @@ fn build(world: &mut World, camera: &render::Camera, size: (u32, u32), frame_ms:
         textured,
         trees,
         sprites,
+        shadows,
         overlay,
     }
 }
@@ -280,6 +284,7 @@ fn draw(
         trees: &b.trees,
         overlay: (&b.overlay.0, &b.overlay.1),
         sprites: &b.sprites,
+        shadows: &b.shadows,
     };
     session.phase("gpu", || match target {
         Some(view) => {
@@ -324,6 +329,7 @@ pub(crate) fn still_of(
         trees: &b.trees,
         overlay: (&[], &[]),
         sprites: &b.sprites,
+        shadows: &b.shadows,
     };
     let rgba = gpu.still(size, camera, &frame);
     assert_eq!(

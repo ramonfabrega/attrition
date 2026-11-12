@@ -101,6 +101,10 @@ fn tree_shader() -> String {
 /// base already drawn. The vertex is the textured layout's: the alpha's
 /// texcoord rides in the third attribute's `xy`.
 const PATCH_SHADER: &str = include_str!("../shaders/patch.wgsl");
+/// **The shadows' pass** (item 4182; `docs/RENDERER.md` §3.7, "The
+/// shadows"): the decal's black under its texel's alpha, after the textured
+/// shader's vertex stage.
+const DECAL_SHADER: &str = include_str!("../shaders/decal.wgsl");
 
 /// The camera-space depth range mapped onto [0, 1]: wider than any map.
 const DEPTH_RANGE: (f32, f32) = (-200_000.0, 200_000.0);
@@ -145,6 +149,8 @@ pub struct Frame<'a> {
     pub patch_version: u32,
     /// The buildings drawn as their sprites (item 4076).
     pub sprites: &'a [crate::world::SpriteDrawing],
+    /// The shadows (item 4182), one mesh a decal texture.
+    pub shadows: &'a [crate::world::TexturedMesh],
 }
 
 /// **Where the figures' silhouette pass falls** (item 4171; `docs/RENDERER.md`
@@ -217,6 +223,10 @@ pub struct Gpu {
     tree: wgpu::RenderPipeline,
     tree_sampler: wgpu::Sampler,
     tree_textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
+    /// The shadows' pass (item 4182) and each decal texture on the GPU,
+    /// uploaded once under the trees' linear, clamped sampler.
+    decal: wgpu::RenderPipeline,
+    decal_textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
     /// Where the silhouette pass falls (item 4171).
     pub silhouette_order: SilhouetteOrder,
 }
@@ -429,6 +439,10 @@ impl Gpu {
             label: Some("textured"),
             source: wgpu::ShaderSource::Wgsl(TEXTURED_SHADER.into()),
         });
+        let decal_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("decal"),
+            source: wgpu::ShaderSource::Wgsl(format!("{TEXTURED_SHADER}{DECAL_SHADER}").into()),
+        });
         let tree_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("tree"),
             source: wgpu::ShaderSource::Wgsl(format!("{TEXTURED_SHADER}{}", tree_shader()).into()),
@@ -495,6 +509,17 @@ impl Gpu {
                 stencil,
             )
         };
+        // Item 4182: `enables` 0x20084 on draws 116–119 — no depth test, no
+        // depth write, the alpha test and source alpha over the rest.
+        let decal = pass_of(
+            &decal_module,
+            "decal",
+            "fs_decal",
+            false,
+            wgpu::CompareFunction::Always,
+            Some(wgpu::BlendState::ALPHA_BLENDING),
+            Default::default(),
+        );
         let tree = pass_of(
             &tree_module,
             "tree",
@@ -621,6 +646,8 @@ impl Gpu {
             ..Default::default()
         });
         Ok(Gpu {
+            decal,
+            decal_textures: std::sync::Mutex::new(Default::default()),
             tree,
             tree_sampler,
             tree_textures: std::sync::Mutex::new(Default::default()),
@@ -881,13 +908,31 @@ impl Gpu {
     /// The trees' meshes on the GPU (item 4173), each beside its
     /// texture's bind group under the clamped sampler, uploaded once.
     fn tree_meshes(&self, meshes: &[crate::world::TexturedMesh]) -> Vec<Uploaded> {
+        self.flat_meshes(meshes, &self.tree_textures, [0.0; 3])
+    }
+
+    /// Each shadow mesh (item 4182) as [`Gpu::tree_meshes`] uploads a
+    /// tree's, the vertex alpha 1 (`BLACK`'s 255) in the third attribute.
+    fn decal_meshes(&self, meshes: &[crate::world::TexturedMesh]) -> Vec<Uploaded> {
+        self.flat_meshes(meshes, &self.decal_textures, [1.0, 0.0, 0.0])
+    }
+
+    /// Meshes of corners and texcoords, `third` every corner's third
+    /// attribute, each texture on its level 0 under the clamped sampler,
+    /// uploaded once into `textures`.
+    fn flat_meshes(
+        &self,
+        meshes: &[crate::world::TexturedMesh],
+        textures: &std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
+        third: [f32; 3],
+    ) -> Vec<Uploaded> {
         meshes
             .iter()
             .filter(|m| !m.positions.is_empty())
             .map(|m| {
                 let mut bytes = Vec::with_capacity(m.positions.len() * 32);
                 for (p, uv) in m.positions.iter().zip(&m.uvs) {
-                    for f in p.iter().chain(uv).chain(&[0.0f32; 3]) {
+                    for f in p.iter().chain(uv).chain(&third) {
                         bytes.extend_from_slice(&f.to_le_bytes());
                     }
                 }
@@ -899,7 +944,7 @@ impl Gpu {
                 });
                 self.queue.write_buffer(&buf, 0, &bytes);
                 let n = m.positions.len().min(m.uvs.len()) as u32;
-                let mut cache = self.tree_textures.lock().unwrap();
+                let mut cache = textures.lock().unwrap();
                 let t = cache
                     .entry(m.piece)
                     .or_insert_with(|| self.upload_mips(&m.mips.levels[..1], &self.tree_sampler))
@@ -992,6 +1037,7 @@ impl Gpu {
         let quads = self.sprite_quads(frame.sprites);
         let textured = self.textured_meshes(frame.textured);
         let trees = self.tree_meshes(frame.trees);
+        let shadows = self.decal_meshes(frame.shadows);
         let depth = self.device.create_texture(&wgpu::TextureDescriptor {
             label: Some("depth"),
             size: wgpu::Extent3d {
@@ -1082,9 +1128,16 @@ impl Gpu {
                     pass.draw(0..*n, 0..1);
                 }
                 // The patch after the base (item 4139, §3.9).
+                let mut shadows_drawn = false;
                 if !patches.is_empty() {
                     // Item 4141 (§3.10): a mountain's layers after it.
                     for (b, n, t, a, mountain) in patches {
+                        // Item 4182: the shadows before the first mountain
+                        // layer, as the card draws 116–119 before 121.
+                        if *mountain && !shadows_drawn {
+                            self.draw_decals(&mut pass, &shadows);
+                            shadows_drawn = true;
+                        }
                         pass.set_pipeline(if *mountain {
                             &self.mountain
                         } else {
@@ -1095,6 +1148,9 @@ impl Gpu {
                         pass.set_vertex_buffer(0, b.slice(..));
                         pass.draw(0..*n, 0..1);
                     }
+                }
+                if !shadows_drawn {
+                    self.draw_decals(&mut pass, &shadows);
                 }
                 pass.set_pipeline(&self.world);
             }
@@ -1147,6 +1203,19 @@ impl Gpu {
             }
         }
         self.queue.submit([enc.finish()]);
+    }
+
+    /// The shadows' pass (item 4182), its bind group 1 left for the next.
+    fn draw_decals(&self, pass: &mut wgpu::RenderPass<'_>, shadows: &[Uploaded]) {
+        if shadows.is_empty() {
+            return;
+        }
+        pass.set_pipeline(&self.decal);
+        for (b, n, t) in shadows {
+            pass.set_bind_group(1, t, &[]);
+            pass.set_vertex_buffer(0, b.slice(..));
+            pass.draw(0..*n, 0..1);
+        }
     }
 
     /// An off-screen frame to draw into (`client --headless`, item 4161).

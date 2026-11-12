@@ -131,6 +131,11 @@ pub struct World {
     unit_models: BTreeMap<i32, UnitModel>,
     /// Each unit piece's `<UNIT>` `texture=` (item 4099), where it names one.
     unit_textures: BTreeMap<i32, String>,
+    /// The shadows' art (item 4182).
+    shadow_art: ShadowArt,
+    /// Draw the shadows (item 4182). On by default; the row's made-to-fail
+    /// and its count as drawn before turn it off.
+    pub shadows: bool,
     /// Each unit piece's texture, decoded once with its levels; `None`
     /// where it does not resolve or decode.
     figure_textures: BTreeMap<i32, Option<std::sync::Arc<render::silhouette::Mips>>>,
@@ -304,6 +309,30 @@ pub struct TreeMeshes {
     /// [`TreeMeshes::textures`] on their one level, shared with the GPU's
     /// tree pass (item 4173).
     pub leaf_mips: Vec<Option<std::sync::Arc<render::silhouette::Mips>>>,
+    /// The section's `Shadow Texture` on its one level (item 4182), the
+    /// decal under each tree; `None` where it does not decode.
+    pub shadow: Option<std::sync::Arc<render::silhouette::Mips>>,
+}
+
+/// **The shadows' art** (item 4182; `docs/RENDERER.md` §3.7, "The
+/// shadows"): `effects_graphics.xml`'s `<SHADOW>` textures in file order,
+/// each on its one level (`None` where one does not decode), and each unit
+/// piece's `shadowwidth`, `shadowheight` and its type's index there.
+pub struct ShadowArt {
+    pub textures: Vec<Option<std::sync::Arc<render::silhouette::Mips>>>,
+    pub units: BTreeMap<i32, (f32, f32, usize)>,
+}
+
+/// The key a decal's texture takes beside the figures' pieces (item 4182):
+/// `DECAL_PIECE − 1 − k` a `<SHADOW>`'s, `DECAL_PIECE` the trees'.
+pub const DECAL_PIECE: i32 = -200_000;
+
+/// One drawn shadow: the decal and the texture key it samples
+/// ([`DECAL_PIECE`]).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Shadow {
+    pub decal: render::decal::Decal,
+    pub texture: i32,
 }
 
 /// One tree model's texcoords, one a vertex, and the texture (0–6) each
@@ -499,8 +528,32 @@ impl World {
             .collect();
         let mut unit_models = BTreeMap::new();
         let mut unit_textures = BTreeMap::new();
+        let shadow_files = rondata::artdata::shadow_files(&install);
+        let mut shadow_art = ShadowArt {
+            textures: shadow_files
+                .iter()
+                .map(|(_, f)| {
+                    let bytes = std::fs::read(resolve_art(install.root(), f)?).ok()?;
+                    let image = render::tga::decode(&bytes).ok()?;
+                    Some(std::sync::Arc::new(render::silhouette::Mips {
+                        levels: vec![image],
+                    }))
+                })
+                .collect(),
+            units: BTreeMap::new(),
+        };
         for e in unit_art(&install, &graphs) {
+            let [ty, w, h] = &e.shadow;
+            let shadow = shadow_files
+                .iter()
+                .position(|(n, _)| n.eq_ignore_ascii_case(ty))
+                .zip(w.parse::<f32>().ok())
+                .zip(h.parse::<f32>().ok())
+                .map(|((k, w), h)| (w, h, k));
             for p in &e.pieces {
+                if let Some(sh) = shadow {
+                    shadow_art.units.entry(*p).or_insert(sh);
+                }
                 if !e.texture.is_empty() {
                     unit_textures.entry(*p).or_insert_with(|| e.texture.clone());
                 }
@@ -589,8 +642,16 @@ impl World {
                         })
                     })
                     .collect();
+                let shadow = art.shadow.as_ref().and_then(|t| {
+                    let bytes = std::fs::read(resolve_art(&root, t)?).ok()?;
+                    let image = render::tga::decode(&bytes).ok()?;
+                    Some(std::sync::Arc::new(render::silhouette::Mips {
+                        levels: vec![image],
+                    }))
+                });
                 TreeMeshes {
                     leaf_mips,
+                    shadow,
                     scale: art.treescale * render::trees::TREESCALE_FACTOR,
                     models: art
                         .models
@@ -629,6 +690,8 @@ impl World {
             meshes: BTreeMap::new(),
             unit_models,
             unit_textures,
+            shadow_art,
+            shadows: true,
             figure_textures: BTreeMap::new(),
             textured: true,
             root: install.root().to_path_buf(),
@@ -1133,6 +1196,85 @@ impl World {
                     positions,
                     uvs,
                     mips: art.leaf_mips.get(k)?.clone()?,
+                })
+            })
+            .collect()
+    }
+
+    /// **The frame's shadows** (item 4182; `docs/RENDERER.md` §3.7, "The
+    /// shadows"): `ObjectsOut::sort_trees`' decal at every tree
+    /// [`World::tree_list`] stands, and `GuyOut::draw_shadows`' under every
+    /// figure of `list` whose piece names a `<SHADOW>`, at its point with no
+    /// `shadow_offset` (the packet's are 0 to 11 units on 31 of run1559b's
+    /// 32 guys; not ported) and turned against its drawn degree. Empty with
+    /// [`World::shadows`] off.
+    pub fn shadows(&self, figures: &[Placed], list: &[Drawn]) -> Vec<Shadow> {
+        if !self.shadows {
+            return Vec::new();
+        }
+        let mut out = Vec::new();
+        if self.trees && self.tree_art.as_ref().is_some_and(|a| a.shadow.is_some()) {
+            for t in self.tree_list() {
+                out.push(Shadow {
+                    decal: render::decal::tree_shadow([t.at.0, t.at.1, t.at.2]),
+                    texture: DECAL_PIECE,
+                });
+            }
+        }
+        let at_figure: BTreeMap<(u8, i16, u16), &Placed> = figures
+            .iter()
+            .map(|p| ((p.who, p.o, p.figure), p))
+            .collect();
+        for d in list {
+            let Pose::Figure { figure, facing, .. } = d.pose else {
+                continue;
+            };
+            let Some(p) = at_figure.get(&(d.who, d.o, figure)) else {
+                continue;
+            };
+            let Some(&(w, h, k)) = self.shadow_art.units.get(&d.piece) else {
+                continue;
+            };
+            let drawn = sim::data::pivot::release_rotation(sim::movement::Angle(facing as i32));
+            out.push(Shadow {
+                decal: render::decal::unit_shadow([p.x, p.y, p.z], w, h, drawn),
+                texture: DECAL_PIECE - 1 - k as i32,
+            });
+        }
+        out
+    }
+
+    /// A shadow's texture by its key ([`DECAL_PIECE`]).
+    pub fn shadow_texture(&self, key: i32) -> Option<&std::sync::Arc<render::silhouette::Mips>> {
+        if key == DECAL_PIECE {
+            return self.tree_art.as_ref()?.shadow.as_ref();
+        }
+        let k = usize::try_from(DECAL_PIECE - 1 - key).ok()?;
+        self.shadow_art.textures.get(k)?.as_ref()
+    }
+
+    /// [`World::shadows`] as the GPU's decal pass takes them: one mesh a
+    /// texture, `piece` its key, in the order the shadows fall.
+    pub fn shadow_meshes(&self, shadows: &[Shadow]) -> Vec<TexturedMesh> {
+        let mut by: Vec<(i32, Vec<[f32; 3]>, Vec<[f32; 2]>)> = Vec::new();
+        for s in shadows {
+            let (p, uv) = s.decal.triangles();
+            match by.iter_mut().find(|e| e.0 == s.texture) {
+                Some(e) => {
+                    e.1.extend(p);
+                    e.2.extend(uv);
+                }
+                None => by.push((s.texture, p.to_vec(), uv.to_vec())),
+            }
+        }
+        by.into_iter()
+            .filter_map(|(piece, positions, uvs)| {
+                Some(TexturedMesh {
+                    piece,
+                    who: 0,
+                    positions,
+                    uvs,
+                    mips: self.shadow_texture(piece)?.clone(),
                 })
             })
             .collect()
