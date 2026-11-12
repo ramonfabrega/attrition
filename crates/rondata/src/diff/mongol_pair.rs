@@ -692,5 +692,6 @@ fn run844_s_closing_frame_is_widened_whole() {
     // supplier) casts Create Decoy (spell 634) as theirs does, now that a
     // supplier's pool takes the supply upgrade's multiple (`docs/AI.md`
     // §331.1).
-    pin_eq!(w.firsts.len(), 185, "run844 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    // Item 4176: 185 -> 186, +1 firsts: who=1's `attrition_stamp2` standing at 4940, ours 4871 theirs 0 (parked 4176b).
+    pin_eq!(w.firsts.len(), 186, "run844 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
 }

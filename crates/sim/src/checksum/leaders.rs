@@ -1334,6 +1334,20 @@ impl Sim {
             // (`+0x218 == 2`). So each is a sum of `num_units`.
             "barracks_units" | "stable_units" | "combat_units" | "factory_units" | "dock_units"
             | "air_units" => one(self.leader_trained(who, name)),
+            // Item 4176 (`crate::leaders::tallies`): the kill, loss and raze
+            // counters (`docs/LEADERS.md` §2), the victim stamps (§4), the
+            // attrition stamps and `give_att_disabled` (§5), and the
+            // missiles, repairs, bribes and nukes (§15).
+            //
+            // `units_killed`, `units_lost`, the three victim stamp rows and
+            // `attrition_stamp2` are held (`Sim::leader_tally_leaf`) and not
+            // emitted: the record diff parts each (`docs/LEADERS.md` §2.5,
+            // §4.5, §5.5; parked 4176a, 4176b).
+            _ if crate::leaders::tallies::LEAVES.contains(&name)
+                && !crate::leaders::tallies::OFF_THE_LINE.contains(&name) =>
+            {
+                self.leader_tally_leaf(who, name)
+            }
             _ => None,
         }
     }

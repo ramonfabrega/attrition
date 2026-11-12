@@ -555,7 +555,8 @@ pub fn face_n_dot_l(tri: &[[f32; 3]; 3]) -> f32 {
 }
 
 /// The nearer object's own colour over `window` (item 4103): a tree's
-/// texel through its cut ([`render::silhouette::paint_cut`]), else
+/// texel through its cut ([`render::silhouette::paint_cut`]), coloured as
+/// it is drawn ([`crate::trees::DRAWN`], item 4173), else
 /// [`painted`]'s, team-coloured.
 #[cfg(test)]
 pub fn paint_nearer(
@@ -566,6 +567,29 @@ pub fn paint_nearer(
     key: u32,
     window: Rect,
 ) -> Vec<Option<render::silhouette::Texel>> {
+    paint_nearer_as(
+        world,
+        scene,
+        camera,
+        size,
+        key,
+        window,
+        Some(crate::trees::DRAWN),
+    )
+}
+
+/// [`paint_nearer`], a tree's texel coloured `how`, or raw with `None`
+/// (the leaf items 4106 and 4114 read).
+#[cfg(test)]
+pub fn paint_nearer_as(
+    world: &mut World,
+    scene: &Scene,
+    camera: &render::Camera,
+    size: (usize, usize),
+    key: u32,
+    window: Rect,
+    how: Option<crate::trees::TreeColour>,
+) -> Vec<Option<render::silhouette::Texel>> {
     let first_tree = (scene.drawings.len() + scene.sprites.len()) as u32 + 1;
     if key < first_tree {
         return painted(world, scene, camera, size, key, window, Colouring::Team);
@@ -574,16 +598,22 @@ pub fn paint_nearer(
     let trees = world.tree_drawings();
     let cuts = world.tree_cuts();
     match (trees.get(i), cuts.get(i).and_then(Option::as_ref)) {
-        (Some(d), Some(cut)) => render::silhouette::paint_cut(
-            &Object {
-                key,
-                tris: d.tris.clone(),
-            },
-            cut,
-            camera,
-            size,
-            window,
-        ),
+        (Some(d), Some(cut)) => {
+            let raw = render::silhouette::paint_cut(
+                &Object {
+                    key,
+                    tris: d.tris.clone(),
+                },
+                cut,
+                camera,
+                size,
+                window,
+            );
+            match how {
+                Some(how) => crate::trees::recolour(&raw, &d.tris, how),
+                None => raw,
+            }
+        }
         _ => vec![None; ((window.x1 - window.x0) * (window.y1 - window.y0)).max(0) as usize],
     }
 }
@@ -6588,7 +6618,7 @@ mod tests {
                 })
                 .flatten();
             let leaf_tex =
-                pine.map(|k| paint_nearer(&mut world, &scene, &camera, size, k, f.window));
+                pine.map(|k| paint_nearer_as(&mut world, &scene, &camera, size, k, f.window, None));
             let ww = (f.window.x1 - f.window.x0) as usize;
             for y in f.window.y0..f.window.y1 {
                 for x in f.window.x0..f.window.x1 {
@@ -7857,7 +7887,9 @@ mod tests {
         // The count, and the kill (a): the stored candidate agrees on fewer
         // pixels than the texel, and the row goes down.
         assert_eq!((stored_total, every_stored), (6_565, 7_475));
-        assert_eq!(passing, (18, 16));
+        // 18, 16 until item 4173: 0/1 out of both, the drawn tree under
+        // its silhouette.
+        assert_eq!(passing, (17, 15));
         assert!(
             (stored_total as usize) <= texel_total,
             "the stored candidate beats the texel: kill (a) does not hold"

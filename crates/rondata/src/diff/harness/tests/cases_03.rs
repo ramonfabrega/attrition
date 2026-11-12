@@ -1609,7 +1609,8 @@ mod bodies {
             // item 3982: +2 keys a leader (`ages_queued`, `epochs_queued`), which this record does not print.
             // Item 4162: 1210 -> 1216, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // Item 4167: 1216 -> 1227, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
-            1227,
+            // Item 4176: 1227 -> 1262, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
+            1262,
             "the keys run80's record does not carry"
         );
         pin_eq!(
@@ -1691,7 +1692,8 @@ mod bodies {
             // technology. Item 3982: +2, `ages_queued` and
             // `epochs_queued`. Item 4162: +6, `att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`.
             // Item 4167: +11 (2749 -> 2760), the three marks, `senates_built`, `scholar_militia` and the six `*_queued`.
-            1_210 + 1_531 + 2 + 6 + 11,
+            // item 4176: + 35, the damage path's printed leaves (2760 -> 2795).
+            1_210 + 1_531 + 2 + 6 + 11 + 35,
             "the keys run96's records do not carry"
         );
         pin_eq!(

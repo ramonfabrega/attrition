@@ -158,6 +158,42 @@ fn fs_silhouette(i: VOut) -> @location(0) vec4<f32> {
 }
 "#;
 
+/// **The trees' pass** (item 4173; `docs/RENDERER.md` §3.7, "The trees'
+/// own colour"), appended to [`TEXTURED_SHADER`]: the leaf's texture on
+/// its one level, bilinear and clamped, cut where its alpha is not above
+/// `render_states[9]`'s 0; then `ADDSIGNED` with the vertex diffuse,
+/// `TL_FAKE_LIGHT`'s power and HDR scale, and the tone map at the clamp —
+/// `render::silhouette::fake_light` on `tree_stage`, the arithmetic the
+/// painter runs. On the plain `Unorm` target and texture (item 4171) the
+/// sample is the byte and the result is stored as it stands.
+fn tree_shader() -> String {
+    use render::silhouette::{
+        EXPOSURE, FAKE_LIGHT_POWER, HDR_SCALE, MIN_LUMINANCE, TREE_DIFFUSE, WHITE_POINT, filmic,
+    };
+    let white = 1.0 / filmic(MIN_LUMINANCE * WHITE_POINT);
+    let current = f32::from(TREE_DIFFUSE) / 255.0;
+    format!(
+        r#"
+fn tree_filmic(x: vec3<f32>) -> vec3<f32> {{
+    let a = 0.15; let b = 0.50; let c = 0.10; let d = 0.20; let e = 0.02; let f = 0.30;
+    return (x * (a * x + c * b) + d * e) / (x * (a * x + b) + d * f) - vec3<f32>(e / f);
+}}
+
+@fragment
+fn fs_tree(i: VOut) -> @location(0) vec4<f32> {{
+    let t = textureSampleLevel(tex, samp, i.uv, 0.0);
+    if (t.a <= 0.0) {{
+        discard;
+    }}
+    let stage = clamp(t.rgb + vec3<f32>({current:?} - 0.5), vec3<f32>(0.0), vec3<f32>(1.0));
+    let lin = pow(stage, vec3<f32>({FAKE_LIGHT_POWER:?})) * {HDR_SCALE:?};
+    let toned = clamp(tree_filmic({EXPOSURE:?} * lin) * {white:?}, vec3<f32>(0.0), vec3<f32>(1.0));
+    return vec4<f32>(toned, 1.0);
+}}
+"#
+    )
+}
+
 /// **The transition patch's pass** (item 4139; `docs/RENDERER.md` §3.9),
 /// `TerrainOut::render`'s `showtrans` block as its `RenderState` reads:
 /// stage 0 the patch's base land texture, under the vertex white
@@ -259,6 +295,8 @@ pub struct Frame<'a> {
     pub overlay: Tris<'a>,
     /// The figures drawn textured (item 4099).
     pub textured: &'a [crate::world::TexturedMesh],
+    /// The trees' textured faces, one mesh a texture (item 4173).
+    pub trees: &'a [crate::world::TexturedMesh],
     /// The ground's base layer (item 4127), kept on the GPU with the
     /// terrain at `terrain_version`.
     pub ground: &'a [crate::world::TexturedMesh],
@@ -331,6 +369,12 @@ pub struct Gpu {
     figure_sampler: wgpu::Sampler,
     /// Each unit piece's texture and its levels on the GPU, uploaded once.
     figure_textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
+    /// The trees' pass (item 4173): `render_states[9]`'s LessEqual with
+    /// depth written, its linear, clamped sampler, and each tree texture on
+    /// the GPU, uploaded once.
+    tree: wgpu::RenderPipeline,
+    tree_sampler: wgpu::Sampler,
+    tree_textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
     /// Where the silhouette pass falls (item 4171).
     pub silhouette_order: SilhouetteOrder,
 }
@@ -543,17 +587,22 @@ impl Gpu {
             label: Some("textured"),
             source: wgpu::ShaderSource::Wgsl(TEXTURED_SHADER.into()),
         });
-        let figure_pass = |label: &str,
-                           entry: &str,
-                           write: bool,
-                           compare: wgpu::CompareFunction,
-                           blend: Option<wgpu::BlendState>,
-                           stencil: wgpu::StencilState| {
+        let tree_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("tree"),
+            source: wgpu::ShaderSource::Wgsl(format!("{TEXTURED_SHADER}{}", tree_shader()).into()),
+        });
+        let pass_of = |module: &wgpu::ShaderModule,
+                       label: &str,
+                       entry: &str,
+                       write: bool,
+                       compare: wgpu::CompareFunction,
+                       blend: Option<wgpu::BlendState>,
+                       stencil: wgpu::StencilState| {
             device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
                 label: Some(label),
                 layout: Some(&sprite_pipeline_layout),
                 vertex: wgpu::VertexState {
-                    module: &textured_module,
+                    module,
                     entry_point: Some("vs_textured"),
                     compilation_options: Default::default(),
                     buffers: &[Some(wgpu::VertexBufferLayout {
@@ -575,7 +624,7 @@ impl Gpu {
                 }),
                 multisample: Default::default(),
                 fragment: Some(wgpu::FragmentState {
-                    module: &textured_module,
+                    module,
                     entry_point: Some(entry),
                     compilation_options: Default::default(),
                     targets: &[Some(wgpu::ColorTargetState {
@@ -588,6 +637,31 @@ impl Gpu {
                 cache: None,
             })
         };
+        let figure_pass = |label: &str,
+                           entry: &str,
+                           write: bool,
+                           compare: wgpu::CompareFunction,
+                           blend: Option<wgpu::BlendState>,
+                           stencil: wgpu::StencilState| {
+            pass_of(
+                &textured_module,
+                label,
+                entry,
+                write,
+                compare,
+                blend,
+                stencil,
+            )
+        };
+        let tree = pass_of(
+            &tree_module,
+            "tree",
+            "fs_tree",
+            true,
+            wgpu::CompareFunction::LessEqual,
+            None,
+            Default::default(),
+        );
         let textured = figure_pass(
             "textured",
             "fs_textured",
@@ -695,7 +769,19 @@ impl Gpu {
             mipmap_filter: wgpu::MipmapFilterMode::Nearest,
             ..Default::default()
         });
+        let tree_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            label: Some("tree"),
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Linear,
+            mipmap_filter: wgpu::MipmapFilterMode::Nearest,
+            ..Default::default()
+        });
         Ok(Gpu {
+            tree,
+            tree_sampler,
+            tree_textures: std::sync::Mutex::new(Default::default()),
             ground,
             ground_meshes: std::sync::Mutex::new(None),
             patch,
@@ -950,6 +1036,37 @@ impl Gpu {
             .collect()
     }
 
+    /// The trees' meshes on the GPU (item 4173), each beside its
+    /// texture's bind group under the clamped sampler, uploaded once.
+    fn tree_meshes(&self, meshes: &[crate::world::TexturedMesh]) -> Vec<Uploaded> {
+        meshes
+            .iter()
+            .filter(|m| !m.positions.is_empty())
+            .map(|m| {
+                let mut bytes = Vec::with_capacity(m.positions.len() * 32);
+                for (p, uv) in m.positions.iter().zip(&m.uvs) {
+                    for f in p.iter().chain(uv).chain(&[0.0f32; 3]) {
+                        bytes.extend_from_slice(&f.to_le_bytes());
+                    }
+                }
+                let buf = self.device.create_buffer(&wgpu::BufferDescriptor {
+                    label: Some("tree"),
+                    size: bytes.len() as u64,
+                    usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                });
+                self.queue.write_buffer(&buf, 0, &bytes);
+                let n = m.positions.len().min(m.uvs.len()) as u32;
+                let mut cache = self.tree_textures.lock().unwrap();
+                let t = cache
+                    .entry(m.piece)
+                    .or_insert_with(|| self.upload_mips(&m.mips.levels[..1], &self.tree_sampler))
+                    .clone();
+                (buf, n, t)
+            })
+            .collect()
+    }
+
     /// The sprites' quads, two triangles each in screen pixels at the
     /// client's depth for the anchor, beside each one's bind group.
     fn sprite_quads(
@@ -1032,6 +1149,7 @@ impl Gpu {
         self.queue.write_buffer(&self.sprite_uniform, 0, &screen);
         let quads = self.sprite_quads(frame.sprites);
         let textured = self.textured_meshes(frame.textured);
+        let trees = self.tree_meshes(frame.trees);
         let depth = self.device.create_texture(&wgpu::TextureDescriptor {
             label: Some("depth"),
             size: wgpu::Extent3d {
@@ -1146,6 +1264,16 @@ impl Gpu {
             if let Some(b) = &figures {
                 pass.set_vertex_buffer(0, b.slice(..));
                 pass.draw(0..frame.figures.0.len() as u32, 0..1);
+            }
+            // `flush_trees` (§3.7, "The order"), textured (item 4173), before
+            // the guys pass that tests their depth.
+            if !trees.is_empty() {
+                pass.set_pipeline(&self.tree);
+                for (b, n, t) in &trees {
+                    pass.set_bind_group(1, t, &[]);
+                    pass.set_vertex_buffer(0, b.slice(..));
+                    pass.draw(0..*n, 0..1);
+                }
             }
             if !textured.is_empty() {
                 // The guys pass after the trees (item 4085): each figure
@@ -1323,6 +1451,19 @@ mod tests {
             "return vec4<f32>(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0)), a);"
         ));
         assert!(!PATCH_SHADER.contains("encoded("));
+    }
+
+    /// Item 4173: the tree's pass runs the painter's arithmetic on the
+    /// bytes — the stage on the sample, the power, the scale and the white
+    /// the painter's constants give — with no encode or decode around it.
+    #[test]
+    fn the_tree_pass_is_the_painter_s() {
+        let t = tree_shader();
+        assert!(t.contains("let stage = clamp(t.rgb + vec3<f32>(0.5019608 - 0.5)"));
+        assert!(t.contains("pow(stage, vec3<f32>(1.9)) * 5.0"));
+        assert!(t.contains("return vec4<f32>(toned, 1.0);"));
+        assert!(!t.contains("encoded("));
+        assert!(t.contains("if (t.a <= 0.0)"));
     }
 
     #[test]

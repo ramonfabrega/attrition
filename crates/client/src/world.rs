@@ -285,6 +285,9 @@ pub struct TreeMeshes {
     /// The seven textures (`rondata::artdata::TreeArt::textures`), `None`
     /// where one does not decode.
     pub textures: Vec<Option<render::tga::Image>>,
+    /// [`TreeMeshes::textures`] on their one level, shared with the GPU's
+    /// tree pass (item 4173).
+    pub leaf_mips: Vec<Option<std::sync::Arc<render::silhouette::Mips>>>,
 }
 
 /// One tree model's texcoords, one a vertex, and the texture (0–6) each
@@ -371,6 +374,9 @@ pub const TREE_ALPHA_REF: u8 = 0;
 /// `render_states[9].cull_mode` on run1559b's packet, 2, `Counter
 /// Clockwise` (item 4082; `render::silhouette::Cull`).
 pub const TREE_CULL: render::silhouette::Cull = render::silhouette::Cull::CounterClockwise;
+
+/// One tree texture's faces as corners and texcoords (item 4173).
+type TreeFaces = (Vec<[f32; 3]>, Vec<[f32; 2]>);
 
 /// One tree model at rest: its vertices and its faces.
 pub type TreeModel = (Vec<[f32; 3]>, Vec<[u16; 3]>);
@@ -547,7 +553,28 @@ impl World {
             .and_then(|t| rondata::artdata::tree_art(&install, &t).ok())
             .map(|art| {
                 let root = install.root().to_path_buf();
+                let textures: Vec<Option<render::tga::Image>> = art
+                    .textures
+                    .iter()
+                    .map(|t| {
+                        let bytes = std::fs::read(resolve_art(&root, t)?).ok()?;
+                        render::tga::decode(&bytes).ok()
+                    })
+                    .collect();
+                // Item 4173: each texture on its one level, as
+                // `RTreeData::tree_textures` holds it (§3.7), for the GPU.
+                let leaf_mips = textures
+                    .iter()
+                    .map(|t| {
+                        t.as_ref().map(|i| {
+                            std::sync::Arc::new(render::silhouette::Mips {
+                                levels: vec![i.clone()],
+                            })
+                        })
+                    })
+                    .collect();
                 TreeMeshes {
+                    leaf_mips,
                     scale: art.treescale * render::trees::TREESCALE_FACTOR,
                     models: art
                         .models
@@ -576,14 +603,7 @@ impl World {
                             Some(render::trees::slots(&bh3::decode(&bytes).ok()?))
                         })
                         .collect(),
-                    textures: art
-                        .textures
-                        .iter()
-                        .map(|t| {
-                            let bytes = std::fs::read(resolve_art(&root, t)?).ok()?;
-                            render::tga::decode(&bytes).ok()
-                        })
-                        .collect(),
+                    textures,
                 }
             });
         let cats = loaded.unit_types.iter().map(|t| t.cols.cat).collect();
@@ -968,18 +988,52 @@ impl World {
             .collect()
     }
 
-    /// The trees into the window's soup, flat green (no texture is bound,
-    /// 4038a).
-    pub fn tree_soup(&self, soup: &mut Soup) {
-        for d in self.tree_drawings() {
-            for tri in d.tris {
-                let lit = shade(tri);
-                for p in tri {
-                    soup.positions.push(p);
-                    soup.colours.push([0.25 * lit, 0.45 * lit, 0.2 * lit]);
+    /// **The trees as the client draws them** (item 4173; §3.7, "The trees'
+    /// own colour"): each face that samples a texture into that texture's
+    /// mesh — `piece` the texture's index, `who` [`TREE_WHO`] — for
+    /// `client::gpu`'s tree pass, which binds the leaf's texel as
+    /// `client::trees::DRAWN` colours it; a face with no texcoords or no
+    /// decoded texture into the window's soup, flat green as before.
+    pub fn tree_textured(&self, soup: &mut Soup) -> Vec<TexturedMesh> {
+        let Some(art) = self.tree_art.as_ref() else {
+            return Vec::new();
+        };
+        let mut by: BTreeMap<usize, TreeFaces> = BTreeMap::new();
+        let cuts = self.tree_cuts();
+        for (d, cut) in self.tree_drawings().iter().zip(&cuts) {
+            for (ti, tri) in d.tris.iter().enumerate() {
+                let textured = cut.as_ref().and_then(|c| {
+                    let k = *c.image.get(ti)?;
+                    art.leaf_mips.get(k)?.as_ref()?;
+                    Some((k, *c.uvs.get(ti)?))
+                });
+                match textured {
+                    Some((k, uv)) => {
+                        let e = by.entry(k).or_default();
+                        e.0.extend(tri);
+                        e.1.extend(uv);
+                    }
+                    None => {
+                        let lit = shade(*tri);
+                        for p in tri {
+                            soup.positions.push(*p);
+                            soup.colours.push(crate::trees::FLAT_GREEN.map(|v| v * lit));
+                        }
+                    }
                 }
             }
         }
+        by.into_iter()
+            .filter_map(|(k, (positions, uvs))| {
+                Some(TexturedMesh {
+                    piece: k as i32,
+                    who: TREE_WHO,
+                    positions,
+                    uvs,
+                    mips: art.leaf_mips.get(k)?.clone()?,
+                })
+            })
+            .collect()
     }
 
     /// This frame's figures and buildings as the observer sees them: the
@@ -1485,7 +1539,7 @@ pub fn tint(who: u8, building: bool) -> [f32; 3] {
 
 /// A flat shade from the triangle's normal against a light from above and
 /// the north-west, either face lit.
-fn shade(t: [[f32; 3]; 3]) -> f32 {
+pub(crate) fn shade(t: [[f32; 3]; 3]) -> f32 {
     let u = [t[1][0] - t[0][0], t[1][1] - t[0][1], t[1][2] - t[0][2]];
     let v = [t[2][0] - t[0][0], t[2][1] - t[0][1], t[2][2] - t[0][2]];
     let n = [

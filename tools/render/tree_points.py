@@ -20,10 +20,12 @@ centre `(x·0x300 + 0x180, y·0x300 + 0x180)`, then
     sweep <cx> <cy> <mask> <slot> <x> <y> <z>
     cache <cx> <cy> <tick> <minx> <miny> <minz> <maxx> <maxy> <maxz>
     section <cx> <cy> <sec> <verts> <struct_size> <faces>
+    vdiff <cx> <cy> <d3dcolor>:<vertices> ...
     rstate <index> <enables> <zfunc> <alpha_func> <alpha_ref> <src_blend> <dst_blend> <cull_mode>
     rstage <index> <tfactor> <colorop0> <colorarg1_0> <colorarg2_0> <alphaop0> <alphaarg1_0> <alphaarg2_0>
 
-`section` is each cache entry's seven sections: `cache_verts[sec].length`,
+`vdiff` (item 4173) is each cache entry's vertex diffuse, its fourth dword,
+and how many of its vertices carry each value. `section` is each cache entry's seven sections: `cache_verts[sec].length`,
 its `struct_size` in dwords and `cache_faces[sec]`'s length (item 4082).
 `rstate` is `render_states[9]`, the `RenderState` `TreeFlushMethod::execute`
 sets (`GraphicPieces::init_tree_map@008f7c20` gives it the method), as the
@@ -338,6 +340,17 @@ def main(argv):
         for sec in range(7):
             va, fa = e + 0x20 * sec, e + 0xE0 + 0x1C * sec
             print(f"section {i32(e + 0x3F0)} {i32(e + 0x3F4)} {sec} {i32(va + 4)} {u32(va + 0x14)} {i32(fa + 4)}")
+        # Item 4173: each vertex's fourth dword, the diffuse `D3DCOLOR`.
+        diffuse = {}
+        for sec in range(7):
+            va = e + 0x20 * sec
+            base, n, stride = u32(va), i32(va + 4), 4 * u32(va + 0x14)
+            if base and n > 0 and stride >= 16:
+                raw = snap.read(base, n * stride)
+                for i in range(n):
+                    w = struct.unpack_from("<I", raw, i * stride + 12)[0]
+                    diffuse[w] = diffuse.get(w, 0) + 1
+        print(f"vdiff {i32(e + 0x3F0)} {i32(e + 0x3F4)} " + " ".join(f"{w:08x}:{c}" for w, c in sorted(diffuse.items())))
     rs = u32(u32(RENDER_STATES + 0x10) + 4 * 9)
     fields = [u32(rs + o) for o in (0x50, 0x58, 0x7C, 0x80, 0x74, 0x78, 0x70)]
     print(f"rstate 9 {fields[0]:#x} " + " ".join(str(v) for v in fields[1:]))
