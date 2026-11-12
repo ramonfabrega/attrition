@@ -1818,8 +1818,9 @@ impl Sim {
     /// `construct_time@0062d5c0`'s first arm (`docs/CITIES.md` §3.2 (a)),
     /// read live (item 3374): an American leader's wonder — not the
     /// Supercollider or the Space Program — while the leader holds and has
-    /// built none (`get_wonders() == 0 && wonders_built == 0`; this crate
-    /// reads both as the census's `wonder_mark`, a high-water mark that
+    /// built none (`get_wonders() == 0 && wonders_built == 0`; since item
+    /// 4167 the second is the kept counter, and the first is read as the
+    /// census's `wonder_mark`, a high-water mark that
     /// only an activation raises, at zero and no active wonder of its own
     /// standing — the census is the sweep's, a frame behind an activation,
     /// and a human leader's is never swept) and no other player has the same wonder unfinished
@@ -1852,11 +1853,15 @@ impl Sim {
         }) {
             return false;
         }
-        let none_yet = self
-            .ai
-            .ai
-            .get(who as usize)
-            .is_none_or(|a| a.census.wonder_mark == 0)
+        // `wonders_built == 0` (`docs/LEADERS.md` §13.2, item 4167): a
+        // leader that ever activated a wonder and now holds none is refused,
+        // where the mark alone trims back to 0 and grants it.
+        let none_yet = self.leader_wonders_built(who) == 0
+            && self
+                .ai
+                .ai
+                .get(who as usize)
+                .is_none_or(|a| a.census.wonder_mark == 0)
             && !self.buildings.iter().any(|x| {
                 x.alive
                     && x.active
@@ -2410,7 +2415,7 @@ impl Sim {
     /// `Build::activate(captured, announce, counted)` — `docs/CITIES.md` §4.
     /// A building type the tree files as a wonder — the test
     /// `Build::activate` and `Build::close` gate the unit-stats flag on.
-    pub(crate) fn is_wonder_building(&self, ty: usize) -> bool {
+    pub fn is_wonder_building(&self, ty: usize) -> bool {
         self.tables.build_types[ty].tree.is_some_and(|t| {
             matches!(
                 self.tables.tech_tree.kind(t),

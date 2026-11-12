@@ -230,5 +230,6 @@ fn french_classical_pair_run1262_s_closing_frame_is_widened_whole() {
     // Versailles to 10): `1/50`'s `healing`, `hits:damage` and `hits_left` on 5601 agree (theirs
     // 10, 0 and 73 both sides) — 3961a's run1262 row and 3607a's damage.
     // Item 3982: +1, who=1's `epochs_queued` on the closing block 6107, ours >0 theirs 0, beside the technology `num_queued` rows: the same emptied queue.
-    pin_eq!(w.firsts.len(), 156, "the closing walk's baseline");
+    // Item 4167: 156 -> 158, +2, who=1's `barracks_queued` and `combat_queued` on the closing block 6107, ours 8 theirs 0: the closing frame's emptied queue, beside the `num_queued` rows.
+    pin_eq!(w.firsts.len(), 158, "the closing walk's baseline");
 }

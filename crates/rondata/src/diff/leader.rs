@@ -1446,7 +1446,8 @@ mod tests {
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
             // item 4162: 193_760 -> 194_720, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
-            194_720, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4167: 194_720 -> 196_480, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
+            196_480, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1555,7 +1556,8 @@ mod tests {
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
             // item 4162: 208_292 -> 209_324, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
-            209_324, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4167: 209_324 -> 211_216, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
+            211_216, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1755,7 +1757,8 @@ mod tests {
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
             // item 4162: 43_596 -> 43_812, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
-            43_812, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4167: 43_812 -> 44_208, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
+            44_208, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -1899,7 +1902,8 @@ mod tests {
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
             // item 4162: 314_860 -> 316_420, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
-            316_420, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4167: 316_420 -> 319_280, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
+            319_280, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -2043,7 +2047,8 @@ mod tests {
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
             // item 4162: 72_660 -> 73_020, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
-            73_020, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4167: 73_020 -> 73_680, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
+            73_680, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -3146,7 +3151,8 @@ mod tests {
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
             // item 4162: 593_390 -> 596_330, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
-            596_330, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4167: 596_330 -> 601_720, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
+            601_720, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump
@@ -3471,5 +3477,67 @@ mod tests {
         );
         assert_eq!(print_millionths("256"), None);
         assert_eq!(print_millionths("256.00"), None);
+    }
+
+    /// **Item 4167's records and counters, end to end** on run647's start
+    /// (`docs/LEADERS.md` §13.2): two forts activated take records 0 and 1
+    /// and step `forts_built` twice; closing the top one walks the mark down
+    /// and leaves the count; an oil well takes and gives back its record (a
+    /// gatherer type); and two wonders step `wonders_built` and
+    /// `wonders_held`, a close lowering neither. Also §13.6's open
+    /// question: the tree files exactly seventeen wonders, the ones
+    /// `wonder_line` holds.
+    #[test]
+    fn the_marks_follow_activation_and_close() {
+        use crate::diff::russian_word::RUSSIAN;
+        let Some(inst) = install() else { return };
+        let Some(path) = dump(RUSSIAN.start) else {
+            eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", RUSSIAN.start);
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let mut built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
+        let s = &mut built.sim;
+        let n = s.tables.build_types.len();
+        let wonders: Vec<usize> = (0..n).filter(|&t| s.is_counted_wonder(t)).collect();
+        assert_eq!(wonders.len(), 17, "0x20e..=0x21e");
+        for t in 0..n {
+            assert_eq!(s.is_counted_wonder(t), s.is_wonder_building(t), "{t}");
+        }
+        let spot = |k: i32| sim::Pos::new(4000 + k * 400, 4000);
+        let fort = loaded.build_named("Fort").expect("a Fort type");
+        let a = s.setup().init_build(1, fort, spot(0), false);
+        s.setup().activate(a, false, true);
+        let b = s.setup().init_build(1, fort, spot(4), false);
+        s.setup().activate(b, false, true);
+        let forts = |s: &sim::Sim| (s.leader_fort_mark(1), s.leader_forts_built(1));
+        assert_eq!(forts(s), (2, 2));
+        s.setup().close_building(b, false);
+        assert_eq!(forts(s), (1, 2), "the mark walks down, the count stays");
+        s.setup().close_building(a, false);
+        assert_eq!(forts(s), (0, 2));
+        assert_eq!(s.leader_fort_mark(0), 0, "the other leader's list");
+        let well = loaded.build_named("Oil Well").expect("an Oil Well type");
+        assert_ne!(
+            s.tables.build_types[well].flags & sim::cities::build::flags::GATHERER,
+            0,
+            "a gatherer, so its close gives the record back"
+        );
+        let w = s.setup().init_build(1, well, spot(8), false);
+        s.setup().activate(w, false, true);
+        assert_eq!(s.leader_oil_well_mark(1), 1);
+        s.setup().close_building(w, false);
+        assert_eq!(s.leader_oil_well_mark(1), 0);
+        let held = |s: &sim::Sim| (s.leader_wonders_built(1), s.leader_wonders_held(1));
+        assert_eq!(held(s), (0, 0));
+        let p = s.setup().init_build(1, wonders[0], spot(12), false);
+        s.setup().activate(p, false, true);
+        let q = s.setup().init_build(1, wonders[1], spot(20), false);
+        s.setup().activate(q, false, true);
+        assert_eq!(held(s), (2, 2));
+        s.setup().close_building(p, false);
+        assert_eq!(held(s), (2, 2), "never lowered");
     }
 }

@@ -143,7 +143,7 @@ impl Sim {
 
     /// Whether building type `ty` is one of the 17 wonders
     /// `Build::activate` counts (`TypeIndex` `0x20e..=0x21e`).
-    pub(crate) fn is_counted_wonder(&self, ty: usize) -> bool {
+    pub fn is_counted_wonder(&self, ty: usize) -> bool {
         let line = &self.tables.tech_tree.roles.wonder_line;
         self.tables.build_types[ty]
             .tree

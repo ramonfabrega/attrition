@@ -2438,5 +2438,6 @@ fn run1075_s_garrison_window_is_widened_whole() {
     // chain, as theirs), and the reload compared on or off the map moves
     // `1/108`'s `recharging` first from 2408 (ours 0, theirs 13) to 2389
     // (ours 0, theirs 32). Every other first is the base's, row for row.
-    pin_eq!(w.firsts.len(), 9070, "initial run1075 baseline");
+    // Item 4167: 9070 -> 9073, +3 firsts, who=1: `air_queued` 2583 ours 10 theirs 13 and `factory_queued` 2583 ours 1 theirs 8, beside `num_queued[261]` 0/3 and `[223]` 0/7; `supply_mark` 2805 ours 4 theirs 3, beside `num_units[13]` 4/3 (the bins and the mark follow the arrays' own partings).
+    pin_eq!(w.firsts.len(), 9073, "initial run1075 baseline");
 }

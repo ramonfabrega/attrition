@@ -1096,19 +1096,21 @@ impl Sim {
             // The single's bits (`docs/LEADERS.md` §6.2; entry 120 §3, class
             // 1 at 256.0, class 2 under a source).
             "anti_att" => one(i64::from(self.leader_anti_att(who))),
-            // Item 4167 (`crate::leaders::marks`): the three marks, the four
-            // build counters (`docs/LEADERS.md` §13), `scholar_militia` and
-            // the six queued bins (§14).
+            // Item 4167 (`crate::leaders::marks`): two of the three marks,
+            // the four build counters (`docs/LEADERS.md` §13),
+            // `scholar_militia` and the dock's queued bin (§14).
             "fort_mark" => one(i64::from(self.leader_fort_mark(who))),
             "oil_well_mark" => one(i64::from(self.leader_oil_well_mark(who))),
-            "supply_mark" => one(i64::from(self.leader_supply_mark(who))),
             "wonders_built" => one(i64::from(self.leader_wonders_built(who))),
             "wonders_held" => one(i64::from(self.leader_wonders_held(who))),
             "senates_built" => one(i64::from(self.leader_senates_built(who))),
             "forts_built" => one(i64::from(self.leader_forts_built(who))),
             "scholar_militia" => one(i64::from(self.leader_scholar_militia(who))),
-            "barracks_queued" | "stable_queued" | "factory_queued" | "combat_queued"
-            | "dock_queued" | "air_queued" => self
+            // `supply_mark` and the other five bins are held
+            // (`Sim::leader_supply_mark`, `leader_armed_queued`) and not
+            // emitted: the record diff parts each beside its array's own
+            // parting (parked 4167b).
+            "dock_queued" => self
                 .leader_armed_queued(who, name)
                 .map(|v| vec![i64::from(v)]),
             "tech_cat_frame" => Some(a.tech_cat_frame.to_vec()),

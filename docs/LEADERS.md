@@ -2799,6 +2799,18 @@ per-region short at `+0x12de + region·2` when `region < 0x40`. Reset:
 
 ### 13.3 In the crate
 
+**Since item 4167 all seven are held** (`crates/sim/src/leaders/marks.rs`,
+one `Marks` per slot in `LeadersState`). `Sim::note_activation_marks`
+runs in `Sim::activate` ahead of the dock test and the city split, for
+`captured` true and false: a wonder (`wonder_line`'s seventeen, the
+range test) steps `wonders_built` and raises `wonders_held` to the count
+of the leader's live active wonders; `is_fort` takes a fort record into
+`Building::fort_slot` and steps `forts_built`; a well or platform takes a
+record into `oil_slot`. `Sim::give_back_marks` in `close_building` gives
+them back under §13.2's predicates. `senates_built_inc` is wired.
+`supply_mark` is `SupplyList::len()`. `american_free_wonder` reads the
+counter beside the mark. The bullets below are the plan as it stood.
+
 - **Marks.** `fort_mark` and `oil_well_mark` have no registry.
   `units::slots::SlotList` (`crates/sim/src/units/slots.rs:24`) is the exact
   shape: one per leader per mark, taken in `Sim::activate` beside the
@@ -3036,6 +3048,15 @@ feeds `TypeData::get_cost`. `log_data` logs all six; it is
 `combat_queued`'s only reader.
 
 ### 14.3 In the crate
+
+**Since item 4167** the six bins are kept counters (`Marks::queued`,
+`crates/sim/src/leaders/marks.rs`), stepped by `Sim::step_armed_queued`
+from `track_tree_queued` (+1) and `untrack_queued` (−1), each on its own
+zero test, by the trainer's `TypeIndex` read as `leader_trained` reads it
+for the `*_units` and the domain. The two `-n` SEAMs below are still
+missing. `scholar_militia` is emitted as the derived count
+(`Sim::scholar_militia`, factored out of `worker_support`); the stale +1
+is not carried.
 
 - **`scholar_militia` is derived, not kept.** `Sim::worker_support`
   (`crates/sim/src/economy/pricing.rs:895`) counts live units with
