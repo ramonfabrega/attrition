@@ -89,13 +89,13 @@ clear cut: re-run that wave for that family.
 | 13 | `marks-built` | done | done | done | owed |
 | 14 | `queued` | done | done | done | owed |
 | 15 | `odd-counters` | done | done | done | owed |
-| 16 | `lobby-words` | done | done | in flight at the clear | owed |
+| 16 | `lobby-words` | done | done | done | owed |
 | 17 | `spells` | done | done | done | done, §17 |
 | 18 | `score` | done | done | done | owed |
 | 19 | `last-finished` | done | done | done | done, §19 |
 | 20 | `high-buildings` | done | done | done | owed |
 
-**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 16 of
+**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 17 of
 20, specified 7 of 20.
 
 **How to resume.** The briefs are in `briefs/`, one per wave. A spawn is one
@@ -182,3 +182,4 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | end-of-game | 3 | 214 k | 17 | 64 confirmed, 8 corrected, 6 open | **the plain lobby is capital elimination (ELIMINATION 1)**, so `process_elimination`, the GLOBAL_GOVERNMENT arms and `leave_game`'s type 1 are plain-game; an archive sweep finds five territory victories (against `territory/victory.rs:21`), run600 frame 17380 a ready value diff, and `wonderwin_timer` 1 in 30 captures against the `w44c` stub |
 | score | 3 | ~250 k | ~15 | 64 confirmed, 5 corrected, 9 open | every formula holds term by term; `find_target`'s clause fires when my score exceeds 4/3 of the candidate's (the first reading had it reversed); `kill_value_by` (`economy/cost.rs:1258`) already ports the kill value; a gaia kill reads `diplos[8]` past its end (open) |
 | marks-built | 3 | ~130 k | ~13 | 63 confirmed, 7 corrected, 5 open | a captured wonder credits the captor `wonders_built += 1` for 15 of 17 wonders (no gate at `625b4b`); a captured fort does **not** count again (forts carry 0x2000); `Leaders` has 10 slots; the crate site is `city.rs:2490`, before the city split |
+| lobby-words | 3 | 137 k | 15 | 38 confirmed, 3 corrected, 0 open | `multi_diff` is `lobby.difficulty` for every seated slot (store at 0058ae49), never a constant 0; a fresh count of 1,194 dumps outdates `docs/AI.md` §80.1; `cannon_time` and `handicap` 0 in a plain game; point `target_gate`'s `lmulti` at the same value |
