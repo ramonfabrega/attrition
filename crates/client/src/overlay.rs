@@ -95,56 +95,94 @@ impl Lines {
     }
 }
 
-/// The overlay as triangles in normalised device coordinates on a
-/// `size` screen: a dark panel in the top-left corner and the text over
-/// it, each lit font pixel a `scale`-pixel square.
-pub fn triangles(lines: &[String], size: (i32, i32), scale: i32) -> (Vec<[f32; 3]>, Vec<[f32; 3]>) {
-    let (mut pos, mut col) = (Vec::new(), Vec::new());
-    let (w, h) = (size.0 as f32, size.1 as f32);
-    let mut quad = |x: i32, y: i32, qw: i32, qh: i32, c: [f32; 3]| {
-        let (x0, y0) = (x as f32 / w * 2.0 - 1.0, 1.0 - y as f32 / h * 2.0);
+/// Quads in normalised device coordinates on a `size` screen, placed in
+/// pixels: the debug overlay's, and the HUD's (item 4197, `docs/HUD.md`).
+pub struct Painter {
+    size: (i32, i32),
+    pub pos: Vec<[f32; 3]>,
+    pub col: Vec<[f32; 3]>,
+}
+
+/// The overlay's text colour.
+pub const INK: [f32; 3] = [0.95, 0.92, 0.55];
+/// The overlay's panel colour.
+pub const PANEL: [f32; 3] = [0.02, 0.02, 0.03];
+
+impl Painter {
+    pub fn new(size: (i32, i32)) -> Painter {
+        Painter {
+            size,
+            pos: Vec::new(),
+            col: Vec::new(),
+        }
+    }
+
+    /// A `w` by `h` rectangle with its top-left corner at pixel `(x, y)`.
+    pub fn rect(&mut self, x: i32, y: i32, w: i32, h: i32, c: [f32; 3]) {
+        let (sw, sh) = (self.size.0 as f32, self.size.1 as f32);
+        let (x0, y0) = (x as f32 / sw * 2.0 - 1.0, 1.0 - y as f32 / sh * 2.0);
         let (x1, y1) = (
-            (x + qw) as f32 / w * 2.0 - 1.0,
-            1.0 - (y + qh) as f32 / h * 2.0,
+            (x + w) as f32 / sw * 2.0 - 1.0,
+            1.0 - (y + h) as f32 / sh * 2.0,
         );
         for p in [[x0, y0], [x1, y0], [x0, y1], [x1, y0], [x1, y1], [x0, y1]] {
-            pos.push([p[0], p[1], 0.0]);
-            col.push(c);
+            self.pos.push([p[0], p[1], 0.0]);
+            self.col.push(c);
         }
-    };
-    let (cw, ch) = (6 * scale, 9 * scale);
-    let longest = lines.iter().map(|l| l.chars().count()).max().unwrap_or(0) as i32;
-    let (px, py) = (8, 8);
-    quad(
-        px,
-        py,
-        longest * cw + 2 * scale * 2,
-        lines.len() as i32 * ch + 2 * scale * 2,
-        [0.02, 0.02, 0.03],
-    );
-    for (row, line) in lines.iter().enumerate() {
-        for (k, c) in line.chars().enumerate() {
-            let g = glyph(c);
-            let (ox, oy) = (
-                px + 2 * scale + k as i32 * cw,
-                py + 2 * scale + row as i32 * ch,
-            );
+    }
+
+    /// One line of text, its first glyph's top-left at `(x, y)`, each lit
+    /// font pixel a `scale`-pixel square.
+    pub fn text(&mut self, x: i32, y: i32, line: &str, scale: i32, c: [f32; 3]) {
+        for (k, ch) in line.chars().enumerate() {
+            let g = glyph(ch);
+            let ox = x + k as i32 * advance(scale);
             for (gy, bits) in g.iter().enumerate() {
                 for gx in 0..5 {
                     if bits & (0x10 >> gx) != 0 {
-                        quad(
-                            ox + gx * scale,
-                            oy + gy as i32 * scale,
-                            scale,
-                            scale,
-                            [0.95, 0.92, 0.55],
-                        );
+                        self.rect(ox + gx * scale, y + gy as i32 * scale, scale, scale, c);
                     }
                 }
             }
         }
     }
-    (pos, col)
+}
+
+/// A glyph's advance, in pixels at `scale`.
+pub fn advance(scale: i32) -> i32 {
+    6 * scale
+}
+
+/// A line's height, in pixels at `scale`.
+pub fn line_height(scale: i32) -> i32 {
+    9 * scale
+}
+
+/// The overlay as triangles in normalised device coordinates on a
+/// `size` screen: a dark panel in the top-left corner and the text over
+/// it, each lit font pixel a `scale`-pixel square.
+pub fn triangles(lines: &[String], size: (i32, i32), scale: i32) -> (Vec<[f32; 3]>, Vec<[f32; 3]>) {
+    let mut p = Painter::new(size);
+    let (cw, ch) = (advance(scale), line_height(scale));
+    let longest = lines.iter().map(|l| l.chars().count()).max().unwrap_or(0) as i32;
+    let (px, py) = (8, 8);
+    p.rect(
+        px,
+        py,
+        longest * cw + 2 * scale * 2,
+        lines.len() as i32 * ch + 2 * scale * 2,
+        PANEL,
+    );
+    for (row, line) in lines.iter().enumerate() {
+        p.text(
+            px + 2 * scale,
+            py + 2 * scale + row as i32 * ch,
+            line,
+            scale,
+            INK,
+        );
+    }
+    (p.pos, p.col)
 }
 
 #[cfg(test)]

@@ -218,6 +218,8 @@ COMMANDERS_LINES = (
     'the_handoff_s_checksum_line_is_the_pinned_counter',
     # The lobby page's line (item 4184, LOBBY §5).
     'the_handoff_s_lobby_line_is_the_pinned_counter',
+    # The HUD's line (item 4197, HUD §5).
+    'the_handoff_s_hud_line_is_the_pinned_counter',
     # The renderer's clock line (item 4161, RENDERER §3.11).
     'the_handoff_s_clock_line_is_the_pinned_ceilings',
     'the_handoff_s_golden_line_is_the_pinned_word',
