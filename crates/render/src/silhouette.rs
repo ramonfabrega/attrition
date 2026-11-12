@@ -1313,7 +1313,13 @@ pub const RUN1441_CAMERA_3279_TRACED: (usize, usize) = (0, 32);
 /// 0/2, 0/8 and 0/10 rise (7 → 135, 10 → 118, 5 → 133) and stay out; of the
 /// figures' 1,257 behind pixels 697 part (from 1,235); the figures agree
 /// 8,679 of 17,889.
-pub const RUN1559B_3279_COLOUR: (usize, usize) = (18, 33);
+///
+/// **17 of 33 since item 4173** (from 18), the nearer tree under a
+/// silhouette coloured as it is drawn (`client::trees::DRAWN`, §3.7 "The
+/// trees' own colour"), not its raw texel: 0/1 crosses down, its 159
+/// behind pixels agreeing 81 → 66 (needs 80); 0/6 97 → 94 of 187 and 0/9
+/// 101 of 199 stay in. Composed before the tone map instead, 0/1 reads 11.
+pub const RUN1559B_3279_COLOUR: (usize, usize) = (17, 33);
 /// **The device's state at each scored object** (item 4165; §3.14): of [`RUN1559B_3279_TRACED`]'s 33 objects, those whose
 /// figures each match a lit draw of run1566b's card trace (the pass drawn
 /// after frame 3279) within [`CARD_MATCH`] world units, or whose sprite
@@ -1353,20 +1359,35 @@ pub const RUN1559B_3279_LUMA: (usize, usize) = (20, 33);
 /// into register and the dark tanks further out.
 pub const RUN1559B_3279_LUMA_LIT: (usize, usize) = (23, 33);
 /// [`RUN1559B_3279_COLOUR`] under item 4114's candidate: 17 of 33, the
-/// count 4114 and 4165 named, re-counted by the row's own reader.
-pub const RUN1559B_3279_COLOUR_LIT: (usize, usize) = (17, 33);
+/// count 4114 and 4165 named, re-counted by the row's own reader; 16 since
+/// item 4173 (0/1 out, the drawn tree under its silhouette).
+pub const RUN1559B_3279_COLOUR_LIT: (usize, usize) = (16, 33);
 /// [`RUN1559B_3279_LUMA`] at run1441's camera, made to fail: 1 of 32.
 pub const RUN1441_CAMERA_3279_LUMA: (usize, usize) = (1, 32);
 
 /// **`RUN1559B_3279_TREES`** (item 4173; `docs/RENDERER.md` §3.7, "The
 /// trees' own colour", its rule committed before this count in
 /// `d20f0fc99`): of the trees whose own pixels in frame 3279's key buffer
-/// number 40 off the interface, those the colour reader passes, as drawn:
-/// **0 of 56**, the client's flat green (`client::trees::TreeColour::
-/// Flat`).
-pub const RUN1559B_3279_TREES: (usize, usize) = (0, 56);
-/// [`RUN1559B_3279_TREES`] under the luminance reader, as drawn: 1 of 56.
-pub const RUN1559B_3279_TREES_LUMA: (usize, usize) = (1, 56);
+/// number 40 off the interface, those the colour reader passes, as drawn.
+/// **0 of 56** with the client's flat green (pinned first, `55322aeca`);
+/// **37 of 56** since the leaf's texel is bound under `TL_FAKE_LIGHT` and
+/// the tone map (`client::trees::DRAWN`), the rule's pick: the lit pixels
+/// agree 93,177 of 162,307, the opaque texels' 37,408 of 50,170, the
+/// translucent ones' (alpha under 255) 55,769 of 112,137.
+pub const RUN1559B_3279_TREES: (usize, usize) = (37, 56);
+/// [`RUN1559B_3279_TREES`] under the luminance reader, as drawn: 1 of 56
+/// with the flat green, **54 of 56** since item 4173's binding.
+pub const RUN1559B_3279_TREES_LUMA: (usize, usize) = (54, 56);
+/// [`RUN1559B_3279_TREES`] and its luminance count under each candidate
+/// the rule passed over: the flat green, the stage colour alone
+/// (`ADDSIGNED` with the vertex diffuse) and the shader read literally
+/// (`CURRENT` the initial 1), which the photograph kills.
+pub const RUN1559B_3279_TREES_FLAT: [(usize, usize); 2] = [(0, 56), (1, 56)];
+pub const RUN1559B_3279_TREES_TEXEL: [(usize, usize); 2] = [(21, 56), (56, 56)];
+pub const RUN1559B_3279_TREES_LITERAL: [(usize, usize); 2] = [(0, 56), (0, 56)];
+/// [`RUN1559B_3279_TREES`] at run1441's camera, made to fail: 0 of 57 (the
+/// luminance reader 9 of 57).
+pub const RUN1441_CAMERA_3279_TREES: [(usize, usize); 2] = [(0, 57), (9, 57)];
 
 /// The photograph's frame at run1441's camera, by colour and by the mask:
 /// the made-to-fail.

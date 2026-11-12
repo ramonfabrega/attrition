@@ -35,6 +35,10 @@ pub enum TreeColour {
     Literal,
 }
 
+/// **The colour a tree's pixel is drawn in** (item 4173): the candidate
+/// the rule picks, most trees agreeing by colour — `RUN1559B_3279_TREES`.
+pub const DRAWN: TreeColour = TreeColour::FakeLight;
+
 /// The flat green `World::tree_soup` lays, before its face's shade.
 pub const FLAT_GREEN: [f32; 3] = [0.25, 0.45, 0.2];
 
@@ -265,12 +269,28 @@ mod tests {
             TreeColour::FakeLight,
         ));
         println!("run1441's camera: colour {off_colour:?} luma {off_luma:?}");
-        let drawn = counts
+        use render::silhouette as s;
+        let of = |how: TreeColour| {
+            let c = counts.iter().find(|c| c.0 == how).unwrap();
+            [c.1, c.2]
+        };
+        assert_eq!(of(TreeColour::Flat), s::RUN1559B_3279_TREES_FLAT);
+        assert_eq!(of(TreeColour::Texel), s::RUN1559B_3279_TREES_TEXEL);
+        assert_eq!(of(TreeColour::Literal), s::RUN1559B_3279_TREES_LITERAL);
+        assert_eq!(
+            of(DRAWN),
+            [s::RUN1559B_3279_TREES, s::RUN1559B_3279_TREES_LUMA]
+        );
+        assert_eq!([off_colour, off_luma], s::RUN1441_CAMERA_3279_TREES);
+        // The rule (committed before the count): the candidate most trees
+        // agree with by colour is drawn, a tie broken by the luminance
+        // count, a second tie keeping the stage colour.
+        let pick = counts
             .iter()
-            .find(|(how, _, _)| *how == TreeColour::Flat)
+            .filter(|c| c.0 != TreeColour::Flat)
+            .max_by_key(|c| (c.1.0, c.2.0, c.0 == TreeColour::Texel))
             .unwrap();
-        assert_eq!(drawn.1, render::silhouette::RUN1559B_3279_TREES);
-        assert_eq!(drawn.2, render::silhouette::RUN1559B_3279_TREES_LUMA);
+        assert_eq!(pick.0, DRAWN, "the rule picks the drawn candidate");
     }
 
     fn card_trace_path() -> PathBuf {
