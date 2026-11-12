@@ -566,6 +566,9 @@ static char g_dir[300]; /* the exe's directory, with the trailing backslash */
 
 static void emit(u32 k, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f);
 static void flush(void);
+#ifdef RON_CARD_PROBE
+static void card_tick(void); /* card.h, item 4165 */
+#endif
 
 #define MAX_CMDS 512
 #define CMD_CHARS 160
@@ -1883,6 +1886,9 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
             g_dumpall_until = -1;
         }
         run_cmds(frame);
+#ifdef RON_CARD_PROBE
+        card_tick();
+#endif
 #ifdef RON_CONGESTION_PROBE
         probe_congestion(frame);
 #endif
@@ -1905,6 +1911,9 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
 #include "../explore/register_image_stub.h"
 #include "../explore/live_frame_snapshot.h"
 #include "../explore/frame_snapshot_stub.h"
+#endif
+#ifdef RON_CARD_PROBE
+#include "card.h"
 #endif
 
 static u32 build_stub(u8 *s, const HookSite *h) {

@@ -1664,6 +1664,30 @@ the fade's shape. `water_fade` is pinned by
   water's scales (`WaterLevel1Scale`, `OceanFloorScale`). None is drawn,
   and the client lays both textures one repeat a cell.
 
+## 3.14 The device's state at a figure's draw (item 4165)
+
+**The trace.** run1566b's card trace (`tools/trace/card.h`, read by `rondata::trace::card`) copies, at each
+`D3D11GLSys::render` (DLL `0x10023ac0`, `0x10023d30`), the `RenderState`, the four constant buffers, `mShaderOptions`
+and both stages' texture names. The pass after 3279 is the photograph's: under the take's fast-forward the original
+draws one frame in sixteen, after 3263 and 3279 (4073a).
+
+**The match** (the rule before its count). A figure of §5.3's 33 matches the lit draw at its own point, `gWorld`'s
+translation, within `CARD_MATCH`; a building its `_NONQUAD` sprite draw. **33 of 33, every figure at 0.0 units**
+(`RUN1559B_3279_DEVICE_STATE`); on the 3263 pass, 22 of 33.
+
+**Diff-backed there, on every lit figure draw:**
+- stage 0 `BLENDTEXTUREALPHA(TEXTURE, TFACTOR)`, the tfactor the owner's `TEAM_UNIT` (4102);
+- stage 1 `MODULATE(CURRENT, DIFFUSE)`, the diffuse 1 with no vertex colour;
+- options `ALPHA_TEST LIGHTING`: no vertex colour, normal map, fake light or `NO_HDR`;
+- the material, the white light and the scene's ambient `lit_pipeline` reads (4114).
+
+On every silhouette draw: `SELECTARG2(TFACTOR)` at 128, source alpha over the rest (4103). The tanks' streamed
+normals are ours within 2.4–3.5° (median).
+
+**So** the colour with no fitted term is 4114's candidate, 17 of 33. The figure that parts, 1/27, parts past the
+draw (4165a). Stage 1's alpha, `MODULATE4X(TEXTURE, TFACTOR)` with blending on, makes a texel under alpha 64
+translucent over what is behind it: 319 of the figures' 23,316 own pixels, drawn by no draw of ours (4165b).
+
 ## 4. The stack
 
 The rule is `CLAUDE.md`'s **earn every dependency**: a crate enters when it
@@ -2134,6 +2158,11 @@ lines and fog shading, projectiles and corpses, then candidate C.
 ## 7. What is not established, and what needs Ramon's word
 
 ### 7.1 Not established
+
+- What parts tank 1/27 from the photograph once its draw's whole state and normals are the original's: the texture
+  as sampled or what follows the draw (the tone map's mean, bloom, the anti-aliasing); and stage 1's
+  `MODULATE4X` alpha, blended over what is behind, which no draw of ours makes (4165a, 4165b). Settled by the
+  tone mapper's own inputs at its entry on that pass, and by the blend drawn and counted.
 
 Each line names what would settle it.
 
