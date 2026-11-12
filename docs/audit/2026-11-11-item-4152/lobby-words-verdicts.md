@@ -177,3 +177,70 @@ No new writer.
 - **Confidence:** high. **Open:** whether the solo setup window offers a
   non-zero `CANNON_TIMES` (it would change the frozen value, not the
   rule); `walk_data`'s save path.
+
+## Leaf `handicap` (+0x4c, int)
+
+### 1. Claim by claim
+
+All offsets below are `Player`'s (`flags` +0x30, `who` +0x33, `team`
++0x34 signed, `handicap` +0x35, `diff` +0x38), the walk in the human pass
+being `%esi = game + 0x79` = `player[0].handicap` (0058ac89).
+
+| # | claim | first | second | mark | verdict, deciding line |
+|---|---|---|---|---|---|
+| 1 | writer `Game::init_handicaps (0058abf0)`, stores 0058ade8 and 0058ae07, slots 0..7 seated | yes | yes | agree | confirmed, `movl %eax,(%esi)` twice, guard 0058ad90 |
+| 2 | pass 0: `own[i]` = max `handicap` over occupied records with `who == i`, any kind, floor 0 | yes | yes | agree | confirmed: 0058ac54..0058ac5a run for a person too (the `testb $4; jne` at 0058ac46 jumps to 0058ac54, past only the `diff` max) |
+| 3 | `sum[i]` starts at `own[i]` when `Game::is_cooperative (00594810)`, else 0 | yes | yes | agree | confirmed: `neg; sbb; and %edi` 0058ac7c..0058ac87 |
+| 4 | human pass over `(flags & 5) == 5`: own slot → `own = max`, `sum += h`; other slot, team differs from `get_team(i)` → `enemy = max`, nothing added; other slot, same team → `mates += 1` unless `team == 8`, `sum += h` | yes | yes | agree | confirmed: 0058ac90..0058ac97, `cmpl %ebx` 0058aca0, `get_team` 0058aca7, signed `movsbl` 0058acac, enemy 0058acb7..0058acbf, mates `cmpb $8; cmove` 0058acce..0058acd5, sum 0058ace5..0058acea |
+| 5 | `top` = max over seated slots of `sum`; the maxima of `own` and `enemy` are computed and discarded | yes | yes | agree | confirmed: 0058ad50..0058ad82 builds three maxima from 0; `%edi` cleared at 0058ad84, `%esi` reloaded at 0058ad86, `%ebx` (the `sum` max) survives into 0058ada1 |
+| 6 | store: no mates → `clamp(top − sum, 0, 20)`; mates → `((top − sum) / (mates + 1) + max(0, enemy − own)) / 2`, truncating, clamp 0..20; then `/ max(1, num_teams − 1)` (`Game+0x6a4`) | yes | yes | agree | confirmed: 0058ada7..0058add6 (`idivl`, `cmovsl` 0, `cltd; sub; sar` a truncating halving, `js` → 0, `cmovg` 20), 0058add8..0058ade4, 0058adea..0058ae07 (`decl; cmpl $1; cmovl` 1) |
+| 7 | "a computer record's handicap byte matters only through `d = enemy − own`" | no claim | yes | one-sided | **corrected**: it also enters `sum[i]`'s start under `is_cooperative` (claim 3 seeds `sum` from pass 0's `own`, which includes computer records). Moot in a plain game (`Player::init` zeroes every byte). |
+| 8 | slots 8 and 9 never written | yes | yes | agree | confirmed (loop bound `0xe71b3c` = slot 8's leaf) |
+| 9 | `ScenarioRead::load_leader_chunk (009ac080)` stores chunk `+0xe0` at 009ac1fc, 009ac457, 009ac643, each behind `semaphore[3] & 4 == 0` | yes | yes (the gate unstated) | agree; gate one-sided | confirmed: `testb $0x4,0x823(%edx)` at 009ac186, 009ac392, 009ac56f precede the three stores; `movl 0xe0(%edx),%eax` 009ac1f6 |
+| 10 | memsets (`Leader::init` `tribe < 0`, `Leaders::clear`) and `walk_data` | yes | memset, `walk_data` | agree (`Leaders::clear` one-sided) | as for `cannon_time` |
+| 11 | readers: `get_handicap (006da740)`, and every caller tests `semaphore[0] & 4` set first | yes | yes | agree | confirmed: three `call`s (00650b67, 00651780 in `ObjectData::train_time (006508c0)`, 006b107f in `World::compute_reg_territory (006b0bb0)`) plus `get_gather_handicap (006d66a0)`'s tail; each behind the bit (train_time decompile lines 98, 537; compute_reg_territory line 250; get_gather_handicap line 13) |
+| 12 | `get_handicap`'s difficulty shift (+5/+10/+16) runs only with the bit clear, so is unreachable from those callers | yes | yes (and `+16` would overrun the 21 rows) | agree | accepted; follows from claim 11 |
+| 13 | `get_handicap_level (006d6740)` has no caller | "callers not followed" | "no caller" (`docs/CENSUS.md` §385) | one-sided | accepted on the second's citation; no bearing on a plain game |
+| 14 | crate: none; `Holdings::handicap` is a different quantity (`rondata/src/diff/leader.rs:55`); `LEADER_FIELDS` `checksum/leaders.rs:54`; held out `checksum_lines.rs:1793` | yes | yes | agree | confirmed |
+| 15 | plain game: 0 every slot | yes | yes | agree | confirmed: one person at handicap 0 gives every `sum` 0, `top` 0, every `h` 0; the first's scan finds only 0 in 1,194 dumps' leader `handicap` lines |
+
+**Writer completeness.** Absolute net: `0xe3a3dc` is stored only at
+009ac1fc, 009ac457, 009ac643, read at 009a7a80, and loaded as the
+walking pointer at 0058ad86. Walking-pointer sweep: only 0058ade8 and
+0058ae07. No new writer.
+
+### 2. The rule as a builder should port it
+
+- **Writer:** once at game setup, after the leaders are cleared, over
+  the eight lobby `Player` records and seated slots 0..7: pass 0
+  `own[i]`, `aidiff[i]`; `sum[i] = cooperative ? own[i] : 0`; the human
+  pass (claim 4); `top = max(0, max sum)`; the store (claim 6), each
+  division truncating toward zero. Slots 8, 9 and unseated: 0.
+- **Step / reset:** none per frame; the next game build.
+- **Crate site:** a `"handicap"` arm in `Sim::leader_long`
+  (`crates/sim/src/checksum/leaders.rs:949`). For a solo game it may
+  return 0 for every seated slot only while the lobby carries no
+  per-player handicap; the full computation needs the lobby's `Player`
+  table (`team`, `handicap`, `flags`) and `num_teams`, which
+  `rondata::recgame::Slot` carries and `ai::Lobby` does not.
+- **Plain game:** reached; 0 everywhere; no reader consumes it without
+  the multiplayer bit.
+- **Confidence:** high for the formula (every branch read in the listing,
+  agreeing with both readings). **Open:** `is_cooperative`'s full
+  predicate and `get_team`'s team-8 branch (both matter only with more
+  than one person); whether the solo setup window lets a person set a
+  non-zero handicap.
+
+## Verdict table
+
+| leaf | claims confirmed / corrected / open | the rule in one line |
+|---|---|---|
+| `multi_diff` +0x50 | 12 / 2 / 0 (corrected: the second's "0 in every kept dump", stale since §80.4; the first's "no other occupied **person**" in `process_drop`, which tests no human bit) | at setup, each seated slot 0..7 gets `lobby.difficulty` in a solo random map (the slot's max computer `Player.diff`, else 2, under multiplayer or a setup-chosen scenario; untouched in a plain scenario); frozen; port as `lobby.difficulty`, **not** 0 |
+| `cannon_time` +0x48 | 12 / 0 / 0 (the first's header "off+8" is a self-contradiction its body corrects) | every leader build seeds `[0,1,2,4,8][lobby.cannon_times]` for every slot; −1 per accepted command 0x4d, whose only issuer needs the multiplayer bit; plain game 0, frozen |
+| `handicap` +0x4c | 14 / 1 / 0 (corrected: a computer record's byte also seeds `sum` under `is_cooperative`) | at setup, the catch-up row: `clamp(top − sum, 0, 20)` (halved with the enemy-over-own gap when the slot has human teammates) `/ max(1, num_teams − 1)`, slots 0..7; plain game 0; read only under the multiplayer bit |
+
+New finding beyond both readings: `semaphore` bit 26 (`Game+0x823 & 4`)
+is set only by `SetupWin::setup_game (005b3860)` at 005b4389 when the
+setup window's combo 0x36 picks entry 10 (a scenario from the skirmish
+setup), and cleared by `Game::run_scenario (005860c0)` and
+`Game::run_playback (00586ea0)`; clear in every plain random-map game.

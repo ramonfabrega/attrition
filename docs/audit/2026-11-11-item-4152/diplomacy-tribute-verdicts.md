@@ -118,3 +118,135 @@ by any route (no `action_*` targets its own slot), so the stray store
 writes 0 over 0. **A port writes `P.dip[T].dows[r] = 0` or nothing; both
 match the original.**
 
+## Shared: the setup writers, settled once
+
+- **`Leader::init (006e3930)`.** One-sided on each side. The second reading
+  gives only the `memset(this, 0, 0x6929)` under `param_2 < 0`
+  (`6e3948 jns 6e3a36` skips it, `6e398c`–`6e3995`) and discards the
+  `this+0xd4`-based stores as other fields. The first gives the per-slot
+  zeroing loop and calls it unconditional. **Both confirmed, and the first's
+  loop is the one that matters**: the loop `6e3c0d`–`6e3d93` (decompile
+  `:180`–`:200`) sits after the `param_2 < 0` block closes (`:144`) and
+  stores 0 at `0xa0(%esi)` = +0x174 (`6e3c21`), `0xc0(%esi)` = +0x194
+  (`6e3c27`), `0x240(%esi)` = +0x314 (`6e3d75`), `0x260(%esi)` = +0x334
+  (`6e3d7b`), `esi = this + 0xd4 + 4j`; the goods loop `6e3e62`–`6e3f44`
+  (decompile `:279`–`:300`, top level) stores 0 at `0x18(%edx)` = +0x498
+  (`6e3e8b`, `edx = this + 0x480 + 4r`). So `Setup::build_game`'s
+  non-negative `param_2` path, which skips the `memset`, still zeroes five
+  of the seven leaves; `reset_score` (called at `:140`, unconditionally)
+  zeroes the other two. The second reading's discards at `0x17c(%esi)` and
+  `0x19c(%esi)` (`weak`, `dow`) are right; it missed the smaller
+  displacements.
+- **`Leaders::clear (006ed5d0)`** memsets `[0, 0x6929)` of every slot:
+  agree. **`LeaderData::walk_data (006d6750)`** (second only) is the save
+  game's raw copy: not a plain-game writer; not re-read.
+
+## Leaf 1: `tribute_stamp` (+0x174, int[8])
+
+### Claims
+
+| # | claim | first | second | mark |
+|---|---|---|---|---|
+| 1 | writer `consider_tribute (006d1360)` `6d13d8`, `R.tribute_stamp[G] = frame` | yes | yes | agree |
+| 2 | called only from `action_respond`'s exchange (`6d0f4f`, `6d0fbb`), receiver `this`, after the receiver's `bucket_add` | yes | yes | agree |
+| 3 | predicate: `amount > 0`; then R human, or (`amount >= 100·G.blacken` and R's post-credit `bucket[g] < 3000` and (`g == 2` or `R.econ[g] & 4`)) | yes | yes | agree |
+| 4 | `amount` is the giver's gross (pre-scale) amount | implied | yes | agree |
+| 5 | reset: `Leader::init`'s loop (`6e3c21`, unconditional) | yes | no (memset only) | one-sided |
+| 6 | reader `is_tribute_period (006d5b90)`: first qualifying slot decides; stamp 0 returns 0 at once (`6d5c8e`) | yes | yes | agree |
+| 7 | callers of the reader: `diplomacy` ×3, `Army::do_marching (006f3df0)`, `Army::find_target (006f69b0)` | yes | yes | agree |
+| 8 | crate: no writer; reader stub `ai/army.rs:3262` | yes | yes | agree |
+| 9 | crate: second stub `ai/army/target_gate.rs:523` | no | yes | one-sided |
+| 10 | plain game: any accepted gift; human receiver unconditional | yes | yes (human or style 0/8/11 demand) | agree |
+| 11 | all-computer style 1 reaches it | — | no | settled (A) |
+
+### Settled
+
+- **Predicate (3), spot-checked.** Listing `6d1360`–`6d13e1`: `6d1367 jle`
+  (signed `amount <= 0` returns); `6d138b testb $4,(%edx)` (R human →
+  store); `6d1396 imull $0x64, 0xe3a59c(%eax)` with `eax = G·0x6eec` (the
+  giver's `blacken`, +0x20c) and `6d13a1 jl` (signed); `6d13ae`–`6d13c1`
+  R's `data_encrypted->bucket[g] ^ 0x8221 >= 0xbb8` skips (signed);
+  `6d13c3 cmpl $2` / `6d13c8 testb $4, 0x450(%edx,%ecx,4)` (R's `econ`).
+  **Confirmed.** The frame is `*(0xc061ec)+0x550`, `Game::frame`.
+- **Reader (6), spot-checked.** `6d5bc0`–`6d5c9d`: skips `i == this.who`
+  and `!(leader_flags & 1)`; `i == p` qualifies (`6d5bd7`); team style 7
+  disqualifies a team-8 `i` or `p` (`6d5bf9`, `6d5c2a` → `6d5cad`); at
+  frame 0 lobby team `0..3` equal (`6d5c5f js`, `6d5c64 jge 4`,
+  `6d5c85`); after frame 0 `is_ally(L[i], p)` (`6d5c40`); stamp 0 →
+  `6d5cd0` (return 0); `frame − stamp < 0xbb8` → return 1. **Confirmed.**
+- **Reset (5): confirmed (first)**, deciding line `6e3c21`.
+- **Crate (9): confirmed (second).** `ai/army/target_gate.rs:523`, `fn
+  tribute(&mut self, _b: usize) -> bool { false }`, is a second home of the
+  same read (the `find_target` gate); the first reading missed it.
+
+### Rule to port
+
+- **Writer**: in a `consider_tribute(r, g, amount, good)` called twice per
+  good from the exchange of an `action_respond` port, after the receiver's
+  bucket credit: if `amount > 0` and (`r` human, or `amount >=
+  100·blacken[g]` and `bucket[r][good] < 3000` and (`good == WEALTH` or
+  `econ[r][good] & 4 != 0`)), `tribute_stamp[r][g] = frame`. Integers;
+  `amount` the gross give, before `scale_tribute`.
+- **Reset**: 0 at leader setup (every `Leader::init`).
+- **Reader**: `is_tribute_period(me, p)` as above, the 3000-frame window,
+  first qualifying slot decides; it replaces both crate stubs.
+- **Crate site**: none yet; a new `consider_tribute` beside an
+  `action_respond` port (no `leaders/tribute.rs` exists).
+- **Plain game**: needs a human (taunt gift, diplomacy-window deal) or team
+  style 0/8/11; an all-computer style-1 game holds 0 throughout, and the
+  stubs are exact there.
+- **Confidence**: high, listing-checked end to end. Open: nothing on the
+  writer; the run1086 human `tribute_stamp[1] = 661` prediction is not
+  checked against a dump.
+
+## Leaf 2: `gift_stamp` (+0x194, int[8])
+
+### Claims
+
+| # | claim | first | second | mark |
+|---|---|---|---|---|
+| 1 | `consider_tribute` `6d1384`: `G.gift_stamp[R] = frame` when `amount > 0`, before the human/blacken test | yes | yes | agree |
+| 2 | `process_taunt (006b8cc0)` `6b8ecd`: `this.gift_stamp[from] = frame` only when `teams_locked == 0` or `this` neutral, stock `> 149` | yes | yes | agree |
+| 3 | `process_taunt` predicate: `this` computer, active, `from != who`, mutual allies; taunt 1..5 → goods 0,1,2,4,5; both `type_avail(g,1) == 4`; 4500-frame refusal under the same lock test | yes | yes | agree |
+| 4 | the grant then `action_clear_all`, `action_offer(from, g, stock/3)`, `action_respond(this, from, 1)`, a pure gift executed at once, re-stamping via `consider_tribute` | yes | yes | agree |
+| 5 | reset: `Leader::init` loop `6e3c27` | yes | no | one-sided |
+| 6 | reader `process_taunt` (refusal) | yes | yes | agree |
+| 7 | reader `Leader::diplomacy` `6bf61e`: effect | not followed | an ally's ask up to a third of my stock is free unless (style not 0/8/11) I gifted that ally within 4500 frames, then charged `resource_value·ask/256` | one-sided |
+| 8 | crate: no writer, no reader; checksum `checksum/leaders.rs:66` | yes | yes | agree |
+| 9 | plain game: taunt needs a human allied to a computer, any team style | yes | yes | agree |
+| 10 | all-computer style 1 | — | no | settled (A) |
+
+### Settled
+
+- **Writer (1), spot-checked.** `6d1384 movl %eax, 0xe3a524(,%ecx,4)`,
+  `ecx = param_1·0x1bbb + this.who` (`6d136e`–`6d137b`): giver's record,
+  receiver's index, after only the `6d1367` amount test. **Confirmed.**
+- **Reset (5): confirmed (first)**, `6e3c27`.
+- **Reader (7): confirmed (second).** Decompile `:1753`–`:1837`, listing
+  around `6bf61e`: the ask is `me.dip[k].offers[r]` (`0x6938(%esi)`, my
+  give), scaled ×4 before frame 4500 and ×3/2 before 9000 when `*local_44`
+  is 0; if it is `< 1`, or `k` is not my ally, or it exceeds `stock/3`, it
+  is charged; otherwise it is free at team style 0/8/11 and, at any other
+  style, free unless `gift_stamp[k] != 0 && frame − gift_stamp[k] < 4500`
+  (`LAB_006bf618` → `LAB_006bf63d`). The style-7 test nested inside the
+  0/8/11 branch can never hold, so styles 0/8/11 are free outright.
+- **Reachability (9, 10).** The taunt path is human-only (A, step 2), so
+  in a style-1 game with a human ally the computer's grant stamps twice in
+  one frame (when unlocked) or once (locked, through `consider_tribute`).
+
+### Rule to port
+
+- **Writers**: `consider_tribute`: `amount > 0` → `gift_stamp[g][r] =
+  frame`. `process_taunt`: on a granted resource taunt, when `teams_locked
+  == 0` or the computer is neutral, `gift_stamp[me][from] = frame` before
+  the gift.
+- **Reset**: leader setup.
+- **Readers**: the taunt refusal (4500 frames, same lock test) and the
+  proposal pricing above.
+- **Crate site**: none; a `process_taunt` port (it needs the chat-command
+  taunt queue) and the `consider_tribute` above.
+- **Plain game**: only with a human; 0 throughout an all-computer style-1
+  game.
+- **Confidence**: high. Open: the pricing loop's `*local_44` (a flag of
+  `Leader::diplomacy`) not named.
+

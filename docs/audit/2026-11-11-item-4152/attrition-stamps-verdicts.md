@@ -188,7 +188,8 @@ Three direct calls of 0x6cdea0 exist in `.text`: 6cf974
   `crates/sim/src/cities/city.rs:2491`, `:2887`), keep a call at the
   `Leader::init` point, and add the `ctw_wonder_min_civics` direct arm
   only if a reachable game needs it (its predicate equals a CtW constant).
-  Dump witness: see the addendum at the end of this leaf.
+  Dump witness: see "Addendum: the one-frame lag in a dump" after the
+  verdict table.
 
 ### The rest of the leaf, claim by claim
 
@@ -321,4 +322,14 @@ nonzero exempts every unit on that leader's land at once and makes the next
 `calc_attrition` store 0. Reset at init. Crate site: the field exists and
 is read; the writer belongs to the trigger track, and `Sim::calc_attrition`
 gains the short-circuit. Plain game: no. Confidence high.
+
+## Verdict table
+
+| leaf | claims confirmed / corrected / open | the rule in one line |
+|---|---|---|
+| `attrition_stamp` +0x1f4 | 13 / 1 / 0 (second reading's "grace reachable in a plain game" corrected: dead with shipped −1 constants) | `= frame` on a unit's refresh in a not-at-war (or style-2 non-target) rival's land when `stamp == 0 \|\| frame − stamp > 900`; `= 0` for every live slot at the timed and the age rush end; owner's slot; crate: none yet, `end_the_peace` comment misnames it |
+| `attrition_stamp2` +0x1f8 | 6 / 1 / 0 (crate site: the `SimSuffer::warned_at`/`stamp_warned` stubs, not a new test) | `= frame` once, on the slot's first attrition tick, before the damage; never re-armed |
+| `attrition_stamp3` +0x1fc | 7 / 0 / 0 | `= frame` on every unstarted site disbanded in rival land, and on a started building's first surviving hit when 0 |
+| `att` +0x7f0 | 12 / 2 / 1 (**the zero-base floor: `docs/ATTRITION.md` §1 step 1 and `attrition.rs:43` wrong, diff-backed by run981**; **the crate recomputes a frame early** in `apply_gained`; open: `ctw_attrition`'s shipped value) | `att = 0` if `give_att_disabled`, else `x = n ? attrition_improved[n−1] : 0` then each applying arm (Colosseum, Russian, CtW, Kremlin) `x = (100+pct)·x/100; if x == 0 {x = 1}`; recomputed in `calc_unit_stats` on the `0x4000000` fold at the next `Leaders::process_all` |
+| `give_att_disabled` +0x7f8 | 6 / 1 / 0 (second reading's "no crate field" corrected: `PlayerState::give_disabled`, `attrition.rs:257`, read at `:498`); README row's `plan_strategy` writer wrong (both readers) | set 1 / 0 by the two trigger actions for a live slot; exempts the leader's land and zeroes `att`; trigger layer only |
 
