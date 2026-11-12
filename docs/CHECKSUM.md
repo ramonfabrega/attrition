@@ -1699,8 +1699,11 @@ by leaf (`Sim::leader_image`, a `None` leaf being one the crate holds no value
 for). `diff::checksum_lines::the_leaders_line_is_the_original_s_range_by_range`
 holds it range by range and leaf by leaf, with `LEADERS_HELD_OUT` naming 140
 leaves at item 4121, 100 at item 4124 (the census of the 140 is item
-4124's journal), 99 at item 4153, which carried `explored`, and **98**
-since item 4154, which carried `att`.
+4124's journal), 99 at item 4153, which carried `explored`, ~~**98**~~ 98
+at item 4154, which carried `att`, and **91** since item 4162, which
+carried `cannon_time`, `handicap`, `multi_diff`, `misery`, `pop_issues`,
+`city_name` and `anti_att` (`docs/LEADERS.md` §1, §6, §12, §16; the census
+of which held-out leaves the record prints is `docs/LEADERS.md`'s head).
 `CHECKSUM_STATE` does not count it (§5).
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7

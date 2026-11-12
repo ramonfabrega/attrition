@@ -40,8 +40,9 @@ impl Sim {
         );
         self.apply_gained(who);
         self.lay_starting_goods(who);
-        // `Leader::init`'s `calc_anti_attrition` sees the opening tech set
-        // (`docs/LEADERS.md` §6.2).
+        // `Leader::init`'s `calc_attrition` and `calc_anti_attrition` see
+        // the opening tech set (`docs/LEADERS.md` §5.2, §6.2).
+        self.calc_attrition(who);
         self.calc_anti_attrition(who);
         events
     }
@@ -608,7 +609,11 @@ impl Sim {
         // (`docs/VISION.md` §2).
         self.cities.wall_stats_dirty[who as usize] = true;
         self.roster.unit_stats_dirty[who as usize] = true;
-        self.calc_attrition(who);
+        // No eager `calc_attrition` here: the original recomputes `att` at
+        // the head of `calc_unit_stats` on the next fold, so a tech gained
+        // on frame f shows from f + 1 (`docs/LEADERS.md` §5.3, fault 3; item
+        // 4162, where the record diff parted ours 1 against 0 on run1370b's
+        // block 1283).
         self.sync_researched();
         self.sync_goods_available(who);
         let level = self.tech[who as usize].military_level();

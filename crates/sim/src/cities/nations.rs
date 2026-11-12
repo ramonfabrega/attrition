@@ -99,8 +99,10 @@ impl Sim {
             .filter(|&i| i < self.tables.tech_tree.tribes.len())
             .unwrap_or(0);
         self.refresh_nation_powers(who);
-        // `Leader::init`'s tail runs `calc_anti_attrition` once the tribe is
-        // known (`docs/LEADERS.md` §6.2).
+        // `Leader::init`'s tail runs `calc_attrition` and
+        // `calc_anti_attrition` once the tribe is known (`docs/LEADERS.md`
+        // §5.2, §6.2).
+        self.calc_attrition(who);
         self.calc_anti_attrition(who);
     }
 
