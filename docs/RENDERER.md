@@ -1618,7 +1618,10 @@ load, not a diff: nothing of the original is compared. The resident set is
 `water_fade`, `holds_water`, `water_alpha` and `water_ramp`;
 `client::world::World::drawn_terrain`'s water layer;
 `rondata::artdata::GroundArt`'s `coastal` and `ocean`. Scored on
-run1564's photograph (§3.3, rung 4).*
+run1564's photograph (§3.3, rung 4). Item 4178 (below, "The water
+drawn"): `client::ground`'s `WaterGrid`, `water_grid`, `water_mesh`,
+`water_colour_ramp`, `floor_texture` and `floor_shade`;
+`World::set_screen`; `gpu::Frame::patch_version`.*
 
 **The land pass, read.** `TileSet::convert_land_tex_to_linear@0087ace0`
 buckets every cell, not only `BASELAND`'s. For land 1 (`eTILE_COASTAL`,
@@ -1752,7 +1755,8 @@ vertices on draw 162, and `args[1]` is the vertex count.
 - **The water's colour** is `modify_water`'s: the white `create_water_verts`
   lays is replaced each frame by `OceanVars`' `top*_top` (0, 159, 255) to
   `top*_bot` (0, 111, 218) on the same ramp. Its alpha peaks at 189, not
-  245 (`generate_water`'s smoothing, parked 4174b).
+  245 (`generate_water`'s smoothing, ~~parked 4174b~~ settled by item
+  4178, "The water drawn", below).
 - **The water's normal is (0, 0, 1)** on all 1,755 vertices, its tangent
   (1, 0, 0). 4168a is settled: the lit branch sees N·L 0.707.
 
@@ -1786,28 +1790,112 @@ on the packet carries any: the water's red byte is 0, and the floor's red
 survives the product of two cyan texels only as 1 to 20. **The scored row
 falls under either model, so neither is drawn** (parked 4174a).
 
+**The water drawn (item 4178).** The client now draws the water's own
+mesh, the floor under it, and the water's colour. Every input is the
+packet's, diffed vertex by vertex against run1564's drawn water
+(`the_water_s_lattice_off_the_packet`, `RUN1564_WATER_LATTICE`).
+
+- **The lattice.** `create_water_verts` lays each wet cell's 3 × 3
+  points, 384 units apart, and `modify_water` draws each 384-unit quad as
+  four triangles about its centre. The centre takes its four corners' mean
+  alpha, truncated: 540 of 540 drawn centres. **All 1,755 drawn vertices
+  stand at z 0**, 80 distinct corners of them over ground above 0. So the
+  water is flat at 0 and not at `max(0, ground)`: the odd branch's
+  `find_data_z` does not reach the drawn z. `client::ground::water_mesh`
+  lays it.
+- **Which cells are wet.** `coord_contains_water`'s corner arm is taken on
+  every land, not only `SANDY`. With the `SANDY`-only arm, 64 drawn
+  corners fall on `BASELAND` cells (flag `0x400`) that we leave dry. On
+  every land none do (`holds_water`).
+- **The alpha** (4174b settled). `create_water_verts`' odd branch reads
+  `get_water_fade` at `4 · (row >> 1)` tiles. So an odd row's vertex takes
+  the fade of the corner 384 units north of it. `generate_water` then
+  smooths in place, row by row, at the solid 245: each laid point takes
+  the mean of itself and its laid 3 × 3 neighbours, the smaller of that
+  and its own, squared and truncated. **597 of 597 drawn corners agree
+  exactly** (`WATER_READ`). The deep interior's fixed point under in-place
+  smoothing is the 189 the packet peaks at. Each other reading agrees on
+  fewer: odd rows at their own height 404; from a copy 142; at solid 220
+  from a copy 346, in place 141. The `0x800` quarter does not enter
+  run1564's view.
+- **The colour.** `modify_water`'s ramp of `OceanVars`' top bytes rides a
+  256-texel texture, `water_colour_ramp`, at each vertex's ramp fraction.
+  `World::set_screen` gives the camera's `ScreenRamp`, and only the
+  water's and the shade's texcoords are laid again when it moves. The
+  gpu uploads the patches again on `Frame::patch_version`, the terrain
+  standing.
+- **The floor.** The land pass draws no `OCEAN` tile. They take the
+  floor's two layers: `<OCEAN>`'s texture at `xy / 6144`, and again
+  mirrored about the packet's summed offsets (`FLOOR_MIRROR`), baked into
+  one texture by `floor_stage` at the brightest grey, 153. A black layer
+  over it at alpha `1 − grey / 153` takes each vertex to
+  `modify_ocean_floor`'s ramp grey. That is the stage's product wherever
+  `MODULATE2X` does not clamp. The floor is drawn on the `OCEAN` tiles'
+  own triangles, not the plane at −283.
+- **No shader changes.** The water and the shade ride `fs_patch` as an
+  alpha patch does.
+
+The rows, on the client's still, from the base:
+
+| row | before | after | `SANDY` | `OCEAN` |
+|---|---|---|---|---|
+| `RUN1564_3279_GROUND_STILL` | 1,237 | **1,373** | 295 → 664 | 233 → 0 |
+| `GROUND_LUMA_STILL`, run1564 | 791 | **1,001** | 83 → 80 | 2 → 215 |
+
+The land is unchanged on both. run1559b's still holds 1,097 and 1,076.
+
+- **`OCEAN` loses its hue**: 4174a's red, met on the still. **`SANDY`
+  gains it**: the water's own blue over the sand is the photograph's
+  shallows. The value diffs are the item's journal.
+- **The ramp is drawn because it is the packet's**, vertex by vertex; held
+  at its middle the rows read 1,352 and 1,179 (the journal).
+- **The painter keeps item 4164's water** on the seabed, under the wider
+  corner arm. `RUN1564_3279_GROUND` goes 1,236 → 1,233: three plain tiles
+  of `BASELAND` shore cells. `RUN1564_3279_CARD` goes to (1,233, 784,
+  813), its luminance unchanged (parked 4178a).
+
+**Diff-backed** (run1564's packet): the lattice, that every drawn corner
+lies on a cell we lay wet (that every cell we lay wet in view is drawn is
+not checked: the view's cull is not read), the alpha, the centres and z
+0; 4174's floor greys and water colours. Resting on a
+reading: the floor's two layers as one texture, and the shade. Resting on
+one photograph: the rows.
+
 **What is not established.**
 
 - **The water's red** (4174a). The photograph's lake reads r ≈ 40, and
   every packet input to the floor and the water gives 0 to 20. The
   specular, by the reading's terms at roughness 0.3 and the light
-  (0.707, 0, 0.707), is about 0.05 in HDR, a few bytes. The screen
-  reflection's ten 10-unit steps are not modelled. The coral layer
+  (0.707, 0, 0.707), is about 0.05 in HDR, a few bytes. The coral layer
   (draws 130–131, `coralblend.tga`), the surf (163–169) and the frame's
-  mean luminance are not drawn.
-- **Where the water lies.** `CoordInfo`'s flags are not held here, and
-  every `SANDY` cell with a corner below zero is taken as wet. The water
-  is drawn on the seabed's triangles. The original lays it at z =
-  max(0, ground), one vertex every 384 units (4160a). The beach the
-  photograph shows dry is the evidence (4164b).
-- **The water's alpha** (4174b): `generate_water`'s pass over each
-  vertex's 3 × 3, the minimum of their mean and its own, squared, run in
-  place. On the packet's own heights this reproduces 2,911 of 4,550
-  vertices within one, with the solid alpha at 245. The quarter on a
-  tile's `0x800` flag and the grid's edges are not read.
-- **The floor's texcoord offsets** (they drift), the surf (`<COASTAL>`'s
-  `COASTALPHA*`, `SANDDRY`, `SANDWET`), and the coral. None is drawn, and
-  the client still lays both textures one repeat a cell.
+  mean luminance are not drawn. Item 4178 reads the screen reflection in
+  the install's `ps_global.hlsl`. It marches ten 10-unit steps along the
+  reflected ray, against the depth of what was drawn before the water, and
+  on a hit within 0.00075 it adds `N·V` times the scene below the water
+  (`BackTex`). On the pinned camera (orthographic, near 6,589, far 36,262)
+  that threshold is about 22 view units. So it can hit in the shallows,
+  adding the sand's own colour, and not over the floor 283 units down.
+  That is a reading, not counted.
+- ~~**Where the water lies.**~~ Settled by item 4178 ("The water drawn"):
+  flat at z 0 on its own lattice, the corner arm on every land; no longer
+  on the seabed's triangles.
+- ~~**The water's alpha** (4174b)~~: settled by item 4178, 597 of 597. The
+  quarter on a tile's `0x800` flag is not read; it does not enter run1564's
+  view.
+- **The shore's blend** (parked 4178b). On frame 3279 the card draws
+  `sand.tga` as its own layer, 4,928 vertices blended at their alpha
+  (draw 35, flushed at `render_ocean_floor`'s entry), and four
+  transition-patch draws on `sand.tga` (`110000000011` to
+  `110011111111`). Ours draws `SANDY` cells whole in the land pass, so the
+  beach meets the grass on a sawtooth.
+- **The floor's place and light.** It is drawn on the `OCEAN` tiles' own
+  triangles, not the plane at −283, so its edge against the underwater sand
+  is a sawtooth too. It is unlit; the card lights it (its light diffuse
+  1.36).
+- **The floor's texcoord offsets** drift with
+  `modify_ocean_floor_texture`'s clock; the client lays run1564's. The surf
+  (`<COASTAL>`'s `COASTALPHA*`, `SANDDRY`, `SANDWET`) and the coral are not
+  drawn.
 
 ## 3.13 The draw list across the ages (item 4166)
 
@@ -2579,7 +2667,9 @@ lines and fog shading, projectiles and corpses, then candidate C.
   in `d3dgl.dll` and the vertex shader's default for a missing normal.~~ Settled by item 4174: `modify_water`'s
   mesh, the one drawn, carries (0, 0, 1) at all 1,755 vertices on run1564's packet (§3.12).
 - The water's red: the photograph's lake reads r ≈ 40, and no packet input to the floor or the water carries
-  any (§3.12, 4174a). Its alpha past `create_water_verts` (4174b).
+  any (§3.12, 4174a); the screen reflection's reach is read, not counted (item 4178). ~~Its alpha past
+  `create_water_verts` (4174b).~~ Settled by item 4178: 597 of 597 drawn corners (§3.12, "The water drawn").
+  The shore's blend, `sand.tga`'s own layer and its patches, is not drawn (§3.12, 4178b).
 
 - ~~**What the client's own pixels show**~~ (the pass of 2026-11-12, DECISIONS 127): counted on the still by
   item 4171 (§3.15); the wash was the silhouette's place and the sRGB target. ~~The trees

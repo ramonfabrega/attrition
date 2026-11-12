@@ -140,6 +140,9 @@ pub struct Frame<'a> {
     pub ground: &'a [crate::world::TexturedMesh],
     /// The transition patch over the base (item 4139), kept with it.
     pub patch: &'a [crate::world::PatchMesh],
+    /// The patches' version (item 4178): uploaded again when it moves,
+    /// the terrain's version standing.
+    pub patch_version: u32,
     /// The buildings drawn as their sprites (item 4076).
     pub sprites: &'a [crate::world::SpriteDrawing],
 }
@@ -168,7 +171,8 @@ type Uploaded = (wgpu::Buffer, u32, wgpu::BindGroup);
 type UploadedPatch = (wgpu::Buffer, u32, wgpu::BindGroup, wgpu::BindGroup, bool);
 
 /// The ground's base layer and its patch on the GPU, at a terrain version.
-type GroundUploads = (u32, Vec<Uploaded>, Vec<UploadedPatch>);
+/// Item 4178: and the patches' own version, which the screen's ramp moves.
+type GroundUploads = (u32, Vec<Uploaded>, Vec<UploadedPatch>, u32);
 
 pub struct Gpu {
     pub device: wgpu::Device,
@@ -1015,13 +1019,17 @@ impl Gpu {
         let mut ground = self.ground_meshes.lock().unwrap();
         if ground
             .as_ref()
-            .is_none_or(|(v, _, _)| *v != frame.terrain_version)
+            .is_none_or(|(v, _, _, _)| *v != frame.terrain_version)
         {
             *ground = Some((
                 frame.terrain_version,
                 self.textured_meshes(frame.ground),
                 self.patch_meshes(frame.patch),
+                frame.patch_version,
             ));
+        } else if let Some(g) = ground.as_mut().filter(|g| g.3 != frame.patch_version) {
+            g.2 = self.patch_meshes(frame.patch);
+            g.3 = frame.patch_version;
         }
         let figures = self.vertices(frame.figures);
         let overlay = self.vertices(frame.overlay);
@@ -1064,7 +1072,9 @@ impl Gpu {
                 pass.set_vertex_buffer(0, b.slice(..));
                 pass.draw(0..*n, 0..1);
             }
-            if let Some((_, meshes, patches)) = ground.as_ref().filter(|(_, m, _)| !m.is_empty()) {
+            if let Some((_, meshes, patches, _)) =
+                ground.as_ref().filter(|(_, m, _, _)| !m.is_empty())
+            {
                 pass.set_pipeline(&self.ground);
                 for (b, n, t) in meshes {
                     pass.set_bind_group(1, t, &[]);

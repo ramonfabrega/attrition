@@ -275,12 +275,18 @@ fn draw(
 ) -> Option<Vec<u8>> {
     let b = session.phase("scene", || build(world, camera, size, frame_ms));
     let version = world.runner.terrain().version;
-    let (t, ground, patch) = session.phase("ground", || world.drawn_terrain());
+    world.set_screen(camera, size);
+    let patch_version = session.phase("ground", || {
+        world.drawn_terrain();
+        world.patch_version()
+    });
+    let (t, ground, patch) = world.drawn_terrain();
     let frame = gpu::Frame {
         terrain_version: version,
         terrain: (&t.positions, &t.colours),
         ground,
         patch,
+        patch_version,
         figures: (&b.figures.positions, &b.figures.colours),
         textured: &b.textured,
         trees: &b.trees,
@@ -315,12 +321,16 @@ pub(crate) fn still_of(
     gpu.silhouette_order = order;
     let b = build(world, camera, size, 0.0);
     let version = world.runner.terrain().version;
+    world.set_screen(camera, size);
+    world.drawn_terrain();
+    let patch_version = world.patch_version();
     let (t, ground, patch) = world.drawn_terrain();
     let frame = gpu::Frame {
         terrain_version: version,
         terrain: (&t.positions, &t.colours),
         ground,
         patch,
+        patch_version,
         figures: (&b.figures.positions, &b.figures.colours),
         textured: &b.textured,
         trees: &b.trees,
