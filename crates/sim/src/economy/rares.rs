@@ -677,6 +677,9 @@ impl Sim {
     /// one of the player's live units runs `update_los` (vtable `+0x160`,
     /// before the listing's `+0xe8` test) and takes its cached speed again.
     pub(crate) fn calc_unit_stats(&mut self, who: Player) {
+        // The head's `calc_anti_attrition` (`docs/LEADERS.md` §6.2, item
+        // 4162); `calc_attrition` stays in `apply_gained` (§5.3, fault 3).
+        self.calc_anti_attrition(who);
         for u in 0..self.units.len() {
             let unit = &self.units[u];
             if unit.owner != who || !unit.alive() {

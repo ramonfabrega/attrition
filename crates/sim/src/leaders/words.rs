@@ -97,6 +97,107 @@ impl Sim {
     }
 }
 
+/// 256.0, `0x43800000`: `Leader::calc_anti_attrition`'s first store
+/// (`docs/LEADERS.md` §6.2).
+pub const ANTI_ATT_BASE: u32 = 0x4380_0000;
+
+/// 100.0, `0x42c80000`, the multiplier the chain reads from `.rdata`
+/// (`0xb696ac`).
+const HUNDRED: u32 = 0x42c8_0000;
+
+impl Sim {
+    /// `anti_att` (`+0x7f4`) as its single's bits.
+    pub fn leader_anti_att(&self, who: Player) -> u32 {
+        self.leaders
+            .anti_att
+            .get(usize::from(who))
+            .copied()
+            .unwrap_or(0)
+    }
+
+    /// `Leader::calc_anti_attrition@006cdcc0`: `anti_att` recomputed from
+    /// 256.0 over the four sources this leader holds (`docs/LEADERS.md`
+    /// §6.2). It runs where the original's does — `Leader::init`'s tail
+    /// (here [`Sim::set_tribe`] and [`Sim::start_techs`]) and the head of
+    /// `calc_unit_stats` on the `0x4000000` fold
+    /// ([`Sim::calc_unit_stats`]) — and every source changes only at an
+    /// event that raises that flag: a tech's gain, a rare's gather, a
+    /// wonder's activation or close.
+    ///
+    /// SEAM: the reader, `UnitData::get_attrition`, still reads
+    /// [`crate::territory::attrition::Resistance::BASE`]: the leaf is held,
+    /// the bleed it divides is not wired to it (parked 4162b). The
+    /// conquest arms (`rare_conquest`, `conquest_wonders`,
+    /// `conquest_racial_powers`) and `leader_flags2 & 0x40` are not carried.
+    pub(crate) fn calc_anti_attrition(&mut self, who: Player) {
+        let w = usize::from(who);
+        if w >= self.leaders.anti_att.len() || w >= self.tech.len() {
+            return;
+        }
+        let disabled = self
+            .territory
+            .players
+            .get(w)
+            .is_some_and(|p| p.take_disabled);
+        let rows = self.tables.tech_tree.roles.foraging_preq;
+        let tier = self.bonus_level(who, &rows);
+        let liberty = self.wonders_held(who) & (1 << crate::tech::wonder::STATUE_OF_LIBERTY) != 0;
+        let mongol =
+            self.tables
+                .tech_tree
+                .has_tribe_bonus(&self.tables.setup, &self.tech[w], MONGOL_BONUS);
+        let titanium = self.has_rare(who, TITANIUM);
+        self.leaders.anti_att[w] = anti_attrition(
+            &self.tables.tuning,
+            disabled,
+            tier,
+            [liberty, mongol, titanium],
+        );
+    }
+}
+
+/// `has_tribe_bonus(17)`, the Mongols' (`docs/LEADERS.md` §6.2).
+const MONGOL_BONUS: usize = 17;
+
+/// Titanium's `TypeIndex`: `has_rare(36)`, bit 30 of the rare mask.
+const TITANIUM: usize = 36;
+
+/// `calc_anti_attrition`'s chain on its inputs: 256.0, then for the tier
+/// (`attrition_upgrade[tier − 1]`), the Statue of Liberty, the Mongol bonus
+/// and titanium in that order, each held source's `p` either ends the chain
+/// at 0 (`p ≥ 100`, signed) or takes `x = x × 100.0 / (100 − p)` in scalar
+/// single precision, rounded to nearest even (`docs/LEADERS.md` §6.2, float
+/// class 2: every input is an integer the simulation holds). Disabled is 0.
+pub fn anti_attrition(
+    t: &crate::core::tuning::Tuning,
+    disabled: bool,
+    tier: usize,
+    [liberty, mongol, titanium]: [bool; 3],
+) -> u32 {
+    use crate::num::single::Single;
+    if disabled {
+        return 0;
+    }
+    let mut x = Single::from_bits(ANTI_ATT_BASE);
+    let tier_pct =
+        (tier > 0).then(|| t.attrition_upgrade[(tier - 1).min(t.attrition_upgrade.len() - 1)]);
+    let sources = [
+        tier_pct,
+        liberty.then_some(t.liberty_attrition),
+        mongol.then_some(t.mongol_attrition),
+        titanium.then_some(t.titanium_attrition),
+    ];
+    for p in sources.into_iter().flatten() {
+        if p >= 100 {
+            return 0;
+        }
+        x = x
+            .mulss(Single::from_bits(HUNDRED))
+            .divss(Single::from_i32(100 - p));
+    }
+    x.bits()
+}
+
 /// `generate_name`'s step and second store on the per-slot counts, with
 /// `tribes[k]` each slot's tribe (`docs/LEADERS.md` §1.2).
 ///
@@ -128,7 +229,40 @@ pub(crate) fn name_step(names: &mut [i32], tribes: &[usize], own: usize) {
 
 #[cfg(test)]
 mod tests {
-    use super::name_step;
+    use super::{anti_attrition, name_step};
+
+    /// The table of `docs/LEADERS.md` §6.2 over the shipped data, bit for
+    /// bit: the tier down the side, the Mongol bonus and titanium across
+    /// (neither / one / both), and Liberty or the disabled flag at 0. The
+    /// two cells one ulp above the nearest single are the order's mark.
+    #[test]
+    fn the_nine_patterns_are_the_listing_s_bits() {
+        let t = crate::core::tuning::Tuning::RON;
+        let rows: [[u32; 3]; 4] = [
+            [0x4380_0000, 0x4400_0000, 0x4480_0000],
+            [0x43aa_aaab, 0x442a_aaac, 0x44aa_aaac],
+            [0x4400_0000, 0x4480_0000, 0x4500_0000],
+            [0x4480_0000, 0x4500_0000, 0x4580_0000],
+        ];
+        for (tier, row) in rows.iter().enumerate() {
+            assert_eq!(
+                anti_attrition(&t, false, tier, [false; 3]),
+                row[0],
+                "{tier}"
+            );
+            assert_eq!(
+                anti_attrition(&t, false, tier, [false, true, false]),
+                row[1]
+            );
+            assert_eq!(
+                anti_attrition(&t, false, tier, [false, false, true]),
+                row[1]
+            );
+            assert_eq!(anti_attrition(&t, false, tier, [false, true, true]), row[2]);
+            assert_eq!(anti_attrition(&t, false, tier, [true, true, true]), 0);
+            assert_eq!(anti_attrition(&t, true, tier, [false; 3]), 0);
+        }
+    }
 
     /// The counter's two stores: two slots of one tribe and one of another
     /// (`docs/LEADERS.md` §1.2).

@@ -1935,6 +1935,10 @@ pub fn load_tables(
     tree.roles.temple_range_preq = [bonus_at(34), bonus_at(35), bonus_at(36)];
     // `ATTRITION1..4` (`0x2dd`): the steps `Leader::calc_attrition` counts.
     tree.roles.attrition_preq = [bonus_at(49), bonus_at(50), bonus_at(51), bonus_at(52)];
+    // `FORAGING_1..3` (`0x2fe..0x300`): Forage, Supply and Logistics in the
+    // shipped file, the tier `Leader::calc_anti_attrition` reads
+    // (`docs/LEADERS.md` §6.2, item 4162).
+    tree.roles.foraging_preq = [bonus_at(82), bonus_at(83), bonus_at(84)];
     // `TROOPS_LOS_1..3` (`0x2e9`): the levels `get_troops_los_upgrade`
     // counts (`docs/VISION.md` §2, term 6).
     tree.roles.troops_los_preq = [bonus_at(61), bonus_at(62), bonus_at(63)];

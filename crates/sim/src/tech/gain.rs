@@ -40,6 +40,9 @@ impl Sim {
         );
         self.apply_gained(who);
         self.lay_starting_goods(who);
+        // `Leader::init`'s `calc_anti_attrition` sees the opening tech set
+        // (`docs/LEADERS.md` §6.2).
+        self.calc_anti_attrition(who);
         events
     }
 

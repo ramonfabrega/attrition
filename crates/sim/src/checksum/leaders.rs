@@ -1093,6 +1093,9 @@ impl Sim {
             "cannon_time" => one(i64::from(self.leader_cannon_time(who))),
             "misery" => one(i64::from(self.leader_misery(who))),
             "city_name" => one(i64::from(self.leader_city_name(who))),
+            // The single's bits (`docs/LEADERS.md` §6.2; entry 120 §3, class
+            // 1 at 256.0, class 2 under a source).
+            "anti_att" => one(i64::from(self.leader_anti_att(who))),
             "tech_cat_frame" => Some(a.tech_cat_frame.to_vec()),
             "site_mark" => one(i64::from(a.site_mark)),
             "pop_cap" => one(i64::from(m.cap)),

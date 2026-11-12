@@ -38,4 +38,8 @@ pub struct LeadersState {
     /// for its tribe, `City::generate_name`'s count ([`words`],
     /// `docs/LEADERS.md` §1).
     pub city_name: Vec<i32>,
+    /// `LeaderData::anti_att` (`+0x7f4`), the record's IEEE single held as
+    /// its bits: `Leader::calc_anti_attrition`'s recompute from 256.0
+    /// ([`words`], `docs/LEADERS.md` §6).
+    pub anti_att: Vec<u32>,
 }
