@@ -80,7 +80,7 @@ clear cut: re-run that wave for that family.
 | 4 | `victim-stamps` | done | done | done | done, §4 |
 | 5 | `attrition-stamps` | done | done | done | done, §5 |
 | 6 | `anti-att` | done | done | done | done, §6 |
-| 7 | `diplomacy-relations` | done | done | done | owed |
+| 7 | `diplomacy-relations` | done | done | done | done, §7 |
 | 8 | `diplomacy-tribute` | done | done | done | done, §8 |
 | 9 | `taunts` | done | done | done | done, §9 |
 | 10 | `end-of-game` | done | done | done | done, §10 |
@@ -96,7 +96,7 @@ clear cut: re-run that wave for that family.
 | 20 | `high-buildings` | done | done | done | done, §20 |
 
 **Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 19 of
-20, specified 7 of 20.
+20, specified 7 of 20. **Score at the close:** 20 of 20 at every stage.
 
 **How to resume.** The briefs are in `briefs/`, one per wave. A spawn is one
 `lean` agent on `opus`, prompted: "Read and follow `<brief>`. Slug `<slug>`
@@ -198,3 +198,4 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | attrition-stamps | 4 | 117 k | 3.1 | §5, 11,844 chars | every verdict a rule; the verdicts' promised addendum (the one-frame lag in a dump) was never written, the adjudicator cut at the clear, so the lag has no dump witness; run981's floor kept as a witness, not a pinned diff |
 | diplomacy-tribute | 4 | 129 k | 4.2 | §8, 11,925 chars | every verdict a rule; four details taken from the readings where a verdict cites without restating; "team style 0/8/11 reaches the leaves human or not" traces no computer-only chain (the writer's inference) |
 | diplomacy-relations | 3 | 235 k | 14 | 87 confirmed, 12 corrected, 2 open | **`dow`/`blacken` count only from the interface's Declare and a human's leg of an executed joint attack** (`take_damage` and the nuke skip a human declarer before `action_declare`); 6beceb dead; `good_deeds`' old balance enters twice, confirmed; `take_damage_view.rs:34` names bit 4 `LEADER_OUT` where it is HUMAN |
+| diplomacy-relations | 4 | 88 k | 2.1 | §7, 11,966 chars | every verdict a rule but `good_deeds`' valuation `S`, given as a shape (not walked term by term) and left to the offers-arm port; `diplomacy.rs:304` now `:305` |
