@@ -1413,7 +1413,8 @@ mod tests {
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
-            193_760, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4162: 193_760 -> 194_720, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
+            194_720, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1521,7 +1522,8 @@ mod tests {
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
-            208_292, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4162: 208_292 -> 209_324, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
+            209_324, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1720,7 +1722,8 @@ mod tests {
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
-            43_596, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4162: 43_596 -> 43_812, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
+            43_812, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -1863,7 +1866,8 @@ mod tests {
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
-            314_860, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4162: 314_860 -> 316_420, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
+            316_420, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -2006,7 +2010,8 @@ mod tests {
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
-            72_660, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4162: 72_660 -> 73_020, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
+            73_020, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -3108,7 +3113,8 @@ mod tests {
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader block (the technologies' `num_queued`).
             // item 3982: +2 keys a leader block (`ages_queued`, `epochs_queued`).
-            593_390, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4162: 593_390 -> 596_330, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
+            596_330, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump

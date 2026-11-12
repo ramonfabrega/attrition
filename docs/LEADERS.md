@@ -212,7 +212,12 @@ and in multiplayer out-of-sync recovery.
 ### 1.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/city-name-*.md`); no diff backs it yet.
+(`docs/audit/2026-11-11-item-4152/city-name-*.md`); ~~no diff backs it
+yet.~~ Since item 4162 a diff backs `city_name`: the record diff
+(`diff::leader::rows` against `theirs`) compares it on every scored dump
+that prints the record, and the leaders checksum line holds it on run
+1562's frame 91 (1 against 1 on both leaders). The tribe-shared winner is
+backed only where a kept dump seats two slots of one tribe.
 
 Verdicts: 41 confirmed, 3 corrected, 1 open, plus one new finding (the
 crate's FORBIDDENCITY exemption is load-bearing). None of the corrections
@@ -1106,7 +1111,12 @@ arm and its zero with no arm. `diff::russian_word::
 the_russian_start_holds_att_one_with_no_attrition_tech` checks run647's
 start, `FRAME 1` and the closing dump on both leaders. The leaders checksum
 line checks `att` on run 1562's frame 91, 0 against 0. The other four leaves
-and `att`'s other arms still rest on the readings alone. Both writer nets were re-run for all five leaves and found no writer
+and `att`'s other arms still rest on the readings alone. Since item 4162
+the record diff compares `att` on every scored dump that prints the record
+(the census at this file's head), which backs its Colosseum and Kremlin
+arms and its fold timing (§5.3 faults 2 and 3, closed on run1314b, run762
+and run1370b); the four stamps and `give_att_disabled` are not printed or
+not compared, and still rest on the readings. Both writer nets were re-run for all five leaves and found no writer
 either reading missed.
 
 | leaf | confirmed | corrected | open |
@@ -1372,8 +1382,12 @@ Out of reach: `take_att_disabled` (triggers only:
 Two readings and an adjudication
 (`docs/audit/2026-11-11-item-4152/anti-att-*.md`). **No diff backs the
 class 2 rows yet.** The class 1 value `0x43800000` was read off run 1562
-frame 91 and run1100 frame 5408 (entry 120 §3.4). That reading is a
-witness, not a pinned diff.
+frame 91 and run1100 frame 5408 (entry 120 §3.4). ~~That reading is a
+witness, not a pinned diff.~~ Since item 4162 the record diff compares
+`anti_att` on every scored dump that prints the record, and the leaders
+checksum line holds it on run 1562's frame 91 (`0x43800000` both sides);
+a class 2 row is backed wherever a scored dump reaches one. Its reader
+(`get_attrition`'s divisor) is not wired, parked 4162b.
 
 Verdicts: 33 confirmed, 6 corrected, 3 open (§6.6 lists four). The
 corrections that changed a rule: the tier is "holds Logistics / Supply /
@@ -2625,7 +2639,12 @@ the attacker's leader is capped). `hurry_action` is debug only.
 ### 12.6 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/misery-*.md`); no diff backs it yet.
+(`docs/audit/2026-11-11-item-4152/misery-*.md`); ~~no diff backs it
+yet.~~ Since item 4162 the record diff compares `misery` on every scored
+dump that prints the record, and the checksum line holds it on run 1562's
+frame 91 (0 against 0); it is quiet everywhere, so only the zero is backed.
+`pop_issues` is held but not compared: it parts once, on run667's closing
+frame 17380, who 1, ours 2 theirs 0 (parked 4162a), and stays unmodelled.
 
 - `pop_issues`: 25 confirmed, 4 corrected, 1 open. High confidence on the
   writers, predicates, reset and the one-per-building bound; every one is
@@ -3514,7 +3533,12 @@ editor stores. `Leaders::clear` runs at game end.
 ### 16.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/lobby-words-*.md`); no diff backs it yet.
+(`docs/audit/2026-11-11-item-4152/lobby-words-*.md`); ~~no diff backs it
+yet.~~ Since item 4162 the record diff compares `multi_diff` and `handicap`
+on every scored dump that prints the record, and the leaders checksum line
+holds all three on run 1562's frame 91. `cannon_time` is not printed in
+the record, so the checksum line (0 against 0) is its only backing;
+`handicap` is quiet everywhere, so only its zero is backed.
 
 Verdicts (confirmed / corrected / open): `multi_diff` 12 / 2 / 0,
 `cannon_time` 12 / 0 / 0, `handicap` 14 / 1 / 0. The corrections that
