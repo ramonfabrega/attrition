@@ -80,6 +80,7 @@ SUITES = (
     'test_nations_census',  # Loop 3972: the census's --check
     'test_paths',  # item 4008: the cited source paths, checked and moved
     'test_shape',  # item 4008: the structure track's six counts
+    'test_disk',  # the steering pass of 2026-11-12: the gate's disk steps
 )
 
 # The lab's suites (`docs/DECISIONS.md` entry 38: merged whole, its ledger
