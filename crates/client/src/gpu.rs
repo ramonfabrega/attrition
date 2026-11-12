@@ -211,7 +211,22 @@ fn fs_patch(i: VOut) -> @location(0) vec4<f32> {
 // Item 4141 (`docs/RENDERER.md` §3.10): one layer of a mountain's own draw,
 // `MountainsOut::mountain_blend` — stage 0 the tileset's texture (MODULATE
 // with the vertex white, A its own); stage 1 the range's alpha, ADDSIGNED
-// on the colour and MODULATE on A; the alpha test GREATER 0.
+// on the colour and MODULATE on A; the alpha test GREATER 0. Item 4172: the
+// textures are sRGB views, so a sample arrives linear; ADDSIGNED is run on
+// the stored bytes, as the card's stage and `MountainArt::over` run it, and
+// the sum handed back linear for the sRGB target to store.
+fn encoded(c: vec3<f32>) -> vec3<f32> {
+    let lo = c * 12.92;
+    let hi = 1.055 * pow(c, vec3<f32>(1.0 / 2.4)) - vec3<f32>(0.055);
+    return select(hi, lo, c <= vec3<f32>(0.0031308));
+}
+
+fn decoded(c: vec3<f32>) -> vec3<f32> {
+    let lo = c / 12.92;
+    let hi = pow((c + vec3<f32>(0.055)) / 1.055, vec3<f32>(2.4));
+    return select(hi, lo, c <= vec3<f32>(0.04045));
+}
+
 @fragment
 fn fs_mountain(i: VOut) -> @location(0) vec4<f32> {
     let t0 = textureSample(tex, samp, i.uv);
@@ -220,7 +235,8 @@ fn fs_mountain(i: VOut) -> @location(0) vec4<f32> {
     if (a <= 0.0) {
         discard;
     }
-    return vec4<f32>(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0)), a);
+    let sum = encoded(t0.rgb) + encoded(t1.rgb) - vec3<f32>(0.5);
+    return vec4<f32>(decoded(clamp(sum, vec3<f32>(0.0), vec3<f32>(1.0))), a);
 }
 "#;
 
@@ -1244,6 +1260,17 @@ mod tests {
         assert!(TEXTURED_SHADER.contains(
             "fn fs_ground(i: VOut) -> @location(0) vec4<f32> {\n    \
              return vec4<f32>(textureSample(tex, samp, i.uv).rgb, 1.0);"
+        ));
+    }
+
+    /// Item 4172: the mountain's ADDSIGNED runs on the stored bytes, not
+    /// on the sRGB view's linear samples (the still's body read a third of
+    /// the photograph's brightness with it in linear space).
+    #[test]
+    fn the_mountain_adds_on_the_stored_bytes() {
+        assert!(PATCH_SHADER.contains(
+            "let sum = encoded(t0.rgb) + encoded(t1.rgb) - vec3<f32>(0.5);\n    \
+             return vec4<f32>(decoded(clamp(sum, vec3<f32>(0.0), vec3<f32>(1.0))), a);"
         ));
     }
 
