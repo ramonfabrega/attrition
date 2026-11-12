@@ -63,7 +63,11 @@ Item 4162 made `theirs` read `att`, `pop_issues`, `misery`, `city_name`,
 millionths), and `rows` compare them. Item 4167 (step II) made `theirs`
 read `fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`,
 `scholar_militia` and the six `*_queued`, and `rows` compare them (§13.5,
-§14.5).
+§14.5). Item 4176 (step III) made `theirs` read the damage path's
+fourteen printed leaves — the four counters, the three victim stamp rows
+(eight cells each), `ctw_hero_stamp`, the three attrition stamps,
+`repair_stamp`, `missiles_used` and `nukes_launched` — and `rows` compare
+them (§2.5, §4.5, §5.5, §15.5).
 
 **Conventions.** A function is cited as `Name (00xxxxxx)`. An offset is a
 `LeaderData` offset. `Leader` holds `LeaderData` at offset 0 and adds 8 bytes
@@ -391,7 +395,13 @@ disbands, attackerless decay).
 
 ### 2.3 In the crate
 
-None of the four is held. Each exists only as a checksum name
+**Since item 4176 all four are held** (`sim::leaders::tallies`), at the
+sites below: `take_damage_typed`'s and `die_by_attrition`'s countable
+death, the Sniper's, Commando's and counterintel's kill, `do_damage`'s
+and sabotage's raze, and `damage_building`'s death. The site-abandon
+disband is still absent. What follows is the map as it stood before.
+
+~~None of the four is held.~~ Each exists only as a checksum name
 (`crates/sim/src/checksum/leaders.rs:157-161`), and each is `(unheld)`,
 count 2, in `LEADERS_HELD_OUT`
 (`crates/rondata/src/diff/checksum_lines.rs:1769, 1770, 1847, 1848`). A
@@ -453,7 +463,15 @@ a scenario.
 ### 2.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/kills-*.md`); no diff backs it yet.
+(`docs/audit/2026-11-11-item-4152/kills-*.md`). ~~no diff backs it yet.~~
+**Since item 4176 the record diff backs all four** on every scored dump
+that prints the record: `buildings_razed` and `buildings_lost` agree on
+every one (run1147b's who 1 razes 6 = 6 by block 4376, and a port with
+`do_damage`'s raze removed parts there, ours 0), and `units_killed` and
+`units_lost` agree everywhere but run1075's garrison window, where both
+part only beside the units' own hits (block 2247, who 1 killed ours 15
+theirs 16; 2386, who 0 ours 2 theirs 1). The spell writers and the abandon
+arm are not exercised by any kept dump, and rest on the readings.
 High confidence: every store and every test was settled at a listing
 instruction.
 
@@ -499,10 +517,11 @@ No kept-dump value is cited.
   where a player casts them.
 - **Whether the computer casts Sniper, Commando or counterintel** in a
   skirmish. This is unread, and its AI scripts or a capture settle it.
-- **No value diff.** The rules rest on readings alone until a port's
-  checksum arms meet the leaders line of a kept run. Any capture with a
-  kill, a raze, an attrition death and a border-decay loss on its frames
-  exercises all four.
+- ~~**No value diff.** The rules rest on readings alone until a port's
+  checksum arms meet the leaders line of a kept run.~~ The record diff
+  backs all four since item 4176 (§2.5); the leaders line emits the two
+  building counters, and the unit pair stays unheld while run1075 parts
+  (parked 4176a).
 
 ## 3. The combat rates
 
@@ -849,6 +868,10 @@ is cut from v1. In a plain game the leaf is 0 for the whole game.
 
 ### 4.3 In the crate
 
+- **Since item 4176** the three rows are `sim::leaders::tallies`, written
+  by `Sim::city_alarm` (arms 1–3 and the ally step) and its territory
+  step, with `heavy` computed before the city test; `ctw_hero_stamp` is
+  the cut track's 0. The map as it stood before:
 - **Arms 1–3**: `Sim::city_alarm` (`crates/sim/src/combat/fight/delivery.rs:280`),
   called from `Sim::do_damage_round` (`:70`) at `:190`, before the take at
   `:192`. It already writes the city's two stamps. The leader stores are
@@ -890,8 +913,14 @@ in a skirmish the three leaves matter to the checksum and the save.
 ### 4.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/victim-stamps-*.md`); no diff backs it
-yet.
+(`docs/audit/2026-11-11-item-4152/victim-stamps-*.md`). ~~no diff backs it
+yet.~~ **Since item 4176 the record diff backs the three rows**, all 24
+cells of each leader, on every scored dump that prints the record (and
+`LEADERS=8`'s golden chapters, which print them too); they part only on
+run1075's garrison window beside its units' own damage (block 2060,
+who 1's `attack_stamp[0]` ours 2059 theirs 0, beside `1/59`'s damage 10
+against 0) and on four closing frames whose rounds already part.
+`ctw_hero_stamp` agrees at 0 everywhere, which a dump cannot falsify.
 
 The verdicts, per claim row:
 
@@ -932,8 +961,9 @@ No kept-dump value is cited as a witness.
 - **The writer net's limit.** A store through a base other than the record
   start (as `Leader::init` uses `this+0xd4`) is outside the
   register-relative net. The absolute scan has no such limit.
-- **No value diff.** A capture at `LEADERS=9`, with any cross-owner hit
-  after frame 300, would turn arms 1–4 and the ally test into a value diff.
+- ~~**No value diff.**~~ The record diff backs arms 1–4 and the ally
+  test since item 4176 (§4.5). Which arm each cell came from is not
+  separated by it; a cell agrees or parts.
 
 ## 5. The attrition stamps, `att` and `give_att_disabled`
 
@@ -1072,6 +1102,10 @@ and `calc_attrition` 6cdea6 (`att = 0`). `log_data` does not print it.
 - **`give_att_disabled`** is `PlayerState::give_disabled`
   (`attrition.rs:257`, default `:272`), read in the original's order at
   `:498`. Nothing writes it; the writer is the trigger track's.
+- **Since item 4176** the three stamps are `sim::leaders::tallies`, and
+  `calc_attrition` reads `give_disabled` first (fault 4). The age
+  zeroing in `gain_tech` is still not carried (the crate has no age-rule
+  war declaration either). The map as it stood before:
 - **`attrition_stamp`**: no store. It goes beside the `Situation` in
   `Sim::process_attrition` (`upkeep.rs:239`), on the `peace_attrition` /
   `assassin_attrition` outcome; `Situation.assassin` is hard-coded `false`
@@ -1120,7 +1154,13 @@ the record diff compares `att` on every scored dump that prints the record
 arms and its fold timing (§5.3 faults 2 and 3, closed on run1314b, run762
 and run1370b); the four stamps and `give_att_disabled` are not printed or
 not compared, and still rest on the readings. Both writer nets were re-run for all five leaves and found no writer
-either reading missed.
+either reading missed. **Since item 4176 the record diff compares the
+three stamps**: `attrition_stamp` (the peace arm, the Lakota peace pair
+among them) and `attrition_stamp3` agree on every scored dump;
+`attrition_stamp2` parts on the Lakota pair (who 1, ours 3774 theirs
+3770, standing from run855's 4538), run844's 4940 (ours 4871 theirs 0),
+run1147b's 4376 and run1145c's 4169 (parked 4176b). `give_att_disabled`
+has the leaders line alone (0 = 0 on run 1562's frame 91).
 
 | leaf | confirmed | corrected | open |
 |---|---|---|---|
@@ -1165,8 +1205,9 @@ fit the formula. run1072's `attrition_stamp` 1392 on block 1393
 - ~~**No value diff for any leaf**: a `LEADERS` capture diffed on the five
   leaves (run981 for the floor) would make them one.~~ `att` has a value diff
   since item 4154: run647, not run981. run981 is the held-out battery's
-  start, and DECISIONS 61 §6 says it is never debugged against. The other
-  four leaves still have none.
+  start, and DECISIONS 61 §6 says it is never debugged against. ~~The other
+  four leaves still have none.~~ The three stamps have one since item 4176
+  (§5.5); `give_att_disabled` has the checksum line alone.
 
 ## 6. Anti-attrition (`anti_att`)
 
@@ -3296,6 +3337,13 @@ Reset: 0 at `Leader::init`; never decremented. Reader: `log_data`.
 
 ### 15.3 In the crate
 
+**Since item 4176 all four are held**: `repair_stamp`, `missiles_used`
+and `nukes_launched` in `sim::leaders::tallies` (behind
+`SimDoRepair::feedback_stamp`, in `Sim::land` after the nuke arm, and in
+`Sim::come_out` before the squad's push), `units_bribed` as
+`PlayerTech::bribes`; `nuke_ramp_extra` adds `missiles_used` for
+`0x139` and `0x13a`. The map as it stood before:
+
 - **`repair_stamp`.** The event is `do_repair_steps`
   (`crates/sim/src/orders/jobs.rs:1802`), the throttle at `:1915`
   (`frame.wrapping_sub(feedback_stamp) < 0x97`, the same test), the signed
@@ -3353,7 +3401,13 @@ Reset: 0 at `Leader::init`; never decremented. Reader: `log_data`.
 ### 15.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/odd-counters-*.md`); no diff backs it yet.
+(`docs/audit/2026-11-11-item-4152/odd-counters-*.md`). ~~no diff backs it
+yet.~~ **Since item 4176 the record diff compares `repair_stamp`,
+`missiles_used` and `nukes_launched`** on every scored dump that prints the
+record, and all three agree everywhere; `missiles_used` moves in kept
+dumps (the census at this file's head), the other two are quiet, so their agreement is a reading's claim the
+dump cannot falsify. `units_bribed` has the leaders line alone (0 = 0 on
+run 1562's frame 91).
 
 Verdicts by leaf (confirmed / corrected / open): `repair_stamp` 15 / 1 / 0,
 `missiles_used` 16 / 0 / 0, `units_bribed` 15 / 1 / 0, `nukes_launched`
