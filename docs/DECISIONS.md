@@ -134,7 +134,8 @@ is append-only and amended in place, as it always was.
 - 125 standing — no parked file
 - 126 amended by 128 — two rows, three workers, the leaders tranche
 - 127 standing — a render row is the client's pixels and reads brightness
-- 128 standing — the gate clears the disk, release on transfer, four workers on trial
+- 128 amended by 129 — the gate clears the disk, release on transfer, four workers on trial
+- 129 standing — four workers confirmed, one whole lane at a time; the sweep keeps a cache in use; release on the packets
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
 - 90 amended in place — the fifty-first tranche, two Opus lanes
 - 89 amended in place — the fiftieth tranche, two Opus lanes
@@ -12476,3 +12477,109 @@ the disk nearly full, the original drawing under Wine, another
 application); what a
 person needs on screen to play past the plain page — the build menu, the
 resources, a selection's panel — which no item here designs.
+
+## 129. Four workers are confirmed with one whole lane at a time, the disk step keeps a cache in use, a timed test waits for the host, an unprinted leaf is released on the packets, and the lanes take what the eye finds (2026-11-12)
+
+**What happened.** `commander` armed the pass by supply (entry 126 §4): every
+designed lane item had landed (4178 to 4184, 4034, 4186) and entry 128 §4
+left the fourth worker for this pass to confirm or pull back. Measured on
+the tranche (`tranche.py --base 471755ade`, `gates.py --since
+gate-pass-1112b.log`): eleven landings in four and a half hours against
+eight in about the same on three workers; nine lane landings at 9.44 USD
+against 10.70; a lane's wait 52.5 minutes a landing against 28.6, its gate
+31.4 of them against 24.4; a whole booking gate 34.6 to 60.8 minutes beside
+the lanes and 30.5 alone; two timing tests red on a loaded host with the
+code under test unchanged (the clock on gate-4179, the memcap fixture on
+lane-4180's third gate at a load of 50.9 on 16 cores). Ramon's condition on
+the fourth, that it does not run the full suite, did not hold: four of nine
+lane landings gated whole, two of them input items that found mid-flight
+they must touch `crates/sim/src/observe.rs`.
+
+**What the pass found under it.** The disk step entry 128 §1 added removed
+every decoded-cache generation but the gated build's own. A worker whose
+branch edits a parser source has a generation of its own and is reading it
+while it works; the gates' logs show 130 to 239 generations removed by each
+green gate of the tranche, one or two live ones, 1.5 GiB each, rebuilt cold
+by the worker that owned them. Its two `Directory not empty` failures were
+that sweep racing such a writer. The pass before built this and priced it
+as one cold read a lane (`docs/TEST_PERFORMANCE.md`); it recurred at every
+gate. How much of the host's load it made is not measured.
+
+**Ramon, on this row:** "btw im here for whatever we wanna talk/discuss in
+this pass". The pass put three things to him in the turn (the fourth
+worker, a plain HUD, the merged branches on origin) and carried on under
+its recommendations; nothing below waited on an answer, and each is his to
+move.
+
+**Decided**, the pass's, Ramon's to move.
+
+1. **Four workers stand, and the condition is a mechanism.** The chain's
+   builder and three lanes; **at most one lane holds an item the queue
+   marks whole**, every queued item says whole or scoped in its head, and
+   a scoped item that finds it must touch `crates/sim` says so before it
+   builds. Under it, `release_gate.py --lane --whole` takes a host-wide
+   lock (`~/Library/Caches/attrition/whole-lane.lock`): a second whole lane
+   gate names the holder and waits. A booking gate takes none. A fifth
+   worker is not recommended: the week closes near 60 % at this pace, so
+   the window does not bind, but nobody has measured what the load is made
+   of (§4).
+2. **The disk step keeps a generation in use.** A reader marks its
+   generation once a process; the sweep keeps a foreign generation used
+   within twelve hours and removes the rest; one failed removal is
+   reported and the sweep goes on. The collector left `oracle.rs` for
+   `oracle/gc.rs` so an edit to it no longer turns every generation over;
+   this edit did, once, and the first gate after the pass reads cold.
+3. **A timed test waits for the host.** The clock, after a first broken
+   session on a host loaded past its cores, waits up to 600 s for the load
+   to fall before the second; a failure prints the load under each
+   session, and a host that never quiets fails as "unmeasured, re-run",
+   which is a red and a named one. The memcap fixture's child holds until
+   killed and the bound runs from the moment it holds its memory. Entry
+   128 §8's two sessions stand on a quiet host.
+4. **The receipt names the load.** `Host top:` prints the five commands
+   with the most CPU at the gate's start and end, beside `Host load:`. The
+   budget is twenty slots and the tranche read loads of 46 to 51; what ran
+   outside the budget is not known, and the next tranche's receipts are
+   the measurement.
+5. **An unprinted leaf is released on the packets.** Entry 128 §3 releases
+   a leaf that a dump prints. 25 leaves of the leaders line are printed by
+   none, and fourteen held ones need a per-blow record no dump has. Three
+   packets of a game our walk replays in lockstep are on disk, mid-raid
+   (run1559b at 3294, run1564, run1570 at 3331): **an unprinted leaf
+   leaves `LEADERS_HELD_OUT` when it agrees on every packet on disk, at
+   least one of them a packet on which it is not zero**, the packet read by
+   the original's own leaders walk as frame 91's was. Step P (item 4188)
+   builds it, ahead of step VI, for the reason T went ahead of V: it is
+   the oracle every later step's leaves are released by.
+6. **The lanes take what the eye finds** (the pass looked at three stills
+   beside their photographs): the paved base (4190) and the corpse and
+   round (4191) on the whole slot; the lake's shore and floor (4192) and
+   the figures' shadows (4193) scoped; one unit's press and the attack
+   played (4194, 4195); the start track's Southwest Mesa (4196). Smoke and
+   fire on a damaged building is the largest gap in the world with no
+   item: it needs the particle systems and a row nobody has ruled.
+7. **A plain HUD is booked, and is Ramon's to strike** (4197). The largest
+   difference between our still and every photograph is the interface, and
+   two of the orders the mouse mints hide behind keys. Porting the
+   original's windows stays cut (entry 128 §6); this is a bar, a panel and
+   a menu in the lobby page's manner, scored on values the dump prints and
+   on the clicked file minted from button presses.
+8. **The wgpu examples change nothing but one list.** `include_wgsl!` in
+   the pinned wgpu 30.0.1 is a descriptor over `include_str!` and
+   validates nothing; three of our seven sources are assembled at run
+   time. HDR output is for after the art swap: the oracle is an 8-bit
+   photograph. Compute has nothing to win: the stills' scoring is 37 s
+   beside a library lane of 1,557 s and off the gate's critical path. The
+   reading found `Gpu::new` building seven modules and the naga test
+   validating five; one list now serves both.
+9. **The merged branches on origin are Ramon's to delete**, or his to
+   allow: 65 stand, and the classifier refuses a session the delete. The
+   line is in the pass's record.
+
+**Not established:** what the host's load was made of; whether twelve
+hours is the right age (it over-keeps a few GiB at most); whether each
+packet's boundary is a frame our walk holds and the original's leaders
+walk runs on a 3,300-frame heap as it did on frame 91's; whether the paved
+base is `Roads`' state or the city's footprint; whether the week's pace
+holds with one whole lane at a time; the finer gate rule (which paths can
+move a timed test), unbuilt for a third pass.

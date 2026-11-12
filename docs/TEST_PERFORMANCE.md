@@ -155,8 +155,15 @@ generation but the build's own (the pre-3353 flat entries count as one). Since
 2026-11-12 the booking gate runs it: `tools/gate_run.sh` calls `tools/disk.py --gc`
 after every green gate, on the golden archive and `~/ron-data`, from the gated
 tree on the survey step's debug binary, so the generation kept is the booked
-commit's. A lane on another parser fingerprint pays one cold read: its next read
-misses and re-decodes from the dump. Just before it, `tools/disk.py --sha` reaps
+commit's. ~~A lane on another parser fingerprint pays one cold read: its next read
+misses and re-decodes from the dump.~~ **Measured on the next tranche, it paid one
+after every green gate**: each gate removed 130 to 239 generations over 133 caches,
+one or two whole generations in-flight workers were reading, and twice raced a
+writer into `Directory not empty`. Since the pass by load (DECISIONS 129 §2;
+`oracle/gc.rs`) a reader touches `<generation>/.in-use` once a process and the
+sweep keeps a foreign generation whose mark or directory is under twelve hours old
+(`IN_USE`); a failed removal is reported (`K in use kept, F failed`) and the sweep
+goes on. The collector is its own file because `oracle.rs` is a schema source. Just before it, `tools/disk.py --sha` reaps
 every merged `agent-*` builder tree (its tip an ancestor of the gated commit, off
 its first-parent line): a clean one loses tree and branch (`git branch -d`), a
 dirty one only its `target/`. A red gate runs neither step, so a just-merged

@@ -179,6 +179,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "exhaustive owned-observation codec and corruption checks, not simulation comparison",
     ),
     (
+        "diff/oracle/gc.rs",
+        "the decoded cache's collector (which generations a sweep keeps), not simulation comparison",
+    ),
+    (
         "diff/harness/prefix.rs",
         "scoped replay state and installation reuse; all oracle comparisons remain in harness.rs",
     ),

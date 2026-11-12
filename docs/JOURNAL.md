@@ -22049,3 +22049,33 @@ measurement killed: the clock's p99 read 5 ms beside our stills with the
 lock and without, against the red gate's 75, so the lock is unmerged, the
 cause is open, and the test measures a break twice. The rubric: the territory 731 · 332 · 576 from item
 4170. **DECISIONS 128.** `docs/audit/2026-11-12-fable-pass-supply.md`.
+
+**2026-11-12, the pass by load (steer, Fable 5.2, armed by `commander`;
+Ramon on the row).** The tranche on four workers: eleven landings in four
+and a half hours against eight on three; nine lane landings at 84.98 USD
+list, 9.44 a landing, 52.5 minutes waiting a landing against 28.6, six of
+nine sessions deep; nine gate logs, eight whole, a whole booking gate 34.6
+to 60.8 minutes beside the lanes and 30.5 alone; two timing tests red on a
+host at 46 to 51 on 16 cores with the client no slower. The condition on
+the fourth worker, that it not run the whole suite, held as prose for no
+one: four of nine lane landings gated whole. Found under it: the disk step
+the pass before built removed every decoded-cache generation but the gated
+build's, 130 to 239 a gate, among them the ones in-flight workers were
+reading, and its two failures were that sweep racing a writer. Ruled: four
+workers stand with one whole lane at a time, kept by a lock in the lane
+gate; the sweep keeps a generation used within twelve hours; the clock
+waits for the host before a second session and the memcap fixture's bound
+runs from the moment its child holds its memory; the receipt prints `Host
+top:`, since nobody yet knows what the load is made of; an unprinted leaf
+of the leaders line is released on the three mid-raid packets already on
+disk, and step P (4188) goes ahead of VI. The client's still beside three
+photographs: the interface is the largest difference and had no item; then
+the paved base, smoke and fire, and on the lake a hard-edged deep polygon
+and a sawtooth shore. Booked: 4188, 4187, 4189 on the chain; 4190 to 4197
+on the lanes — the base, the corpse and round, the lake's shore and floor,
+the figures' shadows, one unit's press, the attack played, Southwest Mesa,
+a plain HUD that is Ramon's to strike. Ramon's wgpu note: nothing to
+adopt; the reading found the naga test validating five of seven modules,
+fixed by one list. Built by three Opus builders, red first. The rubric:
+the territory 733 · 332 · 574 from item 4186. **DECISIONS 129.**
+`docs/audit/2026-11-12-fable-pass-load.md`.

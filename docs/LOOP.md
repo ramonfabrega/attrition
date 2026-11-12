@@ -94,9 +94,13 @@ another model takes that model's own default effort, not the driver's.
   milestones landing with every floor held, and by points of the weekly
   window a milestone.
 - **The lanes**: three ccc lanes, Opus 5.5 at `--effort high`, under the
-  frame — four workers with the chain's builder, on trial since the pass of
-  2026-11-12 (DECISIONS 128 §4). The third lane takes only items whose gate
-  is scoped; a `start` item gates whole and is never the fourth worker. One lane at medium was the control: 27
+  frame — four workers with the chain's builder, confirmed at the pass by
+  load (DECISIONS 129 §1). **At most one lane holds an item the queue marks
+  whole**; a scoped item that finds it must touch `crates/sim` says so
+  before it builds; and a lane's whole gate takes a host-wide lock, so a
+  second one prints `Whole lane: waiting on <holder>` and waits. The trial
+  tranche ran four of nine lane landings whole and read two false reds
+  under a load of 46 to 51 on 16 cores. One lane at medium was the control: 27
   tranches of that roster read 7.25 USD a landing (lore, 2026-11-09); the
   nine lane landings after the reset read 8.36.
 - Never Sonnet on a reading or an adjudication.
@@ -128,10 +132,18 @@ branch is his: a remote branch delete is refused from every row.
 
 **The gate clears the disk** (DECISIONS 128 §1). After a gate that exits 0,
 `tools/gate_run.sh` runs `tools/disk.py`: every oracle cache generation but
-the gated build's leaves both archives, and a builder's tree whose tip is
+the gated build's **and those a process read within twelve hours** leaves
+both archives (DECISIONS 129 §2: for a tranche the sweep removed the
+generations in-flight workers were reading, 130 to 239 a gate, and they
+rebuilt cold), and a builder's tree whose tip is
 merged and whose tree is clean is removed with its branch. The log's
 `Disk:` lines say what went and what is free, `LOW` under 30 GB; the driver
-reads them beside `gate exit 0`. The disk read 0 GB inside a builder's run
+reads them beside `gate exit 0`, **and `Host top:` beside `Host load:`**:
+the five commands with the most CPU at the gate's end and start, which is
+how a tranche learns what loads the host past the budget's twenty slots.
+**A timed test that fails "unmeasured, re-run" is the host, not the
+client** (DECISIONS 129 §3): the gate is re-run when the load has fallen,
+and nothing is diagnosed. The disk read 0 GB inside a builder's run
 on 2026-11-12: about 94 generations stood in each of 133 caches and seven
 merged trees held 40 GiB of build output, and nothing removed either. A
 capture is never removed this way (entry 84 (iv)).

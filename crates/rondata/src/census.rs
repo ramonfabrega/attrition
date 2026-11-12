@@ -343,9 +343,9 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// merged tip: the readers' classes 181 rows, the reference scan and RESIDUE
 /// as `dead` 252, CHECKSUM §22's walkers 13 (the four order-class walks
 /// ported out of replaced), and 44 twin rows by hand.
-pub const RUBRIC_TERRITORY_PORTED: usize = 731;
+pub const RUBRIC_TERRITORY_PORTED: usize = 733;
 pub const RUBRIC_TERRITORY_REPLACED: usize = 332;
-pub const RUBRIC_TERRITORY_OPEN: usize = 576;
+pub const RUBRIC_TERRITORY_OPEN: usize = 574;
 /// **Lockstep since the fifty-first pass** (Ramon, 2026-10-22: the rubric
 /// answers how close the port is to a 1:1 sim). The ages and the unit types
 /// below are read from the dumps of **lockstep games** only — a game whose
