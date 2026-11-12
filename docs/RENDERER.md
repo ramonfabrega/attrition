@@ -821,8 +821,14 @@ survives here — every placed record has share 0, below every window (the
 least `start_percent` is 0.05) — and is held by `render`'s unit test.
 
 **Not established.** The scaffold's element and age bracket (no dump prints
-a scaffold piece), the slot's angle, and the sprite and meshes themselves:
-the client skips both poses (parked 4061a, 4061b).
+a scaffold piece), the slot's angle (parked 4061b), its `Scaffold Blend`,
+the crane's pose and `draw_ammo`'s `draw_flags` gate (parked 4163a), and
+the pixels. ~~The sprite and meshes themselves: the client skips both poses
+(parked 4061a).~~ Item 4163 draws each with its own decoded file: a
+foundation as its `<CONSTRUCTION>` sprite (type `0xc`, `draw_build`), a
+scaffold piece as its `<SCAFFOLD>` model, a guy's mirror at scale 3
+(`draw_scaffold`'s chad): 877 of 877 and 2,781 of 2,781 on the 99 frames
+(`client::world::tests`).
 - ~~**A figure's own point apart from its unit's.**~~ Settled by item
   4027: guy 0's is `Movement::body`, and the door reads it now.
 
@@ -2042,6 +2048,11 @@ Each line names what would settle it.
   "The ground's base layer") and a mountain's (§3.10); the blends, the
   coast, the cliffs and the water are not, and frame 3279 shows no tile of
   the last three (item 4143, `RUN1559B_3279_UNSCORED`; parked 4143a).
+- **The scaffold's own draw** (§3.5, parked 4163a): `draw_ammo`'s
+  `Scaffold Blend`, the crane's `CraneWork` pose from the building's clock,
+  and `GraphicPieces::draw`'s gate on `draw_flags` for the ammo range; the
+  client draws it opaque, at rest, always. The dock's foundation model
+  beside its sprite (parked 4163b): the client draws the sprite alone.
 - **Whether `sim` builds for `wasm32-unknown-unknown`.** It is untried, and
   matters only if option A's live variant is wanted.
 - **The licence of ptasev/Rise-of-Nations.** Reading it is fine under the
