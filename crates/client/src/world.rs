@@ -223,6 +223,21 @@ pub struct World {
     laid_ramp: Option<crate::ground::ScreenRamp>,
     screen_layers: (Option<usize>, Option<usize>),
     patch_version: u32,
+    /// The building types, which the footprint weathering's rule reads
+    /// (item 4190, [`crate::weathering::footprint`]).
+    build_types: Vec<sim::cities::build::BuildType>,
+    /// Draw the footprint weathering (item 4190, §3.16). On by default; the
+    /// row's count as drawn before turns it off.
+    pub weathering: bool,
+    /// The weathering's made-to-fail (item 4190): every footprint moved by
+    /// this many of its own sizes, in tiles.
+    pub weathering_shift: (i32, i32),
+    /// Modern's base (`WEATHERELEM age="2"`'s `file2`); `None` where it
+    /// does not read, and no weathering is laid.
+    weather_mips: Option<std::sync::Arc<render::silhouette::Mips>>,
+    /// The footprints laid among the patches, at the frame and the switches
+    /// they were laid at.
+    weather_laid: (i64, bool, (i32, i32), Vec<crate::weathering::Footprint>),
 }
 
 /// The ground's textures, as the draw takes them.
@@ -267,6 +282,15 @@ pub const WATER_PIECE: i32 = -200_000;
 /// The ocean floor's baked layers' piece (item 4178), and one less its
 /// shade's.
 pub const FLOOR_PIECE: i32 = -200_010;
+
+/// The footprint weathering's base's piece among the ground's textures
+/// (item 4190), and its white alpha's key among the alphas.
+pub const WEATHER_PIECE: i32 = -200_020;
+pub const WEATHER_ALPHA: usize = 910;
+
+/// The age bucket `Terrain::add_weathering` takes for every age past its
+/// gate (`4 < age` → 2), `WEATHERELEM age="2"`, Modern (item 4190).
+pub const WEATHER_BUCKET: i32 = 2;
 
 /// What [`crate::ground::our_patches`] and the patch's draw take.
 struct PatchArt {
@@ -702,6 +726,16 @@ impl World {
                 }
             });
         let cats = loaded.unit_types.iter().map(|t| t.cols.cat).collect();
+        // Item 4190 (§3.16): the weathering's base past the age gate, the
+        // bucket `add_weathering` takes for every age it lets through.
+        let weather_mips = rondata::artdata::weathering_art(&install)
+            .ok()
+            .and_then(|w| {
+                let (_, _, file2) = w.into_iter().find(|e| e.0 == WEATHER_BUCKET)?;
+                let bytes = std::fs::read(resolve_art(install.root(), &file2)?).ok()?;
+                let img = render::tga::decode(&bytes).ok()?;
+                Some(std::sync::Arc::new(render::silhouette::Mips::new(img)))
+            });
         Ok(World {
             look: BuildLook::new(&install).with_types(&loaded.build_types),
             tribes,
@@ -742,6 +776,11 @@ impl World {
             laid_ramp: None,
             screen_layers: (None, None),
             patch_version: 0,
+            build_types: loaded.build_types.clone(),
+            weathering: true,
+            weathering_shift: (0, 0),
+            weather_mips,
+            weather_laid: (-1, false, (0, 0), Vec::new()),
         })
     }
 
@@ -1039,6 +1078,39 @@ impl World {
             self.drawn = (version, rest, meshes, patches);
             self.screen_layers = layers;
             self.laid_ramp = None;
+            self.weather_laid = (-1, false, (0, 0), Vec::new());
+        }
+        // Item 4190 (§3.16): the footprint weathering, laid again when the
+        // frame or its switches move, after the land's patches and the
+        // water and before the first mountain layer — the card's order is
+        // the weathering, the roads, the shadows, the mountains.
+        let frame = self.runner.frame();
+        let key = (frame, self.weathering, self.weathering_shift);
+        if (
+            self.weather_laid.0,
+            self.weather_laid.1,
+            self.weather_laid.2,
+        ) != key
+        {
+            let want = if self.weathering && self.weather_mips.is_some() {
+                self.weather_footprints()
+            } else {
+                Vec::new()
+            };
+            if want != self.weather_laid.3 {
+                self.drawn.3.retain(|m| m.piece != WEATHER_PIECE);
+                if let Some(m) = self.weather_mesh(&want) {
+                    let at = self
+                        .drawn
+                        .3
+                        .iter()
+                        .position(|p| p.mountain)
+                        .unwrap_or(self.drawn.3.len());
+                    self.drawn.3.insert(at, m);
+                }
+                self.patch_version = self.patch_version.wrapping_add(1);
+            }
+            self.weather_laid = (key.0, key.1, key.2, want);
         }
         // Item 4178: the water's colour and the floor's grey follow the
         // screen's ramp; only their texcoords are laid again when it moves.
@@ -1063,6 +1135,76 @@ impl World {
             self.patch_version = self.patch_version.wrapping_add(1);
         }
         (&self.drawn.1, &self.drawn.2, &self.drawn.3)
+    }
+
+    #[cfg(test)]
+    pub fn build_types_for_test(&self) -> &[sim::cities::build::BuildType] {
+        &self.build_types
+    }
+
+    /// **The frame's footprint weathering** (item 4190, §3.16): every
+    /// building's [`crate::weathering::footprint`], moved by
+    /// [`World::weathering_shift`] of its own size.
+    pub fn weather_footprints(&self) -> Vec<crate::weathering::Footprint> {
+        let scene = self.runner.scene(None);
+        let (dx, dy) = self.weathering_shift;
+        crate::weathering::footprints(&self.build_types, &scene.buildings)
+            .into_iter()
+            .map(|mut f| {
+                f.corner.0 += dx * f.size.0;
+                f.corner.1 += dy * f.size.1;
+                f
+            })
+            .collect()
+    }
+
+    /// The footprints' tiles as one [`PatchMesh`] (item 4190, §3.16): each
+    /// tile on the ground's own corners (`TerrainMesh::build`'s `[a, b, d]`,
+    /// `[b, c, d]`, the diagonal `get_indexed_mesh`'s faces cut), set A's
+    /// texcoords, and a white alpha — `Modern_Weathering.tga`'s A is 255
+    /// throughout and draw 90's stage 1 is disabled. `None` with no tile or
+    /// no texture.
+    fn weather_mesh(&mut self, feet: &[crate::weathering::Footprint]) -> Option<PatchMesh> {
+        use render::terrain::TILES_PER_CELL;
+        let mips = self.weather_mips.clone()?;
+        let t = self.runner.terrain();
+        let (tw, th) = (t.width * TILES_PER_CELL, t.height * TILES_PER_CELL);
+        let mesh = &self.terrain().positions;
+        if mesh.len() != (tw * th * 6) as usize {
+            return None;
+        }
+        let mut m = PatchMesh {
+            piece: WEATHER_PIECE,
+            positions: Vec::new(),
+            uvs: Vec::new(),
+            alpha_uvs: Vec::new(),
+            mips,
+            alpha: WEATHER_ALPHA,
+            alpha_mips: std::sync::Arc::new(render::silhouette::Mips::new(render::tga::Image {
+                width: 1,
+                height: 1,
+                kind: 2,
+                bits: 32,
+                footer: false,
+                rgba: vec![255, 255, 255, 255],
+            })),
+            mountain: false,
+        };
+        for f in feet {
+            for (x, y) in f.tiles() {
+                if !(0..tw).contains(&x) || !(0..th).contains(&y) {
+                    continue;
+                }
+                let i = ((y * tw + x) * 6) as usize;
+                let [a, b, c, d] = f.uvs((x, y));
+                // `TerrainMesh::build`'s corners: a, b, d, then b, c, d.
+                let (pa, pb, pd, pc) = (mesh[i], mesh[i + 1], mesh[i + 2], mesh[i + 4]);
+                m.positions.extend_from_slice(&[pa, pb, pd, pb, pc, pd]);
+                m.uvs.extend_from_slice(&[a, b, d, b, c, d]);
+                m.alpha_uvs.extend_from_slice(&[[0.5, 0.5]; 6]);
+            }
+        }
+        (!m.positions.is_empty()).then_some(m)
     }
 
     /// `WorldData::find_slope_normal@006b5130` at `(x, y)` on our terrain
