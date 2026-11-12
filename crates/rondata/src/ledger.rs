@@ -127,6 +127,10 @@ fn diff_sources() -> Vec<String> {
 #[cfg(test)]
 const NOT_A_DIFFER: &[(&str, &str)] = &[
     (
+        "diff/drawn_games.rs",
+        "the renderer census's list of games (item 4166): each late-age pair's and battery word's captures and length, read from their own modules; it compares nothing",
+    ),
+    (
         "diff/checksum_lines.rs",
         "a checksum line's byte image against the instrument's stream of a packet, range by range; of the dump it reads one printed checksum value, no record's fields",
     ),

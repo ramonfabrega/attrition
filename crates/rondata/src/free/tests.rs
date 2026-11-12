@@ -756,7 +756,7 @@ fn clock_the_harness() {
 /// frame 676; `docs/RENDERER.md` §3.4 — the default zoom, `tilt` 60, `dir`
 /// 45, the parallel projection) moved to look at the map's centre, at the
 /// packet's 1920×1080.
-fn pinned_camera(width: i32, height: i32) -> (render::Camera, render::Screen) {
+pub(super) fn pinned_camera(width: i32, height: i32) -> (render::Camera, render::Screen) {
     let cell = sim::world::UNITS_PER_CELL as f32;
     (
         render::Camera {
@@ -786,7 +786,7 @@ fn pinned_camera(width: i32, height: i32) -> (render::Camera, render::Screen) {
 }
 
 /// The pinned screen size every point is projected at.
-const SIZE: (i32, i32) = (1920, 1080);
+pub(super) const SIZE: (i32, i32) = (1920, 1080);
 
 /// `camera_oracle.py points`' camera line, in the sweep's field order.
 fn state_line(c: &render::Camera, s: &render::Screen) -> String {
