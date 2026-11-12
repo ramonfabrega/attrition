@@ -11,8 +11,16 @@
 //!   (its point at its own height, through `world_to_screen`) is nearest
 //!   the pixel, within [`PICK_RADIUS`]; a press on nothing clears the
 //!   selection. A press while a building is chosen places it instead.
+//! - **A drag selects a box** ([`View::boxed`], item 4180,
+//!   `docs/CLIENT_INPUT.md` §7): every unit of the issuing slot whose anchor
+//!   falls within [`BOX_MARGIN`] of the dragged rectangle, as
+//!   `Console::on_left_up@007cde90` takes them — in object order, listed by
+//!   `TypeIndex` as `SelectGroup::add@00716c10` inserts them, and filtered
+//!   by the default profile's civilian rule.
 //! - **A right press** on the ground, with units selected, moves them: a
-//!   `move_to` with the right-click's fields the script carries. On an
+//!   `move_to` with the right-click's fields the script carries, and for
+//!   more than one unit the formation `Console::down@007cd8f0` reads off
+//!   the selection ([`View::formation`]). On an
 //!   object it gives what `Console::execute_at_cursor` issues there
 //!   ([`Input::on_object`], item 4179, `docs/CLIENT_INPUT.md` §6): help to
 //!   build one's own site, gather at one's own camp with room, repair, or
@@ -53,11 +61,36 @@ pub const TRAIN_KEYS: &[(char, i32)] = &[('c', 50)];
 /// (`TypeIndex` 417). Ours, not the original's hotkeys.
 pub const BUILD_KEYS: &[(char, i32)] = &[('f', 417)];
 
+/// How far the box test reaches past the dragged rectangle, in pixels: the
+/// original's own, `BoundingBox::around_bounding_volume@00544860`'s ±30
+/// (`0x41f00000`) on each side of the sorted `select_x`..`select_x2`,
+/// `select_y`..`select_y2`.
+pub const BOX_MARGIN: i32 = 30;
+/// The most members a selection takes: `SelectGroup::add`'s `num < 0x80`.
+pub const SELECT_CAP: usize = 0x80;
+/// How far the cursor must move between a left press and its release for
+/// the window to send a [`Event::Drag`] rather than a [`Event::Press`], in
+/// pixels. Ours: the original's `clicking` threshold is not read.
+pub const DRAG_SLOP: i32 = 4;
+
 /// One input event, at a screen pixel where it has one.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Event {
-    Press { x: i32, y: i32 },
-    RightPress { x: i32, y: i32 },
+    Press {
+        x: i32,
+        y: i32,
+    },
+    /// A left press at `(x0, y0)`, a drag, and the release at `(x1, y1)`.
+    Drag {
+        x0: i32,
+        y0: i32,
+        x1: i32,
+        y1: i32,
+    },
+    RightPress {
+        x: i32,
+        y: i32,
+    },
     Key(char),
 }
 
@@ -108,6 +141,115 @@ impl View<'_> {
             .chain(builds)
             .filter(move |(id, ..)| id.who == who)
             .map(|(id, b, p, z)| (id, b, self.pixel(p.x, p.y, z)))
+    }
+}
+
+/// `ObjectData::is_worker@0046fa10`: the type is `0x32`..`0x35`, the
+/// Citizens and the Scholars.
+fn is_worker(ti: i32) -> bool {
+    (0x32..=0x35).contains(&ti)
+}
+
+/// `UnitData::is_merchant@0046d370`: the three merchant types.
+fn is_merchant(ti: i32) -> bool {
+    matches!(ti, 0x3d | 0x3e | 400)
+}
+
+/// The Merchant and the fishermen, `GroupData::count(COUNT_TYPE, ·)`'s two
+/// types in `Console::on_left_up`'s civilian rule (`MERCHANT`, `FISHERMEN`).
+const MERCHANT: i32 = 0x3d;
+const FISHERMEN: i32 = 0x13d;
+const MERCHANT_FLEET: i32 = 0x13e;
+
+impl View<'_> {
+    /// **A box** (`Console::on_left_up@007cde90`, `docs/CLIENT_INPUT.md`
+    /// §7): the issuing slot's units the dragged rectangle takes, in the
+    /// order the selection lists them.
+    ///
+    /// 1. The rectangle is sorted, and a unit is in it when its anchor is
+    ///    within [`BOX_MARGIN`] of it (the original projects each figure's
+    ///    bounding box centre; ours is the anchor).
+    /// 2. The units are walked in object order, as the loop walks the
+    ///    object array, and the first [`SELECT_CAP`] are added. Each add
+    ///    inserts the unit before the first member whose `TypeIndex` is
+    ///    greater (`SelectGroup::add`), so the list is sorted by type and
+    ///    in object order within one.
+    /// 3. The default profile sets `0x200000` (`PlayerProfile::default_mouse
+    ///    @005d01f0`), so the box is filtered: when every member but the
+    ///    Merchants and fishermen is a worker, and there is a worker, only
+    ///    the workers stay; otherwise the civilians go — the workers, the
+    ///    merchants and the fishing and merchant fleets.
+    pub fn boxed(&self, who: u8, (x0, y0): (i32, i32), (x1, y1): (i32, i32)) -> Vec<ObjId> {
+        let (l, r) = (x0.min(x1) - BOX_MARGIN, x0.max(x1) + BOX_MARGIN);
+        let (t, b) = (y0.min(y1) - BOX_MARGIN, y0.max(y1) + BOX_MARGIN);
+        let mut inside: Vec<_> = self
+            .scene
+            .units
+            .iter()
+            .filter(|u| u.id.who == who)
+            .filter(|u| {
+                let (ax, ay) = self.pixel(u.pos.x, u.pos.y, u.z);
+                l < ax && ax < r && t < ay && ay < b
+            })
+            .map(|u| (u.id, u.type_index))
+            .collect();
+        inside.sort_by_key(|&(id, _)| id.o);
+        inside.truncate(SELECT_CAP);
+        inside.sort_by_key(|&(_, ti)| ti);
+        let workers = inside.iter().filter(|(_, ti)| is_worker(*ti)).count();
+        let special = inside
+            .iter()
+            .filter(|(_, ti)| matches!(*ti, MERCHANT | FISHERMEN))
+            .count();
+        let keep: fn(i32) -> bool = if inside.len() - special == workers {
+            if workers == 0 { |_| true } else { is_worker }
+        } else {
+            |ti| !(is_worker(ti) || is_merchant(ti) || matches!(ti, FISHERMEN | MERCHANT_FLEET))
+        };
+        inside
+            .into_iter()
+            .filter(|&(_, ti)| keep(ti))
+            .map(|(id, _)| id)
+            .collect()
+    }
+
+    /// **The formation a right press moves a selection in**: what
+    /// `Console::down@007cd8f0` writes when the right button goes down,
+    /// `drag_form` and `drag_form_mod`, which `Console::execute_at_cursor`
+    /// hands `GroupOut::issue_move_to` as the order's `form` and `width`.
+    ///
+    /// - `form` is `GroupData::get_form@0070b9f0` clamped up to 0: the
+    ///   `form` byte every member shares, −1 as soon as two differ.
+    /// - `width` is `GroupData::get_form_mod_option@0070bd00`: for more
+    ///   than one member the mean of their `form_width` bytes that are not
+    ///   −1, and 50 (`0x32`) when none is; for one, its own byte, or 50.
+    ///
+    /// The members are the selection's units on the map; a plane's own
+    /// test in the width's mean is not carried (`docs/CLIENT_INPUT.md` §7.4).
+    pub fn formation(&self, selection: &[ObjId]) -> (i8, i8) {
+        let members: Vec<_> = selection
+            .iter()
+            .filter_map(|id| self.scene.units.iter().find(|u| u.id == *id))
+            .collect();
+        let mut form = -1;
+        for (k, u) in members.iter().enumerate() {
+            if k > 0 && u.form != form {
+                form = -1;
+                break;
+            }
+            form = u.form;
+        }
+        let set: Vec<i32> = members
+            .iter()
+            .map(|u| i32::from(u.form_width))
+            .filter(|&w| w != -1)
+            .collect();
+        let width = if set.is_empty() {
+            0x32
+        } else {
+            set.iter().sum::<i32>() / set.len() as i32
+        };
+        (form.max(0), width as i8)
     }
 }
 
@@ -387,6 +529,12 @@ impl Input {
                 }
                 None
             }
+            Event::Drag { x0, y0, x1, y1 } => {
+                self.placing = None;
+                self.selection = view.boxed(self.player, (x0, y0), (x1, y1));
+                self.building = false;
+                None
+            }
             Event::RightPress { x, y } => {
                 if self.selection.is_empty() || self.building {
                     return None;
@@ -396,6 +544,14 @@ impl Input {
                     return Some((frame, play, vec![self.group(), cmd]));
                 }
                 let at = ground_at(view, x, y)?;
+                // One unit keeps the scripts' −1/−1, the fields every file
+                // played so far carries (ours: the original's main view
+                // mints its formation for one unit too, parked 4180a).
+                let (form, width) = if self.selection.len() > 1 {
+                    view.formation(&self.selection)
+                } else {
+                    (-1, -1)
+                };
                 let cmd = Command::MoveTo {
                     to_x: at.x,
                     to_y: at.y,
@@ -403,8 +559,8 @@ impl Input {
                     angle: 0,
                     orders: 1,
                     queued: 2,
-                    form: -1,
-                    width: -1,
+                    form,
+                    width,
                     disembark: 0,
                 };
                 Some((frame, play, vec![self.group(), cmd]))
@@ -1005,6 +1161,245 @@ mod tests {
     const RIGHT_PRESSED_RCX: &str =
         "ron-golden/recordings/item4179-right-pressed-greatlakes-24000.rcx";
     const RIGHT_PRESSED_RCX_BYTES: usize = 59_312;
+
+    /// **Stage 0 of the box** (item 4180, `docs/CLIENT_INPUT.md` §7.2), on
+    /// frame 240 of the walk under the right-pressed script, at the
+    /// opening camera: the drag's corners, each boxed unit's anchor, the
+    /// nearest anchor of slot 0's other units to the grown rectangle, the
+    /// right press's pixel and the ground the layer reads there.
+    const BOX_DRAG: ((i32, i32), (i32, i32)) = ((740, 450), (910, 610));
+    const BOX_ANCHORS: [(i16, (i32, i32)); 3] = [(3, (886, 587)), (4, (765, 522)), (5, (795, 473))];
+    /// The nearest other unit of slot 0 on 240, and its anchor: `0/6`,
+    /// walking to the Woodcutter's camp, 245 px right of the grown box.
+    const BOX_NEAREST_OUT: (i16, (i32, i32)) = (6, (1185, 616));
+    const BOX_RIGHT: (i32, i32) = (700, 600);
+
+    /// The right-pressed events, then the box: a drag round [`BOX_ANCHORS`]
+    /// and a right press on the ground at [`BOX_RIGHT`].
+    fn box_events() -> Vec<Scripted> {
+        let mut e = right_events();
+        let ((x0, y0), (x1, y1)) = BOX_DRAG;
+        e.push((script::BOX_FRAME, None, Event::Drag { x0, y0, x1, y1 }));
+        e.push((
+            script::BOX_FRAME,
+            None,
+            Event::RightPress {
+                x: BOX_RIGHT.0,
+                y: BOX_RIGHT.1,
+            },
+        ));
+        e
+    }
+
+    /// **`INPUT_BOXED`** (item 4180): the right-pressed events and a box
+    /// moved, under the opening camera, mint [`script::boxed`] field for
+    /// field, of 6. Was 0 (no box, no group of more than one unit).
+    const INPUT_BOXED: usize = 6;
+
+    /// **The boxed count**: stage 0's pixels pinned on 240, the box takes
+    /// the three Citizens in object order and nothing else, the right press
+    /// reads the ground and their formation, and the events mint the boxed
+    /// script; the file written from the orders is the boxed file. Seen
+    /// red: the script's `BOX_WIDTH` set to −1 gave 5 of 6.
+    #[test]
+    fn minted_boxed_at_the_opening_camera() {
+        let Ok(mut r) = lobby() else {
+            println!("skipping: no lobby");
+            return;
+        };
+        let right = script::right_pressed();
+        let mut next = 0;
+        while r.frame() < i64::from(script::BOX_FRAME) {
+            while next < right.len() && i64::from(right[next].0) == r.frame() {
+                r.issue(&right[next]);
+                next += 1;
+            }
+            r.step();
+        }
+        let (scene, terrain) = (r.scene(None), r.terrain());
+        let c = camera(None);
+        let v = view(&c, &scene, &terrain);
+        let anchors: Vec<_> = script::BOXED
+            .iter()
+            .map(|&o| {
+                let (p, z) = object(&scene, o);
+                (o, v.pixel(p.x, p.y, z))
+            })
+            .collect();
+        assert_eq!(anchors, BOX_ANCHORS.to_vec(), "the boxed anchors");
+        let ((x0, y0), (x1, y1)) = BOX_DRAG;
+        let grown = |(x, y): (i32, i32)| {
+            (x - (x0.min(x1) - BOX_MARGIN))
+                .min(x0.max(x1) + BOX_MARGIN - x)
+                .min((y - (y0.min(y1) - BOX_MARGIN)).min(y0.max(y1) + BOX_MARGIN - y))
+        };
+        let nearest = scene
+            .units
+            .iter()
+            .filter(|u| u.id.who == 0 && !script::BOXED.contains(&u.id.o))
+            .map(|u| (u.id.o, v.pixel(u.pos.x, u.pos.y, u.z)))
+            .max_by_key(|&(_, p)| grown(p))
+            .unwrap();
+        assert_eq!(nearest, BOX_NEAREST_OUT, "the nearest unit left out");
+        assert!(grown(nearest.1) < 0, "outside the grown box");
+        let ids: Vec<i16> = v
+            .boxed(0, BOX_DRAG.0, BOX_DRAG.1)
+            .iter()
+            .map(|id| id.o)
+            .collect();
+        assert_eq!(ids, script::BOXED.to_vec(), "the box takes the three");
+        let members: Vec<_> = script::BOXED
+            .iter()
+            .map(|&o| {
+                scene
+                    .units
+                    .iter()
+                    .find(|u| u.id.who == 0 && u.id.o == o)
+                    .unwrap()
+            })
+            .map(|u| (u.type_index, u.form, u.form_width))
+            .collect();
+        assert_eq!(members, vec![(50, 9, -1); 3], "TI, form, form_width");
+        assert_eq!(v.target(0, BOX_RIGHT.0, BOX_RIGHT.1), None, "the ground");
+        let at = ground_at(&v, BOX_RIGHT.0, BOX_RIGHT.1).unwrap();
+        assert_eq!(at, script::BOX_TO, "the ground under the right press");
+        drop(r);
+
+        let Some((ours, r)) = mint_events(box_events()) else {
+            return;
+        };
+        let boxed = script::boxed();
+        let whole = ours.iter().zip(&boxed).filter(|(a, b)| a == b).count();
+        assert_eq!((ours.len(), whole), (boxed.len(), INPUT_BOXED), "{ours:?}");
+        assert_eq!(ours, boxed);
+        drop(r);
+
+        let home = std::env::var_os("HOME").unwrap_or_default();
+        let (Ok(right_file), Ok(file)) = (
+            std::fs::read(std::path::Path::new(&home).join(RIGHT_PRESSED_RCX)),
+            std::fs::read(std::path::Path::new(&home).join(BOXED_RCX)),
+        ) else {
+            println!("skipping the bytes: no {RIGHT_PRESSED_RCX} or {BOXED_RCX}");
+            return;
+        };
+        assert_eq!(file.len(), BOXED_RCX_BYTES);
+        let path = std::path::Path::new(&home).join(MINTED_RCX);
+        let rec = rondata::recgame::read(&path.to_string_lossy()).unwrap();
+        let lo = rondata::commands::decode(&rec.packages[0].data).unwrap();
+        let last = rec.packages.last().unwrap().frame;
+        let mut written = rec.clone();
+        written.packages = rondata::recgame::minted_packages(lo[0].clone(), &ours, last).unwrap();
+        let written = rondata::recgame::write_gz(&written);
+        assert!(written == file, "the file from the boxed orders");
+        assert!(written != right_file, "not the right-pressed file");
+    }
+
+    /// The boxed file (`docs/CLIENT_INPUT.md` §7.3), written by rondata's
+    /// `the_boxed_minted_packages_round_trip` under `RON_RCX_OUT`; the file
+    /// the original's playback takes open (run 1569).
+    const BOXED_RCX: &str = "ron-golden/recordings/item4180-boxed-greatlakes-24000.rcx";
+    const BOXED_RCX_BYTES: usize = 59_338;
+
+    /// A unit for the walk-free box tests: slot `who`'s `o` of type `ti`,
+    /// standing at `(x, 0)` with its formation bytes.
+    fn unit(who: u8, o: i16, ti: i32, x: i32, form: i8, width: i8) -> sim::observe::UnitScene {
+        sim::observe::UnitScene {
+            id: ObjId { who, o },
+            owner: who,
+            ty: None,
+            type_index: ti,
+            form,
+            form_width: width,
+            pos: Pos { x, y: 0 },
+            z: 0,
+            facing: sim::movement::Angle(0),
+            health: 1,
+            max_health: 1,
+            figures: vec![],
+        }
+    }
+
+    /// **The box's rule without a walk** (`docs/CLIENT_INPUT.md` §7.1): the
+    /// list sorted by `TypeIndex` and in object order within one type, the
+    /// default profile's civilian rule both ways, another slot's units left
+    /// out, and the formation read off the members. Seen red: the type
+    /// sort dropped gave `[2, 5, 7]` for `[5, 7, 2]`.
+    #[test]
+    fn minted_a_box_lists_filters_and_forms_as_the_original() {
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let scene = |units| Scene {
+            units,
+            ..Scene::default()
+        };
+        let take = |s: &Scene| {
+            let v = view(&c, s, &terrain);
+            let px: Vec<_> = s
+                .units
+                .iter()
+                .map(|u| v.pixel(u.pos.x, u.pos.y, 0))
+                .collect();
+            let (l, r) = (
+                px.iter().map(|p| p.0).min().unwrap(),
+                px.iter().map(|p| p.0).max().unwrap(),
+            );
+            let (t, b) = (
+                px.iter().map(|p| p.1).min().unwrap(),
+                px.iter().map(|p| p.1).max().unwrap(),
+            );
+            let ids: Vec<i16> = v.boxed(0, (l, t), (r, b)).iter().map(|id| id.o).collect();
+            ids
+        };
+        // A Scholar (52) first in object order, then two Citizens (50), of
+        // slot 0, and slot 1's Citizen among them: workers only, by type.
+        let workers = scene(vec![
+            unit(0, 7, 50, 3000, 9, -1),
+            unit(0, 2, 52, 3100, 9, -1),
+            unit(1, 3, 50, 3150, 9, -1),
+            unit(0, 5, 50, 3200, 9, -1),
+        ]);
+        assert_eq!(take(&workers), vec![5, 7, 2], "by type, then by object");
+        // A Merchant (61) with the workers: the workers stay.
+        let merchant = scene(vec![
+            unit(0, 2, 50, 3000, 9, -1),
+            unit(0, 4, 61, 3100, 0, -1),
+        ]);
+        assert_eq!(take(&merchant), vec![2], "the Merchant goes");
+        // A Scout (69) with the workers: the civilians go.
+        let scout = scene(vec![
+            unit(0, 2, 50, 3000, 9, -1),
+            unit(0, 0, 69, 3100, 0, 50),
+        ]);
+        assert_eq!(take(&scout), vec![0], "the Citizen goes");
+        // Merchants alone: no worker, so nothing is filtered.
+        let merchants = scene(vec![
+            unit(0, 4, 61, 3000, 0, -1),
+            unit(0, 6, 61, 3100, 0, -1),
+        ]);
+        assert_eq!(take(&merchants), vec![4, 6], "no worker, no filter");
+
+        let v = view(&c, &workers, &terrain);
+        let id = |o| ObjId { who: 0, o };
+        assert_eq!(
+            v.formation(&[id(2), id(5), id(7)]),
+            (9, 50),
+            "shared, no width"
+        );
+        let mixed = scene(vec![
+            unit(0, 2, 50, 0, 9, 40),
+            unit(0, 3, 69, 0, 0, -1),
+            unit(0, 4, 69, 0, 0, 61),
+        ]);
+        let v = view(&c, &mixed, &terrain);
+        assert_eq!(
+            v.formation(&[id(2), id(3), id(4)]),
+            (0, 50),
+            "differing: 0; the mean of 40 and 61"
+        );
+        let soldiers = scene(vec![unit(0, 3, 69, 0, -1, -1), unit(0, 4, 69, 0, -1, -1)]);
+        let v = view(&c, &soldiers, &terrain);
+        assert_eq!(v.formation(&[id(3), id(4)]), (0, 50), "−1 clamped to 0");
+    }
 
     /// At the closer camera a pixel is finer than the integer grid: a
     /// neighbour of a target's pixel with no integer point of its own still

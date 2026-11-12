@@ -18,7 +18,7 @@ use std::collections::BTreeSet;
 
 pub(crate) use crate::script::{
     BUILD_FRAME, BUILDER, CAPITAL, CITIZEN, FARM_AT, FARM_TYPE as FARM, MOVE_FRAME, QUEUE_FRAME,
-    SCOUT_OBJECT as SCOUT, SCOUT_TO, clicked, right_pressed, script,
+    SCOUT_OBJECT as SCOUT, SCOUT_TO, boxed, clicked, right_pressed, script,
 };
 
 /// The minted recording: run53's lobby with [`script`]'s packages.
@@ -1215,4 +1215,378 @@ const CLICKED_AGAINST_RIGHT_PRESSED: (i64, &str, &str, Option<i64>, usize) = (
     "Divergence { frame: 121, who: 0, o: 2, ours: Pos { x: 4536, y: 28680 }, theirs: Pos { x: 4519, y: 28700 } }",
     Some(244),
     179,
+);
+
+/// **The boxed file's size** (item 4180, `docs/CLIENT_INPUT.md` §7.3): the
+/// lobby's file with [`crate::script::boxed`]'s packages, gzipped.
+const BOXED_RCX_BYTES: usize = 59_338;
+
+/// **The boxed script, minted** (item 4180): the right-pressed file and
+/// one package more, the box's `group` of three and its `move_to` with the
+/// formation fields; it round-trips through the file. With
+/// `RON_RCX_OUT=<file>` it writes the `.rcx` the playback takes open.
+#[test]
+fn the_boxed_minted_packages_round_trip() {
+    let (Some(rec), Some(first)) = (minted(&boxed()), minted(&right_pressed())) else {
+        eprintln!("skipping: no recording of the lobby on disk");
+        return;
+    };
+    let bytes = crate::recgame::write(&rec);
+    let back = crate::recgame::parse(&bytes, "boxed").expect("the file parses");
+    assert_eq!(
+        crate::recgame::write(&back),
+        bytes,
+        "re-writes byte for byte"
+    );
+    for ((f, play, cmds), p) in boxed().iter().zip(&back.packages[1..]) {
+        assert_eq!((p.frame, p.play), (*f, *play));
+        assert_eq!(
+            &crate::commands::decode(&p.data).unwrap(),
+            cmds,
+            "frame {f}"
+        );
+    }
+    let added: Vec<i32> = back
+        .packages
+        .iter()
+        .filter(|p| !first.packages.contains(p))
+        .map(|p| p.frame)
+        .collect();
+    let last = back.packages.last().unwrap();
+    assert_eq!((last.stamp, first.packages.last().unwrap().stamp), (8, 7));
+    assert_eq!(
+        added,
+        vec![crate::script::BOX_FRAME, last.frame],
+        "the packages the right-pressed file does not hold"
+    );
+    // The box's package: a `group` of three (3 + 2·3 bytes) and the
+    // `move_to` (22), its formation bytes `form` 9 and `width` 50.
+    let package = &back.packages[back.packages.len() - 2];
+    assert_eq!(package.data.len(), 9 + 22, "the box's package");
+    let gz = crate::recgame::write_gz(&rec);
+    assert_eq!(gz.len(), BOXED_RCX_BYTES, "BOXED_RCX_BYTES");
+    if let Some(out) = std::env::var_os("RON_RCX_OUT") {
+        std::fs::write(&out, &gz).unwrap();
+        eprintln!("wrote {}", out.to_string_lossy());
+    }
+}
+
+/// The frames the box's move is read on: the frame after its package, a
+/// frame of the walk, and the take's last.
+const BOX_READ_AT: [i64; 3] = [241, 270, 299];
+
+/// One boxed unit, read off one frame: its order list by class, front
+/// first; the front move's target, snapped to its 48-unit cell; its path's
+/// goal, the bottom of the stack, its own slot of the formation;
+/// `orders_x`/`orders_y`, the end of its leading moves; and its formation
+/// bytes, `form` and `form_mod`.
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct BoxUnit {
+    pub o: i16,
+    pub orders: Vec<&'static str>,
+    pub to: Option<(i64, i64)>,
+    pub goal: Option<(i64, i64)>,
+    pub orders_xy: (i64, i64),
+    pub form: (i64, i64),
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct BoxEffect {
+    pub frame: i64,
+    pub units: Vec<BoxUnit>,
+}
+
+fn box_effect_theirs(f: &crate::gamelog::Frame) -> BoxEffect {
+    let units = crate::script::BOXED
+        .iter()
+        .filter_map(|&o| {
+            let u = f.units.iter().find(|u| u.who == 0 && u.o == i64::from(o))?;
+            Some(BoxUnit {
+                o,
+                orders: u.orders_front_first().map(|o| class(&o.kind)).collect(),
+                to: u
+                    .orders_front_first()
+                    .find(|o| o.kind == "MOVEORDER")
+                    .and_then(|o| Some((o.x?, o.y?))),
+                goal: u.path.first().map(|p| p.to),
+                orders_xy: (u.orders_x.unwrap_or(-1), u.orders_y.unwrap_or(-1)),
+                form: (u.form.unwrap_or(-2), u.form_mod.unwrap_or(-2)),
+            })
+        })
+        .collect();
+    BoxEffect { frame: f.n, units }
+}
+
+fn box_effect_ours(b: &Built) -> BoxEffect {
+    let s = &b.sim;
+    let units = crate::script::BOXED
+        .iter()
+        .filter_map(|&o| {
+            let u = &s.units[s.unit_by_o(0, o)?];
+            Some(BoxUnit {
+                o,
+                orders: u
+                    .orders
+                    .iter()
+                    .map(|o| match &o.body {
+                        sim::orders::Body::Move(_) => "move",
+                        sim::orders::Body::Build(_) => "build",
+                        sim::orders::Body::Gather(_) => "gather",
+                        _ => "other",
+                    })
+                    .collect(),
+                to: u.orders.iter().find_map(|o| match &o.body {
+                    sim::orders::Body::Move(m) => Some((i64::from(m.dest.x), i64::from(m.dest.y))),
+                    _ => None,
+                }),
+                goal: u
+                    .path
+                    .first()
+                    .map(|p| (i64::from(p.to.x), i64::from(p.to.y))),
+                orders_xy: (i64::from(u.orders_pos.x), i64::from(u.orders_pos.y)),
+                form: (i64::from(u.form), i64::from(u.form_width)),
+            })
+        })
+        .collect();
+    BoxEffect {
+        frame: s.frame,
+        units,
+    }
+}
+
+/// Our walk under the pump on `orders`' file, read on [`BOX_READ_AT`].
+fn box_effects_ours(orders: &[Order]) -> Vec<BoxEffect> {
+    let (_, mut built, _) = built_start().unwrap();
+    let mut stream = crate::input::Stream::pump(&minted(orders).unwrap());
+    let mut ours = Vec::new();
+    for &n in &BOX_READ_AT {
+        tick_to(&mut built, Some(&mut stream), n);
+        ours.push(box_effect_ours(&built));
+    }
+    ours
+}
+
+/// A boxed unit's read: `(o, its orders, the front move's target, its
+/// path's goal, orders_x/y, form, form_mod)`.
+type BoxRow = (
+    i16,
+    &'static [&'static str],
+    Option<(i64, i64)>,
+    Option<(i64, i64)>,
+    (i64, i64),
+    (i64, i64),
+);
+
+fn box_effect(frame: i64, rows: [BoxRow; 3]) -> BoxEffect {
+    BoxEffect {
+        frame,
+        units: rows
+            .into_iter()
+            .map(|(o, orders, to, goal, orders_xy, form)| BoxUnit {
+                o,
+                orders: orders.to_vec(),
+                to,
+                goal,
+                orders_xy,
+                form,
+            })
+            .collect(),
+    }
+}
+
+/// **What the box's move does** (item 4180), pinned before the original's
+/// playback is read: each of the three on [`BOX_READ_AT`]. On 241 each
+/// holds one move to its own slot of the mob formation round [`BOX_TO`]
+/// (`form` 9): the path's goal is the slot, `0/3`'s the click itself, and
+/// the move's target the slot's 48-unit cell centre. Each carries `form` 9
+/// and `form_mod` 50, the move's own bytes; by 299 each stands on its goal
+/// with no order.
+///
+/// [`BOX_TO`]: crate::script::BOX_TO
+fn boxed_effects() -> Vec<BoxEffect> {
+    let walking = |f| {
+        box_effect(
+            f,
+            [
+                (
+                    3,
+                    &["move"],
+                    Some((2328, 32712)),
+                    Some((2344, 32710)),
+                    (2328, 32712),
+                    (9, 50),
+                ),
+                (
+                    4,
+                    &["move"],
+                    Some((2232, 32760)),
+                    Some((2214, 32775)),
+                    (2232, 32760),
+                    (9, 50),
+                ),
+                (
+                    5,
+                    &["move"],
+                    Some((2424, 32568)),
+                    Some((2408, 32580)),
+                    (2424, 32568),
+                    (9, 50),
+                ),
+            ],
+        )
+    };
+    vec![
+        walking(241),
+        walking(270),
+        box_effect(
+            299,
+            [
+                (3, &[], None, None, (2344, 32710), (9, 50)),
+                (4, &[], None, None, (2214, 32775), (9, 50)),
+                (5, &[], None, None, (2408, 32580), (9, 50)),
+            ],
+        ),
+    ]
+}
+
+/// The same read on the right-pressed script's walk, the control: no box.
+/// The three farm on, `0/3` walking to its next field on 241, and their
+/// formation bytes stay the start's, `form` 9 and `form_mod` −1.
+fn right_box_effects() -> Vec<BoxEffect> {
+    let farming = |f, three: BoxRow| {
+        box_effect(
+            f,
+            [
+                three,
+                (4, &["gather"], None, None, (2040, 31992), (9, -1)),
+                (5, &["gather"], None, None, (1848, 31608), (9, -1)),
+            ],
+        )
+    };
+    vec![
+        farming(
+            241,
+            (
+                3,
+                &["move", "gather"],
+                Some((2424, 32376)),
+                None,
+                (2424, 32376),
+                (9, -1),
+            ),
+        ),
+        farming(270, (3, &["gather"], None, None, (2424, 32376), (9, -1))),
+        farming(299, (3, &["gather"], None, None, (2424, 32376), (9, -1))),
+    ]
+}
+
+/// **What the box does on our walk** (item 4180): each Citizen taken from
+/// its farm and sent to its slot of the move, against the right-pressed
+/// walk, where they farm on.
+#[test]
+fn the_boxed_minted_script_s_effects_on_our_walk() {
+    if built_start().is_none() || minted(&boxed()).is_none() {
+        eprintln!("skipping: no install, lobby or recording");
+        return;
+    }
+    let ours = box_effects_ours(&boxed());
+    let control = box_effects_ours(&right_pressed());
+    eprintln!("BOX EFFECT ours {ours:#?}\n      control {control:#?}");
+    assert_eq!(control, right_box_effects(), "right_box_effects");
+    assert_eq!(ours, boxed_effects(), "boxed_effects");
+}
+
+/// The original's playback of the boxed file (run 1569), as
+/// [`RIGHT_PRESSED_WALKED`]: every unit and building printed for 300
+/// frames, which holds the box's move and 59 frames of its walk. Draws
+/// agree on 300 of 300 frames, count and sequence, and 299 records compare
+/// whole. Seen red first: pinned `(0, 0, 0, 0)`, it printed
+/// `(300, 300, 299, 0)`.
+pub(crate) const BOXED_WALKED: &[(&str, &str, i64, i64, usize, usize)] = &[(
+    "gamelog-run1569-greatlakes-playback-of-boxed-300.txt",
+    "rontrace-run1569.log",
+    300,
+    300,
+    299,
+    0,
+)];
+
+/// **The original plays the boxed file, and our walk keeps lockstep**
+/// (item 4180): [`BOXED_WALKED`], the clicked orders' effects, the right
+/// presses' and the box's, both sides.
+#[test]
+fn the_original_s_playback_of_the_boxed_file_walks_in_lockstep() {
+    let (take, ..) = BOXED_WALKED[0];
+    let Some(d) = dump(take) else {
+        eprintln!("skipping {take}: not filed (set RON_GAMELOG_DIR)");
+        return;
+    };
+    playback_walks_in_lockstep(&boxed(), BOXED_WALKED, &right_pressed_base_effects());
+    let mut source = crate::capture::indexed::IndexedCapture::open(d).unwrap();
+    let (mut right, mut done, mut theirs) = (Vec::new(), None, Vec::new());
+    for i in 0..source.frames().len() {
+        let n = source.frames()[i].number;
+        if n < 91 {
+            continue;
+        }
+        let f = source.frame_state(i).unwrap();
+        let e = right_effect_theirs(&f);
+        if done.is_none() && e.site_finished == Some(true) {
+            done = Some(n);
+        }
+        if RIGHT_READ_AT.contains(&n) {
+            right.push(e);
+        }
+        if BOX_READ_AT.contains(&n) {
+            theirs.push(box_effect_theirs(&f));
+        }
+    }
+    eprintln!("BOX EFFECT theirs {theirs:#?}");
+    assert_eq!((right, done), right_pressed_effects(), "the right presses");
+    assert_eq!(theirs, boxed_effects(), "the original's box");
+}
+
+/// **Made to fail: the right-pressed script against the boxed playback**
+/// (item 4180). Our walk under [`right_pressed`]'s file, which makes no
+/// box, against run1569: it must part, and the first record that parts is
+/// pinned ([`RIGHT_PRESSED_AGAINST_BOXED`]).
+#[test]
+fn the_right_pressed_script_against_the_boxed_playback_parts() {
+    let (take, take_trace, ..) = BOXED_WALKED[0];
+    let Some((w, _)) = walk_minted(&right_pressed(), take, take_trace) else {
+        return;
+    };
+    let (frame, _, partings) = w.first_record.clone().expect("the walk parts");
+    eprintln!(
+        "RIGHT PRESSED AGAINST BOXED: record {frame}: {partings:?}; draws part {:?}; records {} parted {}",
+        w.first_sequence, w.records, w.records_parted
+    );
+    let seen = (
+        frame,
+        partings[0].0,
+        partings[0].2.clone(),
+        w.first_sequence,
+        w.records_parted,
+    );
+    let (f, kind, row, draws, parted) = RIGHT_PRESSED_AGAINST_BOXED;
+    assert_eq!(
+        seen,
+        (f, kind, row.to_string(), draws, parted),
+        "RIGHT_PRESSED_AGAINST_BOXED"
+    );
+}
+
+/// The right-pressed script's walk against run1569: `(the first parted
+/// record's frame, its kind, its row, the first frame whose draws part,
+/// records parted)`. The first parting is `0/3` on 241, still at its field
+/// in ours and walking south in theirs; beside it its order list, 2 long
+/// against 1, `0/5`'s heading, and the farm `0/2002`'s `gather_down`, which
+/// still names `0/3` in ours. 59 of 299 records part, every one from 241,
+/// and the draws from 240. Seen red first: pinned `(0, "", "", None, 0)`.
+const RIGHT_PRESSED_AGAINST_BOXED: (i64, &str, &str, Option<i64>, usize) = (
+    241,
+    "diverged",
+    "Divergence { frame: 241, who: 0, o: 3, ours: Pos { x: 2808, y: 31992 }, theirs: Pos { x: 2794, y: 32014 } }",
+    Some(240),
+    59,
 );

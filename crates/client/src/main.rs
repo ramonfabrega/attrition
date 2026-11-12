@@ -348,6 +348,9 @@ struct App {
     /// last pixel.
     input: input::Input,
     cursor: (i32, i32),
+    /// Where the left button went down, until it comes up: a release
+    /// [`input::DRAG_SLOP`] or more away is a box (item 4180), else a press.
+    left_down: Option<(i32, i32)>,
 }
 
 impl App {
@@ -490,15 +493,29 @@ impl ApplicationHandler for App {
             WindowEvent::CursorMoved { position, .. } => {
                 self.cursor = (position.x as i32, position.y as i32);
             }
-            WindowEvent::MouseInput {
-                state: ElementState::Pressed,
-                button,
-                ..
-            } => {
+            WindowEvent::MouseInput { state, button, .. } => {
                 let (x, y) = self.cursor;
-                match button {
-                    MouseButton::Left => self.input(input::Event::Press { x, y }),
-                    MouseButton::Right => self.input(input::Event::RightPress { x, y }),
+                match (button, state) {
+                    // The original selects on the release
+                    // (`Console::on_left_up`), a click or a box.
+                    (MouseButton::Left, ElementState::Pressed) => self.left_down = Some((x, y)),
+                    (MouseButton::Left, ElementState::Released) => {
+                        let (x0, y0) = self.left_down.take().unwrap_or((x, y));
+                        let moved = (x - x0).abs().max((y - y0).abs());
+                        self.input(if moved >= input::DRAG_SLOP {
+                            input::Event::Drag {
+                                x0,
+                                y0,
+                                x1: x,
+                                y1: y,
+                            }
+                        } else {
+                            input::Event::Press { x: x0, y: y0 }
+                        });
+                    }
+                    (MouseButton::Right, ElementState::Pressed) => {
+                        self.input(input::Event::RightPress { x, y })
+                    }
                     _ => {}
                 }
             }
@@ -662,6 +679,7 @@ fn main() {
             last_ms: 0.0,
             input: input::Input::new(0),
             cursor: (0, 0),
+            left_down: None,
         };
         if let Err(e) = el.run_app(&mut app) {
             eprintln!("client: {e}");

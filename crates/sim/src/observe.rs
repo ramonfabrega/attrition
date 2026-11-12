@@ -68,6 +68,17 @@ pub struct UnitScene {
     pub owner: Player,
     /// An index into the unit types; `None` for the bare object.
     pub ty: Option<usize>,
+    /// The type's `TypeIndex` (`ptype +4`), −1 when the loader named none:
+    /// the key `SelectGroup::add@00716c10` sorts a selection by, and what
+    /// `ObjectData::is_worker` and `UnitData::is_merchant` test (item
+    /// 4180, `docs/CLIENT_INPUT.md` §7).
+    pub type_index: i32,
+    /// `UnitData +0xaa` and `+0xab`, [`crate::Unit::form`] and
+    /// [`crate::Unit::form_width`]: what `GroupData::get_form` and
+    /// `get_form_mod_option` read when a right press mints a group's move
+    /// (`Console::down@007cd8f0`; item 4180).
+    pub form: i8,
+    pub form_width: i8,
     /// The unit's position, 1/768 of a cell.
     pub pos: Pos,
     /// The pinned tile height under it, [`crate::World::tile_z`].
@@ -281,6 +292,9 @@ impl Sim {
                     },
                     owner: u.owner,
                     ty: u.ty,
+                    type_index: u.type_index,
+                    form: u.form,
+                    form_width: u.form_width,
                     pos: u.pos,
                     z: self.world.tile_z(u.pos.tile()),
                     facing,

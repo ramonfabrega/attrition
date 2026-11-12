@@ -1477,17 +1477,21 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **332** with item 4127's reading of the ground's base layer (`docs/RENDERER.md` §3.6):
 /// `TileSet::get_supertile_texture@0087a770` is cited as the function nothing calls — no
 /// direct caller and no stored pointer in `.text` or the whole file — so no capture can enter it.
+/// **334 → 336** with item 4180's box (`docs/CLIENT_INPUT.md` §7.1):
+/// `BoundingBox::around_bounding_volume@00544860` and
+/// `UnitOut::around_bounding_volume@00608a30`, the drag's hit test, which no
+/// playback runs.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
     0x0047_0570, 0x0047_0680, 0x0047_0760, 0x0047_07a0, 0x0047_0800, 0x0047_0e50, 0x0047_0f30, 0x0047_1170, 0x0047_22f0, 0x0047_2370,
     0x0047_2420, 0x0047_2a40, 0x0047_2cb0, 0x0047_2cc0, 0x0047_2d10, 0x0047_6aa0, 0x0047_70d0, 0x0047_80c0, 0x0047_df90, 0x0048_43e0, 0x0048_49a0, 0x0048_5140,
-    0x0048_5a40, 0x0048_5a60, 0x0048_6c60, 0x0048_89a0, 0x004a_1ca0, 0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_3380, 0x0058_3390, 0x0058_33a0,
+    0x0048_5a40, 0x0048_5a60, 0x0048_6c60, 0x0048_89a0, 0x004a_1ca0, 0x0054_4860, 0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_3380, 0x0058_3390, 0x0058_33a0,
     0x0058_33b0, 0x0058_33c0, 0x0058_33d0, 0x0058_3400, 0x0058_3410, 0x0058_3420, 0x0058_3450, 0x0058_3470, 0x0058_3480, 0x0058_3490, 0x0058_34a0, 0x0058_5cb0, 0x0058_5e90,
     0x0058_60c0, 0x0058_6440, 0x0058_6790, 0x0058_69e0, 0x0058_7060, 0x0058_8560, 0x0058_8f00, 0x0058_90b0, 0x0059_30c0, 0x0059_3f70, 0x0059_4080, 0x0059_4480, 0x0059_4630, 0x0059_4640, 0x0059_4650, 0x0059_4660,
     0x0059_46c0, 0x0059_47e0, 0x005a_ac70, 0x005a_bc70, 0x005d_01f0, 0x005d_86a0, 0x005d_86b0, 0x005d_8fb0, 0x005d_8fc0, 0x005e_2bb0, 0x005e_3310,
     0x005e_4c80, 0x005e_4d10, 0x005e_5be0, 0x005e_75a0, 0x005e_8670, 0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_4720, 0x005f_4730, 0x0060_3130, 0x0060_4550,
-    0x0060_8850, 0x0060_9a20, 0x0060_a600, 0x0060_a6e0, 0x0060_a800, 0x0060_a810, 0x0060_fde0, 0x0061_d740, 0x0061_daf0, 0x0061_db10, 0x0061_dc50,
+    0x0060_8850, 0x0060_8a30, 0x0060_9a20, 0x0060_a600, 0x0060_a6e0, 0x0060_a800, 0x0060_a810, 0x0060_fde0, 0x0061_d740, 0x0061_daf0, 0x0061_db10, 0x0061_dc50,
     0x0061_dc60, 0x0062_2ce0, 0x0062_3310, 0x0062_d430, 0x0062_d5b0, 0x0062_e2f0, 0x0063_0590, 0x0063_06b0, 0x0063_3390, 0x0063_89b0, 0x0063_9830,
     0x0063_e390, 0x0063_e440, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_50b0, 0x0064_50c0, 0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30, 0x0064_6f50,
     0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_3d00, 0x0065_8190, 0x0065_b850, 0x0065_cfd0, 0x0066_1b80, 0x0066_1d70, 0x0066_2670, 0x0066_3b60, 0x0066_3b70,
@@ -1781,6 +1785,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
          and call its +0xc; the window tunes renderer objects and is out of v1 with \
          the renderer it tunes (two readings, item 3861; the sixty-sixth pass, \
          DECISIONS 106)",
+    ),
+    (
+        0x0054_4860,
+        "BoundingBox::around_bounding_volume: a box drag's hit test, a \
+         figure's bounding box centre against the dragged rectangle; only \
+         Console::on_left_up's box arm reaches it, and no trace in TRACES \
+         makes a person's drag (docs/CLIENT_INPUT.md §7.1, item 4180)",
     ),
     (
         0x0054_cea0,
@@ -2149,6 +2160,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
     (
         0x0060_8850,
         "UnitData::can_gather: no reference in the executable",
+    ),
+    (
+        0x0060_8a30,
+        "UnitOut::around_bounding_volume: a box drag's per-unit test, which \
+         walks the unit's figures into BoundingBox::around_bounding_volume; only \
+         Console::on_left_up's box arm reaches it, and no trace in TRACES makes \
+         a person's drag (docs/CLIENT_INPUT.md §7.1, item 4180)",
     ),
     (
         0x0060_9a20,

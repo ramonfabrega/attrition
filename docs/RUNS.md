@@ -36650,3 +36650,30 @@ in the background.
 Archive `gamelog-run1568-greatlakes-playback-of-right-pressed-300.txt`, 37,258,226 bytes,
 SHA-256 `d09ec774fce01f1d890e3a70e41e4b59c9dba508e2e7f52661f0caf2dccaccc0`; `rontrace-run1568.log`, 9,582,624 bytes,
 SHA-256 `feef04d752c67908037cce788e105f6326167d80447823d35fce4fbf538a0a0b`.
+
+## run1569 — the original playing the file a person's box and group move minted, 0..300 (2026-11-12, item 4180, `att-4180`)
+
+`docs/CLIENT_INPUT.md` §7. **What the disk could not answer**: whether the original plays a `group` of three
+Citizens with a `move_to` that carries a right press's formation fields, `form` 9 and `width` 50, as our walk's order
+door does, and where it puts each one. The recordings on disk hold group moves with those fields. None is of this
+install's build or this lobby, so none says where a unit's slot falls. The file:
+`~/ron-golden/recordings/item4180-boxed-greatlakes-24000.rcx`, 59,338 bytes, SHA-256
+`5d797ddd7fa9dbfefb3579b020d81e771d0d35a00d7d4421b1f17c742bf3c838`, written by `RON_RCX_OUT=<it> … test --release -p
+rondata the_boxed_minted_packages_round_trip`. It is run1568's file plus `0/3`, `0/4` and `0/5` moved to
+(2344, 32710) on 240. The take: run1568's line with this file, `--end-frame 300 --cover cover=1 --log-window 0 300
+--detail end:MISC,UNITS=3,BUILDS=7 --timeout 540 --stall-seconds 120`, launched through `viadriver.sh
+golden_capture.sh` and waited on with `waitrun.sh` in the background.
+- Pool lane 1, launched 13:37:12 −05:00 after one stall relaunch at 120 s; **57.3 s launch to exit**, exit 0,
+  `success`, 301 frames, `last_frame` 300, seed 12345, map 14, players tribe 4 (flags 7) and tribe 11 (flags 1), five
+  settings restored, no page fault. Minutes waited on another lane: none.
+- The built walk under the pump on the file (`BOXED_WALKED`): draws agree on all 300 frames, count and sequence;
+  **299 records compared whole, none parted**. Each boxed unit's move target, path goal and formation bytes are equal
+  on both sides on 241, 270 and 299 (`boxed_effects`). On 241 the goals are (2344, 32710), (2214, 32775) and
+  (2408, 32580), each with `form 9` and `form_mod 50`.
+- The right-pressed file walked against it parts on 241: `0/3`'s position, (2808, 31992) against (2794, 32014);
+  59 of 299 records (`RIGHT_PRESSED_AGAINST_BOXED`).
+- Filed with `filerun.py run1569 greatlakes-playback-of-boxed-300`.
+
+Archive `gamelog-run1569-greatlakes-playback-of-boxed-300.txt`, 37,261,607 bytes,
+SHA-256 `0a896c44f915cb2512872be614edad159c2dc8c47d125463186917865d9d9e14`; `rontrace-run1569.log`, 9,588,576 bytes,
+SHA-256 `0be98850cf2cdf4906102b67f35544cd43d184a95f8700cae340dfe2a5db7363`.
