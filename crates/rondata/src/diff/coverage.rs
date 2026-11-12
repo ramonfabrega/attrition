@@ -290,9 +290,13 @@ const UNREAD: &[(&str, &str)] = &[
     // `rares_collected[scan]` (`docs/AI.md` §257). Item 3964 read
     // `retargets` and the four garrison counts (`docs/AI.md` §408). Item
     // 3982 read `ages_queued` and `epochs_queued` (`docs/AI.md` §414).
+    // Item 4162 read `att`, `anti_att`, `multi_diff`, `handicap`, `misery`
+    // and `city_name` (`docs/LEADERS.md`'s census), and `theirs` parses
+    // `pop_issues`, which the crate emits no row for: it left this row for
+    // `SKIPPED_BY_THE_LEADER_COMPARATOR` (parked 4162a).
     (
         "GAME/FRAME/LEADERDATA",
-        "(int) air_queued air_units ally_stamp[scan] anti_att att attack_stamp[scan] attrition_stamp attrition_stamp2 attrition_stamp3 average_damage_rate average_death_rate average_hit_rate average_kill_rate barracks_queued barracks_units base_rate[scan] best_armor best_attack best_move best_pop blacken bonus bonus_cap[NUM_COMMON] broke_alliance[scan] buildings_lost buildings_razed capital_stamp[scan] chat_status[scan] cities_captured cities_lost city_mark city_mine city_name combat_queued combat_units counteroffer[scan] ctw_hero_retreat_stamp ctw_hero_stamp damage_current_frame damage_fifteen_seconds deaths_current_frame deaths_fifteen_seconds defeat_stamp defeat_type defensive dock_mark dock_queued dock_units dow[scan] economic explored factory_queued factory_units flags fort_mark frame_battle gift_stamp[scan] good_deeds[scan] handicap hero_mark high_buildings[scan] hire_stamp[scan] hire_who[scan] hits_current_frame hits_fifteen_seconds increment invaders[scan] kills_current_frame kills_fifteen_seconds last_spoke[scan] last_taunt[scan] length list[scan] lost_capital_modifier lost_capital_stamp lost_capital_timer lost_city_stamp made_peace[scan] misery missiles_used multi_diff nuke_stamp nukes_in_flight nukes_launched nukes_used num_bonus_cards[scan] num_buildings[scan] num_ctw_rate_bonuses[scan] oil_well_mark pop_issues raid_stamp[scan] reg_buildings[scan][scan2] reg_terr[scan] repair_stamp scholar_militia senates_built size special_mark stable_queued stable_units supply_mark support support_stamp taunt_frame[scan] team_color territory_high tribute_demanded[scan] tribute_stamp[scan] tributes[scan] units_killed units_lost victory_type village_mine wonderwin_stamp wonderwin_timer",
+        "(int) air_queued air_units ally_stamp[scan] attack_stamp[scan] attrition_stamp attrition_stamp2 attrition_stamp3 average_damage_rate average_death_rate average_hit_rate average_kill_rate barracks_queued barracks_units base_rate[scan] best_armor best_attack best_move best_pop blacken bonus bonus_cap[NUM_COMMON] broke_alliance[scan] buildings_lost buildings_razed capital_stamp[scan] chat_status[scan] cities_captured cities_lost city_mark city_mine combat_queued combat_units counteroffer[scan] ctw_hero_retreat_stamp ctw_hero_stamp damage_current_frame damage_fifteen_seconds deaths_current_frame deaths_fifteen_seconds defeat_stamp defeat_type defensive dock_mark dock_queued dock_units dow[scan] economic explored factory_queued factory_units flags fort_mark frame_battle gift_stamp[scan] good_deeds[scan] hero_mark high_buildings[scan] hire_stamp[scan] hire_who[scan] hits_current_frame hits_fifteen_seconds increment invaders[scan] kills_current_frame kills_fifteen_seconds last_spoke[scan] last_taunt[scan] length list[scan] lost_capital_modifier lost_capital_stamp lost_capital_timer lost_city_stamp made_peace[scan] missiles_used nuke_stamp nukes_in_flight nukes_launched nukes_used num_bonus_cards[scan] num_buildings[scan] num_ctw_rate_bonuses[scan] oil_well_mark raid_stamp[scan] reg_buildings[scan][scan2] reg_terr[scan] repair_stamp scholar_militia senates_built size special_mark stable_queued stable_units supply_mark support support_stamp taunt_frame[scan] team_color territory_high tribute_demanded[scan] tribute_stamp[scan] tributes[scan] units_killed units_lost victory_type village_mine wonderwin_stamp wonderwin_timer",
     ),
     (
         "GAME/FRAME/LEADERDATA/DIPLOMACY",
@@ -3889,6 +3893,10 @@ const SKIPPED_BY_THE_LEADER_COMPARATOR: &[(&str, &str, usize)] = &[
     ("LEADERDATA", "aggression[]", 6),
     ("LEADERDATA", "diplos[]", 6),
     ("LEADERDATA", "num_queued[]", 319),
+    // Item 4162: `pop_issues` is parsed and held out of `rows` (it parts
+    // once, run667's closing frame 17380, who 1, ours 2 theirs 0; parked
+    // 4162a), so the comparator skips it.
+    ("LEADERDATA", "pop_issues", 1),
     ("LEADERDATA", "strong[]", 6),
     ("LEADERDATA", "treaties[]", 6),
     ("LEADERDATA", "weak[]", 6),

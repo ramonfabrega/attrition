@@ -154,6 +154,11 @@ impl Sim {
         let muster = &self.roster.muster[who as usize];
         if muster.cap < self.tables.unit_types[t].price.pop + muster.control {
             self.units[u].queue_time -= accel;
+            // The capped launch counts, every frame the cap holds
+            // (`Unit::process`, `docs/LEADERS.md` §12.2).
+            if let Some(n) = self.leaders.pop_issues.get_mut(who as usize) {
+                *n += 1;
+            }
             return;
         }
         self.units[u].num_queued -= 1;

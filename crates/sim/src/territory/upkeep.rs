@@ -9,10 +9,13 @@ use crate::*;
 impl Sim {
     /// `Leader::calc_attrition@006cdea0`: the attrition this player's
     /// territory inflicts, from the leading run of `ATTRITION1..4` held
-    /// ([`tech::Roles::attrition_preq`]) and the Russian scaling. The
-    /// original calls it from `gain_tech`, `calc_unit_stats` and
-    /// `Leader::init`; here it runs from [`Sim::apply_gained`], which both
-    /// tech paths reach.
+    /// ([`tech::Roles::attrition_preq`]) and the Colosseum, Russian and
+    /// Kremlin scalings. The original calls it from `Leader::init`, from the
+    /// head of `calc_unit_stats` on the `0x4000000` fold, and eagerly from
+    /// `gain_tech` only in its Civic-4 epoch arm; here it runs from
+    /// [`Sim::set_tribe`], [`Sim::start_techs`] and [`Sim::calc_unit_stats`]
+    /// (item 4162; until then from [`Sim::apply_gained`], one frame early).
+    /// SEAM: the Civic-4 eager arm is not carried.
     ///
     /// **Unwired until item 552.** Phase 1 built [`attrition::strength`]
     /// and tested it against hand-set [`attrition::PlayerState`]s, and
@@ -40,8 +43,16 @@ impl Sim {
                 })
             })
             .count();
+        // The Colosseum and Kremlin arms, by `has_wonder` (`docs/LEADERS.md`
+        // §5.3, fault 2, item 4162): the record diff parted on them, ours
+        // 2 against 3 under a Colosseum (run1314b, block 3209) and 8
+        // against 16 under a Kremlin (run762, block 4574).
+        let wonders = self.wonders_held(who);
+        let held = |k: usize| wonders & (1 << k) != 0;
         let mods = crate::territory::attrition::StrengthMods {
+            colosseum: held(crate::tech::wonder::COLOSSEUM),
             russian: self.cities.nation.get(w).is_some_and(|n| n.russians),
+            kremlin: held(crate::tech::wonder::KREMLIN),
             ..crate::territory::attrition::StrengthMods::default()
         };
         self.territory.players[w].strength =

@@ -394,8 +394,12 @@ impl TargetGateView for SimGate<'_> {
     fn lid(&self, a: usize) -> i32 {
         a as i32
     }
-    fn lmulti(&self, _a: usize) -> i32 {
-        -1
+    fn lmulti(&self, a: usize) -> i32 {
+        // `multi_diff`, the leaf the leaders line and the dump carry
+        // (`docs/LEADERS.md` §16.3, item 4162); read only under the
+        // multiplayer or scenario semaphore, which `semaphore()` never
+        // answers here.
+        self.sim.leader_multi_diff(a as crate::Player)
     }
     fn ld(&self, a: usize, b: usize) -> i32 {
         let (a, b) = (a as crate::Player, b as crate::Player);

@@ -96,6 +96,13 @@ impl Sim {
             // `Leader::process@006b88b0`'s head: the frame's retarget
             // count starts again at zero (`docs/COLLISION.md` §14).
             self.combat.retargets[who] = 0;
+            // And `pop_issues`, for a live leader only (`leader_flags & 2`,
+            // `docs/LEADERS.md` §12.2): the frame's count of capped trains.
+            if !self.leaders.defeated.get(who).copied().unwrap_or(false)
+                && let Some(n) = self.leaders.pop_issues.get_mut(who)
+            {
+                *n = 0;
+            }
             // `Leader::calc_gather` assembles its inputs from the live state
             // inside the same gate it recomputes under, so the holdings are
             // rebuilt only on the frames the rate is actually reassembled —

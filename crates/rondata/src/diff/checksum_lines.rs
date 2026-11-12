@@ -1762,10 +1762,20 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 4, 4313);
 /// the Nubians and the British, no attrition step and no multiplier on
 /// frame 91 (`docs/LEADERS.md` §5.2). The long range stays out on the
 /// other 98.
-const LEADERS_HELD_OUT: &[(&str, usize)] = &[
+///
+/// Item 4162: 98 → 92 names. Held (`sim::leaders::words`) and agreeing on
+/// both leaders: `cannon_time` 0 = 0 (`CANNON_TIMES 0`, §16), `handicap`
+/// 0 = 0, `multi_diff` 0 = 0 (run 1562's `DIFFICULTY 0`; the other
+/// lobbies' bytes are the record diff's, `diff::leader`), `misery` 0 = 0
+/// (§12.3), `city_name` 1 = 1 (each start city named once, §1) and
+/// `anti_att` `0x43800000` = `0x43800000` (256.0, no source; §6). The
+/// long range stays out on the other 92. `pop_issues` has a writer
+/// (`Sim::leader_pop_issues`) and agreed here, 0 = 0, but the line emits it
+/// unheld: the record diff parts it once (run667's closing frame 17380,
+/// who 1 ours 2 theirs 0; parked 4162a).
+pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("air_queued (unheld)", 2),
     ("ally_stamp (unheld)", 2),
-    ("anti_att (unheld)", 2),
     ("attack_stamp (unheld)", 2),
     ("attrition_stamp (unheld)", 2),
     ("attrition_stamp2 (unheld)", 2),
@@ -1779,8 +1789,6 @@ const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("broke_alliance (unheld)", 2),
     ("buildings_lost (unheld)", 2),
     ("buildings_razed (unheld)", 2),
-    ("cannon_time (unheld)", 2),
-    ("city_name (unheld)", 2),
     ("combat_queued (unheld)", 2),
     ("counteroffer (unheld)", 2),
     ("ctw_hero_stamp (unheld)", 2),
@@ -1800,7 +1808,6 @@ const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("gift_stamp (unheld)", 2),
     ("give_att_disabled (unheld)", 2),
     ("good_deeds (unheld)", 2),
-    ("handicap (unheld)", 2),
     ("high_buildings (unheld)", 2),
     ("hire_stamp (unheld)", 2),
     ("hire_who (unheld)", 2),
@@ -1820,9 +1827,7 @@ const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("lost_capital_stamp (unheld)", 2),
     ("lost_capital_timer (unheld)", 2),
     ("made_peace (unheld)", 2),
-    ("misery (unheld)", 2),
     ("missiles_used (unheld)", 2),
-    ("multi_diff (unheld)", 2),
     ("nukes_launched (unheld)", 2),
     ("oil_well_mark (unheld)", 2),
     ("pop_issues (unheld)", 2),
@@ -1883,6 +1888,14 @@ const LEADERS_BENT: &[&str] = &[
     "combat_units",
     "air_units",
     "aggression",
+    // Item 4162's five, each agreeing on run 1562's frame 91: the reader
+    // sees every one of them part when it is bent.
+    "cannon_time",
+    "handicap",
+    "multi_diff",
+    "misery",
+    "city_name",
+    "anti_att",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its

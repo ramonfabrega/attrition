@@ -2507,6 +2507,12 @@ impl Sim {
             let capital = !captured && self.city_num(who) == 0;
             let second = !capital && self.persian_second_capital(who);
             let c = self.init_city(who, b, captured, capital);
+            // `City::init` → `City::generate_name@00735c90` when
+            // `activate`'s first argument is 0: the start city and a city
+            // built, never a capture (`docs/LEADERS.md` §1.2).
+            if !captured {
+                self.generate_city_name(b);
+            }
             if second {
                 self.cities.cities[c].capital = true;
             }
