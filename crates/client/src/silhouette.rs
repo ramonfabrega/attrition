@@ -713,6 +713,188 @@ pub fn colour_rows(
     out
 }
 
+/// **One object's row on the client's still** (item 4171; `docs/RENDERER.md`
+/// §5.3, "The still"): the painter's footprint and colours beside the
+/// still's, and how far the still's pixels lie from the painter's.
+#[cfg(test)]
+pub struct StillRow {
+    pub painter: Footprint,
+    pub still: Footprint,
+    pub painter_colours: render::silhouette::Colours,
+    pub colours: render::silhouette::Colours,
+    pub who: Who,
+    /// The object's own pixels the painter paints, and of those the ones
+    /// whose every channel on the still lies within 8 of the painter's.
+    pub pixels: u32,
+    pub within: u32,
+    /// The first own pixels: the value diff.
+    pub sample: Vec<PixelPair>,
+}
+
+/// One pixel's colour, `((x, y), painter, still)` (item 4171).
+#[cfg(test)]
+pub type PixelPair = ((i32, i32), [f32; 3], [f32; 3]);
+
+/// **The traced and colour rows on the still** (item 4171): [`colour_rows`]'
+/// objects, windows and photograph side, unchanged, with our side read off
+/// `still` (`photo`'s size, RGBA rows top first) by §5.3's rule — the
+/// footprint by the photograph's colour reader run on the still, its ring
+/// the still's pixels where no key lies; the colours the still's pixels.
+#[cfg(test)]
+pub fn still_rows(
+    world: &mut World,
+    camera: &render::Camera,
+    photo: &render::tga::Image,
+    traced: &[(&str, &[(i32, i32)])],
+    still: &[u8],
+) -> Vec<StillRow> {
+    use render::silhouette::{HUE, Texel, read_colours, traced_theirs};
+    let size = (photo.width, photo.height);
+    assert_eq!(
+        still.len(),
+        size.0 * size.1 * 4,
+        "the still is the photograph's size"
+    );
+    let scene = frame_scene(world, camera, size);
+    let p = Photo {
+        width: photo.width,
+        height: photo.height,
+        rgba: &photo.rgba,
+    };
+    let ours_photo = Photo {
+        width: photo.width,
+        height: photo.height,
+        rgba: still,
+    };
+    let traces: Vec<Trace<'_>> = traced
+        .iter()
+        .map(|&(name, poly)| Trace {
+            key: scene
+                .who
+                .iter()
+                .position(|&(who, o, _, _)| format!("{who}/{o}") == name)
+                .map_or(u32::MAX, |i| i as u32 + 1),
+            poly,
+        })
+        .collect();
+    let rows = footprints_traced(
+        &scene.keys,
+        &p,
+        &INTERFACE,
+        &READING,
+        &traces,
+        Neighbour::Neither,
+        Interface::Neither,
+    );
+    let w = photo.width;
+    let mut out = Vec::new();
+    for f in rows {
+        let who = scene.who[f.key as usize - 1];
+        if who.0 == TREE_WHO {
+            continue;
+        }
+        let theirs = traced_theirs(
+            &scene.keys,
+            &p,
+            &INTERFACE,
+            &READING,
+            &traces,
+            Neighbour::Neither,
+            Interface::Neither,
+            f.key,
+            f.window,
+        );
+        // Our side by the photograph's colour reader, on the still: no
+        // trace is ours, so a pixel is the interface's or read by colour.
+        let mine = traced_theirs(
+            &scene.keys,
+            &ours_photo,
+            &INTERFACE,
+            &READING,
+            &[],
+            Neighbour::Neither,
+            Interface::Neither,
+            f.key,
+            f.window,
+        );
+        let mut sf = Footprint {
+            key: f.key,
+            window: f.window,
+            ours: 0,
+            theirs: 0,
+            both: 0,
+        };
+        for (t, m) in theirs.iter().zip(&mine) {
+            let Some(t) = *t else { continue };
+            let o = *m == Some(true);
+            sf.ours += u32::from(o);
+            sf.theirs += u32::from(t);
+            sf.both += u32::from(o && t);
+        }
+        let painted = painted_scene(
+            world,
+            &scene,
+            camera,
+            size,
+            f.key,
+            f.window,
+            Colouring::Silhouette,
+        );
+        let ww = (f.window.x1 - f.window.x0) as usize;
+        let (mut pixels, mut within) = (0u32, 0u32);
+        let mut sample = Vec::new();
+        let mut ours: Vec<Option<Texel>> = Vec::with_capacity(painted.len());
+        for y in f.window.y0..f.window.y1 {
+            for x in f.window.x0..f.window.x1 {
+                let j = (y - f.window.y0) as usize * ww + (x - f.window.x0) as usize;
+                let i = (y as usize * w + x as usize) * 4;
+                let rgb = [0, 1, 2].map(|k| f32::from(still[i + k]));
+                let at = painted[j];
+                if let Some(q) = at.filter(|_| scene.keys.at(x as usize, y as usize) == f.key) {
+                    pixels += 1;
+                    within += u32::from((0..3).all(|k| (q.rgb[k] - rgb[k]).abs() <= 8.0));
+                    if pixels % 16 == 1 && sample.len() < 4 {
+                        sample.push(((x, y), q.rgb, rgb));
+                    }
+                }
+                ours.push(at.map(|q| Texel { rgb, ..q }));
+            }
+        }
+        let behind = |x: i32, y: i32| scene.behind[y as usize * w + x as usize];
+        let painter_colours = read_colours(
+            &scene.keys,
+            &p,
+            f.key,
+            f.window,
+            &theirs,
+            &painted,
+            &HUE,
+            behind,
+        );
+        let colours = read_colours(
+            &scene.keys,
+            &p,
+            f.key,
+            f.window,
+            &theirs,
+            &ours,
+            &HUE,
+            behind,
+        );
+        out.push(StillRow {
+            painter: f,
+            still: sf,
+            painter_colours,
+            colours,
+            who,
+            pixels,
+            within,
+            sample,
+        });
+    }
+    out
+}
+
 /// Every scored object's footprints on the frame at `camera`, beside its
 /// drawing.
 pub fn score_frame(
@@ -1602,6 +1784,132 @@ mod tests {
             assert!(f.overlap() >= READING.threshold, "{name} passes");
         }
         world.blend = crate::world::Blend::Current;
+    }
+
+    /// **The traced and colour rows on the client's still** (item 4171;
+    /// `docs/RENDERER.md` §5.3, "The still", committed before this count):
+    /// [`still_rows`] at both places of the silhouette pass, every object
+    /// whose verdict the still changes named with both sides' values.
+    /// Made to fail: the draw before (`SilhouetteOrder::After`) washes the
+    /// figures, and its colour row falls.
+    #[test]
+    fn the_rows_on_the_client_s_still() {
+        use crate::gpu::SilhouetteOrder;
+        use render::silhouette::HUE;
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        world.run_to(PHOTO_FRAME);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let size = (photo.width as u32, photo.height as u32);
+        let mut got = Vec::new();
+        use wgpu::TextureFormat::{Rgba8Unorm, Rgba8UnormSrgb};
+        for (order, format) in [
+            (SilhouetteOrder::Before, Rgba8Unorm),
+            (SilhouetteOrder::After, Rgba8Unorm),
+            (SilhouetteOrder::Before, Rgba8UnormSrgb),
+            (SilhouetteOrder::After, Rgba8UnormSrgb),
+        ] {
+            let order_name = format!("{order:?} {format:?}");
+            let still = crate::still_of(&mut world, &camera, size, order, format);
+            if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
+                let out = PathBuf::from(dir).join(format!("still-1559b-{order:?}-{format:?}.bmp"));
+                std::fs::write(&out, crate::gpu::bmp(&still, size)).expect("the still writes");
+            }
+            let rows = still_rows(&mut world, &camera, &photo, &TRACED, &still);
+            let t = READING.threshold;
+            let (mut pixels, mut within) = (0u32, 0u32);
+            for r in &rows {
+                let (a, b) = (r.painter.overlap(), r.still.overlap());
+                let (c, d) = (r.painter_colours.passes(&HUE), r.colours.passes(&HUE));
+                pixels += r.pixels;
+                within += r.within;
+                println!(
+                    "{order_name} {}/{} piece {}{} window ({}, {})..({}, {}): overlap painter {a:.3} still {b:.3} (ours {} -> {}, both {} -> {}) | colour painter lit {} agree {} mean {:.3} {} still lit {} agree {} mean {:.3} {} behind {} part {} -> {} | within 8: {} of {}{}{}",
+                    r.who.0,
+                    r.who.1,
+                    r.who.2,
+                    if r.who.3 { " building" } else { "" },
+                    r.painter.window.x0,
+                    r.painter.window.y0,
+                    r.painter.window.x1,
+                    r.painter.window.y1,
+                    r.painter.ours,
+                    r.still.ours,
+                    r.painter.both,
+                    r.still.both,
+                    r.painter_colours.lit,
+                    r.painter_colours.agree,
+                    r.painter_colours.mean,
+                    if c { "in" } else { "out" },
+                    r.colours.lit,
+                    r.colours.agree,
+                    r.colours.mean,
+                    if d { "in" } else { "out" },
+                    r.colours.behind,
+                    r.painter_colours.behind_part,
+                    r.colours.behind_part,
+                    r.within,
+                    r.pixels,
+                    if (a >= t) != (b >= t) {
+                        " TRACED CROSSES"
+                    } else {
+                        ""
+                    },
+                    if c != d { " COLOUR CROSSES" } else { "" },
+                );
+                for (at, a, b) in &r.sample {
+                    println!(
+                        "    pixel {at:?}: painter ({:.0}, {:.0}, {:.0}) still ({:.0}, {:.0}, {:.0})",
+                        a[0], a[1], a[2], b[0], b[1], b[2]
+                    );
+                }
+            }
+            let traced = (
+                rows.iter().filter(|r| r.still.overlap() >= t).count(),
+                rows.len(),
+            );
+            let colour = (
+                rows.iter().filter(|r| r.colours.passes(&HUE)).count(),
+                rows.len(),
+            );
+            let painter = (
+                rows.iter().filter(|r| r.painter.overlap() >= t).count(),
+                rows.iter()
+                    .filter(|r| r.painter_colours.passes(&HUE))
+                    .count(),
+            );
+            println!(
+                "{order_name}: traced {traced:?} colour {colour:?} on the still; the painter's {painter:?}; pixels within 8 {within} of {pixels}"
+            );
+            assert_eq!(
+                painter,
+                (s::RUN1559B_3279_TRACED.0, s::RUN1559B_3279_COLOUR.0)
+            );
+            got.push((traced, colour));
+        }
+        use render::silhouette as s;
+        assert_eq!(got, s::RUN1559B_3279_STILL_READINGS);
+        assert_eq!(
+            got[0],
+            (s::RUN1559B_3279_TRACED_STILL, s::RUN1559B_3279_COLOUR_STILL),
+            "the client's draw"
+        );
     }
 
     /// **The colour row** (item 4099; `docs/RENDERER.md` §5.3, "The colour

@@ -461,6 +461,40 @@ pub fn our_patches(
 #[cfg(test)]
 pub const RUN1559B_3279_GROUND: (usize, usize) = (1097, 1109);
 
+/// **`RUN1559B_3279_GROUND` on the client's still** (item 4171;
+/// `docs/RENDERER.md` §5.3, "The still"): the painter's 1,097 of 1,109,
+/// tile for tile, no crossing. On the draw before (an sRGB target) 1,003:
+/// 94 of the 106 under a mountain cross down, `ADDSIGNED` taken in linear
+/// light — tile (6, 144), theirs (104, 100, 56), the painter's (116, 97,
+/// 65), the still's (22, 18, 6).
+#[cfg(test)]
+pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1097, 1109);
+
+/// **`RUN1564_3279_GROUND` on the client's still** (item 4171):
+/// `(agree, scored)`, then by kind `[agree, scored]`, `KINDS`' order.
+/// 1,237 against the painter's 1,236: one `SANDY` tile crosses up at the
+/// bar, (194, 206), theirs (0.3955, 0.3778) in (r, g)/(r + g + b), the
+/// painter's (0.4393, 0.3532) at 0.0502, the still's (0.4387, 0.3530) at
+/// 0.0496. On the draw before, 1,286.
+#[cfg(test)]
+pub const RUN1564_3279_GROUND_STILL: ((usize, usize), [[u32; 2]; 7]) = (
+    (1237, 1920),
+    [
+        [677, 679],
+        [0, 0],
+        [32, 32],
+        [0, 0],
+        [0, 0],
+        [295, 772],
+        [233, 437],
+    ],
+);
+
+/// Both ground rows on the draw before item 4171 (the silhouette after,
+/// an sRGB target): the rows' made-to-fail, run1559b then run1564.
+#[cfg(test)]
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1003, 1109), (1286, 1920)];
+
 /// [`RUN1559B_3279_GROUND`] with the patch laid and the mountains in the
 /// debug grey, as item 4139 pinned it (item 4141).
 #[cfg(test)]
@@ -1746,6 +1780,131 @@ mod tests {
         }
         println!("RUN1564_3279_WATER: {rows:?}");
         assert_eq!(rows, RUN1564_3279_WATER);
+    }
+
+    /// One scored tile on the still (item 4171): the photograph's mean,
+    /// the still's, and whether they agree.
+    pub(crate) type StillTile = ((i32, i32), [f32; 3], [f32; 3], bool);
+
+    /// **The ground's row on the client's still** (item 4171;
+    /// `docs/RENDERER.md` §5.3, "The still"): [`ground_row`]'s tiles and
+    /// their pixels, scored as there, ours the mean of `still` over every
+    /// ground pixel of the tile.
+    pub(crate) fn still_ground_row(p: &mut Probe, still: &[u8]) -> Vec<StillTile> {
+        let g = ground(p);
+        let px = |rgba: &[u8], i: usize| [0, 1, 2].map(|c| f32::from(rgba[i * 4 + c]));
+        type Px = Vec<[f32; 3]>;
+        let mut tiles: BTreeMap<(i32, i32), (Px, Px)> = BTreeMap::new();
+        for (i, tt) in g.tile.iter().enumerate() {
+            let Some(tt) = *tt else { continue };
+            let e = tiles.entry(tt).or_default();
+            e.0.push(px(&p.photo.rgba, i));
+            e.1.push(px(still, i));
+        }
+        tiles
+            .into_iter()
+            .filter(|(_, (th, _))| th.len() as u32 >= HUE.min_pixels)
+            .map(|(tt, (th, us))| {
+                let (a, b) = (mean(&th), mean(&us));
+                (
+                    tt,
+                    a,
+                    b,
+                    dist(chromaticity(a), chromaticity(b)) <= HUE.distance,
+                )
+            })
+            .collect()
+    }
+
+    /// **The ground's rows on the client's still** (item 4171, §5.3 "The
+    /// still", committed before this count): on both photographs, the still
+    /// beside the painter's [`ground_row`], by kind, every tile whose verdict
+    /// the still changes counted by kind and the first of each named with
+    /// both sides' means.
+    #[test]
+    fn the_ground_on_the_client_s_still() {
+        use crate::gpu::SilhouetteOrder;
+        let mut got = Vec::new();
+        for (name, shot) in [("run1559b", run1559b()), ("run1564", run1564())] {
+            let Some(mut p) = probe_at(shot) else { return };
+            let size = (p.photo.width as u32, p.photo.height as u32);
+            let camera = p.camera;
+            let still = crate::still_of(
+                &mut p.world,
+                &camera,
+                size,
+                SilhouetteOrder::Before,
+                wgpu::TextureFormat::Rgba8Unorm,
+            );
+            if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
+                let out = PathBuf::from(dir).join(format!("still-{name}.bmp"));
+                std::fs::write(&out, crate::gpu::bmp(&still, size)).expect("the still writes");
+            }
+            // Made to fail: the draw before item 4171, on an sRGB target.
+            let srgb = crate::still_of(
+                &mut p.world,
+                &camera,
+                size,
+                SilhouetteOrder::After,
+                wgpu::TextureFormat::Rgba8UnormSrgb,
+            );
+            let tiles = still_ground_row(&mut p, &still);
+            let before = still_ground_row(&mut p, &srgb);
+            let before = (before.iter().filter(|q| q.3).count(), before.len());
+            let Some(r) = ground_row(&mut p) else { return };
+            let t = p.world.runner.terrain();
+            let mountains: std::collections::BTreeSet<(i32, i32)> =
+                t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+            let painter: BTreeMap<(i32, i32), bool> = r.scored.iter().copied().collect();
+            assert_eq!(
+                tiles.iter().map(|q| q.0).collect::<Vec<_>>(),
+                r.scored.iter().map(|q| q.0).collect::<Vec<_>>(),
+                "{name}: the still scores the painter's tiles"
+            );
+            let mut by = [[0u32; 2]; 7];
+            let mut crossed = [[0u32; 2]; 7];
+            for (tt, th, us, ok) in &tiles {
+                let k = kind_of(&t, &mountains, *tt);
+                by[k][1] += 1;
+                by[k][0] += u32::from(*ok);
+                let was = painter[tt];
+                if was != *ok {
+                    let c = &mut crossed[k][usize::from(*ok)];
+                    if *c == 0 {
+                        let (_, ours, at) = r.means[tt];
+                        println!(
+                            "{name} {} crosses {}: tile {tt:?} at pixel {at:?}, theirs ({:.0}, {:.0}, {:.0}) {:?}, the painter's {:?} {:?}, the still's ({:.0}, {:.0}, {:.0}) {:?}",
+                            KINDS[k],
+                            if *ok { "up" } else { "down" },
+                            th[0],
+                            th[1],
+                            th[2],
+                            chromaticity(*th),
+                            ours,
+                            ours.map(chromaticity),
+                            us[0],
+                            us[1],
+                            us[2],
+                            chromaticity(*us),
+                        );
+                    }
+                    *c += 1;
+                }
+            }
+            let row = (by.iter().map(|k| k[0] as usize).sum::<usize>(), tiles.len());
+            for (k, (b, c)) in KINDS.iter().zip(by.iter().zip(&crossed)) {
+                println!("{name} still {k}: [agree, scored] {b:?}, crossed [down, up] {c:?}");
+            }
+            println!(
+                "{name}: the ground on the still {row:?}, the painter's ({}, {}), the draw before {before:?}",
+                r.row,
+                r.scored.len()
+            );
+            got.push((row, by, before));
+        }
+        assert_eq!(got[0].0, RUN1559B_3279_GROUND_STILL);
+        assert_eq!((got[1].0, got[1].1), RUN1564_3279_GROUND_STILL);
+        assert_eq!([got[0].2, got[1].2], GROUND_STILL_SRGB);
     }
 
     fn mean(px: &[[f32; 3]]) -> [f32; 3] {
