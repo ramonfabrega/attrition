@@ -377,6 +377,7 @@ fn draw_page(
         trees: &[],
         overlay: (&overlay.0, &overlay.1),
         sprites: &[],
+        shadows: &[],
     };
     let camera = pinned_camera();
     match target {
