@@ -52,7 +52,8 @@ So no float reaches an order's bytes except through that rounding.
 **The window** feeds the same layer. `main.rs` turns the cursor's pixel and a left or right mouse press into a press or
 a right press, and an unbound character key into a key. A left press becomes a press or a drag when it is released
 (§7.1). Each event runs under the camera and window size the frame is
-drawn with. A minted order is issued for the frame about to be stepped, and printed. `--lobby` opens the script's
+drawn with. The HUD is asked first (`docs/HUD.md` §2, item 4197): a press on one of its buttons is that button's key.
+A minted order is issued for the frame about to be stepped, and printed. `--lobby` opens the script's
 lobby, built from its choices by `FreeRunner::from_lobby` (`docs/START.md` §7), in place of the pair's game.
 
 ## 2. The values (stage 0)

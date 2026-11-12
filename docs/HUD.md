@@ -1,9 +1,10 @@
 # The HUD, plain
 
 Items 4197 and 4198 (DECISIONS 129 §7), designed by the pass of 2026-11-12
-before either was cut. **Nothing here is built.** This is the document the
-lanes implement and amend; a claim below is a rule to hold the build to,
-not a finding.
+before either was cut. **The menu and the panel are built** (item 4197,
+`client::hud`); **the bar is not** (4198). This is the document the lanes
+implement and amend; a claim below is a rule to hold the build to unless
+it says what backs it.
 
 What a person needs on screen to play, in the lobby page's manner
 (`docs/LOBBY.md`): text and rectangles in the debug overlay's font
@@ -47,6 +48,15 @@ gates whole and takes the whole slot's turn (DECISIONS 129 §1).
   arm. A press on a button never clears the selection and never places.
 - **Where the buttons stand** is the HUD's to choose and is pinned as
   pixels at the script's window size, the way the scripts pin a click.
+  Built (4197): one row along the window's bottom edge, each button
+  240×36 pixels, 8 from the edge and from the next; at 1920×1080 the
+  first button's centre is (128, 1054) (`hud::tests::BUTTONS_AT`). No
+  pixel the scripts press or right-press falls under a button.
+- **A button's label** is its key and its type's `NAME`, joined through
+  the `TypeIndex`: units from `BASE_UNITTYPES` (0x32), buildings from
+  `BASE_BUILDTYPES`. Read as a raw index into the unit names, `c` was
+  labelled the Riflemen for the Citizen it trains (seen on the still,
+  then made a test's red).
 
 The menu offers what the layer can mint: two rows today. Widening
 `BUILD_KEYS` and `TRAIN_KEYS` widens it; **what the original's own menu
@@ -65,6 +75,18 @@ with a closing count of the rest:
 
 The values are the scene's own fields, printed as integers. Nothing is
 scaled, rounded or computed in the client beyond the join to a name.
+
+**A building's health is its hits left, and a site's climbs** (4197).
+`ObjectData::hits_left@006535c0` is `hits(0) − damage`, floored at zero
+and capped at `hits(0)`; a building's `hits(0)` is `construct_hits`
+(`WallData::hits@00642bb0`, `BuildData::hits@0062e740`), `hits(1)` its
+`myhits`. So the scene's `health` against `hits` is the original's own
+pair, and on a site it reads `construct_hits − damage` of `myhits`: run1568
+prints the Farm's site `0/2007` on frame 210 as `myhits 400`, `damage 0`,
+`(int)construct_hits 223`, and the panel prints `223/400 BUILDING 223/400`.
+A unit's `hits(0)` is its `myhits` (the harness's hit-point rows).
+The printed line is `NAME health/full`, then ` BUILDING c/full` while
+unfinished and ` FIGURES n` for more than one figure (the Scout prints 2).
 
 ## 4. The bar (item 4198)
 
@@ -93,6 +115,11 @@ before the first count, the consumer read before the digits are believed
   same SHA-256 the playback of run1563 already scored. Pinned first as
   drawn today, 0 of k with no button. Made to fail: a button's rectangle
   moved off its pinned pixel loses its order and the count falls.
+  **Built (4197): 2 of 2 keyed orders** (`script::HUD_BUTTONS`; the `c`
+  `queue_up` and the `f` `build`), all three orders the clicked script's
+  and the file the clicked file's 59,280 bytes. Through the layer alone
+  (the window before this item) 0 of 2; on a window 80 pixels shorter,
+  the buttons off their pixel, 0 of 2.
 - **The press that is the HUD's is not the world's.** A press on a button
   with units selected leaves the selection whole and places nothing; the
   same pixel with no button there is the layer's press. Each seen red
@@ -106,6 +133,15 @@ before the first count, the consumer read before the digits are believed
   full health cannot part on health, so at least one compared object is
   one the dump shows damaged or unfinished (the Farm's site under
   construction in the right-pressed script is one).
+  **Built (4197): 628 of 628** (`script::HUD_PANEL`), on frames 1 to 299
+  of run1568, for the right-pressed script's selections (the Scout, the
+  capital, the builder, the helper, the trained Citizen) and one press
+  selecting the site `0/2007` on frame 210; 44 of the 628 are the site's
+  `construct_hits` while unfinished, 223 on 210 to 396 on 253. Made to
+  fail: that number printed one higher, 584 of 628; the dump read one
+  frame late, 536 of 626. Read first as `myhits − damage`, the site's
+  health parted on the same 44 (ours 223, theirs 400 on 210), and §3's
+  reading settled which side was wrong.
 
 **Item 4198.**
 
@@ -123,7 +159,13 @@ exists; its parser goes beside `lobby_line` in `rondata::diff::floors`.
 
 ## 6. Confidence, and what is not established
 
-Nothing here is diff-backed yet: it is a design. What it rests on:
+**Diff-backed (4197)**: the panel's numbers, against run1568's
+`UNITDATA` and `BUILDDATA` on every frame they print (§5); the buttons'
+orders, by the clicked file's bytes, which the original played in
+lockstep (run1563). **On a reading alone**: §3's hits-left rule for a
+building (three functions, one reader; the 628 agree under it and 44 part
+without it, so the diff stands behind it for a site with no damage and
+no queue). What the bar rests on:
 
 - **Read from the tree by the pass**: the scene's fields (§1, §3), the two
   key tables, the absence of any leader state behind the door.
@@ -147,3 +189,16 @@ Not established:
   rows are counted on a frame with no HUD; the HUD is drawn only in a
   window, never under `--still`, so every pinned row holds by
   construction, and the first lane says so with the rows' own tests.
+  Built (4197): a row's still (`still_of`) draws no overlay and no HUD;
+  the client's `--still` draws the HUD only under `--select O[,O…]`, a
+  look for a person and no row's.
+- **`BuildData::hits`' queue arm.** With the building finished and the
+  head of its queue `TypeIndex` 0x29a or 0x286, `hits(0)` is scaled by the
+  queue's progress (a float in the original); no compared object holds it
+  and the scene does not carry it, so a building in that state may print
+  other hits left than the original's.
+- **A damaged object.** Every compared object is at full hits left but
+  the site, whose `damage` is 0: the `damage` half of hits left parts on
+  no frame here. A capture with a wounded unit selected would test it.
+- **What a press on the panel does**: it reaches the world (only a
+  button takes a press). A right press on a button reaches the world too.

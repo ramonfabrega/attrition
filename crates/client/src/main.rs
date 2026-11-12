@@ -9,7 +9,7 @@
 //! client [--install DIR] [--logs DIR] [--frame N] [--size WxH]
 //!        [--still OUT.bmp] [--frames N] [--play] [--trace OUT.json]
 //!        [--look X,Y] [--zoom F] [--silhouette OUT.bmp] [--rest]
-//!        [--lobby] [--headless] [--page-still OUT.bmp]
+//!        [--lobby] [--headless] [--page-still OUT.bmp] [--select O[,O…]]
 //! client --read-trace SESSION.json
 //! ```
 //!
@@ -28,7 +28,9 @@
 //! frame's silhouettes against run1559b's photograph (`silhouette`) and
 //! writes the picture of the scoring. Each figure is drawn posed at its
 //! animation slot and clock (item 4067, the default since item 4069);
-//! `--rest` draws it in its model's rest pose. Every session writes its
+//! `--rest` draws it in its model's rest pose. `--select` selects slot 0's
+//! objects before `--still` draws, and the still carries the HUD (`hud`,
+//! item 4197): the window always does. Every session writes its
 //! trace (`trace`), and `--read-trace` prints the clock it holds.
 //!
 //! The simulation stays headless: this crate depends on `sim`, `rondata`
@@ -36,6 +38,7 @@
 
 mod gpu;
 mod ground;
+mod hud;
 mod input;
 mod lobby;
 mod overlay;
@@ -142,6 +145,9 @@ struct Args {
     headless: bool,
     /// Write the lobby page, as the window opens on it, and quit (item 4184).
     page_still: Option<PathBuf>,
+    /// Slot 0's objects selected before `--still` draws, with the HUD
+    /// (item 4197): `--select O[,O…]`.
+    select: Vec<i16>,
 }
 
 fn parse() -> Result<Args, String> {
@@ -166,6 +172,7 @@ fn parse() -> Result<Args, String> {
         lobby: false,
         headless: false,
         page_still: None,
+        select: Vec::new(),
         trace: std::env::temp_dir().join(format!("attrition-client-{}.json", std::process::id())),
     };
     let mut it = std::env::args().skip(1);
@@ -194,6 +201,12 @@ fn parse() -> Result<Args, String> {
             "--lobby" => a.lobby = true,
             "--headless" => a.headless = true,
             "--page-still" => a.page_still = Some(v()?.into()),
+            "--select" => {
+                a.select = v()?
+                    .split(',')
+                    .map(|o| o.trim().parse().map_err(|e| format!("--select {o}: {e}")))
+                    .collect::<Result<_, _>>()?
+            }
             "--silhouette" => a.silhouette = Some(v()?.into()),
             "--zoom" => a.zoom = v()?.parse().map_err(|e| format!("--zoom: {e}"))?,
             "--look" => {
@@ -241,7 +254,13 @@ struct Built {
     overlay: (Vec<[f32; 3]>, Vec<[f32; 3]>),
 }
 
-fn build(world: &mut World, camera: &render::Camera, size: (u32, u32), frame_ms: f64) -> Built {
+fn build(
+    world: &mut World,
+    camera: &render::Camera,
+    size: (u32, u32),
+    frame_ms: f64,
+    hud: Option<&input::Input>,
+) -> Built {
     let (figures, buildings, list) =
         world.draw_list(camera, &pinned_screen(), (size.0 as i32, size.1 as i32));
     let sprites = world.sprite_drawings(&buildings, &list, camera.zoom_distance);
@@ -254,7 +273,16 @@ fn build(world: &mut World, camera: &render::Camera, size: (u32, u32), frame_ms:
         camera: *camera,
     }
     .text();
-    let overlay = overlay::triangles(&lines, (size.0 as i32, size.1 as i32), 2);
+    let mut overlay = overlay::triangles(&lines, (size.0 as i32, size.1 as i32), 2);
+    // The HUD (item 4197), over the debug overlay's quads.
+    if let Some(input) = hud {
+        let screen = (size.0 as i32, size.1 as i32);
+        let mut p = overlay::Painter::new(screen);
+        let scene = world.runner.scene(None);
+        hud::paint(&mut p, input, &scene, &world.names, screen);
+        overlay.0.extend(p.pos);
+        overlay.1.extend(p.col);
+    }
     Built {
         figures,
         textured,
@@ -269,6 +297,7 @@ fn build(world: &mut World, camera: &render::Camera, size: (u32, u32), frame_ms:
 /// list, the sprites, the figures' meshes and the trees), `ground` (the
 /// heightfield and its textured meshes, rebuilt when the terrain moves)
 /// and `gpu` (the uploads, the passes and the submit).
+#[allow(clippy::too_many_arguments)]
 fn draw(
     session: &Session,
     gpu: &gpu::Gpu,
@@ -277,8 +306,9 @@ fn draw(
     camera: &render::Camera,
     size: (u32, u32),
     frame_ms: f64,
+    hud: Option<&input::Input>,
 ) -> Option<Vec<u8>> {
-    let b = session.phase("scene", || build(world, camera, size, frame_ms));
+    let b = session.phase("scene", || build(world, camera, size, frame_ms, hud));
     let version = world.runner.terrain().version;
     world.set_screen(camera, size);
     let patch_version = session.phase("ground", || {
@@ -325,7 +355,7 @@ pub(crate) fn still_of(
     let mut gpu = gpu::Gpu::new(&instance, None, format)
         .unwrap_or_else(|e| panic!("the still needs a GPU: {e}"));
     gpu.silhouette_order = order;
-    let b = build(world, camera, size, 0.0);
+    let b = build(world, camera, size, 0.0, None);
     let version = world.runner.terrain().version;
     world.set_screen(camera, size);
     world.drawn_terrain();
@@ -530,7 +560,9 @@ impl App {
             scene: &scene,
             terrain: &terrain,
         };
-        if let Some(order) = self.input.event(frame, ev, &view) {
+        // The HUD first (item 4197): a press on a button is its key.
+        let screen = size.unwrap_or((pinned_screen().scaled_xs, pinned_screen().scaled_ys));
+        if let Some(order) = hud::event(&mut self.input, screen, frame, ev, &view) {
             println!("ORDER {order:?}");
             self.world.runner.issue(&order);
         }
@@ -666,6 +698,7 @@ impl ApplicationHandler for App {
                             &self.camera,
                             (s.width, s.height),
                             self.last_ms,
+                            Some(&self.input),
                         );
                     }
                     gpu.queue.present(texture);
@@ -797,6 +830,18 @@ fn main() {
         });
         return;
     }
+    // `--select`: the HUD on the still, for the selection named (item 4197).
+    let select = (!args.select.is_empty()).then(|| {
+        let scene = world.runner.scene(None);
+        let mut input = input::Input::new(0);
+        input.selection = args
+            .select
+            .iter()
+            .map(|&o| sim::observe::ObjId { who: 0, o })
+            .collect();
+        input.building = scene.buildings.iter().any(|b| b.id == input.selection[0]);
+        input
+    });
     if let Some(out) = &args.still {
         let gpu = session
             .phase("device", || {
@@ -807,8 +852,17 @@ fn main() {
                 std::process::exit(1);
             });
         let t = Instant::now();
-        let rgba =
-            draw(&session, &gpu, &mut world, None, &camera, args.size, 0.0).unwrap_or_default();
+        let rgba = draw(
+            &session,
+            &gpu,
+            &mut world,
+            None,
+            &camera,
+            args.size,
+            0.0,
+            select.as_ref(),
+        )
+        .unwrap_or_default();
         session.span("frame", t);
         session.mark("first pixels");
         std::fs::write(out, gpu::bmp(&rgba, args.size)).unwrap_or_else(|e| {
@@ -889,6 +943,7 @@ fn headless(
             camera,
             args.size,
             last_ms,
+            None,
         );
         session.phase("wait", || gpu.wait());
         if i == 0 {
