@@ -1296,6 +1296,14 @@ pub struct Tuning {
     pub korean_build_under_fire: i32,
     /// Percent off the Korean repair period.
     pub korean_repair: i32,
+    /// `Setup::build_units@005aafc0`'s nation arms at the start (item
+    /// 4186, `docs/START.md` §2 step 7): the Spaniards' extra scouts, the
+    /// Greek scholars sent into the university (0 as shipped: the arm is
+    /// inert), and the Americans' farms (`n − 3 + farms` on a Small Town,
+    /// only past 3; 3 as shipped).
+    pub spanish_extra_scout: i32,
+    pub greek_start_scholars: i32,
+    pub americans_starting_farms: i32,
     /// Percent more hit points on every Mayan building.
     pub maya_building_hp: i32,
     /// Percent off a Mayan building's timber —
@@ -1894,6 +1902,9 @@ impl Tuning {
         korean_citizens: [1, 3, 5, 5, 5, 5, 5, 5, 5],
         korean_build_under_fire: 1,
         korean_repair: 50,
+        spanish_extra_scout: 1,
+        greek_start_scholars: 0,
+        americans_starting_farms: 3,
         maya_building_hp: 25,
         maya_building_timber: 25,
         roman_fort_hp: 0,
@@ -2869,6 +2880,12 @@ impl Tuning {
                 Slot::Value(T.korean_build_under_fire),
             ),
             ("KOREAN_REPAIR", Slot::Value(T.korean_repair)),
+            ("SPANISH_EXTRA_SCOUT", Slot::Value(T.spanish_extra_scout)),
+            ("GREEK_START_SCHOLARS", Slot::Value(T.greek_start_scholars)),
+            (
+                "AMERICANS_STARTING_FARMS",
+                Slot::Value(T.americans_starting_farms),
+            ),
             ("MAYA_BUILDING_HP", Slot::Value(T.maya_building_hp)),
             ("MAYA_BUILDING_TIMBER", Slot::Value(T.maya_building_timber)),
             ("ROMAN_FORT_HP", Slot::Value(T.roman_fort_hp)),

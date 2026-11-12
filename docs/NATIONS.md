@@ -175,7 +175,7 @@ left out; a constant with no reader in the export is dead there too.
 | `GREEK_RESEARCH_COST` | 10 | TypeData::get_cost | modelled at queue.rs | `greek_research_cost` |
 | `GREEK_KNOWLEDGE_EARLY` | 1 | LeaderData::has_preq | modelled at tech.rs | `greek_knowledge_early` |
 | `GREEK_UNIVERSITY_EARLY` | 2 | LeaderData::has_preq, Setup::build_civ_specific | modelled at tech.rs | `greek_university_early` |
-| `GREEK_START_SCHOLARS` | 0 | Setup::build_units | not carried | `greek_start_scholars` |
+| `GREEK_START_SCHOLARS` | 0 | Setup::build_units | carried, unread | `greek_start_scholars` |
 | `GREEK_AGE_KNOWLEDGE` | 0 | TypeData::get_cost | not carried | `greek_age_knowledge` |
 | `GREEK_CLASSICAL` | 0 | TypeData::get_cost | not carried | `greek_classical` |
 | `GREEK_LIBRARY_COST` | 66 | TypeData::get_cost | modelled at city.rs | `greek_library_cost` |
@@ -220,7 +220,7 @@ left out; a constant with no reader in the export is dead there too.
 | `TURK_PACK` | 100 | SpellTypeData::get_job_time | not carried | `turk_pack` |
 | `TURK_MILITARY_CHEAP` | 33 | TypeData::get_cost | modelled at queue.rs | `turk_military_cheap` |
 | `SPANISH_LOS` | 0 | Unit::update_los | not carried | `spanish_los` |
-| `SPANISH_EXTRA_SCOUT` | 1 | Setup::build_units | not carried | `spanish_extra_scout` |
+| `SPANISH_EXTRA_SCOUT` | 1 | Setup::build_units | carried, unread | `spanish_extra_scout` |
 | `SPANISH_FREE_TRIREME` | 1 | Build::activate | modelled at nations.rs | `spanish_free_trireme` |
 | `SPANISH_RUINS_BASE` | 30 | Unit::explore_goody | modelled at goody.rs | `spanish_ruins_base` |
 | `SPANISH_RUINS` | 26 | Unit::explore_goody | modelled at goody.rs | `spanish_ruins` |
@@ -346,7 +346,7 @@ left out; a constant with no reader in the export is dead there too.
 | `AMERICANS_MARINE_SPEED_BONUS` | 2 | Unit::update_speed | modelled at rares.rs | `americans_marine_speed_bonus` |
 | `AMERICANS_MARINE_HP_BONUS` | 70 | Unit::update_hits | modelled at cast.rs | `americans_marine_hp_bonus` |
 | `AMERICANS_MARINE_ENTRENCH` | 5 | Unit::check_idle | carried, unread | `americans_marine_entrench` |
-| `AMERICANS_STARTING_FARMS` | 3 | Setup::build_units, Setup::small_city_buildings | not carried | `americans_starting_farms` |
+| `AMERICANS_STARTING_FARMS` | 3 | Setup::build_units, Setup::small_city_buildings | carried, unread | `americans_starting_farms` |
 | `AMERICANS_FREE_SCIENCE` | 0 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `americans_free_science` |
 | `AMERICANS_SCIENCE_DISCOUNT` | 0 | TypeData::get_cost | modelled at queue.rs | `americans_science_discount` |
 | `AMERICANS_UPGRADE_DISCOUNT` | 25 | TypeData::get_cost | modelled at cost.rs | `americans_upgrade_discount` |

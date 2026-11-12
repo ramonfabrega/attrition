@@ -163,11 +163,20 @@ it (**not built**).
    given its `GATHER`. The draws, against run100: the computer's scout 2
    tries, the human's 3, then `Guy::init_real` 7 an empire — every word
    the trace's, through seat 0's last unit (1148's `0x1675cd7d`).
+   **The nation arms built** (item 4186; the constants `rules.xml`
+   ships, now in `Tuning` and its drift check): past a Nomad start the
+   Spaniards' `SPANISH_EXTRA_SCOUT` (1) more scouts, and one more under
+   `reveal_map > 1`, and the Dutch two `MERCHANTDUTCH` (`TypeIndex` 62),
+   each through `place_unit` from the city's cell after the first scout;
+   the Koreans' `KOREAN_CITIZENS[0]` (1) more citizens; the Americans'
+   farms, `AMERICANS_STARTING_FARMS` (3) of them in
+   `small_city_buildings` whatever bonus 0x13 says, and `n − 3 + farms`
+   citizens on a Small Town only past 3 (inert as shipped). The Greek
+   scholars' arm is inert while `GREEK_START_SCHOLARS` is 0, as shipped;
+   its `go_inside` is refused by name past 0.
    **Not built**: `place_unit`'s Nomad ring and its `Build::train` after
-   sixty refusals (each refused by name); the Spaniards' extra scouts,
-   the Dutch merchants, the Greek scholars and the Koreans' citizens
-   (constants not loaded, parked 4063b); the Large Town list; the
-   Americans' farms and the Iroquois' Senate (parked 4047b). **The
+   sixty refusals (each refused by name); the Large Town list; the
+   Iroquois' Senate (parked 4047b). **The
    pasture built** (item 4034): a starting farm `Farms::add`'s coin makes
    type 1 is stocked inside its `Build::activate` — five owner-9 animals,
    four draws each — because the builder walks the setup stream
@@ -315,6 +324,14 @@ are the fifteen styles with no composed chain (East Indies 53, Great
 Sahara 47), parting at their first cell; 8 are the Great Lakes lobbies
 with a Spanish (3), American (2), Dutch, Korean or Greek seat; one is
 4033a's scratch capture, whose dump prints neither cells nor `diplos`.
+**114 of 161** at item 4186: the chain composed for East Indies (42 of
+its 53 lobbies) and Great Sahara (37 of 47) by the same walk
+(`rondata::mapgen::lakes::composed_map`). Of the 47 left, 29 are the
+nation arms at a `CELL flags` (Great Lakes 8, East Indies 11, Great
+Sahara 10: a Spanish, American, Dutch, Korean or Greek seat, or a lobby
+with one among several), 17 the fourteen styles still without a chain at
+their first cell, and one 4033a's. **143 of 161** the same item: the
+nation arms (§2 step 7) release all 29.
 
 ## 6. Confidence, and what is not established
 
@@ -349,13 +366,28 @@ with a Spanish (3), American (2), Dutch, Korean or Greek seat; one is
   of seventeen nations; the starting pasture on 16 (its `FARMS`
   `farm_type` and the trace's sync word; the five animals' species and
   places are in no dump, 4034b).
+- **Diff-backed on 79 more** (item 4186): East Indies and Great Sahara
+  composed from `setup.cpp` 716 on one stream, each lobby's every cell,
+  building, unit and the setup trace's sync word. Great Sahara's
+  `init_map_data` draws on its one `TILECHANCE` (`GS_Desert` 100): the
+  gate is the chances' sum, `T − 1 < 1`, not the entry count; with the
+  count's gate restored, lobby 3 (run1000) parts at `CELL 35 0 flags`,
+  ours 512 theirs 0, 12,045 of 18,136 agreeing.
+- **Diff-backed on 29 more** (item 4186): the Spanish, Dutch, Korean and
+  American arms on Great Lakes, East Indies and Great Sahara, every
+  building and unit and the sync word; each arm's mutation parts its
+  lobbies (the item's journal). The Greek lobbies (6) are backed only in
+  that the arm is inert at 0 scholars; the `reveal_map > 1` scout is read
+  only — every Spanish lobby on disk is `REVEAL_MAP` 1.
 - **Not established**: the team assignment and the handicaps; a
-  composed chain for any style but Great Lakes; the default tileset
+  composed chain for any style but Great Lakes, East Indies and Great
+  Sahara; the default tileset
   draw's unavailable-name arm (a second
   draw, parked 3819b); a team game's consecutive teammates; the Large
   Town list; `build_units` on a Nomad or City-only start (`place_unit`'s
-  rings 8 and 24, its `Build::train` arm), with a Spaniard, Dutch, Greek,
-  Korean or American seat, or with `starting_resources` 8; a
+  rings 8 and 24, its `Build::train` arm), or with `starting_resources`
+  8; the Spaniards' `reveal_map > 1` scout, the Greek scholars past 0 and
+  the Americans' citizens past 3 farms (read only, item 4186); a
   `place_unit` cell refused by the object test alone (the crate threads
   no building, so a building's own cell stands in for its chain);
   a herd of horse, bear, bison or peacock, a whale (one
@@ -365,7 +397,8 @@ with a Spanish (3), American (2), Dutch, Korean or Greek seat; one is
   placer prose puts the draw on the wrong arm (parked 4047a), and §9.3's
   "steps off the footprint" is not what the no-host arm does (parked
   4063a); the port is right in both.
-- **Coverage**: every lobby compared, 161 of 161 (item 4034); 35 whole.
+- **Coverage**: every lobby compared, 161 of 161 (item 4034); 35 whole,
+  114 and then 143 at item 4186.
   Two of the 35 have no setup trace on disk (run1515b's and run1541b's
   lobbies), so their sync word is not backed; four have neither a
   bracket nor a `PERSONALITY` block for the computer leader (run3's,

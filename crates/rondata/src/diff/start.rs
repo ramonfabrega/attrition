@@ -22,8 +22,12 @@ use super::*;
 /// (`every_lobby_s_start_built_from_its_choices`): 14 Great Lakes lobbies
 /// already whole and never compared, 16 a starting pasture's twenty draws
 /// released (`CitiesState::walks_setup`), and 4 whose only parting was a
-/// personality no dump prints.
-pub const START_BUILT: usize = 35;
+/// personality no dump prints. 114 at item 4186 (+79): the chain composed
+/// for East Indies (42 of its 53 lobbies) and Great Sahara (37 of 47), the
+/// same calls Great Lakes' runs ([`crate::mapgen::lakes::composed_map`]);
+/// then 143 (+29): `build_units`' and `small_city_buildings`' nation arms,
+/// a Spanish, Dutch, Korean, Greek or American seat on the three maps.
+pub const START_BUILT: usize = 143;
 
 /// **The lobby's word on the built start** (`docs/START.md` §7.4, item
 /// 4057): `(map, word, length)` — the harness lobby's long capture (run53,
@@ -326,9 +330,9 @@ pub struct FromLobby {
 /// `KOREAN_TEMPLE_UPGRADES > 1`, a Granary for 7 when
 /// `EGYPTIAN_GRANARY_EARLY > 1`, a Lumber Mill for 10 when
 /// `FRENCH_LUMBERMILL_EARLY > 1`. Refused, with the reason: a Large Town
-/// (`starting_town` 3, `large_city_buildings`), the Americans' farm count
-/// and the Iroquois' Senate (neither constant is loaded), and a refused
-/// placement.
+/// (`starting_town` 3, `large_city_buildings`), the Iroquois' Senate (its
+/// constant is not loaded), and a refused placement. The Americans' farm
+/// count is `AMERICANS_STARTING_FARMS` (item 4186).
 pub fn pre_placed_buildings(
     sim: &mut Sim,
     loaded: &Loaded,
@@ -366,10 +370,15 @@ pub fn pre_placed_buildings(
     match starting_town {
         2 => {
             produce(sim, 0x1a2)?;
-            if bonus(sim, 0x14) {
-                return Err("the Americans' starting farms are not loaded".into());
-            }
-            if !bonus(sim, 0x13) {
+            // `small_city_buildings@005aae10`: the Americans take
+            // `AMERICANS_STARTING_FARMS` farms (3 as shipped) whatever
+            // bonus 0x13 says; the constant at 0 falls to the common arm.
+            let farms = sim.tables.tuning.americans_starting_farms;
+            if bonus(sim, 0x14) && farms != 0 {
+                for _ in 0..farms {
+                    produce(sim, 0x1a1)?;
+                }
+            } else if !bonus(sim, 0x13) {
                 for _ in 0..3 {
                     produce(sim, 0x1a1)?;
                 }
@@ -425,6 +434,8 @@ pub fn leader_unit_type(sim: &Sim, who: usize, type_index: i32) -> Option<usize>
 /// `SCOUT` and the citizen's `TypeIndex` (`types.list[0x45]`, `[0x32]`).
 const SCOUT: i32 = 0x45;
 const CITIZEN: i32 = 0x32;
+/// `MERCHANTDUTCH`'s `TypeIndex` (62, the export's `enums/TypeIndex.txt`).
+const MERCHANT_DUTCH: i32 = 0x3e;
 
 /// **`Setup::build_units@005aafc0(who, slot, city, starting_town)`**
 /// (`docs/START.md` §2 step 7, `docs/ORDERS.md` §9.3) for seat `who`
@@ -436,10 +447,14 @@ const CITIZEN: i32 = 0x32;
 /// it has room, else `place_unit` idle — born on the building's point by
 /// `Objects::init_unit`, stepped off it by `Unit::come_out(u, 0)`
 /// ([`sim::Sim::come_out_own_point`]) and given its `GATHER` unless
-/// `starting_resources == 8`. Refused, with the reason: a power whose
-/// constant this crate does not load (the Spaniards' extra scout, the
-/// Dutch merchants, the Greek scholars, the Koreans' citizens, the
-/// Americans' farms), and `place_unit`'s two unbuilt arms (a Nomad start,
+/// `starting_resources == 8`. The nation arms (item 4186): the
+/// Americans' farms add `farms − 3` citizens on a Small Town past 3; past
+/// a Nomad start the Spaniards place `SPANISH_EXTRA_SCOUT` more scouts and
+/// one more under `reveal_map > 1`, and the Dutch two `MERCHANTDUTCH`, each
+/// through `place_unit` beside the first scout; the Koreans add
+/// `KOREAN_CITIZENS[0]` citizens. Refused, with the reason: the Greek
+/// scholars' `go_inside` (inert while `GREEK_START_SCHOLARS` is 0, as
+/// shipped), and `place_unit`'s two unbuilt arms (a Nomad start,
 /// `Build::train` after sixty refusals).
 pub fn build_units(
     sim: &mut Sim,
@@ -465,8 +480,9 @@ pub fn build_units(
         8 => n += 12,
         _ => {}
     }
-    if bonus(sim, 0x14) && starting_town == 2 {
-        return Err("the Americans' starting farms are not loaded".into());
+    let farms = i64::from(sim.tables.tuning.americans_starting_farms);
+    if bonus(sim, 0x14) && farms > 3 && starting_town == 2 {
+        n += farms - 3;
     }
     if bonus(sim, 0x13) {
         match starting_town {
@@ -485,17 +501,25 @@ pub fn build_units(
         let scout = leader_unit_type(sim, who, SCOUT).ok_or("no SCOUT unit type")?;
         place(sim, scout)?;
         if bonus(sim, 9) {
-            return Err("the Spaniards' extra scout is not loaded".into());
+            for _ in 0..sim.tables.tuning.spanish_extra_scout {
+                place(sim, scout)?;
+            }
+            if sim.ai.lobby.reveal_map > 1 {
+                place(sim, scout)?;
+            }
         }
         if bonus(sim, 0x16) {
-            return Err("the Dutch merchants are not built".into());
+            let merchant =
+                leader_unit_type(sim, who, MERCHANT_DUTCH).ok_or("no MERCHANTDUTCH unit type")?;
+            place(sim, merchant)?;
+            place(sim, merchant)?;
         }
     }
-    if bonus(sim, 5) {
-        return Err("the Greek scholars are not loaded".into());
+    if bonus(sim, 5) && sim.tables.tuning.greek_start_scholars != 0 {
+        return Err("the Greek scholars' go_inside is not built".into());
     }
     if bonus(sim, 0x10) {
-        return Err("the Koreans' citizens are not loaded".into());
+        n += i64::from(sim.tables.tuning.korean_citizens[0]);
     }
     let citizen = leader_unit_type(sim, who, CITIZEN).ok_or("no citizen unit type")?;
     let owner = who as sim::Player;
@@ -821,11 +845,13 @@ pub fn world_extent(root: &std::path::Path, map_size: i32, map_style: i32) -> Op
 ///    `build_game`'s re-seed discards it, so nothing at frame 0 observes it;
 /// 3. `Setup::build_game`'s re-seed from `info.seed` and `world->seed =
 ///    rand % 0xffff + 1`;
-/// 4. **the map** — `Map::make`, `Terrain::init` — which no path in this
-///    crate composes into a `World` yet: the walk stops here, and every
-///    step after it (the start permutation, `Leader::init`'s personality,
-///    each `build_empire`, `Herd::create_units`, `compute_all_territory`)
-///    is listed as not built.
+/// 4. **the map** — `Map::make`, `Terrain::init` — composed for Great
+///    Lakes, East Indies and Great Sahara
+///    ([`crate::mapgen::lakes::composed_map`], items 4047, 4186); on any
+///    other style the walk stops here, and every step after it (the start
+///    permutation, `Leader::init`'s personality, each `build_empire`,
+///    `Herd::create_units`, `compute_all_territory`) is listed as not
+///    built.
 pub fn from_lobby(
     loaded: &Loaded,
     game_info: &[(&str, &str)],
@@ -877,13 +903,13 @@ pub fn from_lobby(
     let mut checkpoints = Vec::new();
     let map = (|| {
         let root = loaded.install_root.as_deref()?;
-        if int("MAP_STYLE") != Some(14) {
+        let Some(which) = int("MAP_STYLE").and_then(crate::mapgen::lakes::Style::of) else {
             notes.push(format!(
-                "the map: style {:?} has no composed chain (Great Lakes, 14, has)",
+                "the map: style {:?} has no composed chain (Great Lakes, 14, and East Indies, 18, have)",
                 int("MAP_STYLE")
             ));
             return None;
-        }
+        };
         let range = loaded
             .unit_of_type_index(349)
             .map(|i| loaded.unit_types[i].combat.max_range)?;
@@ -895,8 +921,10 @@ pub fn from_lobby(
             map_size: int("MAP_SIZE").unwrap_or(-1),
             seed: game_seed,
         };
-        let sea = crate::mapgen::sea_map(root, "GREATLAKES.xml")?;
-        match crate::mapgen::lakes::great_lakes_map(root, &lobby, range, |c| checkpoints.push(*c)) {
+        let sea = crate::mapgen::sea_map(root, which.file())?;
+        match crate::mapgen::lakes::composed_map(root, which, &lobby, range, |c| {
+            checkpoints.push(*c)
+        }) {
             Ok(m) => Some((m, sea)),
             Err(e) => {
                 notes.push(format!("the map: the chain refused, {e:?}"));
@@ -1038,7 +1066,8 @@ pub fn from_lobby(
     let mut empire_words = Vec::new();
     if map_built {
         // 5. The start permutation, off the map's stream (`setup.cpp` 884
-        // -> 955). Great Lakes randomises its starts.
+        // -> 955). Every composed style randomises its starts (only East
+        // Meets West's `make_continents` writes the flag again).
         let start_list = start_permutation(&mut sim.rng, true);
         words.push(("setup.cpp", 955, sim.rng.seed));
         steps.push(("the start permutation", true));
@@ -1714,21 +1743,25 @@ mod tests {
     }
 
     /// **The census**: every lobby's first parting by record and field,
-    /// counted (item 4034; the value diff per lobby is its journal's). The
-    /// map is the 117 lobbies of the fifteen styles with no composed chain
-    /// (East Indies 53, Great Sahara 47, fourteen others 17), each at its
-    /// first cell — `CELL land`, `CELL region`, and two of the ten `CELL
-    /// flags`; the other eight are the Great Lakes lobbies with a Spanish,
-    /// American, Dutch, Korean or Greek seat (`docs/START.md` §2 step 7,
-    /// not built). `LEADER at_war` is item 4033a's scratch lobby, a Great
-    /// Sahara dump that prints neither cells nor `diplos`, so the
-    /// installer's side there is its own default, not the original's.
+    /// counted (items 4034, 4186; the value diff per lobby is each item's
+    /// journal's). The map is the 17 lobbies of the fourteen styles with no
+    /// composed chain, each at its first cell — the seven `CELL land`, the
+    /// eight `CELL region` and two of the 31 `CELL flags` (item 4186
+    /// composed East Indies and Great Sahara: 60 → 7 and 55 → 8). The
+    /// nation arms (`docs/START.md` §2 step 7, the same item) took the
+    /// other 29 `CELL flags` (31 → 2): a Spanish, American, Dutch, Korean
+    /// or Greek seat on Great Lakes (8), East Indies (11, one the fuzz
+    /// lobby) and Great Sahara (10, one a classical melee). `LEADER
+    /// at_war` is item 4033a's
+    /// scratch lobby, a Great Sahara dump that prints neither cells nor
+    /// `diplos`, so the installer's side there is its own default, not the
+    /// original's.
     const START_CENSUS: &[(&str, usize)] = &[
-        ("CELL flags", 10),
-        ("CELL land", 60),
-        ("CELL region", 55),
+        ("CELL flags", 2),
+        ("CELL land", 7),
+        ("CELL region", 8),
         ("LEADER at_war", 1),
-        ("built", 35),
+        ("built", 143),
     ];
 
     /// A computer leader's `PERSONALITY` block under the start dump's

@@ -1749,14 +1749,14 @@ of the item that found it, under `## Parked`, as `- **<item><letter>. title**`
 - (4061a) The client draws neither the foundation nor the scaffold
 - (4061b) The scaffold's element, its age bracket and its angle are not checked
 - (4047a) `docs/ORDERS.md` §9.2's placer prose has the draw on the wrong arm.
-- (4047b) `AMERICANS_STARTING_FARMS` and `IROQUOIS_SENATE` are not loaded
+- (4047b) ~~`AMERICANS_STARTING_FARMS`~~ and `IROQUOIS_SENATE` are not loaded: the farms loaded and built by item 4186 (`docs/START.md` §2 step 7)
 - (4038a) Textures and team colours in the client
 - (4038c) A figure the photograph does not show
 - (4065a) The tanks' scale is the original's: the booking's mechanism is killed
 - (4065b) Candidate C cannot see an olive tank on grass
 - (4065c) The tanks' facing and place
 - (4063a) `docs/ORDERS.md` §9.3's citizen prose says `Unit::come_out(u, 0)` "steps off the footprint to the nearest free spot beside it".
-- (4063b) `SPANISH_EXTRA_SCOUT`, `GREEK_START_SCHOLARS` and `KOREAN_CITIZENS` are not loaded
+- (4063b) ~~`SPANISH_EXTRA_SCOUT`, `GREEK_START_SCHOLARS` and `KOREAN_CITIZENS` are not loaded~~ Closed by item 4186 (`docs/START.md` §2 step 7): 29 lobbies built
 - (4067a) Every figure is drawn a quarter turn off the original's facing
 - (4069a) Our `fill` of a `rotate_z` quaternion turns opposite to `get_position`'s `R(d)`
 - (4071a) Candidate C reads a new frame only by colour, or by a new trace
