@@ -6386,6 +6386,52 @@ mod tests {
                 tot[ti].0, tot[ti].1, tot[ti].2
             );
         }
+        // --- Item 4168: the frame's mean, swept. ---
+        // The packets hold every tone-map input but the mean (§3.14). The
+        // kill (c), written before the count: no mean in 1.6..4 raises the
+        // row past its 18 or brings tank 1/27 to passing, so clipping does
+        // not part it.
+        let key_1_27 = scene
+            .who
+            .iter()
+            .position(|&(who, o, _, _)| (who, o) == (1, 27))
+            .map(|i| i as u32 + 1)
+            .expect("tank 1/27 is in the scene");
+        for mean in [1.6_f32, 2.0, 3.0, 4.0] {
+            let mut at: std::collections::BTreeMap<u32, u32> = Default::default();
+            for q in &px {
+                if every(q) {
+                    let tb = team_blend(q.t, q.alpha, team_unit(q.owner));
+                    let c = render::silhouette::lit_pipeline_at(tb, q.nl, mean);
+                    *at.entry(q.key).or_default() += u32::from(agrees(c, q.ph));
+                }
+            }
+            let mut row = 0usize;
+            let mut tank = (0u32, false);
+            for (f, c, _) in &base {
+                let pass = match per_key.get(&f.key) {
+                    Some(&(_, ab, _)) => {
+                        let q = render::silhouette::Colours {
+                            agree: c.agree - ab + at.get(&f.key).copied().unwrap_or(0),
+                            ..*c
+                        };
+                        if f.key == key_1_27 {
+                            tank = (q.agree, q.passes(&HUE));
+                        }
+                        q.passes(&HUE)
+                    }
+                    None => c.passes(&HUE),
+                };
+                row += usize::from(pass);
+            }
+            println!(
+                "mean {mean}: colour row {row} under the candidate; tank 1/27 agreeing {}, passing {}",
+                tank.0, tank.1
+            );
+            assert!(row <= 18, "the mean {mean} raises the row to {row}");
+            assert!(!tank.1, "the mean {mean} brings 1/27 to passing");
+        }
+
         let mut passing = (0usize, 0usize);
         let mut crossed = Vec::new();
         for (f, c, w) in &base {

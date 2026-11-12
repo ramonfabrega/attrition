@@ -60,7 +60,10 @@ run647's start record. Of the 98:
 
 Item 4162 made `theirs` read `att`, `pop_issues`, `misery`, `city_name`,
 `handicap`, `multi_diff` and `anti_att` (the record's one float, as `%f`
-millionths), and `rows` compare them.
+millionths), and `rows` compare them. Item 4167 (step II) made `theirs`
+read `fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`,
+`scholar_militia` and the six `*_queued`, and `rows` compare them (§13.5,
+§14.5).
 
 **Conventions.** A function is cited as `Name (00xxxxxx)`. An offset is a
 `LeaderData` offset. `Leader` holds `LeaderData` at offset 0 and adds 8 bytes
@@ -2799,6 +2802,18 @@ per-region short at `+0x12de + region·2` when `region < 0x40`. Reset:
 
 ### 13.3 In the crate
 
+**Since item 4167 all seven are held** (`crates/sim/src/leaders/marks.rs`,
+one `Marks` per slot in `LeadersState`). `Sim::note_activation_marks`
+runs in `Sim::activate` ahead of the dock test and the city split, for
+`captured` true and false: a wonder (`wonder_line`'s seventeen, the
+range test) steps `wonders_built` and raises `wonders_held` to the count
+of the leader's live active wonders; `is_fort` takes a fort record into
+`Building::fort_slot` and steps `forts_built`; a well or platform takes a
+record into `oil_slot`. `Sim::give_back_marks` in `close_building` gives
+them back under §13.2's predicates. `senates_built_inc` is wired.
+`supply_mark` is `SupplyList::len()`. `american_free_wonder` reads the
+counter beside the mark. The bullets below are the plan as it stood.
+
 - **Marks.** `fort_mark` and `oil_well_mark` have no registry.
   `units::slots::SlotList` (`crates/sim/src/units/slots.rs:24`) is the exact
   shape: one per leader per mark, taken in `Sim::activate` beside the
@@ -2855,7 +2870,16 @@ overwrites all seven on a save load, outside a plain game. Whether the
 ### 13.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/marks-built-*.md`); no diff backs it yet.
+(`docs/audit/2026-11-11-item-4152/marks-built-*.md`). ~~no diff backs it
+yet.~~ **Coverage since item 4167:** the record diff backs `fort_mark`,
+`oil_well_mark` and `senates_built` on every dump that prints the record
+(no parting), and `supply_mark` everywhere but one window, where it parts
+beside its array: run1075's 2805, who 1, ours 4 theirs 3, beside
+`num_units[13]` 4/3 (parked 4167b). `wonders_built`, `wonders_held` and
+`forts_built` are unprinted: the leaders line on run 1562's frame 91 is
+their only oracle, and it reads 0 = 0 on both leaders — a weak one, no
+wonder or fort stands yet. `the_marks_follow_activation_and_close`
+drives the take, give-back and counter rules end to end.
 
 Verdicts: 63 confirmed, 7 corrected, 5 open. The corrections that changed a
 rule:
@@ -2885,9 +2909,10 @@ hits outside a leader are named in the verdicts.
 - **A capture route to a Red Fort**, or to any fort, for `wonders_built` and
   `forts_built`. None was found; a sweep of every caller of the `activate`
   slot (`0x1a8`), its predicate against `is_fort`, would settle it.
-- **`is_wonder_building`'s equivalence to `0x20e..=0x21e`.** The crate asks
+- ~~**`is_wonder_building`'s equivalence to `0x20e..=0x21e`.** The crate asks
   the tech tree's `wonder` kind; a test that the tree files exactly those 17
-  types settles it.
+  types settles it.~~ Settled by item 4167: the tree files exactly the 17
+  `wonder_line` holds (`the_marks_follow_activation_and_close`).
 - **Whether a plain game retypes a unit across `unit_flags2 & 0x40`**, which
   is what reaches `supply_mark`'s `set_type` pair. A capture with a supply
   unit retyped, or a reading of every `set_type` caller, settles it.
@@ -3037,6 +3062,15 @@ feeds `TypeData::get_cost`. `log_data` logs all six; it is
 
 ### 14.3 In the crate
 
+**Since item 4167** the six bins are kept counters (`Marks::queued`,
+`crates/sim/src/leaders/marks.rs`), stepped by `Sim::step_armed_queued`
+from `track_tree_queued` (+1) and `untrack_queued` (−1), each on its own
+zero test, by the trainer's `TypeIndex` read as `leader_trained` reads it
+for the `*_units` and the domain. The two `-n` SEAMs below are still
+missing. `scholar_militia` is emitted as the derived count
+(`Sim::scholar_militia`, factored out of `worker_support`); the stale +1
+is not carried.
+
 - **`scholar_militia` is derived, not kept.** `Sim::worker_support`
   (`crates/sim/src/economy/pricing.rs:895`) counts live units with
   `type_index` in `0x42..=0x44`, `rare` in `{0x34, 0x35}`, `captain`,
@@ -3090,7 +3124,16 @@ unreached in a plain game.
 ### 14.5 How established, and how confident
 
 Two readings and an adjudication
-(`docs/audit/2026-11-11-item-4152/queued-*.md`); no diff backs it yet.
+(`docs/audit/2026-11-11-item-4152/queued-*.md`). ~~no diff backs it
+yet.~~ **Coverage since item 4167:** the record diff backs `dock_queued`
+and `scholar_militia` (0 on every scored dump, so a reading's claim the
+dump cannot falsify) with no parting. The other five bins part only beside
+`num_queued`'s own partings: `air_queued` and `factory_queued` on
+run1075's 2583 (who 1, ours 10 / 1, theirs 13 / 8, beside `num_queued[261]`
+0/3 and `[223]` 0/7), and `barracks_queued`, `combat_queued` and
+`stable_queued` on five closing frames whose queues the original has
+emptied (first: run1262's 6107, who 1, ours 8 / 8 theirs 0; run1250's
+8778 adds `stable_queued` 5/0). The bins' rule is not what parts.
 
 Verdicts: `scholar_militia` 13 confirmed, 1 corrected, 1 open; each queued
 leaf 16 confirmed, 1 corrected, 1 open. The writer nets over the listing

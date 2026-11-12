@@ -1700,10 +1700,13 @@ for). `diff::checksum_lines::the_leaders_line_is_the_original_s_range_by_range`
 holds it range by range and leaf by leaf, with `LEADERS_HELD_OUT` naming 140
 leaves at item 4121, 100 at item 4124 (the census of the 140 is item
 4124's journal), 99 at item 4153, which carried `explored`, ~~**98**~~ 98
-at item 4154, which carried `att`, and **92** since item 4162, which
+at item 4154, which carried `att`, ~~**92**~~ 92 at item 4162, which
 carried `cannon_time`, `handicap`, `multi_diff`, `misery`,
 `city_name` and `anti_att` (`docs/LEADERS.md` §1, §6, §12, §16; the census
-of which held-out leaves the record prints is `docs/LEADERS.md`'s head).
+of which held-out leaves the record prints is `docs/LEADERS.md`'s head),
+and **84** since item 4167, which carried `fort_mark`, `oil_well_mark`,
+`wonders_built`, `wonders_held`, `senates_built`, `forts_built`,
+`scholar_militia` and `dock_queued` (`docs/LEADERS.md` §13, §14).
 `CHECKSUM_STATE` does not count it (§5).
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7

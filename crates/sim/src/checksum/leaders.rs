@@ -521,7 +521,7 @@ impl Sim {
     /// (0x32), buildings from `BASE_BUILDTYPES` (0x19e), techs from
     /// `BASE_TECHTYPES` (0x220), each in tree order (`docs/TECH.md`, "The
     /// type space").
-    pub(super) fn tree_type_index(&self, t: usize) -> i64 {
+    pub(crate) fn tree_type_index(&self, t: usize) -> i64 {
         let types = &self.tables.tech_tree.types;
         let g = types
             .iter()
@@ -1096,6 +1096,23 @@ impl Sim {
             // The single's bits (`docs/LEADERS.md` §6.2; entry 120 §3, class
             // 1 at 256.0, class 2 under a source).
             "anti_att" => one(i64::from(self.leader_anti_att(who))),
+            // Item 4167 (`crate::leaders::marks`): two of the three marks,
+            // the four build counters (`docs/LEADERS.md` §13),
+            // `scholar_militia` and the dock's queued bin (§14).
+            "fort_mark" => one(i64::from(self.leader_fort_mark(who))),
+            "oil_well_mark" => one(i64::from(self.leader_oil_well_mark(who))),
+            "wonders_built" => one(i64::from(self.leader_wonders_built(who))),
+            "wonders_held" => one(i64::from(self.leader_wonders_held(who))),
+            "senates_built" => one(i64::from(self.leader_senates_built(who))),
+            "forts_built" => one(i64::from(self.leader_forts_built(who))),
+            "scholar_militia" => one(i64::from(self.leader_scholar_militia(who))),
+            // `supply_mark` and the other five bins are held
+            // (`Sim::leader_supply_mark`, `leader_armed_queued`) and not
+            // emitted: the record diff parts each beside its array's own
+            // parting (parked 4167b).
+            "dock_queued" => self
+                .leader_armed_queued(who, name)
+                .map(|v| vec![i64::from(v)]),
             "tech_cat_frame" => Some(a.tech_cat_frame.to_vec()),
             "site_mark" => one(i64::from(a.site_mark)),
             "pop_cap" => one(i64::from(m.cap)),

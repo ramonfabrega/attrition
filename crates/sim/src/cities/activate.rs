@@ -390,8 +390,10 @@ impl ActivateArmsView for SimArms<'_> {
     fn train(&mut self, ty: i32) {
         self.sim.build_train(self.b, ty as usize);
     }
-    /// SEAM: no reader here carries `senates_built`.
-    fn senates_built_inc(&mut self) {}
+    /// `senates_built += 1` (`docs/LEADERS.md` §13.2, item 4167).
+    fn senates_built_inc(&mut self) {
+        self.sim.note_senate_built(self.who);
+    }
     fn city_race_is_owner(&mut self) -> bool {
         self.city()
             .is_some_and(|c| self.sim.cities.cities[c].race == Some(self.who))

@@ -2040,6 +2040,8 @@ impl Sim {
         if let Some(g) = self.tables.unit_types[ty].group {
             self.roster.muster[who as usize].queued_by_group[g] += delta;
         }
+        // `track_queued`'s six bins (`crate::leaders::marks`, item 4167).
+        self.step_armed_queued(who, ty, delta);
     }
 
     /// A queue entry's own count taken down, as `Build::clean_queue
@@ -2105,6 +2107,8 @@ impl Sim {
         {
             self.roster.muster[w].queued_by_group[g] -= 1;
         }
+        // The six bins, each on its own zero test (item 4167).
+        self.step_armed_queued(who, ty, -1);
     }
 
     /// Builds one unit of a type, if the player can pay for it and has room.
