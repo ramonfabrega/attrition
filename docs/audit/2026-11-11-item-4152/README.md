@@ -37,7 +37,7 @@ reader gets the leaf column alone.**
 | 15 | `odd-counters` | `missiles_used` (+0x7c0), `repair_stamp` (+0x208), `units_bribed` (+0x8f4), `nukes_launched` (+0xa38), all int | done, §15 |
 | 16 | `lobby-words` | `cannon_time` (+0x48 ulong), `handicap` (+0x4c int), `multi_diff` (+0x50 int) | done, §16 |
 | 17 | `spells` | `tech.ptr`: `tech` (+0x6c0c `BitMask<806>`), the spell types' bits `0x275..0x2ab` (46 bits), absent from `tech_at_start` | out by name; a mechanic of its own |
-| 18 | `score` | `score` (+0x18), `score_explored` (+0x1c), `score_territory` (+0x20), `score_units` (+0x24), `score_units_2` (+0x28), `score_buildings` (+0x2c), `score_economy` (+0x30), `score_pop` (+0x34), `score_unit_upgrades` (+0x38), `score_research` (+0x3c), `score_wonders` (+0x40), `score_combat` (+0x44), all int | out by name; a mechanic of its own |
+| 18 | `score` | `score` (+0x18), `score_explored` (+0x1c), `score_territory` (+0x20), `score_units` (+0x24), `score_units_2` (+0x28), `score_buildings` (+0x2c), `score_economy` (+0x30), `score_pop` (+0x34), `score_unit_upgrades` (+0x38), `score_research` (+0x3c), `score_wonders` (+0x40), `score_combat` (+0x44), all int | done, §18 |
 | 19 | `last-finished` | `last_building_finished` (+0x6070 int[129]), `last_unit_finished` (+0x6274 int[352]) | out by name; a mechanic of its own |
 | 20 | `high-buildings` | `territory_high` (+0x9dc int), `reg_terr` (+0x145e ushort[64]), `high_buildings` (+0x5660 ushort[129]) | done, §20 |
 
@@ -193,4 +193,5 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | combat-rates | 4 | 86 k | 2.2 | §3, 11,939 chars | every verdict a rule; the held arm placed beside `frame_attacked` (`checksum/leaders.rs:1157`) by the writer; walls in the crate (W2) only noted |
 | queued | 4 | 78 k | 2.0 | §14, 11,998 chars | every verdict a rule; four shipped-table questions (MILITIA/SCHOLARS `is_list`, Immortal, Militia-line trainers, `where`/`domain`) listed open |
 | odd-counters | 4 | 81 k | 1.9 | §15, 11,999 chars | every verdict a rule; two unadjudicated crate notes (`hit_target` before the shield test, Bribe own-target refund) kept under Not established |
-| end-of-game | 4 | — | — | §10, 11,934 chars | every verdict a rule; `victory_type` 4–6 and three semaphore bits stay unnamed by meaning; `wonder_timer`'s `M` row and `world[0]` unread |
+| end-of-game | 4 | 90 k | 2.8 | §10, 11,934 chars | every verdict a rule; `victory_type` 4–6 and three semaphore bits stay unnamed by meaning; `wonder_timer`'s `M` row and `world[0]` unread |
+| score | 4 | 96 k | 3.0 | §18, 11,994 chars | every verdict a rule; the gaia `is_ally(K, 8)` read and whether the checksum walks `rare.flags` stay open; S13 (`walk_data` restore) off the frame path |
