@@ -1676,8 +1676,9 @@ to 4257695306 against the printed `Leaders` 2813959641.
 by leaf (`Sim::leader_image`, a `None` leaf being one the crate holds no value
 for). `diff::checksum_lines::the_leaders_line_is_the_original_s_range_by_range`
 holds it range by range and leaf by leaf, with `LEADERS_HELD_OUT` naming 140
-leaves at item 4121 and **100** since item 4124 (the census of the 140 is item
-4124's journal). `CHECKSUM_STATE` does not count it (§5).
+leaves at item 4121, 100 at item 4124 (the census of the 140 is item
+4124's journal) and **99** since item 4153, which carried `explored`.
+`CHECKSUM_STATE` does not count it (§5).
 
 **The walk, in the stream's order** (`LeaderData::walk_data@006d6750`; §7
 is corrected in place): per slot, the flag words (8). A slot with
@@ -1732,12 +1733,14 @@ and held no value for 210 on each leader. The table is item 4121's journal.
 | `reg_forts` | the active forts by region; `Fort::init`, `Fort::close` |
 | the six armed-unit counters | `num_units` summed by trainer, `Leader::track_unit_type`'s rule: `0x1ab` (and `combat_units`), `0x1ac` (and `combat_units`), `0x1ae`, `0x1b0`, else an air type |
 
-**What holds the line out** since item 4124: 100 leaves, all unheld, each on
+**What holds the line out** since item 4153: 99 leaves, all unheld, each on
 both leaders. A leaf is out until a rule of ours carries it; a constant for a
 leaf a plain game moves would hold on frame 91 and be a substitution.
 
-- **Out by name, a mechanic of its own** (20): `explored` (the fog's
-  `seen2`, 19 and 22 against the seam's 900); `tech.ptr` (the spell types
+- **Out by name, a mechanic of its own** (19): ~~`explored` (the fog's
+  `seen2`, 19 and 22 against the seam's 900)~~ — carried by item 4153,
+  `Leader::check_explore` on its own phase frames (`docs/VISION.md` §13):
+  19 and 22 on both sides; `tech.ptr` (the spell types
   `0x275..0x2ab`, 46 bits, absent from `tech_at_start`); `score` and its
   eleven parts; `last_building_finished`, `last_unit_finished`;
   `high_buildings`, `territory_high`, `reg_terr`; `anti_att` (class 3).
