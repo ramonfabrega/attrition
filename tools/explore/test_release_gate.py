@@ -1660,9 +1660,13 @@ class WholeLaneGate(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
             calls, run = self.lane_run(RELEASE_LOG)
+            lock = path/'whole-lane.lock'
             with patch('builtins.print') as printed:
-                gate.gate(path, report_dir=path/'report', run=run, lane=True, whole=True, git=UNMOVED)
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, whole=True, git=UNMOVED,
+                          whole_lock=lock)
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
+            self.assertTrue(lock.read_text().startswith(f'pid {os.getpid()} '), lock.read_text())
+            self.assertNotIn('Whole lane: waiting', said)
             self.assertEqual([gate.step_name(c) for c, _ in calls],
                              ['pins','offline','clippy','fmt','survey','guard','release'])
             self.assertIn("Lane verdict: red only on the commander's lines (2)", said)
@@ -1693,6 +1697,70 @@ class WholeLaneGate(unittest.TestCase):
                 self.assertEqual(done.returncode, 2, done.stderr)
                 self.assertIn(says, done.stderr)
                 self.assertNotIn('Gate pid', done.stdout)
+
+
+# A process that takes the whole-lane lock at a path, says `held`, and holds
+# it until its stdin closes.
+HOLDER = """import importlib.util, sys
+spec = importlib.util.spec_from_file_location('release_gate', sys.argv[1])
+gate = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(gate)
+fd = gate.whole_lane_lock(lane=True, whole=True, item=int(sys.argv[3]), path=sys.argv[2], off=False)
+print('held', fd is not None, flush=True)
+sys.stdin.read()
+"""
+
+
+class WholeLaneLock(unittest.TestCase):
+    """The tranche of 2026-11-12: two lanes ran `--lane --whole` gates beside a
+    builder's whole diff:: runs and the booking gate, the budget's slots
+    interleaved them test by test, and the host's load reached 50.9 on 16.
+    A whole lane gate holds a host-wide lock, one at a time; a booking gate
+    and a worded lane gate take none. Red first: there was no lock."""
+
+    def holder(self, lock, item):
+        p = subprocess.Popen([sys.executable, '-c', HOLDER, str(Path(gate.__file__)), str(lock), str(item)],
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+        self.addCleanup(lambda: (p.kill(), p.wait(), p.stdout.close(), p.stdin.close()))
+        return p
+
+    def readable(self, p, seconds):
+        import select
+        return bool(select.select([p.stdout], [], [], seconds)[0])
+
+    def test_a_second_whole_lane_gate_names_the_holder_and_waits_for_it(self):
+        with tempfile.TemporaryDirectory() as d:
+            lock = Path(d)/'whole-lane.lock'
+            first = self.holder(lock, 4186)
+            self.assertEqual(first.stdout.readline(), 'held True\n')
+            self.assertTrue(lock.read_text().startswith(f'pid {first.pid} item 4186 started '), lock.read_text())
+            second = self.holder(lock, 4187)
+            waiting = second.stdout.readline()
+            self.assertTrue(waiting.startswith(f'Whole lane: waiting on pid {first.pid} item 4186 started '),
+                            waiting)
+            # Blocked while the first holds it.
+            self.assertFalse(self.readable(second, 1.5), 'the second took the lock while the first held it')
+            self.assertIsNone(second.poll())
+            first.stdin.close()
+            first.wait(timeout=30)
+            waited = second.stdout.readline()
+            self.assertRegex(waited, r'^Whole lane: waited \d+ s\n$')
+            self.assertEqual(second.stdout.readline(), 'held True\n')
+            self.assertTrue(lock.read_text().startswith(f'pid {second.pid} item 4187 started '), lock.read_text())
+            second.stdin.close()
+            second.wait(timeout=30)
+            self.assertTrue(lock.exists(), 'the lock file is never unlinked')
+
+    def test_a_booking_gate_and_a_worded_lane_take_no_lock(self):
+        with tempfile.TemporaryDirectory() as d:
+            lock = Path(d)/'whole-lane.lock'
+            for kw in ({'lane': False, 'whole': False}, {'lane': True, 'whole': False}):
+                with self.subTest(**kw):
+                    self.assertIsNone(gate.whole_lane_lock(**kw, item=1, path=lock, off=False))
+                    self.assertFalse(lock.exists())
+            # The kill switch skips it too.
+            self.assertIsNone(gate.whole_lane_lock(lane=True, whole=True, item=1, path=lock, off=True))
+            self.assertFalse(lock.exists())
 
 
 if __name__ == '__main__':

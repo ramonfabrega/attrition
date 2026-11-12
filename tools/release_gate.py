@@ -64,6 +64,7 @@ lane gate is the confirmation of the word and the paperwork, not the
 search for a re-pin. Suites a landing: three to two.
 """
 import argparse
+import fcntl
 import json
 import os
 from pathlib import Path
@@ -76,7 +77,10 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 from test_runtime import child_environment, allocator_policy
-from resource_budget import CPU as HOST_CPU_SLOTS, MEMORY_MIB as HOST_MEMORY_MIB, OFF_MARKER
+from resource_budget import CPU as HOST_CPU_SLOTS, MEMORY_MIB as HOST_MEMORY_MIB, OFF_MARKER, admission_off
+
+# One whole lane gate at a time, host-wide (the tranche of 2026-11-12).
+WHOLE_LANE_LOCK = Path.home() / 'Library/Caches/attrition/whole-lane.lock'
 
 RUNNING = re.compile(r'^\s*Running (?:unittests )?\S+ \((\S+)\)$')
 DOC_TESTS = re.compile(r'^\s*Doc-tests (\S+)$')
@@ -784,7 +788,7 @@ def check_whole(*, lane, tests, whole, no_widen):
 
 def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, run=run_logged,
          lane=False, tests=None, item=None, base='worktree-replan-pdb', scope=None, isolated=None,
-         no_widen=False, whole=False, git=subprocess.run):
+         no_widen=False, whole=False, git=subprocess.run, whole_lock=None):
     # `git` runs the gate's own reads of the tree (`branch_paths`,
     # `base_moved`); the offline cases hand it a fixture so none reads the
     # tree the gate runs in (item 3366).
@@ -983,6 +987,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     reached = []
     seconds = []
     verdicts = []
+    held = whole_lane_lock(lane=lane, whole=whole, item=item, path=whole_lock)
     load_at_start = host_load()
     top_at_start = host_top()
     try:
@@ -1008,7 +1013,40 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         print(admission_line(admission_summary(report_dir)), flush=True)
         print(load_line(load_at_start, host_load(), os.cpu_count() or 0), flush=True)
         print(top_line(host_top(), top_at_start), flush=True)
+        if held is not None:
+            os.close(held)
     return report_dir
+
+
+def whole_lane_lock(*, lane, whole, item=None, path=None, off=None, clock=time.monotonic):
+    """The tranche of 2026-11-12: two lanes ran `--lane --whole` gates beside
+    a builder's whole diff:: runs and the booking gate, the budget's 20 slots
+    interleaved them test by test (admission 5,466 s summed on one booking
+    gate) and the host's load reached 50.9 on 16. A whole lane gate takes an
+    exclusive flock on `WHOLE_LANE_LOCK` before its first step and holds the
+    fd to its exit; one that finds it held names the holder and blocks. A
+    booking gate and a worded lane gate take none, nor does the admission
+    kill switch. The file is never unlinked (`resource_budget.py`'s
+    discipline: an unlinked lock is two locks). Returns the held fd, or None."""
+    if not (lane and whole):
+        return None
+    if admission_off() if off is None else off:
+        return None
+    path = Path(path or WHOLE_LANE_LOCK)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd = os.open(path, os.O_RDWR | os.O_CREAT, 0o600)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        holder = os.pread(fd, 512, 0).decode(errors='replace').strip() or 'a holder that wrote no name'
+        print(f"Whole lane: waiting on {holder}", flush=True)
+        started = clock()
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        print(f"Whole lane: waited {clock() - started:.0f} s", flush=True)
+    os.ftruncate(fd, 0)
+    os.pwrite(fd, f"pid {os.getpid()} item {item if item is not None else 'unnamed'} started "
+                  f"{time.strftime('%Y-%m-%dT%H:%M:%S%z')}\n".encode(), 0)
+    return fd
 
 
 def host_load():
