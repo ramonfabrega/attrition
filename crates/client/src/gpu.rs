@@ -14,44 +14,15 @@
 
 use std::sync::Arc;
 
-const SHADER: &str = r#"
-struct U {
-    m: mat4x4<f32>,
-    d: vec4<f32>,
-    range: vec4<f32>,
-};
-@group(0) @binding(0) var<uniform> u: U;
+// Item 4181: each shader is a `.wgsl` file under `crates/client/shaders/`,
+// read here as it stands — the strings these constants held, character for
+// character, a leading newline and all — and each parsed and validated by
+// `naga` in `every_shader_parses_and_validates` below.
 
-struct VOut {
-    @builtin(position) pos: vec4<f32>,
-    @location(0) col: vec3<f32>,
-};
-
-@vertex
-fn vs_world(@location(0) p: vec3<f32>, @location(1) c: vec3<f32>) -> VOut {
-    let v = vec4<f32>(p, 1.0);
-    let clip = u.m * v;
-    let depth = dot(v, u.d);
-    let z = clamp((depth - u.range.x) / (u.range.y - u.range.x), 0.0, 1.0);
-    var o: VOut;
-    o.pos = vec4<f32>(clip.xy, z * clip.w, clip.w);
-    o.col = c;
-    return o;
-}
-
-@vertex
-fn vs_overlay(@location(0) p: vec3<f32>, @location(1) c: vec3<f32>) -> VOut {
-    var o: VOut;
-    o.pos = vec4<f32>(p.xy, 0.0, 1.0);
-    o.col = c;
-    return o;
-}
-
-@fragment
-fn fs(i: VOut) -> @location(0) vec4<f32> {
-    return vec4<f32>(i.col, 1.0);
-}
-"#;
+/// **The world's and the overlay's shader**: the world's triangles under
+/// the camera's matrix and depth, the overlay in screen space, each corner
+/// its colour.
+const SHADER: &str = include_str!("../shaders/world.wgsl");
 
 /// **The sprites' shader** (item 4076): a building's `texture=` as a quad in
 /// screen pixels at `render::draw::SpriteAt`, at the draw list's depth for
@@ -60,36 +31,7 @@ fn fs(i: VOut) -> @location(0) vec4<f32> {
 /// a figure nearer than the anchor draws over it and one further does not — the pixels
 /// `render::silhouette::Stamp` counts. No team colour (`build_sprite_color`)
 /// is applied.
-const SPRITE_SHADER: &str = r#"
-struct S {
-    screen: vec4<f32>,
-};
-@group(0) @binding(0) var<uniform> s: S;
-@group(1) @binding(0) var tex: texture_2d<f32>;
-@group(1) @binding(1) var samp: sampler;
-
-struct VOut {
-    @builtin(position) pos: vec4<f32>,
-    @location(0) uv: vec2<f32>,
-};
-
-@vertex
-fn vs_sprite(@location(0) p: vec3<f32>, @location(1) uv: vec2<f32>) -> VOut {
-    var o: VOut;
-    o.pos = vec4<f32>(p.x / s.screen.x * 2.0 - 1.0, 1.0 - p.y / s.screen.y * 2.0, p.z, 1.0);
-    o.uv = uv;
-    return o;
-}
-
-@fragment
-fn fs_sprite(i: VOut) -> @location(0) vec4<f32> {
-    let c = textureSample(tex, samp, i.uv);
-    if c.a < 0.5 {
-        discard;
-    }
-    return vec4<f32>(c.rgb, 1.0);
-}
-"#;
+const SPRITE_SHADER: &str = include_str!("../shaders/sprite.wgsl");
 
 /// **The figures' textured shader** (item 4099): the world pipeline's
 /// projection and depth, line for line, with each corner's `id 4` texcoord
@@ -108,55 +50,7 @@ fn fs_sprite(i: VOut) -> @location(0) vec4<f32> {
 /// (item 4127, `docs/RENDERER.md` §3.6): the texel's colour alone, under
 /// `determine_land_height_color`'s white, the alpha (225 to 255 on the
 /// files) not laid over anything.
-const TEXTURED_SHADER: &str = r#"
-struct U {
-    m: mat4x4<f32>,
-    d: vec4<f32>,
-    range: vec4<f32>,
-};
-@group(0) @binding(0) var<uniform> u: U;
-@group(1) @binding(0) var tex: texture_2d<f32>;
-@group(1) @binding(1) var samp: sampler;
-
-struct VOut {
-    @builtin(position) pos: vec4<f32>,
-    @location(0) uv: vec2<f32>,
-    @location(1) owner: vec3<f32>,
-};
-
-@vertex
-fn vs_textured(
-    @location(0) p: vec3<f32>,
-    @location(1) uv: vec2<f32>,
-    @location(2) owner: vec3<f32>,
-) -> VOut {
-    let v = vec4<f32>(p, 1.0);
-    let clip = u.m * v;
-    let depth = dot(v, u.d);
-    let z = clamp((depth - u.range.x) / (u.range.y - u.range.x), 0.0, 1.0);
-    var o: VOut;
-    o.pos = vec4<f32>(clip.xy, z * clip.w, clip.w);
-    o.uv = uv;
-    o.owner = owner;
-    return o;
-}
-
-@fragment
-fn fs_textured(i: VOut) -> @location(0) vec4<f32> {
-    let t = textureSample(tex, samp, i.uv);
-    return vec4<f32>(mix(i.owner, t.rgb, t.a), 1.0);
-}
-
-@fragment
-fn fs_ground(i: VOut) -> @location(0) vec4<f32> {
-    return vec4<f32>(textureSample(tex, samp, i.uv).rgb, 1.0);
-}
-
-@fragment
-fn fs_silhouette(i: VOut) -> @location(0) vec4<f32> {
-    return vec4<f32>(i.owner, 128.0 / 255.0);
-}
-"#;
+const TEXTURED_SHADER: &str = include_str!("../shaders/textured.wgsl");
 
 /// **The trees' pass** (item 4173; `docs/RENDERER.md` §3.7, "The trees'
 /// own colour"), appended to [`TEXTURED_SHADER`]: the leaf's texture on
@@ -166,32 +60,35 @@ fn fs_silhouette(i: VOut) -> @location(0) vec4<f32> {
 /// `render::silhouette::fake_light` on `tree_stage`, the arithmetic the
 /// painter runs. On the plain `Unorm` target and texture (item 4171) the
 /// sample is the byte and the result is stored as it stands.
+///
+/// `shaders/tree.wgsl` is the template: each `{NAME}` in it is the
+/// constant of that name, written as `format!("{NAME:?}")` writes it — the
+/// literal the shader carried before item 4181 moved it.
+const TREE_SHADER: &str = include_str!("../shaders/tree.wgsl");
+
+/// The names [`TREE_SHADER`] leaves a hole for, each filled once.
+#[cfg(test)]
+const TREE_HOLES: [&str; 5] = [
+    "current",
+    "FAKE_LIGHT_POWER",
+    "HDR_SCALE",
+    "EXPOSURE",
+    "white",
+];
+
+/// [`TREE_SHADER`] with its holes filled.
 fn tree_shader() -> String {
     use render::silhouette::{
         EXPOSURE, FAKE_LIGHT_POWER, HDR_SCALE, MIN_LUMINANCE, TREE_DIFFUSE, WHITE_POINT, filmic,
     };
     let white = 1.0 / filmic(MIN_LUMINANCE * WHITE_POINT);
     let current = f32::from(TREE_DIFFUSE) / 255.0;
-    format!(
-        r#"
-fn tree_filmic(x: vec3<f32>) -> vec3<f32> {{
-    let a = 0.15; let b = 0.50; let c = 0.10; let d = 0.20; let e = 0.02; let f = 0.30;
-    return (x * (a * x + c * b) + d * e) / (x * (a * x + b) + d * f) - vec3<f32>(e / f);
-}}
-
-@fragment
-fn fs_tree(i: VOut) -> @location(0) vec4<f32> {{
-    let t = textureSampleLevel(tex, samp, i.uv, 0.0);
-    if (t.a <= 0.0) {{
-        discard;
-    }}
-    let stage = clamp(t.rgb + vec3<f32>({current:?} - 0.5), vec3<f32>(0.0), vec3<f32>(1.0));
-    let lin = pow(stage, vec3<f32>({FAKE_LIGHT_POWER:?})) * {HDR_SCALE:?};
-    let toned = clamp(tree_filmic({EXPOSURE:?} * lin) * {white:?}, vec3<f32>(0.0), vec3<f32>(1.0));
-    return vec4<f32>(toned, 1.0);
-}}
-"#
-    )
+    TREE_SHADER
+        .replace("{current}", &format!("{current:?}"))
+        .replace("{FAKE_LIGHT_POWER}", &format!("{FAKE_LIGHT_POWER:?}"))
+        .replace("{HDR_SCALE}", &format!("{HDR_SCALE:?}"))
+        .replace("{EXPOSURE}", &format!("{EXPOSURE:?}"))
+        .replace("{white}", &format!("{white:?}"))
 }
 
 /// **The transition patch's pass** (item 4139; `docs/RENDERER.md` §3.9),
@@ -203,66 +100,7 @@ fn fs_tree(i: VOut) -> @location(0) vec4<f32> {{
 /// on the alpha's own level 0; blended `SRCALPHA`, `INVSRCALPHA` over the
 /// base already drawn. The vertex is the textured layout's: the alpha's
 /// texcoord rides in the third attribute's `xy`.
-const PATCH_SHADER: &str = r#"
-struct U {
-    m: mat4x4<f32>,
-    d: vec4<f32>,
-    range: vec4<f32>,
-};
-@group(0) @binding(0) var<uniform> u: U;
-@group(1) @binding(0) var tex: texture_2d<f32>;
-@group(1) @binding(1) var samp: sampler;
-@group(2) @binding(0) var alpha: texture_2d<f32>;
-@group(2) @binding(1) var alpha_samp: sampler;
-
-struct VOut {
-    @builtin(position) pos: vec4<f32>,
-    @location(0) uv: vec2<f32>,
-    @location(1) auv: vec2<f32>,
-};
-
-@vertex
-fn vs_patch(
-    @location(0) p: vec3<f32>,
-    @location(1) uv: vec2<f32>,
-    @location(2) auv: vec3<f32>,
-) -> VOut {
-    let v = vec4<f32>(p, 1.0);
-    let clip = u.m * v;
-    let depth = dot(v, u.d);
-    let z = clamp((depth - u.range.x) / (u.range.y - u.range.x), 0.0, 1.0);
-    var o: VOut;
-    o.pos = vec4<f32>(clip.xy, z * clip.w, clip.w);
-    o.uv = uv;
-    o.auv = auv.xy;
-    return o;
-}
-
-@fragment
-fn fs_patch(i: VOut) -> @location(0) vec4<f32> {
-    let a = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
-    return vec4<f32>(textureSample(tex, samp, i.uv).rgb, a);
-}
-
-// Item 4141 (`docs/RENDERER.md` §3.10): one layer of a mountain's own draw,
-// `MountainsOut::mountain_blend` — stage 0 the tileset's texture (MODULATE
-// with the vertex white, A its own); stage 1 the range's alpha, ADDSIGNED
-// on the colour and MODULATE on A; the alpha test GREATER 0. Items 4172,
-// 4171: ADDSIGNED is run on the stored bytes, as the card's stage and
-// `MountainArt::over` run it — on the plain `Unorm` textures and targets
-// (`Gpu::texel_format`) a sample is its byte over 255, and the sum is stored
-// as it stands.
-@fragment
-fn fs_mountain(i: VOut) -> @location(0) vec4<f32> {
-    let t0 = textureSample(tex, samp, i.uv);
-    let t1 = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0);
-    let a = t0.a * t1.a;
-    if (a <= 0.0) {
-        discard;
-    }
-    return vec4<f32>(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0)), a);
-}
-"#;
+const PATCH_SHADER: &str = include_str!("../shaders/patch.wgsl");
 
 /// The camera-space depth range mapped onto [0, 1]: wider than any map.
 const DEPTH_RANGE: (f32, f32) = (-200_000.0, 200_000.0);
@@ -1474,6 +1312,71 @@ mod tests {
         assert!(t.contains("return vec4<f32>(toned, 1.0);"));
         assert!(!t.contains("encoded("));
         assert!(t.contains("if (t.a <= 0.0)"));
+    }
+
+    /// Parse and validate one shader as the device would take it.
+    fn validated(name: &str, src: &str) -> Result<(), String> {
+        use wgpu::naga::{front::wgsl, valid};
+        let module =
+            wgsl::parse_str(src).map_err(|e| format!("{name}: {}", e.emit_to_string(src)))?;
+        valid::Validator::new(
+            valid::ValidationFlags::all(),
+            valid::Capabilities::default(),
+        )
+        .validate(&module)
+        .map_err(|e| format!("{name}: {e:?}"))?;
+        Ok(())
+    }
+
+    /// The shaders `Gpu::new` builds its modules from, as it builds them.
+    fn shaders() -> [(&'static str, String); 5] {
+        [
+            ("world.wgsl", SHADER.to_string()),
+            ("sprite.wgsl", SPRITE_SHADER.to_string()),
+            ("textured.wgsl", TEXTURED_SHADER.to_string()),
+            (
+                "textured.wgsl + tree.wgsl",
+                format!("{TEXTURED_SHADER}{}", tree_shader()),
+            ),
+            ("patch.wgsl", PATCH_SHADER.to_string()),
+        ]
+    }
+
+    /// Item 4181: every shader file parses and validates under `naga`
+    /// (the `wgpu::naga` the device compiles with), the tree's with its
+    /// holes filled, appended to the textured shader as `Gpu::new` does.
+    #[test]
+    fn every_shader_parses_and_validates() {
+        for (name, src) in shaders() {
+            validated(name, &src).unwrap_or_else(|e| panic!("{e}"));
+        }
+        // The check can fail: one character changed is refused.
+        let broken = SHADER.replacen(
+            "return vec4<f32>(i.col, 1.0);",
+            "return vec4<f32>(i.col, 1.0)",
+            1,
+        );
+        assert_ne!(broken, SHADER);
+        assert!(validated("world.wgsl, perturbed", &broken).is_err());
+    }
+
+    /// Item 4181: the tree template's every hole is filled, once, and no
+    /// other brace pair in it names a constant.
+    #[test]
+    fn the_tree_template_s_holes_are_filled() {
+        for h in TREE_HOLES {
+            assert_eq!(TREE_SHADER.matches(&format!("{{{h}}}")).count(), 1, "{h}");
+        }
+        let t = tree_shader();
+        for h in TREE_HOLES {
+            assert!(!t.contains(&format!("{{{h}}}")), "{h} left unfilled");
+        }
+        assert!(
+            !t.chars()
+                .zip(t.chars().skip(1))
+                .any(|(a, b)| a == '{' && b.is_ascii_alphabetic()),
+            "a hole the template names and the code does not fill"
+        );
     }
 
     #[test]
