@@ -830,7 +830,8 @@ mod tests {
     /// replan flag, and it held Great Lakes' word at 10234 for four items
     /// while sitting in every block of every capture on the disk
     /// (`docs/ROADS.md` §1.2).
-    const UNCOMPARED: usize = 10;
+    /// Lowered 10 → 9 by item 4162, whose six leader keys left the uncompared list.
+    const UNCOMPARED: usize = 9;
 
     /// Fields exactly one test function names — the per-capture half.
     /// **41 on 2026-09-04**, down from 51 when run68's window widened
@@ -879,7 +880,8 @@ mod tests {
     /// list was checked against the directory and six differs joined it
     /// (`leader.rs` among them): four fields called uncompared and three
     /// called single-capture had been compared all along.
-    const SINGLE_CAPTURE: usize = 36;
+    /// Lowered 36 → 29 by item 4162: its leader keys are compared on every dump.
+    const SINGLE_CAPTURE: usize = 29;
 
     /// **Every file under `src/diff/` is on the ledger or named as not a
     /// differ** (parked 517). The ledger's scope was a hand-kept list and
