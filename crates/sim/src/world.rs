@@ -154,7 +154,7 @@ pub const fn vector_dist(dx: i32, dy: i32) -> i32 {
     } else {
         (hi + lo / 2) as i32
     }
-}
+} // twin of Supplies::find_supply
 
 /// Floor division. `i32::div_euclid` agrees for the positive divisors used
 /// here and is what the original's lookup table encodes.
@@ -707,7 +707,7 @@ pub fn largest_gather(g: usize) -> i32 {
         }
     }
     best.clamp(1, 2)
-}
+} // twin of GoodType::compute_largest_gather
 
 /// `Region::coast_here@00681020` past its `is_coast` gate: the region the
 /// cell `c` holds is `here` (-1 for none); the other of `r` and `s` is the

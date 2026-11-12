@@ -848,7 +848,7 @@ pub fn taxes(t: &Tuning, city: &City) -> i32 {
         n += t.temple_taxes;
     }
     n
-}
+} // twin of CityData::get_taxes
 
 /// A city's knowledge from literacy — `CityData::get_literacy`.
 ///
@@ -863,7 +863,7 @@ pub fn literacy(t: &Tuning, city: &City) -> i32 {
         n += t.library_literacy;
     }
     n
-}
+} // twin of CityData::get_literacy
 
 /// Assembles the six rates — `Leader::calc_gather`, in its order.
 ///

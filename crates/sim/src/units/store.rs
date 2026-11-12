@@ -652,7 +652,7 @@ impl Sim {
             rec as i32,
             crate::units::unit_set_type_view::SET_TYPE_NORMAL,
         );
-    }
+    } // twin of Unit::set_type
 
     /// **`Object::take_damage@00652020`'s remainder test** (decompile lines 311-329,
     /// the `+0x308` block): a figure of a squad type takes `hits − (uber − 1)

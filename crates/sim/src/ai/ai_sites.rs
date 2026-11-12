@@ -317,7 +317,7 @@ impl Sim {
                     .is_some_and(|t| build::is_fort(&self.tables.build_types, t))
                 && b.pos.cell() == c
         })
-    }
+    } // twin of Forts::find_fort
 
     /// `types.list[BASE_UNITTYPES]` — the tree's first unit, the Citizen.
     fn citizen_root(&self) -> Option<TypeId> {

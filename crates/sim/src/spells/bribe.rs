@@ -87,7 +87,7 @@ impl Sim {
         }
         debug_assert!(!olds.is_empty());
         Some(n)
-    }
+    } // twin of Unit::swap_team
 
     /// One figure's copy from the old unit `o` to the new one `m`
     /// (`swap_team`'s do-while body).

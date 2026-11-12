@@ -173,7 +173,7 @@ pub fn can_ever_transport_by(
     is_carrier: impl FnOnce() -> bool,
 ) -> bool {
     land || (slot18() && carry() && !is_carrier())
-}
+} // twin of UnitData::can_ever_transport
 
 impl Sim {
     // ------------------------------------------------------------------
@@ -1763,7 +1763,7 @@ pub(crate) fn dock_tile_in(
 /// a unit type id `0x32..=0x19d` whose domain (`+0x218`) is land.
 pub(crate) fn cargo_type(type_index: i32, land: bool) -> bool {
     (0x32..=0x19d).contains(&type_index) && land
-}
+} // twin of ObjectTypeData::is_cargo
 
 /// What `cast_unpack_steps` asks of the unit it unpacks, one method a call
 /// of `SpellType::cast_unpack@006709c0` (item 2400).

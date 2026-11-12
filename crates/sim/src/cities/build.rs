@@ -227,7 +227,7 @@ impl BuildType {
         } else {
             BuildDomain::Land
         }
-    }
+    } // twin of BuildType::set_domain
 
     /// `ObjectTypeData::get_wonder_value@00661ba0`, the slot `+0x118` of
     /// `BuildTypeData`'s vtable (`0xb428d4`, read off the PE's RTTI): the
@@ -237,7 +237,7 @@ impl BuildType {
     /// carry a `WONDER_VAL` and are worth nothing here (`docs/AI.md` §124).
     pub const fn wonder_points(&self) -> i32 {
         if self.wonder { self.wonder_val } else { 0 }
-    }
+    } // twin of ObjectTypeData::get_wonder_value
 
     /// `x_size × y_size`.
     pub const fn area(&self) -> i32 {
@@ -389,7 +389,7 @@ pub fn fundamental(types: &[BuildType], t: usize) -> usize {
         }
     }
     cur
-}
+} // twin of BuildTypeData::fundamental_type
 
 /// `BuildTypeData::is_military_trainer@0063bcf0` — the flag on the **root**.
 pub fn is_military_trainer(types: &[BuildType], t: usize) -> bool {
@@ -447,14 +447,14 @@ pub fn is_fort(types: &[BuildType], t: usize) -> bool {
 /// (item 2083's sweep holds the order and the short circuit). `is` answers a lineage test.
 pub fn is_defensive_by(mut is: impl FnMut(Ident) -> bool, attack: i32) -> bool {
     is(Ident::Tower) || is(Ident::Fort) || is(Ident::Airbase) || attack != 0
-}
+} // twin of BuildTypeData::is_defensive, WallData::is_defensive
 
 /// `BuildTypeData::is_gather_enhancer@00472b50`: `is(GRANARY, 0)`, `is(LUMBERMILL, 0)`, `is(SMELTER, 0)` and
 /// `is(REFINERY, 0)` (`0x1a7..=0x1aa`) asked through the record's slot `+0x60` **in that order**, the first true
 /// answering (item 2090's sweep holds the order and the short circuit). `is` answers a lineage test.
 pub fn is_gather_enhancer_by(mut is: impl FnMut(Ident) -> bool) -> bool {
     is(Ident::Granary) || is(Ident::Lumbermill) || is(Ident::Smelter) || is(Ident::Refinery)
-}
+} // twin of BuildTypeData::is_gather_enhancer
 
 /// [`is_defensive_by`] on the port's records.
 pub fn is_defensive(types: &[BuildType], t: usize) -> bool {
@@ -480,7 +480,7 @@ pub fn city_level(types: &[BuildType], t: usize) -> i32 {
         _ if is_city(types, t) => 1,
         _ => 0,
     }
-}
+} // twin of BuildTypeData::get_city_level
 
 /// `CityData::upgrades_to`: the next level's type, found by ident among
 /// `types`, or `None` at the top.

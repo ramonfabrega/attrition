@@ -150,7 +150,7 @@ impl Sim {
     /// `GroupData::num_valid`: members whose object is valid.
     pub fn group_num_valid(&self, g: &Group) -> i32 {
         g.list.iter().filter(|&&u| self.units[u].alive()).count() as i32
-    }
+    } // twin of GroupData::num_valid
 
     /// `Group::normalize@00711540` (§4.3): drop the dead, last to first,
     /// and then **recompute the group's speed from its leader**.
@@ -242,7 +242,7 @@ impl Sim {
             st.speed = speed;
             st.new_speed = speed;
         }
-    }
+    } // twin of Group::report_speed
 
     /// `Group::leader_report_speed@007137f0`, which `Unit::do_group_move`
     /// inlines at `5e7a9a` — the **leader**, on every frame its own step
@@ -263,7 +263,7 @@ impl Sim {
         st.speed = st.new_speed;
         st.new_speed = speed;
         st.march = false;
-    }
+    } // twin of Group::leader_report_speed
 
     /// `do_group_move`'s forced-march arm under the leader's report
     /// (`groups[+0x80] +0x4b = 1`): the leader's leader flags carry
@@ -296,7 +296,7 @@ impl Sim {
             return 0;
         }
         self.group_find_leader(g).map_or(0, |u| self.unit_speed(u))
-    }
+    } // twin of Group::compute_speed
 
     /// `GroupData::get_stance_type` (§4.4): the leader's, or the first
     /// member's that is neither `None` nor `Caster`.
@@ -353,7 +353,7 @@ impl Sim {
             return StanceType::Caster;
         }
         StanceType::None
-    }
+    } // twin of UnitTypeData::get_stance_type
 
     /// `GroupData::get_stance_option@0070bab0`: the **modal** stance option
     /// over the members — a histogram of each valid member's `+0xb1` that
@@ -407,7 +407,7 @@ impl Sim {
             seen = true;
         }
         form
-    }
+    } // twin of GroupData::get_form
 
     /// `GroupData::get_loc@0070e030`: the leader's position, **and the two
     /// `(ox, oy)` substitutions on top of it** (§6.3, §12.5).

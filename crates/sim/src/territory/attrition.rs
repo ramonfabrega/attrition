@@ -342,7 +342,7 @@ pub fn susceptibility(
     }
 
     v / strength
-}
+} // twin of UnitData::get_attrition
 
 /// The tick period in frames for a given susceptibility, or `None` if the unit
 /// is immune.

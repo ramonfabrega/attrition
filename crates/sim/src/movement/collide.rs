@@ -2459,7 +2459,7 @@ impl Sim {
         }
         let c = ucell(self.units[u].pos);
         (cell.x - c.x).abs() <= size && (cell.y - c.y).abs() <= size
-    }
+    } // twin of UnitData::is_here
 
     /// `UnitData::is_corner@0060a040` — **and it is not the unit's own
     /// block** (§4.3, 2026-09-04). The function walks the unit's figures
@@ -2505,7 +2505,7 @@ impl Sim {
             .map(|p| Self::corner_of(size, ucell(p), cell))
             .find(|&c| c != 0)
             .unwrap_or(0)
-    }
+    } // twin of GuyData::is_corner, UnitData::is_corner
 
     /// `UnitData::will_be_corner`: `1, 3, 5, 7` for NW, NE,
     /// SE, SW when `cell` is exactly a diagonal corner of the block centred

@@ -524,7 +524,7 @@ impl Sim {
         ));
         crate::cities::production::adjusted(time, tail.as_slice())
             .max(crate::cities::production::MIN_TIME)
-    }
+    } // twin of TypeData::research_time
 
     /// **The held-elsewhere term** of `ObjectData::train_time@006508c0`'s
     /// research block (`LAB_006513c0`, the decompile's lines 414–419): a

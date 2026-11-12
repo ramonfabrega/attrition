@@ -102,7 +102,7 @@ impl Item {
             }
         }
         item
-    }
+    } // twin of BuildQueue::set_queue
 
     /// A fresh entry researching tree id `t`, recording what `charges` took.
     pub fn tech_queued(t: usize, charges: &[i32; RESOURCES]) -> Item {
@@ -190,7 +190,7 @@ impl Queue {
     /// technology types, that is `!researched[ty]`.
     pub fn next_research<F: Fn(usize) -> bool>(&self, research: F) -> Option<usize> {
         (1..self.items.len()).find(|&i| self.items[i].tech.is_some() || research(self.items[i].ty))
-    }
+    } // twin of BuildQueueData::get_next_non_unit
 
     /// Appends a technology entry for tree id `t` and returns its slot.
     /// A `DISBAND` entry, which costs nothing (`craftrules.xml`'s `COST` and

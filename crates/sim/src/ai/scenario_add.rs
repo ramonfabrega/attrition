@@ -208,7 +208,7 @@ impl Sim {
                 self.unit_dbg_jump_to_action(u);
             }
         }
-    }
+    } // twin of Group::dbg_jump_to_action
 
     /// `Unit::dbg_jump_to_action@00602ea0`'s move arm: with a move-family
     /// order current, every leading order of types 1–4, `CHANGE_FORM`,

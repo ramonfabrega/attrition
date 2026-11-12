@@ -119,7 +119,7 @@ pub(crate) fn enhancing_good(ident: Ident) -> Option<usize> {
         Ident::Refinery => R::Oil.index(),
         _ => return None,
     })
-}
+} // twin of BuildTypeData::get_enhancing_good
 
 /// `BuildTypeData::is_gather_enhancer@00472b50` on an identity: [`crate::cities::build::is_gather_enhancer_by`] with
 /// the lineage test an identity's equality.

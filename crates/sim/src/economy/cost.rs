@@ -1018,7 +1018,7 @@ pub fn affordable(
         }
     }
     if best == -1 { PLENTY } else { best }
-}
+} // twin of TypeData::can_pay_cost
 
 /// Whether the player can afford `want` of a thing — `Leader::can_pay`, which
 /// is [`affordable`] compared against the count in a queue order.

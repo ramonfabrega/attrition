@@ -766,7 +766,7 @@ impl Sim {
             return n + 4;
         }
         n
-    }
+    } // twin of CityData::get_trade_value
 
     // ------------------------------------------------------------------
     // §5 — `Caravan::build_road@0073db10`
@@ -968,7 +968,7 @@ impl Sim {
         if hit {
             self.caravan_build_road(who, v);
         }
-    }
+    } // twin of Caravan::verify_road
 
     /// `Caravan::clear_temp_road@0073de80`: the parked search is freed and
     /// `making_road` cleared with it.

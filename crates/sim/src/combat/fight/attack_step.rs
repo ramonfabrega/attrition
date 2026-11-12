@@ -58,7 +58,7 @@ impl Sim {
         let b = &mut self.buildings[building];
         b.target = Some(target);
         b.ordered = true;
-    }
+    } // twin of Build::add_attack_order
 
     pub fn set_stance(&mut self, unit: usize, stance: Stance) {
         self.units[unit].combat.stance = stance;
@@ -837,7 +837,7 @@ impl Sim {
             a if a < 5 => 1,
             _ => 2,
         }
-    }
+    } // twin of BuildData::get_shot
 
     /// `Ammo::init@0067bbf0`, for either aim.
     ///

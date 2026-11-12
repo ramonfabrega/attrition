@@ -345,7 +345,7 @@ impl Sim {
             return self.was_seen_fog(x + 1, y + 1, who);
         }
         self.world_is_seen_fog(x + 1, y + 1, who)
-    }
+    } // twin of ItemData::is_seen
 
     /// `Unit::get_goody_box@005f7690`: a one-member group, and an
     /// `EXPLORE_TO` to the box's **cell centre** at `QUEUE_FIRST`.

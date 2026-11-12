@@ -1182,7 +1182,11 @@ def lost_backed(listed, live):
 # asserting a raw word (a layout, not a port). The kinds, in the order the
 # table prints them:
 #
-#   port      backed, and `crates/sim` consumes it (`is_port_backed`)
+#   port      backed, and `crates/sim` consumes it (`is_port_backed`, the
+#             census's own `port` column: a coverage section diffs it, or the
+#             crate spells its `Class::method` outside `sweep/` — item 4039;
+#             before it the map also asked for a `fn` of the method's own
+#             snake-case name, so a twin by another name never counted)
 #   replaced  not ported, in a layer the project replaced on purpose — the
 #             mark below, given per group on Ramon's word, reversible per
 #             group if a port is wanted after all
@@ -1195,25 +1199,121 @@ def lost_backed(listed, live):
 # op + cut)` is the simulation layer whole; the `Territory:` line names the
 # first three against the layer's count. The mark never touches a ported
 # function (a port in a replaced layer stays a port) nor an excluded one.
+#
+# DECISIONS 114 §6 (the seventy-fourth pass, Ramon and lore's scoring of the
+# seventy-first tranche's 26 readings, `docs/audit/2026-11-06-territory-*.md`)
+# extended three groups by the readers' rows — the XML loaders by 21 names,
+# the scripting VM by the trigger VM's five accessors, the turn pump by
+# `Game::loop` — named the port's issuer the owner of the 25 `GroupOut` and
+# `UnitOut` issuers, and added the recorded-game playback; item 4039 wrote them, each group with
+# its owner and the trigger that reopens it.
 REPLACED_BY_DESIGN = (
-    # label, the stems marked whole, a name rule for functions marked by name
-    ("the command packaging and manager", frozenset(("commandpackage", "commandmanager")), None),
-    ("the turn pump", frozenset(("turncontrol", "timesync")), None),
+    # label, the stems marked whole, a name rule for functions marked by
+    # name, and the owner or reversal trigger the group carries
+    ("the command packaging and manager", frozenset(("commandpackage", "commandmanager")),
+     # The client half of the command stream is the 34 `GroupOut`/`UnitOut`
+     # `issue_*` bodies: the interface packs a selection's intent into a
+     # `CommandPackage`. The port mints its own (`client::input`,
+     # docs/CLIENT_INPUT.md), and the issuers are that issuer's specification
+     # (lore's group B, 25 of them open on 2026-11-06). The census's `*Out`
+     # mark excludes them as `ui` before this mark is asked (defect A's
+     # ordering), so no rule here names them; the owner does.
+     None,
+     "owner of the `GroupOut`/`UnitOut` issuers (excluded as `ui`): the port's issuer, `client::input` "
+     "(docs/CLIENT_INPUT.md); reopened if the client must package commands byte for byte"),
+    ("the turn pump", frozenset(("turncontrol", "timesync")), re.compile(r"^Game::loop$"),
+     "reopened at networking: the lockstep scheduler is the first group reversed when that phase opens"),
     # The engine's XML parser is the `engine` layer already; these are the
     # simulation-layer bodies that walk a parsed document into a table —
     # `ObjectType::load_support`, `Type::load_cost`, `Tribe::parse`,
-    # `Map::load_map_data` — which `crates/rondata`'s typed loaders replace.
+    # `Map::load_map_data` — which `crates/rondata`'s typed loaders replace;
+    # and the 21 the readers named, each with its twin in `crates/rondata`
+    # (lore's group A). `Map::scale_number` is in it as proposed, though it
+    # carries the one rule inside a loader (`SCALEWATER`/`SCALELAND`, the
+    # original's float path; 4039a).
     ("the XML loaders", frozenset(),
      re.compile(r"::(load_(map_data|from_config|from_playback|support|upgrade|cost|sound_tables|old_bh3)"
-                r"|parse(_cmd|_element)?|get_parse_name|set_parse_data|get_(abbrev|desc)_parsed)$")),
+                r"|parse(_cmd|_element)?|get_parse_name|set_parse_data|get_(abbrev|desc)_parsed)$"
+                r"|^(Balance::(fill_tables|lookup_name|lookup_absolute_name)|Constants::get_(fraction|item)"
+                r"|Map::(scale_number|set_file|scale_by_axis)|Categories::find_key|Lands::find_key"
+                r"|TechType::set_research|Mountains::add_range|RoadsPieces::rotate_flags"
+                r"|Type::(lookup_display_name|set_name)|Types::(get_type_index|good_key|build_key|unit_key"
+                r"|tech_key|object_key))$"),
+     "reopened if a table `crates/rondata` loads parts from the original's (the twins are there)"),
     # The VM itself (`game\script\`) is the AI layer; in the simulation
-    # layer the VM's only hands are the map script's.
-    ("the scripting VM", frozenset(), re.compile(r"::(run_map_script|get_full_script_path)$")),
+    # layer the VM's only hands are the map script's, and the trigger VM's
+    # accessor table (no static caller in the export) and its one helper
+    # (lore's group C).
+    ("the scripting VM", frozenset(),
+     re.compile(r"::(run_map_script|get_full_script_path)$"
+                r"|^(GameAccessConst::(get_scary_message_win|get_scary_graphic_pieces|get_scary_console_who"
+                r"|find_data_z)|ObjectData::in_a_ship)$"),
+     "reopened with the trigger system, cut from v1 (CLAUDE.md)"),
     # `orders.cpp` is `walk_data`, `get_type`, the `get_*_order` casts and
     # `copy_order`/`get_new_order`; an order's *semantics* live in
     # `unit.cpp` and `groups.cpp`, which the mark does not touch.
-    ("the order classes' plumbing", frozenset(("orders",)), None),
+    ("the order classes' plumbing", frozenset(("orders",)), None,
+     "reopened if an order's walk must be the original's (the checksum track's data walk)"),
+    # No skirmish enters it; run1036's playback does. The port replays from
+    # the original's draw stream and its own orders, never from a `.rcx`
+    # (lore's group F).
+    ("the recorded-game playback", frozenset(),
+     re.compile(r"^(Game::run_playback|RecordGame::(read_header|read_package|read_ctw_header))$"),
+     "reopened if the port must play the original's recorded-game file itself"),
 )
+
+# The rows the territory line names inside `open` (DECISIONS 114 §6): two
+# groups the readers proposed as `replaced` that are tracks' work instead —
+# lore's E, the start builder, the start track's (docs/TRACKS.md; today the
+# harness installs the `[Start Game]` state from the dump), and G, the data
+# walk, the checksum track's (the original's full-state checksum, CHECKSUM.md)
+# — and the fourth mark: the 66 rows the readers ruled `unmodelled`, a
+# playing game's rule the crate does not have, the 1:1's finish and nothing
+# more. Three of the 66 the adjudication ruled "B (twin, unwired)"
+# (`Map{Himalayas,AmazonBasin,OldWorld}::make_continents`: Great Sahara's
+# listing, with no route to it) and they stay in it until a style routes
+# there. The mark never moves a row out of `open`: it says whose it is.
+TERRITORY_NAMED = (
+    ("the start track", re.compile(
+        r"^Setup::(large_city_buildings|small_city_buildings|build_units|build_civ_specific|build_cities"
+        r"|build_empire|place_unit|build_game|get_starting_citizens)$")),
+    ("the checksum track", re.compile(
+        r"^(SpellType::walk_rules_data|SubObject::(walk_data|must_walk)|UnitType::walk_rules_data"
+        r"|Tribe::walk_rules_data|Type::walk_rules_data|Types::(walk_data|walk_rules_data)|World::walk_data)$")),
+    ("the rules' 1:1 finish", None),
+)
+# The fourth mark's rows, by name: the first readings' `unmodelled`.
+UNMODELLED = frozenset((
+    "Build::replace_gather", "BuildData::attack", "BuildData::get_base_garrison_arrows",
+    "BuildData::hits", "BuildTypeData::check_enemy_adjacent", "Caravan::restart_trade_route",
+    "Caravans::new_danger", "CliffsData::find_nearest", "CliffsData::gather_size", "Game::check_victory",
+    "Game::defeat_all", "Game::get_armageddon", "Game::is_victory_timer", "Game::popwin_timer",
+    "Game::retake_capital", "Game::wonder_timer", "GoodData::is_seen", "GoodTypeData::is_herd_type",
+    "Group::action_siege_attack", "Group::action_unitmask", "Group::kill_group_order",
+    "Map::eliminate_edge_canals", "Map::fill_cont", "Map::find_region_centroid", "Map::is_near_ocean",
+    "Map::make", "Map::place_start_in_region", "Map::set_map", "MapAfricanWateringHole::make_continents",
+    "MapAmazonBasin::make_continents", "MapAustralianOutback::make_continents",
+    "MapBritishIsles::make_continents", "MapColonialPowers::make_continents",
+    "MapEastMeetsWest::make_continents", "MapFairness::calc_distances", "MapHimalayas::make_continents",
+    "MapMediterranean::make_continents", "MapNewWorld::make_continents", "MapNileDelta::make_continents",
+    "MapOldWorld::make_continents", "MapSeaPower::make_continents", "MapWarringStates::make_continents",
+    "Object::attempt_launch", "Objects::remove", "Region::release", "RoadsPieces::find_map",
+    "SpecialsData::find_special", "SpellType::cast_blow_tread", "SpellType::cast_depopulate",
+    "Terrain::mark_forest", "Terrain::object_placed", "Terrain::refresh_good_z",
+    "TypeData::get_score_value", "TypeData::is_cancel_alliance", "TypeData::is_declare_war",
+    "Unit::action_come_out", "Unit::action_unqueue", "Unit::think_carry_idle",
+    "Unit::update_ceo_position", "UnitData::get_next_action", "UnitData::has_repeat_air",
+    "UnitData::is_gathering", "UnitData::next_action_type", "UnitTypeData::get_kill_value",
+    "World::analyze_map", "WorldData::is_really_seen",
+))
+
+
+def named_group(name):
+    """The `TERRITORY_NAMED` label an open function carries, or None."""
+    for label, rule in TERRITORY_NAMED:
+        if (name in UNMODELLED) if rule is None else rule.search(name):
+            return label
+    return None
 
 TERRITORY_KINDS = ("port", "replaced", "layout", "name", "open", "dead", "ui", "op", "cut")
 TERRITORY_OPEN = ("layout", "name", "open")
@@ -1222,19 +1322,24 @@ TERRITORY_OPEN = ("layout", "name", "open")
 def replaced_group(stem, name):
     """The `REPLACED_BY_DESIGN` label a simulation function falls under, or
     None: by its source stem, else by its name."""
-    for label, stems, rule in REPLACED_BY_DESIGN:
+    for label, stems, rule, _owner in REPLACED_BY_DESIGN:
         if stem in stems or (rule is not None and rule.search(name)):
             return label
     return None
 
 
-def territory_kind(va, name, backed, port, spelled):
+def territory_kind(va, name, by_doc, by_sweep, port, spelled):
     """A simulation function's kind before the mark (`TERRITORY_KINDS` less
-    `replaced`), by the same tests `rank_unbacked` and `is_port_backed`
-    apply."""
+    `replaced`), by the tests `is_port_backed` and `rank_unbacked` apply.
+
+    A port first, then the census's own excluded marks, then a layout
+    (item 4039, defect A of DECISIONS 112 §3, accepted in 114 §6): the map
+    asked `backed` before the marks, so 82 sweep-asserted bodies the census
+    excludes — the `*Out` issuers, the loggers, the editor's — read `layout`
+    and counted open. A port stays a port whatever its name says."""
     short = name.rsplit("::", 1)[-1]
-    if va in backed:
-        return "port" if (snake(short) in port and name in spelled) else "layout"
+    if is_port_backed(va, name, by_doc, by_sweep, spelled):
+        return "port"
     if "operator" in short:
         return "op"
     if is_dead_weight(name):
@@ -1243,6 +1348,8 @@ def territory_kind(va, name, backed, port, spelled):
         return "ui"
     if is_cut(name):
         return "cut"
+    if va in by_doc or va in by_sweep:
+        return "layout"
     if snake(short) in port:
         return "name"
     return "open"
@@ -1260,7 +1367,8 @@ def territory(index, docs, sim_src, pdb):
     for va, name, _, _, _ in full:
         by_name.setdefault(name, []).append(va)
     source = source_of(source_ranges(pdb), [e[0] for e in full])
-    backed = doc_backed(docs, by_name) | sweep_backed(sim_src, by_name, os.path.join(HERE, "emu"))
+    by_doc = doc_backed(docs, by_name)
+    by_sweep = sweep_backed(sim_src, by_name, os.path.join(HERE, "emu"))
     port, spelled = port_names(sim_src), port_spellings(sim_src)
     rows, funcs, totals, groups = {}, [], Counter(), {}
     for va, name, _, size, _ in full:
@@ -1268,11 +1376,15 @@ def territory(index, docs, sim_src, pdb):
         if layer_of(path) != "simulation":
             continue
         stem = path.rsplit("\\", 1)[-1].rsplit(".", 1)[0]
-        kind = territory_kind(va, name, backed, port, spelled)
+        kind = territory_kind(va, name, by_doc, by_sweep, port, spelled)
         group = replaced_group(stem, name) if kind in TERRITORY_OPEN else None
         if group is not None:
             groups.setdefault(group, Counter())[kind] += 1
             kind = "replaced"
+        elif kind in TERRITORY_OPEN:
+            named = named_group(name)
+            if named is not None:
+                totals["named:" + named] += 1
         r = rows.setdefault(stem, Counter())
         r[kind] += 1
         r["bytes"] += size
@@ -1328,8 +1440,9 @@ def territory_line(totals):
     — `open` is every function neither ported, replaced nor excluded
     (`TERRITORY_OPEN`: layout-only, name-only, unmarked), the number the
     territory map says is left."""
+    named = " · ".join(f"{label} {totals['named:' + label]}" for label, _ in TERRITORY_NAMED)
     return (f"Territory: simulation ported {totals['port']} · replaced by design {totals['replaced']} · "
-            f"open {sum(totals[k] for k in TERRITORY_OPEN)} of {totals['functions']}")
+            f"open {sum(totals[k] for k in TERRITORY_OPEN)} of {totals['functions']} (in it: {named})")
 
 
 def print_territory(rows, totals, groups, top=None, as_json=False):
@@ -1354,6 +1467,8 @@ def print_territory(rows, totals, groups, top=None, as_json=False):
     print("# replaced by design, per group (Ramon's word, 2026-10-27; reversible per group): "
           + "; ".join(f"{label} {sum(c.values())} ({', '.join(f'{k} {n}' for k, n in sorted(c.items()))})"
                       for label, c in groups.items()))
+    for label, _stems, _rule, owner in REPLACED_BY_DESIGN:
+        print(f"#   {label}: {owner}")
     print(territory_line(totals))
 
 

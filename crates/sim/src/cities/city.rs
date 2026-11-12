@@ -413,7 +413,7 @@ impl Sim {
             base,
             self.tables.tuning.farms_per_city_level,
         )
-    }
+    } // twin of CityData::get_farm_limit
 
     /// Whether the city holds an active building of a kind — the
     /// `city_flags` bits `0x80`/`0x200`/`0x400`/`0x800`, derived.
@@ -435,13 +435,13 @@ impl Sim {
                 || bd
                     .ty
                     .is_some_and(|t| !self.tables.build_types[t].has(flags::NO_CITY)))
-    }
+    } // twin of BuildData::is_unassimilated
 
     /// `CityData::is_unassimilated`.
     pub fn city_unassimilated(&self, c: usize) -> bool {
         let city = &self.cities.cities[c];
         city.race != Some(city.owner)
-    }
+    } // twin of CityData::is_unassimilated
 
     // ------------------------------------------------------------------
     // The record
@@ -1039,7 +1039,7 @@ impl Sim {
             return;
         }
         self.territory.borders_fixed = true;
-    }
+    } // twin of Regions::fix_all_borders
 
     /// `GameDaemon::check_borders@00732060`'s one modelled effect: after
     /// a fix, every leader's `reg_known_rares` is zeroed. The original

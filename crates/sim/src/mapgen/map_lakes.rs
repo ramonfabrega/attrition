@@ -477,7 +477,7 @@ impl Grower<'_> {
 /// so this refuses.
 pub(crate) fn scale_land_area(v: i32, players: i32, allowance: i32) -> Option<i32> {
     (players == 0 || players <= allowance).then_some(v)
-}
+} // twin of Map::get_player_overage
 
 /// The integer square root `make_continents` takes of a lake's spacing
 /// term: Newton's iteration from `n / 2`, stopping when it no longer falls;
