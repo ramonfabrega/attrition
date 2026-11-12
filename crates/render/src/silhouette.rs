@@ -1358,6 +1358,16 @@ pub const RUN1559B_3279_COLOUR_LIT: (usize, usize) = (17, 33);
 /// [`RUN1559B_3279_LUMA`] at run1441's camera, made to fail: 1 of 32.
 pub const RUN1441_CAMERA_3279_LUMA: (usize, usize) = (1, 32);
 
+/// **`RUN1559B_3279_TREES`** (item 4173; `docs/RENDERER.md` §3.7, "The
+/// trees' own colour", its rule committed before this count in
+/// `d20f0fc99`): of the trees whose own pixels in frame 3279's key buffer
+/// number 40 off the interface, those the colour reader passes, as drawn:
+/// **0 of 56**, the client's flat green (`client::trees::TreeColour::
+/// Flat`).
+pub const RUN1559B_3279_TREES: (usize, usize) = (0, 56);
+/// [`RUN1559B_3279_TREES`] under the luminance reader, as drawn: 1 of 56.
+pub const RUN1559B_3279_TREES_LUMA: (usize, usize) = (1, 56);
+
 /// The photograph's frame at run1441's camera, by colour and by the mask:
 /// the made-to-fail.
 pub const RUN1441_CAMERA_3279: (usize, usize) = (0, 24);

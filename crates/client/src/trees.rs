@@ -265,6 +265,12 @@ mod tests {
             TreeColour::FakeLight,
         ));
         println!("run1441's camera: colour {off_colour:?} luma {off_luma:?}");
+        let drawn = counts
+            .iter()
+            .find(|(how, _, _)| *how == TreeColour::Flat)
+            .unwrap();
+        assert_eq!(drawn.1, render::silhouette::RUN1559B_3279_TREES);
+        assert_eq!(drawn.2, render::silhouette::RUN1559B_3279_TREES_LUMA);
     }
 
     fn card_trace_path() -> PathBuf {
