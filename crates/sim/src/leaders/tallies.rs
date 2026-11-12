@@ -23,12 +23,9 @@ use crate::{Player, Sim};
 /// 300`; `docs/LEADERS.md` §4.2).
 pub const STAMP_WINDOW: i64 = 300;
 
-/// `attrition_stamp`'s re-arm window (`0x384`, strict; §5.2).
-pub const ATTRITION_WINDOW: i64 = 900;
-
 /// One leader's §2, §4, §5 and §15 state that nothing else holds.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct Damage {
+pub struct Tallies {
     /// `units_killed` (`+0x80c`).
     pub units_killed: i32,
     /// `units_lost` (`+0x810`).
@@ -57,7 +54,7 @@ pub struct Damage {
     pub nukes_launched: i32,
 }
 
-/// The leaves [`Sim::leader_damage_leaf`] answers, in the record's order.
+/// The leaves [`Sim::leader_tally_leaf`] answers, in the record's order.
 /// `units_bribed` and `give_att_disabled` are the two `log_data` does not
 /// print.
 pub const LEAVES: [&str; 16] = [
@@ -85,16 +82,16 @@ pub fn past(frame: i64, stamp: i64, window: i64) -> bool {
 }
 
 impl Sim {
-    /// One leader's [`Damage`], mutable, or `None` for a slot the record
+    /// One leader's [`Tallies`], mutable, or `None` for a slot the record
     /// has no row for (gaia's).
-    fn damage_mut(&mut self, who: Player) -> Option<&mut Damage> {
-        self.leaders.damage.get_mut(usize::from(who))
+    fn tallies_mut(&mut self, who: Player) -> Option<&mut Tallies> {
+        self.leaders.tallies.get_mut(usize::from(who))
     }
 
-    /// One leader's [`Damage`], or the clear's for a slot out of range.
-    pub fn leader_damage(&self, who: Player) -> Damage {
+    /// One leader's [`Tallies`], or the clear's for a slot out of range.
+    pub fn leader_tallies(&self, who: Player) -> Tallies {
         self.leaders
-            .damage
+            .tallies
             .get(usize::from(who))
             .cloned()
             .unwrap_or_default()
@@ -105,8 +102,8 @@ impl Sim {
     /// Conquer the World's and 0 for a plain game (§4.2); `units_bribed`
     /// is `PlayerTech::bribes` and `give_att_disabled` the trigger flag
     /// `PlayerState::give_disabled` (§15.3, §5.3).
-    pub fn leader_damage_leaf(&self, who: Player, name: &str) -> Option<Vec<i64>> {
-        let d = self.leader_damage(who);
+    pub fn leader_tally_leaf(&self, who: Player, name: &str) -> Option<Vec<i64>> {
+        let d = self.leader_tallies(who);
         let w = usize::from(who);
         let one = |v: i64| Some(vec![v]);
         match name {
@@ -148,7 +145,7 @@ impl Sim {
     /// carries an attacker object (`param_7 >= 0`), with no ally, self or
     /// ownership test (§2.2).
     pub(crate) fn note_unit_death(&mut self, victim: Player, by: Option<Player>) {
-        if let Some(d) = self.damage_mut(victim) {
+        if let Some(d) = self.tallies_mut(victim) {
             d.units_lost += 1;
         }
         if let Some(k) = by {
@@ -159,7 +156,7 @@ impl Sim {
     /// `units_killed[who] += 1`: `take_damage`'s attacker arm, and the
     /// Sniper's, Commando's and counterintel's (§2.2).
     pub(crate) fn note_unit_kill(&mut self, who: Player) {
-        if let Some(d) = self.damage_mut(who) {
+        if let Some(d) = self.tallies_mut(who) {
             d.units_killed += 1;
         }
     }
@@ -167,7 +164,7 @@ impl Sim {
     /// `buildings_razed[who] += 1`: `do_damage`'s non-zero take on a
     /// building, and sabotage's (§2.2).
     pub(crate) fn note_raze(&mut self, who: Player) {
-        if let Some(d) = self.damage_mut(who) {
+        if let Some(d) = self.tallies_mut(who) {
             d.buildings_razed += 1;
         }
     }
@@ -175,7 +172,7 @@ impl Sim {
     /// `buildings_lost[owner] += 1`: `take_damage`'s building death, the
     /// city clamp excluded (§2.2).
     pub(crate) fn note_building_lost(&mut self, owner: Player) {
-        if let Some(d) = self.damage_mut(owner) {
+        if let Some(d) = self.tallies_mut(owner) {
             d.buildings_lost += 1;
         }
     }
@@ -185,7 +182,7 @@ impl Sim {
     pub(crate) fn stamp_raid_and_attack(&mut self, vic: Player, att: Player, frame: i64) {
         let a = usize::from(att);
         if a < 8
-            && let Some(d) = self.damage_mut(vic)
+            && let Some(d) = self.tallies_mut(vic)
         {
             d.raid_stamp[a] = frame;
             d.attack_stamp[a] = frame;
@@ -197,7 +194,7 @@ impl Sim {
     pub(crate) fn step_ally_stamp(&mut self, vic: Player, att: Player, frame: i64) {
         let a = usize::from(att);
         if a < 8
-            && let Some(d) = self.damage_mut(vic)
+            && let Some(d) = self.tallies_mut(vic)
             && past(frame, d.ally_stamp[a], STAMP_WINDOW)
         {
             d.ally_stamp[a] = frame;
@@ -219,7 +216,7 @@ impl Sim {
         if a >= 8 {
             return;
         }
-        let Some(d) = self.damage_mut(vic) else {
+        let Some(d) = self.tallies_mut(vic) else {
             return;
         };
         let cell = if raid {
@@ -234,10 +231,11 @@ impl Sim {
 
     /// **`attrition_stamp`'s peace and assassin arms**
     /// (`Unit::process_attrition@005e11a0`, §5.2), on the unit owner's
-    /// slot: `stamp == 0 || frame − stamp > 900` takes the frame.
+    /// slot: `stamp == 0 || frame − stamp > 900` takes the frame (strict:
+    /// exactly 900 does not re-arm).
     pub(crate) fn note_attrition_arm(&mut self, who: Player, frame: i64) {
-        if let Some(d) = self.damage_mut(who)
-            && (d.attrition_stamp == 0 || past(frame, d.attrition_stamp, ATTRITION_WINDOW))
+        if let Some(d) = self.tallies_mut(who)
+            && (d.attrition_stamp == 0 || past(frame, d.attrition_stamp, 900))
         {
             d.attrition_stamp = frame;
         }
@@ -246,7 +244,7 @@ impl Sim {
     /// `Game::do_frame`'s timed zeroing of `attrition_stamp` on every slot
     /// in play, on the frame the peace ends (§5.2).
     pub(crate) fn zero_attrition_stamps(&mut self) {
-        for d in &mut self.leaders.damage {
+        for d in &mut self.leaders.tallies {
             d.attrition_stamp = 0;
         }
     }
@@ -255,7 +253,7 @@ impl Sim {
     /// warning tests.
     pub(crate) fn attrition_stamp2(&self, who: usize) -> i64 {
         self.leaders
-            .damage
+            .tallies
             .get(who)
             .map_or(0, |d| d.attrition_stamp2)
     }
@@ -263,7 +261,7 @@ impl Sim {
     /// `attrition_stamp2 = frame`, for every slot (the console gates only
     /// the message).
     pub(crate) fn set_attrition_stamp2(&mut self, who: usize, frame: i64) {
-        if let Some(d) = self.leaders.damage.get_mut(who) {
+        if let Some(d) = self.leaders.tallies.get_mut(who) {
             d.attrition_stamp2 = frame;
         }
     }
@@ -273,7 +271,7 @@ impl Sim {
     /// time (`always`); a started building that survives its hit stamps
     /// only a zero word.
     pub(crate) fn note_building_bleed(&mut self, who: Player, frame: i64, always: bool) {
-        if let Some(d) = self.damage_mut(who)
+        if let Some(d) = self.tallies_mut(who)
             && (always || d.attrition_stamp3 == 0)
         {
             d.attrition_stamp3 = frame;
@@ -282,12 +280,12 @@ impl Sim {
 
     /// `repair_stamp` (`+0x208`), `do_repair`'s refusal throttle.
     pub(crate) fn repair_stamp(&self, who: Player) -> i64 {
-        self.leader_damage(who).repair_stamp
+        self.leader_tallies(who).repair_stamp
     }
 
     /// `repair_stamp = frame`, for every player, before the console test.
     pub(crate) fn set_repair_stamp(&mut self, who: Player, frame: i64) {
-        if let Some(d) = self.damage_mut(who) {
+        if let Some(d) = self.tallies_mut(who) {
             d.repair_stamp = frame;
         }
     }
@@ -296,7 +294,7 @@ impl Sim {
     /// Cruise Missile (§15.2).
     pub(crate) fn missiles_used(&self, who: Player) -> i32 {
         self.leaders
-            .damage
+            .tallies
             .get(usize::from(who))
             .map_or(0, |d| d.missiles_used)
     }
@@ -304,14 +302,14 @@ impl Sim {
     /// `missiles_used[who] += 1`, a missile's round landed past its shield
     /// and the nuke arm.
     pub(crate) fn note_missile_landed(&mut self, who: Player) {
-        if let Some(d) = self.damage_mut(who) {
+        if let Some(d) = self.tallies_mut(who) {
             d.missiles_used += 1;
         }
     }
 
     /// `nukes_launched[who] += 1`, `come_out`'s strafing nuke (§15.2).
     pub(crate) fn note_nuke_launched(&mut self, who: Player) {
-        if let Some(d) = self.damage_mut(who) {
+        if let Some(d) = self.tallies_mut(who) {
             d.nukes_launched += 1;
         }
     }

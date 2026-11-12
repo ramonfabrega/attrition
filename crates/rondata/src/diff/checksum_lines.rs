@@ -1791,7 +1791,7 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 4, 4313);
 /// 13, 5, theirs 0; parked 4167b). The long range stays out on the other
 /// 84.
 ///
-/// Item 4176: 84 → 68 names. Held (`sim::leaders::damage`) and agreeing on
+/// Item 4176: 84 → 68 names. Held (`sim::leaders::tallies`) and agreeing on
 /// both leaders, every one 0 = 0 on frame 91 (no blow has landed past
 /// frame 300, no unit or building has died, no unit stands in a rival's
 /// land): the kill, loss and raze counters `units_killed`, `units_lost`,
@@ -1912,7 +1912,7 @@ const LEADERS_BENT: &[&str] = &[
     "forts_built",
     "scholar_militia",
     "dock_queued",
-    // Item 4176's sixteen (`sim::leaders::damage`), each agreeing on run
+    // Item 4176's sixteen (`sim::leaders::tallies`), each agreeing on run
     // 1562's frame 91.
     "attack_stamp",
     "raid_stamp",

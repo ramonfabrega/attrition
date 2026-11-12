@@ -30,7 +30,7 @@ impl Sim {
         if w >= self.territory.players.len() {
             return;
         }
-        // `if give_att_disabled != 0: att = 0` (`calc_attrition@006cdea0`'s
+        // `if give_att_disabled != 0: att = 0` (the original's
         // first test, `docs/LEADERS.md` §5.2, fault 4). Only a trigger
         // writes the flag.
         if self.territory.players[w].give_disabled {

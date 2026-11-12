@@ -60,7 +60,7 @@ pub(crate) const UNMODELLED: &[(&str, &str)] = &[
 ];
 
 /// The damage path's leaves `LeaderData::log_data@006e5110` prints (item
-/// 4176): every [`sim::leaders::damage::LEAVES`] but `units_bribed` and
+/// 4176): every [`sim::leaders::tallies::LEAVES`] but `units_bribed` and
 /// `give_att_disabled`.
 pub(crate) const DAMAGE_PRINTED: [&str; 14] = [
     "attack_stamp",
@@ -576,7 +576,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // `ctw_hero_stamp`, `repair_stamp`, `missiles_used` and
     // `nukes_launched`. The same values the leaders line emits.
     for k in DAMAGE_PRINTED {
-        let v = s.leader_damage_leaf(p, k).unwrap_or_default();
+        let v = s.leader_tally_leaf(p, k).unwrap_or_default();
         if DAMAGE_ROWS.contains(&k) {
             for (i, x) in v.iter().enumerate() {
                 out.push((format!("{k}[{i}]"), *x));

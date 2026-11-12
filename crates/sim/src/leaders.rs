@@ -1,10 +1,10 @@
 //! `leaders/` — the files `docs/STRUCTURE.md` §3 maps here (item 4012).
 
-pub mod damage;
 pub mod diplomacy;
 pub mod marks;
 pub mod relations;
 pub mod resign;
+pub mod tallies;
 pub mod words;
 
 /// The `leaders/` subsystem's fields of [`crate::Sim`] (`docs/STRUCTURE.md`
@@ -54,7 +54,7 @@ pub struct LeadersState {
     pub marks: Vec<marks::Marks>,
     /// The damage path's leaves: the kill, loss and raze counters, the
     /// victim and attrition stamps, the repair stamp, `missiles_used` and
-    /// `nukes_launched` (`docs/LEADERS.md` §2, §4, §5, §15; [`damage`],
+    /// `nukes_launched` (`docs/LEADERS.md` §2, §4, §5, §15; [`tallies`],
     /// item 4176), one per slot.
-    pub damage: Vec<damage::Damage>,
+    pub tallies: Vec<tallies::Tallies>,
 }
