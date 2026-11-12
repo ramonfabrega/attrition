@@ -349,8 +349,11 @@ class TheLiveTree(unittest.TestCase):
     # 3779 built `find_new_target`'s defensive-post arm (`bVar3`), whose
     # SEAM named `find_def_pos` as unread. 13 → 12: item 3985 built
     # `get_range`'s spy-upgrade terms, whose SEAM in `spell_range` named
-    # `get_spy_upgrade` as missing.
-    DOORS = 12
+    # `get_spy_upgrade` as missing. 12 → 13: item 4185 (step V) wrote
+    # `forbidden_city_close`'s SEAM, which names tribe bonus 0x17's second
+    # `find_capital` call as not carried while the function is in the tree;
+    # re-pinned by lane 4186 at the merge that met it, 1224's to re-word.
+    DOORS = 13
 
     def test_the_seams_a_door_outlived_are_the_pinned_count(self):
         self.assertEqual(len(seams.doors()), self.DOORS)
