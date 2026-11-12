@@ -120,6 +120,29 @@ fn shade_shader() -> String {
         .replace("{white}", &format!("{white:?}"))
 }
 
+/// The names [`SHADE_SHADER`] leaves a hole for, each filled once.
+#[cfg(test)]
+const SHADE_HOLES: [&str; 2] = ["EXPOSURE", "white"];
+
+/// **Every shader module `Gpu::new` builds**, as its label and its source
+/// assembled as the device takes it: the one list `Gpu::new` compiles and
+/// `every_shader_parses_and_validates` validates, so a module cannot be
+/// built without being validated. In `Gpu::new`'s order: the world's, the
+/// sprites', the textured, the decal (the textured with
+/// [`DECAL_SHADER`] appended), the tree (the textured with the filled
+/// [`TREE_SHADER`] appended), the shade, the patch.
+fn shader_sources() -> [(&'static str, String); 7] {
+    [
+        ("client", SHADER.to_string()),
+        ("sprites", SPRITE_SHADER.to_string()),
+        ("textured", TEXTURED_SHADER.to_string()),
+        ("decal", format!("{TEXTURED_SHADER}{DECAL_SHADER}")),
+        ("tree", format!("{TEXTURED_SHADER}{}", tree_shader())),
+        ("shade", shade_shader()),
+        ("patch", PATCH_SHADER.to_string()),
+    ]
+}
+
 /// The camera-space depth range mapped onto [0, 1]: wider than any map.
 const DEPTH_RANGE: (f32, f32) = (-200_000.0, 200_000.0);
 
@@ -285,9 +308,20 @@ impl Gpu {
             ..Default::default()
         }))
         .map_err(|e| format!("no device: {e}"))?;
-        let module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("client"),
-            source: wgpu::ShaderSource::Wgsl(SHADER.into()),
+        // Every module, from the one list the tests validate.
+        let [
+            module,
+            sprite_module,
+            textured_module,
+            decal_module,
+            tree_module,
+            shade_module,
+            patch_module,
+        ] = shader_sources().map(|(label, source)| {
+            device.create_shader_module(wgpu::ShaderModuleDescriptor {
+                label: Some(label),
+                source: wgpu::ShaderSource::Wgsl(source.into()),
+            })
         });
         let uniform = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("camera"),
@@ -367,10 +401,6 @@ impl Gpu {
                 cache: None,
             })
         };
-        let sprite_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("sprites"),
-            source: wgpu::ShaderSource::Wgsl(SPRITE_SHADER.into()),
-        });
         let sprite_uniform = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("screen"),
             size: 16,
@@ -459,18 +489,6 @@ impl Gpu {
         });
         let textured_attributes =
             wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32x3];
-        let textured_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("textured"),
-            source: wgpu::ShaderSource::Wgsl(TEXTURED_SHADER.into()),
-        });
-        let decal_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("decal"),
-            source: wgpu::ShaderSource::Wgsl(format!("{TEXTURED_SHADER}{DECAL_SHADER}").into()),
-        });
-        let tree_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("tree"),
-            source: wgpu::ShaderSource::Wgsl(format!("{TEXTURED_SHADER}{}", tree_shader()).into()),
-        });
         let pass_of = |module: &wgpu::ShaderModule,
                        label: &str,
                        entry: &str,
@@ -589,10 +607,6 @@ impl Gpu {
                 count: None,
             }),
         });
-        let shade_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("shade"),
-            source: wgpu::ShaderSource::Wgsl(shade_shader().into()),
-        });
         let shade_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("shade"),
@@ -668,10 +682,6 @@ impl Gpu {
             None,
             Default::default(),
         );
-        let patch_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("patch"),
-            source: wgpu::ShaderSource::Wgsl(PATCH_SHADER.into()),
-        });
         let patch_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("patch"),
             bind_group_layouts: &[Some(&bgl), Some(&sprite_layout), Some(&sprite_layout)],
@@ -1610,26 +1620,13 @@ mod tests {
         Ok(())
     }
 
-    /// The shaders `Gpu::new` builds its modules from, as it builds them.
-    fn shaders() -> [(&'static str, String); 5] {
-        [
-            ("world.wgsl", SHADER.to_string()),
-            ("sprite.wgsl", SPRITE_SHADER.to_string()),
-            ("textured.wgsl", TEXTURED_SHADER.to_string()),
-            (
-                "textured.wgsl + tree.wgsl",
-                format!("{TEXTURED_SHADER}{}", tree_shader()),
-            ),
-            ("patch.wgsl", PATCH_SHADER.to_string()),
-        ]
-    }
-
-    /// Item 4181: every shader file parses and validates under `naga`
-    /// (the `wgpu::naga` the device compiles with), the tree's with its
-    /// holes filled, appended to the textured shader as `Gpu::new` does.
+    /// Item 4181: every shader module `Gpu::new` builds parses and
+    /// validates under `naga` (the `wgpu::naga` the device compiles with),
+    /// each source as [`shader_sources`] assembles it — the one list
+    /// `Gpu::new` compiles.
     #[test]
     fn every_shader_parses_and_validates() {
-        for (name, src) in shaders() {
+        for (name, src) in shader_sources() {
             validated(name, &src).unwrap_or_else(|e| panic!("{e}"));
         }
         // The check can fail: one character changed is refused.
@@ -1659,6 +1656,115 @@ mod tests {
                 .any(|(a, b)| a == '{' && b.is_ascii_alphabetic()),
             "a hole the template names and the code does not fill"
         );
+    }
+
+    /// The shade template's every hole is filled, once, and no other
+    /// brace pair in it names a constant.
+    #[test]
+    fn the_shade_template_s_holes_are_filled() {
+        for h in SHADE_HOLES {
+            assert_eq!(SHADE_SHADER.matches(&format!("{{{h}}}")).count(), 1, "{h}");
+        }
+        let t = shade_shader();
+        for h in SHADE_HOLES {
+            assert!(!t.contains(&format!("{{{h}}}")), "{h} left unfilled");
+        }
+        assert!(
+            !t.chars()
+                .zip(t.chars().skip(1))
+                .any(|(a, b)| a == '{' && b.is_ascii_alphabetic()),
+            "a hole the template names and the code does not fill"
+        );
+    }
+
+    /// The text of `file` outside its holes, in order: a template's
+    /// `{NAME}` (a brace, a letter, word characters, a brace) cut out.
+    fn outside_holes(file: &str) -> Vec<&str> {
+        let b = file.as_bytes();
+        let (mut out, mut from, mut i) = (Vec::new(), 0, 0);
+        while i < b.len() {
+            if b[i] == b'{' && b.get(i + 1).is_some_and(u8::is_ascii_alphabetic) {
+                let end = b[i + 1..]
+                    .iter()
+                    .position(|c| !(c.is_ascii_alphanumeric() || *c == b'_'))
+                    .map(|n| i + 1 + n);
+                if let Some(end) = end.filter(|&e| b[e] == b'}') {
+                    out.push(&file[from..i]);
+                    from = end + 1;
+                    i = from;
+                    continue;
+                }
+            }
+            i += 1;
+        }
+        out.push(&file[from..]);
+        out
+    }
+
+    /// Whether `file` is part of `src`: every piece of it outside its
+    /// holes found in `src`, in order.
+    fn is_part_of(file: &str, src: &str) -> bool {
+        let mut at = 0;
+        outside_holes(file)
+            .iter()
+            .all(|piece| match src[at..].find(piece) {
+                Some(n) => {
+                    at += n + piece.len();
+                    true
+                }
+                None => false,
+            })
+    }
+
+    /// Every `*.wgsl` under `crates/client/shaders/` is part of a source
+    /// in [`shader_sources`] — a template's text outside its holes, in
+    /// order: a file the list forgets is caught here.
+    #[test]
+    fn every_shader_file_is_in_the_list() {
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("shaders");
+        let sources = shader_sources();
+        let mut files = 0;
+        let mut missing = Vec::new();
+        for entry in std::fs::read_dir(&dir).unwrap() {
+            let path = entry.unwrap().path();
+            if path.extension().and_then(|e| e.to_str()) != Some("wgsl") {
+                continue;
+            }
+            files += 1;
+            let text = std::fs::read_to_string(&path).unwrap();
+            if !sources.iter().any(|(_, src)| is_part_of(&text, src)) {
+                missing.push(path.file_name().unwrap().to_string_lossy().into_owned());
+            }
+        }
+        missing.sort();
+        assert!(files > 0, "no shader under {}", dir.display());
+        assert!(
+            missing.is_empty(),
+            "not in any validated source: {missing:?}"
+        );
+    }
+
+    /// The crate builds shader modules at one call site, the map over
+    /// [`shader_sources`] in `Gpu::new`, which destructures the list into
+    /// its seven modules: a module built by hand elsewhere, outside the
+    /// validated list, is caught here. (Before the list, seven call sites
+    /// against a hand list of five.)
+    #[test]
+    fn every_module_built_is_validated() {
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+        let call = concat!("create_shader_", "module(");
+        let mut built = 0;
+        for entry in std::fs::read_dir(&dir).unwrap() {
+            let path = entry.unwrap().path();
+            if path.extension().and_then(|e| e.to_str()) == Some("rs") {
+                built += std::fs::read_to_string(&path)
+                    .unwrap()
+                    .matches(call)
+                    .count();
+            }
+        }
+        assert_eq!(built, 1, "call sites building a shader module");
+        assert_eq!(shader_sources().len(), 7);
     }
 
     #[test]
