@@ -2013,6 +2013,12 @@ pub fn tree_art(install: &Install, tileset: &str) -> Result<TreeArt, ArtFailure>
 #[derive(Clone, Debug, PartialEq)]
 pub struct GroundArt {
     pub baseland: Vec<GroundBase>,
+    /// `<COASTAL>`'s and `<OCEAN>`'s `<BASE>`s (item 4164): the land types
+    /// `eTILE_COASTAL` (1) and `eTILE_OCEAN` (2) that
+    /// `convert_land_tex_to_linear` counts after `BASELAND`'s. A `SANDY` or
+    /// an `OCEAN` cell takes its type's first texture, with no sub-tile.
+    pub coastal: Vec<GroundBase>,
+    pub ocean: Vec<GroundBase>,
 }
 
 /// One `<BASE>` under a tileset's `<BASELAND>`.
@@ -2046,34 +2052,43 @@ pub fn ground_art(install: &Install, tileset: &str) -> Result<GroundArt, ArtFail
         .and_then(|b| b.attribute("path"))
         .map(|p| p.trim().replace('\\', "/"))
         .ok_or_else(|| unnamed(&format!("{tileset}/BASEDIR")))?;
-    let land = child(set, "BASELAND").ok_or_else(|| unnamed(&format!("{tileset}/BASELAND")))?;
-    let baseland: Vec<GroundBase> = land
-        .children()
-        .filter(|c| c.is_element() && c.tag_name().name().eq_ignore_ascii_case("BASE"))
-        .map(|b| {
-            let name = b.attribute("name").unwrap_or_default().trim().to_string();
-            let texture = child(b, "TEXTURE")
-                .and_then(|t| t.attribute("name"))
-                .map(|f| {
-                    format!(
-                        "{}/{}",
-                        base.trim_end_matches('/'),
-                        f.trim().replace('\\', "/")
-                    )
+    let bases = |tag: &str| -> Result<Vec<GroundBase>, ArtFailure> {
+        let Some(land) = child(set, tag) else {
+            return Ok(Vec::new());
+        };
+        land.children()
+            .filter(|c| c.is_element() && c.tag_name().name().eq_ignore_ascii_case("BASE"))
+            .map(|b| {
+                let name = b.attribute("name").unwrap_or_default().trim().to_string();
+                let texture = child(b, "TEXTURE")
+                    .and_then(|t| t.attribute("name"))
+                    .map(|f| {
+                        format!(
+                            "{}/{}",
+                            base.trim_end_matches('/'),
+                            f.trim().replace('\\', "/")
+                        )
+                    })
+                    .ok_or_else(|| unnamed(&format!("{tileset}/{tag}/{name}/TEXTURE")))?;
+                let supertile = b.attribute("supertile").is_some_and(|v| v.trim() == "1");
+                Ok(GroundBase {
+                    name,
+                    texture,
+                    supertile,
                 })
-                .ok_or_else(|| unnamed(&format!("{tileset}/BASELAND/{name}/TEXTURE")))?;
-            let supertile = b.attribute("supertile").is_some_and(|v| v.trim() == "1");
-            Ok(GroundBase {
-                name,
-                texture,
-                supertile,
             })
-        })
-        .collect::<Result<_, ArtFailure>>()?;
+            .collect()
+    };
+    child(set, "BASELAND").ok_or_else(|| unnamed(&format!("{tileset}/BASELAND")))?;
+    let baseland = bases("BASELAND")?;
     if baseland.is_empty() {
         return Err(unnamed(&format!("{tileset}/BASELAND/BASE")));
     }
-    Ok(GroundArt { baseland })
+    Ok(GroundArt {
+        baseland,
+        coastal: bases("COASTAL")?,
+        ocean: bases("OCEAN")?,
+    })
 }
 
 /// **The tileset's mountain textures** (item 4141; `docs/RENDERER.md`
