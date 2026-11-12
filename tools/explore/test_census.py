@@ -304,7 +304,9 @@ class PinnedTraces(unittest.TestCase):
         # and a sweep lane told to take port consumers took a function nobody
         # ports. `port` now needs the crate to spell the function's own
         # `Class::method`; a bare name match is `name`.
-        entries = [(0x10, 'BorderNodes::find', 'c:\\rise\\game\\borders.cpp', 120),
+        # (Item 4170: `BorderNodes::find` itself is `ui` now, the border
+        # renderer's class; the row is a name nobody's class takes.)
+        entries = [(0x10, 'Regions::find', 'c:\\rise\\game\\regions.cpp', 120),
                    (0x20, 'Caravan::trade_value', 'c:\\rise\\game\\caravan.cpp', 130),
                    (0x30, 'World::adjust_fog', 'c:\\rise\\game\\world.cpp', 106)]
         with patch.object(census, 'layer_of', return_value='simulation'):
@@ -312,7 +314,7 @@ class PinnedTraces(unittest.TestCase):
                                         spelled={'Caravan::trade_value'})
         marks = {name: mark for _, _, name, mark, _ in rows}
         self.assertEqual(marks['Caravan::trade_value'], 'port')
-        self.assertEqual(marks['BorderNodes::find'], 'name')
+        self.assertEqual(marks['Regions::find'], 'name')
         self.assertEqual(marks['World::adjust_fog'], '-')
 
     def test_the_spelled_names_are_read_off_the_crate_outside_sweep(self):
