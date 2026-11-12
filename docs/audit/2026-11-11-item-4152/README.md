@@ -86,7 +86,7 @@ clear cut: re-run that wave for that family.
 | 10 | `end-of-game` | done | done | done | owed |
 | 11 | `lost-capital` | done | done | done | done, §11 |
 | 12 | `misery` | done | done | done | owed |
-| 13 | `marks-built` | done | done | in flight at the clear | owed |
+| 13 | `marks-built` | done | done | done | owed |
 | 14 | `queued` | done | done | done | owed |
 | 15 | `odd-counters` | done | done | done | owed |
 | 16 | `lobby-words` | done | done | in flight at the clear | owed |
@@ -95,7 +95,7 @@ clear cut: re-run that wave for that family.
 | 19 | `last-finished` | done | done | done | done, §19 |
 | 20 | `high-buildings` | done | done | done | owed |
 
-**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 15 of
+**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 16 of
 20, specified 7 of 20.
 
 **How to resume.** The briefs are in `briefs/`, one per wave. A spawn is one
@@ -181,3 +181,4 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | queued | 3 | 183 k | 12 | 109 confirmed, 7 corrected, 7 open (per-leaf rows) | the floor tests only `== 0`, so a counter below 0 keeps falling; the crate's `untrack_queued` matches; **the permanent +1 to `scholar_militia` is confirmed** (decoys of militia, `swap_team`), its frequency open |
 | end-of-game | 3 | 214 k | 17 | 64 confirmed, 8 corrected, 6 open | **the plain lobby is capital elimination (ELIMINATION 1)**, so `process_elimination`, the GLOBAL_GOVERNMENT arms and `leave_game`'s type 1 are plain-game; an archive sweep finds five territory victories (against `territory/victory.rs:21`), run600 frame 17380 a ready value diff, and `wonderwin_timer` 1 in 30 captures against the `w44c` stub |
 | score | 3 | ~250 k | ~15 | 64 confirmed, 5 corrected, 9 open | every formula holds term by term; `find_target`'s clause fires when my score exceeds 4/3 of the candidate's (the first reading had it reversed); `kill_value_by` (`economy/cost.rs:1258`) already ports the kill value; a gaia kill reads `diplos[8]` past its end (open) |
+| marks-built | 3 | ~130 k | ~13 | 63 confirmed, 7 corrected, 5 open | a captured wonder credits the captor `wonders_built += 1` for 15 of 17 wonders (no gate at `625b4b`); a captured fort does **not** count again (forts carry 0x2000); `Leaders` has 10 slots; the crate site is `city.rs:2490`, before the city split |

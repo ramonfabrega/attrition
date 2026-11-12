@@ -130,11 +130,24 @@ the checksum arm so the two cannot drift.
 - **Plain game:** reached by every random-map game; frozen at the lobby
   byte; never the deciding input of any reader.
 - **Confidence:** high (listing for writer and predicate, `types.txt` for
-  the offset, the harness's own per-capture lobbies). The dump
-  cross-check is below.
+  the offset, the harness's own per-capture lobbies, and 949 dumps that
+  agree; section 3).
 - **Open:** none for a plain game. `change_difficulty`'s callers and the
   13 inlined `get_diff` copies were not re-read here (neither changes the
   plain-game value).
+
+### 3. The dump cross-check (an observation, not a diff)
+
+Re-run here independently of the first reading (2026-11-11): of the
+1,194 kept `gamelog-*.txt`, 949 print `multi_diff` within their first
+20 MB. In each, the first eight `multi_diff` lines carry only 0 and that
+dump's own first `DIFFICULTY` value: 297 at `DIFFICULTY 0` (0 only), 13
+at 1 (0, 1), 25 at 2 (0, 2), 121 at 3 (0, 3), 107 at 4 (0, 4), 385 at 5
+(0, 5), and the one dump without a `DIFFICULTY` line prints 0 and 5. The
+0s fit the unseated slots, which keep the memset's 0. No dump shows a
+seated slot at 0 under a non-zero lobby, which is the check that would
+have killed "the lobby byte". Nothing in `rondata::diff` compares this
+leaf yet; the arm above, once added, turns this observation into a diff.
 
 ## Leaf `cannon_time` (+0x48, ulong)
 

@@ -250,3 +250,125 @@ match the original.**
 - **Confidence**: high. Open: the pricing loop's `*local_44` (a flag of
   `Leader::diplomacy`) not named.
 
+## Leaf 3: `counteroffer` (+0x314, int[8])
+
+### Claims
+
+| # | claim | first | second | mark |
+|---|---|---|---|---|
+| 1 | writers `Leader::diplomacy` `6c005e` (=1), `6bf3ea`, `6c0840`, `6c086b` (=0); `action_respond` `6d03e0` (=0 on entry, every code) | yes | yes | agree |
+| 2 | writer `Leader::init` loop `6e3d75` | yes | no | one-sided |
+| 3 | `−99` forgiveness on the shortfall when the slot is set (`6bfe1c`–`6bfe2a`) | yes | yes | agree |
+| 4 | `=1` predicate | shortfall `> 0`, `local_54 == 0` (glossed as the "clear everything" flag), `local_48 == 0` (not followed) | shortfall `> 0` and `-0x44` ("already asked") `== 0` | disagree |
+| 5 | `=1` effect: best `resource_value` good (≥ 0x40, never KNOWLEDGE, default WEALTH), `clear_agree` both ways, ask rounded up to 100 | yes | yes | agree |
+| 6 | `=0` at `6c086b`: shortfall `<= 0` → accept if `any_proposals`, charge `good_deeds[k]` (`+50` when `weak[k]` and not a tribute period) | yes | yes | agree |
+| 7 | `=0` at `6c0840`: the reject arm; `k.got_diplo_message = frame`; `action_respond(me,k, agree==1 ? 0 : 2)` | partly (no `got_diplo_message`) | yes | one-sided |
+| 8 | `=0` at `6bf3ea`: style 0/8/11 (or 7's case), `num_allies == 0`, no victory timer, both computers, `aggression[k] == 0` | yes | "neither human and `-0x28` is 0" | agree (second's `-0x28` is the pointer to `aggression[k]`, `6be4ab`–`6be4b1`) |
+| 9 | reader: the cadence doubling while `dip[k].agree != 1` | yes | yes | agree |
+| 10 | crate: SEAM `leaders/diplomacy.rs:177`–`:179`; cadence omits it | yes | yes | agree |
+| 11 | plain game: a proposal to a computer (human, or a computer's own under style 0/8/11) | yes | yes | agree |
+
+### Settled
+
+- **(4) corrected: both glosses are off.** The pricing walk at
+  `LAB_006bf4b6` reuses both slots: `6bf4b8 movl $0,-0x44(%ebp)`, `6bf4bf
+  movl %eax,-0x50(%ebp)` (0), then per good `6bf527`–`6bf52c` sets `-0x50 =
+  1` when `me.dip[k].offers[r] > my stock[r]`, and `6bf531`–`6bf533` sets
+  `-0x44 = 1` when that offer is positive. Every path to the counteroffer
+  site passes `LAB_006bf4b6` (the treaty-2 pricing ends `goto
+  LAB_006bf4b6`, decompile `:2040`), so the first reading's "clear
+  everything" meaning (the slot's earlier use, `6be4a8`) is dead by then.
+  At the site: `6bfe30 testl -0x50; je 6bffef`; `6bffef`–`6bfffc`: shortfall
+  `<= 0` → `6c0865` (accept), else `-0x44 != 0` → `6c035d`, else fall into
+  the `=1` arm. **Rule: `counteroffer[k] = 1` iff the shortfall (after the
+  −99) is positive, no good of mine in the deal is positive (`-0x44 == 0`),
+  and none exceeds my stock (`-0x50 == 0`)** — the computer counters a deal
+  that asks it for nothing yet still falls short, by demanding goods. The
+  second reading names one of the two conditions; the first names both but
+  mislabels them. Deciding lines `6bfe32` and `6bfffc`.
+- **(7) confirmed (second).** `6c0832`–`6c0838`: `0xe3a680(%ecx)`, `ecx =
+  k·0x6eec` → `k.got_diplo_message` (+0x2f0) = frame, before the `6c0840`
+  store.
+- **(2) confirmed (first)**, `6e3d75`.
+- **(9) spot-checked.** `6bcaba`–`6bcaf0`: base 0x800; when
+  `me.dip[k].agree != 1`, `tribute_demanded[k] != 0` → `-0xa4` = 0x2000
+  (`6bca20`), then `counteroffer[k] != 0` doubles; `agendas[k] & 8 == 0`
+  shifts right 2 (unsigned). Fires when `(P − 1) & ((k + 8·me)·(P >> 6) +
+  frame) == 0` (`6bcaf5`–`6bcb0e`). **Confirmed.**
+
+### Rule to port
+
+- **Writers**: `Leader::diplomacy`'s proposal evaluation (computer `me`,
+  proposer `k`, reached only when `k.dip[me].agree == 1`): `=1` as above;
+  `=0` on its accept (`6c086b`), reject (`6c0840`) and the style-0/8/11
+  no-allies acceptance (`6bf3ea`); and `=0` on entry to every
+  `action_respond(me, k, *)`.
+- **Reset**: leader setup; the entry clear.
+- **Readers**: the cadence (×2) and the −99.
+- **Crate site**: `Sim::diplomacy_with`'s `LAB_006bf0e0` SEAM and an
+  `action_respond` port; the cadence at `leaders/diplomacy.rs:180` then reads
+  it.
+- **Plain game**: needs a proposal to a computer: a human's, or a
+  computer's under style 0/8/11. 0 throughout an all-computer style-1 game
+  (A).
+- **Confidence**: high on stores and predicates now listing-read; the
+  shortfall formula itself (decompile `:2676`–`:2777`) is not this leaf's
+  and stays unread. Open: what `6c035d` (positive shortfall with a positive
+  give of mine) does; it stores no leaf of this family.
+
+## Leaf 4: `tribute_demanded` (+0x334, int[8])
+
+### Claims
+
+| # | claim | first | second | mark |
+|---|---|---|---|---|
+| 1 | writers `Leader::diplomacy` `6be85d` (=1, after its own `action_respond(me,k,1)`), `action_respond` `6d03d8` (=0 on entry) | yes | yes | agree |
+| 2 | writer `Leader::init` loop `6e3d7b` | yes | no | one-sided |
+| 3 | gate: team style 0/8/11 (or 7's team-8 case); style 1 → `LAB_006bed3f` | yes | yes | agree |
+| 4 | skip when `is_tribute_period(me,k)` or `frame < floor` (`-0x3c`), floor `(3·span + ((seed + who) & 7))·300` | yes | yes | agree |
+| 5 | war instead when: the cleared-agreement flag (`-0x50`) | yes | yes | agree |
+| 6 | ... "a counter above 3" (first) vs `k.blacken >= 4` (second) | counter | `k.blacken` | disagree |
+| 7 | ... `-0x30` set | yes (`local_34`) | yes | agree |
+| 8 | ... `hire_stamp[k]` set and young: "under 13501 (0x34bd)" vs "younger than 13501 (0x34bc)" | yes | yes | agree in substance |
+| 9 | ... `k`'s WEALTH `< D`, `D = (epoch + 1)·(X + 1)·100`, X "count" (first) / `k.blacken` (second) | count | `k.blacken` | disagree |
+| 10 | demand composition (random start, non-WEALTH non-KNOWLEDGE goods short for me, `−min(k stock, D)`, WEALTH ask) | yes | yes | agree |
+| 11 | the computer's slot stays 1 after the target pays; only its own `action_respond(me,k,*)` clears it | yes | yes | agree |
+| 12 | readers: cadence 0x2000, the war chat table (`6be9f5`) | yes | yes | agree |
+| 13 | crate: SEAM `leaders/diplomacy.rs:177`–`:179`; the style-0/8/11 SEAM at `:470` | yes | yes | agree |
+| 14 | plain game: style 0/8/11 only; reachable with no human at style 0 | yes | yes | agree |
+
+### Settled
+
+- **(6) and (9) corrected for the first, confirmed for the second.**
+  `6be664`–`6be670`: `-0x18(%ebp)` is `k·0x6eec` (it also indexes `k`'s
+  `data_encrypted` at `6be6b4`), `movl 0xe3a59c(%ecx),%edx` is `k.blacken`
+  (+0x20c), `cmpl $4; jge` → war. `6be6a4 leal 0x1(%edx)` reuses it: `D =
+  ((me.data_encrypted+0xe8) ^ 0x63187) + 1) · (k.blacken + 1) · 100`
+  (`6be698`–`6be6ba`), compared signed against `k.bucket[WEALTH]`
+  (`6be6bd`–`6be6ca`, `jl` → war) and stored into `-0x3c` for the demand
+  caps. No counter is involved.
+- **(8)**: `6be68b`–`6be692`: `frame − hire_stamp[k] <= 0x34bc` → war (when
+  the stamp is nonzero), i.e. under 13501 frames. Both readings state this.
+- **(3), (4), (5), (7) spot-checked**: `6be54c`–`6be556` (style),
+  `6be639`–`6be640` (`is_tribute_period`), `6be651`–`6be654` (floor),
+  `6be65a`–`6be65e` (`-0x50`), `6be676`–`6be67a` (`-0x30`). **Confirmed.**
+- **(2) confirmed (first)**, `6e3d7b`.
+
+### Rule to port
+
+- **Writers**: `=1` at the end of the demand arm of `Leader::diplomacy`
+  (computer `me`, target `k`, style 0/8/11 or 7's case, at peace both ways,
+  `aggression[k] != 0`, past rush rules, `!is_tribute_period(me,k)`,
+  `frame >= floor`, and none of: cleared agreement, `k.blacken >= 4`,
+  `-0x30`, `hire_stamp[k]` within 13500 frames, `k.WEALTH < D`); `=0` on
+  entry to every `action_respond(me, k, *)`.
+- **Reset**: leader setup; the entry clear (the demander's own call only).
+- **Readers**: cadence (0x2000 base) and the war message table.
+- **Crate site**: `Sim::diplomacy_with` past its style-0/8/11 SEAM
+  (`leaders/diplomacy.rs:470`); the cadence term at `:180`.
+- **Plain game**: style 0/8/11 only, with or without a human; 0 throughout
+  any style-1 game.
+- **Confidence**: high. Open: `-0x30` (`local_34`) is not named by either
+  reading; the epoch word at `data_encrypted+0xe8` is called `epoch[0]` by
+  the first and left unindexed by the second (not settled here).
+
