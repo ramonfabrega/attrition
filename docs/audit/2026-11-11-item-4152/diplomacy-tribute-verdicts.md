@@ -81,7 +81,7 @@ two alliance arms) and `6be556` (the demand).
 ### (B) `tributes` not reduced for the refunded `dows`
 
 Both readings raise it; the first calls it a reading only. **Confirmed.**
-At accept, the attack-price pass (decompile `:191`–`:206`) lowers T's
+At accept, the attack-price pass (decompile `:185`–`:204`) lowers T's
 bucket and `escrow` by `price[r]` (each clamped at 0), raises
 `T.tributes[r]` by `price[r]` (`6d0857`) and stores `T.dip[P].dows[r] =
 price[r]` (`6d0863`). At execution the exchange credits each side's `dows`
@@ -91,11 +91,11 @@ then subtracts only `max(offers[r], 0)` from `tributes` (`6d0f17`,
 tail's two `Diplomacy::clear_all` (`6d12c1` on `T.dip[P]`, `6d12d5` on
 `P.dip[T]`) zero the records and touch no ledger, and they reset `agree`, so
 no later `clear_agree` for that pair can take the residue back. No other
-code charges the price: the tail's attack loop (decompile `:525`–`:545`)
+code charges the price: the tail's attack loop (decompile `:520`–`:541`)
 stamps `hire_stamp`/`hire_who` and calls `action_declare`, with no
 `bucket_add`. **The rule**: an executed deal in which a *human* side had an
 attack request priced (`price` is multiplied by `leader_flags & 4 != 0`,
-decompile `:118`) refunds that price in full to the human's bucket and leaves
+decompile `:110`) refunds that price in full to the human's bucket and leaves
 `tributes[r]` permanently higher by it, until `Leader::init`. Behaviourally
 inert (the residue only loosens `clear_agree`'s `min` cap, which an
 un-inflated ledger never reaches either), but `tributes` is in the `LEADERS`

@@ -91,11 +91,11 @@ clear cut: re-run that wave for that family.
 | 15 | `odd-counters` | done | done | done | owed |
 | 16 | `lobby-words` | done | done | in flight at the clear | owed |
 | 17 | `spells` | done | done | done | done, §17 |
-| 18 | `score` | done | done | in flight at the clear | owed |
+| 18 | `score` | done | done | done | owed |
 | 19 | `last-finished` | done | done | done | done, §19 |
 | 20 | `high-buildings` | done | done | done | owed |
 
-**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 14 of
+**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 15 of
 20, specified 7 of 20.
 
 **How to resume.** The briefs are in `briefs/`, one per wave. A spawn is one
@@ -180,3 +180,4 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | odd-counters | 3 | ~150 k | ~13 | 56 confirmed, 4 corrected, 1 open | writers complete; `nukes_launched` moves only for a strafe at a target `valid_target` refused (expect 0 in plain play); `ids.rs` names 0x139 `CRUISE` where the enum says `V2ROCKET`; the `repair_stamp` SEAM comment says the opposite of its stub |
 | queued | 3 | 183 k | 12 | 109 confirmed, 7 corrected, 7 open (per-leaf rows) | the floor tests only `== 0`, so a counter below 0 keeps falling; the crate's `untrack_queued` matches; **the permanent +1 to `scholar_militia` is confirmed** (decoys of militia, `swap_team`), its frequency open |
 | end-of-game | 3 | 214 k | 17 | 64 confirmed, 8 corrected, 6 open | **the plain lobby is capital elimination (ELIMINATION 1)**, so `process_elimination`, the GLOBAL_GOVERNMENT arms and `leave_game`'s type 1 are plain-game; an archive sweep finds five territory victories (against `territory/victory.rs:21`), run600 frame 17380 a ready value diff, and `wonderwin_timer` 1 in 30 captures against the `w44c` stub |
+| score | 3 | ~250 k | ~15 | 64 confirmed, 5 corrected, 9 open | every formula holds term by term; `find_target`'s clause fires when my score exceeds 4/3 of the candidate's (the first reading had it reversed); `kill_value_by` (`economy/cost.rs:1258`) already ports the kill value; a gaia kill reads `diplos[8]` past its end (open) |
