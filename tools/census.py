@@ -889,7 +889,8 @@ UI_BODY = re.compile(r"^(draw|render|paint|blit|on_(mouse|left|right|middle|key|
 
 def is_ui_body(name):
     cls, _, short = name.rpartition("::")
-    return cls.endswith("Out") or bool(UI_BODY.match(short)) or short.endswith(("_draw", "_render"))
+    return (cls.endswith("Out") or bool(UI_BODY.match(short)) or short.endswith(("_draw", "_render"))
+            or bool(READER_UI.search(name)))
 
 
 # A simulation-layer body that is out of v1 by CLAUDE.md's own cut — a shell
@@ -910,7 +911,50 @@ CUT_FROM_V1 = frozenset((
 
 
 def is_cut(name):
-    return name in CUT_FROM_V1
+    return name in CUT_FROM_V1 or bool(READER_CUT.search(name))
+
+
+# The territory readers' classes (item 4170; DECISIONS 114 §6, the 26
+# readings `docs/audit/2026-11-06-territory-*.md`, each class beside the
+# readings that proposed it). A class lands only when every open function it
+# reaches is one a reader ruled excluded and none it reaches is ported or ruled
+# a twin, absorbed, a differing twin or unmodelled
+# (`tools/explore/test_census_territory.py` holds the conflicts that narrowed
+# them: `Doober::inc_time` and `Unit::update_gpiece` are ports, so neither
+# `Doober::` nor `gpiece` is a class, and `Unit::dbg_jump_to_action` is a
+# differing twin, so `dbg_` is two names). The renderer's go to `ui`; the
+# editor's, Conquer the World's, the shell's game types and multiplayer's go
+# to `cut`, the finish line's "not in it, by design" (docs/TRACKS.md).
+READER_UI = re.compile(
+    # the border renderer (borders-1): the strip and morph mesh over the
+    # territory the rules compute elsewhere
+    r"^(Borders?|BorderNodes|BorderMorphRender|BorderSplineRender|BorderSpline|MorphSideStrip|StripBuilder"
+    r"|LinkVert|TerrainBorder)::"
+    # the terrain and mini-map renderers and the decorations (rest-1 to 3,
+    # terrain-1, object-1): no rule reads their state
+    r"|^(TerrainVis|WorldMap|WorldMapFog|WorldMapBackground|Transitions|CircleRender|Surf|RiverDoobers?|Storm"
+    r"|FogMaster|CoordInfo)::"
+    # the property system's reflection, render reads and interface actions
+    # (object-1, object-2, game-1, game-2, build-1, build-3, terrain-2, rest-2)
+    r"|::(get_render_\w+|on_field_change|on_redraw|\w*_popup|\w*screen_?shot\w*|zoom_\w+|list_rules"
+    r"|device_lost\w*|\w*_to_console|coord_vis.*|\w*weathering|add_\w*for_render|add_geometry|show_\w+"
+    r"|play_sound\w*|get_name|recalc_heights|place_tree)$"
+    # the frame pacing and the solo shell's checks (game-1)
+    r"|^Game::(get_render_mode|calc_graphic_resolution|get_game_fps_average|add_game_fps_to_average|solo_checks"
+    r"|solo_init)$")
+READER_CUT = re.compile(
+    # the editor (terrain-1, terrain-2, rest-2, groups-1)
+    r"^(TerrainMap|Signposts)::|::dbg_(pack_or_unpack|jump_to_waypoint)$"
+    r"|^Mountains::(verify_template|remove_mountain)$|^Cliffs::delete_cliff$|^TerrainOil::remove_rocky_patch$"
+    r"|^World::revert_coast$"
+    # Conquer the World (map-1, map-2, rest-2)
+    r"|^(MapConquest|ReinforcementArmy)::"
+    # the shell's game types (game-1, game-2)
+    r"|^UnitBalance::|^Game::(run_(skilltest|campaign|unit_balance|solo)|end_game_close)$"
+    # multiplayer and the platform (game-1, game-2)
+    r"|^(SyncPoint|NetDaemon|NetSys|NetPlayer|DropControl|SyncFile)::|achievement|[Ll]eaderboard|steam"
+    r"|[Ww]orkshop|::OnFind|^Game::(is_tournament|is_observing|unload_net_lib|run_oos_recovery|is_game_ready"
+    r"|is_cooperative)$|^Player::(drop|is_active_connection|is_connection)$|^std::")
 
 
 BARE_CITE = re.compile(r"(?<![A-Za-z0-9_:])([a-z_][a-z0-9_]*)@(00[0-9a-f]{6})")
@@ -1277,9 +1321,14 @@ TERRITORY_NAMED = (
     ("the start track", re.compile(
         r"^Setup::(large_city_buildings|small_city_buildings|build_units|build_civ_specific|build_cities"
         r"|build_empire|place_unit|build_game|get_starting_citizens)$")),
+    # Item 4170: and every other walk of state, the readers' `walk` class
+    # (`saveload` in their rulings): the checksum's walk is these bodies,
+    # `docs/CHECKSUM.md` §22 credits the ones the whole lines diff, and the
+    # save track's file is seed and orders, never this walk (docs/TRACKS.md).
     ("the checksum track", re.compile(
         r"^(SpellType::walk_rules_data|SubObject::(walk_data|must_walk)|UnitType::walk_rules_data"
-        r"|Tribe::walk_rules_data|Type::walk_rules_data|Types::(walk_data|walk_rules_data)|World::walk_data)$")),
+        r"|Tribe::walk_rules_data|Type::walk_rules_data|Types::(walk_data|walk_rules_data)|World::walk_data)$"
+        r"|::(walk_(\w+_)?data|must_walk|walk_roads)$")),
     ("the rules' 1:1 finish", None),
 )
 # The fourth mark's rows, by name: the first readings' `unmodelled`.
@@ -1328,7 +1377,70 @@ def replaced_group(stem, name):
     return None
 
 
-def territory_kind(va, name, by_doc, by_sweep, port, spelled):
+def default_exe(pdb):
+    """The executable beside the PDB: `<install>/riseofnations.exe` for
+    `<install>/sbl/rise.pdb`."""
+    return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(pdb))), "riseofnations.exe")
+
+
+def unreferenced(exe, targets, starts):
+    """The targets the image holds no reference to (item 4170; the dead-scan
+    of `tools/trace/report.py refs`, docs/EMULATOR.md §4, run over a set): no
+    `call`/`jmp`/`jcc rel32` from another function, no rel8 jump from another
+    function, and no four-byte copy of the address or its RVA at any offset of
+    any section but `.reloc` — `.rdata`'s vtables, the function-pointer
+    tables and `.text`'s immediates included. It counts every byte offset and
+    confirms no site against the listing, so a word inside another
+    instruction counts as a reference: it may call a dead function live (the
+    blind list's scan, which confirms its sites, finds 8 such of the 121 open
+    rows it calls unreferenced), never a live one dead. `starts` is every
+    function's entry, sorted, to name the function a site is in."""
+    import bisect
+    import importlib.util
+    import struct
+    from array import array
+    spec = importlib.util.spec_from_file_location("report", os.path.join(HERE, "trace", "report.py"))
+    report = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(report)
+    with open(exe, "rb") as f:
+        data = f.read()
+    base, secs = report.pe_sections(data)
+    tva, traw = next((va, raw) for n, va, raw in secs if n == ".text")
+    want = set(targets)
+
+    def func(a):
+        i = bisect.bisect_right(starts, a) - 1
+        return starts[i] if i >= 0 else None
+
+    live = set()
+    for opcode, width in ((b"\xe8", 1), (b"\xe9", 1)) + tuple((bytes([0x0F, c]), 2) for c in range(0x80, 0x90)):
+        i = traw.find(opcode)
+        while i >= 0:
+            if i + width + 4 <= len(traw):
+                site = tva + i
+                to = (site + width + 4 + struct.unpack_from("<i", traw, i + width)[0]) & 0xFFFFFFFF
+                if to in want and func(site) != to:
+                    live.add(to)
+            i = traw.find(opcode, i + 1)
+    for t in want - live:
+        for lo in range(max(tva, t - 0x81), min(tva + len(traw) - 1, t + 0x7F)):
+            op = traw[lo - tva]
+            if (op == 0xEB or 0x70 <= op <= 0x7F) and func(lo) != t and \
+                    lo + 2 + struct.unpack_from("<b", traw, lo - tva + 1)[0] == t:
+                live.add(t)
+                break
+    words = want | {t - base for t in want}
+    for n, _va, raw in secs:
+        if n == ".reloc":
+            continue
+        for k in range(4):
+            a = array("I")
+            a.frombytes(raw[k:k + 4 * ((len(raw) - k) // 4)])
+            live |= {w if w in want else w + base for w in set(a) & words}
+    return want - live
+
+
+def territory_kind(va, name, by_doc, by_sweep, port, spelled, unref=()):
     """A simulation function's kind before the mark (`TERRITORY_KINDS` less
     `replaced`), by the tests `is_port_backed` and `rank_unbacked` apply.
 
@@ -1348,6 +1460,13 @@ def territory_kind(va, name, by_doc, by_sweep, port, spelled):
         return "ui"
     if is_cut(name):
         return "cut"
+    # Item 4170: nothing in the image reaches it (`unreferenced`), or the
+    # blind list's residue holds it — two readings ruled that no game this
+    # project can stage enters it (`rondata::blind::RESIDUE`). The out-of-line
+    # copy of a body every caller inlined is no work: its rule is the
+    # caller's.
+    if va in unref:
+        return "dead"
     if va in by_doc or va in by_sweep:
         return "layout"
     if snake(short) in port:
@@ -1355,7 +1474,7 @@ def territory_kind(va, name, by_doc, by_sweep, port, spelled):
     return "open"
 
 
-def territory(index, docs, sim_src, pdb):
+def territory(index, docs, sim_src, pdb, exe=None):
     """The territory map: `(rows, funcs, totals, groups)` — `rows` `{stem:
     Counter}` over `TERRITORY_KINDS` plus `bytes` and `open_bytes`; `funcs`
     every simulation function as `(va, name, stem, kind, group)` with
@@ -1370,13 +1489,29 @@ def territory(index, docs, sim_src, pdb):
     by_doc = doc_backed(docs, by_name)
     by_sweep = sweep_backed(sim_src, by_name, os.path.join(HERE, "emu"))
     port, spelled = port_names(sim_src), port_spellings(sim_src)
+    # The image scan runs over the functions the marks leave open and no
+    # replaced group takes (item 4170): a group is a design ruling, and the
+    # command manager's issuers are called by address from the DLL, which the
+    # scan does not read. A machine without the executable says so rather
+    # than counting them open quietly.
+    exe = exe or default_exe(pdb)
+    if not os.path.isfile(exe):
+        sys.exit(f"territory: no executable at {exe} (the dead scan reads it; RON_INSTALL)")
+    unmarked = set()
+    for va, name, _, _, _ in full:
+        path = source.get(va)
+        if layer_of(path) == "simulation" and replaced_group(
+                path.rsplit("\\", 1)[-1].rsplit(".", 1)[0], name) is None and territory_kind(
+                va, name, by_doc, by_sweep, port, spelled) in TERRITORY_OPEN:
+            unmarked.add(va)
+    unref = unreferenced(exe, unmarked, sorted(e[0] for e in full)) | (unmarked & residue_addrs())
     rows, funcs, totals, groups = {}, [], Counter(), {}
     for va, name, _, size, _ in full:
         path = source.get(va)
         if layer_of(path) != "simulation":
             continue
         stem = path.rsplit("\\", 1)[-1].rsplit(".", 1)[0]
-        kind = territory_kind(va, name, by_doc, by_sweep, port, spelled)
+        kind = territory_kind(va, name, by_doc, by_sweep, port, spelled, unref)
         group = replaced_group(stem, name) if kind in TERRITORY_OPEN else None
         if group is not None:
             groups.setdefault(group, Counter())[kind] += 1

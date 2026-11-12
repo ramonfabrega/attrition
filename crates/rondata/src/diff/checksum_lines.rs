@@ -2098,3 +2098,89 @@ fn the_leaders_line_is_the_original_s_range_by_range() {
     }
     assert_eq!(parting(&Line::default(), &theirs).len(), LEADERS.1);
 }
+
+/// The lines every range of which agrees on run 1562's packet, read off
+/// each line's pinned outcome (its ranges parted 0; the world's every
+/// section agreeing and nothing held out), in the record's order. The
+/// leaders line is not among them while [`LEADERS`] parts.
+fn whole_lines() -> Vec<&'static str> {
+    let world =
+        world::WORLD.iter().all(|s| s.0 == s.2 && s.1 == s.3) && world::WORLD_HELD_OUT.is_empty();
+    [
+        ("items", ITEMS.3 == 0),
+        ("cities", CITIES.3 == 0),
+        ("goods", GOODS.3 == 0),
+        ("builds", BUILDS.3 == 0),
+        ("guys", GUYS.4 == 0),
+        ("units", UNITS.3 == 0),
+        ("groups", GROUPS.4 == 0),
+        ("leaders", LEADERS.3 == 0),
+        ("world", world),
+    ]
+    .into_iter()
+    .filter_map(|(l, whole)| whole.then_some(l))
+    .collect()
+}
+
+/// `docs/CHECKSUM.md` §22's table: each line with its walkers' names.
+fn coverage_table(doc: &str) -> Vec<(String, Vec<String>)> {
+    let at = doc
+        .find("\n## 22. Coverage")
+        .expect("CHECKSUM.md has its §22");
+    let section = &doc[at + 1..];
+    let section = &section[..section.find("\n## ").unwrap_or(section.len())];
+    section
+        .lines()
+        .filter(|l| l.starts_with("| ") && !l.starts_with("| line"))
+        .map(|l| {
+            let cells: Vec<&str> = l.split(" | ").collect();
+            let line = cells[0].trim_start_matches("| ").to_string();
+            let walkers = cells[2]
+                .split("`")
+                .filter_map(|w| w.split_once('@').map(|(name, _)| name.to_string()))
+                .collect();
+            (line, walkers)
+        })
+        .collect()
+}
+
+/// **The census's coverage of the checksum's walks is the whole lines'**
+/// (item 4170, `docs/CHECKSUM.md` §22): the section's lines are exactly the
+/// lines whose pinned outcomes say whole, so a line that starts to part
+/// takes its walkers' credit with it; and on a machine with the
+/// instrument's stream, each line's walkers are exactly the owners the
+/// stream names on that line. It can fail: a line dropped from the table,
+/// or one walker, parts both halves.
+#[test]
+fn the_coverage_section_is_the_whole_lines_walkers() {
+    let doc = include_str!("../../../../docs/CHECKSUM.md");
+    let table = coverage_table(doc);
+    let lines: Vec<&str> = table.iter().map(|(l, _)| l.as_str()).collect();
+    assert_eq!(
+        lines,
+        whole_lines(),
+        "§22 lists the lines whose pins say whole"
+    );
+    let mut bent = table.clone();
+    bent[0].1.pop();
+    assert_ne!(bent, table, "a walker dropped from the table is seen");
+    if stream("units").is_none() {
+        eprintln!(
+            "skipping the stream's half: no instrument stream for {} record {} (RON_CHECKSUM_DIR)",
+            CHECKSUM_PACKET.0, CHECKSUM_PACKET.2
+        );
+        return;
+    }
+    for (line, walkers) in &table {
+        let mut owners: Vec<String> = Vec::new();
+        for (owner, _, _) in stream(line).expect("the stream reads") {
+            if !owners.contains(&owner) {
+                owners.push(owner);
+            }
+        }
+        let mut want = walkers.clone();
+        owners.sort();
+        want.sort();
+        assert_eq!(owners, want, "§22's {line} walkers are the stream's owners");
+    }
+}

@@ -1994,3 +1994,42 @@ two region counts beyond Great Lakes rest on the reading.
 - `nuke_hits` after a nuke: the appender was not found, and a nuke's
   terraform was not read.
 - A store to a `WorldData` field by a pointer the nets do not name.
+
+## 22. Coverage: the walks the whole lines diff (item 4170)
+
+The census credits a function as ported when a coverage section's
+diff-backed span cites it (`tools/census.py`'s `doc_backed`, `docs/RUBRIC.md`
+§0), and until this section the checksum track's walks had none: the
+lines §11 to §21 hold byte for byte counted open. The list below is every
+walker the instrument's stream names on a line whose every range agrees
+on run 1562's packet (record 3201, frame 91), the `owner` column of
+`stream-3201.tsv`, each resolved to its entry by the call site the
+stream prints (`INDEX.tsv`; every one agrees with the owner's name). The
+leaders line is held out (§20) and is not here; the walls, ammo and
+deaths lines are empty on this frame and are not here.
+
+**Diff-backed** (`rondata::diff::checksum_lines`, each line's test range
+by range, its pinned outcome's parted count 0; the world line's by
+section, `WORLD` every section agreeing and `WORLD_HELD_OUT` empty).
+`the_coverage_section_is_the_whole_lines_walkers` reads this table: its
+lines are the lines whose pins say whole, and with the stream on the
+machine each line's walkers are the stream's owners.
+
+| line | the test | walkers (ranges on frame 91) |
+|---|---|---|
+| items | `the_items_line_is_the_original_s_range_by_range` | `CheckSums::check_items@00937790` (22), `SubObject::walk_data@006621d0` (66), `SubObject::must_walk@006623a0` (22) |
+| cities | `the_cities_line_is_the_original_s_range_by_range` | `CheckSums::check_cities@00937600` (4), `Array<CaravanLink>::walk_data@00489040` (2) |
+| goods | `the_goods_line_is_the_original_s_range_by_range` | `CheckSums::check_goods@00937710` (36), `SubObject::walk_data@006621d0` (108), `SubObject::must_walk@006623a0` (36) |
+| builds | `the_builds_line_is_the_original_s_range_by_range` | `BuildData::walk_data@0062f270` (90), `SubObject::walk_data@006621d0` (45), `Object::must_walk@00647930` (30), `Object::walk_data@00647830` (30), `WallData::walk_data@00642510` (30), `BuildQueue::walk_data@006305f0` (115), `Array<TCoordData>::walk_data@00471c30` (164), `PtrLinkListAbstract<GatherPoint,unsigned_char>::walk_data@004708a0` (15) |
+| guys | `the_guys_line_is_the_original_s_range_by_range` | `PtrArray<Guy>::walk_data@0046df30` (314), `GuyData::walk_data@005e0210` (54) |
+| units | `the_units_line_is_the_original_s_range_by_range` | `SubObject::walk_data@006621d0` (156), `Unit::must_walk@0060d040` (104), `Object::walk_data@00647830` (104), `Unit::walk_data@0060cf40` (104), `Stack<PathData>::walk_data@0046d8b0` (56), `OrderList::walk_data@00730270` (78), `AttackToOrder::walk_data@00482e70` (6), `PtrArray<Guy>::walk_data@0046df30` (314), `GuyData::walk_data@005e0210` (54), `TargetOrder::walk_data@0047f220` (4), `GatherOrder::walk_data@00486e60` (24), `AnimalData::walk_data@005d7ea0` (80) |
+| groups | `the_groups_line_is_the_original_s_range_by_range` | `Group::walk_data@00708400` (548), `CheckSums::check_groups@00937530` (8) |
+| world | `the_world_line_is_the_original_s_by_section` | `World::walk_data@006b5cf0` (7265), `SimpleArray<WCoord>::walk_data@0047c660` (22), `Array<WCoordData>::walk_data@00478990` (696), `SimpleArray<int>::walk_data@00473120` (11) |
+
+**Not established**: every frame but 91 of one game. A walker's arms that state
+on frame 91 does not reach are a reading: an order type the packet's
+units do not carry (only `AttackToOrder`, `TargetOrder` and `GatherOrder`
+walk here), a wall's own walk (no wall stands), a building's arms past
+the fifteen. Every other `walk_data` the territory holds — the save
+walks of state these lines do not print — stays open under the
+checksum track's name.
