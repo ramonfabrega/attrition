@@ -440,8 +440,8 @@ class GateTests(unittest.TestCase):
             with contextlib.redirect_stdout(out):
                 gate.gate(install, report_dir=Path(d)/'report', test_threads=4, isolated=True, run=run)
             lines = out.getvalue().splitlines()
-            self.assertTrue(lines[-4].startswith('Gate minutes: pins '), lines[-4:])
-            self.assertTrue(lines[-3].startswith('Gate steps: 7 of 7 ran'), lines[-4:])
+            self.assertTrue(lines[-5].startswith('Gate minutes: pins '), lines[-5:])
+            self.assertTrue(lines[-4].startswith('Gate steps: 7 of 7 ran'), lines[-5:])
 
     def test_the_receipt_carries_the_host_load(self):
         # Loop 3091: the admission receipt reads seconds while the lane gates
@@ -460,8 +460,38 @@ class GateTests(unittest.TestCase):
             with contextlib.redirect_stdout(out):
                 gate.gate(install, report_dir=Path(d)/'report', test_threads=4, isolated=True, run=run)
             lines = out.getvalue().splitlines()
-            self.assertTrue(lines[-1].startswith('Host load: '), lines[-3:])
-            self.assertTrue(lines[-2].startswith('Admission wait: '), lines[-3:])
+            self.assertTrue(lines[-2].startswith('Host load: '), lines[-4:])
+            self.assertTrue(lines[-3].startswith('Admission wait: '), lines[-4:])
+            self.assertTrue(lines[-1].startswith('Host top: '), lines[-4:])
+
+    # The pass of 2026-11-12: two timing tests went red at load 46-51 on 16
+    # cores and the receipt said only the number; `Host top:` names what the
+    # load was made of. Red first: no such function or line existed.
+    PS = '''  0.0 /sbin/launchd
+ 98.2 /Users/x/.cargo/bin/cargo
+ 45.5 /opt/rust/bin/rustc
+ 40.1 /opt/rust/bin/rustc
+  3.0 /Applications/Google Chrome.app/Contents/MacOS/Google Chrome Helper (Renderer)
+  2.5 python3
+ 12.0 /usr/local/bin/wineloader
+  0.4 zsh
+  0.4 /bin/zsh
+
+garbage line
+'''
+
+    def test_the_top_commands_sum_cpu_by_basename(self):
+        self.assertEqual(gate.host_top_summary(self.PS),
+                         [('cargo', 98.2), ('rustc', 85.6), ('wineloader', 12.0),
+                          ('Google Chrome Helper (Renderer)', 3.0), ('python3', 2.5)])
+        self.assertEqual(gate.host_top_summary(self.PS, n=2), [('cargo', 98.2), ('rustc', 85.6)])
+        self.assertEqual(gate.host_top_summary(''), [])
+
+    def test_the_top_line_reads_end_then_start(self):
+        end = [('cargo', 98.2), ('rustc', 85.6)]
+        self.assertEqual(gate.top_line(end, [('zsh', 0.84)]),
+                         'Host top: cargo 98.2, rustc 85.6 at end; zsh 0.8 at start')
+        self.assertEqual(gate.top_line(None, None), 'Host top: n/a at end; n/a at start')
 
     def test_wider_release_is_capped_and_other_children_stay_conservative(self):
         for width in (2, 3, 4, 6, 8):
@@ -530,7 +560,7 @@ class GateTests(unittest.TestCase):
                 with contextlib.redirect_stdout(out), self.assertRaises(subprocess.CalledProcessError):
                     gate.gate(path, report_dir=path/'report', run=run)
                 self.assertEqual([gate.step_name(c) for c in calls], ran)
-                steps = out.getvalue().splitlines()[-3]
+                steps = out.getvalue().splitlines()[-4]
                 self.assertTrue(steps.startswith('Gate steps: ') and 'not reached: ' in steps, steps)
                 self.assertTrue(steps.endswith(', release') or steps.endswith(': release'), steps)
 

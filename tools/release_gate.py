@@ -984,6 +984,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     seconds = []
     verdicts = []
     load_at_start = host_load()
+    top_at_start = host_top()
     try:
         _run_steps(commands, run=run, env=env, audit_dir=audit_dir, report_dir=report_dir,
                    require_fixtures=require_fixtures, reached=reached, lane=lane, word=tests,
@@ -1006,6 +1007,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         print(steps_line(commands, reached), flush=True)
         print(admission_line(admission_summary(report_dir)), flush=True)
         print(load_line(load_at_start, host_load(), os.cpu_count() or 0), flush=True)
+        print(top_line(host_top(), top_at_start), flush=True)
     return report_dir
 
 
@@ -1028,6 +1030,46 @@ def load_line(start, end, cores):
     def part(v):
         return 'n/a' if v is None else f'{v:.1f}'
     return f"Host load: {part(start)} at start, {part(end)} at end, on {cores} cores"
+
+
+def host_top():
+    """The five commands with the most summed CPU, or None where `ps`
+    cannot be read."""
+    try:
+        out = subprocess.run(['ps', '-Ao', 'pcpu=,comm='], capture_output=True, text=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return host_top_summary(out.stdout) if out.returncode == 0 else None
+
+
+def host_top_summary(ps_text, n=5):
+    """The pass of 2026-11-12: two timing tests went red at a load of 46
+    to 51 on 16 cores, and the receipt's `Host load:` said how much and
+    nothing about what. `ps -Ao pcpu=,comm=`'s text, summed by the
+    command's basename (a cargo test run is many `rustc`s, a gate many
+    test binaries), the `n` largest first, each to one decimal."""
+    sums = {}
+    for line in ps_text.splitlines():
+        parts = line.strip().split(None, 1)
+        if len(parts) != 2:
+            continue
+        try:
+            cpu = float(parts[0])
+        except ValueError:
+            continue
+        name = os.path.basename(parts[1].rstrip('/')) or parts[1]
+        sums[name] = sums.get(name, 0.0) + cpu
+    ranked = sorted(sums.items(), key=lambda kv: (-kv[1], kv[0]))[:n]
+    return [(name, round(cpu, 1)) for name, cpu in ranked]
+
+
+def top_line(end, start):
+    """`Host top: cargo 812.3, rustc 400.1, … at end; … at start` — the
+    receipt's second contention line, beside `Host load:`, whose shape
+    `tools/gates.py` parses and which this line leaves alone."""
+    def part(top):
+        return 'n/a' if not top else ', '.join(f'{name} {cpu:.1f}' for name, cpu in top)
+    return f"Host top: {part(end)} at end; {part(start)} at start"
 
 
 def admission_summary(report_dir):
