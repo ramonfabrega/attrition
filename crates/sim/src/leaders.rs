@@ -3,6 +3,7 @@
 pub mod diplomacy;
 pub mod relations;
 pub mod resign;
+pub mod words;
 
 /// The `leaders/` subsystem's fields of [`crate::Sim`] (`docs/STRUCTURE.md`
 /// §3, item 4016): moved whole, each with its doc, in `Sim`'s order.
@@ -33,4 +34,8 @@ pub struct LeadersState {
     pub forced_march: Vec<bool>,
     /// Whether each player has been defeated — `leader_flags & 2` clear.
     pub defeated: Vec<bool>,
+    /// `LeaderData::city_name` (`+0x40c`): the cities this slot has named
+    /// for its tribe, `City::generate_name`'s count ([`words`],
+    /// `docs/LEADERS.md` §1).
+    pub city_name: Vec<i32>,
 }

@@ -176,6 +176,7 @@ impl Sim {
                 agendas: vec![vec![0; players]; players],
                 forced_march: vec![false; players],
                 defeated: vec![false; players],
+                city_name: vec![0; players],
             },
             cities: crate::cities::CitiesState {
                 farm_order: Vec::new(),

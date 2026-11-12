@@ -41,24 +41,23 @@ pub(crate) type Row = (String, i64);
 pub(crate) const UNMODELLED: &[(&str, &str)] = &[
     ("score", "no score is kept"),
     ("defeated_by", "no defeat path"),
-    ("misery", "the misery counter is unread"),
-    ("att", "the attrition score counters are unread"),
-    ("anti_att", "the attrition score counters are unread"),
+    (
+        "anti_att",
+        "the resistance float is not held (docs/LEADERS.md §6)",
+    ),
     ("blacken", "fog bookkeeping"),
     (
         "explored",
         "ported (VISION §13); leader 0 one or two under in twelve late-age pairs (parked 4153a)",
     ),
-    ("pop_issues", "the population-pressure counter is unread"),
+    (
+        "pop_issues",
+        "the capped-training count has no writer here (docs/LEADERS.md §12.2)",
+    ),
     (
         "misc_stamps",
         "the twenty-odd *_stamp counters have no writers here",
     ),
-    (
-        "handicap",
-        "`Holdings::handicap` is the income percentage, a different field",
-    ),
-    ("multi_diff", "the lobby difficulty is an input, not state"),
     ("DIPLOMACY", "the diplomacy block is not modelled"),
     ("num_bonus_cards", "bonus cards are Conquer-the-World's"),
     ("average_*_rate", "the combat averages are score counters"),
@@ -504,6 +503,29 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // (`+0x6dc0`, Conquer-the-World's, empty here), the three
     // `BitMask<44>`s `LeaderData::log_data@006e5110` prints after the goods
     // block, and `rares_collected`, the `int[44]` the same walk fills.
+    // **Item 4162, the leaders line's step I** (`docs/LEADERS.md`, the
+    // census): `att`, `Leader::calc_attrition`'s one store (§5, item
+    // 4154); the lobby's `multi_diff` and `handicap` (§16); `misery`'s
+    // constant 0 (§12.3); and `city_name`, `City::generate_name`'s count
+    // (§1). The same values the leaders line emits.
+    let p = who as sim::Player;
+    for (k, v) in [
+        (
+            "att",
+            built
+                .sim
+                .territory
+                .players
+                .get(who)
+                .map_or(0, |s| s.strength),
+        ),
+        ("multi_diff", built.sim.leader_multi_diff(p)),
+        ("handicap", built.sim.leader_handicap(p)),
+        ("misery", built.sim.leader_misery(p)),
+        ("city_name", built.sim.leader_city_name(p)),
+    ] {
+        out.push((k.to_string(), i64::from(v)));
+    }
     out.push(("rare".to_string(), mask_text(l.rare)));
     out.push(("rare_owned".to_string(), mask_text(h.rare_owned)));
     out.push(("rare_conquest".to_string(), mask_text(0)));
@@ -526,6 +548,52 @@ fn mask_text(m: u64) -> i64 {
         text.push_str(&b.to_string());
     }
     text.parse().unwrap_or(i64::MIN)
+}
+
+/// A `%f` print — digits, a point, exactly six decimals — as its
+/// millionths, the dump's side of [`millionths`]. Anything else is not a
+/// print this reads.
+fn print_millionths(text: &str) -> Option<i64> {
+    let (neg, body) = match text.strip_prefix('-') {
+        Some(b) => (true, b),
+        None => (false, text),
+    };
+    let (whole, frac) = body.split_once('.')?;
+    if frac.len() != 6
+        || !whole
+            .bytes()
+            .chain(frac.bytes())
+            .all(|c| c.is_ascii_digit())
+    {
+        return None;
+    }
+    let v = format!("{whole}{frac}").parse::<i64>().ok()?;
+    Some(if neg { -v } else { v })
+}
+
+/// A single's `%f` print as millionths: `m × 2^e × 10^6` rounded to the
+/// nearest integer, a half away from zero (no single this record holds
+/// lands on a half, `docs/LEADERS.md` §6.2's table). The crate's side of
+/// [`print_millionths`], in integers.
+pub(crate) fn millionths(bits: u32) -> i64 {
+    let exp = ((bits >> 23) & 0xff) as i32;
+    let frac = u128::from(bits & 0x7f_ffff);
+    let (m, e) = if exp == 0 {
+        (frac, -149)
+    } else {
+        (frac | 0x80_0000, exp - 150)
+    };
+    let scaled = m * 1_000_000;
+    let mag = if e >= 0 {
+        scaled << e.min(40)
+    } else if -e >= 127 {
+        0
+    } else {
+        let s = -e as u32;
+        (scaled + (1u128 << (s - 1))) >> s
+    };
+    let v = i64::try_from(mag).unwrap_or(i64::MAX);
+    if bits >> 31 == 1 { -v } else { v }
 }
 
 /// The dump's side of [`mask_text`]: the printed bytes behind the same `1`.
@@ -784,10 +852,28 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
         "known_rares",
         "ages_queued",
         "epochs_queued",
+        // Item 4162, the leaders line's step I (`docs/LEADERS.md`'s census):
+        // `att` (§5), `pop_issues` and `misery` (§12), `city_name` (§1),
+        // and the lobby's `handicap` and `multi_diff` (§16).
+        "att",
+        "pop_issues",
+        "misery",
+        "city_name",
+        "handicap",
+        "multi_diff",
     ] {
         if let Some(x) = block.int(key) {
             out.insert(key.to_string(), x);
         }
+    }
+    // `anti_att` is the record's one float: `log_data` prints it `%f`, six
+    // decimals, and it is read as those millionths ([`millionths`] is this
+    // crate's side of the same print).
+    if let Some(x) = block
+        .get("anti_att")
+        .and_then(|v| print_millionths(v.trim()))
+    {
+        out.insert("anti_att".to_string(), x);
     }
     // **The per-type muster, whole — and the two arrays are keyed
     // differently.** `num_units` is 352 wide and its index 0 is
