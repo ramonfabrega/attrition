@@ -1108,6 +1108,30 @@ impl Gpu {
         self.queue.submit([enc.finish()]);
     }
 
+    /// An off-screen frame to draw into (`client --headless`, item 4161).
+    pub fn target(&self, size: (u32, u32)) -> wgpu::Texture {
+        self.device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("off-screen"),
+            size: wgpu::Extent3d {
+                width: size.0,
+                height: size.1,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: self.format,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
+        })
+    }
+
+    /// Wait until the GPU has finished what was submitted: an off-screen
+    /// frame's end, where a window's is its present.
+    pub fn wait(&self) {
+        let _ = self.device.poll(wgpu::PollType::wait_indefinitely());
+    }
+
     /// Draw one frame to a texture and read it back as rows of RGBA bytes.
     pub fn still(&self, size: (u32, u32), camera: &render::Camera, frame: &Frame<'_>) -> Vec<u8> {
         let tex = self.device.create_texture(&wgpu::TextureDescriptor {

@@ -20,6 +20,17 @@ pub const START_DUMP: &str = "gamelog-run1428-greatlakes-aztec-modern-start.txt"
 pub const LONG_DUMP: &str = "gamelog-run1429-greatlakes-aztec-modern-trace.txt";
 pub const LONG_TRACE: &str = "rontrace-run1429.log";
 
+/// **Which game the client stands up** at frame zero.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Game {
+    /// The pair's: the long capture's start, its sibling's blocks and its
+    /// pasture's trace (`FreeRunner::from_captures`).
+    Pair,
+    /// The minted script's lobby, built from its choices alone
+    /// (`FreeRunner::from_lobby`, item 4145): our own start.
+    Lobby,
+}
+
 /// Where the captures sit: `$RON_GAMELOG_DIR`, else the bottle's `Logs\`,
 /// as the test environment finds them.
 pub fn gamelog_dir() -> PathBuf {
@@ -375,24 +386,45 @@ pub struct SpriteDrawing {
 
 impl World {
     /// Open the install and the pair's captures, and stand the game up at
-    /// frame zero.
+    /// frame zero (the tests' door; the binary names its game).
+    #[cfg(test)]
     pub fn open(install_root: &Path, logs: &Path) -> Result<World, String> {
+        Self::open_game(install_root, logs, Game::Pair)
+    }
+
+    /// Open the install and stand up the game `game` names at frame zero.
+    /// The install's tables are loaded once, and only the runner `game`
+    /// names is built (item 4161: `--lobby` loaded them twice and built the
+    /// pair's runner only to drop it, 0.68 s of its 1.47 s to frame zero).
+    /// The ground's art is the pair's start's in both (its tileset and
+    /// seed; the lobby is the same map, run53's `game_random seed 12345`).
+    pub fn open_game(install_root: &Path, logs: &Path, game: Game) -> Result<World, String> {
         let install = Install::new(install_root);
         if !install.looks_valid() {
             return Err(format!("no install at {}", install_root.display()));
         }
         let loaded = rondata::load::load(&install).map_err(|e| e.to_string())?;
-        let (long, start) = (logs.join(LONG_DUMP), logs.join(START_DUMP));
-        let trace = rondata::trace::Trace::read(&logs.join(LONG_TRACE))
-            .map_err(|e| format!("{LONG_TRACE}: {e}"))?;
-        let runner = FreeRunner::from_captures(
-            &loaded,
-            &long,
-            &[start.as_path()],
-            trace.as_ref(),
-            sim::Tuning::RON,
-        )
-        .map_err(|e| format!("{}: {e}", long.display()))?;
+        let start = logs.join(START_DUMP);
+        let runner = match game {
+            Game::Pair => {
+                let long = logs.join(LONG_DUMP);
+                let trace = rondata::trace::Trace::read(&logs.join(LONG_TRACE))
+                    .map_err(|e| format!("{LONG_TRACE}: {e}"))?;
+                FreeRunner::from_captures(
+                    &loaded,
+                    &long,
+                    &[start.as_path()],
+                    trace.as_ref(),
+                    sim::Tuning::RON,
+                )
+                .map_err(|e| format!("{}: {e}", long.display()))?
+            }
+            Game::Lobby => {
+                let lobby = logs.join(rondata::script::LOBBY_DUMP);
+                FreeRunner::from_lobby(&loaded, &lobby, sim::Tuning::RON)
+                    .map_err(|e| format!("{}: {e}", lobby.display()))?
+            }
+        };
         let rules = install.rules().map_err(|e| e.to_string())?;
         let tribes = install.tribe_defs(&rules).map_err(|e| e.to_string())?;
         let graphs: Vec<String> = install

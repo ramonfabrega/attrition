@@ -34,6 +34,7 @@ pub mod bh3;
 pub mod bha;
 pub mod camera;
 pub mod chunk;
+pub mod clock;
 pub mod draw;
 pub mod figure;
 pub mod silhouette;

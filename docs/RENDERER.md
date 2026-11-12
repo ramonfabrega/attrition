@@ -416,7 +416,19 @@ enough to aim a click and not good enough to score. It also ignores height.
 4. **Silhouettes against a screenshot.** The original's frame, taken at a
    chosen frame (`pause` and `break #` from the console, `docs/ORACLE.md`,
    "The `~` console") and camera (`cheat camera`), is compared with the
-   client's frame on object footprints, never on pixels.
+   client's frame on object footprints, never on pixels. **A second
+   photograph is the first one's take with one staged line** (item 4160,
+   run1564): `3200 camera 192,200` before `3294 pause 1`. The lane's
+   `Console Coord Mode=2` reads it as a tile, and the packet's `Camera`
+   holds `loc` at that tile's centre, (36960, 38496), with zoom, tilt,
+   direction and screen unchanged. The lane profile's `StartReveal=1`
+   already holds the display reveal (`semaphore` bit 1, `run_cmd` case
+   0x57), so no fog darkens a far camera. The window's capture carries a
+   32-row title bar that run1559b's lacks. Cropped by 32 rows, its
+   bottom-left interface matches run1559b's photograph with a mean
+   difference of 8.8, summed over the three channels. The next best
+   offset, 31 rows, gives 25. The camera is `RUN1564_LOC` and the
+   photograph is `ground::tests::run1564`.
 
 **Nothing is pixel-exact at first, and maybe never.** The original draws
 through Direct3D 11, then DXVK, then MoltenVK, then Metal, with its own float
@@ -1470,6 +1482,78 @@ photograph, the 106 scored tiles under a mountain).
 - The client blends in the sRGB target's linear space (parked 4139b). The
   GPU frame is not scored.
 
+## 3.11 The clock, under its ceilings (item 4161)
+
+**The session.** `client --lobby --headless --frame 0 --play --frames
+600`: Great Lakes from our own start (`World::open_game(.., Game::Lobby)`,
+which builds `FreeRunner::from_lobby` from run53's lobby choices), drawn
+off-screen at 1920×1080 at the pinned camera. Each frame steps one tick,
+draws, and waits for the GPU (`Gpu::wait`). The wait stands in for the
+window's present, so the frame times count work and no vsync. The pinned
+camera sees the human's capital, its citizens and the trees at frame 0.
+A frame's phases are spans nested inside its `frame` span: `step`, `scene`
+(the draw list, sprites, figure meshes and trees), `ground` (the heightfield
+and its textured meshes), `gpu` (uploads, passes, submit) and `wait`.
+`render::clock::Clock::read` names the slowest frame and the longest phase
+inside it.
+
+**The readings** (eight sessions on 2026-11-12, release, with three other
+lanes gating beside them, load average 14 to 20):
+
+| reading | range | median | ceiling |
+|---|---|---|---|
+| launch to frame zero | 635 to 1,220 ms | 705 ms | 1.5 s |
+| p99 frame | 4.4 to 11.8 ms | 5.2 ms | 20 ms |
+| slowest frame | 87 to 219 ms, frame 1 in all eight | 100 ms | 400 ms |
+| peak resident set (sampled) | 239 to 256 MiB | 242 MiB | 320 MiB |
+
+**The worst is the first frame, and its cause is first sight.** Frame 1
+decodes the model, textures and sprite of every piece it shows. That is
+`scene`, 36 to 57 ms, the longest phase in six of the eight sessions. It
+also builds the ground's meshes (`ground`, 14 to 27 ms) and uploads both
+(`gpu` and `wait`, 36 to 144 ms). Frame 2 still decodes some (`scene` 11
+ms), and from frame 3 a frame takes about 4 ms. The phase that leads frame 1
+swings between `scene` and `wait` under load. So the pin holds the frame
+(`Ceilings::slowest_at`) and names the cause in words, never by a phase
+name.
+
+**What this item changed.** Before it, `--lobby` loaded the install's tables
+twice and built the pair's runner from run1429's dumps, only to drop it. The
+still read 1,474 ms to frame zero, 792 ms of it opening the pair, and 427
+MiB. `World::open_game` loads once and builds only the game it names: 705
+ms and 242 MiB. The pair's runner, holding its dumps, was most of the
+memory.
+
+**The pins.** `render::clock::CLOCK` holds the four ceilings and the
+slowest frame. `crates/client/tests/clock.rs` runs the client binary as a
+process of its own, so the clock is the client's and not the test
+harness's. It reads the session's trace and fails on any ceiling the
+session breaks (`Ceilings::broken_by`). The queue's `Clock:` line is
+`rondata::diff::floors::clock_line` of the same constant. **Made to fail
+once:** p99 at 1 ms and the peak at 200 MiB read "p99 frame 5.41 ms over its
+ceiling 1; peak RSS 238.78 MiB over its ceiling 200". `render::clock::tests::
+a_ceiling_under_the_reading_breaks` holds each ceiling one unit under a
+fixed trace's reading. A ceiling falls when the client gets faster and rises
+only on a named regression.
+
+**Confidence.** These are measured times on one machine under a shared
+load, not a diff: nothing of the original is compared. The resident set is
+`ps` sampled every 100 ms, a floor on the true peak (§3.6).
+
+**What is not established.**
+- **Seconds to lobby.** DECISIONS 114 §4 names it, and the client has no
+  lobby screen to time. The lobby's choices are read from run53's dump.
+- **The windowed session.** Its frames wait on vsync (§3.6's 21.3 ms
+  p99), so it is not the ceilings' session. A window over the lobby is
+  unmeasured here because a window opened in a gate could take a capture
+  lane's clicks.
+- **The ground's art on the lobby** is the pair's start's: run1428's
+  tileset and seed, run53's `game_random seed 12345`. That the two maps'
+  tilesets agree is read off the picture, not checked.
+- **Whether first sight belongs before frame zero.** Decoding every piece
+  the lobby could show before the first frame would trade frame 1's ~100 ms
+  for a longer frame zero. Nothing has measured that trade.
+
 ## 4. The stack
 
 The rule is `CLAUDE.md`'s **earn every dependency**: a crate enters when it
@@ -1970,6 +2054,22 @@ Each line names what would settle it.
   "The ground's base layer") and a mountain's (§3.10); the blends, the
   coast, the cliffs and the water are not, and frame 3279 shows no tile of
   the last three (item 4143, `RUN1559B_3279_UNSCORED`; parked 4143a).
+  **run1564's photograph shows two of them** (item 4160,
+  `RUN1564_3279_CENSUS`): in view, 488 `OCEAN` tiles (437 scoreable),
+  901 `SANDY` (772) and 32 `ROCK` (32). No cell of Great Lakes carries
+  `CLIFF`, so no photograph of this map holds a cliff. The ground's row
+  on it, its rule unchanged, is 709 of 1,920 (`RUN1564_3279_GROUND`).
+  The land agrees on 709 of 711. The water and the shore agree on 0 of
+  1,209, because the client draws them in the debug colours. The
+  shoreline is in register. No plain tile is photographed blue, and no
+  `OCEAN` tile is photographed otherwise. With the camera moved two tiles
+  there are 0 to 3 such tiles, at four up to 40, and at eight up to 142
+  (`RUN1564_3279_SHORE`). This places the camera to about two tiles, the
+  width of the beach, and no closer. Not
+  established by it: the water is drawn at its surface and our tile is
+  the seabed, so a water pixel's tile is the seabed's projection
+  (parked 4160a); and the photograph's frame is taken as 3279 without a
+  mover to clock it (parked 4160b).
 - **Whether `sim` builds for `wasm32-unknown-unknown`.** It is untried, and
   matters only if option A's live variant is wanted.
 - **The licence of ptasev/Rise-of-Nations.** Reading it is fine under the
