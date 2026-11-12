@@ -1755,6 +1755,106 @@ pub fn scaffold_timing(install: &Install) -> Result<render::draw::ScaffoldTiming
     Ok(render::draw::ScaffoldTiming { tables })
 }
 
+/// One `<CONSTRUCTION>` of `building_graphics.xml` (item 4163): the
+/// construction piece `GraphicPieces::get_construct_gpiece@00907840`'s slot
+/// names, in file order. `get_gpiece_type@009096e0` puts the construct
+/// range at type `0xc`, which `GraphicPieces::draw@0090b2d0` sends to
+/// `draw_build` — a sprite, as a building's (`texture=`, anchored back from
+/// the projected point by `spritexoff`, `spriteyoff`; [`BuildArt`]).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ConstructionArt {
+    pub texture: String,
+    pub sprite_offset: (i32, i32),
+    /// `model=`: only the dock's names one.
+    pub model: Option<String>,
+}
+
+/// The `<CONSTRUCTION>` entries whose files decode, of all (item 4163:
+/// new, 11 of 11 — the ten sprites and the dock's sprite and model).
+pub const CONSTRUCTION_DECODING: (usize, usize) = (11, 11);
+
+/// The `<SCAFFOLD>` entries whose model, texture and animation decode, of
+/// all (item 4163: new, 12 of 12 — four pieces an age bracket, the crane's
+/// `CraneWork` animation among them).
+pub const SCAFFOLD_DECODING: (usize, usize) = (12, 12);
+
+/// **The eleven `<CONSTRUCTION>` entries**, in file order (item 4163;
+/// [`render::draw::Foundation::slot`] indexes them).
+pub fn construction_art(install: &Install) -> Vec<ConstructionArt> {
+    let path = install.data("building_graphics.xml");
+    let Ok(text) = crate::read(&path) else {
+        return Vec::new();
+    };
+    let Ok(doc) = crate::parse(&path, &text) else {
+        return Vec::new();
+    };
+    doc.descendants()
+        .filter(|n| n.has_tag_name("CONSTRUCTION"))
+        .map(|n| {
+            let named = |a: &str| {
+                n.attribute(a)
+                    .map(str::trim)
+                    .filter(|v| !v.is_empty())
+                    .map(str::to_string)
+            };
+            let num = |a: &str| named(a).and_then(|v| v.parse().ok()).unwrap_or(-1);
+            ConstructionArt {
+                texture: named("texture").unwrap_or_default(),
+                sprite_offset: (num("spritexoff"), num("spriteyoff")),
+                model: named("model"),
+            }
+        })
+        .collect()
+}
+
+/// One `<SCAFFOLD>` of `effects_graphics.xml` (item 4163): the ammo-range
+/// piece `GraphicPieces::draw_scaffold@00907420` draws by element
+/// ([`render::draw::ScaffoldPiece::element`]), a model under a texture,
+/// and an `anim=` through `anim_graphics.xml` — `(name, file)`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ScaffoldArt {
+    pub name: String,
+    pub texture: String,
+    pub model: String,
+    pub anim: Option<(String, Option<String>)>,
+}
+
+/// **The `<SCAFFOLD>` entries**, in file order — four an age bracket
+/// (item 4163; [`scaffold_timing`] numbers its elements on the same walk).
+pub fn scaffold_art(install: &Install) -> Vec<ScaffoldArt> {
+    let (epath, apath) = (
+        install.data("effects_graphics.xml"),
+        install.data("anim_graphics.xml"),
+    );
+    let (Ok(etext), Ok(atext)) = (crate::read(&epath), crate::read(&apath)) else {
+        return Vec::new();
+    };
+    let (Ok(edoc), Ok(adoc)) = (crate::parse(&epath, &etext), crate::parse(&apath, &atext)) else {
+        return Vec::new();
+    };
+    let files = anim_files(&adoc);
+    edoc.descendants()
+        .filter(|n| n.has_tag_name("SCAFFOLD"))
+        .map(|n| {
+            let named = |a: &str| {
+                n.attribute(a)
+                    .map(str::trim)
+                    .filter(|v| !v.is_empty())
+                    .map(str::to_string)
+            };
+            ScaffoldArt {
+                name: named("name").unwrap_or_default(),
+                texture: named("texture").unwrap_or_default(),
+                model: named("model").unwrap_or_default(),
+                anim: named("anim").map(|a| {
+                    let f = files.get(&anim_key(&a)).map(|(f, _)| f.clone());
+                    (a, f)
+                }),
+            }
+        })
+        .collect()
+}
+
 /// **A building piece's condition 1** (item 4028, `docs/RENDERER.md`
 /// §5.4): every model and animation its [`BuildArt`] names — the
 /// `zbuffer` `.bh3`, the building's own `anim`, each addon's `.bh3` and
@@ -2814,5 +2914,58 @@ mod tests {
         assert_eq!(game_frames(&[2157, 2190], false), 32);
         assert_eq!(game_frames(&[900, 0], false), 0);
         assert_eq!(game_frames(&[2190], false), 33);
+    }
+
+    /// **The foundation's and the scaffold's own pieces decode** (item
+    /// 4163, `docs/RENDERER.md` §3.5): each `<CONSTRUCTION>`'s `texture=`
+    /// under `render::tga` (and the dock's `model=` under `render::bh3`),
+    /// and each `<SCAFFOLD>`'s `model=`, `texture=` and its `anim=`'s
+    /// `.BHa` — what the client draws them from. Made to fail: a texture
+    /// read as a model fails every entry.
+    #[test]
+    fn the_foundation_s_and_the_scaffold_s_pieces_decode() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        let read = |rel: &str| resolve(inst.root(), rel).and_then(|p| std::fs::read(p).ok());
+        let tga = |rel: &str| read(rel).is_some_and(|b| render::tga::decode(&b).is_ok());
+        let bh3 = |rel: &str| read(rel).is_some_and(|b| render::bh3::decode(&b).is_ok());
+        let bha = |rel: &str| read(rel).is_some_and(|b| render::bha::decode(&b).is_ok());
+        let found = construction_art(&inst);
+        let ok = found
+            .iter()
+            .filter(|c| tga(&c.texture) && c.model.as_deref().is_none_or(bh3))
+            .count();
+        assert_eq!((ok, found.len()), CONSTRUCTION_DECODING, "{found:?}");
+        assert_eq!(
+            found[9].model.as_deref(),
+            Some(".\\art\\construction_dock.bh3")
+        );
+        let scaffolds = scaffold_art(&inst);
+        let ok = scaffolds
+            .iter()
+            .filter(|s| {
+                bh3(&s.model)
+                    && tga(&s.texture)
+                    && s.anim
+                        .as_ref()
+                        .is_none_or(|(_, f)| f.as_deref().is_some_and(bha))
+            })
+            .count();
+        assert_eq!((ok, scaffolds.len()), SCAFFOLD_DECODING, "{scaffolds:?}");
+        // The elements `scaffold_timing` numbers are this walk's.
+        let names: Vec<String> = scaffolds
+            .iter()
+            .map(|s| s.name.to_ascii_lowercase())
+            .collect();
+        for t in &scaffold_timing(&inst).unwrap().tables {
+            for slot in t {
+                let first = names
+                    .iter()
+                    .position(|n| *n == names[usize::from(slot.element)]);
+                assert_eq!(first, Some(usize::from(slot.element)));
+            }
+        }
     }
 }

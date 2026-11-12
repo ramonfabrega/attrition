@@ -7,7 +7,10 @@ use render::bh3;
 use render::draw::{Drawn, MODELS_AT_THE_POINT, Placed, PlacedBuilding, Pose, SpriteAt, sprite_at};
 use render::figure::{apply, guy_placement, placement, posed, rest_pose};
 use render::terrain::{Heightfield, TerrainMesh};
-use rondata::artdata::{BuildLook, build_art, resolve_art, unit_art};
+use rondata::artdata::{
+    BuildLook, ConstructionArt, ScaffoldArt, build_art, construction_art, resolve_art,
+    scaffold_art, unit_art,
+};
 use rondata::free::{FreeRunner, placed, placed_buildings};
 use rondata::{Install, TribeDef};
 use std::collections::BTreeMap;
@@ -55,7 +58,8 @@ pub const GUY_SCALE: f32 = 4.8;
 pub struct Mesh {
     pub rest: Vec<[f32; 3]>,
     pub faces: Vec<[u16; 3]>,
-    /// The `<UNIT>`'s `scale=` times [`GUY_SCALE`]; 1 for a building.
+    /// The `<UNIT>`'s `scale=` times [`GUY_SCALE`]; 1 for a building;
+    /// [`SCAFFOLD_SCALE`] for a scaffold piece.
     pub scale: f32,
     pub model: bh3::Model,
     /// Each `UnitAnim` slot's decoded `.BHa`, where the entry names one
@@ -79,6 +83,36 @@ pub fn anim_ms(cur_time: u32, anim: &render::bha::Anim) -> u32 {
 
 /// A unit piece's `model=`, `scale=` and its slots' `.BHa` files.
 type UnitModel = (String, String, Vec<(i8, String)>);
+
+/// **The scale `GraphicPieces::draw_scaffold@00907420` draws a scaffold
+/// piece at** (item 4163): its `GraphicChad` takes `sx` 3, `sy` −3, `sz` 3
+/// — a guy's mirror, three times over — and the slot's `angle` as it
+/// stands, with no turn added (`GuyOut::draw` adds 180 to a figure's).
+pub const SCAFFOLD_SCALE: f32 = 3.0;
+
+/// The client's key for the `<CONSTRUCTION>` entry at `slot`
+/// ([`render::draw::Foundation::slot`]) where a piece number keys art
+/// (item 4163). No reader knows `first_construct_piece`, so the key is
+/// the client's own: below every game piece, which is never negative but
+/// `-1`.
+pub fn foundation_key(slot: u8) -> i32 {
+    FOUNDATION_KEY - i32::from(slot)
+}
+
+/// The client's key for the `<SCAFFOLD>` entry at `element`
+/// ([`render::draw::ScaffoldPiece::element`]), as [`foundation_key`].
+pub fn scaffold_key(element: u8) -> i32 {
+    SCAFFOLD_KEY - i32::from(element)
+}
+
+const FOUNDATION_KEY: i32 = -0x100;
+const SCAFFOLD_KEY: i32 = -0x200;
+
+/// The slot or element a client key names, where it is one.
+fn keyed(piece: i32, base: i32) -> Option<usize> {
+    let i = base - piece;
+    (0..0x100).contains(&i).then_some(i as usize)
+}
 
 /// One coloured triangle soup, world space.
 #[derive(Default)]
@@ -119,8 +153,12 @@ pub struct World {
     /// scale's numerator (`render::draw::sprite_at`).
     pub sprite_zoom: (f32, f32),
     /// Each building piece's sprite, `None` where its `texture=` does not
-    /// resolve or decode.
+    /// resolve or decode; a foundation's under its [`foundation_key`].
     sprite_images: BTreeMap<i32, Option<std::sync::Arc<SpriteImage>>>,
+    /// The `<CONSTRUCTION>` and `<SCAFFOLD>` entries (item 4163), read on
+    /// the first foundation or scaffold drawn, so frame zero pays nothing.
+    construction: Option<Vec<ConstructionArt>>,
+    scaffolds: Option<Vec<ScaffoldArt>>,
     terrain: (u32, TerrainMesh),
     /// Draw the map's trees (item 4080, `render::trees`). On by default;
     /// `--no-trees` turns it off.
@@ -563,6 +601,8 @@ impl World {
             sprites: true,
             sprite_zoom: crate::PINNED_SPRITE_ZOOM,
             sprite_images: BTreeMap::new(),
+            construction: None,
+            scaffolds: None,
             runner,
             terrain: (u32::MAX, TerrainMesh::default()),
             trees: true,
@@ -987,7 +1027,10 @@ impl World {
         if let Some(m) = self.meshes.get(&piece) {
             return m.clone();
         }
-        let (model, scale, files) = if building {
+        let (model, scale, files) = if let Some(e) = keyed(piece, SCAFFOLD_KEY) {
+            let s = self.scaffold_art().get(e)?;
+            (s.model.clone(), SCAFFOLD_SCALE, Vec::new())
+        } else if building {
             let set = std::iter::once(piece).collect();
             let art = build_art(&self.install, &set);
             let z = art.get(&piece)?.as_ref().ok()?.zbuffer.clone();
@@ -1026,10 +1069,12 @@ impl World {
         if let Some(t) = self.figure_textures.get(&piece) {
             return t.clone();
         }
-        let decoded = self
-            .unit_textures
-            .get(&piece)
-            .and_then(|t| resolve_art(&self.root, t))
+        let name = match keyed(piece, SCAFFOLD_KEY) {
+            Some(e) => self.scaffold_art().get(e).map(|s| s.texture.clone()),
+            None => self.unit_textures.get(&piece).cloned(),
+        };
+        let decoded = name
+            .and_then(|t| resolve_art(&self.root, &t))
             .and_then(|p| std::fs::read(p).ok())
             .and_then(|b| render::tga::decode(&b).ok())
             .map(|i| std::sync::Arc::new(render::silhouette::Mips::new(i)));
@@ -1064,10 +1109,26 @@ impl World {
         if let Some(s) = self.sprite_images.get(&piece) {
             return s.clone();
         }
-        let set = std::iter::once(piece).collect();
-        let art = build_art(&self.install, &set);
-        let decoded = art.get(&piece).and_then(|a| a.as_ref().ok()).and_then(|a| {
-            let bytes = std::fs::read(resolve_art(&self.root, &a.texture)?).ok()?;
+        let (texture, offset) = match keyed(piece, FOUNDATION_KEY) {
+            Some(slot) => {
+                let c = self.construction_art().get(slot);
+                (
+                    c.map(|c| c.texture.clone()),
+                    c.map_or((0, 0), |c| c.sprite_offset),
+                )
+            }
+            None => {
+                let set = std::iter::once(piece).collect();
+                let art = build_art(&self.install, &set);
+                let a = art.get(&piece).and_then(|a| a.as_ref().ok());
+                (
+                    a.map(|a| a.texture.clone()),
+                    a.map_or((0, 0), |a| a.sprite_offset),
+                )
+            }
+        };
+        let decoded = texture.and_then(|texture| {
+            let bytes = std::fs::read(resolve_art(&self.root, &texture)?).ok()?;
             let image = render::tga::decode(&bytes).ok()?;
             let covered = image
                 .rgba
@@ -1078,12 +1139,24 @@ impl World {
                 .collect();
             Some(std::sync::Arc::new(SpriteImage {
                 image,
-                offset: a.sprite_offset,
+                offset,
                 covered,
             }))
         });
         self.sprite_images.insert(piece, decoded.clone());
         decoded
+    }
+
+    /// The `<CONSTRUCTION>` entries, read once (item 4163).
+    fn construction_art(&mut self) -> &[ConstructionArt] {
+        self.construction
+            .get_or_insert_with(|| construction_art(&self.install))
+    }
+
+    /// The `<SCAFFOLD>` entries, read once (item 4163).
+    fn scaffold_art(&mut self) -> &[ScaffoldArt] {
+        self.scaffolds
+            .get_or_insert_with(|| scaffold_art(&self.install))
     }
 
     /// Whether a building's entry is drawn as its sprite: sprites on, not a
@@ -1108,16 +1181,22 @@ impl World {
             buildings.iter().map(|b| ((b.who, b.o), b)).collect();
         let mut out = Vec::new();
         for d in list {
-            let Pose::Building { .. } = d.pose else {
-                continue;
+            // A foundation is its `<CONSTRUCTION>` slot's sprite at its own
+            // anchor (item 4163): `draw_build`, as a building's.
+            let piece = match d.pose {
+                Pose::Building { .. } => {
+                    let Some(b) = at_building.get(&(d.who, d.o)) else {
+                        continue;
+                    };
+                    if !self.sprite_drawn(d.piece, b.type_index) {
+                        continue;
+                    }
+                    d.piece
+                }
+                Pose::Foundation { slot, .. } if self.sprites => foundation_key(slot),
+                _ => continue,
             };
-            let Some(b) = at_building.get(&(d.who, d.o)) else {
-                continue;
-            };
-            if !self.sprite_drawn(d.piece, b.type_index) {
-                continue;
-            }
-            let Some(image) = self.sprite_image(d.piece) else {
+            let Some(image) = self.sprite_image(piece) else {
                 continue;
             };
             let at = sprite_at(
@@ -1130,7 +1209,7 @@ impl World {
             out.push(SpriteDrawing {
                 who: d.who,
                 o: d.o,
-                piece: d.piece,
+                piece,
                 at,
                 depth: d.depth,
                 image,
@@ -1168,6 +1247,8 @@ impl World {
         let mut out = Vec::new();
         for d in list {
             let mut figure_key = None;
+            let mut scaffold = None;
+            let mut piece = d.piece;
             let (point, facing, building, clock) = match d.pose {
                 Pose::Figure { figure, facing, .. } => {
                     let Some(p) = at_figure.get(&(d.who, d.o, figure)) else {
@@ -1189,15 +1270,40 @@ impl World {
                 // The wheat field is a mesh `FarmsOut::draw` builds, not a
                 // piece; the client does not build it yet (item 4048).
                 Pose::Field { .. } => continue,
-                // The foundation is a `<CONSTRUCTION>` sprite and the
-                // scaffold a `<SCAFFOLD>` mesh by element, neither a
-                // building piece; the client draws neither yet (item 4061).
-                Pose::Foundation { .. } | Pose::Scaffold { .. } => continue,
+                // The foundation is a `<CONSTRUCTION>` sprite
+                // ([`World::sprite_drawings`], item 4163).
+                Pose::Foundation { .. } => continue,
+                // A scaffold piece is its `<SCAFFOLD>` element's model at
+                // the slot's point and angle (item 4163), part of the
+                // building: no figure's silhouette.
+                Pose::Scaffold {
+                    index,
+                    element,
+                    angle,
+                    ..
+                } => {
+                    let Some(b) = at_building.get(&(d.who, d.o)) else {
+                        continue;
+                    };
+                    let Some(p) = b
+                        .scaffold(self.look.scaffold_timing())
+                        .into_iter()
+                        .find(|p| p.index == index)
+                    else {
+                        continue;
+                    };
+                    scaffold = Some(angle);
+                    piece = scaffold_key(element);
+                    let (x, y, z) = p.point;
+                    ([x, y, z], 0, true, None)
+                }
             };
-            let Some(mesh) = self.mesh(d.piece, building) else {
+            let Some(mesh) = self.mesh(piece, building) else {
                 continue;
             };
-            let m = if building {
+            let m = if let Some(angle) = scaffold {
+                guy_placement(point, angle, mesh.scale)
+            } else if building {
                 placement(point, facing, mesh.scale)
             } else {
                 let drawn = sim::data::pivot::release_rotation(sim::movement::Angle(facing as i32));
@@ -1226,8 +1332,11 @@ impl World {
                 .iter()
                 .map(|f| f.map(|i| apply(&m, verts[i as usize])))
                 .collect();
-            // Each corner's `id 4` texcoord, one a vertex (item 4099).
-            let uvs = if building || mesh.model.texcoords.len() != mesh.model.verts.len() {
+            // Each corner's `id 4` texcoord, one a vertex (item 4099); a
+            // scaffold's too (item 4163).
+            let uvs = if (building && scaffold.is_none())
+                || mesh.model.texcoords.len() != mesh.model.verts.len()
+            {
                 Vec::new()
             } else {
                 mesh.faces
@@ -1275,7 +1384,7 @@ impl World {
             out.push(Drawing {
                 who: d.who,
                 o: d.o,
-                piece: d.piece,
+                piece,
                 building,
                 tris,
                 uvs,
@@ -1693,5 +1802,209 @@ mod tests {
             old_misses > 200,
             "the unmirrored turn agrees too often: {old_misses}"
         );
+    }
+
+    /// The window capture beside the pair (`rondata::diff::aztec_modern_pair`'s
+    /// `RUN1429B`): run1429's frames 3295 to 3389, every one printing its
+    /// buildings.
+    const RUN1429B: &str = "gamelog-run1429b-greatlakes-aztec-modern-window-3295-3389.txt";
+
+    /// **The foundations the client draws, of the draw list's** (item 4163:
+    /// new, 877 of 877): on the 99 (dump, frame) pairs below, each
+    /// `Pose::Foundation` entry drawn as its `<CONSTRUCTION>` slot's decoded
+    /// sprite. The list's 877 are
+    /// `rondata::free::tests::FOUNDATIONS_IN_REGISTER`'s, drawn by ours.
+    const CLIENT_FOUNDATIONS_DRAWN: (usize, usize) = (877, 877);
+
+    /// **The scaffold pieces the client draws, of the draw list's** (item
+    /// 4163: new, 2,781 of 2,781): each `Pose::Scaffold` entry drawn as its
+    /// `<SCAFFOLD>` element's decoded model, every triangle placed. The
+    /// list's 2,781 are `SCAFFOLDS_IN_REGISTER`'s, drawn by ours.
+    const CLIENT_SCAFFOLDS_DRAWN: (usize, usize) = (2781, 2781);
+
+    /// **The client draws the foundation and the scaffold, each with its own
+    /// piece** (item 4163, `docs/RENDERER.md` §3.5). On every frame a dump of
+    /// the lobby prints buildings on — run1428's two, run1429's start and
+    /// 3390, run1429b's 95: the (dump, frame) pairs on which
+    /// `rondata::free::tests::the_draw_list_s_buildings_are_in_register`
+    /// holds the list's foundations and scaffolds in register — the client's
+    /// game is stepped to the frame and its draw list's entries of the two
+    /// poses handed to the client's own draws: a foundation is drawn when
+    /// [`World::sprite_drawings`] gives it its slot's sprite at
+    /// `render::draw::sprite_at` of its anchor, a scaffold piece when
+    /// [`World::objects`] gives it its element's model, placed by
+    /// `guy_placement` at the slot's point and angle at
+    /// [`super::SCAFFOLD_SCALE`]. Made to fail: the `<CONSTRUCTION>` read
+    /// one slot on draws the eleventh slot's entries with no sprite.
+    /// A `<CONSTRUCTION>` sprite's width, height and offset.
+    type OwnSprite = (usize, usize, (i32, i32));
+
+    #[test]
+    fn the_client_draws_each_foundation_and_scaffold_with_its_own_piece() {
+        use super::{SCAFFOLD_SCALE, foundation_key, scaffold_key};
+        use render::draw::Pose;
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let logs = gamelog_dir();
+        let names = [super::START_DUMP, super::LONG_DUMP, RUN1429B];
+        if let Some(n) = names.iter().find(|n| !logs.join(n).exists()) {
+            println!("skipping: no {n}");
+            return;
+        }
+        let mut world = match World::open(&install, &logs) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        // (frame, dump) for every frame a dump prints a building on, as the
+        // register test reads them: a record with its type and piece.
+        let printed = |b: &[rondata::gamelog::BuildDump]| {
+            b.iter()
+                .any(|b| b.orig_type.is_some() && b.gpiece.is_some())
+        };
+        let mut wanted: Vec<(i64, usize)> = Vec::new();
+        for (i, name) in names.iter().enumerate() {
+            let mut src = rondata::capture::indexed::IndexedCapture::open(logs.join(name)).unwrap();
+            let setup = src.read_replay_setup().unwrap();
+            let log = rondata::gamelog::Log::parse(&setup);
+            if log.initial().is_some_and(|init| printed(&init.builds)) {
+                wanted.push((0, i));
+            }
+            for f in src.frame_states() {
+                let f = f.unwrap();
+                if printed(&f.builds) {
+                    wanted.push((f.n, i));
+                }
+            }
+        }
+        wanted.sort();
+        assert_eq!(wanted.len(), 99, "the register test's (dump, frame) pairs");
+        // Each entry's own file, read apart from the client: a
+        // `<CONSTRUCTION>` sprite's size and offset, a `<SCAFFOLD>` model's
+        // triangles.
+        let inst = rondata::Install::new(&install);
+        let read = |rel: &str| {
+            rondata::artdata::resolve_art(inst.root(), rel).and_then(|p| std::fs::read(p).ok())
+        };
+        let own_sprites: Vec<Option<OwnSprite>> = rondata::artdata::construction_art(&inst)
+            .iter()
+            .map(|c| {
+                let i = render::tga::decode(&read(&c.texture)?).ok()?;
+                Some((i.width, i.height, c.sprite_offset))
+            })
+            .collect();
+        let own_models: Vec<Option<usize>> = rondata::artdata::scaffold_art(&inst)
+            .iter()
+            .map(|s| Some(render::bh3::decode(&read(&s.model)?).ok()?.faces.len()))
+            .collect();
+        let (camera, screen) = (crate::pinned_camera(), crate::pinned_screen());
+        // frame → (foundations listed, drawn, scaffolds listed, drawn).
+        let mut by_frame: std::collections::BTreeMap<i64, [usize; 4]> = Default::default();
+        let mut sample = None;
+        for &(n, _) in &wanted {
+            if by_frame.contains_key(&n) {
+                continue;
+            }
+            while world.runner.frame() < n {
+                world.runner.step();
+            }
+            assert_eq!(world.runner.scene(None).frame, n);
+            let (_, buildings, list) = world.draw_list(&camera, &screen, (1920, 1080));
+            let of = |found: bool| -> Vec<render::draw::Drawn> {
+                list.iter()
+                    .filter(|d| match d.pose {
+                        Pose::Foundation { .. } => found,
+                        Pose::Scaffold { .. } => !found,
+                        _ => false,
+                    })
+                    .copied()
+                    .collect()
+            };
+            let (founds, scaffs) = (of(true), of(false));
+            let sprites = world.sprite_drawings(&buildings, &founds, camera.zoom_distance);
+            let drawn_founds = sprites
+                .iter()
+                .zip(&founds)
+                .filter(|(s, d)| {
+                    let Pose::Foundation { slot, .. } = d.pose else {
+                        return false;
+                    };
+                    let at = render::draw::sprite_at(
+                        d.anchor,
+                        s.image.offset,
+                        world.sprite_zoom.0,
+                        world.sprite_zoom.1,
+                        camera.zoom_distance,
+                    );
+                    let own = (s.image.image.width, s.image.image.height, s.image.offset);
+                    (s.who, s.o, s.piece, s.at) == (d.who, d.o, foundation_key(slot), at)
+                        && own_sprites.get(usize::from(slot)) == Some(&Some(own))
+                })
+                .count();
+            let drawings = world.objects(&[], &buildings, &scaffs);
+            let drawn_scaffs = drawings
+                .iter()
+                .zip(&scaffs)
+                .filter(|(m, d)| {
+                    let Pose::Scaffold { element, .. } = d.pose else {
+                        return false;
+                    };
+                    (m.who, m.o, m.piece) == (d.who, d.o, scaffold_key(element))
+                        && own_models.get(usize::from(element)) == Some(&Some(m.tris.len()))
+                        && m.building
+                        && !m.tris.is_empty()
+                        && m.tris.iter().flatten().flatten().all(|v| v.is_finite())
+                })
+                .count();
+            if sample.is_none()
+                && let (Some(s), Some(d), Some(m), Some(e)) = (
+                    sprites.first(),
+                    founds.first(),
+                    drawings.first(),
+                    scaffs.first(),
+                )
+            {
+                sample = Some(format!(
+                    "frame {n}: foundation {}/{} {:?} anchor ({}, {}) sprite {:?} {}x{}; \
+                     scaffold {}/{} {:?} anchor ({}, {}) piece {} {} triangles",
+                    d.who,
+                    d.o,
+                    d.pose,
+                    d.anchor.x,
+                    d.anchor.y,
+                    s.at,
+                    s.image.image.width,
+                    s.image.image.height,
+                    e.who,
+                    e.o,
+                    e.pose,
+                    e.anchor.x,
+                    e.anchor.y,
+                    m.piece,
+                    m.tris.len()
+                ));
+            }
+            by_frame.insert(n, [founds.len(), drawn_founds, scaffs.len(), drawn_scaffs]);
+        }
+        let mut t = [0usize; 4];
+        for (n, _) in &wanted {
+            for (a, b) in t.iter_mut().zip(by_frame[n]) {
+                *a += b;
+            }
+        }
+        println!(
+            "foundations {} of {}, scaffolds {} of {}; {}",
+            t[1],
+            t[0],
+            t[3],
+            t[2],
+            sample.unwrap_or_default()
+        );
+        assert_eq!(SCAFFOLD_SCALE, 3.0);
+        assert_eq!((t[1], t[0]), CLIENT_FOUNDATIONS_DRAWN, "foundations drawn");
+        assert_eq!((t[3], t[2]), CLIENT_SCAFFOLDS_DRAWN, "scaffolds drawn");
     }
 }
