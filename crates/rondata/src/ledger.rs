@@ -127,6 +127,10 @@ fn diff_sources() -> Vec<String> {
 #[cfg(test)]
 const NOT_A_DIFFER: &[(&str, &str)] = &[
     (
+        "diff/transfer.rs",
+        "the transfer harness (item 4159's step T): the crate's steps run on the original's printed record against its next printed record; no simulation runs, so no field of ours is compared",
+    ),
+    (
         "diff/drawn_games.rs",
         "the renderer census's list of games (item 4166): each late-age pair's and battery word's captures and length, read from their own modules; it compares nothing",
     ),

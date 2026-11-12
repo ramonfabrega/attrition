@@ -70,6 +70,22 @@ fourteen printed leaves — the four counters, the three victim stamp rows
 them (§2.5, §4.5, §5.5, §15.5). Item 4177 (step IV) made `theirs` read
 the thirteen combat rates, and `rows` compare them (§3.5).
 
+**The transfer harness** (item 4159's step T; `docs/DECISIONS.md` entry
+128 §3; `rondata::diff::transfer`). A held leaf that parts only beside a
+parent leaves `LEADERS_HELD_OUT` when the crate's own step, run on the
+original's printed inputs on one record, gives the original's printed leaf
+on the next, on every consecutive pair of one leader's records the kept
+dumps hold. Over the 910 scored dumps that print the level-9 record (the
+held-out battery's not opened), the harness runs the bins' routing and zero
+test on `num_queued`'s moves (§14), the crate's `SupplyList` on the units'
+own `supply` records (§13), and `Rates::fold` on the printed averages with
+the window's count read off the total's step (§3). Released: `stable_queued`,
+`factory_queued`, `air_queued`, `supply_mark`, `average_kill_rate`. The
+pairs, moving pairs and partings are pinned per leaf (`PINNED`), and each
+step bent parts on a named pair (`the_bent_steps_part_on_a_named_pair`).
+A pair touching a repeated frame label (run27's and run29's 15101) is not
+a step's pair and is not counted.
+
 **Conventions.** A function is cited as `Name (00xxxxxx)`. An offset is a
 `LeaderData` offset. `Leader` holds `LeaderData` at offset 0 and adds 8 bytes
 at the end (the vbtable pointer at +0x6ee4), so a `Leader*`'s `field_0xNN` is
@@ -726,6 +742,24 @@ record. The other twelve part, each named:
 A port with the decay perturbed (`·7 >> 3` to `·6 >> 3`) parts run855's
 window on 4751, `average_death_rate` ours 48402 theirs 56469 (the
 journal's).
+
+**The fold transfers** (item 4159's step T, `rondata::diff::transfer`):
+`Rates::fold`, run on one record's printed averages, `frame_battle` and
+`ages_get()`, with each kind's count read off its `*_fifteen_seconds` step
+across the pair (the fold adds that count to the total, step 1), gives the
+next record's four averages on every one of 476,892 pairs the 910 dumps
+hold that span at most one fold (1,527 moving for `average_kill_rate`,
+1,419 death, 1,286 hit, 1,482 damage); a pair with no fold between its
+records holds them still. It confirms from the original's side alone the
+record frame's place: the record labelled `f` is the state before tick
+`f`, so the fold of tick `50k` shows on the record `50k + 1`.
+`average_kill_rate` parts in the record diff only on run1075, beside
+`kills_current_frame`, so it is released and emitted. The other three
+averages transfer too but part on frames of their own (4177a, 4177b) and
+stay held: a parting of its own is a finding, not a transfer. The four
+`*_current_frame` words and the four totals cannot transfer: their input
+is each tick's blows and deaths, which no record prints (a vanished unit
+does not say how it went).
 
 Verdicts, as the adjudication counts them: the shared writers 52 confirmed,
 5 corrected, 1 open; per leaf, `hits_current_frame` 6/1/1,
@@ -2943,7 +2977,13 @@ yet.~~ **Coverage since item 4167:** the record diff backs `fort_mark`,
 `oil_well_mark` and `senates_built` on every dump that prints the record
 (no parting), and `supply_mark` everywhere but one window, where it parts
 beside its array: run1075's 2805, who 1, ours 4 theirs 3, beside
-`num_units[13]` 4/3 (parked 4167b). `wonders_built`, `wonders_held` and
+`num_units[13]` 4/3 (parked 4167b). **Since item 4159's step T
+`supply_mark` is released on transfer**: the crate's `SupplyList`, rebuilt
+from the supply records one frame's units print (`supply`, by `o` and
+`uid`), given back each record a unit no longer holds and registered for
+each new holder, has the next record's printed mark on all 480,076 pairs
+the 910 dumps hold where both frames print their units (82 moving); it is
+emitted on the leaders line. `wonders_built`, `wonders_held` and
 `forts_built` are unprinted: the leaders line on run 1562's frame 91 is
 their only oracle, and it reads 0 = 0 on both leaders — a weak one, no
 wonder or fort stands yet. `the_marks_follow_activation_and_close`
@@ -3202,6 +3242,17 @@ run1075's 2583 (who 1, ours 10 / 1, theirs 13 / 8, beside `num_queued[261]`
 `stable_queued` on five closing frames whose queues the original has
 emptied (first: run1262's 6107, who 1, ours 8 / 8 theirs 0; run1250's
 8778 adds `stable_queued` 5/0). The bins' rule is not what parts.
+**Since item 4159's step T** the bins' step is run on the original's own
+`num_queued` moves (`Sim::armed_queued_bins`, then `step_bin` one `±1` at
+a time) over every pair the 910 dumps hold (477,126): `stable_queued`
+(338 moving), `factory_queued` (188), `air_queued` (288) and `dock_queued`
+(136) transfer on every pair, and the first three are released and
+emitted. `barracks_queued` and `combat_queued` part on one: run462's
+who 1, 10367 → 10368, ours 2 theirs 1, where building 2020's queue
+retargets an entry from `TypeIndex` 134 to 84 and `num_queued` does not
+move (134 has drifted to its floor, three entries queued against a count
+of 0, the graft-chain arm's residue), so the step's input is not what the
+array prints. They stay held (parked 4159Ta).
 
 Verdicts: `scholar_militia` 13 confirmed, 1 corrected, 1 open; each queued
 leaf 16 confirmed, 1 corrected, 1 open. The writer nets over the listing

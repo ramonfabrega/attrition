@@ -1827,15 +1827,26 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 4, 4313);
 /// melees' closing record, the human's, one empty fold short (2601,
 /// `average_damage_rate` ours 294 theirs 257 on airbase_melee; parked
 /// 4177b). The long range stays out on the other 73.
+///
+/// Item 4159's step T: 73 → 68 names, the first released on transfer
+/// (`docs/DECISIONS.md` entry 128 §3; `diff::transfer`). Each parts in the
+/// record diff only beside a named input of its own parting, and the
+/// crate's step, run on the original's printed inputs of one record, gives
+/// the original's printed leaf on the next on every pair the 910 dumps
+/// that print the level-9 record hold: `stable_queued` (477,126 pairs, 338
+/// moving), `factory_queued` (188 moving) and `air_queued` (288 moving)
+/// through `num_queued`'s moves; `supply_mark` (480,076 pairs, 82 moving)
+/// through the units' own `supply` records; `average_kill_rate` (476,892
+/// pairs, 1,527 moving) through `Rates::fold` on the printed averages and
+/// the total's step. All five 0 = 0 on frame 91, both leaders. The long
+/// range stays out on the other 68.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
-    ("air_queued (unheld)", 2),
     ("ally_stamp (unheld)", 2),
     ("attack_stamp (unheld)", 2),
     ("attrition_stamp2 (unheld)", 2),
     ("average_damage_rate (unheld)", 2),
     ("average_death_rate (unheld)", 2),
     ("average_hit_rate (unheld)", 2),
-    ("average_kill_rate (unheld)", 2),
     ("barracks_queued (unheld)", 2),
     ("blacken (unheld)", 2),
     ("broke_alliance (unheld)", 2),
@@ -1849,7 +1860,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("defeat_type (unheld)", 2),
     ("defeated_by (unheld)", 2),
     ("dow (unheld)", 2),
-    ("factory_queued (unheld)", 2),
     ("gift_stamp (unheld)", 2),
     ("good_deeds (unheld)", 2),
     ("high_buildings (unheld)", 2),
@@ -1886,8 +1896,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("score_units (unheld)", 2),
     ("score_units_2 (unheld)", 2),
     ("score_wonders (unheld)", 2),
-    ("stable_queued (unheld)", 2),
-    ("supply_mark (unheld)", 2),
     ("taunt_frame (unheld)", 2),
     ("tech.ptr", 2),
     ("territory_high (unheld)", 2),
@@ -1956,6 +1964,13 @@ const LEADERS_BENT: &[&str] = &[
     // Item 4177's one it holds on the line (`sim::leaders::rates`),
     // agreeing on run 1562's frame 91.
     "frame_battle",
+    // Item 4159's step T: the five released on transfer (`diff::transfer`),
+    // each agreeing on run 1562's frame 91.
+    "stable_queued",
+    "factory_queued",
+    "air_queued",
+    "supply_mark",
+    "average_kill_rate",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its

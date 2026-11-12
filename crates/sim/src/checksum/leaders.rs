@@ -1106,11 +1106,15 @@ impl Sim {
             "senates_built" => one(i64::from(self.leader_senates_built(who))),
             "forts_built" => one(i64::from(self.leader_forts_built(who))),
             "scholar_militia" => one(i64::from(self.leader_scholar_militia(who))),
-            // `supply_mark` and the other five bins are held
-            // (`Sim::leader_supply_mark`, `leader_armed_queued`) and not
-            // emitted: the record diff parts each beside its array's own
-            // parting (parked 4167b).
-            "dock_queued" => self
+            // `supply_mark`, `stable_queued`, `factory_queued` and
+            // `air_queued` are emitted since item 4159's step T: each parts
+            // in the record diff only beside its array's own parting (parked
+            // 4167b), and transfers (`rondata::diff::transfer`). The barracks
+            // and combat bins are held (`leader_armed_queued`) and not
+            // emitted: one pair the dumps hold, run462's 10367, moves them
+            // with no `num_queued` move beside it (parked 4159Ta).
+            "supply_mark" => one(i64::from(self.leader_supply_mark(who))),
+            "dock_queued" | "stable_queued" | "factory_queued" | "air_queued" => self
                 .leader_armed_queued(who, name)
                 .map(|v| vec![i64::from(v)]),
             "tech_cat_frame" => Some(a.tech_cat_frame.to_vec()),
