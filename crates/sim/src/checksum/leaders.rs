@@ -1092,7 +1092,6 @@ impl Sim {
             "handicap" => one(i64::from(self.leader_handicap(who))),
             "cannon_time" => one(i64::from(self.leader_cannon_time(who))),
             "misery" => one(i64::from(self.leader_misery(who))),
-            "pop_issues" => one(i64::from(self.leader_pop_issues(who))),
             "city_name" => one(i64::from(self.leader_city_name(who))),
             // The single's bits (`docs/LEADERS.md` §6.2; entry 120 §3, class
             // 1 at 256.0, class 2 under a source).
