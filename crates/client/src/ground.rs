@@ -62,25 +62,57 @@ pub struct GroundTextures {
     pub art: rondata::artdata::GroundArt,
     /// `bases[land_sub][subtile]`; a base that is not a supertile holds one.
     pub bases: Vec<Vec<Mips>>,
+    /// The `<COASTAL>` and `<OCEAN>` bases (item 4164), each as `bases`
+    /// holds its own, in [`GroundTextures::flat`] after `bases`.
+    pub coastal: Vec<Vec<Mips>>,
+    pub ocean: Vec<Vec<Mips>>,
 }
 
 impl GroundTextures {
     pub fn load(root: &Path, tileset: &str) -> Result<GroundTextures, String> {
         let install = rondata::Install::new(root);
         let art = rondata::artdata::ground_art(&install, tileset).map_err(|e| format!("{e:?}"))?;
-        let mut bases = Vec::new();
-        for b in &art.baseland {
-            let path = rondata::artdata::resolve_art(root, &b.texture)
-                .ok_or_else(|| format!("no file for {}", b.texture))?;
-            let bytes = std::fs::read(&path).map_err(|e| format!("{}: {e}", path.display()))?;
-            let image = render::tga::decode(&bytes).map_err(|e| format!("{}: {e:?}", b.texture))?;
-            bases.push(if b.supertile {
-                (0..9).map(|k| Mips::new(cut(&image, k))).collect()
-            } else {
-                vec![Mips::new(image)]
-            });
+        let load = |list: &[rondata::artdata::GroundBase]| -> Result<Vec<Vec<Mips>>, String> {
+            let mut bases = Vec::new();
+            for b in list {
+                let path = rondata::artdata::resolve_art(root, &b.texture)
+                    .ok_or_else(|| format!("no file for {}", b.texture))?;
+                let bytes = std::fs::read(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+                let image =
+                    render::tga::decode(&bytes).map_err(|e| format!("{}: {e:?}", b.texture))?;
+                bases.push(if b.supertile {
+                    (0..9).map(|k| Mips::new(cut(&image, k))).collect()
+                } else {
+                    vec![Mips::new(image)]
+                });
+            }
+            Ok(bases)
+        };
+        Ok(GroundTextures {
+            bases: load(&art.baseland)?,
+            coastal: load(&art.coastal)?,
+            ocean: load(&art.ocean)?,
+            art,
+        })
+    }
+
+    /// **The texture any cell's land pass draws** (item 4164), as an index
+    /// into [`GroundTextures::flat`]: `convert_land_tex_to_linear`'s bucket.
+    /// On `BASELAND` it is [`GroundTextures::index`]; on `SANDY`
+    /// (`eTILE_COASTAL`) and `OCEAN` (`eTILE_OCEAN`) the count of every
+    /// texture of the types before, and no more — the type's first texture,
+    /// neither `land_sub` nor the cell's coordinates entering. `None` past
+    /// the tileset's textures or on any other kind.
+    pub fn index_land(&self, land: i8, land_sub: u8, cx: i32, cy: i32) -> Option<usize> {
+        let count = |b: &[Vec<Mips>]| b.iter().map(Vec::len).sum::<usize>();
+        match land {
+            render::terrain::BASELAND => self.index(land_sub, cx, cy),
+            render::terrain::SANDY => (!self.coastal.is_empty()).then(|| count(&self.bases)),
+            render::terrain::OCEAN => {
+                (!self.ocean.is_empty()).then(|| count(&self.bases) + count(&self.coastal))
+            }
+            _ => None,
         }
-        Ok(GroundTextures { art, bases })
     }
 
     /// The texture a `BASELAND` cell draws: `(base, sub-tile)` as an index
@@ -92,16 +124,26 @@ impl GroundTextures {
         Some(self.bases[..b].iter().map(Vec::len).sum::<usize>() + k)
     }
 
-    /// Every sub-tile, base by base.
+    /// Every sub-tile, base by base: `BASELAND`'s, then `<COASTAL>`'s and
+    /// `<OCEAN>`'s (item 4164).
     pub fn flat(&self) -> Vec<Mips> {
-        self.bases.iter().flatten().cloned().collect()
+        self.bases
+            .iter()
+            .chain(&self.coastal)
+            .chain(&self.ocean)
+            .flatten()
+            .cloned()
+            .collect()
     }
 }
 
 /// **The base layer's triangles** (item 4127): every `BASELAND` tile not
 /// under a placed mountain, its two triangles as [`TerrainMesh`] holds
 /// them, each with its corners' texcoords, its texture's index into
-/// [`GroundTextures::flat`] and its tile.
+/// [`GroundTextures::flat`] and its tile. From item 4164 the `SANDY` and
+/// `OCEAN` tiles too, each its type's first texture
+/// ([`GroundTextures::index_land`]) laid as `generate_land` lays every
+/// cell's, one repeat a cell.
 ///
 /// [`TerrainMesh`]: render::terrain::TerrainMesh
 #[derive(Clone, Debug, Default)]
@@ -118,7 +160,7 @@ pub fn ground_base(
     tex: &GroundTextures,
     mesh: &render::terrain::TerrainMesh,
 ) -> GroundBase {
-    use render::terrain::{BASELAND, TILES_PER_CELL};
+    use render::terrain::TILES_PER_CELL;
     let mut out = GroundBase::default();
     let (tw, th) = (t.width * TILES_PER_CELL, t.height * TILES_PER_CELL);
     if mesh.positions.len() != (tw * th * 6) as usize {
@@ -128,10 +170,11 @@ pub fn ground_base(
         for tx in 0..tw {
             let (cx, cy) = (tx / TILES_PER_CELL, ty / TILES_PER_CELL);
             let c = (cy * t.width + cx) as usize;
-            if t.land.get(c) != Some(&BASELAND) || mountains.contains(&(tx, ty)) {
+            let land = t.land.get(c).copied().unwrap_or(render::terrain::NONE);
+            if mountains.contains(&(tx, ty)) {
                 continue;
             }
-            let Some(k) = tex.index(t.land_sub[c], cx, cy) else {
+            let Some(k) = tex.index_land(land, t.land_sub[c], cx, cy) else {
                 continue;
             };
             let i = ((ty * tw + tx) * 6) as usize;
@@ -147,6 +190,119 @@ pub fn ground_base(
         }
     }
     out
+}
+
+/// **The water's alpha at its deepest** (item 4164): `graphics.txt`'s
+/// `WaterColor Solid`, the top byte `TerrainOut::create_water_verts@
+/// 0086ceb0` gives a water vertex's colour (`watercolor_solid`, white).
+pub const WATER_SOLID: u8 = 245;
+
+/// **The depth below which the water is solid** (item 4164):
+/// `__real_c25c0000`, −55, in `TerrainOut::get_water_fade@00869fd0`.
+pub const WATER_DEEP: f32 = -55.0;
+
+/// **The fade's top** (item 4164): `TerrainOut +0x4d80`, the registered
+/// variable (range −91 to 0, `TerrainOut::registration@00865930`) that
+/// `get_water_fade` compares against. Its value is not in the decompile;
+/// run1564's packet holds **−25.0** at `0x00c0fe70` (`terrain`,
+/// `0x00c0b0f0`, which `MiscAccess::terrain` points at, plus `0x4d80`).
+pub const WATER_FADE_TOP: f32 = -25.0;
+
+/// **A water vertex's alpha** (item 4164), `get_water_fade` on the corner
+/// height `h`: [`WATER_SOLID`] at or below [`WATER_DEEP`], none above
+/// [`WATER_FADE_TOP`], and between them `(h − top) / −55 · 245` truncated.
+/// It is not continuous at −55: at −54.9 it is 132. The `>> 2` on a cell
+/// `+0x138`'s `0x800` is not drawn.
+pub fn water_fade(h: f32) -> u8 {
+    const TOP: f32 = WATER_FADE_TOP;
+    if h <= WATER_DEEP {
+        WATER_SOLID
+    } else if h <= TOP {
+        ((h - TOP) / WATER_DEEP * f32::from(WATER_SOLID)) as u8
+    } else {
+        0
+    }
+}
+
+/// **Whether a cell holds water** (item 4164),
+/// `TerrainOut::coord_contains_water@0086a080`: a cell on the map whose
+/// `WData` flags carry `COAST` or `HALFLAND`, or whose land is `OCEAN`, or
+/// — its `CoordInfo` flags not held here — a `SANDY` cell with any of its
+/// 5 × 5 corners below zero, the `& 4` arm taken as every shore cell's.
+pub fn holds_water(t: &sim::observe::TerrainScene, cx: i32, cy: i32) -> bool {
+    use render::terrain::{OCEAN, SANDY, TILES_PER_CELL};
+    use sim::ids::cell;
+    if !(0..t.width).contains(&cx) || !(0..t.height).contains(&cy) {
+        return false;
+    }
+    let i = (cy * t.width + cx) as usize;
+    if t.flags[i] & (cell::COAST | cell::HALFLAND) != 0 || t.land[i] == OCEAN {
+        return true;
+    }
+    if t.land[i] != SANDY {
+        return false;
+    }
+    let sx = t.width * TILES_PER_CELL + 1;
+    (0..=TILES_PER_CELL).any(|dy| {
+        (0..=TILES_PER_CELL).any(|dx| {
+            let k = ((cy * TILES_PER_CELL + dy) * sx + cx * TILES_PER_CELL + dx) as usize;
+            t.corners.get(k).is_some_and(|&z| f32::from_bits(z) < 0.0)
+        })
+    })
+}
+
+/// **The water's alpha over a point of a cell** (item 4164): `None` on a
+/// cell that holds no water ([`holds_water`]); else the alpha the water
+/// mesh carries there, out of 255. `create_water_verts` lays a vertex
+/// every half cell, two tiles, each with [`water_fade`] of the corner
+/// height there; the point's is the bilinear blend of its half cell's four.
+/// `uv` is the cell-local `[0, 1]` the base layer's texcoord is
+/// ([`tile_uvs`]).
+pub fn water_alpha(
+    t: &sim::observe::TerrainScene,
+    (cx, cy): (i32, i32),
+    uv: [f32; 2],
+) -> Option<f32> {
+    use render::terrain::TILES_PER_CELL;
+    if !holds_water(t, cx, cy) {
+        return None;
+    }
+    let sx = t.width * TILES_PER_CELL + 1;
+    let at = |x: i32, y: i32| {
+        let k = (y * sx + x) as usize;
+        f32::from(water_fade(f32::from_bits(t.corners[k])))
+    };
+    let half = TILES_PER_CELL / 2;
+    let (fx, fy) = (uv[0].clamp(0.0, 1.0) * 2.0, uv[1].clamp(0.0, 1.0) * 2.0);
+    let (ix, iy) = ((fx as i32).min(1), (fy as i32).min(1));
+    let (u, v) = (fx - ix as f32, fy - iy as f32);
+    let (x0, y0) = (
+        cx * TILES_PER_CELL + ix * half,
+        cy * TILES_PER_CELL + iy * half,
+    );
+    let (a, b, c, d) = (
+        at(x0, y0),
+        at(x0 + half, y0),
+        at(x0 + half, y0 + half),
+        at(x0, y0 + half),
+    );
+    Some((a * (1.0 - u) + b * u) * (1.0 - v) + (d * (1.0 - u) + c * u) * v)
+}
+
+/// **The water's alpha as a texture** (item 4164): 256 texels, texel `i`
+/// of alpha `i`, so an alpha `a` out of 255 is the texcoord
+/// `(a + 0.5) / 256` and a linear blend of two is a linear blend of their
+/// texcoords. The client's patch shader reads it as it reads an alpha.
+pub fn water_ramp() -> Mips {
+    let rgba = (0..=255u8).flat_map(|a| [255, 255, 255, a]).collect();
+    Mips::new(render::tga::Image {
+        width: 256,
+        height: 1,
+        kind: 2,
+        bits: 32,
+        footer: false,
+        rgba,
+    })
 }
 
 /// **The transition patch laid** (item 4139; `docs/RENDERER.md` §3.9):
@@ -408,20 +564,35 @@ pub const RUN1564_3279_SHORE: [[u32; 2]; 13] = [
 /// 677 of 679, `ROCK` 32 of 32), and the water and the shore, which it
 /// draws in the debug colours, on none of their 1,209 — the debt the next
 /// render item reads (`TerrainOut::render_water`).
+///
+/// **Item 4164: 709 → 1,236.** `SANDY` and `OCEAN` draw their type's first
+/// base (`sand.tga`, `ocean_floor_5.tga`) and the water lies over every
+/// cell that holds it, the ocean's base at `get_water_fade`'s alpha:
+/// `SANDY` 0 → 294 of 772, `OCEAN` 0 → 233 of 437, the land unchanged; on
+/// the base alone 584 → 872.
 #[cfg(test)]
 pub const RUN1564_3279_GROUND: ((usize, usize), [[u32; 2]; 7], usize) = (
-    (709, 1920),
+    (1236, 1920),
     [
         [677, 679],
         [0, 0],
         [32, 32],
         [0, 0],
         [0, 0],
-        [0, 772],
-        [0, 437],
+        [294, 772],
+        [233, 437],
     ],
-    584,
+    872,
 );
+
+/// **`RUN1564_3279_WATER`** (item 4164): `[SANDY, OCEAN]` agreeing under
+/// [`RUN1564_3279_GROUND`]'s rule with the water's surface as (1) none, the
+/// land pass alone; (2) the ocean's base, the draw; (3) `water0000.tga`,
+/// the first of the 32 frames `graphics.txt` names, which `render_water`
+/// binds to stage 0. The photograph's water is the floor's colour: the
+/// frames' navy agrees on no `OCEAN` tile.
+#[cfg(test)]
+pub const RUN1564_3279_WATER: [[u32; 2]; 3] = [[55, 233], [294, 233], [112, 0]];
 
 /// [`RUN1559B_3279_GROUND`] on the base layer alone, as item 4127 pinned it.
 #[cfg(test)]
@@ -754,6 +925,25 @@ mod tests {
         assert_eq!(c.rgba[4 * 3], 3 * 6 + 5);
     }
 
+    /// **Item 4164: `get_water_fade`, as read and as the packet sets it**:
+    /// solid at and below −55, nothing above −25, a line between that does
+    /// not meet 245 at −55; and the ramp hands an alpha back as itself.
+    #[test]
+    fn the_water_fades_as_get_water_fade_fades() {
+        assert_eq!(water_fade(-200.0), WATER_SOLID);
+        assert_eq!(water_fade(-55.0), 245);
+        assert_eq!(water_fade(-54.9), 133);
+        assert_eq!(water_fade(-40.0), 66);
+        assert_eq!(water_fade(-25.0), 0);
+        assert_eq!(water_fade(10.0), 0);
+        let ramp = water_ramp();
+        for a in [0u8, 66, 133, 245] {
+            let u = (f32::from(a) + 0.5) / 256.0;
+            let got = ramp.sample(0, u, 0.5)[3];
+            assert!((got - f32::from(a)).abs() < 0.01, "{a}: {got}");
+        }
+    }
+
     /// The probe's state at the photograph's frame.
     pub(crate) struct Probe {
         pub world: World,
@@ -894,9 +1084,28 @@ mod tests {
             laid[first..].iter().all(|m| m.mountain),
             "the mountains after the patch"
         );
+        // Item 4164: the water, once over every tile of a cell that holds
+        // it, before the mountains.
+        let water: Vec<_> = laid
+            .iter()
+            .filter(|m| m.alpha == crate::world::WATER_ALPHA)
+            .collect();
+        let wet = base
+            .tile
+            .iter()
+            .filter(|tt| holds_water(&t, tt.0 / TILES_PER_CELL, tt.1 / TILES_PER_CELL))
+            .count();
+        assert_eq!(water.len(), 1, "one water mesh");
+        assert!(wet > 0, "the map holds water");
+        assert_eq!(water[0].positions.len(), wet * 3, "every wet tile, once");
+        assert!(
+            laid.iter()
+                .position(|m| m.alpha == crate::world::WATER_ALPHA)
+                < Some(first)
+        );
         let laid: usize = laid
             .iter()
-            .filter(|m| !m.mountain)
+            .filter(|m| !m.mountain && m.alpha != crate::world::WATER_ALPHA)
             .map(|m| m.positions.len())
             .sum();
         assert!(laid > 0, "the transition patch is laid");
@@ -1315,6 +1524,83 @@ mod tests {
         assert_eq!(((r.row, r.scored.len()), by, r.bare), RUN1564_3279_GROUND);
     }
 
+    /// **Item 4164: the water on the second photograph**, the read draw
+    /// against its controls, by kind.
+    #[test]
+    fn the_water_on_the_second_photograph() {
+        let Some(mut p) = probe_at(run1564()) else {
+            return;
+        };
+        let floor = ocean_floor(&p.root);
+        let file = |rel: &str| {
+            let bytes = std::fs::read(p.root.join(rel)).expect("the install's file");
+            Mips::new(render::tga::decode(&bytes).expect("it decodes"))
+        };
+        let frame = file("terrain art/newwater/water0000.tga");
+        let t = p.world.runner.terrain();
+        let mountains: std::collections::BTreeSet<(i32, i32)> =
+            t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
+        let mut rows = Vec::new();
+        for (name, surface) in [
+            ("the land pass alone", None),
+            ("the water as the ocean base", Some(&floor)),
+            ("the water as water0000", Some(&frame)),
+        ] {
+            let Some(r) = ground_row_with(&mut p, surface) else {
+                return;
+            };
+            let mut by = [[0u32; 2]; 7];
+            for (tt, ok) in &r.scored {
+                let e = &mut by[kind_of(&t, &mountains, *tt)];
+                e[1] += 1;
+                if *ok {
+                    e[0] += 1;
+                }
+            }
+            println!(
+                "run1564 water, {name}: {} of {}, SANDY {:?}, OCEAN {:?}",
+                r.row,
+                r.scored.len(),
+                by[5],
+                by[6]
+            );
+            rows.push([by[5][0], by[6][0]]);
+            // SANDY by whether the photograph shows the tile blue, and
+            // whether we lay water on it.
+            let mut split = BTreeMap::new();
+            for (tt, ok) in &r.scored {
+                if kind_of(&t, &mountains, *tt) != 5 {
+                    continue;
+                }
+                let (th, us, _) = r.means[tt];
+                let wet = holds_water(&t, tt.0 / TILES_PER_CELL, tt.1 / TILES_PER_CELL);
+                let e = split
+                    .entry((th[2] > th[0], wet))
+                    .or_insert((0u32, 0u32, [0f32; 3], [0f32; 3], 0u32));
+                e.1 += 1;
+                if *ok {
+                    e.0 += 1;
+                }
+                let us = us.unwrap_or_default();
+                for (i, (a, b)) in th.iter().zip(us).enumerate() {
+                    e.2[i] += a;
+                    e.3[i] += b;
+                }
+                e.4 += 1;
+            }
+            for ((blue, wet), (a, n, th, us, k)) in &split {
+                let k = *k as f32;
+                println!(
+                    "  SANDY photo blue {blue}, water laid {wet}: {a} of {n}, theirs {:?} ours {:?}",
+                    th.map(|v| (v / k) as i32),
+                    us.map(|v| (v / k) as i32)
+                );
+            }
+        }
+        println!("RUN1564_3279_WATER: {rows:?}");
+        assert_eq!(rows, RUN1564_3279_WATER);
+    }
+
     fn mean(px: &[[f32; 3]]) -> [f32; 3] {
         let n = px.len().max(1) as f32;
         [0, 1, 2].map(|c| px.iter().map(|p| p[c]).sum::<f32>() / n)
@@ -1501,6 +1787,25 @@ mod tests {
     /// item 4127 committed its rule and 4139 and 4141 laid the patch and the
     /// mountains over it; `None` with no world seed.
     pub(crate) fn ground_row(p: &mut Probe) -> Option<GroundRow> {
+        let floor = ocean_floor(&p.root);
+        ground_row_with(p, Some(&floor))
+    }
+
+    /// The `<OCEAN>` base's first texture, the water's surface the row
+    /// draws (item 4164).
+    pub(crate) fn ocean_floor(root: &std::path::Path) -> Mips {
+        let tileset = crate::world::lobby_tileset(
+            root,
+            &crate::world::gamelog_dir().join(crate::world::START_DUMP),
+        )
+        .expect("the lobby's tileset");
+        let tex = GroundTextures::load(root, &tileset).expect("the ground's textures load");
+        tex.ocean[0][0].clone()
+    }
+
+    /// [`ground_row`] with `surface` the water's texture, laid over every
+    /// cell that holds water at [`water_alpha`]; `None` lays no water.
+    pub(crate) fn ground_row_with(p: &mut Probe, surface: Option<&Mips>) -> Option<GroundRow> {
         use render::silhouette::{Paint, Rect, paint};
         let g = ground(p);
         let size = (p.photo.width, p.photo.height);
@@ -1553,6 +1858,21 @@ mod tests {
         };
         let ours = draw(&base.uvs);
         let control = draw(&shifted);
+        // Item 4164: the water's surface, sampled where the base lies.
+        let zeros = vec![0; base.tris.len()];
+        let water = surface.map(|m| {
+            paint(
+                &object,
+                &Paint::Textures {
+                    uvs: &base.uvs,
+                    mips: std::slice::from_ref(m),
+                    of: &zeros,
+                },
+                &p.camera,
+                size,
+                window,
+            )
+        });
         // Item 4139 (§3.9): the transition patch, our own choice on our own
         // cells, laid over the base at the alpha's A.
         let alphas = load_alphas(&p.root).expect("the alphas load");
@@ -1655,6 +1975,19 @@ mod tests {
                 m
             } else {
                 c
+            };
+            // Item 4164: the water over the cell, at its alpha.
+            let c = match (&water, ours[j]) {
+                (Some(wp), Some(q)) if !mountains.contains(&tt) => {
+                    match (water_alpha(&t, cell(tt), q.uv), wp[j]) {
+                        (Some(a), Some(wq)) => {
+                            let a = a / 255.0;
+                            [0, 1, 2].map(|i| c[i] * (1.0 - a) + wq.rgb[i] * a)
+                        }
+                        _ => c,
+                    }
+                }
+                _ => c,
             };
             e.1.push(c);
             if !mountains.contains(&tt) {
@@ -1919,7 +2252,23 @@ mod tests {
         let t = p.world.runner.terrain();
         let mountains: std::collections::BTreeSet<(i32, i32)> =
             t.mountains.iter().flatten().map(|q| (q.x, q.y)).collect();
-        let base = ground_base(&t, &mountains, &tex, &mesh);
+        // The `BASELAND` tiles alone: the bases this test chooses among
+        // (item 4164 lays `SANDY` and `OCEAN` in the same layer).
+        let base = {
+            let all = ground_base(&t, &mountains, &tex, &mesh);
+            let mut b = GroundBase::default();
+            for i in 0..all.tris.len() {
+                let (tx, ty) = all.tile[i];
+                let c = ((ty / TILES_PER_CELL) * t.width + tx / TILES_PER_CELL) as usize;
+                if t.land[c] == render::terrain::BASELAND {
+                    b.tris.push(all.tris[i]);
+                    b.uvs.push(all.uvs[i]);
+                    b.of.push(all.of[i]);
+                    b.tile.push(all.tile[i]);
+                }
+            }
+            b
+        };
         let flat = tex.flat();
         let cell = |(tx, ty): (i32, i32)| (tx / TILES_PER_CELL, ty / TILES_PER_CELL);
         let sub = |(cx, cy): (i32, i32)| t.land_sub[(cy * t.width + cx) as usize];

@@ -951,12 +951,11 @@ committed before its count.* What a `BASELAND` tile draws, read from:
 - *Drawn:* every `BASELAND` tile not under a placed mountain, bilinear
   over the sub-tile's mips (`render::silhouette::Paint::Textures`). A
   mountain's tiles take their own draw (§3.10),
-  the other kinds their debug colour; the debug draw stays behind a flag
-  as the floor's.
+  `SANDY` and `OCEAN` theirs and the water (§3.12); the debug draw stays
+  behind a flag as the floor's.
 - *Not drawn, and named at the count:* the blends between bases and
   kinds (`generate_transitions`, `create_transition_renderables`), the
-  coast, the cliffs, the water, the decorations, the weathering, the
-  fog, the light.
+  cliffs, the decorations, the weathering, the fog, the light.
 
 The row (`RUN1559B_3279_GROUND`): of the scored tiles — at least 40
 ground pixels, a ground pixel one where none of our objects draws,
@@ -1560,6 +1559,111 @@ load, not a diff: nothing of the original is compared. The resident set is
   the lobby could show before the first frame would trade frame 1's ~100 ms
   for a longer frame zero. Nothing has measured that trade.
 
+## 3.12 The water and the shore (item 4164)
+
+*2026-11-12, Opus 5.5. `client::ground`: `GroundTextures::index_land`,
+`water_fade`, `holds_water`, `water_alpha` and `water_ramp`;
+`client::world::World::drawn_terrain`'s water layer;
+`rondata::artdata::GroundArt`'s `coastal` and `ocean`. Scored on
+run1564's photograph (§3.3, rung 4).*
+
+**The land pass, read.** `TileSet::convert_land_tex_to_linear@0087ace0`
+buckets every cell, not only `BASELAND`'s. For land 1 (`eTILE_COASTAL`,
+our `SANDY`) and 2 (`eTILE_OCEAN`) it returns the count of every texture
+of the types before, and nothing more. Neither `land_sub` nor the cell's
+coordinates enter (`iVar5` is the sub only when the land is 0, and the
+`0x55555555` term is behind `param_1 == eTILE_FERTILE`). So a `SANDY`
+cell draws `<COASTAL>`'s first texture and an `OCEAN` cell `<OCEAN>`'s,
+laid one repeat a cell by `generate_land` as every cell is. The type
+names are the PDB's `TileSetLandTypes`. On `early_autumn` the two are
+`sand.tga` and `ocean_floor_5.tga` under `BASEDIR`.
+
+**The water, read.** `TerrainOut::render_water@00852cd0` draws one mesh
+that `create_water_verts@0086ceb0` lays over every cell
+`coord_contains_water@0086a080` passes. That is `COAST` or `HALFLAND` in the
+cell's `WData` flags, land `OCEAN`, or a `CoordInfo` arm, one of which
+asks whether any of the cell's 5 × 5 corners is below zero. A vertex
+falls every half cell, two tiles. Its colour is `watercolor_solid`, white,
+and its alpha is `get_water_fade@00869fd0` of the corner height there:
+
+- 245 (`graphics.txt` `WaterColor Solid`) at or below −55
+  (`__real_c25c0000`);
+- none above `TerrainOut +0x4d80`;
+- between them, `(h − top) / −55 · 245`, truncated.
+
+`+0x4d80` is a registered variable, with range −91 to 0
+(`TerrainOut::registration@00865930`). The decompile holds no value for it.
+**run1564's packet holds −25.0** at `0x00c0fe70`: `terrain`, `0x00c0b0f0`,
+is the object `MiscAccess::terrain` points at. So the fade does not meet
+245 at −55, where it reads 133. The same packet holds the reading's other
+values: `+0x5614` −40 (`OceanFadeHeight`), `+0x5618` 3 (`OceanFloorScale`)
+and `+0x564c` `0xf5ffffff` (white at 245).
+
+**The surface, which the reading does not settle.** The technique is
+"Normal Water" (`TerrainOut::one_time_init`). Its stage 0 is
+`SELECTARG2(TA_TEXTURE, TA_DIFFUSE)`, the vertex's white, and its stage 1
+alpha is `MODULATE(TA_TEXTURE | TA_COMPLEMENT, TA_CURRENT)` over the fog
+fade. It enables the light, animated water normals, the Torrance specular
+and screen reflections, then the EE's tone map. The texture bound at
+stage 0 is the first of the 32 `newwater` frames, `water0000.tga`. **The
+photograph backs neither the white nor the frame. It backs the ocean's
+base as the water's colour.**
+
+`RUN1564_3279_WATER` gives the `SANDY` and `OCEAN` tiles agreeing under
+`RUN1564_3279_GROUND`'s rule:
+
+| the water's surface | `SANDY`, of 772 | `OCEAN`, of 437 |
+|---|---|---|
+| none: the land pass alone | 55 | 233 |
+| **the ocean's base, the draw** | **294** | **233** |
+| `water0000.tga` | 112 | 0 |
+
+The lit path is not drawn (parked 4164a).
+
+**What the row says.** `RUN1564_3279_GROUND` goes **709 → 1,236 of
+1,920**:
+
+- `SANDY` 0 → 294;
+- `OCEAN` 0 → 233;
+- the land 709 of 711, unchanged;
+- on the base alone, 584 → 872.
+
+The residue is one tint. The photograph's water is bluer and darker than
+the floor's texel. On `OCEAN` tile (161, 191), at pixel (296, 1), the
+photograph reads share (0.139, 0.362) and we read (0.118, 0.405), which
+agrees by 0.048. The 563 `SANDY` tiles the photograph shows blue average
+(62, 114, 147) against our (78, 203, 231). The 209 it shows dry average
+(161, 157, 108) against our (173, 200, 166), so the water lies on beach
+the photograph shows dry (parked 4164b).
+
+**The client draws it.** The land pass goes into `ground_base`'s meshes.
+The water is one `PatchMesh` over every tile of a wet cell, between the
+patch and the mountains. Its alpha rides a 256-texel linear ramp, so
+`fs_patch` takes it unchanged. `the_client_draws_every_tile_once` holds it
+once over each wet tile. The drawn-terrain cache had used an empty debug
+mesh as its "not built" mark. With every tile of the lobby map textured,
+it rebuilt every frame, and the clock's peak went 242 → 765 MiB. The mark
+is now all three lists empty, and the clock reads 247 MiB.
+
+**Diff-backed:** the fade's top and the water constants (the packet). The
+rest rests on a reading and one photograph: the bucket, the predicate and
+the fade's shape. `water_fade` is pinned by
+`the_water_fades_as_get_water_fade_fades`.
+
+**What is not established.**
+
+- **The water's colour.** The EE's lit, tone-mapped surface over the
+  fog fade (4164a).
+- **Where the water lies.** `CoordInfo`'s flags are not held here, and
+  every `SANDY` cell with a corner below zero is taken as wet. The water
+  is drawn on the seabed's triangles, not at its plane (4160a). The beach
+  the photograph shows dry is the evidence (4164b).
+- **The floor's own mesh** (`build_ocean_floor`, a flat plane under every
+  `SANDY` and `OCEAN` cell), the depth tint (`OceanFloor…Top`/`Bot`), the
+  surf (`<COASTAL>`'s `COASTALPHA*`, `SANDDRY`, `SANDWET`), and the
+  water's scales (`WaterLevel1Scale`, `OceanFloorScale`). None is drawn,
+  and the client lays both textures one repeat a cell.
+
 ## 4. The stack
 
 The rule is `CLAUDE.md`'s **earn every dependency**: a crate enters when it
@@ -2065,8 +2169,9 @@ Each line names what would settle it.
   901 `SANDY` (772) and 32 `ROCK` (32). No cell of Great Lakes carries
   `CLIFF`, so no photograph of this map holds a cliff. The ground's row
   on it, its rule unchanged, is 709 of 1,920 (`RUN1564_3279_GROUND`).
-  The land agrees on 709 of 711. The water and the shore agree on 0 of
-  1,209, because the client draws them in the debug colours. The
+  The land agrees on 709 of 711. The water and the shore agreed on 0 of
+  1,209 in the debug colours; drawn as §3.12 reads them, 527 (item
+  4164, 1,236 of 1,920). The
   shoreline is in register. No plain tile is photographed blue, and no
   `OCEAN` tile is photographed otherwise. With the camera moved two tiles
   there are 0 to 3 such tiles, at four up to 40, and at eight up to 142
