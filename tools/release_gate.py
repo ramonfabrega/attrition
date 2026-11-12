@@ -212,6 +212,8 @@ COMMANDERS_LINES = (
     'the_handoff_s_start_line_is_the_pinned_counter',
     # The checksum track's line (item 4060, CHECKSUM §5).
     'the_handoff_s_checksum_line_is_the_pinned_counter',
+    # The lobby page's line (item 4184, LOBBY §5).
+    'the_handoff_s_lobby_line_is_the_pinned_counter',
     # The renderer's clock line (item 4161, RENDERER §3.11).
     'the_handoff_s_clock_line_is_the_pinned_ceilings',
     'the_handoff_s_golden_line_is_the_pinned_word',

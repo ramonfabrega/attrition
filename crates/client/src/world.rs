@@ -24,7 +24,7 @@ pub const LONG_DUMP: &str = "gamelog-run1429-greatlakes-aztec-modern-trace.txt";
 pub const LONG_TRACE: &str = "rontrace-run1429.log";
 
 /// **Which game the client stands up** at frame zero.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Game {
     /// The pair's: the long capture's start, its sibling's blocks and its
     /// pasture's trace (`FreeRunner::from_captures`).
@@ -32,6 +32,9 @@ pub enum Game {
     /// The minted script's lobby, built from its choices alone
     /// (`FreeRunner::from_lobby`, item 4145): our own start.
     Lobby,
+    /// The lobby page's choices (`crate::lobby`, item 4184), built as the
+    /// minted script's are (`FreeRunner::from_choices`).
+    Page(Box<rondata::lobby::Choices>),
 }
 
 /// Where the captures sit: `$RON_GAMELOG_DIR`, else the bottle's `Logs\`,
@@ -470,6 +473,13 @@ impl World {
                 let lobby = logs.join(rondata::script::LOBBY_DUMP);
                 FreeRunner::from_lobby(&loaded, &lobby, sim::Tuning::RON)
                     .map_err(|e| format!("{}: {e}", lobby.display()))?
+            }
+            Game::Page(choices) => {
+                let (runner, notes) = FreeRunner::from_choices(&loaded, &choices, sim::Tuning::RON);
+                for n in notes {
+                    println!("the start: {n}");
+                }
+                runner
             }
         };
         let rules = install.rules().map_err(|e| e.to_string())?;
