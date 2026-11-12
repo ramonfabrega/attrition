@@ -1773,6 +1773,23 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 4, 4313);
 /// (`Sim::leader_pop_issues`) and agreed here, 0 = 0, but the line emits it
 /// unheld: the record diff parts it once (run667's closing frame 17380,
 /// who 1 ours 2 theirs 0; parked 4162a).
+///
+/// Item 4167: 92 → 84 names. Held (`sim::leaders::marks`) and agreeing on
+/// both leaders, every one 0 = 0 on frame 91 (no fort, well, wonder or
+/// Senate yet): `fort_mark`, `oil_well_mark`, `wonders_built`,
+/// `wonders_held`, `senates_built`, `forts_built` (`docs/LEADERS.md` §13),
+/// `scholar_militia` and `dock_queued` (§14). For `wonders_built`,
+/// `wonders_held` and `forts_built`, which `log_data` does not print, this
+/// line is the only oracle. `supply_mark` and five of the six bins are
+/// held by the crate and agreed here too, 0 = 0, but the line emits them
+/// unheld: the record diff parts each beside its array's own parting —
+/// `supply_mark` on run1075's 2805 (who 1, ours 4 theirs 3, beside
+/// `num_units[13]`), `air_queued` and `factory_queued` on its 2583 (ours
+/// 10 / 1, theirs 13 / 8, beside `num_queued[261]`, `[223]`), and
+/// `barracks_queued`, `combat_queued` and `stable_queued` on closing
+/// frames whose queues the original has emptied (run1250's 8778, ours 8,
+/// 13, 5, theirs 0; parked 4167b). The long range stays out on the other
+/// 84.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("air_queued (unheld)", 2),
     ("ally_stamp (unheld)", 2),
@@ -1799,11 +1816,8 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("defeat_stamp (unheld)", 2),
     ("defeat_type (unheld)", 2),
     ("defeated_by (unheld)", 2),
-    ("dock_queued (unheld)", 2),
     ("dow (unheld)", 2),
     ("factory_queued (unheld)", 2),
-    ("fort_mark (unheld)", 2),
-    ("forts_built (unheld)", 2),
     ("frame_battle (unheld)", 2),
     ("gift_stamp (unheld)", 2),
     ("give_att_disabled (unheld)", 2),
@@ -1829,12 +1843,10 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("made_peace (unheld)", 2),
     ("missiles_used (unheld)", 2),
     ("nukes_launched (unheld)", 2),
-    ("oil_well_mark (unheld)", 2),
     ("pop_issues (unheld)", 2),
     ("raid_stamp (unheld)", 2),
     ("reg_terr (unheld)", 2),
     ("repair_stamp (unheld)", 2),
-    ("scholar_militia (unheld)", 2),
     ("score (unheld)", 2),
     ("score_buildings (unheld)", 2),
     ("score_combat (unheld)", 2),
@@ -1847,7 +1859,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("score_units (unheld)", 2),
     ("score_units_2 (unheld)", 2),
     ("score_wonders (unheld)", 2),
-    ("senates_built (unheld)", 2),
     ("stable_queued (unheld)", 2),
     ("supply_mark (unheld)", 2),
     ("taunt_frame (unheld)", 2),
@@ -1862,8 +1873,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("units_killed (unheld)", 2),
     ("units_lost (unheld)", 2),
     ("victory_type (unheld)", 2),
-    ("wonders_built (unheld)", 2),
-    ("wonders_held (unheld)", 2),
     ("wonderwin_stamp (unheld)", 2),
     ("wonderwin_timer (unheld)", 2),
 ];
@@ -1896,6 +1905,16 @@ const LEADERS_BENT: &[&str] = &[
     "misery",
     "city_name",
     "anti_att",
+    // Item 4167's eight it holds on the line (`sim::leaders::marks`), each
+    // agreeing on run 1562's frame 91.
+    "fort_mark",
+    "oil_well_mark",
+    "wonders_built",
+    "wonders_held",
+    "senates_built",
+    "forts_built",
+    "scholar_militia",
+    "dock_queued",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its

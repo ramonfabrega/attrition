@@ -1,6 +1,7 @@
 //! `leaders/` — the files `docs/STRUCTURE.md` §3 maps here (item 4012).
 
 pub mod diplomacy;
+pub mod marks;
 pub mod relations;
 pub mod resign;
 pub mod words;
@@ -47,4 +48,7 @@ pub struct LeadersState {
     /// and the carrier's — reset at a live leader's step
     /// (`docs/LEADERS.md` §12.2).
     pub pop_issues: Vec<i32>,
+    /// The slot marks, the build counters and the queued bins
+    /// (`docs/LEADERS.md` §13, §14; [`marks`], item 4167), one per slot.
+    pub marks: Vec<marks::Marks>,
 }

@@ -1848,7 +1848,8 @@ mod bodies {
         // item 3969: +85 keys a leader (`num_queued` for every technology).
         // Item 3982: 96720 -> 96880, two more keys a leader a block (`ages_queued`, `epochs_queued`).
         // Item 4162: 96880 -> 97360, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
-        pin_eq!(leader_rows, 97360, "40 blocks x 2 leaders x 1,065 keys");
+        // Item 4167: 97360 -> 98240, 40 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
+        pin_eq!(leader_rows, 98240, "40 blocks x 2 leaders x 1,065 keys");
         pin_eq!(missing, BTreeSet::new(), "no key unprinted");
         // **Where each key first parts, block by block.** The 169 on the
         // window's first block are standing residue under the cycle: the
@@ -1925,7 +1926,8 @@ mod bodies {
             // item 3969: +85 keys a leader (`num_queued` for every technology).
             // Item 3982: 1370000 -> 1371000, two more keys a leader a block (`ages_queued`, `epochs_queued`).
             // Item 4162: 1371000 -> 1374000, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
-            1374000,
+            // Item 4167: 1374000 -> 1379500, 250 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
+            1379500,
             "250 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(
@@ -2057,7 +2059,8 @@ mod bodies {
             // item 3969: +85 keys a leader (`num_queued` for every technology).
             // Item 3982: 3452400 -> 3454920, two more keys a leader a block (`ages_queued`, `epochs_queued`).
             // Item 4162: 3454920 -> 3462480, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
-            3462480,
+            // Item 4167: 3462480 -> 3476340, 630 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
+            3476340,
             "630 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(

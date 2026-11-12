@@ -570,7 +570,8 @@ mod tests {
         // item 3969: +85 keys a leader (`num_queued` for every technology).
         // item 3982: +2 keys a leader (`ages_queued`, `epochs_queued`), which this record does not print.
         // Item 4162: 1212 -> 1218, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
-        pin_eq!(w.missing.len(), 1218, "the keys run382 does not print");
+        // Item 4167: 1218 -> 1229, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
+        pin_eq!(w.missing.len(), 1229, "the keys run382 does not print");
         pin!(
             w.missing.contains("gaia:cur_anim") && w.missing.contains("resources[0:food]"),
             "gaia's clocks and the long leader record are unprinted"

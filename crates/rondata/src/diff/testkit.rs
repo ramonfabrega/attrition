@@ -7257,8 +7257,11 @@ pub(crate) const WIDENING_CHAPTER_EIGHT: (i64, i64) = (605, 901);
 /// compares `aggression[·]`, `strong[·]` and `weak[·]`, one each a player,
 /// and `got_diplo_message`; 111 since item 4162 compares `city_name`, the
 /// one of its six new keys (`att`, `anti_att`, `multi_diff`, `handicap`,
-/// `misery`, `city_name`) this level prints (+1 a leader).
-pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 111;
+/// `misery`, `city_name`) this level prints (+1 a leader); 115 since item
+/// 4167 compares `fort_mark`, `oil_well_mark`, `supply_mark` and
+/// `senates_built`, the four of its eleven this level prints (+4 a leader;
+/// `scholar_militia` and the six `*_queued` print at `LEADERS=9` alone).
+pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 115;
 /// The leader keys `LEADERS=2` prints and the leader diff reads, a
 /// player: the goods block's 88, `gov` since item 706, and the three tech
 /// counters since item 883 (`docs/GOLDEN.md` §35).
@@ -7268,8 +7271,10 @@ pub(crate) const LEADERS_TWO_KEYS: usize = 92;
 /// window at that level); 1211 since item 3982 reads `ages_queued` and
 /// `epochs_queued`, which print at that level alone; 1217 since item 4162
 /// compares `att`, `anti_att`, `multi_diff`, `handicap`, `misery` and
-/// `city_name` (+6 a leader).
-pub(crate) const LEADERS_NINE_KEYS: usize = 1217;
+/// `city_name` (+6 a leader); 1228 since item 4167 compares the three
+/// marks, `senates_built`, `scholar_militia` and the six `*_queued` (+11 a
+/// leader).
+pub(crate) const LEADERS_NINE_KEYS: usize = 1228;
 
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,

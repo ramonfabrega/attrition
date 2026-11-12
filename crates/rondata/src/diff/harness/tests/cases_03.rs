@@ -1608,7 +1608,8 @@ mod bodies {
             // item 3969: +85 keys a leader (`num_queued` for every technology).
             // item 3982: +2 keys a leader (`ages_queued`, `epochs_queued`), which this record does not print.
             // Item 4162: 1210 -> 1216, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
-            1216,
+            // Item 4167: 1216 -> 1227, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
+            1227,
             "the keys run80's record does not carry"
         );
         pin_eq!(
@@ -1689,7 +1690,8 @@ mod bodies {
             // garrison counts. Item 3969: +85, `num_queued` for every
             // technology. Item 3982: +2, `ages_queued` and
             // `epochs_queued`. Item 4162: +6, `att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`.
-            1_210 + 1_531 + 2 + 6,
+            // Item 4167: +11 (2749 -> 2760), the three marks, `senates_built`, `scholar_militia` and the six `*_queued`.
+            1_210 + 1_531 + 2 + 6 + 11,
             "the keys run96's records do not carry"
         );
         pin_eq!(
