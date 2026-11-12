@@ -897,18 +897,7 @@ impl Sim {
         if !(0x32..=0x35).contains(&ti) {
             return 0;
         }
-        let scholar_militia = self
-            .units
-            .iter()
-            .filter(|u| {
-                u.alive()
-                    && u.owner == who
-                    && u.captain
-                    && !u.decoy
-                    && (0x42..=0x44).contains(&u.type_index)
-                    && matches!(u.rare, 0x34 | 0x35)
-            })
-            .count() as i32;
+        let scholar_militia = self.scholar_militia(who);
         if ti >= 0x34 {
             return scholar_militia;
         }
@@ -921,5 +910,21 @@ impl Sim {
                 .map_or(0, |r| m.by_type[r] + m.queued_by_type[r])
         };
         support(0x42) + support(0x43) - scholar_militia + support(0x44)
+    }
+
+    /// `scholar_militia`, derived: the live militia captains, not decoys,
+    /// whose former type ([`Unit::rare`]) is a Scholar.
+    pub(crate) fn scholar_militia(&self, who: Player) -> i32 {
+        self.units
+            .iter()
+            .filter(|u| {
+                u.alive()
+                    && u.owner == who
+                    && u.captain
+                    && !u.decoy
+                    && (0x42..=0x44).contains(&u.type_index)
+                    && matches!(u.rare, 0x34 | 0x35)
+            })
+            .count() as i32
     }
 }

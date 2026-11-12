@@ -110,6 +110,12 @@ pub struct Building {
     /// each squad `process_ejection` lets out. [`Sim::find_free`] reuses
     /// no number it holds (`docs/COMBAT.md` §59.3, item 3335).
     pub hold_frames: i32,
+    /// `Build +0x78` on a fort: its record in the leader's fort list,
+    /// `Forts::init_fort`'s at activation (`docs/LEADERS.md` §13.2).
+    pub fort_slot: Option<usize>,
+    /// `Build +0x78` on an oil well or platform: its record in the
+    /// leader's well list, `init_oil_well`'s at activation (§13.2).
+    pub oil_slot: Option<usize>,
     /// The city it belongs to, as an index into [`Sim::cities`].
     pub city: Option<usize>,
     /// The garrison chain — squad captains, in the order they entered.
@@ -309,6 +315,8 @@ impl Sim {
             under_attack: 0,
             eject_pending: false,
             hold_frames: 0,
+            fort_slot: None,
+            oil_slot: None,
             city: None,
             garrison: Vec::new(),
             launch_frames: 0,
