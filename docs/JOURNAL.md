@@ -22000,3 +22000,25 @@ read a file the walks had left, skipping every row in silence; 4024's
 candidate took 201 s and failed, a windowed per-line blame took 42 s and
 worked; 4022 and 4023 give `brief.py` the `structure` and `render` kinds.
 **DECISIONS 115.** `docs/audit/2026-11-09-fable-pass-75.md`.
+
+**2026-11-12, the pass on the render track's next step (steer, Fable 5.2,
+armed by `commander` on supply).** The tranche since the reset's pass: nine
+lane landings at 75.21 USD list, 8.36 a landing, 27.2 minutes waiting a
+landing, two builders' steps of the leaders line beside them; fourteen
+booking gates, twelve green and every one of them run whole, 262 minutes
+and 3.7 hours of admission summed. No render item stood. Before designing
+one the pass drew the client's own still at both photographs' cameras and
+set it beside each photograph, which no session had done: every figure
+washed in its owner's colour, the trees flat green, the mountain a third
+as bright as the original's, the lake 1.6 times as bright and tiling, the
+beach a sawtooth — under rows that read 33 of 33, 1,097 of 1,109 and 1,236
+of 1,920. The rows are counted on a CPU painter, never on the client's
+pixels, and their readers divide by r + g + b. Ruled: a render row is the
+client's pixels and reads brightness; the colour row rests at 18 until
+those two say what is drawn; five render items booked, 4171 to 4175; the
+two lanes' frame rows taken as rungs of the render oracle. Built, red
+first: the client crate and the painter no longer widen a scoped gate,
+with the two facts that make them leaves asserted. The rubric: the
+territory 669 · 336 · 1066 from 4039, nothing else moved. **DECISIONS
+127.** `docs/audit/2026-11-12-fable-pass-render.md`.
+

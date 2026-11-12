@@ -2369,6 +2369,14 @@ lines and fog shading, projectiles and corpses, then candidate C.
 - The water's normal, which its vertices do not carry (§3.12, 4168a). Settled by the water VB's input layout
   in `d3dgl.dll` and the vertex shader's default for a missing normal.
 
+- **What the client's own pixels show** (the pass of 2026-11-12, DECISIONS 127). Every photograph row of §5.3,
+  §3.6 and §3.12 is counted on the CPU painter, and no test reads the client's still. On the stills of frame 3279
+  at both pinned cameras each figure is washed in its owner's colour and the trees are flat green (no texture
+  bound, parked 4038a). Settled by item 4171: the rows counted on the still.
+- **How bright anything is.** The readers compare (r, g) / (r + g + b). By box on those stills the mountain's
+  body sums 130 against the photograph's 392, and the lake 506 against 316; a mountain's body and a tree are in
+  no row. Settled by item 4172's luminance reader, and by item 4173 for the trees.
+
 Each line names what would settle it.
 
 - **Whether the long captures run uncorrected past their start block.** The

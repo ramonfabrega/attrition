@@ -133,10 +133,11 @@ is append-only and amended in place, as it always was.
 - 124 amended by 126 — the stop at 98
 - 125 standing — no parked file
 - 126 standing — two rows, three workers, the leaders tranche
+- 127 standing — a render row is the client's pixels and reads brightness
 - 92 amended by 93 — the fifty-third tranche, two Opus lanes
-- 90 amended in place — The fifty-first tranche: two Opus lanes, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types
-- 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself
-- 88 amended by 90 — The forty-ninth tranche: two Opus lanes, sixteen `cover=1` landings drained on a pit stop, the blind list 300 → 240 open, the click layer to the pool, the oracle cache key reads the parser and codec only, sixteen Loop items ruled
+- 90 amended in place — the fifty-first tranche, two Opus lanes
+- 89 amended in place — the fiftieth tranche, two Opus lanes
+- 88 amended by 90 — the forty-ninth tranche, two Opus lanes
 - 87 standing — The forty-eighth tranche: five readings and two sweeps, forty-five residue rows ratified, the blind list 345 → 300, the forty-ninth booked as `cover=1` captures under a fifth brief kind, a pinned `Blind:` line
 
 ## 1. Fidelity before divergence
@@ -12305,3 +12306,73 @@ the host's gate time binds first; whether the Fable week was reset with
 the whole one (no reading since); which of the 99 leaves the level-9
 record prints under a key the reader parses (item 4159's first act);
 whether a paused Great Lakes frame shows a cliff at all.
+
+## 127. A render row is counted on the client's own pixels and reads brightness; the colour row rests; the render track's next step is the picture a person sees (2026-11-12)
+
+**What happened.** `commander` armed the pass by supply (entry 126 §4): no
+render item stood after 4160 to 4169 landed, and two lanes had named a row
+for the brief's frame. Before designing anything the pass drew the client's
+own still (`client --frame 3279 --still`, the gated binary at `3d7cf1a94`)
+at both photographs' pinned cameras and set each beside its photograph. No
+session had: the journals carry value diffs and the scoring's picture,
+never the client's frame next to the original's.
+
+**What the eye found, then a box** (scratch, means over boxes chosen by
+eye on the 1920-wide frames, (r, g, b), their sum, and the share the
+readers compare):
+
+| where | ours | the photograph |
+|---|---|---|
+| a tree, run1559b | (127, 166, 115), 408, (0.311, 0.408): flat green, no texture bound | (140, 100, 9), 249, (0.564, 0.401) |
+| the mountain's body, run1559b | (69, 52, 10), 130, (0.530, 0.396) | (152, 146, 94), 392, (0.388, 0.372) |
+| the lake, run1564 | (68, 205, 233), 506, (0.134, 0.406): the floor's texture, tiling | (26, 122, 168), 316, (0.083, 0.384) |
+| the beach, run1564 | (226, 184, 108), 517: a sawtooth a tile wide | (190, 180, 107), 476: a fade |
+| grass, both | 398 and 393 | 418 and 408 |
+
+And every figure on the still is washed in its owner's colour, tanks and
+riflemen alike, where the photograph shows the colour on an armband and a
+turret mark. The client draws the figures' silhouette pass after their
+textured pass, at depth Greater, with the figure's own depth already
+written (`crates/client/src/gpu.rs`, the main pass); `docs/RENDERER.md`
+§5.3 reads the original as drawing it before. That is a hypothesis for the
+wash, not a finding: nothing was built.
+
+**Why no row saw it.** Every photograph row — the silhouettes' 33 of 33,
+the colour row's 18, the ground's 1,097 of 1,109 and 1,236 of 1,920 — is
+counted on a CPU painter (`render::silhouette`, `client::ground`) that
+mirrors the client's shaders by hand. No test reads the client's still;
+the client's own tests assert a shader's text and a projection. And each
+colour reader compares (r, g) / (r + g + b), which was chosen so a white
+light's strength would not move it: it cannot see that the mountain is a
+third as bright, and it passes a lake 1.6 times too bright at 0.048 of its
+0.05. A tree's pixel is given to the ground and never scored.
+
+**Decided**, the pass's, Ramon's to move:
+
+1. **A render row is the client's pixels.** Item 4171 counts the four
+   photograph rows on the still and pins each beside the painter's; from
+   its landing a render item's row is counted there. Until then a render
+   lane sets its still beside the photograph before its first probe and at
+   its landing (the brief's frame, the render section).
+2. **A colour row reads brightness beside chromaticity** (item 4172), its
+   rule written before its count.
+3. **The colour row rests at 18 of 33.** Nine items and two takes have not
+   moved it since 4103, and 4165 showed every input of the lit figure is
+   the original's. The lit figure was held back by a reader that cannot
+   see what a light mostly changes; 4172 counts it on brightness and draws
+   the winner. Tank 1/27's residue (4165a, 4165b, 4168b) is not booked.
+4. **The render lanes' next items are 4171 to 4175**, in the order the
+   queue's handoff gives: the still under the readers, the luminance
+   reader, the trees' texture, the water and the shore from the card's
+   draws, the corpses and the rounds through the door.
+5. **The frame takes both lanes' rows** as rungs of the render oracle: the
+   packet's heap from `graphsys` (4168), then the card's setters on one
+   take, before a second kill from pixels (4165).
+6. **4159's step III stands as designed.**
+
+**Not established:** that the pass order is what washes the figures;
+whether a count on a card's output holds across an OS or driver update
+(the `clock` test is the only precedent for a gate that draws); the boxes
+above, which are by eye and not by tile; whether the lit figure wins on
+brightness; whether the trees' leaf texel alone reaches the photograph's
+orange or the tileset tints it.

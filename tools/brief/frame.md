@@ -417,13 +417,22 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   renderer line is mine.
 - **The oracle's rungs, cheapest first** (§3.3): the dump's own
   `DUMP_ALL` `gpiece` and positions, grepped on disk; a packet on disk
-  (grep the archive before booking one); `MiscAccess::world_to_screen`
-  under unicorn, `tools/render/camera_oracle.py` by `uv run`; a
-  screenshot is by eye, never a gate. Nothing from the install enters git.
+  (grep the archive before booking one), **its heap too: `graphsys`
+  reaches every renderer object** (4168, `tools/render/tonemap_packet.py`);
+  `MiscAccess::world_to_screen` under unicorn,
+  `tools/render/camera_oracle.py` by `uv run`; **the card's setters on
+  one take** (`RON_CARD_PROBE`, §3.14) **before a second kill from
+  pixels** (4165); a screenshot is by eye, never a gate. Nothing from
+  the install enters git.
+- **Look before you count** (DECISIONS 127): `client --frame N --still
+  OUT.bmp` beside the photograph, before your first probe and at your
+  landing; what the eye finds that no row counts is a `## Parked` row.
+  **A row is the client's pixels**: the painter and `client::gpu` draw
+  alike, and with item 4171's harness in your base the row is counted
+  on the still.
 - **The journal carries the value diff**: the record, the field, the
   dump's `gpiece` or position against ours and the pixel each projects
-  to, as `docs/journal/2026-11-09-item-4026.md`, `-4027.md` and
-  `-4028.md` do.
+  to, as `docs/journal/2026-11-09-item-4026.md` does.
 - **The render tests skip quietly**: export `RON_INSTALL` for your own
   `check.sh test` runs (a worktree has no `../../game`; the gate exports
   it) and put `uv` on `PATH` for the camera oracle; a `skipping:` line

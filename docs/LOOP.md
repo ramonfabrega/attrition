@@ -93,9 +93,10 @@ another model takes that model's own default effort, not the driver's.
   the pilot. It is not a controlled trial: it is judged by the chain's
   milestones landing with every floor held, and by points of the weekly
   window a milestone.
-- **The render track**: one ccc lane, Opus 5.5 at `--effort medium`, under
-  the frame. It is the control: 27 tranches of that roster read 7.25 USD a
-  landing (lore, 2026-11-09).
+- **The render track**: two ccc lanes, Opus 5.5 at `--effort high`, under
+  the frame (DECISIONS 126 §2). One lane at medium was the control: 27
+  tranches of that roster read 7.25 USD a landing (lore, 2026-11-09); the
+  nine lane landings after the reset read 8.36.
 - Never Sonnet on a reading or an adjudication.
 
 **One kill rule rides with the pilot, and a soft stop with the week**
@@ -489,6 +490,12 @@ notification saying the record is there. **Three things reach the user at
 once, from the commander or the pass**: the kill rule tripped, a
 permission-shaped block, and a booking gate still red after its second
 commit. The user's silence is consent to nothing on the fenced list.
+
+**A pass that designs a render step looks first**: it draws the client's
+still at each photograph's camera (`client --frame N --still`) and sets it
+beside the photograph before it reads a score. The pass of 2026-11-12
+found washed figures, untextured trees and a mountain a third as bright
+under rows that read whole (DECISIONS 127).
 
 Launch a fan-out in waves, not whole; readers write to durable storage from
 their first finding; verify which model actually ran from the transcript,

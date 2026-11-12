@@ -329,8 +329,12 @@ def lane_paperwork(timings):
 # alone). `--scope` (below) reads the same rule for the booking gate.
 # Item 4009 moved the standalone sweeps to `crates/sim/tests/sweep/`; their
 # four integration targets are `crates/sim/tests/sweep_*.rs`.
+# The pass of 2026-11-12 (DECISIONS 127): and the two leaves of the data
+# crate. `TIMINGS` times `rondata` alone; nothing depends on `client`, and
+# the painter (`render::silhouette`) is read by the client alone. Both
+# facts are asserted by `test_a_leaf_of_the_data_crate_does_not_widen_a_gate`.
 NEVER_WIDENS = ('crates/sim/src/sweep/', 'crates/sim/tests/sweep', 'crates/rondata/src/census.rs',
-                'crates/rondata/src/blind.rs')
+                'crates/rondata/src/blind.rs', 'crates/client/', 'crates/render/src/silhouette.rs')
 
 
 def lane_widens(paths, row_only=()):

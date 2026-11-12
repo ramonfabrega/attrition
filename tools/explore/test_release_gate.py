@@ -1134,6 +1134,40 @@ class GateTests(unittest.TestCase):
         self.assertIn('no_such_test_3823', str(caught.exception))
         self.assertNotIn('map_lakes', str(caught.exception))
 
+    def test_a_leaf_of_the_data_crate_does_not_widen_a_gate(self):
+        # The pass of 2026-11-12 (DECISIONS 127): all twelve green booking
+        # gates of the tranche ran every timed test — 262 gate minutes,
+        # 3.7 hours of admission summed — and eight were render bookings,
+        # widened by `crates/client/…` and `crates/render/src/silhouette.rs`.
+        # The timed tests are the data crate's (`TIMINGS`), and neither path
+        # can move one: nothing depends on the client, and no file of
+        # `rondata`, `sim` or `render` but `lib.rs`'s `pub mod` names the
+        # painter. The two facts are asserted here, so the exemption fails
+        # the day either stops being true. Dry run on the tranche's merges:
+        # one of eight spared (4160); items 4171 and 4172 sit on these paths.
+        self.assertEqual(gate.lane_widens(['crates/client/src/gpu.rs', 'crates/client/tests/clock.rs',
+                                           'crates/render/src/silhouette.rs', 'docs/RENDERER.md']), [])
+        self.assertEqual(gate.lane_widens(['crates/client/src/gpu.rs', 'crates/render/src/draw.rs']),
+                         ['crates/render/src/draw.rs'])
+        root = Path(gate.ROOT)
+        for manifest in sorted((root / 'crates').glob('*/Cargo.toml')):
+            if manifest.parent.name == 'client':
+                continue
+            deps = [l for l in manifest.read_text().splitlines()
+                    if l.split('=')[0].strip() == 'client' or 'path = "../client"' in l]
+            self.assertEqual(deps, [], f'{manifest} depends on the client: it is no leaf')
+        named = []
+        for crate in ('rondata', 'sim', 'render'):
+            for f in sorted((root / 'crates' / crate).rglob('*.rs')):
+                rel = f.relative_to(root).as_posix()
+                if rel == 'crates/render/src/silhouette.rs':
+                    continue
+                for line in f.read_text().splitlines():
+                    code = line.split('//')[0]
+                    if 'silhouette' in code and code.strip() != 'pub mod silhouette;':
+                        named.append(f'{rel}: {line.strip()}')
+        self.assertEqual(named, [], 'the painter is read outside the client: its file is no leaf')
+
     def test_a_branch_that_can_move_the_diff_pins_widens_the_lane_gate(self):
         # Loop 2415 (the thirty-fifth pass; DECISIONS 71 amended): both kill
         # rules of the thirty-fifth tranche tripped by one route — 2384's
