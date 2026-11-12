@@ -1850,7 +1850,8 @@ mod bodies {
         // Item 4162: 96880 -> 97360, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
         // Item 4167: 97360 -> 98240, 40 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
         // Item 4176: 98240 -> 101040, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-        pin_eq!(leader_rows, 101040, "40 blocks x 2 leaders x 1,065 keys");
+        // Item 4177: 101040 -> 102080, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
+        pin_eq!(leader_rows, 102080, "40 blocks x 2 leaders x 1,065 keys");
         pin_eq!(missing, BTreeSet::new(), "no key unprinted");
         // **Where each key first parts, block by block.** The 169 on the
         // window's first block are standing residue under the cycle: the
@@ -1929,7 +1930,8 @@ mod bodies {
             // Item 4162: 1371000 -> 1374000, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // Item 4167: 1374000 -> 1379500, 250 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
             // Item 4176: 1379500 -> 1397000, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-            1397000,
+            // Item 4177: 1397000 -> 1403500, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
+            1403500,
             "250 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(
@@ -2063,7 +2065,8 @@ mod bodies {
             // Item 4162: 3454920 -> 3462480, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // Item 4167: 3462480 -> 3476340, 630 x 2 x 11, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
             // Item 4176: 3476340 -> 3520440, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-            3520440,
+            // Item 4177: 3520440 -> 3536820, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
+            3536820,
             "630 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(

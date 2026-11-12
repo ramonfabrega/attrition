@@ -2806,7 +2806,8 @@ mod tests {
         // Item 3969: +1, who=1's technology `num_queued[504]` on the closing block 18141, ours 1 theirs 0, beside its units' `queued` rows.
         // Item 3982: +1, who=1's `epochs_queued` on the closing block 18141, ours >0 theirs 0, beside the technology `num_queued` rows: the same emptied queue.
         // Item 4167: 86 -> 88, +2, who=1's `barracks_queued` and `combat_queued` on the closing block 18141, ours 1 theirs 0: the emptied queue, beside the `num_queued` rows.
-        pin_eq!(w.firsts.len(), 88, "run594 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 2677: −1 (parked 2680).
+        // Item 4177: 88 -> 95, +7 firsts, the combat rates' own: who=0 `average_damage_rate` 18060 ours 5818 theirs 5815; who=0 `damage_current_frame` 18060 ours 11 theirs 12; who=1 `average_hit_rate` 18060 ours 5818 theirs 5815; who=1 `hits_current_frame` 18060 ours 11 theirs 12 (docs/LEADERS.md §3.5).
+        pin_eq!(w.firsts.len(), 95, "run594 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 2677: −1 (parked 2680).
         pin_eq!(
             w.firsts
                 .get(&(1, 181, "g.cur_anim[0]".into()))
@@ -2907,7 +2908,8 @@ mod tests {
         // Item 1502: 186 → 158 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
         // Item 1586: 158 → 157; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 101 -> 85.
-        pin_eq!(w.firsts.len(), 85, "run589 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        // Item 4177: 85 -> 91, +6 firsts, the combat rates' own: who=0 `average_damage_rate` 17890 ours 3893 theirs 3943; who=0 `damage_current_frame` 17890 ours 43 theirs 42; who=0 `damage_fifteen_seconds` 17890 ours 150 theirs 151; who=1 `average_hit_rate` 17890 ours 3893 theirs 3943 (docs/LEADERS.md §3.5).
+        pin_eq!(w.firsts.len(), 91, "run589 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         pin_eq!(
             w.firsts
                 .get(&(1, 132, "order:kind".into()))
@@ -3007,7 +3009,8 @@ mod tests {
         // Item 1481: 212 → 209; who=1's `MAKE[3]` is the Terra Cotta Army (worth 2) at 250750, not Hanging Gardens (worth 1) (`docs/AI.md` §124).
         // Item 1502: 158 → 134 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 84 -> 68.
-        pin_eq!(w.firsts.len(), 68, "run588 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        // Item 4177: 68 -> 70, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 17778 ours 24 theirs 25; who=1 `hits_current_frame` 17778 ours 24 theirs 25 (docs/LEADERS.md §3.5).
+        pin_eq!(w.firsts.len(), 70, "run588 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         let word = w.standing.get(&17_786).expect("the word's closing state");
         for field in ["group:66.num", "group:66.list"] {
             pin!(
@@ -3152,7 +3155,8 @@ mod tests {
         // Item 1502: 221 → 197 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
         // Item 2002: 105 → 103; `group:71.speed` 17527 and `new_speed` 17530, ours 26 theirs 25, agree: a member's search normalizes its group (`docs/GOLDEN.md` §73).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 102 -> 86.
-        pin_eq!(w.firsts.len(), 86, "every key parted on run585"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        // Item 4177: 86 -> 88, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 17647 ours 3 theirs 4; who=1 `hits_current_frame` 17647 ours 3 theirs 4 (docs/LEADERS.md §3.5).
+        pin_eq!(w.firsts.len(), 88, "every key parted on run585"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **run583 — East Indies frame 16760, widened before naming a mechanism**

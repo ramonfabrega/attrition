@@ -7279,8 +7279,11 @@ pub(crate) const LEADERS_TWO_KEYS: usize = 92;
 /// `city_name` (+6 a leader); 1228 since item 4167 compares the three
 /// marks, `senates_built`, `scholar_militia` and the six `*_queued` (+11 a
 /// leader); 1263 since item 4176 compares the damage path's fourteen
-/// printed leaves, the three stamp rows as eight cells each (+35 a leader).
-pub(crate) const LEADERS_NINE_KEYS: usize = 1263;
+/// printed leaves, the three stamp rows as eight cells each (+35 a leader);
+/// 1276 since item 4177 compares the thirteen combat rates (+13 a leader),
+/// which print at this level alone: `CHAPTER_EIGHT_LEADER_KEYS` did not
+/// move.
+pub(crate) const LEADERS_NINE_KEYS: usize = 1276;
 
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,

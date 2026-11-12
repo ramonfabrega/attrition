@@ -572,7 +572,8 @@ mod tests {
         // Item 4162: 1212 -> 1218, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
         // Item 4167: 1218 -> 1229, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
         // Item 4176: 1229 -> 1264, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-        pin_eq!(w.missing.len(), 1264, "the keys run382 does not print");
+        // Item 4177: 1264 -> 1277, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
+        pin_eq!(w.missing.len(), 1277, "the keys run382 does not print");
         pin!(
             w.missing.contains("gaia:cur_anim") && w.missing.contains("resources[0:food]"),
             "gaia's clocks and the long leader record are unprinted"

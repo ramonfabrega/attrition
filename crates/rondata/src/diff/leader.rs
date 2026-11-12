@@ -1515,7 +1515,8 @@ mod tests {
             // item 4162: 193_760 -> 194_720, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // item 4167: 194_720 -> 196_480, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
             // item 4176: 196_480 -> 202_080, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-            202_080, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4177: 202_080 -> 204_160, +13 keys a leader block (the thirteen combat rates).
+            204_160, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1626,7 +1627,8 @@ mod tests {
             // item 4162: 208_292 -> 209_324, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // item 4167: 209_324 -> 211_216, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
             // item 4176: 211_216 -> 217_236, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-            217_236, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4177: 217_236 -> 219_472, +13 keys a leader block (the thirteen combat rates).
+            219_472, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1828,7 +1830,8 @@ mod tests {
             // item 4162: 43_596 -> 43_812, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // item 4167: 43_812 -> 44_208, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
             // item 4176: 44_208 -> 45_468, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-            45_468, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4177: 45_468 -> 45_936, +13 keys a leader block (the thirteen combat rates).
+            45_936, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -1974,7 +1977,8 @@ mod tests {
             // item 4162: 314_860 -> 316_420, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // item 4167: 316_420 -> 319_280, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
             // item 4176: 319_280 -> 328_380, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-            328_380, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4177: 328_380 -> 331_760, +13 keys a leader block (the thirteen combat rates).
+            331_760, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -2120,7 +2124,8 @@ mod tests {
             // item 4162: 72_660 -> 73_020, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // item 4167: 73_020 -> 73_680, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
             // item 4176: 73_680 -> 75_780, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-            75_780, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4177: 75_780 -> 76_560, +13 keys a leader block (the thirteen combat rates).
+            76_560, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -3225,7 +3230,8 @@ mod tests {
             // item 4162: 593_390 -> 596_330, +6 keys a leader block (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
             // item 4167: 596_330 -> 601_720, +11 keys a leader block (the three marks, `senates_built`, `scholar_militia`, the six `*_queued`).
             // item 4176: 601_720 -> 618_870, +35 keys a leader block (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-            618_870, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 4177: 618_870 -> 625_240, +13 keys a leader block (the thirteen combat rates).
+            625_240, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump

@@ -327,7 +327,8 @@ fn french_enlightenment_pair_run1360_s_closing_window_is_widened_whole() {
     // Item 3978: −4, the supply heal (`sim::units::heal`'s `supply_heal`, period 20): `1/29`'s
     // `damage_frac`, `hits:damage_frac`, `hits:damage` and `hits_left` on 4685 agree (0, 0, 0
     // and 161 both sides) — parked 3691c.
-    pin_eq!(w.firsts.len(), 113, "run1360 baseline");
+    // Item 4177: 113 -> 119, +6 firsts, the combat rates' own: who=0 `damage_current_frame` 4691 ours 26 theirs 27; who=1 `hits_current_frame` 4691 ours 26 theirs 27; who=0 `average_damage_rate` 4851 ours 3351 theirs 3401; who=0 `damage_fifteen_seconds` 4851 ours 254 theirs 255 (docs/LEADERS.md §3.5).
+    pin_eq!(w.firsts.len(), 119, "run1360 baseline");
     pin_eq!(w.rounds_read, (465, 477), "the rounds read");
     // 202 parting: 195 rows on the six Fusiliers' (TY 136) rounds (parked
     // 3691a) and the Musketeers' slot swaps on 4724, 4725, 4900 and 4902,
@@ -413,7 +414,8 @@ fn french_enlightenment_pair_run1344b_s_word_frame_is_widened_whole() {
     // Item 3978: −5, the supply heal (`sim::units::heal`'s `supply_heal`, the French period 20, not a
     // patriot's): `1/29`'s `healing`, `damage_frac`, `hits:damage_frac`, `hits:damage` and
     // `hits_left` on 4552 agree (20, 0, 0, 4 and 157 both sides) — 3961a's run1344b row.
-    pin_eq!(w.firsts.len(), 118, "run1344b baseline");
+    // Item 4177: 118 -> 120, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 4642 ours 23 theirs 24; who=1 `hits_current_frame` 4642 ours 23 theirs 24 (docs/LEADERS.md §3.5).
+    pin_eq!(w.firsts.len(), 120, "run1344b baseline");
     // Every round, both directions: 421 round-blocks theirs, 446 ours, 255
     // parting, the first on the window's first block 4495. Item 3691: 428
     // ours, 139 parting — 129 rows on six Fusiliers' (TY 136) rounds;

@@ -1288,7 +1288,8 @@ fn gunpowder_melee_s_leaders_are_compared_on_every_seat() {
         // Item 4162: 1125 -> 1131, +6 keys a leader (`att`, `anti_att`, `multi_diff`, `handicap`, `misery`, `city_name`).
         // Item 4167: 1131 -> 1142, +11 keys a leader (`fort_mark`, `oil_well_mark`, `supply_mark`, `senates_built`, `scholar_militia`, the six `*_queued`).
         // Item 4176: 1142 -> 1177, +35 keys a leader (the damage path's fourteen printed leaves, the three stamp rows as eight cells each).
-        1177,
+        // Item 4177: 1177 -> 1190, +13 keys a leader block (the thirteen combat rates, `docs/LEADERS.md` §3).
+        1190,
         "keys run1461's `LEADERS=2` does not print"
     );
     // Item 3791: the standing family on frames 1 and 37 on every seat,
@@ -1298,9 +1299,11 @@ fn gunpowder_melee_s_leaders_are_compared_on_every_seat() {
     // `num_units[302]` (`TypeIndex` 352) at 2601, ours 1 against theirs 0
     // (parked 3791a): `Unit::close`'s count admits a `POP 0` unit that
     // `is_gov_hero`, so the Despot `1/28` comes off on 1463.
+    // Item 4177: the human's trailing record one empty fold short
+    // (`v·7 >> 3` of ours; `docs/LEADERS.md` §3.5, parked 4177b).
     pin_eq!(
         w.rest(),
-        Vec::<String>::new(),
+        vec!["who=0 average_damage_rate 2601: ours 13 theirs 11 (1, to 2601)".to_string()],
         "the keys that part, by seat"
     );
 }

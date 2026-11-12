@@ -1811,23 +1811,40 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 4, 4313);
 /// (ours 4871 theirs 0) with no parting beside it (parked 4176a, 4176b).
 /// The long range stays out on the other 74.
 ///
-/// Item 4177: 74 → 61 names. Held (`sim::leaders::rates`) and agreeing on
-/// both leaders on frame 91: the combat rates `frame_battle`, the four
-/// `average_*_rate`, the four `*_current_frame` and the four
-/// `*_fifteen_seconds` (`docs/LEADERS.md` §3), every one 0 = 0 (one empty
-/// fold at frame 50, no blow before 300). Each is printed by `log_data`,
-/// and the record diff agrees on every dump that prints it. The long range
-/// stays out on the other 61.
+/// Item 4177: 74 → 73 names. Held (`sim::leaders::rates`) and agreeing on
+/// both leaders on frame 91 (one empty fold at frame 50, no blow before
+/// 300): `frame_battle` (`docs/LEADERS.md` §3), 0 = 0, which the record
+/// diff agrees on everywhere it is printed (run1075's 1750 and the Lakota
+/// peace pair's 4700 among them). The other twelve combat rates are held
+/// and agree here too, 0 = 0, but the line emits them unheld: the record
+/// diff parts each (§3.5) — the hits and damage words beside the capital's
+/// own `damage` on the frame a blow lands in theirs alone (run1185b's
+/// 5276, `hits_current_frame` of who 1 ours 15 theirs 16 beside `0/2000`
+/// damage 604 against 610) and on two nuke landings with nothing beside
+/// them (run855's 4777, run1405b's 3494, ours one blow short; parked
+/// 4177a); the deaths and kills words on run1075's 2247 and 2386 beside
+/// `units_killed` and `units_lost` (4176a); and the averages on the four
+/// melees' closing record, the human's, one empty fold short (2601,
+/// `average_damage_rate` ours 294 theirs 257 on airbase_melee; parked
+/// 4177b). The long range stays out on the other 73.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("air_queued (unheld)", 2),
     ("ally_stamp (unheld)", 2),
     ("attack_stamp (unheld)", 2),
     ("attrition_stamp2 (unheld)", 2),
+    ("average_damage_rate (unheld)", 2),
+    ("average_death_rate (unheld)", 2),
+    ("average_hit_rate (unheld)", 2),
+    ("average_kill_rate (unheld)", 2),
     ("barracks_queued (unheld)", 2),
     ("blacken (unheld)", 2),
     ("broke_alliance (unheld)", 2),
     ("combat_queued (unheld)", 2),
     ("counteroffer (unheld)", 2),
+    ("damage_current_frame (unheld)", 2),
+    ("damage_fifteen_seconds (unheld)", 2),
+    ("deaths_current_frame (unheld)", 2),
+    ("deaths_fifteen_seconds (unheld)", 2),
     ("defeat_stamp (unheld)", 2),
     ("defeat_type (unheld)", 2),
     ("defeated_by (unheld)", 2),
@@ -1838,10 +1855,14 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("high_buildings (unheld)", 2),
     ("hire_stamp (unheld)", 2),
     ("hire_who (unheld)", 2),
+    ("hits_current_frame (unheld)", 2),
+    ("hits_fifteen_seconds (unheld)", 2),
     ("incoming (unheld)", 2),
     ("incoming_taunt (unheld)", 2),
     ("incoming_taunt_frame (unheld)", 2),
     ("incoming_taunt_who (unheld)", 2),
+    ("kills_current_frame (unheld)", 2),
+    ("kills_fifteen_seconds (unheld)", 2),
     ("last_building_finished (unheld)", 2),
     ("last_spoke (unheld)", 2),
     ("last_taunt (unheld)", 2),
@@ -1932,21 +1953,9 @@ const LEADERS_BENT: &[&str] = &[
     "buildings_lost",
     "units_bribed",
     "nukes_launched",
-    // Item 4177's thirteen (`sim::leaders::rates`), each agreeing on run
-    // 1562's frame 91.
+    // Item 4177's one it holds on the line (`sim::leaders::rates`),
+    // agreeing on run 1562's frame 91.
     "frame_battle",
-    "average_death_rate",
-    "average_kill_rate",
-    "average_damage_rate",
-    "average_hit_rate",
-    "deaths_current_frame",
-    "kills_current_frame",
-    "hits_current_frame",
-    "damage_current_frame",
-    "deaths_fifteen_seconds",
-    "kills_fifteen_seconds",
-    "hits_fifteen_seconds",
-    "damage_fifteen_seconds",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its

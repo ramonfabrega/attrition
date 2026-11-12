@@ -2440,5 +2440,6 @@ fn run1075_s_garrison_window_is_widened_whole() {
     // (ours 0, theirs 32). Every other first is the base's, row for row.
     // Item 4167: 9070 -> 9073, +3 firsts, who=1: `air_queued` 2583 ours 10 theirs 13 and `factory_queued` 2583 ours 1 theirs 8, beside `num_queued[261]` 0/3 and `[223]` 0/7; `supply_mark` 2805 ours 4 theirs 3, beside `num_units[13]` 4/3 (the bins and the mark follow the arrays' own partings).
     // Item 4176: 9073 -> 9081, +8 firsts: the victim stamp rows on 2060, 2063, 2079 and 2552 (who=1's `attack_stamp[0]` ours 2059 theirs 0 beside `1/59`'s damage 10 against 0), and `units_killed`/`units_lost` on 2247 (ours 15 theirs 16) and 2386 (ours 2 theirs 1), beside the units' own hits.
-    pin_eq!(w.firsts.len(), 9081, "initial run1075 baseline");
+    // Item 4177: 9081 -> 9105, +24 firsts, the combat rates' own: who=0 `hits_current_frame` 2060 ours 1 theirs 0; who=1 `damage_current_frame` 2060 ours 1 theirs 0; who=0 `damage_current_frame` 2079 ours 1 theirs 0; who=1 `hits_current_frame` 2079 ours 1 theirs 0 (docs/LEADERS.md §3.5).
+    pin_eq!(w.firsts.len(), 9105, "initial run1075 baseline");
 }

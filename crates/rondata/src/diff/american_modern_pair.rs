@@ -357,7 +357,8 @@ fn american_modern_pair_run1151c_s_word_frame_is_widened_whole() {
     // Item 3755: 76 → 59, `get_cost`'s American aircraft arm built —
     // the Airbase's fighters agree; the Bomber (304) at `1/2022` still
     // reads 115 against 100 on 4482, the buckets with it (parked 3755a).
-    pin_eq!(w.firsts.len(), 59, "run1151c baseline");
+    // Item 4177: 59 -> 63, +4 firsts, the combat rates' own: who=0 `average_damage_rate` 4482 ours 56 theirs 69; who=0 `damage_fifteen_seconds` 4482 ours 25 theirs 26; who=1 `average_hit_rate` 4482 ours 81 theirs 94; who=1 `hits_fifteen_seconds` 4482 ours 26 theirs 27 (docs/LEADERS.md §3.5).
+    pin_eq!(w.firsts.len(), 63, "run1151c baseline");
 }
 
 /// **The heal's clock agrees on every block of run1151c** (item 3961,
@@ -511,5 +512,6 @@ fn american_modern_pair_run1163_s_walk_back_is_widened_whole() {
     // Item 3755: 79 → 62, `get_cost`'s American aircraft arm built —
     // the Airbase's fighters agree; the Bomber (304) at `1/2022` still
     // reads 115 against 100 on 4396, the buckets with it (parked 3755a).
-    pin_eq!(w.firsts.len(), 62, "run1163 baseline");
+    // Item 4177: 62 -> 66, +4 firsts, the combat rates' own: who=0 `average_damage_rate` 4396 ours 74 theirs 91; who=0 `damage_fifteen_seconds` 4396 ours 25 theirs 26; who=1 `average_hit_rate` 4396 ours 107 theirs 124; who=1 `hits_fifteen_seconds` 4396 ours 26 theirs 27 (docs/LEADERS.md §3.5).
+    pin_eq!(w.firsts.len(), 66, "run1163 baseline");
 }

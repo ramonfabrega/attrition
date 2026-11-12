@@ -262,7 +262,8 @@ fn lakota_enlightenment_pair_run1364b_s_closing_frame_is_widened_whole() {
     // frame sooner; and the Musketeers (99) `1/39` and `1/38`'s
     // `dest_angle` on 4656 and 4661 (parked 3695a, 3695b). The draw stream
     // and the closing block 4674 agree.
-    pin_eq!(w.firsts.len(), 57, "run1364b baseline");
+    // Item 4177: 57 -> 59, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 4461 ours 2 theirs 3; who=1 `hits_current_frame` 4461 ours 2 theirs 3 (docs/LEADERS.md §3.5).
+    pin_eq!(w.firsts.len(), 59, "run1364b baseline");
     // Every round, both directions: 120 round-blocks ours, 123 theirs.
     // **45 rows part, every one a launch**: the Repeating Rifle Horse
     // (208, `RIFLEHORSE`) `1/71` and `1/76` and the Cannon (268) `1/75` fire

@@ -349,7 +349,8 @@ fn persian_medieval_pair_run1189b_s_word_frame_is_widened_whole() {
     // on 4242). The window now parts on 4283, the sixteenths of one frame:
     // `0/2000`'s `build:damage` ours 145 theirs 146 (`damage_frac` 14
     // against 8), both 149 13/16 on 4284.
-    pin_eq!(w.firsts.len(), 116, "run1189b baseline");
+    // Item 4177: 116 -> 118, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 4283 ours 7 theirs 8; who=1 `hits_current_frame` 4283 ours 7 theirs 8 (docs/LEADERS.md §3.5).
+    pin_eq!(w.firsts.len(), 118, "run1189b baseline");
     // The count cannot see the Peltasts' bays: `0/2000`'s `build:damage`
     // parts later on either tree, so the key set is the same. Its frame is
     // the pin — 4048 when the javelins leave the figure, 4193 from the bay,
@@ -423,7 +424,8 @@ fn persian_medieval_pair_run1211_s_word_frame_is_widened_whole() {
     // the Knight's rows leave. Past the standing families, `0/2000`'s
     // sixteenths alone: `damage_frac` ours 5 theirs 15 on 4518, and
     // `damage` 584 against 585 on 4530.
-    pin_eq!(w.firsts.len(), 112, "run1211 baseline");
+    // Item 4177: 112 -> 118, +6 firsts, the combat rates' own: who=0 `damage_current_frame` 4518 ours 14 theirs 15; who=1 `hits_current_frame` 4518 ours 14 theirs 15; who=0 `average_damage_rate` 4751 ours 4995 theirs 5045; who=0 `damage_fifteen_seconds` 4751 ours 444 theirs 445 (docs/LEADERS.md §3.5).
+    pin_eq!(w.firsts.len(), 118, "run1211 baseline");
 }
 
 /// **The long's stride, walked back from the word 4038** (item 3554):

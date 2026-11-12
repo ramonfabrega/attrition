@@ -618,9 +618,14 @@ fn information_melee_s_leaders_are_compared_on_every_seat() {
     // kills it before the dump (`Sim::resign`, §152.15), and the three go —
     // ours 15/15/1 against theirs' 14/14/0 before.
     pin_eq!(w.standing(), vec![12, 9, 7], "standing keys, by seat");
+    // Item 4177: the human's trailing record one empty fold short
+    // (`v·7 >> 3` of ours; `docs/LEADERS.md` §3.5, parked 4177b).
     pin_eq!(
         w.rest(),
-        Vec::<String>::new(),
+        vec![
+            "who=0 average_damage_rate 2601: ours 4 theirs 3 (1, to 2601)".to_string(),
+            "who=0 average_hit_rate 2601: ours 1 theirs 0 (1, to 2601)".to_string(),
+        ],
         "the keys that part, by seat"
     );
 }

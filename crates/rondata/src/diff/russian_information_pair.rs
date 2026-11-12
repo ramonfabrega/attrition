@@ -273,7 +273,8 @@ fn russian_information_pair_run1401b_s_word_frame_is_widened_whole() {
     // Group 72's rows go — `1/99`'s move, `1/114`'s guard, the idle on
     // 6154 — and what is left is the standing families (`form`, group
     // 95's pool from 6202) and `1/198`'s `airorder.mandatory` on 6203.
-    pin_eq!(w.firsts.len(), 164, "run1401b baseline");
+    // Item 4177: 164 -> 168, +4 firsts, the combat rates' own: who=0 `average_damage_rate` 6095 ours 1578 theirs 1581; who=0 `damage_fifteen_seconds` 6095 ours 75 theirs 77; who=1 `average_hit_rate` 6095 ours 1578 theirs 1581; who=1 `hits_fifteen_seconds` 6095 ours 75 theirs 77 (docs/LEADERS.md §3.5).
+    pin_eq!(w.firsts.len(), 168, "run1401b baseline");
     // Every round, both directions: 408 in ours against 227. Item 3744:
     // 408 against 408, 98 parting — the MLRS `1/99`'s launch point (40,
     // `sx`/`sy`/`sz`, 3744a) and `1/198`'s rounds (58, 3744b); none spends
@@ -347,7 +348,8 @@ fn russian_information_pair_run1423_s_gap_is_widened_whole() {
     // group 72. Before the arm, 170: `1/99`'s `attack[1].mandatory` (0
     // against 1) standing from the window's first block and its
     // `attack[0].mandatory` on 5908.
-    pin_eq!(w.firsts.len(), 163, "run1423 baseline");
+    // Item 4177: 163 -> 167, +4 firsts, the combat rates' own: who=0 `average_damage_rate` 5895 ours 19 theirs 36; who=0 `damage_fifteen_seconds` 5895 ours 23 theirs 25; who=1 `average_hit_rate` 5895 ours 19 theirs 36; who=1 `hits_fifteen_seconds` 5895 ours 23 theirs 25 (docs/LEADERS.md §3.5).
+    pin_eq!(w.firsts.len(), 167, "run1423 baseline");
     pin_eq!(w.rounds_read, (408, 408), "the rounds read");
     // 94 parting: the MLRS `1/99`'s launch point from 5913 (3744a). Item
     // 3760, the Strategic Bomber's bays and the Jet Fighter's guns: 94 →
@@ -416,7 +418,8 @@ fn russian_information_pair_run1423b_s_gap_is_widened_whole() {
     // MLRS `1/99` parted on 5887: its attack-move look ranks the city
     // `0/2000` at `attack_dist` 4684, past the packed shortcut's 4608, and
     // adds the attack `mandatory` 0 in ours against 1.
-    pin_eq!(w.firsts.len(), 170, "run1423b baseline");
+    // Item 4177: 170 -> 174, +4 firsts, the combat rates' own: who=0 `average_damage_rate` 5795 ours 26 theirs 49; who=0 `damage_fifteen_seconds` 5795 ours 23 theirs 25; who=1 `average_hit_rate` 5795 ours 26 theirs 49; who=1 `hits_fifteen_seconds` 5795 ours 23 theirs 25 (docs/LEADERS.md §3.5).
+    pin_eq!(w.firsts.len(), 174, "run1423b baseline");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -482,7 +485,8 @@ fn russian_information_pair_run1423c_s_closing_frame_is_widened_whole() {
     // `0x2`/`0x4`, `reduce_stamp` 6310 against 6635; 3744d) and `1/49`'s
     // `dest_angle` on 6703 (3744e).
     // Item 4176: 152 -> 155, +3 firsts: who=0's `attack_stamp[1]`, `raid_stamp[1]` and `ally_stamp[1]` on 6636, ours 6310 theirs 6635, on a closing frame whose state already parts.
-    pin_eq!(w.firsts.len(), 155, "run1423c baseline");
+    // Item 4177: 155 -> 159, +4 firsts, the combat rates' own: who=0 `damage_fifteen_seconds` 6450 ours 127 theirs 129; who=1 `hits_fifteen_seconds` 6450 ours 127 theirs 129; who=0 `damage_current_frame` 6636 ours 0 theirs 1; who=1 `hits_current_frame` 6636 ours 0 theirs 1 (docs/LEADERS.md §3.5).
+    pin_eq!(w.firsts.len(), 159, "run1423c baseline");
     pin_eq!(w.rounds_read, (29, 30), "the rounds read");
     // 29 against 30, 12 parting, every one the T80 `1/59`'s (TI 260)
     // launch point from 6605 (3744d).
