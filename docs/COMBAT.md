@@ -7285,9 +7285,12 @@ bearing, not the wound, and the flank is 57 plus a height point (§46.5). That l
   `AARocket`s) at a land unit would roll here; no capture fires one.
 - **`get_shot`**, so a `REDOUBT`'s shot gives `dtype` 2 here and 3 in the
   original. It changes a death animation index; no capture has one.
-- **`DEATH_OBJS`' `gpiece`**, the dead unit's own death piece
+- ~~**`DEATH_OBJS`' `gpiece`**, the dead unit's own death piece
   (`DeathObj::init`'s `vtable[0x178](param_7, packed)`). Parsed and not
-  compared — this crate loads no art for it.
+  compared — this crate loads no art for it.~~ Compared since item 4175:
+  vslot `+0x178` is `UnitData::get_gpiece`, the dead guy's own piece
+  (`combat::Figures::gpiece`); the closing blocks agree on 196 of 196
+  (`docs/RENDERER.md` §3.13).
 - ~~**The cull.** `DeathObj::inc_time` clears the object when its animation
   packet ends, and this crate never does. No capture on disk reaches a
   cull: run112's four deaths are all still in the list on its last block,

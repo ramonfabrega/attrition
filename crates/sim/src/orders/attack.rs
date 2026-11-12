@@ -245,6 +245,8 @@ impl AttackGroundView for SimAttackGround<'_> {
             // (`docs/COMBAT.md` §9.0).
             false,
             false,
+            // `Object::fire_ammo`'s unit arm: the type's `fire_proj`.
+            self.s.fire_proj(Obj::Unit(self.u)),
         );
     }
     fn recharge(&mut self) -> u8 {

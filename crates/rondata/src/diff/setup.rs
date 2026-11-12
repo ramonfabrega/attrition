@@ -658,6 +658,8 @@ pub(crate) fn install_art(sim: &mut Sim, loaded: &Loaded, notes: &mut Vec<String
     // And which types aim a pivot rather than turn to shoot
     // (`docs/COMBAT.md` §52).
     sim.roster.art.pivots = loaded.pivot_restrictions.clone();
+    // And the missiles' `fire_proj` (item 4175).
+    sim.roster.art.fire_proj = loaded.instant_hits.clone();
 }
 
 pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {

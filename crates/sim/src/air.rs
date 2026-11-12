@@ -1990,6 +1990,9 @@ impl Sim {
             spent: false,
             crash: None,
             spline: None,
+            // `Object::fire_ammo`'s unit arm: the missile type's
+            // `fire_proj`, its `<INSTANTHIT ammo>` (item 4175).
+            gpiece: self.fire_proj(me),
         });
     }
 
@@ -2783,7 +2786,7 @@ pub struct WallCycle {
     pub swing: i32,
     /// Slot `0xc`'s release events, `rondata::artdata::PieceReleases`'
     /// shape.
-    pub releases: Vec<(u32, i8, bool)>,
+    pub releases: Vec<(u32, i8, bool, i32)>,
     /// The launch point's offset from the building's own `x/y/z`, as
     /// measured ([`WALL_LAUNCH`]); `None` leaves from the building itself.
     pub launch: Option<(i32, i32, i32)>,
@@ -2890,10 +2893,10 @@ impl Sim {
         };
         let cur = -r;
         let last = if cur == 0 { -1 } else { cur - 1 };
-        for &(at, node, harmless) in &cycle.releases {
+        for &(at, node, harmless, piece) in &cycle.releases {
             let at = i32::try_from(at).unwrap_or(i32::MAX);
             if last < at && at <= cur {
-                self.wall_round(b, t, cycle.launch, node, harmless);
+                self.wall_round(b, t, cycle.launch, node, harmless, piece);
             }
         }
     }
@@ -2910,6 +2913,7 @@ impl Sim {
         launch: Option<(i32, i32, i32)>,
         node: i8,
         harmless: bool,
+        piece: i32,
     ) {
         let me = crate::combat::Obj::Building(b);
         let at = self.buildings[b].pos;
@@ -2919,7 +2923,18 @@ impl Sim {
         let to = self.pos_of(t);
         let angle = find_angle(to.x - from.x, to.y - from.y);
         let frame = self.frame;
-        self.fire_ammo_pub(me, t, angle, frame, from, z + dz, node, harmless, false);
+        self.fire_ammo_pub(
+            me,
+            t,
+            angle,
+            frame,
+            from,
+            z + dz,
+            node,
+            harmless,
+            false,
+            piece,
+        );
         for p in self.combat.projectiles.iter_mut() {
             if p.shooter == me && p.cur_time == 0 && !p.spent {
                 p.num_guys = 0;
@@ -3144,6 +3159,9 @@ impl Sim {
             spent: false,
             crash: Some(crate::combat::Crash { bank, rolling }),
             spline: None,
+            // `Ammo::init_crash@0067b800:44`: the plane's own vslot
+            // `+0x34`, `UnitData::get_gpiece` — its guy 0's piece (item 4175).
+            gpiece: self.units[u].guys.first().map_or(-1, |g| g.gpiece),
         });
     }
 

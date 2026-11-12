@@ -2701,7 +2701,7 @@ fn a_turret_short_of_its_aim_holds_its_release_on_any_piece() {
             PIECE,
             [(
                 crate::units::anim::ATTACK2,
-                vec![(4, node, false, false, false, false)],
+                vec![(4, node, false, false, false, false, -1)],
             )]
             .into_iter()
             .collect(),

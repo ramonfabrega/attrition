@@ -158,6 +158,7 @@ fn round(
         spent: false,
         crash: None,
         spline: None,
+        gpiece: -1,
     }
 }
 
@@ -4298,6 +4299,7 @@ fn an_arrow_never_lands_on_gaia() {
         spent: false,
         crash: None,
         spline: None,
+        gpiece: -1,
     };
     assert_eq!(sim.check_hit(&ammo), None);
     // The same arrow does find a player's unit standing there.
@@ -4360,6 +4362,7 @@ fn a_round_with_no_target_strikes_the_building_it_lands_on() {
         spent: false,
         crash: None,
         spline: None,
+        gpiece: -1,
     };
     assert_eq!(sim.check_hit(&ammo), Some(Obj::Building(b)));
     // The same round aimed at the Barracks, beside it.
@@ -4444,6 +4447,7 @@ fn a_missed_round_strikes_a_city_at_its_ceiling() {
         spent: false,
         crash: None,
         spline: None,
+        gpiece: -1,
     };
     assert!(
         !sim.active(Obj::Building(b)),
@@ -4526,6 +4530,7 @@ fn the_shield_closes_a_missile_s_round_in_its_holder_s_land() {
         spent: false,
         crash: None,
         spline: None,
+        gpiece: -1,
     };
     let mut tree = sim.tables.tech_tree.clone();
     let shield = tree.types.len();
@@ -4678,6 +4683,7 @@ fn shot(me: usize, launch: Pos, landing: Pos, total: i32, sz: i32, ez: i32) -> c
         spent: false,
         crash: None,
         spline: None,
+        gpiece: -1,
     }
 }
 
@@ -5366,6 +5372,7 @@ fn a_rolled_round_is_aimed_at_its_target_s_own_clamped_z() {
             0,
             false,
             false,
+            -1,
         );
         let p = *s.combat.projectiles.last().expect("a shot");
         assert!(p.rolling, "a shot at a land unit rolls");
@@ -5409,6 +5416,7 @@ fn a_missile_s_round_is_not_led_and_does_not_roll() {
             0,
             false,
             missile,
+            -1,
         );
         *s.combat.projectiles.last().expect("a shot")
     };

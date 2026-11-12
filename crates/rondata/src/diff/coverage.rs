@@ -3836,8 +3836,8 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     // Item 3578: the Korean pair's closing walk reads run1200's closing
     // block at its `endgame:` detail, `DEATHS=1`, so every death field but
-    // `gpiece` is compared.
-    ("DeathDump", "gpiece"),
+    // `gpiece` is compared. Item 4175 compares `gpiece` too (the dead
+    // guy's own piece, `combat::Figures::gpiece`): the row left.
     // The group record is compared whole since item 1061
     // (`second::widen_records`), `think_frame` since item 1423.
     // `role` is compared on an army's group alone, and registers on

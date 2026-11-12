@@ -1576,6 +1576,7 @@ impl Sim {
             } else {
                 i64::MAX
             };
+            f.gpiece[k] = self.units[i].guys.get(k).map_or(-1, |g| g.gpiece);
         }
         f
     }

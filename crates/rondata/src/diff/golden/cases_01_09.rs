@@ -1720,9 +1720,11 @@ pub(super) fn chapter_two_s_word_frame_is_widened_whole() {
     // block run112 does not have.
     let carried =
         |from: i64| (LAST - from) as usize - usize::from((from..LAST).contains(&RUN112_NO_BLOCK));
+    // Item 4175: four fields a record, `gpiece` the fourth (each record's
+    // piece one of its corpse's, `combat::Figures::gpiece`): 1,875 → 2,500.
     pin_eq!(
         deaths,
-        3 * (carried(684) + carried(730) + carried(744) + carried(817)),
+        4 * (carried(684) + carried(730) + carried(744) + carried(817)),
         "the death-object comparison's own width moved; 1/8 dies on 683          and the dump carries its record on every block from 684 to the          end of run112"
     );
     // **Anti-vacuity**: the window has to hold the cast the chapter is

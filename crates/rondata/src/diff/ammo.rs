@@ -399,7 +399,11 @@ pub(crate) mod tests {
             ("flags", |a| a.flags, 2),
             ("rolling", |a| a.rolling, 0),
             // The *ammo's* graphic piece, not the shooter's: 60157 against
-            // the Longbowman's own 127.
+            // the Longbowman's own 127. Since item 4175 the simulation
+            // carries it too ([`sim::combat::Projectile::gpiece`]), and
+            // [`run109_says_every_ammo_field_this_crate_models_is_the_original_s`]
+            // compares it on every block; the constant stays, the dump's
+            // own word.
             ("gpiece", |a| a.gpiece, 60_157),
         ];
         for (name, get, want) in konst {
@@ -450,13 +454,13 @@ pub(crate) mod tests {
         );
     }
 
-    /// The fourteen fields of the record this crate holds, as one row.
+    /// The fifteen fields of the record this crate holds, as one row (`gpiece` the fifteenth, item 4175).
     ///
     /// `who`/`o` is the shooter and `whom`/`ox` the target, the same
     /// `(player, object)` pair every other record here is keyed by
     /// (`SubObjectData::who`/`o`). A ground shot has no target and the
     /// original prints `-1`/`-1` for it; nothing in this window is one.
-    type Row = [i64; 15];
+    type Row = [i64; 16];
 
     /// [`Row`]'s columns, for the failure message.
     const COLS: &[&str] = &[
@@ -475,6 +479,7 @@ pub(crate) mod tests {
         "splash_area",
         "num_guys",
         "accuracy",
+        "gpiece",
     ];
 
     /// One row, named. A fifteen-column tuple prints as a wall of integers
@@ -533,6 +538,7 @@ pub(crate) mod tests {
                     a.splash_area,
                     a.num_guys,
                     a.accuracy,
+                    a.gpiece,
                 ]
             })
             .collect();
@@ -586,6 +592,7 @@ pub(crate) mod tests {
                     i64::from(p.splash_area),
                     i64::from(p.num_guys),
                     i64::from(p.accuracy),
+                    i64::from(p.gpiece),
                 ]);
             }
         }
@@ -614,7 +621,7 @@ pub(crate) mod tests {
             panic!(
                 "this crate's AMMO records are not the original's \
                  (block, who, o, whom, ox, sx, sy, ex, ey, angle, cur_time, \
-                 total_time, splash_area, num_guys, accuracy)\n{s}\nat {at}"
+                 total_time, splash_area, num_guys, accuracy, gpiece)\n{s}\nat {at}"
             );
         }
     }

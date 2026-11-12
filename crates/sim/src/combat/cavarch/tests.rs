@@ -390,7 +390,7 @@ fn a_melee_swing_whose_graphic_releases_a_round_lands_no_blow() {
                 piece,
                 [(
                     crate::units::anim::ATTACK1,
-                    vec![(1, 0, false, false, false, false)],
+                    vec![(1, 0, false, false, false, false, -1)],
                 )]
                 .into_iter()
                 .collect(),

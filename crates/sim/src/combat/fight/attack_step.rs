@@ -638,9 +638,10 @@ impl Sim {
         node: i8,
         harmless: bool,
         missile: bool,
+        piece: i32,
     ) {
         self.fire_ammo_release(
-            shooter, target, angle, frame, launch, sz, node, harmless, missile, false, false,
+            shooter, target, angle, frame, launch, sz, node, harmless, missile, false, false, piece,
         );
     }
 
@@ -660,6 +661,7 @@ impl Sim {
         missile: bool,
         flame: bool,
         punctures: bool,
+        piece: i32,
     ) {
         self.fire_ammo_aim(
             shooter,
@@ -673,6 +675,7 @@ impl Sim {
             missile,
             flame,
             punctures,
+            piece,
         );
     }
 
@@ -744,6 +747,7 @@ impl Sim {
         launch: Pos,
         sz: i32,
     ) {
+        let piece = self.fire_proj(shooter);
         self.fire_ammo_aim(
             shooter,
             Aim::At(target),
@@ -756,7 +760,34 @@ impl Sim {
             false,
             false,
             false,
+            piece,
         );
+    }
+
+    /// **The piece `Object::fire_ammo@0064c8b0` puts in its package** (item
+    /// 4175): a unit's type's `fire_proj` (`UnitType +0x2cc`), which
+    /// `GraphicEvents::init_unit_events@008e2520` rewrites from `1` to
+    /// [`combat::FIRST_AMMO_PIECE`] (`:188`) and, for a type whose graphic
+    /// carries an `<INSTANTHIT ammo>`, to that `<AMMO>`'s piece (`:447`) —
+    /// [`crate::units::anim::Art::fire_proj`]; a building's
+    /// `FIRST_AMMO_PIECE + get_shot` for a shot of 0 to 5, and `-1` (the
+    /// package's word unwritten, so not read) past them. SEAM: the
+    /// Merchant arm (`0x3d`, `0x3e`, 400: `FIRST_AMMO_PIECE`, `+1` past
+    /// the leader's third `+0xdc`) is not taken; no such type shoots here.
+    pub(crate) fn fire_proj(&self, shooter: Obj) -> i32 {
+        match shooter {
+            Obj::Unit(u) => self.units[u]
+                .ty
+                .and_then(|t| {
+                    let ti = self.tables.unit_types[t].type_index;
+                    self.roster.art.fire_proj.get(&ti).copied()
+                })
+                .unwrap_or(combat::FIRST_AMMO_PIECE),
+            Obj::Building(b) => match self.building_shot(b) {
+                n @ 0..=5 => combat::FIRST_AMMO_PIECE + n,
+                _ => -1,
+            },
+        }
     }
 
     /// A round at the shooter's **attack-ground order's point**
@@ -777,6 +808,7 @@ impl Sim {
         missile: bool,
         flame: bool,
         punctures: bool,
+        piece: i32,
     ) {
         self.fire_ammo_aim(
             shooter,
@@ -790,6 +822,7 @@ impl Sim {
             missile,
             flame,
             punctures,
+            piece,
         );
     }
 
@@ -867,6 +900,7 @@ impl Sim {
         missile: bool,
         flame: bool,
         punctures: bool,
+        piece: i32,
     ) {
         // **A round at an aircraft rolls to hit** (item 1102,
         // `docs/COMBAT.md` §81): `Ammo::init`'s air arm, ahead of the
@@ -956,6 +990,7 @@ impl Sim {
                 spent: false,
                 crash: None,
                 spline: None,
+                gpiece: piece,
             });
             return;
         }
@@ -1207,6 +1242,7 @@ impl Sim {
             spent: false,
             crash: None,
             spline,
+            gpiece: piece,
         });
     }
 }

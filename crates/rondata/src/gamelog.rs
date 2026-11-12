@@ -3232,9 +3232,9 @@ pub struct Frame {
 /// `do_damage` decided and the parity of the draw `Unit::close+0xcb6`
 /// spent — which is how `dtype 2` stopped being a reading.
 ///
-/// `gpiece` is the unit's own death piece (`DeathObj::init`'s
-/// `vtable[0x178]`), which this crate loads no art for; it is parsed and
-/// not compared (§42.5).
+/// `gpiece` is the dead guy's own piece (`DeathObj::init`'s vslot
+/// `+0x178`, `UnitData::get_gpiece`), compared since item 4175 against
+/// `sim::combat::Figures::gpiece`.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct DeathDump {
     pub valid: Option<i64>,

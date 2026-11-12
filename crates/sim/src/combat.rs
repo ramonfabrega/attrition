@@ -516,7 +516,30 @@ pub struct Projectile {
     /// round flown as an arc — and on the V2's and the nuke's, whose
     /// spline holds no target, so `inc_time`'s spline arm only counts.
     pub spline: Option<Spline>,
+    /// **The round's graphic piece** — `AmmoData::gpiece` (`+0x8`), which
+    /// `Ammo::init@0067bbf0:264` copies from the package its caller
+    /// filled, and `AmmoOut::draw@0067ac10` draws (item 4175,
+    /// `docs/RENDERER.md` §3.13). A release event's is its own `type`'s
+    /// ([`FIRST_AMMO_PIECE`] plus the `<AMMO>`'s index,
+    /// `GraphicEvents::init_unit_events@008e2520:284`); a building's is
+    /// `FIRST_AMMO_PIECE + get_shot` (`Object::fire_ammo@0064c8b0`); a
+    /// unit's own shot is its type's `fire_proj` (`UnitType +0x2cc`); a
+    /// falling aircraft's is the plane's own piece
+    /// (`Ammo::init_crash@0067b800:44`). `-1` where the shot's piece is
+    /// not read.
+    pub gpiece: i32,
 }
+
+/// **`GraphicPieces::first_ammo_piece`**, `0xeaf5`: the piece of the
+/// first `<AMMO>` of `effects_graphics.xml`
+/// (`init_ammo_piece_ranges@008f6140:67` writes it
+/// `first_land_doober_piece + num_land_doober_pieces`). Diff-backed, not
+/// derived: run109's Longbowman arrows print `gpiece 60157`, `ArcherArrowWOtip`
+/// at index 8; run1403b's Infantry 60173 and 60174 (`InvisibleAmmo
+/// Withpuff` 24, `NoDamage Tracer` 25) and Chi-Ha 60185 (`Tankshell` 36)
+/// (item 4175). The shadow, skeleton and scorch counts the loader puts
+/// before it are 20, 14 and 6 in the install; the doobers' 16 is not read.
+pub const FIRST_AMMO_PIECE: i32 = 0xeaf5;
 
 /// **A falling aircraft's round** — the fields `Ammo::init_crash@0067b800`
 /// writes that `Ammo::init` does not (`docs/AI.md` §228).
@@ -581,12 +604,12 @@ pub fn arc_point(launch: Pos, landing: Pos, cur_time: i32, total_time: i32) -> P
 /// **One death object** — the `DEATH_OBJS` record `Unit::close` makes for
 /// a unit that dies with a non-zero `dtype` (`docs/COMBAT.md` §42.1).
 ///
-/// The dump prints six keys at detail 1 and this carries five of them:
+/// The dump prints six keys at detail 1 and this carries all six:
 /// `valid` is 1 for every record it prints at all, `first_frame` the sim
 /// frame of the death, `cur_anim` the animation the draw chose, and
-/// `who`/`o` the dead figure. `gpiece` is the sixth — the unit's own death
-/// piece, `DeathObj::init`'s `vtable[0x178](param_7, packed)` — and this
-/// crate loads no piece for it, so it is parsed and not compared (§42.5).
+/// `who`/`o` the dead figure. `gpiece` is the sixth — each record's own,
+/// `DeathObj::init`'s vslot `+0x178`, the dead guy's piece — and is
+/// [`Figures::gpiece`] (item 4175).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Death {
     pub who: i32,
@@ -632,6 +655,13 @@ pub struct DeathSlot {
 pub struct Figures {
     pub n: u8,
     pub life: [i64; Figures::MAX],
+    /// **Each record's piece** (item 4175): `DeathObj +0x20`, which
+    /// `DeathObj::init@008d4c60` takes from the dead unit's vslot `+0x178`,
+    /// `UnitData::get_gpiece@0060dd80` — guy `k`'s own `gpiece` (`GuyData
+    /// +0x88`) for a unit with guys. Its `cur_anim < 0xf` arm, which swaps
+    /// in `RData::unit_data +0x24`, is never taken: `Unit::close` hands
+    /// `dtype * 2 + 0xd + roll % 2` with `dtype >= 1`. `-1` past `n`.
+    pub gpiece: [i32; Figures::MAX],
 }
 
 impl Figures {
@@ -643,6 +673,7 @@ impl Figures {
         let mut f = Self {
             n: 1,
             life: [0; Self::MAX],
+            gpiece: [-1; Self::MAX],
         };
         f.life[0] = match life {
             Some(l) => l,

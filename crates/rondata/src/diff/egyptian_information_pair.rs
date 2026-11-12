@@ -283,7 +283,13 @@ fn egyptian_information_pair_run1399b_s_word_frame_is_widened_whole() {
     // parting `1/34`'s `ammo[0]` on 3205 (`sx` 5640 against 5530, `sz` 364
     // against 533, `total_time` 3 against 2).
     pin_eq!(w.rounds_read, (648, 654), "the rounds read");
-    pin_eq!(w.rounds.len(), 95, "the rounds that part");
+    // Item 4175: 97, the `gpiece` of `1/25`'s `ammo[2]` (3403) and `1/35`'s
+    // (3221), Mechanized Infantry (TI 104): `CHAR_ATTACK2`'s two releases
+    // on 999 take each other's slots, theirs' `NoDamage Tracer` (60174,
+    // `flags` 18) where ours holds its `InvisibleAmmo` (60164), so
+    // `flags&16`, `ex`, `ey` and `total_time` part on the same keys
+    // already (parked 4175d).
+    pin_eq!(w.rounds.len(), 97, "the rounds that part");
 }
 
 /// run1421: the word 3519's window, blocks 3495..3770 at run1399b's
@@ -358,7 +364,9 @@ fn egyptian_information_pair_run1421_s_word_frame_is_widened_whole() {
     // now 655 against 662 and 74, none of them `1/55`'s — the T80DES
     // node-1 rounds (parked 3743a).
     pin_eq!(w.rounds_read, (655, 662), "the rounds read");
-    pin_eq!(w.rounds.len(), 74, "the rounds that part");
+    // Item 4175: 75, `1/27`'s `ammo[3].gpiece` on 3733, ours 60164 theirs
+    // 60174 — the same swapped pair as run1399b's (parked 4175d).
+    pin_eq!(w.rounds.len(), 75, "the rounds that part");
 }
 
 /// run1421b: the pair's closing window, blocks 3765..3798 at run1421's

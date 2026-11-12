@@ -499,6 +499,101 @@ pub fn puncture_ammo(install: &Install) -> std::collections::BTreeSet<String> {
     ammo_where(install, "puncture", 1)
 }
 
+/// **The ammo pieces by name** (item 4175, `docs/RENDERER.md` §3.13):
+/// each `<AMMO>` of `effects_graphics.xml`, in file order, is the piece
+/// [`sim::combat::FIRST_AMMO_PIECE`] plus its index —
+/// `GraphicPieces::init_ammo_piece_ranges@008f6140` appends the `<AMMO>`
+/// names to `ammo_names` first, one piece each, before the entrenchments,
+/// scaffolds, debris and markers. A name is found as
+/// `GraphicEvents::init_unit_events@008e2520:280` finds it: the first
+/// entry `String::operator==` matches, which compares without case
+/// (`CANNONBALL` is the `CannonBall` at 17). Keyed by the lowercase name.
+/// `BuildingTraceBullet` is listed twice; the first wins.
+pub fn ammo_pieces(install: &Install) -> BTreeMap<String, i32> {
+    let mut out = BTreeMap::new();
+    for (i, n) in ammo_elements(install).iter().enumerate() {
+        out.entry(n.name.to_lowercase())
+            .or_insert(sim::combat::FIRST_AMMO_PIECE + i as i32);
+    }
+    out
+}
+
+/// One `<AMMO>` of `effects_graphics.xml`, in file order: its name and
+/// the two files `GraphicPieces::init_ammo_data@008f1490` loads for it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct AmmoArt {
+    pub name: String,
+    pub model: Option<String>,
+    pub texture: Option<String>,
+}
+
+/// Every `<AMMO>`, in file order: piece `FIRST_AMMO_PIECE + i` is entry `i`.
+pub fn ammo_elements(install: &Install) -> Vec<AmmoArt> {
+    let path = install.data("effects_graphics.xml");
+    let Ok(text) = crate::read(&path) else {
+        return Vec::new();
+    };
+    let Ok(doc) = crate::parse(&path, &text) else {
+        return Vec::new();
+    };
+    let attr = |n: &roxmltree::Node<'_, '_>, k: &str| {
+        n.attribute(k)
+            .map(|v| v.trim().to_string())
+            .filter(|v| !v.is_empty())
+    };
+    doc.descendants()
+        .filter(|n| n.has_tag_name("AMMO"))
+        .map(|n| AmmoArt {
+            name: n.attribute("name").unwrap_or_default().to_string(),
+            model: attr(&n, "model"),
+            texture: attr(&n, "texture"),
+        })
+        .collect()
+}
+
+/// **`fire_proj` for the types that name an `<INSTANTHIT ammo>`** (item
+/// 4175): `GraphicEvents::init_unit_events@008e2520:438`–`447` walks
+/// `ammo_names` for the element's `ammo` and writes the type's `UnitType
+/// +0x2cc` as `first_ammo_piece` plus the index. The install names four:
+/// `CruiseMissile`, `NukeICBM`, `Nuke` and `V2`, on their missiles'
+/// `-DEFAULT-AGE0` entries. `TypeIndex → piece`.
+pub fn instant_hits(install: &Install, graphs: &[String]) -> BTreeMap<i32, i32> {
+    let upath = install.data("unit_graphics.xml");
+    let Ok(utext) = crate::read(&upath) else {
+        return BTreeMap::new();
+    };
+    let Ok(udoc) = crate::parse(&upath, &utext) else {
+        return BTreeMap::new();
+    };
+    let by_graph = graph_types(graphs);
+    let pieces = ammo_pieces(install);
+    let mut out = BTreeMap::new();
+    for u in udoc.descendants().filter(|n| n.has_tag_name("UNIT")) {
+        let Some(hit) = u
+            .children()
+            .find(|n| n.has_tag_name("INSTANTHIT"))
+            .and_then(|n| n.attribute("ammo"))
+        else {
+            continue;
+        };
+        let piece = pieces
+            .get(&hit.to_lowercase())
+            .copied()
+            .unwrap_or(sim::combat::FIRST_AMMO_PIECE);
+        let Some(p) = u.attribute("name").and_then(|n| PieceName::parse(n.trim())) else {
+            continue;
+        };
+        for &ty in by_graph
+            .get(&p.graph.to_ascii_uppercase())
+            .into_iter()
+            .flatten()
+        {
+            out.insert(ty, piece);
+        }
+    }
+    out
+}
+
 /// The `<AMMO>` names whose integer attribute `attr` reads `value`.
 fn ammo_where(install: &Install, attr: &str, value: i32) -> std::collections::BTreeSet<String> {
     let path = install.data("effects_graphics.xml");
@@ -671,6 +766,7 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
     let missile = missile_ammo(install);
     let flame = flame_ammo(install);
     let puncture = puncture_ammo(install);
+    let ammo = ammo_pieces(install);
     let mut out = PieceReleases::new();
     for u in udoc.descendants().filter(|n| n.has_tag_name("UNIT")) {
         let Some(name) = u.attribute("name") else {
@@ -699,6 +795,13 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
             let flies = e.attribute("type").is_some_and(|t| missile.contains(t));
             let burns = e.attribute("type").is_some_and(|t| flame.contains(t));
             let sticks = e.attribute("type").is_some_and(|t| puncture.contains(t));
+            // `init_unit_events:284`, and `:355`'s `first_ammo_piece` for
+            // a name no entry matches.
+            let piece = e
+                .attribute("type")
+                .and_then(|t| ammo.get(&t.to_lowercase()))
+                .copied()
+                .unwrap_or(sim::combat::FIRST_AMMO_PIECE);
             rows.entry(slot).or_default().push((
                 release_frame(ms),
                 node,
@@ -706,6 +809,7 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
                 flies,
                 burns,
                 sticks,
+                piece,
             ));
         }
         if rows.is_empty() {
@@ -720,7 +824,7 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
 
 /// `GRAPH → (get_game_frames(8), get_game_frames(0xc), slot 0xc's
 /// releases)` for an anti-air building whose piece is a unit's.
-pub type WallPackets = BTreeMap<String, (u32, u32, Vec<(u32, i8, bool)>)>;
+pub type WallPackets = BTreeMap<String, (u32, u32, Vec<(u32, i8, bool, i32)>)>;
 
 /// **The packet an anti-air building's `Wall::inc_time` reads** (item
 /// 1112, `docs/COMBAT.md` §84.2), for each `GRAPH` given.
@@ -749,6 +853,7 @@ pub fn wall_packets(install: &Install, graphs: &[String]) -> WallPackets {
     let files = anim_files(&adoc);
     let units = unit_anims(&udoc);
     let harmless = harmless_ammo(install);
+    let pieces = ammo_pieces(install);
     let length = |rows: &Vec<(i8, String)>, slot: i8| -> u32 {
         rows.iter()
             .find(|(s, _)| *s == slot)
@@ -782,7 +887,12 @@ pub fn wall_packets(install: &Install, graphs: &[String]) -> WallPackets {
                     .and_then(|v| v.trim().parse::<i8>().ok())
                     .unwrap_or(-1);
                 let quiet = e.attribute("type").is_some_and(|t| harmless.contains(t));
-                releases.push((release_frame(ms), node, quiet));
+                let piece = e
+                    .attribute("type")
+                    .and_then(|t| pieces.get(&t.to_lowercase()))
+                    .copied()
+                    .unwrap_or(sim::combat::FIRST_AMMO_PIECE);
+                releases.push((release_frame(ms), node, quiet, piece));
             }
         }
         out.insert(
