@@ -243,3 +243,202 @@ Settled once here, cited per leaf.
   assume one); a capture with a V2 landing and a later V2 priced settles
   both.
 
+## Leaf `units_bribed` (+0x8f4)
+
+### 1. Claim by claim
+
+| # | claim | first | second | mark |
+|---|---|---|---|---|
+| 1 | event writer `SpellType::cast_bribe (00672d00)`, `67306e incl 0xe3ac84(%eax)`, `eax = -0x18(%ebp) = param_2 · 0x6eec` (the caster's player) | yes | yes | agree |
+| 2 | `Leader::reset_score (006e37f0)` `6e38bf` stores 0; `Leader::init` has no direct store and zeroes it through `reset_score` (`6e3b1a`) and the conditional memset | yes | yes (+ close/clear memsets) | agree / one-sided as for `repair_stamp` |
+| 3 | `Setup::build_game (005ac190)` calls `reset_score` for every slot with `leader_flags & 1` | yes | yes | agree |
+| 4 | that call sits inside `build_game`'s `param_2 == 0` block | — | yes | one-sided |
+| 5 | own target (`param_2 == param_4`): separate arm, no count | yes | yes | agree |
+| 6 | the own arm draws down the **caster's** `+0x96` (first) / the **target's** (second) | caster | target | disagree (not this leaf's) |
+| 7 | refusal (`unpay_cast_costs`, no count): target is the caster's ally (`param_4 == leaders[param_2].who`, or relation 2 both ways at `+0x74`) **and** (`team_style ∈ {0, 8, 11}` or target's `leader_flags & 2`) | yes | yes | agree |
+| 8 | refusal: target is a unit (vslot `0x18`) and `has_general(target, 0, 0x165)` `≥ 0` | yes | yes | agree |
+| 9 | a non-unit target goes to the building/city arm, which never counts | yes | yes | agree |
+| 10 | a unit past the refusals meets no further test; every message branch falls to `67306a`, `+1`, then `Unit::swap_team` (vslot `0x94`) | yes | yes | agree |
+| 11 | counted before `swap_team` | yes | yes | agree |
+| 12 | readers: `AchieveChartPane::set_chart_data (007f2c40)` and the checksum; `log_data` does not print it | yes | yes | agree |
+| 13 | crate: counted at `spells/bribe.rs:42` (`tech[a].bribes += 1`), field `tech.rs:771`, test `spells/cast/tests.rs:544`; not wired to the checksum value match (`checksum/leaders.rs:190` row, no arm) | yes | yes | agree |
+| 14 | crate gap: `Sim::cast_on` (`spells/cast.rs`) does not re-test refusal #7 at cast time | yes | yes | agree |
+| 15 | `rondata` prints it `units_bribed (unheld)` (`checksum_lines.rs:1846`) | — | yes | one-sided |
+| 16 | a plain game reaches it | yes | yes | agree |
+
+### 2. Settlements and spot-checks
+
+- **#1, #10, #11 confirmed against the listing.** `672d1c movl 0xc(%ebp),
+  %ebx` (param_2), `672d81 imull $0x6eec, %ebx, %eax; 672d8d movl %eax,
+  -0x18(%ebp)`; `67306a movl -0x18(%ebp), %eax; 67306d pushl %ebx; 67306e
+  incl 0xe3ac84(%eax)`; `67307f calll *0x94(%eax)` (`Unit::swap_team`,
+  `vtables.txt` `Unit::vftable +0x94`). `67306a` is reached only from
+  `672f44`, `673065` and the fall-through at `673067`, all inside the unit
+  arm (`672e5a calll *0x18; 672e5f je 673098` sends a non-unit to the
+  building arm at `673098`, past every route into `67306a`). So **#9
+  confirmed**: no building path counts.
+- **#7 confirmed, with the team-style test named.** `672d96`..`672db3`
+  (who-equality, then `cmpl $0x2, 0x74(...)` both ways; a non-ally jumps
+  to `672ddb` and is not refused here); `672dc0`..`672dca` (`team_style`
+  0, 8, 11 → refuse at `672e2d`); `672dd2 testb $0x2, 0xe3a390(%eax)`
+  (target's `leader_flags & 2` → refuse). `Game::teams_locked (00594880)`
+  returns 1 exactly when `team_style ∉ {0, 8, 11}`, so the refusal reads:
+  **an ally's unit is refused unless teams are locked and the target leader
+  lacks flag 2.** That is the same rule the order-time `bribe_arm` carries
+  (`crates/sim/src/spells/spell_valid_target_view.rs:183`–`186`), so the
+  cast-time gap (#14) matters only when an alliance forms between the
+  order and the cast. **#14 confirmed** (`cast.rs`: `cast_on` refuses only
+  same owner and `has_general(v, 0x165)`).
+- **#8 confirmed.** `672e05 calll *0x18; je 672e49` (non-unit skips the CEO
+  test), `672e21 calll ObjectData::has_general (00646b00); js 672e49`
+  (`< 0` passes), else `672e31` `unpay_cast_costs`. `Unit::vftable +0x18`
+  is the folded nonzero answer (`Buffer::is_pending_load`), `Build::vftable
+  +0x18` the folded zero (`Window::get_button`).
+- **#4 confirmed.** `build_game` decompile line 502 opens `if (param_2 ==
+  0) {` and no top-level brace closes before line 731's
+  `Leader::reset_score`; the `Leader::init` at line 618 is in the same
+  block. Either way the leaf is 0 at the start of a new game.
+- **#6 corrected (second), not this leaf's.** `cast_bribe` decompile lines
+  61–68: the drawn-down short is `units[param_2][param_1] + 0x96`, the
+  caster object (`param_1`), not the target (`param_3`). No count either
+  way. Side note for whoever owns the bribe: that arm does not call
+  `unpay_cast_costs`, while the crate's own-target refusal does
+  (`cast.rs`, `unpay_cast_mana`); not adjudicated here.
+- **#12 confirmed** by both nets (no `->units_bribed`, no `0x8f4` read in
+  `LeaderData::log_data`); the checksum is the only oracle.
+- **#13, #15 confirmed** by grep: `bribe.rs:42`, `tech.rs:771`,
+  `cast/tests.rs:544`, `checksum/leaders.rs:190`, and the value match falls
+  to `_ => None` (`leaders.rs:1305`); `checksum_lines.rs:1846`.
+- **Writer completeness.** Ground nets: none missed.
+
+### 3. The rule as a builder should port it
+
+- Storage: already there, `PlayerTech::bribes` (`crates/sim/src/tech.rs:771`).
+- Writer: `cast_bribe`'s unit arm, past the refusals (own target, an ally
+  unless teams are locked and the target lacks `leader_flags & 2`, CEO
+  cover): `units_bribed[caster's player] += 1`, then `swap_team`. Already
+  at `spells/bribe.rs:42`.
+- Reset: 0 at `Leader::init` (via `reset_score`) and again by
+  `build_game`'s `reset_score` pass on a new game; never decremented.
+- To do: add `"units_bribed" => one(i64::from(self.tech[w].bribes))` to the
+  value match in `crates/sim/src/checksum/leaders.rs`, and, for full
+  fidelity, re-test the ally refusal at cast time in `Sim::cast_on`.
+- Plain game: yes.
+- Confidence: high (listing read over every route into `67306a`). Open:
+  none for the leaf.
+
+## Leaf `nukes_launched` (+0xa38)
+
+### 1. Claim by claim
+
+| # | claim | first | second | mark |
+|---|---|---|---|---|
+| 1 | event writer `Unit::come_out (00617c10)`, `6188fa incl 0xe3adc8(%eax)`, `eax = (byte)unit+0x9 · 0x6eec` | yes | yes | agree |
+| 2 | `Leader::init` explicit `= 0` at `6e4a9c`; memsets | yes | yes (+ close/clear) | agree / one-sided as before |
+| 3 | predicate step 1: `is(0x13b, 0)` on the unit (line, non-strict) | yes | yes | agree |
+| 4 | step 2: order list head `+0xdc` non-null and current order `+0xcc` non-null | yes | yes | agree |
+| 5 | step 3: `UnitOrder` vslot `0x100` = `get_strafe_order` (PDB), non-null only for `StrafeOrder`; first read the PE bytes, second did not | yes (PE bytes) | yes (PDB only) | agree |
+| 6 | step 4: `+0x8` (`ox`) and `+0xc` (`whom`) of that order both `≠ −1` | yes | yes | agree |
+| 7 | reset `Leader::init` only; never decremented | yes | yes | agree |
+| 8 | readers: `log_data` only | yes | yes | agree |
+| 9 | `Build::do_missile_launch (00622670)` "releases" a missile whose order is `AIR_ATTACK_GROUND` or `STRAFE` and then calls `come_out` (second) / announces only for `AIR_ATTACK_GROUND`, the `STRAFE` arm dead via `is_ally(self, self)` (first) | announce gate | release gate | disagree |
+| 10 | a nuke at an object takes a `STRAFE` order (second, inferred) / `add_strafe_order (005e48c0)` turns a missile's strafe at a `valid_target` into `add_air_attack_ground_order`, so an ordinary launch does not count (first) | converted | strafe | disagree |
+| 11 | `add_strafe_order` is the only maker of a `StrafeOrder` | yes | — | one-sided |
+| 12 | crate site `Sim::come_out` (`units/garrison.rs:376`), after placement, gated on the nuke line and `Body::Strafe { target: Some(_) }`; `do_missile_launch` (`air.rs:1799`) issues `AirAttackGround` | yes | yes | agree |
+| 13 | plain game: writer reached; predicate probably never true (first) / yes, "STRAFE-at-a-unit launches" step it (second) | probably never | yes | disagree |
+
+### 2. Settlements
+
+- **#1, #3, #4, #6 confirmed against the listing.** `61883d pushl $0;
+  61883f pushl $0x13b`, `61885a calll *0x60` (type `is`), `61885f je 618900`;
+  `618865 cmpl $0x0, 0xdc(%ebx); je 618900`; `61887c`..`618888` copy the
+  head node's `+0x4`/`+0x8` into `+0xd4`/`+0xcc`; `618897 cmpl $0x0,
+  0xcc(%ebx); je 618900`; `6188da calll *0x100(%eax); je 618900`;
+  `6188e4 cmpl $-0x1, 0x8(%eax); je`, `6188ea cmpl $-0x1, 0xc(%eax); je`;
+  then `6188fa`.
+- **#5 confirmed from the PE bytes.** Mapping the VA through the section
+  table: `StrafeOrder`'s sub-vtable at `0xb47b08` (its complete-object
+  locator at `0xb47b04` → `0xb7ced4`, offset `0x4c`, type descriptor
+  `.?AVStrafeOrder@@`) holds `0x47ff54` at `+0x100`, the thunk `subl
+  -0x4(%ecx),%ecx; jmp 47ff50` → `leal -0x4c(%ecx),%eax; ret`;
+  `UnitOrder::vftable +0x100` and `AirAttackGroundOrder::vftable +0x100`
+  hold `0x41bff0` (`xor eax,eax; ret`). Every `*Order` vtable that
+  `vtables.txt` lists with a `+0x100` entry shows the folded zero (17 of
+  them). So the current order must be a `StrafeOrder`.
+- **#9 corrected (second); the first's announce reading confirmed.**
+  `do_missile_launch` pops the next missile when the countdown `+0x7a`
+  reaches 0, and the order test (`6226e4 cmpl $0x18` AAG, `6226f8 cmpl
+  $0x10` STRAFE, `622711 calll LeaderData::is_ally (006edb50)`) jumps to
+  `62289d` on failure, which is the `come_out` call at `6228a9`. The order
+  test gates **only** the launch announcement and sound (and the nuke's
+  vslot `0x164` / `+0x40 = 0xff`); `come_out` runs for every popped
+  missile whatever its order (decompile line 106, outside the `if`). And
+  `is_ally(leaders[p], p)` is 1 whenever `p == leaders[p].who` (decompile
+  lines 6–10), so the `STRAFE` announcement is dead in the ordinary case.
+- **#10 settled for the first, with the condition made exact.**
+  `add_strafe_order` decompile lines 19–27: a unit whose type has
+  `obj_masks & 0x8000000` and whose target `Object::valid_target
+  (00648ba0)` accepts gets `add_air_attack_ground_order` at the target's
+  position and returns. A Nuclear Missile has bit 27 (the nuke arm of
+  `Ammo::do_damage` sits behind the same bit test at `678200`, so a nuke
+  without it could never detonate as one). For a missile, `valid_target`
+  returns 0 only when `ObjectData::valid_target_const (006472c0)` (vslot
+  `0x138`) does — its first test refuses a target whose `whom` is out of
+  `0..7` or not an enemy of the shooter (decompile lines 15–19), and later
+  tests refuse inactive, off-map and domain-mismatched targets. So: **a
+  nuke counts only when it was given a strafe at an object that
+  `valid_target_const` refused when the order was made** (a non-enemy, a
+  slot above 7, a dead or garrisoned target, ...). A nuke ordered at a
+  valid enemy target, or at the ground, carries `AirAttackGroundOrder` and
+  does not count.
+- **#11 confirmed, with one addition.** `get_obj(.., STRAFE)` appears only
+  in `add_strafe_order`; the export's one variable-typed `get_obj` is
+  `copy_order (0072f900)` (called from `Group::set_up_insert (0070e520)`),
+  which copies an existing order and so can carry a `StrafeOrder` that
+  already exists. `add_strafe_order`'s callers: `Build::train`,
+  `Unit::do_air_patrol` (×2), `Unit::do_attack`, `Unit::do_garrison`,
+  `Unit::do_strafe`, `ScenarioFuncSet::add_unit`. `Build::train`'s
+  `-1,-1` call is for a type **without** bit 27, and `do_garrison`'s
+  passes `-1,-1`, which fails step 4.
+- **#12 confirmed.** `garrison.rs:376`, `air.rs:1799` (the
+  `AirAttackGround` test at `:1819`, `come_out` at `:1825`, called
+  unconditionally as in the original), `order.rs:498`–`501`
+  (`StrafeOrder::target` is `ox/whom`), and the crate's
+  `add_strafe_steps` (`orders/order_list.rs:1854`, conversion at `:1873`)
+  already turns a missile's valid strafe into an air-attack-ground.
+- **#13 open.** By #9–#11 the counter needs a nuke holding a targeted
+  `StrafeOrder` that `valid_target_const` refused at order time. Whether
+  any interface or AI path issues such an order to a nuke (the console's
+  right-click on a non-enemy object, `Group::action_flight`'s
+  `NUCLEARMISSILE` arm, the AI's nuke choice) was not read. A capture with
+  nuke launches, read under `log_data`'s `nukes_launched`, settles it: a
+  value above 0 after launches at enemy targets would refute the reading.
+- **Writer completeness.** Ground nets: none missed.
+
+### 3. The rule as a builder should port it
+
+- Storage: per player `nukes_launched: i32`, initial 0.
+- Writer: in `Sim::come_out`, after placement: if the unit is of the
+  Nuclear Missile line (`air_line_is(u, NUCLEARMISSILE)`), its current
+  order is `Body::Strafe(StrafeOrder { target: Some(_), .. })`, then
+  `nukes_launched[unit owner] += 1`. Every caller of `come_out` counts (the
+  silo launch, ejections, kills of contents), not only the launch.
+- Reset: 0 at `Leader::init`; never decremented. Restored by a load.
+- Reader: none in the sim; the checksum row `checksum/leaders.rs:259` and
+  `log_data`.
+- Plain game: the writer is reached on every `come_out`; the predicate
+  needs a strafe at a target `valid_target_const` refused, which an
+  ordinary launch (valid enemy target, or ground) never carries. Expect 0
+  until a capture shows otherwise.
+- Confidence: high for the code predicate (listing, PDB slot, PE vtable
+  bytes, RTTI). Open: whether any plain-game path hands a nuke such an
+  order (#13).
+
+## Verdict table
+
+| leaf | claims confirmed / corrected / open | the rule in one line |
+|---|---|---|
+| `repair_stamp` (+0x208) | 15 / 1 / 0 (corrected: the second's unconditional memset wording; plus an unstated edge, a negative stock trips with due 0) | `repair_stamp[owner] = frame` when a repair is refused (first available good with nonzero price whose signed stock `< due`), the order killed and `frame − stamp > 150`; every player; 0 at `Leader::init`; wire `SimDoRepair::feedback_stamp`/`set_feedback_stamp` |
+| `missiles_used` (+0x7c0) | 16 / 0 / 0 (side finding: `ids::CRUISE` is `0x139`, which the enum names `V2ROCKET`) | `+1` to the round's `who` when a splash round of a missile-bit shooter outside the Nuclear Missile line lands unshielded; 0 at `Leader::init`; read by `get_support_count`'s by-type fall-through for exact `0x139`/`0x13a` (V2 and Cruise have `PROGRESSION 0`, so the term is live); port in `Sim::land` after the nuke return and in `nuke_ramp_extra` |
+| `units_bribed` (+0x8f4) | 15 / 1 / 0 (corrected: the own-target arm draws down the caster's `+0x96`, not the target's; not this leaf's) | `+1` to the caster's player when Bribe takes a unit past the refusals (own; ally unless teams locked and no flag 2; CEO cover), before `swap_team`; 0 by `reset_score`; already counted as `tech.bribes`, needs the checksum arm |
+| `nukes_launched` (+0xa38) | 10 / 2 / 1 (corrected: the second's "release gate" in `do_missile_launch`, `come_out` is unconditional; the second's "a nuke at an object takes STRAFE", `add_strafe_order` converts a valid one to AAG. Open: plain-game reach) | `+1` to the unit's owner when a Nuclear-Missile-line unit comes out holding a `StrafeOrder` with `ox`,`whom ≠ −1`, which only a strafe at a target `valid_target_const` refused can be; 0 at `Leader::init`; port in `Sim::come_out`; expect 0 in plain play |

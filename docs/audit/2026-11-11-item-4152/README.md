@@ -88,14 +88,14 @@ clear cut: re-run that wave for that family.
 | 12 | `misery` | done | done | done | owed |
 | 13 | `marks-built` | done | done | in flight at the clear | owed |
 | 14 | `queued` | done | done | in flight at the clear | owed |
-| 15 | `odd-counters` | done | done | in flight at the clear | owed |
+| 15 | `odd-counters` | done | done | done | owed |
 | 16 | `lobby-words` | done | done | in flight at the clear | owed |
 | 17 | `spells` | done | done | done | done, §17 |
 | 18 | `score` | done | done | in flight at the clear | owed |
 | 19 | `last-finished` | done | done | done | done, §19 |
 | 20 | `high-buildings` | done | done | done | owed |
 
-**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 11 of
+**Score at the clear:** read 20 of 20, second-read 20 of 20, adjudicated 12 of
 20, specified 7 of 20.
 
 **How to resume.** The briefs are in `briefs/`, one per wave. A spawn is one
@@ -177,3 +177,4 @@ Each hand-back as it lands: family, wave, tokens, minutes, leaves confirmed.
 | kills | 3 | 196 k | 13 | 62 confirmed, 2 corrected, 0 open | the self-kill credit cannot happen in a plain game (every figure of a decoy squad is a decoy); the site-abandon arm is an unfinished site (`is_active` = flags & 4) |
 | high-buildings | 3 | ~150 k | ~13 | 33 confirmed, 3 corrected, 3 open | the reset dispute settled for the first reading (`Leader::init`'s tribe<0 memset and `Leaders::clear`); `reg_terr` zeroes live slots only (gate `zero_region_rares`); `check_capture`'s swap branch unported |
 | combat-rates | 3 | ~150 k | ~13 | ~98 confirmed, 9 corrected, 4 open | every writer and step backed; the overflow re-call runs only for a decoy; the sniper's unit arm kills by `Unit::die`; the `cast_sabotage_building` SEAM names the wrong offsets (a sabotaged building counts no kill, no death) |
+| odd-counters | 3 | ~150 k | ~13 | 56 confirmed, 4 corrected, 1 open | writers complete; `nukes_launched` moves only for a strafe at a target `valid_target` refused (expect 0 in plain play); `ids.rs` names 0x139 `CRUISE` where the enum says `V2ROCKET`; the `repair_stamp` SEAM comment says the opposite of its stub |
