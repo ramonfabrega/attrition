@@ -231,7 +231,7 @@ const DEPTH_RANGE: (f32, f32) = (-200_000.0, 200_000.0);
 const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth24PlusStencil8;
 
 /// **The silhouette's pixel is blended once** (item 4171; `docs/RENDERER.md`
-/// §5.3, "The silhouette's colour", "The still"): `c·a + n·(1 − a)` over
+/// §5.3, "The silhouette's colour"; §3.15): `c·a + n·(1 − a)` over
 /// the nearer pixel, as `render::silhouette::silhouette_blend` lays it. A
 /// closed mesh behind a tree has a near and a far side, and both pass
 /// depth Greater; the stencil keeps the first and refuses the rest, where
@@ -265,7 +265,7 @@ pub struct Frame<'a> {
 }
 
 /// **Where the figures' silhouette pass falls** (item 4171; `docs/RENDERER.md`
-/// §5.3, "The silhouettes", "The still").
+/// §5.3, "The silhouettes"; §3.15).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SilhouetteOrder {
     /// Every figure's silhouette (`render_states[1]`, depth Greater, no
@@ -726,7 +726,7 @@ impl Gpu {
     }
 
     /// **The textures' format follows the target's** (item 4171;
-    /// `docs/RENDERER.md` §5.3, "The still"). On a plain `Unorm` target a
+    /// `docs/RENDERER.md` §3.15). On a plain `Unorm` target a
     /// texel is sampled, filtered, blended and written as its bytes over
     /// 255, the arithmetic of the original's fixed-function stages and of
     /// `render::silhouette`'s painter; an `…Srgb` target, the draw before

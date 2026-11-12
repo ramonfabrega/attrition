@@ -462,7 +462,7 @@ pub fn our_patches(
 pub const RUN1559B_3279_GROUND: (usize, usize) = (1097, 1109);
 
 /// **`RUN1559B_3279_GROUND` on the client's still** (item 4171;
-/// `docs/RENDERER.md` §5.3, "The still"): the painter's 1,097 of 1,109,
+/// `docs/RENDERER.md` §3.15): the painter's 1,097 of 1,109,
 /// tile for tile, no crossing. On the draw before (an sRGB target) 1,003:
 /// 94 of the 106 under a mountain cross down, `ADDSIGNED` taken in linear
 /// light — tile (6, 144), theirs (104, 100, 56), the painter's (116, 97,
@@ -1787,7 +1787,7 @@ mod tests {
     pub(crate) type StillTile = ((i32, i32), [f32; 3], [f32; 3], bool);
 
     /// **The ground's row on the client's still** (item 4171;
-    /// `docs/RENDERER.md` §5.3, "The still"): [`ground_row`]'s tiles and
+    /// `docs/RENDERER.md` §3.15): [`ground_row`]'s tiles and
     /// their pixels, scored as there, ours the mean of `still` over every
     /// ground pixel of the tile.
     pub(crate) fn still_ground_row(p: &mut Probe, still: &[u8]) -> Vec<StillTile> {
@@ -1816,8 +1816,7 @@ mod tests {
             .collect()
     }
 
-    /// **The ground's rows on the client's still** (item 4171, §5.3 "The
-    /// still", committed before this count): on both photographs, the still
+    /// **The ground's rows on the client's still** (item 4171, §3.15, committed before this count): on both photographs, the still
     /// beside the painter's [`ground_row`], by kind, every tile whose verdict
     /// the still changes counted by kind and the first of each named with
     /// both sides' means.

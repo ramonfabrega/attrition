@@ -280,7 +280,7 @@ fn draw(
 }
 
 /// **The client's still under a row** (item 4171; `docs/RENDERER.md`
-/// §5.3, "The still"): the frame [`draw`] draws, on its own device, from
+/// §3.15): the frame [`draw`] draws, on its own device, from
 /// `world` at `camera` — the scene [`build`] makes and the terrain
 /// `drawn_terrain` gives — read back as `size`'s RGBA rows, top first, with
 /// no debug overlay. A GPU is required, as the `clock` test's is.

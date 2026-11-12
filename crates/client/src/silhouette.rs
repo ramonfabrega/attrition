@@ -714,7 +714,7 @@ pub fn colour_rows(
 }
 
 /// **One object's row on the client's still** (item 4171; `docs/RENDERER.md`
-/// §5.3, "The still"): the painter's footprint and colours beside the
+/// §3.15): the painter's footprint and colours beside the
 /// still's, and how far the still's pixels lie from the painter's.
 #[cfg(test)]
 pub struct StillRow {
@@ -1787,7 +1787,7 @@ mod tests {
     }
 
     /// **The traced and colour rows on the client's still** (item 4171;
-    /// `docs/RENDERER.md` §5.3, "The still", committed before this count):
+    /// `docs/RENDERER.md` §3.15, committed before this count):
     /// [`still_rows`] at both places of the silhouette pass, every object
     /// whose verdict the still changes named with both sides' values.
     /// Made to fail: the draw before (`SilhouetteOrder::After`) washes the

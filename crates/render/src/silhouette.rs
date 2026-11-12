@@ -1206,7 +1206,7 @@ pub const RUN1559B_3279_TRACED_WHOLE: (usize, usize) = (30, 33);
 pub const RUN1441_CAMERA_3279_TRACED: (usize, usize) = (0, 32);
 
 /// **`RUN1559B_3279_TRACED` on the client's still** (item 4171;
-/// `docs/RENDERER.md` §5.3, "The still"): `client::gpu`'s own pixels, our
+/// `docs/RENDERER.md` §3.15): `client::gpu`'s own pixels, our
 /// side read by the photograph's colour reader, 33 → 31. 0/1 crosses,
 /// 0.946 → 0.159 (ours 415 → 68, both 403 → 66): its ring on the still
 /// holds 91 of 1,104 pixels of a silhouette's red over the tree where the
