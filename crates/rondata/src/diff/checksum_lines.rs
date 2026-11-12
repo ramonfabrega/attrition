@@ -1763,13 +1763,14 @@ const LEADERS: (usize, usize, usize, usize, usize) = (2, 267, 58343, 4, 4313);
 /// frame 91 (`docs/LEADERS.md` §5.2). The long range stays out on the
 /// other 98.
 ///
-/// Item 4162: 98 → 92 names. Held (`sim::leaders::words`) and agreeing on
+/// Item 4162: 98 → 91 names. Held (`sim::leaders::words`) and agreeing on
 /// both leaders: `cannon_time` 0 = 0 (`CANNON_TIMES 0`, §16), `handicap`
 /// 0 = 0, `multi_diff` 0 = 0 (run 1562's `DIFFICULTY 0`; the other
 /// lobbies' bytes are the record diff's, `diff::leader`), `misery` 0 = 0
-/// (§12.3), `city_name` 1 = 1 (each start city named once, §1) and
+/// (§12.3), `pop_issues` 0 = 0 (no capped visit on frame 91, §12.2),
+/// `city_name` 1 = 1 (each start city named once, §1) and
 /// `anti_att` `0x43800000` = `0x43800000` (256.0, no source; §6). The
-/// long range stays out on the other 92.
+/// long range stays out on the other 91.
 pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("air_queued (unheld)", 2),
     ("ally_stamp (unheld)", 2),
@@ -1827,7 +1828,6 @@ pub(crate) const LEADERS_HELD_OUT: &[(&str, usize)] = &[
     ("missiles_used (unheld)", 2),
     ("nukes_launched (unheld)", 2),
     ("oil_well_mark (unheld)", 2),
-    ("pop_issues (unheld)", 2),
     ("raid_stamp (unheld)", 2),
     ("reg_terr (unheld)", 2),
     ("repair_stamp (unheld)", 2),
@@ -1893,6 +1893,7 @@ const LEADERS_BENT: &[&str] = &[
     "misery",
     "city_name",
     "anti_att",
+    "pop_issues",
 ];
 
 /// One leaf's held-out name: a long-range leaf bare, a tail's leaf under its

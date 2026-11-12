@@ -61,6 +61,20 @@ impl Sim {
         0
     }
 
+    /// `pop_issues` (`+0x7e8`): this frame's capped visits — the building
+    /// arm in [`Sim::advance_slot_with`], the carrier arm in
+    /// `carrier_queue_tick` — reset at a live leader's step
+    /// (`docs/LEADERS.md` §12.2). The dump prints the whole frame's count.
+    ///
+    /// SEAM: `Army::find_target`'s ×4 still reads 0 (parked 4162c).
+    pub fn leader_pop_issues(&self, who: Player) -> i32 {
+        self.leaders
+            .pop_issues
+            .get(usize::from(who))
+            .copied()
+            .unwrap_or(0)
+    }
+
     /// `city_name` (`+0x40c`): how many cities this leader's slot has named
     /// for its tribe (`docs/LEADERS.md` §1).
     pub fn leader_city_name(&self, who: Player) -> i32 {

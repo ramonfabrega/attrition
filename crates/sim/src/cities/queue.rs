@@ -1541,6 +1541,21 @@ impl Sim {
         }
         let ty = self.buildings[at].queue.items[slot].ty;
         let researched = self.roster.muster[who as usize].researched[ty];
+        // `Build::do_queue@0061e410`'s count, on the visit and before the
+        // progress moves: a researched unit entry at the cap
+        // (`check_population`, `pop_cap < control_cost + control`) takes
+        // `pop_issues += 1` (`docs/LEADERS.md` §12.2).
+        if researched {
+            let muster = &self.roster.muster[who as usize];
+            if economy::cost::exceeds_population(
+                muster.cap,
+                muster.control,
+                self.tables.unit_types[ty].price.pop,
+            ) && let Some(n) = self.leaders.pop_issues.get_mut(who as usize)
+            {
+                *n += 1;
+            }
+        }
         let done = crate::cities::production::advance(
             &mut self.buildings[at].queue.items[slot],
             target,

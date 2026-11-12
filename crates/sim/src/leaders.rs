@@ -42,4 +42,9 @@ pub struct LeadersState {
     /// its bits: `Leader::calc_anti_attrition`'s recompute from 256.0
     /// ([`words`], `docs/LEADERS.md` §6).
     pub anti_att: Vec<u32>,
+    /// `LeaderData::pop_issues` (`+0x7e8`): this frame's visits of a
+    /// researched unit entry at the population cap — `Build::do_queue`'s
+    /// and the carrier's — reset at a live leader's step
+    /// (`docs/LEADERS.md` §12.2).
+    pub pop_issues: Vec<i32>,
 }

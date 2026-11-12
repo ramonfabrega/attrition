@@ -27,9 +27,40 @@ export and the executable's listing:
    back to the decompiled function or the listing, with the deciding line.
 
 The files are under `docs/audit/2026-11-11-item-4152/`, and each section is
-written from its family's verdicts alone. **No diff backs any rule here
-yet.** Where a kept dump was consulted, the section says so, and treats that
-value as a witness, not a pinned diff.
+written from its family's verdicts alone. ~~**No diff backs any rule here
+yet.**~~ Since items 4154 and 4162 a diff backs the leaves the census below
+names as compared; each section's coverage says which. Where a kept dump
+was consulted otherwise, the section says so, and treats that value as a
+witness, not a pinned diff.
+
+**The census: which leaves a diff can back** (item 4162, step I of 4159).
+Every leaf of `LEADERS_HELD_OUT` as it stood at 98 names, plus `att`, was
+looked up in the level-9 `LEADERDATA` record of the 1,128 scored kept
+dumps that print it (`~/ron-data/…/Logs`; the 20 held-out battery dumps
+are not counted, DECISIONS 61 §6). The table is `diff::leader`'s
+`CENSUS`, and `the_census_split_is_the_record_s_own` asserts the split on
+run647's start record. Of the 98:
+
+- **25 are not printed** by `LeaderData::log_data`, so only the checksum
+  line can back them: `cannon_time`, `forts_built`, `give_att_disabled`,
+  the four `incoming*`, `last_building_finished`, `last_unit_finished`,
+  the eleven `score_*` parts, `tribute_received`, `tribute_sent`,
+  `units_bribed`, `wonders_built`, `wonders_held`. No other printed key
+  carries them.
+- **73 are printed** (72 under their own name or `name[scan]`; `tech.ptr`
+  as the `bits 806` mask). Before this item `diff::leader::theirs` parsed
+  **none** of them: a key nothing parses cannot part. Of the 73, 56 move
+  (nonzero or changing between blocks in at least one scored dump),
+  `multi_diff` holds one nonzero value per dump and never changes, and 16
+  are quiet everywhere — `blacken`, `broke_alliance`, `counteroffer`,
+  `ctw_hero_stamp`, `good_deeds`, `handicap`, `hire_stamp`, `hire_who`,
+  `last_spoke`, `made_peace`, `misery`, `nukes_launched`, `repair_stamp`,
+  `scholar_militia`, `tribute_demanded`, `tributes`. A quiet leaf's
+  agreement is a reading's claim the dump cannot falsify.
+
+Item 4162 made `theirs` read `att`, `pop_issues`, `misery`, `city_name`,
+`handicap`, `multi_diff` and `anti_att` (the record's one float, as `%f`
+millionths), and `rows` compare them.
 
 **Conventions.** A function is cited as `Name (00xxxxxx)`. An offset is a
 `LeaderData` offset. `Leader` holds `LeaderData` at offset 0 and adds 8 bytes

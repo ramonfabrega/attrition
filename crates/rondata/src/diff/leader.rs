@@ -47,10 +47,6 @@ pub(crate) const UNMODELLED: &[(&str, &str)] = &[
         "ported (VISION §13); leader 0 one or two under in twelve late-age pairs (parked 4153a)",
     ),
     (
-        "pop_issues",
-        "the capped-training count has no writer here (docs/LEADERS.md §12.2)",
-    ),
-    (
         "misc_stamps",
         "the twenty-odd *_stamp counters have no writers here",
     ),
@@ -518,6 +514,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         ("multi_diff", built.sim.leader_multi_diff(p)),
         ("handicap", built.sim.leader_handicap(p)),
         ("misery", built.sim.leader_misery(p)),
+        ("pop_issues", built.sim.leader_pop_issues(p)),
         ("city_name", built.sim.leader_city_name(p)),
     ] {
         out.push((k.to_string(), i64::from(v)));
@@ -3395,7 +3392,8 @@ mod tests {
                 "city_name",
                 "handicap",
                 "misery",
-                "multi_diff"
+                "multi_diff",
+                "pop_issues"
             ],
             "the census leaves rows compares"
         );
