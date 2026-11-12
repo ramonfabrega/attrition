@@ -3,7 +3,10 @@
 //! Trace Event Format — the JSON array Chrome's `about:tracing` and
 //! Perfetto open as they stand — so the whole flow can be looked at in a
 //! tool nobody here wrote, and the clock is read from the file
-//! ([`Clock::read`]) rather than from a stopwatch beside it.
+//! ([`Clock::read`], `render::clock`) rather than from a stopwatch beside
+//! it. A drawn frame's phases — `step`, `scene`, `ground`, `gpu`, `wait` —
+//! are spans nested inside its `frame` span, so the slowest frame is read
+//! with its cause.
 //!
 //! Three kinds of event are written:
 //! - a **span** (`"ph":"X"`, with `dur`) for each phase and each drawn frame;
@@ -154,66 +157,9 @@ fn json_string(s: &str) -> String {
     o
 }
 
-/// **The clock, read from a session trace** (entry 114 §4's readings).
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Clock {
-    /// Launch to the `frame zero` mark: the install read, the captures'
-    /// setup blocks read and the `Sim` built.
-    pub to_frame_zero_ms: f64,
-    /// Launch to the `first pixels` mark: the first frame presented.
-    pub to_first_pixels_ms: f64,
-    /// The drawn frames' spans: how many, and the 99th percentile and the
-    /// slowest, in milliseconds.
-    pub frames: usize,
-    pub p99_frame_ms: f64,
-    pub max_frame_ms: f64,
-    /// The largest resident-set sample, KiB.
-    pub peak_rss_kib: u64,
-}
-
-impl Clock {
-    /// Read the clock off a trace this module wrote. It parses only the
-    /// shapes [`Session::finish`] writes, one event a line.
-    pub fn read(text: &str) -> Option<Clock> {
-        let field = |line: &str, key: &str| -> Option<f64> {
-            let at = line.find(&format!("\"{key}\":"))? + key.len() + 3;
-            let rest = &line[at..];
-            let end = rest
-                .find(|c: char| !(c.is_ascii_digit() || c == '.' || c == '-'))
-                .unwrap_or(rest.len());
-            rest[..end].parse().ok()
-        };
-        let (mut zero, mut first) = (None, None);
-        let mut frames: Vec<f64> = Vec::new();
-        let mut peak = 0u64;
-        for line in text.lines() {
-            if line.contains(r#""name":"frame zero""#) {
-                zero = field(line, "ts");
-            } else if line.contains(r#""name":"first pixels""#) {
-                first = field(line, "ts");
-            } else if line.contains(r#""name":"frame""#) && line.contains(r#""ph":"X""#) {
-                frames.extend(field(line, "dur"));
-            } else if line.contains(r#""name":"rss_kib""#) {
-                peak = peak.max(field(line, "rss_kib")? as u64);
-            }
-        }
-        frames.sort_by(f64::total_cmp);
-        let pct = |p: f64| {
-            frames
-                .get(((frames.len() as f64 * p).ceil() as usize).saturating_sub(1))
-                .copied()
-                .unwrap_or(0.0)
-        };
-        Some(Clock {
-            to_frame_zero_ms: zero? / 1000.0,
-            to_first_pixels_ms: first.unwrap_or(0.0) / 1000.0,
-            frames: frames.len(),
-            p99_frame_ms: pct(0.99) / 1000.0,
-            max_frame_ms: frames.last().copied().unwrap_or(0.0) / 1000.0,
-            peak_rss_kib: peak,
-        })
-    }
-}
+/// The clock a trace holds: `render::clock`'s reader, which the queue's
+/// `Clock:` line and the ceilings' test share (item 4161).
+pub use render::clock::Clock;
 
 #[cfg(test)]
 mod tests {
