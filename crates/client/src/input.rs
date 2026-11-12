@@ -12,7 +12,11 @@
 //!   the pixel, within [`PICK_RADIUS`]; a press on nothing clears the
 //!   selection. A press while a building is chosen places it instead.
 //! - **A right press** on the ground, with units selected, moves them: a
-//!   `move_to` with the right-click's fields the script carries.
+//!   `move_to` with the right-click's fields the script carries. On an
+//!   object it gives what `Console::execute_at_cursor` issues there
+//!   ([`Input::on_object`], item 4179, `docs/CLIENT_INPUT.md` §6): help to
+//!   build one's own site, gather at one's own camp with room, repair, or
+//!   attack another slot's object.
 //! - **A key** with a building selected trains the unit [`TRAIN_KEYS`]
 //!   binds it to; with units selected it chooses the building
 //!   [`BUILD_KEYS`] binds, which the next press places.
