@@ -2124,9 +2124,7 @@ corners.*
     the run never plays.
 
 *What M is not yet:*
-- ~~one pair;~~ one pair in register. Item 4166 (§3.13) reads K of M on
-  110 lobbies' dumped frames, with condition 2 on the closing block's
-  pieces rather than on pixels: 83 of 110 whole;
+- one pair;
 - figures of units on the map only. Five garrisoned figures fall outside it;
 - ~~no building's own `gpiece` in the scene.~~ Since item 4035 the draw
   list carries one, resolved in `rondata` from what the door carries, and
