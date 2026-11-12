@@ -211,7 +211,11 @@ fn fs_patch(i: VOut) -> @location(0) vec4<f32> {
 // Item 4141 (`docs/RENDERER.md` §3.10): one layer of a mountain's own draw,
 // `MountainsOut::mountain_blend` — stage 0 the tileset's texture (MODULATE
 // with the vertex white, A its own); stage 1 the range's alpha, ADDSIGNED
-// on the colour and MODULATE on A; the alpha test GREATER 0.
+// on the colour and MODULATE on A; the alpha test GREATER 0. Items 4172,
+// 4171: ADDSIGNED is run on the stored bytes, as the card's stage and
+// `MountainArt::over` run it — on the plain `Unorm` textures and targets
+// (`Gpu::texel_format`) a sample is its byte over 255, and the sum is stored
+// as it stands.
 @fragment
 fn fs_mountain(i: VOut) -> @location(0) vec4<f32> {
     let t0 = textureSample(tex, samp, i.uv);
@@ -1306,6 +1310,19 @@ mod tests {
             "fn fs_ground(i: VOut) -> @location(0) vec4<f32> {\n    \
              return vec4<f32>(textureSample(tex, samp, i.uv).rgb, 1.0);"
         ));
+    }
+
+    /// Item 4172: the mountain's ADDSIGNED runs on the stored bytes, not
+    /// on the sRGB view's linear samples (the still's body read a third of
+    /// the photograph's brightness with it in linear space). Item 4171: the
+    /// textures and targets are plain `Unorm`, so the sample is the byte and
+    /// the sum is taken as it stands, with no encode or decode around it.
+    #[test]
+    fn the_mountain_adds_on_the_stored_bytes() {
+        assert!(PATCH_SHADER.contains(
+            "return vec4<f32>(clamp(t0.rgb + t1.rgb - vec3<f32>(0.5), vec3<f32>(0.0), vec3<f32>(1.0)), a);"
+        ));
+        assert!(!PATCH_SHADER.contains("encoded("));
     }
 
     #[test]

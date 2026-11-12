@@ -520,6 +520,38 @@ pub enum Colouring {
     /// sprite's own pixel (item 4103, `render::silhouette::
     /// silhouette_blend`): the client's draw.
     Silhouette,
+    /// As `Silhouette`, and every textured mesh pixel not behind under
+    /// item 4114's candidate, `render::silhouette::lit_pipeline` at the
+    /// clamp, by its face's N·L against −`cur_dir` (item 4172).
+    Lit,
+}
+
+/// **L = −`cur_dir`**, the figures' light as items 4106 and 4114 read it.
+#[cfg(test)]
+pub const FIGURE_LIGHT: [f32; 3] = [
+    std::f32::consts::FRAC_1_SQRT_2,
+    0.0,
+    std::f32::consts::FRAC_1_SQRT_2,
+];
+
+/// A triangle's face normal against [`FIGURE_LIGHT`], `(b − a) × (c − a)`
+/// as item 4114 took it; 0 on a degenerate face.
+#[cfg(test)]
+pub fn face_n_dot_l(tri: &[[f32; 3]; 3]) -> f32 {
+    let (a, b, c) = (tri[0], tri[1], tri[2]);
+    let u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+    let v = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+    let n = [
+        u[1] * v[2] - u[2] * v[1],
+        u[2] * v[0] - u[0] * v[2],
+        u[0] * v[1] - u[1] * v[0],
+    ];
+    let len = (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).sqrt();
+    if len == 0.0 {
+        0.0
+    } else {
+        (n[0] * FIGURE_LIGHT[0] + n[1] * FIGURE_LIGHT[1] + n[2] * FIGURE_LIGHT[2]) / len
+    }
 }
 
 /// The nearer object's own colour over `window` (item 4103): a tree's
@@ -569,11 +601,24 @@ pub fn painted_scene(
     colouring: Colouring,
 ) -> Vec<Option<render::silhouette::Texel>> {
     let mut ours = painted(world, scene, camera, size, key, window, colouring);
-    if colouring != Colouring::Silhouette {
+    if !matches!(colouring, Colouring::Silhouette | Colouring::Lit) {
         return ours;
     }
     let owner = render::silhouette::team_unit(scene.who[key as usize - 1].0);
     let ww = (window.x1 - window.x0) as usize;
+    // Item 4172: the lit candidate on every textured mesh pixel, before
+    // the silhouette's pass lays its own over the pixels behind.
+    if colouring == Colouring::Lit
+        && let Some(d) = scene.drawings.get(key as usize - 1)
+        && !d.uvs.is_empty()
+        && world.figure_texture(d.piece).is_some()
+    {
+        for t in ours.iter_mut().flatten() {
+            if let Some(tri) = d.tris.get(t.tri as usize) {
+                t.rgb = render::silhouette::lit_pipeline(t.rgb, face_n_dot_l(tri));
+            }
+        }
+    }
     let mut near: std::collections::BTreeMap<u32, Vec<Option<render::silhouette::Texel>>> =
         Default::default();
     for y in window.y0..window.y1 {
@@ -617,7 +662,10 @@ pub fn painted(
             tris: d.tris.clone(),
         };
         let tint = crate::world::tint(d.who, d.building).map(|v| (v * 255.0).round() as u8);
-        let team = matches!(colouring, Colouring::Team | Colouring::Silhouette);
+        let team = matches!(
+            colouring,
+            Colouring::Team | Colouring::Silhouette | Colouring::Lit
+        );
         let mips = (colouring != Colouring::Tint && !d.uvs.is_empty())
             .then(|| world.figure_texture(d.piece))
             .flatten();
@@ -2143,6 +2191,139 @@ mod tests {
         };
         assert_eq!(figures_in(&tint), 0, "the tint reads every figure out");
         assert!(figures_in(&tex) > figures_in(&tint), "the texture is read");
+        world.blend = crate::world::Blend::Current;
+    }
+
+    /// **The figures' brightness** (item 4172; `docs/RENDERER.md` §3.14,
+    /// "On brightness", committed before this count): the colour
+    /// row's objects on the luminance reader, as drawn (`Silhouette`) and
+    /// under item 4114's candidate (`Lit`), each beside its colour row;
+    /// run1441's camera made to fail. Each object's value diff: both means
+    /// against the photograph's.
+    #[test]
+    fn the_figures_brightness_on_the_photograph() {
+        use render::silhouette::{HUE, LUMA_READER};
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        let mut elsewhere = camera;
+        (elsewhere.loc_x, elsewhere.loc_y) = (3168.0, 29744.68);
+        world.run_to(PHOTO_FRAME);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let drawn = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Silhouette);
+        let lit = colour_rows(&mut world, &camera, &photo, &TRACED, Colouring::Lit);
+        let off = colour_rows(
+            &mut world,
+            &elsewhere,
+            &photo,
+            &TRACED,
+            Colouring::Silhouette,
+        );
+        type Rows = [(Footprint, render::silhouette::Colours, Who)];
+        let colour = |rows: &Rows| {
+            (
+                rows.iter().filter(|(_, c, _)| c.passes(&HUE)).count(),
+                rows.len(),
+            )
+        };
+        let luma = |rows: &Rows| {
+            (
+                rows.iter()
+                    .filter(|(_, c, _)| c.luma_passes(&LUMA_READER))
+                    .count(),
+                rows.len(),
+            )
+        };
+        let (mut sum_d, mut sum_l, mut sum_t) = (0f32, 0f32, 0f32);
+        for ((_, d, (who, o, piece, building)), (_, l, _)) in drawn.iter().zip(&lit) {
+            let ([yd, yt], [yl, _]) = (d.luma_means(), l.luma_means());
+            println!(
+                "{who}/{o} piece {piece}{}: held {} | the photograph Y {yt:.1} | drawn Y {yd:.1} ({:.2}) {} colour {} | lit Y {yl:.1} ({:.2}) {} colour {}",
+                if *building { " building" } else { "" },
+                d.held,
+                yd / yt.max(1.0),
+                if d.luma_passes(&LUMA_READER) {
+                    "in"
+                } else {
+                    "out"
+                },
+                if d.passes(&HUE) { "in" } else { "out" },
+                yl / yt.max(1.0),
+                if l.luma_passes(&LUMA_READER) {
+                    "in"
+                } else {
+                    "out"
+                },
+                if l.passes(&HUE) { "in" } else { "out" },
+            );
+            if !*building {
+                let n = d.held as f32;
+                sum_d += yd * n;
+                sum_l += yl * n;
+                sum_t += yt * n;
+            }
+        }
+        let n: f32 = drawn
+            .iter()
+            .filter(|(_, _, w)| !w.3)
+            .map(|(_, c, _)| c.held as f32)
+            .sum();
+        println!(
+            "the figures, pixel-weighted: the photograph Y {:.1}, drawn {:.1}, lit {:.1}",
+            sum_t / n,
+            sum_d / n,
+            sum_l / n
+        );
+        let (dc, dl, lc, ll, ol) = (
+            colour(&drawn),
+            luma(&drawn),
+            colour(&lit),
+            luma(&lit),
+            luma(&off),
+        );
+        println!(
+            "RUN1559B_3279_LUMA: drawn {dl:?} (colour {dc:?}); lit {ll:?} (colour {lc:?}); run1441's camera {ol:?}"
+        );
+        use render::silhouette as s;
+        assert_eq!(dc, s::RUN1559B_3279_COLOUR, "the drawn colour row");
+        assert_eq!(dl, s::RUN1559B_3279_LUMA);
+        assert_eq!(ll, s::RUN1559B_3279_LUMA_LIT);
+        assert_eq!(lc, s::RUN1559B_3279_COLOUR_LIT);
+        assert_eq!(ol, s::RUN1441_CAMERA_3279_LUMA);
+        // The rule (committed before the count): the winner on brightness
+        // is drawn when its colour row is not under 18. The candidate wins
+        // and falls under it, so the drawn stays.
+        assert!(ll.0 > dl.0, "the candidate wins on brightness");
+        assert!(lc.0 < 18, "and its colour row is under 18: not drawn");
+        // The reader can fail where the colour reader cannot: the drawn
+        // colours under a white light half again as strong.
+        let brighter = drawn
+            .iter()
+            .filter(|(_, c, _)| {
+                render::silhouette::Colours {
+                    luma: [c.luma[0] * 1.5, c.luma[1]],
+                    ..*c
+                }
+                .luma_passes(&LUMA_READER)
+            })
+            .count();
+        println!("drawn under a light 1.5 times as strong: {brighter} of 33");
+        assert!(brighter * 2 < dl.0, "a white light moves the row");
         world.blend = crate::world::Blend::Current;
     }
 
